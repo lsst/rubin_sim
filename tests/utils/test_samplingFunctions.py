@@ -95,7 +95,7 @@ class SamplingTests(unittest.TestCase):
         normval = np.sum(area) * binsize[0]
 
         theta_samps = np.radians(self.dense_samples[1])
-        binnedvals = np.histogram(theta_samps, bins=tvals[:-1], normed=True)[0]
+        binnedvals = np.histogram(theta_samps, bins=tvals[:-1], density=True)[0]
         resids = area[:-2] / normval - binnedvals
 
         fiveSigma = np.sqrt(binnedvals) * 5.0

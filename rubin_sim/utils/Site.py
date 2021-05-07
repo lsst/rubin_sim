@@ -128,7 +128,7 @@ class Site (object):
 
         default_params = None
         self._name = name
-        if self._name is 'LSST':
+        if self._name == 'LSST':
             default_params = LSST_site_parameters()
 
         if default_params is not None:

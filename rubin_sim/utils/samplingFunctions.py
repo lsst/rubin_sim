@@ -8,8 +8,8 @@ def spatiallySample_obsmetadata(obsmetadata, size=1, seed=1):
     """
     Sample a square patch on the sphere overlapping obsmetadata
     field of view by picking the area enclosed in
-    obsmetadata.pointingRA \pm obsmetadata.boundLength
-    obsmetadata.pointingDec \pm obsmetadata.boundLength
+    obsmetadata.pointingRA pm obsmetadata.boundLength
+    obsmetadata.pointingDec pm obsmetadata.boundLength
 
     Parameters
     ----------
@@ -57,8 +57,8 @@ def uniformSphere(npoints, seed=42):
 
 def samplePatchOnSphere(phi, theta, delta, size, seed=1):
     """
-    Uniformly distributes samples on a patch on a sphere between phi \pm delta,
-    and theta \pm delta on a sphere. Uniform distribution implies that the
+    Uniformly distributes samples on a patch on a sphere between phi pm delta,
+    and theta pm delta on a sphere. Uniform distribution implies that the
     number of points in a patch of sphere is proportional to the area of the
     patch. Here, the coordinate system is the usual
     spherical coordinate system but with the azimuthal angle theta going from
