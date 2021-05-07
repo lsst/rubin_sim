@@ -19,3 +19,4 @@ from .ZernikeModule import *
 from .approxCoordTransforms import *
 from .binnedStats import *
 from .sysEngVals import *
+from .getPackageDir import *

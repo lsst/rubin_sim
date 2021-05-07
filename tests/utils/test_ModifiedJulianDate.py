@@ -5,12 +5,8 @@ import numpy as np
 import os
 import copy
 import inspect
-from rubin_sim.utils import ModifiedJulianDate, UTCtoUT1Warning
+from rubin_sim.utils import ModifiedJulianDate, UTCtoUT1Warning, getPackageDir
 import rubin_sim
-
-
-def getPackageDir(package):
-    return os.path.dirname(os.path.dirname(inspect.getfile(package)))
 
 
 class MjdTest(unittest.TestCase):

@@ -10,16 +10,13 @@ from rubin_sim.utils.htmModule import _findHtmid_fast
 from rubin_sim.utils.htmModule import _findHtmid_slow
 
 import numpy as np
-import os, inspect
+import os
 import numbers
 
 from rubin_sim.utils import sphericalFromCartesian, cartesianFromSpherical
 from rubin_sim.utils import rotAboutY, rotAboutX, rotAboutZ
-from rubin_sim.utils import angularSeparation, _angularSeparation
+from rubin_sim.utils import angularSeparation, _angularSeparation, getPackageDir
 import rubin_sim
-
-def getPackageDir(package):
-    return os.path.dirname(os.path.dirname(inspect.getfile(package)))
 
 
 def trixel_intersects_half_space(trix, hspace):

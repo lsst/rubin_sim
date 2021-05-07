@@ -19,7 +19,6 @@ def get_data_dir():
 
     # Set the root data directory
     if data_dir is None:
-        warnings.warn('No RUBIN_SIM_DATA_DIR env variable, using $HOME/rubin_sim_data')
         data_dir = os.path.join(os.getenv('HOME'), 'rubin_sim_data')
     return data_dir
 

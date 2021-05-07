@@ -253,7 +253,7 @@ class BoxBounds(SpatialBounds):
                     lengthRAdeg = np.degrees(length[0])
                     lengthDECdeg = np.degrees(length[1])
             else:
-                length = np.float(length)
+                length = float(length)
                 lengthRAdeg = np.degrees(length)
                 lengthDECdeg = np.degrees(length)
 
