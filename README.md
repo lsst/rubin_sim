@@ -5,6 +5,7 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 
 # Installation
 
+Prerequisites:  A working [conda installation ](https://www.anaconda.com/products/individual)
 
 Set up a conda envoronment and install rubin_sim from source in development mode:
 ```
@@ -14,19 +15,26 @@ pip install pyephem
 git clone git@github.com:lsst/rubin_sim.git
 cd rubin_sim
 pip install -e .
+rs_download_data
 ```
-XXX--next up, downloading the data files. Waiting for NCSA rsync to be up.
-
+XXX--rs_download_data in progress
 
 Future fast user install should look like:
 ```
 conda create -n rubin rubin_sim
 conda activate rubin
-download_rubin_data # maybe some flags for all the data, or just the most common
+rs_download_data 
 ```
 
+Optional dowload all the pre-computed sky data:
+```
+XXX--todo
+```
 
 # Developer Guide
 
 For unit tests, all filename should start with `test_` so py.test can automatically find them.
 
+XXX--need to put instructions for updating the data sets on NCSA. 
+
+XXX--to make changes to the code, checkout a new branch, make edits, push, make a PR.

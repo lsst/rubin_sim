@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+from rubin_sim.data import get_data_dir
+from shutil import unpack_archive
+import os
+import warnings
+import requests
+
+
+def data_dict():
+    file_dict = {'throughputs': 'thoughputs_may_2021.tgz',
+                 'site_models': 'site_models_may_2021.tgz',
+                 'skybrightness': 'skybrightness_may_2021.tgz'}
+    return file_dict
+
+
+if __name__ == '__main__':
+
+    url_base = 'https://lsst.ncsa.illinois.edu/sim-data/rubin_sim_data'
+    data_dir = get_data_dir()
+    files = data_dict()
+
+    for key in files:
+        filename = files[key]
+        path = os.path.join(data_dir, key)
+        if os.path.isdir(path):
+            warnings.warn('directory %s already exists, skipping download' % path)
+        else:
+            # Download file
+            url = url_base + filename
+            r = requests.get(url)
+            with open(os.path.join(data_dir, filename), 'wb') as f:
+                f.write(r.content)
+            # untar in place
+            unpack_archive(os.path.join(data_dir, filename), data_dir)
