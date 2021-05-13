@@ -25,14 +25,12 @@ class SeeingModel(object):
         self.filter_list = filter_list
         if eff_wavelens is None:
             fdir = os.path.join(get_data_dir(), 'throughputs/baseline')
-            effwavelens = []
+            eff_wavelens = []
             for f in filter_list:
                 bp = Bandpass()
                 bp.readThroughput(os.path.join(fdir, 'total_' + f + '.dat'))
-                effwavelens.append(bp.calcEffWavelen()[1])
-        else:
-            self.eff_wavelens = eff_wavelens
-
+                eff_wavelens.append(bp.calcEffWavelen()[1])
+        self.eff_wavelens = np.array(eff_wavelens)
         self.telescope_seeing = telescope_seeing
         self.optical_design_seeing = optical_design_seeing
         self.raw_seeing_wavelength = raw_seeing_wavelength

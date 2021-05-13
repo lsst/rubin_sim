@@ -491,8 +491,8 @@ class ZernikeSky:
             # From eqn 2 of Thibos et al. (2002)
             coeff = (((-1) ** k) * factorial(n - k)) / (
                 factorial(k)
-                * factorial((n + m) / 2 - k)
-                * factorial((n - m) / 2 - k)
+                * factorial(int((n + m) / 2 - k))
+                * factorial(int((n - m) / 2 - k))
             )
             assert coeff == int(coeff)
             coeff = int(coeff)

@@ -31,7 +31,7 @@ class TestZenikeFitDrivers(unittest.TestCase):
         self.assertGreater(zernike_coeffs.shape[1], 20)
         self.assertEqual(tuple(zernike_coeffs.index.names), ("band", "mjd"))
 
-    #    @unittest.skip("skipping test_bulk_zernike_fit")
+    # @unittest.skip("skipping because slow")
     def test_bulk_zernike_fit(self):
         test_out_dir = TemporaryDirectory()
         out_fname = os.path.join(test_out_dir.name, "bulk_zern_fit.h5")
@@ -53,7 +53,7 @@ class TestZernikeSky(unittest.TestCase):
         self.cut_pre_data_dir = os.path.join(get_data_dir(), "tests")
         self.fname = os.path.join(self.cut_pre_data_dir, "zernsky.h5")
 
-    #    @unittest.skip("skipping test_compute_sky")
+    @unittest.skip("skipping because slow")
     def test_compute_sky(self):
         zsky = zernike.ZernikeSky()
         zsky.load_coeffs(self.fname, "i")
@@ -104,6 +104,7 @@ class TestSkyModelZernike(unittest.TestCase):
         self.cut_pre_data_dir = os.path.join(get_data_dir(), "tests")
         self.fname = os.path.join(self.cut_pre_data_dir, "zernsky.h5")
 
+    @unittest.skip("skipping because slow")
     def test_getMags(self):
         mjd = 59823.97
         sky_model_zern = zernike.SkyModelZernike(data_file=self.fname)
@@ -119,7 +120,7 @@ class TestSkyModelZernike(unittest.TestCase):
             self.assertGreater(np.count_nonzero(notnan) / npix, 0.2)
             self.assertLess(sky[band][notnan].max(), 20)
             self.assertGreater(sky[band][notnan].min(), 8)
-
+    @unittest.skip("skipping because slow")
     def test_getMags_day(self):
         mjd = 59824.8
         sky_model_zern = zernike.SkyModelZernike(data_file=self.fname)

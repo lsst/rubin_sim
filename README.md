@@ -12,11 +12,9 @@ Optional: Set data directory. By default, rubin_sim will look to and download ex
 
 Set up a conda envoronment and install rubin_sim from source in development mode:
 ```
-conda create -n rubin scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables`
+conda create -n rubin -c conda-forge scikit-learn scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables`
 conda activate rubin
 pip install pyephem
-conda install -c conda-forge numexpr
-conda install -c conda-forge scikit-learn 
 git clone git@github.com:lsst/rubin_sim.git
 cd rubin_sim
 pip install -e .

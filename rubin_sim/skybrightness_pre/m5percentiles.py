@@ -21,8 +21,8 @@ class M5percentiles(object):
     def __init__(self):
 
         # Load up the saved maps
-        path = os.path.join(get_data_dir(), 'sims_skybrightness_pre')
-        filename = 'data/percentile_m5_maps.npz'
+        path = os.path.join(get_data_dir(), 'skybrightness_pre/percentile')
+        filename = 'percentile_m5_maps.npz'
         temp = np.load(os.path.join(path, filename))
         self.m5_histograms = temp['histograms'].copy().T
         self.histogram_npts = temp['histogram_npts'].copy()
