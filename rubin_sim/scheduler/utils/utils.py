@@ -311,7 +311,7 @@ class schema_converter(object):
 
         if filename is not None:
             con = db.connect(filename)
-            df.to_sql('SummaryAllProps', con, index=False)
+            df.to_sql('observations', con, index=False)
             if info is not None:
                 df = pd.DataFrame(info)
                 df.to_sql('info', con)
@@ -321,7 +321,7 @@ class schema_converter(object):
         """
 
         con = db.connect(filename)
-        df = pd.read_sql('select * from SummaryAllProps;', con)
+        df = pd.read_sql('select * from observations;', con)
         for key in self.angles_rad2deg:
             df[key] = np.radians(df[key])
         for key in self.angles_hours2deg:

@@ -1,0 +1,28 @@
+{% extends "master.html" %}
+
+{% set active_page = "configs" %}
+
+{% set run = runlist.getRun(runId) %}
+
+{% block moresidebar %}
+<ul>
+<li> <a href="#configSummary">Config Summary</a></li>
+<li><a href="#configDetails">Config Details</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+
+<p>
+<h2><a name="configSummary">OpSim Configuration Summary</a></h2>
+<object width=600px height=700px type="text/plain" data="{{ run.configSummary }}" border="0" >
+</object>
+</p>
+
+<p>
+<h2><a name="configDetails">OpSim Configuration Details</a></h2>
+<object width=800px height=700px type="text/plain" data="{{ run.configDetails }}" border="0" >
+</object>
+</p>
+ 
+{% endblock %}

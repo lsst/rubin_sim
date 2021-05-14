@@ -1,0 +1,50 @@
+{% extends "master.html" %}
+{% import 'macros.html' as mcr %}
+
+{% set active_page = "stats" %}
+
+{% set run = runlist.getRun(runId) %}
+
+{% block moresidebar %}
+<ul>
+{% for group in run.groups.keys() %}
+    <li>
+    <a href="#{{group}}">{{group}}</a>
+  {% for subgroup in run.groups[group] %}
+    {% set metrics = run.metricsInSubgroup(group, subgroup) %}
+    {% set statNames = run.allStatNames(metrics) %}
+    {% if statNames|length > 0 %}
+        <div id='smallindent'><a href="#{{group}}_{{subgroup}}">{{subgroup}}</a></div>
+    {% endif %}
+  {% endfor %}
+    </li>
+{% endfor %}
+</ul>
+{% endblock %}
+
+
+{% block content %}
+
+<p>
+{% set resultsDb = run.getResultsDb() %}
+Download <a href="{{resultsDb}}" download>summary results sqlite file</a>
+</p>
+
+{% for group in run.groups.keys() %}
+   {% set groupstart = True %}
+   {% for subgroup in run.groups[group] %}
+       {# Identify the metrics to put into table #}
+       {% set metrics = run.metricsInSubgroup(group, subgroup) %}
+
+       {# add an anchor if it's the start of a group #}
+       {% if groupstart %}
+          <a name="{{group}}"></a>
+          {% set groupstart = False %}
+       {% endif %}
+
+       {{ mcr.MakeStatTable(metrics, group, subgroup, run) }}
+
+    {% endfor %}
+ {% endfor %}  {# end of group/subgroup #}
+
+{% endblock %}
