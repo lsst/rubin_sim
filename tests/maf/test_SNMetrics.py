@@ -6,6 +6,7 @@ from rubin_sim.maf.metrics import SNCadenceMetric
 from rubin_sim.maf.metrics import SNSNRMetric
 from rubin_sim.maf.metrics import SNSLMetric
 from rubin_sim.maf.metrics import SNNSNMetric
+from rubin_sim.data import get_data_dir
 
 import os
 import warnings
@@ -141,7 +142,7 @@ class TestSNmetrics(unittest.TestCase):
         """Test the SN cadence metric """
 
         # Load up the files from sims_maf_contrib if possible
-        sims_maf_contrib_dir = os.getenv("SIMS_MAF_CONTRIB_DIR")
+        sims_maf_contrib_dir = os.path.join(get_data_dir(), 'maf')
         if sims_maf_contrib_dir is not None:
             # Load required SN info to run the metric
             band = 'r'
@@ -149,9 +150,9 @@ class TestSNmetrics(unittest.TestCase):
             mag_range = [21., 25.5]  # WFD mag range
             dt_range = [0.5, 30.]  # WFD dt range
             Li_files = [os.path.join(
-                sims_maf_contrib_dir, 'data', 'Li_SNCosmo_-2.0_0.2.npy')]
+                sims_maf_contrib_dir, 'Li_SNCosmo_-2.0_0.2.npy')]
             mag_to_flux_files = [os.path.join(
-                sims_maf_contrib_dir, 'data', 'Mag_to_Flux_SNCosmo.npy')]
+                sims_maf_contrib_dir, 'Mag_to_Flux_SNCosmo.npy')]
             lim_sn = Lims(Li_files, mag_to_flux_files, band, SNR[band],
                           mag_range=mag_range, dt_range=dt_range)
 
@@ -189,21 +190,21 @@ class TestSNmetrics(unittest.TestCase):
             assert(np.abs(result-result_ref) < 1.e-5)
         else:
             warnings.warn(
-                "skipping SN test because no SIMS_MAF_CONTRIB_DIR set")
+                "skipping SN test because no rubin_sim_data set")
 
     def testSNSNRMetric(self):
         """Test the SN SNR metric """
 
-        sims_maf_contrib_dir = os.getenv("SIMS_MAF_CONTRIB_DIR")
+        sims_maf_contrib_dir = os.path.join(get_data_dir(), 'maf')
         if sims_maf_contrib_dir is not None:
             # Load required SN info to run the metric
             band = 'r'
             z = 0.3
             season = 1.
             Li_files = [os.path.join(
-                sims_maf_contrib_dir, 'data', 'Li_SNCosmo_-2.0_0.2.npy')]
+                sims_maf_contrib_dir, 'Li_SNCosmo_-2.0_0.2.npy')]
             mag_to_flux_files = [os.path.join(
-                sims_maf_contrib_dir, 'data', 'Mag_to_Flux_SNCosmo.npy')]
+                sims_maf_contrib_dir, 'Mag_to_Flux_SNCosmo.npy')]
 
             names_ref = ['SNCosmo']
             coadd = False
@@ -249,7 +250,7 @@ class TestSNmetrics(unittest.TestCase):
             assert(np.abs(result-result_ref) < 1.e-5)
         else:
             warnings.warn(
-                "skipping SN test because no SIMS_MAF_CONTRIB_DIR set")
+                "skipping SN test because no rubin_sim_data set")
 
     def testSNSLMetric(self):
         """Test the SN SL metric """
@@ -283,7 +284,7 @@ class TestSNmetrics(unittest.TestCase):
 
     def testNSNMetric(self):
         """ Test the SN NSN metric """
-        sims_maf_contrib_dir = os.getenv("SIMS_MAF_CONTRIB_DIR")
+        sims_maf_contrib_dir = os.path.join(get_data_dir(), 'maf')
         if sims_maf_contrib_dir is not None:
 
             day0 = 59000
@@ -323,7 +324,7 @@ class TestSNmetrics(unittest.TestCase):
             assert(np.isclose(zlim, zlim_ref))
         else:
             warnings.warn(
-                "skipping SN test because no SIMS_MAF_CONTRIB_DIR set")
+                "skipping SN test because no rubin_sim_data set")
 
 
 if __name__ == "__main__":

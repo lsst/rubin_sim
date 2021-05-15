@@ -72,24 +72,18 @@ class HealpixSlicer(BaseSpatialSlicer):
         Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
-    mjdColName : str, optional
-        Name of the exposure time column. Only used if useCamera is True.
-        Default observationStartMJD.
-    chipNames : array-like, optional
-        List of chips to accept, if useCamera is True. This lets users turn 'on' only a subset of chips.
-        Default 'all' - this uses all chips in the camera.
     """
     def __init__(self, nside=128, lonCol ='fieldRA',
                  latCol='fieldDec', latLonDeg=True, verbose=True, badval=hp.UNSEEN,
                  useCache=True, leafsize=100, radius=1.75,
                  useCamera=False, rotSkyPosColName='rotSkyPos',
-                 mjdColName='observationStartMJD', chipNames='all'):
+                 chipNames='all'):
         """Instantiate and set up healpix slicer object."""
         super(HealpixSlicer, self).__init__(verbose=verbose,
                                             lonCol=lonCol, latCol=latCol,
                                             badval=badval, radius=radius, leafsize=leafsize,
                                             useCamera=useCamera, rotSkyPosColName=rotSkyPosColName,
-                                            mjdColName=mjdColName, chipNames=chipNames, latLonDeg=latLonDeg)
+                                            latLonDeg=latLonDeg)
         # Valid values of nside are powers of 2.
         # nside=64 gives about 1 deg resolution
         # nside=256 gives about 13' resolution (~1 CCD)
@@ -130,11 +124,10 @@ class HealpixSlicer(BaseSpatialSlicer):
                 if (otherSlicer.lonCol == self.lonCol and otherSlicer.latCol == self.latCol):
                     if otherSlicer.radius == self.radius:
                         if otherSlicer.useCamera == self.useCamera:
-                            if otherSlicer.chipsToUse == self.chipsToUse:
-                                if otherSlicer.rotSkyPosColName == self.rotSkyPosColName:
-                                    if np.all(otherSlicer.shape == self.shape):
-                                        if otherSlicer.useCache == self.useCache:
-                                            result = True
+                            if otherSlicer.rotSkyPosColName == self.rotSkyPosColName:
+                                if np.all(otherSlicer.shape == self.shape):
+                                    if otherSlicer.useCache == self.useCache:
+                                        result = True
         return result
 
     def _pix2radec(self, islice):

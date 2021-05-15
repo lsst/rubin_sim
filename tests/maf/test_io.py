@@ -5,6 +5,7 @@ matplotlib.use("Agg")
 import healpy as hp
 import unittest
 import rubin_sim.maf.slicers as slicers
+from tempfile import TemporaryFile
 
 
 class TestSlicers(unittest.TestCase):
@@ -21,9 +22,10 @@ class TestSlicers(unittest.TestCase):
         metricValues = ma.MaskedArray(data=metricValues,
                                       mask=np.where(metricValues < .1, True, False),
                                       fill_value=slicer.badval)
-        with lsst.utils.tests.getTempFilePath('.npz') as filename:
+        with TemporaryFile() as filename:
             metadata = 'testdata'
             slicer.writeData(filename, metricValues, metadata=metadata)
+            _ = filename.seek(0)
             metricValuesBack, slicerBack, header = self.baseslicer.readData(filename)
             np.testing.assert_almost_equal(metricValuesBack, metricValues)
             assert(slicer == slicerBack)
@@ -37,8 +39,9 @@ class TestSlicers(unittest.TestCase):
         nside = 32
         slicer = slicers.HealpixSlicer(nside=nside)
         metricValues = rng.rand(hp.nside2npix(nside))
-        with lsst.utils.tests.getTempFilePath('.npz') as filename:
+        with TemporaryFile() as filename:
             slicer.writeData(filename, metricValues, metadata='testdata')
+            _ = filename.seek(0)
             metricValuesBack, slicerBack, header = self.baseslicer.readData(filename)
             np.testing.assert_almost_equal(metricValuesBack, metricValues)
             assert(slicer == slicerBack)
@@ -54,8 +57,9 @@ class TestSlicers(unittest.TestCase):
         metricValues = ma.MaskedArray(data=metricValues,
                                       mask=np.where(metricValues < .1, True, False),
                                       fill_value=slicer.badval)
-        with lsst.utils.tests.getTempFilePath('.npz') as filename:
+        with TemporaryFile() as filename:
             slicer.writeData(filename, metricValues, metadata='testdata')
+            _ = filename.seek(0)
             metricValuesBack, slicerBack, header = self.baseslicer.readData(filename)
             np.testing.assert_almost_equal(metricValuesBack, metricValues)
             assert(slicer == slicerBack)
@@ -69,8 +73,9 @@ class TestSlicers(unittest.TestCase):
         dataValues = np.zeros(10000, dtype=[('testdata', 'float')])
         dataValues['testdata'] = rng.rand(10000)
         slicer.setupSlicer(dataValues)
-        with lsst.utils.tests.getTempFilePath('.npz') as filename:
+        with TemporaryFile() as filename:
             slicer.writeData(filename, dataValues[:100])
+            _ = filename.seek(0)
             dataBack, slicerBack, header = self.baseslicer.readData(filename)
             assert(slicer == slicerBack)
             # np.testing.assert_almost_equal(dataBack,dataValues[:100])
@@ -96,8 +101,9 @@ class TestSlicers(unittest.TestCase):
         simData['data1'] = rng.rand(100)
         simData['fieldId'] = np.arange(100)
         slicer.setupSlicer(simData, fieldData)
-        with lsst.utils.tests.getTempFilePath('.npz') as filename:
+        with TemporaryFile() as filename:
             slicer.writeData(filename, metricValues)
+            _ = filename.seek(0)
             metricBack, slicerBack, header = self.baseslicer.readData(filename)
             assert(slicer == slicerBack)
             np.testing.assert_almost_equal(metricBack, metricValues)
@@ -116,9 +122,10 @@ class TestSlicers(unittest.TestCase):
         data = np.zeros(1, dtype=[('testdata', 'float')])
         data[:] = rng.rand(1)
         slicer.setupSlicer(data)
-        with lsst.utils.tests.getTempFilePath('.npz') as filename:
+        with TemporaryFile() as filename:
             metricValue = np.array([25.])
             slicer.writeData(filename, metricValue)
+            _ = filename.seek(0)
             dataBack, slicerBack, header = self.baseslicer.readData(filename)
             assert(slicer == slicerBack)
             np.testing.assert_almost_equal(dataBack, metricValue)
@@ -135,8 +142,9 @@ class TestSlicers(unittest.TestCase):
         for i, ack in enumerate(data):
             n_el = rng.rand(1)*4  # up to 4 elements
             data[i] = np.arange(n_el)
-        with lsst.utils.tests.getTempFilePath('.npz') as filename:
+        with TemporaryFile() as filename:
             slicer.writeData(filename, data)
+            _ = filename.seek(0)
             dataBack, slicerBack, header = self.baseslicer.readData(filename)
             assert(slicer == slicerBack)
             # This is a crazy slow loop!
@@ -152,11 +160,12 @@ class TestSlicers(unittest.TestCase):
         dv = np.core.records.fromarrays(data, names=colnames)
         slicer = slicers.NDSlicer(colnames, binsList=10)
         slicer.setupSlicer(dv)
-        with lsst.utils.tests.getTempFilePath('.npz') as filename:
+        with TemporaryFile() as filename:
             metricdata = np.zeros(slicer.nslice, dtype='float')
             for i, s in enumerate(slicer):
                 metricdata[i] = i
             slicer.writeData(filename, metricdata)
+            _ = filename.seek(0)
             dataBack, slicerBack, header = self.baseslicer.readData(filename)
             assert(slicer == slicerBack)
             np.testing.assert_almost_equal(dataBack, metricdata)

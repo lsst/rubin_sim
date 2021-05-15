@@ -20,3 +20,4 @@ from .approxCoordTransforms import *
 from .binnedStats import *
 from .sysEngVals import *
 from .getPackageDir import *
+from .projections import *

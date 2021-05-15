@@ -13,6 +13,7 @@ import os
 import tempfile
 import shutil
 from rubin_sim.utils.CodeUtilities import sims_clean_up
+from rubin_sim.data import get_data_dir
 
 
 class TestMetricBundle(unittest.TestCase):
@@ -40,7 +41,7 @@ class TestMetricBundle(unittest.TestCase):
         metricB = metricBundles.MetricBundle(metric, slicer, sql,
                                              stackerList=[stacker1, stacker2],
                                              mapsList=[map1, map2])
-        database = os.path.join(getPackageDir('sims_data'), 'OpSimData', 'astro-lsst-01_2014.db')
+        database = os.path.join(get_data_dir(), 'tests', 'example_dbv1.7_0yrs.db')
 
         opsdb = db.OpsimDatabaseV4(database=database)
         resultsDb = db.ResultsDb(outDir=self.outDir)

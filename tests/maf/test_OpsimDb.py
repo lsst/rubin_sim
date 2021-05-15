@@ -6,6 +6,7 @@ import rubin_sim.maf.db as db
 from rubin_sim.utils.CodeUtilities import sims_clean_up
 from rubin_sim.data import get_data_dir
 
+
 class TestOpsimDb(unittest.TestCase):
     """Test opsim specific database class."""
 
@@ -14,9 +15,8 @@ class TestOpsimDb(unittest.TestCase):
         sims_clean_up()
 
     def setUp(self):
-        self.database = os.path.join(get_data_dir(), ('sims_data'), 'OpSimData',
-                                     'astro-lsst-01_2014.db')
-        self.oo = db.OpsimDatabaseV4(database=self.database)
+        self.database = os.path.join(get_data_dir(), 'tests','example_dbv1.7_0yrs.db')
+        self.oo = db.OpsimDatabase(database=self.database)
 
     def tearDown(self):
         del self.oo
@@ -26,57 +26,14 @@ class TestOpsimDb(unittest.TestCase):
     def testOpsimDbSetup(self):
         """Test opsim specific database class setup/instantiation."""
         # Test tables were connected to.
-        self.assertIn('SummaryAllProps', self.oo.tableNames)
-        self.assertEqual(self.oo.defaultTable, 'SummaryAllProps')
+        self.assertIn('observations', self.oo.tableNames)
+        self.assertEqual(self.oo.defaultTable, 'observations')
 
     def testOpsimDbMetricData(self):
         """Test queries for sim data. """
         data = self.oo.fetchMetricData(['seeingFwhmEff', ], 'filter="r" and seeingFwhmEff<1.0')
         self.assertEqual(data.dtype.names, ('seeingFwhmEff',))
         self.assertLessEqual(data['seeingFwhmEff'].max(), 1.0)
-
-    def testOpsimDbPropID(self):
-        """Test queries for prop ID"""
-        propids, propTags = self.oo.fetchPropInfo()
-        self.assertGreater(len(list(propids.keys())), 0)
-        self.assertGreater(len(propTags['WFD']), 0)
-        self.assertGreaterEqual(len(propTags['DD']), 0)
-        for w in propTags['WFD']:
-            self.assertIn(w, propids)
-        for d in propTags['DD']:
-            self.assertIn(d, propids)
-
-    def testOpsimDbFields(self):
-        """Test queries for field data."""
-        # Fetch field data for all fields.
-        dataAll = self.oo.fetchFieldsFromFieldTable()
-        self.assertEqual(dataAll.dtype.names, ('fieldId', 'fieldRA', 'fieldDec'))
-        # Fetch field data for all fields requested by a particular propid.
-        # Need to reinstate this capability.
-
-    def testOpsimDbRunLength(self):
-        """Test query for length of opsim run."""
-        nrun = self.oo.fetchRunLength()
-        self.assertEqual(nrun, 0.04)
-
-    def testOpsimDbSimName(self):
-        """Test query for opsim name."""
-        simname = self.oo.fetchOpsimRunName()
-        self.assertIsInstance(simname, str)
-        self.assertEqual(simname, 'astro-lsst-01_2014')
-
-    def testOpsimDbConfig(self):
-        """Test generation of config data. """
-        configsummary, configdetails = self.oo.fetchConfig()
-        self.assertIsInstance(configsummary, dict)
-        self.assertIsInstance(configdetails, dict)
-        #  self.assertEqual(set(configsummary.keys()), set(['Version', 'RunInfo', 'Proposals', 'keyorder']))
-        propids, proptags = self.oo.fetchPropInfo()
-        propidsSummary = []
-        for propname in configsummary['Proposals']:
-            if propname != 'keyorder':
-                propidsSummary.append(configsummary['Proposals'][propname]['PropId'])
-        self.assertEqual(set(propidsSummary), set(propids))
 
     def testCreateSqlWhere(self):
         """

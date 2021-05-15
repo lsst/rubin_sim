@@ -965,16 +965,16 @@ class Load_Reference:
                  templateDir=None):
 
         if templateDir is None:
-            sims_maf_contrib_dir = os.getenv("SIMS_MAF_CONTRIB_DIR")
-            templateDir = os.path.join(sims_maf_contrib_dir, 'data/SNe_data')
+            sims_maf_contrib_dir = get_data_dir()
+            templateDir = os.path.join(sims_maf_contrib_dir, 'maf/SNe_data')
 
         self.server = server
         # define instrument
         self.Instrument = {}
         self.Instrument['name'] = 'LSST'  # name of the telescope (internal)
         # dir of throughput
-        self.Instrument['throughput_dir'] = os.path.join(getPackageDir('throughputs'), 'baseline')
-        self.Instrument['atmos_dir'] =  os.path.join(getPackageDir('throughputs'), 'atmos')
+        self.Instrument['throughput_dir'] = os.path.join(get_data_dir(), 'throughputs', 'baseline')
+        self.Instrument['atmos_dir'] = os.path.join(get_data_dir(), 'throughputs', 'atmos')
         self.Instrument['airmass'] = 1.2  # airmass value
         self.Instrument['atmos'] = True  # atmos
         self.Instrument['aerosol'] = False  # aerosol

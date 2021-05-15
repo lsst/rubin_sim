@@ -8,13 +8,22 @@ import warnings
 import numpy as np
 from functools import wraps
 from rubin_sim.maf.plots.spatialPlotters import BaseHistogram, BaseSkyMap
-
 import rubin_sim.utils as simsUtils
-
 from .baseSlicer import BaseSlicer
+from rubin_sim.data import get_data_dir
+import os
 
 __all__ = ['BaseSpatialSlicer']
 
+
+def rotate(x, y, rotation_angle_rad):
+    """rotate 2d points around the origin (0,0)
+    """
+    cos_rad = np.cos(rotation_angle_rad)
+    sin_rad = np.sin(rotation_angle_rad)
+    qx = cos_rad * x + sin_rad * y
+    qy = -sin_rad * x + cos_rad * y
+    return qx, qy
 
 class BaseSpatialSlicer(BaseSlicer):
     """Base spatial slicer object, contains additional functionality for spatial slicing,
@@ -48,9 +57,6 @@ class BaseSpatialSlicer(BaseSlicer):
         Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
-    mjdColName : str, optional
-        Name of the exposure time column. Only used if useCamera is True.
-        Default observationStartMJD.
     chipNames : array-like, optional
         List of chips to accept, if useCamera is True. This lets users turn 'on' only a subset of chips.
         Default 'all' - this uses all chips in the camera.
@@ -59,27 +65,22 @@ class BaseSpatialSlicer(BaseSlicer):
     """
     def __init__(self, lonCol='fieldRA', latCol='fieldDec', latLonDeg=True,
                  verbose=True, badval=-666, leafsize=100, radius=1.75,
-                 useCamera=False, rotSkyPosColName='rotSkyPos', mjdColName='observationStartMJD',
-                 chipNames='all', scienceChips=True):
+                 useCamera=False, rotSkyPosColName='rotSkyPos'):
         super(BaseSpatialSlicer, self).__init__(verbose=verbose, badval=badval)
         self.lonCol = lonCol
         self.latCol = latCol
         self.latLonDeg = latLonDeg
         self.rotSkyPosColName = rotSkyPosColName
-        self.mjdColName = mjdColName
         self.columnsNeeded = [lonCol, latCol]
         self.useCamera = useCamera
         if useCamera:
             self.columnsNeeded.append(rotSkyPosColName)
-            self.columnsNeeded.append(mjdColName)
         self.slicer_init = {'lonCol': lonCol, 'latCol': latCol,
                             'radius': radius, 'badval': badval,
                             'useCamera': useCamera}
         self.radius = radius
         self.leafsize = leafsize
         self.useCamera = useCamera
-        self.chipsToUse = chipNames
-        self.scienceChips = scienceChips
         # RA and Dec are required slicePoint info for any spatial slicer. Slicepoint RA/Dec are in radians.
         self.slicePoints['sid'] = None
         self.slicePoints['ra'] = None
@@ -107,14 +108,15 @@ class BaseSpatialSlicer(BaseSlicer):
             self._runMaps(maps)
         self._setRad(self.radius)
         if self.useCamera:
+            self.data_ra = simData[self.lonCol]
+            self.data_dec = simData[self.latCol]
+            self.data_rot = simData[self.rotSkyPosColName]
             self._setupLSSTCamera()
-            self._presliceFootprint(simData)
+        if self.latLonDeg:
+            self._buildTree(np.radians(simData[self.lonCol]),
+                            np.radians(simData[self.latCol]), self.leafsize)
         else:
-            if self.latLonDeg:
-                self._buildTree(np.radians(simData[self.lonCol]),
-                                np.radians(simData[self.latCol]), self.leafsize)
-            else:
-                self._buildTree(simData[self.lonCol], simData[self.latCol], self.leafsize)
+            self._buildTree(simData[self.lonCol], simData[self.latCol], self.leafsize)
 
         @wraps(self._sliceSimData)
         def _sliceSimData(islice):
@@ -123,14 +125,39 @@ class BaseSpatialSlicer(BaseSlicer):
 
             # Build dict for slicePoint info
             slicePoint = {}
-            if self.useCamera:
-                indices = self.sliceLookup[islice]
-                slicePoint['chipNames'] = self.chipNames[islice]
-            else:
-                sx, sy, sz = simsUtils._xyz_from_ra_dec(self.slicePoints['ra'][islice],
-                                                        self.slicePoints['dec'][islice])
-                # Query against tree.
-                indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
+            sx, sy, sz = simsUtils._xyz_from_ra_dec(self.slicePoints['ra'][islice],
+                                                    self.slicePoints['dec'][islice])
+            # Query against tree.
+            indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
+
+            if (self.useCamera) & (len(indices) > 0):
+                plate_scale = self.x_camera[1] - self.x_camera[0]
+                indx_max = len(self.x_camera)
+                if self.latLonDeg:
+                    x_proj, y_proj = simsUtils.gnomonic_project_toxy(self.slicePoints['ra'][islice],
+                                                                     self.slicePoints['dec'][islice],
+                                                                     np.radians(self.data_ra[indices]),
+                                                                     np.radians(self.data_dec[indices]))
+                else:
+                    x_proj, y_proj = simsUtils.gnomonic_project_toxy(self.slicePoints['ra'][islice],
+                                                                     self.slicePoints['dec'][islice],
+                                                                     self.data_ra[indices],
+                                                                     self.data_dec[indices])
+                # rotate them by rotskypos
+                # XXX---of course I have no idea if this should be a positive or
+                # negative rotation. Whatever, the focal plane is pretty symetric, so whatever.
+                x_proj, y_proj = rotate(x_proj, y_proj, self.data_rot[indices])
+                # look up which points are good
+                x_indx = np.round(x_proj/plate_scale + self.x_camera[0]).astype(int)
+                y_indx = np.round(y_proj/plate_scale + self.x_camera[0]).astype(int)
+                in_range = np.where((x_indx >= 0) & (x_indx < indx_max) & (y_indx >= 0) & (y_indx < indx_max))[0]
+                indices = np.array(indices)[in_range]
+                x_indx = x_indx[in_range]
+                y_indx = y_indx[in_range]
+                # reduce the indices down to only the ones that fall on silicon.
+                # self.camera_fov is an array of boolean values
+                map_val = self.camera_fov[x_indx, y_indx]
+                indices = indices[map_val].tolist()
 
             # Loop through all the slicePoint keys. If the first dimension of slicepoint[key] has
             # the same shape as the slicer, assume it is information per slicepoint.
@@ -150,61 +177,11 @@ class BaseSpatialSlicer(BaseSlicer):
 
     def _setupLSSTCamera(self):
         """If we want to include the camera chip gaps, etc"""
-        mapper = LsstCamMapper()
-        self.camera = mapper.camera
-        self.epoch = 2000.0
-
-    def _presliceFootprint(self, simData):
-        """Loop over each pointing and find which sky points are observed """
-        # Now to make a list of lists for looking up the relevant observations at each slicepoint
-        self.sliceLookup = [[] for dummy in range(self.nslice)]
-        self.chipNames = [[] for dummy in range(self.nslice)]
-        # Make a kdtree for the _slicepoints_
-        # Using scipy 0.16 or later
-        self._buildTree(self.slicePoints['ra'], self.slicePoints['dec'], leafsize=self.leafsize)
-
-        # Loop over each unique pointing position
-        if self.latLonDeg:
-            lat = np.radians(simData[self.latCol])
-            lon = np.radians(simData[self.lonCol])
-        else:
-            lat = simData[self.latCol]
-            lon = simData[self.lonCol]
-        for ind, ra, dec, rotSkyPos, mjd in zip(np.arange(simData.size), lon, lat,
-                                                simData[self.rotSkyPosColName], simData[self.mjdColName]):
-            dx, dy, dz = simsUtils._xyz_from_ra_dec(ra, dec)
-            # Find healpixels inside the FoV
-            hpIndices = np.array(self.opsimtree.query_ball_point((dx, dy, dz), self.rad))
-            if hpIndices.size > 0:
-                obs_metadata = simsUtils.ObservationMetaData(pointingRA=np.degrees(ra),
-                                                             pointingDec=np.degrees(dec),
-                                                             rotSkyPos=np.degrees(rotSkyPos),
-                                                             mjd=mjd)
-
-                chipNames = _chipNameFromRaDec(self.slicePoints['ra'][hpIndices],
-                                               self.slicePoints['dec'][hpIndices],
-                                               epoch=self.epoch,
-                                               camera=self.camera, obs_metadata=obs_metadata)
-                if self.scienceChips:
-                    # I think it's W for wavefront sensor
-                    good = np.flatnonzero(np.core.defchararray.find(chipNames.astype(str), 'W') == -1)
-                    chipNames = chipNames[good]
-                    hpIndices = hpIndices[good]
-                # If we are using only a subset of chips
-                if self.chipsToUse != 'all':
-                    checkedChipNames = [chipName in self.chipsToUse for chipName in chipNames]
-                    good = np.where(checkedChipNames)[0]
-                    chipNames = chipNames[good]
-                    hpIndices = hpIndices[good]
-                # Find the healpixels that fell on a chip for this pointing
-                good = np.where(chipNames != [None])[0]
-                hpOnChip = hpIndices[good]
-                for i, chipName in zip(hpOnChip, chipNames[good]):
-                    self.sliceLookup[i].append(ind)
-                    self.chipNames[i].append(chipName)
-
-        if self.verbose:
-            "Created lookup table after checking for chip gaps."
+        filename = os.path.join(get_data_dir(), 'maf/fov_map.npz')
+        _temp = np.load(filename)
+        self.camera_fov = _temp['image'].copy()
+        self.x_camera = _temp['x'].copy()
+        _temp.close()
 
     def _buildTree(self, simDataRa, simDataDec, leafsize=100):
         """Build KD tree on simDataRA/Dec using utility function from mafUtils.
