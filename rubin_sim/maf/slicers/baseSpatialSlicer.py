@@ -21,8 +21,8 @@ def rotate(x, y, rotation_angle_rad):
     """
     cos_rad = np.cos(rotation_angle_rad)
     sin_rad = np.sin(rotation_angle_rad)
-    qx = cos_rad * x + sin_rad * y
-    qy = -sin_rad * x + cos_rad * y
+    qx = cos_rad * x - sin_rad * y
+    qy = sin_rad * x + cos_rad * y
     return qx, qy
 
 class BaseSpatialSlicer(BaseSlicer):
@@ -111,6 +111,10 @@ class BaseSpatialSlicer(BaseSlicer):
             self.data_ra = simData[self.lonCol]
             self.data_dec = simData[self.latCol]
             self.data_rot = simData[self.rotSkyPosColName]
+            if self.latLonDeg:
+                self.data_ra = np.radians(self.data_ra)
+                self.data_dec = np.radians(self.data_dec)
+                self.data_rot = np.radians(self.data_rot)
             self._setupLSSTCamera()
         if self.latLonDeg:
             self._buildTree(np.radians(simData[self.lonCol]),
@@ -131,26 +135,20 @@ class BaseSpatialSlicer(BaseSlicer):
             indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
 
             if (self.useCamera) & (len(indices) > 0):
-                plate_scale = self.x_camera[1] - self.x_camera[0]
-                indx_max = len(self.x_camera)
-                if self.latLonDeg:
-                    x_proj, y_proj = simsUtils.gnomonic_project_toxy(self.slicePoints['ra'][islice],
-                                                                     self.slicePoints['dec'][islice],
-                                                                     np.radians(self.data_ra[indices]),
-                                                                     np.radians(self.data_dec[indices]))
-                else:
-                    x_proj, y_proj = simsUtils.gnomonic_project_toxy(self.slicePoints['ra'][islice],
-                                                                     self.slicePoints['dec'][islice],
-                                                                     self.data_ra[indices],
-                                                                     self.data_dec[indices])
+                x_proj, y_proj = simsUtils.gnomonic_project_toxy(self.slicePoints['ra'][islice],
+                                                                 self.slicePoints['dec'][islice],
+                                                                 self.data_ra[indices],
+                                                                 self.data_dec[indices])
                 # rotate them by rotskypos
                 # XXX---of course I have no idea if this should be a positive or
                 # negative rotation. Whatever, the focal plane is pretty symetric, so whatever.
                 x_proj, y_proj = rotate(x_proj, y_proj, self.data_rot[indices])
+
                 # look up which points are good
-                x_indx = np.round(x_proj/plate_scale + self.x_camera[0]).astype(int)
-                y_indx = np.round(y_proj/plate_scale + self.x_camera[0]).astype(int)
-                in_range = np.where((x_indx >= 0) & (x_indx < indx_max) & (y_indx >= 0) & (y_indx < indx_max))[0]
+                x_indx = np.round((x_proj - self.x_camera[0])/self.plate_scale).astype(int)
+                y_indx = np.round((y_proj - self.x_camera[0])/self.plate_scale).astype(int)
+                in_range = np.where((x_indx >= 0) & (x_indx < self.indx_max) &
+                                    (y_indx >= 0) & (y_indx < self.indx_max))[0]
                 indices = np.array(indices)[in_range]
                 x_indx = x_indx[in_range]
                 y_indx = y_indx[in_range]
@@ -180,8 +178,10 @@ class BaseSpatialSlicer(BaseSlicer):
         filename = os.path.join(get_data_dir(), 'maf/fov_map.npz')
         _temp = np.load(filename)
         self.camera_fov = _temp['image'].copy()
-        self.x_camera = _temp['x'].copy()
+        self.x_camera = np.radians(_temp['x'].copy())
         _temp.close()
+        self.plate_scale = self.x_camera[1] - self.x_camera[0]
+        self.indx_max = len(self.x_camera)
 
     def _buildTree(self, simDataRa, simDataDec, leafsize=100):
         """Build KD tree on simDataRA/Dec using utility function from mafUtils.

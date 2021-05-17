@@ -61,7 +61,10 @@ if __name__ == '__main__':
     chipNames = chipNames.reshape(nside, nside)
     wavefront_names = [name for name in np.unique(chipNames[np.where(chipNames != None)]) if ('SW' in name)
                        | ('R44' in name) | ('R00' in name) | ('R04' in name) | ('R40' in name)]
+    # If it's on a waverfront sensor, that's false
     for name in wavefront_names:
         result[np.where(chipNames == name)] = False
+    # No chipname, that's a false
+    result[np.where(chipNames == None)] = False
 
     np.savez('fov_map.npz', x=x_one, image=result)
