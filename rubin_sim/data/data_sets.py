@@ -37,8 +37,7 @@ def check_and_load(subdir, **kwargs):
         rsync_sims_data(subdirs=[subdir], **kwargs)
 
 
-def rsync_sims_data(data_dir=None, remote_location="lsst-rsync.ncsa.illinois.edu::sim/",
-                    subdirs=['maps', 'orbit_files', 'throughputs']):
+def rsync_sims_data(data_dir=None, remote_location="lsst-rsync.ncsa.illinois.edu::sim/"):
     """Download data files from NCSA.
     Parameters
     ----------
