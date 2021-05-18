@@ -1,0 +1,82 @@
+{% extends "master.html" %}
+{% import 'macros.html' as mcr %}
+
+{% set active_page = "listMetrics" %}
+
+{% set run = runlist.getRun(runId) %}
+{% set selectMetrics = run.convertSelectToMetrics(groupList,
+metricIdList) %}
+{% set selectGroups = run.metricsToSubgroups(selectMetrics) %}
+
+
+{% block moresidebar %}
+
+<ul>
+{% for g in selectGroups.keys() %}
+  <li>
+  <a href="#{{ g|escape }}">{{ g|escape }}</a> </br>
+  {% for sg in selectGroups[g] %}
+    <div id='indent'><a href="#{{g|escape}}_{{sg|escape}}">{{sg|escape}}</a></div>
+ {% endfor %}
+ </li>
+{% endfor %}
+</ul>
+{% endblock %}
+
+
+{% block content %}
+
+{# show metric information for each metric selected from 'select' page #}
+
+
+{% for g in selectGroups.keys() %}
+ {% set groupstart = True %}
+ {% for sg in selectGroups[g] %}
+   {% if groupstart == True %}
+      <a name = "{{g|escape}}" </a>
+      {% set groupstart = False %}
+   {% endif %}
+   <a name = "{{g|escape}}_{{sg|escape}}"> </a>
+  {% set subsetMetrics = run.metricsInSubgroup(g, sg, metrics=selectMetrics) %}
+  {% for metric in subsetMetrics %}
+    {% set metricInfo = run.metricInfo(metric) %}
+    <div id="metricset">
+
+    {# Print the metric info #}
+    {{ mcr.PrintMetricInfo(runId, metric, metricInfo) }}
+
+    {# Add the plots for this metric #}
+    {% set metricPlots = run.plotsForMetric(metric) %}
+    {{ mcr.MakePlotTable(metricPlots, run) }}
+
+    <p>
+    {% set caption = run.captionForMetric(metric) %}
+    {{ caption|escape }}
+    </p>
+
+    {# Add the summary stats for this metric #} 
+    {% set stats = run.statsForMetric(metric) %}
+    {% set statdict = run.statDict(stats) %}
+    <table class="blank">
+    {% for name in statdict.keys() %}
+     <tr>
+     <td class="blank" style='padding-left:10px'>
+     <i>{{ name|escape }}:</i>
+     </td>
+     <td class="blank" style='padding-left:20px'>
+     {% if name == 'Count' %}
+      {{ '%d'|format(statdict[name]) }}
+     {% else %}
+      {{ '%.2f'|format(statdict[name])}}
+     {% endif %}
+     </td> 
+     </tr>
+    {% endfor %}
+    </table>
+    </div>
+
+   {% endfor %}
+ {% endfor %}
+{% endfor %}
+
+{% endblock %}

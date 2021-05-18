@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+from rubin_sim.data import get_data_dir
+from shutil import unpack_archive
+import os
+import warnings
+import requests
+
+
+def data_dict():
+    """The data directories needed and what tar file they map to.
+
+    to create tar files and follow any sym links
+    tar -chvzf maf_may_2021.tgz maf
+    """
+    file_dict = {'maf': 'maf_may_2021.tgz',
+                 'maps': 'maps_may_2021.tgz',
+                 'site_models': 'site_models_may_2021.tgz',
+                 'skybrightness': 'skybrightness_may_2021.tgz',
+                 'skybrightness_pre': 'skybrightness_pre_may_2021.tgz',
+                 'throughputs': 'throughputs_may_2021.tgz',
+                 'tests': 'tests_may_2021.tgz'}
+    return file_dict
+
+
+if __name__ == '__main__':
+
+    url_base = 'https://lsst.ncsa.illinois.edu/sim-data/rubin_sim_data/'
+    data_dir = get_data_dir()
+    if not os.path.isdir(data_dir):
+        os.mkdir(data_dir)
+    files = data_dict()
+
+    for key in files:
+        filename = files[key]
+        path = os.path.join(data_dir, key)
+        if os.path.isdir(path):
+            warnings.warn('directory %s already exists, skipping download' % path)
+        else:
+            # Download file
+            url = url_base + filename
+            print('Downloading file: %s' % url)
+            r = requests.get(url)
+            with open(os.path.join(data_dir, filename), 'wb') as f:
+                f.write(r.content)
+            # untar in place
+            unpack_archive(os.path.join(data_dir, filename), data_dir)
+            os.remove(os.path.join(data_dir, filename))

@@ -1,0 +1,58 @@
+{% block javascript %}
+   <script type="text/javascript" src="sorttable.js"></script>
+{% endblock %}
+
+{% extends "master.html" %}
+
+{% if runId < 0 %}
+  {% set runId = runlist.runs['mafRunId'][0] %}
+{% endif %}
+
+{% block pagetitle %}
+Opsim Run Select
+{% endblock %}
+
+{% block title %}
+List of all Opsim Runs
+{% endblock %}
+
+{% set active_page = "listRuns" %}
+
+{% block moresidebar %}
+
+{% endblock %}
+
+{% block content %}
+
+<table class="sortable">
+<tr>
+{# Get basic run info to include into table (for table header) #}
+{% set runInfo = runlist.runInfo(runlist.runs[0]) %}
+{% for key in runInfo %}
+  <th> {{ key|escape }} </th>
+{% endfor %}
+</tr>
+
+
+{# Show run info for each run #}
+{% for run in runlist.runs %}
+  {% set runInfo = runlist.runInfo(run) %}
+  <tr>
+  {% for key in runInfo %}
+    {% if loop.index == 1 %}
+       <td><a href="allMetricResults?runId={{run['mafRunId']}}">{{runInfo[key]|escape }} </a> </td>
+    {% elif key == 'SQLite File' %}
+       <td><a href="{{runInfo[key][0]}}" download>{{runInfo[key][1]|escape}}</a> </td>
+    {% elif key == 'ResultsDb' %}
+       <td><a href="{{runInfo[key]}}" download>ResultsDb</a> </td>
+    {% else %}
+      <td>{{ runInfo[key]|escape }} </td>
+    {% endif %}
+  {% endfor %}
+  </tr>
+{% endfor %}
+
+
+</table>
+
+{% endblock %}
