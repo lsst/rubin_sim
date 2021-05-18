@@ -1,5 +1,5 @@
 # rubin_sim
-Scheduler, survey strategy analysis, and other simulation tools for Rubin Observaotry.
+Scheduler, survey strategy analysis, and other simulation tools for Rubin Observatory.
 
 
 
@@ -12,7 +12,7 @@ Optional: Set data directory. By default, rubin_sim will look to and download ex
 
 Set up a conda envoronment and install rubin_sim from source in development mode:
 ```
-conda create -n rubin -c conda-forge scikit-learn scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables h5py`
+conda create -n rubin -c conda-forge scikit-learn scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables h5py
 conda activate rubin
 pip install pyephem
 git clone git@github.com:lsst/rubin_sim.git
@@ -20,7 +20,8 @@ cd rubin_sim
 pip install -e .
 rs_download_data
 ```
-XXX--rs_download_data in progress
+
+The installation can be tested by running `py.test` in the github directory. The `rs_download_data` command downloads 1.5 Gb of gzipped data from NCSA. 
 
 Future fast user install should look like:
 ```
@@ -31,7 +32,7 @@ rs_download_data
 
 Optional dowload all the pre-computed sky data:
 ```
-XXX--todo
+XXX--todo, waiting for NCSA to open up rsync port
 ```
 
 ## mix and match data files
@@ -53,4 +54,4 @@ For unit tests, all filename should start with `test_` so py.test can automatica
 
 XXX--need to put instructions for updating the data sets on NCSA. 
 
-XXX--to make changes to the code, checkout a new branch, make edits, push, make a PR.
+XXX--to make changes to the code, checkout a new branch, make edits, push, make a pull request.
