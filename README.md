@@ -7,7 +7,7 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 
 Prerequisites:  A working [conda installation ](https://www.anaconda.com/products/individual)
 
-Optional: Set data directory. By default, rubin_sim will look to and download extra data files to `$HOME/rubin_sim_data`. If you would like the data to go somewhere else, you can set the `RUBIN_SIM_DATA_DIR` environement variable, for example in bash with `export RUBIN_SIM_DATA_DIR="/my/preferred/data/path"` (note, always make sure this is set before trying to run `rubin_sim` packages, so put in your .bashrc or whatnot). Another possibility is to set the location via sim-link, `ln -s /my/preferred/data/path ~/rubin_sim_data`. 
+Optional: Set data directory. By default, `rubin_sim` will download needed data files to `$HOME/rubin_sim_data`. If you would like the data to go somewhere else, you can set the `RUBIN_SIM_DATA_DIR` environement variable. In bash  `export RUBIN_SIM_DATA_DIR="/my/preferred/data/path"` (note, always make sure this is set before trying to run `rubin_sim` packages, so put in your .bashrc or whatnot). Another possibility is to set the location via sym-link, `ln -s /my/preferred/data/path ~/rubin_sim_data`. 
 
 
 Set up a conda envoronment and install rubin_sim from source in development mode:
@@ -18,10 +18,10 @@ pip install pyephem
 git clone git@github.com:lsst/rubin_sim.git
 cd rubin_sim
 pip install -e .
-rs_download_data
+rs_download_data  # Downloads ~1.5G of data to $HOME/rubin_sim_data. See README on how to set a different data directory.
 ```
 
-The installation can be tested by running `py.test` in the github directory. The `rs_download_data` command downloads 1.5 Gb of gzipped data from NCSA. 
+The installation can be tested by running `py.test` in the github directory. 
 
 Future fast user install should look like:
 ```
