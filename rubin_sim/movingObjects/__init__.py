@@ -6,3 +6,4 @@ from .chebyshevUtils import *
 from .baseObs import *
 from .linearObs import *
 from .directObs import *
+from .utils import *

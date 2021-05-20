@@ -4,7 +4,7 @@ import numpy as np
 from .chebyshevUtils import chebfit, makeChebMatrix, makeChebMatrixOnlyX
 from .orbits import Orbits
 from .ooephemerides import PyOrbEphemerides
-from rubin_sim.data import get_data_dir
+from .utils import get_oorb_data_dir
 
 __all__ = ['ChebyFits']
 
@@ -77,7 +77,7 @@ class ChebyFits(object):
                  nCoeff_elongation=6, ngran=64, ephFile=None, nDecimal=10):
         # Set up PyOrbEphemerides.
         if ephFile is None:
-            self.ephFile = os.path.join(get_data_dir(), 'movingObjects', 'de405.dat')
+            self.ephFile = os.path.join(get_oorb_data_dir(), 'de405.dat')
         else:
             self.ephFile = ephFile
         self.pyephems = PyOrbEphemerides(self.ephFile)

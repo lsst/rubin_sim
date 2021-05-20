@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pyoorb as oo
 from .orbits import Orbits
-from rubin_sim.data import get_data_dir
+from .utils import get_oorb_data_dir
 
 import time
 
@@ -45,7 +45,7 @@ class PyOrbEphemerides(object):
         # Set up oorb. Call this once.
         if ephfile is None:
             # just making a copy on our own so we don't have to chase down oorb install dir
-            ephfile = os.path.join(get_data_dir(), 'movingObjects', 'de430.dat')
+            ephfile = os.path.join(get_oorb_data_dir(), 'de430.dat')
         self.ephfile = ephfile
         self._init_oorb()
         self.oorbElem = None
