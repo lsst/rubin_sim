@@ -35,3 +35,4 @@ from .snSNRMetric import *
 from .snCadenceMetric import *
 from .seasonMetrics import *
 from .scalingMetrics import *
+from .useMetrics import *
