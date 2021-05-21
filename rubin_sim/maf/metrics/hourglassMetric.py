@@ -4,6 +4,7 @@ from rubin_sim.utils import Site
 from astropy.coordinates import SkyCoord, get_sun, get_moon, EarthLocation, AltAz
 from astropy import units as u
 from astropy.time import Time
+from astroplan import Observer
 
 
 __all__ = ['HourglassMetric']
@@ -18,7 +19,7 @@ class HourglassMetric(BaseMetric):
     Will totally fail in the arctic circle."""
 
     def __init__(self, telescope='LSST', mjdCol='observationStartMJD', filterCol='filter',
-                 nightCol='night', delta_t=20., **kwargs):
+                 nightCol='night', delta_t=60., **kwargs):
         self.mjdCol = mjdCol
         self.filterCol = filterCol
         self.nightCol = nightCol
@@ -29,6 +30,7 @@ class HourglassMetric(BaseMetric):
         self.location = EarthLocation(lat=self.telescope.latitude_rad*u.rad,
                                       lon=self.telescope.longitude_rad*u.rad,
                                       height=self.telescope.height*u.m)
+        self.observer = Observer(location=self.location)
 
     def run(self, dataSlice, slicePoint=None):
 
@@ -42,47 +44,31 @@ class HourglassMetric(BaseMetric):
 
         pernight['mjd'] = dataSlice[self.mjdCol][uindx]
 
-        left = np.searchsorted(dataSlice[self.nightCol], unights)
-        horizons = ['-6', '-12', '-18']
-        key = ['twi6', 'twi12', 'twi18']
+        times = Time(pernight['mjd'], format='mjd')
+        # let's just find the midnight before and after each of the pre_night MJD values
+        m_after = self.observer.midnight(times, 'next')
+        m_before = self.observer.midnight(times, 'previous')
 
-        # OK, I could just brute force this and compute a bunch of sun alt,az values and interpolate.
-        times = Time(np.arange(dataSlice[self.mjdCol].min()-1, dataSlice[self.mjdCol].max()+1, self.delta_t), format='mjd')
-        aa = AltAz(location=self.location, obstime=times)
-        sun_coords = get_sun(times).transform_to(aa)
+        d1 = np.abs(pernight['mjd'] - m_after.mjd)
+        d2 = np.abs(pernight['mjd'] - m_before.mjd)
 
-        # now to compute all the midnight, and twilight times
-        # midnight is where alt< 0 and distance to meridian flips sign
-        alt_slope = sun_coords.alt[1:] - sun_coords.alt[:-1]
-        delt = alt_slope[:-1]*alt_slope[1:]
-        # These are the indices where the altitude is at a local max or min
-        switch = np.where((delt < 0) & (sun_coords.alt[2:] < 0))[0] + 1
-        midnights = []
-        for indx in switch:
-            # Let's just take the weighted mean around the minimum
-            midnights.append(np.average(times.mjd[indx-1:indx+2], weights=-sun_coords.alt[indx-1:indx+2]).value)
+        pernight['midnight'] = m_after.mjd
+        swap = np.where(d2 < d1)[0]
+        pernight['midnight'][swap] = m_before[swap].mjd
 
-        for hor in [-6, -12, -18]:
-            temp_alt = sun_coords.alt.deg - hor
-            # Find where it switches from positive to negative
-            ack = temp_alt[1:]*temp_alt[:-1]
-            slope = sun_coords.alt.deg[1:] - sun_coords.alt.deg[0:-1]
+        mtime = Time(pernight['midnight'], format='mjd')
+        pernight['twi12_rise'] = self.observer.twilight_morning_nautical(mtime, which='next').mjd
+        pernight['twi12_set'] = self.observer.twilight_evening_nautical(mtime, which='previous').mjd
 
-            crossing = np.where((ack < 0) & (slope > 0))[0]
-            cross_times = [np.interp(0, temp_alt[cross-1:cross+3], times.mjd[cross-1:cross+3]) for cross in crossing]
-            pernight['twi%i_%s' % (abs(hor), 'rise')] = cross_times[0:len(pernight)]
+        pernight['twi18_rise'] = self.observer.twilight_evening_astronomical(mtime, which='next').mjd
+        pernight['twi18_set'] = self.observer.twilight_evening_astronomical(mtime, which='previous').mjd
 
-            crossing = np.where((ack < 0) & (slope < 0))[0]
-            cross_times = [np.interp(0, temp_alt[cross-1:cross+3][::-1], times.mjd[cross-1:cross+3][::-1]) for cross in crossing]
-            pernight['twi%i_%s' % (abs(hor), 'set')] = cross_times[0:len(pernight)]
-
-        pernight['midnight'] = midnights[0:len(pernight)]
         moon_times = Time(pernight['midnight'], format='mjd')
         aa = AltAz(location=self.location, obstime=moon_times)
         moon_coords = get_moon(moon_times).transform_to(aa)
         sun_coords = get_sun(moon_times).transform_to(aa)
         ang_dist = sun_coords.separation(moon_coords)
-        pernight['moonPer'] = ang_dist.deg/180
+        pernight['moonPer'] = ang_dist.deg/180*100
 
         # Define the breakpoints as where either the filter changes OR
         # there's more than a 2 minute gap in observing
@@ -102,7 +88,7 @@ class HourglassMetric(BaseMetric):
         perfilter['filter'] = dataSlice[self.filterCol][good]
 
         # now for each perfilter, find the closes midnight
-        midnights = np.array(midnights)
+        midnights = pernight['midnight']
         indx = np.searchsorted(midnights, perfilter['mjd'])
         d1 = np.abs(perfilter['mjd']-midnights[indx-1])
         d2 = np.abs(perfilter['mjd']-midnights[indx])
