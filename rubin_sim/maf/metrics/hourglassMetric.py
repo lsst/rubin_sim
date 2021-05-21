@@ -1,7 +1,7 @@
 import numpy as np
 from .baseMetric import BaseMetric
 from rubin_sim.utils import Site
-from astropy.coordinates import SkyCoord, get_sun, get_moon, EarthLocation, AltAz
+from astropy.coordinates import get_sun, get_moon, EarthLocation, AltAz
 from astropy import units as u
 from astropy.time import Time
 from astroplan import Observer
@@ -60,7 +60,7 @@ class HourglassMetric(BaseMetric):
         pernight['twi12_rise'] = self.observer.twilight_morning_nautical(mtime, which='next').mjd
         pernight['twi12_set'] = self.observer.twilight_evening_nautical(mtime, which='previous').mjd
 
-        pernight['twi18_rise'] = self.observer.twilight_evening_astronomical(mtime, which='next').mjd
+        pernight['twi18_rise'] = self.observer.twilight_morning_astronomical(mtime, which='next').mjd
         pernight['twi18_set'] = self.observer.twilight_evening_astronomical(mtime, which='previous').mjd
 
         moon_times = Time(pernight['midnight'], format='mjd')
@@ -91,6 +91,7 @@ class HourglassMetric(BaseMetric):
         midnights = pernight['midnight']
         indx = np.searchsorted(midnights, perfilter['mjd'])
         d1 = np.abs(perfilter['mjd']-midnights[indx-1])
+        indx[np.where(indx >= midnights.size)] -= 1
         d2 = np.abs(perfilter['mjd']-midnights[indx])
 
         perfilter['midnight'] = midnights[indx]
