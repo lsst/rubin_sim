@@ -361,7 +361,7 @@ class TestStackerClasses(unittest.TestCase):
         Test the galactic coordinate stacker
         """
         ra, dec = np.degrees(np.meshgrid(np.arange(0, 2. * np.pi, 0.1),
-                                         np.arange(-np.pi, np.pi, 0.1)))
+                                         np.arange(-np.pi/2, np.pi/2, 0.1)))
         ra = np.ravel(ra)
         dec = np.ravel(dec)
         data = np.zeros(ra.size, dtype=list(zip(['ra', 'dec'], [float] * 2)))
@@ -382,6 +382,23 @@ class TestStackerClasses(unittest.TestCase):
         assert(q2.size > 0)
         assert(q3.size > 0)
         assert(q4.size > 0)
+
+    def testEclipticStacker(self):
+        ra, dec = np.degrees(np.meshgrid(np.arange(0, 2. * np.pi, 0.1),
+                                         np.arange(-np.pi/2, np.pi/2, 0.1)))
+        ra = np.ravel(ra)
+        dec = np.ravel(dec)
+        data = np.zeros(ra.size, dtype=list(zip(['ra', 'dec'], [float] * 2)))
+        data['ra'] += ra
+        data['dec'] += dec
+        s = stackers.EclipticStacker(raCol='ra', decCol='dec', degrees=True)
+        newData = s.run(data)
+
+        data = np.zeros(ra.size, dtype=list(zip(['ra', 'dec'], [float] * 2)))
+        data['ra'] += ra
+        data['dec'] += dec
+        s = stackers.EclipticStacker(raCol='ra', decCol='dec', degrees=True, subtractSunLon=False)
+        newData = s.run(data)
 
     def testOpSimFieldStacker(self):
         """

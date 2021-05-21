@@ -1,7 +1,9 @@
 import numpy as np
 from .baseMetric import BaseMetric
 from rubin_sim.utils import Site
-import ephem
+from astropy.coordinates import SkyCoord, get_sun, get_moon, EarthLocation, AltAz
+from astropy import units as u
+from astropy.time import Time
 
 
 __all__ = ['NightPointingMetric']
@@ -23,12 +25,11 @@ class NightPointingMetric(BaseMetric):
         self.filterCol = filterCol
         self.mjdCol = mjdCol
 
-    def run(self, dataSlice, slicePoint=None):
+        self.location = EarthLocation(lat=self.telescope.latitude_rad*u.rad,
+                                      lon=self.telescope.longitude_rad*u.rad,
+                                      height=self.telescope.height*u.m)
 
-        lsstObs = ephem.Observer()
-        lsstObs.lat = self.telescope.latitude_rad
-        lsstObs.lon = self.telescope.longitude_rad
-        lsstObs.elevation = self.telescope.height
+    def run(self, dataSlice, slicePoint=None):
 
         pad = 30./60./24.
         mjd_min = dataSlice[self.mjdCol].min() - pad
@@ -36,27 +37,18 @@ class NightPointingMetric(BaseMetric):
 
         # How often to plot the moon and things
         step = 20./60./24.
-        mjds = np.arange(mjd_min, mjd_max+step, step)
-        sun_alts = []
-        moon_alts = []
-        moon_azs = []
-        sun_azs = []
+        mjds = Time(np.arange(mjd_min, mjd_max+step, step), format='mjd')
 
-        doff = ephem.Date(0)-ephem.Date('1858/11/17')
-        djds = mjds - doff
-        for djd in djds:
-            lsstObs.date = djd
-            moon = ephem.Moon(lsstObs)
-            moon_alts.append(moon.alt + 0)
-            moon_azs.append(moon.az + 0)
-            sun = ephem.Sun(lsstObs)
-            sun_alts.append(sun.alt + 0)
-            sun_azs.append(sun.az + 0)
-        moon_alts = np.array(moon_alts)
-        moon_azs = np.array(moon_azs)
+        aa = AltAz(location=self.location, obstime=mjds)
+
+        moon_coords = get_moon(mjds).transform_to(aa)
+        sun_coords = get_sun(mjds).transform_to(aa)
+
+        moon_alts = np.array(moon_coords.alt.rad)
+        moon_azs = np.array(moon_coords.az.rad)
         mjds = np.array(mjds)
-        sun_alts = np.array(sun_alts)
-        sun_azs = np.array(sun_azs)
+        sun_alts = np.array(sun_coords.alt.rad)
+        sun_azs = np.array(sun_coords.az.rad)
 
         return {'dataSlice': dataSlice, 'moon_alts': moon_alts, 'moon_azs': moon_azs, 'mjds': mjds,
                 'sun_alts': sun_alts, 'sun_azs': sun_azs}

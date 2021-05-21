@@ -1,28 +1,13 @@
 import numpy as np
-import ephem
 from rubin_sim.utils import _galacticFromEquatorial, calcLmstLast
-
+from astropy import units as u
+from astropy.coordinates import SkyCoord, get_sun
 from .baseStacker import BaseStacker
 from .ditherStackers import wrapRA
+from astropy.time import Time
 
-__all__ = ['mjd2djd', 'raDec2AltAz', 'GalacticStacker', 'EclipticStacker']
 
-
-def mjd2djd(mjd):
-    """Convert MJD to the Dublin Julian date used by ephem.
-
-    Parameters
-    ----------
-    mjd : float or numpy.ndarray
-        The modified julian date.
-    Returns
-    -------
-    float or numpy.ndarray
-        The dublin julian date.
-    """
-    doff = ephem.Date(0)-ephem.Date('1858/11/17')
-    djd = mjd-doff
-    return djd
+__all__ = ['raDec2AltAz', 'GalacticStacker', 'EclipticStacker']
 
 
 def raDec2AltAz(ra, dec, lat, lon, mjd, altonly=False):
@@ -148,21 +133,20 @@ class EclipticStacker(BaseStacker):
             return simData
         for i in np.arange(simData.size):
             if self.degrees:
-                coord = ephem.Equatorial(np.radians(simData[self.raCol][i]),
-                                         np.radians(simData[self.decCol][i]), epoch=2000)
+                coord = SkyCoord(ra=simData[self.raCol]*u.degree, dec=simData[self.decCol]*u.degree)
             else:
-                coord = ephem.Equatorial(simData[self.raCol][i],
-                                         simData[self.decCol][i], epoch=2000)
-            ecl = ephem.Ecliptic(coord)
-            simData['eclipLat'][i] = ecl.lat
+                coord = SkyCoord(ra=simData[self.raCol]*u.rad, dec=simData[self.decCol]*u.rad)
+            coord_ecl = coord.geocentricmeanecliptic
+            simData['eclipLat'] = coord_ecl.lat.rad
+
             if self.subtractSunLon:
-                djd = mjd2djd(simData[self.mjdCol][i])
-                sun = ephem.Sun(djd)
-                sunEcl = ephem.Ecliptic(sun)
-                lon = wrapRA(ecl.lon - sunEcl.lon)
-                simData['eclipLon'][i] = lon
+                times = Time(simData[self.mjdCol])
+                sun = get_sun(times)
+                sunEcl = sun.geocentricmeanecliptic
+                lon = wrapRA(coord_ecl.lon.rad - sunEcl.lon.rad)
+                simData['eclipLon'] = lon
             else:
-                simData['eclipLon'][i] = ecl.lon
+                simData['eclipLon'] = coord_ecl.lon.rad
         if self.degrees:
             simData['eclipLon'] = np.degrees(simData['eclipLon'])
             simData['eclipLat'] = np.degrees(simData['eclipLat'])
