@@ -1,12 +1,15 @@
 import numpy as np
-import ephem
 from rubin_sim.utils import (haversine, _raDecFromAltAz, _altAzPaFromRaDec, Site,
                              ObservationMetaData, _approx_altAz2RaDec, _approx_RaDec2AltAz)
 import warnings
-from .utils import wrapRA, mjd2djd
+from .utils import wrapRA
 from .interpComponents import (ScatteredStar, Airglow, LowerAtm, UpperAtm, MergedSpec, TwilightInterp,
                                MoonInterp, ZodiacalInterp)
 from rubin_sim.photUtils import Sed
+from astropy.coordinates import SkyCoord, get_sun, get_moon, EarthLocation, AltAz
+from astropy import units as u
+from astropy.time import Time
+
 
 
 __all__ = ['justReturn', 'SkyModel']
@@ -138,21 +141,11 @@ class SkyModel(object):
             if self.components[key]:
                 self.interpObjs[key] = interpolators[key](mags=self.mags)
 
-        # Set up a pyephem observatory object
-        if hasattr(observatory, 'latitude_rad') & hasattr(observatory, 'longitude_rad') & hasattr(observatory, 'height'):
-            self.telescope = observatory
-            self.Observatory = ephem.Observer()
-            self.Observatory.lat = self.telescope.latitude_rad
-            self.Observatory.lon = self.telescope.longitude_rad
-            self.Observatory.elevation = self.telescope.height
-        elif observatory == 'LSST':
+        if observatory == 'LSST':
             self.telescope = Site('LSST')
-            self.Observatory = ephem.Observer()
-            self.Observatory.lat = self.telescope.latitude_rad
-            self.Observatory.lon = self.telescope.longitude_rad
-            self.Observatory.elevation = self.telescope.height
-        else:
-            self.Observatory = observatory
+        self.location = EarthLocation(lat=self.telescope.latitude_rad*u.rad,
+                                      lon=self.telescope.longitude_rad*u.rad,
+                                      height=self.telescope.height*u.m)
 
         # Note that observing conditions have not been set
         self.paramsSet = False
@@ -368,15 +361,17 @@ class SkyModel(object):
         """
         Setup the points for the interpolation functions.
         """
-        # Switch to Dublin Julian Date for pyephem
-        self.Observatory.date = mjd2djd(self.mjd)
 
-        sun = ephem.Sun()
-        sun.compute(self.Observatory)
-        self.sunAlt = sun.alt
-        self.sunAz = sun.az
-        self.sunRA = sun.ra
-        self.sunDec = sun.dec
+        time = Time(self.mjd, format='mjd')
+        aa = AltAz(location=self.location, obstime=time)
+
+        sun_coords = get_sun(time)
+        self.sunRA = sun_coords.ra.rad
+        self.sunDec = sun_coords.dec.rad
+
+        sun_coords = sun_coords.transform_to(aa)
+        self.sunAlt = sun_coords.alt.rad
+        self.sunAz = sun_coords.az.rad
 
         # Compute airmass the same way as ESO model
         self.airmass = 1./np.cos(np.pi/2.-self.alts)
@@ -392,32 +387,43 @@ class SkyModel(object):
             self.points['azRelSun'] = self.azRelSun
 
         if self.moon:
-            moon = ephem.Moon()
-            moon.compute(self.Observatory)
-            self.moonPhase = moon.phase
-            self.moonAlt = moon.alt
-            self.moonAz = moon.az
-            self.moonRA = moon.ra
-            self.moonDec = moon.dec
+            moon_coords = get_moon(time)
+            self.moonRA = moon_coords.ra.rad
+            self.moonDec = moon_coords.dec.rad
+
+            moon_coords = moon_coords.transform_to(aa)
+            self.moonAlt = moon_coords.alt.rad
+            self.moonAz = moon_coords.az.rad
+
+            moon_coords = get_moon(time)
+            sun_coords = get_sun(time)
+            sep = sun_coords.separation(moon_coords)
+
+            # looks like phase is 0-100
+            self.moonPhase = sep.deg * 100/180.
+
             # Calc azimuth relative to moon
             self.azRelMoon = calcAzRelMoon(self.azs, self.moonAz)
             self.moonTargSep = haversine(self.azs, self.alts, self.moonAz, self.moonAlt)
+            # Oof, looks like some things were stored as degrees.
             self.points['moonAltitude'] += np.degrees(self.moonAlt)
             self.points['azRelMoon'] += self.azRelMoon
-            self.moonSunSep = self.moonPhase/100.*180.
+            self.moonSunSep = sep.deg
             self.points['moonSunSep'] += self.moonSunSep
 
         if self.zodiacal:
             self.eclipLon = np.zeros(self.npts)
             self.eclipLat = np.zeros(self.npts)
 
-            for i, temp in enumerate(self.ra):
-                eclip = ephem.Ecliptic(ephem.Equatorial(self.ra[i], self.dec[i], epoch='2000'))
-                self.eclipLon[i] += eclip.lon
-                self.eclipLat[i] += eclip.lat
+            coord = SkyCoord(ra=self.ra*u.rad, dec=self.dec*u.rad)
+            coord_ecl = coord.geocentricmeanecliptic
+            self.eclipLon = coord_ecl.lon.rad
+            self.eclipLat = coord_ecl.lat.rad
+
             # Subtract off the sun ecliptic longitude
-            sunEclip = ephem.Ecliptic(sun)
-            self.sunEclipLon = sunEclip.lon
+            sun_coords = get_sun(time)
+            sunEclip = sun_coords.geocentricmeanecliptic
+            self.sunEclipLon = sunEclip.lon.rad
             self.points['altEclip'] += self.eclipLat
             self.points['azEclipRelSun'] += wrapRA(self.eclipLon - self.sunEclipLon)
 

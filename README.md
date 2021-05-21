@@ -55,3 +55,5 @@ For unit tests, all filename should start with `test_` so py.test can automatica
 XXX--need to put instructions for updating the data sets on NCSA. 
 
 XXX--to make changes to the code, checkout a new branch, make edits, push, make a pull request.
+
+Note when developing after running `pip install -e .`, you can edit the python and run to see the changes. However, scripts in the `bin/` directory are coppied to the anaconda `envs/<envname>/bin/` folder, so editing those in place will have no effect. To test changes to scripts, re-run `pip install -e .` to re-copy the scripts.
