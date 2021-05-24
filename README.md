@@ -12,7 +12,7 @@ Optional: Set data directory. By default, `rubin_sim` will download needed data 
 
 Set up a conda envoronment and install rubin_sim from source in development mode:
 ```
-conda create -n rubin -c conda-forge openorb openorb-data-de405 astroplan scikit-learn scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables h5py
+conda create -n rubin -c conda-forge openorb openorb-data-de405 astroplan scikit-learn scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables h5py colorcet
 conda activate rubin
 git clone git@github.com:lsst/rubin_sim.git
 cd rubin_sim

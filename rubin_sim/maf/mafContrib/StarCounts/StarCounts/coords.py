@@ -10,7 +10,6 @@ import numpy as np
 import sys
 from scipy.optimize import fsolve
 import math
-import ephem
 rad1=np.radians(282.25)
 rad2=np.radians(62.6)
 rad3=np.radians(33.)

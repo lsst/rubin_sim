@@ -110,7 +110,6 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     bundleList.append(bundle)
     displayDict['order'] += 1
 
-
     #########################
     # Cosmology
     #########################
@@ -119,6 +118,17 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     descBundleDict = descWFDBatch(colmap=colmap, runName=runName, nside=nside)
     for d in descBundleDict:
         bundleList.append(descBundleDict[d])
+
+    displayDict = {'group': 'Cosmology', 'subgroup': 'SNe Ia', 'order': 0, 'caption': None}
+    sne_nside = 8
+    slicer = slicers.HealpixSlicer(nside=sne_nside)
+    metric = metrics.SNNSNMetric(verbose=False)  # zlim_coeff=0.98)
+    sql = ''
+    bundle = mb.MetricBundle(metric, slicer, sql, plotDict=plotDict,
+                             displayDict=displayDict, summaryMetrics=summary,
+                             plotFuncs=subsetPlots)
+
+    bundleList.append(bundle)
 
     #########################
     # Variables and Transients
