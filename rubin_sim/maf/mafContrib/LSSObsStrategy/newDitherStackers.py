@@ -13,7 +13,7 @@
 import numpy as np
 from rubin_sim.maf.stackers import (wrapRADec, polygonCoords)
 from rubin_sim.maf.stackers import (BaseStacker, SpiralDitherFieldPerVisitStacker)
-from rubin_sim.maf.metrics import calcSeason
+from rubin_sim.utils import calcSeason
 
 __all__ = ['RepulsiveRandomDitherFieldPerVisitStacker',
            'RepulsiveRandomDitherFieldPerNightStacker',

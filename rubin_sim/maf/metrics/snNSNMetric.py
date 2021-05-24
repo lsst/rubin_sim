@@ -7,6 +7,7 @@ import numpy.lib.recfunctions as rf
 import time
 from scipy.interpolate import interp1d
 import numpy.lib.recfunctions as nlr
+from rubin_sim.utils import calcSeason
 
 __all__ = ['SNNSNMetric']
 
@@ -137,7 +138,7 @@ class SNNSNMetric(BaseMetric):
         self.bad = np.rec.fromrecords([(-1.0, -1.0)], names=['nSN', 'zlim'])
         # self.bad = {'nSN': -1.0, 'zlim': -1.0}
 
-    def run(self, dataSlice,  slicePoint=None):
+    def run(self, dataSlice, slicePoint=None):
         """
         run method of the metric
 
@@ -171,7 +172,7 @@ class SNNSNMetric(BaseMetric):
 
         dataSlice = self.coadd(pd.DataFrame(dataSlice))
 
-        dataSlice = self.getseason(dataSlice)
+        dataSlice = self.getseason(dataSlice, mjdCol=self.mjdCol, raCol=self.RACol)
 
         # get the seasons
         seasons = self.season
@@ -267,8 +268,11 @@ class SNNSNMetric(BaseMetric):
     def reducezlim(self, metricVal):
 
         # At each slicepoint, return the median zlim
+        result = np.median(metricVal['zlim'])
+        if result < 0:
+            result = self.badval
 
-        return np.median(metricVal['zlim'])
+        return result
 
     def coadd(self, data):
         """
@@ -309,7 +313,7 @@ class SNNSNMetric(BaseMetric):
 
         return coadd_df.to_records(index=False)
 
-    def getseason(self, obs, season_gap=80., mjdCol='observationStartMJD'):
+    def getseason(self, obs, mjdCol='observationStartMJD', raCol='fieldRA'):
         """
         Method to estimate seasons
         Parameters
@@ -328,20 +332,12 @@ class SNNSNMetric(BaseMetric):
 
         # check wether season has already been estimated
 
-        if 'season' in obs.dtype.names:
-            return obs
+        #if 'season' in obs.dtype.names:
+        #    return obs
 
         obs.sort(order=mjdCol)
 
-        seasoncalc = np.ones(obs.size, dtype=int)
-
-        if len(obs) > 1:
-            diff = np.diff(obs[mjdCol])
-            flag = np.where(diff > season_gap)[0]
-
-            if len(flag) > 0:
-                for i, indx in enumerate(flag):
-                    seasoncalc[indx+1:] = i+2
+        seasoncalc = np.floor(calcSeason(np.degrees(obs[raCol]), obs[mjdCol]))
 
         obs = rf.append_fields(obs, 'season', seasoncalc)
 

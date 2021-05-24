@@ -576,7 +576,11 @@ class MetricBundle(object):
         # Fill the reduced metric data using the reduce function.
         for i, (mVal, mMask) in enumerate(zip(self.metricValues.data, self.metricValues.mask)):
             if not mMask:
-                newmetricBundle.metricValues.data[i] = reduceFunc(mVal)
+                val = reduceFunc(mVal)
+                newmetricBundle.metricValues.data[i] = val
+                if val == newmetric.badval:
+                    newmetricBundle.metricValues.mask[i] = True
+
         return newmetricBundle
 
     def plot(self, plotHandler=None, plotFunc=None, outfileSuffix=None, savefig=False):
