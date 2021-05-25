@@ -6,7 +6,12 @@ __all__ = ['calcSeason']
 def calcSeason(ra, time):
     """Calculate the 'season' in the survey for a series of ra/dec/time values of an observation.
     Based only on the RA of the point on the sky, it calculates the 'season' based on when this
-    point would be overhead .. the season is considered +/- 0.5 years around this time.
+    point would be overhead. To convert to an integer season label, take np.floor of the returned
+    float season values.
+
+    Note that seasons should be calculated for a fixed point on the sky, not for each pointing that
+    overlaps a point on the sky.  For example, bad things might happen if you compute the season
+    for observations that overlap RA=0, but were centered on RA=359.
 
     Parameters
     ----------
