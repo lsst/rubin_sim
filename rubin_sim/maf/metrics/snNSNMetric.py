@@ -172,7 +172,7 @@ class SNNSNMetric(BaseMetric):
 
         dataSlice = self.coadd(pd.DataFrame(dataSlice))
 
-        dataSlice = self.getseason(dataSlice, mjdCol=self.mjdCol, raCol=self.RACol)
+        dataSlice = self.getseason(dataSlice, mjdCol=self.mjdCol)
 
         # get the seasons
         seasons = self.season
@@ -224,6 +224,7 @@ class SNNSNMetric(BaseMetric):
             return nlr.merge_arrays([idarray, self.bad], flatten=True)
         resdf = pd.DataFrame()
 
+
         for seas in seasons:
             vara_df = self.run_season(
                 dataSlice, [seas], gen_par, dur_z)
@@ -233,7 +234,6 @@ class SNNSNMetric(BaseMetric):
 
         # final result: median zlim for a faint sn
         # and nsn_med for z<zlim
-
         if resdf.empty:
             return nlr.merge_arrays([idarray, self.bad], flatten=True)
 
@@ -297,7 +297,7 @@ class SNNSNMetric(BaseMetric):
                                                self.vistimeCol: ['sum'],
                                                self.exptimeCol: ['sum'],
                                                self.mjdCol: ['mean'],
-                                               self.RACol: ['mean'],
+                                               self.RACol: ['min'],
                                                self.DecCol: ['mean'],
                                                self.m5Col: ['mean']}).reset_index()
 
@@ -313,7 +313,7 @@ class SNNSNMetric(BaseMetric):
 
         return coadd_df.to_records(index=False)
 
-    def getseason(self, obs, mjdCol='observationStartMJD', raCol='fieldRA'):
+    def getseason(self, obs, season_gap=80., mjdCol='observationStartMJD'):
         """
         Method to estimate seasons
         Parameters
@@ -324,7 +324,6 @@ class SNNSNMetric(BaseMetric):
          minimal gap required to define a season (default: 80 days)
         mjdCol: str, opt
         col name for MJD infos (default: observationStartMJD)
-
         Returns
         ----------
         original numpy array with seasonnumber appended
@@ -332,12 +331,17 @@ class SNNSNMetric(BaseMetric):
 
         # check wether season has already been estimated
 
-        #if 'season' in obs.dtype.names:
-        #    return obs
-
         obs.sort(order=mjdCol)
 
-        seasoncalc = np.floor(calcSeason(np.degrees(obs[raCol]), obs[mjdCol]))
+        seasoncalc = np.ones(obs.size, dtype=int)
+
+        if len(obs) > 1:
+            diff = np.diff(obs[mjdCol])
+            flag = np.where(diff > season_gap)[0]
+
+            if len(flag) > 0:
+                for i, indx in enumerate(flag):
+                    seasoncalc[indx+1:] = i+2
 
         obs = rf.append_fields(obs, 'season', seasoncalc)
 
