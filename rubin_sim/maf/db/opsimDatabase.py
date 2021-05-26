@@ -1,6 +1,3 @@
-from __future__ import print_function
-from builtins import str
-from builtins import zip
 import os, re
 import numpy as np
 import warnings
@@ -11,6 +8,7 @@ from sqlalchemy import column
 
 __all__ = ['testOpsimVersion', 'OpsimDatabase', 'OpsimDatabaseFBS', 'OpsimDatabaseV4', 'OpsimDatabaseV3']
 
+
 def testOpsimVersion(database, driver='sqlite', host=None, port=None):
     opsdb = Database(database, driver=driver, host=host, port=port)
     if 'observations' in opsdb.tableNames:
@@ -20,13 +18,14 @@ def testOpsimVersion(database, driver='sqlite', host=None, port=None):
             if 'Field' in opsdb.tableNames:
                 version = "V4"
             else:
-                version = "FBS"
+                version = "FBS_old"
         elif 'Summary' in opsdb.tableNames:
             version = "V3"
         else:
             version = "Unknown"
     opsdb.close()
     return version
+
 
 def OpsimDatabase(database, driver='sqlite', host=None, port=None,
                   longstrings=False, verbose=False):
@@ -39,6 +38,10 @@ def OpsimDatabase(database, driver='sqlite', host=None, port=None,
     version = testOpsimVersion(database)
     if version == 'FBS':
         opsdb = OpsimDatabaseFBS(database, driver=driver, host=host, port=port,
+                                 longstrings=longstrings, verbose=verbose)
+    elif version == 'FBS_old':
+        opsdb = OpsimDatabaseFBS(database, defaultTable='SummaryAllProps',
+                                 driver=driver, host=host, port=port,
                                  longstrings=longstrings, verbose=verbose)
     elif version == 'V4':
         opsdb = OpsimDatabaseV4(database, driver=driver, host=host, port=port,

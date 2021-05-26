@@ -57,9 +57,9 @@ class TestMetricBundle(unittest.TestCase):
         outNpz = glob.glob(os.path.join(self.outDir, '*.npz'))
         outPdf = glob.glob(os.path.join(self.outDir, '*.pdf'))
 
-        # By default, make 3 plots for healpix
-        assert(len(outThumbs) == 3)
-        assert(len(outPdf) == 3)
+        # By default, make 2 plots for healpix
+        assert(len(outThumbs) == 2)
+        assert(len(outPdf) == 2)
         assert(len(outNpz) == 1)
 
     def tearDown(self):

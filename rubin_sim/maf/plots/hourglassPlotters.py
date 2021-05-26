@@ -38,10 +38,10 @@ class HourglassPlot(BasePlotter):
                     self.filter2color[perfilter['filter'][i]])
         for i, key in enumerate(['u', 'g', 'r', 'i', 'z', 'y']):
             ax.text(1.05, .9 - i * 0.07, key, color=self.filter2color[key], transform=ax.transAxes)
-        ax.plot(pernight['mjd'] - dmin, (pernight['twi6_rise'] - pernight['midnight']) * 24.,
-                'blue', label=r'6$^\circ$ twilight')
-        ax.plot(pernight['mjd'] - dmin, (pernight['twi6_set'] - pernight['midnight']) * 24.,
-                'blue')
+        #ax.plot(pernight['mjd'] - dmin, (pernight['twi6_rise'] - pernight['midnight']) * 24.,
+        #        'blue', label=r'6$^\circ$ twilight')
+        #ax.plot(pernight['mjd'] - dmin, (pernight['twi6_set'] - pernight['midnight']) * 24.,
+        #        'blue')
         ax.plot(pernight['mjd'] - dmin, (pernight['twi12_rise'] - pernight['midnight']) * 24.,
                 'yellow', label=r'12$^\circ$ twilight')
         ax.plot(pernight['mjd'] - dmin, (pernight['twi12_set'] - pernight['midnight']) * 24.,

@@ -5,75 +5,9 @@ import rubin_sim.skybrightness_pre as sb
 from rubin_sim.utils import raDec2Hpid, m5_flat_sed, Site, _approx_RaDec2AltAz
 import healpy as hp
 import sqlite3
-import ephem
 import sys
 
-__all__ = ['mjd2night', 'obs2sqlite']
-
-
-class mjd2night(object):
-    """Convert MJD to LSST integer 'night' by simply estimating noon and splitting MJDs on this.
-
-    Assumes you have no chance of observing within an hour of noon (since UTC noon varies during year).
-    """
-    def __init__(self, mjd_start=59853, noon=(0.16-0.5)):
-        self.mjd_start = mjd_start
-        self.noon = noon
-    def __call__(self, mjd):
-        night = np.floor(mjd - self.noon - self.mjd_start)
-        return night
-
-
-class mjd2night_sunset(object):
-    """Convert MJD to 'night' after calculating actual times of sunsets. (deprecated?)"""
-    def __init__(self, mjd_start=59853.035):
-        self.site = Site(name='LSST')
-        self.obs = ephem.Observer()
-        self.obs.lat = self.site.latitude_rad
-        self.obs.lon = self.site.longitude_rad
-        self.obs.elevation = self.site.height
-        self.mjd = mjd_start
-        self.sun = ephem.Sun()
-        self.generate_sunsets()
-
-    def generate_sunsets(self, nyears=13, day_pad=50):
-        """
-        Generate the sunrise times for LSST so we can label nights by MJD
-        """
-
-        # Set observatory horizon to zero
-        doff = ephem.Date(0)-ephem.Date('1858/11/17')
-
-        self.obs.horizon = 0.
-
-        # Swipe dates to match sims_skybrightness_pre365
-        mjd_start = self.mjd
-        mjd_end = np.arange(mjd_start, mjd_start+365.25*nyears+day_pad+366, 366).max()
-        step = 0.25
-        mjds = np.arange(mjd_start, mjd_end+step, step)
-        setting = mjds*0.
-
-        # Stupid Dublin Julian Date
-        djds = mjds - doff
-        sun = ephem.Sun()
-
-        for i, (mjd, djd) in enumerate(zip(mjds, djds)):
-            sun.compute(djd)
-            setting[i] = self.obs.previous_setting(sun, start=djd, use_center=True)
-        setting = setting + doff
-
-        # zomg, round off crazy floating point precision issues
-        setting_rough = np.round(setting*100.)
-        u, indx = np.unique(setting_rough, return_index=True)
-        self.setting_sun_mjds = setting[indx]
-        left = np.searchsorted(self.setting_sun_mjds, mjd_start)
-        self.setting_sun_mjds = self.setting_sun_mjds[left:]
-
-    def __call__(self, mjd):
-        """
-        Convert an mjd to a night integer.
-        """
-        return np.searchsorted(self.setting_sun_mjds, mjd)
+__all__ = ['obs2sqlite']
 
 
 def obs2sqlite(observations_in, location='LSST', outfile='observations.sqlite', slewtime_limit=5.,
@@ -151,10 +85,6 @@ def obs2sqlite(observations_in, location='LSST', outfile='observations.sqlite', 
         # XXX just fill in a dummy val
         observations['seeing'] = 0.8
 
-    if 'night' not in in_cols:
-        m2n = mjd2night()
-        observations['night'] = m2n(observations['mjd'])
-
     # Sky Brightness
     if 'skybrightness' not in in_cols:
         if full_sky:
@@ -181,7 +111,6 @@ def obs2sqlite(observations_in, location='LSST', outfile='observations.sqlite', 
             observations['sunAlt'] = np.degrees(observations['sunAlt'])
             observations['moonAlt'] = np.degrees(observations['moonAlt'])
 
-
     # 5-sigma depth
     for fn in np.unique(observations['filter']):
         good = np.where(observations['filter'] == fn)
@@ -193,4 +122,3 @@ def obs2sqlite(observations_in, location='LSST', outfile='observations.sqlite', 
     conn = sqlite3.connect(outfile)
     df = pd.DataFrame(observations)
     df.to_sql('observations', conn)
-

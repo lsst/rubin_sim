@@ -12,9 +12,8 @@ Optional: Set data directory. By default, `rubin_sim` will download needed data 
 
 Set up a conda envoronment and install rubin_sim from source in development mode:
 ```
-conda create -n rubin -c conda-forge scikit-learn scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables h5py
+conda create -n rubin -c conda-forge openorb openorb-data-de405 astroplan scikit-learn scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables h5py colorcet
 conda activate rubin
-pip install pyephem
 git clone git@github.com:lsst/rubin_sim.git
 cd rubin_sim
 pip install -e .
@@ -55,3 +54,5 @@ For unit tests, all filename should start with `test_` so py.test can automatica
 XXX--need to put instructions for updating the data sets on NCSA. 
 
 XXX--to make changes to the code, checkout a new branch, make edits, push, make a pull request.
+
+Note when developing after running `pip install -e .`, you can edit the python and run to see the changes. However, scripts in the `bin/` directory are coppied to the anaconda `envs/<envname>/bin/` folder, so editing those in place will have no effect. To test changes to scripts, re-run `pip install -e .` to re-copy the scripts.

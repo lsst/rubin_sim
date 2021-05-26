@@ -1,5 +1,4 @@
 import numpy as np
-import ephem
 
 
 def wrapRA(ra):
@@ -8,16 +7,6 @@ def wrapRA(ra):
     """
     ra = ra % (2.0*np.pi)
     return ra
-
-
-def mjd2djd(inDate):
-    """
-    Convert Modified Julian Date to Dublin Julian Date (what pyephem uses).
-    """
-    if not hasattr(mjd2djd, 'doff'):
-        mjd2djd.doff = ephem.Date(0)-ephem.Date('1858/11/17')
-    djd = inDate-mjd2djd.doff
-    return djd
 
 
 def robustRMS(array, missing=0.):
@@ -31,19 +20,3 @@ def robustRMS(array, missing=0.):
         iqr = np.percentile(array, 75)-np.percentile(array, 25)
         rms = iqr/1.349  # approximation
     return rms
-
-
-def ut2Mjd(dateString):
-    obs = ephem.Observer()
-    obs.date = dateString
-    doff = ephem.Date(0)-ephem.Date('1858/11/17')
-    mjd = obs.date+doff
-    return mjd
-
-
-def mjd2ut(mjd):
-    obs = ephem.Observer()
-    doff = ephem.Date(0)-ephem.Date('1858/11/17')
-    djd = mjd-doff
-    obs.date = djd
-    return obs.date

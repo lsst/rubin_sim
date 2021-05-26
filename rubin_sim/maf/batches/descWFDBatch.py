@@ -7,6 +7,7 @@ import rubin_sim.maf.maps as maps
 import rubin_sim.maf.metricBundles as mb
 from .common import standardSummary, filterList, combineMetadata
 from .colMapDict import ColMapDict
+from rubin_sim.maf.mafContrib.lssmetrics.depthLimitedNumGalMetric import DepthLimitedNumGalMetric
 
 __all__ = ['descWFDBatch', 'tdcBatch']
 
@@ -16,8 +17,6 @@ def descWFDBatch(colmap=None, runName='opsim', nside=64,
                  mag_cuts = {1: 24.75 - 0.1, 3: 25.35 - 0.1, 6: 25.72 - 0.1, 10: 26.0 - 0.1}):
 
     # Hide some dependencies .. we should probably bring these into MAF
-    from mafContrib.lssmetrics.depthLimitedNumGalMetric import DepthLimitedNumGalMetric
-    from mafContrib import (Plasticc_metric, plasticc_slicer, load_plasticc_lc)
 
     # The options to add additional sql constraints are removed for now.
     if colmap is None:
@@ -37,12 +36,6 @@ def descWFDBatch(colmap=None, runName='opsim', nside=64,
             raise TypeError()
     yrs = list(mag_cuts.keys())
     maxYr = max(yrs)
-
-    # Load up the plastic light curves
-    models = ['SNIa-normal']
-    plasticc_models_dict = {}
-    for model in models:
-        plasticc_models_dict[model] = list(load_plasticc_lc(model=model).values())
 
     # One of the primary concerns for DESC WFD metrics is to add dust extinction and coadded depth limits
     # as well as to get some coverage in all 6 bandpasses.
@@ -85,7 +78,6 @@ def descWFDBatch(colmap=None, runName='opsim', nside=64,
         displayDict['order'] += 1
         bundleList.append(bundle)
 
-
     ## LSS Science
     # The only metric we have from LSS is the NGals metric - which is similar to the GalaxyCountsExtended
     # metric, but evaluated only on the depth/dust cuts footprint.
@@ -111,7 +103,6 @@ def descWFDBatch(colmap=None, runName='opsim', nside=64,
                              plotFuncs=subsetPlots)
     bundleList.append(bundle)
 
-
     ## WL metrics
     # Calculates the number of visits per pointing, after removing parts of the footprint due to dust/depth
     subgroupCount += 1
@@ -129,24 +120,6 @@ def descWFDBatch(colmap=None, runName='opsim', nside=64,
     displayDict['order'] = 1
     bundle = mb.MetricBundle(m, s, sqlconstraint, mapsList=[dustmap], metadata=metadata,
                              summaryMetrics=standardStats, displayDict=displayDict)
-    bundleList.append(bundle)
-
-    # This probably will get replaced by @pgris's SN metrics?
-    subgroupCount += 1
-    displayDict['subgroup'] = f'{subgroupCount}: SNe Ia'
-    displayDict['order'] = 0
-    # XXX-- use the light curves from PLASTICC here
-    displayDict['caption'] = 'Fraction of normal SNe Ia (using PLaSTICCs)'
-    sqlconstraint = 'note not like "DD%"'
-    metadata = 'non-DD'
-    slicer = plasticc_slicer(plcs=plasticc_models_dict['SNIa-normal'], seed=42, badval=0)
-    metric = Plasticc_metric(metricName='SNIa')
-    # Set the maskval so that we count missing objects as zero.
-    summary_stats = [metrics.MeanMetric(maskVal=0)]
-    plotFuncs = [plots.HealpixSkyMap()]
-    bundle = mb.MetricBundle(metric, slicer, sqlconstraint,
-                             metadata=metadata, summaryMetrics=summary_stats,
-                             plotFuncs=plotFuncs,  displayDict=displayDict)
     bundleList.append(bundle)
 
     subgroupCount += 1

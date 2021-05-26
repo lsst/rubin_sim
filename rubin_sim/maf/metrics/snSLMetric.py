@@ -1,9 +1,9 @@
 import numpy as np
 import rubin_sim.maf.metrics as metrics
 import healpy as hp
-from .seasonMetrics import calcSeason
 from rubin_sim.photUtils import Dust_values
 from rubin_sim.maf.utils import collapse_night
+from rubin_sim.utils import calcSeason
 
 __all__ = ['SNSLMetric']
 

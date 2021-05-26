@@ -137,7 +137,7 @@ class SNNSNMetric(BaseMetric):
         self.bad = np.rec.fromrecords([(-1.0, -1.0)], names=['nSN', 'zlim'])
         # self.bad = {'nSN': -1.0, 'zlim': -1.0}
 
-    def run(self, dataSlice,  slicePoint=None):
+    def run(self, dataSlice, slicePoint=None):
         """
         run method of the metric
 
@@ -171,7 +171,7 @@ class SNNSNMetric(BaseMetric):
 
         dataSlice = self.coadd(pd.DataFrame(dataSlice))
 
-        dataSlice = self.getseason(dataSlice)
+        dataSlice = self.getseason(dataSlice, mjdCol=self.mjdCol)
 
         # get the seasons
         seasons = self.season
@@ -232,7 +232,6 @@ class SNNSNMetric(BaseMetric):
 
         # final result: median zlim for a faint sn
         # and nsn_med for z<zlim
-
         if resdf.empty:
             return nlr.merge_arrays([idarray, self.bad], flatten=True)
 
@@ -267,8 +266,11 @@ class SNNSNMetric(BaseMetric):
     def reducezlim(self, metricVal):
 
         # At each slicepoint, return the median zlim
+        result = np.median(metricVal['zlim'])
+        if result < 0:
+            result = self.badval
 
-        return np.median(metricVal['zlim'])
+        return result
 
     def coadd(self, data):
         """
@@ -293,7 +295,7 @@ class SNNSNMetric(BaseMetric):
                                                self.vistimeCol: ['sum'],
                                                self.exptimeCol: ['sum'],
                                                self.mjdCol: ['mean'],
-                                               self.RACol: ['mean'],
+                                               self.RACol: ['min'],
                                                self.DecCol: ['mean'],
                                                self.m5Col: ['mean']}).reset_index()
 
@@ -320,16 +322,12 @@ class SNNSNMetric(BaseMetric):
          minimal gap required to define a season (default: 80 days)
         mjdCol: str, opt
         col name for MJD infos (default: observationStartMJD)
-
         Returns
         ----------
         original numpy array with seasonnumber appended
         """
 
         # check wether season has already been estimated
-
-        if 'season' in obs.dtype.names:
-            return obs
 
         obs.sort(order=mjdCol)
 
@@ -495,11 +493,11 @@ class SNNSNMetric(BaseMetric):
         sel = effi_seasondf[idx]
 
         if np.mean(sel['effi']) > 0.02:
-                # estimate zlims
+            # estimate zlims
             zlimsdf = self.zlims(effi_seasondf, dur_z, groupnames)
 
             # estimate number of medium supernovae
-            zlimsdf['nsn_med'],  zlimsdf['var_nsn_med'] = zlimsdf.apply(lambda x: self.nsn_typedf(
+            zlimsdf['nsn_med'], zlimsdf['var_nsn_med'] = zlimsdf.apply(lambda x: self.nsn_typedf(
                 x, 0.0, 0.0, effi_seasondf, dur_z), axis=1, result_type='expand').T.values
         else:
             return None

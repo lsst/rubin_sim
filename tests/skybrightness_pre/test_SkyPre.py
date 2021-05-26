@@ -4,11 +4,12 @@ import rubin_sim.skybrightness_pre as sbp
 import healpy as hp
 import numpy as np
 import rubin_sim.utils as utils
-import ephem
-from rubin_sim.skybrightness.utils import mjd2djd
 from rubin_sim.utils import _angularSeparation, raDec2Hpid, angularSeparation
 import rubin_sim.site_models as sf
 import warnings
+from astropy.coordinates import get_sun, get_moon, EarthLocation, AltAz
+from astropy import units as u
+from astropy.time import Time
 
 
 class TestSkyPre(unittest.TestCase):
@@ -91,13 +92,9 @@ class TestSkyPre(unittest.TestCase):
         if self.data_present:
             sm = self.sm
             telescope = utils.Site('LSST')
-            Observatory = ephem.Observer()
-            Observatory.lat = telescope.latitude_rad
-            Observatory.lon = telescope.longitude_rad
-            Observatory.elevation = telescope.height
-
-            sun = ephem.Sun()
-            moon = ephem.Moon()
+            location = EarthLocation(lat=telescope.latitude_rad*u.rad,
+                                     lon=telescope.longitude_rad*u.rad,
+                                     height=telescope.height*u.m)
 
             mjd1 = sm.info['mjds'][0]
             mjd2 = sm.info['mjds'][3]
@@ -105,24 +102,30 @@ class TestSkyPre(unittest.TestCase):
             mjds = np.linspace(mjd1, mjd2, 20)
 
             # Demand Moon and Sun Positions match to within 3 arcmin
-            arcmin_places = np.abs(np.floor(np.log10(3/60./180.*np.pi))).astype(int)
+            # arcmin_places = np.abs(np.floor(np.log10(60/60./180.*np.pi))).astype(int)
+            dist_tol = np.radians(.5)
 
             for mjd in mjds:
-                Observatory.date = mjd2djd(mjd)
-                sun.compute(Observatory)
-                moon.compute(Observatory)
+                time = Time(mjd, format='mjd')
+                aa = AltAz(location=location, obstime=time)
+                sun = get_sun(time)
+                moon = get_moon(time)
+
+                sun_aa = sun.transform_to(aa)
+                moon_aa = moon.transform_to(aa)
+
                 pre_calced = sm.returnSunMoon(mjd)
 
-                self.assertLess(np.abs(pre_calced['sunAlt']-sun.alt), arcmin_places)
-                sun_dist = _angularSeparation(sun.ra, sun.dec, pre_calced['sunRA'], pre_calced['sunDec'])
-                self.assertAlmostEqual(sun_dist, 0., places=arcmin_places)
+                self.assertLess(np.abs(pre_calced['sunAlt']-sun_aa.alt.rad), dist_tol)
+                sun_dist = _angularSeparation(sun.ra.rad, sun.dec.rad, pre_calced['sunRA'], pre_calced['sunDec'])
+                assert(sun_dist < dist_tol)
 
-                self.assertLess(np.abs(pre_calced['moonAlt']-moon.alt), arcmin_places)
-                moon_dist = _angularSeparation(moon.ra, moon.dec, pre_calced['moonRA'], pre_calced['moonDec'])
-                self.assertAlmostEqual(moon_dist, 0., places=arcmin_places)
+                self.assertLess(np.abs(pre_calced['moonAlt']-moon_aa.alt.rad), dist_tol)
+                moon_dist = _angularSeparation(moon.ra.rad, moon.dec.rad, pre_calced['moonRA'], pre_calced['moonDec'])
+                assert(moon_dist < dist_tol)
 
-                self.assertAlmostEqual(np.radians(pre_calced['moonSunSep']),
-                                       np.radians(moon.phase/100.*180.), places=arcmin_places)
+                dist = sun.separation(moon)
+                assert(np.radians(pre_calced['moonSunSep']) - dist.rad < dist_tol)
 
     def testSBP(self):
         """

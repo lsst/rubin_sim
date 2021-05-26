@@ -31,7 +31,7 @@ if __name__ == "__main__":
     for filename, name in zip(db_files, run_names):
         if os.path.isdir(name + '_glance'):
             shutil.rmtree(name + '_glance')
-        opsdb = db.OpsimDatabaseFBS(filename)
+        opsdb = db.OpsimDatabase(filename)
         colmap = batches.ColMapDict()
 
         bdict = {}

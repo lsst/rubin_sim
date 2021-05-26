@@ -113,7 +113,7 @@ class HealpixSlicer(BaseSpatialSlicer):
         self.slicePoints['sid'] = np.arange(self.nslice)
         self.slicePoints['ra'], self.slicePoints['dec'] = self._pix2radec(self.slicePoints['sid'])
         # Set the default plotting functions.
-        self.plotFuncs = [HealpixSkyMap, HealpixHistogram, HealpixPowerSpectrum]
+        self.plotFuncs = [HealpixSkyMap, HealpixHistogram]
 
     def __eq__(self, otherSlicer):
         """Evaluate if two slicers are equivalent."""

@@ -54,8 +54,7 @@ class UserPointsSlicer(BaseSpatialSlicer):
         super(UserPointsSlicer, self).__init__(lonCol=lonCol, latCol=latCol, latLonDeg=latLonDeg,
                                                verbose=verbose,
                                                badval=badval, radius=radius, leafsize=leafsize,
-                                               useCamera=useCamera, rotSkyPosColName=rotSkyPosColName,
-                                               mjdColName=mjdColName, chipNames=chipNames)
+                                               useCamera=useCamera, rotSkyPosColName=rotSkyPosColName)
         # check that ra and dec are iterable, if not, they are probably naked numbers, wrap in list
         if not hasattr(ra, '__iter__'):
             ra = [ra]
