@@ -15,6 +15,7 @@ def data_dict():
     file_dict = {'maf': 'maf_may_2021.tgz',
                  'maps': 'maps_may_2021.tgz',
                  'movingObjects': 'movingObjects_may_2021.tgz',
+                 'orbits': 'orbits_may_2021.tgz',
                  'site_models': 'site_models_may_2021.tgz',
                  'skybrightness': 'skybrightness_may_2021.tgz',
                  'skybrightness_pre': 'skybrightness_pre_may_2021.tgz',

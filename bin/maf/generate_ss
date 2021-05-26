@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+import glob
+import os
+from rubin_sim.data import get_data_dir
+
+
+def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None):
+
+    if dbfiles is None:
+        dbfiles = glob.glob('*.db')
+        dbfiles.sort()
+
+    if pops is None:
+        pops = ['granvik_5k', 'l7_5k', 'mba_5k', 'sdo_5k', 'trojan_5k']
+
+    data_dir = os.path.join(get_data_dir(), 'orbits')
+    orbit_files = {'granvik_5k': os.path.join(data_dir, 'granvik_5k.txt'),
+                   'granvik_pha_5k': os.path.join(data_dir, 'granvik_pha_5k.txt'),
+                   'l7_5k': os.path.join(data_dir, 'l7_5k.txt'),
+                   'mba_5k': os.path.join(data_dir, 'mba_5k.txt'),
+                   'oort': os.path.join(data_dir, 'oort.txt'),
+                   'sdo_5k': os.path.join(data_dir, 'sdo_5k.txt'),
+                   'trojan_5k': os.path.join(data_dir, 'trojan_5k.txt')
+                   }
+
+    ranges = {'granvik_5k': (16, 22.2, 0.2),
+              'granvik_pha_5k': (16, 22.2, 0.2),
+              'l7_5k': (4, 12, 0.2),
+              'mba_5k': (16, 26, 0.2),
+              'oort': (4, 20, 0.5),
+              'sdo_5k': (4, 12, 0.2),
+              'trojan_5k': (14, 22, 0.2)
+              }
+
+    metadatas = {'granvik_5k': 'NEO',
+                 'granvik_pha_5k': 'NEO',
+                 'l7_5k': 'TNO',
+                 'mba_5k': 'MBA',
+                 'oort': 'Oort',
+                 'sdo_5k': 'SDO',
+                 'trojan_5k': 'Trojan'
+                 }
+
+    characterization = {'granvik_5k': 'inner',
+                        'granvik_pha_5k': 'inner',
+                        'l7_5k': 'inner',
+                        'mba_5k': 'inner',
+                        'oort': 'outer',
+                        'sdo_5k': 'outer',
+                        'trojan_5k': 'outer'
+                        }
+
+    hmarks = {'granvik_5k': 22,
+              'granvik_pha_5k': 22,
+              'l7_5k': 8,
+              'mba_5k': 20,
+              'oort': 5,
+              'sdo_5k': 7,
+              'trojan_5k': 18
+              }
+
+    runs = [file.replace('.db', '') for file in dbfiles]
+    runs = [run for run in runs if 'tracking' not in run]
+
+    with open(outfile, 'w') as f:
+        for pop in pops:
+            for run, filename in zip(runs, dbfiles):
+                s1 = ('makeLSSTobs --opsimDb %s --orbitFile %s' % (filename, orbit_files[pop]))
+                s2 = ('run_moving_calc --characterization %s --obsFile ' % characterization[pop] +
+                      '%s__%s_obs.txt ' % (run, pop) +
+                      '--opsimDb %s.db ' % run + '--orbitFile '+orbit_files[pop] +
+                      ' --outDir %s ' % run +
+                      '--opsimRun %s ' % run +
+                      '--hMin %0.2f --hMax %0.2f --hStep %0.2f ' % ranges[pop] +
+                      '--metadata %s ' % metadatas[pop])
+                s3 = ('run_moving_fractions --workDir %s ' % (run) +
+                      '--metadata %s ' % metadatas[pop] +
+                      '--hMark %i' % hmarks[pop])
+                print(s1 + ' ; ' + s2 + ' ; ' + s3, file=f)
+
+
+if __name__ == '__main__':
+    generate_ss_commands()
