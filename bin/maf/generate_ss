@@ -69,11 +69,11 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None):
                 s2 = ('run_moving_calc --characterization %s --obsFile ' % characterization[pop] +
                       '%s__%s_obs.txt ' % (run, pop) +
                       '--opsimDb %s.db ' % run + '--orbitFile '+orbit_files[pop] +
-                      ' --outDir %s ' % run +
+                      ' --outDir %s ' % (run+'_ss') +
                       '--opsimRun %s ' % run +
                       '--hMin %0.2f --hMax %0.2f --hStep %0.2f ' % ranges[pop] +
                       '--metadata %s ' % metadatas[pop])
-                s3 = ('run_moving_fractions --workDir %s ' % (run) +
+                s3 = ('run_moving_fractions --workDir %s ' % (run+'_ss') +
                       '--metadata %s ' % metadatas[pop] +
                       '--hMark %i' % hmarks[pop])
                 print(s1 + ' ; ' + s2 + ' ; ' + s3, file=f)
