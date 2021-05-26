@@ -120,12 +120,13 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
         bundleList.append(descBundleDict[d])
 
     displayDict = {'group': 'Cosmology', 'subgroup': 'SNe Ia', 'order': 0, 'caption': None}
-    sne_nside = 4
+    sne_nside = 16
+    sn_summary = [metrics.MedianMetric(), metrics.SumMetric(), metrics.MeanMetric()]
     slicer = slicers.HealpixSlicer(nside=sne_nside)
     metric = metrics.SNNSNMetric(verbose=False)  # zlim_coeff=0.98)
     sql = ''
     bundle = mb.MetricBundle(metric, slicer, sql, plotDict=plotDict,
-                             displayDict=displayDict, summaryMetrics=standardStats,
+                             displayDict=displayDict, summaryMetrics=sn_summary,
                              plotFuncs=subsetPlots)
 
     bundleList.append(bundle)

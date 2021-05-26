@@ -7,7 +7,6 @@ import numpy.lib.recfunctions as rf
 import time
 from scipy.interpolate import interp1d
 import numpy.lib.recfunctions as nlr
-from rubin_sim.utils import calcSeason
 
 __all__ = ['SNNSNMetric']
 
@@ -223,7 +222,6 @@ class SNNSNMetric(BaseMetric):
         if gen_par.empty:
             return nlr.merge_arrays([idarray, self.bad], flatten=True)
         resdf = pd.DataFrame()
-
 
         for seas in seasons:
             vara_df = self.run_season(
@@ -495,11 +493,11 @@ class SNNSNMetric(BaseMetric):
         sel = effi_seasondf[idx]
 
         if np.mean(sel['effi']) > 0.02:
-                # estimate zlims
+            # estimate zlims
             zlimsdf = self.zlims(effi_seasondf, dur_z, groupnames)
 
             # estimate number of medium supernovae
-            zlimsdf['nsn_med'],  zlimsdf['var_nsn_med'] = zlimsdf.apply(lambda x: self.nsn_typedf(
+            zlimsdf['nsn_med'], zlimsdf['var_nsn_med'] = zlimsdf.apply(lambda x: self.nsn_typedf(
                 x, 0.0, 0.0, effi_seasondf, dur_z), axis=1, result_type='expand').T.values
         else:
             return None
