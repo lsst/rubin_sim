@@ -87,7 +87,6 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     #########################
     # Generally, we need to run Solar System metrics separately; they're a multi-step process.
 
-
     #########################
     # Galaxies
     #########################
@@ -137,7 +136,7 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     displayDict = {'group': 'Variables/Transients',
                    'subgroup': 'Periodic Stars',
                    'order': 0, 'caption': None}
-    for period in [0.5, 1, 2,]:
+    for period in [0.5, 1, 2]:
         for magnitude in [21., 24.]:
             amplitudes = [0.05, 0.1, 1.0]
             periods = [period] * len(amplitudes)
@@ -172,6 +171,21 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     bundle = mb.MetricBundle(metric, slicer, sql, runName=runName,
                              plotDict=plotDict, plotFuncs=plotFuncs,
                              summaryMetrics=[metrics.MeanMetric(maskVal=0)],
+                             displayDict=displayDict)
+    bundleList.append(bundle)
+
+    # Strongly lensed SNe
+    displayDict['subgroup'] = 'SLSN'
+    displayDict['caption'] = 'Strongly Lensed SNe'
+
+    metric = metrics.SNSLMetric(night_collapse=True)
+    slicer = slicers.HealpixSlicer(nside=64)
+    plotDict = {}
+    sql = ''
+
+    bundle = mb.MetricBundle(metric, slicer, sql, runName=runName,
+                             plotDict=plotDict,
+                             summaryMetrics=[metrics.SumMetric()],
                              displayDict=displayDict)
     bundleList.append(bundle)
 

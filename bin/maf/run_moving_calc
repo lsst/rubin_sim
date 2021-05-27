@@ -118,8 +118,3 @@ if __name__ == '__main__':
     print("Calculating characterization metrics.")
     bg = mmb.MoMetricBundleGroup(bdictC, outDir=args.outDir, resultsDb=resultsDb)
     bg.runAll()
-
-    if args.opsimDb is not None:
-        opsdb = db.OpsimDatabase(args.opsimDb)
-        utils.writeConfigs(opsdb, args.outDir)
-        opsdb.close()
