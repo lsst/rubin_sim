@@ -46,6 +46,17 @@ git checkout master
 And viola, one has the current version of the code, but the data files from a previous version.
 
 
+## Notes on installing/running on hyak (and other clusters)
+
+A new anaconda install is around 11 GB (and hyak has a home dir quota of 10GB), so ensure your anaconda dir and the rubin_sim_data dir are not in your home directory. Helpful link to the anaconda linux install instructions:  https://docs.anaconda.com/anaconda/install/linux/
+
+The `conda activate` command fails in a bash script. One must first `source ~/anaconda3/etc/profile.d/conda.sh
+` (replace with path to your anaconda install if different), then `conda activate rubin`.
+
+The conda create command failed a few times. It looks like creating the conda environement and then installing dependencies in 3-4 batches can be a work-around.
+
+Handy command to get a build node on hyak `srun -p build --time=2:00:00 --mem=20G --pty /bin/bash`
+
 
 # Developer Guide
 
@@ -55,4 +66,4 @@ XXX--need to put instructions for updating the data sets on NCSA.
 
 XXX--to make changes to the code, checkout a new branch, make edits, push, make a pull request.
 
-Note when developing after running `pip install -e .`, you can edit the python and run to see the changes. However, scripts in the `bin/` directory are coppied to the anaconda `envs/<envname>/bin/` folder, so editing those in place will have no effect. To test changes to scripts, re-run `pip install -e .` to re-copy the scripts.
+Note when developing after running `pip install -e .`, you can edit the python and run to see the changes. However, scripts in the `bin/` directory are coppied to the anaconda `envs/<envname>/bin/` folder, so editing those in place will have no effect. To test changes to scripts, re-run `pip install -e .` to re-copy the scripts. I think? Maybe you can edit in place. Anyway, doesn't hurt to re-run pip.
