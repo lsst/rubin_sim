@@ -11,7 +11,8 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None):
         dbfiles.sort()
 
     if pops is None:
-        pops = ['granvik_5k', 'l7_5k', 'mba_5k', 'sdo_5k', 'trojan_5k']
+        # put in order so longer runtime ones are first
+        pops = ['trojan_5k', 'l7_5k', 'mba_5k', 'granvik_5k', 'sdo_5k']
 
     data_dir = os.path.join(get_data_dir(), 'orbits')
     orbit_files = {'granvik_5k': os.path.join(data_dir, 'granvik_5k.txt'),
