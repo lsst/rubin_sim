@@ -60,10 +60,19 @@ Handy command to get a build node on hyak `srun -p build --time=2:00:00 --mem=20
 
 # Developer Guide
 
+To make changes to the code, checkout a new branch, make edits, push, make a pull request.
+
 For unit tests, all filename should start with `test_` so py.test can automatically find them.
 
-XXX--need to put instructions for updating the data sets on NCSA. 
-
-XXX--to make changes to the code, checkout a new branch, make edits, push, make a pull request.
-
 Note when developing after running `pip install -e .`, you can edit the python and run to see the changes. However, scripts in the `bin/` directory are coppied to the anaconda `envs/<envname>/bin/` folder, so editing those in place will have no effect. To test changes to scripts, re-run `pip install -e .` to re-copy the scripts. I think? Maybe you can edit in place. Anyway, doesn't hurt to re-run pip.
+
+## Updating data files
+
+To update the data files:
+
+* Update the files in your local installation
+* Create a new tar file with a new name, e.g., `tar -chvzf maf_june_2021.tgz maf`
+* Copy your new tar file to NCSA lsst-login01.ncsa.illinois.edu:/lsstdata/user/staff/web_data/sim-data/rubin_sim_data/
+* You can check that it is uploaded here: https://lsst.ncsa.illinois.edu/sim-data/rubin_sim_data/
+* Update `bin/rs_download_data` so the `data_dict` function uses your new filename
+* push and merge the change to `bin/rs_download_data`
