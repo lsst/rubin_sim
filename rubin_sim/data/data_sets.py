@@ -3,7 +3,7 @@ import warnings
 import subprocess
 
 
-__all__ = ['get_data_dir']
+__all__ = ['get_data_dir', 'data_versions']
 
 
 def get_data_dir():
@@ -21,3 +21,22 @@ def get_data_dir():
     if data_dir is None:
         data_dir = os.path.join(os.getenv('HOME'), 'rubin_sim_data')
     return data_dir
+
+
+def data_versions():
+    """return a dictionary of the source filenames in the data directory
+    """
+
+    data_dir = get_data_dir()
+    result = None
+    version_file = os.path.join(data_dir, 'versions.txt')
+    if os.path.isfile(version_file):
+        with open(version_file) as f:
+            content = f.readlines()
+        content = [x.strip() for x in content] 
+        result = {}
+        for line in content:
+            ack = line.split(',')
+            result[ack[0]] = ack[1]
+
+    return result
