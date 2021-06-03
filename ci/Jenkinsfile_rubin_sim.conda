@@ -1,0 +1,2 @@
+@Library('JenkinsShared')_
+ExternalCondaPipeline("rubin-sim")

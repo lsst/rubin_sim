@@ -2,7 +2,7 @@ import numpy as np
 
 import os
 import unittest
-from rubin_sim.utils import ObservationMetaData, getPackageDir
+from rubin_sim.utils import ObservationMetaData
 from rubin_sim.utils.CodeUtilities import sims_clean_up
 from rubin_sim.photUtils.Bandpass import Bandpass
 from rubin_sim.photUtils.Sed import Sed
@@ -36,9 +36,7 @@ class photometryUnitTest(unittest.TestCase):
         that some default value did not change and the code actually ended up loading the
         LSST bandpasses.
         """
-        package_dir = getPackageDir(rubin_sim)
-
-        bandpassDir = os.path.join(package_dir, 'tests/photUtils', 'cartoonSedTestData')
+        bandpassDir = os.path.join('tests', 'photUtils', 'cartoonSedTestData')
 
         cartoon_dict = BandpassDict.loadTotalBandpassesFromFiles(['u', 'g', 'r', 'i', 'z'],
                                                                  bandpassDir=bandpassDir,
@@ -57,7 +55,7 @@ class photometryUnitTest(unittest.TestCase):
         sedObj = Sed()
         phiArray, waveLenStep = sedObj.setupPhiArray(bplist)
 
-        sedFileName = os.path.join(package_dir, 'tests/photUtils',
+        sedFileName = os.path.join('tests/photUtils',
                                    'cartoonSedTestData/starSed/')
         sedFileName = os.path.join(sedFileName, 'kurucz', 'km20_5750.fits_g40_5790.gz')
         ss = Sed()

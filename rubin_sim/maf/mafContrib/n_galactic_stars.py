@@ -15,3 +15,4 @@ class NGalStarsMetric(BaseMetric):
 
     def run(self, dataSlice, slicePoint=None):
 
+        pass

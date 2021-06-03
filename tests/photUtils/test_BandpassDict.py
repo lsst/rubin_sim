@@ -4,7 +4,6 @@ import copy
 import numpy as np
 from rubin_sim.photUtils import Bandpass, Sed, BandpassDict, SedList
 from rubin_sim.data import get_data_dir
-from rubin_sim.utils import getPackageDir
 import rubin_sim
 
 
@@ -14,7 +13,7 @@ class BandpassDictTest(unittest.TestCase):
         self.rng = np.random.RandomState(32)
         self.bandpassPossibilities = ['u', 'g', 'r', 'i', 'z', 'y']
         self.bandpassDir = os.path.join(get_data_dir(), 'throughputs', 'baseline')
-        self.sedDir = os.path.join(getPackageDir(rubin_sim), 'tests', 'photUtils',
+        self.sedDir = os.path.join('tests', 'photUtils',
                                    'cartoonSedTestData/galaxySed')
         self.sedPossibilities = os.listdir(self.sedDir)
 
@@ -662,7 +661,7 @@ class BandpassDictTest(unittest.TestCase):
         expected result
         """
 
-        bandpassDir = os.path.join(getPackageDir(rubin_sim), 'tests', 'photUtils',
+        bandpassDir = os.path.join('tests', 'photUtils',
                                    'cartoonSedTestData')
         bandpassNames = ['g', 'r', 'u']
         bandpassRoot = 'test_bandpass_'
@@ -697,7 +696,7 @@ class BandpassDictTest(unittest.TestCase):
         expected result
         """
 
-        fileDir = os.path.join(getPackageDir(rubin_sim), 'tests', 'photUtils',
+        fileDir = os.path.join('tests', 'photUtils',
                                'cartoonSedTestData')
         bandpassNames = ['g', 'z', 'i']
         bandpassRoot = 'test_bandpass_'
