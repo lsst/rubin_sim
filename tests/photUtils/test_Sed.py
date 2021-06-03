@@ -10,7 +10,6 @@ import rubin_sim.photUtils.Sed as Sed
 import rubin_sim.photUtils.Bandpass as Bandpass
 from rubin_sim.photUtils import PhotometricParameters
 import rubin_sim
-from rubin_sim.utils import getPackageDir
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -173,7 +172,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         """
         Test that __eq__ in Sed works correctly
         """
-        sed_dir = os.path.join(getPackageDir(rubin_sim), 'tests/photUtils',
+        sed_dir = os.path.join('tests', 'photUtils',
                                'cartoonSedTestData', 'starSed', 'kurucz')
         list_of_seds = os.listdir(sed_dir)
         sedname1 = os.path.join(sed_dir, list_of_seds[0])
@@ -203,7 +202,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         with readSED_flambda, it should get stored in the
         _global_misc_sed_cache)
         """
-        sed_dir = os.path.join(getPackageDir(rubin_sim), 'tests/photUtils',
+        sed_dir = os.path.join('tests', 'photUtils',
                                'cartoonSedTestData', 'starSed', 'kurucz')
 
         sed_name_list = os.listdir(sed_dir)

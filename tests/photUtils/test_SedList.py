@@ -4,7 +4,6 @@ import numpy as np
 
 from rubin_sim.photUtils import Bandpass, Sed, SedList
 import rubin_sim
-from rubin_sim.utils import getPackageDir
 from rubin_sim.data import get_data_dir
 
 
@@ -12,8 +11,7 @@ class SedListTest(unittest.TestCase):
 
     def setUp(self):
         self.rng = np.random.RandomState(18233)
-        self.sedDir = os.path.join(getPackageDir(rubin_sim),
-                                   'tests/photUtils/cartoonSedTestData/galaxySed/')
+        self.sedDir = os.path.join('tests', 'photUtils', 'cartoonSedTestData', 'galaxySed')
         self.sedPossibilities = os.listdir(self.sedDir)
 
     def getListOfSedNames(self, nNames):
