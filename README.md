@@ -29,9 +29,9 @@ conda activate rubin
 rs_download_data 
 ```
 
-Optional dowload all the pre-computed sky data:
+Optional dowload all the (100 Gb) pre-computed sky data. Only needed if you are planning to run full 10 year scheduler simulations. Not needed for MAF, etc.:
 ```
-XXX--todo, waiting for NCSA to open up rsync port
+rs_download_sky
 ```
 
 ## mix and match data files

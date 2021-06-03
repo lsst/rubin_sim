@@ -9,6 +9,7 @@ setup(name='rubin_sim',
                'bin/maf/run_moving_join',
                'bin/movingObjects/makeLSSTobs', 'bin/movingObjects/addSeds',
                'bin/movingObjects/generateCoefficients',
-               'bin/rs_download_data'],
+               'bin/rs_download_data',
+               'bin/rs_download_sky'],
       packages=['rubin_sim', ],
       )
