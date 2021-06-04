@@ -130,3 +130,6 @@ dmypy.json
 
 # version file
 version.py
+
+# pycharm files
+.idea/
