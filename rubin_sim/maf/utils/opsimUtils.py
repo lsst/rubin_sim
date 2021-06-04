@@ -1,8 +1,13 @@
-from __future__ import print_function
 # Collection of utilities for MAF that relate to Opsim specifically.
 
 import os
 import numpy as np
+import pandas as pd
+from ..metrics import CountMetric
+from ..slicers import HealpixSlicer
+from ..metricBundles import MetricBundle, MetricBundleGroup
+from ..stackers import WFDlabelStacker
+
 from .outputUtils import printDict
 
 __all__ = ['writeConfigs', 'getFieldData', 'getSimData',
@@ -220,3 +225,44 @@ def calcCoaddedDepth(nvisits, singleVisitDepth):
         if not np.isfinite(coaddedDepth[f]):
             coaddedDepth[f] = singleVisitDepth[f]
     return coaddedDepth
+
+
+def labelVisits(opsimdb_file):
+    """Identify the WFD as the part of the sky with at least 750 visits per pointing and not DD,
+    discount short exposures."""
+    # Get the visits from the database
+    conn = sqlite3.connect(opsimdb_file)
+    query = 'select observationId, observationStartMJD, fieldRA, fieldDec, filter, note from summaryallprops'
+    visits = pd.read_sql(query, conn)
+    conn.close()
+    # Find the WFD footprint
+    nside = 64
+    m = CountMetric(col='observationStartMJD')
+    s = HealpixSlicer(nside)
+    simdata = visits.query('visitExposureTime > 11')
+    simdata = simdata.query('not note.str.startswith("DD")', engine='python').to_records()
+    bundle = MetricBundle(m, s, 'long notDD', runName=runName)
+    g = MetricBundleGroup({f'{runName}': bundle}, None)
+    g.setCurrent('long notDD')
+    g.runCurrent('long notDD', simData=simdata)
+    wfd_footprint = bundle.metricValues.filled(0)
+    wfd_footprint = np.where(wfd_footprint > 750, 1, 0)
+    # label the visits with the visit label stacker
+    wfd_stacker = WFDlabelStacker(wfd_footprint)
+    simdata = wfd_stacker.run(simdata)
+    # Write to a new table in database
+    conn = sqlite3.connect(opsimdb)
+    cursor = conn.cursor()
+    sql = 'CREATE TABLE IF NOT EXISTS "propId" ("observationId" INT PRIMARY KEY, "proposalId"  INT)'
+    cursor.execute(sql)
+    for obsid, pId in zip(simdata['observationId'], simdata['proposalId']):
+        sql = f'INSERT INTO propId (observationId, proposalId) values ("{obsId}", "{pId}")'
+        cursor.execute(sql)
+    # Create some indexes
+    try:
+        indxObsId = "CREATE UNIQUE INDEX idx_observationId on propId (observationId)"
+        cursor.execute(indxObsId)
+    except OperationalError:
+        print('Already had observationId index on propId')
+    conn.commit()
+    conn.close()

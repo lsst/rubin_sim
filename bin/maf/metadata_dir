@@ -1,0 +1,192 @@
+#!/usr/bin/env python
+
+import os
+import argparse
+import glob
+import shutil
+import matplotlib
+matplotlib.use("Agg")
+
+import rubin_sim.maf.batches as batches
+import rubin_sim.maf.db as db
+import rubin_sim.maf.metricBundles as mb
+import rubin_sim.maf.utils as mafUtils
+
+def setSQL(opsdb, sqlConstraint=None, extraMeta=None):
+    # Fetch the proposal ID values from the database
+    # If there is no proposal database, propids and proptags will be empty dictionaries.
+    propids, proptags = opsdb.fetchPropInfo()
+    sqltags = {'All': sqlConstraint}
+    metadata = {'All': ''}
+    if 'WFD' in proptags:
+        # Construct a WFD SQL where clause so multiple propIDs can query by WFD:
+        wfdWhere = opsdb.createSQLWhere('WFD', proptags)
+        sqltags['WFD'] = wfdWhere
+        metadata['WFD'] = 'WFD'
+    if 'DD' in proptags:
+        ddWhere = opsdb.createSQLWhere('DD', proptags)
+        sqltags['DD'] = ddWhere
+        metadata['DD'] = 'DD'
+    if sqlConstraint is not None:
+        sqltags['WFD'] = '(%s) and (%s)' % (sqlConstraint, wfdWhere)
+        sqltags['DD'] = '(%s) and (%s)' % (sqlConstraint, ddWhere)
+    # Use extra metadata if available
+    if extraMeta is not None and len(extraMeta) > 0:
+        for t in metadata:
+            metadata[t] += ' %s' % extraMeta
+    # else, if sqlconstraint present (only) use that.
+    elif sqlConstraint is not None and len(sqlConstraint) > 0:
+        md = sqlConstraint.replace('=', '').replace('filter', '').replace("'", '')
+        md = md.replace('"', '').replace('  ', ' ')
+        for t in metadata:
+            metadata[t] += ' %s' % md
+    # Reset metadata to None if there was nothing there. (helpful for batches).
+    for t in metadata:
+        if len(metadata[t]) == 0:
+            metadata[t] = None
+    return (propids, proptags, sqltags, metadata)
+
+
+if __name__ == "__main__":
+    """
+    Run the metadata batch on all .db files in a directory.
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--runNames", type=str, default=None)
+    args = parser.parse_args()
+
+    # If runNames not given, scan for opsim databases in current directory and use those
+    # Note that 'runNames' can be full path to directories
+
+    if args.runNames is None:
+        # Just look for any .db files in this directory
+        runNames = glob.glob('.db')
+        # But remove trackingDb and resultsDb if they're there
+        try:
+            runNames.remove('trackingDb_sqlite.db')
+        except ValueError:
+            pass
+        try:
+            runNames.remove('resultsDb_sqlite.db')
+        except ValueError:
+            pass
+    elif isinstance(args.runNames, str):
+        runNames = [args.runNames]
+    else:
+        runNames = args.runNames
+
+    sim_names = [os.path.basename(name).replace('.db', '') for name in runNames]
+
+    trackingDb = db.TrackingDb('.')
+    mafDate, mafVersion = mafUtils.getDateVersion()
+    mafVersion = mafVersion['__version__']
+
+    for filename, opsim in zip(runNames, sim_names):
+        # Set and create if needed the output directory
+        outDir = opsim + "_sched"
+        if os.path.isdir(outDir):
+            shutil.rmtree(outDir)
+        # Connect to the opsim database
+        opsdb = db.OpsimDatabase(filename)
+        colmap = batches.ColMapDict()
+
+        # Set up the bundle dicts
+        # Set up WFD sql constraint, if possible.
+        propids, proptags, sqls, metadata = setSQL(opsdb)
+        if 'WFD' in sqls:
+            tags = ['All', 'WFD']
+        else:
+            tags = ['All']
+        # Set up appropriate metadata - need to combine args.sqlConstraint
+
+        # Some of these metrics are reproduced in other scripts - srd and cadence
+        bdict = {}
+        plotbundles = []
+
+        for tag in tags:
+            fO = batches.fOBatch(colmap=colmap, runName=args.runName,
+                                 extraSql=sqls[tag], extraMetadata=metadata[tag])
+            bdict.update(fO)
+            astrometry = batches.astrometryBatch(colmap=colmap, runName=args.runName,
+                                                 extraSql=sqls[tag], extraMetadata=metadata[tag])
+            bdict.update(astrometry)
+            rapidrevisit = batches.rapidRevisitBatch(colmap=colmap, runName=args.runName,
+                                                     extraSql=sqls[tag], extraMetadata=metadata[tag])
+            bdict.update(rapidrevisit)
+
+        # Intranight (pairs/time)
+        intranight_all, plots = batches.intraNight(colmap, args.runName, extraSql=args.sqlConstraint)
+        bdict.update(intranight_all)
+        plotbundles.append(plots)
+
+        # Internight (nights between visits)
+        for tag in tags:
+            internight, plots = batches.interNight(colmap, args.runName, extraSql=sqls[tag],
+                                                   extraMetadata=metadata[tag])
+            bdict.update(internight)
+            plotbundles.append(plots)
+
+        # Intraseason (length of season)
+        for tag in tags:
+            season, plots = batches.seasons(colmap=colmap, runName=args.runName,
+                                            extraSql=sqls[tag], extraMetadata=metadata[tag])
+            bdict.update(season)
+            plotbundles.append(plots)
+
+        # Run all metadata metrics, All and just WFD.
+        for tag in tags:
+            bdict.update(batches.allMetadata(colmap, args.runName, extraSql=sqls[tag],
+                                             extraMetadata=metadata[tag]))
+
+        # Nvisits + m5 maps + Teff maps, All and just WFD.
+        for tag in tags:
+            bdict.update(batches.nvisitsM5Maps(colmap, args.runName, runLength=args.nyears,
+                                               extraSql=sqls[tag], extraMetadata=metadata[tag]))
+            bdict.update(batches.tEffMetrics(colmap, args.runName, extraSql=sqls[tag],
+                                             extraMetadata=metadata[tag]))
+
+        # Nvisits per proposal and per night.
+        bdict.update(batches.nvisitsPerProp(opsdb, colmap, args.runName,
+                                            extraSql=args.sqlConstraint))
+
+        # NVisits alt/az LambertSkyMap (all filters, per filter)
+        bdict.update(batches.altazLambert(colmap, args.runName, extraSql=args.sqlConstraint))
+
+        # Slew metrics.
+        bdict.update(batches.slewBasics(colmap, args.runName, sqlConstraint=args.sqlConstraint))
+
+        # Open shutter metrics.
+        bdict.update(batches.openshutterFractions(colmap, args.runName, extraSql=args.sqlConstraint))
+
+        # Per night and whole survey filter changes.
+        bdict.update(batches.filtersPerNight(colmap, args.runName, nights=1, extraSql=args.sqlConstraint))
+        bdict.update(batches.filtersWholeSurvey(colmap, args.runName, extraSql=args.sqlConstraint))
+
+        # Hourglass plots.
+        #bdict.update(batches.hourglassPlots(colmap, args.runName,
+        #                                    nyears=args.nyears, extraSql=args.sqlConstraint))
+
+        # Set up the resultsDB
+        resultsDb = db.ResultsDb(outDir=outDir)
+        # Go and run it
+        group = mb.MetricBundleGroup(bdict, opsdb, outDir=outDir, resultsDb=resultsDb, saveEarly=False)
+        group.runAll(clearMemory=True, plotNow=True)
+        resultsDb.close()
+        query = 'select Value from info where Parameter like "featureScheduler version"'
+        opsimVersion = opsdb.query_arbitrary(table='info', query=query)
+        query = 'select Value from info where Parameter like "Date, ymd"'
+        opsimDate  = opsdb.query_arbitrary(table='info', query=query)
+
+        # Write configs to disk - these are useful for tracking provenance if we need to re-generate the
+        # tracking database, for example (to keep things in a particular order).
+        mafUtils.writeConfigs(opsdb, outDir)
+        # Close connection to opsim database.
+        opsdb.close()
+
+        # Add outputs to tracking database. -- note possible race condition if running in parallel.
+        trackingDb.addRun(opsimRun=opsim, opsimVersion=opsimVersion, opsimDate=opsimDate,
+                          mafComment='Metadata', mafVersion=mafVersion, mafDate=mafDate,
+                          mafDir=outDir, dbFile=filename, mafRunId=None,
+                          opsimGroup=None, opsimComment=None)
+    # Close trackingDB
+    trackingDb.close()
