@@ -278,8 +278,8 @@ class TestSNmetrics(unittest.TestCase):
 
         # and the result should be
         # Changing the refernce value because we have new coadd and mag limits
-        nSL_ref = 1.42168e-6  # 0.00012650940
-
+        # Change again to switch to per-season calc rather than averge
+        nSL_ref = 1.478166e-6  # 1.42168e-6  # 0.00012650940
         assert(np.abs(nSL-nSL_ref) < 1.e-8)
 
     def testNSNMetric(self):
@@ -307,7 +307,7 @@ class TestSNmetrics(unittest.TestCase):
             # metric instance
             templateDir = None
             metric = SNNSNMetric(
-                pixArea=area, season=[-1], verbose=False, templateDir=templateDir)
+                pixArea=area, season=[-1], verbose=False, templateDir=templateDir, dust=False)
 
             time_ref = time.time()
 
