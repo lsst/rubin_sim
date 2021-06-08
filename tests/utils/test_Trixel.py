@@ -15,7 +15,7 @@ import numbers
 
 from rubin_sim.utils import sphericalFromCartesian, cartesianFromSpherical
 from rubin_sim.utils import rotAboutY, rotAboutX, rotAboutZ
-from rubin_sim.utils import angularSeparation, _angularSeparation, getPackageDir
+from rubin_sim.utils import angularSeparation, _angularSeparation
 import rubin_sim
 
 
@@ -536,8 +536,8 @@ class TrixelFinderTest(unittest.TestCase):
         Test findHtmid against a random selection of stars from fatboy
         """
         dtype = np.dtype([('htmid', int), ('ra', float), ('dec', float)])
-        data = np.genfromtxt(os.path.join(getPackageDir(rubin_sim), 'tests',
-                                          'utils/testData', 'htmid_test_data.txt'),
+        data = np.genfromtxt(os.path.join('tests',
+                                          'utils', 'testData', 'htmid_test_data.txt'),
                              dtype=dtype)
         self.assertGreater(len(data), 20)
         for i_pt in range(len(data)):

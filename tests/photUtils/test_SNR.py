@@ -6,16 +6,13 @@ import rubin_sim.photUtils.SignalToNoise as snr
 from rubin_sim.photUtils import Sed, Bandpass, PhotometricParameters, LSSTdefaults
 from rubin_sim.photUtils.utils import setM5
 import rubin_sim
-from rubin_sim.utils import getPackageDir
 from rubin_sim.data import get_data_dir
 
 class TestSNRmethods(unittest.TestCase):
 
     def setUp(self):
 
-        package_dir = getPackageDir(rubin_sim)
-        starName = os.path.join(package_dir,
-                                'tests/photUtils/cartoonSedTestData/starSed/')
+        starName = os.path.join('tests', 'photUtils', 'cartoonSedTestData', 'starSed')
         starName = os.path.join(starName, 'kurucz', 'km20_5750.fits_g40_5790.gz')
         self.starSED = Sed()
         self.starSED.readSED_flambda(starName)
@@ -113,7 +110,7 @@ class TestSNRmethods(unittest.TestCase):
                       self.hardwareList[i],
                       photParams, FWHMeff=defaults.FWHMeff(self.filterNameList[i])))
 
-        sedDir = os.path.join(getPackageDir(rubin_sim), 'tests/photUtils',
+        sedDir = os.path.join('tests', 'photUtils',
                               'cartoonSedTestData/starSed/')
         sedDir = os.path.join(sedDir, 'kurucz')
         fileNameList = os.listdir(sedDir)
