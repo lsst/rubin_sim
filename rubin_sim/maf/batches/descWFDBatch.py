@@ -118,7 +118,7 @@ def descWFDBatch(colmap=None, runName='opsim', nside=64,
     minExpTime = 15
     m = metrics.WeakLensingNvisits(m5Col=colmap['fiveSigmaDepth'], expTimeCol=colmap['exptime'],
                                    lsstFilter=bandpass, depthlim=mag_cuts[maxYr],
-                                   ebvlim=lim_ebv, min_expTime=minExpTime)
+                                   ebvlim=lim_ebv, min_expTime=minExpTime, metricName='WeakLensingNvisits')
     s = slicers.HealpixSlicer(nside=nside, useCache=False)
     displayDict['caption'] = f'The number of visits per pointing, over the same reduced footprint as '
     displayDict['caption'] += f'described above. A cutoff of {minExpTime} removes very short visits.'

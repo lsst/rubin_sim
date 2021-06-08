@@ -118,13 +118,12 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     for d in descBundleDict:
         bundleList.append(descBundleDict[d])
 
-    displayDict = {'group': 'Cosmology', 'subgroup': 'SNe Ia', 'order': 0, 'caption': None}
+    displayDict = {'group': 'Cosmology', 'subgroup': '5: SNe Ia', 'order': 0, 'caption': None}
     sne_nside = 16
     sn_summary = [metrics.MedianMetric(), metrics.SumMetric(), metrics.MeanMetric()]
     slicer = slicers.HealpixSlicer(nside=sne_nside)
     metric = metrics.SNNSNMetric(verbose=False)  # zlim_coeff=0.98)
-    sql = ''
-    bundle = mb.MetricBundle(metric, slicer, sql, plotDict=plotDict,
+    bundle = mb.MetricBundle(metric, slicer, extraSql, plotDict=plotDict, metadata=extraMetadata,
                              displayDict=displayDict, summaryMetrics=sn_summary,
                              plotFuncs=subsetPlots)
 
@@ -165,10 +164,9 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
 
     metric = TdePopMetric()
     slicer = generateTdePopSlicer()
-    sql = ''
     plotDict = {'reduceFunc': np.sum, 'nside': 128}
     plotFuncs = [plots.HealpixSkyMap()]
-    bundle = mb.MetricBundle(metric, slicer, sql, runName=runName,
+    bundle = mb.MetricBundle(metric, slicer, extraSql, runName=runName, metadata=extraMetadata,
                              plotDict=plotDict, plotFuncs=plotFuncs,
                              summaryMetrics=[metrics.MeanMetric(maskVal=0)],
                              displayDict=displayDict)
@@ -177,15 +175,15 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     # Strongly lensed SNe
     displayDict['subgroup'] = 'SLSN'
     displayDict['caption'] = 'Strongly Lensed SNe'
-
+    snsl_summary = [metrics.MedianMetric(), metrics.SumMetric(), metrics.MeanMetric()]
     metric = metrics.SNSLMetric(night_collapse=True)
     slicer = slicers.HealpixSlicer(nside=64)
     plotDict = {}
-    sql = ''
 
-    bundle = mb.MetricBundle(metric, slicer, sql, runName=runName,
+    bundle = mb.MetricBundle(metric, slicer, sql, metadata=extraMetadata,
+                             runName=runName,
                              plotDict=plotDict,
-                             summaryMetrics=[metrics.SumMetric()],
+                             summaryMetrics=snsl_summary,
                              displayDict=displayDict)
     bundleList.append(bundle)
 
@@ -194,10 +192,10 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     displayDict['caption'] = 'Fast microlensing events'
 
     plotDict = {'nside': 128}
-    sql = ''
     slicer = generateMicrolensingSlicer(min_crossing_time=1, max_crossing_time=10)
     metric = MicrolensingMetric(metricName='Fast Microlensing')
-    bundle = mb.MetricBundle(metric, slicer, sql, runName=runName,
+    bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
+                             runName=runName,
                              summaryMetrics=[metrics.MeanMetric(maskVal=0)],
                              plotFuncs=[plots.HealpixSkyMap()], metadata=extraMetadata,
                              displayDict=displayDict, plotDict=plotDict)
@@ -206,9 +204,10 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     displayDict['caption'] = 'Slow microlensing events'
     slicer = generateMicrolensingSlicer(min_crossing_time=100, max_crossing_time=1500)
     metric = MicrolensingMetric(metricName='Slow Microlensing')
-    bundle = mb.MetricBundle(metric, slicer, sql, runName=runName,
+    bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
+                             runName=runName,
                              summaryMetrics=[metrics.MeanMetric(maskVal=0)],
-                             plotFuncs=[plots.HealpixSkyMap()], metadata=extraMetadata,
+                             plotFuncs=[plots.HealpixSkyMap()],
                              displayDict=displayDict, plotDict=plotDict)
     bundleList.append(bundle)
 
