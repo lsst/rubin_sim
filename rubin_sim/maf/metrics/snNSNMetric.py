@@ -7,8 +7,10 @@ import numpy.lib.recfunctions as rf
 import time
 from scipy.interpolate import interp1d
 import numpy.lib.recfunctions as nlr
+from rubin_sim.photUtils import Dust_values
 
 __all__ = ['SNNSNMetric']
+
 
 class SNNSNMetric(BaseMetric):
     """
@@ -69,7 +71,7 @@ class SNNSNMetric(BaseMetric):
                  vistimeCol='visitTime', season=[-1], zmin=0.0, zmax=1.2,
                  pixArea=9.6, verbose=False, ploteffi=False,
                  n_bef=4, n_aft=10, snr_min=5., n_phase_min=1,
-                 n_phase_max=1, templateDir=None, zlim_coeff=-1., **kwargs):
+                 n_phase_max=1, templateDir=None, zlim_coeff=-1., dust=True, **kwargs):
 
         self.mjdCol = mjdCol
         self.m5Col = m5Col
@@ -84,12 +86,19 @@ class SNNSNMetric(BaseMetric):
         self.vistimeCol = vistimeCol
         self.pixArea = pixArea
         self.zlim_coeff = zlim_coeff
+        self.dust = dust
+        if dust:
+            maps = ['DustMap']
+            dust_properties = Dust_values()
+            self.Ax1 = dust_properties.Ax1
+        else:
+            maps = []
 
         cols = [self.nightCol, self.m5Col, self.filterCol, self.mjdCol, self.obsidCol,
                 self.nexpCol, self.vistimeCol, self.exptimeCol]
 
         super(SNNSNMetric, self).__init__(
-            col=cols, metricDtype='object', metricName=metricName, **kwargs)
+            col=cols, metricDtype='object', metricName=metricName, maps=maps, **kwargs)
 
         self.season = season
         # LC selection parameters
@@ -172,6 +181,15 @@ class SNNSNMetric(BaseMetric):
         dataSlice = self.coadd(pd.DataFrame(dataSlice))
 
         dataSlice = self.getseason(dataSlice, mjdCol=self.mjdCol)
+
+        # If we want to apply dust extinction.
+        if self.dust:
+            new_m5 = dataSlice[self.m5Col]*0
+            for filtername in np.unique(dataSlice[self.filterCol]):
+                in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
+                A_x = self.Ax1[filtername] * slicePoint['ebv']
+                new_m5[in_filt] = dataSlice[self.m5Col][in_filt] - A_x
+            dataSlice[self.m5Col] = new_m5
 
         # get the seasons
         seasons = self.season

@@ -8,13 +8,14 @@ import rubin_sim.maf.metricBundles as mb
 from .common import standardSummary, filterList, combineMetadata
 from .colMapDict import ColMapDict
 from rubin_sim.maf.mafContrib.lssmetrics.depthLimitedNumGalMetric import DepthLimitedNumGalMetric
+from rubin_sim.maf.mafContrib import StaticProbesFoMEmulatorMetric
 
 __all__ = ['descWFDBatch', 'tdcBatch']
 
 
 def descWFDBatch(colmap=None, runName='opsim', nside=64,
                  bandpass='i', nfilters_needed=6, lim_ebv=0.2,
-                 mag_cuts = {1: 24.75 - 0.1, 3: 25.35 - 0.1, 6: 25.72 - 0.1, 10: 26.0 - 0.1}):
+                 mag_cuts={1: 24.75 - 0.1, 3: 25.35 - 0.1, 6: 25.72 - 0.1, 10: 26.0 - 0.1}):
 
     # Hide some dependencies .. we should probably bring these into MAF
 
@@ -57,9 +58,11 @@ def descWFDBatch(colmap=None, runName='opsim', nside=64,
         sqlconstraint = 'night <= %s' % (yr_cut * 365.25)
         sqlconstraint += ' and note not like "DD%"'
         metadata = f'{bandpass} band non-DD year {yr_cut}'
-        ThreebyTwoSummary = metrics.StaticProbesFoMEmulatorMetricSimple(nside=nside, year=yr_cut,
-                                                                        metricName='3x2ptFoM')
-        print(colmap['fiveSigmaDepth'], colmap['filter'])
+        ThreebyTwoSummary_simple = metrics.StaticProbesFoMEmulatorMetricSimple(nside=nside,
+                                                                               year=yr_cut,
+                                                                               metricName='3x2ptFoM_simple')
+        ThreebyTwoSummary = StaticProbesFoMEmulatorMetric(nside=nside, metricName='3x2ptFoM')
+
         m = metrics.ExgalM5_with_cuts(m5Col=colmap['fiveSigmaDepth'], filterCol=colmap['filter'],
                                       lsstFilter=bandpass, nFilters=nfilters_needed,
                                       extinction_cut=lim_ebv, depth_cut=ptsrc_lim_mag_i_band)
@@ -73,10 +76,12 @@ def descWFDBatch(colmap=None, runName='opsim', nside=64,
         caption += f'dust-extincted coadded depth map (over that reduced footprint).'
         displayDict['caption'] = caption
         bundle = mb.MetricBundle(m, s, sqlconstraint, mapsList=[dustmap], metadata=metadata,
-                                 summaryMetrics=summaryMetrics + [ThreebyTwoSummary],
+                                 summaryMetrics=summaryMetrics + [ThreebyTwoSummary, ThreebyTwoSummary_simple],
                                  displayDict=displayDict)
         displayDict['order'] += 1
         bundleList.append(bundle)
+
+
 
     ## LSS Science
     # The only metric we have from LSS is the NGals metric - which is similar to the GalaxyCountsExtended

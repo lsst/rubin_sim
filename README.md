@@ -12,7 +12,7 @@ Optional: Set data directory. By default, `rubin_sim` will download needed data 
 
 Set up a conda envoronment and install rubin_sim from source in development mode:
 ```
-conda create -n rubin -c conda-forge openorb openorb-data-de405 astroplan scikit-learn scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables h5py colorcet
+conda create -n rubin -c conda-forge openorb openorb-data-de405 astroplan george scikit-learn scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables h5py colorcet
 conda activate rubin
 git clone git@github.com:lsst/rubin_sim.git
 cd rubin_sim
@@ -29,9 +29,9 @@ conda activate rubin
 rs_download_data 
 ```
 
-Optional dowload all the pre-computed sky data:
+Optional dowload all the (100 Gb) pre-computed sky data. Only needed if you are planning to run full 10 year scheduler simulations. Not needed for MAF, etc.:
 ```
-XXX--todo, waiting for NCSA to open up rsync port
+rs_download_sky
 ```
 
 ## mix and match data files

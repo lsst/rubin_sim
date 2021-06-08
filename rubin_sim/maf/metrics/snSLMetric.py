@@ -98,6 +98,14 @@ class SNSLMetric(metrics.BaseMetric):
         self.nfilters_min = nfilters_min
         self.phot_properties = Dust_values()
 
+    def n_lensed(self, area, gap_median, cumul_season):
+        # estimate the number of lensed supernovae
+        cumul_season = cumul_season/(12.*30.)
+
+        N_lensed_SNe_Ia = 45.7 * area / 20000. * cumul_season /\
+            2.5 / (2.15 * np.exp(0.37 * gap_median))
+        return N_lensed_SNe_Ia
+
     def run(self, dataSlice, slicePoint=None):
         """
         Runs the metric for each dataSlice
@@ -133,6 +141,7 @@ class SNSLMetric(metrics.BaseMetric):
 
         season_lengths = []
         median_gaps = []
+        N_lensed_SNe_Ia = 0
         for season in seasons:
             idx = np.where(season_id == season)[0]
             bright_enough = np.zeros(idx.size, dtype=bool)
@@ -151,23 +160,6 @@ class SNSLMetric(metrics.BaseMetric):
                 idx = idx[order]
             mjds_season = dataSlice[self.mjdCol][idx]
             cadence = mjds_season[1:]-mjds_season[:-1]
-            season_lengths.append(mjds_season[-1]-mjds_season[0])
-            median_gaps.append(np.median(cadence))
-
-        # get the cumulative season length
-
-        cumul_season_length = np.sum(season_lengths)
-
-        if cumul_season_length == 0:
-            return self.badVal
-        # get gaps
-        gap_median = np.mean(median_gaps)
-
-        # estimate the number of lensed supernovae
-        cumul_season = cumul_season_length/(12.*30.)
-
-        N_lensed_SNe_Ia = 45.7 * area / 20000. * cumul_season /\
-            2.5 / (2.15 * np.exp(0.37 * gap_median))
+            N_lensed_SNe_Ia += self.n_lensed(area, np.median(cadence), mjds_season[-1]-mjds_season[0])
 
         return N_lensed_SNe_Ia
-
