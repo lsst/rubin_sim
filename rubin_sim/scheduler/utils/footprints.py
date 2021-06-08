@@ -25,7 +25,7 @@ __all__ = ['ra_dec_hp_map', 'generate_all_sky', 'get_dustmap',
            'magellanic_clouds_healpixels', 'Constant_footprint',
            'generate_goal_map', 'standard_goals',
            'calc_norm_factor', 'filter_count_ratios', 'Step_line', 'Footprints', 'Footprint',
-           'Step_slopes', 'Base_pixel_evolution']
+           'Step_slopes', 'Base_pixel_evolution', 'combo_dust_fp']
 
 
 class Base_pixel_evolution(object):
@@ -663,3 +663,97 @@ def filter_count_ratios(target_maps):
     for key in results:
         results[key] /= all_norm
     return results
+
+
+def combo_dust_fp(nside=32,
+                  wfd_weights={'u': 0.31, 'g': 0.44, 'r': 1., 'i': 1., 'z': 0.9, 'y': 0.9},
+                  wfd_dust_weights={'u': 0.13, 'g': 0.13, 'r': 0.25, 'i': 0.25, 'z': 0.25, 'y': 0.25},
+                  nes_dist_eclip_n=10., nes_dist_eclip_s=-30., nes_south_limit=-5, ses_dist_eclip=10.,
+                  nes_weights={'u': 0, 'g': 0.2, 'r': 0.46, 'i': 0.46, 'z': 0.4, 'y': 0},
+                  dust_limit=0.19,
+                  wfd_north_dec=12.4, wfd_south_dec=-72.25,
+                  mc_wfd=True,
+                  outer_bridge_l=240, outer_bridge_width=10., outer_bridge_alt=13.,
+                  bulge_lon_span=20., bulge_alt_span=10.,
+                  north_weights={'g': 0.03, 'r': 0.03, 'i': 0.03}, north_limit=30.):
+    """
+    Based on the Olsen et al Cadence White Paper
+
+    XXX---need to refactor and get rid of all the magic numbers everywhere.
+    """
+
+    ebvDataDir = get_data_dir()
+    filename = 'maps/DustMaps/dust_nside_%i.npz' % nside
+    dustmap = np.load(os.path.join(ebvDataDir, filename))['ebvMap']
+
+    # wfd covers -72.25 < dec < 12.4. Avoid galactic plane |b| > 15 deg
+    wfd_north = wfd_north_dec
+    wfd_south = wfd_south_dec
+
+    ra, dec = np.degrees(ra_dec_hp_map(nside=nside))
+    WFD_no_dust = np.zeros(ra.size)
+    WFD_dust = np.zeros(ra.size)
+
+    coord = SkyCoord(ra=ra*u.deg, dec=dec*u.deg)
+    gal_lon, gal_lat = coord.galactic.l.deg, coord.galactic.b.deg
+
+    # let's make a first pass here
+    WFD_no_dust[np.where((dec > wfd_south) &
+                         (dec < wfd_north) &
+                         (dustmap < dust_limit))] = 1.
+
+    WFD_dust[np.where((dec > wfd_south) &
+                      (dec < wfd_north) &
+                      (dustmap > dust_limit))] = 1.
+    WFD_dust[np.where(dec < wfd_south)] = 1.
+
+    # Fill in values for WFD and WFD_dusty
+    result = {}
+    for key in wfd_weights:
+        result[key] = WFD_no_dust + 0.
+        result[key][np.where(result[key] == 1)] = wfd_weights[key]
+        result[key][np.where(WFD_dust == 1)] = wfd_dust_weights[key]
+
+    coord = SkyCoord(ra=ra*u.deg, dec=dec*u.deg)
+    eclip_lat = coord.barycentrictrueecliptic.lat.deg
+
+    # Any part of the NES that is too low gets pumped up
+    nes_indx = np.where(((eclip_lat < nes_dist_eclip_n) & (eclip_lat > nes_dist_eclip_s))
+                        & (dec > nes_south_limit))
+    nes_hp_map = ra*0
+    nes_hp_map[nes_indx] = 1
+    for key in result:
+        result[key][np.where((nes_hp_map > 0) & (result[key] < nes_weights[key]))] = nes_weights[key]
+
+    if mc_wfd:
+        mag_clouds = magellanic_clouds_healpixels(nside)
+        mag_clouds_indx = np.where(mag_clouds > 0)[0]
+    else:
+        mag_clouds_indx = []
+    for key in result:
+        result[key][mag_clouds_indx] = wfd_weights[key]
+
+    # Put in an outer disk bridge
+    outer_disk = np.where((gal_lon < (outer_bridge_l + outer_bridge_width))
+                          & (gal_lon > (outer_bridge_l-outer_bridge_width))
+                          & (np.abs(gal_lat) < outer_bridge_alt))
+    for key in result:
+        result[key][outer_disk] = wfd_weights[key]
+
+    # Make a bulge go WFD
+    bulge_pix = np.where(((gal_lon > (360-bulge_lon_span)) | (gal_lon < bulge_lon_span)) &
+                         (np.abs(gal_lat) < bulge_alt_span))
+    for key in result:
+        result[key][bulge_pix] = wfd_weights[key]
+
+    # Set South ecliptic to the WFD values
+    ses_indx = np.where((np.abs(eclip_lat) < ses_dist_eclip) & (dec < nes_south_limit))
+    for key in result:
+        result[key][ses_indx] = wfd_weights[key]
+
+    # Let's paint all the north as non-zero
+    for key in north_weights:
+        north = np.where((dec < north_limit) & (result[key] == 0))
+        result[key][north] = north_weights[key]
+
+    return result
