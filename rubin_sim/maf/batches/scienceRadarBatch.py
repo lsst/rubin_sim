@@ -197,7 +197,7 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
                              runName=runName,
                              summaryMetrics=[metrics.MeanMetric(maskVal=0)],
-                             plotFuncs=[plots.HealpixSkyMap()], metadata=extraMetadata,
+                             plotFuncs=[plots.HealpixSkyMap()],
                              displayDict=displayDict, plotDict=plotDict)
     bundleList.append(bundle)
 
