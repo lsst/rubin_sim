@@ -52,36 +52,38 @@ if __name__ == "__main__":
     Run the metadata batch on all .db files in a directory.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--runNames", type=str, default=None)
+    parser.add_argument("--dbFiles", type=str, default=None)
     args = parser.parse_args()
 
     # If runNames not given, scan for opsim databases in current directory and use those
     # Note that 'runNames' can be full path to directories
 
-    if args.runNames is None:
+    if args.dbFiles is None:
         # Just look for any .db files in this directory
-        runNames = glob.glob('.db')
+        dbFiles = glob.glob('.db')
         # But remove trackingDb and resultsDb if they're there
         try:
-            runNames.remove('trackingDb_sqlite.db')
+            dbFiles.remove('trackingDb_sqlite.db')
         except ValueError:
             pass
         try:
-            runNames.remove('resultsDb_sqlite.db')
+            dbFiles.remove('resultsDb_sqlite.db')
         except ValueError:
             pass
-    elif isinstance(args.runNames, str):
-        runNames = [args.runNames]
+    elif isinstance(args.dbFiles, str):
+        dbFiles = [args.dbFiles]
     else:
-        runNames = args.runNames
+        dbFiles = args.dbFiles
 
-    sim_names = [os.path.basename(name).replace('.db', '') for name in runNames]
+    sim_names = [os.path.basename(name).replace('.db', '') for name in dbFiles]
 
     trackingDb = db.TrackingDb('.')
     mafDate, mafVersion = mafUtils.getDateVersion()
     mafVersion = mafVersion['__version__']
 
-    for filename, opsim in zip(runNames, sim_names):
+    for filename, opsim in zip(dbFiles, sim_names):
+        # label visits
+        mafUtils.labelVisits(filename)
         # Set and create if needed the output directory
         outDir = opsim + "_sched"
         if os.path.isdir(outDir):

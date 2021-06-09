@@ -3,6 +3,9 @@
 import os
 import numpy as np
 import pandas as pd
+import sqlite3
+from sqlite3 import OperationalError
+
 from ..metrics import CountMetric
 from ..slicers import HealpixSlicer
 from ..metricBundles import MetricBundle, MetricBundleGroup
@@ -11,7 +14,7 @@ from ..stackers import WFDlabelStacker
 from .outputUtils import printDict
 
 __all__ = ['writeConfigs', 'getFieldData', 'getSimData',
-           'scaleBenchmarks', 'calcCoaddedDepth']
+           'scaleBenchmarks', 'calcCoaddedDepth', 'labelVisits']
 
 
 def writeConfigs(opsimDb, outDir):
@@ -230,6 +233,7 @@ def calcCoaddedDepth(nvisits, singleVisitDepth):
 def labelVisits(opsimdb_file):
     """Identify the WFD as the part of the sky with at least 750 visits per pointing and not DD,
     discount short exposures."""
+    runName = os.path.split(opsimdb_file)[-1].replace('.db', '')
     # Get the visits from the database
     conn = sqlite3.connect(opsimdb_file)
     query = 'select observationId, observationStartMJD, fieldRA, fieldDec, filter, note from summaryallprops'
@@ -251,12 +255,12 @@ def labelVisits(opsimdb_file):
     wfd_stacker = WFDlabelStacker(wfd_footprint)
     simdata = wfd_stacker.run(simdata)
     # Write to a new table in database
-    conn = sqlite3.connect(opsimdb)
+    conn = sqlite3.connect(opsimdb_file)
     cursor = conn.cursor()
     sql = 'CREATE TABLE IF NOT EXISTS "propId" ("observationId" INT PRIMARY KEY, "proposalId"  INT)'
     cursor.execute(sql)
     for obsid, pId in zip(simdata['observationId'], simdata['proposalId']):
-        sql = f'INSERT INTO propId (observationId, proposalId) values ("{obsId}", "{pId}")'
+        sql = f'INSERT INTO propId (observationId, proposalId) values ("{obsid}", "{pId}")'
         cursor.execute(sql)
     # Create some indexes
     try:
