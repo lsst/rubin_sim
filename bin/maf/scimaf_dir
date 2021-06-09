@@ -28,7 +28,7 @@ if __name__ == "__main__":
     run_names = [os.path.basename(name).replace('.db', '') for name in db_files]
 
     for filename, name in zip(db_files, run_names):
-        outDir = name + 'sci'
+        outDir = name + '_sci'
         # Clobber output directory if it exists
         if os.path.isdir(outDir):
             shutil.rmtree(outDir)
