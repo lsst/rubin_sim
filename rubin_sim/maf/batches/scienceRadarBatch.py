@@ -144,7 +144,7 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
             plotDict = {'nTicks': 3, 'colorMin': 0, 'colorMax': 3, 'xMin': 0, 'xMax': 3}
             metadata = combineMetadata('P_%.1f_Mag_%.0f_Amp_0.05-0.1-1' % (period, magnitude),
                                        extraMetadata)
-            sql = None
+            sql = extraSql
             displayDict['caption'] = 'Metric evaluates if a periodic signal of period %.1f days could ' \
                                      'be detected for an r=%i star. A variety of amplitudes of periodicity ' \
                                      'are tested: [1, 0.1, and 0.05] mag amplitudes, which correspond to ' \
@@ -180,7 +180,7 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     slicer = slicers.HealpixSlicer(nside=64)
     plotDict = {}
 
-    bundle = mb.MetricBundle(metric, slicer, sql, metadata=extraMetadata,
+    bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
                              runName=runName,
                              plotDict=plotDict,
                              summaryMetrics=snsl_summary,

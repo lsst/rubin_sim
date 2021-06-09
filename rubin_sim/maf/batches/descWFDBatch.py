@@ -5,7 +5,7 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.maps as maps
 import rubin_sim.maf.metricBundles as mb
-from .common import standardSummary, filterList, combineMetadata
+from .common import standardSummary, filterList
 from .colMapDict import ColMapDict
 from rubin_sim.maf.mafContrib.lssmetrics.depthLimitedNumGalMetric import DepthLimitedNumGalMetric
 from rubin_sim.maf.mafContrib import StaticProbesFoMEmulatorMetric
@@ -15,9 +15,10 @@ __all__ = ['descWFDBatch', 'tdcBatch']
 
 def descWFDBatch(colmap=None, runName='opsim', nside=64,
                  bandpass='i', nfilters_needed=6, lim_ebv=0.2,
-                 mag_cuts={1: 24.75 - 0.1, 3: 25.35 - 0.1, 6: 25.72 - 0.1, 10: 26.0 - 0.1}):
+                 mag_cuts=None):
 
-    # Hide some dependencies .. we should probably bring these into MAF
+    if mag_cuts is None:
+        mag_cuts = {1: 24.75 - 0.1, 3: 25.35 - 0.1, 6: 25.72 - 0.1, 10: 26.0 - 0.1}
 
     # The options to add additional sql constraints are removed for now.
     if colmap is None:

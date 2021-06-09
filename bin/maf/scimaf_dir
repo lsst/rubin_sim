@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import os
+import shutil
+import glob
 import argparse
 import matplotlib
 matplotlib.use("Agg")
-import glob
-import shutil
 
 import rubin_sim.maf.batches as batches
 import rubin_sim.maf.db as db
@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     if args.db is None:
         if os.path.isfile('trackingDb_sqlite.db'):
-            os.remove('trackingDb_sqlite.db')
+            shutil.move('trackingDb_sqlite.db', 'trackingDb_sqlite_o.db')
         db_files = glob.glob('*.db')
     else:
         db_files = [args.db]
