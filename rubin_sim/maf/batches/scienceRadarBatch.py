@@ -118,13 +118,12 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     for d in descBundleDict:
         bundleList.append(descBundleDict[d])
 
-    displayDict = {'group': 'Cosmology', 'subgroup': 'SNe Ia', 'order': 0, 'caption': None}
+    displayDict = {'group': 'Cosmology', 'subgroup': '5: SNe Ia', 'order': 0, 'caption': None}
     sne_nside = 16
     sn_summary = [metrics.MedianMetric(), metrics.SumMetric(), metrics.MeanMetric()]
-    slicer = slicers.HealpixSlicer(nside=sne_nside)
+    slicer = slicers.HealpixSlicer(nside=sne_nside, useCache=False)
     metric = metrics.SNNSNMetric(verbose=False)  # zlim_coeff=0.98)
-    sql = ''
-    bundle = mb.MetricBundle(metric, slicer, sql, plotDict=plotDict,
+    bundle = mb.MetricBundle(metric, slicer, extraSql, plotDict=plotDict, metadata=extraMetadata,
                              displayDict=displayDict, summaryMetrics=sn_summary,
                              plotFuncs=subsetPlots)
 
@@ -145,7 +144,7 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
             plotDict = {'nTicks': 3, 'colorMin': 0, 'colorMax': 3, 'xMin': 0, 'xMax': 3}
             metadata = combineMetadata('P_%.1f_Mag_%.0f_Amp_0.05-0.1-1' % (period, magnitude),
                                        extraMetadata)
-            sql = None
+            sql = extraSql
             displayDict['caption'] = 'Metric evaluates if a periodic signal of period %.1f days could ' \
                                      'be detected for an r=%i star. A variety of amplitudes of periodicity ' \
                                      'are tested: [1, 0.1, and 0.05] mag amplitudes, which correspond to ' \
@@ -165,10 +164,9 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
 
     metric = TdePopMetric()
     slicer = generateTdePopSlicer()
-    sql = ''
     plotDict = {'reduceFunc': np.sum, 'nside': 128}
     plotFuncs = [plots.HealpixSkyMap()]
-    bundle = mb.MetricBundle(metric, slicer, sql, runName=runName,
+    bundle = mb.MetricBundle(metric, slicer, extraSql, runName=runName, metadata=extraMetadata,
                              plotDict=plotDict, plotFuncs=plotFuncs,
                              summaryMetrics=[metrics.MeanMetric(maskVal=0)],
                              displayDict=displayDict)
@@ -177,15 +175,15 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     # Strongly lensed SNe
     displayDict['subgroup'] = 'SLSN'
     displayDict['caption'] = 'Strongly Lensed SNe'
-
+    snsl_summary = [metrics.MedianMetric(), metrics.SumMetric(), metrics.MeanMetric()]
     metric = metrics.SNSLMetric(night_collapse=True)
     slicer = slicers.HealpixSlicer(nside=64)
     plotDict = {}
-    sql = ''
 
-    bundle = mb.MetricBundle(metric, slicer, sql, runName=runName,
+    bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
+                             runName=runName,
                              plotDict=plotDict,
-                             summaryMetrics=[metrics.SumMetric()],
+                             summaryMetrics=snsl_summary,
                              displayDict=displayDict)
     bundleList.append(bundle)
 
@@ -194,21 +192,22 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     displayDict['caption'] = 'Fast microlensing events'
 
     plotDict = {'nside': 128}
-    sql = ''
     slicer = generateMicrolensingSlicer(min_crossing_time=1, max_crossing_time=10)
     metric = MicrolensingMetric(metricName='Fast Microlensing')
-    bundle = mb.MetricBundle(metric, slicer, sql, runName=runName,
+    bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
+                             runName=runName,
                              summaryMetrics=[metrics.MeanMetric(maskVal=0)],
-                             plotFuncs=[plots.HealpixSkyMap()], metadata=extraMetadata,
+                             plotFuncs=[plots.HealpixSkyMap()],
                              displayDict=displayDict, plotDict=plotDict)
     bundleList.append(bundle)
 
     displayDict['caption'] = 'Slow microlensing events'
     slicer = generateMicrolensingSlicer(min_crossing_time=100, max_crossing_time=1500)
     metric = MicrolensingMetric(metricName='Slow Microlensing')
-    bundle = mb.MetricBundle(metric, slicer, sql, runName=runName,
+    bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
+                             runName=runName,
                              summaryMetrics=[metrics.MeanMetric(maskVal=0)],
-                             plotFuncs=[plots.HealpixSkyMap()], metadata=extraMetadata,
+                             plotFuncs=[plots.HealpixSkyMap()],
                              displayDict=displayDict, plotDict=plotDict)
     bundleList.append(bundle)
 

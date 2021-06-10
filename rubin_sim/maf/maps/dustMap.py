@@ -21,8 +21,8 @@ class DustMap(BaseMap):
         # If the slicer has nside, it's a healpix slicer so we can read the map directly
         if 'nside' in slicePoints:
             if slicePoints['nside'] != self.nside:
-                warnings.warn('Slicer value of nside (%i) different from map value (%i), using slicer value'
-                              % (slicePoints['nside'],self.nside ))
+                warnings.warn(f"Slicer value of nside {slicePoints['nside']} different "
+                              f"from map value {self.nside}, using slicer value")
             slicePoints['ebv'] = EBVhp(slicePoints['nside'], pixels=slicePoints['sid'])
         # Not a healpix slicer, look up values based on RA,dec with possible interpolation
         else:
