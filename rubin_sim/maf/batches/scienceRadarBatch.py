@@ -255,6 +255,31 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
         bundleList.append(bundle)
 
     #########################
+    # Scaling numbers
+    #########################
+
+    displayDict = {'group': 'Scaling Numbers', 'subgroup': ''}
+    displayDict['subgroup'] = 'N gals'
+    sql = 'filter="i"'
+    metric = metrics.NgalScaleMetric()
+    slicer = slicers.HealpixSlicer(useCache=False)
+    bundle = mb.MetricBundle(metric, slicer, sql, runName=runName,
+                             summaryMetrics=[metrics.SumMetric()],
+                             plotFuncs=subsetPlots, plotDict=plotDict,
+                             displayDict=displayDict)
+    bundleList.append(bundle)
+
+    displayDict['subgroup'] = 'Lightcurve Pts'
+    sql = ''
+    metric = metrics.NlcPointsMetric(nside=nside)
+    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    bundle = mb.MetricBundle(metric, slicer, sql, runName=runName,
+                             summaryMetrics=[metrics.SumMetric()],
+                             plotFuncs=subsetPlots, plotDict=plotDict,
+                             displayDict=displayDict)
+    bundleList.append(bundle)
+
+    #########################
     # DDF
     #########################
     if DDF:

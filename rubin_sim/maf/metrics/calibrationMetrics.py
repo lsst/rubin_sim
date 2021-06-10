@@ -81,12 +81,13 @@ class ParallaxMetric(BaseMetric):
     def _final_sigma(self, position_errors, ra_pi_amp, dec_pi_amp):
         """Assume parallax in RA and DEC are fit independently, then combined.
         All inputs assumed to be arcsec """
-        sigma_A = position_errors/ra_pi_amp
-        sigma_B = position_errors/dec_pi_amp
-        sigma_ra = np.sqrt(1./np.sum(1./sigma_A**2))
-        sigma_dec = np.sqrt(1./np.sum(1./sigma_B**2))
-        # Combine RA and Dec uncertainties, convert to mas
-        sigma = np.sqrt(1./(1./sigma_ra**2+1./sigma_dec**2))*1e3
+        with np.errstate(divide='ignore', invalid='ignore'):
+            sigma_A = position_errors/ra_pi_amp
+            sigma_B = position_errors/dec_pi_amp
+            sigma_ra = np.sqrt(1./np.sum(1./sigma_A**2))
+            sigma_dec = np.sqrt(1./np.sum(1./sigma_B**2))
+            # Combine RA and Dec uncertainties, convert to mas
+            sigma = np.sqrt(1./(1./sigma_ra**2+1./sigma_dec**2))*1e3
         return sigma
 
     def run(self, dataslice, slicePoint=None):

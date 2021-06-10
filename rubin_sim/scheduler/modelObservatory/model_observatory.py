@@ -145,28 +145,8 @@ class Model_observatory(object):
         Array with model versions that were instantiated
         """
 
-        # The things we want to get info on
-        models = {'cloud data': self.cloud_data, 'sky model': self.sky_model,
-                  'seeing data': self.seeing_data, 'seeing model': self.seeing_model,
-                  'observatory model': self.observatory,
-                  'sched downtime data': self.sched_downtime_data,
-                  'unched downtime data': self.unsched_downtime_data}
-
-        result = []
-        for model_name in models:
-            try:
-                module_name = models[model_name].__module__
-                module = import_module(module_name)
-                ver = import_module(module.__package__+'.version')
-                version = ver.__version__
-                fingerprint = ver.__fingerprint__
-            except:
-                version = 'NA'
-                fingerprint = 'NA'
-            result.append([model_name+' version', version])
-            result.append([model_name+' fingerprint', fingerprint])
-            result.append([model_name+' module', models[model_name].__module__])
         # Could add in the data version
+        result = []
         versions = data_versions()
         for key in versions:
             result.append([key, versions[key]])

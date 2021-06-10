@@ -8,6 +8,7 @@ import pandas as pd
 import matplotlib.path as mplPath
 from rubin_sim.utils import _hpid2RaDec, xyz_angular_radius, _buildTree, _xyz_from_ra_dec
 from rubin_sim.site_models import FieldsDatabase
+import rubin_sim
 
 
 def smallest_signed_angle(a1, a2):
@@ -596,7 +597,7 @@ def run_info_table(observatory, extra_info=None):
         observatory_info.append([key, extra_info[key]])
     observatory_info = np.array(observatory_info)
 
-    n_feature_entries = 4
+    n_feature_entries = 3
 
     names = ['Parameter', 'Value']
     dtypes = ['|U200', '|U200']
@@ -611,8 +612,11 @@ def run_info_table(observatory, extra_info=None):
     result[1]['Parameter'] = 'hostname'
     result[1]['Value'] = socket.gethostname()
 
-    result[4:]['Parameter'] = observatory_info[:, 0]
-    result[4:]['Value'] = observatory_info[:, 1]
+    result[2]['Parameter'] = 'rubin_sim.__version__'
+    result[2]['Value'] = rubin_sim.__version__
+
+    result[3:]['Parameter'] = observatory_info[:, 0]
+    result[3:]['Value'] = observatory_info[:, 1]
 
     return result
 

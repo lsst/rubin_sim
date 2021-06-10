@@ -34,7 +34,14 @@ Optional dowload all the (100 Gb) pre-computed sky data. Only needed if you are 
 rs_download_sky
 ```
 
-## mix and match data files
+# Documentation
+
+Example jupyter notebooks can be found at:  https://github.com/lsst/rubin_sim_notebooks
+
+Building real documentation coming soon!
+
+
+# Mix and match data files
 
 If someone finds themselves in a situation where they want to use the latest code, but an older version of the data files, one could mix and match by:
 ```
@@ -46,7 +53,7 @@ git checkout master
 And viola, one has the current version of the code, but the data files from a previous version.
 
 
-## Notes on installing/running on hyak (and other clusters)
+# Notes on installing/running on hyak (and other clusters)
 
 A new anaconda install is around 11 GB (and hyak has a home dir quota of 10GB), so ensure your anaconda dir and the rubin_sim_data dir are not in your home directory. Helpful link to the anaconda linux install instructions:  https://docs.anaconda.com/anaconda/install/linux/
 

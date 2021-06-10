@@ -100,9 +100,12 @@ class MetricBundle(object):
         if hasattr(self.metric, 'maps'):
             for mapName in self.metric.maps:
                 if mapName not in mapNames:
-                    tempMap = getattr(maps, mapName)()
-                    self.mapsList.append(tempMap)
-                    mapNames.append(mapName)
+                    if type(mapName) == str:
+                        tempMap = getattr(maps, mapName)()
+                        self.mapsList.append(tempMap)
+                        mapNames.append(mapName)
+                    else:
+                        self.mapsList.append(mapName)
 
         # Add the summary stats, if applicable.
         self.setSummaryMetrics(summaryMetrics)
