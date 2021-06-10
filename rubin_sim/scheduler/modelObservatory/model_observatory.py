@@ -13,6 +13,7 @@ import warnings
 import matplotlib.pylab as plt
 from importlib import import_module
 from rubin_sim.scheduler.modelObservatory import Kinem_model
+from rubin_sim.data import data_versions
 
 __all__ = ['Model_observatory']
 
@@ -165,12 +166,10 @@ class Model_observatory(object):
             result.append([model_name+' version', version])
             result.append([model_name+' fingerprint', fingerprint])
             result.append([model_name+' module', models[model_name].__module__])
-            try:
-                info = models[model_name].config_info()
-                for key in info:
-                    result.append([key, str(info[key])])
-            except:
-                result.append([model_name, 'no config_info'])
+        # Could add in the data version
+        versions = data_versions()
+        for key in versions:
+            result.append([key, versions[key]])
 
         return result
 

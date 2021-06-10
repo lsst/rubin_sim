@@ -4,7 +4,8 @@ from rubin_sim.scheduler.utils import int_rounded
 import copy
 
 __all__ = ["Base_detailer", "Zero_rot_detailer", "Comcam_90rot_detailer", "Close_alt_detailer",
-           "Take_as_pairs_detailer", "Twilight_triple_detailer", "Spider_rot_detailer", "Flush_for_sched_detailer"]
+           "Take_as_pairs_detailer", "Twilight_triple_detailer", "Spider_rot_detailer",
+           "Flush_for_sched_detailer", 'Filter_nexp']
 
 
 class Base_detailer(object):
@@ -162,6 +163,21 @@ class Flush_for_sched_detailer(Base_detailer):
             for obs in observation_list:
                 if obs['flush_by_mjd'] > new_flush:
                     obs['flush_by_mjd'] = new_flush
+        return observation_list
+
+
+class Filter_nexp(Base_detailer):
+    """Demand one filter always be taken as a certain number of exposures
+    """
+    def __init__(self, filtername='u', nexp=1):
+        super(Filter_nexp, self).__init__()
+        self.filtername = filtername
+        self.nexp = nexp
+
+    def __call__(self, observation_list, conditions):
+        for obs in observation_list:
+            if obs['filter'] == self.filtername:
+                obs['nexp'] = self.nexp
         return observation_list
 
 
