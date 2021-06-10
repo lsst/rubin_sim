@@ -9,6 +9,17 @@ __all__ = ['NgalScaleMetric', 'NlcPointsMetric']
 
 class NgalScaleMetric(BaseMetric):
     """Zeljko's approximate scaling for number of galaxies for weak lensing
+
+    Parameters
+    ----------
+    A_max : float (0.2)
+        The maximum dust extinction to allow. Anything with higher dust
+        extinction is considered to have zero usable galaxies.
+    m5min : float (26)
+        The minimum coadded 5-sigma depth to allow. Anything less is
+        considered to have zero usable galaxies.
+    filter : str ("i")
+        The filter to use. Any visits in other filters are ignored.
     """
     def __init__(self, seeingCol='seeingFwhmEff', m5Col='fiveSigmaDepth',
                  metricName='NgalScale', filtername='i', A_max=0.2,
@@ -51,6 +62,19 @@ class NgalScaleMetric(BaseMetric):
 
 class NlcPointsMetric(BaseMetric):
     """Number of points in stellar light curves
+
+    Parameters
+    ----------
+    ndpmin : int (10)
+        The number of points to demand on a lightcurve in a single
+        filter to have that light curve qualify.
+    mags : float (21)
+        The magnitude of our fiducial object (maybe make it a dict in the
+        future to support arbitrary colors).
+    maps : list of map objects (None)
+        List of stellar density maps to use. Default of None loads Trilegal maps.
+    nside : int (128)
+        The nside is needed to make sure the loaded maps match the slicer nside.
     """
     def __init__(self, ndpmin=10, mags=21., m5Col='fiveSigmaDepth', filterCol='filter',
                  metricName='NlcPoints', maps=None, nside=128, **kwargs):
@@ -80,6 +104,4 @@ class NlcPointsMetric(BaseMetric):
                                    slicePoint[f'starLumFunc_{filtername}']) * pix_area
                 nlcpoints += n_obs * nstars
 
-
         return nlcpoints
-
