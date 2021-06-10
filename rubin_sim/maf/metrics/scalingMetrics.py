@@ -8,7 +8,7 @@ __all__ = ['NgalScaleMetric', 'NlcPointsMetric']
 
 
 class NgalScaleMetric(BaseMetric):
-    """Zeljko's approximate scaling for number of galaxies for weak lensing
+    """Approximate number of galaxies, scaled by median seeing.
 
     Parameters
     ----------
