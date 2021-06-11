@@ -251,7 +251,7 @@ def generate_dd_surveys(nside=None, nexp=2, detailers=None, euclid_detailers=Non
     # And back to degrees for the basis function
     bfs = dd_bfs(np.degrees(RAs[0]), np.degrees(decs[0]), survey_name, ha_limits,
                  frac_total=frac_total, aggressive_frac=aggressive_frac, delays=delays)
-    surveys.append(Deep_drilling_survey(bfs, RA, dec, sequence=sequence,
+    surveys.append(Deep_drilling_survey(bfs, np.degrees(RAs), np.degrees(decs), sequence=sequence,
                                         survey_name=survey_name, reward_value=reward_value, nside=nside,
                                         nexp=nexp, detailers=euclid_detailers))
 
