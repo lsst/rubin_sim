@@ -7,12 +7,12 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 
 Prerequisites:  A working [conda installation ](https://www.anaconda.com/products/individual)
 
-Optional: Set data directory. By default, `rubin_sim` will download needed data files to `$HOME/rubin_sim_data`. If you would like the data to go somewhere else, you can set the `RUBIN_SIM_DATA_DIR` environement variable. In bash  `export RUBIN_SIM_DATA_DIR="/my/preferred/data/path"` (note, always make sure this is set before trying to run `rubin_sim` packages, so put in your .bashrc or whatnot). Another possibility is to set the location via sym-link, `ln -s /my/preferred/data/path ~/rubin_sim_data`. 
+Optional: Set data directory. By default, `rubin_sim` will download needed data files to `$HOME/rubin_sim_data`. If you would like the data to go somewhere else, you can set the `RUBIN_SIM_DATA_DIR` environment variable. In bash  `export RUBIN_SIM_DATA_DIR="/my/preferred/data/path"` (note, always make sure this is set before trying to run `rubin_sim` packages, so put in your .bashrc or whatnot). Another possibility is to set the location via sym-link, `ln -s /my/preferred/data/path ~/rubin_sim_data`. 
 
 
-Set up a conda envoronment and install rubin_sim from source in development mode:
+Set up a conda environment and install rubin_sim from source in development mode:
 ```
-conda create -n rubin -c conda-forge openorb openorb-data-de405 astroplan george scikit-learn scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables h5py colorcet
+conda create -n rubin -c conda-forge openorb openorb-data-de405 astroplan george scikit-learn scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables h5py colorcet setuptools_scm
 conda activate rubin
 git clone git@github.com:lsst/rubin_sim.git
 cd rubin_sim
@@ -71,7 +71,7 @@ To make changes to the code, checkout a new branch, make edits, push, make a pul
 
 For unit tests, all filename should start with `test_` so py.test can automatically find them.
 
-Note when developing after running `pip install -e .`, you can edit the python and run to see the changes. However, scripts in the `bin/` directory are coppied to the anaconda `envs/<envname>/bin/` folder, so editing those in place will have no effect. To test changes to scripts, re-run `pip install -e .` to re-copy the scripts. I think? Maybe you can edit in place. Anyway, doesn't hurt to re-run pip.
+Note when developing after running `pip install -e .`, you can edit the python and run to see the changes. However, scripts in the `bin/` directory are copied to the anaconda `envs/<envname>/bin/` folder, so editing those in place will have no effect. To test changes to scripts, re-run `pip install -e .` to re-copy the scripts. I think? Maybe you can edit in place. Anyway, doesn't hurt to re-run pip.
 
 ## Updating data files
 
