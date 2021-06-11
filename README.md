@@ -22,6 +22,16 @@ rs_download_data  # Downloads ~1.5G of data to $HOME/rubin_sim_data. See README 
 
 The installation can be tested by running `py.test` in the github directory. 
 
+Optional dependencies used by some of the more esoteric MAF functions:
+```
+conda install -c conda-forge sncosmo bokeh sympy
+```
+
+Optional download all the (100 Gb) of pre-computed sky data. Only needed if you are planning to run full 10 year scheduler simulations. Not needed for MAF, etc.:
+```
+rs_download_sky
+```
+
 Future fast user install should look like:
 ```
 conda create -n rubin rubin_sim
@@ -29,10 +39,6 @@ conda activate rubin
 rs_download_data 
 ```
 
-Optional dowload all the (100 Gb) pre-computed sky data. Only needed if you are planning to run full 10 year scheduler simulations. Not needed for MAF, etc.:
-```
-rs_download_sky
-```
 
 # Documentation
 

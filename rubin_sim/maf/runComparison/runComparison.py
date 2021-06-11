@@ -11,17 +11,14 @@ import rubin_sim.maf.plots as plots
 
 _BOKEH_HERE = True
 try:
-   from bokeh.models import CustomJS, ColumnDataSource
-   from bokeh.io import output_file, output_notebook
-   from bokeh.layouts import widgetbox, layout, row, column
-   from bokeh.models.widgets import DataTable, DateFormatter, TableColumn, NumberFormatter, Select
-   from bokeh.plotting import Figure, output_file, show
-   output_notebook()
+    from bokeh.models import CustomJS, ColumnDataSource
+    from bokeh.io import output_file, output_notebook
+    from bokeh.layouts import widgetbox, layout, row, column
+    from bokeh.models.widgets import DataTable, DateFormatter, TableColumn, NumberFormatter, Select
+    from bokeh.plotting import Figure, output_file, show
+    output_notebook()
 except ImportError:
-   _BOKEH_HERE = False
-   warnings.warn('\n'+'The generateDiffHtml method requires bokeh to be installed'+'\n'+
-                 'but it is not needed to use the other methods in this class.'+'\n'+
-                 'Run: pip install bokeh then restart your jupyter notebook kernel.')
+    _BOKEH_HERE = False
 
 __all__ = ['RunComparison']
 

@@ -16,7 +16,7 @@ import numpy as np
 try:
     from sncosmo import read_griddata_ascii, TimeSeriesSource, Model
 except ImportError as error:
-    warnings.warn('sncosmo not installed')
+    pass
 from astropy.cosmology import Planck15 as cosmo
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.utils import m52snr
