@@ -19,6 +19,7 @@ class TestOpsimDb(unittest.TestCase):
         self.oo = db.OpsimDatabase(database=self.database)
 
     def tearDown(self):
+        self.oo.close()
         del self.oo
         del self.database
         self.oo = None
@@ -65,6 +66,12 @@ class TestOpsimDb(unittest.TestCase):
         propTags['Rolling'] = []
         sqlWhere = self.oo.createSQLWhere(tag, propTags)
         self.assertEqual(sqlWhere, badprop)
+
+    def test_getConfig(self):
+        summary, details = self.oo.fetchConfig()
+        self.assertTrue('Version' in summary.keys())
+        self.assertTrue('RunInfo' in summary.keys())
+
 
 
 if __name__ == "__main__":
