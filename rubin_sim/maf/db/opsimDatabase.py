@@ -18,7 +18,7 @@ def testOpsimVersion(database, driver='sqlite', host=None, port=None):
             if 'Field' in opsdb.tableNames:
                 version = "V4"
             else:
-                version = "FBS_old"
+                version = "FBS_v1"
         elif 'Summary' in opsdb.tableNames:
             version = "V3"
         else:
@@ -39,7 +39,7 @@ def OpsimDatabase(database, driver='sqlite', host=None, port=None,
     if version == 'FBS':
         opsdb = OpsimDatabaseFBS(database, driver=driver, host=host, port=port,
                                  longstrings=longstrings, verbose=verbose)
-    elif version == 'FBS_old':
+    elif version == 'FBS_v1':
         opsdb = OpsimDatabaseFBS(database, defaultTable='SummaryAllProps',
                                  driver=driver, host=host, port=port,
                                  longstrings=longstrings, verbose=verbose)
@@ -150,34 +150,18 @@ class BaseOpsimDatabase(Database):
         -------
         float
         """
-        if 'Config' not in self.tables:
-            print('Cannot access Config table to retrieve runLength; using default 10 years')
-            runLength = 10.0
-        else:
-            query = 'select paramValue from Config where paramName="%s"' % (self.runLengthParam)
-            runLength = self.query_arbitrary(query, dtype=[('paramValue', float)])
-            runLength = runLength['paramValue'][0]  # Years
+        query = f'select (max({self.mjdCol}) - min({self.mjdCol}))/365.25 from {self.defaultTable}'
+        r = self.query_arbitrary(query, dtype=[('years', float)])
+        runLength = r['years'][0]
         return runLength
 
     def fetchLatLonHeight(self):
         """Returns the latitude, longitude, and height of the telescope used by the config file.
         """
-        if 'Config' not in self.tables:
-            print('Cannot access Config table to retrieve site parameters; using sims.utils.Site instead.')
-            site = Site(name='LSST')
-            lat = site.latitude_rad
-            lon = site.longitude_rad
-            height = site.height
-        else:
-            lat = self.query_columns('Config', colnames=['paramValue'],
-                                     sqlconstraint="paramName like '%latitude%'")
-            lat = float(lat['paramValue'][0])
-            lon = self.query_columns('Config', colnames=['paramValue'],
-                                     sqlconstraint="paramName like '%longitude%'")
-            lon = float(lon['paramValue'][0])
-            height = self.query_columns('Config', colnames=['paramValue'],
-                                        sqlconstraint="paramName like '%height%'")
-            height = float(height['paramValue'][0])
+        site = Site(name='LSST')
+        lat = site.latitude_rad
+        lon = site.longitude_rad
+        height = site.height
         return lat, lon, height
 
     def fetchOpsimRunName(self):
@@ -192,32 +176,15 @@ class BaseOpsimDatabase(Database):
             runName = str(res[self.sessionHostCol][0]) + '_' + str(res[self.sessionIdCol][0])
         return runName
 
-    def fetchNVisits(self, propId=None):
-        """Returns the total number of visits in the simulation or visits for a particular proposal.
-
-        Parameters
-        ----------
-        propId : int or list of ints
-            The ID numbers of the proposal(s).
+    def fetchNVisits(self):
+        """Returns the total number of visits in the simulation.
 
         Returns
         -------
         int
         """
-        if 'ObsHistory' in self.tables and propId is None:
-            query = 'select count(*) from ObsHistory'
-            data = self.execute_arbitrary(query, dtype=([('nvisits', int)]))
-        else:
-            query = 'select count(distinct(%s)) from %s' %(self.mjdCol, self.defaultTable)
-            if propId is not None:
-                query += ' where '
-                if isinstance(propId, list) or isinstance(propId, np.ndarray):
-                    for pID in propId:
-                        query += 'propID=%d or ' %(int(pID))
-                    query = query[:-3]
-                else:
-                    query += 'propID = %d' %(int(propId))
-            data = self.execute_arbitrary(query, dtype=([('nvisits', int)]))
+        query = f'select count(distinct({self.mjdCol}) from {self.defaultTable}'
+        data = self.execute_arbitrary(query, dtype=([('nvisits', int)]))
         return data['nvisits'][0]
 
     def fetchTotalSlewN(self):
@@ -248,9 +215,15 @@ class OpsimDatabaseFBS(BaseOpsimDatabase):
         Name of the database host. Default None (appropriate for sqlite files).
     port : str, opt
         String port number for the database. Default None (appropriate for sqlite files).
-    dbTables : dict, opt
-        Dictionary of the names of the tables in the database.
-        The dict should be key = table name, value = [table name, primary key].
+    defaultTable : str, opt
+        Name of the default table to query to get observations.
+        Default 'observations' for version > 1.7.1
+        Default 'summaryAllProps' for version < v.1.7.1
+        Identification of default table can be handled automatically by using 'db.OpsimDatabase'
+    longstrings: bool, opt
+        Expect long strings when querying database. Default False.
+    verbose: bool, opt
+        Be verbose. Default False.
     """
     def __init__(self, database, driver='sqlite', host=None, port=None, defaultTable='observations',
                  longstrings=False, verbose=False):
@@ -271,7 +244,6 @@ class OpsimDatabaseFBS(BaseOpsimDatabase):
         self.decCol = column('fieldDec')
         self.propIdCol = column('proposalId')
         # For config parsing.
-        self.versionCol = 'featureScheduler version'
         self.dateCol = 'Date, ymd'
         self.raDecInDeg = True
         self.opsimVersion = 'FBS'
@@ -279,7 +251,7 @@ class OpsimDatabaseFBS(BaseOpsimDatabase):
     def fetchPropInfo(self):
         """
         There is no inherent proposal information or mapping in the FBS output.
-        An afterburner script does identify which visits may be counted as contributing toward WFD
+        An afterburner script can identify which visits may be counted as contributing toward WFD
         and identifies these as such in the proposalID column (0 = general, 1 = WFD, 2+ = DD).
                 Returns dictionary of propID / propname, and dictionary of propTag / propID.
         """
@@ -332,18 +304,15 @@ class OpsimDatabaseFBS(BaseOpsimDatabase):
 
     def fetchConfig(self):
         """
-        Fetch config data from configTable, match proposal IDs with proposal names and some field data,
-        and do a little manipulation of the data to make it easier to add to the presentation layer.
+        Fetch FBS version/config data from info.
         """
-        # Check to see if we're dealing with a full database or not. If not, just return (no config info to fetch).
+        # Check to see if we're dealing with a full database or not. If not, just return.
         if 'info' not in self.tables:
             warnings.warn('Cannot fetch FBS config info.')
             return {}, {}
-        # Create two dictionaries: a summary dict that contains a summary of the run
+        # Pull the FBS version and date information from the 'info' table. Add the MAF version information.
         configSummary = {}
         configSummary['keyorder'] = ['Version', 'RunInfo' ]
-        #  and the other a general dict that contains all the details (by group) of the run.
-        config = {}
         # Start to build up the summary.
         # MAF version
         mafdate, mafversion = getDateVersion()
@@ -352,8 +321,9 @@ class OpsimDatabaseFBS(BaseOpsimDatabase):
         configSummary['Version']['MAFDate'] = '%s' %(mafdate)
         # Opsim date, version and runcomment info from config info table.
         results = self.query_columns('info', ['Parameter', 'Value'],
-                                     sqlconstraint=f'Parameter like "{self.versionCol}"')
-        configSummary['Version']['OpsimVersion'] = 'FBS %s'  %(results['Value'][0])
+                                     sqlconstraint=f'Parameter like "%ersion%"')
+        for r in results:
+            configSummary['Version'][r['Parameter']] = r['Value']
         results = self.query_columns('info', ['Parameter', 'Value'],
                                      sqlconstraint=f'Parameter like "{self.dateCol}"')
         opsimdate = '-'.join(results['Value'][0].split(',')).replace(' ', '')
