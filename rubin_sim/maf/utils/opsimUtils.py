@@ -266,9 +266,6 @@ def labelVisits(opsimdb_file):
     simdata = wfd_stacker.run(simdata)
 
     # Write back proposalId/observation to the table in the new copy of the database.
-    for obsid, pId in zip(simdata['observationId'], simdata['proposalId']):
-        sql = f'UPDATE {tablename} SET proposalId = {pId} WHERE observationId = {obsid}'
-        cursor.execute(sql)
     # Create some indexes
     try:
         indxObsId = f"CREATE UNIQUE INDEX idx_observationId on {tablename} (observationId)"
@@ -285,6 +282,10 @@ def labelVisits(opsimdb_file):
         cursor.execute(indxFilter)
     except OperationalError:
         print('Already had filter index')
+    # Add the proposal id information.
+    for obsid, pId in zip(simdata['observationId'], simdata['proposalId']):
+        sql = f'UPDATE {tablename} SET proposalId = {pId} WHERE observationId = {obsid}'
+        cursor.execute(sql)
     conn.commit()
 
     # Define dictionary of proposal tags.
