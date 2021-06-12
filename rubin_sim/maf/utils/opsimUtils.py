@@ -271,10 +271,20 @@ def labelVisits(opsimdb_file):
         cursor.execute(sql)
     # Create some indexes
     try:
-        indxObsId = "CREATE UNIQUE INDEX idx_observationId on {tablename}} (observationId)"
+        indxObsId = f"CREATE UNIQUE INDEX idx_observationId on {tablename} (observationId)"
         cursor.execute(indxObsId)
     except OperationalError:
-        print('Already had observationId index on {tablename}}')
+        print(f'Already had observationId index on {tablename}')
+    try:
+        indxMJD = f"CREATE UNIQUE INDEX idx_observationStartMJD on {tablename} (observationStartMJD);"
+        cursor.execute(indxMJD)
+    except OperationalError:
+        print('Already had observationStartMJD index')
+    try:
+        indxFilter = f"CREATE INDEX idx_filter on {tablename} (filter)"
+        cursor.execute(indxFilter)
+    except OperationalError:
+        print('Already had filter index')
     conn.commit()
 
     # Define dictionary of proposal tags.
