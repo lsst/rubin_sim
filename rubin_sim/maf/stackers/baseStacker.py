@@ -158,6 +158,22 @@ class BaseStacker(with_metaclass(StackerRegistry, object)):
             return self._run(simData)
 
     def _run(self, simData, cols_present=False):
+        """Run the stacker. This is the method to subclass.
+
+        Parameters
+        ----------
+        simData: np.NDarray
+            The observation data, provided by the MAF framework.
+        cols_present: bool, opt
+            Flag to indicate whether the columns to be added are already present in the data.
+            This will also be provided by the MAF framework -- but your _run method can use the value.
+            If it is 'True' and you do trust the existing value, the _run method can simply return simData.
+
+        Returns
+        -------
+        np.NDarray
+            The simdata, with the columns added or updated (or simply already present).
+        """
         # By moving the calculation of these columns to a separate method, we add the possibility of using
         #  stackers with pandas dataframes. The _addStackerCols method won't work with dataframes, but the
         #  _run methods are quite likely to (depending on their details), as they are just populating columns.
