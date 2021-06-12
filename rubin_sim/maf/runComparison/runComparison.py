@@ -19,9 +19,6 @@ try:
    output_notebook()
 except ImportError:
    _BOKEH_HERE = False
-   warnings.warn('\n'+'The generateDiffHtml method requires bokeh to be installed'+'\n'+
-                 'but it is not needed to use the other methods in this class.'+'\n'+
-                 'Run: pip install bokeh then restart your jupyter notebook kernel.')
 
 __all__ = ['RunComparison']
 
