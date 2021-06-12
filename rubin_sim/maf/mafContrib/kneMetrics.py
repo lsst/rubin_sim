@@ -3,7 +3,7 @@ import os
 import numpy as np
 from ..metrics import BaseMetric
 from ..slicers import UserPointsSlicer
-from ..utils import uniformSphere
+from rubin_sim.utils import uniformSphere
 from rubin_sim.photUtils import Dust_values
 from rubin_sim.data import get_data_dir
 
@@ -57,7 +57,7 @@ class KN_lc(object):
 class KNePopMetric(BaseMetric):
     def __init__(self, metricName='KNePopMetric', mjdCol='observationStartMJD',
                  m5Col='fiveSigmaDepth', filterCol='filter', nightCol='night',
-                 ptsNeeded=2, file_list=None, mjd0=59853.5, outputLc=False,
+                 ptsNeeded=2, file_list=None, mjd0=59853.5, outputLc=False, badval=-666,
                  **kwargs):
         maps = ['DustMap']
         self.mjdCol = mjdCol
@@ -76,7 +76,7 @@ class KNePopMetric(BaseMetric):
 
         cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]
         super(KNePopMetric, self).__init__(col=cols, units='Detected, 0 or 1',
-                                           metricName=metricName, maps=maps,
+                                           metricName=metricName, maps=maps, badval=badval,
                                            **kwargs)
 
     def _multi_detect(self, around_peak):
@@ -144,7 +144,9 @@ class KNePopMetric(BaseMetric):
                 dt_f = np.max(times_f) - np.min(times_f)
                 # Calculate the evolution rate, if the time gap condition is met
                 if dt_f > min_dt:
-                    evol_rate_f = (np.max(mags_f) - np.min(mags_f)) / (times_f[np.where(mags_f == np.max(mags_f))[0]][0] - times_f[np.where(mags_f == np.min(mags_f))[0]][0])
+                    evol_rate_f = ((np.max(mags_f) - np.min(mags_f))
+                                   / (times_f[np.where(mags_f == np.max(mags_f))[0]][0]
+                                      - times_f[np.where(mags_f == np.min(mags_f))[0]][0]))
                     evol_rate.append(evol_rate_f)
                 else:
                     evol_rate.append(0)
@@ -182,7 +184,9 @@ class KNePopMetric(BaseMetric):
         """
         result = 1
         # Number of detected points in izy bands
-        n_red_det = np.size(np.where(filters == 'i')[0]) + np.size(np.where(filters == 'z')[0]) + np.size(np.where(filters == 'y')[0])
+        n_red_det = np.size(np.where(filters == 'i')[0]) \
+                    + np.size(np.where(filters == 'z')[0]) \
+                    + np.size(np.where(filters == 'y')[0])
         # Condition
         if n_red_det < min_det:
             return 0
@@ -202,7 +206,9 @@ class KNePopMetric(BaseMetric):
         """
         result = 1
         # Number of detected points in ugr bands
-        n_blue_det = np.size(np.where(filters == 'u')[0]) + np.size(np.where(filters == 'g')[0]) + np.size(np.where(filters == 'r')[0])
+        n_blue_det = np.size(np.where(filters == 'u')[0]) \
+                     + np.size(np.where(filters == 'g')[0]) \
+                     + np.size(np.where(filters == 'r')[0])
         # Condition
         if n_blue_det < min_det:
             return 0
