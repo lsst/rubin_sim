@@ -183,7 +183,7 @@ class BaseOpsimDatabase(Database):
         -------
         int
         """
-        query = f'select count(distinct({self.mjdCol}) from {self.defaultTable}'
+        query = f'select count(distinct({self.mjdCol})) from {self.defaultTable}'
         data = self.execute_arbitrary(query, dtype=([('nvisits', int)]))
         return data['nvisits'][0]
 
