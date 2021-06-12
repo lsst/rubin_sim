@@ -1,15 +1,11 @@
 # Collection of utilities for MAF that relate to Opsim specifically.
 
 import os
+import shutil
 import numpy as np
 import pandas as pd
 import sqlite3
-from sqlite3 import OperationalError
-
-from ..metrics import CountMetric
-from ..slicers import HealpixSlicer
-from ..metricBundles import MetricBundle, MetricBundleGroup
-from ..stackers import WFDlabelStacker
+from sqlite3 import OperationalError, IntegrityError
 
 from .outputUtils import printDict
 
@@ -233,40 +229,75 @@ def calcCoaddedDepth(nvisits, singleVisitDepth):
 def labelVisits(opsimdb_file):
     """Identify the WFD as the part of the sky with at least 750 visits per pointing and not DD,
     discount short exposures."""
+    # Import these here to avoid circular dependencies
+    from ..metrics import CountMetric
+    from ..slicers import HealpixSlicer
+    from ..metricBundles import MetricBundle, MetricBundleGroup
+    from ..stackers import WFDlabelStacker
+    from ..db import OpsimDatabase
+
     runName = os.path.split(opsimdb_file)[-1].replace('.db', '')
-    # Get the visits from the database
-    conn = sqlite3.connect(opsimdb_file)
-    query = 'select observationId, observationStartMJD, fieldRA, fieldDec, filter, note from summaryallprops'
-    visits = pd.read_sql(query, conn)
-    conn.close()
-    # Find the WFD footprint
-    nside = 64
+    # The way this is written, in order to be able to freely use the information later, we write back
+    # and modify the original opsim output. This can be problematic - so make a copy first and modify that.
+    newdb_file = 'wfd_' + opsimdb_file
+    shutil.copy(opsimdb_file, newdb_file)
+
+    # Generate the footprint.
     m = CountMetric(col='observationStartMJD')
-    s = HealpixSlicer(nside)
-    simdata = visits.query('visitExposureTime > 11')
-    simdata = simdata.query('not note.str.startswith("DD")', engine='python').to_records()
-    bundle = MetricBundle(m, s, 'long notDD', runName=runName)
-    g = MetricBundleGroup({f'{runName}': bundle}, None)
-    g.setCurrent('long notDD')
-    g.runCurrent('long notDD', simData=simdata)
+    s = HealpixSlicer(nside=64)
+    sqlconstraint = 'visitExposureTime > 11 and note not like "%DD%"'
+    bundle = MetricBundle(m, s, sqlconstraint, runName=runName)
+    opsdb = OpsimDatabase(newdb_file)
+    g = MetricBundleGroup({f'{runName} footprint': bundle}, opsdb)
+    g.runAll()
     wfd_footprint = bundle.metricValues.filled(0)
     wfd_footprint = np.where(wfd_footprint > 750, 1, 0)
+    tablename = opsdb.defaultTable
+    opsdb.close()
+
+    # Reopen with sqlite, so we can write back to the tables later.
+    conn = sqlite3.connect(newdb_file)
+    cursor = conn.cursor()
+    query = f'select observationId, observationStartMJD, fieldRA, fieldDec, filter, ' \
+            f'visitExposureTime, note from {tablename}'
+    simdata = pd.read_sql(query, conn).to_records()
     # label the visits with the visit label stacker
     wfd_stacker = WFDlabelStacker(wfd_footprint)
     simdata = wfd_stacker.run(simdata)
-    # Write to a new table in database
-    conn = sqlite3.connect(opsimdb_file)
-    cursor = conn.cursor()
-    sql = 'CREATE TABLE IF NOT EXISTS "propId" ("observationId" INT PRIMARY KEY, "proposalId"  INT)'
-    cursor.execute(sql)
+
+    # Write back proposalId/observation to the table in the new copy of the database.
     for obsid, pId in zip(simdata['observationId'], simdata['proposalId']):
-        sql = f'INSERT INTO propId (observationId, proposalId) values ("{obsid}", "{pId}")'
+        sql = f'UPDATE {tablename} SET proposalId = {pId} WHERE observationId = {obsid}'
         cursor.execute(sql)
     # Create some indexes
     try:
-        indxObsId = "CREATE UNIQUE INDEX idx_observationId on propId (observationId)"
+        indxObsId = "CREATE UNIQUE INDEX idx_observationId on {tablename}} (observationId)"
         cursor.execute(indxObsId)
     except OperationalError:
-        print('Already had observationId index on propId')
+        print('Already had observationId index on {tablename}}')
+    conn.commit()
+
+    # Define dictionary of proposal tags.
+    propTags = {'Other': 0, 'WFD': 1}
+    propIds = np.unique(simdata['proposalId'])
+    for iD in propIds:
+        if iD not in propTags:
+            tag = simdata['note'][np.where(simdata['proposalId'] == iD)][0]
+            propTags[tag] = iD
+    # Add new table to track proposal information.
+    sql = 'CREATE TABLE IF NOT EXISTS "Proposal" ("proposalId" INT PRIMARY KEY, ' \
+          '"proposalName" VARCHAR(20), "proposalType" VARCHAR(5))'
+    cursor.execute(sql)
+    # Add proposal information to Proposal table.
+    for pName, pId in propTags.items():
+        pType = pName.split(':')[0]
+        try:
+            sql = f'INSERT INTO Proposal (proposalId, proposalName, proposalType) ' \
+                  f'VALUES ("{pId}", "{pName}", "{pType}")'
+            cursor.execute(sql)
+        except IntegrityError:
+            print(f'This proposal ID is already in the proposal table {pId},{pName} (just reusing it)')
     conn.commit()
     conn.close()
+    print(f'Labelled visits in new database copy {newdb_file}')
+    return newdb_file
