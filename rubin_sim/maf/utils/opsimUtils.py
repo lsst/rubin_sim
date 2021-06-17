@@ -1,12 +1,16 @@
-from __future__ import print_function
 # Collection of utilities for MAF that relate to Opsim specifically.
 
 import os
+import shutil
 import numpy as np
+import pandas as pd
+import sqlite3
+from sqlite3 import OperationalError, IntegrityError
+
 from .outputUtils import printDict
 
 __all__ = ['writeConfigs', 'getFieldData', 'getSimData',
-           'scaleBenchmarks', 'calcCoaddedDepth']
+           'scaleBenchmarks', 'calcCoaddedDepth', 'labelVisits']
 
 
 def writeConfigs(opsimDb, outDir):
@@ -220,3 +224,91 @@ def calcCoaddedDepth(nvisits, singleVisitDepth):
         if not np.isfinite(coaddedDepth[f]):
             coaddedDepth[f] = singleVisitDepth[f]
     return coaddedDepth
+
+
+def labelVisits(opsimdb_file):
+    """Identify the WFD as the part of the sky with at least 750 visits per pointing and not DD,
+    discount short exposures."""
+    # Import these here to avoid circular dependencies
+    from ..metrics import CountMetric
+    from ..slicers import HealpixSlicer
+    from ..metricBundles import MetricBundle, MetricBundleGroup
+    from ..stackers import WFDlabelStacker
+    from ..db import OpsimDatabase
+
+    runName = os.path.split(opsimdb_file)[-1].replace('.db', '')
+    # The way this is written, in order to be able to freely use the information later, we write back
+    # and modify the original opsim output. This can be problematic - so make a copy first and modify that.
+    newdb_file = 'wfd_' + opsimdb_file
+    shutil.copy(opsimdb_file, newdb_file)
+
+    # Generate the footprint.
+    m = CountMetric(col='observationStartMJD')
+    s = HealpixSlicer(nside=64)
+    sqlconstraint = 'visitExposureTime > 11 and note not like "%DD%"'
+    bundle = MetricBundle(m, s, sqlconstraint, runName=runName)
+    opsdb = OpsimDatabase(newdb_file)
+    g = MetricBundleGroup({f'{runName} footprint': bundle}, opsdb)
+    g.runAll()
+    wfd_footprint = bundle.metricValues.filled(0)
+    wfd_footprint = np.where(wfd_footprint > 750, 1, 0)
+    tablename = opsdb.defaultTable
+    opsdb.close()
+
+    # Reopen with sqlite, so we can write back to the tables later.
+    conn = sqlite3.connect(newdb_file)
+    cursor = conn.cursor()
+    query = f'select observationId, observationStartMJD, fieldRA, fieldDec, filter, ' \
+            f'visitExposureTime, note from {tablename}'
+    simdata = pd.read_sql(query, conn).to_records()
+    # label the visits with the visit label stacker
+    wfd_stacker = WFDlabelStacker(wfd_footprint)
+    simdata = wfd_stacker.run(simdata)
+
+    # Write back proposalId/observation to the table in the new copy of the database.
+    # Create some indexes
+    try:
+        indxObsId = f"CREATE UNIQUE INDEX idx_observationId on {tablename} (observationId)"
+        cursor.execute(indxObsId)
+    except OperationalError:
+        print(f'Already had observationId index on {tablename}')
+    try:
+        indxMJD = f"CREATE UNIQUE INDEX idx_observationStartMJD on {tablename} (observationStartMJD);"
+        cursor.execute(indxMJD)
+    except OperationalError:
+        print('Already had observationStartMJD index')
+    try:
+        indxFilter = f"CREATE INDEX idx_filter on {tablename} (filter)"
+        cursor.execute(indxFilter)
+    except OperationalError:
+        print('Already had filter index')
+    # Add the proposal id information.
+    for obsid, pId in zip(simdata['observationId'], simdata['proposalId']):
+        sql = f'UPDATE {tablename} SET proposalId = {pId} WHERE observationId = {obsid}'
+        cursor.execute(sql)
+    conn.commit()
+
+    # Define dictionary of proposal tags.
+    propTags = {'Other': 0, 'WFD': 1}
+    propIds = np.unique(simdata['proposalId'])
+    for iD in propIds:
+        if iD not in propTags:
+            tag = simdata['note'][np.where(simdata['proposalId'] == iD)][0]
+            propTags[tag] = iD
+    # Add new table to track proposal information.
+    sql = 'CREATE TABLE IF NOT EXISTS "Proposal" ("proposalId" INT PRIMARY KEY, ' \
+          '"proposalName" VARCHAR(20), "proposalType" VARCHAR(5))'
+    cursor.execute(sql)
+    # Add proposal information to Proposal table.
+    for pName, pId in propTags.items():
+        pType = pName.split(':')[0]
+        try:
+            sql = f'INSERT INTO Proposal (proposalId, proposalName, proposalType) ' \
+                  f'VALUES ("{pId}", "{pName}", "{pType}")'
+            cursor.execute(sql)
+        except IntegrityError:
+            print(f'This proposal ID is already in the proposal table {pId},{pName} (just reusing it)')
+    conn.commit()
+    conn.close()
+    print(f'Labelled visits in new database copy {newdb_file}')
+    return newdb_file

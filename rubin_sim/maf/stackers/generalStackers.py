@@ -1,18 +1,12 @@
 import warnings
 import numpy as np
 import palpy
-from rubin_sim.utils import Site, m5_flat_sed, xyz_from_ra_dec, xyz_angular_radius, \
-    _buildTree, _xyz_from_ra_dec
-from rubin_sim.site_models import FieldsDatabase
+from rubin_sim.utils import Site, m5_flat_sed
 from .baseStacker import BaseStacker
 
 __all__ = ['NormAirmassStacker', 'ParallaxFactorStacker', 'HourAngleStacker',
            'FilterColorStacker', 'ZenithDistStacker', 'ParallacticAngleStacker',
-           'DcrStacker', 'FiveSigmaStacker', 'OpSimFieldStacker',
-           'SaturationStacker']
-
-# Original stackers by Peter Yoachim (yoachim@uw.edu)
-# Filter color stacker by Lynne Jones (lynnej@uw.edu)
+           'DcrStacker', 'FiveSigmaStacker', 'SaturationStacker']
 
 
 class SaturationStacker(BaseStacker):
@@ -30,7 +24,8 @@ class SaturationStacker(BaseStacker):
         The zeropoints for the telescope. Keys should be str with filter names, values in mags.
         If None, will use Rubin-like zeropoints.
     km : dict-like, opt (None)
-        Atmospheric extinction values.  Keys should be str with filter names. If None, will use Rubin-like zeropoints.
+        Atmospheric extinction values.  Keys should be str with filter names.
+        If None, will use Rubin-like zeropoints.
     """
     colsAdded = ['saturation_mag']
 
@@ -70,10 +65,12 @@ class SaturationStacker(BaseStacker):
             # Calculate the length of the on-sky time per EXPOSURE
             exptime = simData[self.exptimeCol][in_filt] / simData[self.nexpCol][in_filt]
             # Calculate sky counts per pixel per second from skybrightness + zeropoint (e/1s)
-            sky_counts = 10.**(0.4*(self.zeropoints[filtername] - simData[self.skybrightnessCol][in_filt])) * self.pixscale**2
+            sky_counts = 10.**(0.4*(self.zeropoints[filtername]
+                                    - simData[self.skybrightnessCol][in_filt])) * self.pixscale**2
             # Total sky counts in each exposure 
             sky_counts = sky_counts * exptime
-            # The counts available to the source (at peak) in each exposure is the difference between saturation and sky
+            # The counts available to the source (at peak) in each exposure is the
+            # difference between saturation and sky
             remaining_counts_peak = (self.saturation_adu - sky_counts)
             # Now to figure out how many counts there would be total, if there are that many in the peak
             sigma = simData[self.seeingCol][in_filt]/2.354
@@ -441,52 +438,4 @@ class FilterColorStacker(BaseStacker):
             simData['rRGB'][match] = self.filter_rgb_map[f][0]
             simData['gRGB'][match] = self.filter_rgb_map[f][1]
             simData['bRGB'][match] = self.filter_rgb_map[f][2]
-        return simData
-
-
-class OpSimFieldStacker(BaseStacker):
-    """Add the fieldId of the closest OpSim field for each RA/Dec pointing.
-
-    Parameters
-    ----------
-    raCol : str, opt
-        Name of the RA column. Default fieldRA.
-    decCol : str, opt
-        Name of the Dec column. Default fieldDec.
-
-    """
-    colsAdded = ['opsimFieldId']
-
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True):
-        self.colsReq = [raCol, decCol]
-        self.units = ['#']
-        self.raCol = raCol
-        self.decCol = decCol
-        self.degrees = degrees
-        fields_db = FieldsDatabase()
-        # Returned RA/Dec coordinates in degrees
-        fieldid, ra, dec = fields_db.get_id_ra_dec_arrays("select * from Field;")
-        asort = np.argsort(fieldid)
-        self.tree = _buildTree(np.radians(ra[asort]),
-                               np.radians(dec[asort]))
-
-    def _run(self, simData, cols_present=False):
-        if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
-            return simData
-
-        if self.degrees:
-            coord_x, coord_y, coord_z = xyz_from_ra_dec(simData[self.raCol],
-                                                        simData[self.decCol])
-            field_ids = self.tree.query_ball_point(list(zip(coord_x, coord_y, coord_z)),
-                                                   xyz_angular_radius())
-
-        else:
-            # use _xyz private method (sending radians)
-            coord_x, coord_y, coord_z = _xyz_from_ra_dec(simData[self.raCol],
-                                                         simData[self.decCol])
-            field_ids = self.tree.query_ball_point(list(zip(coord_x, coord_y, coord_z)),
-                                                   xyz_angular_radius())
-
-        simData['opsimFieldId'] = np.array([ids[0] for ids in field_ids]) + 1
         return simData
