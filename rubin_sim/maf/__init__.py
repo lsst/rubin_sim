@@ -29,6 +29,7 @@ from .metricBundles import *
 from .maps import *
 from .plots import *
 from .utils import *
+from .batches import *
 from .runComparison import *
 from .web import *
 from .mafContrib import *
