@@ -183,7 +183,7 @@ class BaseOpsimDatabase(Database):
         -------
         int
         """
-        query = f'select count(distinct({self.mjdCol}) from {self.defaultTable}'
+        query = f'select count(distinct({self.mjdCol})) from {self.defaultTable}'
         data = self.execute_arbitrary(query, dtype=([('nvisits', int)]))
         return data['nvisits'][0]
 
@@ -262,9 +262,9 @@ class OpsimDatabaseFBS(BaseOpsimDatabase):
         propIds = {}
         # Add WFD and DD tags by default to propTags as we expect these every time. (avoids key errors).
         propTags = {'WFD': [], 'DD': [], 'NES': []}
-        propData = self.query_columns('Proposal', colnames =[self.propIdCol, 'proposalName', 'proposalType'],
+        propData = self.query_columns('Proposal', colnames =['proposalId', 'proposalName', 'proposalType'],
                                       sqlconstraint=None)
-        for propId, propName, propType in zip(propData[self.propIdCol],
+        for propId, propName, propType in zip(propData['proposalId'],
                                               propData['proposalName'],
                                               propData['proposalType']):
             propIds[propId] = propName

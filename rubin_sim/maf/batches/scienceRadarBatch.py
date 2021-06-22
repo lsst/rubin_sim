@@ -12,7 +12,8 @@ from .srdBatch import fOBatch, astrometryBatch, rapidRevisitBatch
 from .descWFDBatch import descWFDBatch
 from rubin_sim.maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import GalaxyCountsMetric_extended
 from rubin_sim.maf.mafContrib import (TdePopMetric, generateTdePopSlicer,
-                                      generateMicrolensingSlicer, MicrolensingMetric)
+                                      generateMicrolensingSlicer, MicrolensingMetric,
+                                      KNePopMetric, generateKNPopSlicer)
 from rubin_sim.scheduler.surveys import generate_dd_surveys, Deep_drilling_survey
 
 __all__ = ['scienceRadarBatch']
@@ -209,6 +210,22 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
                              summaryMetrics=[metrics.MeanMetric(maskVal=0)],
                              plotFuncs=[plots.HealpixSkyMap()],
                              displayDict=displayDict, plotDict=plotDict)
+    bundleList.append(bundle)
+
+    # Kilonovae metric
+    displayDict['subgroup'] = 'KNe'
+    n_events = 10000
+    displayDict['caption'] = f'KNe metric, injecting {n_events} lightcurves over the entire sky.'
+    slicer = generateKNPopSlicer(n_events=n_events)
+    metric = KNePopMetric()
+    kne_summaryMetrics = [metrics.SumMetric(metricName='Total detected'),
+                      metrics.CountMetric(metricName='Total lightcurves in footprint'),
+                      metrics.CountMetric(metricName='Total lightcurves on sky', maskVal=0),
+                      metrics.MeanMetric(metricName='Fraction detected in footprint'),
+                      metrics.MeanMetric(maskVal=0, metricName='Fraction detected of total')]
+    bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
+                             runName=runName, summaryMetrics=kne_summaryMetrics,
+                             displayDict=displayDict)
     bundleList.append(bundle)
 
     #########################

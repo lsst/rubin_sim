@@ -20,6 +20,7 @@ try:
 except ImportError:
     _BOKEH_HERE = False
 
+
 __all__ = ['RunComparison']
 
 
