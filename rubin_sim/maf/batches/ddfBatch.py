@@ -34,6 +34,8 @@ def ddfBatch(colmap=None, runName='opsim', nside=256, radius=3.):
     num_metric = metrics.SNNSNMetric(verbose=False)
     lens_metric = metrics.SNSLMetric(night_collapse=True)
 
+    displayDict = {'group': 'DDFs', 'subgroup': ''}
+
     for ddf in dd_surveys:
         # If it's the euclid double field
         if np.size(ddf.ra) > 1:
@@ -51,10 +53,13 @@ def ddfBatch(colmap=None, runName='opsim', nside=256, radius=3.):
         name = ddf.survey_name.replace('DD:', '')
         metric = deepcopy(num_metric)
         metric.name = 'SnN_%s' % name
+        displayDict['subgroup'] = name
+        displayDict['caption'] = 'SNe Ia, with chip gaps on'
         bundleList.append(mb.MetricBundle(metric, slicer, sql, summaryMetrics=summary_stats,
-                                          plotFuncs=[plots.HealpixSkyMap()]))
+                                          plotFuncs=[plots.HealpixSkyMap()], displayDict=displayDict))
 
         metric = deepcopy(lens_metric)
+        displayDict['caption'] = 'Strongly lensed SNe, with chip gaps on'
         metric.name = 'SnL_%s' % name
         bundleList.append(mb.MetricBundle(metric, slicer, sql, summaryMetrics=summary_stats,
                                           plotFuncs=[plots.HealpixSkyMap()]))
