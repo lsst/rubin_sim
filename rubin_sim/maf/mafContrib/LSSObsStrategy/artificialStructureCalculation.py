@@ -32,12 +32,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import healpy as hp
-import warnings
 try:
     from sympy.solvers import solve
     from sympy import Symbol
-except ImportError as error:
-    warnings.warn('sympy not installed')
+except ImportError:
+    pass
 import copy
 import time
 from matplotlib.ticker import FuncFormatter

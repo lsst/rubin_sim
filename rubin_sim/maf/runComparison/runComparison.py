@@ -11,14 +11,15 @@ import rubin_sim.maf.plots as plots
 
 _BOKEH_HERE = True
 try:
-   from bokeh.models import CustomJS, ColumnDataSource
-   from bokeh.io import output_file, output_notebook
-   from bokeh.layouts import widgetbox, layout, row, column
-   from bokeh.models.widgets import DataTable, DateFormatter, TableColumn, NumberFormatter, Select
-   from bokeh.plotting import Figure, output_file, show
-   output_notebook()
+    from bokeh.models import CustomJS, ColumnDataSource
+    from bokeh.io import output_file, output_notebook
+    from bokeh.layouts import widgetbox, layout, row, column
+    from bokeh.models.widgets import DataTable, DateFormatter, TableColumn, NumberFormatter, Select
+    from bokeh.plotting import Figure, output_file, show
+    output_notebook()
 except ImportError:
-   _BOKEH_HERE = False
+    _BOKEH_HERE = False
+
 
 __all__ = ['RunComparison']
 
