@@ -17,10 +17,15 @@ conda activate rubin
 git clone git@github.com:lsst/rubin_sim.git
 cd rubin_sim
 pip install -e .
-rs_download_data  # Downloads ~1.5G of data to $HOME/rubin_sim_data. See README on how to set a different data directory.
+export RUBIN_SIM_DATA_DIR=$HOME/rubin_sim_data # Optional. Set the data directory path via env variable
+rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR
 ```
-
 The installation can be tested by running `py.test` in the github directory. 
+
+If you are only interested in a subset of the data, you can specify which directories to download, e.g.
+```
+rs_download_data  --dirs "throughputs,skybrightness,tests,maps"
+```
 
 Optional dependencies used by some of the more esoteric MAF functions:
 ```
@@ -31,6 +36,7 @@ Optional download all the (100 Gb) of pre-computed sky data. Only needed if you 
 ```
 rs_download_sky
 ```
+
 
 Future fast user install should look like:
 ```
