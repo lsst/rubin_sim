@@ -3,7 +3,7 @@ import warnings
 import subprocess
 
 
-__all__ = ['get_data_dir', 'data_versions']
+__all__ = ['get_data_dir', 'data_versions', 'get_baseline']
 
 
 def get_data_dir():
@@ -21,6 +21,16 @@ def get_data_dir():
     if data_dir is None:
         data_dir = os.path.join(os.getenv('HOME'), 'rubin_sim_data')
     return data_dir
+
+
+def get_baseline():
+    """Get the path to the baseline cadence simulation and the run name
+    """
+    dd = get_data_dir()
+    path = os.path.join(dd, 'sim_baseline', 'baseline.db')
+    link = os.readlink(path)
+    final_path = os.path.join(dd, 'sim_baseline', link)
+    return final_path
 
 
 def data_versions():
