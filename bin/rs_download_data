@@ -4,6 +4,7 @@ from shutil import unpack_archive
 import os
 import warnings
 import requests
+import argparse
 
 
 def data_dict():
@@ -16,6 +17,7 @@ def data_dict():
                  'maps': 'maps_may_2021.tgz',
                  'movingObjects': 'movingObjects_may_2021.tgz',
                  'orbits': 'orbits_may_2021.tgz',
+                 'sim_baseline': 'sim_baseline_june_2021.tgz',
                  'site_models': 'site_models_may_2021.tgz',
                  'skybrightness': 'skybrightness_may_2021.tgz',
                  'skybrightness_pre': 'skybrightness_pre_may_2021.tgz',
@@ -26,21 +28,31 @@ def data_dict():
 
 if __name__ == '__main__':
 
+    files = data_dict()
+    parser = argparse.ArgumentParser(description="Download data files for rubin_sim package")
+    parser.add_argument("-d", "--dirs", type=str, default=None,
+                        help="Comma-separated list of directories to download")
+    args = parser.parse_args()
+
+    dirs = args.dirs
+    if dirs is None:
+        dirs = files.keys()
+    else:
+        dirs = dirs.split(',')
     url_base = 'https://lsst.ncsa.illinois.edu/sim-data/rubin_sim_data/'
     data_dir = get_data_dir()
     if not os.path.isdir(data_dir):
         os.mkdir(data_dir)
-    files = data_dict()
     version_file = os.path.join(data_dir, 'versions.txt')
-    old_versions = data_versions()
-    new_versions = {}
+    versions = data_versions()
+    if versions is None:
+        versions = {}
 
-    for key in files:
+    for key in dirs:
         filename = files[key]
         path = os.path.join(data_dir, key)
         if os.path.isdir(path):
             warnings.warn('directory %s already exists, skipping download' % path)
-            new_versions[key] = old_versions[key]
         else:
             # Download file
             url = url_base + filename
@@ -51,10 +63,9 @@ if __name__ == '__main__':
             # untar in place
             unpack_archive(os.path.join(data_dir, filename), data_dir)
             os.remove(os.path.join(data_dir, filename))
-            new_versions[key] = files[key]
+            versions[key] = files[key]
+
     # Write out the new version info
     with open(version_file, 'w') as f:
-        for key in new_versions:
-            print(key+','+new_versions[key], file=f)
-
-
+        for key in versions:
+            print(key+','+ versions[key], file=f)

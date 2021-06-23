@@ -84,6 +84,7 @@ Note when developing after running `pip install -e .`, you can edit the python a
 To update the data files:
 
 * Update the files in your local installation
+* If you are updating the baseline sim, create a symlink of the new database to baseline.db
 * Create a new tar file with a new name, e.g., `tar -chvzf maf_june_2021.tgz maf`
 * Copy your new tar file to NCSA lsst-login01.ncsa.illinois.edu:/lsstdata/user/staff/web_data/sim-data/rubin_sim_data/
 * You can check that it is uploaded here: https://lsst.ncsa.illinois.edu/sim-data/rubin_sim_data/
