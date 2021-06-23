@@ -7,8 +7,7 @@ import rubin_sim.maf.maps as maps
 import rubin_sim.maf.metricBundles as mb
 from .common import standardSummary, filterList
 from .colMapDict import ColMapDict
-from rubin_sim.scheduler.surveys import generate_dd_surveys
-from rubin_sim.utils import hpid2RaDec, angularSeparation
+from rubin_sim.utils import hpid2RaDec, angularSeparation, ddf_locations
 from copy import deepcopy
 
 
@@ -19,7 +18,7 @@ def ddfBatch(colmap=None, runName='opsim', nside=256, radius=3.):
     radius = radius
     bundleList = []
 
-    dd_surveys = generate_dd_surveys()
+    dd_surveys = ddf_locations()
 
     hpid = np.arange(hp.nside2npix(nside))
     hp_ra, hp_dec = hpid2RaDec(nside, hpid)
@@ -37,20 +36,24 @@ def ddfBatch(colmap=None, runName='opsim', nside=256, radius=3.):
     displayDict = {'group': 'DDFs', 'subgroup': ''}
 
     for ddf in dd_surveys:
-        # If it's the euclid double field
-        if np.size(ddf.ra) > 1:
-            dist = angularSeparation(np.degrees(np.mean(ddf.ra)), np.degrees(np.mean(ddf.dec)), hp_ra, hp_dec)
-            good_pix = np.where(dist <= (radius*2))[0]
-        else:
-            dist = angularSeparation(np.degrees(ddf.ra), np.degrees(ddf.dec), hp_ra, hp_dec)
+        if 'EDFS_' not in ddf:
+            dist = angularSeparation(dd_surveys[ddf][0], dd_surveys[ddf][1], hp_ra, hp_dec)
             good_pix = np.where(dist <= radius)[0]
+        elif ddf == 'EDFS_b':
+            # Combine the Euclid fields into 1
+            d1 = angularSeparation(dd_surveys['EDFS_a'][0], dd_surveys['EDFS_a'][1], hp_ra, hp_dec)
+            good_pix1 = np.where(d1 <= radius)[0]
+            d2 = angularSeparation(dd_surveys['EDFS_b'][0], dd_surveys['EDFS_b'][1], hp_ra, hp_dec)
+            good_pix2 = np.where(d2 <= radius)[0]
+            good_pix = np.unique(np.concatenate((good_pix1, good_pix2)))
+
         slicer = slicers.UserPointsSlicer(ra=hp_ra[good_pix],
                                           dec=hp_dec[good_pix],
                                           useCamera=True, radius=1.75*2**0.5)
         # trick the metrics into thinking they are using healpix slicer
         slicer.slicePoints['nside'] = nside
 
-        name = ddf.survey_name.replace('DD:', '')
+        name = ddf.replace('DD:', '')
         metric = deepcopy(num_metric)
         metric.name = 'SnN_%s' % name
         displayDict['subgroup'] = name
