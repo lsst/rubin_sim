@@ -14,3 +14,4 @@ from .altazBatch import *
 from .movingObjectsBatch import *
 from .scienceRadarBatch import *
 from .descWFDBatch import *
+from .ddfBatch import *

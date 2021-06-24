@@ -301,6 +301,8 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     #########################
     if DDF:
         ddf_surveys = generate_dd_surveys()
+        # Toss out Euclid and add as two distinct ones
+        ddf_surveys = [ddf for ddf in ddf_surveys if ddf.survey_name != 'DD:EDFS']
 
         # Add on the Euclid fields
         # XXX--to update. Should have a spot where all the DDF locations are stored.

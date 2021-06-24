@@ -6,6 +6,7 @@ from rubin_sim.scheduler.utils import empty_observation
 from rubin_sim.scheduler import features
 import logging
 import random
+from rubin_sim.utils import ddf_locations
 
 
 __all__ = ['Deep_drilling_survey', 'generate_dd_surveys', 'dd_bfs']
@@ -176,10 +177,12 @@ def generate_dd_surveys(nside=None, nexp=2, detailers=None, euclid_detailers=Non
 
     surveys = []
 
+    locations = ddf_locations()
+
     # ELAIS S1
-    RA = 9.45
-    dec = -44.
     survey_name = 'DD:ELAISS1'
+    RA = locations['ELAISS1'][0]
+    dec = locations['ELAISS1'][1]
     ha_limits = ([0., 1.5], [21.5, 24.])
     bfs = dd_bfs(RA, dec, survey_name, ha_limits, frac_total=frac_total, aggressive_frac=aggressive_frac, delays=delays)
     surveys.append(Deep_drilling_survey(bfs, RA, dec, sequence='urgizy',
@@ -189,8 +192,8 @@ def generate_dd_surveys(nside=None, nexp=2, detailers=None, euclid_detailers=Non
 
     # XMM-LSS
     survey_name = 'DD:XMM-LSS'
-    RA = 35.708333
-    dec = -4-45/60.
+    RA = locations['XMM_LSS'][0]
+    dec = locations['XMM_LSS'][1]
     ha_limits = ([0., 1.5], [21.5, 24.])
     bfs = dd_bfs(RA, dec, survey_name, ha_limits, frac_total=frac_total, aggressive_frac=aggressive_frac, delays=delays)
 
@@ -199,9 +202,9 @@ def generate_dd_surveys(nside=None, nexp=2, detailers=None, euclid_detailers=Non
                                         nside=nside, nexp=nexp, detailers=detailers))
 
     # Extended Chandra Deep Field South
-    RA = 53.125
-    dec = -28.-6/60.
     survey_name = 'DD:ECDFS'
+    RA = locations['ECDFS'][0]
+    dec = locations['ECDFS'][1]
     ha_limits = [[0.5, 3.0], [20., 22.5]]
     bfs = dd_bfs(RA, dec, survey_name, ha_limits, frac_total=frac_total, aggressive_frac=aggressive_frac, delays=delays)
     surveys.append(Deep_drilling_survey(bfs, RA, dec, sequence='urgizy',
@@ -210,9 +213,9 @@ def generate_dd_surveys(nside=None, nexp=2, detailers=None, euclid_detailers=Non
                                         nexp=nexp, detailers=detailers))
 
     # COSMOS
-    RA = 150.1
-    dec = 2.+10./60.+55/3600.
     survey_name = 'DD:COSMOS'
+    RA = locations['COSMOS'][0]
+    dec = locations['COSMOS'][1]
     ha_limits = ([0., 2.5], [21.5, 24.])
     bfs = dd_bfs(RA, dec, survey_name, ha_limits, frac_total=frac_total, aggressive_frac=aggressive_frac, delays=delays)
     surveys.append(Deep_drilling_survey(bfs, RA, dec, sequence='urgizy',
@@ -227,8 +230,8 @@ def generate_dd_surveys(nside=None, nexp=2, detailers=None, euclid_detailers=Non
     survey_name = 'DD:EDFS'
     # Note the sequences need to be in radians since they are using observation objects directly
     # Coords from jc.cuillandre@cea.fr Oct 15, 2020
-    RAs = np.radians([58.90, 63.6])
-    decs = np.radians([-49.315, -47.60])
+    RAs = np.radians([locations['EDFS_a'][0], locations['EDFS_b'][0]])
+    decs = np.radians([locations['EDFS_a'][1], locations['EDFS_b'][1]])
     suffixes = [', a', ', b']
     sequence = []
 
@@ -251,7 +254,7 @@ def generate_dd_surveys(nside=None, nexp=2, detailers=None, euclid_detailers=Non
     # And back to degrees for the basis function
     bfs = dd_bfs(np.degrees(RAs[0]), np.degrees(decs[0]), survey_name, ha_limits,
                  frac_total=frac_total, aggressive_frac=aggressive_frac, delays=delays)
-    surveys.append(Deep_drilling_survey(bfs, RA, dec, sequence=sequence,
+    surveys.append(Deep_drilling_survey(bfs, np.degrees(RAs), np.degrees(decs), sequence=sequence,
                                         survey_name=survey_name, reward_value=reward_value, nside=nside,
                                         nexp=nexp, detailers=euclid_detailers))
 
