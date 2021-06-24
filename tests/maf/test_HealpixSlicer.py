@@ -159,7 +159,7 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
         self.radius = 1.8
         self.testslicer = HealpixSlicer(nside=self.nside, verbose=False,
                                         lonCol='ra', latCol='dec', latLonDeg=False,
-                                        radius=self.radius)
+                                        radius=self.radius, useCamera=False)
         nvalues = 10000
         self.dv = makeDataValues(size=nvalues, minval=0., maxval=1.,
                                  ramin=0, ramax=2*np.pi,

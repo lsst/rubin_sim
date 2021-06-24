@@ -14,15 +14,17 @@ def makeDataValues(size=100, min=0., max=1., random=-1):
     datavalues = np.arange(0, size, dtype='float')
     datavalues *= (float(max) - float(min)) / (datavalues.max() - datavalues.min())
     datavalues += min
+    rot_vals = datavalues*0
     if random > 0:
         rng = np.random.RandomState(random)
         randorder = rng.rand(size)
         randind = np.argsort(randorder)
         datavalues = datavalues[randind]
     ids = np.arange(size)
-    datavalues = np.array(list(zip(datavalues, datavalues, ids)),
+    datavalues = np.array(list(zip(datavalues, datavalues, ids, rot_vals)),
                           dtype=[('fieldRA', 'float'),
-                                 ('fieldDec', 'float'), ('fieldId', 'int')])
+                                 ('fieldDec', 'float'), ('fieldId', 'int'),
+                                 ('rotSkyPos', 'float')])
     return datavalues
 
 

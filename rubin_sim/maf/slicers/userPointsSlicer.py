@@ -48,8 +48,8 @@ class UserPointsSlicer(BaseSpatialSlicer):
         Default 'all' - this uses all chips in the camera.
     """
     def __init__(self, ra, dec, lonCol='fieldRA', latCol='fieldDec', latLonDeg=True, verbose=True,
-                 badval=-666, leafsize=100, radius=1.75,
-                 useCamera=False, rotSkyPosColName='rotSkyPos', mjdColName='observationStartMJD',
+                 badval=-666, leafsize=100, radius=2.45,
+                 useCamera=True, rotSkyPosColName='rotSkyPos', mjdColName='observationStartMJD',
                  chipNames='all'):
         super(UserPointsSlicer, self).__init__(lonCol=lonCol, latCol=latCol, latLonDeg=latLonDeg,
                                                verbose=verbose,

@@ -78,8 +78,8 @@ class HealpixSubsetSlicer(BaseSpatialSlicer):
     """
     def __init__(self, nside, hpid, lonCol ='fieldRA',
                  latCol='fieldDec', latLonDeg=True, verbose=True, badval=hp.UNSEEN,
-                 useCache=True, leafsize=100, radius=1.75,
-                 useCamera=False, rotSkyPosColName='rotSkyPos',
+                 useCache=True, leafsize=100, radius=2.45,
+                 useCamera=True, rotSkyPosColName='rotSkyPos',
                  mjdColName='observationStartMJD', chipNames='all'):
         """Instantiate and set up healpix slicer object."""
         super().__init__(verbose=verbose,

@@ -64,8 +64,8 @@ class BaseSpatialSlicer(BaseSlicer):
         Do not include wavefront sensors when checking if a point landed on a chip.
     """
     def __init__(self, lonCol='fieldRA', latCol='fieldDec', latLonDeg=True,
-                 verbose=True, badval=-666, leafsize=100, radius=1.75,
-                 useCamera=False, rotSkyPosColName='rotSkyPos'):
+                 verbose=True, badval=-666, leafsize=100, radius=2.45,
+                 useCamera=True, rotSkyPosColName='rotSkyPos'):
         super(BaseSpatialSlicer, self).__init__(verbose=verbose, badval=badval)
         self.lonCol = lonCol
         self.latCol = latCol

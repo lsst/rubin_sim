@@ -287,7 +287,6 @@ class MetricBundleGroup(object):
         for b in self.currentBundleDict.values():
             self.dbCols.extend(b.dbCols)
         self.dbCols = list(set(self.dbCols))
-
         # Can pass simData directly (if had other method for getting data)
         if simData is not None:
             self.simData = simData
