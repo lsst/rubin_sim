@@ -70,7 +70,7 @@ class BaseObs(object):
         For example: 'kraken_2026, MJD 59853-61677' or 'baseline2018a minus NES'
         Default ''.
     """
-    def __init__(self, footprint='circle', rFov=1.75, xTol=5, yTol=3,
+    def __init__(self, footprint='camera', rFov=2.45, xTol=5, yTol=3,
                  ephMode='nbody', ephType='basic', obsCode='I11',
                  ephFile=None,
                  obsTimeCol='observationStartMJD', obsTimeScale='TAI',
