@@ -14,7 +14,7 @@ import healpy as hp
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from .utils import set_default_nside, int_rounded
-from rubin_sim.utils import _hpid2RaDec, _angularSeparation
+from rubin_sim.utils import _hpid2RaDec, _angularSeparation, angularSeparation
 from rubin_sim.utils import Site
 from rubin_sim.data import get_data_dir
 
@@ -668,13 +668,13 @@ def filter_count_ratios(target_maps):
 def combo_dust_fp(nside=32,
                   wfd_weights={'u': 0.31, 'g': 0.44, 'r': 1., 'i': 1., 'z': 0.9, 'y': 0.9},
                   wfd_dust_weights={'u': 0.13, 'g': 0.13, 'r': 0.25, 'i': 0.25, 'z': 0.25, 'y': 0.25},
-                  nes_dist_eclip_n=10., nes_dist_eclip_s=-30., nes_south_limit=-5, ses_dist_eclip=10.,
+                  nes_dist_eclip_n=10., nes_dist_eclip_s=-30., nes_south_limit=-5, ses_dist_eclip=9.,
                   nes_weights={'u': 0, 'g': 0.2, 'r': 0.46, 'i': 0.46, 'z': 0.4, 'y': 0},
                   dust_limit=0.19,
                   wfd_north_dec=12.4, wfd_south_dec=-72.25,
                   mc_wfd=True,
                   outer_bridge_l=240, outer_bridge_width=10., outer_bridge_alt=13.,
-                  bulge_lon_span=20., bulge_alt_span=10.,
+                  bulge_radius=17.,
                   north_weights={'g': 0.03, 'r': 0.03, 'i': 0.03}, north_limit=30.):
     """
     Based on the Olsen et al Cadence White Paper
@@ -741,8 +741,8 @@ def combo_dust_fp(nside=32,
         result[key][outer_disk] = wfd_weights[key]
 
     # Make a bulge go WFD
-    bulge_pix = np.where(((gal_lon > (360-bulge_lon_span)) | (gal_lon < bulge_lon_span)) &
-                         (np.abs(gal_lat) < bulge_alt_span))
+    dist_to_bulge = angularSeparation(gal_lon, gal_lat, 0., 0.)
+    bulge_pix = np.where(dist_to_bulge <= bulge_radius)
     for key in result:
         result[key][bulge_pix] = wfd_weights[key]
 
