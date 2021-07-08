@@ -115,7 +115,7 @@ class TestFeatures(unittest.TestCase):
         surveys.extend(dd_surveys)
 
         scheduler = Core_scheduler(surveys, nside=nside)
-        observatory = Model_observatory(nside=nside)
+        observatory = Model_observatory(nside=nside, mjd_start=59853.5)
         observatory, scheduler, observations = sim_runner(observatory, scheduler,
                                                           survey_length=survey_length,
                                                           filename=None)
@@ -147,7 +147,7 @@ class TestFeatures(unittest.TestCase):
         surveys.append(gen_greedy_surveys(nside))
 
         scheduler = Core_scheduler(surveys, nside=nside)
-        observatory = Model_observatory(nside=nside)
+        observatory = Model_observatory(nside=nside, mjd_start=59853.5)
         observatory, scheduler, observations = sim_runner(observatory, scheduler,
                                                           survey_length=survey_length,
                                                           filename=None)

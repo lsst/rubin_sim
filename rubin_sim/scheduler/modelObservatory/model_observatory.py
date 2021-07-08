@@ -22,7 +22,7 @@ class Model_observatory(object):
     """A class to generate a realistic telemetry stream for the scheduler
     """
 
-    def __init__(self, nside=None, mjd_start=59853.5, seed=42, quickTest=True,
+    def __init__(self, nside=None, mjd_start=60218., seed=42, quickTest=True,
                  alt_min=5., lax_dome=True, cloud_limit=0.3, sim_ToO=None,
                  seeing_db=None, park_after=10.):
         """
@@ -30,8 +30,8 @@ class Model_observatory(object):
         ----------
         nside : int (None)
             The healpix nside resolution
-        mjd_start : float (59853.5)
-            The MJD to start the observatory up at
+        mjd_start : float (60218)
+            The MJD to start the observatory up at. 60218 = Oct 1, 2023.
         alt_min : float (5.)
             The minimum altitude to compute models at (degrees).
         lax_dome : bool (True)

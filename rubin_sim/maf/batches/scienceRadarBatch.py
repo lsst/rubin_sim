@@ -323,7 +323,7 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
             if survey.survey_name[0:4] != 'DD:u':
                 dist_to_ddf = angularSeparation(ra, dec, np.degrees(survey.ra), np.degrees(survey.dec))
                 goodhp = np.where(dist_to_ddf <= ddf_radius)
-                slicer = slicers.UserPointsSlicer(ra=ra[goodhp], dec=dec[goodhp], useCamera=False)
+                slicer = slicers.UserPointsSlicer(ra=ra[goodhp], dec=dec[goodhp])
                 for f in filterlist:
                     metric = metrics.Coaddm5Metric(metricName=survey.survey_name + ', ' + f)
                     summary = [metrics.MedianMetric(metricName='Median depth ' + survey.survey_name+', ' + f)]

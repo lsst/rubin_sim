@@ -19,7 +19,7 @@ class TestCoreSched(unittest.TestCase):
         survey = surveys.Greedy_survey(bfs, weights)
         scheduler = Core_scheduler([survey])
 
-        observatory = Model_observatory()
+        observatory = Model_observatory(mjd_start=59853.5)
 
         # Check that we can update conditions
         scheduler.update_conditions(observatory.return_conditions())

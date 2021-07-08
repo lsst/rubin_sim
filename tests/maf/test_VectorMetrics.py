@@ -10,8 +10,9 @@ import rubin_sim.maf.metricBundles as metricBundle
 class Test2D(unittest.TestCase):
 
     def setUp(self):
-        names = ['night', 'fieldId', 'fieldRA', 'fieldDec', 'fiveSigmaDepth', 'observationStartMJD']
-        types = [int, int, float, float, float, float]
+        names = ['night', 'fieldId', 'fieldRA', 'fieldDec', 'fiveSigmaDepth',
+        'observationStartMJD', 'rotSkyPos']
+        types = [int, int, float, float, float, float, float]
 
         self.m5_1 = 25.
         self.m5_2 = 24.
