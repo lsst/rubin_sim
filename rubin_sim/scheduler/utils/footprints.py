@@ -675,7 +675,8 @@ def combo_dust_fp(nside=32,
                   mc_wfd=True,
                   outer_bridge_l=240, outer_bridge_width=10., outer_bridge_alt=13.,
                   bulge_radius=17.,
-                  north_weights={'g': 0.03, 'r': 0.03, 'i': 0.03}, north_limit=30.):
+                  north_weights={'g': 0.03, 'r': 0.03, 'i': 0.03}, north_limit=30.,
+                  smooth=True, fwhm=5.7):
     """
     Based on the Olsen et al Cadence White Paper
 
@@ -685,6 +686,9 @@ def combo_dust_fp(nside=32,
     ebvDataDir = get_data_dir()
     filename = 'maps/DustMaps/dust_nside_%i.npz' % nside
     dustmap = np.load(os.path.join(ebvDataDir, filename))['ebvMap']
+
+    if smooth:
+        dustmap = hp.smoothing(dustmap, fwhm=np.radians(fwhm))
 
     # wfd covers -72.25 < dec < 12.4. Avoid galactic plane |b| > 15 deg
     wfd_north = wfd_north_dec
@@ -755,5 +759,6 @@ def combo_dust_fp(nside=32,
     for key in north_weights:
         north = np.where((dec < north_limit) & (result[key] == 0))
         result[key][north] = north_weights[key]
+
 
     return result
