@@ -83,8 +83,6 @@ To make changes to the code, checkout a new branch, make edits, push, make a pul
 
 For unit tests, all filename should start with `test_` so py.test can automatically find them.
 
-Note when developing after running `pip install -e .`, you can edit the python and run to see the changes. However, scripts in the `bin/` directory are copied to the anaconda `envs/<envname>/bin/` folder, so editing those in place will have no effect. To test changes to scripts, re-run `pip install -e .` to re-copy the scripts. I think? Maybe you can edit in place. Anyway, doesn't hurt to re-run pip.
-
 ## Updating data files
 
 To update the data files:
@@ -95,4 +93,6 @@ To update the data files:
 * Copy your new tar file to NCSA lsst-login01.ncsa.illinois.edu:/lsstdata/user/staff/web_data/sim-data/rubin_sim_data/
 * You can check that it is uploaded here: https://lsst.ncsa.illinois.edu/sim-data/rubin_sim_data/
 * Update `bin/rs_download_data` so the `data_dict` function uses your new filename
-* push and merge the change to `bin/rs_download_data`
+* Push and merge the change to `bin/rs_download_data`
+* Probably add a new tag, figure out how to broadcast folks need to update
+
