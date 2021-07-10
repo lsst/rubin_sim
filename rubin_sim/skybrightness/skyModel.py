@@ -56,7 +56,7 @@ def calcAzRelMoon(azs, moonAz):
 
 class SkyModel(object):
 
-    def __init__(self, observatory='LSST',
+    def __init__(self, observatory=None,
                  twilight=True, zodiacal=True, moon=True,
                  airglow=True, lowerAtm=False, upperAtm=False, scatteredStar=False,
                  mergedSpec=True, mags=False, preciseAltAz=False, airmass_limit=3.0):
@@ -141,8 +141,10 @@ class SkyModel(object):
             if self.components[key]:
                 self.interpObjs[key] = interpolators[key](mags=self.mags)
 
-        if observatory == 'LSST':
+        if observatory is None:
             self.telescope = Site('LSST')
+        else:
+            self.telescope = observatory
         self.location = EarthLocation(lat=self.telescope.latitude_rad*u.rad,
                                       lon=self.telescope.longitude_rad*u.rad,
                                       height=self.telescope.height*u.m)
