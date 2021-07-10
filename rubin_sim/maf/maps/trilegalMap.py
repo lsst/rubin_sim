@@ -21,7 +21,7 @@ class TrilegalDensityMap(BaseMap):
     ext : bool (False)
         Use the full sky maps
     """
-    def __init__(self, filtername='r', nside=64, ext=False):
+    def __init__(self, filtername='r', nside=64, ext=True):
         self.mapDir = os.path.join(get_data_dir(), 'maps', 'TriMaps')
         self.filtername = filtername
         self.keynames = [f'starLumFunc_{self.filtername}', f'starMapBins_{self.filtername}']
