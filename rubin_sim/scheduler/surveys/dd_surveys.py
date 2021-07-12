@@ -139,12 +139,11 @@ class Deep_drilling_survey(BaseSurvey):
 
 
 def dd_bfs(RA, dec, survey_name, ha_limits, frac_total=0.0185/2., aggressive_frac=0.011/2.,
-           delays=[0., 0.5, 1.5]):
+           delays=[0., 0.5, 1.5], time_needed=62.):
     """
     Convienence function to generate all the feasibility basis functions
     """
     sun_alt_limit = -18.
-    time_needed = 62.
     fractions = [0.00, aggressive_frac, frac_total]
     bfs = []
     bfs.append(basis_functions.Not_twilight_basis_function(sun_alt_limit=sun_alt_limit))
@@ -251,9 +250,9 @@ def generate_dd_surveys(nside=None, nexp=2, detailers=None, euclid_detailers=Non
                 sequence.append(obs)
 
     ha_limits = ([0., 1.5], [22.5, 24.])
-    # And back to degrees for the basis function
+    # And back to degrees for the basis function. Need to bump up the time needed since it's a double field.
     bfs = dd_bfs(np.degrees(RAs[0]), np.degrees(decs[0]), survey_name, ha_limits,
-                 frac_total=frac_total, aggressive_frac=aggressive_frac, delays=delays)
+                 frac_total=frac_total, aggressive_frac=aggressive_frac, delays=delays, time_needed=120.)
     surveys.append(Deep_drilling_survey(bfs, np.degrees(RAs), np.degrees(decs), sequence=sequence,
                                         survey_name=survey_name, reward_value=reward_value, nside=nside,
                                         nexp=nexp, detailers=euclid_detailers))
