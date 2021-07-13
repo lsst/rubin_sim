@@ -76,7 +76,7 @@ class DirectObs(BaseObs):
         observations (in degrees).
         Default 10 degrees.
     """
-    def __init__(self, footprint='camera', rFov=2.45, xTol=5, yTol=3,
+    def __init__(self, footprint='camera', rFov=1.75, xTol=5, yTol=3,
                  ephMode='nbody', prelimEphMode='2body', ephType='basic', obsCode='I11',
                  ephFile=None,
                  obsTimeCol='observationStartMJD', obsTimeScale='TAI',

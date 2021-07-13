@@ -23,10 +23,10 @@ class BaseObs(object):
     footPrint: str, opt
         Specify the footprint for the FOV. Options include "camera", "circle", "rectangle".
         'Camera' means use the actual LSST camera footprint (following a rough cut with a circular FOV).
-        Default is circular FOV.
+        Default is camera FOV.
     rFov : float, opt
         If footprint is "circular", this is the radius of the fov (in degrees).
-        Default 1.75 degrees.
+        Default 1.75 degrees (only used for circular fov).
     xTol : float, opt
         If footprint is "rectangular", this is half of the width of the (on-sky) fov in the RA
         direction (in degrees).
@@ -70,7 +70,7 @@ class BaseObs(object):
         For example: 'kraken_2026, MJD 59853-61677' or 'baseline2018a minus NES'
         Default ''.
     """
-    def __init__(self, footprint='camera', rFov=2.45, xTol=5, yTol=3,
+    def __init__(self, footprint='camera', rFov=1.75, xTol=5, yTol=3,
                  ephMode='nbody', ephType='basic', obsCode='I11',
                  ephFile=None,
                  obsTimeCol='observationStartMJD', obsTimeScale='TAI',
