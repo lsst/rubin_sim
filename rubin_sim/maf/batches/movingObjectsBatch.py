@@ -994,6 +994,9 @@ def plotSingle(bundle, resultsDb=None, outDir='.', figformat='pdf'):
         plotBundles.append(bundle)
         plotDicts.append(pDict[percentile])
     plotDicts[0].update({'figsize': (8, 6), 'legendloc': 'upper right', 'yMin': 0})
+    # Remove the Hmark line because these plots get complicated already.
+    for r in plotDicts:
+        r['Hmark'] = None
     ph.setMetricBundles(plotBundles)
     ph.plot(plotFunc=plots.MetricVsH(), plotDicts=plotDicts, displayDict=displayDict)
 
@@ -1018,19 +1021,22 @@ def plotActivity(bdict, figroot=None, resultsDb=None, outDir='.', figformat='pdf
 
     displayDict = {'group': 'Characterization', 'subgroup': 'Activity'}
 
-    # Plot (mean) likelihood of detection of activity over X days
-    ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
-    ph.setMetricBundles(activity_days)
-    ph.jointMetricNames = 'Chances of detecting activity lasting X days'
-    plotDict = {'ylabel': "Mean likelihood of detection", 'figsize': (8, 6)}
-    ph.plot(plotFunc=plots.MetricVsH(), plotDicts=plotDict, displayDict=displayDict,
-            outfileRoot=figroot + '_activityDays')
-    # Plot (mean) likelihood of detection of activity over X amount of orbit
-    ph.setMetricBundles(activity_deg)
-    ph.jointMetricNames = 'Chances of detecting activity covering X deg'
-    plotDict = {'ylabel': "Mean likelihood of detection", 'figsize': (8, 6)}
-    ph.plot(plotFunc=plots.MetricVsH(), plotDicts=plotDict, displayDict=displayDict,
-            outfileRoot=figroot + '_activityDeg')
+    if len(activity_days) > 0:
+        # Plot (mean) likelihood of detection of activity over X days
+        ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
+        ph.setMetricBundles(activity_days)
+        ph.jointMetricNames = 'Chances of detecting activity lasting X days'
+        plotDict = {'ylabel': "Mean likelihood of detection", 'figsize': (8, 6)}
+        ph.plot(plotFunc=plots.MetricVsH(), plotDicts=plotDict, displayDict=displayDict,
+                outfileRoot=figroot + '_activityDays')
+    if len(activity_deg) > 0:
+        # Plot (mean) likelihood of detection of activity over X amount of orbit
+        ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
+        ph.setMetricBundles(activity_deg)
+        ph.jointMetricNames = 'Chances of detecting activity covering X deg'
+        plotDict = {'ylabel': "Mean likelihood of detection", 'figsize': (8, 6)}
+        ph.plot(plotFunc=plots.MetricVsH(), plotDicts=plotDict, displayDict=displayDict,
+                outfileRoot=figroot + '_activityDeg')
 
 
 def readAndCombine(orbitRoot, baseDir, splits, metricfile):
