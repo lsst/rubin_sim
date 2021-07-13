@@ -593,8 +593,9 @@ def run_info_table(observatory, extra_info=None):
     """
 
     observatory_info = observatory.get_info()
-    for key in extra_info:
-        observatory_info.append([key, extra_info[key]])
+    if extra_info is not None:
+        for key in extra_info:
+            observatory_info.append([key, extra_info[key]])
     observatory_info = np.array(observatory_info)
 
     n_feature_entries = 3

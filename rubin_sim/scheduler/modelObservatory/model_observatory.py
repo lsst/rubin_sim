@@ -330,8 +330,9 @@ class Model_observatory(object):
 
         result = True
         indx = np.searchsorted(self.downtimes['start'], mjd, side='right')-1
-        if mjd < self.downtimes['end'][indx]:
-            result = False
+        if indx >= 0:
+            if mjd < self.downtimes['end'][indx]:
+                result = False
         return result
 
     def check_mjd(self, mjd, cloud_skip=20.):
