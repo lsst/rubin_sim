@@ -2,7 +2,7 @@ import numpy as np
 from .baseStacker import BaseStacker
 import warnings
 
-__all__ = ['BaseMoStacker', 'AppMagStacker', 'CometAppMagStacker', 'SNRStacker', 'EclStacker']
+__all__ = ['BaseMoStacker', 'MoMagStacker', 'AppMagStacker', 'CometAppMagStacker', 'SNRStacker', 'EclStacker']
 
 # Willmer 2018, ApJS 236, 47
 # VEGA V mag and AB mag of sun (LSST-equivalent bandpasses)
@@ -34,6 +34,70 @@ class BaseMoStacker(BaseStacker):
         # Here we don't really care about cols_present, because almost every time we will be readding
         # columns anymore (for different H values).
         return self._run(ssoObs, Href, Hval)
+
+class MoMagStacker(BaseMoStacker):
+    """Add columns relevant to SSobject apparent magnitudes and visibility to the slicer ssoObs
+    dataframe, given a particular Href and current Hval.
+    Specifically, this stacker adds magLimit, appMag, SNR, and vis.
+    magLimit indicates the appropriate limiting magnitude to consider for a particular object in a particular
+    observation, when combined with the losses due to detection (dmagDetect) or trailing (dmagTrail).
+    appMag adds the apparent magnitude in the filter of the current object, at the current Hval.
+    SNR adds the SNR of this object, given the magLimit.
+    vis adds a flag (0/1) indicating whether an object was visible (assuming a 5sigma threshhold including
+    some probabilistic determination of visibility).
+    Parameters
+    ----------
+    m5Col : str, opt
+        Name of the column describing the 5 sigma depth of each visit. Default fiveSigmaDepth.
+    lossCol : str, opt
+        Name of the column describing the magnitude losses,
+        due to trailing (dmagTrail) or detection (dmagDetect). Default dmagDetect.
+    gamma : float, opt
+        The 'gamma' value for calculating SNR. Default 0.038.
+        LSST range under normal conditions is about 0.037 to 0.039.
+    sigma : float, opt
+        The 'sigma' value for probabilistic prediction of whether or not an object is visible at 5sigma.
+        Default 0.12.
+        The probabilistic prediction of visibility is based on Fermi-Dirac completeness formula (see SDSS,
+        eqn 24, Stripe82 analysis: http://iopscience.iop.org/0004-637X/794/2/120/pdf/apj_794_2_120.pdf).
+    randomSeed: int or None, optional
+        If set, then used as the random seed for the numpy random number
+        generation for the dither offsets.
+        Default: None.
+    """
+    colsAdded = ['appMag', 'SNR', 'vis']
+
+    def __init__(self, magtype='asteroid',
+                 vMagCol='magV', colorCol='dmagColor',
+                 lossCol='dmagDetect', m5Col='fiveSigmaDepth',
+                 seeingCol='FWHMgeom', filterCol='filter',
+                 gamma=0.038, sigma=0.12,
+                 randomSeed=None):
+        if magtype == 'asteroid':
+            self.magStacker = AppMagStacker(vMagCol=vMagCol, colorCol=colorCol, lossCol=lossCol)
+            self.colsReq = [m5Col, vMagCol, colorCol, lossCol]
+        elif magtype == 'comet':
+            self.magStacker = CometAppMagStacker(cometType='oort', Ap=0.04,
+                                                 rhCol='helio_dist', deltaCol='geo_dist', phaseCol='phase',
+                                                 seeingCol='FWHMgeom', apScale=1, filterCol=filterCol,
+                                                 vMagCol=vMagCol, colorCol=colorCol, lossCol=lossCol)
+            self.colsReq = [m5Col, vMagCol, colorCol, lossCol,
+                            'helio_dist', 'geo_dist', 'phase', seeingCol, filterCol]
+        else:
+            self.magStacker = AppMagNullStacker()
+        self.snrStacker = SNRStacker(appMagCol='appMag', m5Col=m5Col,
+                                     gamma=gamma, sigma=sigma, randomSeed=randomSeed)
+
+        self.units = ['mag', 'mag', 'SNR', '']
+
+    def _run(self, ssoObs, Href, Hval):
+        # Hval = current H value (useful if cloning over H range), Href = reference H value from orbit.
+        # Without cloning, Href = Hval.
+        # add apparent magnitude
+        self.magStacker._run(ssoObs, Href, Hval)
+        # add snr
+        self.snrStacker._run(ssoObs, Href, Hval)
+        return ssoObs
 
 
 class AppMagNullStacker(BaseMoStacker):

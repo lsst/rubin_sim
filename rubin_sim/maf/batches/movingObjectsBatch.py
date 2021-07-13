@@ -28,9 +28,10 @@ def defaultHrange(metadata):
                      'MBA': [16, 26, 0.2],
                      'Trojan': [14, 22, 0.2],
                      'TNO': [4, 12, 0.2],
-                     'SDO': [4, 12, 0.2]}
+                     'SDO': [4, 12, 0.2],
+                     'Oort': (4, 20, 0.5)}
     defaultHmark = {'PHA': 22, 'NEO': 22, 'MBA': 20,
-                    'Trojan': 18, 'TNO': 8, 'SDO': 8}
+                    'Trojan': 18, 'TNO': 8, 'SDO': 8, 'Oort': 5}
     if metadata in defaultRanges:
         Hrange = defaultRanges[metadata]
         Hmark = defaultHmark[metadata]
@@ -52,7 +53,7 @@ def defaultCharacterization(metadata):
     "Provide useful characterization bundle type, based on metadata of population type."
     defaultChar = {'PHA': 'inner', 'NEO': 'inner',
                    'MBA': 'inner', 'Trojan': 'inner',
-                   'TNO': 'outer', 'SDO': 'outer'}
+                   'TNO': 'outer', 'SDO': 'outer', 'Oort': 'outer'}
     if metadata in defaultChar:
         char = defaultChar[metadata]
     elif metadata.upper().startswith('GRANVIK'):
@@ -91,7 +92,7 @@ def setupMoSlicer(orbitFile, Hrange, obsFile=None):
 
 
 def quickDiscoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detection', metadata='',
-                        albedo=None, Hmark=None, npReduce=np.mean, constraint=None):
+                        albedo=None, Hmark=None, npReduce=np.mean, constraint=None, magtype='asteroid'):
     if colmap is None:
         colmap = ColMapDict('opsimV4')
     bundleList = []
@@ -105,10 +106,10 @@ def quickDiscoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='d
     if detectionLosses not in ('detection', 'trailing'):
         raise ValueError('Please choose detection or trailing as options for detectionLosses.')
     if detectionLosses == 'trailing':
-        magStacker = stackers.MoMagStacker(lossCol='dmagTrail')
+        magStacker = stackers.MoMagStacker(lossCol='dmagTrail', magtype=magtype)
         detectionLosses = ' trailing loss'
     else:
-        magStacker = stackers.MoMagStacker(lossCol='dmagDetect')
+        magStacker = stackers.MoMagStacker(lossCol='dmagDetect', magtype=magtype)
         detectionLosses = ' detection loss'
 
     # Set up a dictionary to pass to each metric for the column names.
@@ -172,7 +173,7 @@ def quickDiscoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='d
 
 
 def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detection', metadata='',
-                   albedo=None, Hmark=None, npReduce=np.mean, constraint=None):
+                   albedo=None, Hmark=None, npReduce=np.mean, constraint=None,  magtype='asteroid'):
     if colmap is None:
         colmap = ColMapDict('opsimV4')
     bundleList = []
@@ -187,11 +188,11 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
         raise ValueError('Please choose detection or trailing as options for detectionLosses.')
     if detectionLosses == 'trailing':
         # These are the SNR-losses only.
-        magStacker = stackers.MoMagStacker(lossCol='dmagTrail')
+        magStacker = stackers.MoMagStacker(lossCol='dmagTrail',  magtype=magtype)
         detectionLosses = ' trailing loss'
     else:
         # This is SNR losses, plus additional loss due to detecting with stellar PSF.
-        magStacker = stackers.MoMagStacker(lossCol='dmagDetect')
+        magStacker = stackers.MoMagStacker(lossCol='dmagDetect',  magtype=magtype)
         detectionLosses = ' detection loss'
 
     # Set up a dictionary to pass to each metric for the column names.
