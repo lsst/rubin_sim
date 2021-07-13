@@ -55,7 +55,8 @@ class MafRunResults(object):
         self.metrics = self.sortMetrics(self.metrics)
 
         # Get the plot and stats info (many-1 metric match)
-        self.stats = database.getSummaryStats()
+        skip_stats =  ['Completeness@Time', 'Completeness H', 'FractionPop ']
+        self.stats = database.getSummaryStats(summaryNameNotLike=skip_stats)
         self.plots = database.getPlotFiles()
 
         # Pull up the names of the groups and subgroups.
