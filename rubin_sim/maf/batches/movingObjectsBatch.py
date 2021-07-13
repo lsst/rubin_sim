@@ -1107,4 +1107,5 @@ def combineSubsets(mbSubsets):
     joint.runName = first.runName
     joint.fileRoot = first.fileRoot.replace('.npz', '')
     joint.plotDict = first.plotDict
+    joint.displayDict = first.displayDict
     return joint
