@@ -4,7 +4,7 @@ import os
 from rubin_sim.data import get_data_dir
 
 
-def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None):
+def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_mjd=60218.):
 
     if dbfiles is None:
         dbfiles = glob.glob('*.db')
@@ -73,10 +73,12 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None):
                       ' --outDir %s ' % (run+'_ss') +
                       '--opsimRun %s ' % run +
                       '--hMin %0.2f --hMax %0.2f --hStep %0.2f ' % ranges[pop] +
-                      '--metadata %s ' % metadatas[pop])
+                      '--metadata %s ' % metadatas[pop] +
+                      '--startTime %.1f' % start_mjd)
                 s3 = ('run_moving_fractions --workDir %s ' % (run+'_ss') +
                       '--metadata %s ' % metadatas[pop] +
-                      '--hMark %i' % hmarks[pop])
+                      '--hMark %i ' % hmarks[pop] +
+                      '--startTime %.1f' % start_mjd)
                 print(s1 + ' ; ' + s2 + ' ; ' + s3, file=f)
 
 
