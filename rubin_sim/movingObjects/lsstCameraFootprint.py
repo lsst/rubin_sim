@@ -21,7 +21,9 @@ class LsstCameraFootprint(object):
     """
     Class to provide the capability for identifying observations within an LSST camera footprint.
     """
-    def __init__(self):
+    def __init__(self, obsRA='fieldRA', obsDec='fieldDec'):
+        self.obsRA = obsRA
+        self.obsDec = obsDec
         filename = os.path.join(get_data_dir(), 'maf/fov_map.npz')
         _temp = np.load(filename)
         self.camera_fov = _temp['image'].copy()
@@ -57,8 +59,8 @@ class LsstCameraFootprint(object):
 
         x_proj, y_proj = gnomonic_project_toxy(np.radians(ephems['ra']),
                                                np.radians(ephems['dec']),
-                                               np.radians(obsData['ra']),
-                                               np.radians(obsData['dec']))
+                                               np.radians(obsData[self.obsRA]),
+                                               np.radians(obsData[self.obsDec]))
         # rotate them by rotskypos
         # XXX---of course I have no idea if this should be a positive or
         # negative rotation. Whatever, the focal plane is pretty symetric, so whatever.

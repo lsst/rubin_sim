@@ -77,19 +77,6 @@ class BaseObs(object):
                  seeingCol='seeingFwhmGeom', visitExpTimeCol='visitExposureTime',
                  obsRA='fieldRA', obsDec='fieldDec', obsRotSkyPos='rotSkyPos', obsDegrees=True,
                  outfileName='lsst_obs.dat', obsMetadata=''):
-        # Values for identifying observations.
-        self.footprint = footprint.lower()
-        if self.footprint == 'camera':
-            self._setupCamera()
-        self.rFov = rFov
-        self.xTol = xTol
-        self.yTol = yTol
-        # Values for ephemeris generation.
-        if ephMode.lower() not in ('2body', 'nbody'):
-            raise ValueError('Ephemeris generation must be 2body or nbody.')
-        self.ephMode = ephMode
-        self.ephType = ephType
-        self.ephFile = ephFile
         # Strings relating to the names of columns in the observation metadata.
         self.obsCode = obsCode
         self.obsTimeCol = obsTimeCol
@@ -107,9 +94,22 @@ class BaseObs(object):
             self.obsMetadata = 'unknown simdata source'
         else:
             self.obsMetadata = obsMetadata
+        # Values for identifying observations.
+        self.footprint = footprint.lower()
+        if self.footprint == 'camera':
+            self._setupCamera()
+        self.rFov = rFov
+        self.xTol = xTol
+        self.yTol = yTol
+        # Values for ephemeris generation.
+        if ephMode.lower() not in ('2body', 'nbody'):
+            raise ValueError('Ephemeris generation must be 2body or nbody.')
+        self.ephMode = ephMode
+        self.ephType = ephType
+        self.ephFile = ephFile
 
     def _setupCamera(self):
-        self.camera = LsstCameraFootprint()
+        self.camera = LsstCameraFootprint(self.obsRA, self.obsDec)
 
     def setupEphemerides(self):
         """Initialize the ephemeris generator. Save the setup PyOrbEphemeris class.
@@ -338,7 +338,7 @@ class BaseObs(object):
         if not hasattr(self, 'camera'):
             self._setupCamera()
 
-        return self.camera(ephems, obsData)
+        return self.camera(ephems, obsData, timeCol=self.obsTimeCol, rotSkyCol=self.obsRotSkyPos)
 
     def ssoInFov(self, ephems, obsData):
         """Convenience layer - determine which footprint method to apply (from self.footprint) and use it.
