@@ -2,6 +2,7 @@
 import glob
 import os
 from rubin_sim.data import get_data_dir
+import argparse
 
 
 def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_mjd=60218.):
@@ -83,4 +84,9 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_
 
 
 if __name__ == '__main__':
-    generate_ss_commands()
+    parser = argparse.ArgumentParser(description="effin hell")
+    parser.add_argument("--start_mjd", type=float, default=60218, help="start of the sim")
+    args = parser.parse_args()
+
+
+    generate_ss_commands(start_mjd=args.start_mjd)
