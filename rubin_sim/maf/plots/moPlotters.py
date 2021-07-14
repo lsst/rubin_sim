@@ -31,7 +31,6 @@ class MetricVsH(BasePlotter):
         plotDict = {}
         plotDict.update(self.defaultPlotDict)
         plotDict.update(userPlotDict)
-        fig = plt.figure(fignum, figsize=plotDict['figsize'])
         Hvals = slicer.slicePoints['H']
         reduceFunc = plotDict['npReduce']
         if reduceFunc is None:
@@ -67,21 +66,23 @@ class MetricVsH(BasePlotter):
                 else:
                     mVals[i] = reduceFunc(match.filled())
             Hvals = bins
-        plt.plot(Hvals, mVals, color=plotDict['color'], linestyle=plotDict['linestyle'],
+        # Plot the values.
+        fig  = plt.figure(fignum, figsize=plotDict['figsize'])
+        ax = plt.gca()
+        ax.plot(Hvals, mVals, color=plotDict['color'], linestyle=plotDict['linestyle'],
                 label=plotDict['label'])
         if 'xMin' in plotDict:
-            plt.xlim(left = plotDict['xMin'])
+            ax.set_xlim(left = plotDict['xMin'])
         if 'xMax' in plotDict:
-            plt.xlim(right = plotDict['xMax'])
+            ax.set_xlim(right = plotDict['xMax'])
         if 'yMin' in plotDict:
-            plt.ylim(bottom = plotDict['yMin'])
+            ax.set_ylim(bottom = plotDict['yMin'])
         if 'yMax' in plotDict:
-            plt.ylim(top = plotDict['yMax'])
-        # Convert Hvals to diameter, using 'albedo'
+            ax.set_ylim(top = plotDict['yMax'])
+        # Convert Hvals to diameter, using 'albedo' - add these upper xticks
         albedo = plotDict['albedo']
         y = 1.0
         if albedo is not None:
-            ax = plt.axes()
             ax2 = ax.twiny()
             Hmin, Hmax = ax.get_xlim()
             dmax = 2.0 * np.sqrt(10**((mag_sun - Hmin - 2.5*np.log10(albedo))/2.5))
@@ -90,7 +91,13 @@ class MetricVsH(BasePlotter):
             dmin = dmin * km_per_au * m_per_km
             ax2.set_xlim(dmax, dmin)
             ax2.set_xscale('log')
-            ax2.set_xlabel('D (m)', labelpad=-10, horizontalalignment='right')
+            dmid = (dmax - dmin) / 2 + dmin
+            dmid = np.power(10, round(np.log10(dmid)))
+            dmin = np.power(10, round(np.log10(dmin)))
+            dmax = np.power(10, round(np.log10(dmax)))
+            dticks = np.array([dmin, dmid, dmax])
+            ax2.set_xticks(dticks)
+            ax2.set_xlabel('D (m)', labelpad=-5, horizontalalignment='right')
             ax2.grid(False)
             plt.sca(ax)
             y = 1.1
