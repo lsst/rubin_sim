@@ -101,7 +101,7 @@ def quickDiscoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='d
     basicPlotDict = {'albedo': albedo, 'Hmark': Hmark, 'npReduce': npReduce,
                      'nxbins': 200, 'nybins': 200}
     plotFuncs = [plots.MetricVsH()]
-    displayDict ={'group': 'Discovery'}
+    displayDict ={'group': 'Discovery', 'subgroup': 'Completeness'}
 
     if detectionLosses not in ('detection', 'trailing'):
         raise ValueError('Please choose detection or trailing as options for detectionLosses.')
@@ -182,7 +182,7 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
     basicPlotDict = {'albedo': albedo, 'Hmark': Hmark, 'npReduce': npReduce,
                      'nxbins': 200, 'nybins': 200}
     plotFuncs = [plots.MetricVsH()]
-    displayDict ={'group': 'Discovery'}
+    displayDict ={'group': 'Discovery', 'subgroup': 'Completeness'}
 
     if detectionLosses not in ('detection', 'trailing'):
         raise ValueError('Please choose detection or trailing as options for detectionLosses.')
@@ -452,7 +452,6 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
 
     # High velocity discovery.
     displayDict['subgroup'] = 'High Velocity'
-
     # High velocity.
     md = metadata + ' High velocity pair' + detectionLosses
     plotDict = {'title': '%s: %s' % (runName, md)}
@@ -466,6 +465,7 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
     bundleList.append(bundle)
 
     # "magic" detection - 6 in 60 days.
+    displayDict['subgroup'] = 'Magic'
     md = metadata + ' 6 detections in 60 nights' + detectionLosses
     plotDict = {'title': '%s: %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -625,7 +625,7 @@ def plotCompleteness(bdictCompleteness, figroot=None, resultsDb=None,
     plt.grid(True, alpha=0.3)
     # Make a PlotHandler to deal with savings/resultsDb, etc.
     ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
-    displayDict = {'group': 'Completeness', 'subgroup': 'Over Time',
+    displayDict = {'group': 'Discovery', 'subgroup': 'Time',
                    'caption': 'Completeness over time, for H values indicated in legend.'}
     ph.saveFig(fig.number, f'{figroot}_CompletenessOverTime', 'Combo', 'CompletenessOverTime', 'MoObjSlicer',
                figroot, None, None, displayDict=displayDict)
@@ -681,6 +681,7 @@ def characterizationInnerBatch(slicer, colmap=None, runName='opsim', metadata=''
 
     # Number of observations.
     md = metadata
+    displayDict['subgroup'] = 'NObs'
     plotDict = {'ylabel': 'Number of observations (#)',
                 'title': '%s: Number of observations %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -694,6 +695,7 @@ def characterizationInnerBatch(slicer, colmap=None, runName='opsim', metadata=''
 
     # Observational arc.
     md = metadata
+    displayDict['subgroup'] = 'ObsArc'
     plotDict = {'ylabel': 'Observational Arc (days)',
                 'title': '%s: Observational Arc Length %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -706,6 +708,7 @@ def characterizationInnerBatch(slicer, colmap=None, runName='opsim', metadata=''
     bundleList.append(bundle)
 
     # Activity detection.
+    displayDict['subgroup'] = 'Activity'
     for w in windows:
         md = metadata + ' activity lasting %.0f days' % w
         plotDict = {'title': '%s: Chances of detecting %s' % (runName, md),
@@ -734,6 +737,7 @@ def characterizationInnerBatch(slicer, colmap=None, runName='opsim', metadata=''
 
     # Lightcurve inversion.
     md = metadata
+    displayDict['subgroup'] = 'Color/Inversion'
     plotDict = {'yMin': 0, 'yMax': 1, 'ylabel': 'Fraction of objects',
                 'title': '%s: Fraction with potential lightcurve inversion %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -798,6 +802,7 @@ def characterizationOuterBatch(slicer, colmap=None, runName='opsim', metadata=''
 
     # Number of observations.
     md = metadata
+    displayDict['subgroup'] = 'NObs'
     plotDict = {'ylabel': 'Number of observations (#)',
                 'title': '%s: Number of observations %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -811,6 +816,7 @@ def characterizationOuterBatch(slicer, colmap=None, runName='opsim', metadata=''
 
     # Observational arc.
     md = metadata
+    displayDict['subgroup'] = 'ObsArc'
     plotDict = {'ylabel': 'Observational Arc (days)',
                 'title': '%s: Observational Arc Length %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -823,6 +829,7 @@ def characterizationOuterBatch(slicer, colmap=None, runName='opsim', metadata=''
     bundleList.append(bundle)
 
     # Activity detection.
+    displayDict['subgroup'] = 'Activity'
     for w in windows:
         md = metadata + ' activity lasting %.0f days' % w
         plotDict = {'title': '%s: Chances of detecting %s' % (runName, md),
@@ -851,6 +858,7 @@ def characterizationOuterBatch(slicer, colmap=None, runName='opsim', metadata=''
 
     # Color determination.
     md = metadata
+    displayDict['subgroup'] = 'Color/Inversion'
     plotDict = {'yMin': 0, 'yMax': 1, 'ylabel': 'Fraction of objects',
                 'title': '%s: Fraction of population with colors in X filters %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -897,7 +905,7 @@ def runFractionSummary(bdict, Hmark, outDir, resultsDb):
     """
     fractions = {}
     group = 'Characterization'
-    subgroup = 'Fraction of Population with Color/Lightcurve'
+    subgroup = 'Frac.Pop. with Color or Lightcurve'
 
     # Look for metrics from asteroid or outer solar system color/lightcurve metrics.
     inversionSummary = fractionPopulationAtThreshold([1], ['Lightcurve Inversion'])

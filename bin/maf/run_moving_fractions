@@ -79,5 +79,9 @@ if __name__ == '__main__':
         if 'ObsArc' in k:
             batches.plotSingle(bdict[k], resultsDb=resultsDb, outDir=args.workDir)
 
+    # Plot the number of chances of discovery metric - this is different than completeness
+    # As it plots the metric value directly
+
+
     # Plot likelihood of detecting activity.
     batches.plotActivity(bdict, figroot=figroot, resultsDb=resultsDb, outDir=args.workDir)

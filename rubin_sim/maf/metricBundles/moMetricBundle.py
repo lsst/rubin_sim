@@ -52,6 +52,8 @@ def makeCompletenessBundle(bundle, completenessMetric, Hmark=None, resultsDb=Non
     ~rubin_sim.maf.metricBundles.MoMetricBundle
     """
     bundle.setSummaryMetrics(completenessMetric)
+    # This step adds summary values at each point to the original metric - we use this to populate
+    # the completeness values in the next step. However, we may not want them to go into the resultsDb.
     bundle.computeSummaryStats(resultsDb)
     summaryName = completenessMetric.name
     # Make up the bundle, including the metric values.
