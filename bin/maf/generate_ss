@@ -57,7 +57,7 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_
                 s3 = (f'run_moving_fractions --workDir {run}_ss' +
                       f' --metadata {meta}'
                       f' --startTime %.1f' % start_mjd)
-
+                print(s1 + ' ; ' + s2 + ' ; ' + s3, file=f)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="effin hell")
