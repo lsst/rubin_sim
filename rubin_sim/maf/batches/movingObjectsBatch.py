@@ -548,15 +548,25 @@ def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
                 newkey = b + ' ' + metric.name
                 comp[newkey] = mb.makeCompletenessBundle(bundle, metric,
                                                          Hmark=Hmark, resultsDb=resultsDb)
+        elif 'MagicDiscovery' in bundle.metric.name:
+            for metric in summaryHMetrics:
+                newkey = b + ' ' + metric.name
+                comp[newkey] = mb.makeCompletenessBundle(bundle, metric,
+                                                         Hmark=Hmark, resultsDb=resultsDb)
+        elif 'HighVelocity' in bundle.metric.name:
+            for metric in summaryHMetrics:
+                newkey = b + ' ' + metric.name
+                comp[newkey] = mb.makeCompletenessBundle(bundle, metric,
+                                                         Hmark=Hmark, resultsDb=resultsDb)
         return comp
 
     # Generate the completeness bundles for the various discovery metrics.
     for b, bundle in bdict.items():
         if 'Discovery' in bundle.metric.name:
             completeness.update(_compbundles(b, bundle, Hmark, resultsDb))
-        if isinstance(bundle.metric, metrics.HighVelocityNightsMetric):
+        if 'MagicDiscovery' in bundle.metric.name:
             completeness.update(_compbundles(b, bundle, Hmark, resultsDb))
-        if isinstance(bundle.metric, metrics.MagicDiscoveryMetric):
+        if 'HighVelocity' in bundle.metric.name:
             completeness.update(_compbundles(b, bundle, Hmark, resultsDb))
 
     # Write the completeness bundles to disk, so we can re-read them later.
@@ -572,7 +582,7 @@ def plotCompleteness(bdictCompleteness, figroot=None, resultsDb=None,
                      outDir='.', figformat='pdf'):
     """Plot a minor subset of the completeness results.
     """
-    # Separate some subsets to plot together.
+    # Separate some subsets to plot together - first just the simple 15 and 30 night detection loss metrics.
     keys = ['3_pairs_in_30_nights_detection_loss',
             '3_pairs_in_15_nights_detection_loss']
     plotTimes = {}
@@ -645,6 +655,19 @@ def plotCompleteness(bdictCompleteness, figroot=None, resultsDb=None,
     plotDict = {'ylabel': "Completeness", 'figsize': (8, 6)}
     ph.plot(plotFunc=plots.MetricVsH(), plotDicts=plotDict,
             outfileRoot=figroot + '_DifferentialCompleteness')
+
+    # And add the rest of the completeness calculations.
+    allComp = []
+    for k in bdictCompleteness:
+        if 'Discovery_N_Chances' in k:
+            if 'Cumulative' in k:
+                allComp.append(bdictCompleteness[k])
+    ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
+    ph.setMetricBundles(allComp)
+    plotDict = {'ylabel': "Completeness", 'figsize': (8, 6), 'legendloc': (1.01, 0.1), 'color': None}
+    displayDict['caption'] = 'Plotting all of the cumulative completeness curves together.'
+    ph.plot(plotFunc=plots.MetricVsH(), plotDicts=plotDict, displayDict=displayDict,
+            outfileRoot=figroot + '_Many_CumulativeCompleteness')
 
 
 def characterizationInnerBatch(slicer, colmap=None, runName='opsim', metadata='',
@@ -995,7 +1018,6 @@ def plotSingle(bundle, resultsDb=None, outDir='.', figformat='pdf'):
                         'npReduce': lambda x, axis: np.percentile(x, 25, axis=axis)},
              '5%ile': {'color': 'k', 'linestyle': '--', 'label': '5th %ile',
                        'npReduce': lambda x, axis: np.percentile(x, 5, axis=axis)}}
-    displayDict = {'group': 'Characterization', 'subgroup': bundle.metric.name}
     ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
     plotBundles = []
     plotDicts = []
@@ -1007,7 +1029,7 @@ def plotSingle(bundle, resultsDb=None, outDir='.', figformat='pdf'):
     for r in plotDicts:
         r['Hmark'] = None
     ph.setMetricBundles(plotBundles)
-    ph.plot(plotFunc=plots.MetricVsH(), plotDicts=plotDicts, displayDict=displayDict)
+    ph.plot(plotFunc=plots.MetricVsH(), plotDicts=plotDicts, displayDict=bundle.displayDict)
 
 
 def plotNotFound(nChances, Hmark):

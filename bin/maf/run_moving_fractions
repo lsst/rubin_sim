@@ -81,7 +81,13 @@ if __name__ == '__main__':
 
     # Plot the number of chances of discovery metric - this is different than completeness
     # As it plots the metric value directly
-
+    for k in bdict:
+        if 'Discovery_N_Chances' in k and  '3_pairs_in_15_nights_detection_loss' in k:
+            batches.plotSingle(bdict[k], resultsDb=resultsDb, outDir=args.workDir)
+        if 'MagicDiscovery' in k:
+            batches.plotSingle(bdict[k], resultsDb=resultsDb, outDir=args.workDir)
+        if 'HighVelocity' in k:
+            batches.plotSingle(bdict[k], resultsDb=resultsDb, outDir=args.workDir)
 
     # Plot likelihood of detecting activity.
     batches.plotActivity(bdict, figroot=figroot, resultsDb=resultsDb, outDir=args.workDir)
