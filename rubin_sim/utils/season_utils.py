@@ -26,8 +26,8 @@ def calcSeason(ra, time):
         The season values
     """
     # Reference RA and equinox to anchor ra/season reference - RA = 0 is overhead at autumnal equinox
-    # autumn equinox 2014 happened on september 23 --> equinox MJD
-    Equinox = 2456923.5 - 2400000.5
+    # autumn equinox 2014 happened on september 23 (local midnight) --> equinox MJD
+    Equinox = 56923.19
     # convert ra into 'days'
     dayRA = ra / 360 * 365.25
     firstSeasonBegan = Equinox + dayRA - 0.5 * 365.25
