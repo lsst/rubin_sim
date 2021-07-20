@@ -23,10 +23,10 @@ class BaseObs(object):
     footPrint: str, opt
         Specify the footprint for the FOV. Options include "camera", "circle", "rectangle".
         'Camera' means use the actual LSST camera footprint (following a rough cut with a circular FOV).
-        Default is circular FOV.
+        Default is camera FOV.
     rFov : float, opt
         If footprint is "circular", this is the radius of the fov (in degrees).
-        Default 1.75 degrees.
+        Default 1.75 degrees (only used for circular fov).
     xTol : float, opt
         If footprint is "rectangular", this is half of the width of the (on-sky) fov in the RA
         direction (in degrees).
@@ -70,26 +70,13 @@ class BaseObs(object):
         For example: 'kraken_2026, MJD 59853-61677' or 'baseline2018a minus NES'
         Default ''.
     """
-    def __init__(self, footprint='camera', rFov=2.45, xTol=5, yTol=3,
+    def __init__(self, footprint='camera', rFov=1.75, xTol=5, yTol=3,
                  ephMode='nbody', ephType='basic', obsCode='I11',
                  ephFile=None,
                  obsTimeCol='observationStartMJD', obsTimeScale='TAI',
                  seeingCol='seeingFwhmGeom', visitExpTimeCol='visitExposureTime',
                  obsRA='fieldRA', obsDec='fieldDec', obsRotSkyPos='rotSkyPos', obsDegrees=True,
                  outfileName='lsst_obs.dat', obsMetadata=''):
-        # Values for identifying observations.
-        self.footprint = footprint.lower()
-        if self.footprint == 'camera':
-            self._setupCamera()
-        self.rFov = rFov
-        self.xTol = xTol
-        self.yTol = yTol
-        # Values for ephemeris generation.
-        if ephMode.lower() not in ('2body', 'nbody'):
-            raise ValueError('Ephemeris generation must be 2body or nbody.')
-        self.ephMode = ephMode
-        self.ephType = ephType
-        self.ephFile = ephFile
         # Strings relating to the names of columns in the observation metadata.
         self.obsCode = obsCode
         self.obsTimeCol = obsTimeCol
@@ -107,9 +94,22 @@ class BaseObs(object):
             self.obsMetadata = 'unknown simdata source'
         else:
             self.obsMetadata = obsMetadata
+        # Values for identifying observations.
+        self.footprint = footprint.lower()
+        if self.footprint == 'camera':
+            self._setupCamera()
+        self.rFov = rFov
+        self.xTol = xTol
+        self.yTol = yTol
+        # Values for ephemeris generation.
+        if ephMode.lower() not in ('2body', 'nbody'):
+            raise ValueError('Ephemeris generation must be 2body or nbody.')
+        self.ephMode = ephMode
+        self.ephType = ephType
+        self.ephFile = ephFile
 
     def _setupCamera(self):
-        self.camera = LsstCameraFootprint()
+        self.camera = LsstCameraFootprint(self.obsRA, self.obsDec)
 
     def setupEphemerides(self):
         """Initialize the ephemeris generator. Save the setup PyOrbEphemeris class.
@@ -338,7 +338,7 @@ class BaseObs(object):
         if not hasattr(self, 'camera'):
             self._setupCamera()
 
-        return self.camera(ephems, obsData)
+        return self.camera(ephems, obsData, timeCol=self.obsTimeCol, rotSkyCol=self.obsRotSkyPos)
 
     def ssoInFov(self, ephems, obsData):
         """Convenience layer - determine which footprint method to apply (from self.footprint) and use it.

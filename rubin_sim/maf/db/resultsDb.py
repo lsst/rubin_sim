@@ -312,11 +312,11 @@ class ResultsDb(object):
                                    MetricRow.metricMetadata,
                                    MetricRow.simDataName)
         if metricNameLike is not None:
-            query = query.filter(MetricRow.metricName.like('%' + str(metricNameLike) + '%'))
+            query = query.filter(MetricRow.metricName.like(f'%{str(metricNameLike)}%'))
         if slicerNameLike is not None:
-            query = query.filter(MetricRow.slicerName.like('%' + str(slicerNameLike) + '%'))
+            query = query.filter(MetricRow.slicerName.like(f'%{str(slicerNameLike)}%'))
         if metricMetadataLike is not None:
-            query = query.filter(MetricRow.metricMetadata.like('%' + str(metricMetadataLike) + '%'))
+            query = query.filter(MetricRow.metricMetadata.like(f'%{str(metricMetadataLike)}%'))
         if simDataName is not None:
             query = query.filter(MetricRow.simDataName == simDataName)
         for m in query:
@@ -332,7 +332,9 @@ class ResultsDb(object):
             metricIds.append(m.metricId)
         return metricIds
 
-    def getSummaryStats(self, metricId=None, summaryName=None, withSimName=False):
+    def getSummaryStats(self, metricId=None, summaryName=None,
+                        summaryNameLike=None, summaryNameNotLike=None,
+                        withSimName=False):
         """
         Get the summary stats (optionally for metricId list).
         Optionally, also specify the summary metric name.
@@ -348,7 +350,15 @@ class ResultsDb(object):
             query = (self.session.query(MetricRow, SummaryStatRow).filter(MetricRow.metricId == mid)
                      .filter(MetricRow.metricId == SummaryStatRow.metricId))
             if summaryName is not None:
-                query = query.filter(SummaryStatRow.summaryName == summaryName)
+                query = query.filter(SummaryStatRow.summaryName == str(summaryName))
+            if summaryNameLike is not None:
+                query = query.filter(SummaryStatRow.summaryName.like(f'%{str(summaryNameLike)}%'))
+            if summaryNameNotLike is not None:
+                if isinstance(summaryNameNotLike, list):
+                    for s in summaryNameNotLike:
+                        query = query.filter(~SummaryStatRow.summaryName.like(f'%{str(s)}%'))
+                else:
+                    query = query.filter(~SummaryStatRow.summaryName.like(f'%{str(summaryNameNotLike)}%'))
             for m, s in query:
                 vals = (m.metricId, m.metricName, m.slicerName, m.metricMetadata,
                                      s.summaryName, s.summaryValue)

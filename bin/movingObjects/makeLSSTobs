@@ -190,13 +190,13 @@ def setupArgs(parser=None):
                         help="Additional metadata to write into output file. "
                              "The default metadata will combine the opsimDb name, the sqlconstraint, and "
                              "the name of the orbit file; obsMetadata is an optional addition.")
-    parser.add_argument("--footprint", type=str, default='circle',
+    parser.add_argument("--footprint", type=str, default='camera',
                         help="Type of footprint to use to identify observations of each object. "
-                             "Options are 'circle', 'rectangle', or 'camera' (apply camera footprint). "
-                             "Default is 'circle' (which will then have a 1.75 deg radius).")
+                             "Options are 'circle' (r=1.75 deg), 'rectangle', or 'camera' (camera footprint). "
+                             "Default is 'camera'.")
     parser.add_argument("--rFov", type=float, default=1.75,
                         help="If using a circular footprint, this is the radius of the FOV (in degrees). "
-                             "Default 1.75 degrees.")
+                             "Default 1.75 deg.")
     parser.add_argument("--xTol", type=float, default=5,
                         help="If using a rectangular footprint, this is the tolerance in the RA direction "
                              "(in degrees). Default is 5 degrees.")

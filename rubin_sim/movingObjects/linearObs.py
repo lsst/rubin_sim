@@ -70,7 +70,7 @@ class LinearObs(BaseObs):
         The time between points in the ephemeris grid, in days.
         Default 2 hours.
     """
-    def __init__(self, footprint='camera', rFov=2.45, xTol=5, yTol=3,
+    def __init__(self, footprint='camera', rFov=1.75, xTol=5, yTol=3,
                  ephMode='nbody', ephType='basic', obsCode='I11',
                  ephFile=None,
                  obsTimeCol='observationStartMJD', obsTimeScale='TAI',
