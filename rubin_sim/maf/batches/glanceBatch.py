@@ -159,6 +159,20 @@ def glanceBatch(colmap=None, runName='opsim',
                                             summaryMetrics=extended_stats, displayDict=displayDict)
         bundleList.append(bundle)
 
+    # Let's look at two years
+    displayDict = {'group': 'Roll Check', 'order': 1}
+    rolling_metrics = []
+    rolling_metrics.append(metrics.CountMetric(col=colmap['mjd'], metricName='Year2.5Count'))
+    rolling_metrics.append(metrics.CountMetric(col=colmap['mjd'], metricName='Year3.5Count'))
+    rolling_sqls = []
+    rolling_sqls.append('night > %f and night < %f' % (365.25*2.5, 365.25*3.5))
+    rolling_sqls.append('night > %f and night < %f' % (365.25*3.5, 365.25*4.5))
+    for metric, sql in zip(rolling_metrics, rolling_sqls):
+        bundle = metricBundles.MetricBundle(metric, slicer, sql,
+                                            summaryMetrics=extended_stats,
+                                            plotDict=plotDict, displayDict=displayDict)
+        bundleList.append(bundle)
+
     # Checking a few basic science things
     # Maybe check astrometry, observation pairs, SN
     plotDict = {'percentileClip': 95.}
