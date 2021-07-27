@@ -25,9 +25,10 @@ def calcSeason(ra, time):
     np.ndarray
         The season values
     """
-    # Reference RA and equinox to anchor ra/season reference - RA = 0 is overhead at autumnal equinox
-    # autumn equinox 2014 happened on september 23 (local midnight) --> equinox MJD
-    Equinox = 56923.19
+    # A reference RA and equinox to anchor ra/season calculation - RA = 0 is overhead at this (local) time.
+    # This time was chosen as it is close to the expected start of the survey.
+    # Generally speaking, this is the equinox (RA=0 is overhead at midnight)
+    Equinox = 60208.00106863426
     # convert ra into 'days'
     dayRA = ra / 360 * 365.25
     firstSeasonBegan = Equinox + dayRA - 0.5 * 365.25
@@ -35,3 +36,10 @@ def calcSeason(ra, time):
     # Set first season to 0
     seasons = seasons - np.floor(np.min(seasons))
     return seasons
+
+    # The value for the equinox above was calculated as follows:
+    #from astropy.time import Time
+    #from astropy.coordinates import EarthLocation
+    #loc = EarthLocation.of_site('Cerro Pachon')
+    #t = Time('2023-09-21T00:01:32.33', format='isot', scale='utc', location=loc)
+    #print(t.sidereal_time('apparent') - loc.lon, t.utc.mjd)
