@@ -6,7 +6,7 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.maps as maps
 import rubin_sim.maf.metricBundles as mb
-from .common import standardSummary, filterList, combineMetadata
+from .common import standardSummary, lightcurveSummary, filterList, combineMetadata
 from .colMapDict import ColMapDict
 from .srdBatch import fOBatch, astrometryBatch, rapidRevisitBatch
 from .descWFDBatch import descWFDBatch
@@ -121,11 +121,11 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
 
     displayDict = {'group': 'Cosmology', 'subgroup': '5: SNe Ia', 'order': 0, 'caption': None}
     sne_nside = 16
-    sn_summary = [metrics.MedianMetric(), metrics.SumMetric(), metrics.MeanMetric()]
+    #sn_summary = [metrics.MedianMetric(), metrics.SumMetric(), metrics.MeanMetric()]
     slicer = slicers.HealpixSlicer(nside=sne_nside, useCache=False)
     metric = metrics.SNNSNMetric(verbose=False)  # zlim_coeff=0.98)
     bundle = mb.MetricBundle(metric, slicer, extraSql, plotDict=plotDict, metadata=extraMetadata,
-                             displayDict=displayDict, summaryMetrics=sn_summary,
+                             displayDict=displayDict, summaryMetrics=lightcurveSummary(),
                              plotFuncs=subsetPlots)
 
     bundleList.append(bundle)
@@ -169,14 +169,14 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     plotFuncs = [plots.HealpixSkyMap()]
     bundle = mb.MetricBundle(metric, slicer, extraSql, runName=runName, metadata=extraMetadata,
                              plotDict=plotDict, plotFuncs=plotFuncs,
-                             summaryMetrics=[metrics.MeanMetric(maskVal=0)],
+                             summaryMetrics=lightcurveSummary(),
                              displayDict=displayDict)
     bundleList.append(bundle)
 
     # Strongly lensed SNe
     displayDict['subgroup'] = 'SLSN'
     displayDict['caption'] = 'Strongly Lensed SNe'
-    snsl_summary = [metrics.MedianMetric(), metrics.SumMetric(), metrics.MeanMetric()]
+    #snsl_summary = [metrics.MedianMetric(), metrics.SumMetric(), metrics.MeanMetric()]
     metric = metrics.SNSLMetric(night_collapse=True)
     slicer = slicers.HealpixSlicer(nside=64)
     plotDict = {}
@@ -184,7 +184,7 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
                              runName=runName,
                              plotDict=plotDict,
-                             summaryMetrics=snsl_summary,
+                             summaryMetrics=lightcurveSummary(),
                              displayDict=displayDict)
     bundleList.append(bundle)
 
@@ -197,7 +197,7 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     metric = MicrolensingMetric(metricName='Fast Microlensing')
     bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
                              runName=runName,
-                             summaryMetrics=[metrics.MeanMetric(maskVal=0)],
+                             summaryMetrics=lightcurveSummary(),
                              plotFuncs=[plots.HealpixSkyMap()],
                              displayDict=displayDict, plotDict=plotDict)
     bundleList.append(bundle)
@@ -207,7 +207,7 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     metric = MicrolensingMetric(metricName='Slow Microlensing')
     bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
                              runName=runName,
-                             summaryMetrics=[metrics.MeanMetric(maskVal=0)],
+                             summaryMetrics=lightcurveSummary(),
                              plotFuncs=[plots.HealpixSkyMap()],
                              displayDict=displayDict, plotDict=plotDict)
     bundleList.append(bundle)
@@ -218,13 +218,8 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     displayDict['caption'] = f'KNe metric, injecting {n_events} lightcurves over the entire sky.'
     slicer = generateKNPopSlicer(n_events=n_events)
     metric = KNePopMetric()
-    kne_summaryMetrics = [metrics.SumMetric(metricName='Total detected'),
-                      metrics.CountMetric(metricName='Total lightcurves in footprint'),
-                      metrics.CountMetric(metricName='Total lightcurves on sky', maskVal=0),
-                      metrics.MeanMetric(metricName='Fraction detected in footprint'),
-                      metrics.MeanMetric(maskVal=0, metricName='Fraction detected of total')]
     bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
-                             runName=runName, summaryMetrics=kne_summaryMetrics,
+                             runName=runName, summaryMetrics=lightcurveSummary(),
                              displayDict=displayDict)
     bundleList.append(bundle)
 
