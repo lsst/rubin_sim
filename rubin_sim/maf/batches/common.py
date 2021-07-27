@@ -5,7 +5,7 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.stackers as stackers
 
 __all__ = ['combineMetadata', 'filterList', 'radecCols', 'standardSummary', 'extendedSummary',
-           'standardMetrics', 'extendedMetrics', 'standardAngleMetrics',
+           'standardMetrics', 'extendedMetrics', 'lightcurveSummary', 'standardAngleMetrics',
            'summaryCompletenessAtTime', 'summaryCompletenessOverH', 'fractionPopulationAtThreshold']
 
 
@@ -131,6 +131,15 @@ def extendedSummary():
     extendedStats += [metrics.PercentileMetric(metricName='25th%ile', percentile=25),
                       metrics.PercentileMetric(metricName='75th%ile', percentile=75)]
     return extendedStats
+
+
+def lightcurveSummary():
+    lightcurveSummary = [metrics.SumMetric(metricName='Total detected'),
+                         metrics.CountMetric(metricName='Total lightcurves in footprint'),
+                         metrics.CountMetric(metricName='Total lightcurves on sky', maskVal=0),
+                         metrics.MeanMetric(metricName='Fraction detected in footprint'),
+                         metrics.MeanMetric(maskVal=0, metricName='Fraction detected of total')]
+    return lightcurveSummary
 
 
 def standardMetrics(colname, replace_colname=None):
