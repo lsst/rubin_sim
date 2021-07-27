@@ -22,24 +22,9 @@ import astropy.time
 
 from rubin_sim.maf.plots import BasePlotter
 from rubin_sim.utils.riseset import riseset_times
+from rubin_sim.utils.ddf_locations import ddf_locations
 
 # constants
-
-# The DDF fields are identified here (instead of pulled from config
-# file somewhere)
-# Thus need to be updated if field locations change --
-# these are used to set transit lines
-
-DEEP_COORDS = OrderedDict(
-    (
-        ("ELAISS1", astropy.coordinates.SkyCoord("00h37m48s", "-44d00m00s")),
-        ("XMM-LSS", astropy.coordinates.SkyCoord("02h22m50s", "-04d45m00s")),
-        ("ECDFS", astropy.coordinates.SkyCoord("03h32m30s", "-28d06m00s")),
-        ("COSMOS", astropy.coordinates.SkyCoord("10h00m24s", "+02d10m55s")),
-        ("EDFS", astropy.coordinates.SkyCoord("03h55m52.8s", "-49d16m48s")),
-        ("EDFS2", astropy.coordinates.SkyCoord("04h14m24s", "-47d36m00s")),
-    )
-)
 
 # exception classes
 
@@ -59,7 +44,8 @@ class GeneralHourglassPlot(BasePlotter):
         The site name (sent to `astropy.coordinates.EarthLocation.of_site`)
     solar_time : `bool`
         Use solar time as the x axis (instead of civil time)?
-
+    marked_ra : `dict`
+        A dictionary of RA values (in deg) for which to label transit lines.
 
     A general feature of the hourglass plot is that you can pass more
     data (such as the metric values, calculated for the entire survey)
@@ -69,7 +55,11 @@ class GeneralHourglassPlot(BasePlotter):
     """
 
     def __init__(
-        self, tz="Chile/Continental", site="Cerro Pachon", solar_time=True
+        self,
+        tz="Chile/Continental",
+        site="Cerro Pachon",
+        solar_time=True,
+        marked_ra=None,
     ):
         self.plotType = "GeneralizedHourglass"
         self.objectPlotter = False  # pylint: disable=invalid-name
@@ -98,7 +88,7 @@ class GeneralHourglassPlot(BasePlotter):
 
         self.solar_time = solar_time
         self.color_map = {}
-        self.marked_ra = {}
+        self.marked_ra = {} if marked_ra is None else marked_ra
 
     def _add_axis_labels(
         self, ax
@@ -820,7 +810,8 @@ class CategoricalHourglassPlotMixin:
         self.defaultPlotDict["assigned_colors"] = OrderedDict()
         self.defaultPlotDict["legend"] = True
         self.defaultPlotDict["colorbar"] = False
-        self.marked_ra = {}
+        if "marked_ra" not in kwargs:
+            self.marked_ra = {}
 
     def _map_colors(self, values):
         cmap = self.plotDict["cmap"]
@@ -874,7 +865,8 @@ class TimeUseHourglassPlotMixin(CategoricalHourglassPlotMixin):
         )
 
         self.defaultPlotDict["legend"] = True
-        self.marked_ra = {f: DEEP_COORDS[f].ra.deg for f in DEEP_COORDS}
+        if "marked_ra" not in kwargs:
+            self.marked_ra = {f: c[0] for f, c in ddf_locations().items()}
 
 
 class MonthHourglassUsePlot(TimeUseHourglassPlotMixin, MonthHourglassPlot):
