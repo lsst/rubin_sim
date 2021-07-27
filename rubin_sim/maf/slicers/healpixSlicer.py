@@ -76,14 +76,13 @@ class HealpixSlicer(BaseSpatialSlicer):
     def __init__(self, nside=128, lonCol ='fieldRA',
                  latCol='fieldDec', latLonDeg=True, verbose=True, badval=hp.UNSEEN,
                  useCache=True, leafsize=100, radius=2.45,
-                 useCamera=True, rotSkyPosColName='rotSkyPos',
-                 chipNames='all'):
+                 useCamera=True, rotSkyPosColName='rotSkyPos'):
         """Instantiate and set up healpix slicer object."""
-        super(HealpixSlicer, self).__init__(verbose=verbose,
-                                            lonCol=lonCol, latCol=latCol,
-                                            badval=badval, radius=radius, leafsize=leafsize,
-                                            useCamera=useCamera, rotSkyPosColName=rotSkyPosColName,
-                                            latLonDeg=latLonDeg)
+        super().__init__(verbose=verbose,
+                         lonCol=lonCol, latCol=latCol,
+                         badval=badval, radius=radius, leafsize=leafsize,
+                         useCamera=useCamera, rotSkyPosColName=rotSkyPosColName,
+                         latLonDeg=latLonDeg)
         # Valid values of nside are powers of 2.
         # nside=64 gives about 1 deg resolution
         # nside=256 gives about 13' resolution (~1 CCD)
