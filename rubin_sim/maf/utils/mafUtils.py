@@ -36,11 +36,10 @@ def collapse_night(dataSlice, nightCol='night', filterCol='filter',
                                                         dataSlice[mjdCol][infilt],
                                                         statistic=np.median)
 
-
         nightSlice[filtername] = np.array(list(zip(unight, median_mjd_per_night,
-                                                   coadds, filtername*len(unight))),
-                                     dtype=[(nightCol, int), (mjdCol, float),
-                                            (m5Col, float), (filterCol, 'U1')])
+                                                   coadds, filtername * len(unight))),
+                                          dtype=[(nightCol, int), (mjdCol, float),
+                                                 (m5Col, float), (filterCol, 'U1')])
 
     nightSlice = np.concatenate([nightSlice[f] for f in nightSlice])
     nightSlice.sort(order=['observationStartMJD'])
