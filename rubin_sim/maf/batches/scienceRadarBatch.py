@@ -178,7 +178,7 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     displayDict['caption'] = 'Strongly Lensed SNe'
     #snsl_summary = [metrics.MedianMetric(), metrics.SumMetric(), metrics.MeanMetric()]
     metric = metrics.SNSLMetric(night_collapse=True)
-    slicer = slicers.HealpixSlicer(nside=64)
+    slicer = slicers.HealpixSlicer(nside=64, useCache=False)
     plotDict = {}
 
     bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
