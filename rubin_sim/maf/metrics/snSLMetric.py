@@ -81,7 +81,7 @@ class SNSLMetric(metrics.BaseMetric):
         self.season = season
         self.bands = 'ugrizy'
         if m5mins is None:
-            self.m5mins = {'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4},
+            self.m5mins = {'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4}
         else:
             self.m5mins = m5mins
         self.min_season_obs = min_season_obs
@@ -89,7 +89,7 @@ class SNSLMetric(metrics.BaseMetric):
         # Set up dust-extinction values to use to interpret the dust map.
         self.phot_properties = Dust_values()
 
-    def n_lensed(self, area, gap_median, cumul_season):
+    def n_lensed(self, area, cadence, season_length):
         """
         Parameters
         -----------
@@ -106,12 +106,10 @@ class SNSLMetric(metrics.BaseMetric):
             Number of strongly lensed SN expected in this area
         """
         # estimate the number of lensed supernovae
-        cumul_season = cumul_season/(12.*30.)
-
         N_lensed_SNe_Ia = (45.7
                            * area / 20000.
-                           * cumul_season / 2.5
-                           / (2.15 * np.exp(0.37 * gap_median)))
+                           * season_length / 2.5
+                           / (2.15 * np.exp(0.37 * cadence)))
         return N_lensed_SNe_Ia
 
     def run(self, dataSlice, slicePoint=None):
@@ -166,18 +164,17 @@ class SNSLMetric(metrics.BaseMetric):
         N_lensed_SNe_Ia = 0
         for s in season_loop:
             s_idx = np.where(season_ints == s)[0]
-            u_filters = np.unique(nightSlice[idx][self.filterCol])
-            if (len(idx) < self.min_season_obs) | (np.size(u_filters) < self.nfilters_min):
+            u_filters = np.unique(nightSlice[s_idx][self.filterCol])
+            if (len(s_idx) < self.min_season_obs) | (np.size(u_filters) < self.nfilters_min):
                 # Skip this season
                 N_lensed_SNe_Ia += 0
             else:
-                # Find the cadence (fractional days) between visits within the season
+                # Find the cadence (days) between visits within the season
                 cadence = np.diff(nightSlice['observationStartMJD'][s_idx])
                 # But only the values between nights, not within nights
-                cadence = cadence[np.where(cadence > 0.4)]
-                cadence = np.median(cadence)
+                cadence = np.median(cadence[np.where(cadence > 0.4)])
                 # Season length in years
-                season_length = seasons[s_idx[-1] - seasons[s_idx[0]]
+                season_length = seasons[s_idx][-1] - seasons[s_idx][0]
                 N_lensed_SNe_Ia += self.n_lensed(area, cadence, season_length)
 
         return N_lensed_SNe_Ia
