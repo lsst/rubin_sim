@@ -19,49 +19,49 @@ class SNNSNMetric(BaseMetric):
     Parameters
     ---------------
     metricName : str, opt
-      metric name (default : SNSNRMetric)
+        metric name (default : SNSNRMetric)
     mjdCol : str, opt
-      mjd column name (default : observationStartMJD)
+        mjd column name (default : observationStartMJD)
     RACol : str,opt
-      Right Ascension column name (default : fieldRA)
+        Right Ascension column name (default : fieldRA)
     DecCol : str,opt
-      Declinaison column name (default : fieldDec)
+        Declination column name (default : fieldDec)
     filterCol : str,opt
-       filter column name (default: filter)
+        filter column name (default: filter)
     m5Col : str, opt
-       five-sigma depth column name (default : fiveSigmaDepth)
+        five-sigma depth column name (default : fiveSigmaDepth)
     exptimeCol : str,opt
-       exposure time column name (default : visitExposureTime)
+        exposure time column name (default : visitExposureTime)
     nightCol : str,opt
-       night column name (default : night)
+        night column name (default : night)
     obsidCol : str,opt
-      observation id column name (default : observationId)
+        observation id column name (default : observationId)
     nexpCol : str,opt
-      number of exposure column name (default : numExposures)
-     vistimeCol : str,opt
+        number of exposure column name (default : numExposures)
+    vistimeCol : str,opt
         visit time column name (default : visitTime)
     season : list,opt
-       list of seasons to process (float)(default: -1 = all seasons)
+        list of seasons to process (float)(default: -1 = all seasons)
     zmin : float,opt
-       min redshift for the study (default: 0.0)
+        min redshift for the study (default: 0.0)
     zmax : float,opt
-       max redshift for the study (default: 1.2)
+        max redshift for the study (default: 1.2)
     pixArea: float, opt
-       pixel area (default: 9.6)
+        pixel area (default: 9.6)
     verbose: bool,opt
-      verbose mode (default: False)
-   ploteffi: bool,opt
-      to plot observing efficiencies vs z (default: False)
+        verbose mode (default: False)
+    ploteffi: bool,opt
+        to plot observing efficiencies vs z (default: False)
     n_bef: int, opt
-      number of LC points LC before T0 (default:5)
+        number of LC points LC before T0 (default:5)
     n_aft: int, opt
-      number of LC points after T0 (default: 10)
-     snr_min: float, opt
-       minimal SNR of LC points (default: 5.0)
-     n_phase_min: int, opt
-       number of LC points with phase<= -5(default:1)
+        number of LC points after T0 (default: 10)
+    snr_min: float, opt
+        minimal SNR of LC points (default: 5.0)
+    n_phase_min: int, opt
+        number of LC points with phase<= -5(default:1)
     n_phase_max: int, opt
-      number of LC points with phase>= 20 (default: 1)
+        number of LC points with phase>= 20 (default: 1)
     """
 
     def __init__(self, metricName='SNNSNMetric',
