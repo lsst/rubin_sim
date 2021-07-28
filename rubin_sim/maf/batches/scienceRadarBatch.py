@@ -121,11 +121,13 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
 
     displayDict = {'group': 'Cosmology', 'subgroup': '5: SNe Ia', 'order': 0, 'caption': None}
     sne_nside = 16
-    #sn_summary = [metrics.MedianMetric(), metrics.SumMetric(), metrics.MeanMetric()]
+    sn_summary = [metrics.MedianMetric(), metrics.MeanMetric(),
+                  metrics.SumMetric(metricName='Total detected'),
+                  metrics.CountMetric(metricName='Total on sky', maskVal=0)]
     slicer = slicers.HealpixSlicer(nside=sne_nside, useCache=False)
     metric = metrics.SNNSNMetric(verbose=False)  # zlim_coeff=0.98)
     bundle = mb.MetricBundle(metric, slicer, extraSql, plotDict=plotDict, metadata=extraMetadata,
-                             displayDict=displayDict, summaryMetrics=lightcurveSummary(),
+                             displayDict=displayDict, summaryMetrics=sn_summary,
                              plotFuncs=subsetPlots)
 
     bundleList.append(bundle)
@@ -175,12 +177,10 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
 
     # Strongly lensed SNe
     displayDict['subgroup'] = 'SLSN'
-    displayDict['caption'] = 'Strongly Lensed SNe'
-    #snsl_summary = [metrics.MedianMetric(), metrics.SumMetric(), metrics.MeanMetric()]
-    metric = metrics.SNSLMetric(night_collapse=True)
+    displayDict['caption'] = 'Strongly Lensed SNe, evaluated with the addition of galactic dust extinction.'
+    metric = metrics.SNSLMetric()
     slicer = slicers.HealpixSlicer(nside=64, useCache=False)
     plotDict = {}
-
     bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
                              runName=runName,
                              plotDict=plotDict,
