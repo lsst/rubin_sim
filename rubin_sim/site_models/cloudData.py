@@ -64,8 +64,17 @@ class CloudData(object):
         # but we need to know if date is closer to left or to right
         left = self.cloud_dates[idx - 1]
         right = self.cloud_dates[idx]
-        if dbdate - left < right - dbdate:
-            idx -= 1
+        # If we are only doing one time
+        if np.size(left) == 1:
+            if dbdate - left < right - dbdate:
+                idx -= 1
+        # If we have an array of times
+        else:
+            d1 = dbdate - left
+            d2 = right - dbdate
+            to_sub = np.where(d1 < d2)
+            idx[to_sub] -= 1
+
         return self.cloud_values[idx]
 
     def read_data(self):
