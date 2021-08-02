@@ -29,7 +29,9 @@ class Sky_area_generator:
         self.nvis_goal_srd = 825
         self.area_min_srd = 15000
         self.area_goal_srd = 18000
-        self.nvis_wfd_default = 840
+        self.nvis_wfd_default = 855
+        self.nvis_frac_nes = 0.35
+        self.nvis_frac_gp = 0.35
         if default_filter_balance is None:
             self.default_filter_balance = {'u': 0.07, 'g': 0.09, 'r': 0.22,
                                            'i': 0.22, 'z': 0.20, 'y': 0.20}
@@ -308,11 +310,13 @@ class Sky_area_generator:
         if mcs:
             self._set_magellanic_clouds(self.nvis_wfd_default)
         if gp:
-            self._set_galactic_plane(self.nvis_wfd_default)
+            self._set_galactic_plane(nvis_gal_A=self.nvis_wfd_default,
+                                     nvis_gal_B=int(self.nvis_wfd_default * self.nvis_frac_gp),
+                                     nvis_gal_min=int(self.nvis_wfd_default * self.nvis_frac_gp * 0.8))
         if nes:
-            self._set_nes()
+            self._set_nes(int(self.nvis_wfd_default * self.nvis_frac_nes))
         if scp:
-            self._set_scp()
+            self._set_scp(120)
         if ddf:
             self._set_ddf()
 
