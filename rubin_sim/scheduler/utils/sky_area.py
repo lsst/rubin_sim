@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import healpy as hp
+import warnings
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 from rubin_sim import data as rs_data
@@ -28,7 +29,9 @@ class Sky_area_generator:
         self.nvis_goal_srd = 825
         self.area_min_srd = 15000
         self.area_goal_srd = 18000
-        self.nvis_wfd_default = 840
+        self.nvis_wfd_default = 855
+        self.nvis_frac_nes = 0.35
+        self.nvis_frac_gp = 0.35
         if default_filter_balance is None:
             self.default_filter_balance = {'u': 0.07, 'g': 0.09, 'r': 0.22,
                                            'i': 0.22, 'z': 0.20, 'y': 0.20}
@@ -58,9 +61,12 @@ class Sky_area_generator:
     def _normalize_filter_balance(self, filter_balance):
         filtersum = np.array(list(filter_balance.values())).sum()
         tmp = {k: round(v / filtersum, 2) for k, v in filter_balance.items()}
-        while (np.array(list(tmp.values())).sum() > 1):
+        count = 0
+        while ((np.array(list(tmp.values())).sum() > 1) and count<100):
+            count += 1
             mostvisits = max(tmp, key=tmp.get)
             tmp[mostvisits] = tmp[mostvisits] - 0.01
+            filtersum = np.array(list(tmp.values())).sum()
             tmp = {k: round(v / filtersum, 2) for k, v in tmp.items()}
         for f in self.filterlist:
             if f not in tmp:
@@ -79,7 +85,7 @@ class Sky_area_generator:
         # Define low dust extinction WFD between dec_min and dec_max (ish) with low dust extinction
         # These dec and dust limits are used to define the other survey areas as well.
         # We're also going to weight the footprint differently in the region around RA=0
-        # compared to the region around RA=180, as the RA=0 half is more heavily subscribed (if adjust_halves True)
+        # compared to the region around RA=180, as the RA=0 half is more heavily subscribed
         self.dust_limit = dust_limit
         self.dec_min = dec_min
         self.dec_max = dec_max
@@ -93,7 +99,9 @@ class Sky_area_generator:
                                  & (self.dustmap < self.dust_limit), 1, 0)
         # Set the smoothed dust boundary using the original dustmap and smoothing it with gaussian PSF
         self.maps['dustfree'] = np.where((self.dustmap < self.dust_limit), 1, 0)
-        self.maps['dustfree'] = hp.smoothing(self.maps['dustfree'], fwhm=np.radians(smoothing_beam))
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=UserWarning)
+            self.maps['dustfree'] = hp.smoothing(self.maps['dustfree'], fwhm=np.radians(smoothing_beam))
         self.maps['dustfree'] = np.where((self.dec > self.dec_min) & (self.dec < self.dec_max)
                                          & (self.maps['dustfree'] > smoothing_cutoff), 1, 0)
 
@@ -230,7 +238,7 @@ class Sky_area_generator:
         self.nvis['gal'] = nvis_gal_A
 
     def _set_nes(self, nvis_nes=375, eclat_min=-10, eclat_max=10, eclip_dec_min=-10, eclip_ra_max=180,
-                 nes_filter_balance=None):
+                 dec_cutoff=None, nes_filter_balance=None):
         if nes_filter_balance is None:
             self.nes_filter_balance = {'u': 0.0, 'g': 0.2, 'r': 0.3, 'i': 0.3, 'z': 0.2, 'y': 0.0}
         else:
@@ -244,6 +252,10 @@ class Sky_area_generator:
         self.maps['nes'] = np.where(((self.eclip_lat > self.eclat_min) |
                                      ((self.dec > self.eclip_dec_min) & (self.ra < self.eclip_ra_max)))
                                     & (self.eclip_lat < self.eclat_max), 1, 0)
+        # Add the option to completely cut off the ecliptic coverage below a given dec value (to match retro)
+        if dec_cutoff is not None:
+            self.maps['nes'] = np.where(self.dec < dec_cutoff, 0, self.maps['nes'])
+
         self.maps_perfilter['nes'] = {}
         for f in self.filterlist:
             self.maps_perfilter['nes'][f] = self.maps['nes'] * self.nes_filter_balance[f]
@@ -298,11 +310,13 @@ class Sky_area_generator:
         if mcs:
             self._set_magellanic_clouds(self.nvis_wfd_default)
         if gp:
-            self._set_galactic_plane(self.nvis_wfd_default)
+            self._set_galactic_plane(nvis_gal_A=self.nvis_wfd_default,
+                                     nvis_gal_B=int(self.nvis_wfd_default * self.nvis_frac_gp),
+                                     nvis_gal_min=int(self.nvis_wfd_default * self.nvis_frac_gp * 0.8))
         if nes:
-            self._set_nes()
+            self._set_nes(int(self.nvis_wfd_default * self.nvis_frac_nes))
         if scp:
-            self._set_scp()
+            self._set_scp(120)
         if ddf:
             self._set_ddf()
 
@@ -335,7 +349,9 @@ class Sky_area_generator:
             overlap = np.where(total_wfd > max_nvis, 1, 0)
             # Identify areas where overlap falls into really low-dust sky
             # 'self.dustfree' is already 0/1 dust-acceptable or not
-            dustfree = hp.smoothing(self.dustfree, fwhm=np.radians(3))
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore', category=UserWarning)
+                dustfree = hp.smoothing(self.dustfree, fwhm=np.radians(3))
             overlap_dustfree = np.where((dustfree > 0.3) & (overlap == 1))[0]
             overlap_gal = np.where((dustfree <= 0.3) & (overlap == 1))[0]
             # And then trim the maps accordingly - just drop the non-priority region

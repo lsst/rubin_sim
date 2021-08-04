@@ -724,7 +724,7 @@ class LambertSkyMap(BasePlotter):
         self.defaultPlotDict.update(baseDefaultPlotDict)
         self.defaultPlotDict.update({'basemap': {'projection': 'nplaea', 'boundinglat': 1, 'lon_0': 180,
                                                  'resolution': None, 'celestial': False, 'round': False},
-                                     'levels': 200, 'cbarFormat': '%i', 'norm': None})
+                                    'levels': 200, 'cbarFormat': '%i', 'norm': None, 'title': ''})
 
     def __call__(self, metricValueIn, slicer, userPlotDict, fignum=None):
 

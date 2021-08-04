@@ -17,41 +17,34 @@ def coaddM5(mags):
 
 def collapse_night(dataSlice, nightCol='night', filterCol='filter',
                    m5Col='fiveSigmaDepth', mjdCol='observationStartMJD'):
-    """Collapse a dataSlice down by night. Convert the MJD to the median MJD per night and coadd 5-sigma depth (per filter)
+    """Collapse a dataSlice into per-filter, per-night values for
+    the 'night', 'filter', 'median observationStartMJD', and 'fiveSigmaDepth'.
     """
-    # Make an explicit copy so we don't clobber things
-    result = dataSlice.copy()
-    result.sort(order=[nightCol, filterCol])
-
-    filters = np.unique(result[filterCol])
-
+    filters = np.unique(dataSlice[filterCol])
+    # Find the per-night, per-filter values
+    nightSlice = {}
     for filtername in filters:
-        infilt = np.where(result[filterCol] == filtername)[0]
-        unight, indices = np.unique(result[nightCol][infilt], return_inverse=True)
+        infilt = np.where(dataSlice[filterCol] == filtername)[0]
+        unight = np.unique(dataSlice[nightCol][infilt])
         right = unight+0.5
         bins = [unight[0]-0.5] + right.tolist()
-        coadds, be, bn = binned_statistic(result[nightCol][infilt],
-                                          result[m5Col][infilt], bins=bins,
+        coadds, be, bn = binned_statistic(dataSlice[nightCol][infilt],
+                                          dataSlice[m5Col][infilt], bins=bins,
                                           statistic=coaddM5)
-        # now we just clobber the m5Col with the coadd for the night
-        result[m5Col][infilt] = coadds[indices]
 
         unights, median_mjd_per_night = int_binned_stat(dataSlice[nightCol][infilt],
                                                         dataSlice[mjdCol][infilt],
                                                         statistic=np.median)
-        dataSlice[mjdCol][infilt] = median_mjd_per_night[indices]
 
-        # Note, we could also clobber exposure MJD, exposure time, etc. But I don't think they
-        # get used later, so maybe OK.
+        nightSlice[filtername] = np.array(list(zip(unight, median_mjd_per_night,
+                                                   coadds, filtername * len(unight))),
+                                          dtype=[(nightCol, int), (mjdCol, float),
+                                                 (m5Col, float), (filterCol, 'U1')])
 
-    # Make a string that is the combination of night and filter
-    night_filt = np.char.add(dataSlice[nightCol].astype(str), dataSlice[filterCol].astype(str))
-    u_nf, indx = np.unique(night_filt, return_index=True)
-    dataSlice = dataSlice[indx]
-    dataSlice.sort(order=[mjdCol])
+    nightSlice = np.concatenate([nightSlice[f] for f in nightSlice])
+    nightSlice.sort(order=['observationStartMJD'])
 
-    return dataSlice
-
+    return nightSlice
 
 
 def optimalBins(datain, binmin=None, binmax=None, nbinMax=200, nbinMin=1):

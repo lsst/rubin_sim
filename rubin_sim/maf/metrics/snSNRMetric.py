@@ -10,7 +10,6 @@ import time
 __all__ = ['SNSNRMetric']
 
 class SNSNRMetric(metrics.BaseMetric):
-
     """
     Metric to estimate the detection rate for faint supernovae (x1,color) = (-2.0,0.2)
 
@@ -19,20 +18,20 @@ class SNSNRMetric(metrics.BaseMetric):
     list : str, opt
         Name of the columns used to estimate the metric
         Default : 'observationStartMJD', 'fieldRA', 'fieldDec','filter','fiveSigmaDepth',
-                         'visitExposureTime','night','observationId', 'numExposures','visitTime'
+        'visitExposureTime','night','observationId', 'numExposures','visitTime'
     coadd :  bool, opt
         to make "coaddition" per night (uses snStacker)
         Default : True
     lim_sn : class, opt
-       Reference data used to simulate LC points (interpolation)
+        Reference data used to simulate LC points (interpolation)
     names_ref : str,opt
-       names of the simulator used to produce reference data
+        names of the simulator used to produce reference data
     season : flota,opt
-       season num
-       Default : 1.
+        season num
+        Default : 1.
     z : float,opt
-       redshift for this study
-       Default : 0.01
+        redshift for this study
+        Default : 0.01
     """
 
     def __init__(self, metricName='SNSNRMetric',

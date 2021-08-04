@@ -6,15 +6,12 @@ import argparse
 from rubin_sim.maf import batches
 
 
-def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_mjd=60218.):
+def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_mjd=60218.,
+                         split=False):
 
     if dbfiles is None:
         dbfiles = glob.glob('*.db')
         dbfiles.sort()
-
-    if pops is None:
-        # put in order so longer runtime ones are first
-        pops = ['trojan_5k', 'l7_5k', 'mba_5k', 'granvik_5k', 'sdo_5k']
 
     data_dir = os.path.join(get_data_dir(), 'orbits')
     orbit_files = {'granvik_5k': os.path.join(data_dir, 'granvik_5k.txt'),
@@ -35,6 +32,15 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_
                  'trojan_5k': 'Trojan'
                  }
 
+    if pops is None:
+        # put in order so longer runtime ones are first
+        pops = ['trojan_5k', 'l7_5k', 'mba_5k', 'granvik_5k', 'granvik_pha_5k', 'sdo_5k']
+    elif pops is not None:
+        pp = [p for p in orbit_files.keys() if p == pops]
+        if len(pp) == 0:
+            print(f'Did not find population {pops} in expected types ({list(orbit_files.keys())}')
+        pops = [pops]
+
     runs = [file.replace('.db', '') for file in dbfiles]
     runs = [run for run in runs if 'tracking' not in run]
 
@@ -44,25 +50,77 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_
             Hrange, Hmark = batches.defaultHrange(meta)
             char = batches.defaultCharacterization(meta)
             for run, filename in zip(runs, dbfiles):
-                s1 = ('makeLSSTobs --opsimDb %s --orbitFile %s' % (filename, orbit_files[pop]))
-                s2 = (f'run_moving_calc --obsFile {run}__{pop}_obs.txt'
-                      f' --opsimDb {run}.db --orbitFile {orbit_files[pop]}'
-                      f' --outDir {run}_ss'
-                      f' --opsimRun {run}'
-                      f' --hMin {Hrange[0]} --hMax {Hrange[1]} --hStep {Hrange[2]}'
-                      f' --hMark {Hmark}'
-                      f' --characterization {char}'
-                      f' --metadata {meta}'
-                      f' --startTime {start_mjd}')
-                s3 = (f'run_moving_fractions --workDir {run}_ss'
-                      f' --metadata {meta}'
-                      f' --startTime {start_mjd}')
-                print(s1 + ' ; ' + s2 + ' ; ' + s3, file=f)
+                if split:
+                    splitfiles = glob.glob(os.path.join(data_dir, 'split') + f'/*{pop}*')
+                    outDir = f'{run}_ss'
+                    try:
+                        os.mkdir(outDir)
+                    except FileExistsError:
+                        # Directory already exists .. let's just overwrite but not remove
+                        pass
+                    for i, splitfile in enumerate(splitfiles):
+                        outfile_split = outfile.replace('.sh', f'_{pop}_split.sh')
+                        with open(outfile_split, 'a') as wi:
+                            s1 = (f'makeLSSTobs --opsimDb {filename} --orbitFile {splitfile} '
+                                  f' --outDir {outDir}')
+                            s2 = (f'run_moving_calc --obsFile {outDir}/{run}__{pop}_{i}_obs.txt'
+                                  f' --opsimDb {run}.db --orbitFile {splitfile}'
+                                  f' --outDir {outDir}/{pop}_{i}'
+                                  f' --opsimRun {run}'
+                                  f' --hMin {Hrange[0]} --hMax {Hrange[1]} --hStep {Hrange[2]}'
+                                  f' --hMark {Hmark}'
+                                  f' --characterization {char}'
+                                  f' --metadata {meta}'
+                                  f' --startTime {start_mjd}')
+                            print(s1 + ' ; ' + s2, file=wi)
+                    s3 = (f'run_moving_join --orbitFile {pop}'
+                          f' --baseDir {outDir}'
+                          f' --outDir {outDir}/sso')
+                    s4 = (f'run_moving_fractions --workDir {outDir}/sso'
+                          f' --metadata {meta}'
+                          f' --startTime {start_mjd}')
+                    print(f'cat {outfile_split} | parallel -j 10 ; {s3}  ; {s4}', file=f)
+                else:
+                    s1 = (f'makeLSSTobs --opsimDb {filename} --orbitFile {orbit_files[pop]}')
+                    s2 = (f'run_moving_calc --obsFile {run}__{pop}_obs.txt'
+                          f' --opsimDb {run}.db --orbitFile {orbit_files[pop]}'
+                          f' --outDir {run}_ss'
+                          f' --opsimRun {run}'
+                          f' --hMin {Hrange[0]} --hMax {Hrange[1]} --hStep {Hrange[2]}'
+                          f' --hMark {Hmark}'
+                          f' --characterization {char}'
+                          f' --metadata {meta}'
+                          f' --startTime {start_mjd}')
+                    s3 = (f'run_moving_fractions --workDir {run}_ss'
+                          f' --metadata {meta}'
+                          f' --startTime {start_mjd}')
+                    print(s1 + ' ; ' + s2 + ' ; ' + s3, file=f)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="effin hell")
+    parser = argparse.ArgumentParser(description="Generate solar system processing commands")
+    parser.add_argument('--db', type=str, default=None, help='database to process')
+    parser.add_argument('--pop', type=str, default=None, help='identify one population to run')
     parser.add_argument("--start_mjd", type=float, default=60218, help="start of the sim")
+    parser.add_argument("--split", dest='split', default=False,
+                        action='store_true', help="Split up population files; rejoin during processing")
     args = parser.parse_args()
 
-    generate_ss_commands(start_mjd=args.start_mjd)
+    if args.db is None:
+        # Just look for any .db files in this directory
+        dbFiles = glob.glob('.db')
+        # But remove trackingDb and resultsDb if they're there
+        try:
+            dbFiles.remove('trackingDb_sqlite.db')
+        except ValueError:
+            pass
+        try:
+            dbFiles.remove('resultsDb_sqlite.db')
+        except ValueError:
+            pass
+    elif isinstance(args.db, str):
+        dbFiles = [args.db]
+    else:
+        dbFiles = args.db
+
+    generate_ss_commands(start_mjd=args.start_mjd, split=args.split, dbfiles=dbFiles, pops=args.pop)
