@@ -21,7 +21,7 @@ def data_dict():
                  'site_models': 'site_models_may_2021.tgz',
                  'skybrightness': 'skybrightness_may_2021.tgz',
                  'skybrightness_pre': 'skybrightness_pre_may_2021.tgz',
-                 'throughputs': 'throughputs_may_2021.tgz',
+                 'throughputs': 'throughputs_aug_2021.tgz',
                  'tests': 'tests_may_2021.tgz'}
     return file_dict
 
