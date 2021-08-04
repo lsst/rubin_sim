@@ -268,7 +268,6 @@ class TestSNmetrics(unittest.TestCase):
                     data = np.concatenate((data, fakes))
 
         # metric instance
-        night_collapse = True
 
         metric = SNSLMetric(nfilters_min=4, min_season_obs=5,
                             m5mins={'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4})
@@ -279,7 +278,8 @@ class TestSNmetrics(unittest.TestCase):
         # and the result should be
         # Changing the reference value because we have new coadd and mag limits
         # Change again to switch to per-season calc rather than average
-        nSL_ref = 1.478166e-6  # 1.42168e-6  # 0.00012650940
+        # Change again to reflect updated calculation (due to counting year = 365.25 days, not 360)
+        nSL_ref = 1.4569195613987307e-06  #1.478166e-6  # 1.42168e-6  # 0.00012650940
         assert(np.abs(nSL-nSL_ref) < 1.e-8)
 
     def testNSNMetric(self):
