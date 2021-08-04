@@ -21,11 +21,41 @@ from rubin_sim.data import get_data_dir
 __all__ = ['ra_dec_hp_map', 'generate_all_sky', 'get_dustmap',
            'WFD_healpixels', 'WFD_no_gp_healpixels', 'WFD_bigsky_healpixels', 'WFD_no_dust_healpixels',
            'SCP_healpixels', 'NES_healpixels',
-           'galactic_plane_healpixels', #'low_lat_plane_healpixels', 'bulge_healpixels',
+           'galactic_plane_healpixels',
            'magellanic_clouds_healpixels', 'Constant_footprint',
            'generate_goal_map', 'standard_goals',
            'calc_norm_factor', 'filter_count_ratios', 'Step_line', 'Footprints', 'Footprint',
-           'Step_slopes', 'Base_pixel_evolution', 'combo_dust_fp']
+           'Step_slopes', 'Base_pixel_evolution', 'combo_dust_fp', 'slice_wfd_area_quad']
+
+
+def slice_wfd_area_quad(target_map, nslice=2, wfd_indx=None):
+    """
+    Divide a healpix map in an intelligent way
+
+    Parameters
+    ----------
+    target_map : dict of HEALpix arrays
+        The input map to slice
+    nslice : int (2)
+        The number of slices to divide the sky into (gets doubled). Default is 2
+    wfd_indx : array of int (None)
+        The indices of the healpix map to consider as part of the WFD area that will be split. If
+        set to None, the pixels where target_map['r'] == 1 are considered as WFD.
+    """
+    nslice2 = nslice * 2
+
+    wfd = target_map['r'] * 0
+    if wfd_indx is None:
+        wfd_indices = np.where(target_map['r'] == 1)[0]
+    else:
+        wfd_indices = wfd_indx
+    wfd[wfd_indices] = 1
+    wfd_accum = np.cumsum(wfd)
+    split_wfd_indices = np.floor(np.max(wfd_accum)/nslice2*(np.arange(nslice2)+1)).astype(int)
+    split_wfd_indices = split_wfd_indices.tolist()
+    split_wfd_indices = [0] + split_wfd_indices
+
+    return split_wfd_indices
 
 
 class Base_pixel_evolution(object):
@@ -759,6 +789,5 @@ def combo_dust_fp(nside=32,
     for key in north_weights:
         north = np.where((dec < north_limit) & (result[key] == 0))
         result[key][north] = north_weights[key]
-
 
     return result

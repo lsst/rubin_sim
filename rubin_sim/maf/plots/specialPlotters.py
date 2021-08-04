@@ -106,7 +106,7 @@ class SummaryHistogram(BasePlotter):
         self.defaultPlotDict = {'title': None, 'xlabel': None, 'ylabel': 'Count', 'label': None,
                                 'cumulative': False, 'xMin': None, 'xMax': None, 'yMin': None, 'yMax': None,
                                 'color': 'b', 'linestyle': '-', 'histStyle': True, 'grid': True,
-                                'metricReduce': metrics.SumMetric(), 'bins': None}
+                                'metricReduce': metrics.SumMetric(), 'bins': None, 'figsize': None}
 
     def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
         """
@@ -132,7 +132,6 @@ class SummaryHistogram(BasePlotter):
         int
            Matplotlib figure number used to create the plot.
         """
-        fig = plt.figure(fignum)
         plotDict = {}
         plotDict.update(self.defaultPlotDict)
         plotDict.update(userPlotDict)
@@ -150,6 +149,8 @@ class SummaryHistogram(BasePlotter):
         # Loop over each bin and use the selected metric to combine the results
         for i in np.arange(finalHist.size):
             finalHist[i] = metric.run(mV[:, i])
+
+        fig = plt.figure(fignum, figsize=plotDict['figsize'])
         bins = plotDict['bins']
         if plotDict['histStyle']:
             leftedge = bins[:-1]

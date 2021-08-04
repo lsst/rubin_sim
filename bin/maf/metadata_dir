@@ -52,13 +52,13 @@ if __name__ == "__main__":
     Run the metadata batch on all .db files in a directory.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dbFiles", type=str, default=None)
+    parser.add_argument("--db", type=str, default=None)
     args = parser.parse_args()
 
     # If runNames not given, scan for opsim databases in current directory and use those
     # Note that 'runNames' can be full path to directories
 
-    if args.dbFiles is None:
+    if args.db is None:
         # Just look for any .db files in this directory
         dbFiles = glob.glob('.db')
         # But remove trackingDb and resultsDb if they're there
@@ -70,10 +70,10 @@ if __name__ == "__main__":
             dbFiles.remove('resultsDb_sqlite.db')
         except ValueError:
             pass
-    elif isinstance(args.dbFiles, str):
-        dbFiles = [args.dbFiles]
+    elif isinstance(args.db, str):
+        dbFiles = [args.db]
     else:
-        dbFiles = args.dbFiles
+        dbFiles = args.db
 
     sim_names = [os.path.basename(name).replace('.db', '') for name in dbFiles]
 
