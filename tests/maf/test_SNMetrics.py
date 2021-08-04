@@ -270,15 +270,15 @@ class TestSNmetrics(unittest.TestCase):
         # metric instance
         night_collapse = True
 
-        metric = SNSLMetric(night_collapse=night_collapse, nfilters_min=4, min_season_obs=5,
+        metric = SNSLMetric(nfilters_min=4, min_season_obs=5,
                             m5mins={'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4})
 
         # run the metric
         nSL = metric.run(data, slicePoint={'nside': 64, 'ra': 0., 'ebv': 0.})
 
         # and the result should be
-        # Changing the refernce value because we have new coadd and mag limits
-        # Change again to switch to per-season calc rather than averge
+        # Changing the reference value because we have new coadd and mag limits
+        # Change again to switch to per-season calc rather than average
         nSL_ref = 1.478166e-6  # 1.42168e-6  # 0.00012650940
         assert(np.abs(nSL-nSL_ref) < 1.e-8)
 
