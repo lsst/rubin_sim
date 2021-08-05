@@ -43,7 +43,6 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_
 
     runs = [file.replace('.db', '') for file in dbfiles]
     runs = [run for run in runs if 'tracking' not in run]
-
     with open(outfile, 'w') as f:
         for pop in pops:
             meta = metadatas[pop]
@@ -108,7 +107,7 @@ if __name__ == '__main__':
 
     if args.db is None:
         # Just look for any .db files in this directory
-        dbFiles = glob.glob('.db')
+        dbFiles = glob.glob('*.db')
         # But remove trackingDb and resultsDb if they're there
         try:
             dbFiles.remove('trackingDb_sqlite.db')
