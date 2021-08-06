@@ -37,21 +37,21 @@ class LCfast:
       SN color
     telescope: Telescope()
       telescope for the study
-    mjdCol: str, opt
+    mjdCol: str, optional
       name of the MJD col in data to simulate (default: observationStartMJD)
-    RACol: str, opt
+    RACol: str, optional
       name of the RA col in data to simulate (default: fieldRA)
-    DecCol: str, opt
+    DecCol: str, optional
        name of the Dec col in data to simulate (default: fieldDec)
-    filterCol: str, opt
+    filterCol: str, optional
        name of the filter col in data to simulate (default: filter)
-    exptimeCol: str, opt
+    exptimeCol: str, optional
       name of the exposure time  col in data to simulate (default: visitExposureTime)
-    m5Col: str, opt
+    m5Col: str, optional
        name of the fiveSigmaDepth col in data to simulate (default: fiveSigmaDepth)
-    seasonCol: str, opt
+    seasonCol: str, optional
        name of the season col in data to simulate (default: season)
-    snr_min: float, opt
+    snr_min: float, optional
        minimal Signal-to-Noise Ratio to apply on LC points (default: 5)
     """
 
@@ -106,9 +106,9 @@ class LCfast:
         ----------------
         obs: array
          array of observations
-        gen_par: array, opt
+        gen_par: array, optional
          simulation parameters (default: None)
-        bands: str, opt
+        bands: str, optional
           filters to consider for simulation (default: grizy)
         Returns
         ------------
@@ -148,9 +148,9 @@ class LCfast:
          band of observations
         gen_par: array
          simulation parameters
-        j: int, opt
+        j: int, optional
          index for multiprocessing (default: -1)
-        output_q: multiprocessing.Queue(),opt
+        output_q: multiprocessing.Queue(), optional
          queue for multiprocessing (default: None)
         Returns
         -------
@@ -356,27 +356,27 @@ class Throughputs(object):
     """ class to handle instrument throughput
     Parameters
     -------------
-    through_dir : str, opt
+    through_dir : str, optional
        throughput directory. If None, uses $THROUGHPUTS_DIR/baseline
-    atmos_dir : str, opt
+    atmos_dir : str, optional
        directory of atmos files. If None, uses $THROUGHPUTS_DIR
-    telescope_files : list(str),opt
+    telescope_files : list(str), optional
        list of of throughput files
        Default : ['detector.dat', 'lens1.dat','lens2.dat',
            'lens3.dat','m1.dat', 'm2.dat', 'm3.dat']
-    filterlist: list(str), opt
+    filterlist: list(str), optional
        list of filters to consider
        Default : 'ugrizy'
-    wave_min : float, opt
+    wave_min : float, optional
         min wavelength for throughput
         Default : 300
-    wave_max : float, opt
+    wave_max : float, optional
         max wavelength for throughput
         Default : 1150
-    atmos : bool, opt
+    atmos : bool, optional
          to include atmosphere affects
          Default : True
-    aerosol : bool, opt
+    aerosol : bool, optional
          to include aerosol effects
          Default : True
     Returns
@@ -488,7 +488,7 @@ class Throughputs(object):
         and convolve with transmissions
         Parameters
         --------------
-        airmass : float,opt
+        airmass : float, optional
           airmass value
           Default : 1.2
         """
@@ -561,32 +561,32 @@ class Telescope(Throughputs):
     flux_sky:
     Parameters
     -------------
-    through_dir : str, opt
+    through_dir : str, optional
        throughput directory
        Default : LSST_THROUGHPUTS_BASELINE
-    atmos_dir : str, opt
+    atmos_dir : str, optional
        directory of atmos files
        Default : THROUGHPUTS_DIR
-    telescope_files : list(str),opt
+    telescope_files : list(str), optional
        list of of throughput files
        Default : ['detector.dat', 'lens1.dat','lens2.dat',
            'lens3.dat','m1.dat', 'm2.dat', 'm3.dat']
-    filterlist: list(str), opt
+    filterlist: list(str), optional
        list of filters to consider
        Default : 'ugrizy'
-    wave_min : float, opt
+    wave_min : float, optional
         min wavelength for throughput
         Default : 300
-    wave_max : float, opt
+    wave_max : float, optional
         max wavelength for throughput
         Default : 1150
-    atmos : bool, opt
+    atmos : bool, optional
          to include atmosphere affects
          Default : True
-    aerosol : bool, opt
+    aerosol : bool, optional
          to include aerosol effects
          Default : True
-    airmass : float, opt
+    airmass : float, optional
          airmass value
          Default : 1.
     Returns
@@ -802,10 +802,10 @@ class Telescope(Throughputs):
           sed to integrate
         bandpass : float
           bandpass
-        wavelength : float, opt
+        wavelength : float, optional
           wavelength values
            Default : None
-        fnu : float, opt
+        fnu : float, optional
            fnu values
            Default : None
         Returns
@@ -839,7 +839,7 @@ class Telescope(Throughputs):
           input fluxes
         band : str
            input band
-        zp : float, opt
+        zp : float, optional
            zeropoints
            Default : None
         Returns
@@ -861,7 +861,7 @@ class Telescope(Throughputs):
           input mags
         band : str
            input band
-        zp : float, opt
+        zp : float, optional
            zeropoints
            Default : None
         Returns
@@ -954,9 +954,9 @@ class Load_Reference:
 
     Parameters
     ---------------
-    server: str, opt
+    server: str, optional
       where to get the files (default: https://me.lsst.eu/gris/DESC_SN_pipeline/Reference_Files)
-    templateDir: str, opt
+    templateDir: str, optional
       where to put the files (default: reference_files)
 
     """
@@ -1074,7 +1074,7 @@ class GetReference:
       name of the reference file to load (gamma)
     tel_par: dict
       telescope parameters
-    param_Fisher : list(str),opt
+    param_Fisher : list(str), optional
       list of SN parameter for Fisher estimation to consider
       (default: ['x0', 'x1', 'color', 'daymax'])
     Returns
@@ -1387,15 +1387,15 @@ class SN_Rate:
 
     Parameters
     ----------
-    rate :  str,opt
+    rate :  str, optional
       type of rate chosen (Ripoche, Perrett, Dilday) (default : Perrett)
-    H0 : float, opt
+    H0 : float, optional
        Hubble constant value :math:`H_{0}`(default : 70.)
-    Om0 : float, opt
+    Om0 : float, optional
         matter density value :math:`\Omega_{0}`  (default : 0.25)
-    min_rf_phase : float, opt
+    min_rf_phase : float, optional
        min rest-frame phase (default : -15.)
-    max_rf_phase : float, opt
+    max_rf_phase : float, optional
        max rest-frame phase (default : 30.)
     """
 
@@ -1415,21 +1415,21 @@ class SN_Rate:
         call method
         Parameters
         ----------------
-        zmin : float, opt
+        zmin : float, optional
           minimal redshift (default : 0.1)
-        zmax : float,opt
+        zmax : float, optional
            max redshift (default : 0.2)
-        dz : float, opt
+        dz : float, optional
            redshift bin (default : 0.001)
-        survey_area : float, opt
+        survey_area : float, optional
            area of the survey (:math:`deg^{2}`) (default : 9.6 :math:`deg^{2}`)
-        bins : list(float), opt
+        bins : list(float), optional
           redshift bins (default : None)
         account_for_edges : bool
           to account for season edges. If true, duration of the survey will be reduced by (1+z)*(maf_rf_phase-min_rf_phase)/365.25 (default : False)
-        duration : float, opt
+        duration : float, optional
            survey duration (in days) (default : 140 days)
-        duration_z : list(float),opt
+        duration_z : list(float), optional
           survey duration (as a function of z) (default : None)
         Returns
         -----------
@@ -1572,23 +1572,23 @@ class SN_Rate:
         uses the __call__ function
         Parameters
         --------------
-        zmin : float, opt
+        zmin : float, optional
           minimal redshift (default : 0.1)
-        zmax : float,opt
+        zmax : float, optional
            max redshift (default : 0.2)
-        dz : float, opt
+        dz : float, optional
            redshift bin (default : 0.001)
-        survey_area : float, opt
+        survey_area : float, optional
            area of the survey (:math:`deg^{2}`) (default : 9.6 :math:`deg^{2}`)
-        bins : list(float), opt
+        bins : list(float), optional
           redshift bins (default : None)
         account_for_edges : bool
           to account for season edges. If true, duration of the survey will be reduced by (1+z)*(maf_rf_phase-min_rf_phase)/365.25 (default : False)
-        duration : float, opt
+        duration : float, optional
            survey duration (in days) (default : 140 days)
-        duration_z : list(float),opt
+        duration_z : list(float), optional
           survey duration (as a function of z) (default : None)
-        norm: bool, opt
+        norm: bool, optional
           to normalise the results (default: False)
         """
         import pylab as plt

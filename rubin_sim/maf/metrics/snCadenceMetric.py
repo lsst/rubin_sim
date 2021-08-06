@@ -10,12 +10,12 @@ class SNCadenceMetric(metrics.BaseMetric):
 
     Parameters
     ----------
-    list : str, opt
+    list : str, optional
         Name of the columns used to estimate the metric
-    coadd :  bool, opt
+    coadd :  bool, optional
         to make "coaddition" per night (uses snStacker)
         Default True
-    lim_sn : class, opt
+    lim_sn : class, optional
        Reference data used to estimate redshift values (interpolation)
     """
 

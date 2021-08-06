@@ -17,11 +17,11 @@ def slewBasics(colmap=None, runName='opsim', sqlConstraint=None):
 
     Parameters
     ----------
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    sqlConstraint : str or None, opt
+    sqlConstraint : str or None, optional
         SQL constraint to add to metrics. (note this runs on summary table).
 
     Returns
@@ -114,11 +114,11 @@ def slewAngles(colmap=None, runName='opsim', sqlConstraint=None):
 
     Parameters
     ----------
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    sqlConstraint : str or None, opt
+    sqlConstraint : str or None, optional
         SQL constraint to apply to metrics. Note this runs on Slew*State table, so constraints
         should generally be based on slew_slewCount.
 
@@ -162,12 +162,12 @@ def slewSpeeds(colmap=None, runName='opsim', sqlConstraint=None):
 
     Parameters
     ----------
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
         Note that for these metrics, the column names are distinctly different in v3/v4.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    sqlConstraint : str or None, opt
+    sqlConstraint : str or None, optional
         SQL constraint to apply to metrics. Note this runs on Slew*State table, so constraints
         should generally be based on slew_slewCount.
 
@@ -219,15 +219,15 @@ def slewActivities(colmap=None, runName='opsim', totalSlewN=1, sqlConstraint=Non
 
     Parameters
     ----------
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    totalSlewN : int, opt
+    totalSlewN : int, optional
         The total number of slews in the simulated survey.
         Used to calculate % of slew activities for each component.
         Default is 1.
-    sqlConstraint : str or None, opt
+    sqlConstraint : str or None, optional
         SQL constraint to apply to metrics. Note this runs on Slew*State table, so constraints
         should generally be based on slew_slewCount.
 

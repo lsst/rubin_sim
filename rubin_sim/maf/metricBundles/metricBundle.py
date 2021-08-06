@@ -367,7 +367,7 @@ class MetricBundle(object):
         ----------
         runName: str
             Run Name, which will become part of the fileRoot.
-        fileRoot: bool, opt
+        fileRoot: bool, optional
             Flag to update the fileRoot with the runName. Default True.
         """
         self.runName = runName

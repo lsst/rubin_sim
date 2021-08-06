@@ -14,14 +14,14 @@ def openshutterFractions(colmap=None, runName='opsim', extraSql=None, extraMetad
 
     Parameters
     ----------
-    colmap : dict, opt
+    colmap : dict, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    extraSql : str, opt
+    extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'night<365')
         Default None, for no additional constraints.
-    extraMetadata : str, opt
+    extraMetadata : str, optional
         Additional metadata to add before any below (i.e. "WFD").  Default is None.
     """
     if colmap is None:

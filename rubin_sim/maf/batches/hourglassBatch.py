@@ -13,15 +13,15 @@ def hourglassPlots(colmap=None, runName='opsim', nyears=10, extraSql=None, extra
 
     Parameters
     ----------
-    colmap : dict, opt
+    colmap : dict, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    run_name : str, opt
+    run_name : str, optional
         The name of the simulated survey. Default is "opsim".
-    nyears : int (10), opt
+    nyears : int (10), optional
         How many years to attempt to make hourglass plots for. Default is 10.
-    extraSql : str, opt
+    extraSql : str, optional
         Add an extra sql constraint before running metrics. Default None.
-    extraMetadata : str, opt
+    extraMetadata : str, optional
         Add an extra piece of metadata before running metrics. Default None.
     """
     if colmap is None:

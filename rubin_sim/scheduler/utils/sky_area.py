@@ -325,7 +325,7 @@ class Sky_area_generator:
 
         Parameters
         ----------
-        trim_overlap: bool, opt
+        trim_overlap: bool, optional
             If True, look for WFD-like areas which overlap and drop areas according to how much dust there is.
             (due to competing filter balances, the total number of visits can be )
         """

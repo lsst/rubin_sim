@@ -18,49 +18,49 @@ class SNNSNMetric(BaseMetric):
 
     Parameters
     ---------------
-    metricName : str, opt
+    metricName : str, optional
         metric name (default : SNSNRMetric)
-    mjdCol : str, opt
+    mjdCol : str, optional
         mjd column name (default : observationStartMJD)
-    RACol : str,opt
+    RACol : str, optional
         Right Ascension column name (default : fieldRA)
-    DecCol : str,opt
+    DecCol : str, optional
         Declination column name (default : fieldDec)
-    filterCol : str,opt
+    filterCol : str, optional
         filter column name (default: filter)
-    m5Col : str, opt
+    m5Col : str, optional
         five-sigma depth column name (default : fiveSigmaDepth)
-    exptimeCol : str,opt
+    exptimeCol : str, optional
         exposure time column name (default : visitExposureTime)
-    nightCol : str,opt
+    nightCol : str, optional
         night column name (default : night)
-    obsidCol : str,opt
+    obsidCol : str, optional
         observation id column name (default : observationId)
-    nexpCol : str,opt
+    nexpCol : str, optional
         number of exposure column name (default : numExposures)
-    vistimeCol : str,opt
+    vistimeCol : str, optional
         visit time column name (default : visitTime)
-    season : list,opt
+    season : list, optional
         list of seasons to process (float)(default: -1 = all seasons)
-    zmin : float,opt
+    zmin : float, optional
         min redshift for the study (default: 0.0)
-    zmax : float,opt
+    zmax : float, optional
         max redshift for the study (default: 1.2)
-    pixArea: float, opt
+    pixArea: float, optional
         pixel area (default: 9.6)
-    verbose: bool,opt
+    verbose: bool, optional
         verbose mode (default: False)
-    ploteffi: bool,opt
+    ploteffi: bool, optional
         to plot observing efficiencies vs z (default: False)
-    n_bef: int, opt
+    n_bef: int, optional
         number of LC points LC before T0 (default:5)
-    n_aft: int, opt
+    n_aft: int, optional
         number of LC points after T0 (default: 10)
-    snr_min: float, opt
+    snr_min: float, optional
         minimal SNR of LC points (default: 5.0)
-    n_phase_min: int, opt
+    n_phase_min: int, optional
         number of LC points with phase<= -5(default:1)
-    n_phase_max: int, opt
+    n_phase_max: int, optional
         number of LC points with phase>= 20 (default: 1)
     """
 
@@ -336,9 +336,9 @@ class SNNSNMetric(BaseMetric):
         --------------
         obs: numpy array
           array of observations
-        season_gap: float, opt
+        season_gap: float, optional
          minimal gap required to define a season (default: 80 days)
-        mjdCol: str, opt
+        mjdCol: str, optional
         col name for MJD infos (default: observationStartMJD)
         Returns
         ----------
@@ -445,7 +445,7 @@ class SNNSNMetric(BaseMetric):
         Method to run on seasons
         Parameters
         --------------
-        dataSlice: numpy array, opt
+        dataSlice: numpy array, optional
           data to process (scheduler simulations)
         seasons: list(int)
           list of seasons to process
@@ -656,7 +656,7 @@ class SNNSNMetric(BaseMetric):
         ---------------
         sn_tot: pandas df
           data used to estimate efficiencies
-        color_cut: float, opt
+        color_cut: float, optional
           color selection cut(default: 0.04)
         Returns
         ----------
@@ -708,9 +708,9 @@ class SNNSNMetric(BaseMetric):
           data to plot
         vary: str
           variable(column of effi) to plot
-        erry: str, opt
+        erry: str, optional
           error on y-axis(default: None)
-        legy: str, opt
+        legy: str, optional
           y-axis legend(default: '')
         """
         grb = effi.groupby(['x1', 'color'])
@@ -884,7 +884,7 @@ class SNNSNMetric(BaseMetric):
           interpolator for efficiencies
         zplot: interp1d
           interpolator for redshift values
-        rate: str, opt
+        rate: str, optional
           rate to estimate the number of SN to estimate zlimit
           rate = cte: rate independent of z
           rate = SN_rate: rate from SN_Rate class

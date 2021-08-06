@@ -16,7 +16,7 @@ def integrateOverH(Mvalues, Hvalues, Hindex = 0.33):
         The metric values at each H value.
     Hvalues : numpy.ndarray
         The H values corresponding to each Mvalue (must be the same length).
-    Hindex : float, opt
+    Hindex : float, optional
         The power-law index expected for the H value distribution.
         Default is 0.33  (dN/dH = 10^(Hindex * H) ).
 
@@ -40,7 +40,7 @@ class ValueAtHMetric(BaseMoMetric):
 
     Parameters
     ----------
-    Hmark : float, opt
+    Hmark : float, optional
         The H value at which to look up the metric value. Default = 22.
     """
     def __init__(self, Hmark=22, **kwargs):
@@ -67,7 +67,7 @@ class MeanValueAtHMetric(BaseMoMetric):
 
     Parameters
     ----------
-    Hmark : float, opt
+    Hmark : float, optional
         The H value at which to look up the metric value. Default = 22.
     """
     def __init__(self, Hmark=22, reduceFunc=np.mean, metricName=None, **kwargs):
@@ -97,20 +97,20 @@ class MoCompletenessMetric(BaseMoMetric):
 
     Parameters
     ----------
-    threshold : int, opt
+    threshold : int, optional
         Count the fraction of the population that exceeds this value. Default = 1.
-    nbins : int, opt
+    nbins : int, optional
         If the H values for the metric are not a cloned distribution, then split up H into this many bins.
         Default 20.
-    minHrange : float, opt
+    minHrange : float, optional
         If the H values for the metric are not a cloned distribution, then split up H into at least this
         range (otherwise just use the min/max of the H values). Default 1.0
-    cumulative : bool, opt
+    cumulative : bool, optional
         If False, simply report the differential fractional value (or differential completeness).
         If True, integrate over the H distribution (using IntegrateOverH) to report a cumulative fraction.
         Default None which becomes True;
         if metricName is set and starts with 'Differential' this will then set to False.
-    Hindex : float, opt
+    Hindex : float, optional
         Use Hindex as the power law to integrate over H, if cumulative is True. Default 0.3.
     """
     def __init__(self, threshold=1, nbins=20, minHrange=1.0, cumulative=None, Hindex=0.33, **kwargs):
@@ -195,14 +195,14 @@ class MoCompletenessAtTimeMetric(BaseMoMetric):
     ----------
     times : numpy.ndarray like
         The bins to distribute the discovery times into. Same units as the discovery time (typically MJD).
-    Hval : float, opt
+    Hval : float, optional
         The value of H to count completeness at (or cumulative completeness to).
         Default None, in which case a value halfway through Hvals (the slicer H range) will be chosen.
-    cumulative : bool, opt
+    cumulative : bool, optional
         If True, calculate the cumulative completeness (completeness <= H).
         If False, calculate the differential completeness (completeness @ H).
         Default None which becomes 'True' unless metricName starts with 'differential'.
-    Hindex : float, opt
+    Hindex : float, optional
         Use Hindex as the power law to integrate over H, if cumulative is True. Default 0.3.
     """
 

@@ -27,7 +27,7 @@ def raDec2AltAz(ra, dec, lat, lon, mjd, altonly=False):
         Longitude of the observatory in radians.
     mjd : float
         Modified Julian Date.
-    altonly : bool, opt
+    altonly : bool, optional
         Calculate altitude only.
 
     Returns
@@ -65,9 +65,9 @@ class GalacticStacker(BaseStacker):
 
     Parameters
     ----------
-    raCol : str, opt
+    raCol : str, optional
         Name of the RA column. Default fieldRA.
-    decCol : str, opt
+    decCol : str, optional
         Name of the Dec column. Default fieldDec.
     """
     colsAdded = ['gall', 'galb']
@@ -102,13 +102,13 @@ class EclipticStacker(BaseStacker):
 
     Parameters
     ----------
-    mjdCol : str, opt
+    mjdCol : str, optional
         Name of the MJD column. Default expMJD.
-    raCol : str, opt
+    raCol : str, optional
         Name of the RA column. Default fieldRA.
-    decCol : str, opt
+    decCol : str, optional
         Name of the Dec column. Default fieldDec.
-    subtractSunLon : bool, opt
+    subtractSunLon : bool, optional
         Flag to subtract the sun's ecliptic longitude. Default False.
     """
     colsAdded = ['eclipLat', 'eclipLon']

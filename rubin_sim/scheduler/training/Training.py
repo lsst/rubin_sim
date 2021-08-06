@@ -1,5 +1,5 @@
 import numpy as np
-import rubin_sim.scheduler.Training as opt
+import rubin_sim.scheduler.Training as optional
 import rubin_sim.scheduler as fs
 from rubin_sim.speedObservatory import Speed_observatory
 
@@ -27,7 +27,7 @@ class BlackTraining(object):
     def DE_opt(self, N_p, F, Cr, maxIter, D, domain, load_candidate_solution, gray_trianing = False):
         self.D               = D
         self.domain          = domain
-        self.optimizer       = opt.DE_optimizer(self, N_p, F, Cr, maxIter, gray_training = gray_trianing, load_candidate_solution = load_candidate_solution)
+        self.optimizer       = optional.DE_optimizer(self, N_p, F, Cr, maxIter, gray_training = gray_trianing, load_candidate_solution = load_candidate_solution)
 
     def target(self, x):
         x[0] = 5 # reduce redundant solutions

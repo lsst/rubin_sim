@@ -16,27 +16,27 @@ class ParallaxMetric(BaseMetric):
 
     Parameters
     ----------
-    metricName : str, opt
+    metricName : str, optional
         Default 'parallax'.
-    m5Col : str, opt
+    m5Col : str, optional
         The default column name for m5 information in the input data. Default fiveSigmaDepth.
-    filterCol : str, opt
+    filterCol : str, optional
         The column name for the filter information. Default filter.
-    seeingCol : str, opt
+    seeingCol : str, optional
         The column name for the seeing information. Since the astrometry errors are based on the physical
         size of the PSF, this should be the FWHM of the physical psf. Default seeingFwhmGeom.
-    rmag : float, opt
+    rmag : float, optional
         The r magnitude of the fiducial star in r band. Other filters are sclaed using sedTemplate keyword.
         Default 20.0
-    SedTemplate : str, opt
+    SedTemplate : str, optional
         The template to use. This can be 'flat' or 'O','B','A','F','G','K','M'. Default flat.
-    atm_err : float, opt
+    atm_err : float, optional
         The expected centroiding error due to the atmosphere, in arcseconds. Default 0.01.
-    normalize : boolean, opt
+    normalize : boolean, optional
         Compare the astrometric uncertainty to the uncertainty that would result if half the observations
         were taken at the start and half at the end. A perfect survey will have a value close to 1, while
         a poorly scheduled survey will be close to 0. Default False.
-    badval : float, opt
+    badval : float, optional
         The value to return when the metric value cannot be calculated. Default -666.
     """
     def __init__(self, metricName='parallax', m5Col='fiveSigmaDepth',
@@ -116,31 +116,31 @@ class ProperMotionMetric(BaseMetric):
 
     Parameters
     ----------
-    metricName : str, opt
+    metricName : str, optional
         Default 'properMotion'.
-    m5Col : str, opt
+    m5Col : str, optional
         The default column name for m5 information in the input data. Default fiveSigmaDepth.
-    mjdCol : str, opt
+    mjdCol : str, optional
         The column name for the exposure time. Default observationStartMJD.
-    filterCol : str, opt
+    filterCol : str, optional
         The column name for the filter information. Default filter.
-    seeingCol : str, opt
+    seeingCol : str, optional
         The column name for the seeing information. Since the astrometry errors are based on the physical
         size of the PSF, this should be the FWHM of the physical psf. Default seeingFwhmGeom.
-    rmag : float, opt
+    rmag : float, optional
         The r magnitude of the fiducial star in r band. Other filters are sclaed using sedTemplate keyword.
         Default 20.0
-    SedTemplate : str, opt
+    SedTemplate : str, optional
         The template to use. This can be 'flat' or 'O','B','A','F','G','K','M'. Default flat.
-    atm_err : float, opt
+    atm_err : float, optional
         The expected centroiding error due to the atmosphere, in arcseconds. Default 0.01.
-    normalize : boolean, opt
+    normalize : boolean, optional
         Compare the astrometric uncertainty to the uncertainty that would result if half the observations
         were taken at the start and half at the end. A perfect survey will have a value close to 1, while
         a poorly scheduled survey will be close to 0. Default False.
-    baseline : float, opt
+    baseline : float, optional
         The length of the survey used for the normalization, in years. Default 10.
-    badval : float, opt
+    badval : float, optional
         The value to return when the metric value cannot be calculated. Default -666.
     """
     def __init__(self, metricName='properMotion',
@@ -230,24 +230,24 @@ class ParallaxCoverageMetric(BaseMetric):
 
     Parameters
     ----------
-    m5Col: str, opt
+    m5Col: str, optional
         Column name for individual visit m5. Default fiveSigmaDepth.
-    mjdCol: str, opt
+    mjdCol: str, optional
         Column name for exposure time dates. Default observationStartMJD.
-    filterCol: str, opt
+    filterCol: str, optional
         Column name for filter. Default filter.
-    seeingCol: str, opt
+    seeingCol: str, optional
         Column name for seeing (assumed FWHM). Default seeingFwhmGeom.
-    rmag: float, opt
+    rmag: float, optional
         Magnitude of fiducial star in r filter.  Other filters are scaled using sedTemplate keyword.
         Default 20.0
-    sedTemplate: str, opt
+    sedTemplate: str, optional
         Template to use (can be 'flat' or 'O','B','A','F','G','K','M'). Default 'flat'.
-    atm_err: float, opt
+    atm_err: float, optional
         Centroiding error due to atmosphere in arcsec. Default 0.01 (arcseconds).
-    thetaRange: float, opt
+    thetaRange: float, optional
         Range of parallax offset angles to demand (in radians). Default=0 (means no range requirement).
-    snrLimit: float, opt
+    snrLimit: float, optional
         Only include points above the snrLimit when computing thetaRange. Default 5.
 
     Returns
@@ -349,11 +349,11 @@ class ParallaxDcrDegenMetric(BaseMetric):
 
     Parameters
     ----------
-    metricName : str, opt
+    metricName : str, optional
         Default 'ParallaxDcrDegenMetric'.
-    seeingCol : str, opt
+    seeingCol : str, optional
         Default 'FWHMgeom'
-    m5Col : str, opt
+    m5Col : str, optional
         Default 'fiveSigmaDepth'
     filterCol : str
         Default 'filter'

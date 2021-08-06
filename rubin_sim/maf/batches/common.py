@@ -26,13 +26,13 @@ def filterList(all=True, extraSql=None, extraMetadata=None):
 
     Parameters
     ----------
-    all : boolean, opt
+    all : boolean, optional
         Include 'all' in the list of filters and as part of the colors/orders dictionaries.
         Default True.
-    extraSql : str, opt
+    extraSql : str, optional
         Additional sql constraint to add to sqlconstraints returned per filter.
         Default None.
-    extraMetadata : str, opt
+    extraMetadata : str, optional
         Substitute metadata to add to metadata strings composed per band.
         Default None.
 
@@ -150,7 +150,7 @@ def standardMetrics(colname, replace_colname=None):
     ----------
     colname : str
         The column name to apply the metrics to.
-    replace_colname: str or None, opt
+    replace_colname: str or None, optional
         Value to replace colname with in the metricName.
         i.e. if replace_colname='' then metric name is Mean, instead of Mean Airmass, or
         if replace_colname='seeingGeom', then metric name is Mean seeingGeom instead of Mean seeingFwhmGeom.
@@ -180,7 +180,7 @@ def extendedMetrics(colname, replace_colname=None):
     ----------
     colname : str
         The column name to apply the metrics to.
-    replace_colname: str or None, opt
+    replace_colname: str or None, optional
         Value to replace colname with in the metricName.
         i.e. if replace_colname='' then metric name is Mean, instead of Mean Airmass, or
         if replace_colname='seeingGeom', then metric name is Mean seeingGeom instead of Mean seeingFwhmGeom.
@@ -213,7 +213,7 @@ def standardAngleMetrics(colname, replace_colname=None):
     ----------
     colname : str
         The column name to apply the metrics to.
-    replace_colname: str or None, opt
+    replace_colname: str or None, optional
         Value to replace colname with in the metricName.
         i.e. if replace_colname='' then metric name is Mean, instead of Mean Airmass, or
         if replace_colname='seeingGeom', then metric name is Mean seeingGeom instead of Mean seeingFwhmGeom.
@@ -247,7 +247,7 @@ def summaryCompletenessAtTime(times, Hval, Hindex=0.33):
         The times at which to evaluate the completeness @ Hval.
     Hval : float
         The H value at which to evaluate the completeness (cumulative and differential).
-    Hindex : float, opt
+    Hindex : float, optional
         The index of the power law to integrate H over (for cumulative completeness).
         Default is 0.33.
 
@@ -267,9 +267,9 @@ def summaryCompletenessOverH(requiredChances=1, Hindex=0.33):
 
     Parameters
     ----------
-    requiredChances : int, opt
+    requiredChances : int, optional
         Number of discovery opportunities required to consider an object 'discovered'.
-    Hindex : float, opt
+    Hindex : float, optional
         The index of the power law to integrate H over (for cumulative completeness).
         Default is 0.33.
 
@@ -292,7 +292,7 @@ def fractionPopulationAtThreshold(thresholds, optnames=None):
     ----------
     thresholds : list of float
         The thresholds at which to calculate what fraction of the population exceeds these values.
-    optnames : list of str, opt
+    optnames : list of str, optional
         If provided, these names will be used instead of the threshold values when constructing
         the metric names. This allows more descriptive summary statistic names.
     Returns
@@ -302,10 +302,10 @@ def fractionPopulationAtThreshold(thresholds, optnames=None):
     fracMetrics = []
     for i, threshold in enumerate(thresholds):
         if optnames is not None:
-            opt = optnames[i]
+            o = optnames[i]
         else:
-            opt = threshold
+            o = threshold
         m = metrics.MoCompletenessMetric(threshold=threshold, cumulative=False,
-                                         metricName=f'FractionPop {opt}')
+                                         metricName=f'FractionPop {o}')
         fracMetrics.append(m)
     return fracMetrics

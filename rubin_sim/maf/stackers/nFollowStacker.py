@@ -105,19 +105,19 @@ class NFollowStacker(BaseStacker):
 
     Parameters
     ----------
-    minSize: float, opt
+    minSize: float, optional
         The minimum telescope aperture to use, in meters. Default 3.0.
-    airmassLimit: float, opt
+    airmassLimit: float, optional
         The maximum airmass allowable at the follow-up observatory. Default 2.5.
-    timeSteps: np.array or list of floats, opt
+    timeSteps: np.array or list of floats, optional
         The timesteps to check for followup opportunities, in hours. Default is np.arange(0.5, 12., 3.0).
-    mjdCol: str, opt
+    mjdCol: str, optional
         The exposure MJD column name. Default 'observationStartMJD'.
-    raCol: str, opt
+    raCol: str, optional
         The RA column name. Default 'fieldRA'.
-    decCol: str, opt
+    decCol: str, optional
         The Dec column name. Default 'fieldDec'.
-    raDecDeg: bool, opt
+    raDecDeg: bool, optional
         Flag whether RA/Dec are in degrees (True) or radians (False).
     """
     colsAdded = ['nObservatories']

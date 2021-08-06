@@ -413,13 +413,13 @@ def generate_all_sky(nside=None, elevation_limit=20, mask=hp.UNSEEN):
 
     Parameters
     ----------
-    nside : int, opt
+    nside : int, optional
         Resolution for the healpix maps.
         Default None uses rubin_sim.scheduler.utils.set_default_nside to set default (often 32).
-    elevation_limit : float, opt
+    elevation_limit : float, optional
         Elevation limit for map.
         Parts of the sky which do not reach this elevation limit will be set to mask.
-    mask : float, opt
+    mask : float, optional
         Mask value for 'unreachable' parts of the sky, defined as elevation < 20.
         Note that the actual limits will be set elsewhere, using the observatory model.
         This limit is for use when understanding what the maps could look like.
@@ -457,12 +457,12 @@ def WFD_healpixels(nside=None, dec_min=-62.5, dec_max=3.6):
 
     Parameters
     ----------
-    nside : int, opt
+    nside : int, optional
         Resolution for the healpix maps.
         Default None uses rubin_sim.scheduler.utils.set_default_nside to set default (often 32).
-    dec_min : float, opt
+    dec_min : float, optional
         Minimum declination of the region (deg). Default -62.5.
-    dec_max : float, opt
+    dec_max : float, optional
         Maximum declination of the region (deg). Default 3.6.
 
     Returns
@@ -489,20 +489,20 @@ def WFD_no_gp_healpixels(nside, dec_min=-62.5, dec_max=3.6,
 
     Parameters
     ----------
-    nside : int, opt
+    nside : int, optional
         Resolution for the healpix maps.
         Default None uses rubin_sim.scheduler.utils.set_default_nside to set default (often 32).
-    dec_min : float, opt
+    dec_min : float, optional
         Minimum declination of the region (deg).
-    dec_max : float, opt
+    dec_max : float, optional
         Maximum declination of the region (deg).
-    center_width : float, opt
+    center_width : float, optional
         Width across the central part of the galactic plane region.
-    end_width : float, opt
+    end_width : float, optional
         Width across the remainder of the galactic plane region.
-    gal_long1 : float, opt
+    gal_long1 : float, optional
         Longitude at which to start tapering from center_width to end_width.
-    gal_long2 : float, opt
+    gal_long2 : float, optional
         Longitude at which to stop tapering from center_width to end_width.
 
     Returns
@@ -528,12 +528,12 @@ def WFD_no_dust_healpixels(nside, dec_min=-72.25, dec_max=12.4, dust_limit=0.19)
 
     Parameters
     ----------
-    nside : int, opt
+    nside : int, optional
         Resolution for the healpix maps.
         Default None uses rubin_sim.scheduler.utils.set_default_nside to set default (often 32).
-    dec_min : float, opt
+    dec_min : float, optional
         Minimum dec of the region (deg). Default -72.5 deg.
-    dec_max : float, opt.
+    dec_max : float, optional.
         Maximum dec of the region (deg). Default 12.5 deg.
         1.75 is the FOV radius in deg.
     dust_limit : float, None
@@ -617,16 +617,16 @@ def galactic_plane_healpixels(nside=None, center_width=10., end_width=4.,
 
     Parameters
     ----------
-    nside : int, opt
+    nside : int, optional
         Resolution for the healpix maps.
         Default None uses rubin_sim.scheduler.utils.set_default_nside to set default (often 32).
-    center_width : float, opt
+    center_width : float, optional
         Width at the center of the galactic plane region.
-    end_width : float, opt
+    end_width : float, optional
         Width at the remainder of the galactic plane region.
-    gal_long1 : float, opt
+    gal_long1 : float, optional
         Longitude at which to start the GP region.
-    gal_long2 : float, opt
+    gal_long2 : float, optional
         Longitude at which to stop the GP region.
         Order matters for gal_long1 / gal_long2!
 

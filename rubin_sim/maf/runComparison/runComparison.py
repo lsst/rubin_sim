@@ -121,13 +121,13 @@ class RunComparison(object):
 
         Parameters
         ----------
-        metricNameLike: str, opt
+        metricNameLike: str, optional
             Metric name like this -- i.e. will look for metrics which match metricName like "value".
-        metricMetadataLike: str, opt
+        metricMetadataLike: str, optional
             Metric Metadata like this.
-        slicerNameLike: str, opt
+        slicerNameLike: str, optional
             Slicer name like this.
-        subdir: str, opt
+        subdir: str, optional
             Find metrics from this subdir only.
             If other parameters are not specified, this returns all metrics within this subdir.
 
@@ -192,16 +192,16 @@ class RunComparison(object):
         ----------
         metricName : str
             The name of the original metric.
-        metricMetadata : str, opt
+        metricMetadata : str, optional
             The metric metadata specifying the metric desired (optional).
-        slicerName : str, opt
+        slicerName : str, optional
             The slicer name specifying the metric desired (optional).
-        summaryName : str, opt
+        summaryName : str, optional
             The name of the summary statistic desired (optional).
-        colName : str, opt
+        colName : str, optional
             Name of the column header for the dataframe. If more than one summary stat is
             returned from the database, then this will be ignored.
-        verbose : bool, opt
+        verbose : bool, optional
             Issue warnings resulting from not finding the summary stat information
             (such as if it was never calculated) will not be issued.   Default False.
 
@@ -283,13 +283,13 @@ class RunComparison(object):
 
         Parameters
         ----------
-        metricDict: dict, opt
+        metricDict: dict, optional
             A dictionary of metrics with all of the information needed to query
             a results database.  The metric/metadata/slicer/summary values referred to
             by a metricDict value could be unique but don't have to be.
             If None (default), then fetches all metric results.
             (This can be slow if there are a lot of metrics.)
-        verbose : bool, opt
+        verbose : bool, optional
             Issue warnings resulting from not finding the summary stat information
             (such as if it was never calculated) will not be issued.   Default False.
 
@@ -358,10 +358,10 @@ class RunComparison(object):
 
         Parameters
         ----------
-        baseName : bool, opt
+        baseName : bool, optional
             Sort by the baseName. Default True.
             If True, this takes priority in the sorted results.
-        summaryName : bool, opt
+        summaryName : bool, optional
             Sort by the summary stat name (summaryName). Default True.
 
         Returns
@@ -396,7 +396,7 @@ class RunComparison(object):
 
         Parameters
         ----------
-        threshold : float, opt
+        threshold : float, optional
             Identify values which change by more than threshold (%) in the normalized values.
             Default 5% (0.05).
 
@@ -415,9 +415,9 @@ class RunComparison(object):
         ----------
         metricName : str
             The name of the original metric.
-        metricMetadata : str, opt
+        metricMetadata : str, optional
             The metric metadata specifying the metric desired (optional).
-        slicerName : str, opt
+        slicerName : str, optional
             The slicer name specifying the metric desired (optional).
 
         Returns
@@ -575,19 +575,19 @@ class RunComparison(object):
 
         Parameters
         ----------
-        normalized : bool, opt
+        normalized : bool, optional
             If True generate html table with normalizedStats
-        html_out : str, opt
+        html_out : str, optional
             Name of the html that will be output and saved. If no string
             is provided then the html table will not be saved.
-        show_page : bool, opt
+        show_page : bool, optional
             If True the html page generate by this function will automatically open
             in your browser
-        combined : bool, opt
+        combined : bool, optional
             If True the html produce will have columns for the original
             summaryStats values, as well as their normalized values. The baselineRun
             used to calculate the normalized values will be dropped from the table.
-        fullStats : bool, opt
+        fullStats : bool, optional
             If False the final html table will not include summaryStats that
             contain '3Sigma','Rms','Min','Max','RobustRms', or '%ile' in their
             names.

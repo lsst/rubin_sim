@@ -20,52 +20,52 @@ class BaseObs(object):
 
     Parameters
     ----------
-    footPrint: str, opt
+    footPrint: str, optional
         Specify the footprint for the FOV. Options include "camera", "circle", "rectangle".
         'Camera' means use the actual LSST camera footprint (following a rough cut with a circular FOV).
         Default is camera FOV.
-    rFov : float, opt
+    rFov : float, optional
         If footprint is "circular", this is the radius of the fov (in degrees).
         Default 1.75 degrees (only used for circular fov).
-    xTol : float, opt
+    xTol : float, optional
         If footprint is "rectangular", this is half of the width of the (on-sky) fov in the RA
         direction (in degrees).
         Default 5 degrees. (so size of footprint in degrees will be 10 degrees in the RA direction).
-    yTol : float, opt
+    yTol : float, optional
         If footprint is "rectangular", this is half of the width of the fov in Declination (in degrees).
         Default is 3 degrees (so size of footprint in degrees will be 6 degrees in the Dec direction).
-    ephMode: str, opt
+    ephMode: str, optional
         Mode for ephemeris generation - nbody or 2body. Default is nbody.
-    ephType: str, opt
+    ephType: str, optional
         Type of ephemerides to generate - full or basic.
         Full includes all values calculated by openorb; Basic includes a more basic set.
         Default is Basic.  (this includes enough information for most standard MAF metrics).
-    ephFile: str or None, opt
+    ephFile: str or None, optional
         The name of the planetary ephemerides file to use for ephemeris generation.
         Default (None) will use the default for PyOrbEphemerides.
-    obsCode: str, opt
+    obsCode: str, optional
         Observatory code for ephemeris generation. Default is "I11" - Cerro Pachon.
-    obsTimeCol: str, opt
+    obsTimeCol: str, optional
         Name of the time column in the obsData. Default 'observationStartMJD'.
-    obsTimeScale: str, opt
+    obsTimeScale: str, optional
         Type of timescale for MJD (TAI or UTC currently). Default TAI.
-    seeingCol: str, opt
+    seeingCol: str, optional
         Name of the seeing column in the obsData. Default 'seeingFwhmGeom'.
         This should be the geometric/physical seeing as it is used for the trailing loss calculation.
-    visitExpTimeCol: str, opt
+    visitExpTimeCol: str, optional
         Name of the visit exposure time column in the obsData. Default 'visitExposureTime'.
-    obsRA: str, opt
+    obsRA: str, optional
         Name of the RA column in the obsData. Default 'fieldRA'.
-    obsDec: str, opt
+    obsDec: str, optional
         Name of the Dec column in the obsData. Default 'fieldDec'.
-    obsRotSkyPos: str, opt
+    obsRotSkyPos: str, optional
         Name of the Rotator column in the obsData. Default 'rotSkyPos'.
-    obsDegrees: bool, opt
+    obsDegrees: bool, optional
         Whether the observational data is in degrees or radians. Default True (degrees).
-    outfileName : str, opt
+    outfileName : str, optional
         The output file name.
         Default is 'lsst_obs.dat'.
-    obsMetadata : str, opt
+    obsMetadata : str, optional
         A string that captures provenance information about the observations.
         For example: 'kraken_2026, MJD 59853-61677' or 'baseline2018a minus NES'
         Default ''.
@@ -132,7 +132,7 @@ class BaseObs(object):
             Typically this will be a single object.
         times: np.ndarray
             The times at which to generate ephemerides. MJD.
-        ephMode: str or None, opt
+        ephMode: str or None, optional
             Potentially override default ephMode (self.ephMode). Must be '2body' or 'nbody'.
 
         Returns
@@ -174,7 +174,7 @@ class BaseObs(object):
             The velocity of the moving objects, in deg/day.
         seeing : np.ndarray or float
             The seeing of the images, in arcseconds.
-        texp : np.ndarray or float, opt
+        texp : np.ndarray or float, optional
             The exposure time of the images, in seconds. Default 30.
 
         Returns
@@ -202,23 +202,23 @@ class BaseObs(object):
 
         Parameters
         ----------
-        filterDir : str, opt
+        filterDir : str, optional
             Directory containing the filter throughput curves ('total*.dat')
             Default set by 'LSST_THROUGHPUTS_BASELINE' env variable.
-        bandpassRoot : str, opt
+        bandpassRoot : str, optional
             Rootname of the throughput curves in filterlist.
             E.g. throughput curve names are bandpassRoot + filterlist[i] + bandpassSuffix
             Default 'total_' (appropriate for LSST throughput repo).
-        bandpassSuffix : str, opt
+        bandpassSuffix : str, optional
             Suffix for the throughput curves in filterlist.
             Default '.dat' (appropriate for LSST throughput repo).
-        filterlist : list, opt
+        filterlist : list, optional
             List containing the filter names to use to calculate colors.
             Default ('u', 'g', 'r', 'i', 'z', 'y')
-        vDir : str, opt
+        vDir : str, optional
             Directory containing the V band throughput curve.
             Default None = $SIMS_MOVINGOBJECTS_DIR/data.
-        vFilter : str, opt
+        vFilter : str, optional
             Name of the V band filter curve.
             Default harris_V.dat.
         """
@@ -245,9 +245,9 @@ class BaseObs(object):
 
         Parameters
         ----------
-        sedname : str (opt)
+        sedname : str (optional)
             Name of the SED. Default 'C.dat'.
-        sedDir : str (opt)
+        sedDir : str (optional)
             Directory containing the SEDs of the moving objects.
             Default None = $SIMS_MOVINGOBJECTS_DIR/data.
 
