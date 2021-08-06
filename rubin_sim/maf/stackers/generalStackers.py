@@ -14,16 +14,16 @@ class SaturationStacker(BaseStacker):
     
     Parameters
     ----------
-    pixscale : float, opt (0.2)
+    pixscale : float, optional (0.2)
         Arcsec per pixel
-    gain : float, opt (2.3)
+    gain : float, optional (2.3)
         electrons per adu
-    saturation_e : float, opt (150e3)
+    saturation_e : float, optional (150e3)
         The saturation level in electrons
-    zeropoints : dict-like, opt (None)
+    zeropoints : dict-like, optional (None)
         The zeropoints for the telescope. Keys should be str with filter names, values in mags.
         If None, will use Rubin-like zeropoints.
-    km : dict-like, opt (None)
+    km : dict-like, optional (None)
         Atmospheric extinction values.  Keys should be str with filter names.
         If None, will use Rubin-like zeropoints.
     """

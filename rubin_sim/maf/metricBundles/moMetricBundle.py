@@ -42,9 +42,9 @@ def makeCompletenessBundle(bundle, completenessMetric, Hmark=None, resultsDb=Non
         The metric bundle with a completeness summary statistic.
     completenessMetric : ~rubin_sim.maf.metric
         The summary (completeness) metric to run on the bundle.
-    Hmark : float, opt
+    Hmark : float, optional
         The Hmark value to add to the plotting dictionary of the new mock bundle. Default None.
-    resultsDb : ~rubin_sim.maf.db.ResultsDb, opt
+    resultsDb : ~rubin_sim.maf.db.ResultsDb, optional
         The resultsDb in which to record the summary statistic value at Hmark. Default None.
 
     Returns

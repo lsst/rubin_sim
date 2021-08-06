@@ -46,7 +46,7 @@ class LsstCameraFootprint(object):
             pointing should be in the 'expMJD' column.
         rmax : float (2.1)
             The maximum radius from the center of the field to consider
-        epoch: float, opt
+        epoch: float, optional
             The epoch of the ephemerides and pointing data. Default 2000.0.
 
         Returns

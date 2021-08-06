@@ -28,32 +28,32 @@ class SNSLMetric(metrics.BaseMetric):
 
     Parameters
     ----------
-    metricName : str, opt
+    metricName : str, optional
         metric name
         Default : SNCadenceMetric
-    mjdCol : str, opt
+    mjdCol : str, optional
         mjd column name
         Default : observationStartMJD,
-    filterCol : str,opt
+    filterCol : str, optional
         filter column name
         Default: filter
-    nightCol : str,opt
+    nightCol : str, optional
         night column name
         Default : night
-    m5Col : str, opt
+    m5Col : str, optional
         individual visit five-sigma limiting magnitude (m5) column name
         Default : fiveSigmaDepth
-    season: int (list) or -1, opt
+    season: int (list) or -1, optional
         season to process (default: -1: all seasons)
-    nfilters_min : int, opt
+    nfilters_min : int, optional
         The number of filters to demand in a season
         Default: 4.
-    min_season_obs : int, opt
+    min_season_obs : int, optional
         Minimum number of observations per season. Default 5.
-    m5mins : dict, opt
+    m5mins : dict, optional
         Minimum individual image depth for visit to 'count'.
         Default None uses {'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4}.
-    maps : list, opt
+    maps : list, optional
         List of maps to use. Default is the dustmap, to reduce m5 limiting mags accordingly.
 
     Returns

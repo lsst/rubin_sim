@@ -3,7 +3,7 @@ def plotSummaryStats(self, output=None, totalVisits=True):
     """
     Plot the normalized metric values as a function of opsim run.
 
-    output: str, opt
+    output: str, optional
         Name of figure to save to disk. If this is left as None the figure
         is not saved.
     totalVisits: bool

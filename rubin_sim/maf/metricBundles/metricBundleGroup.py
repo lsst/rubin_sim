@@ -65,18 +65,18 @@ class MetricBundleGroup(object):
         calculate metrics.
         Advanced use: It is possible to set this to None, in which case data should be passed
         directly to the runCurrent method (and runAll should not be used).
-    outDir : str, opt
+    outDir : str, optional
         Directory to save the metric results. Default is the current directory.
-    resultsDb : ResultsDb, opt
+    resultsDb : ResultsDb, optional
         A results database. If not specified, one will be created in the outDir.
         This database saves information about the metrics calculated, including their summary statistics.
-    verbose : bool, opt
+    verbose : bool, optional
         Flag to turn on/off verbose feedback.
-    saveEarly : bool, opt
+    saveEarly : bool, optional
         If True, metric values will be saved immediately after they are first calculated (to prevent
         data loss) as well as after summary statistics are calculated.
         If False, metric values will only be saved after summary statistics are calculated.
-    dbTable : str, opt
+    dbTable : str, optional
         The name of the table in the dbObj to query for data.
     """
     def __init__(self, bundleDict, dbObj, outDir='.', resultsDb=None, verbose=True,
@@ -229,11 +229,11 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        clearMemory : bool, opt
+        clearMemory : bool, optional
             If True, deletes metric values from memory after running each constraint group.
-        plotNow : bool, opt
+        plotNow : bool, optional
             If True, plots the metric values immediately after calculation.
-        plotKwargs : bool, opt
+        plotKwargs : bool, optional
             kwargs to pass to plotCurrent.
         """
         for constraint in self.constraints:
@@ -269,15 +269,15 @@ class MetricBundleGroup(object):
         ----------
         constraint : str
            constraint to use to set the currently active metrics
-        simData : numpy.ndarray, opt
+        simData : numpy.ndarray, optional
            If simData is not None, then this numpy structured array is used instead of querying
            data from the dbObj.
-        clearMemory : bool, opt
+        clearMemory : bool, optional
            If True, metric values are deleted from memory after they are calculated (and saved to disk).
-        plotNow : bool, opt
+        plotNow : bool, optional
            Plot immediately after calculating metric values (instead of the usual procedure, which
            is to plot after metric values are calculated for all constraints).
-        plotKwargs : kwargs, opt
+        plotKwargs : kwargs, optional
            Plotting kwargs to pass to plotCurrent.
         """
         self.setCurrent(constraint)
@@ -512,7 +512,7 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        updateSummaries : bool, opt
+        updateSummaries : bool, optional
             If True, summary metrics are removed from the top-level (non-reduced)
             MetricBundle. Usually this should be True, as summary metrics are generally
             intended to run on the simpler data produced by reduce metrics.
@@ -526,7 +526,7 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        updateSummaries : bool, opt
+        updateSummaries : bool, optional
             If True, summary metrics are removed from the top-level (non-reduced)
             MetricBundle. Usually this should be True, as summary metrics are generally
             intended to run on the simpler data produced by reduce metrics.
@@ -581,21 +581,21 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        savefig : bool, opt
+        savefig : bool, optional
             If True, save figures to disk, to self.outDir directory.
-        outfileSuffix : bool, opt
+        outfileSuffix : bool, optional
             Append outfileSuffix to the end of every plot file generated. Useful for generating
             sequential series of images for movies.
-        figformat : str, opt
+        figformat : str, optional
             Matplotlib figure format to use to save to disk. Default pdf.
-        dpi : int, opt
+        dpi : int, optional
             DPI for matplotlib figure. Default 600.
-        trimWhitespace : bool, opt
+        trimWhitespace : bool, optional
             If True, trim additional whitespace from final figures. Default True.
-        thumbnail : bool, opt
+        thumbnail : bool, optional
             If True, save a small thumbnail jpg version of the output file to disk as well.
             This is useful for showMaf web pages. Default True.
-        closefigs : bool, opt
+        closefigs : bool, optional
             Close the matplotlib figures after they are saved to disk. If many figures are
             generated, closing the figures saves significant memory. Default True.
         """
@@ -613,21 +613,21 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        savefig : bool, opt
+        savefig : bool, optional
             If True, save figures to disk, to self.outDir directory.
-        outfileSuffix : str, opt
+        outfileSuffix : str, optional
             Append outfileSuffix to the end of every plot file generated. Useful for generating
             sequential series of images for movies.
-        figformat : str, opt
+        figformat : str, optional
             Matplotlib figure format to use to save to disk. Default pdf.
-        dpi : int, opt
+        dpi : int, optional
             DPI for matplotlib figure. Default 600.
-        trimWhitespace : bool, opt
+        trimWhitespace : bool, optional
             If True, trim additional whitespace from final figures. Default True.
-        thumbnail : bool, opt
+        thumbnail : bool, optional
             If True, save a small thumbnail jpg version of the output file to disk as well.
             This is useful for showMaf web pages. Default True.
-        closefigs : bool, opt
+        closefigs : bool, optional
             Close the matplotlib figures after they are saved to disk. If many figures are
             generated, closing the figures saves significant memory. Default True.
         """

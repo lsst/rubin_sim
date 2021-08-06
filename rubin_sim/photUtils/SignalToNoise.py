@@ -530,12 +530,12 @@ def calcAstrometricError(mag, m5, fwhmGeom=0.7, nvisit=1, systematicFloor=10):
         Magnitude of the source
     m5: float
         Point source five sigma limiting magnitude of the image (or typical depth per image).
-    fwhmGeom: float, opt
+    fwhmGeom: float, optional
         The geometric (physical) FWHM of the image, in arcseconds. Default 0.7.
-    nvisit: int, opt
+    nvisit: int, optional
         The number of visits/measurement. Default 1.
         If this is >1, the random error contribution is reduced by sqrt(nvisits).
-    systematicFloor: float, opt
+    systematicFloor: float, optional
         The systematic noise floor for the astrometric measurements, in mas. Default 10mas.
 
     Returns

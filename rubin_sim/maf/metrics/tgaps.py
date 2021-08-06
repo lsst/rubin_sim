@@ -15,13 +15,13 @@ class TgapsMetric(BaseMetric):
 
     Parameters
     ----------
-    timesCol : str, opt
+    timesCol : str, optional
         The column name for the exposure times.  Values assumed to be in days.
         Default observationStartMJD.
-    allGaps : bool, opt
+    allGaps : bool, optional
         Histogram the gaps between all observations (True) or just successive observations (False)?
         Default is False. If all gaps are used, this metric can become significantly slower.
-    bins : np.ndarray, opt
+    bins : np.ndarray, optional
         The bins to use for the histogram of time gaps (in days, or same units as timesCol).
         Default values are bins from 0 to 2 hours, in 5 minute intervals.
 
@@ -63,13 +63,13 @@ class NightgapsMetric(BaseMetric):
 
     Parameters
     ----------
-    nightCol : str, opt
+    nightCol : str, optional
         The column name for the night of each observation.
         Default 'night'.
-    allGaps : bool, opt
+    allGaps : bool, optional
         Histogram the gaps between all observations (True) or just successive observations (False)?
         Default is False. If all gaps are used, this metric can become significantly slower.
-    bins : np.ndarray, opt
+    bins : np.ndarray, optional
         The bins to use for the histogram of time gaps (in days, or same units as timesCol).
         Default values are bins from 0 to 10 days, in 1 day intervals.
 
@@ -108,10 +108,10 @@ class NVisitsPerNightMetric(BaseMetric):
 
     Parameters
     ----------
-    nightCol : str, opt
+    nightCol : str, optional
         The column name for the night of each observation.
         Default 'night'.
-    bins : np.ndarray, opt
+    bins : np.ndarray, optional
         The bins to use for the histogram of time gaps (in days, or same units as timesCol).
         Default values are bins from 0 to 5 visits, in steps of 1.
 

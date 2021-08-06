@@ -18,20 +18,20 @@ class fONv(BaseMetric):
 
     Parameters
     ----------
-    col : str or list of strs, opt
+    col : str or list of strs, optional
         Name of the column in the numpy recarray passed to the summary metric.
-    Asky : float, opt
+    Asky : float, optional
         Area of the sky to base the evaluation of number of visits over.
         Default 18,0000 sq deg.
-    nside : int, opt
+    nside : int, optional
         Nside parameter from healpix slicer, used to set the physical relationship between on-sky area
         and number of healpixels. Default 128.
-    Nvisit : int, opt
+    Nvisit : int, optional
         Number of visits to use as the benchmark value, if choosing to return a normalized Nvisit value.
-    norm : boolean, opt
+    norm : boolean, optional
         Normalize the returned "nvisit" (min / median) values by Nvisit, if true.
         Default False.
-    metricName : str, opt
+    metricName : str, optional
         Name of the summary metric. Default fONv.
     """
     def __init__(self, col='metricdata', Asky=18000., nside=128, Nvisit=825,
@@ -75,21 +75,21 @@ class fOArea(BaseMetric):
 
     Parameters
     ----------
-    col : str or list of strs, opt
+    col : str or list of strs, optional
         Name of the column in the numpy recarray passed to the summary metric.
-    Nvisit : int, opt
+    Nvisit : int, optional
         Number of visits to use as the minimum required -- metric calculated area that has this many visits.
         Default 825.
-    Asky : float, opt
+    Asky : float, optional
         Area to use as the benchmark value, if choosing to returned a normalized Area value.
         Default 18,0000 sq deg.
-    nside : int, opt
+    nside : int, optional
         Nside parameter from healpix slicer, used to set the physical relationship between on-sky area
         and number of healpixels. Default 128.
-    norm : boolean, opt
+    norm : boolean, optional
         Normalize the returned "area" (area with minimum Nvisit visits) value by Asky, if true.
         Default False.
-    metricName : str, opt
+    metricName : str, optional
         Name of the summary metric. Default fOArea.
     """
     def __init__(self, col='metricdata', Nvisit=825, Asky = 18000.0, nside=128,

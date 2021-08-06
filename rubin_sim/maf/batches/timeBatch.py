@@ -17,15 +17,15 @@ def intraNight(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetad
 
     Parameters
     ----------
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    nside : int, opt
+    nside : int, optional
         Nside for the healpix slicer. Default 64.
-    extraSql : str or None, opt
+    extraSql : str or None, optional
         Additional sql constraint to apply to all metrics.
-    extraMetadata : str or None, opt
+    extraMetadata : str or None, optional
         Additional metadata to apply to all results.
     slicer : slicer object (None)
         Optinally use something other than a HealpixSlicer
@@ -165,15 +165,15 @@ def interNight(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetad
 
     Parameters
     ----------
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    nside : int, opt
+    nside : int, optional
         Nside for the healpix slicer. Default 64.
-    extraSql : str or None, opt
+    extraSql : str or None, optional
         Additional sql constraint to apply to all metrics.
-    extraMetadata : str or None, opt
+    extraMetadata : str or None, optional
         Additional metadata to use for all outputs.
     slicer : slicer object (None)
         Optinally use something other than a HealpixSlicer
@@ -255,15 +255,15 @@ def seasons(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetadata
 
     Parameters
     ----------
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    nside : int, opt
+    nside : int, optional
         Nside for the healpix slicer. Default 64.
-    extraSql : str or None, opt
+    extraSql : str or None, optional
         Additional sql constraint to apply to all metrics.
-    extraMetadata : str or None, opt
+    extraMetadata : str or None, optional
         Additional metadata to use for all outputs.
 
     Returns

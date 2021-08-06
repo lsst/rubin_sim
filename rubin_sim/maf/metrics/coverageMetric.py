@@ -11,11 +11,11 @@ class YearCoverageMetric(BaseMetric):
 
     Parameters
     ----------
-    nightCol: str, opt
+    nightCol: str, optional
         Data column to histogram. Default 'night'.
-    bins: numpy.ndarray, opt
+    bins: numpy.ndarray, optional
         Bins to use in the histogram. Default corresponds to years 0-10 (with 365.25 nights per year).
-    units: str, opt
+    units: str, optional
         Units to use for the metric result. Default 'N years'.
 
     Returns

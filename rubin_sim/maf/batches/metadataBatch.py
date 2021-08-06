@@ -26,23 +26,23 @@ def metadataBasics(value, colmap=None, runName='opsim',
     ----------
     value : str
         The column name for the quantity to evaluate. (column name in the database or created by a stacker).
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    valueName : str, opt
+    valueName : str, optional
         The name of the value to be reported in the resultsDb and added to the metric.
         This is intended to help standardize metric comparison between sim versions.
         value = name as it is in the database (seeingFwhmGeom, etc).
         valueName = name to be recorded ('seeingGeom', etc.).  Default is None, which will match 'value'.
-    groupName : str, opt
+    groupName : str, optional
         The group name for this quantity in the displayDict. Default is the same as 'valueName', capitalized.
-    extraSql : str, opt
+    extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str, opt
+    extraMetadata : str, optional
         Additional metadata to add before any below (i.e. "WFD").  Default is None.
-    nside : int, opt
+    nside : int, optional
         Nside value for healpix slicer. Default 64.
         If "None" is passed, the healpixslicer-based metrics will be skipped.
 
@@ -149,28 +149,28 @@ def metadataBasicsAngle(value, colmap=None, runName='opsim',
     ----------
     value : str
         The column name for the quantity to evaluate. (column name in the database or created by a stacker).
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    valueName : str, opt
+    valueName : str, optional
         The name of the value to be reported in the resultsDb and added to the metric.
         This is intended to help standardize metric comparison between sim versions.
         value = name as it is in the database (seeingFwhmGeom, etc).
         valueName = name to be recorded ('seeingGeom', etc.).  Default is None, which will match 'value'.
-    groupName : str, opt
+    groupName : str, optional
         The group name for this quantity in the displayDict. Default is the same as 'valueName', capitalized.
-    extraSql : str, opt
+    extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str, opt
+    extraMetadata : str, optional
         Additional metadata to add before any below (i.e. "WFD").  Default is None.
-    nside : int, opt
+    nside : int, optional
         Nside value for healpix slicer. Default 64.
         If "None" is passed, the healpixslicer-based metrics will be skipped.
     ditherStacker: str or rubin_sim.maf.stackers.BaseDitherStacker
         Optional dither stacker to use to define ra/dec columns.
-    ditherkwargs: dict, opt
+    ditherkwargs: dict, optional
         Optional dictionary of kwargs for the dither stacker.
 
     Returns
@@ -263,13 +263,13 @@ def allMetadata(colmap=None, runName='opsim', extraSql=None, extraMetadata=None)
 
     Parameters
     ----------
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    extraSql : str, opt
+    extraSql : str, optional
         Sql constraint (such as WFD only). Default is None.
-    extraMetadata : str, opt
+    extraMetadata : str, optional
         Metadata to identify the sql constraint (such as WFD). Default is None.
 
     Returns
@@ -313,23 +313,23 @@ def metadataMaps(value, colmap=None, runName='opsim',
     ----------
     value : str
         The column name for the quantity to evaluate. (column name in the database or created by a stacker).
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    valueName : str, opt
+    valueName : str, optional
         The name of the value to be reported in the resultsDb and added to the metric.
         This is intended to help standardize metric comparison between sim versions.
         value = name as it is in the database (seeingFwhmGeom, etc).
         valueName = name to be recorded ('seeingGeom', etc.).  Default is None, which will match 'value'.
-    groupName : str, opt
+    groupName : str, optional
         The group name for this quantity in the displayDict. Default is the same as 'valueName', capitalized.
-    extraSql : str, opt
+    extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str, opt
+    extraMetadata : str, optional
         Additional metadata to add before any below (i.e. "WFD").  Default is None.
-    nside : int, opt
+    nside : int, optional
         Nside value for healpix slicer. Default 64.
         If "None" is passed, the healpixslicer-based metrics will be skipped.
 

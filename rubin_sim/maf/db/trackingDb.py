@@ -82,27 +82,27 @@ class TrackingDb(object):
         
         Parameters
         ----------
-        opsimGroup : str, opt
+        opsimGroup : str, optional
             Set a name to group this run with (eg. "Tier 1, 2016").
-        opsimRun : str, opt
+        opsimRun : str, optional
             Set a name for the opsim run.
-        opsimComment : str, opt
+        opsimComment : str, optional
             Set a comment describing the opsim run.
-        opsimVersion : str, opt
+        opsimVersion : str, optional
             Set the version of opsim.
-        opsimDate : str, opt
+        opsimDate : str, optional
             Set the date the opsim run was created.
-        mafComment : str, opt
+        mafComment : str, optional
             Set a comment to describe the MAF analysis.
-        mafVersion : str, opt
+        mafVersion : str, optional
             Set the version of MAF used for analysis.
-        mafDate : str, opt
+        mafDate : str, optional
             Set the date the MAF analysis was run.
-        mafDir : str, opt
+        mafDir : str, optional
             The relative path to the MAF directory.
-        dbFile : str, opt
+        dbFile : str, optional
             The relative path to the Opsim SQLite database file.
-        mafRunId : int, opt
+        mafRunId : int, optional
             The MafRunID to assign to this record in the database (note this is a primary key!).
             If this run (ie the mafDir) exists in the database already, this will be ignored.            
             
@@ -194,15 +194,15 @@ def addRunToDatabase(mafDir, trackingDbFile, opsimGroup=None,
     trackingDb : str or rubin_sim.maf.TrackingDb
         Full filename (+path) to the tracking database storing the MAF run information or
         a TrackingDb object.
-    opsimGroup: str, opt
+    opsimGroup: str, optional
         Name to use to group this run with other opsim runs. Default None.
-    opsimRun : str, opt
+    opsimRun : str, optional
         Name of the opsim run. If not provided, will attempt to use runName from confSummary.txt.
-    opsimComment : str, opt
+    opsimComment : str, optional
         Comment about the opsim run. If not provided, will attempt to use runComment from confSummary.txt.
-    mafComment : str, opt
+    mafComment : str, optional
         Comment about the MAF analysis. If not provided, no comment will be recorded.
-    dbFile : str, opt
+    dbFile : str, optional
         Relative path + name of the opsim database file. If not provided, no location will be recorded.
     """
     mafDir = os.path.abspath(mafDir)

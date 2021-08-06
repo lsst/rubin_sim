@@ -21,13 +21,13 @@ def glanceBatch(colmap=None, runName='opsim',
 
     Parameters
     ----------
-    colmap : dict, opt
+    colmap : dict, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    run_name : str, opt
+    run_name : str, optional
         The name of the simulated survey. Default is "opsim".
-    nside : int, opt
+    nside : int, optional
         The nside for the healpix slicers. Default 64.
-    filternames : list of str, opt
+    filternames : list of str, optional
         The list of individual filters to use when running metrics.
         Default is ('u', 'g', 'r', 'i', 'z', 'y').
         There is always an all-visits version of the metrics run as well.
@@ -35,7 +35,7 @@ def glanceBatch(colmap=None, runName='opsim',
         How many years to attempt to make hourglass plots for
     pairnside : int (32)
         nside to use for the pair fraction metric (it's slow, so nice to use lower resolution)
-    sqlConstraint : str or None, opt
+    sqlConstraint : str or None, optional
         Additional SQL constraint to apply to all metrics.
     slicer_camera : str ('LSST')
         Sets which spatial slicer to use. options are 'LSST' and 'ComCam'

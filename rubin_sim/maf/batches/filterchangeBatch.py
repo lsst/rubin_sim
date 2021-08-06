@@ -45,16 +45,16 @@ def filtersPerNight(colmap=None, runName='opsim', nights=1, extraSql=None, extra
 
     Parameters
     ----------
-    colmap : dict, opt
+    colmap : dict, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    run_name : str, opt
+    run_name : str, optional
         The name of the simulated survey. Default is "opsim".
-    nights : int, opt
+    nights : int, optional
         Size of night bin to use when calculating metrics.  Default is 1.
-    extraSql : str, opt
+    extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str, opt
+    extraMetadata : str, optional
         Additional metadata to add before any below (i.e. "WFD").  Default is None.
 
     Returns
@@ -106,14 +106,14 @@ def filtersWholeSurvey(colmap=None, runName='opsim', extraSql=None, extraMetadat
 
     Parameters
     ----------
-    colmap : dict, opt
+    colmap : dict, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    run_name : str, opt
+    run_name : str, optional
         The name of the simulated survey. Default is "opsim".
-    extraSql : str, opt
+    extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str, opt
+    extraMetadata : str, optional
         Additional metadata to add before any below (i.e. "WFD").  Default is None.
 
     Returns

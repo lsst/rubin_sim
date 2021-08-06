@@ -11,7 +11,7 @@ class CoaddStacker(BaseStacker):
 
     Parameters
     ----------
-    list : str, opt
+    list : str, optional
         Name of the columns used.
         Default : 'observationStartMJD', 'fieldRA', 'fieldDec','filter','fiveSigmaDepth','visitExposureTime','night','observationId', 'numExposures','visitTime'
 

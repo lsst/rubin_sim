@@ -10,15 +10,15 @@ class PhaseGapMetric(BaseMetric):
 
     Parameters
     ----------
-    col: str, opt
+    col: str, optional
         Name of the column to use for the observation times (MJD)
-    nPeriods: int, opt
+    nPeriods: int, optional
         Number of periods to test
-    periodMin: float, opt
+    periodMin: float, optional
         Minimum period to test, in days.
-    periodMax: float, opt
+    periodMax: float, optional
         Maximum period to test, in days
-    nVisitsMin: int, opt
+    nVisitsMin: int, optional
         Minimum number of visits necessary before looking for the phase gap.
     """
     def __init__(self, col='observationStartMJD', nPeriods=5, periodMin=3., periodMax=35., nVisitsMin=3,

@@ -53,15 +53,15 @@ class CrowdingM5Metric(BaseMetric):
         """
         Parameters
         ----------
-        crowding_error : float, opt
+        crowding_error : float, optional
             The magnitude uncertainty from crowding in magnitudes. Default 0.1 mags.
-        filtername: str, opt
+        filtername: str, optional
             The bandpass in which to calculate the crowding limit. Default r.
-        seeingCol : str, opt
+        seeingCol : str, optional
             The name of the seeing column.
-        m5Col : str, opt
+        m5Col : str, optional
             The name of the m5 depth column.
-        maps : list of str, opt
+        maps : list of str, optional
             Names of maps required for the metric.
 
         Returns
@@ -109,15 +109,15 @@ class NstarsMetric(BaseMetric):
         """
         Parameters
         ----------
-        crowding_error : float, opt
+        crowding_error : float, optional
             The magnitude uncertainty from crowding in magnitudes. Default 0.1 mags.
-        filtername: str, opt
+        filtername: str, optional
             The bandpass in which to calculate the crowding limit. Default r.
-        seeingCol : str, opt
+        seeingCol : str, optional
             The name of the seeing column.
-        m5Col : str, opt
+        m5Col : str, optional
             The name of the m5 depth column.
-        maps : list of str, opt
+        maps : list of str, optional
             Names of maps required for the metric.
         ignore_crowding : bool (False)
             Ignore the cowding limit.

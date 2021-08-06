@@ -15,12 +15,12 @@ class UnscheduledDowntimeData(object):
     start_time : astropy.time.Time
         The time of the start of the simulation.
         The cloud database will be assumed to start on Jan 01 of the same year.
-    seed : int, opt
+    seed : int, optional
         The random seed for creating the random nights of unscheduled downtime. Default 1516231120.
-    start_of_night_offset : float, opt
+    start_of_night_offset : float, optional
         The fraction of a day to offset from MJD.0 to reach the defined start of a night ('noon' works).
         Default 0.16 (UTC midnight in Chile) - 0.5 (minus half a day) = -0.34
-    survey_length : int, opt
+    survey_length : int, optional
         The number of nights in the total survey. Default 3650*2.
     """
 

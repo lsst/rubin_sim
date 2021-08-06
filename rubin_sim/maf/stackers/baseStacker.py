@@ -164,7 +164,7 @@ class BaseStacker(with_metaclass(StackerRegistry, object)):
         ----------
         simData: np.NDarray
             The observation data, provided by the MAF framework.
-        cols_present: bool, opt
+        cols_present: bool, optional
             Flag to indicate whether the columns to be added are already present in the data.
             This will also be provided by the MAF framework -- but your _run method can use the value.
             If it is 'True' and you do trust the existing value, the _run method can simply return simData.

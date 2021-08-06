@@ -85,7 +85,7 @@ def phase_LogLinear(phase, slope=0.04):
     ----------
     phase : float or array
         Phase angle (degrees)
-    slope : float, opt
+    slope : float, optional
         The slope for the phase function. Default 0.04.
 
     Returns
@@ -104,7 +104,7 @@ def phase_HG(phase, G=0.15):
     ----------
     phase : float or array
         Phase angle (degrees)
-    G : float, opt
+    G : float, optional
         The G value for the formula. Default 0.15.
 
     Returns

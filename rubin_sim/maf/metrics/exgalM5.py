@@ -13,9 +13,9 @@ class ExgalM5(BaseMetric):
 
     Parameters
     ----------
-    m5Col : str, opt
+    m5Col : str, optional
         Column name for five sigma depth. Default 'fiveSigmaDepth'.
-    unit : str, opt
+    unit : str, optional
         Label for units. Default 'mag'.
     """
     def __init__(self, m5Col='fiveSigmaDepth', metricName='ExgalM5', units='mag',

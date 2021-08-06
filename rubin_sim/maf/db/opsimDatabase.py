@@ -83,13 +83,13 @@ class BaseOpsimDatabase(Database):
         ----------
         colnames : list
             The columns to fetch from the table.
-        sqlconstraint : str, opt
+        sqlconstraint : str, optional
             The sql constraint to apply to the data (minus "WHERE"). Default None.
             Examples: to fetch data for the r band filter only, set sqlconstraint to 'filter = "r"'.
-        groupBy : str, opt
+        groupBy : str, optional
             The column to group the returned data by.
             Default (when using summaryTable) is the MJD, otherwise will be None.
-        tableName : str, opt
+        tableName : str, optional
             The table to query. The default (None) will use the summary table, set by self.summaryTable.
 
         Returns
@@ -116,13 +116,13 @@ class BaseOpsimDatabase(Database):
 
         Parameters
         ----------
-        sqlconstraint : str, opt
+        sqlconstraint : str, optional
             Sqlconstraint to apply before selecting observations to use for RA/Dec. Default None.
-        raColName : str, opt
+        raColName : str, optional
             Name of the RA column in the database.
-        decColName : str, opt
+        decColName : str, optional
             Name of the Dec column in the database.
-        degreesToRadians : bool, opt
+        degreesToRadians : bool, optional
             Convert ra/dec into degrees?
             If field information in summary table is in degrees, degreesToRadians should be True.
 
@@ -209,20 +209,20 @@ class OpsimDatabaseFBS(BaseOpsimDatabase):
     ----------
     database : str
         Name of the database or sqlite filename.
-    driver : str, opt
+    driver : str, optional
         Name of the dialect + driver for sqlalchemy. Default 'sqlite'.
-    host : str, opt
+    host : str, optional
         Name of the database host. Default None (appropriate for sqlite files).
-    port : str, opt
+    port : str, optional
         String port number for the database. Default None (appropriate for sqlite files).
-    defaultTable : str, opt
+    defaultTable : str, optional
         Name of the default table to query to get observations.
         Default 'observations' for version > 1.7.1
         Default 'summaryAllProps' for version < v.1.7.1
         Identification of default table can be handled automatically by using 'db.OpsimDatabase'
-    longstrings: bool, opt
+    longstrings: bool, optional
         Expect long strings when querying database. Default False.
-    verbose: bool, opt
+    verbose: bool, optional
         Be verbose. Default False.
     """
     def __init__(self, database, driver='sqlite', host=None, port=None, defaultTable='observations',
@@ -349,13 +349,13 @@ class OpsimDatabaseV4(BaseOpsimDatabase):
     ----------
     database : str
         Name of the database or sqlite filename.
-    driver : str, opt
+    driver : str, optional
         Name of the dialect + driver for sqlalchemy. Default 'sqlite'.
-    host : str, opt
+    host : str, optional
         Name of the database host. Default None (appropriate for sqlite files).
-    port : str, opt
+    port : str, optional
         String port number for the database. Default None (appropriate for sqlite files).
-    dbTables : dict, opt
+    dbTables : dict, optional
         Dictionary of the names of the tables in the database.
         The dict should be key = table name, value = [table name, primary key].
     """
@@ -403,7 +403,7 @@ class OpsimDatabaseV4(BaseOpsimDatabase):
         ----------
         propId : int or list of ints
             Proposal ID or list of proposal IDs to use to select fields.
-        degreesToRadians : bool, opt
+        degreesToRadians : bool, optional
             If True, convert degrees in Field table into radians.
 
         Returns
@@ -480,9 +480,9 @@ class OpsimDatabaseV4(BaseOpsimDatabase):
 
         Parameters
         ----------
-        startTime : float or None, opt
+        startTime : float or None, optional
             Time of first slew. Default (None) means no constraint on time of first slew.
-        endTime : float or None, opt
+        endTime : float or None, optional
             Time of last slew. Default (None) means no constraint on time of last slew.
 
         Returns
@@ -552,7 +552,7 @@ class OpsimDatabaseV4(BaseOpsimDatabase):
 
         Parameters
         ----------
-        propId : int or list of ints, opt
+        propId : int or list of ints, optional
 
         Returns
         -------
@@ -940,9 +940,9 @@ class OpsimDatabaseV3(BaseOpsimDatabase):
 
         Parameters
         ----------
-        startTime : float or None, opt
+        startTime : float or None, optional
             Time of first slew. Default (None) means no constraint on time of first slew.
-        endTime : float or None, opt
+        endTime : float or None, optional
             Time of last slew. Default (None) means no constraint on time of last slew.
 
         Returns

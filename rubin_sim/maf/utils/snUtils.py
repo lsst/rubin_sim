@@ -18,7 +18,7 @@ class Lims:
         band considered
     SNR : float
         Signal-To-Noise Ratio cut
-    mag_range : pair(float),opt
+    mag_range : pair(float), optional
         mag range considered
         Default : (23., 27.5)
     dt_range : pair(float)
@@ -180,7 +180,7 @@ class GenerateFakeObservations:
     ---------
     config: yaml-like
        configuration file (parameter choice: filter, cadence, m5,Nseasons, ...)
-    list : str,opt
+    list : str, optional
         Name of the columns used.
         Default : 'observationStartMJD', 'fieldRA', 'fieldDec','filter','fiveSigmaDepth','visitExposureTime','numExposures','visitTime','season'
 

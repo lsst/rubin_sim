@@ -8,7 +8,7 @@ class DowntimeModel(object):
 
     Parameters
     ----------
-    config: DowntimeModelConfig, opt
+    config: DowntimeModelConfig, optional
         A configuration class for the downtime model.
         This can be None, in which case the default DowntimeModelConfig is used.
         The user should set any non-default values for DowntimeModelConfig before

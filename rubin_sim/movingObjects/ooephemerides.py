@@ -31,7 +31,7 @@ class PyOrbEphemerides(object):
 
     Parameters
     ----------
-    ephfile : str, opt
+    ephfile : str, optional
         Planetary ephemerides file for Oorb (i.e. de430 or de405).
         Default $OORB_DATA/de430.dat  ($OORB_DATA = $OORB_DIR/data).
     """
@@ -166,7 +166,7 @@ class PyOrbEphemerides(object):
 
         Parameters
         ----------
-        format : str, opt
+        format : str, optional
             Format to convert orbital elements into.
 
         Returns

@@ -28,9 +28,9 @@ def m5_scale(expTime, nexp, airmass, FWHMeff, musky, darkSkyMag, Cm, dCm_infinit
         dCm_infinity values for the throughputs, per filter
     kAtm : np.ndarray or pd.DataFrame
         Atmospheric extinction values, per filter
-    tauCloud : float, opt
+    tauCloud : float, optional
         Extinction due to clouds
-    baseExpTime : float, opt
+    baseExpTime : float, optional
         The exposure time used to calculate Cm / dCm_infinity. Used to scale expTime.
         This is the individual exposure exposure time.
 
@@ -71,7 +71,7 @@ def m5_flat_sed(visitFilter, musky, FWHMeff, expTime, airmass, nexp=1, tauCloud=
         Exposure time for each exposure in the visit.
     airmass : float
         Airmass of the observation (unitless)
-    nexp : int, opt
+    nexp : int, optional
         The number of exposures. Default 1.  (total on-sky time = expTime * nexp)
     tauCloud : float (0.)
         Any extinction from clouds in magnitudes (positive values = more extinction)

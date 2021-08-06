@@ -41,7 +41,7 @@ class SeasonLengthMetric(BaseMetric):
 
     Parameters
     ----------
-    minExpTime: float, opt
+    minExpTime: float, optional
         Minimum visit exposure time to count for a 'visit', in seconds. Default 20.
     reduceFunc : function, optional
        Function that can operate on array-like structures. Typically numpy function.
@@ -161,26 +161,26 @@ class TdcMetric(BaseMetric):
 
     Parameters
     ----------
-    mjdCol: str, opt
+    mjdCol: str, optional
         Column name for mjd. Default observationStartMJD.
-    nightCol: str, opt
+    nightCol: str, optional
         Column name for night. Default night.
-    filterCol: str, opt
+    filterCol: str, optional
         Column name for filter. Default filter.
-    m5Col: str, opt
+    m5Col: str, optional
         Column name for five-sigma depth. Default fiveSigmaDepth.
-    magCuts: dict, opt
+    magCuts: dict, optional
         Dictionary with filtername:mag limit (after dust extinction). Default None in kwarg.
         Defaults set within metric: {'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4}
-    metricName: str, opt
+    metricName: str, optional
         Metric Name. Default TDC.
-    cadNorm: float, opt
+    cadNorm: float, optional
         Cadence normalization constant, in units of days. Default 3.
-    seaNorm: float, opt
+    seaNorm: float, optional
         Season normalization constant, in units of months. Default 4.
-    campNorm: float, opt
+    campNorm: float, optional
         Campaign length normalization constant, in units of years. Default 5.
-    badval: float, opt
+    badval: float, optional
         Return this value instead of the dictionary for bad points.
 
     Returns

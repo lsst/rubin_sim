@@ -15,21 +15,21 @@ class SNSNRMetric(metrics.BaseMetric):
 
     Parameters
     ----------
-    list : str, opt
+    list : str, optional
         Name of the columns used to estimate the metric
         Default : 'observationStartMJD', 'fieldRA', 'fieldDec','filter','fiveSigmaDepth',
         'visitExposureTime','night','observationId', 'numExposures','visitTime'
-    coadd :  bool, opt
+    coadd :  bool, optional
         to make "coaddition" per night (uses snStacker)
         Default : True
-    lim_sn : class, opt
+    lim_sn : class, optional
         Reference data used to simulate LC points (interpolation)
-    names_ref : str,opt
+    names_ref : str, optional
         names of the simulator used to produce reference data
-    season : flota,opt
+    season : flota, optional
         season num
         Default : 1.
-    z : float,opt
+    z : float, optional
         redshift for this study
         Default : 0.01
     """

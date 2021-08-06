@@ -19,10 +19,10 @@ class ScheduledDowntimeData(object):
     start_time : astropy.time.Time
         The time of the start of the simulation.
         The cloud database will be assumed to start on Jan 01 of the same year.
-    cloud_db : str, opt
+    cloud_db : str, optional
         The full path name for the cloud database. Default None,
         which will use the database stored in the module ($SIMS_CLOUDMODEL_DIR/data/cloud.db).
-    start_of_night_offset : float, opt
+    start_of_night_offset : float, optional
         The fraction of a day to offset from MJD.0 to reach the defined start of a night ('noon' works).
         Default 0.16 (UTC midnight in Chile) - 0.5 (minus half a day) = -0.34
     """

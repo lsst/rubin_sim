@@ -16,19 +16,19 @@ def phaseGap(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetadat
 
     Parameters
     ----------
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    nside : int, opt
+    nside : int, optional
         Nside for the healpix slicer. Default 64.
-    extraSql : str or None, opt
+    extraSql : str or None, optional
         Additional sql constraint to apply to all metrics.
-    extraMetadata : str or None, opt
+    extraMetadata : str or None, optional
         Additional metadata to apply to all results.
     ditherStacker: str or rubin_sim.maf.stackers.BaseDitherStacker
         Optional dither stacker to use to define ra/dec columns.
-    ditherkwargs: dict or None, opt
+    ditherkwargs: dict or None, optional
         Optional dictionary of kwargs for the dither stacker.
 
     Returns

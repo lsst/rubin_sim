@@ -18,10 +18,10 @@ class CloudData(object):
     start_time : astropy.time.Time
         The time of the start of the simulation.
         The cloud database will be assumed to start on Jan 01 of the same year.
-    cloud_db : str, opt
+    cloud_db : str, optional
         The full path name for the cloud database. Default None,
         which will use the database stored in the module ($SIMS_CLOUDMODEL_DIR/data/cloud.db).
-    offset_year : float, opt
+    offset_year : float, optional
         Offset into the cloud database by 'offset_year' years. Default 0.
     scale : float (1e6)
         Enforce machine precision for cross-platform repeatability by scaling and rounding date values.

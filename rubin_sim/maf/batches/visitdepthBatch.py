@@ -20,24 +20,24 @@ def nvisitsM5Maps(colmap=None, runName='opsim',
 
     Parameters
     ----------
-    colmap : dict, opt
+    colmap : dict, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    extraSql : str, opt
+    extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str, opt
+    extraMetadata : str, optional
         Additional metadata to add before any below (i.e. "WFD").  Default is None.
-    nside : int, opt
+    nside : int, optional
         Nside value for healpix slicer. Default 64.
         If "None" is passed, the healpixslicer-based metrics will be skipped.
-    runLength : float, opt
+    runLength : float, optional
         Length of the simulated survey, for scaling values for the plot limits.
         Default 10.
     ditherStacker: str or rubin_sim.maf.stackers.BaseDitherStacker
         Optional dither stacker to use to define ra/dec columns.
-    ditherkwargs: dict, opt
+    ditherkwargs: dict, optional
         Optional dictionary of kwargs for the dither stacker.
 
     Returns
@@ -133,21 +133,21 @@ def tEffMetrics(colmap=None, runName='opsim',
 
     Parameters
     ----------
-    colmap : dict, opt
+    colmap : dict, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    extraSql : str, opt
+    extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str, opt
+    extraMetadata : str, optional
         Additional metadata to add before any below (i.e. "WFD").  Default is None.
-    nside : int, opt
+    nside : int, optional
         Nside value for healpix slicer. Default 64.
         If "None" is passed, the healpixslicer-based metrics will be skipped.
     ditherStacker: str or rubin_sim.maf.stackers.BaseDitherStacker
         Optional dither stacker to use to define ra/dec columns.
-    ditherkwargs: dict, opt
+    ditherkwargs: dict, optional
         Optional dictionary of kwargs for the dither stacker.
 
     Returns
@@ -226,18 +226,18 @@ def nvisitsPerNight(colmap=None, runName='opsim', binNights=1,
 
     Parameters
     ----------
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    binNights : int, opt
+    binNights : int, optional
         Number of nights to count in each bin. Default = 1, count number of visits in each night.
-    extraSql : str or None, opt
+    extraSql : str or None, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str or None, opt
+    extraMetadata : str or None, optional
         Additional metadata to add before any below (i.e. "WFD").  Default is None.
-    subgroup : str or None, opt
+    subgroup : str or None, optional
         Use this for the 'subgroup' in the displayDict, instead of metadata. Default is None.
 
     Returns
@@ -283,13 +283,13 @@ def nvisitsPerProp(opsdb, colmap=None, runName='opsim', binNights=1, extraSql=No
     Parameters
     ----------
     opsdb : rubin_sim.maf.db.Database or rubin_sim.maf.db.OpsimDatabase* object
-    colmap : dict or None, opt
+    colmap : dict or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, opt
+    runName : str, optional
         The name of the simulated survey. Default is "opsim".
-    binNights : int, opt
+    binNights : int, optional
         Number of nights to count in each bin. Default = 1, count number of visits in each night.
-    sqlConstraint : str or None, opt
+    sqlConstraint : str or None, optional
         SQL constraint to add to all metrics.
 
     Returns

@@ -9,26 +9,26 @@ class DepthLimitedNumGalMetric(metrics.BaseMetric):
 
     Parameters
     ----------
-    m5Col: str, opt
+    m5Col: str, optional
         Name of column for depth in the data. Default: 'fiveSigmaDepth'
-    filterCol: str, opt
+    filterCol: str, optional
         Name of column for filter in the data. Default: 'filter'
-    maps: list, opt
+    maps: list, optional
         List of map names. Default: ['DustMap']
-    nside: int, opt
+    nside: int, optional
         HEALpix resolution parameter. Default: 256. This should match slicer nside.
-    filterBand: str, opt
+    filterBand: str, optional
         Filter to use to calculate galaxy counts. Any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
-    redshiftBin: str, opt
+    redshiftBin: str, optional
         options include '0.<z<0.15', '0.15<z<0.37', '0.37<z<0.66, '0.66<z<1.0',
         '1.0<z<1.5', '1.5<z<2.0', '2.0<z<2.5', '2.5<z<3.0','3.0<z<3.5', '3.5<z<4.0',
         'all' for no redshift restriction (so consider 0.<z<4.0)
         Default: 'all'
-    nfilters_needed: int, opt
+    nfilters_needed: int, optional
         Number of filters in which to require coverage. Default: 6
-    lim_mag_i_ptsrc: float, opt
+    lim_mag_i_ptsrc: float, optional
         Point-source limiting mag for the i-band coadded dust-corrected depth. Default: 26.0
-    lim_ebv: float, opt
+    lim_ebv: float, optional
         Limiting EBV value. Default: 0.2
 
     Returns

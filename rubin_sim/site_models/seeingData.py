@@ -16,7 +16,7 @@ class SeeingData(object):
     start_time : astropy.time.Time
         The time of the start of the simulation.
         The seeing database will be assumed to start on Jan 01 of the same year.
-    seeing_db : str or None, opt
+    seeing_db : str or None, optional
         The name of the seeing database.
         If None (default), this will use the simsee_pachon_58777_13.db file in the 'data' directory
         of this package.
@@ -25,7 +25,7 @@ class SeeingData(object):
         simsee_pachon_58777_13.db (the current default, 10 year, seeing database)
         simsee_pachon_58777_16.db (a similar, but slightly offset, 13 year seeing database)
         For more info on simsee_pachon_58777_*, see https://github.com/lsst/sims_seeingModel/issues/2
-    offset_year : float, opt
+    offset_year : float, optional
         Offset into the cloud database by 'offset_year' years. Default 0.
     """
     def __init__(self, start_time, seeing_db=None, offset_year=0):

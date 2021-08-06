@@ -104,7 +104,7 @@ class BaseChildMetric(BaseMoMetric):
     ----------
     parentDiscoveryMetric: BaseMoMetric
         The 'parent' metric which generated the metric data used to calculate this 'child' metric.
-    badval: float, opt
+    badval: float, optional
         Value to return when metric cannot be calculated.
     """
     def __init__(self, parentDiscoveryMetric, badval=0, **kwargs):
@@ -217,23 +217,23 @@ class DiscoveryMetric(BaseMoMetric):
 
     Parameters
     ----------
-    nObsPerNight : int, opt
+    nObsPerNight : int, optional
         Number of observations required within a single night. Default 2.
-    tMin : float, opt
+    tMin : float, optional
         Minimum time span between observations in a single night, in days.
         Default 5 minutes (5/60/24).
-    tMax : float, opt
+    tMax : float, optional
         Maximum time span between observations in a single night, in days.
         Default 90 minutes.
-    nNightsPerWindow : int, opt
+    nNightsPerWindow : int, optional
         Number of nights required with observations, within the track window. Default 3.
-    tWindow : int, opt
+    tWindow : int, optional
         Number of nights included in the track window. Default 15.
-    snrLimit : None or float, opt
+    snrLimit : None or float, optional
         SNR limit to use for observations. If snrLimit is None, (default), then it uses
         the completeness calculation added to the 'vis' column (probabilistic visibility,
         based on 5-sigma limit). If snrLimit is not None, it uses this SNR value as a cutoff.
-    metricName : str, opt
+    metricName : str, optional
         The metric name to use.
         Default will be to construct Discovery_nObsPerNightxnNightsPerWindowintWindow.
     """
@@ -643,16 +643,16 @@ class HighVelocityNightsMetric(BaseMoMetric):
 
     Parameters
     ----------
-    psfFactor: float, opt
+    psfFactor: float, optional
         Object velocity (deg/day) must be >= 24 * psfFactor * seeingGeom (") / visitExpTime (s).
         Default is 2 (i.e. object trailed over 2 psf's).
-    nObsPerNight: int, opt
+    nObsPerNight: int, optional
         Number of observations per night required. Default 2.
     snrLimit: float or None
         If snrLimit is set as a float, then requires object to be above snrLimit SNR in the image.
         If snrLimit is None, this uses the probabilistic 'visibility' calculated by the vis stacker,
         which means SNR ~ 5.   Default is None.
-    velocityCol: str, opt
+    velocityCol: str, optional
         Name of the velocity column in the obs file. Default 'velocity'. (note this is deg/day).
 
     Returns
@@ -718,16 +718,16 @@ class LightcurveInversion_AsteroidMetric(BaseMoMetric):
 
     Parameters
     ----------
-    weightDet: float, opt
+    weightDet: float, optional
         The SNR-weighted number of detections required (per bandpass in any ONE of the filters in filterlist).
         Default 50.
-    snrLimit: float or None, opt
+    snrLimit: float or None, optional
         If snrLimit is set as a float, then requires object to be above snrLimit SNR in the image.
         If snrLimit is None, this uses the probabilistic 'visibility' calculated by the vis stacker,
         which means SNR ~ 5.   Default is None.
-    snrMax: float, opt
+    snrMax: float, optional
         Maximum value toward the SNR-weighting to consider. Default 100.
-    filterlist: list of str, opt
+    filterlist: list of str, optional
         The filters which the lightcurve inversion could be based on. Requirements must be met in one of
         these filters.
 
@@ -802,14 +802,14 @@ class Color_AsteroidMetric(BaseMoMetric):
 
     Parameters
     ----------
-    weightDet: float, opt
+    weightDet: float, optional
         The SNR-weighted number of detections required (per bandpass in any ONE of the filters in filterlist).
         Default 10.
-    snrLimit: float or None, opt
+    snrLimit: float or None, optional
         If snrLimit is set as a float, then requires object to be above snrLimit SNR in the image.
         If snrLimit is None, this uses the probabilistic 'visibility' calculated by the vis stacker,
         which means SNR ~ 5.   Default is None.
-    snrMax: float, opt
+    snrMax: float, optional
         Maximum value toward the SNR-weighting to consider. Default 20.
 
     Returns
@@ -891,15 +891,15 @@ class LightcurveColor_OuterMetric(BaseMoMetric):
 
     Parameters
     ----------
-    snrLimit: float or None, opt
+    snrLimit: float or None, optional
         If snrLimit is set as a float, then requires object to be above snrLimit SNR in the image.
         If snrLimit is None, this uses the probabilistic 'visibility' calculated by the vis stacker,
         which means SNR ~ 5.   Default is None.
-    numReq: int, opt
+    numReq: int, optional
         Number of observations required for a lightcurve fitting. Default 30.
-    numSecFilt: int, opt
+    numSecFilt: int, optional
         Number of observations required in a secondary band for color only. Default 20.
-    filterlist: list of str, opt
+    filterlist: list of str, optional
         Filters that the primary/secondary measurements can be in.
 
     Returns
@@ -959,16 +959,16 @@ class InstantaneousColorMetric(BaseMoMetric):
 
     Parameters
     ----------
-    nPairs: int, opt
+    nPairs: int, optional
         The number of pairs of observations (in each band) that must be within nHours
         Default 1
-    snrLimit: float, opt
+    snrLimit: float, optional
         The SNR limit for the observations. Default 10.
-    nHours: float, opt
+    nHours: float, optional
         The time interval between observations in the two bandpasses (hours). Default 0.5 hours.
-    bOne: str, opt
+    bOne: str, optional
         The first bandpass for the color. Default 'g'.
-    bTwo: str, opt
+    bTwo: str, optional
         The second bandpass for the color. Default 'r'.
 
     Returns
@@ -1030,38 +1030,38 @@ class KnownObjectsMetric(BaseMoMetric):
 
     Parameters
     -----------
-    elongThresh : float, opt
+    elongThresh : float, optional
         The cutoff in solar elongation to consider an object 'visible'. Default 100 deg.
-    vMagThresh1 : float, opt
+    vMagThresh1 : float, optional
         The magnitude threshold for previously known objects. Default 20.0.
-    eff1 : float, opt
+    eff1 : float, optional
         The likelihood of actually achieving each individual input observation.
         If the input observations include one observation per day, an 'eff' value of 0.3 would
         mean that (on average) only one third of these observations would be achieved.
         This is similar to the level for LSST, which can cover the visible sky every 3-4 days.
         Default 0.1
-    tSwitch1 : float, opt
+    tSwitch1 : float, optional
         The (MJD) time to switch between vMagThresh1 + eff1 to vMagThresh2 + eff2, e.g.
         the end of the first period.
         Default 53371 (2005).
-    vMagThresh2 : float, opt
+    vMagThresh2 : float, optional
         The magnitude threshhold for previously known objects. Default 22.0.
         This is based on assuming PS and other surveys will be efficient down to V=22.
-    eff2 : float, opt
+    eff2 : float, optional
         The efficiency of observations during the second period of time. Default 0.1
-    tSwitch2 : float, opt
+    tSwitch2 : float, optional
         The (MJD) time to switch between vMagThresh2 + eff2 to vMagThresh3 + eff3.
         Default 57023 (2015).
-    vMagThresh3 : float, opt
+    vMagThresh3 : float, optional
         The magnitude threshold during the third period. Default 22.0, based on PS1 + Catalina.
-    eff3 : float, opt
+    eff3 : float, optional
         The efficiency of observations during the third period. Default 0.1
-    tSwitch3 : float, opt
+    tSwitch3 : float, optional
         The (MJD) time to switch between vMagThresh3 + eff3 to vMagThresh4 + eff4.
         Default 59580 (2022).
-    vMagThresh4 : float, opt
+    vMagThresh4 : float, optional
         The magnitude threshhold during the fourth (last) period. Default 22.0, based on PS1 + Catalina.
-    eff4 : float, opt
+    eff4 : float, optional
         The efficiency of observations during the fourth (last) period. Default 0.2
     """
     def __init__(self, elongThresh=100., vMagThresh1=20.0, eff1=0.1, tSwitch1=53371,

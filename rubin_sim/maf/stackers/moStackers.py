@@ -47,15 +47,15 @@ class MoMagStacker(BaseMoStacker):
     some probabilistic determination of visibility).
     Parameters
     ----------
-    m5Col : str, opt
+    m5Col : str, optional
         Name of the column describing the 5 sigma depth of each visit. Default fiveSigmaDepth.
-    lossCol : str, opt
+    lossCol : str, optional
         Name of the column describing the magnitude losses,
         due to trailing (dmagTrail) or detection (dmagDetect). Default dmagDetect.
-    gamma : float, opt
+    gamma : float, optional
         The 'gamma' value for calculating SNR. Default 0.038.
         LSST range under normal conditions is about 0.037 to 0.039.
-    sigma : float, opt
+    sigma : float, optional
         The 'sigma' value for probabilistic prediction of whether or not an object is visible at 5sigma.
         Default 0.12.
         The probabilistic prediction of visibility is based on Fermi-Dirac completeness formula (see SDSS,
@@ -135,12 +135,12 @@ class AppMagStacker(BaseMoStacker):
 
     Parameters
     ----------
-    vMagCol : str, opt
+    vMagCol : str, optional
         Name of the column containing the base V magnitude for the object at H=Href.
-    lossCol : str, opt
+    lossCol : str, optional
         Name of the column describing the magnitude losses,
         due to trailing (dmagTrail) or detection (dmagDetect). Default dmagDetect.
-    colorCol : str, opt
+    colorCol : str, optional
         Name of the column describing the color correction (into the observation filter, from V).
         Default dmagColor.
     """
@@ -166,7 +166,7 @@ class CometAppMagStacker(BaseMoStacker):
 
     Parameters
     ----------
-    cometType : str, opt
+    cometType : str, optional
         Type of comet - short, oort, or mbc. This setting also sets the value of Afrho1 and k:
         short = Afrho1 / R^2 = 100 cm/km2, k = -4
         oort = Afrho1 / R^2 = 1000 cm/km2, k = -2
@@ -175,13 +175,13 @@ class CometAppMagStacker(BaseMoStacker):
         It is also possible to pass this a dictionary instead: the dictionary should contain 'k' and
         'Afrho1_const' keys, which will be used to set these values directly.
         (e.g. cometType = {'k': -3.5, 'Afrho1_const': 1500}).
-    Ap : float, opt
+    Ap : float, optional
         The albedo for calculating the object's size. Default 0.04
-    rhCol : str, opt
+    rhCol : str, optional
         The column name for the heliocentric distance (in AU). Default 'helio_dist'.
-    deltaCol : str, opt
+    deltaCol : str, optional
         The column name for the geocentric distance (in AU). Default 'geo_dist'.
-    phaseCol : str, opt
+    phaseCol : str, optional
         The column name for the phase value (in degrees). Default 'phase'.
     """
     colsAdded = ['appMag']
@@ -266,14 +266,14 @@ class SNRStacker(BaseMoStacker):
 
     Parameters
     ----------
-    appMagCol : str, opt
+    appMagCol : str, optional
         Name of the column describing the apparent magnitude of the object. Default 'appMag'.
-    m5Col : str, opt
+    m5Col : str, optional
         Name of the column describing the 5 sigma depth of each visit. Default fiveSigmaDepth.
-    gamma : float, opt
+    gamma : float, optional
         The 'gamma' value for calculating SNR. Default 0.038.
         LSST range under normal conditions is about 0.037 to 0.039.
-    sigma : float, opt
+    sigma : float, optional
         The 'sigma' value for probabilistic prediction of whether or not an object is visible at 5sigma.
         Default 0.12.
         The probabilistic prediction of visibility is based on Fermi-Dirac completeness formula (see SDSS,
@@ -316,11 +316,11 @@ class EclStacker(BaseMoStacker):
 
     Parameters
     -----------
-    raCol : str, opt
+    raCol : str, optional
         Name of the RA column to convert to ecliptic lat/long. Default 'ra'.
-    decCol : str, opt
+    decCol : str, optional
         Name of the Dec column to convert to ecliptic lat/long. Default 'dec'.
-    inDeg : bool, opt
+    inDeg : bool, optional
         Flag indicating whether RA/Dec are in degrees. Default True.
     """
     colsAdded = ['ecLat', 'ecLon']

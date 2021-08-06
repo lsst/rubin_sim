@@ -111,7 +111,7 @@ def merge_hulls(indices_lists, dist_matrix):
 
 
 def three_opt(route, dist_matrix):
-    """Iterates over all possible 3-opt transformations.
+    """Iterates over all possible 3-optional transformations.
 
     Parameters
     ---------
@@ -166,7 +166,7 @@ def tsp_convex(towns, optimize=False, niter=10):
     towns : np.array (shape n,2)
         The points to find a path through
     optimize : bool (False)
-        Optional to run the 3-opt transformation to optimize route
+        Optional to run the 3-optional transformation to optimize route
     niter : int (10)
         Max number of iterations to run on optimize loop.
 

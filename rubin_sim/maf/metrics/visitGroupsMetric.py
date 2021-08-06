@@ -20,9 +20,9 @@ class PairFractionMetric(BaseMetric):
 
     Parameters
     ----------
-    minGap : float, opt
+    minGap : float, optional
         Minimum time to consider something part of a pair (minutes). Default 15.
-    maxGap : float, opt
+    maxGap : float, optional
         Maximum time to consider something part of a pair (minutes). Default 90.
     """
     def __init__(self, mjdCol='observationStartMJD', metricName='PairFraction',

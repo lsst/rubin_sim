@@ -15,9 +15,9 @@ class OpSimFieldStacker(BaseStacker):
 
     Parameters
     ----------
-    raCol : str, opt
+    raCol : str, optional
         Name of the RA column. Default fieldRA.
-    decCol : str, opt
+    decCol : str, optional
         Name of the Dec column. Default fieldDec.
 
     """
@@ -63,17 +63,17 @@ class WFDlabelStacker(BaseStacker):
 
     Parameters
     ----------
-    footprint: np.NDarray, opt
+    footprint: np.NDarray, optional
         The healpix map indicating the desired footprint region.
         If this is not defined (default None), then the entire sky is used as the footprint.
-    fp_threshold: float, opt
+    fp_threshold: float, optional
         The threshold for the fraction of the visit area which falls within the footprint in order
         to be counted as 'in' the footprint. Default 0.4.
-    raCol: str, opt
+    raCol: str, optional
         The name of the RA column. Default fieldRA.
-    decCol: str, opt
+    decCol: str, optional
         The name of the Dec column. Default fieldDec.
-    noteCol: str, opt
+    noteCol: str, optional
         The name of the 'note' column in the database. Default 'note'. This is used to identify visits
         which were part of a DD sequence.
 
