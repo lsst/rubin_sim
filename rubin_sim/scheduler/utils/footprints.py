@@ -25,7 +25,141 @@ __all__ = ['ra_dec_hp_map', 'generate_all_sky', 'get_dustmap',
            'magellanic_clouds_healpixels', 'Constant_footprint',
            'generate_goal_map', 'standard_goals',
            'calc_norm_factor', 'filter_count_ratios', 'Step_line', 'Footprints', 'Footprint',
-           'Step_slopes', 'Base_pixel_evolution', 'combo_dust_fp', 'slice_wfd_area_quad']
+           'Step_slopes', 'Base_pixel_evolution', 'combo_dust_fp', 'slice_wfd_area_quad',
+           'slice_wfd_indx', 'slice_quad_galactic_cut', 'make_rolling_footprints']
+
+
+def make_rolling_footprints(fp_hp=None, mjd_start=60218., sun_RA_start=3.27717639,
+                            nslice=2, scale=0.8, nside=32, wfd_indx=None):
+    """
+    Generate rolling footprints
+
+    Parameters
+    ----------
+    fp_hp : dict-like
+        A dict with filtername keys and HEALpix map values
+    mjd_start : float
+        The starting date of the survey.
+    sun_RA_start : float
+        The RA of the sun at the start of the survey
+    nslice : int (2)
+        How much to slice the sky up. Can be 2 or 3. Value of 6 to be implemented.
+    scale : float (0.8)
+        The strength of the rolling, value of 1 is full power rolling, zero is no rolling.
+    wfd_indx : array of ints (none)
+        The indices of the HEALpix map that are to be included in the rolling.
+
+    Returns
+    -------
+    Footprints object
+    """
+
+    hp_footprints = fp_hp
+   
+    down = 1.-scale
+    up = nslice - down*(nslice-1)
+    start = [1., 1., 1.]
+    end = [1., 1., 1., 1., 1., 1.]
+    if nslice == 2:
+        rolling = [up, down, up, down, up, down]
+    elif nslice == 3:
+        rolling = [up, down, down, up, down, down]
+    elif nslice == 6:
+        rolling = [up, down, down, down, down, down]
+    all_slopes = [start + np.roll(rolling, i).tolist()+end for i in range(nslice)]
+
+    fp_non_wfd = Footprint(mjd_start, sun_RA_start=sun_RA_start)
+    rolling_footprints = []
+    for i in range(nslice):
+        step_func = Step_slopes(rise=all_slopes[i])
+        rolling_footprints.append(Footprint(mjd_start, sun_RA_start=sun_RA_start,
+                                            step_func=step_func))
+
+    wfd = hp_footprints['r'] * 0
+    if wfd_indx is None:
+        wfd_indx = np.where(hp_footprints['r'] == 1)[0]
+        non_wfd_indx = np.where(hp_footprints['r'] != 1)[0]
+
+    wfd[wfd_indx] = 1
+    non_wfd_indx = np.where(wfd == 0)[0] 
+
+    split_wfd_indices = slice_quad_galactic_cut(hp_footprints, nslice=nslice,
+                                                wfd_indx=wfd_indx)
+
+    for key in hp_footprints:
+        temp = hp_footprints[key] + 0
+        temp[wfd_indx] = 0
+        fp_non_wfd.set_footprint(key, temp)
+
+        for i in range(nslice):
+            # make a copy of the current filter
+            temp = hp_footprints[key] + 0
+            # Set the non-rolling area to zero
+            temp[non_wfd_indx] = 0
+            
+            indx = split_wfd_indices[i]
+            # invert the indices
+            ze = temp * 0
+            ze[indx] = 1
+            temp = temp * ze
+            rolling_footprints[i].set_footprint(key, temp)
+
+    result = Footprints([fp_non_wfd] + rolling_footprints)
+    return result
+
+
+def slice_wfd_indx(target_map, nslice=2, wfd_indx=None):
+    """
+    simple map split
+    """
+
+    wfd = target_map['r'] * 0
+    if wfd_indx is None:
+        wfd_innx = np.where(target_map['r'] == 1)[0]
+    wfd[wfd_indx] = 1
+    wfd_accum = np.cumsum(wfd)
+    split_wfd_indices = np.floor(np.max(wfd_accum)/nslice*(np.arange(nslice)+1)).astype(int)
+    split_wfd_indices = split_wfd_indices.tolist()
+    split_wfd_indices = [0] + split_wfd_indices
+
+    return split_wfd_indices
+
+
+def slice_quad_galactic_cut(target_map, nslice=2, wfd_indx=None):
+    """
+    Helper function for generating rolling footprints
+
+    Parameters
+    ----------
+    target_map : dict of HEALpix maps
+        The final desired footprint as HEALpix maps. Keys are filter names
+    nslice : int (2)
+        The number of slices to make, can be 2 or 3.
+    wfd_indx : array of ints
+        The indices of target_map that should be used for rolling. If None, assumes
+        the rolling area should be where target_map['r'] == 1.
+    """
+
+    ra, dec = ra_dec_hp_map(nside=hp.npix2nside(target_map['r'].size))
+
+    coord = SkyCoord(ra=ra*u.rad, dec=dec*u.rad)
+    gal_lon, gal_lat = coord.galactic.l.deg, coord.galactic.b.deg
+
+    indx_north = np.intersect1d(np.where(gal_lat >= 0)[0], wfd_indx)
+    indx_south = np.intersect1d(np.where(gal_lat < 0)[0], wfd_indx)
+    
+    splits_north = slice_wfd_area_quad(target_map, nslice=nslice, wfd_indx=indx_north)
+    splits_south = slice_wfd_area_quad(target_map, nslice=nslice, wfd_indx=indx_south)
+
+    slice_indx = []
+    for j in np.arange(nslice):
+        indx_temp = []
+        for i in np.arange(j+1, nslice*2+1, nslice):
+            indx_temp += indx_north[splits_north[i-1]:splits_north[i]].tolist()
+            indx_temp += indx_south[splits_south[i-1]:splits_south[i]].tolist()
+        slice_indx.append(indx_temp)
+
+    return slice_indx
 
 
 def slice_wfd_area_quad(target_map, nslice=2, wfd_indx=None):
