@@ -176,7 +176,7 @@ class HealpixSkyMap(BasePlotter):
         self.healpy_visufunc(metricValue.filled(badval), **visufunc_params)
 
         # Add a graticule (grid) over the globe.
-        hp.graticule(dpar=30, dmer=30, verbose=False)
+        hp.graticule(dpar=30, dmer=30)
         # Add colorbar (not using healpy default colorbar because we want more tickmarks).
         self.ax = plt.gca()
         im = self.ax.get_images()[0]
@@ -224,7 +224,8 @@ class HealpixPowerSpectrum(BasePlotter):
         plotDict.update(userPlotDict)
 
         fig = plt.figure(fignum, figsize=plotDict['figsize'])
-        ax = fig.add_subplot(plotDict['subplot'])
+        if plotDict['subplot'] != '111':
+            ax = fig.add_subplot(plotDict['subplot'])
         # If the mask is True everywhere (no data), just plot zeros
         if False not in metricValue.mask:
             return None
@@ -374,7 +375,10 @@ class BaseHistogram(BasePlotter):
             bins = optimalBins(metricValue)
         # Generate plots.
         fig = plt.figure(fignum, figsize=plotDict['figsize'])
-        ax = fig.add_subplot(plotDict['subplot'])
+        if plotDict['subplot'] != 111 and plotDict['subplot'] != (1,1,1) and plotDict['subplot'] is not None:
+            ax = fig.add_subplot(plotDict['subplot'])
+        else:
+            ax = plt.gca()
         # Check if any data falls within histRange, because otherwise histogram generation will fail.
         if isinstance(bins, np.ndarray):
             condition = ((metricValue >= bins.min()) & (metricValue <= bins.max()))
