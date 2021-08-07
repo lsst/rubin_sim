@@ -75,7 +75,7 @@ class LsstCameraFootprint(object):
         y_indx = y_indx[in_range]
         indices = in_range
         # reduce the indices down to only the ones that fall on silicon.
-        # self.camera_fov is an array of boolean values
+        # self.camera_fov is an array of `bool` values
         map_val = self.camera_fov[x_indx, y_indx]
         indices = indices[map_val].astype(int)
 

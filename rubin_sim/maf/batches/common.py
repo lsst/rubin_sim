@@ -26,7 +26,7 @@ def filterList(all=True, extraSql=None, extraMetadata=None):
 
     Parameters
     ----------
-    all : boolean, optional
+    all : `bool`, optional
         Include 'all' in the list of filters and as part of the colors/orders dictionaries.
         Default True.
     extraSql : str, optional

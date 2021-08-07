@@ -77,8 +77,6 @@ class WFDlabelStacker(BaseStacker):
         The name of the 'note' column in the database. Default 'note'. This is used to identify visits
         which were part of a DD sequence.
 
-    Note
-    -----
     This stacker modifies the proposalID column in the opsim database, to be labelled with '1' if the
     visit falls within the healpix footprint map and is not tagged as a DD visit. If it falls outside
     the footprint, the visit is tagged as '0'. If it was part of a DD sequence, the visit is tagged with

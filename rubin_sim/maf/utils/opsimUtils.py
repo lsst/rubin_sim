@@ -20,10 +20,10 @@ def writeConfigs(opsimDb, outDir):
 
     Parameters
     ----------
-    opsimDb : OpsimDatabase
+    opsimDb : `rubin_sim.maf.db.OpsimDatabase`
         The opsim database from which to pull the opsim configuration information.
         Opsim SQLite databases save this configuration information in their config table.
-    outputDir : str
+    outputDir : `str`
         The path to the output directory, where to write the config*.txt files.
     """
     configSummary, configDetails = opsimDb.fetchConfig()
@@ -41,15 +41,15 @@ def getFieldData(opsimDb, sqlconstraint):
     """
     Find the fields (ra/dec/fieldID) relevant for a given sql constraint.
     If the opsimDb contains a Fields table, it uses
-    :meth:`OpsimDatabase.fetchFieldsFromFieldTable()`
+    :meth:`rubin_sim.maf.OpsimDatabase.fetchFieldsFromFieldTable()`
     to get the fields. If the opsimDb contains only a Summary, it uses
-    :meth:`OpsimDatabase.fetchFieldsFromSummaryTable()`.
+    :meth:`rubin_sim.maf.OpsimDatabase.fetchFieldsFromSummaryTable()`.
 
     Parameters
     ----------
-    opsimDb : OpsimDatabase
+    opsimDb : `rubin_sim.maf.db.OpsimDatabase`
         An opsim database to use to query for field information.
-    sqlconstraint : str
+    sqlconstraint : `str`
         A SQL constraint to apply to the query (i.e. find all fields for DD proposal)
 
     Returns
@@ -101,28 +101,25 @@ def getFieldData(opsimDb, sqlconstraint):
 
 
 def getSimData(opsimDb, sqlconstraint, dbcols, stackers=None, groupBy='default', tableName=None):
-    """
-    Query an opsim database for the needed data columns and run any required stackers.
+    """Query an opsim database for the needed data columns and run any required stackers.
 
     Parameters
     ----------
-    opsimDb : OpsimDatabase
-    sqlconstraint : str
+    opsimDb : `rubin_sim.maf.db.OpsimDatabase`
+    sqlconstraint : `str`
         SQL constraint to apply to query for observations.
-    dbcols : list of str
+    dbcols : `list` [`str`]
         Columns required from the database.
-    stackers : list of Stackers
-        Stackers to be used to generate additional columns.
-    tableName : str
-        Name of the table to query.
-    distinctExpMJD : bool
-        Only select observations with a distinct expMJD value. This is overriden if groupBy is not expMJD.
-    groupBy : str
-        Column name to group SQL results by.
+    stackers : `list` [`rubin_sim.maf.Stackers`], optional
+        Stackers to be used to generate additional columns. Default None.
+    tableName : `str`, optional
+        Name of the table to query. Default None uses the opsimDb default.
+    groupBy : `str`, optional
+        Column name to group SQL results by.  Default uses the opsimDb default.
 
     Returns
     -------
-    numpy.ndarray
+    simData: `np.ndarray`
         A numpy structured array with columns resulting from dbcols + stackers, for observations matching
         the SQLconstraint.
     """
@@ -154,7 +151,7 @@ def scaleBenchmarks(runLength, benchmark='design'):
 
     Returns
     -------
-    dict of floats
+    benchmarks: `dict` of floats
        A dictionary containing the number of visits, area of footprint, seeing and FWHMeff values,
        skybrightness and single visit depth for either the design or stretch SRD values.
     """
@@ -172,13 +169,16 @@ def scaleBenchmarks(runLength, benchmark='design'):
     design['nvisits']={'u':56,'g':80, 'r':184, 'i':184, 'z':160, 'y':160}
     stretch['nvisits']={'u':70,'g':100, 'r':230, 'i':230, 'z':200, 'y':200}
 
-    design['skybrightness'] = {'u':21.8, 'g':22., 'r':21.3, 'i':20.0, 'z':19.1, 'y':17.5} # mag/sq arcsec
+    # mag/sq arcsec
+    design['skybrightness'] = {'u':21.8, 'g':22., 'r':21.3, 'i':20.0, 'z':19.1, 'y':17.5}
     stretch['skybrightness'] = {'u':21.8, 'g':22., 'r':21.3, 'i':20.0, 'z':19.1, 'y':17.5}
 
-    design['seeing'] = {'u':0.77, 'g':0.73, 'r':0.7, 'i':0.67, 'z':0.65, 'y':0.63} # arcsec - old seeing values
+    # arcsec - old seeing values
+    design['seeing'] = {'u':0.77, 'g':0.73, 'r':0.7, 'i':0.67, 'z':0.65, 'y':0.63}
     stretch['seeing'] = {'u':0.77, 'g':0.73, 'r':0.7, 'i':0.67, 'z':0.65, 'y':0.63}
 
-    design['FWHMeff'] = {'u':0.92, 'g':0.87, 'r':0.83, 'i':0.80, 'z':0.78, 'y':0.76} # arcsec - new FWHMeff values (scaled from old seeing)
+    # arcsec - new FWHMeff values (scaled from old seeing)
+    design['FWHMeff'] = {'u':0.92, 'g':0.87, 'r':0.83, 'i':0.80, 'z':0.78, 'y':0.76}
     stretch['FWHMeff'] = {'u':0.92, 'g':0.87, 'r':0.83, 'i':0.80, 'z':0.78, 'y':0.76}
 
     design['singleVisitDepth'] = {'u':23.9,'g':25.0, 'r':24.7, 'i':24.0, 'z':23.3, 'y':22.1}

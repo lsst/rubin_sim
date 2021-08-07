@@ -984,7 +984,7 @@ class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
     filterCol : str, optional
         The name of the filter column in the data.
         Default: 'filter'.
-    degrees : boolean, optional
+    degrees : `bool`, optional
         True if angles in the database are in degrees (default).
         If True, returned dithered values are in degrees also.
         If False, angles assumed to be in radians and returned in radians.

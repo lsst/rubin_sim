@@ -34,16 +34,22 @@ class RepulsiveRandomDitherFieldPerVisitStacker(BaseStacker):
 
     Note: dithers are confined to the hexagon inscribed in the circle with radius maxDither.
 
-    Optional Parameters
+    Parameters
     -------------------
-    * raCol: str: name of the RA column in the data. Default: 'fieldRA'.
-    * decCol : str: name of the Dec column in the data. Default: 'fieldDec'.
-    * fieldIdCol : str: name of the fieldID column in the data. Default: 'fieldIdCol'.
-    * maxDither: float: radius of the maximum dither offset, in degrees. Default: 1.75
-    * randomSeed: int: random seed for the numpy random number generation for the dither offsets.
-                       Default: None.
-    * printInfo: boolean: set to True to print out information about the number of squares considered,
-                          number of points chosen, and the filling factor. Default: False
+    raCol: str
+        name of the RA column in the data. Default: 'fieldRA'.
+    decCol : str
+        name of the Dec column in the data. Default: 'fieldDec'.
+    fieldIdCol : str
+        name of the fieldID column in the data. Default: 'fieldIdCol'.
+    maxDither: float
+        radius of the maximum dither offset, in degrees. Default: 1.75
+    randomSeed: int
+        random seed for the numpy random number generation for the dither offsets.
+        Default: None.
+    printInfo: `bool`
+        set to True to print out information about the number of squares considered,
+        number of points chosen, and the filling factor. Default: False
     """
     def __init__(self, raCol='fieldRA', decCol='fieldDec',
                  fieldIdCol='fieldID', maxDither=1.75, randomSeed=None, printInfo= False):
@@ -212,17 +218,24 @@ class RepulsiveRandomDitherFieldPerNightStacker(RepulsiveRandomDitherFieldPerVis
 
     Note: dithers are confined to the hexagon inscribed in the circle with with radius maxDither
 
-    Optional Parameters
+    Parameters
     -------------------
-    * raCol: str: name of the RA column in the data. Default: 'fieldRA'.
-    * decCol : str: name of the Dec column in the data. Default: 'fieldDec'.
-    * fieldIdCol : str: name of the fieldID column in the data. Default: 'fieldIdCol'.
-    * nightCol : str: name of the night column in the data. Default: 'night'.
-    * maxDither: float: radius of the maximum dither offset, in degrees. Default: 1.75
-    * randomSeed: int: random seed for the numpy random number generation for the dither offsets.
-                       Default: None.
-    * printInfo: boolean: set to True to print out information about the number of squares considered,
-                          number of points chosen, and the filling factor. Default: False
+    raCol: str
+        name of the RA column in the data. Default: 'fieldRA'.
+    decCol : str
+        name of the Dec column in the data. Default: 'fieldDec'.
+    fieldIdCol : str
+        name of the fieldID column in the data. Default: 'fieldIdCol'.
+    nightCol : str
+        name of the night column in the data. Default: 'night'.
+    maxDither: float
+        radius of the maximum dither offset, in degrees. Default: 1.75
+    randomSeed: int
+        random seed for the numpy random number generation for the dither offsets.
+        Default: None.
+    printInfo: `bool`
+        set to True to print out information about the number of squares considered,
+        number of points chosen, and the filling factor. Default: False
     """
     def __init__(self, raCol='fieldRA', decCol='fieldDec', fieldIdCol='fieldID', nightCol='night',
                  maxDither=1.75, randomSeed=None, printInfo= False):
@@ -276,16 +289,22 @@ class RepulsiveRandomDitherPerNightStacker(RepulsiveRandomDitherFieldPerVisitSta
 
     Note: dithers are confined to the hexagon inscribed in the circle with with radius maxDither
 
-    Optional Parameters
+    Parameters
     -------------------
-    * raCol: str: name of the RA column in the data. Default: 'fieldRA'.
-    * decCol : str: name of the Dec column in the data. Default: 'fieldDec'.
-    * nightCol : str: name of the night column in the data. Default: 'night'.
-    * maxDither: float: radius of the maximum dither offset, in degrees. Default: 1.75
-    * randomSeed: int: random seed for the numpy random number generation for the dither offsets.
-                       Default: None.
-    * printInfo: boolean: set to True to print out information about the number of squares considered,
-                          number of points chosen, and the filling factor. Default: False
+    raCol: str
+        name of the RA column in the data. Default: 'fieldRA'.
+    decCol : str
+        name of the Dec column in the data. Default: 'fieldDec'.
+    nightCol : str
+        name of the night column in the data. Default: 'night'.
+    maxDither: float
+        radius of the maximum dither offset, in degrees. Default: 1.75
+    randomSeed: int
+        random seed for the numpy random number generation for the dither offsets.
+        Default: None.
+    printInfo: `bool`
+        set to True to print out information about the number of squares considered,
+        number of points chosen, and the filling factor. Default: False
     """
     def __init__(self, raCol='fieldRA', decCol='fieldDec', nightCol='night',
                  maxDither=1.75, randomSeed=None, printInfo= False):
@@ -332,15 +351,21 @@ class FermatSpiralDitherFieldPerVisitStacker(BaseStacker):
     Note: dithers are confined to the hexagon inscribed in the circle with with radius maxDither
     Note: Fermat's spiral is defined by r= c*sqrt(n), theta= n*angle, n= integer
 
-    Optional Parameters
+    Parameters
     -------------------
-    * raCol: str: name of the RA column in the data. Default: 'fieldRA'.
-    * decCol : str: name of the Dec column in the data. Default: 'fieldDec'.
-    * fieldIdCol : str: name of the fieldID column in the data. Default: 'fieldID'.
-    * numPoints: int: number of points in the spiral. Default: 60
-    * maxDither: float: radius of the maximum dither offset, in degrees. Default: 1.75
-    * goldAngle: float: angle in degrees defining the spiral: theta= multiple of goldAngle
-                        Default: 137.508
+    raCol: str
+        name of the RA column in the data. Default: 'fieldRA'.
+    decCol : str
+        name of the Dec column in the data. Default: 'fieldDec'.
+    fieldIdCol : str
+        name of the fieldID column in the data. Default: 'fieldID'.
+    numPoints: int
+        number of points in the spiral. Default: 60
+    maxDither: float
+        radius of the maximum dither offset, in degrees. Default: 1.75
+    goldAngle: float
+        angle in degrees defining the spiral: theta= multiple of goldAngle
+        Default: 137.508
 
     """
     def __init__(self, raCol='fieldRA', decCol='fieldDec', fieldIdCol='fieldID',
@@ -519,15 +544,20 @@ class PentagonDitherFieldPerSeasonStacker(BaseStacker):
 
     Parameters
     -----------
-    * raCol: str: name of the RA column in the data. Default: 'fieldRA'.
-    * decCol : str: name of the Dec column in the data. Default: 'fieldDec'.
-    * fieldIdCol : str: name of the fieldID column in the data. Default: 'fieldID'.
-    * expMJDCol : str: name of the date/time stamp column in the data. Default: 'expMJD'.
-    * maxDither: float: radius of the maximum dither offset, in degrees. Default: 1.75
-    * wrapLastSeason: boolean: set to False to all consider 11 seasons independently.
-                               set to True to wrap 0th and 10th season, leading to a total of 10 seasons.
-                               Default: True
-                               
+    raCol: str
+        name of the RA column in the data. Default: 'fieldRA'.
+    decCol : str
+        name of the Dec column in the data. Default: 'fieldDec'.
+    fieldIdCol : str
+        name of the fieldID column in the data. Default: 'fieldID'.
+    expMJDCol : str
+        name of the date/time stamp column in the data. Default: 'expMJD'.
+    maxDither: float
+        radius of the maximum dither offset, in degrees. Default: 1.75
+    wrapLastSeason: `bool`
+        set to False to all consider 11 seasons independently.
+        set to True to wrap 0th and 10th season, leading to a total of 10 seasons.
+        Default: True
     """
     def __init__(self, raCol='fieldRA', decCol='fieldDec',fieldIdCol='fieldID',
                  expMJDCol= 'expMJD', maxDither= 1.75, wrapLastSeason= True):
@@ -599,17 +629,22 @@ class PentagonDiamondDitherFieldPerSeasonStacker(BaseStacker):
     Offset along a diamond circumscribed by a pentagon.
     Sequential offset for each field on a visit in new season.
 
-    Optional Parameters
+    Parameters
     -------------------
-    * raCol: str: name of the RA column in the data. Default: 'fieldRA'.
-    * decCol : str: name of the Dec column in the data. Default: 'fieldDec'.
-    * fieldIdCol : str: name of the fieldID column in the data. Default: 'fieldID'.
-    * expMJDCol : str: name of the date/time stamp column in the data. Default: 'expMJD'.
-    * maxDither: float: radius of the maximum dither offset, in degrees. Default: 1.75
-    * wrapLastSeason: boolean: set to False to all consider 11 seasons independently.
-                               set to True to wrap 0th and 10th season, leading to a total of 10 seasons.
-                               Default: True
-
+    raCol: str
+        name of the RA column in the data. Default: 'fieldRA'.
+    decCol : str
+        name of the Dec column in the data. Default: 'fieldDec'.
+    fieldIdCol : str
+        name of the fieldID column in the data. Default: 'fieldID'.
+    expMJDCol : str
+        name of the date/time stamp column in the data. Default: 'expMJD'.
+    maxDither: float
+        radius of the maximum dither offset, in degrees. Default: 1.75
+    wrapLastSeason: `bool`
+        set to False to all consider 11 seasons independently.
+        set to True to wrap 0th and 10th season, leading to a total of 10 seasons.
+        Default: True
     """
     def __init__(self, raCol='fieldRA', decCol='fieldDec',fieldIdCol='fieldID',
                  expMJDCol= 'expMJD', maxDither= 1.75, wrapLastSeason= True):
@@ -677,17 +712,22 @@ class PentagonDitherPerSeasonStacker(PentagonDitherFieldPerSeasonStacker):
     Offset along two pentagons, one inverted and inside the other.
     Sequential offset for all fields every season.
 
-    Optional Parameters
+    Parameters
     -------------------
-    * raCol: str: name of the RA column in the data. Default: 'fieldRA'.
-    * decCol : str: name of the Dec column in the data. Default: 'fieldDec'.
-    * fieldIdCol : str: name of the fieldID column in the data. Default: 'fieldID'.
-    * expMJDCol : str: name of the date/time stamp column in the data. Default: 'expMJD'.
-    * maxDither: float: radius of the maximum dither offset, in degrees. Default: 1.75
-    * wrapLastSeason: boolean: set to False to all consider 11 seasons independently.
-                               set to True to wrap 0th and 10th season, leading to a total of 10 seasons.
-                               Default: True
-
+    raCol: str
+        name of the RA column in the data. Default: 'fieldRA'.
+    decCol : str
+        name of the Dec column in the data. Default: 'fieldDec'.
+    fieldIdCol : str
+        name of the fieldID column in the data. Default: 'fieldID'.
+    expMJDCol : str
+        name of the date/time stamp column in the data. Default: 'expMJD'.
+    maxDither: float
+        radius of the maximum dither offset, in degrees. Default: 1.75
+    wrapLastSeason: `bool`
+        set to False to all consider 11 seasons independently.
+        set to True to wrap 0th and 10th season, leading to a total of 10 seasons.
+        Default: True
     """
     def __init__(self, raCol='fieldRA', decCol='fieldDec',
                  fieldIdCol='fieldID', expMJDCol= 'expMJD', nightCol='night',
@@ -749,17 +789,22 @@ class PentagonDiamondDitherPerSeasonStacker(PentagonDiamondDitherFieldPerSeasonS
     Offset along a diamond circumscribed by a pentagon.
     Sequential offset for all fields every season.
 
-    Optional Parameters
+    Parameters
     -------------------
-    * raCol: str: name of the RA column in the data. Default: 'fieldRA'.
-    * decCol : str: name of the Dec column in the data. Default: 'fieldDec'.
-    * fieldIdCol : str: name of the fieldID column in the data. Default: 'fieldID'.
-    * expMJDCol : str: name of the date/time stamp column in the data. Default: 'expMJD'.
-    * maxDither: float: radius of the maximum dither offset, in degrees. Default: 1.75
-    * wrapLastSeason: boolean: set to False to all consider 11 seasons independently.
-                               set to True to wrap 0th and 10th season, leading to a total of 10 seasons.
-                               Default: True
-
+    raCol: str
+        name of the RA column in the data. Default: 'fieldRA'.
+    decCol : str
+        name of the Dec column in the data. Default: 'fieldDec'.
+    fieldIdCol : str
+        name of the fieldID column in the data. Default: 'fieldID'.
+    expMJDCol : str
+        name of the date/time stamp column in the data. Default: 'expMJD'.
+    maxDither: float
+        radius of the maximum dither offset, in degrees. Default: 1.75
+    wrapLastSeason: `bool`
+        set to False to all consider 11 seasons independently.
+        set to True to wrap 0th and 10th season, leading to a total of 10 seasons.
+        Default: True
     """
     def __init__(self, raCol='fieldRA', decCol='fieldDec',
                  fieldIdCol='fieldID', expMJDCol= 'expMJD', maxDither= 1.75, wrapLastSeason= True):
@@ -811,19 +856,24 @@ class SpiralDitherPerSeasonStacker(SpiralDitherFieldPerVisitStacker):
     """
     Offsets along a 10pt spiral. Sequential offset for all fields every seaso along a 10pt spiral.
     
-    Optional Parameters
+    Parameters
     -------------------
-    * raCol: str: name of the RA column in the data. Default: 'fieldRA'.
-    * decCol : str: name of the Dec column in the data. Default: 'fieldDec'.
-    * fieldIdCol : str: name of the fieldID column in the data. Default: 'fieldID'.
-    * expMJDCol : str: name of the date/time stamp column in the data. Default: 'expMJD'.
-    * maxDither: float: radius of the maximum dither offset, in degrees. Default: 1.75
-    * wrapLastSeason: boolean: set to False to all consider 11 seasons independently.
-                               set to True to wrap 0th and 10th season, leading to a total of 10 seasons.
-                               Default: True
-    * numPoints: int:  number of points in the spiral. Default: 10
-    * nCoils: int:  number of coils the spiral. Default: 3
-
+    raCol: str
+        name of the RA column in the data. Default: 'fieldRA'.
+    decCol : str
+        name of the Dec column in the data. Default: 'fieldDec'.
+    fieldIdCol : str
+        name of the fieldID column in the data. Default: 'fieldID'.
+    expMJDCol : str
+        name of the date/time stamp column in the data. Default: 'expMJD'.
+    maxDither: float
+        radius of the maximum dither offset, in degrees. Default: 1.75
+    wrapLastSeason: `bool`
+        set to False to all consider 11 seasons independently.
+        set to True to wrap 0th and 10th season, leading to a total of 10 seasons.
+        Default: True
+    numPoints: int:  number of points in the spiral. Default: 10
+    nCoils: int:  number of coils the spiral. Default: 3
     """
     def __init__(self, raCol='fieldRA', decCol='fieldDec', fieldIdCol='fieldID', expMJDCol= 'expMJD',
                  maxDither= 1.75, wrapLastSeason= True, numPoints=10, nCoils=3):

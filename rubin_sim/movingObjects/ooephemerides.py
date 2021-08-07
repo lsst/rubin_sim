@@ -280,7 +280,7 @@ class PyOrbEphemerides(object):
         ----------
         oorbEphs : numpy.ndarray
             The oorb-formatted ephemeris values
-        byObject : boolean, optional
+        byObject : `bool`, optional
             If True (default), resulting converted ephemerides are grouped by object.
             If False, resulting converted ephemerides are grouped by time.
 
@@ -363,7 +363,7 @@ class PyOrbEphemerides(object):
         ----------
         oorbEphs : numpy.ndarray
             The oorb-formatted ephemeris values
-        byObject : boolean, optional
+        byObject : `bool`, optional
             If True (default), resulting converted ephemerides are grouped by object.
             If False, resulting converted ephemerides are grouped by time.
 
@@ -412,7 +412,7 @@ class PyOrbEphemerides(object):
             Ephemeris times in oorb format (see self.convertTimes)
         obscode : int or str, optional
             The observatory code for ephemeris generation. Default=807 (Cerro Tololo).
-        byObject : boolean, optional
+        byObject : `bool`, optional
             If True (default), resulting converted ephemerides are grouped by object.
             If False, resulting converted ephemerides are grouped by time.
         ephMode : str, optional

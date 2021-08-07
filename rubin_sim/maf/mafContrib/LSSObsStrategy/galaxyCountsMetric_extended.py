@@ -28,25 +28,24 @@ class GalaxyCountsMetric_extended(BaseMetric):
     and specification of the galaxy LF to specific redshift bin to consider.
     
     Dependency (aside from MAF): constantsForPipeline.py
-    ----------
 
-    Optional Parameters
-    --------------------
+    Parameters
+    ------------
       * m5Col: str: name of column for depth in the data. Default: 'fiveSigmaDepth'
       * nside: int: HEALpix resolution parameter. Default: 128
       * upperMagLimit: float: upper limit on magnitude when calculating the galaxy counts. 
                               Default: 32.0
-      * includeDustExtinction: boolean: set to False if do not want to include dust extinction. 
+      * includeDustExtinction: `bool`: set to False if do not want to include dust extinction.
                                         Default: True
       * filterBand: str: any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
       * redshiftBin: str: options include '0.<z<0.15', '0.15<z<0.37', '0.37<z<0.66, '0.66<z<1.0',
                           '1.0<z<1.5', '1.5<z<2.0', '2.0<z<2.5', '2.5<z<3.0','3.0<z<3.5', '3.5<z<4.0',
                           'all' for no redshift restriction (i.e. 0.<z<4.0)
                           Default: 'all'
-      * CFHTLSCounts: boolean: set to True if want to calculate the total galaxy counts from CFHTLS
+      * CFHTLSCounts: `bool`: set to True if want to calculate the total galaxy counts from CFHTLS
                                powerlaw from LSST Science Book. Must be run with redshiftBin= 'all'
                                Default: False
-      * normalizedMockCatalogCounts: boolean: set to False if  want the raw/un-normalized galaxy
+      * normalizedMockCatalogCounts: `bool`: set to False if  want the raw/un-normalized galaxy
                                               counts from mock catalogs. Default: True
 
     """

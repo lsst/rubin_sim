@@ -42,8 +42,8 @@ def rotate_ra_dec(ra, dec, ra_target, dec_target, init_rotate=0.):
 
     Rotates around the x-axis 1st, then to the dec, then ra.
 
-    Inputs
-    ------
+    Parameters
+    ----------
     ra : float or np.array
         RA coordinate(s) to be rotated in radians
     dec : float or np.array

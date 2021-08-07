@@ -9,14 +9,14 @@ def getImsimFluxNorm(sed, magmatch):
     """
     Calculate the flux normalization of an SED in the imsim bandpass.
 
-    Parameters:
+    Parameters
     -----------
     sed is the SED to be normalized
 
     magmatch is the desired magnitude in the imsim bandpass
 
-    Output
-    ------
+    Returns
+    --------
     The factor by which the flux of sed needs to be multiplied to achieve
     the desired magnitude.
     """

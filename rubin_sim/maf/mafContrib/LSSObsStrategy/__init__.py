@@ -1,7 +1,6 @@
 from .newDitherStackers import *
 from .newDitherStackers import *
 from .maskingAlgorithmGeneralized import *
-from .plotBundleMaps import *
 from .saveBundleData_npzFormat import *
 from .numObsMetric import *
 from .galaxyCountsMetric_extended import *

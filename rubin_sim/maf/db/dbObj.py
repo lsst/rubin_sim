@@ -88,7 +88,7 @@ class DBConnection(object):
 
         @param [in] port is the port on the remote host to connect to, if appropriate
 
-        @param [in] verbose is a boolean controlling sqlalchemy's verbosity
+        @param [in] verbose is a `bool` controlling sqlalchemy's verbosity
         """
 
         self._database = database
@@ -134,7 +134,7 @@ class DBConnection(object):
         """Validate connection parameters
 
         - Check if user passed dbAddress instead of an database. Convert and warn.
-        - Check that required connection paramters are present
+        - Check that required connection Parameters are present
         - Replace default host/port if driver is 'sqlite'
         """
 
@@ -227,13 +227,13 @@ class DBObject(object):
 
         @param [in] port is the port on the remote host to connect to, if appropriate
 
-        @param [in] verbose is a boolean controlling sqlalchemy's verbosity (default False)
+        @param [in] verbose is a `bool` controlling sqlalchemy's verbosity (default False)
 
         @param [in] connection is an optional instance of DBConnection, in the event that
         this DBObject can share a database connection with another DBObject.  This is only
         necessary or even possible in a few specialized cases and should be used carefully.
 
-        @param [in] cache_connection is a boolean.  If True, DBObject will use a cache of
+        @param [in] cache_connection is a `bool`.  If True, DBObject will use a cache of
         DBConnections (if available) to get the connection to this database.
         """
 
@@ -280,7 +280,7 @@ class DBObject(object):
 
         port is the port on the remote host to connect to, if appropriate
 
-        use_cache is a boolean specifying whether or not we try to use the
+        use_cache is a `bool` specifying whether or not we try to use the
         cache of database connections (you don't want to if opening many
         connections in many threads).
         """

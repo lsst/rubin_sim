@@ -15,7 +15,7 @@ def microlensing_amplification(t, impact_parameter=1, crossing_time=1825., peak_
     t : float
         The time of observation (days)
     impact_parameter : float (1)
-        The impact paramter (0 means big amplification)
+        The impact Parameter (0 means big amplification)
     crossing_time : float (1825)
         Einstein crossing time (days)
     peak_time : float (100)
@@ -36,7 +36,7 @@ def info_peak_before_t0(impact_parameter=1, crossing_time=100.):
     Parameters
     ----------
     impact_parameter : float (1)
-        The impact paramter (0 means big amplification)
+        The impact Parameter (0 means big amplification)
     crossing_time : float (1825)
         Einstein crossing time (days)
     """

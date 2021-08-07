@@ -6,16 +6,21 @@ __all__ = ['_approx_altAz2RaDec', '_approx_RaDec2AltAz', 'approx_altAz2RaDec',
 
 
 def _approx_altaz2pa(alt_rad, az_rad, latitude_rad):
-    """
-    A fast calculation of parallactic angle
+    """A fast calculation of parallactic angle
+
     Parameters
     ----------
-    alt_rad : float
+    alt_rad : `float`
         Altitude (radians)
-    az_rad : float
+    az_rad : `float`
         Azimuth (radians)
-    latitude_rad : float
+    latitude_rad : `float`
         The latitude of the observatory (radians)
+
+    Returns
+    -------
+    pa : `float`
+        Parallactic angle (radians)
     """
 
     y = np.sin(-az_rad)*np.cos(latitude_rad)
@@ -27,24 +32,28 @@ def _approx_altaz2pa(alt_rad, az_rad, latitude_rad):
 
 
 def approx_altaz2pa(alt_deg, az_deg, latitude_deg):
-    """
-    A fast calculation of parallactic angle
+    """A fast calculation of parallactic angle
+
     Parameters
     ----------
-    alt_rad : float
+    alt_rad : `float`
         Altitude (degrees)
-    az_rad : float
+    az_rad : `float`
         Azimuth (degrees)
-    latitude_rad : float
+    latitude_rad : `float`
         The latitude of the observatory (degrees)
+
+    Returns
+    -------
+    pa : `float`
+        Parallactic angle (degrees)
     """
     pa = _approx_altaz2pa(np.radians(alt_deg), np.radians(az_deg), np.radians(latitude_deg))
     return np.degrees(pa)
 
 
 def approx_altAz2RaDec(alt, az, lat, lon, mjd, lmst=None):
-    """
-    Convert alt, az to RA, Dec without taking into account aberration, precession, diffraction, etc.
+    """Convert alt, az to RA, Dec without taking into account aberration, precession, diffraction, etc.
 
     Parameters
     ----------

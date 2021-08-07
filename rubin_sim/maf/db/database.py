@@ -80,7 +80,7 @@ class Database(with_metaclass(DatabaseRegistry, DBObject)):
         super(Database, self).__init__(database=database, driver=driver,
                                        host=host, port=port, verbose=verbose, connection=None)
 
-        self.dbTypeMap = {'BIGINT': (int,), 'BOOLEAN': (bool,), 'FLOAT': (float,), 'INTEGER': (int,),
+        self.dbTypeMap = {'BIGINT': (int,), '`bool`': (bool,), 'FLOAT': (float,), 'INTEGER': (int,),
                           'NUMERIC': (float,), 'SMALLINT': (int,), 'TINYINT': (int,),
                           'VARCHAR': (np.str_, 256), 'TEXT': (np.str_, 256), 'CLOB': (np.str_, 256),
                           'NVARCHAR': (np.str_, 256), 'NCLOB': (np.str_, 256), 'NTEXT': (np.str_, 256),

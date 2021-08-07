@@ -76,8 +76,8 @@ def m5_flat_sed(visitFilter, musky, FWHMeff, expTime, airmass, nexp=1, tauCloud=
     tauCloud : float (0.)
         Any extinction from clouds in magnitudes (positive values = more extinction)
 
-    Output
-    ------
+    Returns
+    -------
     m5 : float
         The five-sigma limiting depth of a point source observed in the given conditions.
     """

@@ -51,7 +51,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
 
     Parameters
     ----------
-    verbose: boolean, optional
+    verbose: `bool`, optional
         True/False flag to send extra output to screen.
         Default True.
     badval: int or float, optional

@@ -255,7 +255,7 @@ class Kinem_model(object):
             The altitude(s) of the destination pointing(s) (radians). Will override ra_rad,dec_rad if provided.
         az_rad : np.ndarray
             The azimuth(s) of the destination pointing(s) (radians). Will override ra_rad,dec_rad if provided.
-        lax_dome : boolean, default False
+        lax_dome : `bool`, default False
             If True, allow the dome to creep, model a dome slit, and don't
             require the dome to settle in azimuth. If False, adhere to the way
             SOCS calculates slew times (as of June 21 2017).

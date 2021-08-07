@@ -56,7 +56,6 @@ from rubin_sim.maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import 
 from rubin_sim.maf.mafContrib.LSSObsStrategy.galaxyCounts_withPixelCalibration import GalaxyCounts_withPixelCalibration \
     as GalaxyCounts_0ptErrors
 from rubin_sim.maf.mafContrib.LSSObsStrategy.maskingAlgorithmGeneralized import maskingAlgorithmGeneralized
-from rubin_sim.maf.mafContrib.LSSObsStrategy.plotBundleMaps import plotBundleMaps
 from rubin_sim.maf.mafContrib.LSSObsStrategy.numObsMetric import NumObsMetric
 from rubin_sim.maf.mafContrib.LSSObsStrategy.saveBundleData_npzFormat import saveBundleData_npzFormat
 
@@ -64,139 +63,121 @@ from rubin_sim.maf.mafContrib.LSSObsStrategy.constantsForPipeline import powerLa
 
 __all__ = ['artificialStructureCalculation']
 
+
 def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
                                    noDithOnly=False,
                                    bestDithOnly=False,
                                    specifiedDith=None,
-                                   
                                    nside=128, filterBand='i',
                                    cutOffYear=None, redshiftBin='all',
                                    CFHTLSCounts=False, normalizedMockCatalogCounts=True,
-
-                                   includeDustExtinction=True,
-                                   plotRawNumGal=False, saveRawNumGalData=True,
-
-                                   pixelRadiusForMasking=5,
-                                   plotNumGalAfterMasking=True, saveNumGalDataAfterMasking=False,
-
+                                   includeDustExtinction=True, saveRawNumGalData=True,
+                                   pixelRadiusForMasking=5, saveNumGalDataAfterMasking=False,
                                    include0ptErrors=True,
-                                   plotCoaddedDepthPlotsWithDust=False,
-                                   plotAvgSeeingPlotsWithDust=False,
-                                   plotNumObsPlotsWithDust=False,
                                    print0ptInformation=True,
                                    plot0ptPlots=True, show0ptPlots=False, save0ptPlots=True,
-                                   
-                                   plotNumGalAfter0pt=False, saveNumGalDataAfter0pt=False,
-                            
-                                   addPoissonNoise=True, 
-                                   plotNumGalAfterPoisson=False, saveNumGalDataAfterPoisson=True,
-                                   
-                                   plotDeltaNByN=True, showDeltaNByNPlots=False,
-                                   saveDeltaNByNPlots=True, saveDeltaNByNData=True,
+                                   saveNumGalDataAfter0pt=False,
+                                   addPoissonNoise=True, saveDeltaNByNData=True,
                                    saveClsForDeltaNByN=True,
                                    show_comp_plots=False, return_stuff=False):
     """
 
     Calculate artificial structure, i.e. fluctuations in galaxy counts dN/N, resulting due
     to imperfect observing strategy (OS).
-      - Creates an output directory for subdirectories containing the specified things to save.
-      - Prints out execution time at key steps (after border-masking, incorporating calibration errors, etc.)
-      - Returns the metricBundle object containing the calculated dN/N, the output directory name,
-        the resultsDb object, and (if include0ptErrors=True)  calibration errors for each survey strategy.
+    - Creates an output directory for subdirectories containing the specified things to save.
+    - Prints out execution time at key steps (after border-masking, incorporating calibration errors, etc.)
+    - Returns the metricBundle object containing the calculated dN/N, the output directory name,
+    the resultsDb object, and (if include0ptErrors=True)  calibration errors for each survey strategy.
 
-    Required Parameters
-    -------------------
-      * path: str: path to the main directory where output directory is to be saved.
-      * upperMagLimit: float: upper limit on magnitude when calculating the galaxy counts. 
-      * dbfile: str: path to the OpSim output file, e.g. to a copy of enigma_1189
-      * runName: str: run name tag to identify the output of specified OpSim output.
-                      Since new OpSim outputs have different columns, the runName for enigma_1189 **must**
-                      be 'enigma1189'; can be anything for other outputs, e.g. 'minion1016'
-                      
-    Optional Parameters
-    -------------------
-      * noDithOnly: boolean: set to True if only want to consider the undithered survey. Default: False
-      * bestDithOnly: boolean: set to True if only want to consider RandomDitherFieldPerVisit.
-                               Default: False
-      * specifiedDith: str: specific dither strategy to run; could be a string or a list of strings.
-                            Default: None
-      * nside: int: HEALpix resolution parameter. Default: 128
-      * filterBand: str: any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
-      * cutOffYear: int: year cut to restrict analysis to only a subset of the survey. 
-                         Must range from 1 to 9, or None for the full survey analysis (10 yrs).
-                         Default: None
-      * redshiftBin: str: options include '0.<z<0.15', '0.15<z<0.37', '0.37<z<0.66, '0.66<z<1.0',
-                          '1.0<z<1.5', '1.5<z<2.0', '2.0<z<2.5', '2.5<z<3.0','3.0<z<3.5', '3.5<z<4.0',
-                          'all' for no redshift restriction (i.e. 0.<z<4.0)
-                          Default: 'all'
-      * CFHTLSCounts: boolean: set to True if want to calculate the total galaxy counts from CFHTLS
-                               powerlaw from LSST Science Book. Must be run with redshiftBin='all'
-                               Default: False
-      * normalizedMockCatalogCounts: boolean: set to False if  want the raw/un-normalized galaxy
-                                              counts from mock catalogs. Default: True
-
-      * includeDustExtinction: boolean: set to include dust extinction when calculating the coadded 
-                                        depth. Default: True
-      * plotRawNumGal: boolean: set to True to plot skymaps for numGal data right away, 
-                                i.e. before 0pt error calibration, bordering masking, or poisson noise.
-                                Default: False
-      * saveRawNumGalData: boolean: set to True to save numGal data right away, i.e. before
-                                    0pt error calibration, bordering masking, or poisson noise.
-                                    Default: True
-
-      * pixelRadiusForMasking: int: number of pixels to mask along the shallow border. Default: 5
-      * plotNumGalAfterMasking: boolean: set to True to plot (skymaps, power spectra) numGal data after 
-                                         bordering masking. Default: True
-      * saveNumGalDataAfterMasking: boolean: set to True to save numGal data after border masking.
-                                              Default: False
-
-      * include0ptErrors: boolean: set to True to include photometric calibration errors.
-                                   Default: True
-      * plotCoaddedDepthPlotsWithDust: boolean: set to true to plot out skymaps/powerspectra of the coadded
-                                                depth with dust. Default: False
-      * plotAvgSeeingPlotsWithDust: boolean: set to true to plot out skymaps/powerspectra of the average
-                                             seeing. Default: False
-      * plotNumObsPlotsWithDust: boolean: set to true to plot out skymaps/powerspectra of the number of
-                                          observations. Default: False
-
-      * print0ptInformation: boolean: set to True to print out some statistics (variance, the k-value, etc.)
-                                      of the calibration errors of every dither strategy.
-                                      Default: True
-      * plot0ptPlots: boolean: set to true to plot out 0pt plots (skymaps, powerspectra, histograms).
-                               Default: True
-      * show0ptPlots: boolean: set to True to show the 0pt plots. Default: False
-      * save0ptPlots: boolean: set to True to save the 0pt plots. Default: True
- 
-      * plotNumGalAfter0pt: boolean: set to True to plot (skymaps, power spectra) numGal data after border
-                                     masking and including 0pt calibration errors. Default: False
-      * saveNumGalDataAfter0pt: boolean: set to True to save numGal data after border masking and
-                                         0pt calibration. Default: False
-
-      * addPoissonNoise: boolean: set to True to add poisson noise to the galaxy counts after border masking
-                                  and the incorporation of calibration errors. Default: True
-      * plotNumGalAfterPoisson: boolean: set to true to plot skymap/powerspectra of the galaxy counts 
-                                         after border masking, including the calibration errors, and the
-                                         poisson noise. Default: False
-      * saveNumGalDataAfterPoisson:: boolean: set to True to save numGal data right away, after border masking,
-                                              including the calibration errors, and the  poisson noise. 
-                                              Default: True
-
-      * plotDeltaNByN: boolean: set to True to plot out skymaps, power spectra for the fluctuations in the galaxy
-                                counts. Default: True
-      * showDeltaNByNPlots: boolean: set to True to show the plots related to the fluctuations in the galaxy
-                                     counts. Will work only when plotDeltaNByN=True. Default: False
-      * saveDeltaNByNPlots: boolean: set to True to save the plots related to the fluctuations in the galaxy
-                                     counts. Will work only when plotDeltaNByN=True. Default: True
-      * saveDeltaNByNData: boolean: set to True to save data for the the fluctuations in the galaxy counts.
-                                    Default: True
-      * saveClsForDeltaNByN: boolean:  set to True to save the power spectrum data for the the fluctuations in
-                                       the galaxy counts. Default: True
-      * show_comp_plots: boolean: set to True if want to display the comparison plots (only valid if have more
-                                  than one dither strategy); otherwise, the plots will be saved and not displayed.
-                                  Default: False
-      * return_stuff: boolean: set to True to get the metricBundle object, the outDir, and resultsDb object.
-                               Default: False
-                                     
+    Parameters
+    -------------
+    path: str
+        path to the main directory where output directory is to be saved.
+    upperMagLimit: float
+        upper limit on magnitude when calculating the galaxy counts.
+    dbfile: str
+        path to the OpSim output file, e.g. to a copy of enigma_1189
+    runName: str
+        run name tag to identify the output of specified OpSim output.
+        Since new OpSim outputs have different columns, the runName for enigma_1189 **must**
+        be 'enigma1189'; can be anything for other outputs, e.g. 'minion1016'
+    noDithOnly: `bool`
+        set to True if only want to consider the undithered survey. Default: False
+    bestDithOnly: `bool`
+        set to True if only want to consider RandomDitherFieldPerVisit.
+        Default: False
+    specifiedDith: str
+        specific dither strategy to run; could be a string or a list of strings.
+        Default: None
+    nside: int
+        HEALpix resolution parameter. Default: 128
+    filterBand: str
+        any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
+    cutOffYear: int
+        year cut to restrict analysis to only a subset of the survey.
+        Must range from 1 to 9, or None for the full survey analysis (10 yrs).
+        Default: None
+    redshiftBin: str
+        options include '0.<z<0.15', '0.15<z<0.37', '0.37<z<0.66, '0.66<z<1.0',
+        '1.0<z<1.5', '1.5<z<2.0', '2.0<z<2.5', '2.5<z<3.0','3.0<z<3.5', '3.5<z<4.0',
+        'all' for no redshift restriction (i.e. 0.<z<4.0)
+        Default: 'all'
+    CFHTLSCounts: `bool`
+        set to True if want to calculate the total galaxy counts from CFHTLS
+        powerlaw from LSST Science Book. Must be run with redshiftBin='all'
+        Default: False
+    normalizedMockCatalogCounts: `bool`
+        set to False if  want the raw/un-normalized galaxy
+        counts from mock catalogs. Default: True
+    includeDustExtinction: `bool`:
+        set to include dust extinction when calculating the coadded
+        depth. Default: True
+    saveRawNumGalData: `bool`
+        set to True to save numGal data right away, i.e. before
+        0pt error calibration, bordering masking, or poisson noise.
+        Default: True
+    pixelRadiusForMasking: int
+        number of pixels to mask along the shallow border. Default: 5
+    saveNumGalDataAfterMasking: `bool`
+        set to True to save numGal data after border masking.
+        Default: False
+    include0ptErrors: `bool`
+        set to True to include photometric calibration errors.
+        Default: True
+    print0ptInformation: `bool`
+        set to True to print out some statistics (variance, the k-value, etc.)
+        of the calibration errors of every dither strategy.
+        Default: True
+    plot0ptPlots : `bool`
+        generate 0pt plots. Default True.
+    saveNumGalDataAfter0pt: `bool`
+        set to True to save numGal data after border masking and 0pt calibration. Default: False
+    addPoissonNoise: `bool`
+        set to True to add poisson noise to the galaxy counts after border masking
+        and the incorporation of calibration errors. Default: True
+    saveNumGalDataAfterPoisson:: `bool`
+        set to True to save numGal data right away, after border masking,
+        including the calibration errors, and the  poisson noise.
+        Default: True
+    showDeltaNByNPlots: `bool`
+        set to True to show the plots related to the fluctuations in the galaxy
+        counts. Will work only when plotDeltaNByN=True. Default: False
+    saveDeltaNByNPlots: `bool`
+        set to True to save the plots related to the fluctuations in the galaxy
+        counts. Will work only when plotDeltaNByN=True. Default: True
+    saveDeltaNByNData: `bool`
+        set to True to save data for the the fluctuations in the galaxy counts.
+        Default: True
+    saveClsForDeltaNByN: `bool`
+        set to True to save the power spectrum data for the the fluctuations in
+        the galaxy counts. Default: True
+    show_comp_plots: `bool`
+        set to True if want to display the comparison plots (only valid if have more
+        han one dither strategy); otherwise, the plots will be saved and not displayed.
+        Default: False
+    return_stuff: `bool`
+        set to True to get the metricBundle object, the outDir, and resultsDb object.
+        Default: False
     """
     startTime = time.time()
     # ------------------------------------------------------------------------
@@ -242,14 +223,11 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
         counts_tag = 'normalizedGalaxyCounts'
     else:
         counts_tag = 'unnormalizedGalaxyCounts'
-        
-    outDir = 'artificialStructure_%s_nside%s_%spixelRadiusForMasking_%s_%s_%s<%s_%s_%s_%s_%s_directory'%(poisson_tag, nside,
-                                                                                                         pixelRadiusForMasking,
-                                                                                                         zeropt_tag,
-                                                                                                         dust_tag, filterBand,
-                                                                                                         upperMagLimit, runName,
-                                                                                                         survey_tag, zbin_tag,
-                                                                                                         counts_tag)
+
+    outDir = f'artificialStructure_{poisson_tag}_nside{nside}'\
+             f'_pixelRadiusFormasking_{pixelRadiusForMasking}_{zeropt_tag}_{dust_tag}_{filterBand}'\
+             f'_{upperMagLimit}_{runName}_{survey_tag}_{zbin_tag}_{counts_tag}_directory'
+
     print('# outDir: %s\n'%outDir)
     if not os.path.exists('%s%s'%(path, outDir)):
         os.makedirs('%s%s'%(path, outDir))
@@ -300,7 +278,8 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
     slicer = {}
     stackerList = {}
 
-    if specifiedDith is not None: # would like to add all the stackers first and then keep only the one that is specified
+    if specifiedDith is not None:
+        # would like to add all the stackers first and then keep only the one that is specified
         bestDithOnly, noDithOnly = False, False
 
     if bestDithOnly:
@@ -315,7 +294,8 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
                                                       nside=nside, useCache=False)
         if not noDithOnly:
             # random dithers on different timescales
-            stackerList['RandomDitherPerNight'] = [mafStackers.RandomDitherPerNightStacker(degrees=raDecInDeg, randomSeed=1000)]
+            stackerList['RandomDitherPerNight'] = [mafStackers.RandomDitherPerNightStacker(degrees=raDecInDeg,
+                                                                                           randomSeed=1000)]
             stackerList['RandomDitherFieldPerNight'] = [mafStackers.RandomDitherFieldPerNightStacker(degrees=raDecInDeg, randomSeed=1000)]
             stackerList['RandomDitherFieldPerVisit'] = [mafStackers.RandomDitherFieldPerVisitStacker(degrees=raDecInDeg, randomSeed=1000)]
             
@@ -328,14 +308,18 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
             #                                                                                                          randomSeed=1000)]
             # set up slicers for different dithers
             # random dithers on different timescales
-            slicer['RandomDitherPerNight'] = slicers.HealpixSlicer(lonCol='randomDitherPerNightRa', latCol='randomDitherPerNightDec',
-                                                                  latLonDeg=raDecInDeg, nside=nside, useCache=False)
+            slicer['RandomDitherPerNight'] = slicers.HealpixSlicer(lonCol='randomDitherPerNightRa',
+                                                                   latCol='randomDitherPerNightDec',
+                                                                  latLonDeg=raDecInDeg, nside=nside,
+                                                                   useCache=False)
             slicer['RandomDitherFieldPerNight'] = slicers.HealpixSlicer(lonCol='randomDitherFieldPerNightRa',
                                                                        latCol='randomDitherFieldPerNightDec',
-                                                                       latLonDeg=raDecInDeg, nside=nside, useCache=False)
+                                                                       latLonDeg=raDecInDeg, nside=nside,
+                                                                        useCache=False)
             slicer['RandomDitherFieldPerVisit'] = slicers.HealpixSlicer(lonCol='randomDitherFieldPerVisitRa',
                                                                        latCol='randomDitherFieldPerVisitDec',
-                                                                       latLonDeg=raDecInDeg, nside=nside, useCache=False)
+                                                                       latLonDeg=raDecInDeg, nside=nside,
+                                                                        useCache=False)
             # rep random dithers on different timescales
             #slicer['RepulsiveRandomDitherPerNight'] = slicers.HealpixSlicer(lonCol='repulsiveRandomDitherPerNightRa',
             #                                                               latCol='repulsiveRandomDitherPerNightDec',
@@ -351,7 +335,8 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
             # spiral dithers on different timescales
             slicer['FermatSpiralDitherPerNight'] = slicers.HealpixSlicer(lonCol='fermatSpiralDitherPerNightRa',
                                                                          latCol='fermatSpiralDitherPerNightDec',
-                                                                         latLonDeg=raDecInDeg, nside=nside, useCache=False)
+                                                                         latLonDeg=raDecInDeg, nside=nside,
+                                                                         useCache=False)
             slicer['FermatSpiralDitherFieldPerNight'] = slicers.HealpixSlicer(lonCol='fermatSpiralDitherFieldPerNightRa',
                                                                               latCol='fermatSpiralDitherFieldPerNightDec',
                                                                               latLonDeg=raDecInDeg, nside=nside,
@@ -361,36 +346,45 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
                                                                               latLonDeg=raDecInDeg, nside=nside,
                                                                               useCache=False)
             # hex dithers on different timescales
-            slicer['SequentialHexDitherPerNight'] = slicers.HealpixSlicer(lonCol='hexDitherPerNightRa', latCol='hexDitherPerNightDec',
-                                                                          latLonDeg=raDecInDeg, nside=nside, useCache=False)
+            slicer['SequentialHexDitherPerNight'] = slicers.HealpixSlicer(lonCol='hexDitherPerNightRa',
+                                                                          latCol='hexDitherPerNightDec',
+                                                                          latLonDeg=raDecInDeg, nside=nside,
+                                                                          useCache=False)
             slicer['SequentialHexDitherFieldPerNight'] = slicers.HealpixSlicer(lonCol='hexDitherFieldPerNightRa',
                                                                                latCol='hexDitherFieldPerNightDec',
-                                                                               latLonDeg=raDecInDeg, nside=nside, useCache=False)
+                                                                               latLonDeg=raDecInDeg, nside=nside,
+                                                                               useCache=False)
             slicer['SequentialHexDitherFieldPerVisit'] = slicers.HealpixSlicer(lonCol='hexDitherFieldPerVisitRa',
                                                                                latCol='hexDitherFieldPerVisitDec',
-                                                                               latLonDeg=raDecInDeg, nside=nside, useCache=False)
+                                                                               latLonDeg=raDecInDeg, nside=nside,
+                                                                               useCache=False)
             # per season dithers
-            slicer['PentagonDitherPerSeason'] = slicers.HealpixSlicer(lonCol='pentagonDitherPerSeasonRa', latCol='pentagonDitherPerSeasonDec',
-                                                                     latLonDeg=raDecInDeg, nside=nside, useCache=False)
+            slicer['PentagonDitherPerSeason'] = slicers.HealpixSlicer(lonCol='pentagonDitherPerSeasonRa',
+                                                                      latCol='pentagonDitherPerSeasonDec',
+                                                                     latLonDeg=raDecInDeg, nside=nside,
+                                                                      useCache=False)
             slicer['PentagonDiamondDitherPerSeason'] = slicers.HealpixSlicer(lonCol='pentagonDiamondDitherPerSeasonRa',
                                                                             latCol='pentagonDiamondDitherPerSeasonDec',
                                                                             latLonDeg=raDecInDeg, nside=nside,
                                                                             useCache=False)
             slicer['SpiralDitherPerSeason'] = slicers.HealpixSlicer(lonCol='spiralDitherPerSeasonRa',
                                                                    latCol='spiralDitherPerSeasonDec',
-                                                                   latLonDeg=raDecInDeg, nside=nside, useCache=False)
+                                                                   latLonDeg=raDecInDeg, nside=nside,
+                                                                    useCache=False)
     # ------------------------------------------------------------------------
     if specifiedDith is not None:
         stackerList_, slicer_ = {}, {}
         if isinstance(specifiedDith, str):
             if specifiedDith in slicer.keys():
-                if specifiedDith.__contains__('Random'):   # only Random dithers have a stacker object for rand seed specification
+                if specifiedDith.__contains__('Random'):
+                    # only Random dithers have a stacker object for rand seed specification
                     stackerList_[specifiedDith] = stackerList[specifiedDith]
                 slicer_[specifiedDith] = slicer[specifiedDith]
         elif isinstance(specifiedDith, list):
             for specific in specifiedDith:
                 if specific in slicer.keys():
-                    if specific.__contains__('Random'):   # only Random dithers have a stacker object for rand seed specification
+                    if specific.__contains__('Random'):
+                        # only Random dithers have a stacker object for rand seed specification
                         stackerList_[specific] = stackerList[specific]
                     slicer_[specific] = slicer[specific]
         else:
@@ -423,10 +417,7 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
                                              resultsDb=resultsDb, saveEarly=False)
     bGroup.runAll()
     # ------------------------------------------------------------------------
-    # plot skymaps for 'raw' numGal
-    if plotRawNumGal:
-        plotBundleMaps(path, outDir, myBundles, 'Raw NumGal', filterBand, skymap=True, powerSpectrum=False,
-                       saveFigs=False, outDirNameForSavedFigs='', numFormat='%.2e')
+
      # save the raw numGal data.
     if saveRawNumGalData:
         outDir_new = 'numGalData_beforeMasking_before0pt'
@@ -453,14 +444,13 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
     # mask the edges: the data in the masked pixels is not changed
     plotHandler = plots.PlotHandler(outDir='%s%s'%(path, outDir), resultsDb=resultsDb, thumbnail=False, savefig=False)
     print('\n# Masking the edges ...')
-    myBundles, borderPixelsMasked = maskingAlgorithmGeneralized(myBundles, plotHandler, 'Number of Galaxies', nside=nside,
-                                                               pixelRadius=pixelRadiusForMasking, plotIntermediatePlots=False,
-                                                               plotFinalPlots=False, printFinalInfo=True, returnBorderIndices=True)
+    myBundles, borderPixelsMasked = maskingAlgorithmGeneralized(myBundles, plotHandler, 'Number of Galaxies',
+                                                                nside=nside,
+                                                               pixelRadius=pixelRadiusForMasking,
+                                                                plotIntermediatePlots=False,
+                                                               plotFinalPlots=False, printFinalInfo=True,
+                                                                returnBorderIndices=True)
     # ------------------------------------------------------------------------
-    # plot skymaps for numGal after border masking
-    if plotNumGalAfterMasking:
-        plotBundleMaps(path, outDir, myBundles, 'NumGal After Border Masking', filterBand, skymap=True, powerSpectrum=False,
-                       saveFigs=False, outDirNameForSavedFigs='', numFormat='%.2e')
 
     # save the numGal data.
     if saveNumGalDataAfterMasking:
@@ -529,14 +519,16 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
                                                                 runName=runName, metadata=dither)
                 coaddBundle[dither] = metricBundles.MetricBundle(coaddMetric, slicer[dither], sqlconstraint,
                                                                  stackerList=stackerList[dither],
-                                                                 runName=runName, metadata=dither, mapsList=[dustMap])
+                                                                 runName=runName, metadata=dither,
+                                                                 mapsList=[dustMap])
             else:
                 avgSeeingBundle[dither] = metricBundles.MetricBundle(meanMetric, slicer[dither], sqlconstraint,
                                                                      runName=runName, metadata=dither)
                 nObsBundle[dither] = metricBundles.MetricBundle(nObsMetric, slicer[dither], sqlconstraint,
                                                                 runName=runName, metadata=dither)
                 coaddBundle[dither] = metricBundles.MetricBundle(coaddMetric, slicer[dither], sqlconstraint,
-                                                                 runName=runName, metadata=dither, mapsList=[dustMap])
+                                                                 runName=runName, metadata=dither,
+                                                                 mapsList=[dustMap])
         print('\n# Running avgSeeingBundle ...')
         aGroup = metricBundles.MetricBundleGroup(avgSeeingBundle, opsdb, outDir='%s%s'%(path, outDir),
                                                  resultsDb=resultsDb, saveEarly=False)
@@ -558,18 +550,7 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
             avgSeeingBundle[dither].metricValues.mask[borderPixelsMasked[dither]] = True
             nObsBundle[dither].metricValues.mask[borderPixelsMasked[dither]] = True
             coaddBundle[dither].metricValues.mask[borderPixelsMasked[dither]] = True
-        
-        if plotAvgSeeingPlotsWithDust:
-            plotBundleMaps(path, outDir, avgSeeingBundle, 'avgSeeing', filterBand, skymap=True,
-                           powerSpectrum=False, saveFigs=False, outDirNameForSavedFigs='')
 
-        if plotNumObsPlotsWithDust:
-            plotBundleMaps(path, outDir, nObsBundle, 'numObs', filterBand, skymap=True, powerSpectrum=False,
-                           saveFigs=False, outDirNameForSavedFigs='')
-
-        if plotCoaddedDepthPlotsWithDust:
-            plotBundleMaps(path, outDir, coaddBundle, 'coaddM5', filterBand, skymap=True, powerSpectrum=False,
-                           saveFigs=False, outDirNameForSavedFigs='')
 
         # ------------------------------------------------------------------------
         # calculate averageSeeing over the entrie map
@@ -754,10 +735,7 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
                                                                                     CFHTLSCounts=CFHTLSCounts,
                                                                                     normalizedMockCatalogCounts=normalizedMockCatalogCounts)
         # ------------------------------------------------------------------------
-        # plots for updated numGal
-        if plotNumGalAfter0pt:
-            plotBundleMaps(path, outDir, myBundles, 'NumGal after 0pt', filterBand, skymap=True,
-                           powerSpectrum=False, saveFigs=False, outDirNameForSavedFigs='', numFormat='%.2e')
+
 
         # save the raw numGal data.
         if saveNumGalDataAfter0pt:
@@ -798,17 +776,14 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
             noisyNumGal = np.random.poisson(lam = myBundles[dither].metricValues.data, size=None)
             myBundles[dither].metricValues.data[:] = noisyNumGal
         # ------------------------------------------------------------------------
-        # plots for updated numGal
-        if plotNumGalAfterPoisson:
-            plotBundleMaps(path, outDir, myBundles, 'NumGal after Poisson', filterBand, skymap=True,
-                           powerSpectrum=False, saveFigs=False, outDirNameForSavedFigs='', numFormat='%.2e')
 
         # save the numGal data.
         if saveNumGalDataAfterPoisson:
             outDir_new = 'numGalData_afterBorderMasking_after0pt_afterPoisson'
             if not os.path.exists('%s%s/%s'%(path, outDir, outDir_new)):
                 os.makedirs('%s%s/%s'%(path, outDir, outDir_new))
-            saveBundleData_npzFormat('%s%s/%s'%(path, outDir, outDir_new), myBundles, 'numGalData_masked_with0pt_withPoisson', filterBand)
+            saveBundleData_npzFormat('%s%s/%s'%(path, outDir, outDir_new),
+                                     myBundles, 'numGalData_masked_with0pt_withPoisson', filterBand)
         # ------------------------------------------------------------------------
         # print out tot(numGal) associated with each strategy
         # add to the read me as well
@@ -853,21 +828,6 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
     readme = open('%s%s/%s'%(path, outDir, readme_name), 'a')
     readme.write(update)
     readme.close()
-
-    # ------------------------------------------------------------------------
-    # plot deltaN/N plots
-    if plotDeltaNByN:
-        if saveDeltaNByNPlots:   
-            plotBundleMaps(path, outDir, myBundles, r'$\mathrm{\Delta N/\overline{N}}$', filterBand,
-                           dataName='galCountFluctuations', colorMin=-0.10, colorMax=0.10,
-                           skymap=True, powerSpectrum=True, showPlots=showDeltaNByNPlots,
-                           saveFigs=True, outDirNameForSavedFigs='artificialFluctuationPlotsAfterMasking')
-        else:
-            plotBundleMaps(path, outDir, myBundles, r'$\mathrm{\Delta N/\overline{N}}$', filterBand,
-                           dataName='galCountFluctuations', colorMin=-0.10, colorMax=0.10,
-                           skymap=True, powerSpectrum=True, showPlots=showDeltaNByNPlots,
-                           saveFigs=False, outDirNameForSavedFigs='')
-    plotHandler = plots.PlotHandler(outDir='%s%s'%(path, outDir), resultsDb=resultsDb, thumbnail=False, savefig=False)
 
     # ------------------------------------------------------------------------
     # save the deltaN/N data
@@ -941,7 +901,8 @@ def artificialStructureCalculation(path, upperMagLimit, dbfile, runName,
         for dither in myBundles:
             ind = np.where(myBundles[dither].metricValues.mask == False)[0]
             binsize = 0.01
-            binAll = int((max(myBundles[dither].metricValues.data[ind])-min(myBundles[dither].metricValues.data[ind]))/binsize)
+            binAll = int((max(myBundles[dither].metricValues.data[ind])-
+                          min(myBundles[dither].metricValues.data[ind]))/binsize)
             plt.hist(myBundles[dither].metricValues.data[ind], bins=binAll, label=dither,
                      histtype='step', color=plotColor[dither])
         #plt.xlim(-0.6,1.2)

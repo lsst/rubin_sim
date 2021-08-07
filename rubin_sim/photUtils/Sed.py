@@ -67,7 +67,8 @@ Method include:
   resampleSED -- primarily internal use, but may be useful to user. Resamples SED onto specified grid.
   flambdaTofnu / fnuToflambda -- conversion methods, does not affect wavelen gridding.
   redshiftSED -- redshifts the SED, optionally adding dimmingx
-  (setupODonnell_ab or setupCCM_ab) / addDust -- separated into two components, so that a_x/b_x can be reused between SEDS
+  (setupODonnell_ab or setupCCM_ab) / addDust -- separated into two components,
+  so that a_x/b_x can be reused between SEDS
 if the wavelength range and grid is the same for each SED (calculate a_x/b_x with either setupODonnell_ab
 or setupCCM_ab).
   multiplySED -- multiply two SEDS together.
@@ -81,6 +82,7 @@ or setupCCM_ab).
 order as the bandpasses) of this SED in each of those bandpasses.
 
 """
+
 import warnings
 import numpy
 import sys
@@ -294,15 +296,14 @@ def cache_LSST_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
     the cache will take up about 1.5GB of memory.  The cache takes about 14 minutes
     to generate and about 51 seconds to load on a 2014 Mac Book Pro.
 
-    Parameters (optional)
-    ---------------------
-    wavelen_min a float
+    Parameters
+    -----------
+    wavelen_min : `float`
+    wavelen_max : `float`
 
-    wavelen_max a float
-
-        if either of these are not None, then every SED in the cache will be
-        truncated to only include the wavelength range (in nm) between
-        wavelen_min and wavelen_max
+    if either of these are not None, then every SED in the cache will be
+    truncated to only include the wavelength range (in nm) between
+    wavelen_min and wavelen_max
 
     cache_dir is a string indicating the directory in which to search for/write
     the cache.  If set to None, the cache will be in
@@ -748,8 +749,8 @@ class Sed(object):
 
         Give method wavelen/flux OR default to self.wavelen/self.flambda.
         Method either returns wavelen/flambda (if given those arrays) or updates wavelen/flambda in self.
-         If updating self, resets fnu to None.
-         Method will first check if resampling needs to be done or not, unless 'force' is True.
+        If updating self, resets fnu to None.
+        Method will first check if resampling needs to be done or not, unless 'force' is True.
         """
         # Check if need resampling:
         if force or (self._needResample(wavelen_match=wavelen_match, wavelen=wavelen, wavelen_min=wavelen_min,
@@ -1133,21 +1134,19 @@ class Sed(object):
 
         Given wavelen/fnu arrays or use self. Self or passed wavelen/fnu arrays will be unchanged.
         Calculating the AB mag requires the wavelen/fnu pair to be on the same grid as bandpass;
-         (temporary values of these are used).
+        (temporary values of these are used).
 
-        @param [in] bandpass is an instantiation of the Bandpass class
-
-        @param [in] photParams is an instantiation of the
-        PhotometricParameters class that carries details about the
-        photometric response of the telescope.
-
-        @param [in] wavelen (optional) is the wavelength grid in nm
-
-        @param [in] fnu (optional) is the flux in Janskys
+        Parameters
+        ----------
+        bandpass : `rubin_sim.photUtils.Bandpass`
+        photParams : `rubin_sim.photUtils.PhotometricParameters`
+        wavelen : `np.ndarray`, optional
+            wavelength grid in nm
+        fnu : `np.ndarray`, optional
+            flux in Janskys
 
         If wavelen and fnu are not specified, this will just use self.wavelen and
         self.fnu
-
         """
 
         use_self = self._checkUseSelf(wavelen, fnu)
@@ -1242,7 +1241,7 @@ class Sed(object):
         Passed wavelen/fnu arrays will be unchanged, but if uses self will check if fnu is set.
 
         Calculating the AB mag requires the wavelen/fnu pair to be on the same grid as bandpass;
-           (temporary values of these are used).
+        (temporary values of these are used).
         """
         # Note - the behavior in this first section might be considered a little odd.
         # However, I felt calculating a magnitude should not (unexpectedly) regrid your
@@ -1277,8 +1276,8 @@ class Sed(object):
 
         Can pass wavelen/fnu arrays or use self. Self or passed wavelen/fnu arrays will be unchanged.
         Calculating the AB mag requires the wavelen/fnu pair to be on the same grid as bandpass;
-         (but only temporary values of these are used).
-         """
+        (but only temporary values of these are used).
+        """
         flux = self.calcFlux(bandpass, wavelen=wavelen, fnu=fnu)
         if flux < 1e-300:
             raise Exception("This SED has no flux within this bandpass.")
@@ -1521,14 +1520,11 @@ class Sed(object):
         phiarray: `np.ndarray`, mandatory
             phiarray corresponding to the list of bandpasses in which the band
             fluxes need to be calculated, in the same wavelength grid as the SED
-
         wavelen_step: `float`, mandatory
             the uniform grid size of the SED
-
         observedBandpassInd: list of integers, optional, defaults to None
             list of indices of phiarray corresponding to observed bandpasses,
             if None, the original phiarray is returned
-
 
         Returns
         -------
@@ -1565,15 +1561,14 @@ class Sed(object):
         already been calculated for Sed.
         These assumptions are to avoid error checking within this function (for
         speed), but could lead to errors if method is used incorrectly.
+
         Parameters
         ----------
         phiarray: `np.ndarray`, mandatory
             phiarray corresponding to the list of bandpasses in which the band
             fluxes need to be calculated, in the same wavelength grid as the SED
-
         wavelen_step: `float`, mandatory
             the uniform grid size of the SED
-
         observedBandpassInd: list of integers, optional, defaults to None
             list of indices of phiarray corresponding to observed bandpasses,
             if None, the original phiarray is returned
@@ -1648,7 +1643,7 @@ def read_close_Kurucz(teff, feH, logg):
         warnings.warn('Multiple close files')
         fileMatch = fileMatch[0]
 
-    # Record what paramters were actually loaded
+    # Record what Parameters were actually loaded
     teff = read_close_Kurucz.param_combos['teff'][g1][g2][g3][0]
     feH = read_close_Kurucz.param_combos['feH'][g1][g2][g3][0]
     logg = read_close_Kurucz.param_combos['logg'][g1][g2][g3][0]

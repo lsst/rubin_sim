@@ -27,11 +27,15 @@ class PassMetric(BaseMetric):
 
 class Coaddm5Metric(BaseMetric):
     """Calculate the coadded m5 value at this gridpoint.
+
+    Parameters
+    ----------
+    m5Col : `str`, optional
+        Name of the m5 column. Default fiveSigmaDepth.
+    metricName : `str`, optional
+        Name to associate with the metric output.
     """
     def __init__(self, m5Col='fiveSigmaDepth', metricName='CoaddM5', **kwargs):
-        """Instantiate metric.
-
-        m5col = the column name of the individual visit m5 data."""
         super(Coaddm5Metric, self).__init__(col=m5Col, metricName=metricName, **kwargs)
 
     def run(self, dataSlice, slicePoint=None):

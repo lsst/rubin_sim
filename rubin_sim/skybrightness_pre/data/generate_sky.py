@@ -59,7 +59,7 @@ def generate_sky(mjd0=59560.2, mjd_max=59565.2, timestep=5., timestep_max=15.,
         includes key-value pairs:
         mjds : the MJD at every computation. Not evenly spaced as no computations.
         airmass : the airmass maps for each MJD
-        masks : The boolean mask map for each MJD (True means the pixel should be masked)
+        masks : The `bool` mask map for each MJD (True means the pixel should be masked)
         sunAlts : The sun altitude at each MJD
     sky_brightness : dict
         Has keys for each u,g,r,i,z,y filter. Each one is a 2-d array with dimensions of healpix ID and

@@ -1,9 +1,4 @@
 import numpy as np
-import matplotlib.pylab as plt
-from lsst.sims.coordUtils import _chipNameFromRaDec
-from lsst.obs.lsst import LsstCamMapper
-import lsst.sims.utils as simsUtils
-
 
 # Use the main stack to make a rough array.
 
@@ -30,6 +25,9 @@ def gnomonic_project_tosky(x, y, RAcen, Deccen):
 
 
 if __name__ == '__main__':
+    from lsst.sims.coordUtils import _chipNameFromRaDec
+    from lsst.obs.lsst import LsstCamMapper
+    import lsst.sims.utils as simsUtils
 
     mapper = LsstCamMapper()
     camera = mapper.camera

@@ -40,17 +40,17 @@ class HealpixSubsetSlicer(BaseSpatialSlicer):
     latCol : str, optional
         Name of the latitude (Dec equivalent) column to use from the input data.
         Default fieldDec
-    latLonDeg : boolean, optional
+    latLonDeg : `bool`, optional
         Flag indicating whether the lat and lon values in the input data are in
         degrees (True) or radians (False).
         Default True.
-    verbose : boolean, optional
+    verbose : `bool`, optional
         Flag to indicate whether or not to write additional information to stdout during runtime.
         Default True.
     badval : float, optional
         Bad value flag, relevant for plotting. Default the hp.UNSEEN value (in order to properly flag
         bad data points for plotting with the healpix plotting routines). This should not be changed.
-    useCache : boolean
+    useCache : `bool`
         Flag allowing the user to indicate whether or not to cache (and reuse) metric results
         calculated with the same set of simulated data pointings.
         This can be safely set to True for slicers not using maps and will result in increased speed.
@@ -62,7 +62,7 @@ class HealpixSubsetSlicer(BaseSpatialSlicer):
     radius : float, optional
         Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
         Default 1.75.
-    useCamera : boolean, optional
+    useCamera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
         Default False.
     rotSkyPosColName : str, optional

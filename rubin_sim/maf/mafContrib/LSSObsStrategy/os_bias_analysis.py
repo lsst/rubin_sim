@@ -26,14 +26,14 @@ def get_fsky(outdir, band='i', print_fsky=True):
 
     Filenames should be in the format: <whatever>_<band>_<dither_strategy>.npz
 
-    Required Parameter
+    Parameters
     -------------------
-      * outdir: str: name of the output directory where the data-to-look-at is.
-
-    Optional Parameters
-    -------------------
-      * band: str: band to consider. Default: 'i'
-      * print_fsky: bool: set to True if want to print( out fsky. Default: True
+    outdir : str
+        name of the output directory where the data-to-look-at is.
+    band: str
+        band to consider. Default: 'i'
+    print_fsky: `bool`
+        set to True if want to print( out fsky. Default: True
 
     """
     filenames = [f for f in os.listdir(outdir) if any([f.endswith('npz')])]
@@ -57,7 +57,7 @@ def get_theory_spectra(mock_data_path, mag_cut=25.6, plot_spectra=True, nside=25
     Return the data for the five redshift bins, read from the files containing the
     with BAO galaxy power spectra from Hu Zhan.
 
-    Required Parameters
+    Parameters
     -------------------
       * mock_data_path: str: path to the folder with the theory spectra
 
@@ -67,7 +67,7 @@ def get_theory_spectra(mock_data_path, mag_cut=25.6, plot_spectra=True, nside=25
       * wBAO_cls: dict: keys = zbin_tags; data = spectra (pixelized for specified nside)
       * surf_num_density: float: surface number density in 1/Sr
 
-    Optional Parameters
+    Parameters
     -------------------
       * mag_cut: float: r-band magnitude cut as the identifer in the filename from Hu.
                         allowed options: 24.0, 25.6, 27.5. Default: 25.6
@@ -140,7 +140,7 @@ def get_outdir_name(band, nside, pixel_radius, yr_cutoff, zbin, mag_cut_i, run_n
 
     Returns: [outdir, yr_tag, zbin_tag, poisson_tag, zero_pt_tag]
 
-    Required Parameters
+    Parameters
     -------------------
       * band: str: band to get the output directory name for.
                    Options: 'u', 'g', 'r', 'i'
@@ -207,14 +207,14 @@ def return_cls(path, outdir, band, specified_dith=None):
 
     Returns the data in the form of a dictonary with dither strategies as keys.
 
-    Required Parameters
+    Parameters
     -------------------
       * path: str: path to the main directory where directories for the outputs from
                    artificialStructure are saved.
       * outdir: str: name of the directory where the cls are situated.
       * band: str: band to consider. Options: 'u', 'g', 'r', 'i', 'z', 'y'
 
-    Optional Parameters
+    Parameters
     ------------------
       * specified_dith: list of str: list of the names (strings) of the dither strategies to consider, e.g.
                                     if want to plot only NoDither, specified_dith_only= ['NoDither']
@@ -251,9 +251,10 @@ def calc_os_bias_err(c_ells):
 
     Returns two dictionaries: [bias, bias_err]
 
-    Required Parameter
-    -------------------
-      * c_ells: dictionary: bands as keys, mapping the cls corresponding to the bands.
+    Parameters
+    ----------
+    c_ells: dictionary
+        bands as keys, mapping the cls corresponding to the bands.
 
     """
     bias, bias_err = {}, {}
@@ -287,7 +288,7 @@ def get_fom(ell_min, ell_max, ell_for_bias_err, bias_err, ell_stat_floor, floor_
 
     Calculate the FoM based on the bias uncertaity and statistical floor. Returns the FoM (float).
 
-    Required Parameters
+    Parameters
     -------------------
       * ell_min: int: minimum ell-value to consider over which the FoM is calculated.
       * ell_max: int: maximum ell-value to consider over which the FoM is calculated.
@@ -328,7 +329,7 @@ def os_bias_overplots(out_dir, data_paths, lim_mags_i, legend_labels, fsky_dith_
     uncertainity from many different galaxy catalogs. Panel legends will specify the redshift bin
     and the magnitude cut.
 
-    Required Parameters
+    Parameters
     -------------------
       * out_dir: str: output directory where the output plots will be saved; a folder named
                       'os_bias_overplots' will be created in the directory, if its not there already.
@@ -346,7 +347,7 @@ def os_bias_overplots(out_dir, data_paths, lim_mags_i, legend_labels, fsky_dith_
       * theory_lim_mag: float: magnitude cut as the identifer in the filename from Hu.
                                Allowed options: 24.0, 25.6, 27.5
 
-    Optional Parameters
+    Parameters
     -------------------
       * specified_dith_only: list of string: list of the names (strings) of the dither strategies to consider, e.g.
                                                if want to plot only NoDither, specified_dith_only= ['NoDither']. If
@@ -582,7 +583,7 @@ def os_bias_overplots_diff_dbs(out_dir, data_path, run_names, legend_labels, fsk
     OS bias uncertainity from many different cadences. Panel legends will specify the redshift bin
     and OpSim output tag.
 
-    Required Parameters
+    Parameters
     -------------------
       * out_dir: str: main directory where the output plots should be saved; a folder named
                       'os_bias_overplots' will be created in the directory, if its not there already.
@@ -600,7 +601,7 @@ def os_bias_overplots_diff_dbs(out_dir, data_path, run_names, legend_labels, fsk
                                Allowed options: 24.0, 25.6, 27.5
       * lim_mag_i: float: i-band magnitude cut to get the data for.
 
-    Optional Parameters
+    Parameters
     -------------------
       * specified_dith_only: list of string: list of the names (strings) of the dither strategies to consider, e.g.
                                            if want to plot only NoDither, specified_dith_only=['NoDither']. If

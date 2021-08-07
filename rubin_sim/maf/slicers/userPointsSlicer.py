@@ -23,7 +23,7 @@ class UserPointsSlicer(BaseSpatialSlicer):
     latLonDeg : bool, optional
         Flag indicating whether the lon and lat values will be in degrees (True) or radians (False).
         Default True (appropriate for opsim v4).
-    verbose : boolean, optional
+    verbose : `bool`, optional
         Flag to indicate whether or not to write additional information to stdout during runtime.
         Default True.
     badval : float, optional
@@ -33,7 +33,7 @@ class UserPointsSlicer(BaseSpatialSlicer):
     radius : float, optional
         Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
         Default 1.75.
-    useCamera : boolean, optional
+    useCamera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
         Default False.
     rotSkyPosColName : str, optional

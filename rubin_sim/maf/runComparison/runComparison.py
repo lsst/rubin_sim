@@ -42,11 +42,11 @@ class RunComparison(object):
 
     Parameters
     ----------
-    baseDir : str
+    baseDir : `str`
         The root directory containing all of the underlying runs and their subdirectories.
-    runNames : list of str
+    runNames : `list` [`str`]
         The names to label different runs. Can contain duplicate entries.
-    rundirs : list
+    rundirs : `list`
         A list of directories (relative to baseDir) where the MAF outputs in runNames reside.
         Optional - if not provided, assumes directories are simply the names in runNames.
         Must have same length as runNames (note that runNames can contain duplicate entries).
@@ -205,9 +205,9 @@ class RunComparison(object):
             Issue warnings resulting from not finding the summary stat information
             (such as if it was never calculated) will not be issued.   Default False.
 
-        Results
+        Returns
         -------
-        Pandas Dataframe
+        summaryStats: `pd.DataFrame`
             <index>   <metricName>  (possibly additional metricNames - multiple summary stats or metadata..)
              runName    value
         """
@@ -331,7 +331,7 @@ class RunComparison(object):
         baselineRun : str
             The name of the opsim run that will serve as baseline.
 
-        Results
+        Returns
         -------
         pandas DataFrame
             A pandas dataframe containing a column for each of the configuration
@@ -342,10 +342,8 @@ class RunComparison(object):
             <run_123>    <norm_metricValue1>  <norm_metricValue2>
             <run_124>    <norm_metricValue1>  <norm_metricValue2>
 
-        Notes:
-        ------
-        The metric values are normalized in the following way:
 
+        The metric values are normalized in the following way:
         norm_metric_value(run) = metric_value(run) - metric_value(baselineRun) / metric_value(baselineRun)
         """
         self.normalizedStats = self.summaryStats.copy(deep=True)
