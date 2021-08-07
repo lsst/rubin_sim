@@ -46,7 +46,7 @@ def pupilCoordsFromRaDec(ra_in, dec_in,
     @param [in] v_rad is radial velocity (km/s)
     Can be a numpy array or a number or None (default=None).
 
-    @param [in] includeRefraction is a boolean controlling the application of refraction.
+    @param [in] includeRefraction is a `bool` controlling the application of refraction.
 
     @param [in] obs_metadata is an ObservationMetaData instantiation characterizing the
     telescope location and pointing.
@@ -116,7 +116,7 @@ def _pupilCoordsFromRaDec(ra_in, dec_in,
     @param [in] v_rad is radial velocity (km/s)
     Can be a numpy array or a number or None (default=None).
 
-    @param [in] includeRefraction is a boolean controlling the application of refraction.
+    @param [in] includeRefraction is a `bool` controlling the application of refraction.
 
     @param [in] obs_metadata is an ObservationMetaData instantiation characterizing the
     telescope location and pointing.
@@ -171,7 +171,7 @@ def _pupilCoordsFromObserved(ra_obs, dec_obs, obs_metadata, epoch=2000.0, includ
 
     epoch is the epoch of the mean RA and Dec in julian years (default=2000.0)
 
-    includeRefraction is a boolean controlling the application of refraction.
+    includeRefraction is a `bool` controlling the application of refraction.
 
     Returns
     --------
@@ -250,7 +250,7 @@ def _observedFromPupilCoords(xPupil, yPupil, obs_metadata=None,
     @param [in] epoch -- julian epoch of the mean equinox used for the coordinate
     transformations (in years; defaults to 2000)
 
-    @param[in] includeRefraction -- a boolean which controls the effects of refraction
+    @param[in] includeRefraction -- a `bool` which controls the effects of refraction
     (refraction is used when finding the observed coordinates of the boresite specified
     by obs_metadata)
 
@@ -326,7 +326,7 @@ def observedFromPupilCoords(xPupil, yPupil, obs_metadata=None,
     @param [in] epoch -- julian epoch of the mean equinox used for the coordinate
     transformations (in years; defaults to 2000)
 
-    @param[in] includeRefraction -- a boolean which controls the effects of refraction
+    @param[in] includeRefraction -- a `bool` which controls the effects of refraction
     (refraction is used when finding the observed coordinates of the boresite specified
     by obs_metadata)
 
@@ -359,7 +359,7 @@ def raDecFromPupilCoords(xPupil, yPupil, obs_metadata=None,
     @param [in] obs_metadata -- an instantiation of ObservationMetaData characterizing
     the state of the telescope
 
-    @param[in] includeRefraction -- a boolean which controls the effects of refraction
+    @param[in] includeRefraction -- a `bool` which controls the effects of refraction
     (refraction is used when finding the observed coordinates of the boresite specified
     by obs_metadata)
 
@@ -394,7 +394,7 @@ def _raDecFromPupilCoords(xPupil, yPupil, obs_metadata=None,
     @param [in] obs_metadata -- an instantiation of ObservationMetaData characterizing
     the state of the telescope
 
-    @param[in] includeRefraction -- a boolean which controls the effects of refraction
+    @param[in] includeRefraction -- a `bool` which controls the effects of refraction
     (refraction is used when finding the observed coordinates of the boresite specified
     by obs_metadata)
 

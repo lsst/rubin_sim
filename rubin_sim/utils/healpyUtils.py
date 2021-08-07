@@ -269,7 +269,7 @@ def hp_grow_argsort(in_map, ignore_nan=True):
         neighbors = hp_grow_argsort.neighbors_cache
     else:
         # Running a new nside, or for the first time, compute neighbors and set attributes
-        # Make a boolean area to keep track of which pixels still need to be sorted
+        # Make a `bool` area to keep track of which pixels still need to be sorted
         neighbors = hp.get_all_neighbours(nside, pix_indx).T
         hp_grow_argsort.neighbors_cache = neighbors
         hp_grow_argsort.nside = nside

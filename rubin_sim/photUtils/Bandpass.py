@@ -164,7 +164,7 @@ class Bandpass(object):
         """
         Populate bandpass data with sb=0 everywhere except sb=1 at imsimwavelen.
 
-        Sets wavelen/sb, with grid min/max/step as optional parameters. Does NOT set phi.
+        Sets wavelen/sb, with grid min/max/step as Parameters. Does NOT set phi.
         """
         self.setWavelenLimits(wavelen_min, wavelen_max, wavelen_step)
         # Set up arrays.
@@ -181,7 +181,7 @@ class Bandpass(object):
         """
         Populate bandpass data with data (wavelen/sb) read from file, resample onto grid.
 
-        Sets wavelen/sb, with grid min/max/step as optional parameters. Does NOT set phi.
+        Sets wavelen/sb, with grid min/max/step as Parameters. Does NOT set phi.
         """
         self.setWavelenLimits(wavelen_min, wavelen_max, wavelen_step)
         # Set self values to None in case of file read error.
@@ -252,7 +252,7 @@ class Bandpass(object):
         Populate bandpass data by reading from a series of files with wavelen/Sb data.
 
         Multiplies throughputs (sb) from each file to give a final bandpass throughput.
-        Sets wavelen/sb, with grid min/max/step as optional parameters.  Does NOT set phi.
+        Sets wavelen/sb, with grid min/max/step as Parameters.  Does NOT set phi.
         """
         # ComponentList = names of files in that directory.
         # A typical component list of all files to build final component list, including filter, might be:

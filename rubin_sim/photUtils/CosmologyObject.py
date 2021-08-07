@@ -8,7 +8,7 @@ The methods in astropy.cosmology are accessed by instantiating a cosmology objec
 methods that belong to that object.  CosmologyObject interfaces with this by declaring a member
 variable self.activeCosmology.  Methods provided by CosmologyObject call the equivalent
 astropy.cosmology methods on self.activeCosmology.  activeCosmology is set by calling
-CosmologyObject.initializeCosmology(args...) with the appropriate cosmological paramters.
+CosmologyObject.initializeCosmology(args...) with the appropriate cosmological Parameters.
 Passing in no parametrs loads the Millennium Simulation cosmology (Springel et al 2005, Nature 435, 629
 or arXiv:astro-ph/0504097).
 
@@ -65,13 +65,13 @@ class CosmologyObject(object):
 
         param [in] H0 is the Hubble parameter at the present epoch in km/s/Mpc
 
-        param [in] Om0 is the current matter density paramter (fraction of critical density)
+        param [in] Om0 is the current matter density Parameter (fraction of critical density)
 
         param [in] Ok0 is the current curvature density parameter
 
-        param [in] w0 is the current dark energy equation of state w0 paramter
+        param [in] w0 is the current dark energy equation of state w0 Parameter
 
-        param[in] wa is the current dark energy equation of state wa paramter
+        param[in] wa is the current dark energy equation of state wa Parameter
 
         The total dark energy equation of state as a function of z is
         w = w0 + wa z/(1+z)
@@ -194,7 +194,7 @@ class CosmologyObject(object):
 
     def H(self, redshift=0.0):
         """
-        return the Hubble paramter in km/s/Mpc at the specified redshift
+        return the Hubble Parameter in km/s/Mpc at the specified redshift
 
         effectively wrapps astropy.cosmology.FLRW.H()
         """
@@ -211,7 +211,7 @@ class CosmologyObject(object):
 
     def OmegaMatter(self, redshift=0.0):
         """
-        return the matter density paramter (fraction of critical density) at the specified redshift
+        return the matter density Parameter (fraction of critical density) at the specified redshift
 
         effectively wraps astropy.cosmology.FLRW.Om()
         """
@@ -220,7 +220,7 @@ class CosmologyObject(object):
 
     def OmegaDarkEnergy(self, redshift=0.0):
         """
-        return the dark energy density paramter (fraction of critical density) at the specified redshift
+        return the dark energy density Parameter (fraction of critical density) at the specified redshift
 
         effectively wraps astropy.cosmology.FLRW.Ode()
         """
@@ -229,7 +229,7 @@ class CosmologyObject(object):
 
     def OmegaPhotons(self, redshift=0.0):
         """
-        return the photon density paramter (fraction of critical density) at the specified redshift
+        return the photon density Parameter (fraction of critical density) at the specified redshift
 
         effectively wraps astropy.cosmology.FLRW.Ogamma()
         """
@@ -238,7 +238,7 @@ class CosmologyObject(object):
 
     def OmegaNeutrinos(self, redshift=0.0):
         """
-        return the neutrino density paramter (fraction of critical density) at the specified redshift
+        return the neutrino density Parameter (fraction of critical density) at the specified redshift
 
         assumes neutrinos are massless
 
@@ -249,7 +249,7 @@ class CosmologyObject(object):
 
     def OmegaCurvature(self, redshift=0.0):
         """
-        return the effective curvature density paramter (fraction of critical density) at the
+        return the effective curvature density Parameter (fraction of critical density) at the
         specified redshift.
 
         Positive means the universe is open.

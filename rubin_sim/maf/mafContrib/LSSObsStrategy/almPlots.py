@@ -20,13 +20,13 @@ def almPlots(path, outDir, bundle,
     Plot the skymaps/cartview plots corresponding to alms with specified l-ranges. 
     Automatically creates the output directories and saves the plots.
 
-    Required Parameters
+    Parameters
     -------------------
       * path: str: path to the main directory where output directory is saved
       * outDir: str: name of the main output directory
       * bundle: metricBundle object.
     
-    Optional Parameters
+    Parameters
     -------------------
       * nside: int: HEALpix resolution parameter. Default: 128
       * lmax: int: upper limit on the multipole. Default: 500
@@ -38,7 +38,7 @@ def almPlots(path, outDir, bundle,
       * subsetsToConsider: array of int arrays: l-ranges to consider, e.g. use [[50, 100]] to consider 50<l<100.
                                                 Currently built to handle five subsets (= number of colors built in).
                                                 Default: [[130,165], [240, 300]]
-      * showPlots: boolean: set to True if want to show figures. Default: True
+      * showPlots: `bool`: set to True if want to show figures. Default: True
 
     """
     # set up the output directory

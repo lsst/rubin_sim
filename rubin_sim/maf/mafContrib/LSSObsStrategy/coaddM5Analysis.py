@@ -23,7 +23,6 @@ import rubin_sim.maf.maps as maps
 import rubin_sim.maf.stackers as mafStackers   # stackers in sims_maf
 
 from rubin_sim.maf.mafContrib.LSSObsStrategy.maskingAlgorithmGeneralized import maskingAlgorithmGeneralized
-from rubin_sim.maf.mafContrib.LSSObsStrategy.plotBundleMaps import plotBundleMaps
 from rubin_sim.maf.mafContrib.LSSObsStrategy.almPlots import almPlots
 from rubin_sim.maf.mafContrib.LSSObsStrategy.saveBundleData_npzFormat import saveBundleData_npzFormat
 
@@ -57,55 +56,76 @@ def coaddM5Analysis(path, dbfile, runName, slair=False,
       - Creates, shows, and saves comparison plots.
       - Returns the metricBundle object containing the calculated coadded depth, and the output directory name.
 
-    Required Parameters
+    Parameters
     -------------------
-      * path: str: path to the main directory where output directory is to be saved.
-      * dbfile: str: path to the OpSim output file, e.g. to a copy of enigma_1189
-      * runName: str: run name tag to identify the output of specified OpSim output, e.g. 'enigma1189' 
-
-    Optional Parameters
-    -------------------
-      * slair: boolean: set to True if analysis on a SLAIR output.
-                        Default: False
-      * WFDandDDFs: boolean: set to True if want to consider both WFD survet and DDFs. Otherwise will only work
-                             with WFD. Default: False
-      * noDithOnly: boolean: set to True if only want to consider the undithered survey. Default: False
-      * bestDithOnly: boolean: set to True if only want to consider RandomDitherFieldPerVisit.
-                               Default: False
-      * someDithOnly: boolean: set to True if only want to consider undithered and a few dithered surveys. 
-                               Default: False
-      * specifiedDith: str: specific dither strategy to run.
-                            Default: None
-      * nside: int: HEALpix resolution parameter. Default: 128
-      * filterBand: str: any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'r'
-      * includeDustExtinction: boolean: set to include dust extinction. Default: False
-      * saveunMaskedCoaddData: boolean: set to True to save data before border masking. Default: False
-      * pixelRadiusForMasking: int: number of pixels to mask along the shallow border. Default: 5
-
-      * cutOffYear: int: year cut to restrict analysis to only a subset of the survey. 
-                         Must range from 1 to 9, or None for the full survey analysis (10 yrs).
-                         Default: None
-      * plotSkymap: boolean: set to True if want to plot skymaps. Default: True
-      * plotCartview: boolean: set to True if want to plot cartview plots. Default: False
-      * unmaskedColorMin: float: lower limit on the colorscale for unmasked skymaps. Default: None
-      * unmaskedColorMax: float: upper limit on the colorscale for unmasked skymaps. Default: None
-
-      * maskedColorMin: float: lower limit on the colorscale for border-masked skymaps. Default: None
-      * maskedColorMax: float: upper limit on the colorscale for border-masked skymaps. Default: None
-      * nTicks: int: (number of ticks - 1) on the skymap colorbar. Default: 5
-      * plotPowerSpectrum: boolean: set to True if want to plot powerspectra. Default: True
-
-      * showPlots: boolean: set to True if want to show figures. Default: True
-      * saveFigs: boolean: set to True if want to save figures. Default: True
-      
-      * almAnalysis: boolean: set to True to perform the alm analysis. Default: True
-      * raRange: float array: range of right ascention (in degrees) to consider in alm  cartview plot;
-                              applicable when almAnalysis=True. Default: [-50,50]
-      * decRange: float array: range of declination (in degrees) to consider in alm cartview plot; 
-                               applicable when almAnalysis=True. Default: [-65,5]
-      * saveMaskedCoaddData: boolean: set to True to save the coadded depth data after the border
-                                      masking. Default: True
-
+    path: str
+        path to the main directory where output directory is to be saved.
+    dbfile: str
+        path to the OpSim output file, e.g. to a copy of enigma_1189
+    runName: str
+        run name tag to identify the output of specified OpSim output, e.g. 'enigma1189'
+    slair: `bool`
+        set to True if analysis on a SLAIR output.
+        Default: False
+    WFDandDDFs: `bool`
+        set to True if want to consider both WFD survet and DDFs. Otherwise will only work
+        with WFD. Default: False
+    noDithOnly: `bool`
+        set to True if only want to consider the undithered survey. Default: False
+    bestDithOnly: `bool`
+        set to True if only want to consider RandomDitherFieldPerVisit.
+        Default: False
+    someDithOnly: `bool`
+        set to True if only want to consider undithered and a few dithered surveys.
+        Default: False
+    specifiedDith: str
+        specific dither strategy to run.
+        Default: None
+    nside: int
+        HEALpix resolution parameter. Default: 128
+    filterBand: str
+        any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'r'
+    includeDustExtinction: `bool`
+        set to include dust extinction. Default: False
+    saveunMaskedCoaddData: `bool`
+        set to True to save data before border masking. Default: False
+    pixelRadiusForMasking: int
+        number of pixels to mask along the shallow border. Default: 5
+    cutOffYear: int
+        year cut to restrict analysis to only a subset of the survey.
+        Must range from 1 to 9, or None for the full survey analysis (10 yrs).
+        Default: None
+    plotSkymap: `bool`
+        set to True if want to plot skymaps. Default: True
+    plotCartview: `bool`
+        set to True if want to plot cartview plots. Default: False
+    unmaskedColorMin: float
+        lower limit on the colorscale for unmasked skymaps. Default: None
+    unmaskedColorMax: float
+        upper limit on the colorscale for unmasked skymaps. Default: None
+    maskedColorMin: float
+        lower limit on the colorscale for border-masked skymaps. Default: None
+    maskedColorMax: float
+        upper limit on the colorscale for border-masked skymaps. Default: None
+    nTicks: int
+        (number of ticks - 1) on the skymap colorbar. Default: 5
+    plotPowerSpectrum: `bool`
+        set to True if want to plot powerspectra. Default: True
+    showPlots: `bool`
+        set to True if want to show figures. Default: True
+    saveFigs: `bool`
+        set to True if want to save figures. Default: True
+    almAnalysis: `bool`
+        set to True to perform the alm analysis. Default: True
+    raRange: float array
+        range of right ascention (in degrees) to consider in alm  cartview plot;
+        applicable when almAnalysis=True. Default: [-50,50]
+    decRange: float array
+        range of declination (in degrees) to consider in alm cartview plot;
+        applicable when almAnalysis=True. Default: [-65,5]
+    saveMaskedCoaddData: `bool`
+        set to True to save the coadded depth data after the border
+        masking. Default: True
     """
     # ------------------------------------------------------------------------
     # read in the database
@@ -305,18 +325,6 @@ def coaddM5Analysis(path, dbfile, runName, slair=False,
     cGroup.runAll()
 
     # ------------------------------------------------------------------------
-    # plot and save the data
-    plotBundleMaps(path, outDir, coaddBundle,
-                   dataLabel='$%s$-band Coadded Depth'%filterBand, filterBand=filterBand,
-                   dataName='%s-band Coadded Depth'%filterBand,
-                   skymap=plotSkymap, powerSpectrum=plotPowerSpectrum, cartview=plotCartview,
-                   colorMin=unmaskedColorMin, colorMax=unmaskedColorMax,
-                   nTicks=nTicks,
-                   showPlots=showPlots, saveFigs=saveFigs,
-                   outDirNameForSavedFigs='coaddM5Plots_unmaskedBorders')
-    print('\n# Done saving plots without border masking.\n')
-
-    # ------------------------------------------------------------------------
     plotHandler = plots.PlotHandler(outDir=outDir, resultsDb=resultsDb, thumbnail=False, savefig=False)
 
     print('# Number of pixels in the survey region (before masking the border):')
@@ -340,18 +348,6 @@ def coaddM5Analysis(path, dbfile, runName, slair=False,
                                              pixelRadius=pixelRadiusForMasking,
                                              plotIntermediatePlots=False,
                                              plotFinalPlots=False, printFinalInfo=True)
-    if (pixelRadiusForMasking>0):
-        # plot and save the masked data
-        plotBundleMaps(path, outDir, coaddBundle,
-                       dataLabel='$%s$-band Coadded Depth'%filterBand, filterBand=filterBand,
-                       dataName='%s-band Coadded Depth'%filterBand,
-                       skymap=plotSkymap, powerSpectrum=plotPowerSpectrum, cartview=plotCartview,
-                       colorMin=maskedColorMin, colorMax=maskedColorMax,
-                       nTicks=nTicks,
-                       showPlots=showPlots, saveFigs=saveFigs,
-                       outDirNameForSavedFigs='coaddM5Plots_maskedBorders')
-        print('\n# Done saving plots with border masking. \n')
-        
     # ------------------------------------------------------------------------
     # Calculate total power
     summarymetric = metrics.TotalPowerMetric()
@@ -373,7 +369,8 @@ def coaddM5Analysis(path, dbfile, runName, slair=False,
         outDir_new = 'maskedCoaddData'
         if not os.path.exists('%s%s/%s'%(path, outDir, outDir_new)):
             os.makedirs('%s%s/%s'%(path, outDir, outDir_new))
-        saveBundleData_npzFormat('%s%s/%s'%(path, outDir, outDir_new), coaddBundle, 'coaddM5Data_masked', filterBand)
+        saveBundleData_npzFormat('%s%s/%s'%(path, outDir, outDir_new), coaddBundle,
+                                 'coaddM5Data_masked', filterBand)
 
     # ------------------------------------------------------------------------
     # plot comparison plots

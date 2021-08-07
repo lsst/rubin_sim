@@ -100,7 +100,7 @@ def cosmologicalOmega(redshift, H0, Om0, Ode0 = None, Og0=0.0, Onu0=0.0, w0=-1.0
 
     @returns Hubble parameter at desired redshift (in km/s/Mpc)
 
-    @returns matter density paramter at desired redshift
+    @returns matter density Parameter at desired redshift
 
     @returns Dark Energy density parameter at desired redshift
 

@@ -133,14 +133,14 @@ class SNSNRMetric(metrics.BaseMetric):
         """Process one season
 
         Parameters
-        ---------
+        -----------
         sel : array
           array of observations
         season : int
           season number
 
         Returns
-        -----
+        --------
         record array with the following fields:
           fieldRA (float)
           fieldDec (float)
@@ -169,11 +169,13 @@ class SNSNRMetric(metrics.BaseMetric):
         Estimate SNR for a given dataSlice
 
         Parameters
-        ---------
-        Input: dataSlice
+        -----------
+        dataSlice : `np.recarray`
+        j : `int`, optional
+        output_q : `int`, optional
 
         Returns
-        -----
+        --------
         array with the following fields (all are of f8 type, except band which is of U1)
 
         SNR_name_ref:  Signal-To-Noise Ratio estimator
@@ -265,12 +267,12 @@ class SNSNRMetric(metrics.BaseMetric):
         Get info on seasons for each dataSlice
 
         Parameters
-        -----
+        ----------
         dataSlice : array
-          array of observations
+            array of observations
 
         Returns
-        -----
+        -------
         recordarray with the following fields:
         season, cadence, season_length, MJDmin, MJDmax
         """
@@ -305,21 +307,21 @@ class SNSNRMetric(metrics.BaseMetric):
         -----------
         time_lc :
         m5_vals : list(float)
-           five-sigme depth values
+            five-sigme depth values
         flag : array(bool)
-          flag to be applied (example: selection from phase cut)
+            flag to be applied (example: selection from phase cut)
         season_vals : array(float)
-          season values
+            season values
         T0_lc : array(float)
-           array of T0 for supernovae
+            array of T0 for supernovae
 
         Returns
-        -----
+        -------
         fluxes_tot : list(float)
-         list of (interpolated) fluxes
+            list of (interpolated) fluxes
         snr_tab : array with the following fields:
-          snr_name_ref (float) : Signal-to-Noise values
-          season (float) : season num.
+            snr_name_ref (float) : Signal-to-Noise values
+            season (float) : season num.
         """
 
         seasons = np.ma.array(season_vals, mask=~flag)
@@ -347,7 +349,7 @@ class SNSNRMetric(metrics.BaseMetric):
             """    
             snr_tab = rf.append_fields(
                 snr_tab, 'season', np.mean(seasons, axis=1))
-          """
+            """
             snr_tab = rf.append_fields(
                 snr_tab, 'season', self.get_season(T0_lc))
 
@@ -370,12 +372,12 @@ class SNSNRMetric(metrics.BaseMetric):
         Estimate the seasons corresponding to T0 values
 
         Parameters
-        -------
+        ----------
         T0 : list(float)
-           set of T0 values
+            set of T0 values
 
         Returns
-        -----
+        --------
         list (float) of corresponding seasons
         """
 
@@ -392,16 +394,16 @@ class SNSNRMetric(metrics.BaseMetric):
         Estimate SNR for fake observations
         in the same way as for observations (using SNR_Season)
 
-        Parameters:
-        -------
+        Parameters
+        -----------
         dataSlice : array
-           array of observations
+            array of observations
 
         Returns
-        -----
+        --------
         snr_tab : array with the following fields:
-          snr_name_ref (float) : Signal-to-Noise values
-          season (float) : season num.
+            snr_name_ref (float) : Signal-to-Noise values
+            season (float) : season num.
 
         """
 
@@ -425,26 +427,24 @@ class SNSNRMetric(metrics.BaseMetric):
         according to observing values extracted from simulations
 
         Parameters
-        -----
+        ----------
         slice_sel : array
-          array of observations
+            array of observations
         band : str
-          band to consider
+            band to consider
 
         Returns
-        -----
+        --------
         fake_obs_season : array
-          array of observations with the following fields
-          observationStartMJD (float)
-          fieldRA (float)
-          fieldDec (float)
-          filter (U1)
-          fiveSigmaDepth (float)
-          numExposures (float)
-          visitExposureTime (float)
-          season (int)
-
-
+            array of observations with the following fields
+            observationStartMJD (float)
+            fieldRA (float)
+            fieldDec (float)
+            filter (U1)
+            fiveSigmaDepth (float)
+            numExposures (float)
+            visitExposureTime (float)
+            season (int)
         """
         fieldRA = np.mean(slice_sel[self.RaCol])
         fieldDec = np.mean(slice_sel[self.DecCol])
@@ -486,13 +486,11 @@ class SNSNRMetric(metrics.BaseMetric):
         """ Plot SNR vs time
 
         Parameters
-        -----
+        ----------
         snr_obs : array
-          array estimated using snr_slice(observations)
-
+            array estimated using snr_slice(observations)
         snr_obs : array
-          array estimated using snr_slice(fakes)
-
+            array estimated using snr_slice(fakes)
         """
 
         fig, ax = plt.subplots(figsize=(10, 7))
@@ -511,20 +509,19 @@ class SNSNRMetric(metrics.BaseMetric):
         Each plot may be saved as a png to make a video afterwards
 
         Parameters
-        ------
+        ----------
         fluxes : list(float)
-          LC fluxes
+            LC fluxes
         mjd : list(float)
-          mjds of the fluxes
+            mjds of the fluxes
         flag : array
-          flag for selection of fluxes
+            flag for selection of fluxes
         snr : list
-          signal-to-noise ratio
+            signal-to-noise ratio
         T0_lc : list(float)
-          list of T0 supernovae
+            list of T0 supernovae
         dates : list(float)
-          date of the display (mjd)
-
+            date of the display (mjd)
         """
 
         dir_save = '/home/philippe/LSST/sn_metric_new/Plots'
@@ -602,21 +599,21 @@ class SNSNRMetric(metrics.BaseMetric):
         For regular cadences one should get a result close to 1
 
         Parameters
-        -------
+        ----------
         snr_obs : array
-         array estimated using snr_slice(observations)
+            array estimated using snr_slice(observations)
 
-         snr_fakes: array
-           array estimated using snr_slice(fakes)
+        snr_fakes: array
+            array estimated using snr_slice(fakes)
 
         Returns
-        -----
+        -------
         record array with the following fields:
-          fieldRA (float)
-          fieldDec (float)
-          season (float)
-         band (str)
-         frac_obs_name_ref (float)
+            fieldRA (float)
+            fieldDec (float)
+            season (float)
+            band (str)
+            frac_obs_name_ref (float)
         """
 
         ra = np.mean(snr_obs['fieldRA'])
@@ -660,12 +657,11 @@ class SNSNRMetric(metrics.BaseMetric):
         return only seasons with season_length > 30 days
 
         Parameters
-        --------------
+        -----------
         tab : array with the following fields:
 
-
         Returns
-        ---------
+        -------
         tab : array with the following fields:
         """
         if tab is None or len(tab) == 1:

@@ -173,7 +173,7 @@ class Trixel(object):
         is the zeroth point, pt[1] is the first
         point, etc.).
 
-        Return a boolean or array of booleans
+        Return a `bool` or array of booleans
         denoting whether this point(s) projected
         onto the unit sphere is/are contained within
         the current trixel.
@@ -976,7 +976,7 @@ class HalfSpace(object):
 
         radius_rad is the radius of the circle in radians
 
-        Returns a boolean
+        Returns a `bool`
         """
 
         dotproduct = np.dot(center, self._v)

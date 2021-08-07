@@ -155,7 +155,6 @@ class Model_observatory(object):
 
     def return_conditions(self):
         """
-
         Returns
         -------
         rubin_sim.scheduler.features.conditions object
@@ -337,17 +336,16 @@ class Model_observatory(object):
 
     def check_mjd(self, mjd, cloud_skip=20.):
         """See if an mjd is ok to observe
+
         Parameters
         ----------
         cloud_skip : float (20)
             How much time to skip ahead if it's cloudy (minutes)
 
-
         Returns
         -------
-        bool
-
-        mdj : float
+        mjd_ok : `bool`
+        mdj : `float`
             If True, the input mjd. If false, a good mjd to skip forward to.
         """
         passed = True

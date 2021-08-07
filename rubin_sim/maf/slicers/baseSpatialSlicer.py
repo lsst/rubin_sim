@@ -37,10 +37,10 @@ class BaseSpatialSlicer(BaseSlicer):
     latCol : str, optional
         Name of the latitude (Dec equivalent) column to use from the input data.
         Default fieldDec
-    latLonDeg : boolean, optional
+    latLonDeg : `bool`, optional
         Flag indicating whether lat and lon values from input data are in degrees (True) or radians (False).
         Default True.
-    verbose : boolean, optional
+    verbose : `bool`, optional
         Flag to indicate whether or not to write additional information to stdout during runtime.
         Default True.
     badval : float, optional
@@ -50,7 +50,7 @@ class BaseSpatialSlicer(BaseSlicer):
     radius : float, optional
         Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
         Default 1.75.
-    useCamera : boolean, optional
+    useCamera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
         Default False.
     rotSkyPosColName : str, optional
@@ -148,7 +148,7 @@ class BaseSpatialSlicer(BaseSlicer):
                 x_indx = x_indx[in_range]
                 y_indx = y_indx[in_range]
                 # reduce the indices down to only the ones that fall on silicon.
-                # self.camera_fov is an array of boolean values
+                # self.camera_fov is an array of `bool` values
                 map_val = self.camera_fov[x_indx, y_indx]
                 indices = indices[map_val].tolist()
 

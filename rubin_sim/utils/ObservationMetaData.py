@@ -216,7 +216,7 @@ class ObservationMetaData(object):
         @param [in] inputValue is a single value or list of m5/seeing/etc. corresponding to
         the bandpasses stored in self._bandpass
 
-        @param [in] inputName is the name of the paramter stored in inputValue
+        @param [in] inputName is the name of the Parameter stored in inputValue
         (for constructing helpful error message)
 
         @param [out] returns a dict of inputValue values keed to self._bandpass
@@ -324,7 +324,7 @@ class ObservationMetaData(object):
         of view associated with this ObservationMetaData.
 
         See the documentation in the SpatialBounds class for more
-        details (specifically, the 'length' paramter).
+        details (specifically, the 'length' Parameter).
 
         In degrees (Yes: the documentation in SpatialBounds says that
         the length should be in radians.  The present class converts

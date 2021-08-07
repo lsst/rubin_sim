@@ -651,9 +651,9 @@ def observedFromAppGeo(ra, dec, includeRefraction=True,
 
     @param [in] dec is geocentric apparent Dec (degrees).  Can be a numpy array or a number.
 
-    @param [in] includeRefraction is a boolean to turn refraction on and off
+    @param [in] includeRefraction is a `bool` to turn refraction on and off
 
-    @param [in] altAzHr is a boolean indicating whether or not to return altitude
+    @param [in] altAzHr is a `bool` indicating whether or not to return altitude
     and azimuth
 
     @param [in] wavelength is effective wavelength in microns (default: 0.5)
@@ -695,10 +695,10 @@ def _calculateObservatoryParameters(obs_metadata, wavelength, includeRefraction)
 
     @param [in] wavelength is the effective wavelength in microns
 
-    @param [in] includeRefraction is a boolean indicating whether or not
+    @param [in] includeRefraction is a `bool` indicating whether or not
     to include the effects of refraction
 
-    @param [out] the numpy array of observatory paramters calculated by
+    @param [out] the numpy array of observatory Parameters calculated by
     palpy.aoppa
     """
 
@@ -761,9 +761,9 @@ def _observedFromAppGeo(ra, dec, includeRefraction=True,
 
     @param [in] dec is geocentric apparent Dec (radians).  Can be a numpy array or a number.
 
-    @param [in] includeRefraction is a boolean to turn refraction on and off
+    @param [in] includeRefraction is a `bool` to turn refraction on and off
 
-    @param [in] altAzHr is a boolean indicating whether or not to return altitude
+    @param [in] altAzHr is a `bool` indicating whether or not to return altitude
     and azimuth
 
     @param [in] wavelength is effective wavelength in microns (default: 0.5)
@@ -850,7 +850,7 @@ def appGeoFromObserved(ra, dec, includeRefraction=True,
 
     @param [in] dec is observed Dec (degrees).  Can be a numpy array or a number.
 
-    @param [in] includeRefraction is a boolean to turn refraction on and off
+    @param [in] includeRefraction is a `bool` to turn refraction on and off
 
     @param [in] wavelength is effective wavelength in microns (default: 0.5)
 
@@ -884,7 +884,7 @@ def _appGeoFromObserved(ra, dec, includeRefraction=True,
 
     @param [in] dec is observed Dec (radians).  Can be a numpy array or a number.
 
-    @param [in] includeRefraction is a boolean to turn refraction on and off
+    @param [in] includeRefraction is a `bool` to turn refraction on and off
 
     @param [in] wavelength is effective wavelength in microns (default: 0.5)
 

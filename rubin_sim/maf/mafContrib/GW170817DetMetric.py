@@ -23,7 +23,7 @@ class GW170817DetMetric(transientAsciiSEDMetric):
     redshift of the detected cosmological redshift distribution shown in
     Setzer et al. 2019.
 
-    Parameters:
+    Parameters
     -----------
     ascii_file : str, optional
         The ascii file containing the inputs for the SED. The file must

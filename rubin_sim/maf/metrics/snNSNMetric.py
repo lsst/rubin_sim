@@ -17,7 +17,7 @@ class SNNSNMetric(BaseMetric):
     Estimate (nSN,zlim) of type Ia supernovae.
 
     Parameters
-    ---------------
+    -----------
     metricName : str, optional
         metric name (default : SNSNRMetric)
     mjdCol : str, optional
@@ -151,10 +151,9 @@ class SNNSNMetric(BaseMetric):
         run method of the metric
 
         Parameters
-        ---------------
-        dataSlice: array
-          data to process
-
+        -----------
+        dataSlice : array
+            data to process
         """
         idarray = None
         healpixID = -1
@@ -295,12 +294,13 @@ class SNNSNMetric(BaseMetric):
         Method to coadd data per band and per night
 
         Parameters
-        ---------------
-        data: pandas df of observations
+        ------------
+        data : `pd.DataFrame`
+            pandas df of observations
 
         Returns
-        -----------
-        coadded data (pandas df)
+        -------
+        coadded data : `pd.DataFrame`
 
         """
 
@@ -332,16 +332,18 @@ class SNNSNMetric(BaseMetric):
     def getseason(self, obs, season_gap=80., mjdCol='observationStartMJD'):
         """
         Method to estimate seasons
+
         Parameters
-        --------------
+        ------------
         obs: numpy array
-          array of observations
+            array of observations
         season_gap: float, optional
-         minimal gap required to define a season (default: 80 days)
+            minimal gap required to define a season (default: 80 days)
         mjdCol: str, optional
-        col name for MJD infos (default: observationStartMJD)
+            col name for MJD infos (default: observationStartMJD)
+
         Returns
-        ----------
+        ---------
         original numpy array with seasonnumber appended
         """
 
@@ -366,9 +368,11 @@ class SNNSNMetric(BaseMetric):
     def seasonInfo(self, grp):
         """
         Method to estimate seasonal info (cadence, season length, ...)
+
         Parameters
-        --------------
+        -----------
         grp: pandas df group
+
         Returns
         ---------
         pandas df with the cfollowing cols:
@@ -394,12 +398,14 @@ class SNNSNMetric(BaseMetric):
         T0_min(z) =  daymin-(1+z)*min_rf_phase_qual
         T0_max(z) =  daymax-(1+z)*max_rf_phase_qual
         season_length(z) = T0_max(z)-T0_min(z)
+
         Parameters
-        --------------
+        -----------
         grp: pandas df group
-          data to process: season infos
+            data to process: season infos
+
         Returns
-        ----------
+        --------
         pandas df with season_length, z, T0_min and T0_max cols
         """
 
@@ -415,14 +421,16 @@ class SNNSNMetric(BaseMetric):
     def calcDaymax(self, grp):
         """
         Method to estimate T0 (daymax) values for simulation.
+
         Parameters
-        --------------
+        -----------
         grp: group (pandas df sense)
-         group of data to process with the following cols:
-           T0_min: T0 min value (per season)
-           T0_max: T0 max value (per season)
+            group of data to process with the following cols:
+            T0_min: T0 min value (per season)
+            T0_max: T0 max value (per season)
+
         Returns
-        ----------
+        --------
         pandas df with daymax, min_rf_phase, max_rf_phase values
         """
 
@@ -443,18 +451,20 @@ class SNNSNMetric(BaseMetric):
     def run_season(self, dataSlice, season, gen_par, dura_z):
         """
         Method to run on seasons
+
         Parameters
-        --------------
-        dataSlice: numpy array, optional
-          data to process (scheduler simulations)
+        -----------
+        dataSlice : numpy array, optional
+            data to process (scheduler simulations)
         seasons: list(int)
-          list of seasons to process
+            list of seasons to process
+
         Returns
-        ---------
+        -------
         effi_seasondf: pandas df
-          efficiency curves
+            efficiency curves
         zlimsdf: pandas df
-          redshift limits and number of supernovae
+            redshift limits and number of supernovae
         """
 
         time_ref = time.time()
@@ -529,12 +539,13 @@ class SNNSNMetric(BaseMetric):
     def genSN(self, obs, gen_par):
         """
         Method to simulate LC and supernovae
+
         Parameters
-        ---------------
+        -----------
         obs: numpy array
-          array of observations(from scheduler)
+            array of observations(from scheduler)
         gen_par: numpy array
-          array of parameters for simulation
+            array of parameters for simulation
         """
 
         time_ref = time.time()
@@ -576,37 +587,36 @@ class SNNSNMetric(BaseMetric):
     def process(self, tab):
         """
         Method to process LC: sigma_color estimation and LC selection
+
         Parameters
-        --------------
+        ------------
         tab: pandas df of LC points with the following cols:
-          flux:  flux
-          fluxerr: flux error
-          phase:  phase
-          snr_m5: Signal-to-Noise Ratio
-          time: time(MJD)
-          mag: magnitude
-          m5:  five-sigma depth
-          magerr: magnitude error
-          exposuretime: exposure time
-          band: filter
-          zp:  zero-point
-          season: season number
-          healpixID: pixel ID
-          pixRA: pixel RA
-          pixDec: pixel Dec
-          z: redshift
-          daymax: T0
-          flux_e_sec: flux(in photoelec/sec)
-          flux_5: 5-sigma flux(in photoelec/sec)
-          F_x0x0, ...F_colorcolor: Fisher matrix elements
-          x1: x1 SN
-          color: color SN
-          n_aft: number of LC points before daymax
-          n_bef: number of LC points after daymax
-          n_phmin: number of LC points with a phase < -5
-          n_phmax:  number of LC points with a phase > 20
-        Returns
-        ----------
+            flux:  flux
+            fluxerr: flux error
+            phase:  phase
+            snr_m5: Signal-to-Noise Ratio
+            time: time(MJD)
+            mag: magnitude
+            m5:  five-sigma depth
+            magerr: magnitude error
+            exposuretime: exposure time
+            band: filter
+            zp:  zero-point
+            season: season number
+            healpixID: pixel ID
+            pixRA: pixel RA
+            pixDec: pixel Dec
+            z: redshift
+            daymax: T0
+            flux_e_sec: flux(in photoelec/sec)
+            flux_5: 5-sigma flux(in photoelec/sec)
+            F_x0x0, ...F_colorcolor: Fisher matrix elements
+            x1: x1 SN
+            color: color SN
+            n_aft: number of LC points before daymax
+            n_bef: number of LC points after daymax
+            n_phmin: number of LC points with a phase < -5
+            n_phmax:  number of LC points with a phase > 20
         """
         # now groupby
         tab = tab.round({'daymax': 3,
@@ -651,25 +661,27 @@ class SNNSNMetric(BaseMetric):
 
     def effidf(self, sn_tot, color_cut=0.04):
         """
-        Method estimating efficiency vs z for a sigma_color cut
+        Method estimating efficiency vs z for a sigma_color
+
         Parameters
-        ---------------
+        -----------
         sn_tot: pandas df
-          data used to estimate efficiencies
+            data used to estimate efficiencies
         color_cut: float, optional
-          color selection cut(default: 0.04)
+            color selection cut(default: 0.04)
+
         Returns
-        ----------
+        --------
         effi: pandas df with the following cols:
-          season: season
-          pixRA: RA of the pixel
-          pixDec: Dec of the pixel
-          healpixID: pixel ID
-          x1: SN stretch
-          color: SN color
-          z: redshift
-          effi: efficiency
-          effi_err: efficiency error(binomial)
+            season: season
+            pixRA: RA of the pixel
+            pixDec: Dec of the pixel
+            healpixID: pixel ID
+            x1: SN stretch
+            color: SN color
+            z: redshift
+            effi: efficiency
+            effi_err: efficiency error(binomial)
         """
 
         sndf = pd.DataFrame(sn_tot)
@@ -700,18 +712,19 @@ class SNNSNMetric(BaseMetric):
     def plot(self, ax, effi, vary, erry=None, legy='', ls='None'):
         """
         Simple method to plot vs z
+
         Parameters
-        --------------
-        ax:
-          axis where to plot
+        -----------
+        ax: `matplotlib.Axes`
+            axis where to plot
         effi: pandas df
-          data to plot
+            data to plot
         vary: str
-          variable(column of effi) to plot
+            variable(column of effi) to plot
         erry: str, optional
-          error on y-axis(default: None)
+            error on y-axis(default: None)
         legy: str, optional
-          y-axis legend(default: '')
+            y-axis legend(default: '')
         """
         grb = effi.groupby(['x1', 'color'])
         yerr = None
@@ -733,15 +746,17 @@ class SNNSNMetric(BaseMetric):
     def effiObsdf(self, data, color_cut=0.04):
         """
         Method to estimate observing efficiencies for supernovae
+
         Parameters
-        --------------
+        -----------
         data: pandas df - grp
-          data to process
+            data to process
+
         Returns
         ----------
         pandas df with the following cols:
-          - cols used to make the group
-          - effi, effi_err: observing efficiency and associated error
+            - cols used to make the group
+            - effi, effi_err: observing efficiency and associated error
         """
 
         # reference df to estimate efficiencies
@@ -776,35 +791,38 @@ class SNNSNMetric(BaseMetric):
     def zlims(self, effi_seasondf, dur_z, groupnames):
         """
         Method to estimate redshift limits
+
         Parameters
-        --------------
+        -----------
         effi_seasondf: pandas df
             season: season
-          pixRA: RA of the pixel
-          pixDec: Dec of the pixel
-          healpixID: pixel ID
-          x1: SN stretch
-          color: SN color
-          z: redshift
-          effi: efficiency
-          effi_err: efficiency error (binomial)
+            pixRA: RA of the pixel
+            pixDec: Dec of the pixel
+            healpixID: pixel ID
+            x1: SN stretch
+            color: SN color
+            z: redshift
+            effi: efficiency
+            effi_err: efficiency error (binomial)
         dur_z: pandas df with the following cols:
-           season: season
-           z: redshift
-           T0_min: min daymax
-           T0_max: max daymax
+            season: season
+            z: redshift
+            T0_min: min daymax
+            T0_max: max daymax
             season_length: season length
         groupnames: list(str)
-          list of columns to use to define the groups
+            list of columns to use to define the groups
+
         Returns
-        ----------
-        pandas df with the following cols: pixRA: RA of the pixel
-           pixDec: Dec of the pixel
-           healpixID: pixel ID
-           season: season number
-           x1: SN stretch
-           color: SN color
-           zlim: redshift limit
+        --------
+        pandas df with the following cols:
+            pixRA: RA of the pixel
+            pixDec: Dec of the pixel
+            healpixID: pixel ID
+            season: season number
+            x1: SN stretch
+            color: SN color
+            zlim: redshift limit
         """
 
         res = effi_seasondf.groupby(groupnames).apply(
@@ -815,30 +833,32 @@ class SNNSNMetric(BaseMetric):
     def zlimdf(self, grp, duration_z):
         """
         Method to estimate redshift limits
+
         Parameters
-        --------------
+        -----------
         grp: pandas df group
-          efficiencies to estimate redshift limits;
-          columns:
-           season: season
-           pixRA: RA of the pixel
-           pixDec: Dec of the pixel
-           healpixID: pixel ID
-           x1: SN stretch
-           color: SN color
-           z: redshift
-           effi: efficiency
-           effi_err: efficiency error (binomial)
+            efficiencies to estimate redshift limits;
+            columns:
+            season: season
+            pixRA: RA of the pixel
+            pixDec: Dec of the pixel
+            healpixID: pixel ID
+            x1: SN stretch
+            color: SN color
+            z: redshift
+            effi: efficiency
+            effi_err: efficiency error (binomial)
         duration_z: pandas df with the following cols:
-           season: season
-           z: redshift
-           T0_min: min daymax
-           T0_max: max daymax
-            season_length: season length
+            season: season
+            z: redshift
+            T0_min: min daymax
+            T0_max: max daymax
+             season_length: season length
+
         Returns
         ----------
         pandas df with the following cols:
-         zlimit: redshift limit
+            zlimit: redshift limit
         """
 
         zlimit = 0.0
@@ -877,22 +897,22 @@ class SNNSNMetric(BaseMetric):
         Parameters
         ---------------
         grp: pandas group
-          data to process
+            data to process
         duration_z: array
-           duration as a function of the redshift
+            duration as a function of the redshift
         effiInterp: interp1d
-          interpolator for efficiencies
+            interpolator for efficiencies
         zplot: interp1d
-          interpolator for redshift values
+            interpolator for redshift values
         rate: str, optional
-          rate to estimate the number of SN to estimate zlimit
-          rate = cte: rate independent of z
-          rate = SN_rate: rate from SN_Rate class
+            rate to estimate the number of SN to estimate zlimit
+            rate = cte: rate independent of z
+            rate = SN_rate: rate from SN_Rate class
 
         Returns
         ----------
         zlimit: float
-          the redshift limit
+            the redshift limit
         """
 
         if rate == 'SN_rate':
@@ -936,10 +956,11 @@ class SNNSNMetric(BaseMetric):
     def plot_NSN_cumul(self, grp, nsn_cum_norm, zplot):
         """
         Method to plot the NSN cumulative vs redshift
+
         Parameters
         --------------
         grp: pandas group
-         data to process
+            data to process
         """
 
         import matplotlib.pylab as plt
@@ -966,16 +987,18 @@ class SNNSNMetric(BaseMetric):
         Method to estimate the redshift limit from efficiency curves
         The redshift limit is defined here as the redshift value beyond
         which efficiency decreases up to zero.
+
         Parameters
         ---------------
         effiInterp: interpolator
-         use to get efficiencies
+            use to get efficiencies
         zplot: numpy array
-          redshift values
+            redshift values
+
         Returns
         -----------
         zlimit: float
-          the redshift limit
+            the redshift limit
         """
 
         # get efficiencies
@@ -1009,30 +1032,32 @@ class SNNSNMetric(BaseMetric):
     def zlimdf_deprecated(self, grp, duration_z):
         """
         Method to estimate redshift limits
+
         Parameters
         --------------
         grp: pandas df group
-          efficiencies to estimate redshift limits;
-          columns:
-           season: season
-           pixRA: RA of the pixel
-           pixDec: Dec of the pixel
-           healpixID: pixel ID
-           x1: SN stretch
-           color: SN color
-           z: redshift
-           effi: efficiency
-           effi_err: efficiency error (binomial)
+            efficiencies to estimate redshift limits;
+            columns:
+            season: season
+            pixRA: RA of the pixel
+            pixDec: Dec of the pixel
+            healpixID: pixel ID
+            x1: SN stretch
+            color: SN color
+            z: redshift
+            effi: efficiency
+            effi_err: efficiency error (binomial)
         duration_z: pandas df with the following cols:
-           season: season
-           z: redshift
-           T0_min: min daymax
-           T0_max: max daymax
+            season: season
+            z: redshift
+            T0_min: min daymax
+            T0_max: max daymax
             season_length: season length
+
         Returns
         ----------
         pandas df with the following cols:
-         zlimit: redshift limit
+            zlimit: redshift limit
         """
 
         zlimit = 0.0
@@ -1103,37 +1128,39 @@ class SNNSNMetric(BaseMetric):
     def nsn_typedf(self, grp, x1, color, effi_tot, duration_z, search=True):
         """
         Method to estimate the number of supernovae for a given type of SN
+
         Parameters
         --------------
         grp: pandas series with the following infos:
-         pixRA: pixelRA
-         pixDec: pixel Dec
-         healpixID: pixel ID
-         season: season
-         x1: SN stretch
-         color: SN color
-         zlim: redshift limit
-        x1, color: SN params to estimate the number
+            pixRA: pixelRA
+            pixDec: pixel Dec
+            healpixID: pixel ID
+            season: season
+        x1: SN stretch
+        color: SN color
+        lim: redshift limit
+            x1, color: SN params to estimate the number
         effi_tot: pandas df with columns:
-           season: season
-           pixRA: RA of the pixel
-           pixDec: Dec of the pixel
-           healpixID: pixel ID
-           x1: SN stretch
-           color: SN color
-           z: redshift
-           effi: efficiency
-           effi_err: efficiency error (binomial)
+            season: season
+            pixRA: RA of the pixel
+            pixDec: Dec of the pixel
+            healpixID: pixel ID
+            x1: SN stretch
+            color: SN color
+            z: redshift
+            effi: efficiency
+            effi_err: efficiency error (binomial)
         duration_z: pandas df with the following cols:
-           season: season
-           z: redshift
-           T0_min: min daymax
-           T0_max: max daymax
+            season: season
+            z: redshift
+            T0_min: min daymax
+            T0_max: max daymax
             season_length: season length
+
         Returns
         ----------
         nsn: float
-           number of supernovae
+            number of supernovae
         """
 
         # get rate
@@ -1158,30 +1185,32 @@ class SNNSNMetric(BaseMetric):
     def nsn(self, effi, zlim, duration_z):
         """
         Method to estimate the number of supernovae
+
         Parameters
-        --------------
+        -----------
         effi: pandas df grp of efficiencies
-          season: season
-          pixRA: RA of the pixel
-          pixDec: Dec of the pixel
-          healpixID: pixel ID
-          x1: SN stretch
-          color: SN color
-          z: redshift
-          effi: efficiency
-          effi_err: efficiency error (binomial)
+            season: season
+            pixRA: RA of the pixel
+            pixDec: Dec of the pixel
+            healpixID: pixel ID
+            x1: SN stretch
+            color: SN color
+            z: redshift
+            effi: efficiency
+            effi_err: efficiency error (binomial)
         zlim: float
-          redshift limit value
+            redshift limit value
         duration_z: pandas df with the following cols:
-           season: season
-           z: redshift
-           T0_min: min daymax
-           T0_max: max daymax
+            season: season
+            z: redshift
+            T0_min: min daymax
+            T0_max: max daymax
             season_length: season length
+
         Returns
         ----------
         nsn, var_nsn : float
-          number of supernovae (and variance) with z<zlim
+            number of supernovae (and variance) with z<zlim
         """
 
         if zlim < 1.e-3:

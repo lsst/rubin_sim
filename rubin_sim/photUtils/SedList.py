@@ -62,7 +62,7 @@ class SedList(object):
         @param [in] galacticAvList is an optional list of A(V) due to
         Milky Way Dust.
 
-        @param [in] cosmologicalDimming is a boolean indicating whether cosmological
+        @param [in] cosmologicalDimming is a `bool` indicating whether cosmological
         dimming (the extray (1+z)^-1 factor in flux) should be applied to spectra
         when they are redshifted (defaults to True)
 
@@ -312,7 +312,7 @@ class SedList(object):
     @property
     def cosmologicalDimming(self):
         """
-        Boolean determining whether cosmological dimming (the extra
+        `bool` determining whether cosmological dimming (the extra
         (1+z)^-1 factor in flux) is applied to Seds when they are
         redshifte by this SedList.
         """

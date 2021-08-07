@@ -65,7 +65,7 @@ class KNePopMetric(BaseMetric):
         self.filterCol = filterCol
         self.nightCol = nightCol
         self.ptsNeeded = ptsNeeded
-        # Boolean variable, if True the light curve will be exported
+        # `bool` variable, if True the light curve will be exported
         self.outputLc = outputLc
 
         self.lightcurves = KN_lc(file_list=file_list)

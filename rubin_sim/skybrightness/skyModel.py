@@ -226,7 +226,7 @@ class SkyModel(object):
 
         self.paramsSet = True
 
-        # Interpolate the templates to the set paramters
+        # Interpolate the templates to the set Parameters
         self.goodPix = np.where((self.airmass <= self.airmassLimit) & (self.airmass >= 1.))[0]
         if self.goodPix.size > 0:
             self._interpSky()
@@ -279,7 +279,7 @@ class SkyModel(object):
 
         self.paramsSet = True
 
-        # Interpolate the templates to the set paramters
+        # Interpolate the templates to the set Parameters
         self.goodPix = np.where((self.airmass <= self.airmassLimit) & (self.airmass >= 1.))[0]
         if self.goodPix.size > 0:
             self._interpSky()
@@ -438,7 +438,7 @@ class SkyModel(object):
                   filterNames=['u', 'g', 'r', 'i', 'z', 'y']):
         """
         Set parameters manually.
-        Note, you can put in unphysical combinations of paramters if you want to
+        Note, you can put in unphysical combinations of Parameters if you want to
         (e.g., put a full moon at zenith at sunset).
         if the alts kwarg is set it will override the airmass kwarg.
         MoonPhase is percent of moon illuminated (0-100)
@@ -497,7 +497,7 @@ class SkyModel(object):
 
         self.mask = np.where((self.airmass > self.airmassLimit) | (self.airmass < 1.))[0]
         self.goodPix = np.where((self.airmass <= self.airmassLimit) & (self.airmass >= 1.))[0]
-        # Interpolate the templates to the set paramters
+        # Interpolate the templates to the set Parameters
         if self.goodPix.size > 0:
             self._interpSky()
         else:

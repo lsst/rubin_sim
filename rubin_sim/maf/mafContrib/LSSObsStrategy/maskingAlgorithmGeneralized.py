@@ -25,27 +25,39 @@ def maskingAlgorithmGeneralized(myBundles, plotHandler, dataLabel, nside=128,
     """
     Assign newValue to all pixels in a skymap within pixelRadius of pixels with value <, >, or = findValue.
 
-    Required Parameters
+    Parameters
     --------------------
-      * myBundles: a dictionary for metricBundles.
-      * plotHandler: rubin_sim.maf.plots.plotHandler.PlotHandler object for skymaps and power spectra
-      * dataLabel: str: description of the data, i.e. 'numGal'
-
-    Optional arguments
-    -------------------
-      * nside: int: HEALpix resolution parameter. Default: 128
-      * findValue: if related to mask, must be either 'masked' or 'unmasked'. otherwise, must be a number. Default: 'unmasked'
-      * relation: str: must be '>','=','<'. Default: '='
-      * newValue: if related to mask, must be either 'masked' or 'unmasked'; otherwise, must be a number. Default: 'masked'
-      * pixelRadius: int: number of pixels to consider around a given pixel. Default: 6
-      * returnBorderIndices: boolean: set to True to return the array of indices of the pixels whose values/mask are changed. Default: False
-      * printIntermediateInfo: boolean: set to False if do not want to print intermediate info. Default: True
-      * plotIntermediatePlots: boolean: set to False if do not want to plot intermediate plots. Default: True
-      * printFinalInfo: boolean: set to False if do not want to print final info, i.e. total pixels changed. Default: True
-      * plotFinalPlots: boolean: set to False if do not want to plot the final plots. Default: True
-      * skyMapColorMin: float: colorMin label value for skymap plotDict label. Default: None
-      * skyMapColorMax: float: colorMax label value for skymap plotDict label. Default: None
-
+    myBundles   : `dict` {`rubin_sim.maf.MetricBundles`}
+        a dictionary for metricBundles.
+    plotHandler :   `rubin_sim.maf.plots.plotHandler.PlotHandler`
+    dataLabel : `str`
+        description of the data, i.e. 'numGal'
+    nside : `int`
+        HEALpix resolution parameter. Default: 128
+    findValue : `str`
+        if related to mask, must be either 'masked' or 'unmasked'. otherwise, must be a number.
+        Default: 'unmasked'
+    relation : `str`
+        must be '>','=','<'. Default: '='
+    newValue : `str`
+        if related to mask, must be either 'masked' or 'unmasked'; otherwise, must be a number.
+        Default: 'masked'
+    pixelRadius : `int`
+        number of pixels to consider around a given pixel. Default: 6
+    returnBorderIndices : `bool`
+        set to True to return the array of indices of the pixels whose values/mask are changed. Default: False
+    printIntermediateInfo : `bool`
+        set to False if do not want to print intermediate info. Default: True
+    plotIntermediatePlots : `bool`
+        set to False if do not want to plot intermediate plots. Default: True
+    printFinalInfo : `bool`
+        set to False if do not want to print final info, i.e. total pixels changed. Default: True
+    plotFinalPlots : `bool`
+        set to False if do not want to plot the final plots. Default: True
+    skyMapColorMin : float
+        colorMin label value for skymap plotDict label. Default: None
+    skyMapColorMax : float
+        colorMax label value for skymap plotDict label. Default: None
     """
     # find pixels such that (pixelValue (relation) findValue) AND their neighbors dont have that (relation) findValue.
     # then assign newValue to all these pixels.

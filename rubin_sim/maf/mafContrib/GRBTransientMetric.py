@@ -16,9 +16,9 @@ class GRBTransientMetric(metrics.BaseMetric):
 	Burst parameters taken from 2011PASP..123.1034J.
 
 	Simplifications: 
-		no color variation or evolution encoded yet.  
-		no jet breaks.
-		not treating off-axis events.
+	no color variation or evolution encoded yet.
+	no jet breaks.
+	not treating off-axis events.
     
     Parameters
     ----------
@@ -113,12 +113,14 @@ class GRBTransientMetric(metrics.BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         """"
         Calculate the detectability of a transient with the specified lightcurve.
+
         Parameters
         ----------
         dataSlice : numpy.array
             Numpy structured array containing the data related to the visits provided by the slicer.
         slicePoint : dict, optional
             Dictionary containing information about the slicepoint currently active in the slicer.
+
         Returns
         -------
         float

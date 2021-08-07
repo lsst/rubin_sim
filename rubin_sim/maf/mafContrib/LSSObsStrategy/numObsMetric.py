@@ -13,12 +13,13 @@ class NumObsMetric(BaseMetric):
     """Calculate the number of observations per data slice.
      e.g. HealPix pixel when using HealPix slicer.
 
-    Optional Parameters:
-    --------------------
-    * nightCol: str: Name of the night column in the data; basically just need it to acccess
-                     the data for each visit. Default: 'night'.
-    * nside: int: HEALpix resolution parameter. Default: 128
-
+    Parameters
+    -----------
+    nightCol : `str`
+        Name of the night column in the data; basically just need it to
+        acccess the data for each visit. Default: 'night'.
+    nside : `int`
+        HEALpix resolution parameter. Default: 128
     """
     def __init__(self, nightCol='night', nside=128, metricName='NumObsMetric', **kwargs):
         self.nightCol = nightCol

@@ -29,7 +29,7 @@ def altAzPaFromRaDec(ra, dec, obs, includeRefraction=True):
     @param [in] obs is an ObservationMetaData characterizing
     the site of the telescope and the MJD of the observation
 
-    @param [in] includeRefraction is a boolean that turns refraction on and off
+    @param [in] includeRefraction is a `bool` that turns refraction on and off
     (default True)
 
     @param [out] altitude in degrees
@@ -63,7 +63,7 @@ def _altAzPaFromRaDec(raRad, decRad, obs, includeRefraction=True):
     @param [in] obs is an ObservationMetaData characterizing
     the site of the telescope and the MJD of the observation
 
-    @param [in] includeRefraction is a boolean that turns refraction on and off
+    @param [in] includeRefraction is a `bool` that turns refraction on and off
     (default True)
 
     @param [out] altitude in radians
@@ -112,7 +112,7 @@ def raDecFromAltAz(alt, az, obs, includeRefraction=True):
     @param [in] obs is an ObservationMetaData characterizing
     the site of the telescope and the MJD of the observation
 
-    @param [in] includeRefraction is a boolean that turns refraction on and off
+    @param [in] includeRefraction is a `bool` that turns refraction on and off
     (default True)
 
     @param [out] RA in degrees (in the International Celestial Reference System)
@@ -139,7 +139,7 @@ def _raDecFromAltAz(altRad, azRad, obs, includeRefraction=True):
     @param [in] obs is an ObservationMetaData characterizing
     the site of the telescope and the MJD of the observation
 
-    @param [in] includeRefraction is a boolean that turns refraction on and off
+    @param [in] includeRefraction is a `bool` that turns refraction on and off
     (default True)
 
     @param [out] RA in radians (in the International Celestial Reference System)

@@ -111,7 +111,7 @@ class TimeHandler(object):
         return self.current_dt.isoformat()
 
     def has_time_elapsed(self, time_span):
-        """Return a boolean determining if the time span has elapsed.
+        """Return a `bool` determining if the time span has elapsed.
 
         This function looks to see if the time elapsed (current_time - initial_time) in units of
         seconds is greater or less than the requested time span. It will return true if the time span

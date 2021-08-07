@@ -46,7 +46,7 @@ class OpsimFieldSlicer(BaseSpatialSlicer):
     fieldDecColName : str, optional
         Name of the column in the fieldData for the Dec (used for plotting).
         Default fieldDec.
-    verbose : boolean, optional
+    verbose : `bool`, optional
         Flag to indicate whether or not to write additional information to stdout during runtime.
         Default True.
     badval : float, optional

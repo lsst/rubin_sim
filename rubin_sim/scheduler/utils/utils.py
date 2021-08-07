@@ -341,8 +341,7 @@ class schema_converter(object):
 
 
 def empty_observation():
-    """
-    Return a numpy array that could be a handy observation record
+    """Return a numpy array that could be a handy observation record
 
     XXX:  Should this really be "empty visit"? Should we have "visits" made
     up of multple "observations" to support multi-exposure time visits?
@@ -358,8 +357,7 @@ def empty_observation():
     -------
     numpy array
 
-    Notes
-    -----
+
     The numpy fields have the following structure
     RA : float
        The Right Acension of the observation (center of the field) (Radians)
@@ -428,11 +426,11 @@ def scheduled_observation():
 
 
 def read_fields():
-    """
-    Read in the Field coordinates
+    """Read in the Field coordinates
+
     Returns
     -------
-    numpy.array
+    fields : `numpy.array`
         With RA and dec in radians.
     """
     query = 'select fieldId, fieldRA, fieldDEC from Field;'
@@ -640,7 +638,6 @@ def warm_start(scheduler, observations, mjd_key='mjd'):
     Parameters
     ----------
     scheduler : scheduler object
-
     observations : np.array
         An array of observation (e.g., from sqlite2observations)
     """
@@ -656,7 +653,6 @@ def warm_start(scheduler, observations, mjd_key='mjd'):
 def season_calc(night, offset=0, modulo=None, max_season=None, season_length=365.25, floor=True):
     """
     Compute what season a night is in with possible offset and modulo
-
     using convention that night -365 to 0 is season -1.
 
     Parameters

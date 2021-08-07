@@ -114,7 +114,7 @@ def three_opt(route, dist_matrix):
     """Iterates over all possible 3-optional transformations.
 
     Parameters
-    ---------
+    ----------
     route : list
         The indices of the route
     dist_matrix : np.array

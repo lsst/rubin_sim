@@ -56,7 +56,7 @@ def fit_pre(npy_fname, npz_fname, *args, **kwargs):
 
     Returns
     -------
-    zernike_coeffs : `pandas.DataFrame`
+    zernike_coeffs : `pd.DataFrame`
         A DataFrame with the coefficients, indexed by band and mjd.
     """
     # Load the pre-computed data
@@ -110,7 +110,7 @@ def bulk_zernike_fit(data_dir, out_fname, *args, **kwargs):
 
     Returns
     -------
-    zernike_coeffs : `pandas.DataFrame`
+    zernike_coeffs : `pd.DataFrame`
         A DataFrame with the coefficients, indexed by band and mjd.
     """
     zernike_coeff_batches = []
@@ -224,9 +224,9 @@ class ZernikeSky:
 
         Parameters
         ----------
-        alt : `numpy.ndarray`, (N)
+        alt : `np.ndarray`, (N)
             An array of altitudes above the horizon, in degrees
-        az : `numpy.ndarray`, (N)
+        az : `np.ndarray`, (N)
             An array of azimuth coordinates, in degrees
         mjd : `float`
             The time (floating point MJD) at which to estimate the sky.
@@ -297,15 +297,15 @@ class ZernikeSky:
 
         Parameters
         ----------
-        alt : `numpy.ndarray`, (N)
+        alt : `np.ndarray`, (N)
             An array of altitudes above the horizon, in degrees
-        az : `numpy.ndarray`, (N)
+        az : `np.ndarray`, (N)
             An array of azimuth coordinates, in degrees
-        sky : `numpy.ndarray`, (N)
+        sky : `np.ndarray`, (N)
             An array of sky brightness values (mags/asec^2)
         mjd : `float`
             The time (floating point MJD) at which to estimate the sky.
-        maxdiff : `boolean`
+        maxdiff : `bool`
             Minimize the maximum difference between the estimate and data,
             rather than the default RMS.
 
@@ -596,7 +596,7 @@ class SkyBrightnessPreData:
     ----------
     base_fname : `str`
         Base name for data files to load.
-    bands: `List[str]`
+    bands: `List` [`str`]
         Name of bands to read.
     pre_data_dir : `str`
         Name of source directory for pre-computed sky brightness data.
@@ -630,7 +630,7 @@ class SkyBrightnessPreData:
         ----------
         base_fname : `str`
             Base name for data files to load.
-        bands: `List[str]`
+        bands: `List` [`str`]
             Name of bands to read.
         """
 
@@ -735,8 +735,8 @@ class SkyModelZernike:
 
     Parameters
     ----------
-    data_file : str (None)
-        File name from which to load Zernike coefficients
+    data_file : `str`, optional
+        File name from which to load Zernike coefficients. Default None uses default data directory.
 
     """
 

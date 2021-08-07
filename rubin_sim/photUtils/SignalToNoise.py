@@ -443,7 +443,7 @@ def calcSNR_sed(sourceSed, totalbandpass, skysed, hardwarebandpass,
 
     @param [in] FWHMeff in arcseconds
 
-    @param [in] verbose is a boolean
+    @param [in] verbose is a `bool`
 
     @param [out] signal to noise ratio
     """
@@ -504,7 +504,7 @@ def calcMagError_sed(sourceSed, totalbandpass, skysed, hardwarebandpass,
 
     @param [in] FWHMeff in arcseconds
 
-    @param [in] verbose is a boolean
+    @param [in] verbose is a `bool`
 
     @param [out] magnitude error
     """

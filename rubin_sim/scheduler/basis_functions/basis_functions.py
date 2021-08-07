@@ -198,6 +198,7 @@ class Target_map_basis_function(Base_basis_function):
         ----------
         indx : list (None)
             Index values to compute, if None, full map is computed
+
         Returns
         -------
         Healpix reward map
@@ -642,8 +643,8 @@ class Strict_filter_basis_function(Base_basis_function):
     a filter change. This basis function rewards if it matches the current filter, the moon rises or sets,
     twilight starts or stops, or there has been a large gap since the last observation.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     time_lag : float (10.)
         If there is a gap between observations longer than this, let the filter change (minutes)
     twi_change : float (-18.)
@@ -698,7 +699,7 @@ class Goal_Strict_filter_basis_function(Base_basis_function):
     twilight starts or stops, or there has been a large gap since the last observation.
 
     Parameters
-    ---------
+    ----------
     time_lag_min: Minimum time after a filter change for which a new filter change will receive zero reward, or
         be denied at all (see unseen_before_lag).
     time_lag_max: Time after a filter change where the reward for changing filters achieve its maximum.
@@ -768,20 +769,25 @@ class Goal_Strict_filter_basis_function(Base_basis_function):
 
     def check_feasibility(self, conditions):
         """
-        This method makes a pre-check of the feasibility of this basis function. If a basis function return False
-        on the feasibility check, it won't computed at all.
+        This method makes a pre-check of the feasibility of this basis function.
+        If a basis function returns False on the feasibility check, it won't computed at all.
 
-        :return:
+        Returns
+        -------
+        feasibility : `bool`
         """
 
-        # Make a quick check about the feasibility of this basis function. If current filter is none, telescope
-        # is parked and we could, in principle, switch to any filter. If this basis function computes reward for
-        # the current filter, then it is also feasible. At last we check for an "aways_available" flag. Meaning, we
-        # force this basis function to be aways be computed.
-        if conditions.current_filter is None or conditions.current_filter == self.filtername or self.aways_available:
+        # Make a quick check about the feasibility of this basis function.
+        # If current filter is none, telescope is parked and we could, in principle, switch to any filter.
+        # If this basis function computes reward for the current filter, then it is also feasible.
+        # At last we check for an "aways_available" flag. Meaning, we force this basis function t
+        # o be aways be computed.
+        if conditions.current_filter is None or conditions.current_filter == self.filtername \
+                or self.aways_available:
             return True
 
-        # If we arrive here, we make some extra checks to make sure this bf is feasible and should be computed.
+        # If we arrive here,
+        # we make some extra checks to make sure this bf is feasible and should be computed.
 
         # Did the moon set or rise since last observation?
         moon_changed = conditions.moonAlt * self.survey_features['Last_observation'].feature['moonAlt'] < 0
@@ -1077,6 +1083,7 @@ class CableWrap_unwrap_basis_function(Base_basis_function):
 
 class Cadence_enhance_basis_function(Base_basis_function):
     """Drive a certain cadence
+
     Parameters
     ----------
     filtername : str ('gri')
@@ -1153,6 +1160,7 @@ def trapezoid(x, amplitude, x_0, width, slope):
 
 class Cadence_enhance_trapezoid_basis_function(Base_basis_function):
     """Drive a certain cadence, like Cadence_enhance_basis_function but with smooth transitions
+
     Parameters
     ----------
     filtername : str ('gri')
@@ -1225,10 +1233,8 @@ class Cadence_enhance_trapezoid_basis_function(Base_basis_function):
 
 
 class Azimuth_basis_function(Base_basis_function):
-    """Reward staying in the same azimuth range. Possibly better than using slewtime, especially when selecting a large area of sky.
-
-    Parameters
-    ----------
+    """Reward staying in the same azimuth range.
+    Possibly better than using slewtime, especially when selecting a large area of sky.
 
     """
 
@@ -1404,7 +1410,8 @@ class Template_generate_basis_function(Base_basis_function):
 
     def _calc_value(self, conditions, **kwargs):
         result = self.result.copy()
-        overdue = np.where((int_rounded(conditions.mjd - self.survey_features['Last_observed'].feature)) > int_rounded(self.day_gap))
+        overdue = np.where((int_rounded(conditions.mjd - self.survey_features['Last_observed'].feature)) >
+                           int_rounded(self.day_gap))
         result[overdue] = 1
         result[self.out_of_bounds] = 0
 

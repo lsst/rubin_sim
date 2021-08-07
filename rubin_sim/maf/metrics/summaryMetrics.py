@@ -28,7 +28,7 @@ class fONv(BaseMetric):
         and number of healpixels. Default 128.
     Nvisit : int, optional
         Number of visits to use as the benchmark value, if choosing to return a normalized Nvisit value.
-    norm : boolean, optional
+    norm : `bool`, optional
         Normalize the returned "nvisit" (min / median) values by Nvisit, if true.
         Default False.
     metricName : str, optional
@@ -86,7 +86,7 @@ class fOArea(BaseMetric):
     nside : int, optional
         Nside parameter from healpix slicer, used to set the physical relationship between on-sky area
         and number of healpixels. Default 128.
-    norm : boolean, optional
+    norm : `bool`, optional
         Normalize the returned "area" (area with minimum Nvisit visits) value by Asky, if true.
         Default False.
     metricName : str, optional

@@ -32,7 +32,7 @@ class ParallaxMetric(BaseMetric):
         The template to use. This can be 'flat' or 'O','B','A','F','G','K','M'. Default flat.
     atm_err : float, optional
         The expected centroiding error due to the atmosphere, in arcseconds. Default 0.01.
-    normalize : boolean, optional
+    normalize : `bool`, optional
         Compare the astrometric uncertainty to the uncertainty that would result if half the observations
         were taken at the start and half at the end. A perfect survey will have a value close to 1, while
         a poorly scheduled survey will be close to 0. Default False.
@@ -134,7 +134,7 @@ class ProperMotionMetric(BaseMetric):
         The template to use. This can be 'flat' or 'O','B','A','F','G','K','M'. Default flat.
     atm_err : float, optional
         The expected centroiding error due to the atmosphere, in arcseconds. Default 0.01.
-    normalize : boolean, optional
+    normalize : `bool`, optional
         Compare the astrometric uncertainty to the uncertainty that would result if half the observations
         were taken at the start and half at the end. A perfect survey will have a value close to 1, while
         a poorly scheduled survey will be close to 0. Default False.

@@ -150,10 +150,11 @@ class Core_scheduler(object):
         """
         Ask the scheduler what it wants to observe next
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         mjd : float (None)
-            The Modified Julian Date. If None, it uses the MJD from the conditions from the last conditions update.
+            The Modified Julian Date. If None, it uses the MJD from the conditions from the
+            last conditions update.
 
         Returns
         -------

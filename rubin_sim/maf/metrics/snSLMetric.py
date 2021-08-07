@@ -118,7 +118,7 @@ class SNSLMetric(metrics.BaseMetric):
 
         Parameters
         ---------------
-        dataSlice: simulation data
+        dataSlice : simulation data
         slicePoint:  slicePoint(default None)
 
         Returns

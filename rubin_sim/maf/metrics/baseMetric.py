@@ -102,21 +102,21 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
 
     Parameters
     ----------
-    col : str or list
+    col : `str` or `list` [`str`]
         Names of the data columns that the metric will use.
         The columns required for each metric is tracked in the ColRegistry, and used to retrieve data
         from the opsim database. Can be a single string or a list.
-    metricName : str
+    metricName : `str`
         Name to use for the metric (optional - if not set, will be derived).
-    maps : list of rubin_sim.maf.maps objects
+    maps : `list` [`rubin_sim.maf.maps`]
         The maps that the metric will need (passed from the slicer).
-    units : str
+    units : `str`
         The units for the value returned by the metric (optional - if not set,
         will be derived from the ColInfo).
-    metricDtype : str
+    metricDtype : `str`
         The type of value returned by the metric - 'int', 'float', 'object'.
         If not set, will be derived by introspection.
-    badval : float
+    badval : `float`
         The value indicating "bad" values calculated by the metric.
     """
     colRegistry = ColRegistry()
@@ -178,16 +178,16 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
 
         Parameters
         ----------
-        dataSlice : numpy.NDarray
+        dataSlice : `numpy.ndarray`
            Values passed to metric by the slicer, which the metric will use to calculate
            metric values at each slicePoint.
-        slicePoint : Dict
+        slicePoint : `dict`
            Dictionary of slicePoint metadata passed to each metric.
            E.g. the ra/dec of the healpix pixel or opsim fieldId.
 
         Returns
         -------
-        int, float or object
+        metricValue: `int` `float` or `object`
             The metric value at each slicePoint.
         """
         raise NotImplementedError('Please implement your metric calculation.')

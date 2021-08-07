@@ -25,34 +25,34 @@ __all__ = ['LCfast', 'Throughputs', 'Telescope',
 
 
 class LCfast:
-    """
-    class to simulate supernovae light curves in a fast way
+    """class to simulate supernovae light curves in a fast way
     The method relies on templates and broadcasting to increase speed
+
     Parameters
     ---------------
     reference_lc:
     x1: float
-      SN stretch
+        SN stretch
     color: float
-      SN color
+        SN color
     telescope: Telescope()
-      telescope for the study
+        telescope for the study
     mjdCol: str, optional
-      name of the MJD col in data to simulate (default: observationStartMJD)
+        name of the MJD col in data to simulate (default: observationStartMJD)
     RACol: str, optional
-      name of the RA col in data to simulate (default: fieldRA)
+        name of the RA col in data to simulate (default: fieldRA)
     DecCol: str, optional
-       name of the Dec col in data to simulate (default: fieldDec)
+        name of the Dec col in data to simulate (default: fieldDec)
     filterCol: str, optional
-       name of the filter col in data to simulate (default: filter)
+        name of the filter col in data to simulate (default: filter)
     exptimeCol: str, optional
-      name of the exposure time  col in data to simulate (default: visitExposureTime)
+        name of the exposure time  col in data to simulate (default: visitExposureTime)
     m5Col: str, optional
-       name of the fiveSigmaDepth col in data to simulate (default: fiveSigmaDepth)
+        name of the fiveSigmaDepth col in data to simulate (default: fiveSigmaDepth)
     seasonCol: str, optional
-       name of the season col in data to simulate (default: season)
+        name of the season col in data to simulate (default: season)
     snr_min: float, optional
-       minimal Signal-to-Noise Ratio to apply on LC points (default: 5)
+        minimal Signal-to-Noise Ratio to apply on LC points (default: 5)
     """
 
     def __init__(self, reference_lc, x1, color,
@@ -105,11 +105,12 @@ class LCfast:
         Parameters
         ----------------
         obs: array
-         array of observations
+            array of observations
         gen_par: array, optional
-         simulation parameters (default: None)
+            simulation parameters (default: None)
         bands: str, optional
-          filters to consider for simulation (default: grizy)
+            filters to consider for simulation (default: grizy)
+
         Returns
         ------------
         astropy table with:
@@ -136,22 +137,24 @@ class LCfast:
 
 
     def processBand(self, sel_obs, band, gen_par, j=-1, output_q=None):
-        """ LC simulation of a set of obs corresponding to a band
+        """LC simulation of a set of obs corresponding to a band
         The idea is to use python broadcasting so as to estimate
         all the requested values (flux, flux error, Fisher components, ...)
         in a single path (i.e no loop!)
+
         Parameters
         ---------------
         sel_obs: array
-         array of observations
+            array of observations
         band: str
-         band of observations
+            band of observations
         gen_par: array
-         simulation parameters
+            simulation parameters
         j: int, optional
-         index for multiprocessing (default: -1)
+            index for multiprocessing (default: -1)
         output_q: multiprocessing.Queue(), optional
-         queue for multiprocessing (default: None)
+            queue for multiprocessing (default: None)
+
         Returns
         -------
         astropy table with fields corresponding to LC components
@@ -314,7 +317,7 @@ class LCfast:
             lc.loc[:, 'n_phmin'] = (lc['phase'] <= -5.)
             lc.loc[:, 'n_phmax'] = (lc['phase'] >= 20)
 
-            # transform boolean to int because of some problems in the sum()
+            # transform `bool` to int because of some problems in the sum()
 
             for colname in ['n_aft', 'n_bef', 'n_phmin', 'n_phmax']:
                 lc.loc[:, colname] = lc[colname].astype(int)
@@ -329,23 +332,22 @@ class LCfast:
             return lc
 
     def srand(self, gamma, mag, m5):
-        """
-        Method to estimate :math:`srand=\sqrt((0.04-\gamma)*x+\gamma*x^2)`
+        """Method to estimate :math:`srand=\sqrt((0.04-\gamma)*x+\gamma*x^2)`
         with :math:`x = 10^{0.4*(m-m_5)}`
 
         Parameters
         -----------
         gamma: float
-          gamma value
+            gamma value
         mag: float
-          magnitude
+            magnitude
         m5: float
-           fiveSigmaDepth value
+            fiveSigmaDepth value
 
         Returns
         -------
-        srand = np.sqrt((0.04-gamma)*x+gamma*x**2)
-        with x = 10**(0.4*(mag-m5))
+        srand : `float`
+            srand = np.sqrt((0.04-gamma)*x+gamma*x**2) with x = 10**(0.4*(mag-m5))
         """
 
         x = 10**(0.4*(mag-m5))
@@ -354,19 +356,20 @@ class LCfast:
 
 class Throughputs(object):
     """ class to handle instrument throughput
+
     Parameters
     -------------
     through_dir : str, optional
-       throughput directory. If None, uses $THROUGHPUTS_DIR/baseline
+        throughput directory. If None, uses $THROUGHPUTS_DIR/baseline
     atmos_dir : str, optional
-       directory of atmos files. If None, uses $THROUGHPUTS_DIR
+        directory of atmos files. If None, uses $THROUGHPUTS_DIR
     telescope_files : list(str), optional
-       list of of throughput files
-       Default : ['detector.dat', 'lens1.dat','lens2.dat',
-           'lens3.dat','m1.dat', 'm2.dat', 'm3.dat']
+        list of of throughput files
+        Default : ['detector.dat', 'lens1.dat','lens2.dat',
+        'lens3.dat','m1.dat', 'm2.dat', 'm3.dat']
     filterlist: list(str), optional
-       list of filters to consider
-       Default : 'ugrizy'
+        list of filters to consider
+        Default : 'ugrizy'
     wave_min : float, optional
         min wavelength for throughput
         Default : 300
@@ -374,11 +377,12 @@ class Throughputs(object):
         max wavelength for throughput
         Default : 1150
     atmos : bool, optional
-         to include atmosphere affects
-         Default : True
+        to include atmosphere affects
+        Default : True
     aerosol : bool, optional
-         to include aerosol effects
-         Default : True
+        to include aerosol effects
+        Default : True
+
     Returns
     ---------
     Accessible throughputs (per band):
@@ -486,11 +490,12 @@ class Throughputs(object):
     def Load_Atmosphere(self, airmass=1.2):
         """ Load atmosphere files
         and convolve with transmissions
+
         Parameters
         --------------
         airmass : float, optional
-          airmass value
-          Default : 1.2
+            airmass value
+            Default : 1.2
         """
         self.airmass = airmass
         if self.airmass > 0.:
@@ -528,7 +533,7 @@ class Throughputs(object):
                 self.lsst_atmos_aerosol[f] = self.lsst_system[f]
 
     def Mean_Wave(self):
-        """ Estimate mean wave
+        """Estimate mean wave
         """
         for band in self.filterlist:
             self.mean_wavelength[band] = np.sum(
@@ -548,7 +553,7 @@ def get_val_decor(func):
 
 
 class Telescope(Throughputs):
-    """ Telescope class
+    """Telescope class
     inherits from Throughputs
     estimate quantities defined in LSE-40
     The following quantities are accessible:
@@ -559,21 +564,22 @@ class Telescope(Throughputs):
     counts_zp:
     Skyb: see eq. (40) of LSE-40
     flux_sky:
+
     Parameters
     -------------
     through_dir : str, optional
-       throughput directory
-       Default : LSST_THROUGHPUTS_BASELINE
+        throughput directory
+        Default : LSST_THROUGHPUTS_BASELINE
     atmos_dir : str, optional
-       directory of atmos files
-       Default : THROUGHPUTS_DIR
+        directory of atmos files
+        Default : THROUGHPUTS_DIR
     telescope_files : list(str), optional
-       list of of throughput files
-       Default : ['detector.dat', 'lens1.dat','lens2.dat',
-           'lens3.dat','m1.dat', 'm2.dat', 'm3.dat']
+        list of of throughput files
+        Default : ['detector.dat', 'lens1.dat','lens2.dat',
+        'lens3.dat','m1.dat', 'm2.dat', 'm3.dat']
     filterlist: list(str), optional
-       list of filters to consider
-       Default : 'ugrizy'
+        list of filters to consider
+        Default : 'ugrizy'
     wave_min : float, optional
         min wavelength for throughput
         Default : 300
@@ -581,14 +587,15 @@ class Telescope(Throughputs):
         max wavelength for throughput
         Default : 1150
     atmos : bool, optional
-         to include atmosphere affects
-         Default : True
+        to include atmosphere affects
+        Default : True
     aerosol : bool, optional
-         to include aerosol effects
-         Default : True
+        to include aerosol effects
+        Default : True
     airmass : float, optional
-         airmass value
-         Default : 1.
+        airmass value
+        Default : 1.
+
     Returns
     ---------
     Accessible throughputs (per band, from Throughput class):
@@ -622,12 +629,13 @@ class Telescope(Throughputs):
     def get(self, what, band):
         """
         Decorator to access quantities
+
         Parameters
         ---------------
         what: str
-          parameter to estimate
+            parameter to estimate
         band: str
-          filter
+            filter
         """
         filter_trans = self.system[band]
         wavelen_min, wavelen_max, wavelen_step = filter_trans.getWavelenLimits(
@@ -656,12 +664,13 @@ class Telescope(Throughputs):
     def get_inputs(self, what, band):
         """
         decorator to access Tb, Sigmab, mag_sky
+
         Parameters
         ---------------
         what: str
-          parameter to estimate
+            parameter to estimate
         band: str
-          filter
+            filter
         """
         myup = self.Calc_Integ_Sed(self.darksky, self.system[band])
         self.data['Tb'][band] = self.Calc_Integ(self.atmosphere[band])
@@ -674,12 +683,13 @@ class Telescope(Throughputs):
         """
         decorator get zero points
         formula used here are extracted from LSE-40
+
         Parameters
         ---------------
         what: str
-          parameter to estimate
+            parameter to estimate
         band: str
-          filter
+            filter
         """
         photParams = PhotometricParameters(bandpass=band)
         Diameter = 2.*np.sqrt(photParams.effarea*1.e-4 /
@@ -711,12 +721,13 @@ class Telescope(Throughputs):
     def return_value(self, what, band):
         """
         accessor
+
         Parameters
         ---------------
         what: str
-          parameter to estimate
+            parameter to estimate
         band: str
-          filter
+            filter
         """
         if len(band) > 1:
             return self.data[what]
@@ -744,10 +755,11 @@ class Telescope(Throughputs):
     def Sigmab(self, filtre):
         """
         Sigmab accessor
+
         Parameters
         ----------------
         band: str
-          filter
+            filter
         """
         self.get_inputs('Sigmab', filtre)
         return self.return_value('Sigmab', filtre)
@@ -755,10 +767,11 @@ class Telescope(Throughputs):
     def zp(self, filtre):
         """
         zp accessor
+
         Parameters
         ----------------
         band: str
-          filter
+            filter
         """
         self.get_zp('zp', filtre)
         return self.return_value('zp', filtre)
@@ -766,22 +779,25 @@ class Telescope(Throughputs):
     def FWHMeff(self, filtre):
         """
         FWHMeff accessor
+
         Parameters
         ----------------
         band: str
-          filter
+            filter
         """
         return self.return_value('FWHMeff', filtre)
 
     def Calc_Integ(self, bandpass):
         """
         integration over bandpass
+
         Parameters
         --------------
-        bandpass : float
+        bandpass : `rubin_sim.photUtils.Bandpass`
+
         Returns
         ---------
-        integration
+        integration: `float`
         """
         resu = 0.
         dlam = 0
@@ -790,24 +806,25 @@ class Telescope(Throughputs):
                 dlam = bandpass.wavelen[i+1]-wave
                 resu += dlam*bandpass.sb[i]/wave
             # resu+=dlam*bandpass.sb[i]
-
         return resu
 
     def Calc_Integ_Sed(self, sed, bandpass, wavelen=None, fnu=None):
         """
         SED integration
+
         Parameters
         --------------
         sed : float
-          sed to integrate
+            sed to integrate
         bandpass : float
-          bandpass
+            bandpass
         wavelength : float, optional
-          wavelength values
-           Default : None
+            wavelength values
+            Default : None
         fnu : float, optional
-           fnu values
-           Default : None
+            fnu values
+            Default : None
+
         Returns
         ----------
         integrated sed over the bandpass
@@ -833,15 +850,17 @@ class Telescope(Throughputs):
     def flux_to_mag(self, flux, band, zp=None):
         """
         Flux to magnitude conversion
+
         Parameters
         --------------
         flux : float
-          input fluxes
+            input fluxes
         band : str
-           input band
+            input band
         zp : float, optional
-           zeropoints
-           Default : None
+            zeropoints
+            Default : None
+
         Returns
         ---------
         magnitudes
@@ -855,15 +874,17 @@ class Telescope(Throughputs):
     def mag_to_flux(self, mag, band, zp=None):
         """
         Magnitude to flux conversion
+
         Parameters
         --------------
         mag : float
-          input mags
+            input mags
         band : str
-           input band
+            input band
         zp : float, optional
-           zeropoints
-           Default : None
+            zeropoints
+            Default : None
+
         Returns
         ---------
         fluxes
@@ -875,10 +896,12 @@ class Telescope(Throughputs):
     def zero_points(self, band):
         """
         Zero points estimation
+
         Parameters
         --------------
-        band : list(str)
-          list of bands
+        band : `list` [`str`]
+            list of bands
+
         Returns
         ---------
         array of zp
@@ -888,20 +911,22 @@ class Telescope(Throughputs):
     def mag_to_flux_e_sec(self, mag, band, exptime):
         """
         Mag to flux (in photoelec/sec) conversion
+
         Parameters
         --------------
         mag : float
-          input magnitudes
+            input magnitudes
         band : str
-          input bands
+            input bands
         exptime : float
-          input exposure times
+            input exposure times
+
         Returns
         ----------
         counts : float
-           number of ADU counts
+            number of ADU counts
         e_per_sec : float
-           flux in photoelectron per sec.
+            flux in photoelectron per sec.
         """
         if not hasattr(mag, '__iter__'):
             wavelen_min, wavelen_max, wavelen_step = self.atmosphere[band].getWavelenLimits(
@@ -926,17 +951,19 @@ class Telescope(Throughputs):
         gamma parameter estimation
         cf eq(5) of the paper LSST : from science drivers to reference design and anticipated data products
         with sigma_rand = 0.2 and m=m5
+
         Parameters
         --------------
         mag : float
-          magnitudes
+            magnitudes
         band : str
-          band
+            band
         exptime : float
-          exposure time
+            exposure time
+
         Returns
         ----------
-        gamma (float)
+        gamma: `float`
         """
 
         if not hasattr(mag, '__iter__'):
@@ -955,9 +982,9 @@ class Load_Reference:
     Parameters
     ---------------
     server: str, optional
-      where to get the files (default: https://me.lsst.eu/gris/DESC_SN_pipeline/Reference_Files)
+        where to get the files (default: https://me.lsst.eu/gris/DESC_SN_pipeline/Reference_Files)
     templateDir: str, optional
-      where to put the files (default: reference_files)
+        where to put the files (default: reference_files)
 
     """
 
@@ -1024,11 +1051,7 @@ class Load_Reference:
         Parameters
         ---------------
         fname: str
-           file name
-
-        Returns
-        -----------
-
+            file name
         """
         lc_ref = GetReference(
             fname, self.gamma_reference, self.Instrument)
@@ -1042,10 +1065,10 @@ class Load_Reference:
 
         Parameters
         ---------------
-        templateDir: str
-          directory where files are (or will be)
-        listfiles: list(str)
-          list of files that are (will be) in templateDir
+        templateDir: `str`
+            directory where files are (or will be)
+        listfiles: `list` [`str`]
+            list of files that are (will be) in templateDir
         """
 
         for fi in listfiles:
@@ -1066,17 +1089,19 @@ class GetReference:
     """
     Class to load reference data
     used for the fast SN simulator
+
     Parameters
     ----------------
     lcName: str
-      name of the reference file to load (lc)
+        name of the reference file to load (lc)
     gammaName: str
-      name of the reference file to load (gamma)
+        name of the reference file to load (gamma)
     tel_par: dict
-      telescope parameters
+        telescope parameters
     param_Fisher : list(str), optional
-      list of SN parameter for Fisher estimation to consider
-      (default: ['x0', 'x1', 'color', 'daymax'])
+        list of SN parameter for Fisher estimation to consider
+        (default: ['x0', 'x1', 'color', 'daymax'])
+
     Returns
     -----------
     The following dict can be accessed:
@@ -1086,7 +1111,7 @@ class GetReference:
     param : dict of dict of RegularGridInterpolator of flux derivatives wrt SN parameters
                   (key: filters plus param_Fisher parameters; (x,y)=(phase, z), result=flux derivatives)
     gamma : dict of RegularGridInterpolator of gamma values (key: filters)
-    """""
+    """
 
     def __init__(self, lcName, gammaName, tel_par, param_Fisher=['x0', 'x1', 'color', 'daymax']):
 
@@ -1243,22 +1268,24 @@ class GetReference:
 
     def limVals(self, lc, field):
         """ Get unique values of a field in  a table
+
         Parameters
         ----------
         lc: Table
-         astropy Table (here probably a LC)
+            astropy Table (here probably a LC)
         field: str
-         name of the field of interest
+            name of the field of interest
+
         Returns
         -------
         vmin: float
-         min value of the field
+            min value of the field
         vmax: float
-         max value of the field
+            max value of the field
         vstep: float
-         step value for this field (median)
+            step value for this field (median)
         nvals: int
-         number of unique values
+            number of unique values
         """
 
         lc.sort(field)
@@ -1273,14 +1300,16 @@ class GetReference:
     def Read_Ref(self, fi, j=-1, output_q=None):
         """" Load the reference file and
         make a single astopy Table from a set of.
+
         Parameters
         ----------
         fi: str,
-         name of the file to be loaded
+            name of the file to be loaded
+
         Returns
         -------
         tab_tot: astropy table
-         single table = vstack of all the tables in fi.
+            single table = vstack of all the tables in fi.
         """
 
         tab_tot = Table()
@@ -1334,9 +1363,11 @@ class GetReference:
     def Read_Multiproc(self, tab):
         """
         Multiprocessing method to read references
+
         Parameters
         ---------------
         tab: astropy Table of data
+
         Returns
         -----------
         stacked astropy Table of data
@@ -1388,15 +1419,15 @@ class SN_Rate:
     Parameters
     ----------
     rate :  str, optional
-      type of rate chosen (Ripoche, Perrett, Dilday) (default : Perrett)
+        type of rate chosen (Ripoche, Perrett, Dilday) (default : Perrett)
     H0 : float, optional
-       Hubble constant value :math:`H_{0}`(default : 70.)
+        Hubble constant value :math:`H_{0}` (default : 70.)
     Om0 : float, optional
-        matter density value :math:`\Omega_{0}`  (default : 0.25)
+        matter density value :math:`\Omega_{0}` (default : 0.25)
     min_rf_phase : float, optional
-       min rest-frame phase (default : -15.)
+        min rest-frame phase (default : -15.)
     max_rf_phase : float, optional
-       max rest-frame phase (default : 30.)
+        max rest-frame phase (default : 30.)
     """
 
     def __init__(self, rate='Perrett', H0=70, Om0=0.25,
@@ -1412,38 +1443,40 @@ class SN_Rate:
                  bins=None, account_for_edges=False,
                  duration=140., duration_z=None):
         """
-        call method
         Parameters
         ----------------
         zmin : float, optional
-          minimal redshift (default : 0.1)
+            minimal redshift (default : 0.1)
         zmax : float, optional
-           max redshift (default : 0.2)
+            max redshift (default : 0.2)
         dz : float, optional
-           redshift bin (default : 0.001)
+            redshift bin (default : 0.001)
         survey_area : float, optional
-           area of the survey (:math:`deg^{2}`) (default : 9.6 :math:`deg^{2}`)
-        bins : list(float), optional
-          redshift bins (default : None)
+            area of the survey (:math:`deg^{2}`) (default : 9.6 :math:`deg^{2}`)
+        bins : `list` [`float`], optional
+            redshift bins (default : None)
         account_for_edges : bool
-          to account for season edges. If true, duration of the survey will be reduced by (1+z)*(maf_rf_phase-min_rf_phase)/365.25 (default : False)
+            to account for season edges.
+            If true, duration of the survey will be reduced by (1+z)*(maf_rf_phase-min_rf_phase)/365.25
+            (default : False)
         duration : float, optional
-           survey duration (in days) (default : 140 days)
+            survey duration (in days) (default : 140 days)
         duration_z : list(float), optional
-          survey duration (as a function of z) (default : None)
+            survey duration (as a function of z) (default : None)
+
         Returns
         -----------
         Lists :
         zz : float
-           redshift values
+            redshift values
         rate : float
-           production rate
+            production rate
         err_rate : float
-           production rate error
+            production rate error
         nsn : float
-           number of SN
+            number of SN
         err_nsn : float 
-           error on the number of SN
+            error on the number of SN
         """
 
         if bins is None:
@@ -1481,10 +1514,12 @@ class SN_Rate:
 
     def RipocheRate(self, z):
         """The SNLS SNIa rate according to the (unpublished) Ripoche et al study.
+
         Parameters
         --------------
         z : float
-          redshift
+            redshift
+
         Returns
         ----------
         rate : float
@@ -1499,10 +1534,12 @@ class SN_Rate:
 
     def PerrettRate(self, z):
         """The SNLS SNIa rate according to (Perrett et al, 201?) 
+
         Parameters
         --------------
         z : float
-          redshift
+            redshift
+
         Returns
         ----------
         rate : float
@@ -1521,10 +1558,12 @@ class SN_Rate:
 
     def DildayRate(self, z):
         """The Dilday rate according to
-         Parameters
+
+        Parameters
         --------------
         z : float
-          redshift
+            redshift
+
         Returns
         ----------
         rate : float
@@ -1548,10 +1587,12 @@ class SN_Rate:
 
     def SNRate(self, z):
         """SN rate estimation
+
         Parameters
         --------------
         z : float
-          redshift
+            redshift
+
         Returns
         ----------
         rate : float
@@ -1570,26 +1611,29 @@ class SN_Rate:
                 duration=140., duration_z=None, norm=False):
         """ Plot integrated number of supernovae as a function of redshift
         uses the __call__ function
+
         Parameters
         --------------
         zmin : float, optional
-          minimal redshift (default : 0.1)
+            minimal redshift (default : 0.1)
         zmax : float, optional
-           max redshift (default : 0.2)
+            max redshift (default : 0.2)
         dz : float, optional
-           redshift bin (default : 0.001)
+            redshift bin (default : 0.001)
         survey_area : float, optional
-           area of the survey (:math:`deg^{2}`) (default : 9.6 :math:`deg^{2}`)
+            area of the survey (:math:`deg^{2}`) (default : 9.6 :math:`deg^{2}`)
         bins : list(float), optional
-          redshift bins (default : None)
+            redshift bins (default : None)
         account_for_edges : bool
-          to account for season edges. If true, duration of the survey will be reduced by (1+z)*(maf_rf_phase-min_rf_phase)/365.25 (default : False)
+            to account for season edges.
+            If true, duration of the survey will be reduced by (1+z)*(maf_rf_phase-min_rf_phase)/365.25
+            (default : False)
         duration : float, optional
-           survey duration (in days) (default : 140 days)
+            survey duration (in days) (default : 140 days)
         duration_z : list(float), optional
-          survey duration (as a function of z) (default : None)
+            survey duration (as a function of z) (default : None)
         norm: bool, optional
-          to normalise the results (default: False)
+            to normalise the results (default: False)
         """
         import pylab as plt
 
@@ -1612,6 +1656,7 @@ class SN_Rate:
 class CovColor:
     """
     class to estimate CovColor from lc using Fisher matrix element
+
     Parameters
     ---------------
     lc: pandas df
@@ -1626,10 +1671,12 @@ class CovColor:
     def varColor(self, lc):
         """
         Method to estimate the variance color from matrix element
+
         Parameters
         --------------
         lc: pandas df
-          data to process containing the derivative of the flux with respect to SN parameters
+            data to process containing the derivative of the flux with respect to SN parameters
+
         Returns
         ----------
         float: Cov_colorcolor
@@ -1666,12 +1713,14 @@ class CovColor:
     def det(self, a1, a2, a3, b1, b2, b3, c1, c2, c3):
         """
         Method to estimate the det of a matrix from its values
+
         Parameters
-        ---------------
+        -------------
         Values of the matrix
-        ( a1 a2 a3)
+        (a1 a2 a3)
         (b1 b2 b3)
         (c1 c2 c3)
+
         Returns
         -----------
         det value

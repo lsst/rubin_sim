@@ -5,11 +5,10 @@ import numpy.lib.recfunctions as rf
 
 
 class Lims:
-    """
-    class to handle light curve of SN
+    """class to handle light curve of SN
 
     Parameters
-    ---------------
+    -------------
     Li_files : str
        light curve reference file
     mag_to_flux_files : str
@@ -47,7 +46,7 @@ class Lims:
         Estimations of the limits
 
         Parameters
-        ---------------
+        -------------
         band : str
           band to consider
         tab : numpy array
@@ -55,8 +54,8 @@ class Lims:
         SNR : float
            Signal-to-Noise Ratio cut
 
-        Returns:
-        -----------
+        Returns
+        ---------
         dict of limits with redshift and band as keys.
 
         """
@@ -106,14 +105,7 @@ class Lims:
         return M5, DT, metric
 
     def interp(self):
-        """
-        Estimate a grid of interpolated values
-        in the plane (m5, cadence, metric)
-
-        Parameters
-        ---------------
-        None
-
+        """Estimate a grid of interpolated values in the plane (m5, cadence, metric)
         """
 
         M5_all = []
@@ -174,20 +166,22 @@ class Lims:
 
 
 class GenerateFakeObservations:
-    """ Class to generate Fake observations
+    """Class to generate Fake observations
 
     Parameters
-    ---------
+    -----------
     config: yaml-like
        configuration file (parameter choice: filter, cadence, m5,Nseasons, ...)
     list : str, optional
         Name of the columns used.
-        Default : 'observationStartMJD', 'fieldRA', 'fieldDec','filter','fiveSigmaDepth','visitExposureTime','numExposures','visitTime','season'
+        Default : 'observationStartMJD', 'fieldRA', 'fieldDec','filter','fiveSigmaDepth',
+        'visitExposureTime','numExposures','visitTime','season'
 
     Returns
     ---------
+
     recordarray of observations with the fields:
-    MJD, Ra, Dec, band,m5,Nexp, ExpTime, Season
+        MJD, Ra, Dec, band,m5,Nexp, ExpTime, Season
     """
 
     def __init__(self, config,
@@ -211,11 +205,9 @@ class GenerateFakeObservations:
         """ Generate Fake observations
 
         Parameters
-        ---------
+        -----------
         config: yaml-like
-          configuration file (parameter choice: filter, cadence, m5,Nseasons, ...)
-
-
+            configuration file (parameter choice: filter, cadence, m5,Nseasons, ...)
         """
         bands = config['bands']
         cadence = dict(zip(bands, config['Cadence']))
@@ -224,7 +216,6 @@ class GenerateFakeObservations:
         m5 = dict(zip(bands, config['m5']))
         Nvisits = dict(zip(bands, config['Nvisits']))
         Exposure_Time = dict(zip(bands, config['Exposure_Time']))
-        inter_season_gap = 300.
 
         Ra = config['Ra']
         Dec = config['Dec']
@@ -244,8 +235,11 @@ class GenerateFakeObservations:
                 myarr = np.array(mjd, dtype=[(self.mjdCol, 'f8')])
                 myarr = rf.append_fields(myarr, [self.RaCol, self.DecCol, self.filterCol], [
                                          [Ra]*len(myarr), [Dec]*len(myarr), [band]*len(myarr)])
-                myarr = rf.append_fields(myarr, [self.m5Col, self.nexpCol, self.exptimeCol, self.seasonCol], [
-                                         [m5_coadded]*len(myarr), [Nvisits[band]]*len(myarr), [Nvisits[band]*Exposure_Time[band]]*len(myarr), [season]*len(myarr)])
+                myarr = rf.append_fields(myarr,
+                                         [self.m5Col, self.nexpCol, self.exptimeCol, self.seasonCol],
+                                         [[m5_coadded]*len(myarr), [Nvisits[band]]*len(myarr),
+                                          [Nvisits[band]*Exposure_Time[band]]*len(myarr),
+                                          [season]*len(myarr)])
                 rtot.append(myarr)
 
         res = np.copy(np.concatenate(rtot))
@@ -257,19 +251,18 @@ class GenerateFakeObservations:
         """ Coadded m5 estimation
 
         Parameters
-        ---------
-        m5 : list(float)
+        ----------
+        m5 : `list` [`float`]
            list of five-sigma depth values
-         Nvisits : list(float)
-           list of the number of visits
-          Tvisit : list(float)
+        Nvisits : `list` [`float`]
+            list of the number of visits
+        Tvisit : `list` [`float`]
            list of the visit times
 
-       Returns
+        Returns
         ---------
-       m5_coadd : list(float)
-          list of m5 coadded values
-
+        m5_coadd : `list` [`float`]
+            list of m5 coadded values
         """
         m5_coadd = m5+1.25*np.log10(float(Nvisits)*Tvisit/30.)
         return m5_coadd
@@ -280,15 +273,15 @@ class ReferenceData:
     class to handle light curve of SN
 
     Parameters
-    ---------------
+    ------------
     Li_files : str
-      light curve reference file
+        light curve reference file
     mag_to_flux_files : str
-      files of magnitude to flux
+        files of magnitude to flux
     band : str
-      band considered
+        band considered
     z : float
-      redshift considered
+        redshift considered
     """
 
     def __init__(self, Li_files, mag_to_flux_files, band, z):
@@ -312,14 +305,14 @@ class ReferenceData:
         Parameters
         ---------------
         band : str
-           band considered
+            band considered
         tab : array
-           reference data with (at least) fields z,band,time,DayMax
+            reference data with (at least) fields z,band,time,DayMax
         z : float
-         redshift considered
+            redshift considered
 
         Returns
-        -----
+        --------
         list (float) of interpolated fluxes (in e/sec)
         """
         lims = {}
@@ -337,14 +330,14 @@ class ReferenceData:
         Parameters
         ---------------
         band : str
-           band considered
+            band considered
         tab : array
-           reference data with (at least) fields band,m5,flux_e,
+            reference data with (at least) fields band,m5,flux_e,
         z : float
-         redshift considered
+            redshift considered
 
         Returns
-        -----
+        --------
         list (float) of interpolated fluxes (in e/sec)
         """
         idx = tab['band'] == band

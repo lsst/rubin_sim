@@ -72,7 +72,7 @@ class PeriodDeviationMetric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         """
         Run the PeriodDeviationMetric
-        :param dataSlice: Data for this slice.
+        :param dataSlice : Data for this slice.
         :param slicePoint: Metadata for the slice. (optional)
         :return: The error in the period estimated from a Lomb-Scargle periodogram
         """
