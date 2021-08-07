@@ -9,6 +9,7 @@ Contents:
   overview.rst
   maf.rst
   metricList.rst
+  scheduler.rst
 
 .. automodule::
 
