@@ -49,9 +49,9 @@ class Sky_area_generator:
         self.nvis_goal_srd = 825
         self.area_min_srd = 15000
         self.area_goal_srd = 18000
-        self.nvis_wfd_default = 855
-        self.nvis_frac_nes = 0.35
-        self.nvis_frac_gp = 0.3
+        self.nvis_wfd_default = 860
+        self.nvis_frac_nes = 0.3
+        self.nvis_frac_gp = 0.27
         # These maps store the per-region information, on scales from 0-1
         self.maps = {}
         self.maps_perfilter = {}
@@ -329,6 +329,7 @@ class Sky_area_generator:
             self.gal_filter_balance = self._normalize_filter_balance(gal_filter_balance)
 
         self.gal_dec_max = dec_max
+        self.nvis_gal_bg = nvis_gal_min
 
         # Set up central bulge
         self.bulge = self._set_bulge_diamond(center_width=center_width, end_width=end_width,
