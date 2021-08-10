@@ -156,6 +156,7 @@ class MovieSlicer(BaseSlicer):
         #    -pix_fmt yuv420p -crf 18 -preset slower outfile
         callList = ['ffmpeg', '-r', str(ips), '-i',
                     os.path.join(outDir,'%s_%s_%s.%s'%(outfileroot, sliceformat, plotType, figformat)),
+                    '-vf', "pad=ceil(iw/2)*2:ceil(ih/2)*2",
                     '-r', str(fps), '-pix_fmt', 'yuv420p', '-crf', '18', '-preset', 'slower',
                     os.path.join(outDir,'%s_%s_%s_%s.mp4' %(outfileroot, plotType, str(ips), str(fps)))]
         print('Attempting to call ffmpeg with:')
@@ -163,7 +164,7 @@ class MovieSlicer(BaseSlicer):
         p = subprocess.check_call(callList)
         #make thumbnail gif
         callList = ['ffmpeg','-i',os.path.join(outDir,'%s_%s_%s_%s.mp4' %(outfileroot, plotType, str(ips), str(fps))),
-                                               '-vf', 'scale=%s:%s' %(str(320),str(-1)), '-t', str(10), '-r', str(10),
+                    '-vf', "pad=ceil(iw/2)*2:ceil(ih/2)*2", '-t', str(10), '-r', str(10),
                     os.path.join(outDir,'%s_%s_%s_%s.gif' %(outfileroot, plotType, str(ips), str(fps)))]
         print('converting to animated gif with:')
         print(' '.join(callList))
