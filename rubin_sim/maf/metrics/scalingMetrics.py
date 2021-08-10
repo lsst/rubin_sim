@@ -97,7 +97,8 @@ class NlcPointsMetric(BaseMetric):
         nlcpoints = 0
         # Let's do it per filter
         for filtername in np.unique(dataSlice[self.filterCol]):
-            in_filt = np.where((dataSlice[self.filterCol] == filtername) & (dataSlice[self.m5Col] > self.mags))[0]
+            in_filt = np.where((dataSlice[self.filterCol] == filtername) &
+                               (dataSlice[self.m5Col] > self.mags))[0]
             n_obs = np.size(in_filt)
             if n_obs > self.ndpmin:
                 nstars = np.interp(self.mags, slicePoint[f'starMapBins_{filtername}'][1:],
