@@ -241,9 +241,7 @@ class SNNSNMetric(BaseMetric):
         resdf = pd.DataFrame()
 
         for seas in seasons:
-            vara_df = self.run_season(
-                dataSlice, [seas], gen_par, dur_z)
-            #print('res', seas, vara_df)
+            vara_df = self.run_season(dataSlice, [seas], gen_par, dur_z)
             if vara_df is not None:
                 resdf = pd.concat((resdf, vara_df))
 
@@ -499,6 +497,8 @@ class SNNSNMetric(BaseMetric):
             print(season, obs)
         sn = self.genSN(obs.to_records(
             index=False), gen_p.to_records(index=False))
+        if np.size(sn) == 0:
+            return None
 
         if self.verbose:
             idx = np.abs(sn['x1']+2) < 1.e-5
