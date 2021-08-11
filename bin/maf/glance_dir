@@ -21,9 +21,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.db is None:
-        if os.path.isfile('trackingDb_sqlite.db'):
-            os.remove('trackingDb_sqlite.db')
         db_files = glob.glob('*.db')
+        db_files = [filename for filename in db_files if 'trackingDb' not in filename]
     else:
         db_files = [args.db]
     run_names = [os.path.basename(name).replace('.db', '') for name in db_files]
