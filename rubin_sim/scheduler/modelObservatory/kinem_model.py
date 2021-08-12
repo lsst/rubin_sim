@@ -1,7 +1,5 @@
 import numpy as np
-from rubin_sim.utils import Site, calcLmstLast, _approx_altAz2RaDec, _approx_altaz2pa, _approx_RaDec2AltAz
-import healpy as hp
-import matplotlib.pylab as plt
+from rubin_sim.utils import Site, _approx_altAz2RaDec, _approx_altaz2pa, _approx_RaDec2AltAz
 from rubin_sim.scheduler.utils import smallest_signed_angle
 
 __all__ = ["Kinem_model"]
@@ -43,13 +41,15 @@ class Kinem_model(object):
 
     Parameters
     ----------
-    location : astropy.coordinates.EarthLocation object
+    location : `astropy.coordinates.EarthLocation`
         The location of the telescope. If None, defaults to rubin_sim.utils.Site info
-    park_alt : float (86.5)
+    park_alt : `float` (86.5)
         The altitude the telescope gets parked at (degrees)
-    start_filter : str ('r')
+    park_az : `float` (0)
+        The azimuth for telescope park position (degrees)
+    start_filter : `str` ('r')
         The filter that gets loaded when the telescope is parked
-    mjd0 : float (0)
+    mjd0 : `float` (0)
         The MJD to assume we are starting from
 
     Note there are additional parameters in the methods setup_camera, setup_dome, setup_telescope,
@@ -77,6 +77,11 @@ class Kinem_model(object):
 
     def mount_filters(self, filter_list):
         """Change which filters are mounted
+
+        Parameters
+        ----------
+        filter_list : `list` [`str`]
+            List of the mounted filters.
         """
         self.mounted_filters = filter_list
 
@@ -85,19 +90,21 @@ class Kinem_model(object):
         """
         Parameters
         ----------
-        readtime : float (2)
+        readtime : `float` (2)
             The readout time of the CCDs (seconds)
-        shuttertime : float (1.)
+        shuttertime : `float` (1.)
             The time it takes the shutter to go from closed to fully open (seconds)
-        filter_changetime : float (120)
+        filter_changetime : `float` (120)
             The time it takes to change filters (seconds)
-        fov : float (3.5)
+        fov : `float` (3.5)
             The camera field of view (degrees)
-        rotator_min : float (-90)
+        rotator_min : `float` (-90)
             The minimum angle the camera rotator can move to (degrees)
-        maxspeed : float (3.5)
+        rotator_max : `float` (90)
+            The maximum angle the camera rotator can move to (degrees)
+        maxspeed : `float` (3.5)
             The maximum speed of the rotator (degrees/s)
-        accel : float (1.0)
+        accel : `float` (1.0)
             The acceleration of the rotator (degrees/s^2)
         """
         self.readtime = readtime
@@ -115,8 +122,28 @@ class Kinem_model(object):
     def setup_dome(self, altitude_maxspeed=1.75, altitude_accel=0.875, altitude_decel=0.875,
                    altitude_freerange=0., azimuth_maxspeed=1.5, azimuth_accel=0.75,
                    azimuth_decel=0.75, azimuth_freerange=4.0, settle_time=1.0):
-        """input in degrees, degees/second, degrees/second**2, and seconds.
-        Freerange is the range in which there is zero delay.
+        """Parameters to define the DOME movement.
+
+        Parameters
+        ----------
+        altitude_maxspeed : `float` (1.75)
+            Maximum speed for altitude movement (degrees/second)
+        altitude_accel : `float` (0.875)
+            Maximum acceleration for altitude movement (degrees/second**2)
+        altitude_decel : `float` (0.875)
+            Maximum deceleration for altitude movement (degrees/second**2)
+        altitude_freerange : `float` (0)
+            The range over which there is 0 delay
+        azimuth_maxspeed : `float` (1.5)
+            Maximum speed for azimuth movement (degrees/second)
+        azimuth_accel : `float` (0.75)
+            Maximum acceleration for azimuth movement (degrees/second**2)
+        azimuth_decel : `float` (0.75)
+            Maximum deceleration for azimuth movement (degrees/second**2)
+        azimuth_freerange : `float` (4.0)
+            The range in which there is 0 delay
+        settle_time : `float` (1.0)
+            Settle time after movement (seconds)
         """
         self.domalt_maxspeed_rad = np.radians(altitude_maxspeed)
         self.domalt_accel_rad = np.radians(altitude_accel)
@@ -132,7 +159,32 @@ class Kinem_model(object):
                         azimuth_minpos=-270.0, azimuth_maxpos=270.0, altitude_maxspeed=3.5,
                         altitude_accel=3.5, altitude_decel=3.5, azimuth_maxspeed=7.0,
                         azimuth_accel=7.0, azimuth_decel=7.0, settle_time=3.0):
-        """input in degrees, degees/second, degrees/second**2, and seconds.
+        """Parameters to define the TELESCOPE movement and position.
+
+        Parameters
+        ----------
+        altitude_minpos : `float` (20.0)
+            Minimum altitude for the telescope (degrees)
+        altitude_maxpos : `float` (86.5)
+            Maximum altitude for the telescope (degrees)
+        azimuth_minpos : `float` (-270.0)
+            Minimum azimuth position (degrees)
+        azimuth_maxpos : `float` (270.0)
+            Maximum azimuth position (degrees)
+        altitude_maxspeed : `float` (3.5)
+            Maximum speed for altitude movement (degrees/second)
+        altitude_accel : `float` (3.5)
+            Maximum acceleration for altitude movement (degrees/second**2)
+        altitude_decel : `float` (3.5)
+            Maximum deceleration for altitude movement (degrees/second**2)
+        azimuth_maxspeed : `float` (7.0)
+            Maximum speed for azimuth movement (degrees/second)
+        azimuth_accel : `float` (7.0)
+            Maximum acceleration for azimuth movement (degrees/second**2)
+        azimuth_decel : `float` (7.0)
+            Maximum deceleration for azimuth movement (degrees/second**2)
+        settle_time : `float` (3.0)
+            Settle time required for telescope after movement (seconds)
         """
         self.telalt_minpos_rad = np.radians(altitude_minpos)
         self.telalt_maxpos_rad = np.radians(altitude_maxpos)
@@ -150,14 +202,17 @@ class Kinem_model(object):
         """
         Parameters
         ----------
-        ol_slope : float
+        ol_slope : `float` (1.0/3.5)
             seconds/degree in altitude slew.
         cl_delay : list ([0.0, 36])
             The delays for closed optics loops (seconds)
         cl_altlimit : list ([0.0, 9.0, 90.0])
-            The altitude limits (degrees) for performing closed optice loops. Should be one element longer than cl_delay.
-        """
+            The altitude limits (degrees) for performing closed optice loops.
+            Should be one element longer than cl_delay.
 
+        A given movement in altitude will cover X degrees; if X > cl_altlimit[i] there is
+        an additional delay of cl_delay[i]
+        """
         self.optics_ol_slope = ol_slope/np.radians(1.)  # ah, 1./np.radians(1)=np.pi/180
         self.optics_cl_delay = cl_delay
         self.optics_cl_altlimit = np.radians(cl_altlimit)
@@ -165,9 +220,9 @@ class Kinem_model(object):
     def park(self):
         """Put the telescope in the park position.
         """
-        # I'm going to ignore that the old model had the dome altitude at 90 and telescope altitude 86 for park.
+        # I'm going to ignore that the old model had the dome altitude at 90
+        # and telescope altitude 86 for park.
         # We should usually be dome az limited anyway, so this should be a negligible approximation.
-
         self.parked = True
 
         # We have no current position we are tracking
@@ -224,11 +279,14 @@ class Kinem_model(object):
                    starting_rotTelPos_rad=None, update_tracking=False, include_readtime=True):
         """Calculates ``slew'' time to a series of alt/az/filter positions from the current
         position (stored internally).
+
         Assumptions (currently):
-            Assumes we have been tracking on ra,dec,rotSkyPos position.
-            Ignores the motion of the sky while we are slewing (this approx should probably average out over time).
-            No checks for if we have tracked beyond limits. Assumes folks put telescope in park if there's a long gap.
-            Assumes the camera rotator never needs to (or can't) do a slew over 180 degrees.
+        Assumes we have been tracking on ra,dec,rotSkyPos position.
+        Ignores the motion of the sky while we are slewing
+        (this approx should probably average out over time).
+        No checks for if we have tracked beyond limits.
+        (this assumes folks put telescope in park if there's a long gap.)
+        Assumes the camera rotator never needs to (or can't) do a slew over 180 degrees.
 
         Calculates the ``slew'' time necessary to get from current state
         to alt2/az2/filter2. The time returned is actually the time between
@@ -237,44 +295,53 @@ class Kinem_model(object):
 
         Parameters
         ----------
-        ra_rad : np.ndarray
+        ra_rad : `np.ndarray`
             The RA(s) of the location(s) we wish to slew to (radians)
-        dec_rad : np.ndarray
+        dec_rad : `np.ndarray`
             The declination(s) of the location(s) we wish to slew to (radians)
-        mjd : float
+        mjd : `float`
             The current moodified julian date (days)
-        rotSkyPos : np.ndarray
+        rotSkyPos : `np.ndarray`
             The desired rotSkyPos(s) (radians). Angle between up on the chip and North. Note,
             it is possible to set a rotSkyPos outside the allowed camera rotator range, in which case
             the slewtime will be np.inf. If both rotSkyPos and rotTelPos are set, rotTelPos will be used.
-        rotTelPos : np.ndarray
+        rotTelPos : `np.ndarray`
             The desired rotTelPos(s) (radians).
-        filtername : str
-            The filter(s) of the desired observations. Set to None to compute only telescope and dome motion times.
-        alt_rad : np.ndarray
-            The altitude(s) of the destination pointing(s) (radians). Will override ra_rad,dec_rad if provided.
-        az_rad : np.ndarray
-            The azimuth(s) of the destination pointing(s) (radians). Will override ra_rad,dec_rad if provided.
-        lax_dome : `bool`, default False
+        filtername : `str`
+            The filter(s) of the desired observations.
+            Set to None to compute only telescope and dome motion times.
+        alt_rad : `np.ndarray`
+            The altitude(s) of the destination pointing(s) (radians).
+            Will override ra_rad,dec_rad if provided.
+        az_rad : `np.ndarray`
+            The azimuth(s) of the destination pointing(s) (radians).
+            Will override ra_rad,dec_rad if provided.
+        lax_dome : `bool`, default True
             If True, allow the dome to creep, model a dome slit, and don't
             require the dome to settle in azimuth. If False, adhere to the way
-            SOCS calculates slew times (as of June 21 2017).
-        starting_alt_rad : float (None)
-            The starting altitude for the slew (radians). If None, will use internally stored last pointing.
-        starting_az_rad : float (None)
-            The starting azimuth for the slew (radians). If None, will use internally stored last pointing.
-        starting_rotTelPos_rad : float (None)
-            The starting camera rotation for the slew (radians). If None, will use internally stored last pointing.
-        update_tracking : bool (False)
-            If True, update the internal attributes to say we are tracking the specified RA,Dec,RotSkyPos position.
-        include_readtime : bool (True)
-            Assume the camera must be read before opening the shutter, and include that readtime in the returned slewtime.
-            Readtime will never be inclded if the telescope was parked before the slew.
+            SOCS calculates slew times (as of June 21 2017) and do not allow dome creep.
+        starting_alt_rad : `float` (None)
+            The starting altitude for the slew (radians).
+            If None, will use internally stored last pointing.
+        starting_az_rad : `float` (None)
+            The starting azimuth for the slew (radians).
+            If None, will use internally stored last pointing.
+        starting_rotTelPos_rad : `float` (None)
+            The starting camera rotation for the slew (radians).
+            If None, will use internally stored last pointing.
+        update_tracking : `bool` (False)
+            If True, update the internal attributes to say we are tracking the
+            specified RA,Dec,RotSkyPos position.
+        include_readtime : `bool` (True)
+            Assume the camera must be read before opening the shutter,
+            and include that readtime in the returned slewtime.
+            Readtime will never be included if the telescope was parked before the slew.
 
         Returns
         -------
-        np.ndarray
-            The number of seconds between the two specified exposures. Will be np.nan or np.inf if slew is not possible.
+        slewTime : `np.ndarray`
+            The number of seconds between the two specified exposures.
+            Will be np.nan or np.inf if slew is not possible.
         """
         if filtername not in self.mounted_filters:
             return np.nan
@@ -312,14 +379,17 @@ class Kinem_model(object):
         delta_az_long[azlz] = TwoPi + delta_az_short[azlz]
         # So, for every position, we can get there by slewing long or short way
         cummulative_az_short = delta_az_short + self.cumulative_azimuth_rad
-        oob = np.where((cummulative_az_short < self.telaz_minpos_rad) | (cummulative_az_short > self.telaz_maxpos_rad))[0]
+        oob = np.where((cummulative_az_short < self.telaz_minpos_rad) |
+                       (cummulative_az_short > self.telaz_maxpos_rad))[0]
         # Set out of bounds azimuths to infinite distance
         delta_az_short[oob] = np.inf
         cummulative_az_long = delta_az_long + self.cumulative_azimuth_rad
-        oob = np.where((cummulative_az_long < self.telaz_minpos_rad) | (cummulative_az_long > self.telaz_maxpos_rad))[0]
+        oob = np.where((cummulative_az_long < self.telaz_minpos_rad) |
+                       (cummulative_az_long > self.telaz_maxpos_rad))[0]
         delta_az_long[oob] = np.inf
 
-        # Taking minimum of abs, so only possible azimuths slews should show up. And deltaAz is signed properly.
+        # Taking minimum of abs, so only possible azimuths slews should show up.
+        # And deltaAz is signed properly.
         stacked_az = np.vstack([delta_az_short, delta_az_long])
         indx = np.argmin(np.abs(stacked_az), axis=0)
         deltaAztel = np.take_along_axis(stacked_az, np.expand_dims(indx, axis=0), axis=0).squeeze(axis=0)
@@ -335,7 +405,7 @@ class Kinem_model(object):
         olTime = deltaAlt / self.optics_ol_slope
         totTelTime += olTime
         # Add time for telescope settle.
-        # XXX--note, this means we're going to have a settle time even for very small slews (like even a dither)
+        # note, this means we're going to have a settle time even for very small slews like dithering.
         settleAndOL = np.where(totTelTime > 0)
         totTelTime[settleAndOL] += np.maximum(0, self.mount_settletime - olTime[settleAndOL])
         # And readout puts a floor on tel time
@@ -343,7 +413,7 @@ class Kinem_model(object):
             totTelTime = np.maximum(self.readtime, totTelTime)
 
         # now compute dome slew time
-        # I think the dome can spin all the way around, so we will let it go the shortest angle,
+        # the dome can spin all the way around, so we will let it go the shortest angle,
         # even if the telescope has to unwind
         deltaAz = np.abs(smallest_signed_angle(starting_az_rad, az_rad))
         if lax_dome:
