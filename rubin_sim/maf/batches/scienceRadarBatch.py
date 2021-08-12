@@ -202,6 +202,16 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
                              displayDict=displayDict, plotDict=plotDict)
     bundleList.append(bundle)
 
+    displayDict['caption'] = 'Medium microlensing events'
+    slicer = generateMicrolensingSlicer(min_crossing_time=10, max_crossing_time=100)
+    metric = MicrolensingMetric(metricName='Medium Microlensing')
+    bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
+                             runName=runName,
+                             summaryMetrics=lightcurveSummary(),
+                             plotFuncs=[plots.HealpixSkyMap()],
+                             displayDict=displayDict, plotDict=plotDict)
+    bundleList.append(bundle)
+
     displayDict['caption'] = 'Slow microlensing events'
     slicer = generateMicrolensingSlicer(min_crossing_time=100, max_crossing_time=1500)
     metric = MicrolensingMetric(metricName='Slow Microlensing')
