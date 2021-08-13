@@ -463,7 +463,7 @@ class Kinem_model(object):
             max(observation['nexp'] - 1, 0) * self.readtime
         return visit_time
 
-    def observe(self, observation, mjd, rotTelPos=None):
+    def observe(self, observation, mjd, rotTelPos=None, lax_dome=True):
         """observe a target, and return the slewtime and visit time for the action
 
         If slew is not allowed, returns np.nan and does not update state.
@@ -471,6 +471,7 @@ class Kinem_model(object):
         slewtime = self.slew_times(observation['RA'], observation['dec'],
                                    mjd, rotSkyPos=observation['rotSkyPos'],
                                    rotTelPos=rotTelPos,
-                                   filtername=observation['filter'], update_tracking=True)
+                                   filtername=observation['filter'], update_tracking=True,
+                                   lax_dome=lax_dome)
         visit_time = self.visit_time(observation)
         return slewtime, visit_time

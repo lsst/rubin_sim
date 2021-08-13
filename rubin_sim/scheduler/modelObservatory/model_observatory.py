@@ -416,7 +416,9 @@ class Model_observatory(object):
         start_alt, start_az, start_rotTelPos = self.observatory.current_alt_az(self.mjd)
         # Slew to new position and execute observation. Use the requested rotTelPos position,
         # obsevation['rotSkyPos'] will be ignored.
-        slewtime, visittime = self.observatory.observe(observation, self.mjd, rotTelPos=observation['rotTelPos'])
+        slewtime, visittime = self.observatory.observe(observation, self.mjd,
+                                                       rotTelPos=observation['rotTelPos'],
+                                                       lax_dome=self.lax_dome)
 
         # inf slewtime means the observation failed (probably outside alt limits)
         if ~np.all(np.isfinite(slewtime)):
