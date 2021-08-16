@@ -7,7 +7,8 @@ import rubin_sim.maf.slicers as slicers
 from rubin_sim.data import get_data_dir
 
 # Via Natasha Abrams nsabrams@college.harvard.edu
-def microlensing_amplification(t, impact_parameter=1, crossing_time=1825., peak_time=100, blending_factor = 1):
+def microlensing_amplification(t, impact_parameter=1, crossing_time=1825., peak_time=100,
+                               blending_factor = 1):
     """The microlensing amplification
 
     Parameters
@@ -25,7 +26,8 @@ def microlensing_amplification(t, impact_parameter=1, crossing_time=1825., peak_
     """
 
     lightcurve_u = np.sqrt(impact_parameter**2 + ((t-peak_time)**2/crossing_time**2))
-    amplification = (lightcurve_u**2 + 2)/(lightcurve_u*np.sqrt(lightcurve_u**2 + 4))*blending_factor + (1 - blending_factor)
+    amplification = ((lightcurve_u**2 + 2)/(lightcurve_u*np.sqrt(lightcurve_u**2 + 4))
+                     *blending_factor + (1 - blending_factor))
 
     return amplification
 
@@ -41,7 +43,8 @@ def info_peak_before_t0(impact_parameter=1, crossing_time=100.):
         Einstein crossing time (days)
     """
     
-    optimal_time = crossing_time*np.sqrt(-impact_parameter**2 + np.sqrt(9*impact_parameter**4 + 36*impact_parameter**2 + 4) - 2)/2
+    optimal_time = crossing_time*np.sqrt(-impact_parameter**2 +
+                                         np.sqrt(9*impact_parameter**4 + 36*impact_parameter**2 + 4) - 2)/2
     return np.array(optimal_time)
 
 
@@ -82,8 +85,10 @@ class MicrolensingMetric(metrics.BaseMetric):
         blending_factors : float (between 0 and 1 - optional)
 
     """
-    def __init__(self, metricName='MicrolensingMetric', metricCalc = 'detect', mjdCol='observationStartMJD', m5Col='fiveSigmaDepth',
-                 filterCol='filter', nightCol='night', ptsNeeded=2, rmag=20, detect_sigma=3., time_before_peak=0, detect = False, **kwargs):
+    def __init__(self, metricName='MicrolensingMetric', metricCalc = 'detect',
+                 mjdCol='observationStartMJD', m5Col='fiveSigmaDepth',
+                 filterCol='filter', nightCol='night',
+                 ptsNeeded=3, rmag=20, detect_sigma=3., time_before_peak=0, detect=False, **kwargs):
         self.metricCalc = metricCalc
         if metricCalc == 'detect':
             self.units = 'Detected, 0 or 1'
@@ -123,13 +128,14 @@ class MicrolensingMetric(metrics.BaseMetric):
         # Try for if a blending factor slice was added if not default to no blending factor
         try:
             amplitudes = microlensing_amplification(t, impact_parameter=slicePoint['impact_parameter'],
-                                                crossing_time=slicePoint['crossing_time'],
-                                                peak_time=slicePoint['peak_time'], blending_factor=slicePoint['blending_factor'])
+                                                    crossing_time=slicePoint['crossing_time'],
+                                                    peak_time=slicePoint['peak_time'],
+                                                    blending_factor=slicePoint['blending_factor'])
         
         except:
             amplitudes = microlensing_amplification(t, impact_parameter=slicePoint['impact_parameter'],
-                                                crossing_time=slicePoint['crossing_time'],
-                                                peak_time=slicePoint['peak_time'])
+                                                    crossing_time=slicePoint['crossing_time'],
+                                                    peak_time=slicePoint['peak_time'])
 
         filters = np.unique(dataSlice[self.filterCol])
         amplified_mags = amplitudes * 0
@@ -148,16 +154,20 @@ class MicrolensingMetric(metrics.BaseMetric):
         for filtername in filters:
             if self.metricCalc == 'detect':
                 if self.time_before_peak == 'optimal':
-                    time_before_peak_optimal = info_peak_before_t0(slicePoint['impact_parameter'], slicePoint['crossing_time'])
+                    time_before_peak_optimal = info_peak_before_t0(slicePoint['impact_parameter'],
+                                                                   slicePoint['crossing_time'])
                     # observations pre-peak and in the given filter
-                    infilt = np.where((dataSlice[self.filterCol] == filtername) & (t < (slicePoint['peak_time'] - time_before_peak_optimal)))[0]
+                    infilt = np.where((dataSlice[self.filterCol] == filtername) &
+                                      (t < (slicePoint['peak_time'] - time_before_peak_optimal)))[0]
                 
                 else:
                     # observations pre-peak and in the given filter
-                    infilt = np.where((dataSlice[self.filterCol] == filtername) & (t < (slicePoint['peak_time'] - self.time_before_peak)))[0]
+                    infilt = np.where((dataSlice[self.filterCol] == filtername) &
+                                      (t < (slicePoint['peak_time'] - self.time_before_peak)))[0]
                             
                 # observations post-peak and in the given filter
-                outfilt = np.where((dataSlice[self.filterCol] == filtername) & (t > slicePoint['peak_time']))[0]
+                outfilt = np.where((dataSlice[self.filterCol] == filtername) &
+                                   (t > slicePoint['peak_time']))[0]
                 # Broadcast to calc the mag_i - mag_j
                 diffs = amplified_mags[infilt] - amplified_mags[infilt][:, np.newaxis]
                 diffs_uncert = np.sqrt(mag_uncert[infilt]**2 + mag_uncert[infilt][:, np.newaxis]**2)
@@ -178,9 +188,13 @@ class MicrolensingMetric(metrics.BaseMetric):
                             
             elif self.metricCalc == 'Npts':
                 # observations pre-peak and in the given filter within 2tE
-                infilt = np.where((dataSlice[self.filterCol] == filtername) & (t < (slicePoint['peak_time'])) & (t > (slicePoint['peak_time'] - slicePoint['crossing_time'])))[0]
+                infilt = np.where((dataSlice[self.filterCol] == filtername) &
+                                  (t < (slicePoint['peak_time'])) &
+                                  (t > (slicePoint['peak_time'] - slicePoint['crossing_time'])))[0]
                 # observations post-peak and in the given filter within 2tE
-                outfilt = np.where((dataSlice[self.filterCol] == filtername) & (t > (slicePoint['peak_time'])) & (t < (slicePoint['peak_time'] + slicePoint['crossing_time'])))[0]
+                outfilt = np.where((dataSlice[self.filterCol] == filtername) &
+                                   (t > (slicePoint['peak_time'])) &
+                                   (t < (slicePoint['peak_time'] + slicePoint['crossing_time'])))[0]
                             
                 n_pre.append(len(infilt))
                 n_post.append(len(outfilt))
