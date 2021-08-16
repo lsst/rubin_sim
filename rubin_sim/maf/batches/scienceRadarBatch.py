@@ -190,11 +190,11 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
 
     # Microlensing events
     displayDict['subgroup'] = 'Microlensing'
-    displayDict['caption'] = 'Fast microlensing events'
+    displayDict['caption'] = 'Microlensing events with crossing times between 1 to 10 days.'
 
     plotDict = {'nside': 128}
     slicer = generateMicrolensingSlicer(min_crossing_time=1, max_crossing_time=10)
-    metric = MicrolensingMetric(metricName='Fast Microlensing')
+    metric = MicrolensingMetric(metricName='1 to 10 day Microlensing')
     bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
                              runName=runName,
                              summaryMetrics=lightcurveSummary(),
@@ -202,9 +202,9 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
                              displayDict=displayDict, plotDict=plotDict)
     bundleList.append(bundle)
 
-    displayDict['caption'] = 'Medium microlensing events'
-    slicer = generateMicrolensingSlicer(min_crossing_time=10, max_crossing_time=100)
-    metric = MicrolensingMetric(metricName='Medium Microlensing')
+    displayDict['caption'] = 'Microlensing events with crossing times between 10 to 30 days.'
+    slicer = generateMicrolensingSlicer(min_crossing_time=10, max_crossing_time=30)
+    metric = MicrolensingMetric(metricName='10 to 30 day Microlensing')
     bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
                              runName=runName,
                              summaryMetrics=lightcurveSummary(),
@@ -212,9 +212,19 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
                              displayDict=displayDict, plotDict=plotDict)
     bundleList.append(bundle)
 
-    displayDict['caption'] = 'Slow microlensing events'
-    slicer = generateMicrolensingSlicer(min_crossing_time=100, max_crossing_time=1500)
-    metric = MicrolensingMetric(metricName='Slow Microlensing')
+    displayDict['caption'] = 'Microlensing events with crossing times between 30 to 100 days.'
+    slicer = generateMicrolensingSlicer(min_crossing_time=10, max_crossing_time=30)
+    metric = MicrolensingMetric(metricName='30 to 100 day Microlensing')
+    bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
+                             runName=runName,
+                             summaryMetrics=lightcurveSummary(),
+                             plotFuncs=[plots.HealpixSkyMap()],
+                             displayDict=displayDict, plotDict=plotDict)
+    bundleList.append(bundle)
+
+    displayDict['caption'] = 'Microlensing events on the longest timescales, 100-1000 days.'
+    slicer = generateMicrolensingSlicer(min_crossing_time=100, max_crossing_time=1000)
+    metric = MicrolensingMetric(metricName='100 to 1000 day Microlensing')
     bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
                              runName=runName,
                              summaryMetrics=lightcurveSummary(),
