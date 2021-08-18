@@ -138,8 +138,7 @@ def lightcurveSummary():
                          metrics.CountMetric(metricName='Total lightcurves in footprint'),
                          metrics.CountMetric(metricName='Total lightcurves on sky', maskVal=0),
                          metrics.MeanMetric(metricName='Fraction detected in footprint (mean)'),
-                         metrics.MeanMetric(maskVal=0, metricName='Fraction detected of total (mean)'),
-                         metrics.MedianMetric(maskVal=0, metricName='Fraction detected of total (median)')]
+                         metrics.MeanMetric(maskVal=0, metricName='Fraction detected of total (mean)')]
     return lightcurveSummary
 
 
