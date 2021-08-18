@@ -104,7 +104,7 @@ class TestUniSlicerEqual(unittest.TestCase):
         testslicer2.setupSlicer(dv2)
         self.assertEqual(self.testslicer, testslicer2)
         # these will not be the same, as different slicer type.
-        testslicer2 = OneDSlicer(sliceColName='testdata', bins=10)
+        testslicer2 = OneDSlicer(sliceColName='testdata', bins=np.arange(0, 10, 1))
         testslicer2.setupSlicer(dv2)
         self.assertNotEqual(self.testslicer, testslicer2)
 
