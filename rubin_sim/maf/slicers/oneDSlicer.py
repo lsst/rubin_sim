@@ -12,81 +12,94 @@ from .baseSlicer import BaseSlicer
 __all__ = ['OneDSlicer']
 
 class OneDSlicer(BaseSlicer):
-    """oneD Slicer."""
+    """OneD Slicer allows the 'slicing' of data into bins in a single dimension.
+
+    Parameters
+    ----------
+    sliceColName : `str`
+        The name of the data column to base slicing on (i.e. 'airmass', etc.)
+    sliceColUnits : `str`, optional
+        Set a name for the units of the sliceCol. Used for plotting labels. Default None.
+    bins : np.ndarray, optional
+        The data will be sliced into 'bins': this can be defined as an array here. Default None.
+    binMin : `float`, optional
+    binMax : `float`, optional
+    binsize : `float`, optional
+        If bins is not defined, then binMin/binMax/binsize can be chosen to anchor the slice points.
+        Default None.
+        Priority goes: bins >> binMin/binMax/binsize >> data values (if none of the above are chosen).
+
+    The bins act like numpy histogram bins: the last bin value is the end value of the last bin.
+    All bins except for the last bin are half-open ([a, b)) while the last bin is ([a, b]).
+    """
     def __init__(self, sliceColName=None, sliceColUnits=None,
                  bins=None, binMin=None, binMax=None, binsize=None,
                  verbose=True, badval=0):
-        """
-        'sliceColName' is the name of the data column to use for slicing.
-        'sliceColUnits' lets the user set the units (for plotting purposes) of the slice column.
-        'bins' can be a numpy array with the binpoints for sliceCol or a single integer value
-        (if a single value, this will be used as the number of bins, together with data min/max or binMin/Max),
-        as in numpy's histogram function.
-        If 'binsize' is used, this will override the bins value and will be used together with the data min/max
-        or binMin/Max to set the binpoint values.
-
-        Bins work like numpy histogram bins: the last 'bin' value is end value of last bin;
-          all bins except for last bin are half-open ([a, b>), the last one is ([a, b]).
-        """
-        super(OneDSlicer, self).__init__(verbose=verbose, badval=badval)
+        super().__init__(verbose=verbose, badval=badval)
+        if sliceColName is None:
+            raise ValueError('sliceColName cannot be left None - choose a data column to group data by')
         self.sliceColName = sliceColName
         self.columnsNeeded = [sliceColName]
         self.bins = bins
-        self.binMin = binMin
-        self.binMax = binMax
-        self.binsize = binsize
-        if sliceColUnits is None:
+        # Forget binmin/max/stepsize if bins was set
+        if self.bins is not None:
+            self.binMin = self.bins.min()
+            self.binMax = self.bins.max()
+            self.binsize = np.diff(self.bins)
+            if len(np.unique(self.binsize)) == 1:
+                self.binsize = np.unique(self.binsize)
+        else:
+            self.binMin = binMin
+            self.binMax = binMax
+            self.binsize = binsize
+        # Set the column units
+        if sliceColUnits is not None:
+            self.sliceColUnits = sliceColUnits
+        # Try to determine the column units
+        else:
             co = ColInfo()
             self.sliceColUnits = co.getUnits(self.sliceColName)
-        else:
-            self.sliceColUnits = sliceColUnits
+        # Set slicer re-initialize values and default plotFunction
         self.slicer_init = {'sliceColName':self.sliceColName, 'sliceColUnits':sliceColUnits,
-                            'badval':badval}
+                            'badval':badval,
+                            'binMin': self.binMin, 'binMax': self.binMax, 'binsize': self.binsize}
         self.plotFuncs = [OneDBinnedData,]
 
     def setupSlicer(self, simData, maps=None):
         """
         Set up bins in slicer.
+        This happens AFTER simData is defined, thus typically in the MetricBundleGroup.
+        This maps data into the bins; it's not a good idea to reuse a OneDSlicer as a result.
         """
-        if self.sliceColName is None:
-            raise Exception('sliceColName was not defined when slicer instantiated.')
+        if 'bins' in self.slicePoints:
+            warning_msg = 'Warning: this OneDSlicer was already set up once. '
+            warning_msg += 'Re-setting up a OneDSlicer is unpredictable; at the very least, it ' \
+                           'will change the mapping of the simulated data into the data slices, ' \
+                           'and may result in poor binsize choices (although these may potentially be ok). '
+            warning_msg += 'A safer choice is to use a separate OneDSlicer for each MetricBundle.'
+            warnings.warn(warning_msg)
         sliceCol = simData[self.sliceColName]
-        # Set bin min/max values.
-        if self.binMin is None:
-            self.binMin = np.nanmin(sliceCol)
-        if self.binMax is None:
-            self.binMax = np.nanmax(sliceCol)
-        # Give warning if binMin = binMax, and do something at least slightly reasonable.
-        if self.binMin == self.binMax:
-            warnings.warn('binMin = binMax (maybe your data is single-valued?). '
-                          'Increasing binMax by 1 (or 2*binsize, if binsize set).')
-            if self.binsize is not None:
-                self.binMax = self.binMax + 2 * self.binsize
-            else:
-                self.binMax = self.binMax + 1
-        # Set bins.
-        # Using binsize.
-        if self.binsize is not None:
-            # Add an extra 'bin' to the edge values of the bins (makes plots much prettier).
-            self.binMin -= self.binsize
-            self.binMax += self.binsize
-            if self.bins is not None:
-                warnings.warn('Both binsize and bins have been set; Using binsize %f only.' %(self.binsize))
-            self.bins = np.arange(self.binMin, self.binMax+self.binsize/2.0, self.binsize, 'float')
-        # Using bins value.
-        else:
-            # Bins was a sequence (np array or list)
-            if hasattr(self.bins, '__iter__'):
-                self.bins = np.sort(self.bins)
-                self.binMin = self.bins[0]
-                self.binMax = self.bins[-1]
-            # Or bins was a single value.
-            else:
-                if self.bins is None:
-                    self.bins = optimalBins(sliceCol, self.binMin, self.binMax)
-                nbins = np.round(self.bins)
+        # Set bins from data or specified values, if they were previously defined.
+        if self.bins is None:
+            # Set bin min/max values (could have been set in __init__)
+            if self.binMin is None:
+                self.binMin = np.nanmin(sliceCol)
+            if self.binMax is None:
+                self.binMax = np.nanmax(sliceCol)
+            # Give warning if binMin = binMax, and do something at least slightly reasonable.
+            if self.binMin == self.binMax:
+                warnings.warn('binMin = binMax (maybe your data is single-valued?). '
+                              'Increasing binMax by 1 (or 2*binsize, if binsize was set).')
+                if self.binsize is not None:
+                    self.binMax = self.binMax + 2 * self.binsize
+                else:
+                    self.binMax = self.binMax + 1
+            if self.binsize is None:
+                bins = optimalBins(sliceCol, self.binMin, self.binMax)
+                nbins = np.round(bins)
                 self.binsize = (self.binMax - self.binMin) / float(nbins)
-                self.bins = np.arange(self.binMin, self.binMax+self.binsize/2.0, self.binsize, 'float')
+            # Set bins
+            self.bins = np.arange(self.binMin, self.binMax + self.binsize / 2.0, self.binsize, 'float')
         # Set nbins to be one less than # of bins because last binvalue is RH edge only
         self.nslice = len(self.bins) - 1
         self.shape = self.nslice

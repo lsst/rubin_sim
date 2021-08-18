@@ -90,7 +90,7 @@ class OpsimFieldSlicer(BaseSpatialSlicer):
         maps : list of rubin_sim.maf.maps objects, optional
             Maps to run and provide additional metadata at each slicePoint. Default None.
         """
-        if hasattr(self, 'slicePoints'):
+        if 'ra' in self.slicePoints:
             warning_msg = 'Warning: this OpsimFieldSlicer was already set up once. '
             warning_msg += 'Re-setting up an OpsimFieldSlicer can change the field information. '
             warning_msg += 'Rerun metrics if this was intentional. '
