@@ -169,15 +169,18 @@ class Flush_for_sched_detailer(Base_detailer):
 class Filter_nexp(Base_detailer):
     """Demand one filter always be taken as a certain number of exposures
     """
-    def __init__(self, filtername='u', nexp=1):
+    def __init__(self, filtername='u', nexp=1, exptime=None):
         super(Filter_nexp, self).__init__()
         self.filtername = filtername
         self.nexp = nexp
+        self.exptime = exptime
 
     def __call__(self, observation_list, conditions):
         for obs in observation_list:
             if obs['filter'] == self.filtername:
                 obs['nexp'] = self.nexp
+                if self.exptime is not None:
+                    obs['exptime'] = self.exptime
         return observation_list
 
 
