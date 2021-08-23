@@ -43,6 +43,9 @@ class OneDSlicer(BaseSlicer):
         self.bins = bins
         # Forget binmin/max/stepsize if bins was set
         if self.bins is not None:
+            if binMin is not None or binMax is not None or binsize is not None:
+                warnings.warning(f'Both bins and one of the binMin/binMax/binsize was specified. '
+                                 f'Using bins ({self.bins} values only.')
             self.binMin = self.bins.min()
             self.binMax = self.bins.max()
             self.binsize = np.diff(self.bins)
@@ -131,11 +134,11 @@ class OneDSlicer(BaseSlicer):
                 # If slicer restored from disk or setup, then 'bins' in slicePoints dict.
                 # This is preferred method to see if slicers are equal.
                 if ('bins' in self.slicePoints) & ('bins' in otherSlicer.slicePoints):
-                    result = np.all(otherSlicer.slicePoints['bins'] == self.slicePoints['bins'])
+                    result = np.array_equal(otherSlicer.slicePoints['bins'], self.slicePoints['bins'])
                 # However, before we 'setup' the slicer with data, the slicers could be equivalent.
                 else:
                     if (self.bins is not None) and (otherSlicer.bins is not None):
-                        result = np.all(self.bins == otherSlicer.bins)
+                        result = np.array_equal(self.bins, otherSlicer.bins)
                     elif ((self.binsize is not None) and
                           (self.binMin is not None) & (self.binMax is not None) and
                           (otherSlicer.binsize is not None) and
