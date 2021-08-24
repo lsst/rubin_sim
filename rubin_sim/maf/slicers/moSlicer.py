@@ -169,6 +169,6 @@ class MoObjSlicer(BaseSlicer):
         if isinstance(otherSlicer, MoObjSlicer):
             if otherSlicer.orbitFile == self.orbitFile:
                 if otherSlicer.obsFile == self.obsFile:
-                    if np.all(otherSlicer.slicePoints['H'] == self.slicePoints['H']):
+                    if np.array_equal(otherSlicer.slicePoints['H'], self.slicePoints['H']):
                         result = True
         return result
