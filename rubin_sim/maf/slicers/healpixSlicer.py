@@ -64,10 +64,10 @@ class HealpixSlicer(BaseSpatialSlicer):
         Leafsize value for kdtree. Default 100.
     radius : float, optional
         Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
-        Default 1.75.
+        Default 2.45.
     useCamera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
-        Default False.
+        Default True.
     rotSkyPosColName : str, optional
         Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
         Describes the orientation of the camera orientation compared to the sky.

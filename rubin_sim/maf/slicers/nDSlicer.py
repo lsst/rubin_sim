@@ -115,7 +115,7 @@ class NDSlicer(BaseSlicer):
             if otherSlicer.nD != self.nD:
                 return False
             for i in range(self.nD):
-                if np.all(otherSlicer.slicePoints['bins'][i] != self.slicePoints['bins'][i]):
+                if not np.array_equal(otherSlicer.slicePoints['bins'][i], self.slicePoints['bins'][i]):
                     return False
             return True
         else:

@@ -32,29 +32,22 @@ class UserPointsSlicer(BaseSpatialSlicer):
         Leafsize value for kdtree. Default 100.
     radius : float, optional
         Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
-        Default 1.75.
+        Default 2.45.
     useCamera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
-        Default False.
+        Default True.
     rotSkyPosColName : str, optional
         Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
-    mjdColName : str, optional
-        Name of the exposure time column. Only used if useCamera is True.
-        Default observationStartMJD.
-    chipNames : array-like, optional
-        List of chips to accept, if useCamera is True. This lets users turn 'on' only a subset of chips.
-        Default 'all' - this uses all chips in the camera.
     """
     def __init__(self, ra, dec, lonCol='fieldRA', latCol='fieldDec', latLonDeg=True, verbose=True,
                  badval=-666, leafsize=100, radius=2.45,
-                 useCamera=True, rotSkyPosColName='rotSkyPos', mjdColName='observationStartMJD',
-                 chipNames='all'):
-        super(UserPointsSlicer, self).__init__(lonCol=lonCol, latCol=latCol, latLonDeg=latLonDeg,
-                                               verbose=verbose,
-                                               badval=badval, radius=radius, leafsize=leafsize,
-                                               useCamera=useCamera, rotSkyPosColName=rotSkyPosColName)
+                 useCamera=True, rotSkyPosColName='rotSkyPos'):
+        super().__init__(lonCol=lonCol, latCol=latCol, latLonDeg=latLonDeg,
+                         verbose=verbose, badval=badval,
+                         radius=radius, leafsize=leafsize,
+                         useCamera=useCamera, rotSkyPosColName=rotSkyPosColName)
         # check that ra and dec are iterable, if not, they are probably naked numbers, wrap in list
         if not hasattr(ra, '__iter__'):
             ra = [ra]
@@ -83,20 +76,18 @@ class UserPointsSlicer(BaseSpatialSlicer):
         # check the slicePoints
         for key in otherSlicer.slicePoints:
             if key in self.slicePoints.keys():
-                if not np.all(otherSlicer.slicePoints[key] == self.slicePoints[key]):
+                if not np.array_equal(otherSlicer.slicePoints[key], self.slicePoints[key]):
                     return False
                 else:
                     return False
         if isinstance(otherSlicer, UserPointsSlicer):
             if otherSlicer.nslice == self.nslice:
-                if np.all(otherSlicer.slicePoints['ra'] == self.slicePoints['ra']) \
-                        and np.all(otherSlicer.slicePoints['dec'] == self.slicePoints['dec']):
+                if np.array_equal(otherSlicer.slicePoints['ra'], self.slicePoints['ra']) \
+                        and np.array_equal(otherSlicer.slicePoints['dec'], self.slicePoints['dec']):
                     if (otherSlicer.lonCol == self.lonCol and otherSlicer.latCol == self.latCol):
                         if otherSlicer.radius == self.radius:
                             if otherSlicer.useCamera == self.useCamera:
-                                if otherSlicer.chipsToUse == self.chipsToUse:
-                                    if otherSlicer.rotSkyPosColName == self.rotSkyPosColName:
-                                        if np.all(otherSlicer.shape == self.shape):
-
+                                if otherSlicer.rotSkyPosColName == self.rotSkyPosColName:
+                                    if np.array_equal(otherSlicer.shape, self.shape):
                                             result = True
         return result
