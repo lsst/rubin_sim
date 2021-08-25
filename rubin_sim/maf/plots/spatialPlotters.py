@@ -85,10 +85,11 @@ class HealpixSkyMap(BasePlotter):
         self.defaultPlotDict = {}
         self.defaultPlotDict.update(baseDefaultPlotDict)
         self.defaultPlotDict.update({'rot': (0, 0, 0), 'flip': 'astro', 'coord': 'C',
-                                    'nside': 8, 'reduceFunc': np.mean})
+                                     'nside': 8, 'reduceFunc': np.mean,
+                                     'visufunc': hp.mollview})
         # Note: for alt/az sky maps using the healpix plotter, you can use
         # {'rot': (90, 90, 90), 'flip': 'geo'}
-        self.healpy_visufunc = hp.mollview
+        #self.healpy_visufunc = hp.mollview
         self.healpy_visufunc_params = {}
         self.ax = None
         self.im = None
@@ -113,6 +114,9 @@ class HealpixSkyMap(BasePlotter):
         plotDict = {}
         plotDict.update(self.defaultPlotDict)
         plotDict.update(userPlotDict)
+
+        if 'visufunc' in plotDict:
+            self.healpy_visufunc = plotDict['visufunc']
 
         # Check if we have a valid HEALpix slicer
         if 'Heal' in slicer.slicerName:
@@ -172,6 +176,11 @@ class HealpixSkyMap(BasePlotter):
                            'sub': plotDict['subplot'],
                            'fig':fig.number,
                            'notext': notext}
+        # Keys to specify only if present in plotDict
+        for key in ('reso', 'lamb'):
+            if key in plotDict:
+                visufunc_params[key] = plotDict[key]
+        
         visufunc_params.update(self.healpy_visufunc_params)
         self.healpy_visufunc(metricValue.filled(badval), **visufunc_params)
 
