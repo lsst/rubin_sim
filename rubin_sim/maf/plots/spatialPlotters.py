@@ -89,7 +89,6 @@ class HealpixSkyMap(BasePlotter):
                                      'visufunc': hp.mollview})
         # Note: for alt/az sky maps using the healpix plotter, you can use
         # {'rot': (90, 90, 90), 'flip': 'geo'}
-        #self.healpy_visufunc = hp.mollview
         self.healpy_visufunc_params = {}
         self.ax = None
         self.im = None
@@ -177,7 +176,7 @@ class HealpixSkyMap(BasePlotter):
                            'fig':fig.number,
                            'notext': notext}
         # Keys to specify only if present in plotDict
-        for key in ('reso', 'lamb'):
+        for key in ('reso', 'lamb', 'reuse_axes', 'alpha', 'badcolor', 'bgcolor'):
             if key in plotDict:
                 visufunc_params[key] = plotDict[key]
         
