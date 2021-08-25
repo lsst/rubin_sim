@@ -114,8 +114,7 @@ class HealpixSkyMap(BasePlotter):
         plotDict.update(self.defaultPlotDict)
         plotDict.update(userPlotDict)
 
-        if 'visufunc' in plotDict:
-            self.healpy_visufunc = plotDict['visufunc']
+        self.healpy_visufunc = plotDict['visufunc']
 
         # Check if we have a valid HEALpix slicer
         if 'Heal' in slicer.slicerName:
@@ -138,7 +137,7 @@ class HealpixSkyMap(BasePlotter):
         else:
             badval = slicer.badval
 
-        # Generate a Mollweide full-sky plot.
+        # Generate a full-sky plot.
         fig = plt.figure(fignum, figsize=plotDict['figsize'])
         # Set up color bar limits.
         clims = setColorLims(metricValue, plotDict)
