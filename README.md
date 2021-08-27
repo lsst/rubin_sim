@@ -7,25 +7,42 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 
 Prerequisites:  A working [conda installation ](https://www.anaconda.com/products/individual)
 
-Optional: Set data directory. By default, `rubin_sim` will download needed data files to `$HOME/rubin_sim_data`. If you would like the data to go somewhere else, you can set the `RUBIN_SIM_DATA_DIR` environment variable. In bash  `export RUBIN_SIM_DATA_DIR="/my/preferred/data/path"` (note, always make sure this is set before trying to run `rubin_sim` packages, so put in your .bashrc or whatnot). Another possibility is to set the location via sym-link, `ln -s /my/preferred/data/path ~/rubin_sim_data`. 
 
-
-Set up a conda environment and install rubin_sim from source in development mode:
+To install rubin_sim into a new conda environment (the typical use-case), set up a conda environment and install rubin_sim from source in development mode:
 ```
 conda create -n rubin -c conda-forge openorb openorb-data-de405 astroplan george scikit-learn scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables h5py colorcet setuptools_scm
 conda activate rubin
 git clone git@github.com:lsst/rubin_sim.git
 cd rubin_sim
 pip install -e .
+```
+The installation can be tested by running `py.test` in the github directory.
+
+However, we expect some users to want to install rubin_sim into an LSST stack environment, using only some of the basic options within rubin_sim such as photUtils. 
+This can be done without impacting the LSST environment by 
+```
+source loadLSST.sh (or your equivalent)
+conda install setuptools_scm
+git clone git@github.com:lsst/rubin_sim.git
+cd rubin_sim
+pip install -e .
+```
+(and if you need to use additional modules within rubin_sim, you can conda install additional packages as needed). 
+
+### Data download for rubin_sim ###
+
+**Optional: Set $RUBIN_SIM_DATA_DIR data directory.** By default, `rubin_sim` will download needed data files to `$HOME/rubin_sim_data`. If you would like the data to go somewhere else, you can set the `RUBIN_SIM_DATA_DIR` environment variable. In bash  `export RUBIN_SIM_DATA_DIR="/my/preferred/data/path"` (note, always make sure this is set before trying to run `rubin_sim` packages, so put in your .bashrc or whatnot). Another possibility is to set the location via sym-link, `ln -s /my/preferred/data/path ~/rubin_sim_data`. 
+
+```
 export RUBIN_SIM_DATA_DIR=$HOME/rubin_sim_data # Optional. Set the data directory path via env variable
 rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR
 ```
-The installation can be tested by running `py.test` in the github directory. 
-
 If you are only interested in a subset of the data, you can specify which directories to download, e.g.
 ```
 rs_download_data  --dirs "throughputs,skybrightness,tests,maps"
 ```
+
+### Additional installation and download options ###
 
 Optional dependencies used by some of the more esoteric MAF functions:
 ```
