@@ -49,6 +49,7 @@ class Scripted_survey(BaseSurvey):
                                         (observation['mjd'] < self.obs_wanted['flush_by_mjd']) &
                                         (~self.obs_wanted['observed']) &
                                         (observation['note'] == self.obs_wanted['note']))[0]
+
                 for match in time_matches:
                     distances = _angularSeparation(self.obs_wanted[match]['RA'],
                                                    self.obs_wanted[match]['dec'],
