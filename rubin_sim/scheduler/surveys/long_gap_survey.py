@@ -1,8 +1,6 @@
 import numpy as np
-from rubin_sim.scheduler.utils import (empty_observation, set_default_nside, scheduled_observation)
-import rubin_sim.scheduler.features as features
+from rubin_sim.scheduler.utils import scheduled_observation
 from rubin_sim.scheduler.surveys import BaseSurvey
-from rubin_sim.utils import _approx_RaDec2AltAz, _raDec2Hpid, _angularSeparation
 import logging
 
 log = logging.getLogger(__name__)
