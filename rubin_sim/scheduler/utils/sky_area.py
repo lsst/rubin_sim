@@ -511,13 +511,17 @@ class Sky_area_generator:
         if ddf:
             self.set_ddf()
 
-    def combine_maps(self, trim_overlap=True):
+    def combine_maps(self, trim_overlap=True, smoothing_fwhm=3., dust_cut=0.3):
         """Combine the individual maps.
 
         Parameters
         ----------
         trim_overlap: bool, optional
             If True, look for WFD-like areas which overlap and drop areas according to how much dust there is.
+        smoothing_fwhm : float (3)
+            The smoothing to use (degrees)
+        dust_cut : float (0.3)
+            A trial-by-error value for assigning pixels to dust-free or galactic WFD
         """
         if trim_overlap:
             # Specifically look for regions in the various WFD sections which exceed the nvis expected
@@ -541,11 +545,14 @@ class Sky_area_generator:
             # 'self.dustfree' is already 0/1 dust-acceptable or not
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore', category=UserWarning)
-                # XXX--magic number
-                dustfree = hp.smoothing(self.dustfree, fwhm=np.radians(3))
-            # XXX--magic numbers
-            overlap_dustfree = np.where((dustfree > 0.3) & (overlap == 1))[0]
-            overlap_gal = np.where((dustfree <= 0.3) & (overlap == 1))[0]
+                dustfree = hp.smoothing(self.dustfree, fwhm=np.radians(smoothing_fwhm))
+            # Choosing whether to assign a particular healpix to the dust-free WFD vs. the galactic WFD 
+            # (which have different filter balances), is based on the underlying dust-map values. 
+            # The choice of 0.3 means that healpixels are more likely to be assigned to dust-free WFD than galactic plane,
+            # but that if a pixel corresponds to a very dusty region, it will be assigned to galactic plane. 
+            # These numbers based generally on trial-and-error.
+            overlap_dustfree = np.where((dustfree > dust_cut) & (overlap == 1))[0]
+            overlap_gal = np.where((dustfree <= dust_cut) & (overlap == 1))[0]
             # And then trim the maps accordingly - just drop the non-priority region
             m = 'dustfree'
             self.maps[m][overlap_gal] = 0
@@ -577,7 +584,12 @@ class Sky_area_generator:
 
     def return_maps(self):
         """Call combine_maps and return self.total and self.total_perfilter.
-
-        XXX: need to document the output here. """
+        Returns
+        --------
+        self.total, self.total_perfilter : `np.ndarray`, `np.ndarray`
+            HEALPix maps reflecting the total expected number of visits per pointing, and the
+            number of visits per pointing per filter. These can then be scaled appropriately into
+            target maps for the scheduler. 
+        """
         self.combine_maps()
         return self.total, self.total_perfilter
