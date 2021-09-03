@@ -25,7 +25,7 @@ class Long_gap_survey(BaseSurvey):
     """
     def __init__(self, blob_survey, scripted_survey, gap_range=[2, 10], long_name='long',
                  scripted_tol=2., alt_min=20, alt_max=85., HA_min=-12, HA_max=12., flush_time=2.,
-                 dist_tol=1., block_length=33.):
+                 dist_tol=1., block_length=33., reverse=True):
         self.blob_survey = blob_survey
         self.scripted_survey = scripted_survey
         self.night = -1
@@ -40,6 +40,7 @@ class Long_gap_survey(BaseSurvey):
         self.flush_time = flush_time/24.
         self.dist_tol = np.radians(dist_tol)
         self.block_length = block_length/60/24.
+        self.reverse = reverse
 
     def add_observation(self, observation, **kwargs):
         self.blob_survey.add_observation(observation, **kwargs)
@@ -95,7 +96,8 @@ class Long_gap_survey(BaseSurvey):
                 # Set the script to have things
                 obs_array = np.concatenate(o1)
                 # Reverse the order to try and get even more spread out gap times
-                obs_array = obs_array[::-1]
+                if self.reverse:
+                    obs_array = obs_array[::-1]
                 obs_array = obs_array[np.where(obs_array['filter'] == obs_array['filter'][0])[0]]
                 obs_array['mjd'] = conditions.mjd + self.gap
                 obs_array['note'] = self.long_name
