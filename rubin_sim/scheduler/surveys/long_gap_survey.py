@@ -25,11 +25,13 @@ class Long_gap_survey(BaseSurvey):
     """
     def __init__(self, blob_survey, scripted_survey, gap_range=[2, 10], long_name='long',
                  scripted_tol=2., alt_min=20, alt_max=85., HA_min=-12, HA_max=12., flush_time=2.,
-                 dist_tol=1., block_length=33., reverse=True):
+                 dist_tol=1., block_length=33., reverse=True, seed=42, night_max=50000):
         self.blob_survey = blob_survey
         self.scripted_survey = scripted_survey
         self.night = -1
         self.gap_range = np.array(gap_range)/24.  # To days
+        rng = np.random.default_rng(seed)
+        self.gaps = rng.uniform(self.gap_range.min(), self.gap_range.max(), night_max)
         self.gap = 0.
         self.long_name = long_name
         self.scripted_tol = scripted_tol/24.  # To days
@@ -62,7 +64,7 @@ class Long_gap_survey(BaseSurvey):
             # Clear out the scheduled observations
             self.scripted_survey.clear_script()
             self.night = conditions.night + 0
-            self.gap = np.random.uniform(self.gap_range.min(), self.gap_range.max())
+            self.gap = self.gaps[conditions.night]
             time_remaining = conditions.sun_n18_rising - conditions.mjd
             if self.gap > time_remaining:
                 self.gap = time_remaining - self.block_length
@@ -111,6 +113,10 @@ class Long_gap_survey(BaseSurvey):
                 sched_array['HA_max'] = self.HA_max
                 sched_array['flush_by_mjd'] = obs_array['mjd'] + self.flush_time
                 sched_array['dist_tol'] = self.dist_tol
+
+                # See if we need to append things to the scripted survey object
+                if self.scripted_survey.obs_wanted is not None:
+                    sched_array = np.concatenate([self.scripted_survey.obs_wanted, sched_array])
 
                 self.scripted_survey.set_script(sched_array)
                 observations = o1
