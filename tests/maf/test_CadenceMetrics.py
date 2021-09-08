@@ -103,6 +103,31 @@ class TestCadenceMetrics(unittest.TestCase):
         Ngaps = np.math.factorial(data.size-1)
         self.assertEqual(np.sum(result3), Ngaps)
 
+    def testTGapsPercentMetric(self):
+        names = ['observationStartMJD']
+        types = [float]
+        data = np.zeros(100, dtype=list(zip(names, types)))
+
+        # All 1-day gaps
+        data['observationStartMJD'] = np.arange(100)
+        # All intervals are one day, so should be 100% within the gap specified
+        metric = metrics.TgapsPercentMetric(minTime=0.5, maxTime=1.5, allGaps=False)
+        result1 = metric.run(data)
+        self.assertEqual(result1, 100)
+
+        # All 2 day gaps
+        data['observationStartMJD'] = np.arange(0, 200, 2)
+        result2 = metric.run(data)
+        self.assertEqual(result2, 0)
+
+        # Run with allGaps = True
+        data = np.zeros(4, dtype=list(zip(names, types)))
+        data['observationStartMJD'] = [1, 2, 3, 4]
+        metric = metrics.TgapsPercentMetric(minTime=0.5, maxTime=1.5, allGaps=True)
+        result3 = metric.run(data)
+        # This should be 50% -- 3 gaps of 1 day, 2 gaps of 2 days, 1 gap of 3 days
+        self.assertEqual(result3, 50)
+
     def testNightGapMetric(self):
         names = ['night']
         types = [float]
