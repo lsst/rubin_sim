@@ -125,7 +125,7 @@ Core LSST MAF metrics
 - `MagicDiscoveryMetric <source/rubin_sim.maf.metrics.html#rubin_sim.maf.metrics.moMetrics.MagicDiscoveryMetric>`_ 
  	 Count the number of discovery opportunities with very good software for an SSobject.
 - `MaxGapMetric <source/rubin_sim.maf.metrics.html#rubin_sim.maf.metrics.tgaps.MaxGapMetric>`_ 
- 	 Find the maximum gap in observations. Useful for making sure there is an image within the last year that would
+ 	 Find the maximum gap in between observations.
 - `MaxMetric <source/rubin_sim.maf.metrics.html#rubin_sim.maf.metrics.simpleMetrics.MaxMetric>`_ 
  	 Calculate the maximum of a simData column slice.
 - `MaxPercentMetric <source/rubin_sim.maf.metrics.html#rubin_sim.maf.metrics.simpleMetrics.MaxPercentMetric>`_ 
@@ -151,7 +151,7 @@ Core LSST MAF metrics
 - `MoCompletenessAtTimeMetric <source/rubin_sim.maf.metrics.html#rubin_sim.maf.metrics.moSummaryMetrics.MoCompletenessAtTimeMetric>`_ 
  	 Calculate the completeness (relative to the entire population) <= a given H as a function of time,
 - `MoCompletenessMetric <source/rubin_sim.maf.metrics.html#rubin_sim.maf.metrics.moSummaryMetrics.MoCompletenessMetric>`_ 
- 	 Calculate the fraction of the population that meets `threshold` value or higher.
+ 	 Calculate the fraction of the population that meets ``threshold`` value or higher.
 - `NChangesMetric <source/rubin_sim.maf.metrics.html#rubin_sim.maf.metrics.technicalMetrics.NChangesMetric>`_ 
  	 Compute the number of times a column value changes.
 - `NNightsMetric <source/rubin_sim.maf.metrics.html#rubin_sim.maf.metrics.moMetrics.NNightsMetric>`_ 
@@ -252,6 +252,8 @@ Core LSST MAF metrics
  	 Calculate the fraction of images with a previous template image of desired quality.
 - `TgapsMetric <source/rubin_sim.maf.metrics.html#rubin_sim.maf.metrics.tgaps.TgapsMetric>`_ 
  	 Histogram the times of the gaps between observations.
+- `TgapsPercentMetric <source/rubin_sim.maf.metrics.html#rubin_sim.maf.metrics.tgaps.TgapsPercentMetric>`_ 
+ 	 Compute the fraction of the time gaps between observations that occur in a given time range.
 - `TotalPowerMetric <source/rubin_sim.maf.metrics.html#rubin_sim.maf.metrics.summaryMetrics.TotalPowerMetric>`_ 
  	 Calculate the total power in the angular power spectrum between lmin/lmax.
 - `TransientMetric <source/rubin_sim.maf.metrics.html#rubin_sim.maf.metrics.transientMetrics.TransientMetric>`_ 
