@@ -10,6 +10,7 @@ from .common import standardSummary, lightcurveSummary, filterList, combineMetad
 from .colMapDict import ColMapDict
 from .srdBatch import fOBatch, astrometryBatch, rapidRevisitBatch
 from .descWFDBatch import descWFDBatch
+from .timeBatch import timeGaps
 from rubin_sim.maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import GalaxyCountsMetric_extended
 from rubin_sim.maf.mafContrib import (TdePopMetric, generateTdePopSlicer,
                                       generateMicrolensingSlicer, MicrolensingMetric,
@@ -167,10 +168,10 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
 
     metric = TdePopMetric()
     slicer = generateTdePopSlicer()
-    plotDict = {'reduceFunc': np.sum, 'nside': 128}
-    plotFuncs = [plots.HealpixSkyMap()]
+    #plotDict = {'reduceFunc': np.sum, 'nside': 128}
+    #plotFuncs = [plots.HealpixSkyMap()]
     bundle = mb.MetricBundle(metric, slicer, extraSql, runName=runName, metadata=extraMetadata,
-                             plotDict=plotDict, plotFuncs=plotFuncs,
+                             #plotDict=plotDict, plotFuncs=plotFuncs,
                              summaryMetrics=lightcurveSummary(),
                              displayDict=displayDict)
     bundleList.append(bundle)
@@ -242,6 +243,15 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
                              runName=runName, summaryMetrics=lightcurveSummary(),
                              displayDict=displayDict)
     bundleList.append(bundle)
+
+    # General time intervals
+    bundles, p = timeGaps(colmap=colmap, runName=runName, nside=nside,
+                          extraSql=extraSql, extraMetadata=extraMetadata, slicer=None,
+                          display_group=displayDict['group'], subgroup='TimeGaps')
+    temp_list = []
+    for b in bundles:
+        temp_list.append(bundles[b])
+    bundleList.extend(temp_list)
 
     #########################
     # Milky Way

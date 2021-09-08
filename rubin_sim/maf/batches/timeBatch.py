@@ -6,7 +6,7 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.metricBundles as mb
 from .colMapDict import ColMapDict
-from .common import standardSummary, filterList, combineMetadata, radecCols
+from .common import standardSummary, extendedSummary, filterList, combineMetadata, radecCols
 
 __all__ = ['intraNight', 'interNight', 'seasons']
 
@@ -28,7 +28,7 @@ def intraNight(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetad
     extraMetadata : str or None, optional
         Additional metadata to apply to all results.
     slicer : slicer object (None)
-        Optinally use something other than a HealpixSlicer
+        Optionally use something other than a HealpixSlicer
 
     Returns
     -------
@@ -176,7 +176,7 @@ def interNight(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetad
     extraMetadata : str or None, optional
         Additional metadata to use for all outputs.
     slicer : slicer object (None)
-        Optinally use something other than a HealpixSlicer
+        Optionally use something other than a HealpixSlicer
 
     Returns
     -------
@@ -246,6 +246,81 @@ def interNight(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetad
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
+    plotBundles = None
+    return mb.makeBundlesDictFromList(bundleList), plotBundles
+
+
+def timeGaps(colmap=None, runName='opsim', nside=64,
+          extraSql=None, extraMetadata=None, slicer=None,
+          display_group='TimeGaps', subgroup='Time'):
+    """Generate a set of statistics about the spacing between nights with observations.
+
+     Parameters
+     ----------
+     colmap : dict or None, optional
+         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
+     runName : str, optional
+         The name of the simulated survey. Default is "opsim".
+     nside : int, optional
+         Nside for the healpix slicer. Default 64.
+     extraSql : str or None, optional
+         Additional sql constraint to apply to all metrics.
+     extraMetadata : str or None, optional
+         Additional metadata to use for all outputs.
+     slicer : slicer object (None)
+         Optionally use something other than a HealpixSlicer
+
+     Returns
+     -------
+     metricBundleDict
+     """
+
+    if colmap is None:
+        colmap = ColMapDict('opsimV4')
+
+    bundleList = []
+
+    metadata = extraMetadata
+    if extraSql is not None and len(extraSql) > 0:
+        if metadata is None:
+            metadata = extraSql
+    # Set up basic all and per filter sql constraints.
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
+
+    if slicer is None:
+        slicer = slicers.HealpixSlicer(nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees)
+
+    displayDict = {'group': display_group, 'subgroup': subgroup, 'caption': None, 'order': 0}
+
+    tMin = 30 / 60 / 60 / 24.  # 30s
+    tMax = 5 * 365.25  # 5 years
+    tgaps = np.logspace(np.log10(tMin), np.log10(tMax), 100)
+
+    m1 = metrics.TgapsMetric(bins=tgaps, allGaps=False)
+    plotDict = {'bins': tgaps, 'xscale': 'log', 'yMin': 0, 'figsize': (8, 6),
+                'ylabel': 'Number of observation pairs',
+                'xlabel': 'Time gap between pairs of visits (days)'}
+    plotFuncs = [plots.SummaryHistogram()]
+    displayDict['caption'] = 'Summed Histogram of time between visits at each point in the sky.'
+    bundleList.append(mb.MetricBundle(m1, slicer, constraint=extraSql, metadata=metadata,
+                                      runName=runName, plotDict=plotDict, plotFuncs=plotFuncs,
+                                      displayDict=displayDict))
+
+    m2 = metrics.TgapsPercentMetric(minTime=2 / 24., maxTime=14 / 24., allGaps=False,
+                                    metricName='TgapsPercent_2-14hrs')
+    plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
+    plotDict = {'colorMin': 0}
+    summaryMetrics = extendedSummary()
+    displayDict['caption'] = 'Percent of the total time gaps which fall into the interval between 2-14 hours.'
+    bundleList.append(mb.MetricBundle(m2, slicer, constraint=extraSql, metadata=metadata,
+                                      runName=runName, summaryMetrics=summaryMetrics,
+                                      plotDict=plotDict, plotFuncs=plotFuncs, displayDict=displayDict))
+    m3 = metrics.TgapsPercentMetric(minTime=14. / 24., maxTime=(14. / 24 + 1.), allGaps=False,
+                                    metricName='TgapsPercent_1day')
+    displayDict['caption'] = 'Percent of the total time gaps which fall into the interval around 1 day.'
+    bundleList.append(mb.MetricBundle(m3, slicer, constraint=extraSql, metadata=metadata,
+                                      runName=runName, summaryMetrics=summaryMetrics,
+                                      plotDict=plotDict, plotFuncs=plotFuncs, displayDict=displayDict))
     plotBundles = None
     return mb.makeBundlesDictFromList(bundleList), plotBundles
 
