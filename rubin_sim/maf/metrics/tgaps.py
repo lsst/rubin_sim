@@ -34,8 +34,8 @@ class TgapsMetric(BaseMetric):
         these histograms can be combined and plotted using the 'SummaryHistogram plotter'.
      """
 
-    def __init__(self, timesCol='observationStartMJD', allGaps=False, bins=np.arange(0, 120.0, 5.0)/60./24.,
-                 units='days', **kwargs):
+    def __init__(self, timesCol='observationStartMJD', allGaps=False,
+                 bins=np.arange(0, 120.0, 5.0)/60./24., units='days', **kwargs):
         # Pass the same bins to the plotter.
         self.bins = bins
         self.timesCol = timesCol
