@@ -106,7 +106,8 @@ class SummaryHistogram(BasePlotter):
         self.defaultPlotDict = {'title': None, 'xlabel': None, 'ylabel': 'Count', 'label': None,
                                 'cumulative': False, 'xMin': None, 'xMax': None, 'yMin': None, 'yMax': None,
                                 'color': 'b', 'linestyle': '-', 'histStyle': True, 'grid': True,
-                                'metricReduce': metrics.SumMetric(), 'bins': None, 'figsize': None}
+                                'metricReduce': metrics.SumMetric(), 'yscale':None, 'xscale': None,
+                                'bins': None, 'figsize': None}
 
     def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
         """
@@ -150,6 +151,9 @@ class SummaryHistogram(BasePlotter):
         for i in np.arange(finalHist.size):
             finalHist[i] = metric.run(mV[:, i])
 
+        if plotDict['cumulative']:
+            finalHist = finalHist.cumsum()
+
         fig = plt.figure(fignum, figsize=plotDict['figsize'])
         bins = plotDict['bins']
         if plotDict['histStyle']:
@@ -184,5 +188,10 @@ class SummaryHistogram(BasePlotter):
             plotDict['yMin'] = 0
         if plotDict['yMax'] is not None:
             plt.ylim(top=plotDict['yMax'])
+
+        if plotDict['yscale'] is not None:
+            plt.yscale(plotDict['yscale'])
+        if plotDict['xscale'] is not None:
+            plt.xscale(plotDict['xscale'])
 
         return fig.number
