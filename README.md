@@ -52,6 +52,14 @@ Example jupyter notebooks can be found at:  https://github.com/lsst/rubin_sim_no
 
 Building real documentation coming soon!
 
+To build the docs
+```
+conda install -c conda-forge documenteer
+conda install lsst-documenteer-pipelines
+cd doc
+make html
+```
+
 
 # Mix and match data files
 

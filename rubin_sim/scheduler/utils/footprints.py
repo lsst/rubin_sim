@@ -115,7 +115,7 @@ def slice_wfd_indx(target_map, nslice=2, wfd_indx=None):
 
     wfd = target_map['r'] * 0
     if wfd_indx is None:
-        wfd_innx = np.where(target_map['r'] == 1)[0]
+        wfd_indx = np.where(target_map['r'] == 1)[0]
     wfd[wfd_indx] = 1
     wfd_accum = np.cumsum(wfd)
     split_wfd_indices = np.floor(np.max(wfd_accum)/nslice*(np.arange(nslice)+1)).astype(int)
