@@ -236,10 +236,13 @@ def labelVisits(opsimdb_file):
     from ..stackers import WFDlabelStacker
     from ..db import OpsimDatabase
 
-    runName = os.path.split(opsimdb_file)[-1].replace('.db', '')
+    ddir = os.path.split(opsimdb_file)[0]
+    basename = os.path.split(opsdb_file)[-1]
+    runName = filename.replace('.db', '')
     # The way this is written, in order to be able to freely use the information later, we write back
     # and modify the original opsim output. This can be problematic - so make a copy first and modify that.
-    newdb_file = 'wfd_' + opsimdb_file
+    # Note also, the new output database will be in the current directory.
+    newdb_file = 'wfd_' + basename
     shutil.copy(opsimdb_file, newdb_file)
 
     # Generate the footprint.
@@ -248,7 +251,7 @@ def labelVisits(opsimdb_file):
     sqlconstraint = 'visitExposureTime > 11 and note not like "%DD%"'
     bundle = MetricBundle(m, s, sqlconstraint, runName=runName)
     opsdb = OpsimDatabase(newdb_file)
-    g = MetricBundleGroup({f'{runName} footprint': bundle}, opsdb)
+    g = MetricBundleGroup({f'{runName} footprint': bundle}, opsdb, outDir=ddir)
     g.runAll()
     wfd_footprint = bundle.metricValues.filled(0)
     wfd_footprint = np.where(wfd_footprint > 750, 1, 0)
