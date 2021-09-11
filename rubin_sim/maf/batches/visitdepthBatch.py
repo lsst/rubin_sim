@@ -14,31 +14,27 @@ __all__ = ['nvisitsM5Maps', 'tEffMetrics', 'nvisitsPerNight', 'nvisitsPerProp']
 
 def nvisitsM5Maps(colmap=None, runName='opsim',
                   extraSql=None, extraMetadata=None,
-                  nside=64, runLength=10.,
-                  ditherStacker=None, ditherkwargs=None):
-    """Generate number of visits and Coadded depth per RA/Dec point in all and per filters.
+                  nside=64, runLength=10.):
+    """Generate maps of the number of visits and coadded depth (with and without dust extinction)
+    in all bands and per filter.
 
     Parameters
     ----------
-    colmap : dict, optional
+    colmap : `dict`, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
+    runName : `str`, optional
         The name of the simulated survey. Default is "opsim".
-    extraSql : str, optional
+    extraSql : `str`, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str, optional
+    extraMetadata : `str`, optional
         Additional metadata to add before any below (i.e. "WFD").  Default is None.
-    nside : int, optional
+    nside : `int`, optional
         Nside value for healpix slicer. Default 64.
         If "None" is passed, the healpixslicer-based metrics will be skipped.
-    runLength : float, optional
+    runLength : `float`, optional
         Length of the simulated survey, for scaling values for the plot limits.
         Default 10.
-    ditherStacker: str or rubin_sim.maf.stackers.BaseDitherStacker
-        Optional dither stacker to use to define ra/dec columns.
-    ditherkwargs: dict, optional
-        Optional dictionary of kwargs for the dither stacker.
 
     Returns
     -------
@@ -52,7 +48,7 @@ def nvisitsM5Maps(colmap=None, runName='opsim',
     if subgroup is None:
         subgroup = 'All visits'
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(ditherStacker, colmap, ditherkwargs)
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
     extraMetadata = combineMetadata(extraMetadata, ditherMeta)
     # Set up basic all and per filter sql constraints.
     filterlist, colors, orders, sqls, metadata = filterList(all=True,
@@ -120,6 +116,32 @@ def nvisitsM5Maps(colmap=None, runName='opsim',
                                  summaryMetrics=standardSummary())
         bundleList.append(bundle)
 
+    # Add Coadded depth maps per filter WITH extragalactic extinction added
+    displayDict = {'group': 'Extragalactic Coadded M5 Maps', 'subgroup': subgroup}
+    metric = metrics.ExgalM5(m5Col=colmap['fiveSigmaDepth'], metricName='Exgal_CoaddM5')
+    slicer = slicers.HealpixSlicer(nside=nside, latCol=decCol, lonCol=raCol,
+                                   latLonDeg=degrees)
+    for f in filterlist:
+        # Skip "all" for coadded depth.
+        if f == 'all':
+            continue
+        mag_zp = benchmarkVals['coaddedDepth'][f]
+        sql = sqls[f]
+        displayDict['caption'] = 'Coadded depth per healpix for extragalactic purposes ' \
+                                 '(i.e. combined with dust extinction maps), ' \
+                                 'with %s benchmark value subtracted (%.1f) ' \
+                                 'in %s.' % (f, mag_zp, metadata[f])
+        displayDict['caption'] += ' More positive numbers indicate fainter limiting magnitudes.'
+        displayDict['order'] = orders[f]
+        plotDict = {'zp': mag_zp, 'xMin': -0.6, 'xMax': 0.6,
+                    'xlabel': 'coadded m5 - %.1f' % mag_zp,
+                    'colorMin': -0.6, 'colorMax': 0.6, 'color': colors[f]}
+        bundle = mb.MetricBundle(metric, slicer, sql, metadata=metadata[f],
+                                 stackerList=ditherStacker,
+                                 displayDict=displayDict, plotDict=plotDict,
+                                 summaryMetrics=standardSummary())
+        bundleList.append(bundle)
+
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
@@ -127,28 +149,23 @@ def nvisitsM5Maps(colmap=None, runName='opsim',
 
 
 def tEffMetrics(colmap=None, runName='opsim',
-                extraSql=None, extraMetadata=None, nside=64,
-                ditherStacker=None, ditherkwargs=None):
+                extraSql=None, extraMetadata=None, nside=64):
     """Generate a series of Teff metrics. Teff total, per night, and sky maps (all and per filter).
 
     Parameters
     ----------
-    colmap : dict, optional
+    colmap : `dict`, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
+    runName : `str`, optional
         The name of the simulated survey. Default is "opsim".
-    extraSql : str, optional
+    extraSql : `str`, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str, optional
+    extraMetadata : `str`, optional
         Additional metadata to add before any below (i.e. "WFD").  Default is None.
-    nside : int, optional
+    nside : `int`, optional
         Nside value for healpix slicer. Default 64.
         If "None" is passed, the healpixslicer-based metrics will be skipped.
-    ditherStacker: str or rubin_sim.maf.stackers.BaseDitherStacker
-        Optional dither stacker to use to define ra/dec columns.
-    ditherkwargs: dict, optional
-        Optional dictionary of kwargs for the dither stacker.
 
     Returns
     -------
@@ -162,7 +179,7 @@ def tEffMetrics(colmap=None, runName='opsim',
     if subgroup is None:
         subgroup = 'All visits'
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(ditherStacker, colmap, ditherkwargs)
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
     extraMetadata = combineMetadata(extraMetadata, ditherMeta)
 
     # Set up basic all and per filter sql constraints.
@@ -226,18 +243,18 @@ def nvisitsPerNight(colmap=None, runName='opsim', binNights=1,
 
     Parameters
     ----------
-    colmap : dict or None, optional
+    colmap : `dict` or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
+    runName : `str`, optional
         The name of the simulated survey. Default is "opsim".
-    binNights : int, optional
+    binNights : `int`, optional
         Number of nights to count in each bin. Default = 1, count number of visits in each night.
-    extraSql : str or None, optional
+    extraSql : `str` or None, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str or None, optional
+    extraMetadata : `str` or None, optional
         Additional metadata to add before any below (i.e. "WFD").  Default is None.
-    subgroup : str or None, optional
+    subgroup : `str` or None, optional
         Use this for the 'subgroup' in the displayDict, instead of metadata. Default is None.
 
     Returns
@@ -282,14 +299,14 @@ def nvisitsPerProp(opsdb, colmap=None, runName='opsim', binNights=1, extraSql=No
 
     Parameters
     ----------
-    opsdb : rubin_sim.maf.db.Database or rubin_sim.maf.db.OpsimDatabase* object
-    colmap : dict or None, optional
+    opsdb : `rubin_sim.maf.db.Database` or `rubin_sim.maf.db.OpsimDatabase` object
+    colmap : `dict` or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
+    runName : `str`, optional
         The name of the simulated survey. Default is "opsim".
-    binNights : int, optional
+    binNights : `int`, optional
         Number of nights to count in each bin. Default = 1, count number of visits in each night.
-    sqlConstraint : str or None, optional
+    sqlConstraint : `str` or None, optional
         SQL constraint to add to all metrics.
 
     Returns

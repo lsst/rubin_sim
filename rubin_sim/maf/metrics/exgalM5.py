@@ -13,9 +13,9 @@ class ExgalM5(BaseMetric):
 
     Parameters
     ----------
-    m5Col : str, optional
+    m5Col : `str`, optional
         Column name for five sigma depth. Default 'fiveSigmaDepth'.
-    unit : str, optional
+    unit : `str`, optional
         Label for units. Default 'mag'.
     """
     def __init__(self, m5Col='fiveSigmaDepth', metricName='ExgalM5', units='mag',
@@ -24,7 +24,8 @@ class ExgalM5(BaseMetric):
         maps = ['DustMap']
         self.m5Col = m5Col
         self.filterCol = filterCol
-        super().__init__(col=[self.m5Col, self.filterCol], maps=maps, metricName=metricName, units=units, **kwargs)
+        super().__init__(col=[self.m5Col, self.filterCol], maps=maps,
+                         metricName=metricName, units=units, **kwargs)
         # Set the default wavelength limits for the lsst filters. These are approximately correct.
         dust_properties = Dust_values()
         self.Ax1 = dust_properties.Ax1
