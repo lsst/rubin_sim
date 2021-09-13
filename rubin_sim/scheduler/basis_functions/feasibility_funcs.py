@@ -6,7 +6,8 @@ from rubin_sim.scheduler.utils import int_rounded
 
 
 __all__ = ['Filter_loaded_basis_function', 'Time_to_twilight_basis_function',
-           'Not_twilight_basis_function', 'Force_delay_basis_function',
+           'Not_twilight_basis_function', 'After_evening_twi_basis_function',
+           'Force_delay_basis_function',
            'Hour_Angle_limit_basis_function', 'Moon_down_basis_function',
            'Fraction_of_obs_basis_function', 'Clouded_out_basis_function',
            'Rising_more_basis_function', 'Soft_delay_basis_function',
@@ -93,6 +94,20 @@ class Time_in_twilight_basis_function(Base_basis_function):
             if conditions.sunAlt > np.radians(-18.):
                 if time2 > self.time_needed:
                     result = True
+        return result
+
+
+class After_evening_twi_basis_function(Base_basis_function):
+    """Only execute right after evening twilight
+    """
+    def __init__(self, time_after=30., alt_limit=18):
+        super(After_evening_twi_basis_function, self).__init__()
+        self.time_after = int_rounded(time_after/60./24.)
+        self.alt_limit = str(alt_limit)
+
+    def check_feasibility(self, conditions):
+        available_time = conditions.mjd - getattr(conditions, 'sun_n' + self.alt_limit + '_setting')
+        result = int_rounded(available_time) < self.time_after
         return result
 
 

@@ -7,9 +7,39 @@ from rubin_sim.scheduler.utils import hp_in_lsst_fov, int_rounded
 
 
 __all__ = ['Zenith_mask_basis_function', 'Zenith_shadow_mask_basis_function',
+           'HA_mask_basis_function',
            'Moon_avoidance_basis_function', 'Map_cloud_basis_function',
            'Planet_mask_basis_function', 'Mask_azimuth_basis_function',
            'Solar_elongation_mask_basis_function', 'Area_check_mask_basis_function']
+
+
+class HA_mask_basis_function(Base_basis_function):
+    """Limit the sky based on hour angle
+
+    Parameters
+    ----------
+    HA_min : float (None)
+        The minimum hour angle to accept (hours)
+    HA_max : float (None)
+        The maximum hour angle to accept (hours)
+    """
+    def __init__(self, HA_min=None, HA_max=None, nside=32):
+        super(HA_mask_basis_function, self).__init__(nside=nside)
+        self.HA_max = HA_max
+        self.HA_min = HA_min
+        self.result = np.zeros(hp.nside2npix(self.nside), dtype=float)
+
+    def _calc_value(self, conditions, **kwargs):
+        result = self.result.copy()
+
+        if self.HA_min is not None:
+            good = np.where(conditions.HA < (self.HA_min/12.*np.pi))[0]
+            result[good] = np.nan
+        if self.HA_max is not None:
+            good = np.where(conditions.HA > (self.HA_max/12.*np.pi))[0]
+            result[good] = np.nan
+
+        return result
 
 
 class Area_check_mask_basis_function(Base_basis_function):

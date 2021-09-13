@@ -129,7 +129,7 @@ class Core_scheduler(object):
         if len(all_scheduled) == 0:
             self.conditions.scheduled_observations = []
         else:
-            all_scheduled = np.sort(np.array(all_scheduled).ravel())
+            all_scheduled = np.sort(np.concatenate(all_scheduled).ravel())
             # In case the surveys have not been removing executed observations
             all_scheduled = all_scheduled[np.where(all_scheduled >= self.conditions.mjd)]
             self.conditions.scheduled_observations = all_scheduled

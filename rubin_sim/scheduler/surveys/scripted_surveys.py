@@ -27,37 +27,39 @@ class Scripted_survey(BaseSurvey):
         self.reward = -np.inf
         super(Scripted_survey, self).__init__(basis_functions=basis_functions,
                                               ignore_obs=ignore_obs, nside=nside)
+        self.clear_script()
 
     def add_observation(self, observation, indx=None, **kwargs):
         """Check if observation matches a scripted observation
         """
+        if self.obs_wanted is not None:
+            # From base class
+            checks = [io not in str(observation['note']) for io in self.ignore_obs]
+            if all(checks):
+                for feature in self.extra_features:
+                    self.extra_features[feature].add_observation(observation, **kwargs)
+                for bf in self.basis_functions:
+                    bf.add_observation(observation, **kwargs)
+                for detailer in self.detailers:
+                    detailer.add_observation(observation, **kwargs)
+                self.reward_checked = False
 
-        # From base class
-        checks = [io not in str(observation['note']) for io in self.ignore_obs]
-        if all(checks):
-            for feature in self.extra_features:
-                self.extra_features[feature].add_observation(observation, **kwargs)
-            for bf in self.basis_functions:
-                bf.add_observation(observation, **kwargs)
-            for detailer in self.detailers:
-                detailer.add_observation(observation, **kwargs)
-            self.reward_checked = False
+                # was it taken in the right time window, and hasn't already been marked as observed.
+                time_matches = np.where((observation['mjd'] > self.mjd_start) &
+                                        (observation['mjd'] < self.obs_wanted['flush_by_mjd']) &
+                                        (~self.obs_wanted['observed']) &
+                                        (observation['note'] == self.obs_wanted['note']))[0]
 
-            # was it taken in the right time window, and hasn't already been marked as observed.
-            time_matches = np.where((observation['mjd'] > self.mjd_start) &
-                                    (observation['mjd'] < self.obs_wanted['flush_by_mjd']) &
-                                    (~self.obs_wanted['observed']) &
-                                    (observation['note'] == self.obs_wanted['note']))[0]
-            for match in time_matches:
-                distances = _angularSeparation(self.obs_wanted[match]['RA'],
-                                               self.obs_wanted[match]['dec'],
-                                               observation['RA'], observation['dec'])
-                if (distances < self.obs_wanted[match]['dist_tol']) & \
-                   (self.obs_wanted[match]['filter'] == observation['filter']):
-                    # Log it as observed.
-                    self.obs_wanted['observed'][match] = True
-                    self.scheduled_obs = self.obs_wanted['mjd'][~self.obs_wanted['observed']]
-                    break
+                for match in time_matches:
+                    distances = _angularSeparation(self.obs_wanted[match]['RA'],
+                                                   self.obs_wanted[match]['dec'],
+                                                   observation['RA'], observation['dec'])
+                    if (distances < self.obs_wanted[match]['dist_tol']) & \
+                       (self.obs_wanted[match]['filter'] == observation['filter']):
+                        # Log it as observed.
+                        self.obs_wanted['observed'][match] = True
+                        self.scheduled_obs = self.obs_wanted['mjd'][~self.obs_wanted['observed']]
+                        break
 
     def calc_reward_function(self, conditions):
         """If there is an observation ready to go, execute it, otherwise, -inf
@@ -101,25 +103,32 @@ class Scripted_survey(BaseSurvey):
     def _check_list(self, conditions):
         """Check to see if the current mjd is good
         """
+        observation = None
+        if self.obs_wanted is not None:
+            # Scheduled observations that are in the right time window and have not been executed
+            in_time_window = np.where((self.mjd_start < conditions.mjd) &
+                                      (self.obs_wanted['flush_by_mjd'] > conditions.mjd) &
+                                      (~self.obs_wanted['observed']))[0]
 
-        # Scheduled observations that are in the right time window and have not been executed
-        in_time_window = np.where((self.mjd_start < conditions.mjd) &
-                                  (self.obs_wanted['flush_by_mjd'] > conditions.mjd) &
-                                  (~self.obs_wanted['observed']))[0]
+            if np.size(in_time_window) > 0:
+                pass_checks = self._check_alts_HA(self.obs_wanted[in_time_window], conditions)
+                matches = in_time_window[pass_checks]
+            else:
+                matches = []
 
-        if np.size(in_time_window) > 0:
-            pass_checks = self._check_alts_HA(self.obs_wanted[in_time_window], conditions)
-            matches = in_time_window[pass_checks]
-        else:
-            matches = []
-
-        if np.size(matches) > 0:
-            # XXX--could make this a list and just send out all the things that currently match
-            # rather than one at a time
-            observation = self._slice2obs(self.obs_wanted[matches[0]])
-        else:
-            observation = None
+            if np.size(matches) > 0:
+                # XXX--could make this a list and just send out all the things that currently match
+                # rather than one at a time
+                observation = self._slice2obs(self.obs_wanted[matches[0]])
+                
         return observation
+
+    def clear_script(self):
+        """set an empty list to serve up
+        """
+        self.obs_wanted = None
+        self.mjd_start = None
+        self.scheduled_obs = None
 
     def set_script(self, obs_wanted):
         """

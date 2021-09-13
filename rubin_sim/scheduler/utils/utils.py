@@ -407,7 +407,7 @@ def empty_observation():
     return result
 
 
-def scheduled_observation():
+def scheduled_observation(n=1):
     """Make an array for pre-scheduling observations
 
     mjd_tol : float
@@ -421,7 +421,7 @@ def scheduled_observation():
     types = [int, float, float, float, float, float, 'U1', float, float, 'U40']
     names += ['mjd_tol', 'dist_tol', 'alt_min', 'alt_max', 'HA_max', 'HA_min', 'observed']
     types += [float, float, float, float, float, float, bool]
-    result = np.zeros(1, dtype=list(zip(names, types)))
+    result = np.zeros(n, dtype=list(zip(names, types)))
     return result
 
 
