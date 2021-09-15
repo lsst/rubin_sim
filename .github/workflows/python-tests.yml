@@ -1,0 +1,42 @@
+
+name: tests
+
+on:
+  push:
+    branches:
+      --main
+    pull_request:
+      types: [assigned, opened, synchronize, reopened, review_requested]
+
+jobs:
+  tests:
+    name: Test (${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        python-version: ["3.8",]
+    steps:
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+	  channels: conda-forge,defaults
+	  channel-priority: strict
+	  show-channel-urls: true
+      - name: configure conda and install code
+        shell: bash -l {0}
+        run: |
+	  conda config --set always_yes yes
+	  conda create -n rubin openorb openorb-data-de405 astroplan scipy numpy healpy astropy pandas sqlite palpy matplotlib sqlalchemy pytables h5py colorcet setuptools_scm
+	  conda activate rubin
+	  python -m pip install -e .
+	  conda install -y -q flake8 pytest pytest-xdist
+      - name: conda list
+        shell: pwsh
+        run: conda list
+      - name: run tests
+      	shell: bash -l {0}
+	run: |
+	  pytest
