@@ -6,7 +6,7 @@ on:
     branches:
       --main
     pull_request:
-      types: [assigned, opened, synchronize, reopened, review_requested]
+      types: [opened, synchronize, reopened, review_requested, assigned]
 
 jobs:
   tests:
@@ -22,7 +22,7 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-          channels: conda-forge, defaults
+          channels: conda-forge,defaults
           channel-priority: strict
           show-channel-urls: true
       - name: configure conda and install code
