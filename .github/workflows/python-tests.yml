@@ -22,21 +22,21 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-	  channels: conda-forge,defaults
-	  channel-priority: strict
-	  show-channel-urls: true
+          channels: conda-forge, defaults
+          channel-priority: strict
+          show-channel-urls: true
       - name: configure conda and install code
         shell: bash -l {0}
         run: |
-	  conda config --set always_yes yes
-	  conda create -n rubin openorb openorb-data-de405 astroplan scipy numpy healpy astropy pandas sqlite palpy matplotlib sqlalchemy pytables h5py colorcet setuptools_scm
-	  conda activate rubin
-	  python -m pip install -e .
-	  conda install -y -q flake8 pytest pytest-xdist
+          conda config --set always_yes yes
+          conda create -n rubin openorb openorb-data-de405 astroplan scipy numpy healpy astropy pandas sqlite palpy matplotlib sqlalchemy pytables h5py colorcet setuptools_scm
+          conda activate rubin
+          python -m pip install -e .
+          conda install -y -q flake8 pytest pytest-xdist
       - name: conda list
         shell: pwsh
         run: conda list
       - name: run tests
-      	shell: bash -l {0}
-	run: |
-	  pytest
+        shell: bash -l {0}
+        run: |
+          pytest
