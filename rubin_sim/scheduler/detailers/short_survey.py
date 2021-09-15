@@ -21,10 +21,12 @@ class Short_expt_detailer(Base_detailer):
     night_max : float (None)
         Do not apply any changes to the observation list if the current night is greater than night_max.
         XXX--note, in theory, detailers should probably be expanded to include their own basis functions.
+    in_a_row : int (1)
+        How many short observations to do in a row.
 
     """
     def __init__(self, exp_time=1., filtername='r', nside=32, footprint=None, nobs=2,
-                 mjd0=59853.5, survey_name='short', read_approx=2., night_max=None):
+                 mjd0=59853.5, survey_name='short', read_approx=2., night_max=None, in_a_row=1):
         self.read_approx = read_approx
         self.exp_time = exp_time
         self.filtername = filtername
@@ -34,6 +36,7 @@ class Short_expt_detailer(Base_detailer):
         self.survey_name = survey_name
         self.mjd0 = mjd0
         self.night_max = night_max
+        self.in_a_row = in_a_row
 
         self.survey_features = {}
         # XXX--need a feature that tracks short exposures in the filter
@@ -60,12 +63,13 @@ class Short_expt_detailer(Base_detailer):
                 # Crop off things where we already have enough observation
                 hpids = hpids[np.where(self.survey_features['nobs'].feature[hpids] < n_goal)]
                 if np.size(hpids) > 0:
-                    new_obs = observation.copy()
-                    new_obs['exptime'] = self.exp_time
-                    new_obs['nexp'] = 1
-                    new_obs['note'] = self.survey_name
-                    out_observations.append(new_obs)
-                    time_to_add += new_obs['exptime'] + self.read_approx
+                    for i in range(0, self.in_a_row):
+                        new_obs = observation.copy()
+                        new_obs['exptime'] = self.exp_time
+                        new_obs['nexp'] = 1
+                        new_obs['note'] = self.survey_name
+                        out_observations.append(new_obs)
+                        time_to_add += new_obs['exptime'] + self.read_approx
         # pump up the flush time
         for observation in observation_list:
             observation['flush_by_mjd'] += time_to_add/3600./24.
