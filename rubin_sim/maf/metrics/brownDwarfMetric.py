@@ -1,6 +1,6 @@
 import numpy as np
 import healpy as hp
-from BaseMetric import BaseMetric
+from .baseMetric import BaseMetric
 import rubin_sim.maf.utils as mafUtils
 from scipy import interpolate
 
