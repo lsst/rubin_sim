@@ -1,15 +1,18 @@
 import unittest
+import os
 
+from rubin_sim.data import get_data_dir
 from rubin_sim.site_models import FieldsDatabase
+
 
 class TestFieldDatabase(unittest.TestCase):
 
     def setUp(self):
-        self.fields_db = FieldsDatabase()
+        db_name = os.path.join(get_data_dir(), 'site_models', 'Fields.db')
+        self.fields_db = FieldsDatabase(db_name)
         self.query = "select * from Field limit 2;"
 
     def test_basic_information_after_creation(self):
-        self.assertEqual(self.fields_db.db_name, "Fields.db")
         self.assertIsNotNone(self.fields_db.connect)
 
     def test_opsim3_userregions(self):

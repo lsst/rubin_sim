@@ -7,17 +7,25 @@ __all__ = ["FieldsDatabase"]
 
 
 class FieldsDatabase(object):
+    """Read the field tiling on the sky.
 
-    FIELDS_DB = "Fields.db"
-    """Internal file containing the standard 3.5 degree FOV survey field
-       information."""
+    This field tiling serves as the base tesselation for the survey scheduler.
 
-    def __init__(self):
+    Parameters
+    ----------
+    db_name : `str`, opt
+        The path to the tesselation file.
+        The default is a rubin_sim_data/site_models/Fields.db file which contains the
+        standard 3.5 degree FOV survey field information.
+    """
+
+    def __init__(self, db_name=None):
         """Initialize the class.
         """
-        self.db_name = self.FIELDS_DB
-        self.connect = sqlite3.connect(os.path.join(get_data_dir(), 'site_models',
-                                       self.db_name))
+        self.db_name = db_name
+        if self.db_name is None:
+            self.db_name = os.path.join(get_data_dir(), 'site_models', 'Fields.db')
+        self.connect = sqlite3.connect(self.db_name)
 
     def __del__(self):
         """Delete the class.
