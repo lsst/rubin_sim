@@ -155,7 +155,7 @@ class Euclid_dither_detailer(Base_detailer):
         if self.per_night:
             if night != self.current_night:
                 self.current_night = night
-                bearing_mag = self.bearing_mag_1[night]
+                bearing_mag = self.bearings_mag_1[night]
                 perp_mag = self.perp_mag_1[night]
                 # Move point a along the bearings
                 self.shifted_dec_a, self.shifted_ra_a = dest(bearing_mag, self.bearing_atob, self.dec_a, self.ra_a)
@@ -163,7 +163,7 @@ class Euclid_dither_detailer(Base_detailer):
                                                              self.shifted_dec_a, self.shifted_ra_a)
 
                 # Shift the second position
-                bearing_mag = self.bearing_mag_2[night]
+                bearing_mag = self.bearings_mag_2[night]
                 perp_mag = self.perp_mag_2[night]
 
                 self.shifted_dec_b, self.shifted_ra_b = dest(bearing_mag, self.bearing_btoa, self.dec_b, self.ra_b)
