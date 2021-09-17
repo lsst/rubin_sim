@@ -114,7 +114,7 @@ class Euclid_dither_detailer(Base_detailer):
     """
     def __init__(self, dither_bearing_dir=[-0.25, 1], dither_bearing_perp=[-0.25, 0.25],
                  seed=42, per_night=True, ra_a=58.90,
-                 dec_a=-49.315, ra_b=63.6, dec_b=-47.60):
+                 dec_a=-49.315, ra_b=63.6, dec_b=-47.60, nnights=7305):
         self.survey_features = {}
 
         self.ra_a = np.radians(ra_a)
@@ -131,26 +131,40 @@ class Euclid_dither_detailer(Base_detailer):
         self.current_night = -1
 
         self.per_night = per_night
-        np.random.seed(seed=seed)
         self.shifted_ra_a = None
         self.shifted_dec_a = None
         self.shifted_ra_b = None
         self.shifted_dec_b = None
 
+        rng = np.random.default_rng(seed)
+        self.bearings_mag_1 = rng.uniform(low=self.dither_bearing_dir.min(),
+                                          high=self.dither_bearing_dir.max(),
+                                          size=nnights)
+        self.perp_mag_1 = rng.uniform(low=self.dither_bearing_perp.min(),
+                                      high=self.dither_bearing_perp.max(),
+                                      size=nnights)
+
+        self.bearings_mag_2 = rng.uniform(low=self.dither_bearing_dir.min(),
+                                          high=self.dither_bearing_dir.max(),
+                                          size=nnights)
+        self.perp_mag_2 = rng.uniform(low=self.dither_bearing_perp.min(),
+                                      high=self.dither_bearing_perp.max(),
+                                      size=nnights)
+
     def _generate_offsets(self, n_offsets, night):
         if self.per_night:
             if night != self.current_night:
                 self.current_night = night
-                bearing_mag = np.random.uniform(low=self.dither_bearing_dir.min(), high=self.dither_bearing_dir.max())
-                perp_mag = np.random.uniform(low=self.dither_bearing_perp.min(), high=self.dither_bearing_perp.max())
+                bearing_mag = self.bearing_mag_1[night]
+                perp_mag = self.perp_mag_1[night]
                 # Move point a along the bearings
                 self.shifted_dec_a, self.shifted_ra_a = dest(bearing_mag, self.bearing_atob, self.dec_a, self.ra_a)
                 self.shifted_dec_a, self.shifted_ra_a = dest(perp_mag, self.bearing_atob+np.pi/2.,
                                                              self.shifted_dec_a, self.shifted_ra_a)
 
                 # Shift the second position
-                bearing_mag = np.random.uniform(low=self.dither_bearing_dir.min(), high=self.dither_bearing_dir.max())
-                perp_mag = np.random.uniform(low=self.dither_bearing_perp.min(), high=self.dither_bearing_perp.max())
+                bearing_mag = self.bearing_mag_2[night]
+                perp_mag = self.perp_mag_2[night]
 
                 self.shifted_dec_b, self.shifted_ra_b = dest(bearing_mag, self.bearing_btoa, self.dec_b, self.ra_b)
                 self.shifted_dec_b, self.shifted_ra_b = dest(perp_mag, self.bearing_btoa+np.pi/2.,
