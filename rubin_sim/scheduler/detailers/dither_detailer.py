@@ -39,30 +39,35 @@ class Dither_detailer(Base_detailer):
         The maximum dither size to use (degrees).
     per_night : bool (True)
         If true, us the same dither offset for an entire night
+    nnights : int (7305)
+        The number of nights to pre-generate random dithers for
 
 
     """
-    def __init__(self, max_dither=0.7, seed=42, per_night=True):
+    def __init__(self, max_dither=0.7, seed=42, per_night=True, nnights=7305):
         self.survey_features = {}
 
         self.current_night = -1
         self.max_dither = np.radians(max_dither)
         self.per_night = per_night
-        np.random.seed(seed=seed)
+        self.rng = np.random.default_rng(seed)
+        self.angles = self.rng.random(nnights)*2*np.pi
+        self.radii = self.max_dither * np.sqrt(self.rng.random(nnights))
+        self.offsets = (self.rng.random((nnights, 2))-0.5) * 2.*self.max_dither
         self.offset = None
 
     def _generate_offsets(self, n_offsets, night):
         if self.per_night:
             if night != self.current_night:
                 self.current_night = night
-                self.offset = (np.random.random((1, 2))-0.5) * 2.*self.max_dither
-                angle = np.random.random(1)*2*np.pi
-                radius = self.max_dither * np.sqrt(np.random.random(1))
+                self.offset = self.offsets[night, :]
+                angle = self.angles[night]
+                radius = self.radii[night]
                 self.offset = np.array([radius*np.cos(angle), radius*np.sin(angle)])
             offsets = np.tile(self.offset, (n_offsets, 1))
         else:
-            angle = np.random.random(n_offsets)*2*np.pi
-            radius = self.max_dither * np.sqrt(np.random.random(n_offsets))
+            angle = self.rng.random(n_offsets)*2*np.pi
+            radius = self.max_dither * np.sqrt(self.rng.random(n_offsets))
             offsets = np.array([radius*np.cos(angle), radius*np.sin(angle)])
 
         return offsets
@@ -185,7 +190,7 @@ class Camera_rot_detailer(Base_detailer):
     per_night : bool (True)
         If True, only set a new offset per night. If False, randomly rotates every observation.
     """
-    def __init__(self, max_rot=90., min_rot=-90., per_night=True, seed=42):
+    def __init__(self, max_rot=90., min_rot=-90., per_night=True, seed=42, nnights=7305):
         self.survey_features = {}
 
         self.current_night = -1
@@ -193,17 +198,19 @@ class Camera_rot_detailer(Base_detailer):
         self.min_rot = np.radians(min_rot)
         self.range = self.max_rot - self.min_rot
         self.per_night = per_night
-        np.random.seed(seed=seed)
+        self.rng = np.random.default_rng(seed)
+        self.offsets = self.rng.random(nnights)
+
         self.offset = None
 
     def _generate_offsets(self, n_offsets, night):
         if self.per_night:
             if night != self.current_night:
                 self.current_night = night
-                self.offset = np.random.random(1) * self.range + self.min_rot
+                self.offset = self.offsets[night] * self.range + self.min_rot
             offsets = np.ones(n_offsets) * self.offset
         else:
-            offsets = np.random.random(n_offsets) * self.range + self.min_rot
+            offsets = self.rng.random(n_offsets) * self.range + self.min_rot
 
         offsets = offsets % (2.*np.pi)
 
