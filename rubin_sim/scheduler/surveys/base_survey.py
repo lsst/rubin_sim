@@ -1,7 +1,7 @@
 import numpy as np
 from rubin_sim.scheduler.utils import (empty_observation, set_default_nside,
-                                              hp_in_lsst_fov, read_fields, hp_in_comcam_fov,
-                                              comcamTessellate)
+                                       hp_in_lsst_fov, read_fields, hp_in_comcam_fov,
+                                       comcamTessellate)
 import healpy as hp
 from rubin_sim.scheduler.thomson import xyz2thetaphi, thetaphi2xyz
 from rubin_sim.scheduler.detailers import Zero_rot_detailer
@@ -176,11 +176,14 @@ class BaseMarkovDF_survey(BaseSurvey):
         Should be 'LSST' or 'comcam'
     area_required : float (None)
         The valid area that should be present in the reward function (square degrees).
+    npositions : int (7305)
+        The number of dither positions to pre-compute. Defaults to 7305 (so good for 20 years)
     """
     def __init__(self, basis_functions, basis_weights, extra_features=None,
                  smoothing_kernel=None,
                  ignore_obs=None, survey_name='', nside=None, seed=42,
-                 dither=True, detailers=None, camera='LSST', area_required=None):
+                 dither=True, detailers=None, camera='LSST', area_required=None,
+                 npositions=7305):
 
         super(BaseMarkovDF_survey, self).__init__(basis_functions=basis_functions,
                                                   extra_features=extra_features,
@@ -217,9 +220,17 @@ class BaseMarkovDF_survey(BaseSurvey):
         # Start tracking the night
         self.night = -1
 
-        # Set the seed
-        np.random.seed(seed)
         self.dither = dither
+
+        # Generate and store rotation positions to use.
+        # This way, if different survey objects are seeded the same, they will
+        # use the same dither positions each night
+        rng = np.random.default_rng(seed)
+        self.lon = rng.random(npositions)*np.pi*2
+        # Make sure latitude points spread correctly
+        # http://mathworld.wolfram.com/SpherePointPicking.html
+        self.lat = np.arccos(2.*rng.random(npositions) - 1.)
+        self.lon2 = rng.random(npositions)*np.pi*2
 
     def _check_feasibility(self, conditions):
         """
@@ -251,7 +262,7 @@ class BaseMarkovDF_survey(BaseSurvey):
             hpindx = pointing2hpindx(ra[i], dec[i], rotSkyPos=0.)
             self.hp2fields[hpindx] = i
 
-    def _spin_fields(self, lon=None, lat=None, lon2=None):
+    def _spin_fields(self, conditions, lon=None, lat=None, lon2=None):
         """Spin the field tessellation to generate a random orientation
 
         The default field tesselation is rotated randomly in longitude, and then the
@@ -268,13 +279,12 @@ class BaseMarkovDF_survey(BaseSurvey):
             The amount to rotate the pole in longitude (radians).
         """
         if lon is None:
-            lon = np.random.rand()*np.pi*2
+            lon = self.lon[conditions.night]
         if lat is None:
-            # Make sure latitude points spread correctly
-            # http://mathworld.wolfram.com/SpherePointPicking.html
-            lat = np.arccos(2.*np.random.rand() - 1.)
+            lat = self.lat[conditions.night]
         if lon2 is None:
-            lon2 = np.random.rand()*np.pi*2
+            lon2 = self.lon2[conditions.night]
+
         # rotate longitude
         ra = (self.fields_init['RA'] + lon) % (2.*np.pi)
         dec = self.fields_init['dec'] + 0
@@ -343,7 +353,7 @@ class BaseMarkovDF_survey(BaseSurvey):
 
         # Check if we need to spin the tesselation
         if self.dither & (conditions.night != self.night):
-            self._spin_fields()
+            self._spin_fields(conditions)
             self.night = conditions.night.copy()
 
         # XXX Use self.reward to decide what to observe.
