@@ -23,23 +23,25 @@ class OpSimFieldStacker(BaseStacker):
     """
     colsAdded = ['opsimFieldId']
 
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True):
+    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True, fieldsDb=None):
         self.colsReq = [raCol, decCol]
         self.units = ['#']
         self.raCol = raCol
         self.decCol = decCol
         self.degrees = degrees
-        fields_db = FieldsDatabase()
-        # Returned RA/Dec coordinates in degrees
-        fieldid, ra, dec = fields_db.get_id_ra_dec_arrays("select * from Field;")
-        asort = np.argsort(fieldid)
-        self.tree = _buildTree(np.radians(ra[asort]),
-                               np.radians(dec[asort]))
+        self.fieldsDb = fieldsDb
 
     def _run(self, simData, cols_present=False):
         if cols_present:
             # Column already present in data; assume it is correct and does not need recalculating.
             return simData
+
+        fields_db = FieldsDatabase(self.fieldsDb)
+        # Returned RA/Dec coordinates in degrees
+        fieldid, ra, dec = fields_db.get_id_ra_dec_arrays("select * from Field;")
+        asort = np.argsort(fieldid)
+        self.tree = _buildTree(np.radians(ra[asort]),
+                               np.radians(dec[asort]))
 
         if self.degrees:
             coord_x, coord_y, coord_z = xyz_from_ra_dec(simData[self.raCol],

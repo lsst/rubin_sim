@@ -20,17 +20,27 @@ class FieldsDatabase(object):
     """
 
     def __init__(self, db_name=None):
-        """Initialize the class.
+        """Set up the database name.
+
+        Do not connect to database *yet* because this makes imports tricky if the file isn't present.
         """
         self.db_name = db_name
         if self.db_name is None:
             self.db_name = os.path.join(get_data_dir(), 'site_models', 'Fields.db')
-        self.connect = sqlite3.connect(self.db_name)
+
+    def get_connect(self):
+        try:
+            self.connect
+        except AttributeError:
+            self.connect = sqlite3.connect(self.db_name)
 
     def __del__(self):
-        """Delete the class.
+        """Close the database connection.
         """
-        self.connect.close()
+        try:
+            self.connect.close()
+        except AttributeError:
+            pass
 
     def get_field_set(self, query):
         """Get a set of Field instances.
@@ -45,6 +55,7 @@ class FieldsDatabase(object):
         set
             The collection of Field instances.
         """
+        self.get_connect()
         field_set = set()
         rows = self.get_rows(query)
         for row in rows:
@@ -78,6 +89,7 @@ class FieldsDatabase(object):
         str
             The OpSim3 user regions formatted string.
         """
+        self.get_connect()
         format_str = "userRegion = "\
                      "{{:.{0}f}},{{:.{0}f}},0.03".format(precision)
         rows = self.get_rows(query)
@@ -99,6 +111,7 @@ class FieldsDatabase(object):
         numpy.array, numpy.array
             The arrays of RA and Dec.
         """
+        self.get_connect()
         rows = self.get_rows(query)
         ra = []
         dec = []
@@ -121,6 +134,7 @@ class FieldsDatabase(object):
         numpy.array, numpy.array, numpy.array
             The arrays of fieldId, RA and Dec.
         """
+        self.get_connect()
         rows = self.get_rows(query)
         fieldId = []
         ra = []
@@ -149,6 +163,7 @@ class FieldsDatabase(object):
         list
             The set of field information queried.
         """
+        self.get_connect()
         cursor = self.connect.cursor()
         cursor.execute(query)
         return cursor.fetchall()
