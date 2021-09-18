@@ -47,6 +47,8 @@ class TestZenikeFitDrivers(unittest.TestCase):
         self.assertGreater(reread_zernike.shape[1], 20)
         self.assertEqual(tuple(reread_zernike.index.names), ("band", "mjd"))
 
+        test_out_dir.cleanup()
+
 
 class TestZernikeSky(unittest.TestCase):
     def setUp(self):
@@ -101,7 +103,6 @@ class TestSkyBrightnessPreData(unittest.TestCase):
 
 class TestSkyModelZernike(unittest.TestCase):
     def setUp(self):
-        self.cut_pre_data_dir = os.path.join(get_data_dir(), "tests")
         self.fname = os.path.join(self.cut_pre_data_dir, "zernsky.h5")
 
     @unittest.skip("skipping because slow")

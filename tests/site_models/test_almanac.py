@@ -7,7 +7,7 @@ class TestAlmanac(unittest.TestCase):
     def test_alm(self):
         alma = Almanac()
 
-        mjd = 59853.5
+        mjd = 59853.35
 
         # Dead simple make sure the things load.
         planets = alma.get_planet_positions(mjd)

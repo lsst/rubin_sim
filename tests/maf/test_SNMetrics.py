@@ -125,12 +125,15 @@ def fakeData(band, season=1):
 
 class TestSNmetrics(unittest.TestCase):
 
+    def setUp(self):
+        if not os.path.isdir(os.path.join(get_data_dir(), 'maf')):
+            self.skipTest('Skipping SN tests because running unit tests without full rubin_sim_data.')
+
     def testThroughputs(self):
         """Test the Throughputs class"""
         ## Again, this should not be in MAF but should use appropriate classes in rubin_sim.photUtils.
         # Can we set it up - are the relevant standard environment variables present?
         tp = Throughputs()
-
 
     def testTelescope(self):
         """Test the Telescope class"""

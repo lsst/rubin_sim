@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib
 import warnings
@@ -6,6 +7,7 @@ import rubin_sim.maf.stackers as stackers
 from rubin_sim.utils import _galacticFromEquatorial, calcLmstLast, Site, _altAzPaFromRaDec, \
     ObservationMetaData
 from rubin_sim.site_models import FieldsDatabase
+from rubin_sim.data import get_data_dir
 
 matplotlib.use("Agg")
 
@@ -405,10 +407,12 @@ class TestStackerClasses(unittest.TestCase):
         Test the OpSimFieldStacker
         """
         rng = np.random.RandomState(812351)
-        s = stackers.OpSimFieldStacker(raCol='ra', decCol='dec', degrees=False)
+        test_fieldsDb = os.path.join(get_data_dir(), 'site_models', 'Fields.db')
+        s = stackers.OpSimFieldStacker(raCol='ra', decCol='dec', degrees=False,
+                                       fieldsDb=test_fieldsDb)
 
         # First sanity check. Make sure the center of the fields returns the right field id
-        opsim_fields_db = FieldsDatabase()
+        opsim_fields_db = FieldsDatabase(test_fieldsDb)
 
         # Returned RA/Dec coordinates in degrees
         field_id, ra, dec = opsim_fields_db.get_id_ra_dec_arrays("select * from Field;")

@@ -43,14 +43,14 @@ class TestMaps(unittest.TestCase):
 
     def testDustMap(self):
 
-        mapPath = os.path.join(get_data_dir(), 'maps')
-
-        if os.path.isfile(os.path.join(mapPath, 'DustMaps/dust_nside_128.npz')):
+        mapPath = os.path.join(get_data_dir(), 'tests')
+        nside = 8
+        if os.path.isfile(os.path.join(mapPath, f'dust_nside_{nside}.npz')):
 
             data = makeDataValues(random=981)
-            dustmap = maps.DustMap()
+            dustmap = maps.DustMap(nside=nside)
 
-            slicer1 = slicers.HealpixSlicer(latLonDeg=False)
+            slicer1 = slicers.HealpixSlicer(latLonDeg=False, nside=nside)
             slicer1.setupSlicer(data)
             result1 = dustmap.run(slicer1.slicePoints)
             assert('ebv' in list(result1.keys()))
@@ -63,7 +63,7 @@ class TestMaps(unittest.TestCase):
             assert('ebv' in list(result2.keys()))
 
             # Check interpolation works
-            dustmap = maps.DustMap(interp=True)
+            dustmap = maps.DustMap(interp=True, nside=nside)
             result3 = dustmap.run(slicer2.slicePoints)
             assert('ebv' in list(result3.keys()))
 
@@ -77,9 +77,9 @@ class TestMaps(unittest.TestCase):
             warnings.warn('Did not find dustmaps, not running testMaps.py')
 
     def testStarMap(self):
-        mapPath = os.path.join(get_data_dir(), 'maps')
+        mapPath = os.path.join(get_data_dir(), 'tests')
 
-        if os.path.isfile(os.path.join(mapPath, 'StarMaps/starDensity_r_nside_64.npz')):
+        if os.path.isfile(os.path.join(mapPath, 'starDensity_r_nside_64.npz')):
             data = makeDataValues(random=887)
             # check that it works if nside does not match map nside of 64
             nsides = [32, 64, 128]

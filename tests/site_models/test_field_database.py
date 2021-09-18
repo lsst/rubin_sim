@@ -12,9 +12,6 @@ class TestFieldDatabase(unittest.TestCase):
         self.fields_db = FieldsDatabase(db_name)
         self.query = "select * from Field limit 2;"
 
-    def test_basic_information_after_creation(self):
-        self.assertIsNotNone(self.fields_db.connect)
-
     def test_opsim3_userregions(self):
         result = self.fields_db.get_opsim3_userregions(self.query)
         truth_result = """userRegion = 0.00,-90.00,0.03
