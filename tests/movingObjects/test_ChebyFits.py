@@ -13,7 +13,7 @@ ROOT = os.path.abspath(os.path.dirname(__file__))
 
 class TestChebyFits(unittest.TestCase):
     def setUp(self):
-        self.testdir = os.path.join(get_data_dir(), 'movingObjects', 'orbits_testdata')
+        self.testdir = os.path.join(get_data_dir(), 'tests', 'orbits_testdata')
         self.scratch_dir = tempfile.mkdtemp(dir=ROOT, prefix='TestChebyFits-')
         self.orbits = Orbits()
         self.orbits.readOrbits(os.path.join(self.testdir, 'test_orbitsMBA.s3m'))
@@ -107,7 +107,7 @@ class TestChebyFits(unittest.TestCase):
 
 class TestRun(unittest.TestCase):
     def setUp(self):
-        self.testdir = os.path.join(get_data_dir(), 'movingObjects', 'orbits_testdata')
+        self.testdir = os.path.join(get_data_dir(), 'tests', 'orbits_testdata')
         self.scratch_dir = tempfile.mkdtemp(dir=ROOT, prefix='TestChebyFits-')
         self.orbits = Orbits()
         self.orbits.readOrbits(os.path.join(self.testdir, 'test_orbitsMBA.s3m'))

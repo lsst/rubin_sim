@@ -1,11 +1,12 @@
+import os
 import numpy as np
 import unittest
+from rubin_sim.data import get_data_dir
 import rubin_sim.scheduler.basis_functions as bf
 from rubin_sim.scheduler.utils import standard_goals, calc_norm_factor
 from rubin_sim.scheduler.surveys import (generate_dd_surveys, Greedy_survey,
                                                 Blob_survey, Pairs_survey_scripted)
 from rubin_sim.scheduler.schedulers import Core_scheduler
-import healpy as hp
 from rubin_sim.scheduler import sim_runner
 from rubin_sim.scheduler.modelObservatory import Model_observatory
 import rubin_sim.scheduler.detailers as detailers

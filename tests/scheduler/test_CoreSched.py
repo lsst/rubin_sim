@@ -1,5 +1,7 @@
+import os
 import numpy as np
 import unittest
+from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler.schedulers import Core_scheduler
 import rubin_sim.scheduler.basis_functions as basis_functions
 import rubin_sim.scheduler.surveys as surveys
@@ -19,7 +21,8 @@ class TestCoreSched(unittest.TestCase):
         survey = surveys.Greedy_survey(bfs, weights)
         scheduler = Core_scheduler([survey])
 
-        observatory = Model_observatory(mjd_start=59853.5)
+        observatory = Model_observatory(mjd_start=59853.5,
+                                        seeing_db=os.path.join(get_data_dir(), 'tests', 'Seeing.db'))
 
         # Check that we can update conditions
         scheduler.update_conditions(observatory.return_conditions())

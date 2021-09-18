@@ -10,7 +10,7 @@ from rubin_sim.data import get_data_dir
 
 class TestPyOrbEphemerides(unittest.TestCase):
     def setUp(self):
-        self.testdir = os.path.join(get_data_dir(), 'movingObjects/orbits_testdata')
+        self.testdir = os.path.join(get_data_dir(), 'tests', 'orbits_testdata')
         self.orbits = Orbits()
         self.orbits.readOrbits(os.path.join(self.testdir, 'test_orbitsQ.des'))
         self.orbitsKEP = Orbits()
@@ -126,7 +126,7 @@ class TestJPLValues(unittest.TestCase):
     def setUp(self):
         # Read orbits.
         self.orbits = Orbits()
-        self.jplDir = os.path.join(get_data_dir(), 'movingObjects/jpl_testdata')
+        self.jplDir = os.path.join(get_data_dir(), 'tests', 'jpl_testdata')
         self.orbits.readOrbits(os.path.join(self.jplDir, 'S0_n747.des'), skiprows=1)
         # Read JPL ephems.
         self.jpl = pd.read_csv(os.path.join(self.jplDir, '807_n747.txt'), delim_whitespace=True)

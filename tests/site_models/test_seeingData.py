@@ -1,9 +1,7 @@
 import os
 import unittest
-import sqlite3
 from astropy.time import Time, TimeDelta
 from rubin_sim.site_models import SeeingData
-import tempfile
 from rubin_sim.data import get_data_dir
 
 # Unit test here uses oldest/original opsim seeing database, "Seeing.db".
@@ -13,21 +11,16 @@ class TestSeeingData(unittest.TestCase):
 
     def setUp(self):
         self.time = Time('2020-01-01', format='isot', scale='tai')
-        self.seeing_db = os.path.join(get_data_dir(), 'site_models', 'seeing.db')
-
-    def test_basic_information_after_creation(self):
-        seeingData = SeeingData(self.time, seeing_db=self.seeing_db)
-        self.assertEqual(seeingData.start_time, self.time)
-        self.assertEqual(seeingData.seeing_db, self.seeing_db)
-        # And check sets seeing_db appropriately if not provided.
-        seeingData = SeeingData(self.time, seeing_db=None)
-        self.assertIsNotNone(seeingData.seeing_db)
+        self.seeing_db = os.path.join(get_data_dir(), 'tests', 'seeing.db')
+        print(self.seeing_db)
 
     def test_information_after_read(self):
         seeingData = SeeingData(self.time, seeing_db=self.seeing_db)
         seeingData.read_data()
         self.assertTrue(len(seeingData.seeing_values) > 0)
         self.assertTrue(len(seeingData.seeing_dates) > 0)
+        self.assertEqual(seeingData.start_time, self.time)
+        self.assertEqual(seeingData.seeing_db, self.seeing_db)
 
     def test_fwhm500_at_time(self):
         seeingData = SeeingData(self.time, self.seeing_db, offset_year=0)

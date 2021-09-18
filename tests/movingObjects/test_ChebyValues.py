@@ -19,7 +19,7 @@ ROOT = os.path.abspath(os.path.dirname(__file__))
 
 class TestChebyValues(unittest.TestCase):
     def setUp(self):
-        self.testdatadir = os.path.join(get_data_dir(), 'movingObjects', 'orbits_testdata')
+        self.testdatadir = os.path.join(get_data_dir(), 'tests', 'orbits_testdata')
         self.scratch_dir = tempfile.mkdtemp(dir=ROOT, prefix='TestChebyValues-')
         self.coeffFile = os.path.join(self.scratch_dir, 'test_coeffs')
         self.residFile = os.path.join(self.scratch_dir, 'test_resids')
@@ -124,7 +124,7 @@ class TestJPLValues(unittest.TestCase):
     def setUp(self):
         # Read orbits.
         self.orbits = Orbits()
-        self.jplDir = os.path.join(get_data_dir(), 'movingObjects', 'jpl_testdata')
+        self.jplDir = os.path.join(get_data_dir(), 'tests', 'jpl_testdata')
         self.orbits.readOrbits(os.path.join(self.jplDir, 'S0_n747.des'), skiprows=1)
         # Read JPL ephems.
         self.jpl = pd.read_table(os.path.join(self.jplDir, '807_n747.txt'), delim_whitespace=True)

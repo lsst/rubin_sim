@@ -9,7 +9,7 @@ from rubin_sim.data import get_data_dir
 
 class TestOrbits(unittest.TestCase):
     def setUp(self):
-        self.testdir = os.path.join(get_data_dir(), 'movingObjects/orbits_testdata')
+        self.testdir = os.path.join(get_data_dir(), 'tests', 'orbits_testdata')
 
     def testEqualNotEqual(self):
         orbits = Orbits()
