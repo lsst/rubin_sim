@@ -6,16 +6,6 @@ from rubin_sim.movingObjects import chebfit, makeChebMatrix, makeChebMatrixOnlyX
 
 class TestChebgrid(unittest.TestCase):
 
-    def setUp(self):
-        self.mbaDict = {}
-        """
-        # Skip because pickle doesn't work for py2 + py3 and don't have good solution yet.
-        for day in range(2, 4):
-            self.mbaDict[day] = pickle.load(open(os.path.join(getPackageDir('sims_movingObjects'),
-                                                              "tests/cheb_testdata/day%d.pkl" % (day)),
-                                                  "rb"))
-        """
-
     def test_raise_error(self):
         x = np.linspace(-1, 1, 9)
         y = np.sin(x)
@@ -75,26 +65,6 @@ class TestChebgrid(unittest.TestCase):
         self.assertTrue(np.allclose(yy, y, rtol=1e-13))
         self.assertTrue(np.allclose(vv, dy, rtol=1e-13))
         self.assertLess(np.sum(resid), 1e-13)
-
-    """
-    def test_real_mba(self):
-        for day in range(2, 4):
-            p, dec_resid, dec_rms, maxresid = chebfit(self.mbaDict[day]['t'],
-                                                      self.mbaDict[day]['dec'],
-                                                      self.mbaDict[day]['ddecdt'],
-                                                      nPoly=self.mbaDict[day]['coeff'])
-            rap, ra_resid, ra_rms, maxresid = chebfit(self.mbaDict[day]['t'],
-                                                      self.mbaDict[day]['ra'],
-                                                      (self.mbaDict[day]['dradt'] /
-                                                       np.cos(np.pi * self.mbaDict[day]['dec'] / 180.)),
-                                                      nPoly=self.mbaDict[day]['coeff'])
-            self.assertTrue(np.allclose(self.mbaDict[day]['rap'], rap))
-            self.assertTrue(np.allclose(self.mbaDict[day]['ra_resid'], ra_resid))
-            self.assertTrue(np.allclose(self.mbaDict[day]['ra_rms'], ra_rms))
-            self.assertTrue(np.allclose(self.mbaDict[day]['p'], p))
-            self.assertTrue(np.allclose(self.mbaDict[day]['dec_resid'], dec_resid))
-            self.assertTrue(np.allclose(self.mbaDict[day]['dec_rms'], dec_rms))
-    """
 
 
 if __name__ == '__main__':
