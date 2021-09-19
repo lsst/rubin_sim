@@ -10,8 +10,7 @@ from functools import wraps
 from rubin_sim.maf.plots.spatialPlotters import BaseHistogram, BaseSkyMap
 import rubin_sim.utils as simsUtils
 from .baseSlicer import BaseSlicer
-from rubin_sim.data import get_data_dir
-import os
+from rubin_sim.utils import LsstCameraFootprint
 
 __all__ = ['BaseSpatialSlicer']
 
@@ -52,7 +51,9 @@ class BaseSpatialSlicer(BaseSlicer):
         Default 1.75.
     useCamera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
-        Default False.
+        Default True.
+    cameraFootprintFile : `str`, optional
+        Name of the camera footprint map to use. Can be None, which will use the default.
     rotSkyPosColName : str, optional
         Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
         Describes the orientation of the camera orientation compared to the sky.
@@ -60,7 +61,7 @@ class BaseSpatialSlicer(BaseSlicer):
     """
     def __init__(self, lonCol='fieldRA', latCol='fieldDec', latLonDeg=True,
                  verbose=True, badval=-666, leafsize=100, radius=2.45,
-                 useCamera=True, rotSkyPosColName='rotSkyPos'):
+                 useCamera=True, cameraFootprintFile=None, rotSkyPosColName='rotSkyPos'):
         super().__init__(verbose=verbose, badval=badval)
         self.lonCol = lonCol
         self.latCol = latCol
@@ -68,6 +69,7 @@ class BaseSpatialSlicer(BaseSlicer):
         self.rotSkyPosColName = rotSkyPosColName
         self.columnsNeeded = [lonCol, latCol]
         self.useCamera = useCamera
+        self.cameraFootprintFile = cameraFootprintFile
         if useCamera:
             self.columnsNeeded.append(rotSkyPosColName)
         self.slicer_init = {'lonCol': lonCol, 'latCol': latCol,
@@ -130,27 +132,11 @@ class BaseSpatialSlicer(BaseSlicer):
             indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
 
             if (self.useCamera) & (len(indices) > 0):
-                x_proj, y_proj = simsUtils.gnomonic_project_toxy(self.slicePoints['ra'][islice],
-                                                                 self.slicePoints['dec'][islice],
-                                                                 self.data_ra[indices],
-                                                                 self.data_dec[indices])
-                # rotate them by rotskypos
-                # XXX---of course I have no idea if this should be a positive or
-                # negative rotation. Whatever, the focal plane is pretty symetric, so whatever.
-                x_proj, y_proj = rotate(x_proj, y_proj, self.data_rot[indices])
-
-                # look up which points are good
-                x_indx = np.round((x_proj - self.x_camera[0])/self.plate_scale).astype(int)
-                y_indx = np.round((y_proj - self.x_camera[0])/self.plate_scale).astype(int)
-                in_range = np.where((x_indx >= 0) & (x_indx < self.indx_max) &
-                                    (y_indx >= 0) & (y_indx < self.indx_max))[0]
-                indices = np.array(indices)[in_range]
-                x_indx = x_indx[in_range]
-                y_indx = y_indx[in_range]
-                # reduce the indices down to only the ones that fall on silicon.
-                # self.camera_fov is an array of `bool` values
-                map_val = self.camera_fov[x_indx, y_indx]
-                indices = indices[map_val].tolist()
+                # Find the indices *of those indices* which fall in the camera footprint
+                camera_idx = self.camera(self.slicePoints['ra'][islice], self.slicePoints['dec'][islice],
+                                         self.data_ra[indices], self.data_dec[indices],
+                                         self.data_rot[indices])
+                indices = np.array(indices)[camera_idx]
 
             # Loop through all the slicePoint keys. If the first dimension of slicepoint[key] has
             # the same shape as the slicer, assume it is information per slicepoint.
@@ -170,13 +156,8 @@ class BaseSpatialSlicer(BaseSlicer):
 
     def _setupLSSTCamera(self):
         """If we want to include the camera chip gaps, etc"""
-        filename = os.path.join(get_data_dir(), 'maf/fov_map.npz')
-        _temp = np.load(filename)
-        self.camera_fov = _temp['image'].copy()
-        self.x_camera = np.radians(_temp['x'].copy())
-        _temp.close()
-        self.plate_scale = self.x_camera[1] - self.x_camera[0]
-        self.indx_max = len(self.x_camera)
+        self.camera = LsstCameraFootprint(units='radians',
+                                          footprint_file=self.cameraFootprintFile)
 
     def _buildTree(self, simDataRa, simDataDec, leafsize=100):
         """Build KD tree on simDataRA/Dec using utility function from mafUtils.

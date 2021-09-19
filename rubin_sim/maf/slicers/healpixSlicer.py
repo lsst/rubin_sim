@@ -6,7 +6,7 @@
 
 import numpy as np
 import healpy as hp
-from rubin_sim.maf.plots.spatialPlotters import HealpixSkyMap, HealpixHistogram, HealpixPowerSpectrum
+from rubin_sim.maf.plots.spatialPlotters import HealpixSkyMap, HealpixHistogram
 
 from .baseSpatialSlicer import BaseSpatialSlicer
 
@@ -68,6 +68,8 @@ class HealpixSlicer(BaseSpatialSlicer):
     useCamera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
         Default True.
+    cameraFootprintFile : `str`, optional
+        Name of the camera footprint map to use. Can be None, which will use the default.
     rotSkyPosColName : str, optional
         Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
         Describes the orientation of the camera orientation compared to the sky.
@@ -76,12 +78,13 @@ class HealpixSlicer(BaseSpatialSlicer):
     def __init__(self, nside=128, lonCol ='fieldRA',
                  latCol='fieldDec', latLonDeg=True, verbose=True, badval=hp.UNSEEN,
                  useCache=True, leafsize=100, radius=2.45,
-                 useCamera=True, rotSkyPosColName='rotSkyPos'):
+                 useCamera=True, cameraFootprintFile=None, rotSkyPosColName='rotSkyPos'):
         """Instantiate and set up healpix slicer object."""
         super().__init__(verbose=verbose,
                          lonCol=lonCol, latCol=latCol,
                          badval=badval, radius=radius, leafsize=leafsize,
-                         useCamera=useCamera, rotSkyPosColName=rotSkyPosColName,
+                         useCamera=useCamera, cameraFootprintFile=cameraFootprintFile,
+                         rotSkyPosColName=rotSkyPosColName,
                          latLonDeg=latLonDeg)
         # Valid values of nside are powers of 2.
         # nside=64 gives about 1 deg resolution

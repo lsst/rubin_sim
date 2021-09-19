@@ -14,5 +14,6 @@ def get_oorb_data_dir():
             if not os.path.isdir(data_path):
                 data_path = None
     if data_path is None:
-        warnings.warn('Failed to find path for oorb data files. No $OORB_DATA enviroement variable set, and they are not it usual conda spot')
+        warnings.warn('Failed to find path for oorb data files. '
+                      'No $OORB_DATA environment variable set, and they are not the usual conda spot')
     return data_path
