@@ -37,9 +37,7 @@ jobs:
         shell: bash -l {0}
         run: |
           export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
-          rs_download_data -d 'tests,throughputs,site_models,maf'
-          ls ${{ github.workspace }}
-          ls ${{ github.workspace }}/tests
+          rs_download_data -d 'tests,site_models,throughputs,skybrightness,skybrightness_pre'
       - name: conda list
         shell: bash -l {0}
         run: conda list
@@ -48,6 +46,7 @@ jobs:
         run: |
           export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
           echo "This is where the tests would run, if they did yet"
+          pytest
 
   Docs:
     needs: Tests
@@ -75,11 +74,11 @@ jobs:
           echo `pwd`
           ls ${{ github.workspace }}
           python -m pip install . --use-feature=in-tree-build
-      - name: download rubin_sim_data components needed for unit tests
+      - name: download rubin_sim_data components needed to set up metrics for metricList
         shell: bash -l {0}
         run: |
           export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
-          rs_download_data -d 'site_models'
+          rs_download_data -d 'maf'
       - name: conda list
         shell: bash -l {0}
         run: conda list
