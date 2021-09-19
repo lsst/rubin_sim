@@ -81,15 +81,15 @@ class BaseOpsimDatabase(Database):
 
         Parameters
         ----------
-        colnames : list
+        colnames : `list` of `str` [`str`]
             The columns to fetch from the table.
-        sqlconstraint : str, optional
+        sqlconstraint : `str`, optional
             The sql constraint to apply to the data (minus "WHERE"). Default None.
             Examples: to fetch data for the r band filter only, set sqlconstraint to 'filter = "r"'.
-        groupBy : str, optional
+        groupBy : `str`, optional
             The column to group the returned data by.
             Default (when using summaryTable) is the MJD, otherwise will be None.
-        tableName : str, optional
+        tableName : `str`, optional
             The table to query. The default (None) will use the summary table, set by self.summaryTable.
 
         Returns
@@ -116,13 +116,13 @@ class BaseOpsimDatabase(Database):
 
         Parameters
         ----------
-        sqlconstraint : str, optional
+        sqlconstraint : `str`, optional
             Sqlconstraint to apply before selecting observations to use for RA/Dec. Default None.
-        raColName : str, optional
+        raColName : `str`, optional
             Name of the RA column in the database.
-        decColName : str, optional
+        decColName : `str`, optional
             Name of the Dec column in the database.
-        degreesToRadians : bool, optional
+        degreesToRadians : `bool`, optional
             Convert ra/dec into degrees?
             If field information in summary table is in degrees, degreesToRadians should be True.
 
@@ -207,22 +207,22 @@ class OpsimDatabaseFBS(BaseOpsimDatabase):
 
     Parameters
     ----------
-    database : str
+    database : `str`
         Name of the database or sqlite filename.
-    driver : str, optional
+    driver : `str`, optional
         Name of the dialect + driver for sqlalchemy. Default 'sqlite'.
-    host : str, optional
+    host : `str`, optional
         Name of the database host. Default None (appropriate for sqlite files).
-    port : str, optional
+    port : `str`, optional
         String port number for the database. Default None (appropriate for sqlite files).
-    defaultTable : str, optional
+    defaultTable : `str`, optional
         Name of the default table to query to get observations.
         Default 'observations' for version > 1.7.1
         Default 'summaryAllProps' for version < v.1.7.1
         Identification of default table can be handled automatically by using 'db.OpsimDatabase'
-    longstrings: bool, optional
+    longstrings: `bool`, optional
         Expect long strings when querying database. Default False.
-    verbose: bool, optional
+    verbose: `bool`, optional
         Be verbose. Default False.
     """
     def __init__(self, database, driver='sqlite', host=None, port=None, defaultTable='observations',
@@ -281,9 +281,9 @@ class OpsimDatabaseFBS(BaseOpsimDatabase):
 
         Parameters
         ----------
-        tag : str
+        tag : `str`
             The name of the proposal for which to create a SQLwhere clause (WFD or DD).
-        propTags : dict
+        propTags : `dict`
             A dictionary of {proposal name : [proposal ids]}
             This can be created using OpsimDatabase.fetchPropInfo()
 

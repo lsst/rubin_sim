@@ -51,20 +51,20 @@ class Database(with_metaclass(DatabaseRegistry, DBObject)):
 
     Parameters
     ----------
-    database : str
+    database : `str`
         Name of the database (or full path + filename for sqlite db).
-    driver : str, optional
+    driver : `str`, optional
         Dialect+driver for sqlalchemy. Default 'sqlite'. (other examples, 'pymssql+mssql').
-    host : str, optional
+    host : `str`, optional
         Hostname for database. Default None (for sqlite).
-    port : int, optional
+    port : `int`, optional
         Port for database. Default None.
-    defaultTable : str, optional
+    defaultTable : `str`, optional
         Default table in the database to query for metric data.
-    longstrings : bool, optional
+    longstrings : `bool`, optional
         Flag to convert strings in database to long (1024) or short (256) characters in numpy recarray.
         Default False (convert to 256 character strings).
-    verbose : bool, optional
+    verbose : `bool`, optional
         Flag for additional output. Default False.
     """
 
@@ -122,20 +122,20 @@ class Database(with_metaclass(DatabaseRegistry, DBObject)):
 
         Parameters
         ----------
-        colnames : list
+        colnames : `list`
             The columns to fetch from the table.
-        sqlconstraint : str or None, optional
+        sqlconstraint : `str` or None, optional
             The sql constraint to apply to the data (minus "WHERE"). Default None.
             Examples: to fetch data for the r band filter only, set sqlconstraint to 'filter = "r"'.
-        groupBy : str or None, optional
+        groupBy : `str` or None, optional
             The column to group the returned data by.
             Default (when using summaryTable) is the MJD, otherwise will be None.
-        tableName : str or None, optional
+        tableName : `str` or None, optional
             The table to query. The default (None) will use the summary table, set by self.defaultTable.
 
         Returns
         -------
-        np.recarray
+        `np.recarray`
             A structured array containing the data queried from the database.
         """
         if tableName is None:
@@ -165,9 +165,9 @@ class Database(with_metaclass(DatabaseRegistry, DBObject)):
 
         Parameters
         -----------
-        sqlQuery : str
+        sqlQuery : `str`
             SQL query.
-        dtype: optional, numpy dtype.
+        dtype: `numpy.dtype`, optional
             Numpy recarray dtype. If None, then an attempt to determine the dtype will be made.
             This attempt will fail if there are commas in the data you query.
 
@@ -183,17 +183,17 @@ class Database(with_metaclass(DatabaseRegistry, DBObject)):
 
         Parameters
         ----------
-        tablename : str
+        tablename : `str`
             Name of table to query.
-        colnames : list of str or None, optional
+        colnames : `list` of `str` or None, optional
             Columns from the table to query for. If None, all columns are selected.
-        sqlconstraint : str or None, optional
+        sqlconstraint : `str` or None, optional
             Constraint to apply to to the query.  Default None.
-        groupBy : str or None, optional
+        groupBy : `str` or None, optional
             Name of column to group by. Default None.
-        numLimit : int or None, optional
+        numLimit : `int` or None, optional
             Number of records to return. Default no limit.
-        chunksize : int, optional
+        chunksize : `int`, optional
             Query database and convert to recarray in series of chunks of chunksize.
 
         Returns

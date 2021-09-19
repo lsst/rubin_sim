@@ -14,12 +14,12 @@ class TrilegalDensityMap(BaseMap):
 
     Parameters
     ----------
-    filtername : str
-        Filter to use. Options of u,g,r,i,z,y
-    nside : int (64)
-        The HEALpix nside (can be 64 or 128)
-    ext : bool (False)
-        Use the full sky maps
+    filtername : `str`, opt
+        Filter to use. Options of u,g,r,i,z,y. Default r.
+    nside : `int`, opt
+        The HEALpix nside (can be 64 or 128). Default 64.
+    ext : `bool`, opt
+        Use the full sky maps. Default True.
     """
     def __init__(self, filtername='r', nside=64, ext=True):
         self.mapDir = os.path.join(get_data_dir(), 'maps', 'TriMaps')
