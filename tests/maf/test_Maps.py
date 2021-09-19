@@ -50,7 +50,7 @@ class TestMaps(unittest.TestCase):
             data = makeDataValues(random=981)
             dustmap = maps.DustMap(nside=nside)
 
-            slicer1 = slicers.HealpixSlicer(latLonDeg=False, nside=nside)
+            slicer1 = slicers.HealpixSlicer(latLonDeg=False, nside=nside, useCamera=False)
             slicer1.setupSlicer(data)
             result1 = dustmap.run(slicer1.slicePoints)
             assert('ebv' in list(result1.keys()))
@@ -85,7 +85,7 @@ class TestMaps(unittest.TestCase):
             nsides = [32, 64, 128]
             for nside in nsides:
                 starmap = maps.StellarDensityMap()
-                slicer1 = slicers.HealpixSlicer(nside=nside, latLonDeg=False)
+                slicer1 = slicers.HealpixSlicer(nside=nside, latLonDeg=False, useCamera=False)
                 slicer1.setupSlicer(data)
                 result1 = starmap.run(slicer1.slicePoints)
                 assert('starMapBins_r' in list(result1.keys()))

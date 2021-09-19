@@ -1,5 +1,4 @@
 import numpy as np
-import warnings
 import os
 from rubin_sim.data import get_data_dir
 from rubin_sim.utils import gnomonic_project_toxy
@@ -21,33 +20,34 @@ class LsstCameraFootprint(object):
     """
     Class to provide the capability for identifying observations within an LSST camera footprint.
     """
-    def __init__(self, obsRA='fieldRA', obsDec='fieldDec'):
-        self.obsRA = obsRA
-        self.obsDec = obsDec
-        filename = os.path.join(get_data_dir(), 'maf/fov_map.npz')
-        _temp = np.load(filename)
+    def __init__(self, units='degrees', footprint_file=None):
+        if footprint_file is None:
+            footprint_file = os.path.join(get_data_dir(), 'maf', 'fov_map.npz')
+        _temp = np.load(footprint_file)
+        # Units refers to the incoming ra/dec values in the _call__ method
+        # Internally, radians are used to calculate the footprint
+        self.units = units
         self.camera_fov = _temp['image'].copy()
         self.x_camera = np.radians(_temp['x'].copy())
         _temp.close()
         self.plate_scale = self.x_camera[1] - self.x_camera[0]
         self.indx_max = len(self.x_camera)
 
-    def __call__(self, ephems, obsData, epoch=2000.0, rmax=2.1, timeCol='observationStartMJD',
-                 rotSkyCol='rotSkyPos'):
+    def __call__(self, obj_ra, obj_dec, boresight_ra, boresight_dec, boresight_rotSkyPos):
         """Determine which observations are within the actual camera footprint for a series of observations.
 
         Parameters
         ----------
-        ephems : np.recarray
-            Ephemerides for the objects, with RA and Dec as 'ra' and 'dec' columns (in degrees).
-        obsData : np.recarray
-            Observation pointings, with RA and Dec as 'ra' and 'dec' columns (in degrees).
-            The telescope rotation angle should be in 'rotSkyPos' (in degrees), and the time of each
-            pointing should be in the 'expMJD' column.
-        rmax : float (2.1)
-            The maximum radius from the center of the field to consider
-        epoch: float, optional
-            The epoch of the ephemerides and pointing data. Default 2000.0.
+        obj_ra : `np.ndarray`
+            RA values for the objects (in the field of view?)
+        obj_dec: `np.ndarray`
+            Dec values for the objects
+        boresight_ra : `float`
+            RA value for the pointing
+        boresight_dec : `float`
+            Dec value for the pointing
+        boresight_rotSkyPos : `float`
+            RotSkyPos value for the pointing.
 
         Returns
         -------
@@ -55,16 +55,19 @@ class LsstCameraFootprint(object):
             Returns the indexes of the numpy array of the object observations
             which are inside the fov and land on a science chip
         """
-        # See if the object is within 'rFov' of the center of the boresight.
+        if self.units == 'degrees':
+            x_proj, y_proj = gnomonic_project_toxy(np.radians(obj_ra),
+                                                   np.radians(obj_dec),
+                                                   np.radians(boresight_ra),
+                                                   np.radians(boresight_dec))
+            # rotate them by rotskypos
+            # TODO: look up whether this is a positive or negative rotation
+            #  in the observatory documentation
+            x_proj, y_proj = rotate(x_proj, y_proj, np.radians(boresight_rotSkyPos))
 
-        x_proj, y_proj = gnomonic_project_toxy(np.radians(ephems['ra']),
-                                               np.radians(ephems['dec']),
-                                               np.radians(obsData[self.obsRA]),
-                                               np.radians(obsData[self.obsDec]))
-        # rotate them by rotskypos
-        # XXX---of course I have no idea if this should be a positive or
-        # negative rotation. Whatever, the focal plane is pretty symetric, so whatever.
-        x_proj, y_proj = rotate(x_proj, y_proj, np.radians(obsData[rotSkyCol]))
+        else:
+            x_proj, y_proj = gnomonic_project_toxy(obj_ra, obj_dec, boresight_ra, boresight_dec)
+            x_proj, y_proj = rotate(x_proj, y_proj, boresight_rotSkyPos)
 
         # look up which points are good
         x_indx = np.round((x_proj - self.x_camera[0])/self.plate_scale).astype(int)
@@ -77,6 +80,5 @@ class LsstCameraFootprint(object):
         # reduce the indices down to only the ones that fall on silicon.
         # self.camera_fov is an array of `bool` values
         map_val = self.camera_fov[x_indx, y_indx]
-        indices = indices[map_val].astype(int)
-
+        indices = indices[map_val]
         return indices

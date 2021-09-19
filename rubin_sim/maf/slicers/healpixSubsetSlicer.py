@@ -3,18 +3,18 @@
 from functools import wraps
 import numpy as np
 import healpy as hp
-
+import warnings
 import rubin_sim.utils as simsUtils
 
 from rubin_sim.maf.plots.spatialPlotters import HealpixSkyMap, HealpixHistogram, HealpixPowerSpectrum
 
-from .baseSpatialSlicer import BaseSpatialSlicer
+from .healpixSlicer import HealpixSlicer
 
 
 __all__ = ['HealpixSubsetSlicer']
 
 
-class HealpixSubsetSlicer(BaseSpatialSlicer):
+class HealpixSubsetSlicer(HealpixSlicer):
     """
     A spatial slicer that evaluates pointings on a subset of a healpix-based grid.
     The advantage of using this healpixSubsetSlicer (rather than just putting the RA/Dec values into
@@ -65,61 +65,24 @@ class HealpixSubsetSlicer(BaseSpatialSlicer):
     useCamera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
         Default False.
+    cameraFootprintFile : `str`, optional
+        Name of the camera footprint map to use. Can be None, which will use the default.
     rotSkyPosColName : str, optional
         Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
-    mjdColName : str, optional
-        Name of the exposure time column. Only used if useCamera is True.
-        Default observationStartMJD.
-    chipNames : array-like, optional
-        List of chips to accept, if useCamera is True. This lets users turn 'on' only a subset of chips.
-        Default 'all' - this uses all chips in the camera.
     """
     def __init__(self, nside, hpid, lonCol ='fieldRA',
                  latCol='fieldDec', latLonDeg=True, verbose=True, badval=hp.UNSEEN,
                  useCache=True, leafsize=100, radius=2.45,
-                 useCamera=True, rotSkyPosColName='rotSkyPos',
-                 mjdColName='observationStartMJD', chipNames='all'):
+                 useCamera=True, cameraFootprintFile=None, rotSkyPosColName='rotSkyPos'):
         """Instantiate and set up healpix slicer object."""
-        super().__init__(verbose=verbose,
+        super().__init__(nside=nside, verbose=verbose,
                          lonCol=lonCol, latCol=latCol,
                          badval=badval, radius=radius, leafsize=leafsize,
-                         useCamera=useCamera, rotSkyPosColName=rotSkyPosColName,
-                         mjdColName=mjdColName, chipNames=chipNames, latLonDeg=latLonDeg)
-        # Valid values of nside are powers of 2.
-        # nside=64 gives about 1 deg resolution
-        # nside=256 gives about 13' resolution (~1 CCD)
-        # nside=1024 gives about 3' resolution
-        # Check validity of nside:
-        if not(hp.isnsideok(nside)):
-            raise ValueError('Valid values of nside are powers of 2.')
-        if len(hpid) > hp.nside2npix(nside):
-            raise ValueError('Nside (%d) and length of hpid (%d) seem incompatible.' % (nside,
-                                                                                        hp.nside2npix(nside)))
-        self.nside = int(nside)
+                         useCache=useCache, useCamera=useCamera, rotSkyPosColName=rotSkyPosColName,
+                         cameraFootprintFile=cameraFootprintFile, latLonDeg=latLonDeg)
         self.hpid = hpid
-        self.pixArea = hp.nside2pixarea(self.nside)
-        self.nslice = hp.nside2npix(self.nside)
-        self.spatialExtent = [0, self.nslice-1]
-        self.shape = self.nslice
-        if self.verbose:
-            print('HealpixSubsetSlicer using NSIDE=%d, ' % (self.nside) + \
-                  'approximate resolution %f arcminutes' % (hp.nside2resol(self.nside, arcmin=True)))
-        # Set variables so slicer can be re-constructed
-        self.slicer_init = {'nside': nside, 'hpid': hpid, 'lonCol': lonCol, 'latCol': latCol,
-                            'radius': radius}
-        if useCache:
-            # useCache set the size of the cache for the memoize function in sliceMetric.
-            binRes = hp.nside2resol(nside)  # Pixel size in radians
-            # Set the cache size to be ~2x the circumference
-            self.cacheSize = int(np.round(4.*np.pi/binRes))
-        # Set up slicePoint metadata.
-        self.slicePoints['nside'] = nside
-        self.slicePoints['sid'] = np.arange(self.nslice)
-        self.slicePoints['ra'], self.slicePoints['dec'] = self._pix2radec(self.slicePoints['sid'])
-        # Set the default plotting functions.
-        self.plotFuncs = [HealpixSkyMap, HealpixHistogram, HealpixPowerSpectrum]
 
     def __eq__(self, otherSlicer):
         """Evaluate if two slicers are equivalent."""
@@ -127,14 +90,13 @@ class HealpixSubsetSlicer(BaseSpatialSlicer):
         result = False
         if isinstance(otherSlicer, HealpixSubsetSlicer):
             if otherSlicer.nside == self.nside:
-                if np.all(otherSlicer.hpid == self.hpid):
+                if np.array_equal(otherSlicer.hpid, self.hpid):
                     if (otherSlicer.lonCol == self.lonCol and otherSlicer.latCol == self.latCol):
                         if otherSlicer.radius == self.radius:
                             if otherSlicer.useCamera == self.useCamera:
-                                if otherSlicer.chipsToUse == self.chipsToUse:
-                                    if otherSlicer.rotSkyPosColName == self.rotSkyPosColName:
-                                        if np.all(otherSlicer.shape == self.shape):
-                                            result = True
+                                if otherSlicer.rotSkyPosColName == self.rotSkyPosColName:
+                                    if np.all(otherSlicer.shape == self.shape):
+                                        result = True
         return result
 
     def _pix2radec(self, islice):
@@ -161,41 +123,13 @@ class HealpixSubsetSlicer(BaseSpatialSlicer):
             slicePoint. This additional metadata is available to metrics via the slicePoint dictionary.
             Default None.
         """
-        if maps is not None:
-            if self.cacheSize != 0 and len(maps) > 0:
-                warnings.warn('Warning:  Loading maps but cache on.'
-                              'Should probably set useCache=False in slicer.')
-            self._runMaps(maps)
-        self._setRad(self.radius)
-        if self.useCamera:
-            self._setupLSSTCamera()
-            self._presliceFootprint(simData)
-        else:
-            if self.latLonDeg:
-                self._buildTree(np.radians(simData[self.lonCol]),
-                                np.radians(simData[self.latCol]), self.leafsize)
-            else:
-                self._buildTree(simData[self.lonCol], simData[self.latCol], self.leafsize)
+        super().setupSlicer(simData=simData, maps=maps)
 
         @wraps(self._sliceSimData)
         def _sliceSimData(islice):
             """Return indexes for relevant opsim data at slicepoint
             (slicepoint=lonCol/latCol value .. usually ra/dec)."""
-            if islice not in self.hpid:
-                return {'idxs': [], 'slicePoint': {self.slicePoints['sid'][islice],
-                                                   self.slicePoints['ra'][islice],
-                                                   self.slicePoints['dec'][islice]}}
-            # Build dict for slicePoint info
             slicePoint = {}
-            if self.useCamera:
-                indices = self.sliceLookup[islice]
-                slicePoint['chipNames'] = self.chipNames[islice]
-            else:
-                sx, sy, sz = simsUtils._xyz_from_ra_dec(self.slicePoints['ra'][islice],
-                                                        self.slicePoints['dec'][islice])
-                # Query against tree.
-                indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
-
             # Loop through all the slicePoint keys. If the first dimension of slicepoint[key] has
             # the same shape as the slicer, assume it is information per slicepoint.
             # Otherwise, pass the whole slicePoint[key] information. Useful for stellar LF maps
@@ -209,5 +143,20 @@ class HealpixSubsetSlicer(BaseSpatialSlicer):
                     slicePoint[key] = self.slicePoints[key][islice]
                 else:
                     slicePoint[key] = self.slicePoints[key]
+            if islice not in self.hpid:
+                indices = []
+            else:
+                sx, sy, sz = simsUtils._xyz_from_ra_dec(self.slicePoints['ra'][islice],
+                                                        self.slicePoints['dec'][islice])
+                # Query against tree.
+                indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
+                if (self.useCamera) & (len(indices) > 0):
+                    # Find the indices *of those indices* which fall in the camera footprint
+                    camera_idx = self.camera(self.slicePoints['ra'][islice], self.slicePoints['dec'][islice],
+                                             self.data_ra[indices], self.data_dec[indices],
+                                             self.data_rot[indices])
+                    indices = np.array(indices)[camera_idx]
+
             return {'idxs': indices, 'slicePoint': slicePoint}
         setattr(self, '_sliceSimData', _sliceSimData)
+

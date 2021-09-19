@@ -9,7 +9,7 @@ from rubin_sim.utils import angularSeparation
 from rubin_sim.data import get_data_dir
 
 from .ooephemerides import PyOrbEphemerides
-from .lsstCameraFootprint import LsstCameraFootprint
+from rubin_sim.utils import LsstCameraFootprint
 
 __all__ = ['BaseObs']
 
@@ -76,7 +76,8 @@ class BaseObs(object):
                  obsTimeCol='observationStartMJD', obsTimeScale='TAI',
                  seeingCol='seeingFwhmGeom', visitExpTimeCol='visitExposureTime',
                  obsRA='fieldRA', obsDec='fieldDec', obsRotSkyPos='rotSkyPos', obsDegrees=True,
-                 outfileName='lsst_obs.dat', obsMetadata=''):
+                 outfileName='lsst_obs.dat', obsMetadata='',
+                 camera_footprint_file=None):
         # Strings relating to the names of columns in the observation metadata.
         self.obsCode = obsCode
         self.obsTimeCol = obsTimeCol
@@ -97,7 +98,7 @@ class BaseObs(object):
         # Values for identifying observations.
         self.footprint = footprint.lower()
         if self.footprint == 'camera':
-            self._setupCamera()
+            self._setupCamera(camera_footprint_file=camera_footprint_file)
         self.rFov = rFov
         self.xTol = xTol
         self.yTol = yTol
@@ -108,8 +109,8 @@ class BaseObs(object):
         self.ephType = ephType
         self.ephFile = ephFile
 
-    def _setupCamera(self):
-        self.camera = LsstCameraFootprint(self.obsRA, self.obsDec)
+    def _setupCamera(self, camera_footprint_file=None):
+        self.camera = LsstCameraFootprint(units='degrees', footprint_file=camera_footprint_file)
 
     def setupEphemerides(self):
         """Initialize the ephemeris generator. Save the setup PyOrbEphemeris class.
@@ -338,7 +339,14 @@ class BaseObs(object):
         if not hasattr(self, 'camera'):
             self._setupCamera()
 
-        return self.camera(ephems, obsData, timeCol=self.obsTimeCol, rotSkyCol=self.obsRotSkyPos)
+        if not self.obsDegrees:
+            idx = self.camera(ephems['ra'], ephems['dec'],
+                              np.degrees(obsData[self.obsRA]), np.degrees(obsData[self.obsDec]),
+                              np.degrees(obsData[self.obsRotSkyPos]))
+        else:
+            idx = self.camera(ephems['ra'], ephems['dec'],
+                              obsData[self.obsRA], obsData[self.obsDec], obsData[self.obsRotSkyPos])
+        return idx
 
     def ssoInFov(self, ephems, obsData):
         """Convenience layer - determine which footprint method to apply (from self.footprint) and use it.

@@ -1,5 +1,7 @@
 import numpy as np
 import unittest
+import os
+from rubin_sim.data import get_data_dir
 from rubin_sim.movingObjects import BaseObs
 
 
@@ -19,7 +21,8 @@ class TestCamera(unittest.TestCase):
                             dtype=([('ra', float), ('dec', float), ('rotSkyPos', float), ('mjd', float)]))
 
     def testCameraFov(self):
-        obs = BaseObs(obsRA='ra', obsDec='dec', obsTimeCol='mjd', footprint='camera')
+        obs = BaseObs(obsRA='ra', obsDec='dec', obsTimeCol='mjd', footprint='camera',
+                      camera_footprint_file=os.path.join(get_data_dir(), 'tests', 'fov_map.npz'))
         idxObs = obs.ssoInCameraFov(self.ephems, self.obs)
         self.assertEqual(idxObs, [0])
 
