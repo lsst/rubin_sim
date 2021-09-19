@@ -30,10 +30,10 @@ class BaseSpatialSlicer(BaseSlicer):
 
     Parameters
     ----------
-    lonCol : str, optional
+    lonCol : `str`, optional
         Name of the longitude (RA equivalent) column to use from the input data.
         Default fieldRA
-    latCol : str, optional
+    latCol : `str`, optional
         Name of the latitude (Dec equivalent) column to use from the input data.
         Default fieldDec
     latLonDeg : `bool`, optional
@@ -42,11 +42,11 @@ class BaseSpatialSlicer(BaseSlicer):
     verbose : `bool`, optional
         Flag to indicate whether or not to write additional information to stdout during runtime.
         Default True.
-    badval : float, optional
+    badval : `float`, optional
         Bad value flag, relevant for plotting. Default -666.
-    leafsize : int, optional
+    leafsize : `int`, optional
         Leafsize value for kdtree. Default 100.
-    radius : float, optional
+    radius : `float`, optional
         Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
         Default 1.75.
     useCamera : `bool`, optional
@@ -54,7 +54,7 @@ class BaseSpatialSlicer(BaseSlicer):
         Default True.
     cameraFootprintFile : `str`, optional
         Name of the camera footprint map to use. Can be None, which will use the default.
-    rotSkyPosColName : str, optional
+    rotSkyPosColName : `str`, optional
         Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
@@ -91,9 +91,9 @@ class BaseSpatialSlicer(BaseSlicer):
 
         Parameters
         -----------
-        simData : numpy.recarray
+        simData : `numpy.ndarray`
             The simulated data, including the location of each pointing.
-        maps : list of rubin_sim.maf.maps objects, optional
+        maps : `list` of `rubin_sim.maf.maps` objects, optional
             List of maps (such as dust extinction) that will run to build up additional metadata at each
             slicePoint. This additional metadata is available to metrics via the slicePoint dictionary.
             Default None.

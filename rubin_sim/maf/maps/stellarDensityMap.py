@@ -15,11 +15,11 @@ class StellarDensityMap(BaseMap):
 
     Parameters
     ----------
-    startype : str ('allstars', 'wdstars')
+    startype : `str` ('allstars', 'wdstars')
         Load the luminosity function for all stars ('allstars'), which includes main-sequence stars
         white dwarfs, blue horozontal branch, RR Lyrae, and Cepheids. The 'wdstars' option only includes
         white dwarf stars.
-    filtername : str
+    filtername : `str`
         Filter to use. Options of u,g,r,i,z,y
     """
     def __init__(self, startype='allstars', filtername='r'):

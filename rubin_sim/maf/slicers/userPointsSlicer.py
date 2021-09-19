@@ -10,44 +10,47 @@ class UserPointsSlicer(BaseSpatialSlicer):
 
     Parameters
     ----------
-    ra : list or numpy.ndarray
+    ra : `list` or `numpy.ndarray`
         User-selected RA points, in degrees. Stored internally in radians.
-    dec : list or numpy.ndarray
+    dec : `list` or `numpy.ndarray`
         User-selected Dec points, in degrees. Stored internally in radians.
-    lonCol : str, optional
+    lonCol : `str`, optional
         Name of the longitude (RA equivalent) column to use from the input data.
         Default fieldRA
-    latCol : str, optional
+    latCol : `str`, optional
         Name of the latitude (Dec equivalent) column to use from the input data.
         Default fieldDec
-    latLonDeg : bool, optional
+    latLonDeg : `bool`, optional
         Flag indicating whether the lon and lat values will be in degrees (True) or radians (False).
         Default True (appropriate for opsim v4).
     verbose : `bool`, optional
         Flag to indicate whether or not to write additional information to stdout during runtime.
         Default True.
-    badval : float, optional
+    badval : `float`, optional
         Bad value flag, relevant for plotting. Default -666.
-    leafsize : int, optional
+    leafsize : `int`, optional
         Leafsize value for kdtree. Default 100.
-    radius : float, optional
+    radius : `float`, optional
         Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
         Default 2.45.
     useCamera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
         Default True.
-    rotSkyPosColName : str, optional
+    cameraFootprintFile : `str`, optional
+        Name of the camera footprint map to use. Can be None, which will use the default.
+    rotSkyPosColName : `str`, optional
         Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
     """
     def __init__(self, ra, dec, lonCol='fieldRA', latCol='fieldDec', latLonDeg=True, verbose=True,
                  badval=-666, leafsize=100, radius=2.45,
-                 useCamera=True, rotSkyPosColName='rotSkyPos'):
+                 useCamera=True, cameraFootprintFile=None, rotSkyPosColName='rotSkyPos'):
         super().__init__(lonCol=lonCol, latCol=latCol, latLonDeg=latLonDeg,
                          verbose=verbose, badval=badval,
                          radius=radius, leafsize=leafsize,
-                         useCamera=useCamera, rotSkyPosColName=rotSkyPosColName)
+                         useCamera=useCamera, cameraFootprintFile=cameraFootprintFile,
+                         rotSkyPosColName=rotSkyPosColName)
         # check that ra and dec are iterable, if not, they are probably naked numbers, wrap in list
         if not hasattr(ra, '__iter__'):
             ra = [ra]

@@ -28,16 +28,16 @@ class HealpixSubsetSlicer(HealpixSlicer):
 
     Parameters
     ----------
-    nside : int
+    nside : `int`
         The nside parameter of the healpix grid. Must be a power of 2.
-    hpid : np.ndarray
+    hpid : `np.ndarray`
         The subset of healpix id's to use to calculate the metric.
         Because the hpid should be defined based on a particular nside, these first two
         arguments are not optional for this slicer.
-    lonCol : str, optional
+    lonCol : `str`, optional
         Name of the longitude (RA equivalent) column to use from the input data.
         Default fieldRA
-    latCol : str, optional
+    latCol : `str`, optional
         Name of the latitude (Dec equivalent) column to use from the input data.
         Default fieldDec
     latLonDeg : `bool`, optional
@@ -47,19 +47,19 @@ class HealpixSubsetSlicer(HealpixSlicer):
     verbose : `bool`, optional
         Flag to indicate whether or not to write additional information to stdout during runtime.
         Default True.
-    badval : float, optional
+    badval : `float`, optional
         Bad value flag, relevant for plotting. Default the hp.UNSEEN value (in order to properly flag
         bad data points for plotting with the healpix plotting routines). This should not be changed.
-    useCache : `bool`
+    useCache : `bool`, optional
         Flag allowing the user to indicate whether or not to cache (and reuse) metric results
         calculated with the same set of simulated data pointings.
         This can be safely set to True for slicers not using maps and will result in increased speed.
         When calculating metric results using maps, the metadata at each individual ra/dec point may
         influence the metric results and so useCache should be set to False.
         Default True.
-    leafsize : int, optional
+    leafsize : `int`, optional
         Leafsize value for kdtree. Default 100.
-    radius : float, optional
+    radius : `float`, optional
         Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
         Default 1.75.
     useCamera : `bool`, optional
@@ -67,7 +67,7 @@ class HealpixSubsetSlicer(HealpixSlicer):
         Default False.
     cameraFootprintFile : `str`, optional
         Name of the camera footprint map to use. Can be None, which will use the default.
-    rotSkyPosColName : str, optional
+    rotSkyPosColName : `str`, optional
         Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
