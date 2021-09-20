@@ -20,13 +20,12 @@ class Short_expt_detailer(Base_detailer):
         The number of observations to try and take per year
     night_max : float (None)
         Do not apply any changes to the observation list if the current night is greater than night_max.
-        XXX--note, in theory, detailers should probably be expanded to include their own basis functions.
-    in_a_row : int (1)
+    n_repeat : int (1)
         How many short observations to do in a row.
 
     """
     def __init__(self, exp_time=1., filtername='r', nside=32, footprint=None, nobs=2,
-                 mjd0=59853.5, survey_name='short', read_approx=2., night_max=None, in_a_row=1):
+                 mjd0=59853.5, survey_name='short', read_approx=2., night_max=None, n_repeat=1):
         self.read_approx = read_approx
         self.exp_time = exp_time
         self.filtername = filtername
@@ -36,7 +35,7 @@ class Short_expt_detailer(Base_detailer):
         self.survey_name = survey_name
         self.mjd0 = mjd0
         self.night_max = night_max
-        self.in_a_row = in_a_row
+        self.n_repeat = n_repeat
 
         self.survey_features = {}
         # XXX--need a feature that tracks short exposures in the filter
@@ -46,6 +45,9 @@ class Short_expt_detailer(Base_detailer):
         self.obs2hpid = hp_in_lsst_fov(nside=nside)
 
     def __call__(self, observation_list, conditions):
+
+        # XXX--this logic would probably make more sense as a feasability basis function.
+        # Might consider expanding the detailer base class to include basis functions.
         if self.night_max is not None:
             if conditions.night > self.night_max:
                 return observation_list
@@ -63,7 +65,7 @@ class Short_expt_detailer(Base_detailer):
                 # Crop off things where we already have enough observation
                 hpids = hpids[np.where(self.survey_features['nobs'].feature[hpids] < n_goal)]
                 if np.size(hpids) > 0:
-                    for i in range(0, self.in_a_row):
+                    for i in range(0, self.n_repeat):
                         new_obs = observation.copy()
                         new_obs['exptime'] = self.exp_time
                         new_obs['nexp'] = 1
