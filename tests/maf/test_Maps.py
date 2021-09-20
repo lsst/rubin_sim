@@ -48,7 +48,7 @@ class TestMaps(unittest.TestCase):
         if os.path.isfile(os.path.join(mapPath, f'dust_nside_{nside}.npz')):
 
             data = makeDataValues(random=981)
-            dustmap = maps.DustMap(nside=nside)
+            dustmap = maps.DustMap(nside=nside, mapPath=mapPath)
 
             slicer1 = slicers.HealpixSlicer(latLonDeg=False, nside=nside, useCamera=False)
             slicer1.setupSlicer(data)
@@ -63,12 +63,12 @@ class TestMaps(unittest.TestCase):
             assert('ebv' in list(result2.keys()))
 
             # Check interpolation works
-            dustmap = maps.DustMap(interp=True, nside=nside)
+            dustmap = maps.DustMap(interp=True, nside=nside, mapPath=mapPath)
             result3 = dustmap.run(slicer2.slicePoints)
             assert('ebv' in list(result3.keys()))
 
             # Check warning gets raised
-            dustmap = maps.DustMap(nside=4)
+            dustmap = maps.DustMap(nside=4, mapPath=mapPath)
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
                 dustmap.run(slicer1.slicePoints)
@@ -84,7 +84,7 @@ class TestMaps(unittest.TestCase):
             # check that it works if nside does not match map nside of 64
             nsides = [32, 64, 128]
             for nside in nsides:
-                starmap = maps.StellarDensityMap()
+                starmap = maps.StellarDensityMap(mapDir=mapPath)
                 slicer1 = slicers.HealpixSlicer(nside=nside, latLonDeg=False, useCamera=False)
                 slicer1.setupSlicer(data)
                 result1 = starmap.run(slicer1.slicePoints)
