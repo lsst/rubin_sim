@@ -56,16 +56,10 @@ jobs:
       - name: run tests
         shell: bash -l {0}
         run: |
-<<<<<<< HEAD
-          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
-          echo "This is where the tests would run, if they did yet"
-=======
           export RUBIN_SIM_DATA_DIR=${{ github.workspace }}/data_dir
->>>>>>> cde4428 (Don't overwrite python  with data dir)
           pytest
 
   Docs:
-    needs: Tests
     name: Build and push documentation
     needs: Tests
     runs-on: "ubuntu-latest"
