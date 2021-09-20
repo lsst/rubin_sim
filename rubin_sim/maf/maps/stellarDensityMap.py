@@ -22,8 +22,11 @@ class StellarDensityMap(BaseMap):
     filtername : `str`
         Filter to use. Options of u,g,r,i,z,y
     """
-    def __init__(self, startype='allstars', filtername='r'):
-        self.mapDir = os.path.join(get_data_dir(), 'maps', 'StarMaps')
+    def __init__(self, startype='allstars', filtername='r', mapDir=None):
+        if mapDir is not None:
+            self.mapDir = mapDir
+        else:
+            self.mapDir = os.path.join(get_data_dir(), 'maps', 'StarMaps')
         self.filtername = filtername
         self.keynames = [f'starLumFunc_{self.filtername}', f'starMapBins_{self.filtername}']
         if startype == 'allstars':
