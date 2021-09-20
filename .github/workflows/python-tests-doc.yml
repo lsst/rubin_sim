@@ -37,7 +37,8 @@ jobs:
         shell: bash -l {0}
         run: |
           export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
-          rs_download_data -d 'tests,site_models,throughputs,skybrightness,skybrightness_pre'
+          rs_download_data -d 'site_models,throughputs,skybrightness,skybrightness_pre'
+          rs_download_data -d tests --force
       - name: conda list
         shell: bash -l {0}
         run: conda list

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from rubin_sim.data import get_data_dir, data_versions
-from shutil import unpack_archive
+from shutil import unpack_archive, rmtree
 import os
 import warnings
 import requests
@@ -32,6 +32,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Download data files for rubin_sim package")
     parser.add_argument("-d", "--dirs", type=str, default=None,
                         help="Comma-separated list of directories to download")
+    parser.add_argument("-f", "--force", dest='force', default=False, action='store_true',
+                        help="Force re-download of data directory(ies)")
     args = parser.parse_args()
 
     dirs = args.dirs
@@ -51,9 +53,12 @@ if __name__ == '__main__':
     for key in dirs:
         filename = files[key]
         path = os.path.join(data_dir, key)
-        if os.path.isdir(path):
-            warnings.warn('directory %s already exists, skipping download' % path)
+        if os.path.isdir(path) and not args.force:
+            warnings.warn('Directory %s already exists, skipping download' % path)
         else:
+            if os.path.isdir(path) and args.force:
+                rmtree(path)
+                warnings.warn('Removed existing directory %s, downloading new copy' % path)
             # Download file
             url = url_base + filename
             print('Downloading file: %s' % url)
@@ -69,3 +74,17 @@ if __name__ == '__main__':
     with open(version_file, 'w') as f:
         for key in versions:
             print(key+','+ versions[key], file=f)
+
+    # Write a little table to stdout
+    with open(version_file, 'r') as f:
+        print()
+        print('Currently available data versions:')
+        for l in f.readlines():
+            vals = l.rstrip('\n').split(',')
+            if len(vals[0]) > 10:
+                sep = '\t'
+            else:
+                sep = '\t\t'
+            print(f'{vals[0]}{sep}{vals[1]}')
+
+
