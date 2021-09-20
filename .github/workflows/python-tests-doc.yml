@@ -1,6 +1,17 @@
 name: Run Tests and Build Documentation
 
-on: [push]
+on:
+  # Trigger the workflow on push (to main) or pull request
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - created
+  workflow-dispatch:
 
 jobs:
   Tests:
