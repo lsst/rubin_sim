@@ -214,7 +214,7 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     bundleList.append(bundle)
 
     displayDict['caption'] = 'Microlensing events with crossing times between 30 to 100 days.'
-    slicer = generateMicrolensingSlicer(min_crossing_time=10, max_crossing_time=30)
+    slicer = generateMicrolensingSlicer(min_crossing_time=30, max_crossing_time=100)
     metric = MicrolensingMetric(metricName='30 to 100 day Microlensing')
     bundle = mb.MetricBundle(metric, slicer, extraSql, metadata=extraMetadata,
                              runName=runName,
