@@ -22,7 +22,7 @@ class TestCoreSched(unittest.TestCase):
         scheduler = Core_scheduler([survey])
 
         observatory = Model_observatory(mjd_start=59853.5,
-                                        seeing_db=os.path.join(get_data_dir(), 'tests', 'Seeing.db'))
+                                        seeing_db=os.path.join(get_data_dir(), 'tests', 'seeing.db'))
 
         # Check that we can update conditions
         scheduler.update_conditions(observatory.return_conditions())
