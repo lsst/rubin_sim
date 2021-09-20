@@ -26,7 +26,7 @@ jobs:
         run: |
           conda config --set always_yes yes
           conda install --quiet --file=requirements.txt
-          conda install -y -q pytest
+          conda install -y -q flake8 pytest
       - name: install rubin_sim
         shell: bash -l {0}
         run: |
@@ -36,7 +36,7 @@ jobs:
       - name: download rubin_sim_data components needed for unit tests
         shell: bash -l {0}
         run: |
-          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
+          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}/data_dir
           rs_download_data -d 'site_models,throughputs,skybrightness,skybrightness_pre'
           rs_download_data -d tests --force
       - name: conda list
@@ -45,8 +45,12 @@ jobs:
       - name: run tests
         shell: bash -l {0}
         run: |
+<<<<<<< HEAD
           export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
           echo "This is where the tests would run, if they did yet"
+=======
+          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}/data_dir
+>>>>>>> cde4428 (Don't overwrite python  with data dir)
           pytest
 
   Docs:
