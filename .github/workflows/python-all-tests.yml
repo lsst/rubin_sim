@@ -1,10 +1,7 @@
 name: Run All Tests with all Downloaded Data
 
 on:
-  release:
-    types:
-      - created
-  workflow-dispatch:
+  workflow_dispatch:
 
 jobs:
   AllTests:
