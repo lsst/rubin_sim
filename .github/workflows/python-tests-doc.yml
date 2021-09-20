@@ -67,6 +67,7 @@ jobs:
           conda config --set always_yes yes
           conda install --quiet --file=requirements.txt
           conda install lsst-documenteer-pipelines
+          conda install ltd-conveyor
       - name: install rubin_sim
         shell: bash -l {0}
         run: |
@@ -90,7 +91,8 @@ jobs:
           make html
       - name: upload documentation
         shell: bash -l {0}
+        env:
+          LTD_PASSWORD: ${{ secrets.LTD_PASSWORD }}
+          LTD_USERNAME: ${{ secrets.LTD_USERNAME }}
         run: |
-          echo "This is where the upload magic happens"
-
-
+          ltd upload --gh --dir doc/_build/html --product rubin-sim
