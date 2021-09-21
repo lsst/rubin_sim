@@ -39,30 +39,35 @@ class Dither_detailer(Base_detailer):
         The maximum dither size to use (degrees).
     per_night : bool (True)
         If true, us the same dither offset for an entire night
+    nnights : int (7305)
+        The number of nights to pre-generate random dithers for
 
 
     """
-    def __init__(self, max_dither=0.7, seed=42, per_night=True):
+    def __init__(self, max_dither=0.7, seed=42, per_night=True, nnights=7305):
         self.survey_features = {}
 
         self.current_night = -1
         self.max_dither = np.radians(max_dither)
         self.per_night = per_night
-        np.random.seed(seed=seed)
+        self.rng = np.random.default_rng(seed)
+        self.angles = self.rng.random(nnights)*2*np.pi
+        self.radii = self.max_dither * np.sqrt(self.rng.random(nnights))
+        self.offsets = (self.rng.random((nnights, 2))-0.5) * 2.*self.max_dither
         self.offset = None
 
     def _generate_offsets(self, n_offsets, night):
         if self.per_night:
             if night != self.current_night:
                 self.current_night = night
-                self.offset = (np.random.random((1, 2))-0.5) * 2.*self.max_dither
-                angle = np.random.random(1)*2*np.pi
-                radius = self.max_dither * np.sqrt(np.random.random(1))
+                self.offset = self.offsets[night, :]
+                angle = self.angles[night]
+                radius = self.radii[night]
                 self.offset = np.array([radius*np.cos(angle), radius*np.sin(angle)])
             offsets = np.tile(self.offset, (n_offsets, 1))
         else:
-            angle = np.random.random(n_offsets)*2*np.pi
-            radius = self.max_dither * np.sqrt(np.random.random(n_offsets))
+            angle = self.rng.random(n_offsets)*2*np.pi
+            radius = self.max_dither * np.sqrt(self.rng.random(n_offsets))
             offsets = np.array([radius*np.cos(angle), radius*np.sin(angle)])
 
         return offsets
@@ -109,7 +114,7 @@ class Euclid_dither_detailer(Base_detailer):
     """
     def __init__(self, dither_bearing_dir=[-0.25, 1], dither_bearing_perp=[-0.25, 0.25],
                  seed=42, per_night=True, ra_a=58.90,
-                 dec_a=-49.315, ra_b=63.6, dec_b=-47.60):
+                 dec_a=-49.315, ra_b=63.6, dec_b=-47.60, nnights=7305):
         self.survey_features = {}
 
         self.ra_a = np.radians(ra_a)
@@ -126,26 +131,40 @@ class Euclid_dither_detailer(Base_detailer):
         self.current_night = -1
 
         self.per_night = per_night
-        np.random.seed(seed=seed)
         self.shifted_ra_a = None
         self.shifted_dec_a = None
         self.shifted_ra_b = None
         self.shifted_dec_b = None
 
+        rng = np.random.default_rng(seed)
+        self.bearings_mag_1 = rng.uniform(low=self.dither_bearing_dir.min(),
+                                          high=self.dither_bearing_dir.max(),
+                                          size=nnights)
+        self.perp_mag_1 = rng.uniform(low=self.dither_bearing_perp.min(),
+                                      high=self.dither_bearing_perp.max(),
+                                      size=nnights)
+
+        self.bearings_mag_2 = rng.uniform(low=self.dither_bearing_dir.min(),
+                                          high=self.dither_bearing_dir.max(),
+                                          size=nnights)
+        self.perp_mag_2 = rng.uniform(low=self.dither_bearing_perp.min(),
+                                      high=self.dither_bearing_perp.max(),
+                                      size=nnights)
+
     def _generate_offsets(self, n_offsets, night):
         if self.per_night:
             if night != self.current_night:
                 self.current_night = night
-                bearing_mag = np.random.uniform(low=self.dither_bearing_dir.min(), high=self.dither_bearing_dir.max())
-                perp_mag = np.random.uniform(low=self.dither_bearing_perp.min(), high=self.dither_bearing_perp.max())
+                bearing_mag = self.bearings_mag_1[night]
+                perp_mag = self.perp_mag_1[night]
                 # Move point a along the bearings
                 self.shifted_dec_a, self.shifted_ra_a = dest(bearing_mag, self.bearing_atob, self.dec_a, self.ra_a)
                 self.shifted_dec_a, self.shifted_ra_a = dest(perp_mag, self.bearing_atob+np.pi/2.,
                                                              self.shifted_dec_a, self.shifted_ra_a)
 
                 # Shift the second position
-                bearing_mag = np.random.uniform(low=self.dither_bearing_dir.min(), high=self.dither_bearing_dir.max())
-                perp_mag = np.random.uniform(low=self.dither_bearing_perp.min(), high=self.dither_bearing_perp.max())
+                bearing_mag = self.bearings_mag_2[night]
+                perp_mag = self.perp_mag_2[night]
 
                 self.shifted_dec_b, self.shifted_ra_b = dest(bearing_mag, self.bearing_btoa, self.dec_b, self.ra_b)
                 self.shifted_dec_b, self.shifted_ra_b = dest(perp_mag, self.bearing_btoa+np.pi/2.,
@@ -185,7 +204,7 @@ class Camera_rot_detailer(Base_detailer):
     per_night : bool (True)
         If True, only set a new offset per night. If False, randomly rotates every observation.
     """
-    def __init__(self, max_rot=90., min_rot=-90., per_night=True, seed=42):
+    def __init__(self, max_rot=90., min_rot=-90., per_night=True, seed=42, nnights=7305):
         self.survey_features = {}
 
         self.current_night = -1
@@ -193,17 +212,19 @@ class Camera_rot_detailer(Base_detailer):
         self.min_rot = np.radians(min_rot)
         self.range = self.max_rot - self.min_rot
         self.per_night = per_night
-        np.random.seed(seed=seed)
+        self.rng = np.random.default_rng(seed)
+        self.offsets = self.rng.random(nnights)
+
         self.offset = None
 
     def _generate_offsets(self, n_offsets, night):
         if self.per_night:
             if night != self.current_night:
                 self.current_night = night
-                self.offset = np.random.random(1) * self.range + self.min_rot
+                self.offset = self.offsets[night] * self.range + self.min_rot
             offsets = np.ones(n_offsets) * self.offset
         else:
-            offsets = np.random.random(n_offsets) * self.range + self.min_rot
+            offsets = self.rng.random(n_offsets) * self.range + self.min_rot
 
         offsets = offsets % (2.*np.pi)
 

@@ -28,7 +28,6 @@ class ToO_master(BaseSurvey):
             for survey in self.surveys:
                 survey.add_observation(observation, indx=indx)
 
-
     def _spawn_new_survey(self, too):
         """Create a new survey object for a ToO we haven't seen before.
 
@@ -127,6 +126,6 @@ class ToO_survey(Blob_survey):
     def generate_observations_rough(self, conditions):
         # Always spin the tesselation before generating a new block.
         if self.dither:
-            self._spin_fields()
+            self._spin_fields(conditions)
         result = super(ToO_survey, self).generate_observations_rough(conditions)
         return result

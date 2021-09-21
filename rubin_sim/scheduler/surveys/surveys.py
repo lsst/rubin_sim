@@ -45,7 +45,7 @@ class Greedy_survey(BaseMarkovDF_survey):
 
         # Check if we need to spin the tesselation
         if self.dither & (conditions.night != self.night):
-            self._spin_fields()
+            self._spin_fields(conditions)
             self.night = conditions.night.copy()
 
         # Let's find the best N from the fields
@@ -351,7 +351,7 @@ class Blob_survey(Greedy_survey):
 
         # Check if we need to spin the tesselation
         if self.dither & (conditions.night != self.night):
-            self._spin_fields()
+            self._spin_fields(conditions)
             self.night = conditions.night.copy()
 
         if self.grow_blob:
