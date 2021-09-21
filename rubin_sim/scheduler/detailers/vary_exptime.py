@@ -7,8 +7,7 @@ __all__ = ["Vary_expt_detailer", "calc_target_m5s"]
 
 
 def calc_target_m5s(alt=65., fiducial_seeing=0.9, exptime=20.):
-    """
-    Use the skybrightness model to find some good target m5s.
+    """Use the skybrightness model to find some good target m5s.
 
     Parameters
     ----------
@@ -39,8 +38,7 @@ def calc_target_m5s(alt=65., fiducial_seeing=0.9, exptime=20.):
 
 
 class Vary_expt_detailer(Base_detailer):
-    """
-    Detailer to vary the exposure time on observations to try and keep each observation at uniform depth.
+    """Vary the exposure time on observations to try and keep each observation at uniform depth.
 
     Parameters
     ----------

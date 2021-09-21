@@ -16,8 +16,12 @@ found in the github repo at
 To be able to simulate a full 10 years of observations, additional skybrightness
 data files must be downloaded (about 250GB), which can be done using the
 script `rubin_sim/bin/rs_download_sky <https://github.com/lsst/rubin_sim/bin/rs_download_sky>`_.
-
 A typical simulation will take on the order of 6 hours to complete.
+
+The scheduler outputs a sqlite database containing the pointing history of
+the telescope, along with information about the conditions of each
+observation (visit).
+Description of the :doc:`schema for the output database <output_schema>`.
 
 
 Python API
