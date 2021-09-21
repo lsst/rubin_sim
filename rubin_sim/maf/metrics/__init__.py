@@ -36,3 +36,4 @@ from .snCadenceMetric import *
 from .seasonMetrics import *
 from .scalingMetrics import *
 from .useMetrics import *
+from .brownDwarfMetric import *

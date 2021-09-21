@@ -296,6 +296,17 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
                                  displayDict=displayDict, mapsList=[stellar_map])
         bundleList.append(bundle)
 
+    # Brown Dwarf Volume
+    displayDict['subgroup'] = 'Brown Dwarf'
+    slicer = slicers.HealpixSlicer(nside=nside)
+    sum_stats = [metrics.VolumeSumMetric(nside=nside)]
+    metric = metrics.BDParallaxMetric(mags={'i': 20.09, 'z': 18.18, 'y': 17.13}, metricName='Brown Dwarf, L7')
+    sql = ''
+    plotDict = {}
+    bundleList.append(mb.MetricBundle(metric, slicer, sql, plotDict=plotDict,
+                                      summaryMetrics=sum_stats, displayDict=displayDict,
+                                      runName=runName))
+
     #########################
     # Scaling numbers
     #########################
