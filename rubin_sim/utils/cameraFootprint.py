@@ -51,9 +51,11 @@ class LsstCameraFootprint(object):
 
         Returns
         -------
-        np.ndarray
+        indices: `np.ndarray`
             Returns the indexes of the numpy array of the object observations
-            which are inside the fov and land on a science chip
+            which are inside the fov and land on a science chip.
+            Applying this to the input array (e.g. obj_ra[indices]) indicates the positions of
+            the objects which fell onto active silicon.
         """
         if self.units == 'degrees':
             x_proj, y_proj = gnomonic_project_toxy(np.radians(obj_ra),
