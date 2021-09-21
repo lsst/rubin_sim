@@ -1,7 +1,6 @@
-name: Run All Tests with all Downloaded Data
+name: Run Full Tests
 
-on:
-  workflow_dispatch:
+on: [workflow_dispatch]
 
 jobs:
   AllTests:
