@@ -71,7 +71,7 @@ class Orbits(object):
 
         Parameters
         ----------
-        orbits : pandas.DataFrame, pandas.Series or numpy.ndarray
+        orbits : `pd.DataFrame`, `pd.Series` or `np.ndarray`
            Array-like object containing orbital parameter information.
         """
         # Do we have a single item or multiples?
@@ -172,12 +172,12 @@ class Orbits(object):
 
         Parameters
         ----------
-        orbits : pandas.DataFrame, pandas.Series or numpy.ndarray
+        orbits : `pd.DataFrame`, `pd.Series` or `np.ndarray`
            Array-like object containing orbital parameter information.
 
         Returns
         -------
-        numpy.ndarray
+        sedvals : `np.ndarray`
             Array containing the SED type for each object in 'orbits'.
         """
         # using fig. 23 from Ivezic et al. 2001 (AJ, 122, 2749),
@@ -223,11 +223,11 @@ class Orbits(object):
 
         Parameters
         ----------
-        orbitfile : str
+        orbitfile : `str`
             The name of the input file containing orbital parameter information.
-        delim : str, optional
+        delim : `str`, optional
             The delimiter for the input orbit file. Default is None, will use delim_whitespace=True.
-        skiprows : int, optional
+        skiprows : `int`, optional
             The number of rows to skip before reading the header information for pandas.
             Default is None, which will trigger a check of the file to look for the header columns.
         """
@@ -354,7 +354,7 @@ class Orbits(object):
 
         Parameters
         ----------
-        neworb: pandas.DataFrame
+        neworb: `pd.DataFrame`
         """
         col_orig = ['objId', 'sed_filename']
         new_order = ['objId'] + [n for n in neworb.columns] + ['sed_filename']

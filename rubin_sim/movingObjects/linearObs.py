@@ -3,7 +3,6 @@ import datetime
 import numpy as np
 from scipy import interpolate
 
-from .ooephemerides import PyOrbEphemerides
 from .baseObs import BaseObs
 
 __all__ = ['LinearObs']
@@ -17,56 +16,56 @@ class LinearObs(BaseObs):
 
     Parameters
     ----------
-    footPrint: str, optional
+    footPrint: `str`, optional
         Specify the footprint for the FOV. Options include "camera", "circle", "rectangle".
         'Camera' means use the actual LSST camera footprint (following a rough cut with a circular FOV).
         Default is circular FOV.
-    rFov : float, optional
+    rFov : `float`, optional
         If footprint is "circle", this is the radius of the fov (in degrees).
         Default 1.75 degrees.
-    xTol : float, optional
+    xTol : `float`, optional
         If footprint is "rectangle", this is half of the width of the (on-sky) fov in the RA
         direction (in degrees).
         Default 5 degrees. (so size of footprint in degrees will be 10 degrees in the RA direction).
-    yTol : float, optional
+    yTol : `float`, optional
         If footprint is "rectangular", this is half of the width of the fov in Declination (in degrees).
         Default is 3 degrees (so size of footprint in degrees will be 6 degrees in the Dec direction).
-    ephMode: str, optional
+    ephMode: `str`, optional
         Mode for ephemeris generation - nbody or 2body. Default is nbody.
-    ephType: str, optional
+    ephType: `str`, optional
         Type of ephemerides to generate - full or basic.
         Full includes all values calculated by openorb; Basic includes a more basic set.
         Default is Basic.  (this includes enough information for most standard MAF metrics).
-    ephFile: str or None, optional
+    ephFile: `str` or None, optional
         The name of the planetary ephemerides file to use for ephemeris generation.
         Default (None) will use the default for PyOrbEphemerides.
-    obsCode: str, optional
+    obsCode: `str`, optional
         Observatory code for ephemeris generation. Default is "I11" - Cerro Pachon.
-    obsTimeCol: str, optional
+    obsTimeCol: `str`, optional
         Name of the time column in the obsData. Default 'observationStartMJD'.
-    obsTimeScale: str, optional
+    obsTimeScale: `str`, optional
         Type of timescale for MJD (TAI or UTC currently). Default TAI.
-    seeingCol: str, optional
+    seeingCol: `str`, optional
         Name of the seeing column in the obsData. Default 'seeingFwhmGeom'.
         This should be the geometric/physical seeing as it is used for the trailing loss calculation.
-    visitExpTimeCol: str, optional
+    visitExpTimeCol: `str`, optional
         Name of the visit exposure time column in the obsData. Default 'visitExposureTime'.
-    obsRA: str, optional
+    obsRA: `str`, optional
         Name of the RA column in the obsData. Default 'fieldRA'.
-    obsDec: str, optional
+    obsDec: `str`, optional
         Name of the Dec column in the obsData. Default 'fieldDec'.
     obsRotSkyPos: str, optional
         Name of the Rotator column in the obsData. Default 'rotSkyPos'.
-    obsDegrees: bool, optional
+    obsDegrees: `bool`, optional
         Whether the observational data is in degrees or radians. Default True (degrees).
-    outfileName : str, optional
+    outfileName : `str`, optional
         The output file name.
         Default is 'lsst_obs.dat'.
-    obsMetadata : str, optional
+    obsMetadata : `str`, optional
         A string that captures provenance information about the observations.
-        For example: 'kraken_2026, MJD 59853-61677' or 'baseline2018a minus NES'
+        For example: 'baseline_v2.0_10yrs', MJD 59853-61677' or 'baseline2018a minus NES'
         Default ''.
-    tstep : float, optional
+    tstep : `float`, optional
         The time between points in the ephemeris grid, in days.
         Default 2 hours.
     """
@@ -98,12 +97,12 @@ class LinearObs(BaseObs):
 
         Parameters
         ----------
-        ephs : np.recarray
+        ephs : `np.ndarray`
             Grid of actual ephemerides, for a single object.
 
         Returns
         -------
-        dictionary
+        interpfuncs : `dict`
             Dictionary of the interpolation functions.
         """
         interpfuncs = {}
@@ -154,9 +153,9 @@ class LinearObs(BaseObs):
 
         Parameters
         ----------
-        orbits: lsst.sims.movingObjects.Orbits
+        orbits : `rubin_sim.movingObjects.Orbits`
             The orbits to generate ephemerides for.
-        obsData : np.recarray
+        obsData : `np.ndarray`
             The simulated pointing history data.
         """
         # Set the times for the ephemeris grid.

@@ -21,7 +21,7 @@ class ChebyValues(object):
 
         Parameters
         ----------
-        chebyFits : chebyFits
+        chebyFits : `rubin_sim.movingObjects.chebyFits`
             ChebyFits object, with attribute 'coeffs' - a dictionary of lists of coefficients.
         """
         self.coeffs = chebyFits.coeffs
@@ -40,7 +40,7 @@ class ChebyValues(object):
 
         Parameters
         ----------
-        chebyFitsFile : str
+        chebyFitsFile : `str`
             The filename of the coefficients file.
         """
         if not os.path.isfile(chebyFitsFile):
@@ -74,21 +74,21 @@ class ChebyValues(object):
 
         Parameters
         ----------
-        segmentIdx : int
+        segmentIdx : `int`
             The index in (each of) self.coeffs for the segment.
             e.g. the first segment, for each object.
-        times : np.ndarray
+        times : `np.ndarray`
             The times at which to evaluate the segment.
-        subsetSegments : numpy.ndarray, optional
+        subsetSegments : `np.ndarray`, optional
             Optionally specify a subset of the total segment indexes.
             This lets you pick out particular objIds.
-        mask : bool, optional
+        mask : `bool`, optional
             If True, returns NaNs for values outside the range of times in the segment.
             If False, extrapolates segment for times outside the segment time range.
 
         Returns
         -------
-        dict
+        ephemeris : `dict`
            Dictionary of RA, Dec, delta, vmag, and elongation values for the segment indicated,
            at the time indicated.
         """
@@ -121,17 +121,17 @@ class ChebyValues(object):
 
         Parameters
         ----------
-        times : float or np.ndarray
+        times : `float` or `np.ndarray`
             The time to calculate ephemeris positions.
-        objIds : numpy.ndarray, optional
+        objIds : `np.ndarray`, opt
             The object ids for which to generate ephemerides. If None, then just uses all objects.
-        extrapolate : bool
+        extrapolate : `bool`, opt
             If True, extrapolate beyond ends of segments if time outside of segment range.
             If False, return ValueError if time is beyond range of segments.
 
         Returns
         -------
-        numpy.ndarray
+        ephemerides : `np.ndarray`
             The ephemeris positions for all objects.
             Note that these may not be sorted in the same order as objIds.
         """

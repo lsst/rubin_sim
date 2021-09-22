@@ -165,7 +165,7 @@ class ChebyFits(object):
 
         Returns
         -------
-        numpy.ndarray
+        np.ndarray
             Numpy array of times.
         """
         try:
@@ -181,7 +181,7 @@ class ChebyFits(object):
 
         Parameters
         ----------
-        times : numpy.ndarray
+        times : np.ndarray
             The times to use for ephemeris generation.
         """
         return self.pyephems.generateEphemerides(times, obscode=self.obscode,
@@ -317,16 +317,16 @@ class ChebyFits(object):
 
         Parameters
         ----------
-        times : numpy.ndarray
+        times : np.ndarray
             The times of the ephemerides.
-        ephs : numpy.ndarray
+        ephs : np.ndarray
             The structured array returned by PyOrbEphemerides holding ephemeris values, for one object.
 
         Returns
         -------
-        numpy.ndarray
+        np.ndarray
             The ra coefficients
-        numpy.ndarray
+        np.ndarray
             The dec coefficients
         float
             The positional error residuals between fit and ephemeris values, in mas.
@@ -353,7 +353,7 @@ class ChebyFits(object):
 
         Parameters
         ----------
-        ephs : numpy.ndarray
+        ephs : np.ndarray
             The structured array returned by PyOrbEphemerides holding ephemeris values, for one object.
 
         Returns
@@ -401,7 +401,7 @@ class ChebyFits(object):
         ----------
         orbitObj : Orbits
             The single Orbits object we're fitting at the moment.
-        ephs : numpy.ndarray
+        ephs : np.ndarray
             The ephemerides we're fitting at the moment (for the single object / single segment).
         """
         objId = orbitObj.orbits.objId.iloc[0]
@@ -448,7 +448,7 @@ class ChebyFits(object):
         ----------
         orbitObj : Orbits
             The single Orbits object we're fitting at the moment.
-        ephs : numpy.ndarray
+        ephs : np.ndarray
             The ephemerides we're fitting at the moment (for the single object / single segment).
         """
         newCheby = ChebyFits(orbitObj, ephs['time'][0], (ephs['time'][-1] - ephs['time'][0]),
