@@ -1,5 +1,4 @@
 import os
-import logging
 from itertools import repeat
 import numpy as np
 import pandas as pd
@@ -31,7 +30,7 @@ class PyOrbEphemerides(object):
 
     Parameters
     ----------
-    ephfile : str, optional
+    ephfile : `str`, optional
         Planetary ephemerides file for Oorb (i.e. de430 or de405).
         Default $OORB_DATA/de430.dat  ($OORB_DATA = $OORB_DIR/data).
     """
@@ -61,7 +60,7 @@ class PyOrbEphemerides(object):
 
         Parameters
         ----------
-        orbitObj : Orbits
+        orbitObj : `rubin_sim.movingObjects.Orbits`
            The orbits to use to generate ephemerides.
         """
         if len(orbitObj) == 0:
@@ -124,12 +123,12 @@ class PyOrbEphemerides(object):
 
         Parameters
         ----------
-        oorbElem : numpy.ndarray
+        oorbElem : `np.ndarray`
             The orbital elements in OpenOrb format.
 
         Returns
         -------
-        pd.DataFrame
+        newOrbits : `pd.DataFrame`
             A DataFrame with the appropriate subset of columns relating to orbital elements.
         """
         if self.orb_format == 'KEP':
@@ -166,11 +165,8 @@ class PyOrbEphemerides(object):
 
         Parameters
         ----------
-        format : str, optional
+        format : `str`, optional
             Format to convert orbital elements into.
-
-        Returns
-        -------
         """
         oorbElem, err = oo.pyoorb.oorb_element_transformation(in_orbits=self.oorbElem,
                                                               in_element_type=self.elemType[orb_format])
@@ -186,14 +182,14 @@ class PyOrbEphemerides(object):
 
         Parameters
         ----------
-        times : numpy.ndarray or float
+        times : `np.ndarray` or `float`
             The ephemeris times (MJD) desired
-        timeScale : str, optional
+        timeScale : `str`, optional
             The timescale (UTC, UT1, TT, TAI) of the ephemeris MJD values. Default = UTC, MJD.
 
         Returns
         -------
-        numpy.ndarray
+        ephTimes : `np.ndarray`
             The oorb-formatted 'ephTimes' array.
         """
         if isinstance(times, float):
@@ -209,14 +205,14 @@ class PyOrbEphemerides(object):
 
         Parameters
         ----------
-        ephtimes : numpy.ndarray
+        ephtimes : `np.ndarray`
             Ephemeris times in oorb format (see self.convertTimes)
-        obscode : int or str, optional
+        obscode : `int` or `str`, optional
             The observatory code for ephemeris generation. Default=I11 (Cerro Pachon).
 
         Returns
         -------
-        numpy.ndarray
+        ephemerides : `np.ndarray`
             The oorb-formatted ephemeris array.
         """
         oorbEphems, err = oo.pyoorb.oorb_ephemeris_full(in_orbits=self.oorbElem,
@@ -278,7 +274,7 @@ class PyOrbEphemerides(object):
 
         Parameters
         ----------
-        oorbEphs : numpy.ndarray
+        oorbEphs : `np.ndarray`
             The oorb-formatted ephemeris values
         byObject : `bool`, optional
             If True (default), resulting converted ephemerides are grouped by object.
@@ -286,7 +282,7 @@ class PyOrbEphemerides(object):
 
         Returns
         -------
-        numpy.recarray
+        ephemerides : `np.ndarray`
             The re-arranged ephemeris values, in a 3-d array.
         """
         ephs = np.swapaxes(oorbEphs, 2, 0)
@@ -315,14 +311,14 @@ class PyOrbEphemerides(object):
 
         Parameters
         ----------
-        ephtimes : numpy.ndarray
+        ephtimes : `np.ndarray`
             Ephemeris times in oorb format (see self.convertTimes).
-        obscode : int or str, optional
+        obscode : `int` or `str`, optional
             The observatory code for ephemeris generation. Default=I11 (Cerro Pachon).
 
         Returns
         -------
-        numpy.ndarray
+        oorbEphems : `np.ndarray`
             The oorb-formatted ephemeris array.
         """
         oorbEphems, err = oo.pyoorb.oorb_ephemeris_basic(in_orbits=self.oorbElem,
@@ -361,7 +357,7 @@ class PyOrbEphemerides(object):
 
         Parameters
         ----------
-        oorbEphs : numpy.ndarray
+        oorbEphs : `np.ndarray`
             The oorb-formatted ephemeris values
         byObject : `bool`, optional
             If True (default), resulting converted ephemerides are grouped by object.
@@ -369,7 +365,7 @@ class PyOrbEphemerides(object):
 
         Returns
         -------
-        numpy.recarray
+        ephs : `np.ndarray`
             The re-arranged ephemeris values, in a 3-d array.
         """
         ephs = np.swapaxes(oorbEphs, 2, 0)
@@ -408,23 +404,23 @@ class PyOrbEphemerides(object):
 
         Parameters
         ----------
-        ephtimes : numpy.ndarray
+        ephtimes : `np.ndarray`
             Ephemeris times in oorb format (see self.convertTimes)
-        obscode : int or str, optional
+        obscode : `int` or `str`, optional
             The observatory code for ephemeris generation. Default=807 (Cerro Tololo).
         byObject : `bool`, optional
             If True (default), resulting converted ephemerides are grouped by object.
             If False, resulting converted ephemerides are grouped by time.
-        ephMode : str, optional
+        ephMode : `str`, optional
             Dynamical model to use for ephemeris generation - nbody or 2body.
             Accepts 'nbody', '2body', 'N' or '2'. Default nbody.
-        ephType : str, optional
+        ephType : `str`, optional
             Generate full (more data) ephemerides or basic (less data) ephemerides.
             Default basic.
 
         Returns
         -------
-        numpy.ndarray
+        ephemerides : `np.ndarray`
             The ephemeris values, organized as chosen by the user.
         """
         if ephMode.lower() in ('nbody', 'n'):
@@ -458,7 +454,7 @@ class PyOrbEphemerides(object):
 
         Parameters
         ----------
-        new_epoch : float
+        new_epoch : `float`
             MJD TT time for new epoch.
         """
         newEpoch = self._convertTimes(newEpoch, timeScale='TT')

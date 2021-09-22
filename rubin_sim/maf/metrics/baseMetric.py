@@ -178,7 +178,7 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
 
         Parameters
         ----------
-        dataSlice : `numpy.ndarray`
+        dataSlice : `np.ndarray`
            Values passed to metric by the slicer, which the metric will use to calculate
            metric values at each slicePoint.
         slicePoint : `dict`

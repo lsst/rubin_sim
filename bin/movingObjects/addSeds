@@ -2,7 +2,6 @@
 
 import os
 import argparse
-import warnings
 import numpy as np
 from rubin_sim.movingObjects import Orbits
 from itertools import repeat

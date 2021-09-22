@@ -22,20 +22,20 @@ def chebeval(x, p, interval=(-1., 1.), doVelocity=True, mask=False):
 
     Parameters
     ----------
-    x: scalar or numpy.ndarray
+    x: `scalar` or `np.ndarray`
         Points at which to evaluate the polynomial.
-    p: numpy.ndarray
+    p:  `np.ndarray`
         Chebyshev polynomial coefficients, as returned by chebfit.
     interval: 2-element list/tuple
         Bounds the x-interval on which the Chebyshev coefficients were fit.
-    doVelocity: bool
+    doVelocity: `bool`
         If True, compute the first derivative at points x.
-    mask: bool
+    mask: `bool`
         If True, return Nans when the x goes beyond 'interval'.
         If False, extrapolate fit beyond 'interval' limits.
     Returns
     -------
-    scalar or numpy.ndarray, scalar or numpy.ndarray
+    y, v: `float` or `np.ndarray`, `float` or `np.ndarray` (or None)
         Y (position) and velocity values (if computed)
     """
     if len(interval) != 2:
@@ -115,20 +115,20 @@ def makeChebMatrix(nPoints, nPoly, weight=0.16):
 
     Parameters
     ----------
-    nPoints: int
+    nPoints: `int`
         Number of point to be fits. Must be greater than 2.
-    nPoly:  int
+    nPoly:  `int`
         Number of polynomial terms. Polynomial degree + 1
-    weight: float, optional
+    weight: `float`, optional
         Weight to allow control of relative effectos of position and velocity
         values. Newhall80 found best results are obtained with velocity weighted
         at 0.4 relative to position, giving W the form (1.0, 0.16, 1.0, 0.16,...)
 
     Returns
     -------
-    numpy.ndarray
+    c1c2: `np.ndarray`
         xMultiplier, C1^(-1)C2 even rows of shape (nPoints+1)x(nPoly) to be multiplied by x values.
-    numpy.ndarray
+    c1c2: `np.ndarray`
         dxMultiplier, C1^(-1)C2 odd rows of shape (nPoints+1)x(nPoly) to be multiplied by dx/dy values
     """
     tmat = np.zeros([nPoints, nPoly])
@@ -194,14 +194,14 @@ def makeChebMatrixOnlyX(nPoints, nPoly):
 
     Parameters
     ----------
-    nPoints : int
+    nPoints : `int`
         Number of point to be fits. Must be greater than 2.
-    nPoly : int
+    nPoly : `int`
         Number of polynomial terms. Polynomial degree + 1
 
     Returns
     -------
-    numpy.ndarray
+    c1c2: `np.ndarray`
         xMultiplier, Even rows of C1^(-1)C2 w/ shape (nPoints+1)x(nPoly) to be multiplied by x values
     """
 
@@ -254,33 +254,33 @@ def chebfit(t, x, dxdt=None, xMultiplier=None, dxMultiplier=None, nPoly=7):
 
     Parameters
     ----------
-    t : numpy.ndarray
+    t : `np.ndarray`
         Array of regularly sampled independent variable (e.g. time)
-    x : numpy.ndarray
+    x : `np.ndarray`
         Array of regularly sampled dependent variable (e.g. declination)
-    dxdt : numpy.ndarray, optional
+    dxdt : `np.ndarray', optional
         Optionally, array of first derivatives of x with respect to t,
         at the same grid points. (e.g. sky velocity ddecl/dt)
-    xMultiplier : numpy.ndarray, optional
+    xMultiplier : `np.ndarray`, optional
         Optional 2D Matrix with rows of C1^(-1)C2 corresponding to x.
         Use makeChebMatrix to compute
-    dxMultiplier : numpy.ndarray, optional
+    dxMultiplier : `np.ndarray`, optional
         Optional 2D Matrix with rows of C1^(-1)C2 corresponding to dx/dt.
         Use makeChebMatrix to compute
-    nPoly : int, optional
+    nPoly : `int`, optional
         Number of polynomial terms. Degree + 1.  Must be >=2 and <=2*nPoints,
         when derivative information is specified, or <=nPoints, when no
         derivative information is specified. Default = 7.
 
     Returns
     -------
-    numpy.ndarray
+    a_n : `np.ndarray`
         Array of chebyshev coefficients with length=nPoly.
-    numpy.ndarray
+    residuals : `np.ndarray`
         Array of residuals of the tabulated function x minus the approximated function.
-    float
+    rms : `float`
         The rms of the residuals in the fit.
-    float
+    maxresid : `float`
         The maximum of the residals to the fit.
     """
     nPoints = len(t)

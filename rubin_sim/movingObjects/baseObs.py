@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pandas as pd
 import warnings
 import datetime
 
@@ -20,54 +21,54 @@ class BaseObs(object):
 
     Parameters
     ----------
-    footPrint: str, optional
+    footPrint: `str`, optional
         Specify the footprint for the FOV. Options include "camera", "circle", "rectangle".
         'Camera' means use the actual LSST camera footprint (following a rough cut with a circular FOV).
         Default is camera FOV.
-    rFov : float, optional
+    rFov : `float`, optional
         If footprint is "circular", this is the radius of the fov (in degrees).
         Default 1.75 degrees (only used for circular fov).
-    xTol : float, optional
+    xTol : `float`, optional
         If footprint is "rectangular", this is half of the width of the (on-sky) fov in the RA
         direction (in degrees).
         Default 5 degrees. (so size of footprint in degrees will be 10 degrees in the RA direction).
-    yTol : float, optional
+    yTol : `float`, optional
         If footprint is "rectangular", this is half of the width of the fov in Declination (in degrees).
         Default is 3 degrees (so size of footprint in degrees will be 6 degrees in the Dec direction).
-    ephMode: str, optional
+    ephMode: `str`, optional
         Mode for ephemeris generation - nbody or 2body. Default is nbody.
-    ephType: str, optional
+    ephType: `str`, optional
         Type of ephemerides to generate - full or basic.
         Full includes all values calculated by openorb; Basic includes a more basic set.
         Default is Basic.  (this includes enough information for most standard MAF metrics).
-    ephFile: str or None, optional
+    ephFile: `str` or None, optional
         The name of the planetary ephemerides file to use for ephemeris generation.
         Default (None) will use the default for PyOrbEphemerides.
-    obsCode: str, optional
+    obsCode: `str`, optional
         Observatory code for ephemeris generation. Default is "I11" - Cerro Pachon.
-    obsTimeCol: str, optional
+    obsTimeCol: `str`, optional
         Name of the time column in the obsData. Default 'observationStartMJD'.
-    obsTimeScale: str, optional
+    obsTimeScale: `str`, optional
         Type of timescale for MJD (TAI or UTC currently). Default TAI.
-    seeingCol: str, optional
+    seeingCol: `str`, optional
         Name of the seeing column in the obsData. Default 'seeingFwhmGeom'.
         This should be the geometric/physical seeing as it is used for the trailing loss calculation.
-    visitExpTimeCol: str, optional
+    visitExpTimeCol: `str`, optional
         Name of the visit exposure time column in the obsData. Default 'visitExposureTime'.
-    obsRA: str, optional
+    obsRA: `str`, optional
         Name of the RA column in the obsData. Default 'fieldRA'.
-    obsDec: str, optional
+    obsDec: `str`, optional
         Name of the Dec column in the obsData. Default 'fieldDec'.
-    obsRotSkyPos: str, optional
+    obsRotSkyPos: `str`, optional
         Name of the Rotator column in the obsData. Default 'rotSkyPos'.
-    obsDegrees: bool, optional
+    obsDegrees: `bool`, optional
         Whether the observational data is in degrees or radians. Default True (degrees).
-    outfileName : str, optional
+    outfileName : `str`, optional
         The output file name.
         Default is 'lsst_obs.dat'.
-    obsMetadata : str, optional
+    obsMetadata : `str`, optional
         A string that captures provenance information about the observations.
-        For example: 'kraken_2026, MJD 59853-61677' or 'baseline2018a minus NES'
+        For example: 'baseline_v2.0_10yrs, years 0-5' or 'baseline2018a minus NES'
         Default ''.
     """
     def __init__(self, footprint='camera', rFov=1.75, xTol=5, yTol=3,
@@ -129,16 +130,16 @@ class BaseObs(object):
 
         Parameters
         ----------
-        sso: lsst.sims.movingObjects.Orbits
+        sso : `rubin_sim.movingObjects.Orbits`
             Typically this will be a single object.
-        times: np.ndarray
+        times: `np.ndarray`
             The times at which to generate ephemerides. MJD.
-        ephMode: str or None, optional
+        ephMode: `str` or None, optional
             Potentially override default ephMode (self.ephMode). Must be '2body' or 'nbody'.
 
         Returns
         -------
-        pandas.Dataframe
+        ephs : `pd.Dataframe`
             Ephemerides of the sso.
         """
         if not hasattr(self, "ephems"):
@@ -171,16 +172,16 @@ class BaseObs(object):
 
         Parameters
         ----------
-        velocity : np.ndarray or float
+        velocity : `np.ndarray` or `float`
             The velocity of the moving objects, in deg/day.
-        seeing : np.ndarray or float
+        seeing : `np.ndarray` or `float`
             The seeing of the images, in arcseconds.
-        texp : np.ndarray or float, optional
+        texp : `np.ndarray` or `float`, optional
             The exposure time of the images, in seconds. Default 30.
 
         Returns
         -------
-        (np.ndarray, np.ndarray) or (float, float)
+        dmag Trail, dmagDetect : (`np.ndarray`, `np.ndarray`) or (`float`, `float`)
             dmagTrail and dmagDetect for each set of velocity/seeing/texp values.
         """
         a_trail = 0.761
@@ -203,23 +204,23 @@ class BaseObs(object):
 
         Parameters
         ----------
-        filterDir : str, optional
+        filterDir : `str`, optional
             Directory containing the filter throughput curves ('total*.dat')
             Default set by 'LSST_THROUGHPUTS_BASELINE' env variable.
-        bandpassRoot : str, optional
+        bandpassRoot : `str`, optional
             Rootname of the throughput curves in filterlist.
             E.g. throughput curve names are bandpassRoot + filterlist[i] + bandpassSuffix
             Default 'total_' (appropriate for LSST throughput repo).
-        bandpassSuffix : str, optional
+        bandpassSuffix : `str`, optional
             Suffix for the throughput curves in filterlist.
             Default '.dat' (appropriate for LSST throughput repo).
-        filterlist : list, optional
+        filterlist : `list`, optional
             List containing the filter names to use to calculate colors.
             Default ('u', 'g', 'r', 'i', 'z', 'y')
-        vDir : str, optional
+        vDir : `str`, optional
             Directory containing the V band throughput curve.
             Default None = $SIMS_MOVINGOBJECTS_DIR/data.
-        vFilter : str, optional
+        vFilter : `str`, optional
             Name of the V band filter curve.
             Default harris_V.dat.
         """
@@ -246,15 +247,15 @@ class BaseObs(object):
 
         Parameters
         ----------
-        sedname : str (optional)
+        sedname : `str`, optional
             Name of the SED. Default 'C.dat'.
-        sedDir : str (optional)
+        sedDir : `str`, optional
             Directory containing the SEDs of the moving objects.
             Default None = $SIMS_MOVINGOBJECTS_DIR/data.
 
         Returns
         -------
-        dict
+        colors : `dict`
             Dictionary of the colors in self.filterlist for this particular Sed.
         """
         if sedname not in self.colors:
@@ -274,14 +275,14 @@ class BaseObs(object):
 
         Parameters
         ----------
-        ephems : np.recarray
+        ephems : `np.recarray`
             Ephemerides for the objects.
-        obsData : np.recarray
+        obsData : `np.recarray`
             The observation pointings.
 
         Returns
         -------
-        numpy.ndarray
+        indices : `np.ndarray`
             Returns the indexes of the numpy array of the object observations which are inside the fov.
         """
         return self._ssoInCircleFov(ephems, obsData, self.rFov)
@@ -302,14 +303,14 @@ class BaseObs(object):
 
         Parameters
         ----------
-        ephems : np.recarray
+        ephems : `np.recarray`
             Ephemerides for the objects.
-        obsData : np.recarray
+        obsData : `np.recarray`
             The observation pointings.
 
         Returns
         -------
-        numpy.ndarray
+        indices : `np.ndarray`
             Returns the indexes of the numpy array of the object observations which are inside the fov.
         """
         return self._ssoInRectangleFov(ephems, obsData, self.xTol, self.yTol)
@@ -326,14 +327,14 @@ class BaseObs(object):
 
         Parameters
         ----------
-        ephems : np.recarray
+        ephems : `np.ndarray`
             Ephemerides for the objects.
-        obsData : np.recarray
+        obsData : `np.ndarray`
             Observation pointings.
 
         Returns
         -------
-        np.ndarray
+        indices : `np.ndarray`
             Returns the indexes of the numpy array of the object observations which are inside the fov.
         """
         if not hasattr(self, 'camera'):
@@ -353,14 +354,14 @@ class BaseObs(object):
 
         Parameters
         ----------
-        ephems : np.recarray
+        ephems : `np.ndarray`
             Ephemerides for the objects.
-        obsData : np.recarray
+        obsData : `np.ndarray`
             Observation pointings.
 
         Returns
         -------
-        np.ndarray
+        indices : `np.ndarray`
             Returns the indexes of the numpy array of the object observations which are inside the fov.
         """
         if self.footprint == "camera":
@@ -426,16 +427,16 @@ class BaseObs(object):
 
         Parameters
         ----------
-        objId : str or int or float
+        objId : `str` or `int` or `float`
             The identifier for the object (from the orbital parameters)
-        objEphs : numpy.ndarray
+        objEphs : `np.ndarray`
             The ephemeris values of the object at each observation.
             Note that the names of the columns are encoded in the numpy structured array,
             and any columns included in the returned ephemeris array will also be propagated to the output.
-        obsData : numpy.ndarray
+        obsData : `np.ndarray`
             The observation details from the simulated pointing history, for all observations of
             the object. All columns automatically propagated to the output file.
-        sedname : str, out
+        sedname : `str`, out
             The sed_filename for the object (from the orbital parameters).
             Used to calculate the appropriate color terms for the output file.
             Default "C.dat".
