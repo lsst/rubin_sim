@@ -1,6 +1,5 @@
 import numpy as np
 import healpy as hp
-from scipy import interpolate
 from scipy.optimize import minimize
 
 import pandas as pd
@@ -17,25 +16,20 @@ class StaticProbesFoMEmulatorMetric(BaseMetric):
     
     This metric should be run as a summary metric on ExgalM5_with_cuts.
     This FoM takes into account the effects of the following systematics:
-        - multiplicative shear bias
-        - intrinsic alignments
-        - galaxy bias
-        - baryonic physics effects
-        - photometric redshift uncertainties
+    - multiplicative shear bias
+    - intrinsic alignments
+    - galaxy bias
+    - baryonic physics effects
+    - photometric redshift uncertainties
     Default values for these systematics are provided
     
     The Emulator is uses a Gaussian Process to effectively interpolate between 
-    a grid of FoM values. 
+    a grid of FoM values.
+
     """
     def __init__(self, nside=128,
                  shear_m=0.003, sigma_z=0.05, sig_delta_z=0.001, sig_sigma_z=0.003,
                  col=None, **kwargs):
-        
-        """
-        Args:
-            nside (int): healpix resolution
-            col (str): column name of metric data.
-        """
         self.nside = nside
         super().__init__(col=col, **kwargs)
         if col is None:
@@ -96,16 +90,6 @@ class StaticProbesFoMEmulatorMetric(BaseMetric):
         )
         
     def run(self, dataSlice, slicePoint=None):
-        """
-        Args:
-            dataSlice (ndarray): Values passed to metric by the slicer, 
-                which the metric will use to calculate metric values 
-                at each slicePoint.
-            slicePoint (Dict): Dictionary of slicePoint metadata passed
-                to each metric.
-        Returns:
-             float: Interpolated static-probes Figure-of-Merit.
-        """
         import george
         from george import kernels
         from george.metrics import Metric

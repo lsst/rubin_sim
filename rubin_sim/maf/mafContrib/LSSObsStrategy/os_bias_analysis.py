@@ -59,21 +59,24 @@ def get_theory_spectra(mock_data_path, mag_cut=25.6, plot_spectra=True, nside=25
 
     Parameters
     -------------------
-      * mock_data_path: str: path to the folder with the theory spectra
+    mock_data_path : `str`
+        path to the folder with the theory spectra
+    mag_cut: `float`
+        r-band magnitude cut as the identifer in the filename from Hu.
+        allowed options: 24.0, 25.6, 27.5. Default: 25.6
+    plot_spectra : `bool`
+        set to True if want to plot out the skymaps. Default: True
+    nside : `int`
+        HEALpix resolution parameter. Default: 256
 
     Returns
     -------
-      * ell: numpy array containing the ells
-      * wBAO_cls: dict: keys = zbin_tags; data = spectra (pixelized for specified nside)
-      * surf_num_density: float: surface number density in 1/Sr
-
-    Parameters
-    -------------------
-      * mag_cut: float: r-band magnitude cut as the identifer in the filename from Hu.
-                        allowed options: 24.0, 25.6, 27.5. Default: 25.6
-      * plot_spectra: bool: set to True if want to plot out the skymaps. Default: True
-      * nside: int: HEALpix resolution parameter. Default: 256
-
+    ell : `np.ndarray`
+        array containing the ells
+    wBAO_cls : `dict`
+        keys = zbin_tags; data = spectra (pixelized for specified nside)
+    surf_num_density : `float`
+        surface number density in 1/Sr
     """
     # read in the galaxy power spectra with the BAO
     filename = '%s/cls015-200z_r%s.bins'%(mock_data_path, mag_cut)
@@ -213,9 +216,6 @@ def return_cls(path, outdir, band, specified_dith=None):
                    artificialStructure are saved.
       * outdir: str: name of the directory where the cls are situated.
       * band: str: band to consider. Options: 'u', 'g', 'r', 'i', 'z', 'y'
-
-    Parameters
-    ------------------
       * specified_dith: list of str: list of the names (strings) of the dither strategies to consider, e.g.
                                     if want to plot only NoDither, specified_dith_only= ['NoDither']
     """
@@ -346,9 +346,6 @@ def os_bias_overplots(out_dir, data_paths, lim_mags_i, legend_labels, fsky_dith_
       * run_name: str: run name tag to identify the output of specified OpSim output.
       * theory_lim_mag: float: magnitude cut as the identifer in the filename from Hu.
                                Allowed options: 24.0, 25.6, 27.5
-
-    Parameters
-    -------------------
       * specified_dith_only: list of string: list of the names (strings) of the dither strategies to consider, e.g.
                                                if want to plot only NoDither, specified_dith_only= ['NoDither']. If
                                                nothing is specified, all the dither strategies will be considered
@@ -600,9 +597,6 @@ def os_bias_overplots_diff_dbs(out_dir, data_path, run_names, legend_labels, fsk
       * theory_lim_mag: float: magnitude cut as the identifer in the filename from Hu.
                                Allowed options: 24.0, 25.6, 27.5
       * lim_mag_i: float: i-band magnitude cut to get the data for.
-
-    Parameters
-    -------------------
       * specified_dith_only: list of string: list of the names (strings) of the dither strategies to consider, e.g.
                                            if want to plot only NoDither, specified_dith_only=['NoDither']. If
                                            nothing is specified, all the dither strategies will be considered

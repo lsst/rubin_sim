@@ -38,6 +38,7 @@ class BaseMoStacker(BaseStacker):
 class MoMagStacker(BaseMoStacker):
     """Add columns relevant to SSobject apparent magnitudes and visibility to the slicer ssoObs
     dataframe, given a particular Href and current Hval.
+
     Specifically, this stacker adds magLimit, appMag, SNR, and vis.
     magLimit indicates the appropriate limiting magnitude to consider for a particular object in a particular
     observation, when combined with the losses due to detection (dmagDetect) or trailing (dmagTrail).
@@ -45,22 +46,23 @@ class MoMagStacker(BaseMoStacker):
     SNR adds the SNR of this object, given the magLimit.
     vis adds a flag (0/1) indicating whether an object was visible (assuming a 5sigma threshhold including
     some probabilistic determination of visibility).
+
     Parameters
     ----------
-    m5Col : str, optional
+    m5Col : `str`, optional
         Name of the column describing the 5 sigma depth of each visit. Default fiveSigmaDepth.
-    lossCol : str, optional
+    lossCol : `str`, optional
         Name of the column describing the magnitude losses,
         due to trailing (dmagTrail) or detection (dmagDetect). Default dmagDetect.
-    gamma : float, optional
+    gamma : `float`, optional
         The 'gamma' value for calculating SNR. Default 0.038.
         LSST range under normal conditions is about 0.037 to 0.039.
-    sigma : float, optional
+    sigma : `float`, optional
         The 'sigma' value for probabilistic prediction of whether or not an object is visible at 5sigma.
         Default 0.12.
         The probabilistic prediction of visibility is based on Fermi-Dirac completeness formula (see SDSS,
         eqn 24, Stripe82 analysis: http://iopscience.iop.org/0004-637X/794/2/120/pdf/apj_794_2_120.pdf).
-    randomSeed: int or None, optional
+    randomSeed: `int` or None, optional
         If set, then used as the random seed for the numpy random number
         generation for the dither offsets.
         Default: None.
@@ -135,12 +137,12 @@ class AppMagStacker(BaseMoStacker):
 
     Parameters
     ----------
-    vMagCol : str, optional
+    vMagCol : `str`, optional
         Name of the column containing the base V magnitude for the object at H=Href.
-    lossCol : str, optional
+    lossCol : `str`, optional
         Name of the column describing the magnitude losses,
         due to trailing (dmagTrail) or detection (dmagDetect). Default dmagDetect.
-    colorCol : str, optional
+    colorCol : `str`, optional
         Name of the column describing the color correction (into the observation filter, from V).
         Default dmagColor.
     """
@@ -166,7 +168,7 @@ class CometAppMagStacker(BaseMoStacker):
 
     Parameters
     ----------
-    cometType : str, optional
+    cometType : `str`, optional
         Type of comet - short, oort, or mbc. This setting also sets the value of Afrho1 and k:
         short = Afrho1 / R^2 = 100 cm/km2, k = -4
         oort = Afrho1 / R^2 = 1000 cm/km2, k = -2
@@ -175,13 +177,13 @@ class CometAppMagStacker(BaseMoStacker):
         It is also possible to pass this a dictionary instead: the dictionary should contain 'k' and
         'Afrho1_const' keys, which will be used to set these values directly.
         (e.g. cometType = {'k': -3.5, 'Afrho1_const': 1500}).
-    Ap : float, optional
+    Ap : `float`, optional
         The albedo for calculating the object's size. Default 0.04
-    rhCol : str, optional
+    rhCol : `str`, optional
         The column name for the heliocentric distance (in AU). Default 'helio_dist'.
-    deltaCol : str, optional
+    deltaCol : `str`, optional
         The column name for the geocentric distance (in AU). Default 'geo_dist'.
-    phaseCol : str, optional
+    phaseCol : `str`, optional
         The column name for the phase value (in degrees). Default 'phase'.
     """
     colsAdded = ['appMag']
@@ -266,19 +268,19 @@ class SNRStacker(BaseMoStacker):
 
     Parameters
     ----------
-    appMagCol : str, optional
+    appMagCol : `str`, optional
         Name of the column describing the apparent magnitude of the object. Default 'appMag'.
-    m5Col : str, optional
+    m5Col : `str`, optional
         Name of the column describing the 5 sigma depth of each visit. Default fiveSigmaDepth.
-    gamma : float, optional
+    gamma : `float`, optional
         The 'gamma' value for calculating SNR. Default 0.038.
         LSST range under normal conditions is about 0.037 to 0.039.
-    sigma : float, optional
+    sigma : `float`, optional
         The 'sigma' value for probabilistic prediction of whether or not an object is visible at 5sigma.
         Default 0.12.
         The probabilistic prediction of visibility is based on Fermi-Dirac completeness formula (see SDSS,
         eqn 24, Stripe82 analysis: http://iopscience.iop.org/0004-637X/794/2/120/pdf/apj_794_2_120.pdf).
-    randomSeed: int or None, optional
+    randomSeed: `int` or None, optional
         If set, then used as the random seed for the numpy random number
         generation for the probability of detection. Default: None.
     """
@@ -316,11 +318,11 @@ class EclStacker(BaseMoStacker):
 
     Parameters
     -----------
-    raCol : str, optional
+    raCol : `str`, optional
         Name of the RA column to convert to ecliptic lat/long. Default 'ra'.
-    decCol : str, optional
+    decCol : `str`, optional
         Name of the Dec column to convert to ecliptic lat/long. Default 'dec'.
-    inDeg : bool, optional
+    inDeg : `bool`, optional
         Flag indicating whether RA/Dec are in degrees. Default True.
     """
     colsAdded = ['ecLat', 'ecLon']

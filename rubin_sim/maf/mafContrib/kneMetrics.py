@@ -11,8 +11,7 @@ __all__ = ['KN_lc', 'KNePopMetric', 'generateKNPopSlicer']
 
 
 class KN_lc(object):
-    """
-    Read in some KNe lightcurves
+    """Read in some KNe lightcurves
 
     Parameters
     ----------
@@ -39,7 +38,10 @@ class KN_lc(object):
             self.data.append(new_dict)
 
     def interp(self, t, filtername, lc_indx=0):
-        """
+        """Do the interpolation of the lightcurve for a given time and filter.
+
+        Parameters
+        ----------
         t : array of floats
             The times to interpolate the light curve to.
         filtername : str

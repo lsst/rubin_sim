@@ -253,7 +253,8 @@ class OpsimDatabaseFBS(BaseOpsimDatabase):
         There is no inherent proposal information or mapping in the FBS output.
         An afterburner script can identify which visits may be counted as contributing toward WFD
         and identifies these as such in the proposalID column (0 = general, 1 = WFD, 2+ = DD).
-                Returns dictionary of propID / propname, and dictionary of propTag / propID.
+
+        Returns dictionary of propID / propname, and dictionary of propTag / propID.
         """
         if 'Proposal' not in self.tables:
             print('No proposal table available - no proposalIds have been assigned.')
@@ -289,7 +290,7 @@ class OpsimDatabaseFBS(BaseOpsimDatabase):
 
         Returns
         -------
-        str
+        sqlWhere : `str`
             The SQL constraint, such as '(proposalID = 1) or (proposalID = 2)'
         """
         if (tag not in propTags) or (len(propTags[tag]) == 0):
