@@ -15,20 +15,6 @@ class fSMetric(BaseMetric):
         super().__init__(cols=cols, metricName=metricName, units='fS', **kwargs)
 
     def run(self, dataSlice, slicePoint=None):
-        """"Calculate the fS (reserve above/below the m5 values from the LSST throughputs)
-
-        Parameters
-        ----------
-        dataSlice : numpy.array
-            Numpy structured array containing the data related to the visits provided by the slicer.
-        slicePoint : dict, optional
-            Dictionary containing information about the slicepoint currently active in the slicer.
-
-        Returns
-        -------
-        float
-            The fS value.
-        """
         # We could import this from the m5_flat_sed values, but it makes sense to calculate the m5
         # directly from the throughputs. This is easy enough to do and will allow variation of
         # the throughput curves and readnoise and visit length, etc.
@@ -47,20 +33,6 @@ class TemplateExistsMetric(BaseMetric):
         self.observationStartMJDCol = observationStartMJDCol
 
     def run(self, dataSlice, slicePoint=None):
-        """"Calculate the fraction of images with a previous template image of desired quality.
-
-        Parameters
-        ----------
-        dataSlice : numpy.array
-            Numpy structured array containing the data related to the visits provided by the slicer.
-        slicePoint : dict, optional
-            Dictionary containing information about the slicepoint currently active in the slicer.
-
-        Returns
-        -------
-        float
-            The fraction of images with a 'good' previous template image.
-        """
         # Check that data is sorted in observationStartMJD order
         dataSlice.sort(order=self.observationStartMJDCol)
         # Find the minimum seeing up to a given time
@@ -75,12 +47,14 @@ class TemplateExistsMetric(BaseMetric):
 
 class UniformityMetric(BaseMetric):
     """Calculate how uniformly the observations are spaced in time.
-    Returns a value between -1 and 1.
-    A value of zero means the observations are perfectly uniform.
+
+    This is based on how a KS-test works: look at the cumulative distribution of observation dates,
+    and compare to a perfectly uniform cumulative distribution.
+    Perfectly uniform observations = 0, perfectly non-uniform = 1.
 
     Parameters
     ----------
-    surveyLength : float, optional
+    surveyLength : `float`, optional
         The overall duration of the survey. Default 10.
     """
     def __init__(self, mjdCol='observationStartMJD', units='',
@@ -91,24 +65,6 @@ class UniformityMetric(BaseMetric):
         self.surveyLength = surveyLength
 
     def run(self, dataSlice, slicePoint=None):
-        """"Calculate the survey uniformity.
-
-        This is based on how a KS-test works: look at the cumulative distribution of observation dates,
-        and compare to a perfectly uniform cumulative distribution.
-        Perfectly uniform observations = 0, perfectly non-uniform = 1.
-
-        Parameters
-        ----------
-        dataSlice : numpy.array
-            Numpy structured array containing the data related to the visits provided by the slicer.
-        slicePoint : dict, optional
-            Dictionary containing information about the slicepoint currently active in the slicer.
-
-        Returns
-        -------
-        float
-            Uniformity of 'observationStartMJDCol'.
-        """
         # If only one observation, there is no uniformity
         if dataSlice[self.mjdCol].size == 1:
             return 1
@@ -124,16 +80,19 @@ class UniformityMetric(BaseMetric):
 class RapidRevisitUniformityMetric(BaseMetric):
     """Calculate uniformity of time between consecutive visits on short timescales (for RAV1).
 
+    Uses a the same 'uniformity' calculation as the UniformityMetric, based on the KS-test.
+    A value of 0 is perfectly uniform; a value of 1 is purely non-uniform.
+
     Parameters
     ----------
-    mjdCol : str, optional
+    mjdCol : `str`, optional
         The column containing the 'time' value. Default observationStartMJD.
-    minNvisits : int, optional
+    minNvisits : `int`, optional
         The minimum number of visits required within the time interval (dTmin to dTmax).
         Default 100.
-    dTmin : float, optional
+    dTmin : `float`, optional
         The minimum dTime to consider (in days). Default 40 seconds.
-    dTmax : float, optional
+    dTmax : `float`, optional
         The maximum dTime to consider (in days). Default 30 minutes.
     """
     def __init__(self, mjdCol='observationStartMJD', minNvisits=100,
@@ -149,23 +108,6 @@ class RapidRevisitUniformityMetric(BaseMetric):
             self.minNvisits = 2
 
     def run(self, dataSlice, slicePoint=None):
-        """Calculate the uniformity of visits within dTmin to dTmax.
-
-        Uses a the same 'uniformity' calculation as the UniformityMetric, based on the KS-test.
-        A value of 0 is perfectly uniform; a value of 1 is purely non-uniform.
-
-        Parameters
-        ----------
-        dataSlice : numpy.array
-            Numpy structured array containing the data related to the visits provided by the slicer.
-        slicePoint : dict, optional
-            Dictionary containing information about the slicepoint currently active in the slicer.
-
-        Returns
-        -------
-        float
-           The uniformity measurement of the visits within time interval dTmin to dTmax.
-        """
         # Calculate consecutive visit time intervals
         dtimes = np.diff(np.sort(dataSlice[self.mjdCol]))
         # Identify dtimes within interval from dTmin/dTmax.
@@ -211,12 +153,12 @@ class NRevisitsMetric(BaseMetric):
 
     Parameters
     ----------
-    dT : float, optional
-       The time interval to consider (in minutes). Default 30.
-    normed : bool, optional
-       Flag to indicate whether to return the total number of consecutive visits with time
-       differences less than dT (False), or the fraction of overall visits (True).
-       Note that we would expect (if all visits occur in pairs within dT) this fraction would be 0.5!
+    dT : `float`, optional
+        The time interval to consider (in minutes). Default 30.
+    normed : `bool`, optional
+        Flag to indicate whether to return the total number of consecutive visits with time
+        differences less than dT (False), or the fraction of overall visits (True).
+        Note that we would expect (if all visits occur in pairs within dT) this fraction would be 0.5!
     """
     def __init__(self, mjdCol='observationStartMJD', dT=30.0, normed=False, metricName=None, **kwargs):
         units = ''
@@ -232,20 +174,6 @@ class NRevisitsMetric(BaseMetric):
         super(NRevisitsMetric, self).__init__(col=self.mjdCol, units=units, metricName=metricName, **kwargs)
 
     def run(self, dataSlice, slicePoint=None):
-        """Count the number of consecutive visits occuring within time intervals dT.
-
-        Parameters
-        ----------
-        dataSlice : numpy.array
-            Numpy structured array containing the data related to the visits provided by the slicer.
-        slicePoint : dict, optional
-            Dictionary containing information about the slicepoint currently active in the slicer.
-
-        Returns
-        -------
-        float
-           Either the total number of consecutive visits within dT or the fraction compared to overall visits.
-        """
         dtimes = np.diff(np.sort(dataSlice[self.mjdCol]))
         nFastRevisits = np.size(np.where(dtimes <= self.dT)[0])
         if self.normed:
@@ -255,7 +183,7 @@ class NRevisitsMetric(BaseMetric):
 
 class IntraNightGapsMetric(BaseMetric):
     """
-    Calculate the gap between consecutive observations within a night, in hours.
+    Calculate the (reduceFunc) of the gap between consecutive observations within a night, in hours.
 
     Parameters
     ----------
@@ -274,20 +202,6 @@ class IntraNightGapsMetric(BaseMetric):
                                                    units=units, metricName=metricName, **kwargs)
 
     def run(self, dataSlice, slicePoint=None):
-        """Calculate the (reduceFunc) of the gap between consecutive obervations within a night.
-
-        Parameters
-        ----------
-        dataSlice : numpy.array
-            Numpy structured array containing the data related to the visits provided by the slicer.
-        slicePoint : dict, optional
-            Dictionary containing information about the slicepoint currently active in the slicer.
-
-        Returns
-        -------
-        float
-           The (reduceFunc) value of the gap, in hours.
-        """
         dataSlice.sort(order=self.mjdCol)
         dt = np.diff(dataSlice[self.mjdCol])
         dn = np.diff(dataSlice[self.nightCol])
@@ -301,14 +215,13 @@ class IntraNightGapsMetric(BaseMetric):
 
 
 class InterNightGapsMetric(BaseMetric):
-    """
-    Calculate the gap between consecutive observations in different nights, in days.
+    """Calculate the (reduceFunc) of the gap between consecutive observations in different nights, in days.
 
     Parameters
     ----------
     reduceFunc : function, optional
-       Function that can operate on array-like structures. Typically numpy function.
-       Default np.median.
+        Function that can operate on array-like structures. Typically numpy function.
+        Default np.median.
     """
     def __init__(self, mjdCol='observationStartMJD', nightCol='night', reduceFunc=np.median,
                  metricName='Median Inter-Night Gap', **kwargs):
@@ -316,23 +229,10 @@ class InterNightGapsMetric(BaseMetric):
         self.mjdCol = mjdCol
         self.nightCol = nightCol
         self.reduceFunc = reduceFunc
-        super(InterNightGapsMetric, self).__init__(col=[self.mjdCol, self.nightCol],
+        super().__init__(col=[self.mjdCol, self.nightCol],
                                                    units=units, metricName=metricName, **kwargs)
 
     def run(self, dataSlice, slicePoint=None):
-        """Calculate the (reduceFunc) of the gap between consecutive nights of observations.
-        Parameters
-        ----------
-        dataSlice : numpy.array
-            Numpy structured array containing the data related to the visits provided by the slicer.
-        slicePoint : dict, optional
-            Dictionary containing information about the slicepoint currently active in the slicer.
-
-        Returns
-        -------
-        float
-            The (reduceFunc) of the gap between consecutive nights of observations, in days.
-        """
         dataSlice.sort(order=self.mjdCol)
         unights = np.unique(dataSlice[self.nightCol])
         if np.size(unights) < 2:
@@ -347,14 +247,17 @@ class InterNightGapsMetric(BaseMetric):
 
 
 class VisitGapMetric(BaseMetric):
-    """
-    Calculate the gap between any consecutive observations, in hours, regardless of night boundaries.
+    """Calculate the (reduceFunc) of the gap between any consecutive observations, in hours,
+    regardless of night boundaries.
+
+    Different from inter-night and intra-night gaps, between this is really just counting
+    all of the times between consecutive observations (not time between nights or time within a night).
 
     Parameters
     ----------
     reduceFunc : function, optional
-       Function that can operate on array-like structures. Typically numpy function.
-       Default np.median.
+        Function that can operate on array-like structures. Typically numpy function.
+        Default np.median.
     """
     def __init__(self, mjdCol='observationStartMJD', nightCol='night', reduceFunc=np.median,
                  metricName='VisitGap', **kwargs):
@@ -366,23 +269,6 @@ class VisitGapMetric(BaseMetric):
                          units=units, metricName=metricName, **kwargs)
 
     def run(self, dataSlice, slicePoint=None):
-        """Calculate the (reduceFunc) of the gap between consecutive observations.
-
-        Different from inter-night and intra-night gaps, between this is really just counting
-        all of the times between consecutive observations (not time between nights or time within a night).
-
-        Parameters
-        ----------
-        dataSlice : numpy.array
-            Numpy structured array containing the data related to the visits provided by the slicer.
-        slicePoint : dict, optional
-            Dictionary containing information about the slicepoint currently active in the slicer.
-
-        Returns
-        -------
-        float
-           The (reduceFunc) of the time between consecutive observations, in hours.
-        """
         dataSlice.sort(order=self.mjdCol)
         diff = np.diff(dataSlice[self.mjdCol])
         result = self.reduceFunc(diff) * 24.

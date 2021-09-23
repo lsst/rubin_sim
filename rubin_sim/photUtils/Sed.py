@@ -35,50 +35,53 @@ use angstroms instead of nm, but you should know what you're doing and understan
 limits applied here and in Bandpass.py.
 
 Methods:
- Because of how these methods will be applied for catalog generation, (taking one base SED and then
-  applying various dust extinctions and redshifts), many of the methods will either work on,
-  and update self, OR they can be given a set of lambda/flambda arrays and then will return
-  new versions of these arrays. In general, the methods will not explicitly set flambda or fnu to
-  something you (the user) did not specify - so, for example, when calculating magnitudes (which depend on
-  a wavelength/fnu gridded to match the given bandpass) the wavelength and fnu used are temporary copies
-  and the object itself is not changed.
- In general, the philosophy of Sed.py is to not define the wavelength grid for the object until necessary
-  (so, not until needed for the magnitude calculation or resampleSED is called). At that time the min/max/step
-  wavelengths or the bandpass wavelengths are used to define a new wavelength grid for the sed object.
- When considering whether to use the internal wavelen/flambda (self) values, versus input values:
-  For consistency, anytime self.wavelen/flambda is used, it will be updated if the values are changed
-  (except in the special case of calculating magnitudes), and if self.wavelen/flambda is updated,
-  self.fnu will be set to None. This is because many operations are typically chained together
-  which alter flambda -- so it is more efficient to wait and recalculate fnu at the end, plus it
-  avoids possible de-synchronization errors (flambda reflecting the addition of dust while fnu does
-  not, for example). If arrays are passed into a method, they will not be altered and the arrays
-  which are returned will be allocated new memory.
- Another general philosophy for Sed.py is use separate methods for items which only need to be generated once
-  for several objects (such as the dust A_x, b_x arrays). This allows the user to optimize their code for
-  faster operation, depending on what their requirements are (see example_SedBandpass_star.py and
-  exampleSedBandpass_galaxy for examples).
+Because of how these methods will be applied for catalog generation, (taking one base SED and then
+applying various dust extinctions and redshifts), many of the methods will either work on,
+and update self, OR they can be given a set of lambda/flambda arrays and then will return
+new versions of these arrays. In general, the methods will not explicitly set flambda or fnu to
+something you (the user) did not specify - so, for example, when calculating magnitudes (which depend on
+a wavelength/fnu gridded to match the given bandpass) the wavelength and fnu used are temporary copies
+and the object itself is not changed.
+
+In general, the philosophy of Sed.py is to not define the wavelength grid for the object until necessary
+(so, not until needed for the magnitude calculation or resampleSED is called). At that time the min/max/step
+wavelengths or the bandpass wavelengths are used to define a new wavelength grid for the sed object.
+
+When considering whether to use the internal wavelen/flambda (self) values, versus input values:
+For consistency, anytime self.wavelen/flambda is used, it will be updated if the values are changed
+(except in the special case of calculating magnitudes), and if self.wavelen/flambda is updated,
+self.fnu will be set to None. This is because many operations are typically chained together
+which alter flambda -- so it is more efficient to wait and recalculate fnu at the end, plus it
+avoids possible de-synchronization errors (flambda reflecting the addition of dust while fnu does
+not, for example). If arrays are passed into a method, they will not be altered and the arrays
+which are returned will be allocated new memory.
+
+Another general philosophy for Sed.py is use separate methods for items which only need to be generated once
+for several objects (such as the dust A_x, b_x arrays). This allows the user to optimize their code for
+faster operation, depending on what their requirements are (see example_SedBandpass_star.py and
+exampleSedBandpass_galaxy for examples).
 
 Method include:
-  setSED / setFlatSED / readSED_flambda / readSED_fnu -- to input information into Sed wavelen/flambda.
-  getSED_flambda / getSED_fnu -- to return wavelen / flambda or fnu to the user.
-  clearSED -- set everything to 0.
-  synchronizeSED -- to calculate wavelen/flambda/fnu on the desired grid and calculate fnu.
-  _checkUseSelf/needResample -- not expected to be useful to the user, rather intended for internal use.
-  resampleSED -- primarily internal use, but may be useful to user. Resamples SED onto specified grid.
-  flambdaTofnu / fnuToflambda -- conversion methods, does not affect wavelen gridding.
-  redshiftSED -- redshifts the SED, optionally adding dimmingx
-  (setupODonnell_ab or setupCCM_ab) / addDust -- separated into two components,
-  so that a_x/b_x can be reused between SEDS
+* setSED / setFlatSED / readSED_flambda / readSED_fnu -- to input information into Sed wavelen/flambda.
+* getSED_flambda / getSED_fnu -- to return wavelen / flambda or fnu to the user.
+* clearSED -- set everything to 0.
+* synchronizeSED -- to calculate wavelen/flambda/fnu on the desired grid and calculate fnu.
+* _checkUseSelf/needResample -- not expected to be useful to the user, rather intended for internal use.
+* resampleSED -- primarily internal use, but may be useful to user. Resamples SED onto specified grid.
+* flambdaTofnu / fnuToflambda -- conversion methods, does not affect wavelen gridding.
+* redshiftSED -- redshifts the SED, optionally adding dimmingx
+* (setupODonnell_ab or setupCCM_ab) / addDust -- separated into two components,
+so that a_x/b_x can be reused between SEDS
 if the wavelength range and grid is the same for each SED (calculate a_x/b_x with either setupODonnell_ab
 or setupCCM_ab).
-  multiplySED -- multiply two SEDS together.
-  calcADU / calcMag / calcFlux -- with a Bandpass, calculate the ADU/magnitude/flux of a SED.
-  calcFluxNorm / multiplyFluxNorm -- handle fluxnorm parameters (from UW LSST database) properly.
-     These methods are intended to give a user an easy way to scale an SED to match an expected magnitude.
-  renormalizeSED  -- intended for rescaling SEDS to a common flambda or fnu level.
-  writeSED -- keep a file record of your SED.
-  setPhiArray -- given a list of bandpasses, sets up the 2-d phiArray (for manyMagCalc) and dlambda value.
-  manyMagCalc -- given 2-d phiArray and dlambda, this will return an array of magnitudes (in the same
+* multiplySED -- multiply two SEDS together.
+* calcADU / calcMag / calcFlux -- with a Bandpass, calculate the ADU/magnitude/flux of a SED.
+* calcFluxNorm / multiplyFluxNorm -- handle fluxnorm parameters (from UW LSST database) properly.
+ These methods are intended to give a user an easy way to scale an SED to match an expected magnitude.
+* renormalizeSED  -- intended for rescaling SEDS to a common flambda or fnu level.
+* writeSED -- keep a file record of your SED.
+* setPhiArray -- given a list of bandpasses, sets up the 2-d phiArray (for manyMagCalc) and dlambda value.
+* manyMagCalc -- given 2-d phiArray and dlambda, this will return an array of magnitudes (in the same
 order as the bandpasses) of this SED in each of those bandpasses.
 
 """
@@ -391,7 +394,7 @@ def cache_LSST_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
 
 
 class Sed(object):
-    """Class for holding and utilizing spectral energy distributions (SEDs)"""
+    """"Hold and use spectral energy distributions (SEDs)"""
     def __init__(self, wavelen=None, flambda=None, fnu=None, badval=numpy.NaN, name=None):
         """
         Initialize sed object by giving filename or lambda/flambda array.

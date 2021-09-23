@@ -25,13 +25,13 @@ def interp_angle(x_out, xp, anglep, degrees=False):
 
     Parameters
     ----------
-    x_out : float (or array)
+    x_out : `float` or array
         The points to interpolate to.
     xp : array
         Points to interpolate between (must be sorted)
     anglep : array
         The angles ascociated with xp
-    degrees : bool (False)
+    degrees : `bool` (False)
         Set if anglep is degrees (True) or radidian (False)
     """
 
@@ -67,10 +67,12 @@ class SkyModelPre(object):
         """
         Parameters
         ----------
-        data_path : str (None)
-            path to the numpy save files. Looks in standard plances if set to None.
-        speedLoad : bool (True)
-            If True, use the small 3-day file to load found in the usual spot.
+        data_path : `str`, opt
+            path to the numpy save files. Looks in standard SIMS_SKYBRIGHTNESS_DATA or RUBIN_SIM_DATA_DIR
+            if set to default (None).
+        speedLoad : `bool`, opt
+            If True, use the small 3-day file to load found in the usual spot. Default True.
+            If False, does not load any skybrightness files until called (with a date).
         """
 
         self.info = None
@@ -121,12 +123,12 @@ class SkyModelPre(object):
 
         Parameters
         ----------
-        mjd : float
+        mjd : `float`
             The Modified Julian Date that we want to load
-        filename : str (None)
+        filename : `str` (None)
             The filename to restore. If None, it checks the filenames on disk to find one that
             should have the requested MJD
-        npyfile : str (None)
+        npyfile : `str` (None)
             If sky brightness data not in npz file, checks the .npy file with same root name.
         """
         del self.info
@@ -196,12 +198,12 @@ class SkyModelPre(object):
         """
         Parameters
         ----------
-        mjd : float
+        mjd : `float`
            Modified Julian Date(s) to interpolate to
 
         Returns
         -------
-        sunMoon : dict
+        sunMoon : `dict`
             Dict with keys for the sun and moon RA and Dec and the
             mooon-sun separation. All values in radians, except for moonSunSep
             that is in degrees for some reason (that reason is probably because I'm sloppy).
@@ -237,16 +239,16 @@ class SkyModelPre(object):
 
         Parameters
         ----------
-        mjd : float
+        mjd : `float`
             Modified Julian Date to interpolate to
-        indx : List of int(s) (None)
+        indx : `list` of `int` (None)
             indices to interpolate the sky values at. Returns full sky if None. The indx is the healpix ID.
-        maxAM : float (10)
+        maxAM : `float` (10)
             The maximum airmass to return, everything above this airmass will be set to badval
 
         Returns
         -------
-        airmass : np.array
+        airmass : `np.array`
             Array of airmass values. If the MJD is between sunrise and sunset, all values are masked.
         """
         if (mjd < self.loaded_range.min() or (mjd > self.loaded_range.max())):
@@ -301,30 +303,31 @@ class SkyModelPre(object):
 
         Parameters
         ----------
-        mjd : float
+        mjd : `float`
             Modified Julian Date to interpolate to
-        indx : List of int(s) (None)
+        indx : `List` of `int` (None)
             indices to interpolate the sky values at. Returns full sky if None. If the class was
             instatiated with opsimFields, indx is the field ID, otherwise it is the healpix ID.
-        airmass_mask : bool (True)
+        airmass_mask : `bool` (True)
             Set high (>2.5) airmass pixels to badval.
-        planet_mask : bool (True)
+        planet_mask : `bool` (True)
             Set sky maps to badval near (2 degrees) bright planets.
-        moon_mask : bool (True)
+        moon_mask : `bool` (True)
             Set sky maps near (10 degrees) the moon to badval.
-        zenith_mask : bool (True)
+        zenith_mask : `bool` (True)
             Set sky maps at high altitude (>86.5) to badval.
-        badval : float (-1.6375e30)
+        badval : `float` (-1.6375e30)
             Mask value. Defaults to the healpy mask value.
-        filters : list
+        filters : `list`, opt
             List of strings for the filters that should be returned.
-        extrapolate : bool (False)
+            Default returns ugrizy.
+        extrapolate : `bool` (False)
             In indx is set, extrapolate any masked pixels to be the same as the nearest non-masked
             value from the full sky map.
 
         Returns
         -------
-        sbs : dict
+        sbs : `dict`
             A dictionary with filter names as keys and np.arrays as values which
             hold the sky brightness maps in mag/sq arcsec.
         """

@@ -26,27 +26,28 @@ def GalaxyCounts_withPixelCalibration(coaddm5, upperMagLimit, nside=128,
 
     Estimate galaxy counts for a given HEALpix pixel directly (without a slicer).
 
-    Dependency (aside from MAF): constantsForPipeline.py
-    ----------
-
     Parameters
-    --------------------
-      * coaddm5: float:coadded 5sigma limiting magnitude for the pixel.
-      * upperMagLimit: float: upper limit on the magnitude, used to calculate numGal.
-    
-    Parameters
-    --------------------
-      * nside: int: HEALpix resolution parameter. Default: 128
-      * filterBand: str: any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
-      * redshiftBin: str: options include '0.<z<0.15', '0.15<z<0.37', '0.37<z<0.66, '0.66<z<1.0',
-                          '1.0<z<1.5', '1.5<z<2.0', '2.0<z<2.5', '2.5<z<3.0','3.0<z<3.5', '3.5<z<4.0',
-                          'all' for no redshift restriction (i.e. 0.<z<4.0)
-                          Default: 'all'
-      * CFHTLSCounts: `bool`: set to True if want to calculate the total galaxy counts from CFHTLS
-                               powerlaw from LSST Science Book. Must be run with redshiftBin= 'all'
-                               Default: False
-      * normalizedMockCatalogCounts: `bool`: set to False if  want the raw/un-normalized galaxy
-                                              counts from mock catalogs. Default: True
+    ---------------
+    coaddm5 : `float`
+        coadded 5sigma limiting magnitude for the pixel.
+    upperMagLimit : `float`
+        upper limit on the magnitude, used to calculate numGal.
+    nside: `int`, opt
+        HEALpix resolution parameter. Default: 128
+    filterBand : `str`, opt
+        Any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
+    redshiftBin : `str`, opt
+        options include '0.<z<0.15', '0.15<z<0.37', '0.37<z<0.66, '0.66<z<1.0',
+        '1.0<z<1.5', '1.5<z<2.0', '2.0<z<2.5', '2.5<z<3.0','3.0<z<3.5', '3.5<z<4.0',
+        'all' for no redshift restriction (i.e. 0.<z<4.0)
+        Default: 'all'
+    CFHTLSCounts : `bool`, opt
+        set to True if want to calculate the total galaxy counts from CFHTLS
+        powerlaw from LSST Science Book. Must be run with redshiftBin= 'all'
+        Default: False
+    normalizedMockCatalogCounts: `bool`, opt
+        set to False if  want the raw/un-normalized galaxy counts from mock catalogs.
+        Default: True
 
     """
     # Need to scale down to indivdual HEALpix pixels. Galaxy count from the Coadded depth is per 1 square degree. 

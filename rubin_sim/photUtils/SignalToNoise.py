@@ -1,5 +1,6 @@
 import numpy
 from .Sed import Sed
+from .PhotometricParameters import PhotometricParameters
 from . import LSSTdefaults
 
 
@@ -17,12 +18,12 @@ def FWHMeff2FWHMgeom(FWHMeff):
 
     Parameters
     ----------
-    FWHMeff: float
+    FWHMeff: `float`
         the single-gaussian equivalent FWHM value, appropriate for calcNeff, in arcseconds
 
     Returns
     -------
-    float
+    FWHMgeom : `float`
         FWHM geom, the geometric FWHM value as measured from a typical PSF profile in arcseconds.
     """
     FWHMgeom = 0.822*FWHMeff + 0.052
@@ -37,12 +38,12 @@ def FWHMgeom2FWHMeff(FWHMgeom):
 
     Parameters
     ----------
-    FWHMgeom: float
+    FWHMgeom: `float`
         The geometric FWHM value, as measured from a typical PSF profile, in arcseconds.
 
     Returns
     -------
-    float
+    FWHMeff: `float`
         FWHM effective, the single-gaussian equivalent FWHM value, appropriate for calcNeff, in arcseconds.
     """
     FWHMeff = (FWHMgeom - 0.052)/0.822
@@ -57,14 +58,14 @@ def calcNeff(FWHMeff, platescale):
 
     Parameters
     ----------
-    FWHMeff: float
+    FWHMeff: `float`
         The width of a single-gaussian that produces correct Neff for typical PSF profile.
-    platescale: float
+    platescale: `float`
         The platescale in arcseconds per pixel (0.2 for LSST)
 
     Returns
     -------
-    float
+    nEff : `float`
         The effective number of pixels contained in the PSF
 
     The FWHMeff is a way to represent the equivalent seeing value, if the
@@ -80,12 +81,16 @@ def calcInstrNoiseSq(photParams):
     """
     Combine all of the noise due to intrumentation into one value
 
-    @param [in] photParams is an instantiation of the
-    PhotometricParameters class that carries details about the
-    photometric response of the telescope.
+    Parameters
+    ----------
+    photParams : `PhotometricParameters`
+        A PhotometricParameters object that carries details about the
+        photometric response of the telescope.
 
-    @param [out] The noise due to all of these sources added in quadrature
-    in ADU counts
+    Returns
+    -------
+    instNoiseSq : `float`
+        The noise due to all of these sources added in quadrature in ADU counts
     """
 
     # instrumental squared noise in electrons
@@ -104,22 +109,25 @@ def calcTotalNonSourceNoiseSq(skySed, hardwarebandpass, photParams, FWHMeff):
     Calculate the noise due to things that are not the source being observed
     (i.e. intrumentation and sky background)
 
-    @param [in] skySed -- an instantiation of the Sed class representing the sky
-    (normalized so that skySed.calcMag() gives the sky brightness in magnitudes
-    per square arcsecond)
+    Parameters
+    ----------
+    skySed : `Sed`
+        A Sed object representing the sky (normalized so that skySed.calcMag() gives the sky brightness
+        in magnitudes per square arcsecond)
+    hardwarebandpass : `Bandpass`
+        A Bandpass object containing just the instrumentation throughputs (no atmosphere)
+    photParams : `PhotometricParameters`
+        A PhotometricParameters object containing information about the photometric
+        properties of the telescope.
+    FWHMeff : `float`
+        FWHMeff in arcseconds
 
-    @param [in] hardwarebandpass -- an instantiation of the Bandpass class representing
-    just the instrumentation throughputs
-
-    @param [in] photParams is an instantiation of the
-    PhotometricParameters class that carries details about the
-    photometric response of the telescope.
-
-    @param [in] FWHMeff in arcseconds
-
-    @param [out] total non-source noise squared (in ADU counts)
-    (this is simga^2_tot * neff in equation 41 of the SNR document
-    https://docushare.lsstcorp.org/docushare/dsweb/ImageStoreViewer/LSE-40 )
+    Returns
+    -------
+    total_noise_sq : `float`
+        total non-source noise squared (in ADU counts)
+        (this is simga^2_tot * neff in equation 41 of the SNR document
+        https://docushare.lsstcorp.org/docushare/dsweb/ImageStoreViewer/LSE-40 )
     """
 
     # Calculate the effective number of pixels for double-Gaussian PSF
@@ -159,19 +167,22 @@ def calcSkyCountsPerPixelForM5(m5target, totalBandpass, photParams, FWHMeff=None
     (such as diameter of the mirrors and the readnoise) together with the
     sky background.
 
-    @param [in] the desired value of m5
+    Parameters
+    ----------
+    m5target : `float`
+        the desired value of m5
+    totalBandpass : `Bandpass`
+        A bandpass object representing the total throughput of the telescope
+        (instrumentation plus atmosphere)
+    photParams : `PhotometricParameters`
+        A photometric parameters object containing the photometric response information for Rubin
+    FWHMeff : `float`
+        FWHMeff in arcseconds
 
-    @param [in] totalBandpass is an instantiation of the Bandpass class
-    representing the total throughput of the telescope (instrumentation
-    plus atmosphere)
-
-    @param [in] photParams is an instantiation of the
-    PhotometricParameters class that carries details about the
-    photometric response of the telescope.
-
-    @param [in] FWHMeff in arcseconds
-
-    @param [out] returns the expected number of sky counts per pixel
+    Returns
+    -------
+    skyCountsTarget : `float`
+        the expected number of sky counts per pixel
     """
 
     if FWHMeff is None:
@@ -526,21 +537,21 @@ def calcAstrometricError(mag, m5, fwhmGeom=0.7, nvisit=1, systematicFloor=10):
 
     Parameters
     ----------
-    mag: float
+    mag: `float`
         Magnitude of the source
-    m5: float
+    m5: `float`
         Point source five sigma limiting magnitude of the image (or typical depth per image).
-    fwhmGeom: float, optional
+    fwhmGeom: `float`, optional
         The geometric (physical) FWHM of the image, in arcseconds. Default 0.7.
-    nvisit: int, optional
+    nvisit: `int`, optional
         The number of visits/measurement. Default 1.
         If this is >1, the random error contribution is reduced by sqrt(nvisits).
-    systematicFloor: float, optional
+    systematicFloor: `float`, optional
         The systematic noise floor for the astrometric measurements, in mas. Default 10mas.
 
     Returns
     -------
-    float
+    astrom_err : `float`
         Astrometric error for a given SNR, in mas.
     """
     # The astrometric error can be applied to parallax or proper motion (for nvisit>1).

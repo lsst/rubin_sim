@@ -25,9 +25,6 @@ def almPlots(path, outDir, bundle,
       * path: str: path to the main directory where output directory is saved
       * outDir: str: name of the main output directory
       * bundle: metricBundle object.
-    
-    Parameters
-    -------------------
       * nside: int: HEALpix resolution parameter. Default: 128
       * lmax: int: upper limit on the multipole. Default: 500
       * filterBand: str: any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'

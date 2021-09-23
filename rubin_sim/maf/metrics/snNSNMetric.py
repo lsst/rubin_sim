@@ -147,14 +147,6 @@ class SNNSNMetric(BaseMetric):
         # self.bad = {'nSN': -1.0, 'zlim': -1.0}
 
     def run(self, dataSlice, slicePoint=None):
-        """
-        run method of the metric
-
-        Parameters
-        -----------
-        dataSlice : array
-            data to process
-        """
         idarray = None
         healpixID = -1
         if slicePoint is not None:
@@ -333,19 +325,20 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ------------
-        obs: numpy array
+        obs: `np.ndarray`
             array of observations
-        season_gap: float, optional
+        season_gap: `float`, optional
             minimal gap required to define a season (default: 80 days)
-        mjdCol: str, optional
+        mjdCol: `str`, optional
             col name for MJD infos (default: observationStartMJD)
 
         Returns
         ---------
-        original numpy array with seasonnumber appended
+        obs : `np.ndarray`
+            original numpy array with seasonnumber appended
         """
 
-        # check wether season has already been estimated
+        # check whether season has already been estimated
 
         obs.sort(order=mjdCol)
 
@@ -373,7 +366,7 @@ class SNNSNMetric(BaseMetric):
 
         Returns
         ---------
-        pandas df with the cfollowing cols:
+        df : `pd.DataFrame`
         """
         df = pd.DataFrame([len(grp)], columns=['Nvisits'])
         df['MJD_min'] = grp[self.mjdCol].min()
@@ -836,9 +829,8 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         -----------
-        grp: pandas df group
-            efficiencies to estimate redshift limits;
-            columns:
+        grp: `pd.DataFrameGroupBy`
+            DataFrame with efficiencies to estimate redshift limits;
             season: season
             pixRA: RA of the pixel
             pixDec: Dec of the pixel
@@ -848,7 +840,7 @@ class SNNSNMetric(BaseMetric):
             z: redshift
             effi: efficiency
             effi_err: efficiency error (binomial)
-        duration_z: pandas df with the following cols:
+        duration_z: `pd.DataFrame`
             season: season
             z: redshift
             T0_min: min daymax
@@ -857,8 +849,8 @@ class SNNSNMetric(BaseMetric):
 
         Returns
         ----------
-        pandas df with the following cols:
-            zlimit: redshift limit
+        df: `pd.DataFrame`
+            Dataframe with columns of zlimit (redshift limit)
         """
 
         zlimit = 0.0

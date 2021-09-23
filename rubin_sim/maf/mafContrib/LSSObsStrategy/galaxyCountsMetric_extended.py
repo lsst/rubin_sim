@@ -31,23 +31,30 @@ class GalaxyCountsMetric_extended(BaseMetric):
 
     Parameters
     ------------
-      * m5Col: str: name of column for depth in the data. Default: 'fiveSigmaDepth'
-      * nside: int: HEALpix resolution parameter. Default: 128
-      * upperMagLimit: float: upper limit on magnitude when calculating the galaxy counts. 
-                              Default: 32.0
-      * includeDustExtinction: `bool`: set to False if do not want to include dust extinction.
-                                        Default: True
-      * filterBand: str: any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
-      * redshiftBin: str: options include '0.<z<0.15', '0.15<z<0.37', '0.37<z<0.66, '0.66<z<1.0',
-                          '1.0<z<1.5', '1.5<z<2.0', '2.0<z<2.5', '2.5<z<3.0','3.0<z<3.5', '3.5<z<4.0',
-                          'all' for no redshift restriction (i.e. 0.<z<4.0)
-                          Default: 'all'
-      * CFHTLSCounts: `bool`: set to True if want to calculate the total galaxy counts from CFHTLS
-                               powerlaw from LSST Science Book. Must be run with redshiftBin= 'all'
-                               Default: False
-      * normalizedMockCatalogCounts: `bool`: set to False if  want the raw/un-normalized galaxy
-                                              counts from mock catalogs. Default: True
-
+    m5Col : `str`
+        name of column for depth in the data. Default: 'fiveSigmaDepth'
+    nside: `int`, opt
+        HEALpix resolution parameter. Default: 128
+    upperMagLimit : `float`
+        upper limit on magnitude when calculating the galaxy counts.
+        Default: 32.0
+    includeDustExtinction : `bool`
+        set to False if do not want to include dust extinction.
+        Default: True
+    filterBand : `str`, opt
+        any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
+    redshiftBin : `str`, opt
+        options include '0.<z<0.15', '0.15<z<0.37', '0.37<z<0.66, '0.66<z<1.0',
+        '1.0<z<1.5', '1.5<z<2.0', '2.0<z<2.5', '2.5<z<3.0','3.0<z<3.5', '3.5<z<4.0',
+        'all' for no redshift restriction (i.e. 0.<z<4.0)
+        Default: 'all'
+    CFHTLSCounts: `bool`, opt
+        set to True if want to calculate the total galaxy counts from CFHTLS
+        powerlaw from LSST Science Book. Must be run with redshiftBin= 'all'
+        Default: False
+    normalizedMockCatalogCounts: `bool`, opt
+     set to False if  want the raw/un-normalized galaxy counts from mock catalogs.
+     Default: True
     """
     def __init__(self, m5Col='fiveSigmaDepth', filterCol='filter', nside=128,
                  metricName='GalaxyCountsMetric_extended',
