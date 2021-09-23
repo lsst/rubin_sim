@@ -2,6 +2,7 @@ import os
 import sys
 from typing import List
 
+
 import lsst_sphinx_bootstrap_theme
 
 from documenteer.sphinxconfig.utils import form_ltd_edition_name
@@ -39,7 +40,7 @@ extensions = [
 source_suffix = ".rst"
 
 # The master toctree document.
-master_doc = "index"
+master_doc = "rubin_sim/index"
 
 # General information about the project.
 project = "rubin_sim"
@@ -52,14 +53,14 @@ author = "LSST Survey Strategy Team"
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-if os.getenv("TRAVIS_BRANCH", default="master") == "master":
+if os.getenv("TRAVIS_BRANCH", default="main") == "main":
     # Use the current release as the version tag if on master
     version = "Current"
     release = version
 else:
     # Use branch name as the version tag
     version = form_ltd_edition_name(
-        git_ref_name=os.getenv("TRAVIS_BRANCH", default="master")
+        git_ref_name=os.getenv("TRAVIS_BRANCH", default="main")
     )
     release = version
 
@@ -93,7 +94,7 @@ intersphinx_mapping = {
     "requests": ("https://2.python-requests.org/en/master/", None),
     "developer": ("https://developer.lsst.io/", None),
     "pybtex": ("https://docs.pybtex.org/", None),
-    "sphinx": ("http://www.sphinx-doc.org/en/master/", None),
+    "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
 }
 
 # Warnings to ignore
@@ -129,11 +130,11 @@ html_context = {
     # https://{{ github_host|default("github.com") }}/{{ github_user }}/
     #     {{ github_repo }}/blob/
     #     {{ github_version }}{{ conf_py_path }}{{ pagename }}{{ suffix }}
-    "github_user": "lsst-sqre",
-    "github_repo": "documenteer",
+    "github_user": "lsst",
+    "github_repo": "rubin_sim",
     "conf_py_path": "docs/",
     # TRAVIS_BRANCH is available in CI, but master is a safe default
-    "github_version": os.getenv("TRAVIS_BRANCH", default="master") + "/",
+    "github_version": os.getenv("TRAVIS_BRANCH", default="main") + "/",
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme

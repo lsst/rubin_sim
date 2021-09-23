@@ -1,6 +1,6 @@
-================================================
-A Brief Metric Analysis Framework (MAF) Overview
-================================================
+================================
+Metrics Analysis Framework (MAF)
+================================
 
 
 The Metrics Analysis Framework (MAF) is a software package
@@ -50,3 +50,13 @@ For more examples of using MAF, please see our `tutorials`_.
 
 .. _tutorials: https://github.com/lsst/rubin_sim_notebooks/tree/main/maf
 
+
+Python API
+==========
+
+.. automodapi:: rubin_sim.maf
+   :no-main-docstr:
+   :no-inheritance-diagram:
+
+
+* :ref:`search`

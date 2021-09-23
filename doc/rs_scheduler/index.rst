@@ -1,6 +1,6 @@
-============================
-The Feature Based Scheduler
-============================
+===================
+rubin_sim Scheduler
+===================
 
 The feature based scheduler is available through rubin_sim, in the
 `rubin_sim.scheduler` module.
@@ -13,3 +13,14 @@ To be able to simulate a full 10 years of observations, additional skybrightness
 data files must be downloaded (about 250GB), which can be done using the
 script `rubin_sim.bin.rs_download_sky`. A typical simulation will take on the
 order of 6 hours to complete.
+
+
+Python API
+==========
+
+.. automodapi:: rubin_sim.scheduler
+   :no-main-docstr:
+   :no-inheritance-diagram:
+
+
+* :ref:`search`
