@@ -40,4 +40,4 @@ def makeMetricList(outfile):
 
 if __name__ == '__main__':
 
-    makeMetricList('metricList.rst')
+    makeMetricList('rs_maf/metricList.rst')

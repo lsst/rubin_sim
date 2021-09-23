@@ -2,7 +2,7 @@ import os
 import sys
 from typing import List
 
-
+import rubin_sim
 import lsst_sphinx_bootstrap_theme
 
 from documenteer.sphinxconfig.utils import form_ltd_edition_name

@@ -58,5 +58,4 @@ Python API
    :no-main-docstr:
    :no-inheritance-diagram:
 
-
 * :ref:`search`
