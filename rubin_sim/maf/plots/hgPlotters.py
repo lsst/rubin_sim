@@ -32,7 +32,10 @@ from rubin_sim.utils.ddf_locations import ddf_locations
 
 # classes
 
-__all__ = ['GeneralHourglassPlot']
+__all__ = ['GeneralHourglassPlot', 'CategoricalHourglassPlotMixin',
+           'RangeHourglassCategoricalPlot', 'MonthHourglassCategoricalPlot',
+           'TimeUseHourglassPlotMixin', 'MonthHourglassPlot',
+           'YearHourglassCategoricalPlot', 'YearHourglassPlot', 'YearHourglassUsePlot']
 
 
 class GeneralHourglassPlot(BasePlotter):
