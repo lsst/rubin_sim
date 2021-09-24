@@ -14,13 +14,13 @@ class Short_expt_detailer(Base_detailer):
 
     Parameters
     ----------
-    exp_time : float (1.)
+    exp_time : `float` (1.)
         The short exposure time to use.
-    nobs : float (2)
+    nobs : `float` (2)
         The number of observations to try and take per year
-    night_max : float (None)
+    night_max : `float` (None)
         Do not apply any changes to the observation list if the current night is greater than night_max.
-    n_repeat : int (1)
+    n_repeat : `int` (1)
         How many short observations to do in a row.
 
     """

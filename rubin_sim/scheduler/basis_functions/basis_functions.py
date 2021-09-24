@@ -4,7 +4,6 @@ from rubin_sim.scheduler import utils
 from rubin_sim.scheduler.utils import int_rounded
 import healpy as hp
 from rubin_sim.skybrightness_pre import M5percentiles
-import matplotlib.pylab as plt
 import warnings
 from rubin_sim.utils import _hpid2RaDec
 from astropy.coordinates import SkyCoord
@@ -21,8 +20,10 @@ __all__ = ['Base_basis_function', 'Constant_basis_function', 'Target_map_basis_f
            'Cadence_enhance_trapezoid_basis_function', 'Azimuth_basis_function',
            'Az_modulo_basis_function', 'Dec_modulo_basis_function', 'Map_modulo_basis_function',
            'Template_generate_basis_function',
-           'Footprint_nvis_basis_function', 'Third_observation_basis_function', 'Season_coverage_basis_function',
-           'N_obs_per_year_basis_function', 'Cadence_in_season_basis_function', 'Near_sun_twilight_basis_function',
+           'Footprint_nvis_basis_function', 'Third_observation_basis_function',
+           'Season_coverage_basis_function',
+           'N_obs_per_year_basis_function', 'Cadence_in_season_basis_function',
+           'Near_sun_twilight_basis_function',
            'N_obs_high_am_basis_function', 'Good_seeing_basis_function', 'Observed_twice_basis_function',
            'Ecliptic_basis_function', 'Limit_repeat_basis_function']
 
@@ -58,9 +59,9 @@ class Base_basis_function(object):
         """
         Parameters
         ----------
-        observation : np.array
+        observation : `np.array`
             An array with information about the input observation
-        indx : np.array
+        indx : `np.array`
             The indices of the healpix map that the observation overlaps with
         """
         for feature in self.survey_features:
@@ -92,7 +93,7 @@ class Base_basis_function(object):
         """
         Parameters
         ----------
-        conditions : rubin_sim.scheduler.features.conditions object
+        conditions : `rubin_sim.scheduler.features.conditions` object
              Object that has attributes for all the current conditions.
 
         Return a reward healpix map or a reward scalar.
@@ -151,19 +152,19 @@ class Target_map_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    filtername: (string 'r')
+    filtername: `str` ('r')
         The name of the filter for this target map.
-    nside: int (default_nside)
+    nside: `int` (default_nside)
         The healpix resolution.
     target_map : numpy array (None)
         A healpix map showing the ratio of observations desired for all points on the sky
-    norm_factor : float (0.00010519)
+    norm_factor : `float` (0.00010519)
         for converting target map to number of observations. Should be the area of the camera
         divided by the area of a healpixel divided by the sum of all your goal maps. Default
         value assumes LSST foV has 1.75 degree radius and the standard goal maps. If using
         mulitple filters, see rubin_sim.scheduler.utils.calc_norm_factor for a utility
         that computes norm_factor.
-    out_of_bounds_val : float (-10.)
+    out_of_bounds_val : `float` (-10.)
         Reward value to give regions where there are no observations requested (unitless).
     """
     def __init__(self, filtername='r', nside=None, target_map=None,
@@ -196,7 +197,7 @@ class Target_map_basis_function(Base_basis_function):
         """
         Parameters
         ----------
-        indx : list (None)
+        indx : `list` (None)
             Index values to compute, if None, full map is computed
 
         Returns
@@ -248,9 +249,9 @@ class N_obs_high_am_basis_function(Base_basis_function):
         """
         Parameters
         ----------
-        observation : np.array
+        observation : `np.array`
             An array with information about the input observation
-        indx : np.array
+        indx : `np.array`
             The indices of the healpix map that the observation overlaps with
         """
 
@@ -275,7 +276,8 @@ class N_obs_high_am_basis_function(Base_basis_function):
 
     def _calc_value(self, conditions, indx=None):
         result = self.result.copy()
-        behind_pix = np.where((int_rounded(conditions.mjd-self.survey_features['last_n_mjds'].feature[0]) > int_rounded(self.season)) &
+        behind_pix = np.where((int_rounded(conditions.mjd-self.survey_features['last_n_mjds'].feature[0])
+                               > int_rounded(self.season)) &
                               (int_rounded(conditions.airmass) > int_rounded(np.min(self.am_limits))) &
                               (int_rounded(conditions.airmass) < int_rounded(np.max(self.am_limits))))
         result[behind_pix] = 1
@@ -312,17 +314,17 @@ class N_obs_per_year_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    filtername : str ('r')
+    filtername : `str` ('r')
         The filter to track
-    footprint : np.array
+    footprint : `np.array`
         Should be a HEALpix map. Values of 0 or np.nan will be ignored.
-    n_obs : int (3)
+    n_obs : `int` (3)
         The number of observations to demand
-    season : float (300)
+    season : `float` (300)
         The amount of time to allow pass before marking a region as "behind". Default 365.25 (days).
-    season_start_hour : float (-2)
+    season_start_hour : `float` (-2)
         When to start the season relative to RA 180 degrees away from the sun (hours)
-    season_end_hour : float (2)
+    season_end_hour : `float` (2)
         When to consider a season ending, the RA relative to the sun + 180 degrees. (hours)
     """
     def __init__(self, filtername='r', nside=None, footprint=None, n_obs=3, season=300,
@@ -351,7 +353,8 @@ class N_obs_per_year_basis_function(Base_basis_function):
         relative_ra = (conditions.ra - mid_season_ra) % (2.*np.pi)
         relative_ra = (self.season_end_hour - relative_ra) % (2.*np.pi)
         # ok, now 
-        relative_ra[np.where(int_rounded(relative_ra) > int_rounded(self.season_end_hour-self.season_start_hour))] = 0
+        relative_ra[np.where(int_rounded(relative_ra) >
+                             int_rounded(self.season_end_hour-self.season_start_hour))] = 0
 
         weight = relative_ra/(self.season_end_hour - self.season_start_hour)
         result *= weight
@@ -369,11 +372,11 @@ class Cadence_in_season_basis_function(Base_basis_function):
     ----------
     drive_map : np.array
         A HEALpix map with values of 1 where the cadence should be driven.
-    filtername : str
+    filtername : `str`
         The filters that can count
-    season_span : float (2.5)
+    season_span : `float` (2.5)
         How long to consider a spot "in_season" (hours)
-    cadence : float (2.5)
+    cadence : `float` (2.5)
         How long to wait before activating the basis function (days)
     """
 
@@ -410,12 +413,12 @@ class Season_coverage_basis_function(Base_basis_function):
     ----------
     footprint : healpix map (None)
         The footprint where one should demand coverage every season
-    n_per_season : int (3)
+    n_per_season : `int` (3)
         The number of observations to attempt to gather every season
     offset : healpix map
         The offset to apply when computing the current season over the sky. utils.create_season_offset
         is helpful for making this
-    season_frac_start : float (0.5)
+    season_frac_start : `float` (0.5)
         Only start trying to gather observations after a season is fractionally this far over.
     """
     def __init__(self, filtername='r', nside=None, footprint=None, n_per_season=3, offset=None,
@@ -425,7 +428,8 @@ class Season_coverage_basis_function(Base_basis_function):
         self.n_per_season = n_per_season
         self.footprint = footprint
         self.survey_features['n_obs_season'] = features.N_observations_current_season(filtername=filtername,
-                                                                                      nside=nside, offset=offset)
+                                                                                      nside=nside,
+                                                                                      offset=offset)
         self.result = np.zeros(hp.nside2npix(self.nside), dtype=float)
         self.season_frac_start = season_frac_start
         self.offset = offset
@@ -448,9 +452,9 @@ class Footprint_nvis_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    footprint : np.array
+    footprint : `np.array`
         A healpix array (1 for desired, 0 for not desired) of the target footprint.
-    nvis : int (1)
+    nvis : `int` (1)
         The number of visits to try and gather
     """
     def __init__(self, filtername='r', nside=None, footprint=None,
@@ -483,9 +487,9 @@ class Third_observation_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    gap_min : float (40.)
+    gap_min : `float` (40.)
         The minimum time gap to consider a pixel good (minutes)
-    gap_max : float (120)
+    gap_max : `float` (120)
         The maximum time to consider going for a pair (minutes)
     """
 
@@ -517,13 +521,13 @@ class Avoid_Fast_Revists(Base_basis_function):
 
     Parameters
     ----------
-    filtername: (string 'r')
+    filtername: `str` ('r')
         The name of the filter for this target map.
-    gap_min : float (25.)
+    gap_min : `float` (25.)
         Minimum time for the gap (minutes).
-    nside: int (default_nside)
+    nside: `int` (default_nside)
         The healpix resolution.
-    penalty_val : float (np.nan)
+    penalty_val : `float` (np.nan)
         The reward value to use for regions to penalize. Will be masked if set to np.nan (default).
     """
     def __init__(self, filtername='r', nside=None, gap_min=25.,
@@ -554,7 +558,7 @@ class Near_sun_twilight_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    max_airmass : float (2.5)
+    max_airmass : `float` (2.5)
         The maximum airmass to try and observe (unitless)
     """
 
@@ -579,13 +583,13 @@ class Visit_repeat_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    gap_min : float (15.)
+    gap_min : `float` (15.)
         Minimum time for the gap (minutes)
-    gap_max : float (45.)
+    gap_max : `float` (45.)
         Maximum time for a gap
-    filtername : str ('r')
+    filtername : `str` ('r')
         The filter(s) to count with pairs
-    npairs : int (1)
+    npairs : `int` (1)
         The number of pairs of observations to attempt to gather
     """
     def __init__(self, gap_min=25., gap_max=45.,
@@ -645,11 +649,11 @@ class Strict_filter_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    time_lag : float (10.)
+    time_lag : `float` (10.)
         If there is a gap between observations longer than this, let the filter change (minutes)
-    twi_change : float (-18.)
+    twi_change : `float` (-18.)
         The sun altitude to consider twilight starting/ending (degrees)
-    note_free : str ('DD')
+    note_free : `str` ('DD')
         No penalty for changing filters if the last observation note field includes string. 
         Useful for giving a free filter change after deep drilling sequence
     """
@@ -672,10 +676,12 @@ class Strict_filter_basis_function(Base_basis_function):
         in_filter = (conditions.current_filter == self.filtername) | (conditions.current_filter is None)
 
         # Has enough time past?
-        time_past = int_rounded(conditions.mjd - self.survey_features['Last_observation'].feature['mjd']) > int_rounded(self.time_lag)
+        time_past = int_rounded(conditions.mjd - self.survey_features['Last_observation'].feature['mjd']) \
+                    > int_rounded(self.time_lag)
 
         # Did twilight start/end?
-        twi_changed = (conditions.sunAlt - self.twi_change) * (self.survey_features['Last_observation'].feature['sunAlt']- self.twi_change) < 0
+        twi_changed = (conditions.sunAlt - self.twi_change) * \
+                      (self.survey_features['Last_observation'].feature['sunAlt']- self.twi_change) < 0
 
         # Did we just finish a DD sequence
         wasDD = self.note_free in self.survey_features['Last_observation'].feature['note']
@@ -700,19 +706,30 @@ class Goal_Strict_filter_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    time_lag_min: Minimum time after a filter change for which a new filter change will receive zero reward, or
+    time_lag_min : `float`
+        Minimum time after a filter change for which a new filter change will receive zero reward, or
         be denied at all (see unseen_before_lag).
-    time_lag_max: Time after a filter change where the reward for changing filters achieve its maximum.
-    time_lag_boost: Time after a filter change to apply a boost on the reward.
-    boost_gain: A multiplier factor for the reward after time_lag_boost.
-    unseen_before_lag: If True will make it impossible to switch filter before time_lag has passed.
-    filtername: The filter for which this basis function will be used.
-    tag: When using filter proportion use only regions with this tag to count for observations.
-    twi_change: Switch reward on when twilight changes.
-    proportion: The expected filter proportion distribution.
-    aways_available: If this is true the basis function will aways be computed regardless of the feasibility. If
-        False a more detailed feasibility check is performed. When set to False, it may speed up the computation
-        process by avoiding to compute the reward functions paired with this bf, when observation is not feasible.
+    time_lag_max : `float`
+        Time after a filter change where the reward for changing filters achieve its maximum.
+    time_lag_boost : `float`
+        Time after a filter change to apply a boost on the reward.
+    boost_gain : `float`
+        A multiplier factor for the reward after time_lag_boost.
+    unseen_before_lag : `bool`
+        If True will make it impossible to switch filter before time_lag has passed.
+    filtername : `str`
+        The filter for which this basis function will be used.
+    tag: `str` or None
+        When using filter proportion use only regions with this tag to count for observations.
+    twi_change : `float`
+        Switch reward on when twilight changes.
+    proportion : `float`
+        The expected filter proportion distribution.
+    aways_available: `bool`
+        If this is true the basis function will aways be computed regardless of the feasibility.
+        If False a more detailed feasibility check is performed.
+        When set to False, it may speed up the computation process by avoiding to compute the
+        reward functions paired with this bf, when observation is not feasible.
 
     """
 
@@ -870,7 +887,7 @@ class Slewtime_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    max_time : float (135)
+    max_time : `float` (135)
          The estimated maximum slewtime (seconds). Used to normalize so the basis function
          spans ~ -1-0 in reward units.
     """
@@ -949,9 +966,9 @@ class Skybrightness_limit_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    min : float (20.)
+    min : `float` (20.)
          The minimum sky brightness (mags).
-    max : float (30.)
+    max : `float` (30.)
          The maximum sky brightness (mags).
 
     """
@@ -977,11 +994,11 @@ class CableWrap_unwrap_basis_function(Base_basis_function):
     """
     Parameters
     ----------
-    minAz : float (20.)
+    minAz : `float` (20.)
         The minimum azimuth to activate bf (degrees)
-    maxAz : float (82.)
+    maxAz : `float` (82.)
         The maximum azimuth to activate bf (degrees)
-    unwrap_until: float (90.)
+    unwrap_until: `float` (90.)
         The window in which the bf is activated (degrees)
     """
     def __init__(self, nside=None, minAz=-270., maxAz=270., minAlt=20., maxAlt=82.,
@@ -1086,9 +1103,9 @@ class Cadence_enhance_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    filtername : str ('gri')
+    filtername : `str` ('gri')
         The filter(s) that should be grouped together
-    supress_window : list of float
+    supress_window : `list` of `float`
         The start and stop window for when observations should be repressed (days)
     apply_area : healpix map
         The area over which to try and drive the cadence. Good values as 1, no candece drive 0.
@@ -1163,7 +1180,7 @@ class Cadence_enhance_trapezoid_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    filtername : str ('gri')
+    filtername : `str` ('gri')
         The filter(s) that should be grouped together
 
     XXX--fill out doc string!
@@ -1256,7 +1273,7 @@ class Az_modulo_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    az_limits : list of float pairs (None)
+    az_limits : `list` of `float` pairs (None)
         The azimuth limits (degrees) to use.
     """
     def __init__(self, nside=None, az_limits=None, out_of_bounds_val=-1.):
@@ -1291,7 +1308,7 @@ class Dec_modulo_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    dec_limits : list of float pairs (None)
+    dec_limits : `list` of `float` pairs (None)
         The azimuth limits (degrees) to use.
     """
     def __init__(self, nside=None, dec_limits=None, out_of_bounds_val=-1.):
@@ -1330,7 +1347,7 @@ class Map_modulo_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    inmaps : list of hp arrays
+    inmaps : `list` of hp arrays
     """
     def __init__(self, inmaps):
         nside = hp.npix2nside(np.size(inmaps[0]))
@@ -1390,9 +1407,9 @@ class Template_generate_basis_function(Base_basis_function):
 
     Parameters
     ----------
-    day_gap : float (250.)
+    day_gap : `float` (250.)
         How long to wait before boosting the reward (days)
-    footprint : np.array (None)
+    footprint : `np.array`(None)
         The indices of the healpixels to apply the boost to. Uses the default footprint if None
     """
     def __init__(self, nside=None, day_gap=250., filtername='r', footprint=None):

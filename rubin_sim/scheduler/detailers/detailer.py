@@ -29,9 +29,9 @@ class Base_detailer(object):
         """
         Parameters
         ----------
-        observation : np.array
+        observation : `np.array`
             An array with information about the input observation
-        indx : np.array
+        indx : `np.array`
             The indices of the healpix map that the observation overlaps with
         """
         for feature in self.survey_features:
@@ -41,9 +41,9 @@ class Base_detailer(object):
         """
         Parameters
         ----------
-        observation_list : list of observations
+        observation_list : `list` of observations
             The observations to detail.
-        conditions : rubin_sim.scheduler.conditions object
+        conditions : `rubin_sim.scheduler.conditions` object
 
         Returns
         -------
@@ -121,7 +121,7 @@ class Close_alt_detailer(Base_detailer):
 
     Parameters
     ----------
-    alt_band : float (10)
+    alt_band : `float` (10)
         The altitude band to try and stay in (degrees)
     """
     def __init__(self, alt_band=10.):
@@ -150,7 +150,7 @@ class Flush_for_sched_detailer(Base_detailer):
 
     Parameters
     ----------
-    tol : float
+    tol : `float`
          How much before to flush (minutes)
     """
     def __init__(self, tol=2.5):
