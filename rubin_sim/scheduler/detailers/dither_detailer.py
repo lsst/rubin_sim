@@ -35,11 +35,11 @@ class Dither_detailer(Base_detailer):
 
     Parameters
     ----------
-    max_dither : float (0.7)
+    max_dither : `float` (0.7)
         The maximum dither size to use (degrees).
-    per_night : bool (True)
+    per_night : `bool` (True)
         If true, us the same dither offset for an entire night
-    nnights : int (7305)
+    nnights : `int` (7305)
         The number of nights to pre-generate random dithers for
 
 
@@ -197,11 +197,11 @@ class Camera_rot_detailer(Base_detailer):
 
     Parameters
     ----------
-    max_rot : float (90.)
+    max_rot : `float` (90.)
         The maximum amount to offset the camera (degrees)
-    min_rot : float (90)
+    min_rot : `float` (90)
         The minimum to offset the camera (degrees)
-    per_night : bool (True)
+    per_night : `bool` (True)
         If True, only set a new offset per night. If False, randomly rotates every observation.
     """
     def __init__(self, max_rot=90., min_rot=-90., per_night=True, seed=42, nnights=7305):

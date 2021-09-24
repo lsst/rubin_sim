@@ -8,7 +8,21 @@ __all__ = ["Vary_expt_detailer", "calc_target_m5s"]
 
 def calc_target_m5s(alt=65., fiducial_seeing=0.9, exptime=20.):
     """
-    Use the skybrightness model to find some good target m5s
+    Use the skybrightness model to find some good target m5s.
+
+    Parameters
+    ----------
+    alt : `float`, opt
+        Altitude for the target, degrees. Default 65.
+    fiducial_seeing : `float`, opt
+        Fiducial FWHMeff seeing, arcseconds. Default 0.9.
+    exptime : `float`, opt
+        Exposure time for the comparison, seconds. Default 20.
+
+    Returns
+    -------
+    goal_m5 : `dict` of `float`
+        dictionary of expected m5 values keyed by filtername
     """
     import rubin_sim.skybrightness as sb
     sm = sb.SkyModel(moon=False, twilight=False, mags=True)
@@ -30,11 +44,11 @@ class Vary_expt_detailer(Base_detailer):
 
     Parameters
     ----------
-    min_expt : float (20.)
+    min_expt : `float` (20.)
         The minimum exposure time to use (seconds).
-    max_expt : float(100.)
+    max_expt : `float` (100.)
         The maximum exposure time to use
-    target_m5 : dict (None)
+    target_m5 : `dict` (None)
         Dictionary with keys of filternames as str and target 5-sigma depth values as floats.
         If none, the target_m5s are set to a min_expt exposure at X=1.1 in dark time.
 
@@ -61,9 +75,9 @@ class Vary_expt_detailer(Base_detailer):
         """
         Parameters
         ----------
-        observation_list : list of observations
+        observation_list : `list` of observations
             The observations to detail.
-        conditions : rubin_sim.scheduler.conditions object
+        conditions : `rubin_sim.scheduler.conditions` object
 
         Returns
         -------
