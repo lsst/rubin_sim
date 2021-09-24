@@ -2,6 +2,7 @@ import os
 import sys
 from typing import List
 
+import numpy as np
 import rubin_sim
 import lsst_sphinx_bootstrap_theme
 

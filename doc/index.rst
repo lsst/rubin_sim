@@ -9,7 +9,7 @@ rubin_sim
 The rubin_sim module provides support for Rubin Observatory's LSST survey
 scheduler, survey strategy analysis, and some basic simulation requirements.
 
-The submodules include:
+List of submodules:
 
 * :doc:`rubin_sim.utils <rs_utils/index>` provides some basic utilities we use throughout the rest of rubin_sim, but may be useful for other purposes.
 * :doc:`rubin_sim.data <rs_data/index>` provides a minimal tool to track the location of the associated downloaded data (see rs_download_data).
@@ -21,3 +21,5 @@ The submodules include:
 * :doc:`rubin_sim.movingObjects <rs_movingObjects/index>` can generate ephemerides for Solar System small bodies for a simulated LSST pointing history.
 * :doc:`rubin_sim.maf <rs_maf/index>` provides metric analysis tools for simulated pointing histories.
 
+
+:doc:`Table of Contents <toc>`

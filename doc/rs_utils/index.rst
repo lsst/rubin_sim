@@ -1,3 +1,7 @@
+.. py:currentmodule:: rubin_sim.utils
+
+.. _rubin_sim.utils:
+
 ===============
 rubin_sim utils
 ===============

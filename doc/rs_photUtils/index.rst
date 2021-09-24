@@ -1,3 +1,7 @@
+.. py:currentmodule:: rubin_sim.photUtils
+
+.. _rubin_sim.photUtils:
+
 =======================
 rubin_sim photUtils
 =======================

@@ -1,3 +1,7 @@
+.. py:currentmodule:: rubin_sim.movingObjects
+
+.. _rubin_sim.movingObjects:
+
 =======================
 rubin_sim MovingObjects
 =======================
