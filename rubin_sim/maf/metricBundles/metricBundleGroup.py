@@ -25,7 +25,7 @@ def makeBundlesDictFromList(bundleList):
 
     Parameters
     ----------
-    bundleList : list of MetricBundles
+    bundleList : `list` of `MetricBundles`
     """
     bDict = {}
     for b in bundleList:
@@ -53,30 +53,30 @@ class MetricBundleGroup(object):
 
     Parameters
     ----------
-    bundleDict : dict or list of MetricBundles
+    bundleDict : `dict` or `list` of `MetricBundles`
         Individual MetricBundles should be placed into a dictionary, and then passed to
         the MetricBundleGroup. The dictionary keys can then be used to identify MetricBundles
         if needed -- and to identify new MetricBundles which could be created if 'reduce'
         functions are run on a particular MetricBundle.
         A bundleDict can be conveniently created from a list of MetricBundles using
         makeBundlesDictFromList (done automatically if a list is passed in)
-    dbObj : Database
+    dbObj : `OpsimDatabase`
         The database object (typically an :class:`OpsimDatabase`) connected to the data to be used to
         calculate metrics.
         Advanced use: It is possible to set this to None, in which case data should be passed
         directly to the runCurrent method (and runAll should not be used).
-    outDir : str, optional
+    outDir : `str`, optional
         Directory to save the metric results. Default is the current directory.
-    resultsDb : ResultsDb, optional
+    resultsDb : `ResultsDb`, optional
         A results database. If not specified, one will be created in the outDir.
         This database saves information about the metrics calculated, including their summary statistics.
-    verbose : bool, optional
+    verbose : `bool`, optional
         Flag to turn on/off verbose feedback.
-    saveEarly : bool, optional
+    saveEarly : `bool`, optional
         If True, metric values will be saved immediately after they are first calculated (to prevent
         data loss) as well as after summary statistics are calculated.
         If False, metric values will only be saved after summary statistics are calculated.
-    dbTable : str, optional
+    dbTable : `str`, optional
         The name of the table in the dbObj to query for data.
     """
     def __init__(self, bundleDict, dbObj, outDir='.', resultsDb=None, verbose=True,
@@ -192,7 +192,7 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        constraint : str
+        constraint : `str`
            The constraint for the currently active set of MetricBundles.
         """
         if self.verbose:
@@ -229,11 +229,11 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        clearMemory : bool, optional
+        clearMemory : `bool`, optional
             If True, deletes metric values from memory after running each constraint group.
-        plotNow : bool, optional
+        plotNow : `bool`, optional
             If True, plots the metric values immediately after calculation.
-        plotKwargs : bool, optional
+        plotKwargs : `bool`, optional
             kwargs to pass to plotCurrent.
         """
         for constraint in self.constraints:
@@ -247,7 +247,7 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        constraint : str
+        constraint : `str`
             The subset of MetricBundles with metricBundle.constraint == constraint will be
             included in a subset identified as the currentBundleDict.
             These are the active metrics to be calculated and plotted, etc.
@@ -267,14 +267,14 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        constraint : str
+        constraint : `str`
            constraint to use to set the currently active metrics
-        simData : numpy.ndarray, optional
+        simData : `numpy.ndarray`, optional
            If simData is not None, then this numpy structured array is used instead of querying
            data from the dbObj.
-        clearMemory : bool, optional
+        clearMemory : `bool`, optional
            If True, metric values are deleted from memory after they are calculated (and saved to disk).
-        plotNow : bool, optional
+        plotNow : `bool`, optional
            Plot immediately after calculating metric values (instead of the usual procedure, which
            is to plot after metric values are calculated for all constraints).
         plotKwargs : kwargs, optional
@@ -354,7 +354,7 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        constraint : str
+        constraint : `str`
            The constraint for the currently active set of MetricBundles.
         """
         if self.verbose:
@@ -512,7 +512,7 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        updateSummaries : bool, optional
+        updateSummaries : `bool`, optional
             If True, summary metrics are removed from the top-level (non-reduced)
             MetricBundle. Usually this should be True, as summary metrics are generally
             intended to run on the simpler data produced by reduce metrics.
@@ -526,7 +526,7 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        updateSummaries : bool, optional
+        updateSummaries : `bool`, optional
             If True, summary metrics are removed from the top-level (non-reduced)
             MetricBundle. Usually this should be True, as summary metrics are generally
             intended to run on the simpler data produced by reduce metrics.
@@ -581,21 +581,21 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        savefig : bool, optional
+        savefig : `bool`, optional
             If True, save figures to disk, to self.outDir directory.
-        outfileSuffix : bool, optional
+        outfileSuffix : `bool`, optional
             Append outfileSuffix to the end of every plot file generated. Useful for generating
             sequential series of images for movies.
-        figformat : str, optional
+        figformat : `str`, optional
             Matplotlib figure format to use to save to disk. Default pdf.
-        dpi : int, optional
+        dpi : `int`, optional
             DPI for matplotlib figure. Default 600.
-        trimWhitespace : bool, optional
+        trimWhitespace : `bool`, optional
             If True, trim additional whitespace from final figures. Default True.
-        thumbnail : bool, optional
+        thumbnail : `bool`, optional
             If True, save a small thumbnail jpg version of the output file to disk as well.
             This is useful for showMaf web pages. Default True.
-        closefigs : bool, optional
+        closefigs : `bool`, optional
             Close the matplotlib figures after they are saved to disk. If many figures are
             generated, closing the figures saves significant memory. Default True.
         """
@@ -613,21 +613,21 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        savefig : bool, optional
+        savefig : `bool`, optional
             If True, save figures to disk, to self.outDir directory.
-        outfileSuffix : str, optional
+        outfileSuffix : `str`, optional
             Append outfileSuffix to the end of every plot file generated. Useful for generating
             sequential series of images for movies.
-        figformat : str, optional
+        figformat : `str`, optional
             Matplotlib figure format to use to save to disk. Default pdf.
-        dpi : int, optional
+        dpi : `int`, optional
             DPI for matplotlib figure. Default 600.
-        trimWhitespace : bool, optional
+        trimWhitespace : `bool`, optional
             If True, trim additional whitespace from final figures. Default True.
-        thumbnail : bool, optional
+        thumbnail : `bool`, optional
             If True, save a small thumbnail jpg version of the output file to disk as well.
             This is useful for showMaf web pages. Default True.
-        closefigs : bool, optional
+        closefigs : `bool`, optional
             Close the matplotlib figures after they are saved to disk. If many figures are
             generated, closing the figures saves significant memory. Default True.
         """

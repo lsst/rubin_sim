@@ -40,12 +40,12 @@ class MafTracking(object):
 
         Parameters
         ----------
-        run : numpy.NDarray
+        run : `numpy.NDarray`
            One line from self.runs
 
         Returns
         -------
-        OrderedDict
+        runInfo : `OrderedDict`
             Ordered dict version of the numpy structured array.
         """
         runInfo = OrderedDict()
@@ -68,14 +68,14 @@ class MafTracking(object):
 
         Parameters
         ----------
-        runs : numpy.NDarray
+        runs : `numpy.NDarray`
            The runs from self.runs to sort.
-        order : list
+        order : `list`
            The fields to use to sort the runs array.
 
         Returns
         -------
-        numpy.NDarray
+        runs : `numpy.NDarray`
            A sorted numpy array.
         """
         return np.sort(runs, order=order)
@@ -88,12 +88,12 @@ class MafTracking(object):
 
         Parameters
         ----------
-        mafRunId : int
+        mafRunId : `int`
            mafRunId value in the tracking database corresponding to a particular MAF run.
 
         Returns
         -------
-        MafRunResults
+        runPage : `MafRunResults`
            A MafRunResults object containing the information about a particular run.
            Stored internally in self.runsPage dict, but also passed back to the tornado server.
         """

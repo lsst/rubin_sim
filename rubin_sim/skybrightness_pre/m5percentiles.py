@@ -4,6 +4,7 @@ import healpy as hp
 import os
 from rubin_sim.data import get_data_dir
 
+__all__ = ['M5percentiles']
 
 def ss_split(arr, side='left'):
     """

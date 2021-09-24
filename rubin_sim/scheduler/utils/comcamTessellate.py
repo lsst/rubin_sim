@@ -1,5 +1,6 @@
 import numpy as np
 
+__all__ = ['comcamTessellate']
 
 def comcamTessellate(side_length=0.7, overlap=0.11):
     """Tesselate the sphere with a square footprint

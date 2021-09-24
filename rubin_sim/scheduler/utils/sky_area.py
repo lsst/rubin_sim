@@ -7,6 +7,7 @@ import astropy.units as u
 from rubin_sim import data as rs_data
 import rubin_sim.utils as rs_utils
 
+__all__ = ['Sky_area_generator']
 
 class Sky_area_generator:
     """Build the sky footprint map.

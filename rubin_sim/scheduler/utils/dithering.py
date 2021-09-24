@@ -6,6 +6,7 @@ from rubin_sim.utils import _hpid2RaDec, _xyz_angular_radius, _xyz_from_ra_dec
 
 default_nside = set_default_nside()
 
+__all__ = ['wrapRADec', 'rotate_ra_dec', 'pointings2hp', 'hpmap_cross']
 
 def wrapRADec(ra, dec):
     # XXX--from MAF, should put in general utils

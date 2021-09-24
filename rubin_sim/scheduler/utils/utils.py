@@ -1,5 +1,5 @@
 import os
-import sqlite3 as db
+import sqlite3
 import datetime
 import socket
 import numpy as np
@@ -8,7 +8,15 @@ import pandas as pd
 import matplotlib.path as mplPath
 from rubin_sim.utils import _hpid2RaDec, xyz_angular_radius, _buildTree, _xyz_from_ra_dec
 from rubin_sim.site_models import FieldsDatabase
-import rubin_sim
+import rubin_sim.version as rsVersion
+
+__all__ = ['int_rounded', 'int_binned_stat', 'smallest_signed_angle', 'schema_converter',
+           'hp_in_comcam_fov', 'hp_in_lsst_fov', 'hp_kd_tree', 'match_hp_resolution',
+           'TargetoO', 'Sim_targetoO_server', 'set_default_nside',
+           'restore_scheduler', 'warm_start', 'empty_observation', 'scheduled_observation',
+           'gnomonic_project_toxy', 'gnomonic_project_tosky',
+           'raster_sort', 'read_fields', 'run_info_table', 'inrange',
+           'season_calc', 'create_season_offset']
 
 
 def smallest_signed_angle(a1, a2):
@@ -112,7 +120,7 @@ def restore_scheduler(observationId, scheduler, observatory, filename, filter_sc
         The ID of the last observation that should be completed
     scheduler : rubin_sim.scheduler.scheduler object
         Scheduler object.
-    observatory : rubin_sim.schedler.observatory.Model_observatory
+    observatory : rubin_sim.scheduler.observatory.Model_observatory
         The observaotry object
     filename : str
         The output sqlite dayabase to use
@@ -263,7 +271,7 @@ def raster_sort(x0, order=['x', 'y'], xbin=1.):
         return order1
 
 
-class schema_converter(object):
+class schema_converter():
     """
     Record how to convert an observation array to the standard opsim schema
     """
@@ -311,7 +319,7 @@ class schema_converter(object):
             df[colname] = df[colname] * 360./24.
 
         if filename is not None:
-            con = db.connect(filename)
+            con = sqlite3.connect(filename)
             df.to_sql('observations', con, index=False)
             if info is not None:
                 df = pd.DataFrame(info)
@@ -321,7 +329,7 @@ class schema_converter(object):
         """convert an opsim schema dataframe into an observation array.
         """
 
-        con = db.connect(filename)
+        con = sqlite3.connect(filename)
         df = pd.read_sql('select * from observations;', con)
         for key in self.angles_rad2deg:
             df[key] = np.radians(df[key])
@@ -612,7 +620,7 @@ def run_info_table(observatory, extra_info=None):
     result[1]['Value'] = socket.gethostname()
 
     result[2]['Parameter'] = 'rubin_sim.__version__'
-    result[2]['Value'] = rubin_sim.__version__
+    result[2]['Value'] = rsVersion.__version__
 
     result[3:]['Parameter'] = observatory_info[:, 0]
     result[3:]['Value'] = observatory_info[:, 1]

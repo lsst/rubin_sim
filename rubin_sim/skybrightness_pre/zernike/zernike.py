@@ -41,6 +41,8 @@ BANDS = ("u", "g", "r", "i", "z", "y")
 
 # interface functions
 
+__all__ = ['ZernikeSky', 'SkyModelZernike', 'SkyBrightnessPreData']
+
 
 def fit_pre(npy_fname, npz_fname, *args, **kwargs):
     """Fit Zernike coefficients to a pre-computed data set
