@@ -18,7 +18,17 @@ def rotate(x, y, rotation_angle_rad):
 
 class LsstCameraFootprint(object):
     """
-    Class to provide the capability for identifying observations within an LSST camera footprint.
+    Identify point on the sky within an LSST camera footprint.
+
+    Parameters
+    ----------
+    units : `str`, opt
+        Units for the object RA/Dec and boresight RA/Dec/rotation values.
+        Default 'degrees'.  If not degrees, assumes incoming values are in radians.
+    footprint_file : `str` or None, opt
+        Location for the camera footprint map.
+        Default None loads the default map from $RUBIN_SIM_DATA_DIR/maf/fov_map.npz
+
     """
     def __init__(self, units='degrees', footprint_file=None):
         if footprint_file is None:
@@ -40,7 +50,7 @@ class LsstCameraFootprint(object):
         ----------
         obj_ra : `np.ndarray`
             RA values for the objects (in the field of view?)
-        obj_dec: `np.ndarray`
+        obj_dec : `np.ndarray`
             Dec values for the objects
         boresight_ra : `float`
             RA value for the pointing
@@ -51,7 +61,7 @@ class LsstCameraFootprint(object):
 
         Returns
         -------
-        indices: `np.ndarray`
+        indices : `np.ndarray`
             Returns the indexes of the numpy array of the object observations
             which are inside the fov and land on a science chip.
             Applying this to the input array (e.g. obj_ra[indices]) indicates the positions of

@@ -10,6 +10,8 @@ from .colMapDict import ColMapDict
 from rubin_sim.utils import hpid2RaDec, angularSeparation, ddf_locations
 from copy import deepcopy
 
+__all__ = ['ddfBatch']
+
 
 def ddfBatch(colmap=None, runName='opsim', nside=256, radius=3.):
     if colmap is None:

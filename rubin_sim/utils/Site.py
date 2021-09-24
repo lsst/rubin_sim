@@ -1,14 +1,3 @@
-""" Site Class
-
-    Class defines the attributes of the site unless overridden
-    ajc@astro 2/23/2010
-
-    Restoring this so that the astrometry mixin in Astrometry.py
-    can inherit the site information
-    danielsf 1/27/2014
-
-"""
-
 import numpy as np
 import warnings
 
@@ -46,46 +35,27 @@ class Site (object):
 
     Defaults values are LSST site values taken from the Observatory System Specification
     document
-
     https://docushare.lsstcorp.org/docushare/dsweb/ImageStoreViewer/LSE-30
-
     on 4 January 2016
 
-    Attributes
+    Parameters
     ----------
-    longitude: in degrees
-
-    longitude_rad: longitude in radians
-
-    latitude: in degrees
-
-    latitude_rad: latitude in radians
-
-    height: in meters
-
-    temperature: mean temperature in Centigrade
-
-    temperature_kelvin: mean temperature in Kelvin
-
-    pressure: in millibars
-
-    humidity: relative humidity (range 0-1)
-
-    lapseRate: change in temperature in Kelvins per meter
-
-    name: name of the observatory.  If set to 'LSST' any unspecified
-        values will default to LSST values as defined in
-
-        https://docushare.lsstcorp.org/docushare/dsweb/ImageStoreViewer/LSE-30
-
-        i.e.
-        longitude=-70.7494 degrees
-        latitude=-30.2444 degrees
-        height=2650.0 meters
-        temperature=11.5 centigrade
-        pressure=750.0 millibars
-        humidity=0.4
-        lapseRate=0.0065in Kelvin per meter
+    name : `str`, opt
+        The name of the observatory. Set to 'LSST' for other parameters to default to LSST values.
+    longitude : `float`, opt
+        Longitude of the site in degrees.
+    latitude : `float`, opt
+        Latitude of the site in degrees.
+    height : `float`, opt
+        Height of the site in meters.
+    temperature : `float`, opt
+        Mean temperature in Centigrade
+    pressure : `float`, opt
+        Pressure for the site in millibars.
+    humidity : `float`, opt
+        Relative humidity (range 0-1).
+    lapseRate : `float`, opt
+        Change in temperature in Kelvins per meter
     """
     def __init__(self,
                  name=None,
@@ -96,35 +66,6 @@ class Site (object):
                  pressure=None,
                  humidity=None,
                  lapseRate=None):
-        """
-        Parameters
-        ----------
-        name: a string denoting the name of the observator.  Set to 'LSST'
-            for other parameters to default to LSST values.
-
-            i.e.
-            longitude=-70.7494 degrees
-            latitude=-30.2444 degrees
-            height=2650.0 meters
-            temperature=11.5 centigrade
-            pressure=750.0 millibars
-            humidity=0.4
-            lapseRate=0.0065 in Kelvin per meter
-
-        longitude: in degrees
-
-        latitude: in degrees
-
-        height: in meters
-
-        temperature: in Centigrade
-
-        pressure: in millibars
-
-        humidity: relative (range 0-1)
-
-        lapseRate: in Kelvin per meter
-        """
 
         default_params = None
         self._name = name

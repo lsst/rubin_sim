@@ -8,15 +8,38 @@ from rubin_sim.data import get_data_dir
 __all__ = ["SeeingModel"]
 
 
-class SeeingModel(object):
+class SeeingModel():
     """LSST FWHM calculations for FWHM_effective and FWHM_geometric.
+
     Calculations of the delivered values are based on equations in Document-20160
     ("Atmospheric and Delivered Image Quality in OpSim" by Bo Xin, George Angeli, Zeljko Ivezic)
+    An example of the calculation of delivered image seeing from DIMM FWHM_500 is available in
+    https://smtn-002.lsst.io/#calculating-m5-values-in-the-lsst-operations-simulator
 
     Parameters
     ----------
-    XXX--add documentation
-
+    filter_list : `list` [`str`], opt
+        List of the filter bandpasses for which to calculate delivered FWHM_effective and FWHM_geometric
+        Default ['u', 'g', 'r', 'i', 'z', 'y']
+    eff_wavelens : `list` [`float`] or None, opt
+        Effective wavelengths for those bandpasses, in nanometers.
+        If None, the SeeingModel will read the throughput curves from disk
+        ($RUBIN_SIM_DATA_DIR/throughputs/baseline/total_[f].dat) and calculate effective wavelengths.
+    telescope_seeing : `float`, opt
+        The contribution to the delivered FWHM from the telescope, in arcseconds.
+        Default 0.25"
+    optical_design_seeing : `float`, opt
+        The contribution to the seeing from the optical design, in arcseconds.
+        Default 0.08 arcseconds
+    camera_seeing : `float`, opt
+        The contribution to the seeing from the camera, in arcseconds.
+        Default 0.30 arcseconds
+    raw_seeing_wavelength : `float`, opt
+        The wavelength of the DIMM-delivered equivalent FWHM, in nanometers.
+        Default 500nm.
+    efd_seeing : `str`, opt
+        The name of the DIMM FWHM measurements in the efd / conditions object.
+        Default `FWHM_500`
     """
     def __init__(self, filter_list=['u', 'g', 'r', 'i', 'z', 'y'],
                  eff_wavelens=None,
@@ -39,20 +62,15 @@ class SeeingModel(object):
 
         self._set_fwhm_zenith_system()
 
-    def configure(self, config=None):
-        """
+    def configure(self):
+        """Deprecated. Configure through the init method.
         """
         warnings.warn('the configure method is deprecated')
 
     def config_info(self):
-        """Report configuration parameters and version information.
-
-        Returns
-        -------
-        OrderedDict
+        """Deprecated. Report configuration parameters and version information.
         """
         warnings.warn('the config_info method is deprecated.')
-        return None
 
     def _set_fwhm_zenith_system(self):
         """Calculate the system contribution to FWHM at zenith.
@@ -80,14 +98,14 @@ class SeeingModel(object):
 
         Parameters
         ----------
-        fwhm_z: float, or efdData dict
+        fwhm_z: `float`, or efdData `dict`
             FWHM at zenith (arcsec).
-        airmass: float, np.array, or targetDict
+        airmass: `float`, `np.array`, or targetDict `dict`
             Airmass (unitless).
 
         Returns
         -------
-        dict of numpy.ndarray, numpy.ndarray
+        FWHMeff, FWHMGeom : `dict` of {`numpy.ndarray`, `numpy.ndarray`}
             FWHMeff, FWHMgeom: both are the same shape numpy.ndarray.
             If airmass is a single value, FWHMeff & FWHMgeom are 1-d arrays,
             with the same order as eff_wavelen (i.e. eff_wavelen[0] = u, then FWHMeff[0] = u).
@@ -119,11 +137,11 @@ class SeeingModel(object):
 
         Parameters
         ----------
-        fwhm_eff : float or np.ndarray
+        fwhm_eff : `float` or `np.ndarray`
 
         Returns
         -------
-        float or np.ndarray
+        FWHM_geom : `float` or `np.ndarray`
         """
         return (0.822 * fwhm_eff + 0.052)
 
@@ -133,10 +151,10 @@ class SeeingModel(object):
 
         Parameters
         ----------
-        fwhm_geom : float or np.ndarray
+        fwhm_geom : `float` or `np.ndarray`
 
         Returns
         -------
-        float or np.ndarray
+        FWHM_eff : `float` or `np.ndarray`
         """
         return (fwhm_geom - 0.052)/0.822

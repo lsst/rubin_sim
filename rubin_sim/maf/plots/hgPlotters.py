@@ -32,6 +32,8 @@ from rubin_sim.utils.ddf_locations import ddf_locations
 
 # classes
 
+__all__ = ['GeneralHourglassPlot']
+
 
 class GeneralHourglassPlot(BasePlotter):
     """Make an hourglass plot

@@ -11,6 +11,8 @@ mag_sun = -26.74 # apparent V band magnitude of the Sun (our H mags translate to
 km_per_au = 1.496e8
 m_per_km = 1000
 
+__all__ = ['MetricVsH', 'MetricVsOrbit', 'MetricVsOrbitPoints']
+
 
 class MetricVsH(BasePlotter):
     """
