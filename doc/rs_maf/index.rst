@@ -1,6 +1,10 @@
-================================
-Metrics Analysis Framework (MAF)
-================================
+.. py:currentmodule:: rubin_sim.maf
+
+.. _rubin_sim.maf:
+
+=============
+rubin_sim MAF
+=============
 
 
 The Metrics Analysis Framework (MAF) is a software package
@@ -22,6 +26,7 @@ analysis -- statistical summaries over the observed sky, such as the mean,
 median, RMS, minimum or maximum values). In this case, you would only have
 to write a small piece of code (a *metric*) that makes the actual evaluation,
 assuming you have the relevant observations for a single piece of sky.
+A simple list of all :doc:`available metrics <metricList>` is available.
 
 A concrete example of this can be found in the KNeMetric - which is illustrated
 in depth in a notebook in the github repo at `lsst/rubin_sim_notebooks
@@ -29,8 +34,8 @@ in depth in a notebook in the github repo at `lsst/rubin_sim_notebooks
 (see the maf/science directory).
 
 MAF also provides lots of ready to use :doc:`metrics <metricList>`, as well as
-a variety of ways to subdivide the pointing histories using *slicers* -- a typical
-use case is to evaluate a quantity at all points over the sky, which would use
+a variety of ways to subdivide the pointing histories using :py:obj:`rubin_sim.maf.slicers`
+-- a typical use case is to evaluate a quantity at all points over the sky, which would use
 the :py:class:`rubin_sim.maf.slicers.HealpixSlicer` slicer, but there are
 other spatially based slicers, such as the
 :py:class:`rubin_sim.maf.slicers.UserPointsSlicer` which lets a user define

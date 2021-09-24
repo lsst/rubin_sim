@@ -1,3 +1,7 @@
+.. py:currentmodule:: rubin_sim.data
+
+.. _rubin_sim.data:
+
 ==============
 rubin_sim data
 ==============

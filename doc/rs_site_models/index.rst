@@ -1,3 +1,7 @@
+.. py:currentmodule:: rubin_sim.site_models
+
+.. _rubin_sim.site_models:
+
 =====================
 rubin_sim site_models
 =====================

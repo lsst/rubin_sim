@@ -1,3 +1,7 @@
+.. py:currentmodule:: rubin_sim.skybrightness_pre
+
+.. _rubin_sim.skybrightness_pre:
+
 ===========================
 rubin_sim skybrightness_pre
 ===========================

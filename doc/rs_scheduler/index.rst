@@ -1,3 +1,7 @@
+.. py:currentmodule:: rubin_sim.scheduler
+
+.. _rubin_sim.scheduler:
+
 ===================
 rubin_sim Scheduler
 ===================
