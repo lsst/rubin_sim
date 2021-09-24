@@ -1,2 +1,4 @@
 _build/*
 source/*
+api/
+rs_maf/metricList.rst
