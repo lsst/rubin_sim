@@ -8,9 +8,14 @@ def makeMetricList(outfile):
 
     f = open(outfile, 'w')
 
-    print("=================", file=f)
-    print("Available metrics", file=f)
-    print("=================", file=f)
+    # Print header
+    print(".. py:currentmodule:: rubin_sim.maf", file=f)
+    print("", file=f)
+    print(".. _rubin_sim.maf_metricList:", file=f)
+    print("", file=f)
+    print("================================", file=f)
+    print("rubin_sim MAF: Available metrics", file=f)
+    print("================================", file=f)
 
 
     print("Core LSST MAF metrics", file=f)
@@ -20,9 +25,9 @@ def makeMetricList(outfile):
         if inspect.isclass(obj):
             modname = inspect.getmodule(obj).__name__
             if modname.startswith('rubin_sim.maf.metrics'):
-                link = "source/rubin_sim.maf.metrics.html#%s.%s" % (modname, obj.__name__)
+                link = f":py:class:`~rubin_sim.maf.metrics.{name}` "
                 simpledoc = inspect.getdoc(obj).split('\n')[0]
-                print("- `%s <%s>`_ \n \t %s" % (name, link, simpledoc), file=f)
+                print(f"- {link} \n \t {simpledoc}", file=f)
     print(" ", file=f)
 
     print("Contributed mafContrib metrics", file=f)
@@ -32,9 +37,9 @@ def makeMetricList(outfile):
         if inspect.isclass(obj):
             modname = inspect.getmodule(obj).__name__
             if modname.startswith('rubin_sim.maf.mafContrib')  and name.endswith('Metric'):
-                link = "source/rubin_sim.maf.mafContrib.html#%s.%s" % (modname, obj.__name__)
+                link = f":py:class:`~rubin_sim.maf.mafContrib.{name}` "
                 simpledoc = inspect.getdoc(obj).split('\n')[0]
-                print("- `%s <%s>`_ \n \t %s" % (name, link, simpledoc), file=f)
+                print(f"- {link} \n \t {simpledoc}", file=f)
     print(" ", file=f)
 
 
