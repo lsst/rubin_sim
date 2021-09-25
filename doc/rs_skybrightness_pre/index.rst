@@ -15,9 +15,6 @@ the scheduler by rubin_sim.skybrightness_pre.
 Python API
 ==========
 
-.. automodapi:: rubin_sim.skybrightness_pre
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
+* :ref:`rubin_sim.skybrightness_pre api`
 
 * :ref:`search`

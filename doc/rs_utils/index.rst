@@ -14,9 +14,6 @@ coordinate transform utilities, as well as other useful tools.
 Python API
 ==========
 
-.. automodapi:: rubin_sim.utils
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
+* :ref:`rubin_sim.utils api`
 
 * :ref:`search`

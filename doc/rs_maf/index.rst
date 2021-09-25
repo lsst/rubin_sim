@@ -59,52 +59,6 @@ For more examples of using MAF, please see our `tutorials`_.
 Python API
 ==========
 
-.. automodapi:: rubin_sim.maf.batches
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.maf.metrics
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.maf.mafContrib
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.maf.slicers
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.maf.db
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.maf.maps
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.maf.stackers
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.maf.plots
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.maf.metricBundles
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.maf.runComparison
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.maf.utils
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.maf.web
-   :no-main-docstr:
-   :no-inheritance-diagram:
+* :ref:`rubin_sim.maf api`
 
 * :ref:`search`
