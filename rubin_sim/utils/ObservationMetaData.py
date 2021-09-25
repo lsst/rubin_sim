@@ -8,86 +8,65 @@ __all__ = ["ObservationMetaData"]
 
 
 class ObservationMetaData(object):
-    """Observation Metadata
+    """Track metadata for a given telescope pointing.
 
     This class contains any metadata for a query which is associated with
     a particular telescope pointing, including bounds in RA and DEC, and
     the time of the observation.
 
-    **Parameters**
+    Parameters
+    ----------
+    pointing : `float`, opt
+        [RA,Dec] float
+        The coordinates of the pointing (in degrees; in the International
+        Celestial Reference System)
+    boundType : `str`, opt
+        characterizes the shape of the field of view.  Current options are 'box, and 'circle'
+    boundLength : `float` or `np.ndarray`, opt
+        is the characteristic length scale of the field of view in degrees.
+        If boundType is 'box', boundLength can be a float (in which case boundLength is
+        half the length of the side of each box) or boundLength can be a numpy array
+        in which case the first argument is half the width of the RA side of the box
+        and the second argument is half the Dec side of the box.
+        If boundType is 'circle,' this will be the radius of the circle.
+        The bound will be centered on the point (pointingRA, pointingDec), however,
+        because objects are stored at their mean RA, Dec in the LSST databases
+        (i.e. they are stored at values of RA, Dec which neglect proper motion), the
+        bounds applied to database queries will be made slightly larger so that queries
+        can be reasonably expected to return all of the objects within the desired field
+        of view once those corrections have been applied.
+    mjd : `float`, opt
+        Either a float (in which case, it will be assumed to be in International
+        Atomic Time), or an instantiation of the ModifiedJulianDate class representing
+        the date of the observation
+    bandpassName : `str` or `list` of `str`, opt
+        a char (e.g. 'u') or list (e.g. ['u', 'g', 'z']) denoting the bandpasses used
+        for this particular observation
+    site : `rubin_sim.utils.Site`, opt
+        an instantiation of the rubin_sim.utils.Site class characterizing the site of the observatory.
+    m5 : `float` or `list` of `float, opt
+        this should be the 5-sigma limiting magnitude in the bandpass or
+        bandpasses specified in bandpassName.  Ultimately, m5 will be stored
+        in a dict keyed to the bandpassName (or Names) you passed in, i.e.
+        you will be able to access m5 from outside of this class using, for
+        example:
+        myObservationMetaData.m5['u']
+    skyBrightness : `float`, opt
+        the magnitude of the sky in the filter specified by bandpassName
+    seeing : `float` or `list` of `float, opt
+        Analogous to m5, corresponds to the seeing in arcseconds in the bandpasses in bandpassName
+    rotSkyPos : `float`, opt
+        The orientation of the telescope in degrees.
+        The convention for rotSkyPos is as follows:
+        rotSkyPos = 0 means north is in the +y direction on the focal plane and east is +x
+        rotSkyPos = 90 means north is +x and east is -y
+        rotSkyPos = -90 means north is -x and east is +y
+        rotSkyPos = 180 means north is -y and east is -x
+        This should be consistent with PhoSim conventions.
 
-        All parameters are optional.  It is possible to instantiate an
-        ObservationMetaData that is empty of data.
-
-        * pointing[RA,Dec] float
-          The coordinates of the pointing (in degrees; in the International
-          Celestial Reference System)
-
-        * boundType characterizes the shape of the field of view.  Current options
-          are 'box, and 'circle'
-
-        * boundLength is the characteristic length scale of the field of view in degrees.
-
-          If boundType is 'box', boundLength can be a float(in which case boundLength is
-          half the length of the side of each box) or boundLength can be a numpy array
-          in which case the first argument is half the width of the RA side of the box
-          and the second argument is half the Dec side of the box.
-
-          If boundType is 'circle,' this will be the radius of the circle.
-
-          The bound will be centered on the point (pointingRA, pointingDec), however,
-          because objects are stored at their mean RA, Dec in the LSST databases
-          (i.e. they are stored at values of RA, Dec which neglect proper motion), the
-          bounds applied to database queries will be made slightly larger so that queries
-          can be reasonably expected to return all of the objects within the desired field
-          of view once those corrections have been applied.
-
-        * mjd :
-          Either a float (in which case, it will be assumed to be in International
-          Atomic Time), or an instantiation of the ModifiedJulianDate class representing
-          the date of the observation
-
-        * bandpassName : a char (e.g. 'u') or list (e.g. ['u', 'g', 'z'])
-          denoting the bandpasses used for this particular observation
-
-        * site: an instantiation of the rubin_sim.utils.Site class characterizing
-          the site of the observatory.
-
-        * m5: float or list
-          this should be the 5-sigma limiting magnitude in the bandpass or
-          bandpasses specified in bandpassName.  Ultimately, m5 will be stored
-          in a dict keyed to the bandpassName (or Names) you passed in, i.e.
-          you will be able to access m5 from outside of this class using, for
-          example:
-
-          myObservationMetaData.m5['u']
-
-        * skyBrightness: float the magnitude of the sky in the
-          filter specified by bandpassName
-
-        * seeing float or list
-          Analogous to m5, corresponds to the seeing in arcseconds in the bandpasses in
-          bandpassName
-
-        * rotSkyPos float
-          The orientation of the telescope in degrees.
-          This is used by the Astrometry mixins in sims_coordUtils.
-
-          The convention for rotSkyPos is as follows:
-
-          rotSkyPos = 0 means north is in the +y direction on the focal plane and east is +x
-
-          rotSkyPos = 90 means north is +x and east is -y
-
-          rotSkyPos = -90 means north is -x and east is +y
-
-          rotSkyPos = 180 means north is -y and east is -x
-
-          This should be consistent with PhoSim conventions.
-
-    **Examples**::
-        >>> data = ObservationMetaData(boundType='box', pointingRA=5.0, pointingDec=15.0,
-                    boundLength=5.0)
+    Examples
+    --------
+    ```>>> data = ObservationMetaData(boundType='box', pointingRA=5.0, pointingDec=15.0, boundLength=5.0)```
 
     """
     def __init__(self, boundType=None, boundLength=None,

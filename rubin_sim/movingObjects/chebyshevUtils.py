@@ -288,7 +288,8 @@ def chebfit(t, x, dxdt=None, xMultiplier=None, dxMultiplier=None, nPoly=7):
         raise ValueError("length of x (%s) != length of t (%s)" % (len(x), nPoints))
     if dxdt is None:
         if nPoly > nPoints:
-            raise RuntimeError('Without velocity constraints, nPoly (%d) must be less than %s' % (nPoly, nPoints))
+            raise RuntimeError('Without velocity constraints, nPoly (%d) must be less than %s' % (nPoly,
+                                                                                                  nPoints))
         if nPoly < 2:
             raise RuntimeError('Without velocity constraints, nPoly (%d) must be greater than 2' % nPoly)
     else:

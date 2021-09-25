@@ -59,15 +59,15 @@ def intid2id(intids, uintids, uids, dtype=int):
 
 
 def loadSpecFiles(filenames, mags=False):
-    """
-    Load up the ESO spectra.
+    """Load up the ESO spectra.
 
     The ESO npz files contain the following arrays:
-    filterWave: The central wavelengths of the pre-computed magnitudes
-    wave: wavelengths for the spectra
-    spec: array of spectra and magnitudes along with the relevant variable inputs.  For example,
+    * filterWave: The central wavelengths of the pre-computed magnitudes
+    * wave: wavelengths for the spectra
+    * spec: array of spectra and magnitudes along with the relevant variable inputs.  For example,
     airglow has dtype = [('airmass', '<f8'), ('solarFlux', '<f8'), ('spectra', '<f8', (17001,)),
-                         ('mags', '<f8', (6,)]
+    ('mags', '<f8', (6,)]
+
     For each unique airmass and solarFlux value, there is a 17001 elements spectra and 6 magnitudes.
     """
 

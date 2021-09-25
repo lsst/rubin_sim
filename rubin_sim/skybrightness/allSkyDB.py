@@ -5,6 +5,8 @@ from rubin_sim.data import get_data_dir
 
 # Tools for using an all-sky sqlite DB with cannon and photodiode data from the site.
 
+__all__ = ['allSkyDB', 'diodeSkyDB']
+
 
 def allSkyDB(dateID, sqlQ=None, dtypes=None, dbAddress=None, filt='R'):
     """
@@ -15,8 +17,9 @@ def allSkyDB(dateID, sqlQ=None, dtypes=None, dbAddress=None, filt='R'):
         dataPath = os.path.join(get_data_dir(), 'skybrightness')
         dbAddress = 'sqlite:///'+os.path.join(dataPath, 'photometry', 'skydata.sqlite')
     if sqlQ is None:
-        sqlQ = 'select stars.ra, stars.dec,  obs.alt, obs.starMag, obs.sky, obs.filter from obs, stars where obs.starID = stars.ID and obs.filter = "%s" and obs.dateID = %i;' % (
-            filt, dateID)
+        sqlQ = 'select stars.ra, stars.dec,  obs.alt, obs.starMag, obs.sky, obs.filter from obs, ' \
+               'stars where obs.starID = stars.ID and obs.filter = "%s" and obs.dateID = %i;' \
+               % (filt, dateID)
     if dtypes is None:
         names = ['ra', 'dec', 'alt', 'starMag', 'sky', 'filter']
         types = [float, float, float, float, float, '|S1']

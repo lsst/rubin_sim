@@ -6,6 +6,8 @@ from rubin_sim.utils import hpid2RaDec, equatorialFromGalactic
 import rubin_sim.maf.slicers as slicers
 from rubin_sim.data import get_data_dir
 
+__all__ = ['generateMicrolensingSlicer', 'MicrolensingMetric', 'microlensing_amplification']
+
 # Via Natasha Abrams nsabrams@college.harvard.edu
 def microlensing_amplification(t, impact_parameter=1, crossing_time=1825., peak_time=100,
                                blending_factor = 1):

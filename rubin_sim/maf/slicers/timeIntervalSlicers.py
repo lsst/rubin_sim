@@ -18,6 +18,7 @@ from .baseSlicer import BaseSlicer
 
 # exception classes
 
+__all__ = ['TimeIntervalSlicer', 'BlockIntervalSlicer', 'VisitIntervalSlicer', 'SlicerNotSetup']
 
 class SlicerNotSetup(Exception):
     """Thrown when a slicer is not setup for the method called."""

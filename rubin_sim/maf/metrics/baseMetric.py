@@ -178,10 +178,10 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
 
         Parameters
         ----------
-        dataSlice : `np.ndarray`
+        dataSlice : `numpy.recarray`
            Values passed to metric by the slicer, which the metric will use to calculate
            metric values at each slicePoint.
-        slicePoint : `dict`
+        slicePoint : `dict` or None
            Dictionary of slicePoint metadata passed to each metric.
            E.g. the ra/dec of the healpix pixel or opsim fieldId.
 
