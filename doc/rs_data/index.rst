@@ -13,9 +13,6 @@ and provide information on the current simulated baseline pointing history.
 Python API
 ==========
 
-.. automodapi:: rubin_sim.data
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
+* :ref:`rubin_sim.data api`
 
 * :ref:`search`

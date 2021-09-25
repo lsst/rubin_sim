@@ -14,9 +14,6 @@ methods for Rubin Observatory. There are expected throughput curves available in
 Python API
 ==========
 
-.. automodapi:: rubin_sim.photUtils
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
+* :ref:`rubin_sim.photUtils api`
 
 * :ref:`search`

@@ -15,9 +15,6 @@ as the sunrise and sunset times and planetary positions over the expected lifeti
 Python API
 ==========
 
-.. automodapi:: rubin_sim.site_models
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
+* :ref:`rubin_sim.site_models api`
 
 * :ref:`search`

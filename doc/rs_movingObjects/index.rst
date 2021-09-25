@@ -16,9 +16,6 @@ rubin_sim data.
 Python API
 ==========
 
-.. automodapi:: rubin_sim.movingObjects
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
+* :ref:`rubin_sim.movingObjects api`
 
 * :ref:`search`

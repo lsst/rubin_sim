@@ -20,9 +20,6 @@ More details about the rubin_sim version of the model and its validation for Rub
 Python API
 ==========
 
-.. automodapi:: rubin_sim.skybrightness
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
+* :ref:`rubin_sim.skybrightness api`
 
 * :ref:`search`

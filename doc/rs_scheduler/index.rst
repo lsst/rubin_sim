@@ -27,37 +27,6 @@ Description of the :doc:`schema for the output database <output_schema>`.
 Python API
 ==========
 
-.. automodapi:: rubin_sim.scheduler
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.scheduler.schedulers
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.scheduler.surveys
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.scheduler.basis_functions
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.scheduler.features
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.scheduler.detailers
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.scheduler.modelObservatory
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
-.. automodapi:: rubin_sim.scheduler.utils
-   :no-main-docstr:
-   :no-inheritance-diagram:
-
+* :ref:`rubin_sim.scheduler api`
 
 * :ref:`search`
