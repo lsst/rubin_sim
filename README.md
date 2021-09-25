@@ -2,6 +2,8 @@
 Scheduler, survey strategy analysis, and other simulation tools for Rubin Observatory.
 
 
+[![Run Tests and Build Documentation](https://github.com/lsst/rubin_sim/actions/workflows/python-tests-doc.yml/badge.svg)](https://github.com/lsst/rubin_sim/actions/workflows/python-tests-doc.yml)
+
 
 # Installation
 
@@ -10,10 +12,11 @@ Prerequisites:  A working [conda installation ](https://www.anaconda.com/product
 
 To install rubin_sim into a new conda environment (the typical use-case), set up a conda environment and install rubin_sim from source in development mode:
 ```
-conda create -n rubin -c conda-forge openorb openorb-data-de405 astroplan george scikit-learn scipy numpy healpy astropy pandas jupyterlab sqlite palpy matplotlib sqlalchemy pytables h5py colorcet setuptools_scm
-conda activate rubin
-git clone git@github.com:lsst/rubin_sim.git
+git clone git@github.com:lsst/rubin_sim
 cd rubin_sim
+conda create -n rubin   ### optional (but recommended)
+conda activate rubin    ### optional (if new environment created above)
+conda install -c conda-forge --file=requirements.txt
 pip install -e .
 ```
 The installation can be tested by running `py.test` in the github directory.
@@ -42,6 +45,9 @@ If you are only interested in a subset of the data, you can specify which direct
 rs_download_data  --dirs "throughputs,skybrightness,tests,maps"
 ```
 
+If you have a previous installation of rubin_sim or wish to oupdate your data download, the flag `--force` will force an update of the data in the relevant $RUBIN_SIM_DATA_DIR directories. 
+
+
 ### Additional installation and download options ###
 
 Optional dependencies used by some of the more esoteric MAF functions:
@@ -65,13 +71,11 @@ rs_download_data
 
 # Documentation
 
+Online documentation is available at https://rubin_sim.lsst.io
 Example jupyter notebooks can be found at:  https://github.com/lsst/rubin_sim_notebooks
 
-Building real documentation coming soon!
-
-To build the docs
+To create a local build of the documentation:
 ```
-conda install -c conda-forge documenteer
 conda install lsst-documenteer-pipelines
 cd doc
 make html
@@ -82,9 +86,8 @@ make html
 
 If someone finds themselves in a situation where they want to use the latest code, but an older version of the data files, one could mix and match by:
 ```
-rm -r ~/rubin_sim_data
 git checkout <some old git sha>
-rs_download_data
+rs_download_data --force
 git checkout master
 ```
 And viola, one has the current version of the code, but the data files from a previous version.
@@ -110,7 +113,7 @@ For unit tests, all filename should start with `test_` so py.test can automatica
 
 ## Updating data files
 
-To update the data files:
+To update the source contents of the data files:
 
 * Update the files in your local installation
 * If you are updating the baseline sim, create a symlink of the new database to baseline.db
@@ -119,5 +122,5 @@ To update the data files:
 * You can check that it is uploaded here: https://lsst.ncsa.illinois.edu/sim-data/rubin_sim_data/
 * Update `bin/rs_download_data` so the `data_dict` function uses your new filename
 * Push and merge the change to `bin/rs_download_data`
-* Probably add a new tag, figure out how to broadcast folks need to update
+* Probably add a new tag.
 
