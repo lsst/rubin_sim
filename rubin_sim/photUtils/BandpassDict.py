@@ -102,8 +102,7 @@ class BandpassDict(object):
         @param [in] componentList lists the files associated with bandpasses representing
         hardware components shared by all filters
         (defaults to ['detector.dat', 'm1.dat', 'm2.dat', 'm3.dat', 'lens1.dat',
-                      'lense2.dat', 'lenst3.dat']
-        for LSST).  These files are also expected to be stored in filedir
+        'lens2.dat', 'lens3.dat'] for LSST).  These files are also expected to be stored in filedir
 
         @param [in] atmoTransmission is the absolute path to the file representing the
         transmissivity of the atmosphere (defaults to baseline/atmos_std.dat in the LSST

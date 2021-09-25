@@ -13,16 +13,16 @@ def spatiallySample_obsmetadata(obsmetadata, size=1, seed=1):
 
     Parameters
     ----------
-    obsmetadata: instance of
-        `sims.catalogs.generation.db.ObservationMetaData`
-    size: integer, optional, defaults to 1
+    obsmetadata : rubin_sim.utils.ObservationMetaData`
+    size : `int`, optional, defaults to 1
         number of samples
-
-    seed: integer, optional, defaults to 1
+    seed : `int`, optional, defaults to 1
         Random Seed used in generating random values
+
     Returns
     -------
-    tuple of ravals, decvalues in radians
+    ravals, thetavals : `np.ndarray`, `np.ndarray`
+        tuple of ravals, decvalues in radians
     """
 
     phi = obsmetadata.pointingRA
@@ -70,17 +70,21 @@ def samplePatchOnSphere(phi, theta, delta, size, seed=1):
 
     Parameters
     ----------
-    phi: float, mandatory, degrees
-        center of the spherical patch in ra with range
-    theta: float, mandatory, degrees
-    delta: float, mandatory, degrees
-    size: int, mandatory
+    phi : `float`,
+        center of the spherical patch in ra with range, degrees
+    theta : `float`
+        degrees
+    delta : `float`
+        degrees
+    size : `int`
         number of samples
-    seed : int, optional, defaults to 1
+    seed : `int`, optional, defaults to 1
         random Seed used for generating values
+
     Returns
     -------
-    tuple of (phivals, thetavals) where phivals and thetavals are arrays of
+    phivals, thetavals : `np.ndarray`, `np.ndarray`
+        tuple of (phivals, thetavals) where phivals and thetavals are arrays of
         size size in degrees.
     """
     np.random.seed(seed)

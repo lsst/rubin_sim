@@ -29,9 +29,29 @@ class Sky_area_generator:
 
     Parameters
     ----------
-    nside : `int`
-        Healpix resolution for map
-    XXX:  Moved magic values to kwargs. Should refactor to eliminate nvis_wfd_default.
+    nside : `int`, opt
+        Healpix resolution for map. Default 64.
+    nvis_wfd_default : `int`, opt
+        Goal number of visits in the WFD region.
+        This acts as a scaling factor for the maps in each region, but in practice the
+        scheduler will achieve as many visits in each region as possible (keeping the overall balance).
+        Combined with a function to calculate the survey fraction required for a given number of visits
+        over a given area, this scaling factor can provide an estimate of the 'likely achieved' number of
+        visits from a simulation. Default 860.
+    nvis_frac_nes : `float`, opt
+        Fraction of WFD-level visits to spend in the NES pointings.
+        Default 0.3  (0.3 * 860 WFD visits = ~258 visits per pointing in the NES).
+    nvist_frac_gp : `float`, opt
+        Fraction of WFD-level visits to spend in the background (non-bulge/WFD) galactic plane regions.
+        Default 0.27
+    nvis_frac_scp : `float`, opt
+        Fraction of WFD-level visits to spend in the south celestial pole region (which acts as a
+        'backup' sky coverage all the way up to ~dec_max, beyond the SCP, in case of 'holes' in sky coverage).
+        Default 0.14
+    dec_max : `float`, opt
+        Maximum declination value for sky coverage before it is reset by defining the dust-free WFD regions.
+        This is useful if other regions are defined before the dust-free WFD, but otherwise is overriden.
+        In degrees, default 12.
     """
     def __init__(self, nside=64, nvis_wfd_default=860, nvis_frac_nes=0.3, nvis_frac_gp=0.27,
                  nvis_frac_scp=0.14, dec_max=12.):
@@ -92,8 +112,8 @@ class Sky_area_generator:
         return tmp
 
     # The various regions take the approach that they should be independent
-    # And after setting all of the regions, we take the max value (per filter?) in each part of the sky
-    # The individual components are updated, so that we can still calculate survey fraction per part of the sky
+    # And after setting all of the regions, we take the max value (per filter-ish) in each part of the sky
+    # The individual components are updated so that we can still calculate survey fraction per part of the sky
 
     def set_dustfree_wfd(self, nvis_dustfree_wfd, dust_limit=0.199,
                          dec_min=-70, dec_max=15,
@@ -517,11 +537,11 @@ class Sky_area_generator:
 
         Parameters
         ----------
-        trim_overlap: bool, optional
+        trim_overlap : `bool`, optional
             If True, look for WFD-like areas which overlap and drop areas according to how much dust there is.
-        smoothing_fwhm : float (3)
+        smoothing_fwhm : `float` (3)
             The smoothing to use (degrees)
-        dust_cut : float (0.3)
+        dust_cut : `float` (0.3)
             A trial-by-error value for assigning pixels to dust-free or galactic WFD
         """
         if trim_overlap:
@@ -585,12 +605,13 @@ class Sky_area_generator:
 
     def return_maps(self):
         """Call combine_maps and return self.total and self.total_perfilter.
+
         Returns
         --------
         self.total, self.total_perfilter : `np.ndarray`, `np.ndarray`
             HEALPix maps reflecting the total expected number of visits per pointing, and the
             number of visits per pointing per filter. These can then be scaled appropriately into
-            target maps for the scheduler. 
+            target maps for the scheduler.
         """
         self.combine_maps()
         return self.total, self.total_perfilter

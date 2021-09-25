@@ -54,7 +54,7 @@ def getFieldData(opsimDb, sqlconstraint):
 
     Returns
     -------
-    numpy.ndarray
+    fieldData : `numpy.ndarray`
         A numpy structured array containing the field information.  This data will ALWAYS be in radians.
     """
     # Get all fields used for all proposals.
@@ -110,7 +110,7 @@ def getSimData(opsimDb, sqlconstraint, dbcols, stackers=None, groupBy='default',
         SQL constraint to apply to query for observations.
     dbcols : `list` [`str`]
         Columns required from the database.
-    stackers : `list` [`rubin_sim.maf.Stackers`], optional
+    stackers : `list` [`rubin_sim.maf.stackers`], optional
         Stackers to be used to generate additional columns. Default None.
     tableName : `str`, optional
         Name of the table to query. Default None uses the opsimDb default.

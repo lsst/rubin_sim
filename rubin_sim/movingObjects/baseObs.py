@@ -210,7 +210,7 @@ class BaseObs(object):
         bandpassRoot : `str`, optional
             Rootname of the throughput curves in filterlist.
             E.g. throughput curve names are bandpassRoot + filterlist[i] + bandpassSuffix
-            Default "total_" (appropriate for LSST throughput repo).
+            Default total\_ (appropriate for LSST throughput repo).
         bandpassSuffix : `str`, optional
             Suffix for the throughput curves in filterlist.
             Default '.dat' (appropriate for LSST throughput repo).

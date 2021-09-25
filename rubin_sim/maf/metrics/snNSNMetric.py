@@ -18,49 +18,49 @@ class SNNSNMetric(BaseMetric):
 
     Parameters
     -----------
-    metricName : str, optional
+    metricName : `str`, optional
         metric name (default : SNSNRMetric)
-    mjdCol : str, optional
+    mjdCol : `str`, optional
         mjd column name (default : observationStartMJD)
-    RACol : str, optional
+    RACol : `str`, optional
         Right Ascension column name (default : fieldRA)
-    DecCol : str, optional
+    DecCol : `str`, optional
         Declination column name (default : fieldDec)
-    filterCol : str, optional
+    filterCol : `str`, optional
         filter column name (default: filter)
-    m5Col : str, optional
+    m5Col : `str`, optional
         five-sigma depth column name (default : fiveSigmaDepth)
-    exptimeCol : str, optional
+    exptimeCol : `str`, optional
         exposure time column name (default : visitExposureTime)
-    nightCol : str, optional
+    nightCol : `str`, optional
         night column name (default : night)
-    obsidCol : str, optional
+    obsidCol : `str`, optional
         observation id column name (default : observationId)
-    nexpCol : str, optional
+    nexpCol : `str`, optional
         number of exposure column name (default : numExposures)
-    vistimeCol : str, optional
+    vistimeCol : `str`, optional
         visit time column name (default : visitTime)
-    season : list, optional
+    season : `list` of `int`, optional
         list of seasons to process (float)(default: -1 = all seasons)
-    zmin : float, optional
+    zmin : `float`, optional
         min redshift for the study (default: 0.0)
-    zmax : float, optional
+    zmax : `float`, optional
         max redshift for the study (default: 1.2)
-    pixArea: float, optional
+    pixArea : `float`, optional
         pixel area (default: 9.6)
-    verbose: bool, optional
+    verbose : `bool`, optional
         verbose mode (default: False)
-    ploteffi: bool, optional
+    ploteffi : `bool`, optional
         to plot observing efficiencies vs z (default: False)
-    n_bef: int, optional
+    n_bef : `int`, optional
         number of LC points LC before T0 (default:5)
-    n_aft: int, optional
+    n_aft : `int`, optional
         number of LC points after T0 (default: 10)
-    snr_min: float, optional
+    snr_min : `float`, optional
         minimal SNR of LC points (default: 5.0)
-    n_phase_min: int, optional
+    n_phase_min : `int`, optional
         number of LC points with phase<= -5(default:1)
-    n_phase_max: int, optional
+    n_phase_max : `int`, optional
         number of LC points with phase>= 20 (default: 1)
     """
 
@@ -824,28 +824,20 @@ class SNNSNMetric(BaseMetric):
         return res
 
     def zlimdf(self, grp, duration_z):
-        """
-        Method to estimate redshift limits
+        """Estimate redshift limits.
 
         Parameters
         -----------
         grp: `pd.DataFrameGroupBy`
-            DataFrame with efficiencies to estimate redshift limits;
-            season: season
-            pixRA: RA of the pixel
-            pixDec: Dec of the pixel
-            healpixID: pixel ID
-            x1: SN stretch
-            color: SN color
-            z: redshift
-            effi: efficiency
-            effi_err: efficiency error (binomial)
+            DataFrame with efficiencies to estimate redshift limits
+            expected columns are season, pixRA, pixDec, healpixID, x1 (SNstretch), color (SN color),
+            z (redshift), effi (efficiency), effi_err (efficiency error, binomial)
         duration_z: `pd.DataFrame`
             season: season
             z: redshift
             T0_min: min daymax
             T0_max: max daymax
-             season_length: season length
+            season_length: season length
 
         Returns
         ----------
