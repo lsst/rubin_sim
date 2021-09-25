@@ -71,7 +71,7 @@ rs_download_data
 
 # Documentation
 
-Online documentation is available at https://rubin_sim.lsst.io
+Online documentation is available at https://rubin-sim.lsst.io
 Example jupyter notebooks can be found at:  https://github.com/lsst/rubin_sim_notebooks
 
 To create a local build of the documentation:
