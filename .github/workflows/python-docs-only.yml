@@ -23,7 +23,6 @@ jobs:
           conda config --set always_yes yes
           conda install --quiet --file=requirements.txt
           conda install lsst-documenteer-pipelines
-          conda install ltd-conveyor
       - name: install rubin_sim
         shell: bash -l {0}
         run: |
@@ -45,6 +44,10 @@ jobs:
           cd doc
           python metricList.py
           make html
+      - name: Install LTD Conveyor
+        shell: bash -l {0}
+        run: |
+          python -m pip install ltd-conveyor        
       - name: upload documentation
         shell: bash -l {0}
         env:
