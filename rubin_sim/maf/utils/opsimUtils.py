@@ -237,6 +237,8 @@ def labelVisits(opsimdb_file):
     from ..db import OpsimDatabase
 
     ddir = os.path.split(opsimdb_file)[0]
+    if len(ddir) == 0:
+        ddir = '.'
     basename = os.path.split(opsimdb_file)[-1]
     runName = basename.replace('.db', '')
     # The way this is written, in order to be able to freely use the information later, we write back
