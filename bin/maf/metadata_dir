@@ -85,7 +85,8 @@ if __name__ == "__main__":
         # label visits
         newdb_file = mafUtils.labelVisits(filename)
         # Set and create if needed the output directory
-        outDir = opsim + "_sched"
+        # I guess 'meta' really means to be more like 'conditions' of visits here.
+        outDir = opsim + "_meta"
         if os.path.isdir(outDir):
             shutil.rmtree(outDir)
         # Connect to the opsim database
