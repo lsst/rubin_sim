@@ -478,6 +478,19 @@ class MetricBundle(object):
         self.fileRoot = head.replace('.npz', '')
         self.setPlotFuncs(None)
 
+    @classmethod
+    def load(cls, filename):
+        """Create a metric bundle and load its content from disk.
+
+        Parameters
+        ----------
+        filename : str
+           The file from which to read the metric bundle data.
+        """
+        bundle_group = cls(metrics.BaseMetric(), slicers.BaseSlicer(), '')
+        bundle_group.read(filename)
+        return bundle_group
+
     def computeSummaryStats(self, resultsDb=None):
         """Compute summary statistics on metricValues, using summaryMetrics (metricbundle list).
 
