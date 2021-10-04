@@ -8,7 +8,7 @@ import rubin_sim.maf.metricBundles as mb
 from .colMapDict import ColMapDict
 from .common import standardSummary, filterList, combineMetadata, radecCols
 
-__all__ = ['phaseGap', 'SN' ]
+__all__ = ['phaseGap']
 
 def phaseGap(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetadata=None,
              ditherStacker=None, ditherkwargs=None):
