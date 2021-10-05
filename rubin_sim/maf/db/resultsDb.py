@@ -375,10 +375,36 @@ class ResultsDb(object):
         summarystats = np.array(summarystats, dtype)
         return summarystats
 
-    def getPlotFiles(self, metricId=None):
+    def getPlotFiles(self, metricId=None, withSimName=False):
         """
         Return the metricId, name, metadata, and all plot info (optionally for metricId list).
         Returns a numpy array of the metric information + plot file names.
+
+        Parameters
+        ----------
+        metricId : `int`  `list`, or `None`
+            If None, plots for all metrics are returned. Otherwise, only plots
+            corresponding to the supplied metric ID or IDs are returned
+        withSimName : `bool`
+            If True, include the run name in the fields returned
+
+        Returns
+        -------
+        plotFiles : `numpy.recarray`
+            ``metricId``
+                The metric ID
+            ``metricName``
+                The metric name
+            ``metricMetadata``
+                Metadata extracted from the sql constraint (usually the filter)
+            ``plotType``
+                The plot type
+            ``plotFile``
+                The full plot file (pdf by default)
+            ``thumbFile``
+                A plot thumbnail file name (png)
+            ``simDataName``
+                The name of the run plotted (if `withSimName` was `True`)
         """
         if metricId is None:
             metricId = self.getAllMetricIds()
@@ -392,13 +418,24 @@ class ResultsDb(object):
             for m, p in query:
                 # The plotFile typically ends with .pdf (but the rest of name can have '.' or '_')
                 thumbfile = 'thumb.' + '.'.join(p.plotFile.split('.')[:-1]) + '.png'
-                plotFiles.append((m.metricId, m.metricName, m.metricMetadata,
-                                  p.plotType, p.plotFile, thumbfile))
+                plot_file_fields = (m.metricId, m.metricName, m.metricMetadata,
+                                  p.plotType, p.plotFile, thumbfile)
+                if withSimName:
+                    plot_file_fields += (m.simDataName,)
+                plotFiles.append(plot_file_fields)
+
         # Convert to numpy array.
-        dtype = np.dtype([('metricId', int), ('metricName', str, self.slen),
-                          ('metricMetadata', str, self.slen),
-                          ('plotType', str, self.slen), ('plotFile', str, self.slen),
-                          ('thumbFile', str, self.slen)])
+        dtype_list =[('metricId', int),
+                     ('metricName', str,self.slen),
+                     ('metricMetadata', str, self.slen),
+                     ('plotType', str, self.slen),
+                     ('plotFile', str, self.slen),
+                     ('thumbFile', str, self.slen)]
+
+        if withSimName:
+            dtype_list += [('simDataName', str, self.slen)]
+        dtype = np.dtype(dtype_list)
+
         plotFiles = np.array(plotFiles, dtype)
         return plotFiles
 
@@ -417,8 +454,37 @@ class ResultsDb(object):
                 dataFiles.append(m.metricDataFile)
         return dataFiles
 
-    def getMetricInfo(self, metricId=None):
+    def getMetricInfo(self, metricId=None, withSimName=False):
         """Get the simple metric info, without display information.
+
+        Parameters
+        ----------
+        metricId : `int`  `list`, or `None`
+            If None, data for all metrics are returned. Otherwise, only data
+            corresponding to the supplied metric ID or IDs are returned
+        withSimName : `bool`
+            If True, include the run name in the fields returned
+
+        Returns
+        -------
+        plotFiles : `numpy.recarray`
+            ``metricId``
+                The metric ID
+            ``metricName``
+                The metric name
+            ``baseMetricNames``
+                The base metric names
+            ``slicerName``
+                The name of the slicer used in the bundleGroup
+            ``sqlConstraint``
+                The full sql constraint used in the bundleGroup
+            ``metricMetadat``
+                Metadata extracted from the `sqlConstraint` (usually the filter)
+            ``metricDataFile``
+                The file name of the file with the metric data itself.
+            ``simDataName``
+                The name of the run plotted (if `withSimName` was `True`)
+
         """
         if metricId is None:
             metricId = self.getAllMetricIds()
@@ -432,14 +498,20 @@ class ResultsDb(object):
                 baseMetricName = m.metricName.split('_')[0]
                 mInfo = (m.metricId, m.metricName, baseMetricName, m.slicerName,
                         m.sqlConstraint, m.metricMetadata, m.metricDataFile)
+                if withSimName:
+                    mInfo += (m.simDataName,)
+
                 metricInfo.append(mInfo)
         # Convert to numpy array.
-        dtype = np.dtype([('metricId', int), ('metricName', str, self.slen),
+        dtype_list = [('metricId', int), ('metricName', str, self.slen),
                           ('baseMetricNames', str, self.slen),
                           ('slicerName', str, self.slen),
                           ('sqlConstraint', str, self.slen),
                           ('metricMetadata', str, self.slen),
-                          ('metricDataFile', str, self.slen)])
+                          ('metricDataFile', str, self.slen)]
+        if withSimName:
+            dtype_list += [('simDataName', str, self.slen)]
+        dtype = np.dtype(dtype_list)
         metricInfo = np.array(metricInfo, dtype)
         return metricInfo
 
