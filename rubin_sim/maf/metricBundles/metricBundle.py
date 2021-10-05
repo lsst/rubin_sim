@@ -172,7 +172,7 @@ class MetricBundle(object):
         if metadata is None:
             self.metadata = self.constraint.replace('=', '').replace('filter', '').replace("'", '')
             self.metadata = self.metadata.replace('"', '').replace('  ', ' ')
-            self.metadata.strip(' ')
+            self.metadata = self.metadata.strip(' ')
         else:
             self.metadata = metadata
 
