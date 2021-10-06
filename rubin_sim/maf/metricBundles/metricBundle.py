@@ -487,9 +487,9 @@ class MetricBundle(object):
         filename : str
            The file from which to read the metric bundle data.
         """
-        bundle_group = cls(metrics.BaseMetric(), slicers.BaseSlicer(), '')
-        bundle_group.read(filename)
-        return bundle_group
+        metric_bundle = cls(metrics.BaseMetric(), slicers.BaseSlicer(), '')
+        metric_bundle.read(filename)
+        return metric_bundle
 
     def computeSummaryStats(self, resultsDb=None):
         """Compute summary statistics on metricValues, using summaryMetrics (metricbundle list).
