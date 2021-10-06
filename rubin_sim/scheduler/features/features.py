@@ -11,7 +11,7 @@ __all__ = ['BaseFeature', 'BaseSurveyFeature', 'N_obs_count', 'N_obs_survey',
            'Last_observation', 'LastSequence_observation', 'LastFilterChange',
            'N_observations', 'Coadded_depth', 'Last_observed', 'N_obs_night', 'Pair_in_night',
            'Rotator_angle', 'N_observations_season', 'N_obs_count_season', 'N_observations_current_season',
-           'Last_N_obs_times', 'Survey_in_night']
+           'Last_N_obs_times', 'Survey_in_night', 'NoteLastObserved']
 
 
 class BaseFeature(object):
@@ -390,6 +390,20 @@ class Last_observed(BaseSurveyFeature):
             self.feature[indx] = observation['mjd']
         elif observation['filter'][0] in self.filtername:
             self.feature[indx] = observation['mjd']
+
+
+class NoteLastObserved(BaseSurveyFeature):
+    """Track when the last observation that matches a certain condition
+    was made.
+    """
+
+    def __init__(self, note):
+        self.note = note
+        self.feature = None
+
+    def add_observation(self, observation, indx=None):
+        if self.note in observation["note"]:
+            self.feature = observation["mjd"]
 
 
 class N_obs_night(BaseSurveyFeature):
