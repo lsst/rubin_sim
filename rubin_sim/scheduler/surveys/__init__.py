@@ -1,6 +1,7 @@
 from .base_survey import *
 from .surveys import *
 from .dd_surveys import *
+from .field_survey import *
 from .scripted_surveys import *
 from .too_surveys import *
 from .desc_ddf import *
