@@ -437,7 +437,8 @@ class RunComparison(object):
                                       " Skipping this combination.")
                     else:
                         filename = self.runresults[r][s].getMetricDataFiles(metricId=mId)
-                        filepaths[r] = os.path.join(r, s, filename[0])
+                        filepaths[r] = os.path.join(self.baseDir, r, s, filename[0])
+
         return filepaths
 
     # Plot actual metric values (skymaps or histograms or power spectra) (values not stored in class).
