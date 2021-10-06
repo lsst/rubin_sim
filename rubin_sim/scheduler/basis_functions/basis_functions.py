@@ -25,7 +25,7 @@ __all__ = ['Base_basis_function', 'Constant_basis_function', 'Target_map_basis_f
            'N_obs_per_year_basis_function', 'Cadence_in_season_basis_function',
            'Near_sun_twilight_basis_function',
            'N_obs_high_am_basis_function', 'Good_seeing_basis_function', 'Observed_twice_basis_function',
-           'Ecliptic_basis_function', 'Limit_repeat_basis_function']
+           'Ecliptic_basis_function', 'Limit_repeat_basis_function', 'VisitGap']
 
 
 class Base_basis_function(object):
@@ -1476,3 +1476,29 @@ class Observed_twice_basis_function(Base_basis_function):
         result[good_pix] = 1
 
         return result
+
+class VisitGap(Base_basis_function):
+    def __init__(self, note, gap_min=25.0, penalty_val=np.nan):
+        super().__init__()
+        self.penalty_val = penalty_val
+
+        self.gap = gap_min / 60.0 / 24.0
+        self.survey_features = dict()
+        self.survey_features["NoteLastObserved"] = features.NoteLastObserved(note=note)
+
+    def _check_feasibility(self, conditions):
+        if self.survey_features["NoteLastObserved"].feature is None:
+            return True
+
+        diff = conditions.mjd - self.survey_features["NoteLastObserved"].feature
+
+        if diff <= self.gap:
+            return False
+        else:
+            return True
+
+    def check_feasibility(self, conditions):
+        return self._check_feasibility(conditions)
+
+    def _calc_value(self, conditions, indx=None):
+        return 1.0 if self._check_feasibility(conditions) else self.penalty_val
