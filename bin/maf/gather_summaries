@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 import glob
 import argparse
@@ -19,6 +21,9 @@ if __name__ == '__main__':
     parser.add_argument("--suffix", type=str, default='_sci',
                         help="Suffix for directories within which to find resultsDbs (default _sci)")
     args = parser.parse_args()
+
+    # Why write this to search for an operate on a given suffix, rather than looking for all MAF
+    # directories in a given location?
 
     runDirs = glob.glob(f"*_10yrs{args.suffix}")
     runNames = [r.replace('_10yrs_sci', '') for r in runDirs]
