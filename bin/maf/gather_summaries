@@ -1,0 +1,30 @@
+import os
+import glob
+import argparse
+
+from rubin_sim.maf.runComparison import RunComparison
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="Find resultsDbs in a series of directories and "
+                                                 "gather up their summary stats into a single CSV file. "
+                                                 "Intended to run on a set of metrics run on multiple "
+                                                 "simulations, so that each resultsDb has similar summary"
+                                                 "statistics.")
+    parser.add_argument("--baseDir", type=str, default='.',
+                        help="Director from where to search for directories matching the 'suffix'")
+    parser.add_argument("--outDir", type=str, default='.',
+                        help="Directory to place the output csv file (file = suffix_summary.csv)")
+    parser.add_argument("--suffix", type=str, default='_sci',
+                        help="Suffix for directories within which to find resultsDbs (default _sci)")
+    args = parser.parse_args()
+
+    runDirs = glob.glob(f"*_10yrs{args.suffix}")
+    runNames = [r.replace('_10yrs_sci', '') for r in runDirs]
+    print(f"Found directories for {runNames}")
+
+    rc = RunComparison(baseDir=args.baseDir, runNames=runNames, rundirs=runDirs)
+    mdict = rc.buildMetricDict()
+    rc.addSummaryStats(mdict)
+    rc.summaryStats.to_csv(os.path.join(args.outDir, f"{args.suffix.replace('_', '')}_summary.csv"))
