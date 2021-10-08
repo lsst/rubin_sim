@@ -479,6 +479,10 @@ class BaseObs(object):
             self.wroteHeader = True
 
         # Write results.
+        # XXX--should remove nested for-loops. Looks like there is a hodgepodge
+        # of arrays, structured arrays, and record arrays. Probably a good idea to 
+        # refactor to eliminate the rec arrays, then it should be easy to stack things
+        # and use np.savetxt to eliminate all the loops. 
         for eph, simdat, dm in zip(objEphs, obsData, dmags):
             writestring = '%s ' % (objId)
             for col in eph.dtype.names:
@@ -488,7 +492,6 @@ class BaseObs(object):
             for col in dm.dtype.names:
                 writestring += '%s ' % (dm[col])
             self.outfile.write('%s\n' % (writestring))
-        self.outfile.flush()
 
     def _closeOutput(self):
         self.outfile.write('# Finished at %s' % (datetime.datetime.now()))
