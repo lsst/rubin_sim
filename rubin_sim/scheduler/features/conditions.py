@@ -100,6 +100,12 @@ class Conditions(object):
             A healpix map with the cloud coverage. XXX-expand, is this bool map? Transparency map?
         airmass : np.array
             A healpix map with the airmass value of each healpixel. (unitless)
+        wind_speed : float
+            Wind speed (m/s).
+        wind_direction : float
+            Direction from which the wind originates. A direction of 0.0 degrees
+            means the wind originates from the north and 90.0 degrees from the
+            east (radians). 
         sunset : float
             The MJD of sunset that starts the current night. Note MJDs of sunset, moonset, twilight times, etc
             are from interpolations. This means the sun may actually be slightly above/below the horizon
@@ -194,6 +200,9 @@ class Conditions(object):
         self._FWHMeff = {}
         self._M5Depth = None
         self._airmass = None
+
+        self.wind_speed = None
+        self.wind_direction = None
 
         # Upcomming scheduled observations
         self.scheduled_observations = np.array([], dtype=float)
