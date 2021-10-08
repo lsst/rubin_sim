@@ -25,7 +25,7 @@ __all__ = ['Base_basis_function', 'Constant_basis_function', 'Target_map_basis_f
            'N_obs_per_year_basis_function', 'Cadence_in_season_basis_function',
            'Near_sun_twilight_basis_function',
            'N_obs_high_am_basis_function', 'Good_seeing_basis_function', 'Observed_twice_basis_function',
-           'Ecliptic_basis_function', 'Limit_repeat_basis_function', 'VisitGap']
+           'Ecliptic_basis_function', 'Limit_repeat_basis_function', 'VisitGap', 'AvoidDirectWind']
 
 
 class Base_basis_function(object):
@@ -1511,3 +1511,35 @@ class VisitGap(Base_basis_function):
 
     def _calc_value(self, conditions, indx=None):
         return 1.0 if self.check_feasibility(conditions) else self.penalty_val
+
+
+class AvoidDirectWind(Base_basis_function):
+    """Basis function to avoid direct wind.
+
+    Parameters
+    ----------
+    wind_speed_maximum : float
+        Wind speed to mark regions as unobservable (in m/s).
+    """
+
+    def __init__(self, wind_speed_maximum=20., nside=None):
+        super().__init__(nside=nside)
+
+        self.wind_speed_maximum = wind_speed_maximum
+
+    def _calc_value(self, conditions, indx=None):
+
+        reward_map = np.zeros(hp.nside2npix(self.nside))
+
+        if conditions.wind_speed is None or conditions.wind_direction is None:
+            return reward_map
+
+        wind_pressure = conditions.wind_speed*np.cos(conditions.az-conditions.wind_direction)
+
+        reward_map -= wind_pressure**2.
+
+        mask = wind_pressure > self.wind_speed_maximum
+
+        reward_map[mask] = np.nan
+
+        return reward_map
