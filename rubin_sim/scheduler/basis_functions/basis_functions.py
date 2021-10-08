@@ -1477,7 +1477,19 @@ class Observed_twice_basis_function(Base_basis_function):
 
         return result
 
+
 class VisitGap(Base_basis_function):
+    """Basis function to create a visit gap based on the survey note field.
+
+    Parameters
+    ----------
+    note : str
+        Value of the observation "note" field to be masked.
+    gap_min : float (optional)
+        Time gap (default=25, in minutes).
+    penalty_val : float or np.nan
+        Value of the penalty to apply (default is np.nan).
+    """
     def __init__(self, note, gap_min=25.0, penalty_val=np.nan):
         super().__init__()
         self.penalty_val = penalty_val
@@ -1486,7 +1498,7 @@ class VisitGap(Base_basis_function):
         self.survey_features = dict()
         self.survey_features["NoteLastObserved"] = features.NoteLastObserved(note=note)
 
-    def _check_feasibility(self, conditions):
+    def check_feasibility(self, conditions):
         if self.survey_features["NoteLastObserved"].feature is None:
             return True
 
@@ -1497,8 +1509,5 @@ class VisitGap(Base_basis_function):
         else:
             return True
 
-    def check_feasibility(self, conditions):
-        return self._check_feasibility(conditions)
-
     def _calc_value(self, conditions, indx=None):
-        return 1.0 if self._check_feasibility(conditions) else self.penalty_val
+        return 1.0 if self.check_feasibility(conditions) else self.penalty_val
