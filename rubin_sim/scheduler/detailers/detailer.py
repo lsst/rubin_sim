@@ -5,7 +5,7 @@ import copy
 
 __all__ = ["Base_detailer", "Zero_rot_detailer", "Comcam_90rot_detailer", "Close_alt_detailer",
            "Take_as_pairs_detailer", "Twilight_triple_detailer", "Spider_rot_detailer",
-           "Flush_for_sched_detailer", 'Filter_nexp']
+           "Flush_for_sched_detailer", 'Filter_nexp', "FixedSkyAngleDetailer"]
 
 
 class Base_detailer(object):
@@ -111,6 +111,27 @@ class Comcam_90rot_detailer(Base_detailer):
         # Set all the observations to the proper rotSkyPos
         for rsp, obs in zip(final_rotSkyPos, observation_list):
             obs['rotSkyPos'] = rsp
+
+        return observation_list
+
+
+class FixedSkyAngleDetailer(Base_detailer):
+    """Detailer to force a specific sky angle.
+
+    Parameters
+    ----------
+    sky_angle : `float`, optional
+        Desired sky angle (default = 0, in degrees).
+    """
+
+    def __init__(self, sky_angle=0., nside=32):
+        super().__init__(nside=nside)
+
+        self.sky_angle = np.radians(sky_angle)
+
+    def __call__(self, observation_list, conditions):
+        for observation in observation_list:
+            observation['rotSkyPos'] = self.sky_angle
 
         return observation_list
 
