@@ -345,10 +345,11 @@ class Orbits(object):
         orbits.columns = ssoCols
 
         # Failing on negaitive inclinations.
-        if np.min(orbits['inc']) < 0:
-            warnings.warn('Correcting negative inclinations.')
-            # XXX--not an accurate correction. probably need 180+inc, then flip something else
-            orbits['inc'] = np.abs(orbits['inc'])
+        if 'inc' in orbits.keys():
+            if np.min(orbits['inc']) < 0:
+                warnings.warn('Correcting negative inclinations.')
+                # XXX--not an accurate correction. probably need 180+inc, then flip something else
+                orbits['inc'] = np.abs(orbits['inc'])
 
         # Validate and assign orbits to self.
         self.setOrbits(orbits)
