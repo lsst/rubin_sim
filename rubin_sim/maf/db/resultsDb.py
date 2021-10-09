@@ -149,17 +149,29 @@ class ResultsDb(object):
         """
         Add a row to or update a row in the metrics table.
 
-        - metricName: the name of the metric
-        - sliceName: the name of the slicer
-        - simDataName: the name used to identify the simData
-        - sqlConstraint: the sql constraint used to select data from the simData
-        - metricMetadata: the metadata associated with the metric
-        - metricDatafile: the data file the metric data is stored in
+        Parameters
+        ----------
+        metricName : `str`
+            Name of the Metric
+        slicerName : `str`
+            Name of the Slicer
+        simDataName : `str`
+            Name of the simulation (runName, simName, simDataName..)
+        sqlConstraint : `str`
+            Sql constraint relevant for the metric bundle
+        metricMetadata : `str`
+            Metadata associated with the metric. Could be derived from the sqlconstraint or could
+            be a more descriptive version, specified by the user.
+        metricDataFile : `str`
+            The data file the metric bundle output is stored in.
+
+        Returns
+        -------
+        metricId : `int`
+            The Id number of this metric in the metrics table.
 
         If same metric (same metricName, slicerName, simDataName, sqlConstraint, metadata)
         already exists, it does nothing.
-
-        Returns metricId: the Id number of this metric in the metrics table.
         """
         if simDataName is None:
             simDataName = 'NULL'
@@ -189,10 +201,14 @@ class ResultsDb(object):
         """
         Add a row to or update a row in the displays table.
 
-        - metricID: the metric Id of this metric in the metrics table
-        - displayDict: dictionary containing the display info
-
-        Replaces existing row with same metricId.
+        Parameters
+        ----------
+        metricId : `int`
+            The metricID for this metric bundle in the metrics table
+        displayDict : `dict`
+            Dictionary containing the display info (group/subgroup/order/caption)
+        overwrite : `bool`, opt
+            Replaces existing row with same metricId if overwrite is True (default=True).
         """
         # Because we want to maintain 1-1 relationship between metricId's and displayDict's:
         # First check if a display line is present with this metricID.
@@ -225,19 +241,24 @@ class ResultsDb(object):
         self.session.add(displayinfo)
         self.session.commit()
 
-    def updatePlot(self, metricId, plotType, plotFile):
+    def updatePlot(self, metricId, plotType, plotFile, overwrite=False):
         """
         Add a row to or update a row in the plot table.
 
-        - metricId: the metric Id of this metric in the metrics table
-        - plotType: the 'type' of this plot
-        - plotFile: the filename of this plot
-
-        Remove older rows with the same metricId, plotType and plotFile.
+        Parameters
+        ----------
+        metricId : `int`
+            The metric Id of this metric bundle in the metrics table
+        plotType : `str`
+            The type of this plot (oneDbinned data, healpix map, etc.)
+        plotFile : `str`
+            The filename for this plot
+        overwrite : `bool`
+            Replaces existing row with the same metricId and plotType, if True.
+            Default False, in which case additional plot is added to output (e.g. with different range)
         """
-        plotinfo = self.session.query(PlotRow).filter_by(metricId=metricId, plotType=plotType,
-                                                         plotFile=plotFile).all()
-        if len(plotinfo) > 0:
+        plotinfo = self.session.query(PlotRow).filter_by(metricId=metricId, plotType=plotType).all()
+        if len(plotinfo) > 0 and overwrite:
             for p in plotinfo:
                 self.session.delete(p)
         plotinfo = PlotRow(metricId=metricId, plotType=plotType, plotFile=plotFile)
@@ -248,15 +269,22 @@ class ResultsDb(object):
         """
         Add a row to or update a row in the summary statistic table.
 
-        - metricId: the metric ID of this metric in the metrics table
-        - summaryName: the name of this summary statistic
-        - summaryValue: the value for this summary statistic
-
         Most summary statistics will be a simple name (string) + value (float) pair.
         For special summary statistics which must return multiple values, the base name
         can be provided as 'name', together with a np recarray as 'value', where the
         recarray also has 'name' and 'value' columns (and each name/value pair is then saved
         as a summary statistic associated with this same metricId).
+
+        Parameters
+        ----------
+        metricId : `int`
+            The metric Id of this metric bundle
+        summaryName : `str`
+            The name of this summary statistic
+        summaryValue: : `float` or `numpy.ndarray`
+            The value for this summary statistic.
+            If this is a numpy recarray, then it should also have 'name' and 'value' columns to save
+            each value to rows in the summary statistic table.
         """
         # Allow for special summary statistics which return data in a np structured array with
         #   'name' and 'value' columns.  (specificially needed for TableFraction summary statistic).
@@ -286,9 +314,23 @@ class ResultsDb(object):
                 warnings.warn('Warning! Cannot save summary statistic that is not a simple float or int')
 
     def getMetricId(self, metricName, slicerName=None, metricMetadata=None, simDataName=None):
-        """
-        Given a metric name and optional slicerName/metricMetadata/simData information,
-        Return a list of the matching metricIds.
+        """Find metric bundle Ids from the metric table.
+
+        Parameters
+        ----------
+        metricName : `str`
+            Name of the Metric
+        slicerName : `str`, opt
+            Name of the Slicer to match
+        metricMetadata : `str`, opt
+            Metadata value to match
+        simDataName : `str`, opt
+            Name of the simulation (simDataName) to match
+
+        Returns
+        -------
+        metricId : `list` of `int`
+            List of matching metricIds
         """
         metricId = []
         query = self.session.query(MetricRow.metricId, MetricRow.metricName, MetricRow.slicerName,
@@ -307,6 +349,25 @@ class ResultsDb(object):
 
     def getMetricIdLike(self, metricNameLike=None, slicerNameLike=None,
                         metricMetadataLike=None, simDataName=None):
+        """Find metric bundle Ids from the metric table, but search for names 'like' the values.
+        (instead of a strict match from getMetricId).
+
+        Parameters
+        ----------
+        metricName : `str`
+            Partial name of the Metric
+        slicerName : `str`, opt
+            Partial name of the Slicer to match
+        metricMetadata : `str`, opt
+            Partial metadata value to match
+        simDataName : `str`, opt
+            Name of the simulation (simDataName) to match (exact)
+
+        Returns
+        -------
+        metricId : `list` of `int`
+            List of matching metricIds
+        """
         metricId = []
         query = self.session.query(MetricRow.metricId, MetricRow.metricName, MetricRow.slicerName,
                                    MetricRow.metricMetadata,
@@ -339,6 +400,24 @@ class ResultsDb(object):
         Get the summary stats (optionally for metricId list).
         Optionally, also specify the summary metric name.
         Returns a numpy array of the metric information + summary statistic information.
+
+        Parameters
+        ----------
+        metricId : `int` or `list` of `int`
+            Metric bundle Ids to match from the metric table
+        summaryName : `str`, opt
+            Match this summary statistic name exactly.
+        summaryNameLike : `str`, opt
+            Partial match to this summary statistic name.
+        summaryNameNotLike : `str`, opt
+            Exclude summary statistics with summary names like this.
+        withSimName : `bool`, opt
+            If True, add the simDataName to the returned numpy recarray.
+
+        Returns
+        -------
+        summarystats : `np.recarray`
+            Numpy recarray containing the selected summary statistic information.
         """
         if metricId is None:
             metricId = self.getAllMetricIds()
@@ -478,7 +557,7 @@ class ResultsDb(object):
                 The name of the slicer used in the bundleGroup
             ``sqlConstraint``
                 The full sql constraint used in the bundleGroup
-            ``metricMetadat``
+            ``metricMetadata``
                 Metadata extracted from the `sqlConstraint` (usually the filter)
             ``metricDataFile``
                 The file name of the file with the metric data itself.
@@ -553,3 +632,12 @@ class ResultsDb(object):
                           ('displayCaption',  np.str_, self.slen * 10)])
         metricInfo = np.array(metricInfo, dtype)
         return metricInfo
+
+    def getSimDataName(self):
+        """Return a list of the simDataNames for the metric bundles in the database.
+        """
+        query = (self.session.query(MetricRow.simDataName.distinct()).all())
+        simDataName = []
+        for s in query:
+            simDataName.append(s[0])
+        return simDataName
