@@ -56,6 +56,8 @@ if __name__ == '__main__':
 
     first = bdict[metricNames[0]]
     figroot = f'{first.runName}'
+    # adding args.metadata to the figroot means that we can narrow down *which* subset of files to work on
+    # this lets us add different hMark values to the output plots, if desired (leaving None/default is ok)
     if args.metadata != '.':
         figroot += f'_{args.metadata}'
 
