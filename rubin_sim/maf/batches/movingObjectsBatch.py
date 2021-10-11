@@ -578,7 +578,7 @@ def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
     return completeness
 
 
-def plotCompleteness(bdictCompleteness, figroot=None, resultsDb=None,
+def plotCompleteness(bdictCompleteness, figroot=None, runName=None, resultsDb=None,
                      outDir='.', figformat='pdf'):
     """Plot a minor subset of the completeness results.
     """
@@ -621,10 +621,12 @@ def plotCompleteness(bdictCompleteness, figroot=None, resultsDb=None,
         b.setPlotDict(_codePlot(k))
 
     first = bdictCompleteness[list(bdictCompleteness.keys())[0]]
+    if runName is None:
+        runName = first.runName
     if figroot is None:
-        figroot = first.runName
+        figroot = runName
 
-    # Plot completeness as a function of time.
+    # Plot completeness as a function of time. Make custom plot, then save it with PlotHandler.
     fig = plt.figure(figsize=(8, 6))
     for k in plotTimes:
         plt.plot(plotTimes[k].plotDict['times'], plotTimes[k].metricValues[0, :],
@@ -637,10 +639,9 @@ def plotCompleteness(bdictCompleteness, figroot=None, resultsDb=None,
     ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
     displayDict = {'group': 'Discovery', 'subgroup': 'Time',
                    'caption': 'Completeness over time, for H values indicated in legend.'}
-    ph.saveFig(fig.number, f'{figroot}_CompletenessOverTime', 'Combo', 'CompletenessOverTime', 'MoObjSlicer',
-               figroot, None, None, displayDict=displayDict)
-
-    plt.savefig(os.path.join(outDir, f'{figroot}_CompletenessOverTime.{figformat}'), format=figformat)
+    ph.saveFig(fignum=fig.number, outfileRoot=f'{figroot}_CompletenessOverTime',
+               plotType='Combo', metricName='CompletenessOverTime', slicerName='MoObjSlicer',
+               runName=runName, constraint=None, metadata=None, displayDict=displayDict)
 
     # Plot cumulative completeness.
     ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
@@ -660,6 +661,9 @@ def plotCompleteness(bdictCompleteness, figroot=None, resultsDb=None,
     allComp = []
     for k in bdictCompleteness:
         if 'Discovery_N_Chances' in k:
+            if 'Cumulative' in k:
+                allComp.append(bdictCompleteness[k])
+        if 'Magic' in k:
             if 'Cumulative' in k:
                 allComp.append(bdictCompleteness[k])
     ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
@@ -969,7 +973,7 @@ def runFractionSummary(bdict, Hmark, outDir, resultsDb):
     return fractions
 
 
-def plotFractions(bdictFractions, figroot=None, resultsDb=None,
+def plotFractions(bdictFractions, figroot=None, runName=None, resultsDb=None,
                   outDir='.', figformat='pdf'):
     # Set colors for the fractions.
     for b in bdictFractions.values():
