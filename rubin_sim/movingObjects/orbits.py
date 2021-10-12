@@ -347,10 +347,10 @@ class Orbits(object):
         # Failing on negaitive inclinations.
         if 'inc' in orbits.keys():
             if np.min(orbits['inc']) < 0:
-                warnings.warn('Correcting negative inclinations.')
-                # XXX--not an accurate correction. probably need 180+inc, then flip something else
-                orbits['inc'] = np.abs(orbits['inc'])
-
+                negative_incs = np.where(orbits['inc'].values < 0)[0]
+                negative_ids = orbits['objId'].values[negative_incs]
+                ValueError('Negative orbital inclinations not supported. Problem objIds=%s' % negative_ids)
+                
         # Validate and assign orbits to self.
         self.setOrbits(orbits)
 
