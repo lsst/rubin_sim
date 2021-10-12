@@ -393,6 +393,23 @@ class ResultsDb(object):
             metricIds.append(m.metricId)
         return metricIds
 
+    def _buildSummaryName(self, metricName, metricMetadata, slicerName, summaryStatName):
+        """Standardize a complete summary metric name, combining the metric + slicer + summary + metadata
+        """
+        if metricMetadata is None:
+            metricMetadata = ''
+        if slicerName is None:
+            slicerName = ''
+        sName = summaryStatName
+        if sName == 'Identity' or sName == 'Id' or sName == 'Count' or sName is None:
+            sName = ''
+        slName = slicerName
+        if slName == 'UniSlicer':
+            slName = ''
+        name = ' '.join([sName, metricName, metricMetadata, slName]).rstrip(' ').lstrip(' ')
+        name.replace(',', '')
+        return name
+
     def getSummaryStats(self, metricId=None, summaryName=None,
                         summaryNameLike=None, summaryNameNotLike=None,
                         withSimName=False):
@@ -439,15 +456,17 @@ class ResultsDb(object):
                 else:
                     query = query.filter(~SummaryStatRow.summaryName.like(f'%{str(summaryNameNotLike)}%'))
             for m, s in query:
-                vals = (m.metricId, m.metricName, m.slicerName, m.metricMetadata,
+                long_name = self._buildSummaryName(m.metricName, m.metricMetadata,
+                                                   m.slicerName, s.summaryName)
+                vals = (m.metricId, long_name, m.metricName, m.slicerName, m.metricMetadata,
                                      s.summaryName, s.summaryValue)
                 if withSimName:
                     vals += (m.simDataName,)
                 summarystats.append(vals)
         # Convert to numpy array.
-        dtype_list = [('metricId', int), ('metricName', str, self.slen),
+        dtype_list = [('metricId', int), ('summaryName', str, self.slen), ('metricName', str, self.slen),
                       ('slicerName', str, self.slen), ('metricMetadata', str, self.slen),
-                      ('summaryName', str, self.slen), ('summaryValue', float)]
+                      ('summaryMetric', str, self.slen), ('summaryValue', float)]
         if withSimName:
             dtype_list += [('simDataName', str, self.slen)]
         dtype = np.dtype(dtype_list)
@@ -583,11 +602,11 @@ class ResultsDb(object):
                 metricInfo.append(mInfo)
         # Convert to numpy array.
         dtype_list = [('metricId', int), ('metricName', str, self.slen),
-                          ('baseMetricNames', str, self.slen),
-                          ('slicerName', str, self.slen),
-                          ('sqlConstraint', str, self.slen),
-                          ('metricMetadata', str, self.slen),
-                          ('metricDataFile', str, self.slen)]
+                      ('baseMetricNames', str, self.slen),
+                      ('slicerName', str, self.slen),
+                      ('sqlConstraint', str, self.slen),
+                      ('metricMetadata', str, self.slen),
+                      ('metricDataFile', str, self.slen)]
         if withSimName:
             dtype_list += [('simDataName', str, self.slen)]
         dtype = np.dtype(dtype_list)
