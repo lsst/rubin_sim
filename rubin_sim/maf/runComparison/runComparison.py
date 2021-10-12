@@ -394,6 +394,4 @@ class RunComparison():
                 pdict.update(userPlotDict)
                 pdict['subplot'] = '111'
                 # Legend and title will automatically be ok, I think.
-        if self.verbose:
-            print(plotDicts)
         ph.plot(plotFunc, plotDicts=plotDicts)
