@@ -295,7 +295,7 @@ class RunComparison():
             userPlotDict = {}
 
         ph = plots.PlotHandler(outDir=outDir, savefig=savefig)
-        bundleList = []
+        bundleList = list(bundleDict.values())
         ph.setMetricBundles(bundleList)
 
         plotDicts = [{} for b in bundleList]
