@@ -285,8 +285,10 @@ class RunComparison():
         mname = ResultsDb.buildSummaryName(metricName, metricMetadata, slicerName, None)
         bundleDict = {}
         for r in filenames:
-            bundleDict[r] = mb.createEmptyMetricBundle()
-            bundleDict[r].read(filenames[r])
+            b = mb.createEmptyMetricBundle()
+            b.read(filenames[r])
+            hash = b.runName + ' ' + mname
+            bundleDict[hash] = b
         return bundleDict, mname
 
     def plotMetricData(self, bundleDict, plotFunc, userPlotDict=None,
@@ -295,15 +297,14 @@ class RunComparison():
             userPlotDict = {}
 
         ph = plots.PlotHandler(outDir=outDir, savefig=savefig)
-        bundleList = list(bundleDict.values())
-        ph.setMetricBundles(bundleList)
+        ph.setMetricBundles(bundleDict)
 
-        plotDicts = [{} for b in bundleList]
+        plotDicts = [{} for b in bundleDict]
         # Depending on plotFunc, overplot or make many subplots.
         if plotFunc.plotType == 'SkyMap':
             # Note that we can only handle 9 subplots currently due
             # to how subplot identification (with string) is handled.
-            if len(bundleList) > 9:
+            if len(bundleDict) > 9:
                 raise ValueError('Please try again with < 9 subplots for skymap.')
             # Many subplots.
             if 'colorMin' not in userPlotDict:
@@ -329,13 +330,13 @@ class RunComparison():
                 pdict.update(userPlotDict)
                 # Set subplot information.
                 if layout is None:
-                    ncols = int(np.ceil(np.sqrt(len(runlist))))
-                    nrows = int(np.ceil(len(runlist) / float(ncols)))
+                    ncols = int(np.ceil(np.sqrt(len(bundleDict))))
+                    nrows = int(np.ceil(len(bundleDict) / float(ncols)))
                 else:
                     ncols = layout[0]
                     nrows = layout[1]
                 pdict['subplot'] = int(str(nrows) + str(ncols) + str(i + 1))
-                pdict['title'] = runlist[i]
+                pdict['title'] = bundleDict[i]
                 # For the subplots we do not need the label
                 pdict['label'] = ''
                 if 'suptitle' not in userPlotDict:
