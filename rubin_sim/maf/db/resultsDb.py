@@ -393,7 +393,8 @@ class ResultsDb(object):
             metricIds.append(m.metricId)
         return metricIds
 
-    def _buildSummaryName(self, metricName, metricMetadata, slicerName, summaryStatName):
+    @staticmethod
+    def buildSummaryName(metricName, metricMetadata, slicerName, summaryStatName=None):
         """Standardize a complete summary metric name, combining the metric + slicer + summary + metadata
         """
         if metricMetadata is None:
@@ -456,7 +457,7 @@ class ResultsDb(object):
                 else:
                     query = query.filter(~SummaryStatRow.summaryName.like(f'%{str(summaryNameNotLike)}%'))
             for m, s in query:
-                long_name = self._buildSummaryName(m.metricName, m.metricMetadata,
+                long_name = self.buildSummaryName(m.metricName, m.metricMetadata,
                                                    m.slicerName, s.summaryName)
                 vals = (m.metricId, long_name, m.metricName, m.slicerName, m.metricMetadata,
                                      s.summaryName, s.summaryValue)

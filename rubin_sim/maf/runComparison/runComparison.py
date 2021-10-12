@@ -10,7 +10,7 @@ import rubin_sim.maf.plots as plots
 __all__ = ['RunComparison']
 
 
-class RunComparison(object):
+class RunComparison():
     """
     Class to read multiple results databases, find requested summary metric comparisons,
     and stores results in DataFrames in class.
@@ -25,6 +25,9 @@ class RunComparison(object):
 
     The runNames (simulation names) are fetched from the resultsDB directly. This relies on the user
     specifying the simulation name when the metrics are run.
+
+    This class can also pull information from the resultsDb about where files for the metric data
+    are located; this is helpful to re-read data from disk and plot of multiple runs in the same image.
 
     Parameters
     ----------
@@ -81,6 +84,7 @@ class RunComparison(object):
         # Open access to all results database files in self.runDirs
         self.runresults = {}
         # Make a look-up table for simulation runName - runDir.
+        # This is really only used in case the user wants to double-check which runs are represented.
         self.runNames = {}
         for rdir in self.runDirs:
             # Connect to resultsDB
@@ -139,7 +143,7 @@ class RunComparison(object):
                 slicerName = info['slicerName'][0]
                 # Build a hash from the metric Name, metadata, slicer --
                 # this will automatically remove duplicates
-                hash = self.runresults[r]._buildSummaryName(metricName, metricMetadata, slicerName, None)
+                hash = ResultsDb.buildSummaryName(metricName, metricMetadata, slicerName, None)
                 mDict[hash] = {'metricName': metricName,
                                'metricMetadata': metricMetadata,
                                'slicerName': slicerName}
@@ -192,8 +196,7 @@ class RunComparison(object):
         # Make DataFrame for stat values
         stats = pd.DataFrame(summaryValues).T
         # And a data frame for the stat headers
-        basemetricname = self.runresults[self.runDirs[0]]._buildSummaryName(metricName, metricMetadata,
-                                                                            slicerName, None)
+        basemetricname = ResultsDb.buildSummaryName(metricName, metricMetadata, slicerName, None)
         header = pd.DataFrame([(basemetricname, metricName, metricMetadata, slicerName, s)
                                for s in stats.columns],
                               columns=['BaseName', 'MetricName', 'MetricMetadata',
@@ -242,7 +245,7 @@ class RunComparison(object):
                 self.headerStats = self.headerStats.join(tempHeader, lsuffix='_x')
 
     def getFileNames(self, metricName, metricMetadata=None, slicerName=None):
-        """For each of the runs in runlist, get the paths to the datafiles for a given metric.
+        """Find the locations of a given metric in all available directories.
 
         Parameters
         ----------
@@ -259,21 +262,19 @@ class RunComparison(object):
             Keys: runName, Value: path to file
         """
         filepaths = {}
-        for r in self.runlist:
-            for s in self.runresults[r]:
-                mId = self.runresults[r][s].getMetricId(metricName=metricName,
-                                                        metricMetadata=metricMetadata,
-                                                        slicerName=slicerName)
-                if len(mId) > 0 :
-                    if len(mId) > 1:
-                        warnings.warn("Found more than one metric data file matching " +
-                                      "metricName %s metricMetadata %s and slicerName %s"
-                                      % (metricName, metricMetadata, slicerName) +
-                                      " Skipping this combination.")
-                    else:
-                        filename = self.runresults[r][s].getMetricDataFiles(metricId=mId)
-                        filepaths[r] = os.path.join(self.baseDir, r, s, filename[0])
-
+        for r in self.runDirs:
+            mId = self.runresults[r].getMetricId(metricName=metricName,
+                                                 metricMetadata=metricMetadata,
+                                                 slicerName=slicerName)
+            if len(mId) > 0:
+                if len(mId) > 1:
+                    warnings.warn("Found more than one metric data file matching " +
+                                  "metricName %s metricMetadata %s and slicerName %s"
+                                  % (metricName, metricMetadata, slicerName) +
+                                  " Skipping this combination.")
+                else:
+                    filename = self.runresults[r].getMetricDataFiles(metricId=mId)
+                    filepaths[r] = os.path.join(r, filename[0])
         return filepaths
 
     # Plot actual metric values (skymaps or histograms or power spectra) (values not stored in class).
@@ -281,32 +282,28 @@ class RunComparison(object):
         # Get the names of the individual files for all runs.
         # Dictionary, keyed by run name.
         filenames = self.getFileNames(metricName, metricMetadata, slicerName)
-        mname = self._buildSummaryName(metricName, metricMetadata, slicerName, None)
+        mname = ResultsDb.buildSummaryName(metricName, metricMetadata, slicerName, None)
         bundleDict = {}
         for r in filenames:
             bundleDict[r] = mb.createEmptyMetricBundle()
             bundleDict[r].read(filenames[r])
         return bundleDict, mname
 
-    def plotMetricData(self, bundleDict, plotFunc, runlist=None, userPlotDict=None,
+    def plotMetricData(self, bundleDict, plotFunc, userPlotDict=None,
                        layout=None, outDir=None, savefig=False):
-        if runlist is None:
-            runlist = self.runlist
         if userPlotDict is None:
             userPlotDict = {}
 
         ph = plots.PlotHandler(outDir=outDir, savefig=savefig)
         bundleList = []
-        for r in runlist:
-            bundleList.append(bundleDict[r])
         ph.setMetricBundles(bundleList)
 
-        plotDicts = [{} for r in runlist]
+        plotDicts = [{} for b in bundleList]
         # Depending on plotFunc, overplot or make many subplots.
         if plotFunc.plotType == 'SkyMap':
             # Note that we can only handle 9 subplots currently due
             # to how subplot identification (with string) is handled.
-            if len(runlist) > 9:
+            if len(bundleList) > 9:
                 raise ValueError('Please try again with < 9 subplots for skymap.')
             # Many subplots.
             if 'colorMin' not in userPlotDict:
