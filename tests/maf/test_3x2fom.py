@@ -17,8 +17,10 @@ class Test3x2(unittest.TestCase):
         self.outDir = tempfile.mkdtemp(prefix='TMB')
 
     @unittest.skipUnless(os.path.isdir(os.path.join(get_data_dir(), 'maps')),
-                 "Skipping 3x3 metric test because no dust maps.")
+                         "Skipping 3x3 metric test because no dust maps.")
     def test_3x2(self):
+        # Only testing that the metric successfully runs, not checking that the
+        # output values are valid.
         bundleList = []
         nside = 64
         colmap = maf.batches.colMapDict.ColMapDict('fbs')
@@ -33,7 +35,8 @@ class Test3x2(unittest.TestCase):
         ThreebyTwoSummary_simple = maf.metrics.StaticProbesFoMEmulatorMetricSimple(nside=nside,
                                                                                    metricName='3x2ptFoM_simple')
         ThreebyTwoSummary = maf.mafContrib.StaticProbesFoMEmulatorMetric(nside=nside, metricName='3x2ptFoM')
-        bundleList.append(maf.metricBundles.MetricBundle(m, s, sql,summaryMetrics=[ThreebyTwoSummary, ThreebyTwoSummary_simple]))
+        bundleList.append(maf.metricBundles.MetricBundle(m, s, sql,
+                                                         summaryMetrics=[ThreebyTwoSummary, ThreebyTwoSummary_simple]))
 
         database = os.path.join(get_data_dir(), 'tests', 'example_dbv1.7_0yrs.db')
         conn = maf.db.OpsimDatabase(database=database)
