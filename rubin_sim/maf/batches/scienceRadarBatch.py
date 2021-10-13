@@ -176,6 +176,21 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
                              displayDict=displayDict)
     bundleList.append(bundle)
 
+    # AGN structure function error
+    agn_mag = 23
+    displayDict['subgroup'] = 'AGN'
+    
+    for filtername in ['u', 'g']:
+        displayDict['caption'] = 'Structure function error for %s=%f.1 AGN.' % (filtername, agn_mag)
+        metric = metrics.SFErrorMetric(agn_mag, metricName='AGN_struc_err_%s' % filtername)
+        slicer = slicers.HealpixSlicer(nside=64, useCache=False)
+        sql = 'filter = "%s"' % filtername
+        bundle = mb.MetricBundle(metric, slicer, sql, metadata=extraMetadata,
+                                 runName=runName,
+                                 plotDict=plotDict, summaryMetrics=standardStats,
+                                 displayDict=displayDict)
+        bundleList.append(bundle)
+
     # Strongly lensed SNe
     displayDict['subgroup'] = 'SLSN'
     displayDict['caption'] = 'Strongly Lensed SNe, evaluated with the addition of galactic dust extinction.'
