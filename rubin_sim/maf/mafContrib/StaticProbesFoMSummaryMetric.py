@@ -92,7 +92,6 @@ class StaticProbesFoMEmulatorMetric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         import george
         from george import kernels
-        from george.metrics import Metric
         # Chop off any outliers
         good_pix = np.where(dataSlice[self.col] > 0)[0]
         
@@ -110,7 +109,7 @@ class StaticProbesFoMEmulatorMetric(BaseMetric):
         Y = pd.DataFrame(scalerY.fit_transform(np.array(df_unscaled['FOM']).reshape(-1, 1)), columns=['FOM'])
 
         # Building Gaussian Process based emulator
-        kernel = kernels.ExpSquaredKernel(metric=[1,1,1,1,1,1], ndim=6)
+        kernel = kernels.ExpSquaredKernel(metric=[1, 1, 1, 1, 1, 1], ndim=6)
         gp = george.GP(kernel, mean=Y['FOM'].mean())
         gp.compute(X) 
 
@@ -130,7 +129,6 @@ class StaticProbesFoMEmulatorMetric(BaseMetric):
         to_pred = scalerX.transform(to_pred)
         
         predSFOM = gp.predict(Y['FOM'], to_pred, return_cov=False)
+        predFOM = scalerY.inverse_transform(predSFOM.reshape(1, -1))
         
-        predFOM = scalerY.inverse_transform(list(predSFOM))
-        
-        return predFOM[0]
+        return np.max(predFOM)
