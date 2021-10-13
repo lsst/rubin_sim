@@ -42,6 +42,8 @@ class TestBatches(unittest.TestCase):
         # batch requires reading a lot of input files for lightcurves
         ack = batches.scienceRadarBatch()
 
+    @unittest.skipUnless(os.path.isdir(os.path.join(get_data_dir(), 'maf')),
+                     "Skipping glance test because operating without full MAF test data")
     def test_glance(self):
         ack = batches.glanceBatch()
 

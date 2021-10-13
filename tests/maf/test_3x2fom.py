@@ -16,6 +16,8 @@ class Test3x2(unittest.TestCase):
     def setUp(self):
         self.outDir = tempfile.mkdtemp(prefix='TMB')
 
+    @unittest.skipUnless(os.path.isdir(os.path.join(get_data_dir(), 'maps')),
+                 "Skipping 3x3 metric test because no dust maps.")
     def test_3x2(self):
         bundleList = []
         nside = 64
