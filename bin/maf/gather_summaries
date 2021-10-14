@@ -15,21 +15,28 @@ if __name__ == '__main__':
                                                  "simulations, so that each resultsDb has similar summary"
                                                  "statistics.")
     parser.add_argument("--baseDir", type=str, default='.',
-                        help="Director from where to search for directories matching the 'suffix'")
+                        help="Director from where to search for MAF directories.")
     parser.add_argument("--outDir", type=str, default='.',
-                        help="Directory to place the output csv file (file = suffix_summary.csv)")
-    parser.add_argument("--suffix", type=str, default='_sci',
-                        help="Suffix for directories within which to find resultsDbs (default _sci)")
+                        help="Directory to place the output csv file (file = [suffix_]summary.csv)")
+    parser.add_argument("--suffix", type=str, default=None,
+                        help="Suffix for directories within which to find resultsDbs. "
+                             "Default is None, which searches for all potential MAF directories.")
     args = parser.parse_args()
 
-    # Why write this to search for an operate on a given suffix, rather than looking for all MAF
-    # directories in a given location?
+    if args.suffix is None:
+        runDirs = None
+    else:
+        runDirs = glob.glob(f"*_10yrs{args.suffix}")
 
-    runDirs = glob.glob(f"*_10yrs{args.suffix}")
-    runNames = [r.replace('_10yrs_sci', '') for r in runDirs]
-    print(f"Found directories for {runNames}")
-
-    rc = RunComparison(baseDir=args.baseDir, runNames=runNames, rundirs=runDirs)
+    # Connect to resultsDbs and pull summary stats into a nice Dataframe
+    rc = RunComparison(baseDir=args.baseDir, runDirs=runDirs)
+    print(f'Found directories {rc.runDirs}')
     mdict = rc.buildMetricDict()
     rc.addSummaryStats(mdict)
-    rc.summaryStats.to_csv(os.path.join(args.outDir, f"{args.suffix.replace('_', '')}_summary.csv"))
+
+    # Save summary statistics
+    if args.suffix is None:
+        outfile = "summary.csv"
+    else:
+        outfile = f"{args.suffix.replace('_', '')}_summary.csv"
+    rc.summaryStats.to_csv(os.path.join(args.outDir, outfile))
