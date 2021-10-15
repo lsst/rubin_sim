@@ -325,7 +325,7 @@ class RunComparison():
                     else:
                         colorMax = bundleDict[b].plotDict['colorMax']
                 userPlotDict['colorMax'] = colorMax
-            for i, pdict in enumerate(plotDicts):
+            for i, (pdict, bundle) in enumerate(zip(plotDicts, bundleDict.values())):
                 # Add user provided dictionary.
                 pdict.update(userPlotDict)
                 # Set subplot information.
@@ -336,9 +336,10 @@ class RunComparison():
                     ncols = layout[0]
                     nrows = layout[1]
                 pdict['subplot'] = int(str(nrows) + str(ncols) + str(i + 1))
-                pdict['title'] = bundleDict[i]
+                pdict['title'] = bundle.runName
                 # For the subplots we do not need the label
                 pdict['label'] = ''
+                pdict['legendloc'] = None
                 if 'suptitle' not in userPlotDict:
                     pdict['suptitle'] = ph._buildTitle()
         elif plotFunc.plotType == 'Histogram':
@@ -363,7 +364,6 @@ class RunComparison():
                 userPlotDict['xMax'] = xMax
             for i, pdict in enumerate(plotDicts):
                 pdict.update(userPlotDict)
-                pdict['subplot'] = '111'
                 # Legend and title will automatically be ok, I think.
         elif plotFunc.plotType == 'BinnedData':
             # Put everything on one plot.
@@ -393,6 +393,5 @@ class RunComparison():
                 userPlotDict['xMax'] = xMax
             for i, pdict in enumerate(plotDicts):
                 pdict.update(userPlotDict)
-                pdict['subplot'] = '111'
                 # Legend and title will automatically be ok, I think.
         ph.plot(plotFunc, plotDicts=plotDicts)
