@@ -724,13 +724,19 @@ class TargetoO(object):
     mjd_start : float
         The MJD the ToO starts
     duration : float
-       Duration of the ToO (days).
+        Duration of the ToO (days).
+    ra_rad_center : float
+        RA of the estimated center of the event (radians).
+    dec_rad_center : float
+        Dec of the estimated center of the event (radians).
     """
-    def __init__(self, tooid, footprint, mjd_start, duration):
+    def __init__(self, tooid, footprint, mjd_start, duration, ra_rad_center=None, dec_rad_center=None):
         self.footprint = footprint
         self.duration = duration
         self.id = tooid
         self.mjd_start = mjd_start
+        self.ra_rad_center = ra_rad_center
+        self.dec_rad_center = dec_rad_center
 
 
 class Sim_targetoO_server(object):
