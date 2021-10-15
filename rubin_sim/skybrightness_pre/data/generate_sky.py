@@ -1,19 +1,12 @@
 import numpy as np
-import rubin_sim.skybrightness as sb
-import rubin_sim.utils as utils
+import lsst.sims.skybrightness as sb
+import lsst.sims.utils as utils
 import healpy as hp
 import sys
 import os
 import ephem
+from lsst.sims.skybrightness.utils import mjd2djd
 
-def mjd2djd(inDate):
-    """
-    Convert Modified Julian Date to Dublin Julian Date (what pyephem uses).
-    """
-    if not hasattr(mjd2djd, 'doff'):
-        mjd2djd.doff = ephem.Date(0)-ephem.Date('1858/11/17')
-    djd = inDate-mjd2djd.doff
-    return djd
 
 def generate_sky(mjd0=59560.2, mjd_max=59565.2, timestep=5., timestep_max=15.,
                  outfile=None, outpath=None, nside=32,
@@ -234,8 +227,9 @@ def generate_sky(mjd0=59560.2, mjd_max=59565.2, timestep=5., timestep_max=15.,
     for key in sky_brightness:
         sky_brightness[key] = np.array(sky_brightness[key])
 
-    import rubin_sim
-    version = rubin_sim.version.__version__
+    import lsst.sims.skybrightness_pre
+    version = lsst.sims.skybrightness_pre.version.__version__
+    fingerprint = lsst.sims.skybrightness_pre.version.__fingerprint__
     # Generate a header to save all the kwarg info for how this run was computed
     header = {'mjd0': mjd0, 'mjd_max': mjd_max, 'timestep': timestep, 'timestep_max': timestep_max,
               'outfile': outfile, 'outpath': outpath, 'nside': nside, 'sunLimit': sunLimit,
@@ -243,7 +237,7 @@ def generate_sky(mjd0=59560.2, mjd_max=59565.2, timestep=5., timestep_max=15.,
               'airmass_limit': airmass_limit, 'moon_dist_limit': moon_dist_limit,
               'planet_dist_limit': planet_dist_limit, 'alt_limit': alt_limit,
               'ra': ra, 'dec': dec, 'verbose': verbose, 'required_mjds': required_mjds,
-              'version': version, 'fingerprint': ''}
+              'version': version, 'fingerprint': fingerprint}
 
     np.savez(outfile, dict_of_lists = dict_of_lists, header=header)
     # Convert sky_brightness to a true array so it's easier to save
@@ -269,9 +263,6 @@ if __name__ == "__main__":
     # Add some time ahead of time for ComCam
     #nyears = 3
     #mjds = np.arange(58462, 58462+366*nyears+366/2., 366/2.)
-
-    mjds = np.arange(59488, 59561, 72)
-
     count = 0
     for mjd1, mjd2 in zip(mjds[:-1], mjds[1:]):
         print('Generating file %i' % count)
