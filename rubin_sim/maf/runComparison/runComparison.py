@@ -71,7 +71,6 @@ class RunComparison():
                             glob.glob(self.baseDir + "/**/" + self.defaultResultsDb, recursive=True)]
         self._connect_to_results()
         # Class attributes to store the stats data:
-        self.headerStats = None       # Save information on the summary stat values
         self.summaryStats = None      # summary stats
         self.normalizedStats = None   # normalized (to baselineRun) version of the summary stats
         self.baselineRun = None       # name of the baseline run
@@ -195,15 +194,7 @@ class RunComparison():
                               % (metricName, metricMetadata, slicerName, summaryName, r))
         # Make DataFrame for stat values
         stats = pd.DataFrame(summaryValues).T
-        # And a data frame for the stat headers
-        basemetricname = ResultsDb.buildSummaryName(metricName, metricMetadata, slicerName, None)
-        header = pd.DataFrame([(basemetricname, metricName, metricMetadata, slicerName, s)
-                               for s in stats.columns],
-                              columns=['BaseName', 'MetricName', 'MetricMetadata',
-                                       'SlicerName', 'SummaryName'],
-                              index=stats.columns).T
-
-        return header, stats
+        return stats
 
     def addSummaryStats(self, metricDict=None, verbose=False):
         """
@@ -223,7 +214,7 @@ class RunComparison():
             (such as if it was never calculated) will not be issued.   Default False.
 
 
-        Sets self.summaryStats and self.headerStats.
+        Sets self.summaryStats
         """
         if metricDict is None:
             metricDict = self.buildMetricDict()
@@ -232,17 +223,16 @@ class RunComparison():
             # But the summaryMetric could be specified (if only 'Medians' were desired, etc.)
             if 'summaryMetric' not in metric:
                 metric['summaryMetric'] = None
-            tempHeader, tempStats = self._findSummaryStats(metricName=metric['metricName'],
-                                                           metricMetadata=metric['metricMetadata'],
-                                                           slicerName=metric['slicerName'],
-                                                           summaryName=metric['summaryMetric'],
-                                                           verbose=verbose)
+            tempStats = self._findSummaryStats(metricName=metric['metricName'],
+                                               metricMetadata=metric['metricMetadata'],
+                                               slicerName=metric['slicerName'],
+                                               summaryName=metric['summaryMetric'],
+                                               verbose=verbose)
+            print(mName, tempStats.shape)
             if self.summaryStats is None:
                 self.summaryStats = tempStats
-                self.headerStats = tempHeader
             else:
-                self.summaryStats = self.summaryStats.join(tempStats, lsuffix='_x')
-                self.headerStats = self.headerStats.join(tempHeader, lsuffix='_x')
+                self.summaryStats = self.summaryStats.join(tempStats, how='outer', lsuffix='_x')
 
     def getFileNames(self, metricName, metricMetadata=None, slicerName=None):
         """Find the locations of a given metric in all available directories.
