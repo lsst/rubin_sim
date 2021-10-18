@@ -61,8 +61,10 @@ class HourglassMetric(BaseMetric):
         # let's just find the midnight before and after each of the pre_night MJD values
         m_after = self.observer.midnight(times, 'next')
         m_before = self.observer.midnight(times, 'previous')
-        # chop off any repeats. Need to round because observe.midnight values are not repeatable
         midnights = np.unique(np.concatenate([m_before.mjd, m_after.mjd]))
+        # calculating midnight can return nans? That seems bad.
+        midnights = midnights[np.isfinite(midnights)]
+        # chop off any repeats. Need to round because observe.midnight values are not repeatable
         m10 = np.round(midnights*10)
         _temp, indx = np.unique(m10, return_index=True)
         midnights = midnights[indx]
@@ -82,18 +84,19 @@ class HourglassMetric(BaseMetric):
         perfilter['midnight'] = midnights[indx]
         temp_indx = np.where(d1 < d2)
         perfilter['midnight'][temp_indx] = midnights[indx-1][temp_indx]
-
-        mtime = Time(pernight['midnight'], format='mjd')
+        try:
+            mtime = Time(pernight['midnight'], format='mjd')
+        except:
+            import pdb ; pdb.set_trace()
         pernight['twi12_rise'] = self.observer.twilight_morning_nautical(mtime, which='next').mjd
         pernight['twi12_set'] = self.observer.twilight_evening_nautical(mtime, which='previous').mjd
 
         pernight['twi18_rise'] = self.observer.twilight_morning_astronomical(mtime, which='next').mjd
         pernight['twi18_set'] = self.observer.twilight_evening_astronomical(mtime, which='previous').mjd
 
-        moon_times = Time(pernight['midnight'], format='mjd')
-        aa = AltAz(location=self.location, obstime=moon_times)
-        moon_coords = get_moon(moon_times).transform_to(aa)
-        sun_coords = get_sun(moon_times).transform_to(aa)
+        aa = AltAz(location=self.location, obstime=mtime)
+        moon_coords = get_moon(mtime).transform_to(aa)
+        sun_coords = get_sun(mtime).transform_to(aa)
         ang_dist = sun_coords.separation(moon_coords)
         pernight['moonPer'] = ang_dist.deg/180*100
 
