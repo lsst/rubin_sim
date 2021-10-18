@@ -26,12 +26,13 @@ if __name__ == '__main__':
     if args.suffix is None:
         runDirs = None
     else:
-        runDirs = glob.glob(f"*_10yrs{args.suffix}")
+        runDirs = glob.glob(f"*{args.suffix}")
 
     # Connect to resultsDbs and pull summary stats into a nice Dataframe
     rc = RunComparison(baseDir=args.baseDir, runDirs=runDirs)
     print(f'Found directories {rc.runDirs}')
     mdict = rc.buildMetricDict()
+    print('len mdict', len(mdict))
     rc.addSummaryStats(mdict)
 
     # Save summary statistics
