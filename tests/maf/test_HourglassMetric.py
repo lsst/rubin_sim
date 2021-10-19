@@ -24,7 +24,6 @@ class TestHourglassmetric(unittest.TestCase):
         pernight = result['pernight']
         perfilter = result['perfilter']
 
-        assert(np.size(pernight) == np.size(np.unique(data['night'])))
         # All the gaps are larger than 2 min.
         assert(np.size(perfilter) == 2*data.size)
         # Check that the format is right at least

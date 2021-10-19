@@ -37,39 +37,8 @@ class HourglassMetric(BaseMetric):
         dataSlice.sort(order=self.mjdCol)
         unights, uindx = np.unique(dataSlice[self.nightCol], return_index=True)
 
-        names = ['mjd', 'midnight', 'moonPer', 'twi6_rise', 'twi6_set', 'twi12_rise',
-                 'twi12_set', 'twi18_rise', 'twi18_set']
-        types = ['float']*len(names)
-        pernight = np.zeros(len(unights), dtype=list(zip(names, types)))
-
-        pernight['mjd'] = dataSlice[self.mjdCol][uindx]
-
-        times = Time(pernight['mjd'], format='mjd')
-        # let's just find the midnight before and after each of the pre_night MJD values
-        m_after = self.observer.midnight(times, 'next')
-        m_before = self.observer.midnight(times, 'previous')
-
-        d1 = np.abs(pernight['mjd'] - m_after.mjd)
-        d2 = np.abs(pernight['mjd'] - m_before.mjd)
-
-        pernight['midnight'] = m_after.mjd
-        swap = np.where(d2 < d1)[0]
-        pernight['midnight'][swap] = m_before[swap].mjd
-
-        mtime = Time(pernight['midnight'], format='mjd')
-        pernight['twi12_rise'] = self.observer.twilight_morning_nautical(mtime, which='next').mjd
-        pernight['twi12_set'] = self.observer.twilight_evening_nautical(mtime, which='previous').mjd
-
-        pernight['twi18_rise'] = self.observer.twilight_morning_astronomical(mtime, which='next').mjd
-        pernight['twi18_set'] = self.observer.twilight_evening_astronomical(mtime, which='previous').mjd
-
-        moon_times = Time(pernight['midnight'], format='mjd')
-        aa = AltAz(location=self.location, obstime=moon_times)
-        moon_coords = get_moon(moon_times).transform_to(aa)
-        sun_coords = get_sun(moon_times).transform_to(aa)
-        ang_dist = sun_coords.separation(moon_coords)
-        pernight['moonPer'] = ang_dist.deg/180*100
-
+        mjds = np.arange(np.min(dataSlice[self.mjdCol]), np.max(dataSlice[self.mjdCol])+1, 0.5)
+        
         # Define the breakpoints as where either the filter changes OR
         # there's more than a 2 minute gap in observing
         good = np.where((dataSlice[self.filterCol] != np.roll(dataSlice[self.filterCol], 1)) |
@@ -82,20 +51,53 @@ class HourglassMetric(BaseMetric):
         good = np.ravel(list(zip(left, right)))
 
         names = ['mjd', 'midnight', 'filter']
-        types = ['float', 'float', (np.str_ ,1)]
+        types = ['float', 'float', (np.str_, 1)]
         perfilter = np.zeros((good.size), dtype=list(zip(names, types)))
         perfilter['mjd'] = dataSlice[self.mjdCol][good]
         perfilter['filter'] = dataSlice[self.filterCol][good]
 
+        # brute force compute midnight times for all days between start and enc of dataSlice
+        times = Time(mjds, format='mjd')
+        # let's just find the midnight before and after each of the pre_night MJD values
+        m_after = self.observer.midnight(times, 'next')
+        m_before = self.observer.midnight(times, 'previous')
+        midnights = np.unique(np.concatenate([m_before.mjd, m_after.mjd]))
+        # calculating midnight can return nans? That seems bad.
+        midnights = midnights[np.isfinite(midnights)]
+        # chop off any repeats. Need to round because observe.midnight values are not repeatable
+        m10 = np.round(midnights*10)
+        _temp, indx = np.unique(m10, return_index=True)
+        midnights = midnights[indx]
+        names = ['mjd', 'midnight', 'moonPer', 'twi6_rise', 'twi6_set', 'twi12_rise',
+                 'twi12_set', 'twi18_rise', 'twi18_set']
+        types = ['float']*len(names)
+        pernight = np.zeros(len(midnights), dtype=list(zip(names, types)))
+        pernight['midnight'] = midnights
+        pernight['mjd'] = midnights
+
         # now for each perfilter, find the closes midnight
-        midnights = pernight['midnight']
         indx = np.searchsorted(midnights, perfilter['mjd'])
         d1 = np.abs(perfilter['mjd']-midnights[indx-1])
         indx[np.where(indx >= midnights.size)] -= 1
         d2 = np.abs(perfilter['mjd']-midnights[indx])
-
+        
         perfilter['midnight'] = midnights[indx]
         temp_indx = np.where(d1 < d2)
         perfilter['midnight'][temp_indx] = midnights[indx-1][temp_indx]
+        try:
+            mtime = Time(pernight['midnight'], format='mjd')
+        except:
+            import pdb ; pdb.set_trace()
+        pernight['twi12_rise'] = self.observer.twilight_morning_nautical(mtime, which='next').mjd
+        pernight['twi12_set'] = self.observer.twilight_evening_nautical(mtime, which='previous').mjd
+
+        pernight['twi18_rise'] = self.observer.twilight_morning_astronomical(mtime, which='next').mjd
+        pernight['twi18_set'] = self.observer.twilight_evening_astronomical(mtime, which='previous').mjd
+
+        aa = AltAz(location=self.location, obstime=mtime)
+        moon_coords = get_moon(mtime).transform_to(aa)
+        sun_coords = get_sun(mtime).transform_to(aa)
+        ang_dist = sun_coords.separation(moon_coords)
+        pernight['moonPer'] = ang_dist.deg/180*100
 
         return {'pernight': pernight, 'perfilter': perfilter}
