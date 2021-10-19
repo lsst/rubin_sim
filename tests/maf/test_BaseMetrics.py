@@ -33,15 +33,18 @@ class TestBaseMetric(unittest.TestCase):
         colset.add(cols)
         testmetric = metrics.BaseMetric(cols)
         # Class registry should have dictionary with values = set of columns for metric class
-        self.assertEqual(testmetric.colRegistry.colSet, colset)
+        for item in colset:
+            self.assertIn(item, testmetric.colRegistry.colSet)
         cols = ['onecolumn', 'twocolumn']
         colset.add('twocolumn')
         testmetric = metrics.BaseMetric(cols)
-        self.assertEqual(testmetric.colRegistry.colSet, colset)
+        for item in colset:
+            self.assertIn(item, testmetric.colRegistry.colSet)
         # Test with additional (different) metric
         cols = 'twocolumn'
         testmetric2 = metrics.MeanMetric(cols)
-        self.assertEqual(testmetric2.colRegistry.colSet, colset)
+        for item in colset:
+            self.assertIn(item, testmetric2.colRegistry.colSet)
 
         # test that the registry can be cleared
         colreg.clearReg()
