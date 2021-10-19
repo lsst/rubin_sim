@@ -24,6 +24,10 @@ class TestBaseMetric(unittest.TestCase):
 
     def testColRegistry(self):
         """Test column registry adds to colRegistry as expected"""
+        # Clear the registry to make sure we start clear
+        colreg = metrics.ColRegistry()
+        colreg.clearReg()
+
         cols = 'onecolumn'
         colset = set()
         colset.add(cols)
@@ -38,6 +42,12 @@ class TestBaseMetric(unittest.TestCase):
         cols = 'twocolumn'
         testmetric2 = metrics.MeanMetric(cols)
         self.assertEqual(testmetric2.colRegistry.colSet, colset)
+
+        # test that the registry can be cleared
+        colreg.clearReg()
+        assert(len(colreg.colSet) == 0)
+        assert(len(colreg.dbSet) == 0)
+        assert(len(colreg.stackerDict) == 0)
 
     def testMetricDtype(self):
         """Test that base metric data value type set appropriately"""
