@@ -12,7 +12,7 @@ from rubin_sim.maf.stackers.getColInfo import ColInfo
 from six import with_metaclass
 import warnings
 
-__all__ = ['MetricRegistry', 'BaseMetric']
+__all__ = ['MetricRegistry', 'BaseMetric', 'ColRegistry']
 
 
 class MetricRegistry(type):
@@ -70,6 +70,11 @@ class ColRegistry(object):
         self.colSet = set()
         self.dbSet = set()
         self.stackerDict = {}
+
+    def clearReg(self):
+        """Clear the registry
+        """
+        self.__init__()
 
     def addCols(self, colArray):
         """Add the columns in ColArray into the ColRegistry.
