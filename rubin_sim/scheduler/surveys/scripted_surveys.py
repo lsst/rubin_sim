@@ -145,7 +145,7 @@ class Scripted_survey(BaseSurvey):
 
         self.obs_wanted = obs_wanted
 
-        self.obs_wanted.sort(order='mjd')
+        self.obs_wanted.sort(order=['mjd', 'filter'])
         self.mjd_start = self.obs_wanted['mjd'] - self.obs_wanted['mjd_tol']
         # Here is the atribute that core scheduler checks to broadcast scheduled observations
         # in the conditions object.

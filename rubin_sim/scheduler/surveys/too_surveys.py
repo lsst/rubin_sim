@@ -22,6 +22,7 @@ class ToO_master(BaseSurvey):
         self.example_ToO_survey = example_ToO_survey
         self.surveys = []
         self.highest_reward = -np.inf
+        self.scheduled_obs = None
 
     def add_observation(self, observation, indx=None):
         if len(self.surveys) > 0:

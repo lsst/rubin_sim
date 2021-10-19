@@ -475,10 +475,10 @@ class Footprint_nvis_basis_function(Base_basis_function):
         result = self.result.copy()
         diff = int_rounded(self.footprint*self.nvis - self.survey_features['N_obs'].feature)
 
-        result[np.where(diff > 0)] = 1
+        result[np.where(diff > int_rounded(0))] = 1
 
         # Any spot where we have enough visits is out of bounds now.
-        result[np.where(diff <= 0)] = self.out_of_bounds_val
+        result[np.where(diff <= int_rounded(0))] = self.out_of_bounds_val
         return result
 
 
