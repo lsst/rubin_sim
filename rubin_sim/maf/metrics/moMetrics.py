@@ -599,11 +599,11 @@ class MagicDiscoveryMetric(BaseMoMetric):
         """SsoObs = Dataframe, orb=Dataframe, Hval=single number."""
         # Calculate visibility for this orbit at this H.
         vis = _setVis(ssoObs, self.snrLimit, self.snrCol, self.visCol)
-        if len(vis) == 0:
+        if len(vis) < self.nObs:
             return self.badval
         tNights = np.sort(ssoObs[self.nightCol][vis])
-        deltaNights = np.roll(tNights, 1-self.nObs) - tNights
-        nDisc = np.where((deltaNights < self.tWindow) & (deltaNights >= 0))[0].size
+        deltaNights = tNights[self.nObs:] - tNights[:-self.nObs]
+        nDisc = np.where(deltaNights < self.tWindow)[0].size
         return nDisc
 
 
