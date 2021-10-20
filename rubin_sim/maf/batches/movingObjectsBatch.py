@@ -218,6 +218,7 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
 
     # 3 pairs in 15 and 3 pairs in 30 done in 'quickDiscoveryBatch' (with vis).
 
+    """
     # 3 pairs in 12
     md = metadata + ' 3 pairs in 12 nights' + detectionLosses
     plotDict = {'title': '%s: %s' % (runName, md)}
@@ -265,6 +266,7 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
                                 displayDict=displayDict)
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
+    """
 
     # 4 pairs in 20
     md = metadata + ' 4 pairs in 20 nights' + detectionLosses
@@ -350,6 +352,7 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
 
+    """
     # 3 pairs in 30, SNR=5
     md = metadata + ' 3 pairs in 30 nights SNR=5' + detectionLosses
     plotDict = {'title': '%s: %s' % (runName, md)}
@@ -382,6 +385,7 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
                                 displayDict=displayDict)
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
+    """
 
     # Play with SNR.  SNR=3
     # 3 pairs in 15, SNR=3
