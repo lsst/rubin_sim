@@ -5,7 +5,7 @@ from .moMetrics import BaseMoMetric
 
 __all__ = ['integrateOverH', 'sumOverH', 'power_law_dndh', 'neo_dndh_granvik', 'neo_dndh_grav',
            'pha_dndh_granvik', 'pha_dndh_grav',
-           'ValueAtHMetric', 'MeanValueAtHMetric',
+           'ValueAtHMetric', 'MeanValueAtHMetric', 'TotalNumberSSO',
            'MoCompletenessMetric', 'MoCompletenessAtTimeMetric']
 
 
@@ -55,18 +55,18 @@ def sumOverH(metricValues, Hvalues, dndh_func, **kwargs):
 
     Returns
     --------
-    cumulativeVals : `numpy.ndarray`
+    sumVals : `numpy.ndarray`
        The cumulative metric values.
     """
     # Set expected H distribution.
     # dndh = differential size distribution (number in this bin)
     dndh = dndh_func(Hvalues, **kwargs)
     # calculate the metric values *weighted* by the number of objects in this bin and brighter
-    intVals = np.cumsum(metricValues*dndh)
-    return intVals
+    sumVals = np.cumsum(metricValues*dndh)
+    return sumVals
 
 
-def power_law_dndh(Hvalues, Hindex=0.33, No=None, Ho=None):
+def power_law_dndh(Hvalues, Hindex=0.33, No=None, Ho=None, **kwargs):
     """Power law distribution of objects.
 
     Parameters
@@ -94,33 +94,62 @@ def power_law_dndh(Hvalues, Hindex=0.33, No=None, Ho=None):
     dndh = (No * 0.1) * np.power(10., Hindex * (Hvalues - Ho)) * binratio
     return dndh
 
-def neo_dndh_granvik(Hvalues):
+def neo_dndh_granvik(Hvalues, **kwargs):
     binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff(Hvalues)[-1])) / 0.1
     y0 = 0 # 10 * np.power(10, 0.55 * (x - 17))
     y1 = 150 * np.power(10, 0.3 * (Hvalues - 18.5))
     y2 = 2500 * np.power(10, 0.92 * (Hvalues- 23.2))
     dndh = (y0 + y1 + y2) * binratio
     return dndh
-def neo_dndh_grav(Hvalues):
+def neo_dndh_grav(Hvalues, **kwargs):
     binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff(Hvalues)[-1])) / 0.1
     y1 = 110 * np.power(10, 0.35 * (Hvalues - 18.5))
     dndh = y1 * binratio
     return dndh
 
-def pha_dndh_granvik(Hvalues):
+def pha_dndh_granvik(Hvalues, **kwargs):
     binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff(Hvalues)[-1])) / 0.1
     y0 = 0 # 10 * np.power(10, 0.55 * (x - 17))
     y1 = 20 * np.power(10, 0.3 * (Hvalues - 18.5))
     y2 = 500 * np.power(10, 0.92 * (Hvalues- 23.2))
     dndh =  (y0 + y1 + y2) * binratio
     return dndh
-def pha_dndh_grav(Hvalues):
+def pha_dndh_grav(Hvalues, **kwargs):
     binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff[Hvalues][-1])) / 0.1
     y1 = 23.5 * np.power(10, 0.35 * (Hvalues - 18.5))
     dndh =  y1 * binratio
     return dndh
 
-# nm_granvik = (diffcomp.metricValues[0] * neo_dndh_granvik(diffcomp.slicer.slicePoints['H'])).cumsum() * binratio
+
+class TotalNumberSSO(BaseMoMetric):
+    """Calculate the total number of objects of a given population expected at a given H value or larger.
+
+    Operations on differential completeness values (or equivalent; fractions of the population is ok if
+    still a differential metric result, not cumulative).
+
+    Parameters
+    ----------
+    Hmark : `float`, optional
+        The H value at which to calculate the expected total number of objects. Default = 22.
+    dndh_func : `function`, optional
+        The dN/dH distribution to use to calculate the expected population size.
+
+    Returns
+    -------
+    nObj : `float`
+        The predicted number of objects in the population.
+    """
+    def __init__(self, Hmark=22, dndh_func=neo_dndh_granvik, **kwargs):
+        self.Hmark = Hmark
+        self.dndh_func = dndh_func
+        metricName = 'Nobj <= %.1f' % (Hmark)
+        self.kwargs = kwargs
+        super().__init__(metricName=metricName, **kwargs)
+
+    def run(self, metricVals, Hvals):
+        totals = sumOverH(metricVals, Hvals, self.dndh_func, **self.kwargs)
+        nObj = np.interp(self.Hmark, Hvals, totals)
+        return nObj
 
 
 class ValueAtHMetric(BaseMoMetric):
@@ -138,8 +167,9 @@ class ValueAtHMetric(BaseMoMetric):
     value: : `float`
     """
     def __init__(self, Hmark=22, **kwargs):
-        metricName = 'Value At H=%.1f' %(Hmark)
-        super(ValueAtHMetric, self).__init__(metricName=metricName, **kwargs)
+        metricName = 'Value At H=%.1f' % (Hmark)
+        units = '<= %.1f' % (Hmark)
+        super().__init__(metricName=metricName, **kwargs)
         self.Hmark = Hmark
 
     def run(self, metricVals, Hvals):
@@ -171,7 +201,7 @@ class MeanValueAtHMetric(BaseMoMetric):
     def __init__(self, Hmark=22, reduceFunc=np.mean, metricName=None, **kwargs):
         if metricName is None:
             metricName = 'Mean Value At H=%.1f' %(Hmark)
-        super(MeanValueAtHMetric, self).__init__(metricName=metricName, **kwargs)
+        super().__init__(metricName=metricName, **kwargs)
         self.Hmark = Hmark
         self.reduceFunc = reduceFunc
 

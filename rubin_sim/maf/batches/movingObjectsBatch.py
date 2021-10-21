@@ -579,6 +579,18 @@ def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
         bundle.setDisplayDict({'group': group, 'subgroup': subgroup})
         bundle.write(outDir=outDir, resultsDb=resultsDb)
 
+    # Calculate total number of objects - currently for NEOs and PHAs only
+    for b, bundle in completeness.items():
+        if 'DifferentialCompleteness' in b:
+            if 'NEO' in bundle.metadata:
+                nobj_metrics = [metrics.TotalNumberSSO(Hmark=22, dndh_func=metrics.neo_dndh_granvik),
+                                metrics.TotalNumberSSO(Hmark=25, dndh_func=metrics.neo_dndh_granvik)]
+                bundle.setSummaryMetrics(nobj_metrics)
+                bundle.computeSummaryStats(resultsDb)
+            if 'PHA' in bundle.metadata:
+                nobj_metrics = [metrics.TotalNumberSSO(Hmark=22, dndh_func=metrics.pha_dndh_granvik)]
+                bundle.setSummaryMetrics(nobj_metrics)
+                bundle.computeSummaryStats(resultsDb)
     return completeness
 
 
