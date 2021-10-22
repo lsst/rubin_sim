@@ -70,7 +70,7 @@ class MafRunResults(object):
                                  'N(-3Sigma)', 'N(+3Sigma)', 'Count',
                                  '25th%ile', '75th%ile', 'Min', 'Max']
         # Add in the table fraction sorting to summary stat ordering.
-        tableFractions = [x for x in list(np.unique(self.stats['summaryName']))
+        tableFractions = [x for x in list(np.unique(self.stats['summaryMetric']))
                           if x.startswith('TableFraction')]
         if len(tableFractions) > 0:
             for x in ('TableFraction 0 == P', 'TableFraction 1 == P',
@@ -266,7 +266,7 @@ class MafRunResults(object):
         if metrics is None:
             metrics = self.metrics
         # Identify the potentially matching stats.
-        stats = self.stats[np.in1d(self.stats['summaryName'], summaryStatName)]
+        stats = self.stats[np.in1d(self.stats['summaryMetric'], summaryStatName)]
         # Identify the subset of relevant metrics.
         metrics = self.metricIdsToMetrics(stats['metricId'], metrics)
         # Re-sort metrics because at this point, probably want displayOrder + metadata before metric name.
@@ -524,7 +524,7 @@ class MafRunResults(object):
         """
         stats = self.stats[np.where(self.stats['metricId'] == metric['metricId'])]
         if statName is not None:
-            stats = stats[np.where(stats['summaryName'] == statName)]
+            stats = stats[np.where(stats['summaryMetric'] == statName)]
         return stats
 
     def statDict(self, stats):
@@ -533,23 +533,23 @@ class MafRunResults(object):
 
         Note that if you pass 'stats' from multiple metrics with the same summary names, they
         will be overwritten in the resulting dictionary!
-        So just use stats from one metric, with unique summaryNames.
+        So just use stats from one metric, with unique summaryMetric names.
         """
         # Result = dict with key == summary stat name, value = summary stat value.
         sdict = OrderedDict()
         statnames = self.orderStatNames(stats)
         for n in statnames:
-            match = stats[np.where(stats['summaryName'] == n)]
+            match = stats[np.where(stats['summaryMetric'] == n)]
             # We're only going to look at the first value; and this should be a float.
             sdict[n] = match['summaryValue'][0]
         return sdict
 
     def orderStatNames(self, stats):
         """
-        Given an array of stats, return a list containing all the unique 'summaryNames'
+        Given an array of stats, return a list containing all the unique 'summaryMetric' names
         in a default ordering (identity-count-mean-median-rms..).
         """
-        names = list(np.unique(stats['summaryName']))
+        names = list(np.unique(stats['summaryMetric']))
         # Add some default sorting:
         namelist = []
         for nord in self.summaryStatOrder:
@@ -562,10 +562,10 @@ class MafRunResults(object):
 
     def allStatNames(self, metrics):
         """
-        Given an array of metrics, return a list containing all the unique 'summaryNames'
+        Given an array of metrics, return a list containing all the unique 'summaryMetric' names
         in a default ordering.
         """
-        names = np.unique(self.stats['summaryName'][np.in1d(self.stats['metricId'], metrics['metricId'])])
+        names = np.unique(self.stats['summaryMetric'][np.in1d(self.stats['metricId'], metrics['metricId'])])
         names = list(names)
         # Add some default sorting.
         namelist = []
