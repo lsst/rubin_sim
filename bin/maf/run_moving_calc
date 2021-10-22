@@ -62,7 +62,12 @@ if __name__ == '__main__':
         exit()
     # Set up resultsDb.
     if not (os.path.isdir(args.outDir)):
-        os.makedirs(args.outDir)
+        try:
+            os.makedirs(args.outDir)
+        except FileExistsError:
+            # This can happen if you are running these in parallel and two scripts try to make
+            # the same directory.
+            pass
     resultsDb = db.ResultsDb(outDir=args.outDir)
 
     Hrange = np.arange(args.hMin, args.hMax + args.hStep, args.hStep)
