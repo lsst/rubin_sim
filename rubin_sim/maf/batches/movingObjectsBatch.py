@@ -1068,7 +1068,7 @@ def plotActivity(bdict, figroot=None, resultsDb=None, outDir='.', figformat='pdf
         first = bdict[list(bdict.keys())[0]]
         figroot = first.runName
 
-    displayDict = deepcopy(first.displayDic=)
+    displayDict = deepcopy(first.displayDict)
 
     if len(activity_days) > 0:
         # Plot (mean) likelihood of detection of activity over X days
