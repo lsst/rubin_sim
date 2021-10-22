@@ -3,67 +3,11 @@ import warnings
 
 from .moMetrics import BaseMoMetric
 
-__all__ = ['integrateOverH', 'sumOverH', 'power_law_dndh', 'neo_dndh_granvik', 'neo_dndh_grav',
-           'pha_dndh_granvik', 'pha_dndh_grav',
-           'ValueAtHMetric', 'MeanValueAtHMetric', 'TotalNumberSSO',
-           'MoCompletenessMetric', 'MoCompletenessAtTimeMetric']
-
-
-def integrateOverH(metricValues, Hvalues, dndh_func, **kwargs):
-    """Calculate a metric value integrated over an Hrange.
-    This is the metric value *weighted* by the size distribution.
-
-    Parameters
-    ----------
-    metricValues : `numpy.ndarray`
-        The metric values at each H value.
-    Hvalues : `numpy.ndarray`
-        The H values corresponding to each metricValue (must be the same length).
-    dndh_func : function, optional
-        One of the dN/dH functions defined below. Default is a simple power law.
-    **kwargs : `dict`, optional
-        Keyword arguments to pass to dndh_func
-
-    Returns
-    --------
-    intVals : `numpy.ndarray`
-       The integrated metric values.
-    """
-    # Set expected H distribution.
-    # dndh = differential size distribution (number in this bin)
-    dndh = dndh_func(Hvalues, **kwargs)
-    # calculate the metric values *weighted* by the number of objects in this bin and brighter
-    intVals = np.cumsum(metricValues*dndh) / np.cumsum(dndh)
-    return intVals
-
-
-def sumOverH(metricValues, Hvalues, dndh_func, **kwargs):
-    """Calculate the sum of the metric value multiplied by the number of objects at each H value.
-    This is equivalent to calculating the number of objects meeting X requirement in the
-    differential completeness or fraction of objects with lightcurves, etc.
-
-    Parameters
-    ----------
-    metricValues : `numpy.ndarray`
-        The metric values at each H value.
-    Hvalues : `numpy.ndarray`
-        The H values corresponding to each metricValue (must be the same length).
-    dndh_func : function, optional
-        One of the dN/dH functions defined below. Default is a simple power law.
-    **kwargs : `dict`, optional
-        Keyword arguments to pass to dndh_func
-
-    Returns
-    --------
-    sumVals : `numpy.ndarray`
-       The cumulative metric values.
-    """
-    # Set expected H distribution.
-    # dndh = differential size distribution (number in this bin)
-    dndh = dndh_func(Hvalues, **kwargs)
-    # calculate the metric values *weighted* by the number of objects in this bin and brighter
-    sumVals = np.cumsum(metricValues*dndh)
-    return sumVals
+__all__ = [ 'power_law_dndh', 'neo_dndh_granvik', 'neo_dndh_grav',
+            'pha_dndh_granvik', 'pha_dndh_grav',
+            'integrateOverH', 'sumOverH', 'TotalNumberSSO',
+            'ValueAtHMetric', 'MeanValueAtHMetric',
+            'MoCompletenessMetric', 'MoCompletenessAtTimeMetric']
 
 
 def power_law_dndh(Hvalues, Hindex=0.33, No=None, Ho=None, **kwargs):
@@ -101,6 +45,7 @@ def neo_dndh_granvik(Hvalues, **kwargs):
     y2 = 2500 * np.power(10, 0.92 * (Hvalues- 23.2))
     dndh = (y0 + y1 + y2) * binratio
     return dndh
+
 def neo_dndh_grav(Hvalues, **kwargs):
     binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff(Hvalues)[-1])) / 0.1
     y1 = 110 * np.power(10, 0.35 * (Hvalues - 18.5))
@@ -114,11 +59,69 @@ def pha_dndh_granvik(Hvalues, **kwargs):
     y2 = 500 * np.power(10, 0.92 * (Hvalues- 23.2))
     dndh =  (y0 + y1 + y2) * binratio
     return dndh
+
 def pha_dndh_grav(Hvalues, **kwargs):
     binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff[Hvalues][-1])) / 0.1
     y1 = 23.5 * np.power(10, 0.35 * (Hvalues - 18.5))
     dndh =  y1 * binratio
     return dndh
+
+
+def integrateOverH(metricValues, Hvalues, dndh_func=power_law_dndh, **kwargs):
+    """Calculate a metric value integrated over an Hrange.
+    This is the metric value *weighted* by the size distribution.
+
+    Parameters
+    ----------
+    metricValues : `numpy.ndarray`
+        The metric values at each H value.
+    Hvalues : `numpy.ndarray`
+        The H values corresponding to each metricValue (must be the same length).
+    dndh_func : function, optional
+        One of the dN/dH functions defined below. Default is a simple power law.
+    **kwargs : `dict`, optional
+        Keyword arguments to pass to dndh_func
+
+    Returns
+    --------
+    intVals : `numpy.ndarray`
+       The integrated metric values.
+    """
+    # Set expected H distribution.
+    # dndh = differential size distribution (number in this bin)
+    dndh = dndh_func(Hvalues, **kwargs)
+    # calculate the metric values *weighted* by the number of objects in this bin and brighter
+    intVals = np.cumsum(metricValues*dndh) / np.cumsum(dndh)
+    return intVals
+
+
+def sumOverH(metricValues, Hvalues, dndh_func=power_law_dndh, **kwargs):
+    """Calculate the sum of the metric value multiplied by the number of objects at each H value.
+    This is equivalent to calculating the number of objects meeting X requirement in the
+    differential completeness or fraction of objects with lightcurves, etc.
+
+    Parameters
+    ----------
+    metricValues : `numpy.ndarray`
+        The metric values at each H value.
+    Hvalues : `numpy.ndarray`
+        The H values corresponding to each metricValue (must be the same length).
+    dndh_func : function, optional
+        One of the dN/dH functions defined below. Default is a simple power law.
+    **kwargs : `dict`, optional
+        Keyword arguments to pass to dndh_func
+
+    Returns
+    --------
+    sumVals : `numpy.ndarray`
+       The cumulative metric values.
+    """
+    # Set expected H distribution.
+    # dndh = differential size distribution (number in this bin)
+    dndh = dndh_func(Hvalues, **kwargs)
+    # calculate the metric values *weighted* by the number of objects in this bin and brighter
+    sumVals = np.cumsum(metricValues*dndh)
+    return sumVals
 
 
 class TotalNumberSSO(BaseMoMetric):
