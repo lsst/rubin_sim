@@ -52,3 +52,47 @@ class AreaSummaryMetric(BaseMetric):
             order = order[::-1]
         result = self.reduce_func(data[order][0:n_pix_needed])
         return result
+
+
+class AreaThresholdMetric(BaseMetric):
+    """
+    Find the amount of area on the sky that meets a given threshold value.
+
+    The area per pixel is determined from the size of the metricValues array passed to the summary metric.
+    This assumes that both all values are passed and that the metric was calculated with a healpix slicer.
+
+    Parameters
+    ----------
+    upper_threshold : `float` or None
+        The metric value must be below this threshold to count toward the area.
+        Default None implies no upper bound.
+    lower_threshold : `float` or None, opt
+        The metric value must be above this threshold to count toward the area.
+        Default None implies no lower bound.
+    """
+    def __init__(self, col='metricdata', metricName='AreaThreshold',
+                 upper_threshold=None, lower_threshold=None, **kwargs):
+        super().__init__(col=col, metricName=metricName, **kwargs)
+        self.nside = nside
+        self.areaPerSlice = hp.nside2pixarea(nside, degrees=True)
+        self.upper_threshold = upper_threshold
+        self.lower_threshold = lower_threshold
+        self.maskVal = np.nan  # Include so all values get passed
+        self.col = col
+
+    def run(self, dataSlice, slicePoint=None):
+        # find out what nside we have
+        nside = hp.npix2nside(dataSlice.size)
+        pix_area = hp.nside2pixarea(nside, degrees=True)
+        # Look for pixels which match the critera for the thresholds
+        if self.upper_threshold is None and self.lower_threshold is None:
+            npix = len(dataSlice)
+        elif self.upper_threshold is None:
+            npix = len(np.where(dataSlice[self.col] > self.lower_threshold)[0])
+        elif self.lower_threshold is None:
+            npix = len(np.where(dataSlice[self.col] < self.upper_threshold)[0])
+        else:
+            npix = len(np.where((dataSlice[self.col] > self.lower_threshold) and
+                                (dataSlice[self.col] < self.upper_threshold))[0])
+        area = pix_area * npix
+        return area
