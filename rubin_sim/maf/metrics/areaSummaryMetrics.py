@@ -2,7 +2,7 @@ import numpy as np
 from .baseMetric import BaseMetric
 import healpy as hp
 
-__all__ = ['AreaSummaryMetric']
+__all__ = ['AreaSummaryMetric', 'AreaThresholdMetric']
 
 
 class AreaSummaryMetric(BaseMetric):
@@ -73,12 +73,11 @@ class AreaThresholdMetric(BaseMetric):
     def __init__(self, col='metricdata', metricName='AreaThreshold',
                  upper_threshold=None, lower_threshold=None, **kwargs):
         super().__init__(col=col, metricName=metricName, **kwargs)
-        self.nside = nside
-        self.areaPerSlice = hp.nside2pixarea(nside, degrees=True)
         self.upper_threshold = upper_threshold
         self.lower_threshold = lower_threshold
         self.maskVal = np.nan  # Include so all values get passed
         self.col = col
+        self.units = 'degrees'
 
     def run(self, dataSlice, slicePoint=None):
         # find out what nside we have

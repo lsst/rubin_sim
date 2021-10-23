@@ -10,6 +10,7 @@ from .common import standardSummary, lightcurveSummary, filterList, combineMetad
 from .colMapDict import ColMapDict
 from .srdBatch import fOBatch, astrometryBatch, rapidRevisitBatch
 from .descWFDBatch import descWFDBatch
+from .agnBatch import agnBatch
 from .timeBatch import timeGaps
 from rubin_sim.maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import GalaxyCountsMetric_extended
 from rubin_sim.maf.mafContrib import (TdePopMetric, generateTdePopSlicer,
@@ -168,28 +169,15 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
 
     metric = TdePopMetric()
     slicer = generateTdePopSlicer()
-    #plotDict = {'reduceFunc': np.sum, 'nside': 128}
-    #plotFuncs = [plots.HealpixSkyMap()]
     bundle = mb.MetricBundle(metric, slicer, extraSql, runName=runName, metadata=extraMetadata,
-                             #plotDict=plotDict, plotFuncs=plotFuncs,
                              summaryMetrics=lightcurveSummary(),
                              displayDict=displayDict)
     bundleList.append(bundle)
 
     # AGN structure function error
-    agn_mag = 23
-    displayDict['subgroup'] = 'AGN'
-    
-    for filtername in ['u', 'g']:
-        displayDict['caption'] = 'Structure function error for %s=%f.1 AGN.' % (filtername, agn_mag)
-        metric = metrics.SFErrorMetric(agn_mag, metricName='AGN_struc_err_%s' % filtername)
-        slicer = slicers.HealpixSlicer(nside=64, useCache=False)
-        sql = 'filter = "%s"' % filtername
-        bundle = mb.MetricBundle(metric, slicer, sql, metadata=extraMetadata,
-                                 runName=runName,
-                                 plotDict=plotDict, summaryMetrics=standardStats,
-                                 displayDict=displayDict)
-        bundleList.append(bundle)
+    agnBundleDict, pbundle = agnBatch(colmap=colmap, runName=runName, nside=nside)
+    for d in agnBundleDict:
+        bundleList.append(agnBundleDict[d])
 
     # Strongly lensed SNe
     displayDict['subgroup'] = 'SLSN'

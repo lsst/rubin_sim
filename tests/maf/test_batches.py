@@ -33,6 +33,11 @@ class TestBatches(unittest.TestCase):
         ack = batches.fOBatch()
         ack = batches.astrometryBatch()
         ack = batches.rapidRevisitBatch()
+        ack = batches.agnBatch()
+        ack = batches.timeGaps()
+        ack = batches.metadataBasics('airmass')
+        ack = batches.metadataBasicsAngle('rotskyPos')
+        ack = batches.metadataMaps('fiveSigmaDepth')
 
     @unittest.skipUnless(os.path.isdir(os.path.join(get_data_dir(), 'maf')),
                      "Skipping scienceRadarBatch test because operating without full MAF test data")
