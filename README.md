@@ -10,9 +10,9 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 Prerequisites:  A working [conda installation ](https://www.anaconda.com/products/individual)
 
 
-To install rubin_sim into a new conda environment (the typical use-case), set up a conda environment and install rubin_sim from source in development mode:
+To install rubin_sim into a new conda environment (the typical use-case), set up a conda environment and pip install rubin_sim from source:
 ```
-git clone git@github.com:lsst/rubin_sim
+git clone https://github.com/lsst/rubin_sim.git
 cd rubin_sim
 conda create -n rubin   ### optional (but recommended)
 conda activate rubin    ### optional (if new environment created above)
@@ -26,7 +26,7 @@ This can be done without impacting the LSST environment by
 ```
 source loadLSST.sh (or your equivalent)
 conda install setuptools_scm
-git clone git@github.com:lsst/rubin_sim.git
+git clone https://github.com/lsst/rubin_sim.git
 cd rubin_sim
 pip install -e .
 ```
@@ -60,13 +60,6 @@ Optional download all the (100 Gb) of pre-computed sky data. Only needed if you 
 rs_download_sky
 ```
 
-
-Future fast user install should look like:
-```
-conda create -n rubin rubin_sim
-conda activate rubin
-rs_download_data 
-```
 
 
 # Documentation
@@ -107,12 +100,18 @@ Handy command to get a build node on hyak `srun -p build --time=2:00:00 --mem=20
 
 # Developer Guide
 
-To make changes to the code, checkout a new branch, make edits, push, make a pull request.
+If you have push permissions to rubin_sim, you can make changes to the code by checking out a new branch, making edits, push and then make a pull request.
+However, we do expect many users who wish to contribute metrics will not have these permissions -- for these contributors the easiest way to do development on rubin_sim may be the following:
+ - create a fork of rubin_sim 
+ - install the fork copy as above (but git clone your own fork, and then use this copy of rubin_sim)
+ - edit the code in your fork of rubin_sim, test it, etc.
+ - issue a PR from your fork to our original lsst/rubin_sim repository
 
-For unit tests, all filename should start with `test_` so py.test can automatically find them.
+When contributing code, metrics for MAF can be placed into either rubin_sim/rubin_sim/maf/metrics or rubin_sim/rubin_sim/maf/mafContrib (preferably rubin_sim/maf/metrics). Adding a unit test in the appropriate rubin_sim/tests directory is desirable. For unit tests, all filename should start with `test_` so py.test can automatically find them. An example notebook can be contributed to lsst/rubin_sim_notebooks. 
 
 ## Updating data files
 
+(This must be done by project developers only at this time). 
 To update the source contents of the data files:
 
 * Update the files in your local installation
