@@ -23,14 +23,14 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_
                    'trojan_5k': os.path.join(data_dir, 'trojan_5k.txt')
                    }
 
-    metadatas = {'granvik_5k': 'NEO',
-                 'granvik_pha_5k': 'PHA',
-                 'l7_5k': 'TNO',
-                 'mba_5k': 'MBA',
-                 'oort': 'Oort',
-                 'sdo_5k': 'SDO',
-                 'trojan_5k': 'Trojan'
-                 }
+    objtypes = {'granvik_5k': 'NEO',
+                'granvik_pha_5k': 'PHA',
+                'l7_5k': 'TNO',
+                'mba_5k': 'MBA',
+                'oort': 'Oort',
+                'sdo_5k': 'SDO',
+                'trojan_5k': 'Trojan'
+                }
 
     if pops is None:
         # put in order so longer runtime ones are first
@@ -45,9 +45,9 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_
     runs = [run for run in runs if 'tracking' not in run]
     with open(outfile, 'w') as f:
         for pop in pops:
-            meta = metadatas[pop]
-            Hrange, Hmark = batches.defaultHrange(meta)
-            char = batches.defaultCharacterization(meta)
+            objtype = objtypes[pop]
+            Hrange, Hmark = batches.defaultHrange(objtype)
+            char = batches.defaultCharacterization(objtype)
             for run, filename in zip(runs, dbfiles):
                 if split:
                     splitfiles = glob.glob(os.path.join(data_dir, 'split') + f'/*{pop}*')
@@ -69,14 +69,14 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_
                                   f' --hMin {Hrange[0]} --hMax {Hrange[1]} --hStep {Hrange[2]}'
                                   f' --hMark {Hmark}'
                                   f' --characterization {char}'
-                                  f' --metadata {meta}'
+                                  f' --objtype {objtype}'
                                   f' --startTime {start_mjd}')
                             print(s1 + ' ; ' + s2, file=wi)
                     s3 = (f'run_moving_join --orbitFile {pop}'
                           f' --baseDir {outDir}'
                           f' --outDir {outDir}/sso')
                     s4 = (f'run_moving_fractions --workDir {outDir}/sso'
-                          f' --metadata {meta}'
+                          f' --metadata {objtype}'
                           f' --startTime {start_mjd}')
                     print(f'cat {outfile_split} | parallel -j 10 ; {s3}  ; {s4}', file=f)
                 else:
@@ -88,10 +88,10 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_
                           f' --hMin {Hrange[0]} --hMax {Hrange[1]} --hStep {Hrange[2]}'
                           f' --hMark {Hmark}'
                           f' --characterization {char}'
-                          f' --metadata {meta}'
+                          f' --objtype {objtype}'
                           f' --startTime {start_mjd}')
                     s3 = (f'run_moving_fractions --workDir {run}_ss'
-                          f' --metadata {meta}'
+                          f' --metadata {objtype}'
                           f' --startTime {start_mjd}')
                     print(s1 + ' ; ' + s2 + ' ; ' + s3, file=f)
 

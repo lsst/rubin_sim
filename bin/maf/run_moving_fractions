@@ -76,9 +76,9 @@ if __name__ == '__main__':
 
     # Plot nObs and arcLength.
     for k in bdict:
-        if 'NObs' in k:
+        if 'N Obs' in k:
             batches.plotSingle(bdict[k], resultsDb=resultsDb, outDir=args.workDir)
-        if 'ObsArc' in k:
+        if 'Obs Arc' in k:
             batches.plotSingle(bdict[k], resultsDb=resultsDb, outDir=args.workDir)
 
     # Plot the number of chances of discovery metric - this is different than completeness
