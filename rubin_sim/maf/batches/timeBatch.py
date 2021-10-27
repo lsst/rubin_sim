@@ -280,47 +280,56 @@ def timeGaps(colmap=None, runName='opsim', nside=64,
 
     bundleList = []
 
-    metadata = extraMetadata
-    if extraSql is not None and len(extraSql) > 0:
-        if metadata is None:
-            metadata = extraSql
-    # Set up basic all and per filter sql constraints.
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
+    raCol = colmap['ra']
+    decCol = colmap['dec']
+    degrees = colmap['raDecDeg']
+    filterlist, colors, orders, sqls, metadata = filterList(all=True, extraSql=extraSql,
+                                                            extraMetadata=extraMetadata)
 
     if slicer is None:
         slicer = slicers.HealpixSlicer(nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees)
 
     displayDict = {'group': display_group, 'subgroup': subgroup, 'caption': None, 'order': 0}
 
+    # Logarithmically spaced gaps from 30s to 5 years
     tMin = 30 / 60 / 60 / 24.  # 30s
     tMax = 5 * 365.25  # 5 years
     tgaps = np.logspace(np.log10(tMin), np.log10(tMax), 100)
 
-    m1 = metrics.TgapsMetric(bins=tgaps, allGaps=False)
-    plotDict = {'bins': tgaps, 'xscale': 'log', 'yMin': 0, 'figsize': (8, 6),
-                'ylabel': 'Number of observation pairs',
-                'xlabel': 'Time gap between pairs of visits (days)'}
-    plotFuncs = [plots.SummaryHistogram()]
-    displayDict['caption'] = 'Summed Histogram of time between visits at each point in the sky.'
-    bundleList.append(mb.MetricBundle(m1, slicer, constraint=extraSql, metadata=metadata,
-                                      runName=runName, plotDict=plotDict, plotFuncs=plotFuncs,
-                                      displayDict=displayDict))
+    for f in filterlist:
+        m1 = metrics.TgapsMetric(bins=tgaps, allGaps=False)
+        plotDict = {'bins': tgaps, 'xscale': 'log', 'yMin': 0, 'figsize': (8, 6),
+                    'ylabel': 'Number of observation pairs',
+                    'xlabel': 'Time gap between pairs of visits (days)',
+                    'color': colors[f]}
+        plotFuncs = [plots.SummaryHistogram()]
+        displayDict['caption'] = f'Summed Histogram of time between visits at each point in the sky, ' \
+                                 f'in {f} band(s).'
+        displayDict['order'] = orders[f]
+        bundleList.append(mb.MetricBundle(m1, slicer, constraint=sqls[f], metadata=metadata[f],
+                                          runName=runName, plotDict=plotDict, plotFuncs=plotFuncs,
+                                          displayDict=displayDict))
 
-    m2 = metrics.TgapsPercentMetric(minTime=2 / 24., maxTime=14 / 24., allGaps=False,
-                                    metricName='TgapsPercent_2-14hrs')
-    plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
-    plotDict = {'colorMin': 0}
-    summaryMetrics = extendedSummary()
-    displayDict['caption'] = 'Percent of the total time gaps which fall into the interval between 2-14 hours.'
-    bundleList.append(mb.MetricBundle(m2, slicer, constraint=extraSql, metadata=metadata,
-                                      runName=runName, summaryMetrics=summaryMetrics,
-                                      plotDict=plotDict, plotFuncs=plotFuncs, displayDict=displayDict))
-    m3 = metrics.TgapsPercentMetric(minTime=14. / 24., maxTime=(14. / 24 + 1.), allGaps=False,
-                                    metricName='TgapsPercent_1day')
-    displayDict['caption'] = 'Percent of the total time gaps which fall into the interval around 1 day.'
-    bundleList.append(mb.MetricBundle(m3, slicer, constraint=extraSql, metadata=metadata,
-                                      runName=runName, summaryMetrics=summaryMetrics,
-                                      plotDict=plotDict, plotFuncs=plotFuncs, displayDict=displayDict))
+        m2 = metrics.TgapsPercentMetric(minTime=2 / 24., maxTime=14 / 24., allGaps=False,
+                                        metricName='TgapsPercent_2-14hrs')
+        plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
+        plotDict = {'colorMin': 0, 'color': colors[f]}
+        summaryMetrics = extendedSummary()
+        displayDict['caption'] = f'Percent of the total time gaps which fall into the interval' \
+                                 f' between 2-14 hours, in {f} band(s).'
+        displayDict['order'] = orders[f]
+        bundleList.append(mb.MetricBundle(m2, slicer, constraint=sqls[f], metadata=metadata[f],
+                                          runName=runName, summaryMetrics=summaryMetrics,
+                                          plotDict=plotDict, plotFuncs=plotFuncs, displayDict=displayDict))
+
+        m3 = metrics.TgapsPercentMetric(minTime=14. / 24., maxTime=(14. / 24 + 1.), allGaps=False,
+                                        metricName='TgapsPercent_1day')
+        displayDict['caption'] = f'Percent of the total time gaps which fall into the interval around 1 day,' \
+                                 f' in {f} band(s).'
+        displayDict['order'] = orders[f]
+        bundleList.append(mb.MetricBundle(m3, slicer, constraint=sqls[f], metadata=metadata[f],
+                                          runName=runName, summaryMetrics=summaryMetrics,
+                                          plotDict=plotDict, plotFuncs=plotFuncs, displayDict=displayDict))
     plotBundles = None
     return mb.makeBundlesDictFromList(bundleList), plotBundles
 
