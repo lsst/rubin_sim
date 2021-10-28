@@ -4,7 +4,7 @@ import pandas as pd
 from .baseSlicer import BaseSlicer
 from rubin_sim.maf.plots.moPlotters import MetricVsH, MetricVsOrbit
 
-from .orbits import Orbits
+from rubin_sim.movingObjects.orbits import Orbits
 
 __all__ = ['MoObjSlicer']
 
