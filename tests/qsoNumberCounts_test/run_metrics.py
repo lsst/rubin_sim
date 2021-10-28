@@ -2,7 +2,7 @@ import os
 CWD = os.getcwd()
 
 import sys
-sys.path = [CWD+"/.."]+sys.path
+sys.path = [CWD+"/../.."]+sys.path
 
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.metricBundles as metricBundles
