@@ -60,7 +60,7 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_
                     for i, splitfile in enumerate(splitfiles):
                         outfile_split = outfile.replace('.sh', f'_{pop}_split.sh')
                         with open(outfile_split, 'a') as wi:
-                            s1 = (f'makeLSSTobs --opsimDb {filename} --orbitFile {splitfile} '
+                            s1 = (f'makeLSSTobs --opsimDb {filename} --orbitFile {splitfile}'
                                   f' --outDir {outDir}')
                             s2 = (f'run_moving_calc --obsFile {outDir}/{run}__{pop}_{i}_obs.txt'
                                   f' --opsimDb {run}.db --orbitFile {orbit_files[pop]}'
