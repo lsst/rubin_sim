@@ -33,7 +33,7 @@ if __name__ == '__main__':
     parser.add_argument("--hStep", type=float, default=0.2, help="Stepsizes in H values.")
     parser.add_argument("--objtype", type=str, default='',
                         help="Object type, for output file labelling.")
-    parser.add_argument("--constraintMetdata", type=str, default='',
+    parser.add_argument("--constraintMetadata", type=str, default='',
                         help="Metadata to add to the output files beyond objtype. Typically translation of "
                              "the sql constraint into something more readable.")
     parser.add_argument("--constraint", type=str, default=None,
