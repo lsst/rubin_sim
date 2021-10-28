@@ -7,6 +7,7 @@ import rubin_sim.maf.batches as batches
 from rubin_sim.utils.CodeUtilities import sims_clean_up
 import rubin_sim.maf.db as db
 import rubin_sim.maf.metricBundles as metricBundles
+from rubin_sim.maf.slicers import MoObjSlicer
 
 
 class TestBatches(unittest.TestCase):
@@ -40,10 +41,11 @@ class TestBatches(unittest.TestCase):
         ack = batches.metadataMaps('fiveSigmaDepth')
 
     def test_movingObjectsBatches(self):
-        ack = batches.quickDiscoveryBatch()
-        ack = batches.discoveryBatch()
-        ack = batches.characterizationInnerBatch()
-        ack = batches.characterizationOuterBatch()
+        slicer = MoObjSlicer()
+        ack = batches.quickDiscoveryBatch(slicer)
+        ack = batches.discoveryBatch(slicer)
+        ack = batches.characterizationInnerBatch(slicer)
+        ack = batches.characterizationOuterBatch(slicer)
 
     @unittest.skipUnless(os.path.isdir(os.path.join(get_data_dir(), 'maf')),
                      "Skipping scienceRadarBatch test because operating without full MAF test data")
