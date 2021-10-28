@@ -7,9 +7,7 @@ sys.path = [CWD+"/.."]+sys.path
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.metricBundles as metricBundles
 
-#from lsst.sims.maf.metrics import qsoNumberCountsMetric
-#from qsoNumberCountsMetric import QSONumberCountsMetric
-from rubin_sim.maf.metrics import qsoNumberCountsMetric
+from rubin_sim.maf.metrics import QSONumberCountsMetric
 
 root_path = "/home/idies/workspace/Storage/rjassef/persistent"
 
