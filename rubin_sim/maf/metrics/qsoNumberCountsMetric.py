@@ -73,9 +73,6 @@ class QSONumberCountsMetric(BaseMetric):
 
         #Now, tranform that limiting magnitude into an expected number of quasars. If there is more than one, take the faintest.
         m_bright = np.max(dS['saturation_mag'])
-        print(m_bright, dS['filter'])
-        print(mlim5)
-        input()
         N11 = self.Nqso_cumulative(self.zmin, m_bright)
         N12 = self.Nqso_cumulative(self.zmin, mlim5 )
         N21 = self.Nqso_cumulative(self.zmax, m_bright)
