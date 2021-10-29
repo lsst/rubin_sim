@@ -71,8 +71,8 @@ class QSONumberCountsMetric(BaseMetric):
         nside = slicePoint['nside']
         pix_area = hp.nside2pixarea(nside, degrees=True)
 
-        #Now, tranform that limiting magnitude into an expected number of quasars.
-        m_bright = dS['saturation_mag']
+        #Now, tranform that limiting magnitude into an expected number of quasars. If there is more than one, take the faintest.
+        m_bright = np.max(dS['saturation_mag'])
         print(m_bright, dS['filter'])
         print(mlim5)
         input()
