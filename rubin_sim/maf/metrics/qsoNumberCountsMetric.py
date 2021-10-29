@@ -65,14 +65,15 @@ class QSONumberCountsMetric(BaseMetric):
         
         #For the dataslice, get the 5 sigma limiting magnitude.
         dS = dataSlice[dataSlice[self.filterCol] == self.lsstFilter]
-        mlim5 = 25. #self.exgalM5.run(dS, slicePoint)
+        mlim5 = self.exgalM5.run(dS, slicePoint)
         
         #Get the slicer pixel area.
         nside = slicePoint['nside']
         pix_area = hp.nside2pixarea(nside, degrees=True)
 
         #Now, tranform that limiting magnitude into an expected number of quasars.
-        m_bright = dS['saturation_mag']
+        #m_bright = dS['saturation_mag']
+        m_bright = 13
         N11 = self.Nqso_cumulative(self.zmin, m_bright)
         N12 = self.Nqso_cumulative(self.zmin, mlim5 )
         N21 = self.Nqso_cumulative(self.zmax, m_bright)
