@@ -30,7 +30,7 @@ class QSONumberCountsMetric(BaseMetric):
         self.zmax = zmax
 
         #This calculation uses the ExgalM5 metric. So declare that here.
-        self.exgalM5 = ExgalM5(m5Col=m5Col, units=units, lsstFilter=self.lsstFilter)
+        self.exgalM5 = ExgalM5(m5Col=m5Col, units=units)#, lsstFilter=self.lsstFilter)
 
         #Save the input parameters that relate to the QLF model. 
         self.qlf_module = qlf_module

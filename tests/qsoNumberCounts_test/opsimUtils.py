@@ -6,13 +6,13 @@ import healpy as hp
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
-# import lsst.sims.maf python modules
-import lsst.sims.maf.metricBundles as metricBundles
-import lsst.sims.maf.plots as plots
-import lsst.sims.maf.stackers as stackers
-import lsst.sims.maf.slicers as slicers
-import lsst.sims.maf.metrics as metrics
-import lsst.sims.maf.db as db
+# import rubin_sim.maf python modules
+import rubin_sim.maf.metricBundles as metricBundles
+import rubin_sim.maf.plots as plots
+import rubin_sim.maf.stackers as stackers
+import rubin_sim.maf.slicers as slicers
+import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.db as db
 
 # DDF RA/DEC dict
 ddfCoord = {

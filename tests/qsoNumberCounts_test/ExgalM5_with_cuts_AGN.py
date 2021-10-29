@@ -1,8 +1,8 @@
 #Slightly modified version of the DESC contributed metric ExgalM5_with_cuts available in https://github.com/lsst/sims_maf/blob/master/python/lsst/sims/maf/metrics/weakLensingSystematicsMetric.py. 
 
 import numpy as np
-from lsst.sims.maf.metrics import ExgalM5
-from lsst.sims.maf.metrics import BaseMetric
+from rubin_sim.maf.metrics import ExgalM5
+from rubin_sim.maf.metrics import BaseMetric
 
 class ExgalM5_with_cuts_AGN(BaseMetric):
     
@@ -20,7 +20,7 @@ class ExgalM5_with_cuts_AGN(BaseMetric):
         self.lsstFilter = lsstFilter
 
         #This calculation is reliant on the ExgalM5 metric. So declare that here.
-        self.exgalM5 = ExgalM5(m5Col=m5Col, units=units, lsstFilter=self.lsstFilter)
+        self.exgalM5 = ExgalM5(m5Col=m5Col, units=units)#, lsstFilter=self.lsstFilter)
         
         #Initiate the metric.
         super(ExgalM5_with_cuts_AGN, self).__init__(
