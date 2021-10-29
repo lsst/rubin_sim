@@ -39,7 +39,7 @@ class QSONumberCountsMetric(BaseMetric):
         
         #Read the long tables, which the number of quasars expected for a given band, qlf_module and qlf_model in a range of redshifts and magnitudes.
         table_name = "Long_Table.LSST{0}.{1}.{2}.{3}.txt".format(self.lsstFilter, self.qlf_module, self.qlf_model, self.SED_model)
-        stream = pkg_resources.resource_stream(__name__, "data_tables/quasarNumberCounts_tables/"+table_name)
+        stream = pkg_resources.resource_stream(__name__, "../data_tables/quasarNumberCounts_tables/"+table_name)
         mags = np.array([float(x) for x in stream.readline().split()])
         zs   = np.array([float(x) for x in stream.readline().split()])
         mz_data = np.loadtxt(stream)
