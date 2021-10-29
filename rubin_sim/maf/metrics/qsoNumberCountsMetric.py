@@ -65,7 +65,7 @@ class QSONumberCountsMetric(BaseMetric):
         
         #For the dataslice, get the 5 sigma limiting magnitude.
         dS = dataSlice[dataSlice[self.filterCol] == self.lsstFilter]
-        mlim5 = self.exgalM5.run(dS, slicePoint)
+        mlim5 = 25. #self.exgalM5.run(dS, slicePoint)
         
         #Get the slicer pixel area.
         nside = slicePoint['nside']
