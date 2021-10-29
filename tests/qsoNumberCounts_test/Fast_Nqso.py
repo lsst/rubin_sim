@@ -19,7 +19,7 @@ class Fast_Nqso(object):
         self.area_factor = area.to(u.deg**2).value
 
         #Start by reading the long table. These are numbers for the entire sky.
-        cat = open("../../rubin_sim/maf/data_tables/Long_Table.{0}.{1}.{2}.{3}.txt".format(self.band, self.qlf_module, self.qlf_model, self.SED_model))
+        cat = open("../../rubin_sim/maf/data_tables/quasarNumberCounts_tables/Long_Table.{0}.{1}.{2}.{3}.txt".format(self.band, self.qlf_module, self.qlf_model, self.SED_model))
         mags = np.array([float(x) for x in cat.readline().split()])
         zs   = np.array([float(x) for x in cat.readline().split()])
         mz_data = np.loadtxt(cat)
