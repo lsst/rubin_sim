@@ -6,18 +6,10 @@ sys.path = [CWD+"/../.."]+sys.path
 
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.metricBundles as metricBundles
-
 from rubin_sim.maf.metrics import QSONumberCountsMetric
 
-root_path = "/home/idies/workspace/Storage/rjassef/persistent"
-
-sys.path.append(root_path+"/LSST_OpSim/Scripts_NBs/")
 from opsimUtils import *
-
-sys.path.append(root_path+"/AGN_Photoz_LSST_OpSim/uband_depth_WFD/")
 from ExgalM5_with_cuts_AGN import ExgalM5_with_cuts_AGN
-
-sys.path.append(root_path+"/AGN_Photoz_LSST_OpSim/")
 from script_utils import find_completed_runs
 
 #We will use the same slicer and constraint for each metric. 
