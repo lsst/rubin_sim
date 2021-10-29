@@ -72,8 +72,10 @@ class QSONumberCountsMetric(BaseMetric):
         pix_area = hp.nside2pixarea(nside, degrees=True)
 
         #Now, tranform that limiting magnitude into an expected number of quasars.
-        #m_bright = dS['saturation_mag']
-        m_bright = 13
+        m_bright = dS['saturation_mag']
+        print(m_bright)
+        print(mlim5)
+        input()
         N11 = self.Nqso_cumulative(self.zmin, m_bright)
         N12 = self.Nqso_cumulative(self.zmin, mlim5 )
         N21 = self.Nqso_cumulative(self.zmax, m_bright)
