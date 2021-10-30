@@ -52,7 +52,7 @@ If you have a previous installation of rubin_sim or wish to oupdate your data do
 
 Optional dependencies used by some of the more esoteric MAF functions:
 ```
-conda install -c conda-forge sncosmo bokeh sympy
+conda install -c conda-forge sncosmo sympy george
 ```
 
 Optional download all the (100 Gb) of pre-computed sky data. Only needed if you are planning to run full 10 year scheduler simulations. Not needed for MAF, etc.:
