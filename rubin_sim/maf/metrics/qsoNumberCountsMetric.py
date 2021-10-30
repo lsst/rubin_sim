@@ -23,10 +23,10 @@ class QSONumberCountsMetric(BaseMetric):
         self.filterCol = filterCol
         self.lsstFilter = lsstFilter
 
-        #Save zmin and zmax, or set zmax to the default value. The default zmax is the lower number between 6.7 and the redshift at which the Lyman break hits the effective wavelength of the filter. Note that this means that for i, z and y the default value for zmax is 6.7 
+        #Save zmin and zmax, or set zmax to the default value. The default zmax is the lower number between 6.7 and the redshift at which the Lyman break (91.2nm) hits the effective wavelength of the filter. Note that this means that for i, z and y the default value for zmax is 6.7 
         self.zmin = zmin
         if zmax is None:
-            zmax = np.min([6.7, self.effwavelen[self.lsstFilter]/912.-1.0])
+            zmax = np.min([6.7, self.effwavelen[self.lsstFilter]/91.2-1.0])
         self.zmax = zmax
 
         #This calculation uses the ExgalM5 metric. So declare that here.
