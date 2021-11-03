@@ -207,7 +207,7 @@ class TestDiscoveryMetrics(unittest.TestCase):
         self.assertEqual(magic, 2)
         discMetric3 = metrics.MagicDiscoveryMetric(nObs=4, tWindow=4, snrLimit=5)
         magic = discMetric3.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(magic, 6)
+        self.assertEqual(magic, 4)
 
     def testHighVelocityMetric(self):
         rng = np.random.RandomState(8123)
