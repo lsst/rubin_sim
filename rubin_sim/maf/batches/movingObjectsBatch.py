@@ -21,8 +21,8 @@ __all__ = ['defaultHrange', 'defaultCharacterization','setupMoSlicer',
            'readAndCombine', 'combineSubsets']
 
 
-def defaultHrange(metadata):
-    "Provide useful default ranges for H, based on metadata of population type."
+def defaultHrange(objtype):
+    "Provide useful default ranges for H, based on objtype of population type."
     defaultRanges = {'PHA': [16, 28, 0.2],
                      'NEO': [16, 28, 0.2],
                      'MBA': [16, 26, 0.2],
@@ -32,36 +32,36 @@ def defaultHrange(metadata):
                      'Oort': (4, 20, 0.5)}
     defaultHmark = {'PHA': 22, 'NEO': 22, 'MBA': 20,
                     'Trojan': 18, 'TNO': 8, 'SDO': 8, 'Oort': 5}
-    if metadata in defaultRanges:
-        Hrange = defaultRanges[metadata]
-        Hmark = defaultHmark[metadata]
-    elif metadata.upper().startswith('GRANVIK'):
+    if objtype in defaultRanges:
+        Hrange = defaultRanges[objtype]
+        Hmark = defaultHmark[objtype]
+    elif objtype.upper().startswith('GRANVIK'):
         Hrange = defaultRanges['NEO']
         Hmark = defaultHmark['NEO']
-    elif metadata.upper().startswith('L7'):
+    elif objtype.upper().startswith('L7'):
         Hrange = defaultRanges('TNO')
         Hmark = defaultHmark['TNO']
     else:
-        print(f'## Could not find {metadata} in default keys ({defaultRanges.keys()}). \n'
+        print(f'## Could not find {objtype} in default keys ({defaultRanges.keys()}). \n'
               f'## Using expanded default range instead.')
         Hrange = [4, 28, 0.5]
         Hmark = 10
     return Hrange, Hmark
 
 
-def defaultCharacterization(metadata):
-    "Provide useful characterization bundle type, based on metadata of population type."
+def defaultCharacterization(objtype):
+    "Provide useful characterization bundle type, based on objtype of population type."
     defaultChar = {'PHA': 'inner', 'NEO': 'inner',
                    'MBA': 'inner', 'Trojan': 'inner',
                    'TNO': 'outer', 'SDO': 'outer', 'Oort': 'outer'}
-    if metadata in defaultChar:
-        char = defaultChar[metadata]
-    elif metadata.upper().startswith('GRANVIK'):
+    if objtype in defaultChar:
+        char = defaultChar[objtype]
+    elif objtype.upper().startswith('GRANVIK'):
         char = 'inner'
-    elif metadata.upper().startswith('L7'):
+    elif objtype.upper().startswith('L7'):
         char = 'outer'
     else:
-        print(f'## Could not find {metadata} in default keys ({defaultChar.keys()}). \n'
+        print(f'## Could not find {objtype} in default keys ({defaultChar.keys()}). \n'
               f'## Using Inner (Asteroid) characterization by default.')
         char = 'inner'
     return char
@@ -91,8 +91,9 @@ def setupMoSlicer(orbitFile, Hrange, obsFile=None):
     return slicer
 
 
-def quickDiscoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detection', metadata='',
-                        albedo=None, Hmark=None, npReduce=np.mean, constraint=None, magtype='asteroid'):
+def quickDiscoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detection', objtype='',
+                        albedo=None, Hmark=None, npReduce=np.mean,
+                        constraintMetadata='', constraint=None, magtype='asteroid'):
     if colmap is None:
         colmap = ColMapDict('opsimV4')
     bundleList = []
@@ -101,7 +102,12 @@ def quickDiscoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='d
     basicPlotDict = {'albedo': albedo, 'Hmark': Hmark, 'npReduce': npReduce,
                      'nxbins': 200, 'nybins': 200}
     plotFuncs = [plots.MetricVsH()]
-    displayDict ={'group': 'Discovery', 'subgroup': 'Completeness'}
+    displayDict ={'group': f'{objtype}', 'subgroup': 'Discovery'}
+
+    if constraintMetadata == '' and constraint is not None:
+        constraintMetadata = constraint.replace('filter', '').replace('==', '').replace('  ', ' ')
+    metadata = objtype + ' ' + constraintMetadata
+    metadata = metadata.rstrip(' ')
 
     if detectionLosses not in ('detection', 'trailing'):
         raise ValueError('Please choose detection or trailing as options for detectionLosses.')
@@ -125,10 +131,10 @@ def quickDiscoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='d
         return childMetrics
 
     def _configure_child_bundles(parentBundle):
-        dispDict = {'group': 'Discovery', 'subgroup': 'Time',
+        dispDict = {'group': f'{objtype}', 'subgroup': f'Completeness Over Time',
                     'caption': 'Time of discovery of objects', 'order': 0}
         parentBundle.childBundles['Time'].setDisplayDict(dispDict)
-        dispDict = {'group': 'Discovery', 'subgroup': 'NChances',
+        dispDict = {'group': f'{objtype}', 'subgroup': f'N Chances',
                     'caption': 'Number of chances for discovery of objects', 'order': 0}
         parentBundle.childBundles['N_Chances'].setDisplayDict(dispDict)
         return
@@ -172,8 +178,9 @@ def quickDiscoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='d
     return mb.makeBundlesDictFromList(bundleList), plotBundles
 
 
-def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detection', metadata='',
-                   albedo=None, Hmark=None, npReduce=np.mean, constraint=None,  magtype='asteroid'):
+def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detection', objtype='',
+                   albedo=None, Hmark=None, npReduce=np.mean,
+                   constraintMetadata='', constraint=None,  magtype='asteroid'):
     if colmap is None:
         colmap = ColMapDict('opsimV4')
     bundleList = []
@@ -182,7 +189,12 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
     basicPlotDict = {'albedo': albedo, 'Hmark': Hmark, 'npReduce': npReduce,
                      'nxbins': 200, 'nybins': 200}
     plotFuncs = [plots.MetricVsH()]
-    displayDict ={'group': 'Discovery', 'subgroup': 'Completeness'}
+    displayDict ={'group': f'{objtype}', 'subgroup': 'Discovery'}
+
+    if constraintMetadata == '' and constraint is not None:
+        constraintMetadata = constraint.replace('filter', '').replace('==', '').replace('  ', ' ')
+    metadata = objtype + ' ' + constraintMetadata
+    metadata = metadata.rstrip(' ')
 
     if detectionLosses not in ('detection', 'trailing'):
         raise ValueError('Please choose detection or trailing as options for detectionLosses.')
@@ -208,16 +220,15 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
         return childMetrics
 
     def _configure_child_bundles(parentBundle):
-        dispDict = {'group': 'Discovery', 'subgroup': 'Time',
+        dispDict = {'group': f'{objtype}', 'subgroup': f'Completeness Over Time',
                     'caption': 'Time of discovery of objects', 'order': 0}
         parentBundle.childBundles['Time'].setDisplayDict(dispDict)
-        dispDict = {'group': 'Discovery', 'subgroup': 'NChances',
+        dispDict = {'group': f'{objtype}', 'subgroup': f'N Chances',
                     'caption': 'Number of chances for discovery of objects', 'order': 0}
         parentBundle.childBundles['N_Chances'].setDisplayDict(dispDict)
-        return
-
     # 3 pairs in 15 and 3 pairs in 30 done in 'quickDiscoveryBatch' (with vis).
 
+    """
     # 3 pairs in 12
     md = metadata + ' 3 pairs in 12 nights' + detectionLosses
     plotDict = {'title': '%s: %s' % (runName, md)}
@@ -265,6 +276,7 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
                                 displayDict=displayDict)
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
+    """
 
     # 4 pairs in 20
     md = metadata + ' 4 pairs in 20 nights' + detectionLosses
@@ -350,6 +362,7 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
 
+    """
     # 3 pairs in 30, SNR=5
     md = metadata + ' 3 pairs in 30 nights SNR=5' + detectionLosses
     plotDict = {'title': '%s: %s' % (runName, md)}
@@ -382,6 +395,7 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
                                 displayDict=displayDict)
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
+    """
 
     # Play with SNR.  SNR=3
     # 3 pairs in 15, SNR=3
@@ -451,8 +465,6 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
     bundleList.append(bundle)
 
     # High velocity discovery.
-    displayDict['subgroup'] = 'High Velocity'
-    # High velocity.
     md = metadata + ' High velocity pair' + detectionLosses
     plotDict = {'title': '%s: %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -465,7 +477,6 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
     bundleList.append(bundle)
 
     # "magic" detection - 6 in 60 days.
-    displayDict['subgroup'] = 'Magic'
     md = metadata + ' 6 detections in 60 nights' + detectionLosses
     plotDict = {'title': '%s: %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -515,8 +526,6 @@ def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
     """
     # Add completeness bundles and write completeness at Hmark to resultsDb.
     completeness = {}
-    group = 'Discovery'
-    subgroup = 'Completeness'
 
     def _compbundles(b, bundle, Hmark, resultsDb):
         # Find Hmark if not set (this may be different for different bundles).
@@ -572,9 +581,21 @@ def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
     # Write the completeness bundles to disk, so we can re-read them later.
     # (also set the display dict properties, for the resultsDb output).
     for b, bundle in completeness.items():
-        bundle.setDisplayDict({'group': group, 'subgroup': subgroup})
+        bundle.displayDict['subgroup'] = f'Completeness'
         bundle.write(outDir=outDir, resultsDb=resultsDb)
 
+    # Calculate total number of objects - currently for NEOs and PHAs only
+    for b, bundle in completeness.items():
+        if 'DifferentialCompleteness' in b and "@Time" not in b:
+            if 'NEO' in bundle.metadata:
+                nobj_metrics = [metrics.TotalNumberSSO(Hmark=22, dndh_func=metrics.neo_dndh_granvik),
+                                metrics.TotalNumberSSO(Hmark=25, dndh_func=metrics.neo_dndh_granvik)]
+                bundle.setSummaryMetrics(nobj_metrics)
+                bundle.computeSummaryStats(resultsDb)
+            if 'PHA' in bundle.metadata:
+                nobj_metrics = [metrics.TotalNumberSSO(Hmark=22, dndh_func=metrics.pha_dndh_granvik)]
+                bundle.setSummaryMetrics(nobj_metrics)
+                bundle.computeSummaryStats(resultsDb)
     return completeness
 
 
@@ -625,6 +646,7 @@ def plotCompleteness(bdictCompleteness, figroot=None, runName=None, resultsDb=No
         runName = first.runName
     if figroot is None:
         figroot = runName
+    displayDict= deepcopy(first.displayDict)
 
     # Plot completeness as a function of time. Make custom plot, then save it with PlotHandler.
     fig = plt.figure(figsize=(8, 6))
@@ -637,11 +659,12 @@ def plotCompleteness(bdictCompleteness, figroot=None, runName=None, resultsDb=No
     plt.grid(True, alpha=0.3)
     # Make a PlotHandler to deal with savings/resultsDb, etc.
     ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
-    displayDict = {'group': 'Discovery', 'subgroup': 'Time',
-                   'caption': 'Completeness over time, for H values indicated in legend.'}
-    ph.saveFig(fignum=fig.number, outfileRoot=f'{figroot}_CompletenessOverTime',
-               plotType='Combo', metricName='CompletenessOverTime', slicerName='MoObjSlicer',
-               runName=runName, constraint=None, metadata=None, displayDict=displayDict)
+    displayDict['subgroup'] = f'Completeness over time'
+    displayDict['caption'] = 'Completeness over time, for H values indicated in legend.'
+    ph.saveFig(fig.number, f'{figroot}_CompletenessOverTime', 'Combo', 'CompletenessOverTime', 'MoObjSlicer',
+               figroot, None, None, displayDict=displayDict)
+
+    plt.savefig(os.path.join(outDir, f'{figroot}_CompletenessOverTime.{figformat}'), format=figformat)
 
     # Plot cumulative completeness.
     ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
@@ -669,14 +692,16 @@ def plotCompleteness(bdictCompleteness, figroot=None, runName=None, resultsDb=No
     ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
     ph.setMetricBundles(allComp)
     plotDict = {'ylabel': "Completeness", 'figsize': (8, 6), 'legendloc': (1.01, 0.1), 'color': None}
+    displayDict['subgroup'] = f'Completeness all criteria'
     displayDict['caption'] = 'Plotting all of the cumulative completeness curves together.'
     ph.plot(plotFunc=plots.MetricVsH(), plotDicts=plotDict, displayDict=displayDict,
             outfileRoot=figroot + '_Many_CumulativeCompleteness')
 
 
-def characterizationInnerBatch(slicer, colmap=None, runName='opsim', metadata='',
-                                  albedo=None, Hmark=None, constraint=None, npReduce=np.mean,
-                                  windows=None, bins=None):
+def characterizationInnerBatch(slicer, colmap=None, runName='opsim', objtype='',
+                               albedo=None, Hmark=None,
+                               constraintMetadata='', constraint=None, npReduce=np.mean,
+                               windows=None, bins=None):
     """Characterization metrics for inner solar system objects.
     """
     if colmap is None:
@@ -692,7 +717,13 @@ def characterizationInnerBatch(slicer, colmap=None, runName='opsim', metadata=''
     basicPlotDict = {'albedo': albedo, 'Hmark': Hmark, 'npReduce': npReduce,
                      'nxbins': 200, 'nybins': 200}
     plotFuncs = [plots.MetricVsH()]
-    displayDict ={'group': 'Characterization'}
+
+    if constraintMetadata == '' and constraint is not None:
+        constraintMetadata = constraint.replace('filter', '').replace('==', '').replace('  ', ' ')
+    metadata = objtype + ' ' + constraintMetadata
+    metadata = metadata.rstrip(' ')
+
+    displayDict = {'group': f'{objtype}'}
 
     # Stackers
     magStacker = stackers.MoMagStacker(lossCol='dmagDetect')
@@ -708,7 +739,7 @@ def characterizationInnerBatch(slicer, colmap=None, runName='opsim', metadata=''
 
     # Number of observations.
     md = metadata
-    displayDict['subgroup'] = 'NObs'
+    displayDict['subgroup'] = f'N Obs'
     plotDict = {'ylabel': 'Number of observations (#)',
                 'title': '%s: Number of observations %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -722,7 +753,7 @@ def characterizationInnerBatch(slicer, colmap=None, runName='opsim', metadata=''
 
     # Observational arc.
     md = metadata
-    displayDict['subgroup'] = 'ObsArc'
+    displayDict['subgroup'] = f'Obs Arc'
     plotDict = {'ylabel': 'Observational Arc (days)',
                 'title': '%s: Observational Arc Length %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -735,7 +766,7 @@ def characterizationInnerBatch(slicer, colmap=None, runName='opsim', metadata=''
     bundleList.append(bundle)
 
     # Activity detection.
-    displayDict['subgroup'] = 'Activity'
+    displayDict['subgroup'] = f'Activity'
     for w in windows:
         md = metadata + ' activity lasting %.0f days' % w
         plotDict = {'title': '%s: Chances of detecting %s' % (runName, md),
@@ -744,9 +775,9 @@ def characterizationInnerBatch(slicer, colmap=None, runName='opsim', metadata=''
         metric = metrics.ActivityOverTimeMetric(w, metricName=metricName, **colkwargs)
         bundle = mb.MoMetricBundle(metric, slicer, constraint,
                                    stackerList=stackerList,
-                                    runName=runName, metadata=metadata,
-                                    plotDict=plotDict, plotFuncs=plotFuncs,
-                                    displayDict=displayDict)
+                                   runName=runName, metadata=metadata,
+                                   plotDict=plotDict, plotFuncs=plotFuncs,
+                                   displayDict=displayDict)
         bundleList.append(bundle)
 
     for b in bins:
@@ -757,14 +788,14 @@ def characterizationInnerBatch(slicer, colmap=None, runName='opsim', metadata=''
         metric = metrics.ActivityOverPeriodMetric(b, metricName=metricName, **colkwargs)
         bundle = mb.MoMetricBundle(metric, slicer, constraint,
                                    stackerList=stackerList,
-                                    runName=runName, metadata=metadata,
-                                    plotDict=plotDict, plotFuncs=plotFuncs,
-                                    displayDict=displayDict)
+                                   runName=runName, metadata=metadata,
+                                   plotDict=plotDict, plotFuncs=plotFuncs,
+                                   displayDict=displayDict)
         bundleList.append(bundle)
 
     # Lightcurve inversion.
     md = metadata
-    displayDict['subgroup'] = 'Color/Inversion'
+    displayDict['subgroup'] = f'Color/Inversion'
     plotDict = {'yMin': 0, 'yMax': 1, 'ylabel': 'Fraction of objects',
                 'title': '%s: Fraction with potential lightcurve inversion %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -795,8 +826,9 @@ def characterizationInnerBatch(slicer, colmap=None, runName='opsim', metadata=''
     return mb.makeBundlesDictFromList(bundleList), plotBundles
 
 
-def characterizationOuterBatch(slicer, colmap=None, runName='opsim', metadata='',
-                               albedo=None, Hmark=None, constraint=None, npReduce=np.mean,
+def characterizationOuterBatch(slicer, colmap=None, runName='opsim', objtype='',
+                               albedo=None, Hmark=None,
+                               constraintMetadata='', constraint=None, npReduce=np.mean,
                                windows=None, bins=None):
     """Characterization metrics for outer solar system objects.
     """
@@ -813,7 +845,13 @@ def characterizationOuterBatch(slicer, colmap=None, runName='opsim', metadata=''
     basicPlotDict = {'albedo': albedo, 'Hmark': Hmark, 'npReduce': npReduce,
                      'nxbins': 200, 'nybins': 200}
     plotFuncs = [plots.MetricVsH()]
-    displayDict ={'group': 'Characterization'}
+
+    if constraintMetadata == '' and constraint is not None:
+        constraintMetadata = constraint.replace('filter', '').replace('==', '').replace('  ', ' ')
+    metadata = objtype + ' ' + constraintMetadata
+    metadata = metadata.rstrip(' ')
+
+    displayDict ={'group': f'{objtype}'}
 
     # Stackers
     magStacker = stackers.MoMagStacker(lossCol='dmagDetect')
@@ -829,7 +867,7 @@ def characterizationOuterBatch(slicer, colmap=None, runName='opsim', metadata=''
 
     # Number of observations.
     md = metadata
-    displayDict['subgroup'] = 'NObs'
+    displayDict['subgroup'] = f'N Obs'
     plotDict = {'ylabel': 'Number of observations (#)',
                 'title': '%s: Number of observations %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -843,7 +881,7 @@ def characterizationOuterBatch(slicer, colmap=None, runName='opsim', metadata=''
 
     # Observational arc.
     md = metadata
-    displayDict['subgroup'] = 'ObsArc'
+    displayDict['subgroup'] = f'Obs Arc'
     plotDict = {'ylabel': 'Observational Arc (days)',
                 'title': '%s: Observational Arc Length %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -856,7 +894,7 @@ def characterizationOuterBatch(slicer, colmap=None, runName='opsim', metadata=''
     bundleList.append(bundle)
 
     # Activity detection.
-    displayDict['subgroup'] = 'Activity'
+    displayDict['subgroup'] = f'Activity'
     for w in windows:
         md = metadata + ' activity lasting %.0f days' % w
         plotDict = {'title': '%s: Chances of detecting %s' % (runName, md),
@@ -885,7 +923,7 @@ def characterizationOuterBatch(slicer, colmap=None, runName='opsim', metadata=''
 
     # Color determination.
     md = metadata
-    displayDict['subgroup'] = 'Color/Inversion'
+    displayDict['subgroup'] = f'Color/Inversion'
     plotDict = {'yMin': 0, 'yMax': 1, 'ylabel': 'Fraction of objects',
                 'title': '%s: Fraction of population with colors in X filters %s' % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -931,8 +969,6 @@ def runFractionSummary(bdict, Hmark, outDir, resultsDb):
         Dictionary of the metric bundles for the fractional evaluation of the population.
     """
     fractions = {}
-    group = 'Characterization'
-    subgroup = 'Frac.Pop. with Color or Lightcurve'
 
     # Look for metrics from asteroid or outer solar system color/lightcurve metrics.
     inversionSummary = fractionPopulationAtThreshold([1], ['Lightcurve Inversion'])
@@ -966,9 +1002,7 @@ def runFractionSummary(bdict, Hmark, outDir, resultsDb):
                     fractions[newkey] = mb.makeCompletenessBundle(bundle, summary_metric,
                                                                   Hmark=Hmark, resultsDb=resultsDb)
     # Write the fractional populations bundles to disk, so we can re-read them later.
-    # (also set the display dict properties, for the resultsDb output).
     for b, bundle in fractions.items():
-        bundle.setDisplayDict({'group': group, 'subgroup': subgroup})
         bundle.write(outDir=outDir, resultsDb=resultsDb)
     return fractions
 
@@ -993,11 +1027,11 @@ def plotFractions(bdictFractions, figroot=None, runName=None, resultsDb=None,
             b.plotDict['linestyle'] = ':'
             b.plotDict['linewidth'] = 3
 
+    first = bdictFractions[list(bdictFractions.keys())[0]]
     if figroot is None:
-        first = bdictFractions[list(bdictFractions.keys())[0]]
         figroot = first.runName
-
-    displayDict = {'group': 'Characterization', 'subgroup': 'Color/Inversion'}
+    displayDict = deepcopy(first.displayDict)
+    displayDict['subgroup'] = f'Characterization Fraction'
 
     ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
     ph.setMetricBundles(bdictFractions)
@@ -1050,11 +1084,10 @@ def plotActivity(bdict, figroot=None, resultsDb=None, outDir='.', figformat='pdf
             if 'days' in k:
                 activity_days[k] = bdict[k]
 
+    first = bdict[list(bdict.keys())[0]]
     if figroot is None:
-        first = bdict[list(bdict.keys())[0]]
         figroot = first.runName
-
-    displayDict = {'group': 'Characterization', 'subgroup': 'Activity'}
+    displayDict = deepcopy(first.displayDict)
 
     if len(activity_days) > 0:
         # Plot (mean) likelihood of detection of activity over X days

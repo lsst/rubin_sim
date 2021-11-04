@@ -62,7 +62,7 @@ def makeCompletenessBundle(bundle, completenessMetric, Hmark=None, resultsDb=Non
                                   fill_value=0)
     mb = MoMetricBundle(completenessMetric, bundle.slicer,
                         constraint=bundle.constraint, runName=bundle.runName,
-                        metadata=bundle.metadata)
+                        metadata=bundle.metadata, displayDict=bundle.displayDict)
     plotDict = {}
     plotDict.update(bundle.plotDict)
     plotDict['label'] = bundle.metadata

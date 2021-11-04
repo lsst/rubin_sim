@@ -277,7 +277,8 @@ def summaryCompletenessOverH(requiredChances=1, Hindex=0.33):
     List of moving object MoCompleteness metrics (cumulative and differential)
     """
     summaryMetrics = [metrics.MoCompletenessMetric(threshold=requiredChances,
-                                                   cumulative=False, Hindex=Hindex),
+                                                   cumulative=False,
+                                                   Hindex=Hindex),
                       metrics.MoCompletenessMetric(threshold=requiredChances,
                                                    cumulative=True, Hindex=Hindex)]
     return summaryMetrics

@@ -3,34 +3,156 @@ import warnings
 
 from .moMetrics import BaseMoMetric
 
-__all__ = ['integrateOverH', 'ValueAtHMetric', 'MeanValueAtHMetric',
-           'MoCompletenessMetric', 'MoCompletenessAtTimeMetric']
+__all__ = [ 'power_law_dndh', 'neo_dndh_granvik', 'neo_dndh_grav',
+            'pha_dndh_granvik', 'pha_dndh_grav',
+            'integrateOverH', 'sumOverH', 'TotalNumberSSO',
+            'ValueAtHMetric', 'MeanValueAtHMetric',
+            'MoCompletenessMetric', 'MoCompletenessAtTimeMetric']
 
 
-def integrateOverH(Mvalues, Hvalues, Hindex = 0.33):
-    """Function to calculate a metric value integrated over an Hrange, assuming a power-law distribution.
+def power_law_dndh(Hvalues, Hindex=0.33, No=None, Ho=None, **kwargs):
+    """Power law distribution of objects.
 
     Parameters
     ----------
-    Mvalues : `numpy.ndarray`
-        The metric values at each H value.
     Hvalues : `numpy.ndarray`
-        The H values corresponding to each Mvalue (must be the same length).
+        The H values corresponding to each metricValue (must be the same length).
+        The Hvalues are expected to be evenly spaced.
     Hindex : `float`, optional
         The power-law index expected for the H value distribution.
         Default is 0.33  (dN/dH = 10^(Hindex * H) ).
+    No : `float`, optional
+    Ho: `float`, optional
+        If No and Ho are specified, this provides an anchor for the power law distribution,
+        so that the expected number No of objects at Ho is returned.
+        Do not need to be set if just doing comparative weighting.
+
+    Returns
+    -------
+    dndh : `numpy.ndarray`
+    """
+    if No is None or Ho is None:
+        Ho = Hvalues.min()
+        No = 10
+    binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff(Hvalues)[-1])) / 0.1
+    dndh = (No * 0.1) * np.power(10., Hindex * (Hvalues - Ho)) * binratio
+    return dndh
+
+def neo_dndh_granvik(Hvalues, **kwargs):
+    binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff(Hvalues)[-1])) / 0.1
+    y0 = 0 # 10 * np.power(10, 0.55 * (x - 17))
+    y1 = 150 * np.power(10, 0.3 * (Hvalues - 18.5))
+    y2 = 2500 * np.power(10, 0.92 * (Hvalues- 23.2))
+    dndh = (y0 + y1 + y2) * binratio
+    return dndh
+
+def neo_dndh_grav(Hvalues, **kwargs):
+    binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff(Hvalues)[-1])) / 0.1
+    y1 = 110 * np.power(10, 0.35 * (Hvalues - 18.5))
+    dndh = y1 * binratio
+    return dndh
+
+def pha_dndh_granvik(Hvalues, **kwargs):
+    binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff(Hvalues)[-1])) / 0.1
+    y0 = 0 # 10 * np.power(10, 0.55 * (x - 17))
+    y1 = 20 * np.power(10, 0.3 * (Hvalues - 18.5))
+    y2 = 500 * np.power(10, 0.92 * (Hvalues- 23.2))
+    dndh =  (y0 + y1 + y2) * binratio
+    return dndh
+
+def pha_dndh_grav(Hvalues, **kwargs):
+    binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff[Hvalues][-1])) / 0.1
+    y1 = 23.5 * np.power(10, 0.35 * (Hvalues - 18.5))
+    dndh =  y1 * binratio
+    return dndh
+
+
+def integrateOverH(metricValues, Hvalues, dndh_func=power_law_dndh, **kwargs):
+    """Calculate a metric value integrated over an Hrange.
+    This is the metric value *weighted* by the size distribution.
+
+    Parameters
+    ----------
+    metricValues : `numpy.ndarray`
+        The metric values at each H value.
+    Hvalues : `numpy.ndarray`
+        The H values corresponding to each metricValue (must be the same length).
+    dndh_func : function, optional
+        One of the dN/dH functions defined below. Default is a simple power law.
+    **kwargs : `dict`, optional
+        Keyword arguments to pass to dndh_func
 
     Returns
     --------
     intVals : `numpy.ndarray`
-       The integrated or cumulative metric values.
+       The integrated metric values.
     """
     # Set expected H distribution.
     # dndh = differential size distribution (number in this bin)
-    dndh = np.power(10., Hindex*(Hvalues-Hvalues.min()))
-    # dn = cumulative size distribution (number in this bin and brighter)
-    intVals = np.cumsum(Mvalues*dndh)/np.cumsum(dndh)
+    dndh = dndh_func(Hvalues, **kwargs)
+    # calculate the metric values *weighted* by the number of objects in this bin and brighter
+    intVals = np.cumsum(metricValues*dndh) / np.cumsum(dndh)
     return intVals
+
+
+def sumOverH(metricValues, Hvalues, dndh_func=power_law_dndh, **kwargs):
+    """Calculate the sum of the metric value multiplied by the number of objects at each H value.
+    This is equivalent to calculating the number of objects meeting X requirement in the
+    differential completeness or fraction of objects with lightcurves, etc.
+
+    Parameters
+    ----------
+    metricValues : `numpy.ndarray`
+        The metric values at each H value.
+    Hvalues : `numpy.ndarray`
+        The H values corresponding to each metricValue (must be the same length).
+    dndh_func : function, optional
+        One of the dN/dH functions defined below. Default is a simple power law.
+    **kwargs : `dict`, optional
+        Keyword arguments to pass to dndh_func
+
+    Returns
+    --------
+    sumVals : `numpy.ndarray`
+       The cumulative metric values.
+    """
+    # Set expected H distribution.
+    # dndh = differential size distribution (number in this bin)
+    dndh = dndh_func(Hvalues, **kwargs)
+    # calculate the metric values *weighted* by the number of objects in this bin and brighter
+    sumVals = np.cumsum(metricValues*dndh)
+    return sumVals
+
+
+class TotalNumberSSO(BaseMoMetric):
+    """Calculate the total number of objects of a given population expected at a given H value or larger.
+
+    Operations on differential completeness values (or equivalent; fractions of the population is ok if
+    still a differential metric result, not cumulative).
+
+    Parameters
+    ----------
+    Hmark : `float`, optional
+        The H value at which to calculate the expected total number of objects. Default = 22.
+    dndh_func : `function`, optional
+        The dN/dH distribution to use to calculate the expected population size.
+
+    Returns
+    -------
+    nObj : `float`
+        The predicted number of objects in the population.
+    """
+    def __init__(self, Hmark=22, dndh_func=neo_dndh_granvik, **kwargs):
+        self.Hmark = Hmark
+        self.dndh_func = dndh_func
+        metricName = 'Nobj <= %.1f' % (Hmark)
+        self.kwargs = kwargs
+        super().__init__(metricName=metricName, **kwargs)
+
+    def run(self, metricVals, Hvals):
+        totals = sumOverH(metricVals, Hvals, self.dndh_func, **self.kwargs)
+        nObj = np.interp(self.Hmark, Hvals, totals)
+        return nObj
 
 
 class ValueAtHMetric(BaseMoMetric):
@@ -48,8 +170,9 @@ class ValueAtHMetric(BaseMoMetric):
     value: : `float`
     """
     def __init__(self, Hmark=22, **kwargs):
-        metricName = 'Value At H=%.1f' %(Hmark)
-        super(ValueAtHMetric, self).__init__(metricName=metricName, **kwargs)
+        metricName = 'Value At H=%.1f' % (Hmark)
+        units = '<= %.1f' % (Hmark)
+        super().__init__(metricName=metricName, **kwargs)
         self.Hmark = Hmark
 
     def run(self, metricVals, Hvals):
@@ -81,7 +204,7 @@ class MeanValueAtHMetric(BaseMoMetric):
     def __init__(self, Hmark=22, reduceFunc=np.mean, metricName=None, **kwargs):
         if metricName is None:
             metricName = 'Mean Value At H=%.1f' %(Hmark)
-        super(MeanValueAtHMetric, self).__init__(metricName=metricName, **kwargs)
+        super().__init__(metricName=metricName, **kwargs)
         self.Hmark = Hmark
         self.reduceFunc = reduceFunc
 
@@ -180,7 +303,7 @@ class MoCompletenessMetric(BaseMoMetric):
             completeness = n_found.astype(float) / n_all.astype(float)
             completeness = np.where(n_all==0, 0, completeness)
         if self.cumulative:
-            completenessInt = integrateOverH(completeness, Hvals, self.Hindex)
+            completenessInt = integrateOverH(completeness, Hvals, power_law_dndh, Hindex=self.Hindex)
             summaryVal = np.empty(len(completenessInt), dtype=[('name', np.str_, 20), ('value', float)])
             summaryVal['value'] = completenessInt
             for i, Hval in enumerate(Hvals):

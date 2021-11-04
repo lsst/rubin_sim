@@ -580,7 +580,7 @@ class ActivityOverPeriodMetric(BaseMoMetric):
 
 
 class MagicDiscoveryMetric(BaseMoMetric):
-    """Count the number of discovery opportunities with very good software for an SSobject.
+    """Count the number of nights with discovery opportunities with very good software for an SSobject.
     """
     def __init__(self, nObs=6, tWindow=60, snrLimit=None, **kwargs):
         """
@@ -599,11 +599,13 @@ class MagicDiscoveryMetric(BaseMoMetric):
         """SsoObs = Dataframe, orb=Dataframe, Hval=single number."""
         # Calculate visibility for this orbit at this H.
         vis = _setVis(ssoObs, self.snrLimit, self.snrCol, self.visCol)
-        if len(vis) == 0:
+        if len(vis) < self.nObs:
             return self.badval
-        tNights = np.sort(ssoObs[self.nightCol][vis])
-        deltaNights = np.roll(tNights, 1-self.nObs) - tNights
-        nDisc = np.where((deltaNights < self.tWindow) & (deltaNights >= 0))[0].size
+        tNights = np.sort(ssoObs[self.nightCol])[vis]
+        uNights = np.unique(tNights)
+        indxW = np.searchsorted(tNights, uNights, 'left')
+        indxP = np.searchsorted(tNights - self.tWindow, uNights, 'left')
+        nDisc = np.where(indxP - indxW >= self.nObs)[0].size
         return nDisc
 
 
