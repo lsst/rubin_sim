@@ -183,26 +183,28 @@ class TrackingDb(object):
 
 
 def addRunToDatabase(mafDir, trackingDbFile, opsimGroup=None,
-                    opsimRun=None, opsimComment=None,
+                    opsimRun=None, opsimComment=None, opsimVersion=None,
                     mafComment=None, dbFile=None):
     """Adds information about a MAF analysis run to a MAF tracking database.
 
     Parameters
     ----------
-    mafDir : str
+    mafDir : `str`
         Path to the directory where the MAF results are located.
-    trackingDb : str or rubin_sim.maf.TrackingDb
-        Full filename (+path) to the tracking database storing the MAF run information or
-        a TrackingDb object.
-    opsimGroup: str, optional
+    trackingDb : `str`
+        Full filename (+path) to the tracking database storing the MAF run information.
+    opsimGroup: `str`, optional
         Name to use to group this run with other opsim runs. Default None.
-    opsimRun : str, optional
-        Name of the opsim run. If not provided, will attempt to use runName from confSummary.txt.
-    opsimComment : str, optional
-        Comment about the opsim run. If not provided, will attempt to use runComment from confSummary.txt.
-    mafComment : str, optional
+    opsimRun : `str`, optional
+        Name of the opsim run. If not provided, will attempt to use runName from configSummary.txt.
+    opsimComment : `str`, optional
+        Comment about the opsim run. If not provided, will attempt to use runComment from configSummary.txt.
+    opsimVersion : `str`, optional
+        Value to use for the opsim version information. If not provided, will attempt to use the value from
+        configSummary.txt
+    mafComment : `str`, optional
         Comment about the MAF analysis. If not provided, no comment will be recorded.
-    dbFile : str, optional
+    dbFile : `str`, optional
         Relative path + name of the opsim database file. If not provided, no location will be recorded.
     """
     mafDir = os.path.abspath(mafDir)
