@@ -214,7 +214,7 @@ def addRunToDatabase(mafDir, trackingDbFile, opsimGroup=None,
     trackingDb = TrackingDb(database=trackingDbFile)
     autoOpsimRun = None
     autoOpsimComment = None
-    opsimVersion = None
+    opsimVersion = opsimVersion
     opsimDate = None
     mafVersion = None
     mafDate = None
@@ -238,10 +238,10 @@ def addRunToDatabase(mafDir, trackingDbFile, opsimGroup=None,
                 opsimDate = tmp[-1]
                 if len(tmp) > 2:
                     opsimDate = tmp[-2]
-            if tmp[0].startswith('OpsimVersion'):
-                opsimVersion = tmp[1]
+            if tmp[0].startswith('rubin_sim.__version__'):
+                autoOpsimVersion = tmp[1]
                 if len(tmp) > 2:
-                    opsimDate = tmp[-2]
+                    autoOpsimVersion = tmp[-2]
     # And convert formats to '-' (again, multiple versions of configs).
     if mafDate is not None:
         if len(mafDate.split('/')) > 1:
@@ -260,6 +260,8 @@ def addRunToDatabase(mafDir, trackingDbFile, opsimGroup=None,
         opsimRun = autoOpsimRun
     if opsimComment is None:
         opsimComment = autoOpsimComment
+    if opsimVersion is None:
+        opsimVersion = autoOpsimVersion
 
     print('Adding to tracking database at %s:' % (trackingDbFile))
     print(' MafDir = %s' % (mafDir))
