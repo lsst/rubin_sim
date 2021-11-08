@@ -214,7 +214,7 @@ def addRunToDatabase(mafDir, trackingDbFile, opsimGroup=None,
     trackingDb = TrackingDb(database=trackingDbFile)
     autoOpsimRun = None
     autoOpsimComment = None
-    opsimVersion = opsimVersion
+    autoOpsimVersion = None
     opsimDate = None
     mafVersion = None
     mafDate = None
