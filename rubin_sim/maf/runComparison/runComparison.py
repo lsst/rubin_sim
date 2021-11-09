@@ -228,7 +228,6 @@ class RunComparison():
                                                slicerName=metric['slicerName'],
                                                summaryName=metric['summaryMetric'],
                                                verbose=verbose)
-            print(mName, tempStats.shape)
             if self.summaryStats is None:
                 self.summaryStats = tempStats
             else:
