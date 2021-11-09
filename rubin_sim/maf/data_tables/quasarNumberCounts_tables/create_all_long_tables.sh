@@ -1,8 +1,8 @@
 #!/bin/bash
 
-python Long_Table.py Shen20 A LSSTu
-python Long_Table.py Shen20 A LSSTg
-python Long_Table.py Shen20 A LSSTr
-python Long_Table.py Shen20 A LSSTi
-python Long_Table.py Shen20 A LSSTz
-python Long_Table.py Shen20 A LSSTy
+python Long_Table.py Shen20 A u
+python Long_Table.py Shen20 A g
+python Long_Table.py Shen20 A r
+python Long_Table.py Shen20 A i
+python Long_Table.py Shen20 A z
+python Long_Table.py Shen20 A y
