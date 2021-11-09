@@ -9,6 +9,12 @@ from .exgalM5 import ExgalM5
 
 
 class QSONumberCountsMetric(BaseMetric):
+    """
+    Metric that returns the number of quasars expected with SNR>=5 according to the Shen et al. (2020) QLF - model A in the redshift range zmin < z < zmax. The 5 sigma depths are obtained using the ExgalM5 metric. Only quasars fainter than the saturation magnitude are counted.
+
+    By default, zmin is 0.3 and zmax is the minimum between 6.7 and the redshift at which the Lyman break matches the effective wavelength of the band. For bands izy, zmax is 6.7. This default choice is to match Table 10.2 for i-band quasar counts in the LSST Science book.
+
+    """
     
     def __init__(self, lsstFilter, m5Col='fiveSigmaDepth', units='mag', extinction_cut=1.0, filterCol='filter', metricName='QSONumberCountsMetric', qlf_module='Shen20', qlf_model='A', SED_model="Richards06", zmin=0.3, zmax=None, **kwargs):
             
