@@ -8,8 +8,8 @@ from .photPrecMetrics import *
 from .StarCountMassMetric import *
 from .StarCountMetric import *
 from .PeriodicMetric import *
-from .angularSpread import *
 from .periodicStarMetric import *
+from .periodicStarModulationMetric import *
 from .GRBTransientMetric import *
 from .LSSObsStrategy import *
 from .GW170817DetMetric import *
