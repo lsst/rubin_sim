@@ -9,7 +9,7 @@ __all__ = ['agnBatch']
 
 def agnBatch(colmap=None, runName='opsim', nside=64,
         extraSql=None, extraMetadata=None, slicer=None,
-        display_group='AGN', subgroup='AGN'):
+        display_group='AGN'):
     """Generate a set of statistics about the spacing between nights with observations.
 
      Parameters
@@ -47,7 +47,7 @@ def agnBatch(colmap=None, runName='opsim', nside=64,
         slicer = slicers.HealpixSlicer(nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees,
                                        useCache=False)
 
-    displayDict = {'group': display_group, 'subgroup': subgroup, 'caption': None, 'order': 0}
+    displayDict = {'group': display_group,  'order': 0}
 
     # These agn test magnitude values are determined by looking at the baseline median m5 depths
     # For v1.7.1 these values are:
@@ -63,6 +63,7 @@ def agnBatch(colmap=None, runName='opsim', nside=64,
                                   filterCol=colmap['filter'])
         plotDict = {'color': colors[f]}
         displayDict['order'] = orders[f]
+        displayDict['subgroup'] = 'SFError'
         displayDict['caption'] = 'Expected AGN structure function errors, based on observations in ' \
                                  f'{f} band, for an AGN of magnitude {agn_m5[f]:.2f}'
         bundleList.append(mb.MetricBundle(m, slicer, constraint=sqls[f], metadata=metadata[f],
