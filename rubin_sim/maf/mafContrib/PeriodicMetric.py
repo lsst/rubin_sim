@@ -2,8 +2,13 @@
 # Mike Lund - Vanderbilt University
 # mike.lund@gmail.com
 # Last edited 3/10/2015
-# Motivation: The detection of periodic signals can be examined by using canonical signals and attempted to recover these. However, a more general approach would be to examine the strength in signal that is lost as a result of poor phase coverage.
-# This metric calculates the spectral window function for a set of scheduled observations. The largest peak at a nonzero frequency is used as a proxy to quantify how much power is lost to other frequencies. Full phase coverage will result in a value of 1. We refer to this as the Periodic Purity Function.
+# Motivation: The detection of periodic signals can be examined by using canonical signals and attempted
+# to recover these. However, a more general approach would be to examine the strength in signal that is
+# lost as a result of poor phase coverage.
+# This metric calculates the spectral window function for a set of scheduled observations.
+# The largest peak at a nonzero frequency is used as a proxy to quantify how much power is
+# lost to other frequencies. Full phase coverage will result in a value of 1.
+# We refer to this as the Periodic Purity Function.
 
 from rubin_sim.maf.metrics import BaseMetric
 import numpy as np
@@ -11,7 +16,8 @@ import numpy as np
 __all__ = ['PeriodicMetric']
 
 class PeriodicMetric(BaseMetric):
-   """From a set of observation times, uses code provided by Robert Siverd (LCOGT) to calculate the spectral window function.
+   """From a set of observation times, uses code provided by Robert Siverd (LCOGT) to calculate
+   the spectral window function.
    """
    def __init__(self, TimeCol='expMJD', **kwargs):
       self.TimeCol=TimeCol
