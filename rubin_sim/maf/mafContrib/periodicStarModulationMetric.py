@@ -82,7 +82,7 @@ class PeriodicStarModulationMetric(BaseMetric):
         self.filterCol = filterCol
         super(PeriodicStarModulationMetric, self).__init__(col=[self.mjdCol, self.m5Col,self.filterCol],
                                                  units='Fraction Detected',
-                                                 metricName=metricName,**kwargs)
+                                                 metricName=metricName, **kwargs)
         self.period = period
         self.amplitude = amplitude
         self.time_interval = time_interval
@@ -98,11 +98,12 @@ class PeriodicStarModulationMetric(BaseMetric):
         self.nBands = nBands
         np.random.seed(seed)
         self.filter2index = {'u':3, 'g':4, 'r':5, 'i':6, 'z':7,'y':8}
-       
-        
+
     def run(self, dataSlice, slicePoint=None):
 
         # Bail if we don't have enough points
+        # (need to fit mean magnitudes in each of the available bands - self.means
+        # and for a period, amplitude, and phase)
         if dataSlice.size < self.means.size+3:
             return self.badval
         

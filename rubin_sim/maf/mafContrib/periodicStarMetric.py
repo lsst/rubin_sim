@@ -79,6 +79,8 @@ class PeriodicStarMetric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
 
         # Bail if we don't have enough points
+        # (need to fit mean magnitudes in each of the available bands - self.means
+        # and for a period, amplitude, and phase)
         if dataSlice.size < self.means.size+3:
             return self.badval
 
