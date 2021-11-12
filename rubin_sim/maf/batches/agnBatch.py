@@ -102,7 +102,7 @@ def agnBatch(colmap=None, runName='opsim', nside=64,
     displayDict['subgroup'] = 'TimeLags'
     displayDict['caption'] = 'Comparison of the time between visits compared to a defined ' \
                              f'sampling gap ({lag} days). '
-    bundleList.append(mb.MetricBundle(m, s, constraint=sqls['all'], metadata=metadata['all'],
+    bundleList.append(mb.MetricBundle(m, s, constraint=extraSql, metadata=extraMetadata,
                                       runName=runName, plotDict=plotDict,
                                       summaryMetrics=summaryMetrics, displayDict=displayDict))
 
