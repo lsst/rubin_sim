@@ -100,7 +100,7 @@ def agnBatch(colmap=None, runName='opsim', nside=64,
     s = slicers.HealpixSlicer(nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees)
     plotDict = {'percentileClip': 95}
     displayDict['subgroup'] = 'TimeLags'
-    displayDict['caption'] = 'Comparison of the time between visits compared to a defined ' \ 
+    displayDict['caption'] = 'Comparison of the time between visits compared to a defined ' \
                              f'sampling gap ({lag} days). '
     bundleList.append(mb.MetricBundle(m, s, constraint=sqls['all'], metadata=metadata['all'],
                                       runName=runName, plotDict=plotDict,
