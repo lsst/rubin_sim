@@ -5,15 +5,18 @@ __all__ = ['AGN_TimeLagMetric']
 
 
 class AGN_TimeLagMetric(BaseMetric):
-    def __init__(self, lag=100, z=1, log=False, calcType='mean',
+    def __init__(self, lag=100, z=1, log=False, threshold=2.2, calcType='mean',
                  mjdCol='observationStartMJD', filterCol='filter',
-                 metricName='AGN_TimeLag_Metric', **kwargs):
+                 metricName=None, **kwargs):
         self.lag = lag
         self.z = z
         self.log = log
+        self.threshold = threshold
         self.calcType = calcType
         self.mjdCol = mjdCol
         self.filterCol = filterCol
+        if metricName is None:
+            metricName = f'AGN_TimeLag_{lag}_days'
         super().__init__(col=[self.mjdCol, self.filterCol], metricName=metricName, **kwargs)
 
     # Calculate NQUIST value for time-lag and sampling time (redshift is included in formula if desired)
@@ -47,7 +50,7 @@ class AGN_TimeLagMetric(BaseMetric):
 
         # Threshold nquist value is 2.2,
         # hence we are aiming to show values higher than threshold (2.2) value
-        threshold = 2.2
+        threshold = self.threshold
         if self.log:
             threshold = np.log(threshold)
 

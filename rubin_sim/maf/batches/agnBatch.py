@@ -90,4 +90,20 @@ def agnBatch(colmap=None, runName='opsim', nside=64,
                                           summaryMetrics=summaryMetrics,
                                           displayDict=displayDict))
 
+
+    nquist_threshold = 2.2
+    lag = 100
+    summaryMetrics = extendedSummary()
+    summaryMetrics += [metrics.AreaThresholdMetric(lower_threshold=nquist_threshold)]
+    m = metrics.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag,
+                                  mjdCol=colmap['mjd'])
+    s = slicers.HealpixSlicer(nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees)
+    plotDict = {'percentileClip': 95}
+    displayDict['subgroup'] = 'TimeLags'
+    displayDict['caption'] = 'Comparison of the time between visits compared to a defined ' \ 
+                             f'sampling gap ({lag} days). '
+    bundleList.append(mb.MetricBundle(m, s, constraint=sqls['all'], metadata=metadata['all'],
+                                      runName=runName, plotDict=plotDict,
+                                      summaryMetrics=summaryMetrics, displayDict=displayDict))
+
     return mb.makeBundlesDictFromList(bundleList)
