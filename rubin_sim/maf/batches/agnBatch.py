@@ -49,12 +49,31 @@ def agnBatch(colmap=None, runName='opsim', nside=64,
 
     displayDict = {'group': display_group,  'order': 0}
 
+    # Calculate the number of expected QSOs, based on i-band
+    lsstFilter = 'i'
+    sql = sqls[lsstFilter] + ' and note not like "%DD%"'
+    md = metadata[lsstFilter] + ' and non-DD'
+    summaryMetrics = [metrics.SumMetric(metricName='Total QSO')]
+    zmin = 0.3
+    m = metrics.QSONumberCountsMetric(lsstFilter,
+                                      m5Col=colmap['fiveSigmaDepth'], filterCol=colmap['filter'],
+                                      units='mag', extinction_cut=1.0,
+                                      qlf_module='Shen20',
+                                      qlf_model='A',
+                                      SED_model="Richards06",
+                                      zmin=zmin, zmax=None)
+    displayDict['subgroup'] = 'nQSO'
+    displayDict['caption'] = 'The expected number of QSOs in regions of low dust extinction.'
+    bundleList.append(mb.MetricBundle(m, slicer, constraint=sql, metadata=md,
+                                      runName=runName, summaryMetrics=summaryMetrics,
+                                      displayDict=displayDict))
+
+    # Calculate the expected AGN structure function error
     # These agn test magnitude values are determined by looking at the baseline median m5 depths
     # For v1.7.1 these values are:
     agn_m5 = {'u': 22.89, 'g': 23.94, 'r': 23.5, 'i': 22.93, 'z': 22.28, 'y': 21.5}
-    # And the expected median SF error at those values is about 0.04
+    # And the expected medians SF error at those values is about 0.04
     threshold = 0.04
-
     summaryMetrics = extendedSummary()
     summaryMetrics += [metrics.AreaThresholdMetric(upper_threshold = threshold)]
     for f in filterlist:
@@ -70,5 +89,5 @@ def agnBatch(colmap=None, runName='opsim', nside=64,
                                           runName=runName, plotDict=plotDict,
                                           summaryMetrics=summaryMetrics,
                                           displayDict=displayDict))
-    plotBundles = None
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+
+    return mb.makeBundlesDictFromList(bundleList)
