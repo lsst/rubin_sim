@@ -84,5 +84,4 @@ def phaseGap(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetadat
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
-    plotBundles = None
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+    return mb.makeBundlesDictFromList(bundleList)

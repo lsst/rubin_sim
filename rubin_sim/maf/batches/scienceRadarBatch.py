@@ -248,9 +248,9 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     bundleList.append(bundle)
 
     # General time intervals
-    bundles, p = timeGaps(colmap=colmap, runName=runName, nside=nside,
-                          extraSql=extraSql, extraMetadata=extraMetadata, slicer=None,
-                          display_group=displayDict['group'], subgroup='TimeGaps')
+    bundles = timeGaps(colmap=colmap, runName=runName, nside=nside,
+                       extraSql=extraSql, extraMetadata=extraMetadata, slicer=None,
+                       display_group=displayDict['group'], subgroup='TimeGaps')
     temp_list = []
     for b in bundles:
         temp_list.append(bundles[b])
