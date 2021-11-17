@@ -12,6 +12,7 @@ __all__ = ['Sky_area_generator', 'old_Sky_area_generator']
 
 class Sky_area_generator:
     """
+    Generate survey footprint maps in each filter.
 
     Parameters
     ----------
@@ -63,7 +64,7 @@ class Sky_area_generator:
             filename = os.path.join(datadir, 'dust_nside_%i.npz' % self.nside)
         self.dustmap = np.load(filename)['ebvMap']
 
-    def add_magellanic_clouds(self, filter_ratios={'u': 0.32, 'g': 0.4, 'r': 1.0, 'i': 1.0, 'z': 0.9, 'y': 0.9},
+    def add_magellanic_clouds(self, filter_ratios,
                               lmc_radius=8, smc_radius=5, label='LMC_SMC',
                               lmc_ra=80.893860, lmc_dec=-69.756126, smc_ra=13.186588, smc_dec=-72.828599):
         """Add the Magellanic Clouds to the map
@@ -108,8 +109,7 @@ class Sky_area_generator:
         result[np.where(distance < np.radians(radius))] = 1
         return result
 
-    def add_scp(self, dec_max=-60,
-                filter_ratios={'u': 0.1, 'g': 0.1, 'r': 0.1, 'i': 0.1, 'z': 0.1, 'y': 0.1},
+    def add_scp(self, filter_ratios, dec_max=-60,
                 label='scp'):
 
         indx = np.where((self.dec < dec_max) & (self.pix_labels == ''))
@@ -189,8 +189,8 @@ class Sky_area_generator:
             bulge = np.where(((self.gal_lon - gal_long1) % 360) < gp_length, bulge, 0)
         return bulge
 
-    def add_bulge(self, filter_ratios={'u': 0.18, 'g': 1.0, 'r': 1.05, 'i': 1.05, 'z': 1.0, 'y': 0.23},
-                  label='bulge', gal_long1=335, gal_long2=25, gal_lat_width_max=23, center_width=12, end_width=4,
+    def add_bulge(self, filter_ratios, label='bulge', gal_long1=335, gal_long2=25,
+                  gal_lat_width_max=23, center_width=12, end_width=4,
                   gal_dec_max=12):
         """Add bulge to the map
         """
@@ -207,8 +207,8 @@ class Sky_area_generator:
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def add_lowdust_wfd(self, dec_min=-70, dec_max=15, adjust_halves=12, label='lowdust',
-                        filter_ratios={'u': 0.32, 'g': 0.4, 'r': 1.0, 'i': 1.0, 'z': 0.9, 'y': 0.9}):
+    def add_lowdust_wfd(self, filter_ratios, dec_min=-70,
+                        dec_max=15, adjust_halves=12, label='lowdust'):
 
         dustfree = np.where((self.dec > dec_min) & (self.dec < dec_max)
                             & (self.low_dust == 1), 1, 0)
@@ -224,9 +224,8 @@ class Sky_area_generator:
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def add_dusty_plane(self, dec_min=-90, dec_max=15,
-                        label='dusty_plane',
-                        filter_ratios={'u': 0.1, 'g': 0.28, 'r': 0.28, 'i': 0.28, 'z': 0.28, 'y': 0.1}):
+    def add_dusty_plane(self, filter_ratios, dec_min=-90, dec_max=15,
+                        label='dusty_plane'):
 
         dusty = np.where(((self.dec > dec_min) & (self.dec < dec_max)
                           & (self.low_dust == 0)), 1, 0)
@@ -236,9 +235,8 @@ class Sky_area_generator:
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def add_nes(self, label='nes', eclat_min=-10, eclat_max=10, eclip_dec_min=0,
-                glon_limit=45.,
-                filter_ratios={'g': 0.28, 'r': 0.4, 'i': 0.4, 'z': 0.28}):
+    def add_nes(self, filter_ratios, label='nes', eclat_min=-10, eclat_max=10, eclip_dec_min=0,
+                glon_limit=45.):
         """
         """
         nes = np.where(((self.eclip_lat > eclat_min) | (self.dec > eclip_dec_min))
@@ -252,19 +250,25 @@ class Sky_area_generator:
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def return_maps(self):
+    def return_maps(self,
+                    magellenic_clouds_ratios={'u': 0.32, 'g': 0.4, 'r': 1.0, 'i': 1.0, 'z': 0.9, 'y': 0.9},
+                    scp_ratios={'u': 0.1, 'g': 0.1, 'r': 0.1, 'i': 0.1, 'z': 0.1, 'y': 0.1},
+                    nes_ratios={'g': 0.28, 'r': 0.4, 'i': 0.4, 'z': 0.28},
+                    dusty_plane_ratios={'u': 0.1, 'g': 0.28, 'r': 0.28, 'i': 0.28, 'z': 0.28, 'y': 0.1},
+                    low_dust_ratios={'u': 0.32, 'g': 0.4, 'r': 1.0, 'i': 1.0, 'z': 0.9, 'y': 0.9},
+                    bulge_ratios={'u': 0.18, 'g': 1.0, 'r': 1.05, 'i': 1.05, 'z': 1.0, 'y': 0.23}):
         """
         Returns
         --------
         self.total, self.total_perfilter : `np.ndarray`, `np.ndarray`
             HEALPix maps 
         """
-        self.add_magellanic_clouds()
-        self.add_lowdust_wfd()
-        self.add_bulge()
-        self.add_nes()
-        self.add_dusty_plane()
-        self.add_scp()
+        self.add_magellanic_clouds(magellenic_clouds_ratios)
+        self.add_lowdust_wfd(low_dust_ratios)
+        self.add_bulge(bulge_ratios)
+        self.add_nes(nes_ratios)
+        self.add_dusty_plane(dusty_plane_ratios)
+        self.add_scp(scp_ratios)
 
         return self.healmaps, self.pix_labels
 
