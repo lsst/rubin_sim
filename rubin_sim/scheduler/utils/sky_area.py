@@ -19,7 +19,7 @@ class Sky_area_generator:
     nside : `int` (32)
         Healpix nside (32)
     dust_limit : `float` (0.199)
-        The extinction to label a HEALpixel as "dusty". Default of 0.199.
+        E(B-V) limit for dust extinction. Default of 0.199.
     smoothing_cutoff : `float` (0.45)
         Magic number
     smoothing_beam : `float` (10)
@@ -64,43 +64,6 @@ class Sky_area_generator:
             filename = os.path.join(datadir, 'dust_nside_%i.npz' % self.nside)
         self.dustmap = np.load(filename)['ebvMap']
 
-    def add_magellanic_clouds(self, filter_ratios,
-                              lmc_radius=8, smc_radius=5, label='LMC_SMC',
-                              lmc_ra=80.893860, lmc_dec=-69.756126, smc_ra=13.186588, smc_dec=-72.828599):
-        """Add the Magellanic Clouds to the map
-
-        Parameters
-        ----------
-        lmc_radius : `float`, optional
-            Radius around the LMC to include (degrees).
-        smc_radius : `float`, optional
-            Radius around the SMC to include (degrees).
-        filter_ratios : `dict` {`str` : `float`}, optional
-            How to distribute visits between different filters.
-            Default uses {'u': 0.31, 'g': 0.44, 'r': 1., 'i': 1., 'z': 0.9, 'y': 0.9}
-        label : str
-            What to label the pixels in the map
-        """
-        temp_map = np.zeros(hp.nside2npix(self.nside))
-        # Define the LMC pixels
-        temp_map += self._set_circular_region(lmc_ra, lmc_dec, lmc_radius)
-        # Define the SMC pixels
-        temp_map += self._set_circular_region(smc_ra, smc_dec, smc_radius)
-        # Add a simple bridge between the two - to remove the gap
-        mc_dec_min = self.dec[np.where(temp_map > 0)].min()
-        mc_dec_max = self.dec[np.where(temp_map > 0)].max()
-        temp_map += np.where(((self.ra > smc_ra) & (self.ra < lmc_ra))
-                             & ((self.dec > mc_dec_min) & (self.dec < mc_dec_max)), 1, 0)
-        # We don't want to double-visit areas which may overlap
-        temp_map = np.where(temp_map > 1, 1, temp_map)
-
-        # Don't overide any pixels that have already been designated
-        indx = np.where((temp_map > 0) & (self.pix_labels == ''))
-
-        self.pix_labels[indx] = label
-        for filtername in filter_ratios:
-            self.healmaps[filtername][indx] = filter_ratios[filtername]
-
     def _set_circular_region(self, ra_center, dec_center, radius):
         # find the healpixels that cover a circle of radius radius around ra/dec center (deg)
         result = np.zeros(len(self.ra))
@@ -108,15 +71,6 @@ class Sky_area_generator:
                                                np.radians(self.ra), np.radians(self.dec))
         result[np.where(distance < np.radians(radius))] = 1
         return result
-
-    def add_scp(self, filter_ratios, dec_max=-60,
-                label='scp'):
-
-        indx = np.where((self.dec < dec_max) & (self.pix_labels == ''))
-
-        self.pix_labels[indx] = label
-        for filtername in filter_ratios:
-            self.healmaps[filtername][indx] = filter_ratios[filtername]
 
     def _set_bulge_diamond(self, center_width, end_width, gal_long1, gal_long2):
         """
@@ -188,6 +142,50 @@ class Sky_area_generator:
             # First, remove anything outside the gal_long1/gal_long2 region.
             bulge = np.where(((self.gal_lon - gal_long1) % 360) < gp_length, bulge, 0)
         return bulge
+
+    def add_magellanic_clouds(self, filter_ratios,
+                              lmc_radius=8, smc_radius=5, label='LMC_SMC',
+                              lmc_ra=80.893860, lmc_dec=-69.756126, smc_ra=13.186588, smc_dec=-72.828599):
+        """Add the Magellanic Clouds to the map
+
+        Parameters
+        ----------
+        lmc_radius : `float`, optional
+            Radius around the LMC to include (degrees).
+        smc_radius : `float`, optional
+            Radius around the SMC to include (degrees).
+        filter_ratios : `dict` {`str` : `float`}, optional
+            How to distribute visits between different filters.
+            Default uses {'u': 0.31, 'g': 0.44, 'r': 1., 'i': 1., 'z': 0.9, 'y': 0.9}
+        label : str
+            What to label the pixels in the map
+        """
+        temp_map = np.zeros(hp.nside2npix(self.nside))
+        # Define the LMC pixels
+        temp_map += self._set_circular_region(lmc_ra, lmc_dec, lmc_radius)
+        # Define the SMC pixels
+        temp_map += self._set_circular_region(smc_ra, smc_dec, smc_radius)
+        # Add a simple bridge between the two - to remove the gap
+        mc_dec_min = self.dec[np.where(temp_map > 0)].min()
+        mc_dec_max = self.dec[np.where(temp_map > 0)].max()
+        temp_map += np.where(((self.ra > smc_ra) & (self.ra < lmc_ra))
+                             & ((self.dec > mc_dec_min) & (self.dec < mc_dec_max)), 1, 0)
+
+        # Don't overide any pixels that have already been designated
+        indx = np.where((temp_map > 0) & (self.pix_labels == ''))
+
+        self.pix_labels[indx] = label
+        for filtername in filter_ratios:
+            self.healmaps[filtername][indx] = filter_ratios[filtername]
+
+    def add_scp(self, filter_ratios, dec_max=-60,
+                label='scp'):
+
+        indx = np.where((self.dec < dec_max) & (self.pix_labels == ''))
+
+        self.pix_labels[indx] = label
+        for filtername in filter_ratios:
+            self.healmaps[filtername][indx] = filter_ratios[filtername]
 
     def add_bulge(self, filter_ratios, label='bulge', gal_long1=335, gal_long2=25,
                   gal_lat_width_max=23, center_width=12, end_width=4,
