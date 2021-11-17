@@ -258,8 +258,10 @@ class Sky_area_generator:
         """
         Returns
         --------
-        self.total, self.total_perfilter : `np.ndarray`, `np.ndarray`
-            HEALPix maps 
+        self.healmaps : `np.ndarray`
+            HEALPix maps for ugrizy
+        self.pix_labels : `np.ndarray`
+            Array string labels for each HEALpix
         """
         self.add_magellanic_clouds(magellenic_clouds_ratios)
         self.add_lowdust_wfd(low_dust_ratios)
