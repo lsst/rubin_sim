@@ -21,15 +21,59 @@ class Sky_area_generator:
     dust_limit : `float` (0.199)
         E(B-V) limit for dust extinction. Default of 0.199.
     smoothing_cutoff : `float` (0.45)
-        Magic number
+        Magic number (E(B-V)?)
     smoothing_beam : `float` (10)
-        Magic number
+        Magic number (Degrees?)
+    lmc_radius : `float` (8)
+        The radius to use around the LMC (degrees).
+    smc_radius : `float` (5)
+        The radius to use around the SMC (degrees)
+    scp_dec_max : `float` (-60)
+        Maximum declination for the south celestial pole region (degrees)
+    gal_long1, gal_long2, gal_lat_width_max, center_width, end_width, gal_dec_max : `float`
+        A bunch of paramters for defining the bulge region (degrees)
+    dusty_dec_min : `float` (-90)
+        The minimum dec for the dusty plane region (degrees)
+    dusty_dec_max : `float` (15)
+        The maximum dec for the dusty plane (degrees)
+    eclat_min, eclat_max, eclip_dec_min, nes_glon_limit : `float`
+        A bunch of parameters for defining the north ecliptic spur (degrees)
     """
-    def __init__(self, nside=32, dust_limit=0.199, smoothing_cutoff=0.45, smoothing_beam=10):
+    def __init__(self, nside=32, dust_limit=0.199, smoothing_cutoff=0.45, smoothing_beam=10,
+                 lmc_radius=8, smc_radius=5,
+                 scp_dec_max=-60,
+                 gal_long1=335, gal_long2=25, gal_lat_width_max=23, center_width=12, end_width=4, gal_dec_max=12,
+                 low_dust_dec_min=-70, low_dust_dec_max=15, adjust_halves=12,
+                 dusty_dec_min=-90, dusty_dec_max=15,
+                 eclat_min=-10, eclat_max=10, eclip_dec_min=0, nes_glon_limit=45.):
 
         self.nside = nside
         self.hpid = np.arange(0, hp.nside2npix(nside))
         self.read_dustmap()
+
+        self.lmc_radius = lmc_radius
+        self.smc_radius = smc_radius
+
+        self.scp_dec_max = scp_dec_max
+
+        self.gal_long1 = gal_long1
+        self.gal_long2 = gal_long2
+        self.gal_lat_width_max = gal_lat_width_max
+        self.center_width = center_width
+        self.end_width = end_width
+        self.gal_dec_max = gal_dec_max
+
+        self.low_dust_dec_min = low_dust_dec_min
+        self.low_dust_dec_max = low_dust_dec_max
+        self.adjust_halves = adjust_halves
+
+        self.dusty_dec_min = dusty_dec_min
+        self.dusty_dec_max = dusty_dec_max
+
+        self.eclat_min = eclat_min
+        self.eclat_max = eclat_max
+        self.eclip_dec_min = eclip_dec_min
+        self.nes_glon_limit = nes_glon_limit
 
         # Array to hold the labels for each pixel
         self.pix_labels = np.zeros(hp.nside2npix(self.nside), dtype='U20')
@@ -143,28 +187,14 @@ class Sky_area_generator:
             bulge = np.where(((self.gal_lon - gal_long1) % 360) < gp_length, bulge, 0)
         return bulge
 
-    def add_magellanic_clouds(self, filter_ratios,
-                              lmc_radius=8, smc_radius=5, label='LMC_SMC',
-                              lmc_ra=80.893860, lmc_dec=-69.756126, smc_ra=13.186588, smc_dec=-72.828599):
-        """Add the Magellanic Clouds to the map
-
-        Parameters
-        ----------
-        lmc_radius : `float`, optional
-            Radius around the LMC to include (degrees).
-        smc_radius : `float`, optional
-            Radius around the SMC to include (degrees).
-        filter_ratios : `dict` {`str` : `float`}, optional
-            How to distribute visits between different filters.
-            Default uses {'u': 0.31, 'g': 0.44, 'r': 1., 'i': 1., 'z': 0.9, 'y': 0.9}
-        label : str
-            What to label the pixels in the map
-        """
+    def add_magellanic_clouds(self, filter_ratios, label='LMC_SMC',
+                              lmc_ra=80.893860, lmc_dec=-69.756126,
+                              smc_ra=13.186588, smc_dec=-72.828599):
         temp_map = np.zeros(hp.nside2npix(self.nside))
         # Define the LMC pixels
-        temp_map += self._set_circular_region(lmc_ra, lmc_dec, lmc_radius)
+        temp_map += self._set_circular_region(lmc_ra, lmc_dec, self.lmc_radius)
         # Define the SMC pixels
-        temp_map += self._set_circular_region(smc_ra, smc_dec, smc_radius)
+        temp_map += self._set_circular_region(smc_ra, smc_dec, self.smc_radius)
         # Add a simple bridge between the two - to remove the gap
         mc_dec_min = self.dec[np.where(temp_map > 0)].min()
         mc_dec_max = self.dec[np.where(temp_map > 0)].max()
@@ -178,43 +208,36 @@ class Sky_area_generator:
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def add_scp(self, filter_ratios, dec_max=-60,
-                label='scp'):
-
-        indx = np.where((self.dec < dec_max) & (self.pix_labels == ''))
+    def add_scp(self, filter_ratios, label='scp'):
+        indx = np.where((self.dec < self.scp_dec_max) & (self.pix_labels == ''))
 
         self.pix_labels[indx] = label
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def add_bulge(self, filter_ratios, label='bulge', gal_long1=335, gal_long2=25,
-                  gal_lat_width_max=23, center_width=12, end_width=4,
-                  gal_dec_max=12):
-        """Add bulge to the map
-        """
-        b1 = self._set_bulge_diamond(center_width=center_width, end_width=end_width,
-                                     gal_long1=gal_long1, gal_long2=gal_long2)
-        b2 = self._set_bulge_rectangle(gal_lat_width_max, gal_long1, gal_long2)
+    def add_bulge(self, filter_ratios, label='bulge'):
+        b1 = self._set_bulge_diamond(center_width=self.center_width, end_width=self.end_width,
+                                     gal_long1=self.gal_long1, gal_long2=self.gal_long2)
+        b2 = self._set_bulge_rectangle(self.gal_lat_width_max, self.gal_long1, self.gal_long2)
         b2[np.where(self.gal_lat > 0)] = 0
 
         bulge = b1 + b2
 
-        bulge[np.where(np.abs(self.gal_lat) > gal_lat_width_max)] = 0
+        bulge[np.where(np.abs(self.gal_lat) > self.gal_lat_width_max)] = 0
         indx = np.where((bulge > 0) & (self.pix_labels == ''))
         self.pix_labels[indx] = label
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def add_lowdust_wfd(self, filter_ratios, dec_min=-70,
-                        dec_max=15, adjust_halves=12, label='lowdust'):
+    def add_lowdust_wfd(self, filter_ratios, label='lowdust'):
 
-        dustfree = np.where((self.dec > dec_min) & (self.dec < dec_max)
+        dustfree = np.where((self.dec > self.low_dust_dec_min) & (self.dec < self.low_dust_dec_max)
                             & (self.low_dust == 1), 1, 0)
 
         dustfree[np.where(self.low_dust == 0)] = 0
 
-        if adjust_halves > 0:
-            dustfree = np.where((self.gal_lat < 0) & (self.dec > dec_max - adjust_halves),
+        if self.adjust_halves > 0:
+            dustfree = np.where((self.gal_lat < 0) & (self.dec > self.low_dust_dec_max - self.adjust_halves),
                                 0, dustfree)
 
         indx = np.where((dustfree > 0) & (self.pix_labels == ''))
@@ -222,10 +245,9 @@ class Sky_area_generator:
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def add_dusty_plane(self, filter_ratios, dec_min=-90, dec_max=15,
-                        label='dusty_plane'):
+    def add_dusty_plane(self, filter_ratios, label='dusty_plane'):
 
-        dusty = np.where(((self.dec > dec_min) & (self.dec < dec_max)
+        dusty = np.where(((self.dec > self.dusty_dec_min) & (self.dec < self.dusty_dec_max)
                           & (self.low_dust == 0)), 1, 0)
 
         indx = np.where((dusty > 0) & (self.pix_labels == ''))
@@ -233,15 +255,12 @@ class Sky_area_generator:
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def add_nes(self, filter_ratios, label='nes', eclat_min=-10, eclat_max=10, eclip_dec_min=0,
-                glon_limit=45.):
-        """
-        """
-        nes = np.where(((self.eclip_lat > eclat_min) | (self.dec > eclip_dec_min))
-                       & (self.eclip_lat < eclat_max), 1, 0)
+    def add_nes(self, filter_ratios, label='nes'):
+        nes = np.where(((self.eclip_lat > self.eclat_min) | (self.dec > self.eclip_dec_min))
+                       & (self.eclip_lat < self.eclat_max), 1, 0)
 
-        nes[np.where(self.gal_lon < glon_limit)] = 0
-        nes[np.where(self.gal_lon > (360-glon_limit))] = 0
+        nes[np.where(self.gal_lon < self.nes_glon_limit)] = 0
+        nes[np.where(self.gal_lon > (360-self.nes_glon_limit))] = 0
 
         indx = np.where((nes > 0) & (self.pix_labels == ''))
         self.pix_labels[indx] = label
@@ -256,6 +275,11 @@ class Sky_area_generator:
                     low_dust_ratios={'u': 0.32, 'g': 0.4, 'r': 1.0, 'i': 1.0, 'z': 0.9, 'y': 0.9},
                     bulge_ratios={'u': 0.18, 'g': 1.0, 'r': 1.05, 'i': 1.05, 'z': 1.0, 'y': 0.23}):
         """
+        Parameters:
+        various_ratios : `dict`
+            Dict with filternames for keys and floats for values that are the desired ratio
+            of observations in each filter. 
+
         Returns
         --------
         self.healmaps : `np.ndarray`
@@ -263,6 +287,9 @@ class Sky_area_generator:
         self.pix_labels : `np.ndarray`
             Array string labels for each HEALpix
         """
+
+        # Note, order here matters. Once a HEALpix is set and labled, subsequent add_ methods
+        # will not override that pixel. 
         self.add_magellanic_clouds(magellenic_clouds_ratios)
         self.add_lowdust_wfd(low_dust_ratios)
         self.add_bulge(bulge_ratios)
