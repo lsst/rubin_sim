@@ -130,9 +130,16 @@ class Lims:
 
             points_values = None
             for io, col in enumerate(cs.collections):
-                if col.get_segments():
-
-                    myarray = col.get_segments()[0]
+                # Update in matplotlib changed get_segements to get_paths
+                if hasattr(col, 'get_segments'):
+                    segments = col.get_segments()
+                else:
+                    segments = col.get_paths()
+                if segments:
+                    segments = segments[0]
+                    if hasattr(segments, 'vertices'):
+                        segments = segments.vertices
+                    myarray = segments
                     res = np.array(myarray[:, 0], dtype=[('m5', 'f8')])
                     res = rf.append_fields(res, 'cadence', myarray[:, 1])
                     res = rf.append_fields(
