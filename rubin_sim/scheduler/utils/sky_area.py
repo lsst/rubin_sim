@@ -6,6 +6,8 @@ from astropy.coordinates import SkyCoord
 import astropy.units as u
 from rubin_sim import data as rs_data
 import rubin_sim.utils as rs_utils
+from numpy.lib import recfunctions as rfn
+
 
 __all__ = ['Sky_area_generator']
 
@@ -21,23 +23,41 @@ class Sky_area_generator:
     dust_limit : `float` (0.199)
         E(B-V) limit for dust extinction. Default of 0.199.
     smoothing_cutoff : `float` (0.45)
-        Magic number (E(B-V)?)
+       We apply a smoothing filter to the defined dust-free region to avoid sharp edges.
+       Larger values = less area, but guaranteed less dust extinction. Default 0.45 (degrees).
     smoothing_beam : `float` (10)
-        Magic number (Degrees?)
+        The size of the smoothing filter, in degrees. Default 10.
     lmc_radius : `float` (8)
         The radius to use around the LMC (degrees).
     smc_radius : `float` (5)
         The radius to use around the SMC (degrees)
     scp_dec_max : `float` (-60)
         Maximum declination for the south celestial pole region (degrees)
-    gal_long1, gal_long2, gal_lat_width_max, center_width, end_width, gal_dec_max : `float`
-        A bunch of paramters for defining the bulge region (degrees)
+    gal_long1 : `float` (335)
+        Longitude at which to start the GP region (degrees).
+    gal_long2 : `float` (25)
+        Longitude at which to stop the GP region (degrees).
+        Order matters for gal_long1 / gal_long2!
+    gal_lat_width_max : `float` (23)
+        Max width of the galactic plane (degrees)
+    center_width : `float` (12)
+        Width at the center of the galactic plane region (degrees).
+    end_width: `float` (4)
+        Width at the remainder of the galactic plane region.
+    gal_dec_max : `float` (12)
+        Maximum declination for the galactic plane region (degrees).
     dusty_dec_min : `float` (-90)
         The minimum dec for the dusty plane region (degrees)
     dusty_dec_max : `float` (15)
         The maximum dec for the dusty plane (degrees)
-    eclat_min, eclat_max, eclip_dec_min, nes_glon_limit : `float`
-        A bunch of parameters for defining the north ecliptic spur (degrees)
+    eclat_min : `float` (-10)
+        Ecliptic latitutde minimum for the NES (degrees).
+    eclat_max : `float` (10)
+        Ecliptic latitude maximum for the NES (degrees).
+    eclip_dec_min : `float` (0)
+        Declination minimum for the NES (degrees)
+    nes_glon_limit : `float` (45.)
+        Galactic longitude limit for the NES (degrees).
     """
     def __init__(self, nside=32, dust_limit=0.199, smoothing_cutoff=0.45, smoothing_beam=10,
                  lmc_radius=8, smc_radius=5,
@@ -74,10 +94,6 @@ class Sky_area_generator:
         self.eclat_max = eclat_max
         self.eclip_dec_min = eclip_dec_min
         self.nes_glon_limit = nes_glon_limit
-
-        # Array to hold the labels for each pixel
-        self.pix_labels = np.zeros(hp.nside2npix(self.nside), dtype='U20')
-        self.healmaps = np.zeros(hp.nside2npix(self.nside), dtype=list(zip(['u', 'g', 'r', 'i', 'z', 'y'], [float]*7)))
 
         # Ra/dec in degrees and other coordinates
         self.ra, self.dec = hp.pix2ang(nside, self.hpid, lonlat=True)
@@ -278,7 +294,9 @@ class Sky_area_generator:
         Parameters:
         various_ratios : `dict`
             Dict with filternames for keys and floats for values that are the desired ratio
-            of observations in each filter. 
+            of observations in each filter. By conventions, I usually set the low_dust_ratios['r']=1,
+            then all the other values can be interpreted relative to that. E.g., if scp_ratios['u']=0.1, then
+            when the low_dust r has 10 visits (per pixel) the scp should have 1 vist (per pixel).
 
         Returns
         --------
@@ -287,6 +305,10 @@ class Sky_area_generator:
         self.pix_labels : `np.ndarray`
             Array string labels for each HEALpix
         """
+
+        # Array to hold the labels for each pixel
+        self.pix_labels = np.zeros(hp.nside2npix(self.nside), dtype='U20')
+        self.healmaps = np.zeros(hp.nside2npix(self.nside), dtype=list(zip(['u', 'g', 'r', 'i', 'z', 'y'], [float]*7)))
 
         # Note, order here matters. Once a HEALpix is set and labled, subsequent add_ methods
         # will not override that pixel. 
@@ -298,3 +320,73 @@ class Sky_area_generator:
         self.add_scp(scp_ratios)
 
         return self.healmaps, self.pix_labels
+
+    def estimate_visits(self, nvis_total, fov_area=9.6, **kwargs):
+        """Convience method for converting relative maps into number of visits
+
+        Parameters
+        ----------
+        nvis_total : `int`
+            The total number of visits in the survey
+        fov_area : `float` (9.6)
+            The area of a single visit (sq degrees)
+        **kwargs : 
+            Gets passed to self.return_maps if one wants to change the
+            default ratios.
+
+        Returns
+        -------
+        result : `np.array`
+            array with filtername dtypes that have HEALpix arrays with the 
+            number of expected visits of each HEALpix center
+        sum_map : `np.array`
+            The number of visits summed over all the filters
+        labels : `np.ndarray`
+            Array string labels for each HEALpix
+        """
+
+        healmaps, labels = self.return_maps(**kwargs)
+
+        sum_map = rfn.structured_to_unstructured(healmaps).sum(axis=1)
+
+        norm = np.sum(sum_map)
+        pix_area = hp.nside2pixarea(self.nside, degrees=True)
+        pix_per_visit = fov_area/pix_area
+
+        result = np.zeros_like(healmaps)
+        for key in result.dtype.names:
+            result[key] = healmaps[key] / norm * pix_per_visit * nvis_total
+
+        return result, sum_map / norm * pix_per_visit * nvis_total, labels
+
+    def estimate_visits_per_label(self, nvis_total, **kwargs):
+        """Estimate how many visits would be used for each region
+
+        Parameters
+        ----------
+        nvis_total : `int`
+            The total number of visits in the survey
+        **kwargs : 
+            Gets passed to self.return_maps if one wants to change the
+            default ratios.
+
+        Returns
+        -------
+        result : `dict`
+            Dictionary with keys that are label names and values that are the
+            expected number of visits for that region if nvis_total is reached.
+        """
+
+        healmaps, labels = self.return_maps(**kwargs)
+        sum_map = rfn.structured_to_unstructured(healmaps).sum(axis=1)
+        ulabels = np.unique(labels)
+        label_sums = {}
+        norm = 0
+        for label in ulabels:
+            in_region = np.where(labels == label)
+            label_sums[label] = sum_map[in_region].sum()
+            norm += label_sums[label]
+        result = {}
+        for key in ulabels:
+            result[key] = label_sums[key]/norm * nvis_total
+        return result
