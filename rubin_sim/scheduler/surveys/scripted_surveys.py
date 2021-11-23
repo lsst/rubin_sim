@@ -15,7 +15,7 @@ class Scripted_survey(BaseSurvey):
     Take a set of scheduled observations and serve them up.
     """
     def __init__(self, basis_functions, reward=1e6, ignore_obs='dummy',
-                 nside=None):
+                 nside=None, detailers=None):
         """
         """
         if nside is None:
@@ -26,7 +26,8 @@ class Scripted_survey(BaseSurvey):
         self.reward_val = reward
         self.reward = -np.inf
         super(Scripted_survey, self).__init__(basis_functions=basis_functions,
-                                              ignore_obs=ignore_obs, nside=nside)
+                                              ignore_obs=ignore_obs, nside=nside,
+                                              detailers=detailers)
         self.clear_script()
 
     def add_observation(self, observation, indx=None, **kwargs):
@@ -113,6 +114,11 @@ class Scripted_survey(BaseSurvey):
             if np.size(in_time_window) > 0:
                 pass_checks = self._check_alts_HA(self.obs_wanted[in_time_window], conditions)
                 matches = in_time_window[pass_checks]
+
+                # Also check that the filters are mounted
+                match2 = np.isin(self.obs_wanted['filter'][matches], conditions.mounted_filters)
+                matches = matches[match2]
+
             else:
                 matches = []
 
