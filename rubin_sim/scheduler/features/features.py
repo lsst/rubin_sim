@@ -3,7 +3,8 @@ from builtins import object
 import numpy as np
 import healpy as hp
 from rubin_sim.scheduler import utils
-from rubin_sim.utils import m5_flat_sed
+from rubin_sim.utils import m5_flat_sed, _raDec2Hpid
+from rubin_sim.skybrightness_pre import M5percentiles
 from rubin_sim.scheduler.utils import int_rounded
 
 
@@ -318,30 +319,60 @@ class Last_N_obs_times(BaseSurveyFeature):
 
 
 class N_observations_current_season(BaseSurveyFeature):
-    """Track how many observations have been taken in the current season
-    XXX--experimental
+    """Track how many observations have been taken in the current season that meet criteria
+    
     """
-    def __init__(self, filtername=None, nside=None, offset=0, season_length=365.25):
+    def __init__(self, filtername=None, nside=None, offset=0, season_length=365.25,
+                 seeingFWHM_max=None, m5_penalty_max=None):
         self.filtername = filtername
         if nside is None:
-            nside = utils.set_default_nside()
+            self.nside = utils.set_default_nside()
+        else:
+            self.nside = nside
         if offset is None:
             offset = np.zeros(hp.nside2npix(nside), dtype=int)
+        self.seeingFWHM_max = seeingFWHM_max
+        self.m5_penaly_max = m5_penalty_max
         self.offset = offset
         self.season_length = season_length
         self.season_map = utils.season_calc(0., offset=self.offset, season_length=season_length)
         self.feature = np.zeros(hp.nside2npix(nside), dtype=float)
+        if self.filtername is not None:
+            m5p = M5percentiles()
+            self.dark_map = m5p.dark_map(filtername=filtername, nside_out=self.nside)
 
-    def add_observation(self, observation, indx=None):
-        current_season = utils.season_calc(observation['night'], offset=self.offset,
-                                           season_length=self.season_length)
+    def season_update(self, observation=None, conditions=None):
+        """clear the map anywhere the season has rolled over
+        """
+        if observation is not None:
+            current_season = utils.season_calc(observation['night'], offset=self.offset,
+                                               season_length=self.season_length)
+        if conditions is not None:
+            current_season = conditions.season
+
         # If the season has changed anywhere, set that count to zero
         new_season = np.where((self.season_map - current_season) != 0)
         self.feature[new_season] = 0
         self.season_map = current_season
 
-        if self.filtername is None or observation['filter'][0] in self.filtername:
-            self.feature[indx] += 1
+    def add_observation(self, observation, indx=None):        
+        self.seaon_update(observation=observation)
+
+        if self.seeingFWHM_max is not None:
+            check1 = observation['FWHMeff'] <= self.seeingFWHM_max
+        else:
+            check1 = True
+
+        if self.m5_penalty_max is not None:
+            hpid = _raDec2Hpid(self.nside, observation['RA'], observation['dec'])
+            penalty = self.dark_map[hpid] - observation['fivesigmadepth']
+            check2 = observation['fivesigmadepth'] <= self.m5_penalty_max
+        else:
+            check2 = True
+
+        if check1 & check2:
+            if self.filtername is None or observation['filter'][0] in self.filtername:
+                self.feature[indx] += 1
 
 
 class Coadded_depth(BaseSurveyFeature):
