@@ -3,6 +3,7 @@ from rubin_sim.scheduler import features
 from rubin_sim.scheduler import utils
 from rubin_sim.scheduler.utils import int_rounded
 import healpy as hp
+import matplotlib.pylab as plt
 from rubin_sim.skybrightness_pre import M5percentiles
 import warnings
 from rubin_sim.utils import _hpid2RaDec
@@ -144,11 +145,11 @@ class N_good_seeing_basis_function(Base_basis_function):
         # Need to update the feature to the current season
         self.survey_features['N_good_seeing'].season_update(conditions=conditions)
 
-        m5_penalty = conditions.M5Depth[self.filtername] - self.dark_map
+        m5_penalty = self.dark_map - conditions.M5Depth[self.filtername]
         potential_pixels = np.where((m5_penalty <= self.m5_penalty_max) &
                                     (conditions.FWHMeff[self.filtername] <= self.seeingFWHM_max) &
                                     (self.survey_features['N_good_seeing'].feature < self.N_obs_desired) &
-                                    (self.footprint < 0))[0]
+                                    (self.footprint > 0))[0]
 
         if np.size(potential_pixels) > 0:
             result = self.result.copy()
