@@ -25,7 +25,8 @@ __all__ = ['Base_basis_function', 'Constant_basis_function', 'Target_map_basis_f
            'N_obs_per_year_basis_function', 'Cadence_in_season_basis_function',
            'Near_sun_twilight_basis_function',
            'N_obs_high_am_basis_function', 'Good_seeing_basis_function', 'Observed_twice_basis_function',
-           'Ecliptic_basis_function', 'Limit_repeat_basis_function', 'VisitGap', 'AvoidDirectWind']
+           'Ecliptic_basis_function', 'Limit_repeat_basis_function', 'VisitGap', 'N_good_seeing_basis_function',
+           'AvoidDirectWind']
 
 
 class Base_basis_function(object):
@@ -114,6 +115,45 @@ class Constant_basis_function(Base_basis_function):
     """
     def __call__(self, conditions, **kwargs):
         return 1
+
+
+class N_good_seeing_basis_function(Base_basis_function):
+    """Try to get N "good seeing" images each observing season
+    """
+    def __init__(self, filtername='r', nside=None, seeingFWHM_max=0.8, m5_penalty_max=0.5,
+                 n_obs_desired=3, footprint=None, mjd_start=1):
+        super().__init__(nside=nside, filtername=filtername)
+        self.seeingFWHM_max = seeingFWHM_max
+        self.m5_penalty_max = m5_penalty_max
+        self.N_obs_desired = n_obs_desired
+
+        self.survey_features['N_good_seeing'] = features.N_observations_current_season(filtername=filtername,
+                                                                                       mjd_start=mjd_start,
+                                                                                       seeingFWHM_max=seeingFWHM_max,
+                                                                                       m5_penalty_max=m5_penalty_max,
+                                                                                       nside=nside)
+        self.result = np.zeros(hp.nside2npix(self.nside))
+        if self.filtername is not None:
+            m5p = M5percentiles()
+            self.dark_map = m5p.dark_map(filtername=filtername, nside_out=self.nside)
+        self.footprint = footprint
+
+    def _calc_value(self, conditions, indx=None):
+
+        result = 0
+        # Need to update the feature to the current season
+        self.survey_features['N_good_seeing'].season_update(conditions=conditions)
+
+        m5_penalty = conditions.M5Depth[self.filtername] - self.dark_map
+        potential_pixels = np.where((m5_penalty <= self.m5_penalty_max) &
+                                    (conditions.FWHMeff[self.filtername] <= self.seeingFWHM_max) &
+                                    (self.survey_features['N_good_seeing'].feature < self.N_obs_desired) &
+                                    (self.footprint < 0))[0]
+
+        if np.size(potential_pixels) > 0:
+            result = self.result.copy()
+            result[potential_pixels] = 1
+        return result
 
 
 class Avoid_long_gaps_basis_function(Base_basis_function):
