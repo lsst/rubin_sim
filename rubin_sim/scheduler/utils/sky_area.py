@@ -6,58 +6,95 @@ from astropy.coordinates import SkyCoord
 import astropy.units as u
 from rubin_sim import data as rs_data
 import rubin_sim.utils as rs_utils
+from numpy.lib import recfunctions as rfn
+
 
 __all__ = ['Sky_area_generator']
 
-class Sky_area_generator:
-    """Build the sky footprint map.
 
-    The Sky_area_generator sets default regions for the dust-free WFD, the Magellanic Clouds,
-    the galactic plane (bulge and background), the Northern Ecliptic Spur, and
-    the Southern Celestial Pole. The individual regions are stored in a dictionary of
-    self.maps (and self.maps_perfilter) that are simple masks (0-1) which when multiplied
-    by their relevant self.nvis dictionary items, produce the expected contribution toward the
-    final survey footprint. The total survey footprint, when combined across regions, is
-    stored in self.total (and self.total_perfilter), which is a footprint weighted by the
-    expected number of visits per pointing; i.e. the value of 'total in the dust-free WFD region
-    reflects the expected number of visits per pointing in the dust-free WFD.
-    Note that this final 'total' map is not limited by the actual amount of survey time -- you can
-    use tools in lsst-pst/survey_strategy/survey_utils to estimate how much time would be required
-    to complete a particular footprint. The scheduler simply uses a weighted map to prioritize
-    observations, so the achieved footprint will reflect the ratio of these inputs (combined
-    with the amount of time available in any part of the sky).
+class Sky_area_generator:
+    """
+    Generate survey footprint maps in each filter.
 
     Parameters
     ----------
-    nside : `int`, opt
-        Healpix resolution for map. Default 64.
-    nvis_wfd_default : `int`, opt
-        Goal number of visits in the WFD region.
-        This acts as a scaling factor for the maps in each region, but in practice the
-        scheduler will achieve as many visits in each region as possible (keeping the overall balance).
-        Combined with a function to calculate the survey fraction required for a given number of visits
-        over a given area, this scaling factor can provide an estimate of the 'likely achieved' number of
-        visits from a simulation. Default 860.
-    nvis_frac_nes : `float`, opt
-        Fraction of WFD-level visits to spend in the NES pointings.
-        Default 0.3  (0.3 * 860 WFD visits = ~258 visits per pointing in the NES).
-    nvist_frac_gp : `float`, opt
-        Fraction of WFD-level visits to spend in the background (non-bulge/WFD) galactic plane regions.
-        Default 0.27
-    nvis_frac_scp : `float`, opt
-        Fraction of WFD-level visits to spend in the south celestial pole region (which acts as a
-        'backup' sky coverage all the way up to ~dec_max, beyond the SCP, in case of 'holes' in sky coverage).
-        Default 0.14
-    dec_max : `float`, opt
-        Maximum declination value for sky coverage before it is reset by defining the dust-free WFD regions.
-        This is useful if other regions are defined before the dust-free WFD, but otherwise is overriden.
-        In degrees, default 12.
+    nside : `int` (32)
+        Healpix nside (32)
+    dust_limit : `float` (0.199)
+        E(B-V) limit for dust extinction. Default of 0.199.
+    smoothing_cutoff : `float` (0.45)
+       We apply a smoothing filter to the defined dust-free region to avoid sharp edges.
+       Larger values = less area, but guaranteed less dust extinction. Default 0.45 (degrees).
+    smoothing_beam : `float` (10)
+        The size of the smoothing filter, in degrees. Default 10.
+    lmc_radius : `float` (8)
+        The radius to use around the LMC (degrees).
+    smc_radius : `float` (5)
+        The radius to use around the SMC (degrees)
+    scp_dec_max : `float` (-60)
+        Maximum declination for the south celestial pole region (degrees)
+    gal_long1 : `float` (335)
+        Longitude at which to start the GP region (degrees).
+    gal_long2 : `float` (25)
+        Longitude at which to stop the GP region (degrees).
+        Order matters for gal_long1 / gal_long2!
+    gal_lat_width_max : `float` (23)
+        Max width of the galactic plane (degrees)
+    center_width : `float` (12)
+        Width at the center of the galactic plane region (degrees).
+    end_width: `float` (4)
+        Width at the remainder of the galactic plane region.
+    gal_dec_max : `float` (12)
+        Maximum declination for the galactic plane region (degrees).
+    dusty_dec_min : `float` (-90)
+        The minimum dec for the dusty plane region (degrees)
+    dusty_dec_max : `float` (15)
+        The maximum dec for the dusty plane (degrees)
+    eclat_min : `float` (-10)
+        Ecliptic latitutde minimum for the NES (degrees).
+    eclat_max : `float` (10)
+        Ecliptic latitude maximum for the NES (degrees).
+    eclip_dec_min : `float` (0)
+        Declination minimum for the NES (degrees)
+    nes_glon_limit : `float` (45.)
+        Galactic longitude limit for the NES (degrees).
     """
-    def __init__(self, nside=64, nvis_wfd_default=860, nvis_frac_nes=0.3, nvis_frac_gp=0.27,
-                 nvis_frac_scp=0.14, dec_max=12.):
+    def __init__(self, nside=32, dust_limit=0.199, smoothing_cutoff=0.45, smoothing_beam=10,
+                 lmc_radius=8, smc_radius=5,
+                 scp_dec_max=-60,
+                 gal_long1=335, gal_long2=25, gal_lat_width_max=23, center_width=12, end_width=4, gal_dec_max=12,
+                 low_dust_dec_min=-70, low_dust_dec_max=15, adjust_halves=12,
+                 dusty_dec_min=-90, dusty_dec_max=15,
+                 eclat_min=-10, eclat_max=10, eclip_dec_min=0, nes_glon_limit=45.):
+
         self.nside = nside
-        # healpix indexes
         self.hpid = np.arange(0, hp.nside2npix(nside))
+        self.read_dustmap()
+
+        self.lmc_radius = lmc_radius
+        self.smc_radius = smc_radius
+
+        self.scp_dec_max = scp_dec_max
+
+        self.gal_long1 = gal_long1
+        self.gal_long2 = gal_long2
+        self.gal_lat_width_max = gal_lat_width_max
+        self.center_width = center_width
+        self.end_width = end_width
+        self.gal_dec_max = gal_dec_max
+
+        self.low_dust_dec_min = low_dust_dec_min
+        self.low_dust_dec_max = low_dust_dec_max
+        self.adjust_halves = adjust_halves
+
+        self.dusty_dec_min = dusty_dec_min
+        self.dusty_dec_max = dusty_dec_max
+
+        self.eclat_min = eclat_min
+        self.eclat_max = eclat_max
+        self.eclip_dec_min = eclip_dec_min
+        self.nes_glon_limit = nes_glon_limit
+
         # Ra/dec in degrees and other coordinates
         self.ra, self.dec = hp.pix2ang(nside, self.hpid, lonlat=True)
         self.coord = SkyCoord(ra=self.ra * u.deg, dec=self.dec * u.deg, frame='icrs')
@@ -65,21 +102,13 @@ class Sky_area_generator:
         self.eclip_lon = self.coord.barycentrictrueecliptic.lon.deg
         self.gal_lon = self.coord.galactic.l.deg
         self.gal_lat = self.coord.galactic.b.deg
-        # filterlist
-        self.filterlist = ['u', 'g', 'r', 'i', 'z', 'y']
-        # SRD values
-        self.nvis_wfd_default = nvis_wfd_default
-        self.nvis_frac_nes = nvis_frac_nes
-        self.nvis_frac_gp = nvis_frac_gp
-        self.nvis_frac_scp = nvis_frac_scp
-        # These maps store the per-region information, on scales from 0-1
-        self.maps = {}
-        self.maps_perfilter = {}
-        # The nvis values store the max per-region number of visits, so regions can be added together
-        self.nvis = {}
-        # Set a default self.dec_max = 12 deg here, but will be re-set/overriden when setting low-dust wfd
-        self.dec_max = dec_max
-        self.read_dustmap()
+
+        # Set the low extinction area
+        self.low_dust = np.where((self.dustmap < dust_limit), 1, 0)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=UserWarning)
+            self.low_dust = hp.smoothing(self.low_dust, fwhm=np.radians(smoothing_beam))
+        self.low_dust = np.where(self.low_dust > smoothing_cutoff, 1, 0)
 
     def read_dustmap(self, dustmapFile=None):
         """Read the dustmap from rubin_sim, in the appropriate resolution."""
@@ -95,97 +124,6 @@ class Sky_area_generator:
             filename = os.path.join(datadir, 'dust_nside_%i.npz' % self.nside)
         self.dustmap = np.load(filename)['ebvMap']
 
-    def _normalize_filter_balance(self, filter_balance):
-        """Normalize a filter balance, so the total is 1."""
-        filtersum = np.array(list(filter_balance.values())).sum()
-        tmp = {k: round(v / filtersum, 2) for k, v in filter_balance.items()}
-        count = 0
-        while ((np.array(list(tmp.values())).sum() > 1) and count < 100):
-            count += 1
-            mostvisits = max(tmp, key=tmp.get)
-            tmp[mostvisits] = tmp[mostvisits] - 0.01
-            filtersum = np.array(list(tmp.values())).sum()
-            tmp = {k: round(v / filtersum, 2) for k, v in tmp.items()}
-        for f in self.filterlist:
-            if f not in tmp:
-                tmp[f] = 0
-        return tmp
-
-    # The various regions take the approach that they should be independent
-    # And after setting all of the regions, we take the max value (per filter-ish) in each part of the sky
-    # The individual components are updated so that we can still calculate survey fraction per part of the sky
-
-    def set_dustfree_wfd(self, nvis_dustfree_wfd, dust_limit=0.199,
-                         dec_min=-70, dec_max=15,
-                         smoothing_cutoff=0.45, smoothing_beam=10,
-                         dustfree_wfd_filter_balance=None,
-                         adjust_halves=12):
-        """Set the dust-free WFD region. This uses the dustmap information to determine low-dust regions.
-
-        Parameters
-        -----------
-        nvis_dustfree_wfd : `int`
-            Number of visits per pointing to plan for the dust-free WFD region
-        dust_limit : `float`, optional
-            E(B-V) limit for dust extinction. Default 0.1999.
-        dec_min : `float`, optional
-            Minimum declination boundary for the dust-free WFD (degrees). Default -70.
-        dec_max : `float`, optional
-            Maximum declination boundary for the dust-free WFD (degrees). Default 15.
-        smoothing_cutoff : `float`, optional
-            We apply a smoothing filter to the defined dust-free region to avoid sharp edges.
-            This value sets the limit for the post-smoothing pixels to be considered 'dust-free WFD'
-            or not. Larger values = less area, but guaranteed less dust extinction. Default 0.45.
-        smoothing_beam : `float`, optional
-            The size of the smoothing filter, in degrees. Default 10.
-        dustfree_fwd_filter_balance : `dict` {`str` : `float`}, optional
-            How to distribute visits between different filters.
-            Default uses {'u': 0.07, 'g': 0.09, 'r': 0.22, 'i': 0.22, 'z': 0.20, 'y': 0.20}
-        adjust_halves : `float`, optional
-            The RA distribution for the dust-free WFD can be adjusted to account for the fact that the
-            MCs and DDFs are concentrated in a small RA range, and that the dust-free region doesn't
-            reach the minimum declination value (due to dust). The maximum declination value in the
-            galactic south dust-free WFD (the part where RA crosses 0) will be reduced by this amount.
-            Default 12 (i.e. in the galactic south, the dec_max will be dec_max - adjust_halves, default 2).
-        """
-        # Define low dust extinction WFD between dec_min and dec_max (ish) with low dust extinction
-        # These dec and dust limits are used to define the other survey areas as well.
-        # We're also going to weight the footprint differently in the region around RA=0
-        # compared to the region around RA=180, as the RA=0 half is more heavily subscribed
-        self.dust_limit = dust_limit
-        self.dec_min = dec_min
-        self.dec_max = dec_max
-        if dustfree_wfd_filter_balance is None:
-            self.dustfree_wfd_filter_balance = {'u': 0.07, 'g': 0.09, 'r': 0.22,
-                                                'i': 0.22, 'z': 0.20, 'y': 0.20}
-        else:
-            self.dustfree_wfd_filter_balance = self._normalize_filter_balance(dustfree_wfd_filter_balance)
-
-        self.dustfree = np.where((self.dec > self.dec_min) & (self.dec < self.dec_max)
-                                 & (self.dustmap < self.dust_limit), 1, 0)
-        # Set the smoothed dust boundary using the original dustmap and smoothing it with gaussian PSF
-        self.maps['dustfree'] = np.where((self.dustmap < self.dust_limit), 1, 0)
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=UserWarning)
-            self.maps['dustfree'] = hp.smoothing(self.maps['dustfree'], fwhm=np.radians(smoothing_beam))
-        self.maps['dustfree'] = np.where((self.dec > self.dec_min) & (self.dec < self.dec_max)
-                                         & (self.maps['dustfree'] > smoothing_cutoff), 1, 0)
-
-        # Reset to downweight RA=0 and upweight RA=180 side by
-        # reducing upper dec limit in one half, increasing lower dec limit in other half
-        if adjust_halves > 0:
-            self.maps['dustfree'] = np.where((self.gal_lat < 0) & (self.dec > dec_max - adjust_halves),
-                                             0, self.maps['dustfree'])
-            # The lower dec limit doesn't really apply for the other 'half' of the low-dust WFD
-            # as the dust-extinction cuts off the footprint in that area at about Dec=-50
-            # This is another reason that the dust-free region is oversubscribed.
-
-        # Make per-filter maps for the footprint
-        self.maps_perfilter['dustfree'] = {}
-        for f in self.filterlist:
-            self.maps_perfilter['dustfree'][f] = self.maps['dustfree'] * self.dustfree_wfd_filter_balance[f]
-        self.nvis['dustfree'] = nvis_dustfree_wfd
-
     def _set_circular_region(self, ra_center, dec_center, radius):
         # find the healpixels that cover a circle of radius radius around ra/dec center (deg)
         result = np.zeros(len(self.ra))
@@ -193,56 +131,6 @@ class Sky_area_generator:
                                                np.radians(self.ra), np.radians(self.dec))
         result[np.where(distance < np.radians(radius))] = 1
         return result
-
-    def set_magellanic_clouds(self, nvis_mcs, lmc_radius=8, smc_radius=5,
-                              mc_filter_balance=None):
-        """Set the magellanic clouds region.
-
-        Parameters
-        ----------
-        nvis_mcs : `int`
-            Number of visits per pointing to expect in the MCs.
-        lmc_radius : `float`, optional
-            Radius around the LMC to include (degrees).
-        smc_radius : `float`, optional
-            Radius around the SMC to include (degrees).
-        mc_filter_balance : `dict` {`str` : `float`}, optional
-            How to distribute visits between different filters.
-            Default uses {'u': 0.07, 'g': 0.09, 'r': 0.22, 'i': 0.22, 'z': 0.20, 'y': 0.20}
-        """
-        # Define the magellanic clouds region
-        if mc_filter_balance is None:
-            self.mcs_filter_balance = {'u': 0.07, 'g': 0.09, 'r': 0.22,
-                                       'i': 0.22, 'z': 0.20, 'y': 0.20}
-        else:
-            self.mcs_filter_balance = self._normalize_filter_balance(mc_filter_balance)
-
-        self.maps['mcs'] = np.zeros(hp.nside2npix(self.nside))
-        # Define the LMC center and size
-        self.lmc_ra = 80.893860
-        self.lmc_dec = -69.756126
-        self.lmc_radius = lmc_radius
-        # Define the SMC center and size
-        self.smc_ra = 13.186588
-        self.smc_dec = -72.828599
-        self.smc_radius = smc_radius
-        # Define the LMC pixels
-        self.maps['mcs'] += self._set_circular_region(self.lmc_ra, self.lmc_dec, self.lmc_radius)
-        # Define the SMC pixels
-        self.maps['mcs'] += self._set_circular_region(self.smc_ra, self.smc_dec, self.smc_radius)
-        # Add a simple bridge between the two - to remove the gap
-        mc_dec_min = self.dec[np.where(self.maps['mcs'] > 0)].min()
-        mc_dec_max = self.dec[np.where(self.maps['mcs'] > 0)].max()
-        self.maps['mcs'] += np.where(((self.ra > self.smc_ra) & (self.ra < self.lmc_ra))
-                                     & ((self.dec > mc_dec_min) & (self.dec < mc_dec_max)), 1, 0)
-        # We don't want to double-visit areas which may overlap
-        self.maps['mcs'] = np.where(self.maps['mcs'] > 1, 1, self.maps['mcs'])
-
-        # Make per-filter maps for the footprint
-        self.maps_perfilter['mcs'] = {}
-        for f in self.filterlist:
-            self.maps_perfilter['mcs'][f] = self.maps['mcs'] * self.mcs_filter_balance[f]
-        self.nvis['mcs'] = nvis_mcs
 
     def _set_bulge_diamond(self, center_width, end_width, gal_long1, gal_long2):
         """
@@ -262,6 +150,7 @@ class Sky_area_generator:
         Returns
         -------
         bulge : np.ndarray
+            HEALpix array with 1 for bulge pixels, 0 otherwise
         """
         # Reject anything beyond the central width.
         bulge = np.where(np.abs(self.gal_lat) < center_width, 1, 0)
@@ -303,6 +192,7 @@ class Sky_area_generator:
         Returns
         -------
         bulge : np.ndarray
+            HEALpix array with 1 for bulge pixels, 0 otherwise
         """
         bulge = np.where(np.abs(self.gal_lat) < lat_width, 1, 0)
         # This is NOT the shortest distance between the angles.
@@ -313,305 +203,190 @@ class Sky_area_generator:
             bulge = np.where(((self.gal_lon - gal_long1) % 360) < gp_length, bulge, 0)
         return bulge
 
-    def set_galactic_plane(self, nvis_gal_peak, nvis_gal_min=250, dec_max=12,
-                           center_width=12, end_width=4, gal_long1=335, gal_long2=25,
-                           gal_lat_width_max=23, gal_filter_balance=None):
-        """Set the galactic plane region.
+    def add_magellanic_clouds(self, filter_ratios, label='LMC_SMC',
+                              lmc_ra=80.893860, lmc_dec=-69.756126,
+                              smc_ra=13.186588, smc_dec=-72.828599):
+        temp_map = np.zeros(hp.nside2npix(self.nside))
+        # Define the LMC pixels
+        temp_map += self._set_circular_region(lmc_ra, lmc_dec, self.lmc_radius)
+        # Define the SMC pixels
+        temp_map += self._set_circular_region(smc_ra, smc_dec, self.smc_radius)
+        # Add a simple bridge between the two - to remove the gap
+        mc_dec_min = self.dec[np.where(temp_map > 0)].min()
+        mc_dec_max = self.dec[np.where(temp_map > 0)].max()
+        temp_map += np.where(((self.ra > smc_ra) & (self.ra < lmc_ra))
+                             & ((self.dec > mc_dec_min) & (self.dec < mc_dec_max)), 1, 0)
 
-        Parameters
-        ----------
-        nvis_gal_peak : `int`
-            Number of visits per pointing to expect in the galactic bulge.
-        nvis_gal_min : `int`, optional
-            Number of visits to expect in the background galactic region. Default 250.
-        dec_min : `float`, optional
-            Dec max for the galactic plane region (degrees). Default 12.
-        center_width : `float`, optional
-            Width of the central diamond of the galactic bulge (degrees). Default 12.
-        end_width : `float`, optional
-            Width at the end of the diamond of the galactic bulge (degrees). Default 4.
-        gal_long1 : `float`, optional
-            Galactic longitude to start the bulge diamond (degrees). Default 335.
-        gal_long2 : `float`, optional
-            Galactic longitude to end the bulge diamond (degrees). Default 25.
-            Order matters for gal_long1 / gal_long2.
-        gal_lat_width_max : `float`, optional
-            Width of overall galactic plane region (degrees). Generally applies to the background GP,
-            and to extending the bulge region toward the WFD in the galactic south. Default 23.
-        gal_filter_balance : `dict` {`str` : `float`}, optional
-            How to distribute visits between different filters.
-            Default {'u': 0.04, 'g': 0.22, 'r': 0.23, 'i': 0.24, 'z': 0.22, 'y': 0.05}
+        # Don't overide any pixels that have already been designated
+        indx = np.where((temp_map > 0) & (self.pix_labels == ''))
+
+        self.pix_labels[indx] = label
+        for filtername in filter_ratios:
+            self.healmaps[filtername][indx] = filter_ratios[filtername]
+
+    def add_scp(self, filter_ratios, label='scp'):
+        indx = np.where((self.dec < self.scp_dec_max) & (self.pix_labels == ''))
+
+        self.pix_labels[indx] = label
+        for filtername in filter_ratios:
+            self.healmaps[filtername][indx] = filter_ratios[filtername]
+
+    def add_bulge(self, filter_ratios, label='bulge'):
+        b1 = self._set_bulge_diamond(center_width=self.center_width, end_width=self.end_width,
+                                     gal_long1=self.gal_long1, gal_long2=self.gal_long2)
+        b2 = self._set_bulge_rectangle(self.gal_lat_width_max, self.gal_long1, self.gal_long2)
+        b2[np.where(self.gal_lat > 0)] = 0
+
+        bulge = b1 + b2
+
+        bulge[np.where(np.abs(self.gal_lat) > self.gal_lat_width_max)] = 0
+        indx = np.where((bulge > 0) & (self.pix_labels == ''))
+        self.pix_labels[indx] = label
+        for filtername in filter_ratios:
+            self.healmaps[filtername][indx] = filter_ratios[filtername]
+
+    def add_lowdust_wfd(self, filter_ratios, label='lowdust'):
+
+        dustfree = np.where((self.dec > self.low_dust_dec_min) & (self.dec < self.low_dust_dec_max)
+                            & (self.low_dust == 1), 1, 0)
+
+        dustfree[np.where(self.low_dust == 0)] = 0
+
+        if self.adjust_halves > 0:
+            dustfree = np.where((self.gal_lat < 0) & (self.dec > self.low_dust_dec_max - self.adjust_halves),
+                                0, dustfree)
+
+        indx = np.where((dustfree > 0) & (self.pix_labels == ''))
+        self.pix_labels[indx] = label
+        for filtername in filter_ratios:
+            self.healmaps[filtername][indx] = filter_ratios[filtername]
+
+    def add_dusty_plane(self, filter_ratios, label='dusty_plane'):
+
+        dusty = np.where(((self.dec > self.dusty_dec_min) & (self.dec < self.dusty_dec_max)
+                          & (self.low_dust == 0)), 1, 0)
+
+        indx = np.where((dusty > 0) & (self.pix_labels == ''))
+        self.pix_labels[indx] = label
+        for filtername in filter_ratios:
+            self.healmaps[filtername][indx] = filter_ratios[filtername]
+
+    def add_nes(self, filter_ratios, label='nes'):
+        nes = np.where(((self.eclip_lat > self.eclat_min) | (self.dec > self.eclip_dec_min))
+                       & (self.eclip_lat < self.eclat_max), 1, 0)
+
+        nes[np.where(self.gal_lon < self.nes_glon_limit)] = 0
+        nes[np.where(self.gal_lon > (360-self.nes_glon_limit))] = 0
+
+        indx = np.where((nes > 0) & (self.pix_labels == ''))
+        self.pix_labels[indx] = label
+        for filtername in filter_ratios:
+            self.healmaps[filtername][indx] = filter_ratios[filtername]
+
+    def return_maps(self,
+                    magellenic_clouds_ratios={'u': 0.32, 'g': 0.4, 'r': 1.0, 'i': 1.0, 'z': 0.9, 'y': 0.9},
+                    scp_ratios={'u': 0.1, 'g': 0.1, 'r': 0.1, 'i': 0.1, 'z': 0.1, 'y': 0.1},
+                    nes_ratios={'g': 0.28, 'r': 0.4, 'i': 0.4, 'z': 0.28},
+                    dusty_plane_ratios={'u': 0.1, 'g': 0.28, 'r': 0.28, 'i': 0.28, 'z': 0.28, 'y': 0.1},
+                    low_dust_ratios={'u': 0.32, 'g': 0.4, 'r': 1.0, 'i': 1.0, 'z': 0.9, 'y': 0.9},
+                    bulge_ratios={'u': 0.18, 'g': 1.0, 'r': 1.05, 'i': 1.05, 'z': 1.0, 'y': 0.23}):
         """
-        if gal_filter_balance is None:
-            self.gal_filter_balance = {'u': 0.04, 'g': 0.22, 'r': 0.23,
-                                       'i': 0.24, 'z': 0.22, 'y': 0.05}
-        else:
-            self.gal_filter_balance = self._normalize_filter_balance(gal_filter_balance)
-
-        self.gal_dec_max = dec_max
-        self.nvis_gal_bg = nvis_gal_min
-
-        # Set up central bulge
-        self.bulge = self._set_bulge_diamond(center_width=center_width, end_width=end_width,
-                                             gal_long1=gal_long1, gal_long2=gal_long2)
-        # Remove any part which may protrude too far north
-        self.bulge = np.where(self.dec > self.gal_dec_max, 0, self.bulge)
-        # Add simple rectangle to join this part of the bulge to the WFD to the galactic north
-        bulge_rectangle = self._set_bulge_rectangle(gal_lat_width_max, gal_long1, gal_long2)
-        self.bulge = np.where((bulge_rectangle == 1) & (self.gal_lat < 0),
-                              self.bulge + bulge_rectangle, self.bulge)
-        # Make all of the bulge region 0 or 1. (and not more than 1)
-        self.bulge = np.where(self.bulge > 0, 1, 0)
-
-        # Remove regions of these bulges which go further north than dec_max
-        # Set up 'background' galactic plane visits
-        self.gp_bkgnd = np.where((np.abs(self.gal_lat) < gal_lat_width_max) & (self.dec < self.dec_max), 1, 0)
-        self.gp_bkgnd = self.gp_bkgnd - self.bulge
-
-        # Add them together
-        self.maps['gal'] = (self.gp_bkgnd * nvis_gal_min / nvis_gal_peak
-                            + self.bulge)
-
-        # Make per-filter maps for the footprint
-        self.maps_perfilter['gal'] = {}
-        for f in self.filterlist:
-            self.maps_perfilter['gal'][f] = self.maps['gal'] * self.gal_filter_balance[f]
-        self.nvis['gal'] = nvis_gal_peak
-
-    def set_nes(self, nvis_nes, eclat_min=-10, eclat_max=10, eclip_dec_min=-10,
-                dec_cutoff=None, nes_filter_balance=None):
-        """Set the Northern Ecliptic Spur region.
-
-        Parameters
-        ----------
-        nvis_nes : `int`
-            Number of visits per pointing to expect in the NES region.
-        eclat_min : `float`, optional
-            Ecliptic latitutde minimum, for the band of ecliptic coverage around the sky. Default -10.
-        eclat_max : `float`, optional
-            Ecliptic latitude maximum, for the band of ecliptic coverage around the sky. Default +10.
-        eclip_dec_min : `float`, optional
-            Declination minimum, for the coverage between the ecliptic plane and the remainder of the
-            survey footprint. Default -10.
-        dec_cutoff : `float`, optional
-            If this value is not None, completely cut off ecliptic coverage below dec_cutoff (degrees).
-            This removes the coverage of the ecliptic band through the standard survey area (near the plane).
-        nes_filter_balance : `dict` {`str` : `float`}, optional
-            How to distribute visits between different filters.
-            Default {'u': 0.0, 'g': 0.2, 'r': 0.3, 'i': 0.3, 'z': 0.2, 'y': 0.0}
-        """
-        if nes_filter_balance is None:
-            self.nes_filter_balance = {'u': 0.0, 'g': 0.2, 'r': 0.3, 'i': 0.3, 'z': 0.2, 'y': 0.0}
-        else:
-            self.nes_filter_balance = self._normalize_filter_balance(nes_filter_balance)
-        # NES ecliptic latitude values tend to be assymetric because NES goes so far north
-        self.eclat_min = eclat_min
-        self.eclat_max = eclat_max
-        self.eclip_dec_min = eclip_dec_min
-
-        self.maps['nes'] = np.where(((self.eclip_lat > self.eclat_min) | (self.dec > self.eclip_dec_min))
-                                    & (self.eclip_lat < self.eclat_max), 1, 0)
-        # Add the option to completely cut off the ecliptic coverage below a given dec value (to match retro)
-        if dec_cutoff is not None:
-            self.maps['nes'] = np.where(self.dec < dec_cutoff, 0, self.maps['nes'])
-
-        self.maps_perfilter['nes'] = {}
-        for f in self.filterlist:
-            self.maps_perfilter['nes'][f] = self.maps['nes'] * self.nes_filter_balance[f]
-        self.nvis['nes'] = nvis_nes
-
-    def set_scp(self, nvis_scp=120, dec_max=0, scp_filter_balance=None):
-        """Set the southern celestial pole coverage.
-
-        In the updated baseline, there is more coverage in the SCP due to the galactic plane region,
-        so this region is essentially a backup, making sure there are no regions below dec_max that
-        do not get any visits at all. (in the standard baseline, there are some gaps between the galactic
-        plane and the dust-free WFD, for example).
-
-        Parameters
-        ----------
-        nvis_scp : `int`, optional
-            The number of visits per pointing to expect for this region. Default 120.
-        dec_max : `float`, optional
-            The declination cutoff to extend this backup region to. Default 12.
-        scp_filter_balance: `dict` {`str` : `float`}
-            How to distribute visits between different filters.
-            Default {'u': 0.16, 'g': 0.16, 'r': 0.17, 'i': 0.17, 'z': 0.17, 'y': 0.17}
-        """
-        if scp_filter_balance is None:
-            self.scp_filter_balance = {'u': 0.16, 'g': 0.16, 'r': 0.17, 'i': 0.17, 'z': 0.17, 'y': 0.17}
-        else:
-            self.scp_filter_balance = self._normalize_filter_balance(scp_filter_balance)
-        # Basically this is a fill-in so that we don't have any gaps below the max dec limit for the survey
-        # I would expect most of this to be ignored
-        self.maps['scp'] = np.where(self.dec < dec_max, 1, 0)
-        self.maps_perfilter['scp'] = {}
-        for f in self.filterlist:
-            self.maps_perfilter['scp'][f] = self.maps['scp'] * self.scp_filter_balance[f]
-        self.nvis['scp'] = nvis_scp
-
-    def set_ddf(self, nvis_ddf=18000, ddf_radius=1.8, ddf_filter_balance=None):
-        """Set DDF regions.
-
-        In general, these should NOT be set when using the Sky_area_generator with the scheduler.
-        However, they are helpful placeholders when attempting to estimate sky coverage for other
-        purposes and as configured, require about 5% of overall survey time, in the right locations
-        of the sky.
-
-        Parameters
-        -----------
-        nvis_ddf : `int`, optional
-            Number of visits per DDF pointing. Default 18,0000.
-        ddf_radius : `float`, optional
-            Radius for the DDF locations. Default 1.8 degrees.
-        ddf_filter_balance : `dict`, {`str` : `float`}
-            How to distribute visits between the filters.
-            Default {'u': 0.06, 'g': 0.12, 'r': 0.23, 'i': 0.23, 'z': 0.13, 'y': 0.23}
-        """
-        # These should not be set up for most footprint work with the scheduler, but are helpful
-        # for evaluating RA over or under subscription
-        if ddf_filter_balance is None:
-            # This is an estimate based on existing simulations
-            self.ddf_filter_balance = {'u': 0.06, 'g': 0.12, 'r': 0.23, 'i': 0.23, 'z': 0.13, 'y': 0.23}
-        else:
-            self.ddf_filter_balance = self._normalize_filter_balance(ddf_filter_balance)
-        self.ddf_radius = ddf_radius
-        self.ddf_centers = rs_utils.ddf_locations()
-        self.maps['ddf'] = np.zeros(len(self.hpid))
-        for dd in self.ddf_centers:
-            self.maps['ddf'] += self._set_circular_region(self.ddf_centers[dd][0],
-                                                          self.ddf_centers[dd][1],
-                                                          self.ddf_radius)
-        self.maps['ddf'] = np.where(self.maps['ddf'] > 1, 1, self.maps['ddf'])
-
-        self.maps_perfilter['ddf'] = {}
-        for f in self.filterlist:
-            self.maps_perfilter['ddf'][f] = self.maps['ddf'] * self.ddf_filter_balance[f]
-        self.nvis['ddf'] = nvis_ddf
-
-    def set_maps(self, dustfree=True, mcs=True, gp=True, nes=True, scp=True, ddf=False):
-        """Set maps for each region.
-
-        Using set_maps just sets the defaults for each region it is directed to  set up.
-        To set non-default parameters for any given region, set `region=False` when calling this
-        method, then set that region individually.
-
-        Parameters
-        ----------
-        dustfree : `bool`, optional
-            Set the dust-free WFD region. Default True.
-        mcs : `bool`, optional
-            Set the MC (magellanic clouds) region. Default True.
-        gp : `bool`, optional
-            Set the galactic plane region. Default True.
-        nes : `bool`, optional
-            Set the NES (northern ecliptic spur) region. Default True.
-        scp : `bool`, optional
-            Set the SCP (southern celestial pole) region. Default True.
-        ddf : `bool`, optional
-            Set the DDFs region. Default False.
-        """
-        # This sets each component with default values.
-        # Individual components could be set with non-default values by calling those methods -
-        #  in general they are independent (just combined at the end).
-        # Each component has a 'map' (with values from 0-1) for the total visits in all filters
-        # and then a maps_per_filter (with values from 0-1) for the fraction of those visits
-        # which will happen in each filter. Each component also has a 'nvis' value (nvis at the map max value),
-        # which serves to weight each map to their final combined value in the footprint.
-        if dustfree:
-            self.set_dustfree_wfd(self.nvis_wfd_default)
-        if mcs:
-            self.set_magellanic_clouds(self.nvis_wfd_default)
-        if gp:
-            self.set_galactic_plane(nvis_gal_peak=self.nvis_wfd_default,
-                                    nvis_gal_min=int(self.nvis_wfd_default * self.nvis_frac_gp))
-        if nes:
-            self.set_nes(int(self.nvis_wfd_default * self.nvis_frac_nes))
-        if scp:
-            self.set_scp(int(self.nvis_wfd_default * self.nvis_frac_scp))
-        if ddf:
-            self.set_ddf()
-
-    def combine_maps(self, trim_overlap=True, smoothing_fwhm=3., dust_cut=0.3):
-        """Combine the individual maps.
-
-        Parameters
-        ----------
-        trim_overlap : `bool`, optional
-            If True, look for WFD-like areas which overlap and drop areas according to how much dust there is.
-        smoothing_fwhm : `float` (3)
-            The smoothing to use (degrees)
-        dust_cut : `float` (0.3)
-            A trial-by-error value for assigning pixels to dust-free or galactic WFD
-        """
-        if trim_overlap:
-            # Specifically look for regions in the various WFD sections which exceed the nvis expected
-            # in these regions .. this can happen when the filter balances don't match.
-            # Resolve the difference by setting truly low-dust regions to dust-free balance, otherwise use
-            # mc/bulge balance.
-            total_wfd = np.zeros(len(self.hpid), float)
-            for f in self.filterlist:
-                wfd_f = np.zeros(len(self.hpid), float)
-                for m in ['dustfree', 'gal', 'mcs']:
-                    if m in self.maps:
-                        wfd_f = np.maximum(wfd_f, self.maps_perfilter[m][f] * self.nvis[m])
-                total_wfd += wfd_f
-            max_nvis = 0
-            for m in ['dustfree', 'gal', 'mcs']:
-                if m in self.maps:
-                    max_nvis = max(self.nvis[m], max_nvis)
-            # Where have we exceeded the expected number of visits in all bands?
-            overlap = np.where(total_wfd > max_nvis, 1, 0)
-            # Identify areas where overlap falls into really low-dust sky
-            # 'self.dustfree' is already 0/1 dust-acceptable or not
-            with warnings.catch_warnings():
-                warnings.simplefilter('ignore', category=UserWarning)
-                dustfree = hp.smoothing(self.dustfree, fwhm=np.radians(smoothing_fwhm))
-            # Choosing whether to assign a particular healpix to the dust-free WFD vs. the galactic WFD 
-            # (which have different filter balances), is based on the underlying dust-map values. 
-            # The choice of 0.3 means that healpixels are more likely to be assigned to dust-free WFD than galactic plane,
-            # but that if a pixel corresponds to a very dusty region, it will be assigned to galactic plane. 
-            # These numbers based generally on trial-and-error.
-            overlap_dustfree = np.where((dustfree > dust_cut) & (overlap == 1))[0]
-            overlap_gal = np.where((dustfree <= dust_cut) & (overlap == 1))[0]
-            # And then trim the maps accordingly - just drop the non-priority region
-            m = 'dustfree'
-            self.maps[m][overlap_gal] = 0
-            for f in self.filterlist:
-                self.maps_perfilter[m][f][overlap_gal] = 0
-            for m in ['gal', 'mcs']:
-                self.maps[m][overlap_dustfree] = 0
-                for f in self.filterlist:
-                    self.maps_perfilter[m][f][overlap_dustfree] = 0
-
-        self.total_perfilter = {}
-        for f in self.filterlist:
-            self.total_perfilter[f] = np.zeros(len(self.hpid), float)
-        for m in self.maps:
-            if m == 'ddf':
-                continue  # skip DDF
-            for f in self.filterlist:
-                self.total_perfilter[f] = np.maximum(self.total_perfilter[f],
-                                                     self.maps_perfilter[m][f] * self.nvis[m])
-        if 'ddf' in self.maps:
-            # Now add DDF on top of individual maps
-            for f in self.filterlist:
-                self.total_perfilter[f] += self.maps_perfilter['ddf'][f] * self.nvis['ddf']
-
-        # Generate the total footprint using the combination of the per-filter values
-        self.total = np.zeros(len(self.hpid), float)
-        for f in self.filterlist:
-            self.total += self.total_perfilter[f]
-
-    def return_maps(self):
-        """Call combine_maps and return self.total and self.total_perfilter.
+        Parameters:
+        various_ratios : `dict`
+            Dict with filternames for keys and floats for values that are the desired ratio
+            of observations in each filter. By conventions, I usually set the low_dust_ratios['r']=1,
+            then all the other values can be interpreted relative to that. E.g., if scp_ratios['u']=0.1, then
+            when the low_dust r has 10 visits (per pixel) the scp should have 1 vist (per pixel).
 
         Returns
         --------
-        self.total, self.total_perfilter : `np.ndarray`, `np.ndarray`
-            HEALPix maps reflecting the total expected number of visits per pointing, and the
-            number of visits per pointing per filter. These can then be scaled appropriately into
-            target maps for the scheduler.
+        self.healmaps : `np.ndarray`
+            HEALPix maps for ugrizy
+        self.pix_labels : `np.ndarray`
+            Array string labels for each HEALpix
         """
-        self.combine_maps()
-        return self.total, self.total_perfilter
+
+        # Array to hold the labels for each pixel
+        self.pix_labels = np.zeros(hp.nside2npix(self.nside), dtype='U20')
+        self.healmaps = np.zeros(hp.nside2npix(self.nside), dtype=list(zip(['u', 'g', 'r', 'i', 'z', 'y'], [float]*7)))
+
+        # Note, order here matters. Once a HEALpix is set and labled, subsequent add_ methods
+        # will not override that pixel. 
+        self.add_magellanic_clouds(magellenic_clouds_ratios)
+        self.add_lowdust_wfd(low_dust_ratios)
+        self.add_bulge(bulge_ratios)
+        self.add_nes(nes_ratios)
+        self.add_dusty_plane(dusty_plane_ratios)
+        self.add_scp(scp_ratios)
+
+        return self.healmaps, self.pix_labels
+
+    def estimate_visits(self, nvis_total, fov_area=9.6, **kwargs):
+        """Convience method for converting relative maps into number of visits
+
+        Parameters
+        ----------
+        nvis_total : `int`
+            The total number of visits in the survey
+        fov_area : `float` (9.6)
+            The area of a single visit (sq degrees)
+        **kwargs : 
+            Gets passed to self.return_maps if one wants to change the
+            default ratios.
+
+        Returns
+        -------
+        result : `np.array`
+            array with filtername dtypes that have HEALpix arrays with the 
+            number of expected visits of each HEALpix center
+        sum_map : `np.array`
+            The number of visits summed over all the filters
+        labels : `np.ndarray`
+            Array string labels for each HEALpix
+        """
+
+        healmaps, labels = self.return_maps(**kwargs)
+
+        sum_map = rfn.structured_to_unstructured(healmaps).sum(axis=1)
+
+        norm = np.sum(sum_map)
+        pix_area = hp.nside2pixarea(self.nside, degrees=True)
+        pix_per_visit = fov_area/pix_area
+
+        result = np.zeros_like(healmaps)
+        for key in result.dtype.names:
+            result[key] = healmaps[key] / norm * pix_per_visit * nvis_total
+
+        return result, sum_map / norm * pix_per_visit * nvis_total, labels
+
+    def estimate_visits_per_label(self, nvis_total, **kwargs):
+        """Estimate how many visits would be used for each region
+
+        Parameters
+        ----------
+        nvis_total : `int`
+            The total number of visits in the survey
+        **kwargs : 
+            Gets passed to self.return_maps if one wants to change the
+            default ratios.
+
+        Returns
+        -------
+        result : `dict`
+            Dictionary with keys that are label names and values that are the
+            expected number of visits for that region if nvis_total is reached.
+        """
+
+        healmaps, labels = self.return_maps(**kwargs)
+        sum_map = rfn.structured_to_unstructured(healmaps).sum(axis=1)
+        ulabels = np.unique(labels)
+        label_sums = {}
+        norm = 0
+        for label in ulabels:
+            in_region = np.where(labels == label)
+            label_sums[label] = sum_map[in_region].sum()
+            norm += label_sums[label]
+        result = {}
+        for key in ulabels:
+            result[key] = label_sums[key]/norm * nvis_total
+        return result
