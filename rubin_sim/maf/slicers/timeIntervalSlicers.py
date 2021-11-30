@@ -101,6 +101,7 @@ class TimeIntervalSlicer(BaseSlicer):
                 idxs = [idxs]
 
             slice_points = {
+                "sid": islice,
                 "mjd": self.slicePoints["mjd"][islice],
                 "duration": self.slicePoints["duration"][islice],
             }

@@ -85,7 +85,7 @@ class HealpixComCamSlicer(HealpixSlicer):
             (slicepoint=lonCol/latCol value .. usually ra/dec)."""
 
             # Build dict for slicePoint info
-            slicePoint = {}
+            slicePoint = {'sid': islice}
             if self.useCamera:
                 indices = self.sliceLookup[islice]
                 slicePoint['chipNames'] = self.chipNames[islice]

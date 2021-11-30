@@ -163,6 +163,8 @@ class MetricBundle(object):
         self.metricValues = ma.MaskedArray(data=np.empty(shape, dtype),
                                            mask=np.zeros(shape, 'bool'),
                                            fill_value=self.slicer.badval)
+        if hasattr(self.slicer, 'mask'):
+            self.metricValues.mask = self.slicer.mask
 
     def _buildMetadata(self, metadata):
         """If no metadata is provided, process the constraint

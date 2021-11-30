@@ -175,18 +175,21 @@ class HealpixSkyMap(BasePlotter):
                            'fig':fig.number,
                            'notext': notext}
         # Keys to specify only if present in plotDict
-        for key in ('reso', 'lamb', 'reuse_axes', 'alpha', 'badcolor', 'bgcolor'):
+        for key in ('reso', 'xsize', 'lamb', 'reuse_axes', 'alpha', 'badcolor', 'bgcolor'):
             if key in plotDict:
                 visufunc_params[key] = plotDict[key]
         
         visufunc_params.update(self.healpy_visufunc_params)
         self.healpy_visufunc(metricValue.filled(badval), **visufunc_params)
 
-        # Add a graticule (grid) over the globe.
-        hp.graticule(dpar=30, dmer=30)
         # Add colorbar (not using healpy default colorbar because we want more tickmarks).
         self.ax = plt.gca()
         im = self.ax.get_images()[0]
+
+        # Add a graticule (grid) over the globe.
+        if 'noGraticule' not in plotDict:
+            hp.graticule(dpar=30, dmer=30)
+
         # Add label.
         if plotDict['label'] is not None:
             plt.figtext(0.8, 0.8, '%s' % (plotDict['label']))
