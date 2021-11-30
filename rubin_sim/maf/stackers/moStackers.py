@@ -1,5 +1,6 @@
 import numpy as np
 from .baseStacker import BaseStacker
+from .mo_phase import phase_HalleyMarcus
 import warnings
 
 __all__ = ['BaseMoStacker', 'MoMagStacker', 'AppMagStacker', 'CometAppMagStacker', 'SNRStacker', 'EclStacker']
@@ -72,7 +73,7 @@ class MoMagStacker(BaseMoStacker):
     def __init__(self, magtype='asteroid',
                  vMagCol='magV', colorCol='dmagColor',
                  lossCol='dmagDetect', m5Col='fiveSigmaDepth',
-                 seeingCol='FWHMgeom', filterCol='filter',
+                 seeingCol='seeingFwhmGeom', filterCol='filter',
                  gamma=0.038, sigma=0.12,
                  randomSeed=None):
         if magtype == 'asteroid':
@@ -81,7 +82,7 @@ class MoMagStacker(BaseMoStacker):
         elif magtype == 'comet':
             self.magStacker = CometAppMagStacker(cometType='oort', Ap=0.04,
                                                  rhCol='helio_dist', deltaCol='geo_dist', phaseCol='phase',
-                                                 seeingCol='FWHMgeom', apScale=1, filterCol=filterCol,
+                                                 seeingCol=seeingCol, apScale=1, filterCol=filterCol,
                                                  vMagCol=vMagCol, colorCol=colorCol, lossCol=lossCol)
             self.colsReq = [m5Col, vMagCol, colorCol, lossCol,
                             'helio_dist', 'geo_dist', 'phase', seeingCol, filterCol]
@@ -226,7 +227,7 @@ class CometAppMagStacker(BaseMoStacker):
         self.colsReq = [self.rhCol, self.deltaCol, self.phaseCol, self.seeingCol, self.filterCol,
                         self.vMagCol, self.colorCol, self.lossCol]
 
-    def _run(self, ssObs, Href, Hval):
+    def _run(self, ssoObs, Href, Hval):
         # Calculate radius from the current H value (Hval).
         radius = 10 ** (0.2 * (VMAG_SUN - Hval)) / np.sqrt(self.Ap) * KM_PER_AU
         # Calculate expected Afrho - this is a value that describes how the brightness of the coma changes
@@ -250,9 +251,9 @@ class CometAppMagStacker(BaseMoStacker):
         # Calculate cometary nucleus magnitude -- we'll use the apparent V mag adapted from OOrb as well as
         # the object's color - these are generally assumed to be D type (which was used in sims_movingObjects)
         nucleus = ssoObs[self.vMagCol] + ssoObs[self.colorCol] + ssoObs[self.lossCol] + Hval - Href
-        # comet apparent mag - ready for calculation of SNR, etc.
-        ssObs['appMag'] = coma + nucleus
-        return ssObs
+        # add coma and nucleus then ready for calculation of SNR, etc.
+        ssoObs['appMag'] = -2.5 * np.log10(10**(-0.4 * coma) + 10**(-0.4 * nucleus))
+        return ssoObs
 
 
 class SNRStacker(BaseMoStacker):
