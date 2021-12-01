@@ -49,24 +49,26 @@ def agnBatch(colmap=None, runName='opsim', nside=64,
 
     displayDict = {'group': display_group,  'order': 0}
 
-    # Calculate the number of expected QSOs, based on i-band
-    lsstFilter = 'i'
-    sql = sqls[lsstFilter] + ' and note not like "%DD%"'
-    md = metadata[lsstFilter] + ' and non-DD'
-    summaryMetrics = [metrics.SumMetric(metricName='Total QSO')]
-    zmin = 0.3
-    m = metrics.QSONumberCountsMetric(lsstFilter,
-                                      m5Col=colmap['fiveSigmaDepth'], filterCol=colmap['filter'],
-                                      units='mag', extinction_cut=1.0,
-                                      qlf_module='Shen20',
-                                      qlf_model='A',
-                                      SED_model="Richards06",
-                                      zmin=zmin, zmax=None)
-    displayDict['subgroup'] = 'nQSO'
-    displayDict['caption'] = 'The expected number of QSOs in regions of low dust extinction.'
-    bundleList.append(mb.MetricBundle(m, slicer, constraint=sql, metadata=md,
-                                      runName=runName, summaryMetrics=summaryMetrics,
-                                      displayDict=displayDict))
+    # Calculate the number of expected QSOs, in each band
+    for f in filterlist:
+        sql = sqls[f] + ' and note not like "%DD%"'
+        md = metadata[f] + ' and non-DD'
+        summaryMetrics = [metrics.SumMetric(metricName='Total QSO')]
+        zmin = 0.3
+        m = metrics.QSONumberCountsMetric(f,
+                                          m5Col=colmap['fiveSigmaDepth'],
+                                          filterCol=colmap['filter'],
+                                          units='mag', extinction_cut=1.0,
+                                          qlf_module='Shen20',
+                                          qlf_model='A',
+                                          SED_model="Richards06",
+                                          zmin=zmin, zmax=None)
+        displayDict['subgroup'] = 'nQSO'
+        displayDict['caption'] = 'The expected number of QSOs in regions of low dust extinction,' \
+                                 f'based on detectioin in {f} bandpass.'
+        bundleList.append(mb.MetricBundle(m, slicer, constraint=sql, metadata=md,
+                                          runName=runName, summaryMetrics=summaryMetrics,
+                                          displayDict=displayDict))
 
     # Calculate the expected AGN structure function error
     # These agn test magnitude values are determined by looking at the baseline median m5 depths
