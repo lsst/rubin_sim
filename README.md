@@ -17,6 +17,7 @@ cd rubin_sim
 conda create -n rubin   ### optional (but recommended)
 conda activate rubin    ### optional (if new environment created above)
 conda install -c conda-forge --file=requirements.txt
+conda install jupyter   ### if you want to use jupyter notebook in this environment
 pip install -e .
 ```
 The installation can be tested by running `py.test` in the github directory.
