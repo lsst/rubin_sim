@@ -120,6 +120,19 @@ class Constant_basis_function(Base_basis_function):
 
 class N_good_seeing_basis_function(Base_basis_function):
     """Try to get N "good seeing" images each observing season
+
+    Parameters
+    ----------
+    seeingFWHM_max : `float` (0.8)
+        Value to consider as "good" threshold (arcsec).
+    m5_penalty_max : `float` (0.5)
+        The maximum depth loss that is considered acceptable (magnitudes)
+    n_obs_desired : `int` (3)
+        Number of good seeing observations to collect per season.
+    mjd_start : float (1)
+        The starting MJD.
+    footprint : `np.array` (None)
+        Only use area where footprint > 0. Should be a HEALpix map.
     """
     def __init__(self, filtername='r', nside=None, seeingFWHM_max=0.8, m5_penalty_max=0.5,
                  n_obs_desired=3, footprint=None, mjd_start=1):
