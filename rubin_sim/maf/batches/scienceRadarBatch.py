@@ -175,7 +175,7 @@ def scienceRadarBatch(colmap=None, runName='opsim', extraSql=None, extraMetadata
     bundleList.append(bundle)
 
     # AGN structure function error
-    agnBundleDict, pbundle = agnBatch(colmap=colmap, runName=runName, nside=nside)
+    agnBundleDict = agnBatch(colmap=colmap, runName=runName, nside=nside)
     for d in agnBundleDict:
         bundleList.append(agnBundleDict[d])
 
