@@ -1,4 +1,5 @@
 setuptools_scm
+setuptools_scm_git_archive
 numpy
 matplotlib
 healpy
