@@ -16,4 +16,3 @@ astroplan
 colorcet
 george
 scikit-learn
-jupyterlab
