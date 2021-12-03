@@ -143,7 +143,7 @@ class OpsimFieldSlicer(BaseSpatialSlicer):
                 if (self.slicePoints['ra'] is not None) or (otherSlicer.slicePoints['ra'] is not None):
                     if (np.array_equal(self.slicePoints['ra'], otherSlicer.slicePoints['ra']) &
                             np.array_equal(self.slicePoints['dec'], otherSlicer.slicePoints['dec']) &
-                            np.array_equal(self.slicePoints['sid'], otherSlicer.slicePoints['sid'])):
+                            np.array_equal(self.slicePoints['fid'], otherSlicer.slicePoints['fid'])):
                         result = True
                 # If they have not been setup, check that they have same fields
                 elif ((otherSlicer.fieldIdColName == self.fieldIdColName) &
