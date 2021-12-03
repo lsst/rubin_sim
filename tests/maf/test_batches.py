@@ -34,11 +34,15 @@ class TestBatches(unittest.TestCase):
         ack = batches.fOBatch()
         ack = batches.astrometryBatch()
         ack = batches.rapidRevisitBatch()
-        ack = batches.agnBatch()
         ack = batches.timeGaps()
         ack = batches.metadataBasics('airmass')
         ack = batches.metadataBasicsAngle('rotskyPos')
         ack = batches.metadataMaps('fiveSigmaDepth')
+
+    @unittest.skipUnless(os.path.isdir(os.path.join(get_data_dir(), 'maf')),
+                         "Skip these batches unless MAF data present, required for setup")
+    def test_batches_with_mafdata(self):
+        ack = batches.agnBatch()
 
     def test_movingObjectsBatches(self):
         slicer = MoObjSlicer()
@@ -48,7 +52,7 @@ class TestBatches(unittest.TestCase):
         ack = batches.characterizationOuterBatch(slicer)
 
     @unittest.skipUnless(os.path.isdir(os.path.join(get_data_dir(), 'maf')),
-                     "Skipping scienceRadarBatch test because operating without full MAF test data")
+                         "Skipping scienceRadarBatch test because operating without full MAF test data")
     def test_scienceRadar(self):
         # Loading the science radar batch requires reading a significant set of input files
         # This test is skipped if running with the lighter set of test data.
@@ -56,10 +60,9 @@ class TestBatches(unittest.TestCase):
         ack = batches.scienceRadarBatch()
 
     @unittest.skipUnless(os.path.isdir(os.path.join(get_data_dir(), 'maf')),
-                     "Skipping glance test because operating without full MAF test data")
+                         "Skipping glance test because operating without full MAF test data")
     def test_glance(self):
         ack = batches.glanceBatch()
-
         database = os.path.join(get_data_dir(), 'tests', 'example_dbv1.7_0yrs.db')
         opsdb = db.OpsimDatabase(database=database)
         resultsDb = db.ResultsDb(outDir=self.outDir)

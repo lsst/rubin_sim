@@ -398,5 +398,5 @@ def metadataMaps(value, colmap=None, runName='opsim',
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
-    plotBundles = []
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+
+    return mb.makeBundlesDictFromList(bundleList)

@@ -27,7 +27,6 @@ def meanRADec(colmap=None, runName='opsim', extraSql=None, extraMetadata=None):
     if colmap is None:
         colmap = ColMapDict('opsimV4')
     bundleList = []
-    plotBundles = []
 
     group = 'RA Dec coverage'
 
@@ -59,7 +58,7 @@ def meanRADec(colmap=None, runName='opsim', extraSql=None, extraMetadata=None):
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+    return mb.makeBundlesDictFromList(bundleList)
 
 
 def eastWestBias(colmap=None, runName='opsim', extraSql=None, extraMetadata=None):
@@ -80,7 +79,6 @@ def eastWestBias(colmap=None, runName='opsim', extraSql=None, extraMetadata=None
     if colmap is None:
         colmap = ColMapDict('opsimV4')
     bundleList = []
-    plotBundles = []
 
     group = 'East vs West'
 
@@ -123,4 +121,4 @@ def eastWestBias(colmap=None, runName='opsim', extraSql=None, extraMetadata=None
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+    return mb.makeBundlesDictFromList(bundleList)

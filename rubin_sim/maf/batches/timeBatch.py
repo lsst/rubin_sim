@@ -155,8 +155,7 @@ def intraNight(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetad
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
-    plotBundles = None
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+    return mb.makeBundlesDictFromList(bundleList)
 
 
 def interNight(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetadata=None,
@@ -246,8 +245,7 @@ def interNight(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetad
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
-    plotBundles = None
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+    return mb.makeBundlesDictFromList(bundleList)
 
 
 def timeGaps(colmap=None, runName='opsim', nside=64,
@@ -330,8 +328,7 @@ def timeGaps(colmap=None, runName='opsim', nside=64,
         bundleList.append(mb.MetricBundle(m3, slicer, constraint=sqls[f], metadata=metadata[f],
                                           runName=runName, summaryMetrics=summaryMetrics,
                                           plotDict=plotDict, plotFuncs=plotFuncs, displayDict=displayDict))
-    plotBundles = None
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+    return mb.makeBundlesDictFromList(bundleList)
 
 
 def seasons(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetadata=None):
@@ -406,5 +403,4 @@ def seasons(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetadata
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
-    plotBundles = None
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+    return mb.makeBundlesDictFromList(bundleList)

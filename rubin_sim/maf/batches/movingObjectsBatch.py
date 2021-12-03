@@ -97,7 +97,6 @@ def quickDiscoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='d
     if colmap is None:
         colmap = ColMapDict('opsimV4')
     bundleList = []
-    plotBundles = []
 
     basicPlotDict = {'albedo': albedo, 'Hmark': Hmark, 'npReduce': npReduce,
                      'nxbins': 200, 'nybins': 200}
@@ -175,7 +174,7 @@ def quickDiscoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='d
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+    return mb.makeBundlesDictFromList(bundleList)
 
 
 def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detection', objtype='',
@@ -184,7 +183,6 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
     if colmap is None:
         colmap = ColMapDict('opsimV4')
     bundleList = []
-    plotBundles = []
 
     basicPlotDict = {'albedo': albedo, 'Hmark': Hmark, 'npReduce': npReduce,
                      'nxbins': 200, 'nybins': 200}
@@ -491,7 +489,7 @@ def discoveryBatch(slicer, colmap=None, runName='opsim', detectionLosses='detect
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+    return mb.makeBundlesDictFromList(bundleList)
 
 
 def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
@@ -707,7 +705,6 @@ def characterizationInnerBatch(slicer, colmap=None, runName='opsim', objtype='',
     if colmap is None:
         colmap = ColMapDict('opsimV4')
     bundleList = []
-    plotBundles = []
 
     # Set up a dictionary to pass to each metric for the column names.
     colkwargs = {'mjdCol': colmap['mjd'], 'seeingCol': colmap['seeingGeom'],
@@ -823,7 +820,7 @@ def characterizationInnerBatch(slicer, colmap=None, runName='opsim', objtype='',
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+    return mb.makeBundlesDictFromList(bundleList)
 
 
 def characterizationOuterBatch(slicer, colmap=None, runName='opsim', objtype='',
@@ -835,7 +832,6 @@ def characterizationOuterBatch(slicer, colmap=None, runName='opsim', objtype='',
     if colmap is None:
         colmap = ColMapDict('opsimV4')
     bundleList = []
-    plotBundles = []
 
     # Set up a dictionary to pass to each metric for the column names.
     colkwargs = {'mjdCol': colmap['mjd'], 'seeingCol': colmap['seeingGeom'],
@@ -938,7 +934,7 @@ def characterizationOuterBatch(slicer, colmap=None, runName='opsim', objtype='',
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+    return mb.makeBundlesDictFromList(bundleList)
 
 
 def runFractionSummary(bdict, Hmark, outDir, resultsDb):

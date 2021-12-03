@@ -90,32 +90,31 @@ if __name__ == '__main__':
 
     slicer = batches.setupMoSlicer(args.orbitFile, Hrange, obsFile=args.obsFile)
     # Run discovery metrics using 'trailing' losses
-    bdictT, pbundleT = batches.quickDiscoveryBatch(slicer, colmap=colmap, runName=args.opsimRun,
-                                                   objtype=args.objtype,
-                                                   constraintMetadata=args.constraintMetadata,
-                                                   constraint=args.constraint,
-                                                   detectionLosses='trailing',
-                                                   albedo=args.albedo, Hmark=args.hMark)
+    bdictT = batches.quickDiscoveryBatch(slicer, colmap=colmap, runName=args.opsimRun,
+                                         objtype=args.objtype,
+                                         constraintMetadata=args.constraintMetadata,
+                                         constraint=args.constraint,
+                                         detectionLosses='trailing',
+                                         albedo=args.albedo, Hmark=args.hMark)
     # Run these discovery metrics
     print("Calculating quick discovery metrics with simple trailing losses.")
     bg = mmb.MoMetricBundleGroup(bdictT, outDir=args.outDir, resultsDb=resultsDb)
     bg.runAll()
 
     # Run all discovery metrics using 'detection' losses
-    bdictD, pbundleD = batches.quickDiscoveryBatch(slicer, colmap=colmap, runName=args.opsimRun,
-                                                   objtype=args.objtype,
-                                                   constraintMetadata=args.constraintMetadata,
-                                                   constraint=args.constraint,
-                                                   detectionLosses='detection',
-                                                   albedo=args.albedo, Hmark=args.hMark)
-    bdict, pbundle = batches.discoveryBatch(slicer, colmap=colmap, runName=args.opsimRun,
-                                            objtype=args.objtype,
-                                            constraintMetadata=args.constraintMetadata,
-                                            constraint=args.constraint,
-                                            detectionLosses='detection',
-                                            albedo=args.albedo, Hmark=args.hMark)
+    bdictD = batches.quickDiscoveryBatch(slicer, colmap=colmap, runName=args.opsimRun,
+                                         objtype=args.objtype,
+                                         constraintMetadata=args.constraintMetadata,
+                                         constraint=args.constraint,
+                                         detectionLosses='detection',
+                                         albedo=args.albedo, Hmark=args.hMark)
+    bdict = batches.discoveryBatch(slicer, colmap=colmap, runName=args.opsimRun,
+                                   objtype=args.objtype,
+                                   constraintMetadata=args.constraintMetadata,
+                                   constraint=args.constraint,
+                                   detectionLosses='detection',
+                                   albedo=args.albedo, Hmark=args.hMark)
     bdictD.update(bdict)
-    pbundleD.append(pbundle)
 
     # Run these discovery metrics
     print("Calculating full discovery metrics with detection losses.")
@@ -124,17 +123,17 @@ if __name__ == '__main__':
 
     # Run all characterization metrics
     if args.characterization.lower() == 'inner':
-        bdictC, pbundle = batches.characterizationInnerBatch(slicer, colmap=colmap, runName=args.opsimRun,
-                                                             objtype=args.objtype, albedo=args.albedo,
-                                                             constraintMetadata=args.constraintMetadata,
-                                                             constraint=args.constraint,
-                                                             Hmark=args.hMark)
+        bdictC = batches.characterizationInnerBatch(slicer, colmap=colmap, runName=args.opsimRun,
+                                                    objtype=args.objtype, albedo=args.albedo,
+                                                    constraintMetadata=args.constraintMetadata,
+                                                    constraint=args.constraint,
+                                                    Hmark=args.hMark)
     elif args.characterization.lower() == 'outer':
-        bdictC, pbundle = batches.characterizationOuterBatch(slicer, colmap=colmap, runName=args.opsimRun,
-                                                             objtype=args.objtype, albedo=args.albedo,
-                                                             constraintMetadata=args.constraintMetadata,
-                                                             constraint=args.constraint,
-                                                             Hmark=args.hMark)
+        bdictC = batches.characterizationOuterBatch(slicer, colmap=colmap, runName=args.opsimRun,
+                                                    objtype=args.objtype, albedo=args.albedo,
+                                                    constraintMetadata=args.constraintMetadata,
+                                                    constraint=args.constraint,
+                                                    Hmark=args.hMark)
     # Run these characterization metrics
     print("Calculating characterization metrics.")
     bg = mmb.MoMetricBundleGroup(bdictC, outDir=args.outDir, resultsDb=resultsDb)

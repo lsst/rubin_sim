@@ -103,7 +103,6 @@ if __name__ == "__main__":
 
         # Some of these metrics are reproduced in other scripts - srd and cadence
         bdict = {}
-        plotbundles = []
 
         for tag in tags:
             fO = batches.fOBatch(colmap=colmap, runName=opsim,
@@ -117,23 +116,20 @@ if __name__ == "__main__":
             bdict.update(rapidrevisit)
 
         # Intranight (pairs/time)
-        intranight_all, plots = batches.intraNight(colmap, opsim, extraSql=None)
+        intranight_all = batches.intraNight(colmap, opsim, extraSql=None)
         bdict.update(intranight_all)
-        plotbundles.append(plots)
 
         # Internight (nights between visits)
         for tag in tags:
-            internight, plots = batches.interNight(colmap, opsim, extraSql=sqls[tag],
+            internight = batches.interNight(colmap, opsim, extraSql=sqls[tag],
                                                    extraMetadata=metadata[tag])
             bdict.update(internight)
-            plotbundles.append(plots)
 
         # Intraseason (length of season)
         for tag in tags:
-            season, plots = batches.seasons(colmap=colmap, runName=opsim,
+            season = batches.seasons(colmap=colmap, runName=opsim,
                                             extraSql=sqls[tag], extraMetadata=metadata[tag])
             bdict.update(season)
-            plotbundles.append(plots)
 
         # Run all metadata metrics, All and just WFD.
         for tag in tags:
