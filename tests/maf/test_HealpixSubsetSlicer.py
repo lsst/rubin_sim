@@ -118,7 +118,8 @@ class TestHealpixSlicerIteration(unittest.TestCase):
     def setUp(self):
         self.cameraFootprintFile = os.path.join(get_data_dir(), 'tests', 'fov_map.npz')
         self.nside = 8
-        self.testslicer = HealpixSubsetSlicer(nside=self.nside, hpid=np.arange(0, 10),
+        self.hpid = np.arange(10, 20)
+        self.testslicer = HealpixSubsetSlicer(nside=self.nside, hpid=self.hpid,
                                               verbose=False, lonCol='ra', latCol='dec',
                                               cameraFootprintFile=self.cameraFootprintFile)
         nvalues = 10000
@@ -136,21 +137,21 @@ class TestHealpixSlicerIteration(unittest.TestCase):
         """Test iteration goes through expected range and ra/dec are in expected range (radians)."""
         npix = hp.nside2npix(self.nside)
         for i, s in enumerate(self.testslicer):
-            self.assertEqual(i, s['slicePoint']['sid'])
+            # We do not expect testslicer.slicePoint['sid'] to == i ..
+            # The slicer will only iterate over the subset
+            self.assertEqual(self.hpid[i], s['slicePoint']['sid'])
             ra = s['slicePoint']['ra']
             dec = s['slicePoint']['dec']
             self.assertGreaterEqual(ra, 0)
             self.assertLessEqual(ra, 2*np.pi)
             self.assertGreaterEqual(dec, -np.pi)
             self.assertLessEqual(dec, np.pi)
-        # npix would count starting at 1, while i counts starting at 0 ..
-        #  so add one to check end point
-        self.assertEqual(i+1, npix)
+        self.assertEqual(i+1, len(self.hpid))
 
     def testGetItem(self):
         """Test getting indexed value."""
         for i, s in enumerate(self.testslicer):
-            np.testing.assert_equal(self.testslicer[i], s)
+            np.testing.assert_equal(self.testslicer[self.hpid[i]], s)
 
 
 class TestHealpixSlicerSlicing(unittest.TestCase):

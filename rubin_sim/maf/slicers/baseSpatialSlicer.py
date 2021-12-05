@@ -125,7 +125,7 @@ class BaseSpatialSlicer(BaseSlicer):
             (slicepoint=lonCol/latCol value .. usually ra/dec)."""
 
             # Build dict for slicePoint info
-            slicePoint = {}
+            slicePoint = {'sid': islice}
             sx, sy, sz = simsUtils._xyz_from_ra_dec(self.slicePoints['ra'][islice],
                                                     self.slicePoints['dec'][islice])
             # Query against tree.

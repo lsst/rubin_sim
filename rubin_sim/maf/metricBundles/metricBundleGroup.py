@@ -452,7 +452,8 @@ class MetricBundleGroup(object):
         else:
             cache = False
         # Run through all slicepoints and calculate metrics.
-        for i, slice_i in enumerate(slicer):
+        for slice_i in slicer:
+            i = slice_i['slicePoint']['sid']
             slicedata = self.simData[slice_i['idxs']]
             if len(slicedata) == 0:
                 # No data at this slicepoint. Mask data values.
@@ -502,6 +503,7 @@ class MetricBundleGroup(object):
             for b in bDict.values():
                 b.write(outDir=self.outDir, resultsDb=self.resultsDb)
         else:
+            # Just write the metric run information to the resultsDb
             for b in bDict.values():
                 b.writeDb(resultsDb=self.resultsDb)
 

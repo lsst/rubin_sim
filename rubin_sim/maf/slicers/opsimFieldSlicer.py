@@ -98,20 +98,23 @@ class OpsimFieldSlicer(BaseSpatialSlicer):
         # Set basic properties for tracking field information, in sorted order.
         idxs = np.argsort(fieldData[self.fieldIdColName])
         # Set needed values for slice metadata.
-        self.slicePoints['sid'] = fieldData[self.fieldIdColName][idxs]
+        # Note that 'sid' should be the index in the resulting metricData array
+        # For healpix slicers, this == healpixel id. Here, is array 0-len(idxs).
+        self.slicePoints['fid'] = fieldData[self.fieldIdColName][idxs]
+        self.nslice = len(self.slicePoints['fid'])
+        self.slicePoints['sid'] = np.arange(self.nslice)
         if self.latLonDeg:
             self.slicePoints['ra'] = np.radians(fieldData[self.fieldRaColName][idxs])
             self.slicePoints['dec'] = np.radians(fieldData[self.fieldDecColName][idxs])
         else:
             self.slicePoints['ra'] = fieldData[self.fieldRaColName][idxs]
             self.slicePoints['dec'] = fieldData[self.fieldDecColName][idxs]
-        self.nslice = len(self.slicePoints['sid'])
         self._runMaps(maps)
         # Set up data slicing.
         self.simIdxs = np.argsort(simData[self.simDataFieldIdColName])
         simFieldsSorted = np.sort(simData[self.simDataFieldIdColName])
-        self.left = np.searchsorted(simFieldsSorted, self.slicePoints['sid'], 'left')
-        self.right = np.searchsorted(simFieldsSorted, self.slicePoints['sid'], 'right')
+        self.left = np.searchsorted(simFieldsSorted, self.slicePoints['fid'], 'left')
+        self.right = np.searchsorted(simFieldsSorted, self.slicePoints['fid'], 'right')
 
         self.spatialExtent = [simData[self.simDataFieldIdColName].min(),
                               simData[self.simDataFieldIdColName].max()]
@@ -121,7 +124,7 @@ class OpsimFieldSlicer(BaseSpatialSlicer):
         def _sliceSimData(islice):
             idxs = self.simIdxs[self.left[islice]:self.right[islice]]
             # Build dict for slicePoint info
-            slicePoint = {}
+            slicePoint = {'sid': islice, 'fid': self.slicePoints['fid'][islice]}
             for key in self.slicePoints:
                 if (np.shape(self.slicePoints[key])[0] == self.nslice) & \
                         (key != 'bins') & (key != 'binCol'):
@@ -140,7 +143,7 @@ class OpsimFieldSlicer(BaseSpatialSlicer):
                 if (self.slicePoints['ra'] is not None) or (otherSlicer.slicePoints['ra'] is not None):
                     if (np.array_equal(self.slicePoints['ra'], otherSlicer.slicePoints['ra']) &
                             np.array_equal(self.slicePoints['dec'], otherSlicer.slicePoints['dec']) &
-                            np.array_equal(self.slicePoints['sid'], otherSlicer.slicePoints['sid'])):
+                            np.array_equal(self.slicePoints['fid'], otherSlicer.slicePoints['fid'])):
                         result = True
                 # If they have not been setup, check that they have same fields
                 elif ((otherSlicer.fieldIdColName == self.fieldIdColName) &

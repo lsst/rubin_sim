@@ -331,7 +331,8 @@ def timeGaps(colmap=None, runName='opsim', nside=64,
     return mb.makeBundlesDictFromList(bundleList)
 
 
-def seasons(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetadata=None):
+def seasons(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetadata=None,
+            slicer=None):
     """Generate a set of statistics about the length and number of seasons.
 
     Parameters
@@ -346,6 +347,8 @@ def seasons(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetadata
         Additional sql constraint to apply to all metrics.
     extraMetadata : str or None, optional
         Additional metadata to use for all outputs.
+    slicer : slicer object (None)
+         Optionally use something other than a HealpixSlicer
 
     Returns
     -------
@@ -364,7 +367,8 @@ def seasons(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetadata
                                                             extraSql=extraSql,
                                                             extraMetadata=metadata)
 
-    slicer = slicers.HealpixSlicer(nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees)
+    if slicer is None:
+        slicer = slicers.HealpixSlicer(nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees)
 
     displayDict = {'group': 'IntraSeason', 'subgroup': 'Season length', 'caption': None, 'order': 0}
 
