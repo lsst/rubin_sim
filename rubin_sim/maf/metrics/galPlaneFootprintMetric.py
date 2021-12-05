@@ -4,6 +4,7 @@
 #
 # Rachel Street: rstreet@lco.global
 #######################################################################################################################
+import os
 import numpy as np
 import healpy as hp
 import rubin_sim.maf as maf
@@ -68,7 +69,7 @@ class galPlaneFootprintMetric(maf.BaseMetric):
 
             weighted_map = getattr(self, 'map_'+str(f))
             combined_map[pixels] += weighted_map[pixels]
-            
+
         metric_value = combined_map.sum()
 
         # Normalize by full weighted map summed over all filters and pixels:

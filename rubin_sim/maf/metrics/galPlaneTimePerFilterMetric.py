@@ -6,6 +6,7 @@
 #
 # Author - Rachel Street: rstreet@lco.global
 ################################################################################################
+import os
 import numpy as np
 import healpy as hp
 import rubin_sim.maf as maf
