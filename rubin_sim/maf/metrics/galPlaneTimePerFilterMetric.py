@@ -28,7 +28,7 @@ class galPlaneTimePerFilter(maf.BaseMetric):
     visitExposureTime : float, exposure time in seconds
     """
     def __init__(self, cols=['fieldRA','fieldDec','filter',
-                             'observationStartMJD','visitExposureTime'],
+                             'observationStartMJD','visitExposureTime','fiveSigmaDepth'],
                        metricName='galPlaneTimePerFilter',
                        **kwargs):
         """Kwargs must contain:
@@ -38,9 +38,11 @@ class galPlaneTimePerFilter(maf.BaseMetric):
         self.ra_col = 'fieldRA'
         self.dec_col = 'fieldDec'
         self.filterCol = 'filter'
+        self.m5Col = 'fiveSigmaDepth'
         self.mjdCol = 'observationStartMJD'
         self.exptCol = 'visitExposureTime'
         self.filters = ['u','g', 'r', 'i', 'z', 'y']
+        self.magCuts = {'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4}
         cwd = os.getcwd()
         self.MAP_DIR = os.path.join(cwd,'../../data/galPlane_priority_maps')
         self.MAP_FILE_ROOT_NAME = 'GalPlane_priority_map'
@@ -82,8 +84,6 @@ class galPlaneTimePerFilter(maf.BaseMetric):
 
         # The value of the fExpT metric in ideal circumstance is the sum of all values:
         idealfExpT = fexpt_per_pixel.sum()
-        print('IDEAL exposure ratio per pixel, filter',filter_name,': ',fexpt_per_pixel)
-        print('IDEAL exposure ratio sum, filter',filter_name,': ',idealfExpT)
 
         return idealfExpT
 
@@ -100,7 +100,9 @@ class galPlaneTimePerFilter(maf.BaseMetric):
         # exposure time per pixel
         fexpt_per_filter = np.zeros(len(self.filters))
         for i,f in enumerate(self.filters):
-            match = np.where(dataSlice[self.filterCol] == f)[0]
+            idx1 = np.where(dataSlice[self.filterCol] == f)[0]
+            idx2 = np.where(dataSlice[self.m5Col] >= self.magCuts[f])[0]
+            match = list(set(idx1).intersection(set(idx2)))
 
             coords_icrs = SkyCoord(dataSlice[self.ra_col][match], dataSlice[self.dec_col][match], frame='icrs', unit=(u.deg, u.deg))
             coords_gal = coords_icrs.transform_to(Galactic())
@@ -112,10 +114,8 @@ class galPlaneTimePerFilter(maf.BaseMetric):
             fexpt = dataSlice[self.exptCol][match].sum()/total_expt_per_pixel
             fexpt_per_filter[i] = fexpt / idealfExpT
 
-        print('Ratio of exposure time per filter relative to ideal: ',fexpt_per_filter)
         # Sum the fraction of exposure time over all pixels within the desired
         # survey region and filters:
         metric_value = fexpt_per_filter.sum()
-        print('Metric summed over all filters: ',metric_value)
 
         return metric_value

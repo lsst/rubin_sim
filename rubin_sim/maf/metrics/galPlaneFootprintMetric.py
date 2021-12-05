@@ -23,7 +23,7 @@ class galPlaneFootprintMetric(maf.BaseMetric):
     filter : str, filter bandpass used for a given observation
     """
 
-    def __init__(self, cols=['fieldRA','fieldDec','filter'],
+    def __init__(self, cols=['fieldRA','fieldDec','filter','fiveSigmaDepth'],
                        metricName='GalPlaneFootprintMetric',
                        **kwargs):
         """Kwargs must contain:
@@ -33,7 +33,9 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         self.ra_col = 'fieldRA'
         self.dec_col = 'fieldDec'
         self.filterCol = 'filter'
+        self.m5Col = 'fiveSigmaDepth'
         self.filters = ['u','g', 'r', 'i', 'z', 'y']
+        self.magCuts = {'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4}
         cwd = os.getcwd()
         self.MAP_DIR = os.path.join(cwd,'../../data/galPlane_priority_maps')
         self.MAP_FILE_ROOT_NAME = 'GalPlane_priority_map'
@@ -51,13 +53,13 @@ class galPlaneFootprintMetric(maf.BaseMetric):
             self.ideal_combined_map += fmap
 
     def run(self, dataSlice, slicePoint=None):
-        """QUESTION: Should a metric calculate per pixel in the dataSlice, or globally over all pixels?
 
-        That is if a dataSlice includes only a section of the sky, footprint metrics will return smaller values
-        due to the smaller sky area.  """
         combined_map = np.zeros(self.NPIX)
+
         for f in self.filters:
-            match = np.where(dataSlice[self.filterCol] == f)[0]
+            idx1 = np.where(dataSlice[self.filterCol] == f)[0]
+            idx2 = np.where(dataSlice[self.m5Col] >= self.magCuts[f])[0]
+            match = list(set(idx1).intersection(set(idx2)))
 
             coords_icrs = SkyCoord(dataSlice[self.ra_col][match], dataSlice[self.dec_col][match], frame='icrs', unit=(u.deg, u.deg))
             coords_gal = coords_icrs.transform_to(Galactic())
@@ -66,7 +68,7 @@ class galPlaneFootprintMetric(maf.BaseMetric):
 
             weighted_map = getattr(self, 'map_'+str(f))
             combined_map[pixels] += weighted_map[pixels]
-
+            
         metric_value = combined_map.sum()
 
         # Normalize by full weighted map summed over all filters and pixels:
