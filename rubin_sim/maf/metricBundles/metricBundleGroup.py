@@ -258,6 +258,11 @@ class MetricBundleGroup(object):
         for k, b in self.bundleDict.items():
             if b.constraint == constraint:
                 self.currentBundleDict[k] = b
+        # Build list of all the columns needed from the database.
+        self.dbCols = []
+        for b in self.currentBundleDict.values():
+            self.dbCols.extend(b.dbCols)
+        self.dbCols = list(set(self.dbCols))
 
     def runCurrent(self, constraint, simData=None, clearMemory=False, plotNow=False, plotKwargs=None):
         """Run all the metricBundles which match this constraint in the metricBundleGroup.
@@ -282,11 +287,6 @@ class MetricBundleGroup(object):
         """
         self.setCurrent(constraint)
 
-        # Build list of all the columns needed from the database.
-        self.dbCols = []
-        for b in self.currentBundleDict.values():
-            self.dbCols.extend(b.dbCols)
-        self.dbCols = list(set(self.dbCols))
         # Can pass simData directly (if had other method for getting data)
         if simData is not None:
             self.simData = simData

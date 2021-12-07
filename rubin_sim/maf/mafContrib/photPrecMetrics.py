@@ -6,7 +6,7 @@ Authors: Sergey Koposov, Thomas Collett
 import numpy as np
 from rubin_sim.maf.metrics import BaseMetric
 
-__all__ = ['RelRmsMetric', 'SNMetric', 'ThreshSEDSNMetric', 'SEDSNMetric']
+__all__ = ['SNMetric', 'ThreshSEDSNMetric', 'SEDSNMetric']
 
 
 twopi = 2.0*np.pi
@@ -32,8 +32,8 @@ class SNMetric(BaseMetric):
                      filter=None,
                      mag=None,
                      **kwargs):
-        super(SNMetric, self).__init__(col=[m5Col, seeingCol,
-                                                    skyBCol,expTCol,filterCol], metricName=metricName, **kwargs)
+        super(SNMetric, self).__init__(col=[m5Col, seeingCol, skyBCol,expTCol,filterCol],
+                                       metricName=metricName, **kwargs)
         self.filter = filter
         self.mag = mag
 
@@ -46,7 +46,7 @@ class SNMetric(BaseMetric):
         mag = self.mag
 
         zpt0 = 25.85
-        curfilt = self.filter#'r'
+        curfilt = self.filter #'r'
         zpts = {'u': zpt0,
                 'g': zpt0,
                 'r': zpt0,
@@ -93,8 +93,8 @@ class SEDSNMetric(BaseMetric):
                      #filter=None,
                      mags=None,
                      **kwargs):
-        super(SEDSNMetric, self).__init__(col=[m5Col, seeingCol,
-                                                       skyBCol,expTCol,filterCol], metricName=metricName, **kwargs)
+        super(SEDSNMetric, self).__init__(col=[m5Col, seeingCol, skyBCol,expTCol,filterCol],
+                                          metricName=metricName, **kwargs)
         self.mags=mags
         self.metrics={}
         for curfilt, curmag in mags.items():

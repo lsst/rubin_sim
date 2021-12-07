@@ -4,11 +4,12 @@ from .baseMetric import BaseMetric
 # A collection of commonly used simple metrics, operating on a single column and returning a float.
 
 __all__ = ['PassMetric', 'Coaddm5Metric', 'MaxMetric', 'AbsMaxMetric', 'MeanMetric', 'AbsMeanMetric',
-           'MedianMetric', 'AbsMedianMetric', 'MinMetric', 'FullRangeMetric', 'RmsMetric', 'SumMetric',
-           'CountUniqueMetric', 'CountMetric', 'CountRatioMetric', 'CountSubsetMetric', 'RobustRmsMetric',
-           'MaxPercentMetric', 'AbsMaxPercentMetric', 'BinaryMetric', 'FracAboveMetric', 'FracBelowMetric',
-           'PercentileMetric', 'NoutliersNsigmaMetric', 'UniqueRatioMetric',
-           'MeanAngleMetric', 'RmsAngleMetric', 'FullRangeAngleMetric', 'CountExplimMetric']
+           'MedianMetric', 'AbsMedianMetric', 'MinMetric', 'FullRangeMetric', 'RmsMetric', 'RelRmsMetric',
+           'SumMetric', 'CountUniqueMetric', 'CountMetric', 'CountRatioMetric', 'CountSubsetMetric',
+           'RobustRmsMetric', 'MaxPercentMetric', 'AbsMaxPercentMetric', 'BinaryMetric',
+           'FracAboveMetric', 'FracBelowMetric', 'PercentileMetric', 'NoutliersNsigmaMetric',
+           'UniqueRatioMetric', 'MeanAngleMetric', 'RmsAngleMetric', 'FullRangeAngleMetric',
+           'CountExplimMetric', 'AngularSpreadMetric']
 
 twopi = 2.0*np.pi
 
@@ -41,11 +42,13 @@ class Coaddm5Metric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         return 1.25 * np.log10(np.sum(10.**(.8*dataSlice[self.colname])))
 
+
 class MaxMetric(BaseMetric):
     """Calculate the maximum of a simData column slice.
     """
     def run(self, dataSlice, slicePoint=None):
         return np.max(dataSlice[self.colname])
+
 
 class AbsMaxMetric(BaseMetric):
     """Calculate the max of the absolute value of a simData column slice.
@@ -53,11 +56,13 @@ class AbsMaxMetric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         return np.max(np.abs(dataSlice[self.colname]))
 
+
 class MeanMetric(BaseMetric):
     """Calculate the mean of a simData column slice.
     """
     def run(self, dataSlice, slicePoint=None):
         return np.mean(dataSlice[self.colname])
+
 
 class AbsMeanMetric(BaseMetric):
     """Calculate the mean of the absolute value of a simData column slice.
@@ -65,11 +70,13 @@ class AbsMeanMetric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         return np.mean(np.abs(dataSlice[self.colname]))
 
+
 class MedianMetric(BaseMetric):
     """Calculate the median of a simData column slice.
     """
     def run(self, dataSlice, slicePoint=None):
         return np.median(dataSlice[self.colname])
+
 
 class AbsMedianMetric(BaseMetric):
     """Calculate the median of the absolute value of a simData column slice.
@@ -77,11 +84,13 @@ class AbsMedianMetric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         return np.median(np.abs(dataSlice[self.colname]))
 
+
 class MinMetric(BaseMetric):
     """Calculate the minimum of a simData column slice.
     """
     def run(self, dataSlice, slicePoint=None):
         return np.min(dataSlice[self.colname])
+
 
 class FullRangeMetric(BaseMetric):
     """Calculate the range of a simData column slice.
@@ -89,11 +98,20 @@ class FullRangeMetric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         return np.max(dataSlice[self.colname])-np.min(dataSlice[self.colname])
 
+
 class RmsMetric(BaseMetric):
     """Calculate the standard deviation of a simData column slice.
     """
     def run(self, dataSlice, slicePoint=None):
         return np.std(dataSlice[self.colname])
+
+
+class RelRmsMetric(BaseMetric):
+    """Calculate the relative scatter metric (RMS divided by median).
+    """
+    def run(self, dataSlice, slicePoint=None):
+        return np.std(dataSlice[self.colname])/np.median(dataSlice[self.colname])
+
 
 class SumMetric(BaseMetric):
     """Calculate the sum of a simData column slice.
@@ -101,11 +119,13 @@ class SumMetric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         return np.sum(dataSlice[self.colname])
 
+
 class CountUniqueMetric(BaseMetric):
     """Return the number of unique values.
     """
     def run(self, dataSlice, slicePoint=None):
         return np.size(np.unique(dataSlice[self.colname]))
+
 
 class UniqueRatioMetric(BaseMetric):
     """Return the number of unique values divided by the total number of values.
@@ -114,6 +134,7 @@ class UniqueRatioMetric(BaseMetric):
         ntot = float(np.size(dataSlice[self.colname]))
         result = np.size(np.unique(dataSlice[self.colname])) / ntot
         return result
+
 
 class CountMetric(BaseMetric):
     """Count the length of a simData column slice. """
@@ -141,6 +162,7 @@ class CountExplimMetric(BaseMetric):
         nv = np.round(nv)
         return int(np.sum(nv))
 
+
 class CountRatioMetric(BaseMetric):
     """Count the length of a simData column slice, then divide by 'normVal'. 
     """
@@ -152,6 +174,7 @@ class CountRatioMetric(BaseMetric):
 
     def run(self, dataSlice, slicePoint=None):
         return len(dataSlice[self.colname])/self.normVal
+
 
 class CountSubsetMetric(BaseMetric):
     """Count the length of a simData column slice which matches 'subset'. 
@@ -166,14 +189,16 @@ class CountSubsetMetric(BaseMetric):
         count = len(np.where(dataSlice[self.colname] == self.subset)[0])
         return count
 
+
 class RobustRmsMetric(BaseMetric):
     """Use the inter-quartile range of the data to estimate the RMS.  
     Robust since this calculation does not include outliers in the distribution.
     """
     def run(self, dataSlice, slicePoint=None):
-        iqr = np.percentile(dataSlice[self.colname],75)-np.percentile(dataSlice[self.colname],25)
+        iqr = np.percentile(dataSlice[self.colname],75) - np.percentile(dataSlice[self.colname],25)
         rms = iqr/1.349 #approximation
         return rms
+
 
 class MaxPercentMetric(BaseMetric):
     """Return the percent of the data which has the maximum value.
@@ -182,6 +207,7 @@ class MaxPercentMetric(BaseMetric):
         nMax = np.size(np.where(dataSlice[self.colname] == np.max(dataSlice[self.colname]))[0])
         percent = nMax / float(dataSlice[self.colname].size) * 100.
         return percent
+
 
 class AbsMaxPercentMetric(BaseMetric):
     """Return the percent of the data which has the absolute value of the max value of the data.
@@ -192,6 +218,7 @@ class AbsMaxPercentMetric(BaseMetric):
         percent = nMax / float(dataSlice[self.colname].size) * 100.0
         return percent
 
+
 class BinaryMetric(BaseMetric):
     """Return 1 if there is data. 
     """
@@ -200,6 +227,7 @@ class BinaryMetric(BaseMetric):
             return 1
         else:
             return self.badval
+
 
 class FracAboveMetric(BaseMetric):
     """Find the fraction of data values above a given value.
@@ -218,6 +246,7 @@ class FracAboveMetric(BaseMetric):
         fracAbove = fracAbove * self.scale
         return fracAbove
 
+
 class FracBelowMetric(BaseMetric):
     """Find the fraction of data values below a given value.
     """
@@ -233,6 +262,7 @@ class FracBelowMetric(BaseMetric):
         fracBelow = fracBelow * self.scale
         return fracBelow
 
+
 class PercentileMetric(BaseMetric):
     """Find the value of a column at a given percentile.
     """
@@ -244,6 +274,7 @@ class PercentileMetric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         pval = np.percentile(dataSlice[self.colname], self.percentile)
         return pval
+
 
 class NoutliersNsigmaMetric(BaseMetric):
     """Calculate the # of visits less than nSigma below the mean (nSigma<0) or
@@ -269,6 +300,7 @@ class NoutliersNsigmaMetric(BaseMetric):
             outsiders = np.where(dataSlice[self.colname] < boundary)
         return len(dataSlice[self.colname][outsiders])
 
+
 def _rotateAngles(angles):
     """Private utility for the '*Angle' Metrics below.
 
@@ -292,6 +324,7 @@ def _rotateAngles(angles):
         rotation = angles[angleidx][maxdiff+1][0]
     return (rotation, (angles - rotation) % twopi)
 
+
 class MeanAngleMetric(BaseMetric):
     """Calculate the mean of an angular (degree) simData column slice.
 
@@ -313,6 +346,7 @@ class MeanAngleMetric(BaseMetric):
             mean = np.pi
         return np.degrees(mean)
 
+
 class RmsAngleMetric(BaseMetric):
     """Calculate the standard deviation of an angular (degrees) simData column slice.
 
@@ -322,6 +356,7 @@ class RmsAngleMetric(BaseMetric):
         rotation, angles = _rotateAngles(np.radians(dataSlice[self.colname]))
         return np.std(np.degrees(angles))
 
+
 class FullRangeAngleMetric(BaseMetric):
     """Calculate the full range of an angular (degrees) simData column slice.
 
@@ -330,3 +365,35 @@ class FullRangeAngleMetric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         rotation, angles = _rotateAngles(np.radians(dataSlice[self.colname]))
         return np.degrees(angles.max() - angles.min())
+
+class AngularSpreadMetric(BaseMetric):
+    """Compute the angular spread statistic which measures uniformity of a distribution angles
+    accounting for 2pi periodicity.
+
+    The strategy is to first map angles into unit vectors on the unit circle, and then compute the
+    2D centroid of those vectors.  A uniform distribution of angles will lead to a distribution of
+    unit vectors with mean that approaches the origin.  In contrast, a delta function distribution
+    of angles leads to a delta function distribution of unit vectors with a mean that lands on the
+    unit circle.
+
+    The angular spread statistic is then defined as 1 - R, where R is the radial offset of the mean
+    of the unit vectors derived from the input angles.  R approaches 1 for a uniform distribution
+    of angles and 0 for a delta function distribution of angles.
+
+    The optional parameter `period` may be used to specificy periodicity other than 2 pi.
+    """
+    def __init__(self, col=None, period=2.0*np.pi, **kwargs):
+        # https://en.wikipedia.org/wiki/Directional_statistics#Measures_of_location_and_spread
+        # jmeyers314@gmail.com
+        self.period = period
+        super(AngularSpreadMetric, self).__init__(col=col, **kwargs)
+
+    def run(self, dataSlice, slicePoint=None):
+        # Unit vectors; unwrapped at specified period
+        x = np.cos(dataSlice[self.colname] * 2.0*np.pi/self.period)
+        y = np.sin(dataSlice[self.colname] * 2.0*np.pi/self.period)
+        meanx = np.mean(x)
+        meany = np.mean(y)
+        # radial offset (i.e., length) of the mean unit vector
+        R = np.hypot(meanx, meany)
+        return 1.0 - R

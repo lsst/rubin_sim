@@ -1,9 +1,9 @@
-from builtins import zip
-import numpy as np
-from rubin_sim.maf.metrics.baseMetric import BaseMetric
-from scipy.optimize import curve_fit
-from rubin_sim.maf.utils import m52snr
 import warnings
+import numpy as np
+from scipy.optimize import curve_fit
+from rubin_sim.maf.metrics.baseMetric import BaseMetric
+from rubin_sim.maf.utils import m52snr
+
 
 __all__ = ['periodicStar', 'PeriodicStarMetric']
 
@@ -28,7 +28,6 @@ class periodicStar(object):
         filter2index = {'u':3, 'g':4, 'r':5, 'i':6,
                         'z':7,'y':8}
         filterNames = np.unique(self.filternames)
-        mags = np.zeros(t.size,dtype=float)
         mags = x2*np.sin((t+x1)/x0*2.*np.pi)
         x=[x0,x1,x2,x3,x4,x5,x6,x7,x8]
         for f in filterNames:
@@ -80,6 +79,8 @@ class PeriodicStarMetric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
 
         # Bail if we don't have enough points
+        # (need to fit mean magnitudes in each of the available bands - self.means
+        # and for a period, amplitude, and phase)
         if dataSlice.size < self.means.size+3:
             return self.badval
 
