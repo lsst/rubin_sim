@@ -4,14 +4,14 @@ from rubin_sim.utils import m5_flat_sed
 
 class PhotoM5Test(unittest.TestCase):
     def testm5(self):
-        filters = ['u', 'g', 'r', 'i', 'z', 'y']
+        filters = ["u", "g", "r", "i", "z", "y"]
         kwargs = {}
         # List all parameters to test, with better conditions first
-        kwargs['musky'] = [23., 22.]
-        kwargs['FWHMeff'] = [1., 1.5]
-        kwargs['expTime'] = [60., 30.]
-        kwargs['airmass'] = [1., 2.2]
-        kwargs['tauCloud'] = [0., 2.2]
+        kwargs["musky"] = [23.0, 22.0]
+        kwargs["FWHMeff"] = [1.0, 1.5]
+        kwargs["expTime"] = [60.0, 30.0]
+        kwargs["airmass"] = [1.0, 2.2]
+        kwargs["tauCloud"] = [0.0, 2.2]
 
         k_default = {}
         for key in kwargs:
@@ -23,7 +23,7 @@ class PhotoM5Test(unittest.TestCase):
                 k_new = k_default.copy()
                 k_new[key] = kwargs[key][1]
                 m5_new = m5_flat_sed(filtername, **k_new)
-                assert(m5_new < m5_baseline)
+                assert m5_new < m5_baseline
 
 
 if __name__ == "__main__":

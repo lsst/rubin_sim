@@ -1,4 +1,1 @@
-__all__= [
-        'egFootprintMetric',
-        'DepthLimitedNumGalMetric'
-]
+__all__ = ["egFootprintMetric", "DepthLimitedNumGalMetric"]

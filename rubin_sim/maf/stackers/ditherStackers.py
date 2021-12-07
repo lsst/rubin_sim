@@ -4,15 +4,24 @@ import numpy as np
 from .baseStacker import BaseStacker
 import warnings
 
-__all__ = ['setupDitherStackers', 'wrapRADec', 'wrapRA', 'inHexagon', 'polygonCoords',
-           'BaseDitherStacker',
-           'RandomDitherFieldPerVisitStacker', 'RandomDitherFieldPerNightStacker',
-           'RandomDitherPerNightStacker',
-           'SpiralDitherFieldPerVisitStacker', 'SpiralDitherFieldPerNightStacker',
-           'SpiralDitherPerNightStacker',
-           'HexDitherFieldPerVisitStacker', 'HexDitherFieldPerNightStacker',
-           'HexDitherPerNightStacker',
-           'RandomRotDitherPerFilterChangeStacker']
+__all__ = [
+    "setupDitherStackers",
+    "wrapRADec",
+    "wrapRA",
+    "inHexagon",
+    "polygonCoords",
+    "BaseDitherStacker",
+    "RandomDitherFieldPerVisitStacker",
+    "RandomDitherFieldPerNightStacker",
+    "RandomDitherPerNightStacker",
+    "SpiralDitherFieldPerVisitStacker",
+    "SpiralDitherFieldPerNightStacker",
+    "SpiralDitherPerNightStacker",
+    "HexDitherFieldPerVisitStacker",
+    "HexDitherFieldPerNightStacker",
+    "HexDitherPerNightStacker",
+    "RandomRotDitherPerFilterChangeStacker",
+]
 
 # Stacker naming scheme:
 # [Pattern]Dither[Field]Per[Timescale].
@@ -24,6 +33,7 @@ __all__ = ['setupDitherStackers', 'wrapRADec', 'wrapRA', 'inHexagon', 'polygonCo
 # Original dither stackers (Random, Spiral, Hex) written by Lynne Jones (lynnej@uw.edu)
 # Additional dither stackers written by Humna Awan (humna.awan@rutgers.edu), with addition of
 # constraining dither offsets to be within an inscribed hexagon (code modifications for use here by LJ).
+
 
 def setupDitherStackers(raCol, decCol, degrees, **kwargs):
     b = BaseStacker()
@@ -106,11 +116,14 @@ def inHexagon(xOff, yOff, maxDither):
     b = m * maxDither
     h = m / 2.0 * maxDither
     # Identify offsets inside hexagon.
-    inside = np.where((yOff < m * xOff + b) &
-                      (yOff > m * xOff - b) &
-                      (yOff < -m * xOff + b) &
-                      (yOff > -m * xOff - b) &
-                      (yOff < h) & (yOff > -h))[0]
+    inside = np.where(
+        (yOff < m * xOff + b)
+        & (yOff > m * xOff - b)
+        & (yOff < -m * xOff + b)
+        & (yOff > -m * xOff - b)
+        & (yOff < h)
+        & (yOff > -h)
+    )[0]
     return inside
 
 
@@ -168,10 +181,17 @@ class BaseDitherStacker(BaseStacker):
         If False, offsets can lie anywhere out to the edges of the maxDither circle.
         Default True.
     """
+
     colsAdded = []
 
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True,
-                 maxDither=1.75, inHex=True):
+    def __init__(
+        self,
+        raCol="fieldRA",
+        decCol="fieldDec",
+        degrees=True,
+        maxDither=1.75,
+        inHex=True,
+    ):
         # Instantiate the RandomDither object and set internal variables.
         self.raCol = raCol
         self.decCol = decCol
@@ -181,9 +201,9 @@ class BaseDitherStacker(BaseStacker):
         self.inHex = inHex
         # self.units used for plot labels
         if self.degrees:
-            self.units = ['deg', 'deg']
+            self.units = ["deg", "deg"]
         else:
-            self.units = ['rad', 'rad']
+            self.units = ["rad", "rad"]
         # Values required for framework operation: this specifies the data columns required from the database.
         self.colsReq = [self.raCol, self.decCol]
 
@@ -214,15 +234,29 @@ class RandomDitherFieldPerVisitStacker(BaseDitherStacker):
         If set, then used as the random seed for the numpy random number generation for the dither offsets.
         Default None.
     """
-    # Values required for framework operation: this specifies the name of the new columns.
-    colsAdded = ['randomDitherFieldPerVisitRa', 'randomDitherFieldPerVisitDec']
 
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True, maxDither=1.75,
-                 inHex=True, randomSeed=None):
+    # Values required for framework operation: this specifies the name of the new columns.
+    colsAdded = ["randomDitherFieldPerVisitRa", "randomDitherFieldPerVisitDec"]
+
+    def __init__(
+        self,
+        raCol="fieldRA",
+        decCol="fieldDec",
+        degrees=True,
+        maxDither=1.75,
+        inHex=True,
+        randomSeed=None,
+    ):
         """
         @ MaxDither in degrees
         """
-        super().__init__(raCol=raCol, decCol=decCol, degrees=degrees, maxDither=maxDither, inHex=inHex)
+        super().__init__(
+            raCol=raCol,
+            decCol=decCol,
+            degrees=degrees,
+            maxDither=maxDither,
+            inHex=inHex,
+        )
         self.randomSeed = randomSeed
 
     def _generateRandomOffsets(self, noffsets):
@@ -244,8 +278,10 @@ class RandomDitherFieldPerVisitStacker(BaseDitherStacker):
             yOut = np.concatenate([yOut, yOff])
             tries += 1
         if len(xOut) < noffsets:
-            raise ValueError('Could not find enough random points within the hexagon in %d tries. '
-                             'Try another random seed?' % (maxTries))
+            raise ValueError(
+                "Could not find enough random points within the hexagon in %d tries. "
+                "Try another random seed?" % (maxTries)
+            )
         self.xOff = xOut[0:noffsets]
         self.yOff = yOut[0:noffsets]
 
@@ -254,7 +290,7 @@ class RandomDitherFieldPerVisitStacker(BaseDitherStacker):
             # Column already present in data; assume it is correct and does not need recalculating.
             return simData
         # Generate random numbers for dither, using defined seed value if desired.
-        if not hasattr(self, '_rng'):
+        if not hasattr(self, "_rng"):
             if self.randomSeed is not None:
                 self._rng = np.random.RandomState(self.randomSeed)
             else:
@@ -270,11 +306,16 @@ class RandomDitherFieldPerVisitStacker(BaseDitherStacker):
         else:
             ra = simData[self.raCol]
             dec = simData[self.decCol]
-        simData['randomDitherFieldPerVisitRa'] = (ra + self.xOff / np.cos(dec))
-        simData['randomDitherFieldPerVisitDec'] = dec + self.yOff
+        simData["randomDitherFieldPerVisitRa"] = ra + self.xOff / np.cos(dec)
+        simData["randomDitherFieldPerVisitDec"] = dec + self.yOff
         # Wrap back into expected range.
-        simData['randomDitherFieldPerVisitRa'], simData['randomDitherFieldPerVisitDec'] = \
-            wrapRADec(simData['randomDitherFieldPerVisitRa'], simData['randomDitherFieldPerVisitDec'])
+        (
+            simData["randomDitherFieldPerVisitRa"],
+            simData["randomDitherFieldPerVisitDec"],
+        ) = wrapRADec(
+            simData["randomDitherFieldPerVisitRa"],
+            simData["randomDitherFieldPerVisitDec"],
+        )
         # Convert to degrees
         if self.degrees:
             for col in self.colsAdded:
@@ -316,17 +357,33 @@ class RandomDitherFieldPerNightStacker(RandomDitherFieldPerVisitStacker):
         If set, then used as the random seed for the numpy random number generation for the dither offsets.
         Default None.
     """
-    # Values required for framework operation: this specifies the names of the new columns.
-    colsAdded = ['randomDitherFieldPerNightRa', 'randomDitherFieldPerNightDec']
 
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True, fieldIdCol='fieldId',
-                 nightCol='night', maxDither=1.75, inHex=True, randomSeed=None):
+    # Values required for framework operation: this specifies the names of the new columns.
+    colsAdded = ["randomDitherFieldPerNightRa", "randomDitherFieldPerNightDec"]
+
+    def __init__(
+        self,
+        raCol="fieldRA",
+        decCol="fieldDec",
+        degrees=True,
+        fieldIdCol="fieldId",
+        nightCol="night",
+        maxDither=1.75,
+        inHex=True,
+        randomSeed=None,
+    ):
         """
         @ MaxDither in degrees
         """
         # Instantiate the RandomDither object and set internal variables.
-        super().__init__(raCol=raCol, decCol=decCol, degrees=degrees,
-                         maxDither=maxDither, inHex=inHex, randomSeed=randomSeed)
+        super().__init__(
+            raCol=raCol,
+            decCol=decCol,
+            degrees=degrees,
+            maxDither=maxDither,
+            inHex=inHex,
+            randomSeed=randomSeed,
+        )
         self.nightCol = nightCol
         self.fieldIdCol = fieldIdCol
         # Values required for framework operation: this specifies the data columns required from the database.
@@ -336,7 +393,7 @@ class RandomDitherFieldPerNightStacker(RandomDitherFieldPerVisitStacker):
         if cols_present:
             return simData
         # Generate random numbers for dither, using defined seed value if desired.
-        if not hasattr(self, '_rng'):
+        if not hasattr(self, "_rng"):
             if self.randomSeed is not None:
                 self._rng = np.random.RandomState(self.randomSeed)
             else:
@@ -363,14 +420,20 @@ class RandomDitherFieldPerNightStacker(RandomDitherFieldPerVisitStacker):
             vertexIdxs = vertexIdxs % len(self.xOff)
             # ensure that the same xOff/yOff entries are not chosen
             delta = delta + len(vertexIdxs)
-            simData['randomDitherFieldPerNightRa'][match] = (ra[match] +
-                                                             self.xOff[vertexIdxs] /
-                                                             np.cos(dec[match]))
-            simData['randomDitherFieldPerNightDec'][match] = (dec[match] +
-                                                              self.yOff[vertexIdxs])
+            simData["randomDitherFieldPerNightRa"][match] = ra[match] + self.xOff[
+                vertexIdxs
+            ] / np.cos(dec[match])
+            simData["randomDitherFieldPerNightDec"][match] = (
+                dec[match] + self.yOff[vertexIdxs]
+            )
         # Wrap into expected range.
-        simData['randomDitherFieldPerNightRa'], simData['randomDitherFieldPerNightDec'] = \
-            wrapRADec(simData['randomDitherFieldPerNightRa'], simData['randomDitherFieldPerNightDec'])
+        (
+            simData["randomDitherFieldPerNightRa"],
+            simData["randomDitherFieldPerNightDec"],
+        ) = wrapRADec(
+            simData["randomDitherFieldPerNightRa"],
+            simData["randomDitherFieldPerNightDec"],
+        )
         if self.degrees:
             for col in self.colsAdded:
                 simData[col] = np.degrees(simData[col])
@@ -407,17 +470,32 @@ class RandomDitherPerNightStacker(RandomDitherFieldPerVisitStacker):
         If set, then used as the random seed for the numpy random number generation for the dither offsets.
         Default None.
     """
-    # Values required for framework operation: this specifies the names of the new columns.
-    colsAdded = ['randomDitherPerNightRa', 'randomDitherPerNightDec']
 
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True, nightCol='night',
-                 maxDither=1.75, inHex=True, randomSeed=None):
+    # Values required for framework operation: this specifies the names of the new columns.
+    colsAdded = ["randomDitherPerNightRa", "randomDitherPerNightDec"]
+
+    def __init__(
+        self,
+        raCol="fieldRA",
+        decCol="fieldDec",
+        degrees=True,
+        nightCol="night",
+        maxDither=1.75,
+        inHex=True,
+        randomSeed=None,
+    ):
         """
         @ MaxDither in degrees
         """
         # Instantiate the RandomDither object and set internal variables.
-        super().__init__(raCol=raCol, decCol=decCol, degrees=degrees,
-                         maxDither=maxDither, inHex=inHex, randomSeed=randomSeed)
+        super().__init__(
+            raCol=raCol,
+            decCol=decCol,
+            degrees=degrees,
+            maxDither=maxDither,
+            inHex=inHex,
+            randomSeed=randomSeed,
+        )
         self.nightCol = nightCol
         # Values required for framework operation: this specifies the data columns required from the database.
         self.colsReq = [self.raCol, self.decCol, self.nightCol]
@@ -426,7 +504,7 @@ class RandomDitherPerNightStacker(RandomDitherFieldPerVisitStacker):
         if cols_present:
             return simData
         # Generate random numbers for dither, using defined seed value if desired.
-        if not hasattr(self, '_rng'):
+        if not hasattr(self, "_rng"):
             if self.randomSeed is not None:
                 self._rng = np.random.RandomState(self.randomSeed)
             else:
@@ -444,12 +522,17 @@ class RandomDitherPerNightStacker(RandomDitherFieldPerVisitStacker):
         # Add to RA and dec values.
         for n, x, y in zip(nights, self.xOff, self.yOff):
             match = np.where(simData[self.nightCol] == n)[0]
-            simData['randomDitherPerNightRa'][match] = (ra[match] +
-                                                        x / np.cos(dec[match]))
-            simData['randomDitherPerNightDec'][match] = dec[match] + y
+            simData["randomDitherPerNightRa"][match] = ra[match] + x / np.cos(
+                dec[match]
+            )
+            simData["randomDitherPerNightDec"][match] = dec[match] + y
         # Wrap RA/Dec into expected range.
-        simData['randomDitherPerNightRa'], simData['randomDitherPerNightDec'] = \
-            wrapRADec(simData['randomDitherPerNightRa'], simData['randomDitherPerNightDec'])
+        (
+            simData["randomDitherPerNightRa"],
+            simData["randomDitherPerNightDec"],
+        ) = wrapRADec(
+            simData["randomDitherPerNightRa"], simData["randomDitherPerNightDec"]
+        )
         if self.degrees:
             for col in self.colsAdded:
                 simData[col] = np.degrees(simData[col])
@@ -489,15 +572,31 @@ class SpiralDitherFieldPerVisitStacker(BaseDitherStacker):
         If False, offsets can lie anywhere out to the edges of the maxDither circle.
         Default True.
     """
-    # Values required for framework operation: this specifies the names of the new columns.
-    colsAdded = ['spiralDitherFieldPerVisitRa', 'spiralDitherFieldPerVisitDec']
 
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True, fieldIdCol='fieldId',
-                 numPoints=60, maxDither=1.75, nCoils=5, inHex=True):
+    # Values required for framework operation: this specifies the names of the new columns.
+    colsAdded = ["spiralDitherFieldPerVisitRa", "spiralDitherFieldPerVisitDec"]
+
+    def __init__(
+        self,
+        raCol="fieldRA",
+        decCol="fieldDec",
+        degrees=True,
+        fieldIdCol="fieldId",
+        numPoints=60,
+        maxDither=1.75,
+        nCoils=5,
+        inHex=True,
+    ):
         """
         @ MaxDither in degrees
         """
-        super().__init__(raCol=raCol, decCol=decCol, degrees=degrees, maxDither=maxDither, inHex=inHex)
+        super().__init__(
+            raCol=raCol,
+            decCol=decCol,
+            degrees=degrees,
+            maxDither=maxDither,
+            inHex=inHex,
+        )
         self.fieldIdCol = fieldIdCol
         # Convert maxDither from degrees (internal units for ra/dec are radians)
         self.numPoints = numPoints
@@ -507,16 +606,23 @@ class SpiralDitherFieldPerVisitStacker(BaseDitherStacker):
 
     def _generateSpiralOffsets(self):
         # First generate a full archimedean spiral ..
-        theta = np.arange(0.0001, self.nCoils * np.pi * 2., 0.001)
-        a = self.maxDither/theta.max()
+        theta = np.arange(0.0001, self.nCoils * np.pi * 2.0, 0.001)
+        a = self.maxDither / theta.max()
         if self.inHex:
             a = 0.85 * a
         r = theta * a
         # Then pick out equidistant points along the spiral.
-        arc = a / 2.0 * (theta * np.sqrt(1 + theta**2) + np.log(theta + np.sqrt(1 + theta**2)))
-        stepsize = arc.max()/float(self.numPoints)
+        arc = (
+            a
+            / 2.0
+            * (
+                theta * np.sqrt(1 + theta ** 2)
+                + np.log(theta + np.sqrt(1 + theta ** 2))
+            )
+        )
+        stepsize = arc.max() / float(self.numPoints)
         arcpts = np.arange(0, arc.max(), stepsize)
-        arcpts = arcpts[0:self.numPoints]
+        arcpts = arcpts[0 : self.numPoints]
         rpts = np.zeros(self.numPoints, float)
         thetapts = np.zeros(self.numPoints, float)
         for i, ap in enumerate(arcpts):
@@ -545,14 +651,20 @@ class SpiralDitherFieldPerVisitStacker(BaseDitherStacker):
             # Apply sequential dithers, increasing with each visit.
             vertexIdxs = np.arange(0, len(match), 1)
             vertexIdxs = vertexIdxs % self.numPoints
-            simData['spiralDitherFieldPerVisitRa'][match] = (ra[match] +
-                                                             self.xOff[vertexIdxs] /
-                                                             np.cos(dec[match]))
-            simData['spiralDitherFieldPerVisitDec'][match] = (dec[match] +
-                                                              self.yOff[vertexIdxs])
+            simData["spiralDitherFieldPerVisitRa"][match] = ra[match] + self.xOff[
+                vertexIdxs
+            ] / np.cos(dec[match])
+            simData["spiralDitherFieldPerVisitDec"][match] = (
+                dec[match] + self.yOff[vertexIdxs]
+            )
         # Wrap into expected range.
-        simData['spiralDitherFieldPerVisitRa'], simData['spiralDitherFieldPerVisitDec'] = \
-            wrapRADec(simData['spiralDitherFieldPerVisitRa'], simData['spiralDitherFieldPerVisitDec'])
+        (
+            simData["spiralDitherFieldPerVisitRa"],
+            simData["spiralDitherFieldPerVisitDec"],
+        ) = wrapRADec(
+            simData["spiralDitherFieldPerVisitRa"],
+            simData["spiralDitherFieldPerVisitDec"],
+        )
         if self.degrees:
             for col in self.colsAdded:
                 simData[col] = np.degrees(simData[col])
@@ -595,16 +707,35 @@ class SpiralDitherFieldPerNightStacker(SpiralDitherFieldPerVisitStacker):
         If False, offsets can lie anywhere out to the edges of the maxDither circle.
         Default True.
     """
-    # Values required for framework operation: this specifies the names of the new columns.
-    colsAdded = ['spiralDitherFieldPerNightRa', 'spiralDitherFieldPerNightDec']
 
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True, fieldIdCol='fieldId',
-                 nightCol='night', numPoints=60, maxDither=1.75, nCoils=5, inHex=True):
+    # Values required for framework operation: this specifies the names of the new columns.
+    colsAdded = ["spiralDitherFieldPerNightRa", "spiralDitherFieldPerNightDec"]
+
+    def __init__(
+        self,
+        raCol="fieldRA",
+        decCol="fieldDec",
+        degrees=True,
+        fieldIdCol="fieldId",
+        nightCol="night",
+        numPoints=60,
+        maxDither=1.75,
+        nCoils=5,
+        inHex=True,
+    ):
         """
         @ MaxDither in degrees
         """
-        super().__init__(raCol=raCol, decCol=decCol, degrees=degrees, fieldIdCol=fieldIdCol,
-                         numPoints=numPoints, maxDither=maxDither, nCoils=nCoils, inHex=inHex)
+        super().__init__(
+            raCol=raCol,
+            decCol=decCol,
+            degrees=degrees,
+            fieldIdCol=fieldIdCol,
+            numPoints=numPoints,
+            maxDither=maxDither,
+            nCoils=nCoils,
+            inHex=inHex,
+        )
         self.nightCol = nightCol
         # Values required for framework operation: this specifies the data columns required from the database.
         self.colsReq.append(self.nightCol)
@@ -626,14 +757,20 @@ class SpiralDitherFieldPerNightStacker(SpiralDitherFieldPerVisitStacker):
             nights = simData[self.nightCol][match]
             vertexIdxs = np.searchsorted(np.unique(nights), nights)
             vertexIdxs = vertexIdxs % self.numPoints
-            simData['spiralDitherFieldPerNightRa'][match] = (ra[match] +
-                                                             self.xOff[vertexIdxs] /
-                                                             np.cos(dec[match]))
-            simData['spiralDitherFieldPerNightDec'][match] = (dec[match] +
-                                                              self.yOff[vertexIdxs])
+            simData["spiralDitherFieldPerNightRa"][match] = ra[match] + self.xOff[
+                vertexIdxs
+            ] / np.cos(dec[match])
+            simData["spiralDitherFieldPerNightDec"][match] = (
+                dec[match] + self.yOff[vertexIdxs]
+            )
         # Wrap into expected range.
-        simData['spiralDitherFieldPerNightRa'], simData['spiralDitherFieldPerNightDec'] = \
-            wrapRADec(simData['spiralDitherFieldPerNightRa'], simData['spiralDitherFieldPerNightDec'])
+        (
+            simData["spiralDitherFieldPerNightRa"],
+            simData["spiralDitherFieldPerNightDec"],
+        ) = wrapRADec(
+            simData["spiralDitherFieldPerNightRa"],
+            simData["spiralDitherFieldPerNightDec"],
+        )
         if self.degrees:
             for col in self.colsAdded:
                 simData[col] = np.degrees(simData[col])
@@ -676,16 +813,35 @@ class SpiralDitherPerNightStacker(SpiralDitherFieldPerVisitStacker):
         If False, offsets can lie anywhere out to the edges of the maxDither circle.
         Default True.
     """
-    # Values required for framework operation: this specifies the names of the new columns.
-    colsAdded = ['spiralDitherPerNightRa', 'spiralDitherPerNightDec']
 
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True, fieldIdCol='fieldId',
-                 nightCol='night', numPoints=60, maxDither=1.75, nCoils=5, inHex=True):
+    # Values required for framework operation: this specifies the names of the new columns.
+    colsAdded = ["spiralDitherPerNightRa", "spiralDitherPerNightDec"]
+
+    def __init__(
+        self,
+        raCol="fieldRA",
+        decCol="fieldDec",
+        degrees=True,
+        fieldIdCol="fieldId",
+        nightCol="night",
+        numPoints=60,
+        maxDither=1.75,
+        nCoils=5,
+        inHex=True,
+    ):
         """
         @ MaxDither in degrees
         """
-        super().__init__(raCol=raCol, decCol=decCol, degrees=degrees, fieldIdCol=fieldIdCol,
-                         numPoints=numPoints, maxDither=maxDither, nCoils=nCoils, inHex=inHex)
+        super().__init__(
+            raCol=raCol,
+            decCol=decCol,
+            degrees=degrees,
+            fieldIdCol=fieldIdCol,
+            numPoints=numPoints,
+            maxDither=maxDither,
+            nCoils=nCoils,
+            inHex=inHex,
+        )
         self.nightCol = nightCol
         # Values required for framework operation: this specifies the data columns required from the database.
         self.colsReq.append(self.nightCol)
@@ -704,12 +860,15 @@ class SpiralDitherPerNightStacker(SpiralDitherFieldPerVisitStacker):
         # Add to RA and dec values.
         vertexIdxs = np.searchsorted(nights, simData[self.nightCol])
         vertexIdxs = vertexIdxs % self.numPoints
-        simData['spiralDitherPerNightRa'] = (ra +
-                                             self.xOff[vertexIdxs] / np.cos(dec))
-        simData['spiralDitherPerNightDec'] = dec + self.yOff[vertexIdxs]
+        simData["spiralDitherPerNightRa"] = ra + self.xOff[vertexIdxs] / np.cos(dec)
+        simData["spiralDitherPerNightDec"] = dec + self.yOff[vertexIdxs]
         # Wrap RA/Dec into expected range.
-        simData['spiralDitherPerNightRa'], simData['spiralDitherPerNightDec'] = \
-            wrapRADec(simData['spiralDitherPerNightRa'], simData['spiralDitherPerNightDec'])
+        (
+            simData["spiralDitherPerNightRa"],
+            simData["spiralDitherPerNightDec"],
+        ) = wrapRADec(
+            simData["spiralDitherPerNightRa"], simData["spiralDitherPerNightDec"]
+        )
         if self.degrees:
             for col in self.colsAdded:
                 simData[col] = np.degrees(simData[col])
@@ -743,15 +902,29 @@ class HexDitherFieldPerVisitStacker(BaseDitherStacker):
         If False, offsets can lie anywhere out to the edges of the maxDither circle.
         Default True.
     """
-    # Values required for framework operation: this specifies the names of the new columns.
-    colsAdded = ['hexDitherFieldPerVisitRa', 'hexDitherFieldPerVisitDec']
 
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True,
-                 fieldIdCol='fieldId', maxDither=1.75, inHex=True):
+    # Values required for framework operation: this specifies the names of the new columns.
+    colsAdded = ["hexDitherFieldPerVisitRa", "hexDitherFieldPerVisitDec"]
+
+    def __init__(
+        self,
+        raCol="fieldRA",
+        decCol="fieldDec",
+        degrees=True,
+        fieldIdCol="fieldId",
+        maxDither=1.75,
+        inHex=True,
+    ):
         """
         @ MaxDither in degrees
         """
-        super().__init__(raCol=raCol, decCol=decCol, degrees=degrees, maxDither=maxDither, inHex=inHex)
+        super().__init__(
+            raCol=raCol,
+            decCol=decCol,
+            degrees=degrees,
+            maxDither=maxDither,
+            inHex=inHex,
+        )
         self.fieldIdCol = fieldIdCol
         # Values required for framework operation: this specifies the data columns required from the database.
         self.colsReq = [self.raCol, self.decCol, self.fieldIdCol]
@@ -759,11 +932,13 @@ class HexDitherFieldPerVisitStacker(BaseDitherStacker):
     def _generateHexOffsets(self):
         # Set up basics of dither pattern.
         dith_level = 4
-        nrows = 2**dith_level
-        halfrows = int(nrows / 2.)
+        nrows = 2 ** dith_level
+        halfrows = int(nrows / 2.0)
         # Calculate size of each offset
         dith_size_x = self.maxDither * 2.0 / float(nrows)
-        dith_size_y = np.sqrt(3) * self.maxDither / float(nrows)  # sqrt 3 comes from hexagon
+        dith_size_y = (
+            np.sqrt(3) * self.maxDither / float(nrows)
+        )  # sqrt 3 comes from hexagon
         if self.inHex:
             dith_size_x = 0.95 * dith_size_x
             dith_size_y = 0.95 * dith_size_y
@@ -774,13 +949,13 @@ class HexDitherFieldPerVisitStacker(BaseDitherStacker):
         # First calculate how many vertices we will create in each row.
         total_vert = 0
         for i in range(-halfrows, halfrows + 1, 1):
-            vert_in_row[i] = (nrows+1) - abs(nid_row[i])
+            vert_in_row[i] = (nrows + 1) - abs(nid_row[i])
             total_vert += vert_in_row[i]
         self.numPoints = total_vert
         self.xOff = []
         self.yOff = []
         # Calculate offsets over hexagonal grid.
-        for i in range(0, nrows+1, 1):
+        for i in range(0, nrows + 1, 1):
             for j in range(0, vert_in_row[i], 1):
                 self.xOff.append(dith_size_x * (j - (vert_in_row[i] - 1) / 2.0))
                 self.yOff.append(dith_size_y * nid_row[i])
@@ -803,13 +978,19 @@ class HexDitherFieldPerVisitStacker(BaseDitherStacker):
             # Apply sequential dithers, increasing with each visit.
             vertexIdxs = np.arange(0, len(match), 1)
             vertexIdxs = vertexIdxs % self.numPoints
-            simData['hexDitherFieldPerVisitRa'][match] = (ra[match] +
-                                                          self.xOff[vertexIdxs] /
-                                                          np.cos(dec[match]))
-            simData['hexDitherFieldPerVisitDec'][match] = dec[match] + self.yOff[vertexIdxs]
+            simData["hexDitherFieldPerVisitRa"][match] = ra[match] + self.xOff[
+                vertexIdxs
+            ] / np.cos(dec[match])
+            simData["hexDitherFieldPerVisitDec"][match] = (
+                dec[match] + self.yOff[vertexIdxs]
+            )
         # Wrap into expected range.
-        simData['hexDitherFieldPerVisitRa'], simData['hexDitherFieldPerVisitDec'] = \
-            wrapRADec(simData['hexDitherFieldPerVisitRa'], simData['hexDitherFieldPerVisitDec'])
+        (
+            simData["hexDitherFieldPerVisitRa"],
+            simData["hexDitherFieldPerVisitDec"],
+        ) = wrapRADec(
+            simData["hexDitherFieldPerVisitRa"], simData["hexDitherFieldPerVisitDec"]
+        )
         if self.degrees:
             for col in self.colsAdded:
                 simData[col] = np.degrees(simData[col])
@@ -846,17 +1027,31 @@ class HexDitherFieldPerNightStacker(HexDitherFieldPerVisitStacker):
         If False, offsets can lie anywhere out to the edges of the maxDither circle.
         Default True.
     """
-    # Values required for framework operation: this specifies the names of the new columns.
-    colsAdded = ['hexDitherFieldPerNightRa', 'hexDitherFieldPerNightDec']
 
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True,
-                 fieldIdCol='fieldId', nightCol='night',
-                 maxDither=1.75, inHex=True):
+    # Values required for framework operation: this specifies the names of the new columns.
+    colsAdded = ["hexDitherFieldPerNightRa", "hexDitherFieldPerNightDec"]
+
+    def __init__(
+        self,
+        raCol="fieldRA",
+        decCol="fieldDec",
+        degrees=True,
+        fieldIdCol="fieldId",
+        nightCol="night",
+        maxDither=1.75,
+        inHex=True,
+    ):
         """
         @ MaxDither in degrees
         """
-        super().__init__(raCol=raCol, decCol=decCol, fieldIdCol=fieldIdCol,
-                         degrees=degrees, maxDither=maxDither, inHex=inHex)
+        super().__init__(
+            raCol=raCol,
+            decCol=decCol,
+            fieldIdCol=fieldIdCol,
+            degrees=degrees,
+            maxDither=maxDither,
+            inHex=inHex,
+        )
         self.nightCol = nightCol
         # Values required for framework operation: this specifies the data columns required from the database.
         self.colsReq.append(self.nightCol)
@@ -879,14 +1074,19 @@ class HexDitherFieldPerNightStacker(HexDitherFieldPerVisitStacker):
             nights = simData[self.nightCol][match]
             vertexIdxs = np.searchsorted(np.unique(nights), nights)
             vertexIdxs = vertexIdxs % self.numPoints
-            simData['hexDitherFieldPerNightRa'][match] = (ra[match] +
-                                                          self.xOff[vertexIdxs] /
-                                                          np.cos(dec[match]))
-            simData['hexDitherFieldPerNightDec'][match] = (dec[match] +
-                                                           self.yOff[vertexIdxs])
+            simData["hexDitherFieldPerNightRa"][match] = ra[match] + self.xOff[
+                vertexIdxs
+            ] / np.cos(dec[match])
+            simData["hexDitherFieldPerNightDec"][match] = (
+                dec[match] + self.yOff[vertexIdxs]
+            )
         # Wrap into expected range.
-        simData['hexDitherFieldPerNightRa'], simData['hexDitherFieldPerNightDec'] = \
-            wrapRADec(simData['hexDitherFieldPerNightRa'], simData['hexDitherFieldPerNightDec'])
+        (
+            simData["hexDitherFieldPerNightRa"],
+            simData["hexDitherFieldPerNightDec"],
+        ) = wrapRADec(
+            simData["hexDitherFieldPerNightRa"], simData["hexDitherFieldPerNightDec"]
+        )
         if self.degrees:
             for col in self.colsAdded:
                 simData[col] = np.degrees(simData[col])
@@ -923,16 +1123,31 @@ class HexDitherPerNightStacker(HexDitherFieldPerVisitStacker):
         If False, offsets can lie anywhere out to the edges of the maxDither circle.
         Default True.
     """
-    # Values required for framework operation: this specifies the names of the new columns.
-    colsAdded = ['hexDitherPerNightRa', 'hexDitherPerNightDec']
 
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True, fieldIdCol='fieldId',
-                 nightCol='night', maxDither=1.75, inHex=True):
+    # Values required for framework operation: this specifies the names of the new columns.
+    colsAdded = ["hexDitherPerNightRa", "hexDitherPerNightDec"]
+
+    def __init__(
+        self,
+        raCol="fieldRA",
+        decCol="fieldDec",
+        degrees=True,
+        fieldIdCol="fieldId",
+        nightCol="night",
+        maxDither=1.75,
+        inHex=True,
+    ):
         """
         @ MaxDither in degrees
         """
-        super().__init__(raCol=raCol, decCol=decCol, degrees=degrees,
-                         fieldIdCol=fieldIdCol, maxDither=maxDither, inHex=inHex)
+        super().__init__(
+            raCol=raCol,
+            decCol=decCol,
+            degrees=degrees,
+            fieldIdCol=fieldIdCol,
+            maxDither=maxDither,
+            inHex=inHex,
+        )
         self.nightCol = nightCol
         # Values required for framework operation: this specifies the data columns required from the database.
         self.colsReq.append(self.nightCol)
@@ -956,12 +1171,15 @@ class HexDitherPerNightStacker(HexDitherFieldPerVisitStacker):
         for n in nights:
             match = np.where(simData[self.nightCol] == n)[0]
             vertexID = vertexID % self.numPoints
-            simData[self.addedRA][match] = (ra[match] + self.xOff[vertexID] / np.cos(dec[match]))
+            simData[self.addedRA][match] = ra[match] + self.xOff[vertexID] / np.cos(
+                dec[match]
+            )
             simData[self.addedDec][match] = dec[match] + self.yOff[vertexID]
             vertexID += 1
         # Wrap RA/Dec into expected range.
-        simData[self.addedRA], simData[self.addedDec] = \
-            wrapRADec(simData[self.addedRA], simData[self.addedDec])
+        simData[self.addedRA], simData[self.addedDec] = wrapRADec(
+            simData[self.addedRA], simData[self.addedDec]
+        )
         if self.degrees:
             for col in self.colsAdded:
                 simData[col] = np.degrees(simData[col])
@@ -1005,12 +1223,21 @@ class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
         rotTelPos for cases when no dither is applied.
         Default: False
     """
-    # Values required for framework operation: this specifies the names of the new columns.
-    colsAdded = ['randomDitherPerFilterChangeRotTelPos']
 
-    def __init__(self, rotTelCol= 'rotTelPos', filterCol= 'filter', degrees=True,
-                 maxDither=90., maxRotAngle=90, minRotAngle=-90, randomSeed=None,
-                 debug=False):
+    # Values required for framework operation: this specifies the names of the new columns.
+    colsAdded = ["randomDitherPerFilterChangeRotTelPos"]
+
+    def __init__(
+        self,
+        rotTelCol="rotTelPos",
+        filterCol="filter",
+        degrees=True,
+        maxDither=90.0,
+        maxRotAngle=90,
+        minRotAngle=-90,
+        randomSeed=None,
+        debug=False,
+    ):
         # Instantiate the RandomDither object and set internal variables.
         self.rotTelCol = rotTelCol
         self.filterCol = filterCol
@@ -1021,9 +1248,9 @@ class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
         self.randomSeed = randomSeed
         # self.units used for plot labels
         if self.degrees:
-            self.units = ['deg']
+            self.units = ["deg"]
         else:
-            self.units = ['rad']
+            self.units = ["rad"]
             # Convert user-specified values into radians as well.
             self.maxDither = np.radians(self.maxDither)
             self.maxRotAngle = np.radians(self.maxRotAngle)
@@ -1034,7 +1261,8 @@ class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
         self.colsReq = [self.rotTelCol, self.filterCol]
 
     def _run(self, simData, cols_present=False):
-        if self.debug: import matplotlib.pyplot as plt
+        if self.debug:
+            import matplotlib.pyplot as plt
 
         # Just go ahead and return if the columns were already in place.
         if cols_present:
@@ -1042,25 +1270,31 @@ class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
 
         # Generate random numbers for dither, using defined seed value if desired.
         # Note that we must define the random state for np.random, to ensure consistency in the build system.
-        if not hasattr(self, '_rng'):
+        if not hasattr(self, "_rng"):
             if self.randomSeed is not None:
                 self._rng = np.random.RandomState(self.randomSeed)
             else:
                 self._rng = np.random.RandomState(544320)
 
-        if len(np.where(simData[self.rotTelCol]>self.maxRotAngle)[0]) > 0:
-            warnings.warn('Input data does not respect the specified maxRotAngle constraint: '
-                          '(Re)Setting maxRotAngle to max value in the input data: %s'
-                          % max(simData[self.rotTelCol]))
+        if len(np.where(simData[self.rotTelCol] > self.maxRotAngle)[0]) > 0:
+            warnings.warn(
+                "Input data does not respect the specified maxRotAngle constraint: "
+                "(Re)Setting maxRotAngle to max value in the input data: %s"
+                % max(simData[self.rotTelCol])
+            )
             self.maxRotAngle = max(simData[self.rotTelCol])
-        if len(np.where(simData[self.rotTelCol]<self.minRotAngle)[0]) > 0:
-            warnings.warn('Input data does not respect the specified minRotAngle constraint: '
-                          '(Re)Setting minRotAngle to min value in the input data: %s'
-                          % min(simData[self.rotTelCol]))
+        if len(np.where(simData[self.rotTelCol] < self.minRotAngle)[0]) > 0:
+            warnings.warn(
+                "Input data does not respect the specified minRotAngle constraint: "
+                "(Re)Setting minRotAngle to min value in the input data: %s"
+                % min(simData[self.rotTelCol])
+            )
             self.minRotAngle = min(simData[self.rotTelCol])
 
         # Identify points where the filter changes.
-        changeIdxs = np.where(simData[self.filterCol][1:] != simData[self.filterCol][:-1])[0]
+        changeIdxs = np.where(
+            simData[self.filterCol][1:] != simData[self.filterCol][:-1]
+        )[0]
 
         # Add the random offsets to the RotTelPos values.
         rotDither = self.colsAdded[0]
@@ -1086,57 +1320,79 @@ class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
             # Loop over the filter change indexes (current filter change, next filter change) to identify
             # sets of visits that should have the same offset.
             for (c, cn) in zip(changeIdxs, changeIdxs[1:]):
-                randomOffsets = self._rng.rand(maxNum + 1) * 2.0 * self.maxDither - self.maxDither
+                randomOffsets = (
+                    self._rng.rand(maxNum + 1) * 2.0 * self.maxDither - self.maxDither
+                )
                 i = 0
                 potential_offset = randomOffsets[i]
                 # Calculate new rotTelPos values, if we used this offset.
-                new_rotTel = simData[self.rotTelCol][c+1:cn+1] + potential_offset
+                new_rotTel = simData[self.rotTelCol][c + 1 : cn + 1] + potential_offset
                 # Does it work? Do all values fall within minRotAngle / maxRotAngle?
-                goodToGo = (new_rotTel >= self.minRotAngle).all() and (new_rotTel <= self.maxRotAngle).all()
-                while ((not goodToGo) and (i < maxNum)):
+                goodToGo = (new_rotTel >= self.minRotAngle).all() and (
+                    new_rotTel <= self.maxRotAngle
+                ).all()
+                while (not goodToGo) and (i < maxNum):
                     # break if find a good offset or hit maxNum tries.
                     i += 1
                     potential_offset = randomOffsets[i]
-                    new_rotTel = simData[self.rotTelCol][c+1:cn+1] + potential_offset
-                    goodToGo = (new_rotTel >= self.minRotAngle).all() and \
-                               (new_rotTel <= self.maxRotAngle).all()
+                    new_rotTel = (
+                        simData[self.rotTelCol][c + 1 : cn + 1] + potential_offset
+                    )
+                    goodToGo = (new_rotTel >= self.minRotAngle).all() and (
+                        new_rotTel <= self.maxRotAngle
+                    ).all()
 
                 if not goodToGo:  # i.e. no good offset was found after maxNum tries
                     n_problematic_ones += 1
-                    rotOffset[c+1:cn+1] = 0. # no dither
+                    rotOffset[c + 1 : cn + 1] = 0.0  # no dither
                 else:
-                    rotOffset[c+1:cn+1] = randomOffsets[i]  # assign the chosen offset
+                    rotOffset[c + 1 : cn + 1] = randomOffsets[
+                        i
+                    ]  # assign the chosen offset
 
             # Handle the last set of observations (after the last filter change to the end of the survey).
-            randomOffsets = self._rng.rand(maxNum + 1) * 2.0 * self.maxDither - self.maxDither
+            randomOffsets = (
+                self._rng.rand(maxNum + 1) * 2.0 * self.maxDither - self.maxDither
+            )
             i = 0
             potential_offset = randomOffsets[i]
-            new_rotTel = simData[self.rotTelCol][changeIdxs[-1]+1:] + potential_offset
-            goodToGo = (new_rotTel >= self.minRotAngle).all() and (new_rotTel <= self.maxRotAngle).all()
-            while ((not goodToGo) and (i < maxNum)):
+            new_rotTel = (
+                simData[self.rotTelCol][changeIdxs[-1] + 1 :] + potential_offset
+            )
+            goodToGo = (new_rotTel >= self.minRotAngle).all() and (
+                new_rotTel <= self.maxRotAngle
+            ).all()
+            while (not goodToGo) and (i < maxNum):
                 # break if find a good offset or cant (after maxNum tries)
                 i += 1
                 potential_offset = randomOffsets[i]
-                new_rotTel = simData[self.rotTelCol][changeIdxs[-1]+1:] + potential_offset
-                goodToGo = (new_rotTel >= self.minRotAngle).all() and \
-                           (new_rotTel <= self.maxRotAngle).all()
+                new_rotTel = (
+                    simData[self.rotTelCol][changeIdxs[-1] + 1 :] + potential_offset
+                )
+                goodToGo = (new_rotTel >= self.minRotAngle).all() and (
+                    new_rotTel <= self.maxRotAngle
+                ).all()
 
             if not goodToGo:  # i.e. no good offset was found after maxNum tries
                 n_problematic_ones += 1
-                rotOffset[c+1:cn+1] = 0.
+                rotOffset[c + 1 : cn + 1] = 0.0
             else:
-                rotOffset[changeIdxs[-1]+1:] = potential_offset
+                rotOffset[changeIdxs[-1] + 1 :] = potential_offset
 
         # Assign the dithers
         simData[rotDither] = simData[self.rotTelCol] + rotOffset
 
         # Final check to make sure things are okay
-        goodToGo = (simData[rotDither] >= self.minRotAngle).all() and \
-                   (simData[rotDither] <= self.maxRotAngle).all()
+        goodToGo = (simData[rotDither] >= self.minRotAngle).all() and (
+            simData[rotDither] <= self.maxRotAngle
+        ).all()
         if not goodToGo:
-            message = 'Rotational offsets are not working properly:\n'
-            message += ' dithered rotTelPos: %s\n' % (simData[rotDither])
-            message += ' minRotAngle: %s ; maxRotAngle: %s' % (self.minRotAngle, self.maxRotAngle)
+            message = "Rotational offsets are not working properly:\n"
+            message += " dithered rotTelPos: %s\n" % (simData[rotDither])
+            message += " minRotAngle: %s ; maxRotAngle: %s" % (
+                self.minRotAngle,
+                self.maxRotAngle,
+            )
             raise ValueError(message)
         else:
             return simData

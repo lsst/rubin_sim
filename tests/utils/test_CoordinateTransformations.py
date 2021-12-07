@@ -14,11 +14,12 @@ def controlEquationOfEquinoxes(mjd):
 
     JD = mjd + 2400000.5
     D = JD - 2451545.0
-    omegaDegrees = 125.04 - 0.052954*D
-    Ldegrees = 280.47 + 0.98565*D
-    deltaPsiHours = -0.000319 * np.sin(np.radians(omegaDegrees)) \
-                    - 0.000024 * np.sin(2.0*np.radians(Ldegrees))
-    epsilonDegrees = 23.4393 - 0.0000004*D
+    omegaDegrees = 125.04 - 0.052954 * D
+    Ldegrees = 280.47 + 0.98565 * D
+    deltaPsiHours = -0.000319 * np.sin(np.radians(omegaDegrees)) - 0.000024 * np.sin(
+        2.0 * np.radians(Ldegrees)
+    )
+    epsilonDegrees = 23.4393 - 0.0000004 * D
     return (deltaPsiHours / 24.0) * 2.0 * np.pi * np.cos(np.radians(epsilonDegrees))
 
 
@@ -29,19 +30,18 @@ def controlCalcGmstGast(mjd):
     mjd_o = np.floor(mjd)
     jd = mjd + mjdConv
     jd_o = mjd_o + mjdConv
-    h = 24. * (jd - jd_o)
+    h = 24.0 * (jd - jd_o)
     d = jd - jd2000
     d_o = jd_o - jd2000
-    t = d / 36525.
-    gmst = 6.697374558 + 0.06570982441908*d_o + 1.00273790935 * h + 0.000026 * t**2
+    t = d / 36525.0
+    gmst = 6.697374558 + 0.06570982441908 * d_o + 1.00273790935 * h + 0.000026 * t ** 2
     gast = gmst + 24.0 * utils.equationOfEquinoxes(mjd) / (2.0 * np.pi)
-    gmst %= 24.
-    gast %= 24.
+    gmst %= 24.0
+    gast %= 24.0
     return gmst, gast
 
 
 class AngularSeparationTestCase(unittest.TestCase):
-
     def testAngSepExceptions(self):
         """
         Test that an exception is raised when you pass
@@ -57,11 +57,16 @@ class AngularSeparationTestCase(unittest.TestCase):
         dec2_arr = np.array([11.1, -45.0, -71.0])
 
         # test that everything runs
-        utils._angularSeparation(np.radians(ra1), np.radians(dec1),
-                                 np.radians(ra2), np.radians(dec2))
+        utils._angularSeparation(
+            np.radians(ra1), np.radians(dec1), np.radians(ra2), np.radians(dec2)
+        )
         utils.angularSeparation(ra1, dec1, ra2, dec2)
-        ans = utils._angularSeparation(np.radians(ra1_arr), np.radians(dec1_arr),
-                                       np.radians(ra2_arr), np.radians(dec2_arr))
+        ans = utils._angularSeparation(
+            np.radians(ra1_arr),
+            np.radians(dec1_arr),
+            np.radians(ra2_arr),
+            np.radians(dec2_arr),
+        )
         self.assertEqual(len(ans), 3)
         ans = utils.angularSeparation(ra1_arr, dec1_arr, ra2_arr, dec2_arr)
         self.assertEqual(len(ans), 3)
@@ -217,22 +222,22 @@ class AngularSeparationTestCase(unittest.TestCase):
         # bad inputs into angularSeparation().  The exception will come
         # from trying to convert a str with np.radians
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation('a', dec1, ra2, dec2)
+            utils._angularSeparation("a", dec1, ra2, dec2)
         self.assertIn("angularSeparation", context.exception.args[0])
         self.assertIn("number", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1, 'a', ra2, dec2)
+            utils._angularSeparation(ra1, "a", ra2, dec2)
         self.assertIn("angularSeparation", context.exception.args[0])
         self.assertIn("number", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1, dec1, 'a', dec2)
+            utils._angularSeparation(ra1, dec1, "a", dec2)
         self.assertIn("angularSeparation", context.exception.args[0])
         self.assertIn("number", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1, dec1, ra2, 'a')
+            utils._angularSeparation(ra1, dec1, ra2, "a")
         self.assertIn("angularSeparation", context.exception.args[0])
         self.assertIn("number", context.exception.args[0])
 
@@ -244,56 +249,59 @@ class AngularSeparationTestCase(unittest.TestCase):
         """
         rng = np.random.RandomState(99421)
         n_obj = 100
-        ra1 = rng.random_sample(n_obj)*2.0*np.pi
-        dec1 = rng.random_sample(n_obj)*np.pi - 0.5*np.pi
-        ra2 = rng.random_sample(n_obj)*2.0*np.pi
-        dec2 = rng.random_sample(n_obj)*np.pi - 0.5*np.pi
+        ra1 = rng.random_sample(n_obj) * 2.0 * np.pi
+        dec1 = rng.random_sample(n_obj) * np.pi - 0.5 * np.pi
+        ra2 = rng.random_sample(n_obj) * 2.0 * np.pi
+        dec2 = rng.random_sample(n_obj) * np.pi - 0.5 * np.pi
 
-        x1 = np.cos(dec1)*np.cos(ra1)
-        y1 = np.cos(dec1)*np.sin(ra1)
+        x1 = np.cos(dec1) * np.cos(ra1)
+        y1 = np.cos(dec1) * np.sin(ra1)
         z1 = np.sin(dec1)
 
-        x2 = np.cos(dec2)*np.cos(ra2)
-        y2 = np.cos(dec2)*np.sin(ra2)
+        x2 = np.cos(dec2) * np.cos(ra2)
+        y2 = np.cos(dec2) * np.sin(ra2)
         z2 = np.sin(dec2)
 
         test = utils._angularSeparation(ra1, dec1, ra2, dec2)
         test = np.cos(test)
-        control = x1*x2 + y1*y2 + z1*z2
+        control = x1 * x2 + y1 * y2 + z1 * z2
         np.testing.assert_array_almost_equal(test, control, decimal=15)
 
-        test = utils.angularSeparation(np.degrees(ra1), np.degrees(dec1),
-                                       np.degrees(ra2), np.degrees(dec2))
+        test = utils.angularSeparation(
+            np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
+        )
         test = np.cos(np.radians(test))
         np.testing.assert_array_almost_equal(test, control, decimal=15)
 
         # specifically test at the north pole
-        dec1 = np.ones(n_obj)*np.pi
-        x1 = np.cos(dec1)*np.cos(ra1)
-        y1 = np.cos(dec1)*np.sin(ra1)
+        dec1 = np.ones(n_obj) * np.pi
+        x1 = np.cos(dec1) * np.cos(ra1)
+        y1 = np.cos(dec1) * np.sin(ra1)
         z1 = np.sin(dec1)
-        control = x1*x2 + y1*y2 + z1*z2
+        control = x1 * x2 + y1 * y2 + z1 * z2
         test = utils._angularSeparation(ra1, dec1, ra2, dec2)
         test = np.cos(test)
         np.testing.assert_array_almost_equal(test, control, decimal=15)
 
-        test = utils.angularSeparation(np.degrees(ra1), np.degrees(dec1),
-                                       np.degrees(ra2), np.degrees(dec2))
+        test = utils.angularSeparation(
+            np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
+        )
         test = np.cos(np.radians(test))
         np.testing.assert_array_almost_equal(test, control, decimal=15)
 
         # specifically test at the south pole
-        dec1 = -1.0*np.ones(n_obj)*np.pi
-        x1 = np.cos(dec1)*np.cos(ra1)
-        y1 = np.cos(dec1)*np.sin(ra1)
+        dec1 = -1.0 * np.ones(n_obj) * np.pi
+        x1 = np.cos(dec1) * np.cos(ra1)
+        y1 = np.cos(dec1) * np.sin(ra1)
         z1 = np.sin(dec1)
-        control = x1*x2 + y1*y2 + z1*z2
+        control = x1 * x2 + y1 * y2 + z1 * z2
         test = utils._angularSeparation(ra1, dec1, ra2, dec2)
         test = np.cos(test)
         np.testing.assert_array_almost_equal(test, control, decimal=15)
 
-        test = utils.angularSeparation(np.degrees(ra1), np.degrees(dec1),
-                                       np.degrees(ra2), np.degrees(dec2))
+        test = utils.angularSeparation(
+            np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
+        )
         test = np.cos(np.radians(test))
         np.testing.assert_array_almost_equal(test, control, decimal=15)
 
@@ -307,57 +315,60 @@ class AngularSeparationTestCase(unittest.TestCase):
         rng = np.random.RandomState(99421)
         n_obj = 100
         for sgn in (-1.0, 1.0):
-            ra1 = sgn*(rng.random_sample(n_obj)*2.0*np.pi + 2.0*np.pi)
-            dec1 = sgn*(rng.random_sample(n_obj)*4.0*np.pi + 2.0*np.pi)
-            ra2 = sgn*(rng.random_sample(n_obj)*2.0*np.pi + 2.0*np.pi)
-            dec2 = sgn*(rng.random_sample(n_obj)*2.0*np.pi + 2.0*np.pi)
+            ra1 = sgn * (rng.random_sample(n_obj) * 2.0 * np.pi + 2.0 * np.pi)
+            dec1 = sgn * (rng.random_sample(n_obj) * 4.0 * np.pi + 2.0 * np.pi)
+            ra2 = sgn * (rng.random_sample(n_obj) * 2.0 * np.pi + 2.0 * np.pi)
+            dec2 = sgn * (rng.random_sample(n_obj) * 2.0 * np.pi + 2.0 * np.pi)
 
-            x1 = np.cos(dec1)*np.cos(ra1)
-            y1 = np.cos(dec1)*np.sin(ra1)
+            x1 = np.cos(dec1) * np.cos(ra1)
+            y1 = np.cos(dec1) * np.sin(ra1)
             z1 = np.sin(dec1)
 
-            x2 = np.cos(dec2)*np.cos(ra2)
-            y2 = np.cos(dec2)*np.sin(ra2)
+            x2 = np.cos(dec2) * np.cos(ra2)
+            y2 = np.cos(dec2) * np.sin(ra2)
             z2 = np.sin(dec2)
 
             test = utils._angularSeparation(ra1, dec1, ra2, dec2)
             test = np.cos(test)
-            control = x1*x2 + y1*y2 + z1*z2
+            control = x1 * x2 + y1 * y2 + z1 * z2
             np.testing.assert_array_almost_equal(test, control, decimal=14)
 
-            test = utils.angularSeparation(np.degrees(ra1), np.degrees(dec1),
-                                           np.degrees(ra2), np.degrees(dec2))
+            test = utils.angularSeparation(
+                np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
+            )
             test = np.cos(np.radians(test))
             np.testing.assert_array_almost_equal(test, control, decimal=14)
 
             # specifically test at the north pole
-            dec1 = np.ones(n_obj)*np.pi
-            x1 = np.cos(dec1)*np.cos(ra1)
-            y1 = np.cos(dec1)*np.sin(ra1)
+            dec1 = np.ones(n_obj) * np.pi
+            x1 = np.cos(dec1) * np.cos(ra1)
+            y1 = np.cos(dec1) * np.sin(ra1)
             z1 = np.sin(dec1)
-            control = x1*x2 + y1*y2 + z1*z2
+            control = x1 * x2 + y1 * y2 + z1 * z2
             test = utils._angularSeparation(ra1, dec1, ra2, dec2)
             test = np.cos(test)
             np.testing.assert_array_almost_equal(test, control, decimal=14)
 
-            test = utils.angularSeparation(np.degrees(ra1), np.degrees(dec1),
-                                           np.degrees(ra2), np.degrees(dec2))
+            test = utils.angularSeparation(
+                np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
+            )
             test = np.cos(np.radians(test))
-            dd = np.abs(test-control)
+            dd = np.abs(test - control)
             np.testing.assert_array_almost_equal(test, control, decimal=14)
 
             # specifically test at the south pole
-            dec1 = -1.0*np.ones(n_obj)*np.pi
-            x1 = np.cos(dec1)*np.cos(ra1)
-            y1 = np.cos(dec1)*np.sin(ra1)
+            dec1 = -1.0 * np.ones(n_obj) * np.pi
+            x1 = np.cos(dec1) * np.cos(ra1)
+            y1 = np.cos(dec1) * np.sin(ra1)
             z1 = np.sin(dec1)
-            control = x1*x2 + y1*y2 + z1*z2
+            control = x1 * x2 + y1 * y2 + z1 * z2
             test = utils._angularSeparation(ra1, dec1, ra2, dec2)
             test = np.cos(test)
             np.testing.assert_array_almost_equal(test, control, decimal=14)
 
-            test = utils.angularSeparation(np.degrees(ra1), np.degrees(dec1),
-                                           np.degrees(ra2), np.degrees(dec2))
+            test = utils.angularSeparation(
+                np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
+            )
             test = np.cos(np.radians(test))
             np.testing.assert_array_almost_equal(test, control, decimal=14)
 
@@ -368,19 +379,19 @@ class AngularSeparationTestCase(unittest.TestCase):
         as arguments.
         """
         rng = np.random.RandomState(831)
-        ra1 = rng.random_sample()*2.0*np.pi
-        dec1 = rng.random_sample()*np.pi-0.5*np.pi
-        ra2 = rng.random_sample()*2.0*np.pi
-        dec2 = rng.random_sample()*np.pi-0.5*np.pi
-        x1 = np.cos(dec1)*np.cos(ra1)
-        y1 = np.cos(dec1)*np.sin(ra1)
+        ra1 = rng.random_sample() * 2.0 * np.pi
+        dec1 = rng.random_sample() * np.pi - 0.5 * np.pi
+        ra2 = rng.random_sample() * 2.0 * np.pi
+        dec2 = rng.random_sample() * np.pi - 0.5 * np.pi
+        x1 = np.cos(dec1) * np.cos(ra1)
+        y1 = np.cos(dec1) * np.sin(ra1)
         z1 = np.sin(dec1)
 
-        x2 = np.cos(dec2)*np.cos(ra2)
-        y2 = np.cos(dec2)*np.sin(ra2)
+        x2 = np.cos(dec2) * np.cos(ra2)
+        y2 = np.cos(dec2) * np.sin(ra2)
         z2 = np.sin(dec2)
 
-        control = x1*x2 + y1*y2 + z1*z2
+        control = x1 * x2 + y1 * y2 + z1 * z2
 
         test = utils._angularSeparation(ra1, dec1, ra2, dec2)
         self.assertIsInstance(test, float)
@@ -398,11 +409,11 @@ class AngularSeparationTestCase(unittest.TestCase):
         self.assertAlmostEqual(control, test, 15)
 
         # try north pole
-        ra1 = 0.5*np.pi
-        x1 = np.cos(dec1)*np.cos(ra1)
-        y1 = np.cos(dec1)*np.sin(ra1)
+        ra1 = 0.5 * np.pi
+        x1 = np.cos(dec1) * np.cos(ra1)
+        y1 = np.cos(dec1) * np.sin(ra1)
         z1 = np.sin(dec1)
-        control = x1*x2 + y1*y2 + z1*z2
+        control = x1 * x2 + y1 * y2 + z1 * z2
 
         test = utils._angularSeparation(ra1, dec1, ra2, dec2)
         self.assertIsInstance(test, float)
@@ -420,19 +431,19 @@ class AngularSeparationTestCase(unittest.TestCase):
         self.assertAlmostEqual(control, test, 15)
 
         # do all of that in degrees
-        ra1 = rng.random_sample()*360.0
-        dec1 = rng.random_sample()*180.0-90.0
-        ra2 = rng.random_sample()*360.0
-        dec2 = rng.random_sample()*180.0-90.0
-        x1 = np.cos(np.radians(dec1))*np.cos(np.radians(ra1))
-        y1 = np.cos(np.radians(dec1))*np.sin(np.radians(ra1))
+        ra1 = rng.random_sample() * 360.0
+        dec1 = rng.random_sample() * 180.0 - 90.0
+        ra2 = rng.random_sample() * 360.0
+        dec2 = rng.random_sample() * 180.0 - 90.0
+        x1 = np.cos(np.radians(dec1)) * np.cos(np.radians(ra1))
+        y1 = np.cos(np.radians(dec1)) * np.sin(np.radians(ra1))
         z1 = np.sin(np.radians(dec1))
 
-        x2 = np.cos(np.radians(dec2))*np.cos(np.radians(ra2))
-        y2 = np.cos(np.radians(dec2))*np.sin(np.radians(ra2))
+        x2 = np.cos(np.radians(dec2)) * np.cos(np.radians(ra2))
+        y2 = np.cos(np.radians(dec2)) * np.sin(np.radians(ra2))
         z2 = np.sin(np.radians(dec2))
 
-        control = x1*x2 + y1*y2 + z1*z2
+        control = x1 * x2 + y1 * y2 + z1 * z2
 
         test = utils.angularSeparation(ra1, dec1, ra2, dec2)
         self.assertIsInstance(test, float)
@@ -451,10 +462,10 @@ class AngularSeparationTestCase(unittest.TestCase):
 
         # try north pole
         ra1 = 90.0
-        x1 = np.cos(np.radians(dec1))*np.cos(np.radians(ra1))
-        y1 = np.cos(np.radians(dec1))*np.sin(np.radians(ra1))
+        x1 = np.cos(np.radians(dec1)) * np.cos(np.radians(ra1))
+        y1 = np.cos(np.radians(dec1)) * np.sin(np.radians(ra1))
         z1 = np.sin(np.radians(dec1))
-        control = x1*x2 + y1*y2 + z1*z2
+        control = x1 * x2 + y1 * y2 + z1 * z2
 
         test = utils.angularSeparation(ra1, dec1, ra2, dec2)
         self.assertIsInstance(test, float)
@@ -479,24 +490,24 @@ class AngularSeparationTestCase(unittest.TestCase):
         """
         rng = np.random.RandomState(8131)
         n_obj = 100
-        ra1 = rng.random_sample(n_obj)*2.0*np.pi
-        dec1 = rng.random_sample(n_obj)*np.pi - 0.5*np.pi
-        ra2 = rng.random_sample()*2.0*np.pi
-        dec2 = rng.random_sample()*np.pi - 0.5*np.pi
+        ra1 = rng.random_sample(n_obj) * 2.0 * np.pi
+        dec1 = rng.random_sample(n_obj) * np.pi - 0.5 * np.pi
+        ra2 = rng.random_sample() * 2.0 * np.pi
+        dec2 = rng.random_sample() * np.pi - 0.5 * np.pi
         self.assertIsInstance(ra1, np.ndarray)
         self.assertIsInstance(dec1, np.ndarray)
         self.assertIsInstance(ra2, float)
         self.assertIsInstance(dec2, float)
 
-        x1 = np.cos(dec1)*np.cos(ra1)
-        y1 = np.cos(dec1)*np.sin(ra1)
+        x1 = np.cos(dec1) * np.cos(ra1)
+        y1 = np.cos(dec1) * np.sin(ra1)
         z1 = np.sin(dec1)
 
-        x2 = np.cos(dec2)*np.cos(ra2)
-        y2 = np.cos(dec2)*np.sin(ra2)
+        x2 = np.cos(dec2) * np.cos(ra2)
+        y2 = np.cos(dec2) * np.sin(ra2)
         z2 = np.sin(dec2)
 
-        control = x1*x2 + y1*y2 + z1*z2
+        control = x1 * x2 + y1 * y2 + z1 * z2
         test = utils._angularSeparation(ra1, dec1, ra2, dec2)
         test = np.cos(test)
         np.testing.assert_array_almost_equal(test, control, decimal=15)
@@ -505,24 +516,24 @@ class AngularSeparationTestCase(unittest.TestCase):
         np.testing.assert_array_almost_equal(test, control, decimal=15)
 
         # now do it in degrees
-        ra1 = rng.random_sample(n_obj)*360.0
-        dec1 = rng.random_sample(n_obj)*180.0 - 90.0
-        ra2 = rng.random_sample()*360.0
-        dec2 = rng.random_sample()*180.0 - 90.0
+        ra1 = rng.random_sample(n_obj) * 360.0
+        dec1 = rng.random_sample(n_obj) * 180.0 - 90.0
+        ra2 = rng.random_sample() * 360.0
+        dec2 = rng.random_sample() * 180.0 - 90.0
         self.assertIsInstance(ra1, np.ndarray)
         self.assertIsInstance(dec1, np.ndarray)
         self.assertIsInstance(ra2, float)
         self.assertIsInstance(dec2, float)
 
-        x1 = np.cos(np.radians(dec1))*np.cos(np.radians(ra1))
-        y1 = np.cos(np.radians(dec1))*np.sin(np.radians(ra1))
+        x1 = np.cos(np.radians(dec1)) * np.cos(np.radians(ra1))
+        y1 = np.cos(np.radians(dec1)) * np.sin(np.radians(ra1))
         z1 = np.sin(np.radians(dec1))
 
-        x2 = np.cos(np.radians(dec2))*np.cos(np.radians(ra2))
-        y2 = np.cos(np.radians(dec2))*np.sin(np.radians(ra2))
+        x2 = np.cos(np.radians(dec2)) * np.cos(np.radians(ra2))
+        y2 = np.cos(np.radians(dec2)) * np.sin(np.radians(ra2))
         z2 = np.sin(np.radians(dec2))
 
-        control = x1*x2 + y1*y2 + z1*z2
+        control = x1 * x2 + y1 * y2 + z1 * z2
         test = utils.angularSeparation(ra1, dec1, ra2, dec2)
         test = np.cos(np.radians(test))
         np.testing.assert_array_almost_equal(test, control, decimal=15)
@@ -570,7 +581,6 @@ class AngularSeparationTestCase(unittest.TestCase):
 
 
 class testCoordinateTransformations(unittest.TestCase):
-
     def setUp(self):
         self.rng = np.random.RandomState(32)
         ntests = 100
@@ -608,13 +618,13 @@ class testCoordinateTransformations(unittest.TestCase):
         # test vectorized version
         control = controlEquationOfEquinoxes(self.mjd)
         test = utils.equationOfEquinoxes(self.mjd)
-        self.assertLess(np.abs(test-control).max(), self.tolerance)
+        self.assertLess(np.abs(test - control).max(), self.tolerance)
 
         # test non-vectorized version
         for mm in self.mjd:
             control = controlEquationOfEquinoxes(mm)
             test = utils.equationOfEquinoxes(mm)
-            self.assertLess(np.abs(test-control), self.tolerance)
+            self.assertLess(np.abs(test - control), self.tolerance)
 
     def testGmstGast(self):
         """
@@ -688,10 +698,10 @@ class testCoordinateTransformations(unittest.TestCase):
         ra = np.zeros((3), dtype=float)
         dec = np.zeros((3), dtype=float)
 
-        ra[0] = 2.549091039839124218e+00
+        ra[0] = 2.549091039839124218e00
         dec[0] = 5.198752733024248895e-01
         ra[1] = 8.693375673649429425e-01
-        dec[1] = 1.038086165642298164e+00
+        dec[1] = 1.038086165642298164e00
         ra[2] = 7.740864769302191473e-01
         dec[2] = 2.758053025017753179e-01
 
@@ -700,11 +710,11 @@ class testCoordinateTransformations(unittest.TestCase):
         self.assertIsInstance(glon, np.ndarray)
         self.assertIsInstance(glat, np.ndarray)
 
-        self.assertAlmostEqual(glon[0], 3.452036693523627964e+00, 6)
+        self.assertAlmostEqual(glon[0], 3.452036693523627964e00, 6)
         self.assertAlmostEqual(glat[0], 8.559512505657201897e-01, 6)
-        self.assertAlmostEqual(glon[1], 2.455968474619387720e+00, 6)
+        self.assertAlmostEqual(glon[1], 2.455968474619387720e00, 6)
         self.assertAlmostEqual(glat[1], 3.158563770667878468e-02, 6)
-        self.assertAlmostEqual(glon[2], 2.829585540991265358e+00, 6)
+        self.assertAlmostEqual(glon[2], 2.829585540991265358e00, 6)
         self.assertAlmostEqual(glat[2], -6.510790587552289788e-01, 6)
 
         # test passing in floats as args
@@ -722,11 +732,11 @@ class testCoordinateTransformations(unittest.TestCase):
         lon = np.zeros((3), dtype=float)
         lat = np.zeros((3), dtype=float)
 
-        lon[0] = 3.452036693523627964e+00
+        lon[0] = 3.452036693523627964e00
         lat[0] = 8.559512505657201897e-01
-        lon[1] = 2.455968474619387720e+00
+        lon[1] = 2.455968474619387720e00
         lat[1] = 3.158563770667878468e-02
-        lon[2] = 2.829585540991265358e+00
+        lon[2] = 2.829585540991265358e00
         lat[2] = -6.510790587552289788e-01
 
         ra, dec = utils._equatorialFromGalactic(lon, lat)
@@ -734,10 +744,10 @@ class testCoordinateTransformations(unittest.TestCase):
         self.assertIsInstance(ra, np.ndarray)
         self.assertIsInstance(dec, np.ndarray)
 
-        self.assertAlmostEqual(ra[0], 2.549091039839124218e+00, 6)
+        self.assertAlmostEqual(ra[0], 2.549091039839124218e00, 6)
         self.assertAlmostEqual(dec[0], 5.198752733024248895e-01, 6)
         self.assertAlmostEqual(ra[1], 8.693375673649429425e-01, 6)
-        self.assertAlmostEqual(dec[1], 1.038086165642298164e+00, 6)
+        self.assertAlmostEqual(dec[1], 1.038086165642298164e00, 6)
         self.assertAlmostEqual(ra[2], 7.740864769302191473e-01, 6)
         self.assertAlmostEqual(dec[2], 2.758053025017753179e-01, 6)
 
@@ -764,9 +774,11 @@ class testCoordinateTransformations(unittest.TestCase):
 
         points = []
         for ix in range(nsamples):
-            vv = [radius[ix] * np.cos(theta[ix]) * np.cos(phi[ix]),
-                  radius[ix] * np.cos(theta[ix]) * np.sin(phi[ix]),
-                  radius[ix] * np.sin(theta[ix])]
+            vv = [
+                radius[ix] * np.cos(theta[ix]) * np.cos(phi[ix]),
+                radius[ix] * np.cos(theta[ix]) * np.sin(phi[ix]),
+                radius[ix] * np.sin(theta[ix]),
+            ]
 
             points.append(vv)
 
@@ -787,13 +799,17 @@ class testCoordinateTransformations(unittest.TestCase):
             self.assertAlmostEqual(np.sin(lat), np.sin(th), 5)
 
         # test ra_dec_from_xyz <-> sphericalFromCartesian
-        np.testing.assert_array_equal(utils.sphericalFromCartesian(points),
-                                      utils._ra_dec_from_xyz(points[:, 0], points[:, 1], points[:, 2]))
+        np.testing.assert_array_equal(
+            utils.sphericalFromCartesian(points),
+            utils._ra_dec_from_xyz(points[:, 0], points[:, 1], points[:, 2]),
+        )
 
         # now, test passing one at a time
         for pp in points:
-            np.testing.assert_array_equal(utils.sphericalFromCartesian(pp),
-                                          utils._ra_dec_from_xyz(pp[0], pp[1], pp[2]))
+            np.testing.assert_array_equal(
+                utils.sphericalFromCartesian(pp),
+                utils._ra_dec_from_xyz(pp[0], pp[1], pp[2]),
+            )
 
     def testCartesianFromSpherical(self):
         nsamples = 10
@@ -802,9 +818,11 @@ class testCoordinateTransformations(unittest.TestCase):
 
         points = []
         for ix in range(nsamples):
-            vv = [np.cos(theta[ix]) * np.cos(phi[ix]),
-                  np.cos(theta[ix]) * np.sin(phi[ix]),
-                  np.sin(theta[ix])]
+            vv = [
+                np.cos(theta[ix]) * np.cos(phi[ix]),
+                np.cos(theta[ix]) * np.sin(phi[ix]),
+                np.sin(theta[ix]),
+            ]
 
             points.append(vv)
 
@@ -826,18 +844,20 @@ class testCoordinateTransformations(unittest.TestCase):
             self.assertAlmostEqual(xyz[2], outPoints[ix][2], 12)
 
         # test _xyz_from_ra_dec <-> testCartesianFromSpherical
-        np.testing.assert_array_equal(utils.cartesianFromSpherical(lon, lat),
-                                      utils._xyz_from_ra_dec(lon, lat).transpose())
+        np.testing.assert_array_equal(
+            utils.cartesianFromSpherical(lon, lat),
+            utils._xyz_from_ra_dec(lon, lat).transpose(),
+        )
 
     def testHaversine(self):
         arg1 = 7.853981633974482790e-01
         arg2 = 3.769911184307751517e-01
-        arg3 = 5.026548245743668986e+00
+        arg3 = 5.026548245743668986e00
         arg4 = -6.283185307179586232e-01
 
         output = utils.haversine(arg1, arg2, arg3, arg4)
 
-        self.assertAlmostEqual(output, 2.162615946398791955e+00, 10)
+        self.assertAlmostEqual(output, 2.162615946398791955e00, 10)
 
     def testRotationMatrixFromVectors(self):
         v1 = np.zeros((3), dtype=float)
@@ -855,7 +875,7 @@ class testCoordinateTransformations(unittest.TestCase):
 
         for i in range(3):
             for j in range(3):
-                v3[i] += output[i][j]*v1[j]
+                v3[i] += output[i][j] * v1[j]
 
         for i in range(3):
             self.assertAlmostEqual(v3[i], v2[i], 7)
@@ -864,10 +884,10 @@ class testCoordinateTransformations(unittest.TestCase):
         self.assertRaises(RuntimeError, utils.rotationMatrixFromVectors, v1, v2)
         self.assertRaises(RuntimeError, utils.rotationMatrixFromVectors, v2, v1)
 
-class RotationTestCase(unittest.TestCase):
 
+class RotationTestCase(unittest.TestCase):
     def setUp(self):
-        self.sqrt2o2 = np.sqrt(2.0)/2.0
+        self.sqrt2o2 = np.sqrt(2.0) / 2.0
         self.x_vec = np.array([1.0, 0.0, 0.0])
         self.y_vec = np.array([0.0, 1.0, 0.0])
         self.z_vec = np.array([0.0, 0.0, 1.0])
@@ -887,70 +907,76 @@ class RotationTestCase(unittest.TestCase):
         self.ny_nz_vec = np.array([0.0, -self.sqrt2o2, -self.sqrt2o2])
 
     def test_rot_z(self):
-        out = utils.rotAboutZ(self.x_vec, 0.5*np.pi)
+        out = utils.rotAboutZ(self.x_vec, 0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, self.y_vec, decimal=10)
-        out = utils.rotAboutZ(self.x_vec, -0.5*np.pi)
-        np.testing.assert_array_almost_equal(out, -1.0*self.y_vec, decimal=10)
+        out = utils.rotAboutZ(self.x_vec, -0.5 * np.pi)
+        np.testing.assert_array_almost_equal(out, -1.0 * self.y_vec, decimal=10)
         out = utils.rotAboutZ(self.x_vec, np.pi)
-        np.testing.assert_array_almost_equal(out, -1.0*self.x_vec, decimal=10)
-        out = utils.rotAboutZ(self.x_vec, 0.25*np.pi)
+        np.testing.assert_array_almost_equal(out, -1.0 * self.x_vec, decimal=10)
+        out = utils.rotAboutZ(self.x_vec, 0.25 * np.pi)
         np.testing.assert_array_almost_equal(out, self.px_py_vec, decimal=10)
-        out = utils.rotAboutZ(self.x_vec, -0.25*np.pi)
+        out = utils.rotAboutZ(self.x_vec, -0.25 * np.pi)
         np.testing.assert_array_almost_equal(out, self.px_ny_vec, decimal=10)
-        out = utils.rotAboutZ(self.x_vec, 0.75*np.pi)
+        out = utils.rotAboutZ(self.x_vec, 0.75 * np.pi)
         np.testing.assert_array_almost_equal(out, self.nx_py_vec, decimal=10)
-        out = utils.rotAboutZ(self.y_vec, 0.5*np.pi)
-        np.testing.assert_array_almost_equal(out, -1.0*self.x_vec, decimal=10)
-        out = utils.rotAboutZ(self.px_py_vec, 0.5*np.pi)
+        out = utils.rotAboutZ(self.y_vec, 0.5 * np.pi)
+        np.testing.assert_array_almost_equal(out, -1.0 * self.x_vec, decimal=10)
+        out = utils.rotAboutZ(self.px_py_vec, 0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, self.nx_py_vec, decimal=10)
-        out = utils.rotAboutZ(self.px_py_vec, 0.75*np.pi)
-        np.testing.assert_array_almost_equal(out, -1.0*self.x_vec, decimal=10)
+        out = utils.rotAboutZ(self.px_py_vec, 0.75 * np.pi)
+        np.testing.assert_array_almost_equal(out, -1.0 * self.x_vec, decimal=10)
 
-        out = utils.rotAboutZ(np.array([self.x_vec, self.y_vec, self.nx_py_vec, self.nx_ny_vec]),
-                              -0.25*np.pi)
+        out = utils.rotAboutZ(
+            np.array([self.x_vec, self.y_vec, self.nx_py_vec, self.nx_ny_vec]),
+            -0.25 * np.pi,
+        )
         np.testing.assert_array_almost_equal(out[0], self.px_ny_vec, decimal=10)
         np.testing.assert_array_almost_equal(out[1], self.px_py_vec, decimal=10)
         np.testing.assert_array_almost_equal(out[2], self.y_vec, decimal=10)
-        np.testing.assert_array_almost_equal(out[3], -1.0*self.x_vec, decimal=10)
+        np.testing.assert_array_almost_equal(out[3], -1.0 * self.x_vec, decimal=10)
 
     def test_rot_y(self):
-        out = utils.rotAboutY(self.x_vec, 0.5*np.pi)
-        np.testing.assert_array_almost_equal(out, -1.0*self.z_vec, decimal=10)
-        out = utils.rotAboutY(self.z_vec, 0.5*np.pi)
+        out = utils.rotAboutY(self.x_vec, 0.5 * np.pi)
+        np.testing.assert_array_almost_equal(out, -1.0 * self.z_vec, decimal=10)
+        out = utils.rotAboutY(self.z_vec, 0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, self.x_vec, decimal=10)
-        out = utils.rotAboutY(self.px_pz_vec, 0.75*np.pi)
-        np.testing.assert_array_almost_equal(out, -1.0*self.z_vec, decimal=10)
-        out = utils.rotAboutY(self.px_pz_vec, -0.5*np.pi)
+        out = utils.rotAboutY(self.px_pz_vec, 0.75 * np.pi)
+        np.testing.assert_array_almost_equal(out, -1.0 * self.z_vec, decimal=10)
+        out = utils.rotAboutY(self.px_pz_vec, -0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, self.nx_pz_vec, decimal=10)
 
-        out = utils.rotAboutY(np.array([self.px_pz_vec, self.nx_pz_vec, self.z_vec, self.x_vec]),
-                              -0.75*np.pi)
+        out = utils.rotAboutY(
+            np.array([self.px_pz_vec, self.nx_pz_vec, self.z_vec, self.x_vec]),
+            -0.75 * np.pi,
+        )
 
-        np.testing.assert_array_almost_equal(out[0], -1.0*self.x_vec, decimal=10)
-        np.testing.assert_array_almost_equal(out[1], -1.0*self.z_vec, decimal=10)
+        np.testing.assert_array_almost_equal(out[0], -1.0 * self.x_vec, decimal=10)
+        np.testing.assert_array_almost_equal(out[1], -1.0 * self.z_vec, decimal=10)
         np.testing.assert_array_almost_equal(out[2], self.nx_nz_vec, decimal=10)
         np.testing.assert_array_almost_equal(out[3], self.nx_pz_vec, decimal=10)
 
     def test_rot_x(self):
-        out = utils.rotAboutX(self.y_vec, 0.5*np.pi)
+        out = utils.rotAboutX(self.y_vec, 0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, self.z_vec, decimal=10)
-        out = utils.rotAboutX(self.y_vec, 0.75*np.pi)
+        out = utils.rotAboutX(self.y_vec, 0.75 * np.pi)
         np.testing.assert_array_almost_equal(out, self.ny_pz_vec, decimal=10)
-        out = utils.rotAboutX(self.z_vec, 0.5*np.pi)
-        np.testing.assert_array_almost_equal(out, -1.0*self.y_vec, decimal=10)
-        out = utils.rotAboutX(self.z_vec, -0.25*np.pi)
+        out = utils.rotAboutX(self.z_vec, 0.5 * np.pi)
+        np.testing.assert_array_almost_equal(out, -1.0 * self.y_vec, decimal=10)
+        out = utils.rotAboutX(self.z_vec, -0.25 * np.pi)
         np.testing.assert_array_almost_equal(out, self.py_pz_vec, decimal=10)
-        out = utils.rotAboutX(self.py_nz_vec, -0.5*np.pi)
+        out = utils.rotAboutX(self.py_nz_vec, -0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, self.ny_nz_vec, decimal=10)
-        out = utils.rotAboutX(self.ny_nz_vec, 0.25*np.pi)
-        np.testing.assert_array_almost_equal(out, -1.0*self.z_vec, decimal=10)
+        out = utils.rotAboutX(self.ny_nz_vec, 0.25 * np.pi)
+        np.testing.assert_array_almost_equal(out, -1.0 * self.z_vec, decimal=10)
 
-        out = utils.rotAboutX(np.array([self.z_vec, self.py_pz_vec, self.ny_pz_vec, self.y_vec]),
-                              0.25*np.pi)
+        out = utils.rotAboutX(
+            np.array([self.z_vec, self.py_pz_vec, self.ny_pz_vec, self.y_vec]),
+            0.25 * np.pi,
+        )
 
         np.testing.assert_array_almost_equal(out[0], self.ny_pz_vec, decimal=10)
         np.testing.assert_array_almost_equal(out[1], self.z_vec, decimal=10)
-        np.testing.assert_array_almost_equal(out[2], -1.0*self.y_vec, decimal=10)
+        np.testing.assert_array_almost_equal(out[2], -1.0 * self.y_vec, decimal=10)
         np.testing.assert_array_almost_equal(out[3], self.py_pz_vec, decimal=10)
 
 

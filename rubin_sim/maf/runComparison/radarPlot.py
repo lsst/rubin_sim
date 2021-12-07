@@ -9,10 +9,10 @@ from matplotlib.spines import Spine
 from matplotlib.projections.polar import PolarAxes
 from matplotlib.projections import register_projection
 
-__all__ = ['radar_factory', 'unit_poly_verts', 'radar']
+__all__ = ["radar_factory", "unit_poly_verts", "radar"]
 
 
-def radar_factory(num_vars, frame='circle'):
+def radar_factory(num_vars, frame="circle"):
     """Create a radar chart with `num_vars` axes.
 
     This function creates a RadarAxes projection and registers it.
@@ -26,26 +26,26 @@ def radar_factory(num_vars, frame='circle'):
 
     """
     # calculate evenly-spaced axis angles
-    theta = np.linspace(0, 2*np.pi, num_vars, endpoint=False)
+    theta = np.linspace(0, 2 * np.pi, num_vars, endpoint=False)
     # rotate theta such that the first axis is at the top, then make sure we don't go past 360
-    theta += np.pi/2
-    theta = theta % (2.*np.pi)
+    theta += np.pi / 2
+    theta = theta % (2.0 * np.pi)
 
     def draw_poly_patch(self):
         verts = unit_poly_verts(theta)
-        return plt.Polygon(verts, closed=True, edgecolor='k')
+        return plt.Polygon(verts, closed=True, edgecolor="k")
 
     def draw_circle_patch(self):
         # unit circle centered on (0.5, 0.5)
         return plt.Circle((0.5, 0.5), 0.5)
 
-    patch_dict = {'polygon': draw_poly_patch, 'circle': draw_circle_patch}
+    patch_dict = {"polygon": draw_poly_patch, "circle": draw_circle_patch}
     if frame not in patch_dict:
-        raise ValueError('unknown value for `frame`: %s' % frame)
+        raise ValueError("unknown value for `frame`: %s" % frame)
 
     class RadarAxes(PolarAxes):
 
-        name = 'radar'
+        name = "radar"
         # use 1 line segment to connect specified points
         RESOLUTION = 1
         # define draw_frame method
@@ -53,7 +53,7 @@ def radar_factory(num_vars, frame='circle'):
 
         def fill(self, *args, **kwargs):
             """Override fill so that line is closed by default"""
-            closed = kwargs.pop('closed', True)
+            closed = kwargs.pop("closed", True)
             return super(RadarAxes, self).fill(closed=closed, *args, **kwargs)
 
         def plot(self, *args, **kwargs):
@@ -77,13 +77,13 @@ def radar_factory(num_vars, frame='circle'):
             return self.draw_patch()
 
         def _gen_axes_spines(self):
-            if frame == 'circle':
+            if frame == "circle":
                 return PolarAxes._gen_axes_spines(self)
             # The following is a hack to get the spines (i.e. the axes frame)
             # to draw correctly for a polygon frame.
 
             # spine_type must be 'left', 'right', 'top', 'bottom', or `circle`.
-            spine_type = 'circle'
+            spine_type = "circle"
             verts = unit_poly_verts(theta)
             # close off polygon by repeating first vertex
             verts.append(verts[0])
@@ -91,7 +91,7 @@ def radar_factory(num_vars, frame='circle'):
 
             spine = Spine(self, spine_type, path)
             spine.set_transform(self.transAxes)
-            return {'polar': spine}
+            return {"polar": spine}
 
     register_projection(RadarAxes)
     return theta
@@ -103,26 +103,32 @@ def unit_poly_verts(theta):
     This polygon is circumscribed by a unit circle centered at (0.5, 0.5)
     """
     x0, y0, r = [0.5] * 3
-    verts = [(r*np.cos(t) + x0, r*np.sin(t) + y0) for t in theta]
+    verts = [(r * np.cos(t) + x0, r * np.sin(t) + y0) for t in theta]
     return verts
 
 
-def radar(df, rgrids=[0.7, 1.0, 1.3, 1.6], colors=None,
-          alpha=0.1, legend=True, figsize=(8.5, 5), fill=False,
-          bbox_to_anchor=(1.6, 0.5)):
+def radar(
+    df,
+    rgrids=[0.7, 1.0, 1.3, 1.6],
+    colors=None,
+    alpha=0.1,
+    legend=True,
+    figsize=(8.5, 5),
+    fill=False,
+    bbox_to_anchor=(1.6, 0.5),
+):
     """
     make a radar plot!
     """
-    theta = radar_factory(np.size(df.columns), frame='polygon')
-    fig, axes = plt.subplots(figsize=figsize,
-                             subplot_kw=dict(projection='radar'))
-    axes.set_rgrids(rgrids, fontsize='x-large')
+    theta = radar_factory(np.size(df.columns), frame="polygon")
+    fig, axes = plt.subplots(figsize=figsize, subplot_kw=dict(projection="radar"))
+    axes.set_rgrids(rgrids, fontsize="x-large")
 
     if colors is None:
         colors = [None for i in range(len(df))]
     ix = 0
     for i, row in df.iterrows():
-        axes.plot(theta, row.values, 'o-', label=i, color=colors[ix])
+        axes.plot(theta, row.values, "o-", label=i, color=colors[ix])
         if fill:
             axes.fill(theta, row.values, alpha=alpha)
         ix += 1
@@ -131,7 +137,12 @@ def radar(df, rgrids=[0.7, 1.0, 1.3, 1.6], colors=None,
 
     axes.set_varlabels(variables)
     if legend:
-        axes.legend(bbox_to_anchor=bbox_to_anchor, borderaxespad=0, loc='lower right', fontsize=20)
+        axes.legend(
+            bbox_to_anchor=bbox_to_anchor,
+            borderaxespad=0,
+            loc="lower right",
+            fontsize=20,
+        )
     axes.set_ylim([np.min(rgrids), np.max(rgrids)])
 
     return fig, axes

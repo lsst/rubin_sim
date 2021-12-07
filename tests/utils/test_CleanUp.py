@@ -2,7 +2,6 @@ import unittest
 
 
 class CleanUpTestCase(unittest.TestCase):
-
     def test_clean_up(self):
         """
         Test that sims_clean_up behaves as it should by importing a test module
@@ -14,10 +13,10 @@ class CleanUpTestCase(unittest.TestCase):
 
         self.assertEqual(len(sims_clean_up.targets), 2)
 
-        a_dict_cache['a'] = 1
-        a_dict_cache['b'] = 2
-        a_list_cache.append('alpha')
-        a_list_cache.append('beta')
+        a_dict_cache["a"] = 1
+        a_dict_cache["b"] = 2
+        a_list_cache.append("alpha")
+        a_list_cache.append("beta")
 
         self.assertEqual(len(a_dict_cache), 2)
         self.assertEqual(len(a_list_cache), 2)

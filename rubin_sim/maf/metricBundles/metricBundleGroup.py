@@ -14,7 +14,7 @@ from rubin_sim.maf.stackers import BaseDitherStacker
 from .metricBundle import MetricBundle, createEmptyMetricBundle
 import warnings
 
-__all__ = ['makeBundlesDictFromList', 'MetricBundleGroup']
+__all__ = ["makeBundlesDictFromList", "MetricBundleGroup"]
 
 
 def makeBundlesDictFromList(bundleList):
@@ -30,7 +30,10 @@ def makeBundlesDictFromList(bundleList):
     bDict = {}
     for b in bundleList:
         if b.fileRoot in bDict:
-            raise NameError('More than one metricBundle is using the same fileroot, %s' % (b.fileRoot))
+            raise NameError(
+                "More than one metricBundle is using the same fileroot, %s"
+                % (b.fileRoot)
+            )
         bDict[b.fileRoot] = b
     return bDict
 
@@ -79,10 +82,18 @@ class MetricBundleGroup(object):
     dbTable : `str`, optional
         The name of the table in the dbObj to query for data.
     """
-    def __init__(self, bundleDict, dbObj, outDir='.', resultsDb=None, verbose=True,
-                 saveEarly=True, dbTable=None):
-        """Set up the MetricBundleGroup.
-        """
+
+    def __init__(
+        self,
+        bundleDict,
+        dbObj,
+        outDir=".",
+        resultsDb=None,
+        verbose=True,
+        saveEarly=True,
+        dbTable=None,
+    ):
+        """Set up the MetricBundleGroup."""
         if type(bundleDict) is list:
             bundleDict = makeBundlesDictFromList(bundleDict)
         # Print occasional messages to screen.
@@ -96,10 +107,12 @@ class MetricBundleGroup(object):
 
         # Do some type checking on the MetricBundle dictionary.
         if not isinstance(bundleDict, dict):
-            raise ValueError('bundleDict should be a dictionary containing MetricBundle objects.')
+            raise ValueError(
+                "bundleDict should be a dictionary containing MetricBundle objects."
+            )
         for b in bundleDict.values():
             if not isinstance(b, MetricBundle):
-                raise ValueError('bundleDict should contain only MetricBundle objects.')
+                raise ValueError("bundleDict should contain only MetricBundle objects.")
         # Identify the series of constraints.
         self.constraints = list(set([b.constraint for b in bundleDict.values()]))
         # Set the bundleDict (all bundles, with all constraints)
@@ -107,7 +120,9 @@ class MetricBundleGroup(object):
 
         # Check the dbObj.
         if not isinstance(dbObj, db.Database):
-            warnings.warn('Warning: dbObj should be an instantiated Database (or child) object.')
+            warnings.warn(
+                "Warning: dbObj should be an instantiated Database (or child) object."
+            )
         self.dbObj = dbObj
         # Set the table we're going to be querying.
         self.dbTable = dbTable
@@ -117,7 +132,7 @@ class MetricBundleGroup(object):
         # Check the resultsDb (optional).
         if resultsDb is not None:
             if not isinstance(resultsDb, db.ResultsDb):
-                raise ValueError('resultsDb should be an ResultsDb object')
+                raise ValueError("resultsDb should be an ResultsDb object")
         self.resultsDb = resultsDb
 
         # Dict to keep track of what's been run:
@@ -150,14 +165,15 @@ class MetricBundleGroup(object):
         for stacker in metricBundle1.stackerList:
             for stacker2 in metricBundle2.stackerList:
                 # If the stackers have different names, that's OK, and if they are identical, that's ok.
-                if (stacker.__class__.__name__ == stacker2.__class__.__name__) & (stacker != stacker2):
+                if (stacker.__class__.__name__ == stacker2.__class__.__name__) & (
+                    stacker != stacker2
+                ):
                     return False
         # But if we got this far, everything matches.
         return True
 
     def _findCompatibleLists(self):
-        """Find sets of compatible metricBundles from the currentBundleDict.
-        """
+        """Find sets of compatible metricBundles from the currentBundleDict."""
         # CompatibleLists stores a list of lists;
         #   each (nested) list contains the bundleDict _keys_ of a compatible set of metricBundles.
         #
@@ -166,13 +182,17 @@ class MetricBundleGroup(object):
             foundCompatible = False
             for compatibleList in compatibleLists:
                 comparisonMetricBundleKey = compatibleList[0]
-                compatible = self._checkCompatible(self.bundleDict[comparisonMetricBundleKey], b)
+                compatible = self._checkCompatible(
+                    self.bundleDict[comparisonMetricBundleKey], b
+                )
                 if compatible:
                     # Must compare all metricBundles in each subset (if they are a potential match),
                     #  as the stackers could be different (and one could be incompatible,
                     #  not necessarily the first)
                     for comparisonMetricBundleKey in compatibleList[1:]:
-                        compatible = self._checkCompatible(self.bundleDict[comparisonMetricBundleKey], b)
+                        compatible = self._checkCompatible(
+                            self.bundleDict[comparisonMetricBundleKey], b
+                        )
                         if not compatible:
                             # If we find one which is not compatible, stop and go on to the
                             # next subset list.
@@ -182,7 +202,11 @@ class MetricBundleGroup(object):
                     compatibleList.append(k)
             if not foundCompatible:
                 # Didn't find a pre-existing compatible set; make a new one.
-                compatibleLists.append([k, ])
+                compatibleLists.append(
+                    [
+                        k,
+                    ]
+                )
         self.compatibleLists = compatibleLists
 
     def getData(self, constraint):
@@ -196,20 +220,25 @@ class MetricBundleGroup(object):
            The constraint for the currently active set of MetricBundles.
         """
         if self.verbose:
-            if constraint == '':
+            if constraint == "":
                 print("Querying database with no constraint.")
             else:
                 print("Querying database with constraint %s" % (constraint))
         # Note that we do NOT run the stackers at this point (this must be done in each 'compatible' group).
-        if self.dbTable != 'Summary':
+        if self.dbTable != "Summary":
             distinctExpMJD = False
             groupBy = None
         else:
             distinctExpMJD = True
-            groupBy = 'expMJD'
-        self.simData = utils.getSimData(self.dbObj, constraint, self.dbCols,
-                                        tableName=self.dbTable, distinctExpMJD=distinctExpMJD,
-                                        groupBy=groupBy)
+            groupBy = "expMJD"
+        self.simData = utils.getSimData(
+            self.dbObj,
+            constraint,
+            self.dbCols,
+            tableName=self.dbTable,
+            distinctExpMJD=distinctExpMJD,
+            groupBy=groupBy,
+        )
 
         if self.verbose:
             print("Found %i visits" % (self.simData.size))
@@ -239,8 +268,12 @@ class MetricBundleGroup(object):
         for constraint in self.constraints:
             # Set the 'currentBundleDict' which is a dictionary of the metricBundles which match this
             #  constraint.
-            self.runCurrent(constraint, clearMemory=clearMemory,
-                            plotNow=plotNow, plotKwargs=plotKwargs)
+            self.runCurrent(
+                constraint,
+                clearMemory=clearMemory,
+                plotNow=plotNow,
+                plotKwargs=plotKwargs,
+            )
 
     def setCurrent(self, constraint):
         """Utility to set the currentBundleDict (i.e. a set of metricBundles with the same SQL constraint).
@@ -253,7 +286,7 @@ class MetricBundleGroup(object):
             These are the active metrics to be calculated and plotted, etc.
         """
         if constraint is None:
-            constraint = ''
+            constraint = ""
         self.currentBundleDict = {}
         for k, b in self.bundleDict.items():
             if b.constraint == constraint:
@@ -264,7 +297,14 @@ class MetricBundleGroup(object):
             self.dbCols.extend(b.dbCols)
         self.dbCols = list(set(self.dbCols))
 
-    def runCurrent(self, constraint, simData=None, clearMemory=False, plotNow=False, plotKwargs=None):
+    def runCurrent(
+        self,
+        constraint,
+        simData=None,
+        clearMemory=False,
+        plotNow=False,
+        plotKwargs=None,
+    ):
         """Run all the metricBundles which match this constraint in the metricBundleGroup.
 
         Calculates the metric values, then runs reduce functions and summary statistics for
@@ -297,19 +337,27 @@ class MetricBundleGroup(object):
             try:
                 self.getData(constraint)
             except UserWarning:
-                warnings.warn('No data matching constraint %s' % constraint)
+                warnings.warn("No data matching constraint %s" % constraint)
                 metricsSkipped = []
                 for b in self.currentBundleDict.values():
-                    metricsSkipped.append("%s : %s : %s" % (b.metric.name, b.metadata, b.slicer.slicerName))
-                warnings.warn(' This means skipping metrics %s' % metricsSkipped)
+                    metricsSkipped.append(
+                        "%s : %s : %s"
+                        % (b.metric.name, b.metadata, b.slicer.slicerName)
+                    )
+                warnings.warn(" This means skipping metrics %s" % metricsSkipped)
                 return
             except ValueError:
-                warnings.warn('One or more of the columns requested from the database was not available.' +
-                              ' Skipping constraint %s' % constraint)
+                warnings.warn(
+                    "One or more of the columns requested from the database was not available."
+                    + " Skipping constraint %s" % constraint
+                )
                 metricsSkipped = []
                 for b in self.currentBundleDict.values():
-                    metricsSkipped.append("%s : %s : %s" % (b.metric.name, b.metadata, b.slicer.slicerName))
-                warnings.warn(' This means skipping metrics %s' % metricsSkipped)
+                    metricsSkipped.append(
+                        "%s : %s : %s"
+                        % (b.metric.name, b.metadata, b.slicer.slicerName)
+                    )
+                warnings.warn(" This means skipping metrics %s" % metricsSkipped)
                 return
 
         # Find compatible subsets of the MetricBundle dictionary,
@@ -318,22 +366,22 @@ class MetricBundleGroup(object):
 
         for compatibleList in self.compatibleLists:
             if self.verbose:
-                print('Running: ', compatibleList)
+                print("Running: ", compatibleList)
             self._runCompatible(compatibleList)
             if self.verbose:
-                print('Completed metric generation.')
+                print("Completed metric generation.")
             for key in compatibleList:
                 self.hasRun[key] = True
         # Run the reduce methods.
         if self.verbose:
-            print('Running reduce methods.')
+            print("Running reduce methods.")
         self.reduceCurrent()
         # Run the summary statistics.
         if self.verbose:
-            print('Running summary statistics.')
+            print("Running summary statistics.")
         self.summaryCurrent()
         if self.verbose:
-            print('Completed.')
+            print("Completed.")
         if plotNow:
             if plotKwargs is None:
                 self.plotCurrent()
@@ -344,8 +392,7 @@ class MetricBundleGroup(object):
             for b in self.currentBundleDict.values():
                 b.metricValues = None
             if self.verbose:
-                print('Deleted metricValues from memory.')
-
+                print("Deleted metricValues from memory.")
 
     def getData(self, constraint):
         """Query the data from the database.
@@ -358,15 +405,24 @@ class MetricBundleGroup(object):
            The constraint for the currently active set of MetricBundles.
         """
         if self.verbose:
-            if constraint == '':
-                print("Querying database %s with no constraint for columns %s." %
-                      (self.dbTable, self.dbCols))
+            if constraint == "":
+                print(
+                    "Querying database %s with no constraint for columns %s."
+                    % (self.dbTable, self.dbCols)
+                )
             else:
-                print("Querying database %s with constraint %s for columns %s" %
-                      (self.dbTable, constraint, self.dbCols))
+                print(
+                    "Querying database %s with constraint %s for columns %s"
+                    % (self.dbTable, constraint, self.dbCols)
+                )
         # Note that we do NOT run the stackers at this point (this must be done in each 'compatible' group).
-        self.simData = utils.getSimData(self.dbObj, constraint, self.dbCols,
-                                        groupBy='default', tableName=self.dbTable)
+        self.simData = utils.getSimData(
+            self.dbObj,
+            constraint,
+            self.dbCols,
+            groupBy="default",
+            tableName=self.dbTable,
+        )
 
         if self.verbose:
             print("Found %i visits" % (self.simData.size))
@@ -377,7 +433,6 @@ class MetricBundleGroup(object):
             self.fieldData = utils.getFieldData(self.dbObj, constraint)
         else:
             self.fieldData = None
-
 
     def _runCompatible(self, compatibleList):
         """Runs a set of 'compatible' metricbundles in the MetricBundleGroup dictionary,
@@ -431,12 +486,12 @@ class MetricBundleGroup(object):
         # This will be forced back into all of the metricBundles at the end (so that they track
         #  the same metadata such as the slicePoints, in case the same actual object wasn't used).
         slicer = list(bDict.values())[0].slicer
-        if (slicer.slicerName == 'OpsimFieldSlicer'):
+        if slicer.slicerName == "OpsimFieldSlicer":
             slicer.setupSlicer(self.simData, self.fieldData, maps=uniqMaps)
         else:
             slicer.setupSlicer(self.simData, maps=uniqMaps)
         # Copy the slicer (after setup) back into the individual metricBundles.
-        if slicer.slicerName != 'HealpixSlicer' or slicer.slicerName != 'UniSlicer':
+        if slicer.slicerName != "HealpixSlicer" or slicer.slicerName != "UniSlicer":
             for b in bDict.values():
                 b.slicer = slicer
 
@@ -453,8 +508,8 @@ class MetricBundleGroup(object):
             cache = False
         # Run through all slicepoints and calculate metrics.
         for slice_i in slicer:
-            i = slice_i['slicePoint']['sid']
-            slicedata = self.simData[slice_i['idxs']]
+            i = slice_i["slicePoint"]["sid"]
+            slicedata = self.simData[slice_i["idxs"]]
             if len(slicedata) == 0:
                 # No data at this slicepoint. Mask data values.
                 for b in bDict.values():
@@ -463,7 +518,7 @@ class MetricBundleGroup(object):
                 # There is data! Should we use our data cache?
                 if cache:
                     # Make the data idxs hashable.
-                    cacheKey = frozenset(slice_i['idxs'])
+                    cacheKey = frozenset(slice_i["idxs"])
                     # If key exists, set flag to use it, otherwise add it
                     if cacheKey in cacheDict:
                         useCache = True
@@ -476,9 +531,13 @@ class MetricBundleGroup(object):
                         useCache = False
                     for b in bDict.values():
                         if useCache:
-                            b.metricValues.data[i] = b.metricValues.data[cacheDict[cacheKey]]
+                            b.metricValues.data[i] = b.metricValues.data[
+                                cacheDict[cacheKey]
+                            ]
                         else:
-                            b.metricValues.data[i] = b.metric.run(slicedata, slicePoint=slice_i['slicePoint'])
+                            b.metricValues.data[i] = b.metric.run(
+                                slicedata, slicePoint=slice_i["slicePoint"]
+                            )
                     # If we are above the cache size, drop the oldest element from the cache dict.
                     if len(cacheDict) > slicer.cacheSize:
                         del cacheDict[list(cacheDict.keys())[0]]
@@ -486,17 +545,20 @@ class MetricBundleGroup(object):
                 # Not using memoize, just calculate things normally
                 else:
                     for b in bDict.values():
-                        b.metricValues.data[i] = b.metric.run(slicedata, slicePoint=slice_i['slicePoint'])
+                        b.metricValues.data[i] = b.metric.run(
+                            slicedata, slicePoint=slice_i["slicePoint"]
+                        )
         # Mask data where metrics could not be computed (according to metric bad value).
         for b in bDict.values():
-            if b.metricValues.dtype.name == 'object':
+            if b.metricValues.dtype.name == "object":
                 for ind, val in enumerate(b.metricValues.data):
                     if val is b.metric.badval:
                         b.metricValues.mask[ind] = True
             else:
                 # For some reason, this doesn't work for dtype=object arrays.
-                b.metricValues.mask = np.where(b.metricValues.data == b.metric.badval,
-                                               True, b.metricValues.mask)
+                b.metricValues.mask = np.where(
+                    b.metricValues.data == b.metric.badval, True, b.metricValues.mask
+                )
 
         # Save data to disk as we go, although this won't keep summary values, etc. (just failsafe).
         if self.saveEarly:
@@ -547,7 +609,9 @@ class MetricBundleGroup(object):
                         name = newmetricbundle.fileRoot
                     reduceBundleDict[name] = newmetricbundle
                     if self.saveEarly:
-                        newmetricbundle.write(outDir=self.outDir, resultsDb=self.resultsDb)
+                        newmetricbundle.write(
+                            outDir=self.outDir, resultsDb=self.resultsDb
+                        )
                     else:
                         newmetricbundle.writeDb(resultsDb=self.resultsDb)
                 # Remove summaryMetrics from top level metricbundle if desired.
@@ -569,13 +633,20 @@ class MetricBundleGroup(object):
             self.summaryCurrent()
 
     def summaryCurrent(self):
-        """Run summary statistics on all the metricBundles in the currently active set of MetricBundles.
-        """
+        """Run summary statistics on all the metricBundles in the currently active set of MetricBundles."""
         for b in self.currentBundleDict.values():
             b.computeSummaryStats(self.resultsDb)
 
-    def plotAll(self, savefig=True, outfileSuffix=None, figformat='pdf', dpi=600, trimWhitespace=True,
-                thumbnail=True, closefigs=True):
+    def plotAll(
+        self,
+        savefig=True,
+        outfileSuffix=None,
+        figformat="pdf",
+        dpi=600,
+        trimWhitespace=True,
+        thumbnail=True,
+        closefigs=True,
+    ):
         """Generate all the plots for all the metricBundles in bundleDict.
 
         Generating all ploots, for all MetricBundles, at this point, assumes that
@@ -606,11 +677,26 @@ class MetricBundleGroup(object):
                 print('Plotting figures with "%s" constraint now.' % (constraint))
 
             self.setCurrent(constraint)
-            self.plotCurrent(savefig=savefig, outfileSuffix=outfileSuffix, figformat=figformat, dpi=dpi,
-                             trimWhitespace=trimWhitespace, thumbnail=thumbnail, closefigs=closefigs)
+            self.plotCurrent(
+                savefig=savefig,
+                outfileSuffix=outfileSuffix,
+                figformat=figformat,
+                dpi=dpi,
+                trimWhitespace=trimWhitespace,
+                thumbnail=thumbnail,
+                closefigs=closefigs,
+            )
 
-    def plotCurrent(self, savefig=True, outfileSuffix=None, figformat='pdf', dpi=600, trimWhitespace=True,
-                    thumbnail=True, closefigs=True):
+    def plotCurrent(
+        self,
+        savefig=True,
+        outfileSuffix=None,
+        figformat="pdf",
+        dpi=600,
+        trimWhitespace=True,
+        thumbnail=True,
+        closefigs=True,
+    ):
         """Generate the plots for the currently active set of MetricBundles.
 
         Parameters
@@ -633,21 +719,31 @@ class MetricBundleGroup(object):
             Close the matplotlib figures after they are saved to disk. If many figures are
             generated, closing the figures saves significant memory. Default True.
         """
-        plotHandler = PlotHandler(outDir=self.outDir, resultsDb=self.resultsDb,
-                                  savefig=savefig, figformat=figformat, dpi=dpi,
-                                  trimWhitespace=trimWhitespace, thumbnail=thumbnail)
+        plotHandler = PlotHandler(
+            outDir=self.outDir,
+            resultsDb=self.resultsDb,
+            savefig=savefig,
+            figformat=figformat,
+            dpi=dpi,
+            trimWhitespace=trimWhitespace,
+            thumbnail=thumbnail,
+        )
 
         for b in self.currentBundleDict.values():
             try:
-                b.plot(plotHandler=plotHandler, outfileSuffix=outfileSuffix, savefig=savefig)
+                b.plot(
+                    plotHandler=plotHandler,
+                    outfileSuffix=outfileSuffix,
+                    savefig=savefig,
+                )
             except ValueError as ve:
-                message = 'Plotting failed for metricBundle %s.' % (b.fileRoot)
-                message += ' Error message: %s' % (ve)
+                message = "Plotting failed for metricBundle %s." % (b.fileRoot)
+                message += " Error message: %s" % (ve)
                 warnings.warn(message)
             if closefigs:
-                plt.close('all')
+                plt.close("all")
         if self.verbose:
-            print('Plotting complete.')
+            print("Plotting complete.")
 
     def writeAll(self):
         """Save all the MetricBundles to disk.
@@ -659,13 +755,12 @@ class MetricBundleGroup(object):
             self.writeCurrent()
 
     def writeCurrent(self):
-        """Save all the MetricBundles in the currently active set to disk.
-        """
+        """Save all the MetricBundles in the currently active set to disk."""
         if self.verbose:
             if self.saveEarly:
-                print('Re-saving metric bundles.')
+                print("Re-saving metric bundles.")
             else:
-                print('Saving metric bundles.')
+                print("Saving metric bundles.")
         for b in self.currentBundleDict.values():
             b.write(outDir=self.outDir, resultsDb=self.resultsDb)
 
@@ -680,7 +775,7 @@ class MetricBundleGroup(object):
         removeBundles = []
         for b in self.bundleDict:
             bundle = self.bundleDict[b]
-            filename = os.path.join(self.outDir, bundle.fileRoot + '.npz')
+            filename = os.path.join(self.outDir, bundle.fileRoot + ".npz")
             try:
                 # Create a temporary metricBundle to read the data into.
                 #  (we don't use b directly, as this overrides plotDict/etc).
@@ -691,9 +786,11 @@ class MetricBundleGroup(object):
                 # And copy the slicer into b, to get slicePoints.
                 bundle.slicer = tmpBundle.slicer
                 if self.verbose:
-                    print('Read %s from disk.' % (bundle.fileRoot))
+                    print("Read %s from disk." % (bundle.fileRoot))
             except IOError:
-                warnings.warn('Warning: file %s not found, bundle not restored.' % filename)
+                warnings.warn(
+                    "Warning: file %s not found, bundle not restored." % filename
+                )
                 removeBundles.append(b)
 
             # Look to see if this is a complex metric, with associated 'reduce' functions,
@@ -701,26 +798,33 @@ class MetricBundleGroup(object):
             if len(bundle.metric.reduceFuncs) > 0:
                 origMetricName = bundle.metric.name
                 for reduceFunc in bundle.metric.reduceFuncs.values():
-                    reduceName = origMetricName + '_' + reduceFunc.__name__.replace('reduce', '')
+                    reduceName = (
+                        origMetricName + "_" + reduceFunc.__name__.replace("reduce", "")
+                    )
                     # Borrow the fileRoot in b (we'll reset it appropriately afterwards).
                     bundle.metric.name = reduceName
                     bundle._buildFileRoot()
-                    filename = os.path.join(self.outDir, bundle.fileRoot + '.npz')
+                    filename = os.path.join(self.outDir, bundle.fileRoot + ".npz")
                     tmpBundle = createEmptyMetricBundle()
                     try:
                         tmpBundle.read(filename)
                         # This won't necessarily recreate the plotDict and displayDict exactly
                         # as they would have been made if you calculated the reduce metric from scratch.
                         # Perhaps update these metric reduce dictionaries after reading them in?
-                        newmetricBundle = MetricBundle(metric=bundle.metric, slicer=bundle.slicer,
-                                                       constraint=bundle.constraint,
-                                                       stackerList=bundle.stackerList, runName=bundle.runName,
-                                                       metadata=bundle.metadata,
-                                                       plotDict=bundle.plotDict,
-                                                       displayDict=bundle.displayDict,
-                                                       summaryMetrics=bundle.summaryMetrics,
-                                                       mapsList=bundle.mapsList,
-                                                       fileRoot=bundle.fileRoot, plotFuncs=bundle.plotFuncs)
+                        newmetricBundle = MetricBundle(
+                            metric=bundle.metric,
+                            slicer=bundle.slicer,
+                            constraint=bundle.constraint,
+                            stackerList=bundle.stackerList,
+                            runName=bundle.runName,
+                            metadata=bundle.metadata,
+                            plotDict=bundle.plotDict,
+                            displayDict=bundle.displayDict,
+                            summaryMetrics=bundle.summaryMetrics,
+                            mapsList=bundle.mapsList,
+                            fileRoot=bundle.fileRoot,
+                            plotFuncs=bundle.plotFuncs,
+                        )
                         newmetricBundle.metric.name = reduceName
                         newmetricBundle.metricValues = ma.copy(tmpBundle.metricValues)
                         # Add the new metricBundle to our metricBundleGroup dictionary.
@@ -729,10 +833,12 @@ class MetricBundleGroup(object):
                             name = newmetricBundle.fileRoot
                         reduceBundleDict[name] = newmetricBundle
                         if self.verbose:
-                            print('Read %s from disk.' % (newmetricBundle.fileRoot))
+                            print("Read %s from disk." % (newmetricBundle.fileRoot))
                     except IOError:
-                        warnings.warn('Warning: file %s not found, bundle not restored ("reduce" metric).'
-                                      % filename)
+                        warnings.warn(
+                            'Warning: file %s not found, bundle not restored ("reduce" metric).'
+                            % filename
+                        )
 
                     # Remove summaryMetrics from top level metricbundle.
                     bundle.summaryMetrics = []
@@ -745,4 +851,3 @@ class MetricBundleGroup(object):
         # And remove the bundles which were not found on disk, so we don't try to make (blank) plots.
         for b in removeBundles:
             del self.bundleDict[b]
-

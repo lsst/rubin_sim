@@ -5,7 +5,6 @@ import rubin_sim.utils as utils
 
 
 class TestHealUtils(unittest.TestCase):
-
     def testRaDecsRad(self):
         """
         Test that the Ra Dec conversions round-trip
@@ -39,19 +38,19 @@ class TestHealUtils(unittest.TestCase):
 
         ra = np.zeros(3)
         dec = np.zeros(3)
-        values = ra * 0. + 1.
+        values = ra * 0.0 + 1.0
 
         nside = 128
         hpid = utils._raDec2Hpid(nside, ra[0], dec[0])
 
         map1 = utils._healbin(ra, dec, values, nside=nside)
-        self.assertEqual(map1[hpid], 1.)
+        self.assertEqual(map1[hpid], 1.0)
         self.assertEqual(hp.maptype(map1), 0)
         map2 = utils._healbin(ra, dec, values, nside=nside, reduceFunc=np.sum)
-        self.assertEqual(map2[hpid], 3.)
+        self.assertEqual(map2[hpid], 3.0)
         self.assertEqual(hp.maptype(map2), 0)
         map3 = utils._healbin(ra, dec, values, nside=nside, reduceFunc=np.std)
-        self.assertEqual(map3[hpid], 0.)
+        self.assertEqual(map3[hpid], 0.0)
         self.assertEqual(hp.maptype(map3), 0)
 
     def testBinDeg(self):
@@ -61,19 +60,19 @@ class TestHealUtils(unittest.TestCase):
 
         ra = np.zeros(3)
         dec = np.zeros(3)
-        values = ra * 0. + 1.
+        values = ra * 0.0 + 1.0
 
         nside = 128
         hpid = utils.raDec2Hpid(nside, ra[0], dec[0])
 
         map1 = utils.healbin(ra, dec, values, nside=nside)
-        self.assertEqual(map1[hpid], 1.)
+        self.assertEqual(map1[hpid], 1.0)
         self.assertEqual(hp.maptype(map1), 0)
         map2 = utils.healbin(ra, dec, values, nside=nside, reduceFunc=np.sum)
-        self.assertEqual(map2[hpid], 3.)
+        self.assertEqual(map2[hpid], 3.0)
         self.assertEqual(hp.maptype(map2), 0)
         map3 = utils.healbin(ra, dec, values, nside=nside, reduceFunc=np.std)
-        self.assertEqual(map3[hpid], 0.)
+        self.assertEqual(map3[hpid], 0.0)
         self.assertEqual(hp.maptype(map3), 0)
 
 

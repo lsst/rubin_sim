@@ -56,8 +56,8 @@ flatnessthresh = 1.0e-12
 
 __all__ = ["CosmologyObject"]
 
-class CosmologyObject(object):
 
+class CosmologyObject(object):
     def __init__(self, H0=73.0, Om0=0.25, Ok0=None, w0=None, wa=None):
         """
         Initialize the cosmology wrapper with the parameters specified
@@ -90,8 +90,8 @@ class CosmologyObject(object):
         w0 = -1.0
         wa = 0.0
 
-        where 
-        Om0 + Ok0 + Ode0 + Ogamma0 + Onu0 = 1.0 
+        where
+        Om0 + Ok0 + Ode0 + Ogamma0 + Onu0 = 1.0
 
         sigma_8 = 0.9 (rms mass flucutation in an 8 h^-1 Mpc sphere;
                        not currently used in this code)
@@ -107,7 +107,7 @@ class CosmologyObject(object):
             wa = 0.0
 
         isCosmologicalConstant = False
-        if (w0 is None and wa is None) or (w0==-1.0 and wa==0.0):
+        if (w0 is None and wa is None) or (w0 == -1.0 and wa == 0.0):
             isCosmologicalConstant = True
 
         isFlat = False
@@ -118,16 +118,15 @@ class CosmologyObject(object):
             universe = cosmology.FlatLambdaCDM(H0=H0, Om0=Om0)
         elif isCosmologicalConstant:
             tmpmodel = cosmology.FlatLambdaCDM(H0=H0, Om0=Om0)
-            Ode0 = 1.0 - Om0 - tmpmodel.Ogamma0 - tmpmodel.Onu0 - Ok0 
+            Ode0 = 1.0 - Om0 - tmpmodel.Ogamma0 - tmpmodel.Onu0 - Ok0
             universe = cosmology.LambdaCDM(H0=H0, Om0=Om0, Ode0=Ode0)
         elif isFlat:
             universe = cosmology.Flatw0waCDM(H0=H0, Om0=Om0, w0=w0, wa=wa)
         else:
             tmpmodel = cosmology.Flatw0waCDM(H0=H0, Om0=Om0, w0=w0, wa=wa)
-            Ode0 = 1.0 - Om0 - tmpmodel.Ogamma0 - tmpmodel.Onu0 - Ok0 
+            Ode0 = 1.0 - Om0 - tmpmodel.Ogamma0 - tmpmodel.Onu0 - Ok0
 
-            universe = cosmology.w0waCDM(H0=H0, Om0=Om0, Ode0=Ode0,
-                                         w0=w0, wa=wa)
+            universe = cosmology.w0waCDM(H0=H0, Om0=Om0, Ode0=Ode0, w0=w0, wa=wa)
 
         self.setCurrent(universe)
 
@@ -140,12 +139,14 @@ class CosmologyObject(object):
         this wrapper's methods use for calculations.
         """
 
-        if 'default_cosmology' in dir(cosmology):
+        if "default_cosmology" in dir(cosmology):
             cosmology.default_cosmology.set(universe)
-        elif 'set_current' in dir(cosmology):
+        elif "set_current" in dir(cosmology):
             cosmology.set_current(universe)
         else:
-            raise RuntimeError("CosmologyObject.setCurrent does not know how to handle this version of astropy")
+            raise RuntimeError(
+                "CosmologyObject.setCurrent does not know how to handle this version of astropy"
+            )
 
         self.activeCosmology = universe
         self.setUnits()
@@ -159,19 +160,19 @@ class CosmologyObject(object):
         """
 
         H = self.activeCosmology.H(0.0)
-        if 'unit' in dir(H):
+        if "unit" in dir(H):
             self.hUnits = units.Unit("km / (Mpc s)")
         else:
             self.hUnits = None
 
         dd = self.activeCosmology.comoving_distance(0.0)
-        if 'unit' in dir(dd):
+        if "unit" in dir(dd):
             self.distanceUnits = units.Mpc
         else:
             self.distanceUnits = None
 
         mm = self.activeCosmology.distmod(1.0)
-        if 'unit' in dir(mm):
+        if "unit" in dir(mm):
             self.modulusUnits = units.mag
         else:
             self.modulusUnits = None
@@ -201,7 +202,7 @@ class CosmologyObject(object):
 
         H = self.activeCosmology.H(redshift)
 
-        if 'value' in dir(H):
+        if "value" in dir(H):
             if H.unit == self.hUnits:
                 return H.value
             else:
@@ -287,7 +288,7 @@ class CosmologyObject(object):
         """
         dd = self.activeCosmology.comoving_distance(redshift)
 
-        if 'value' in dir(dd):
+        if "value" in dir(dd):
             if dd.unit == self.distanceUnits:
                 return dd.value
             else:
@@ -306,7 +307,7 @@ class CosmologyObject(object):
 
         dd = self.activeCosmology.luminosity_distance(redshift)
 
-        if 'value' in dir(dd):
+        if "value" in dir(dd):
             if dd.unit == self.distanceUnits:
                 return dd.value
             else:
@@ -323,7 +324,7 @@ class CosmologyObject(object):
 
         dd = self.activeCosmology.angular_diameter_distance(redshift)
 
-        if 'value' in dir(dd):
+        if "value" in dir(dd):
             if dd.unit == self.distanceUnits:
                 return dd.value
             else:
@@ -339,7 +340,7 @@ class CosmologyObject(object):
         """
 
         mm = self.activeCosmology.distmod(redshift)
-        if 'unit' in dir(mm):
+        if "unit" in dir(mm):
             if mm.unit == self.modulusUnits:
                 mod = mm.value
             else:
@@ -347,17 +348,17 @@ class CosmologyObject(object):
         else:
             mod = mm
 
-        #The astropy.cosmology.distmod() method has no problem returning a negative
-        #distance modulus (or -inf if redshift==0.0)
-        #Given that this makes no sense, the code below forces all distance moduli
-        #to be greater than zero.
+        # The astropy.cosmology.distmod() method has no problem returning a negative
+        # distance modulus (or -inf if redshift==0.0)
+        # Given that this makes no sense, the code below forces all distance moduli
+        # to be greater than zero.
         #
-        #a Runtime Warning will be raised (because distmod will try to take the
-        #logarithm of luminosityDistance = 0, but the code will still run
+        # a Runtime Warning will be raised (because distmod will try to take the
+        # logarithm of luminosityDistance = 0, but the code will still run
         if isinstance(mod, float):
             if mod < 0.0:
-                 return  0.0
+                return 0.0
             else:
                 return mod
         else:
-            return numpy.where(mod>0.0, mod, 0.0)
+            return numpy.where(mod > 0.0, mod, 0.0)

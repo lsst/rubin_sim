@@ -12,7 +12,7 @@ from rubin_sim.data import get_data_dir
 from .ooephemerides import PyOrbEphemerides
 from rubin_sim.utils import LsstCameraFootprint
 
-__all__ = ['BaseObs']
+__all__ = ["BaseObs"]
 
 
 class BaseObs(object):
@@ -71,14 +71,29 @@ class BaseObs(object):
         For example: 'baseline_v2.0_10yrs, years 0-5' or 'baseline2018a minus NES'
         Default ''.
     """
-    def __init__(self, footprint='camera', rFov=1.75, xTol=5, yTol=3,
-                 ephMode='nbody', ephType='basic', obsCode='I11',
-                 ephFile=None,
-                 obsTimeCol='observationStartMJD', obsTimeScale='TAI',
-                 seeingCol='seeingFwhmGeom', visitExpTimeCol='visitExposureTime',
-                 obsRA='fieldRA', obsDec='fieldDec', obsRotSkyPos='rotSkyPos', obsDegrees=True,
-                 outfileName='lsst_obs.dat', obsMetadata='',
-                 camera_footprint_file=None):
+
+    def __init__(
+        self,
+        footprint="camera",
+        rFov=1.75,
+        xTol=5,
+        yTol=3,
+        ephMode="nbody",
+        ephType="basic",
+        obsCode="I11",
+        ephFile=None,
+        obsTimeCol="observationStartMJD",
+        obsTimeScale="TAI",
+        seeingCol="seeingFwhmGeom",
+        visitExpTimeCol="visitExposureTime",
+        obsRA="fieldRA",
+        obsDec="fieldDec",
+        obsRotSkyPos="rotSkyPos",
+        obsDegrees=True,
+        outfileName="lsst_obs.dat",
+        obsMetadata="",
+        camera_footprint_file=None,
+    ):
         # Strings relating to the names of columns in the observation metadata.
         self.obsCode = obsCode
         self.obsTimeCol = obsTimeCol
@@ -92,26 +107,28 @@ class BaseObs(object):
         # Save a space for the standard object colors.
         self.colors = {}
         self.outfileName = outfileName
-        if obsMetadata == '':
-            self.obsMetadata = 'unknown simdata source'
+        if obsMetadata == "":
+            self.obsMetadata = "unknown simdata source"
         else:
             self.obsMetadata = obsMetadata
         # Values for identifying observations.
         self.footprint = footprint.lower()
-        if self.footprint == 'camera':
+        if self.footprint == "camera":
             self._setupCamera(camera_footprint_file=camera_footprint_file)
         self.rFov = rFov
         self.xTol = xTol
         self.yTol = yTol
         # Values for ephemeris generation.
-        if ephMode.lower() not in ('2body', 'nbody'):
-            raise ValueError('Ephemeris generation must be 2body or nbody.')
+        if ephMode.lower() not in ("2body", "nbody"):
+            raise ValueError("Ephemeris generation must be 2body or nbody.")
         self.ephMode = ephMode
         self.ephType = ephType
         self.ephFile = ephFile
 
     def _setupCamera(self, camera_footprint_file=None):
-        self.camera = LsstCameraFootprint(units='degrees', footprint_file=camera_footprint_file)
+        self.camera = LsstCameraFootprint(
+            units="degrees", footprint_file=camera_footprint_file
+        )
 
     def setupEphemerides(self):
         """Initialize the ephemeris generator. Save the setup PyOrbEphemeris class.
@@ -149,13 +166,17 @@ class BaseObs(object):
         if ephType is None:
             ephType = self.ephType
         self.ephems.setOrbits(sso)
-        ephs = self.ephems.generateEphemerides(times, timeScale=self.obsTimeScale,
-                                               obscode=self.obsCode,
-                                               ephMode=ephMode, ephType=ephType,
-                                               byObject=True)
+        ephs = self.ephems.generateEphemerides(
+            times,
+            timeScale=self.obsTimeScale,
+            obscode=self.obsCode,
+            ephMode=ephMode,
+            ephType=ephType,
+            byObject=True,
+        )
         return ephs
 
-    def calcTrailingLosses(self, velocity, seeing, texp=30.):
+    def calcTrailingLosses(self, velocity, seeing, texp=30.0):
         """Calculate the detection and SNR trailing losses.
 
         'Trailing' losses = loss in sensitivity due to the photons from the source being
@@ -193,10 +214,15 @@ class BaseObs(object):
         dmagDetect = 1.25 * np.log10(1 + a_det * x ** 2 / (1 + b_det * x))
         return (dmagTrail, dmagDetect)
 
-    def readFilters(self, filterDir=None,
-                    bandpassRoot='total_', bandpassSuffix='.dat',
-                    filterlist=('u', 'g', 'r', 'i', 'z', 'y'),
-                    vDir=None, vFilter='harris_V.dat'):
+    def readFilters(
+        self,
+        filterDir=None,
+        bandpassRoot="total_",
+        bandpassSuffix=".dat",
+        filterlist=("u", "g", "r", "i", "z", "y"),
+        vDir=None,
+        vFilter="harris_V.dat",
+    ):
         """
         Read (LSST) and Harris (V) filter throughput curves.
 
@@ -225,19 +251,21 @@ class BaseObs(object):
             Default harris_V.dat.
         """
         if filterDir is None:
-            filterDir = os.path.join(get_data_dir(), 'throughputs/baseline')
+            filterDir = os.path.join(get_data_dir(), "throughputs/baseline")
         if vDir is None:
-            vDir = os.path.join(get_data_dir(), 'movingObjects')
+            vDir = os.path.join(get_data_dir(), "movingObjects")
         self.filterlist = filterlist
         # Read filter throughput curves from disk.
         self.lsst = {}
         for f in self.filterlist:
             self.lsst[f] = Bandpass()
-            self.lsst[f].readThroughput(os.path.join(filterDir, bandpassRoot + f + bandpassSuffix))
+            self.lsst[f].readThroughput(
+                os.path.join(filterDir, bandpassRoot + f + bandpassSuffix)
+            )
         self.vband = Bandpass()
         self.vband.readThroughput(os.path.join(vDir, vFilter))
 
-    def calcColors(self, sedname='C.dat', sedDir=None):
+    def calcColors(self, sedname="C.dat", sedDir=None):
         """Calculate the colors for a given SED.
 
         If the sedname is not already in the dictionary self.colors, this reads the
@@ -260,7 +288,7 @@ class BaseObs(object):
         """
         if sedname not in self.colors:
             if sedDir is None:
-                sedDir = os.path.join(get_data_dir(), 'movingObjects')
+                sedDir = os.path.join(get_data_dir(), "movingObjects")
             moSed = Sed()
             moSed.readSED_flambda(os.path.join(sedDir, sedname))
             vmag = moSed.calcMag(self.vband)
@@ -289,11 +317,16 @@ class BaseObs(object):
 
     def _ssoInCircleFov(self, ephems, obsData, rFov):
         if not self.obsDegrees:
-            sep = angularSeparation(ephems['ra'], ephems['dec'],
-                                    np.degrees(obsData[self.obsRA]), np.degrees(obsData[self.obsDec]))
+            sep = angularSeparation(
+                ephems["ra"],
+                ephems["dec"],
+                np.degrees(obsData[self.obsRA]),
+                np.degrees(obsData[self.obsDec]),
+            )
         else:
-            sep = angularSeparation(ephems['ra'], ephems['dec'],
-                                    obsData[self.obsRA], obsData[self.obsDec])
+            sep = angularSeparation(
+                ephems["ra"], ephems["dec"], obsData[self.obsRA], obsData[self.obsDec]
+            )
         idxObs = np.where(sep <= rFov)[0]
         return idxObs
 
@@ -316,8 +349,11 @@ class BaseObs(object):
         return self._ssoInRectangleFov(ephems, obsData, self.xTol, self.yTol)
 
     def _ssoInRectangleFov(self, ephems, obsData, xTol, yTol):
-        deltaDec = np.abs(ephems['dec'] - obsData[self.obsDec])
-        deltaRa = np.abs((ephems['ra'] - obsData[self.obsRA]) * np.cos(np.radians(obsData[self.obsDec])))
+        deltaDec = np.abs(ephems["dec"] - obsData[self.obsDec])
+        deltaRa = np.abs(
+            (ephems["ra"] - obsData[self.obsRA])
+            * np.cos(np.radians(obsData[self.obsDec]))
+        )
         idxObs = np.where((deltaDec <= yTol) & (deltaRa <= xTol))[0]
         return idxObs
 
@@ -337,16 +373,25 @@ class BaseObs(object):
         indices : `np.ndarray`
             Returns the indexes of the numpy array of the object observations which are inside the fov.
         """
-        if not hasattr(self, 'camera'):
+        if not hasattr(self, "camera"):
             self._setupCamera()
 
         if not self.obsDegrees:
-            idx = self.camera(ephems['ra'], ephems['dec'],
-                              np.degrees(obsData[self.obsRA]), np.degrees(obsData[self.obsDec]),
-                              np.degrees(obsData[self.obsRotSkyPos]))
+            idx = self.camera(
+                ephems["ra"],
+                ephems["dec"],
+                np.degrees(obsData[self.obsRA]),
+                np.degrees(obsData[self.obsDec]),
+                np.degrees(obsData[self.obsRotSkyPos]),
+            )
         else:
-            idx = self.camera(ephems['ra'], ephems['dec'],
-                              obsData[self.obsRA], obsData[self.obsDec], obsData[self.obsRotSkyPos])
+            idx = self.camera(
+                ephems["ra"],
+                ephems["dec"],
+                obsData[self.obsRA],
+                obsData[self.obsDec],
+                obsData[self.obsRotSkyPos],
+            )
         return idx
 
     def ssoInFov(self, ephems, obsData):
@@ -372,7 +417,7 @@ class BaseObs(object):
             return self.ssoInCircleFov(ephems, obsData)
         else:
             warnings.warn("Using circular fov; could not match specified footprint.")
-            self.footprint = 'circle'
+            self.footprint = "circle"
             return self.ssoInCircleFov(ephems, obsData)
 
     # Put together the output.
@@ -383,37 +428,43 @@ class BaseObs(object):
             if not os.path.isdir(outDir):
                 os.makedirs(outDir)
         # Open the output file for writing.
-        self.outfile = open(self.outfileName, 'w')
-        self.outfile.write('# Started at %s' % (datetime.datetime.now()))
+        self.outfile = open(self.outfileName, "w")
+        self.outfile.write("# Started at %s" % (datetime.datetime.now()))
         # Write metadata into the header, using # to identify as comment lines.
-        self.outfile.write('# %s\n' % self.obsMetadata)
-        self.outfile.write('# %s\n' % self.outfileName)
+        self.outfile.write("# %s\n" % self.obsMetadata)
+        self.outfile.write("# %s\n" % self.outfileName)
         # Write some generic ephemeris generation information.
-        self.outfile.write('# ephemeris generation via %s\n' % self.ephems.__class__.__name__)
-        self.outfile.write('# planetary ephemeris file %s \n' % self.ephems.ephfile)
-        self.outfile.write('# obscode %s\n' % self.obsCode)
+        self.outfile.write(
+            "# ephemeris generation via %s\n" % self.ephems.__class__.__name__
+        )
+        self.outfile.write("# planetary ephemeris file %s \n" % self.ephems.ephfile)
+        self.outfile.write("# obscode %s\n" % self.obsCode)
         # Write some class-specific metadata about observation generation.
         self._headerMeta()
         # Write the footprint information.
-        self.outfile.write('# pointing footprint %s\n' % (self.footprint))
-        if self.footprint == 'circle':
-            self.outfile.write('# rfov %f\n' % self.rFov)
-        if self.footprint == 'rectangle':
-            self.outfile.write('# xTol %f yTol %f\n' % (self.xTol, self.yTol))
+        self.outfile.write("# pointing footprint %s\n" % (self.footprint))
+        if self.footprint == "circle":
+            self.outfile.write("# rfov %f\n" % self.rFov)
+        if self.footprint == "rectangle":
+            self.outfile.write("# xTol %f yTol %f\n" % (self.xTol, self.yTol))
         # Record columns used from simulation data
-        self.outfile.write('# obsRA %s obsDec %s obsRotSkyPos %s obsDeg %s\n'
-                           % (self.obsRA, self.obsDec, self.obsRotSkyPos, self.obsDegrees))
-        self.outfile.write('# obsMJD %s obsTimeScale %s seeing %s expTime %s\n'
-                           % (self.obsTimeCol, self.obsTimeScale, self.seeingCol, self.visitExpTimeCol))
+        self.outfile.write(
+            "# obsRA %s obsDec %s obsRotSkyPos %s obsDeg %s\n"
+            % (self.obsRA, self.obsDec, self.obsRotSkyPos, self.obsDegrees)
+        )
+        self.outfile.write(
+            "# obsMJD %s obsTimeScale %s seeing %s expTime %s\n"
+            % (self.obsTimeCol, self.obsTimeScale, self.seeingCol, self.visitExpTimeCol)
+        )
 
         self.wroteHeader = False
 
     def _headerMeta(self):
         # Generic class header metadata, should be overriden with class specific version.
-        self.outfile.write('# generic header metadata\n')
-        self.outfile.write('# ephMode %s\n' % (self.ephMode))
+        self.outfile.write("# generic header metadata\n")
+        self.outfile.write("# ephMode %s\n" % (self.ephMode))
 
-    def writeObs(self, objId, objEphs, obsData, sedname='C.dat'):
+    def writeObs(self, objId, objEphs, obsData, sedname="C.dat"):
         """
         Call for each object; write out the observations of each object.
 
@@ -452,46 +503,57 @@ class BaseObs(object):
         # First calculate and match the color dmag term.
         dmagColor = np.zeros(len(obsData), float)
         dmagColorDict = self.calcColors(sedname)
-        filterlist = np.unique(obsData['filter'])
+        filterlist = np.unique(obsData["filter"])
         for f in filterlist:
             if f not in dmagColorDict:
-                raise UserWarning('Could not find filter %s in calculated colors!' % (f))
-            match = np.where(obsData['filter'] == f)[0]
+                raise UserWarning(
+                    "Could not find filter %s in calculated colors!" % (f)
+                )
+            match = np.where(obsData["filter"] == f)[0]
             dmagColor[match] = dmagColorDict[f]
         # Calculate trailing and detection loses.
-        dmagTrail, dmagDetect = self.calcTrailingLosses(objEphs['velocity'],
-                                                        obsData[self.seeingCol],
-                                                        obsData[self.visitExpTimeCol])
+        dmagTrail, dmagDetect = self.calcTrailingLosses(
+            objEphs["velocity"], obsData[self.seeingCol], obsData[self.visitExpTimeCol]
+        )
         # Turn into a recarray so it's easier below.
-        dmags = np.rec.fromarrays([dmagColor, dmagTrail, dmagDetect],
-                                  names=['dmagColor', 'dmagTrail', 'dmagDetect'])
+        dmags = np.rec.fromarrays(
+            [dmagColor, dmagTrail, dmagDetect],
+            names=["dmagColor", "dmagTrail", "dmagDetect"],
+        )
 
         obsDataNames = list(obsData.dtype.names)
         obsDataNames.sort()
 
-        outCols = ['objId', ] + list(objEphs.dtype.names) + obsDataNames + list(dmags.dtype.names)
+        outCols = (
+            [
+                "objId",
+            ]
+            + list(objEphs.dtype.names)
+            + obsDataNames
+            + list(dmags.dtype.names)
+        )
 
         if not self.wroteHeader:
-            writestring = ''
+            writestring = ""
             for col in outCols:
-                writestring += '%s ' % (col)
-            self.outfile.write('%s\n' % (writestring))
+                writestring += "%s " % (col)
+            self.outfile.write("%s\n" % (writestring))
             self.wroteHeader = True
 
         # Write results.
         # XXX--should remove nested for-loops. Looks like there is a hodgepodge
-        # of arrays, structured arrays, and record arrays. Probably a good idea to 
+        # of arrays, structured arrays, and record arrays. Probably a good idea to
         # refactor to eliminate the rec arrays, then it should be easy to stack things
-        # and use np.savetxt to eliminate all the loops. 
+        # and use np.savetxt to eliminate all the loops.
         for eph, simdat, dm in zip(objEphs, obsData, dmags):
-            writestring = '%s ' % (objId)
+            writestring = "%s " % (objId)
             for col in eph.dtype.names:
-                writestring += '%s ' % (eph[col])
+                writestring += "%s " % (eph[col])
             for col in obsDataNames:
-                writestring += '%s ' % (simdat[col])
+                writestring += "%s " % (simdat[col])
             for col in dm.dtype.names:
-                writestring += '%s ' % (dm[col])
-            self.outfile.write('%s\n' % (writestring))
+                writestring += "%s " % (dm[col])
+            self.outfile.write("%s\n" % (writestring))
 
     def _closeOutput(self):
-        self.outfile.write('# Finished at %s' % (datetime.datetime.now()))
+        self.outfile.write("# Finished at %s" % (datetime.datetime.now()))

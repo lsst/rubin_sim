@@ -1,17 +1,22 @@
 import numpy as np
 from .baseMetric import BaseMetric
 
-__all__ = ['LongGapAGNMetric']
+__all__ = ["LongGapAGNMetric"]
 
 
 class LongGapAGNMetric(BaseMetric):
-    """max delta-t and average of the top-10 longest gaps.
-    """
+    """max delta-t and average of the top-10 longest gaps."""
 
-    def __init__(self, metricName='longGapAGNMetric',
-                 mjdcol='observationStartMJD', units='days', xgaps=10, badval=-666,
-                 **kwargs):
-        """ Instantiate metric.
+    def __init__(
+        self,
+        metricName="longGapAGNMetric",
+        mjdcol="observationStartMJD",
+        units="days",
+        xgaps=10,
+        badval=-666,
+        **kwargs
+    ):
+        """Instantiate metric.
         mjdcol = column name for exposure time dates
         """
         cols = [mjdcol]
@@ -33,7 +38,7 @@ class LongGapAGNMetric(BaseMetric):
         return result
 
     def reduceAverageLongestXGaps(self, metricval):
-        if np.size(metricval)-self.xgaps > 0:
-            return np.average(np.sort(metricval)[np.size(metricval)-self.xgaps:])
+        if np.size(metricval) - self.xgaps > 0:
+            return np.average(np.sort(metricval)[np.size(metricval) - self.xgaps :])
         else:
             return self.badval

@@ -1,9 +1,21 @@
 import numpy as np
-from rubin_sim.utils import _approx_RaDec2AltAz, Site, _hpid2RaDec, m5_flat_sed, _approx_altaz2pa, _angularSeparation
+from rubin_sim.utils import (
+    _approx_RaDec2AltAz,
+    Site,
+    _hpid2RaDec,
+    m5_flat_sed,
+    _approx_altaz2pa,
+    _angularSeparation,
+)
 import healpy as hp
-from rubin_sim.scheduler.utils import set_default_nside, match_hp_resolution, season_calc, smallest_signed_angle
+from rubin_sim.scheduler.utils import (
+    set_default_nside,
+    match_hp_resolution,
+    season_calc,
+    smallest_signed_angle,
+)
 
-__all__ = ['Conditions']
+__all__ = ["Conditions"]
 
 
 class Conditions(object):
@@ -16,8 +28,16 @@ class Conditions(object):
     Unless otherwise noted, all values are assumed to be valid at the time
     given by self.mjd
     """
-    def __init__(self, nside=None, site='LSST', exptime=30., mjd_start=59853.5, season_offset=None,
-                 sun_RA_start=None):
+
+    def __init__(
+        self,
+        nside=None,
+        site="LSST",
+        exptime=30.0,
+        mjd_start=59853.5,
+        season_offset=None,
+        sun_RA_start=None,
+    ):
         """
         Parameters
         ----------
@@ -105,7 +125,7 @@ class Conditions(object):
         wind_direction : float
             Direction from which the wind originates. A direction of 0.0 degrees
             means the wind originates from the north and 90.0 degrees from the
-            east (radians). 
+            east (radians).
         sunset : float
             The MJD of sunset that starts the current night. Note MJDs of sunset, moonset, twilight times, etc
             are from interpolations. This means the sun may actually be slightly above/below the horizon
@@ -275,8 +295,8 @@ class Conditions(object):
         return self._HA
 
     def calc_HA(self):
-        self._HA = np.radians(self._lmst*360./24.) - self.ra
-        self._HA[np.where(self._HA < 0)] += 2.*np.pi
+        self._HA = np.radians(self._lmst * 360.0 / 24.0) - self.ra
+        self._HA[np.where(self._HA < 0)] += 2.0 * np.pi
 
     @property
     def cloud_map(self):
@@ -329,9 +349,13 @@ class Conditions(object):
         return self._az
 
     def calc_altAz(self):
-        self._alt, self._az = _approx_RaDec2AltAz(self.ra, self.dec,
-                                                  self.site.latitude_rad,
-                                                  self.site.longitude_rad, self._mjd)
+        self._alt, self._az = _approx_RaDec2AltAz(
+            self.ra,
+            self.dec,
+            self.site.latitude_rad,
+            self.site.longitude_rad,
+            self._mjd,
+        )
 
     @property
     def mjd(self):
@@ -359,7 +383,9 @@ class Conditions(object):
     def skybrightness(self, indict):
         for key in indict:
 
-            self._skybrightness[key] = match_hp_resolution(indict[key], nside_out=self.nside)
+            self._skybrightness[key] = match_hp_resolution(
+                indict[key], nside_out=self.nside
+            )
         # If sky brightness changes, need to recalc M5 depth.
         self._M5Depth = None
 
@@ -384,14 +410,18 @@ class Conditions(object):
         for filtername in self._skybrightness:
             good = ~np.isnan(self._skybrightness[filtername])
             self._M5Depth[filtername] = self.nan_map.copy()
-            self._M5Depth[filtername][good] = m5_flat_sed(filtername,
-                                                          self._skybrightness[filtername][good],
-                                                          self._FWHMeff[filtername][good],
-                                                          self.exptime,
-                                                          self._airmass[good])
+            self._M5Depth[filtername][good] = m5_flat_sed(
+                filtername,
+                self._skybrightness[filtername][good],
+                self._FWHMeff[filtername][good],
+                self.exptime,
+                self._airmass[good],
+            )
 
     def calc_solar_elongation(self):
-        self._solar_elongation = _angularSeparation(self.ra, self.dec, self.sunRA, self.sunDec)
+        self._solar_elongation = _angularSeparation(
+            self.ra, self.dec, self.sunRA, self.sunDec
+        )
 
     @property
     def solar_elongation(self):
@@ -403,7 +433,7 @@ class Conditions(object):
         self._az_to_sun = smallest_signed_angle(self.ra, self.sunRA)
 
     def calc_az_to_antisun(self):
-        self._az_to_antisun = smallest_signed_angle(self.ra+np.pi, self.sunRA)
+        self._az_to_antisun = smallest_signed_angle(self.ra + np.pi, self.sunRA)
 
     @property
     def az_to_sun(self):
@@ -420,16 +450,26 @@ class Conditions(object):
     # XXX, there's probably an elegant decorator that could do this caching automatically
     def season(self, modulo=None, max_season=None, season_length=365.25, floor=True):
         if self.season_offset is not None:
-            kwargs_match = (modulo == self.season_modulo) & (max_season == self.season_max_season) & (season_length == self.season_length) & (floor == self.season_floor)
+            kwargs_match = (
+                (modulo == self.season_modulo)
+                & (max_season == self.season_max_season)
+                & (season_length == self.season_length)
+                & (floor == self.season_floor)
+            )
             if ~kwargs_match:
                 self.season_modulo = modulo
                 self.season_max_season = max_season
                 self.season_length = season_length
                 self.season_floor = floor
             if (self._season is None) | (~kwargs_match):
-                self._season = season_calc(self.night, offset=self.season_offset,
-                                           modulo=modulo, max_season=max_season,
-                                           season_length=season_length, floor=floor)
+                self._season = season_calc(
+                    self.night,
+                    offset=self.season_offset,
+                    modulo=modulo,
+                    max_season=max_season,
+                    season_length=season_length,
+                    floor=floor,
+                )
         else:
             self._season = None
 

@@ -7,36 +7,54 @@ import healpy as hp
 import random
 
 
-__all__ = ['DESC_ddf', 'generate_desc_dd_surveys']
+__all__ = ["DESC_ddf", "generate_desc_dd_surveys"]
 
 
 class DESC_ddf(BaseSurvey):
-    """DDF survey based on Scolnic et al Cadence White Paper.
-    """
-    def __init__(self, basis_functions, RA, dec, sequences=None,
-                 exptime=30., nexp=1, ignore_obs=None, survey_name='DD_DESC',
-                 reward_value=101., readtime=2., filter_change_time=120.,
-                 nside=None, flush_pad=30., seed=42, detailers=None):
-        super(DESC_ddf, self).__init__(nside=nside, basis_functions=basis_functions,
-                                       detailers=detailers, ignore_obs=ignore_obs)
+    """DDF survey based on Scolnic et al Cadence White Paper."""
+
+    def __init__(
+        self,
+        basis_functions,
+        RA,
+        dec,
+        sequences=None,
+        exptime=30.0,
+        nexp=1,
+        ignore_obs=None,
+        survey_name="DD_DESC",
+        reward_value=101.0,
+        readtime=2.0,
+        filter_change_time=120.0,
+        nside=None,
+        flush_pad=30.0,
+        seed=42,
+        detailers=None,
+    ):
+        super(DESC_ddf, self).__init__(
+            nside=nside,
+            basis_functions=basis_functions,
+            detailers=detailers,
+            ignore_obs=ignore_obs,
+        )
 
         self.ra = np.radians(RA)
-        self.ra_hours = RA/360.*24.
+        self.ra_hours = RA / 360.0 * 24.0
         self.dec = np.radians(dec)
         self.survey_name = survey_name
         self.reward_value = reward_value
-        self.flush_pad = flush_pad/60./24.  # To days
+        self.flush_pad = flush_pad / 60.0 / 24.0  # To days
 
         self.simple_obs = empty_observation()
-        self.simple_obs['RA'] = np.radians(RA)
-        self.simple_obs['dec'] = np.radians(dec)
-        self.simple_obs['exptime'] = exptime
-        self.simple_obs['nexp'] = nexp
-        self.simple_obs['note'] = survey_name
+        self.simple_obs["RA"] = np.radians(RA)
+        self.simple_obs["dec"] = np.radians(dec)
+        self.simple_obs["exptime"] = exptime
+        self.simple_obs["nexp"] = nexp
+        self.simple_obs["note"] = survey_name
 
         # Define the sequences we would like to do
         if sequences is None:
-            self.sequences = [{'u': 2, 'g': 2, 'r': 4, 'i': 8}, {'z': 25, 'y': 4}, None]
+            self.sequences = [{"u": 2, "g": 2, "r": 4, "i": 8}, {"z": 25, "y": 4}, None]
         else:
             self.sequences = sequences
 
@@ -46,10 +64,10 @@ class DESC_ddf(BaseSurvey):
                 self.approx_times.append(0)
             else:
                 n_exp_in_seq = np.sum(list(sequence.values()))
-                time_needed = filter_change_time*len(sequence.keys())
-                time_needed += exptime*n_exp_in_seq
-                time_needed += readtime*n_exp_in_seq*nexp
-                self.approx_times.append(time_needed/3600./24.)
+                time_needed = filter_change_time * len(sequence.keys())
+                time_needed += exptime * n_exp_in_seq
+                time_needed += readtime * n_exp_in_seq * nexp
+                self.approx_times.append(time_needed / 3600.0 / 24.0)
 
         # Track what we last tried to do
         # XXX-this should probably go into self.extra_features or something for consistency.
@@ -58,13 +76,13 @@ class DESC_ddf(BaseSurvey):
 
     def check_continue(self, observation, conditions):
         # feasibility basis functions?
-        '''
+        """
         This method enables external calls to check if a given observations that belongs to this survey is
         feasible or not. This is called once a sequence has started to make sure it can continue.
 
-        XXX--TODO:  Need to decide if we want to develope check_continue, or instead hold the 
+        XXX--TODO:  Need to decide if we want to develope check_continue, or instead hold the
         sequence in the survey, and be able to check it that way.
-        '''
+        """
 
         result = True
         return result
@@ -79,7 +97,9 @@ class DESC_ddf(BaseSurvey):
             return False
 
         # Advance the sequence index if we have skipped a day intentionally
-        if (self.sequences[self.sequence_index] is None) & (conditions.night-self.last_night_observed > 1):
+        if (self.sequences[self.sequence_index] is None) & (
+            conditions.night - self.last_night_observed > 1
+        ):
             self.sequence_index = (self.sequence_index + 1) % len(self.sequences)
 
         # If we want to skip this day
@@ -106,11 +126,13 @@ class DESC_ddf(BaseSurvey):
             if key in conditions.mounted_filters:
                 for i in np.arange(self.sequences[self.sequence_index][key]):
                     temp_obs = self.simple_obs.copy()
-                    temp_obs['filter'] = key
+                    temp_obs["filter"] = key
                     # XXX--need to set flush by mjd
                     result.append(temp_obs)
         for i, obs in enumerate(result):
-                result[i]['flush_by_mjd'] = conditions.mjd + self.approx_times[self.sequence_index] + self.flush_pad
+            result[i]["flush_by_mjd"] = (
+                conditions.mjd + self.approx_times[self.sequence_index] + self.flush_pad
+            )
         # Just assuming this sequence gets observed.
         self.last_night_observed = conditions.night
         self.sequence_index = (self.sequence_index + 1) % len(self.sequences)
@@ -123,8 +145,10 @@ def desc_dd_bfs(RA, dec, survey_name, ha_limits, frac_total=0.0185):
     """
     bfs = []
     bfs.append(basis_functions.Not_twilight_basis_function(sun_alt_limit=-18))
-    bfs.append(basis_functions.Time_to_twilight_basis_function(time_needed=30.))
-    bfs.append(basis_functions.Hour_Angle_limit_basis_function(RA=RA, ha_limits=ha_limits))
+    bfs.append(basis_functions.Time_to_twilight_basis_function(time_needed=30.0))
+    bfs.append(
+        basis_functions.Hour_Angle_limit_basis_function(RA=RA, ha_limits=ha_limits)
+    )
     bfs.append(basis_functions.Rising_more_basis_function(RA=RA))
     bfs.append(basis_functions.Clouded_out_basis_function())
 
@@ -136,58 +160,119 @@ def generate_desc_dd_surveys(nside=None, nexp=1, detailers=None):
 
     # ELAIS S1
     RA = 9.45
-    dec = -44.
-    survey_name = 'DD:ELAISS1'
-    ha_limits = ([0., 1.18], [21.82, 24.])
+    dec = -44.0
+    survey_name = "DD:ELAISS1"
+    ha_limits = ([0.0, 1.18], [21.82, 24.0])
     bfs = desc_dd_bfs(RA, dec, survey_name, ha_limits)
-    surveys.append(DESC_ddf(bfs, RA, dec, survey_name=survey_name, reward_value=100,
-                            nside=nside, nexp=nexp, detailers=detailers))
+    surveys.append(
+        DESC_ddf(
+            bfs,
+            RA,
+            dec,
+            survey_name=survey_name,
+            reward_value=100,
+            nside=nside,
+            nexp=nexp,
+            detailers=detailers,
+        )
+    )
 
     # XMM-LSS
-    survey_name = 'DD:XMM-LSS'
+    survey_name = "DD:XMM-LSS"
     RA = 35.708333
-    dec = -4-45/60.
-    ha_limits = ([0., 1.3], [21.7, 24.])
+    dec = -4 - 45 / 60.0
+    ha_limits = ([0.0, 1.3], [21.7, 24.0])
     bfs = desc_dd_bfs(RA, dec, survey_name, ha_limits)
 
-    surveys.append(DESC_ddf(bfs, RA, dec, survey_name=survey_name, reward_value=100,
-                            nside=nside, nexp=nexp, detailers=detailers))
+    surveys.append(
+        DESC_ddf(
+            bfs,
+            RA,
+            dec,
+            survey_name=survey_name,
+            reward_value=100,
+            nside=nside,
+            nexp=nexp,
+            detailers=detailers,
+        )
+    )
     # Extended Chandra Deep Field South
     RA = 53.125
-    dec = -28.-6/60.
-    survey_name = 'DD:ECDFS'
-    ha_limits = [[0.5, 3.0], [20., 22.5]]
+    dec = -28.0 - 6 / 60.0
+    survey_name = "DD:ECDFS"
+    ha_limits = [[0.5, 3.0], [20.0, 22.5]]
     bfs = desc_dd_bfs(RA, dec, survey_name, ha_limits)
-    surveys.append(DESC_ddf(bfs, RA, dec, survey_name=survey_name, reward_value=100, nside=nside,
-                            nexp=nexp, detailers=detailers))
+    surveys.append(
+        DESC_ddf(
+            bfs,
+            RA,
+            dec,
+            survey_name=survey_name,
+            reward_value=100,
+            nside=nside,
+            nexp=nexp,
+            detailers=detailers,
+        )
+    )
 
     # COSMOS
     RA = 150.1
-    dec = 2.+10./60.+55/3600.
-    survey_name = 'DD:COSMOS'
-    ha_limits = ([0., 1.5], [21.5, 24.])
+    dec = 2.0 + 10.0 / 60.0 + 55 / 3600.0
+    survey_name = "DD:COSMOS"
+    ha_limits = ([0.0, 1.5], [21.5, 24.0])
     bfs = desc_dd_bfs(RA, dec, survey_name, ha_limits)
     # have a special sequence for COSMOS
-    sequences = [{'g': 2, 'r': 4, 'i': 8}, {'z': 25, 'y': 4}]
-    surveys.append(DESC_ddf(bfs, RA, dec, survey_name=survey_name, reward_value=100, nside=nside,
-                            nexp=nexp, detailers=detailers, sequences=sequences))
+    sequences = [{"g": 2, "r": 4, "i": 8}, {"z": 25, "y": 4}]
+    surveys.append(
+        DESC_ddf(
+            bfs,
+            RA,
+            dec,
+            survey_name=survey_name,
+            reward_value=100,
+            nside=nside,
+            nexp=nexp,
+            detailers=detailers,
+            sequences=sequences,
+        )
+    )
 
     # Just do the two Euclid fields independently for now
-    survey_name = 'DD:EDFSa'
+    survey_name = "DD:EDFSa"
     RA = 58.97
     dec = -49.28
-    ha_limits = ([0., 1.5], [23., 24.])
+    ha_limits = ([0.0, 1.5], [23.0, 24.0])
     bfs = desc_dd_bfs(RA, dec, survey_name, ha_limits)
-    surveys.append(DESC_ddf(bfs, RA, dec, survey_name=survey_name, reward_value=100, nside=nside,
-                            nexp=nexp, detailers=detailers))
+    surveys.append(
+        DESC_ddf(
+            bfs,
+            RA,
+            dec,
+            survey_name=survey_name,
+            reward_value=100,
+            nside=nside,
+            nexp=nexp,
+            detailers=detailers,
+        )
+    )
 
-    survey_name = 'DD:EDFSb'
+    survey_name = "DD:EDFSb"
     RA = 63.6
     dec = -47.60
-    ha_limits = ([0., 1.5], [23., 24.])
+    ha_limits = ([0.0, 1.5], [23.0, 24.0])
     bfs = desc_dd_bfs(RA, dec, survey_name, ha_limits)
-    surveys.append(DESC_ddf(bfs, RA, dec, survey_name=survey_name, reward_value=100, nside=nside,
-                            nexp=nexp, detailers=detailers))
+    surveys.append(
+        DESC_ddf(
+            bfs,
+            RA,
+            dec,
+            survey_name=survey_name,
+            reward_value=100,
+            nside=nside,
+            nexp=nexp,
+            detailers=detailers,
+        )
+    )
 
     return surveys
 

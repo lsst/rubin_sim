@@ -17,10 +17,18 @@ import numpy as np
 import numbers
 from rubin_sim.utils import cartesianFromSpherical, sphericalFromCartesian
 
-__all__ = ["Trixel", "HalfSpace", "findHtmid", "trixelFromHtmid",
-           "basic_trixels", "halfSpaceFromRaDec", "levelFromHtmid",
-           "getAllTrixels", "halfSpaceFromPoints",
-           "intersectHalfSpaces"]
+__all__ = [
+    "Trixel",
+    "HalfSpace",
+    "findHtmid",
+    "trixelFromHtmid",
+    "basic_trixels",
+    "halfSpaceFromRaDec",
+    "levelFromHtmid",
+    "getAllTrixels",
+    "halfSpaceFromPoints",
+    "intersectHalfSpaces",
+]
 
 
 class Trixel(object):
@@ -56,7 +64,7 @@ class Trixel(object):
         """
         self._corners = present_corners
         self._htmid = present_htmid
-        self._level = (len('{0:b}'.format(self._htmid))/2)-1
+        self._level = (len("{0:b}".format(self._htmid)) / 2) - 1
         self._cross01 = None
         self._cross12 = None
         self._cross20 = None
@@ -162,9 +170,11 @@ class Trixel(object):
         ESO Astrophysics Symposia
         https://www.researchgate.net/publication/226072008_The_Hierarchical_Triangular_Mesh
         """
-        return ((np.dot(pts, self.cross01)>=0.0) &
-                (np.dot(pts, self.cross12)>=0.0) &
-                (np.dot(pts, self.cross20)>=0.0))
+        return (
+            (np.dot(pts, self.cross01) >= 0.0)
+            & (np.dot(pts, self.cross12) >= 0.0)
+            & (np.dot(pts, self.cross20) >= 0.0)
+        )
 
     def contains_pt(self, pt):
         """
@@ -184,12 +194,12 @@ class Trixel(object):
 
     def _create_w(self):
 
-        w0 = self._corners[1]+self._corners[2]
-        w0 = w0/np.sqrt(np.power(w0, 2).sum())
-        w1 = self._corners[0]+self._corners[2]
-        w1 = w1/np.sqrt(np.power(w1, 2).sum())
-        w2 = self._corners[0]+self._corners[1]
-        w2 = w2/np.sqrt(np.power(w2, 2).sum())
+        w0 = self._corners[1] + self._corners[2]
+        w0 = w0 / np.sqrt(np.power(w0, 2).sum())
+        w1 = self._corners[0] + self._corners[2]
+        w1 = w1 / np.sqrt(np.power(w1, 2).sum())
+        w2 = self._corners[0] + self._corners[1]
+        w2 = w2 / np.sqrt(np.power(w2, 2).sum())
 
         self._w_arr = [w0, w1, w2]
 
@@ -219,9 +229,10 @@ class Trixel(object):
         "Indexing the Sphere with the Hierarchical Triangular Mesh"
         arXiv:cs/0701164
         """
-        if not hasattr(self, '_t0'):
-            self._t0 = Trixel(self.htmid << 2,
-                              [self._corners[0], self.w_arr[2], self.w_arr[1]])
+        if not hasattr(self, "_t0"):
+            self._t0 = Trixel(
+                self.htmid << 2, [self._corners[0], self.w_arr[2], self.w_arr[1]]
+            )
         return self._t0
 
     @property
@@ -235,9 +246,10 @@ class Trixel(object):
         "Indexing the Sphere with the Hierarchical Triangular Mesh"
         arXiv:cs/0701164
         """
-        if not hasattr(self, '_t1'):
-            self._t1 = Trixel((self.htmid << 2)+1,
-                              [self._corners[1], self.w_arr[0], self.w_arr[2]])
+        if not hasattr(self, "_t1"):
+            self._t1 = Trixel(
+                (self.htmid << 2) + 1, [self._corners[1], self.w_arr[0], self.w_arr[2]]
+            )
         return self._t1
 
     @property
@@ -251,9 +263,10 @@ class Trixel(object):
         "Indexing the Sphere with the Hierarchical Triangular Mesh"
         arXiv:cs/0701164
         """
-        if not hasattr(self, '_t2'):
-            self._t2 = Trixel((self.htmid << 2)+2,
-                              [self._corners[2], self.w_arr[1], self.w_arr[0]])
+        if not hasattr(self, "_t2"):
+            self._t2 = Trixel(
+                (self.htmid << 2) + 2, [self._corners[2], self.w_arr[1], self.w_arr[0]]
+            )
         return self._t2
 
     @property
@@ -267,9 +280,10 @@ class Trixel(object):
         "Indexing the Sphere with the Hierarchical Triangular Mesh"
         arXiv:cs/0701164
         """
-        if not hasattr(self, '_t3'):
-            self._t3 = Trixel((self.htmid << 2)+3,
-                              [self.w_arr[0], self.w_arr[1], self.w_arr[2]])
+        if not hasattr(self, "_t3"):
+            self._t3 = Trixel(
+                (self.htmid << 2) + 3, [self.w_arr[0], self.w_arr[1], self.w_arr[2]]
+            )
         return self._t3
 
     def get_children(self):
@@ -376,15 +390,20 @@ class Trixel(object):
         """
         if self._bounding_circle is None:
             # find the unit vector pointing to the center of the trixel
-            vb = np.cross((self._corners[1]-self._corners[0]), (self._corners[2]-self._corners[1]))
-            vb = vb/np.sqrt(np.power(vb, 2).sum())
+            vb = np.cross(
+                (self._corners[1] - self._corners[0]),
+                (self._corners[2] - self._corners[1]),
+            )
+            vb = vb / np.sqrt(np.power(vb, 2).sum())
 
             # find the distance from the center of the trixel
             # to the most distant corner of the trixel
             dd = np.dot(self.corners, vb).max()
 
             if np.abs(dd) > 1.0:
-                raise RuntimeError("Bounding circle has dd %e (should be between -1 and 1)" % dd)
+                raise RuntimeError(
+                    "Bounding circle has dd %e (should be between -1 and 1)" % dd
+                )
 
             self._bounding_circle = (vb, dd, np.arccos(dd))
 
@@ -400,46 +419,60 @@ class Trixel(object):
 # ESO Astrophysics Symposia
 # https://www.researchgate.net/publication/226072008_The_Hierarchical_Triangular_Mesh
 
-_N0_trixel = Trixel(12, [np.array([1.0, 0.0, 0.0]),
-                         np.array([0.0, 0.0, 1.0]),
-                         np.array([0.0, -1.0, 0.0])])
+_N0_trixel = Trixel(
+    12,
+    [np.array([1.0, 0.0, 0.0]), np.array([0.0, 0.0, 1.0]), np.array([0.0, -1.0, 0.0])],
+)
 
-_N1_trixel = Trixel(13, [np.array([0.0, -1.0, 0.0]),
-                         np.array([0.0, 0.0, 1.0]),
-                         np.array([-1.0, 0.0, 0.0])])
+_N1_trixel = Trixel(
+    13,
+    [np.array([0.0, -1.0, 0.0]), np.array([0.0, 0.0, 1.0]), np.array([-1.0, 0.0, 0.0])],
+)
 
-_N2_trixel = Trixel(14, [np.array([-1.0, 0.0, 0.0]),
-                         np.array([0.0, 0.0, 1.0]),
-                         np.array([0.0, 1.0, 0.0])])
+_N2_trixel = Trixel(
+    14,
+    [np.array([-1.0, 0.0, 0.0]), np.array([0.0, 0.0, 1.0]), np.array([0.0, 1.0, 0.0])],
+)
 
-_N3_trixel = Trixel(15, [np.array([0.0, 1.0, 0.0]),
-                         np.array([0.0, 0.0, 1.0]),
-                         np.array([1.0, 0.0, 0.0])])
+_N3_trixel = Trixel(
+    15,
+    [np.array([0.0, 1.0, 0.0]), np.array([0.0, 0.0, 1.0]), np.array([1.0, 0.0, 0.0])],
+)
 
-_S0_trixel = Trixel(8, [np.array([1.0, 0.0, 0.0]),
-                        np.array([0.0, 0.0, -1.0]),
-                        np.array([0.0, 1.0, 0.0])])
+_S0_trixel = Trixel(
+    8,
+    [np.array([1.0, 0.0, 0.0]), np.array([0.0, 0.0, -1.0]), np.array([0.0, 1.0, 0.0])],
+)
 
-_S1_trixel = Trixel(9, [np.array([0.0, 1.0, 0.0]),
-                        np.array([0.0, 0.0, -1.0]),
-                        np.array([-1.0, 0.0, 0.0])])
+_S1_trixel = Trixel(
+    9,
+    [np.array([0.0, 1.0, 0.0]), np.array([0.0, 0.0, -1.0]), np.array([-1.0, 0.0, 0.0])],
+)
 
-_S2_trixel = Trixel(10, [np.array([-1.0, 0.0, 0.0]),
-                         np.array([0.0, 0.0, -1.0]),
-                         np.array([0.0, -1.0, 0.0])])
+_S2_trixel = Trixel(
+    10,
+    [
+        np.array([-1.0, 0.0, 0.0]),
+        np.array([0.0, 0.0, -1.0]),
+        np.array([0.0, -1.0, 0.0]),
+    ],
+)
 
-_S3_trixel = Trixel(11, [np.array([0.0, -1.0, 0.0]),
-                         np.array([0.0, 0.0, -1.0]),
-                         np.array([1.0, 0.0, 0.0])])
+_S3_trixel = Trixel(
+    11,
+    [np.array([0.0, -1.0, 0.0]), np.array([0.0, 0.0, -1.0]), np.array([1.0, 0.0, 0.0])],
+)
 
-basic_trixels = {'N0': _N0_trixel,
-                 'N1': _N1_trixel,
-                 'N2': _N2_trixel,
-                 'N3': _N3_trixel,
-                 'S0': _S0_trixel,
-                 'S1': _S1_trixel,
-                 'S2': _S2_trixel,
-                 'S3': _S3_trixel}
+basic_trixels = {
+    "N0": _N0_trixel,
+    "N1": _N1_trixel,
+    "N2": _N2_trixel,
+    "N3": _N3_trixel,
+    "S0": _S0_trixel,
+    "S1": _S1_trixel,
+    "S2": _S2_trixel,
+    "S3": _S3_trixel,
+}
 
 
 def levelFromHtmid(htmid):
@@ -463,9 +496,11 @@ def levelFromHtmid(htmid):
         i_level += 1
 
     if htmid_copy < 8:
-        raise RuntimeError('\n%d is not a valid htmid.\n' % htmid
-                           + 'Valid htmids will have 4+2n bits\n'
-                           + 'with a leading bit of 1\n')
+        raise RuntimeError(
+            "\n%d is not a valid htmid.\n" % htmid
+            + "Valid htmids will have 4+2n bits\n"
+            + "with a leading bit of 1\n"
+        )
 
     return i_level
 
@@ -486,7 +521,7 @@ def trixelFromHtmid(htmid):
     Note: valid htmids have 4+2n bits with a leading bit of 1
     """
     level = levelFromHtmid(htmid)
-    base_htmid = htmid >> 2*(level-1)
+    base_htmid = htmid >> 2 * (level - 1)
 
     ans = None
 
@@ -519,9 +554,9 @@ def trixelFromHtmid(htmid):
     # trixel),with 11 in the two leading
     # positions
     complement = 3
-    complement <<= 2*(level-2)
+    complement <<= 2 * (level - 2)
 
-    for ix in range(level-1):
+    for ix in range(level - 1):
         # Use bitwise and to figure out what the
         # two bits to the right of the bits
         # corresponding to the trixel currently
@@ -529,7 +564,7 @@ def trixelFromHtmid(htmid):
         # determine which child of ans we need
         # to return.
         target = htmid & complement
-        target >>= 2*(level-ix-2)
+        target >>= 2 * (level - ix - 2)
 
         if target >= 4:
             raise RuntimeError("target %d" % target)
@@ -550,7 +585,7 @@ def getAllTrixels(level):
 
     # find how many bits should be added to the htmids
     # of the base trixels to get up to the desired level
-    n_bits_added = 2*(level-1)
+    n_bits_added = 2 * (level - 1)
 
     # first, put the base trixels into the dict
     start_trixels = range(8, 16)
@@ -562,7 +597,7 @@ def getAllTrixels(level):
     ct = 0
     for t0 in start_trixels:
         t0 = t0 << n_bits_added
-        for dt in range(2**n_bits_added):
+        for dt in range(2 ** n_bits_added):
             htmid = t0 + dt  # htmid we are currently generating
             ct += 1
             if htmid in trixel_dict:
@@ -590,17 +625,17 @@ def getAllTrixels(level):
 
                 # add the children of to_gen to trixel_dict
                 trixel_dict[to_gen << 2] = trix0.get_child(0)
-                trixel_dict[(to_gen << 2)+1] = trix0.get_child(1)
-                trixel_dict[(to_gen << 2)+2] = trix0.get_child(2)
-                trixel_dict[(to_gen << 2)+3] = trix0.get_child(3)
+                trixel_dict[(to_gen << 2) + 1] = trix0.get_child(1)
+                trixel_dict[(to_gen << 2) + 2] = trix0.get_child(2)
+                trixel_dict[(to_gen << 2) + 3] = trix0.get_child(3)
 
             # add all of the children of parent_id to
             # trixel_dict
             trix0 = trixel_dict[parent_id]
             trixel_dict[(parent_id << 2)] = trix0.get_child(0)
-            trixel_dict[(parent_id << 2)+1] = trix0.get_child(1)
-            trixel_dict[(parent_id << 2)+2] = trix0.get_child(2)
-            trixel_dict[(parent_id << 2)+3] = trix0.get_child(3)
+            trixel_dict[(parent_id << 2) + 1] = trix0.get_child(1)
+            trixel_dict[(parent_id << 2) + 2] = trix0.get_child(2)
+            trixel_dict[(parent_id << 2) + 3] = trix0.get_child(3)
 
     return trixel_dict
 
@@ -706,14 +741,18 @@ def _findHtmid_fast(ra, dec, max_level):
     a given level.  Do not call it on max_level>10
     """
 
-    if max_level>10:
-        raise RuntimeError("Do not call _findHtmid_fast with max_level>10; "
-                           "the cache of trixels generated will be too large. "
-                           "Call findHtmid or _findHtmid_slow (findHtmid will "
-                           "redirect to _findHtmid_slow for large max_level).")
+    if max_level > 10:
+        raise RuntimeError(
+            "Do not call _findHtmid_fast with max_level>10; "
+            "the cache of trixels generated will be too large. "
+            "Call findHtmid or _findHtmid_slow (findHtmid will "
+            "redirect to _findHtmid_slow for large max_level)."
+        )
 
-    if (not hasattr(_findHtmid_fast, '_trixel_dict') or
-        _findHtmid_fast._level < max_level):
+    if (
+        not hasattr(_findHtmid_fast, "_trixel_dict")
+        or _findHtmid_fast._level < max_level
+    ):
 
         _findHtmid_fast._trixel_dict = getAllTrixels(max_level)
         _findHtmid_fast._level = max_level
@@ -722,14 +761,16 @@ def _findHtmid_fast(ra, dec, max_level):
     dec_rad = np.radians(dec)
     pt_arr = cartesianFromSpherical(ra_rad, dec_rad)
 
-    base_trixels = [_S0_trixel,
-                    _S1_trixel,
-                    _S2_trixel,
-                    _S3_trixel,
-                    _N0_trixel,
-                    _N1_trixel,
-                    _N2_trixel,
-                    _N3_trixel]
+    base_trixels = [
+        _S0_trixel,
+        _S1_trixel,
+        _S2_trixel,
+        _S3_trixel,
+        _N0_trixel,
+        _N1_trixel,
+        _N2_trixel,
+        _N3_trixel,
+    ]
 
     htmid_arr = np.zeros(len(pt_arr), dtype=int)
 
@@ -748,12 +789,16 @@ def _findHtmid_fast(ra, dec, max_level):
             considered_raw = parent_dict[parent_htmid]
 
             next_htmid = parent_htmid << 2
-            children_htmid = [next_htmid, next_htmid+1,
-                              next_htmid+2, next_htmid+3]
+            children_htmid = [
+                next_htmid,
+                next_htmid + 1,
+                next_htmid + 2,
+                next_htmid + 3,
+            ]
 
             is_found = np.zeros(len(considered_raw), dtype=int)
             for child in children_htmid:
-                un_found = np.where(is_found==0)[0]
+                un_found = np.where(is_found == 0)[0]
                 considered = considered_raw[un_found]
                 if len(considered) == 0:
                     break
@@ -770,6 +815,7 @@ def _findHtmid_fast(ra, dec, max_level):
         parent_dict = new_parent_dict
 
     return htmid_arr
+
 
 def findHtmid(ra, dec, max_level):
     """
@@ -801,14 +847,16 @@ def findHtmid(ra, dec, max_level):
             assert isinstance(ra, np.ndarray)
             assert isinstance(dec, np.ndarray)
         except AssertionError:
-            raise RuntimeError("\nfindHtmid can handle types\n"
-                               + "RA: %s" % type(ra)
-                               + "Dec: %s" % type(dec)
-                               + "\n")
+            raise RuntimeError(
+                "\nfindHtmid can handle types\n"
+                + "RA: %s" % type(ra)
+                + "Dec: %s" % type(dec)
+                + "\n"
+            )
         are_arrays = True
 
     if are_arrays:
-        if max_level <= 10 and len(ra)>100:
+        if max_level <= 10 and len(ra) > 100:
             return _findHtmid_fast(ra, dec, max_level)
         else:
             htmid_arr = np.zeros(len(ra), dtype=int)
@@ -817,6 +865,7 @@ def findHtmid(ra, dec, max_level):
             return htmid_arr
 
     return _findHtmid_slow(ra, dec, max_level)
+
 
 class HalfSpace(object):
     """
@@ -852,7 +901,7 @@ class HalfSpace(object):
         where the plane of the halfspace intersects the
         unit sphere.
         """
-        self._v = vector/np.sqrt(np.power(vector, 2).sum())
+        self._v = vector / np.sqrt(np.power(vector, 2).sum())
         self._d = length
         if np.abs(self._d) < 1.0:
             self._phi = np.arccos(self._d)  # half angular extent of the half space
@@ -866,9 +915,9 @@ class HalfSpace(object):
 
     def __eq__(self, other):
         tol = 1.0e-10
-        if np.abs(self.dd-other.dd) > tol:
+        if np.abs(self.dd - other.dd) > tol:
             return False
-        if np.abs(np.dot(self.vector, other.vector)-1.0) > tol:
+        if np.abs(np.dot(self.vector, other.vector) - 1.0) > tol:
             return False
         return True
 
@@ -905,7 +954,7 @@ class HalfSpace(object):
         the projection of that point onto the unit sphere
         is contained in the halfspace; False otherwise.
         """
-        norm_pt = pt/np.sqrt(np.power(pt, 2).sum())
+        norm_pt = pt / np.sqrt(np.power(pt, 2).sum())
 
         dot_product = np.dot(norm_pt, self._v)
 
@@ -913,7 +962,7 @@ class HalfSpace(object):
             if dot_product > self._d:
                 return True
         else:
-            if dot_product > (self._d-tol):
+            if dot_product > (self._d - tol):
                 return True
 
         return False
@@ -931,7 +980,7 @@ class HalfSpace(object):
         by this HalfSpace
         """
         dot_product = np.dot(pts, self._v)
-        return (dot_product>self._d)
+        return dot_product > self._d
 
     def intersects_edge(self, pt1, pt2):
         """
@@ -945,24 +994,26 @@ class HalfSpace(object):
         arXiv:cs/0701164
         """
         costheta = np.dot(pt1, pt2)
-        usq = (1-costheta)/(1+costheta)  # u**2; using trig identity for tan(theta/2)
+        usq = (1 - costheta) / (
+            1 + costheta
+        )  # u**2; using trig identity for tan(theta/2)
         gamma1 = np.dot(self._v, pt1)
         gamma2 = np.dot(self._v, pt2)
-        b = gamma1*(usq-1.0) + gamma2*(usq+1)
-        a = -usq*(gamma1+self._d)
+        b = gamma1 * (usq - 1.0) + gamma2 * (usq + 1)
+        a = -usq * (gamma1 + self._d)
         c = gamma1 - self._d
 
-        det = b*b - 4*a*c
+        det = b * b - 4 * a * c
         if det < 0.0:
             return False
 
         sqrt_det = np.sqrt(det)
-        pos = (-b + sqrt_det)/(2.0*a)
+        pos = (-b + sqrt_det) / (2.0 * a)
 
         if pos >= 0.0 and pos <= 1.0:
             return True
 
-        neg = (-b - sqrt_det)/(2.0*a)
+        neg = (-b - sqrt_det) / (2.0 * a)
         if neg >= 0.0 and neg <= 1.0:
             return True
 
@@ -982,9 +1033,9 @@ class HalfSpace(object):
         dotproduct = np.dot(center, self._v)
         if np.abs(dotproduct) < 1.0:
             theta = np.arccos(dotproduct)
-        elif (dotproduct < 1.000000001 and dotproduct>0.0):
+        elif dotproduct < 1.000000001 and dotproduct > 0.0:
             theta = 0.0
-        elif (dotproduct > -1.000000001 and dotproduct<0.0):
+        elif dotproduct > -1.000000001 and dotproduct < 0.0:
             theta = np.pi
         else:
             raise RuntimeError("Dot product between unit vectors is %e" % dotproduct)
@@ -1005,8 +1056,7 @@ class HalfSpace(object):
         "Indexing the Sphere with the Hierarchical Triangular Mesh"
         arXiv:cs/0701164
         """
-        return self.intersects_circle(tx.bounding_circle[0],
-                                      tx.bounding_circle[1])
+        return self.intersects_circle(tx.bounding_circle[0], tx.bounding_circle[1])
 
     def contains_trixel(self, tx):
         """
@@ -1046,9 +1096,11 @@ class HalfSpace(object):
         # need to test that the bounding circle intersect the halfspace
         # boundary
 
-        for edge in ((tx.corners[0], tx.corners[1]),
-                     (tx.corners[1], tx.corners[2]),
-                     (tx.corners[2], tx.corners[0])):
+        for edge in (
+            (tx.corners[0], tx.corners[1]),
+            (tx.corners[1], tx.corners[2]),
+            (tx.corners[2], tx.corners[0]),
+        ):
 
             if self.intersects_edge(edge[0], edge[1]):
                 return "partial"
@@ -1076,17 +1128,17 @@ class HalfSpace(object):
         current_list = []
         current_max = -1
         for row in bounds_sorted:
-            if len(current_list) == 0 or row[0] <= current_max+1:
+            if len(current_list) == 0 or row[0] <= current_max + 1:
                 current_list.append(row[0])
                 current_list.append(row[1])
-                if row[1]>current_max:
+                if row[1] > current_max:
                     current_max = row[1]
             else:
                 final_output.append((min(current_list), max(current_list)))
                 current_list = [row[0], row[1]]
                 current_max = row[1]
 
-        if len(current_list) >0:
+        if len(current_list) > 0:
             final_output.append((min(current_list), max(current_list)))
         return final_output
 
@@ -1105,8 +1157,12 @@ class HalfSpace(object):
         global_t_min = max(b1_sorted[0][0], b2_sorted[0][0])
         global_t_max = min(b1_sorted[-1][1], b2_sorted[-1][1])
 
-        b1_keep = [r for r in b1_sorted if r[0]<=global_t_max and r[1]>=global_t_min]
-        b2_keep = [r for r in b2_sorted if r[0]<=global_t_max and r[1]>=global_t_min]
+        b1_keep = [
+            r for r in b1_sorted if r[0] <= global_t_max and r[1] >= global_t_min
+        ]
+        b2_keep = [
+            r for r in b2_sorted if r[0] <= global_t_max and r[1] >= global_t_min
+        ]
 
         dex1 = 0
         dex2 = 0
@@ -1114,18 +1170,18 @@ class HalfSpace(object):
         n_b2 = len(b2_keep)
         joint_bounds = []
 
-        if n_b1==0 or n_b2==0:
+        if n_b1 == 0 or n_b2 == 0:
             return joint_bounds
 
         while True:
             r1 = b1_keep[dex1]
             r2 = b2_keep[dex2]
-            if r1[0]<=r2[0] and r1[1]>=r2[1]:
+            if r1[0] <= r2[0] and r1[1] >= r2[1]:
                 # r2 is completely inside r1;
                 # keep r2 and advance dex2
                 joint_bounds.append(r2)
                 dex2 += 1
-            elif r2[0]<=r1[0] and r2[1]>=r1[1]:
+            elif r2[0] <= r1[0] and r2[1] >= r1[1]:
                 # r1 is completely inside r2;
                 # keep r1 and advance dex1
                 joint_bounds.append(r1)
@@ -1135,7 +1191,7 @@ class HalfSpace(object):
                 # find the intersection
                 local_min = max(r1[0], r2[0])
                 local_max = min(r1[1], r2[1])
-                if local_min<=local_max:
+                if local_min <= local_max:
                     # if we have a valid range, keep it
                     joint_bounds.append((local_min, local_max))
 
@@ -1151,7 +1207,6 @@ class HalfSpace(object):
                 break
 
         return HalfSpace.merge_trixel_bounds(joint_bounds)
-
 
     def findAllTrixels(self, level):
         """
@@ -1190,7 +1245,7 @@ class HalfSpace(object):
         # starting out at level-2, since the first trixels
         # to which we will need to add max_d_htmid will be
         # at least at level 2 (the children of the base trixels).
-        for ii in range(level-2):
+        for ii in range(level - 2):
             max_d_htmid += 3
             max_d_htmid <<= 2
 
@@ -1205,12 +1260,12 @@ class HalfSpace(object):
                 children = tt.get_children()
                 for child in children:
                     is_contained = self.contains_trixel(child)
-                    if is_contained == 'partial':
+                    if is_contained == "partial":
                         # need to investigate more fully
                         new_active_trixels.append(child)
-                    elif is_contained == 'full':
+                    elif is_contained == "full":
                         # all of this trixels children, and their children are contained
-                        min_htmid = child._htmid << 2*(level-i_level)
+                        min_htmid = child._htmid << 2 * (level - i_level)
                         max_htmid = min_htmid
                         max_htmid += max_d_htmid
                         output_prelim.append((min_htmid, max_htmid))
@@ -1236,7 +1291,7 @@ class HalfSpace(object):
         # children are inside this HalfSpace
         for trix in active_trixels:
             for child in trix.get_children():
-                if self.contains_trixel(child) != 'outside':
+                if self.contains_trixel(child) != "outside":
                     output_prelim.append((child._htmid, child._htmid))
 
         # sort output by htmid_min
@@ -1290,17 +1345,22 @@ def halfSpaceFromPoints(pt1, pt2, pt3):
 
     vv1 = cartesianFromSpherical(np.radians(pt1[0]), np.radians(pt1[1]))
     vv2 = cartesianFromSpherical(np.radians(pt2[0]), np.radians(pt2[1]))
-    axis = np.array([vv1[1]*vv2[2]-vv1[2]*vv2[1],
-                     vv1[2]*vv2[0]-vv1[0]*vv2[2],
-                     vv1[0]*vv2[1]-vv1[1]*vv2[0]])
+    axis = np.array(
+        [
+            vv1[1] * vv2[2] - vv1[2] * vv2[1],
+            vv1[2] * vv2[0] - vv1[0] * vv2[2],
+            vv1[0] * vv2[1] - vv1[1] * vv2[0],
+        ]
+    )
 
-    axis /= np.sqrt(np.sum(axis**2))
+    axis /= np.sqrt(np.sum(axis ** 2))
 
     vv3 = cartesianFromSpherical(np.radians(pt3[0]), np.radians(pt3[1]))
-    if np.dot(axis, vv3)<0.0:
+    if np.dot(axis, vv3) < 0.0:
         axis *= -1.0
 
     return HalfSpace(axis, 0.0)
+
 
 def intersectHalfSpaces(hs1, hs2):
     """
@@ -1321,28 +1381,32 @@ def intersectHalfSpaces(hs1, hs2):
     arXiv:cs/0701164
     """
     gamma = np.dot(hs1.vector, hs2.vector)
-    if np.abs(1.0-np.abs(gamma))<1.0e-20:
+    if np.abs(1.0 - np.abs(gamma)) < 1.0e-20:
         # Half Spaces are based on parallel planes that don't intersect
         return []
 
-    denom = 1.0-gamma**2
-    if denom<0.0:
+    denom = 1.0 - gamma ** 2
+    if denom < 0.0:
         return []
 
-    num = hs1.dd**2+hs2.dd**2-2.0*gamma*hs1.dd*hs2.dd
+    num = hs1.dd ** 2 + hs2.dd ** 2 - 2.0 * gamma * hs1.dd * hs2.dd
     if denom < num:
         return []
 
-    uu = (hs1.dd-gamma*hs2.dd)/denom
-    vv = (hs2.dd-gamma*hs1.dd)/denom
+    uu = (hs1.dd - gamma * hs2.dd) / denom
+    vv = (hs2.dd - gamma * hs1.dd) / denom
 
-    ww = np.sqrt((1.0-num/denom)/denom)
-    cross_product = np.array([hs1.vector[1]*hs2.vector[2]-hs1.vector[2]*hs2.vector[1],
-                              hs1.vector[2]*hs2.vector[0]-hs1.vector[0]*hs2.vector[2],
-                              hs1.vector[0]*hs2.vector[1]-hs1.vector[1]*hs2.vector[0]])
+    ww = np.sqrt((1.0 - num / denom) / denom)
+    cross_product = np.array(
+        [
+            hs1.vector[1] * hs2.vector[2] - hs1.vector[2] * hs2.vector[1],
+            hs1.vector[2] * hs2.vector[0] - hs1.vector[0] * hs2.vector[2],
+            hs1.vector[0] * hs2.vector[1] - hs1.vector[1] * hs2.vector[0],
+        ]
+    )
 
-    pt1 = uu*hs1.vector + vv*hs2.vector + ww*cross_product
-    pt2 = uu*hs1.vector + vv*hs2.vector - ww*cross_product
-    if np.abs(1.0-np.dot(pt1, pt2))<1.0e-20:
+    pt1 = uu * hs1.vector + vv * hs2.vector + ww * cross_product
+    pt2 = uu * hs1.vector + vv * hs2.vector - ww * cross_product
+    if np.abs(1.0 - np.dot(pt1, pt2)) < 1.0e-20:
         return pt1
     return np.array([pt1, pt2])

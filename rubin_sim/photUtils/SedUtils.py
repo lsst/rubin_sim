@@ -27,7 +27,7 @@ def getImsimFluxNorm(sed, magmatch):
     # identical to calling Sed.calcFluxNorm and passing in the imsim bandpass,
     # will fail and we will know to modify this method.
 
-    if not hasattr(getImsimFluxNorm, 'imsim_wavelen'):
+    if not hasattr(getImsimFluxNorm, "imsim_wavelen"):
         bp = Bandpass()
         bp.imsimBandpass()
         non_zero_dex = np.where(bp.sb > 0.0)[0][0]
@@ -36,14 +36,21 @@ def getImsimFluxNorm(sed, magmatch):
     if sed.fnu is None:
         sed.flambdaTofnu()
 
-    if (getImsimFluxNorm.imsim_wavelen < sed.wavelen.min() or
-        getImsimFluxNorm.imsim_wavelen > sed.wavelen.max()):
+    if (
+        getImsimFluxNorm.imsim_wavelen < sed.wavelen.min()
+        or getImsimFluxNorm.imsim_wavelen > sed.wavelen.max()
+    ):
 
-        raise RuntimeError("Cannot normalize sed "
-                           "at wavelength of %e nm\n" % getImsimFluxNorm.imsim_wavelen
-                           + "The SED does not cover that wavelength\n"
-                           + "(Covers %e < lambda %e)" % (sed.wavelen.min(), sed.wavelen.max()))
+        raise RuntimeError(
+            "Cannot normalize sed "
+            "at wavelength of %e nm\n" % getImsimFluxNorm.imsim_wavelen
+            + "The SED does not cover that wavelength\n"
+            + "(Covers %e < lambda %e)" % (sed.wavelen.min(), sed.wavelen.max())
+        )
 
-    mag = -2.5*np.log10(np.interp(getImsimFluxNorm.imsim_wavelen, sed.wavelen, sed.fnu)) - sed.zp
+    mag = (
+        -2.5 * np.log10(np.interp(getImsimFluxNorm.imsim_wavelen, sed.wavelen, sed.fnu))
+        - sed.zp
+    )
     dmag = magmatch - mag
-    return np.power(10, (-0.4*dmag))
+    return np.power(10, (-0.4 * dmag))

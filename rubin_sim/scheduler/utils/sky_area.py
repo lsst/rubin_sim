@@ -9,7 +9,7 @@ import rubin_sim.utils as rs_utils
 from numpy.lib import recfunctions as rfn
 
 
-__all__ = ['Sky_area_generator']
+__all__ = ["Sky_area_generator"]
 
 
 class Sky_area_generator:
@@ -59,13 +59,32 @@ class Sky_area_generator:
     nes_glon_limit : `float` (45.)
         Galactic longitude limit for the NES (degrees).
     """
-    def __init__(self, nside=32, dust_limit=0.199, smoothing_cutoff=0.45, smoothing_beam=10,
-                 lmc_radius=8, smc_radius=5,
-                 scp_dec_max=-60,
-                 gal_long1=335, gal_long2=25, gal_lat_width_max=23, center_width=12, end_width=4, gal_dec_max=12,
-                 low_dust_dec_min=-70, low_dust_dec_max=15, adjust_halves=12,
-                 dusty_dec_min=-90, dusty_dec_max=15,
-                 eclat_min=-10, eclat_max=10, eclip_dec_min=0, nes_glon_limit=45.):
+
+    def __init__(
+        self,
+        nside=32,
+        dust_limit=0.199,
+        smoothing_cutoff=0.45,
+        smoothing_beam=10,
+        lmc_radius=8,
+        smc_radius=5,
+        scp_dec_max=-60,
+        gal_long1=335,
+        gal_long2=25,
+        gal_lat_width_max=23,
+        center_width=12,
+        end_width=4,
+        gal_dec_max=12,
+        low_dust_dec_min=-70,
+        low_dust_dec_max=15,
+        adjust_halves=12,
+        dusty_dec_min=-90,
+        dusty_dec_max=15,
+        eclat_min=-10,
+        eclat_max=10,
+        eclip_dec_min=0,
+        nes_glon_limit=45.0,
+    ):
 
         self.nside = nside
         self.hpid = np.arange(0, hp.nside2npix(nside))
@@ -97,7 +116,7 @@ class Sky_area_generator:
 
         # Ra/dec in degrees and other coordinates
         self.ra, self.dec = hp.pix2ang(nside, self.hpid, lonlat=True)
-        self.coord = SkyCoord(ra=self.ra * u.deg, dec=self.dec * u.deg, frame='icrs')
+        self.coord = SkyCoord(ra=self.ra * u.deg, dec=self.dec * u.deg, frame="icrs")
         self.eclip_lat = self.coord.barycentrictrueecliptic.lat.deg
         self.eclip_lon = self.coord.barycentrictrueecliptic.lon.deg
         self.gal_lon = self.coord.galactic.l.deg
@@ -106,7 +125,7 @@ class Sky_area_generator:
         # Set the low extinction area
         self.low_dust = np.where((self.dustmap < dust_limit), 1, 0)
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=UserWarning)
+            warnings.simplefilter("ignore", category=UserWarning)
             self.low_dust = hp.smoothing(self.low_dust, fwhm=np.radians(smoothing_beam))
         self.low_dust = np.where(self.low_dust > smoothing_cutoff, 1, 0)
 
@@ -120,15 +139,19 @@ class Sky_area_generator:
             datadir = rs_data.get_data_dir()
             if datadir is None:
                 raise Exception('Cannot find datadir, please set "RUBIN_SIM_DATA_DIR"')
-            datadir = os.path.join(datadir, 'maps', 'DustMaps')
-            filename = os.path.join(datadir, 'dust_nside_%i.npz' % self.nside)
-        self.dustmap = np.load(filename)['ebvMap']
+            datadir = os.path.join(datadir, "maps", "DustMaps")
+            filename = os.path.join(datadir, "dust_nside_%i.npz" % self.nside)
+        self.dustmap = np.load(filename)["ebvMap"]
 
     def _set_circular_region(self, ra_center, dec_center, radius):
         # find the healpixels that cover a circle of radius radius around ra/dec center (deg)
         result = np.zeros(len(self.ra))
-        distance = rs_utils._angularSeparation(np.radians(ra_center), np.radians(dec_center),
-                                               np.radians(self.ra), np.radians(self.dec))
+        distance = rs_utils._angularSeparation(
+            np.radians(ra_center),
+            np.radians(dec_center),
+            np.radians(self.ra),
+            np.radians(self.dec),
+        )
         result[np.where(distance < np.radians(radius))] = 1
         return result
 
@@ -164,7 +187,7 @@ class Sky_area_generator:
             # Add the tapers.
             # These slope from the center (gp_center @ center_width)
             # to the edges (gp_center + gp_length/2 @ end_width).
-            half_width = gp_length / 2.
+            half_width = gp_length / 2.0
             slope = (center_width - end_width) / half_width
             # The 'center' can have a wrap-around 0 problem
             gp_center = (gal_long1 + half_width) % 360
@@ -203,9 +226,15 @@ class Sky_area_generator:
             bulge = np.where(((self.gal_lon - gal_long1) % 360) < gp_length, bulge, 0)
         return bulge
 
-    def add_magellanic_clouds(self, filter_ratios, label='LMC_SMC',
-                              lmc_ra=80.893860, lmc_dec=-69.756126,
-                              smc_ra=13.186588, smc_dec=-72.828599):
+    def add_magellanic_clouds(
+        self,
+        filter_ratios,
+        label="LMC_SMC",
+        lmc_ra=80.893860,
+        lmc_dec=-69.756126,
+        smc_ra=13.186588,
+        smc_dec=-72.828599,
+    ):
         temp_map = np.zeros(hp.nside2npix(self.nside))
         # Define the LMC pixels
         temp_map += self._set_circular_region(lmc_ra, lmc_dec, self.lmc_radius)
@@ -214,82 +243,128 @@ class Sky_area_generator:
         # Add a simple bridge between the two - to remove the gap
         mc_dec_min = self.dec[np.where(temp_map > 0)].min()
         mc_dec_max = self.dec[np.where(temp_map > 0)].max()
-        temp_map += np.where(((self.ra > smc_ra) & (self.ra < lmc_ra))
-                             & ((self.dec > mc_dec_min) & (self.dec < mc_dec_max)), 1, 0)
+        temp_map += np.where(
+            ((self.ra > smc_ra) & (self.ra < lmc_ra))
+            & ((self.dec > mc_dec_min) & (self.dec < mc_dec_max)),
+            1,
+            0,
+        )
 
         # Don't overide any pixels that have already been designated
-        indx = np.where((temp_map > 0) & (self.pix_labels == ''))
+        indx = np.where((temp_map > 0) & (self.pix_labels == ""))
 
         self.pix_labels[indx] = label
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def add_scp(self, filter_ratios, label='scp'):
-        indx = np.where((self.dec < self.scp_dec_max) & (self.pix_labels == ''))
+    def add_scp(self, filter_ratios, label="scp"):
+        indx = np.where((self.dec < self.scp_dec_max) & (self.pix_labels == ""))
 
         self.pix_labels[indx] = label
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def add_bulge(self, filter_ratios, label='bulge'):
-        b1 = self._set_bulge_diamond(center_width=self.center_width, end_width=self.end_width,
-                                     gal_long1=self.gal_long1, gal_long2=self.gal_long2)
-        b2 = self._set_bulge_rectangle(self.gal_lat_width_max, self.gal_long1, self.gal_long2)
+    def add_bulge(self, filter_ratios, label="bulge"):
+        b1 = self._set_bulge_diamond(
+            center_width=self.center_width,
+            end_width=self.end_width,
+            gal_long1=self.gal_long1,
+            gal_long2=self.gal_long2,
+        )
+        b2 = self._set_bulge_rectangle(
+            self.gal_lat_width_max, self.gal_long1, self.gal_long2
+        )
         b2[np.where(self.gal_lat > 0)] = 0
 
         bulge = b1 + b2
 
         bulge[np.where(np.abs(self.gal_lat) > self.gal_lat_width_max)] = 0
-        indx = np.where((bulge > 0) & (self.pix_labels == ''))
+        indx = np.where((bulge > 0) & (self.pix_labels == ""))
         self.pix_labels[indx] = label
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def add_lowdust_wfd(self, filter_ratios, label='lowdust'):
+    def add_lowdust_wfd(self, filter_ratios, label="lowdust"):
 
-        dustfree = np.where((self.dec > self.low_dust_dec_min) & (self.dec < self.low_dust_dec_max)
-                            & (self.low_dust == 1), 1, 0)
+        dustfree = np.where(
+            (self.dec > self.low_dust_dec_min)
+            & (self.dec < self.low_dust_dec_max)
+            & (self.low_dust == 1),
+            1,
+            0,
+        )
 
         dustfree[np.where(self.low_dust == 0)] = 0
 
         if self.adjust_halves > 0:
-            dustfree = np.where((self.gal_lat < 0) & (self.dec > self.low_dust_dec_max - self.adjust_halves),
-                                0, dustfree)
+            dustfree = np.where(
+                (self.gal_lat < 0)
+                & (self.dec > self.low_dust_dec_max - self.adjust_halves),
+                0,
+                dustfree,
+            )
 
-        indx = np.where((dustfree > 0) & (self.pix_labels == ''))
+        indx = np.where((dustfree > 0) & (self.pix_labels == ""))
         self.pix_labels[indx] = label
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def add_dusty_plane(self, filter_ratios, label='dusty_plane'):
+    def add_dusty_plane(self, filter_ratios, label="dusty_plane"):
 
-        dusty = np.where(((self.dec > self.dusty_dec_min) & (self.dec < self.dusty_dec_max)
-                          & (self.low_dust == 0)), 1, 0)
+        dusty = np.where(
+            (
+                (self.dec > self.dusty_dec_min)
+                & (self.dec < self.dusty_dec_max)
+                & (self.low_dust == 0)
+            ),
+            1,
+            0,
+        )
 
-        indx = np.where((dusty > 0) & (self.pix_labels == ''))
+        indx = np.where((dusty > 0) & (self.pix_labels == ""))
         self.pix_labels[indx] = label
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def add_nes(self, filter_ratios, label='nes'):
-        nes = np.where(((self.eclip_lat > self.eclat_min) | (self.dec > self.eclip_dec_min))
-                       & (self.eclip_lat < self.eclat_max), 1, 0)
+    def add_nes(self, filter_ratios, label="nes"):
+        nes = np.where(
+            ((self.eclip_lat > self.eclat_min) | (self.dec > self.eclip_dec_min))
+            & (self.eclip_lat < self.eclat_max),
+            1,
+            0,
+        )
 
         nes[np.where(self.gal_lon < self.nes_glon_limit)] = 0
-        nes[np.where(self.gal_lon > (360-self.nes_glon_limit))] = 0
+        nes[np.where(self.gal_lon > (360 - self.nes_glon_limit))] = 0
 
-        indx = np.where((nes > 0) & (self.pix_labels == ''))
+        indx = np.where((nes > 0) & (self.pix_labels == ""))
         self.pix_labels[indx] = label
         for filtername in filter_ratios:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
-    def return_maps(self,
-                    magellenic_clouds_ratios={'u': 0.32, 'g': 0.4, 'r': 1.0, 'i': 1.0, 'z': 0.9, 'y': 0.9},
-                    scp_ratios={'u': 0.1, 'g': 0.1, 'r': 0.1, 'i': 0.1, 'z': 0.1, 'y': 0.1},
-                    nes_ratios={'g': 0.28, 'r': 0.4, 'i': 0.4, 'z': 0.28},
-                    dusty_plane_ratios={'u': 0.1, 'g': 0.28, 'r': 0.28, 'i': 0.28, 'z': 0.28, 'y': 0.1},
-                    low_dust_ratios={'u': 0.32, 'g': 0.4, 'r': 1.0, 'i': 1.0, 'z': 0.9, 'y': 0.9},
-                    bulge_ratios={'u': 0.18, 'g': 1.0, 'r': 1.05, 'i': 1.05, 'z': 1.0, 'y': 0.23}):
+    def return_maps(
+        self,
+        magellenic_clouds_ratios={
+            "u": 0.32,
+            "g": 0.4,
+            "r": 1.0,
+            "i": 1.0,
+            "z": 0.9,
+            "y": 0.9,
+        },
+        scp_ratios={"u": 0.1, "g": 0.1, "r": 0.1, "i": 0.1, "z": 0.1, "y": 0.1},
+        nes_ratios={"g": 0.28, "r": 0.4, "i": 0.4, "z": 0.28},
+        dusty_plane_ratios={
+            "u": 0.1,
+            "g": 0.28,
+            "r": 0.28,
+            "i": 0.28,
+            "z": 0.28,
+            "y": 0.1,
+        },
+        low_dust_ratios={"u": 0.32, "g": 0.4, "r": 1.0, "i": 1.0, "z": 0.9, "y": 0.9},
+        bulge_ratios={"u": 0.18, "g": 1.0, "r": 1.05, "i": 1.05, "z": 1.0, "y": 0.23},
+    ):
         """
         Parameters:
         various_ratios : `dict`
@@ -307,11 +382,14 @@ class Sky_area_generator:
         """
 
         # Array to hold the labels for each pixel
-        self.pix_labels = np.zeros(hp.nside2npix(self.nside), dtype='U20')
-        self.healmaps = np.zeros(hp.nside2npix(self.nside), dtype=list(zip(['u', 'g', 'r', 'i', 'z', 'y'], [float]*7)))
+        self.pix_labels = np.zeros(hp.nside2npix(self.nside), dtype="U20")
+        self.healmaps = np.zeros(
+            hp.nside2npix(self.nside),
+            dtype=list(zip(["u", "g", "r", "i", "z", "y"], [float] * 7)),
+        )
 
         # Note, order here matters. Once a HEALpix is set and labled, subsequent add_ methods
-        # will not override that pixel. 
+        # will not override that pixel.
         self.add_magellanic_clouds(magellenic_clouds_ratios)
         self.add_lowdust_wfd(low_dust_ratios)
         self.add_bulge(bulge_ratios)
@@ -330,14 +408,14 @@ class Sky_area_generator:
             The total number of visits in the survey
         fov_area : `float` (9.6)
             The area of a single visit (sq degrees)
-        **kwargs : 
+        **kwargs :
             Gets passed to self.return_maps if one wants to change the
             default ratios.
 
         Returns
         -------
         result : `np.array`
-            array with filtername dtypes that have HEALpix arrays with the 
+            array with filtername dtypes that have HEALpix arrays with the
             number of expected visits of each HEALpix center
         sum_map : `np.array`
             The number of visits summed over all the filters
@@ -351,7 +429,7 @@ class Sky_area_generator:
 
         norm = np.sum(sum_map)
         pix_area = hp.nside2pixarea(self.nside, degrees=True)
-        pix_per_visit = fov_area/pix_area
+        pix_per_visit = fov_area / pix_area
 
         result = np.zeros_like(healmaps)
         for key in result.dtype.names:
@@ -366,7 +444,7 @@ class Sky_area_generator:
         ----------
         nvis_total : `int`
             The total number of visits in the survey
-        **kwargs : 
+        **kwargs :
             Gets passed to self.return_maps if one wants to change the
             default ratios.
 
@@ -388,5 +466,5 @@ class Sky_area_generator:
             norm += label_sums[label]
         result = {}
         for key in ulabels:
-            result[key] = label_sums[key]/norm * nvis_total
+            result[key] = label_sums[key] / norm * nvis_total
         return result

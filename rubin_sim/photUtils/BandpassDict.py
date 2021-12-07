@@ -8,6 +8,7 @@ from .Sed import Sed
 
 __all__ = ["BandpassDict"]
 
+
 class BandpassDict(object):
     """
     This class will wrap an OrderedDict of Bandpass instantiations.
@@ -43,15 +44,19 @@ class BandpassDict(object):
         for bandpassName, bandpass in zip(bandpassNameList, bandpassList):
 
             if bandpassName in self._bandpassDict:
-                raise RuntimeError("The bandpass %s occurs twice in your input " % bandpassName \
-                                   + "to BandpassDict")
+                raise RuntimeError(
+                    "The bandpass %s occurs twice in your input " % bandpassName
+                    + "to BandpassDict"
+                )
 
             self._bandpassDict[bandpassName] = copy.deepcopy(bandpass)
             if self._wavelen_match is None:
                 self._wavelen_match = self._bandpassDict[bandpassName].wavelen
 
         dummySed = Sed()
-        self._phiArray, self._wavelenStep = dummySed.setupPhiArray(list(self._bandpassDict.values()))
+        self._phiArray, self._wavelenStep = dummySed.setupPhiArray(
+            list(self._bandpassDict.values())
+        )
 
     def __getitem__(self, bandpass):
         return self._bandpassDict[bandpass]
@@ -76,14 +81,24 @@ class BandpassDict(object):
         return list(self._bandpassDict.keys())
 
     @classmethod
-    def loadBandpassesFromFiles(cls,
-                                bandpassNames=['u', 'g', 'r', 'i', 'z', 'y'],
-                                filedir=os.path.join(get_data_dir(), 'throughputs', 'baseline'),
-                                bandpassRoot='filter_',
-                                componentList=['detector.dat', 'm1.dat', 'm2.dat', 'm3.dat',
-                                               'lens1.dat', 'lens2.dat', 'lens3.dat'],
-                                atmoTransmission=os.path.join(get_data_dir(), 'throughputs',
-                                                              'baseline', 'atmos_std.dat')):
+    def loadBandpassesFromFiles(
+        cls,
+        bandpassNames=["u", "g", "r", "i", "z", "y"],
+        filedir=os.path.join(get_data_dir(), "throughputs", "baseline"),
+        bandpassRoot="filter_",
+        componentList=[
+            "detector.dat",
+            "m1.dat",
+            "m2.dat",
+            "m3.dat",
+            "lens1.dat",
+            "lens2.dat",
+            "lens3.dat",
+        ],
+        atmoTransmission=os.path.join(
+            get_data_dir(), "throughputs", "baseline", "atmos_std.dat"
+        ),
+    ):
         """
         Load bandpass information from files into BandpassDicts.
         This method will separate the bandpasses into contributions due to instrumentations
@@ -123,7 +138,9 @@ class BandpassDict(object):
         hardwareBandpassList = []
 
         for w in bandpassNames:
-            components = commonComponents + [os.path.join(filedir, "%s.dat" % (bandpassRoot +w))]
+            components = commonComponents + [
+                os.path.join(filedir, "%s.dat" % (bandpassRoot + w))
+            ]
             bandpassDummy = Bandpass()
             bandpassDummy.readThroughputList(components)
             hardwareBandpassList.append(bandpassDummy)
@@ -139,10 +156,12 @@ class BandpassDict(object):
         return bandpassDict, hardwareBandpassDict
 
     @classmethod
-    def loadTotalBandpassesFromFiles(cls,
-                                     bandpassNames=['u', 'g', 'r', 'i', 'z', 'y'],
-                                     bandpassDir=os.path.join(get_data_dir(), 'throughputs', 'baseline'),
-                                     bandpassRoot='total_'):
+    def loadTotalBandpassesFromFiles(
+        cls,
+        bandpassNames=["u", "g", "r", "i", "z", "y"],
+        bandpassDir=os.path.join(get_data_dir(), "throughputs", "baseline"),
+        bandpassRoot="total_",
+    ):
         """
         This will take the list of band passes named by bandpassNames and load them into
         a BandpassDict
@@ -170,7 +189,9 @@ class BandpassDict(object):
 
         for w in bandpassNames:
             bandpassDummy = Bandpass()
-            bandpassDummy.readThroughput(os.path.join(bandpassDir, "%s.dat" % (bandpassRoot + w)))
+            bandpassDummy.readThroughput(
+                os.path.join(bandpassDir, "%s.dat" % (bandpassRoot + w))
+            )
             bandpassList.append(bandpassDummy)
 
         return cls(bandpassList, bandpassNames)
@@ -185,23 +206,25 @@ class BandpassDict(object):
         """
 
         if sedobj.wavelen is None:
-            return [numpy.NaN]*len(self._bandpassDict)
+            return [numpy.NaN] * len(self._bandpassDict)
         else:
 
-            #for some reason, moving this call to flambdaTofnu()
-            #to a point earlier in the
-            #process results in some SEDs having 'None' for fnu.
+            # for some reason, moving this call to flambdaTofnu()
+            # to a point earlier in the
+            # process results in some SEDs having 'None' for fnu.
             #
-            #I looked more carefully at the documentation in Sed.py
-            #Any time you update flambda in any way, fnu gets set to 'None'
-            #This is to prevent the two arrays from getting out synch
-            #(e.g. renormalizing flambda but forgettint to renormalize fnu)
+            # I looked more carefully at the documentation in Sed.py
+            # Any time you update flambda in any way, fnu gets set to 'None'
+            # This is to prevent the two arrays from getting out synch
+            # (e.g. renormalizing flambda but forgettint to renormalize fnu)
             #
             sedobj.flambdaTofnu()
 
             if indices is not None:
                 outputList = [numpy.NaN] * len(self._bandpassDict)
-                magList = sedobj.manyMagCalc(self._phiArray, self._wavelenStep, observedBandpassInd=indices)
+                magList = sedobj.manyMagCalc(
+                    self._phiArray, self._wavelenStep, observedBandpassInd=indices
+                )
                 for i, ix in enumerate(indices):
                     outputList[ix] = magList[i]
             else:
@@ -239,7 +262,7 @@ class BandpassDict(object):
             return numpy.array(self._magListForSed(dummySed, indices=indices))
 
         else:
-            return numpy.array([numpy.NaN]*len(self._bandpassDict))
+            return numpy.array([numpy.NaN] * len(self._bandpassDict))
 
     def magDictForSed(self, sedobj, indices=None):
         """
@@ -367,23 +390,25 @@ class BandpassDict(object):
         """
 
         if sedobj.wavelen is None:
-            return [numpy.NaN]*len(self._bandpassDict)
+            return [numpy.NaN] * len(self._bandpassDict)
         else:
 
-            #for some reason, moving this call to flambdaTofnu()
-            #to a point earlier in the
-            #process results in some SEDs having 'None' for fnu.
+            # for some reason, moving this call to flambdaTofnu()
+            # to a point earlier in the
+            # process results in some SEDs having 'None' for fnu.
             #
-            #I looked more carefully at the documentation in Sed.py
-            #Any time you update flambda in any way, fnu gets set to 'None'
-            #This is to prevent the two arrays from getting out synch
-            #(e.g. renormalizing flambda but forgettint to renormalize fnu)
+            # I looked more carefully at the documentation in Sed.py
+            # Any time you update flambda in any way, fnu gets set to 'None'
+            # This is to prevent the two arrays from getting out synch
+            # (e.g. renormalizing flambda but forgettint to renormalize fnu)
             #
             sedobj.flambdaTofnu()
 
             if indices is not None:
                 outputList = [numpy.NaN] * len(self._bandpassDict)
-                magList = sedobj.manyFluxCalc(self._phiArray, self._wavelenStep, observedBandpassInd=indices)
+                magList = sedobj.manyFluxCalc(
+                    self._phiArray, self._wavelenStep, observedBandpassInd=indices
+                )
                 for i, ix in enumerate(indices):
                     outputList[ix] = magList[i]
             else:
@@ -426,7 +451,7 @@ class BandpassDict(object):
             return numpy.array(self._fluxListForSed(dummySed, indices=indices))
 
         else:
-            return numpy.array([numpy.NaN]*len(self._bandpassDict))
+            return numpy.array([numpy.NaN] * len(self._bandpassDict))
 
     def fluxDictForSed(self, sedobj, indices=None):
         """

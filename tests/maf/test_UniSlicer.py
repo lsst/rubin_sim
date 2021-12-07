@@ -1,4 +1,5 @@
 import matplotlib
+
 matplotlib.use("Agg")
 import numpy as np
 import unittest
@@ -6,9 +7,9 @@ from rubin_sim.maf.slicers.uniSlicer import UniSlicer
 from rubin_sim.maf.slicers.oneDSlicer import OneDSlicer
 
 
-def makeDataValues(size=100, min=0., max=1., random=-1):
+def makeDataValues(size=100, min=0.0, max=1.0, random=-1):
     """Generate a simple array of numbers, evenly arranged between min/max, but (optional) random order."""
-    datavalues = np.arange(0, size, dtype='float')
+    datavalues = np.arange(0, size, dtype="float")
     datavalues *= (float(max) - float(min)) / (datavalues.max() - datavalues.min())
     datavalues += min
     if random > 0:
@@ -16,12 +17,11 @@ def makeDataValues(size=100, min=0., max=1., random=-1):
         randorder = rng.rand(size)
         randind = np.argsort(randorder)
         datavalues = datavalues[randind]
-    datavalues = np.array(list(zip(datavalues)), dtype=[('testdata', 'float')])
+    datavalues = np.array(list(zip(datavalues)), dtype=[("testdata", "float")])
     return datavalues
 
 
 class TestUniSlicerSetupAndSlice(unittest.TestCase):
-
     def setUp(self):
         self.testslicer = UniSlicer()
 
@@ -32,7 +32,7 @@ class TestUniSlicerSetupAndSlice(unittest.TestCase):
     def testSlicertype(self):
         """Test instantiation of slicer sets slicer type as expected."""
         self.assertEqual(self.testslicer.slicerName, self.testslicer.__class__.__name__)
-        self.assertEqual(self.testslicer.slicerName, 'UniSlicer')
+        self.assertEqual(self.testslicer.slicerName, "UniSlicer")
 
     def testSlicerNbins(self):
         self.assertEqual(self.testslicer.nslice, 1)
@@ -45,12 +45,11 @@ class TestUniSlicerSetupAndSlice(unittest.TestCase):
         dv = makeDataValues(nvalues, dvmin, dvmax, random=672)
         self.testslicer.setupSlicer(dv)
         # test slicing
-        self.assertEqual(len(self.testslicer.indices), len(dv['testdata']))
+        self.assertEqual(len(self.testslicer.indices), len(dv["testdata"]))
         np.testing.assert_equal(dv[self.testslicer.indices], dv)
 
 
 class TestUniSlicerIteration(unittest.TestCase):
-
     def setUp(self):
         self.testslicer = UniSlicer()
 
@@ -76,11 +75,10 @@ class TestUniSlicerIteration(unittest.TestCase):
         nvalues = 1000
         dv = makeDataValues(nvalues, dvmin, dvmax, random=1192)
         self.testslicer.setupSlicer(dv)
-        self.assertEqual(self.testslicer[0]['slicePoint']['sid'], 0)
+        self.assertEqual(self.testslicer[0]["slicePoint"]["sid"], 0)
 
 
 class TestUniSlicerEqual(unittest.TestCase):
-
     def setUp(self):
         self.testslicer = UniSlicer()
         dvmin = 0
@@ -104,7 +102,7 @@ class TestUniSlicerEqual(unittest.TestCase):
         testslicer2.setupSlicer(dv2)
         self.assertEqual(self.testslicer, testslicer2)
         # these will not be the same, as different slicer type.
-        testslicer2 = OneDSlicer(sliceColName='testdata', bins=np.arange(0, 10, 1))
+        testslicer2 = OneDSlicer(sliceColName="testdata", bins=np.arange(0, 10, 1))
         testslicer2.setupSlicer(dv2)
         self.assertNotEqual(self.testslicer, testslicer2)
 

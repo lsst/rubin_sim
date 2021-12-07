@@ -1,37 +1,65 @@
 import numpy as np
-from rubin_sim.scheduler.utils import (empty_observation, set_default_nside)
+from rubin_sim.scheduler.utils import empty_observation, set_default_nside
 import healpy as hp
 import matplotlib.pylab as plt
 from rubin_sim.scheduler.surveys import BaseMarkovDF_survey
-from rubin_sim.scheduler.utils import (int_binned_stat, int_rounded,
-                                              gnomonic_project_toxy, tsp_convex)
+from rubin_sim.scheduler.utils import (
+    int_binned_stat,
+    int_rounded,
+    gnomonic_project_toxy,
+    tsp_convex,
+)
 import copy
-from rubin_sim.utils import _angularSeparation, _hpid2RaDec, _approx_RaDec2AltAz, hp_grow_argsort
+from rubin_sim.utils import (
+    _angularSeparation,
+    _hpid2RaDec,
+    _approx_RaDec2AltAz,
+    hp_grow_argsort,
+)
 import warnings
 
-__all__ = ['Greedy_survey', 'Blob_survey']
+__all__ = ["Greedy_survey", "Blob_survey"]
 
 
 class Greedy_survey(BaseMarkovDF_survey):
     """
     Select pointings in a greedy way using a Markov Decision Process.
     """
-    def __init__(self, basis_functions, basis_weights, filtername='r',
-                 block_size=1, smoothing_kernel=None, nside=None,
-                 dither=True, seed=42, ignore_obs=None, survey_name='',
-                 nexp=2, exptime=30., detailers=None, camera='LSST', area_required=None):
+
+    def __init__(
+        self,
+        basis_functions,
+        basis_weights,
+        filtername="r",
+        block_size=1,
+        smoothing_kernel=None,
+        nside=None,
+        dither=True,
+        seed=42,
+        ignore_obs=None,
+        survey_name="",
+        nexp=2,
+        exptime=30.0,
+        detailers=None,
+        camera="LSST",
+        area_required=None,
+    ):
 
         extra_features = {}
 
-        super(Greedy_survey, self).__init__(basis_functions=basis_functions,
-                                            basis_weights=basis_weights,
-                                            extra_features=extra_features,
-                                            smoothing_kernel=smoothing_kernel,
-                                            ignore_obs=ignore_obs,
-                                            nside=nside,
-                                            survey_name=survey_name, dither=dither,
-                                            detailers=detailers, camera=camera,
-                                            area_required=area_required)
+        super(Greedy_survey, self).__init__(
+            basis_functions=basis_functions,
+            basis_weights=basis_weights,
+            extra_features=extra_features,
+            smoothing_kernel=smoothing_kernel,
+            ignore_obs=ignore_obs,
+            nside=nside,
+            survey_name=survey_name,
+            dither=dither,
+            detailers=detailers,
+            camera=camera,
+            area_required=area_required,
+        )
         self.filtername = filtername
         self.block_size = block_size
         self.nexp = nexp
@@ -55,24 +83,24 @@ class Greedy_survey(BaseMarkovDF_survey):
 
         iter = 0
         while True:
-            best_hp = order[iter*self.block_size:(iter+1)*self.block_size]
+            best_hp = order[iter * self.block_size : (iter + 1) * self.block_size]
             best_fields = np.unique(self.hp2fields[best_hp])
             observations = []
             for field in best_fields:
                 obs = empty_observation()
-                obs['RA'] = self.fields['RA'][field]
-                obs['dec'] = self.fields['dec'][field]
-                obs['rotSkyPos'] = 0.
-                obs['filter'] = self.filtername
-                obs['nexp'] = self.nexp
-                obs['exptime'] = self.exptime
-                obs['field_id'] = -1
-                obs['note'] = self.survey_name
+                obs["RA"] = self.fields["RA"][field]
+                obs["dec"] = self.fields["dec"][field]
+                obs["rotSkyPos"] = 0.0
+                obs["filter"] = self.filtername
+                obs["nexp"] = self.nexp
+                obs["exptime"] = self.exptime
+                obs["field_id"] = -1
+                obs["note"] = self.survey_name
 
                 observations.append(obs)
                 break
             iter += 1
-            if len(observations) > 0 or (iter+2)*self.block_size > len(order):
+            if len(observations) > 0 or (iter + 2) * self.block_size > len(order):
                 break
         return observations
 
@@ -122,30 +150,59 @@ class Blob_survey(Greedy_survey):
         If True, try to grow the blob from the global maximum. Otherwise, just use a simple sort.
         Simple sort will not constrain the blob to be contiguous.
     """
-    def __init__(self, basis_functions, basis_weights,
-                 filtername1='r', filtername2='g',
-                 slew_approx=7.5, filter_change_approx=140.,
-                 read_approx=2., exptime=30., nexp=2, nexp_dict=None,
-                 ideal_pair_time=22., min_pair_time=15.,
-                 search_radius=30., alt_max=85., az_range=90.,
-                 flush_time=30.,
-                 smoothing_kernel=None, nside=None,
-                 dither=True, seed=42, ignore_obs=None,
-                 survey_note='blob', detailers=None, camera='LSST',
-                 twilight_scale=True, in_twilight=False, check_scheduled=True, min_area=None,
-                 grow_blob=True, area_required=None):
+
+    def __init__(
+        self,
+        basis_functions,
+        basis_weights,
+        filtername1="r",
+        filtername2="g",
+        slew_approx=7.5,
+        filter_change_approx=140.0,
+        read_approx=2.0,
+        exptime=30.0,
+        nexp=2,
+        nexp_dict=None,
+        ideal_pair_time=22.0,
+        min_pair_time=15.0,
+        search_radius=30.0,
+        alt_max=85.0,
+        az_range=90.0,
+        flush_time=30.0,
+        smoothing_kernel=None,
+        nside=None,
+        dither=True,
+        seed=42,
+        ignore_obs=None,
+        survey_note="blob",
+        detailers=None,
+        camera="LSST",
+        twilight_scale=True,
+        in_twilight=False,
+        check_scheduled=True,
+        min_area=None,
+        grow_blob=True,
+        area_required=None,
+    ):
 
         if nside is None:
             nside = set_default_nside()
 
-        super(Blob_survey, self).__init__(basis_functions=basis_functions,
-                                          basis_weights=basis_weights,
-                                          filtername=None,
-                                          block_size=0, smoothing_kernel=smoothing_kernel,
-                                          dither=dither, seed=seed, ignore_obs=ignore_obs,
-                                          nside=nside, detailers=detailers, camera=camera,
-                                          area_required=area_required)
-        self.flush_time = flush_time/60./24.  # convert to days
+        super(Blob_survey, self).__init__(
+            basis_functions=basis_functions,
+            basis_weights=basis_weights,
+            filtername=None,
+            block_size=0,
+            smoothing_kernel=smoothing_kernel,
+            dither=dither,
+            seed=seed,
+            ignore_obs=ignore_obs,
+            nside=nside,
+            detailers=detailers,
+            camera=camera,
+            area_required=area_required,
+        )
+        self.flush_time = flush_time / 60.0 / 24.0  # convert to days
         self.nexp = nexp
         self.nexp_dict = nexp_dict
         self.exptime = exptime
@@ -157,7 +214,9 @@ class Blob_survey(Greedy_survey):
         self.grow_blob = grow_blob
 
         if self.twilight_scale & self.in_twilight:
-            warnings.warn('Both twilight_scale and in_twilight are set to True. That is probably wrong.')
+            warnings.warn(
+                "Both twilight_scale and in_twilight are set to True. That is probably wrong."
+            )
 
         self.min_area = min_area
         self.check_scheduled = check_scheduled
@@ -166,9 +225,20 @@ class Blob_survey(Greedy_survey):
             filter_change_approx = 0
         # Compute the minimum time needed to observe a blob (or observe, then repeat.)
         if filtername2 is not None:
-            self.time_needed = (min_pair_time*60.*2. + exptime + read_approx + filter_change_approx)/24./3600.  # Days
+            self.time_needed = (
+                (
+                    min_pair_time * 60.0 * 2.0
+                    + exptime
+                    + read_approx
+                    + filter_change_approx
+                )
+                / 24.0
+                / 3600.0
+            )  # Days
         else:
-            self.time_needed = (min_pair_time*60. + exptime + read_approx)/24./3600.  # Days
+            self.time_needed = (
+                (min_pair_time * 60.0 + exptime + read_approx) / 24.0 / 3600.0
+            )  # Days
         self.filter_set = set(filtername1)
         if filtername2 is None:
             self.filter2_set = self.filter_set
@@ -207,9 +277,9 @@ class Blob_survey(Greedy_survey):
             reward = 0
             for bf, weight in zip(self.basis_functions, self.basis_weights):
                 basis_value = bf(conditions)
-                reward += basis_value*weight
+                reward += basis_value * weight
             valid_pix = np.where(np.isnan(reward) == False)[0]
-            if np.size(valid_pix)*self.pixarea < self.min_area:
+            if np.size(valid_pix) * self.pixarea < self.min_area:
                 result = False
         return result
 
@@ -221,7 +291,7 @@ class Blob_survey(Greedy_survey):
         # If we are trying to get things done before twilight
         if self.twilight_scale:
             available_time = conditions.sun_n18_rising - conditions.mjd
-            available_time *= 24.*60.  # to minutes
+            available_time *= 24.0 * 60.0  # to minutes
             n_ideal_blocks = available_time / self.ideal_pair_time
         else:
             n_ideal_blocks = 4
@@ -229,8 +299,10 @@ class Blob_survey(Greedy_survey):
         # If we are trying to get things done before a scheduled simulation
         if self.check_scheduled:
             if len(conditions.scheduled_observations) > 0:
-                available_time = np.min(conditions.scheduled_observations) - conditions.mjd
-                available_time *= 24.*60.  # to minutes
+                available_time = (
+                    np.min(conditions.scheduled_observations) - conditions.mjd
+                )
+                available_time *= 24.0 * 60.0  # to minutes
                 n_blocks = available_time / self.ideal_pair_time
                 if n_blocks < n_ideal_blocks:
                     n_ideal_blocks = n_blocks
@@ -242,30 +314,47 @@ class Blob_survey(Greedy_survey):
             times = np.array([at1, at2])
             times = times[np.where(times > 0)]
             available_time = np.min(times)
-            available_time *= 24.*60.  # to minutes
+            available_time *= 24.0 * 60.0  # to minutes
             n_blocks = available_time / self.ideal_pair_time
             if n_blocks < n_ideal_blocks:
                 n_ideal_blocks = n_blocks
 
         if n_ideal_blocks >= 3:
-            self.nvisit_block = int(np.floor(self.ideal_pair_time*60. / (self.slew_approx + self.exptime +
-                                                                         self.read_approx*(self.nexp - 1))))
+            self.nvisit_block = int(
+                np.floor(
+                    self.ideal_pair_time
+                    * 60.0
+                    / (
+                        self.slew_approx
+                        + self.exptime
+                        + self.read_approx * (self.nexp - 1)
+                    )
+                )
+            )
         else:
             # Now we can stretch or contract the block size to allocate the remainder time until twilight starts
             # We can take the remaining time and try to do 1,2, or 3 blocks.
             possible_times = available_time / np.arange(1, 4)
-            diff = np.abs(self.ideal_pair_time-possible_times)
+            diff = np.abs(self.ideal_pair_time - possible_times)
             best_block_time = np.max(possible_times[np.where(diff == np.min(diff))])
-            self.nvisit_block = int(np.floor(best_block_time*60. / (self.slew_approx + self.exptime +
-                                                                    self.read_approx*(self.nexp - 1))))
+            self.nvisit_block = int(
+                np.floor(
+                    best_block_time
+                    * 60.0
+                    / (
+                        self.slew_approx
+                        + self.exptime
+                        + self.read_approx * (self.nexp - 1)
+                    )
+                )
+            )
 
         # The floor can set block to zero, make it possible to to just one
         if self.nvisit_block <= 0:
             self.nvisit_block = 1
 
     def calc_reward_function(self, conditions):
-        """
-        """
+        """"""
         # Set the number of observations we are going to try and take
         self._set_block_size(conditions)
         #  Computing reward like usual with basis functions and weights
@@ -274,7 +363,7 @@ class Blob_survey(Greedy_survey):
             indx = np.arange(hp.nside2npix(self.nside))
             for bf, weight in zip(self.basis_functions, self.basis_weights):
                 basis_value = bf(conditions, indx=indx)
-                self.reward += basis_value*weight
+                self.reward += basis_value * weight
                 # might be faster to pull this out into the feasabiliity check?
             if self.smoothing_kernel is not None:
                 self.smooth_reward()
@@ -294,34 +383,42 @@ class Blob_survey(Greedy_survey):
                 return -np.inf
 
             # Apply radius selection
-            dists = _angularSeparation(self.ra[peak_reward], self.dec[peak_reward], self.ra, self.dec)
+            dists = _angularSeparation(
+                self.ra[peak_reward], self.dec[peak_reward], self.ra, self.dec
+            )
             out_hp = np.where(int_rounded(dists) > int_rounded(self.search_radius))
             self.reward[out_hp] = np.nan
 
             # Apply az cut
             az_centered = conditions.az - conditions.az[peak_reward]
-            az_centered[np.where(az_centered < 0)] += 2.*np.pi
+            az_centered[np.where(az_centered < 0)] += 2.0 * np.pi
 
-            az_out = np.where((int_rounded(az_centered) > int_rounded(self.az_range/2.)) &
-                              (int_rounded(az_centered) < int_rounded(2.*np.pi-self.az_range/2.)))
+            az_out = np.where(
+                (int_rounded(az_centered) > int_rounded(self.az_range / 2.0))
+                & (
+                    int_rounded(az_centered)
+                    < int_rounded(2.0 * np.pi - self.az_range / 2.0)
+                )
+            )
             self.reward[az_out] = np.nan
         else:
             self.reward = -np.inf
 
         if self.area_required is not None:
-            good_area = np.where(np.abs(self.reward) >= 0)[0].size * hp.nside2pixarea(self.nside)
+            good_area = np.where(np.abs(self.reward) >= 0)[0].size * hp.nside2pixarea(
+                self.nside
+            )
             if good_area < self.area_required:
                 self.reward = -np.inf
 
-        #if ('twi' in self.survey_note) & (np.any(np.isfinite(self.reward))):
+        # if ('twi' in self.survey_note) & (np.any(np.isfinite(self.reward))):
         #    import pdb ; pdb.set_trace()
 
         self.reward_checked = True
         return self.reward
 
     def simple_order_sort(self):
-        """Fall back if we can't link contiguous blobs in the reward map
-        """
+        """Fall back if we can't link contiguous blobs in the reward map"""
 
         # Assuming reward has already been calcualted
 
@@ -330,16 +427,16 @@ class Blob_survey(Greedy_survey):
         # Note, using nanmax, so masked pixels might be included in the pointing.
         # I guess I should document that it's not "NaN pixels can't be observed", but
         # "non-NaN pixles CAN be observed", which probably is not intuitive.
-        ufields, reward_by_field = int_binned_stat(self.hp2fields[potential_hp],
-                                                   self.reward[potential_hp],
-                                                   statistic=np.nanmax)
+        ufields, reward_by_field = int_binned_stat(
+            self.hp2fields[potential_hp], self.reward[potential_hp], statistic=np.nanmax
+        )
         # chop off any nans
         not_nans = np.where(~np.isnan(reward_by_field) == True)
         ufields = ufields[not_nans]
         reward_by_field = reward_by_field[not_nans]
 
         order = np.argsort(reward_by_field)
-        ufields = ufields[order][::-1][0:self.nvisit_block]
+        ufields = ufields[order][::-1][0 : self.nvisit_block]
         self.best_fields = ufields
 
     def generate_observations_rough(self, conditions):
@@ -368,7 +465,7 @@ class Blob_survey(Greedy_survey):
                 # Let's fall back to the simple sort
                 self.simple_order_sort()
             else:
-                self.best_fields = best_fields[0:self.nvisit_block]
+                self.best_fields = best_fields[0 : self.nvisit_block]
         else:
             self.simple_order_sort()
 
@@ -377,15 +474,17 @@ class Blob_survey(Greedy_survey):
             return []
 
         # Let's find the alt, az coords of the points (right now, hopefully doesn't change much in time block)
-        pointing_alt, pointing_az = _approx_RaDec2AltAz(self.fields['RA'][self.best_fields],
-                                                        self.fields['dec'][self.best_fields],
-                                                        conditions.site.latitude_rad,
-                                                        conditions.site.longitude_rad,
-                                                        conditions.mjd,
-                                                        lmst=conditions.lmst)
+        pointing_alt, pointing_az = _approx_RaDec2AltAz(
+            self.fields["RA"][self.best_fields],
+            self.fields["dec"][self.best_fields],
+            conditions.site.latitude_rad,
+            conditions.site.longitude_rad,
+            conditions.mjd,
+            lmst=conditions.lmst,
+        )
 
         # Let's find a good spot to project the points to a plane
-        mid_alt = (np.max(pointing_alt) - np.min(pointing_alt))/2.
+        mid_alt = (np.max(pointing_alt) - np.min(pointing_alt)) / 2.0
 
         # Code snippet from MAF for computing mean of angle accounting for wrap around
         # XXX-TODO: Maybe move this to sims_utils as a generally useful snippet.
@@ -394,18 +493,20 @@ class Blob_survey(Greedy_survey):
         meanx = np.mean(x)
         meany = np.mean(y)
         angle = np.arctan2(meany, meanx)
-        radius = np.sqrt(meanx**2 + meany**2)
-        mid_az = angle % (2.*np.pi)
+        radius = np.sqrt(meanx ** 2 + meany ** 2)
+        mid_az = angle % (2.0 * np.pi)
         if radius < 0.1:
             mid_az = np.pi
 
         # Project the alt,az coordinates to a plane. Could consider scaling things to represent
         # time between points rather than angular distance.
-        pointing_x, pointing_y = gnomonic_project_toxy(pointing_az, pointing_alt, mid_az, mid_alt)
+        pointing_x, pointing_y = gnomonic_project_toxy(
+            pointing_az, pointing_alt, mid_az, mid_alt
+        )
         # Round off positions so that we ensure identical cross-platform performance
         scale = 1e6
-        pointing_x = np.round(pointing_x*scale).astype(int)
-        pointing_y = np.round(pointing_y*scale).astype(int)
+        pointing_x = np.round(pointing_x * scale).astype(int)
+        pointing_y = np.round(pointing_y * scale).astype(int)
         # Now I have a bunch of x,y pointings. Drop into TSP solver to get an effiencent route
         towns = np.vstack((pointing_x, pointing_y)).T
         # Leaving optimize=False for speed. The optimization step doesn't usually improve much.
@@ -413,29 +514,30 @@ class Blob_survey(Greedy_survey):
         # XXX-TODO: Could try to roll better_order to start at the nearest/fastest slew from current position.
         observations = []
         counter2 = 0
-        approx_end_time = np.size(better_order)*(self.slew_approx + self.exptime +
-                                                 self.read_approx*(self.nexp - 1))
-        flush_time = conditions.mjd + approx_end_time/3600./24. + self.flush_time
+        approx_end_time = np.size(better_order) * (
+            self.slew_approx + self.exptime + self.read_approx * (self.nexp - 1)
+        )
+        flush_time = conditions.mjd + approx_end_time / 3600.0 / 24.0 + self.flush_time
         for i, indx in enumerate(better_order):
             field = self.best_fields[indx]
             obs = empty_observation()
-            obs['RA'] = self.fields['RA'][field]
-            obs['dec'] = self.fields['dec'][field]
-            obs['rotSkyPos'] = 0.
-            obs['filter'] = self.filtername1
+            obs["RA"] = self.fields["RA"][field]
+            obs["dec"] = self.fields["dec"][field]
+            obs["rotSkyPos"] = 0.0
+            obs["filter"] = self.filtername1
             if self.nexp_dict is None:
-                obs['nexp'] = self.nexp
+                obs["nexp"] = self.nexp
             else:
-                obs['nexp'] = self.nexp_dict[self.filtername1]
-            obs['exptime'] = self.exptime
-            obs['field_id'] = -1
-            obs['note'] = '%s' % (self.survey_note)
-            obs['block_id'] = self.counter
-            obs['flush_by_mjd'] = flush_time
+                obs["nexp"] = self.nexp_dict[self.filtername1]
+            obs["exptime"] = self.exptime
+            obs["field_id"] = -1
+            obs["note"] = "%s" % (self.survey_note)
+            obs["block_id"] = self.counter
+            obs["flush_by_mjd"] = flush_time
             # Add the mjd for debugging
             # obs['mjd'] = conditions.mjd
             # XXX temp debugging line
-            obs['survey_id'] = i
+            obs["survey_id"] = i
             observations.append(obs)
             counter2 += 1
 

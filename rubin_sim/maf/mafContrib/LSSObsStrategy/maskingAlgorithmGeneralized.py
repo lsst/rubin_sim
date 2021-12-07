@@ -1,6 +1,6 @@
 #####################################################################################################
 # Purpose: change the values/mask of a metricBundle in the pixels with a certain value/mask.
-# Example applicaton: mask the outermost/shallow edge of skymaps. 
+# Example applicaton: mask the outermost/shallow edge of skymaps.
 #
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
@@ -12,16 +12,26 @@ import copy
 import rubin_sim.maf.plots as plots
 import matplotlib.cm as cm
 
-__all__ = ['maskingAlgorithmGeneralized']
+__all__ = ["maskingAlgorithmGeneralized"]
 
-def maskingAlgorithmGeneralized(myBundles, plotHandler, dataLabel, nside=128,
-                                findValue='unmasked', relation='=',
-                                newValue='masked',
-                                pixelRadius=6, returnBorderIndices=False,
-                                printIntermediateInfo=False, plotIntermediatePlots=True,
-                                printFinalInfo=True,
-                                plotFinalPlots=True,
-                                skyMapColorMin=None, skyMapColorMax=None):
+
+def maskingAlgorithmGeneralized(
+    myBundles,
+    plotHandler,
+    dataLabel,
+    nside=128,
+    findValue="unmasked",
+    relation="=",
+    newValue="masked",
+    pixelRadius=6,
+    returnBorderIndices=False,
+    printIntermediateInfo=False,
+    plotIntermediatePlots=True,
+    printFinalInfo=True,
+    plotFinalPlots=True,
+    skyMapColorMin=None,
+    skyMapColorMax=None,
+):
     """
     Assign newValue to all pixels in a skymap within pixelRadius of pixels with value <, >, or = findValue.
 
@@ -65,38 +75,38 @@ def maskingAlgorithmGeneralized(myBundles, plotHandler, dataLabel, nside=128,
     # data indices are the pixels numbers ..
     # ------------------------------------------------------------------------
     # check whether need to mask anything at all
-    if (pixelRadius == 0):
-        print('No masking/changing of the original data.')
+    if pixelRadius == 0:
+        print("No masking/changing of the original data.")
         if returnBorderIndices:
             borders = {}
             for dither in myBundles:
                 borders[dither] = []
-                
+
             return [myBundles, borders]
         else:
             return myBundles
     # ------------------------------------------------------------------------
     # make sure that relation is compatible with findValue
-    if ((findValue == 'masked') | (findValue == 'unmasked')):
-        if (relation != '='):
+    if (findValue == "masked") | (findValue == "unmasked"):
+        if relation != "=":
             print('ERROR: must have relation== "=" if findValue is related to mask.')
             print('Setting:  relation= "="\n')
-            relation = '='
+            relation = "="
     # ------------------------------------------------------------------------
     # translate findValue into what has to be assigned
     findValueToConsider = findValue
-    if findValue.__contains__('mask'):
-        if (findValue == 'masked'):
+    if findValue.__contains__("mask"):
+        if findValue == "masked":
             findValueToConsider = True
-        if (findValue == 'unmasked'):
+        if findValue == "unmasked":
             findValueToConsider = False
 
     # translate newValue into what has to be assigned
-    newValueToAssign= newValue   
-    if newValue.__contains__('mask'):
-        if (newValue == 'masked'):
+    newValueToAssign = newValue
+    if newValue.__contains__("mask"):
+        if newValue == "masked":
             newValueToAssign = True
-        if (newValue == 'unmasked'):
+        if newValue == "unmasked":
             newValueToAssign = False
 
     # ------------------------------------------------------------------------
@@ -104,62 +114,89 @@ def maskingAlgorithmGeneralized(myBundles, plotHandler, dataLabel, nside=128,
     for dither in myBundles:
         totalBorderPixel = []
         if printIntermediateInfo:
-            print('Survey strategy: %s'%dither)
-            
+            print("Survey strategy: %s" % dither)
+
         # find the array to look at.
-        if (findValue).__contains__('mask'):
-            origArray = myBundles[dither].metricValues.mask.copy()    # mask array
+        if (findValue).__contains__("mask"):
+            origArray = myBundles[dither].metricValues.mask.copy()  # mask array
         else:
-            origArray = myBundles[dither].metricValues.data.copy()    # data array
+            origArray = myBundles[dither].metricValues.data.copy()  # data array
 
         for r in range(0, pixelRadius):
             borderPixel = []
             tempCopy = copy.deepcopy(myBundles)
             # ignore the pixels whose neighbors formed the border in previous run
-            if (r != 0):
+            if r != 0:
                 origArray[totalBorderPixel] = newValueToAssign
 
             # find the pixels that satisfy the relation with findValue and whose neighbors dont
             for i in range(0, len(origArray)):
-                neighborsPixels = hp.get_all_neighbours(nside,i)   # i is the pixel number
+                neighborsPixels = hp.get_all_neighbours(
+                    nside, i
+                )  # i is the pixel number
                 for j in neighborsPixels:
-                    condition= None
-                    if (relation == '<'):
-                        condition = ((origArray[i] < findValueToConsider) & (origArray[j] >= findValueToConsider))
-                    if (relation == '='):
-                        condition = ((origArray[i] == findValueToConsider) & (origArray[j] != findValueToConsider))
-                    if (relation == '>'):
-                        condition = ((origArray[i] > findValueToConsider) & (origArray[j] <= findValueToConsider))
-                    if (condition == None):
-                        raise ValueError('ERROR: invalid relation: %s'%relation)
-                        
+                    condition = None
+                    if relation == "<":
+                        condition = (origArray[i] < findValueToConsider) & (
+                            origArray[j] >= findValueToConsider
+                        )
+                    if relation == "=":
+                        condition = (origArray[i] == findValueToConsider) & (
+                            origArray[j] != findValueToConsider
+                        )
+                    if relation == ">":
+                        condition = (origArray[i] > findValueToConsider) & (
+                            origArray[j] <= findValueToConsider
+                        )
+                    if condition == None:
+                        raise ValueError("ERROR: invalid relation: %s" % relation)
+
                     if condition:
-                        if (j != -1):                            # -1 entries correspond to inexistent neighbors
+                        if j != -1:  # -1 entries correspond to inexistent neighbors
                             borderPixel.append(i)
-        
+
             borderPixel = np.unique(borderPixel)
             totalBorderPixel.extend(borderPixel)
 
-            if printIntermediateInfo:     
-                print('Border pixels from run %s: %s'%(r+1, len(borderPixel)))
-                print('Total pixels so far: %s\n'%len(totalBorderPixel))
-      
+            if printIntermediateInfo:
+                print("Border pixels from run %s: %s" % (r + 1, len(borderPixel)))
+                print("Total pixels so far: %s\n" % len(totalBorderPixel))
+
             # plot found pixels
             if plotIntermediatePlots:
-                if newValue.__contains__('mask'):
+                if newValue.__contains__("mask"):
                     tempCopy[dither].metricValues.mask[:] = newValueToAssign
-                    tempCopy[dither].metricValues.mask[totalBorderPixel] = not(newValueToAssign)
+                    tempCopy[dither].metricValues.mask[totalBorderPixel] = not (
+                        newValueToAssign
+                    )
                     tempCopy[dither].metricValues.data[totalBorderPixel] = -500
-                    plotDict = {'xlabel': dataLabel, 'title':'%s: %s Round # %s' %(dither, dataLabel, r+1), 
-                                'logScale': False, 'labelsize': 9,'colorMin':-550, 'colorMax': 550, 'cmap':cm.jet}
+                    plotDict = {
+                        "xlabel": dataLabel,
+                        "title": "%s: %s Round # %s" % (dither, dataLabel, r + 1),
+                        "logScale": False,
+                        "labelsize": 9,
+                        "colorMin": -550,
+                        "colorMax": 550,
+                        "cmap": cm.jet,
+                    }
                 else:
                     tempCopy[dither].metricValues.mask[:] = True
                     tempCopy[dither].metricValues.mask[totalBorderPixel] = False
-                    tempCopy[dither].metricValues.data[totalBorderPixel] = newValueToAssign
-                    plotDict = {'xlabel': dataLabel, 'title':'%s %s Round # %s' %(dither, dataLabel, r+1), 
-                                'logScale': False, 'labelsize': 9, 'maxl': 500, 'cmap':cm.jet}
+                    tempCopy[dither].metricValues.data[
+                        totalBorderPixel
+                    ] = newValueToAssign
+                    plotDict = {
+                        "xlabel": dataLabel,
+                        "title": "%s %s Round # %s" % (dither, dataLabel, r + 1),
+                        "logScale": False,
+                        "labelsize": 9,
+                        "maxl": 500,
+                        "cmap": cm.jet,
+                    }
                 tempCopy[dither].setPlotDict(plotDict)
-                tempCopy[dither].setPlotFuncs([plots.HealpixSkyMap(), plots.HealpixPowerSpectrum()])
+                tempCopy[dither].setPlotFuncs(
+                    [plots.HealpixSkyMap(), plots.HealpixPowerSpectrum()]
+                )
                 tempCopy[dither].plot(plotHandler=plotHandler)
                 plt.show()
             # save the found pixels with the appropriate key
@@ -171,24 +208,39 @@ def maskingAlgorithmGeneralized(myBundles, plotHandler, dataLabel, nside=128,
         totalBorderPixel = borders[dither]
 
         if printFinalInfo:
-            print('Survey strategy: %s'%dither)
-            print('Total pixels changed: %s\n'%len(totalBorderPixel))
-            
-        if newValue.__contains__('mask'):
+            print("Survey strategy: %s" % dither)
+            print("Total pixels changed: %s\n" % len(totalBorderPixel))
+
+        if newValue.__contains__("mask"):
             myBundles[dither].metricValues.mask[totalBorderPixel] = newValueToAssign
         else:
             myBundles[dither].metricValues.data[totalBorderPixel] = newValueToAssign
-            
+
         if plotFinalPlots:
             # skymap
-            plotDict = {'xlabel':dataLabel, 'title':'%s: %s MaskedMap; pixelRadius: %s ' %(dither, dataLabel, pixelRadius),
-                        'logScale': False, 'labelsize': 8,'colorMin': skyMapColorMin, 'colorMax': skyMapColorMax, 'cmap':cm.jet}
+            plotDict = {
+                "xlabel": dataLabel,
+                "title": "%s: %s MaskedMap; pixelRadius: %s "
+                % (dither, dataLabel, pixelRadius),
+                "logScale": False,
+                "labelsize": 8,
+                "colorMin": skyMapColorMin,
+                "colorMax": skyMapColorMax,
+                "cmap": cm.jet,
+            }
             myBundles[dither].setPlotDict(plotDict)
             myBundles[dither].setPlotFuncs([plots.HealpixSkyMap()])
             myBundles[dither].plot(plotHandler=plotHandler)
             # power spectrum
-            plotDict = {'xlabel':dataLabel, 'title':'%s: %s MaskedMap; pixelRadius: %s ' %(dither, dataLabel, pixelRadius),
-                        'logScale': False, 'labelsize': 12, 'maxl': 500, 'cmap':cm.jet}
+            plotDict = {
+                "xlabel": dataLabel,
+                "title": "%s: %s MaskedMap; pixelRadius: %s "
+                % (dither, dataLabel, pixelRadius),
+                "logScale": False,
+                "labelsize": 12,
+                "maxl": 500,
+                "cmap": cm.jet,
+            }
             myBundles[dither].setPlotDict(plotDict)
             myBundles[dither].setPlotFuncs([plots.HealpixPowerSpectrum()])
             myBundles[dither].plot(plotHandler=plotHandler)

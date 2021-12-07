@@ -84,9 +84,7 @@ def normalize_metric_summaries(
             summary.loc[:, :].sub(summary.loc[baseline_run, :], axis="columns")
         ).div(summary.loc[baseline_run, :], axis="columns")
     else:
-        metric_names = [
-            n for n in metric_sets.index.names if not n == "metric"
-        ]
+        metric_names = [n for n in metric_sets.index.names if not n == "metric"]
         metric_sets = (
             metric_sets.reset_index(metric_names)
             .groupby(level="metric")
@@ -101,9 +99,7 @@ def normalize_metric_summaries(
             dtype="float",
         )
 
-        assert not np.any(
-            np.logical_and(metric_sets["invert"], metric_sets["mag"])
-        )
+        assert not np.any(np.logical_and(metric_sets["invert"], metric_sets["mag"]))
 
         # Direct metrics are those that are neither inverted, nor compared as magnitudes
         direct = ~np.logical_or(metric_sets["invert"], metric_sets["mag"])
@@ -113,11 +109,12 @@ def normalize_metric_summaries(
             1.0 / summary.loc[:, metric_sets["invert"]]
         )
 
-        norm_summary.loc[:, metric_sets["mag"]] = 1.0 + summary.loc[
-            :,
-            metric_sets["mag"],
-        ].subtract(
-            summary.loc[baseline_run, metric_sets["mag"]], axis="columns"
+        norm_summary.loc[:, metric_sets["mag"]] = (
+            1.0
+            + summary.loc[
+                :,
+                metric_sets["mag"],
+            ].subtract(summary.loc[baseline_run, metric_sets["mag"]], axis="columns")
         )
 
         # Look a the fractional difference compared with the baseline
@@ -200,9 +197,7 @@ def plot_run_metric(
     # get rid of the levels we do not need.
     if metric_set is not None and metric_set.index.nlevels > 1:
         extra_levels = list(set(metric_set.index.names) - set(["metric"]))
-        metric_set = (
-            metric_set.droplevel(extra_levels).groupby(level="metric").first()
-        )
+        metric_set = metric_set.droplevel(extra_levels).groupby(level="metric").first()
 
     # Mark whether we have a default, or whether
     # one was specified
@@ -362,13 +357,9 @@ def plot_run_metric_mesh(
 
     # Normalize the summary values, if a baseline was specified
     if baseline_run is not None:
-        norm_summary = normalize_metric_summaries(
-            baseline_run, summary, metric_set
-        )
+        norm_summary = normalize_metric_summaries(baseline_run, summary, metric_set)
     else:
-        norm_summary = summary.rename_axis(
-            index="run", columns="metric"
-        ).copy()
+        norm_summary = summary.rename_axis(index="run", columns="metric").copy()
 
     vmin = 1 - color_range / 2
     vmax = vmin + color_range

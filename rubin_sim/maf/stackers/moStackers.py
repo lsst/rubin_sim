@@ -3,18 +3,19 @@ from .baseStacker import BaseStacker
 from .mo_phase import phase_HalleyMarcus
 import warnings
 
-__all__ = ['BaseMoStacker', 'MoMagStacker', 'AppMagStacker', 'CometAppMagStacker', 'SNRStacker', 'EclStacker']
+__all__ = [
+    "BaseMoStacker",
+    "MoMagStacker",
+    "AppMagStacker",
+    "CometAppMagStacker",
+    "SNRStacker",
+    "EclStacker",
+]
 
 # Willmer 2018, ApJS 236, 47
 # VEGA V mag and AB mag of sun (LSST-equivalent bandpasses)
 VMAG_SUN = -26.76  # Vega mag
-AB_SUN = { 'u': -25.30,
-           'g': -26.52,
-           'r': -26.93,
-           'i': -27.05,
-           'z': -27.07,
-           'y': -27.07
-           }
+AB_SUN = {"u": -25.30, "g": -26.52, "r": -26.93, "i": -27.05, "z": -27.07, "y": -27.07}
 KM_PER_AU = 149597870.7
 
 
@@ -22,6 +23,7 @@ class BaseMoStacker(BaseStacker):
     """Base class for moving object (SSobject)  stackers. Relevant for MoSlicer ssObs (pd.dataframe).
 
     Provided to add moving-object specific API for 'run' method of moving object stackers."""
+
     def run(self, ssoObs, Href, Hval=None):
         # Redefine this here, as the API does not match BaseStacker.
         if Hval is None:
@@ -30,11 +32,12 @@ class BaseMoStacker(BaseStacker):
             return ssoObs
         # Add the columns.
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
+            warnings.simplefilter("ignore")
             ssoObs, cols_present = self._addStackerCols(ssoObs)
         # Here we don't really care about cols_present, because almost every time we will be readding
         # columns anymore (for different H values).
         return self._run(ssoObs, Href, Hval)
+
 
 class MoMagStacker(BaseMoStacker):
     """Add columns relevant to SSobject apparent magnitudes and visibility to the slicer ssoObs
@@ -68,30 +71,63 @@ class MoMagStacker(BaseMoStacker):
         generation for the dither offsets.
         Default: None.
     """
-    colsAdded = ['appMag', 'SNR', 'vis']
 
-    def __init__(self, magtype='asteroid',
-                 vMagCol='magV', colorCol='dmagColor',
-                 lossCol='dmagDetect', m5Col='fiveSigmaDepth',
-                 seeingCol='seeingFwhmGeom', filterCol='filter',
-                 gamma=0.038, sigma=0.12,
-                 randomSeed=None):
-        if magtype == 'asteroid':
-            self.magStacker = AppMagStacker(vMagCol=vMagCol, colorCol=colorCol, lossCol=lossCol)
+    colsAdded = ["appMag", "SNR", "vis"]
+
+    def __init__(
+        self,
+        magtype="asteroid",
+        vMagCol="magV",
+        colorCol="dmagColor",
+        lossCol="dmagDetect",
+        m5Col="fiveSigmaDepth",
+        seeingCol="seeingFwhmGeom",
+        filterCol="filter",
+        gamma=0.038,
+        sigma=0.12,
+        randomSeed=None,
+    ):
+        if magtype == "asteroid":
+            self.magStacker = AppMagStacker(
+                vMagCol=vMagCol, colorCol=colorCol, lossCol=lossCol
+            )
             self.colsReq = [m5Col, vMagCol, colorCol, lossCol]
-        elif magtype == 'comet':
-            self.magStacker = CometAppMagStacker(cometType='oort', Ap=0.04,
-                                                 rhCol='helio_dist', deltaCol='geo_dist', phaseCol='phase',
-                                                 seeingCol=seeingCol, apScale=1, filterCol=filterCol,
-                                                 vMagCol=vMagCol, colorCol=colorCol, lossCol=lossCol)
-            self.colsReq = [m5Col, vMagCol, colorCol, lossCol,
-                            'helio_dist', 'geo_dist', 'phase', seeingCol, filterCol]
+        elif magtype == "comet":
+            self.magStacker = CometAppMagStacker(
+                cometType="oort",
+                Ap=0.04,
+                rhCol="helio_dist",
+                deltaCol="geo_dist",
+                phaseCol="phase",
+                seeingCol=seeingCol,
+                apScale=1,
+                filterCol=filterCol,
+                vMagCol=vMagCol,
+                colorCol=colorCol,
+                lossCol=lossCol,
+            )
+            self.colsReq = [
+                m5Col,
+                vMagCol,
+                colorCol,
+                lossCol,
+                "helio_dist",
+                "geo_dist",
+                "phase",
+                seeingCol,
+                filterCol,
+            ]
         else:
             self.magStacker = AppMagNullStacker()
-        self.snrStacker = SNRStacker(appMagCol='appMag', m5Col=m5Col,
-                                     gamma=gamma, sigma=sigma, randomSeed=randomSeed)
+        self.snrStacker = SNRStacker(
+            appMagCol="appMag",
+            m5Col=m5Col,
+            gamma=gamma,
+            sigma=sigma,
+            randomSeed=randomSeed,
+        )
 
-        self.units = ['mag', 'mag', 'SNR', '']
+        self.units = ["mag", "mag", "SNR", ""]
 
     def _run(self, ssoObs, Href, Hval):
         # Hval = current H value (useful if cloning over H range), Href = reference H value from orbit.
@@ -113,15 +149,18 @@ class AppMagNullStacker(BaseMoStacker):
     apparent magnitude for most of the basic moving object metrics, and it must be calculated before SNR
     if that is also needed).
     """
-    colsAdded = ['appMag']
 
-    def __init__(self, appMagCol='appMag'):
+    colsAdded = ["appMag"]
+
+    def __init__(self, appMagCol="appMag"):
         self.appMagCol = appMagCol
-        self.units = ['mag',]
+        self.units = [
+            "mag",
+        ]
         self.colsReq = [self.appMagCol]
 
     def _run(self, ssoObs, Href, Hval):
-        ssoObs['appMag'] = ssoObs[self.appMagCol]
+        ssoObs["appMag"] = ssoObs[self.appMagCol]
         return ssoObs
 
 
@@ -147,19 +186,28 @@ class AppMagStacker(BaseMoStacker):
         Name of the column describing the color correction (into the observation filter, from V).
         Default dmagColor.
     """
-    colsAdded = ['appMag']
 
-    def __init__(self, vMagCol='magV', colorCol='dmagColor', lossCol='dmagDetect'):
+    colsAdded = ["appMag"]
+
+    def __init__(self, vMagCol="magV", colorCol="dmagColor", lossCol="dmagDetect"):
         self.vMagCol = vMagCol
         self.colorCol = colorCol
         self.lossCol = lossCol
         self.colsReq = [self.vMagCol, self.colorCol, self.lossCol]
-        self.units = ['mag',]
+        self.units = [
+            "mag",
+        ]
 
     def _run(self, ssoObs, Href, Hval):
         # Hval = current H value (useful if cloning over H range), Href = reference H value from orbit.
         # Without cloning, Href = Hval.
-        ssoObs['appMag'] = ssoObs[self.vMagCol] + ssoObs[self.colorCol] + ssoObs[self.lossCol] + Hval - Href
+        ssoObs["appMag"] = (
+            ssoObs[self.vMagCol]
+            + ssoObs[self.colorCol]
+            + ssoObs[self.lossCol]
+            + Hval
+            - Href
+        )
         return ssoObs
 
 
@@ -187,31 +235,46 @@ class CometAppMagStacker(BaseMoStacker):
     phaseCol : `str`, optional
         The column name for the phase value (in degrees). Default 'phase'.
     """
-    colsAdded = ['appMag']
 
-    def __init__(self, cometType='oort', Ap=0.04,
-                 rhCol='helio_dist', deltaCol='geo_dist', phaseCol='phase',
-                 seeingCol='FWHMgeom', apScale=1, filterCol='filter',
-                 vMagCol='magV', colorCol='dmagColor', lossCol='dmagDetect'):
-        self.units = ['mag']  # new column units
+    colsAdded = ["appMag"]
+
+    def __init__(
+        self,
+        cometType="oort",
+        Ap=0.04,
+        rhCol="helio_dist",
+        deltaCol="geo_dist",
+        phaseCol="phase",
+        seeingCol="FWHMgeom",
+        apScale=1,
+        filterCol="filter",
+        vMagCol="magV",
+        colorCol="dmagColor",
+        lossCol="dmagDetect",
+    ):
+        self.units = ["mag"]  # new column units
         # Set up k and Afrho1 constant values.
-        cometTypes = {'short': {'k': -4, 'Afrho1_const': 100},
-                      'oort': {'k': -2, 'Afrho1_const': 1000},
-                      'mbc': {'k': -6, 'Afrho1_const': 4000}}
+        cometTypes = {
+            "short": {"k": -4, "Afrho1_const": 100},
+            "oort": {"k": -2, "Afrho1_const": 1000},
+            "mbc": {"k": -6, "Afrho1_const": 4000},
+        }
         self.k = None
         self.Afrho1_const = None
         if isinstance(cometType, str):
             if cometType in cometTypes:
-                self.k = cometTypes[cometType]['k']
-                self.Afrho1_const = cometTypes[cometType]['Afrho1_const']
+                self.k = cometTypes[cometType]["k"]
+                self.Afrho1_const = cometTypes[cometType]["Afrho1_const"]
         if isinstance(cometType, dict):
-            if 'k' in cometType:
-                self.k = cometType['k']
-            if 'Afrho1_const' in cometType:
-                self.Afrho1_const = cometType['Afrho1_const']
+            if "k" in cometType:
+                self.k = cometType["k"]
+            if "Afrho1_const" in cometType:
+                self.Afrho1_const = cometType["Afrho1_const"]
         if self.k is None or self.Afrho1_const is None:
-                raise ValueError(f'cometType must be a string {cometTypes} or '
-                                 f'dict containing "k" and "Afrho1_const" - but received {cometType}')
+            raise ValueError(
+                f"cometType must be a string {cometTypes} or "
+                f'dict containing "k" and "Afrho1_const" - but received {cometType}'
+            )
         # Phew, now set the simple stuff.
         self.Ap = Ap
         self.rhCol = rhCol
@@ -224,24 +287,32 @@ class CometAppMagStacker(BaseMoStacker):
         self.colorCol = colorCol
         self.lossCol = lossCol
         # names of required columns
-        self.colsReq = [self.rhCol, self.deltaCol, self.phaseCol, self.seeingCol, self.filterCol,
-                        self.vMagCol, self.colorCol, self.lossCol]
+        self.colsReq = [
+            self.rhCol,
+            self.deltaCol,
+            self.phaseCol,
+            self.seeingCol,
+            self.filterCol,
+            self.vMagCol,
+            self.colorCol,
+            self.lossCol,
+        ]
 
     def _run(self, ssoObs, Href, Hval):
         # Calculate radius from the current H value (Hval).
         radius = 10 ** (0.2 * (VMAG_SUN - Hval)) / np.sqrt(self.Ap) * KM_PER_AU
         # Calculate expected Afrho - this is a value that describes how the brightness of the coma changes
-        afrho1 = self.Afrho1_const * radius**2
+        afrho1 = self.Afrho1_const * radius ** 2
         phase_val = phase_HalleyMarcus(ssoObs[self.phaseCol])
         # afrho is equivalent to a sort of 'absolute' magnitude of the coma
-        afrho = afrho1 * ssoObs[self.rhCol]**self.k * phase_val
+        afrho = afrho1 * ssoObs[self.rhCol] ** self.k * phase_val
         # rho describes the projected area on the sky (project the aperture into cm on-sky)
         # Using the seeing * apScale as the aperture
         radius_aperture = ssoObs[self.seeingCol] * self.apScale
         rho = 725e5 * ssoObs[self.deltaCol] * radius_aperture
         # Calculate the expected apparent of the comet coma = sun + correction
         delta = ssoObs[self.deltaCol] * KM_PER_AU * 1000  # delta in cm
-        dm = -2.5 * np.log10(afrho * rho / (2 * ssoObs[self.rhCol] * delta)**2)
+        dm = -2.5 * np.log10(afrho * rho / (2 * ssoObs[self.rhCol] * delta) ** 2)
         coma = np.zeros(len(ssoObs), float)
         # This calculates a coma mag that scales with the sun's color in each bandpass, but the coma
         # modification is gray (i.e. it's just reflecting sunlight)
@@ -250,9 +321,15 @@ class CometAppMagStacker(BaseMoStacker):
             coma[match] = AB_SUN[f] + dm[match]
         # Calculate cometary nucleus magnitude -- we'll use the apparent V mag adapted from OOrb as well as
         # the object's color - these are generally assumed to be D type (which was used in sims_movingObjects)
-        nucleus = ssoObs[self.vMagCol] + ssoObs[self.colorCol] + ssoObs[self.lossCol] + Hval - Href
+        nucleus = (
+            ssoObs[self.vMagCol]
+            + ssoObs[self.colorCol]
+            + ssoObs[self.lossCol]
+            + Hval
+            - Href
+        )
         # add coma and nucleus then ready for calculation of SNR, etc.
-        ssoObs['appMag'] = -2.5 * np.log10(10**(-0.4 * coma) + 10**(-0.4 * nucleus))
+        ssoObs["appMag"] = -2.5 * np.log10(10 ** (-0.4 * coma) + 10 ** (-0.4 * nucleus))
         return ssoObs
 
 
@@ -285,31 +362,42 @@ class SNRStacker(BaseMoStacker):
         If set, then used as the random seed for the numpy random number
         generation for the probability of detection. Default: None.
     """
-    colsAdded = ['SNR', 'vis']
 
-    def __init__(self, appMagCol='appMag', m5Col='fiveSigmaDepth',
-                 gamma=0.038, sigma=0.12, randomSeed=None):
+    colsAdded = ["SNR", "vis"]
+
+    def __init__(
+        self,
+        appMagCol="appMag",
+        m5Col="fiveSigmaDepth",
+        gamma=0.038,
+        sigma=0.12,
+        randomSeed=None,
+    ):
         self.appMagCol = appMagCol
         self.m5Col = m5Col
         self.gamma = gamma
         self.sigma = sigma
         self.randomSeed = randomSeed
         self.colsReq = [self.appMagCol, self.m5Col]
-        self.units = ['SNR', '']
+        self.units = ["SNR", ""]
 
     def _run(self, ssoObs, Href, Hval):
         # Hval = current H value (useful if cloning over H range), Href = reference H value from orbit.
         # Without cloning, Href = Hval.
         xval = np.power(10, 0.5 * (ssoObs[self.appMagCol] - ssoObs[self.m5Col]))
-        ssoObs['SNR'] = 1.0 / np.sqrt((0.04 - self.gamma) * xval + self.gamma * xval * xval)
-        completeness = 1.0 / (1 + np.exp((ssoObs[self.appMagCol] - ssoObs[self.m5Col])/self.sigma))
-        if not hasattr(self, '_rng'):
+        ssoObs["SNR"] = 1.0 / np.sqrt(
+            (0.04 - self.gamma) * xval + self.gamma * xval * xval
+        )
+        completeness = 1.0 / (
+            1 + np.exp((ssoObs[self.appMagCol] - ssoObs[self.m5Col]) / self.sigma)
+        )
+        if not hasattr(self, "_rng"):
             if self.randomSeed is not None:
                 self._rng = np.random.RandomState(self.randomSeed)
             else:
                 self._rng = np.random.RandomState(734421)
         probability = self._rng.random_sample(len(ssoObs[self.appMagCol]))
-        ssoObs['vis'] = np.where(probability <= completeness, 1, 0)
+        ssoObs["vis"] = np.where(probability <= completeness, 1, 0)
         return ssoObs
 
 
@@ -326,14 +414,15 @@ class EclStacker(BaseMoStacker):
     inDeg : `bool`, optional
         Flag indicating whether RA/Dec are in degrees. Default True.
     """
-    colsAdded = ['ecLat', 'ecLon']
 
-    def __init__(self, raCol='ra', decCol='dec', inDeg=True):
+    colsAdded = ["ecLat", "ecLon"]
+
+    def __init__(self, raCol="ra", decCol="dec", inDeg=True):
         self.raCol = raCol
         self.decCol = decCol
         self.inDeg = inDeg
         self.colsReq = [self.raCol, self.decCol]
-        self.units = ['deg', 'deg']
+        self.units = ["deg", "deg"]
         self.ecnode = 0.0
         self.ecinc = np.radians(23.439291)
 
@@ -347,9 +436,9 @@ class EclStacker(BaseMoStacker):
         y = np.sin(ra) * np.cos(dec)
         z = np.sin(dec)
         xp = x
-        yp = np.cos(self.ecinc)*y + np.sin(self.ecinc)*z
-        zp = -np.sin(self.ecinc)*y + np.cos(self.ecinc)*z
-        ssoObs['ecLat'] = np.degrees(np.arcsin(zp))
-        ssoObs['ecLon'] = np.degrees(np.arctan2(yp, xp))
-        ssoObs['ecLon'] = ssoObs['ecLon'] % 360
+        yp = np.cos(self.ecinc) * y + np.sin(self.ecinc) * z
+        zp = -np.sin(self.ecinc) * y + np.cos(self.ecinc) * z
+        ssoObs["ecLat"] = np.degrees(np.arcsin(zp))
+        ssoObs["ecLon"] = np.degrees(np.arctan2(yp, xp))
+        ssoObs["ecLon"] = ssoObs["ecLon"] % 360
         return ssoObs

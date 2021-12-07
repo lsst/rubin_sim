@@ -1,18 +1,25 @@
 import numpy as np
 from .baseMetric import BaseMetric
 
-__all__ = ['TemplateExistsMetric', 'UniformityMetric',
-           'RapidRevisitUniformityMetric', 'RapidRevisitMetric','NRevisitsMetric', 'IntraNightGapsMetric',
-           'InterNightGapsMetric', 'VisitGapMetric']
+__all__ = [
+    "TemplateExistsMetric",
+    "UniformityMetric",
+    "RapidRevisitUniformityMetric",
+    "RapidRevisitMetric",
+    "NRevisitsMetric",
+    "IntraNightGapsMetric",
+    "InterNightGapsMetric",
+    "VisitGapMetric",
+]
 
 
 class fSMetric(BaseMetric):
-    """Calculate the fS value (Nvisit-weighted delta(M5-M5srd)).
-    """
-    def __init__(self, filterCol='filter', metricName='fS', **kwargs):
+    """Calculate the fS value (Nvisit-weighted delta(M5-M5srd))."""
+
+    def __init__(self, filterCol="filter", metricName="fS", **kwargs):
         self.filterCol = filterCol
         cols = [self.filterCol]
-        super().__init__(cols=cols, metricName=metricName, units='fS', **kwargs)
+        super().__init__(cols=cols, metricName=metricName, units="fS", **kwargs)
 
     def run(self, dataSlice, slicePoint=None):
         # We could import this from the m5_flat_sed values, but it makes sense to calculate the m5
@@ -22,13 +29,19 @@ class fSMetric(BaseMetric):
 
 
 class TemplateExistsMetric(BaseMetric):
-    """Calculate the fraction of images with a previous template image of desired quality.
-    """
-    def __init__(self, seeingCol='seeingFwhmGeom', observationStartMJDCol='observationStartMJD',
-                 metricName='TemplateExistsMetric', **kwargs):
+    """Calculate the fraction of images with a previous template image of desired quality."""
+
+    def __init__(
+        self,
+        seeingCol="seeingFwhmGeom",
+        observationStartMJDCol="observationStartMJD",
+        metricName="TemplateExistsMetric",
+        **kwargs
+    ):
         cols = [seeingCol, observationStartMJDCol]
-        super(TemplateExistsMetric, self).__init__(col=cols, metricName=metricName,
-                                                   units='fraction', **kwargs)
+        super(TemplateExistsMetric, self).__init__(
+            col=cols, metricName=metricName, units="fraction", **kwargs
+        )
         self.seeingCol = seeingCol
         self.observationStartMJDCol = observationStartMJDCol
 
@@ -40,7 +53,7 @@ class TemplateExistsMetric(BaseMetric):
         # Find the difference between the seeing and the minimum seeing at the previous visit
         seeing_diff = dataSlice[self.seeingCol] - np.roll(seeing_mins, 1)
         # First image never has a template; check how many others do
-        good = np.where(seeing_diff[1:] >= 0.)[0]
+        good = np.where(seeing_diff[1:] >= 0.0)[0]
         frac = (good.size) / float(dataSlice[self.seeingCol].size)
         return frac
 
@@ -57,8 +70,10 @@ class UniformityMetric(BaseMetric):
     surveyLength : `float`, optional
         The overall duration of the survey. Default 10.
     """
-    def __init__(self, mjdCol='observationStartMJD', units='',
-                 surveyLength=10., **kwargs):
+
+    def __init__(
+        self, mjdCol="observationStartMJD", units="", surveyLength=10.0, **kwargs
+    ):
         """surveyLength = time span of survey (years) """
         self.mjdCol = mjdCol
         super(UniformityMetric, self).__init__(col=self.mjdCol, units=units, **kwargs)
@@ -69,8 +84,9 @@ class UniformityMetric(BaseMetric):
         if dataSlice[self.mjdCol].size == 1:
             return 1
         # Scale dates to lie between 0 and 1, where 0 is the first observation date and 1 is surveyLength
-        dates = (dataSlice[self.mjdCol] - dataSlice[self.mjdCol].min()) / \
-                (self.surveyLength * 365.25)
+        dates = (dataSlice[self.mjdCol] - dataSlice[self.mjdCol].min()) / (
+            self.surveyLength * 365.25
+        )
         dates.sort()  # Just to be sure
         n_cum = np.arange(1, dates.size + 1) / float(dates.size)
         D_max = np.max(np.abs(n_cum - dates - dates[1]))
@@ -95,9 +111,16 @@ class RapidRevisitUniformityMetric(BaseMetric):
     dTmax : `float`, optional
         The maximum dTime to consider (in days). Default 30 minutes.
     """
-    def __init__(self, mjdCol='observationStartMJD', minNvisits=100,
-                 dTmin=40.0 / 60.0 / 60.0 / 24.0, dTmax=30.0 / 60.0 / 24.0,
-                 metricName='RapidRevisitUniformity', **kwargs):
+
+    def __init__(
+        self,
+        mjdCol="observationStartMJD",
+        minNvisits=100,
+        dTmin=40.0 / 60.0 / 60.0 / 24.0,
+        dTmax=30.0 / 60.0 / 24.0,
+        metricName="RapidRevisitUniformity",
+        **kwargs
+    ):
         self.mjdCol = mjdCol
         self.minNvisits = minNvisits
         self.dTmin = dTmin
@@ -126,9 +149,17 @@ class RapidRevisitUniformityMetric(BaseMetric):
 
 
 class RapidRevisitMetric(BaseMetric):
-    def __init__(self, mjdCol='observationStartMJD', metricName='RapidRevisit',
-                 dTmin=40.0 / 60.0 / 60.0 / 24.0, dTpairs = 20.0 / 60.0 / 24.0,
-                 dTmax = 30.0 / 60.0 / 24.0, minN1 = 28, minN2 = 82, **kwargs):
+    def __init__(
+        self,
+        mjdCol="observationStartMJD",
+        metricName="RapidRevisit",
+        dTmin=40.0 / 60.0 / 60.0 / 24.0,
+        dTpairs=20.0 / 60.0 / 24.0,
+        dTmax=30.0 / 60.0 / 24.0,
+        minN1=28,
+        minN2=82,
+        **kwargs
+    ):
         self.mjdCol = mjdCol
         self.dTmin = dTmin
         self.dTpairs = dTpairs
@@ -160,18 +191,28 @@ class NRevisitsMetric(BaseMetric):
         differences less than dT (False), or the fraction of overall visits (True).
         Note that we would expect (if all visits occur in pairs within dT) this fraction would be 0.5!
     """
-    def __init__(self, mjdCol='observationStartMJD', dT=30.0, normed=False, metricName=None, **kwargs):
-        units = ''
+
+    def __init__(
+        self,
+        mjdCol="observationStartMJD",
+        dT=30.0,
+        normed=False,
+        metricName=None,
+        **kwargs
+    ):
+        units = ""
         if metricName is None:
             if normed:
-                metricName = 'Fraction of revisits faster than %.1f minutes' % (dT)
+                metricName = "Fraction of revisits faster than %.1f minutes" % (dT)
             else:
-                metricName = 'Number of revisits faster than %.1f minutes' % (dT)
-                units = '#'
+                metricName = "Number of revisits faster than %.1f minutes" % (dT)
+                units = "#"
         self.mjdCol = mjdCol
-        self.dT = dT / 60. / 24.  # convert to days
+        self.dT = dT / 60.0 / 24.0  # convert to days
         self.normed = normed
-        super(NRevisitsMetric, self).__init__(col=self.mjdCol, units=units, metricName=metricName, **kwargs)
+        super(NRevisitsMetric, self).__init__(
+            col=self.mjdCol, units=units, metricName=metricName, **kwargs
+        )
 
     def run(self, dataSlice, slicePoint=None):
         dtimes = np.diff(np.sort(dataSlice[self.mjdCol]))
@@ -192,14 +233,24 @@ class IntraNightGapsMetric(BaseMetric):
         Default np.median.
     """
 
-    def __init__(self, mjdCol='observationStartMJD', nightCol='night', reduceFunc=np.median,
-                 metricName='Median Intra-Night Gap', **kwargs):
-        units = 'hours'
+    def __init__(
+        self,
+        mjdCol="observationStartMJD",
+        nightCol="night",
+        reduceFunc=np.median,
+        metricName="Median Intra-Night Gap",
+        **kwargs
+    ):
+        units = "hours"
         self.mjdCol = mjdCol
         self.nightCol = nightCol
         self.reduceFunc = reduceFunc
-        super(IntraNightGapsMetric, self).__init__(col=[self.mjdCol, self.nightCol],
-                                                   units=units, metricName=metricName, **kwargs)
+        super(IntraNightGapsMetric, self).__init__(
+            col=[self.mjdCol, self.nightCol],
+            units=units,
+            metricName=metricName,
+            **kwargs
+        )
 
     def run(self, dataSlice, slicePoint=None):
         dataSlice.sort(order=self.mjdCol)
@@ -223,14 +274,25 @@ class InterNightGapsMetric(BaseMetric):
         Function that can operate on array-like structures. Typically numpy function.
         Default np.median.
     """
-    def __init__(self, mjdCol='observationStartMJD', nightCol='night', reduceFunc=np.median,
-                 metricName='Median Inter-Night Gap', **kwargs):
-        units = 'days'
+
+    def __init__(
+        self,
+        mjdCol="observationStartMJD",
+        nightCol="night",
+        reduceFunc=np.median,
+        metricName="Median Inter-Night Gap",
+        **kwargs
+    ):
+        units = "days"
         self.mjdCol = mjdCol
         self.nightCol = nightCol
         self.reduceFunc = reduceFunc
-        super().__init__(col=[self.mjdCol, self.nightCol],
-                                                   units=units, metricName=metricName, **kwargs)
+        super().__init__(
+            col=[self.mjdCol, self.nightCol],
+            units=units,
+            metricName=metricName,
+            **kwargs
+        )
 
     def run(self, dataSlice, slicePoint=None):
         dataSlice.sort(order=self.mjdCol)
@@ -240,8 +302,13 @@ class InterNightGapsMetric(BaseMetric):
         else:
             # Find the first and last observation of each night
             firstOfNight = np.searchsorted(dataSlice[self.nightCol], unights)
-            lastOfNight = np.searchsorted(dataSlice[self.nightCol], unights, side='right') - 1
-            diff = dataSlice[self.mjdCol][firstOfNight[1:]] - dataSlice[self.mjdCol][lastOfNight[:-1]]
+            lastOfNight = (
+                np.searchsorted(dataSlice[self.nightCol], unights, side="right") - 1
+            )
+            diff = (
+                dataSlice[self.mjdCol][firstOfNight[1:]]
+                - dataSlice[self.mjdCol][lastOfNight[:-1]]
+            )
             result = self.reduceFunc(diff)
         return result
 
@@ -259,17 +326,28 @@ class VisitGapMetric(BaseMetric):
         Function that can operate on array-like structures. Typically numpy function.
         Default np.median.
     """
-    def __init__(self, mjdCol='observationStartMJD', nightCol='night', reduceFunc=np.median,
-                 metricName='VisitGap', **kwargs):
-        units = 'hours'
+
+    def __init__(
+        self,
+        mjdCol="observationStartMJD",
+        nightCol="night",
+        reduceFunc=np.median,
+        metricName="VisitGap",
+        **kwargs
+    ):
+        units = "hours"
         self.mjdCol = mjdCol
         self.nightCol = nightCol
         self.reduceFunc = reduceFunc
-        super().__init__(col=[self.mjdCol, self.nightCol],
-                         units=units, metricName=metricName, **kwargs)
+        super().__init__(
+            col=[self.mjdCol, self.nightCol],
+            units=units,
+            metricName=metricName,
+            **kwargs
+        )
 
     def run(self, dataSlice, slicePoint=None):
         dataSlice.sort(order=self.mjdCol)
         diff = np.diff(dataSlice[self.mjdCol])
-        result = self.reduceFunc(diff) * 24.
+        result = self.reduceFunc(diff) * 24.0
         return result

@@ -6,11 +6,13 @@ __all__ = ["SpecMap", "defaultSpecMap"]
 
 class SpecMap(object):
 
-    subdir_map = {'(^km)|(^kp)': 'starSED/kurucz',
-                  '(^bergeron)': 'starSED/wDs',
-                  '(^burrows)|(^(m|L|l)[0-9])': 'starSED/old_mlt',
-                  '(^lte)': 'starSED/mlt',
-                  '^(Exp|Inst|Burst|Const)': 'galaxySED'}
+    subdir_map = {
+        "(^km)|(^kp)": "starSED/kurucz",
+        "(^bergeron)": "starSED/wDs",
+        "(^burrows)|(^(m|L|l)[0-9])": "starSED/old_mlt",
+        "(^lte)": "starSED/mlt",
+        "^(Exp|Inst|Burst|Const)": "galaxySED",
+    }
 
     def __init__(self, fileDict=None, dirDict=None):
         """
@@ -56,12 +58,12 @@ class SpecMap(object):
 
         for key, val in sorted(self.dirDict.items()):
             if re.match(key, item):
-                full_name = item if item.endswith('.gz') else item + '.gz'
+                full_name = item if item.endswith(".gz") else item + ".gz"
                 return os.path.join(val, full_name)
 
         for key, val in sorted(self.subdir_map.items()):
             if re.match(key, item):
-                full_name = item if item.endswith('.gz') else item + '.gz'
+                full_name = item if item.endswith(".gz") else item + ".gz"
                 return os.path.join(val, full_name)
 
         raise KeyError("No path found for spectrum name: %s" % (item))
@@ -80,43 +82,47 @@ class SpecMap(object):
         except:
             return False
 
+
 defaultSpecMap = SpecMap(
-    fileDict={'A.dat': 'ssmSED/A.dat.gz',
-              'Sa.dat': 'ssmSED/Sa.dat.gz',
-              'O.dat': 'ssmSED/O.dat.gz',
-              'harris_V.dat': 'ssmSED/harris_V.dat.gz',
-              'Cg.dat': 'ssmSED/Cg.dat.gz',
-              'Sv.dat': 'ssmSED/Sv.dat.gz',
-              'X.dat': 'ssmSED/X.dat.gz',
-              'K.dat': 'ssmSED/K.dat.gz',
-              'L.dat': 'ssmSED/L.dat.gz',
-              'D.dat': 'ssmSED/D.dat.gz',
-              'Sq.dat': 'ssmSED/Sq.dat.gz',
-              'C.dat': 'ssmSED/C.dat.gz',
-              'T.dat': 'ssmSED/T.dat.gz',
-              'Xk.dat': 'ssmSED/Xk.dat.gz',
-              'R.dat': 'ssmSED/R.dat.gz',
-              'Ch.dat': 'ssmSED/Ch.dat.gz',
-              'kurucz_sun': 'ssmSED/kurucz_sun.gz',
-              'Sr.dat': 'ssmSED/Sr.dat.gz',
-              'Cgh.dat': 'ssmSED/Cgh.dat.gz',
-              'Cb.dat': 'ssmSED/Cb.dat.gz',
-              'Xc.dat': 'ssmSED/Xc.dat.gz',
-              'Xe.dat': 'ssmSED/Xe.dat.gz',
-              'Q.dat': 'ssmSED/Q.dat.gz',
-              'S.dat': 'ssmSED/S.dat.gz',
-              'B.dat': 'ssmSED/B.dat.gz',
-              'V.dat': 'ssmSED/V.dat.gz',
-              'agn.spec': 'agnSED/agn.spec.gz',
-              'BD1000.dat': 'starSED/gizis_SED/BD1000_interp.dat.gz',
-              'BD1000e.dat': 'starSED/gizis_SED/BD1000e_interp.dat.gz',
-              'BD1500.dat': 'starSED/gizis_SED/BD1500_interp.dat.gz',
-              'BD1800.dat': 'starSED/gizis_SED/BD1800_interp.dat.gz',
-              'BD2000.dat': 'starSED/gizis_SED/BD2000_interp.dat.gz',
-              'BD325.dat': 'starSED/gizis_SED/BD325_interp.dat.gz',
-              'BD555.dat': 'starSED/gizis_SED/BD555_interp.dat.gz',
-              'PNastrom.dat': 'starSED/gizis_SED/PNastrom_interp.dat.gz',
-              'RedE1astrom.dat': 'starSED/gizis_SED/RedE1astrom_interp.dat.gz',
-              'RedE2astrom.dat': 'starSED/gizis_SED/RedE2astrom_interp.dat.gz',
-              'sed_flat.txt': 'flatSED/sed_flat.txt.gz',
-              'sed_flat_norm.txt': 'flatSED/sed_flat.txt.gz'})
+    fileDict={
+        "A.dat": "ssmSED/A.dat.gz",
+        "Sa.dat": "ssmSED/Sa.dat.gz",
+        "O.dat": "ssmSED/O.dat.gz",
+        "harris_V.dat": "ssmSED/harris_V.dat.gz",
+        "Cg.dat": "ssmSED/Cg.dat.gz",
+        "Sv.dat": "ssmSED/Sv.dat.gz",
+        "X.dat": "ssmSED/X.dat.gz",
+        "K.dat": "ssmSED/K.dat.gz",
+        "L.dat": "ssmSED/L.dat.gz",
+        "D.dat": "ssmSED/D.dat.gz",
+        "Sq.dat": "ssmSED/Sq.dat.gz",
+        "C.dat": "ssmSED/C.dat.gz",
+        "T.dat": "ssmSED/T.dat.gz",
+        "Xk.dat": "ssmSED/Xk.dat.gz",
+        "R.dat": "ssmSED/R.dat.gz",
+        "Ch.dat": "ssmSED/Ch.dat.gz",
+        "kurucz_sun": "ssmSED/kurucz_sun.gz",
+        "Sr.dat": "ssmSED/Sr.dat.gz",
+        "Cgh.dat": "ssmSED/Cgh.dat.gz",
+        "Cb.dat": "ssmSED/Cb.dat.gz",
+        "Xc.dat": "ssmSED/Xc.dat.gz",
+        "Xe.dat": "ssmSED/Xe.dat.gz",
+        "Q.dat": "ssmSED/Q.dat.gz",
+        "S.dat": "ssmSED/S.dat.gz",
+        "B.dat": "ssmSED/B.dat.gz",
+        "V.dat": "ssmSED/V.dat.gz",
+        "agn.spec": "agnSED/agn.spec.gz",
+        "BD1000.dat": "starSED/gizis_SED/BD1000_interp.dat.gz",
+        "BD1000e.dat": "starSED/gizis_SED/BD1000e_interp.dat.gz",
+        "BD1500.dat": "starSED/gizis_SED/BD1500_interp.dat.gz",
+        "BD1800.dat": "starSED/gizis_SED/BD1800_interp.dat.gz",
+        "BD2000.dat": "starSED/gizis_SED/BD2000_interp.dat.gz",
+        "BD325.dat": "starSED/gizis_SED/BD325_interp.dat.gz",
+        "BD555.dat": "starSED/gizis_SED/BD555_interp.dat.gz",
+        "PNastrom.dat": "starSED/gizis_SED/PNastrom_interp.dat.gz",
+        "RedE1astrom.dat": "starSED/gizis_SED/RedE1astrom_interp.dat.gz",
+        "RedE2astrom.dat": "starSED/gizis_SED/RedE2astrom_interp.dat.gz",
+        "sed_flat.txt": "flatSED/sed_flat.txt.gz",
+        "sed_flat_norm.txt": "flatSED/sed_flat.txt.gz",
+    }
+)

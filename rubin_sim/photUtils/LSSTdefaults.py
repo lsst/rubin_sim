@@ -2,6 +2,7 @@ import numpy
 
 __all__ = ["LSSTdefaults"]
 
+
 class LSSTdefaults(object):
     """
     This class exists to store default values of seeing, m5, and gamma taken from the over
@@ -10,13 +11,40 @@ class LSSTdefaults(object):
 
     def __init__(self):
         # Standard FWHMeffective in arcseconds
-        self._FWHMeff = {'u':0.92, 'g':0.87, 'r':0.83, 'i':0.80, 'z':0.78, 'y':0.76}
+        self._FWHMeff = {
+            "u": 0.92,
+            "g": 0.87,
+            "r": 0.83,
+            "i": 0.80,
+            "z": 0.78,
+            "y": 0.76,
+        }
         # Expected effective wavelength for throughput curves, in nanometers
-        self._effwavelen = {'u':367.0, 'g':482.5, 'r':622.2, 'i':754.5, 'z':869.1, 'y':971.0}
+        self._effwavelen = {
+            "u": 367.0,
+            "g": 482.5,
+            "r": 622.2,
+            "i": 754.5,
+            "z": 869.1,
+            "y": 971.0,
+        }
         # Expected m5 depths (using FWHMeffective + dark sky + X=1.2 atmosphere + throughput curves)
-        self._m5 = {'u':23.68, 'g':24.89, 'r':24.43, 'i':24.00, 'z':24.45, 'y':22.60}
-        self._gamma = {'u':0.037, 'g':0.038, 'r':0.039, 'i':0.039, 'z':0.040, 'y':0.040}
-
+        self._m5 = {
+            "u": 23.68,
+            "g": 24.89,
+            "r": 24.43,
+            "i": 24.00,
+            "z": 24.45,
+            "y": 22.60,
+        }
+        self._gamma = {
+            "u": 0.037,
+            "g": 0.038,
+            "r": 0.039,
+            "i": 0.039,
+            "z": 0.040,
+            "y": 0.040,
+        }
 
     def m5(self, tag):
         """
@@ -32,7 +60,6 @@ class LSSTdefaults(object):
         @param [out] the corresponding m5 value
         """
         return self._m5[tag]
-
 
     def FWHMeff(self, tag):
         """
@@ -58,7 +85,6 @@ class LSSTdefaults(object):
         as of 11/25/2015.
         """
         return self._effwavelen[tag]
-
 
     def gamma(self, tag):
         """

@@ -1,6 +1,6 @@
 import numpy as np
 
-__all__ = ['calcSeason']
+__all__ = ["calcSeason"]
 
 
 def calcSeason(ra, time):
@@ -38,8 +38,8 @@ def calcSeason(ra, time):
     return seasons
 
     # The value for the equinox above was calculated as follows:
-    #from astropy.time import Time
-    #from astropy.coordinates import EarthLocation
-    #loc = EarthLocation.of_site('Cerro Pachon')
-    #t = Time('2023-09-21T00:01:32.33', format='isot', scale='utc', location=loc)
-    #print(t.sidereal_time('apparent') - loc.lon, t.utc.mjd)
+    # from astropy.time import Time
+    # from astropy.coordinates import EarthLocation
+    # loc = EarthLocation.of_site('Cerro Pachon')
+    # t = Time('2023-09-21T00:01:32.33', format='isot', scale='utc', location=loc)
+    # print(t.sidereal_time('apparent') - loc.lon, t.utc.mjd)

@@ -8,18 +8,34 @@ import palpy
 
 from rubin_sim.utils.CodeUtilities import _validate_inputs
 
-__all__ = ["_galacticFromEquatorial", "galacticFromEquatorial",
-           "_equatorialFromGalactic", "equatorialFromGalactic",
-           "sphericalFromCartesian", "cartesianFromSpherical",
-           "xyz_from_ra_dec", "_xyz_from_ra_dec",
-           "_ra_dec_from_xyz", "ra_dec_from_xyz",
-           "xyz_angular_radius", "_xyz_angular_radius",
-           "rotationMatrixFromVectors",
-           "rotAboutZ", "rotAboutY", "rotAboutX",
-           "equationOfEquinoxes", "calcGmstGast", "calcLmstLast",
-           "angularSeparation", "_angularSeparation", "haversine",
-           "arcsecFromRadians", "radiansFromArcsec",
-           "arcsecFromDegrees", "degreesFromArcsec"]
+__all__ = [
+    "_galacticFromEquatorial",
+    "galacticFromEquatorial",
+    "_equatorialFromGalactic",
+    "equatorialFromGalactic",
+    "sphericalFromCartesian",
+    "cartesianFromSpherical",
+    "xyz_from_ra_dec",
+    "_xyz_from_ra_dec",
+    "_ra_dec_from_xyz",
+    "ra_dec_from_xyz",
+    "xyz_angular_radius",
+    "_xyz_angular_radius",
+    "rotationMatrixFromVectors",
+    "rotAboutZ",
+    "rotAboutY",
+    "rotAboutX",
+    "equationOfEquinoxes",
+    "calcGmstGast",
+    "calcLmstLast",
+    "angularSeparation",
+    "_angularSeparation",
+    "haversine",
+    "arcsecFromRadians",
+    "radiansFromArcsec",
+    "arcsecFromDegrees",
+    "degreesFromArcsec",
+]
 
 
 def calcLmstLast(mjd, longRad):
@@ -58,12 +74,13 @@ def calcLmstLast(mjd, longRad):
         valid_type = True
 
     if not valid_type:
-        msg = "Valid input types for calcLmstLast are:\n" \
-              "mjd and longRad as numpy arrays of the same length\n" \
-              "mjd as a numpy array and longRad as a number\n" \
-              "mjd as a number and longRad as a number\n" \
-              "You gave mjd: %s\n" % type(mjd) \
-              + "and longRad: %s\n" % type(longRad)
+        msg = (
+            "Valid input types for calcLmstLast are:\n"
+            "mjd and longRad as numpy arrays of the same length\n"
+            "mjd as a numpy array and longRad as a number\n"
+            "mjd as a number and longRad as a number\n"
+            "You gave mjd: %s\n" % type(mjd) + "and longRad: %s\n" % type(longRad)
+        )
 
         raise RuntimeError(msg)
 
@@ -73,8 +90,8 @@ def calcLmstLast(mjd, longRad):
     if longRadIsArray:
         longDeg = np.where(longDeg0 > 180.0, longDeg0 - 360.0, longDeg0)
     else:
-        if longDeg0 > 180.:
-            longDeg = longDeg0 - 360.
+        if longDeg0 > 180.0:
+            longDeg = longDeg0 - 360.0
         else:
             longDeg = longDeg0
 
@@ -82,13 +99,13 @@ def calcLmstLast(mjd, longRad):
     gmstgast = calcGmstGast(mjd)
     lmst = gmstgast[0] + hrs
     last = gmstgast[1] + hrs
-    lmst %= 24.
-    last %= 24.
+    lmst %= 24.0
+    last %= 24.0
     return lmst, last
 
 
 def galacticFromEquatorial(ra, dec):
-    '''Convert RA,Dec (J2000) to Galactic Coordinates
+    """Convert RA,Dec (J2000) to Galactic Coordinates
 
     @param [in] ra is right ascension in degrees, either a number or a numpy array
 
@@ -97,14 +114,14 @@ def galacticFromEquatorial(ra, dec):
     @param [out] gLong is galactic longitude in degrees
 
     @param [out] gLat is galactic latitude in degrees
-    '''
+    """
 
     gLong, gLat = _galacticFromEquatorial(np.radians(ra), np.radians(dec))
     return np.degrees(gLong), np.degrees(gLat)
 
 
 def _galacticFromEquatorial(ra, dec):
-    '''Convert RA,Dec (J2000) to Galactic Coordinates
+    """Convert RA,Dec (J2000) to Galactic Coordinates
 
     All angles are in radians
 
@@ -115,7 +132,7 @@ def _galacticFromEquatorial(ra, dec):
     @param [out] gLong is galactic longitude in radians
 
     @param [out] gLat is galactic latitude in radians
-    '''
+    """
 
     if isinstance(ra, np.ndarray):
         gLong, gLat = palpy.eqgalVector(ra, dec)
@@ -126,7 +143,7 @@ def _galacticFromEquatorial(ra, dec):
 
 
 def equatorialFromGalactic(gLong, gLat):
-    '''Convert Galactic Coordinates to RA, dec (J2000)
+    """Convert Galactic Coordinates to RA, dec (J2000)
 
     @param [in] gLong is galactic longitude in degrees, either a number or a numpy array
     (0 <= gLong <= 360.)
@@ -137,14 +154,14 @@ def equatorialFromGalactic(gLong, gLat):
     @param [out] ra is right ascension in degrees
 
     @param [out] dec is declination in degrees
-    '''
+    """
 
     ra, dec = _equatorialFromGalactic(np.radians(gLong), np.radians(gLat))
     return np.degrees(ra), np.degrees(dec)
 
 
 def _equatorialFromGalactic(gLong, gLat):
-    '''Convert Galactic Coordinates to RA, dec (J2000)
+    """Convert Galactic Coordinates to RA, dec (J2000)
 
     @param [in] gLong is galactic longitude in radians, either a number or a numpy array
     (0 <= gLong <= 2*pi)
@@ -155,7 +172,7 @@ def _equatorialFromGalactic(gLong, gLat):
     @param [out] ra is right ascension in radians (J2000)
 
     @param [out] dec is declination in radians (J2000)
-    '''
+    """
 
     if isinstance(gLong, np.ndarray):
         ra, dec = palpy.galeqVector(gLong, gLat)
@@ -268,7 +285,7 @@ def _ra_dec_from_xyz(x, y, z):
     ra, dec : floats or arrays
         Ra and dec coordinates in radians.
     """
-    rad = np.sqrt(x**2 + y**2 + z**2)
+    rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
     ra = np.arctan2(y, x)
     dec = np.arcsin(z / rad)
 
@@ -328,16 +345,14 @@ def _xyz_angular_radius(radius):
     """
     x0, y0, z0 = (1, 0, 0)
     x1, y1, z1 = _xyz_from_ra_dec(radius, 0)
-    result = np.sqrt((x1-x0)**2+(y1-y0)**2+(z1-z0)**2)
+    result = np.sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2 + (z1 - z0) ** 2)
     return result
 
 
 def zRotationMatrix(theta):
     cc = np.cos(theta)
     ss = np.sin(theta)
-    return np.array([[cc, -ss, 0.0],
-                     [ss, cc, 0.0],
-                     [0.0, 0.0, 1.0]])
+    return np.array([[cc, -ss, 0.0], [ss, cc, 0.0], [0.0, 0.0, 1.0]])
 
 
 def rotAboutZ(vec, theta):
@@ -352,9 +367,7 @@ def rotAboutZ(vec, theta):
 def yRotationMatrix(theta):
     cc = np.cos(theta)
     ss = np.sin(theta)
-    return  np.array([[cc, 0.0, ss],
-                      [0.0, 1.0, 0.0],
-                      [-ss, 0.0, cc]])
+    return np.array([[cc, 0.0, ss], [0.0, 1.0, 0.0], [-ss, 0.0, cc]])
 
 
 def rotAboutY(vec, theta):
@@ -370,9 +383,7 @@ def xRotationMatrix(theta):
     cc = np.cos(theta)
     ss = np.sin(theta)
 
-    return np.array([[1.0, 0.0, 0.0],
-                     [0.0, cc, -ss],
-                     [0.0, ss, cc]])
+    return np.array([[1.0, 0.0, 0.0], [0.0, cc, -ss], [0.0, ss, cc]])
 
 
 def rotAboutX(vec, theta):
@@ -385,14 +396,14 @@ def rotAboutX(vec, theta):
 
 
 def rotationMatrixFromVectors(v1, v2):
-    '''
+    """
     Given two vectors v1,v2 calculate the rotation matrix for v1->v2 using the axis-angle approach
 
     @param [in] v1, v2 are two Cartesian unit vectors (in three dimensions)
 
     @param [out] rot is the rotation matrix that rotates from one to the other
 
-    '''
+    """
 
     if np.abs(np.sqrt(np.dot(v1, v1)) - 1.0) > 0.01:
         raise RuntimeError("v1 in rotationMatrixFromVectors is not a unit vector")
@@ -411,14 +422,23 @@ def rotationMatrixFromVectors(v1, v2):
 
     # calculate the corresponding rotation matrix
     # http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
-    rot = [[cosDot + cross[0] * cross[0] * (1 - cosDot), -cross[2] * sinDot +
-            (1 - cosDot) * cross[0] * cross[1],
-            cross[1] * sinDot + (1 - cosDot) * cross[0] * cross[2]],
-           [cross[2] * sinDot + (1 - cosDot) * cross[0] * cross[1], cosDot +
-            (1 - cosDot) * cross[1] * cross[1],
-            -cross[0] * sinDot + (1 - cosDot) * cross[1] * cross[2]],
-           [-cross[1] * sinDot + (1 - cosDot) * cross[0] * cross[2], cross[0] * sinDot +
-            (1 - cosDot) * cross[1] * cross[2], cosDot + (1 - cosDot) * (cross[2] * cross[2])]]
+    rot = [
+        [
+            cosDot + cross[0] * cross[0] * (1 - cosDot),
+            -cross[2] * sinDot + (1 - cosDot) * cross[0] * cross[1],
+            cross[1] * sinDot + (1 - cosDot) * cross[0] * cross[2],
+        ],
+        [
+            cross[2] * sinDot + (1 - cosDot) * cross[0] * cross[1],
+            cosDot + (1 - cosDot) * cross[1] * cross[1],
+            -cross[0] * sinDot + (1 - cosDot) * cross[1] * cross[2],
+        ],
+        [
+            -cross[1] * sinDot + (1 - cosDot) * cross[0] * cross[2],
+            cross[0] * sinDot + (1 - cosDot) * cross[1] * cross[2],
+            cosDot + (1 - cosDot) * (cross[2] * cross[2]),
+        ],
+    ]
 
     return rot
 
@@ -491,13 +511,13 @@ def _angularSeparation(long1, lat1, long2, lat2):
     Calculated based on the haversine formula
     From http://en.wikipedia.org/wiki/Haversine_formula
     """
-    are_arrays_1 = _validate_inputs([long1, lat1],
-                                    ['long1', 'lat1'],
-                                    'angularSeparation')
+    are_arrays_1 = _validate_inputs(
+        [long1, lat1], ["long1", "lat1"], "angularSeparation"
+    )
 
-    are_arrays_2 = _validate_inputs([long2, lat2],
-                                    ['long2', 'lat2'],
-                                    'angularSeparation')
+    are_arrays_2 = _validate_inputs(
+        [long2, lat2], ["long2", "lat2"], "angularSeparation"
+    )
 
     # The code below is necessary because the call to np.radians() in
     # angularSeparation() will automatically convert floats
@@ -514,20 +534,23 @@ def _angularSeparation(long1, lat1, long2, lat2):
 
     if are_arrays_1 and are_arrays_2:
         if len(long1) != len(long2):
-            raise RuntimeError("You need to pass arrays of the same length "
-                               "as arguments to angularSeparation()")
+            raise RuntimeError(
+                "You need to pass arrays of the same length "
+                "as arguments to angularSeparation()"
+            )
 
-    t1 = np.sin(lat2/2.0 - lat1/2.0)**2
-    t2 = np.cos(lat1)*np.cos(lat2)*np.sin(long2/2.0 - long1/2.0)**2
+    t1 = np.sin(lat2 / 2.0 - lat1 / 2.0) ** 2
+    t2 = np.cos(lat1) * np.cos(lat2) * np.sin(long2 / 2.0 - long1 / 2.0) ** 2
     _sum = t1 + t2
 
     if isinstance(_sum, numbers.Number):
-        if _sum<0.0:
+        if _sum < 0.0:
             _sum = 0.0
     else:
-        _sum = np.where(_sum<0.0, 0.0, _sum)
+        _sum = np.where(_sum < 0.0, 0.0, _sum)
 
-    return 2.0*np.arcsin(np.sqrt(_sum))
+    return 2.0 * np.arcsin(np.sqrt(_sum))
+
 
 def angularSeparation(long1, lat1, long2, lat2):
     """
@@ -547,10 +570,11 @@ def angularSeparation(long1, lat1, long2, lat2):
     -------
     The angular separation between the two points in degrees
     """
-    return np.degrees(_angularSeparation(np.radians(long1),
-                                         np.radians(lat1),
-                                         np.radians(long2),
-                                         np.radians(lat2)))
+    return np.degrees(
+        _angularSeparation(
+            np.radians(long1), np.radians(lat1), np.radians(long2), np.radians(lat2)
+        )
+    )
 
 
 def haversine(long1, lat1, long2, lat2):

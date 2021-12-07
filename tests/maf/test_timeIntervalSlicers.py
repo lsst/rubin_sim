@@ -46,9 +46,7 @@ class TestTimeIntervalSlicer(unittest.TestCase):
     interval_seconds = 60
 
     def setUp(self):
-        self.slicer = TimeIntervalSlicer(
-            interval_seconds=self.interval_seconds
-        )
+        self.slicer = TimeIntervalSlicer(interval_seconds=self.interval_seconds)
 
     def test_setupSlicer(self):
         self.slicer.setupSlicer(SIMDATA)
@@ -64,9 +62,7 @@ class TestTimeIntervalSlicer(unittest.TestCase):
                 atol=self.interval_seconds / (24 * 60 * 60.0),
             )
         )
-        self.assertTrue(
-            np.all(slice_points["duration"] == self.interval_seconds)
-        )
+        self.assertTrue(np.all(slice_points["duration"] == self.interval_seconds))
 
 
 class TestBlockIntervalSlicer(unittest.TestCase):
@@ -92,16 +88,12 @@ class TestVisitIntervalSlicer(unittest.TestCase):
 
     def test_setupSlicer(self):
         self.slicer.setupSlicer(SIMDATA)
-        self.assertEqual(
-            self.slicer.nslice, len(SIMDATA["observationStartMJD"])
-        )
+        self.assertEqual(self.slicer.nslice, len(SIMDATA["observationStartMJD"]))
         slice_points = self.slicer.getSlicePoints()
         self.assertIn("sid", slice_points)
         self.assertIn("mjd", slice_points)
         self.assertIn("duration", slice_points)
-        self.assertTrue(
-            np.all(slice_points["duration"] == SIMDATA["visitTime"])
-        )
+        self.assertTrue(np.all(slice_points["duration"] == SIMDATA["visitTime"]))
 
 
 # internal functions & classes

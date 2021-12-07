@@ -4,12 +4,11 @@ import rubin_sim.utils as utils
 
 
 class KdTreeTestCase(unittest.TestCase):
-
     def testKDTreeAPI(self):
         """
         Make sure the API provided by scipy to the kdTree algorithm is functional.
         """
-        _ra = np.linspace(0., 2.*np.pi)
+        _ra = np.linspace(0.0, 2.0 * np.pi)
         _dec = np.linspace(-np.pi, np.pi)
 
         Ra, Dec = np.meshgrid(_ra, _dec)

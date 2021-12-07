@@ -6,7 +6,6 @@ from rubin_sim.utils import Site
 
 
 class SiteTest(unittest.TestCase):
-
     def setUp(self):
         # LSST default values taken from LSE-30
         self.height = 2650.0
@@ -21,8 +20,8 @@ class SiteTest(unittest.TestCase):
         """
         Test that LSST values are set correctly
         """
-        site = Site(name='LSST')
-        self.assertEqual(site.name, 'LSST')
+        site = Site(name="LSST")
+        self.assertEqual(site.name, "LSST")
         self.assertEqual(site.longitude, self.longitude)
         self.assertEqual(site.longitude_rad, np.radians(self.longitude))
         self.assertEqual(site.latitude, self.latitude)
@@ -39,19 +38,19 @@ class SiteTest(unittest.TestCase):
         Test that, if name is not 'LSST', values are set to None
         """
         with warnings.catch_warnings(record=True) as ww:
-            site = Site(name='bob')
+            site = Site(name="bob")
 
         msg = str(ww[0].message)
 
-        self.assertIn('longitude', msg)
-        self.assertIn('latitude', msg)
-        self.assertIn('temperature', msg)
-        self.assertIn('pressure', msg)
-        self.assertIn('height', msg)
-        self.assertIn('lapseRate', msg)
-        self.assertIn('humidity', msg)
+        self.assertIn("longitude", msg)
+        self.assertIn("latitude", msg)
+        self.assertIn("temperature", msg)
+        self.assertIn("pressure", msg)
+        self.assertIn("height", msg)
+        self.assertIn("lapseRate", msg)
+        self.assertIn("humidity", msg)
 
-        self.assertEqual(site.name, 'bob')
+        self.assertEqual(site.name, "bob")
         self.assertIsNone(site.longitude)
         self.assertIsNone(site.longitude_rad)
         self.assertIsNone(site.latitude)
@@ -68,8 +67,8 @@ class SiteTest(unittest.TestCase):
         Test that, even if LSST is specified, we are capable of overriding
         defaults
         """
-        site = Site(name='LSST', longitude=26.0)
-        self.assertEqual(site.name, 'LSST')
+        site = Site(name="LSST", longitude=26.0)
+        self.assertEqual(site.name, "LSST")
         self.assertEqual(site.longitude, 26.0)
         self.assertEqual(site.longitude_rad, np.radians(26.0))
         self.assertEqual(site.latitude, self.latitude)
@@ -80,8 +79,8 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.lapseRate, self.lapseRate)
         self.assertEqual(site.height, self.height)
 
-        site = Site(name='LSST', latitude=88.0)
-        self.assertEqual(site.name, 'LSST')
+        site = Site(name="LSST", latitude=88.0)
+        self.assertEqual(site.name, "LSST")
         self.assertEqual(site.longitude, self.longitude)
         self.assertEqual(site.longitude_rad, np.radians(self.longitude))
         self.assertEqual(site.latitude, 88.0)
@@ -93,8 +92,8 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.lapseRate, self.lapseRate)
         self.assertEqual(site.height, self.height)
 
-        site = Site(name='LSST', height=4.0)
-        self.assertEqual(site.name, 'LSST')
+        site = Site(name="LSST", height=4.0)
+        self.assertEqual(site.name, "LSST")
         self.assertEqual(site.longitude, self.longitude)
         self.assertEqual(site.longitude_rad, np.radians(self.longitude))
         self.assertEqual(site.latitude, self.latitude)
@@ -106,8 +105,8 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.lapseRate, self.lapseRate)
         self.assertEqual(site.height, 4.0)
 
-        site = Site(name='LSST', temperature=7.0)
-        self.assertEqual(site.name, 'LSST')
+        site = Site(name="LSST", temperature=7.0)
+        self.assertEqual(site.name, "LSST")
         self.assertEqual(site.longitude, self.longitude)
         self.assertEqual(site.longitude_rad, np.radians(self.longitude))
         self.assertEqual(site.latitude, self.latitude)
@@ -119,8 +118,8 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.lapseRate, self.lapseRate)
         self.assertEqual(site.height, self.height)
 
-        site = Site(name='LSST', pressure=14.0)
-        self.assertEqual(site.name, 'LSST')
+        site = Site(name="LSST", pressure=14.0)
+        self.assertEqual(site.name, "LSST")
         self.assertEqual(site.longitude, self.longitude)
         self.assertEqual(site.longitude_rad, np.radians(self.longitude))
         self.assertEqual(site.latitude, self.latitude)
@@ -132,8 +131,8 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.lapseRate, self.lapseRate)
         self.assertEqual(site.height, self.height)
 
-        site = Site(name='LSST', humidity=2.1)
-        self.assertEqual(site.name, 'LSST')
+        site = Site(name="LSST", humidity=2.1)
+        self.assertEqual(site.name, "LSST")
         self.assertEqual(site.longitude, self.longitude)
         self.assertEqual(site.longitude_rad, np.radians(self.longitude))
         self.assertEqual(site.latitude, self.latitude)
@@ -145,8 +144,8 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.lapseRate, self.lapseRate)
         self.assertEqual(site.height, self.height)
 
-        site = Site(name='LSST', lapseRate=3.2)
-        self.assertEqual(site.name, 'LSST')
+        site = Site(name="LSST", lapseRate=3.2)
+        self.assertEqual(site.name, "LSST")
         self.assertEqual(site.longitude, self.longitude)
         self.assertEqual(site.longitude_rad, np.radians(self.longitude))
         self.assertEqual(site.latitude, self.latitude)
@@ -166,13 +165,13 @@ class SiteTest(unittest.TestCase):
             site = Site(longitude=45.0, temperature=20.0)
 
         msg = str(ww[0].message)
-        self.assertIn('latitude', msg)
-        self.assertIn('height', msg)
-        self.assertIn('pressure', msg)
-        self.assertIn('lapseRate', msg)
-        self.assertIn('humidity', msg)
-        self.assertNotIn('longitue', msg)
-        self.assertNotIn('temperature', msg)
+        self.assertIn("latitude", msg)
+        self.assertIn("height", msg)
+        self.assertIn("pressure", msg)
+        self.assertIn("lapseRate", msg)
+        self.assertIn("humidity", msg)
+        self.assertNotIn("longitue", msg)
+        self.assertNotIn("temperature", msg)
 
         self.assertIsNone(site.name)
         self.assertIsNone(site.latitude)
@@ -190,15 +189,27 @@ class SiteTest(unittest.TestCase):
         """
         Test that we have correctly implemented __eq__ in Site
         """
-        reference_site = Site(name='ref', longitude=112.12,
-                              latitude=-83.121, temperature=112.1,
-                              height=3124.2, pressure=891.2,
-                              humidity=0.341, lapseRate=0.008)
+        reference_site = Site(
+            name="ref",
+            longitude=112.12,
+            latitude=-83.121,
+            temperature=112.1,
+            height=3124.2,
+            pressure=891.2,
+            humidity=0.341,
+            lapseRate=0.008,
+        )
 
-        other_site = Site(name='ref', longitude=112.12,
-                          latitude=-83.121, temperature=112.1,
-                          height=3124.2, pressure=891.2,
-                          humidity=0.341, lapseRate=0.008)
+        other_site = Site(
+            name="ref",
+            longitude=112.12,
+            latitude=-83.121,
+            temperature=112.1,
+            height=3124.2,
+            pressure=891.2,
+            humidity=0.341,
+            lapseRate=0.008,
+        )
 
         self.assertEqual(reference_site, other_site)
         self.assertFalse(reference_site != other_site)
@@ -226,73 +237,121 @@ class SiteTest(unittest.TestCase):
         self.assertTrue(reference_site == other_site)
 
         # now test that __ne__ works correctly
-        other_site = Site(name='other', longitude=112.12,
-                          latitude=-83.121, temperature=112.1,
-                          height=3124.2, pressure=891.2,
-                          humidity=0.341, lapseRate=0.008)
+        other_site = Site(
+            name="other",
+            longitude=112.12,
+            latitude=-83.121,
+            temperature=112.1,
+            height=3124.2,
+            pressure=891.2,
+            humidity=0.341,
+            lapseRate=0.008,
+        )
 
         self.assertNotEqual(reference_site, other_site)
         self.assertFalse(reference_site == other_site)
         self.assertTrue(reference_site != other_site)
 
-        other_site = Site(name='ref', longitude=112.13,
-                          latitude=-83.121, temperature=112.1,
-                          height=3124.2, pressure=891.2,
-                          humidity=0.341, lapseRate=0.008)
+        other_site = Site(
+            name="ref",
+            longitude=112.13,
+            latitude=-83.121,
+            temperature=112.1,
+            height=3124.2,
+            pressure=891.2,
+            humidity=0.341,
+            lapseRate=0.008,
+        )
 
         self.assertNotEqual(reference_site, other_site)
         self.assertFalse(reference_site == other_site)
         self.assertTrue(reference_site != other_site)
 
-        other_site = Site(name='ref', longitude=112.12,
-                          latitude=-83.122, temperature=112.1,
-                          height=3124.2, pressure=891.2,
-                          humidity=0.341, lapseRate=0.008)
+        other_site = Site(
+            name="ref",
+            longitude=112.12,
+            latitude=-83.122,
+            temperature=112.1,
+            height=3124.2,
+            pressure=891.2,
+            humidity=0.341,
+            lapseRate=0.008,
+        )
 
         self.assertNotEqual(reference_site, other_site)
         self.assertFalse(reference_site == other_site)
         self.assertTrue(reference_site != other_site)
 
-        other_site = Site(name='ref', longitude=112.12,
-                          latitude=-83.121, temperature=112.2,
-                          height=3124.2, pressure=891.2,
-                          humidity=0.341, lapseRate=0.008)
+        other_site = Site(
+            name="ref",
+            longitude=112.12,
+            latitude=-83.121,
+            temperature=112.2,
+            height=3124.2,
+            pressure=891.2,
+            humidity=0.341,
+            lapseRate=0.008,
+        )
 
         self.assertNotEqual(reference_site, other_site)
         self.assertFalse(reference_site == other_site)
         self.assertTrue(reference_site != other_site)
 
-        other_site = Site(name='ref', longitude=112.12,
-                          latitude=-83.121, temperature=112.1,
-                          height=3124.3, pressure=891.2,
-                          humidity=0.341, lapseRate=0.008)
+        other_site = Site(
+            name="ref",
+            longitude=112.12,
+            latitude=-83.121,
+            temperature=112.1,
+            height=3124.3,
+            pressure=891.2,
+            humidity=0.341,
+            lapseRate=0.008,
+        )
 
         self.assertNotEqual(reference_site, other_site)
         self.assertFalse(reference_site == other_site)
         self.assertTrue(reference_site != other_site)
 
-        other_site = Site(name='ref', longitude=112.12,
-                          latitude=-83.121, temperature=112.1,
-                          height=3124.2, pressure=891.3,
-                          humidity=0.341, lapseRate=0.008)
+        other_site = Site(
+            name="ref",
+            longitude=112.12,
+            latitude=-83.121,
+            temperature=112.1,
+            height=3124.2,
+            pressure=891.3,
+            humidity=0.341,
+            lapseRate=0.008,
+        )
 
         self.assertNotEqual(reference_site, other_site)
         self.assertFalse(reference_site == other_site)
         self.assertTrue(reference_site != other_site)
 
-        other_site = Site(name='ref', longitude=112.12,
-                          latitude=-83.121, temperature=112.1,
-                          height=3124.2, pressure=891.2,
-                          humidity=0.342, lapseRate=0.008)
+        other_site = Site(
+            name="ref",
+            longitude=112.12,
+            latitude=-83.121,
+            temperature=112.1,
+            height=3124.2,
+            pressure=891.2,
+            humidity=0.342,
+            lapseRate=0.008,
+        )
 
         self.assertNotEqual(reference_site, other_site)
         self.assertFalse(reference_site == other_site)
         self.assertTrue(reference_site != other_site)
 
-        other_site = Site(name='ref', longitude=112.12,
-                          latitude=-83.121, temperature=112.1,
-                          height=3124.2, pressure=891.2,
-                          humidity=0.341, lapseRate=0.009)
+        other_site = Site(
+            name="ref",
+            longitude=112.12,
+            latitude=-83.121,
+            temperature=112.1,
+            height=3124.2,
+            pressure=891.2,
+            humidity=0.341,
+            lapseRate=0.009,
+        )
 
         self.assertNotEqual(reference_site, other_site)
         self.assertFalse(reference_site == other_site)

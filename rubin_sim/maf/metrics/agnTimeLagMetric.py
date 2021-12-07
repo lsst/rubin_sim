@@ -1,13 +1,22 @@
 import numpy as np
 from .baseMetric import BaseMetric
 
-__all__ = ['AGN_TimeLagMetric']
+__all__ = ["AGN_TimeLagMetric"]
 
 
 class AGN_TimeLagMetric(BaseMetric):
-    def __init__(self, lag=100, z=1, log=False, threshold=2.2, calcType='mean',
-                 mjdCol='observationStartMJD', filterCol='filter',
-                 metricName=None, **kwargs):
+    def __init__(
+        self,
+        lag=100,
+        z=1,
+        log=False,
+        threshold=2.2,
+        calcType="mean",
+        mjdCol="observationStartMJD",
+        filterCol="filter",
+        metricName=None,
+        **kwargs,
+    ):
         self.lag = lag
         self.z = z
         self.log = log
@@ -16,12 +25,14 @@ class AGN_TimeLagMetric(BaseMetric):
         self.mjdCol = mjdCol
         self.filterCol = filterCol
         if metricName is None:
-            metricName = f'AGN_TimeLag_{lag}_days'
-        super().__init__(col=[self.mjdCol, self.filterCol], metricName=metricName, **kwargs)
+            metricName = f"AGN_TimeLag_{lag}_days"
+        super().__init__(
+            col=[self.mjdCol, self.filterCol], metricName=metricName, **kwargs
+        )
 
     # Calculate NQUIST value for time-lag and sampling time (redshift is included in formula if desired)
     def _getNquistValue(self, caden, lag, z):
-        return (lag / ((1 + z) * caden))
+        return lag / ((1 + z) * caden)
 
     def run(self, dataSlice, slicePoint=None):
         # Calculate differences in time between visits
@@ -32,11 +43,11 @@ class AGN_TimeLagMetric(BaseMetric):
             return self.badval
 
         # Otherwise summarize the time differences as:
-        if self.calcType == 'mean':
+        if self.calcType == "mean":
             val = np.mean(val)
-        elif self.calcType == 'min':
+        elif self.calcType == "min":
             val = np.min(val)
-        elif self.calcType == 'max':
+        elif self.calcType == "max":
             val = np.max(val)
         else:
             # find the greatest common divisor

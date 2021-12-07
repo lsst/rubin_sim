@@ -22,14 +22,14 @@ class LSST_site_parameters(object):
         self.height = 2650.0  # in meters
         self.temperature = 11.5  # in centigrade
         self.pressure = 750.0  # in millibars
-        self.humidity = 0.4   # scale 0-1
+        self.humidity = 0.4  # scale 0-1
         self.lapseRate = 0.0065  # in Kelvin per meter
         # the lapse rate was not specified by LSE-30;
         # 0.0065 K/m appears to be the "standard" value
         # see, for example http://mnras.oxfordjournals.org/content/365/4/1235.full
 
 
-class Site (object):
+class Site(object):
     """
     This class will store site information for use in Catalog objects.
 
@@ -57,19 +57,22 @@ class Site (object):
     lapseRate : `float`, opt
         Change in temperature in Kelvins per meter
     """
-    def __init__(self,
-                 name=None,
-                 longitude=None,
-                 latitude=None,
-                 height=None,
-                 temperature=None,
-                 pressure=None,
-                 humidity=None,
-                 lapseRate=None):
+
+    def __init__(
+        self,
+        name=None,
+        longitude=None,
+        latitude=None,
+        height=None,
+        temperature=None,
+        pressure=None,
+        humidity=None,
+        lapseRate=None,
+    ):
 
         default_params = None
         self._name = name
-        if self._name == 'LSST':
+        if self._name == "LSST":
             default_params = LSST_site_parameters()
 
         if default_params is not None:
@@ -126,36 +129,44 @@ class Site (object):
         list_of_nones = []
         if self.longitude is None or self.longitude_rad is None:
             if self.longitude_rad is not None:
-                raise RuntimeError("in Site: longitude is None but longitude_rad is not")
+                raise RuntimeError(
+                    "in Site: longitude is None but longitude_rad is not"
+                )
             if self.longitude is not None:
-                raise RuntimeError("in Site: longitude_rad is None but longitude is not")
-            list_of_nones.append('longitude')
+                raise RuntimeError(
+                    "in Site: longitude_rad is None but longitude is not"
+                )
+            list_of_nones.append("longitude")
 
         if self.latitude is None or self.latitude_rad is None:
             if self.latitude_rad is not None:
                 raise RuntimeError("in Site: latitude is None but latitude_rad is not")
             if self.latitude is not None:
                 raise RuntimeError("in Site: latitude_rad is None but latitude is not")
-            list_of_nones.append('latitude')
+            list_of_nones.append("latitude")
 
         if self.temperature is None or self.temperature_kelvin is None:
             if self.temperature is not None:
-                raise RuntimeError("in Site: temperature_kelvin is None but temperature is not")
+                raise RuntimeError(
+                    "in Site: temperature_kelvin is None but temperature is not"
+                )
             if self.temperature_kelvin is not None:
-                raise RuntimeError("in Site: temperature is None but temperature_kelvin is not")
-            list_of_nones.append('temperature')
+                raise RuntimeError(
+                    "in Site: temperature is None but temperature_kelvin is not"
+                )
+            list_of_nones.append("temperature")
 
         if self.height is None:
-            list_of_nones.append('height')
+            list_of_nones.append("height")
 
         if self.pressure is None:
-            list_of_nones.append('pressure')
+            list_of_nones.append("pressure")
 
         if self.humidity is None:
-            list_of_nones.append('humidity')
+            list_of_nones.append("humidity")
 
         if self.lapseRate is None:
-            list_of_nones.append('lapseRate')
+            list_of_nones.append("lapseRate")
 
         if len(list_of_nones) != 0:
             msg = "The following attributes of your Site were None:\n"

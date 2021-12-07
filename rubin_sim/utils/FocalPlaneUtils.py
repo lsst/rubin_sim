@@ -4,16 +4,28 @@ from rubin_sim.utils.CodeUtilities import _validate_inputs
 from rubin_sim.utils import _observedFromICRS, _icrsFromObserved
 from rubin_sim.utils import radiansFromArcsec
 
-__all__ = ["_pupilCoordsFromObserved",
-           "_pupilCoordsFromRaDec", "pupilCoordsFromRaDec",
-           "_raDecFromPupilCoords", "raDecFromPupilCoords",
-           "_observedFromPupilCoords", "observedFromPupilCoords"]
+__all__ = [
+    "_pupilCoordsFromObserved",
+    "_pupilCoordsFromRaDec",
+    "pupilCoordsFromRaDec",
+    "_raDecFromPupilCoords",
+    "raDecFromPupilCoords",
+    "_observedFromPupilCoords",
+    "observedFromPupilCoords",
+]
 
 
-def pupilCoordsFromRaDec(ra_in, dec_in,
-                         pm_ra=None, pm_dec=None, parallax=None,
-                         v_rad=None, includeRefraction=True,
-                         obs_metadata=None, epoch=2000.0):
+def pupilCoordsFromRaDec(
+    ra_in,
+    dec_in,
+    pm_ra=None,
+    pm_dec=None,
+    parallax=None,
+    v_rad=None,
+    includeRefraction=True,
+    obs_metadata=None,
+    epoch=2000.0,
+):
     """
     Take an input RA and dec from the sky and convert it to coordinates
     on the focal plane.
@@ -72,18 +84,30 @@ def pupilCoordsFromRaDec(ra_in, dec_in,
     else:
         parallax_in = None
 
-    return _pupilCoordsFromRaDec(np.radians(ra_in), np.radians(dec_in),
-                                 pm_ra=pm_ra_in, pm_dec=pm_dec_in,
-                                 parallax=parallax_in, v_rad=v_rad,
-                                 includeRefraction=includeRefraction,
-                                 obs_metadata=obs_metadata, epoch=epoch)
+    return _pupilCoordsFromRaDec(
+        np.radians(ra_in),
+        np.radians(dec_in),
+        pm_ra=pm_ra_in,
+        pm_dec=pm_dec_in,
+        parallax=parallax_in,
+        v_rad=v_rad,
+        includeRefraction=includeRefraction,
+        obs_metadata=obs_metadata,
+        epoch=epoch,
+    )
 
 
-def _pupilCoordsFromRaDec(ra_in, dec_in,
-                          pm_ra=None, pm_dec=None,
-                          parallax=None, v_rad=None,
-                          includeRefraction=True,
-                          obs_metadata=None, epoch=2000.0):
+def _pupilCoordsFromRaDec(
+    ra_in,
+    dec_in,
+    pm_ra=None,
+    pm_dec=None,
+    parallax=None,
+    v_rad=None,
+    includeRefraction=True,
+    obs_metadata=None,
+    epoch=2000.0,
+):
     """
     Take an input RA and dec from the sky and convert it to coordinates
     on the focal plane.
@@ -127,8 +151,9 @@ def _pupilCoordsFromRaDec(ra_in, dec_in,
     radians and whose second row is the y coordinate in radians
     """
 
-    are_arrays = _validate_inputs([ra_in, dec_in], ['ra_in', 'dec_in'],
-                                  "pupilCoordsFromRaDec")
+    are_arrays = _validate_inputs(
+        [ra_in, dec_in], ["ra_in", "dec_in"], "pupilCoordsFromRaDec"
+    )
 
     if obs_metadata is None:
         raise RuntimeError("Cannot call pupilCoordsFromRaDec without obs_metadata")
@@ -141,23 +166,35 @@ def _pupilCoordsFromRaDec(ra_in, dec_in,
 
     if obs_metadata.rotSkyPos is None:
         # there is no observation meta data on which to base astrometry
-        raise RuntimeError("Cannot calculate [x,y]_focal_nominal without obs_metadata.rotSkyPos")
+        raise RuntimeError(
+            "Cannot calculate [x,y]_focal_nominal without obs_metadata.rotSkyPos"
+        )
 
     if obs_metadata.pointingRA is None or obs_metadata.pointingDec is None:
-        raise RuntimeError("Cannot calculate [x,y]_focal_nominal without pointingRA and Dec in obs_metadata")
+        raise RuntimeError(
+            "Cannot calculate [x,y]_focal_nominal without pointingRA and Dec in obs_metadata"
+        )
 
-    ra_obs, dec_obs = _observedFromICRS(ra_in, dec_in,
-                                        pm_ra=pm_ra, pm_dec=pm_dec,
-                                        parallax=parallax, v_rad=v_rad,
-                                        obs_metadata=obs_metadata,
-                                        epoch=epoch,
-                                        includeRefraction=includeRefraction)
+    ra_obs, dec_obs = _observedFromICRS(
+        ra_in,
+        dec_in,
+        pm_ra=pm_ra,
+        pm_dec=pm_dec,
+        parallax=parallax,
+        v_rad=v_rad,
+        obs_metadata=obs_metadata,
+        epoch=epoch,
+        includeRefraction=includeRefraction,
+    )
 
-    return _pupilCoordsFromObserved(ra_obs, dec_obs, obs_metadata,
-                                    epoch=epoch, includeRefraction=includeRefraction)
+    return _pupilCoordsFromObserved(
+        ra_obs, dec_obs, obs_metadata, epoch=epoch, includeRefraction=includeRefraction
+    )
 
 
-def _pupilCoordsFromObserved(ra_obs, dec_obs, obs_metadata, epoch=2000.0, includeRefraction=True):
+def _pupilCoordsFromObserved(
+    ra_obs, dec_obs, obs_metadata, epoch=2000.0, includeRefraction=True
+):
     """
     Convert Observed RA, Dec into pupil coordinates
 
@@ -179,20 +216,22 @@ def _pupilCoordsFromObserved(ra_obs, dec_obs, obs_metadata, epoch=2000.0, includ
     radians and whose second row is the y coordinate in radians
     """
 
-    are_arrays = _validate_inputs([ra_obs, dec_obs], ['ra_obs', 'dec_obs'],
-                                  "pupilCoordsFromObserved")
+    are_arrays = _validate_inputs(
+        [ra_obs, dec_obs], ["ra_obs", "dec_obs"], "pupilCoordsFromObserved"
+    )
 
     if obs_metadata.rotSkyPos is None:
-        raise RuntimeError("Cannot call pupilCoordsFromObserved; "
-                           "rotSkyPos is None")
+        raise RuntimeError("Cannot call pupilCoordsFromObserved; " "rotSkyPos is None")
 
-    theta = -1.0*obs_metadata._rotSkyPos
+    theta = -1.0 * obs_metadata._rotSkyPos
 
-    ra_pointing, dec_pointing = _observedFromICRS(obs_metadata._pointingRA,
-                                                  obs_metadata._pointingDec,
-                                                  obs_metadata=obs_metadata,
-                                                  epoch=epoch,
-                                                  includeRefraction=includeRefraction)
+    ra_pointing, dec_pointing = _observedFromICRS(
+        obs_metadata._pointingRA,
+        obs_metadata._pointingDec,
+        obs_metadata=obs_metadata,
+        epoch=epoch,
+        includeRefraction=includeRefraction,
+    )
 
     # palpy.ds2tp performs the gnomonic projection on ra_in and dec_in
     # with a tangent point at (pointingRA, pointingDec)
@@ -226,15 +265,15 @@ def _pupilCoordsFromObserved(ra_obs, dec_obs, obs_metadata, epoch=2000.0, includ
     # camera coordinates" according to phoSim documentation) to account for
     # the rotation of the focal plane about the telescope pointing
 
-    x_out = x*np.cos(theta) - y*np.sin(theta)
-    y_out = x*np.sin(theta) + y*np.cos(theta)
+    x_out = x * np.cos(theta) - y * np.sin(theta)
+    y_out = x * np.sin(theta) + y * np.cos(theta)
 
     return np.array([x_out, y_out])
 
 
-def _observedFromPupilCoords(xPupil, yPupil, obs_metadata=None,
-                             includeRefraction=True,
-                             epoch=2000.0):
+def _observedFromPupilCoords(
+    xPupil, yPupil, obs_metadata=None, includeRefraction=True, epoch=2000.0
+):
     """
     Convert pupil coordinates into observed (RA, Dec)
 
@@ -264,8 +303,9 @@ def _observedFromPupilCoords(xPupil, yPupil, obs_metadata=None,
     to positions on the celestial sphere.
     """
 
-    are_arrays = _validate_inputs([xPupil, yPupil], ['xPupil', 'yPupil'],
-                                  "observedFromPupilCoords")
+    are_arrays = _validate_inputs(
+        [xPupil, yPupil], ["xPupil", "yPupil"], "observedFromPupilCoords"
+    )
 
     if obs_metadata is None:
         raise RuntimeError("Cannot call observedFromPupilCoords without obs_metadata")
@@ -274,29 +314,33 @@ def _observedFromPupilCoords(xPupil, yPupil, obs_metadata=None,
         raise RuntimeError("Cannot call observedFromPupilCoords; epoch is None")
 
     if obs_metadata.rotSkyPos is None:
-        raise RuntimeError("Cannot call observedFromPupilCoords without rotSkyPos " +
-                           "in obs_metadata")
+        raise RuntimeError(
+            "Cannot call observedFromPupilCoords without rotSkyPos " + "in obs_metadata"
+        )
 
     if obs_metadata.pointingRA is None or obs_metadata.pointingDec is None:
-        raise RuntimeError("Cannot call observedFromPupilCoords " +
-                           "without pointingRA, pointingDec in obs_metadata")
+        raise RuntimeError(
+            "Cannot call observedFromPupilCoords "
+            + "without pointingRA, pointingDec in obs_metadata"
+        )
 
     if obs_metadata.mjd is None:
-        raise RuntimeError("Cannot calculate RA, Dec without mjd " +
-                           "in obs_metadata")
+        raise RuntimeError("Cannot calculate RA, Dec without mjd " + "in obs_metadata")
 
-    ra_pointing, dec_pointing = _observedFromICRS(obs_metadata._pointingRA,
-                                                  obs_metadata._pointingDec,
-                                                  obs_metadata=obs_metadata,
-                                                  epoch=epoch,
-                                                  includeRefraction=includeRefraction)
+    ra_pointing, dec_pointing = _observedFromICRS(
+        obs_metadata._pointingRA,
+        obs_metadata._pointingDec,
+        obs_metadata=obs_metadata,
+        epoch=epoch,
+        includeRefraction=includeRefraction,
+    )
 
     # This is the same as theta in pupilCoordsFromRaDec, except without the minus sign.
     # This is because we will be reversing the rotation performed in that other method.
     theta = obs_metadata._rotSkyPos
 
-    x_g = xPupil*np.cos(theta) - yPupil*np.sin(theta)
-    y_g = xPupil*np.sin(theta) + yPupil*np.cos(theta)
+    x_g = xPupil * np.cos(theta) - yPupil * np.sin(theta)
+    y_g = xPupil * np.sin(theta) + yPupil * np.cos(theta)
 
     # x_g and y_g are now the x and y coordinates
     # can now use the PALPY method palDtp2s to convert to RA, Dec.
@@ -309,8 +353,9 @@ def _observedFromPupilCoords(xPupil, yPupil, obs_metadata=None,
     return raObs, decObs
 
 
-def observedFromPupilCoords(xPupil, yPupil, obs_metadata=None,
-                            includeRefraction=True, epoch=2000.0):
+def observedFromPupilCoords(
+    xPupil, yPupil, obs_metadata=None, includeRefraction=True, epoch=2000.0
+):
     """
     Convert pupil coordinates into observed (RA, Dec)
 
@@ -339,16 +384,20 @@ def observedFromPupilCoords(xPupil, yPupil, obs_metadata=None,
     This method is only useful for mapping positions on a theoretical focal plane
     to positions on the celestial sphere.
     """
-    ra_rad, dec_rad = _observedFromPupilCoords(xPupil, yPupil,
-                                               obs_metadata=obs_metadata,
-                                               includeRefraction=includeRefraction,
-                                               epoch=2000.0)
+    ra_rad, dec_rad = _observedFromPupilCoords(
+        xPupil,
+        yPupil,
+        obs_metadata=obs_metadata,
+        includeRefraction=includeRefraction,
+        epoch=2000.0,
+    )
 
     return np.degrees(ra_rad), np.degrees(dec_rad)
 
 
-def raDecFromPupilCoords(xPupil, yPupil, obs_metadata=None,
-                         includeRefraction=True, epoch=2000.0):
+def raDecFromPupilCoords(
+    xPupil, yPupil, obs_metadata=None, includeRefraction=True, epoch=2000.0
+):
     """
     @param [in] xPupil -- pupil coordinates in radians.
     Can be a numpy array or a number.
@@ -374,16 +423,20 @@ def raDecFromPupilCoords(xPupil, yPupil, obs_metadata=None,
     to positions on the celestial sphere.
     """
 
-    output = _raDecFromPupilCoords(xPupil, yPupil,
-                                   obs_metadata=obs_metadata,
-                                   epoch=epoch,
-                                   includeRefraction=includeRefraction)
+    output = _raDecFromPupilCoords(
+        xPupil,
+        yPupil,
+        obs_metadata=obs_metadata,
+        epoch=epoch,
+        includeRefraction=includeRefraction,
+    )
 
     return np.degrees(output)
 
 
-def _raDecFromPupilCoords(xPupil, yPupil, obs_metadata=None,
-                          includeRefraction=True, epoch=2000.0):
+def _raDecFromPupilCoords(
+    xPupil, yPupil, obs_metadata=None, includeRefraction=True, epoch=2000.0
+):
     """
     @param [in] xPupil -- pupil coordinates in radians.
     Can be a numpy array or a number.
@@ -409,7 +462,9 @@ def _raDecFromPupilCoords(xPupil, yPupil, obs_metadata=None,
     to positions on the celestial sphere.
     """
 
-    are_arrays = _validate_inputs([xPupil, yPupil], ['xPupil', 'yPupil'], "raDecFromPupilCoords")
+    are_arrays = _validate_inputs(
+        [xPupil, yPupil], ["xPupil", "yPupil"], "raDecFromPupilCoords"
+    )
 
     if obs_metadata is None:
         raise RuntimeError("Cannot call raDecFromPupilCoords without obs_metadata")
@@ -418,25 +473,33 @@ def _raDecFromPupilCoords(xPupil, yPupil, obs_metadata=None,
         raise RuntimeError("Cannot call raDecFromPupilCoords; epoch is None")
 
     if obs_metadata.rotSkyPos is None:
-        raise RuntimeError("Cannot call raDecFromPupilCoords without rotSkyPos " +
-                           "in obs_metadata")
+        raise RuntimeError(
+            "Cannot call raDecFromPupilCoords without rotSkyPos " + "in obs_metadata"
+        )
 
     if obs_metadata.pointingRA is None or obs_metadata.pointingDec is None:
-        raise RuntimeError("Cannot call raDecFromPupilCoords " +
-                           "without pointingRA, pointingDec in obs_metadata")
+        raise RuntimeError(
+            "Cannot call raDecFromPupilCoords "
+            + "without pointingRA, pointingDec in obs_metadata"
+        )
 
     if obs_metadata.mjd is None:
-        raise RuntimeError("Cannot calculate RA, Dec without mjd " +
-                           "in obs_metadata")
+        raise RuntimeError("Cannot calculate RA, Dec without mjd " + "in obs_metadata")
 
-    raObs, decObs = _observedFromPupilCoords(xPupil, yPupil,
-                                             obs_metadata=obs_metadata,
-                                             epoch=epoch,
-                                             includeRefraction=includeRefraction)
+    raObs, decObs = _observedFromPupilCoords(
+        xPupil,
+        yPupil,
+        obs_metadata=obs_metadata,
+        epoch=epoch,
+        includeRefraction=includeRefraction,
+    )
 
-    ra_icrs, dec_icrs = _icrsFromObserved(raObs, decObs,
-                                          obs_metadata=obs_metadata,
-                                          epoch=epoch,
-                                          includeRefraction=includeRefraction)
+    ra_icrs, dec_icrs = _icrsFromObserved(
+        raObs,
+        decObs,
+        obs_metadata=obs_metadata,
+        epoch=epoch,
+        includeRefraction=includeRefraction,
+    )
 
     return np.array([ra_icrs, dec_icrs])

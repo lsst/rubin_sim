@@ -2,7 +2,8 @@ from rubin_sim.maf.maps import BaseMap
 from .EBVhp import EBVhp
 import warnings
 
-__all__ = ['DustMap']
+__all__ = ["DustMap"]
+
 
 class DustMap(BaseMap):
     """
@@ -13,24 +14,30 @@ class DustMap(BaseMap):
         """
         interp: should the dust map be interpolated (True) or just use the nearest value (False).
         """
-        self.keynames = ['ebv']
+        self.keynames = ["ebv"]
         self.interp = interp
         self.nside = nside
         self.mapPath = mapPath
 
     def run(self, slicePoints):
         # If the slicer has nside, it's a healpix slicer so we can read the map directly
-        if 'nside' in slicePoints:
-            if slicePoints['nside'] != self.nside:
-                warnings.warn(f"Slicer value of nside {slicePoints['nside']} different "
-                              f"from map value {self.nside}, using slicer value")
-            slicePoints['ebv'] = EBVhp(slicePoints['nside'], pixels=slicePoints['sid'],
-                                       mapPath=self.mapPath)
+        if "nside" in slicePoints:
+            if slicePoints["nside"] != self.nside:
+                warnings.warn(
+                    f"Slicer value of nside {slicePoints['nside']} different "
+                    f"from map value {self.nside}, using slicer value"
+                )
+            slicePoints["ebv"] = EBVhp(
+                slicePoints["nside"], pixels=slicePoints["sid"], mapPath=self.mapPath
+            )
         # Not a healpix slicer, look up values based on RA,dec with possible interpolation
         else:
-            slicePoints['ebv'] = EBVhp(self.nside, ra=slicePoints['ra'],
-                                       dec=slicePoints['dec'], interp=self.interp,
-                                       mapPath=self.mapPath)
+            slicePoints["ebv"] = EBVhp(
+                self.nside,
+                ra=slicePoints["ra"],
+                dec=slicePoints["dec"],
+                interp=self.interp,
+                mapPath=self.mapPath,
+            )
 
         return slicePoints
-

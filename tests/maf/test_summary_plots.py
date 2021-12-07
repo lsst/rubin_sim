@@ -36,9 +36,7 @@ class TestSummaryPlots(unittest.TestCase):
         self.mag_metrics = ["metric1", "metric2"]
 
         self.metric_values = pd.DataFrame(
-            self.rng.normal(
-                loc=3, scale=5, size=(self.num_runs, self.num_metrics)
-            ),
+            self.rng.normal(loc=3, scale=5, size=(self.num_runs, self.num_metrics)),
             columns=self.metrics,
             index=self.runs,
         )
@@ -88,22 +86,16 @@ class TestSummaryPlots(unittest.TestCase):
         )
 
         run_label_map = {r: r + "foo" for r in self.runs}
-        fig, ax = maf.plot_run_metric(
-            self.metric_values, run_label_map=run_label_map
-        )
+        fig, ax = maf.plot_run_metric(self.metric_values, run_label_map=run_label_map)
 
         metric_label_map = {r: r + "foo" for r in self.metrics}
         fig, ax = maf.plot_run_metric(
             self.metric_values, metric_label_map=metric_label_map
         )
 
-        fig, ax = maf.plot_run_metric(
-            self.metric_values, cmap=plt.get_cmap("Set2")
-        )
+        fig, ax = maf.plot_run_metric(self.metric_values, cmap=plt.get_cmap("Set2"))
 
-        fig, ax = maf.plot_run_metric(
-            self.metric_values, linestyles=["-", "--", ":"]
-        )
+        fig, ax = maf.plot_run_metric(self.metric_values, linestyles=["-", "--", ":"])
 
         fig, ax = maf.plot_run_metric(
             self.metric_values, markers=["o", "v", "^", "<", ">", "8", "s"]
@@ -185,22 +177,14 @@ def _run_infos_norm_df(
     if invert_cols is not None:
         out_df[invert_cols] = 1 / out_df[invert_cols]
     if mag_cols is not None:
-        out_df[mag_cols] = (
-            1 + out_df[mag_cols] - out_df[mag_cols].loc[norm_run]
-        )
+        out_df[mag_cols] = 1 + out_df[mag_cols] - out_df[mag_cols].loc[norm_run]
     else:
         mag_cols = []
     # which columns are strings?
     string_cols = [c for c, t in zip(df.columns, df.dtypes) if t == "object"]
-    cols = [
-        c
-        for c in out_df.columns.values
-        if not (c in mag_cols or c in string_cols)
-    ]
+    cols = [c for c in out_df.columns.values if not (c in mag_cols or c in string_cols)]
     out_df[cols] = (
-        1
-        + (out_df[cols] - out_df[cols].loc[norm_run])
-        / out_df[cols].loc[norm_run]
+        1 + (out_df[cols] - out_df[cols].loc[norm_run]) / out_df[cols].loc[norm_run]
     )
     return out_df
 

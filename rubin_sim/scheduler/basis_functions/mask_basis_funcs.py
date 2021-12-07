@@ -6,11 +6,17 @@ from rubin_sim.scheduler.basis_functions import Base_basis_function
 from rubin_sim.scheduler.utils import hp_in_lsst_fov, int_rounded
 
 
-__all__ = ['Zenith_mask_basis_function', 'Zenith_shadow_mask_basis_function',
-           'HA_mask_basis_function',
-           'Moon_avoidance_basis_function', 'Map_cloud_basis_function',
-           'Planet_mask_basis_function', 'Mask_azimuth_basis_function',
-           'Solar_elongation_mask_basis_function', 'Area_check_mask_basis_function']
+__all__ = [
+    "Zenith_mask_basis_function",
+    "Zenith_shadow_mask_basis_function",
+    "HA_mask_basis_function",
+    "Moon_avoidance_basis_function",
+    "Map_cloud_basis_function",
+    "Planet_mask_basis_function",
+    "Mask_azimuth_basis_function",
+    "Solar_elongation_mask_basis_function",
+    "Area_check_mask_basis_function",
+]
 
 
 class HA_mask_basis_function(Base_basis_function):
@@ -23,6 +29,7 @@ class HA_mask_basis_function(Base_basis_function):
     HA_max : float (None)
         The maximum hour angle to accept (hours)
     """
+
     def __init__(self, HA_min=None, HA_max=None, nside=32):
         super(HA_mask_basis_function, self).__init__(nside=nside)
         self.HA_max = HA_max
@@ -33,19 +40,19 @@ class HA_mask_basis_function(Base_basis_function):
         result = self.result.copy()
 
         if self.HA_min is not None:
-            good = np.where(conditions.HA < (self.HA_min/12.*np.pi))[0]
+            good = np.where(conditions.HA < (self.HA_min / 12.0 * np.pi))[0]
             result[good] = np.nan
         if self.HA_max is not None:
-            good = np.where(conditions.HA > (self.HA_max/12.*np.pi))[0]
+            good = np.where(conditions.HA > (self.HA_max / 12.0 * np.pi))[0]
             result[good] = np.nan
 
         return result
 
 
 class Area_check_mask_basis_function(Base_basis_function):
-    """Take a list of other mask basis functions, and do an additional check for area available
-    """
-    def __init__(self, bf_list, nside=32, min_area=1000.):
+    """Take a list of other mask basis functions, and do an additional check for area available"""
+
+    def __init__(self, bf_list, nside=32, min_area=1000.0):
         super(Area_check_mask_basis_function, self).__init__(nside=nside)
         self.bf_list = bf_list
         self.result = np.zeros(hp.nside2npix(self.nside), dtype=float)
@@ -62,7 +69,7 @@ class Area_check_mask_basis_function(Base_basis_function):
             area_map *= bf(conditions)
 
         good_pix = np.where(area_map == 0)[0]
-        if hp.nside2pixarea(self.nside, degrees=True)*good_pix.size < self.min_area:
+        if hp.nside2pixarea(self.nside, degrees=True) * good_pix.size < self.min_area:
             result = False
         return result
 
@@ -84,7 +91,7 @@ class Solar_elongation_mask_basis_function(Base_basis_function):
         The maximum solar elongation to consider (degrees).
     """
 
-    def __init__(self, min_elong=0., max_elong=60., nside=None, penalty=np.nan):
+    def __init__(self, min_elong=0.0, max_elong=60.0, nside=None, penalty=np.nan):
         super(Solar_elongation_mask_basis_function, self).__init__(nside=nside)
         self.min_elong = np.radians(min_elong)
         self.max_elong = np.radians(max_elong)
@@ -94,8 +101,10 @@ class Solar_elongation_mask_basis_function(Base_basis_function):
 
     def _calc_value(self, conditions, indx=None):
         result = self.result.copy()
-        in_range = np.where((int_rounded(conditions.solar_elongation) >= int_rounded(self.min_elong)) &
-                            (int_rounded(conditions.solar_elongation) <= int_rounded(self.max_elong)))[0]
+        in_range = np.where(
+            (int_rounded(conditions.solar_elongation) >= int_rounded(self.min_elong))
+            & (int_rounded(conditions.solar_elongation) <= int_rounded(self.max_elong))
+        )[0]
         result[in_range] = 1
         return result
 
@@ -110,18 +119,23 @@ class Zenith_mask_basis_function(Base_basis_function):
     max_alt : float (82.)
         The maximum allowed altitude (degrees)
     """
-    def __init__(self, min_alt=20., max_alt=82., nside=None):
+
+    def __init__(self, min_alt=20.0, max_alt=82.0, nside=None):
         super(Zenith_mask_basis_function, self).__init__(nside=nside)
         self.update_on_newobs = False
         self.min_alt = np.radians(min_alt)
         self.max_alt = np.radians(max_alt)
-        self.result = np.empty(hp.nside2npix(self.nside), dtype=float).fill(self.penalty)
+        self.result = np.empty(hp.nside2npix(self.nside), dtype=float).fill(
+            self.penalty
+        )
 
     def _calc_value(self, conditions, indx=None):
 
         result = self.result.copy()
-        alt_limit = np.where((int_rounded(conditions.alt) > int_rounded(self.min_alt)) &
-                             (int_rounded(conditions.alt) < int_rounded(self.max_alt)))[0]
+        alt_limit = np.where(
+            (int_rounded(conditions.alt) > int_rounded(self.min_alt))
+            & (int_rounded(conditions.alt) < int_rounded(self.max_alt))
+        )[0]
         result[alt_limit] = 1
         return result
 
@@ -138,10 +152,11 @@ class Planet_mask_basis_function(Base_basis_function):
         Saturn because it moves really slow and has average apparent mag of ~0.4, so fainter than Vega.
 
     """
+
     def __init__(self, mask_radius=3.5, planets=None, nside=None, scale=1e5):
         super(Planet_mask_basis_function, self).__init__(nside=nside)
         if planets is None:
-            planets = ['venus', 'mars', 'jupiter']
+            planets = ["venus", "mars", "jupiter"]
         self.planets = planets
         self.mask_radius = np.radians(mask_radius)
         self.result = np.zeros(hp.nside2npix(nside))
@@ -151,7 +166,10 @@ class Planet_mask_basis_function(Base_basis_function):
     def _calc_value(self, conditions, indx=None):
         result = self.result.copy()
         for pn in self.planets:
-            indices = self.in_fov(conditions.planet_positions[pn+'_RA'], conditions.planet_positions[pn+'_dec'])
+            indices = self.in_fov(
+                conditions.planet_positions[pn + "_RA"],
+                conditions.planet_positions[pn + "_dec"],
+            )
             result[indices] = np.nan
 
         return result
@@ -170,8 +188,16 @@ class Zenith_shadow_mask_basis_function(Base_basis_function):
     shadow_minutes : float (40.)
         Mask anything that will pass through the max alt in the next shadow_minutes time. (minutes)
     """
-    def __init__(self, nside=None, min_alt=20., max_alt=82.,
-                 shadow_minutes=40., penalty=np.nan, site='LSST'):
+
+    def __init__(
+        self,
+        nside=None,
+        min_alt=20.0,
+        max_alt=82.0,
+        shadow_minutes=40.0,
+        penalty=np.nan,
+        site="LSST",
+    ):
         super(Zenith_shadow_mask_basis_function, self).__init__(nside=nside)
         self.update_on_newobs = False
 
@@ -180,15 +206,22 @@ class Zenith_shadow_mask_basis_function(Base_basis_function):
         self.min_alt = np.radians(min_alt)
         self.max_alt = np.radians(max_alt)
         self.ra, self.dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
-        self.shadow_minutes = np.radians(shadow_minutes/60. * 360./24.)
+        self.shadow_minutes = np.radians(shadow_minutes / 60.0 * 360.0 / 24.0)
         # Compute the declination band where things could drift into zenith
         self.decband = np.zeros(self.dec.size, dtype=float)
-        self.zenith_radius = np.radians(90.-max_alt)/2.
+        self.zenith_radius = np.radians(90.0 - max_alt) / 2.0
         site = Site(name=site)
         self.lat_rad = site.latitude_rad
         self.lon_rad = site.longitude_rad
-        self.decband[np.where((int_rounded(self.dec) < int_rounded(self.lat_rad+self.zenith_radius)) &
-                              (int_rounded(self.dec) > int_rounded(self.lat_rad-self.zenith_radius)))] = 1
+        self.decband[
+            np.where(
+                (int_rounded(self.dec) < int_rounded(self.lat_rad + self.zenith_radius))
+                & (
+                    int_rounded(self.dec)
+                    > int_rounded(self.lat_rad - self.zenith_radius)
+                )
+            )
+        ] = 1
 
         self.result = np.empty(hp.nside2npix(self.nside), dtype=float)
         self.result.fill(self.penalty)
@@ -196,11 +229,18 @@ class Zenith_shadow_mask_basis_function(Base_basis_function):
     def _calc_value(self, conditions, indx=None):
 
         result = self.result.copy()
-        alt_limit = np.where((int_rounded(conditions.alt) > int_rounded(self.min_alt)) &
-                             (int_rounded(conditions.alt) < int_rounded(self.max_alt)))[0]
+        alt_limit = np.where(
+            (int_rounded(conditions.alt) > int_rounded(self.min_alt))
+            & (int_rounded(conditions.alt) < int_rounded(self.max_alt))
+        )[0]
         result[alt_limit] = 1
-        to_mask = np.where((int_rounded(conditions.HA) > int_rounded(2.*np.pi-self.shadow_minutes-self.zenith_radius)) &
-                           (self.decband == 1))
+        to_mask = np.where(
+            (
+                int_rounded(conditions.HA)
+                > int_rounded(2.0 * np.pi - self.shadow_minutes - self.zenith_radius)
+            )
+            & (self.decband == 1)
+        )
         result[to_mask] = np.nan
         return result
 
@@ -215,7 +255,8 @@ class Moon_avoidance_basis_function(Base_basis_function):
 
     XXX--TODO:  This could be a more complicated function of filter and moon phase.
     """
-    def __init__(self, nside=None, moon_distance=30.):
+
+    def __init__(self, nside=None, moon_distance=30.0):
         super(Moon_avoidance_basis_function, self).__init__(nside=nside)
         self.update_on_newobs = False
 
@@ -225,9 +266,9 @@ class Moon_avoidance_basis_function(Base_basis_function):
     def _calc_value(self, conditions, indx=None):
         result = self.result.copy()
 
-        angular_distance = _angularSeparation(conditions.az, conditions.alt,
-                                              conditions.moonAz,
-                                              conditions.moonAlt)
+        angular_distance = _angularSeparation(
+            conditions.az, conditions.alt, conditions.moonAz, conditions.moonAlt
+        )
 
         result[int_rounded(angular_distance) < self.moon_distance] = np.nan
 
@@ -248,8 +289,9 @@ class Bulk_cloud_basis_function(Base_basis_function):
         Point value to give regions where there are no observations requested
     """
 
-    def __init__(self, nside=None, max_cloud_map=None, max_val=0.7,
-                 out_of_bounds_val=np.nan):
+    def __init__(
+        self, nside=None, max_cloud_map=None, max_val=0.7, out_of_bounds_val=np.nan
+    ):
         super(Bulk_cloud_basis_function, self).__init__(nside=nside)
         self.update_on_newobs = False
 
@@ -257,7 +299,7 @@ class Bulk_cloud_basis_function(Base_basis_function):
             self.max_cloud_map = np.zeros(hp.nside2npix(nside), dtype=float) + max_val
         else:
             self.max_cloud_map = max_cloud_map
-        self.out_of_bounds_area = np.where(self.max_cloud_map > 1.)[0]
+        self.out_of_bounds_area = np.where(self.max_cloud_map > 1.0)[0]
         self.out_of_bounds_val = out_of_bounds_val
         self.result = np.ones(hp.nside2npix(self.nside))
 
@@ -296,8 +338,9 @@ class Map_cloud_basis_function(Base_basis_function):
         Point value to give regions where there are no observations requested
     """
 
-    def __init__(self, nside=None, max_cloud_map=None, max_val=0.7,
-                 out_of_bounds_val=np.nan):
+    def __init__(
+        self, nside=None, max_cloud_map=None, max_val=0.7, out_of_bounds_val=np.nan
+    ):
         super(Bulk_cloud_basis_function, self).__init__(nside=nside)
         self.update_on_newobs = False
 
@@ -305,7 +348,7 @@ class Map_cloud_basis_function(Base_basis_function):
             self.max_cloud_map = np.zeros(hp.nside2npix(nside), dtype=float) + max_val
         else:
             self.max_cloud_map = max_cloud_map
-        self.out_of_bounds_area = np.where(self.max_cloud_map > 1.)[0]
+        self.out_of_bounds_area = np.where(self.max_cloud_map > 1.0)[0]
         self.out_of_bounds_val = out_of_bounds_val
         self.result = np.ones(hp.nside2npix(self.nside))
 
@@ -330,9 +373,9 @@ class Map_cloud_basis_function(Base_basis_function):
 
 
 class Mask_azimuth_basis_function(Base_basis_function):
-    """Mask pixels based on azimuth
-    """
-    def __init__(self, nside=None, out_of_bounds_val=np.nan, az_min=0., az_max=180.):
+    """Mask pixels based on azimuth"""
+
+    def __init__(self, nside=None, out_of_bounds_val=np.nan, az_min=0.0, az_max=180.0):
         super(Mask_azimuth_basis_function, self).__init__(nside=nside)
         self.az_min = int_rounded(np.radians(az_min))
         self.az_max = int_rounded(np.radians(az_max))
@@ -340,7 +383,10 @@ class Mask_azimuth_basis_function(Base_basis_function):
         self.result = np.ones(hp.nside2npix(self.nside))
 
     def _calc_value(self, conditions, indx=None):
-        to_mask = np.where((int_rounded(conditions.az) > self.az_min) & (int_rounded(conditions.az) < self.az_max))[0]
+        to_mask = np.where(
+            (int_rounded(conditions.az) > self.az_min)
+            & (int_rounded(conditions.az) < self.az_max)
+        )[0]
         result = self.result.copy()
         result[to_mask] = self.out_of_bounds_val
 

@@ -59,9 +59,7 @@ class GW170817DetMetric(transientAsciiSEDMetric):
         num_phases_to_run=5,
         **kwargs
     ):
-        """
-
-        """
+        """"""
         super(GW170817DetMetric, self).__init__(
             ascii_file=ascii_file,
             metric_name=metric_name,

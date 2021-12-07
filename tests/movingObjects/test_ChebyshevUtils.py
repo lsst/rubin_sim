@@ -1,11 +1,15 @@
 import numpy as np
 import unittest
 
-from rubin_sim.movingObjects import chebfit, makeChebMatrix, makeChebMatrixOnlyX, chebeval
+from rubin_sim.movingObjects import (
+    chebfit,
+    makeChebMatrix,
+    makeChebMatrixOnlyX,
+    chebeval,
+)
 
 
 class TestChebgrid(unittest.TestCase):
-
     def test_raise_error(self):
         x = np.linspace(-1, 1, 9)
         y = np.sin(x)
@@ -24,8 +28,11 @@ class TestChebgrid(unittest.TestCase):
         self.assertTrue(np.allclose(yy_woutVel, yy_wVel))
         # Test that we get a nan for a value outside the range of the 'interval', if mask=True
         yy_wVel, vv = chebeval(np.linspace(-2, 1, 17), p, mask=True)
-        self.assertTrue(np.isnan(yy_wVel[0]),
-                        msg='Expected NaN for masked/out of range value, but got %.2e' % (yy_wVel[0]))
+        self.assertTrue(
+            np.isnan(yy_wVel[0]),
+            msg="Expected NaN for masked/out of range value, but got %.2e"
+            % (yy_wVel[0]),
+        )
 
     def test_ends_locked(self):
         x = np.linspace(-1, 1, 9)
@@ -40,8 +47,7 @@ class TestChebgrid(unittest.TestCase):
             self.assertAlmostEqual(vv[-1], dy[-1], places=13)
 
     def test_accuracy(self):
-        """If nPoly is  greater than number of values being fit, then fit should be exact.
-        """
+        """If nPoly is  greater than number of values being fit, then fit should be exact."""
         x = np.linspace(0, np.pi, 9)
         y = np.sin(x)
         dy = np.cos(x)
@@ -52,20 +58,21 @@ class TestChebgrid(unittest.TestCase):
         self.assertLess(np.sum(resid), 1e-13)
 
     def test_accuracy_prefit_c1c2(self):
-        """If nPoly is  greater than number of values being fit, then fit should be exact.
-        """
+        """If nPoly is  greater than number of values being fit, then fit should be exact."""
         NPOINTS = 8
         NPOLY = 16
         x = np.linspace(0, np.pi, NPOINTS + 1)
         y = np.sin(x)
         dy = np.cos(x)
         xmatrix, dxmatrix = makeChebMatrix(NPOINTS + 1, NPOLY)
-        p, resid, rms, maxresid = chebfit(x, y, dy, xMultiplier=xmatrix, dxMultiplier=dxmatrix, nPoly=NPOLY)
+        p, resid, rms, maxresid = chebfit(
+            x, y, dy, xMultiplier=xmatrix, dxMultiplier=dxmatrix, nPoly=NPOLY
+        )
         yy, vv = chebeval(x, p, interval=np.array([0, np.pi]))
         self.assertTrue(np.allclose(yy, y, rtol=1e-13))
         self.assertTrue(np.allclose(vv, dy, rtol=1e-13))
         self.assertLess(np.sum(resid), 1e-13)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

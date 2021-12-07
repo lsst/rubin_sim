@@ -12,17 +12,17 @@ import rubin_sim.utils as simsUtils
 from .baseSlicer import BaseSlicer
 from rubin_sim.utils import LsstCameraFootprint
 
-__all__ = ['BaseSpatialSlicer']
+__all__ = ["BaseSpatialSlicer"]
 
 
 def rotate(x, y, rotation_angle_rad):
-    """rotate 2d points around the origin (0,0)
-    """
+    """rotate 2d points around the origin (0,0)"""
     cos_rad = np.cos(rotation_angle_rad)
     sin_rad = np.sin(rotation_angle_rad)
     qx = cos_rad * x - sin_rad * y
     qy = sin_rad * x + cos_rad * y
     return qx, qy
+
 
 class BaseSpatialSlicer(BaseSlicer):
     """Base spatial slicer object, contains additional functionality for spatial slicing,
@@ -59,9 +59,20 @@ class BaseSpatialSlicer(BaseSlicer):
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
     """
-    def __init__(self, lonCol='fieldRA', latCol='fieldDec', latLonDeg=True,
-                 verbose=True, badval=-666, leafsize=100, radius=2.45,
-                 useCamera=True, cameraFootprintFile=None, rotSkyPosColName='rotSkyPos'):
+
+    def __init__(
+        self,
+        lonCol="fieldRA",
+        latCol="fieldDec",
+        latLonDeg=True,
+        verbose=True,
+        badval=-666,
+        leafsize=100,
+        radius=2.45,
+        useCamera=True,
+        cameraFootprintFile=None,
+        rotSkyPosColName="rotSkyPos",
+    ):
         super().__init__(verbose=verbose, badval=badval)
         self.lonCol = lonCol
         self.latCol = latCol
@@ -72,16 +83,20 @@ class BaseSpatialSlicer(BaseSlicer):
         self.cameraFootprintFile = cameraFootprintFile
         if useCamera:
             self.columnsNeeded.append(rotSkyPosColName)
-        self.slicer_init = {'lonCol': lonCol, 'latCol': latCol,
-                            'radius': radius, 'badval': badval,
-                            'useCamera': useCamera}
+        self.slicer_init = {
+            "lonCol": lonCol,
+            "latCol": latCol,
+            "radius": radius,
+            "badval": badval,
+            "useCamera": useCamera,
+        }
         self.radius = radius
         self.leafsize = leafsize
         self.useCamera = useCamera
         # RA and Dec are required slicePoint info for any spatial slicer. Slicepoint RA/Dec are in radians.
-        self.slicePoints['sid'] = None
-        self.slicePoints['ra'] = None
-        self.slicePoints['dec'] = None
+        self.slicePoints["sid"] = None
+        self.slicePoints["ra"] = None
+        self.slicePoints["dec"] = None
         self.nslice = None
         self.shape = None
         self.plotFuncs = [BaseHistogram, BaseSkyMap]
@@ -100,8 +115,10 @@ class BaseSpatialSlicer(BaseSlicer):
         """
         if maps is not None:
             if self.cacheSize != 0 and len(maps) > 0:
-                warnings.warn('Warning:  Loading maps but cache on.'
-                              'Should probably set useCache=False in slicer.')
+                warnings.warn(
+                    "Warning:  Loading maps but cache on."
+                    "Should probably set useCache=False in slicer."
+                )
             self._runMaps(maps)
         self._setRad(self.radius)
         if self.useCamera:
@@ -114,8 +131,11 @@ class BaseSpatialSlicer(BaseSlicer):
                 self.data_rot = np.radians(self.data_rot)
             self._setupLSSTCamera()
         if self.latLonDeg:
-            self._buildTree(np.radians(simData[self.lonCol]),
-                            np.radians(simData[self.latCol]), self.leafsize)
+            self._buildTree(
+                np.radians(simData[self.lonCol]),
+                np.radians(simData[self.latCol]),
+                self.leafsize,
+            )
         else:
             self._buildTree(simData[self.lonCol], simData[self.latCol], self.leafsize)
 
@@ -125,17 +145,22 @@ class BaseSpatialSlicer(BaseSlicer):
             (slicepoint=lonCol/latCol value .. usually ra/dec)."""
 
             # Build dict for slicePoint info
-            slicePoint = {'sid': islice}
-            sx, sy, sz = simsUtils._xyz_from_ra_dec(self.slicePoints['ra'][islice],
-                                                    self.slicePoints['dec'][islice])
+            slicePoint = {"sid": islice}
+            sx, sy, sz = simsUtils._xyz_from_ra_dec(
+                self.slicePoints["ra"][islice], self.slicePoints["dec"][islice]
+            )
             # Query against tree.
             indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
 
             if (self.useCamera) & (len(indices) > 0):
                 # Find the indices *of those indices* which fall in the camera footprint
-                camera_idx = self.camera(self.slicePoints['ra'][islice], self.slicePoints['dec'][islice],
-                                         self.data_ra[indices], self.data_dec[indices],
-                                         self.data_rot[indices])
+                camera_idx = self.camera(
+                    self.slicePoints["ra"][islice],
+                    self.slicePoints["dec"][islice],
+                    self.data_ra[indices],
+                    self.data_dec[indices],
+                    self.data_rot[indices],
+                )
                 indices = np.array(indices)[camera_idx]
 
             # Loop through all the slicePoint keys. If the first dimension of slicepoint[key] has
@@ -147,26 +172,26 @@ class BaseSpatialSlicer(BaseSlicer):
                     keyShape = 0
                 else:
                     keyShape = np.shape(self.slicePoints[key])[0]
-                if (keyShape == self.nslice):
+                if keyShape == self.nslice:
                     slicePoint[key] = self.slicePoints[key][islice]
                 else:
                     slicePoint[key] = self.slicePoints[key]
-            return {'idxs': indices, 'slicePoint': slicePoint}
-        setattr(self, '_sliceSimData', _sliceSimData)
+            return {"idxs": indices, "slicePoint": slicePoint}
+
+        setattr(self, "_sliceSimData", _sliceSimData)
 
     def _setupLSSTCamera(self):
         """If we want to include the camera chip gaps, etc"""
-        self.camera = LsstCameraFootprint(units='radians',
-                                          footprint_file=self.cameraFootprintFile)
+        self.camera = LsstCameraFootprint(
+            units="radians", footprint_file=self.cameraFootprintFile
+        )
 
     def _buildTree(self, simDataRa, simDataDec, leafsize=100):
         """Build KD tree on simDataRA/Dec using utility function from mafUtils.
 
         simDataRA, simDataDec = RA and Dec values (in radians).
         leafsize = the number of Ra/Dec pointings in each leaf node."""
-        self.opsimtree = simsUtils._buildTree(simDataRa,
-                                              simDataDec,
-                                              leafsize)
+        self.opsimtree = simsUtils._buildTree(simDataRa, simDataDec, leafsize)
 
     def _setRad(self, radius=1.75):
         """Set radius (in degrees) for kdtree search using utility function from mafUtils."""
