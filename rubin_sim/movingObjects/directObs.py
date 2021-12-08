@@ -4,7 +4,7 @@ import datetime
 
 from .baseObs import BaseObs
 
-__all__ = ['DirectObs']
+__all__ = ["DirectObs"]
 
 
 class DirectObs(BaseObs):
@@ -76,32 +76,70 @@ class DirectObs(BaseObs):
         observations (in degrees).
         Default 10 degrees.
     """
-    def __init__(self, footprint='camera', rFov=1.75, xTol=5, yTol=3,
-                 ephMode='nbody', prelimEphMode='2body', ephType='basic', obsCode='I11',
-                 ephFile=None,
-                 obsTimeCol='observationStartMJD', obsTimeScale='TAI',
-                 seeingCol='seeingFwhmGeom', visitExpTimeCol='visitExposureTime',
-                 obsRA='fieldRA', obsDec='fieldDec', obsRotSkyPos='rotSkyPos', obsDegrees=True,
-                 outfileName='lsst_obs.dat', obsMetadata='', tstep=1.0, roughTol=10.0):
-        super().__init__(footprint=footprint, rFov=rFov, xTol=xTol, yTol=yTol,
-                         ephMode=ephMode, ephType=ephType, obsCode=obsCode,
-                         ephFile=ephFile, obsTimeCol=obsTimeCol, obsTimeScale=obsTimeScale,
-                         seeingCol=seeingCol, visitExpTimeCol=visitExpTimeCol,
-                         obsRA=obsRA, obsDec=obsDec, obsRotSkyPos=obsRotSkyPos, obsDegrees=obsDegrees,
-                         outfileName=outfileName, obsMetadata=obsMetadata)
+
+    def __init__(
+        self,
+        footprint="camera",
+        rFov=1.75,
+        xTol=5,
+        yTol=3,
+        ephMode="nbody",
+        prelimEphMode="2body",
+        ephType="basic",
+        obsCode="I11",
+        ephFile=None,
+        obsTimeCol="observationStartMJD",
+        obsTimeScale="TAI",
+        seeingCol="seeingFwhmGeom",
+        visitExpTimeCol="visitExposureTime",
+        obsRA="fieldRA",
+        obsDec="fieldDec",
+        obsRotSkyPos="rotSkyPos",
+        obsDegrees=True,
+        outfileName="lsst_obs.dat",
+        obsMetadata="",
+        tstep=1.0,
+        roughTol=10.0,
+    ):
+        super().__init__(
+            footprint=footprint,
+            rFov=rFov,
+            xTol=xTol,
+            yTol=yTol,
+            ephMode=ephMode,
+            ephType=ephType,
+            obsCode=obsCode,
+            ephFile=ephFile,
+            obsTimeCol=obsTimeCol,
+            obsTimeScale=obsTimeScale,
+            seeingCol=seeingCol,
+            visitExpTimeCol=visitExpTimeCol,
+            obsRA=obsRA,
+            obsDec=obsDec,
+            obsRotSkyPos=obsRotSkyPos,
+            obsDegrees=obsDegrees,
+            outfileName=outfileName,
+            obsMetadata=obsMetadata,
+        )
         self.tstep = tstep
         self.roughTol = roughTol
-        if prelimEphMode not in ('2body', 'nbody'):
-            raise ValueError('Ephemeris generation must be 2body or nbody.')
+        if prelimEphMode not in ("2body", "nbody"):
+            raise ValueError("Ephemeris generation must be 2body or nbody.")
         self.prelimEphMode = prelimEphMode
 
     def _headerMeta(self):
         # Specific header information for direct obs.
-        self.outfile.write('# direct obs header metadata\n')
-        self.outfile.write('# observation generation via %s\n' % self.__class__.__name__)
-        self.outfile.write('# ephMode %s prelimEphMode %s\n' % (self.ephMode, self.prelimEphMode))
-        self.outfile.write('# rough tolerance for preliminary match %f\n' % self.roughTol)
-        self.outfile.write('# time step for preliminary match %f\n' % self.tstep)
+        self.outfile.write("# direct obs header metadata\n")
+        self.outfile.write(
+            "# observation generation via %s\n" % self.__class__.__name__
+        )
+        self.outfile.write(
+            "# ephMode %s prelimEphMode %s\n" % (self.ephMode, self.prelimEphMode)
+        )
+        self.outfile.write(
+            "# rough tolerance for preliminary match %f\n" % self.roughTol
+        )
+        self.outfile.write("# time step for preliminary match %f\n" % self.tstep)
 
     def run(self, orbits, obsData):
         """Find and write the observations of each object to disk.
@@ -121,40 +159,57 @@ class DirectObs(BaseObs):
         timeStart = np.floor(obsData[self.obsTimeCol].min() + 0.16 - 0.5) - timeStep
         timeEnd = np.ceil(obsData[self.obsTimeCol].max() + 0.16 + 0.5) + timeStep
         rough_times = np.arange(timeStart, timeEnd + timeStep / 2.0, timeStep)
-        logging.info('Generating preliminary ephemerides on a grid of %f day timesteps.' % (timeStep))
+        logging.info(
+            "Generating preliminary ephemerides on a grid of %f day timesteps."
+            % (timeStep)
+        )
         # For each object, identify observations where the object is within the FOV (or camera footprint).
         for i, sso in enumerate(orbits):
-            objid = sso.orbits['objId'].iloc[0]
-            sedname = sso.orbits['sed_filename'].iloc[0]
+            objid = sso.orbits["objId"].iloc[0]
+            sedname = sso.orbits["sed_filename"].iloc[0]
             # Generate ephemerides on the rough grid.
-            logging.debug(("%d/%d   id=%s : " % (i, len(orbits), objid)) +
-                          datetime.datetime.now().strftime("Prelim start: %Y-%m-%d %H:%M:%S")
-                          + " nRoughTimes: %s" % len(rough_times))
-            ephs = self.generateEphemerides(sso, rough_times,
-                                            ephMode=self.prelimEphMode, ephType=self.ephType)[0]
-            mu = ephs['velocity']
-            logging.debug(("%d/%d   id=%s : " % (i, len(orbits), objid)) + 
-                          datetime.datetime.now().strftime("Prelim end: %Y-%m-%d %H:%M:%S") + 
-                          " π(median, max), min(geo_dist): %.2f, %.2f deg/day  %.2f AU" 
-                          % (np.median(mu), np.max(mu), np.min(ephs['geo_dist'])))
-            
+            logging.debug(
+                ("%d/%d   id=%s : " % (i, len(orbits), objid))
+                + datetime.datetime.now().strftime("Prelim start: %Y-%m-%d %H:%M:%S")
+                + " nRoughTimes: %s" % len(rough_times)
+            )
+            ephs = self.generateEphemerides(
+                sso, rough_times, ephMode=self.prelimEphMode, ephType=self.ephType
+            )[0]
+            mu = ephs["velocity"]
+            logging.debug(
+                ("%d/%d   id=%s : " % (i, len(orbits), objid))
+                + datetime.datetime.now().strftime("Prelim end: %Y-%m-%d %H:%M:%S")
+                + " π(median, max), min(geo_dist): %.2f, %.2f deg/day  %.2f AU"
+                % (np.median(mu), np.max(mu), np.min(ephs["geo_dist"]))
+            )
+
             # Find observations which come within roughTol of the fov.
-            ephsIdxs = np.searchsorted(ephs['time'], obsData[self.obsTimeCol])
+            ephsIdxs = np.searchsorted(ephs["time"], obsData[self.obsTimeCol])
             roughIdxObs = self._ssoInCircleFov(ephs[ephsIdxs], obsData, self.roughTol)
             if len(roughIdxObs) > 0:
                 # Generate exact ephemerides for these times.
                 times = obsData[self.obsTimeCol][roughIdxObs]
-                logging.debug(("%d/%d   id=%s : " % (i, len(orbits), objid)) + 
-                              datetime.datetime.now().strftime("Exact start: %Y-%m-%d %H:%M:%S") + 
-                              " nExactTimes: %s" % len(times))
-                ephs = self.generateEphemerides(sso, times, ephMode=self.ephMode, ephType=self.ephType)[0]
-                logging.debug(("%d/%d   id=%s : " % (i, len(orbits), objid)) + 
-                              datetime.datetime.now().strftime("Exact end: %Y-%m-%d %H:%M:%S"))
+                logging.debug(
+                    ("%d/%d   id=%s : " % (i, len(orbits), objid))
+                    + datetime.datetime.now().strftime("Exact start: %Y-%m-%d %H:%M:%S")
+                    + " nExactTimes: %s" % len(times)
+                )
+                ephs = self.generateEphemerides(
+                    sso, times, ephMode=self.ephMode, ephType=self.ephType
+                )[0]
+                logging.debug(
+                    ("%d/%d   id=%s : " % (i, len(orbits), objid))
+                    + datetime.datetime.now().strftime("Exact end: %Y-%m-%d %H:%M:%S")
+                )
                 # Identify the objects which fell within the specific footprint.
                 idxObs = self.ssoInFov(ephs, obsData[roughIdxObs])
-                logging.info(("%d/%d   id=%s : " % (i, len(orbits), objid)) + 
-                             "Object in %d out of %d potential fields (%.2f%% success rate)" 
-                             % (len(idxObs), len(times), 100.*float(len(idxObs))/len(times)))
+                logging.info(
+                    ("%d/%d   id=%s : " % (i, len(orbits), objid))
+                    + "Object in %d out of %d potential fields (%.2f%% success rate)"
+                    % (len(idxObs), len(times), 100.0 * float(len(idxObs)) / len(times))
+                )
                 # Write these observations to disk.
-                self.writeObs(objid, ephs[idxObs], obsData[roughIdxObs][idxObs], sedname=sedname)
-
+                self.writeObs(
+                    objid, ephs[idxObs], obsData[roughIdxObs][idxObs], sedname=sedname
+                )

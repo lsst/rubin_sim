@@ -1,16 +1,21 @@
 import numpy as np
-from rubin_sim.scheduler.utils import (empty_observation, set_default_nside,
-                                       hp_in_lsst_fov, read_fields, hp_in_comcam_fov,
-                                       comcamTessellate)
+from rubin_sim.scheduler.utils import (
+    empty_observation,
+    set_default_nside,
+    hp_in_lsst_fov,
+    read_fields,
+    hp_in_comcam_fov,
+    comcamTessellate,
+)
 import healpy as hp
 from rubin_sim.scheduler.thomson import xyz2thetaphi, thetaphi2xyz
 from rubin_sim.scheduler.detailers import Zero_rot_detailer
 
-__all__ = ['BaseSurvey', 'BaseMarkovDF_survey']
+__all__ = ["BaseSurvey", "BaseMarkovDF_survey"]
 
 
 class BaseSurvey(object):
-    """A baseclass for survey objects. 
+    """A baseclass for survey objects.
 
     Parameters
     ----------
@@ -31,9 +36,18 @@ class BaseSurvey(object):
     scheduled_obs : np.array
         An array of MJD values for when observations should execute.
     """
-    def __init__(self, basis_functions, extra_features=None, extra_basis_functions=None,
-                 ignore_obs=None, survey_name='', nside=None, detailers=None,
-                 scheduled_obs=None):
+
+    def __init__(
+        self,
+        basis_functions,
+        extra_features=None,
+        extra_basis_functions=None,
+        ignore_obs=None,
+        survey_name="",
+        nside=None,
+        detailers=None,
+        scheduled_obs=None,
+    ):
         if nside is None:
             nside = set_default_nside()
         if ignore_obs is None:
@@ -79,7 +93,7 @@ class BaseSurvey(object):
 
     def add_observation(self, observation, **kwargs):
         # Check each posible ignore string
-        checks = [io not in str(observation['note']) for io in self.ignore_obs]
+        checks = [io not in str(observation["note"]) for io in self.ignore_obs]
         # ugh, I think here I have to assume observation is an array and not a dict.
         if all(checks):
             for feature in self.extra_features:
@@ -154,13 +168,13 @@ def rotx(theta, x, y, z):
     sin_t = np.sin(theta)
     cos_t = np.cos(theta)
     xp = x
-    yp = y*cos_t+z*sin_t
-    zp = -y*sin_t+z*cos_t
+    yp = y * cos_t + z * sin_t
+    zp = -y * sin_t + z * cos_t
     return xp, yp, zp
 
 
 class BaseMarkovDF_survey(BaseSurvey):
-    """ A Markov Decision Function survey object. Uses Basis functions to compute a
+    """A Markov Decision Function survey object. Uses Basis functions to compute a
     final reward function and decide what to observe based on the reward. Includes
     methods for dithering and defaults to dithering nightly.
 
@@ -179,33 +193,49 @@ class BaseMarkovDF_survey(BaseSurvey):
     npositions : int (7305)
         The number of dither positions to pre-compute. Defaults to 7305 (so good for 20 years)
     """
-    def __init__(self, basis_functions, basis_weights, extra_features=None,
-                 smoothing_kernel=None,
-                 ignore_obs=None, survey_name='', nside=None, seed=42,
-                 dither=True, detailers=None, camera='LSST', area_required=None,
-                 npositions=7305):
 
-        super(BaseMarkovDF_survey, self).__init__(basis_functions=basis_functions,
-                                                  extra_features=extra_features,
-                                                  ignore_obs=ignore_obs, survey_name=survey_name,
-                                                  nside=nside, detailers=detailers)
+    def __init__(
+        self,
+        basis_functions,
+        basis_weights,
+        extra_features=None,
+        smoothing_kernel=None,
+        ignore_obs=None,
+        survey_name="",
+        nside=None,
+        seed=42,
+        dither=True,
+        detailers=None,
+        camera="LSST",
+        area_required=None,
+        npositions=7305,
+    ):
+
+        super(BaseMarkovDF_survey, self).__init__(
+            basis_functions=basis_functions,
+            extra_features=extra_features,
+            ignore_obs=ignore_obs,
+            survey_name=survey_name,
+            nside=nside,
+            detailers=detailers,
+        )
 
         self.basis_weights = basis_weights
         # Check that weights and basis functions are same length
         if len(basis_functions) != np.size(basis_weights):
-            raise ValueError('basis_functions and basis_weights must be same length.')
+            raise ValueError("basis_functions and basis_weights must be same length.")
 
         self.camera = camera
         # Load the OpSim field tesselation and map healpix to fields
-        if self.camera == 'LSST':
+        if self.camera == "LSST":
             self.fields_init = read_fields()
-        elif self.camera == 'comcam':
+        elif self.camera == "comcam":
             self.fields_init = comcamTessellate()
         else:
             ValueError('camera %s unknown, should be "LSST" or "comcam"' % camera)
         self.fields = self.fields_init.copy()
         self.hp2fields = np.array([])
-        self._hp2fieldsetup(self.fields['RA'], self.fields['dec'])
+        self._hp2fieldsetup(self.fields["RA"], self.fields["dec"])
 
         if smoothing_kernel is not None:
             self.smoothing_kernel = np.radians(smoothing_kernel)
@@ -215,7 +245,7 @@ class BaseMarkovDF_survey(BaseSurvey):
         if area_required is None:
             self.area_required = area_required
         else:
-            self.area_required = area_required * (np.pi/180.)**2  # To steradians
+            self.area_required = area_required * (np.pi / 180.0) ** 2  # To steradians
 
         # Start tracking the night
         self.night = -1
@@ -226,11 +256,11 @@ class BaseMarkovDF_survey(BaseSurvey):
         # This way, if different survey objects are seeded the same, they will
         # use the same dither positions each night
         rng = np.random.default_rng(seed)
-        self.lon = rng.random(npositions)*np.pi*2
+        self.lon = rng.random(npositions) * np.pi * 2
         # Make sure latitude points spread correctly
         # http://mathworld.wolfram.com/SpherePointPicking.html
-        self.lat = np.arccos(2.*rng.random(npositions) - 1.)
-        self.lon2 = rng.random(npositions)*np.pi*2
+        self.lat = np.arccos(2.0 * rng.random(npositions) - 1.0)
+        self.lon2 = rng.random(npositions) * np.pi * 2
 
     def _check_feasibility(self, conditions):
         """
@@ -252,14 +282,14 @@ class BaseMarkovDF_survey(BaseSurvey):
         """Map each healpixel to nearest field. This will only work if healpix
         resolution is higher than field resolution.
         """
-        if self.camera == 'LSST':
+        if self.camera == "LSST":
             pointing2hpindx = hp_in_lsst_fov(nside=self.nside)
-        elif self.camera == 'comcam':
+        elif self.camera == "comcam":
             pointing2hpindx = hp_in_comcam_fov(nside=self.nside)
 
         self.hp2fields = np.zeros(hp.nside2npix(self.nside), dtype=int)
         for i in range(len(ra)):
-            hpindx = pointing2hpindx(ra[i], dec[i], rotSkyPos=0.)
+            hpindx = pointing2hpindx(ra[i], dec[i], rotSkyPos=0.0)
             self.hp2fields[hpindx] = i
 
     def _spin_fields(self, conditions, lon=None, lat=None, lon2=None):
@@ -286,41 +316,40 @@ class BaseMarkovDF_survey(BaseSurvey):
             lon2 = self.lon2[conditions.night]
 
         # rotate longitude
-        ra = (self.fields_init['RA'] + lon) % (2.*np.pi)
-        dec = self.fields_init['dec'] + 0
+        ra = (self.fields_init["RA"] + lon) % (2.0 * np.pi)
+        dec = self.fields_init["dec"] + 0
 
         # Now to rotate ra and dec about the x-axis
-        x, y, z = thetaphi2xyz(ra, dec+np.pi/2.)
+        x, y, z = thetaphi2xyz(ra, dec + np.pi / 2.0)
         xp, yp, zp = rotx(lat, x, y, z)
         theta, phi = xyz2thetaphi(xp, yp, zp)
-        dec = phi - np.pi/2
+        dec = phi - np.pi / 2
         ra = theta + np.pi
 
         # One more RA rotation
-        ra = (ra + lon2) % (2.*np.pi)
+        ra = (ra + lon2) % (2.0 * np.pi)
 
-        self.fields['RA'] = ra
-        self.fields['dec'] = dec
+        self.fields["RA"] = ra
+        self.fields["dec"] = dec
         # Rebuild the kdtree with the new positions
         # XXX-may be doing some ra,dec to conversions xyz more than needed.
         self._hp2fieldsetup(ra, dec)
 
     def smooth_reward(self):
-        """If we want to smooth the reward function.
-        """
+        """If we want to smooth the reward function."""
         if hp.isnpixok(self.reward.size):
             # Need to swap NaNs to hp.UNSEEN so smoothing doesn't spread mask
             reward_temp = self.reward + 0
             mask = np.isnan(reward_temp)
             reward_temp[mask] = hp.UNSEEN
-            self.reward_smooth = hp.sphtfunc.smoothing(reward_temp,
-                                                       fwhm=self.smoothing_kernel,
-                                                       verbose=False)
+            self.reward_smooth = hp.sphtfunc.smoothing(
+                reward_temp, fwhm=self.smoothing_kernel, verbose=False
+            )
             self.reward_smooth[mask] = np.nan
             self.reward = self.reward_smooth
-            #good = ~np.isnan(self.reward_smooth)
+            # good = ~np.isnan(self.reward_smooth)
             # Round off to prevent strange behavior early on
-            #self.reward_smooth[good] = np.round(self.reward_smooth[good], decimals=4)
+            # self.reward_smooth[good] = np.round(self.reward_smooth[good], decimals=4)
 
     def calc_reward_function(self, conditions):
         self.reward_checked = True
@@ -329,7 +358,7 @@ class BaseMarkovDF_survey(BaseSurvey):
             indx = np.arange(hp.nside2npix(self.nside))
             for bf, weight in zip(self.basis_functions, self.basis_weights):
                 basis_value = bf(conditions, indx=indx)
-                self.reward += basis_value*weight
+                self.reward += basis_value * weight
 
             if np.any(np.isinf(self.reward)):
                 self.reward = np.inf
@@ -341,7 +370,9 @@ class BaseMarkovDF_survey(BaseSurvey):
             self.smooth_reward()
 
         if self.area_required is not None:
-            good_area = np.where(np.abs(self.reward) >= 0)[0].size * hp.nside2pixarea(self.nside)
+            good_area = np.where(np.abs(self.reward) >= 0)[0].size * hp.nside2pixarea(
+                self.nside
+            )
             if good_area < self.area_required:
                 self.reward = -np.inf
 

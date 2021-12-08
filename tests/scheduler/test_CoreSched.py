@@ -10,30 +10,31 @@ from rubin_sim.scheduler.modelObservatory import Model_observatory
 
 
 class TestCoreSched(unittest.TestCase):
-
     def testsched(self):
-        target_map = standard_goals()['r']
+        target_map = standard_goals()["r"]
 
         bfs = []
         bfs.append(basis_functions.M5_diff_basis_function())
         bfs.append(basis_functions.Target_map_basis_function(target_map=target_map))
-        weights = np.array([1., 1])
+        weights = np.array([1.0, 1])
         survey = surveys.Greedy_survey(bfs, weights)
         scheduler = Core_scheduler([survey])
 
-        observatory = Model_observatory(mjd_start=59853.5,
-                                        seeing_db=os.path.join(get_data_dir(), 'tests', 'seeing.db'))
+        observatory = Model_observatory(
+            mjd_start=59853.5,
+            seeing_db=os.path.join(get_data_dir(), "tests", "seeing.db"),
+        )
 
         # Check that we can update conditions
         scheduler.update_conditions(observatory.return_conditions())
 
         # Check that we can get an observation out
         obs = scheduler.request_observation()
-        assert(obs is not None)
+        assert obs is not None
 
         # Check that we can flush the Queue
         scheduler.flush_queue()
-        assert(len(scheduler.queue) == 0)
+        assert len(scheduler.queue) == 0
 
         # Check that we can add an observation
         scheduler.add_observation(obs)

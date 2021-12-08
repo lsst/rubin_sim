@@ -3,7 +3,6 @@ from rubin_sim.site_models import Almanac
 
 
 class TestAlmanac(unittest.TestCase):
-
     def test_alm(self):
         alma = Almanac()
 

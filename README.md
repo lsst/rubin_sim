@@ -20,7 +20,12 @@ conda install -c conda-forge --file=requirements.txt
 conda install jupyter   ### if you want to use jupyter notebook in this environment
 pip install -e .
 ```
-The installation can be tested by running `py.test` in the github directory.
+
+The installation can be tested by running `pytest` in the package directory.
+In order to run the unit tests, install the following additional packages:
+```
+conda install -c conda-forge --file=test-requirements.txt
+```
 
 However, we expect some users to want to install rubin_sim into an LSST stack environment, using only some of the basic options within rubin_sim such as photUtils. 
 This can be done without impacting the LSST environment by 
@@ -118,6 +123,20 @@ However, we do expect many users who wish to contribute metrics will not have th
  - issue a PR from your fork to our original lsst/rubin_sim repository
 
 When contributing code, metrics for MAF can be placed into either rubin_sim/rubin_sim/maf/metrics or rubin_sim/rubin_sim/maf/mafContrib (preferably rubin_sim/maf/metrics). Adding a unit test in the appropriate rubin_sim/tests directory is desirable. For unit tests, all filename should start with `test_` so py.test can automatically find them. An example notebook can be contributed to lsst/rubin_sim_notebooks. 
+
+When contributing to the package, make sure you reformat the code with `black` before commiting.
+The package ships with a `pre-commit` configuration file, which allows developers to install a git hook that will reformat the code before commiting.
+Most IDEs also contains `black` reformat add-ons.
+
+To install the `pre-commit` hook first install the `pre-commit` package with:
+```
+conda install -c conda-forge pre-commit
+```
+
+Then, install wthe hook with:
+```
+pre-commit install
+```
 
 ## Updating data files
 

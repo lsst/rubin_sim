@@ -10,8 +10,7 @@ __all__ = ["ModifiedJulianDate", "MJDWarning", "UTCtoUT1Warning"]
 
 # Filter out ERFA's complaints that we are simulating dates which
 # are in the future
-warnings.filterwarnings("ignore",
-                        message='.*taiutc.*dubious.year.*')
+warnings.filterwarnings("ignore", message=".*taiutc.*dubious.year.*")
 
 
 class MJDWarning(Warning):
@@ -20,6 +19,7 @@ class MJDWarning(Warning):
     will be of this class (or its sub-classes), so that users can filter them
     out by creating a simple filter targeted at category=MJDWarning.
     """
+
     pass
 
 
@@ -30,18 +30,18 @@ class UTCtoUT1Warning(MJDWarning):
     This class exists so that users can filter these warnings out by creating
     a simple filter targeted at category=UTCtoUT1Warning.
     """
+
     pass
 
 
 class ModifiedJulianDate(object):
-
     @classmethod
     def _get_ut1_from_utc(cls, UTC):
         """
         Take a numpy array of UTC values and return a numpy array of UT1 and dut1 values
         """
 
-        time_list = Time(UTC, scale='utc', format='mjd')
+        time_list = Time(UTC, scale="utc", format="mjd")
 
         try:
             dut1_out = time_list.delta_ut1_utc
@@ -49,17 +49,26 @@ class ModifiedJulianDate(object):
         except IERSRangeError:
             ut1_out = np.copy(UTC)
             dut1_out = np.zeros(len(UTC))
-            warnings.warn("ModifiedJulianData.get_list() was given date values that are outside "
-                          "astropy's range of interpolation for converting from UTC to UT1. "
-                          "We will treat UT1=UTC for those dates, lacking a better alternative.",
-                          category=UTCtoUT1Warning)
-            from astropy.utils.iers import TIME_BEFORE_IERS_RANGE, TIME_BEYOND_IERS_RANGE
+            warnings.warn(
+                "ModifiedJulianData.get_list() was given date values that are outside "
+                "astropy's range of interpolation for converting from UTC to UT1. "
+                "We will treat UT1=UTC for those dates, lacking a better alternative.",
+                category=UTCtoUT1Warning,
+            )
+            from astropy.utils.iers import (
+                TIME_BEFORE_IERS_RANGE,
+                TIME_BEYOND_IERS_RANGE,
+            )
+
             dut1_test, status = time_list.get_delta_ut1_utc(return_status=True)
-            good_dexes = np.where(np.logical_and(status != TIME_BEFORE_IERS_RANGE,
-                                                 status != TIME_BEYOND_IERS_RANGE))
+            good_dexes = np.where(
+                np.logical_and(
+                    status != TIME_BEFORE_IERS_RANGE, status != TIME_BEYOND_IERS_RANGE
+                )
+            )
 
             if len(good_dexes[0]) > 0:
-                time_good = Time(UTC[good_dexes], scale='utc', format='mjd')
+                time_good = Time(UTC[good_dexes], scale="utc", format="mjd")
                 dut1_good = time_good.delta_ut1_utc
                 ut1_good = time_good.ut1.mjd
 
@@ -87,14 +96,16 @@ class ModifiedJulianDate(object):
             return None
 
         if TAI is not None and UTC is not None:
-            raise RuntimeError("You should not specify both TAI and UTC in ModifiedJulianDate.get_list()")
+            raise RuntimeError(
+                "You should not specify both TAI and UTC in ModifiedJulianDate.get_list()"
+            )
 
         if TAI is not None:
-            time_list = Time(TAI, scale='tai', format='mjd')
+            time_list = Time(TAI, scale="tai", format="mjd")
             tai_list = TAI
             utc_list = time_list.utc.mjd
         elif UTC is not None:
-            time_list = Time(UTC, scale='utc', format='mjd')
+            time_list = Time(UTC, scale="utc", format="mjd")
             utc_list = UTC
             tai_list = time_list.tai.mjd
 
@@ -103,8 +114,9 @@ class ModifiedJulianDate(object):
 
         ut1_list, dut1_list = cls._get_ut1_from_utc(utc_list)
 
-        values = np.array([tai_list, utc_list, tt_list, tdb_list,
-                           ut1_list, dut1_list]).transpose()
+        values = np.array(
+            [tai_list, utc_list, tt_list, tdb_list, ut1_list, dut1_list]
+        ).transpose()
 
         output = []
         for vv in values:
@@ -126,19 +138,21 @@ class ModifiedJulianDate(object):
         """
 
         if TAI is None and UTC is None:
-            raise RuntimeError("You must specify either TAI or UTC to "
-                               "instantiate ModifiedJulianDate")
+            raise RuntimeError(
+                "You must specify either TAI or UTC to "
+                "instantiate ModifiedJulianDate"
+            )
 
         if TAI is not None:
-            self._time = Time(TAI, scale='tai', format='mjd')
+            self._time = Time(TAI, scale="tai", format="mjd")
             self._tai = TAI
             self._utc = None
-            self._initialized_with = 'TAI'
+            self._initialized_with = "TAI"
         else:
-            self._time = Time(UTC, scale='utc', format='mjd')
+            self._time = Time(UTC, scale="utc", format="mjd")
             self._utc = UTC
             self._tai = None
-            self._initialized_with = 'UTC'
+            self._initialized_with = "UTC"
 
         self._tt = None
         self._tdb = None
@@ -169,7 +183,7 @@ class ModifiedJulianDate(object):
         return not self.__eq__(other)
 
     def __deepcopy__(self, memo):
-        if self._initialized_with == 'TAI':
+        if self._initialized_with == "TAI":
             new_mjd = ModifiedJulianDate(TAI=self.TAI)
         else:
             new_mjd = ModifiedJulianDate(UTC=self.UTC)
@@ -190,10 +204,12 @@ class ModifiedJulianDate(object):
 
         method_name is the name of the method that caused this warning.
         """
-        warnings.warn("UTC is outside of IERS table for UT1-UTC.\n"
-                      "Returning UT1 = UTC for lack of a better idea\n"
-                      "This warning was caused by calling ModifiedJulianDate.%s\n" % method_name,
-                      category=UTCtoUT1Warning)
+        warnings.warn(
+            "UTC is outside of IERS table for UT1-UTC.\n"
+            "Returning UT1 = UTC for lack of a better idea\n"
+            "This warning was caused by calling ModifiedJulianDate.%s\n" % method_name,
+            category=UTCtoUT1Warning,
+        )
 
     @property
     def TAI(self):
@@ -224,7 +240,7 @@ class ModifiedJulianDate(object):
             try:
                 self._ut1 = self._time.ut1.mjd
             except IERSRangeError:
-                self._warn_utc_out_of_bounds('UT1')
+                self._warn_utc_out_of_bounds("UT1")
                 self._ut1 = self.UTC
 
         return self._ut1
@@ -239,7 +255,7 @@ class ModifiedJulianDate(object):
             try:
                 self._dut1 = self._time.delta_ut1_utc
             except IERSRangeError:
-                self._warn_utc_out_of_bounds('dut1')
+                self._warn_utc_out_of_bounds("dut1")
                 self._dut1 = 0.0
 
         return self._dut1

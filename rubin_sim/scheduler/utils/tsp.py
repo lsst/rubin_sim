@@ -7,8 +7,14 @@ from collections import deque
 # re-write of https://github.com/jameskrysiak/ConvexSalesman/blob/master/convex_salesman.py
 # This like a good explination too https://www.youtube.com/watch?v=syRSy1MFuho
 
-__all__ =['generate_dist_matrix', 'route_length', 'generate_hulls', 'merge_hulls',
-          'three_opt', 'tsp_convex']
+__all__ = [
+    "generate_dist_matrix",
+    "route_length",
+    "generate_hulls",
+    "merge_hulls",
+    "three_opt",
+    "tsp_convex",
+]
 
 
 def generate_dist_matrix(towns):
@@ -25,7 +31,7 @@ def generate_dist_matrix(towns):
     # Broadcast to i,j
     x_dist = x - x[:, np.newaxis]
     y_dist = y - y[:, np.newaxis]
-    distances = np.sqrt(x_dist**2 + y_dist**2)
+    distances = np.sqrt(x_dist ** 2 + y_dist ** 2)
     return distances
 
 
@@ -139,17 +145,25 @@ def three_opt(route, dist_matrix):
 
     for cuts in combinations:
         # The three chunks that the route is broken into based on the cuts.
-        c1 = route[cuts[0]:cuts[1]]
-        c2 = route[cuts[1]:cuts[2]]
-        c3 = route[cuts[2]:] + route[:cuts[0]]
+        c1 = route[cuts[0] : cuts[1]]
+        c2 = route[cuts[1] : cuts[2]]
+        c3 = route[cuts[2] :] + route[: cuts[0]]
 
         # Reversed chunks 2 and 3.
         rc2 = c2[::-1]
         rc3 = c3[::-1]
 
         # The unique permutations of all of those chunks.
-        route_perms = [c1+c2+c3, c1+c3+c2, c1+rc2+c3, c1+c3+rc2,
-                       c1+c2+rc3, c1+rc3+c2, c1+rc2+rc3, c1+rc3+rc2]
+        route_perms = [
+            c1 + c2 + c3,
+            c1 + c3 + c2,
+            c1 + rc2 + c3,
+            c1 + c3 + rc2,
+            c1 + c2 + rc3,
+            c1 + rc3 + c2,
+            c1 + rc2 + rc3,
+            c1 + rc3 + rc2,
+        ]
 
         # Find the smallest of these permutations.
         for perm in route_perms:

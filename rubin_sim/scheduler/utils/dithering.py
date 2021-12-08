@@ -6,7 +6,8 @@ from rubin_sim.utils import _hpid2RaDec, _xyz_angular_radius, _xyz_from_ra_dec
 
 default_nside = set_default_nside()
 
-__all__ = ['wrapRADec', 'rotate_ra_dec', 'pointings2hp', 'hpmap_cross']
+__all__ = ["wrapRADec", "rotate_ra_dec", "pointings2hp", "hpmap_cross"]
+
 
 def wrapRADec(ra, dec):
     # XXX--from MAF, should put in general utils
@@ -37,7 +38,7 @@ def wrapRADec(ra, dec):
     return ra, dec
 
 
-def rotate_ra_dec(ra, dec, ra_target, dec_target, init_rotate=0.):
+def rotate_ra_dec(ra, dec, ra_target, dec_target, init_rotate=0.0):
     """
     Rotate ra and dec coordinates to be centered on a new dec.
 
@@ -62,11 +63,11 @@ def rotate_ra_dec(ra, dec, ra_target, dec_target, init_rotate=0.):
 
     # Rotate around the x axis to start
     xp = x
-    if init_rotate != 0.:
+    if init_rotate != 0.0:
         c_i = np.cos(init_rotate)
         s_i = np.sin(init_rotate)
-        yp = c_i*y - s_i*z
-        zp = s_i*y + c_i*z
+        yp = c_i * y - s_i * z
+        zp = s_i * y + c_i * z
     else:
         yp = y
         zp = z
@@ -76,8 +77,8 @@ def rotate_ra_dec(ra, dec, ra_target, dec_target, init_rotate=0.):
     s_ty = np.sin(theta_y)
 
     # Rotate about y
-    xp2 = c_ty*xp + s_ty*zp
-    zp2 = -s_ty*xp + c_ty*zp
+    xp2 = c_ty * xp + s_ty * zp
+    zp2 = -s_ty * xp + c_ty * zp
 
     # Convert back to RA, Dec
     ra_p = np.arctan2(yp, xp2)
@@ -95,15 +96,14 @@ class pointings2hp(object):
     """
     Convert a list of telescope pointings and convert them to a pointing map
     """
-    def __init__(self, nside, radius=1.75):
-        """
 
-        """
+    def __init__(self, nside, radius=1.75):
+        """"""
         # hmm, not sure what the leafsize should be? Kernel can crash if too low.
         self.tree = hp_kd_tree(nside=nside, leafsize=300)
         self.nside = nside
         self.rad = _xyz_angular_radius(radius)
-        self.bins = np.arange(hp.nside2npix(nside)+1)-.5
+        self.bins = np.arange(hp.nside2npix(nside) + 1) - 0.5
 
     def __call__(self, ra, dec, stack=True):
         """
@@ -138,11 +138,10 @@ class hpmap_cross(object):
     """
     Find the cross-correlation of a healpix map and a bunch of rotated pointings
     """
+
     # XXX--just a very random radius search
     def __init__(self, nside=default_nside, radius=1.75, radius_search=1.75):
-        """
-
-        """
+        """"""
         self.nside = nside
         # XXX -- should I shrink the radius slightly to get rid of overlap? That would be clever!
         self.p2hp_search = pointings2hp(nside=nside, radius=radius_search)
@@ -152,12 +151,15 @@ class hpmap_cross(object):
         # XXX--Should write code to generate a new tellelation so we know where it came from,
         # not just a random .dat file that's been floating around!
         fields = read_fields()
-        good = np.where((fields['RA'] > np.radians(360.-15.)) | (fields['RA'] < np.radians(15.)))
+        good = np.where(
+            (fields["RA"] > np.radians(360.0 - 15.0))
+            | (fields["RA"] < np.radians(15.0))
+        )
         fields = fields[good]
-        good = np.where(np.abs(fields['dec']) < np.radians(15.))
+        good = np.where(np.abs(fields["dec"]) < np.radians(15.0))
         fields = fields[good]
-        self.ra = fields['RA']
-        self.dec = fields['dec']
+        self.ra = fields["RA"]
+        self.dec = fields["dec"]
 
         # Healpixel ra and dec
         self.hp_ra, self.hp_dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
@@ -195,17 +197,23 @@ class hpmap_cross(object):
         im_rot = x[2]
 
         # Rotate pointings to desired position
-        final_ra, final_dec = rotate_ra_dec(self.ra, self.dec, ra_rot, dec_rot, init_rotate=im_rot)
+        final_ra, final_dec = rotate_ra_dec(
+            self.ra, self.dec, ra_rot, dec_rot, init_rotate=im_rot
+        )
         # Find the number of observations at each healpixel
         obs_map = self.p2hp_search(final_ra, final_dec)
         good = np.where(self.inmap != hp.UNSEEN)[0]
 
         if return_pointings_map:
             obs_indx = self.p2hp_search(final_ra, final_dec, stack=False)
-            good_pointings = np.array([True if np.intersect1d(indxes, good).size > 0
-                                      else False for indxes in obs_indx])
+            good_pointings = np.array(
+                [
+                    True if np.intersect1d(indxes, good).size > 0 else False
+                    for indxes in obs_indx
+                ]
+            )
             if True not in good_pointings:
-                raise ValueError('No pointings overlap requested pixels')
+                raise ValueError("No pointings overlap requested pixels")
             obs_map = self.p2hp(final_ra[good_pointings], final_dec[good_pointings])
             return final_ra[good_pointings], final_dec[good_pointings], obs_map
         else:
@@ -213,11 +221,12 @@ class hpmap_cross(object):
             if np.min(obs_map[good]) == 0:
                 return np.inf
             else:
-                result = np.sum(self.inmap[good] *
-                                obs_map[good])/float(np.sum(self.inmap[good] + obs_map[good]))
+                result = np.sum(self.inmap[good] * obs_map[good]) / float(
+                    np.sum(self.inmap[good] + obs_map[good])
+                )
                 return result
 
-    def minimize(self, ra_delta=1., dec_delta=1., rot_delta=30.):
+    def minimize(self, ra_delta=1.0, dec_delta=1.0, rot_delta=30.0):
         """
         Let's find the minimum of the cross correlation.
         """
@@ -226,26 +235,34 @@ class hpmap_cross(object):
         ra_guess = np.median(self.hp_ra[reward_max])
         dec_guess = np.median(self.hp_dec[reward_max])
 
-        x0 = np.array([ra_guess, dec_guess, 0.])
+        x0 = np.array([ra_guess, dec_guess, 0.0])
 
         ra_delta = np.radians(ra_delta)
         dec_delta = np.radians(dec_delta)
         rot_delta = np.radians(rot_delta)
 
         # rots = np.arange(-np.pi/2., np.pi/2.+rot_delta, rot_delta)
-        rots = [np.radians(0.)]
+        rots = [np.radians(0.0)]
         # Make sure the initial simplex is large enough
         # XXX--might need to update scipy latest version to actually use this.
-        deltas = np.array([[ra_delta, 0, 0],
-                          [0, dec_delta, rot_delta],
-                          [-ra_delta, 0, -rot_delta],
-                          [ra_delta, -dec_delta, 2.*rot_delta]])
+        deltas = np.array(
+            [
+                [ra_delta, 0, 0],
+                [0, dec_delta, rot_delta],
+                [-ra_delta, 0, -rot_delta],
+                [ra_delta, -dec_delta, 2.0 * rot_delta],
+            ]
+        )
         init_simplex = deltas + x0
         minimum = None
         for rot in rots:
             x0[-1] = rot
-            min_result = minimize(self, x0, method='Nelder-Mead',
-                                  options={'initial_simplex': init_simplex})
+            min_result = minimize(
+                self,
+                x0,
+                method="Nelder-Mead",
+                options={"initial_simplex": init_simplex},
+            )
             if minimum is None:
                 minimum = min_result.fun
                 result = min_result
@@ -253,7 +270,3 @@ class hpmap_cross(object):
                 minimum = min_result.fun
                 result = min_result
         return result.x
-
-
-
-

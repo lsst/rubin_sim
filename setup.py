@@ -13,7 +13,7 @@ setup(
         "write_to": "rubin_sim/version.py",
         "write_to_template": scm_version_template,
     },
-    setup_requires=['setuptools_scm', 'setuptools_scm_git_archive'],
+    setup_requires=["setuptools_scm", "setuptools_scm_git_archive"],
     scripts=[
         "bin/maf/addRun",
         "bin/maf/glance_dir",
@@ -28,7 +28,7 @@ setup(
         "bin/movingObjects/addSeds",
         "bin/movingObjects/generateCoefficients",
         "bin/rs_download_data",
-        'bin/rs_download_sky'
+        "bin/rs_download_sky",
     ],
     packages=find_packages(),
 )

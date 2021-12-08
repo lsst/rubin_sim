@@ -4,9 +4,10 @@ import healpy as hp
 import os
 from rubin_sim.data import get_data_dir
 
-__all__ = ['M5percentiles']
+__all__ = ["M5percentiles"]
 
-def ss_split(arr, side='left'):
+
+def ss_split(arr, side="left"):
     """
     make it possible to run searchsorted easily on 2 dims
     """
@@ -22,27 +23,26 @@ class M5percentiles(object):
     def __init__(self):
 
         # Load up the saved maps
-        path = os.path.join(get_data_dir(), 'skybrightness_pre/percentile')
-        filename = 'percentile_m5_maps.npz'
+        path = os.path.join(get_data_dir(), "skybrightness_pre/percentile")
+        filename = "percentile_m5_maps.npz"
         temp = np.load(os.path.join(path, filename))
-        self.m5_histograms = temp['histograms'].copy().T
-        self.histogram_npts = temp['histogram_npts'].copy()
+        self.m5_histograms = temp["histograms"].copy().T
+        self.histogram_npts = temp["histogram_npts"].copy()
         temp.close()
-        self.npix = self.m5_histograms['u'][:, 0].size
+        self.npix = self.m5_histograms["u"][:, 0].size
         self.nside = hp.npix2nside(self.npix)
-        self.nbins = float(self.m5_histograms['u'][0, :].size)
+        self.nbins = float(self.m5_histograms["u"][0, :].size)
         # The center of each histogram bin
-        self.percentiles = np.arange(self.nbins)/self.nbins +1./2/self.nbins
+        self.percentiles = np.arange(self.nbins) / self.nbins + 1.0 / 2 / self.nbins
 
-    def dark_map(self, filtername='r', nside_out=64):
-        """Return the darkest every healpixel gets
-        """
+    def dark_map(self, filtername="r", nside_out=64):
+        """Return the darkest every healpixel gets"""
         result = self.m5_histograms[filtername][:, -1]
         if self.nside != nside_out:
             result = hp.ud_grade(result, nside_out=nside_out)
         return result
 
-    def percentile2m5map(self, percentile, filtername='r', nside=None):
+    def percentile2m5map(self, percentile, filtername="r", nside=None):
         """
         Given a percentile, return the 5-sigma map for that level
 
@@ -60,7 +60,7 @@ class M5percentiles(object):
         result = hp.ud_grade(result, nside)
         return result
 
-    def m5map2percentile(self, m5map, filtername='r'):
+    def m5map2percentile(self, m5map, filtername="r"):
         """
         Convert a healpix map to a percentile map
         """
@@ -74,8 +74,10 @@ class M5percentiles(object):
 
         result = np.empty(self.npix, dtype=float)
         result.fill(hp.UNSEEN)
-        temp_array = np.column_stack((m5map[goodPix], self.m5_histograms[filtername][goodPix, :]))
-        result[goodPix] = np.apply_along_axis(ss_split, 1, temp_array)/self.nbins
+        temp_array = np.column_stack(
+            (m5map[goodPix], self.m5_histograms[filtername][goodPix, :])
+        )
+        result[goodPix] = np.apply_along_axis(ss_split, 1, temp_array) / self.nbins
 
         # convert the percentiles back to the right nside if needed
         # XXX--I should make a better linear interpolation upgrade function.
@@ -83,4 +85,3 @@ class M5percentiles(object):
             result = hp.ud_grade(result, nside_out=inNside)
             result[orig_mask] = hp.UNSEEN
         return result
-

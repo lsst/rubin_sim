@@ -2,7 +2,8 @@ from builtins import object
 from .plotHandler import PlotHandler
 import matplotlib.pylab as plt
 
-__all__ = ['PlotBundle']
+__all__ = ["PlotBundle"]
+
 
 class PlotBundle(object):
     """
@@ -51,11 +52,11 @@ class PlotBundle(object):
         """
         maxOrder = 0
         for mB in self.bundleList:
-            if 'order' in list(mB.displayDict.keys()):
-                maxOrder = max([maxOrder, mB.displayDict['order']])
+            if "order" in list(mB.displayDict.keys()):
+                maxOrder = max([maxOrder, mB.displayDict["order"]])
 
         for mB in self.bundleList:
-            mB.displayDict['order'] = maxOrder + 1
+            mB.displayDict["order"] = maxOrder + 1
 
     def percentileLegend(self):
         """
@@ -64,19 +65,21 @@ class PlotBundle(object):
         for i, mB in enumerate(self.bundleList):
             if mB.summaryValues is not None:
                 keys = list(mB.summaryValues.keys())
-                if ('25th%ile' in keys) & ('75th%ile' in keys) & ('Median' in keys):
-                    if 'label' not in list(self.plotDicts[i].keys()):
-                        self.plotDicts[i]['label'] = ''
-                    newstr = '%0.1f/%0.1f/%0.1f ' % (mB.summaryValues['25th%ile'],
-                                                     mB.summaryValues['Median'],
-                                                     mB.summaryValues['75th%ile'])
-                    self.plotDicts[i]['label'] = newstr + self.plotDicts[i]['label']
+                if ("25th%ile" in keys) & ("75th%ile" in keys) & ("Median" in keys):
+                    if "label" not in list(self.plotDicts[i].keys()):
+                        self.plotDicts[i]["label"] = ""
+                    newstr = "%0.1f/%0.1f/%0.1f " % (
+                        mB.summaryValues["25th%ile"],
+                        mB.summaryValues["Median"],
+                        mB.summaryValues["75th%ile"],
+                    )
+                    self.plotDicts[i]["label"] = newstr + self.plotDicts[i]["label"]
 
-    def plot(self, outDir='Out', resultsDb=None, closeFigs=True):
+    def plot(self, outDir="Out", resultsDb=None, closeFigs=True):
         ph = PlotHandler(outDir=outDir, resultsDb=resultsDb)
         ph.setMetricBundles(self.bundleList)
         # Auto-generate labels and things
         ph.setPlotDicts(plotDicts=self.plotDicts, plotFunc=self.plotFunc)
         ph.plot(self.plotFunc, plotDicts=self.plotDicts)
         if closeFigs:
-            plt.close('all')
+            plt.close("all")

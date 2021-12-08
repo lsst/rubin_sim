@@ -21,21 +21,22 @@ class CloudModel(object):
     This corresponds to the data columns required in the target map dictionary passed when calculating the
     processed telemetry values.
     """
-    def __init__(self, cloud_column='cloud', altitude_column='altitude', azimuth_column='azimuth'):
+
+    def __init__(
+        self, cloud_column="cloud", altitude_column="altitude", azimuth_column="azimuth"
+    ):
 
         self.altcol = altitude_column
         self.azcol = azimuth_column
         self.cloudcol = cloud_column
 
     def configure(self, config=None):
-        """
-        """
-        warnings.warn('The configure method is deprecated.')
+        """"""
+        warnings.warn("The configure method is deprecated.")
 
     def config_info(self):
-        """
-        """
-        warnings.warn('The config_info method is deprecated.')
+        """"""
+        warnings.warn("The config_info method is deprecated.")
 
     def __call__(self, cloud_value, altitude):
         """Calculate the sky coverage due to clouds.
@@ -63,4 +64,4 @@ class CloudModel(object):
             altitude = altitude[self.altcol]
 
         model_cloud = np.zeros(len(altitude), float) + cloud_value
-        return {'cloud': model_cloud}
+        return {"cloud": model_cloud}

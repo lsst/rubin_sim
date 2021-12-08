@@ -29,7 +29,7 @@ extensions = [
     "sphinxcontrib.autoprogram",
     "sphinx-prompt",
     "numpydoc",
-    #"sphinx_autodoc_typehints",
+    # "sphinx_autodoc_typehints",
     "sphinx_automodapi.automodapi",
     "sphinx_automodapi.smart_resolver",
     "documenteer.sphinxext",
@@ -46,8 +46,7 @@ master_doc = "rubin_sim/index"
 # General information about the project.
 project = "rubin_sim"
 copyright = (
-    "2015-2021 "
-    "Association of Universities for Research in Astronomy, Inc. (AURA)"
+    "2015-2021 " "Association of Universities for Research in Astronomy, Inc. (AURA)"
 )
 author = "LSST Survey Strategy Team"
 

@@ -19,18 +19,20 @@ class ApproximateBandPassTest(unittest.TestCase):
     """
     Tests for the approximate Bandpasses in the throughputs directory
     """
+
     longMessage = True
 
     def setUp(self):
         """
         setup before tests
         """
-        throughputsDir = os.path.join(get_data_dir(), 'throughputs')
-        self.approxBandPassDir = os.path.join(throughputsDir, 'approximate_baseline')
-        self.refBandPassDir = os.path.join(throughputsDir, 'baseline')
+        throughputsDir = os.path.join(get_data_dir(), "throughputs")
+        self.approxBandPassDir = os.path.join(throughputsDir, "approximate_baseline")
+        self.refBandPassDir = os.path.join(throughputsDir, "baseline")
         self.refBandPassDict = BandpassDict.loadTotalBandpassesFromFiles()
-        self.approxBandPassDict = \
-            BandpassDict.loadTotalBandpassesFromFiles(bandpassDir=self.approxBandPassDir)
+        self.approxBandPassDict = BandpassDict.loadTotalBandpassesFromFiles(
+            bandpassDir=self.approxBandPassDir
+        )
         self.errorMsg = "The failure of this test indicates that the"
         " approximate bandpasses in the lsst throughputs directory do not"
         "sync up with the baseline bandpasses is throughputs. This may require running"
@@ -44,7 +46,7 @@ class ApproximateBandPassTest(unittest.TestCase):
         absolute tolerance hard coded to be 1.0e-4
 
         """
-        for bn in 'ugrizy':
+        for bn in "ugrizy":
             refBandPass = self.refBandPassDict[bn]
             approxBandPass = self.approxBandPassDict[bn]
             refStep = np.diff(refBandPass.wavelen)
@@ -53,11 +55,18 @@ class ApproximateBandPassTest(unittest.TestCase):
             # Currently we have uniform sampling, but the end points have
             # very slightly different steps. This accounts for 3 possible values
             # If there are more, then the steps are non-unifor
-            msg = 'The step sizes in {} seem to be unequal'.format('Approximate Baseline')
+            msg = "The step sizes in {} seem to be unequal".format(
+                "Approximate Baseline"
+            )
             self.assertEqual(len(np.unique(approxStep)), 3, msg=msg)
-            msg = 'The step sizes in {} seem to be unequal'.format('Baseline')
+            msg = "The step sizes in {} seem to be unequal".format("Baseline")
             self.assertEqual(len(np.unique(refStep)), 3, msg=msg)
-            ratio = approxStep[1] * approxBandPass.sb.sum() / refStep[1] / refBandPass.sb.sum()
+            ratio = (
+                approxStep[1]
+                * approxBandPass.sb.sum()
+                / refStep[1]
+                / refBandPass.sb.sum()
+            )
             self.assertAlmostEqual(ratio, 1.0, delta=1.0e-4, msg=self.errorMsg)
 
         def test_BandpassesIndiviaually(self):
@@ -66,7 +75,7 @@ class ApproximateBandPassTest(unittest.TestCase):
             approximate bandpasses match the individual transmission values in
             the reference bandpasses
             """
-            for bn in 'ugrizy':
+            for bn in "ugrizy":
                 approxBandPass = self.approxBandPassDict[bn]
                 refBandPass = self.refBandPass[bn]
                 refwavelen = refBandPass.wavelen
@@ -76,12 +85,14 @@ class ApproximateBandPassTest(unittest.TestCase):
                     if wave in approxwavelen:
                         mask[i] = True
                 # Assume that the wavelengths are in order
-                msg = 'individual matches failed on band {}'.format(bn)
-                self.assertAlmostEqual(refBandPass.sb[mask], approxBandPass.sb,
-                                       1.0e-4, msg=msg)
+                msg = "individual matches failed on band {}".format(bn)
+                self.assertAlmostEqual(
+                    refBandPass.sb[mask], approxBandPass.sb, 1.0e-4, msg=msg
+                )
 
         def tearDown(self):
             pass
+
 
 if __name__ == "__main__":
     unittest.main()

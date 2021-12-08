@@ -8,7 +8,7 @@ from rubin_sim.data import get_data_dir
 __all__ = ["SeeingModel"]
 
 
-class SeeingModel():
+class SeeingModel:
     """LSST FWHM calculations for FWHM_effective and FWHM_geometric.
 
     Calculations of the delivered values are based on equations in Document-20160
@@ -41,17 +41,24 @@ class SeeingModel():
         The name of the DIMM FWHM measurements in the efd / conditions object.
         Default `FWHM_500`
     """
-    def __init__(self, filter_list=['u', 'g', 'r', 'i', 'z', 'y'],
-                 eff_wavelens=None,
-                 telescope_seeing=0.25, optical_design_seeing=0.08, camera_seeing=0.30,
-                 raw_seeing_wavelength=500, efd_seeing='FWHM_500'):
+
+    def __init__(
+        self,
+        filter_list=["u", "g", "r", "i", "z", "y"],
+        eff_wavelens=None,
+        telescope_seeing=0.25,
+        optical_design_seeing=0.08,
+        camera_seeing=0.30,
+        raw_seeing_wavelength=500,
+        efd_seeing="FWHM_500",
+    ):
         self.filter_list = filter_list
         if eff_wavelens is None:
-            fdir = os.path.join(get_data_dir(), 'throughputs/baseline')
+            fdir = os.path.join(get_data_dir(), "throughputs/baseline")
             eff_wavelens = []
             for f in filter_list:
                 bp = Bandpass()
-                bp.readThroughput(os.path.join(fdir, 'total_' + f + '.dat'))
+                bp.readThroughput(os.path.join(fdir, "total_" + f + ".dat"))
                 eff_wavelens.append(bp.calcEffWavelen()[1])
         self.eff_wavelens = np.array(eff_wavelens)
         self.telescope_seeing = telescope_seeing
@@ -63,14 +70,12 @@ class SeeingModel():
         self._set_fwhm_zenith_system()
 
     def configure(self):
-        """Deprecated. Configure through the init method.
-        """
-        warnings.warn('the configure method is deprecated')
+        """Deprecated. Configure through the init method."""
+        warnings.warn("the configure method is deprecated")
 
     def config_info(self):
-        """Deprecated. Report configuration parameters and version information.
-        """
-        warnings.warn('the config_info method is deprecated.')
+        """Deprecated. Report configuration parameters and version information."""
+        warnings.warn("the config_info method is deprecated.")
 
     def _set_fwhm_zenith_system(self):
         """Calculate the system contribution to FWHM at zenith.
@@ -78,9 +83,11 @@ class SeeingModel():
         This is simply the individual telescope, optics, and camera contributions
         combined in quadrature.
         """
-        self.fwhm_system_zenith = np.sqrt(self.telescope_seeing**2 +
-                                          self.optical_design_seeing**2 +
-                                          self.camera_seeing**2)
+        self.fwhm_system_zenith = np.sqrt(
+            self.telescope_seeing ** 2
+            + self.optical_design_seeing ** 2
+            + self.camera_seeing ** 2
+        )
 
     def __call__(self, fwhm_z, airmass):
         """Calculate the seeing values FWHM_eff and FWHM_geom at the given airmasses,
@@ -115,12 +122,15 @@ class SeeingModel():
         if isinstance(fwhm_z, dict):
             fwhm_z = fwhm_z[self.efd_seeing]
         if isinstance(airmass, dict):
-            airmass = airmass['airmass']
+            airmass = airmass["airmass"]
         airmass_correction = np.power(airmass, 0.6)
-        wavelen_correction = np.power(self.raw_seeing_wavelength / self.eff_wavelens, 0.3)
+        wavelen_correction = np.power(
+            self.raw_seeing_wavelength / self.eff_wavelens, 0.3
+        )
         if isinstance(airmass, np.ndarray):
-            fwhm_system = self.fwhm_system_zenith * np.outer(np.ones(len(wavelen_correction)),
-                                                             airmass_correction)
+            fwhm_system = self.fwhm_system_zenith * np.outer(
+                np.ones(len(wavelen_correction)), airmass_correction
+            )
             fwhm_atmo = fwhm_z * np.outer(wavelen_correction, airmass_correction)
         else:
             fwhm_system = self.fwhm_system_zenith * airmass_correction
@@ -129,7 +139,7 @@ class SeeingModel():
         fwhm_eff = 1.16 * np.sqrt(fwhm_system ** 2 + 1.04 * fwhm_atmo ** 2)
         # Translate to FWHMgeom.
         fwhm_geom = self.fwhmEff_to_fwhmGeom(fwhm_eff)
-        return {'fwhmEff': fwhm_eff, 'fwhmGeom': fwhm_geom}
+        return {"fwhmEff": fwhm_eff, "fwhmGeom": fwhm_geom}
 
     @staticmethod
     def fwhmEff_to_fwhmGeom(fwhm_eff):
@@ -143,7 +153,7 @@ class SeeingModel():
         -------
         FWHM_geom : `float` or `np.ndarray`
         """
-        return (0.822 * fwhm_eff + 0.052)
+        return 0.822 * fwhm_eff + 0.052
 
     @staticmethod
     def fwhmGeom_to_fwhmEff(fwhm_geom):
@@ -157,4 +167,4 @@ class SeeingModel():
         -------
         FWHM_eff : `float` or `np.ndarray`
         """
-        return (fwhm_geom - 0.052)/0.822
+        return (fwhm_geom - 0.052) / 0.822

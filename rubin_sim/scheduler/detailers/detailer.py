@@ -1,11 +1,25 @@
-from rubin_sim.utils import _raDec2Hpid, _approx_RaDec2AltAz, _angularSeparation, _approx_altaz2pa
+from rubin_sim.utils import (
+    _raDec2Hpid,
+    _approx_RaDec2AltAz,
+    _angularSeparation,
+    _approx_altaz2pa,
+)
 import numpy as np
 from rubin_sim.scheduler.utils import int_rounded
 import copy
 
-__all__ = ["Base_detailer", "Zero_rot_detailer", "Comcam_90rot_detailer", "Close_alt_detailer",
-           "Take_as_pairs_detailer", "Twilight_triple_detailer", "Spider_rot_detailer",
-           "Flush_for_sched_detailer", 'Filter_nexp', "FixedSkyAngleDetailer"]
+__all__ = [
+    "Base_detailer",
+    "Zero_rot_detailer",
+    "Comcam_90rot_detailer",
+    "Close_alt_detailer",
+    "Take_as_pairs_detailer",
+    "Twilight_triple_detailer",
+    "Spider_rot_detailer",
+    "Flush_for_sched_detailer",
+    "Filter_nexp",
+    "FixedSkyAngleDetailer",
+]
 
 
 class Base_detailer(object):
@@ -19,8 +33,7 @@ class Base_detailer(object):
     """
 
     def __init__(self, nside=32):
-        """
-        """
+        """"""
         # Dict to hold all the features we want to track
         self.survey_features = {}
         self.nside = nside
@@ -65,10 +78,15 @@ class Zero_rot_detailer(Base_detailer):
 
         # XXX--should I convert the list into an array and get rid of this loop?
         for obs in observation_list:
-            alt, az = _approx_RaDec2AltAz(obs['RA'], obs['dec'], conditions.site.latitude_rad,
-                                          conditions.site.longitude_rad, conditions.mjd)
+            alt, az = _approx_RaDec2AltAz(
+                obs["RA"],
+                obs["dec"],
+                conditions.site.latitude_rad,
+                conditions.site.longitude_rad,
+                conditions.mjd,
+            )
             obs_pa = _approx_altaz2pa(alt, az, conditions.site.latitude_rad)
-            obs['rotSkyPos'] = obs_pa
+            obs["rotSkyPos"] = obs_pa
 
         return observation_list
 
@@ -81,11 +99,11 @@ class Spider_rot_detailer(Base_detailer):
 
     def __call__(self, observation_list, conditions):
         indx = int(conditions.night % 2)
-        rotTelPos = np.radians([45., 315.][indx])
+        rotTelPos = np.radians([45.0, 315.0][indx])
 
         for obs in observation_list:
-            obs['rotSkyPos'] = np.nan
-            obs['rotTelPos'] = rotTelPos
+            obs["rotSkyPos"] = np.nan
+            obs["rotTelPos"] = rotTelPos
 
         return observation_list
 
@@ -97,10 +115,15 @@ class Comcam_90rot_detailer(Base_detailer):
     """
 
     def __call__(self, observation_list, conditions):
-        favored_rotSkyPos = np.radians([0., 90., 180., 270., 360.]).reshape(5, 1)
-        obs_array =np.concatenate(observation_list)
-        alt, az = _approx_RaDec2AltAz(obs_array['RA'], obs_array['dec'], conditions.site.latitude_rad,
-                                      conditions.site.longitude_rad, conditions.mjd)
+        favored_rotSkyPos = np.radians([0.0, 90.0, 180.0, 270.0, 360.0]).reshape(5, 1)
+        obs_array = np.concatenate(observation_list)
+        alt, az = _approx_RaDec2AltAz(
+            obs_array["RA"],
+            obs_array["dec"],
+            conditions.site.latitude_rad,
+            conditions.site.longitude_rad,
+            conditions.mjd,
+        )
         parallactic_angle = _approx_altaz2pa(alt, az, conditions.site.latitude_rad)
         # If we set rotSkyPos to parallactic angle, rotTelPos will be zero. So, find the
         # favored rotSkyPos that is closest to PA to keep rotTelPos as close as possible to zero.
@@ -110,7 +133,7 @@ class Comcam_90rot_detailer(Base_detailer):
         final_rotSkyPos = favored_rotSkyPos[min_indxs]
         # Set all the observations to the proper rotSkyPos
         for rsp, obs in zip(final_rotSkyPos, observation_list):
-            obs['rotSkyPos'] = rsp
+            obs["rotSkyPos"] = rsp
 
         return observation_list
 
@@ -124,14 +147,14 @@ class FixedSkyAngleDetailer(Base_detailer):
         Desired sky angle (default = 0, in degrees).
     """
 
-    def __init__(self, sky_angle=0., nside=32):
+    def __init__(self, sky_angle=0.0, nside=32):
         super().__init__(nside=nside)
 
         self.sky_angle = np.radians(sky_angle)
 
     def __call__(self, observation_list, conditions):
         for observation in observation_list:
-            observation['rotSkyPos'] = self.sky_angle
+            observation["rotSkyPos"] = self.sky_angle
 
         return observation_list
 
@@ -145,21 +168,29 @@ class Close_alt_detailer(Base_detailer):
     alt_band : `float` (10)
         The altitude band to try and stay in (degrees)
     """
-    def __init__(self, alt_band=10.):
+
+    def __init__(self, alt_band=10.0):
         super(Close_alt_detailer, self).__init__()
         self.alt_band = int_rounded(np.radians(alt_band))
 
     def __call__(self, observation_list, conditions):
         obs_array = np.concatenate(observation_list)
-        alt, az = _approx_RaDec2AltAz(obs_array['RA'], obs_array['dec'], conditions.site.latitude_rad,
-                                      conditions.site.longitude_rad, conditions.mjd)
+        alt, az = _approx_RaDec2AltAz(
+            obs_array["RA"],
+            obs_array["dec"],
+            conditions.site.latitude_rad,
+            conditions.site.longitude_rad,
+            conditions.mjd,
+        )
         alt_diff = np.abs(alt - conditions.telAlt)
         in_band = np.where(int_rounded(alt_diff) <= self.alt_band)[0]
         if in_band.size == 0:
             in_band = np.arange(alt.size)
 
         # Find the closest in angular distance of the points that are in band
-        ang_dist = _angularSeparation(az[in_band], alt[in_band], conditions.telAz, conditions.telAlt)
+        ang_dist = _angularSeparation(
+            az[in_band], alt[in_band], conditions.telAz, conditions.telAlt
+        )
         good = np.min(np.where(ang_dist == ang_dist.min())[0])
         indx = in_band[good]
         result = observation_list[indx:] + observation_list[:indx]
@@ -174,23 +205,24 @@ class Flush_for_sched_detailer(Base_detailer):
     tol : `float`
          How much before to flush (minutes)
     """
+
     def __init__(self, tol=2.5):
         super(Flush_for_sched_detailer, self).__init__()
-        self.tol = tol/24./60.  # To days
+        self.tol = tol / 24.0 / 60.0  # To days
 
     def __call__(self, observation_list, conditions):
         if np.size(conditions.scheduled_observations) > 0:
             new_flush = np.min(conditions.scheduled_observations) - self.tol
             for obs in observation_list:
-                if obs['flush_by_mjd'] > new_flush:
-                    obs['flush_by_mjd'] = new_flush
+                if obs["flush_by_mjd"] > new_flush:
+                    obs["flush_by_mjd"] = new_flush
         return observation_list
 
 
 class Filter_nexp(Base_detailer):
-    """Demand one filter always be taken as a certain number of exposures
-    """
-    def __init__(self, filtername='u', nexp=1, exptime=None):
+    """Demand one filter always be taken as a certain number of exposures"""
+
+    def __init__(self, filtername="u", nexp=1, exptime=None):
         super(Filter_nexp, self).__init__()
         self.filtername = filtername
         self.nexp = nexp
@@ -198,17 +230,16 @@ class Filter_nexp(Base_detailer):
 
     def __call__(self, observation_list, conditions):
         for obs in observation_list:
-            if obs['filter'] == self.filtername:
-                obs['nexp'] = self.nexp
+            if obs["filter"] == self.filtername:
+                obs["nexp"] = self.nexp
                 if self.exptime is not None:
-                    obs['exptime'] = self.exptime
+                    obs["exptime"] = self.exptime
         return observation_list
 
 
 class Take_as_pairs_detailer(Base_detailer):
-    def __init__(self, filtername='r', exptime=None, nexp_dict=None):
-        """
-        """
+    def __init__(self, filtername="r", exptime=None, nexp_dict=None):
+        """"""
         super(Take_as_pairs_detailer, self).__init__()
         self.filtername = filtername
         self.exptime = exptime
@@ -218,26 +249,26 @@ class Take_as_pairs_detailer(Base_detailer):
         paired = copy.deepcopy(observation_list)
         if self.exptime is not None:
             for obs in paired:
-                obs['exptime'] = self.exptime
+                obs["exptime"] = self.exptime
         for obs in paired:
-            obs['filter'] = self.filtername
+            obs["filter"] = self.filtername
             if self.nexp_dict is not None:
-                obs['nexp'] = self.nexp_dict[self.filtername]
+                obs["nexp"] = self.nexp_dict[self.filtername]
         if conditions.current_filter == self.filtername:
             for obs in paired:
-                obs['note'] = obs['note'][0] + ', a'
+                obs["note"] = obs["note"][0] + ", a"
             for obs in observation_list:
-                obs['note'] = obs['note'][0] + ', b'
+                obs["note"] = obs["note"][0] + ", b"
             result = paired + observation_list
         else:
             for obs in paired:
-                obs['note'] = obs['note'][0] + ', b'
+                obs["note"] = obs["note"][0] + ", b"
             for obs in observation_list:
-                obs['note'] = obs['note'][0] + ', a'
+                obs["note"] = obs["note"][0] + ", a"
             result = observation_list + paired
         # XXX--maybe a temp debugging thing, label what part of sequence each observation is.
         for i, obs in enumerate(result):
-            obs['survey_id'] = i
+            obs["survey_id"] = i
         return result
 
 
@@ -252,18 +283,24 @@ class Twilight_triple_detailer(Base_detailer):
         obs_array = np.concatenate(observation_list)
 
         # Estimate how much time is left in the twilgiht block
-        potential_times = np.array([conditions.sun_n18_setting - conditions.mjd,
-                                   conditions.sun_n12_rising - conditions.mjd])
+        potential_times = np.array(
+            [
+                conditions.sun_n18_setting - conditions.mjd,
+                conditions.sun_n12_rising - conditions.mjd,
+            ]
+        )
 
-        potential_times = np.min(potential_times[np.where(potential_times > 0)]) * 24.*3600.
+        potential_times = (
+            np.min(potential_times[np.where(potential_times > 0)]) * 24.0 * 3600.0
+        )
 
         # How long will observations take?
         cumulative_slew = np.arange(obs_array.size) * self.slew_estimate
-        cumulative_expt = np.cumsum(obs_array['exptime'])
+        cumulative_expt = np.cumsum(obs_array["exptime"])
         cumulative_time = cumulative_slew + cumulative_expt
         # If we are way over, truncate the list before doing the triple
         if np.max(cumulative_time) > potential_times:
-            max_indx = np.where(cumulative_time/self.n_repeat <= potential_times)[0]
+            max_indx = np.where(cumulative_time / self.n_repeat <= potential_times)[0]
             if np.size(max_indx) == 0:
                 # Very bad magic number fudge
                 max_indx = 3

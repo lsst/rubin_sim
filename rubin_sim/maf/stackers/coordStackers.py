@@ -7,7 +7,7 @@ from .ditherStackers import wrapRA
 from astropy.time import Time
 
 
-__all__ = ['raDec2AltAz', 'GalacticStacker', 'EclipticStacker']
+__all__ = ["raDec2AltAz", "GalacticStacker", "EclipticStacker"]
 
 
 def raDec2AltAz(ra, dec, lat, lon, mjd, altonly=False):
@@ -38,7 +38,7 @@ def raDec2AltAz(ra, dec, lat, lon, mjd, altonly=False):
         Azimuth, same length as `ra` and `dec`. Radians.
     """
     lmst, last = calcLmstLast(mjd, lon)
-    lmst = lmst / 12. * np.pi  # convert to rad
+    lmst = lmst / 12.0 * np.pi  # convert to rad
     ha = lmst - ra
     sindec = np.sin(dec)
     sinlat = np.sin(lat)
@@ -51,12 +51,12 @@ def raDec2AltAz(ra, dec, lat, lon, mjd, altonly=False):
     if altonly:
         az = None
     else:
-        cosaz = (sindec-np.sin(alt)*sinlat)/(np.cos(alt)*coslat)
+        cosaz = (sindec - np.sin(alt) * sinlat) / (np.cos(alt) * coslat)
         cosaz = np.where(cosaz < -1, -1, cosaz)
         cosaz = np.where(cosaz > 1, 1, cosaz)
         az = np.arccos(cosaz)
         signflip = np.where(np.sin(ha) > 0)
-        az[signflip] = 2.*np.pi-az[signflip]
+        az[signflip] = 2.0 * np.pi - az[signflip]
     return alt, az
 
 
@@ -70,17 +70,18 @@ class GalacticStacker(BaseStacker):
     decCol : str, optional
         Name of the Dec column. Default fieldDec.
     """
-    colsAdded = ['gall', 'galb']
 
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True):
+    colsAdded = ["gall", "galb"]
+
+    def __init__(self, raCol="fieldRA", decCol="fieldDec", degrees=True):
         self.colsReq = [raCol, decCol]
         self.raCol = raCol
         self.decCol = decCol
         self.degrees = degrees
         if self.degrees:
-            self.units = ['degrees', 'degrees']
+            self.units = ["degrees", "degrees"]
         else:
-            self.units = ['radians', 'radians']
+            self.units = ["radians", "radians"]
 
     def _run(self, simData, cols_present=False):
         # raCol and DecCol in radians, gall/b in radians.
@@ -88,11 +89,13 @@ class GalacticStacker(BaseStacker):
             # Column already present in data; assume it is correct and does not need recalculating.
             return simData
         if self.degrees:
-            simData['gall'], simData['galb'] = _galacticFromEquatorial(np.radians(simData[self.raCol]),
-                                                                       np.radians(simData[self.decCol]))
+            simData["gall"], simData["galb"] = _galacticFromEquatorial(
+                np.radians(simData[self.raCol]), np.radians(simData[self.decCol])
+            )
         else:
-            simData['gall'], simData['galb'] = _galacticFromEquatorial(simData[self.raCol],
-                                                                       simData[self.decCol])
+            simData["gall"], simData["galb"] = _galacticFromEquatorial(
+                simData[self.raCol], simData[self.decCol]
+            )
         return simData
 
 
@@ -111,18 +114,25 @@ class EclipticStacker(BaseStacker):
     subtractSunLon : bool, optional
         Flag to subtract the sun's ecliptic longitude. Default False.
     """
-    colsAdded = ['eclipLat', 'eclipLon']
 
-    def __init__(self, mjdCol='observationStartMJD', raCol='fieldRA', decCol='fieldDec', degrees=True,
-                 subtractSunLon=False):
+    colsAdded = ["eclipLat", "eclipLon"]
+
+    def __init__(
+        self,
+        mjdCol="observationStartMJD",
+        raCol="fieldRA",
+        decCol="fieldDec",
+        degrees=True,
+        subtractSunLon=False,
+    ):
 
         self.colsReq = [mjdCol, raCol, decCol]
         self.subtractSunLon = subtractSunLon
         self.degrees = degrees
         if self.degrees:
-            self.units = ['degrees', 'degrees']
+            self.units = ["degrees", "degrees"]
         else:
-            self.units = ['radians', 'radians']
+            self.units = ["radians", "radians"]
         self.mjdCol = mjdCol
         self.raCol = raCol
         self.decCol = decCol
@@ -133,21 +143,26 @@ class EclipticStacker(BaseStacker):
             return simData
         for i in np.arange(simData.size):
             if self.degrees:
-                coord = SkyCoord(ra=simData[self.raCol]*u.degree, dec=simData[self.decCol]*u.degree)
+                coord = SkyCoord(
+                    ra=simData[self.raCol] * u.degree,
+                    dec=simData[self.decCol] * u.degree,
+                )
             else:
-                coord = SkyCoord(ra=simData[self.raCol]*u.rad, dec=simData[self.decCol]*u.rad)
+                coord = SkyCoord(
+                    ra=simData[self.raCol] * u.rad, dec=simData[self.decCol] * u.rad
+                )
             coord_ecl = coord.geocentricmeanecliptic
-            simData['eclipLat'] = coord_ecl.lat.rad
+            simData["eclipLat"] = coord_ecl.lat.rad
 
             if self.subtractSunLon:
                 times = Time(simData[self.mjdCol])
                 sun = get_sun(times)
                 sunEcl = sun.geocentricmeanecliptic
                 lon = wrapRA(coord_ecl.lon.rad - sunEcl.lon.rad)
-                simData['eclipLon'] = lon
+                simData["eclipLon"] = lon
             else:
-                simData['eclipLon'] = coord_ecl.lon.rad
+                simData["eclipLon"] = coord_ecl.lon.rad
         if self.degrees:
-            simData['eclipLon'] = np.degrees(simData['eclipLon'])
-            simData['eclipLat'] = np.degrees(simData['eclipLat'])
+            simData["eclipLon"] = np.degrees(simData["eclipLon"])
+            simData["eclipLat"] = np.degrees(simData["eclipLat"])
         return simData

@@ -13,7 +13,8 @@ __all__ = ["UseMetric"]
 
 # classes
 
-__all__ = ['UseMetric']
+__all__ = ["UseMetric"]
+
 
 class UseMetric(BaseMetric):  # pylint: disable=too-few-public-methods
     """Metric to classify visits by type of visits"""

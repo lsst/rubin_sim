@@ -1,7 +1,7 @@
 import numpy as np
 import warnings
 
-__all__ = ['spatiallySample_obsmetadata', 'samplePatchOnSphere', 'uniformSphere']
+__all__ = ["spatiallySample_obsmetadata", "samplePatchOnSphere", "uniformSphere"]
 
 
 def spatiallySample_obsmetadata(obsmetadata, size=1, seed=1):
@@ -28,15 +28,15 @@ def spatiallySample_obsmetadata(obsmetadata, size=1, seed=1):
     phi = obsmetadata.pointingRA
     theta = obsmetadata.pointingDec
 
-    if obsmetadata.boundType != 'box':
-        warnings.warn('Warning: sampling obsmetata with provided boundLen and'
-                      'boundType="box", despite diff boundType specified\n')
+    if obsmetadata.boundType != "box":
+        warnings.warn(
+            "Warning: sampling obsmetata with provided boundLen and"
+            'boundType="box", despite diff boundType specified\n'
+        )
     equalrange = obsmetadata.boundLength
-    ravals, thetavals = samplePatchOnSphere(phi=phi,
-                                            theta=theta,
-                                            delta=equalrange,
-                                            size=size,
-                                            seed=seed)
+    ravals, thetavals = samplePatchOnSphere(
+        phi=phi, theta=theta, delta=equalrange, size=size, seed=seed
+    )
     return ravals, thetavals
 
 
@@ -48,10 +48,10 @@ def uniformSphere(npoints, seed=42):
     u = np.random.uniform(size=npoints)
     v = np.random.uniform(size=npoints)
 
-    ra = 2.*np.pi * u
-    dec = np.arccos(2.*v - 1.)
+    ra = 2.0 * np.pi * u
+    dec = np.arccos(2.0 * v - 1.0)
     # astro convention of -90 to 90
-    dec -= np.pi/2.
+    dec -= np.pi / 2.0
     return np.degrees(ra), np.degrees(dec)
 
 
@@ -95,8 +95,8 @@ def samplePatchOnSphere(phi, theta, delta, size, seed=1):
     theta = np.radians(theta)
     delta = np.radians(delta)
 
-    phivals = 2. * delta * u + (phi - delta)
-    phivals = np.where(phivals >= 0., phivals, phivals + 2. * np.pi)
+    phivals = 2.0 * delta * u + (phi - delta)
+    phivals = np.where(phivals >= 0.0, phivals, phivals + 2.0 * np.pi)
 
     # use conventions in spherical coordinates
     theta = np.pi / 2.0 - theta
@@ -104,8 +104,8 @@ def samplePatchOnSphere(phi, theta, delta, size, seed=1):
     thetamax = theta + delta
     thetamin = theta - delta
 
-    if thetamax > np.pi or thetamin < 0.:
-        raise ValueError('Function not implemented to cover wrap around poles')
+    if thetamax > np.pi or thetamin < 0.0:
+        raise ValueError("Function not implemented to cover wrap around poles")
 
     # Cumulative Density Function is cos(thetamin) - cos(theta) /
     # cos(thetamin) - cos(thetamax)

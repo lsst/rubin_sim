@@ -1,7 +1,7 @@
 import time
 from importlib import metadata
 
-__all__ = ['getDateVersion']
+__all__ = ["getDateVersion"]
 
 
 def getDateVersion():
@@ -15,12 +15,14 @@ def getDateVersion():
         String with today's date, Dictionary with version information.
     """
 
-    version = metadata.version('rubin_sim')
-    #today_date = time.strftime("%x")
-    today_date = '-'.join([time.strftime(x) for x in ["%Y", "%m", "%d"]])
-    versionInfo = {'__version__': version,
-                   '__repo_version__': None,
-                   '__fingerprint__': None,
-                   '__dependency_versions__': None}
+    version = metadata.version("rubin_sim")
+    # today_date = time.strftime("%x")
+    today_date = "-".join([time.strftime(x) for x in ["%Y", "%m", "%d"]])
+    versionInfo = {
+        "__version__": version,
+        "__repo_version__": None,
+        "__fingerprint__": None,
+        "__dependency_versions__": None,
+    }
 
     return today_date, versionInfo

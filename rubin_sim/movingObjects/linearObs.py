@@ -5,7 +5,7 @@ from scipy import interpolate
 
 from .baseObs import BaseObs
 
-__all__ = ['LinearObs']
+__all__ = ["LinearObs"]
 
 
 class LinearObs(BaseObs):
@@ -69,27 +69,59 @@ class LinearObs(BaseObs):
         The time between points in the ephemeris grid, in days.
         Default 2 hours.
     """
-    def __init__(self, footprint='camera', rFov=1.75, xTol=5, yTol=3,
-                 ephMode='nbody', ephType='basic', obsCode='I11',
-                 ephFile=None,
-                 obsTimeCol='observationStartMJD', obsTimeScale='TAI',
-                 seeingCol='seeingFwhmGeom', visitExpTimeCol='visitExposureTime',
-                 obsRA='fieldRA', obsDec='fieldDec', obsRotSkyPos='rotSkyPos', obsDegrees=True,
-                 outfileName='lsst_obs.dat', obsMetadata='', tstep=2.0/24.0):
-        super().__init__(footprint=footprint, rFov=rFov, xTol=xTol, yTol=yTol,
-                         ephMode=ephMode, ephType=ephType, obsCode=obsCode,
-                         ephFile=ephFile, obsTimeCol=obsTimeCol, obsTimeScale=obsTimeScale,
-                         seeingCol=seeingCol, visitExpTimeCol=visitExpTimeCol,
-                         obsRA=obsRA, obsDec=obsDec, obsRotSkyPos=obsRotSkyPos, obsDegrees=obsDegrees,
-                         outfileName=outfileName, obsMetadata=obsMetadata)
+
+    def __init__(
+        self,
+        footprint="camera",
+        rFov=1.75,
+        xTol=5,
+        yTol=3,
+        ephMode="nbody",
+        ephType="basic",
+        obsCode="I11",
+        ephFile=None,
+        obsTimeCol="observationStartMJD",
+        obsTimeScale="TAI",
+        seeingCol="seeingFwhmGeom",
+        visitExpTimeCol="visitExposureTime",
+        obsRA="fieldRA",
+        obsDec="fieldDec",
+        obsRotSkyPos="rotSkyPos",
+        obsDegrees=True,
+        outfileName="lsst_obs.dat",
+        obsMetadata="",
+        tstep=2.0 / 24.0,
+    ):
+        super().__init__(
+            footprint=footprint,
+            rFov=rFov,
+            xTol=xTol,
+            yTol=yTol,
+            ephMode=ephMode,
+            ephType=ephType,
+            obsCode=obsCode,
+            ephFile=ephFile,
+            obsTimeCol=obsTimeCol,
+            obsTimeScale=obsTimeScale,
+            seeingCol=seeingCol,
+            visitExpTimeCol=visitExpTimeCol,
+            obsRA=obsRA,
+            obsDec=obsDec,
+            obsRotSkyPos=obsRotSkyPos,
+            obsDegrees=obsDegrees,
+            outfileName=outfileName,
+            obsMetadata=obsMetadata,
+        )
         self.tstep = tstep
 
     def _headerMeta(self):
         # Linear obs header metadata.
-        self.outfile.write('# linear obs header metadata\n')
-        self.outfile.write('# observation generation via %s\n' % self.__class__.__name__)
-        self.outfile.write('# ephMode %s\n' % (self.ephMode))
-        self.outfile.write('# time step for ephemeris grid %f\n' % self.tstep)
+        self.outfile.write("# linear obs header metadata\n")
+        self.outfile.write(
+            "# observation generation via %s\n" % self.__class__.__name__
+        )
+        self.outfile.write("# ephMode %s\n" % (self.ephMode))
+        self.outfile.write("# time step for ephemeris grid %f\n" % self.tstep)
 
     # Linear interpolation
     def _makeInterps(self, ephs):
@@ -107,10 +139,11 @@ class LinearObs(BaseObs):
         """
         interpfuncs = {}
         for n in ephs.dtype.names:
-            if n == 'time':
+            if n == "time":
                 continue
-            interpfuncs[n] = interpolate.interp1d(ephs['time'], ephs[n], kind='linear',
-                                                  assume_sorted=True, copy=False)
+            interpfuncs[n] = interpolate.interp1d(
+                ephs["time"], ephs[n], kind="linear", assume_sorted=True, copy=False
+            )
         return interpfuncs
 
     def _interpEphs(self, interpfuncs, times, columns=None):
@@ -135,12 +168,12 @@ class LinearObs(BaseObs):
             columns = interpfuncs.keys()
         dtype = []
         for col in columns:
-            dtype.append((col, '<f8'))
-        dtype.append(('time', '<f8'))
+            dtype.append((col, "<f8"))
+        dtype.append(("time", "<f8"))
         ephs = np.recarray([len(times)], dtype=dtype)
         for col in columns:
             ephs[col] = interpfuncs[col](times)
-        ephs['time'] = times
+        ephs["time"] = times
         return ephs
 
     def run(self, orbits, obsData):
@@ -163,25 +196,37 @@ class LinearObs(BaseObs):
         timeStart = obsData[self.obsTimeCol].min() - timeStep
         timeEnd = obsData[self.obsTimeCol].max() + timeStep
         times = np.arange(timeStart, timeEnd + timeStep / 2.0, timeStep)
-        logging.info('Generating ephemerides on a grid of %f day timesteps, then will extrapolate '
-                     'to opsim times.' % (timeStep))
+        logging.info(
+            "Generating ephemerides on a grid of %f day timesteps, then will extrapolate "
+            "to opsim times." % (timeStep)
+        )
         # For each object, identify observations where the object is within the FOV (or camera footprint).
         for i, sso in enumerate(orbits):
-            objid = sso.orbits['objId'].iloc[0]
-            sedname = sso.orbits['sed_filename'].iloc[0]
+            objid = sso.orbits["objId"].iloc[0]
+            sedname = sso.orbits["sed_filename"].iloc[0]
             # Generate ephemerides on a grid.
-            logging.debug(("%d/%d   id=%s : " % (i, len(orbits), objid)) + 
-                          datetime.datetime.now().strftime("Start: %Y-%m-%d %H:%M:%S") + 
-                          " nTimes: %s" % len(times))
-            ephs = self.generateEphemerides(sso, times, ephMode=self.ephMode, ephType=self.ephType)[0]
+            logging.debug(
+                ("%d/%d   id=%s : " % (i, len(orbits), objid))
+                + datetime.datetime.now().strftime("Start: %Y-%m-%d %H:%M:%S")
+                + " nTimes: %s" % len(times)
+            )
+            ephs = self.generateEphemerides(
+                sso, times, ephMode=self.ephMode, ephType=self.ephType
+            )[0]
             interpfuncs = self._makeInterps(ephs)
-            ephs = self._interpEphs(interpfuncs, times=obsData[self.obsTimeCol], columns=['ra', 'dec'])
-            logging.debug(("%d/%d   id=%s : " % (i, len(orbits), objid)) + 
-                          datetime.datetime.now().strftime("Interp end: %Y-%m-%d %H:%M:%S"))
+            ephs = self._interpEphs(
+                interpfuncs, times=obsData[self.obsTimeCol], columns=["ra", "dec"]
+            )
+            logging.debug(
+                ("%d/%d   id=%s : " % (i, len(orbits), objid))
+                + datetime.datetime.now().strftime("Interp end: %Y-%m-%d %H:%M:%S")
+            )
             # Find objects in the chosen footprint (circular, rectangular or camera)
             idxObs = self.ssoInFov(ephs, obsData)
-            logging.info(("Object %d/%d   id=%s : " % (i, len(orbits), objid)) + 
-                         "Object in %d visits" % (len(idxObs)))
+            logging.info(
+                ("Object %d/%d   id=%s : " % (i, len(orbits), objid))
+                + "Object in %d visits" % (len(idxObs))
+            )
             if len(idxObs) > 0:
                 obsdat = obsData[idxObs]
                 ephs = self._interpEphs(interpfuncs, times=obsdat[self.obsTimeCol])

@@ -27,28 +27,32 @@ def controlAltAzFromRaDec(raRad_in, decRad_in, longRad, latRad, mjd):
 
     see: http://www.stargazing.net/kepler/altaz.html#twig04
     """
-    obs = utils.ObservationMetaData(mjd=utils.ModifiedJulianDate(UTC=mjd),
-                                    site=utils.Site(longitude=np.degrees(longRad),
-                                                    latitude=np.degrees(latRad),
-                                                    name='LSST'))
+    obs = utils.ObservationMetaData(
+        mjd=utils.ModifiedJulianDate(UTC=mjd),
+        site=utils.Site(
+            longitude=np.degrees(longRad), latitude=np.degrees(latRad), name="LSST"
+        ),
+    )
 
-    if hasattr(raRad_in, '__len__'):
-        raRad, decRad = utils._observedFromICRS(raRad_in, decRad_in, obs_metadata=obs,
-                                                epoch=2000.0, includeRefraction=True)
+    if hasattr(raRad_in, "__len__"):
+        raRad, decRad = utils._observedFromICRS(
+            raRad_in, decRad_in, obs_metadata=obs, epoch=2000.0, includeRefraction=True
+        )
     else:
-        raRad, decRad = utils._observedFromICRS(raRad_in, decRad_in,
-                                                obs_metadata=obs, epoch=2000.0, includeRefraction=True)
+        raRad, decRad = utils._observedFromICRS(
+            raRad_in, decRad_in, obs_metadata=obs, epoch=2000.0, includeRefraction=True
+        )
 
     lst = utils.calcLmstLast(obs.mjd.UT1, longRad)
     last = lst[1]
-    haRad = np.radians(last * 15.) - raRad
+    haRad = np.radians(last * 15.0) - raRad
 
     sinDec = np.sin(decRad)
     cosLat = np.cos(latRad)
     sinLat = np.sin(latRad)
-    sinAlt = sinDec*sinLat + np.cos(decRad)*cosLat*np.cos(haRad)
+    sinAlt = sinDec * sinLat + np.cos(decRad) * cosLat * np.cos(haRad)
     altRad = np.arcsin(sinAlt)
-    azRad = np.arccos((sinDec - sinAlt*sinLat) / (np.cos(altRad)*cosLat))
+    azRad = np.arccos((sinDec - sinAlt * sinLat) / (np.cos(altRad) * cosLat))
     azRadOut = np.where(np.sin(haRad) >= 0.0, 2.0 * np.pi - azRad, azRad)
     if isinstance(altRad, float):
         return altRad, float(azRadOut)
@@ -56,7 +60,6 @@ def controlAltAzFromRaDec(raRad_in, decRad_in, longRad, latRad, mjd):
 
 
 class CompoundCoordinateTransformationsTests(unittest.TestCase):
-
     def setUp(self):
         self.rng = np.random.RandomState(32)
         self.mjd = 57087.0
@@ -157,13 +160,24 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
         ra_app_list.append(23.0 * hours + 39.0 * minutes + 27.695 * seconds)
         dec_app_list.append(np.radians(-2.0 - 13.0 / 60.0 - 18.32 / 3600.0))
 
-        for longitude, latitude, mjd, alt, az, ra_app, dec_app in \
-            zip(longitude_list, latitude_list, mjd_list, alt_list, az_list,
-                ra_app_list, dec_app_list):
+        for longitude, latitude, mjd, alt, az, ra_app, dec_app in zip(
+            longitude_list,
+            latitude_list,
+            mjd_list,
+            alt_list,
+            az_list,
+            ra_app_list,
+            dec_app_list,
+        ):
 
-            obs = utils.ObservationMetaData(site=utils.Site(longitude=np.degrees(longitude),
-                                                            latitude=np.degrees(latitude), name='LSST'),
-                                            mjd=utils.ModifiedJulianDate(UTC=mjd))
+            obs = utils.ObservationMetaData(
+                site=utils.Site(
+                    longitude=np.degrees(longitude),
+                    latitude=np.degrees(latitude),
+                    name="LSST",
+                ),
+                mjd=utils.ModifiedJulianDate(UTC=mjd),
+            )
 
             ra_icrs, dec_icrs = utils._raDecFromAltAz(alt, az, obs)
             ra_test, dec_test = utils._appGeoFromICRS(ra_icrs, dec_icrs, mjd=obs.mjd)
@@ -172,7 +186,9 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
             # this is all the precision we have in the alt,az data taken from the USNO
             self.assertLess(distance, 0.1)
 
-            correction = np.degrees(utils.haversine(ra_test, dec_test, ra_icrs, dec_icrs))
+            correction = np.degrees(
+                utils.haversine(ra_test, dec_test, ra_icrs, dec_icrs)
+            )
             self.assertLess(distance, correction)
 
     def testAltAzRADecRoundTrip(self):
@@ -195,16 +211,19 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
         for lon in (0.0, 90.0, 135.0):
             for lat in (60.0, 30.0, -60.0, -30.0):
 
-                obs = utils.ObservationMetaData(mjd=mjd,
-                                                site=utils.Site(longitude=lon, latitude=lat, name='LSST'))
+                obs = utils.ObservationMetaData(
+                    mjd=mjd, site=utils.Site(longitude=lon, latitude=lat, name="LSST")
+                )
 
                 ra_in, dec_in = utils.raDecFromAltAz(alt_in, az_in, obs)
 
                 self.assertIsInstance(ra_in, np.ndarray)
                 self.assertIsInstance(dec_in, np.ndarray)
 
-                self.assertFalse(np.isnan(ra_in).any(), msg='there were NaNs in ra_in')
-                self.assertFalse(np.isnan(dec_in).any(), msg='there were NaNs in dec_in')
+                self.assertFalse(np.isnan(ra_in).any(), msg="there were NaNs in ra_in")
+                self.assertFalse(
+                    np.isnan(dec_in).any(), msg="there were NaNs in dec_in"
+                )
 
                 # test that passing them in one at a time gives the same answer
                 for ix in range(len(alt_in)):
@@ -216,11 +235,19 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
                 alt_out, az_out, pa_out = utils.altAzPaFromRaDec(ra_in, dec_in, obs)
 
-                self.assertFalse(np.isnan(pa_out).any(), msg='there were NaNs in pa_out')
+                self.assertFalse(
+                    np.isnan(pa_out).any(), msg="there were NaNs in pa_out"
+                )
 
-                for alt_c, az_c, alt_t, az_t in \
-                        zip(np.radians(alt_in), np.radians(az_in), np.radians(alt_out), np.radians(az_out)):
-                    distance = utils.arcsecFromRadians(utils.haversine(az_c, alt_c, az_t, alt_t))
+                for alt_c, az_c, alt_t, az_t in zip(
+                    np.radians(alt_in),
+                    np.radians(az_in),
+                    np.radians(alt_out),
+                    np.radians(az_out),
+                ):
+                    distance = utils.arcsecFromRadians(
+                        utils.haversine(az_c, alt_c, az_t, alt_t)
+                    )
                     self.assertLess(distance, 0.2)
                     # not sure why 0.2 arcsec is the limiting precision of this test
 
@@ -230,24 +257,27 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
         """
 
         nSamples = 100
-        ra = self.rng.random_sample(nSamples)*2.0*np.pi
-        dec = (self.rng.random_sample(nSamples)-0.5)*np.pi
+        ra = self.rng.random_sample(nSamples) * 2.0 * np.pi
+        dec = (self.rng.random_sample(nSamples) - 0.5) * np.pi
         lon_rad = 1.467
         lat_rad = -0.234
-        controlAlt, controlAz = controlAltAzFromRaDec(ra, dec,
-                                                      lon_rad, lat_rad,
-                                                      self.mjd)
+        controlAlt, controlAz = controlAltAzFromRaDec(
+            ra, dec, lon_rad, lat_rad, self.mjd
+        )
 
-        obs = utils.ObservationMetaData(mjd=utils.ModifiedJulianDate(UTC=self.mjd),
-                                        site=utils.Site(longitude=np.degrees(lon_rad),
-                                                        latitude=np.degrees(lat_rad),
-                                                        name='LSST'))
+        obs = utils.ObservationMetaData(
+            mjd=utils.ModifiedJulianDate(UTC=self.mjd),
+            site=utils.Site(
+                longitude=np.degrees(lon_rad), latitude=np.degrees(lat_rad), name="LSST"
+            ),
+        )
 
         # verify parallactic angle against an expression from
         # http://www.astro.washington.edu/groups/APO/Mirror.Motions/Feb.2000.Image.Jumps/report.html#Image%20motion%20directions
         #
-        ra_obs, dec_obs = utils._observedFromICRS(ra, dec, obs_metadata=obs, epoch=2000.0,
-                                                  includeRefraction=True)
+        ra_obs, dec_obs = utils._observedFromICRS(
+            ra, dec, obs_metadata=obs, epoch=2000.0, includeRefraction=True
+        )
 
         lmst, last = utils.calcLmstLast(obs.mjd.UT1, lon_rad)
         hourAngle = np.radians(last * 15.0) - ra_obs
@@ -255,20 +285,27 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
         testAlt, testAz, testPa = utils._altAzPaFromRaDec(ra, dec, obs)
 
-        distance = utils.arcsecFromRadians(utils.haversine(controlAz, controlAlt, testAz, testAlt))
+        distance = utils.arcsecFromRadians(
+            utils.haversine(controlAz, controlAlt, testAz, testAlt)
+        )
         self.assertLess(distance.max(), 0.0001)
         self.assertLess(np.abs(np.sin(testPa) - controlSinPa).max(), self.tolerance)
 
         # test non-vectorized version
         for r, d in zip(ra, dec):
-            controlAlt, controlAz = controlAltAzFromRaDec(r, d, lon_rad, lat_rad, self.mjd)
+            controlAlt, controlAz = controlAltAzFromRaDec(
+                r, d, lon_rad, lat_rad, self.mjd
+            )
             testAlt, testAz, testPa = utils._altAzPaFromRaDec(r, d, obs)
             lmst, last = utils.calcLmstLast(obs.mjd.UT1, lon_rad)
-            r_obs, dec_obs = utils._observedFromICRS(r, d, obs_metadata=obs,
-                                                     epoch=2000.0, includeRefraction=True)
+            r_obs, dec_obs = utils._observedFromICRS(
+                r, d, obs_metadata=obs, epoch=2000.0, includeRefraction=True
+            )
             hourAngle = np.radians(last * 15.0) - r_obs
             controlSinPa = np.sin(hourAngle) * np.cos(lat_rad) / np.cos(controlAlt)
-            distance = utils.arcsecFromRadians(utils.haversine(controlAz, controlAlt, testAz, testAlt))
+            distance = utils.arcsecFromRadians(
+                utils.haversine(controlAz, controlAlt, testAz, testAlt)
+            )
             self.assertLess(distance, 0.0001)
             self.assertLess(np.abs(np.sin(testPa) - controlSinPa), self.tolerance)
 
@@ -285,9 +322,9 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
             # first, generate some sane RA, Dec values by generating sane
             # Alt, Az values with refraction and converting them into
             # RA, Dec
-            alt_sane = rng.random_sample(n_samples)*45.0 + 45.0
-            az_sane = rng.random_sample(n_samples)*360.0
-            mjd_input = rng.random_sample(n_samples)*10000.0 + 40000.0
+            alt_sane = rng.random_sample(n_samples) * 45.0 + 45.0
+            az_sane = rng.random_sample(n_samples) * 360.0
+            mjd_input = rng.random_sample(n_samples) * 10000.0 + 40000.0
             mjd_list = utils.ModifiedJulianDate.get_list(TAI=mjd_input)
 
             ra_sane = []
@@ -309,28 +346,40 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
             #
             #    2) closer to the zenith distance calculated above than to the
             #       unrefracted zenith distance
-            for ra, dec, obs, alt_ref, az_ref in \
-            zip(ra_sane, dec_sane, obs_sane, alt_sane, az_sane):
+            for ra, dec, obs, alt_ref, az_ref in zip(
+                ra_sane, dec_sane, obs_sane, alt_sane, az_sane
+            ):
 
-                alt, az, pa = utils.altAzPaFromRaDec(ra, dec, obs,
-                                                     includeRefraction = False)
+                alt, az, pa = utils.altAzPaFromRaDec(
+                    ra, dec, obs, includeRefraction=False
+                )
 
                 tanz, tanz3 = utils.refractionCoefficients(site=obs.site)
-                refracted_zd = utils.applyRefraction(np.radians(90.0-alt), tanz, tanz3)
+                refracted_zd = utils.applyRefraction(
+                    np.radians(90.0 - alt), tanz, tanz3
+                )
 
                 # Check that the two independently refracted zenith distances agree
                 # to within 0.1 arcsec
-                self.assertLess(np.abs(utils.arcsecFromRadians(refracted_zd) -
-                                       utils.arcsecFromRadians(np.radians(90.0-alt_ref))),
-                                0.1)
+                self.assertLess(
+                    np.abs(
+                        utils.arcsecFromRadians(refracted_zd)
+                        - utils.arcsecFromRadians(np.radians(90.0 - alt_ref))
+                    ),
+                    0.1,
+                )
 
                 # Check that the two refracted zenith distances are closer to each other
                 # than to the unrefracted zenith distance
-                self.assertLess(np.abs(np.degrees(refracted_zd)-(90.0-alt_ref)),
-                                np.abs((90.0-alt_ref) - (90.0-alt)))
+                self.assertLess(
+                    np.abs(np.degrees(refracted_zd) - (90.0 - alt_ref)),
+                    np.abs((90.0 - alt_ref) - (90.0 - alt)),
+                )
 
-                self.assertLess(np.abs(np.degrees(refracted_zd)-(90.0-alt_ref)),
-                                np.abs(np.degrees(refracted_zd) - (90.0-alt)))
+                self.assertLess(
+                    np.abs(np.degrees(refracted_zd) - (90.0 - alt_ref)),
+                    np.abs(np.degrees(refracted_zd) - (90.0 - alt)),
+                )
 
     def test_raDecFromAltAz_noref(self):
         """
@@ -344,20 +393,29 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
         for i_batch in range(n_batches):
             d_sun = 0.0
-            while d_sun < 45.0:  # because ICRS->Observed transformation breaks down close to the sun
+            while (
+                d_sun < 45.0
+            ):  # because ICRS->Observed transformation breaks down close to the sun
 
-                alt_in = rng.random_sample(n_samples)*50.0 + 20.0
-                az_in = rng.random_sample(n_samples)*360.0
+                alt_in = rng.random_sample(n_samples) * 50.0 + 20.0
+                az_in = rng.random_sample(n_samples) * 360.0
                 obs = utils.ObservationMetaData(mjd=43000.0)
-                ra_in, dec_in = utils.raDecFromAltAz(alt_in, az_in, obs=obs, includeRefraction=False)
+                ra_in, dec_in = utils.raDecFromAltAz(
+                    alt_in, az_in, obs=obs, includeRefraction=False
+                )
 
                 d_sun = utils.distanceToSun(ra_in, dec_in, obs.mjd).min()
 
-            alt_out, az_out, pa_out = utils.altAzPaFromRaDec(ra_in, dec_in, obs=obs,
-                                                             includeRefraction=False)
+            alt_out, az_out, pa_out = utils.altAzPaFromRaDec(
+                ra_in, dec_in, obs=obs, includeRefraction=False
+            )
 
-            dd = utils.haversine(np.radians(alt_out), np.radians(az_out),
-                                 np.radians(alt_in), np.radians(az_in))
+            dd = utils.haversine(
+                np.radians(alt_out),
+                np.radians(az_out),
+                np.radians(alt_in),
+                np.radians(az_in),
+            )
             self.assertLess(utils.arcsecFromRadians(dd).max(), 0.01)
 
     def test_raDecAltAz_noRefraction_degVsRadians(self):
@@ -368,22 +426,25 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
         rng = np.random.RandomState(34)
         n_samples = 10
-        ra_in = rng.random_sample(n_samples)*360.0
-        dec_in = rng.random_sample(n_samples)*180.0 - 90.0
+        ra_in = rng.random_sample(n_samples) * 360.0
+        dec_in = rng.random_sample(n_samples) * 180.0 - 90.0
         mjd = 43000.0
         obs = utils.ObservationMetaData(mjd=mjd)
-        alt, az, pa = utils.altAzPaFromRaDec(ra_in, dec_in, obs, includeRefraction=False)
-        alt_rad, az_rad, pa_rad = utils._altAzPaFromRaDec(np.radians(ra_in),
-                                                          np.radians(dec_in),
-                                                          obs, includeRefraction=False)
+        alt, az, pa = utils.altAzPaFromRaDec(
+            ra_in, dec_in, obs, includeRefraction=False
+        )
+        alt_rad, az_rad, pa_rad = utils._altAzPaFromRaDec(
+            np.radians(ra_in), np.radians(dec_in), obs, includeRefraction=False
+        )
 
-        distance = utils.haversine(az_rad, alt_rad,
-                                   np.radians(az), np.radians(alt))
+        distance = utils.haversine(az_rad, alt_rad, np.radians(az), np.radians(alt))
         self.assertLess(utils.arcsecFromRadians(distance).min(), 0.001)
         np.testing.assert_array_almost_equal(pa, np.degrees(pa_rad), decimal=12)
 
         ra, dec = utils.raDecFromAltAz(alt, az, obs, includeRefraction=False)
-        ra_rad, dec_rad = utils._raDecFromAltAz(alt_rad, az_rad, obs, includeRefraction=False)
+        ra_rad, dec_rad = utils._raDecFromAltAz(
+            alt_rad, az_rad, obs, includeRefraction=False
+        )
         distance = utils.haversine(ra_rad, dec_rad, np.radians(ra), np.radians(dec))
         self.assertLess(utils.arcsecFromRadians(distance).min(), 0.001)
 

@@ -69,10 +69,21 @@ class ObservationMetaData(object):
     ```>>> data = ObservationMetaData(boundType='box', pointingRA=5.0, pointingDec=15.0, boundLength=5.0)```
 
     """
-    def __init__(self, boundType=None, boundLength=None,
-                 mjd=None, pointingRA=None, pointingDec=None, rotSkyPos=None,
-                 bandpassName=None, site=Site(name='LSST'), m5=None, skyBrightness=None,
-                 seeing=None):
+
+    def __init__(
+        self,
+        boundType=None,
+        boundLength=None,
+        mjd=None,
+        pointingRA=None,
+        pointingDec=None,
+        rotSkyPos=None,
+        bandpassName=None,
+        site=Site(name="LSST"),
+        m5=None,
+        skyBrightness=None,
+        seeing=None,
+    ):
 
         self._bounds = None
         self._boundType = boundType
@@ -87,8 +98,10 @@ class ObservationMetaData(object):
             elif isinstance(mjd, ModifiedJulianDate):
                 self._mjd = mjd
             else:
-                raise RuntimeError("You must pass either a float or a ModifiedJulianDate "
-                                   "as the kwarg mjd to ObservationMetaData")
+                raise RuntimeError(
+                    "You must pass either a float or a ModifiedJulianDate "
+                    "as the kwarg mjd to ObservationMetaData"
+                )
         else:
             self._mjd = None
 
@@ -112,9 +125,9 @@ class ObservationMetaData(object):
         else:
             self._boundLength = None
 
-        self._m5 = self._assignDictKeyedToBandpass(m5, 'm5')
+        self._m5 = self._assignDictKeyedToBandpass(m5, "m5")
 
-        self._seeing = self._assignDictKeyedToBandpass(seeing, 'seeing')
+        self._seeing = self._assignDictKeyedToBandpass(seeing, "seeing")
 
         if self._bounds is None:
             self._buildBounds()
@@ -122,24 +135,24 @@ class ObservationMetaData(object):
     @property
     def summary(self):
         mydict = {}
-        mydict['site'] = self.site
+        mydict["site"] = self.site
 
-        mydict['boundType'] = self.boundType
-        mydict['boundLength'] = self.boundLength
-        mydict['pointingRA'] = self.pointingRA
-        mydict['pointingDec'] = self.pointingDec
-        mydict['rotSkyPos'] = self.rotSkyPos
+        mydict["boundType"] = self.boundType
+        mydict["boundLength"] = self.boundLength
+        mydict["pointingRA"] = self.pointingRA
+        mydict["pointingDec"] = self.pointingDec
+        mydict["rotSkyPos"] = self.rotSkyPos
 
         if self.mjd is None:
-            mydict['mjd'] = None
+            mydict["mjd"] = None
         else:
-            mydict['mjd'] = self.mjd.TAI
+            mydict["mjd"] = self.mjd.TAI
 
-        mydict['bandpass'] = self.bandpass
-        mydict['skyBrightness'] = self.skyBrightness
+        mydict["bandpass"] = self.bandpass
+        mydict["skyBrightness"] = self.skyBrightness
         # mydict['m5'] = self.m5
 
-        mydict['OpsimMetaData'] = self._OpsimMetaData
+        mydict["OpsimMetaData"] = self._OpsimMetaData
 
         return mydict
 
@@ -208,33 +221,45 @@ class ObservationMetaData(object):
             inputIsList = False
 
             if self._bandpass is None:
-                raise RuntimeError('You cannot set %s if you have not set ' % inputName +
-                                   'bandpass in ObservationMetaData')
+                raise RuntimeError(
+                    "You cannot set %s if you have not set " % inputName
+                    + "bandpass in ObservationMetaData"
+                )
 
-            if hasattr(self._bandpass, '__iter__') and not isinstance(self._bandpass, str):
+            if hasattr(self._bandpass, "__iter__") and not isinstance(
+                self._bandpass, str
+            ):
                 bandpassIsList = True
 
-            if hasattr(inputValue, '__iter__') and not isinstance(inputValue, str):
+            if hasattr(inputValue, "__iter__") and not isinstance(inputValue, str):
                 inputIsList = True
 
             if bandpassIsList and not inputIsList:
-                raise RuntimeError('You passed a list of bandpass names' +
-                                   'but did not pass a list of %s to ObservationMetaData' % inputName)
+                raise RuntimeError(
+                    "You passed a list of bandpass names"
+                    + "but did not pass a list of %s to ObservationMetaData" % inputName
+                )
 
             if inputIsList and not bandpassIsList:
-                raise RuntimeError('You passed a list of %s ' % inputName +
-                                   'but did not pass a list of bandpass names to ObservationMetaData')
+                raise RuntimeError(
+                    "You passed a list of %s " % inputName
+                    + "but did not pass a list of bandpass names to ObservationMetaData"
+                )
 
             if inputIsList:
                 if len(inputValue) != len(self._bandpass):
-                    raise RuntimeError('The list of %s you passed to ObservationMetaData ' % inputName +
-                                       'has a different length than the list of bandpass names you passed')
+                    raise RuntimeError(
+                        "The list of %s you passed to ObservationMetaData " % inputName
+                        + "has a different length than the list of bandpass names you passed"
+                    )
 
             # now build the dict
             if bandpassIsList:
                 if len(inputValue) != len(self._bandpass):
-                    raise RuntimeError('In ObservationMetaData you tried to assign bandpass ' +
-                                       'and %s with lists of different length' % inputName)
+                    raise RuntimeError(
+                        "In ObservationMetaData you tried to assign bandpass "
+                        + "and %s with lists of different length" % inputName
+                    )
 
                 outputDict = {}
                 for b, m in zip(self._bandpass, inputValue):
@@ -261,8 +286,9 @@ class ObservationMetaData(object):
         if self._pointingRA is None or self._pointingDec is None:
             return
 
-        self._bounds = SpatialBounds.getSpatialBounds(self._boundType, self._pointingRA, self._pointingDec,
-                                                      self._boundLength)
+        self._bounds = SpatialBounds.getSpatialBounds(
+            self._boundType, self._pointingRA, self._pointingDec, self._boundLength
+        )
 
     @property
     def pointingRA(self):
@@ -367,7 +393,7 @@ class ObservationMetaData(object):
 
     @m5.setter
     def m5(self, value):
-        self._m5 = self._assignDictKeyedToBandpass(value, 'm5')
+        self._m5 = self._assignDictKeyedToBandpass(value, "m5")
 
     @property
     def seeing(self):
@@ -379,7 +405,7 @@ class ObservationMetaData(object):
 
     @seeing.setter
     def seeing(self, value):
-        self._seeing = self._assignDictKeyedToBandpass(value, 'seeing')
+        self._seeing = self._assignDictKeyedToBandpass(value, "seeing")
 
     @property
     def site(self):
@@ -411,7 +437,9 @@ class ObservationMetaData(object):
         elif isinstance(value, ModifiedJulianDate):
             self._mjd = value
         else:
-            raise RuntimeError("You can only set mjd to either a float or a ModifiedJulianDate")
+            raise RuntimeError(
+                "You can only set mjd to either a float or a ModifiedJulianDate"
+            )
 
     @property
     def bandpass(self):
@@ -440,8 +468,8 @@ class ObservationMetaData(object):
         """
 
         self._bandpass = bandpassName
-        self._m5 = self._assignDictKeyedToBandpass(m5, 'm5')
-        self._seeing = self._assignDictKeyedToBandpass(seeing, 'seeing')
+        self._m5 = self._assignDictKeyedToBandpass(m5, "m5")
+        self._seeing = self._assignDictKeyedToBandpass(seeing, "seeing")
 
     @property
     def skyBrightness(self):
@@ -466,5 +494,5 @@ class ObservationMetaData(object):
     @OpsimMetaData.setter
     def OpsimMetaData(self, value):
         if not isinstance(value, dict):
-            raise RuntimeError('OpsimMetaData must be a dict')
+            raise RuntimeError("OpsimMetaData must be a dict")
         self._OpsimMetaData = value

@@ -6,12 +6,16 @@ import healpy as hp
 import warnings
 import rubin_sim.utils as simsUtils
 
-from rubin_sim.maf.plots.spatialPlotters import HealpixSkyMap, HealpixHistogram, HealpixPowerSpectrum
+from rubin_sim.maf.plots.spatialPlotters import (
+    HealpixSkyMap,
+    HealpixHistogram,
+    HealpixPowerSpectrum,
+)
 
 from .healpixSlicer import HealpixSlicer
 
 
-__all__ = ['HealpixSubsetSlicer']
+__all__ = ["HealpixSubsetSlicer"]
 
 
 class HealpixSubsetSlicer(HealpixSlicer):
@@ -72,16 +76,38 @@ class HealpixSubsetSlicer(HealpixSlicer):
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
     """
-    def __init__(self, nside, hpid, lonCol ='fieldRA',
-                 latCol='fieldDec', latLonDeg=True, verbose=True, badval=hp.UNSEEN,
-                 useCache=True, leafsize=100, radius=2.45,
-                 useCamera=True, cameraFootprintFile=None, rotSkyPosColName='rotSkyPos'):
+
+    def __init__(
+        self,
+        nside,
+        hpid,
+        lonCol="fieldRA",
+        latCol="fieldDec",
+        latLonDeg=True,
+        verbose=True,
+        badval=hp.UNSEEN,
+        useCache=True,
+        leafsize=100,
+        radius=2.45,
+        useCamera=True,
+        cameraFootprintFile=None,
+        rotSkyPosColName="rotSkyPos",
+    ):
         """Instantiate and set up healpix slicer object."""
-        super().__init__(nside=nside, verbose=verbose,
-                         lonCol=lonCol, latCol=latCol,
-                         badval=badval, radius=radius, leafsize=leafsize,
-                         useCache=useCache, useCamera=useCamera, rotSkyPosColName=rotSkyPosColName,
-                         cameraFootprintFile=cameraFootprintFile, latLonDeg=latLonDeg)
+        super().__init__(
+            nside=nside,
+            verbose=verbose,
+            lonCol=lonCol,
+            latCol=latCol,
+            badval=badval,
+            radius=radius,
+            leafsize=leafsize,
+            useCache=useCache,
+            useCamera=useCamera,
+            rotSkyPosColName=rotSkyPosColName,
+            cameraFootprintFile=cameraFootprintFile,
+            latLonDeg=latLonDeg,
+        )
         self.hpid = hpid
         self.len_hpid = len(self.hpid)
         # Set up a mask for the metric values to use
@@ -95,17 +121,22 @@ class HealpixSubsetSlicer(HealpixSlicer):
         if isinstance(otherSlicer, HealpixSubsetSlicer):
             if otherSlicer.nside == self.nside:
                 if np.array_equal(otherSlicer.hpid, self.hpid):
-                    if (otherSlicer.lonCol == self.lonCol and otherSlicer.latCol == self.latCol):
+                    if (
+                        otherSlicer.lonCol == self.lonCol
+                        and otherSlicer.latCol == self.latCol
+                    ):
                         if otherSlicer.radius == self.radius:
                             if otherSlicer.useCamera == self.useCamera:
-                                if otherSlicer.rotSkyPosColName == self.rotSkyPosColName:
+                                if (
+                                    otherSlicer.rotSkyPosColName
+                                    == self.rotSkyPosColName
+                                ):
                                     if np.all(otherSlicer.shape == self.shape):
                                         result = True
         return result
 
     def __iter__(self):
-        """Iterate over the slices.
-        """
+        """Iterate over the slices."""
         self.hpid_counter = 0
         return self
 
@@ -144,19 +175,24 @@ class HealpixSubsetSlicer(HealpixSlicer):
             """Return indexes for relevant opsim data at slicepoint
             (slicepoint=lonCol/latCol value .. usually ra/dec)."""
             # Subclass this method, just to make sure we return no data for points not in self.hpid
-            slicePoint = {'sid': islice}
+            slicePoint = {"sid": islice}
             if islice not in self.hpid:
                 indices = []
             else:
-                sx, sy, sz = simsUtils._xyz_from_ra_dec(self.slicePoints['ra'][islice],
-                                                        self.slicePoints['dec'][islice])
+                sx, sy, sz = simsUtils._xyz_from_ra_dec(
+                    self.slicePoints["ra"][islice], self.slicePoints["dec"][islice]
+                )
                 # Query against tree.
                 indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
                 if (self.useCamera) & (len(indices) > 0):
                     # Find the indices *of those indices* which fall in the camera footprint
-                    camera_idx = self.camera(self.slicePoints['ra'][islice], self.slicePoints['dec'][islice],
-                                             self.data_ra[indices], self.data_dec[indices],
-                                             self.data_rot[indices])
+                    camera_idx = self.camera(
+                        self.slicePoints["ra"][islice],
+                        self.slicePoints["dec"][islice],
+                        self.data_ra[indices],
+                        self.data_dec[indices],
+                        self.data_rot[indices],
+                    )
                     indices = np.array(indices)[camera_idx]
                 # Loop through all the slicePoint keys. If the first dimension of slicepoint[key] has
                 # the same shape as the slicer, assume it is information per slicepoint.
@@ -167,11 +203,11 @@ class HealpixSubsetSlicer(HealpixSlicer):
                         keyShape = 0
                     else:
                         keyShape = np.shape(self.slicePoints[key])[0]
-                    if (keyShape == self.nslice):
+                    if keyShape == self.nslice:
                         slicePoint[key] = self.slicePoints[key][islice]
                     else:
                         slicePoint[key] = self.slicePoints[key]
 
-            return {'idxs': indices, 'slicePoint': slicePoint}
-        setattr(self, '_sliceSimData', _sliceSimData)
+            return {"idxs": indices, "slicePoint": slicePoint}
 
+        setattr(self, "_sliceSimData", _sliceSimData)

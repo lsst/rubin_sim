@@ -5,23 +5,33 @@ import rubin_sim.maf.plots as plots
 from .colMapDict import ColMapDict
 from .common import filterList
 
-__all__ = ['altazHealpix', 'altazLambert']
+__all__ = ["altazHealpix", "altazLambert"]
 
 
 def basicSetup(metricName, colmap=None, nside=64):
 
     if colmap is None:
-        colmap = ColMapDict('opsimV4')
+        colmap = ColMapDict("opsimV4")
 
-    slicer = slicers.HealpixSlicer(nside=nside, latCol=colmap['alt'], lonCol=colmap['az'],
-                                   latLonDeg=colmap['raDecDeg'], useCache=False)
-    metric = metrics.CountMetric(colmap['mjd'], metricName=metricName)
+    slicer = slicers.HealpixSlicer(
+        nside=nside,
+        latCol=colmap["alt"],
+        lonCol=colmap["az"],
+        latLonDeg=colmap["raDecDeg"],
+        useCache=False,
+    )
+    metric = metrics.CountMetric(colmap["mjd"], metricName=metricName)
 
     return colmap, slicer, metric
 
 
-def altazHealpix(colmap=None, runName='opsim', extraSql=None,
-                 extraMetadata=None, metricName='NVisits Alt/Az'):
+def altazHealpix(
+    colmap=None,
+    runName="opsim",
+    extraSql=None,
+    extraMetadata=None,
+    metricName="NVisits Alt/Az",
+):
 
     """Generate a set of metrics measuring the number visits as a function of alt/az
     plotted on a HealpixSkyMap.
@@ -48,26 +58,37 @@ def altazHealpix(colmap=None, runName='opsim', extraSql=None,
     colmap, slicer, metric = basicSetup(metricName=metricName, colmap=colmap)
 
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, metadata = filterList(all=True,
-                                                            extraSql=extraSql,
-                                                            extraMetadata=extraMetadata)
+    filterlist, colors, orders, sqls, metadata = filterList(
+        all=True, extraSql=extraSql, extraMetadata=extraMetadata
+    )
 
     bundleList = []
 
-    plotDict = {'rot': (90, 90, 90), 'flip': 'geo'}
+    plotDict = {"rot": (90, 90, 90), "flip": "geo"}
     plotFunc = plots.HealpixSkyMap()
 
     for f in filterlist:
-        if f == 'all':
-            subgroup = 'All Observations'
+        if f == "all":
+            subgroup = "All Observations"
         else:
-            subgroup = 'Per filter'
-        displayDict = {'group': 'Alt/Az', 'order': orders[f], 'subgroup': subgroup,
-                       'caption':
-                       'Pointing History on the alt-az sky (zenith center) for filter %s' % f}
-        bundle = mb.MetricBundle(metric, slicer, sqls[f], plotDict=plotDict,
-                                 runName=runName, metadata = metadata[f],
-                                 plotFuncs=[plotFunc], displayDict=displayDict)
+            subgroup = "Per filter"
+        displayDict = {
+            "group": "Alt/Az",
+            "order": orders[f],
+            "subgroup": subgroup,
+            "caption": "Pointing History on the alt-az sky (zenith center) for filter %s"
+            % f,
+        }
+        bundle = mb.MetricBundle(
+            metric,
+            slicer,
+            sqls[f],
+            plotDict=plotDict,
+            runName=runName,
+            metadata=metadata[f],
+            plotFuncs=[plotFunc],
+            displayDict=displayDict,
+        )
         bundleList.append(bundle)
 
     for b in bundleList:
@@ -75,8 +96,13 @@ def altazHealpix(colmap=None, runName='opsim', extraSql=None,
     return mb.makeBundlesDictFromList(bundleList)
 
 
-def altazLambert(colmap=None, runName='opsim', extraSql=None,
-                 extraMetadata=None, metricName='Nvisits as function of Alt/Az'):
+def altazLambert(
+    colmap=None,
+    runName="opsim",
+    extraSql=None,
+    extraMetadata=None,
+    metricName="Nvisits as function of Alt/Az",
+):
 
     """Generate a set of metrics measuring the number visits as a function of alt/az
     plotted on a LambertSkyMap.
@@ -103,25 +129,34 @@ def altazLambert(colmap=None, runName='opsim', extraSql=None,
     colmap, slicer, metric = basicSetup(metricName=metricName, colmap=colmap)
 
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, metadata = filterList(all=True,
-                                                            extraSql=extraSql,
-                                                            extraMetadata=extraMetadata)
+    filterlist, colors, orders, sqls, metadata = filterList(
+        all=True, extraSql=extraSql, extraMetadata=extraMetadata
+    )
 
     bundleList = []
 
     plotFunc = plots.LambertSkyMap()
 
     for f in filterlist:
-        if f == 'all':
-            subgroup = 'All Observations'
+        if f == "all":
+            subgroup = "All Observations"
         else:
-            subgroup = 'Per filter'
-        displayDict = {'group': 'Alt/Az', 'order': orders[f], 'subgroup': subgroup,
-                       'caption':
-                       'Alt/Az pointing distribution for filter %s' % f}
-        bundle = mb.MetricBundle(metric, slicer, sqls[f],
-                                 runName=runName, metadata = metadata[f],
-                                 plotFuncs=[plotFunc], displayDict=displayDict)
+            subgroup = "Per filter"
+        displayDict = {
+            "group": "Alt/Az",
+            "order": orders[f],
+            "subgroup": subgroup,
+            "caption": "Alt/Az pointing distribution for filter %s" % f,
+        }
+        bundle = mb.MetricBundle(
+            metric,
+            slicer,
+            sqls[f],
+            runName=runName,
+            metadata=metadata[f],
+            plotFuncs=[plotFunc],
+            displayDict=displayDict,
+        )
         bundleList.append(bundle)
 
     for b in bundleList:

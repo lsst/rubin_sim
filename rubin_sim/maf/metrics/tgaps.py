@@ -1,9 +1,13 @@
 import numpy as np
 from .baseMetric import BaseMetric
 
-__all__ = ['TgapsMetric', 'TgapsPercentMetric',
-           'NightgapsMetric', 'NVisitsPerNightMetric',
-           'MaxGapMetric']
+__all__ = [
+    "TgapsMetric",
+    "TgapsPercentMetric",
+    "NightgapsMetric",
+    "NVisitsPerNightMetric",
+    "MaxGapMetric",
+]
 
 
 class TgapsMetric(BaseMetric):
@@ -32,14 +36,22 @@ class TgapsMetric(BaseMetric):
     histogram : `np.ndarray`
         Returns a histogram of the tgaps at each slice point;
         these histograms can be combined and plotted using the 'SummaryHistogram plotter'.
-     """
+    """
 
-    def __init__(self, timesCol='observationStartMJD', allGaps=False,
-                 bins=np.arange(0, 120.0, 5.0)/60./24., units='days', **kwargs):
+    def __init__(
+        self,
+        timesCol="observationStartMJD",
+        allGaps=False,
+        bins=np.arange(0, 120.0, 5.0) / 60.0 / 24.0,
+        units="days",
+        **kwargs
+    ):
         # Pass the same bins to the plotter.
         self.bins = bins
         self.timesCol = timesCol
-        super().__init__(col=[self.timesCol], metricDtype='object', units=units, **kwargs)
+        super().__init__(
+            col=[self.timesCol], metricDtype="object", units=units, **kwargs
+        )
         self.allGaps = allGaps
 
     def run(self, dataSlice, slicePoint=None):
@@ -48,8 +60,8 @@ class TgapsMetric(BaseMetric):
         times = np.sort(dataSlice[self.timesCol])
         if self.allGaps:
             allDiffs = []
-            for i in np.arange(1,times.size,1):
-                allDiffs.append((times-np.roll(times,i))[i:])
+            for i in np.arange(1, times.size, 1):
+                allDiffs.append((times - np.roll(times, i))[i:])
             dts = np.concatenate(allDiffs)
         else:
             dts = np.diff(times)
@@ -86,15 +98,24 @@ class TgapsPercentMetric(BaseMetric):
     percent : `float`
         Returns a float percent of the CDF between cdfMinTime and cdfMaxTime -
         (# of tgaps within minTime/maxTime / # of all tgaps).
-     """
+    """
 
-    def __init__(self, timesCol='observationStartMJD', allGaps=False,
-                 minTime = 2./24, maxTime=14./24, units='percent', **kwargs):
+    def __init__(
+        self,
+        timesCol="observationStartMJD",
+        allGaps=False,
+        minTime=2.0 / 24,
+        maxTime=14.0 / 24,
+        units="percent",
+        **kwargs
+    ):
         self.timesCol = timesCol
-        assert(minTime <= maxTime)
+        assert minTime <= maxTime
         self.minTime = minTime
         self.maxTime = maxTime
-        super().__init__(col=[self.timesCol], metricDtype='float', units=units, **kwargs)
+        super().__init__(
+            col=[self.timesCol], metricDtype="float", units=units, **kwargs
+        )
         self.allGaps = allGaps
 
     def run(self, dataSlice, slicePoint=None):
@@ -103,13 +124,13 @@ class TgapsPercentMetric(BaseMetric):
         times = np.sort(dataSlice[self.timesCol])
         if self.allGaps:
             allDiffs = []
-            for i in np.arange(1,times.size,1):
-                allDiffs.append((times-np.roll(times,i))[i:])
+            for i in np.arange(1, times.size, 1):
+                allDiffs.append((times - np.roll(times, i))[i:])
             dts = np.concatenate(allDiffs)
         else:
             dts = np.diff(times)
         nInWindow = np.sum((dts >= self.minTime) & (dts <= self.maxTime))
-        return nInWindow/len(dts)*100.
+        return nInWindow / len(dts) * 100.0
 
 
 class NightgapsMetric(BaseMetric):
@@ -138,14 +159,22 @@ class NightgapsMetric(BaseMetric):
     histogram : `np.ndarray`
         Returns a histogram of the deltaT between nights at each slice point;
         these histograms can be combined and plotted using the 'SummaryHistogram plotter'.
-     """
+    """
 
-    def __init__(self, nightCol='night', allGaps=False, bins=np.arange(0, 10, 1),
-                 units='nights', **kwargs):
+    def __init__(
+        self,
+        nightCol="night",
+        allGaps=False,
+        bins=np.arange(0, 10, 1),
+        units="nights",
+        **kwargs
+    ):
         # Pass the same bins to the plotter.
         self.bins = bins
         self.nightCol = nightCol
-        super().__init__(col=[self.nightCol], metricDtype='object', units=units, **kwargs)
+        super().__init__(
+            col=[self.nightCol], metricDtype="object", units=units, **kwargs
+        )
         self.allGaps = allGaps
 
     def run(self, dataSlice, slicePoint=None):
@@ -154,8 +183,8 @@ class NightgapsMetric(BaseMetric):
         nights = np.sort(np.unique(dataSlice[self.nightCol]))
         if self.allGaps:
             allDiffs = []
-            for i in np.arange(1, nights.size,1):
-                allDiffs.append((nights-np.roll(nights,i))[i:])
+            for i in np.arange(1, nights.size, 1):
+                allDiffs.append((nights - np.roll(nights, i))[i:])
             dnights = np.concatenate(allDiffs)
         else:
             dnights = np.diff(nights)
@@ -182,13 +211,15 @@ class NVisitsPerNightMetric(BaseMetric):
     histogram : `np.ndarray`
         Returns a histogram of the number of visits per night at each slice point;
         these histograms can be combined and plotted using the 'SummaryHistogram plotter'.
-     """
+    """
 
-    def __init__(self, nightCol='night', bins=np.arange(0, 10, 1), units='#', **kwargs):
+    def __init__(self, nightCol="night", bins=np.arange(0, 10, 1), units="#", **kwargs):
         # Pass the same bins to the plotter.
         self.bins = bins
         self.nightCol = nightCol
-        super().__init__(col=[self.nightCol], metricDtype='object', units=units, **kwargs)
+        super().__init__(
+            col=[self.nightCol], metricDtype="object", units=units, **kwargs
+        )
 
     def run(self, dataSlice, slicePoint=None):
         n, counts = np.unique(dataSlice[self.nightCol], return_counts=True)
@@ -212,9 +243,9 @@ class MaxGapMetric(BaseMetric):
         The maximum gap (in days) between visits.
     """
 
-    def __init__(self, mjdCol='observationStartMJD', **kwargs):
+    def __init__(self, mjdCol="observationStartMJD", **kwargs):
         self.mjdCol = mjdCol
-        units = 'Days'
+        units = "Days"
         super(MaxGapMetric, self).__init__(col=[self.mjdCol], units=units, **kwargs)
 
     def run(self, dataSlice, slicePoint=None):
@@ -224,4 +255,3 @@ class MaxGapMetric(BaseMetric):
         else:
             result = self.badval
         return result
-

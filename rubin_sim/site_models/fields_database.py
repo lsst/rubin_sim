@@ -26,7 +26,7 @@ class FieldsDatabase(object):
         """
         self.db_name = db_name
         if self.db_name is None:
-            self.db_name = os.path.join(get_data_dir(), 'site_models', 'Fields.db')
+            self.db_name = os.path.join(get_data_dir(), "site_models", "Fields.db")
 
     def get_connect(self):
         try:
@@ -35,8 +35,7 @@ class FieldsDatabase(object):
             self.connect = sqlite3.connect(self.db_name)
 
     def __del__(self):
-        """Close the database connection.
-        """
+        """Close the database connection."""
         try:
             self.connect.close()
         except AttributeError:
@@ -90,8 +89,7 @@ class FieldsDatabase(object):
             The OpSim3 user regions formatted string.
         """
         self.get_connect()
-        format_str = "userRegion = "\
-                     "{{:.{0}f}},{{:.{0}f}},0.03".format(precision)
+        format_str = "userRegion = " "{{:.{0}f}},{{:.{0}f}},0.03".format(precision)
         rows = self.get_rows(query)
         result = []
         for row in rows:

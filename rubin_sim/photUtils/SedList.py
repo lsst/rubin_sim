@@ -22,15 +22,19 @@ class SedList(object):
     after the constructor has been called.
     """
 
-    def __init__(self, sedNameList, magNormList,
-                 normalizingBandpass=None,
-                 specMap=None,
-                 fileDir = '',
-                 wavelenMatch = None,
-                 redshiftList = None,
-                 galacticAvList = None,
-                 internalAvList = None,
-                 cosmologicalDimming = True):
+    def __init__(
+        self,
+        sedNameList,
+        magNormList,
+        normalizingBandpass=None,
+        specMap=None,
+        fileDir="",
+        wavelenMatch=None,
+        redshiftList=None,
+        galacticAvList=None,
+        internalAvList=None,
+        cosmologicalDimming=True,
+    ):
 
         """
         @param [in] sedNameList is a list of SED file names.
@@ -74,7 +78,6 @@ class SedList(object):
         whichever of those features were left out.
         """
 
-
         self._initialized = False
         self._spec_map = specMap
         self._wavelen_match = copy.deepcopy(wavelenMatch)
@@ -96,10 +99,13 @@ class SedList(object):
         self._b_gal = None
         self._av_gal_wavelen = None
 
-        self.loadSedsFromList(sedNameList, magNormList,
-                              internalAvList = internalAvList,
-                              galacticAvList = galacticAvList,
-                              redshiftList = redshiftList)
+        self.loadSedsFromList(
+            sedNameList,
+            magNormList,
+            internalAvList=internalAvList,
+            galacticAvList=galacticAvList,
+            redshiftList=redshiftList,
+        )
 
     def __len__(self):
         return len(self._sed_list)
@@ -112,8 +118,14 @@ class SedList(object):
             yield val
 
     # Handy routines for handling Sed/Bandpass routines with sets of dictionaries.
-    def loadSedsFromList(self, sedNameList, magNormList, \
-                         internalAvList=None, galacticAvList=None, redshiftList=None):
+    def loadSedsFromList(
+        self,
+        sedNameList,
+        magNormList,
+        internalAvList=None,
+        galacticAvList=None,
+        redshiftList=None,
+    ):
         """
         Load the Seds specified by sedNameList, applying the specified normalization,
         extinction, and redshift.
@@ -185,7 +197,9 @@ class SedList(object):
 
             if sedName != "None":
                 if self._spec_map is not None:
-                    sed.readSED_flambda(os.path.join(self._file_dir, self._spec_map[sedName]))
+                    sed.readSED_flambda(
+                        os.path.join(self._file_dir, self._spec_map[sedName])
+                    )
                 else:
                     sed.readSED_flambda(os.path.join(self._file_dir, sedName))
 
@@ -198,12 +212,14 @@ class SedList(object):
 
             temp_sed_list.append(sed)
 
-
         if internalAvList is not None:
-            self._av_int_wavelen, \
-            self._a_int, \
-            self._b_int = self.applyAv(temp_sed_list, internalAvList,
-                                       self._av_int_wavelen, self._a_int, self._b_int)
+            self._av_int_wavelen, self._a_int, self._b_int = self.applyAv(
+                temp_sed_list,
+                internalAvList,
+                self._av_int_wavelen,
+                self._a_int,
+                self._b_int,
+            )
 
         if redshiftList is not None:
             self.applyRedshift(temp_sed_list, redshiftList)
@@ -214,16 +230,17 @@ class SedList(object):
                     sedObj.resampleSED(wavelen_match=self._wavelen_match)
 
         if galacticAvList is not None:
-            self._av_gal_wavelen, \
-            self._a_gal, \
-            self._b_gal = self.applyAv(temp_sed_list, galacticAvList,
-                                       self._av_gal_wavelen, self._a_gal, self._b_gal)
+            self._av_gal_wavelen, self._a_gal, self._b_gal = self.applyAv(
+                temp_sed_list,
+                galacticAvList,
+                self._av_gal_wavelen,
+                self._a_gal,
+                self._b_gal,
+            )
 
         self._sed_list += temp_sed_list
 
         self._initialized = True
-
-
 
     def applyAv(self, sedList, avList, dustWavelen, aCoeffs, bCoeffs):
         """
@@ -258,21 +275,22 @@ class SedList(object):
 
         for sedobj, av in zip(sedList, avList):
             if sedobj.wavelen is not None and av is not None:
-                #setupCCM_ab only depends on the wavelen array
-                #because this is supposed to be the same for every
-                #SED object in sedList, it is only called once for
-                #each invocation of applyAv
+                # setupCCM_ab only depends on the wavelen array
+                # because this is supposed to be the same for every
+                # SED object in sedList, it is only called once for
+                # each invocation of applyAv
 
-                if dustWavelen is None or len(sedobj.wavelen)!=len(dustWavelen) \
-                or (sedobj.wavelen!=dustWavelen).any():
+                if (
+                    dustWavelen is None
+                    or len(sedobj.wavelen) != len(dustWavelen)
+                    or (sedobj.wavelen != dustWavelen).any()
+                ):
                     aCoeffs, bCoeffs = sedobj.setupCCM_ab()
                     dustWavelen = sedobj.wavelen
 
                 sedobj.addDust(aCoeffs, bCoeffs, A_v=av)
 
-
         return dustWavelen, aCoeffs, bCoeffs
-
 
     def applyRedshift(self, sedList, redshiftList):
         """
@@ -295,8 +313,7 @@ class SedList(object):
         for sedobj, redshift in zip(sedList, redshiftList):
             if sedobj.wavelen is not None and redshift is not None:
                 sedobj.redshiftSED(redshift, dimming=self._cosmological_dimming)
-                sedobj.name = sedobj.name + '_Z' + '%.2f' %(redshift)
-
+                sedobj.name = sedobj.name + "_Z" + "%.2f" % (redshift)
 
     def flush(self):
         """
@@ -308,7 +325,6 @@ class SedList(object):
         self._galactic_av_list = None
         self._redshift_list = None
 
-
     @property
     def cosmologicalDimming(self):
         """
@@ -318,7 +334,6 @@ class SedList(object):
         """
         return self._cosmological_dimming
 
-
     @property
     def wavelenMatch(self):
         """
@@ -326,7 +341,6 @@ class SedList(object):
         SedList.
         """
         return self._wavelen_match
-
 
     @property
     def redshiftList(self):
@@ -336,7 +350,6 @@ class SedList(object):
         """
         return self._redshift_list
 
-
     @property
     def internalAvList(self):
         """
@@ -344,7 +357,6 @@ class SedList(object):
         this SedList.
         """
         return self._internal_av_list
-
 
     @property
     def galacticAvList(self):

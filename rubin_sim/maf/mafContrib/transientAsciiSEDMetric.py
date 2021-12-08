@@ -13,6 +13,7 @@ import warnings
 from builtins import zip
 from copy import deepcopy
 import numpy as np
+
 try:
     from sncosmo import read_griddata_ascii, TimeSeriesSource, Model
 except ImportError as error:

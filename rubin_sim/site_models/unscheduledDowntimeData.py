@@ -4,7 +4,7 @@ import random
 import warnings
 
 
-__all__ = ['UnscheduledDowntimeData']
+__all__ = ["UnscheduledDowntimeData"]
 
 
 class UnscheduledDowntimeData(object):
@@ -24,16 +24,25 @@ class UnscheduledDowntimeData(object):
         The number of nights in the total survey. Default 3650*2.
     """
 
-    MINOR_EVENT = {'P': 0.0137, 'length': 1, 'level': "minor event"}
-    INTERMEDIATE_EVENT = {'P': 0.00548, 'length': 3, 'level': "intermediate event"}
-    MAJOR_EVENT = {'P': 0.00137, 'length': 7, 'level': "major event"}
-    CATASTROPHIC_EVENT = {'P': 0.000274, 'length': 14, 'level': "catastrophic event"}
+    MINOR_EVENT = {"P": 0.0137, "length": 1, "level": "minor event"}
+    INTERMEDIATE_EVENT = {"P": 0.00548, "length": 3, "level": "intermediate event"}
+    MAJOR_EVENT = {"P": 0.00137, "length": 7, "level": "major event"}
+    CATASTROPHIC_EVENT = {"P": 0.000274, "length": 14, "level": "catastrophic event"}
 
-    def __init__(self, start_time, seed=1516231120, start_of_night_offset=-0.34, survey_length=3650*2):
+    def __init__(
+        self,
+        start_time,
+        seed=1516231120,
+        start_of_night_offset=-0.34,
+        survey_length=3650 * 2,
+    ):
         self.seed = seed
         self.survey_length = survey_length
         year_start = start_time.datetime.year
-        self.night0 = Time('%d-01-01' % year_start, format='isot', scale='tai') + start_of_night_offset
+        self.night0 = (
+            Time("%d-01-01" % year_start, format="isot", scale="tai")
+            + start_of_night_offset
+        )
 
         # Scheduled downtime data is a np.ndarray of start / end / activity for each scheduled downtime.
         self.downtime = None
@@ -56,10 +65,9 @@ class UnscheduledDowntimeData(object):
         return self.downtime
 
     def _downtimeStatus(self, time):
-        """Look behind the scenes at the downtime status/next values
-        """
-        next_start = self.downtime['start'].searchsorted(time, side='right')
-        next_end = self.downtime['end'].searchsorted(time, side='right')
+        """Look behind the scenes at the downtime status/next values"""
+        next_start = self.downtime["start"].searchsorted(time, side="right")
+        next_end = self.downtime["end"].searchsorted(time, side="right")
         if next_start > next_end:
             current = self.downtime[next_end]
         else:
@@ -92,49 +100,59 @@ class UnscheduledDowntimeData(object):
         night = 0
         while night < self.survey_length:
             prob = random.random()
-            if prob < self.CATASTROPHIC_EVENT['P']:
-                start_night = self.night0 + TimeDelta(night, format='jd')
+            if prob < self.CATASTROPHIC_EVENT["P"]:
+                start_night = self.night0 + TimeDelta(night, format="jd")
                 starts.append(start_night)
-                end_night = start_night + TimeDelta(self.CATASTROPHIC_EVENT['length'], format='jd')
+                end_night = start_night + TimeDelta(
+                    self.CATASTROPHIC_EVENT["length"], format="jd"
+                )
                 ends.append(end_night)
-                acts.append(self.CATASTROPHIC_EVENT['level'])
-                night += self.CATASTROPHIC_EVENT['length'] + 1
+                acts.append(self.CATASTROPHIC_EVENT["level"])
+                night += self.CATASTROPHIC_EVENT["length"] + 1
                 continue
             else:
                 prob = random.random()
-                if prob < self.MAJOR_EVENT['P']:
-                    start_night = self.night0 + TimeDelta(night, format='jd')
+                if prob < self.MAJOR_EVENT["P"]:
+                    start_night = self.night0 + TimeDelta(night, format="jd")
                     starts.append(start_night)
-                    end_night = start_night + TimeDelta(self.MAJOR_EVENT['length'], format='jd')
+                    end_night = start_night + TimeDelta(
+                        self.MAJOR_EVENT["length"], format="jd"
+                    )
                     ends.append(end_night)
-                    acts.append(self.MAJOR_EVENT['level'])
-                    night += self.MAJOR_EVENT['length'] + 1
+                    acts.append(self.MAJOR_EVENT["level"])
+                    night += self.MAJOR_EVENT["length"] + 1
                     continue
                 else:
                     prob = random.random()
-                    if prob < self.INTERMEDIATE_EVENT['P']:
-                        start_night = self.night0 + TimeDelta(night, format='jd')
+                    if prob < self.INTERMEDIATE_EVENT["P"]:
+                        start_night = self.night0 + TimeDelta(night, format="jd")
                         starts.append(start_night)
-                        end_night = start_night + TimeDelta(self.INTERMEDIATE_EVENT['length'], format='jd')
+                        end_night = start_night + TimeDelta(
+                            self.INTERMEDIATE_EVENT["length"], format="jd"
+                        )
                         ends.append(end_night)
-                        acts.append(self.INTERMEDIATE_EVENT['level'])
-                        night += self.INTERMEDIATE_EVENT['length'] + 1
+                        acts.append(self.INTERMEDIATE_EVENT["level"])
+                        night += self.INTERMEDIATE_EVENT["length"] + 1
                         continue
                     else:
                         prob = random.random()
-                        if prob < self.MINOR_EVENT['P']:
-                            start_night = self.night0 + TimeDelta(night, format='jd')
+                        if prob < self.MINOR_EVENT["P"]:
+                            start_night = self.night0 + TimeDelta(night, format="jd")
                             starts.append(start_night)
-                            end_night = start_night + TimeDelta(self.MINOR_EVENT['length'], format='jd')
+                            end_night = start_night + TimeDelta(
+                                self.MINOR_EVENT["length"], format="jd"
+                            )
                             ends.append(end_night)
-                            acts.append(self.MINOR_EVENT['level'])
-                            night += self.MINOR_EVENT['length'] + 1
+                            acts.append(self.MINOR_EVENT["level"])
+                            night += self.MINOR_EVENT["length"] + 1
             night += 1
-        self.downtime = np.array(list(zip(starts, ends, acts)),
-                                 dtype=[('start', 'O'), ('end', 'O'), ('activity', 'O')])
+        self.downtime = np.array(
+            list(zip(starts, ends, acts)),
+            dtype=[("start", "O"), ("end", "O"), ("activity", "O")],
+        )
 
     def config_info(self):
-        warnings.warn('The configure method is deprecated.')
+        warnings.warn("The configure method is deprecated.")
 
     def total_downtime(self):
         """Return total downtime (in days).
@@ -145,6 +163,6 @@ class UnscheduledDowntimeData(object):
             Total number of downtime days.
         """
         total = 0
-        for td in (self.downtime['end'] - self.downtime['start']):
+        for td in self.downtime["end"] - self.downtime["start"]:
             total += td.jd
         return total

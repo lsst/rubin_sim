@@ -35,9 +35,7 @@ class TestZenikeFitDrivers(unittest.TestCase):
     def test_bulk_zernike_fit(self):
         test_out_dir = TemporaryDirectory()
         out_fname = os.path.join(test_out_dir.name, "bulk_zern_fit.h5")
-        zernike_coeffs = zernike.bulk_zernike_fit(
-            self.cut_pre_data_dir, out_fname
-        )
+        zernike_coeffs = zernike.bulk_zernike_fit(self.cut_pre_data_dir, out_fname)
         self.assertGreater(zernike_coeffs.shape[0], 5)
         self.assertGreater(zernike_coeffs.shape[1], 20)
         self.assertEqual(tuple(zernike_coeffs.index.names), ("band", "mjd"))
@@ -121,6 +119,7 @@ class TestSkyModelZernike(unittest.TestCase):
             self.assertGreater(np.count_nonzero(notnan) / npix, 0.2)
             self.assertLess(sky[band][notnan].max(), 20)
             self.assertGreater(sky[band][notnan].min(), 8)
+
     @unittest.skip("skipping because slow")
     def test_getMags_day(self):
         mjd = 59824.8

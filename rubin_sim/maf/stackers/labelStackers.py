@@ -1,13 +1,17 @@
 import numpy as np
 import healpy as hp
 
-from rubin_sim.utils import xyz_from_ra_dec, xyz_angular_radius, \
-    _buildTree, _xyz_from_ra_dec
+from rubin_sim.utils import (
+    xyz_from_ra_dec,
+    xyz_angular_radius,
+    _buildTree,
+    _xyz_from_ra_dec,
+)
 from rubin_sim.site_models import FieldsDatabase
 
 from .baseStacker import BaseStacker
 
-__all__ = ['OpSimFieldStacker', 'WFDlabelStacker']
+__all__ = ["OpSimFieldStacker", "WFDlabelStacker"]
 
 
 class OpSimFieldStacker(BaseStacker):
@@ -21,11 +25,12 @@ class OpSimFieldStacker(BaseStacker):
         Name of the Dec column. Default fieldDec.
 
     """
-    colsAdded = ['opsimFieldId']
 
-    def __init__(self, raCol='fieldRA', decCol='fieldDec', degrees=True, fieldsDb=None):
+    colsAdded = ["opsimFieldId"]
+
+    def __init__(self, raCol="fieldRA", decCol="fieldDec", degrees=True, fieldsDb=None):
         self.colsReq = [raCol, decCol]
-        self.units = ['#']
+        self.units = ["#"]
         self.raCol = raCol
         self.decCol = decCol
         self.degrees = degrees
@@ -40,23 +45,26 @@ class OpSimFieldStacker(BaseStacker):
         # Returned RA/Dec coordinates in degrees
         fieldid, ra, dec = fields_db.get_id_ra_dec_arrays("select * from Field;")
         asort = np.argsort(fieldid)
-        self.tree = _buildTree(np.radians(ra[asort]),
-                               np.radians(dec[asort]))
+        self.tree = _buildTree(np.radians(ra[asort]), np.radians(dec[asort]))
 
         if self.degrees:
-            coord_x, coord_y, coord_z = xyz_from_ra_dec(simData[self.raCol],
-                                                        simData[self.decCol])
-            field_ids = self.tree.query_ball_point(list(zip(coord_x, coord_y, coord_z)),
-                                                   xyz_angular_radius())
+            coord_x, coord_y, coord_z = xyz_from_ra_dec(
+                simData[self.raCol], simData[self.decCol]
+            )
+            field_ids = self.tree.query_ball_point(
+                list(zip(coord_x, coord_y, coord_z)), xyz_angular_radius()
+            )
 
         else:
             # use _xyz private method (sending radians)
-            coord_x, coord_y, coord_z = _xyz_from_ra_dec(simData[self.raCol],
-                                                         simData[self.decCol])
-            field_ids = self.tree.query_ball_point(list(zip(coord_x, coord_y, coord_z)),
-                                                   xyz_angular_radius())
+            coord_x, coord_y, coord_z = _xyz_from_ra_dec(
+                simData[self.raCol], simData[self.decCol]
+            )
+            field_ids = self.tree.query_ball_point(
+                list(zip(coord_x, coord_y, coord_z)), xyz_angular_radius()
+            )
 
-        simData['opsimFieldId'] = np.array([ids[0] for ids in field_ids]) + 1
+        simData["opsimFieldId"] = np.array([ids[0] for ids in field_ids]) + 1
         return simData
 
 
@@ -86,10 +94,17 @@ class WFDlabelStacker(BaseStacker):
     Generally this would be likely to be used to tag visits as belonging to WFD - but not necessarily!
     Any healpix footprint is valid.
     """
-    colsAdded = ['proposalId']
 
-    def __init__(self, footprint=None, fp_threshold=0.4,
-                 raCol='fieldRA', decCol='fieldDec', noteCol='note'):
+    colsAdded = ["proposalId"]
+
+    def __init__(
+        self,
+        footprint=None,
+        fp_threshold=0.4,
+        raCol="fieldRA",
+        decCol="fieldDec",
+        noteCol="note",
+    ):
         self.raCol = raCol
         self.decCol = decCol
         self.noteCol = noteCol
@@ -104,8 +119,8 @@ class WFDlabelStacker(BaseStacker):
         self.nside = hp.npix2nside(len(self.footprint))
 
     def define_ddname(self, note):
-        field = note.replace('u,', '')
-        field = field.split(',')[0].replace(',', '')
+        field = note.replace("u,", "")
+        field = field.split(",")[0].replace(",", "")
         return field
 
     def _run(self, simData, cols_present=False):
@@ -113,10 +128,10 @@ class WFDlabelStacker(BaseStacker):
         # Set up DD names.
         d = set()
         for p in np.unique(simData[self.noteCol]):
-            if p.startswith('DD'):
+            if p.startswith("DD"):
                 d.add(self.define_ddname(p))
         # Define dictionary of proposal tags.
-        propTags = {'Other': 0, 'WFD': 1}
+        propTags = {"Other": 0, "WFD": 1}
         for i, field in enumerate(d):
             propTags[field] = i + 2
         # Identify Healpixels associated with each visit.
@@ -132,12 +147,12 @@ class WFDlabelStacker(BaseStacker):
             # So in_fp= the number of healpixels which were in the specified footprint
             # .. in the # in / total # > limit (0.4) then "yes" it's in the footprint
             in_fp = hp_in_fp / len(pointing_healpix)
-            if note.startswith('DD'):
+            if note.startswith("DD"):
                 propId[i] = propTags[self.define_ddname(note)]
             else:
                 if in_fp >= self.fp_threshold:
-                    propId[i] = propTags['WFD']
+                    propId[i] = propTags["WFD"]
                 else:
-                    propId[i] = propTags['Other']
-        simData['proposalId'] = propId
+                    propId[i] = propTags["Other"]
+        simData["proposalId"] = propId
         return simData

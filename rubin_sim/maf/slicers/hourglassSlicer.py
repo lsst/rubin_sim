@@ -4,19 +4,22 @@ import warnings
 from rubin_sim.maf.plots import HourglassPlot
 from .uniSlicer import UniSlicer
 
-__all__ = ['HourglassSlicer']
+__all__ = ["HourglassSlicer"]
+
 
 class HourglassSlicer(UniSlicer):
     """Slicer to make the filter hourglass plots """
 
     def __init__(self, verbose=True, badval=-666):
         # Inherits from UniSlicer, so nslice=1 and only one 'slice'.
-        super(HourglassSlicer,self).__init__(verbose=verbose, badval=badval)
-        self.columnsNeeded=[]
-        self.slicerName='HourglassSlicer'
-        self.plotFuncs = [HourglassPlot,]
+        super(HourglassSlicer, self).__init__(verbose=verbose, badval=badval)
+        self.columnsNeeded = []
+        self.slicerName = "HourglassSlicer"
+        self.plotFuncs = [
+            HourglassPlot,
+        ]
 
-    def writeData(self, outfilename, metricValues, metricName='', **kwargs):
+    def writeData(self, outfilename, metricValues, metricName="", **kwargs):
         """
         Override base write method: we don't want to save hourglass metric data.
 

@@ -5,13 +5,15 @@ import numpy as np
 import rubin_sim.maf.db as db
 from .mafRunResults import MafRunResults
 
-__all__ = ['MafTracking']
+__all__ = ["MafTracking"]
+
 
 class MafTracking(object):
     """
     Class to read MAF's tracking SQLite database (tracking a set of MAF runs)
     and handle the output for web display.
     """
+
     def __init__(self, database=None):
         """
         Instantiate the (multi-run) layout visualization class.
@@ -23,14 +25,27 @@ class MafTracking(object):
            If not set, looks for 'trackingDb_sqlite.db' file in current directory.
         """
         if database is None:
-            database = os.path.join(os.getcwd(), 'trackingDb_sqlite.db')
+            database = os.path.join(os.getcwd(), "trackingDb_sqlite.db")
 
         # Read in the results database.
         tdb = db.Database(database=database, longstrings=True)
-        cols = ['mafRunId', 'opsimRun', 'opsimGroup', 'mafComment', 'opsimComment', 'dbFile',
-                'mafDir', 'opsimVersion', 'opsimDate', 'mafVersion', 'mafDate']
-        self.runs = tdb.query_columns('runs', colnames=cols)
-        self.runs = self.sortRuns(self.runs, order=['mafRunId', 'opsimRun', 'mafComment'])
+        cols = [
+            "mafRunId",
+            "opsimRun",
+            "opsimGroup",
+            "mafComment",
+            "opsimComment",
+            "dbFile",
+            "mafDir",
+            "opsimVersion",
+            "opsimDate",
+            "mafVersion",
+            "mafDate",
+        ]
+        self.runs = tdb.query_columns("runs", colnames=cols)
+        self.runs = self.sortRuns(
+            self.runs, order=["mafRunId", "opsimRun", "mafComment"]
+        )
         self.runsPage = {}
 
     def runInfo(self, run):
@@ -49,20 +64,25 @@ class MafTracking(object):
             Ordered dict version of the numpy structured array.
         """
         runInfo = OrderedDict()
-        runInfo['OpsimRun'] = run['opsimRun']
-        runInfo['OpsimGroup'] = run['opsimGroup']
-        runInfo['MafComment'] = run['mafComment']
-        runInfo['OpsimComment'] = run['opsimComment']
-        runInfo['SQLite File'] = [os.path.relpath(run['dbFile']), os.path.split(run['dbFile'])[1]]
-        runInfo['ResultsDb'] = os.path.relpath(os.path.join(run['mafDir'], 'resultsDb_sqlite.db'))
-        runInfo['MafDir'] = run['mafDir']
-        runInfo['OpsimVersion'] = run['opsimVersion']
-        runInfo['OpsimDate'] = run['opsimDate']
-        runInfo['MafVersion'] = run['mafVersion']
-        runInfo['MafDate'] = run['mafDate']
+        runInfo["OpsimRun"] = run["opsimRun"]
+        runInfo["OpsimGroup"] = run["opsimGroup"]
+        runInfo["MafComment"] = run["mafComment"]
+        runInfo["OpsimComment"] = run["opsimComment"]
+        runInfo["SQLite File"] = [
+            os.path.relpath(run["dbFile"]),
+            os.path.split(run["dbFile"])[1],
+        ]
+        runInfo["ResultsDb"] = os.path.relpath(
+            os.path.join(run["mafDir"], "resultsDb_sqlite.db")
+        )
+        runInfo["MafDir"] = run["mafDir"]
+        runInfo["OpsimVersion"] = run["opsimVersion"]
+        runInfo["OpsimDate"] = run["opsimDate"]
+        runInfo["MafVersion"] = run["mafVersion"]
+        runInfo["MafDate"] = run["mafDate"]
         return runInfo
 
-    def sortRuns(self, runs, order=['opsimRun', 'mafComment', 'mafRunId']):
+    def sortRuns(self, runs, order=["opsimRun", "mafComment", "mafRunId"]):
         """
         Sort the numpy array of run data.
 
@@ -99,15 +119,15 @@ class MafTracking(object):
         """
         if not isinstance(mafRunId, int):
             if isinstance(mafRunId, dict):
-                mafRunId = int(mafRunId['runId'][0][0])
+                mafRunId = int(mafRunId["runId"][0][0])
             if isinstance(mafRunId, list):
                 mafRunId = int(mafRunId[0])
         if mafRunId in self.runsPage:
             return self.runsPage[mafRunId]
-        match = (self.runs['mafRunId'] == mafRunId)
-        mafDir = self.runs[match]['mafDir'][0]
-        runName = self.runs[match]['opsimRun'][0]
-        if runName == 'NULL':
+        match = self.runs["mafRunId"] == mafRunId
+        mafDir = self.runs[match]["mafDir"][0]
+        runName = self.runs[match]["opsimRun"][0]
+        if runName == "NULL":
             runName = None
         self.runsPage[mafRunId] = MafRunResults(mafDir, runName)
         return self.runsPage[mafRunId]

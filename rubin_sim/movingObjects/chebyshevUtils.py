@@ -5,11 +5,12 @@ Implementation of Newhall, X. X. 1989, Celestial Mechanics, 45, p. 305-310
 
 import numpy as np
 
-__all__ = ['chebeval', 'chebfit', 'makeChebMatrix', 'makeChebMatrixOnlyX']
+__all__ = ["chebeval", "chebfit", "makeChebMatrix", "makeChebMatrixOnlyX"]
 
 # Evaluation routine.
 
-def chebeval(x, p, interval=(-1., 1.), doVelocity=True, mask=False):
+
+def chebeval(x, p, interval=(-1.0, 1.0), doVelocity=True, mask=False):
     """Evaluate a Chebyshev series and first derivative at points x.
 
     If p is of length n + 1, this function returns:
@@ -43,24 +44,24 @@ def chebeval(x, p, interval=(-1., 1.), doVelocity=True, mask=False):
 
     intervalBegin = float(interval[0])
     intervalEnd = float(interval[-1])
-    t = 2. * np.array(x, dtype=np.float64) - intervalBegin - intervalEnd
+    t = 2.0 * np.array(x, dtype=np.float64) - intervalBegin - intervalEnd
     t /= intervalEnd - intervalBegin
 
-    y = 0.
-    v = 0.
+    y = 0.0
+    v = 0.0
     y0 = np.ones_like(t)
     y1 = t
     v0 = np.zeros_like(t)
     v1 = np.ones_like(t)
-    v2 = 4. * t
-    t = 2. * t
+    v2 = 4.0 * t
+    t = 2.0 * t
     N = len(p)
 
     if doVelocity:
         for i in np.arange(0, N, 2):
             if i == N - 1:
-                y1 = 0.
-                v1 = 0.
+                y1 = 0.0
+                v1 = 0.0
             j = min(i + 1, N - 1)
 
             y += p[i] * y0 + p[j] * y1
@@ -84,7 +85,7 @@ def chebeval(x, p, interval=(-1., 1.), doVelocity=True, mask=False):
     else:
         for i in np.arange(0, N, 2):
             if i == N - 1:
-                y1 = 0.
+                y1 = 0.0
             j = min((i + 1), (N - 1))
             y += p[i] * y0 + p[j] * y1
             y0 = t * y1 - y0
@@ -94,7 +95,9 @@ def chebeval(x, p, interval=(-1., 1.), doVelocity=True, mask=False):
             y = np.where(mask, np.nan, y)
         return y, None
 
+
 # Fitting routines.
+
 
 def makeChebMatrix(nPoints, nPoly, weight=0.16):
     """Compute C1^(-1)C2 using Newhall89 approach.
@@ -288,15 +291,23 @@ def chebfit(t, x, dxdt=None, xMultiplier=None, dxMultiplier=None, nPoly=7):
         raise ValueError("length of x (%s) != length of t (%s)" % (len(x), nPoints))
     if dxdt is None:
         if nPoly > nPoints:
-            raise RuntimeError('Without velocity constraints, nPoly (%d) must be less than %s' % (nPoly,
-                                                                                                  nPoints))
+            raise RuntimeError(
+                "Without velocity constraints, nPoly (%d) must be less than %s"
+                % (nPoly, nPoints)
+            )
         if nPoly < 2:
-            raise RuntimeError('Without velocity constraints, nPoly (%d) must be greater than 2' % nPoly)
+            raise RuntimeError(
+                "Without velocity constraints, nPoly (%d) must be greater than 2"
+                % nPoly
+            )
     else:
         if nPoly > 2 * nPoints:
-            raise RuntimeError('nPoly (%d) must be less than %s (%d)' % (nPoly, '2 * nPoints', 2 * (nPoints)))
+            raise RuntimeError(
+                "nPoly (%d) must be less than %s (%d)"
+                % (nPoly, "2 * nPoints", 2 * (nPoints))
+            )
         if nPoly < 4:
-            raise RuntimeError('nPoly (%d) must be greater than 4' % nPoly)
+            raise RuntimeError("nPoly (%d) must be greater than 4" % nPoly)
 
     # Recompute C1invX2 if xMultiplier and dxMultiplier are None or
     # they are not appropriate for sizes of input positions and velocities.
@@ -329,14 +340,14 @@ def chebfit(t, x, dxdt=None, xMultiplier=None, dxMultiplier=None, nPoly=7):
     # Compute statistics
     # for x and dxdt if it is available
     if dxdt is not None:
-        a_n = a_n + np.dot(dxMultiplier, dxdt * (tInterval[1] - tInterval[0]) / 2.)
+        a_n = a_n + np.dot(dxMultiplier, dxdt * (tInterval[1] - tInterval[0]) / 2.0)
         xApprox, dxApprox = chebeval(tScaled, a_n, interval=tInterval)
     else:
         # Statistics for x only
         xApprox, _ = chebeval(tScaled, a_n, interval=tInterval, doVelocity=False)
 
     residuals = x - xApprox
-    se = np.sum(residuals**2)
+    se = np.sum(residuals ** 2)
     rms = np.sqrt(se / (nPoints - 1))
     maxresid = np.max(np.abs(residuals))
 

@@ -1,5 +1,6 @@
 import unittest
 import matplotlib
+
 matplotlib.use("Agg")
 
 import rubin_sim.maf.metrics as metrics
@@ -17,13 +18,12 @@ from rubin_sim.data import get_data_dir
 
 
 class TestMetricBundle(unittest.TestCase):
-
     @classmethod
     def tearDownClass(cls):
         sims_clean_up()
 
     def setUp(self):
-        self.outDir = tempfile.mkdtemp(prefix='TMB')
+        self.outDir = tempfile.mkdtemp(prefix="TMB")
 
     def testOut(self):
         """
@@ -31,36 +31,38 @@ class TestMetricBundle(unittest.TestCase):
         """
         nside = 8
         slicer = slicers.HealpixSlicer(nside=nside)
-        metric = metrics.MeanMetric(col='airmass')
+        metric = metrics.MeanMetric(col="airmass")
         sql = 'filter="r"'
         stacker1 = stackers.RandomDitherFieldPerVisitStacker()
         stacker2 = stackers.GalacticStacker()
         map1 = maps.GalCoordsMap()
         map2 = maps.StellarDensityMap()
 
-        metricB = metricBundles.MetricBundle(metric, slicer, sql,
-                                             stackerList=[stacker1, stacker2],
-                                             mapsList=[map1, map2])
-        database = os.path.join(get_data_dir(), 'tests', 'example_dbv1.7_0yrs.db')
+        metricB = metricBundles.MetricBundle(
+            metric, slicer, sql, stackerList=[stacker1, stacker2], mapsList=[map1, map2]
+        )
+        database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
 
         opsdb = db.OpsimDatabaseV4(database=database)
         resultsDb = db.ResultsDb(outDir=self.outDir)
 
-        bgroup = metricBundles.MetricBundleGroup({0: metricB}, opsdb, outDir=self.outDir, resultsDb=resultsDb)
+        bgroup = metricBundles.MetricBundleGroup(
+            {0: metricB}, opsdb, outDir=self.outDir, resultsDb=resultsDb
+        )
         bgroup.runAll()
         bgroup.plotAll()
         bgroup.writeAll()
 
         opsdb.close()
 
-        outThumbs = glob.glob(os.path.join(self.outDir, 'thumb*'))
-        outNpz = glob.glob(os.path.join(self.outDir, '*.npz'))
-        outPdf = glob.glob(os.path.join(self.outDir, '*.pdf'))
+        outThumbs = glob.glob(os.path.join(self.outDir, "thumb*"))
+        outNpz = glob.glob(os.path.join(self.outDir, "*.npz"))
+        outPdf = glob.glob(os.path.join(self.outDir, "*.pdf"))
 
         # By default, make 2 plots for healpix
-        assert(len(outThumbs) == 2)
-        assert(len(outPdf) == 2)
-        assert(len(outNpz) == 1)
+        assert len(outThumbs) == 2
+        assert len(outPdf) == 2
+        assert len(outNpz) == 1
 
     def tearDown(self):
         if os.path.isdir(self.outDir):

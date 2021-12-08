@@ -4,7 +4,7 @@ from .simpleMetrics import Coaddm5Metric
 import numpy as np
 import warnings
 
-__all__ = ['OptimalM5Metric']
+__all__ = ["OptimalM5Metric"]
 
 
 class OptimalM5Metric(BaseMetric):
@@ -43,17 +43,25 @@ class OptimalM5Metric(BaseMetric):
 
     """
 
-    def __init__(self, m5Col='fiveSigmaDepth', optM5Col='m5Optimal',
-                 filterCol='filter', magDiff=False, normalize=False, **kwargs):
+    def __init__(
+        self,
+        m5Col="fiveSigmaDepth",
+        optM5Col="m5Optimal",
+        filterCol="filter",
+        magDiff=False,
+        normalize=False,
+        **kwargs
+    ):
 
         if normalize:
-            self.units = '% behind'
+            self.units = "% behind"
         else:
-            self.units = 'N visits behind'
+            self.units = "N visits behind"
         if magDiff:
-                self.units = 'mags'
-        super(OptimalM5Metric, self).__init__(col=[m5Col, optM5Col,filterCol],
-                                              units=self.units, **kwargs)
+            self.units = "mags"
+        super(OptimalM5Metric, self).__init__(
+            col=[m5Col, optM5Col, filterCol], units=self.units, **kwargs
+        )
         self.m5Col = m5Col
         self.optM5Col = optM5Col
         self.normalize = normalize
@@ -66,20 +74,23 @@ class OptimalM5Metric(BaseMetric):
 
         filters = np.unique(dataSlice[self.filterCol])
         if np.size(filters) > 1:
-            warnings.warn("OptimalM5Metric does not make sense mixing filters. Currently using filters " +
-                          str(filters))
+            warnings.warn(
+                "OptimalM5Metric does not make sense mixing filters. Currently using filters "
+                + str(filters)
+            )
         regularDepth = self.coaddRegular.run(dataSlice)
         optimalDepth = self.coaddOptimal.run(dataSlice)
         if self.magDiff:
-            return optimalDepth-regularDepth
+            return optimalDepth - regularDepth
 
         medianSingle = np.median(dataSlice[self.m5Col])
 
         # Number of additional median observations to get as deep as optimal
-        result = (10.**(0.8 * optimalDepth)-10.**(0.8 * regularDepth)) / \
-                 (10.**(0.8 * medianSingle))
+        result = (10.0 ** (0.8 * optimalDepth) - 10.0 ** (0.8 * regularDepth)) / (
+            10.0 ** (0.8 * medianSingle)
+        )
 
         if self.normalize:
-            result = result/np.size(dataSlice)*100.
+            result = result / np.size(dataSlice) * 100.0
 
         return result

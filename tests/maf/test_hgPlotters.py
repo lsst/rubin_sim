@@ -33,7 +33,7 @@ class TestScalarHourglassPlots(unittest.TestCase):
         self.metric = metrics.MedianMetric("seeingFwhmEff")
 
     def test_month_plot(self):
-        sql_constraint = ''
+        sql_constraint = ""
         metric_bundle = metricBundles.MetricBundle(
             self.metric, self.slicer, sql_constraint
         )
