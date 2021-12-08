@@ -6,8 +6,69 @@ from ..slicers import UserPointsSlicer
 from rubin_sim.utils import uniformSphere
 from rubin_sim.photUtils import Dust_values
 from rubin_sim.data import get_data_dir
+from rubin_sim.maf.utils import m52snr
 
 __all__ = ['KN_lc', 'KNePopMetric', 'generateKNPopSlicer']
+
+
+def get_filename(inj_params_list):
+    """Given kilonova parameters, get the filename from the grid of models
+    developed by M. Bulla
+
+    Parameters
+    ----------
+    inj_params_list : list of dict
+        parameters for the kilonova model such as
+        mass of the dynamical ejecta (mej_dyn), mass of the disk wind ejecta
+        (mej_wind), semi opening angle of the cylindrically-symmetric ejecta
+        fan ('phi'), and viewing angle ('theta'). For example
+        inj_params_list = [{'mej_dyn': 0.005,
+              'mej_wind': 0.050,
+              'phi': 30,
+              'theta': 25.8}]
+    """
+    # Get files, model grid developed by M. Bulla
+    datadir = get_data_dir()
+    file_list = glob.glob(os.path.join(datadir, 'maf', 'bns', '*.dat'))
+
+    params = {}
+    matched_files = []
+    for filename in file_list:
+        key = filename.replace(".dat", "").split("/")[-1]
+        params[key] = {}
+        params[key]["filename"] = filename
+        keySplit = key.split("_")
+        # Binary neutron star merger models
+        if keySplit[0] == "nsns":
+            mejdyn = float(keySplit[2].replace("mejdyn", ""))
+            mejwind = float(keySplit[3].replace("mejwind", ""))
+            phi0 = float(keySplit[4].replace("phi", ""))
+            theta = float(keySplit[5])
+            params[key]["mej_dyn"] = mejdyn
+            params[key]["mej_wind"] = mejwind
+            params[key]["phi"] = phi0
+            params[key]["theta"] = theta
+        # Neutron star--black hole merger models
+        elif keySplit[0] == "nsbh":
+            mej_dyn = float(keySplit[2].replace("mejdyn", ""))
+            mej_wind = float(keySplit[3].replace("mejwind", ""))
+            phi = float(keySplit[4].replace("phi", ""))
+            theta = float(keySplit[5])
+            params[key]["mej_dyn"] = mej_dyn
+            params[key]["mej_wind"] = mej_wind
+            params[key]["phi"] = phi
+            params[key]["theta"] = theta
+    for key in params.keys():
+        for inj_params in inj_params_list:
+            match = all([np.isclose(params[key][var], inj_params[var]) for
+                        var in inj_params.keys()])
+            if match:
+                matched_files.append(params[key]["filename"])
+                print(f"Found match for {inj_params}")
+    print(f"Found matches for {len(matched_files)}/{len(inj_params_list)} \
+          sets of parameters")
+
+    return matched_files
 
 
 class KN_lc(object):
@@ -16,7 +77,8 @@ class KN_lc(object):
     Parameters
     ----------
     file_list : list of str (None)
-        List of file paths to load. If None, loads up all the files from data/bns/
+        List of file paths to load. If None, loads up all the files
+        from data/bns/
     """
     def __init__(self, file_list=None):
         if file_list is None:
@@ -92,8 +154,9 @@ class KNePopMetric(BaseMetric):
 
         return result
 
-    def _ztfrest_simple(self, around_peak, mags, t, filters, min_dt=0.125,
-                        min_fade=0.3, max_rise=-1., selectRed=False):
+    def _ztfrest_simple(self, around_peak, mags, mags_unc, t, filters,
+                        min_dt=0.125, min_fade=0.3, max_rise=-1.,
+                        selectRed=False, selectBlue=False):
         """
         Selection criteria based on rise or decay rate; simplified version of
         the methods employed by the ZTFReST project
@@ -117,6 +180,8 @@ class KNePopMetric(BaseMetric):
             rise rate threshold (negative, mag/day)
         selectRed : bool
             if True, only red 'izy' filters will be considered
+        selectBlue : bool
+            if True, only blue 'ugr' filters will be considered
 
         Examples
         ----------
@@ -141,14 +206,29 @@ class KNePopMetric(BaseMetric):
             for f in set(filters):
                 if selectRed is True and not (f in 'izy'):
                     continue
+                elif selectBlue is True and not (f in 'ugr'):
+                    continue
                 times_f = t[around_peak][np.where(filters == f)[0]]
                 mags_f = mags[around_peak][np.where(filters == f)[0]]
-                dt_f = np.max(times_f) - np.min(times_f)
-                # Calculate the evolution rate, if the time gap condition is met
-                if dt_f > min_dt:
+                mags_unc_f = mags_unc[around_peak][np.where(filters == f)[0]]
+
+                # Check if the evolution is significant enough
+                idx_max = np.argmax(mags_f)
+                idx_min = np.argmin(mags_f)
+                if mags_f[idx_min]+mags_unc_f[idx_min] < mags_f[idx_max]-mags_unc_f[idx_max]:
+                    signif = True
+                else:
+                    signif = False
+
+                # Time difference between max and min
+                dt_f = np.abs(times_f[idx_max] - times_f[idx_min])
+
+                # Get the evolution rate, if the time gap condition is met
+                if dt_f > min_dt and signif is True:
+                    # Calculate evolution rate
                     evol_rate_f = ((np.max(mags_f) - np.min(mags_f))
-                                   / (times_f[np.where(mags_f == np.max(mags_f))[0]][0]
-                                      - times_f[np.where(mags_f == np.min(mags_f))[0]][0]))
+                                   / (times_f[idx_max]
+                                      - times_f[idx_min]))
                     evol_rate.append(evol_rate_f)
                 else:
                     evol_rate.append(0)
@@ -186,8 +266,8 @@ class KNePopMetric(BaseMetric):
         """
         result = 1
         # Number of detected points in izy bands
-        n_red_det = np.size(np.where(filters == 'i')[0]) \
-                    + np.size(np.where(filters == 'z')[0]) \
+        n_red_det = np.size(np.where(filters == 'i')[0])\
+                    + np.size(np.where(filters == 'z')[0])\
                     + np.size(np.where(filters == 'y')[0])
         # Condition
         if n_red_det < min_det:
@@ -208,8 +288,8 @@ class KNePopMetric(BaseMetric):
         """
         result = 1
         # Number of detected points in ugr bands
-        n_blue_det = np.size(np.where(filters == 'u')[0]) \
-                     + np.size(np.where(filters == 'g')[0]) \
+        n_blue_det = np.size(np.where(filters == 'u')[0])\
+                     + np.size(np.where(filters == 'g')[0])\
                      + np.size(np.where(filters == 'r')[0])
         # Condition
         if n_blue_det < min_det:
@@ -234,17 +314,26 @@ class KNePopMetric(BaseMetric):
             mags[infilt] += distmod
 
         # Find the detected points
-        around_peak = np.where((t > 0) & (t < 30) & (mags < dataSlice[self.m5Col]))[0]        
+        around_peak = np.where((t > 0) & (t < 30) & (mags < dataSlice[self.m5Col]))[0]
         # Filters in which the detections happened
         filters = dataSlice[self.filterCol][around_peak]
+        # Magnitude uncertainties with Gaussian approximation
+        snr = m52snr(mags, dataSlice[self.m5Col])
+        mags_unc = 2.5*np.log10(1.+1./snr)
 
         result['multi_detect'] = self._multi_detect(around_peak)
-        result['ztfrest_simple'] = self._ztfrest_simple(around_peak, mags, t,
+        result['ztfrest_simple'] = self._ztfrest_simple(around_peak, mags,
+                                                        mags_unc, t,
                                                         filters,
                                                         selectRed=False)
         result['ztfrest_simple_red'] = self._ztfrest_simple(around_peak, mags,
+                                                            mags_unc,
                                                             t, filters,
                                                             selectRed=True)
+        result['ztfrest_simple_blue'] = self._ztfrest_simple(around_peak,
+                                                             mags, mags_unc,
+                                                             t, filters,
+                                                             selectBlue=True)
         result['multi_color_detect'] = self._multi_color_detect(filters)
         result['red_color_detect'] = self._red_color_detect(filters)
         result['blue_color_detect'] = self._blue_color_detect(filters)
@@ -252,9 +341,9 @@ class KNePopMetric(BaseMetric):
         # Export the light curve
         if self.outputLc is True:
             mags[np.where(mags > 50)[0]] = 99.
-            result['lc'] = [dataSlice[self.mjdCol], mags,
+            result['lc'] = [dataSlice[self.mjdCol], mags, mags_unc,
                             dataSlice[self.m5Col], dataSlice[self.filterCol]]
-            result['lc_colnames'] = ('t', 'mag', 'maglim', 'filter')
+            result['lc_colnames'] = ('t', 'mag', 'mag_unc', 'maglim', 'filter')
 
         return result
 
@@ -266,6 +355,9 @@ class KNePopMetric(BaseMetric):
 
     def reduce_ztfrest_simple_red(self, metric):
         return metric['ztfrest_simple_red']
+
+    def reduce_ztfrest_simple_blue(self, metric):
+        return metric['ztfrest_simple_blue']
 
     def reduce_multi_color_detect(self, metric):
         return metric['multi_color_detect']
