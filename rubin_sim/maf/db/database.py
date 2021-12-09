@@ -279,7 +279,7 @@ class Database(with_metaclass(DatabaseRegistry, DBObject)):
             dtype.append((str(col).replace('"', ""),) + dt)
 
         # Execute query on database.
-        exec_query = self.connection.session.execute(query)
+        exec_query = self.connection.session.execute(str(query))
 
         if chunksize is None or chunksize == 0:
             # Fetch all results and convert to numpy recarray.
