@@ -84,6 +84,9 @@ class Sky_area_generator:
         eclat_max=10,
         eclip_dec_min=0,
         nes_glon_limit=45.0,
+        virgo_RA=186.75,
+        virgo_dec=12.717,
+        virgo_radius=8.75,
     ):
 
         self.nside = nside
@@ -92,6 +95,10 @@ class Sky_area_generator:
 
         self.lmc_radius = lmc_radius
         self.smc_radius = smc_radius
+
+        self.virgo_RA = virgo_RA
+        self.virgo_dec = virgo_dec
+        self.virgo_radius = virgo_radius
 
         self.scp_dec_max = scp_dec_max
 
@@ -225,6 +232,17 @@ class Sky_area_generator:
             # First, remove anything outside the gal_long1/gal_long2 region.
             bulge = np.where(((self.gal_lon - gal_long1) % 360) < gp_length, bulge, 0)
         return bulge
+
+    def add_virgo_cluster(self, filter_ratios, label="virgo"):
+        temp_map = np.zeros(hp.nside2npix(self.nside))
+        temp_map += self._set_circular_region(
+            self.virgo_RA, self.virgo_dec, self.virgo_radius
+        )
+        # Don't overide any pixels that have already been designated
+        indx = np.where((temp_map > 0) & (self.pix_labels == ""))
+        self.pix_labels[indx] = label
+        for filtername in filter_ratios:
+            self.healmaps[filtername][indx] = filter_ratios[filtername]
 
     def add_magellanic_clouds(
         self,
@@ -364,6 +382,7 @@ class Sky_area_generator:
         },
         low_dust_ratios={"u": 0.32, "g": 0.4, "r": 1.0, "i": 1.0, "z": 0.9, "y": 0.9},
         bulge_ratios={"u": 0.18, "g": 1.0, "r": 1.05, "i": 1.05, "z": 1.0, "y": 0.23},
+        virgo_ratios={"u": 0.32, "g": 0.4, "r": 1.0, "i": 1.0, "z": 0.9, "y": 0.9},
     ):
         """
         Parameters:
@@ -392,6 +411,7 @@ class Sky_area_generator:
         # will not override that pixel.
         self.add_magellanic_clouds(magellenic_clouds_ratios)
         self.add_lowdust_wfd(low_dust_ratios)
+        self.add_virgo_cluster(virgo_ratios)
         self.add_bulge(bulge_ratios)
         self.add_nes(nes_ratios)
         self.add_dusty_plane(dusty_plane_ratios)
