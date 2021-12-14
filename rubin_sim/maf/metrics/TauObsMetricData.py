@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class TauObsMetricData:
     """Object to capture the calculated metric values for four categories of
     variability, distinguished by their characteristic variability timescales,

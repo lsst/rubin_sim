@@ -8,25 +8,41 @@ import healpy as hp
 import rubin_sim.maf as maf
 import galPlaneFootprintMetric, galPlaneTimePerFilter, transientTimeSamplingMetric
 
+
 class galPlaneFoM(maf.BaseMetric):
     """Figure of Merit to evaluate the combination of survey footprint, cadence and filter selection for suitability
     for Galactic Plane science"""
 
-    def __init__(self, cols=['fieldRA','fieldDec','filter',
-                             'observationStartMJD','visitExposureTime','fiveSigmaDepth'],
-                       metricName='galPlaneFoM',
-                       **kwargs):
+    def __init__(
+        self,
+        cols=[
+            "fieldRA",
+            "fieldDec",
+            "filter",
+            "observationStartMJD",
+            "visitExposureTime",
+            "fiveSigmaDepth",
+        ],
+        metricName="galPlaneFoM",
+        **kwargs
+    ):
 
-        self.ra_col = 'fieldRA'
-        self.dec_col = 'fieldDec'
-        self.m5Col = 'fiveSigmaDepth'
-        self.filters = ['u','g', 'r', 'i', 'z', 'y']
-        self.magCuts = {'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4}
-        self.mjdCol = 'observationStartMJD'
-        self.exptCol = 'visitExposureTime'
+        self.ra_col = "fieldRA"
+        self.dec_col = "fieldDec"
+        self.m5Col = "fiveSigmaDepth"
+        self.filters = ["u", "g", "r", "i", "z", "y"]
+        self.magCuts = {
+            "u": 22.7,
+            "g": 24.1,
+            "r": 23.7,
+            "i": 23.1,
+            "z": 22.2,
+            "y": 21.4,
+        }
+        self.mjdCol = "observationStartMJD"
+        self.exptCol = "visitExposureTime"
 
         super().__init__(col=cols, metricName=metricName)
-
 
     def run(self, dataSlice, slicePoint=None):
 

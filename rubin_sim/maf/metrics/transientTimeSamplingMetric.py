@@ -8,6 +8,7 @@ import healpy as hp
 import rubin_sim.maf as maf
 import TauObsMetricData
 
+
 class calcVisitIntervalMetric(maf.BaseMetric):
     """Metric to evaluate the intervals between sequential observations in a
     lightcurve relative to the scientifically desired sampling interval.
@@ -17,19 +18,21 @@ class calcVisitIntervalMetric(maf.BaseMetric):
     observationStartMJD : float, MJD timestamp of the start of a given observation
     """
 
-    def __init__(self, cols=['observationStartMJD','fiveSigmaDepth'],
-                       metricName='calcVisitIntervalMetric',
-                       **kwargs):
+    def __init__(
+        self,
+        cols=["observationStartMJD", "fiveSigmaDepth"],
+        metricName="calcVisitIntervalMetric",
+        **kwargs
+    ):
         """tau_obs is an array of minimum-required observation intervals for four categories
         of time variability"""
 
-        self.mjdCol = 'observationStartMJD'
-        self.m5Col = 'fiveSigmaDepth'
+        self.mjdCol = "observationStartMJD"
+        self.m5Col = "fiveSigmaDepth"
         self.tau_obs = np.array([2.0, 20.0, 73.0, 365.0])
         self.magLimit = 22.0
 
-        super().__init__(col=cols, metricName=metricName, metricDtype='object')
-
+        super().__init__(col=cols, metricName=metricName, metricDtype="object")
 
     def run(self, dataSlice, slicePoint=None):
 
@@ -44,7 +47,7 @@ class calcVisitIntervalMetric(maf.BaseMetric):
         tobs_ordered.sort()
         delta_tobs = tobs_ordered[1:] - tobs_ordered[0:-1]
 
-        for i,tau in enumerate(self.tau_obs):
+        for i, tau in enumerate(self.tau_obs):
             metric_data.metric_values[i] = self.calc_interval_metric(delta_tobs, tau)
 
             # Normalize by the number of intervals in the lightcurve
@@ -52,25 +55,29 @@ class calcVisitIntervalMetric(maf.BaseMetric):
 
         return metric_data
 
-    def calc_interval_metric(self,delta_tobs, tau):
+    def calc_interval_metric(self, delta_tobs, tau):
         # Decay constant for metric value relationship as a function of
         # observation interval
-        K = 1.0/tau
+        K = 1.0 / tau
         m = np.zeros(len(delta_tobs))
         idx = np.where(delta_tobs <= tau)[0]
         m[idx] = 1.0
         idx = np.where(delta_tobs > tau)[0]
-        m[idx] = np.exp(-K*(delta_tobs[idx] - tau))
+        m[idx] = np.exp(-K * (delta_tobs[idx] - tau))
         return m.sum()
 
     def reduceTau0(self, metric_data):
         return metric_data.metric_values[0]
+
     def reduceTau1(self, metric_data):
         return metric_data.metric_values[1]
+
     def reduceTau2(self, metric_data):
         return metric_data.metric_values[2]
+
     def reduceTau3(self, metric_data):
         return metric_data.metric_values[3]
+
 
 class calcSeasonVisibilityGapsMetric(maf.BaseMetric):
     """Metric to evaluate the gap between sequential seasonal gaps in
@@ -82,18 +89,25 @@ class calcSeasonVisibilityGapsMetric(maf.BaseMetric):
     fieldRA : float, RA in degrees of a given pointing
     observationStartMJD : float, MJD timestamp of the start of a given observation
     """
-    def __init__(self, cols=['fieldRA','observationStartMJD',],
-                       metricName='calcSeasonVisibilityGapsMetric',
-                       **kwargs):
+
+    def __init__(
+        self,
+        cols=[
+            "fieldRA",
+            "observationStartMJD",
+        ],
+        metricName="calcSeasonVisibilityGapsMetric",
+        **kwargs
+    ):
 
         """tau_obs is an array of minimum-required observation intervals for four categories
         of time variability"""
 
         self.tau_obs = np.array([2.0, 20.0, 73.0, 365.0])
-        self.ra_col = 'fieldRA'
-        self.mjdCol = 'observationStartMJD'
+        self.ra_col = "fieldRA"
+        self.mjdCol = "observationStartMJD"
 
-        super().__init__(col=cols, metricName=metricName, metricDtype='object')
+        super().__init__(col=cols, metricName=metricName, metricDtype="object")
 
     def calcSeasonGaps(self, dataSlice):
         """Given the RA of a field pointing, and time of observation, calculate the length of
@@ -111,10 +125,15 @@ class calcSeasonVisibilityGapsMetric(maf.BaseMetric):
             Time gaps in days between sequential observing seasons
         """
 
-        seasons = maf.seasonMetrics.calcSeason(dataSlice[self.ra_col], dataSlice[self.mjdCol])
+        seasons = maf.seasonMetrics.calcSeason(
+            dataSlice[self.ra_col], dataSlice[self.mjdCol]
+        )
         firstOfSeason, lastOfSeason = maf.seasonMetrics.findSeasonEdges(seasons)
-        ngaps = len(firstOfSeason)-1
-        season_gaps = dataSlice[self.mjdCol][lastOfSeason[0:ngaps-1]] - dataSlice[self.mjdCol][firstOfSeason[1:ngaps]]
+        ngaps = len(firstOfSeason) - 1
+        season_gaps = (
+            dataSlice[self.mjdCol][lastOfSeason[0 : ngaps - 1]]
+            - dataSlice[self.mjdCol][firstOfSeason[1:ngaps]]
+        )
 
         return season_gaps
 
@@ -129,26 +148,32 @@ class calcSeasonVisibilityGapsMetric(maf.BaseMetric):
 
         metric_data = TauObsMetricData.TauObsMetricData()
         interval_metric = calcVisitIntervalMetric()
-        for i,tau in enumerate(self.tau_obs):
+        for i, tau in enumerate(self.tau_obs):
             if tau >= expected_gap:
-                metric_data.metric_values[i] =  0.0
+                metric_data.metric_values[i] = 0.0
                 for t in season_gaps:
-                    metric_data.metric_values[i] += interval_metric.calc_interval_metric(np.array([t]), tau)
+                    metric_data.metric_values[
+                        i
+                    ] += interval_metric.calc_interval_metric(np.array([t]), tau)
                 metric_data.metric_values[i] /= 10.0
 
             else:
-                metric_data.metric_values[i] =  1.0
+                metric_data.metric_values[i] = 1.0
 
         return metric_data
 
     def reduceTau0(self, metric_data):
         return metric_data.metric_values[0]
+
     def reduceTau1(self, metric_data):
         return metric_data.metric_values[1]
+
     def reduceTau2(self, metric_data):
         return metric_data.metric_values[2]
+
     def reduceTau3(self, metric_data):
         return metric_data.metric_values[3]
+
 
 class transientTimeSamplingMetric(maf.BaseMetric):
     """Metric to evaluate how well a survey strategy will sample lightcurves,
@@ -161,17 +186,21 @@ class transientTimeSamplingMetric(maf.BaseMetric):
     observationStartMJD : float, MJD timestamp of the start of a given observation
     """
 
-    def __init__(self, cols=['observationStartMJD',],
-                       metricName='calcVisitIntervalMetric',
-                       **kwargs):
+    def __init__(
+        self,
+        cols=[
+            "observationStartMJD",
+        ],
+        metricName="calcVisitIntervalMetric",
+        **kwargs
+    ):
         """tau_obs is an array of minimum-required observation intervals for four categories
         of time variability"""
 
-        self.mjdCol = 'observationStartMJD'
+        self.mjdCol = "observationStartMJD"
         self.tau_obs = np.array([2.0, 20.0, 73.0, 365.0])
 
-        super().__init__(col=cols, metricName=metricName, metricDtype='object')
-
+        super().__init__(col=cols, metricName=metricName, metricDtype="object")
 
     def run(self, dataSlice, slicePoint=None):
 
@@ -181,16 +210,19 @@ class transientTimeSamplingMetric(maf.BaseMetric):
         m2 = metric2.run(dataSlice, slicePoint)
 
         metric_data = TauObsMetricData.TauObsMetricData()
-        for i,tau in enumerate(self.tau_obs):
+        for i, tau in enumerate(self.tau_obs):
             metric_data.metric_values[i] = m1.metric_values[i] * m2.metric_values[i]
 
         return metric_data
 
     def reduceTau0(self, metric_data):
         return metric_data.metric_values[0]
+
     def reduceTau1(self, metric_data):
         return metric_data.metric_values[1]
+
     def reduceTau2(self, metric_data):
         return metric_data.metric_values[2]
+
     def reduceTau3(self, metric_data):
         return metric_data.metric_values[3]

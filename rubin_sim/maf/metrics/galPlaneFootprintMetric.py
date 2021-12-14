@@ -24,22 +24,32 @@ class galPlaneFootprintMetric(maf.BaseMetric):
     filter : str, filter bandpass used for a given observation
     """
 
-    def __init__(self, cols=['fieldRA','fieldDec','filter','fiveSigmaDepth'],
-                       metricName='GalPlaneFootprintMetric',
-                       **kwargs):
+    def __init__(
+        self,
+        cols=["fieldRA", "fieldDec", "filter", "fiveSigmaDepth"],
+        metricName="GalPlaneFootprintMetric",
+        **kwargs
+    ):
         """Kwargs must contain:
         filters  list Filterset over which to compute the metric
         """
 
-        self.ra_col = 'fieldRA'
-        self.dec_col = 'fieldDec'
-        self.filterCol = 'filter'
-        self.m5Col = 'fiveSigmaDepth'
-        self.filters = ['u','g', 'r', 'i', 'z', 'y']
-        self.magCuts = {'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4}
+        self.ra_col = "fieldRA"
+        self.dec_col = "fieldDec"
+        self.filterCol = "filter"
+        self.m5Col = "fiveSigmaDepth"
+        self.filters = ["u", "g", "r", "i", "z", "y"]
+        self.magCuts = {
+            "u": 22.7,
+            "g": 24.1,
+            "r": 23.7,
+            "i": 23.1,
+            "z": 22.2,
+            "y": 21.4,
+        }
         cwd = os.getcwd()
-        self.MAP_DIR = os.path.join(cwd,'../../data/galPlane_priority_maps')
-        self.MAP_FILE_ROOT_NAME = 'GalPlane_priority_map'
+        self.MAP_DIR = os.path.join(cwd, "../../data/galPlane_priority_maps")
+        self.MAP_FILE_ROOT_NAME = "GalPlane_priority_map"
         self.load_maps()
 
         super().__init__(col=cols, metricName=metricName)
@@ -49,8 +59,12 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         self.NPIX = hp.nside2npix(self.NSIDE)
         self.ideal_combined_map = np.zeros(self.NPIX)
         for f in self.filters:
-            fmap = hp.read_map(os.path.join(self.MAP_DIR,self.MAP_FILE_ROOT_NAME+'_'+str(f)+'.fits'))
-            setattr(self, 'map_'+str(f), fmap)
+            fmap = hp.read_map(
+                os.path.join(
+                    self.MAP_DIR, self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits"
+                )
+            )
+            setattr(self, "map_" + str(f), fmap)
             self.ideal_combined_map += fmap
 
     def run(self, dataSlice, slicePoint=None):
@@ -62,12 +76,17 @@ class galPlaneFootprintMetric(maf.BaseMetric):
             idx2 = np.where(dataSlice[self.m5Col] >= self.magCuts[f])[0]
             match = list(set(idx1).intersection(set(idx2)))
 
-            coords_icrs = SkyCoord(dataSlice[self.ra_col][match], dataSlice[self.dec_col][match], frame='icrs', unit=(u.deg, u.deg))
+            coords_icrs = SkyCoord(
+                dataSlice[self.ra_col][match],
+                dataSlice[self.dec_col][match],
+                frame="icrs",
+                unit=(u.deg, u.deg),
+            )
             coords_gal = coords_icrs.transform_to(Galactic())
-            ahp = HEALPix(nside=self.NSIDE, order='ring', frame=TETE())
+            ahp = HEALPix(nside=self.NSIDE, order="ring", frame=TETE())
             pixels = ahp.skycoord_to_healpix(coords_gal)
 
-            weighted_map = getattr(self, 'map_'+str(f))
+            weighted_map = getattr(self, "map_" + str(f))
             combined_map[pixels] += weighted_map[pixels]
 
         metric_value = combined_map.sum()
