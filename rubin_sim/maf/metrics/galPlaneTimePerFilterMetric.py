@@ -14,6 +14,7 @@ from astropy import units as u
 from astropy_healpix import HEALPix
 from astropy.coordinates import Galactic, TETE, SkyCoord
 
+
 class galPlaneTimePerFilter(maf.BaseMetric):
     """Metric to evaluate for each HEALpix, the fraction of exposure time spent in each filter as
      a fraction of the total exposure time dedicated to that HEALpix.  The metric sums this over
@@ -28,25 +29,42 @@ class galPlaneTimePerFilter(maf.BaseMetric):
     observationStartMJD : float, MJD timestamp of the start of a given observation
     visitExposureTime : float, exposure time in seconds
     """
-    def __init__(self, cols=['fieldRA','fieldDec','filter',
-                             'observationStartMJD','visitExposureTime','fiveSigmaDepth'],
-                       metricName='galPlaneTimePerFilter',
-                       **kwargs):
+
+    def __init__(
+        self,
+        cols=[
+            "fieldRA",
+            "fieldDec",
+            "filter",
+            "observationStartMJD",
+            "visitExposureTime",
+            "fiveSigmaDepth",
+        ],
+        metricName="galPlaneTimePerFilter",
+        **kwargs
+    ):
         """Kwargs must contain:
         filters  list Filterset over which to compute the metric
         """
 
-        self.ra_col = 'fieldRA'
-        self.dec_col = 'fieldDec'
-        self.filterCol = 'filter'
-        self.m5Col = 'fiveSigmaDepth'
-        self.mjdCol = 'observationStartMJD'
-        self.exptCol = 'visitExposureTime'
-        self.filters = ['u','g', 'r', 'i', 'z', 'y']
-        self.magCuts = {'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4}
+        self.ra_col = "fieldRA"
+        self.dec_col = "fieldDec"
+        self.filterCol = "filter"
+        self.m5Col = "fiveSigmaDepth"
+        self.mjdCol = "observationStartMJD"
+        self.exptCol = "visitExposureTime"
+        self.filters = ["u", "g", "r", "i", "z", "y"]
+        self.magCuts = {
+            "u": 22.7,
+            "g": 24.1,
+            "r": 23.7,
+            "i": 23.1,
+            "z": 22.2,
+            "y": 21.4,
+        }
         cwd = os.getcwd()
-        self.MAP_DIR = os.path.join(cwd,'../../data/galPlane_priority_maps')
-        self.MAP_FILE_ROOT_NAME = 'GalPlane_priority_map'
+        self.MAP_DIR = os.path.join(cwd, "../../data/galPlane_priority_maps")
+        self.MAP_FILE_ROOT_NAME = "GalPlane_priority_map"
         self.load_maps()
         self.calc_coaddmap()
 
@@ -56,7 +74,15 @@ class galPlaneTimePerFilter(maf.BaseMetric):
         self.NSIDE = 64
         self.NPIX = hp.nside2npix(self.NSIDE)
         for f in self.filters:
-            setattr(self, 'map_'+str(f), hp.read_map(os.path.join(self.MAP_DIR,self.MAP_FILE_ROOT_NAME+'_'+str(f)+'.fits')))
+            setattr(
+                self,
+                "map_" + str(f),
+                hp.read_map(
+                    os.path.join(
+                        self.MAP_DIR, self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits"
+                    )
+                ),
+            )
 
     def calc_coaddmap(self):
         """For each HEALpix in the sky, sum the value of the priority weighting
@@ -64,8 +90,8 @@ class galPlaneTimePerFilter(maf.BaseMetric):
         fractional proportional of exposure time"""
 
         coadded_map = np.zeros(self.map_i.shape)
-        for i,f in enumerate(self.filters):
-            coadded_map += getattr(self, 'map_'+f)
+        for i, f in enumerate(self.filters):
+            coadded_map += getattr(self, "map_" + f)
 
         self.coadded_map = coadded_map
 
@@ -77,7 +103,7 @@ class galPlaneTimePerFilter(maf.BaseMetric):
         so that the metric can be accurately normalized later."""
 
         fexpt_per_pixel = np.zeros(len(pixels))
-        fmap = getattr(self, 'map_'+filter_name)
+        fmap = getattr(self, "map_" + filter_name)
         fexpt_per_pixel = fmap[pixels] / self.coadded_map[pixels]
 
         invalid = np.isnan(fexpt_per_pixel)
@@ -92,7 +118,7 @@ class galPlaneTimePerFilter(maf.BaseMetric):
 
         # Identify those pixels that overlap the desired Galactic Plane survey region:
         # Returns list of pixel indices?
-        #GP_overlap_pixels = np.where(self.map_i[pixels] > 0, 1, 0)
+        # GP_overlap_pixels = np.where(self.map_i[pixels] > 0, 1, 0)
 
         # DOES A DATASLICE CONTAIN JUST A SUBSET OF PIXELS?
         total_expt_per_pixel = dataSlice[self.exptCol].sum()
@@ -100,19 +126,24 @@ class galPlaneTimePerFilter(maf.BaseMetric):
         # Calculate the exposure time per filter per pixel as the fraction of the total
         # exposure time per pixel
         fexpt_per_filter = np.zeros(len(self.filters))
-        for i,f in enumerate(self.filters):
+        for i, f in enumerate(self.filters):
             idx1 = np.where(dataSlice[self.filterCol] == f)[0]
             idx2 = np.where(dataSlice[self.m5Col] >= self.magCuts[f])[0]
             match = list(set(idx1).intersection(set(idx2)))
 
-            coords_icrs = SkyCoord(dataSlice[self.ra_col][match], dataSlice[self.dec_col][match], frame='icrs', unit=(u.deg, u.deg))
+            coords_icrs = SkyCoord(
+                dataSlice[self.ra_col][match],
+                dataSlice[self.dec_col][match],
+                frame="icrs",
+                unit=(u.deg, u.deg),
+            )
             coords_gal = coords_icrs.transform_to(Galactic())
-            ahp = HEALPix(nside=self.NSIDE, order='ring', frame=TETE())
+            ahp = HEALPix(nside=self.NSIDE, order="ring", frame=TETE())
             pixels = ahp.skycoord_to_healpix(coords_gal)
 
-            idealfExpT = self.calc_idealfExpT(f,pixels)
+            idealfExpT = self.calc_idealfExpT(f, pixels)
 
-            fexpt = dataSlice[self.exptCol][match].sum()/total_expt_per_pixel
+            fexpt = dataSlice[self.exptCol][match].sum() / total_expt_per_pixel
             fexpt_per_filter[i] = fexpt / idealfExpT
 
         # Sum the fraction of exposure time over all pixels within the desired
