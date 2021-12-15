@@ -13,6 +13,7 @@ import rubin_sim.maf as maf
 from astropy import units as u
 from astropy_healpix import HEALPix
 from astropy.coordinates import Galactic, TETE, SkyCoord
+from rubin_sim.data import get_data_dir
 
 
 class galPlaneTimePerFilter(maf.BaseMetric):
@@ -63,7 +64,7 @@ class galPlaneTimePerFilter(maf.BaseMetric):
             "y": 21.4,
         }
         cwd = os.getcwd()
-        self.MAP_DIR = os.path.join(cwd, "../../data/galPlane_priority_maps")
+        self.MAP_DIR = get_data_dir()
         self.MAP_FILE_ROOT_NAME = "GalPlane_priority_map"
         self.load_maps()
         self.calc_coaddmap()
@@ -79,7 +80,9 @@ class galPlaneTimePerFilter(maf.BaseMetric):
                 "map_" + str(f),
                 hp.read_map(
                     os.path.join(
-                        self.MAP_DIR, self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits"
+                        self.MAP_DIR,
+                        "maf",
+                        self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
                     )
                 ),
             )
