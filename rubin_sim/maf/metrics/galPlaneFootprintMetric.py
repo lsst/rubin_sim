@@ -11,6 +11,7 @@ import rubin_sim.maf as maf
 from astropy import units as u
 from astropy_healpix import HEALPix
 from astropy.coordinates import Galactic, TETE, SkyCoord
+from rubin_sim.data import get_data_dir
 
 
 class galPlaneFootprintMetric(maf.BaseMetric):
@@ -48,7 +49,7 @@ class galPlaneFootprintMetric(maf.BaseMetric):
             "y": 21.4,
         }
         cwd = os.getcwd()
-        self.MAP_DIR = os.path.join(cwd, "../../data/galPlane_priority_maps")
+        self.MAP_DIR = get_data_dir()
         self.MAP_FILE_ROOT_NAME = "GalPlane_priority_map"
         self.load_maps()
 
@@ -61,7 +62,9 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         for f in self.filters:
             fmap = hp.read_map(
                 os.path.join(
-                    self.MAP_DIR, self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits"
+                    self.MAP_DIR,
+                    "maf",
+                    self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
                 )
             )
             setattr(self, "map_" + str(f), fmap)
