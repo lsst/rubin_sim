@@ -126,7 +126,7 @@ class MyMetricInProgress(maf.BaseMetric):
         Probably there are other things you need to set?
     """
     # def __init__(self, nside=16, cmd_frac=0.1, stargal_contamination=0.40, nsigma=10.0, **kwargs):
-    def __init__(self, radius=2.45, cmd_frac=0.1, stargal_contamination=0.40, nsigma=10.0, **kwargs):
+    def __init__(self, radius=2.45, distlim=None, cmd_frac=0.1, stargal_contamination=0.40, nsigma=10.0, **kwargs):
         # maps = ["CoaddM5"]
         # self.mjdCol = mjdCol
         # self.nside = nside
@@ -137,12 +137,16 @@ class MyMetricInProgress(maf.BaseMetric):
         self.stargal_contamination = stargal_contamination
         self.nsigma = nsigma
 
-        lv_dat0 = fits.getdata('lsst_galaxies_1p25to9Mpc_table.fits')
-        # Keep only galaxies at dec < 35 deg., and with stellar masses > 10^7 M_Sun.
-        lv_dat_cuts = (lv_dat0['dec'] < 35.0) & (lv_dat0['MStars'] > 1e7) & (lv_dat0['MStars'] < 1e14)
-        lv_dat = lv_dat0[lv_dat_cuts]
-        sc_dat = SkyCoord(ra=lv_dat['ra']*u.deg, dec=lv_dat['dec']*u.deg, distance=lv_dat['dist_Mpc']*u.Mpc)
-        self.sc_dat = sc_dat
+        if distlim is not None:
+            self.distlim = distlim
+        else:
+            self.distlim = None
+            lv_dat0 = fits.getdata('lsst_galaxies_1p25to9Mpc_table.fits')
+            # Keep only galaxies at dec < 35 deg., and with stellar masses > 10^7 M_Sun.
+            lv_dat_cuts = (lv_dat0['dec'] < 35.0) & (lv_dat0['MStars'] > 1e7) & (lv_dat0['MStars'] < 1e14)
+            lv_dat = lv_dat0[lv_dat_cuts]
+            sc_dat = SkyCoord(ra=lv_dat['ra']*u.deg, dec=lv_dat['dec']*u.deg, distance=lv_dat['dist_Mpc']*u.Mpc)
+            self.sc_dat = sc_dat
 
         self.Coaddm5Metric = maf.simpleMetrics.Coaddm5Metric(m5Col=self.m5Col)
         self.StarDensityMetric24 = maf.starDensity.StarDensityMetric(rmagLimit=24)
@@ -183,15 +187,23 @@ class MyMetricInProgress(maf.BaseMetric):
         nstar27 = self.StarDensityMetric27.run(dataSlice, slicePoint)
         nstar = nstar27
 
-        ngal = self.GalaxyCountsMetric.run(dataSlice[iband], slicePoint)
+        # import pdb; pdb.set_trace()
+
+        if 'nside' in slicePoint.keys():
+            nside = slicePoint['nside']
+            try:
+                ngal = self.GalaxyCountsMetric.run(dataSlice, slicePoint, nside=nside)
+            except:
+                ngal = 1e7
+                # print('healpix ',slicePoint['sid'], 'failed in GalaxyCountsMetric')
+        else:
+            ngal = self.GalaxyCountsMetric.run(dataSlice, slicePoint)
+
+
         # print(dataSlice)
         nstar_all = nstar*0.0
         rbinvals = np.arange(24.0, 27.5, 0.5)
         rbinlimits = [nstar24, nstar24p5, nstar25, nstar25p5, nstar26, nstar26p5, nstar27]
-
-        nstar0 = rbinlimits[np.argmin(np.abs(rbinvals-r5))]
-        area_arcsec = np.pi*((self.radius*u.deg).to(u.arcsec)**2)
-        nstar_all = nstar0*area_arcsec.value
 
         # Star density is number of stars per square arcsec.
         # Convert to a total number per healpix, then number per sq. arcmin:
@@ -219,22 +231,36 @@ class MyMetricInProgress(maf.BaseMetric):
         nstar_per_arcmin = nstar_per_healpix/pixarea_arcmin.value
         '''
 
-        area_arcmin = np.pi*((self.radius*u.deg).to(u.arcmin)**2)
+        nstar0 = rbinlimits[np.argmin(np.abs(rbinvals-r5))]
+
+        if 'nside' in slicePoint.keys():
+            nside = slicePoint['nside']
+            # Calculate the factor to go from number per healpix to number per square arcminute or per square arcsec
+            area_deg = hp.nside2pixarea(nside, degrees=True)*(u.degree**2)
+            area_arcmin = area_deg.to(u.arcmin**2)
+            area_arcsec = area_deg.to(u.arcsec**2)
+        else:
+            area_arcsec = np.pi*((self.radius*u.deg).to(u.arcsec)**2)
+            area_arcmin = np.pi*((self.radius*u.deg).to(u.arcmin)**2)
+
+        nstar_all = nstar0*area_arcsec.value
+
         ngal_per_arcmin = ngal/area_arcmin.value
         nstar_all_per_arcmin = nstar_all/area_arcmin.value
-        # print(ngal, nstar_all, r5, nstar_all_per_arcmin, ngal_per_arcmin)
 
         nstars_required = self.nsigma*np.sqrt(ngal_per_arcmin*(self.cmd_frac*self.stargal_contamination)+(nstar_all_per_arcmin*self.cmd_frac))
 
-        sc_slice = SkyCoord(ra=slicePoint['ra']*u.rad, dec=slicePoint['dec']*u.rad)
-        seps = sc_slice.separation(self.sc_dat)
-        distlim = self.sc_dat[seps.argmin()].distance
+        # Add a check so that if healpix slicer is used, distlim is also ***required***
+        if self.distlim is not None:
+            distlim = self.distlim
+        else:
+            sc_slice = SkyCoord(ra=slicePoint['ra']*u.rad, dec=slicePoint['dec']*u.rad)
+            seps = sc_slice.separation(self.sc_dat)
+            distlim = self.sc_dat[seps.argmin()].distance
 
         # How do I use the distances from the lv_dat catalog here?
         mg_lim, mi_lim, sb_g_lim, sb_i_lim, flag_lim = sblimit(g5, i5, nstars_required, distlim=distlim.value)
         # mg_lim, mi_lim, sb_g_lim, sb_i_lim, flag_lim = sblimit(g5, i5, nstars_required, distlim=lv_dat['dist_Mpc'])
-
-        # okgx = (np.abs(sb_i_lim) < 90) & (np.abs(sb_g_lim) < 90) & (np.abs(mi_lim) < 90) & (np.abs(mg_lim) < 90)
 
         # Use the conversion from Appendix A of Komiyama+2018, ApJ, 853, 29:
         # V = g_hsc - 0.371*(gi_hsc)-0.068
@@ -242,9 +268,6 @@ class MyMetricInProgress(maf.BaseMetric):
         # sbv = sb_g_lim - 0.371 * (sb_g_lim - sb_i_lim) - 0.068
 
         # import pdb; pdb.set_trace()
-
-        # ok_below_mv7 = (mv > -7) & (mv < 0)
-        # frac_below_mv7 = np.sum(ok_below_mv7)/len(mv)
 
         return mv
 
