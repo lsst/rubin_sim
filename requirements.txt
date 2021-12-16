@@ -4,10 +4,12 @@ numpy
 matplotlib
 healpy
 pandas
+numexpr
 palpy
 scipy
 sqlite
 sqlalchemy
+six
 astropy
 pytables
 h5py
@@ -17,3 +19,4 @@ astroplan
 colorcet
 george
 scikit-learn
+requests
