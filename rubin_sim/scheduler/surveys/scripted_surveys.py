@@ -2,7 +2,7 @@ import numpy as np
 from rubin_sim.scheduler.utils import empty_observation, set_default_nside
 import rubin_sim.scheduler.features as features
 from rubin_sim.scheduler.surveys import BaseSurvey
-from rubin_sim.utils import _approx_RaDec2AltAz, _raDec2Hpid, _angularSeparation
+from rubin_sim.utils import _approx_RaDec2AltAz, _raDec2Hpid
 import logging
 
 log = logging.getLogger(__name__)
@@ -13,6 +13,14 @@ __all__ = ["Scripted_survey", "Pairs_survey_scripted"]
 class Scripted_survey(BaseSurvey):
     """
     Take a set of scheduled observations and serve them up.
+
+    Parameters
+    ----------
+    id_start : `int` (1)
+        The integer to start the "scripted id" field with. Bad things could happen
+        if you have multiple scripted survey objects with the same scripted IDs.
+    return_n_limit : `int` (100)
+        The maximum number of observations to return.
     """
 
     def __init__(
@@ -22,6 +30,8 @@ class Scripted_survey(BaseSurvey):
         ignore_obs="dummy",
         nside=None,
         detailers=None,
+        id_start=1,
+        return_n_limit=100,
     ):
         """"""
         if nside is None:
@@ -31,6 +41,8 @@ class Scripted_survey(BaseSurvey):
         self.nside = nside
         self.reward_val = reward
         self.reward = -np.inf
+        self.id_start = id_start
+        self.return_n_limit = return_n_limit
         super(Scripted_survey, self).__init__(
             basis_functions=basis_functions,
             ignore_obs=ignore_obs,
@@ -53,30 +65,18 @@ class Scripted_survey(BaseSurvey):
                     detailer.add_observation(observation, **kwargs)
                 self.reward_checked = False
 
-                # was it taken in the right time window, and hasn't already been marked as observed.
-                time_matches = np.where(
-                    (observation["mjd"] > self.mjd_start)
-                    & (observation["mjd"] < self.obs_wanted["flush_by_mjd"])
-                    & (~self.obs_wanted["observed"])
-                    & (observation["note"] == self.obs_wanted["note"])
-                )[0]
-
-                for match in time_matches:
-                    distances = _angularSeparation(
-                        self.obs_wanted[match]["RA"],
-                        self.obs_wanted[match]["dec"],
-                        observation["RA"],
-                        observation["dec"],
-                    )
-                    if (distances < self.obs_wanted[match]["dist_tol"]) & (
-                        self.obs_wanted[match]["filter"] == observation["filter"]
-                    ):
-                        # Log it as observed.
-                        self.obs_wanted["observed"][match] = True
-                        self.scheduled_obs = self.obs_wanted["mjd"][
-                            ~self.obs_wanted["observed"]
-                        ]
-                        break
+                # find the index
+                indx = np.searchsorted(
+                    self.obs_wanted["scripted_id"], observation["scripted_id"]
+                )
+                # If it matches scripted_id and note, mark it as observed and update scheduled observation list.
+                if (
+                    self.obs_wanted["scripted_id"][indx] == observation["scripted_id"]
+                ) & (self.obs_wanted["note"][indx] == observation["note"]):
+                    self.obs_wanted["observed"][indx] = True
+                    self.scheduled_obs = self.obs_wanted["mjd"][
+                        ~self.obs_wanted["observed"]
+                    ]
 
     def calc_reward_function(self, conditions):
         """If there is an observation ready to go, execute it, otherwise, -inf"""
@@ -99,6 +99,7 @@ class Scripted_survey(BaseSurvey):
             "note",
             "rotSkyPos",
             "flush_by_mjd",
+            "scripted_id",
         ]:
             observation[key] = obs_row[key]
         return observation
@@ -132,7 +133,7 @@ class Scripted_survey(BaseSurvey):
 
     def _check_list(self, conditions):
         """Check to see if the current mjd is good"""
-        observation = None
+        observations = None
         if self.obs_wanted is not None:
             # Scheduled observations that are in the right time window and have not been executed
             in_time_window = np.where(
@@ -157,11 +158,12 @@ class Scripted_survey(BaseSurvey):
                 matches = []
 
             if np.size(matches) > 0:
-                # XXX--could make this a list and just send out all the things that currently match
-                # rather than one at a time
-                observation = self._slice2obs(self.obs_wanted[matches[0]])
+                # Do not return too many observations
+                if np.size(matches) > self.return_n_limit:
+                    matches = matches[0 : self.return_n_limit]
+                observations = self.obs_wanted[matches]
 
-        return observation
+        return observations
 
     def clear_script(self):
         """set an empty list to serve up"""
@@ -185,14 +187,24 @@ class Scripted_survey(BaseSurvey):
         self.obs_wanted = obs_wanted
 
         self.obs_wanted.sort(order=["mjd", "filter"])
+        # Give each desired observation a unique "scripted ID". To be used for
+        # matching and logging later.
+        self.obs_wanted["scripted_id"] = np.arange(
+            self.id_start, self.id_start + np.size(self.obs_wanted)
+        )
+        # Update so if we set the script again the IDs will not be reused.
+        self.id_start = np.max(self.obs_wanted["scripted_id"]) + 1
+
         self.mjd_start = self.obs_wanted["mjd"] - self.obs_wanted["mjd_tol"]
         # Here is the atribute that core scheduler checks to broadcast scheduled observations
         # in the conditions object.
         self.scheduled_obs = self.obs_wanted["mjd"]
 
     def generate_observations_rough(self, conditions):
-        observation = self._check_list(conditions)
-        return [observation]
+        observations = self._check_list(conditions)
+        if observations is not None:
+            observations = [self._slice2obs(obs) for obs in observations]
+        return observations
 
 
 class Pairs_survey_scripted(Scripted_survey):
