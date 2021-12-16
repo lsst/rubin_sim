@@ -521,7 +521,7 @@ def empty_observation():
         "solarElong",
         "moonPhase",
         "cummTelAz",
-        "scripted_id"
+        "scripted_id",
     ]
 
     types = [
@@ -602,7 +602,7 @@ def scheduled_observation(n=1):
         "HA_max",
         "HA_min",
         "observed",
-        "scripted_id"
+        "scripted_id",
     ]
     types += [float, float, float, float, float, float, bool, int]
     result = np.zeros(n, dtype=list(zip(names, types)))

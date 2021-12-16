@@ -65,13 +65,18 @@ class Scripted_survey(BaseSurvey):
                     detailer.add_observation(observation, **kwargs)
                 self.reward_checked = False
 
-                # find the index 
-                indx = np.searchsorted(self.obs_wanted['scripted_id'], observation['scripted_id'])
+                # find the index
+                indx = np.searchsorted(
+                    self.obs_wanted["scripted_id"], observation["scripted_id"]
+                )
                 # If it matches scripted_id and note, mark it as observed and update scheduled observation list.
-                if self.obs_wanted['scripted_id'][indx] == observation['scripted_id']:
-                    if self.obs_wanted['note'][indx] == observation['note']:
-                        self.obs_wanted["observed"][indx] = True
-                        self.scheduled_obs = self.obs_wanted["mjd"][~self.obs_wanted["observed"]]
+                if (
+                    self.obs_wanted["scripted_id"][indx] == observation["scripted_id"]
+                ) & (self.obs_wanted["note"][indx] == observation["note"]):
+                    self.obs_wanted["observed"][indx] = True
+                    self.scheduled_obs = self.obs_wanted["mjd"][
+                        ~self.obs_wanted["observed"]
+                    ]
 
     def calc_reward_function(self, conditions):
         """If there is an observation ready to go, execute it, otherwise, -inf"""
@@ -155,7 +160,7 @@ class Scripted_survey(BaseSurvey):
             if np.size(matches) > 0:
                 # Do not return too many observations
                 if np.size(matches) > self.return_n_limit:
-                    matches = matches[0:self.return_n_limit]
+                    matches = matches[0 : self.return_n_limit]
                 observations = self.obs_wanted[matches]
 
         return observations
@@ -184,9 +189,11 @@ class Scripted_survey(BaseSurvey):
         self.obs_wanted.sort(order=["mjd", "filter"])
         # Give each desired observation a unique "scripted ID". To be used for
         # matching and logging later.
-        self.obs_wanted['scripted_id'] = np.arange(self.id_start, self.id_start + np.size(self.obs_wanted))
+        self.obs_wanted["scripted_id"] = np.arange(
+            self.id_start, self.id_start + np.size(self.obs_wanted)
+        )
         # Update so if we set the script again the IDs will not be reused.
-        self.id_start = np.max(self.obs_wanted['scripted_id']) + 1
+        self.id_start = np.max(self.obs_wanted["scripted_id"]) + 1
 
         self.mjd_start = self.obs_wanted["mjd"] - self.obs_wanted["mjd_tol"]
         # Here is the atribute that core scheduler checks to broadcast scheduled observations
