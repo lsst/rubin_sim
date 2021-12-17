@@ -6,10 +6,10 @@ import numpy.ma as ma
 import matplotlib.pyplot as plt
 from collections import OrderedDict
 
-import rubin_sim.maf.db as db
 import rubin_sim.maf.utils as utils
 from rubin_sim.maf.plots import PlotHandler
 import rubin_sim.maf.maps as maps
+import rubin_sim.maf.db as db
 from rubin_sim.maf.stackers import BaseDitherStacker
 from .metricBundle import MetricBundle, createEmptyMetricBundle
 import warnings
@@ -63,8 +63,8 @@ class MetricBundleGroup(object):
         functions are run on a particular MetricBundle.
         A bundleDict can be conveniently created from a list of MetricBundles using
         makeBundlesDictFromList (done automatically if a list is passed in)
-    dbObj : `OpsimDatabase`
-        The database object (typically an :class:`OpsimDatabase`) connected to the data to be used to
+    dbCon : `str` or database connection object
+        The database object or sqlite3 filename connected to the data to be used to
         calculate metrics.
         Advanced use: It is possible to set this to None, in which case data should be passed
         directly to the runCurrent method (and runAll should not be used).
@@ -86,12 +86,12 @@ class MetricBundleGroup(object):
     def __init__(
         self,
         bundleDict,
-        dbObj,
+        dbCon,
         outDir=".",
         resultsDb=None,
         verbose=True,
         saveEarly=True,
-        dbTable=None,
+        dbTable="observations",
     ):
         """Set up the MetricBundleGroup."""
         if type(bundleDict) is list:
@@ -118,16 +118,9 @@ class MetricBundleGroup(object):
         # Set the bundleDict (all bundles, with all constraints)
         self.bundleDict = bundleDict
 
-        # Check the dbObj.
-        if not isinstance(dbObj, db.Database):
-            warnings.warn(
-                "Warning: dbObj should be an instantiated Database (or child) object."
-            )
-        self.dbObj = dbObj
+        self.dbObj = dbCon
         # Set the table we're going to be querying.
         self.dbTable = dbTable
-        if self.dbTable is None and self.dbObj is not None:
-            self.dbTable = self.dbObj.defaultTable
 
         # Check the resultsDb (optional).
         if resultsDb is not None:
@@ -225,30 +218,15 @@ class MetricBundleGroup(object):
             else:
                 print("Querying database with constraint %s" % (constraint))
         # Note that we do NOT run the stackers at this point (this must be done in each 'compatible' group).
-        if self.dbTable != "Summary":
-            distinctExpMJD = False
-            groupBy = None
-        else:
-            distinctExpMJD = True
-            groupBy = "expMJD"
         self.simData = utils.getSimData(
             self.dbObj,
             constraint,
             self.dbCols,
             tableName=self.dbTable,
-            distinctExpMJD=distinctExpMJD,
-            groupBy=groupBy,
         )
 
         if self.verbose:
             print("Found %i visits" % (self.simData.size))
-
-        # Query for the fieldData if we need it for the opsimFieldSlicer.
-        needFields = [b.slicer.needsFields for b in self.currentBundleDict.values()]
-        if True in needFields:
-            self.fieldData = utils.getFieldData(self.dbObj, constraint)
-        else:
-            self.fieldData = None
 
     def runAll(self, clearMemory=False, plotNow=False, plotKwargs=None):
         """Runs all the metricBundles in the metricBundleGroup, over all constraints.
@@ -420,7 +398,6 @@ class MetricBundleGroup(object):
             self.dbObj,
             constraint,
             self.dbCols,
-            groupBy="default",
             tableName=self.dbTable,
         )
 
@@ -486,10 +463,7 @@ class MetricBundleGroup(object):
         # This will be forced back into all of the metricBundles at the end (so that they track
         #  the same metadata such as the slicePoints, in case the same actual object wasn't used).
         slicer = list(bDict.values())[0].slicer
-        if slicer.slicerName == "OpsimFieldSlicer":
-            slicer.setupSlicer(self.simData, self.fieldData, maps=uniqMaps)
-        else:
-            slicer.setupSlicer(self.simData, maps=uniqMaps)
+        slicer.setupSlicer(self.simData, maps=uniqMaps)
         # Copy the slicer (after setup) back into the individual metricBundles.
         if slicer.slicerName != "HealpixSlicer" or slicer.slicerName != "UniSlicer":
             for b in bDict.values():

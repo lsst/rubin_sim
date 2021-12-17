@@ -43,7 +43,6 @@ class TestScalarHourglassPlots(unittest.TestCase):
             self.ops_db,
             outDir=self.out_dir,
             resultsDb=self.results_db,
-            dbTable="SummaryAllProps",
         )
         run_result = bundle_group.runAll()
         plot_func = plots.YearHourglassPlot(2023)
@@ -73,7 +72,6 @@ class TestTimeUseHourglassPlots(unittest.TestCase):
             self.ops_db,
             outDir=self.out_dir,
             resultsDb=self.results_db,
-            dbTable="SummaryAllProps",
         )
         run_result = bundle_group.runAll()
         plot_func = plots.YearHourglassUsePlot(2023)
@@ -148,7 +146,7 @@ def create_sample_visit_db(dir_name):
 
     visits = pd.DataFrame(sample_visits_dict)
     with sqlite3.connect(fname) as con:
-        visits.to_sql("summaryAllProps", con=con)
+        visits.to_sql("observations", con=con)
 
     return fname
 

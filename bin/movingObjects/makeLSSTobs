@@ -11,6 +11,7 @@ from rubin_sim.movingObjects import DirectObs
 
 from rubin_sim.maf.db import OpsimDatabase
 from rubin_sim.maf.batches import getColMap
+import rubin_sim.maf.utils as utils
 
 
 __all__ = ["readOpsim", "readOrbits", "runObs", "setupArgs"]
@@ -39,10 +40,8 @@ def readOpsim(opsimfile, constraint=None, footprint="camera", dbcols=None):
     np.ndarray, dictionary
         The OpSim data read from the database, and the dictionary mapping the column names to the data.
     """
-    # Read opsim database.
-    opsdb = OpsimDatabase(opsimfile)
 
-    colmap = getColMap(opsdb)
+    colmap = getColMap()
     if "rotSkyPos" not in colmap:
         colmap["rotSkyPos"] = "rotSkyPos"
 
@@ -69,8 +68,7 @@ def readOpsim(opsimfile, constraint=None, footprint="camera", dbcols=None):
     logging.info("Querying for columns:\n %s" % (cols))
 
     # Go ahead and query for all of the observations.
-    simdata = opsdb.fetchMetricData(cols, sqlconstraint=constraint)
-    opsdb.close()
+    simdata = utils.getSimData(opsimfile, constraint, cols)
     logging.info(
         "Queried data from opsim %s, fetched %d visits." % (opsimfile, len(simdata))
     )

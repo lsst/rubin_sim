@@ -53,9 +53,13 @@ class Test2D(unittest.TestCase):
         self.simData["observationStartMJD"] = self.simData["night"]
         self.cameraFootprintFile = os.path.join(get_data_dir(), "tests", "fov_map.npz")
 
-    def testOpsim2dSlicer(self):
+    def testUserPoints2dSlicer(self):
         metric = metrics.AccumulateCountMetric(bins=[0.5, 1.5, 2.5])
-        slicer = slicers.OpsimFieldSlicer()
+        slicer = slicers.UserPointsSlicer(
+            ra=np.degrees(self.fieldData["fieldRA"]),
+            dec=np.degrees(self.fieldData["fieldDec"]),
+            latLonDeg=True,
+        )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added

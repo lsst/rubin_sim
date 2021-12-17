@@ -64,8 +64,9 @@ class TestMaps(unittest.TestCase):
 
             fieldData = makeFieldData(2234)
 
-            slicer2 = slicers.OpsimFieldSlicer(latLonDeg=False)
-            slicer2.setupSlicer(data, fieldData)
+            slicer2 = slicers.UserPointsSlicer(
+                fieldData["fieldRA"], fieldData["fieldDec"], latLonDeg=False
+            )
             result2 = dustmap.run(slicer2.slicePoints)
             assert "ebv" in list(result2.keys())
 
@@ -103,8 +104,9 @@ class TestMaps(unittest.TestCase):
 
             fieldData = makeFieldData(22)
 
-            slicer2 = slicers.OpsimFieldSlicer(latLonDeg=False)
-            slicer2.setupSlicer(data, fieldData)
+            slicer2 = slicers.UserPointsSlicer(
+                fieldData["fieldRA"], fieldData["fieldDec"], latLonDeg=False
+            )
             result2 = starmap.run(slicer2.slicePoints)
             assert "starMapBins_r" in list(result2.keys())
             assert "starLumFunc_r" in list(result2.keys())
