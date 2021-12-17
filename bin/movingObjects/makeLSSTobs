@@ -41,7 +41,7 @@ def readOpsim(opsimfile, constraint=None, footprint="camera", dbcols=None):
         The OpSim data read from the database, and the dictionary mapping the column names to the data.
     """
 
-    colmap = getColMap()
+    colmap = getColMap(opsimfile)
     if "rotSkyPos" not in colmap:
         colmap["rotSkyPos"] = "rotSkyPos"
 

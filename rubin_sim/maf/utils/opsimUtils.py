@@ -11,23 +11,21 @@ __all__ = [
 ]
 
 
-def getSimData(
-    opsimDb, sqlconstraint, dbcols, stackers=None, tableName='observations'
-):
+def getSimData(opsimDb, sqlconstraint, dbcols, stackers=None, tableName=None):
     """Query an opsim database for the needed data columns and run any required stackers.
 
     Parameters
     ----------
     opsimDb : `str` or database connection object
-        A string that is the path to a sqlite3 file or a  
+        A string that is the path to a sqlite3 file or a
     sqlconstraint : `str`
         SQL constraint to apply to query for observations.
     dbcols : `list` [`str`]
         Columns required from the database.
     stackers : `list` [`rubin_sim.maf.stackers`], optional
         Stackers to be used to generate additional columns. Default None.
-    tableName : `str` (observations)
-        Name of the table to query. Default None uses the opsimDb default.
+    tableName : `str` (None)
+        Name of the table to query. Default None will try "observations" and "SummaryAllProps"
 
     Returns
     -------
@@ -42,17 +40,31 @@ def getSimData(
     else:
         con = opsimDb
 
-    col_str = ''
+    col_str = ""
     for colname in dbcols:
-        col_str += colname+', '
-    col_str = col_str[0:-2] + ' '
+        col_str += colname + ", "
+    col_str = col_str[0:-2] + " "
 
-    query = 'SELECT %s FROM %s' % (col_str, tableName)
+    # Need to guess "observations" and "SummaryAllProps" for the table name
+    # to be backwards compatible I guess
+
+    query = "SELECT %s FROM xxxtablenamexxx" % (col_str)
     if len(sqlconstraint) > 0:
-        query += ' WHERE %s' % (sqlconstraint)
-    query += ';'
+        query += " WHERE %s" % (sqlconstraint)
+    query += ";"
 
-    simData = pd.read_sql(query, con).to_records(index=False)
+    if tableName is not None:
+        query = query.replace("xxxtablenamexxx", tableName)
+        simData = pd.read_sql(query, con).to_records(index=False)
+    else:
+        query1 = query.replace("xxxtablenamexxx", "observations")
+        try:
+            simData = pd.read_sql(query1, con).to_records(index=False)
+        # Not sure where OperationalError and DatabaseError are from, so
+        # I can't import them and catch them explicitly like I should.
+        except:
+            query2 = query.replace("xxxtablenamexxx", "SummaryAllProps")
+            simData = pd.read_sql(query2, con).to_records(index=False)
 
     if len(simData) == 0:
         raise UserWarning("No data found matching sqlconstraint %s" % (sqlconstraint))

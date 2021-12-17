@@ -2,8 +2,10 @@ from builtins import object
 import os
 from collections import OrderedDict
 import numpy as np
-import rubin_sim.maf.db as db
 from .mafRunResults import MafRunResults
+import sqlite3
+import pandas as pd
+from rubin_sim.maf.utils import getSimData
 
 __all__ = ["MafTracking"]
 
@@ -28,7 +30,6 @@ class MafTracking(object):
             database = os.path.join(os.getcwd(), "trackingDb_sqlite.db")
 
         # Read in the results database.
-        tdb = db.Database(database=database, longstrings=True)
         cols = [
             "mafRunId",
             "opsimRun",
@@ -42,7 +43,7 @@ class MafTracking(object):
             "mafVersion",
             "mafDate",
         ]
-        self.runs = tdb.query_columns("runs", colnames=cols)
+        self.runs = getSimData(database, "", cols, tableName="runs")
         self.runs = self.sortRuns(
             self.runs, order=["mafRunId", "opsimRun", "mafComment"]
         )

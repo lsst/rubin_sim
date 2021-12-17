@@ -91,7 +91,7 @@ class MetricBundleGroup(object):
         resultsDb=None,
         verbose=True,
         saveEarly=True,
-        dbTable="observations",
+        dbTable=None,
     ):
         """Set up the MetricBundleGroup."""
         if type(bundleDict) is list:
