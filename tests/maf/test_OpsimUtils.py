@@ -3,6 +3,10 @@ import matplotlib
 matplotlib.use("Agg")
 import unittest
 import rubin_sim.maf.utils.opsimUtils as opsimUtils
+import os
+from rubin_sim.data import get_data_dir
+import numpy as np
+import sqlite3
 
 
 class TestOpsimUtils(unittest.TestCase):
@@ -45,6 +49,28 @@ class TestOpsimUtils(unittest.TestCase):
         coadd = opsimUtils.calcCoaddedDepth(singlevisits, benchmark["singleVisitDepth"])
         for f in coadd:
             self.assertAlmostEqual(coadd[f], benchmark["singleVisitDepth"][f])
+
+    def testGetSimData(self):
+        """Test that we can get simulation data"""
+        database_file = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
+        dbcols = ["fieldRA", "fieldDec", "note"]
+        sql = "night < 10"
+        full_sql = "SELECT fieldRA, fieldDec, note FROM observations where night < 10;"
+        # Check that we get data the usual way
+        data = opsimUtils.getSimData(database_file, sql, dbcols)
+        assert np.size(data) > 0
+
+        # Check that we can pass a connection object
+        con = sqlite3.connect(database_file)
+        data = opsimUtils.getSimData(con, sql, dbcols)
+        con.close()
+        assert np.size(data) > 0
+
+        # Check that kwarg overrides sqlconstraint and dbcols
+        data = opsimUtils.getSimData(
+            database_file, "blah blah", ["nocol"], full_sql_query=full_sql
+        )
+        assert np.size(data) > 0
 
 
 if __name__ == "__main__":

@@ -11,21 +11,31 @@ __all__ = [
 ]
 
 
-def getSimData(opsimDb, sqlconstraint, dbcols, stackers=None, tableName=None):
+def getSimData(
+    db_con,
+    sqlconstraint,
+    dbcols,
+    stackers=None,
+    tableName=None,
+    full_sql_query=None,
+):
     """Query an opsim database for the needed data columns and run any required stackers.
 
     Parameters
     ----------
-    opsimDb : `str` or database connection object
-        A string that is the path to a sqlite3 file or a
+    db_con : `str` or SQLAlchemy connectable, or sqlite3 connection
+        Filename to a sqlite3 file, or a connection object that can be used by pandas.read_sql
     sqlconstraint : `str`
-        SQL constraint to apply to query for observations.
+        SQL constraint to apply to query for observations. Ignored if full_sql_query is set.
     dbcols : `list` [`str`]
-        Columns required from the database.
+        Columns required from the database. Ignored if full_sql_query is set.
     stackers : `list` [`rubin_sim.maf.stackers`], optional
         Stackers to be used to generate additional columns. Default None.
     tableName : `str` (None)
-        Name of the table to query. Default None will try "observations" and "SummaryAllProps"
+        Name of the table to query. Default None will try "observations" and "SummaryAllProps".
+        Ignored if full_sql_query is set.
+    full_sql_query : `str`
+        The full SQL query to use. Overrides sqlconstraint, dbcols, tablename.
 
     Returns
     -------
@@ -35,36 +45,39 @@ def getSimData(opsimDb, sqlconstraint, dbcols, stackers=None, tableName=None):
     """
     # Get data from database.
 
-    if type(opsimDb) == str:
-        con = sqlite3.connect(opsimDb)
+    if type(db_con) == str:
+        con = sqlite3.connect(db_con)
     else:
-        con = opsimDb
+        con = db_con
 
-    col_str = ""
-    for colname in dbcols:
-        col_str += colname + ", "
-    col_str = col_str[0:-2] + " "
+    if full_sql_query is None:
+        col_str = ""
+        for colname in dbcols:
+            col_str += colname + ", "
+        col_str = col_str[0:-2] + " "
 
-    # Need to guess "observations" and "SummaryAllProps" for the table name
-    # to be backwards compatible I guess
+        # Need to guess "observations" and "SummaryAllProps" for the table name
+        # to be backwards compatible I guess
+        query = "SELECT %s FROM xxxtablenamexxx" % (col_str)
+        if len(sqlconstraint) > 0:
+            query += " WHERE %s" % (sqlconstraint)
+        query += ";"
 
-    query = "SELECT %s FROM xxxtablenamexxx" % (col_str)
-    if len(sqlconstraint) > 0:
-        query += " WHERE %s" % (sqlconstraint)
-    query += ";"
-
-    if tableName is not None:
-        query = query.replace("xxxtablenamexxx", tableName)
+        if tableName is not None:
+            query = query.replace("xxxtablenamexxx", tableName)
+            simData = pd.read_sql(query, con).to_records(index=False)
+        else:
+            query1 = query.replace("xxxtablenamexxx", "observations")
+            try:
+                simData = pd.read_sql(query1, con).to_records(index=False)
+            # Not sure where OperationalError and DatabaseError are from, so
+            # I can't import them and catch them explicitly like I should.
+            except:
+                query2 = query.replace("xxxtablenamexxx", "SummaryAllProps")
+                simData = pd.read_sql(query2, con).to_records(index=False)
+    else:
+        query = full_sql_query
         simData = pd.read_sql(query, con).to_records(index=False)
-    else:
-        query1 = query.replace("xxxtablenamexxx", "observations")
-        try:
-            simData = pd.read_sql(query1, con).to_records(index=False)
-        # Not sure where OperationalError and DatabaseError are from, so
-        # I can't import them and catch them explicitly like I should.
-        except:
-            query2 = query.replace("xxxtablenamexxx", "SummaryAllProps")
-            simData = pd.read_sql(query2, con).to_records(index=False)
 
     if len(simData) == 0:
         raise UserWarning("No data found matching sqlconstraint %s" % (sqlconstraint))
