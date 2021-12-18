@@ -3,6 +3,8 @@
 import numpy as np
 import pandas as pd
 import sqlite3
+from sqlalchemy import create_engine, inspect
+from sqlalchemy.engine import make_url
 
 __all__ = [
     "getSimData",
@@ -43,7 +45,30 @@ def getSimData(
         A numpy structured array with columns resulting from dbcols + stackers, for observations matching
         the SQLconstraint.
     """
-    # Get data from database.
+
+    # Check if table is "observations" or "SummaryAllProps"
+    if (tableName is None) & (full_sql_query is None) & (type(db_con) == str):
+        url = make_url("sqlite:///" + db_con)
+        eng = create_engine(url)
+        inspector = inspect(eng)
+        tables = [
+            inspector.get_table_names(schema=schema)
+            for schema in inspector.get_schema_names()
+        ]
+        if "observations" in tables[0]:
+            tableName = "observations"
+        elif "SummaryAllProps" in tables[0]:
+            tableName = "SummaryAllProps"
+        elif "summary" in tables[0]:
+            tableName = "summary"
+        else:
+            ValueError(
+                "Could not guess tableName, set with tableName or full_sql_query kwargs"
+            )
+    elif (tableName is None) & (full_sql_query is None):
+        # If someone passes in a connection object with an old tableName things will fail
+        # that's probably fine, keep people from getting fancy with old sims
+        tableName = "observations"
 
     if type(db_con) == str:
         con = sqlite3.connect(db_con)
@@ -58,23 +83,12 @@ def getSimData(
 
         # Need to guess "observations" and "SummaryAllProps" for the table name
         # to be backwards compatible I guess
-        query = "SELECT %s FROM xxxtablenamexxx" % (col_str)
+        query = "SELECT %s FROM %s" % (col_str, tableName)
         if len(sqlconstraint) > 0:
             query += " WHERE %s" % (sqlconstraint)
         query += ";"
+        simData = pd.read_sql(query, con).to_records(index=False)
 
-        if tableName is not None:
-            query = query.replace("xxxtablenamexxx", tableName)
-            simData = pd.read_sql(query, con).to_records(index=False)
-        else:
-            query1 = query.replace("xxxtablenamexxx", "observations")
-            try:
-                simData = pd.read_sql(query1, con).to_records(index=False)
-            # Not sure where OperationalError and DatabaseError are from, so
-            # I can't import them and catch them explicitly like I should.
-            except:
-                query2 = query.replace("xxxtablenamexxx", "SummaryAllProps")
-                simData = pd.read_sql(query2, con).to_records(index=False)
     else:
         query = full_sql_query
         simData = pd.read_sql(query, con).to_records(index=False)
