@@ -10,11 +10,47 @@ from .starDensity import StarDensityMetric
 from maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import GalaxyCountsMetric_extended \
     as GalaxyCountsMetric
 
-# make fake LF for old galaxy of given integrated B, distance modulus mu, in any of filters ugrizY
+
+def generateKnownLVDwarfSlicer():
+    """Read the Karachentsev+ catalog of nearby galaxies, and put the info about them
+    into a UserPointSlicer object.
+    """
+
+    # path = '/dlusers/jcarlin/rubin_sim_data/maf/LVDwarfs_data/'
+    path = '/dlusers/jcarlin/sims_maf/SMWLV-metrics/notebooks/'
+    lv_dat0 = fits.getdata(path+'lsst_galaxies_1p25to9Mpc_table.fits')
+
+    # Keep only galaxies at dec < 35 deg., and with stellar masses > 10^7 M_Sun (and <1e14).
+    lv_dat_cuts = (lv_dat0['dec'] < 35.0) & (lv_dat0['MStars'] > 1e7) & (lv_dat0['MStars'] < 1e14)
+    lv_dat = lv_dat0[lv_dat_cuts]
+
+    # Set up the slicer to evaluate the catalog we just made
+    slicer = maf.UserPointsSlicer(lv_dat['ra'], lv_dat['dec'], latLonDeg=True, badval=-666)
+    # Add any additional information about each object to the slicer
+    slicer.slicePoints["distance"] = lv_dat['dist_Mpc']
+
+    return slicer
+
+
+# make a simulated LF for old galaxy of given integrated B, distance modulus mu, in any of filters ugrizY
 def makeFakeLF(intB, mu, filtername):
+    """
+    Make a simulated luminosity function for an old (10 Gyr) dwarf galaxy of given
+        integrated B magnitude, at a given distance modulus, in any of the filters ugrizY.
+
+    Parameters
+    ----------
+    intB : `float`
+        Integrated B-band magnitude of the dwarf to simulate.
+    mu : `float`
+        Distance modulus at which to place the simulated dwarf.
+    filternams: `str`
+        Filter in which to produce the simulated luminosity function.
+    """
     if (filtername == 'y'):
         filtername == 'Y'
     modelBmag = 6.856379  # integrated B mag of the model LF being read
+    # Read a simulated luminosity function of [M/H]=-1.5, 10 Gyr stellar population:
     LF = ascii.read('LF_-1.5_10Gyr.dat', header_start=12)
     mags = LF['magbinc']
     counts = LF[filtername+'mag']
@@ -28,8 +64,14 @@ def makeFakeLF(intB, mu, filtername):
 
 
 def make_LF_dicts():
+    """
+    Create dicts containing i- and g-band LFs for simulated dwarfs between
+        -10 < M_B < 0, so they can simply be looked up rather than having to
+        recreate them each time. Dict is keyed on M_B value.
+    """
     lf_dict_i = {}
     lf_dict_g = {}
+    # Simulate a range from M_B=-10 to M_B=0 in 0.1-mag increments.
     tmp_MB = -10.0
 
     for i in range(101):
@@ -44,6 +86,19 @@ def make_LF_dicts():
 
 
 def sum_luminosity(LFmags, LFcounts):
+    """
+    Sum the luminosities from a given luminosity function.
+
+    Uses the first bin's magnitude as a reference, sums luminosities relative to
+        that reference star, then converts back to magnitude at the end.
+
+    Parameters
+    ----------
+    LFmags : np.array, `float`
+        Magnitude bin values from the simulated LF.
+    LFcounts : np.array, `int`
+        Number of stars in each magnitude bin.
+    """
     magref = LFmags[0]
     totlum = 0.0
 
@@ -56,6 +111,20 @@ def sum_luminosity(LFmags, LFcounts):
 
 
 def sblimit(glim, ilim, nstars, distlim):
+    """
+    Calculate the surface brightness limit given the g- and i-band limiting
+        magnitudes, number of stars required to detect
+
+    Uses the first bin's magnitude as a reference, sums luminosities relative to
+        that reference star, then converts back to magnitude at the end.
+
+    Parameters
+    ----------
+    LFmags : np.array, `float`
+        Magnitude bin values from the simulated LF.
+    LFcounts : np.array, `int`
+        Number of stars in each magnitude bin.
+    """
     distance_limit = distlim*1e6  # distance limit in parsecs
     distmod_lim = 5.0*np.log10(distance_limit) - 5.0
 
@@ -112,7 +181,7 @@ def sblimit(glim, ilim, nstars, distlim):
     return mg_lim, mi_lim, sbg_lim, sbi_lim, flag_lim
 
 
-class MyMetricInProgress(maf.BaseMetric):
+class LVDwarfsMetric(maf.BaseMetric):
     """Documentation please. Numpy style docstrings.
 
     This example metric just finds the time of first observation of a particular part of the sky.
