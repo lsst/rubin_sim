@@ -20,7 +20,9 @@ class PulsatingStarRecoveryLight(maf.BaseMetric):
     
     This metric  studies how well a given cadence stategy 
     is able to recover the period and the shape of a light curve (from a template given in .csv file)
-    in a  given point  of the sky. Returns a dictionary with the results of Lcsampling,Lcperiod, Lcfitting 
+    in a  given point  of the sky. Returns a dictionary with the results of Lcsampling,Lcperiod, Lcfitting.
+    
+    Authors: Di Criscienzo Marcella, Silvio Leccia & Vittorio Braga and STEP@INAF Team
     
     Parameters
     ----------
