@@ -10,6 +10,9 @@ from .starDensity import StarDensityMetric
 from maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import GalaxyCountsMetric_extended \
     as GalaxyCountsMetric
 
+__all__ = ["generateKnownLVDwarfSlicer", "makeFakeLF", "make_LF_dicts",
+           "sum_luminosity", "sblimit", "LVDwarfsMetric"]
+
 
 def generateKnownLVDwarfSlicer():
     """Read the Karachentsev+ catalog of nearby galaxies, and put the info about them
@@ -332,6 +335,7 @@ class LVDwarfsMetric(maf.BaseMetric):
 
         return mv
 
+'''
 ####################
 
 ######
@@ -349,3 +353,4 @@ lv_dat_cuts = (lv_dat0['dec'] < 35.0) & (lv_dat0['MStars'] > 1e7) & (lv_dat0['MS
 lv_dat = lv_dat0[lv_dat_cuts]
 
 slicer = maf.UserPointsSlicer(lv_dat['ra'], lv_dat['dec'])
+'''
