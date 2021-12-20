@@ -15,7 +15,12 @@ from rubin_sim.maf.plots import MetricVsH
 
 from .metricBundle import MetricBundle
 
-__all__ = ['MoMetricBundle', 'MoMetricBundleGroup', 'createEmptyMoMetricBundle', 'makeCompletenessBundle']
+__all__ = [
+    "MoMetricBundle",
+    "MoMetricBundleGroup",
+    "createEmptyMoMetricBundle",
+    "makeCompletenessBundle",
+]
 
 
 def createEmptyMoMetricBundle():
@@ -57,65 +62,83 @@ def makeCompletenessBundle(bundle, completenessMetric, Hmark=None, resultsDb=Non
     bundle.computeSummaryStats(resultsDb)
     summaryName = completenessMetric.name
     # Make up the bundle, including the metric values.
-    completeness = ma.MaskedArray(data=bundle.summaryValues[summaryName]['value'],
-                                  mask=np.zeros(len(bundle.summaryValues[summaryName]['value'])),
-                                  fill_value=0)
-    mb = MoMetricBundle(completenessMetric, bundle.slicer,
-                        constraint=bundle.constraint, runName=bundle.runName,
-                        metadata=bundle.metadata)
+    completeness = ma.MaskedArray(
+        data=bundle.summaryValues[summaryName]["value"],
+        mask=np.zeros(len(bundle.summaryValues[summaryName]["value"])),
+        fill_value=0,
+    )
+    mb = MoMetricBundle(
+        completenessMetric,
+        bundle.slicer,
+        constraint=bundle.constraint,
+        runName=bundle.runName,
+        metadata=bundle.metadata,
+        displayDict=bundle.displayDict,
+    )
     plotDict = {}
     plotDict.update(bundle.plotDict)
-    plotDict['label'] = bundle.metadata
-    if 'Completeness' not in summaryName:
-        plotDict['label'] += ' ' + summaryName.replace('FractionPop_', '')
+    plotDict["label"] = bundle.metadata
+    if "Completeness" not in summaryName:
+        plotDict["label"] += " " + summaryName.replace("FractionPop_", "")
     mb.metricValues = completeness.reshape(1, len(completeness))
     if Hmark is not None:
         metric = ValueAtHMetric(Hmark=Hmark)
         mb.setSummaryMetrics(metric)
         mb.computeSummaryStats(resultsDb)
-        val = mb.summaryValues['Value At H=%.1f' % Hmark]
-        if summaryName.startswith('Cumulative'):
-            plotDict['label'] += ': @ H(<=%.1f) = %.1f%s' % (Hmark, val * 100, '%')
+        val = mb.summaryValues["Value At H=%.1f" % Hmark]
+        if summaryName.startswith("Cumulative"):
+            plotDict["label"] += ": @ H(<=%.1f) = %.1f%s" % (Hmark, val * 100, "%")
         else:
-            plotDict['label'] += ': @ H(=%.1f) = %.1f%s' % (Hmark, val * 100, '%')
+            plotDict["label"] += ": @ H(=%.1f) = %.1f%s" % (Hmark, val * 100, "%")
     mb.setPlotDict(plotDict)
     return mb
 
 
 class MoMetricBundle(MetricBundle):
-    def __init__(self, metric, slicer, constraint=None,
-                 stackerList=None,
-                 runName='opsim', metadata=None,
-                 fileRoot=None,
-                 plotDict=None, plotFuncs=None,
-                 displayDict=None,
-                 childMetrics=None,
-                 summaryMetrics=None):
+    def __init__(
+        self,
+        metric,
+        slicer,
+        constraint=None,
+        stackerList=None,
+        runName="opsim",
+        metadata=None,
+        fileRoot=None,
+        plotDict=None,
+        plotFuncs=None,
+        displayDict=None,
+        childMetrics=None,
+        summaryMetrics=None,
+    ):
         """
         Instantiate moving object metric bundle, save metric/slicer/constraint, etc.
         """
         self.metric = metric
         self.slicer = slicer
-        if constraint == '':
+        if constraint == "":
             constraint = None
         self.constraint = constraint
         # Set the stackerlist.
         if stackerList is not None:
             if isinstance(stackerList, BaseMoStacker):
-                self.stackerList = [stackerList, ]
+                self.stackerList = [
+                    stackerList,
+                ]
             else:
                 self.stackerList = []
                 for s in stackerList:
                     if not isinstance(s, BaseMoStacker):
-                        raise ValueError('stackerList must only contain '
-                                         'rubin_sim.maf.stackers.BaseMoStacker type objs')
+                        raise ValueError(
+                            "stackerList must only contain "
+                            "rubin_sim.maf.stackers.BaseMoStacker type objs"
+                        )
                     self.stackerList.append(s)
         else:
             self.stackerList = []
         # Add the basic 'visibility/mag' stacker if not present.
         magStackerFound = False
         for s in self.stackerList:
-            if s.__class__.__name__ == 'MoMagStacker':
+            if s.__class__.__name__ == "MoMagStacker":
                 magStackerFound = True
                 break
         if not magStackerFound:
@@ -135,7 +158,7 @@ class MoMetricBundle(MetricBundle):
         # Set the plotting classes/functions.
         self.setPlotFuncs(plotFuncs)
         # Set the plotDict and displayDicts.
-        self.plotDict = {'units': '@H'}
+        self.plotDict = {"units": "@H"}
         self.setPlotDict(plotDict)
         # Update/set displayDict.
         self.displayDict = {}
@@ -147,8 +170,7 @@ class MoMetricBundle(MetricBundle):
         self.summaryValues = None
 
     def _resetMetricBundle(self):
-        """Reset all properties of MetricBundle.
-        """
+        """Reset all properties of MetricBundle."""
         self.metric = None
         self.slicer = None
         self.constraint = None
@@ -156,8 +178,8 @@ class MoMetricBundle(MetricBundle):
         self.mapsList = []
         self.summaryMetrics = []
         self.plotFuncs = []
-        self.runName = 'opsim'
-        self.metadata = ''
+        self.runName = "opsim"
+        self.metadata = ""
         self.dbCols = None
         self.fileRoot = None
         self.plotDict = {}
@@ -167,17 +189,18 @@ class MoMetricBundle(MetricBundle):
         self.summaryValues = None
 
     def _buildMetadata(self, metadata):
-        """If no metadata is provided, auto-generate it from the obsFile + constraint.
-        """
+        """If no metadata is provided, auto-generate it from the obsFile + constraint."""
         if metadata is None:
             try:
-                self.metadata = self.slicer.obsfile.replace('.txt', '').replace('.dat', '')
-                self.metadata = self.metadata.replace('_obs', '').replace('_allObs', '')
+                self.metadata = self.slicer.obsfile.replace(".txt", "").replace(
+                    ".dat", ""
+                )
+                self.metadata = self.metadata.replace("_obs", "").replace("_allObs", "")
             except AttributeError:
-                self.metadata = 'noObs'
+                self.metadata = "noObs"
             # And modify by constraint.
             if self.constraint is not None:
-                self.metadata += ' ' + self.constraint
+                self.metadata += " " + self.constraint
         else:
             self.metadata = metadata
 
@@ -195,13 +218,18 @@ class MoMetricBundle(MetricBundle):
         if childMetrics is None:
             childMetrics = self.metric.childMetrics
         for cName, cMetric in childMetrics.items():
-            cBundle = MoMetricBundle(metric=cMetric, slicer=self.slicer,
-                                     constraint=self.constraint,
-                                     stackerList=self.stackerList,
-                                     runName=self.runName, metadata=self.metadata,
-                                     plotDict=self.plotDict, plotFuncs=self.plotFuncs,
-                                     displayDict=self.displayDict,
-                                     summaryMetrics=self.summaryMetrics)
+            cBundle = MoMetricBundle(
+                metric=cMetric,
+                slicer=self.slicer,
+                constraint=self.constraint,
+                stackerList=self.stackerList,
+                runName=self.runName,
+                metadata=self.metadata,
+                plotDict=self.plotDict,
+                plotFuncs=self.plotFuncs,
+                displayDict=self.displayDict,
+                summaryMetrics=self.summaryMetrics,
+            )
             self.childBundles[cName] = cBundle
         if len(childMetrics) > 0:
             self.summaryMetrics = []
@@ -216,20 +244,28 @@ class MoMetricBundle(MetricBundle):
             # Build array of metric values, to use for (most) summary statistics.
             for m in self.summaryMetrics:
                 summaryName = m.name
-                summaryVal = m.run(self.metricValues, self.slicer.slicePoints['H'])
+                summaryVal = m.run(self.metricValues, self.slicer.slicePoints["H"])
                 self.summaryValues[summaryName] = summaryVal
                 # Add summary metric info to results database, if applicable.
                 if resultsDb:
-                    metricId = resultsDb.updateMetric(self.metric.name, self.slicer.slicerName,
-                                                      self.runName, self.constraint, self.metadata, None)
-                    resultsDb.updateSummaryStat(metricId, summaryName=summaryName, summaryValue=summaryVal)
+                    metricId = resultsDb.updateMetric(
+                        self.metric.name,
+                        self.slicer.slicerName,
+                        self.runName,
+                        self.constraint,
+                        self.metadata,
+                        None,
+                    )
+                    resultsDb.updateSummaryStat(
+                        metricId, summaryName=summaryName, summaryValue=summaryVal
+                    )
 
     def reduceMetric(self, reduceFunc, reducePlotDict=None, reduceDisplayDict=None):
         raise NotImplementedError
 
 
 class MoMetricBundleGroup(object):
-    def __init__(self, bundleDict, outDir='.', resultsDb=None, verbose=True):
+    def __init__(self, bundleDict, outDir=".", resultsDb=None, verbose=True):
         self.verbose = verbose
         self.bundleDict = bundleDict
         self.outDir = outDir
@@ -240,8 +276,10 @@ class MoMetricBundleGroup(object):
         self.slicer = list(self.bundleDict.values())[0].slicer
         for b in self.bundleDict.values():
             if b.slicer != self.slicer:
-                raise ValueError('Currently, the slicers for the MoMetricBundleGroup must be equal,'
-                                 ' using the same observations and Hvals.')
+                raise ValueError(
+                    "Currently, the slicers for the MoMetricBundleGroup must be equal,"
+                    " using the same observations and Hvals."
+                )
         self.constraints = list(set([b.constraint for b in bundleDict.values()]))
 
     def _checkCompatible(self, metricBundle1, metricBundle2):
@@ -269,13 +307,15 @@ class MoMetricBundleGroup(object):
         for stacker in metricBundle1.stackerList:
             for stacker2 in metricBundle2.stackerList:
                 # If the stackers have different names, that's OK, and if they are identical, that's ok.
-                if (stacker.__class__.__name__ == stacker2.__class__.__name__) & (stacker != stacker2):
+                if (stacker.__class__.__name__ == stacker2.__class__.__name__) & (
+                    stacker != stacker2
+                ):
                     return False
         # But if we got this far, everything matches.
         return True
 
     def _findCompatible(self, testKeys):
-        """"Private utility to find which metricBundles with keys in the list 'testKeys' can be calculated
+        """ "Private utility to find which metricBundles with keys in the list 'testKeys' can be calculated
         at the same time -- having the same slicer, constraint, maps, and compatible stackers.
 
         Parameters
@@ -292,18 +332,22 @@ class MoMetricBundleGroup(object):
             try:
                 b = self.bundleDict[k]
             except KeyError:
-                warnings.warn('Received %s in testkeys, but this is not present in self.bundleDict.'
-                              'Will continue, but this is not expected.')
+                warnings.warn(
+                    "Received %s in testkeys, but this is not present in self.bundleDict."
+                    "Will continue, but this is not expected."
+                )
                 continue
             foundCompatible = False
             checkedAll = False
-            while not(foundCompatible) and not(checkedAll):
+            while not (foundCompatible) and not (checkedAll):
                 # Go through the existing lists in compatibleLists, to see if this metricBundle matches.
                 for compatibleList in compatibleLists:
                     # Compare to all the metricBundles in this subset, to check all stackers are compatible.
                     foundCompatible = True
                     for comparisonKey in compatibleList:
-                        compatible = self._checkCompatible(self.bundleDict[comparisonKey], b)
+                        compatible = self._checkCompatible(
+                            self.bundleDict[comparisonKey], b
+                        )
                         if not compatible:
                             # Found a metricBundle which is not compatible, so stop and go onto the next subset.
                             foundCompatible = False
@@ -312,7 +356,11 @@ class MoMetricBundleGroup(object):
             if foundCompatible:
                 compatibleList.append(k)
             else:
-                compatibleLists.append([k,])
+                compatibleLists.append(
+                    [
+                        k,
+                    ]
+                )
         return compatibleLists
 
     def runConstraint(self, constraint):
@@ -355,9 +403,11 @@ class MoMetricBundleGroup(object):
             mappers and stackers.
         """
         if self.verbose:
-            print('Running metrics %s' % compatibleList)
+            print("Running metrics %s" % compatibleList)
 
-        bDict = self.bundleDict  #  {key: self.bundleDict.get(key) for key in compatibleList}
+        bDict = (
+            self.bundleDict
+        )  #  {key: self.bundleDict.get(key) for key in compatibleList}
 
         # Find the unique stackers and maps. These are already "compatible" (as id'd by compatibleList).
         uniqStackers = []
@@ -375,7 +425,9 @@ class MoMetricBundleGroup(object):
                 uniqMaps.append(m)
 
         if len(uniqMaps) > 0:
-            print("Got some maps .. that was unexpected at the moment. Can't use them here yet.")
+            print(
+                "Got some maps .. that was unexpected at the moment. Can't use them here yet."
+            )
 
         # Set up all of the metric values, including for the child bundles.
         for k in compatibleList:
@@ -385,13 +437,13 @@ class MoMetricBundleGroup(object):
                 cb._setupMetricValues()
         # Calculate the metric values.
         for i, slicePoint in enumerate(self.slicer):
-            ssoObs = slicePoint['obs']
-            for j, Hval in enumerate(slicePoint['Hvals']):
+            ssoObs = slicePoint["obs"]
+            for j, Hval in enumerate(slicePoint["Hvals"]):
                 # Run stackers to add extra columns (that depend on Hval)
                 with warnings.catch_warnings():
-                    warnings.simplefilter('ignore')
+                    warnings.simplefilter("ignore")
                     for s in uniqStackers:
-                        ssoObs = s.run(ssoObs, slicePoint['orbit']['H'], Hval)
+                        ssoObs = s.run(ssoObs, slicePoint["orbit"]["H"], Hval)
                 # Run all the parent metrics.
                 for k in compatibleList:
                     b = self.bundleDict[k]
@@ -403,7 +455,7 @@ class MoMetricBundleGroup(object):
                     # Otherwise, calculate the metric value for the parent, and then child.
                     else:
                         # Calculate for the parent.
-                        mVal = b.metric.run(ssoObs, slicePoint['orbit'], Hval)
+                        mVal = b.metric.run(ssoObs, slicePoint["orbit"], Hval)
                         # Mask if the parent metric returned a bad value.
                         if mVal == b.metric.badval:
                             b.metricValues.mask[i][j] = True
@@ -413,7 +465,9 @@ class MoMetricBundleGroup(object):
                         else:
                             b.metricValues.data[i][j] = mVal
                             for cb in b.childBundles.values():
-                                childVal = cb.metric.run(ssoObs, slicePoint['orbit'], Hval, mVal)
+                                childVal = cb.metric.run(
+                                    ssoObs, slicePoint["orbit"], Hval, mVal
+                                )
                                 if childVal == cb.metric.badval:
                                     cb.metricValues.mask[i][j] = True
                                 else:
@@ -435,23 +489,40 @@ class MoMetricBundleGroup(object):
         for constraint in self.constraints:
             self.runConstraint(constraint)
         if self.verbose:
-            print('Calculated and saved all metrics.')
+            print("Calculated and saved all metrics.")
 
-    def plotAll(self, savefig=True, outfileSuffix=None, figformat='pdf', dpi=600, thumbnail=True,
-                closefigs=True):
+    def plotAll(
+        self,
+        savefig=True,
+        outfileSuffix=None,
+        figformat="pdf",
+        dpi=600,
+        thumbnail=True,
+        closefigs=True,
+    ):
         """
         Make a few generically desired plots. This needs more flexibility in the future.
         """
-        plotHandler = PlotHandler(outDir=self.outDir, resultsDb=self.resultsDb,
-                                  savefig=savefig, figformat=figformat, dpi=dpi, thumbnail=thumbnail)
+        plotHandler = PlotHandler(
+            outDir=self.outDir,
+            resultsDb=self.resultsDb,
+            savefig=savefig,
+            figformat=figformat,
+            dpi=dpi,
+            thumbnail=thumbnail,
+        )
         for b in self.bundleDict.values():
             try:
-                b.plot(plotHandler=plotHandler, outfileSuffix=outfileSuffix, savefig=savefig)
+                b.plot(
+                    plotHandler=plotHandler,
+                    outfileSuffix=outfileSuffix,
+                    savefig=savefig,
+                )
             except ValueError as ve:
-                message = 'Plotting failed for metricBundle %s.' % (b.fileRoot)
-                message += ' Error message: %s' % (ve.message)
+                message = "Plotting failed for metricBundle %s." % (b.fileRoot)
+                message += " Error message: %s" % (ve.message)
                 warnings.warn(message)
             if closefigs:
-                plt.close('all')
+                plt.close("all")
         if self.verbose:
-            print('Plotting all metrics.')
+            print("Plotting all metrics.")

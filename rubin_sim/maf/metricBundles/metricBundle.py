@@ -14,7 +14,7 @@ import rubin_sim.maf.plots as plots
 from rubin_sim.maf.stackers import ColInfo
 import rubin_sim.maf.utils as utils
 
-__all__ = ['MetricBundle', 'createEmptyMetricBundle']
+__all__ = ["MetricBundle", "createEmptyMetricBundle"]
 
 
 def createEmptyMetricBundle():
@@ -25,7 +25,7 @@ def createEmptyMetricBundle():
     MetricBundle
         An empty metric bundle, configured with just the :class:`BaseMetric` and :class:`BaseSlicer`.
     """
-    return MetricBundle(metrics.BaseMetric(), slicers.BaseSlicer(), '')
+    return MetricBundle(metrics.BaseMetric(), slicers.BaseSlicer(), "")
 
 
 class MetricBundle(object):
@@ -43,35 +43,51 @@ class MetricBundle(object):
     as well as additional metadata such as the opsim run name, and relevant stackers and maps
     to apply when calculating the metric values.
     """
+
     colInfo = ColInfo()
 
-    def __init__(self, metric, slicer, constraint=None, sqlconstraint=None,
-                 stackerList=None, runName='opsim', metadata=None,
-                 plotDict=None, displayDict=None,
-                 summaryMetrics=None, mapsList=None,
-                 fileRoot=None, plotFuncs=None):
+    def __init__(
+        self,
+        metric,
+        slicer,
+        constraint=None,
+        sqlconstraint=None,
+        stackerList=None,
+        runName="opsim",
+        metadata=None,
+        plotDict=None,
+        displayDict=None,
+        summaryMetrics=None,
+        mapsList=None,
+        fileRoot=None,
+        plotFuncs=None,
+    ):
         # Set the metric.
         if not isinstance(metric, metrics.BaseMetric):
-            raise ValueError('metric must be an rubin_sim.maf.metrics object')
+            raise ValueError("metric must be an rubin_sim.maf.metrics object")
         self.metric = metric
         # Set the slicer.
         if not isinstance(slicer, slicers.BaseSlicer):
-            raise ValueError('slicer must be an rubin_sim.maf.slicers object')
+            raise ValueError("slicer must be an rubin_sim.maf.slicers object")
         self.slicer = slicer
         # Set the constraint.
         self.constraint = constraint
         if self.constraint is None:
             # Provide backwards compatibility for now - phase out sqlconstraint eventually.
             if sqlconstraint is not None:
-                warnings.warn('Future warning - "sqlconstraint" will be deprecated in favor of '
-                              '"constraint" in a future release.')
+                warnings.warn(
+                    'Future warning - "sqlconstraint" will be deprecated in favor of '
+                    '"constraint" in a future release.'
+                )
                 self.constraint = sqlconstraint
         if self.constraint is None:
-            self.constraint = ''
+            self.constraint = ""
         # Set the stackerlist if applicable.
         if stackerList is not None:
             if isinstance(stackerList, stackers.BaseStacker):
-                self.stackerList = [stackerList, ]
+                self.stackerList = [
+                    stackerList,
+                ]
             else:
                 self.stackerList = []
                 for s in stackerList:
@@ -79,25 +95,31 @@ class MetricBundle(object):
                         pass
                     else:
                         if not isinstance(s, stackers.BaseStacker):
-                            raise ValueError('stackerList must only contain rubin_sim.maf.stackers objs')
+                            raise ValueError(
+                                "stackerList must only contain rubin_sim.maf.stackers objs"
+                            )
                         self.stackerList.append(s)
         else:
             self.stackerList = []
         # Set the 'maps' to apply to the slicer, if applicable.
         if mapsList is not None:
             if isinstance(mapsList, maps.BaseMap):
-                self.mapsList = [mapsList, ]
+                self.mapsList = [
+                    mapsList,
+                ]
             else:
                 self.mapsList = []
                 for m in mapsList:
                     if not isinstance(m, maps.BaseMap):
-                        raise ValueError('mapsList must only contain rubin_sim.maf.maps objects')
+                        raise ValueError(
+                            "mapsList must only contain rubin_sim.maf.maps objects"
+                        )
                     self.mapsList.append(m)
         else:
             self.mapsList = []
         # If the metric knows it needs a particular map, add it to the list.
         mapNames = [mapName.__class__.__name__ for mapName in self.mapsList]
-        if hasattr(self.metric, 'maps'):
+        if hasattr(self.metric, "maps"):
             for mapName in self.metric.maps:
                 if mapName not in mapNames:
                     if type(mapName) == str:
@@ -131,8 +153,7 @@ class MetricBundle(object):
         self.summaryValues = None
 
     def _resetMetricBundle(self):
-        """Reset all properties of MetricBundle.
-        """
+        """Reset all properties of MetricBundle."""
         self.metric = None
         self.slicer = None
         self.constraint = None
@@ -140,8 +161,8 @@ class MetricBundle(object):
         self.summaryMetrics = []
         self.plotFuncs = []
         self.mapsList = None
-        self.runName = 'opsim'
-        self.metadata = ''
+        self.runName = "opsim"
+        self.metadata = ""
         self.dbCols = None
         self.fileRoot = None
         self.plotDict = {}
@@ -150,19 +171,22 @@ class MetricBundle(object):
         self.summaryValues = None
 
     def _setupMetricValues(self):
-        """Set up the numpy masked array to store the metric value data.
-        """
+        """Set up the numpy masked array to store the metric value data."""
         dtype = self.metric.metricDtype
         # Can't store healpix slicer mask values in an int array.
-        if dtype == 'int':
-            dtype = 'float'
+        if dtype == "int":
+            dtype = "float"
         if self.metric.shape == 1:
             shape = self.slicer.shape
         else:
             shape = (self.slicer.shape, self.metric.shape)
-        self.metricValues = ma.MaskedArray(data=np.empty(shape, dtype),
-                                           mask=np.zeros(shape, 'bool'),
-                                           fill_value=self.slicer.badval)
+        self.metricValues = ma.MaskedArray(
+            data=np.empty(shape, dtype),
+            mask=np.zeros(shape, "bool"),
+            fill_value=self.slicer.badval,
+        )
+        if hasattr(self.slicer, "mask"):
+            self.metricValues.mask = self.slicer.mask
 
     def _buildMetadata(self, metadata):
         """If no metadata is provided, process the constraint
@@ -170,9 +194,11 @@ class MetricBundle(object):
         e.g. 'filter = "r"' becomes 'r'
         """
         if metadata is None:
-            self.metadata = self.constraint.replace('=', '').replace('filter', '').replace("'", '')
-            self.metadata = self.metadata.replace('"', '').replace('  ', ' ')
-            self.metadata = self.metadata.strip(' ')
+            self.metadata = (
+                self.constraint.replace("=", "").replace("filter", "").replace("'", "")
+            )
+            self.metadata = self.metadata.replace('"', "").replace("  ", " ")
+            self.metadata = self.metadata.strip(" ")
         else:
             self.metadata = metadata
 
@@ -181,8 +207,14 @@ class MetricBundle(object):
         Build an auto-generated output filename root (i.e. minus the plot type or .npz ending).
         """
         # Build basic version.
-        self.fileRoot = '_'.join([self.runName, self.metric.name, self.metadata,
-                                  self.slicer.slicerName[:4].upper()])
+        self.fileRoot = "_".join(
+            [
+                self.runName,
+                self.metric.name,
+                self.metadata,
+                self.slicer.slicerName[:4].upper(),
+            ]
+        )
         # Sanitize output name if needed.
         self.fileRoot = utils.nameSanitize(self.fileRoot)
 
@@ -232,10 +264,10 @@ class MetricBundle(object):
                     newstackers.remove(s.__class__)
         # A Bit of cleanup.
         # Remove 'metricdata' from dbcols if it ended here by default.
-        if 'metricdata' in self.dbCols:
-            self.dbCols.remove('metricdata')
-        if 'None' in self.dbCols:
-            self.dbCols.remove('None')
+        if "metricdata" in self.dbCols:
+            self.dbCols.remove("metricdata")
+        if "None" in self.dbCols:
+            self.dbCols.remove("None")
 
     def setSummaryMetrics(self, summaryMetrics):
         """Set (or reset) the summary metrics for the metricbundle.
@@ -252,11 +284,13 @@ class MetricBundle(object):
                 self.summaryMetrics = []
                 for s in summaryMetrics:
                     if not isinstance(s, metrics.BaseMetric):
-                        raise ValueError('SummaryStats must only contain rubin_sim.maf.metrics objects')
+                        raise ValueError(
+                            "SummaryStats must only contain rubin_sim.maf.metrics objects"
+                        )
                     self.summaryMetrics.append(s)
         else:
             # Add identity metric to unislicer metric values (to get them into resultsDB).
-            if self.slicer.slicerName == 'UniSlicer':
+            if self.slicer.slicerName == "UniSlicer":
                 self.summaryMetrics = [metrics.IdentityMetric()]
             else:
                 self.summaryMetrics = []
@@ -279,8 +313,10 @@ class MetricBundle(object):
                 self.plotFuncs = []
                 for pFunc in plotFuncs:
                     if not isinstance(pFunc, plots.BasePlotter):
-                        raise ValueError('plotFuncs should contain instantiated ' +
-                                         'rubin_sim.maf.plotter objects.')
+                        raise ValueError(
+                            "plotFuncs should contain instantiated "
+                            + "rubin_sim.maf.plotter objects."
+                        )
                     self.plotFuncs.append(pFunc)
         else:
             self.plotFuncs = []
@@ -303,17 +339,21 @@ class MetricBundle(object):
         if plotDict is not None:
             self.plotDict.update(plotDict)
         # Check for bad zp or normVal values.
-        if 'zp' in self.plotDict:
-            if self.plotDict['zp'] is not None:
-                if not np.isfinite(self.plotDict['zp']):
-                    warnings.warn('Warning! Plot zp for %s was infinite: removing zp from plotDict'
-                                  % (self.fileRoot))
-                    del self.plotDict['zp']
-        if 'normVal' in self.plotDict:
-            if self.plotDict['normVal'] == 0:
-                warnings.warn('Warning! Plot normalization value for %s was 0: removing normVal from plotDict'
-                              % (self.fileRoot))
-                del self.plotDict['normVal']
+        if "zp" in self.plotDict:
+            if self.plotDict["zp"] is not None:
+                if not np.isfinite(self.plotDict["zp"]):
+                    warnings.warn(
+                        "Warning! Plot zp for %s was infinite: removing zp from plotDict"
+                        % (self.fileRoot)
+                    )
+                    del self.plotDict["zp"]
+        if "normVal" in self.plotDict:
+            if self.plotDict["normVal"] == 0:
+                warnings.warn(
+                    "Warning! Plot normalization value for %s was 0: removing normVal from plotDict"
+                    % (self.fileRoot)
+                )
+                del self.plotDict["normVal"]
 
     def setDisplayDict(self, displayDict=None, resultsDb=None):
         """Set or update any property of displayDict.
@@ -330,7 +370,7 @@ class MetricBundle(object):
             A MAF results database, used to save the display parameters.
         """
         # Set up a temporary dictionary with the default values.
-        tmpDisplayDict = {'group': None, 'subgroup': None, 'order': 0, 'caption': None}
+        tmpDisplayDict = {"group": None, "subgroup": None, "order": 0, "caption": None}
         # Update from self.displayDict (to use existing values, if present).
         tmpDisplayDict.update(self.displayDict)
         # And then update from any values being passed now.
@@ -339,25 +379,38 @@ class MetricBundle(object):
         # Reset self.displayDict to this updated dictionary.
         self.displayDict = tmpDisplayDict
         # If we still need to auto-generate a caption, do it.
-        if self.displayDict['caption'] is None:
+        if self.displayDict["caption"] is None:
             if self.metric.comment is None:
-                caption = self.metric.name + ' calculated on a %s basis' % (self.slicer.slicerName)
-                if self.constraint!='' and self.constraint is not None:
-                    caption += ' using a subset of data selected via %s.' % (self.constraint)
+                caption = self.metric.name + " calculated on a %s basis" % (
+                    self.slicer.slicerName
+                )
+                if self.constraint != "" and self.constraint is not None:
+                    caption += " using a subset of data selected via %s." % (
+                        self.constraint
+                    )
                 else:
-                    caption += '.'
+                    caption += "."
             else:
                 caption = self.metric.comment
-            if 'zp' in self.plotDict:
-                caption += ' Values plotted with a zeropoint of %.2f.' % (self.plotDict['zp'])
-            if 'normVal' in self.plotDict:
-                caption += ' Values plotted with a normalization value of %.2f.' % (self.plotDict['normVal'])
-            self.displayDict['caption'] = caption
+            if "zp" in self.plotDict:
+                caption += " Values plotted with a zeropoint of %.2f." % (
+                    self.plotDict["zp"]
+                )
+            if "normVal" in self.plotDict:
+                caption += " Values plotted with a normalization value of %.2f." % (
+                    self.plotDict["normVal"]
+                )
+            self.displayDict["caption"] = caption
         if resultsDb:
             # Update the display values in the resultsDb.
-            metricId = resultsDb.updateMetric(self.metric.name, self.slicer.slicerName,
-                                              self.runName, self.constraint,
-                                              self.metadata, None)
+            metricId = resultsDb.updateMetric(
+                self.metric.name,
+                self.slicer.slicerName,
+                self.runName,
+                self.constraint,
+                self.metadata,
+                None,
+            )
             resultsDb.updateDisplay(metricId, self.displayDict)
 
     def setRunName(self, runName, updateFileRoot=True):
@@ -375,19 +428,23 @@ class MetricBundle(object):
             self._buildFileRoot()
 
     def writeDb(self, resultsDb=None, outfileSuffix=None):
-        """Write the metricValues to the database
-        """
+        """Write the metricValues to the database"""
         if outfileSuffix is not None:
-            outfile = self.fileRoot + '_' + outfileSuffix + '.npz'
+            outfile = self.fileRoot + "_" + outfileSuffix + ".npz"
         else:
-            outfile = self.fileRoot + '.npz'
+            outfile = self.fileRoot + ".npz"
         if resultsDb is not None:
-            metricId = resultsDb.updateMetric(self.metric.name, self.slicer.slicerName,
-                                              self.runName, self.constraint,
-                                              self.metadata, outfile)
+            metricId = resultsDb.updateMetric(
+                self.metric.name,
+                self.slicer.slicerName,
+                self.runName,
+                self.constraint,
+                self.metadata,
+                outfile,
+            )
             resultsDb.updateDisplay(metricId, self.displayDict)
 
-    def write(self, comment='', outDir='.', outfileSuffix=None, resultsDb=None):
+    def write(self, comment="", outDir=".", outfileSuffix=None, resultsDb=None):
         """Write metricValues (and associated metadata) to disk.
 
         Parameters
@@ -402,17 +459,19 @@ class MetricBundle(object):
             Results database to store information on the file output
         """
         if outfileSuffix is not None:
-            outfile = self.fileRoot + '_' + outfileSuffix + '.npz'
+            outfile = self.fileRoot + "_" + outfileSuffix + ".npz"
         else:
-            outfile = self.fileRoot + '.npz'
-        self.slicer.writeData(os.path.join(outDir, outfile),
-                              self.metricValues,
-                              metricName=self.metric.name,
-                              simDataName=self.runName,
-                              constraint=self.constraint,
-                              metadata=self.metadata + comment,
-                              displayDict=self.displayDict,
-                              plotDict=self.plotDict)
+            outfile = self.fileRoot + ".npz"
+        self.slicer.writeData(
+            os.path.join(outDir, outfile),
+            self.metricValues,
+            metricName=self.metric.name,
+            simDataName=self.runName,
+            constraint=self.constraint,
+            metadata=self.metadata + comment,
+            displayDict=self.displayDict,
+            plotDict=self.plotDict,
+        )
         if resultsDb is not None:
             self.writeDb(resultsDb=resultsDb)
 
@@ -424,11 +483,13 @@ class MetricBundle(object):
         io
            IO object containing JSON data representing the metric bundle data.
         """
-        io = self.slicer.outputJSON(self.metricValues,
-                                    metricName=self.metric.name,
-                                    simDataName=self.runName,
-                                    metadata=self.metadata,
-                                    plotDict=self.plotDict)
+        io = self.slicer.outputJSON(
+            self.metricValues,
+            metricName=self.metric.name,
+            simDataName=self.runName,
+            metadata=self.metadata,
+            plotDict=self.plotDict,
+        )
         return io
 
     def read(self, filename):
@@ -441,7 +502,7 @@ class MetricBundle(object):
            The file from which to read the metric bundle data.
         """
         if not os.path.isfile(filename):
-            raise IOError('%s not found' % filename)
+            raise IOError("%s not found" % filename)
 
         self._resetMetricBundle()
         # Set up a base slicer to read data (we don't know type yet).
@@ -456,26 +517,26 @@ class MetricBundle(object):
         self.metric = metrics.BaseMetric()
         # But, for plot label building, we do need to try to recreate the
         #  metric name and units.
-        self.metric.units = ''
+        self.metric.units = ""
         if header is not None:
-            self.metric.name = header['metricName']
-            if 'plotDict' in header:
-                if 'units' in header['plotDict']:
-                    self.metric.units = header['plotDict']['units']
-            self.runName = header['simDataName']
+            self.metric.name = header["metricName"]
+            if "plotDict" in header:
+                if "units" in header["plotDict"]:
+                    self.metric.units = header["plotDict"]["units"]
+            self.runName = header["simDataName"]
             try:
-                self.constraint = header['constraint']
+                self.constraint = header["constraint"]
             except KeyError:
-                self.constraint = header['sqlconstraint']
-            self.metadata = header['metadata']
-            if 'plotDict' in header:
-                self.setPlotDict(header['plotDict'])
-            if 'displayDict' in header:
-                self.setDisplayDict(header['displayDict'])
+                self.constraint = header["sqlconstraint"]
+            self.metadata = header["metadata"]
+            if "plotDict" in header:
+                self.setPlotDict(header["plotDict"])
+            if "displayDict" in header:
+                self.setDisplayDict(header["displayDict"])
         if self.metadata is None:
             self._buildMetadata()
         path, head = os.path.split(filename)
-        self.fileRoot = head.replace('.npz', '')
+        self.fileRoot = head.replace(".npz", "")
         self.setPlotFuncs(None)
 
     @classmethod
@@ -487,7 +548,7 @@ class MetricBundle(object):
         filename : str
            The file from which to read the metric bundle data.
         """
-        metric_bundle = cls(metrics.BaseMetric(), slicers.BaseSlicer(), '')
+        metric_bundle = cls(metrics.BaseMetric(), slicers.BaseSlicer(), "")
         metric_bundle.read(filename)
         return metric_bundle
 
@@ -503,17 +564,21 @@ class MetricBundle(object):
             self.summaryValues = {}
         if self.summaryMetrics is not None:
             # Build array of metric values, to use for (most) summary statistics.
-            rarr_std = np.array(list(zip(self.metricValues.compressed())),
-                                dtype=[('metricdata', self.metricValues.dtype)])
+            rarr_std = np.array(
+                list(zip(self.metricValues.compressed())),
+                dtype=[("metricdata", self.metricValues.dtype)],
+            )
             for m in self.summaryMetrics:
                 # The summary metric colname should already be set to 'metricdata', but in case it's not:
-                m.colname = 'metricdata'
-                summaryName = m.name.replace(' metricdata', '').replace(' None', '')
-                if hasattr(m, 'maskVal'):
+                m.colname = "metricdata"
+                summaryName = m.name.replace(" metricdata", "").replace(" None", "")
+                if hasattr(m, "maskVal"):
                     # summary metric requests to use the mask value, as specified by itself,
                     #  rather than skipping masked vals.
-                    rarr = np.array(list(zip(self.metricValues.filled(m.maskVal))),
-                                    dtype=[('metricdata', self.metricValues.dtype)])
+                    rarr = np.array(
+                        list(zip(self.metricValues.filled(m.maskVal))),
+                        dtype=[("metricdata", self.metricValues.dtype)],
+                    )
                 else:
                     rarr = rarr_std
                 if np.size(rarr) == 0:
@@ -523,9 +588,17 @@ class MetricBundle(object):
                 self.summaryValues[summaryName] = summaryVal
                 # Add summary metric info to results database, if applicable.
                 if resultsDb:
-                    metricId = resultsDb.updateMetric(self.metric.name, self.slicer.slicerName,
-                                                      self.runName, self.constraint, self.metadata, None)
-                    resultsDb.updateSummaryStat(metricId, summaryName=summaryName, summaryValue=summaryVal)
+                    metricId = resultsDb.updateMetric(
+                        self.metric.name,
+                        self.slicer.slicerName,
+                        self.runName,
+                        self.constraint,
+                        self.metadata,
+                        None,
+                    )
+                    resultsDb.updateSummaryStat(
+                        metricId, summaryName=summaryName, summaryValue=summaryVal
+                    )
 
     def reduceMetric(self, reduceFunc, reducePlotDict=None, reduceDisplayDict=None):
         """Run 'reduceFunc' (any function that operates on self.metricValues).
@@ -550,24 +623,29 @@ class MetricBundle(object):
            metric values calculated with the 'reduceFunc'.
         """
         # Generate a name for the metric values processed by the reduceFunc.
-        rName = reduceFunc.__name__.replace('reduce', '')
-        reduceName = self.metric.name + '_' + rName
+        rName = reduceFunc.__name__.replace("reduce", "")
+        reduceName = self.metric.name + "_" + rName
         # Set up metricBundle to store new metric values, and add plotDict/displayDict.
         newmetric = deepcopy(self.metric)
         newmetric.name = reduceName
-        newmetric.metricDtype = 'float'
+        newmetric.metricDtype = "float"
         if reducePlotDict is not None:
-            if 'units' in reducePlotDict:
-                newmetric.units = reducePlotDict['units']
-        newmetricBundle = MetricBundle(metric=newmetric, slicer=self.slicer,
-                                       stackerList=self.stackerList,
-                                       constraint=self.constraint,
-                                       metadata=self.metadata,
-                                       runName=self.runName,
-                                       plotDict=None, plotFuncs=self.plotFuncs,
-                                       displayDict=None,
-                                       summaryMetrics=self.summaryMetrics,
-                                       mapsList=self.mapsList, fileRoot='')
+            if "units" in reducePlotDict:
+                newmetric.units = reducePlotDict["units"]
+        newmetricBundle = MetricBundle(
+            metric=newmetric,
+            slicer=self.slicer,
+            stackerList=self.stackerList,
+            constraint=self.constraint,
+            metadata=self.metadata,
+            runName=self.runName,
+            plotDict=None,
+            plotFuncs=self.plotFuncs,
+            displayDict=None,
+            summaryMetrics=self.summaryMetrics,
+            mapsList=self.mapsList,
+            fileRoot="",
+        )
         # Build a new output file root name.
         newmetricBundle._buildFileRoot()
         # Add existing plotDict (except for title/xlabels etc) into new plotDict.
@@ -581,16 +659,20 @@ class MetricBundle(object):
         # Set the reduce function display 'order' (this is set in the BaseMetric
         # by default, but can be overriden in a metric).
         order = newmetric.reduceOrder[rName]
-        newmetricBundle.displayDict['order'] = order
+        newmetricBundle.displayDict["order"] = order
         # And then update the newmetricBundle's display dictionary with any set
         # explicitly by reduceDisplayDict.
         newmetricBundle.setDisplayDict(reduceDisplayDict)
         # Set up new metricBundle's metricValues masked arrays, copying metricValue's mask.
-        newmetricBundle.metricValues = ma.MaskedArray(data=np.empty(len(self.slicer), 'float'),
-                                                      mask=self.metricValues.mask,
-                                                      fill_value=self.slicer.badval)
+        newmetricBundle.metricValues = ma.MaskedArray(
+            data=np.empty(len(self.slicer), "float"),
+            mask=self.metricValues.mask,
+            fill_value=self.slicer.badval,
+        )
         # Fill the reduced metric data using the reduce function.
-        for i, (mVal, mMask) in enumerate(zip(self.metricValues.data, self.metricValues.mask)):
+        for i, (mVal, mMask) in enumerate(
+            zip(self.metricValues.data, self.metricValues.mask)
+        ):
             if not mMask:
                 val = reduceFunc(mVal)
                 newmetricBundle.metricValues.data[i] = val

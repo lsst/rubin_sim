@@ -38,3 +38,5 @@ from .scalingMetrics import *
 from .useMetrics import *
 from .brownDwarfMetric import *
 from .agnstructure import *
+from .qsoNumberCountsMetric import *
+from .agnTimeLagMetric import *

@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest"]
-        python-version: ["3.8",]
+        python-version: ["3.8"]
     steps:
       - uses: actions/checkout@v2
 
@@ -37,7 +37,7 @@ jobs:
         run: |
           conda config --set always_yes yes
           conda install --quiet --file=requirements.txt
-          conda install -y -q flake8 pytest
+          conda install --quiet --file=test-requirements.txt
       - name: install rubin_sim
         shell: bash -l {0}
         run: |

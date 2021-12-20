@@ -5,7 +5,7 @@ from rubin_sim.maf.utils import radec2pix
 from rubin_sim.data import get_data_dir
 
 
-__all__ = ['EBVhp']
+__all__ = ["EBVhp"]
 
 
 def EBVhp(nside, ra=None, dec=None, pixels=None, interp=False, mapPath=None):
@@ -33,18 +33,18 @@ def EBVhp(nside, ra=None, dec=None, pixels=None, interp=False, mapPath=None):
     if mapPath is not None:
         ebvDataDir = mapPath
     else:
-        ebvDataDir = os.path.join(get_data_dir(), 'maps', 'DustMaps')
-    if not hasattr(EBVhp, 'nside'):
+        ebvDataDir = os.path.join(get_data_dir(), "maps", "DustMaps")
+    if not hasattr(EBVhp, "nside"):
         EBVhp.nside = nside
 
-    if (not hasattr(EBVhp, 'dustmap')) | (EBVhp.nside != nside):
+    if (not hasattr(EBVhp, "dustmap")) | (EBVhp.nside != nside):
         EBVhp.nside = nside
-        filename = 'dust_nside_%i.npz' % EBVhp.nside
-        EBVhp.dustMap = np.load(os.path.join(ebvDataDir, filename))['ebvMap']
+        filename = "dust_nside_%i.npz" % EBVhp.nside
+        EBVhp.dustMap = np.load(os.path.join(ebvDataDir, filename))["ebvMap"]
 
     # If we are interpolating to arbitrary positions
     if interp:
-        result = hp.get_interp_val(EBVhp.dustMap, np.pi/2. - dec, ra)
+        result = hp.get_interp_val(EBVhp.dustMap, np.pi / 2.0 - dec, ra)
     else:
         # If we know the pixel indices we want
         if pixels is not None:

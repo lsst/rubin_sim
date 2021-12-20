@@ -19,14 +19,14 @@ def sims_clean_up():
     close() on the cache and delete the cache.
     """
 
-    if not hasattr(sims_clean_up, 'targets'):
+    if not hasattr(sims_clean_up, "targets"):
         return None
 
     for target in sims_clean_up.targets:
         if isinstance(target, dict):
             while len(target) > 0:
                 obj = target.popitem()
-                if hasattr(obj[1], 'close'):
+                if hasattr(obj[1], "close"):
                     try:
                         obj[1].close()
                     except:
@@ -35,14 +35,14 @@ def sims_clean_up():
         elif isinstance(target, list):
             while len(target) > 0:
                 obj = target.pop()
-                if hasattr(obj, 'close'):
+                if hasattr(obj, "close"):
                     try:
                         obj.close()
                     except:
                         pass
                 del obj
         else:
-            if hasattr(target, 'close'):
+            if hasattr(target, "close"):
                 target.close()
             del target
 
@@ -80,8 +80,10 @@ def _validate_inputs(input_list, input_names, method_name):
     elif isinstance(input_list[0], numbers.Number):
         desired_type = numbers.Number
     else:
-        raise RuntimeError("The arg %s input to method %s " % (input_names[0], method_name) +
-                           "should be either a number or a numpy array")
+        raise RuntimeError(
+            "The arg %s input to method %s " % (input_names[0], method_name)
+            + "should be either a number or a numpy array"
+        )
 
     valid_type = True
     bad_names = []
@@ -99,7 +101,7 @@ def _validate_inputs(input_list, input_names, method_name):
         msg += "and the same type as the argument %s" % input_names[0]
         msg += "\n\nTypes of arguments are:\n"
         for name, arg in zip(input_names, input_list):
-            msg += '%s: %s\n' % (name, type(arg))
+            msg += "%s: %s\n" % (name, type(arg))
         raise RuntimeError(msg)
 
     if desired_type is np.ndarray:
@@ -108,8 +110,10 @@ def _validate_inputs(input_list, input_names, method_name):
             if len(ii) != len(input_list[0]):
                 same_length = False
         if not same_length:
-            raise RuntimeError("The arrays input to %s " % method_name +
-                               "all need to have the same length")
+            raise RuntimeError(
+                "The arrays input to %s " % method_name
+                + "all need to have the same length"
+            )
 
     if desired_type is np.ndarray:
         return True

@@ -26,14 +26,15 @@ class CloudData(object):
     scale : float (1e6)
         Enforce machine precision for cross-platform repeatability by scaling and rounding date values.
     """
+
     def __init__(self, start_time, cloud_db=None, offset_year=0, scale=1e6):
         self.cloud_db = cloud_db
         if self.cloud_db is None:
-            self.cloud_db = os.path.join(get_data_dir(), 'site_models', 'cloud.db')
+            self.cloud_db = os.path.join(get_data_dir(), "site_models", "cloud.db")
 
         # Cloud database starts in Jan 01 of the year of the start of the simulation.
         year_start = start_time.datetime.year + offset_year
-        self.start_time = Time('%d-01-01' % year_start, format='isot', scale='tai')
+        self.start_time = Time("%d-01-01" % year_start, format="isot", scale="tai")
 
         self.cloud_dates = None
         self.cloud_values = None
@@ -58,7 +59,7 @@ class CloudData(object):
         delta_time = (time - self.start_time).sec
         dbdate = delta_time % self.time_range + self.min_time
         if self.scale is not None:
-            dbdate = np.round(dbdate*self.scale).astype(int)
+            dbdate = np.round(dbdate * self.scale).astype(int)
         idx = np.searchsorted(self.cloud_dates, dbdate)
         # searchsorted ensures that left < date < right
         # but we need to know if date is closer to left or to right
@@ -103,7 +104,7 @@ class CloudData(object):
         ordidx = self.cloud_dates.argsort()
         self.cloud_dates = self.cloud_dates[ordidx]
         if self.scale is not None:
-            self.cloud_dates = np.round(self.cloud_dates*self.scale).astype(int)
+            self.cloud_dates = np.round(self.cloud_dates * self.scale).astype(int)
         self.cloud_values = self.cloud_values[ordidx]
         # Record this information, in case the cloud database does not start at t=0.
         self.min_time = self.cloud_dates[0]

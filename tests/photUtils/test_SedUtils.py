@@ -4,7 +4,6 @@ from rubin_sim.photUtils import Sed, Bandpass, getImsimFluxNorm
 
 
 class ImSimNormTestCase(unittest.TestCase):
-
     def test_norm(self):
         """
         Test that the special test case getImsimFluxNorm
@@ -19,10 +18,10 @@ class ImSimNormTestCase(unittest.TestCase):
         wavelen = np.arange(300.0, 2000.0, 0.17)
 
         for ix in range(10):
-            flux = rng.random_sample(len(wavelen))*100.0
+            flux = rng.random_sample(len(wavelen)) * 100.0
             sed = Sed()
             sed.setSED(wavelen=wavelen, flambda=flux)
-            magmatch = rng.random_sample()*5.0 + 10.0
+            magmatch = rng.random_sample() * 5.0 + 10.0
 
             control = sed.calcFluxNorm(magmatch, bp)
             test = getImsimFluxNorm(sed, magmatch)

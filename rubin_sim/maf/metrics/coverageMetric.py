@@ -1,7 +1,7 @@
 import numpy as np
 from .baseMetric import BaseMetric
 
-__all__ = ['YearCoverageMetric']
+__all__ = ["YearCoverageMetric"]
 
 
 class YearCoverageMetric(BaseMetric):
@@ -25,15 +25,15 @@ class YearCoverageMetric(BaseMetric):
         Typically this will be the number of years in the 'nightCol'.
     """
 
-    def __init__(self, nightCol='night', bins=None, units=None, **kwargs):
+    def __init__(self, nightCol="night", bins=None, units=None, **kwargs):
         self.nightCol = nightCol
         if bins is None:
-            self.bins = np.arange(0, np.ceil(365.25*10.), 365.25) - 0.5
+            self.bins = np.arange(0, np.ceil(365.25 * 10.0), 365.25) - 0.5
         else:
             self.bins = bins
 
         if units is None:
-            units = 'N years'
+            units = "N years"
 
         super().__init__([nightCol], units=units)
 

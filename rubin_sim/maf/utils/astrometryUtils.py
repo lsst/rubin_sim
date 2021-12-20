@@ -1,7 +1,9 @@
 import numpy as np
+
 """Some simple functions that are useful for astrometry calculations. """
 
-__all__ = ['sigma_slope', 'm52snr', 'astrom_precision']
+__all__ = ["sigma_slope", "m52snr", "astrom_precision"]
+
 
 def sigma_slope(x, sigma_y):
     """
@@ -21,13 +23,14 @@ def sigma_slope(x, sigma_y):
     float
         The uncertainty in the line fit
     """
-    w = 1./sigma_y**2
-    denom = np.sum(w)*np.sum(w*x**2)-np.sum(w*x)**2
+    w = 1.0 / sigma_y ** 2
+    denom = np.sum(w) * np.sum(w * x ** 2) - np.sum(w * x) ** 2
     if denom <= 0:
         return np.nan
     else:
-        result = np.sqrt(np.sum(w)/denom )
+        result = np.sqrt(np.sum(w) / denom)
         return result
+
 
 def m52snr(m, m5):
     """
@@ -49,8 +52,9 @@ def m52snr(m, m5):
     float or numpy.ndarray
         The SNR
     """
-    snr = 5.*10.**(-0.4*(m-m5))
+    snr = 5.0 * 10.0 ** (-0.4 * (m - m5))
     return snr
+
 
 def astrom_precision(fwhm, snr):
     """
@@ -69,5 +73,5 @@ def astrom_precision(fwhm, snr):
     float or numpy.ndarray
         The astrometric precision.
     """
-    result = fwhm/(snr)
+    result = fwhm / (snr)
     return result

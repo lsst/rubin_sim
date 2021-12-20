@@ -28,15 +28,17 @@ class SeeingData(object):
     offset_year : float, optional
         Offset into the cloud database by 'offset_year' years. Default 0.
     """
+
     def __init__(self, start_time, seeing_db=None, offset_year=0):
         self.seeing_db = seeing_db
         if self.seeing_db is None:
-            self.seeing_db = os.path.join(get_data_dir(), 'site_models',
-                                          'simsee_pachon_58777_13.db')
+            self.seeing_db = os.path.join(
+                get_data_dir(), "site_models", "simsee_pachon_58777_13.db"
+            )
 
         # Seeing database starts in Jan 01 of the year of the start of the simulation
         year_start = start_time.datetime.year + offset_year
-        self.start_time = Time('%d-01-01' % year_start, format='isot', scale='tai')
+        self.start_time = Time("%d-01-01" % year_start, format="isot", scale="tai")
 
         self.seeing_dates = None
         self.seeing_values = None
@@ -114,6 +116,6 @@ class SeeingData(object):
         OrderedDict
         """
         config_info = {}
-        config_info['Start time for db'] = self.start_time
-        config_info['Seeing database'] = self.seeing_db
+        config_info["Start time for db"] = self.start_time
+        config_info["Seeing database"] = self.seeing_db
         return config_info

@@ -2,7 +2,8 @@ from builtins import zip
 import numpy as np
 from .baseMetric import BaseMetric
 
-__all__ = ['TransientMetric']
+__all__ = ["TransientMetric"]
+
 
 class TransientMetric(BaseMetric):
     """
@@ -68,20 +69,50 @@ class TransientMetric(BaseMetric):
         'partialLC', then the max number of possible transients is taken to be
         the integer floor
     """
-    def __init__(self, metricName='TransientDetectMetric', mjdCol='observationStartMJD',
-                 m5Col='fiveSigmaDepth', filterCol='filter',
-                 transDuration=10., peakTime=5., riseSlope=0., declineSlope=0.,
-                 surveyDuration=10., surveyStart=None, detectM5Plus=0.,
-                 uPeak=20, gPeak=20, rPeak=20, iPeak=20, zPeak=20, yPeak=20,
-                 nPrePeak=0, nPerLC=1, nFilters=1, nPhaseCheck=1, countMethod='full',
-                 **kwargs):
+
+    def __init__(
+        self,
+        metricName="TransientDetectMetric",
+        mjdCol="observationStartMJD",
+        m5Col="fiveSigmaDepth",
+        filterCol="filter",
+        transDuration=10.0,
+        peakTime=5.0,
+        riseSlope=0.0,
+        declineSlope=0.0,
+        surveyDuration=10.0,
+        surveyStart=None,
+        detectM5Plus=0.0,
+        uPeak=20,
+        gPeak=20,
+        rPeak=20,
+        iPeak=20,
+        zPeak=20,
+        yPeak=20,
+        nPrePeak=0,
+        nPerLC=1,
+        nFilters=1,
+        nPhaseCheck=1,
+        countMethod="full",
+        **kwargs
+    ):
         self.mjdCol = mjdCol
         self.m5Col = m5Col
         self.filterCol = filterCol
-        super(TransientMetric, self).__init__(col=[self.mjdCol, self.m5Col, self.filterCol],
-                                              units='Fraction Detected',
-                                              metricName=metricName, **kwargs)
-        self.peaks = {'u': uPeak, 'g': gPeak, 'r': rPeak, 'i': iPeak, 'z': zPeak, 'y': yPeak}
+        super(TransientMetric, self).__init__(
+            col=[self.mjdCol, self.m5Col, self.filterCol],
+            units="Fraction Detected",
+            metricName=metricName,
+            **kwargs
+        )
+        self.peaks = {
+            "u": uPeak,
+            "g": gPeak,
+            "r": rPeak,
+            "i": iPeak,
+            "z": zPeak,
+            "y": yPeak,
+        }
         self.transDuration = transDuration
         self.peakTime = peakTime
         self.riseSlope = riseSlope
@@ -122,7 +153,7 @@ class TransientMetric(BaseMetric):
         return lcMags
 
     def run(self, dataSlice, slicePoint=None):
-        """"
+        """ "
         Calculate the detectability of a transient with the specified lightcurve.
 
         Parameters
@@ -138,11 +169,13 @@ class TransientMetric(BaseMetric):
             The total number of transients that could be detected.
         """
         # Total number of transients that could go off back-to-back
-        if self.countMethod == 'partialLC':
+        if self.countMethod == "partialLC":
             _nTransMax = np.ceil(self.surveyDuration / (self.transDuration / 365.25))
         else:
             _nTransMax = np.floor(self.surveyDuration / (self.transDuration / 365.25))
-        tshifts = np.arange(self.nPhaseCheck) * self.transDuration / float(self.nPhaseCheck)
+        tshifts = (
+            np.arange(self.nPhaseCheck) * self.transDuration / float(self.nPhaseCheck)
+        )
         nDetected = 0
         nTransMax = 0
         for tshift in tshifts:
@@ -156,7 +189,9 @@ class TransientMetric(BaseMetric):
             time = (dataSlice[self.mjdCol] - surveyStart + tshift) % self.transDuration
 
             # Which lightcurve does each point belong to
-            lcNumber = np.floor((dataSlice[self.mjdCol] - surveyStart) / self.transDuration)
+            lcNumber = np.floor(
+                (dataSlice[self.mjdCol] - surveyStart) / self.transDuration
+            )
 
             lcMags = self.lightCurve(time, dataSlice[self.filterCol])
 
@@ -178,7 +213,7 @@ class TransientMetric(BaseMetric):
                 time = time[ord]
                 ulcNumber = np.unique(lcNumber)
                 left = np.searchsorted(lcNumber, ulcNumber)
-                right = np.searchsorted(lcNumber, ulcNumber, side='right')
+                right = np.searchsorted(lcNumber, ulcNumber, side="right")
                 # Note here I'm using np.searchsorted to basically do a 'group by'
                 # might be clearer to use scipy.ndimage.measurements.find_objects or pandas, but
                 # this numpy function is known for being efficient.
@@ -199,20 +234,26 @@ class TransientMetric(BaseMetric):
                 time = time[ord]
                 ulcNumber = np.unique(lcNumber)
                 left = np.searchsorted(lcNumber, ulcNumber)
-                right = np.searchsorted(lcNumber, ulcNumber, side='right')
+                right = np.searchsorted(lcNumber, ulcNumber, side="right")
                 detectThresh += self.nFilters
 
                 for le, ri in zip(left, right):
                     points = np.where(detected[le:ri] > 0)
                     ufilters = np.unique(dataSlice[self.filterCol][le:ri][points])
-                    phaseSections = np.floor(time[le:ri][points] / self.transDuration * self.nPerLC)
+                    phaseSections = np.floor(
+                        time[le:ri][points] / self.transDuration * self.nPerLC
+                    )
                     for filtName in ufilters:
-                        good = np.where(dataSlice[self.filterCol][le:ri][points] == filtName)
+                        good = np.where(
+                            dataSlice[self.filterCol][le:ri][points] == filtName
+                        )
                         if np.size(np.unique(phaseSections[good])) >= self.nPerLC:
                             detected[le:ri] += 1
 
             # Find the unique number of light curves that passed the required number of conditions
-            nDetected += np.size(np.unique(lcNumber[np.where(detected >= detectThresh)]))
+            nDetected += np.size(
+                np.unique(lcNumber[np.where(detected >= detectThresh)])
+            )
 
         # Rather than keeping a single "detected" variable, maybe make a mask for each criteria, then
         # reduce functions like: reduce_singleDetect, reduce_NDetect, reduce_PerLC, reduce_perFilter.

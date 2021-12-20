@@ -3,11 +3,12 @@
 
 # Humna Awan: humna.awan@rutgers.edu
 # Last updated: 06/10/16
- #####################################################################################################
- 
+#####################################################################################################
+
 from rubin_sim.maf.metrics import BaseMetric
 
-__all__= ['NumObsMetric']
+__all__ = ["NumObsMetric"]
+
 
 class NumObsMetric(BaseMetric):
     """Calculate the number of observations per data slice.
@@ -21,9 +22,14 @@ class NumObsMetric(BaseMetric):
     nside : `int`
         HEALpix resolution parameter. Default: 128
     """
-    def __init__(self, nightCol='night', nside=128, metricName='NumObsMetric', **kwargs):
+
+    def __init__(
+        self, nightCol="night", nside=128, metricName="NumObsMetric", **kwargs
+    ):
         self.nightCol = nightCol
-        super(NumObsMetric, self).__init__(col=self.nightCol, metricName=metricName, **kwargs)
+        super(NumObsMetric, self).__init__(
+            col=self.nightCol, metricName=metricName, **kwargs
+        )
 
     def run(self, dataSlice, slicePoint=None):
         return len(dataSlice)

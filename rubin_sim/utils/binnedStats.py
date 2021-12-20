@@ -25,8 +25,8 @@ def int_binned_stat(ids, values, statistic=np.mean):
     ordered_ids = ids[order]
     ordered_values = values[order]
 
-    left = np.searchsorted(ordered_ids, uids, side='left')
-    right = np.searchsorted(ordered_ids, uids, side='right')
+    left = np.searchsorted(ordered_ids, uids, side="left")
+    right = np.searchsorted(ordered_ids, uids, side="right")
 
     stat_results = []
     for le, ri in zip(left, right):

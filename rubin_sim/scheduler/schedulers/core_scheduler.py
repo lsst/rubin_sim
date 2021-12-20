@@ -3,12 +3,17 @@ from builtins import object
 import numpy as np
 import healpy as hp
 from rubin_sim.utils import _hpid2RaDec
-from rubin_sim.scheduler.utils import hp_in_lsst_fov, set_default_nside, hp_in_comcam_fov, int_rounded
+from rubin_sim.scheduler.utils import (
+    hp_in_lsst_fov,
+    set_default_nside,
+    hp_in_comcam_fov,
+    int_rounded,
+)
 from rubin_sim.utils import _approx_RaDec2AltAz, _approx_altaz2pa
 import logging
 
 
-__all__ = ['Core_scheduler']
+__all__ = ["Core_scheduler"]
 
 
 class Core_scheduler(object):
@@ -30,7 +35,9 @@ class Core_scheduler(object):
         generate a default if set to None.
     """
 
-    def __init__(self, surveys, nside=None, camera='LSST', rotator_limits=[85., 275.], log=None):
+    def __init__(
+        self, surveys, nside=None, camera="LSST", rotator_limits=[85.0, 275.0], log=None
+    ):
         """
         Parameters
         ----------
@@ -67,19 +74,19 @@ class Core_scheduler(object):
         hpid = np.arange(hp.nside2npix(nside))
         self.ra_grid_rad, self.dec_grid_rad = _hpid2RaDec(nside, hpid)
         # Should just make camera a class that takes a pointing and returns healpix indices
-        if camera == 'LSST':
+        if camera == "LSST":
             self.pointing2hpindx = hp_in_lsst_fov(nside=nside)
-        elif camera == 'comcam':
+        elif camera == "comcam":
             self.pointing2hpindx = hp_in_comcam_fov(nside=nside)
         else:
-            raise ValueError('camera %s not implamented' % camera)
+            raise ValueError("camera %s not implamented" % camera)
 
         # keep track of how many observations get flushed from the queue
         self.flushed = 0
         self.rotator_limits = np.sort(np.radians(rotator_limits))
 
     def flush_queue(self):
-        """"
+        """ "
         Like it sounds, clear any currently queued desired observations.
         """
         self.queue = []
@@ -97,8 +104,9 @@ class Core_scheduler(object):
         """
 
         # Find the healpixel centers that are included in an observation
-        indx = self.pointing2hpindx(observation['RA'], observation['dec'],
-                                    rotSkyPos=observation['rotSkyPos'])
+        indx = self.pointing2hpindx(
+            observation["RA"], observation["dec"], rotSkyPos=observation["rotSkyPos"]
+        )
         for surveys in self.survey_lists:
             for survey in surveys:
                 survey.add_observation(observation, indx=indx)
@@ -131,7 +139,9 @@ class Core_scheduler(object):
         else:
             all_scheduled = np.sort(np.concatenate(all_scheduled).ravel())
             # In case the surveys have not been removing executed observations
-            all_scheduled = all_scheduled[np.where(all_scheduled >= self.conditions.mjd)]
+            all_scheduled = all_scheduled[
+                np.where(all_scheduled >= self.conditions.mjd)
+            ]
             self.conditions.scheduled_observations = all_scheduled
 
     def _check_queue_mjd_only(self, mjd):
@@ -142,7 +152,9 @@ class Core_scheduler(object):
         """
         result = False
         if len(self.queue) > 0:
-            if (int_rounded(mjd) < int_rounded(self.queue[0]['flush_by_mjd'])) | (self.queue[0]['flush_by_mjd'] == 0):
+            if (int_rounded(mjd) < int_rounded(self.queue[0]["flush_by_mjd"])) | (
+                self.queue[0]["flush_by_mjd"] == 0
+            ):
                 result = True
         return result
 
@@ -170,7 +182,9 @@ class Core_scheduler(object):
             return None
         else:
             # If the queue has gone stale, flush and refill. Zero means no flush_by was set.
-            if (int_rounded(mjd) > int_rounded(self.queue[0]['flush_by_mjd'])) & (self.queue[0]['flush_by_mjd'] != 0):
+            if (int_rounded(mjd) > int_rounded(self.queue[0]["flush_by_mjd"])) & (
+                self.queue[0]["flush_by_mjd"] != 0
+            ):
                 self.flushed += len(self.queue)
                 self.flush_queue()
                 self._fill_queue()
@@ -179,14 +193,27 @@ class Core_scheduler(object):
             observation = self.queue.pop(0)
             # If we are limiting the camera rotator
             if self.rotator_limits is not None:
-                alt, az = _approx_RaDec2AltAz(observation['RA'], observation['dec'], self.conditions.site.latitude_rad,
-                                              self.conditions.site.longitude_rad, mjd)
+                alt, az = _approx_RaDec2AltAz(
+                    observation["RA"],
+                    observation["dec"],
+                    self.conditions.site.latitude_rad,
+                    self.conditions.site.longitude_rad,
+                    mjd,
+                )
                 obs_pa = _approx_altaz2pa(alt, az, self.conditions.site.latitude_rad)
-                rotTelPos_expected = (obs_pa - observation['rotSkyPos']) % (2.*np.pi)
-                if (int_rounded(rotTelPos_expected) > int_rounded(self.rotator_limits[0])) & (int_rounded(rotTelPos_expected) < int_rounded(self.rotator_limits[1])):
+                rotTelPos_expected = (obs_pa - observation["rotSkyPos"]) % (2.0 * np.pi)
+                if (
+                    int_rounded(rotTelPos_expected)
+                    > int_rounded(self.rotator_limits[0])
+                ) & (
+                    int_rounded(rotTelPos_expected)
+                    < int_rounded(self.rotator_limits[1])
+                ):
                     diff = np.abs(self.rotator_limits - rotTelPos_expected)
                     limit_indx = np.min(np.where(diff == np.min(diff))[0])
-                    observation['rotSkyPos'] = (obs_pa - self.rotator_limits[limit_indx]) % (2.*np.pi)
+                    observation["rotSkyPos"] = (
+                        obs_pa - self.rotator_limits[limit_indx]
+                    ) % (2.0 * np.pi)
             return observation
 
     def _fill_queue(self):
@@ -213,9 +240,11 @@ class Core_scheduler(object):
             # entered if there is a tie.
             self.survey_index[1] = np.min(np.where(rewards == np.nanmax(rewards)))
             # Survey return list of observations
-            result = self.survey_lists[self.survey_index[0]][self.survey_index[1]].generate_observations(self.conditions)
+            result = self.survey_lists[self.survey_index[0]][
+                self.survey_index[1]
+            ].generate_observations(self.conditions)
 
             self.queue = result
 
         if len(self.queue) == 0:
-            self.log.warning('Failed to fill queue')
+            self.log.warning("Failed to fill queue")

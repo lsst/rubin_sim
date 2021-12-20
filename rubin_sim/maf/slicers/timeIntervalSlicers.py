@@ -18,7 +18,13 @@ from .baseSlicer import BaseSlicer
 
 # exception classes
 
-__all__ = ['TimeIntervalSlicer', 'BlockIntervalSlicer', 'VisitIntervalSlicer', 'SlicerNotSetup']
+__all__ = [
+    "TimeIntervalSlicer",
+    "BlockIntervalSlicer",
+    "VisitIntervalSlicer",
+    "SlicerNotSetup",
+]
+
 
 class SlicerNotSetup(Exception):
     """Thrown when a slicer is not setup for the method called."""
@@ -65,9 +71,7 @@ class TimeIntervalSlicer(BaseSlicer):
         end_mjd = np.ceil(np.max(visit_mjds)).astype(int)
         interval_days = self.interval_seconds / (24 * 60 * 60.0)
 
-        mjd_bin_edges = np.arange(
-            start_mjd, end_mjd + interval_days, interval_days
-        )
+        mjd_bin_edges = np.arange(start_mjd, end_mjd + interval_days, interval_days)
 
         self.simIdxs.update(
             pd.DataFrame(
@@ -84,9 +88,7 @@ class TimeIntervalSlicer(BaseSlicer):
         mjds = np.arange(start_mjd, end_mjd, interval_days)
         self.slicePoints["sid"] = np.arange(len(mjds))
         self.slicePoints["mjd"] = mjds
-        self.slicePoints["duration"] = np.full_like(
-            mjds, self.interval_seconds
-        )
+        self.slicePoints["duration"] = np.full_like(mjds, self.interval_seconds)
         self.nslice = len(mjds)
         self.shape = self.nslice
         self._runMaps(maps)
@@ -101,6 +103,7 @@ class TimeIntervalSlicer(BaseSlicer):
                 idxs = [idxs]
 
             slice_points = {
+                "sid": islice,
                 "mjd": self.slicePoints["mjd"][islice],
                 "duration": self.slicePoints["duration"][islice],
             }
@@ -115,9 +118,7 @@ class TimeIntervalSlicer(BaseSlicer):
             return False
 
         for key in ["sid", "mjd", "duration"]:
-            if not np.array_equal(
-                otherSlicer.slicePoints[key], self.slicePoints[key]
-            ):
+            if not np.array_equal(otherSlicer.slicePoints[key], self.slicePoints[key]):
                 return False
 
         return True
@@ -185,13 +186,11 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
         visits["end_mjd"] = visits.mjd + visits.duration / (60 * 60 * 24.0)
 
         same_note = visits.note == visits.note.shift(-1)
-        adjacent_times = (
-            visits.end_mjd + self.gap_tolerance / 24.0 > visits.mjd.shift(-1)
+        adjacent_times = visits.end_mjd + self.gap_tolerance / 24.0 > visits.mjd.shift(
+            -1
         )
         visits["sid"] = (
-            np.logical_not(np.logical_and(same_note, adjacent_times))
-            .cumsum()
-            .shift()
+            np.logical_not(np.logical_and(same_note, adjacent_times)).cumsum().shift()
         )
         visits["sid"].fillna(0, inplace=True)
         visits["sid"] = visits["sid"].astype(int)

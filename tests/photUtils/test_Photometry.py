@@ -11,16 +11,20 @@ import rubin_sim
 
 
 class photometryUnitTest(unittest.TestCase):
-
     @classmethod
     def tearDownClass(cls):
         sims_clean_up()
 
     def setUp(self):
-        self.obs_metadata = ObservationMetaData(mjd=52000.7, bandpassName='i',
-                                                boundType='circle',
-                                                pointingRA=200.0, pointingDec=-30.0,
-                                                boundLength=1.0, m5=25.0)
+        self.obs_metadata = ObservationMetaData(
+            mjd=52000.7,
+            bandpassName="i",
+            boundType="circle",
+            pointingRA=200.0,
+            pointingDec=-30.0,
+            boundLength=1.0,
+            m5=25.0,
+        )
 
     def tearDown(self):
         del self.obs_metadata
@@ -36,28 +40,31 @@ class photometryUnitTest(unittest.TestCase):
         that some default value did not change and the code actually ended up loading the
         LSST bandpasses.
         """
-        bandpassDir = os.path.join('tests', 'photUtils', 'cartoonSedTestData')
+        bandpassDir = os.path.join("tests", "photUtils", "cartoonSedTestData")
 
-        cartoon_dict = BandpassDict.loadTotalBandpassesFromFiles(['u', 'g', 'r', 'i', 'z'],
-                                                                 bandpassDir=bandpassDir,
-                                                                 bandpassRoot='test_bandpass_')
+        cartoon_dict = BandpassDict.loadTotalBandpassesFromFiles(
+            ["u", "g", "r", "i", "z"],
+            bandpassDir=bandpassDir,
+            bandpassRoot="test_bandpass_",
+        )
 
         testBandPasses = {}
-        keys = ['u', 'g', 'r', 'i', 'z']
+        keys = ["u", "g", "r", "i", "z"]
 
         bplist = []
 
         for kk in keys:
             testBandPasses[kk] = Bandpass()
-            testBandPasses[kk].readThroughput(os.path.join(bandpassDir, "test_bandpass_%s.dat" % kk))
+            testBandPasses[kk].readThroughput(
+                os.path.join(bandpassDir, "test_bandpass_%s.dat" % kk)
+            )
             bplist.append(testBandPasses[kk])
 
         sedObj = Sed()
         phiArray, waveLenStep = sedObj.setupPhiArray(bplist)
 
-        sedFileName = os.path.join('tests/photUtils',
-                                   'cartoonSedTestData/starSed/')
-        sedFileName = os.path.join(sedFileName, 'kurucz', 'km20_5750.fits_g40_5790.gz')
+        sedFileName = os.path.join("tests/photUtils", "cartoonSedTestData/starSed/")
+        sedFileName = os.path.join(sedFileName, "kurucz", "km20_5750.fits_g40_5790.gz")
         ss = Sed()
         ss.readSED_flambda(sedFileName)
 
@@ -70,7 +77,7 @@ class photometryUnitTest(unittest.TestCase):
 
         ss.resampleSED(wavelen_match=bplist[0].wavelen)
         ss.flambdaTofnu()
-        mags = -2.5*np.log10(np.sum(phiArray*ss.fnu, axis=1)*waveLenStep) - ss.zp
+        mags = -2.5 * np.log10(np.sum(phiArray * ss.fnu, axis=1) * waveLenStep) - ss.zp
         self.assertEqual(len(mags), len(testMags))
         self.assertGreater(len(mags), 0)
         for j in range(len(mags)):

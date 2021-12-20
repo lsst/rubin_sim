@@ -2,8 +2,16 @@ import numpy as np
 import healpy as hp
 import warnings
 
-__all__ = ['hpid2RaDec', 'raDec2Hpid', 'healbin', '_hpid2RaDec', '_raDec2Hpid',
-           '_healbin', 'moc2array', 'hp_grow_argsort']
+__all__ = [
+    "hpid2RaDec",
+    "raDec2Hpid",
+    "healbin",
+    "_hpid2RaDec",
+    "_raDec2Hpid",
+    "_healbin",
+    "moc2array",
+    "hp_grow_argsort",
+]
 
 
 def _hpid2RaDec(nside, hpids, **kwargs):
@@ -98,7 +106,9 @@ def raDec2Hpid(nside, ra, dec, **kwargs):
     return _raDec2Hpid(nside, np.radians(ra), np.radians(dec), **kwargs)
 
 
-def _healbin(ra, dec, values, nside=128, reduceFunc=np.mean, dtype=float, fillVal=hp.UNSEEN):
+def _healbin(
+    ra, dec, values, nside=128, reduceFunc=np.mean, dtype=float, fillVal=hp.UNSEEN
+):
     """
     Take arrays of ra's, dec's, and value and bin into healpixels. Like numpy.hexbin but for
     bins on a sphere.
@@ -132,13 +142,13 @@ def _healbin(ra, dec, values, nside=128, reduceFunc=np.mean, dtype=float, fillVa
     pixids = np.unique(hpids)
 
     left = np.searchsorted(hpids, pixids)
-    right = np.searchsorted(hpids, pixids, side='right')
+    right = np.searchsorted(hpids, pixids, side="right")
 
     mapVals = np.zeros(hp.nside2npix(nside), dtype=dtype) + fillVal
 
     # Wow, I thought histogram would be faster than the loop, but this has been faster!
     for i, idx in enumerate(pixids):
-        mapVals[idx] = reduceFunc(values[left[i]:right[i]])
+        mapVals[idx] = reduceFunc(values[left[i] : right[i]])
 
     # Change any NaNs to fill value
     mapVals[np.isnan(mapVals)] = fillVal
@@ -171,11 +181,17 @@ def healbin(ra, dec, values, nside=128, reduceFunc=np.mean, dtype=float):
     mapVals : np.array
         A numpy array that is a valid Healpixel map.
     """
-    return _healbin(np.radians(ra), np.radians(dec), values, nside=nside,
-                    reduceFunc=reduceFunc, dtype=dtype)
+    return _healbin(
+        np.radians(ra),
+        np.radians(dec),
+        values,
+        nside=nside,
+        reduceFunc=reduceFunc,
+        dtype=dtype,
+    )
 
 
-def moc2array(data, uniq, nside=128, reduceFunc=np.sum, density=True, fillVal=0.):
+def moc2array(data, uniq, nside=128, reduceFunc=np.sum, density=True, fillVal=0.0):
     """Convert a Multi-Order Coverage Map to a single nside HEALPix array. Useful
     for converting maps output by LIGO alerts. Expect that future versions of
     healpy or astropy will be able to replace this functionality. Note that this is
@@ -207,26 +223,32 @@ def moc2array(data, uniq, nside=128, reduceFunc=np.sum, density=True, fillVal=0.
 
     # NUNIQ packing, from page 12 of http://ivoa.net/documents/MOC/20190404/PR-MOC-1.1-20190404.pdf
     orders = np.floor(np.log2(uniq / 4) / 2).astype(int)
-    npixs = (uniq - 4 * 4**orders).astype(int)
+    npixs = (uniq - 4 * 4 ** orders).astype(int)
 
-    nsides = 2**orders
-    names = ['ra', 'dec', 'area']
-    types = [float]*len(names)
+    nsides = 2 ** orders
+    names = ["ra", "dec", "area"]
+    types = [float] * len(names)
     data_points = np.zeros(data.size, dtype=list(zip(names, types)))
     for order in np.unique(orders):
         good = np.where(orders == order)
         ra, dec = _hpid2RaDec(nsides[good][0], npixs[good], nest=True)
-        data_points['ra'][good] = ra
-        data_points['dec'][good] = dec
-        data_points['area'][good] = hp.nside2pixarea(nsides[good][0])
+        data_points["ra"][good] = ra
+        data_points["dec"][good] = dec
+        data_points["area"][good] = hp.nside2pixarea(nsides[good][0])
 
     if density:
-        tobin_data = data*data_points['area']
+        tobin_data = data * data_points["area"]
     else:
         tobin_data = data
 
-    result = _healbin(data_points['ra'], data_points['dec'], tobin_data, nside=nside,
-                      reduceFunc=reduceFunc, fillVal=fillVal)
+    result = _healbin(
+        data_points["ra"],
+        data_points["dec"],
+        tobin_data,
+        nside=nside,
+        reduceFunc=reduceFunc,
+        fillVal=fillVal,
+    )
 
     if density:
         good = np.where(result != fillVal)
@@ -259,7 +281,7 @@ def hp_grow_argsort(in_map, ignore_nan=True):
         npix = np.size(in_map[not_nan_pix])
 
     # Check if we have already run with this nside
-    if hasattr(hp_grow_argsort, 'nside'):
+    if hasattr(hp_grow_argsort, "nside"):
         nside_match = nside == hp_grow_argsort.nside
     else:
         nside_match = False
@@ -293,11 +315,15 @@ def hp_grow_argsort(in_map, ignore_nan=True):
     valid_neighbors_mask[(current_neighbors[sub_indx[0]], sub_indx[1])] = False
 
     for i in np.arange(1, npix):
-        current_neighbors = neighbors[ordered_hp[0:i]][valid_neighbors_mask[ordered_hp[0:i]]]
-        indx = np.where(in_map[current_neighbors] == np.nanmax(in_map[current_neighbors]))[0]
+        current_neighbors = neighbors[ordered_hp[0:i]][
+            valid_neighbors_mask[ordered_hp[0:i]]
+        ]
+        indx = np.where(
+            in_map[current_neighbors] == np.nanmax(in_map[current_neighbors])
+        )[0]
         if np.size(indx) == 0:
             # We can't connect to any more pixels
-            warnings.warn('Can not connect to any more pixels.')
+            warnings.warn("Can not connect to any more pixels.")
             return ordered_hp[0:i]
         else:
             indx = np.min(indx)

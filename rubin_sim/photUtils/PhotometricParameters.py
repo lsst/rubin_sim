@@ -1,7 +1,7 @@
 import numpy as np
 from rubin_sim.photUtils import Sed, BandpassDict
 
-__all__ = ["PhotometricParameters", 'Dust_values']
+__all__ = ["PhotometricParameters", "Dust_values"]
 
 
 class Dust_values(object):
@@ -17,17 +17,22 @@ class Dust_values(object):
     ref_ev : float (1.)
         The reference E(B-V) value to use. Things in MAF assume 1.
     """
-    def __init__(self, R_v=3.1, bandpassDict=None, ref_ebv=1.):
+
+    def __init__(self, R_v=3.1, bandpassDict=None, ref_ebv=1.0):
         # Calculate dust extinction values
         self.Ax1 = {}
         if bandpassDict is None:
-            bandpassDict = BandpassDict.loadTotalBandpassesFromFiles(['u', 'g', 'r', 'i', 'z', 'y'])
+            bandpassDict = BandpassDict.loadTotalBandpassesFromFiles(
+                ["u", "g", "r", "i", "z", "y"]
+            )
 
         for filtername in bandpassDict:
             wavelen_min = bandpassDict[filtername].wavelen.min()
             wavelen_max = bandpassDict[filtername].wavelen.max()
             testsed = Sed()
-            testsed.setFlatSED(wavelen_min=wavelen_min, wavelen_max=wavelen_max, wavelen_step=1.0)
+            testsed.setFlatSED(
+                wavelen_min=wavelen_min, wavelen_max=wavelen_max, wavelen_step=1.0
+            )
             self.ref_ebv = ref_ebv
             # Calculate non-dust-extincted magnitude
             flatmag = testsed.calcMag(bandpassDict[filtername])
@@ -62,10 +67,9 @@ class DefaultPhotometricParameters(object):
     #
     # 'any' values should be kept consistent with r band
 
-    bandpassNames = ['u', 'g', 'r', 'i', 'z', 'y', 'any']
+    bandpassNames = ["u", "g", "r", "i", "z", "y", "any"]
 
-    def makeDict(value,
-                 bandpassNames = ('u', 'g', 'r', 'i', 'z', 'y', 'any')):
+    def makeDict(value, bandpassNames=("u", "g", "r", "i", "z", "y", "any")):
         newdict = {}
         for f in bandpassNames:
             newdict[f] = value
@@ -80,7 +84,7 @@ class DefaultPhotometricParameters(object):
     nexp = makeDict(nexpN)
 
     # effective area in cm^2
-    effareaCm2 = np.pi * (6.423/2.*100)**2
+    effareaCm2 = np.pi * (6.423 / 2.0 * 100) ** 2
     effarea = makeDict(effareaCm2)
 
     # electrons per ADU
@@ -106,22 +110,31 @@ class DefaultPhotometricParameters(object):
     # systematic squared error in magnitudes
     # see Table 14 of the SRD document
     # https://docushare.lsstcorp.org/docushare/dsweb/Get/LPM-17
-    sigmaSys = {'u':0.0075, 'g':0.005, 'r':0.005, 'i':0.005, 'z':0.0075, 'y':0.0075,
-                'any':0.005}
+    sigmaSys = {
+        "u": 0.0075,
+        "g": 0.005,
+        "r": 0.005,
+        "i": 0.005,
+        "z": 0.0075,
+        "y": 0.0075,
+        "any": 0.005,
+    }
 
 
 class PhotometricParameters(object):
-
-    def __init__(self, exptime=None,
-                 nexp=None,
-                 effarea=None,
-                 gain=None,
-                 readnoise=None,
-                 darkcurrent=None,
-                 othernoise=None,
-                 platescale=None,
-                 sigmaSys=None,
-                 bandpass=None):
+    def __init__(
+        self,
+        exptime=None,
+        nexp=None,
+        effarea=None,
+        gain=None,
+        readnoise=None,
+        darkcurrent=None,
+        othernoise=None,
+        platescale=None,
+        sigmaSys=None,
+        bandpass=None,
+    ):
 
         """
         @param [in] exptime exposure time in seconds (defaults to LSST value)
@@ -174,12 +187,11 @@ class PhotometricParameters(object):
         self._darkcurrent = None
         self._othernoise = None
 
-
         self._bandpass = bandpass
         defaults = DefaultPhotometricParameters()
 
         if bandpass is None:
-            bandpassKey = 'any'
+            bandpassKey = "any"
             # This is so we do not set the self._bandpass member variable
             # without the user's explicit consent, but we can still access
             # default values from the PhotometricParameterDefaults
@@ -224,49 +236,47 @@ class PhotometricParameters(object):
         if othernoise is not None:
             self._othernoise = othernoise
 
-        failureMessage = ''
+        failureMessage = ""
         failureCt = 0
 
         if self._exptime is None:
-            failureMessage += 'did not set exptime\n'
+            failureMessage += "did not set exptime\n"
             failureCt += 1
 
         if self._nexp is None:
-            failureMessage += 'did not set nexp\n'
+            failureMessage += "did not set nexp\n"
             failureCt += 1
 
         if self._effarea is None:
-            failureMessage += 'did not set effarea\n'
+            failureMessage += "did not set effarea\n"
             failureCt += 1
 
         if self._gain is None:
-            failureMessage += 'did not set gain\n'
+            failureMessage += "did not set gain\n"
             failureCt += 1
 
         if self._platescale is None:
-            failureMessage += 'did not set platescale\n'
-            failureCt +=1
+            failureMessage += "did not set platescale\n"
+            failureCt += 1
 
         if self._sigmaSys is None:
-            failureMessage += 'did not set sigmaSys\n'
+            failureMessage += "did not set sigmaSys\n"
             failureCt += 1
 
         if self._readnoise is None:
-            failureMessage += 'did not set readnoise\n'
+            failureMessage += "did not set readnoise\n"
             failureCt += 1
 
         if self._darkcurrent is None:
-            failureMessage += 'did not set darkcurrent\n'
-            failureCt +=1
-
-        if self._othernoise is None:
-            failureMessage += 'did not set othernoise\n'
+            failureMessage += "did not set darkcurrent\n"
             failureCt += 1
 
-        if failureCt>0:
-            raise RuntimeError('In PhotometricParameters:\n%s' % failureMessage)
+        if self._othernoise is None:
+            failureMessage += "did not set othernoise\n"
+            failureCt += 1
 
-
+        if failureCt > 0:
+            raise RuntimeError("In PhotometricParameters:\n%s" % failureMessage)
 
     @property
     def bandpass(self):
@@ -277,8 +287,10 @@ class PhotometricParameters(object):
 
     @bandpass.setter
     def bandpass(self, value):
-        raise RuntimeError("You should not be setting bandpass on the fly; " +
-                           "Just instantiate a new case of PhotometricParameters")
+        raise RuntimeError(
+            "You should not be setting bandpass on the fly; "
+            + "Just instantiate a new case of PhotometricParameters"
+        )
 
     @property
     def exptime(self):
@@ -289,9 +301,10 @@ class PhotometricParameters(object):
 
     @exptime.setter
     def exptime(self, value):
-        raise RuntimeError("You should not be setting exptime on the fly; " +
-                           "Just instantiate a new case of PhotometricParameters")
-
+        raise RuntimeError(
+            "You should not be setting exptime on the fly; "
+            + "Just instantiate a new case of PhotometricParameters"
+        )
 
     @property
     def nexp(self):
@@ -302,9 +315,10 @@ class PhotometricParameters(object):
 
     @nexp.setter
     def nexp(self, value):
-        raise RuntimeError("You should not be setting nexp on the fly; " +
-                           "Just instantiate a new case of PhotometricParameters")
-
+        raise RuntimeError(
+            "You should not be setting nexp on the fly; "
+            + "Just instantiate a new case of PhotometricParameters"
+        )
 
     @property
     def effarea(self):
@@ -315,9 +329,10 @@ class PhotometricParameters(object):
 
     @effarea.setter
     def effarea(self, value):
-        raise RuntimeError("You should not be setting effarea on the fly; " +
-                           "Just instantiate a new case of PhotometricParameters")
-
+        raise RuntimeError(
+            "You should not be setting effarea on the fly; "
+            + "Just instantiate a new case of PhotometricParameters"
+        )
 
     @property
     def gain(self):
@@ -328,9 +343,10 @@ class PhotometricParameters(object):
 
     @gain.setter
     def gain(self, value):
-        raise RuntimeError("You should not be setting gain on the fly; " +
-                           "Just instantiate a new case of PhotometricParameters")
-
+        raise RuntimeError(
+            "You should not be setting gain on the fly; "
+            + "Just instantiate a new case of PhotometricParameters"
+        )
 
     @property
     def platescale(self):
@@ -341,9 +357,10 @@ class PhotometricParameters(object):
 
     @platescale.setter
     def platescale(self, value):
-        raise RuntimeError("You should not be setting platescale on the fly; " +
-                           "Just instantiate a new case of PhotometricParameters")
-
+        raise RuntimeError(
+            "You should not be setting platescale on the fly; "
+            + "Just instantiate a new case of PhotometricParameters"
+        )
 
     @property
     def readnoise(self):
@@ -354,9 +371,10 @@ class PhotometricParameters(object):
 
     @readnoise.setter
     def readnoise(self, value):
-        raise RuntimeError("You should not be setting readnoise on the fly; " +
-                           "Just instantiate a new case of PhotometricParameters")
-
+        raise RuntimeError(
+            "You should not be setting readnoise on the fly; "
+            + "Just instantiate a new case of PhotometricParameters"
+        )
 
     @property
     def darkcurrent(self):
@@ -367,9 +385,10 @@ class PhotometricParameters(object):
 
     @darkcurrent.setter
     def darkcurrent(self, value):
-        raise RuntimeError("You should not be setting darkcurrent on the fly; " +
-                           "Just instantiate a new case of PhotometricParameters")
-
+        raise RuntimeError(
+            "You should not be setting darkcurrent on the fly; "
+            + "Just instantiate a new case of PhotometricParameters"
+        )
 
     @property
     def othernoise(self):
@@ -379,10 +398,11 @@ class PhotometricParameters(object):
         return self._othernoise
 
     @othernoise.setter
-    def othernoise(self,value):
-        raise RuntimeError("You should not be setting othernoise on the fly; " +
-                           "Just instantiate a new case of PhotometricParameters")
-
+    def othernoise(self, value):
+        raise RuntimeError(
+            "You should not be setting othernoise on the fly; "
+            + "Just instantiate a new case of PhotometricParameters"
+        )
 
     @property
     def sigmaSys(self):
@@ -391,8 +411,9 @@ class PhotometricParameters(object):
         """
         return self._sigmaSys
 
-
     @sigmaSys.setter
     def sigmaSys(self, value):
-        raise RuntimeError("You should not be setting sigmaSys on the fly; " +
-                           "Just instantiate a new case of PhotometricParameters")
+        raise RuntimeError(
+            "You should not be setting sigmaSys on the fly; "
+            + "Just instantiate a new case of PhotometricParameters"
+        )

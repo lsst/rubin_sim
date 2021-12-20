@@ -9,38 +9,35 @@ prescribed by ObsMetaData
     dec results in numbers in dec bins changing with area.
  """
 import numpy as np
-import unittest\
-
+import unittest
 from rubin_sim.utils import ObservationMetaData
 from rubin_sim.utils import samplePatchOnSphere
 from rubin_sim.utils import spatiallySample_obsmetadata
 
 
 class SamplingTests(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
-        """
-        """
-        cls.obsMetaDataforCat = ObservationMetaData(boundType='circle',
-                                                    boundLength=np.degrees(
-                                                        0.25),
-                                                    pointingRA=np.degrees(
-                                                        0.13),
-                                                    pointingDec=np.degrees(-1.2),
-                                                    bandpassName=['r'],
-                                                    mjd=49350.)
+        """"""
+        cls.obsMetaDataforCat = ObservationMetaData(
+            boundType="circle",
+            boundLength=np.degrees(0.25),
+            pointingRA=np.degrees(0.13),
+            pointingDec=np.degrees(-1.2),
+            bandpassName=["r"],
+            mjd=49350.0,
+        )
         ObsMetaData = cls.obsMetaDataforCat
         cls.samples = spatiallySample_obsmetadata(ObsMetaData, size=1000)
 
-        cls.theta_c = -60.
-        cls.phi_c = 30.
-        cls.delta = 30.
+        cls.theta_c = -60.0
+        cls.phi_c = 30.0
+        cls.delta = 30.0
         cls.size = 1000000
 
-        cls.dense_samples = samplePatchOnSphere(phi=cls.phi_c, theta=cls.theta_c,
-                                                delta=cls.delta, size=cls.size,
-                                                seed=42)
+        cls.dense_samples = samplePatchOnSphere(
+            phi=cls.phi_c, theta=cls.theta_c, delta=cls.delta, size=cls.size, seed=42
+        )
 
     def test_raiseWraparoundError(self):
         """
@@ -51,10 +48,20 @@ class SamplingTests(unittest.TestCase):
         # to be lower than thetamin
         deltamin = 2.67
         with self.assertRaises(ValueError):
-            samplePatchOnSphere(phi=self.phi_c, theta=self.theta_c,
-                                delta=deltamax, size=self.size, seed=42)
-            samplePatchOnSphere(phi=self.phi_c, theta=self.theta_c,
-                                delta=deltamin, size=self.size, seed=42)
+            samplePatchOnSphere(
+                phi=self.phi_c,
+                theta=self.theta_c,
+                delta=deltamax,
+                size=self.size,
+                seed=42,
+            )
+            samplePatchOnSphere(
+                phi=self.phi_c,
+                theta=self.theta_c,
+                delta=deltamin,
+                size=self.size,
+                seed=42,
+            )
 
     def test_checkWithinBounds(self):
 
@@ -65,17 +72,22 @@ class SamplingTests(unittest.TestCase):
         minTheta = -1.2 - delta
         maxTheta = -1.2 + delta
 
-        self.assertTrue(all(np.radians(self.samples[0]) <= maxPhi),
-                        msg='samples are not <= maxPhi')
-        self.assertTrue(all(np.radians(self.samples[0]) >= minPhi),
-                        msg='samples are not >= minPhi')
-        self.assertTrue(all(np.radians(self.samples[1]) >= minTheta),
-                        msg='samples are not >= minTheta')
-        self.assertTrue(all(np.radians(self.samples[1]) <= maxTheta),
-                        msg='samples are not <= maxTheta')
+        self.assertTrue(
+            all(np.radians(self.samples[0]) <= maxPhi), msg="samples are not <= maxPhi"
+        )
+        self.assertTrue(
+            all(np.radians(self.samples[0]) >= minPhi), msg="samples are not >= minPhi"
+        )
+        self.assertTrue(
+            all(np.radians(self.samples[1]) >= minTheta),
+            msg="samples are not >= minTheta",
+        )
+        self.assertTrue(
+            all(np.radians(self.samples[1]) <= maxTheta),
+            msg="samples are not <= maxTheta",
+        )
 
     def test_samplePatchOnSphere(self):
-
         def A(theta_min, theta_max):
             return np.sin(theta_max) - np.sin(theta_min)
 

@@ -61,9 +61,7 @@ def riseset_times(  # pylint: disable=too-many-locals
         try:
             lst = times.sidereal_time("apparent", longitude=location.lon)
         except (iers.IERSRangeError, ValueError):
-            warnings.warn(
-                "Using (lower precision) Meeus formula for sidereal time."
-            )
+            warnings.warn("Using (lower precision) Meeus formula for sidereal time.")
             mjd = times.mjd
             century = (mjd - 51544.5) / 36525
             gst = (
@@ -72,9 +70,7 @@ def riseset_times(  # pylint: disable=too-many-locals
                 + 0.000387933 * century * century
                 - century * century * century / 38710000
             )
-            lst = (
-                (gst + location.lon.deg) % 360
-            ) * u.deg  # pylint: disable=no-member
+            lst = ((gst + location.lon.deg) % 360) * u.deg  # pylint: disable=no-member
 
         return lst
 
@@ -86,9 +82,7 @@ def riseset_times(  # pylint: disable=too-many-locals
     mjds = night_mjds
 
     # Get close (to of order body motion per day)
-    times = astropy.time.Time(
-        mjds, scale="utc", format="mjd", location=location
-    )
+    times = astropy.time.Time(mjds, scale="utc", format="mjd", location=location)
     lsts = _compute_lst(times)
     crds = astropy.coordinates.get_body(body, times, location=location)
     hour_angles = lsts - crds.ra
@@ -106,9 +100,7 @@ def riseset_times(  # pylint: disable=too-many-locals
 
     # Refine using Newton's method
     for iter_idx in range(max_iter):  # pylint: disable=unused-variable
-        times = astropy.time.Time(
-            mjds, scale="utc", format="mjd", location=location
-        )
+        times = astropy.time.Time(mjds, scale="utc", format="mjd", location=location)
         crds = astropy.coordinates.get_body(body, times, location=location)
         current_alt = crds.transform_to(
             astropy.coordinates.AltAz(obstime=times, location=location)
@@ -122,9 +114,7 @@ def riseset_times(  # pylint: disable=too-many-locals
 
         ha = _compute_lst(times) - crds.ra  # pylint: disable=invalid-name
         # Derivative of the standard formula for sin(alt) in terms of decl, latitude, and HA
-        dsinalt_dlst = (
-            -1 * np.cos(crds.dec) * np.cos(location.lat) * np.sin(ha)
-        ).value
+        dsinalt_dlst = (-1 * np.cos(crds.dec) * np.cos(location.lat) * np.sin(ha)).value
         dsinalt_dmjd = dsinalt_dlst * (2 * np.pi / 0.9972696)
         mjds = mjds - (current_sinalt - target_sinalt) / dsinalt_dmjd
 

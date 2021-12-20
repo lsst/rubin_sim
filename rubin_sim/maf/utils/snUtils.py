@@ -25,8 +25,15 @@ class Lims:
         Default : (0.5, 25.)
     """
 
-    def __init__(self, Li_files, mag_to_flux_files, band, SNR,
-                 mag_range=(23., 27.5), dt_range=(0.5, 25.)):
+    def __init__(
+        self,
+        Li_files,
+        mag_to_flux_files,
+        band,
+        SNR,
+        mag_range=(23.0, 27.5),
+        dt_range=(0.5, 25.0),
+    ):
 
         self.band = band
         self.SNR = SNR
@@ -62,15 +69,15 @@ class Lims:
 
         lims = {}
 
-        for z in np.unique(tab['z']):
+        for z in np.unique(tab["z"]):
 
-            idx = (tab['z'] == z) & (tab['band'] == 'LSST::'+band)
-            idx &= (tab['flux_e'] > 0.)
+            idx = (tab["z"] == z) & (tab["band"] == "LSST::" + band)
+            idx &= tab["flux_e"] > 0.0
             sel = tab[idx]
 
             if len(sel) > 0:
-                li2 = np.sqrt(np.sum(sel['flux_e']**2))
-                lim = 5. * li2 / SNR
+                li2 = np.sqrt(np.sum(sel["flux_e"] ** 2))
+                lim = 5.0 * li2 / SNR
                 if z not in lims.keys():
                     lims[z] = {}
                 lims[z][band] = lim
@@ -94,9 +101,8 @@ class Lims:
         """
         dt = np.linspace(self.dt_range[0], self.dt_range[1], 100)
         m5 = np.linspace(self.mag_range[0], self.mag_range[1], 50)
-        ida = mag_to_flux['band'] == self.band
-        fa = interpolate.interp1d(
-            mag_to_flux[ida]['m5'], mag_to_flux[ida]['flux_e'])
+        ida = mag_to_flux["band"] == self.band
+        fa = interpolate.interp1d(mag_to_flux[ida]["m5"], mag_to_flux[ida]["flux_e"])
         f5 = fa(m5)
         F5, DT = np.meshgrid(f5, dt)
         M5, DT = np.meshgrid(m5, dt)
@@ -105,8 +111,7 @@ class Lims:
         return M5, DT, metric
 
     def interp(self):
-        """Estimate a grid of interpolated values in the plane (m5, cadence, metric)
-        """
+        """Estimate a grid of interpolated values in the plane (m5, cadence, metric)"""
 
         M5_all = []
         DT_all = []
@@ -130,13 +135,19 @@ class Lims:
 
             points_values = None
             for io, col in enumerate(cs.collections):
-                if col.get_segments():
-
-                    myarray = col.get_segments()[0]
-                    res = np.array(myarray[:, 0], dtype=[('m5', 'f8')])
-                    res = rf.append_fields(res, 'cadence', myarray[:, 1])
-                    res = rf.append_fields(
-                        res, 'z', [sorted_keys[kk][io]]*len(res))
+                # Update in matplotlib changed get_segements to get_paths
+                if hasattr(col, "get_segments"):
+                    segments = col.get_segments()
+                else:
+                    segments = col.get_paths()
+                if segments:
+                    segments = segments[0]
+                    if hasattr(segments, "vertices"):
+                        segments = segments.vertices
+                    myarray = segments
+                    res = np.array(myarray[:, 0], dtype=[("m5", "f8")])
+                    res = rf.append_fields(res, "cadence", myarray[:, 1])
+                    res = rf.append_fields(res, "z", [sorted_keys[kk][io]] * len(res))
                     if points_values is None:
                         points_values = res
                     else:
@@ -160,8 +171,12 @@ class Lims:
         """
 
         ref_points = self.points_ref
-        res = interpolate.griddata((ref_points['m5'], ref_points['cadence']), ref_points['z'], (
-            data['m5_mean'], data['cadence_mean']), method='cubic')
+        res = interpolate.griddata(
+            (ref_points["m5"], ref_points["cadence"]),
+            ref_points["z"],
+            (data["m5_mean"], data["cadence_mean"]),
+            method="cubic",
+        )
         return res
 
 
@@ -184,10 +199,18 @@ class GenerateFakeObservations:
         MJD, Ra, Dec, band,m5,Nexp, ExpTime, Season
     """
 
-    def __init__(self, config,
-                 mjdCol='observationStartMJD', RaCol='fieldRA',
-                 DecCol='fieldDec', filterCol='filter', m5Col='fiveSigmaDepth',
-                 exptimeCol='visitExposureTime', nexpCol='numExposures', seasonCol='season'):
+    def __init__(
+        self,
+        config,
+        mjdCol="observationStartMJD",
+        RaCol="fieldRA",
+        DecCol="fieldDec",
+        filterCol="filter",
+        m5Col="fiveSigmaDepth",
+        exptimeCol="visitExposureTime",
+        nexpCol="numExposures",
+        seasonCol="season",
+    ):
 
         self.mjdCol = mjdCol
         self.m5Col = m5Col
@@ -202,44 +225,51 @@ class GenerateFakeObservations:
         self.make_fake(config)
 
     def make_fake(self, config):
-        """ Generate Fake observations
+        """Generate Fake observations
 
         Parameters
         -----------
         config: yaml-like
             configuration file (parameter choice: filter, cadence, m5,Nseasons, ...)
         """
-        bands = config['bands']
-        cadence = dict(zip(bands, config['Cadence']))
+        bands = config["bands"]
+        cadence = dict(zip(bands, config["Cadence"]))
         shift_days = dict(
-            zip(bands, [config['shift_days']*io for io in range(len(bands))]))
-        m5 = dict(zip(bands, config['m5']))
-        Nvisits = dict(zip(bands, config['Nvisits']))
-        Exposure_Time = dict(zip(bands, config['Exposure_Time']))
+            zip(bands, [config["shift_days"] * io for io in range(len(bands))])
+        )
+        m5 = dict(zip(bands, config["m5"]))
+        Nvisits = dict(zip(bands, config["Nvisits"]))
+        Exposure_Time = dict(zip(bands, config["Exposure_Time"]))
 
-        Ra = config['Ra']
-        Dec = config['Dec']
+        Ra = config["Ra"]
+        Dec = config["Dec"]
         rtot = []
         # for season in range(1, config['nseasons']+1):
-        for il, season in enumerate(config['seasons']):
+        for il, season in enumerate(config["seasons"]):
             # mjd_min = config['MJD_min'] + float(season-1)*inter_season_gap
-            mjd_min = config['MJD_min'][il]
-            mjd_max = mjd_min+config['season_length']
+            mjd_min = config["MJD_min"][il]
+            mjd_max = mjd_min + config["season_length"]
 
             for i, band in enumerate(bands):
-                mjd = np.arange(mjd_min, mjd_max+cadence[band], cadence[band])
+                mjd = np.arange(mjd_min, mjd_max + cadence[band], cadence[band])
                 mjd += shift_days[band]
-                m5_coadded = self.m5_coadd(m5[band],
-                                           Nvisits[band],
-                                           Exposure_Time[band])
-                myarr = np.array(mjd, dtype=[(self.mjdCol, 'f8')])
-                myarr = rf.append_fields(myarr, [self.RaCol, self.DecCol, self.filterCol], [
-                                         [Ra]*len(myarr), [Dec]*len(myarr), [band]*len(myarr)])
-                myarr = rf.append_fields(myarr,
-                                         [self.m5Col, self.nexpCol, self.exptimeCol, self.seasonCol],
-                                         [[m5_coadded]*len(myarr), [Nvisits[band]]*len(myarr),
-                                          [Nvisits[band]*Exposure_Time[band]]*len(myarr),
-                                          [season]*len(myarr)])
+                m5_coadded = self.m5_coadd(m5[band], Nvisits[band], Exposure_Time[band])
+                myarr = np.array(mjd, dtype=[(self.mjdCol, "f8")])
+                myarr = rf.append_fields(
+                    myarr,
+                    [self.RaCol, self.DecCol, self.filterCol],
+                    [[Ra] * len(myarr), [Dec] * len(myarr), [band] * len(myarr)],
+                )
+                myarr = rf.append_fields(
+                    myarr,
+                    [self.m5Col, self.nexpCol, self.exptimeCol, self.seasonCol],
+                    [
+                        [m5_coadded] * len(myarr),
+                        [Nvisits[band]] * len(myarr),
+                        [Nvisits[band] * Exposure_Time[band]] * len(myarr),
+                        [season] * len(myarr),
+                    ],
+                )
                 rtot.append(myarr)
 
         res = np.copy(np.concatenate(rtot))
@@ -248,7 +278,7 @@ class GenerateFakeObservations:
         self.Observations = res
 
     def m5_coadd(self, m5, Nvisits, Tvisit):
-        """ Coadded m5 estimation
+        """Coadded m5 estimation
 
         Parameters
         ----------
@@ -264,7 +294,7 @@ class GenerateFakeObservations:
         m5_coadd : `list` [`float`]
             list of m5 coadded values
         """
-        m5_coadd = m5+1.25*np.log10(float(Nvisits)*Tvisit/30.)
+        m5_coadd = m5 + 1.25 * np.log10(float(Nvisits) * Tvisit / 30.0)
         return m5_coadd
 
 
@@ -292,11 +322,9 @@ class ReferenceData:
         self.mag_to_flux = []
 
         for val in Li_files:
-            self.fluxes.append(self.interp_fluxes(
-                self.band, np.load(val), self.z))
+            self.fluxes.append(self.interp_fluxes(self.band, np.load(val), self.z))
         for val in mag_to_flux_files:
-            self.mag_to_flux.append(
-                self.interp_mag(self.band, np.load(val)))
+            self.mag_to_flux.append(self.interp_mag(self.band, np.load(val)))
 
     def interp_fluxes(self, band, tab, z):
         """
@@ -316,12 +344,14 @@ class ReferenceData:
         list (float) of interpolated fluxes (in e/sec)
         """
         lims = {}
-        idx = (np.abs(tab['z'] - z) < 1.e-5) & (tab['band'] == 'LSST::'+band)
+        idx = (np.abs(tab["z"] - z) < 1.0e-5) & (tab["band"] == "LSST::" + band)
         sel = tab[idx]
         selc = np.copy(sel)
-        difftime = (sel['time']-sel['DayMax'])
-        selc = rf.append_fields(selc, 'deltaT', difftime)
-        return interpolate.interp1d(selc['deltaT'], selc['flux_e'], bounds_error=False, fill_value=0.)
+        difftime = sel["time"] - sel["DayMax"]
+        selc = rf.append_fields(selc, "deltaT", difftime)
+        return interpolate.interp1d(
+            selc["deltaT"], selc["flux_e"], bounds_error=False, fill_value=0.0
+        )
 
     def interp_mag(self, band, tab):
         """
@@ -340,6 +370,8 @@ class ReferenceData:
         --------
         list (float) of interpolated fluxes (in e/sec)
         """
-        idx = tab['band'] == band
+        idx = tab["band"] == band
         sel = tab[idx]
-        return interpolate.interp1d(sel['m5'], sel['flux_e'], bounds_error=False, fill_value=0.)
+        return interpolate.interp1d(
+            sel["m5"], sel["flux_e"], bounds_error=False, fill_value=0.0
+        )

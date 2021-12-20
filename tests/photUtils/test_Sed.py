@@ -16,10 +16,10 @@ ROOT = os.path.abspath(os.path.dirname(__file__))
 
 class TestSedWavelenLimits(unittest.TestCase):
     def setUp(self):
-        warnings.simplefilter('always')
+        warnings.simplefilter("always")
         self.wmin = 500
         self.wmax = 1500
-        self.bandpasswavelen = np.arange(self.wmin, self.wmax+.5, 1)
+        self.bandpasswavelen = np.arange(self.wmin, self.wmax + 0.5, 1)
         self.bandpasssb = np.ones(len(self.bandpasswavelen))
         self.testbandpass = Bandpass(wavelen=self.bandpasswavelen, sb=self.bandpasssb)
 
@@ -34,22 +34,25 @@ class TestSedWavelenLimits(unittest.TestCase):
         """Test setting sed with wavelength range different from standard values works properly."""
         sedwavelen = self.bandpasswavelen * 1.0
         sedflambda = np.ones(len(sedwavelen))
-        testsed = Sed(wavelen=sedwavelen, flambda=sedflambda, name='TestSed')
+        testsed = Sed(wavelen=sedwavelen, flambda=sedflambda, name="TestSed")
         np.testing.assert_equal(testsed.wavelen, sedwavelen)
         np.testing.assert_equal(testsed.flambda, sedflambda)
-        self.assertEqual(testsed.name, 'TestSed')
+        self.assertEqual(testsed.name, "TestSed")
 
     def testSedBandpassMatch(self):
         """Test errors when bandpass and sed do not completely overlap in wavelength range."""
         # Test case where they do match (no error message)
-        sedwavelen = np.arange(self.wmin, self.wmax+.5, 1)
+        sedwavelen = np.arange(self.wmin, self.wmax + 0.5, 1)
         sedflambda = np.ones(len(sedwavelen))
         testsed = Sed(wavelen=sedwavelen, flambda=sedflambda)
-        print('')
+        print("")
         # Test that no warning is made.
         with warnings.catch_warnings(record=True) as wa:
-            w, f = testsed.resampleSED(wavelen_match=self.testbandpass.wavelen,
-                                       wavelen=testsed.wavelen, flux=testsed.flambda)
+            w, f = testsed.resampleSED(
+                wavelen_match=self.testbandpass.wavelen,
+                wavelen=testsed.wavelen,
+                flux=testsed.flambda,
+            )
             self.assertEqual(len(wa), 0)
         np.testing.assert_equal(w, testsed.wavelen)
         np.testing.assert_equal(f, testsed.flambda)
@@ -60,21 +63,21 @@ class TestSedWavelenLimits(unittest.TestCase):
         with warnings.catch_warnings(record=True) as wa:
             testsed.resampleSED(wavelen_match=self.testbandpass.wavelen)
             self.assertEqual(len(wa), 1)
-            self.assertIn('non-overlap', str(wa[-1].message))
+            self.assertIn("non-overlap", str(wa[-1].message))
         np.testing.assert_equal(testsed.flambda[-1:], np.NaN)
-        sedwavelen = np.arange(self.wmin+50, self.wmax, 1)
+        sedwavelen = np.arange(self.wmin + 50, self.wmax, 1)
         sedflambda = np.ones(len(sedwavelen))
         testsed = Sed(wavelen=sedwavelen, flambda=sedflambda)
         with warnings.catch_warnings(record=True) as wa:
             testsed.resampleSED(wavelen_match=self.testbandpass.wavelen)
             self.assertEqual(len(wa), 1)
-            self.assertIn('non-overlap', str(wa[-1].message))
+            self.assertIn("non-overlap", str(wa[-1].message))
         np.testing.assert_equal(testsed.flambda[0], np.NaN)
         np.testing.assert_equal(testsed.flambda[49], np.NaN)
 
     def testSedMagErrors(self):
         """Test error handling at mag and adu calculation levels of sed."""
-        sedwavelen = np.arange(self.wmin+50, self.wmax, 1)
+        sedwavelen = np.arange(self.wmin + 50, self.wmax, 1)
         sedflambda = np.ones(len(sedwavelen))
         testsed = Sed(wavelen=sedwavelen, flambda=sedflambda)
         # Test handling in calcMag
@@ -85,8 +88,7 @@ class TestSedWavelenLimits(unittest.TestCase):
         np.testing.assert_equal(mag, np.NaN)
         # Test handling in calcADU
         with warnings.catch_warnings(record=True) as w:
-            adu = testsed.calcADU(self.testbandpass,
-                                  photParams=PhotometricParameters())
+            adu = testsed.calcADU(self.testbandpass, photParams=PhotometricParameters())
             self.assertEqual(len(w), 1)
             self.assertIn("non-overlap", str(w[-1].message))
         np.testing.assert_equal(adu, np.NaN)
@@ -102,9 +104,9 @@ class TestSedName(unittest.TestCase):
     def setUp(self):
         self.wmin = 500
         self.wmax = 1500
-        self.wavelen = np.arange(self.wmin, self.wmax+.5, 1)
+        self.wavelen = np.arange(self.wmin, self.wmax + 0.5, 1)
         self.flambda = np.ones(len(self.wavelen))
-        self.name = 'TestSed'
+        self.name = "TestSed"
         self.testsed = Sed(self.wavelen, self.flambda, name=self.name)
 
     def tearDown(self):
@@ -116,10 +118,12 @@ class TestSedName(unittest.TestCase):
         self.assertEqual(self.testsed.name, self.name)
 
     def testRedshiftName(self):
-        testsed = Sed(self.testsed.wavelen, self.testsed.flambda, name=self.testsed.name)
-        redshift = .2
+        testsed = Sed(
+            self.testsed.wavelen, self.testsed.flambda, name=self.testsed.name
+        )
+        redshift = 0.2
         testsed.redshiftSED(redshift=redshift)
-        newname = testsed.name + '_Z' + '%.2f' % (redshift)
+        newname = testsed.name + "_Z" + "%.2f" % (redshift)
         testsed.name = newname
         self.assertEqual(testsed.name, newname)
 
@@ -134,8 +138,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         when we fail to correctly specify their gzipped state.
         """
 
-        scratch_dir = tempfile.mkdtemp(prefix='test_read_sed_flambda',
-                                       dir=ROOT)
+        scratch_dir = tempfile.mkdtemp(prefix="test_read_sed_flambda", dir=ROOT)
 
         rng = np.random.RandomState(88)
         zipped_name = os.path.join(scratch_dir, "zipped_sed.txt.gz")
@@ -157,7 +160,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         ss.readSED_flambda(zipped_name)
         ss.readSED_flambda(zipped_name[:-3])
         ss.readSED_flambda(unzipped_name)
-        ss.readSED_flambda(unzipped_name+'.gz')
+        ss.readSED_flambda(unzipped_name + ".gz")
 
         # make sure an error is raised when you try to read
         # a file that does not exist
@@ -172,8 +175,9 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         """
         Test that __eq__ in Sed works correctly
         """
-        sed_dir = os.path.join('tests', 'photUtils',
-                               'cartoonSedTestData', 'starSed', 'kurucz')
+        sed_dir = os.path.join(
+            "tests", "photUtils", "cartoonSedTestData", "starSed", "kurucz"
+        )
         list_of_seds = os.listdir(sed_dir)
         sedname1 = os.path.join(sed_dir, list_of_seds[0])
         sedname2 = os.path.join(sed_dir, list_of_seds[1])
@@ -202,12 +206,15 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         with readSED_flambda, it should get stored in the
         _global_misc_sed_cache)
         """
-        sed_dir = os.path.join('tests', 'photUtils',
-                               'cartoonSedTestData', 'starSed', 'kurucz')
+        sed_dir = os.path.join(
+            "tests", "photUtils", "cartoonSedTestData", "starSed", "kurucz"
+        )
 
         sed_name_list = os.listdir(sed_dir)
-        msg = ('An SED loaded from the cache is not '
-               'identical to the same SED loaded from disk')
+        msg = (
+            "An SED loaded from the cache is not "
+            "identical to the same SED loaded from disk"
+        )
         for ix in range(5):
             full_name = os.path.join(sed_dir, sed_name_list[ix])
             ss_uncache = Sed()
@@ -248,16 +255,16 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         bp = Bandpass(wavelen=wavelen_arr, sb=np.ones(len(wavelen_arr)))
 
         log10_bb_factor = np.log10(2.0) + np.log10(planck_h)
-        log10_bb_factor += 2.0*np.log10(speed_of_light)
-        log10_bb_factor -= 5.0*(np.log10(wavelen_arr) - 7.0)  # convert wavelen to cm
+        log10_bb_factor += 2.0 * np.log10(speed_of_light)
+        log10_bb_factor -= 5.0 * (np.log10(wavelen_arr) - 7.0)  # convert wavelen to cm
 
         for temp in np.arange(5000.0, 7000.0, 250.0):
             log10_exp_arg = np.log10(planck_h) + np.log10(speed_of_light)
-            log10_exp_arg -= (np.log10(wavelen_arr) - 7.0)
-            log10_exp_arg -= (np.log10(boltzmann_k) + np.log10(temp))
+            log10_exp_arg -= np.log10(wavelen_arr) - 7.0
+            log10_exp_arg -= np.log10(boltzmann_k) + np.log10(temp)
 
             exp_arg = np.power(10.0, log10_exp_arg)
-            log10_bose_factor = -1.0*np.log10(np.exp(exp_arg)-1.0)
+            log10_bose_factor = -1.0 * np.log10(np.exp(exp_arg) - 1.0)
 
             # the -7.0 below is because, otherwise, flambda will be in
             # ergs/s/cm^2/cm and we want ergs/s/cm^2/nm
@@ -266,36 +273,38 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
             # section of
             # https://en.wikipedia.org/wiki/Planck%27s_law#Stefan.E2.80.93Boltzmann_law
             #
-            bb_flambda = np.pi*np.power(10.0, log10_bb_factor+log10_bose_factor-7.0)
+            bb_flambda = np.pi * np.power(
+                10.0, log10_bb_factor + log10_bose_factor - 7.0
+            )
 
             sed = Sed(wavelen=wavelen_arr, flambda=bb_flambda)
             ergs = sed.calcErgs(bp)
 
-            log10_ergs = np.log10(stefan_boltzmann_sigma) + 4.0*np.log10(temp)
+            log10_ergs = np.log10(stefan_boltzmann_sigma) + 4.0 * np.log10(temp)
             ergs_truth = np.power(10.0, log10_ergs)
 
-            msg = '\ntemp:%e\nergs: %e\nergs_truth: %e' % (temp, ergs, ergs_truth)
-            self.assertAlmostEqual(ergs/ergs_truth, 1.0, 3, msg=msg)
+            msg = "\ntemp:%e\nergs: %e\nergs_truth: %e" % (temp, ergs, ergs_truth)
+            self.assertAlmostEqual(ergs / ergs_truth, 1.0, 3, msg=msg)
 
         # Now test it on a bandpass with throughput=0.25 and an wavelength
         # array that is not the same as the SED
 
         wavelen_arr = np.arange(10.0, 100000.0, 146.0)  # in nm
-        bp = Bandpass(wavelen=wavelen_arr, sb=0.25*np.ones(len(wavelen_arr)))
+        bp = Bandpass(wavelen=wavelen_arr, sb=0.25 * np.ones(len(wavelen_arr)))
 
         wavelen_arr = np.arange(5.0, 200000.0, 17.0)
 
         log10_bb_factor = np.log10(2.0) + np.log10(planck_h)
-        log10_bb_factor += 2.0*np.log10(speed_of_light)
-        log10_bb_factor -= 5.0*(np.log10(wavelen_arr) - 7.0)  # convert wavelen to cm
+        log10_bb_factor += 2.0 * np.log10(speed_of_light)
+        log10_bb_factor -= 5.0 * (np.log10(wavelen_arr) - 7.0)  # convert wavelen to cm
 
         for temp in np.arange(5000.0, 7000.0, 250.0):
             log10_exp_arg = np.log10(planck_h) + np.log10(speed_of_light)
-            log10_exp_arg -= (np.log10(wavelen_arr) - 7.0)
-            log10_exp_arg -= (np.log10(boltzmann_k) + np.log10(temp))
+            log10_exp_arg -= np.log10(wavelen_arr) - 7.0
+            log10_exp_arg -= np.log10(boltzmann_k) + np.log10(temp)
 
             exp_arg = np.power(10.0, log10_exp_arg)
-            log10_bose_factor = -1.0*np.log10(np.exp(exp_arg)-1.0)
+            log10_bose_factor = -1.0 * np.log10(np.exp(exp_arg) - 1.0)
 
             # the -7.0 below is because, otherwise, flambda will be in
             # ergs/s/cm^2/cm and we want ergs/s/cm^2/nm
@@ -304,16 +313,18 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
             # section of
             # https://en.wikipedia.org/wiki/Planck%27s_law#Stefan.E2.80.93Boltzmann_law
             #
-            bb_flambda = np.pi*np.power(10.0, log10_bb_factor+log10_bose_factor-7.0)
+            bb_flambda = np.pi * np.power(
+                10.0, log10_bb_factor + log10_bose_factor - 7.0
+            )
 
             sed = Sed(wavelen=wavelen_arr, flambda=bb_flambda)
             ergs = sed.calcErgs(bp)
 
-            log10_ergs = np.log10(stefan_boltzmann_sigma) + 4.0*np.log10(temp)
+            log10_ergs = np.log10(stefan_boltzmann_sigma) + 4.0 * np.log10(temp)
             ergs_truth = np.power(10.0, log10_ergs)
 
-            msg = '\ntemp: %e\nergs: %e\nergs_truth: %e' % (temp,ergs, ergs_truth)
-            self.assertAlmostEqual(ergs/ergs_truth, 0.25, 3, msg=msg)
+            msg = "\ntemp: %e\nergs: %e\nergs_truth: %e" % (temp, ergs, ergs_truth)
+            self.assertAlmostEqual(ergs / ergs_truth, 0.25, 3, msg=msg)
 
     def test_mags_vs_flux(self):
         """
@@ -321,8 +332,8 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         is as expected
         """
         wavelen = np.arange(100.0, 1500.0, 1.0)
-        flambda = np.exp(-0.5*np.power((wavelen-500.0)/100.0,2))
-        sb = (wavelen-100.0)/1400.0
+        flambda = np.exp(-0.5 * np.power((wavelen - 500.0) / 100.0, 2))
+        sb = (wavelen - 100.0) / 1400.0
 
         ss = Sed(wavelen=wavelen, flambda=flambda)
         bp = Bandpass(wavelen=wavelen, sb=sb)
@@ -330,8 +341,8 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         mag = ss.calcMag(bp)
         flux = ss.calcFlux(bp)
 
-        self.assertAlmostEqual(ss.magFromFlux(flux)/mag, 1.0, 10)
-        self.assertAlmostEqual(ss.fluxFromMag(mag)/flux, 1.0, 10)
+        self.assertAlmostEqual(ss.magFromFlux(flux) / mag, 1.0, 10)
+        self.assertAlmostEqual(ss.fluxFromMag(mag) / flux, 1.0, 10)
 
 
 if __name__ == "__main__":

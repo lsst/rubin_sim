@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+
 # Example for CountMetric
 # Mike Lund - Vanderbilt University
 # mike.lund@gmail.com
@@ -11,18 +12,18 @@ from rubin_sim.maf.metrics import BaseMetric
 import numpy as np
 from .StarCounts.StarCounts import *
 
-__all__ = ['StarCountMetric']
+__all__ = ["StarCountMetric"]
+
 
 class StarCountMetric(BaseMetric):
-   """Find the number of stars in a given field between D1 and D2 in parsecs.
-   """
-   def __init__(self,**kwargs):
-      self.D1=kwargs.pop('D1', 100)
-      self.D2=kwargs.pop('D2', 1000)
-      super(StarCountMetric, self).__init__(col=[], **kwargs)
+    """Find the number of stars in a given field between D1 and D2 in parsecs."""
 
-   def run(self, dataSlice, slicePoint=None):
-      self.DECCol=np.degrees(dataSlice[0][3])
-      self.RACol=np.degrees(dataSlice[0][2])
-      return starcount.starcount(self.RACol, self.DECCol, self.D1, self.D2)
+    def __init__(self, **kwargs):
+        self.D1 = kwargs.pop("D1", 100)
+        self.D2 = kwargs.pop("D2", 1000)
+        super(StarCountMetric, self).__init__(col=[], **kwargs)
 
+    def run(self, dataSlice, slicePoint=None):
+        self.DECCol = np.degrees(dataSlice[0][3])
+        self.RACol = np.degrees(dataSlice[0][2])
+        return starcount.starcount(self.RACol, self.DECCol, self.D1, self.D2)

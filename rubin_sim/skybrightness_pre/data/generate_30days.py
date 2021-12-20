@@ -7,8 +7,8 @@ if __name__ == "__main__":
     """
     mjd0 = 59853  # 2022-10-01
     test_length = 32  # days
-    generate_sky(mjd0=mjd0, mjd_max=mjd0+test_length, outpath='healpix')
+    generate_sky(mjd0=mjd0, mjd_max=mjd0 + test_length, outpath="healpix")
 
     # Also do 3 days
     test_length = 3.1  # days
-    generate_sky(mjd0=mjd0, mjd_max=mjd0+test_length, outpath='healpix')
+    generate_sky(mjd0=mjd0, mjd_max=mjd0 + test_length, outpath="healpix")

@@ -18,10 +18,18 @@ import unittest
 import palpy as pal
 
 from rubin_sim.utils import ObservationMetaData
-from rubin_sim.utils import _getRotTelPos, _raDecFromAltAz, \
-    radiansFromArcsec, arcsecFromRadians, Site, \
-    raDecFromAltAz, haversine, ModifiedJulianDate, \
-    _getRotSkyPos, _angularSeparation
+from rubin_sim.utils import (
+    _getRotTelPos,
+    _raDecFromAltAz,
+    radiansFromArcsec,
+    arcsecFromRadians,
+    Site,
+    raDecFromAltAz,
+    haversine,
+    ModifiedJulianDate,
+    _getRotSkyPos,
+    _angularSeparation,
+)
 
 from rubin_sim.utils import solarRaDec, _solarRaDec, distanceToSun, _distanceToSun
 from rubin_sim.utils import _applyPrecession, _applyProperMotion
@@ -33,6 +41,7 @@ from rubin_sim.utils import observedFromICRS, applyProperMotion, sphericalFromCa
 
 # Tell astropy not to download the IERS tables
 from astropy.utils import iers
+
 iers.conf.auto_download = False
 
 
@@ -41,8 +50,15 @@ def makeObservationMetaData():
     mjd = 52000.0
     alt = np.pi / 2.0
     az = 0.0
-    testSite = Site(latitude=np.degrees(0.5), longitude=np.degrees(1.1), height=3000,
-                    temperature=260.0, pressure=725.0, lapseRate=0.005, humidity=0.4)
+    testSite = Site(
+        latitude=np.degrees(0.5),
+        longitude=np.degrees(1.1),
+        height=3000,
+        temperature=260.0,
+        pressure=725.0,
+        lapseRate=0.005,
+        humidity=0.4,
+    )
     obsTemp = ObservationMetaData(site=testSite, mjd=mjd)
     centerRA, centerDec = _raDecFromAltAz(alt, az, obsTemp)
     rotTel = _getRotTelPos(centerRA, centerDec, obsTemp, 0.0)
@@ -50,12 +66,15 @@ def makeObservationMetaData():
 
     radius = 0.1
 
-    obs_metadata = ObservationMetaData(pointingRA=np.degrees(centerRA),
-                                       pointingDec=np.degrees(centerDec),
-                                       rotSkyPos=np.degrees(rotSky),
-                                       mjd=mjd,
-                                       boundType='circle', boundLength=2.0 * radius,
-                                       site=testSite)
+    obs_metadata = ObservationMetaData(
+        pointingRA=np.degrees(centerRA),
+        pointingDec=np.degrees(centerDec),
+        rotSkyPos=np.degrees(rotSky),
+        mjd=mjd,
+        boundType="circle",
+        boundLength=2.0 * radius,
+        site=testSite,
+    )
 
     return obs_metadata
 
@@ -97,23 +116,27 @@ class astrometryUnitTest(unittest.TestCase):
 
         # these were the LSST site parameters as coded when this unit test was
         # written
-        self.test_site = Site(longitude=np.degrees(-1.2320792),
-                              latitude=np.degrees(-0.517781017),
-                              height=2650.0,
-                              temperature=11.505,
-                              pressure=749.3,
-                              lapseRate=0.0065,
-                              humidity=0.4)
+        self.test_site = Site(
+            longitude=np.degrees(-1.2320792),
+            latitude=np.degrees(-0.517781017),
+            height=2650.0,
+            temperature=11.505,
+            pressure=749.3,
+            lapseRate=0.0065,
+            humidity=0.4,
+        )
 
         # Inputs are consistent with the baseline SLALIB run
         # used to create this unit test
-        self.obs_metadata = ObservationMetaData(pointingRA=200.0,
-                                                pointingDec=-30.0,
-                                                rotSkyPos=1.0,
-                                                mjd=50984.371741,
-                                                boundType='circle',
-                                                boundLength=0.05,
-                                                site=self.test_site)
+        self.obs_metadata = ObservationMetaData(
+            pointingRA=200.0,
+            pointingDec=-30.0,
+            rotSkyPos=1.0,
+            mjd=50984.371741,
+            boundType="circle",
+            boundLength=0.05,
+            site=self.test_site,
+        )
 
         self.tol = 1.0e-5
 
@@ -136,11 +159,15 @@ class astrometryUnitTest(unittest.TestCase):
 
         mjd_list = [57026.0, 57543.625]
 
-        sun_ra_list = [18.0 * hour + 56.0 * minute + 51.022 * second,
-                       4.0 * hour + 51.0 * minute + 22.776 * second]
+        sun_ra_list = [
+            18.0 * hour + 56.0 * minute + 51.022 * second,
+            4.0 * hour + 51.0 * minute + 22.776 * second,
+        ]
 
-        sun_dec_list = [np.radians(-22.0 - 47.0 / 60.0 - 40.27 / 3600.0),
-                        np.radians(22.0 + 30.0 / 60.0 + 0.73 / 3600.0)]
+        sun_dec_list = [
+            np.radians(-22.0 - 47.0 / 60.0 - 40.27 / 3600.0),
+            np.radians(22.0 + 30.0 / 60.0 + 0.73 / 3600.0),
+        ]
 
         for raS, decS, tai in zip(sun_ra_list, sun_dec_list, mjd_list):
 
@@ -148,8 +175,7 @@ class astrometryUnitTest(unittest.TestCase):
 
             # first, verify that the Sun is where we think it is to within 5
             # arc seconds
-            self.assertLess(arcsecFromRadians(
-                _distanceToSun(raS, decS, mjd)), 5.0)
+            self.assertLess(arcsecFromRadians(_distanceToSun(raS, decS, mjd)), 5.0)
 
             # find Sun's Cartesian coordinates
             sun_x = np.cos(decS) * np.cos(raS)
@@ -166,8 +192,7 @@ class astrometryUnitTest(unittest.TestCase):
                 new_z = sun_z
 
                 new_ra = np.arctan2(new_y, new_x)
-                new_dec = np.arctan2(new_z, np.sqrt(
-                    new_x * new_x + new_y * new_y))
+                new_dec = np.arctan2(new_z, np.sqrt(new_x * new_x + new_y * new_y))
 
                 dd = _distanceToSun(new_ra, new_dec, mjd)
                 hh = haversine(raS, decS, new_ra, new_dec)
@@ -179,8 +204,7 @@ class astrometryUnitTest(unittest.TestCase):
                 new_z = -sun_x * np.sin(theta) + sun_z * np.cos(theta)
 
                 new_ra = np.arctan2(new_y, new_x)
-                new_dec = np.arctan2(new_z, np.sqrt(
-                    new_x * new_x + new_y * new_y))
+                new_dec = np.arctan2(new_z, np.sqrt(new_x * new_x + new_y * new_y))
                 dd = _distanceToSun(new_ra, new_dec, mjd)
                 hh = haversine(raS, decS, new_ra, new_dec)
                 self.assertLess(np.abs(arcsecFromRadians(dd - hh)), 5.0)
@@ -191,8 +215,7 @@ class astrometryUnitTest(unittest.TestCase):
                 new_z = -sun_y * np.sin(theta) + sun_z * np.cos(theta)
 
                 new_ra = np.arctan2(new_y, new_x)
-                new_dec = np.arctan2(new_z, np.sqrt(
-                    new_x * new_x + new_y * new_y))
+                new_dec = np.arctan2(new_z, np.sqrt(new_x * new_x + new_y * new_y))
                 dd = _distanceToSun(new_ra, new_dec, mjd)
                 hh = haversine(raS, decS, new_ra, new_dec)
                 self.assertLess(np.abs(arcsecFromRadians(dd - hh)), 5.0)
@@ -215,7 +238,9 @@ class astrometryUnitTest(unittest.TestCase):
         Test that distanceToSun is consistent with _distanceToSun
         """
 
-        for tai, ra, dec in zip((57632.1, 45623.4, 55682.3), (112.0, 24.0, 231.2), (-25.0, 23.4, -60.0)):
+        for tai, ra, dec in zip(
+            (57632.1, 45623.4, 55682.3), (112.0, 24.0, 231.2), (-25.0, 23.4, -60.0)
+        ):
             mjd = ModifiedJulianDate(TAI=tai)
             dd_deg = distanceToSun(ra, dec, mjd)
             dd_rad = _distanceToSun(np.radians(ra), np.radians(dec), mjd)
@@ -250,11 +275,15 @@ class astrometryUnitTest(unittest.TestCase):
 
         mjd_list = [57026.0, 57543.625]
 
-        sun_ra_list = [18.0 * hour + 56.0 * minute + 51.022 * second,
-                       4.0 * hour + 51.0 * minute + 22.776 * second]
+        sun_ra_list = [
+            18.0 * hour + 56.0 * minute + 51.022 * second,
+            4.0 * hour + 51.0 * minute + 22.776 * second,
+        ]
 
-        sun_dec_list = [np.radians(-22.0 - 47.0 / 60.0 - 40.27 / 3600.0),
-                        np.radians(22.0 + 30.0 / 60.0 + 0.73 / 3600.0)]
+        sun_dec_list = [
+            np.radians(-22.0 - 47.0 / 60.0 - 40.27 / 3600.0),
+            np.radians(22.0 + 30.0 / 60.0 + 0.73 / 3600.0),
+        ]
 
         for tai, raS, decS in zip(mjd_list, sun_ra_list, sun_dec_list):
             mjd = ModifiedJulianDate(TAI=tai)
@@ -262,8 +291,7 @@ class astrometryUnitTest(unittest.TestCase):
             dec_list = (rng.random_sample(nStars) - 0.5) * np.pi
             distance_list = _distanceToSun(ra_list, dec_list, mjd)
             distance_control = haversine(ra_list, dec_list, raS, decS)
-            np.testing.assert_array_almost_equal(
-                distance_list, distance_control, 5)
+            np.testing.assert_array_almost_equal(distance_list, distance_control, 5)
 
     def testAstrometryExceptions(self):
         """
@@ -296,10 +324,20 @@ class astrometryUnitTest(unittest.TestCase):
         self.assertRaises(RuntimeError, _applyPrecession, ra, dec)
 
         # test mismatches
-        self.assertRaises(RuntimeError, _applyPrecession, raShort, dec,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
-        self.assertRaises(RuntimeError, _applyPrecession, ra, decShort,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
+        self.assertRaises(
+            RuntimeError,
+            _applyPrecession,
+            raShort,
+            dec,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
+        self.assertRaises(
+            RuntimeError,
+            _applyPrecession,
+            ra,
+            decShort,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
 
         # test that it runs
         _applyPrecession(ra, dec, mjd=ModifiedJulianDate(TAI=52000.0))
@@ -318,64 +356,179 @@ class astrometryUnitTest(unittest.TestCase):
         v_radShort = np.array([v_rad[0]])
 
         # test without mjd
-        self.assertRaises(RuntimeError, _applyProperMotion,
-                          ra, dec, pm_ra, pm_dec, parallax, v_rad)
+        self.assertRaises(
+            RuntimeError, _applyProperMotion, ra, dec, pm_ra, pm_dec, parallax, v_rad
+        )
 
         # test passing lists
-        self.assertRaises(RuntimeError, _applyProperMotion,
-                          raList, dec, pm_ra, pm_dec, parallax, v_rad,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
-        self.assertRaises(RuntimeError, _applyProperMotion,
-                          ra, decList, pm_ra, pm_dec, parallax, v_rad,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
-        self.assertRaises(RuntimeError, _applyProperMotion,
-                          ra, dec, pm_raList, pm_dec, parallax, v_rad,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
-        self.assertRaises(RuntimeError, _applyProperMotion,
-                          ra, dec, pm_ra, pm_decList, parallax, v_rad,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
-        self.assertRaises(RuntimeError, _applyProperMotion,
-                          ra, dec, pm_ra, pm_dec, parallaxList, v_rad,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
-        self.assertRaises(RuntimeError, _applyProperMotion,
-                          ra, dec, pm_ra, pm_dec, parallax, v_radList,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
+        self.assertRaises(
+            RuntimeError,
+            _applyProperMotion,
+            raList,
+            dec,
+            pm_ra,
+            pm_dec,
+            parallax,
+            v_rad,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
+        self.assertRaises(
+            RuntimeError,
+            _applyProperMotion,
+            ra,
+            decList,
+            pm_ra,
+            pm_dec,
+            parallax,
+            v_rad,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
+        self.assertRaises(
+            RuntimeError,
+            _applyProperMotion,
+            ra,
+            dec,
+            pm_raList,
+            pm_dec,
+            parallax,
+            v_rad,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
+        self.assertRaises(
+            RuntimeError,
+            _applyProperMotion,
+            ra,
+            dec,
+            pm_ra,
+            pm_decList,
+            parallax,
+            v_rad,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
+        self.assertRaises(
+            RuntimeError,
+            _applyProperMotion,
+            ra,
+            dec,
+            pm_ra,
+            pm_dec,
+            parallaxList,
+            v_rad,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
+        self.assertRaises(
+            RuntimeError,
+            _applyProperMotion,
+            ra,
+            dec,
+            pm_ra,
+            pm_dec,
+            parallax,
+            v_radList,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
 
         # test mismatches
-        self.assertRaises(RuntimeError, _applyProperMotion,
-                          raShort, dec, pm_ra, pm_dec, parallax, v_rad,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
-        self.assertRaises(RuntimeError, _applyProperMotion,
-                          ra, decShort, pm_ra, pm_dec, parallax, v_rad,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
-        self.assertRaises(RuntimeError, _applyProperMotion,
-                          ra, dec, pm_raShort, pm_dec, parallax, v_rad,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
-        self.assertRaises(RuntimeError, _applyProperMotion,
-                          ra, dec, pm_ra, pm_decShort, parallax, v_rad,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
-        self.assertRaises(RuntimeError, _applyProperMotion,
-                          ra, dec, pm_ra, pm_dec, parallaxShort, v_rad,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
-        self.assertRaises(RuntimeError, _applyProperMotion,
-                          ra, dec, pm_ra, pm_dec, parallax, v_radShort,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
+        self.assertRaises(
+            RuntimeError,
+            _applyProperMotion,
+            raShort,
+            dec,
+            pm_ra,
+            pm_dec,
+            parallax,
+            v_rad,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
+        self.assertRaises(
+            RuntimeError,
+            _applyProperMotion,
+            ra,
+            decShort,
+            pm_ra,
+            pm_dec,
+            parallax,
+            v_rad,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
+        self.assertRaises(
+            RuntimeError,
+            _applyProperMotion,
+            ra,
+            dec,
+            pm_raShort,
+            pm_dec,
+            parallax,
+            v_rad,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
+        self.assertRaises(
+            RuntimeError,
+            _applyProperMotion,
+            ra,
+            dec,
+            pm_ra,
+            pm_decShort,
+            parallax,
+            v_rad,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
+        self.assertRaises(
+            RuntimeError,
+            _applyProperMotion,
+            ra,
+            dec,
+            pm_ra,
+            pm_dec,
+            parallaxShort,
+            v_rad,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
+        self.assertRaises(
+            RuntimeError,
+            _applyProperMotion,
+            ra,
+            dec,
+            pm_ra,
+            pm_dec,
+            parallax,
+            v_radShort,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
 
         # test that it actually runs
-        _applyProperMotion(ra, dec, pm_ra, pm_dec, parallax, v_rad,
-                           mjd=ModifiedJulianDate(TAI=52000.0))
-        _applyProperMotion(ra[0], dec[0], pm_ra[0], pm_dec[0], parallax[0], v_rad[0],
-                           mjd=ModifiedJulianDate(TAI=52000.0))
+        _applyProperMotion(
+            ra, dec, pm_ra, pm_dec, parallax, v_rad, mjd=ModifiedJulianDate(TAI=52000.0)
+        )
+        _applyProperMotion(
+            ra[0],
+            dec[0],
+            pm_ra[0],
+            pm_dec[0],
+            parallax[0],
+            v_rad[0],
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
 
         # test _appGeoFromICRS
         # test without mjd
         self.assertRaises(RuntimeError, _appGeoFromICRS, ra, dec)
 
         # test with mismatched ra, dec
-        self.assertRaises(RuntimeError, _appGeoFromICRS, ra, decShort,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
-        self.assertRaises(RuntimeError, _appGeoFromICRS, raShort, dec,
-                          mjd=ModifiedJulianDate(TAI=52000.0))
+        self.assertRaises(
+            RuntimeError,
+            _appGeoFromICRS,
+            ra,
+            decShort,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
+        self.assertRaises(
+            RuntimeError,
+            _appGeoFromICRS,
+            raShort,
+            dec,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
 
         # test that it actually urns
         _appGeoFromICRS(ra, dec, mjd=obs_metadata.mjd)
@@ -385,72 +538,99 @@ class astrometryUnitTest(unittest.TestCase):
         self.assertRaises(RuntimeError, _observedFromAppGeo, ra, dec)
 
         # test without site
-        dummy = ObservationMetaData(pointingRA=obs_metadata.pointingRA,
-                                    pointingDec=obs_metadata.pointingDec,
-                                    mjd=obs_metadata.mjd,
-                                    site=None)
-        self.assertRaises(RuntimeError, _observedFromAppGeo,
-                          ra, dec, obs_metadata=dummy)
+        dummy = ObservationMetaData(
+            pointingRA=obs_metadata.pointingRA,
+            pointingDec=obs_metadata.pointingDec,
+            mjd=obs_metadata.mjd,
+            site=None,
+        )
+        self.assertRaises(
+            RuntimeError, _observedFromAppGeo, ra, dec, obs_metadata=dummy
+        )
 
         # test without mjd
-        dummy = ObservationMetaData(pointingRA=obs_metadata.pointingRA,
-                                    pointingDec=obs_metadata.pointingDec,
-                                    site=Site(name='LSST'))
-        self.assertRaises(RuntimeError, _observedFromAppGeo,
-                          ra, dec, obs_metadata=dummy)
+        dummy = ObservationMetaData(
+            pointingRA=obs_metadata.pointingRA,
+            pointingDec=obs_metadata.pointingDec,
+            site=Site(name="LSST"),
+        )
+        self.assertRaises(
+            RuntimeError, _observedFromAppGeo, ra, dec, obs_metadata=dummy
+        )
 
         # test mismatches
-        dummy = ObservationMetaData(pointingRA=obs_metadata.pointingRA,
-                                    pointingDec=obs_metadata.pointingDec,
-                                    mjd=obs_metadata.mjd,
-                                    site=Site(name='LSST'))
+        dummy = ObservationMetaData(
+            pointingRA=obs_metadata.pointingRA,
+            pointingDec=obs_metadata.pointingDec,
+            mjd=obs_metadata.mjd,
+            site=Site(name="LSST"),
+        )
 
-        self.assertRaises(RuntimeError, _observedFromAppGeo,
-                          ra, decShort, obs_metadata=dummy)
-        self.assertRaises(RuntimeError, _observedFromAppGeo,
-                          raShort, dec, obs_metadata=dummy)
+        self.assertRaises(
+            RuntimeError, _observedFromAppGeo, ra, decShort, obs_metadata=dummy
+        )
+        self.assertRaises(
+            RuntimeError, _observedFromAppGeo, raShort, dec, obs_metadata=dummy
+        )
 
         # test that it actually runs
         _observedFromAppGeo(ra, dec, obs_metadata=dummy)
 
         # test _observedFromICRS
         # test without epoch
-        self.assertRaises(RuntimeError, _observedFromICRS,
-                          ra, dec, obs_metadata=obs_metadata)
+        self.assertRaises(
+            RuntimeError, _observedFromICRS, ra, dec, obs_metadata=obs_metadata
+        )
 
         # test without obs_metadata
-        self.assertRaises(RuntimeError, _observedFromICRS,
-                          ra, dec, epoch=2000.0)
+        self.assertRaises(RuntimeError, _observedFromICRS, ra, dec, epoch=2000.0)
 
         # test without mjd
-        dummy = ObservationMetaData(pointingRA=obs_metadata.pointingRA,
-                                    pointingDec=obs_metadata.pointingDec,
-                                    site=obs_metadata.site)
-        self.assertRaises(RuntimeError, _observedFromICRS, ra,
-                          dec, epoch=2000.0, obs_metadata=dummy)
+        dummy = ObservationMetaData(
+            pointingRA=obs_metadata.pointingRA,
+            pointingDec=obs_metadata.pointingDec,
+            site=obs_metadata.site,
+        )
+        self.assertRaises(
+            RuntimeError, _observedFromICRS, ra, dec, epoch=2000.0, obs_metadata=dummy
+        )
 
         # test that it actually runs
-        dummy = ObservationMetaData(pointingRA=obs_metadata.pointingRA,
-                                    pointingDec=obs_metadata.pointingDec,
-                                    site=obs_metadata.site,
-                                    mjd=obs_metadata.mjd)
+        dummy = ObservationMetaData(
+            pointingRA=obs_metadata.pointingRA,
+            pointingDec=obs_metadata.pointingDec,
+            site=obs_metadata.site,
+            mjd=obs_metadata.mjd,
+        )
 
         # test mismatches
-        self.assertRaises(RuntimeError, _observedFromICRS, ra,
-                          decShort, epoch=2000.0, obs_metadata=dummy)
-        self.assertRaises(RuntimeError, _observedFromICRS,
-                          raShort, dec, epoch=2000.0, obs_metadata=dummy)
+        self.assertRaises(
+            RuntimeError,
+            _observedFromICRS,
+            ra,
+            decShort,
+            epoch=2000.0,
+            obs_metadata=dummy,
+        )
+        self.assertRaises(
+            RuntimeError,
+            _observedFromICRS,
+            raShort,
+            dec,
+            epoch=2000.0,
+            obs_metadata=dummy,
+        )
 
         # test that it actually runs
-        ra_arr, dec_arr = _observedFromICRS(
-            ra, dec, obs_metadata=dummy, epoch=2000.0)
+        ra_arr, dec_arr = _observedFromICRS(ra, dec, obs_metadata=dummy, epoch=2000.0)
         self.assertIsInstance(ra_arr, np.ndarray)
         self.assertIsInstance(dec_arr, np.ndarray)
 
         # test passing in floats
         for ix in range(len(ra_arr)):
             ra_f, dec_f = _observedFromICRS(
-                ra[ix], dec[ix], obs_metadata=dummy, epoch=2000.0)
+                ra[ix], dec[ix], obs_metadata=dummy, epoch=2000.0
+            )
             self.assertIsInstance(ra_f, float)
             self.assertIsInstance(dec_f, float)
             self.assertAlmostEqual(ra_f, ra_arr[ix], 12)
@@ -461,10 +641,10 @@ class astrometryUnitTest(unittest.TestCase):
         ra = np.zeros((3), dtype=float)
         dec = np.zeros((3), dtype=float)
 
-        ra[0] = 2.549091039839124218e+00
+        ra[0] = 2.549091039839124218e00
         dec[0] = 5.198752733024248895e-01
         ra[1] = 8.693375673649429425e-01
-        dec[1] = 1.038086165642298164e+00
+        dec[1] = 1.038086165642298164e00
         ra[2] = 7.740864769302191473e-01
         dec[2] = 2.758053025017753179e-01
 
@@ -513,9 +693,15 @@ class astrometryUnitTest(unittest.TestCase):
             px = rng.random_sample(nSamples) * radiansFromArcsec(1.0)
             v_rad = rng.random_sample(nSamples) * 200.0
 
-            ra_list_pm, dec_list_pm = _applyProperMotion(raList_icrs, decList_icrs,
-                                                         pm_ra * np.cos(decList_icrs),
-                                                         pm_dec, px, v_rad, mjd=ModifiedJulianDate(TAI=mjd))
+            ra_list_pm, dec_list_pm = _applyProperMotion(
+                raList_icrs,
+                decList_icrs,
+                pm_ra * np.cos(decList_icrs),
+                pm_dec,
+                px,
+                v_rad,
+                mjd=ModifiedJulianDate(TAI=mjd),
+            )
 
             # stars' Cartesian position after proper motion is applied
             x_list_pm = np.cos(dec_list_pm) * np.cos(ra_list_pm)
@@ -532,22 +718,31 @@ class astrometryUnitTest(unittest.TestCase):
 
             w = VF * v_rad * pxr
 
-            motion_per_year = np.array([-1.0 * pm_ra * y_list_icrs -
-                                        pm_dec *
-                                        np.cos(raList_icrs) * np.sin(decList_icrs) + w * x_list_icrs,
-                                        pm_ra * x_list_icrs -
-                                        pm_dec *
-                                        np.sin(raList_icrs) * np.sin(decList_icrs) + w * y_list_icrs,
-                                        pm_dec * np.cos(decList_icrs) + w * z_list_icrs])
+            motion_per_year = np.array(
+                [
+                    -1.0 * pm_ra * y_list_icrs
+                    - pm_dec * np.cos(raList_icrs) * np.sin(decList_icrs)
+                    + w * x_list_icrs,
+                    pm_ra * x_list_icrs
+                    - pm_dec * np.sin(raList_icrs) * np.sin(decList_icrs)
+                    + w * y_list_icrs,
+                    pm_dec * np.cos(decList_icrs) + w * z_list_icrs,
+                ]
+            )
 
-            xyz_control = np.array([x_list_icrs + pmt * motion_per_year[0] - pxr * eb[0],
-                                    y_list_icrs + pmt *
-                                    motion_per_year[1] - pxr * eb[1],
-                                    z_list_icrs + pmt * motion_per_year[2] - pxr * eb[2]])
+            xyz_control = np.array(
+                [
+                    x_list_icrs + pmt * motion_per_year[0] - pxr * eb[0],
+                    y_list_icrs + pmt * motion_per_year[1] - pxr * eb[1],
+                    z_list_icrs + pmt * motion_per_year[2] - pxr * eb[2],
+                ]
+            )
 
-            xyz_norm = np.sqrt(np.power(xyz_control[0], 2) +
-                               np.power(xyz_control[1], 2) +
-                               np.power(xyz_control[2], 2))
+            xyz_norm = np.sqrt(
+                np.power(xyz_control[0], 2)
+                + np.power(xyz_control[1], 2)
+                + np.power(xyz_control[2], 2)
+            )
 
             # stars' Cartesian position after applying the control proper
             # motion method
@@ -557,21 +752,30 @@ class astrometryUnitTest(unittest.TestCase):
 
             # this is the Cartesian distance between the stars' positions as found by _applyProperMotion
             # and the distance as found by the control proper motion code above
-            distance = np.sqrt(np.power(x_list_pm - xyz_control[0], 2) +
-                               np.power(y_list_pm - xyz_control[1], 2) +
-                               np.power(z_list_pm - xyz_control[2], 2))
+            distance = np.sqrt(
+                np.power(x_list_pm - xyz_control[0], 2)
+                + np.power(y_list_pm - xyz_control[1], 2)
+                + np.power(z_list_pm - xyz_control[2], 2)
+            )
 
             # this is the Cartesian distance between the stars' original positions on the celestial sphere
             # and their positions after the control proper motion was applied
-            correction = np.sqrt(np.power(xyz_control[0] - x_list_icrs, 2) +
-                                 np.power(xyz_control[1] - y_list_icrs, 2) +
-                                 np.power(xyz_control[2] - z_list_icrs, 2))
+            correction = np.sqrt(
+                np.power(xyz_control[0] - x_list_icrs, 2)
+                + np.power(xyz_control[1] - y_list_icrs, 2)
+                + np.power(xyz_control[2] - z_list_icrs, 2)
+            )
 
             dex = np.argmax(distance)
-            msg = 'pm %e %e vr %e px %e; time %e; err %e arcsec; corr %e' % \
-                  (arcsecFromRadians(pm_ra[dex]), arcsecFromRadians(pm_dec[dex]),
-                   v_rad[dex], arcsecFromRadians(px[dex]), pmt, arcsecFromRadians(distance[dex]),
-                   arcsecFromRadians(correction[dex]))
+            msg = "pm %e %e vr %e px %e; time %e; err %e arcsec; corr %e" % (
+                arcsecFromRadians(pm_ra[dex]),
+                arcsecFromRadians(pm_dec[dex]),
+                v_rad[dex],
+                arcsecFromRadians(px[dex]),
+                pmt,
+                arcsecFromRadians(distance[dex]),
+                arcsecFromRadians(correction[dex]),
+            )
 
             # demand that the two methods agree on the stars' new positions to
             # within one part in 100
@@ -593,21 +797,23 @@ class astrometryUnitTest(unittest.TestCase):
         ra_icrs = rng.random_sample(nSamples) * 2.0 * np.pi
         dec_icrs = (rng.random_sample(nSamples) - 0.5) * np.pi
 
-        ra_arr, dec_arr = _applyProperMotion(ra_icrs, dec_icrs,
-                                             pm_ra, pm_dec, px, v_rad, mjd=mjd)
+        ra_arr, dec_arr = _applyProperMotion(
+            ra_icrs, dec_icrs, pm_ra, pm_dec, px, v_rad, mjd=mjd
+        )
 
         self.assertIsInstance(ra_arr, np.ndarray)
         self.assertIsInstance(dec_arr, np.ndarray)
 
-        for ix, (rr, dd, mura, mudec, xx, vv) in \
-                enumerate(zip(ra_icrs, dec_icrs, pm_ra, pm_dec, px, v_rad)):
+        for ix, (rr, dd, mura, mudec, xx, vv) in enumerate(
+            zip(ra_icrs, dec_icrs, pm_ra, pm_dec, px, v_rad)
+        ):
 
-            ra_f, dec_f = _applyProperMotion(
-                rr, dd, mura, mudec, xx, vv, mjd=mjd)
+            ra_f, dec_f = _applyProperMotion(rr, dd, mura, mudec, xx, vv, mjd=mjd)
             self.assertIsInstance(ra_f, float)
             self.assertIsInstance(dec_f, float)
             distance = arcsecFromRadians(
-                haversine(ra_f, dec_f, ra_arr[ix], dec_arr[ix]))
+                haversine(ra_f, dec_f, ra_arr[ix], dec_arr[ix])
+            )
             self.assertLess(distance, 0.000001)
 
     def test_appGeoFromICRS(self):
@@ -665,19 +871,21 @@ class astrometryUnitTest(unittest.TestCase):
         for mjd, ra_app, dec_app in zip(mjd_list, ra_app_list, dec_app_list):
             obs = ObservationMetaData(mjd=mjd)
 
-            ra_test, dec_test = _appGeoFromICRS(ra_icrs, dec_icrs,
-                                                mjd=obs.mjd,
-                                                pm_ra=pm_ra,
-                                                pm_dec=pm_dec,
-                                                v_rad=v_rad,
-                                                parallax=px,
-                                                epoch=2000.0)
+            ra_test, dec_test = _appGeoFromICRS(
+                ra_icrs,
+                dec_icrs,
+                mjd=obs.mjd,
+                pm_ra=pm_ra,
+                pm_dec=pm_dec,
+                v_rad=v_rad,
+                parallax=px,
+                epoch=2000.0,
+            )
 
             self.assertIsInstance(ra_test, float)
             self.assertIsInstance(dec_test, float)
 
-            distance = arcsecFromRadians(
-                haversine(ra_app, dec_app, ra_test, dec_test))
+            distance = arcsecFromRadians(haversine(ra_app, dec_app, ra_test, dec_test))
             self.assertLess(distance, 0.1)
 
         # test on Sirius
@@ -712,19 +920,21 @@ class astrometryUnitTest(unittest.TestCase):
         for mjd, ra_app, dec_app in zip(mjd_list, ra_app_list, dec_app_list):
             obs = ObservationMetaData(mjd=mjd)
 
-            ra_test, dec_test = _appGeoFromICRS(ra_icrs, dec_icrs,
-                                                mjd=obs.mjd,
-                                                pm_ra=pm_ra,
-                                                pm_dec=pm_dec,
-                                                v_rad=v_rad,
-                                                parallax=px,
-                                                epoch=2000.0)
+            ra_test, dec_test = _appGeoFromICRS(
+                ra_icrs,
+                dec_icrs,
+                mjd=obs.mjd,
+                pm_ra=pm_ra,
+                pm_dec=pm_dec,
+                v_rad=v_rad,
+                parallax=px,
+                epoch=2000.0,
+            )
 
             self.assertIsInstance(ra_test, float)
             self.assertIsInstance(dec_test, float)
 
-            distance = arcsecFromRadians(
-                haversine(ra_app, dec_app, ra_test, dec_test))
+            distance = arcsecFromRadians(haversine(ra_app, dec_app, ra_test, dec_test))
             self.assertLess(distance, 0.1)
 
     def test_appGeoFromICRS_inputs(self):
@@ -737,114 +947,207 @@ class astrometryUnitTest(unittest.TestCase):
         nSamples = 100
         ra_icrs = 2.0 * np.pi * rng.random_sample(nSamples)
         dec_icrs = (rng.random_sample(nSamples) - 0.5) * np.pi
-        pm_ra = radiansFromArcsec(
-            (rng.random_sample(nSamples) - 0.5) * 0.02)
-        pm_dec = radiansFromArcsec(
-            (rng.random_sample(nSamples) - 0.5) * 0.02)
+        pm_ra = radiansFromArcsec((rng.random_sample(nSamples) - 0.5) * 0.02)
+        pm_dec = radiansFromArcsec((rng.random_sample(nSamples) - 0.5) * 0.02)
         parallax = radiansFromArcsec(rng.random_sample(nSamples) * 0.01)
         v_rad = (rng.random_sample(nSamples) - 0.5) * 1200.0
         mjd = ModifiedJulianDate(TAI=59580.0)
 
-        ra_control, dec_control = _appGeoFromICRS(ra_icrs, dec_icrs,
-                                                  pm_ra=pm_ra, pm_dec=pm_dec, parallax=parallax,
-                                                  v_rad=v_rad, mjd=mjd)
+        ra_control, dec_control = _appGeoFromICRS(
+            ra_icrs,
+            dec_icrs,
+            pm_ra=pm_ra,
+            pm_dec=pm_dec,
+            parallax=parallax,
+            v_rad=v_rad,
+            mjd=mjd,
+        )
 
         self.assertIsInstance(ra_control, np.ndarray)
         self.assertIsInstance(dec_control, np.ndarray)
 
         # test that passing in floats and numpy arrays gives the same result
         for ix in range(len(ra_control)):
-            ra_test, dec_test = _appGeoFromICRS(ra_icrs[ix], dec_icrs[ix],
-                                                pm_ra=pm_ra[ix], pm_dec=pm_dec[ix],
-                                                parallax=parallax[ix], v_rad=v_rad[ix],
-                                                mjd=mjd)
+            ra_test, dec_test = _appGeoFromICRS(
+                ra_icrs[ix],
+                dec_icrs[ix],
+                pm_ra=pm_ra[ix],
+                pm_dec=pm_dec[ix],
+                parallax=parallax[ix],
+                v_rad=v_rad[ix],
+                mjd=mjd,
+            )
 
             self.assertIsInstance(ra_test, float)
             self.assertIsInstance(dec_test, float)
-            dd = arcsecFromRadians(haversine(ra_test, dec_test, ra_control[ix], dec_control[ix]))
+            dd = arcsecFromRadians(
+                haversine(ra_test, dec_test, ra_control[ix], dec_control[ix])
+            )
             self.assertLess(dd, 1.0e-6)
 
         # next test that inputs of inappropriate types raise RuntimeErrors
         with self.assertRaises(RuntimeError) as context:
-            ra, dec = _appGeoFromICRS(ra_icrs, 5.0, pm_ra=pm_ra, pm_dec=pm_dec,
-                                      parallax=parallax, v_rad=v_rad, mjd=mjd)
+            ra, dec = _appGeoFromICRS(
+                ra_icrs,
+                5.0,
+                pm_ra=pm_ra,
+                pm_dec=pm_dec,
+                parallax=parallax,
+                v_rad=v_rad,
+                mjd=mjd,
+            )
         self.assertIn("The input arguments:", context.exception.args[0])
         self.assertIn("dec", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            ra, dec = _appGeoFromICRS(5.0, dec_icrs, pm_ra=pm_ra, pm_dec=pm_dec,
-                                      parallax=parallax, v_rad=v_rad, mjd=mjd)
+            ra, dec = _appGeoFromICRS(
+                5.0,
+                dec_icrs,
+                pm_ra=pm_ra,
+                pm_dec=pm_dec,
+                parallax=parallax,
+                v_rad=v_rad,
+                mjd=mjd,
+            )
 
         self.assertIn("The input arguments:", context.exception.args[0])
         self.assertIn("dec", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            ra, dec = _appGeoFromICRS(ra_icrs, dec_icrs, pm_ra=5.0, pm_dec=pm_dec,
-                                      parallax=parallax, v_rad=v_rad, mjd=mjd)
+            ra, dec = _appGeoFromICRS(
+                ra_icrs,
+                dec_icrs,
+                pm_ra=5.0,
+                pm_dec=pm_dec,
+                parallax=parallax,
+                v_rad=v_rad,
+                mjd=mjd,
+            )
 
         self.assertIn("The input arguments:", context.exception.args[0])
         self.assertIn("pm_ra", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            ra, dec = _appGeoFromICRS(ra_icrs, dec_icrs, pm_ra=pm_ra, pm_dec=5.0,
-                                      parallax=parallax, v_rad=v_rad, mjd=mjd)
+            ra, dec = _appGeoFromICRS(
+                ra_icrs,
+                dec_icrs,
+                pm_ra=pm_ra,
+                pm_dec=5.0,
+                parallax=parallax,
+                v_rad=v_rad,
+                mjd=mjd,
+            )
 
         self.assertIn("The input arguments:", context.exception.args[0])
         self.assertIn("pm_dec", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            ra, dec = _appGeoFromICRS(ra_icrs, dec_icrs, pm_ra=pm_ra, pm_dec=pm_dec,
-                                      parallax=5.0, v_rad=v_rad, mjd=mjd)
+            ra, dec = _appGeoFromICRS(
+                ra_icrs,
+                dec_icrs,
+                pm_ra=pm_ra,
+                pm_dec=pm_dec,
+                parallax=5.0,
+                v_rad=v_rad,
+                mjd=mjd,
+            )
 
         self.assertIn("The input arguments:", context.exception.args[0])
         self.assertIn("parallax", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            ra, dec = _appGeoFromICRS(ra_icrs, dec_icrs, pm_ra=pm_ra, pm_dec=pm_dec,
-                                      parallax=parallax, v_rad=5.0, mjd=mjd)
+            ra, dec = _appGeoFromICRS(
+                ra_icrs,
+                dec_icrs,
+                pm_ra=pm_ra,
+                pm_dec=pm_dec,
+                parallax=parallax,
+                v_rad=5.0,
+                mjd=mjd,
+            )
 
         self.assertIn("The input arguments:", context.exception.args[0])
         self.assertIn("v_rad", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            ra, dec = _appGeoFromICRS(ra_icrs, dec_icrs[:2], pm_ra=pm_ra, pm_dec=pm_dec,
-                                      parallax=parallax, v_rad=v_rad, mjd=mjd)
+            ra, dec = _appGeoFromICRS(
+                ra_icrs,
+                dec_icrs[:2],
+                pm_ra=pm_ra,
+                pm_dec=pm_dec,
+                parallax=parallax,
+                v_rad=v_rad,
+                mjd=mjd,
+            )
 
-        self.assertEqual(context.exception.args[0],
-                         "The arrays input to appGeoFromICRS all need to "
-                         "have the same length")
-
-        with self.assertRaises(RuntimeError) as context:
-            ra, dec = _appGeoFromICRS(ra_icrs, dec_icrs, pm_ra=pm_ra[:2], pm_dec=pm_dec,
-                                      parallax=parallax, v_rad=v_rad, mjd=mjd)
-
-        self.assertEqual(context.exception.args[0],
-                         "The arrays input to appGeoFromICRS all need to "
-                         "have the same length")
-
-        with self.assertRaises(RuntimeError) as context:
-            ra, dec = _appGeoFromICRS(ra_icrs, dec_icrs, pm_ra=pm_ra, pm_dec=pm_dec[:2],
-                                      parallax=parallax, v_rad=v_rad, mjd=mjd)
-
-        self.assertEqual(context.exception.args[0],
-                         "The arrays input to appGeoFromICRS all need to "
-                         "have the same length")
+        self.assertEqual(
+            context.exception.args[0],
+            "The arrays input to appGeoFromICRS all need to " "have the same length",
+        )
 
         with self.assertRaises(RuntimeError) as context:
-            ra, dec = _appGeoFromICRS(ra_icrs, dec_icrs, pm_ra=pm_ra, pm_dec=pm_dec,
-                                      parallax=parallax[:2], v_rad=v_rad, mjd=mjd)
+            ra, dec = _appGeoFromICRS(
+                ra_icrs,
+                dec_icrs,
+                pm_ra=pm_ra[:2],
+                pm_dec=pm_dec,
+                parallax=parallax,
+                v_rad=v_rad,
+                mjd=mjd,
+            )
 
-        self.assertEqual(context.exception.args[0],
-                         "The arrays input to appGeoFromICRS all need to "
-                         "have the same length")
+        self.assertEqual(
+            context.exception.args[0],
+            "The arrays input to appGeoFromICRS all need to " "have the same length",
+        )
 
         with self.assertRaises(RuntimeError) as context:
-            ra, dec = _appGeoFromICRS(ra_icrs, dec_icrs, pm_ra=pm_ra, pm_dec=pm_dec,
-                                      parallax=parallax, v_rad=v_rad[:2], mjd=mjd)
+            ra, dec = _appGeoFromICRS(
+                ra_icrs,
+                dec_icrs,
+                pm_ra=pm_ra,
+                pm_dec=pm_dec[:2],
+                parallax=parallax,
+                v_rad=v_rad,
+                mjd=mjd,
+            )
 
-        self.assertEqual(context.exception.args[0],
-                         "The arrays input to appGeoFromICRS all need to "
-                         "have the same length")
+        self.assertEqual(
+            context.exception.args[0],
+            "The arrays input to appGeoFromICRS all need to " "have the same length",
+        )
+
+        with self.assertRaises(RuntimeError) as context:
+            ra, dec = _appGeoFromICRS(
+                ra_icrs,
+                dec_icrs,
+                pm_ra=pm_ra,
+                pm_dec=pm_dec,
+                parallax=parallax[:2],
+                v_rad=v_rad,
+                mjd=mjd,
+            )
+
+        self.assertEqual(
+            context.exception.args[0],
+            "The arrays input to appGeoFromICRS all need to " "have the same length",
+        )
+
+        with self.assertRaises(RuntimeError) as context:
+            ra, dec = _appGeoFromICRS(
+                ra_icrs,
+                dec_icrs,
+                pm_ra=pm_ra,
+                pm_dec=pm_dec,
+                parallax=parallax,
+                v_rad=v_rad[:2],
+                mjd=mjd,
+            )
+
+        self.assertEqual(
+            context.exception.args[0],
+            "The arrays input to appGeoFromICRS all need to " "have the same length",
+        )
 
     def test_appGeoFromICRS_noMotion(self):
         """
@@ -852,32 +1155,39 @@ class astrometryUnitTest(unittest.TestCase):
         set to None behaves the same as appGeoFromICRs with parallax, proper motion
         and radial velocity set to zero.
         """
-        obs = ObservationMetaData(pointingRA=25.0, pointingDec=-11.0,
-                                  mjd=59781.2)
+        obs = ObservationMetaData(pointingRA=25.0, pointingDec=-11.0, mjd=59781.2)
 
         rng = np.random.RandomState(88)
         n_obj = 100
-        ra_list = rng.random_sample(n_obj)*2.0*np.pi
-        dec_list = rng.random_sample(n_obj)*np.pi-0.5*np.pi
+        ra_list = rng.random_sample(n_obj) * 2.0 * np.pi
+        dec_list = rng.random_sample(n_obj) * np.pi - 0.5 * np.pi
         px_list = np.zeros(n_obj)
         vrad_list = np.zeros(n_obj)
         pm_ra_list = np.zeros(n_obj)
         pm_dec_list = np.zeros(n_obj)
 
-        control_ra, control_dec = _appGeoFromICRS(ra_list, dec_list, mjd=obs.mjd,
-                                                  pm_ra=pm_ra_list, pm_dec=pm_dec_list,
-                                                  parallax=px_list, v_rad=vrad_list,
-                                                  epoch=2000.0)
+        control_ra, control_dec = _appGeoFromICRS(
+            ra_list,
+            dec_list,
+            mjd=obs.mjd,
+            pm_ra=pm_ra_list,
+            pm_dec=pm_dec_list,
+            parallax=px_list,
+            v_rad=vrad_list,
+            epoch=2000.0,
+        )
 
-        test_ra, test_dec = _appGeoFromICRS(ra_list, dec_list,
-                                            mjd=obs.mjd, epoch=2000.0)
+        test_ra, test_dec = _appGeoFromICRS(
+            ra_list, dec_list, mjd=obs.mjd, epoch=2000.0
+        )
 
         dd_sun = _distanceToSun(ra_list, dec_list, obs.mjd)
         valid = np.where(dd_sun > np.radians(20.0))
-        self.assertGreater(len(valid[0]), n_obj/3)
+        self.assertGreater(len(valid[0]), n_obj / 3)
 
-        dd = _angularSeparation(test_ra[valid], test_dec[valid],
-                                control_ra[valid], control_dec[valid])
+        dd = _angularSeparation(
+            test_ra[valid], test_dec[valid], control_ra[valid], control_dec[valid]
+        )
         self.assertLess(arcsecFromRadians(dd).max(), 0.005)
 
     def test_icrsFromAppGeo(self):
@@ -906,30 +1216,39 @@ class astrometryUnitTest(unittest.TestCase):
 
             ra_app, dec_app = _appGeoFromICRS(ra_in, dec_in, mjd=mjd)
 
-            ra_icrs, dec_icrs = _icrsFromAppGeo(ra_app, dec_app,
-                                                epoch=2000.0, mjd=mjd)
+            ra_icrs, dec_icrs = _icrsFromAppGeo(ra_app, dec_app, epoch=2000.0, mjd=mjd)
 
-            self.assertFalse(np.isnan(ra_icrs).any(), msg='There were NaNs in ra_icrs; should not be')
-            self.assertFalse(np.isnan(dec_icrs).any(), msg='There were NaNs in dec_icrs; should not be')
+            self.assertFalse(
+                np.isnan(ra_icrs).any(), msg="There were NaNs in ra_icrs; should not be"
+            )
+            self.assertFalse(
+                np.isnan(dec_icrs).any(),
+                msg="There were NaNs in dec_icrs; should not be",
+            )
 
-            valid_pts = np.where(_distanceToSun(
-                ra_in, dec_in, mjd) > 0.25 * np.pi)[0]
+            valid_pts = np.where(_distanceToSun(ra_in, dec_in, mjd) > 0.25 * np.pi)[0]
 
             self.assertGreater(len(valid_pts), 0)
 
-            distance = arcsecFromRadians(pal.dsepVector(ra_in[valid_pts], dec_in[valid_pts],
-                                                        ra_icrs[valid_pts], dec_icrs[valid_pts]))
+            distance = arcsecFromRadians(
+                pal.dsepVector(
+                    ra_in[valid_pts],
+                    dec_in[valid_pts],
+                    ra_icrs[valid_pts],
+                    dec_icrs[valid_pts],
+                )
+            )
 
             self.assertLess(distance.max(), 0.01)
 
             # test passing in floats
             for ix in valid_pts:
-                ra_test, dec_test = _icrsFromAppGeo(
-                    ra_app[ix], dec_app[ix], mjd=mjd)
+                ra_test, dec_test = _icrsFromAppGeo(ra_app[ix], dec_app[ix], mjd=mjd)
                 self.assertIsInstance(ra_test, float)
                 self.assertIsInstance(dec_test, float)
-                distance_f = arcsecFromRadians(pal.dsep(ra_in[ix], dec_in[ix],
-                                                        ra_test, dec_test))
+                distance_f = arcsecFromRadians(
+                    pal.dsep(ra_in[ix], dec_in[ix], ra_test, dec_test)
+                )
                 self.assertLess(distance_f, 0.01)
 
     def test_icrsFromObserved(self):
@@ -944,7 +1263,7 @@ class astrometryUnitTest(unittest.TestCase):
         rng = np.random.RandomState(412)
         nSamples = 100
 
-        site = Site(name='LSST')
+        site = Site(name="LSST")
 
         for tai in (53000.0, 53241.6, 58504.6):
             for includeRefraction in (True, False):
@@ -953,14 +1272,16 @@ class astrometryUnitTest(unittest.TestCase):
 
                         obs = ObservationMetaData(mjd=tai, site=site)
 
-                        raZenith, decZenith = _raDecFromAltAz(
-                            0.5 * np.pi, 0.0, obs)
+                        raZenith, decZenith = _raDecFromAltAz(0.5 * np.pi, 0.0, obs)
 
-                        obs = ObservationMetaData(pointingRA=raPointing, pointingDec=decPointing,
-                                                  mjd=tai, site=site)
+                        obs = ObservationMetaData(
+                            pointingRA=raPointing,
+                            pointingDec=decPointing,
+                            mjd=tai,
+                            site=site,
+                        )
 
-                        rr = rng.random_sample(
-                            nSamples) * np.radians(50.0)
+                        rr = rng.random_sample(nSamples) * np.radians(50.0)
                         theta = rng.random_sample(nSamples) * 2.0 * np.pi
 
                         ra_in = raZenith + rr * np.cos(theta)
@@ -968,69 +1289,112 @@ class astrometryUnitTest(unittest.TestCase):
 
                         # test a round-trip between observedFromICRS and
                         # icrsFromObserved
-                        ra_obs, dec_obs = _observedFromICRS(ra_in, dec_in, obs_metadata=obs,
-                                                            includeRefraction=includeRefraction,
-                                                            epoch=2000.0)
+                        ra_obs, dec_obs = _observedFromICRS(
+                            ra_in,
+                            dec_in,
+                            obs_metadata=obs,
+                            includeRefraction=includeRefraction,
+                            epoch=2000.0,
+                        )
 
-                        ra_icrs, dec_icrs = _icrsFromObserved(ra_obs, dec_obs, obs_metadata=obs,
-                                                              includeRefraction=includeRefraction,
-                                                              epoch=2000.0)
+                        ra_icrs, dec_icrs = _icrsFromObserved(
+                            ra_obs,
+                            dec_obs,
+                            obs_metadata=obs,
+                            includeRefraction=includeRefraction,
+                            epoch=2000.0,
+                        )
 
-                        valid_pts = np.where(_distanceToSun(
-                            ra_in, dec_in, obs.mjd) > 0.25 * np.pi)[0]
+                        valid_pts = np.where(
+                            _distanceToSun(ra_in, dec_in, obs.mjd) > 0.25 * np.pi
+                        )[0]
 
                         self.assertGreater(len(valid_pts), 0)
 
-                        distance = arcsecFromRadians(pal.dsepVector(ra_in[valid_pts], dec_in[valid_pts],
-                                                                    ra_icrs[valid_pts], dec_icrs[valid_pts]))
+                        distance = arcsecFromRadians(
+                            pal.dsepVector(
+                                ra_in[valid_pts],
+                                dec_in[valid_pts],
+                                ra_icrs[valid_pts],
+                                dec_icrs[valid_pts],
+                            )
+                        )
 
                         self.assertLess(distance.max(), 1.0e-6)
 
                         # test a round-trip between observedFromAppGeo and
                         # appGeoFromObserved
-                        ra_obs_from_app_geo, \
-                            dec_obs_from_app_geo = _observedFromAppGeo(ra_in, dec_in, obs_metadata=obs,
-                                                                       includeRefraction=includeRefraction)
+                        ra_obs_from_app_geo, dec_obs_from_app_geo = _observedFromAppGeo(
+                            ra_in,
+                            dec_in,
+                            obs_metadata=obs,
+                            includeRefraction=includeRefraction,
+                        )
 
-                        ra_app, dec_app = _appGeoFromObserved(ra_obs_from_app_geo,
-                                                              dec_obs_from_app_geo,
-                                                              obs_metadata=obs,
-                                                              includeRefraction=includeRefraction)
+                        ra_app, dec_app = _appGeoFromObserved(
+                            ra_obs_from_app_geo,
+                            dec_obs_from_app_geo,
+                            obs_metadata=obs,
+                            includeRefraction=includeRefraction,
+                        )
 
-                        distance = arcsecFromRadians(pal.dsepVector(ra_in[valid_pts], dec_in[valid_pts],
-                                                                    ra_app[valid_pts], dec_app[valid_pts]))
+                        distance = arcsecFromRadians(
+                            pal.dsepVector(
+                                ra_in[valid_pts],
+                                dec_in[valid_pts],
+                                ra_app[valid_pts],
+                                dec_app[valid_pts],
+                            )
+                        )
 
                         self.assertLess(distance.max(), 1.0e-6)
 
                         # test that passing arguments in as floats gives consistent
                         # results
                         for ix in valid_pts:
-                            ra_f, dec_f = _icrsFromObserved(ra_obs[ix], dec_obs[ix],
-                                                            obs_metadata=obs,
-                                                            includeRefraction=includeRefraction,
-                                                            epoch=2000.0)
+                            ra_f, dec_f = _icrsFromObserved(
+                                ra_obs[ix],
+                                dec_obs[ix],
+                                obs_metadata=obs,
+                                includeRefraction=includeRefraction,
+                                epoch=2000.0,
+                            )
                             self.assertIsInstance(ra_f, float)
                             self.assertIsInstance(dec_f, float)
-                            dist_f = arcsecFromRadians(pal.dsep(ra_icrs[ix], dec_icrs[ix], ra_f, dec_f))
+                            dist_f = arcsecFromRadians(
+                                pal.dsep(ra_icrs[ix], dec_icrs[ix], ra_f, dec_f)
+                            )
                             self.assertLess(dist_f, 1.0e-9)
 
-                            ra_f, dec_f = _observedFromAppGeo(ra_in[ix], dec_in[ix],
-                                                              obs_metadata=obs,
-                                                              includeRefraction=includeRefraction)
+                            ra_f, dec_f = _observedFromAppGeo(
+                                ra_in[ix],
+                                dec_in[ix],
+                                obs_metadata=obs,
+                                includeRefraction=includeRefraction,
+                            )
                             self.assertIsInstance(ra_f, float)
                             self.assertIsInstance(dec_f, float)
-                            dist_f = arcsecFromRadians(pal.dsep(ra_obs_from_app_geo[ix],
-                                                                dec_obs_from_app_geo[ix],
-                                                                ra_f, dec_f))
+                            dist_f = arcsecFromRadians(
+                                pal.dsep(
+                                    ra_obs_from_app_geo[ix],
+                                    dec_obs_from_app_geo[ix],
+                                    ra_f,
+                                    dec_f,
+                                )
+                            )
                             self.assertLess(dist_f, 1.0e-9)
 
-                            ra_f, dec_f = _appGeoFromObserved(ra_obs_from_app_geo[ix],
-                                                              dec_obs_from_app_geo[ix],
-                                                              obs_metadata=obs,
-                                                              includeRefraction=includeRefraction)
+                            ra_f, dec_f = _appGeoFromObserved(
+                                ra_obs_from_app_geo[ix],
+                                dec_obs_from_app_geo[ix],
+                                obs_metadata=obs,
+                                includeRefraction=includeRefraction,
+                            )
                             self.assertIsInstance(ra_f, float)
                             self.assertIsInstance(dec_f, float)
-                            dist_f = arcsecFromRadians(pal.dsep(ra_app[ix], dec_app[ix], ra_f, dec_f))
+                            dist_f = arcsecFromRadians(
+                                pal.dsep(ra_app[ix], dec_app[ix], ra_f, dec_f)
+                            )
                             self.assertLess(dist_f, 1.0e-9)
 
     def test_icrsFromObserved_noRefraction(self):
@@ -1043,20 +1407,22 @@ class astrometryUnitTest(unittest.TestCase):
         n_samples = 10
         for i_batch in range(n_batches):
             _d_sun = 0.0
-            while _d_sun < 0.25*np.pi:  # because ICRS -> Observed conversion breaks close to the sun
-                mjd = rng.random_sample(1)[0]*10000.0 + 40000.0
+            while (
+                _d_sun < 0.25 * np.pi
+            ):  # because ICRS -> Observed conversion breaks close to the sun
+                mjd = rng.random_sample(1)[0] * 10000.0 + 40000.0
                 obs = ObservationMetaData(mjd=mjd)
-                ra_in = rng.random_sample(n_samples)*np.pi*2.0
-                dec_in = rng.random_sample(n_samples)*np.pi - 0.5*np.pi
+                ra_in = rng.random_sample(n_samples) * np.pi * 2.0
+                dec_in = rng.random_sample(n_samples) * np.pi - 0.5 * np.pi
 
                 _d_sun = _distanceToSun(ra_in, dec_in, obs.mjd).min()
 
-            ra_obs, dec_obs = _observedFromICRS(ra_in, dec_in, obs_metadata=obs,
-                                                includeRefraction=False,
-                                                epoch=2000.0)
-            ra_icrs, dec_icrs = _icrsFromObserved(ra_obs, dec_obs, obs_metadata=obs,
-                                                  includeRefraction=False,
-                                                  epoch=2000.0)
+            ra_obs, dec_obs = _observedFromICRS(
+                ra_in, dec_in, obs_metadata=obs, includeRefraction=False, epoch=2000.0
+            )
+            ra_icrs, dec_icrs = _icrsFromObserved(
+                ra_obs, dec_obs, obs_metadata=obs, includeRefraction=False, epoch=2000.0
+            )
             distance = pal.dsepVector(ra_in, dec_in, ra_icrs, dec_icrs)
 
             self.assertLess(arcsecFromRadians(distance).max(), 0.01)
@@ -1070,40 +1436,56 @@ class astrometryUnitTest(unittest.TestCase):
         dec_in = rng.random_sample(10)
         with self.assertRaises(RuntimeError) as context:
             ra_out, dec_out = _icrsFromObserved(ra_in, dec_in, epoch=2000.0)
-        self.assertEqual(context.exception.args[0],
-                         "Cannot call icrsFromObserved; obs_metadata is None")
+        self.assertEqual(
+            context.exception.args[0],
+            "Cannot call icrsFromObserved; obs_metadata is None",
+        )
 
         obs = ObservationMetaData(pointingRA=23.0, pointingDec=-19.0)
         with self.assertRaises(RuntimeError) as context:
-            ra_out, dec_out = _icrsFromObserved(ra_in, dec_in, epoch=2000.0, obs_metadata=obs)
-        self.assertEqual(context.exception.args[0],
-                         "Cannot call icrsFromObserved; obs_metadata.mjd is None")
+            ra_out, dec_out = _icrsFromObserved(
+                ra_in, dec_in, epoch=2000.0, obs_metadata=obs
+            )
+        self.assertEqual(
+            context.exception.args[0],
+            "Cannot call icrsFromObserved; obs_metadata.mjd is None",
+        )
 
-        obs = ObservationMetaData(pointingRA=23.0, pointingDec=-19.0,
-                                  mjd=ModifiedJulianDate(TAI=52344.0))
+        obs = ObservationMetaData(
+            pointingRA=23.0, pointingDec=-19.0, mjd=ModifiedJulianDate(TAI=52344.0)
+        )
         with self.assertRaises(RuntimeError) as context:
             ra_out, dec_out = _icrsFromObserved(ra_in, dec_in, obs_metadata=obs)
-        self.assertEqual(context.exception.args[0],
-                         "Cannot call icrsFromObserved; you have not specified an epoch")
+        self.assertEqual(
+            context.exception.args[0],
+            "Cannot call icrsFromObserved; you have not specified an epoch",
+        )
 
         with self.assertRaises(RuntimeError) as context:
-            ra_out, dec_out = _icrsFromObserved(ra_in[:3], dec_in, obs_metadata=obs, epoch=2000.0)
-        self.assertEqual(context.exception.args[0],
-                         "The arrays input to icrsFromObserved all need to have the same length")
+            ra_out, dec_out = _icrsFromObserved(
+                ra_in[:3], dec_in, obs_metadata=obs, epoch=2000.0
+            )
+        self.assertEqual(
+            context.exception.args[0],
+            "The arrays input to icrsFromObserved all need to have the same length",
+        )
 
     def test_appGeoFromObserved(self):
         """
         Test that _appGeoFromObserved really does invert _observedFromAppGeo
         """
         mjd = 58350.0
-        site = Site(longitude=np.degrees(0.235),
-                    latitude=np.degrees(-1.2), name='LSST')
-        raCenter, decCenter = raDecFromAltAz(90.0, 0.0,
-                                             ObservationMetaData(mjd=mjd, site=site))
+        site = Site(longitude=np.degrees(0.235), latitude=np.degrees(-1.2), name="LSST")
+        raCenter, decCenter = raDecFromAltAz(
+            90.0, 0.0, ObservationMetaData(mjd=mjd, site=site)
+        )
 
-        obs = ObservationMetaData(pointingRA=raCenter, pointingDec=decCenter,
-                                  mjd=ModifiedJulianDate(TAI=58350.0),
-                                  site=site)
+        obs = ObservationMetaData(
+            pointingRA=raCenter,
+            pointingDec=decCenter,
+            mjd=ModifiedJulianDate(TAI=58350.0),
+            site=site,
+        )
 
         rng = np.random.RandomState(125543)
         nSamples = 200
@@ -1123,21 +1505,31 @@ class astrometryUnitTest(unittest.TestCase):
 
         for includeRefraction in [True, False]:
             for wavelength in (0.5, 0.3, 0.7):
-                ra_obs, dec_obs = _observedFromAppGeo(ra_in, dec_in, obs_metadata=obs,
-                                                      wavelength=wavelength,
-                                                      includeRefraction=includeRefraction)
+                ra_obs, dec_obs = _observedFromAppGeo(
+                    ra_in,
+                    dec_in,
+                    obs_metadata=obs,
+                    wavelength=wavelength,
+                    includeRefraction=includeRefraction,
+                )
 
-                ra_out, dec_out = _appGeoFromObserved(ra_obs, dec_obs, obs_metadata=obs,
-                                                      wavelength=wavelength,
-                                                      includeRefraction=includeRefraction)
+                ra_out, dec_out = _appGeoFromObserved(
+                    ra_obs,
+                    dec_obs,
+                    obs_metadata=obs,
+                    wavelength=wavelength,
+                    includeRefraction=includeRefraction,
+                )
 
                 xx_out = np.cos(dec_out) * np.cos(ra_out)
                 yy_out = np.cos(dec_out) * np.sin(ra_out)
                 zz_out = np.sin(dec_out)
 
-                distance = np.sqrt(np.power(xx_in - xx_out, 2) +
-                                   np.power(yy_in - yy_out, 2) +
-                                   np.power(zz_in - zz_out, 2))
+                distance = np.sqrt(
+                    np.power(xx_in - xx_out, 2)
+                    + np.power(yy_in - yy_out, 2)
+                    + np.power(zz_in - zz_out, 2)
+                )
 
                 self.assertLess(distance.max(), 1.0e-12)
 
@@ -1151,43 +1543,51 @@ class astrometryUnitTest(unittest.TestCase):
 
         with self.assertRaises(RuntimeError) as context:
             ra_out, dec_out = _appGeoFromObserved(ra_in, dec_in)
-        self.assertEqual(context.exception.args[0],
-                         "Cannot call appGeoFromObserved without an obs_metadata")
+        self.assertEqual(
+            context.exception.args[0],
+            "Cannot call appGeoFromObserved without an obs_metadata",
+        )
 
-        obs = ObservationMetaData(pointingRA=25.0, pointingDec=-12.0,
-                                  site=None, mjd=ModifiedJulianDate(TAI=52000.0))
+        obs = ObservationMetaData(
+            pointingRA=25.0,
+            pointingDec=-12.0,
+            site=None,
+            mjd=ModifiedJulianDate(TAI=52000.0),
+        )
 
         with self.assertRaises(RuntimeError) as context:
-            ra_out, dec_out = _appGeoFromObserved(
-                ra_in, dec_in, obs_metadata=obs)
-        self.assertEqual(context.exception.args[0],
-                         "Cannot call appGeoFromObserved: obs_metadata has no site info")
+            ra_out, dec_out = _appGeoFromObserved(ra_in, dec_in, obs_metadata=obs)
+        self.assertEqual(
+            context.exception.args[0],
+            "Cannot call appGeoFromObserved: obs_metadata has no site info",
+        )
 
         obs = ObservationMetaData(pointingRA=25.0, pointingDec=-12.0)
         with self.assertRaises(RuntimeError) as context:
-            ra_out, dec_out = _appGeoFromObserved(
-                ra_in, dec_in, obs_metadata=obs)
-        self.assertEqual(context.exception.args[0],
-                         "Cannot call appGeoFromObserved: obs_metadata has no mjd")
+            ra_out, dec_out = _appGeoFromObserved(ra_in, dec_in, obs_metadata=obs)
+        self.assertEqual(
+            context.exception.args[0],
+            "Cannot call appGeoFromObserved: obs_metadata has no mjd",
+        )
 
-        obs = ObservationMetaData(pointingRA=25.0, pointingDec=-12.0,
-                                  mjd=ModifiedJulianDate(TAI=52000.0))
+        obs = ObservationMetaData(
+            pointingRA=25.0, pointingDec=-12.0, mjd=ModifiedJulianDate(TAI=52000.0)
+        )
         with self.assertRaises(RuntimeError) as context:
-            ra_out, dec_out = _appGeoFromObserved(
-                ra_in[:2], dec_in, obs_metadata=obs)
-        self.assertEqual(context.exception.args[0],
-                         "The arrays input to appGeoFromObserved all need to have the same length")
+            ra_out, dec_out = _appGeoFromObserved(ra_in[:2], dec_in, obs_metadata=obs)
+        self.assertEqual(
+            context.exception.args[0],
+            "The arrays input to appGeoFromObserved all need to have the same length",
+        )
 
     def testRefractionCoefficients(self):
-        output = refractionCoefficients(
-            wavelength=5000.0, site=self.obs_metadata.site)
+        output = refractionCoefficients(wavelength=5000.0, site=self.obs_metadata.site)
 
         self.assertAlmostEqual(output[0], 2.295817926320665320e-04, 6)
         self.assertAlmostEqual(output[1], -2.385964632924575670e-07, 6)
 
     def testApplyRefraction(self):
-        coeffs = refractionCoefficients(
-            wavelength=5000.0, site=self.obs_metadata.site)
+        coeffs = refractionCoefficients(wavelength=5000.0, site=self.obs_metadata.site)
 
         output = applyRefraction(0.25 * np.pi, coeffs[0], coeffs[1])
 
@@ -1222,36 +1622,68 @@ class astrometryUnitTest(unittest.TestCase):
         ra_list = np.degrees(ra_list)
         dec_list = np.degrees(dec_list)
 
-        px_list = np.array([0.2]*n_obj)
-        vrad_list = np.array([200.0]*n_obj)
-        pm_ra_list = np.array([30.0]*n_obj)
-        pm_dec_list = np.array([-30.0]*n_obj)
+        px_list = np.array([0.2] * n_obj)
+        vrad_list = np.array([200.0] * n_obj)
+        pm_ra_list = np.array([30.0] * n_obj)
+        pm_dec_list = np.array([-30.0] * n_obj)
 
-        obs = ObservationMetaData(pointingRA=ra, pointingDec=dec,
-                                  mjd=60123.0)
+        obs = ObservationMetaData(pointingRA=ra, pointingDec=dec, mjd=60123.0)
 
         for includeRefraction in (True, False):
-            ra_control, dec_control = observedFromICRS(ra_list, dec_list,
-                                                       pm_ra=pm_ra_list, pm_dec=pm_dec_list,
-                                                       v_rad=vrad_list, parallax=px_list, obs_metadata=obs,
-                                                       epoch=2000.0, includeRefraction=includeRefraction)
+            ra_control, dec_control = observedFromICRS(
+                ra_list,
+                dec_list,
+                pm_ra=pm_ra_list,
+                pm_dec=pm_dec_list,
+                v_rad=vrad_list,
+                parallax=px_list,
+                obs_metadata=obs,
+                epoch=2000.0,
+                includeRefraction=includeRefraction,
+            )
 
-            ra_pm, dec_pm = applyProperMotion(ra_list, dec_list, pm_ra_list, pm_dec_list,
-                                              parallax=px_list, v_rad=vrad_list, mjd=obs.mjd, epoch=2000.0)
+            ra_pm, dec_pm = applyProperMotion(
+                ra_list,
+                dec_list,
+                pm_ra_list,
+                pm_dec_list,
+                parallax=px_list,
+                v_rad=vrad_list,
+                mjd=obs.mjd,
+                epoch=2000.0,
+            )
 
-            ra_test, dec_test = observedFromICRS(ra_pm, dec_pm, parallax=px_list, v_rad=vrad_list,
-                                                 obs_metadata=obs, epoch=2000.0,
-                                                 includeRefraction=includeRefraction)
+            ra_test, dec_test = observedFromICRS(
+                ra_pm,
+                dec_pm,
+                parallax=px_list,
+                v_rad=vrad_list,
+                obs_metadata=obs,
+                epoch=2000.0,
+                includeRefraction=includeRefraction,
+            )
 
             # the distance between the test points and the control points
-            dd = arcsecFromRadians(haversine(np.radians(ra_test), np.radians(dec_test),
-                                             np.radians(ra_control), np.radians(dec_control)))
+            dd = arcsecFromRadians(
+                haversine(
+                    np.radians(ra_test),
+                    np.radians(dec_test),
+                    np.radians(ra_control),
+                    np.radians(dec_control),
+                )
+            )
 
             self.assertLess(dd.max(), 0.005)
 
             # the distance between the origina points and the motion-propagated points
-            dd_bad = arcsecFromRadians(haversine(np.radians(ra_control), np.radians(dec_control),
-                                                 np.radians(ra_list), np.radians(dec_list)))
+            dd_bad = arcsecFromRadians(
+                haversine(
+                    np.radians(ra_control),
+                    np.radians(dec_control),
+                    np.radians(ra_list),
+                    np.radians(dec_list),
+                )
+            )
 
             self.assertGreater(dd_bad.min(), 10.0)
 

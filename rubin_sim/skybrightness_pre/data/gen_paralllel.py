@@ -16,21 +16,28 @@ if __name__ == "__main__":
     dview.execute("import generate_sky")
 
     # Make a quick small one for speed loading
-    #generate_sky(mjd0=59579, mjd_max=59579+10., outpath='healpix_6mo', outfile='small_example.npz_small')
+    # generate_sky(mjd0=59579, mjd_max=59579+10., outpath='healpix_6mo', outfile='small_example.npz_small')
 
     nyears = 20  # 13
     day_pad = 5
-    #day_pad = 30
+    # day_pad = 30
     # Full year
     # mjds = np.arange(59560, 59560+365.25*nyears+day_pad+366, 366)
     # 6-months
-    mjds = np.arange(59560, 59560+366*nyears+366/2., 366/2.)
+    mjds = np.arange(59560, 59560 + 366 * nyears + 366 / 2.0, 366 / 2.0)
 
-    #result = dview.map_sync(lambda mjd1, mjd2:
+    # result = dview.map_sync(lambda mjd1, mjd2:
     #                        generate_sky.generate_sky(mjd0 = mjd1, mjd_max=mjd2+30, outpath='healpix_6mo', verbose=False),
     #                        mjds[:-1], mjds[1:])
 
-    result = dview.map_sync(lambda mjd1, mjd2:
-                            generate_sky.generate_sky(mjd0 = mjd1, mjd_max=mjd2, outpath='opsimFields_20', fieldID=True, verbose=False),
-                            mjds[:-1], mjds[1:]+day_pad)
-
+    result = dview.map_sync(
+        lambda mjd1, mjd2: generate_sky.generate_sky(
+            mjd0=mjd1,
+            mjd_max=mjd2,
+            outpath="opsimFields_20",
+            fieldID=True,
+            verbose=False,
+        ),
+        mjds[:-1],
+        mjds[1:] + day_pad,
+    )

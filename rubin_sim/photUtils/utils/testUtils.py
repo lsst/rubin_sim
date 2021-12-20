@@ -7,13 +7,10 @@ To date (30 October 2014) testPhotometry.py and testCosmology.py import from thi
 import numpy
 from rubin_sim.photUtils import calcSkyCountsPerPixelForM5, Sed
 
-__all__ = ["setM5",
-           "comovingDistanceIntegrand", "cosmologicalOmega"]
+__all__ = ["setM5", "comovingDistanceIntegrand", "cosmologicalOmega"]
 
 
-def setM5(m5target, skysed, totalBandpass, hardware,
-          photParams,
-          FWHMeff=None):
+def setM5(m5target, skysed, totalBandpass, hardware, photParams, FWHMeff=None):
     """
     Take an SED representing the sky and normalize it so that
     m5 (the magnitude at which an object is detected in this
@@ -53,26 +50,31 @@ def setM5(m5target, skysed, totalBandpass, hardware,
     arcsecond in a given bandpass.
     """
 
-    #This is based on the LSST SNR document (v1.2, May 2010)
-    #www.astro.washington.edu/users/ivezic/Astr511/LSST_SNRdoc.pdf
+    # This is based on the LSST SNR document (v1.2, May 2010)
+    # www.astro.washington.edu/users/ivezic/Astr511/LSST_SNRdoc.pdf
 
     if FWHMeff is None:
-        FWHMeff = LSSTdefaults().FWHMeff('r')
+        FWHMeff = LSSTdefaults().FWHMeff("r")
 
-    skyCountsTarget = calcSkyCountsPerPixelForM5(m5target, totalBandpass, FWHMeff=FWHMeff,
-                                             photParams=photParams)
+    skyCountsTarget = calcSkyCountsPerPixelForM5(
+        m5target, totalBandpass, FWHMeff=FWHMeff, photParams=photParams
+    )
 
-    skySedOut = Sed(wavelen=numpy.copy(skysed.wavelen),
-                    flambda=numpy.copy(skysed.flambda))
+    skySedOut = Sed(
+        wavelen=numpy.copy(skysed.wavelen), flambda=numpy.copy(skysed.flambda)
+    )
 
-    skyCounts = skySedOut.calcADU(hardware, photParams=photParams) \
-                    * photParams.platescale * photParams.platescale
-    skySedOut.multiplyFluxNorm(skyCountsTarget/skyCounts)
+    skyCounts = (
+        skySedOut.calcADU(hardware, photParams=photParams)
+        * photParams.platescale
+        * photParams.platescale
+    )
+    skySedOut.multiplyFluxNorm(skyCountsTarget / skyCounts)
 
     return skySedOut
 
 
-def cosmologicalOmega(redshift, H0, Om0, Ode0 = None, Og0=0.0, Onu0=0.0, w0=-1.0, wa=0.0):
+def cosmologicalOmega(redshift, H0, Om0, Ode0=None, Og0=0.0, Onu0=0.0, w0=-1.0, wa=0.0):
     """
     A method to compute the evolution of the Hubble and density parameters
     with redshift (as a baseline against which to test the cosmology unittest)
@@ -116,16 +118,24 @@ def cosmologicalOmega(redshift, H0, Om0, Ode0 = None, Og0=0.0, Onu0=0.0, w0=-1.0
 
     Ok0 = 1.0 - Om0 - Ode0 - Og0 - Onu0
 
-    aa = 1.0/(1.0+redshift)
-    Omz = Om0 * numpy.power(1.0+redshift, 3)
-    Ogz = Og0 * numpy.power(1.0+redshift, 4)
-    Onuz = Onu0 * numpy.power(1.0+redshift, 4)
-    Okz = Ok0 * numpy.power(1.0+redshift, 2)
-    Odez = Ode0 * numpy.exp(-3.0*(numpy.log(aa)*(w0 + wa +1.0) - wa*(aa - 1.0)))
+    aa = 1.0 / (1.0 + redshift)
+    Omz = Om0 * numpy.power(1.0 + redshift, 3)
+    Ogz = Og0 * numpy.power(1.0 + redshift, 4)
+    Onuz = Onu0 * numpy.power(1.0 + redshift, 4)
+    Okz = Ok0 * numpy.power(1.0 + redshift, 2)
+    Odez = Ode0 * numpy.exp(-3.0 * (numpy.log(aa) * (w0 + wa + 1.0) - wa * (aa - 1.0)))
 
     Ototal = Omz + Ogz + Onuz + Odez + Okz
 
-    return H0*numpy.sqrt(Ototal), Omz/Ototal, Odez/Ototal, Ogz/Ototal, Onuz/Ototal, Okz/Ototal
+    return (
+        H0 * numpy.sqrt(Ototal),
+        Omz / Ototal,
+        Odez / Ototal,
+        Ogz / Ototal,
+        Onuz / Ototal,
+        Okz / Ototal,
+    )
+
 
 def comovingDistanceIntegrand(redshift, H0, Om0, Ode0, Og0, Onu0, w0, wa):
     """
@@ -154,6 +164,7 @@ def comovingDistanceIntegrand(redshift, H0, Om0, Ode0, Og0, Onu0, w0, wa):
     @returns 1/(Hubble parameter at desired redshift in km/s/Mpc)
 
     """
-    hh, mm, de, gg, nn, kk = cosmologicalOmega(redshift, H0, Om0, Ode0=Ode0,
-                                          Og0=Og0, Onu0=Onu0, w0=w0, wa=wa)
-    return 1.0/hh
+    hh, mm, de, gg, nn, kk = cosmologicalOmega(
+        redshift, H0, Om0, Ode0=Ode0, Og0=Og0, Onu0=Onu0, w0=w0, wa=wa
+    )
+    return 1.0 / hh

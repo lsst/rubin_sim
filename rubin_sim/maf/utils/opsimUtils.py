@@ -9,8 +9,14 @@ from sqlite3 import OperationalError, IntegrityError
 
 from .outputUtils import printDict
 
-__all__ = ['writeConfigs', 'getFieldData', 'getSimData',
-           'scaleBenchmarks', 'calcCoaddedDepth', 'labelVisits']
+__all__ = [
+    "writeConfigs",
+    "getFieldData",
+    "getSimData",
+    "scaleBenchmarks",
+    "calcCoaddedDepth",
+    "labelVisits",
+]
 
 
 def writeConfigs(opsimDb, outDir):
@@ -27,13 +33,13 @@ def writeConfigs(opsimDb, outDir):
         The path to the output directory, where to write the config*.txt files.
     """
     configSummary, configDetails = opsimDb.fetchConfig()
-    outfile = os.path.join(outDir, 'configSummary.txt')
-    f = open(outfile, 'w')
-    printDict(configSummary, 'Summary', f)
+    outfile = os.path.join(outDir, "configSummary.txt")
+    f = open(outfile, "w")
+    printDict(configSummary, "Summary", f)
     f.close()
-    outfile = os.path.join(outDir, 'configDetails.txt')
-    f = open(outfile, 'w')
-    printDict(configDetails, 'Details', f)
+    outfile = os.path.join(outDir, "configDetails.txt")
+    f = open(outfile, "w")
+    printDict(configDetails, "Details", f)
     f.close()
 
 
@@ -58,28 +64,30 @@ def getFieldData(opsimDb, sqlconstraint):
         A numpy structured array containing the field information.  This data will ALWAYS be in radians.
     """
     # Get all fields used for all proposals.
-    if 'proposalId' not in sqlconstraint:
+    if "proposalId" not in sqlconstraint:
         propids, propTags = opsimDb.fetchPropInfo()
         propids = list(propids.keys())
     else:
         # Parse the propID out of the sqlconstraint.
         # example: sqlconstraint: filter = r and (propid = 219 or propid = 155) and propid!= 90
-        sqlconstraint = sqlconstraint.replace('=', ' = ').replace('(', '').replace(')', '')
-        sqlconstraint = sqlconstraint.replace("'", '').replace('"', '')
+        sqlconstraint = (
+            sqlconstraint.replace("=", " = ").replace("(", "").replace(")", "")
+        )
+        sqlconstraint = sqlconstraint.replace("'", "").replace('"', "")
         # Allow for choosing all but a particular proposal.
-        sqlconstraint = sqlconstraint.replace('! =', ' !=')
-        sqlconstraint = sqlconstraint.replace('  ', ' ')
-        sqllist = sqlconstraint.split(' ')
+        sqlconstraint = sqlconstraint.replace("! =", " !=")
+        sqlconstraint = sqlconstraint.replace("  ", " ")
+        sqllist = sqlconstraint.split(" ")
         propids = []
         nonpropids = []
         i = 0
         while i < len(sqllist):
-            if sqllist[i].lower() == 'proposalid':
+            if sqllist[i].lower() == "proposalid":
                 i += 1
                 if sqllist[i] == "=":
                     i += 1
                     propids.append(int(sqllist[i]))
-                elif sqllist[i] == '!=':
+                elif sqllist[i] == "!=":
                     i += 1
                     nonpropids.append(int(sqllist[i]))
             i += 1
@@ -91,7 +99,7 @@ def getFieldData(opsimDb, sqlconstraint):
                 if nonpropid in propids:
                     propids.remove(nonpropid)
     # And query the field Table.
-    if 'Field' in opsimDb.tables:
+    if "Field" in opsimDb.tables:
         # The field table is always in degrees.
         fieldData = opsimDb.fetchFieldsFromFieldTable(propids, degreesToRadians=True)
     # Or give up and query the summary table.
@@ -100,7 +108,9 @@ def getFieldData(opsimDb, sqlconstraint):
     return fieldData
 
 
-def getSimData(opsimDb, sqlconstraint, dbcols, stackers=None, groupBy='default', tableName=None):
+def getSimData(
+    opsimDb, sqlconstraint, dbcols, stackers=None, groupBy="default", tableName=None
+):
     """Query an opsim database for the needed data columns and run any required stackers.
 
     Parameters
@@ -124,9 +134,11 @@ def getSimData(opsimDb, sqlconstraint, dbcols, stackers=None, groupBy='default',
         the SQLconstraint.
     """
     # Get data from database.
-    simData = opsimDb.fetchMetricData(dbcols, sqlconstraint, groupBy=groupBy, tableName=tableName)
+    simData = opsimDb.fetchMetricData(
+        dbcols, sqlconstraint, groupBy=groupBy, tableName=tableName
+    )
     if len(simData) == 0:
-        raise UserWarning('No data found matching sqlconstraint %s' % (sqlconstraint))
+        raise UserWarning("No data found matching sqlconstraint %s" % (sqlconstraint))
     # Now add the stacker columns.
     if stackers is not None:
         for s in stackers:
@@ -134,7 +146,7 @@ def getSimData(opsimDb, sqlconstraint, dbcols, stackers=None, groupBy='default',
     return simData
 
 
-def scaleBenchmarks(runLength, benchmark='design'):
+def scaleBenchmarks(runLength, benchmark="design"):
     """
     Set the design and stretch values of the number of visits, area of the footprint,
     seeing values, FWHMeff values, skybrightness, and single visit depth (based on SRD values).
@@ -156,48 +168,99 @@ def scaleBenchmarks(runLength, benchmark='design'):
        skybrightness and single visit depth for either the design or stretch SRD values.
     """
     # Set baseline (default) numbers for the baseline survey length (10 years).
-    baseline = 10.
+    baseline = 10.0
 
     design = {}
     stretch = {}
 
-    design['nvisitsTotal'] = 825
-    stretch['nvisitsTotal'] = 1000
-    design['Area'] = 18000
-    stretch['Area'] = 20000
+    design["nvisitsTotal"] = 825
+    stretch["nvisitsTotal"] = 1000
+    design["Area"] = 18000
+    stretch["Area"] = 20000
 
-    design['nvisits']={'u':56,'g':80, 'r':184, 'i':184, 'z':160, 'y':160}
-    stretch['nvisits']={'u':70,'g':100, 'r':230, 'i':230, 'z':200, 'y':200}
+    design["nvisits"] = {"u": 56, "g": 80, "r": 184, "i": 184, "z": 160, "y": 160}
+    stretch["nvisits"] = {"u": 70, "g": 100, "r": 230, "i": 230, "z": 200, "y": 200}
 
     # mag/sq arcsec
-    design['skybrightness'] = {'u':21.8, 'g':22., 'r':21.3, 'i':20.0, 'z':19.1, 'y':17.5}
-    stretch['skybrightness'] = {'u':21.8, 'g':22., 'r':21.3, 'i':20.0, 'z':19.1, 'y':17.5}
+    design["skybrightness"] = {
+        "u": 21.8,
+        "g": 22.0,
+        "r": 21.3,
+        "i": 20.0,
+        "z": 19.1,
+        "y": 17.5,
+    }
+    stretch["skybrightness"] = {
+        "u": 21.8,
+        "g": 22.0,
+        "r": 21.3,
+        "i": 20.0,
+        "z": 19.1,
+        "y": 17.5,
+    }
 
     # arcsec - old seeing values
-    design['seeing'] = {'u':0.77, 'g':0.73, 'r':0.7, 'i':0.67, 'z':0.65, 'y':0.63}
-    stretch['seeing'] = {'u':0.77, 'g':0.73, 'r':0.7, 'i':0.67, 'z':0.65, 'y':0.63}
+    design["seeing"] = {"u": 0.77, "g": 0.73, "r": 0.7, "i": 0.67, "z": 0.65, "y": 0.63}
+    stretch["seeing"] = {
+        "u": 0.77,
+        "g": 0.73,
+        "r": 0.7,
+        "i": 0.67,
+        "z": 0.65,
+        "y": 0.63,
+    }
 
     # arcsec - new FWHMeff values (scaled from old seeing)
-    design['FWHMeff'] = {'u':0.92, 'g':0.87, 'r':0.83, 'i':0.80, 'z':0.78, 'y':0.76}
-    stretch['FWHMeff'] = {'u':0.92, 'g':0.87, 'r':0.83, 'i':0.80, 'z':0.78, 'y':0.76}
+    design["FWHMeff"] = {
+        "u": 0.92,
+        "g": 0.87,
+        "r": 0.83,
+        "i": 0.80,
+        "z": 0.78,
+        "y": 0.76,
+    }
+    stretch["FWHMeff"] = {
+        "u": 0.92,
+        "g": 0.87,
+        "r": 0.83,
+        "i": 0.80,
+        "z": 0.78,
+        "y": 0.76,
+    }
 
-    design['singleVisitDepth'] = {'u':23.9,'g':25.0, 'r':24.7, 'i':24.0, 'z':23.3, 'y':22.1}
-    stretch['singleVisitDepth'] = {'u':24.0,'g':25.1, 'r':24.8, 'i':24.1, 'z':23.4, 'y':22.2}
+    design["singleVisitDepth"] = {
+        "u": 23.9,
+        "g": 25.0,
+        "r": 24.7,
+        "i": 24.0,
+        "z": 23.3,
+        "y": 22.1,
+    }
+    stretch["singleVisitDepth"] = {
+        "u": 24.0,
+        "g": 25.1,
+        "r": 24.8,
+        "i": 24.1,
+        "z": 23.4,
+        "y": 22.2,
+    }
 
     # Scale the number of visits.
     if runLength != baseline:
         scalefactor = float(runLength) / float(baseline)
         # Calculate scaled value for design and stretch values of nvisits, per filter.
-        for f in design['nvisits']:
-            design['nvisits'][f] = int(np.floor(design['nvisits'][f] * scalefactor))
-            stretch['nvisits'][f] = int(np.floor(stretch['nvisits'][f] * scalefactor))
+        for f in design["nvisits"]:
+            design["nvisits"][f] = int(np.floor(design["nvisits"][f] * scalefactor))
+            stretch["nvisits"][f] = int(np.floor(stretch["nvisits"][f] * scalefactor))
 
-    if benchmark == 'design':
+    if benchmark == "design":
         return design
-    elif benchmark == 'stretch':
+    elif benchmark == "stretch":
         return stretch
     else:
-        raise ValueError("Benchmark value %s not understood: use 'design' or 'stretch'" % (benchmark))
+        raise ValueError(
+            "Benchmark value %s not understood: use 'design' or 'stretch'" % (benchmark)
+        )
 
 
 def calcCoaddedDepth(nvisits, singleVisitDepth):
@@ -219,8 +282,10 @@ def calcCoaddedDepth(nvisits, singleVisitDepth):
     coaddedDepth = {}
     for f in nvisits:
         if f not in singleVisitDepth:
-            raise ValueError('Filter keys in nvisits and singleVisitDepth must match')
-        coaddedDepth[f] = float(1.25 * np.log10(nvisits[f] * 10**(0.8*singleVisitDepth[f])))
+            raise ValueError("Filter keys in nvisits and singleVisitDepth must match")
+        coaddedDepth[f] = float(
+            1.25 * np.log10(nvisits[f] * 10 ** (0.8 * singleVisitDepth[f]))
+        )
         if not np.isfinite(coaddedDepth[f]):
             coaddedDepth[f] = singleVisitDepth[f]
     return coaddedDepth
@@ -238,22 +303,22 @@ def labelVisits(opsimdb_file):
 
     ddir = os.path.split(opsimdb_file)[0]
     if len(ddir) == 0:
-        ddir = '.'
+        ddir = "."
     basename = os.path.split(opsimdb_file)[-1]
-    runName = basename.replace('.db', '')
+    runName = basename.replace(".db", "")
     # The way this is written, in order to be able to freely use the information later, we write back
     # and modify the original opsim output. This can be problematic - so make a copy first and modify that.
     # Note also, the new output database will be in the current directory.
-    newdb_file = 'wfd_' + basename
+    newdb_file = "wfd_" + basename
     shutil.copy(opsimdb_file, newdb_file)
 
     # Generate the footprint.
-    m = CountMetric(col='observationStartMJD')
+    m = CountMetric(col="observationStartMJD")
     s = HealpixSlicer(nside=64)
     sqlconstraint = 'visitExposureTime > 11 and note not like "%DD%"'
     bundle = MetricBundle(m, s, sqlconstraint, runName=runName)
     opsdb = OpsimDatabase(newdb_file)
-    g = MetricBundleGroup({f'{runName} footprint': bundle}, opsdb, outDir=ddir)
+    g = MetricBundleGroup({f"{runName} footprint": bundle}, opsdb, outDir=ddir)
     g.runAll()
     wfd_footprint = bundle.metricValues.filled(0)
     wfd_footprint = np.where(wfd_footprint > 750, 1, 0)
@@ -263,8 +328,10 @@ def labelVisits(opsimdb_file):
     # Reopen with sqlite, so we can write back to the tables later.
     conn = sqlite3.connect(newdb_file)
     cursor = conn.cursor()
-    query = f'select observationId, observationStartMJD, fieldRA, fieldDec, filter, ' \
-            f'visitExposureTime, note from {tablename}'
+    query = (
+        f"select observationId, observationStartMJD, fieldRA, fieldDec, filter, "
+        f"visitExposureTime, note from {tablename}"
+    )
     simdata = pd.read_sql(query, conn).to_records()
     # label the visits with the visit label stacker
     wfd_stacker = WFDlabelStacker(wfd_footprint)
@@ -273,47 +340,55 @@ def labelVisits(opsimdb_file):
     # Write back proposalId/observation to the table in the new copy of the database.
     # Create some indexes
     try:
-        indxObsId = f"CREATE UNIQUE INDEX idx_observationId on {tablename} (observationId)"
+        indxObsId = (
+            f"CREATE UNIQUE INDEX idx_observationId on {tablename} (observationId)"
+        )
         cursor.execute(indxObsId)
     except OperationalError:
-        print(f'Already had observationId index on {tablename}')
+        print(f"Already had observationId index on {tablename}")
     try:
         indxMJD = f"CREATE UNIQUE INDEX idx_observationStartMJD on {tablename} (observationStartMJD);"
         cursor.execute(indxMJD)
     except OperationalError:
-        print('Already had observationStartMJD index')
+        print("Already had observationStartMJD index")
     try:
         indxFilter = f"CREATE INDEX idx_filter on {tablename} (filter)"
         cursor.execute(indxFilter)
     except OperationalError:
-        print('Already had filter index')
+        print("Already had filter index")
     # Add the proposal id information.
-    for obsid, pId in zip(simdata['observationId'], simdata['proposalId']):
-        sql = f'UPDATE {tablename} SET proposalId = {pId} WHERE observationId = {obsid}'
+    for obsid, pId in zip(simdata["observationId"], simdata["proposalId"]):
+        sql = f"UPDATE {tablename} SET proposalId = {pId} WHERE observationId = {obsid}"
         cursor.execute(sql)
     conn.commit()
 
     # Define dictionary of proposal tags.
-    propTags = {'Other': 0, 'WFD': 1}
-    propIds = np.unique(simdata['proposalId'])
+    propTags = {"Other": 0, "WFD": 1}
+    propIds = np.unique(simdata["proposalId"])
     for iD in propIds:
         if iD not in propTags:
-            tag = simdata['note'][np.where(simdata['proposalId'] == iD)][0]
+            tag = simdata["note"][np.where(simdata["proposalId"] == iD)][0]
             propTags[tag] = iD
     # Add new table to track proposal information.
-    sql = 'CREATE TABLE IF NOT EXISTS "Proposal" ("proposalId" INT PRIMARY KEY, ' \
-          '"proposalName" VARCHAR(20), "proposalType" VARCHAR(5))'
+    sql = (
+        'CREATE TABLE IF NOT EXISTS "Proposal" ("proposalId" INT PRIMARY KEY, '
+        '"proposalName" VARCHAR(20), "proposalType" VARCHAR(5))'
+    )
     cursor.execute(sql)
     # Add proposal information to Proposal table.
     for pName, pId in propTags.items():
-        pType = pName.split(':')[0]
+        pType = pName.split(":")[0]
         try:
-            sql = f'INSERT INTO Proposal (proposalId, proposalName, proposalType) ' \
-                  f'VALUES ("{pId}", "{pName}", "{pType}")'
+            sql = (
+                f"INSERT INTO Proposal (proposalId, proposalName, proposalType) "
+                f'VALUES ("{pId}", "{pName}", "{pType}")'
+            )
             cursor.execute(sql)
         except IntegrityError:
-            print(f'This proposal ID is already in the proposal table {pId},{pName} (just reusing it)')
+            print(
+                f"This proposal ID is already in the proposal table {pId},{pName} (just reusing it)"
+            )
     conn.commit()
     conn.close()
-    print(f'Labelled visits in new database copy {newdb_file}')
+    print(f"Labelled visits in new database copy {newdb_file}")
     return newdb_file

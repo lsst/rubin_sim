@@ -5,7 +5,7 @@ from rubin_sim.maf.utils import radec2pix
 from rubin_sim.data import get_data_dir
 from . import BaseMap
 
-__all__ = ['StellarDensityMap']
+__all__ = ["StellarDensityMap"]
 
 
 class StellarDensityMap(BaseMap):
@@ -22,37 +22,41 @@ class StellarDensityMap(BaseMap):
     filtername : `str`
         Filter to use. Options of u,g,r,i,z,y
     """
-    def __init__(self, startype='allstars', filtername='r', mapDir=None):
+
+    def __init__(self, startype="allstars", filtername="r", mapDir=None):
         if mapDir is not None:
             self.mapDir = mapDir
         else:
-            self.mapDir = os.path.join(get_data_dir(), 'maps', 'StarMaps')
+            self.mapDir = os.path.join(get_data_dir(), "maps", "StarMaps")
         self.filtername = filtername
-        self.keynames = [f'starLumFunc_{self.filtername}', f'starMapBins_{self.filtername}']
-        if startype == 'allstars':
-            self.startype = ''
+        self.keynames = [
+            f"starLumFunc_{self.filtername}",
+            f"starMapBins_{self.filtername}",
+        ]
+        if startype == "allstars":
+            self.startype = ""
         else:
-            self.startype = startype+'_'
+            self.startype = startype + "_"
 
     def _readMap(self):
-        filename = 'starDensity_%s_%snside_64.npz' % (self.filtername, self.startype)
+        filename = "starDensity_%s_%snside_64.npz" % (self.filtername, self.startype)
         starMap = np.load(os.path.join(self.mapDir, filename))
-        self.starMap = starMap['starDensity'].copy()
-        self.starMapBins = starMap['bins'].copy()
+        self.starMap = starMap["starDensity"].copy()
+        self.starMapBins = starMap["bins"].copy()
         self.starmapNside = hp.npix2nside(np.size(self.starMap[:, 0]))
 
     def run(self, slicePoints):
         self._readMap()
 
         nsideMatch = False
-        if 'nside' in slicePoints:
-            if slicePoints['nside'] == self.starmapNside:
-                slicePoints[f'starLumFunc_{self.filtername}'] = self.starMap
+        if "nside" in slicePoints:
+            if slicePoints["nside"] == self.starmapNside:
+                slicePoints[f"starLumFunc_{self.filtername}"] = self.starMap
                 nsideMatch = True
         if not nsideMatch:
             # Compute the healpix for each slicepoint on the nside=64 grid
-            indx = radec2pix(self.starmapNside, slicePoints['ra'], slicePoints['dec'])
-            slicePoints[f'starLumFunc_{self.filtername}'] = self.starMap[indx, :]
+            indx = radec2pix(self.starmapNside, slicePoints["ra"], slicePoints["dec"])
+            slicePoints[f"starLumFunc_{self.filtername}"] = self.starMap[indx, :]
 
-        slicePoints[f'starMapBins_{self.filtername}'] = self.starMapBins
+        slicePoints[f"starMapBins_{self.filtername}"] = self.starMapBins
         return slicePoints

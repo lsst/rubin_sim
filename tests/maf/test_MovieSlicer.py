@@ -1,4 +1,5 @@
 import matplotlib
+
 matplotlib.use("Agg")
 import numpy as np
 import warnings
@@ -7,9 +8,9 @@ from rubin_sim.maf.slicers.movieSlicer import MovieSlicer
 from rubin_sim.maf.slicers.uniSlicer import UniSlicer
 
 
-def makeTimes(size=100, min=0., max=10., random=-1):
+def makeTimes(size=100, min=0.0, max=10.0, random=-1):
     """Generate a simple array of numbers, evenly arranged between min/max."""
-    datavalues = np.arange(0, size, dtype='float')
+    datavalues = np.arange(0, size, dtype="float")
     datavalues *= (float(max) - float(min)) / (datavalues.max() - datavalues.min())
     datavalues += min
     if random > 0:
@@ -17,14 +18,15 @@ def makeTimes(size=100, min=0., max=10., random=-1):
         randorder = rng.rand(size)
         randind = np.argsort(randorder)
         datavalues = datavalues[randind]
-    datavalues = np.array(list(zip(datavalues)), dtype=[('times', 'float')])
+    datavalues = np.array(list(zip(datavalues)), dtype=[("times", "float")])
     return datavalues
 
 
 class TestMovieSlicerSetup(unittest.TestCase):
-
     def setUp(self):
-        self.testslicer = MovieSlicer(sliceColName='times', cumulative=False, forceNoFfmpeg=True)
+        self.testslicer = MovieSlicer(
+            sliceColName="times", cumulative=False, forceNoFfmpeg=True
+        )
 
     def tearDown(self):
         del self.testslicer
@@ -33,7 +35,7 @@ class TestMovieSlicerSetup(unittest.TestCase):
     def testSlicertype(self):
         """Test instantiation of slicer sets slicer type as expected."""
         self.assertEqual(self.testslicer.slicerName, self.testslicer.__class__.__name__)
-        self.assertEqual(self.testslicer.slicerName, 'MovieSlicer')
+        self.assertEqual(self.testslicer.slicerName, "MovieSlicer")
 
     def testSetupSlicerBins(self):
         """Test setting up slicer using defined bins."""
@@ -43,10 +45,12 @@ class TestMovieSlicerSetup(unittest.TestCase):
         bins = np.arange(dvmin, dvmax, 0.1)
         dv = makeTimes(nvalues, dvmin, dvmax, random=987)
         # Used right bins?
-        self.testslicer = MovieSlicer(sliceColName='times', bins=bins, cumulative=False, forceNoFfmpeg=True)
+        self.testslicer = MovieSlicer(
+            sliceColName="times", bins=bins, cumulative=False, forceNoFfmpeg=True
+        )
         self.testslicer.setupSlicer(dv)
         np.testing.assert_equal(self.testslicer.bins, bins)
-        self.assertEqual(self.testslicer.nslice, len(bins)-1)
+        self.assertEqual(self.testslicer.nslice, len(bins) - 1)
 
     def testSetupSlicerBinsize(self):
         """Test setting up slicer using binsize."""
@@ -54,9 +58,13 @@ class TestMovieSlicerSetup(unittest.TestCase):
         dvmax = 1
         dv = makeTimes(1000, dvmin, dvmax, random=1992)
         binsize = 0.1
-        for cumulative in ([True, False]):
-            self.testslicer = MovieSlicer(sliceColName='times', binsize=binsize, cumulative=cumulative,
-                                          forceNoFfmpeg=True)
+        for cumulative in [True, False]:
+            self.testslicer = MovieSlicer(
+                sliceColName="times",
+                binsize=binsize,
+                cumulative=cumulative,
+                forceNoFfmpeg=True,
+            )
             self.testslicer.setupSlicer(dv)
             # Bins of the right size?
             bindiff = np.diff(self.testslicer.bins)
@@ -65,8 +73,13 @@ class TestMovieSlicerSetup(unittest.TestCase):
         # Test that warning works.
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            self.testslicer = MovieSlicer(sliceColName='times', bins=200, binsize=binsize,
-                                          cumulative=False, forceNoFfmpeg=True)
+            self.testslicer = MovieSlicer(
+                sliceColName="times",
+                bins=200,
+                binsize=binsize,
+                cumulative=False,
+                forceNoFfmpeg=True,
+            )
             self.testslicer.setupSlicer(dv)
             # Verify some things
             self.assertIn("binsize", str(w[-1].message))
@@ -74,9 +87,11 @@ class TestMovieSlicerSetup(unittest.TestCase):
     def testSetupSlicerNbinsZeros(self):
         """Test what happens if give slicer test data that is all single-value."""
         dv = np.zeros(100, float)
-        dv = np.array(list(zip(dv)), dtype=[('times', 'float')])
+        dv = np.array(list(zip(dv)), dtype=[("times", "float")])
         nbins = 10
-        self.testslicer = MovieSlicer(sliceColName='times', bins=nbins, cumulative=False, forceNoFfmpeg=True)
+        self.testslicer = MovieSlicer(
+            sliceColName="times", bins=nbins, cumulative=False, forceNoFfmpeg=True
+        )
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             self.testslicer.setupSlicer(dv)
@@ -88,12 +103,17 @@ class TestMovieSlicerSetup(unittest.TestCase):
         binMin = 0
         binMax = 1
         nbins = 10
-        dvmin = -.5
+        dvmin = -0.5
         dvmax = 1.5
         dv = makeTimes(1000, dvmin, dvmax, random=1772)
-        self.testslicer = MovieSlicer(sliceColName='times',
-                                      binMin=binMin, binMax=binMax, bins=nbins,
-                                      cumulative=False, forceNoFfmpeg=True)
+        self.testslicer = MovieSlicer(
+            sliceColName="times",
+            binMin=binMin,
+            binMax=binMax,
+            bins=nbins,
+            cumulative=False,
+            forceNoFfmpeg=True,
+        )
         self.testslicer.setupSlicer(dv)
         self.assertAlmostEqual(self.testslicer.bins.min(), binMin)
         self.assertAlmostEqual(self.testslicer.bins.max(), binMax)
@@ -102,18 +122,19 @@ class TestMovieSlicerSetup(unittest.TestCase):
         """Test iteration and indexing."""
         dvmin = 0
         dvmax = 1
-        bins = np.arange(dvmin, dvmax+0.05, 0.05)
-        self.testslicer = MovieSlicer(sliceColName='times', bins=bins,
-                                      cumulative=False, forceNoFfmpeg=True)
+        bins = np.arange(dvmin, dvmax + 0.05, 0.05)
+        self.testslicer = MovieSlicer(
+            sliceColName="times", bins=bins, cumulative=False, forceNoFfmpeg=True
+        )
         dv = makeTimes(1000, dvmin, dvmax, random=908223)
         self.testslicer.setupSlicer(dv)
         for i, (s, b) in enumerate(zip(self.testslicer, bins)):
-            self.assertEqual(s['slicePoint']['sid'], i)
-            self.assertEqual(s['slicePoint']['binLeft'], b)
-            self.assertLessEqual(s['slicePoint']['binRight'], bins[i+1])
-        for i in ([0, len(self.testslicer)//2, len(self.testslicer)-1]):
-            self.assertEqual(self.testslicer[i]['slicePoint']['sid'], i)
-            self.assertEqual(self.testslicer[i]['slicePoint']['binLeft'], bins[i])
+            self.assertEqual(s["slicePoint"]["sid"], i)
+            self.assertEqual(s["slicePoint"]["binLeft"], b)
+            self.assertLessEqual(s["slicePoint"]["binRight"], bins[i + 1])
+        for i in [0, len(self.testslicer) // 2, len(self.testslicer) - 1]:
+            self.assertEqual(self.testslicer[i]["slicePoint"]["sid"], i)
+            self.assertEqual(self.testslicer[i]["slicePoint"]["binLeft"], bins[i])
 
     def testEquivalence(self):
         """Test equals method."""
@@ -125,16 +146,22 @@ class TestMovieSlicerSetup(unittest.TestCase):
         nvalues = 1000
         bins = np.arange(dvmin, dvmax, 0.01)
         dv = makeTimes(nvalues, dvmin, dvmax, random=72031)
-        self.testslicer = MovieSlicer(sliceColName='times', bins=bins, cumulative=False, forceNoFfmpeg=True)
+        self.testslicer = MovieSlicer(
+            sliceColName="times", bins=bins, cumulative=False, forceNoFfmpeg=True
+        )
         self.testslicer.setupSlicer(dv)
         # Set up another slicer to match (same bins, although not the same data).
-        dv2 = makeTimes(nvalues+100, dvmin, dvmax, random=56221)
-        testslicer2 = MovieSlicer(sliceColName='times', bins=bins, cumulative=False, forceNoFfmpeg=True)
+        dv2 = makeTimes(nvalues + 100, dvmin, dvmax, random=56221)
+        testslicer2 = MovieSlicer(
+            sliceColName="times", bins=bins, cumulative=False, forceNoFfmpeg=True
+        )
         testslicer2.setupSlicer(dv2)
         self.assertEqual(self.testslicer, testslicer2)
         # Set up another slicer that should not match (different bins)
-        dv2 = makeTimes(nvalues, dvmin+1, dvmax+1, random=542093)
-        testslicer2 = MovieSlicer(sliceColName='times', bins=len(bins), cumulative=False, forceNoFfmpeg=True)
+        dv2 = makeTimes(nvalues, dvmin + 1, dvmax + 1, random=542093)
+        testslicer2 = MovieSlicer(
+            sliceColName="times", bins=len(bins), cumulative=False, forceNoFfmpeg=True
+        )
         testslicer2.setupSlicer(dv2)
         self.assertNotEqual(self.testslicer, testslicer2)
         # Set up a different kind of slicer that should not match.
@@ -153,26 +180,30 @@ class TestMovieSlicerSetup(unittest.TestCase):
         for nvalues in (100, 1000):
             dv = makeTimes(nvalues, dvmin, dvmax, random=82)
             # Test differential case.
-            self.testslicer = MovieSlicer(sliceColName='times', bins=nbins, cumulative=False,
-                                          forceNoFfmpeg=True)
+            self.testslicer = MovieSlicer(
+                sliceColName="times", bins=nbins, cumulative=False, forceNoFfmpeg=True
+            )
             self.testslicer.setupSlicer(dv)
             sum = 0
             for i, s in enumerate(self.testslicer):
-                idxs = s['idxs']
-                dataslice = dv['times'][idxs]
+                idxs = s["idxs"]
+                dataslice = dv["times"][idxs]
                 sum += len(idxs)
                 if len(dataslice) > 0:
-                    self.assertEqual(len(dataslice), nvalues/float(nbins))
+                    self.assertEqual(len(dataslice), nvalues / float(nbins))
                 else:
-                    raise ValueError('Data in test case expected to always be > 0 len after slicing')
+                    raise ValueError(
+                        "Data in test case expected to always be > 0 len after slicing"
+                    )
             self.assertEqual(sum, nvalues)
             # And cumulative case.
-            self.testslicer = MovieSlicer(sliceColName='times', bins=nbins, cumulative=True,
-                                          forceNoFfmpeg=True)
+            self.testslicer = MovieSlicer(
+                sliceColName="times", bins=nbins, cumulative=True, forceNoFfmpeg=True
+            )
             self.testslicer.setupSlicer(dv)
             for i, s in enumerate(self.testslicer):
-                idxs = s['idxs']
-                dataslice = dv['times'][idxs]
+                idxs = s["idxs"]
+                dataslice = dv["times"][idxs]
                 self.assertGreater(len(dataslice), 0)
 
 

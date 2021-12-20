@@ -5,7 +5,7 @@ from astropy.time import Time, TimeDelta
 from rubin_sim.data import get_data_dir
 import warnings
 
-__all__ = ['ScheduledDowntimeData']
+__all__ = ["ScheduledDowntimeData"]
 
 
 class ScheduledDowntimeData(object):
@@ -26,15 +26,22 @@ class ScheduledDowntimeData(object):
         The fraction of a day to offset from MJD.0 to reach the defined start of a night ('noon' works).
         Default 0.16 (UTC midnight in Chile) - 0.5 (minus half a day) = -0.34
     """
-    def __init__(self, start_time, scheduled_downtime_db=None, start_of_night_offset=-0.34):
+
+    def __init__(
+        self, start_time, scheduled_downtime_db=None, start_of_night_offset=-0.34
+    ):
         self.scheduled_downtime_db = scheduled_downtime_db
         if self.scheduled_downtime_db is None:
-            self.scheduled_downtime_db = os.path.join(get_data_dir(), 'site_models',
-                                                      'scheduled_downtime.db')
+            self.scheduled_downtime_db = os.path.join(
+                get_data_dir(), "site_models", "scheduled_downtime.db"
+            )
 
         # downtime database starts in Jan 01 of the year of the start of the simulation.
         year_start = start_time.datetime.year
-        self.night0 = Time('%d-01-01' % year_start, format='isot', scale='tai') + start_of_night_offset
+        self.night0 = (
+            Time("%d-01-01" % year_start, format="isot", scale="tai")
+            + start_of_night_offset
+        )
 
         # Scheduled downtime data is a np.ndarray of start / end / activity for each scheduled downtime.
         self.downtime = None
@@ -57,10 +64,9 @@ class ScheduledDowntimeData(object):
         return self.downtime
 
     def _downtimeStatus(self, time):
-        """Look behind the scenes at the downtime status/next values
-        """
-        next_start = self.downtime['start'].searchsorted(time, side='right')
-        next_end = self.downtime['end'].searchsorted(time, side='right')
+        """Look behind the scenes at the downtime status/next values"""
+        next_start = self.downtime["start"].searchsorted(time, side="right")
+        next_end = self.downtime["end"].searchsorted(time, side="right")
         if next_start > next_end:
             current = self.downtime[next_end]
         else:
@@ -92,7 +98,7 @@ class ScheduledDowntimeData(object):
             cur.execute("select * from Downtime;")
             for row in cur:
                 start_night = int(row[0])
-                start_night = self.night0 + TimeDelta(start_night, format='jd')
+                start_night = self.night0 + TimeDelta(start_night, format="jd")
                 n_down = int(row[1])
                 end_night = start_night + TimeDelta(n_down)
                 activity = row[2]
@@ -100,11 +106,13 @@ class ScheduledDowntimeData(object):
                 ends.append(end_night)
                 acts.append(activity)
             cur.close()
-        self.downtime = np.array(list(zip(starts, ends, acts)),
-                                 dtype=[('start', 'O'), ('end', 'O'), ('activity', 'O')])
+        self.downtime = np.array(
+            list(zip(starts, ends, acts)),
+            dtype=[("start", "O"), ("end", "O"), ("activity", "O")],
+        )
 
     def config_info(self):
-        warnings.warn('The configure method is deprecated.')
+        warnings.warn("The configure method is deprecated.")
 
     def total_downtime(self):
         """Return total downtime (in days).
@@ -115,6 +123,6 @@ class ScheduledDowntimeData(object):
             Total number of downtime days.
         """
         total = 0
-        for td in (self.downtime['end'] - self.downtime['start']):
+        for td in self.downtime["end"] - self.downtime["start"]:
             total += td.jd
         return total

@@ -2,7 +2,7 @@ from builtins import zip
 from builtins import object
 from .baseStacker import BaseStacker
 
-__all__ = ['ColInfo']
+__all__ = ["ColInfo"]
 
 
 class ColInfo(object):
@@ -12,38 +12,41 @@ class ColInfo(object):
     some default units for common opsim columns.
 
     Inspect ColInfo.unitDict for more information."""
+
     def __init__(self):
         self.defaultDataSource = None
-        self.defaultUnit = ''
-        self.unitDict = {'fieldId': '#',
-                         'filter': 'filter',
-                         'seqnNum': '#',
-                         'expMJD': 'MJD',
-                         'observationStartMJD': 'MJD',
-                         'observationStartLST': 'deg',
-                         'visitExposureTime': 's',
-                         'slewTime': 's',
-                         'slewDist': 'rad',
-                         'rotSkyPos': 'deg',
-                         'rotTelPos': 'deg',
-                         'rawSeeing': 'arcsec',
-                         'finSeeing': 'arcsec',
-                         'FWHMeff': 'arcsec',
-                         'FWHMgeom': 'arcsec',
-                         'seeingFwhmEff': 'arcsec',
-                         'seeingFwhmGeom': 'arcsec',
-                         'seeingFwhm500': 'arcsec',
-                         'seeing': 'arcsec',
-                         'airmass': 'X',
-                         'night': 'days',
-                         'moonRA': 'rad',
-                         'moonDec': 'rad',
-                         'moonAlt': 'rad',
-                         'dist2Moon': 'rad',
-                         'filtSkyBrightness': 'mag/sq arcsec',
-                         'skyBrightness': 'mag/sq arcsec',
-                         'fiveSigmaDepth': 'mag',
-                         'solarElong': 'degrees'}
+        self.defaultUnit = ""
+        self.unitDict = {
+            "fieldId": "#",
+            "filter": "filter",
+            "seqnNum": "#",
+            "expMJD": "MJD",
+            "observationStartMJD": "MJD",
+            "observationStartLST": "deg",
+            "visitExposureTime": "s",
+            "slewTime": "s",
+            "slewDist": "rad",
+            "rotSkyPos": "deg",
+            "rotTelPos": "deg",
+            "rawSeeing": "arcsec",
+            "finSeeing": "arcsec",
+            "FWHMeff": "arcsec",
+            "FWHMgeom": "arcsec",
+            "seeingFwhmEff": "arcsec",
+            "seeingFwhmGeom": "arcsec",
+            "seeingFwhm500": "arcsec",
+            "seeing": "arcsec",
+            "airmass": "X",
+            "night": "days",
+            "moonRA": "rad",
+            "moonDec": "rad",
+            "moonAlt": "rad",
+            "dist2Moon": "rad",
+            "filtSkyBrightness": "mag/sq arcsec",
+            "skyBrightness": "mag/sq arcsec",
+            "fiveSigmaDepth": "mag",
+            "solarElong": "degrees",
+        }
         # Go through the available stackers and add any units, and identify their
         #   source methods.
         self.sourceDict = {}

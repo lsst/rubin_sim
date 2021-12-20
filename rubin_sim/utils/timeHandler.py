@@ -57,35 +57,34 @@ class TimeHandler(object):
 
     @property
     def initial_timestamp(self):
-        """float: Return the UNIX timestamp for the initial date/time.
-        """
+        """float: Return the UNIX timestamp for the initial date/time."""
         return self._time_difference(self.initial_dt)
 
     @property
     def current_timestamp(self):
-        """float: Return the UNIX timestamp for the current date/time.
-        """
+        """float: Return the UNIX timestamp for the current date/time."""
         return self._time_difference(self.current_dt)
 
     @property
     def current_midnight_timestamp(self):
-        """float: Return the UNIX timestamp of midnight for the current date.
-        """
-        midnight_dt = datetime(self.current_dt.year, self.current_dt.month, self.current_dt.day)
+        """float: Return the UNIX timestamp of midnight for the current date."""
+        midnight_dt = datetime(
+            self.current_dt.year, self.current_dt.month, self.current_dt.day
+        )
         return self._time_difference(midnight_dt)
 
     @property
     def next_midnight_timestamp(self):
-        """float: Return the UNIX timestamp of midnight for the next day after current date.
-        """
-        midnight_dt = datetime(self.current_dt.year, self.current_dt.month, self.current_dt.day)
+        """float: Return the UNIX timestamp of midnight for the next day after current date."""
+        midnight_dt = datetime(
+            self.current_dt.year, self.current_dt.month, self.current_dt.day
+        )
         midnight_dt += timedelta(**{"days": 1})
         return self._time_difference(midnight_dt)
 
     @property
     def time_since_start(self):
-        """float: The number of seconds since the start date.
-        """
+        """float: The number of seconds since the start date."""
         return self._time_difference(self.current_dt, self.initial_dt)
 
     def update_time(self, time_increment, time_units):
@@ -106,8 +105,7 @@ class TimeHandler(object):
 
     @property
     def current_timestring(self):
-        """str: Return the ISO-8601 representation of the current date/time.
-        """
+        """str: Return the ISO-8601 representation of the current date/time."""
         return self.current_dt.isoformat()
 
     def has_time_elapsed(self, time_span):
@@ -177,7 +175,9 @@ class TimeHandler(object):
         float
             The future UNIX timestamp.
         """
-        return self._time_difference(self.future_datetime(time_increment, time_units, timestamp=timestamp))
+        return self._time_difference(
+            self.future_datetime(time_increment, time_units, timestamp=timestamp)
+        )
 
     def future_timestring(self, time_increment, time_units, timestamp=None):
         """Return the ISO-8601 representation of the future date/time.
@@ -200,7 +200,9 @@ class TimeHandler(object):
         str
             The future date/time in ISO-8601.
         """
-        return self.future_datetime(time_increment, time_units, timestamp=timestamp).isoformat()
+        return self.future_datetime(
+            time_increment, time_units, timestamp=timestamp
+        ).isoformat()
 
     def time_since_given(self, timestamp):
         """Return the elapsed time (seconds).

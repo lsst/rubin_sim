@@ -41,7 +41,7 @@ BANDS = ("u", "g", "r", "i", "z", "y")
 
 # interface functions
 
-__all__ = ['ZernikeSky', 'SkyModelZernike', 'SkyBrightnessPreData']
+__all__ = ["ZernikeSky", "SkyModelZernike", "SkyBrightnessPreData"]
 
 
 def fit_pre(npy_fname, npz_fname, *args, **kwargs):
@@ -360,9 +360,7 @@ class ZernikeSky:
         if maxdiff:
 
             def max_abs_diff(test_coeffs):
-                max_resid = np.max(
-                    np.abs(np.sum(test_coeffs * z, axis=1) - sky)
-                )
+                max_resid = np.max(np.abs(np.sum(test_coeffs * z, axis=1) - sky))
                 return max_resid
 
             min_fit = scipy.optimize.minimize(max_abs_diff, fit_coeffs)
@@ -385,9 +383,7 @@ class ZernikeSky:
         ra, decl = healpy.pix2ang(self.nside, sphere_ipix, lonlat=True)
 
         num_st = len(SIDEREAL_TIME_SAMPLES_RAD)
-        healpix_z = np.full(
-            [num_st, sphere_npix, self._number_of_terms], np.nan
-        )
+        healpix_z = np.full([num_st, sphere_npix, self._number_of_terms], np.nan)
         for st_idx, gmst_rad in enumerate(SIDEREAL_TIME_SAMPLES_RAD):
             lst_rad = gmst_rad + TELESCOPE.longitude_rad
             ha_rad = lst_rad - np.radians(ra)
@@ -412,9 +408,7 @@ class ZernikeSky:
         # following the conventions of eqn 4.
         sphere_npix = healpy.nside2npix(self.nside)
         sphere_ipix = np.arange(sphere_npix)
-        sphere_az, sphere_alt = healpy.pix2ang(
-            self.nside, sphere_ipix, lonlat=True
-        )
+        sphere_az, sphere_alt = healpy.pix2ang(self.nside, sphere_ipix, lonlat=True)
 
         # We only need the half sphere above the horizen
         ipix = sphere_ipix[sphere_alt > 0]
@@ -465,11 +459,17 @@ class ZernikeSky:
 
         arg_types = []
         if expression.find("rho") >= 0:
-            arg_types.append(("rho", self.dtype),)
+            arg_types.append(
+                ("rho", self.dtype),
+            )
         if expression.find("phi") >= 0:
-            arg_types.append(("phi", self.dtype),)
+            arg_types.append(
+                ("phi", self.dtype),
+            )
         for coeff in coeffs:
-            arg_types.append((coeff, self.dtype),)
+            arg_types.append(
+                (coeff, self.dtype),
+            )
         arg_types = tuple(arg_types)
 
         zern_function = NumExpr(expression, arg_types)
@@ -548,9 +548,13 @@ class ZernikeSky:
 
         arg_types = []
         if expression.find("rho") >= 0:
-            arg_types.append(("rho", self.dtype),)
+            arg_types.append(
+                ("rho", self.dtype),
+            )
         if expression.find("phi") >= 0:
-            arg_types.append(("phi", self.dtype),)
+            arg_types.append(
+                ("phi", self.dtype),
+            )
         arg_types = tuple(arg_types)
 
         raw_z_function = NumExpr(expression, arg_types)
@@ -607,9 +611,7 @@ class SkyBrightnessPreData:
         data files, sample this many out of the total.
     """
 
-    def __init__(
-        self, fname_base, bands, pre_data_dir=None, max_num_mjds=None
-    ):
+    def __init__(self, fname_base, bands, pre_data_dir=None, max_num_mjds=None):
         if pre_data_dir is None:
             try:
                 self.pre_data_dir = os.environ["SIMS_SKYBRIGHTNESS_DATA"]
@@ -669,9 +671,7 @@ class SkyBrightnessPreData:
             mjd = npz_data["mjds"][mjd_idx]
             gmst_rad = palpy.gmst(mjd)
             lst_rad = gmst_rad + TELESCOPE.longitude_rad
-            ha_rad, decl_rad = palpy.dh2eVector(
-                az_rad, alt_rad, TELESCOPE.latitude_rad
-            )
+            ha_rad, decl_rad = palpy.dh2eVector(az_rad, alt_rad, TELESCOPE.latitude_rad)
             ra_rad = (lst_rad - ha_rad) % (2 * np.pi)
             moon_ra_rad = npz_data["moonRAs"][mjd_idx]
             moon_decl_rad = npz_data["moonDecs"][mjd_idx]
@@ -697,32 +697,20 @@ class SkyBrightnessPreData:
                             "az": az,
                             "ra": np.degrees(ra_rad),
                             "decl": np.degrees(decl_rad),
-                            "moon_ra": np.degrees(
-                                npz_data["moonRAs"][mjd_idx]
-                            ),
-                            "moon_decl": np.degrees(
-                                npz_data["moonDecs"][mjd_idx]
-                            ),
-                            "moon_alt": np.degrees(
-                                npz_data["moonAlts"][mjd_idx]
-                            ),
+                            "moon_ra": np.degrees(npz_data["moonRAs"][mjd_idx]),
+                            "moon_decl": np.degrees(npz_data["moonDecs"][mjd_idx]),
+                            "moon_alt": np.degrees(npz_data["moonAlts"][mjd_idx]),
                             "moon_az": np.degrees(moon_az_rad),
                             "moon_sep": np.degrees(moon_sep),
                             "sun_ra": np.degrees(npz_data["sunRAs"][mjd_idx]),
-                            "sun_decl": np.degrees(
-                                npz_data["sunDecs"][mjd_idx]
-                            ),
-                            "sun_alt": np.degrees(
-                                npz_data["sunAlts"][mjd_idx]
-                            ),
+                            "sun_decl": np.degrees(npz_data["sunDecs"][mjd_idx]),
+                            "sun_alt": np.degrees(npz_data["sunAlts"][mjd_idx]),
                             "sky": pre_sky[band][mjd_idx],
                         }
                     )
                 )
 
-        self.sky = pd.concat(skies).set_index(
-            ["band", "mjd", "alt", "az"], drop=False
-        )
+        self.sky = pd.concat(skies).set_index(["band", "mjd", "alt", "az"], drop=False)
         self.sky.sort_index(inplace=True)
 
         if self.max_num_mjds is not None:
@@ -747,24 +735,23 @@ class SkyModelZernike:
             if "SIMS_SKYBRIGHTNESS_DATA" in os.environ:
                 data_dir = os.environ["SIMS_SKYBRIGHTNESS_DATA"]
             else:
-                data_dir = os.path.join(get_data_dir(),
-                                        "sims_skybrightness_pre")
+                data_dir = os.path.join(get_data_dir(), "sims_skybrightness_pre")
 
             data_file = os.path.join(data_dir, "zernike", "zernike.h5")
 
             zernike_metadata = pd.read_hdf(data_file, "zernike_metadata")
 
             order = int(zernike_metadata["order"])
-            if 'order' in kwargs:
-                assert order == kwargs['order']
+            if "order" in kwargs:
+                assert order == kwargs["order"]
             else:
-                kwargs['order'] = order
+                kwargs["order"] = order
 
             max_zd = zernike_metadata["max_zd"]
-            if 'max_zd' in kwargs:
-                assert max_zd == kwargs['max_zd']
+            if "max_zd" in kwargs:
+                assert max_zd == kwargs["max_zd"]
             else:
-                kwargs['max_zd'] = max_zd
+                kwargs["max_zd"] = max_zd
 
         self.zernike_model = {}
         for band in BANDS:
@@ -809,7 +796,7 @@ class SkyModelZernike:
 
         sun_el = _calc_sun_el(mjd)
         if sun_el > 0:
-            warnings.warn('Requested MJD between sunrise and sunset')
+            warnings.warn("Requested MJD between sunrise and sunset")
             if indx is None:
                 nside = self.zernike_model[filters[0]].nside
                 npix = healpy.nside2npix(nside)
@@ -825,9 +812,7 @@ class SkyModelZernike:
             raise NotImplementedError
 
         for band in filters:
-            band_brightness = self.zernike_model[band].compute_healpix(
-                indx, mjd
-            )
+            band_brightness = self.zernike_model[band].compute_healpix(indx, mjd)
             badval_idxs = np.where(~np.isfinite(band_brightness))
             band_brightness[badval_idxs] = badval
             sky_brightness[band] = band_brightness

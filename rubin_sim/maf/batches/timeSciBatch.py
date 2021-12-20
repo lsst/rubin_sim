@@ -8,10 +8,18 @@ import rubin_sim.maf.metricBundles as mb
 from .colMapDict import ColMapDict
 from .common import standardSummary, filterList, combineMetadata, radecCols
 
-__all__ = ['phaseGap']
+__all__ = ["phaseGap"]
 
-def phaseGap(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetadata=None,
-             ditherStacker=None, ditherkwargs=None):
+
+def phaseGap(
+    colmap=None,
+    runName="opsim",
+    nside=64,
+    extraSql=None,
+    extraMetadata=None,
+    ditherStacker=None,
+    ditherkwargs=None,
+):
     """Generate a set of statistics about the pair/triplet/etc. rate within a night.
 
     Parameters
@@ -37,52 +45,70 @@ def phaseGap(colmap=None, runName='opsim', nside=64, extraSql=None, extraMetadat
     """
 
     if colmap is None:
-        colmap = ColMapDict('opsimV4')
+        colmap = ColMapDict("opsimV4")
 
     metadata = extraMetadata
     if extraSql is not None and len(extraSql) > 0:
         if metadata is None:
             metadata = extraSql
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(ditherStacker, colmap, ditherkwargs)
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(
+        ditherStacker, colmap, ditherkwargs
+    )
     metadata = combineMetadata(metadata, ditherMeta)
 
     bundleList = []
     standardStats = standardSummary()
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
-    slicer = slicers.HealpixSlicer(nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees)
+    slicer = slicers.HealpixSlicer(
+        nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+    )
 
     # largest phase gap for periods
-    periods = [0.1, 1.0, 10., 100.]
-    sqls = ['filter = "u"',
-            'filter="r"',
-            'filter="g" or filter="r" or filter="i" or filter="z"',
-            '']
-    filterNames = ['u', 'r', 'griz', 'all']
+    periods = [0.1, 1.0, 10.0, 100.0]
+    sqls = [
+        'filter = "u"',
+        'filter="r"',
+        'filter="g" or filter="r" or filter="i" or filter="z"',
+        "",
+    ]
+    filterNames = ["u", "r", "griz", "all"]
     metadatas = filterNames
     if metadata is not None:
         metadatas = [combineMetadata(m, metadata) for m in metadatas]
     if extraSql is not None and len(extraSql) > 0:
         for sql in sqls:
-            sqls[sql] = '(%s) and (%s)' % (sqls[sql], extraSql)
+            sqls[sql] = "(%s) and (%s)" % (sqls[sql], extraSql)
 
     for sql, md, f in zip(sqls, metadatas, filterNames):
         for period in periods:
-            displayDict = {'group': 'PhaseGap',
-                           'subgroup': 'Filter %s: Period %.2f days' % (f, period),
-                           'caption': 'Maximum phase gap, given a period of %.2f days.' % period}
-            metric = metrics.PhaseGapMetric(nPeriods=1, periodMin=period, periodMax=period, nVisitsMin=5,
-                                            metricName='PhaseGap %.1f day' % period)
-            metric.reduceFuncs = {metric.reduceFuncs['reduceLargestGap']}
+            displayDict = {
+                "group": "PhaseGap",
+                "subgroup": "Filter %s: Period %.2f days" % (f, period),
+                "caption": "Maximum phase gap, given a period of %.2f days." % period,
+            }
+            metric = metrics.PhaseGapMetric(
+                nPeriods=1,
+                periodMin=period,
+                periodMax=period,
+                nVisitsMin=5,
+                metricName="PhaseGap %.1f day" % period,
+            )
+            metric.reduceFuncs = {metric.reduceFuncs["reduceLargestGap"]}
             metric.reduceOrder = {0}
-            bundle = mb.MetricBundle(metric, slicer, constraint=sql, metadata=md,
-                                     displayDict=displayDict, summaryMetrics=standardStats,
-                                     plotFuncs=subsetPlots)
+            bundle = mb.MetricBundle(
+                metric,
+                slicer,
+                constraint=sql,
+                metadata=md,
+                displayDict=displayDict,
+                summaryMetrics=standardStats,
+                plotFuncs=subsetPlots,
+            )
             bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
-    plotBundles = None
-    return mb.makeBundlesDictFromList(bundleList), plotBundles
+    return mb.makeBundlesDictFromList(bundleList)
