@@ -77,7 +77,7 @@ def make_LF_dicts():
     # Simulate a range from M_B=-10 to M_B=+3 in 0.1-mag increments.
     tmp_MB = -10.0
 
-    for i in range(131):
+    for i in range(151):
         mbkey = f'MB{tmp_MB:.2f}'
         iLFmags, iLFcounts = makeFakeLF(tmp_MB, 0.0, 'i')
         lf_dict_i[mbkey] = (np.array(iLFmags), np.array(iLFcounts))
@@ -137,7 +137,7 @@ def sblimit(glim, ilim, nstars, distlim):
         ng = 1e6
         ni = 1e6
 
-        while (ng > nstars) and (ni > nstars) and fake_MB < -2.0:
+        while (ng > nstars) and (ni > nstars) and fake_MB < 5.0:
             # B_fake = distmod_limit+fake_MB
             mbkey = f'MB{fake_MB:.2f}'
             iLFmags0, iLFcounts0 = lf_dict_i[mbkey]
@@ -339,9 +339,6 @@ class LVDwarfsMetric(maf.BaseMetric):
 ####################
 
 ######
-
-
-
 
 lf_dict_g, lf_dict_i = make_LF_dicts()
 
