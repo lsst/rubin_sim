@@ -364,7 +364,7 @@ class schema_converter:
         }
         # Column(s) not bothering to remap:  'observationStartTime': None,
         self.inv_map = {v: k for k, v in self.convert_dict.items()}
-        # angles to converts
+        # angles to convert
         self.angles_rad2deg = [
             "fieldRA",
             "fieldDec",
@@ -381,6 +381,8 @@ class schema_converter:
             "moonDistance",
             "sunAlt",
             "sunAz",
+            "sunRA",
+            "sunDec",
             "solarElong",
             "cummTelAz",
         ]
