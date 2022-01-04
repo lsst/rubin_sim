@@ -16,6 +16,7 @@ import numbers
 from rubin_sim.utils import sphericalFromCartesian, cartesianFromSpherical
 from rubin_sim.utils import rotAboutY, rotAboutX, rotAboutZ
 from rubin_sim.utils import angularSeparation, _angularSeparation
+from rubin_sim.utils import getPackageDir
 import rubin_sim
 
 
@@ -564,7 +565,13 @@ class TrixelFinderTest(unittest.TestCase):
         """
         dtype = np.dtype([("htmid", int), ("ra", float), ("dec", float)])
         data = np.genfromtxt(
-            os.path.join("tests", "utils", "testData", "htmid_test_data.txt"),
+            os.path.join(
+                getPackageDir(rubin_sim),
+                "tests",
+                "utils",
+                "testData",
+                "htmid_test_data.txt",
+            ),
             dtype=dtype,
         )
         self.assertGreater(len(data), 20)
