@@ -247,6 +247,10 @@ class AngularSeparationTestCase(unittest.TestCase):
         results with the dot products of Cartesian vectors.  Pass in arrays
         of arguments.
         """
+        # Looks like this might be version? 15 works on older verisons, but
+        # may need to go less-precice on newer versions
+        precision = 14
+
         rng = np.random.RandomState(99421)
         n_obj = 100
         ra1 = rng.random_sample(n_obj) * 2.0 * np.pi
@@ -265,13 +269,13 @@ class AngularSeparationTestCase(unittest.TestCase):
         test = utils._angularSeparation(ra1, dec1, ra2, dec2)
         test = np.cos(test)
         control = x1 * x2 + y1 * y2 + z1 * z2
-        np.testing.assert_array_almost_equal(test, control, decimal=15)
+        np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
         test = utils.angularSeparation(
             np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
         )
         test = np.cos(np.radians(test))
-        np.testing.assert_array_almost_equal(test, control, decimal=15)
+        np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
         # specifically test at the north pole
         dec1 = np.ones(n_obj) * np.pi
@@ -281,13 +285,13 @@ class AngularSeparationTestCase(unittest.TestCase):
         control = x1 * x2 + y1 * y2 + z1 * z2
         test = utils._angularSeparation(ra1, dec1, ra2, dec2)
         test = np.cos(test)
-        np.testing.assert_array_almost_equal(test, control, decimal=15)
+        np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
         test = utils.angularSeparation(
             np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
         )
         test = np.cos(np.radians(test))
-        np.testing.assert_array_almost_equal(test, control, decimal=15)
+        np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
         # specifically test at the south pole
         dec1 = -1.0 * np.ones(n_obj) * np.pi
@@ -297,13 +301,13 @@ class AngularSeparationTestCase(unittest.TestCase):
         control = x1 * x2 + y1 * y2 + z1 * z2
         test = utils._angularSeparation(ra1, dec1, ra2, dec2)
         test = np.cos(test)
-        np.testing.assert_array_almost_equal(test, control, decimal=15)
+        np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
         test = utils.angularSeparation(
             np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
         )
         test = np.cos(np.radians(test))
-        np.testing.assert_array_almost_equal(test, control, decimal=15)
+        np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
     def testAngSepResultsExtreme(self):
         """
