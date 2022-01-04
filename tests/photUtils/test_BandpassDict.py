@@ -12,7 +12,9 @@ class BandpassDictTest(unittest.TestCase):
         self.rng = np.random.RandomState(32)
         self.bandpassPossibilities = ["u", "g", "r", "i", "z", "y"]
         self.bandpassDir = os.path.join(get_data_dir(), "throughputs", "baseline")
-        self.sedDir = os.path.join("tests", "photUtils", "cartoonSedTestData/galaxySed")
+        self.sedDir = os.path.join(
+            get_data_dir(), "tests", "cartoonSedTestData/galaxySed"
+        )
         self.sedPossibilities = os.listdir(self.sedDir)
 
     def getListOfSedNames(self, nNames):
@@ -718,7 +720,7 @@ class BandpassDictTest(unittest.TestCase):
         expected result
         """
 
-        bandpassDir = os.path.join("tests", "photUtils", "cartoonSedTestData")
+        bandpassDir = os.path.join(get_data_dir(), "tests", "cartoonSedTestData")
         bandpassNames = ["g", "r", "u"]
         bandpassRoot = "test_bandpass_"
 
@@ -753,7 +755,7 @@ class BandpassDictTest(unittest.TestCase):
         expected result
         """
 
-        fileDir = os.path.join("tests", "photUtils", "cartoonSedTestData")
+        fileDir = os.path.join(get_data_dir(), "tests", "cartoonSedTestData")
         bandpassNames = ["g", "z", "i"]
         bandpassRoot = "test_bandpass_"
         componentList = ["toy_mirror.dat"]
