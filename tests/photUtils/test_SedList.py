@@ -11,7 +11,7 @@ class SedListTest(unittest.TestCase):
     def setUp(self):
         self.rng = np.random.RandomState(18233)
         self.sedDir = os.path.join(
-            "tests", "photUtils", "cartoonSedTestData", "galaxySed"
+            get_data_dir(), "tests", "cartoonSedTestData", "galaxySed"
         )
         self.sedPossibilities = os.listdir(self.sedDir)
 
