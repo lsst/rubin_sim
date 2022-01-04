@@ -382,6 +382,9 @@ class AngularSeparationTestCase(unittest.TestCase):
         results with the dot products of Cartesian vectors.  Pass in floats
         as arguments.
         """
+
+        precision = 14
+
         rng = np.random.RandomState(831)
         ra1 = rng.random_sample() * 2.0 * np.pi
         dec1 = rng.random_sample() * np.pi - 0.5 * np.pi
@@ -400,17 +403,17 @@ class AngularSeparationTestCase(unittest.TestCase):
         test = utils._angularSeparation(ra1, dec1, ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(test)
-        self.assertAlmostEqual(control, test, 15)
+        self.assertAlmostEqual(control, test, precision)
 
         test = utils._angularSeparation(np.array([ra1]), np.array([dec1]), ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(test)
-        self.assertAlmostEqual(control, test, 15)
+        self.assertAlmostEqual(control, test, precision)
 
         test = utils._angularSeparation(ra1, dec1, np.array([ra2]), np.array([dec2]))
         self.assertIsInstance(test, float)
         test = np.cos(test)
-        self.assertAlmostEqual(control, test, 15)
+        self.assertAlmostEqual(control, test, precision)
 
         # try north pole
         ra1 = 0.5 * np.pi
@@ -422,17 +425,17 @@ class AngularSeparationTestCase(unittest.TestCase):
         test = utils._angularSeparation(ra1, dec1, ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(test)
-        self.assertAlmostEqual(control, test, 15)
+        self.assertAlmostEqual(control, test, precision)
 
         test = utils._angularSeparation(np.array([ra1]), np.array([dec1]), ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(test)
-        self.assertAlmostEqual(control, test, 15)
+        self.assertAlmostEqual(control, test, precision)
 
         test = utils._angularSeparation(ra1, dec1, np.array([ra2]), np.array([dec2]))
         self.assertIsInstance(test, float)
         test = np.cos(test)
-        self.assertAlmostEqual(control, test, 15)
+        self.assertAlmostEqual(control, test, precision)
 
         # do all of that in degrees
         ra1 = rng.random_sample() * 360.0
@@ -452,17 +455,17 @@ class AngularSeparationTestCase(unittest.TestCase):
         test = utils.angularSeparation(ra1, dec1, ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(np.radians(test))
-        self.assertAlmostEqual(control, test, 15)
+        self.assertAlmostEqual(control, test, precision)
 
         test = utils.angularSeparation(np.array([ra1]), np.array([dec1]), ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(np.radians(test))
-        self.assertAlmostEqual(control, test, 15)
+        self.assertAlmostEqual(control, test, precision)
 
         test = utils.angularSeparation(ra1, dec1, np.array([ra2]), np.array([dec2]))
         self.assertIsInstance(test, float)
         test = np.cos(np.radians(test))
-        self.assertAlmostEqual(control, test, 15)
+        self.assertAlmostEqual(control, test, precision)
 
         # try north pole
         ra1 = 90.0
@@ -474,17 +477,17 @@ class AngularSeparationTestCase(unittest.TestCase):
         test = utils.angularSeparation(ra1, dec1, ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(np.radians(test))
-        self.assertAlmostEqual(control, test, 15)
+        self.assertAlmostEqual(control, test, precision)
 
         test = utils.angularSeparation(np.array([ra1]), np.array([dec1]), ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(np.radians(test))
-        self.assertAlmostEqual(control, test, 15)
+        self.assertAlmostEqual(control, test, precision)
 
         test = utils.angularSeparation(ra1, dec1, np.array([ra2]), np.array([dec2]))
         self.assertIsInstance(test, float)
         test = np.cos(np.radians(test))
-        self.assertAlmostEqual(control, test, 15)
+        self.assertAlmostEqual(control, test, precision)
 
     def testAngSepResultsMixed(self):
         """
