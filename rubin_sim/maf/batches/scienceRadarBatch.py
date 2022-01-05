@@ -176,6 +176,31 @@ def scienceRadarBatch(
     bundleList.append(bundle)
     displayDict["order"] += 1
 
+    order = displayDict["order"]
+    displayDict = {
+        "group": "Galaxies",
+        "subgroup": "Surface Brightness",
+        "order": order,
+        "caption": None,
+    }
+    slicer = slicers.HealpixSlicer(nside=nside)
+    summary = [metrics.MedianMetric()]
+    for filtername in "ugrizy":
+        displayDict["caption"] = (
+            "Surface brightness limit in %s, no extinction applied." % filtername
+        )
+        sql = 'filter="%s"' % filtername
+        metric = metrics.SurfaceBrightLimitMetric()
+        bundle = mb.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            displayDict=displayDict,
+            summaryMetrics=summary,
+            plotFuncs=subsetPlots,
+        )
+        bundleList.append(bundle)
+
     #########################
     # Cosmology
     #########################

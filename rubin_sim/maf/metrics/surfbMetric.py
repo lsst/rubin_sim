@@ -84,8 +84,6 @@ class SurfaceBrightLimitMetric(BaseMetric):
         Pixelscale, Arcseconds per pixel
     nsigma : `float` (3)
         The detection limit (usuall 3 or 5)
-    t_exp : `float` (30)
-        Exposure time (seconds)
     tot_area : `float` (100)
         Total sky area summed over, square arcseconds
     zpt : `dict` of `float` (None)
@@ -100,7 +98,6 @@ class SurfaceBrightLimitMetric(BaseMetric):
         self,
         pixscale=0.2,
         nsigma=3.0,
-        t_exp=30.0,
         tot_area=100.0,
         filterCol="filter",
         units="mag/sq arcsec",
