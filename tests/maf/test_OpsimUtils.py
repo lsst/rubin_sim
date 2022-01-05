@@ -74,7 +74,7 @@ class TestOpsimUtils(unittest.TestCase):
 
         # Check that bad file raises an error
         with self.assertRaises(FileNotFoundError):
-            opsimUtils.getSimData('not_a_file.db', sql, ["nocol"])
+            opsimUtils.getSimData("not_a_file.db", sql, ["nocol"])
 
 
 if __name__ == "__main__":
