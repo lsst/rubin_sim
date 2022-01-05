@@ -2,6 +2,7 @@
 
 import numpy as np
 import pandas as pd
+import os
 import sqlite3
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.engine import make_url
@@ -45,6 +46,11 @@ def getSimData(
         A numpy structured array with columns resulting from dbcols + stackers, for observations matching
         the SQLconstraint.
     """
+
+    # Check that file exists
+    if type(db_con) == str:
+        if os.path.isfile(db_con) is False:
+            raise FileNotFoundError("No file %s" % db_con)
 
     # Check if table is "observations" or "SummaryAllProps"
     if (tableName is None) & (full_sql_query is None) & (type(db_con) == str):

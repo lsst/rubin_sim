@@ -72,6 +72,10 @@ class TestOpsimUtils(unittest.TestCase):
         )
         assert np.size(data) > 0
 
+        # Check that bad file raises an error
+        with self.assertRaises(FileNotFoundError):
+            opsimUtils.getSimData('not_a_file.db', sql, ["nocol"])
+
 
 if __name__ == "__main__":
     unittest.main()
