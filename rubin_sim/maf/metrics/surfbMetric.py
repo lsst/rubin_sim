@@ -4,38 +4,51 @@ from rubin_sim.photUtils import Bandpass, PhotometricParameters
 import rubin_sim.utils as rsUtils
 from rubin_sim.data import get_data_dir
 import os
+import warnings
 
 __all__ = ["SurfaceBrightLimitMetric"]
 
 
 def surface_brightness_limit_approx(
-    zp, k, airmass, mu_sky, rn=8.8, pixscale=0.2, nsigma=3.0, t_exp=30.0, tot_area=100.0
+    zp,
+    k,
+    airmass,
+    mu_sky,
+    rn=8.8,
+    pixscale=0.2,
+    nsigma=3.0,
+    t_exp=30.0,
+    tot_area=100.0,
+    mag_diff_warn=0.1,
 ):
     """Compute surface brightness limit in 3 limiting cases, return the brightest.
 
-    Algerbra worked out in this notebook: 
-    https://github.com/yoachim/21_Scratch/blob/main/surfb_metric/surface_brightness_limit.ipynb
+    Algerbra worked out in this technote:
+    https://github.com/lsst-sims/smtn-016
 
     Parameters
     ---------
-    zp : float
+    zp : `float`
         Telescope zeropoint (mags)
-    k : float
+    k : `float`
         Atmospheric extinction term
-    airmass : float
+    airmass : `float`
         Airmass
-    mu_sky : float
+    mu_sky : `float`
         Surface brightness of the sky (mag/sq arcsec)
-    rn : float (8.8)
+    rn : `float` (8.8)
         Readnoise in electrons
-    pixscale : float (0.2)
+    pixscale : `float` (0.2)
         Arcseconds per pixel
-    nsigma : float (3)
+    nsigma : `float` (3)
         The SNR to demand
-    t_exp : float (30.)
+    t_exp : `float` (30.)
         Exposure time (seconds)
-    tot_area : float (100)
+    tot_area : `float` (100)
         The total area measuring over (sq arcsec)
+    mag_diff_warn : `float` (0.1)
+        If the limiting cases are within mag_diff_warn, throw a warning
+        that the surface brightness limit may be an overestimate.
 
     Returns
     -------
@@ -68,6 +81,16 @@ def surface_brightness_limit_approx(
     mu_rn_lim = (
         -2.5 * np.log10(nsigma * rn / (t_exp * A_pix * n_pix ** 0.5)) + zp - k * airmass
     )
+
+    d1 = np.min(np.abs(mu_sky_lim - mu_source_lim))
+    d2 = np.min(np.abs(mu_sky_lim - mu_rn_lim))
+    d3 = np.min(np.abs(mu_rn_lim - mu_source_lim))
+
+    if np.min([d1, d2, d3]) < mag_diff_warn:
+        warnings.warn(
+            "Limiting magnitudes in different cases are within %.3f mags, result may be too optimistic by up 0.38 mags/sq arcsec."
+            % mag_diff_warn
+        )
 
     result = np.vstack([mu_sky_lim, mu_source_lim, mu_rn_lim])
     result = np.min(result, axis=0)
