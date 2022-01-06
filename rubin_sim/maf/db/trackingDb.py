@@ -337,8 +337,8 @@ def addRunToDatabase(
         try:
             conn = sqlite3.connect(os.path.join(mafDir, "resultsDb_sqlite.db"))
             versDF = pd.read_sql("SELECT version,rundate FROM version;", conn)
-            mafVersion = versDF['version'].values[-1]
-            mafDate = versDF['rundate'].values[-1]
+            mafVersion = versDF["version"].values[-1]
+            mafDate = versDF["rundate"].values[-1]
             conn.close()
         except:
             pass
