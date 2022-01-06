@@ -123,7 +123,7 @@ def get_runs(run_source=None):
         ``run``
             The index of the DataFrame is the project-standard name for the run
             (`str`)
-        ``familie``
+        ``family``
             A list of run families to which this run belongs (`list` [`str`])
         ``version``
             The simulation version
@@ -240,7 +240,7 @@ def get_metric_sets(metric_set_source=METRIC_SET_SOURCE):
         ``metric_set``
             The 1st level of the index is the name of a set of metrics (`str`).
         ``metric``
-            The 2rd level of the index is the full name of the metric (`str`).
+            The 2nd level of the index is the full name of the metric (`str`).
         ``metric``
             The full name of the metric (`str`).
         ``short_name``
@@ -326,6 +326,18 @@ def get_metric_summaries(
         each column providing the metrics for one run, and each row the
         values for one metric. The metric names constitute the index, and
         the column names are the canonical run names.
+
+    Note
+    ----
+    The entire summary statistic values for all of the runs and metrics can
+    be downloaded from the default sources first, by simply calling
+    .. code-block:: python
+        summary = get_metric_summaries()
+
+    Then, you can use `get_metric_summaries` to get a subset without
+    redownloading the whole set by passing `summary_source=summary`. If you are
+    selecting multiple subsets of the summary, this avoids needing
+    to download the summary data multiple times.
     """
     summary_source = SUMMARY_SOURCE if summary_source is None else summary_source
 
