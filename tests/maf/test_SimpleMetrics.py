@@ -190,6 +190,25 @@ class TestSimpleMetrics(unittest.TestCase):
         result = result
         self.assertGreater(result, 355)
 
+    def testSurfbMetric(self):
+        """Test the surface brightness metric"""
+        testmetric = metrics.SurfaceBrightLimitMetric()
+        names = [
+            "airmass",
+            "visitExposureTime",
+            "skyBrightness",
+            "numExposures",
+            "filter",
+        ]
+        types = [float] * 4 + ["|U1"]
+        data = np.zeros(10, dtype=list(zip(names, types)))
+        data["airmass"] = 1.2
+        data["visitExposureTime"] = 30.0
+        data["skyBrightness"] = 25.0
+        data["numExposures"] = 2.0
+        data["filter"] = "r"
+        result = testmetric.run(data, None)
+
 
 if __name__ == "__main__":
     unittest.main()
