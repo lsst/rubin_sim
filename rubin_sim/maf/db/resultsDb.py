@@ -7,12 +7,22 @@ from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.exc import DatabaseError
+import rubin_sim.version as rsVersion
+import datetime
+
 
 import numpy as np
 
 Base = declarative_base()
 
-__all__ = ["MetricRow", "DisplayRow", "PlotRow", "SummaryStatRow", "ResultsDb"]
+__all__ = [
+    "MetricRow",
+    "DisplayRow",
+    "PlotRow",
+    "SummaryStatRow",
+    "VersionRow",
+    "ResultsDb",
+]
 
 
 class MetricRow(Base):
@@ -45,6 +55,18 @@ class MetricRow(Base):
             self.metricMetadata,
             self.metricDataFile,
         )
+
+
+class VersionRow(Base):
+    """"""
+
+    __tablename__ = "version"
+    verId = Column(Integer, primary_key=True)
+    version = Column(String)
+    rundate = Column(String)
+
+    def __repr__(self):
+        return ("<Version(version='%s', rundate='%s')>") % (self.version, self.rundate)
 
 
 class DisplayRow(Base):
@@ -162,6 +184,8 @@ class ResultsDb(object):
             if outDir is not None:
                 database = os.path.join(outDir, database)
             self.database = database
+        # If this is a new file, then we should record date and version later.
+        needs_version = not os.path.isfile(self.database)
 
         dbAddress = url.URL.create(self.driver, database=self.database)
 
@@ -177,6 +201,14 @@ class ResultsDb(object):
                 % (self.driver, self.database)
             )
         self.slen = 1024
+
+        # record the version we are on
+        if needs_version:
+            vers = rsVersion.__version__
+            rundate = datetime.datetime.now().strftime("%Y-%m-%d")
+            versioninfo = VersionRow(version=vers, rundate=rundate)
+            self.session.add(versioninfo)
+            self.session.commit()
 
     def close(self):
         """
