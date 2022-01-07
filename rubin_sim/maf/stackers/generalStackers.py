@@ -529,6 +529,13 @@ class FilterColorStacker(BaseStacker):
             "z": (1, 0, 0),  # red
             "y": (1, 0, 1),
         }  # magenta
+        self.filter_rgb_map = {
+            'u': (74/256, 125/256, 179/256),
+            'g': (104/256, 173/256, 87/256),
+            'r': (238/256, 134/256, 50/256),
+            'i': (232/256, 135/256, 189/256),
+            'z': (209/256, 53/256, 43/256),
+            'y': (142/256, 82/256, 159/256)}
         self.filterCol = filterCol
         # self.units used for plot labels
         self.units = ["rChan", "gChan", "bChan"]
