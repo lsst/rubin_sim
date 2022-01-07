@@ -219,7 +219,7 @@ class MovieSlicer(BaseSlicer):
                 "Cannot find output directory %s with movie input files." % (outDir)
             )
         # make video
-        # ffmpeg -r 30 -i [image names - FilterColors_SkyMap_%03d.png] -r 30
+        # ffmpeg -r 30 -i [image names - FilterColors_%03d_SkyMap.png] -r 30
         #    -pix_fmt yuv420p -crf 18 -preset slower outfile
         callList = [
             "ffmpeg",
