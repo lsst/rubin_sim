@@ -20,6 +20,7 @@ from rubin_sim.maf.mafContrib import (
     generateTdePopSlicer,
     generateMicrolensingSlicer,
     MicrolensingMetric,
+    get_KNe_filename,
     KNePopMetric,
     generateKNPopSlicer,
 )
@@ -407,8 +408,21 @@ def scienceRadarBatch(
     displayDict[
         "caption"
     ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky."
-    slicer = generateKNPopSlicer(n_events=n_events)
-    metric = KNePopMetric()
+
+    # Kilonova parameters
+    inj_params_list = [{'mej_dyn': 0.005,
+                        'mej_wind': 0.050,
+                        'phi': 30,
+                        'theta': 25.8},
+                       {'mej_dyn': 0.005,
+                        'mej_wind': 0.050,
+                        'phi': 30,
+                        'theta': 0.0}
+                       ]
+    filename = get_KNe_filename(inj_params_list)
+    slicer = generateKNPopSlicer(n_events=n_events, n_files=len(filename), d_min=10, d_max=600)
+    # Set outputLc=True if you want light curves
+    metric = KNePopMetric(outputLc=False, file_list=filename)
     bundle = mb.MetricBundle(
         metric,
         slicer,
