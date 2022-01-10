@@ -10,7 +10,6 @@ __all__ = [
     "TeffMetric",
     "OpenShutterFractionMetric",
     "CompletenessMetric",
-    "FilterColorsMetric",
     "BruteOSFMetric",
 ]
 
