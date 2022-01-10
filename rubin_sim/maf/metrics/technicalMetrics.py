@@ -44,7 +44,7 @@ class MinTimeBetweenStatesMetric(BaseMetric):
         changeCol="filter",
         timeCol="observationStartMJD",
         metricName=None,
-        **kwargs
+        **kwargs,
     ):
         """
         changeCol = column that changes state
@@ -92,7 +92,7 @@ class NStateChangesFasterThanMetric(BaseMetric):
         timeCol="observationStartMJD",
         metricName=None,
         cutoff=20,
-        **kwargs
+        **kwargs,
     ):
         """
         col = column tracking changes in
@@ -142,7 +142,7 @@ class MaxStateChangesWithinMetric(BaseMetric):
         timeCol="observationStartMJD",
         metricName=None,
         timespan=20,
-        **kwargs
+        **kwargs,
     ):
         """
         col = column tracking changes in
@@ -198,7 +198,7 @@ class TeffMetric(BaseMetric):
         fiducialDepth=None,
         teffBase=30.0,
         normed=False,
-        **kwargs
+        **kwargs,
     ):
         self.m5Col = m5Col
         self.filterCol = filterCol
@@ -275,7 +275,7 @@ class OpenShutterFractionMetric(BaseMetric):
         slewTimeCol="slewTime",
         expTimeCol="visitExposureTime",
         visitTimeCol="visitTime",
-        **kwargs
+        **kwargs,
     ):
         self.expTimeCol = expTimeCol
         self.visitTimeCol = visitTimeCol
@@ -284,7 +284,7 @@ class OpenShutterFractionMetric(BaseMetric):
             col=[self.expTimeCol, self.visitTimeCol, self.slewTimeCol],
             metricName=metricName,
             units="OpenShutter/TotalTime",
-            **kwargs
+            **kwargs,
         )
         self.comment = (
             "Open shutter time (%s total) divided by total visit time "
@@ -312,7 +312,7 @@ class CompletenessMetric(BaseMetric):
         i=0,
         z=0,
         y=0,
-        **kwargs
+        **kwargs,
     ):
         """
         Compute the completeness for the each of the given filters and the
@@ -400,82 +400,95 @@ class CompletenessMetric(BaseMetric):
 
 class FilterColorsMetric(BaseMetric):
     """
-    Calculate an RGBA value that accounts for the filters used up to time t0.
+    Generate a map of [filter number], [alpha] that simply shows the *most recent* visit filter
+    (in filter number) and an alpha map that scales the transparency according to how long ago
+    the visit occurred.
+
+    Parameters
+    ----------
+    tNow : `float`
+        Current time (implying the metric must be set up for each 'current time' the metric should be
+        run for -- because the results will be different for each time slice)
+    nightNow : `int`
+        Identify visits within this night, vs. earlier nights (for alpha map)
+    filterCol : `str`, opt
+        Name of the filter column. Default 'filter'.
+        This is translated into an integer between 0-6 for the 'color', which then is used in combination
+        with the colormap for the plot to generate colors in the visit plot.
+    timeCol : `str`, opt
+        Name of the time column. Default 'observationStartMJD'.
+    tStep : `float`, opt
+        Time gap to consider an observation occuring 'now'. This is set to 40s by default.
+    alpha_night : `float`, opt
+        Alpha value for visits occuring in the current night. Default 0.7.
+    alpha_prev : `float`, opt
+        Alpha value for visits occuring in the previous night. Default 0.3.
     """
 
     def __init__(
         self,
-        rRGB="rRGB",
-        gRGB="gRGB",
-        bRGB="bRGB",
+        tNow,
+        nightNow,
+        filterCol="filter",
         timeCol="observationStartMJD",
-        t0=None,
+        nightCol="night",
         tStep=40.0 / 60.0 / 60.0 / 24.0,
+        alpha_night=0.7,
+        alpha_prev=0.3,
         metricName="FilterColors",
-        **kwargs
+        **kwargs,
     ):
-        """
-        t0 = the current time
-        """
-        self.rRGB = rRGB
-        self.bRGB = bRGB
-        self.gRGB = gRGB
+        self.filterCol = filterCol
         self.timeCol = timeCol
-        self.t0 = t0
-        if self.t0 is None:
-            self.t0 = 59580
+        self.nightCol = nightCol
+        self.tNow = tNow
+        self.nightNow = nightNow
         self.tStep = tStep
-        super(FilterColorsMetric, self).__init__(
-            col=[rRGB, gRGB, bRGB, timeCol], metricName=metricName, **kwargs
+        self.alpha_night = alpha_night
+        self.alpha_prev = alpha_prev
+        super().__init__(
+            col=[self.filterCol, self.timeCol, self.nightCol],
+            metricName=metricName,
+            **kwargs,
         )
         self.metricDtype = "object"
-        self.comment = "Metric specifically to generate colors for the opsim movie"
-
-    def _scaleColor(self, colorR, colorG, colorB):
-        r = colorR.sum()
-        g = colorG.sum()
-        b = colorB.sum()
-        scale = 1.0 / np.max([r, g, b])
-        r *= scale
-        g *= scale
-        b *= scale
-        return r, g, b
+        self.comment = "Metric to generate color/alpha for the FBS healpix movie"
+        self.filter_color_map = {"u": 0, "g": 1, "r": 2, "i": 3, "z": 4, "y": 5}
 
     def run(self, dataSlice, slicePoint=None):
-        deltaT = np.abs(dataSlice[self.timeCol] - self.t0)
+        # Only count visits which occured prior to "now" --
+        # this is necessary because often this metric will be run with a data set which
+        # includes more visits than just 'now' and prior.
+        visits = dataSlice[np.where(dataSlice[self.timeCol] < self.tNow)]
+        if len(visits) == 0:
+            return self.badval
+        deltaNightMin = (self.nightNow - visits[self.nightCol]).min()
+        # Figure out if there are any visits we should consider as "now" (or now-ish)
+        deltaT = self.tNow - dataSlice[self.timeCol]
         visitNow = np.where(deltaT <= self.tStep)[0]
         if len(visitNow) > 0:
             # We have exact matches to this timestep, so use their colors directly and set alpha to >1.
-            r, g, b = self._scaleColor(
-                dataSlice[visitNow][self.rRGB],
-                dataSlice[visitNow][self.gRGB],
-                dataSlice[visitNow][self.bRGB],
-            )
-            alpha = 10.0
+            fNow = dataSlice[visitNow[0]][self.filterCol]
+            colorVal = self.filter_color_map[fNow]
+            alpha = 1.0
         else:
             # This part of the sky has only older exposures.
-            deltaTmin = deltaT.min()
-            nObs = len(dataSlice[self.timeCol])
-            # Generate a combined color (weighted towards most recent observation).
-            decay = deltaTmin / deltaT
-            r, g, b = self._scaleColor(
-                dataSlice[self.rRGB] * decay,
-                dataSlice[self.gRGB] * decay,
-                dataSlice[self.bRGB] * decay,
-            )
-            # Then generate an alpha value, between alphamax/alphamid for visits
-            #  happening within the previous 12 hours, then falling between
-            #  alphamid/alphamin with a value that depends on the number of obs.
-            alphamax = 0.8
-            alphamid = 0.5
-            alphamin = 0.2
-            if deltaTmin < 0.5:
-                alpha = np.exp(-deltaTmin * 10.0) * (alphamax - alphamid) + alphamid
+            # Are they this night or previous night?
+            if deltaNightMin == 0:
+                alpha = self.alpha_night
             else:
-                alpha = nObs / 800.0 * alphamid
-            alpha = np.max([alpha, alphamin])
-            alpha = np.min([alphamax, alpha])
-        return (r, g, b, alpha)
+                alpha = self.alpha_prev
+            # And then decide what color to use - the most recent visit
+            nearest = np.where(visits[self.timeCol] == visits[self.timeCol].max())[0]
+            fRecent = visits[nearest][self.filterCol]
+            colorVal = self.filter_color_map[fRecent]
+        return (colorVal, alpha)
+
+    def reduceColor(self, metricValues):
+        return metricValues[0]
+
+    def reduceAlpha(self, metricValues):
+        return metricValues[1]
 
 
 class BruteOSFMetric(BaseMetric):
@@ -492,7 +505,7 @@ class BruteOSFMetric(BaseMetric):
         mjdCol="observationStartMJD",
         maxgap=10.0,
         fudge=0.0,
-        **kwargs
+        **kwargs,
     ):
         """
         Parameters
@@ -514,7 +527,7 @@ class BruteOSFMetric(BaseMetric):
             col=[self.expTimeCol, mjdCol],
             metricName=metricName,
             units="OpenShutter/TotalTime",
-            **kwargs
+            **kwargs,
         )
 
     def run(self, dataSlice, slicePoint=None):
