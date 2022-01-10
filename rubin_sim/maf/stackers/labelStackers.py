@@ -11,62 +11,7 @@ from rubin_sim.site_models import FieldsDatabase
 
 from .baseStacker import BaseStacker
 
-__all__ = ["OpSimFieldStacker", "WFDlabelStacker"]
-
-
-class OpSimFieldStacker(BaseStacker):
-    """Add the fieldId of the closest OpSim field for each RA/Dec pointing.
-
-    Parameters
-    ----------
-    raCol : str, optional
-        Name of the RA column. Default fieldRA.
-    decCol : str, optional
-        Name of the Dec column. Default fieldDec.
-
-    """
-
-    colsAdded = ["opsimFieldId"]
-
-    def __init__(self, raCol="fieldRA", decCol="fieldDec", degrees=True, fieldsDb=None):
-        self.colsReq = [raCol, decCol]
-        self.units = ["#"]
-        self.raCol = raCol
-        self.decCol = decCol
-        self.degrees = degrees
-        self.fieldsDb = fieldsDb
-
-    def _run(self, simData, cols_present=False):
-        if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
-            return simData
-
-        fields_db = FieldsDatabase(self.fieldsDb)
-        # Returned RA/Dec coordinates in degrees
-        fieldid, ra, dec = fields_db.get_id_ra_dec_arrays("select * from Field;")
-        asort = np.argsort(fieldid)
-        self.tree = _buildTree(np.radians(ra[asort]), np.radians(dec[asort]))
-
-        if self.degrees:
-            coord_x, coord_y, coord_z = xyz_from_ra_dec(
-                simData[self.raCol], simData[self.decCol]
-            )
-            field_ids = self.tree.query_ball_point(
-                list(zip(coord_x, coord_y, coord_z)), xyz_angular_radius()
-            )
-
-        else:
-            # use _xyz private method (sending radians)
-            coord_x, coord_y, coord_z = _xyz_from_ra_dec(
-                simData[self.raCol], simData[self.decCol]
-            )
-            field_ids = self.tree.query_ball_point(
-                list(zip(coord_x, coord_y, coord_z)), xyz_angular_radius()
-            )
-
-        simData["opsimFieldId"] = np.array([ids[0] for ids in field_ids]) + 1
-        return simData
-
+__all__ = ["WFDlabelStacker"]
 
 class WFDlabelStacker(BaseStacker):
     """Modify the 'proposalId' column to flag whether a visit was inside the 'footprint'.
