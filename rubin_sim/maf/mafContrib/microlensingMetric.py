@@ -5,7 +5,6 @@ import os
 from rubin_sim.utils import hpid2RaDec, equatorialFromGalactic
 import rubin_sim.maf.slicers as slicers
 from rubin_sim.data import get_data_dir
-import sympy as sp
 from copy import deepcopy
 
 __all__ = [
@@ -19,9 +18,6 @@ __all__ = [
     "coefficients_fsfb",
 ]
 
-
-sp.init_printing(use_unicode=True)
-t, te, t0, u0, fs, fb, mu, u = sp.symbols("t te t0 u0 fs fb mu u")
 
 # Via Natasha Abrams nsabrams@college.harvard.edu
 def microlensing_amplification(

@@ -453,9 +453,9 @@ class AngularSpreadMetric(BaseMetric):
         R = np.hypot(meanx, meany)
         return 1.0 - R
 
+
 class RealMeanMetric(BaseMetric):
     """Calculate the mean of a simData column slice with no nans or infs."""
 
     def run(self, dataSlice, slicePoint=None):
-        column_no_nans = dataSlice[self.colname][~np.isnan(dataSlice[self.colname])]
-        return np.mean(column_no_nans[~np.isinf(column_no_nans)])
+        return np.mean(dataSlice[self.colname][np.isfinite(dataSlice[self.colname])])
