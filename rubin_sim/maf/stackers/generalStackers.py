@@ -8,7 +8,6 @@ __all__ = [
     "NormAirmassStacker",
     "ParallaxFactorStacker",
     "HourAngleStacker",
-    "FilterColorStacker",
     "ZenithDistStacker",
     "ParallacticAngleStacker",
     "DcrStacker",
@@ -509,50 +508,4 @@ class ParallacticAngleStacker(BaseStacker):
         )
         if self.degrees:
             simData["PA"] = np.degrees(simData["PA"])
-        return simData
-
-
-class FilterColorStacker(BaseStacker):
-    """Translate filters ('u', 'g', 'r' ..) into RGB tuples.
-
-    This is useful for making movies if you want to make the pointing have a related color-tuple for a plot.
-    """
-
-    colsAdded = ["rRGB", "gRGB", "bRGB"]
-
-    def __init__(self, filterCol="filter"):
-        self.filter_rgb_map = {
-            "u": (0, 0, 1),  # dark blue
-            "g": (0, 1, 1),  # cyan
-            "r": (0, 1, 0),  # green
-            "i": (1, 0.5, 0.3),  # orange
-            "z": (1, 0, 0),  # red
-            "y": (1, 0, 1),
-        }  # magenta
-        self.filter_rgb_map = {
-            'u': (74/256, 125/256, 179/256),
-            'g': (104/256, 173/256, 87/256),
-            'r': (238/256, 134/256, 50/256),
-            'i': (232/256, 135/256, 189/256),
-            'z': (209/256, 53/256, 43/256),
-            'y': (142/256, 82/256, 159/256)}
-        self.filterCol = filterCol
-        # self.units used for plot labels
-        self.units = ["rChan", "gChan", "bChan"]
-        # Values required for framework operation: this specifies the data columns required from the database.
-        self.colsReq = [self.filterCol]
-
-    def _run(self, simData, cols_present=False):
-        # Translate filter names into numbers.
-        if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
-            return simData
-        filtersUsed = np.unique(simData[self.filterCol])
-        for f in filtersUsed:
-            if f not in self.filter_rgb_map:
-                raise IndexError("Filter %s not in filter_rgb_map" % (f))
-            match = np.where(simData[self.filterCol] == f)[0]
-            simData["rRGB"][match] = self.filter_rgb_map[f][0]
-            simData["gRGB"][match] = self.filter_rgb_map[f][1]
-            simData["bRGB"][match] = self.filter_rgb_map[f][2]
         return simData
