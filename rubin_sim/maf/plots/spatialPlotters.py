@@ -257,13 +257,13 @@ class HealpixSkyMap(BasePlotter):
             warnings.simplefilter("ignore")
             # The vertical colorbar is primarily aimed at the movie
             # but may be useful for other purposes
-            if plotdict["cbarOrientation"].lower() == 'vertical':
+            if plotdict["cbarOrientation"].lower() == "vertical":
                 cb = plt.colorbar(
                     im,
                     shrink=0.5,
                     extendrect=True,
                     location="right",
-                    format=plotDict["cbarFormat"]
+                    format=plotDict["cbarFormat"],
                 )
             else:
                 # Most of the time we just want a standard horizontal colorbar
@@ -763,10 +763,10 @@ class BaseSkyMap(BasePlotter):
             if plotDict["cbar"]:
                 cb = plt.colorbar(
                     p,
-                    #aspect=40,
-                    shrink=.5,
+                    # aspect=40,
+                    shrink=0.5,
                     extendrect=True,
-                    location="right", #"horizontal",
+                    location="right",  # "horizontal",
                     format=plotDict["cbarFormat"],
                 )
                 # If outputing to PDF, this fixes the colorbar white stripes

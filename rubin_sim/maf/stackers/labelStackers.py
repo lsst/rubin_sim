@@ -13,6 +13,7 @@ from .baseStacker import BaseStacker
 
 __all__ = ["WFDlabelStacker"]
 
+
 class WFDlabelStacker(BaseStacker):
     """Modify the 'proposalId' column to flag whether a visit was inside the 'footprint'.
 
