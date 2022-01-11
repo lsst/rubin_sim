@@ -5,11 +5,11 @@
 ################################################################################################
 import numpy as np
 import healpy as hp
-import rubin_sim.maf as maf
+from .baseMetric import BaseMetric
 import galPlaneFootprintMetric, galPlaneTimePerFilter, transientTimeSamplingMetric
 
 
-class galPlaneFoM(maf.BaseMetric):
+class galPlaneFoM(BaseMetric):
     """Figure of Merit to evaluate the combination of survey footprint, cadence and filter selection for suitability
     for Galactic Plane science"""
 
