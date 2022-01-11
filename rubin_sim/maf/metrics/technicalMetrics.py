@@ -10,7 +10,6 @@ __all__ = [
     "TeffMetric",
     "OpenShutterFractionMetric",
     "CompletenessMetric",
-    "FilterColorsMetric",
     "BruteOSFMetric",
 ]
 
@@ -44,7 +43,7 @@ class MinTimeBetweenStatesMetric(BaseMetric):
         changeCol="filter",
         timeCol="observationStartMJD",
         metricName=None,
-        **kwargs
+        **kwargs,
     ):
         """
         changeCol = column that changes state
@@ -92,7 +91,7 @@ class NStateChangesFasterThanMetric(BaseMetric):
         timeCol="observationStartMJD",
         metricName=None,
         cutoff=20,
-        **kwargs
+        **kwargs,
     ):
         """
         col = column tracking changes in
@@ -142,7 +141,7 @@ class MaxStateChangesWithinMetric(BaseMetric):
         timeCol="observationStartMJD",
         metricName=None,
         timespan=20,
-        **kwargs
+        **kwargs,
     ):
         """
         col = column tracking changes in
@@ -198,7 +197,7 @@ class TeffMetric(BaseMetric):
         fiducialDepth=None,
         teffBase=30.0,
         normed=False,
-        **kwargs
+        **kwargs,
     ):
         self.m5Col = m5Col
         self.filterCol = filterCol
@@ -275,7 +274,7 @@ class OpenShutterFractionMetric(BaseMetric):
         slewTimeCol="slewTime",
         expTimeCol="visitExposureTime",
         visitTimeCol="visitTime",
-        **kwargs
+        **kwargs,
     ):
         self.expTimeCol = expTimeCol
         self.visitTimeCol = visitTimeCol
@@ -284,7 +283,7 @@ class OpenShutterFractionMetric(BaseMetric):
             col=[self.expTimeCol, self.visitTimeCol, self.slewTimeCol],
             metricName=metricName,
             units="OpenShutter/TotalTime",
-            **kwargs
+            **kwargs,
         )
         self.comment = (
             "Open shutter time (%s total) divided by total visit time "
@@ -312,7 +311,7 @@ class CompletenessMetric(BaseMetric):
         i=0,
         z=0,
         y=0,
-        **kwargs
+        **kwargs,
     ):
         """
         Compute the completeness for the each of the given filters and the
@@ -398,86 +397,6 @@ class CompletenessMetric(BaseMetric):
         return completeness[-1]
 
 
-class FilterColorsMetric(BaseMetric):
-    """
-    Calculate an RGBA value that accounts for the filters used up to time t0.
-    """
-
-    def __init__(
-        self,
-        rRGB="rRGB",
-        gRGB="gRGB",
-        bRGB="bRGB",
-        timeCol="observationStartMJD",
-        t0=None,
-        tStep=40.0 / 60.0 / 60.0 / 24.0,
-        metricName="FilterColors",
-        **kwargs
-    ):
-        """
-        t0 = the current time
-        """
-        self.rRGB = rRGB
-        self.bRGB = bRGB
-        self.gRGB = gRGB
-        self.timeCol = timeCol
-        self.t0 = t0
-        if self.t0 is None:
-            self.t0 = 59580
-        self.tStep = tStep
-        super(FilterColorsMetric, self).__init__(
-            col=[rRGB, gRGB, bRGB, timeCol], metricName=metricName, **kwargs
-        )
-        self.metricDtype = "object"
-        self.comment = "Metric specifically to generate colors for the opsim movie"
-
-    def _scaleColor(self, colorR, colorG, colorB):
-        r = colorR.sum()
-        g = colorG.sum()
-        b = colorB.sum()
-        scale = 1.0 / np.max([r, g, b])
-        r *= scale
-        g *= scale
-        b *= scale
-        return r, g, b
-
-    def run(self, dataSlice, slicePoint=None):
-        deltaT = np.abs(dataSlice[self.timeCol] - self.t0)
-        visitNow = np.where(deltaT <= self.tStep)[0]
-        if len(visitNow) > 0:
-            # We have exact matches to this timestep, so use their colors directly and set alpha to >1.
-            r, g, b = self._scaleColor(
-                dataSlice[visitNow][self.rRGB],
-                dataSlice[visitNow][self.gRGB],
-                dataSlice[visitNow][self.bRGB],
-            )
-            alpha = 10.0
-        else:
-            # This part of the sky has only older exposures.
-            deltaTmin = deltaT.min()
-            nObs = len(dataSlice[self.timeCol])
-            # Generate a combined color (weighted towards most recent observation).
-            decay = deltaTmin / deltaT
-            r, g, b = self._scaleColor(
-                dataSlice[self.rRGB] * decay,
-                dataSlice[self.gRGB] * decay,
-                dataSlice[self.bRGB] * decay,
-            )
-            # Then generate an alpha value, between alphamax/alphamid for visits
-            #  happening within the previous 12 hours, then falling between
-            #  alphamid/alphamin with a value that depends on the number of obs.
-            alphamax = 0.8
-            alphamid = 0.5
-            alphamin = 0.2
-            if deltaTmin < 0.5:
-                alpha = np.exp(-deltaTmin * 10.0) * (alphamax - alphamid) + alphamid
-            else:
-                alpha = nObs / 800.0 * alphamid
-            alpha = np.max([alpha, alphamin])
-            alpha = np.min([alphamax, alpha])
-        return (r, g, b, alpha)
-
-
 class BruteOSFMetric(BaseMetric):
     """Assume I can't trust the slewtime or visittime colums.
     This computes the fraction of time the shutter is open, with no penalty for the first exposure
@@ -492,7 +411,7 @@ class BruteOSFMetric(BaseMetric):
         mjdCol="observationStartMJD",
         maxgap=10.0,
         fudge=0.0,
-        **kwargs
+        **kwargs,
     ):
         """
         Parameters
@@ -514,7 +433,7 @@ class BruteOSFMetric(BaseMetric):
             col=[self.expTimeCol, mjdCol],
             metricName=metricName,
             units="OpenShutter/TotalTime",
-            **kwargs
+            **kwargs,
         )
 
     def run(self, dataSlice, slicePoint=None):
