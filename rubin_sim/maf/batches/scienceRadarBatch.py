@@ -404,7 +404,7 @@ def scienceRadarBatch(
 
     # Kilonovae metric
     displayDict["subgroup"] = "KNe"
-    n_events = 10000
+    n_events = 30000
     displayDict[
         "caption"
     ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky."
