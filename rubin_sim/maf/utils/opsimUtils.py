@@ -1,131 +1,44 @@
 # Collection of utilities for MAF that relate to Opsim specifically.
 
-import os
-import shutil
 import numpy as np
 import pandas as pd
+import os
 import sqlite3
-from sqlite3 import OperationalError, IntegrityError
-
-from .outputUtils import printDict
+from sqlalchemy import create_engine, inspect
+from sqlalchemy.engine import make_url
 
 __all__ = [
-    "writeConfigs",
-    "getFieldData",
     "getSimData",
     "scaleBenchmarks",
     "calcCoaddedDepth",
-    "labelVisits",
 ]
 
 
-def writeConfigs(opsimDb, outDir):
-    """
-    Convenience function to get the configuration information from the opsim database and write
-    this information to text files 'configSummary.txt' and 'configDetails.txt'.
-
-    Parameters
-    ----------
-    opsimDb : `rubin_sim.maf.db.OpsimDatabase`
-        The opsim database from which to pull the opsim configuration information.
-        Opsim SQLite databases save this configuration information in their config table.
-    outputDir : `str`
-        The path to the output directory, where to write the config*.txt files.
-    """
-    configSummary, configDetails = opsimDb.fetchConfig()
-    outfile = os.path.join(outDir, "configSummary.txt")
-    f = open(outfile, "w")
-    printDict(configSummary, "Summary", f)
-    f.close()
-    outfile = os.path.join(outDir, "configDetails.txt")
-    f = open(outfile, "w")
-    printDict(configDetails, "Details", f)
-    f.close()
-
-
-def getFieldData(opsimDb, sqlconstraint):
-    """
-    Find the fields (ra/dec/fieldID) relevant for a given sql constraint.
-    If the opsimDb contains a Fields table, it uses
-    :meth:`rubin_sim.maf.OpsimDatabase.fetchFieldsFromFieldTable()`
-    to get the fields. If the opsimDb contains only a Summary, it uses
-    :meth:`rubin_sim.maf.OpsimDatabase.fetchFieldsFromSummaryTable()`.
-
-    Parameters
-    ----------
-    opsimDb : `rubin_sim.maf.db.OpsimDatabase`
-        An opsim database to use to query for field information.
-    sqlconstraint : `str`
-        A SQL constraint to apply to the query (i.e. find all fields for DD proposal)
-
-    Returns
-    -------
-    fieldData : `numpy.ndarray`
-        A numpy structured array containing the field information.  This data will ALWAYS be in radians.
-    """
-    # Get all fields used for all proposals.
-    if "proposalId" not in sqlconstraint:
-        propids, propTags = opsimDb.fetchPropInfo()
-        propids = list(propids.keys())
-    else:
-        # Parse the propID out of the sqlconstraint.
-        # example: sqlconstraint: filter = r and (propid = 219 or propid = 155) and propid!= 90
-        sqlconstraint = (
-            sqlconstraint.replace("=", " = ").replace("(", "").replace(")", "")
-        )
-        sqlconstraint = sqlconstraint.replace("'", "").replace('"', "")
-        # Allow for choosing all but a particular proposal.
-        sqlconstraint = sqlconstraint.replace("! =", " !=")
-        sqlconstraint = sqlconstraint.replace("  ", " ")
-        sqllist = sqlconstraint.split(" ")
-        propids = []
-        nonpropids = []
-        i = 0
-        while i < len(sqllist):
-            if sqllist[i].lower() == "proposalid":
-                i += 1
-                if sqllist[i] == "=":
-                    i += 1
-                    propids.append(int(sqllist[i]))
-                elif sqllist[i] == "!=":
-                    i += 1
-                    nonpropids.append(int(sqllist[i]))
-            i += 1
-        if len(propids) == 0:
-            propids, propTags = opsimDb.fetchPropInfo()
-            propids = list(propids.keys())
-        if len(nonpropids) > 0:
-            for nonpropid in nonpropids:
-                if nonpropid in propids:
-                    propids.remove(nonpropid)
-    # And query the field Table.
-    if "Field" in opsimDb.tables:
-        # The field table is always in degrees.
-        fieldData = opsimDb.fetchFieldsFromFieldTable(propids, degreesToRadians=True)
-    # Or give up and query the summary table.
-    else:
-        fieldData = opsimDb.fetchFieldsFromSummaryTable(sqlconstraint)
-    return fieldData
-
-
 def getSimData(
-    opsimDb, sqlconstraint, dbcols, stackers=None, groupBy="default", tableName=None
+    db_con,
+    sqlconstraint,
+    dbcols,
+    stackers=None,
+    tableName=None,
+    full_sql_query=None,
 ):
     """Query an opsim database for the needed data columns and run any required stackers.
 
     Parameters
     ----------
-    opsimDb : `rubin_sim.maf.db.OpsimDatabase`
+    db_con : `str` or SQLAlchemy connectable, or sqlite3 connection
+        Filename to a sqlite3 file, or a connection object that can be used by pandas.read_sql
     sqlconstraint : `str`
-        SQL constraint to apply to query for observations.
+        SQL constraint to apply to query for observations. Ignored if full_sql_query is set.
     dbcols : `list` [`str`]
-        Columns required from the database.
+        Columns required from the database. Ignored if full_sql_query is set.
     stackers : `list` [`rubin_sim.maf.stackers`], optional
         Stackers to be used to generate additional columns. Default None.
-    tableName : `str`, optional
-        Name of the table to query. Default None uses the opsimDb default.
-    groupBy : `str`, optional
-        Column name to group SQL results by.  Default uses the opsimDb default.
+    tableName : `str` (None)
+        Name of the table to query. Default None will try "observations" and "SummaryAllProps".
+        Ignored if full_sql_query is set.
+    full_sql_query : `str`
+        The full SQL query to use. Overrides sqlconstraint, dbcols, tablename.
 
     Returns
     -------
@@ -133,10 +46,59 @@ def getSimData(
         A numpy structured array with columns resulting from dbcols + stackers, for observations matching
         the SQLconstraint.
     """
-    # Get data from database.
-    simData = opsimDb.fetchMetricData(
-        dbcols, sqlconstraint, groupBy=groupBy, tableName=tableName
-    )
+
+    # Check that file exists
+    if type(db_con) == str:
+        if os.path.isfile(db_con) is False:
+            raise FileNotFoundError("No file %s" % db_con)
+
+    # Check if table is "observations" or "SummaryAllProps"
+    if (tableName is None) & (full_sql_query is None) & (type(db_con) == str):
+        url = make_url("sqlite:///" + db_con)
+        eng = create_engine(url)
+        inspector = inspect(eng)
+        tables = [
+            inspector.get_table_names(schema=schema)
+            for schema in inspector.get_schema_names()
+        ]
+        if "observations" in tables[0]:
+            tableName = "observations"
+        elif "SummaryAllProps" in tables[0]:
+            tableName = "SummaryAllProps"
+        elif "summary" in tables[0]:
+            tableName = "summary"
+        else:
+            ValueError(
+                "Could not guess tableName, set with tableName or full_sql_query kwargs"
+            )
+    elif (tableName is None) & (full_sql_query is None):
+        # If someone passes in a connection object with an old tableName things will fail
+        # that's probably fine, keep people from getting fancy with old sims
+        tableName = "observations"
+
+    if type(db_con) == str:
+        con = sqlite3.connect(db_con)
+    else:
+        con = db_con
+
+    if full_sql_query is None:
+        col_str = ""
+        for colname in dbcols:
+            col_str += colname + ", "
+        col_str = col_str[0:-2] + " "
+
+        # Need to guess "observations" and "SummaryAllProps" for the table name
+        # to be backwards compatible I guess
+        query = "SELECT %s FROM %s" % (col_str, tableName)
+        if len(sqlconstraint) > 0:
+            query += " WHERE %s" % (sqlconstraint)
+        query += ";"
+        simData = pd.read_sql(query, con).to_records(index=False)
+
+    else:
+        query = full_sql_query
+        simData = pd.read_sql(query, con).to_records(index=False)
+
     if len(simData) == 0:
         raise UserWarning("No data found matching sqlconstraint %s" % (sqlconstraint))
     # Now add the stacker columns.
@@ -289,106 +251,3 @@ def calcCoaddedDepth(nvisits, singleVisitDepth):
         if not np.isfinite(coaddedDepth[f]):
             coaddedDepth[f] = singleVisitDepth[f]
     return coaddedDepth
-
-
-def labelVisits(opsimdb_file):
-    """Identify the WFD as the part of the sky with at least 750 visits per pointing and not DD,
-    discount short exposures."""
-    # Import these here to avoid circular dependencies
-    from ..metrics import CountMetric
-    from ..slicers import HealpixSlicer
-    from ..metricBundles import MetricBundle, MetricBundleGroup
-    from ..stackers import WFDlabelStacker
-    from ..db import OpsimDatabase
-
-    ddir = os.path.split(opsimdb_file)[0]
-    if len(ddir) == 0:
-        ddir = "."
-    basename = os.path.split(opsimdb_file)[-1]
-    runName = basename.replace(".db", "")
-    # The way this is written, in order to be able to freely use the information later, we write back
-    # and modify the original opsim output. This can be problematic - so make a copy first and modify that.
-    # Note also, the new output database will be in the current directory.
-    newdb_file = "wfd_" + basename
-    shutil.copy(opsimdb_file, newdb_file)
-
-    # Generate the footprint.
-    m = CountMetric(col="observationStartMJD")
-    s = HealpixSlicer(nside=64)
-    sqlconstraint = 'visitExposureTime > 11 and note not like "%DD%"'
-    bundle = MetricBundle(m, s, sqlconstraint, runName=runName)
-    opsdb = OpsimDatabase(newdb_file)
-    g = MetricBundleGroup({f"{runName} footprint": bundle}, opsdb, outDir=ddir)
-    g.runAll()
-    wfd_footprint = bundle.metricValues.filled(0)
-    wfd_footprint = np.where(wfd_footprint > 750, 1, 0)
-    tablename = opsdb.defaultTable
-    opsdb.close()
-
-    # Reopen with sqlite, so we can write back to the tables later.
-    conn = sqlite3.connect(newdb_file)
-    cursor = conn.cursor()
-    query = (
-        f"select observationId, observationStartMJD, fieldRA, fieldDec, filter, "
-        f"visitExposureTime, note from {tablename}"
-    )
-    simdata = pd.read_sql(query, conn).to_records()
-    # label the visits with the visit label stacker
-    wfd_stacker = WFDlabelStacker(wfd_footprint)
-    simdata = wfd_stacker.run(simdata)
-
-    # Write back proposalId/observation to the table in the new copy of the database.
-    # Create some indexes
-    try:
-        indxObsId = (
-            f"CREATE UNIQUE INDEX idx_observationId on {tablename} (observationId)"
-        )
-        cursor.execute(indxObsId)
-    except OperationalError:
-        print(f"Already had observationId index on {tablename}")
-    try:
-        indxMJD = f"CREATE UNIQUE INDEX idx_observationStartMJD on {tablename} (observationStartMJD);"
-        cursor.execute(indxMJD)
-    except OperationalError:
-        print("Already had observationStartMJD index")
-    try:
-        indxFilter = f"CREATE INDEX idx_filter on {tablename} (filter)"
-        cursor.execute(indxFilter)
-    except OperationalError:
-        print("Already had filter index")
-    # Add the proposal id information.
-    for obsid, pId in zip(simdata["observationId"], simdata["proposalId"]):
-        sql = f"UPDATE {tablename} SET proposalId = {pId} WHERE observationId = {obsid}"
-        cursor.execute(sql)
-    conn.commit()
-
-    # Define dictionary of proposal tags.
-    propTags = {"Other": 0, "WFD": 1}
-    propIds = np.unique(simdata["proposalId"])
-    for iD in propIds:
-        if iD not in propTags:
-            tag = simdata["note"][np.where(simdata["proposalId"] == iD)][0]
-            propTags[tag] = iD
-    # Add new table to track proposal information.
-    sql = (
-        'CREATE TABLE IF NOT EXISTS "Proposal" ("proposalId" INT PRIMARY KEY, '
-        '"proposalName" VARCHAR(20), "proposalType" VARCHAR(5))'
-    )
-    cursor.execute(sql)
-    # Add proposal information to Proposal table.
-    for pName, pId in propTags.items():
-        pType = pName.split(":")[0]
-        try:
-            sql = (
-                f"INSERT INTO Proposal (proposalId, proposalName, proposalType) "
-                f'VALUES ("{pId}", "{pName}", "{pType}")'
-            )
-            cursor.execute(sql)
-        except IntegrityError:
-            print(
-                f"This proposal ID is already in the proposal table {pId},{pName} (just reusing it)"
-            )
-    conn.commit()
-    conn.close()
-    print(f"Labelled visits in new database copy {newdb_file}")
-    return newdb_file

@@ -80,14 +80,7 @@ if __name__ == '__main__':
         hIdx = int(len(Hrange)/2)
         args.hMark = Hrange[hIdx]
 
-    if args.opsimDb is not None:
-        opsdb = db.OpsimDatabase(args.opsimDb)
-        colmap = batches.getColMap(opsdb)
-        opsdb.close()
-    else:
-        # Use the default (currently, v4).
-        colmap = batches.ColMapDict()
-
+    colmap = batches.ColMapDict()
     slicer = batches.setupMoSlicer(args.orbitFile, Hrange, obsFile=args.obsFile)
     # Run discovery metrics using 'trailing' losses
     bdictT = batches.quickDiscoveryBatch(slicer, colmap=colmap, runName=args.opsimRun,

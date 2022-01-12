@@ -43,7 +43,7 @@ class TestMetricBundle(unittest.TestCase):
         )
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
 
-        opsdb = db.OpsimDatabaseV4(database=database)
+        opsdb = db.OpsimDatabase(database=database)
         resultsDb = db.ResultsDb(outDir=self.outDir)
 
         bgroup = metricBundles.MetricBundleGroup(
@@ -52,8 +52,6 @@ class TestMetricBundle(unittest.TestCase):
         bgroup.runAll()
         bgroup.plotAll()
         bgroup.writeAll()
-
-        opsdb.close()
 
         outThumbs = glob.glob(os.path.join(self.outDir, "thumb*"))
         outNpz = glob.glob(os.path.join(self.outDir, "*.npz"))

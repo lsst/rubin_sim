@@ -45,7 +45,6 @@ if __name__ == "__main__":
             mafUtils.writeConfigs(opsdb, outDir)
         except:
             pass
-        opsdb.close()
         db.addRunToDatabase(outDir, 'trackingDb_sqlite.db',
                             opsimGroup=None, opsimRun=name,
                             opsimComment=None,

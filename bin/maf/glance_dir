@@ -40,5 +40,4 @@ if __name__ == "__main__":
         group = mb.MetricBundleGroup(bdict, opsdb, outDir=name + '_glance', resultsDb=resultsDb, saveEarly=False)
         group.runAll(clearMemory=True, plotNow=True)
         resultsDb.close()
-        opsdb.close()
         db.addRunToDatabase(name + '_glance', 'trackingDb_sqlite.db', None, name, '', '', name+'.db')

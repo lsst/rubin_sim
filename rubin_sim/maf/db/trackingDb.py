@@ -1,6 +1,3 @@
-from __future__ import print_function
-from builtins import str
-from builtins import object
 import os
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.engine import url
@@ -8,6 +5,8 @@ from sqlalchemy.orm import sessionmaker
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import DatabaseError
+import pandas as pd
+import sqlite3
 
 Base = declarative_base()
 
@@ -287,6 +286,7 @@ def addRunToDatabase(
     opsimDate = None
     mafVersion = None
     mafDate = None
+
     if os.path.isfile(os.path.join(mafDir, "configSummary.txt")):
         file = open(os.path.join(mafDir, "configSummary.txt"))
         for line in file:
@@ -331,6 +331,17 @@ def addRunToDatabase(
         opsimComment = autoOpsimComment
     if opsimVersion is None:
         opsimVersion = autoOpsimVersion
+
+    # Check if version and date are in the database.
+    if mafVersion is None:
+        try:
+            conn = sqlite3.connect(os.path.join(mafDir, "resultsDb_sqlite.db"))
+            versDF = pd.read_sql("SELECT version,rundate FROM version;", conn)
+            mafVersion = versDF["version"].values[-1]
+            mafDate = versDF["rundate"].values[-1]
+            conn.close()
+        except:
+            pass
 
     print("Adding to tracking database at %s:" % (trackingDbFile))
     print(" MafDir = %s" % (mafDir))
