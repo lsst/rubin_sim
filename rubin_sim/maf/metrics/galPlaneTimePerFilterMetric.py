@@ -14,7 +14,7 @@ from astropy import units as u
 from astropy_healpix import HEALPix
 from astropy.coordinates import Galactic, TETE, SkyCoord
 from rubin_sim.data import get_data_dir
-
+import readGalPlaneMaps
 
 class galPlaneTimePerFilter(maf.BaseMetric):
     """Metric to evaluate for each HEALpix, the fraction of exposure time spent in each filter as
@@ -75,17 +75,15 @@ class galPlaneTimePerFilter(maf.BaseMetric):
         self.NSIDE = 64
         self.NPIX = hp.nside2npix(self.NSIDE)
         for f in self.filters:
-            setattr(
-                self,
-                "map_" + str(f),
-                hp.read_map(
-                    os.path.join(
-                        self.MAP_DIR,
-                        "maf",
-                        self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
-                    )
-                ),
-            )
+            file_path = os.path.join(
+                self.MAP_DIR,
+                "maf",
+                self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
+                )
+            map_data_table = readGalPlaneMaps.load_map_data(file_path)
+
+            setattr(self, "map_" + str(f), map_data_table['combined_map'])
+            setattr(self, "map_data_" + str(f), map_data_table)
 
     def calc_coaddmap(self):
         """For each HEALpix in the sky, sum the value of the priority weighting
@@ -123,7 +121,6 @@ class galPlaneTimePerFilter(maf.BaseMetric):
         # Returns list of pixel indices?
         # GP_overlap_pixels = np.where(self.map_i[pixels] > 0, 1, 0)
 
-        # DOES A DATASLICE CONTAIN JUST A SUBSET OF PIXELS?
         total_expt_per_pixel = dataSlice[self.exptCol].sum()
 
         # Calculate the exposure time per filter per pixel as the fraction of the total
