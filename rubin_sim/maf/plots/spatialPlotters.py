@@ -257,7 +257,7 @@ class HealpixSkyMap(BasePlotter):
             warnings.simplefilter("ignore")
             # The vertical colorbar is primarily aimed at the movie
             # but may be useful for other purposes
-            if plotdict["cbarOrientation"].lower() == "vertical":
+            if plotDict["cbarOrientation"].lower() == "vertical":
                 cb = plt.colorbar(
                     im,
                     shrink=0.5,
