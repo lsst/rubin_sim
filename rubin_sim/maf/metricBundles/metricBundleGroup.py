@@ -64,8 +64,7 @@ class MetricBundleGroup(object):
         A bundleDict can be conveniently created from a list of MetricBundles using
         makeBundlesDictFromList (done automatically if a list is passed in)
     dbCon : `str` or database connection object
-        The database object or sqlite3 filename connected to the data to be used to
-        calculate metrics.
+        A str that is the path to a sqlite3 file or a database object that can be used by pandas.read_sql.
         Advanced use: It is possible to set this to None, in which case data should be passed
         directly to the runCurrent method (and runAll should not be used).
     outDir : `str`, optional
