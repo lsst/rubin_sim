@@ -365,7 +365,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
                     score = 1
                     break
 
-                return score
+            return score
 
         elif scoreType == "P":
 
@@ -376,7 +376,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
 
                 scores.append((1 - rate))
 
-                return max(scores)
+            return max(scores)
 
     def _ztfrest_simple(
         self,
