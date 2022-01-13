@@ -14,7 +14,6 @@ from .GRBTransientMetric import *
 from .LSSObsStrategy import *
 from .GW170817DetMetric import *
 from .microlensingMetric import *
-from .microlensingFOM import *
 from .TDEsPopMetric import *
 from .StaticProbesFoMSummaryMetric import *
 from .kneMetrics import *
