@@ -59,7 +59,7 @@ class Test2D(unittest.TestCase):
             ra=np.degrees(self.fieldData["fieldRA"]),
             dec=np.degrees(self.fieldData["fieldDec"]),
             latLonDeg=True,
-            cameraFootprintFile=self.cameraFootprintFile
+            cameraFootprintFile=self.cameraFootprintFile,
         )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)

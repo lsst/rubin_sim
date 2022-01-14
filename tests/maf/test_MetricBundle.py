@@ -24,13 +24,16 @@ class TestMetricBundle(unittest.TestCase):
 
     def setUp(self):
         self.outDir = tempfile.mkdtemp(prefix="TMB")
+        self.cameraFootprintFile = os.path.join(get_data_dir(), "tests", "fov_map.npz")
 
     def testOut(self):
         """
         Check that the metric bundle can generate the expected output
         """
         nside = 8
-        slicer = slicers.HealpixSlicer(nside=nside)
+        slicer = slicers.HealpixSlicer(
+            nside=nside, cameraFootprintFile=self.cameraFootprintFile
+        )
         metric = metrics.MeanMetric(col="airmass")
         sql = 'filter="r"'
         stacker1 = stackers.RandomDitherFieldPerVisitStacker()
