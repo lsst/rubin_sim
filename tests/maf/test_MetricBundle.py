@@ -38,11 +38,10 @@ class TestMetricBundle(unittest.TestCase):
         sql = 'filter="r"'
         stacker1 = stackers.RandomDitherFieldPerVisitStacker()
         stacker2 = stackers.GalacticStacker()
-        map1 = maps.GalCoordsMap()
-        map2 = maps.StellarDensityMap()
+        map = maps.GalCoordsMap()
 
         metricB = metricBundles.MetricBundle(
-            metric, slicer, sql, stackerList=[stacker1, stacker2], mapsList=[map1, map2]
+            metric, slicer, sql, stackerList=[stacker1, stacker2], mapsList=[map]
         )
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
 
