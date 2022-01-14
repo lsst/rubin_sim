@@ -117,17 +117,23 @@ def sum_luminosity(LFmags, LFcounts):
 def sblimit(glim, ilim, nstars, lf_dict_g, lf_dict_i, distlim):
     """
     Calculate the surface brightness limit given the g- and i-band limiting
-        magnitudes, number of stars required to detect
-
-    Uses the first bin's magnitude as a reference, sums luminosities relative to
-        that reference star, then converts back to magnitude at the end.
+        magnitudes and the number of stars required to detect the dwarf of
+        interest.
 
     Parameters
     ----------
-    LFmags : np.array, `float`
-        Magnitude bin values from the simulated LF.
-    LFcounts : np.array, `int`
-        Number of stars in each magnitude bin.
+    glim : `float`
+        Limiting magnitude (coaddM5) in g-band.
+    ilim : `float`
+        Limiting magnitude (coaddM5) in i-band.
+    nstars : `int`
+        Number of stars required to be able to detect the dwarf.
+    lf_dict_g, lf_dict_i : `dict`
+        Dicts of computed luminosity functions for artificial dwarfs, as
+        calculated by the function make_LF_dicts.
+    distlim : `float`
+        Distance limit (in Mpc) for which to calculate the limiting
+        surface brightness for dwarf detection.
     """
     distance_limit = distlim*1e6  # distance limit in parsecs
     distmod_lim = 5.0*np.log10(distance_limit) - 5.0
