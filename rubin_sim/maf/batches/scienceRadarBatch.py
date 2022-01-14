@@ -45,13 +45,17 @@ def scienceRadarBatch(
     benchmarkArea=18000,
     benchmarkNvisits=825,
     DDF=True,
+    long_microlensing=False,
 ):
     """A batch of metrics for looking at survey performance relative to the SRD and the main
     science drivers of LSST.
 
     Parameters
     ----------
-
+    long_microlensing : `bool` (False)
+        Add the longer running microlensing metrics to the batch
+    DDF : `boool` (True)
+        Add DDF-specific metrics to the batch
     """
 
     if colmap is None:
@@ -383,60 +387,61 @@ def scienceRadarBatch(
             )
         )
 
-    metric_Npts = maf.MicrolensingMetric(metricCalc="Npts")
-    summaryMetrics = maf.batches.microlensingSummary(metricType="Npts")
+    if long_microlensing:
+        metric_Npts = maf.MicrolensingMetric(metricCalc="Npts")
+        summaryMetrics = maf.batches.microlensingSummary(metricType="Npts")
 
-    for crossing in crossing_times:
-        slicer = maf.generateMicrolensingSlicer(
-            min_crossing_time=crossing[0],
-            max_crossing_time=crossing[1],
-            n_events=n_events,
-        )
-        displayDict[
-            "caption"
-        ] = "Microlensing events with crossing times between %i to %i days." % (
-            crossing[0],
-            crossing[1],
-        )
-        bundleList.append(
-            maf.MetricBundle(
-                metric_Npts,
-                slicer,
-                None,
-                runName=runName,
-                summaryMetrics=summaryMetrics,
-                metadata=f"tE {crossing[0]}_{crossing[1]} days",
-                displayDict=displayDict,
-                plotFuncs=[],
+        for crossing in crossing_times:
+            slicer = maf.generateMicrolensingSlicer(
+                min_crossing_time=crossing[0],
+                max_crossing_time=crossing[1],
+                n_events=n_events,
             )
-        )
+            displayDict[
+                "caption"
+            ] = "Microlensing events with crossing times between %i to %i days." % (
+                crossing[0],
+                crossing[1],
+            )
+            bundleList.append(
+                maf.MetricBundle(
+                    metric_Npts,
+                    slicer,
+                    None,
+                    runName=runName,
+                    summaryMetrics=summaryMetrics,
+                    metadata=f"tE {crossing[0]}_{crossing[1]} days",
+                    displayDict=displayDict,
+                    plotFuncs=[],
+                )
+            )
 
-    metric_Fisher = maf.MicrolensingMetric(metricCalc="Fisher")
-    summaryMetrics = maf.batches.microlensingSummary(metricType="Fisher")
-    for crossing in crossing_times:
-        displayDict[
-            "caption"
-        ] = "Microlensing events with crossing times between %i to %i days." % (
-            crossing[0],
-            crossing[1],
-        )
-        slicer = maf.generateMicrolensingSlicer(
-            min_crossing_time=crossing[0],
-            max_crossing_time=crossing[1],
-            n_events=n_events,
-        )
-        bundleList.append(
-            maf.MetricBundle(
-                metric_Fisher,
-                slicer,
-                None,
-                runName=runName,
-                summaryMetrics=summaryMetrics,
-                metadata=f"tE {crossing[0]}_{crossing[1]} days",
-                displayDict=displayDict,
-                plotFuncs=[],
+        metric_Fisher = maf.MicrolensingMetric(metricCalc="Fisher")
+        summaryMetrics = maf.batches.microlensingSummary(metricType="Fisher")
+        for crossing in crossing_times:
+            displayDict[
+                "caption"
+            ] = "Microlensing events with crossing times between %i to %i days." % (
+                crossing[0],
+                crossing[1],
             )
-        )
+            slicer = maf.generateMicrolensingSlicer(
+                min_crossing_time=crossing[0],
+                max_crossing_time=crossing[1],
+                n_events=n_events,
+            )
+            bundleList.append(
+                maf.MetricBundle(
+                    metric_Fisher,
+                    slicer,
+                    None,
+                    runName=runName,
+                    summaryMetrics=summaryMetrics,
+                    metadata=f"tE {crossing[0]}_{crossing[1]} days",
+                    displayDict=displayDict,
+                    plotFuncs=[],
+                )
+            )
 
     # Kilonovae metric
     displayDict["subgroup"] = "KNe"
