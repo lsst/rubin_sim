@@ -7,20 +7,31 @@ import rubin_sim.maf.metrics as metrics
 
 from .plotHandler import BasePlotter
 
-__all__ = ['FOPlot', 'SummaryHistogram']
+__all__ = ["FOPlot", "SummaryHistogram"]
+
 
 class FOPlot(BasePlotter):
     """
     Special plotter to generate and label fO plots.
     """
+
     def __init__(self):
-        self.plotType = 'FO'
+        self.plotType = "FO"
         self.objectPlotter = False
-        self.defaultPlotDict = {'title': None, 'xlabel': 'Number of visits',
-                                'ylabel': 'Area (1000s of square degrees)',
-                                'scale': None, 'Asky': 18000., 'Nvisits': 825,
-                                'xMin': 0, 'xMax': None, 'yMin': 0, 'yMax': None,
-                                'linewidth': 2, 'reflinewidth': 2}
+        self.defaultPlotDict = {
+            "title": None,
+            "xlabel": "Number of visits",
+            "ylabel": "Area (1000s of square degrees)",
+            "scale": None,
+            "Asky": 18000.0,
+            "Nvisits": 825,
+            "xMin": 0,
+            "xMax": None,
+            "yMin": 0,
+            "yMax": None,
+            "linewidth": 2,
+            "reflinewidth": 2,
+        }
 
     def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
         """
@@ -41,49 +52,77 @@ class FOPlot(BasePlotter):
         int
            Matplotlib figure number used to create the plot.
         """
-        if not hasattr(slicer, 'nside'):
-            raise ValueError('FOPlot to be used with healpix or healpix derived slicers.')
+        if not hasattr(slicer, "nside"):
+            raise ValueError(
+                "FOPlot to be used with healpix or healpix derived slicers."
+            )
         fig = plt.figure(fignum)
         plotDict = {}
         plotDict.update(self.defaultPlotDict)
         plotDict.update(userPlotDict)
 
-        if plotDict['scale'] is None:
-            plotDict['scale'] = (hp.nside2pixarea(slicer.nside, degrees=True) / 1000.0)
+        if plotDict["scale"] is None:
+            plotDict["scale"] = hp.nside2pixarea(slicer.nside, degrees=True) / 1000.0
 
         # Expect metricValue to be something like number of visits
-        cumulativeArea = np.arange(1, metricValue.compressed().size + 1)[::-1] * plotDict['scale']
-        plt.plot(np.sort(metricValue.compressed()), cumulativeArea, 'k-',
-                 linewidth=plotDict['linewidth'], zorder=0)
+        cumulativeArea = (
+            np.arange(1, metricValue.compressed().size + 1)[::-1] * plotDict["scale"]
+        )
+        plt.plot(
+            np.sort(metricValue.compressed()),
+            cumulativeArea,
+            "k-",
+            linewidth=plotDict["linewidth"],
+            zorder=0,
+        )
         # This is breaking the rules and calculating the summary stats in two places.
         # Could just calculate summary stats and pass in labels.
-        rarr = np.array(list(zip(metricValue.compressed())),
-                        dtype=[('fO', metricValue.dtype)])
-        fOArea = metrics.fOArea(col='fO', Asky=plotDict['Asky'], norm=False,
-                                nside=slicer.nside).run(rarr)
-        fONv = metrics.fONv(col='fO', Nvisit=plotDict['Nvisits'], norm=False,
-                            nside=slicer.nside).run(rarr)
+        rarr = np.array(
+            list(zip(metricValue.compressed())), dtype=[("fO", metricValue.dtype)]
+        )
+        fOArea = metrics.fOArea(
+            col="fO", Asky=plotDict["Asky"], norm=False, nside=slicer.nside
+        ).run(rarr)
+        fONv = metrics.fONv(
+            col="fO", Nvisit=plotDict["Nvisits"], norm=False, nside=slicer.nside
+        ).run(rarr)
 
-        plt.axvline(x=plotDict['Nvisits'], linewidth=plotDict['reflinewidth'], color='b')
-        plt.axhline(y=plotDict['Asky'] / 1000., linewidth=plotDict['reflinewidth'], color='r')
+        plt.axvline(
+            x=plotDict["Nvisits"], linewidth=plotDict["reflinewidth"], color="b"
+        )
+        plt.axhline(
+            y=plotDict["Asky"] / 1000.0, linewidth=plotDict["reflinewidth"], color="r"
+        )
         # Add lines for Nvis_median and fOArea: note if these are -666 (badval),
         # the default xMin/yMin values will just leave them off the edges of the plot.
-        Nvis_median = fONv['value'][np.where(fONv['name'] == 'MedianNvis')]
+        Nvis_median = fONv["value"][np.where(fONv["name"] == "MedianNvis")]
         # Note that Nvis is the number of visits (it's not an area) - so goes on number axis
-        plt.axvline(x=Nvis_median, linewidth=plotDict['reflinewidth'], color='b',
-                    alpha=.5, linestyle=':', label=r'f$_0$ Median Nvisits=%.0f' % Nvis_median)
-        plt.axhline(y=fOArea / 1000., linewidth=plotDict['reflinewidth'], color='r',
-                    alpha=.5, linestyle=':', label='f$_0$ Area=%.0f' % fOArea)
-        plt.legend(loc='lower left', fontsize='small', numpoints=1)
+        plt.axvline(
+            x=Nvis_median,
+            linewidth=plotDict["reflinewidth"],
+            color="b",
+            alpha=0.5,
+            linestyle=":",
+            label=r"f$_0$ Median Nvisits=%.0f" % Nvis_median,
+        )
+        plt.axhline(
+            y=fOArea / 1000.0,
+            linewidth=plotDict["reflinewidth"],
+            color="r",
+            alpha=0.5,
+            linestyle=":",
+            label="f$_0$ Area=%.0f" % fOArea,
+        )
+        plt.legend(loc="lower left", fontsize="small", numpoints=1)
 
-        plt.xlabel(plotDict['xlabel'])
-        plt.ylabel(plotDict['ylabel'])
-        plt.title(plotDict['title'])
+        plt.xlabel(plotDict["xlabel"])
+        plt.ylabel(plotDict["ylabel"])
+        plt.title(plotDict["title"])
 
-        xMin = plotDict['xMin']
-        xMax = plotDict['xMax']
-        yMin = plotDict['yMin']
-        yMax = plotDict['yMax']
+        xMin = plotDict["xMin"]
+        xMax = plotDict["xMax"]
+        yMin = plotDict["yMin"]
+        yMax = plotDict["yMax"]
         if (xMin is not None) or (xMax is not None):
             plt.xlim([xMin, xMax])
         if (yMin is not None) or (yMax is not None):
@@ -101,13 +140,28 @@ class SummaryHistogram(BasePlotter):
     """
 
     def __init__(self):
-        self.plotType = 'SummaryHistogram'
+        self.plotType = "SummaryHistogram"
         self.objectPlotter = True
-        self.defaultPlotDict = {'title': None, 'xlabel': None, 'ylabel': 'Count', 'label': None,
-                                'cumulative': False, 'xMin': None, 'xMax': None, 'yMin': None, 'yMax': None,
-                                'color': 'b', 'linestyle': '-', 'histStyle': True, 'grid': True,
-                                'metricReduce': metrics.SumMetric(), 'yscale':None, 'xscale': None,
-                                'bins': None, 'figsize': None}
+        self.defaultPlotDict = {
+            "title": None,
+            "xlabel": None,
+            "ylabel": "Count",
+            "label": None,
+            "cumulative": False,
+            "xMin": None,
+            "xMax": None,
+            "yMin": None,
+            "yMax": None,
+            "color": "b",
+            "linestyle": "-",
+            "histStyle": True,
+            "grid": True,
+            "metricReduce": metrics.SumMetric(),
+            "yscale": None,
+            "xscale": None,
+            "bins": None,
+            "figsize": None,
+        }
 
     def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
         """
@@ -137,26 +191,28 @@ class SummaryHistogram(BasePlotter):
         plotDict.update(self.defaultPlotDict)
         plotDict.update(userPlotDict)
         # Combine the metric values across all slicePoints.
-        if not isinstance(plotDict['metricReduce'], metrics.BaseMetric):
-            raise ValueError('Expected plotDict[metricReduce] to be a MAF metric object.')
+        if not isinstance(plotDict["metricReduce"], metrics.BaseMetric):
+            raise ValueError(
+                "Expected plotDict[metricReduce] to be a MAF metric object."
+            )
         # Get the data type
         dt = metricValue.compressed()[0].dtype
         # Change an array of arrays (dtype=object) to a 2-d array of correct dtype
-        mV = np.array(metricValue.compressed().tolist(), dtype=[('metricValue', dt)])
+        mV = np.array(metricValue.compressed().tolist(), dtype=[("metricValue", dt)])
         # Make an array to hold the combined result
         finalHist = np.zeros(mV.shape[1], dtype=float)
-        metric = plotDict['metricReduce']
-        metric.colname = 'metricValue'
+        metric = plotDict["metricReduce"]
+        metric.colname = "metricValue"
         # Loop over each bin and use the selected metric to combine the results
         for i in np.arange(finalHist.size):
             finalHist[i] = metric.run(mV[:, i])
 
-        if plotDict['cumulative']:
+        if plotDict["cumulative"]:
             finalHist = finalHist.cumsum()
 
-        fig = plt.figure(fignum, figsize=plotDict['figsize'])
-        bins = plotDict['bins']
-        if plotDict['histStyle']:
+        fig = plt.figure(fignum, figsize=plotDict["figsize"])
+        bins = plotDict["bins"]
+        if plotDict["histStyle"]:
             leftedge = bins[:-1]
             rightedge = bins[1:]
 
@@ -168,30 +224,35 @@ class SummaryHistogram(BasePlotter):
             x = bins[:-1]
             y = finalHist
         # Make the plot.
-        plt.plot(x, y, linestyle=plotDict['linestyle'],
-                 label=plotDict['label'], color=plotDict['color'])
+        plt.plot(
+            x,
+            y,
+            linestyle=plotDict["linestyle"],
+            label=plotDict["label"],
+            color=plotDict["color"],
+        )
         # Add labels.
-        plt.xlabel(plotDict['xlabel'])
-        plt.ylabel(plotDict['ylabel'])
-        plt.title(plotDict['title'])
-        plt.grid(plotDict['grid'], alpha=0.3)
+        plt.xlabel(plotDict["xlabel"])
+        plt.ylabel(plotDict["ylabel"])
+        plt.title(plotDict["title"])
+        plt.grid(plotDict["grid"], alpha=0.3)
         # Set y and x limits, if provided.
-        if plotDict['xMin'] is not None:
-            plt.xlim(left=plotDict['xMin'])
+        if plotDict["xMin"] is not None:
+            plt.xlim(left=plotDict["xMin"])
         elif bins[0] == 0:
             plt.xlim(left=0)
-        if plotDict['xMax'] is not None:
-            plt.xlim(right=plotDict['xMax'])
-        if plotDict['yMin'] is not None:
-            plt.ylim(bottom=plotDict['yMin'])
+        if plotDict["xMax"] is not None:
+            plt.xlim(right=plotDict["xMax"])
+        if plotDict["yMin"] is not None:
+            plt.ylim(bottom=plotDict["yMin"])
         elif finalHist.min() == 0:
-            plotDict['yMin'] = 0
-        if plotDict['yMax'] is not None:
-            plt.ylim(top=plotDict['yMax'])
+            plotDict["yMin"] = 0
+        if plotDict["yMax"] is not None:
+            plt.ylim(top=plotDict["yMax"])
 
-        if plotDict['yscale'] is not None:
-            plt.yscale(plotDict['yscale'])
-        if plotDict['xscale'] is not None:
-            plt.xscale(plotDict['xscale'])
+        if plotDict["yscale"] is not None:
+            plt.yscale(plotDict["yscale"])
+        if plotDict["xscale"] is not None:
+            plt.xscale(plotDict["xscale"])
 
         return fig.number

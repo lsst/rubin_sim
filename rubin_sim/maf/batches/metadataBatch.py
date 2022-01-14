@@ -6,15 +6,28 @@ import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.metricBundles as mb
 from .colMapDict import ColMapDict
-from .common import standardSummary, extendedMetrics, standardAngleMetrics, \
-    filterList, radecCols, combineMetadata
+from .common import (
+    standardSummary,
+    extendedMetrics,
+    standardAngleMetrics,
+    filterList,
+    radecCols,
+    combineMetadata,
+)
 
-__all__ = ['metadataBasics', 'metadataBasicsAngle', 'allMetadata', 'metadataMaps']
+__all__ = ["metadataBasics", "metadataBasicsAngle", "allMetadata", "metadataMaps"]
 
 
-def metadataBasics(value, colmap=None, runName='opsim',
-                   valueName=None, groupName=None, extraSql=None,
-                   extraMetadata=None, nside=64):
+def metadataBasics(
+    value,
+    colmap=None,
+    runName="opsim",
+    valueName=None,
+    groupName=None,
+    extraSql=None,
+    extraMetadata=None,
+    nside=64,
+):
     """Calculate basic metrics on visit metadata 'value' (e.g. airmass, normalized airmass, seeing..).
     Calculates this around the sky (HealpixSlicer), makes histograms of all visits (OneDSlicer),
     and calculates statistics on all visits (UniSlicer) for the quantity in all visits and per filter.
@@ -51,7 +64,7 @@ def metadataBasics(value, colmap=None, runName='opsim',
     metricBundleDict
     """
     if colmap is None:
-        colmap = ColMapDict('fbs')
+        colmap = ColMapDict("fbs")
     bundleList = []
 
     if valueName is None:
@@ -65,22 +78,25 @@ def metadataBasics(value, colmap=None, runName='opsim',
         subgroup = valueName.capitalize()
 
     if subgroup is None:
-        subgroup = 'All visits'
+        subgroup = "All visits"
 
-    displayDict = {'group': groupName, 'subgroup': subgroup}
+    displayDict = {"group": groupName, "subgroup": subgroup}
 
     raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
     extraMetadata = combineMetadata(extraMetadata, ditherMeta)
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, metadata = filterList(all=True,
-                                                            extraSql=extraSql,
-                                                            extraMetadata=extraMetadata)
+    filterlist, colors, orders, sqls, metadata = filterList(
+        all=True, extraSql=extraSql, extraMetadata=extraMetadata
+    )
 
     # Hack to make HA work, but really I need to account for any stackers/colmaps.
-    if value == 'HA':
-        stackerList = [stackers.HourAngleStacker(lstCol=colmap['lst'], raCol=raCol,
-                                                 degrees=degrees)]
-    elif value == 'normairmass':
+    if value == "HA":
+        stackerList = [
+            stackers.HourAngleStacker(
+                lstCol=colmap["lst"], raCol=raCol, degrees=degrees
+            )
+        ]
+    elif value == "normairmass":
         stackerList = [stackers.NormAirmassStacker(degrees=degrees)]
     else:
         stackerList = None
@@ -89,44 +105,63 @@ def metadataBasics(value, colmap=None, runName='opsim',
     slicer = slicers.UniSlicer()
     for f in filterlist:
         for m in extendedMetrics(value, replace_colname=valueName):
-            displayDict['caption'] = '%s for %s.' % (m.name, metadata[f])
-            displayDict['order'] = orders[f]
-            bundle = mb.MetricBundle(m, slicer, sqls[f], stackerList=stackerList,
-                                     metadata=metadata[f], displayDict=displayDict)
+            displayDict["caption"] = "%s for %s." % (m.name, metadata[f])
+            displayDict["order"] = orders[f]
+            bundle = mb.MetricBundle(
+                m,
+                slicer,
+                sqls[f],
+                stackerList=stackerList,
+                metadata=metadata[f],
+                displayDict=displayDict,
+            )
             bundleList.append(bundle)
 
     # Histogram values over all and per filter.
     for f in filterlist:
-        displayDict['caption'] = 'Histogram of %s' % (value)
+        displayDict["caption"] = "Histogram of %s" % (value)
         if valueName != value:
-            displayDict['caption'] += ' (%s)' % (valueName)
-        displayDict['caption'] += ' for %s.' % (metadata[f])
-        displayDict['order'] = orders[f]
-        m = metrics.CountMetric(value, metricName='%s Histogram' % (valueName))
+            displayDict["caption"] += " (%s)" % (valueName)
+        displayDict["caption"] += " for %s." % (metadata[f])
+        displayDict["order"] = orders[f]
+        m = metrics.CountMetric(value, metricName="%s Histogram" % (valueName))
         slicer = slicers.OneDSlicer(sliceColName=value)
-        bundle = mb.MetricBundle(m, slicer, sqls[f], stackerList=stackerList,
-                                 metadata=metadata[f], displayDict=displayDict)
+        bundle = mb.MetricBundle(
+            m,
+            slicer,
+            sqls[f],
+            stackerList=stackerList,
+            metadata=metadata[f],
+            displayDict=displayDict,
+        )
         bundleList.append(bundle)
 
     # Make maps of min/median/max for all and per filter, per RA/Dec, with standard summary stats.
     mList = []
-    mList.append(metrics.MinMetric(value, metricName='Min %s' % (valueName)))
-    mList.append(metrics.MedianMetric(value, metricName='Median %s' % (valueName)))
-    mList.append(metrics.MaxMetric(value, metricName='Max %s' % (valueName)))
-    slicer = slicers.HealpixSlicer(nside=nside, latCol=decCol, lonCol=raCol,
-                                   latLonDeg=degrees)
+    mList.append(metrics.MinMetric(value, metricName="Min %s" % (valueName)))
+    mList.append(metrics.MedianMetric(value, metricName="Median %s" % (valueName)))
+    mList.append(metrics.MaxMetric(value, metricName="Max %s" % (valueName)))
+    slicer = slicers.HealpixSlicer(
+        nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+    )
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
     for f in filterlist:
         for m in mList:
-            displayDict['caption'] = 'Map of %s' % m.name
+            displayDict["caption"] = "Map of %s" % m.name
             if valueName != value:
-                displayDict['caption'] += ' (%s)' % value
-            displayDict['caption'] += ' for %s.' % metadata[f]
-            displayDict['order'] = orders[f]
-            bundle = mb.MetricBundle(m, slicer, sqls[f], stackerList=stackerList,
-                                     metadata=metadata[f], plotFuncs=subsetPlots,
-                                     displayDict=displayDict,
-                                     summaryMetrics=standardSummary())
+                displayDict["caption"] += " (%s)" % value
+            displayDict["caption"] += " for %s." % metadata[f]
+            displayDict["order"] = orders[f]
+            bundle = mb.MetricBundle(
+                m,
+                slicer,
+                sqls[f],
+                stackerList=stackerList,
+                metadata=metadata[f],
+                plotFuncs=subsetPlots,
+                displayDict=displayDict,
+                summaryMetrics=standardSummary(),
+            )
             bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
@@ -135,10 +170,18 @@ def metadataBasics(value, colmap=None, runName='opsim',
     return mb.makeBundlesDictFromList(bundleList)
 
 
-def metadataBasicsAngle(value, colmap=None, runName='opsim',
-                        valueName=None, groupName=None, extraSql=None,
-                        extraMetadata=None, nside=64,
-                        ditherStacker=None, ditherkwargs=None):
+def metadataBasicsAngle(
+    value,
+    colmap=None,
+    runName="opsim",
+    valueName=None,
+    groupName=None,
+    extraSql=None,
+    extraMetadata=None,
+    nside=64,
+    ditherStacker=None,
+    ditherkwargs=None,
+):
     """Calculate basic metrics on visit metadata 'value', where value is a wrap-around angle.
 
     Calculates extended standard metrics (with unislicer) on the quantity (all visits and per filter),
@@ -178,7 +221,7 @@ def metadataBasicsAngle(value, colmap=None, runName='opsim',
     metricBundleDict
     """
     if colmap is None:
-        colmap = ColMapDict('opsimV4')
+        colmap = ColMapDict("opsimV4")
     bundleList = []
 
     if valueName is None:
@@ -192,16 +235,18 @@ def metadataBasicsAngle(value, colmap=None, runName='opsim',
         subgroup = valueName.capitalize()
 
     if subgroup is None:
-        subgroup = 'All visits'
+        subgroup = "All visits"
 
-    displayDict = {'group': groupName, 'subgroup': subgroup}
+    displayDict = {"group": groupName, "subgroup": subgroup}
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(ditherStacker, colmap, ditherkwargs)
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(
+        ditherStacker, colmap, ditherkwargs
+    )
     extraMetadata = combineMetadata(extraMetadata, ditherMeta)
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, metadata = filterList(all=True,
-                                                            extraSql=extraSql,
-                                                            extraMetadata=extraMetadata)
+    filterlist, colors, orders, sqls, metadata = filterList(
+        all=True, extraSql=extraSql, extraMetadata=extraMetadata
+    )
 
     stackerList = [ditherStacker]
 
@@ -209,44 +254,67 @@ def metadataBasicsAngle(value, colmap=None, runName='opsim',
     slicer = slicers.UniSlicer()
     for f in filterlist:
         for m in standardAngleMetrics(value, replace_colname=valueName):
-            displayDict['caption'] = '%s for %s.' % (m.name, metadata[f])
-            displayDict['order'] = orders[f]
-            bundle = mb.MetricBundle(m, slicer, sqls[f], stackerList=stackerList,
-                                     metadata=metadata[f], displayDict=displayDict)
+            displayDict["caption"] = "%s for %s." % (m.name, metadata[f])
+            displayDict["order"] = orders[f]
+            bundle = mb.MetricBundle(
+                m,
+                slicer,
+                sqls[f],
+                stackerList=stackerList,
+                metadata=metadata[f],
+                displayDict=displayDict,
+            )
             bundleList.append(bundle)
 
     # Histogram values over all and per filter.
     for f in filterlist:
-        displayDict['caption'] = 'Histogram of %s' % (value)
+        displayDict["caption"] = "Histogram of %s" % (value)
         if valueName != value:
-            displayDict['caption'] += ' (%s)' % (valueName)
-        displayDict['caption'] += ' for %s.' % (metadata[f])
-        displayDict['order'] = orders[f]
-        m = metrics.CountMetric(value, metricName='%s Histogram' % (valueName))
+            displayDict["caption"] += " (%s)" % (valueName)
+        displayDict["caption"] += " for %s." % (metadata[f])
+        displayDict["order"] = orders[f]
+        m = metrics.CountMetric(value, metricName="%s Histogram" % (valueName))
         slicer = slicers.OneDSlicer(sliceColName=value)
-        bundle = mb.MetricBundle(m, slicer, sqls[f], stackerList=stackerList,
-                                 metadata=metadata[f], displayDict=displayDict)
+        bundle = mb.MetricBundle(
+            m,
+            slicer,
+            sqls[f],
+            stackerList=stackerList,
+            metadata=metadata[f],
+            displayDict=displayDict,
+        )
         bundleList.append(bundle)
 
     # Make maps of min/median/max for all and per filter, per RA/Dec, with standard summary stats.
     mList = []
-    mList.append(metrics.MeanAngleMetric(value, metricName='AngleMean %s' % (valueName)))
-    mList.append(metrics.FullRangeAngleMetric(value, metricName='AngleRange %s' % (valueName)))
-    mList.append(metrics.RmsAngleMetric(value, metricName='AngleRms %s' % (valueName)))
-    slicer = slicers.HealpixSlicer(nside=nside, latCol=decCol, lonCol=raCol,
-                                   latLonDeg=degrees)
+    mList.append(
+        metrics.MeanAngleMetric(value, metricName="AngleMean %s" % (valueName))
+    )
+    mList.append(
+        metrics.FullRangeAngleMetric(value, metricName="AngleRange %s" % (valueName))
+    )
+    mList.append(metrics.RmsAngleMetric(value, metricName="AngleRms %s" % (valueName)))
+    slicer = slicers.HealpixSlicer(
+        nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+    )
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
     for f in filterlist:
         for m in mList:
-            displayDict['caption'] = 'Map of %s' % m.name
+            displayDict["caption"] = "Map of %s" % m.name
             if valueName != value:
-                displayDict['caption'] += ' (%s)' % value
-            displayDict['caption'] += ' for %s.' % metadata[f]
-            displayDict['order'] = orders[f]
-            bundle = mb.MetricBundle(m, slicer, sqls[f], stackerList=stackerList,
-                                     metadata=metadata[f], plotFuncs=subsetPlots,
-                                     displayDict=displayDict,
-                                     summaryMetrics=standardSummary())
+                displayDict["caption"] += " (%s)" % value
+            displayDict["caption"] += " for %s." % metadata[f]
+            displayDict["order"] = orders[f]
+            bundle = mb.MetricBundle(
+                m,
+                slicer,
+                sqls[f],
+                stackerList=stackerList,
+                metadata=metadata[f],
+                plotFuncs=subsetPlots,
+                displayDict=displayDict,
+                summaryMetrics=standardSummary(),
+            )
             bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
@@ -255,7 +323,7 @@ def metadataBasicsAngle(value, colmap=None, runName='opsim',
     return mb.makeBundlesDictFromList(bundleList)
 
 
-def allMetadata(colmap=None, runName='opsim', extraSql=None, extraMetadata=None):
+def allMetadata(colmap=None, runName="opsim", extraSql=None, extraMetadata=None):
     """Generate a large set of metrics about the metadata of each visit -
     distributions of airmass, normalized airmass, seeing, sky brightness, single visit depth,
     hour angle, distance to the moon, and solar elongation.
@@ -278,32 +346,51 @@ def allMetadata(colmap=None, runName='opsim', extraSql=None, extraMetadata=None)
     """
 
     if colmap is None:
-        colmap = ColMapDict('opsimV4')
+        colmap = ColMapDict("opsimV4")
 
     bdict = {}
 
-    for valueName in colmap['metadataList']:
+    for valueName in colmap["metadataList"]:
         if valueName in colmap:
             value = colmap[valueName]
         else:
             value = valueName
-        mdict = metadataBasics(value, colmap=colmap, runName=runName, valueName=valueName,
-                               extraSql=extraSql, extraMetadata=extraMetadata)
+        mdict = metadataBasics(
+            value,
+            colmap=colmap,
+            runName=runName,
+            valueName=valueName,
+            extraSql=extraSql,
+            extraMetadata=extraMetadata,
+        )
         bdict.update(mdict)
-    for valueName in colmap['metadataAngleList']:
+    for valueName in colmap["metadataAngleList"]:
         if valueName in colmap:
             value = colmap[valueName]
         else:
             value = valueName
-        mdict = metadataBasicsAngle(value, colmap=colmap, runName=runName, valueName=valueName,
-                                    extraSql=extraSql, extraMetadata=extraMetadata)
+        mdict = metadataBasicsAngle(
+            value,
+            colmap=colmap,
+            runName=runName,
+            valueName=valueName,
+            extraSql=extraSql,
+            extraMetadata=extraMetadata,
+        )
         bdict.update(mdict)
     return bdict
 
 
-def metadataMaps(value, colmap=None, runName='opsim',
-                 valueName=None, groupName=None, extraSql=None,
-                 extraMetadata=None, nside=64):
+def metadataMaps(
+    value,
+    colmap=None,
+    runName="opsim",
+    valueName=None,
+    groupName=None,
+    extraSql=None,
+    extraMetadata=None,
+    nside=64,
+):
     """Calculate 25/50/75 percentile values on maps across sky for a single metadata value.
 
     TODO: handle stackers which need configuration (degrees, in particular) more automatically.
@@ -338,7 +425,7 @@ def metadataMaps(value, colmap=None, runName='opsim',
     metricBundleDict
     """
     if colmap is None:
-        colmap = ColMapDict('opsimV4')
+        colmap = ColMapDict("opsimV4")
     bundleList = []
 
     if valueName is None:
@@ -352,47 +439,63 @@ def metadataMaps(value, colmap=None, runName='opsim',
         subgroup = valueName.capitalize()
 
     if subgroup is None:
-        subgroup = 'All visits'
+        subgroup = "All visits"
 
-    displayDict = {'group': groupName, 'subgroup': subgroup}
+    displayDict = {"group": groupName, "subgroup": subgroup}
 
     raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
     extraMetadata = combineMetadata(extraMetadata, ditherMeta)
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, metadata = filterList(all=True,
-                                                            extraSql=extraSql,
-                                                            extraMetadata=extraMetadata)
+    filterlist, colors, orders, sqls, metadata = filterList(
+        all=True, extraSql=extraSql, extraMetadata=extraMetadata
+    )
 
     # Hack to make HA work, but really I need to account for any stackers/colmaps.
-    if value == 'HA':
-        stackerList = [stackers.HourAngleStacker(lstCol=colmap['lst'], raCol=raCol,
-                                                 degrees=degrees)]
-    elif value == 'normairmass':
+    if value == "HA":
+        stackerList = [
+            stackers.HourAngleStacker(
+                lstCol=colmap["lst"], raCol=raCol, degrees=degrees
+            )
+        ]
+    elif value == "normairmass":
         stackerList = [stackers.NormAirmassStacker(degrees=degrees)]
     else:
         stackerList = None
 
     # Make maps of 25/median/75 for all and per filter, per RA/Dec, with standard summary stats.
     mList = []
-    mList.append(metrics.PercentileMetric(value, percentile=25,
-                                          metricName='25thPercentile %s' % (valueName)))
-    mList.append(metrics.MedianMetric(value, metricName='Median %s' % (valueName)))
-    mList.append(metrics.PercentileMetric(value, percentile=75,
-                                          metricName='75thPercentile %s' % (valueName)))
-    slicer = slicers.HealpixSlicer(nside=nside, latCol=decCol, lonCol=raCol,
-                                   latLonDeg=degrees)
+    mList.append(
+        metrics.PercentileMetric(
+            value, percentile=25, metricName="25thPercentile %s" % (valueName)
+        )
+    )
+    mList.append(metrics.MedianMetric(value, metricName="Median %s" % (valueName)))
+    mList.append(
+        metrics.PercentileMetric(
+            value, percentile=75, metricName="75thPercentile %s" % (valueName)
+        )
+    )
+    slicer = slicers.HealpixSlicer(
+        nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+    )
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
     for f in filterlist:
         for m in mList:
-            displayDict['caption'] = 'Map of %s' % m.name
+            displayDict["caption"] = "Map of %s" % m.name
             if valueName != value:
-                displayDict['caption'] += ' (%s)' % value
-            displayDict['caption'] += ' for %s.' % metadata[f]
-            displayDict['order'] = orders[f]
-            bundle = mb.MetricBundle(m, slicer, sqls[f], stackerList=stackerList,
-                                     metadata=metadata[f], plotFuncs=subsetPlots,
-                                     displayDict=displayDict,
-                                     summaryMetrics=standardSummary())
+                displayDict["caption"] += " (%s)" % value
+            displayDict["caption"] += " for %s." % metadata[f]
+            displayDict["order"] = orders[f]
+            bundle = mb.MetricBundle(
+                m,
+                slicer,
+                sqls[f],
+                stackerList=stackerList,
+                metadata=metadata[f],
+                plotFuncs=subsetPlots,
+                displayDict=displayDict,
+                summaryMetrics=standardSummary(),
+            )
             bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.

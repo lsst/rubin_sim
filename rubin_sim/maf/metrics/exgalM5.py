@@ -2,7 +2,7 @@ from .baseMetric import BaseMetric
 from .simpleMetrics import Coaddm5Metric
 from rubin_sim.photUtils import Dust_values
 
-__all__ = ['ExgalM5']
+__all__ = ["ExgalM5"]
 
 
 class ExgalM5(BaseMetric):
@@ -18,14 +18,26 @@ class ExgalM5(BaseMetric):
     unit : `str`, optional
         Label for units. Default 'mag'.
     """
-    def __init__(self, m5Col='fiveSigmaDepth', metricName='ExgalM5', units='mag',
-                 filterCol='filter', **kwargs):
+
+    def __init__(
+        self,
+        m5Col="fiveSigmaDepth",
+        metricName="ExgalM5",
+        units="mag",
+        filterCol="filter",
+        **kwargs
+    ):
         # Set the name for the dust map to use. This is gathered into the MetricBundle.
-        maps = ['DustMap']
+        maps = ["DustMap"]
         self.m5Col = m5Col
         self.filterCol = filterCol
-        super().__init__(col=[self.m5Col, self.filterCol], maps=maps,
-                         metricName=metricName, units=units, **kwargs)
+        super().__init__(
+            col=[self.m5Col, self.filterCol],
+            maps=maps,
+            metricName=metricName,
+            units=units,
+            **kwargs
+        )
         # Set the default wavelength limits for the lsst filters. These are approximately correct.
         dust_properties = Dust_values()
         self.Ax1 = dust_properties.Ax1
@@ -38,5 +50,5 @@ class ExgalM5(BaseMetric):
         """
         m5 = self.Coaddm5Metric.run(dataSlice)
         # Total dust extinction along this line of sight. Correct default A to this EBV value.
-        A_x = self.Ax1[dataSlice[self.filterCol][0]] * slicePoint['ebv']
+        A_x = self.Ax1[dataSlice[self.filterCol][0]] * slicePoint["ebv"]
         return m5 - A_x

@@ -2,7 +2,7 @@ import numpy as np
 from .baseMetric import BaseMetric
 from .exgalM5 import ExgalM5
 
-__all__ = ['ExgalM5_with_cuts', 'WeakLensingNvisits']
+__all__ = ["ExgalM5_with_cuts", "WeakLensingNvisits"]
 
 
 class ExgalM5_with_cuts(BaseMetric):
@@ -18,10 +18,21 @@ class ExgalM5_with_cuts(BaseMetric):
     Note: this metric calculates the depth after dust extinction in band 'lsstFilter', but because
     it looks for coverage in all bands, there should generally be no filter-constraint on the sql query.
     """
-    def __init__(self, m5Col='fiveSigmaDepth', filterCol='filter',
-                 metricName='ExgalM5_with_cuts', units='mag',
-                 lsstFilter='i', wavelen_min=None, wavelen_max=None,
-                 extinction_cut=0.2, depth_cut=25.9, nFilters=6, **kwargs):
+
+    def __init__(
+        self,
+        m5Col="fiveSigmaDepth",
+        filterCol="filter",
+        metricName="ExgalM5_with_cuts",
+        units="mag",
+        lsstFilter="i",
+        wavelen_min=None,
+        wavelen_max=None,
+        extinction_cut=0.2,
+        depth_cut=25.9,
+        nFilters=6,
+        **kwargs
+    ):
         self.m5Col = m5Col
         self.filterCol = filterCol
         self.extinction_cut = extinction_cut
@@ -30,8 +41,13 @@ class ExgalM5_with_cuts(BaseMetric):
         self.lsstFilter = lsstFilter
         # I thought about inheriting from ExGalM5 instead, but the columns specification is more complicated
         self.exgalM5 = ExgalM5(m5Col=m5Col, units=units)
-        super().__init__(col=[self.m5Col, self.filterCol], metricName=metricName, units=units,
-                         maps=self.exgalM5.maps, **kwargs)
+        super().__init__(
+            col=[self.m5Col, self.filterCol],
+            metricName=metricName,
+            units=units,
+            maps=self.exgalM5.maps,
+            **kwargs
+        )
 
     def run(self, dataSlice, slicePoint):
         # check to make sure there is at least some coverage in the required number of bands
@@ -40,7 +56,7 @@ class ExgalM5_with_cuts(BaseMetric):
             return self.badval
 
         # exclude areas with high extinction
-        if slicePoint['ebv'] > self.extinction_cut:
+        if slicePoint["ebv"] > self.extinction_cut:
             return self.badval
 
         # if coverage and dust criteria are valid, move forward with only lsstFilter-band visits
@@ -62,11 +78,18 @@ class WeakLensingNvisits(BaseMetric):
     after a maximum E(B-V) cut and a minimum co-added depth cut.
     Intended to be used with a single filter.
     """
-    def __init__(self, m5Col='fiveSigmaDepth', expTimeCol='visitExposureTime',
-                 lsstFilter='i', filterCol='filter',
-                 depthlim=24.5,
-                 ebvlim=0.2, min_expTime=15,
-                 **kwargs):
+
+    def __init__(
+        self,
+        m5Col="fiveSigmaDepth",
+        expTimeCol="visitExposureTime",
+        lsstFilter="i",
+        filterCol="filter",
+        depthlim=24.5,
+        ebvlim=0.2,
+        min_expTime=15,
+        **kwargs
+    ):
         # First set up the ExgalM5 metric (this will also add the dustmap as a map attribute)
         self.ExgalM5 = ExgalM5(m5Col=m5Col, filterCol=filterCol)
         self.m5Col = m5Col
@@ -74,10 +97,14 @@ class WeakLensingNvisits(BaseMetric):
         self.depthlim = depthlim
         self.ebvlim = ebvlim
         self.min_expTime = min_expTime
-        super().__init__(col=[self.m5Col, self.expTimeCol, filterCol], maps=self.ExgalM5.maps, **kwargs)
+        super().__init__(
+            col=[self.m5Col, self.expTimeCol, filterCol],
+            maps=self.ExgalM5.maps,
+            **kwargs
+        )
 
     def run(self, dataSlice, slicePoint):
-        if slicePoint['ebv'] > self.ebvlim:
+        if slicePoint["ebv"] > self.ebvlim:
             return self.badval
         dustdepth = self.ExgalM5.run(dataSlice=dataSlice, slicePoint=slicePoint)
         if dustdepth < self.depthlim:

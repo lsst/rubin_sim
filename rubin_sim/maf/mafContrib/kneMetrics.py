@@ -7,7 +7,7 @@ from rubin_sim.utils import uniformSphere
 from rubin_sim.photUtils import Dust_values
 from rubin_sim.data import get_data_dir
 
-__all__ = ['KN_lc', 'KNePopMetric', 'generateKNPopSlicer']
+__all__ = ["KN_lc", "KNePopMetric", "generateKNPopSlicer"]
 
 
 class KN_lc(object):
@@ -18,11 +18,12 @@ class KN_lc(object):
     file_list : list of str (None)
         List of file paths to load. If None, loads up all the files from data/bns/
     """
+
     def __init__(self, file_list=None):
         if file_list is None:
             datadir = get_data_dir()
             # Get files, model grid developed by M. Bulla
-            file_list = glob.glob(os.path.join(datadir, 'maf', 'bns', '*.dat'))
+            file_list = glob.glob(os.path.join(datadir, "maf", "bns", "*.dat"))
 
         filts = ["u", "g", "r", "i", "z", "y"]
         magidxs = [1, 2, 3, 4, 5, 6]
@@ -34,7 +35,7 @@ class KN_lc(object):
             t = mag_ds[:, 0]
             new_dict = {}
             for ii, (filt, magidx) in enumerate(zip(filts, magidxs)):
-                new_dict[filt] = {'ph': t, 'mag': mag_ds[:, magidx]}
+                new_dict[filt] = {"ph": t, "mag": mag_ds[:, magidx]}
             self.data.append(new_dict)
 
     def interp(self, t, filtername, lc_indx=0):
@@ -50,18 +51,32 @@ class KN_lc(object):
             Which file to use.
         """
 
-        result = np.interp(t, self.data[lc_indx][filtername]['ph'],
-                           self.data[lc_indx][filtername]['mag'],
-                           left=99, right=99)
+        result = np.interp(
+            t,
+            self.data[lc_indx][filtername]["ph"],
+            self.data[lc_indx][filtername]["mag"],
+            left=99,
+            right=99,
+        )
         return result
 
 
 class KNePopMetric(BaseMetric):
-    def __init__(self, metricName='KNePopMetric', mjdCol='observationStartMJD',
-                 m5Col='fiveSigmaDepth', filterCol='filter', nightCol='night',
-                 ptsNeeded=2, file_list=None, mjd0=59853.5, outputLc=False, badval=-666,
-                 **kwargs):
-        maps = ['DustMap']
+    def __init__(
+        self,
+        metricName="KNePopMetric",
+        mjdCol="observationStartMJD",
+        m5Col="fiveSigmaDepth",
+        filterCol="filter",
+        nightCol="night",
+        ptsNeeded=2,
+        file_list=None,
+        mjd0=59853.5,
+        outputLc=False,
+        badval=-666,
+        **kwargs
+    ):
+        maps = ["DustMap"]
         self.mjdCol = mjdCol
         self.m5Col = m5Col
         self.filterCol = filterCol
@@ -77,9 +92,14 @@ class KNePopMetric(BaseMetric):
         self.Ax1 = dust_properties.Ax1
 
         cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]
-        super(KNePopMetric, self).__init__(col=cols, units='Detected, 0 or 1',
-                                           metricName=metricName, maps=maps, badval=badval,
-                                           **kwargs)
+        super(KNePopMetric, self).__init__(
+            col=cols,
+            units="Detected, 0 or 1",
+            metricName=metricName,
+            maps=maps,
+            badval=badval,
+            **kwargs
+        )
 
     def _multi_detect(self, around_peak):
         """
@@ -92,8 +112,17 @@ class KNePopMetric(BaseMetric):
 
         return result
 
-    def _ztfrest_simple(self, around_peak, mags, t, filters, min_dt=0.125,
-                        min_fade=0.3, max_rise=-1., selectRed=False):
+    def _ztfrest_simple(
+        self,
+        around_peak,
+        mags,
+        t,
+        filters,
+        min_dt=0.125,
+        min_fade=0.3,
+        max_rise=-1.0,
+        selectRed=False,
+    ):
         """
         Selection criteria based on rise or decay rate; simplified version of
         the methods employed by the ZTFReST project
@@ -139,16 +168,17 @@ class KNePopMetric(BaseMetric):
             fil = []
             # Check time gaps and rise or fade rate for each band
             for f in set(filters):
-                if selectRed is True and not (f in 'izy'):
+                if selectRed is True and not (f in "izy"):
                     continue
                 times_f = t[around_peak][np.where(filters == f)[0]]
                 mags_f = mags[around_peak][np.where(filters == f)[0]]
                 dt_f = np.max(times_f) - np.min(times_f)
                 # Calculate the evolution rate, if the time gap condition is met
                 if dt_f > min_dt:
-                    evol_rate_f = ((np.max(mags_f) - np.min(mags_f))
-                                   / (times_f[np.where(mags_f == np.max(mags_f))[0]][0]
-                                      - times_f[np.where(mags_f == np.min(mags_f))[0]][0]))
+                    evol_rate_f = (np.max(mags_f) - np.min(mags_f)) / (
+                        times_f[np.where(mags_f == np.max(mags_f))[0]][0]
+                        - times_f[np.where(mags_f == np.min(mags_f))[0]][0]
+                    )
                     evol_rate.append(evol_rate_f)
                 else:
                     evol_rate.append(0)
@@ -186,9 +216,11 @@ class KNePopMetric(BaseMetric):
         """
         result = 1
         # Number of detected points in izy bands
-        n_red_det = np.size(np.where(filters == 'i')[0]) \
-                    + np.size(np.where(filters == 'z')[0]) \
-                    + np.size(np.where(filters == 'y')[0])
+        n_red_det = (
+            np.size(np.where(filters == "i")[0])
+            + np.size(np.where(filters == "z")[0])
+            + np.size(np.where(filters == "y")[0])
+        )
         # Condition
         if n_red_det < min_det:
             return 0
@@ -208,9 +240,11 @@ class KNePopMetric(BaseMetric):
         """
         result = 1
         # Number of detected points in ugr bands
-        n_blue_det = np.size(np.where(filters == 'u')[0]) \
-                     + np.size(np.where(filters == 'g')[0]) \
-                     + np.size(np.where(filters == 'r')[0])
+        n_blue_det = (
+            np.size(np.where(filters == "u")[0])
+            + np.size(np.where(filters == "g")[0])
+            + np.size(np.where(filters == "r")[0])
+        )
         # Condition
         if n_blue_det < min_det:
             return 0
@@ -219,67 +253,73 @@ class KNePopMetric(BaseMetric):
 
     def run(self, dataSlice, slicePoint=None):
         result = {}
-        t = dataSlice[self.mjdCol] - self.mjd0 - slicePoint['peak_time']
+        t = dataSlice[self.mjdCol] - self.mjd0 - slicePoint["peak_time"]
         mags = np.zeros(t.size, dtype=float)
 
         for filtername in np.unique(dataSlice[self.filterCol]):
             infilt = np.where(dataSlice[self.filterCol] == filtername)
-            mags[infilt] = self.lightcurves.interp(t[infilt], filtername,
-                                                   lc_indx=slicePoint['file_indx'])
+            mags[infilt] = self.lightcurves.interp(
+                t[infilt], filtername, lc_indx=slicePoint["file_indx"]
+            )
             # Apply dust extinction on the light curve
-            A_x = self.Ax1[filtername] * slicePoint['ebv']
+            A_x = self.Ax1[filtername] * slicePoint["ebv"]
             mags[infilt] += A_x
 
-            distmod = 5*np.log10(slicePoint['distance']*1e6) - 5.0
+            distmod = 5 * np.log10(slicePoint["distance"] * 1e6) - 5.0
             mags[infilt] += distmod
 
         # Find the detected points
-        around_peak = np.where((t > 0) & (t < 30) & (mags < dataSlice[self.m5Col]))[0]        
+        around_peak = np.where((t > 0) & (t < 30) & (mags < dataSlice[self.m5Col]))[0]
         # Filters in which the detections happened
         filters = dataSlice[self.filterCol][around_peak]
 
-        result['multi_detect'] = self._multi_detect(around_peak)
-        result['ztfrest_simple'] = self._ztfrest_simple(around_peak, mags, t,
-                                                        filters,
-                                                        selectRed=False)
-        result['ztfrest_simple_red'] = self._ztfrest_simple(around_peak, mags,
-                                                            t, filters,
-                                                            selectRed=True)
-        result['multi_color_detect'] = self._multi_color_detect(filters)
-        result['red_color_detect'] = self._red_color_detect(filters)
-        result['blue_color_detect'] = self._blue_color_detect(filters)
+        result["multi_detect"] = self._multi_detect(around_peak)
+        result["ztfrest_simple"] = self._ztfrest_simple(
+            around_peak, mags, t, filters, selectRed=False
+        )
+        result["ztfrest_simple_red"] = self._ztfrest_simple(
+            around_peak, mags, t, filters, selectRed=True
+        )
+        result["multi_color_detect"] = self._multi_color_detect(filters)
+        result["red_color_detect"] = self._red_color_detect(filters)
+        result["blue_color_detect"] = self._blue_color_detect(filters)
 
         # Export the light curve
         if self.outputLc is True:
-            mags[np.where(mags > 50)[0]] = 99.
-            result['lc'] = [dataSlice[self.mjdCol], mags,
-                            dataSlice[self.m5Col], dataSlice[self.filterCol]]
-            result['lc_colnames'] = ('t', 'mag', 'maglim', 'filter')
+            mags[np.where(mags > 50)[0]] = 99.0
+            result["lc"] = [
+                dataSlice[self.mjdCol],
+                mags,
+                dataSlice[self.m5Col],
+                dataSlice[self.filterCol],
+            ]
+            result["lc_colnames"] = ("t", "mag", "maglim", "filter")
 
         return result
 
     def reduce_multi_detect(self, metric):
-        return metric['multi_detect']
+        return metric["multi_detect"]
 
     def reduce_ztfrest_simple(self, metric):
-        return metric['ztfrest_simple']
+        return metric["ztfrest_simple"]
 
     def reduce_ztfrest_simple_red(self, metric):
-        return metric['ztfrest_simple_red']
+        return metric["ztfrest_simple_red"]
 
     def reduce_multi_color_detect(self, metric):
-        return metric['multi_color_detect']
+        return metric["multi_color_detect"]
 
     def reduce_red_color_detect(self, metric):
-        return metric['red_color_detect']
+        return metric["red_color_detect"]
 
     def reduce_blue_color_detect(self, metric):
-        return metric['blue_color_detect']
+        return metric["blue_color_detect"]
 
 
-def generateKNPopSlicer(t_start=1, t_end=3652, n_events=10000, seed=42,
-                        n_files=100, d_min=10, d_max=300):
-    """ Generate a population of KNe events, and put the info about them
+def generateKNPopSlicer(
+    t_start=1, t_end=3652, n_events=10000, seed=42, n_files=100, d_min=10, d_max=300
+):
+    """Generate a population of KNe events, and put the info about them
     into a UserPointSlicer object
 
     Parameters
@@ -303,13 +343,14 @@ def generateKNPopSlicer(t_start=1, t_end=3652, n_events=10000, seed=42,
     def rndm(a, b, g, size=1):
         """Power-law gen for pdf(x)\propto x^{g-1} for a<=x<=b"""
         r = np.random.random(size=size)
-        ag, bg = a**g, b**g
-        return (ag + (bg - ag)*r)**(1./g)
+        ag, bg = a ** g, b ** g
+        return (ag + (bg - ag) * r) ** (1.0 / g)
 
     ra, dec = uniformSphere(n_events, seed=seed)
     peak_times = np.random.uniform(low=t_start, high=t_end, size=n_events)
-    file_indx = np.floor(np.random.uniform(low=0, high=n_files,
-                                           size=n_events)).astype(int)
+    file_indx = np.floor(np.random.uniform(low=0, high=n_files, size=n_events)).astype(
+        int
+    )
 
     # Define the distance
     distance = rndm(d_min, d_max, 4, size=n_events)
@@ -317,8 +358,8 @@ def generateKNPopSlicer(t_start=1, t_end=3652, n_events=10000, seed=42,
     # Set up the slicer to evaluate the catalog we just made
     slicer = UserPointsSlicer(ra, dec, latLonDeg=True, badval=0)
     # Add any additional information about each object to the slicer
-    slicer.slicePoints['peak_time'] = peak_times
-    slicer.slicePoints['file_indx'] = file_indx
-    slicer.slicePoints['distance'] = distance
+    slicer.slicePoints["peak_time"] = peak_times
+    slicer.slicePoints["file_indx"] = file_indx
+    slicer.slicePoints["distance"] = distance
 
     return slicer

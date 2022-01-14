@@ -1,13 +1,14 @@
 import numpy
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.engine import reflection, url
-from sqlalchemy import (create_engine, MetaData, event, inspect)
+from sqlalchemy import create_engine, MetaData, event, inspect
 import warnings
 from io import BytesIO
+
 str_cast = str
 
 
-__all__ = ['DBObject']
+__all__ = ["DBObject"]
 
 
 def valueOfPi():
@@ -38,6 +39,7 @@ def declareTrigFunctions(conn, connection_rec, connection_proxy):
 
 class ChunkIterator(object):
     """Iterator for query chunks"""
+
     def __init__(self, dbobj, query, chunk_size, arbitrarySQL=False):
         self.dbobj = dbobj
         self.exec_query = dbobj.connection.session.execute(query)
@@ -123,11 +125,10 @@ class DBConnection(object):
 
         self._engine = create_engine(dbUrl, echo=self._verbose)
 
-        if self._engine.dialect.name == 'sqlite':
-            event.listen(self._engine, 'checkout', declareTrigFunctions)
+        if self._engine.dialect.name == "sqlite":
+            event.listen(self._engine, "checkout", declareTrigFunctions)
 
-        self._session = scoped_session(sessionmaker(autoflush=True,
-                                                    bind=self._engine))
+        self._session = scoped_session(sessionmaker(autoflush=True, bind=self._engine))
         self._metadata = MetaData(bind=self._engine)
 
     def _validate_conn_params(self):
@@ -141,43 +142,62 @@ class DBConnection(object):
         if self._database is None:
             raise AttributeError("Cannot instantiate DBConnection; database is 'None'")
 
-        if '//' in self._database:
-            warnings.warn("Database name '%s' is invalid but looks like a dbAddress. "
-                          "Attempting to convert to database, driver, host, "
-                          "and port parameters. Any usernames and passwords are ignored and must "
-                          "be in the db-auth.paf policy file. " % (self.database), FutureWarning)
+        if "//" in self._database:
+            warnings.warn(
+                "Database name '%s' is invalid but looks like a dbAddress. "
+                "Attempting to convert to database, driver, host, "
+                "and port parameters. Any usernames and passwords are ignored and must "
+                "be in the db-auth.paf policy file. " % (self.database),
+                FutureWarning,
+            )
 
             dbUrl = url.make_url(self._database)
             dialect = dbUrl.get_dialect()
-            self._driver = dialect.name + '+' + dialect.driver if dialect.driver else dialect.name
+            self._driver = (
+                dialect.name + "+" + dialect.driver if dialect.driver else dialect.name
+            )
             for key, value in dbUrl.translate_connect_args().items():
                 if value is not None:
-                    setattr(self, '_'+key, value)
+                    setattr(self, "_" + key, value)
 
-        errMessage = "Please supply a 'driver' kwarg to the constructor or in class definition. "
+        errMessage = (
+            "Please supply a 'driver' kwarg to the constructor or in class definition. "
+        )
         errMessage += "'driver' is formatted as dialect+driver, such as 'sqlite' or 'mssql+pymssql'."
-        if not hasattr(self, '_driver'):
-            raise AttributeError("%s has no attribute 'driver'. " % (self.__class__.__name__) + errMessage)
+        if not hasattr(self, "_driver"):
+            raise AttributeError(
+                "%s has no attribute 'driver'. " % (self.__class__.__name__)
+                + errMessage
+            )
         elif self._driver is None:
-            raise AttributeError("%s.driver is None. " % (self.__class__.__name__) + errMessage)
+            raise AttributeError(
+                "%s.driver is None. " % (self.__class__.__name__) + errMessage
+            )
 
         errMessage = "Please supply a 'database' kwarg to the constructor or in class definition. "
         errMessage += " 'database' is the database name or the filename path if driver is 'sqlite'. "
-        if not hasattr(self, '_database'):
-            raise AttributeError("%s has no attribute 'database'. " % (self.__class__.__name__) + errMessage)
+        if not hasattr(self, "_database"):
+            raise AttributeError(
+                "%s has no attribute 'database'. " % (self.__class__.__name__)
+                + errMessage
+            )
         elif self._database is None:
-            raise AttributeError("%s.database is None. " % (self.__class__.__name__) + errMessage)
+            raise AttributeError(
+                "%s.database is None. " % (self.__class__.__name__) + errMessage
+            )
 
-        if 'sqlite' in self._driver:
+        if "sqlite" in self._driver:
             # When passed sqlite database, override default host/port
             self._host = None
             self._port = None
 
     def __eq__(self, other):
-        return (str(self._database) == str(other._database)) and \
-               (str(self._driver) == str(other._driver)) and \
-               (str(self._host) == str(other._host)) and \
-               (str(self._port) == str(other._port))
+        return (
+            (str(self._database) == str(other._database))
+            and (str(self._driver) == str(other._driver))
+            and (str(self._host) == str(other._host))
+            and (str(self._port) == str(other._port))
+        )
 
     @property
     def engine(self):
@@ -213,9 +233,16 @@ class DBConnection(object):
 
 
 class DBObject(object):
-
-    def __init__(self, database=None, driver=None, host=None, port=None, verbose=False,
-                 connection=None, cache_connection=True):
+    def __init__(
+        self,
+        database=None,
+        driver=None,
+        host=None,
+        port=None,
+        verbose=False,
+        connection=None,
+        cache_connection=True,
+    ):
         """
         Initialize DBObject.
 
@@ -242,18 +269,21 @@ class DBObject(object):
 
         if connection is None:
             # Explicit constructor to DBObject preferred
-            kwargDict = dict(database=database,
-                             driver=driver,
-                             host=host,
-                             port=port,
-                             verbose=verbose)
+            kwargDict = dict(
+                database=database, driver=driver, host=host, port=port, verbose=verbose
+            )
 
             for key, value in kwargDict.items():
                 if value is not None or not hasattr(self, key):
                     setattr(self, key, value)
 
-            self.connection = self._get_connection(self.database, self.driver, self.host, self.port,
-                                                   use_cache=cache_connection)
+            self.connection = self._get_connection(
+                self.database,
+                self.driver,
+                self.host,
+                self.port,
+                use_cache=cache_connection,
+            )
 
         else:
             self.connection = connection
@@ -285,7 +315,7 @@ class DBObject(object):
         connections in many threads).
         """
 
-        if use_cache and hasattr(self, '_connection_cache'):
+        if use_cache and hasattr(self, "_connection_cache"):
             for conn in self._connection_cache:
                 if str(conn.database) == str(database):
                     if str(conn.driver) == str(driver):
@@ -295,15 +325,16 @@ class DBObject(object):
 
         conn = DBConnection(database=database, driver=driver, host=host, port=port)
 
-        if use_cache and hasattr(self, '_connection_cache'):
+        if use_cache and hasattr(self, "_connection_cache"):
             self._connection_cache.append(conn)
 
         return conn
 
     def get_table_names(self):
         """Return a list of the names of the tables (and views) in the database"""
-        return [str(xx) for xx in inspect(self.connection.engine).get_table_names()] + \
-               [str(xx) for xx in inspect(self.connection.engine).get_view_names()]
+        return [str(xx) for xx in inspect(self.connection.engine).get_table_names()] + [
+            str(xx) for xx in inspect(self.connection.engine).get_view_names()
+        ]
 
     def get_column_names(self, tableName=None):
         """
@@ -315,16 +346,22 @@ class DBObject(object):
         if tableName is not None:
             if tableName not in tableNameList:
                 return []
-            return [str_cast(xx['name']) for xx in inspect(self.connection.engine).get_columns(tableName)]
+            return [
+                str_cast(xx["name"])
+                for xx in inspect(self.connection.engine).get_columns(tableName)
+            ]
         else:
             columnDict = {}
             for name in tableNameList:
-                columnList = [str_cast(xx['name']) for xx in inspect(self.connection.engine).get_columns(name)]
+                columnList = [
+                    str_cast(xx["name"])
+                    for xx in inspect(self.connection.engine).get_columns(name)
+                ]
                 columnDict[name] = columnList
             return columnDict
 
     def _final_pass(self, results):
-        """ Make final modifications to a set of data before returning it to the user
+        """Make final modifications to a set of data before returning it to the user
 
         **Parameters**
 
@@ -343,13 +380,13 @@ class DBObject(object):
             Determine the dtype from the data.
             Store it in a global variable so we do not have to repeat on every chunk.
             """
-            dataString = ''
+            dataString = ""
 
             # We are going to detect the dtype by reading in a single row
             # of data with np.genfromtxt.  To do this, we must pass the
             # row as a string delimited by a specified character.  Here we
             # select a character that does not occur anywhere in the data.
-            delimit_char_list = [',', ';', '|', ':', '/', '\\']
+            delimit_char_list = [",", ";", "|", ":", "/", "\\"]
             delimit_char = None
             for cc in delimit_char_list:
                 is_valid = True
@@ -363,24 +400,30 @@ class DBObject(object):
                     break
 
             if delimit_char is None:
-                raise RuntimeError("DBObject could not detect the dtype of your return rows\n"
-                                   "Please specify a dtype with the 'dtype' kwarg.")
+                raise RuntimeError(
+                    "DBObject could not detect the dtype of your return rows\n"
+                    "Please specify a dtype with the 'dtype' kwarg."
+                )
 
             for xx in results[0]:
-                if dataString != '':
+                if dataString != "":
                     dataString += delimit_char
                 dataString += str(xx)
             names = [str_cast(ww) for ww in results[0].keys()]
-            dataArr = numpy.genfromtxt(BytesIO(dataString.encode()), dtype=None,
-                                       names=names, delimiter=delimit_char,
-                                       encoding='utf-8')
+            dataArr = numpy.genfromtxt(
+                BytesIO(dataString.encode()),
+                dtype=None,
+                names=names,
+                delimiter=delimit_char,
+                encoding="utf-8",
+            )
             dt_list = []
             for name in dataArr.dtype.names:
                 type_name = str(dataArr.dtype[name])
                 sub_list = [name]
-                if type_name.startswith('S') or type_name.startswith('|S'):
+                if type_name.startswith("S") or type_name.startswith("|S"):
                     sub_list.append(str_cast)
-                    sub_list.append(int(type_name.replace('S', '').replace('|', '')))
+                    sub_list.append(int(type_name.replace("S", "").replace("|", "")))
                 else:
                     sub_list.append(dataArr.dtype[name])
                 dt_list.append(tuple(sub_list))
@@ -390,7 +433,9 @@ class DBObject(object):
         if len(results) == 0:
             return numpy.recarray((0,), dtype=self.dtype)
 
-        retresults = numpy.rec.fromrecords([tuple(xx) for xx in results], dtype=self.dtype)
+        retresults = numpy.rec.fromrecords(
+            [tuple(xx) for xx in results], dtype=self.dtype
+        )
         return retresults
 
     def _postprocess_results(self, results):
@@ -425,10 +470,14 @@ class DBObject(object):
         unacceptableCommands = ["delete", "drop", "insert", "update"]
         for badCommand in unacceptableCommands:
             if query.lower().find(badCommand.lower()) >= 0:
-                raise RuntimeError("query made to DBObject execute contained %s " % badCommand)
+                raise RuntimeError(
+                    "query made to DBObject execute contained %s " % badCommand
+                )
 
         self.dtype = dtype
-        retresults = self._postprocess_arbitrary_results(self.connection.session.execute(query).fetchall())
+        retresults = self._postprocess_arbitrary_results(
+            self.connection.session.execute(query).fetchall()
+        )
         return retresults
 
     def get_arbitrary_chunk_iterator(self, query, chunk_size=None, dtype=None):

@@ -2,7 +2,7 @@ import numpy as np
 from .baseMetric import BaseMetric
 import healpy as hp
 
-__all__ = ['AreaSummaryMetric', 'AreaThresholdMetric']
+__all__ = ["AreaSummaryMetric", "AreaThresholdMetric"]
 
 
 class AreaSummaryMetric(BaseMetric):
@@ -23,8 +23,16 @@ class AreaSummaryMetric(BaseMetric):
         the bool val of the decreasing kwarg.
 
     """
-    def __init__(self, col='metricdata', metricName='AreaSummary', area=18000., decreasing=True,
-                 reduce_func=None, **kwargs):
+
+    def __init__(
+        self,
+        col="metricdata",
+        metricName="AreaSummary",
+        area=18000.0,
+        decreasing=True,
+        reduce_func=None,
+        **kwargs
+    ):
         super().__init__(col=col, metricName=metricName, **kwargs)
         self.area = area
         self.decreasing = decreasing
@@ -43,7 +51,7 @@ class AreaSummaryMetric(BaseMetric):
         # find out what nside we have
         nside = hp.npix2nside(dataSlice.size)
         pix_area = hp.nside2pixarea(nside, degrees=True)
-        n_pix_needed = int(np.ceil(self.area/pix_area))
+        n_pix_needed = int(np.ceil(self.area / pix_area))
 
         # Only use the finite data
         data = dataSlice[self.col][np.isfinite(dataSlice[self.col].astype(float))]
@@ -70,14 +78,21 @@ class AreaThresholdMetric(BaseMetric):
         The metric value must be above this threshold to count toward the area.
         Default None implies no lower bound.
     """
-    def __init__(self, col='metricdata', metricName='AreaThreshold',
-                 upper_threshold=None, lower_threshold=None, **kwargs):
+
+    def __init__(
+        self,
+        col="metricdata",
+        metricName="AreaThreshold",
+        upper_threshold=None,
+        lower_threshold=None,
+        **kwargs
+    ):
         super().__init__(col=col, metricName=metricName, **kwargs)
         self.upper_threshold = upper_threshold
         self.lower_threshold = lower_threshold
         self.maskVal = np.nan  # Include so all values get passed
         self.col = col
-        self.units = 'degrees'
+        self.units = "degrees"
 
     def run(self, dataSlice, slicePoint=None):
         # find out what nside we have
@@ -91,7 +106,11 @@ class AreaThresholdMetric(BaseMetric):
         elif self.lower_threshold is None:
             npix = len(np.where(dataSlice[self.col] < self.upper_threshold)[0])
         else:
-            npix = len(np.where((dataSlice[self.col] > self.lower_threshold) and
-                                (dataSlice[self.col] < self.upper_threshold))[0])
+            npix = len(
+                np.where(
+                    (dataSlice[self.col] > self.lower_threshold)
+                    and (dataSlice[self.col] < self.upper_threshold)
+                )[0]
+            )
         area = pix_area * npix
         return area

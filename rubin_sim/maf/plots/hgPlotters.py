@@ -32,10 +32,17 @@ from rubin_sim.utils.ddf_locations import ddf_locations
 
 # classes
 
-__all__ = ['GeneralHourglassPlot', 'CategoricalHourglassPlotMixin',
-           'RangeHourglassCategoricalPlot', 'MonthHourglassCategoricalPlot',
-           'TimeUseHourglassPlotMixin', 'MonthHourglassPlot',
-           'YearHourglassCategoricalPlot', 'YearHourglassPlot', 'YearHourglassUsePlot']
+__all__ = [
+    "GeneralHourglassPlot",
+    "CategoricalHourglassPlotMixin",
+    "RangeHourglassCategoricalPlot",
+    "MonthHourglassCategoricalPlot",
+    "TimeUseHourglassPlotMixin",
+    "MonthHourglassPlot",
+    "YearHourglassCategoricalPlot",
+    "YearHourglassPlot",
+    "YearHourglassUsePlot",
+]
 
 
 class GeneralHourglassPlot(BasePlotter):
@@ -82,9 +89,7 @@ class GeneralHourglassPlot(BasePlotter):
             "legend_bbox_to_anchor": (0.9, 0.0),
             "legend_loc": "lower right",
         }
-        self.plotDict = copy.copy(  # pylint: disable=invalid-name
-            self.defaultPlotDict
-        )
+        self.plotDict = copy.copy(self.defaultPlotDict)  # pylint: disable=invalid-name
         self.tz = tz  # pylint: disable=invalid-name
         if isinstance(site, str):
             self.site = astropy.coordinates.EarthLocation.of_site(site)
@@ -95,9 +100,7 @@ class GeneralHourglassPlot(BasePlotter):
         self.color_map = {}
         self.marked_ra = {} if marked_ra is None else marked_ra
 
-    def _add_axis_labels(
-        self, ax
-    ):  # pylint: disable=invalid-name, no-self-use
+    def _add_axis_labels(self, ax):  # pylint: disable=invalid-name, no-self-use
         """Add title/x/y labels to one set of axes.
 
         Parameters
@@ -217,9 +220,7 @@ class GeneralHourglassPlot(BasePlotter):
         start_mjd = ax.get_ylim()[1] + epoch_mjd
         end_mjd = ax.get_ylim()[0] + epoch_mjd
         # Add the twilight boundaries and moon transit lines
-        _astron_hourglass(
-            start_mjd + 0.5, end_mjd + 1, ax, self.site, self.solar_time
-        )
+        _astron_hourglass(start_mjd + 0.5, end_mjd + 1, ax, self.site, self.solar_time)
         # Add the transits
         self._plot_transits(start_mjd + 0.5, end_mjd + 1, ax)
 
@@ -310,8 +311,7 @@ class GeneralHourglassPlot(BasePlotter):
             except KeyError:
                 color_limits = (values.min(), values.max())
             colors = cmap(
-                (values - color_limits[0])
-                / (color_limits[1] - color_limits[0])
+                (values - color_limits[0]) / (color_limits[1] - color_limits[0])
             )
 
         norm = mpl.colors.Normalize(vmin=color_limits[0], vmax=color_limits[1])
@@ -355,9 +355,7 @@ class GeneralHourglassPlot(BasePlotter):
         )
         # Set up a copy of the plot dict to contain entries relevant
         # for this plot
-        self.plotDict = copy.copy(  # pylint: disable=invalid-name
-            self.defaultPlotDict
-        )
+        self.plotDict = copy.copy(self.defaultPlotDict)  # pylint: disable=invalid-name
         self.plotDict.update(userPlotDict)
 
         # Generate the figure
@@ -419,9 +417,7 @@ class GeneralHourglassPlot(BasePlotter):
         # If we missed anything we have assigned a label while
         # plotting, automatically pick it up, but avoid
         # duplication
-        auto_handles, auto_labels = axes.T.flatten()[
-            -1
-        ].get_legend_handles_labels()
+        auto_handles, auto_labels = axes.T.flatten()[-1].get_legend_handles_labels()
         for auto_handle, auto_label in zip(auto_handles, auto_labels):
             handle_dict[auto_label] = auto_handle
 
@@ -434,9 +430,7 @@ class GeneralHourglassPlot(BasePlotter):
             desired_labels = handle_dict.keys()
 
         labels = [lbl for lbl in desired_labels if lbl in handle_dict]
-        handles = [
-            handle_dict[lbl] for lbl in desired_labels if lbl in handle_dict
-        ]
+        handles = [handle_dict[lbl] for lbl in desired_labels if lbl in handle_dict]
 
         fig.legend(
             handles,
@@ -469,7 +463,12 @@ class GeneralHourglassPlot(BasePlotter):
         fig.colorbar(color_mappable, ax=axes, **colorbar_kwargs)
 
     def _plot_dates(  # pylint: disable=invalid-name
-        self, intervals, start_tstamp, end_tstamp, ax, epoch_tstamp=None,
+        self,
+        intervals,
+        start_tstamp,
+        end_tstamp,
+        ax,
+        epoch_tstamp=None,
     ):
         """Plot data on one axis for a range of dates.
 
@@ -499,9 +498,7 @@ class GeneralHourglassPlot(BasePlotter):
         start_mjd = start_tstamp.to_julian_date() - 2400000.5
         end_mjd = end_tstamp.to_julian_date() - 2400000.5
         epoch_mjd = (
-            0
-            if epoch_tstamp is None
-            else epoch_tstamp.to_julian_date() - 2400000.5
+            0 if epoch_tstamp is None else epoch_tstamp.to_julian_date() - 2400000.5
         )
 
         these_intervals = intervals.query(f"{start_mjd}<mjd<{end_mjd}")
@@ -530,22 +527,22 @@ class GeneralHourglassPlot(BasePlotter):
         if self.plotDict is None:
             self.plotDict = {}
 
-        start_tstamp = pd.Timestamp(
-            year=year, month=month, day=1, hour=12, tz=self.tz
-        )
+        start_tstamp = pd.Timestamp(year=year, month=month, day=1, hour=12, tz=self.tz)
         end_tstamp = start_tstamp + pd.DateOffset(months=1)
         epoch_tstamp = pd.Timestamp(
             year=year, month=month, day=1, hour=0, tz="UTC"
         ) - pd.DateOffset(days=1)
         color_mappable = self._plot_dates(
-            intervals, start_tstamp, end_tstamp, ax, epoch_tstamp=epoch_tstamp,
+            intervals,
+            start_tstamp,
+            end_tstamp,
+            ax,
+            epoch_tstamp=epoch_tstamp,
         )
         ax.set_yticks(np.arange(1, 32, 7))
         return color_mappable
 
-    def _plot_transits(
-        self, start_mjd, end_mjd, ax
-    ):  # pylint: disable=invalid-name
+    def _plot_transits(self, start_mjd, end_mjd, ax):  # pylint: disable=invalid-name
         """Plot transit lines on a set of axes.
 
         Parameters
@@ -574,9 +571,7 @@ class GeneralHourglassPlot(BasePlotter):
                 (
                     transit_nights,
                     transit_hams,
-                ) = _compute_hours_after_solar_midnight(
-                    transit_mjds, self.site
-                )
+                ) = _compute_hours_after_solar_midnight(transit_mjds, self.site)
             else:
                 transit_nights, transit_hams = _compute_hours_after_midnight(
                     transit_mjds
@@ -635,9 +630,7 @@ class RangeHourglassPlot(GeneralHourglassPlot):
 
         """
         ax = fig.add_axes([0, 0, 1, 1])  # pylint: disable=invalid-name
-        color_mappable = self._plot_dates(
-            intervals, self.start_date, self.end_date, ax
-        )
+        color_mappable = self._plot_dates(intervals, self.start_date, self.end_date, ax)
         self._add_axis_labels(ax, self.plotDict)
         return color_mappable, np.array([ax])
 
@@ -667,9 +660,7 @@ class MonthHourglassPlot(GeneralHourglassPlot):
         super().__init__(**kwargs)
         self.plotType = "MonthHourglass"
         self.defaultPlotDict["ylabel"] = "day of month"
-        self.defaultPlotDict["yMax"] = (
-            calendar.monthrange(year, month)[1] + 0.5
-        )
+        self.defaultPlotDict["yMax"] = calendar.monthrange(year, month)[1] + 0.5
         self.defaultPlotDict["yMin"] = 0.5
         self.month = month
         self.year = year
@@ -754,17 +745,11 @@ class YearHourglassPlot(GeneralHourglassPlot):
         for month, ax in zip(  # pylint: disable=invalid-name
             np.arange(1, 13), axes.T.flatten()
         ):
-            logging.info(
-                "Working on %s, %d", calendar.month_name[month], self.year
-            )
-            self.plotDict["yMax"] = (
-                calendar.monthrange(self.year, month)[1] + 0.5
-            )
+            logging.info("Working on %s, %d", calendar.month_name[month], self.year)
+            self.plotDict["yMax"] = calendar.monthrange(self.year, month)[1] + 0.5
             color_mappable = self._plot_month(intervals, month, self.year, ax)
             ax.set_title("")
-            ax.set_title(
-                calendar.month_abbr[month], y=1, x=0.005, pad=-15, loc="left"
-            )
+            ax.set_title(calendar.month_abbr[month], y=1, x=0.005, pad=-15, loc="left")
 
         self._add_figure_labels(fig, axes)
         return color_mappable, axes.ravel()
@@ -824,7 +809,9 @@ class CategoricalHourglassPlotMixin:
         self.color_map = {}
         if len(self.color_map.keys()) == 0:
             self.color_map = _assign_category_colors(
-                np.unique(values), cmap, assigned_colors=assigned_colors,
+                np.unique(values),
+                cmap,
+                assigned_colors=assigned_colors,
             )
 
         colors = np.array(np.vectorize(self.color_map.get)(values)).T.tolist()
@@ -833,21 +820,15 @@ class CategoricalHourglassPlotMixin:
         return colors, color_mappable
 
 
-class RangeHourglassCategoricalPlot(
-    CategoricalHourglassPlotMixin, RangeHourglassPlot
-):
+class RangeHourglassCategoricalPlot(CategoricalHourglassPlotMixin, RangeHourglassPlot):
     """Plot categorical data for a range of dates."""
 
 
-class MonthHourglassCategoricalPlot(
-    CategoricalHourglassPlotMixin, MonthHourglassPlot
-):
+class MonthHourglassCategoricalPlot(CategoricalHourglassPlotMixin, MonthHourglassPlot):
     """Plot categorical data for a Month."""
 
 
-class YearHourglassCategoricalPlot(
-    CategoricalHourglassPlotMixin, YearHourglassPlot
-):
+class YearHourglassCategoricalPlot(CategoricalHourglassPlotMixin, YearHourglassPlot):
     """Plot categorical data for a year."""
 
 
@@ -890,9 +871,7 @@ def _assign_category_colors(uses, cmap, use_colors=None, assigned_colors=None):
     Options allow specifing pre-defined elements for some categories."""
 
     use_colors = OrderedDict() if use_colors is None else use_colors
-    assigned_colors = (
-        OrderedDict() if assigned_colors is None else assigned_colors
-    )
+    assigned_colors = OrderedDict() if assigned_colors is None else assigned_colors
 
     available_idxs = list(range(cmap.N))
 
@@ -949,9 +928,7 @@ def _compute_hours_after_midnight(
         mjd + 2400000.5, unit="D", origin="julian"
     ).tz_localize("UTC")
     local_times = pd.DatetimeIndex(utc_datetimes).tz_convert(tz)
-    night_mjds = (
-        np.floor(local_times.to_julian_date() - 2400001).astype(int).values
-    )
+    night_mjds = np.floor(local_times.to_julian_date() - 2400001).astype(int).values
     hours_after_midnight = (
         local_times.to_julian_date().values - 2400001.5 - night_mjds
     ) * 24
@@ -996,15 +973,11 @@ def _compute_hours_after_solar_midnight(
         mjd + 2400000.5, unit="D", origin="julian"
     ).tz_localize("UTC")
     local_times = pd.DatetimeIndex(utc_datetimes).tz_convert(tz)
-    night_mjds = (
-        np.floor(local_times.to_julian_date() - 2400001).astype(int).values
-    )
+    night_mjds = np.floor(local_times.to_julian_date() - 2400001).astype(int).values
     return night_mjds, hours_after_midnight
 
 
-def _compute_coord_transit_mjds(
-    mjds, ra, site
-):  # pylint: disable=invalid-name
+def _compute_coord_transit_mjds(mjds, ra, site):  # pylint: disable=invalid-name
     """Compute the coordinate transit times.
 
     Parameters
@@ -1060,9 +1033,9 @@ def _compute_moon_transit_mjds(mjds, site):
         times = astropy.time.Time(mjds, format="mjd", location=site)
         moon_coords = astropy.coordinates.get_moon(times)
         # Calculate the local sidereal time at mjds
-        lsts = astropy.time.Time(
-            mjds, format="mjd", location=site
-        ).sidereal_time("apparent")
+        lsts = astropy.time.Time(mjds, format="mjd", location=site).sidereal_time(
+            "apparent"
+        )
         # pylint: disable=invalid-name, no-member
         ha = (lsts - moon_coords.ra).wrap_at(180 * u.deg)
         mjds = mjds - ha.to_value(u.deg) / 360
@@ -1113,9 +1086,7 @@ def _astron_hourglass(
             moon_transit_mjds
         )
     # Loop to avoid wrapping
-    moon_lines = np.cumsum(
-        np.diff(moon_transit_hams, prepend=moon_transit_hams[0]) < 0
-    )
+    moon_lines = np.cumsum(np.diff(moon_transit_hams, prepend=moon_transit_hams[0]) < 0)
     moon_label = "moon"
     for moon_line in np.unique(moon_lines):
         these_hams = moon_transit_hams[moon_lines == moon_line]
@@ -1132,9 +1103,7 @@ def _astron_hourglass(
 
     # Moon rise and set
     for direction in ("up", "down"):
-        moon_event_mjds = riseset_times(
-            cal_night_mjds, direction, alt=0, body="moon"
-        )
+        moon_event_mjds = riseset_times(cal_night_mjds, direction, alt=0, body="moon")
         if solar_time:
             (
                 moon_event_nights,
@@ -1145,9 +1114,7 @@ def _astron_hourglass(
                 moon_event_mjds
             )
         # Loop to avoid wrapping
-        moon_lines = np.cumsum(
-            np.diff(moon_event_hams, prepend=moon_event_hams[0]) < 0
-        )
+        moon_lines = np.cumsum(np.diff(moon_event_hams, prepend=moon_event_hams[0]) < 0)
         for moon_line in np.unique(moon_lines):
             these_hams = moon_event_hams[moon_lines == moon_line]
             these_nights = moon_event_nights[moon_lines == moon_line]
@@ -1179,12 +1146,14 @@ def _astron_hourglass(
                 am_event_hams,
             ) = _compute_hours_after_solar_midnight(am_event_mjds, site)
         else:
-            (pm_event_nights, pm_event_hams,) = _compute_hours_after_midnight(
-                pm_event_mjds
-            )
-            (am_event_nights, am_event_hams,) = _compute_hours_after_midnight(
-                am_event_mjds
-            )
+            (
+                pm_event_nights,
+                pm_event_hams,
+            ) = _compute_hours_after_midnight(pm_event_mjds)
+            (
+                am_event_nights,
+                am_event_hams,
+            ) = _compute_hours_after_midnight(am_event_mjds)
         assert np.array_equal(am_event_nights, pm_event_nights)
         ax.fill_betweenx(
             am_event_nights - start_mjd + 1,

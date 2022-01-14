@@ -54,7 +54,7 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         self.MAP_FILE_ROOT_NAME = "priority_GalPlane_footprint_map_data"
         self.load_maps()
 
-        super().__init__(col=cols, metricName=metricName)
+        super().__init__(col=cols, metricName=metricName, metricDtype="object")
 
     def load_maps(self):
         self.NSIDE = 64
@@ -108,12 +108,12 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         # This loop computes the main metric value over all HEALpixels in the sky map
         # ("combined_map") as well as over the HEALpixels of the specific regions
         # of interest for different science cases
-        metric_values = {}
-
         map_data = getattr(self, "map_data_" + str(f))
-        for col_name in map_data.columns:
+        metric_data = {}
 
-            region_pixels = np.where(map_data[col_name] > 0.0)
+        for col in map_data.columns:
+
+            region_pixels = np.where(map_data[col.name] > 0.0)
 
             # To return a single metric value for the whole map, sum the total
             # priority of all desired pixels included in the survey observations:
@@ -122,6 +122,6 @@ class galPlaneFootprintMetric(maf.BaseMetric):
             # Normalize by full weighted map summed over all filters and pixels:
             metric /= self.ideal_combined_map[region_pixels].sum()
 
-            metric_values[col_name] = metric
+            metric_data[col.name] = metric
 
-        return metric_value
+        return metric_data

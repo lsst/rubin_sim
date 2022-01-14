@@ -12,7 +12,8 @@ import numpy as np
 
 Base = declarative_base()
 
-__all__ = ['MetricRow', 'DisplayRow', 'PlotRow', 'SummaryStatRow', 'ResultsDb']
+__all__ = ["MetricRow", "DisplayRow", "PlotRow", "SummaryStatRow", "ResultsDb"]
+
 
 class MetricRow(Base):
     """
@@ -20,6 +21,7 @@ class MetricRow(Base):
 
     (Table to list all metrics, their metadata, and their output data files).
     """
+
     __tablename__ = "metrics"
     # Define columns in metric list table.
     metricId = Column(Integer, primary_key=True)
@@ -29,11 +31,22 @@ class MetricRow(Base):
     sqlConstraint = Column(String)
     metricMetadata = Column(String)
     metricDataFile = Column(String)
+
     def __repr__(self):
-        return "<Metric(metricId='%d', metricName='%s', slicerName='%s', simDataName='%s', " \
-               "sqlConstraint='%s', metadata='%s', metricDataFile='%s')>" \
-          %(self.metricId, self.metricName, self.slicerName, self.simDataName,
-            self.sqlConstraint, self.metricMetadata, self.metricDataFile)
+        return (
+            "<Metric(metricId='%d', metricName='%s', slicerName='%s', simDataName='%s', "
+            "sqlConstraint='%s', metadata='%s', metricDataFile='%s')>"
+            % (
+                self.metricId,
+                self.metricName,
+                self.slicerName,
+                self.simDataName,
+                self.sqlConstraint,
+                self.metricMetadata,
+                self.metricDataFile,
+            )
+        )
+
 
 class DisplayRow(Base):
     """
@@ -41,9 +54,10 @@ class DisplayRow(Base):
 
     (Table to list the display properties for each metric.)
     """
+
     __tablename__ = "displays"
     displayId = Column(Integer, primary_key=True)
-    metricId = Column(Integer, ForeignKey('metrics.metricId'))
+    metricId = Column(Integer, ForeignKey("metrics.metricId"))
     # Group for displaying metric (in webpages).
     displayGroup = Column(String)
     # Subgroup for displaying metric.
@@ -52,11 +66,20 @@ class DisplayRow(Base):
     displayOrder = Column(Float)
     # The figure caption.
     displayCaption = Column(String)
-    metric = relationship("MetricRow", backref=backref('displays', order_by=displayId))
+    metric = relationship("MetricRow", backref=backref("displays", order_by=displayId))
+
     def __rep__(self):
-        return "<Display(displayGroup='%s', displaySubgroup='%s', " \
-               "displayOrder='%.1f', displayCaption='%s')>" \
-            %(self.displayGroup, self.displaySubgroup, self.displayOrder, self.displayCaption)
+        return (
+            "<Display(displayGroup='%s', displaySubgroup='%s', "
+            "displayOrder='%.1f', displayCaption='%s')>"
+            % (
+                self.displayGroup,
+                self.displaySubgroup,
+                self.displayOrder,
+                self.displayCaption,
+            )
+        )
+
 
 class PlotRow(Base):
     """
@@ -64,17 +87,23 @@ class PlotRow(Base):
 
     (Table to list all plots, link them to relevant metrics in MetricList, and provide info on filename).
     """
+
     __tablename__ = "plots"
     # Define columns in plot list table.
     plotId = Column(Integer, primary_key=True)
     # Matches metricID in MetricList table.
-    metricId = Column(Integer, ForeignKey('metrics.metricId'))
+    metricId = Column(Integer, ForeignKey("metrics.metricId"))
     plotType = Column(String)
     plotFile = Column(String)
-    metric = relationship("MetricRow", backref=backref('plots', order_by=plotId))
+    metric = relationship("MetricRow", backref=backref("plots", order_by=plotId))
+
     def __repr__(self):
-        return "<Plot(metricId='%d', plotType='%s', plotFile='%s')>" \
-          %(self.metricId, self.plotType, self.plotFile)
+        return "<Plot(metricId='%d', plotType='%s', plotFile='%s')>" % (
+            self.metricId,
+            self.plotType,
+            self.plotFile,
+        )
+
 
 class SummaryStatRow(Base):
     """
@@ -83,42 +112,52 @@ class SummaryStatRow(Base):
     (Table to list and link summary stats to relevant metrics in MetricList, and provide summary stat name,
     value and potentially a comment).
     """
+
     __tablename__ = "summarystats"
     # Define columns in plot list table.
     statId = Column(Integer, primary_key=True)
     # Matches metricID in MetricList table.
-    metricId = Column(Integer, ForeignKey('metrics.metricId'))
+    metricId = Column(Integer, ForeignKey("metrics.metricId"))
     summaryName = Column(String)
     summaryValue = Column(Float)
-    metric = relationship("MetricRow", backref=backref('summarystats', order_by=statId))
+    metric = relationship("MetricRow", backref=backref("summarystats", order_by=statId))
+
     def __repr__(self):
-        return "<SummaryStat(metricId='%d', summaryName='%s', summaryValue='%f')>" \
-          %(self.metricId, self.summaryName, self.summaryValue)
+        return "<SummaryStat(metricId='%d', summaryName='%s', summaryValue='%f')>" % (
+            self.metricId,
+            self.summaryName,
+            self.summaryValue,
+        )
+
 
 class ResultsDb(object):
     """The ResultsDb is a sqlite database containing information on the metrics run via MAF,
     the plots created, the display information (such as captions), and any summary statistics output.
     """
-    def __init__(self, outDir= None, database=None, verbose=False):
+
+    def __init__(self, outDir=None, database=None, verbose=False):
         """
         Instantiate the results database, creating metrics, plots and summarystats tables.
         """
         # We now require resultsDb to be a sqlite file (for simplicity). Leaving as attribute though.
-        self.driver = 'sqlite'
+        self.driver = "sqlite"
         # Connect to database
         # for sqlite, connecting to non-existent database creates it automatically
         if database is None:
             # Using default value for database name, should specify directory.
             if outDir is None:
-                outDir = '.'
+                outDir = "."
             # Check for output directory, make if needed.
             if not os.path.isdir(outDir):
                 try:
                     os.makedirs(outDir)
                 except OSError as msg:
-                    raise OSError(msg, '\n  (If this was the database file (not outDir), '
-                                       'remember to use kwarg "database")')
-            self.database = os.path.join(outDir, 'resultsDb_sqlite.db')
+                    raise OSError(
+                        msg,
+                        "\n  (If this was the database file (not outDir), "
+                        'remember to use kwarg "database")',
+                    )
+            self.database = os.path.join(outDir, "resultsDb_sqlite.db")
         else:
             # Using non-default database, but may also specify directory root.
             if outDir is not None:
@@ -134,8 +173,10 @@ class ResultsDb(object):
         try:
             Base.metadata.create_all(engine)
         except DatabaseError:
-            raise ValueError("Cannot create a %s database at %s. Check directory exists." %(self.driver,
-                                                                                            self.database))
+            raise ValueError(
+                "Cannot create a %s database at %s. Check directory exists."
+                % (self.driver, self.database)
+            )
         self.slen = 1024
 
     def close(self):
@@ -144,8 +185,15 @@ class ResultsDb(object):
         """
         self.session.close()
 
-    def updateMetric(self, metricName, slicerName, simDataName, sqlConstraint,
-                  metricMetadata, metricDataFile):
+    def updateMetric(
+        self,
+        metricName,
+        slicerName,
+        simDataName,
+        sqlConstraint,
+        metricMetadata,
+        metricDataFile,
+    ):
         """
         Add a row to or update a row in the metrics table.
 
@@ -174,23 +222,34 @@ class ResultsDb(object):
         already exists, it does nothing.
         """
         if simDataName is None:
-            simDataName = 'NULL'
+            simDataName = "NULL"
         if sqlConstraint is None:
-            sqlConstraint = 'NULL'
+            sqlConstraint = "NULL"
         if metricMetadata is None:
-            metricMetadata = 'NULL'
+            metricMetadata = "NULL"
         if metricDataFile is None:
-            metricDataFile = 'NULL'
+            metricDataFile = "NULL"
         # Check if metric has already been added to database.
-        prev = self.session.query(MetricRow).filter_by(metricName=metricName,
-                                                       slicerName=slicerName,
-                                                       simDataName=simDataName,
-                                                       metricMetadata=metricMetadata,
-                                                       sqlConstraint=sqlConstraint).all()
+        prev = (
+            self.session.query(MetricRow)
+            .filter_by(
+                metricName=metricName,
+                slicerName=slicerName,
+                simDataName=simDataName,
+                metricMetadata=metricMetadata,
+                sqlConstraint=sqlConstraint,
+            )
+            .all()
+        )
         if len(prev) == 0:
-            metricinfo = MetricRow(metricName=metricName, slicerName=slicerName, simDataName=simDataName,
-                                   sqlConstraint=sqlConstraint, metricMetadata=metricMetadata,
-                                   metricDataFile=metricDataFile)
+            metricinfo = MetricRow(
+                metricName=metricName,
+                slicerName=slicerName,
+                simDataName=simDataName,
+                sqlConstraint=sqlConstraint,
+                metricMetadata=metricMetadata,
+                metricDataFile=metricDataFile,
+            )
             self.session.add(metricinfo)
             self.session.commit()
         else:
@@ -222,22 +281,26 @@ class ResultsDb(object):
         # Then go ahead and add new displayDict.
         for k in displayDict:
             if displayDict[k] is None:
-                displayDict[k] = 'NULL'
-        keys = ['group', 'subgroup', 'order', 'caption']
+                displayDict[k] = "NULL"
+        keys = ["group", "subgroup", "order", "caption"]
         for k in keys:
             if k not in displayDict:
-                displayDict[k] = 'NULL'
-        if displayDict['order'] == 'NULL':
-            displayDict['order'] = 0
-        displayGroup = displayDict['group']
-        displaySubgroup = displayDict['subgroup']
-        displayOrder = displayDict['order']
-        displayCaption = displayDict['caption']
-        if displayCaption.endswith('(auto)'):
-            displayCaption = displayCaption.replace('(auto)', '', 1)
-        displayinfo = DisplayRow(metricId=metricId,
-                                 displayGroup=displayGroup, displaySubgroup=displaySubgroup,
-                                 displayOrder=displayOrder, displayCaption=displayCaption)
+                displayDict[k] = "NULL"
+        if displayDict["order"] == "NULL":
+            displayDict["order"] = 0
+        displayGroup = displayDict["group"]
+        displaySubgroup = displayDict["subgroup"]
+        displayOrder = displayDict["order"]
+        displayCaption = displayDict["caption"]
+        if displayCaption.endswith("(auto)"):
+            displayCaption = displayCaption.replace("(auto)", "", 1)
+        displayinfo = DisplayRow(
+            metricId=metricId,
+            displayGroup=displayGroup,
+            displaySubgroup=displaySubgroup,
+            displayOrder=displayOrder,
+            displayCaption=displayCaption,
+        )
         self.session.add(displayinfo)
         self.session.commit()
 
@@ -257,7 +320,11 @@ class ResultsDb(object):
             Replaces existing row with the same metricId and plotType, if True.
             Default False, in which case additional plot is added to output (e.g. with different range)
         """
-        plotinfo = self.session.query(PlotRow).filter_by(metricId=metricId, plotType=plotType).all()
+        plotinfo = (
+            self.session.query(PlotRow)
+            .filter_by(metricId=metricId, plotType=plotType)
+            .all()
+        )
         if len(plotinfo) > 0 and overwrite:
             for p in plotinfo:
                 self.session.delete(p)
@@ -289,31 +356,42 @@ class ResultsDb(object):
         # Allow for special summary statistics which return data in a np structured array with
         #   'name' and 'value' columns.  (specificially needed for TableFraction summary statistic).
         if isinstance(summaryValue, np.ndarray):
-            if (('name' in summaryValue.dtype.names) and ('value' in summaryValue.dtype.names)):
+            if ("name" in summaryValue.dtype.names) and (
+                "value" in summaryValue.dtype.names
+            ):
                 for value in summaryValue:
-                    sSuffix = value['name']
+                    sSuffix = value["name"]
                     if isinstance(sSuffix, bytes):
-                        sSuffix = sSuffix.decode('utf-8')
+                        sSuffix = sSuffix.decode("utf-8")
                     else:
                         sSuffix = str(sSuffix)
-                    summarystat = SummaryStatRow(metricId=metricId,
-                                                 summaryName=summaryName + ' ' + sSuffix,
-                                                 summaryValue=value['value'])
+                    summarystat = SummaryStatRow(
+                        metricId=metricId,
+                        summaryName=summaryName + " " + sSuffix,
+                        summaryValue=value["value"],
+                    )
                     self.session.add(summarystat)
                     self.session.commit()
             else:
-                warnings.warn('Warning! Cannot save non-conforming summary statistic.')
+                warnings.warn("Warning! Cannot save non-conforming summary statistic.")
         # Most summary statistics will be simple floats.
         else:
             if isinstance(summaryValue, float) or isinstance(summaryValue, int):
-                summarystat = SummaryStatRow(metricId=metricId, summaryName=summaryName,
-                                             summaryValue=summaryValue)
+                summarystat = SummaryStatRow(
+                    metricId=metricId,
+                    summaryName=summaryName,
+                    summaryValue=summaryValue,
+                )
                 self.session.add(summarystat)
                 self.session.commit()
             else:
-                warnings.warn('Warning! Cannot save summary statistic that is not a simple float or int')
+                warnings.warn(
+                    "Warning! Cannot save summary statistic that is not a simple float or int"
+                )
 
-    def getMetricId(self, metricName, slicerName=None, metricMetadata=None, simDataName=None):
+    def getMetricId(
+        self, metricName, slicerName=None, metricMetadata=None, simDataName=None
+    ):
         """Find metric bundle Ids from the metric table.
 
         Parameters
@@ -333,9 +411,13 @@ class ResultsDb(object):
             List of matching metricIds
         """
         metricId = []
-        query = self.session.query(MetricRow.metricId, MetricRow.metricName, MetricRow.slicerName,
-                                   MetricRow.metricMetadata,
-                                   MetricRow.simDataName).filter(MetricRow.metricName == metricName)
+        query = self.session.query(
+            MetricRow.metricId,
+            MetricRow.metricName,
+            MetricRow.slicerName,
+            MetricRow.metricMetadata,
+            MetricRow.simDataName,
+        ).filter(MetricRow.metricName == metricName)
         if slicerName is not None:
             query = query.filter(MetricRow.slicerName == slicerName)
         if metricMetadata is not None:
@@ -347,8 +429,13 @@ class ResultsDb(object):
             metricId.append(m.metricId)
         return metricId
 
-    def getMetricIdLike(self, metricNameLike=None, slicerNameLike=None,
-                        metricMetadataLike=None, simDataName=None):
+    def getMetricIdLike(
+        self,
+        metricNameLike=None,
+        slicerNameLike=None,
+        metricMetadataLike=None,
+        simDataName=None,
+    ):
         """Find metric bundle Ids from the metric table, but search for names 'like' the values.
         (instead of a strict match from getMetricId).
 
@@ -369,15 +456,21 @@ class ResultsDb(object):
             List of matching metricIds
         """
         metricId = []
-        query = self.session.query(MetricRow.metricId, MetricRow.metricName, MetricRow.slicerName,
-                                   MetricRow.metricMetadata,
-                                   MetricRow.simDataName)
+        query = self.session.query(
+            MetricRow.metricId,
+            MetricRow.metricName,
+            MetricRow.slicerName,
+            MetricRow.metricMetadata,
+            MetricRow.simDataName,
+        )
         if metricNameLike is not None:
-            query = query.filter(MetricRow.metricName.like(f'%{str(metricNameLike)}%'))
+            query = query.filter(MetricRow.metricName.like(f"%{str(metricNameLike)}%"))
         if slicerNameLike is not None:
-            query = query.filter(MetricRow.slicerName.like(f'%{str(slicerNameLike)}%'))
+            query = query.filter(MetricRow.slicerName.like(f"%{str(slicerNameLike)}%"))
         if metricMetadataLike is not None:
-            query = query.filter(MetricRow.metricMetadata.like(f'%{str(metricMetadataLike)}%'))
+            query = query.filter(
+                MetricRow.metricMetadata.like(f"%{str(metricMetadataLike)}%")
+            )
         if simDataName is not None:
             query = query.filter(MetricRow.simDataName == simDataName)
         for m in query:
@@ -395,25 +488,33 @@ class ResultsDb(object):
 
     @staticmethod
     def buildSummaryName(metricName, metricMetadata, slicerName, summaryStatName=None):
-        """Standardize a complete summary metric name, combining the metric + slicer + summary + metadata
-        """
+        """Standardize a complete summary metric name, combining the metric + slicer + summary + metadata"""
         if metricMetadata is None:
-            metricMetadata = ''
+            metricMetadata = ""
         if slicerName is None:
-            slicerName = ''
+            slicerName = ""
         sName = summaryStatName
-        if sName == 'Identity' or sName == 'Id' or sName == 'Count' or sName is None:
-            sName = ''
+        if sName == "Identity" or sName == "Id" or sName == "Count" or sName is None:
+            sName = ""
         slName = slicerName
-        if slName == 'UniSlicer':
-            slName = ''
-        name = ' '.join([sName, metricName, metricMetadata, slName]).rstrip(' ').lstrip(' ')
-        name.replace(',', '')
+        if slName == "UniSlicer":
+            slName = ""
+        name = (
+            " ".join([sName, metricName, metricMetadata, slName])
+            .rstrip(" ")
+            .lstrip(" ")
+        )
+        name.replace(",", "")
         return name
 
-    def getSummaryStats(self, metricId=None, summaryName=None,
-                        summaryNameLike=None, summaryNameNotLike=None,
-                        withSimName=False):
+    def getSummaryStats(
+        self,
+        metricId=None,
+        summaryName=None,
+        summaryNameLike=None,
+        summaryNameNotLike=None,
+        withSimName=False,
+    ):
         """
         Get the summary stats (optionally for metricId list).
         Optionally, also specify the summary metric name.
@@ -439,37 +540,62 @@ class ResultsDb(object):
         """
         if metricId is None:
             metricId = self.getAllMetricIds()
-        if not hasattr(metricId, '__iter__'):
-            metricId = [metricId,]
+        if not hasattr(metricId, "__iter__"):
+            metricId = [
+                metricId,
+            ]
         summarystats = []
         for mid in metricId:
             # Join the metric table and the summarystat table, based on the metricID (the second filter)
-            query = (self.session.query(MetricRow, SummaryStatRow).filter(MetricRow.metricId == mid)
-                     .filter(MetricRow.metricId == SummaryStatRow.metricId))
+            query = (
+                self.session.query(MetricRow, SummaryStatRow)
+                .filter(MetricRow.metricId == mid)
+                .filter(MetricRow.metricId == SummaryStatRow.metricId)
+            )
             if summaryName is not None:
                 query = query.filter(SummaryStatRow.summaryName == str(summaryName))
             if summaryNameLike is not None:
-                query = query.filter(SummaryStatRow.summaryName.like(f'%{str(summaryNameLike)}%'))
+                query = query.filter(
+                    SummaryStatRow.summaryName.like(f"%{str(summaryNameLike)}%")
+                )
             if summaryNameNotLike is not None:
                 if isinstance(summaryNameNotLike, list):
                     for s in summaryNameNotLike:
-                        query = query.filter(~SummaryStatRow.summaryName.like(f'%{str(s)}%'))
+                        query = query.filter(
+                            ~SummaryStatRow.summaryName.like(f"%{str(s)}%")
+                        )
                 else:
-                    query = query.filter(~SummaryStatRow.summaryName.like(f'%{str(summaryNameNotLike)}%'))
+                    query = query.filter(
+                        ~SummaryStatRow.summaryName.like(f"%{str(summaryNameNotLike)}%")
+                    )
             for m, s in query:
-                long_name = self.buildSummaryName(m.metricName, m.metricMetadata,
-                                                   m.slicerName, s.summaryName)
-                vals = (m.metricId, long_name, m.metricName, m.slicerName, m.metricMetadata,
-                                     s.summaryName, s.summaryValue)
+                long_name = self.buildSummaryName(
+                    m.metricName, m.metricMetadata, m.slicerName, s.summaryName
+                )
+                vals = (
+                    m.metricId,
+                    long_name,
+                    m.metricName,
+                    m.slicerName,
+                    m.metricMetadata,
+                    s.summaryName,
+                    s.summaryValue,
+                )
                 if withSimName:
                     vals += (m.simDataName,)
                 summarystats.append(vals)
         # Convert to numpy array.
-        dtype_list = [('metricId', int), ('summaryName', str, self.slen), ('metricName', str, self.slen),
-                      ('slicerName', str, self.slen), ('metricMetadata', str, self.slen),
-                      ('summaryMetric', str, self.slen), ('summaryValue', float)]
+        dtype_list = [
+            ("metricId", int),
+            ("summaryName", str, self.slen),
+            ("metricName", str, self.slen),
+            ("slicerName", str, self.slen),
+            ("metricMetadata", str, self.slen),
+            ("summaryMetric", str, self.slen),
+            ("summaryValue", float),
+        ]
         if withSimName:
-            dtype_list += [('simDataName', str, self.slen)]
+            dtype_list += [("simDataName", str, self.slen)]
         dtype = np.dtype(dtype_list)
         summarystats = np.array(summarystats, dtype)
         return summarystats
@@ -507,32 +633,45 @@ class ResultsDb(object):
         """
         if metricId is None:
             metricId = self.getAllMetricIds()
-        if not hasattr(metricId, '__iter__'):
-            metricId = [metricId,]
+        if not hasattr(metricId, "__iter__"):
+            metricId = [
+                metricId,
+            ]
         plotFiles = []
         for mid in metricId:
             # Join the metric table and the plot table based on the metricID (the second filter does the join)
-            query = (self.session.query(MetricRow, PlotRow).filter(MetricRow.metricId == mid)
-                     .filter(MetricRow.metricId == PlotRow.metricId))
+            query = (
+                self.session.query(MetricRow, PlotRow)
+                .filter(MetricRow.metricId == mid)
+                .filter(MetricRow.metricId == PlotRow.metricId)
+            )
             for m, p in query:
                 # The plotFile typically ends with .pdf (but the rest of name can have '.' or '_')
-                thumbfile = 'thumb.' + '.'.join(p.plotFile.split('.')[:-1]) + '.png'
-                plot_file_fields = (m.metricId, m.metricName, m.metricMetadata,
-                                  p.plotType, p.plotFile, thumbfile)
+                thumbfile = "thumb." + ".".join(p.plotFile.split(".")[:-1]) + ".png"
+                plot_file_fields = (
+                    m.metricId,
+                    m.metricName,
+                    m.metricMetadata,
+                    p.plotType,
+                    p.plotFile,
+                    thumbfile,
+                )
                 if withSimName:
                     plot_file_fields += (m.simDataName,)
                 plotFiles.append(plot_file_fields)
 
         # Convert to numpy array.
-        dtype_list =[('metricId', int),
-                     ('metricName', str,self.slen),
-                     ('metricMetadata', str, self.slen),
-                     ('plotType', str, self.slen),
-                     ('plotFile', str, self.slen),
-                     ('thumbFile', str, self.slen)]
+        dtype_list = [
+            ("metricId", int),
+            ("metricName", str, self.slen),
+            ("metricMetadata", str, self.slen),
+            ("plotType", str, self.slen),
+            ("plotFile", str, self.slen),
+            ("thumbFile", str, self.slen),
+        ]
 
         if withSimName:
-            dtype_list += [('simDataName', str, self.slen)]
+            dtype_list += [("simDataName", str, self.slen)]
         dtype = np.dtype(dtype_list)
 
         plotFiles = np.array(plotFiles, dtype)
@@ -545,11 +684,15 @@ class ResultsDb(object):
         """
         if metricId is None:
             metricId = self.getAllMetricIds()
-        if not hasattr(metricId, '__iter__'):
-            metricId = [metricId,]
+        if not hasattr(metricId, "__iter__"):
+            metricId = [
+                metricId,
+            ]
         dataFiles = []
         for mid in metricId:
-            for m in self.session.query(MetricRow).filter(MetricRow.metricId == mid).all():
+            for m in (
+                self.session.query(MetricRow).filter(MetricRow.metricId == mid).all()
+            ):
                 dataFiles.append(m.metricDataFile)
         return dataFiles
 
@@ -587,29 +730,41 @@ class ResultsDb(object):
         """
         if metricId is None:
             metricId = self.getAllMetricIds()
-        if not hasattr(metricId, '__iter__'):
-            metricId = [metricId,]
+        if not hasattr(metricId, "__iter__"):
+            metricId = [
+                metricId,
+            ]
         metricInfo = []
         for mId in metricId:
             # Query for all rows in metrics and displays that match any of the metricIds.
-            query = (self.session.query(MetricRow).filter(MetricRow.metricId==mId))
+            query = self.session.query(MetricRow).filter(MetricRow.metricId == mId)
             for m in query:
-                baseMetricName = m.metricName.split('_')[0]
-                mInfo = (m.metricId, m.metricName, baseMetricName, m.slicerName,
-                        m.sqlConstraint, m.metricMetadata, m.metricDataFile)
+                baseMetricName = m.metricName.split("_")[0]
+                mInfo = (
+                    m.metricId,
+                    m.metricName,
+                    baseMetricName,
+                    m.slicerName,
+                    m.sqlConstraint,
+                    m.metricMetadata,
+                    m.metricDataFile,
+                )
                 if withSimName:
                     mInfo += (m.simDataName,)
 
                 metricInfo.append(mInfo)
         # Convert to numpy array.
-        dtype_list = [('metricId', int), ('metricName', str, self.slen),
-                      ('baseMetricNames', str, self.slen),
-                      ('slicerName', str, self.slen),
-                      ('sqlConstraint', str, self.slen),
-                      ('metricMetadata', str, self.slen),
-                      ('metricDataFile', str, self.slen)]
+        dtype_list = [
+            ("metricId", int),
+            ("metricName", str, self.slen),
+            ("baseMetricNames", str, self.slen),
+            ("slicerName", str, self.slen),
+            ("sqlConstraint", str, self.slen),
+            ("metricMetadata", str, self.slen),
+            ("metricDataFile", str, self.slen),
+        ]
         if withSimName:
-            dtype_list += [('simDataName', str, self.slen)]
+            dtype_list += [("simDataName", str, self.slen)]
         dtype = np.dtype(dtype_list)
         metricInfo = np.array(metricInfo, dtype)
         return metricInfo
@@ -626,37 +781,56 @@ class ResultsDb(object):
         """
         if metricId is None:
             metricId = self.getAllMetricIds()
-        if not hasattr(metricId, '__iter__'):
-            metricId = [metricId,]
+        if not hasattr(metricId, "__iter__"):
+            metricId = [
+                metricId,
+            ]
         metricInfo = []
         for mId in metricId:
             # Query for all rows in metrics and displays that match any of the metricIds.
-            query = (self.session.query(MetricRow, DisplayRow).filter(MetricRow.metricId==mId)
-                     .filter(MetricRow.metricId==DisplayRow.metricId))
+            query = (
+                self.session.query(MetricRow, DisplayRow)
+                .filter(MetricRow.metricId == mId)
+                .filter(MetricRow.metricId == DisplayRow.metricId)
+            )
             for m, d in query:
-                baseMetricName = m.metricName.split('_')[0]
-                mInfo = (m.metricId, m.metricName, baseMetricName, m.slicerName,
-                        m.sqlConstraint, m.metricMetadata, m.metricDataFile,
-                        d.displayGroup, d.displaySubgroup, d.displayOrder, d.displayCaption)
+                baseMetricName = m.metricName.split("_")[0]
+                mInfo = (
+                    m.metricId,
+                    m.metricName,
+                    baseMetricName,
+                    m.slicerName,
+                    m.sqlConstraint,
+                    m.metricMetadata,
+                    m.metricDataFile,
+                    d.displayGroup,
+                    d.displaySubgroup,
+                    d.displayOrder,
+                    d.displayCaption,
+                )
                 metricInfo.append(mInfo)
         # Convert to numpy array.
-        dtype = np.dtype([('metricId', int), ('metricName', np.str_, self.slen),
-                          ('baseMetricNames', np.str_, self.slen),
-                          ('slicerName', np.str_, self.slen),
-                          ('sqlConstraint', np.str_, self.slen),
-                          ('metricMetadata', np.str_, self.slen),
-                          ('metricDataFile', np.str_, self.slen),
-                          ('displayGroup', np.str_, self.slen),
-                          ('displaySubgroup', np.str_, self.slen),
-                          ('displayOrder', float),
-                          ('displayCaption',  np.str_, self.slen * 10)])
+        dtype = np.dtype(
+            [
+                ("metricId", int),
+                ("metricName", np.str_, self.slen),
+                ("baseMetricNames", np.str_, self.slen),
+                ("slicerName", np.str_, self.slen),
+                ("sqlConstraint", np.str_, self.slen),
+                ("metricMetadata", np.str_, self.slen),
+                ("metricDataFile", np.str_, self.slen),
+                ("displayGroup", np.str_, self.slen),
+                ("displaySubgroup", np.str_, self.slen),
+                ("displayOrder", float),
+                ("displayCaption", np.str_, self.slen * 10),
+            ]
+        )
         metricInfo = np.array(metricInfo, dtype)
         return metricInfo
 
     def getSimDataName(self):
-        """Return a list of the simDataNames for the metric bundles in the database.
-        """
-        query = (self.session.query(MetricRow.simDataName.distinct()).all())
+        """Return a list of the simDataNames for the metric bundles in the database."""
+        query = self.session.query(MetricRow.simDataName.distinct()).all()
         simDataName = []
         for s in query:
             simDataName.append(s[0])

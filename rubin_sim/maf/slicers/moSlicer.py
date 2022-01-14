@@ -6,11 +6,11 @@ from rubin_sim.maf.plots.moPlotters import MetricVsH, MetricVsOrbit
 
 from rubin_sim.movingObjects.orbits import Orbits
 
-__all__ = ['MoObjSlicer']
+__all__ = ["MoObjSlicer"]
 
 
 class MoObjSlicer(BaseSlicer):
-    """ Slice moving object _observations_, per object and optionally clone/per H value.
+    """Slice moving object _observations_, per object and optionally clone/per H value.
 
     Iteration over the MoObjSlicer will go as:
     * iterate over each orbit;
@@ -21,14 +21,17 @@ class MoObjSlicer(BaseSlicer):
     Hrange : numpy.ndarray or None
         The H values to clone the orbital parameters over. If Hrange is None, will not clone orbits.
     """
+
     def __init__(self, Hrange=None, verbose=True, badval=0):
         super(MoObjSlicer, self).__init__(verbose=verbose, badval=badval)
         self.Hrange = Hrange
-        self.slicer_init = {'Hrange': Hrange, 'badval': badval}
+        self.slicer_init = {"Hrange": Hrange, "badval": badval}
         # Set default plotFuncs.
-        self.plotFuncs = [MetricVsH(),
-                          MetricVsOrbit(xaxis='q', yaxis='e'),
-                          MetricVsOrbit(xaxis='q', yaxis='inc')]
+        self.plotFuncs = [
+            MetricVsH(),
+            MetricVsOrbit(xaxis="q", yaxis="e"),
+            MetricVsOrbit(xaxis="q", yaxis="inc"),
+        ]
 
     def setupSlicer(self, orbitFile, delim=None, skiprows=None, obsFile=None):
         """Set up the slicer and read orbitFile and obsFile from disk.
@@ -53,8 +56,8 @@ class MoObjSlicer(BaseSlicer):
             self.allObs = None
             self.obs = None
         # Add these filenames to the slicer init values, to preserve in output files.
-        self.slicer_init['orbitFile'] = self.orbitFile
-        self.slicer_init['obsFile'] = self.obsFile
+        self.slicer_init["orbitFile"] = self.orbitFile
+        self.slicer_init["obsFile"] = self.obsFile
 
     def readOrbits(self, orbitFile, delim=None, skiprows=None):
         # Use sims_movingObjects to read orbit files.
@@ -65,14 +68,14 @@ class MoObjSlicer(BaseSlicer):
         # Then go on as previously. Need to refactor this into 'setupSlicer' style.
         self.nSso = len(self.orbits)
         self.slicePoints = {}
-        self.slicePoints['orbits'] = self.orbits
+        self.slicePoints["orbits"] = self.orbits
         # And set the slicer shape/size.
         if self.Hrange is not None:
             self.shape = [self.nSso, len(self.Hrange)]
-            self.slicePoints['H'] = self.Hrange
+            self.slicePoints["H"] = self.Hrange
         else:
             self.shape = [self.nSso, 1]
-            self.slicePoints['H'] = self.orbits['H']
+            self.slicePoints["H"] = self.orbits["H"]
         # Set the rest of the slicePoint information once
         self.nslice = self.shape[0] * self.shape[1]
 
@@ -85,21 +88,25 @@ class MoObjSlicer(BaseSlicer):
             The file containing the observation information.
         """
         # For now, just read all the observations (should be able to chunk this though).
-        self.allObs = pd.read_csv(obsFile, delim_whitespace=True, comment='#')
+        self.allObs = pd.read_csv(obsFile, delim_whitespace=True, comment="#")
         self.obsFile = obsFile
         # We may have to rename the first column from '#objId' to 'objId'.
-        if self.allObs.columns.values[0].startswith('#'):
+        if self.allObs.columns.values[0].startswith("#"):
             newcols = self.allObs.columns.values
-            newcols[0] = newcols[0].replace('#', '')
+            newcols[0] = newcols[0].replace("#", "")
             self.allObs.columns = newcols
-        if 'velocity' not in self.allObs.columns.values:
-            self.allObs['velocity'] = np.sqrt(self.allObs['dradt']**2 + self.allObs['ddecdt']**2)
-        if 'visitExpTime' not in self.allObs.columns.values:
-            self.allObs['visitExpTime'] = np.zeros(len(self.allObs['objId']), float) + 30.0
+        if "velocity" not in self.allObs.columns.values:
+            self.allObs["velocity"] = np.sqrt(
+                self.allObs["dradt"] ** 2 + self.allObs["ddecdt"] ** 2
+            )
+        if "visitExpTime" not in self.allObs.columns.values:
+            self.allObs["visitExpTime"] = (
+                np.zeros(len(self.allObs["objId"]), float) + 30.0
+            )
         # If we created intermediate data products by pandas, we may have an inadvertent 'index'
         #  column. Since this creates problems later, drop it here.
-        if 'index' in self.allObs.columns.values:
-            self.allObs.drop('index', axis=1, inplace=True)
+        if "index" in self.allObs.columns.values:
+            self.allObs.drop("index", axis=1, inplace=True)
         self.subsetObs()
 
     def subsetObs(self, pandasConstraint=None):
@@ -125,20 +132,18 @@ class MoObjSlicer(BaseSlicer):
         # Find the matching orbit.
         orb = self.orbits.iloc[idx]
         # Find the matching observations.
-        if self.obs['objId'].dtype == 'object':
-            obs = self.obs.query('objId == "%s"' %(orb['objId']))
+        if self.obs["objId"].dtype == "object":
+            obs = self.obs.query('objId == "%s"' % (orb["objId"]))
         else:
-            obs = self.obs.query('objId == %d' %(orb['objId']))
+            obs = self.obs.query("objId == %d" % (orb["objId"]))
         # Return the values for H to consider for metric.
         if self.Hrange is not None:
             Hvals = self.Hrange
         else:
-            Hvals = np.array([orb['H']], float)
+            Hvals = np.array([orb["H"]], float)
         # Note that ssoObs / obs is a recarray not Dataframe!
         # But that the orbit IS a Dataframe.
-        return {'obs': obs.to_records(),
-                'orbit': orb,
-                'Hvals': Hvals}
+        return {"obs": obs.to_records(), "orbit": orb, "Hvals": Hvals}
 
     def __iter__(self):
         """
@@ -169,6 +174,8 @@ class MoObjSlicer(BaseSlicer):
         if isinstance(otherSlicer, MoObjSlicer):
             if otherSlicer.orbitFile == self.orbitFile:
                 if otherSlicer.obsFile == self.obsFile:
-                    if np.array_equal(otherSlicer.slicePoints['H'], self.slicePoints['H']):
+                    if np.array_equal(
+                        otherSlicer.slicePoints["H"], self.slicePoints["H"]
+                    ):
                         result = True
         return result

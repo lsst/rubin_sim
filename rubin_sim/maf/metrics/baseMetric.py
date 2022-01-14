@@ -12,29 +12,33 @@ from rubin_sim.maf.stackers.getColInfo import ColInfo
 from six import with_metaclass
 import warnings
 
-__all__ = ['MetricRegistry', 'BaseMetric', 'ColRegistry']
+__all__ = ["MetricRegistry", "BaseMetric", "ColRegistry"]
 
 
 class MetricRegistry(type):
     """
     Meta class for metrics, to build a registry of metric classes.
     """
+
     def __init__(cls, name, bases, dict):
         super(MetricRegistry, cls).__init__(name, bases, dict)
-        if not hasattr(cls, 'registry'):
+        if not hasattr(cls, "registry"):
             cls.registry = {}
         modname = inspect.getmodule(cls).__name__
-        if modname.startswith('rubin_sim.maf.metrics'):
-            modname = ''
+        if modname.startswith("rubin_sim.maf.metrics"):
+            modname = ""
         else:
-            if len(modname.split('.')) > 1:
-                modname = '.'.join(modname.split('.')[:-1]) + '.'
+            if len(modname.split(".")) > 1:
+                modname = ".".join(modname.split(".")[:-1]) + "."
             else:
-                modname = modname + '.'
+                modname = modname + "."
         metricname = modname + name
         if metricname in cls.registry:
-            warnings.warn('Redefining metric %s! (there are >1 metrics with the same name)' % (metricname))
-        if metricname not in ['BaseMetric', 'SimpleScalarMetric']:
+            warnings.warn(
+                "Redefining metric %s! (there are >1 metrics with the same name)"
+                % (metricname)
+            )
+        if metricname not in ["BaseMetric", "SimpleScalarMetric"]:
             cls.registry[metricname] = cls
 
     def getClass(cls, metricname):
@@ -45,14 +49,14 @@ class MetricRegistry(type):
             if not doc:
                 print(metricname)
             if doc:
-                print('---- ', metricname, ' ----')
+                print("---- ", metricname, " ----")
                 print(inspect.getdoc(cls.registry[metricname]))
 
     def help_metric(cls, metricname):
         print(metricname)
         print(inspect.getdoc(cls.registry[metricname]))
         k = inspect.signature(cls.registry[metricname])
-        print(' Metric __init__ keyword args and defaults: ')
+        print(" Metric __init__ keyword args and defaults: ")
         print(k)
 
 
@@ -64,6 +68,7 @@ class ColRegistry(object):
     ColRegistry.dbCols : the subset of these which come from the database.
     ColRegistry.stackerCols : the dictionary of [columns: stacker class].
     """
+
     colInfo = ColInfo()
 
     def __init__(self):
@@ -72,8 +77,7 @@ class ColRegistry(object):
         self.stackerDict = {}
 
     def clearReg(self):
-        """Clear the registry
-        """
+        """Clear the registry"""
         self.__init__()
 
     def addCols(self, colArray):
@@ -124,11 +128,20 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
     badval : `float`
         The value indicating "bad" values calculated by the metric.
     """
+
     colRegistry = ColRegistry()
     colInfo = ColInfo()
 
-    def __init__(self, col=None, metricName=None, maps=None, units=None,
-                 metricDtype=None, badval=-666, maskVal=None):
+    def __init__(
+        self,
+        col=None,
+        metricName=None,
+        maps=None,
+        units=None,
+        metricDtype=None,
+        badval=-666,
+        maskVal=None,
+    ):
         # Turn cols into numpy array so we know we can iterate over the columns.
         self.colNameArr = np.array(col, copy=False, ndmin=1)
         # To support simple metrics operating on a single column, set self.colname
@@ -148,28 +161,33 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
         self.name = metricName
         if self.name is None:
             # If none provided, construct our own from the class name and the data columns.
-            self.name = (self.__class__.__name__.replace('Metric', '', 1) + ' ' +
-                         ', '.join(map(str, self.colNameArr)))
+            self.name = (
+                self.__class__.__name__.replace("Metric", "", 1)
+                + " "
+                + ", ".join(map(str, self.colNameArr))
+            )
         # Set up dictionary of reduce functions (may be empty).
         self.reduceFuncs = {}
         self.reduceOrder = {}
         for i, r in enumerate(inspect.getmembers(self, predicate=inspect.ismethod)):
-            if r[0].startswith('reduce'):
-                reducename = r[0].replace('reduce', '', 1)
+            if r[0].startswith("reduce"):
+                reducename = r[0].replace("reduce", "", 1)
                 self.reduceFuncs[reducename] = r[1]
                 self.reduceOrder[reducename] = i
         # Identify type of metric return value.
         if metricDtype is not None:
             self.metricDtype = metricDtype
         elif len(list(self.reduceFuncs.keys())) > 0:
-            self.metricDtype = 'object'
+            self.metricDtype = "object"
         else:
-            self.metricDtype = 'float'
+            self.metricDtype = "float"
         # Set physical units, for plotting purposes.
         if units is None:
-            units = ' '.join([self.colInfo.getUnits(colName) for colName in self.colNameArr])
-            if len(units.replace(' ', '')) == 0:
-                units = ''
+            units = " ".join(
+                [self.colInfo.getUnits(colName) for colName in self.colNameArr]
+            )
+            if len(units.replace(" ", "")) == 0:
+                units = ""
         self.units = units
         # Add the ability to set a comment
         # (that could be propagated automatically to a benchmark's display caption).
@@ -195,4 +213,4 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
         metricValue: `int` `float` or `object`
             The metric value at each slicePoint.
         """
-        raise NotImplementedError('Please implement your metric calculation.')
+        raise NotImplementedError("Please implement your metric calculation.")

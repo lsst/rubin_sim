@@ -5,7 +5,8 @@
 import numpy as np
 from rubin_sim.maf.metrics import BaseMetric
 
-__all__ = ['AngularSpreadMetric']
+__all__ = ["AngularSpreadMetric"]
+
 
 class AngularSpreadMetric(BaseMetric):
     """Compute the angular spread statistic which measures uniformity of a distribution angles accounting for 2pi periodicity.
@@ -22,14 +23,15 @@ class AngularSpreadMetric(BaseMetric):
 
     The optional parameter `period` may be used to specificy periodicity other than 2 pi.
     """
-    def __init__(self, col=None, period=2.0*np.pi, **kwargs):
+
+    def __init__(self, col=None, period=2.0 * np.pi, **kwargs):
         self.period = period
         super(AngularSpreadMetric, self).__init__(col=col, **kwargs)
 
     def run(self, dataSlice, slicePoint=None):
         # Unit vectors; unwrapped at specified period
-        x = np.cos(dataSlice[self.colname] * 2.0*np.pi/self.period)
-        y = np.sin(dataSlice[self.colname] * 2.0*np.pi/self.period)
+        x = np.cos(dataSlice[self.colname] * 2.0 * np.pi / self.period)
+        y = np.sin(dataSlice[self.colname] * 2.0 * np.pi / self.period)
         meanx = np.mean(x)
         meany = np.mean(y)
         # radial offset (i.e., length) of the mean unit vector
