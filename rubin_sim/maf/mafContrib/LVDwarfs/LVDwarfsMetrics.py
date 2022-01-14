@@ -4,10 +4,10 @@ import healpy as hp
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 import rubin_sim.maf as maf
-from .baseMetric import BaseMetric
-from .simpleMetrics import Coaddm5Metric
-from .starDensity import StarDensityMetric
-from maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import GalaxyCountsMetric_extended \
+from rubin_sim.maf.metrics.baseMetric import BaseMetric
+from rubin_sim.maf.metrics.simpleMetrics import Coaddm5Metric
+from rubin_sim.maf.metrics.starDensity import StarDensityMetric
+from rubin_sim.maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import GalaxyCountsMetric_extended \
     as GalaxyCountsMetric
 
 __all__ = ["generateKnownLVDwarfSlicer", "makeFakeLF", "make_LF_dicts",
@@ -20,8 +20,8 @@ def generateKnownLVDwarfSlicer():
     """
 
     # path = '/dlusers/jcarlin/rubin_sim_data/maf/LVDwarfs_data/'
-    path = '/dlusers/jcarlin/sims_maf/SMWLV-metrics/notebooks/'
-    lv_dat0 = fits.getdata(path+'lsst_galaxies_1p25to9Mpc_table.fits')
+    # path = '/dlusers/jcarlin/sims_maf/SMWLV-metrics/notebooks/'
+    lv_dat0 = fits.getdata('lsst_galaxies_1p25to9Mpc_table.fits')
 
     # Keep only galaxies at dec < 35 deg., and with stellar masses > 10^7 M_Sun (and <1e14).
     lv_dat_cuts = (lv_dat0['dec'] < 35.0) & (lv_dat0['MStars'] > 1e7) & (lv_dat0['MStars'] < 1e14)
@@ -54,6 +54,7 @@ def makeFakeLF(intB, mu, filtername):
         filtername == 'Y'
     modelBmag = 6.856379  # integrated B mag of the model LF being read
     # Read a simulated luminosity function of [M/H]=-1.5, 10 Gyr stellar population:
+    # path = '/dlusers/jcarlin/repos/forks/rubin_sim/rubin_sim/maf/mafContrib/LVDwarfs/'
     LF = ascii.read('LF_-1.5_10Gyr.dat', header_start=12)
     mags = LF['magbinc']
     counts = LF[filtername+'mag']
@@ -74,7 +75,7 @@ def make_LF_dicts():
     """
     lf_dict_i = {}
     lf_dict_g = {}
-    # Simulate a range from M_B=-10 to M_B=+3 in 0.1-mag increments.
+    # Simulate a range from M_B=-10 to M_B=+5 in 0.1-mag increments.
     tmp_MB = -10.0
 
     for i in range(151):
@@ -113,7 +114,7 @@ def sum_luminosity(LFmags, LFcounts):
     return mtot
 
 
-def sblimit(glim, ilim, nstars, distlim):
+def sblimit(glim, ilim, nstars, lf_dict_g, lf_dict_i, distlim):
     """
     Calculate the surface brightness limit given the g- and i-band limiting
         magnitudes, number of stars required to detect
@@ -232,6 +233,8 @@ class LVDwarfsMetric(maf.BaseMetric):
             sc_dat = SkyCoord(ra=lv_dat['ra']*u.deg, dec=lv_dat['dec']*u.deg, distance=lv_dat['dist_Mpc']*u.Mpc)
             self.sc_dat = sc_dat
 
+        self.lf_dict_g, self.lf_dict_i = make_LF_dicts()
+
         # Set up already-defined metrics that we will need:
         self.Coaddm5Metric = maf.simpleMetrics.Coaddm5Metric(m5Col=self.m5Col)
         self.StarDensityMetric24 = maf.starDensity.StarDensityMetric(rmagLimit=24)
@@ -265,21 +268,12 @@ class LVDwarfsMetric(maf.BaseMetric):
         nstar27 = self.StarDensityMetric27.run(dataSlice, slicePoint)
         nstar = nstar27
 
-        if 'nside' in slicePoint.keys():
-            # If "nside" is set in the slicePoint, it must be a healpix slicer.
-            #   Extract the nside value.
-            nside = slicePoint['nside']
-            # GalaxyCountsMetric is undefined in some places. Use a try/except block
-            #   to catch these and set the galaxy counts in those regions to a
-            #   very high value.
-            try:
-                ngal = self.GalaxyCountsMetric.run(dataSlice, slicePoint, nside=nside)
-            except:
-                ngal = 1e7
-                # print('healpix ',slicePoint['sid'], 'failed in GalaxyCountsMetric')
-        else:
-            # If it's a UserPointSlicer, extract the galaxy counts:
-            ngal = self.GalaxyCountsMetric.run(dataSlice, slicePoint)
+        ngal = self.GalaxyCountsMetric.run(dataSlice, slicePoint)
+        # GalaxyCountsMetric is undefined in some places. These cases return
+        #   zero; catch these and set the galaxy counts in those regions to a
+        #   very high value.
+        if (ngal < 10.0):
+            ngal = 1e7
 
         # Initialize some things we'll want:
         nstar_all = nstar*0.0
@@ -320,12 +314,14 @@ class LVDwarfsMetric(maf.BaseMetric):
             distlim = self.distlim
         else:
             # Use discrete distances for known galaxies if a UserPointSlicer:
-            sc_slice = SkyCoord(ra=slicePoint['ra']*u.rad, dec=slicePoint['dec']*u.rad)
-            seps = sc_slice.separation(self.sc_dat)
-            distlim = self.sc_dat[seps.argmin()].distance
+            distlim = slicePoint['distance']*u.Mpc
+            # sc_slice = SkyCoord(ra=slicePoint['ra']*u.rad, dec=slicePoint['dec']*u.rad)
+            # seps = sc_slice.separation(self.sc_dat)
+            # distlim = self.sc_dat[seps.argmin()].distance
 
         # Calculate the limiting luminosity and surface brightness based on g5 and i5:
-        mg_lim, mi_lim, sb_g_lim, sb_i_lim, flag_lim = sblimit(g5, i5, nstars_required, distlim=distlim.value)
+        mg_lim, mi_lim, sb_g_lim, sb_i_lim, flag_lim = sblimit(g5, i5, nstars_required,
+                                                               self.lf_dict_g, self.lf_dict_i, distlim=distlim.value)
 
         # To go from HSC g and i bands to V, use the conversion from Appendix A
         #   of Komiyama+2018, ApJ, 853, 29:
@@ -334,20 +330,3 @@ class LVDwarfsMetric(maf.BaseMetric):
         # sbv = sb_g_lim - 0.371 * (sb_g_lim - sb_i_lim) - 0.068
 
         return mv
-
-'''
-####################
-
-######
-
-lf_dict_g, lf_dict_i = make_LF_dicts()
-
-lv_dat0 = fits.getdata('lsst_galaxies_1p25to9Mpc_table.fits')
-
-# Keep only galaxies at dec < 35 deg., and with stellar masses > 10^7 M_Sun.
-
-lv_dat_cuts = (lv_dat0['dec'] < 35.0) & (lv_dat0['MStars'] > 1e7) & (lv_dat0['MStars'] < 1e14)
-lv_dat = lv_dat0[lv_dat_cuts]
-
-slicer = maf.UserPointsSlicer(lv_dat['ra'], lv_dat['dec'])
-'''
