@@ -74,10 +74,7 @@ def normalize_metric_summaries(
         summary.rename_axis("run", inplace=True)
 
     # Get rid of duplicate metrics and runs
-    try:
-        summary = summary.T.groupby("metric").first().T.groupby("run").first()
-    except:
-        breakpoint()
+    summary = summary.T.groupby("metric").first().T.groupby("run").first()
 
     if metric_sets is None:
         norm_summary = 1 + (
@@ -232,6 +229,16 @@ def plot_run_metric(
 
     if metric_label_map is not None:
         norm_summary["metric"] = norm_summary["metric"].map(metric_label_map)
+        if metric_set is not None:
+            this_metric_set = (
+                metric_set.drop(columns=["metric"])
+                .assign(metric=metric_set["metric"].map(metric_label_map))
+                .set_index("metric", drop=False)
+            )
+        else:
+            this_metric_set = None
+    else:
+        this_metric_set = metric_set
 
     plot_df = pd.DataFrame(
         {
@@ -269,9 +276,9 @@ def plot_run_metric(
         colors = cmap.colors
 
     ls_grow = int(np.ceil(num_colors / len(linestyles)))
-    linestyles = (linestyles * ls_grow)[:num_colors]
+    linestyles = (list(linestyles) * ls_grow)[:num_colors]
     marker_grow = int(np.ceil(num_colors / len(markers)))
-    markers = (markers * marker_grow)[:num_colors]
+    markers = (list(markers) * marker_grow)[:num_colors]
     ax.set_prop_cycle(
         cycler.cycler(color=colors)
         + cycler.cycler(linestyle=linestyles)
@@ -288,11 +295,11 @@ def plot_run_metric(
         # specified.
         plot_args = [plot_df.loc[idx, "x"], plot_df.loc[idx, "y"]]
         if (
-            metric_set is not None
-            and "style" in metric_set.columns
-            and idx in metric_set.index
+            this_metric_set is not None
+            and "style" in this_metric_set.columns
+            and idx in this_metric_set.index
         ):
-            metric_style = metric_set.loc[idx, "style"]
+            metric_style = this_metric_set.loc[idx, "style"]
             if metric_style is not None:
                 plot_args.append(metric_style)
 
