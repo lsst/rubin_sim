@@ -17,6 +17,7 @@ __all__ = [
     "summaryCompletenessAtTime",
     "summaryCompletenessOverH",
     "fractionPopulationAtThreshold",
+    "microlensingSummary",
 ]
 
 
@@ -343,3 +344,37 @@ def fractionPopulationAtThreshold(thresholds, optnames=None):
         )
         fracMetrics.append(m)
     return fracMetrics
+
+
+def microlensingSummary(metricType, npts_required=10, Fisher_sigmatE_tE_cutoff=0.1):
+    if metricType != "Npts" and metricType != "Fisher":
+        raise Exception('metricType must be "Npts" or "Fisher"')
+    if metricType == "Npts":
+        microlensingSummary = [
+            metrics.FracAboveMetric(
+                cutoff=npts_required,
+                metricName=f"Fraction w/ at least {npts_required} points",
+            ),
+            metrics.CountMetric(metricName="Total lightcurves in footprint"),
+            metrics.CountMetric(metricName="Total lightcurves on sky", maskVal=0),
+            metrics.MeanMetric(
+                metricName="Mean number of points per lightcurves in footprint"
+            ),
+            metrics.MeanMetric(
+                maskVal=0, metricName="Mean number of points per lightcurves in total"
+            ),
+        ]
+    elif metricType == "Fisher":
+        microlensingSummary = [
+            metrics.FracBelowMetric(
+                cutoff=Fisher_sigmatE_tE_cutoff,
+                metricName=f"Fraction w/ sigma_tE/tE < {Fisher_sigmatE_tE_cutoff}",
+            ),
+            metrics.CountMetric(metricName="Total lightcurves in footprint"),
+            metrics.CountMetric(metricName="Total lightcurves on sky", maskVal=0),
+            metrics.RealMeanMetric(metricName="Mean sigma_tE/tE in footprint (mean)"),
+            metrics.RealMeanMetric(
+                maskVal=0, metricName="Mean sigma_tE/tE of total (mean)"
+            ),
+        ]
+    return microlensingSummary

@@ -110,6 +110,7 @@ class BaseSurvey(object):
         """
         Check if the survey is feasable in the current conditions
         """
+        result = True
         for bf in self.basis_functions:
             result = bf.check_feasibility(conditions)
             if not result:
@@ -127,7 +128,7 @@ class BaseSurvey(object):
         reward : float (or array)
 
         """
-        if self._check_feasability():
+        if self._check_feasibility(conditions):
             self.reward = 0
         else:
             # If we don't pass feasability
