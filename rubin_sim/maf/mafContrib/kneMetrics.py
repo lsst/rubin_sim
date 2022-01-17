@@ -1,8 +1,8 @@
 import glob
 import os
 import numpy as np
-from ..metrics import BaseMetric
-from ..slicers import UserPointsSlicer
+from rubin_sim.maf.metrics import BaseMetric
+from rubin_sim.maf.slicers import UserPointsSlicer
 from rubin_sim.utils import uniformSphere
 from rubin_sim.photUtils import Dust_values
 from rubin_sim.data import get_data_dir
