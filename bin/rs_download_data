@@ -13,7 +13,7 @@ def data_dict():
     to create tar files and follow any sym links
     tar -chvzf maf_may_2021.tgz maf
     """
-    file_dict = {'maf': 'maf_dec1_2021.tgz',
+    file_dict = {'maf': 'maf_2022_1_18.tgz',
                  'maps': 'maps_may_2021.tgz',
                  'movingObjects': 'movingObjects_oct_2021.tgz',
                  'orbits': 'orbits_oct_2021.tgz',

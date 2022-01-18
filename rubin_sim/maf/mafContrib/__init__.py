@@ -18,3 +18,4 @@ from .TDEsPopMetric import *
 from .StaticProbesFoMSummaryMetric import *
 from .kneMetrics import *
 from .LVDwarfs import *
+from .prestoColorKNePopMetric import *
