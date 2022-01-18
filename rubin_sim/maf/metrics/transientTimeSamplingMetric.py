@@ -6,8 +6,6 @@
 import numpy as np
 import healpy as hp
 import rubin_sim.maf as maf
-import TauObsMetricData
-
 
 class calcVisitIntervalMetric(maf.BaseMetric):
     """Metric to evaluate the intervals between sequential observations in a
@@ -24,8 +22,8 @@ class calcVisitIntervalMetric(maf.BaseMetric):
         metricName="calcVisitIntervalMetric",
         **kwargs
     ):
-        """tau_obs is an array of minimum-required observation intervals for four categories
-        of time variability"""
+        """tau_obs is an array of minimum-required observation intervals for
+        four categories of time variability"""
 
         self.mjdCol = "observationStartMJD"
         self.m5Col = "fiveSigmaDepth"
@@ -36,9 +34,10 @@ class calcVisitIntervalMetric(maf.BaseMetric):
 
     def run(self, dataSlice, slicePoint=None):
 
-        metric_data = TauObsMetricData.TauObsMetricData()
+        metric_data = {}
 
-        # Select observations in the time sequence that fulfill the S/N requirements:
+        # Select observations in the time sequence that fulfill the
+        # S/N requirements:
         match = np.where(dataSlice[self.m5Col] >= self.magLimit)[0]
 
         # Calculate the median time interval from the observation
@@ -48,10 +47,10 @@ class calcVisitIntervalMetric(maf.BaseMetric):
         delta_tobs = tobs_ordered[1:] - tobs_ordered[0:-1]
 
         for i, tau in enumerate(self.tau_obs):
-            metric_data.metric_values[i] = self.calc_interval_metric(delta_tobs, tau)
+            metric_data[tau] = self.calc_interval_metric(delta_tobs, tau)
 
             # Normalize by the number of intervals in the lightcurve
-            metric_data.metric_values[i] /= len(delta_tobs)
+            metric_data[tau] /= len(delta_tobs)
 
         return metric_data
 
@@ -65,18 +64,6 @@ class calcVisitIntervalMetric(maf.BaseMetric):
         idx = np.where(delta_tobs > tau)[0]
         m[idx] = np.exp(-K * (delta_tobs[idx] - tau))
         return m.sum()
-
-    def reduceTau0(self, metric_data):
-        return metric_data.metric_values[0]
-
-    def reduceTau1(self, metric_data):
-        return metric_data.metric_values[1]
-
-    def reduceTau2(self, metric_data):
-        return metric_data.metric_values[2]
-
-    def reduceTau3(self, metric_data):
-        return metric_data.metric_values[3]
 
 
 class calcSeasonVisibilityGapsMetric(maf.BaseMetric):
@@ -100,8 +87,8 @@ class calcSeasonVisibilityGapsMetric(maf.BaseMetric):
         **kwargs
     ):
 
-        """tau_obs is an array of minimum-required observation intervals for four categories
-        of time variability"""
+        """tau_obs is an array of minimum-required observation intervals for
+        four categories of time variability"""
 
         self.tau_obs = np.array([2.0, 20.0, 73.0, 365.0])
         self.ra_col = "fieldRA"
@@ -110,8 +97,8 @@ class calcSeasonVisibilityGapsMetric(maf.BaseMetric):
         super().__init__(col=cols, metricName=metricName, metricDtype="object")
 
     def calcSeasonGaps(self, dataSlice):
-        """Given the RA of a field pointing, and time of observation, calculate the length of
-        the gaps between observing seasons.
+        """Given the RA of a field pointing, and time of observation, calculate
+        the length of the gaps between observing seasons.
 
         Parameters
         ----------
@@ -146,34 +133,21 @@ class calcSeasonVisibilityGapsMetric(maf.BaseMetric):
         total_time_visible_days = 1975.1256 / 24.0
         expected_gap = 365.24 - total_time_visible_days
 
-        metric_data = TauObsMetricData.TauObsMetricData()
+        metric_data = {}
         interval_metric = calcVisitIntervalMetric()
         for i, tau in enumerate(self.tau_obs):
             if tau >= expected_gap:
-                metric_data.metric_values[i] = 0.0
+                metric_data[tau] = 0.0
                 for t in season_gaps:
-                    metric_data.metric_values[
-                        i
+                    metric_data[
+                    tau
                     ] += interval_metric.calc_interval_metric(np.array([t]), tau)
-                metric_data.metric_values[i] /= 10.0
+                metric_data[tau] /= 10.0
 
             else:
-                metric_data.metric_values[i] = 1.0
+                metric_data[tau] = 1.0
 
         return metric_data
-
-    def reduceTau0(self, metric_data):
-        return metric_data.metric_values[0]
-
-    def reduceTau1(self, metric_data):
-        return metric_data.metric_values[1]
-
-    def reduceTau2(self, metric_data):
-        return metric_data.metric_values[2]
-
-    def reduceTau3(self, metric_data):
-        return metric_data.metric_values[3]
-
 
 class transientTimeSamplingMetric(maf.BaseMetric):
     """Metric to evaluate how well a survey strategy will sample lightcurves,
@@ -190,14 +164,16 @@ class transientTimeSamplingMetric(maf.BaseMetric):
         self,
         cols=[
             "observationStartMJD",
+            "fiveSigmaDepth",
         ],
         metricName="calcVisitIntervalMetric",
         **kwargs
     ):
-        """tau_obs is an array of minimum-required observation intervals for four categories
-        of time variability"""
+        """tau_obs is an array of minimum-required observation intervals for
+        four categories of time variability"""
 
         self.mjdCol = "observationStartMJD"
+        self.m5Col = "fiveSigmaDepth"
         self.tau_obs = np.array([2.0, 20.0, 73.0, 365.0])
 
         super().__init__(col=cols, metricName=metricName, metricDtype="object")
@@ -209,20 +185,8 @@ class transientTimeSamplingMetric(maf.BaseMetric):
         metric2 = calcSeasonVisibilityGapsMetric()
         m2 = metric2.run(dataSlice, slicePoint)
 
-        metric_data = TauObsMetricData.TauObsMetricData()
+        metric_data = {}
         for i, tau in enumerate(self.tau_obs):
-            metric_data.metric_values[i] = m1.metric_values[i] * m2.metric_values[i]
+            metric_data[tau] = m1[tau] * m2[tau]
 
         return metric_data
-
-    def reduceTau0(self, metric_data):
-        return metric_data.metric_values[0]
-
-    def reduceTau1(self, metric_data):
-        return metric_data.metric_values[1]
-
-    def reduceTau2(self, metric_data):
-        return metric_data.metric_values[2]
-
-    def reduceTau3(self, metric_data):
-        return metric_data.metric_values[3]
