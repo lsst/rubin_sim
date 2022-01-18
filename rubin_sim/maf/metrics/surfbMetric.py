@@ -56,9 +56,9 @@ def surface_brightness_limit_approx(
     aka the surface brightness that reaches SNR=nsigma when measured over tot_area.
     """
 
-    n_pix = tot_area / pixscale
-
     A_pix = pixscale ** 2
+
+    n_pix = tot_area / A_pix
 
     # Sky limited case
     mu_sky_lim = (
