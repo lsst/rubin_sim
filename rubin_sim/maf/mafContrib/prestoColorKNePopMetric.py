@@ -80,7 +80,7 @@ def generatePrestoPopSlicer(
         ra = ra[np.abs(gb) > gb_cut]
         dec = dec[np.abs(gb) > gb_cut]
     else:
-        warnings.warn('Skyregion %s not recognized, using whole sky' % skyregion)
+        warnings.warn("Skyregion %s not recognized, using whole sky" % skyregion)
 
     n_events = len(ra)
 
@@ -140,9 +140,9 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
 
         data_dir = get_data_dir()
         if skyregion == "galactic":
-            self.filePath = os.path.join(data_dir, 'maf', fileGalactic)
+            self.filePath = os.path.join(data_dir, "maf", fileGalactic)
         elif skyregion == "extragalactic":
-            self.filePath = os.path.join(data_dir, 'maf', fileExtragalactic)
+            self.filePath = os.path.join(data_dir, "maf", fileExtragalactic)
 
         with open(self.filePath, "rb") as f:
             self.InfoDict = pickle.load(f)
