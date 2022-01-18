@@ -11,8 +11,9 @@ import rubin_sim.maf as maf
 from astropy import units as u
 from astropy_healpix import HEALPix
 from astropy.coordinates import Galactic, TETE, SkyCoord
+from astropy.io import fits
 from rubin_sim.data import get_data_dir
-
+import readGalPlaneMaps
 
 class galPlaneFootprintMetric(maf.BaseMetric):
     """Metric to evaluate the survey overlap with desired regions in the Galactic Plane
@@ -50,35 +51,42 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         }
         cwd = os.getcwd()
         self.MAP_DIR = get_data_dir()
-        self.MAP_FILE_ROOT_NAME = "GalPlane_priority_map"
+        self.MAP_FILE_ROOT_NAME = "priority_GalPlane_footprint_map_data"
         self.load_maps()
 
-        super().__init__(col=cols, metricName=metricName)
+        super().__init__(col=cols, metricName=metricName, metricDtype="object")
 
     def load_maps(self):
         self.NSIDE = 64
         self.NPIX = hp.nside2npix(self.NSIDE)
         self.ideal_combined_map = np.zeros(self.NPIX)
         for f in self.filters:
-            fmap = hp.read_map(
-                os.path.join(
-                    self.MAP_DIR,
-                    "maf",
-                    self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
+            file_path = os.path.join(
+                self.MAP_DIR,
+                "maf",
+                self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
                 )
-            )
-            setattr(self, "map_" + str(f), fmap)
-            self.ideal_combined_map += fmap
+            map_data_table = readGalPlaneMaps.load_map_data(file_path)
+
+            setattr(self, "map_" + str(f), map_data_table['combined_map'])
+            setattr(self, "map_data_" + str(f), map_data_table)
+            self.ideal_combined_map += map_data_table['combined_map']
 
     def run(self, dataSlice, slicePoint=None):
 
-        combined_map = np.zeros(self.NPIX)
+        # Initialize holding array for map pixels in the dataSlice that
+        # overlap with the desired survey area, summed over all filters
+        dataslice_map = np.zeros(self.NPIX)
 
         for f in self.filters:
+            # Select from the dataSlice observations that meet the limiting magnitude
+            # requirements for the science concerned for this filter
             idx1 = np.where(dataSlice[self.filterCol] == f)[0]
             idx2 = np.where(dataSlice[self.m5Col] >= self.magCuts[f])[0]
             match = list(set(idx1).intersection(set(idx2)))
 
+            # Calculate the ICRS coordinates of the observed fields and
+            # convert these to galactic coordinates
             coords_icrs = SkyCoord(
                 dataSlice[self.ra_col][match],
                 dataSlice[self.dec_col][match],
@@ -86,15 +94,34 @@ class galPlaneFootprintMetric(maf.BaseMetric):
                 unit=(u.deg, u.deg),
             )
             coords_gal = coords_icrs.transform_to(Galactic())
+
+            # Calculate which HEALpixels in the sky map are covered by these
+            # observations
             ahp = HEALPix(nside=self.NSIDE, order="ring", frame=TETE())
             pixels = ahp.skycoord_to_healpix(coords_gal)
 
+            # Add the priority values for these HEALpixels from the map of
+            # the desired footprint to the combined_map array
             weighted_map = getattr(self, "map_" + str(f))
-            combined_map[pixels] += weighted_map[pixels]
+            dataslice_map[pixels] += weighted_map[pixels]
 
-        metric_value = combined_map.sum()
+        # This loop computes the main metric value over all HEALpixels in the sky map
+        # ("combined_map") as well as over the HEALpixels of the specific regions
+        # of interest for different science cases
+        map_data = getattr(self, "map_data_" + str(f))
+        metric_data = {}
 
-        # Normalize by full weighted map summed over all filters and pixels:
-        metric_value /= self.ideal_combined_map[pixels].sum()
+        for col in map_data.columns:
 
-        return metric_value
+            region_pixels = np.where(map_data[col.name] > 0.0)
+
+            # To return a single metric value for the whole map, sum the total
+            # priority of all desired pixels included in the survey observations:
+            metric = dataslice_map[region_pixels].sum()
+
+            # Normalize by full weighted map summed over all filters and pixels:
+            metric /= self.ideal_combined_map[region_pixels].sum()
+
+            metric_data[col.name] = metric
+
+        return metric_data
