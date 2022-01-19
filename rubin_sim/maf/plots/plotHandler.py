@@ -318,14 +318,22 @@ class PlotHandler(object):
             plotTitle = self.jointMetadata + " " + self.jointMetricNames
         return plotTitle
 
-    def _buildXYlabels(self, plotFunc):
+    def _buildXYlabels(self, plotFunc, len_max=25):
         """
         Build a plot x and y label.
+
+        Parameters
+        ----------
+        len_max : `int` (30)
+            If the xlabel starts longer than this, add the units as a newline.
         """
         if plotFunc.plotType == "BinnedData":
             if len(self.mBundles) == 1:
                 mB = self.mBundles[0]
-                xlabel = mB.slicer.sliceColName + " (" + mB.slicer.sliceColUnits + ")"
+                if len(mB.slicer.sliceColName) < len_max:
+                    xlabel = mB.slicer.sliceColName + " (" + mB.slicer.sliceColUnits + ")"
+                else:
+                    xlabel = mB.slicer.sliceColName + " \n(" + mB.slicer.sliceColUnits + ")"
                 ylabel = mB.metric.name + " (" + mB.metric.units + ")"
             else:
                 xlabel = set()
@@ -346,7 +354,10 @@ class PlotHandler(object):
                 xlabel = mB.metric.name
                 if mB.metric.units is not None:
                     if len(mB.metric.units) > 0:
-                        xlabel += " (" + mB.metric.units + ")"
+                        if len(xlabel) < len_max:
+                            xlabel += " (" + mB.metric.units + ")"
+                        else:
+                            xlabel += "\n(" + mB.metric.units + ")"
                 ylabel = None
             else:
                 xlabel = self.jointMetricNames
