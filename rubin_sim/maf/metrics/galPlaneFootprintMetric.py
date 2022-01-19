@@ -15,6 +15,7 @@ from astropy.io import fits
 from rubin_sim.data import get_data_dir
 import readGalPlaneMaps
 
+
 class galPlaneFootprintMetric(maf.BaseMetric):
     """Metric to evaluate the survey overlap with desired regions in the Galactic Plane
     and Magellanic Clouds, by referencing the pre-computed priority maps provided.
@@ -62,15 +63,13 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         self.ideal_combined_map = np.zeros(self.NPIX)
         for f in self.filters:
             file_path = os.path.join(
-                self.MAP_DIR,
-                "maf",
-                self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
-                )
+                self.MAP_DIR, "maf", self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
+            )
             map_data_table = readGalPlaneMaps.load_map_data(file_path)
 
-            setattr(self, "map_" + str(f), map_data_table['combined_map'])
+            setattr(self, "map_" + str(f), map_data_table["combined_map"])
             setattr(self, "map_data_" + str(f), map_data_table)
-            self.ideal_combined_map += map_data_table['combined_map']
+            self.ideal_combined_map += map_data_table["combined_map"]
 
     def run(self, dataSlice, slicePoint=None):
 

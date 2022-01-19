@@ -4,6 +4,7 @@ from astropy import units as u
 from astropy_healpix import HEALPix
 from astropy.coordinates import Galactic, TETE, SkyCoord
 
+
 class overlapRGESFootprintMetric(maf.BaseMetric):
     """Metric to evaluate the survey footprint overlap survey region for the Roman Galactic Exoplanet Survey
 
@@ -16,18 +17,21 @@ class overlapRGESFootprintMetric(maf.BaseMetric):
     filter : str, filter bandpass used for a given observation
     """
 
-    def __init__(self, cols=['fieldRA','fieldDec','filter','fiveSigmaDepth'],
-                       metricName='overlapRGESFootprintMetric',
-                       **kwargs):
+    def __init__(
+        self,
+        cols=["fieldRA", "fieldDec", "filter", "fiveSigmaDepth"],
+        metricName="overlapRGESFootprintMetric",
+        **kwargs
+    ):
         """Kwargs must contain:
         filters  list Filterset over which to compute the metric
         """
 
-        self.ra_col = 'fieldRA'
-        self.dec_col = 'fieldDec'
-        self.filterCol = 'filter'
-        self.m5Col = 'fiveSigmaDepth'
-        self.filters = ['u','g', 'r', 'i', 'z', 'y']
+        self.ra_col = "fieldRA"
+        self.dec_col = "fieldDec"
+        self.filterCol = "filter"
+        self.m5Col = "fiveSigmaDepth"
+        self.filters = ["u", "g", "r", "i", "z", "y"]
         self.magLimit = 22.0
         cwd = os.getcwd()
         self.create_map()
@@ -37,7 +41,7 @@ class overlapRGESFootprintMetric(maf.BaseMetric):
 
     def create_map(self):
         self.NSIDE = 64
-        self.ahp = HEALPix(nside=self.NSIDE, order='ring', frame=TETE())
+        self.ahp = HEALPix(nside=self.NSIDE, order="ring", frame=TETE())
 
     def load_RGES_footprint(self):
 
@@ -54,15 +58,15 @@ class overlapRGESFootprintMetric(maf.BaseMetric):
         halfwidth_l = l_width / 2.0
         halfheight_b = b_height / 2.0
 
-        l_min = max( (l_center-halfwidth_l), 0 )
-        l_max = min( (l_center+halfwidth_l), 360.0 )
-        b_min = max( (b_center-halfheight_b), -90.0 )
-        b_max = min( (b_center+halfheight_b), 90.0 )
+        l_min = max((l_center - halfwidth_l), 0)
+        l_max = min((l_center + halfwidth_l), 360.0)
+        b_min = max((b_center - halfheight_b), -90.0)
+        b_max = min((b_center + halfheight_b), 90.0)
 
         l = np.linspace(l_min, l_max, n_points) * u.deg
         b = np.linspace(b_min, b_max, n_points) * u.deg
 
-        LL,BB = np.meshgrid(l, b)
+        LL, BB = np.meshgrid(l, b)
 
         coords = SkyCoord(LL, BB, frame=Galactic())
 
@@ -77,7 +81,12 @@ class overlapRGESFootprintMetric(maf.BaseMetric):
 
         # Extract the RA,Dec coordinates of the fields surveyed by matching observations the dataSlice
         # and calculate which HEALpixels these correspond to
-        coords_icrs = SkyCoord(dataSlice[self.ra_col][match], dataSlice[self.dec_col][match], frame='icrs', unit=(u.deg, u.deg))
+        coords_icrs = SkyCoord(
+            dataSlice[self.ra_col][match],
+            dataSlice[self.dec_col][match],
+            frame="icrs",
+            unit=(u.deg, u.deg),
+        )
         coords_gal = coords_icrs.transform_to(Galactic())
 
         surveyed_pixels = self.ahp.skycoord_to_healpix(coords_gal)

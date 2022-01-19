@@ -16,6 +16,7 @@ from astropy.coordinates import Galactic, TETE, SkyCoord
 from rubin_sim.data import get_data_dir
 import readGalPlaneMaps
 
+
 class galPlaneTimePerFilter(maf.BaseMetric):
     """Metric to evaluate for each HEALpix, the fraction of exposure time spent in each filter as
      a fraction of the total exposure time dedicated to that HEALpix.  The metric sums this over
@@ -76,13 +77,11 @@ class galPlaneTimePerFilter(maf.BaseMetric):
         self.NPIX = hp.nside2npix(self.NSIDE)
         for f in self.filters:
             file_path = os.path.join(
-                self.MAP_DIR,
-                "maf",
-                self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
-                )
+                self.MAP_DIR, "maf", self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
+            )
             map_data_table = readGalPlaneMaps.load_map_data(file_path)
 
-            setattr(self, "map_" + str(f), map_data_table['combined_map'])
+            setattr(self, "map_" + str(f), map_data_table["combined_map"])
             setattr(self, "map_data_" + str(f), map_data_table)
 
     def calc_coaddmap(self):
@@ -94,7 +93,7 @@ class galPlaneTimePerFilter(maf.BaseMetric):
 
         for i, f in enumerate(self.filters):
             # Fetch the map data for this filter
-            map_data_table = getattr(self, 'map_data_'+str(f))
+            map_data_table = getattr(self, "map_data_" + str(f))
 
             for col in map_data_table.columns:
                 if col.name in self.coadded_maps.keys():
@@ -123,7 +122,7 @@ class galPlaneTimePerFilter(maf.BaseMetric):
         # Extract the HEALpix priority data for the current science case in
         # the appropriate filter.  This returns a list of priority values for
         # all HEALpixels, with zero values for regions outside the area of interest
-        map_data_table = getattr(self, 'map_data_'+str(filter_name))
+        map_data_table = getattr(self, "map_data_" + str(filter_name))
         fmap = map_data_table[col.name]
 
         # First select the pixels within the science region of interest for the
@@ -138,7 +137,7 @@ class galPlaneTimePerFilter(maf.BaseMetric):
 
         return idealfExpT
 
-    def calculate_overlap_survey_region(self,region_pixels, dataSlice, match):
+    def calculate_overlap_survey_region(self, region_pixels, dataSlice, match):
 
         # Calculate which HEALpixels observations in the dataSlice correspond to
         coords_icrs = SkyCoord(
@@ -153,7 +152,9 @@ class galPlaneTimePerFilter(maf.BaseMetric):
 
         # Calculate the overlap between the observed HEALpixels and
         # those from the desired survey region
-        overlap_pixels = list(set(pixels.tolist()).intersection(set(region_pixels.tolist())))
+        overlap_pixels = list(
+            set(pixels.tolist()).intersection(set(region_pixels.tolist()))
+        )
 
         # Identify which observations from the dataSlice correspond to
         # the overlapping survey region.  This may produce multiple
@@ -180,7 +181,7 @@ class galPlaneTimePerFilter(maf.BaseMetric):
 
         for i, f in enumerate(self.filters):
             # Fetch the map data for this filter
-            map_data_table = getattr(self, 'map_data_'+str(f))
+            map_data_table = getattr(self, "map_data_" + str(f))
 
             # Select observations within the OpSim for the current filter
             # which match the S/N requirement, and extract the exposure times
@@ -208,29 +209,34 @@ class galPlaneTimePerFilter(maf.BaseMetric):
                 # Now find the overlap between the HEALpix covered by the dataSlice
                 # and the ideal survey region for this science case, and the
                 # dataSlice observations corresponding to this region
-                (overlap_pixels, match_obs) = self.calculate_overlap_survey_region(region_pixels, dataSlice, match)
+                (overlap_pixels, match_obs) = self.calculate_overlap_survey_region(
+                    region_pixels, dataSlice, match
+                )
 
                 # Calculate the expected fraction of the total exposure time
                 # that would be dedicated to observations in this filter
                 # summed over all HEALpixels in the desired region, if the
                 # survey strategy exactly matched the needs of the current science case
                 idealfExpT = self.calc_idealfExpT(f, overlap_pixels, col)
-                print('ideal f/ExpT = ',idealfExpT)
+                print("ideal f/ExpT = ", idealfExpT)
 
                 # Now calculate the actual fraction of exposure time spend
                 # in this filter summed over all HEALpix from the overlap region.
                 # If no exposures are expected in this filter, this returns 1
                 # on the principle that 100% of the expected observations are
                 # provided, and additional data in other filters is usually welcome
-                print('Exposure time for matching exposures = ',dataSlice[self.exptCol][match_obs].sum())
-                print('Total exposure time per pixel = ',total_expt_per_pixel)
+                print(
+                    "Exposure time for matching exposures = ",
+                    dataSlice[self.exptCol][match_obs].sum(),
+                )
+                print("Total exposure time per pixel = ", total_expt_per_pixel)
                 fexpt = dataSlice[self.exptCol][match_obs].sum() / total_expt_per_pixel
-                print('Exp fraction = ',fexpt)
+                print("Exp fraction = ", fexpt)
                 if idealfExpT > 0:
                     metric = fexpt / idealfExpT
                 else:
                     metric = 1.0
-                print('Exp fraction relative to ideal fraction = ',metric,f,col.name)
+                print("Exp fraction relative to ideal fraction = ", metric, f, col.name)
 
                 # Accumulate the product of this metric over all filters for each science region
                 if col.name not in metric_data.keys():
