@@ -23,6 +23,7 @@ from rubin_sim.maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import 
 )
 from rubin_sim.maf.mafContrib import (
     TdePopMetric,
+    TdePopMetricQuality,
     generateTdePopSlicer,
     generateMicrolensingSlicer,
     MicrolensingMetric,
@@ -302,6 +303,19 @@ def scienceRadarBatch(
 
     metric = TdePopMetric()
     slicer = generateTdePopSlicer()
+    bundle = mb.MetricBundle(
+        metric,
+        slicer,
+        extraSql,
+        runName=runName,
+        metadata=extraMetadata,
+        summaryMetrics=lightcurveSummary(),
+        displayDict=displayDict,
+    )
+    bundleList.append(bundle)
+
+    displayDict["caption"] = "TDE lightcurves quality"
+    metric = TdePopMetricQuality(metricName="TDE_Quality")
     bundle = mb.MetricBundle(
         metric,
         slicer,

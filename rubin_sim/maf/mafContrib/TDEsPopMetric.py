@@ -8,7 +8,7 @@ import glob
 from rubin_sim.photUtils import Dust_values
 from rubin_sim.data import get_data_dir
 
-__all__ = ["Tde_lc", "TdePopMetric", "generateTdePopSlicer"]
+__all__ = ["Tde_lc", "TdePopMetric", "TdePopMetricQuality", "generateTdePopSlicer"]
 
 
 class Tde_lc(object):
@@ -185,6 +185,142 @@ class TdePopMetric(metrics.BaseMetric):
 
     def reduce_some_color_pu(self, metric):
         return metric["some_color_pu"]
+
+
+class TdePopMetricQuality(metrics.BaseMetric):
+    def __init__(
+        self,
+        metricName="TDEsPopMetricQuality",
+        mjdCol="observationStartMJD",
+        m5Col="fiveSigmaDepth",
+        filterCol="filter",
+        nightCol="night",
+        tmin=-30,
+        tmax=100,
+        file_list=None,
+        mjd0=59853.5,
+        **kwargs
+    ):
+        maps = ["DustMap"]
+        self.mjdCol = mjdCol
+        self.m5Col = m5Col
+        self.filterCol = filterCol
+        self.nightCol = nightCol
+        self.tmin = tmin
+        self.tmax = tmax
+
+        self.lightcurves = Tde_lc(file_list=file_list)
+        self.mjd0 = mjd0
+
+        dust_properties = Dust_values()
+        self.Ax1 = dust_properties.Ax1
+
+        cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]
+        super(TdePopMetricQuality, self).__init__(
+            col=cols,
+            units="Bad: 0, Good (obs every 2 night): 1",
+            metricName=metricName,
+            maps=maps,
+            **kwargs
+        )
+
+    def _some_color_pnum_detect(self, dataSlice, slicePoint, mags, t):
+        result = 1
+        # 1 detection pre peak
+        pre_peak_detected = np.where((t < -10) & (mags < dataSlice[self.m5Col]))[0]
+        if np.size(pre_peak_detected) < 1:
+            return 0
+
+        # At least 3 filters within 10 days of peak
+        around_peak = np.where((np.abs(t) < 5) & (mags < dataSlice[self.m5Col]))[0]
+        if np.size(np.unique(dataSlice[self.filterCol][around_peak])) < 3:
+            return 0
+
+        # At least 2 bands after peak
+        post_peak = np.where((t > 10) & (t < 30) & (mags < dataSlice[self.m5Col]))[0]
+        if np.size(np.unique(dataSlice[self.filterCol][post_peak])) < 2:
+            return 0
+
+        # count number of data points in the light curve
+        obs_points = np.where(
+            (t > self.tmin) & (t < self.tmax) & (mags < dataSlice[self.m5Col])
+        )[0]
+
+        # define the time range around peak in which the number of data points is measured
+        tRange = self.tmax - self.tmin
+
+        # number of data points / time range gives a "score" for light curve quality
+        # 0: did not pass some_color requirements;
+        # 1: passed some_color requirements and has 1 data point every other night
+        nresult = np.size(obs_points) / tRange
+
+        return nresult
+
+    def _some_color_pu_pnum_detect(self, dataSlice, slicePoint, mags, t):
+        result = 1
+        # 1 detection pre peak
+        pre_peak_detected = np.where((t < -10) & (mags < dataSlice[self.m5Col]))[0]
+        if np.size(pre_peak_detected) < 1:
+            return 0
+
+        # 1 detection in u and any other band near peak
+        around_peak = np.where((np.abs(t) < 5) & (mags < dataSlice[self.m5Col]))[0]
+        filters = np.unique(dataSlice[self.filterCol][around_peak])
+        if np.size(filters) < 2:
+            return 0
+        if "u" not in filters:
+            return 0
+
+        # 1 detecion in u and any other band post peak
+        post_peak = np.where((t > 10) & (t < 30) & (mags < dataSlice[self.m5Col]))[0]
+        filters = np.unique(dataSlice[self.filterCol][post_peak])
+        if np.size(filters) < 2:
+            return 0
+        if "u" not in filters:
+            return 0
+
+        # count number of data points in the light curve
+        obs_points = np.where(
+            (t > self.tmin) & (t < self.tmax) & (mags < dataSlice[self.m5Col])
+        )[0]
+
+        # define the time range around peak in which the number of data points is measured
+        tRange = self.tmax - self.tmin
+
+        # number of data points / time range gives a "score" for light curve quality
+        # 0: did not pass some_color_pu requirements;
+        # 1: passed some_color_pu requirements and has 1 data point every other night
+        nresult = np.size(obs_points) / tRange
+
+        return nresult
+
+    def run(self, dataSlice, slicePoint=None):
+        result = {}
+        t = dataSlice[self.mjdCol] - self.mjd0 - slicePoint["peak_time"]
+        mags = np.zeros(t.size, dtype=float)
+
+        for filtername in np.unique(dataSlice[self.filterCol]):
+            infilt = np.where(dataSlice[self.filterCol] == filtername)
+            mags[infilt] = self.lightcurves.interp(
+                t[infilt], filtername, lc_indx=slicePoint["file_indx"]
+            )
+            # Apply dust extinction on the light curve
+            mags[infilt] += self.Ax1[filtername] * slicePoint["ebv"]
+
+        result["some_color_pnum"] = self._some_color_pnum_detect(
+            dataSlice, slicePoint, mags, t
+        )
+        result["some_color_pu_pnum"] = self._some_color_pu_pnum_detect(
+            dataSlice, slicePoint, mags, t
+        )
+
+        return result
+
+    def reduce_some_color_pnum(self, metric):
+        return metric["some_color_pnum"]
+
+    def reduce_some_color_pu_pnum(self, metric):
+        return metric["some_color_pu_pnum"]
 
 
 def generateTdePopSlicer(t_start=1, t_end=3652, n_events=10000, seed=42, n_files=7):
