@@ -1,17 +1,17 @@
 import glob
 import os
 import numpy as np
-from ..metrics import BaseMetric
-from ..slicers import UserPointsSlicer
+from rubin_sim.maf.metrics import BaseMetric
+from rubin_sim.maf.slicers import UserPointsSlicer
 from rubin_sim.utils import uniformSphere
 from rubin_sim.photUtils import Dust_values
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import m52snr
 
-__all__ = ["KN_lc", "KNePopMetric", "generateKNPopSlicer"]
+__all__ = ["get_KNe_filename", "KN_lc", "KNePopMetric", "generateKNPopSlicer"]
 
 
-def get_filename(inj_params_list):
+def get_KNe_filename(inj_params_list):
     """Given kilonova parameters, get the filename from the grid of models
     developed by M. Bulla
 

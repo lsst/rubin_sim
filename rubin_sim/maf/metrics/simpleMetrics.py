@@ -35,6 +35,7 @@ __all__ = [
     "FullRangeAngleMetric",
     "CountExplimMetric",
     "AngularSpreadMetric",
+    "RealMeanMetric",
 ]
 
 twopi = 2.0 * np.pi
@@ -451,3 +452,10 @@ class AngularSpreadMetric(BaseMetric):
         # radial offset (i.e., length) of the mean unit vector
         R = np.hypot(meanx, meany)
         return 1.0 - R
+
+
+class RealMeanMetric(BaseMetric):
+    """Calculate the mean of a simData column slice with no nans or infs."""
+
+    def run(self, dataSlice, slicePoint=None):
+        return np.mean(dataSlice[self.colname][np.isfinite(dataSlice[self.colname])])

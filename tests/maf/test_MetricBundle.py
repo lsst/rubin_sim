@@ -24,26 +24,28 @@ class TestMetricBundle(unittest.TestCase):
 
     def setUp(self):
         self.outDir = tempfile.mkdtemp(prefix="TMB")
+        self.cameraFootprintFile = os.path.join(get_data_dir(), "tests", "fov_map.npz")
 
     def testOut(self):
         """
         Check that the metric bundle can generate the expected output
         """
         nside = 8
-        slicer = slicers.HealpixSlicer(nside=nside)
+        slicer = slicers.HealpixSlicer(
+            nside=nside, cameraFootprintFile=self.cameraFootprintFile
+        )
         metric = metrics.MeanMetric(col="airmass")
         sql = 'filter="r"'
         stacker1 = stackers.RandomDitherFieldPerVisitStacker()
         stacker2 = stackers.GalacticStacker()
-        map1 = maps.GalCoordsMap()
-        map2 = maps.StellarDensityMap()
+        map = maps.GalCoordsMap()
 
         metricB = metricBundles.MetricBundle(
-            metric, slicer, sql, stackerList=[stacker1, stacker2], mapsList=[map1, map2]
+            metric, slicer, sql, stackerList=[stacker1, stacker2], mapsList=[map]
         )
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
 
-        opsdb = db.OpsimDatabaseV4(database=database)
+        opsdb = db.OpsimDatabase(database=database)
         resultsDb = db.ResultsDb(outDir=self.outDir)
 
         bgroup = metricBundles.MetricBundleGroup(
@@ -52,8 +54,6 @@ class TestMetricBundle(unittest.TestCase):
         bgroup.runAll()
         bgroup.plotAll()
         bgroup.writeAll()
-
-        opsdb.close()
 
         outThumbs = glob.glob(os.path.join(self.outDir, "thumb*"))
         outNpz = glob.glob(os.path.join(self.outDir, "*.npz"))

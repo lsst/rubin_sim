@@ -9,8 +9,6 @@ __all__ = [
     "MaxStateChangesWithinMetric",
     "TeffMetric",
     "OpenShutterFractionMetric",
-    "CompletenessMetric",
-    "FilterColorsMetric",
     "BruteOSFMetric",
 ]
 
@@ -44,7 +42,7 @@ class MinTimeBetweenStatesMetric(BaseMetric):
         changeCol="filter",
         timeCol="observationStartMJD",
         metricName=None,
-        **kwargs
+        **kwargs,
     ):
         """
         changeCol = column that changes state
@@ -92,7 +90,7 @@ class NStateChangesFasterThanMetric(BaseMetric):
         timeCol="observationStartMJD",
         metricName=None,
         cutoff=20,
-        **kwargs
+        **kwargs,
     ):
         """
         col = column tracking changes in
@@ -142,7 +140,7 @@ class MaxStateChangesWithinMetric(BaseMetric):
         timeCol="observationStartMJD",
         metricName=None,
         timespan=20,
-        **kwargs
+        **kwargs,
     ):
         """
         col = column tracking changes in
@@ -198,7 +196,7 @@ class TeffMetric(BaseMetric):
         fiducialDepth=None,
         teffBase=30.0,
         normed=False,
-        **kwargs
+        **kwargs,
     ):
         self.m5Col = m5Col
         self.filterCol = filterCol
@@ -275,7 +273,7 @@ class OpenShutterFractionMetric(BaseMetric):
         slewTimeCol="slewTime",
         expTimeCol="visitExposureTime",
         visitTimeCol="visitTime",
-        **kwargs
+        **kwargs,
     ):
         self.expTimeCol = expTimeCol
         self.visitTimeCol = visitTimeCol
@@ -284,7 +282,7 @@ class OpenShutterFractionMetric(BaseMetric):
             col=[self.expTimeCol, self.visitTimeCol, self.slewTimeCol],
             metricName=metricName,
             units="OpenShutter/TotalTime",
-            **kwargs
+            **kwargs,
         )
         self.comment = (
             "Open shutter time (%s total) divided by total visit time "
@@ -297,185 +295,6 @@ class OpenShutterFractionMetric(BaseMetric):
             dataSlice[self.slewTimeCol] + dataSlice[self.visitTimeCol]
         )
         return result
-
-
-class CompletenessMetric(BaseMetric):
-    """Compute the completeness and joint completeness """
-
-    def __init__(
-        self,
-        filterColName="filter",
-        metricName="Completeness",
-        u=0,
-        g=0,
-        r=0,
-        i=0,
-        z=0,
-        y=0,
-        **kwargs
-    ):
-        """
-        Compute the completeness for the each of the given filters and the
-        joint completeness across all filters.
-
-        Completeness calculated in any filter with a requested 'nvisits' value greater than 0, range is 0-1.
-        """
-        self.filterCol = filterColName
-        super(CompletenessMetric, self).__init__(
-            col=self.filterCol, metricName=metricName, **kwargs
-        )
-        self.nvisitsRequested = np.array([u, g, r, i, z, y])
-        self.filters = np.array(["u", "g", "r", "i", "z", "y"])
-        # Remove filters from consideration where number of visits requested is zero.
-        good = np.where(self.nvisitsRequested > 0)
-        self.nvisitsRequested = self.nvisitsRequested[good]
-        self.filters = self.filters[good]
-        # Raise exception if number of visits wasn't changed from the default, for at least one filter.
-        if len(self.filters) == 0:
-            raise ValueError(
-                "Please set the requested number of visits for at least one filter."
-            )
-        # Set reduce order, for display purposes.
-        for i, f in enumerate(["u", "g", "r", "i", "z", "y", "Joint"]):
-            self.reduceOrder[f] = i
-        self.comment = "Completeness fraction for each filter (and joint across all filters), calculated"
-        self.comment += " as the number of visits compared to a benchmark value of :"
-        for i, f in enumerate(self.filters):
-            self.comment += " %s: %d" % (f, self.nvisitsRequested[i])
-        self.comment += "."
-
-    def run(self, dataSlice, slicePoint=None):
-        """
-        Compute the completeness for each filter, and then the minimum (joint) completeness for each slice.
-        """
-        allCompleteness = []
-        for f, nVis in zip(self.filters, self.nvisitsRequested):
-            filterVisits = np.size(np.where(dataSlice[self.filterCol] == f)[0])
-            allCompleteness.append(filterVisits / float(nVis))
-        allCompleteness.append(np.min(np.array(allCompleteness)))
-        return np.array(allCompleteness)
-
-    def reduceu(self, completeness):
-        if "u" in self.filters:
-            return completeness[np.where(self.filters == "u")[0]]
-        else:
-            return 1
-
-    def reduceg(self, completeness):
-        if "g" in self.filters:
-            return completeness[np.where(self.filters == "g")[0]]
-        else:
-            return 1
-
-    def reducer(self, completeness):
-        if "r" in self.filters:
-            return completeness[np.where(self.filters == "r")[0]]
-        else:
-            return 1
-
-    def reducei(self, completeness):
-        if "i" in self.filters:
-            return completeness[np.where(self.filters == "i")[0]]
-        else:
-            return 1
-
-    def reducez(self, completeness):
-        if "z" in self.filters:
-            return completeness[np.where(self.filters == "z")[0]]
-        else:
-            return 1
-
-    def reducey(self, completeness):
-        if "y" in self.filters:
-            return completeness[np.where(self.filters == "y")[0]]
-        else:
-            return 1
-
-    def reduceJoint(self, completeness):
-        """
-        The joint completeness is just the minimum completeness for a point/field.
-        """
-        return completeness[-1]
-
-
-class FilterColorsMetric(BaseMetric):
-    """
-    Calculate an RGBA value that accounts for the filters used up to time t0.
-    """
-
-    def __init__(
-        self,
-        rRGB="rRGB",
-        gRGB="gRGB",
-        bRGB="bRGB",
-        timeCol="observationStartMJD",
-        t0=None,
-        tStep=40.0 / 60.0 / 60.0 / 24.0,
-        metricName="FilterColors",
-        **kwargs
-    ):
-        """
-        t0 = the current time
-        """
-        self.rRGB = rRGB
-        self.bRGB = bRGB
-        self.gRGB = gRGB
-        self.timeCol = timeCol
-        self.t0 = t0
-        if self.t0 is None:
-            self.t0 = 59580
-        self.tStep = tStep
-        super(FilterColorsMetric, self).__init__(
-            col=[rRGB, gRGB, bRGB, timeCol], metricName=metricName, **kwargs
-        )
-        self.metricDtype = "object"
-        self.comment = "Metric specifically to generate colors for the opsim movie"
-
-    def _scaleColor(self, colorR, colorG, colorB):
-        r = colorR.sum()
-        g = colorG.sum()
-        b = colorB.sum()
-        scale = 1.0 / np.max([r, g, b])
-        r *= scale
-        g *= scale
-        b *= scale
-        return r, g, b
-
-    def run(self, dataSlice, slicePoint=None):
-        deltaT = np.abs(dataSlice[self.timeCol] - self.t0)
-        visitNow = np.where(deltaT <= self.tStep)[0]
-        if len(visitNow) > 0:
-            # We have exact matches to this timestep, so use their colors directly and set alpha to >1.
-            r, g, b = self._scaleColor(
-                dataSlice[visitNow][self.rRGB],
-                dataSlice[visitNow][self.gRGB],
-                dataSlice[visitNow][self.bRGB],
-            )
-            alpha = 10.0
-        else:
-            # This part of the sky has only older exposures.
-            deltaTmin = deltaT.min()
-            nObs = len(dataSlice[self.timeCol])
-            # Generate a combined color (weighted towards most recent observation).
-            decay = deltaTmin / deltaT
-            r, g, b = self._scaleColor(
-                dataSlice[self.rRGB] * decay,
-                dataSlice[self.gRGB] * decay,
-                dataSlice[self.bRGB] * decay,
-            )
-            # Then generate an alpha value, between alphamax/alphamid for visits
-            #  happening within the previous 12 hours, then falling between
-            #  alphamid/alphamin with a value that depends on the number of obs.
-            alphamax = 0.8
-            alphamid = 0.5
-            alphamin = 0.2
-            if deltaTmin < 0.5:
-                alpha = np.exp(-deltaTmin * 10.0) * (alphamax - alphamid) + alphamid
-            else:
-                alpha = nObs / 800.0 * alphamid
-            alpha = np.max([alpha, alphamin])
-            alpha = np.min([alphamax, alpha])
-        return (r, g, b, alpha)
 
 
 class BruteOSFMetric(BaseMetric):
@@ -492,7 +311,7 @@ class BruteOSFMetric(BaseMetric):
         mjdCol="observationStartMJD",
         maxgap=10.0,
         fudge=0.0,
-        **kwargs
+        **kwargs,
     ):
         """
         Parameters
@@ -514,7 +333,7 @@ class BruteOSFMetric(BaseMetric):
             col=[self.expTimeCol, mjdCol],
             metricName=metricName,
             units="OpenShutter/TotalTime",
-            **kwargs
+            **kwargs,
         )
 
     def run(self, dataSlice, slicePoint=None):

@@ -92,9 +92,9 @@ class TestSlicers(unittest.TestCase):
                 else:
                     assert getattr(slicer, att) == getattr(slicerBack, att)
 
-    def test_opsimFieldSlicer(self):
+    def test_userpointsSlicer(self):
         rng = np.random.RandomState(7442)
-        slicer = slicers.OpsimFieldSlicer()
+
         names = ["fieldRA", "fieldDec", "fieldId"]
         dt = ["float", "float", "int"]
         metricValues = rng.rand(100)
@@ -102,11 +102,15 @@ class TestSlicers(unittest.TestCase):
         fieldData["fieldRA"] = rng.rand(100)
         fieldData["fieldDec"] = rng.rand(100)
         fieldData["fieldId"] = np.arange(100)
+
+        slicer = slicers.UserPointsSlicer(
+            ra=fieldData["fieldRA"], dec=fieldData["fieldDec"]
+        )
+
         names = ["data1", "data2", "fieldId"]
         simData = np.zeros(100, dtype=list(zip(names, dt)))
         simData["data1"] = rng.rand(100)
         simData["fieldId"] = np.arange(100)
-        slicer.setupSlicer(simData, fieldData)
         with TemporaryFile() as filename:
             slicer.writeData(filename, metricValues)
             _ = filename.seek(0)
@@ -118,7 +122,8 @@ class TestSlicers(unittest.TestCase):
                 "columnsNeeded",
                 "lonCol",
                 "latCol",
-                "simDataFieldIdColName",
+                "shape",
+                "spatialExtent",
             ]
             for att in attr2check:
                 if type(getattr(slicer, att)).__name__ == "dict":

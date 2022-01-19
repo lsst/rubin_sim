@@ -105,8 +105,8 @@ class UserPointsSlicer(BaseSpatialSlicer):
                     otherSlicer.slicePoints[key], self.slicePoints[key]
                 ):
                     return False
-                else:
-                    return False
+            else:
+                return False
         if isinstance(otherSlicer, UserPointsSlicer):
             if otherSlicer.nslice == self.nslice:
                 if np.array_equal(

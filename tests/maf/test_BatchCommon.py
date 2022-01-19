@@ -1,12 +1,5 @@
 import unittest
 import rubin_sim.maf.batches as batches
-from rubin_sim.maf.db import OpsimDatabaseV4
-
-
-class OpsTestDb(OpsimDatabaseV4):
-    def __init__(self):
-        # Override init so we don't connect to anything.
-        self._colNames()
 
 
 class TestCommon(unittest.TestCase):
@@ -14,8 +7,7 @@ class TestCommon(unittest.TestCase):
         colmap = batches.ColMapDict("opsimv4")
         self.assertEqual(colmap["raDecDeg"], True)
         self.assertEqual(colmap["ra"], "fieldRA")
-        opsdb = OpsTestDb()
-        colmap = batches.getColMap(opsdb)
+        colmap = batches.getColMap("_temp")
         self.assertEqual(colmap["raDecDeg"], True)
         self.assertEqual(colmap["ra"], "fieldRA")
 

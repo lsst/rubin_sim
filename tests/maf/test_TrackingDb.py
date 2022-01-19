@@ -3,6 +3,8 @@ import unittest
 import rubin_sim.maf.db as db
 import tempfile
 import shutil
+import sqlite3
+import pandas as pd
 
 
 class TestTrackingDb(unittest.TestCase):
@@ -44,8 +46,8 @@ class TestTrackingDb(unittest.TestCase):
             mafDate=self.mafDate,
             dbFile=self.dbFile,
         )
-        tdb = db.Database(database=trackingDbFile)
-        res = tdb.query_arbitrary("select * from runs")
+        con = sqlite3.connect(trackingDbFile)
+        res = pd.read_sql("select * from runs", con).to_records()
         self.assertEqual(res["mafRunId"][0], trackId)
         # Try adding this run again. Should return previous trackId.
         trackId2 = trackingdb.addRun(mafDir=self.mafDir)
@@ -54,7 +56,7 @@ class TestTrackingDb(unittest.TestCase):
         trackId3 = trackingdb.addRun(mafDir="test2")
         self.assertNotEqual(trackId, trackId3)
         trackingdb.close()
-        tdb.close()
+        con.close()
         shutil.rmtree(tempdir)
 
     def test_testDelRun(self):
@@ -62,21 +64,21 @@ class TestTrackingDb(unittest.TestCase):
         tempdir = tempfile.mkdtemp(prefix="trackDb")
         trackingDbFile = os.path.join(tempdir, "tracking.db")
         trackingdb = db.TrackingDb(database=trackingDbFile)
-        tdb = db.Database(database=trackingDbFile)
         trackId = trackingdb.addRun(mafDir=self.mafDir)
         trackId2 = trackingdb.addRun(mafDir=self.mafDir + "test2")
-        res = tdb.query_arbitrary("select * from runs")
+        con = sqlite3.connect(trackingDbFile)
+        res = pd.read_sql("select * from runs", con).to_records(index=False)
         self.assertEqual(res["mafRunId"][0], trackId)
         # Test removal works.
         trackingdb.delRun(trackId)
-        res = tdb.query_arbitrary("select * from runs")
+        res = pd.read_sql("select * from runs", con).to_records(index=False)
         # The run returned here is trackId2
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0][0], trackId2)
         # Test cannot remove run which does not exist.
         self.assertRaises(Exception, trackingdb.delRun, trackId)
         trackingdb.close()
-        tdb.close()
+        con.close()
         shutil.rmtree(tempdir)
 
 

@@ -8,6 +8,7 @@ from rubin_sim.utils import getAllTrixels
 from rubin_sim.utils import arcsecFromRadians
 from rubin_sim.utils.htmModule import _findHtmid_fast
 from rubin_sim.utils.htmModule import _findHtmid_slow
+from rubin_sim.data import get_data_dir
 
 import numpy as np
 import os
@@ -564,7 +565,7 @@ class TrixelFinderTest(unittest.TestCase):
         """
         dtype = np.dtype([("htmid", int), ("ra", float), ("dec", float)])
         data = np.genfromtxt(
-            os.path.join("tests", "utils", "testData", "htmid_test_data.txt"),
+            os.path.join(get_data_dir(), "tests", "testData", "htmid_test_data.txt"),
             dtype=dtype,
         )
         self.assertGreater(len(data), 20)

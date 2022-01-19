@@ -6,6 +6,7 @@ import os
 import copy
 import inspect
 from rubin_sim.utils import ModifiedJulianDate, UTCtoUT1Warning
+from rubin_sim.data import get_data_dir
 import rubin_sim
 
 
@@ -27,7 +28,7 @@ class MjdTest(unittest.TestCase):
         API changes in astropy.
         """
 
-        file_name = os.path.join("tests", "utils")
+        file_name = os.path.join(get_data_dir(), "tests")
         file_name = os.path.join(file_name, "testData", "utc_tai_comparison_data.txt")
 
         dtype = np.dtype([("utc", float), ("tai", float)])

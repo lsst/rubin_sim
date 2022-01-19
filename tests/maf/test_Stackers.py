@@ -412,28 +412,6 @@ class TestStackerClasses(unittest.TestCase):
         check_pa = np.degrees(check_pa)
         np.testing.assert_array_almost_equal(data["PA"], check_pa, decimal=0)
 
-    def testFilterColorStacker(self):
-        """Test the filter color stacker."""
-        data = np.zeros(60, dtype=list(zip(["filter"], ["<U1"])))
-        data["filter"][0:10] = "u"
-        data["filter"][10:20] = "g"
-        data["filter"][20:30] = "r"
-        data["filter"][30:40] = "i"
-        data["filter"][40:50] = "z"
-        data["filter"][50:60] = "y"
-        stacker = stackers.FilterColorStacker()
-        data = stacker.run(data)
-        # Check if re-run stacker raises warning (adding column twice).
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            data = stacker.run(data)
-            assert len(w) > 1
-            assert "already present in simData" in str(w[-1].message)
-        # Check if use non-recognized filter raises exception.
-        data = np.zeros(600, dtype=list(zip(["filter"], ["<U1"])))
-        data["filter"] = "q"
-        self.assertRaises(IndexError, stacker.run, data)
-
     def testGalacticStacker(self):
         """
         Test the galactic coordinate stacker
@@ -485,73 +463,6 @@ class TestStackerClasses(unittest.TestCase):
             raCol="ra", decCol="dec", degrees=True, subtractSunLon=False
         )
         newData = s.run(data)
-
-    def testOpSimFieldStacker(self):
-        """
-        Test the OpSimFieldStacker
-        """
-        rng = np.random.RandomState(812351)
-        test_fieldsDb = os.path.join(get_data_dir(), "site_models", "Fields.db")
-        s = stackers.OpSimFieldStacker(
-            raCol="ra", decCol="dec", degrees=False, fieldsDb=test_fieldsDb
-        )
-
-        # First sanity check. Make sure the center of the fields returns the right field id
-        opsim_fields_db = FieldsDatabase(test_fieldsDb)
-
-        # Returned RA/Dec coordinates in degrees
-        field_id, ra, dec = opsim_fields_db.get_id_ra_dec_arrays("select * from Field;")
-
-        data = np.array(
-            list(zip(np.radians(ra), np.radians(dec))),
-            dtype=list(zip(["ra", "dec"], [float, float])),
-        )
-        new_data = s.run(data)
-
-        np.testing.assert_array_equal(field_id, new_data["opsimFieldId"])
-
-        # Cherry picked a set of coordinates that should belong to a certain list of fields.
-        # These coordinates are not exactly at the center of fields, but close enough that
-        # they should be classified as belonging to them.
-        ra_inside_2548 = (
-            (10.0 + 1.0 / 60 + 6.59 / 60.0 / 60.0) * np.pi / 12.0
-        )  # 10:01:06.59
-        dec_inside_2548 = np.radians(
-            -1.0 * (2.0 + 8.0 / 60.0 + 27.6 / 60.0 / 60.0)
-        )  # -02:08:27.6
-
-        ra_inside_8 = (
-            (8.0 + 49.0 / 60 + 19.83 / 60.0 / 60.0) * np.pi / 12.0
-        )  # 08:49:19.83
-        dec_inside_8 = np.radians(
-            -1.0 * (85.0 + 19.0 / 60.0 + 04.7 / 60.0 / 60.0)
-        )  # -85:19:04.7
-
-        ra_inside_1253 = (
-            (9.0 + 16.0 / 60 + 13.67 / 60.0 / 60.0) * np.pi / 12.0
-        )  # 09:16:13.67
-        dec_inside_1253 = np.radians(
-            -1.0 * (30.0 + 23.0 / 60.0 + 41.4 / 60.0 / 60.0)
-        )  # -30:23:41.4
-
-        data = np.zeros(3, dtype=list(zip(["ra", "dec"], [float, float])))
-        field_id = np.array([2548, 8, 1253], dtype=int)
-        data["ra"] = np.array([ra_inside_2548, ra_inside_8, ra_inside_1253])
-        data["dec"] = np.array([dec_inside_2548, dec_inside_8, dec_inside_1253])
-
-        new_data = s.run(data)
-
-        np.testing.assert_array_equal(field_id, new_data["opsimFieldId"])
-
-        # Now let's generate a set of random coordinates and make sure they are all assigned a fieldID.
-        data = np.array(
-            list(zip(rng.rand(600) * 2.0 * np.pi, rng.rand(600) * np.pi - np.pi / 2.0)),
-            dtype=list(zip(["ra", "dec"], [float, float])),
-        )
-
-        new_data = s.run(data)
-
-        self.assertGreater(new_data["opsimFieldId"].max(), 0)
 
 
 if __name__ == "__main__":

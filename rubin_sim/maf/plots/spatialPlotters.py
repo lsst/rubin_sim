@@ -43,6 +43,7 @@ baseDefaultPlotDict = {
     "percentileClip": None,
     "normVal": None,
     "zp": None,
+    "cbarOrientation": "horizontal",
     "cbarFormat": None,
     "cmap": perceptual_rainbow,
     "cbar_edge": True,
@@ -254,15 +255,27 @@ class HealpixSkyMap(BasePlotter):
         # Make a color bar. Supress silly colorbar warnings.
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            cb = plt.colorbar(
-                im,
-                shrink=0.75,
-                aspect=25,
-                pad=0.1,
-                orientation="horizontal",
-                format=plotDict["cbarFormat"],
-                extendrect=True,
-            )
+            # The vertical colorbar is primarily aimed at the movie
+            # but may be useful for other purposes
+            if plotDict["cbarOrientation"].lower() == "vertical":
+                cb = plt.colorbar(
+                    im,
+                    shrink=0.5,
+                    extendrect=True,
+                    location="right",
+                    format=plotDict["cbarFormat"],
+                )
+            else:
+                # Most of the time we just want a standard horizontal colorbar
+                cb = plt.colorbar(
+                    im,
+                    shrink=0.75,
+                    aspect=25,
+                    pad=0.1,
+                    orientation="horizontal",
+                    format=plotDict["cbarFormat"],
+                    extendrect=True,
+                )
             cb.set_label(plotDict["xlabel"], fontsize=plotDict["fontsize"])
             if plotDict["labelsize"] is not None:
                 cb.ax.tick_params(labelsize=plotDict["labelsize"])
@@ -750,9 +763,10 @@ class BaseSkyMap(BasePlotter):
             if plotDict["cbar"]:
                 cb = plt.colorbar(
                     p,
-                    aspect=25,
+                    # aspect=40,
+                    shrink=0.5,
                     extendrect=True,
-                    orientation="horizontal",
+                    location="right",  # "horizontal",
                     format=plotDict["cbarFormat"],
                 )
                 # If outputing to PDF, this fixes the colorbar white stripes

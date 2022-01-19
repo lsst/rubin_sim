@@ -6,7 +6,13 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.maps as maps
 import rubin_sim.maf.metricBundles as mb
-from .common import standardSummary, lightcurveSummary, filterList, combineMetadata
+from .common import (
+    standardSummary,
+    lightcurveSummary,
+    filterList,
+    combineMetadata,
+    microlensingSummary,
+)
 from .colMapDict import ColMapDict
 from .srdBatch import fOBatch, astrometryBatch, rapidRevisitBatch
 from .descWFDBatch import descWFDBatch
@@ -20,10 +26,13 @@ from rubin_sim.maf.mafContrib import (
     generateTdePopSlicer,
     generateMicrolensingSlicer,
     MicrolensingMetric,
+    get_KNe_filename,
     KNePopMetric,
     generateKNPopSlicer,
 )
 from rubin_sim.scheduler.surveys import generate_dd_surveys, Deep_drilling_survey
+import rubin_sim.maf as maf
+
 
 __all__ = ["scienceRadarBatch"]
 
@@ -37,13 +46,17 @@ def scienceRadarBatch(
     benchmarkArea=18000,
     benchmarkNvisits=825,
     DDF=True,
+    long_microlensing=False,
 ):
     """A batch of metrics for looking at survey performance relative to the SRD and the main
     science drivers of LSST.
 
     Parameters
     ----------
-
+    long_microlensing : `bool` (False)
+        Add the longer running microlensing metrics to the batch
+    DDF : `boool` (True)
+        Add DDF-specific metrics to the batch
     """
 
     if colmap is None:
@@ -176,6 +189,31 @@ def scienceRadarBatch(
     bundleList.append(bundle)
     displayDict["order"] += 1
 
+    order = displayDict["order"]
+    displayDict = {
+        "group": "Galaxies",
+        "subgroup": "Surface Brightness",
+        "order": order,
+        "caption": None,
+    }
+    slicer = slicers.HealpixSlicer(nside=nside)
+    summary = [metrics.MedianMetric()]
+    for filtername in "ugrizy":
+        displayDict["caption"] = (
+            "Surface brightness limit in %s, no extinction applied." % filtername
+        )
+        sql = 'filter="%s"' % filtername
+        metric = metrics.SurfaceBrightLimitMetric()
+        bundle = mb.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            displayDict=displayDict,
+            summaryMetrics=summary,
+            plotFuncs=subsetPlots,
+        )
+        bundleList.append(bundle)
+
     #########################
     # Cosmology
     #########################
@@ -301,89 +339,129 @@ def scienceRadarBatch(
     bundleList.append(bundle)
 
     # Microlensing events
+
     displayDict["subgroup"] = "Microlensing"
     displayDict[
         "caption"
     ] = "Microlensing events with crossing times between 1 to 10 days."
 
     plotDict = {"nside": 128}
-    slicer = generateMicrolensingSlicer(min_crossing_time=1, max_crossing_time=10)
-    metric = MicrolensingMetric(metricName="1 to 10 day Microlensing")
-    bundle = mb.MetricBundle(
-        metric,
-        slicer,
-        extraSql,
-        metadata=extraMetadata,
-        runName=runName,
-        summaryMetrics=lightcurveSummary(),
-        plotFuncs=[plots.HealpixSkyMap()],
-        displayDict=displayDict,
-        plotDict=plotDict,
-    )
-    bundleList.append(bundle)
 
-    displayDict[
-        "caption"
-    ] = "Microlensing events with crossing times between 10 to 30 days."
-    slicer = generateMicrolensingSlicer(min_crossing_time=10, max_crossing_time=30)
-    metric = MicrolensingMetric(metricName="10 to 30 day Microlensing")
-    bundle = mb.MetricBundle(
-        metric,
-        slicer,
-        extraSql,
-        metadata=extraMetadata,
-        runName=runName,
-        summaryMetrics=lightcurveSummary(),
-        plotFuncs=[plots.HealpixSkyMap()],
-        displayDict=displayDict,
-        plotDict=plotDict,
-    )
-    bundleList.append(bundle)
+    n_events = 10000
+    # Let's evaluate a variety of crossing times
+    crossing_times = [
+        [1, 5],
+        [5, 10],
+        [10, 20],
+        [20, 30],
+        [30, 60],
+        [60, 90],
+        [100, 200],
+        [200, 500],
+        [500, 1000],
+    ]
+    metric = maf.MicrolensingMetric()
+    summaryMetrics = maf.batches.lightcurveSummary()
+    for crossing in crossing_times:
+        key = f"{crossing[0]} to {crossing[1]}"
+        displayDict[
+            "caption"
+        ] = "Microlensing events with crossing times between %i to %i days." % (
+            crossing[0],
+            crossing[1],
+        )
+        slicer = maf.generateMicrolensingSlicer(
+            min_crossing_time=crossing[0],
+            max_crossing_time=crossing[1],
+            n_events=n_events,
+        )
+        bundleList.append(
+            maf.MetricBundle(
+                metric,
+                slicer,
+                None,
+                runName=runName,
+                summaryMetrics=summaryMetrics,
+                metadata=f"tE {crossing[0]}_{crossing[1]} days",
+                displayDict=displayDict,
+                plotFuncs=[plots.HealpixSkyMap()],
+            )
+        )
 
-    displayDict[
-        "caption"
-    ] = "Microlensing events with crossing times between 30 to 100 days."
-    slicer = generateMicrolensingSlicer(min_crossing_time=30, max_crossing_time=100)
-    metric = MicrolensingMetric(metricName="30 to 100 day Microlensing")
-    bundle = mb.MetricBundle(
-        metric,
-        slicer,
-        extraSql,
-        metadata=extraMetadata,
-        runName=runName,
-        summaryMetrics=lightcurveSummary(),
-        plotFuncs=[plots.HealpixSkyMap()],
-        displayDict=displayDict,
-        plotDict=plotDict,
-    )
-    bundleList.append(bundle)
+    if long_microlensing:
+        metric_Npts = maf.MicrolensingMetric(metricCalc="Npts")
+        summaryMetrics = maf.batches.microlensingSummary(metricType="Npts")
 
-    displayDict[
-        "caption"
-    ] = "Microlensing events on the longest timescales, 100-1000 days."
-    slicer = generateMicrolensingSlicer(min_crossing_time=100, max_crossing_time=1000)
-    metric = MicrolensingMetric(metricName="100 to 1000 day Microlensing")
-    bundle = mb.MetricBundle(
-        metric,
-        slicer,
-        extraSql,
-        metadata=extraMetadata,
-        runName=runName,
-        summaryMetrics=lightcurveSummary(),
-        plotFuncs=[plots.HealpixSkyMap()],
-        displayDict=displayDict,
-        plotDict=plotDict,
-    )
-    bundleList.append(bundle)
+        for crossing in crossing_times:
+            slicer = maf.generateMicrolensingSlicer(
+                min_crossing_time=crossing[0],
+                max_crossing_time=crossing[1],
+                n_events=n_events,
+            )
+            displayDict[
+                "caption"
+            ] = "Microlensing events with crossing times between %i to %i days." % (
+                crossing[0],
+                crossing[1],
+            )
+            bundleList.append(
+                maf.MetricBundle(
+                    metric_Npts,
+                    slicer,
+                    None,
+                    runName=runName,
+                    summaryMetrics=summaryMetrics,
+                    metadata=f"tE {crossing[0]}_{crossing[1]} days",
+                    displayDict=displayDict,
+                    plotFuncs=[],
+                )
+            )
+
+        metric_Fisher = maf.MicrolensingMetric(metricCalc="Fisher")
+        summaryMetrics = maf.batches.microlensingSummary(metricType="Fisher")
+        for crossing in crossing_times:
+            displayDict[
+                "caption"
+            ] = "Microlensing events with crossing times between %i to %i days." % (
+                crossing[0],
+                crossing[1],
+            )
+            slicer = maf.generateMicrolensingSlicer(
+                min_crossing_time=crossing[0],
+                max_crossing_time=crossing[1],
+                n_events=n_events,
+            )
+            bundleList.append(
+                maf.MetricBundle(
+                    metric_Fisher,
+                    slicer,
+                    None,
+                    runName=runName,
+                    summaryMetrics=summaryMetrics,
+                    metadata=f"tE {crossing[0]}_{crossing[1]} days",
+                    displayDict=displayDict,
+                    plotFuncs=[],
+                )
+            )
 
     # Kilonovae metric
     displayDict["subgroup"] = "KNe"
-    n_events = 10000
+    n_events = 30000
     displayDict[
         "caption"
     ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky."
-    slicer = generateKNPopSlicer(n_events=n_events)
-    metric = KNePopMetric()
+
+    # Kilonova parameters
+    inj_params_list = [
+        {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 25.8},
+        {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 0.0},
+    ]
+    filename = get_KNe_filename(inj_params_list)
+    slicer = generateKNPopSlicer(
+        n_events=n_events, n_files=len(filename), d_min=10, d_max=600
+    )
+    # Set outputLc=True if you want light curves
+    metric = KNePopMetric(outputLc=False, file_list=filename)
     bundle = mb.MetricBundle(
         metric,
         slicer,

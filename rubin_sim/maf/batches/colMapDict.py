@@ -16,7 +16,7 @@ def getColMap(opsdb):
         version = opsdb.opsimVersion
         version = "opsim" + version.lower()
     except AttributeError:
-        version = "barebones"
+        version = "fbs"
     colmap = ColMapDict(version)
     return colmap
 

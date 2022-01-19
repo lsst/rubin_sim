@@ -77,7 +77,7 @@ def agnBatch(
         displayDict["subgroup"] = "nQSO"
         displayDict["caption"] = (
             "The expected number of QSOs in regions of low dust extinction,"
-            f"based on detectioin in {f} bandpass."
+            f"based on detection in {f} bandpass."
         )
         bundleList.append(
             mb.MetricBundle(
@@ -127,6 +127,10 @@ def agnBatch(
             )
         )
 
+    # Run the TimeLag for each filter *and* all filters
+    filterlist, colors, orders, sqls, metadata = filterList(
+        all=True, extraSql=extraSql, extraMetadata=extraMetadata
+    )
     nquist_threshold = 2.2
     lag = 100
     summaryMetrics = extendedSummary()
@@ -134,26 +138,25 @@ def agnBatch(
     m = metrics.AGN_TimeLagMetric(
         threshold=nquist_threshold, lag=lag, mjdCol=colmap["mjd"]
     )
-    s = slicers.HealpixSlicer(
-        nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
-    )
-    plotDict = {"percentileClip": 95}
-    displayDict["subgroup"] = "TimeLags"
-    displayDict["caption"] = (
-        "Comparison of the time between visits compared to a defined "
-        f"sampling gap ({lag} days). "
-    )
-    bundleList.append(
-        mb.MetricBundle(
-            m,
-            s,
-            constraint=extraSql,
-            metadata=extraMetadata,
-            runName=runName,
-            plotDict=plotDict,
-            summaryMetrics=summaryMetrics,
-            displayDict=displayDict,
+    for f in filterlist:
+        plotDict = {"color": colors[f], "percentileClip": 95}
+        displayDict["order"] = orders[f]
+        displayDict["subgroup"] = "Time Lags"
+        displayDict["caption"] = (
+            f"Comparion of the time between visits compared to a defined sampling gap ({lag} days) in "
+            f"{f} band."
         )
-    )
+        bundleList.append(
+            mb.MetricBundle(
+                m,
+                slicer,
+                constraint=sqls[f],
+                metadata=metadata[f],
+                runName=runName,
+                plotDict=plotDict,
+                summaryMetrics=summaryMetrics,
+                displayDict=displayDict,
+            )
+        )
 
     return mb.makeBundlesDictFromList(bundleList)
