@@ -315,7 +315,7 @@ def scienceRadarBatch(
     bundleList.append(bundle)
 
     displayDict["caption"] = "TDE lightcurves quality"
-    metric = TdePopMetricQuality(metricName='TDE_Quality')
+    metric = TdePopMetricQuality(metricName="TDE_Quality")
     bundle = mb.MetricBundle(
         metric,
         slicer,

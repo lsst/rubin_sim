@@ -331,9 +331,13 @@ class PlotHandler(object):
             if len(self.mBundles) == 1:
                 mB = self.mBundles[0]
                 if len(mB.slicer.sliceColName) < len_max:
-                    xlabel = mB.slicer.sliceColName + " (" + mB.slicer.sliceColUnits + ")"
+                    xlabel = (
+                        mB.slicer.sliceColName + " (" + mB.slicer.sliceColUnits + ")"
+                    )
                 else:
-                    xlabel = mB.slicer.sliceColName + " \n(" + mB.slicer.sliceColUnits + ")"
+                    xlabel = (
+                        mB.slicer.sliceColName + " \n(" + mB.slicer.sliceColUnits + ")"
+                    )
                 ylabel = mB.metric.name + " (" + mB.metric.units + ")"
             else:
                 xlabel = set()
