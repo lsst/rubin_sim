@@ -71,8 +71,8 @@ def surface_brightness_limit_approx(
     # Source limited case
     # XXX--double check this algerbra. Pretty sure it's right now.
     mu_source_lim = (
-        -1.25 * np.log10(nsigma)
-        + 1.25 / 2.0 * np.log10(n_pix * A_pix * t_exp)
+        -5 * np.log10(nsigma)
+        + 2.5 * np.log10(n_pix * A_pix * t_exp)
         + zp
         - k * airmass
     )
