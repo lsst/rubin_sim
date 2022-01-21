@@ -596,6 +596,21 @@ def scienceRadarBatch(
         )
     )
 
+    metric = metrics.BDParallaxMetric(
+        mags={"i": 18.35, "z": 16.68, "y": 15.66}, metricName="Brown Dwarf, L4"
+    )
+    bundleList.append(
+        mb.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            plotDict=plotDict,
+            summaryMetrics=sum_stats,
+            displayDict=displayDict,
+            runName=runName,
+        )
+    )
+
     #########################
     # Scaling numbers
     #########################
