@@ -33,7 +33,7 @@ from rubin_sim.maf.mafContrib import (
 )
 from rubin_sim.scheduler.surveys import generate_dd_surveys, Deep_drilling_survey
 import rubin_sim.maf as maf
-
+from rubin_sim.maf.mafContrib.xrbMetrics import generateXRBPopSlicer, XRBPopMetric
 
 __all__ = ["scienceRadarBatch"]
 
@@ -503,6 +503,31 @@ def scienceRadarBatch(
         temp_list.append(bundles[b])
     bundleList.extend(temp_list)
 
+    # XRB metric
+    displayDict["subgroup"] = "XRB"
+    n_events = 10000
+    slicer = generateXRBPopSlicer(n_events=n_events)
+    metric = XRBPopMetric(outputLc=True)
+    xrb_summaryMetrics = [
+        maf.SumMetric(metricName="Total detected"),
+        maf.CountMetric(metricName="Total lightcurves in footprint"),
+        maf.CountMetric(metricName="Total lightcurves on sky", maskVal=0),
+        maf.MeanMetric(metricName="Fraction detected in footprint"),
+        maf.MeanMetric(maskVal=0, metricName="Fraction detected of total"),
+        maf.MedianMetric(metricName="Median"),
+    ]
+
+    bundleList.append(
+        maf.MetricBundle(
+            metric,
+            slicer,
+            "",
+            runName=runName,
+            summaryMetrics=xrb_summaryMetrics,
+            displayDict=displayDict,
+        )
+    )
+
     #########################
     # Milky Way
     #########################
@@ -584,6 +609,21 @@ def scienceRadarBatch(
     )
     sql = ""
     plotDict = {}
+    bundleList.append(
+        mb.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            plotDict=plotDict,
+            summaryMetrics=sum_stats,
+            displayDict=displayDict,
+            runName=runName,
+        )
+    )
+
+    metric = metrics.BDParallaxMetric(
+        mags={"i": 18.35, "z": 16.68, "y": 15.66}, metricName="Brown Dwarf, L4"
+    )
     bundleList.append(
         mb.MetricBundle(
             metric,
