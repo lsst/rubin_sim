@@ -504,17 +504,28 @@ def scienceRadarBatch(
     bundleList.extend(temp_list)
 
     # XRB metric
-    n_events = 10000 
+    displayDict["subgroup"] = "XRB"
+    n_events = 10000
     slicer = generateXRBPopSlicer(n_events=n_events)
     metric = XRBPopMetric(outputLc=True)
-    xrb_summaryMetrics = [maf.SumMetric(metricName='Total detected'), 
-                      maf.CountMetric(metricName='Total lightcurves in footprint'),
-                      maf.CountMetric(metricName='Total lightcurves on sky', maskVal=0),
-                      maf.MeanMetric(metricName='Fraction detected in footprint'), 
-                      maf.MeanMetric(maskVal=0, metricName='Fraction detected of total')]
+    xrb_summaryMetrics = [
+        maf.SumMetric(metricName="Total detected"),
+        maf.CountMetric(metricName="Total lightcurves in footprint"),
+        maf.CountMetric(metricName="Total lightcurves on sky", maskVal=0),
+        maf.MeanMetric(metricName="Fraction detected in footprint"),
+        maf.MeanMetric(maskVal=0, metricName="Fraction detected of total"),
+    ]
 
-    bundleList.append(maf.MetricBundle(metric, slicer, '', runName=runName, summaryMetrics=xrb_summaryMetrics))
-
+    bundleList.append(
+        maf.MetricBundle(
+            metric,
+            slicer,
+            "",
+            runName=runName,
+            summaryMetrics=xrb_summaryMetrics,
+            displayDict=displayDict,
+        )
+    )
 
     #########################
     # Milky Way
