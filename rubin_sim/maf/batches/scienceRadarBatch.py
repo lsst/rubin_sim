@@ -514,6 +514,7 @@ def scienceRadarBatch(
         maf.CountMetric(metricName="Total lightcurves on sky", maskVal=0),
         maf.MeanMetric(metricName="Fraction detected in footprint"),
         maf.MeanMetric(maskVal=0, metricName="Fraction detected of total"),
+        maf.MedianMetric(metricName="Median"),
     ]
 
     bundleList.append(
