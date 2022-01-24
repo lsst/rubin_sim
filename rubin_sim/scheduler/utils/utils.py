@@ -606,10 +606,11 @@ def scheduled_observation(n=1):
         "exptime",
         "filter",
         "rotSkyPos",
+        "rotTelPos",
         "nexp",
         "note",
     ]
-    types = [int, float, float, float, float, float, "U1", float, float, "U40"]
+    types = [int, float, float, float, float, float, "U1", float, float, int, "U40"]
     names += [
         "mjd_tol",
         "dist_tol",
