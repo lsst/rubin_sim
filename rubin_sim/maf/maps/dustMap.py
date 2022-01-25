@@ -10,7 +10,7 @@ class DustMap(BaseMap):
     Compute the E(B-V) for each point in a given spatial distribution of slicePoints.
     """
 
-    def __init__(self, interp=False, nside=128, mapPath=None):
+    def __init__(self, interp=False, nside=64, mapPath=None):
         """
         interp: should the dust map be interpolated (True) or just use the nearest value (False).
         """
