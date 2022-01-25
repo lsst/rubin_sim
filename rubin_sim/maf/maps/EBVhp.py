@@ -10,7 +10,9 @@ __all__ = ["EBVhp"]
 
 def EBVhp(nside, ra=None, dec=None, pixels=None, interp=False, mapPath=None):
     """
-    Read in a healpix dust map and return values for given RA, Dec values
+    Read in a healpix dust map and return values for given RA, Dec values.
+
+    This is primarily a tool for the rubin_sim.maf.DustMap class.
 
     nside: `int`
         Healpixel resolution (2^x).
