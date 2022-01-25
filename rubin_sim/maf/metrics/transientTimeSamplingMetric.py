@@ -80,7 +80,10 @@ class calcSeasonVisibilityGapsMetric(maf.BaseMetric):
 
     def __init__(
         self,
-        cols=["fieldRA", "observationStartMJD",],
+        cols=[
+            "fieldRA",
+            "observationStartMJD",
+        ],
         metricName="calcSeasonVisibilityGapsMetric",
         **kwargs
     ):
@@ -161,7 +164,10 @@ class transientTimeSamplingMetric(maf.BaseMetric):
 
     def __init__(
         self,
-        cols=["observationStartMJD", "fiveSigmaDepth",],
+        cols=[
+            "observationStartMJD",
+            "fiveSigmaDepth",
+        ],
         metricName="calcVisitIntervalMetric",
         **kwargs
     ):

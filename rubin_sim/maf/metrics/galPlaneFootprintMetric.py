@@ -63,7 +63,9 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         self.ideal_combined_map = np.zeros(self.NPIX)
         for f in self.filters:
             file_path = os.path.join(
-                self.MAP_DIR, "maf", self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
+                self.MAP_DIR,
+                "maf",
+                self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
             )
             map_data_table = readGalPlaneMaps.load_map_data(file_path)
 
