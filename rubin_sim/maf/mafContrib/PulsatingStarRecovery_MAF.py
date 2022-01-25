@@ -59,7 +59,7 @@ class PulsatingStarRecovery(maf.BaseMetric):
         
        
     """
-    def __init__(self,filename,dmod,sigmaFORnoise,do_remove_saturated,numberOfHarmonics,factorForDimensionGap,df,mjdCol='observationStartMJD',fiveSigmaDepth='fiveSigmaDepth',filters= 'filter', night='night',visitExposureTime='visitExposureTime',skyBrightness='skyBrightness', numExposures='numExposures', seeing='seeingFwhmEff',airmass='airmass',**kwargs):
+    def __init__(self,filename,sigmaFORnoise,do_remove_saturated,numberOfHarmonics,factorForDimensionGap,df,mjdCol='observationStartMJD',fiveSigmaDepth='fiveSigmaDepth',filters= 'filter', night='night',visitExposureTime='visitExposureTime',skyBrightness='skyBrightness', numExposures='numExposures', seeing='seeingFwhmEff',airmass='airmass',**kwargs):
 
 
 
@@ -74,7 +74,7 @@ class PulsatingStarRecovery(maf.BaseMetric):
         self.seeing=seeing
         self.airmass=airmass
  
-        self.dmod=dmod
+      
         self.sigmaFORnoise=sigmaFORnoise
         self.do_remove_saturated=do_remove_saturated
         self.numberOfHarmonics=numberOfHarmonics
@@ -102,6 +102,13 @@ class PulsatingStarRecovery(maf.BaseMetric):
  
         #the function 'ReadTeoSim' puts the pulsating star at distance=dmod+Ax/Av*3.1*slicePoint('ebv').Gives a dictionary
         ebv1=slicePoint['ebv']
+        dmod=5*np.log10(slicePoint['distance']*10**6) - 5
+        print(slicePoint['distance'])
+        print('sto analizzandola galassia con' )
+        print(ebv1)
+        print(dmod)
+        ra1=slicePoint['ra']
+        print(ra1)
         
         
 
@@ -115,7 +122,7 @@ class PulsatingStarRecovery(maf.BaseMetric):
             
             
   
-        lcModel_noblend=self.ReadTeoSim(self.lcModel_ascii,self.dmod,ebv1)
+        lcModel_noblend=self.ReadTeoSim(self.lcModel_ascii,dmod,ebv1)
         
        
 
@@ -210,7 +217,7 @@ class PulsatingStarRecovery(maf.BaseMetric):
                 'deltaamp_u':deltaamp_u, 'deltaamp_g':deltaamp_g,'deltaamp_r':deltaamp_r,'deltaamp_i':deltaamp_i,'deltaamp_z':deltaamp_z,'deltaamp_y':deltaamp_y,
                 'chi_u':finalResult['chi_u'],'chi_g':finalResult['chi_g'],'chi_r':finalResult['chi_r'],'chi_i':finalResult['chi_i'],'chi_z':finalResult['chi_z'],'chi_y':finalResult['chi_y']}  
         else:
-            lcModel_blend=self.ReadTeoSim_blend(self.df,self.lcModel_ascii,self.dmod,ebv1)
+            lcModel_blend=self.ReadTeoSim_blend(self.df,self.lcModel_ascii,dmod,ebv1)
             
             
             LcTeoLSST_blend=self.generateLC(time_lsst,filters_lsst,lcModel_blend)
@@ -221,7 +228,7 @@ class PulsatingStarRecovery(maf.BaseMetric):
         
         
         #the function 'count_saturation' build an index to exclude saturated stars and those under detection limit.                                       
-            index_notsaturated,saturation_index,detection_index=self.count_saturation(mv,snr_blend,LcTeoLSST_blend,LcTeoLSST_noised_blend,self.do_remove_saturated)
+            index_notsaturated_blend,saturation_index_blend,detection_index_blend=self.count_saturation(mv,snr_blend,LcTeoLSST_blend,LcTeoLSST_noised_blend,self.do_remove_saturated)
         
         
         #The function 'Lcsampling' analize the sampling of the simulated light curve. Give a dictionary with UniformityPrameters obtained with three different methods
@@ -230,20 +237,20 @@ class PulsatingStarRecovery(maf.BaseMetric):
         #3) a modified version of UniformityMetric by Peter Yoachim (https://sims-maf.lsst.io/_modules/lsst/sims/maf/metrics/cadenceMetrics.html#UniformityMetric.run). Calculate how uniformly the observations are spaced in phase (not time)using KS test.Returns a value between 0 (uniform sampling) and 1 . uniformityKS_X
 
             period_model_blend=LcTeoLSST_blend['p_model']
-            uni_meas_blend=self.Lcsampling(LcTeoLSST_noised_blend,period_model_blend,index_notsaturated,self.factorForDimensionGap)
+            uni_meas_blend=self.Lcsampling(LcTeoLSST_noised_blend,period_model_blend,index_notsaturated_blend,self.factorForDimensionGap)
             
         #the function 'LcPeriod' analyse the periodogram with Gatspy and gives:
         #1)the best period (best_per_temp)
         #2)the difference between the recovered period and the  model's period(P) and
         #3)diffper_abs=(DeltaP/P)*100
         #4)diffcicli= DeltaP/P*1/number of cycle
-            best_per_temp_blend,diffper_blend,diffper_abs_blend,diffcicli_blend=self.LcPeriodLight(mv,LcTeoLSST_blend,LcTeoLSST_noised_blend,index_notsaturated)
+            best_per_temp_blend,diffper_blend,diffper_abs_blend,diffcicli_blend=self.LcPeriodLight(mv,LcTeoLSST_blend,LcTeoLSST_noised_blend,index_notsaturated_blend)
             period_blend=best_per_temp_blend #or period_model or fitLS_multi.best_period
         #period=LcTeoLSST['p_model']
         
         #The function 'LcFitting' fit the simulated light curve with number of harmonics=numberOfHarmonics.Return a dictionary with mean magnitudes, amplitudes and chi of the fits
         
-            finalResult_blend=self.LcFitting(LcTeoLSST_noised_blend,index_notsaturated,period_blend,self.numberOfHarmonics)
+            finalResult_blend=self.LcFitting(LcTeoLSST_noised_blend,index_notsaturated_blend,period_blend,self.numberOfHarmonics)
         
         #Some useful figure of merit on the recovery of the:
         #and shape.Difference between observed and derived mean magnitude (after fitting the light curve)
@@ -830,6 +837,9 @@ class PulsatingStarRecovery(maf.BaseMetric):
     #noising 
         def noisingBand(timeLSSTteo,magLSSTteo,snr,sigma,blend=0):
             magNoised=[]
+            noise=[]
+            dmag=[]
+            magNoisedComp=[]
             for j in range(len(timeLSSTteo)):            
                 dmag = 2.5*np.log10(1.+1./snr[j])
                 if blend >0:
@@ -839,6 +849,12 @@ class PulsatingStarRecovery(maf.BaseMetric):
                 magNoised.append(magNoisedComp)
 
             return magNoised, noise ,dmag
+        magNoisedu,noiseu,dmagu=[],[],[]
+        magNoisedg,noiseg,dmagg=[],[],[]
+        magNoisedr,noiser,dmagr=[],[],[]
+        magNoisedi,noisei,dmagi=[],[],[]
+        magNoisedz,noisez,dmagz=[],[],[]
+        magNoisedy,noisey,dmagy=[],[],[]
 
         magNoisedu,noiseu,dmagu=noisingBand(LcTeoLSST['timeu'],LcTeoLSST['magu'],snr['u'],sigma,perc_blend[0])
         magNoisedg,noiseg,dmagg=noisingBand(LcTeoLSST['timeg'],LcTeoLSST['magg'],snr['g'],sigma,perc_blend[1])
@@ -846,6 +862,7 @@ class PulsatingStarRecovery(maf.BaseMetric):
         magNoisedi,noisei,dmagi=noisingBand(LcTeoLSST['timei'],LcTeoLSST['magi'],snr['i'],sigma,perc_blend[3])
         magNoisedz,noisez,dmagz=noisingBand(LcTeoLSST['timez'],LcTeoLSST['magz'],snr['z'],sigma,perc_blend[4])
         magNoisedy,noisey,dmagy=noisingBand(LcTeoLSST['timey'],LcTeoLSST['magy'],snr['y'],sigma,perc_blend[5])
+        
 
         #mag_all è ordinato come time_lsst
         mag_all=np.empty(len(LcTeoLSST['mag_all']))
@@ -1200,54 +1217,57 @@ class PulsatingStarRecovery(maf.BaseMetric):
 
         print('fitting...')
         fitting=self.computingLcModel(data,period,numberOfHarmonics,index)
-        timeForModel=np.arange(data['timeu'][0],data['timeu'][0]+2*period,0.01)
+        #timeForModel=np.arange(data['timeu'][0],data['timeu'][0]+2*period,0.01)
         #computing the magModelFromFit
         if len(fitting['u'])>1:
+            timeForModel=np.arange(data['timeu'][0],data['timeu'][0]+2*period,0.01)
             magModelFromFit_u=self.modelToFit(timeForModel,fitting['u']) 
             ampl_u=max(magModelFromFit_u)-min(magModelFromFit_u)
         else:
             magModelFromFit_u=[9999.]
             ampl_u=9999.
-        timeForModel=np.arange(data['timeg'][0],data['timeg'][0]+2*period,0.01)
+        #timeForModel=np.arange(data['timeg'][0],data['timeg'][0]+2*period,0.01)
         if len(fitting['g'])>1:
+            timeForModel=np.arange(data['timeg'][0],data['timeg'][0]+2*period,0.01)
             #magModelFromFit_g=self.modelToFit(data['timeg'],fitting['g']) 
             magModelFromFit_g=self.modelToFit(timeForModel,fitting['g'])
             ampl_g=max(magModelFromFit_g)-min(magModelFromFit_g)
         else:
             magModelFromFit_g=[9999.]
             ampl_g=9999.
-        timeForModel=np.arange(data['timer'][0],data['timer'][0]+2*period,0.01)
+        #timeForModel=np.arange(data['timer'][0],data['timer'][0]+2*period,0.01)
         if len(fitting['r'])>1:
+            timeForModel=np.arange(data['timer'][0],data['timer'][0]+2*period,0.01)
             #magModelFromFit_r=modelToFit(data['timer'],fitting['r']) 
             magModelFromFit_r=self.modelToFit(timeForModel,fitting['r'])
             ampl_r=max(magModelFromFit_r)-min(magModelFromFit_r)
         else:
             magModelFromFit_r=[9999.]
             ampl_r=9999.
-        timeForModel=np.arange(data['timei'][0],data['timei'][0]+2*period,0.01)
+       # timeForModel=np.arange(data['timei'][0],data['timei'][0]+2*period,0.01)
 
         if len(fitting['i'])>1:
-
+            timeForModel=np.arange(data['timei'][0],data['timei'][0]+2*period,0.01)
             magModelFromFit_i=self.modelToFit(timeForModel,fitting['i'])
 
-            if len(magModelFromFit_i)>0:
-                ampl_i=max(magModelFromFit_i)-min(magModelFromFit_i)
-            else:
-                ampl_i=9999.
+            #if len(magModelFromFit_i)>0:
+            ampl_i=max(magModelFromFit_i)-min(magModelFromFit_i)
+            #else:
+                #ampl_i=9999.
         else:
             magModelFromFit_i=[9999.]
             ampl_i=9999.
-        timeForModel=np.arange(data['timez'][0],data['timez'][0]+2*period,0.01)    
+        #timeForModel=np.arange(data['timez'][0],data['timez'][0]+2*period,0.01)    
         if len(fitting['z'])>1:
-
+            timeForModel=np.arange(data['timez'][0],data['timez'][0]+2*period,0.01)
             magModelFromFit_z=self.modelToFit(timeForModel,fitting['z'])
             ampl_z=max(magModelFromFit_z)-min(magModelFromFit_z)
         else:
             magModelFromFit_z=[9999.]
             ampl_z=9999.
-        timeForModel=np.arange(data['timey'][0],data['timey'][0]+2*period,0.01)    
+        #timeForModel=np.arange(data['timey'][0],data['timey'][0]+2*period,0.01)    
         if len(fitting['y'])>1:
-
+            timeForModel=np.arange(data['timey'][0],data['timey'][0]+2*period,0.01)
             magModelFromFit_y=self.modelToFit(timeForModel,fitting['y']) 
             ampl_y=max(magModelFromFit_y)-min(magModelFromFit_y)
         else:
