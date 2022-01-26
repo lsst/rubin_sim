@@ -21,54 +21,9 @@ from rubin_sim.utils import _galacticFromEquatorial
 
 __all__ = ['NYoungStarsMetric']
 
-extmap3D_repo = os.path.join(os.path.dirname(__file__), "rubinCadenceScratchWIC")
 
 mapname = 'merged_ebv3d_nside64_defaults.fits.gz'
-pathMap = os.path.join(extmap3D_repo,'extmaps', mapname)
 
-# class Dust3D(object):
-#     """Calculate extinction values
-
-#     Parameters
-#     ----------
-#     R_v : float (3.1)
-#         Extinction law parameter (3.1).
-#     bandpassDict : dict (None)
-#         A dict with keys of filtername and values of rubin_sim.photUtils.Bandpass objects. Default
-#         of None will load the standard ugrizy bandpasses.
-#     ref_ev : float (1.)
-#         The reference E(B-V) value to use. Things in MAF assume 1.
-#     """
-
-#     def __init__(self, R_v=3.1, bandpassDict=None, ref_ebv=1.0):
-#         # Calculate dust extinction values
-#         self.Ax1 = {}
-#         if bandpassDict is None:
-#             bandpassDict = BandpassDict.loadTotalBandpassesFromFiles(["u", "g", "r", "i", "z", "y"])
-
-#         for filtername in bandpassDict:
-#             wavelen_min = bandpassDict[filtername].wavelen.min()
-#             wavelen_max = bandpassDict[filtername].wavelen.max()
-#             testsed = Sed()
-#             testsed.setFlatSED(wavelen_min=wavelen_min, wavelen_max=wavelen_max, wavelen_step=1.0)
-#             self.ref_ebv = ref_ebv
-#             # Calculate non-dust-extincted magnitude
-#             flatmag = testsed.calcMag(bandpassDict[filtername])
-#             # Add dust
-#             a, b = testsed.setupCCM_ab()
-#             testsed.addDust(a, b, ebv=self.ref_ebv, R_v=R_v)
-#             # Calculate difference due to dust when EBV=1.0 (m_dust = m_nodust - Ax, Ax > 0)
-#             self.Ax1[filtername] = testsed.calcMag(bandpassDict[filtername]) - flatmag
-
-def download_repo_and_map():
-    ### The code below will be removed when the 3D extinction map is MAF-compatible
-    # Download 3D extinction repository
-    print("Downloading repository.")
-    subprocess.call(["git", "clone", "https://github.com/willclarkson/rubinCadenceScratchWIC.git"])
-    # Download extinction map
-    extmap_dir = os.path.dirname(pathMap)
-    print("Downloading extinction map to", extmap_dir)
-    subprocess.call(['wget', 'http://www-personal.umd.umich.edu/~wiclarks/rubin/{}'.format(mapname), '-P', extmap_dir])
 
 class star_density(object):
     """integrate from zero to some max distance, then multiply by angular area
@@ -153,15 +108,8 @@ class NYoungStarsMetric(BaseMetric):
         self.mags = mags
         self.filters = list(self.mags.keys())
         self.snrs = snrs
-        # Load up the dust properties
-        # dust_properties = Dust3D()
-        # self.Ax1 = dust_properties.Ax1
         # Load extinction map
 
-        if not os.path.isdir(extmap3D_repo):
-            # The path to the 3D extinction map repository does not exist, need to get it
-            download_repo_and_map()
-        sys.path.append(os.path.join(extmap3D_repo, "python"))
         import readExtinction
 
         self.ebv = readExtinction.ebv3d(pathMap)
@@ -181,7 +129,6 @@ class NYoungStarsMetric(BaseMetric):
             return self.badval
         
         pix = slicePoint["sid"]
-        # print(pix)
 
         # Coadd depths for each filter
         depths = {}
@@ -192,7 +139,6 @@ class NYoungStarsMetric(BaseMetric):
         # solve for the distances in each filter where we hit the required SNR
         distances = []
         for filtername in self.filters:
-            # print(filtername)
             # Apparent magnitude at the SNR requirement
             m_app = -2.5 * np.log10(self.snrs[filtername] / 5.0)
             m_app += depths[filtername]
