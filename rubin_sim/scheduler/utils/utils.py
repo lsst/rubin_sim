@@ -350,7 +350,9 @@ class schema_converter:
             "slewDistance": "slewdist",
             "paraAngle": "pa",
             "rotTelPos": "rotTelPos",
+            "rotTelPos_backup": "rotTelPos_backup",
             "rotSkyPos": "rotSkyPos",
+            "rotSkyPos_desired": "rotSkyPos_desired",
             "moonRA": "moonRA",
             "moonDec": "moonDec",
             "moonAlt": "moonAlt",
@@ -374,6 +376,8 @@ class schema_converter:
             "paraAngle",
             "rotTelPos",
             "rotSkyPos",
+            "rotSkyPos_desired",
+            "rotTelPos_backup",
             "moonRA",
             "moonDec",
             "moonAlt",
@@ -456,6 +460,9 @@ def empty_observation():
         The rotation angle of the camera relative to the sky E of N (Radians). Will probably be overridden if rotTelPos is not np.nan.
     rotTelPos : `float`
         The rotation angle of the camera relative to the telescope (radians). Set to np.nan to force rotSkyPos to be used.
+    rotSkyPos_desired : `float`
+        If both rotSkyPos and rotTelPos are None/NaN, then rotSkyPos_desired is used. If rotSkyPos_desired results in a valid
+        rotTelPos, rotSkyPos is set to rotSkyPos_desired. Otherwise, something else will happen--XXX.
     nexp : `int`
         Number of exposures in the visit.
     flush_by_mjd : `float`
@@ -479,6 +486,7 @@ def empty_observation():
         "exptime",
         "filter",
         "rotSkyPos",
+        "rotSkyPos_desired",
         "nexp",
         "airmass",
         "FWHM_500",
@@ -502,6 +510,7 @@ def empty_observation():
         "block_id",
         "lmst",
         "rotTelPos",
+        "rotTelPos_backup",
         "moonAz",
         "sunAz",
         "sunRA",
@@ -523,6 +532,7 @@ def empty_observation():
         float,
         float,
         "U1",
+        float,
         float,
         int,
         float,
@@ -557,6 +567,7 @@ def empty_observation():
         float,
         float,
         float,
+        float,
         int,
     ]
     result = np.zeros(1, dtype=list(zip(names, types)))
@@ -574,11 +585,11 @@ def scheduled_observation(n=1):
     things to fill in
     ------
     mjd_tol : `float`
-        The tolerance on how early an observation can execute (days). Observation will be considered valid to attempt 
-        when mjd-mjd_tol < current MJD < flush_by_mjd (and other conditions below pass) 
+        The tolerance on how early an observation can execute (days). Observation will be considered valid to attempt
+        when mjd-mjd_tol < current MJD < flush_by_mjd (and other conditions below pass)
     dist_tol : `float`
         The angular distance an observation can be away from the specified RA,Dec and
-        still count as completing the observation (radians). 
+        still count as completing the observation (radians).
     alt_min : `float`
         The minimum altitude to consider executing the observation (radians).
     alt_max : `float`
@@ -607,10 +618,26 @@ def scheduled_observation(n=1):
         "filter",
         "rotSkyPos",
         "rotTelPos",
+        "rotTelPos_backup",
+        "rotSkyPos_desired",
         "nexp",
         "note",
     ]
-    types = [int, float, float, float, float, float, "U1", float, float, int, "U40"]
+    types = [
+        int,
+        float,
+        float,
+        float,
+        float,
+        float,
+        "U1",
+        float,
+        float,
+        float,
+        float,
+        int,
+        "U40",
+    ]
     names += [
         "mjd_tol",
         "dist_tol",

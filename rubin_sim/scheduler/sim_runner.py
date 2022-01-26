@@ -84,6 +84,7 @@ def sim_runner(
         else:
             # An observation failed to execute, usually it was outside the altitude limits.
             if observatory.mjd == mjd_last_flush:
+                import pdb ; pdb.set_trace()
                 raise RuntimeError(
                     "Scheduler has failed to provide a valid observation multiple times."
                 )
