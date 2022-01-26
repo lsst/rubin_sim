@@ -40,7 +40,7 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_
             print(f'Did not find population {pops} in expected types ({list(orbit_files.keys())}')
         pops = [pops]
 
-    runs = [file.replace('.db', '') for file in dbfiles]
+    runs = [os.path.split(file)[-1].replace('.db', '') for file in dbfiles]
     runs = [run for run in runs if 'tracking' not in run]
     with open(outfile, 'w') as f:
         for pop in pops:
@@ -51,19 +51,22 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_
                 if split:
                     splitfiles = glob.glob(os.path.join(data_dir, 'split') + f'/*{pop}*')
                     outDir = f'{run}_ss'
+                    outfile_split = outfile.replace('.sh', f'_{pop}_split.sh')
                     try:
                         os.mkdir(outDir)
                     except FileExistsError:
-                        # Directory already exists .. let's just overwrite but not remove
-                        pass
+                        # Directory already exists .. maybe need to remove split file
+                        if os.path.isfile(outfile_split):
+                            os.remove(outfile_split)
                     for i, splitfile in enumerate(splitfiles):
-                        outfile_split = outfile.replace('.sh', f'_{pop}_split.sh')
+                        split = os.path.split(splitfile)[-1]
+                        split = split.replace('.des', '').replace('.s3m', '').replace('.txt', '')
                         with open(outfile_split, 'a') as wi:
                             s1 = (f'makeLSSTobs --opsimDb {filename} --orbitFile {splitfile}'
                                   f' --outDir {outDir}')
-                            s2 = (f'run_moving_calc --obsFile {outDir}/{run}__{pop}_{i}_obs.txt'
-                                  f' --opsimDb {run}.db --orbitFile {orbit_files[pop]}'
-                                  f' --outDir {outDir}/{pop}_{i}'
+                            s2 = (f'run_moving_calc --obsFile {outDir}/{run}__{split}_obs.txt'
+                                  f' --opsimDb {filename} --orbitFile {orbit_files[pop]}'
+                                  f' --outDir {outDir}/{split}'
                                   f' --opsimRun {run}'
                                   f' --hMin {Hrange[0]} --hMax {Hrange[1]} --hStep {Hrange[2]}'
                                   f' --hMark {Hmark}'
@@ -81,7 +84,7 @@ def generate_ss_commands(outfile='ss_script.sh', dbfiles=None, pops=None, start_
                 else:
                     s1 = (f'makeLSSTobs --opsimDb {filename} --orbitFile {orbit_files[pop]}')
                     s2 = (f'run_moving_calc --obsFile {run}__{pop}_obs.txt'
-                          f' --opsimDb {run}.db --orbitFile {orbit_files[pop]}'
+                          f' --opsimDb {filename} --orbitFile {orbit_files[pop]}'
                           f' --outDir {run}_ss'
                           f' --opsimRun {run}'
                           f' --hMin {Hrange[0]} --hMax {Hrange[1]} --hStep {Hrange[2]}'
