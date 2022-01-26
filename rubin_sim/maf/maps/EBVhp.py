@@ -17,13 +17,14 @@ def EBVhp(nside, ra=None, dec=None, pixels=None, interp=False, mapPath=None):
     nside: `int`
         Healpixel resolution (2^x).
     ra: `np.ndarray` or `float`, opt
-        RA (can take numpy array). Default None sets up healpix array of nside.
+        RA (can take numpy array). Default None sets up healpix array of nside. Radians.
     dec: `np.ndarray` or `float`, opt
-        Dec (can take numpy array). Default None set up healpix array of nside.
-    pixles: `np.ndarray`, opt
+        Dec (can take numpy array). Default None set up healpix array of nside. Radians.
+    pixe.s: `np.ndarray`, opt
         Healpixel IDs, to sub-select particular healpix points. Default uses all points.
+        NOTE - to use a healpix map, set pixels and not ra/dec.
     interp: `bool`, opt
-        Should returned values be interpolated (True) or just nearest neighbor(False)
+        Should returned values be interpolated (True) or just nearest neighbor (False)
     mapPath : `str`, opt
         Path to directory containing dust map files.
     """
