@@ -452,8 +452,10 @@ class Model_observatory(object):
         """If we have an undefined rotSkyPos, try to fill it out."""
 
         # Grab the rotator limit from the observatory model
-        rot_limit = [self.observatory.telrot_minpos_rad+2.*np.pi,
-                     self.observatory.telrot_maxpos_rad]
+        rot_limit = [
+            self.observatory.telrot_minpos_rad + 2.0 * np.pi,
+            self.observatory.telrot_maxpos_rad,
+        ]
 
         alt, az = _approx_RaDec2AltAz(
             observation["RA"],
@@ -466,20 +468,26 @@ class Model_observatory(object):
         obs_pa = _approx_altaz2pa(alt, az, self.site.latitude_rad)
 
         # If the observation has a rotTelPos set, use it to compute rotSkyPos
-        if (np.isfinite(observation["rotSkyPos"])) | (np.isfinite(observation["rotSkyPos"])):
+        if (np.isfinite(observation["rotSkyPos"])) | (
+            np.isfinite(observation["rotSkyPos"])
+        ):
             observation["rotSkyPos"] = (obs_pa + observation["rotTelPos"]) % (2 * np.pi)
             observation["rotTelPos"] = np.nan
         else:
             # Fall back to rotSkyPos_desired
-            possible_rot_tel_pos = (observation["rotSkyPos_desired"] + obs_pa) % (2.*np.pi)
+            possible_rot_tel_pos = (observation["rotSkyPos_desired"] + obs_pa) % (
+                2.0 * np.pi
+            )
 
-            if (possible_rot_tel_pos > rot_limit[0]) | (possible_rot_tel_pos < rot_limit[1]):
+            if (possible_rot_tel_pos > rot_limit[0]) | (
+                possible_rot_tel_pos < rot_limit[1]
+            ):
                 observation["rotSkyPos"] = observation["rotSkyPos_desired"]
                 observation["rotTelPos"] = np.nan
             else:
                 # Fall back to the backup rotation angle if needed.
                 observation["rotSkyPos"] = np.nan
-                observation["rotTelPos"] = observation['rotTelPos_backup']
+                observation["rotTelPos"] = observation["rotTelPos_backup"]
 
         return observation
 
