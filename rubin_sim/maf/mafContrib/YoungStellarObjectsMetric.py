@@ -121,7 +121,7 @@ class NYoungStarsMetric(BaseMetric):
         # Coadd depths for each filter
         depths = {}
         # ignore the divide by zero warnings
-        with np.errstate(divide='ignore'):
+        with np.errstate(divide="ignore"):
             for filtername in self.filters:
                 in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
                 depths[filtername] = 1.25 * np.log10(
