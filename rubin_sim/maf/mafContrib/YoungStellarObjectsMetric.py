@@ -120,11 +120,13 @@ class NYoungStarsMetric(BaseMetric):
 
         # Coadd depths for each filter
         depths = {}
-        for filtername in self.filters:
-            in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
-            depths[filtername] = 1.25 * np.log10(
-                np.sum(10.0 ** (0.8 * dataSlice[self.m5Col][in_filt]))
-            )
+        # ignore the divide by zero warnings
+        with np.errstate(divide='ignore'):
+            for filtername in self.filters:
+                in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
+                depths[filtername] = 1.25 * np.log10(
+                    np.sum(10.0 ** (0.8 * dataSlice[self.m5Col][in_filt]))
+                )
 
         # solve for the distances in each filter where we hit the required SNR
         distances = []
