@@ -117,7 +117,11 @@ def EBV3Dhp(nside, ra=None, dec=None, pixels=None, interp=False, mapPath=None):
     return result
 
     def getEBVatSightline(
-        self, l=0.0, b=0.0, ebvMap=np.array([]), interp=False,
+        self,
+        l=0.0,
+        b=0.0,
+        ebvMap=np.array([]),
+        interp=False,
     ):
 
         """Utility - returns E(B-V) for one or more sightlines in Galactic

@@ -84,10 +84,12 @@ class UserPointsSlicer(BaseSpatialSlicer):
         self.slicePoints["sid"] = np.arange(np.size(ra))
         self.slicePoints["ra"] = np.array(ra)
         self.slicePoints["dec"] = np.array(dec)
-        gall, galb = _galacticFromEquatorial(self.slicePoints["ra"], self.slicePoints["dec"])
+        gall, galb = _galacticFromEquatorial(
+            self.slicePoints["ra"], self.slicePoints["dec"]
+        )
         self.slicePoints["gall"] = gall
         self.slicePoints["galb"] = galb
-        
+
         self.nslice = np.size(ra)
         self.shape = self.nslice
         self.spatialExtent = [0, self.nslice - 1]

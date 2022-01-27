@@ -322,7 +322,7 @@ class DustMap3D(BaseMap):
         # (m-M), since the user might want both.
         return distsClosest, mMinusM, bFar
 
-    def getInterpolatedProfile(self, gall, galb, dist): ### KEEP? REMOVE? (slicePoint?)
+    def getInterpolatedProfile(self, gall, galb, dist):  ### KEEP? REMOVE? (slicePoint?)
         gall = np.atleast_1d(gall)
         galb = np.atleast_1d(galb)
         dist = np.atleast_2d(

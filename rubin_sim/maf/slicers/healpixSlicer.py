@@ -142,7 +142,9 @@ class HealpixSlicer(BaseSpatialSlicer):
         self.slicePoints["ra"], self.slicePoints["dec"] = self._pix2radec(
             self.slicePoints["sid"]
         )
-        gall, galb = _galacticFromEquatorial(self.slicePoints["ra"], self.slicePoints["dec"])
+        gall, galb = _galacticFromEquatorial(
+            self.slicePoints["ra"], self.slicePoints["dec"]
+        )
         self.slicePoints["gall"] = gall
         self.slicePoints["galb"] = galb
 
