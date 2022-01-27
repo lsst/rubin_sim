@@ -350,7 +350,9 @@ class schema_converter:
             "slewDistance": "slewdist",
             "paraAngle": "pa",
             "rotTelPos": "rotTelPos",
+            "rotTelPos_backup": "rotTelPos_backup",
             "rotSkyPos": "rotSkyPos",
+            "rotSkyPos_desired": "rotSkyPos_desired",
             "moonRA": "moonRA",
             "moonDec": "moonDec",
             "moonAlt": "moonAlt",
@@ -374,6 +376,8 @@ class schema_converter:
             "paraAngle",
             "rotTelPos",
             "rotSkyPos",
+            "rotSkyPos_desired",
+            "rotTelPos_backup",
             "moonRA",
             "moonDec",
             "moonAlt",
@@ -436,49 +440,41 @@ class schema_converter:
 def empty_observation():
     """Return a numpy array that could be a handy observation record
 
-    XXX:  Should this really be "empty visit"? Should we have "visits" made
-    up of multple "observations" to support multi-exposure time visits?
-
-    XXX-Could add a bool flag for "observed". Then easy to track all proposed
-    observations. Could also add an mjd_min, mjd_max for when an observation should be observed.
-    That way we could drop things into the queue for DD fields.
-
-    XXX--might be nice to add a generic "sched_note" str field, to record any metadata that
-    would be useful to the scheduler once it's observed. and/or observationID.
-
     Returns
     -------
-    numpy array
+    empty_observation : `np.array`
 
-
-    The numpy fields have the following structure
-    RA : float
+    The numpy fields have the following labels. These fields are required to be set to be a valid observation
+    the model observatory can execute.
+    RA : `float`
        The Right Acension of the observation (center of the field) (Radians)
-    dec : float
+    dec : `float`
        Declination of the observation (Radians)
-    mjd : float
+    mjd : `float`
        Modified Julian Date at the start of the observation (time shutter opens)
-    exptime : float
+    exptime : `float`
        Total exposure time of the visit (seconds)
-    filter : str
+    filter : `str`
         The filter used. Should be one of u, g, r, i, z, y.
-    rotSkyPos : float
-        The rotation angle of the camera relative to the sky E of N (Radians)
-    nexp : int
+    rotSkyPos : `float`
+        The rotation angle of the camera relative to the sky E of N (Radians). Will probably be overridden if rotTelPos is not np.nan.
+    rotTelPos : `float`
+        The rotation angle of the camera relative to the telescope (radians). Set to np.nan to force rotSkyPos to be used.
+    rotSkyPos_desired : `float`
+        If both rotSkyPos and rotTelPos are None/NaN, then rotSkyPos_desired is used. If rotSkyPos_desired results in a valid
+        rotTelPos, rotSkyPos is set to rotSkyPos_desired. Otherwise, something else will happen--XXX.
+    nexp : `int`
         Number of exposures in the visit.
-    airmass : float
-        Airmass at the center of the field
-    FWHMeff : float
-        The effective seeing FWHM at the center of the field. (arcsec)
-    skybrightness : float
-        The surface brightness of the sky background at the center of the
-        field. (mag/sq arcsec)
-    night : int
-        The night number of the observation (days)
-    flush_by_mjd : float
+    flush_by_mjd : `float`
         If we hit this MJD, we should flush the queue and refill it.
-    cummTelAz : float
-        The cummulative telescope rotation in azimuth
+    note : `str` (optional)
+        Usually good to set the note field so one knows which survey object generated the observation.
+
+    Additional Fields
+    -----------------
+    Lots of additional fields that get filled in by the model observatory when the observation is completed.
+    See documentation at: https://rubin-sim.lsst.io/rs_scheduler/output_schema.html
+
     """
 
     names = [
@@ -490,6 +486,7 @@ def empty_observation():
         "exptime",
         "filter",
         "rotSkyPos",
+        "rotSkyPos_desired",
         "nexp",
         "airmass",
         "FWHM_500",
@@ -513,6 +510,7 @@ def empty_observation():
         "block_id",
         "lmst",
         "rotTelPos",
+        "rotTelPos_backup",
         "moonAz",
         "sunAz",
         "sunRA",
@@ -534,6 +532,7 @@ def empty_observation():
         float,
         float,
         "U1",
+        float,
         float,
         int,
         float,
@@ -568,6 +567,7 @@ def empty_observation():
         float,
         float,
         float,
+        float,
         int,
     ]
     result = np.zeros(1, dtype=list(zip(names, types)))
@@ -575,10 +575,35 @@ def empty_observation():
 
 
 def scheduled_observation(n=1):
-    """Make an array for pre-scheduling observations
+    """Make an array to hold pre-scheduling observations
 
-    mjd_tol : float
-        The tolerance on how early an observation can execute (days).
+    Returns
+    -------
+    result : np.array
+
+
+    things to fill in
+    ------
+    mjd_tol : `float`
+        The tolerance on how early an observation can execute (days). Observation will be considered valid to attempt
+        when mjd-mjd_tol < current MJD < flush_by_mjd (and other conditions below pass)
+    dist_tol : `float`
+        The angular distance an observation can be away from the specified RA,Dec and
+        still count as completing the observation (radians).
+    alt_min : `float`
+        The minimum altitude to consider executing the observation (radians).
+    alt_max : `float`
+        The maximuim altitude to try observing (radians).
+    HA_max : `float`
+        Hour angle limit. Constraint is such that for hour angle running from 0 to 24 hours,
+        the target RA,Dec must be greather than HA_max and less than HA_min. Set HA_max to 0 for
+        no limit. (hours)
+    HA_min : `float`
+        Hour angle limit. Constraint is such that for hour angle running from 0 to 24 hours,
+        the target RA,Dec must be greather than HA_max and less than HA_min. Set HA_min to 24 for
+        no limit. (hours)
+    observed : `bool`
+        If set to True, scheduler will probably consider this a completed observation an never attempt it.
 
     """
 
@@ -592,10 +617,27 @@ def scheduled_observation(n=1):
         "exptime",
         "filter",
         "rotSkyPos",
+        "rotTelPos",
+        "rotTelPos_backup",
+        "rotSkyPos_desired",
         "nexp",
         "note",
     ]
-    types = [int, float, float, float, float, float, "U1", float, float, "U40"]
+    types = [
+        int,
+        float,
+        float,
+        float,
+        float,
+        float,
+        "U1",
+        float,
+        float,
+        float,
+        float,
+        int,
+        "U40",
+    ]
     names += [
         "mjd_tol",
         "dist_tol",

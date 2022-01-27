@@ -98,6 +98,7 @@ class Scripted_survey(BaseSurvey):
             "nexp",
             "note",
             "rotSkyPos",
+            "rotTelPos",
             "flush_by_mjd",
             "scripted_id",
         ]:

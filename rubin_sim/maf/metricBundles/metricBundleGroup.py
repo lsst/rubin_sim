@@ -384,12 +384,12 @@ class MetricBundleGroup(object):
         if self.verbose:
             if constraint == "":
                 print(
-                    "Querying database %s with no constraint for columns %s."
+                    "Querying table %s with no constraint for columns %s."
                     % (self.dbTable, self.dbCols)
                 )
             else:
                 print(
-                    "Querying database %s with constraint %s for columns %s"
+                    "Querying table %s with constraint %s for columns %s"
                     % (self.dbTable, constraint, self.dbCols)
                 )
         # Note that we do NOT run the stackers at this point (this must be done in each 'compatible' group).
