@@ -30,6 +30,7 @@ from rubin_sim.maf.mafContrib import (
     get_KNe_filename,
     KNePopMetric,
     generateKNPopSlicer,
+    NYoungStarsMetric,
 )
 from rubin_sim.scheduler.surveys import generate_dd_surveys, Deep_drilling_survey
 import rubin_sim.maf as maf
@@ -633,6 +634,26 @@ def scienceRadarBatch(
             summaryMetrics=sum_stats,
             displayDict=displayDict,
             runName=runName,
+        )
+    )
+
+    displayDict["subgroup"] = "Young Stellar Objects"
+    nside_yso = 64
+    sql = ""
+    # Let's plug in the magnitudes for one type
+    metric = maf.mafContrib.NYoungStarsMetric(nside=nside_yso)
+    slicer = maf.slicers.HealpixSlicer(nside=nside_yso, useCache=False)
+    summaryStats = [maf.metrics.SumMetric()]
+    plotDict = {"logScale": True, "colorMin": 1}
+    bundleList.append(
+        maf.metricBundles.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            plotDict=plotDict,
+            summaryMetrics=summaryStats,
+            runName=runName,
+            displayDict=displayDict,
         )
     )
 

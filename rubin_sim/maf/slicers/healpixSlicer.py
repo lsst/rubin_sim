@@ -7,6 +7,7 @@
 import numpy as np
 import healpy as hp
 from rubin_sim.maf.plots.spatialPlotters import HealpixSkyMap, HealpixHistogram
+from rubin_sim.utils import _galacticFromEquatorial
 
 from .baseSpatialSlicer import BaseSpatialSlicer
 
@@ -141,6 +142,12 @@ class HealpixSlicer(BaseSpatialSlicer):
         self.slicePoints["ra"], self.slicePoints["dec"] = self._pix2radec(
             self.slicePoints["sid"]
         )
+        gall, galb = _galacticFromEquatorial(
+            self.slicePoints["ra"], self.slicePoints["dec"]
+        )
+        self.slicePoints["gall"] = gall
+        self.slicePoints["galb"] = galb
+
         # Set the default plotting functions.
         self.plotFuncs = [HealpixSkyMap, HealpixHistogram]
 
