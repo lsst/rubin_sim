@@ -753,6 +753,23 @@ def scienceRadarBatch(
                     )
                     bundleList.append(bundle)
 
+                slicer = slicers.UniSlicer()
+                if "DD:EDFS" in survey:
+                    sql = "note like %%" + survey[0:-1] + "%%"
+                else:
+                    sql = "note = %s" % survey
+                metric = metrics.CumulativeMetric()
+                metricb = maf.MetricBundle(
+                    metric,
+                    slicer,
+                    sql,
+                    plotFuncs=[plots.XyPlotter()],
+                    runName=runName,
+                    displayDict=displayDict,
+                )
+                metricb.summaryMetrics = []
+                bundleList.append(metricb)
+
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
