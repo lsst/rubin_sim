@@ -2,17 +2,11 @@
 Converted from notebook 211116_yso_3D_90b.ipynb.
 Formatted with black."""
 
-import os
 import healpy as hp
 import numpy as np
-import rubin_sim.maf.db as db
-import rubin_sim.maf.metricBundles as metricBundles
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.slicers as slicers
 import scipy.integrate as integrate
 from rubin_sim.maf.metrics.baseMetric import BaseMetric
 from rubin_sim.maf.maps import DustMap3D
-from rubin_sim.utils import _galacticFromEquatorial
 
 __all__ = ['NYoungStarsMetric']
 
@@ -27,14 +21,14 @@ class star_density(object):
         Galactic latitude, radians
     """
 
-    def __init__(self, l, b):
+    def __init__(self, gall, galb):
         """Calculate the expected number of stars along a line of site"""
         self.r_thin = 2.6  # scale length of the thin disk, kpc
         self.D_gc = 8.178  # Distance to the galactic center, kpc
         self.h_thin = 0.300  # scale height of the thin disk, kpc
 
-        self.l = l
-        self.b = b
+        self.gall = gall
+        self.galb = galb
 
         self.A = 0.8e8 / (4.0 * np.pi * self.h_thin * self.r_thin ** 2)
 
@@ -45,9 +39,9 @@ class star_density(object):
         r : float
             Distance in kpc
         """
-        R_galac = ((self.D_gc - r * np.cos(self.l)) ** 2 + (r * np.sin(self.l)) ** 2) ** 0.5
+        R_galac = ((self.D_gc - r * np.cos(self.gall)) ** 2 + (r * np.sin(self.gall)) ** 2) ** 0.5
 
-        exponent = -1.0 * r * np.abs(np.sin(self.b)) / self.h_thin - R_galac / self.r_thin
+        exponent = -1.0 * r * np.abs(np.sin(self.galb)) / self.h_thin - R_galac / self.r_thin
 
         result = self.A * r ** 2 * np.exp(exponent)
         return result

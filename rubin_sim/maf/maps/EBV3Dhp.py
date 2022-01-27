@@ -58,7 +58,6 @@ def EBV3Dhp(nside, ra=None, dec=None, pixels=None, interp=False, mapPath=None):
 
     # Read map from disk
     hdul = fits.open(mapPath)
-    #hpids = hdul[0].data
     dists = hdul[1].data
     ebvs = hdul[2].data
     hdr = hdul[0].header
@@ -100,7 +99,7 @@ def EBV3Dhp(nside, ra=None, dec=None, pixels=None, interp=False, mapPath=None):
         ebvs_interp = np.zeros([len(ra), distlen], float)
         for i in np.arange(0, distlen):
             dists_interp[:, i] = hp.get_interp_val(dists[:, i], np.pi / 2.0 - dec, ra)
-            ebvs_interp[:, i] = hp.reorder(ebvs[:, i], np.pi /  2.0, ra)
+            ebvs_interp[:, i] = hp.reorder(ebvs[:, i], np.pi / 2.0, ra)
             if sfacs is not None:
                 sfacs[:, i] = hp.reorder(sfacs[:, i], "nest", "ring")
             if mask is not None:
@@ -116,7 +115,6 @@ def EBV3Dhp(nside, ra=None, dec=None, pixels=None, interp=False, mapPath=None):
             result = EBVhp.dustMap[pixels]
 
     return result
-
 
     def getEBVatSightline(
         self, l=0.0, b=0.0, ebvMap=np.array([]), interp=False,
@@ -167,4 +165,3 @@ def EBV3Dhp(nside, ra=None, dec=None, pixels=None, interp=False, mapPath=None):
             lTest = cooTest.galactic.l.degree
             bTest = cooTest.galactic.b.degree
         return ebvRet, lTest, bTest
-

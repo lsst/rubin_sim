@@ -96,7 +96,6 @@ class DustMap3D(BaseMap):
         # Calculate the map ebv and dist values at the initialized distance
         self.ebvClosest, self.distClosest = self.getMapNearestDist(self.distPc)
 
-
     def getMapNearestDist(self, distPc=3000):
         """Given a distance, find E(B-V) at the closest distance in the map.
         This function operates on all pixels in the map at once.
