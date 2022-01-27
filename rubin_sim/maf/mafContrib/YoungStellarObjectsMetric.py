@@ -3,9 +3,6 @@ Converted from notebook 211116_yso_3D_90b.ipynb.
 Formatted with black."""
 
 import os
-import subprocess
-import sys
-
 import healpy as hp
 import numpy as np
 import rubin_sim.maf.db as db
@@ -14,15 +11,10 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import scipy.integrate as integrate
 from rubin_sim.maf.metrics.baseMetric import BaseMetric
-
-# Grab this until datalab can update sims_photUtils
-# from rubin_sim.photUtils import BandpassDict, Sed
+from rubin_sim.maf.maps import DustMap3D
 from rubin_sim.utils import _galacticFromEquatorial
 
 __all__ = ['NYoungStarsMetric']
-
-
-mapname = 'merged_ebv3d_nside64_defaults.fits.gz'
 
 
 class star_density(object):
@@ -91,14 +83,14 @@ class NYoungStarsMetric(BaseMetric):
         mags={"g": 10.32, "r": 9.28, "i": 7.37},
         galb_limit=90.0,
         snrs={"g": 5.0, "r": 5.0, "i": 5.0},
+        nside=64,
         **kwargs
     ):
         Cols = [m5Col, filterCol]
-        maps = ["DustMap"]
 
         units = "N stars"
         super(NYoungStarsMetric, self).__init__(
-            Cols, metricName=metricName, units=units, badval=badval, maps=maps, *kwargs
+            Cols, metricName=metricName, units=units, badval=badval, *kwargs
         )
         # set return type
         self.m5Col = m5Col
@@ -109,11 +101,7 @@ class NYoungStarsMetric(BaseMetric):
         self.filters = list(self.mags.keys())
         self.snrs = snrs
         # Load extinction map
-
-        import readExtinction
-
-        self.ebv = readExtinction.ebv3d(pathMap)
-        self.ebv.loadMap()
+        self.ebv = DustMap3D(nside=nside)
 
     def run(self, dataSlice, slicePoint=None):
 
@@ -134,7 +122,7 @@ class NYoungStarsMetric(BaseMetric):
         depths = {}
         for filtername in self.filters:
             in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
-            depths[filtername] = 1.25 * np.log10(np.sum(10.0 ** (0.8 * dataSlice[self.m5Col])))
+            depths[filtername] = 1.25 * np.log10(np.sum(10.0 ** (0.8 * dataSlice[self.m5Col][in_filt])))
 
         # solve for the distances in each filter where we hit the required SNR
         distances = []
@@ -142,11 +130,6 @@ class NYoungStarsMetric(BaseMetric):
             # Apparent magnitude at the SNR requirement
             m_app = -2.5 * np.log10(self.snrs[filtername] / 5.0)
             m_app += depths[filtername]
-            # A_x = self.Ax1[filtername] * slicePoint['ebv']
-            # Assuming all the dust along the line of sight matters.
-            # m_app = m_app - A_x
-
-            # d = 10.*(100**((m_app - self.mags[filtername])/5.))**0.5
             d, dm, far = self.ebv.getDistanceAtMag(
                 deltamag=m_app - self.mags[filtername], sfilt=filtername, ipix=pix
             )
@@ -161,61 +144,3 @@ class NYoungStarsMetric(BaseMetric):
         stars_tot = stars_per_sterr * sky_area
 
         return stars_tot
-
-
-def example_run(dbFile):
-    runName = dbFile.replace(".db", "")
-    conn = db.OpsimDatabase(dbFile)
-    outDir = "temp"
-    resultsDb = db.ResultsDb(outDir=outDir)
-
-    nside = 64
-    bundleList = []
-    sql = ""
-    # Let's plug in the magnitudes for one type
-    metric = NYoungStarsMetric()
-    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
-    # By default, the slicer uses RA and Dec. Let's add in galactic coords so it knows
-    # XXX--should integrate this more with MAF I suppose.
-    gall, galb = _galacticFromEquatorial(slicer.slicePoints["ra"], slicer.slicePoints["dec"])
-    slicer.slicePoints["gall"] = gall
-    slicer.slicePoints["galb"] = galb
-
-    summaryStats = [metrics.SumMetric()]
-    plotDict = {"logScale": True, "colorMin": 1}
-    bundleList.append(
-        metricBundles.MetricBundle(
-            metric, slicer, sql, plotDict=plotDict, summaryMetrics=summaryStats, runName=runName
-        )
-    )
-    bd = metricBundles.makeBundlesDictFromList(bundleList)
-    bg = metricBundles.MetricBundleGroup(bd, conn, outDir=outDir, resultsDb=resultsDb)
-    bg.runAll()
-    bg.plotAll(closefigs=False)
-
-    for bl in bundleList:
-        print(runName, bl.metric.name, bl.summaryValues)
-
-
-def run_example_local():
-    """Examples of running the metric with a local db file..
-    """
-    # Path for rubin_sim local install
-    # Change the path to the correct one on your system
-    dbPath = os.path.expanduser("~/rubin_sim_data/sim_baseline/baseline_v2.0_10yrs.db")
-    example_run(dbPath)
-
-def run_examples_datalab():
-    """Examples of running the metric on datalab.
-    """
-    # Paths set for datalab use
-    example_run("/sims_maf/fbs_2.0/baseline/baseline_v2.0_10yrs.db")
-    example_run('/sims_maf/fbs_1.5/footprints/footprint_gp_smoothv1.5_10yrs.db')
-    example_run('/sims_maf/fbs_1.7/baseline/baseline_nexp2_v1.7_10yrs.db')
-    example_run('/sims_maf/fbs_2.0/vary_gp/vary_gp_gpfrac1.00_v2.0_10yrs.db')
-
-if __name__ == '__main__':
-    if os.path.isdir('/sims_maf'):
-        run_examples_datalab()
-    else:
-        run_example_local()

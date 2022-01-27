@@ -3,7 +3,8 @@ import os
 import numpy as np
 import healpy as hp
 from astropy.io import fits
-
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.maps import BaseMap
 from rubin_sim.photUtils import Dust_values
@@ -31,15 +32,17 @@ class DustMap3D(BaseMap):
         else:
             self.R_x = R_x
 
+        self._readMap()
+
     def _readMap(self):
         # Set up path to map
         if self.mapPath is None:
-            if nside == 64:
+            if self.nside == 64:
                 mapName = "merged_ebv3d_nside64.fits"
-                self.mapPath = os.path.join(get_data_dir(), "DustMaps3d", mapName)
-            elif nside == 128:
+                self.mapPath = os.path.join(get_data_dir(), "maps/DustMaps3D", mapName)
+            elif self.nside == 128:
                 mapName = "merged_ebv3d_nside128_defaults.fits"
-                self.mapPath = os.path.join(get_data_dir(), "DustMaps3d", mapName)
+                self.mapPath = os.path.join(get_data_dir(), "maps/DustMaps3D", mapName)
             else:
                 raise Exception(
                     f"mapPath not specified, and nside {self.nside} not one of 64 or 128. "

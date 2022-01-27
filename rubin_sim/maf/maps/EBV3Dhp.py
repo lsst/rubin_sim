@@ -3,7 +3,8 @@ import os
 import numpy as np
 import healpy as hp
 from astropy.io import fits
-
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 from rubin_sim.data import get_data_dir
 from rubin_sim.photUtils import Dust_values
 from rubin_sim.maf.utils import radec2pix
