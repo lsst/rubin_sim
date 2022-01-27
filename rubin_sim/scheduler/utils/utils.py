@@ -442,7 +442,7 @@ def empty_observation():
 
     Returns
     -------
-    numpy array
+    empty_observation : `np.array`
 
     The numpy fields have the following labels. These fields are required to be set to be a valid observation
     the model observatory can execute.
