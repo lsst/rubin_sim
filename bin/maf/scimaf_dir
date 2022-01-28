@@ -9,7 +9,6 @@ matplotlib.use("Agg")
 import rubin_sim.maf.batches as batches
 import rubin_sim.maf.db as db
 import rubin_sim.maf.metricBundles as mb
-import rubin_sim.maf.utils as mafUtils
 
 if __name__ == "__main__":
     """
@@ -42,13 +41,8 @@ if __name__ == "__main__":
         group = mb.MetricBundleGroup(bdict, opsdb, outDir=outDir, resultsDb=resultsDb, saveEarly=False)
         group.runAll(clearMemory=True, plotNow=True)
         resultsDb.close()
-        try:
-            # This helps track some provenance about when MAF was run (and with what version)
-            mafUtils.writeConfigs(opsdb, outDir)
-        except:
-            pass
         db.addRunToDatabase(outDir, 'trackingDb_sqlite.db',
                             opsimGroup=None, opsimRun=name,
                             opsimComment=None,
                             mafComment='ScienceRadar',
-                            dbFile = name+'.db')
+                            dbFile=name+'.db')
