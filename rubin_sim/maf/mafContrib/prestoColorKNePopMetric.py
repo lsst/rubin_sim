@@ -117,7 +117,8 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         skyregion="galactic",
         thr = 0.003, 
         fileGalactic="TotalCubeNorm_1000Obj.pkl",
-        fileExtragalactic="Extragalactic_PrestoColor_Cube.pkl",
+        fileExtragalactic="TotalCubeNorm_1000Obj.pkl",
+#         fileExtragalactic="Extragalactic_PrestoColor_Cube.pkl",
         **kwargs
     ):
         """
