@@ -115,10 +115,10 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         mjd0=59853.5,
         outputLc=False,
         skyregion="galactic",
-        thr = 0.003, 
+        thr=0.003,
         fileGalactic="TotalCubeNorm_1000Obj.pkl",
         fileExtragalactic="TotalCubeNorm_1000Obj.pkl",
-#         fileExtragalactic="Extragalactic_PrestoColor_Cube.pkl",
+        #         fileExtragalactic="Extragalactic_PrestoColor_Cube.pkl",
         **kwargs
     ):
         """
@@ -352,28 +352,28 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
 
                 Band1 = Bands[occurence == 2][0]
                 Band2 = Bands[occurence == 1][0]
-                
-                if Band1+Band2 == 'uy' or Band1+Band2 == 'yu':
+
+                if Band1 + Band2 == "uy" or Band1 + Band2 == "yu":
                     continue
 
                 dMag = (Detects.mag[index11] - Detects.mag[index12]) * np.sign(dT2)
                 Color = Detects.mag[index11] - Detects.mag[index2]
 
                 phaseSpaceCoords.append([Band1, Band2, dT1, dT2, dMag, Color])
-                
+
         scoreS = 0
         scoreP = [0]
-                
+
         for phaseSpaceCoord in phaseSpaceCoords:
             rate = self._enquiry(HashTable, InfoDict, *phaseSpaceCoord)
-            
+
             if scoreS == 0 and rate < thr:
                 scoreS = 1
-                
-            scoreP.append( ( 1-rate ) )
-            
+
+            scoreP.append((1 - rate))
+
         return scoreS, max(scoreP)
-    
+
     def _ztfrest_simple(
         self,
         around_peak,
@@ -549,19 +549,22 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
             result["slicePoint"] = slicePoint
 
         if result["presto_color_detect"] == 1:
-            result['scoreS'], result['scoreP'] = self._getScore( 
-                pd.DataFrame(lc), HashTable=self.HashTable, InfoDict=self.InfoDict, thr=self.thr
-            )            
+            result["scoreS"], result["scoreP"] = self._getScore(
+                pd.DataFrame(lc),
+                HashTable=self.HashTable,
+                InfoDict=self.InfoDict,
+                thr=self.thr,
+            )
         else:
-            result['scoreS'] = 0
-            result['scoreP'] = 0
+            result["scoreS"] = 0
+            result["scoreP"] = 0
         return result
 
     def reduce_presto_color_detect(self, metric):
         return metric["presto_color_detect"]
 
     def reduce_scoreS(self, metric):
-        return metric['scoreS']
-    
+        return metric["scoreS"]
+
     def reduce_scoreP(self, metric):
-        return metric['scoreP']
+        return metric["scoreP"]
