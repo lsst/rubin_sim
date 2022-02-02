@@ -6,7 +6,8 @@ __all__ = ["XyPlotter"]
 
 
 class XyPlotter(BasePlotter):
-    """Bare-bones plotter for making scatter plots."""
+    """Bare-bones plotter for making scatter plots. Expects single metric value
+    (e.g, from UniSlicer or UserPointSlicer with one point)"""
 
     def __init__(self):
         self.objectPlotter = True
