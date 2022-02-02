@@ -504,6 +504,24 @@ def scienceRadarBatch(
         temp_list.append(bundles[b])
     bundleList.extend(temp_list)
 
+    # Presto KNe metric
+    displayDict["subgroup"] = "Presto KNe"
+    slicer = maf.generatePrestoPopSlicer(skyregion="extragalactic")
+    metric = maf.PrestoColorKNePopMetric(
+        skyregion="extragalactic", metricName="PrestoKNe"
+    )
+    summaryMetrics_kne = [maf.MedianMetric(), maf.SumMetric()]
+    bundleList.append(
+        maf.MetricBundle(
+            metric,
+            slicer,
+            None,
+            runName=runName,
+            displayDict=displayDict,
+            summaryMetrics=summaryMetrics_kne,
+        )
+    )
+
     # XRB metric
     displayDict["subgroup"] = "XRB"
     n_events = 10000

@@ -115,8 +115,10 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         mjd0=59853.5,
         outputLc=False,
         skyregion="galactic",
+        thr=0.003,
         fileGalactic="TotalCubeNorm_1000Obj.pkl",
         fileExtragalactic="TotalCubeNorm_1000Obj.pkl",
+        #         fileExtragalactic="Extragalactic_PrestoColor_Cube.pkl",
         **kwargs
     ):
         """
@@ -137,6 +139,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         self.ptsNeeded = ptsNeeded  # detection points threshold
         # Boolean variable, if True the light curve will be exported
         self.outputLc = outputLc
+        self.thr = thr
 
         data_dir = get_data_dir()
         if skyregion == "galactic":
@@ -256,7 +259,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
 
         return HashTable[Ind1, Ind2, Ind3, Ind4]
 
-    def _getScore(self, result, HashTable, InfoDict, scoreType="S", thr=0.003):
+    def _getScore(self, result, HashTable, InfoDict, thr):
         """
         Get the score of a strategy from the Presto-Color perspective.
 
@@ -350,33 +353,26 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
                 Band1 = Bands[occurence == 2][0]
                 Band2 = Bands[occurence == 1][0]
 
+                if Band1 + Band2 == "uy" or Band1 + Band2 == "yu":
+                    continue
+
                 dMag = (Detects.mag[index11] - Detects.mag[index12]) * np.sign(dT2)
                 Color = Detects.mag[index11] - Detects.mag[index2]
 
                 phaseSpaceCoords.append([Band1, Band2, dT1, dT2, dMag, Color])
 
-        if scoreType == "S":
+        scoreS = 0
+        scoreP = [0]
 
-            score = 0
-            for phaseSpaceCoord in phaseSpaceCoords:
-                rate = self._enquiry(HashTable, InfoDict, *phaseSpaceCoord)
+        for phaseSpaceCoord in phaseSpaceCoords:
+            rate = self._enquiry(HashTable, InfoDict, *phaseSpaceCoord)
 
-                if rate < thr:
-                    score = 1
-                    break
+            if scoreS == 0 and rate < thr:
+                scoreS = 1
 
-            return score
+            scoreP.append((1 - rate))
 
-        elif scoreType == "P":
-
-            scores = []
-
-            for phaseSpaceCoord in phaseSpaceCoords:
-                rate = self._enquiry(HashTable, InfoDict, *phaseSpaceCoord)
-
-                scores.append((1 - rate))
-
-            return max(scores)
+        return scoreS, max(scoreP)
 
     def _ztfrest_simple(
         self,
@@ -552,19 +548,23 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
             result["lc"] = lc
             result["slicePoint"] = slicePoint
 
-        ####
         if result["presto_color_detect"] == 1:
-            result["score"] = self._getScore(
-                pd.DataFrame(lc), HashTable=self.HashTable, InfoDict=self.InfoDict
+            result["scoreS"], result["scoreP"] = self._getScore(
+                pd.DataFrame(lc),
+                HashTable=self.HashTable,
+                InfoDict=self.InfoDict,
+                thr=self.thr,
             )
         else:
-            # changing to zero. Hopefully the score is only ever positive?
-            result["score"] = 0
-
+            result["scoreS"] = 0
+            result["scoreP"] = 0
         return result
 
     def reduce_presto_color_detect(self, metric):
         return metric["presto_color_detect"]
 
-    def reduce_getScore(self, metric):
-        return metric["score"]
+    def reduce_scoreS(self, metric):
+        return metric["scoreS"]
+
+    def reduce_scoreP(self, metric):
+        return metric["scoreP"]
