@@ -41,3 +41,4 @@ from .agnstructure import *
 from .qsoNumberCountsMetric import *
 from .agnTimeLagMetric import *
 from .surfbMetric import *
+from .cumulativeMetric import *

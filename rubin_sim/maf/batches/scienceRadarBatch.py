@@ -771,6 +771,24 @@ def scienceRadarBatch(
                     )
                     bundleList.append(bundle)
 
+        # Now to loop over again.
+        ddf_surveys = generate_dd_surveys()
+        for survey in ddf_surveys:
+            displayDict = {"group": "DDF Progress", "subgroup": survey.survey_name}
+            slicer = slicers.UniSlicer()
+            sql = "note = '%s'" % survey.survey_name
+            metric = metrics.CumulativeMetric()
+            metricb = maf.MetricBundle(
+                metric,
+                slicer,
+                sql,
+                plotFuncs=[plots.XyPlotter()],
+                runName=runName,
+                displayDict=displayDict,
+            )
+            metricb.summaryMetrics = []
+            bundleList.append(metricb)
+
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
