@@ -11,9 +11,9 @@ class CumulativeMetric(BaseMetric):
 
     Parameters
     ----------
-    bins : `np.array` (None)
+    interp_points : `np.array` (None)
         The points to interpolate the cumulative number of observations to. If None,
-        then the range of the data is used.
+        then the range of the data is used with a stepsize of 1.
     """
 
     def __init__(
@@ -21,7 +21,7 @@ class CumulativeMetric(BaseMetric):
         metricName="Cumulative",
         time_col="observationStartMJD",
         night_col="night",
-        bins=None,
+        interp_points=None,
         **kwargs
     ):
         super().__init__(
@@ -32,16 +32,18 @@ class CumulativeMetric(BaseMetric):
         )
         self.time_col = time_col
         self.night_col = night_col
-        self.bins = bins
+        self.interp_points = interp_points
         self.plotDict = {"xlabel": "MJD (days)", "ylabel": "N obs"}
 
     def run(self, dataSlice, slicePoint=None):
         dataSlice.sort(order=self.time_col)
-        if self.bins is None:
-            bins = np.arange(
+        if self.interp_points is None:
+            interp_points = np.arange(
                 dataSlice[self.night_col].min(), dataSlice[self.night_col].max() + 1, 1
             )
+        else:
+            interp_points = self.interp_points
         cumulative_number = np.arange(dataSlice.size) + 1
-        yresult = np.interp(bins, dataSlice[self.night_col], cumulative_number)
-        xresult = bins
+        yresult = np.interp(interp_points, dataSlice[self.night_col], cumulative_number)
+        xresult = interp_points
         return {"x": xresult, "y": yresult, "plotDict": self.plotDict}
