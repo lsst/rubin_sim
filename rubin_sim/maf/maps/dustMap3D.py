@@ -91,7 +91,9 @@ class DustMap3D(BaseMap):
         dist_closest, ebv_at_dist = get_x_at_nearest_y(dists, ebvs, self.distPc)
 
         # Calculate the distances at which m_minus_Mo values of 'dmag' are reached
-        dist_dmag = self.distance_at_dmag(self.dMag, dists, ebvs, filtername=self.filtername)
+        dist_dmag = self.distance_at_dmag(
+            self.dMag, dists, ebvs, filtername=self.filtername
+        )
 
         slicePoints["ebv3d_dists"] = dists
         slicePoints["ebv3d_ebvs"] = ebvs
@@ -114,9 +116,7 @@ class DustMap3D(BaseMap):
 
         # Maximum distance for the given m-Mo (dmag) value
         # first do the 'within the map' closest distance
-        m_minus_Mo_at_mag, dist_closest = get_x_at_nearest_y(
-            m_minus_Mo, dists, dmag
-        )
+        m_minus_Mo_at_mag, dist_closest = get_x_at_nearest_y(m_minus_Mo, dists, dmag)
         # calculate distance modulus for an object with the maximum dust extinction (and then the distance)
         distModsFar = dmag - A_x[:, -1]
         distsFar = 10.0 ** (0.2 * distModsFar + 1.0)

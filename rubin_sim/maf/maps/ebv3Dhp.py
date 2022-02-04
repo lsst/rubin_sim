@@ -11,12 +11,7 @@ __all__ = ["ebv_3d_hp", "get_x_at_nearest_y"]
 
 
 def ebv_3d_hp(
-    nside,
-    mapFile=None,
-    ra=None,
-    dec=None,
-    pixels=None,
-    interp=False,
+    nside, mapFile=None, ra=None, dec=None, pixels=None, interp=False,
 ):
     """Reads and saves a 3d dust extinction file, return extinction at specified points (ra/dec/ or pixels).
 
@@ -93,9 +88,11 @@ def ebv_3d_hp(
             )
             if pixels is not None:
                 # We're just going to raise an exception here because this could mean bad things.
-                raise ValueError(f"Map nside {map_nside} did not match expected nside {nside}, "
-                                 f"and pixels provided; this can potentially indicate a serious "
-                                 f"error. Make nsides match or specify ra/dec instead of pixels.")
+                raise ValueError(
+                    f"Map nside {map_nside} did not match expected nside {nside}, "
+                    f"and pixels provided; this can potentially indicate a serious "
+                    f"error. Make nsides match or specify ra/dec instead of pixels."
+                )
             nside = map_nside
         # Nested healpix data will not match the healpix arrays for the slicers (at this time)
         if nested:
