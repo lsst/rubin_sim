@@ -21,6 +21,9 @@ class DustMap(BaseMap):
         Default nside value to read the dust map from disk. Primarily useful if the slicer is not
         a healpix slicer.
         Default 128.
+    mapPath : `str`, opt
+        Define a path to the directory holding the dust map files.
+        Default None, which uses RUBIN_SIM_DATA_DIR.
     """
 
     def __init__(self, interp=False, nside=128, mapPath=None):

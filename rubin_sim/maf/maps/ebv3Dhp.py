@@ -7,7 +7,7 @@ from astropy.io import fits
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import radec2pix
 
-__all__ = ["ebv_3d_hp", "get_ebv_at_distance"]
+__all__ = ["ebv_3d_hp", "get_x_at_nearest_y"]
 
 
 def ebv_3d_hp(
@@ -17,8 +17,6 @@ def ebv_3d_hp(
     dec=None,
     pixels=None,
     interp=False,
-    distPc=None,
-    filtername=None,
 ):
     """Reads and saves a 3d dust extinction file, return extinction at specified points (ra/dec/ or pixels).
 
@@ -35,6 +33,8 @@ def ebv_3d_hp(
     pixels : `np.ndarray`, opt
         Healpixel IDs, to sub-select particular healpix points. Default uses all points.
         Easiest way to access healpix values.
+        Note that the pixels in the healpix array MUST come from a healpix grid with the same nside
+        as the ebv_3d_hp map. Using different nsides can potentially fail silently.
     interp : `bool`, opt
         Should returned values be interpolated (True) or just nearest neighbor (False).
         Default False.
@@ -53,7 +53,7 @@ def ebv_3d_hp(
         else:
             raise Exception(
                 f"mapFile not specified, and nside {nside} not one of 64 or 128. "
-                "Please specify mapFile."
+                "Please specify a known mapFile, as a basis for interpolation."
             )
     else:
         # Check if user specified map name but not full map path
@@ -91,6 +91,11 @@ def ebv_3d_hp(
                 f"Map nside {map_nside} did not match expected nside {nside}; "
                 f"Will use nside from map data."
             )
+            if pixels is not None:
+                # We're just going to raise an exception here because this could mean bad things.
+                raise ValueError(f"Map nside {map_nside} did not match expected nside {nside}, "
+                                 f"and pixels provided; this can potentially indicate a serious "
+                                 f"error. Make nsides match or specify ra/dec instead of pixels.")
             nside = map_nside
         # Nested healpix data will not match the healpix arrays for the slicers (at this time)
         if nested:
