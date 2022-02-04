@@ -124,6 +124,7 @@ class NYoungStarsMetric(BaseMetric):
         with np.errstate(divide="ignore"):
             for filtername in self.filters:
                 in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
+                # Calculate coadded depth per filter
                 depths[filtername] = 1.25 * np.log10(
                     np.sum(10.0 ** (0.8 * dataSlice[self.m5Col][in_filt]))
                 )
@@ -134,10 +135,13 @@ class NYoungStarsMetric(BaseMetric):
             # Apparent magnitude at the SNR requirement
             m_app = -2.5 * np.log10(self.snrs[filtername] / 5.0)
             m_app += depths[filtername]
-            d, dm, far = self.ebv.getDistanceAtMag(
-                deltamag=m_app - self.mags[filtername], sfilt=filtername, ipix=pix
+            dist_dmag = self.ebv.distance_at_dmag(
+                deltamag=m_app - self.mags[filtername],
+                dists=slicePoint['ebv3d_dists'],
+                ebvs=slicePoint['ebv3d_ebvs'],
+                filtername=filtername,
             )
-            distances.append(d[0])
+            distances.append(dist_dmag)
         # compute the final distance, limited by whichever filter is most shallow
         final_distance = np.min(distances, axis=-1) / 1e3  # to kpc
         # print(final_distance)
