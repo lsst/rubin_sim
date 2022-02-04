@@ -201,32 +201,6 @@ class MetricBundleGroup(object):
                 )
         self.compatibleLists = compatibleLists
 
-    def getData(self, constraint):
-        """Query the data from the database.
-
-        The currently bundleDict should generally be set before calling getData (using setCurrent).
-
-        Parameters
-        ----------
-        constraint : `str`
-           The constraint for the currently active set of MetricBundles.
-        """
-        if self.verbose:
-            if constraint == "":
-                print("Querying database with no constraint.")
-            else:
-                print("Querying database with constraint %s" % (constraint))
-        # Note that we do NOT run the stackers at this point (this must be done in each 'compatible' group).
-        self.simData = utils.getSimData(
-            self.dbObj,
-            constraint,
-            self.dbCols,
-            tableName=self.dbTable,
-        )
-
-        if self.verbose:
-            print("Found %i visits" % (self.simData.size))
-
     def runAll(self, clearMemory=False, plotNow=False, plotKwargs=None):
         """Runs all the metricBundles in the metricBundleGroup, over all constraints.
 
@@ -384,12 +358,12 @@ class MetricBundleGroup(object):
         if self.verbose:
             if constraint == "":
                 print(
-                    "Querying database %s with no constraint for columns %s."
+                    "Querying table %s with no constraint for columns %s."
                     % (self.dbTable, self.dbCols)
                 )
             else:
                 print(
-                    "Querying database %s with constraint %s for columns %s"
+                    "Querying table %s with constraint %s for columns %s"
                     % (self.dbTable, constraint, self.dbCols)
                 )
         # Note that we do NOT run the stackers at this point (this must be done in each 'compatible' group).
@@ -402,13 +376,6 @@ class MetricBundleGroup(object):
 
         if self.verbose:
             print("Found %i visits" % (self.simData.size))
-
-        # Query for the fieldData if we need it for the opsimFieldSlicer.
-        needFields = [b.slicer.needsFields for b in self.currentBundleDict.values()]
-        if True in needFields:
-            self.fieldData = utils.getFieldData(self.dbObj, constraint)
-        else:
-            self.fieldData = None
 
     def _runCompatible(self, compatibleList):
         """Runs a set of 'compatible' metricbundles in the MetricBundleGroup dictionary,

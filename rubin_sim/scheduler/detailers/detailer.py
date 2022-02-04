@@ -12,6 +12,7 @@ __all__ = [
     "Base_detailer",
     "Zero_rot_detailer",
     "Comcam_90rot_detailer",
+    "Rottep2Rotsp_desired_detailer",
     "Close_alt_detailer",
     "Take_as_pairs_detailer",
     "Twilight_triple_detailer",
@@ -62,6 +63,32 @@ class Base_detailer(object):
         -------
         List of observations.
         """
+
+        return observation_list
+
+
+class Rottep2Rotsp_desired_detailer(Base_detailer):
+    """Convert all the rotTelPos values to rotSkyPos_desired"""
+
+    def __call__(self, observation_list, conditions):
+        obs_array = np.concatenate(observation_list)
+
+        alt, az = _approx_RaDec2AltAz(
+            obs_array["RA"],
+            obs_array["dec"],
+            conditions.site.latitude_rad,
+            conditions.site.longitude_rad,
+            conditions.mjd,
+        )
+        obs_pa = _approx_altaz2pa(alt, az, conditions.site.latitude_rad)
+
+        rotSkyPos_desired = obs_array["rotTelPos"] - obs_pa
+
+        for obs, rotsp_d in zip(observation_list, rotSkyPos_desired):
+            obs["rotTelPos_backup"] = obs["rotTelPos"] + 0
+            obs["rotTelPos"] = np.nan
+            obs["rotSkyPos"] = np.nan
+            obs["rotSkyPos_desired"] = rotsp_d
 
         return observation_list
 

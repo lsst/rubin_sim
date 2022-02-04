@@ -44,7 +44,7 @@ class BaseFeature(object):
         return self.feature
 
 
-class BaseSurveyFeature(object):
+class BaseSurveyFeature(BaseFeature):
     """
     Feature that tracks progreess of the survey. Takes observations and updates self.feature
     """

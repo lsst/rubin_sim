@@ -235,13 +235,18 @@ def astrometryBatch(
     }
     # Expected error on parallax at 10 AU.
     plotmaxVals = (2.0, 15.0)
+    good_parallax_limit = 11.5
     summary = [
         metrics.AreaSummaryMetric(
             area=18000,
             reduce_func=np.median,
             decreasing=False,
             metricName="Median Parallax Error (18k)",
-        )
+        ),
+        metrics.AreaThresholdMetric(
+            upper_threshold=good_parallax_limit,
+            metricName="Area better than %.1f mas uncertainty" % good_parallax_limit,
+        ),
     ]
     summary.append(
         metrics.PercentileMetric(
