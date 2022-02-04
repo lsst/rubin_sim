@@ -11,7 +11,12 @@ __all__ = ["ebv_3d_hp", "get_x_at_nearest_y"]
 
 
 def ebv_3d_hp(
-    nside, mapFile=None, ra=None, dec=None, pixels=None, interp=False,
+    nside,
+    mapFile=None,
+    ra=None,
+    dec=None,
+    pixels=None,
+    interp=False,
 ):
     """Reads and saves a 3d dust extinction file, return extinction at specified points (ra/dec/ or pixels).
 

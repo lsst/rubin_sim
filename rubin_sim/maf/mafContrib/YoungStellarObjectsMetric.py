@@ -137,8 +137,8 @@ class NYoungStarsMetric(BaseMetric):
             m_app += depths[filtername]
             dist_dmag = self.ebv.distance_at_dmag(
                 deltamag=m_app - self.mags[filtername],
-                dists=slicePoint['ebv3d_dists'],
-                ebvs=slicePoint['ebv3d_ebvs'],
+                dists=slicePoint["ebv3d_dists"],
+                ebvs=slicePoint["ebv3d_ebvs"],
                 filtername=filtername,
             )
             distances.append(dist_dmag)
