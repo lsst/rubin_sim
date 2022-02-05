@@ -6,6 +6,7 @@ import healpy as hp
 import numpy as np
 import scipy.integrate as integrate
 from rubin_sim.maf.metrics.baseMetric import BaseMetric
+from rubin_sim.photUtils import Dust_values
 from rubin_sim.maf.maps import DustMap3D
 
 __all__ = ["NYoungStarsMetric"]
@@ -85,29 +86,28 @@ class NYoungStarsMetric(BaseMetric):
         **kwargs
     ):
         Cols = [m5Col, filterCol]
-
+        maps = ['DustMap3D']
+        # This will give us access to the dust map get_distance_at_dmag routine
+        # but does not require loading another copy of the map
+        self.ebvmap = DustMap3D()
         units = "N stars"
-        super(NYoungStarsMetric, self).__init__(
-            Cols, metricName=metricName, units=units, badval=badval, *kwargs
+        super().__init__(
+            Cols, metricName=metricName, maps=maps, units=units, badval=badval, *kwargs
         )
+        # Save R_x values for on-the-fly calculation of dust extinction with map
+        self.R_x = Dust_values().R_x.copy()
         # set return type
         self.m5Col = m5Col
         self.filterCol = filterCol
         self.galb_limit = np.radians(galb_limit)
-
         self.mags = mags
         self.filters = list(self.mags.keys())
         self.snrs = snrs
-        # Load extinction map
-        self.ebv = DustMap3D(nside=nside)
+
 
     def run(self, dataSlice, slicePoint=None):
 
-        if not np.all(self.ebv.nside == slicePoint["nside"]):
-            raise ValueError(
-                "The slicer has different resolution than the extinction map."
-            )
-
+        # Is there another way to calculate sky_area, for non-healpix slicers?
         sky_area = hp.nside2pixarea(slicePoint["nside"], degrees=False)
 
         # if we are outside the galb_limit, return nothing
@@ -115,8 +115,6 @@ class NYoungStarsMetric(BaseMetric):
         # star forming regions
         if np.abs(slicePoint["galb"]) > self.galb_limit:
             return self.badval
-
-        pix = slicePoint["sid"]
 
         # Coadd depths for each filter
         depths = {}
@@ -135,8 +133,8 @@ class NYoungStarsMetric(BaseMetric):
             # Apparent magnitude at the SNR requirement
             m_app = -2.5 * np.log10(self.snrs[filtername] / 5.0)
             m_app += depths[filtername]
-            dist_dmag = self.ebv.distance_at_dmag(
-                deltamag=m_app - self.mags[filtername],
+            dist_dmag = self.ebvmap.distance_at_dmag(
+                dmag=m_app - self.mags[filtername],
                 dists=slicePoint["ebv3d_dists"],
                 ebvs=slicePoint["ebv3d_ebvs"],
                 filtername=filtername,
