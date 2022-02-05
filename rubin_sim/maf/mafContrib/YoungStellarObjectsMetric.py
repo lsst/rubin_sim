@@ -86,7 +86,7 @@ class NYoungStarsMetric(BaseMetric):
         **kwargs
     ):
         Cols = [m5Col, filterCol]
-        maps = ['DustMap3D']
+        maps = ["DustMap3D"]
         # This will give us access to the dust map get_distance_at_dmag routine
         # but does not require loading another copy of the map
         self.ebvmap = DustMap3D()
@@ -103,7 +103,6 @@ class NYoungStarsMetric(BaseMetric):
         self.mags = mags
         self.filters = list(self.mags.keys())
         self.snrs = snrs
-
 
     def run(self, dataSlice, slicePoint=None):
 

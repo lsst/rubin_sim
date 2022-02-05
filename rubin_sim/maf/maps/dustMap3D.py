@@ -90,9 +90,7 @@ class DustMap3D(BaseMap):
         dist_closest, ebv_at_dist = get_x_at_nearest_y(dists, ebvs, self.distPc)
 
         # Calculate the distances at which m_minus_Mo values of 'dmag' are reached
-        dist_dmag = self.distance_at_dmag(
-            self.dMag, dists, ebvs, self.filtername
-        )
+        dist_dmag = self.distance_at_dmag(self.dMag, dists, ebvs, self.filtername)
 
         slicePoints["ebv3d_dists"] = dists
         slicePoints["ebv3d_ebvs"] = ebvs

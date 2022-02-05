@@ -130,7 +130,7 @@ class TestMaps(unittest.TestCase):
             )
             # And call it as a static method at one point on the sky
             dists = maps.DustMap3D().distance_at_dmag(
-                5, result3["ebv3d_dists"][0,:], result3["ebv3d_ebvs"][0,:], "r"
+                5, result3["ebv3d_dists"][0, :], result3["ebv3d_ebvs"][0, :], "r"
             )
 
             # Check warning gets raised

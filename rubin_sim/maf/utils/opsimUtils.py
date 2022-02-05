@@ -47,7 +47,7 @@ def getSimData(
         the SQLconstraint.
     """
     if sqlconstraint is None:
-        sqlconstraint = ''
+        sqlconstraint = ""
 
     # Check that file exists
     if type(db_con) == str:
