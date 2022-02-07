@@ -123,10 +123,10 @@ class SkyModelPre(object):
             self._load_data(
                 60218.0,
                 filename=os.path.join(
-                    data_path, "../skybrightness_pre_small", "60218_60226.npz"
+                    get_data_dir(), "skybrightness_pre_small", "60218_60226.npz"
                 ),
                 npyfile=os.path.join(
-                    data_path, "../skybrightness_pre_small", "60218_60226.npy"
+                    get_data_dir(), "skybrightness_pre_small", "60218_60226.npy"
                 ),
             )
 
