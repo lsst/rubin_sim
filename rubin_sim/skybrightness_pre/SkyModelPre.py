@@ -122,8 +122,12 @@ class SkyModelPre(object):
         if speedLoad:
             self._load_data(
                 60218.0,
-                filename=os.path.join(data_path, '../skybrightness_pre_small', "60218_60226.npz"),
-                npyfile=os.path.join(data_path, '../skybrightness_pre_small', "60218_60226.npy"),
+                filename=os.path.join(
+                    data_path, "../skybrightness_pre_small", "60218_60226.npz"
+                ),
+                npyfile=os.path.join(
+                    data_path, "../skybrightness_pre_small", "60218_60226.npy"
+                ),
             )
 
     def _load_data(self, mjd, filename=None, npyfile=None):
