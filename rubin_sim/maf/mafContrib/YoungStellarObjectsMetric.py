@@ -6,6 +6,7 @@ import healpy as hp
 import numpy as np
 import scipy.integrate as integrate
 from rubin_sim.maf.metrics.baseMetric import BaseMetric
+from rubin_sim.photUtils import Dust_values
 from rubin_sim.maf.maps import DustMap3D
 
 __all__ = ["NYoungStarsMetric"]
@@ -85,29 +86,27 @@ class NYoungStarsMetric(BaseMetric):
         **kwargs
     ):
         Cols = [m5Col, filterCol]
-
+        maps = ["DustMap3D"]
+        # This will give us access to the dust map get_distance_at_dmag routine
+        # but does not require loading another copy of the map
+        self.ebvmap = DustMap3D()
         units = "N stars"
-        super(NYoungStarsMetric, self).__init__(
-            Cols, metricName=metricName, units=units, badval=badval, *kwargs
+        super().__init__(
+            Cols, metricName=metricName, maps=maps, units=units, badval=badval, *kwargs
         )
+        # Save R_x values for on-the-fly calculation of dust extinction with map
+        self.R_x = Dust_values().R_x.copy()
         # set return type
         self.m5Col = m5Col
         self.filterCol = filterCol
         self.galb_limit = np.radians(galb_limit)
-
         self.mags = mags
         self.filters = list(self.mags.keys())
         self.snrs = snrs
-        # Load extinction map
-        self.ebv = DustMap3D(nside=nside)
 
     def run(self, dataSlice, slicePoint=None):
 
-        if not np.all(self.ebv.nside == slicePoint["nside"]):
-            raise ValueError(
-                "The slicer has different resolution than the extinction map."
-            )
-
+        # Is there another way to calculate sky_area, for non-healpix slicers?
         sky_area = hp.nside2pixarea(slicePoint["nside"], degrees=False)
 
         # if we are outside the galb_limit, return nothing
@@ -116,14 +115,13 @@ class NYoungStarsMetric(BaseMetric):
         if np.abs(slicePoint["galb"]) > self.galb_limit:
             return self.badval
 
-        pix = slicePoint["sid"]
-
         # Coadd depths for each filter
         depths = {}
         # ignore the divide by zero warnings
         with np.errstate(divide="ignore"):
             for filtername in self.filters:
                 in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
+                # Calculate coadded depth per filter
                 depths[filtername] = 1.25 * np.log10(
                     np.sum(10.0 ** (0.8 * dataSlice[self.m5Col][in_filt]))
                 )
@@ -134,10 +132,13 @@ class NYoungStarsMetric(BaseMetric):
             # Apparent magnitude at the SNR requirement
             m_app = -2.5 * np.log10(self.snrs[filtername] / 5.0)
             m_app += depths[filtername]
-            d, dm, far = self.ebv.getDistanceAtMag(
-                deltamag=m_app - self.mags[filtername], sfilt=filtername, ipix=pix
+            dist_dmag = self.ebvmap.distance_at_dmag(
+                dmag=m_app - self.mags[filtername],
+                dists=slicePoint["ebv3d_dists"],
+                ebvs=slicePoint["ebv3d_ebvs"],
+                filtername=filtername,
             )
-            distances.append(d[0])
+            distances.append(dist_dmag)
         # compute the final distance, limited by whichever filter is most shallow
         final_distance = np.min(distances, axis=-1) / 1e3  # to kpc
         # print(final_distance)

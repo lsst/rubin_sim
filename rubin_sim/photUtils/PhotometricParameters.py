@@ -16,6 +16,11 @@ class Dust_values(object):
         of None will load the standard ugrizy bandpasses.
     ref_ev : float (1.)
         The reference E(B-V) value to use. Things in MAF assume 1.
+
+    Note: the value that dust_values calls "Ax1" is actually equivalent to R_x in any filter.
+    And then it's more clear that R_x * ebv = A_x (the extinction due to dust in any bandpass).
+    Dust_values.R_x is also provided as a copy of Dust_values.Ax1 .. eventually Ax1 may be deprecated
+    in favor of R_x.
     """
 
     def __init__(self, R_v=3.1, bandpassDict=None, ref_ebv=1.0):
@@ -41,6 +46,8 @@ class Dust_values(object):
             testsed.addDust(a, b, ebv=self.ref_ebv, R_v=R_v)
             # Calculate difference due to dust when EBV=1.0 (m_dust = m_nodust - Ax, Ax > 0)
             self.Ax1[filtername] = testsed.calcMag(bandpassDict[filtername]) - flatmag
+        # Add the R_x term, to start to transition toward this name.
+        self.R_x = self.Ax1.copy()
 
 
 class DefaultPhotometricParameters(object):
