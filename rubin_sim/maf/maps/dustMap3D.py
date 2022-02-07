@@ -11,6 +11,20 @@ __all__ = ["DustMap3D"]
 class DustMap3D(BaseMap):
     """The DustMap3D provides a `~rubin_sim.maf.map` to hold 3d EBV data.
 
+    Adds the following keys to the slicePoints:
+    ebv3d_dists - the distances from the 3d dust map at each slicePoint (in pc)
+    ebv3d_ebvs - the E(B-V) values corresponding to each distance at each slicePoint
+    ebv3d_ebv_at_<distPc> - the (single) ebv value at the nearest distance to distPc
+    ebv3d_dist_at_<dMag> - the (single) distance value corresponding to where extinction and
+    distance modulus combine to create a m-Mo value of dMag, for the filter specified in filtername (in pc).
+    Note that <distPc> and <dMag> will be formatted with a single decimal place.
+
+    The additional method 'distance_at_mag' can be called either with the distances and ebv values for the
+    entire map or with the values from a single slicePoint, in order to calculate the distance at which
+    extinction and distance modulus combine to create a m-Mo value closest to 'dmag' in any filter.
+    This is the same value as would be reported in ebv3d_dist_at_<dMag>, but can be calculated on the fly,
+    allowing variable filters and dmag values.
+
     Parameters
     ----------
     nside: `int`
