@@ -11,9 +11,9 @@ def mjd2djd(inDate):
     """
     Convert Modified Julian Date to Dublin Julian Date (what pyephem uses).
     """
-    if not hasattr(mjd2djd, 'doff'):
-        mjd2djd.doff = ephem.Date(0)-ephem.Date('1858/11/17')
-    djd = inDate-mjd2djd.doff
+    if not hasattr(mjd2djd, "doff"):
+        mjd2djd.doff = ephem.Date(0) - ephem.Date("1858/11/17")
+    djd = inDate - mjd2djd.doff
     return djd
 
 
