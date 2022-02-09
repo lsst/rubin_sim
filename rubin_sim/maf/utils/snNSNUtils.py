@@ -28,6 +28,7 @@ __all__ = [
     "GetReference",
     "SN_Rate",
     "CovColor",
+    "load_sne_cached",
 ]
 
 
@@ -1036,6 +1037,19 @@ class Telescope(Throughputs):
             return np.asarray(
                 [self.gamma(m, b, e) for m, b, e in zip(mag, band, exptime)]
             )
+
+
+def load_sne_cached():
+    """Load up the SNe files with a simple function that caches the result so each metric
+    doesn't need to load it on it's own
+    """
+
+    if hasattr(load_sne_cached, "data"):
+        return load_sne_cached.data
+    else:
+        ref = Load_Reference().ref
+        load_sne_cached.data = ref
+        return ref
 
 
 class Load_Reference:

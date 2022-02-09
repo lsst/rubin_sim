@@ -1,6 +1,6 @@
 import numpy as np
 from rubin_sim.maf.metrics import BaseMetric
-from rubin_sim.maf.utils.snNSNUtils import Load_Reference, Telescope, LCfast
+from rubin_sim.maf.utils.snNSNUtils import load_sne_cached, Telescope, LCfast
 from rubin_sim.maf.utils.snNSNUtils import SN_Rate, CovColor
 import pandas as pd
 import numpy.lib.recfunctions as rf
@@ -139,7 +139,7 @@ class SNNSNMetric(BaseMetric):
         self.n_phase_max = n_phase_max  # nb of points with phase >=20
 
         # loading reference LC files
-        lc_reference = Load_Reference(templateDir=templateDir).ref
+        lc_reference = load_sne_cached()
 
         self.lcFast = {}
         telescope = Telescope(airmass=1.2)
