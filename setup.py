@@ -17,6 +17,7 @@ setup(
     scripts=[
         "bin/maf/addRun",
         "bin/maf/glance_dir",
+        "bin/maf/ddf_dir",
         "bin/maf/maf_night_report",
         "bin/maf/scimaf_dir",
         "bin/maf/showMaf",

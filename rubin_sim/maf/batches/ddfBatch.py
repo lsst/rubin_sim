@@ -1,102 +1,183 @@
 import numpy as np
 import healpy as hp
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.plots as plots
-import rubin_sim.maf.maps as maps
-import rubin_sim.maf.metricBundles as mb
-from .common import standardSummary, filterList
-from .colMapDict import ColMapDict
-from rubin_sim.utils import hpid2RaDec, angularSeparation, ddf_locations
-from copy import deepcopy
+from rubin_sim.scheduler.surveys import generate_dd_surveys
+from rubin_sim.utils import _hpid2RaDec, _angularSeparation
+import rubin_sim.maf as maf
 
 __all__ = ["ddfBatch"]
 
 
-def ddfBatch(colmap=None, runName="opsim", nside=256, radius=3.0):
-    if colmap is None:
-        colmap = ColMapDict("fbs")
+def ddfBatch(runName="opsim", nside=512, radius=4.0):
 
-    radius = radius
-    bundleList = []
-
-    dd_surveys = ddf_locations()
-
-    hpid = np.arange(hp.nside2npix(nside))
-    hp_ra, hp_dec = hpid2RaDec(nside, hpid)
+    radius = np.radians(radius)
+    bundle_list = []
     sql = ""
+    ra, dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
 
-    # XXX--add some captions noting that the chip gaps are on. I should make a spatial
-    # plotter that does a gnomic projection rotated to mean position.
+    ddf_surveys = generate_dd_surveys()
 
-    summary_stats = [metrics.SumMetric(), metrics.MedianMetric()]
+    summary_stats = [maf.MeanMetric(), maf.MedianMetric(), maf.SumMetric()]
+    standardSummary = [
+        maf.MeanMetric(),
+        maf.RmsMetric(),
+        maf.MedianMetric(),
+        maf.MaxMetric(),
+        maf.MinMetric(),
+        maf.NoutliersNsigmaMetric(metricName="N(+3Sigma)", nSigma=3),
+        maf.NoutliersNsigmaMetric(metricName="N(-3Sigma)", nSigma=-3.0),
+    ]
 
-    # put the metrics here so we can copy rather than load from disk each time
-    num_metric = metrics.SNNSNMetric(verbose=False)
-    lens_metric = metrics.SNSLMetric(night_collapse=True)
+    filternames = 'ugrizy'
+    filter_all_sql = ['filter="%s"' % filtername for filtername in filternames]
+    filter_all_sql.append('')
 
-    displayDict = {"group": "DDFs", "subgroup": ""}
+    depth_stats = [maf.MedianMetric()]
+    plotFuncs = [maf.HealpixSkyMap()]
 
-    for ddf in dd_surveys:
-        if ddf != "EDFS_a":
-            if "EDFS_" not in ddf:
-                dist = angularSeparation(
-                    dd_surveys[ddf][0], dd_surveys[ddf][1], hp_ra, hp_dec
-                )
-                good_pix = np.where(dist <= radius)[0]
-            elif ddf == "EDFS_b":
-                # Combine the Euclid fields into 1
-                d1 = angularSeparation(
-                    dd_surveys["EDFS_a"][0], dd_surveys["EDFS_a"][1], hp_ra, hp_dec
-                )
-                good_pix1 = np.where(d1 <= radius)[0]
-                d2 = angularSeparation(
-                    dd_surveys["EDFS_b"][0], dd_surveys["EDFS_b"][1], hp_ra, hp_dec
-                )
-                good_pix2 = np.where(d2 <= radius)[0]
-                good_pix = np.unique(np.concatenate((good_pix1, good_pix2)))
+    for ddf in ddf_surveys:
+        label = ddf.survey_name.replace("DD:", "")
+        plotDict = {
+            "visufunc": hp.gnomview,
+            "rot": (np.degrees(np.mean(ddf.ra)), np.degrees(np.mean(ddf.dec)), 0),
+            "xsize": 500,
+        }
+        dist = _angularSeparation(ra, dec, np.mean(ddf.ra), np.mean(ddf.dec))
+        good = np.where(dist <= radius)[0]
 
-            slicer = slicers.UserPointsSlicer(
-                ra=hp_ra[good_pix],
-                dec=hp_dec[good_pix],
-                useCamera=True,
-                radius=1.75 * 2 ** 0.5,
+        # Number of SNe
+        slicer = maf.HealpixSubsetSlicer(nside, good)
+        metric = maf.metrics.SNNSNMetric(verbose=False, metricName="%s, SNe" % label)
+        bundle_list.append(
+            maf.MetricBundle(
+                metric,
+                slicer,
+                sql,
+                plotDict=plotDict,
+                plotFuncs=plotFuncs,
+                summaryMetrics=summary_stats,
             )
-            # trick the metrics into thinking they are using healpix slicer
-            slicer.slicePoints["nside"] = nside
-            slicer.slicePoints["sid"] = good_pix
+        )
 
-            name = ddf.replace("DD:", "").replace("_b", "")
-            metric = deepcopy(num_metric)
-            metric.name = "SnN_%s" % name
-            displayDict["subgroup"] = name
-            displayDict["caption"] = "SNe Ia, with chip gaps on"
-            bundleList.append(
-                mb.MetricBundle(
+        # Strong lensed SNe
+        metric = maf.SNSLMetric(metricName="SnL_%s" % label)
+        bundle_list.append(
+            maf.MetricBundle(
+                metric,
+                slicer,
+                sql,
+                plotDict=plotDict,
+                plotFuncs=plotFuncs,
+                summaryMetrics=summary_stats,
+            )
+        )
+
+        # Number of QSOs in each band
+        zmin = 0.3
+        extinction_cut = 1.0
+        for f in "ugrizy":
+            summaryMetrics = [maf.SumMetric(metricName="Total QSO")]
+            metric = maf.QSONumberCountsMetric(
+                f,
+                units="mag",
+                extinction_cut=extinction_cut,
+                qlf_module="Shen20",
+                qlf_model="A",
+                SED_model="Richards06",
+                zmin=zmin,
+                zmax=None,
+                metricName="QSO_N_%s_%s" % (f, label),
+            )
+            bundle_list.append(
+                maf.MetricBundle(
                     metric,
                     slicer,
                     sql,
-                    summaryMetrics=summary_stats,
-                    plotFuncs=[plots.HealpixSkyMap()],
-                    displayDict=displayDict,
+                    plotDict=plotDict,
+                    plotFuncs=plotFuncs,
+                    summaryMetrics=summaryMetrics,
                 )
             )
 
-            metric = deepcopy(lens_metric)
-            displayDict["caption"] = "Strongly lensed SNe, with chip gaps on"
-            metric.name = "SnL_%s" % name
-            bundleList.append(
-                mb.MetricBundle(
+        # Coadded depth per filter, and count per filter
+        for filtername in "ugrizy":
+            metric = maf.Coaddm5Metric(
+                metricName="%s, 5-sigma %s" % (label, filtername)
+            )
+            sql = 'filter="%s"' % filtername
+            bundle_list.append(
+                maf.MetricBundle(
                     metric,
                     slicer,
                     sql,
-                    summaryMetrics=summary_stats,
-                    plotFuncs=[plots.HealpixSkyMap()],
+                    plotDict=plotDict,
+                    runName=runName,
+                    plotFuncs=plotFuncs,
+                    summaryMetrics=depth_stats,
                 )
             )
 
-    for b in bundleList:
+            metric = maf.CountMetric(
+                col="night", units="#", metricName="%s, Count %s" % (label, filtername)
+            )
+            sql = 'filter="%s"' % filtername
+            bundle_list.append(
+                maf.MetricBundle(
+                    metric,
+                    slicer,
+                    sql,
+                    plotDict=plotDict,
+                    runName=runName,
+                    plotFuncs=plotFuncs,
+                    summaryMetrics=depth_stats,
+                )
+            )
+        # Count over all filter
+        metric = maf.CountMetric(
+            col="night", units="#", metricName="%s, Count all" % (label)
+        )
+        sql = ""
+        bundle_list.append(
+            maf.MetricBundle(
+                metric,
+                slicer,
+                sql,
+                plotDict=plotDict,
+                runName=runName,
+                plotFuncs=plotFuncs,
+                summaryMetrics=depth_stats,
+            )
+        )
+
+        # Now to compute some things at just the center of the DDF
+        slicer = maf.UserPointSlicer(np.degrees(np.mean(ddf.ra)), np.degrees(np.mean(ddf.dec)))
+
+        # Median inter-night gap (each and all filters)
+        for filtername in filternames:
+            sql = 'filter="%s"' % filtername
+            metric = maf.InterNightGapsMetric(metricName="Median Inter-Night Gap, %s" % filtername,
+                                              reduceFunc=np.median)
+            bundle_list.append(
+                maf.MetricBundle(
+                    metric,
+                    slicer,
+                    sql,
+                    runName=runName,
+                    summaryMetrics=standardSummary
+                )
+            )
+        sql = ''
+        metric = maf.InterNightGapsMetric(metricName="Median Inter-Night Gap",
+                                          reduceFunc=np.median)
+        bundle_list.append(
+            maf.MetricBundle(
+                metric,
+                slicer,
+                sql,
+                runName=runName,
+                summaryMetrics=standardSummary))
+
+    for b in bundle_list:
         b.setRunName(runName)
-    bundleDict = mb.makeBundlesDictFromList(bundleList)
+    bundleDict = maf.makeBundlesDictFromList(bundle_list)
 
     return bundleDict
