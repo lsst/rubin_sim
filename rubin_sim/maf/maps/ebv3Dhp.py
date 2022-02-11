@@ -46,10 +46,10 @@ def ebv_3d_hp(
     if mapFile is None:
         if nside == 64:
             mapName = "merged_ebv3d_nside64_defaults.fits"
-            mapFile = os.path.join(get_data_dir(), "maps/DustMaps3d", mapName)
+            mapFile = os.path.join(get_data_dir(), "maps/DustMaps3D", mapName)
         elif nside == 128:
             mapName = "merged_ebv3d_nside128_defaults.fits"
-            mapFile = os.path.join(get_data_dir(), "maps/DustMaps3d", mapName)
+            mapFile = os.path.join(get_data_dir(), "maps/DustMaps3D", mapName)
         else:
             raise Exception(
                 f"mapFile not specified, and nside {nside} not one of 64 or 128. "
@@ -58,7 +58,7 @@ def ebv_3d_hp(
     else:
         # Check if user specified map name but not full map path
         if not os.path.isfile(mapFile):
-            testPath = os.path.join(get_data_dir(), "maps/DustMaps3d", mapFile)
+            testPath = os.path.join(get_data_dir(), "maps/DustMaps3D", mapFile)
             if os.path.isfile(testPath):
                 mapFile = testPath
     # Keep track of what nside and what mapFile we're using
