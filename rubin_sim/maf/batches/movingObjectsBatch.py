@@ -17,8 +17,7 @@ from .common import (
 )
 
 __all__ = [
-    "defaultHrange",
-    "defaultCharacterization",
+    "get_defaults",
     "setupMoSlicer",
     "quickDiscoveryBatch",
     "discoveryBatch",
@@ -35,69 +34,79 @@ __all__ = [
 ]
 
 
-def defaultHrange(objtype):
+def get_defaults(objtype):
     "Provide useful default ranges for H, based on objtype of population type."
-    defaultRanges = {
-        "PHA": [16, 28, 0.2],
-        "NEO": [16, 28, 0.2],
-        "MBA": [16, 26, 0.2],
-        "Trojan": [14, 22, 0.2],
-        "TNO": [4, 12, 0.2],
-        "SDO": [4, 12, 0.2],
-        "Oort": (4, 20, 0.5),
+    defaults = {}
+    defaults["PHA"] = {
+        "Hrange": [16, 28, 0.2],
+        "Hmark": 22,
+        "magtype": "asteroid",
+        "char": "inner",
     }
-    defaultHmark = {
-        "PHA": 22,
-        "NEO": 22,
-        "MBA": 20,
-        "Trojan": 18,
-        "TNO": 8,
-        "SDO": 8,
-        "Oort": 5,
+    defaults["NEO"] = {
+        "Hrange": [16, 28, 0.2],
+        "Hmark": 22,
+        "magtype": "asteroid",
+        "char": "inner",
     }
-    if objtype in defaultRanges:
-        Hrange = defaultRanges[objtype]
-        Hmark = defaultHmark[objtype]
-    elif objtype.upper().startswith("GRANVIK"):
-        Hrange = defaultRanges["NEO"]
-        Hmark = defaultHmark["NEO"]
-    elif objtype.upper().startswith("L7"):
-        Hrange = defaultRanges("TNO")
-        Hmark = defaultHmark["TNO"]
-    else:
-        print(
-            f"## Could not find {objtype} in default keys ({defaultRanges.keys()}). \n"
-            f"## Using expanded default range instead."
-        )
-        Hrange = [4, 28, 0.5]
-        Hmark = 10
-    return Hrange, Hmark
+    defaults["MBA"] = {
+        "Hrange": [16, 26, 0.2],
+        "Hmark": 20,
+        "magtype": "asteroid",
+        "char": "inner",
+    }
+    defaults["Trojan"] = {
+        "Hrange": [14, 22, 0.2],
+        "Hmark": 18,
+        "magtype": "asteroid",
+        "char": "inner",
+    }
+    defaults["TNO"] = {
+        "Hrange": [4, 12, 0.2],
+        "Hmark": 8,
+        "magtype": "asteroid",
+        "char": "outer",
+    }
+    defaults["SDO"] = {
+        "Hrange": [4, 12, 0.2],
+        "Hmark": 8,
+        "magtype": "asteroid",
+        "char": "outer",
+    }
+    defaults["LPC"] = {
+        "Hrange": [4, 20, 0.5],
+        "Hmark": 5,
+        "magtype": "comet_oort",
+        "char": "outer",
+    }
+    defaults["SPC"] = {
+        "Hrange": [4, 20, 0.5],
+        "Hmark": 5,
+        "magtype": "comet_short",
+        "char": "outer",
+    }
+    defaults["generic"] = {
+        "Hrange": [4, 28, 0.5],
+        "Hmark": 10,
+        "magtype": "asteroid",
+        "char": "inner",
+    }
+    # Some objtypes may be provided by other names
+    if objtype.upper().startswith("GRANVIK"):
+        objtype = "NEO"
+    if objtype.upper().startswith("L7"):
+        objtype = "TNO"
+    if objtype.upper().startswith("OCC"):
+        objtype = "LPC"
 
-
-def defaultCharacterization(objtype):
-    "Provide useful characterization bundle type, based on objtype of population type."
-    defaultChar = {
-        "PHA": "inner",
-        "NEO": "inner",
-        "MBA": "inner",
-        "Trojan": "inner",
-        "TNO": "outer",
-        "SDO": "outer",
-        "Oort": "outer",
-    }
-    if objtype in defaultChar:
-        char = defaultChar[objtype]
-    elif objtype.upper().startswith("GRANVIK"):
-        char = "inner"
-    elif objtype.upper().startswith("L7"):
-        char = "outer"
-    else:
+    if objtype not in defaults:
         print(
-            f"## Could not find {objtype} in default keys ({defaultChar.keys()}). \n"
-            f"## Using Inner (Asteroid) characterization by default."
+            f"## Could not find {objtype} in default keys ({defaults.keys()}). \n"
+            f"## Using generic default values instead."
         )
-        char = "inner"
-    return char
+        objtype = "generic"
+
+    return defaults[objtype]
 
 
 def setupMoSlicer(orbitFile, Hrange, obsFile=None):
