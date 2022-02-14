@@ -219,6 +219,22 @@ def ddfBatch(runName="opsim", nside=512, radius=4.0):
             )
         )
 
+        # Cumulative distribution
+        displayDict['group'] = 'Progress'
+        displayDict["subgroup"] = ''
+        slicer = maf.UniSlicer()
+        metric = maf.CumulativeMetric()
+        metricb = maf.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            plotFuncs=[maf.XyPlotter()],
+            runName=runName,
+            displayDict=displayDict,
+        )
+        metricb.summaryMetrics = []
+        bundle_list.append(metricb)
+
     for b in bundle_list:
         b.setRunName(runName)
     bundleDict = maf.makeBundlesDictFromList(bundle_list)
