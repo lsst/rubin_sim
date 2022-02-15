@@ -47,6 +47,7 @@ __all__ = [
     "VisitGap",
     "N_good_seeing_basis_function",
     "AvoidDirectWind",
+    "BalanceVisits",
 ]
 
 
@@ -1950,3 +1951,30 @@ class AvoidDirectWind(Base_basis_function):
         reward_map[mask] = np.nan
 
         return reward_map
+
+
+class BalanceVisits(Base_basis_function):
+    def __init__(self, nobs_reference, note_survey, note_interest, nside=None):
+        super().__init__(nside=nside)
+
+        self.nobs_reference = nobs_reference
+
+        self.survey_features = {}
+        self.survey_features["N_obs_survey"] = features.N_obs_survey(note=note_survey)
+        self.survey_features["N_obs_survey_interest"] = features.N_obs_survey(
+            note=note_interest
+        )
+
+    def _calc_value(self, conditions, indx=None):
+
+        return (
+            1
+            + np.floor(
+                self.survey_features["N_obs_survey_interest"].feature
+                / self.nobs_reference
+            )
+        ) / (
+            self.survey_features["N_obs_survey"].feature
+            if self.survey_features["N_obs_survey"].feature > 0
+            else 1
+        )
