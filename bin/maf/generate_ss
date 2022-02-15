@@ -60,7 +60,6 @@ def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False
             os.mkdir(outDir)
         except FileExistsError:
             pass
-        # ss_script (and other run scripts) will be created in outDir
         outfile = f"{run}_ss_script.sh"
         with open(outfile, "w") as f:
             for pop in pops:

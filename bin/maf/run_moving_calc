@@ -116,7 +116,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    if args.orbitFile is None | args.obsFile is None:
+    if args.orbitFile is None or args.obsFile is None:
         print("Must specify an orbitFile and an obsFile to calculate the metrics.")
         exit()
 
