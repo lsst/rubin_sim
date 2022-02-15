@@ -56,22 +56,24 @@ def generate_ss_commands(
 
     runs = [os.path.split(file)[-1].replace(".db", "") for file in dbfiles]
     runs = [run for run in runs if "tracking" not in run]
-    with open(outfile, "w") as f:
-        for pop in pops:
-            objtype = objtypes[pop]
-            for run, filename in zip(runs, dbfiles):
+    for run, filename in zip(runs, dbfiles):
+        outDir = f"{run}_ss"
+        try:
+            os.mkdir(outDir)
+        except FileExistsError:
+            pass
+        # ss_script (and other run scripts) will be created in outDir
+        with open(outfile, "w") as f:
+            for pop in pops:
+                objtype = objtypes[pop]
                 if split:
                     splitfiles = glob.glob(
                         os.path.join(data_dir, "split") + f"/*{pop}*"
                     )
-                    outDir = f"{run}_ss"
                     outfile_split = outfile.replace(".sh", f"_{pop}_split.sh")
-                    try:
-                        os.mkdir(outDir)
-                    except FileExistsError:
-                        # Directory already exists .. maybe need to remove split file
-                        if os.path.isfile(outfile_split):
-                            os.remove(outfile_split)
+                    # If the output split file already exists, remove it (as we append, not write)
+                    if os.path.isfile(outfile_split):
+                        os.remove(outfile_split)
                     for i, splitfile in enumerate(splitfiles):
                         split = os.path.split(splitfile)[-1]
                         split = (
