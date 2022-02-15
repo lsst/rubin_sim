@@ -3,7 +3,6 @@ import glob
 import os
 from rubin_sim.data import get_data_dir
 import argparse
-from rubin_sim.maf import batches
 
 
 def generate_ss_commands(

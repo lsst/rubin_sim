@@ -5,10 +5,10 @@ import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
 import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.slicers as slicers
+from rubin_sim.maf.slicers import MoObjSlicer
 import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.plots as plots
-import rubin_sim.maf.metricBundles as mb
+from rubin_sim.maf.metricBundles import MoMetricBundle
 from .colMapDict import ColMapDict
 from .common import (
     summaryCompletenessAtTime,
@@ -128,7 +128,7 @@ def setupMoSlicer(orbitFile, Hrange, obsFile=None):
     ~rubin_sim.maf.slicer.MoObjSlicer
     """
     # Read the orbit file and set the H values for the slicer.
-    slicer = slicers.MoObjSlicer(Hrange=Hrange)
+    slicer = MoObjSlicer(Hrange=Hrange)
     slicer.setupSlicer(orbitFile=orbitFile, obsFile=obsFile)
     return slicer
 
@@ -228,7 +228,7 @@ def quickDiscoveryBatch(
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -256,7 +256,7 @@ def quickDiscoveryBatch(
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -369,7 +369,7 @@ def discoveryBatch(
     metric = metrics.DiscoveryMetric(nObsPerNight=2, tMin=0, tMax=90. / 60. / 24.,
                                      nNightsPerWindow=3, tWindow=12, **colkwargs)
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(metric, slicer, constraint,
+    bundle = MoMetricBundle(metric, slicer, constraint,
                                 stackerList=[magStacker],
                                 runName=runName, metadata=md,
                                 childMetrics=childMetrics,
@@ -385,7 +385,7 @@ def discoveryBatch(
     metric = metrics.DiscoveryMetric(nObsPerNight=2, tMin=0, tMax=90. / 60. / 24.,
                                      nNightsPerWindow=3, tWindow=20, **colkwargs)
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(metric, slicer, constraint,
+    bundle = MoMetricBundle(metric, slicer, constraint,
                                 stackerList=[magStacker],
                                 runName=runName, metadata=md,
                                 childMetrics=childMetrics,
@@ -401,7 +401,7 @@ def discoveryBatch(
     metric = metrics.DiscoveryMetric(nObsPerNight=2, tMin=0, tMax=90. / 60. / 24.,
                                      nNightsPerWindow=3, tWindow=25, **colkwargs)
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(metric, slicer, constraint,
+    bundle = MoMetricBundle(metric, slicer, constraint,
                                 stackerList=[magStacker],
                                 runName=runName, metadata=md,
                                 childMetrics=childMetrics,
@@ -424,7 +424,7 @@ def discoveryBatch(
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -452,7 +452,7 @@ def discoveryBatch(
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -480,7 +480,7 @@ def discoveryBatch(
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -512,7 +512,7 @@ def discoveryBatch(
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -541,7 +541,7 @@ def discoveryBatch(
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -564,7 +564,7 @@ def discoveryBatch(
     metric = metrics.DiscoveryMetric(nObsPerNight=2, tMin=0, tMax=90. / 60. / 24.,
                                      nNightsPerWindow=3, tWindow=30, snrLimit=5, **colkwargs)
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(metric, slicer, constraint,
+    bundle = MoMetricBundle(metric, slicer, constraint,
                                 stackerList=[magStacker],
                                 runName=runName, metadata=md,
                                 childMetrics=childMetrics,
@@ -581,7 +581,7 @@ def discoveryBatch(
     metric = metrics.DiscoveryMetric(nObsPerNight=2, tMin=0, tMax=90. / 60. / 24.,
                                      nNightsPerWindow=3, tWindow=30, snrLimit=4, **colkwargs)
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(metric, slicer, constraint,
+    bundle = MoMetricBundle(metric, slicer, constraint,
                                 stackerList=[magStacker],
                                 runName=runName, metadata=md,
                                 childMetrics=childMetrics,
@@ -606,7 +606,7 @@ def discoveryBatch(
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -636,7 +636,7 @@ def discoveryBatch(
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -665,7 +665,7 @@ def discoveryBatch(
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -693,7 +693,7 @@ def discoveryBatch(
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -715,7 +715,7 @@ def discoveryBatch(
     metric = metrics.HighVelocityNightsMetric(
         psfFactor=2.0, nObsPerNight=2, **colkwargs
     )
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -733,7 +733,7 @@ def discoveryBatch(
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.MagicDiscoveryMetric(nObs=6, tWindow=60, **colkwargs)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -1079,7 +1079,7 @@ def characterizationInnerBatch(
     }
     plotDict.update(basicPlotDict)
     metric = metrics.NObsMetric(**colkwargs)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -1101,7 +1101,7 @@ def characterizationInnerBatch(
     }
     plotDict.update(basicPlotDict)
     metric = metrics.ObsArcMetric(**colkwargs)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -1124,7 +1124,7 @@ def characterizationInnerBatch(
         }
         metricName = "Chances of detecting activity lasting %.0f days" % w
         metric = metrics.ActivityOverTimeMetric(w, metricName=metricName, **colkwargs)
-        bundle = mb.MoMetricBundle(
+        bundle = MoMetricBundle(
             metric,
             slicer,
             constraint,
@@ -1145,7 +1145,7 @@ def characterizationInnerBatch(
         }
         metricName = "Chances of detecting activity covering %.0f deg" % (b)
         metric = metrics.ActivityOverPeriodMetric(b, metricName=metricName, **colkwargs)
-        bundle = mb.MoMetricBundle(
+        bundle = MoMetricBundle(
             metric,
             slicer,
             constraint,
@@ -1169,7 +1169,7 @@ def characterizationInnerBatch(
     }
     plotDict.update(basicPlotDict)
     metric = metrics.LightcurveInversion_AsteroidMetric(**colkwargs)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -1193,7 +1193,7 @@ def characterizationInnerBatch(
     }
     plotDict.update(basicPlotDict)
     metric = metrics.Color_AsteroidMetric(**colkwargs)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -1279,7 +1279,7 @@ def characterizationOuterBatch(
     }
     plotDict.update(basicPlotDict)
     metric = metrics.NObsMetric(**colkwargs)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -1301,7 +1301,7 @@ def characterizationOuterBatch(
     }
     plotDict.update(basicPlotDict)
     metric = metrics.ObsArcMetric(**colkwargs)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,
@@ -1324,7 +1324,7 @@ def characterizationOuterBatch(
         }
         metricName = "Chances of detecting activity lasting %.0f days" % w
         metric = metrics.ActivityOverTimeMetric(w, metricName=metricName, **colkwargs)
-        bundle = mb.MoMetricBundle(
+        bundle = MoMetricBundle(
             metric,
             slicer,
             constraint,
@@ -1345,7 +1345,7 @@ def characterizationOuterBatch(
         }
         metricName = "Chances of detecting activity covering %.0f deg" % (b)
         metric = metrics.ActivityOverPeriodMetric(b, metricName=metricName, **colkwargs)
-        bundle = mb.MoMetricBundle(
+        bundle = MoMetricBundle(
             metric,
             slicer,
             constraint,
@@ -1370,7 +1370,7 @@ def characterizationOuterBatch(
     }
     plotDict.update(basicPlotDict)
     metric = metrics.LightcurveColor_OuterMetric(**colkwargs)
-    bundle = mb.MoMetricBundle(
+    bundle = MoMetricBundle(
         metric,
         slicer,
         constraint,

@@ -1,29 +1,30 @@
 import os
 import logging
 import numpy as np
+from rubin_sim.maf.utils import getSimData
 from .orbits import Orbits
 from .directObs import DirectObs
-from rubin_sim.maf.batches import getColMap
-import rubin_sim.maf.utils as utils
 
 __all__ = ["readOpsim", "readOrbits", "setupColors", "runObs"]
 
 
-def readOpsim(opsimfile, constraint=None, footprint="camera", dbcols=None):
+def readOpsim(opsimfile, colmap, constraint=None, footprint="camera", dbcols=None):
     """Read the opsim database.
 
     Parameters
     ----------
-    opsimfile: str
+    opsimfile : `str`
         Name (& path) of the opsim database file.
-    constraint: str, optional
+    colmap : `dict`
+        colmap dictionary (from rubin_sim.maf.batches.ColMapDict)
+    constraint : `str`, optional
         Optional SQL constraint (minus 'where') on the opsim data to read from db.
         Default is None.
-    footprint: str, optional
+    footprint : `str`, optional
         Footprint option for the final matching of object against OpSim FOV.
         Default 'camera' means that 'rotSkyPos' must be fetched from the db.
         Any other value will not require rotSkyPos.
-    dbcols: list of str, optional
+    dbcols : `list` of `str`, optional
         List of additional columns to query from the db and add to the output observations.
         Default None.
 
@@ -32,8 +33,6 @@ def readOpsim(opsimfile, constraint=None, footprint="camera", dbcols=None):
     np.ndarray, dictionary
         The OpSim data read from the database, and the dictionary mapping the column names to the data.
     """
-
-    colmap = getColMap(opsimfile)
     if "rotSkyPos" not in colmap:
         colmap["rotSkyPos"] = "rotSkyPos"
 
@@ -60,11 +59,11 @@ def readOpsim(opsimfile, constraint=None, footprint="camera", dbcols=None):
     logging.info("Querying for columns:\n %s" % (cols))
 
     # Go ahead and query for all of the observations.
-    simdata = utils.getSimData(opsimfile, constraint, cols)
+    simdata = getSimData(opsimfile, constraint, cols)
     logging.info(
         "Queried data from opsim %s, fetched %d visits." % (opsimfile, len(simdata))
     )
-    return simdata, colmap
+    return simdata
 
 
 def readOrbits(orbitfile):

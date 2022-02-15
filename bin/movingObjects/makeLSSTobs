@@ -5,6 +5,7 @@ import argparse
 import logging
 
 import rubin_sim.movingObjects as mo
+from rubin_sim.maf.batches import ColMapDict
 
 __all__ = ["setupArgs"]
 
@@ -213,8 +214,10 @@ if __name__ == "__main__":
     orbits = mo.readOrbits(args.orbitFile)
 
     # Read opsim data
-    opsimdata, colmap = mo.readOpsim(
+    colmap = ColMapDict("fbs")
+    opsimdata = mo.readOpsim(
         args.opsimDb,
+        colmap,
         constraint=args.sqlConstraint,
         footprint=args.footprint,
         dbcols=None,
