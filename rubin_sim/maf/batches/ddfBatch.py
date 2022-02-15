@@ -78,6 +78,7 @@ def ddfBatch(runName="opsim", nside=512, radius=4.0):
         zmin = 0.3
         extinction_cut = 1.0
         for f in "ugrizy":
+            sql = 'filter="%s"' % f
             summaryMetrics = [maf.SumMetric(metricName="Total QSO")]
             metric = maf.QSONumberCountsMetric(
                 f,
