@@ -5,9 +5,7 @@ from rubin_sim.data import get_data_dir
 import argparse
 
 
-def generate_ss_commands(
-    outfile="ss_script.sh", dbfiles=None, pops=None, start_mjd=60218.0, split=False
-):
+def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False):
 
     if dbfiles is None:
         dbfiles = glob.glob("*.db")
@@ -63,6 +61,7 @@ def generate_ss_commands(
         except FileExistsError:
             pass
         # ss_script (and other run scripts) will be created in outDir
+        outfile = f"{run}_ss_script.sh"
         with open(outfile, "w") as f:
             for pop in pops:
                 objtype = objtypes[pop]
