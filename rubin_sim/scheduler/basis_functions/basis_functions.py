@@ -47,6 +47,7 @@ __all__ = [
     "VisitGap",
     "N_good_seeing_basis_function",
     "AvoidDirectWind",
+    "BalanceVisits",
 ]
 
 
@@ -1973,3 +1974,57 @@ class AvoidDirectWind(Base_basis_function):
         reward_map[mask] = np.nan
 
         return reward_map
+
+
+class BalanceVisits(Base_basis_function):
+    """Balance visits across multiple surveys.
+
+    Parameters
+    ----------
+    nobs_reference : int
+        Expected number of observations across all interested surveys.
+    note_survey : str
+        Note value for the current survey.
+    note_interest : str
+        Substring with the name of interested surveys to be accounted.
+    nside : int
+        Healpix map resolution.
+
+    Notes
+    -----
+    This basis function is designed to balance the reward of a group of
+    surveys, such that the group get a reward boost based on the required
+    collective number of observations.
+
+    For example, if you have 3 surveys (e.g. SURVEY_A_REGION_1,
+    SURVEY_A_REGION_2, SURVEY_A_REGION_3), when one of them is observed once
+    (SURVEY_A_REGION_1) they all get a small reward boost proportianal to the
+    collective number of observations (`nobs_reference`). Further observations
+    of SURVEY_A_REGION_1 would now cause the other surveys to gain a reward
+    boost in relative to it.
+    """
+
+    def __init__(self, nobs_reference, note_survey, note_interest, nside=None):
+        super().__init__(nside=nside)
+
+        self.nobs_reference = nobs_reference
+
+        self.survey_features = {}
+        self.survey_features["N_obs_survey"] = features.N_obs_survey(note=note_survey)
+        self.survey_features["N_obs_survey_interest"] = features.N_obs_survey(
+            note=note_interest
+        )
+
+    def _calc_value(self, conditions, indx=None):
+
+        return (
+            1
+            + np.floor(
+                self.survey_features["N_obs_survey_interest"].feature
+                / self.nobs_reference
+            )
+        ) / (
+            self.survey_features["N_obs_survey"].feature
+            if self.survey_features["N_obs_survey"].feature > 0
+            else 1
+        )
