@@ -1,6 +1,5 @@
 import numpy as np
 import healpy as hp
-from rubin_sim.utils import hpid2RaDec, angularSeparation
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
@@ -32,7 +31,6 @@ from rubin_sim.maf.mafContrib import (
     generateKNPopSlicer,
     NYoungStarsMetric,
 )
-from rubin_sim.scheduler.surveys import generate_dd_surveys, Deep_drilling_survey
 import rubin_sim.maf as maf
 from rubin_sim.maf.mafContrib.xrbMetrics import generateXRBPopSlicer, XRBPopMetric
 
@@ -47,7 +45,6 @@ def scienceRadarBatch(
     nside=64,
     benchmarkArea=18000,
     benchmarkNvisits=825,
-    DDF=True,
     long_microlensing=False,
 ):
     """A batch of metrics for looking at survey performance relative to the SRD and the main
@@ -57,8 +54,6 @@ def scienceRadarBatch(
     ----------
     long_microlensing : `bool` (False)
         Add the longer running microlensing metrics to the batch
-    DDF : `boool` (True)
-        Add DDF-specific metrics to the batch
     """
 
     if colmap is None:
@@ -711,65 +706,6 @@ def scienceRadarBatch(
         displayDict=displayDict,
     )
     bundleList.append(bundle)
-
-    #########################
-    # DDF
-    #########################
-    if DDF:
-        ddf_surveys = generate_dd_surveys()
-        # Toss out Euclid and add as two distinct ones
-        ddf_surveys = [ddf for ddf in ddf_surveys if ddf.survey_name != "DD:EDFS"]
-
-        # Add on the Euclid fields
-        # XXX--to update. Should have a spot where all the DDF locations are stored.
-        ddf_surveys.append(
-            Deep_drilling_survey([], 58.97, -49.28, survey_name="DD:EDFSa")
-        )
-        ddf_surveys.append(
-            Deep_drilling_survey([], 63.6, -47.60, survey_name="DD:EDFSb")
-        )
-
-        # For doing a high-res sampling of the DDF for co-adds
-        ddf_radius = 1.8  # Degrees
-        ddf_nside = 512
-
-        ra, dec = hpid2RaDec(ddf_nside, np.arange(hp.nside2npix(ddf_nside)))
-
-        displayDict = {"group": "DDF depths", "subgroup": None}
-
-        for survey in ddf_surveys:
-            displayDict["subgroup"] = survey.survey_name
-            # Crop off the u-band only DDF
-            if survey.survey_name[0:4] != "DD:u":
-                dist_to_ddf = angularSeparation(
-                    ra, dec, np.degrees(survey.ra), np.degrees(survey.dec)
-                )
-                goodhp = np.where(dist_to_ddf <= ddf_radius)
-                slicer = slicers.UserPointsSlicer(ra=ra[goodhp], dec=dec[goodhp])
-                for f in filterlist:
-                    metric = metrics.Coaddm5Metric(
-                        metricName=survey.survey_name + ", " + f
-                    )
-                    summary = [
-                        metrics.MedianMetric(
-                            metricName="Median depth " + survey.survey_name + ", " + f
-                        )
-                    ]
-                    plotDict = {"color": colors[f]}
-                    sql = filtersqls[f]
-                    displayDict["order"] = filterorders[f]
-                    displayDict["caption"] = "Coadded m5 depth in %s band." % (f)
-                    bundle = mb.MetricBundle(
-                        metric,
-                        slicer,
-                        sql,
-                        metadata=filtermetadata[f],
-                        displayDict=displayDict,
-                        summaryMetrics=summary,
-                        plotFuncs=[],
-                        plotDict=plotDict,
-                    )
-                    bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
