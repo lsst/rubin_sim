@@ -248,6 +248,35 @@ def scienceRadarBatch(
 
     bundleList.append(bundle)
 
+    # TDC metric
+    # Calculate a subset of DESC WFD-related metrics.
+    nside_tdc = 64
+    displayDict = {"group": "Strong Lensing"}
+    displayDict["subgroup"] = "Lens Time Delay"
+
+    tdc_plots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
+    tdc_summary = [metrics.MeanMetric(), metrics.MedianMetric(), metrics.RmsMetric()]
+    # Ideally need a way to do better on calculating the summary metrics for the high accuracy area.
+    slicer = slicers.HealpixSlicer(nside=nside_tdc, useCache=False)
+    tdcMetric = metrics.TdcMetric(
+        metricName="TDC",
+        mjdCol=colmap["mjd"],
+        nightCol=colmap["night"],
+        filterCol=colmap["filter"],
+        m5Col=colmap["fiveSigmaDepth"],
+    )
+    dustmap = maps.DustMap(nside=nside_tdc, interp=False)
+    bundle = mb.MetricBundle(
+        tdcMetric,
+        slicer,
+        constraint='',
+        displayDict=displayDict,
+        plotFuncs=tdc_plots,
+        mapsList=[dustmap],
+        summaryMetrics=tdc_summary,
+    )
+    bundleList.append(bundle)
+
     #########################
     # Variables and Transients
     #########################
