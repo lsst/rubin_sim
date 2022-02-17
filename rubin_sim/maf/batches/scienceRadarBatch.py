@@ -154,7 +154,18 @@ def scienceRadarBatch(
             slicer,
             filtersqls[f],
             displayDict=displayDict,
-            summaryMetrics=[maf.MedianMetric(), maf.MeanMetric()],
+        )
+        bundleList.append(bundle)
+
+    displayDict['caption'] = ''
+    for f in filterlist:
+        slicer = maf.UniSlicer()
+        metric = maf.MedianMetric(col='fiveSigmaDepth')
+        bundle = mb.MetricBundle(
+            metric,
+            slicer,
+            filtersqls[f],
+            displayDict=displayDict,
         )
         bundleList.append(bundle)
 
@@ -332,7 +343,7 @@ def scienceRadarBatch(
     slicer = slicers.HealpixSlicer(nside=nside)
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
-    displayDict["subgroup"] = ("Rapid Revisits",)
+    displayDict["subgroup"] = "Rapid Revisits"
 
     # Calculate the actual number of revisits within 30 minutes.
     dTmax = 30  # time in minutes
@@ -344,7 +355,7 @@ def scienceRadarBatch(
         "Number of consecutive visits with return times faster than %.1f minutes, "
         % (dTmax)
     )
-    caption += "in any filter, all proposals. "
+    caption += "in any filter. "
     displayDict["caption"] = caption
     bundle = mb.MetricBundle(
         m2,
@@ -527,7 +538,6 @@ def scienceRadarBatch(
             normVal=1 / pix_area, metricName="Effective Area (deg)"
         ),
     ]
-    bundleList = []
     displayDict["order"] = 0
     for yr_cut in yrs:
         ptsrc_lim_mag_i_band = mag_cuts[yr_cut]
