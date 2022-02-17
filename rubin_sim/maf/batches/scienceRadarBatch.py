@@ -138,6 +138,26 @@ def scienceRadarBatch(
     )
     bundleList.append(bundle)
 
+    # Single visit depth distribution
+    displayDict["subgroup"] = "Visit Depths"
+    # Histogram values over all and per filter.
+
+    value = "fiveSigmaDepth"
+    for f in filterlist:
+        displayDict["caption"] = "Histogram of %s" % (value)
+        displayDict["caption"] += " for %s." % (filtermetadata[f])
+        displayDict["order"] = filterorders[f]
+        m = metrics.CountMetric(value, metricName="%s Histogram" % (value))
+        slicer = slicers.OneDSlicer(sliceColName=value)
+        bundle = mb.MetricBundle(
+            m,
+            slicer,
+            filtersqls[f],
+            displayDict=displayDict,
+            summaryMetrics=[maf.MedianMetric(), maf.MeanMetric()],
+        )
+        bundleList.append(bundle)
+
     ##############
     # Astrometry
     ###############
@@ -153,12 +173,8 @@ def scienceRadarBatch(
     slicer = slicers.HealpixSlicer(nside=nside)
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
-    displayDict = {
-        "group": "SRD",
-        "subgroup": "Parallax",
-        "order": 0,
-        "caption": None,
-    }
+    displayDict["subgroup"] = "Parallax"
+    displayDict["order"] += 1
     # Expected error on parallax at 10 AU.
     plotmaxVals = (2.0, 15.0)
     good_parallax_limit = 11.5
@@ -258,12 +274,8 @@ def scienceRadarBatch(
         displayDict["order"] += 1
 
     # Proper Motion metrics.
-    displayDict = {
-        "group": "SRD",
-        "subgroup": "Proper Motion",
-        "order": 0,
-        "caption": None,
-    }
+    displayDict["subgroup"] = "Proper Motion"
+    displayDict["order"] += 1
     # Proper motion errors.
     plotmaxVals = (1.0, 5.0)
     summary = [
@@ -320,12 +332,7 @@ def scienceRadarBatch(
     slicer = slicers.HealpixSlicer(nside=nside)
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
-    displayDict = {
-        "group": "SRD",
-        "subgroup": "Rapid Revisits",
-        "order": 0,
-        "caption": None,
-    }
+    displayDict["subgroup"] = ("Rapid Revisits",)
 
     # Calculate the actual number of revisits within 30 minutes.
     dTmax = 30  # time in minutes
@@ -402,12 +409,8 @@ def scienceRadarBatch(
     # Year Coverage
     ###############
 
-    displayDict = {
-        "group": "SRD",
-        "subgroup": "Year Coverage",
-        "order": 0,
-        "caption": "Number of years with observations.",
-    }
+    displayDict["subgroup"] = "Year Coverage"
+    displayDict["order"] += 1
     slicer = slicers.HealpixSlicer(nside=nside)
     metric = metrics.YearCoverageMetric()
     for f in filterlist:
@@ -476,13 +479,7 @@ def scienceRadarBatch(
     bundleList.append(bundle)
     displayDict["order"] += 1
 
-    order = displayDict["order"]
-    displayDict = {
-        "group": "Galaxies",
-        "subgroup": "Surface Brightness",
-        "order": order,
-        "caption": None,
-    }
+    displayDict["subgroup"] = "Surface Brightness"
     slicer = slicers.HealpixSlicer(nside=nside)
     summary = [metrics.MedianMetric()]
     for filtername in "ugrizy":
