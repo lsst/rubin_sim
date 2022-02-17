@@ -157,10 +157,10 @@ def scienceRadarBatch(
         )
         bundleList.append(bundle)
 
-    displayDict['caption'] = ''
+    displayDict["caption"] = ""
     for f in filterlist:
         slicer = maf.UniSlicer()
-        metric = maf.MedianMetric(col='fiveSigmaDepth')
+        metric = maf.MedianMetric(col="fiveSigmaDepth")
         bundle = mb.MetricBundle(
             metric,
             slicer,
