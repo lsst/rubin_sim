@@ -221,8 +221,8 @@ def ddfBatch(runName="opsim", nside=512, radius=4.0):
         )
 
         # Cumulative distribution
-        displayDict['group'] = 'Progress'
-        displayDict["subgroup"] = ''
+        displayDict["group"] = "Progress"
+        displayDict["subgroup"] = ""
         slicer = maf.UniSlicer()
         metric = maf.CumulativeMetric()
         metricb = maf.MetricBundle(
