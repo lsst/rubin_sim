@@ -5,33 +5,9 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.maps as maps
 import rubin_sim.maf.metricBundles as mb
-from .common import (
-    standardSummary,
-    extendedSummary,
-    lightcurveSummary,
-    filterList,
-    microlensingSummary,
-)
-from rubin_sim.maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import (
-    GalaxyCountsMetric_extended,
-)
-from rubin_sim.maf.mafContrib import (
-    TdePopMetric,
-    TdePopMetricQuality,
-    generateTdePopSlicer,
-    generateMicrolensingSlicer,
-    MicrolensingMetric,
-    get_KNe_filename,
-    KNePopMetric,
-    generateKNPopSlicer,
-    NYoungStarsMetric,
-)
+from .common import standardSummary, extendedSummary, lightcurveSummary, filterList
 import rubin_sim.maf as maf
-from rubin_sim.maf.mafContrib.xrbMetrics import generateXRBPopSlicer, XRBPopMetric
-from rubin_sim.maf.mafContrib import StaticProbesFoMEmulatorMetric
-from rubin_sim.maf.mafContrib.lssmetrics.depthLimitedNumGalMetric import (
-    DepthLimitedNumGalMetric,
-)
+
 
 __all__ = ["scienceRadarBatch"]
 
@@ -463,7 +439,9 @@ def scienceRadarBatch(
     }
     plotDict = {"percentileClip": 95.0, "nTicks": 5}
     sql = 'filter="i"'
-    metric = GalaxyCountsMetric_extended(filterBand="i", redshiftBin="all", nside=nside)
+    metric = maf.GalaxyCountsMetric_extended(
+        filterBand="i", redshiftBin="all", nside=nside
+    )
     summary = [
         metrics.AreaSummaryMetric(
             area=18000,
@@ -547,7 +525,7 @@ def scienceRadarBatch(
         ThreebyTwoSummary_simple = metrics.StaticProbesFoMEmulatorMetricSimple(
             nside=nside, year=yr_cut, metricName="3x2ptFoM_simple"
         )
-        ThreebyTwoSummary = StaticProbesFoMEmulatorMetric(
+        ThreebyTwoSummary = maf.StaticProbesFoMEmulatorMetric(
             nside=nside, metricName="3x2ptFoM"
         )
 
@@ -596,7 +574,7 @@ def scienceRadarBatch(
     # Galaxy numbers calculated using 'bandpass' images only though.
     sqlconstraint = f'note not like "DD%"'
     metadata = f"{bandpass} band galaxies non-DD"
-    metric = DepthLimitedNumGalMetric(
+    metric = maf.DepthLimitedNumGalMetric(
         nside=nside,
         filterBand=bandpass,
         redshiftBin="all",
@@ -791,8 +769,8 @@ def scienceRadarBatch(
     displayDict["subgroup"] = "TDE"
     displayDict["caption"] = "TDE lightcurves that could be identified"
 
-    metric = TdePopMetric()
-    slicer = generateTdePopSlicer()
+    metric = maf.TdePopMetric()
+    slicer = maf.generateTdePopSlicer()
     bundle = mb.MetricBundle(
         metric,
         slicer,
@@ -804,7 +782,7 @@ def scienceRadarBatch(
     bundleList.append(bundle)
 
     displayDict["caption"] = "TDE lightcurves quality"
-    metric = TdePopMetricQuality(metricName="TDE_Quality")
+    metric = maf.TdePopMetricQuality(metricName="TDE_Quality")
     bundle = mb.MetricBundle(
         metric,
         slicer,
@@ -1051,12 +1029,12 @@ def scienceRadarBatch(
         {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 25.8},
         {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 0.0},
     ]
-    filename = get_KNe_filename(inj_params_list)
-    slicer = generateKNPopSlicer(
+    filename = maf.get_KNe_filename(inj_params_list)
+    slicer = maf.generateKNPopSlicer(
         n_events=n_events, n_files=len(filename), d_min=10, d_max=600
     )
     # Set outputLc=True if you want light curves
-    metric = KNePopMetric(outputLc=False, file_list=filename)
+    metric = maf.KNePopMetric(outputLc=False, file_list=filename)
     bundle = mb.MetricBundle(
         metric,
         slicer,
@@ -1185,8 +1163,8 @@ def scienceRadarBatch(
     # XRB metric
     displayDict["subgroup"] = "XRB"
     n_events = 10000
-    slicer = generateXRBPopSlicer(n_events=n_events)
-    metric = XRBPopMetric(outputLc=True)
+    slicer = maf.generateXRBPopSlicer(n_events=n_events)
+    metric = maf.XRBPopMetric(outputLc=True)
     xrb_summaryMetrics = [
         maf.SumMetric(metricName="Total detected"),
         maf.CountMetric(metricName="Total lightcurves in footprint"),

@@ -1,1 +1,1 @@
-__all__ = ["egFootprintMetric", "DepthLimitedNumGalMetric"]
+from .depthLimitedNumGalMetric import *
