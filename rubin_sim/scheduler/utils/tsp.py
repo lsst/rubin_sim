@@ -32,6 +32,7 @@ def generate_dist_matrix(towns):
     x_dist = x - x[:, np.newaxis]
     y_dist = y - y[:, np.newaxis]
     distances = np.sqrt(x_dist ** 2 + y_dist ** 2)
+
     return distances
 
 
@@ -193,11 +194,8 @@ def tsp_convex(towns, optimize=False, niter=10):
     """
     hull_verts = generate_hulls(towns)
     dist_matrix = generate_dist_matrix(towns)
-    try:
-        route = merge_hulls(hull_verts, dist_matrix)
-    except:
-        print("hulls_verts", hull_verts)
-        print("dist_matrix", dist_matrix)
+    route = merge_hulls(hull_verts, dist_matrix)
+
     if optimize:
         distance = route_length(route, dist_matrix)
         iter_count = 0
