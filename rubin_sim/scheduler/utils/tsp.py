@@ -114,11 +114,7 @@ def merge_hulls(indices_lists, dist_matrix):
                 collapsed_indices.rotate(1)
                 possible_results.append(collapsed_indices + dindex)
                 possible_lengths.append(route_length(possible_results[-1], dist_matrix))
-            try:
-                best = np.min(np.where(possible_lengths == np.nanmin(possible_lengths)))
-            except:
-                print('length possible lengths=', len(possible_lengths))
-                print('possible lengths=', possible_lengths)
+            best = np.min(np.where(possible_lengths == np.nanmin(possible_lengths)))
             collapsed_indices = possible_results[best]
     return list(collapsed_indices)
 
