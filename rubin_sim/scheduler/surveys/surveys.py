@@ -510,10 +510,7 @@ class Blob_survey(Greedy_survey):
         # Now I have a bunch of x,y pointings. Drop into TSP solver to get an effiencent route
         towns = np.vstack((pointing_x, pointing_y)).T
         # Leaving optimize=False for speed. The optimization step doesn't usually improve much.
-        try:
-            better_order = tsp_convex(towns, optimize=False)
-        except:
-            print(towns)
+        better_order = tsp_convex(towns, optimize=False)
         # XXX-TODO: Could try to roll better_order to start at the nearest/fastest slew from current position.
         observations = []
         counter2 = 0

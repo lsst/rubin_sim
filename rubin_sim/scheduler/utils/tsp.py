@@ -193,7 +193,11 @@ def tsp_convex(towns, optimize=False, niter=10):
     """
     hull_verts = generate_hulls(towns)
     dist_matrix = generate_dist_matrix(towns)
-    route = merge_hulls(hull_verts, dist_matrix)
+    try:
+        route = merge_hulls(hull_verts, dist_matrix)
+    except:
+        print("hulls_verts", hull_verts)
+        print("dist_matrix", dist_matrix)
     if optimize:
         distance = route_length(route, dist_matrix)
         iter_count = 0
