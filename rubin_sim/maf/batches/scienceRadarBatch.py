@@ -258,45 +258,9 @@ def scienceRadarBatch(
     #########################
     displayDict = {
         "group": "Variables/Transients",
-        "subgroup": "Periodic Stars",
         "order": 0,
         "caption": None,
     }
-    for period in [0.5, 1, 2]:
-        for magnitude in [21.0, 24.0]:
-            amplitudes = [0.05, 0.1, 1.0]
-            periods = [period] * len(amplitudes)
-            starMags = [magnitude] * len(amplitudes)
-
-            plotDict = {"nTicks": 3, "colorMin": 0, "colorMax": 3, "xMin": 0, "xMax": 3}
-            metadata = combineMetadata(
-                "P_%.1f_Mag_%.0f_Amp_0.05-0.1-1" % (period, magnitude), extraMetadata
-            )
-            sql = extraSql
-            displayDict["caption"] = (
-                "Metric evaluates if a periodic signal of period %.1f days could "
-                "be detected for an r=%i star. A variety of amplitudes of periodicity "
-                "are tested: [1, 0.1, and 0.05] mag amplitudes, which correspond to "
-                "metric values of [1, 2, or 3]. " % (period, magnitude)
-            )
-            metric = metrics.PeriodicDetectMetric(
-                periods=periods,
-                starMags=starMags,
-                amplitudes=amplitudes,
-                metricName="PeriodDetection",
-            )
-            bundle = mb.MetricBundle(
-                metric,
-                healslicer,
-                sql,
-                metadata=metadata,
-                displayDict=displayDict,
-                plotDict=plotDict,
-                plotFuncs=subsetPlots,
-                summaryMetrics=standardStats,
-            )
-            bundleList.append(bundle)
-            displayDict["order"] += 1
 
     # Tidal Disruption Events
     displayDict["subgroup"] = "TDE"
