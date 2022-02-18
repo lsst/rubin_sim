@@ -205,7 +205,9 @@ class Scripted_survey(BaseSurvey):
         observations = self._check_list(conditions)
         if observations is not None:
             observations = [self._slice2obs(obs) for obs in observations]
-        import pdb ; pdb.set_trace()
+        import pdb
+
+        pdb.set_trace()
         return observations
 
 
