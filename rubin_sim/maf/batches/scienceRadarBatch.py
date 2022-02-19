@@ -17,6 +17,7 @@ from .colMapDict import ColMapDict
 from .srdBatch import fOBatch, astrometryBatch, rapidRevisitBatch
 from .descWFDBatch import descWFDBatch
 from .agnBatch import agnBatch
+from .periodicStarBatch import periodicStarsBatch
 from .timeBatch import timeGaps
 from rubin_sim.maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import (
     GalaxyCountsMetric_extended,
@@ -261,6 +262,13 @@ def scienceRadarBatch(
         "order": 0,
         "caption": None,
     }
+
+    # AGN structure function error
+    periodicStarBundles = periodicStarsBatch(
+        colmap=colmap, runName=runName, nside=nside
+    )
+    for d in periodicStarBundles:
+        bundleList.append(periodicStarBundles[d])
 
     # Tidal Disruption Events
     displayDict["subgroup"] = "TDE"
