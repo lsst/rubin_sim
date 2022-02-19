@@ -11,3 +11,4 @@ from .moPlotters import *
 from .perceptual_rainbow import *
 from .nightPointingPlotter import *
 from .hgPlotters import *
+from .xyplotter import *

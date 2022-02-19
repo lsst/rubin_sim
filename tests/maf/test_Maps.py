@@ -84,6 +84,64 @@ class TestMaps(unittest.TestCase):
         else:
             warnings.warn("Did not find dustmaps, not running testMaps.py")
 
+    def testDustMap3D(self):
+
+        nside = 8
+        mapFile = os.path.join(get_data_dir(), "tests", f"test_ebv3d_nside{nside}.fits")
+        if os.path.isfile(mapFile):
+
+            data = makeDataValues(random=981)
+            dustmap = maps.DustMap3D(nside=nside, mapFile=mapFile, interp=False)
+
+            slicer1 = slicers.HealpixSlicer(
+                latLonDeg=False, nside=nside, useCamera=False
+            )
+            slicer1.setupSlicer(data)
+            result1 = dustmap.run(slicer1.slicePoints)
+            assert "ebv3d_ebvs" in list(result1.keys())
+            assert "ebv3d_dists" in list(result1.keys())
+
+            fieldData = makeFieldData(2234)
+
+            slicer2 = slicers.UserPointsSlicer(
+                fieldData["fieldRA"], fieldData["fieldDec"], latLonDeg=False
+            )
+            result2 = dustmap.run(slicer2.slicePoints)
+            assert "ebv3d_ebvs" in list(result2.keys())
+            assert "ebv3d_dists" in list(result2.keys())
+
+            # Check interpolation works
+            dustmap = maps.DustMap3D(
+                interp=True, nside=nside, mapFile=mapFile, distPc=2000, dMag=10
+            )
+            result3 = dustmap.run(slicer2.slicePoints)
+            assert "ebv3d_ebvs" in list(result3.keys())
+            assert "ebv3d_dists" in list(result3.keys())
+            assert "ebv3d_ebv_at_2000.0" in list(result3.keys())
+            assert "ebv3d_dist_at_10.0" in list(result3.keys())
+
+            # Check that we can call the distance at magnitude method
+            dists = dustmap.distance_at_dmag(
+                5, result3["ebv3d_dists"], result3["ebv3d_ebvs"], "r"
+            )
+            # And call it without running the map (and thus reading more info) first
+            dists = maps.DustMap3D().distance_at_dmag(
+                5, result3["ebv3d_dists"], result3["ebv3d_ebvs"], "r"
+            )
+            # And call it as a static method at one point on the sky
+            dists = maps.DustMap3D().distance_at_dmag(
+                5, result3["ebv3d_dists"][0, :], result3["ebv3d_ebvs"][0, :], "r"
+            )
+
+            # Check warning gets raised
+            dustmap = maps.DustMap3D(nside=4, mapFile=mapFile)
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                dustmap.run(slicer1.slicePoints)
+                self.assertIn("nside", str(w[-1].message))
+        else:
+            warnings.warn("Did not find dustmaps, not running testMaps.py")
+
     def testStarMap(self):
         mapPath = os.path.join(get_data_dir(), "tests")
 

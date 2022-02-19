@@ -121,9 +121,13 @@ class SkyModelPre(object):
         # Go ahead and load the small one in the repo by default
         if speedLoad:
             self._load_data(
-                59853.0,
-                filename=os.path.join(data_path, "59853_59856.npz"),
-                npyfile=os.path.join(data_path, "59853_59856.npy"),
+                60218.0,
+                filename=os.path.join(
+                    get_data_dir(), "skybrightness_pre_small", "60218_60226.npz"
+                ),
+                npyfile=os.path.join(
+                    get_data_dir(), "skybrightness_pre_small", "60218_60226.npy"
+                ),
             )
 
     def _load_data(self, mjd, filename=None, npyfile=None):
