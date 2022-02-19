@@ -8,12 +8,8 @@ import os
 import numpy as np
 import healpy as hp
 import rubin_sim.maf as maf
-from astropy import units as u
-from astropy_healpix import HEALPix
-from astropy.coordinates import Galactic, TETE, SkyCoord
 from astropy.io import fits
 from rubin_sim.data import get_data_dir
-import readGalPlaneMaps
 
 class galPlaneFootprintMetric(maf.BaseMetric):
     """Metric to evaluate the survey overlap with desired regions in the Galactic Plane
@@ -33,7 +29,9 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         **kwargs
     ):
         """Kwargs must contain:
-        filters  list Filterset over which to compute the metric
+        science_map   string  Name of the priority footprint map to use from
+                                the column headers contained in the
+                                priority_GalPlane_footprint_map_data tables
         """
 
         self.ra_col = "fieldRA"
@@ -41,6 +39,7 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         self.filterCol = "filter"
         self.m5Col = "fiveSigmaDepth"
         self.filters = ["u", "g", "r", "i", "z", "y"]
+        self.science_map = kwargs['science_map']
         self.magCuts = {
             "u": 22.7,
             "g": 24.1,
@@ -51,77 +50,33 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         }
         cwd = os.getcwd()
         self.MAP_DIR = get_data_dir()
-        self.MAP_FILE_ROOT_NAME = "priority_GalPlane_footprint_map_data"
+        self.MAP_FILE_NAME = "priority_GalPlane_footprint_map_data_sum.fits"
         self.load_maps()
 
-        super().__init__(col=cols, metricName=metricName, metricDtype="object")
+        super().__init__(col=cols, metricName=metricName)
 
     def load_maps(self):
         self.NSIDE = 64
         self.NPIX = hp.nside2npix(self.NSIDE)
-        self.ideal_combined_map = np.zeros(self.NPIX)
-        for f in self.filters:
-            file_path = os.path.join(
-                self.MAP_DIR,
-                "maf",
-                self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
-                )
-            map_data_table = readGalPlaneMaps.load_map_data(file_path)
-
-            setattr(self, "map_" + str(f), map_data_table['combined_map'])
-            setattr(self, "map_data_" + str(f), map_data_table)
-            self.ideal_combined_map += map_data_table['combined_map']
-
-    def run(self, dataSlice, slicePoint=None):
-
-        # Initialize holding array for map pixels in the dataSlice that
-        # overlap with the desired survey area, summed over all filters
-        dataslice_map = np.zeros(self.NPIX)
-
-        for f in self.filters:
-            # Select from the dataSlice observations that meet the limiting magnitude
-            # requirements for the science concerned for this filter
-            idx1 = np.where(dataSlice[self.filterCol] == f)[0]
-            idx2 = np.where(dataSlice[self.m5Col] >= self.magCuts[f])[0]
-            match = list(set(idx1).intersection(set(idx2)))
-
-            # Calculate the ICRS coordinates of the observed fields and
-            # convert these to galactic coordinates
-            coords_icrs = SkyCoord(
-                dataSlice[self.ra_col][match],
-                dataSlice[self.dec_col][match],
-                frame="icrs",
-                unit=(u.deg, u.deg),
+        file_path = os.path.join(
+            self.MAP_DIR,
+            "maf",
+            self.MAP_FILE_NAME,
             )
-            coords_gal = coords_icrs.transform_to(Galactic())
+        with fits.open(file_path) as hdul:
+            self.map_data_table = hdul[1].data
 
-            # Calculate which HEALpixels in the sky map are covered by these
-            # observations
-            ahp = HEALPix(nside=self.NSIDE, order="ring", frame=TETE())
-            pixels = ahp.skycoord_to_healpix(coords_gal)
+    def run(self, dataSlice, slicePoint):
+        """Metric extracts the scientific priority of the given HEALpixel from
+        the prepared maps of the desired survey footprint for galactic science.
+        The priority map used has been summed over all filters for the
+        science case indicated by the kwargs.  This is normalized using the
+        summed priority for the map combining the priorities of all science
+        cases."""
 
-            # Add the priority values for these HEALpixels from the map of
-            # the desired footprint to the combined_map array
-            weighted_map = getattr(self, "map_" + str(f))
-            dataslice_map[pixels] += weighted_map[pixels]
+        sciencePriority = self.map_data_table[self.science_map][slicePoint['sid']]
+        combinedPriotity = self.map_data_table['combined_map'][slicePoint['sid']]
 
-        # This loop computes the main metric value over all HEALpixels in the sky map
-        # ("combined_map") as well as over the HEALpixels of the specific regions
-        # of interest for different science cases
-        map_data = getattr(self, "map_data_" + str(f))
-        metric_data = {}
+        metric = sciencePriority.sum() / combinedPriotity.sum()
 
-        for col in map_data.columns:
-
-            region_pixels = np.where(map_data[col.name] > 0.0)
-
-            # To return a single metric value for the whole map, sum the total
-            # priority of all desired pixels included in the survey observations:
-            metric = dataslice_map[region_pixels].sum()
-
-            # Normalize by full weighted map summed over all filters and pixels:
-            metric /= self.ideal_combined_map[region_pixels].sum()
-
-            metric_data[col.name] = metric
-
-        return metric_data
+        return metric
