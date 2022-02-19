@@ -1,11 +1,20 @@
 import numpy as np
-import lsst.sims.skybrightness as sb
-import lsst.sims.utils as utils
+import rubin_sim.skybrightness as sb
+import rubin_sim.utils as utils
 import healpy as hp
 import sys
 import os
 import ephem
-from lsst.sims.skybrightness.utils import mjd2djd
+
+
+def mjd2djd(inDate):
+    """
+    Convert Modified Julian Date to Dublin Julian Date (what pyephem uses).
+    """
+    if not hasattr(mjd2djd, "doff"):
+        mjd2djd.doff = ephem.Date(0) - ephem.Date("1858/11/17")
+    djd = inDate - mjd2djd.doff
+    return djd
 
 
 def generate_sky(
@@ -274,10 +283,10 @@ def generate_sky(
     for key in sky_brightness:
         sky_brightness[key] = np.array(sky_brightness[key])
 
-    import lsst.sims.skybrightness_pre
+    import rubin_sim
 
-    version = lsst.sims.skybrightness_pre.version.__version__
-    fingerprint = lsst.sims.skybrightness_pre.version.__fingerprint__
+    version = rubin_sim.version.__version__
+    fingerprint = version
     # Generate a header to save all the kwarg info for how this run was computed
     header = {
         "mjd0": mjd0,

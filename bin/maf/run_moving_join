@@ -61,6 +61,8 @@ if __name__ == '__main__':
                 metricNames.append(mname)
             elif 'Discovery_N_Chances' in mname:
                 metricNames.append(mname)
+            elif 'Magic' in mname:
+                metricNames.append(mname)
             else:
                 pass
         else:

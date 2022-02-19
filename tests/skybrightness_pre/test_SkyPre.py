@@ -196,9 +196,6 @@ class TestSkyPre(unittest.TestCase):
                         diff = sky1[filtername][good] - sky2[filtername][good]
                         assert np.max(np.abs(diff)) <= mag_tol
 
-    @unittest.skip(
-        "Don't want to add sims_data as dependency, and this does a large file load too"
-    )
     def test_various(self):
         """
         Test some various loading things
@@ -207,8 +204,6 @@ class TestSkyPre(unittest.TestCase):
         sm = sbp.SkyModelPre(speedLoad=True)
         mjd = self.sm.info["mjds"][10] + 0.1
         mags = sm.returnMags(mjd)
-        # check that it'll load up something later properly
-        mags = sm.returnMags(60000)
 
 
 if __name__ == "__main__":

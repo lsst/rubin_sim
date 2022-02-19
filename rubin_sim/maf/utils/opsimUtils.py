@@ -28,7 +28,7 @@ def getSimData(
     ----------
     db_con : `str` or SQLAlchemy connectable, or sqlite3 connection
         Filename to a sqlite3 file, or a connection object that can be used by pandas.read_sql
-    sqlconstraint : `str`
+    sqlconstraint : `str` or None
         SQL constraint to apply to query for observations. Ignored if full_sql_query is set.
     dbcols : `list` [`str`]
         Columns required from the database. Ignored if full_sql_query is set.
@@ -46,6 +46,8 @@ def getSimData(
         A numpy structured array with columns resulting from dbcols + stackers, for observations matching
         the SQLconstraint.
     """
+    if sqlconstraint is None:
+        sqlconstraint = ""
 
     # Check that file exists
     if type(db_con) == str:

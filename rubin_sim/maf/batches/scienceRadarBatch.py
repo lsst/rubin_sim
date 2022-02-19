@@ -23,16 +23,18 @@ from rubin_sim.maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import 
 )
 from rubin_sim.maf.mafContrib import (
     TdePopMetric,
+    TdePopMetricQuality,
     generateTdePopSlicer,
     generateMicrolensingSlicer,
     MicrolensingMetric,
     get_KNe_filename,
     KNePopMetric,
     generateKNPopSlicer,
+    NYoungStarsMetric,
 )
 from rubin_sim.scheduler.surveys import generate_dd_surveys, Deep_drilling_survey
 import rubin_sim.maf as maf
-
+from rubin_sim.maf.mafContrib.xrbMetrics import generateXRBPopSlicer, XRBPopMetric
 
 __all__ = ["scienceRadarBatch"]
 
@@ -313,6 +315,19 @@ def scienceRadarBatch(
     )
     bundleList.append(bundle)
 
+    displayDict["caption"] = "TDE lightcurves quality"
+    metric = TdePopMetricQuality(metricName="TDE_Quality")
+    bundle = mb.MetricBundle(
+        metric,
+        slicer,
+        extraSql,
+        runName=runName,
+        metadata=extraMetadata,
+        summaryMetrics=lightcurveSummary(),
+        displayDict=displayDict,
+    )
+    bundleList.append(bundle)
+
     # AGN structure function error
     agnBundleDict = agnBatch(colmap=colmap, runName=runName, nside=nside)
     for d in agnBundleDict:
@@ -489,6 +504,49 @@ def scienceRadarBatch(
         temp_list.append(bundles[b])
     bundleList.extend(temp_list)
 
+    # Presto KNe metric
+    displayDict["subgroup"] = "Presto KNe"
+    slicer = maf.generatePrestoPopSlicer(skyregion="extragalactic")
+    metric = maf.PrestoColorKNePopMetric(
+        skyregion="extragalactic", metricName="PrestoKNe"
+    )
+    summaryMetrics_kne = [maf.MedianMetric(), maf.SumMetric()]
+    bundleList.append(
+        maf.MetricBundle(
+            metric,
+            slicer,
+            None,
+            runName=runName,
+            displayDict=displayDict,
+            summaryMetrics=summaryMetrics_kne,
+        )
+    )
+
+    # XRB metric
+    displayDict["subgroup"] = "XRB"
+    n_events = 10000
+    slicer = generateXRBPopSlicer(n_events=n_events)
+    metric = XRBPopMetric(outputLc=True)
+    xrb_summaryMetrics = [
+        maf.SumMetric(metricName="Total detected"),
+        maf.CountMetric(metricName="Total lightcurves in footprint"),
+        maf.CountMetric(metricName="Total lightcurves on sky", maskVal=0),
+        maf.MeanMetric(metricName="Fraction detected in footprint"),
+        maf.MeanMetric(maskVal=0, metricName="Fraction detected of total"),
+        maf.MedianMetric(metricName="Median"),
+    ]
+
+    bundleList.append(
+        maf.MetricBundle(
+            metric,
+            slicer,
+            "",
+            runName=runName,
+            summaryMetrics=xrb_summaryMetrics,
+            displayDict=displayDict,
+        )
+    )
+
     #########################
     # Milky Way
     #########################
@@ -579,6 +637,41 @@ def scienceRadarBatch(
             summaryMetrics=sum_stats,
             displayDict=displayDict,
             runName=runName,
+        )
+    )
+
+    metric = metrics.BDParallaxMetric(
+        mags={"i": 18.35, "z": 16.68, "y": 15.66}, metricName="Brown Dwarf, L4"
+    )
+    bundleList.append(
+        mb.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            plotDict=plotDict,
+            summaryMetrics=sum_stats,
+            displayDict=displayDict,
+            runName=runName,
+        )
+    )
+
+    displayDict["subgroup"] = "Young Stellar Objects"
+    nside_yso = 64
+    sql = ""
+    # Let's plug in the magnitudes for one type
+    metric = maf.mafContrib.NYoungStarsMetric(nside=nside_yso)
+    slicer = maf.slicers.HealpixSlicer(nside=nside_yso, useCache=False)
+    summaryStats = [maf.metrics.SumMetric()]
+    plotDict = {"logScale": True, "colorMin": 1}
+    bundleList.append(
+        maf.metricBundles.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            plotDict=plotDict,
+            summaryMetrics=summaryStats,
+            runName=runName,
+            displayDict=displayDict,
         )
     )
 
@@ -677,6 +770,24 @@ def scienceRadarBatch(
                         plotDict=plotDict,
                     )
                     bundleList.append(bundle)
+
+        # Now to loop over again.
+        ddf_surveys = generate_dd_surveys()
+        for survey in ddf_surveys:
+            displayDict = {"group": "DDF Progress", "subgroup": survey.survey_name}
+            slicer = slicers.UniSlicer()
+            sql = "note = '%s'" % survey.survey_name
+            metric = metrics.CumulativeMetric()
+            metricb = maf.MetricBundle(
+                metric,
+                slicer,
+                sql,
+                plotFuncs=[plots.XyPlotter()],
+                runName=runName,
+                displayDict=displayDict,
+            )
+            metricb.summaryMetrics = []
+            bundleList.append(metricb)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
