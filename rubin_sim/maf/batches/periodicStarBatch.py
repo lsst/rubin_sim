@@ -1,3 +1,4 @@
+import numpy as np
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
