@@ -5,12 +5,7 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.maps as maps
 import rubin_sim.maf.metricBundles as mb
-from .common import (
-    standardSummary,
-    extendedSummary,
-    lightcurveSummary,
-    filterList
-)
+from .common import standardSummary, extendedSummary, lightcurveSummary, filterList
 import rubin_sim.maf as maf
 
 
@@ -795,7 +790,7 @@ def scienceRadarBatch(
 
             plotDict = {"nTicks": 3, "colorMin": 0, "colorMax": 3, "xMin": 0, "xMax": 3}
             metadata = "P_%.1f_Mag_%.0f_Amp_0.05-0.1-1" % (period, magnitude)
-            sql = ''
+            sql = ""
             displayDict["caption"] = (
                 "Metric evaluates if a periodic signal of period %.1f days could "
                 "be detected for an r=%i star. A variety of amplitudes of periodicity "
