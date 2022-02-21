@@ -1,5 +1,6 @@
 import numpy as np
 import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.mafContrib as mafContrib
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.metricBundles as mb
@@ -89,7 +90,7 @@ def periodicStarsBatch(
                 "Evaluated based on the first two years of the LSST survey data only. "
                 f"Searching time interval of {time_interval} and distance modulus {dM}."
             )
-            m = metrics.PeriodicStarModulationMetric(
+            m = mafContrib.PeriodicStarModulationMetric(
                 period=0.3,
                 amplitude=0.3,
                 random_phase=True,
