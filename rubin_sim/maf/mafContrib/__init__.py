@@ -20,3 +20,5 @@ from .kneMetrics import *
 from .LVDwarfs import *
 from .prestoColorKNePopMetric import *
 from .YoungStellarObjectsMetric import *
+from .xrbMetrics import *
+from .depthLimitedNumGalMetric import *

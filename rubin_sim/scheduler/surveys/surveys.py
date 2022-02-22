@@ -504,7 +504,7 @@ class Blob_survey(Greedy_survey):
             pointing_az, pointing_alt, mid_az, mid_alt
         )
         # Round off positions so that we ensure identical cross-platform performance
-        scale = 1e6
+        scale = 1e4
         pointing_x = np.round(pointing_x * scale).astype(int)
         pointing_y = np.round(pointing_y * scale).astype(int)
         # Now I have a bunch of x,y pointings. Drop into TSP solver to get an effiencent route

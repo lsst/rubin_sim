@@ -32,6 +32,7 @@ def generate_dist_matrix(towns):
     x_dist = x - x[:, np.newaxis]
     y_dist = y - y[:, np.newaxis]
     distances = np.sqrt(x_dist ** 2 + y_dist ** 2)
+
     return distances
 
 
@@ -98,7 +99,7 @@ def merge_hulls(indices_lists, dist_matrix):
     Parameters
     ----------
     indices_list : list of lists with ints
-    dist_matric : np.array
+    dist_matrix : np.array
     """
     # start with the outer hull one. Use deque to rotate fast.
     collapsed_indices = deque(indices_lists[0])
@@ -114,7 +115,7 @@ def merge_hulls(indices_lists, dist_matrix):
                 collapsed_indices.rotate(1)
                 possible_results.append(collapsed_indices + dindex)
                 possible_lengths.append(route_length(possible_results[-1], dist_matrix))
-            best = np.min(np.where(possible_lengths == np.min(possible_lengths)))
+            best = np.min(np.where(possible_lengths == np.nanmin(possible_lengths)))
             collapsed_indices = possible_results[best]
     return list(collapsed_indices)
 
@@ -194,6 +195,7 @@ def tsp_convex(towns, optimize=False, niter=10):
     hull_verts = generate_hulls(towns)
     dist_matrix = generate_dist_matrix(towns)
     route = merge_hulls(hull_verts, dist_matrix)
+
     if optimize:
         distance = route_length(route, dist_matrix)
         iter_count = 0
