@@ -1,6 +1,5 @@
 from .colMapDict import *
 from .common import *
-from .srdBatch import *
 from .slewBatch import *
 from .timeBatch import *
 from .metadataBatch import *
@@ -13,6 +12,3 @@ from .skycoverage import *
 from .altazBatch import *
 from .movingObjectsBatch import *
 from .scienceRadarBatch import *
-from .descWFDBatch import *
-from .ddfBatch import *
-from .agnBatch import *

@@ -19,6 +19,7 @@ def scienceRadarBatch(
     benchmarkNvisits=825,
     minNvisits=750,
     long_microlensing=False,
+    srd_only=False,
 ):
     """A batch of metrics for looking at survey performance relative to the SRD and the main
     science drivers of LSST.
@@ -27,6 +28,8 @@ def scienceRadarBatch(
     ----------
     long_microlensing : `bool` (False)
         Add the longer running microlensing metrics to the batch
+    srd_only : `bool` (False)
+        Only return the SRD metrics
     """
 
     bundleList = []
@@ -39,9 +42,10 @@ def scienceRadarBatch(
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
     #########################
+    #########################
     # SRD, DM, etc
     #########################
-
+    #########################
     # fO metric
     displayDict = {"group": "SRD", "subgroup": "FO metrics", "order": 0}
 
@@ -144,6 +148,13 @@ def scienceRadarBatch(
             displayDict=displayDict,
         )
         bundleList.append(bundle)
+
+    if srd_only:
+        for b in bundleList:
+            b.setRunName(runName)
+        bundleDict = mb.makeBundlesDictFromList(bundleList)
+
+        return bundleDict
 
     ##############
     # Astrometry
@@ -313,9 +324,7 @@ def scienceRadarBatch(
         bundleList.append(bundle)
         displayDict["order"] += 1
 
-    ############
     # Rapid Revisit
-    #############
     slicer = slicers.HealpixSlicer(nside=nside)
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
@@ -392,10 +401,7 @@ def scienceRadarBatch(
     )
     bundleList.append(bundle)
 
-    ###############
     # Year Coverage
-    ###############
-
     displayDict["subgroup"] = "Year Coverage"
     displayDict["order"] += 1
     slicer = slicers.HealpixSlicer(nside=nside)
@@ -423,12 +429,9 @@ def scienceRadarBatch(
         )
 
     #########################
-    # Solar System
-    #########################
-    # Generally, we need to run Solar System metrics separately; they're a multi-step process.
-
     #########################
     # Galaxies
+    #########################
     #########################
 
     displayDict = {
@@ -488,7 +491,9 @@ def scienceRadarBatch(
         bundleList.append(bundle)
 
     #########################
+    #########################
     # Cosmology
+    #########################
     #########################
 
     bandpass = "i"
@@ -698,6 +703,115 @@ def scienceRadarBatch(
 
     bundleList.append(bundle)
 
+    #########################
+    #########################
+    # AGN
+    #########################
+    #########################
+
+    # AGN structure function error
+    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    displayDict = {"group": "AGN", "order": 0}
+
+    # Calculate the number of expected QSOs, in each band
+    for f in filterlist:
+        sql = filtersqls[f] + ' and note not like "%DD%"'
+        md = filtermetadata[f] + " and non-DD"
+        summaryMetrics = [metrics.SumMetric(metricName="Total QSO")]
+        zmin = 0.3
+        m = metrics.QSONumberCountsMetric(
+            f,
+            units="mag",
+            extinction_cut=1.0,
+            qlf_module="Shen20",
+            qlf_model="A",
+            SED_model="Richards06",
+            zmin=zmin,
+            zmax=None,
+        )
+        displayDict["subgroup"] = "nQSO"
+        displayDict["caption"] = (
+            "The expected number of QSOs in regions of low dust extinction,"
+            f"based on detection in {f} bandpass."
+        )
+        bundleList.append(
+            mb.MetricBundle(
+                m,
+                slicer,
+                constraint=sql,
+                metadata=md,
+                runName=runName,
+                summaryMetrics=summaryMetrics,
+                displayDict=displayDict,
+            )
+        )
+
+    # Calculate the expected AGN structure function error
+    # These agn test magnitude values are determined by looking at the baseline median m5 depths
+    # For v1.7.1 these values are:
+    agn_m5 = {"u": 22.89, "g": 23.94, "r": 23.5, "i": 22.93, "z": 22.28, "y": 21.5}
+    # And the expected medians SF error at those values is about 0.04
+    threshold = 0.04
+    summaryMetrics = extendedSummary()
+    summaryMetrics += [metrics.AreaThresholdMetric(upper_threshold=threshold)]
+    for f in filterlist:
+        m = metrics.SFErrorMetric(
+            mag=agn_m5[f],
+            metricName="AGN SF_error",
+        )
+        plotDict = {"color": colors[f]}
+        displayDict["order"] = filterorders[f]
+        displayDict["subgroup"] = "SFError"
+        displayDict["caption"] = (
+            "Expected AGN structure function errors, based on observations in "
+            f"{f} band, for an AGN of magnitude {agn_m5[f]:.2f}"
+        )
+        bundleList.append(
+            mb.MetricBundle(
+                m,
+                slicer,
+                constraint=filtersqls[f],
+                metadata=filtermetadata[f],
+                runName=runName,
+                plotDict=plotDict,
+                summaryMetrics=summaryMetrics,
+                displayDict=displayDict,
+            )
+        )
+
+    # Run the TimeLag for each filter *and* all filters
+    nquist_threshold = 2.2
+    lag = 100
+    summaryMetrics = extendedSummary()
+    summaryMetrics += [metrics.AreaThresholdMetric(lower_threshold=nquist_threshold)]
+    m = metrics.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
+    for f in filterlist:
+        plotDict = {"color": colors[f], "percentileClip": 95}
+        displayDict["order"] = filterorders[f]
+        displayDict["subgroup"] = "Time Lags"
+        displayDict["caption"] = (
+            f"Comparion of the time between visits compared to a defined sampling gap ({lag} days) in "
+            f"{f} band."
+        )
+        bundleList.append(
+            mb.MetricBundle(
+                m,
+                slicer,
+                constraint=filtersqls[f],
+                metadata=filtermetadata[f],
+                runName=runName,
+                plotDict=plotDict,
+                summaryMetrics=summaryMetrics,
+                displayDict=displayDict,
+            )
+        )
+
+    #########################
+    #########################
+    # Strong Lensing
+    #########################
+    #########################
+
     # TDC metric
     # Calculate a subset of DESC WFD-related metrics.
     nside_tdc = 64
@@ -721,8 +835,30 @@ def scienceRadarBatch(
     )
     bundleList.append(bundle)
 
+    # Strongly lensed SNe
+    displayDict["group"] = "Strong Lensing"
+    displayDict["subgroup"] = "SLSN"
+    displayDict[
+        "caption"
+    ] = "Strongly Lensed SNe, evaluated with the addition of galactic dust extinction."
+    metric = metrics.SNSLMetric()
+    slicer = slicers.HealpixSlicer(nside=64, useCache=False)
+    plotDict = {}
+    bundle = mb.MetricBundle(
+        metric,
+        slicer,
+        "",
+        runName=runName,
+        plotDict=plotDict,
+        summaryMetrics=lightcurveSummary(),
+        displayDict=displayDict,
+    )
+    bundleList.append(bundle)
+
+    #########################
     #########################
     # Variables and Transients
+    #########################
     #########################
 
     # Periodic Stars
@@ -839,123 +975,6 @@ def scienceRadarBatch(
         slicer,
         "",
         runName=runName,
-        summaryMetrics=lightcurveSummary(),
-        displayDict=displayDict,
-    )
-    bundleList.append(bundle)
-
-    # AGN structure function error
-    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
-    displayDict = {"group": "AGN", "order": 0}
-
-    # Calculate the number of expected QSOs, in each band
-    for f in filterlist:
-        sql = filtersqls[f] + ' and note not like "%DD%"'
-        md = filtermetadata[f] + " and non-DD"
-        summaryMetrics = [metrics.SumMetric(metricName="Total QSO")]
-        zmin = 0.3
-        m = metrics.QSONumberCountsMetric(
-            f,
-            units="mag",
-            extinction_cut=1.0,
-            qlf_module="Shen20",
-            qlf_model="A",
-            SED_model="Richards06",
-            zmin=zmin,
-            zmax=None,
-        )
-        displayDict["subgroup"] = "nQSO"
-        displayDict["caption"] = (
-            "The expected number of QSOs in regions of low dust extinction,"
-            f"based on detection in {f} bandpass."
-        )
-        bundleList.append(
-            mb.MetricBundle(
-                m,
-                slicer,
-                constraint=sql,
-                metadata=md,
-                runName=runName,
-                summaryMetrics=summaryMetrics,
-                displayDict=displayDict,
-            )
-        )
-
-    # Calculate the expected AGN structure function error
-    # These agn test magnitude values are determined by looking at the baseline median m5 depths
-    # For v1.7.1 these values are:
-    agn_m5 = {"u": 22.89, "g": 23.94, "r": 23.5, "i": 22.93, "z": 22.28, "y": 21.5}
-    # And the expected medians SF error at those values is about 0.04
-    threshold = 0.04
-    summaryMetrics = extendedSummary()
-    summaryMetrics += [metrics.AreaThresholdMetric(upper_threshold=threshold)]
-    for f in filterlist:
-        m = metrics.SFErrorMetric(
-            mag=agn_m5[f],
-            metricName="AGN SF_error",
-        )
-        plotDict = {"color": colors[f]}
-        displayDict["order"] = filterorders[f]
-        displayDict["subgroup"] = "SFError"
-        displayDict["caption"] = (
-            "Expected AGN structure function errors, based on observations in "
-            f"{f} band, for an AGN of magnitude {agn_m5[f]:.2f}"
-        )
-        bundleList.append(
-            mb.MetricBundle(
-                m,
-                slicer,
-                constraint=filtersqls[f],
-                metadata=filtermetadata[f],
-                runName=runName,
-                plotDict=plotDict,
-                summaryMetrics=summaryMetrics,
-                displayDict=displayDict,
-            )
-        )
-
-    # Run the TimeLag for each filter *and* all filters
-    nquist_threshold = 2.2
-    lag = 100
-    summaryMetrics = extendedSummary()
-    summaryMetrics += [metrics.AreaThresholdMetric(lower_threshold=nquist_threshold)]
-    m = metrics.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
-    for f in filterlist:
-        plotDict = {"color": colors[f], "percentileClip": 95}
-        displayDict["order"] = filterorders[f]
-        displayDict["subgroup"] = "Time Lags"
-        displayDict["caption"] = (
-            f"Comparion of the time between visits compared to a defined sampling gap ({lag} days) in "
-            f"{f} band."
-        )
-        bundleList.append(
-            mb.MetricBundle(
-                m,
-                slicer,
-                constraint=filtersqls[f],
-                metadata=filtermetadata[f],
-                runName=runName,
-                plotDict=plotDict,
-                summaryMetrics=summaryMetrics,
-                displayDict=displayDict,
-            )
-        )
-
-    # Strongly lensed SNe
-    displayDict["group"] = "Strong Lensing"
-    displayDict["subgroup"] = "SLSN"
-    displayDict[
-        "caption"
-    ] = "Strongly Lensed SNe, evaluated with the addition of galactic dust extinction."
-    metric = metrics.SNSLMetric()
-    slicer = slicers.HealpixSlicer(nside=64, useCache=False)
-    plotDict = {}
-    bundle = mb.MetricBundle(
-        metric,
-        slicer,
-        "",
-        runName=runName,
-        plotDict=plotDict,
         summaryMetrics=lightcurveSummary(),
         displayDict=displayDict,
     )
@@ -1237,7 +1256,9 @@ def scienceRadarBatch(
     )
 
     #########################
+    #########################
     # Milky Way
+    #########################
     #########################
 
     displayDict = {"group": "Milky Way", "subgroup": ""}
@@ -1361,7 +1382,9 @@ def scienceRadarBatch(
     )
 
     #########################
+    #########################
     # Scaling numbers
+    #########################
     #########################
 
     displayDict = {"group": "Scaling Numbers", "subgroup": ""}
