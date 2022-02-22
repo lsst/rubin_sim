@@ -204,7 +204,7 @@ class Scripted_survey(BaseSurvey):
     def generate_observations_rough(self, conditions):
         observations = self._check_list(conditions)
         observations = [self._slice2obs(obs) for obs in observations]
-        
+
         return observations
 
 

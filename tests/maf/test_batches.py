@@ -37,7 +37,6 @@ class TestBatches(unittest.TestCase):
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
         "Skip these batches unless MAF data present, required for setup",
     )
-
     def test_movingObjectsBatches(self):
         slicer = MoObjSlicer()
         ack = batches.quickDiscoveryBatch(slicer)
