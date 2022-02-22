@@ -4,7 +4,6 @@ from .TripletMetric import *
 from .varMetrics import *
 from .varDepthMetric import *
 from .lssMetrics import *
-from .lssmetrics import *
 from .photPrecMetrics import *
 from .StarCountMassMetric import *
 from .StarCountMetric import *
@@ -22,3 +21,4 @@ from .LVDwarfs import *
 from .prestoColorKNePopMetric import *
 from .YoungStellarObjectsMetric import *
 from .xrbMetrics import *
+from .depthLimitedNumGalMetric import *
