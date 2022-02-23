@@ -53,7 +53,7 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         self.MAP_FILE_NAME = "priority_GalPlane_footprint_map_data_sum.fits"
         self.load_maps()
 
-        super().__init__(col=cols, metricName=metricName)
+        super().__init__(col=cols, metricName=metricName, metricDtype="object")
 
     def load_maps(self):
         self.NSIDE = 64
@@ -74,9 +74,17 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         summed priority for the map combining the priorities of all science
         cases."""
 
-        sciencePriority = self.map_data_table[self.science_map][slicePoint['sid']]
-        combinedPriotity = self.map_data_table['combined_map'][slicePoint['sid']]
+        metric_data = {}
 
-        metric = sciencePriority.sum() / combinedPriotity.sum()
+        pixPriority = self.map_data_table[self.science_map][slicePoint['sid']]
 
-        return metric
+        iObservations = []
+        for f in self.filters:
+            idx = list(np.where(dataSlice[self.m5Col] >= self.magCuts[f])[0])
+            if len(idx) > 0:
+                iObservations += idx
+
+        metric_data['nObservations'] = len(iObservations)
+        metric_data['priority'] = pixPriority
+
+        return metric_data
