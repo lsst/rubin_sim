@@ -11,6 +11,7 @@ import rubin_sim.maf as maf
 from astropy.io import fits
 from rubin_sim.data import get_data_dir
 
+
 class galPlaneFootprintMetric(maf.BaseMetric):
     """Metric to evaluate the survey overlap with desired regions in the Galactic Plane
     and Magellanic Clouds, by referencing the pre-computed priority maps provided.
@@ -39,7 +40,7 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         self.filterCol = "filter"
         self.m5Col = "fiveSigmaDepth"
         self.filters = ["u", "g", "r", "i", "z", "y"]
-        self.science_map = kwargs['science_map']
+        self.science_map = kwargs["science_map"]
         self.magCuts = {
             "u": 22.7,
             "g": 24.1,
@@ -62,7 +63,7 @@ class galPlaneFootprintMetric(maf.BaseMetric):
             self.MAP_DIR,
             "maf",
             self.MAP_FILE_NAME,
-            )
+        )
         with fits.open(file_path) as hdul:
             self.map_data_table = hdul[1].data
 
@@ -76,7 +77,7 @@ class galPlaneFootprintMetric(maf.BaseMetric):
 
         metric_data = {}
 
-        pixPriority = self.map_data_table[self.science_map][slicePoint['sid']]
+        pixPriority = self.map_data_table[self.science_map][slicePoint["sid"]]
 
         iObservations = []
         for f in self.filters:
@@ -84,7 +85,7 @@ class galPlaneFootprintMetric(maf.BaseMetric):
             if len(idx) > 0:
                 iObservations += idx
 
-        metric_data['nObservations'] = len(iObservations)
-        metric_data['priority'] = pixPriority
+        metric_data["nObservations"] = len(iObservations)
+        metric_data["priority"] = pixPriority
 
         return metric_data

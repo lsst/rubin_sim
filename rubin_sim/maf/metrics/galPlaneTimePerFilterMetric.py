@@ -13,6 +13,7 @@ import rubin_sim.maf as maf
 from rubin_sim.data import get_data_dir
 from astropy.io import fits
 
+
 class galPlaneTimePerFilter(maf.BaseMetric):
     """Metric to evaluate for each HEALpix, the fraction of exposure time spent in each filter as
      a fraction of the total exposure time dedicated to that HEALpix (fExpT).  The metric sums this over
@@ -54,7 +55,7 @@ class galPlaneTimePerFilter(maf.BaseMetric):
         self.mjdCol = "observationStartMJD"
         self.exptCol = "visitExposureTime"
         self.filters = ["u", "g", "r", "i", "z", "y"]
-        self.science_map = kwargs['science_map']
+        self.science_map = kwargs["science_map"]
         self.magCuts = {
             "u": 22.7,
             "g": 24.1,
@@ -80,7 +81,7 @@ class galPlaneTimePerFilter(maf.BaseMetric):
                 self.MAP_DIR,
                 "maf",
                 self.MAP_FILE_ROOT_NAME + "_" + str(f) + ".fits",
-                )
+            )
             with fits.open(file_path) as hdul:
                 self.map_data[f] = hdul[1].data
 
@@ -88,9 +89,9 @@ class galPlaneTimePerFilter(maf.BaseMetric):
             self.MAP_DIR,
             "maf",
             self.MAP_FILE_ROOT_NAME + "_sum.fits",
-            )
+        )
         with fits.open(file_path) as hdul:
-            self.map_data['sum'] = hdul[1].data
+            self.map_data["sum"] = hdul[1].data
 
     def calc_idealfExpT(self):
         """Method to calculate the optimal value of the fExpT metric for each
@@ -100,7 +101,10 @@ class galPlaneTimePerFilter(maf.BaseMetric):
         self.ideal_fExpT = {}
 
         for f in self.filters:
-            self.ideal_fExpT[f] = self.map_data[f][self.science_map]/self.map_data['sum'][self.science_map]
+            self.ideal_fExpT[f] = (
+                self.map_data[f][self.science_map]
+                / self.map_data["sum"][self.science_map]
+            )
 
     def run(self, dataSlice, slicePoint):
 
@@ -132,8 +136,8 @@ class galPlaneTimePerFilter(maf.BaseMetric):
             # slicePoint based on the priority map data.
             # If no exposures are expected in this filter for this location,
             # this metric returns zero.
-            if self.ideal_fExpT[f][slicePoint['sid']] > 0:
-                metric_data[f] = fexpt / self.ideal_fExpT[f][slicePoint['sid']]
+            if self.ideal_fExpT[f][slicePoint["sid"]] > 0:
+                metric_data[f] = fexpt / self.ideal_fExpT[f][slicePoint["sid"]]
             else:
                 metric_data[f] = 0.0
 
