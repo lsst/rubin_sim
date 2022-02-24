@@ -1,8 +1,11 @@
 import warnings
 import numpy as np
 import palpy
-from rubin_sim.utils import Site, m5_flat_sed
+from rubin_sim.utils import Site, m5_flat_sed, SysEngVals
 from .baseStacker import BaseStacker
+from rubin_sim.photUtils import Bandpass, PhotometricParameters
+from rubin_sim.data import get_data_dir
+import os
 
 __all__ = [
     "NormAirmassStacker",
@@ -67,24 +70,31 @@ class SaturationStacker(BaseStacker):
         self.filterCol = filterCol
         self.airmassCol = airmassCol
         self.saturation_adu = saturation_e / gain
-        self.pixscale = 0.2
-        names = ["u", "g", "r", "i", "z", "y"]
-        types = [float] * 6
+        self.pixscale = pixscale
+        self.saturation_adu = saturation_e
         if zeropoints is None:
-            # Note these zeropoints are calculating the number of *electrons* per second (thus gain=1)
-            # https://github.com/lsst-pst/syseng_throughputs/blob/master/notebooks/Syseng%20Throughputs%20Repo%20Demo.ipynb
-            self.zeropoints = np.array([27.03, 28.38, 28.15, 27.86, 27.46, 26.68]).view(
-                list(zip(names, types))
-            )
-            self.saturation_adu = saturation_e
+            zp_inst = {}
+            datadir = get_data_dir()
+            for filtername in "ugrizy":
+                # set gain and exptime to 1 so the instrumental zeropoint will be in photoelectrons and per second
+                phot_params = PhotometricParameters(
+                    nexp=1, gain=1, exptime=1, bandpass=filtername
+                )
+                bp = Bandpass()
+                bp.readThroughput(
+                    os.path.join(
+                        datadir, "throughputs/baseline/", "total_%s.dat" % filtername
+                    )
+                )
+                zp_inst[filtername] = bp.calcZP_t(phot_params)
+            self.zeropoints = zp_inst
+            
         else:
             self.zeropoints = zeropoints
 
         if km is None:
-            # Also from notebook above
-            self.km = np.array([0.491, 0.213, 0.126, 0.096, 0.069, 0.170]).view(
-                list(zip(names, types))
-            )
+            syseng = SysEngVals()
+            self.km = syseng.kAtm
         else:
             self.km = km
 
@@ -125,6 +135,8 @@ class SaturationStacker(BaseStacker):
             simData["saturation_mag"][in_filt] -= self.km[filtername] * (
                 simData[self.airmassCol][in_filt] - 1.0
             )
+            # Explicitly make sure if sky has saturated we return NaN
+            simData["saturation_mag"][np.where(remaining_counts_peak < 0)] = np.nan
 
         return simData
 
