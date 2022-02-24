@@ -545,7 +545,7 @@ class TwilightInterp(object):
         self,
         interpPoints,
         maxAM=3.0,
-        limits=[np.radians(15.0), np.radians(-20.0)],
+        limits=(np.radians(15.0), np.radians(-20.0)),
         filterNames=["u", "g", "r", "i", "z", "y"],
     ):
         """
@@ -579,7 +579,7 @@ class TwilightInterp(object):
         return {"spec": result, "wave": self.lsstEffWave}
 
     def interpSpec(
-        self, interpPoints, maxAM=3.0, limits=[np.radians(15.0), np.radians(-20.0)]
+        self, interpPoints, maxAM=3.0, limits=(np.radians(15.0), np.radians(-20.0))
     ):
         """
         interpPoints should have airmass, azRelSun, and sunAlt.
