@@ -19,6 +19,10 @@ class galPlaneTimePerFilter(maf.BaseMetric):
      all HEALpix in the Galactic Plane/Magellanic Clouds region of interest and all filters and
      presents the result as a fraction of the value expected from the optimal survey strategy.
 
+
+    WARNING: This metric should only be applied to a HEALpix slicer, otherwise
+    the metric value retrieved may refer to the wrong part of the sky
+
     Parameters
     ----------
     fieldRA : float, RA in degrees of a given pointing

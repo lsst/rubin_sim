@@ -15,7 +15,6 @@ from astropy.coordinates import Galactic, TETE, SkyCoord
 from astropy.time import Time
 from datetime import datetime
 from rubin_sim.data import get_data_dir
-import readGalPlaneMaps
 
 class MicrolensingEvent():
 

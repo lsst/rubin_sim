@@ -15,6 +15,9 @@ class galPlaneFootprintMetric(maf.BaseMetric):
     """Metric to evaluate the survey overlap with desired regions in the Galactic Plane
     and Magellanic Clouds, by referencing the pre-computed priority maps provided.
 
+    WARNING: This metric should only be applied to a HEALpix slicer, otherwise
+    the metric value retrieved may refer to the wrong part of the sky
+
     Parameters
     ----------
     fieldRA : float, RA in degrees of a given pointing
@@ -72,7 +75,8 @@ class galPlaneFootprintMetric(maf.BaseMetric):
         The priority map used has been summed over all filters for the
         science case indicated by the kwargs.  This is normalized using the
         summed priority for the map combining the priorities of all science
-        cases."""
+        cases.
+        """
 
         metric_data = {}
 
