@@ -1234,7 +1234,7 @@ def scienceRadarBatch(
     displayDict["subgroup"] = "XRB"
     n_events = 10000
     slicer = maf.generateXRBPopSlicer(n_events=n_events)
-    metric = maf.XRBPopMetric(outputLc=True)
+    metric = maf.XRBPopMetric(outputLc=False)
     xrb_summaryMetrics = [
         maf.SumMetric(metricName="Total detected"),
         maf.CountMetric(metricName="Total lightcurves in footprint"),
