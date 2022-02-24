@@ -275,6 +275,13 @@ class RunComparison:
         self.summaryStats.index.name = "run_name"
         self.summaryStats.columns.name = "metric"
 
+    def __call__(self, **kwargs):
+        """Convenience method if one just wants to gererate and return the
+        dataframe with summary stats
+        """
+        self.addSummaryStats(**kwargs)
+        return self.summaryStats
+
     def getFileNames(self, metricName, metricMetadata=None, slicerName=None):
         """Find the locations of a given metric in all available directories.
 
