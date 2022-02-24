@@ -107,11 +107,6 @@ class galPlaneTimePerFilter(maf.BaseMetric):
         # Pre-calculating data that will be used later
         total_expt = dataSlice[self.exptCol].sum()
 
-        # This metric is calculated both for the combined priority map as well
-        # as the maps for the component science cases, hence the returned
-        # metric_data is a dictionary.  ideal_data contains the corresponding
-        # metric values if the survey strategy returned ideal results for
-        # each given science case; these data are used for normalization
         metric_data = {}
         for f in self.filters:
             metric_data[f] = {}
@@ -135,12 +130,11 @@ class galPlaneTimePerFilter(maf.BaseMetric):
 
             # This value is normalized against the ideal fExpT predicted for this
             # slicePoint based on the priority map data.
-            # If no exposures are expected in this filter, this returns 1
-            # on the principle that 100% of the expected observations are
-            # provided, and additional data in other filters is usually welcome
+            # If no exposures are expected in this filter for this location,
+            # this metric returns zero.
             if self.ideal_fExpT[f][slicePoint['sid']] > 0:
                 metric_data[f] = fexpt / self.ideal_fExpT[f][slicePoint['sid']]
             else:
-                metric_data[f] = 1.0
+                metric_data[f] = 0.0
 
         return metric_data
