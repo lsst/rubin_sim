@@ -88,7 +88,7 @@ class SaturationStacker(BaseStacker):
                 )
                 zp_inst[filtername] = bp.calcZP_t(phot_params)
             self.zeropoints = zp_inst
-            
+
         else:
             self.zeropoints = zeropoints
 

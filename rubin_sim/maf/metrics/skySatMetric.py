@@ -7,17 +7,10 @@ __all__ = ["SkySaturationMetric"]
 
 class SkySaturationMetric(BaseMetric):
     """Check if the sky would saturate a visit in an exposure"""
-    def __init__(
-        self,
-        metricName="SkySaturation",
-        units="#",
-        **kwargs
-    ):
+
+    def __init__(self, metricName="SkySaturation", units="#", **kwargs):
         super().__init__(
-            col=["saturation_mag"],
-            units=units,
-            metricName=metricName,
-            **kwargs
+            col=["saturation_mag"], units=units, metricName=metricName, **kwargs
         )
 
     def run(self, dataSlice, slicePoint):
