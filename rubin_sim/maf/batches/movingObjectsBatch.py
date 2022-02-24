@@ -8,6 +8,7 @@ import rubin_sim.maf.metrics as metrics
 from rubin_sim.maf.slicers import MoObjSlicer
 import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.plots as plots
+import rubin_sim.maf.metricBundles as mb
 from rubin_sim.maf.metricBundles import MoMetricBundle
 from .colMapDict import ColMapDict
 from .common import (
