@@ -6,6 +6,7 @@ from rubin_sim.photUtils import Sed, Bandpass
 from .twilightFunc import twilightFunc
 from scipy.interpolate import InterpolatedUnivariateSpline, interp1d
 from rubin_sim.data import get_data_dir
+import warnings
 
 # Make backwards compatible with healpy
 if hasattr(hp, "get_interp_weights"):
@@ -544,7 +545,7 @@ class TwilightInterp(object):
         self,
         interpPoints,
         maxAM=3.0,
-        limits=[np.radians(-5.0), np.radians(-20.0)],
+        limits=[np.radians(15.0), np.radians(-20.0)],
         filterNames=["u", "g", "r", "i", "z", "y"],
     ):
         """
@@ -554,6 +555,10 @@ class TwilightInterp(object):
         npts = len(filterNames)
         result = np.zeros((np.size(interpPoints), npts), dtype=float)
 
+        out_of_range = np.where(interpPoints["sunAlt"] > np.radians(-11))[0]
+        if np.size(out_of_range) > 0:
+            warnings.warn("Extrapolating twilight beyond a sun altitude of -11 degrees")
+
         good = np.where(
             (interpPoints["sunAlt"] >= np.min(limits))
             & (interpPoints["sunAlt"] <= np.max(limits))
@@ -562,15 +567,19 @@ class TwilightInterp(object):
         )[0]
 
         for i, filterName in enumerate(filterNames):
-            result[good, i] = twilightFunc(
-                interpPoints[good],
-                *self.lsstEquations[self.filterNameDict[filterName], :].tolist()
-            )
+            out_of_range = np.where(interpPoints["sunAlt"] > np.max(limits))[0]
+            if np.size(out_of_range) > 0:
+                result[:, i] = np.nan
+            else:
+                result[good, i] = twilightFunc(
+                    interpPoints[good],
+                    *self.lsstEquations[self.filterNameDict[filterName], :].tolist()
+                )
 
         return {"spec": result, "wave": self.lsstEffWave}
 
     def interpSpec(
-        self, interpPoints, maxAM=3.0, limits=[np.radians(-5.0), np.radians(-20.0)]
+        self, interpPoints, maxAM=3.0, limits=[np.radians(15.0), np.radians(-20.0)]
     ):
         """
         interpPoints should have airmass, azRelSun, and sunAlt.
@@ -578,6 +587,10 @@ class TwilightInterp(object):
 
         npts = np.size(self.solarWave)
         result = np.zeros((np.size(interpPoints), npts), dtype=float)
+
+        out_of_range = np.where(interpPoints["sunAlt"] > np.radians(-11))[0]
+        if np.size(out_of_range) > 0:
+            warnings.warn("Extrapolating twilight beyond a sun altitude of -11 degrees")
 
         good = np.where(
             (interpPoints["sunAlt"] >= np.min(limits))
@@ -589,9 +602,13 @@ class TwilightInterp(object):
         # Compute the expected flux in each of the filters that we have fits for
         fluxes = []
         for filterName in self.filterNames:
-            fluxes.append(
-                twilightFunc(interpPoints[good], *self.fitResults[filterName])
-            )
+            out_of_range = np.where(interpPoints["sunAlt"] > np.max(limits))[0]
+            if np.size(out_of_range) > 0:
+                fluxes.append(np.nan)
+            else:
+                fluxes.append(
+                    twilightFunc(interpPoints[good], *self.fitResults[filterName])
+                )
         fluxes = np.array(fluxes)
 
         # ratio of model flux to raw solar flux:
