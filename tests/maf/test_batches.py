@@ -23,16 +23,11 @@ class TestBatches(unittest.TestCase):
         ack = batches.altazLambert()
         ack = batches.standardSummary()
         ack = batches.standardMetrics("night")
-        ack = batches.descWFDBatch()
-        ack = batches.tdcBatch()
         ack = batches.filtersPerNight()
         ack = batches.filtersWholeSurvey()
         ack = batches.glanceBatch()
         ack = batches.hourglassPlots()
         ack = batches.slewBasics()
-        ack = batches.fOBatch()
-        ack = batches.astrometryBatch()
-        ack = batches.rapidRevisitBatch()
         ack = batches.timeGaps()
         ack = batches.metadataBasics("airmass")
         ack = batches.metadataBasicsAngle("rotskyPos")
@@ -42,9 +37,6 @@ class TestBatches(unittest.TestCase):
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
         "Skip these batches unless MAF data present, required for setup",
     )
-    def test_batches_with_mafdata(self):
-        ack = batches.agnBatch()
-
     def test_movingObjectsBatches(self):
         slicer = MoObjSlicer()
         ack = batches.quickDiscoveryBatch(slicer)
