@@ -27,7 +27,7 @@ class calcVisitIntervalMetric(maf.BaseMetric):
 
         self.mjdCol = "observationStartMJD"
         self.m5Col = "fiveSigmaDepth"
-        self.tau_obs = np.array([2.0, 20.0, 73.0, 365.0])
+        self.tau_obs = np.array([2.0, 5.0, 11.0, 20.0, 46.5, 73.0])
         self.magLimit = 22.0
 
         super().__init__(col=cols, metricName=metricName, metricDtype="object")
@@ -90,7 +90,7 @@ class calcSeasonVisibilityGapsMetric(maf.BaseMetric):
         """tau_obs is an array of minimum-required observation intervals for
         four categories of time variability"""
 
-        self.tau_obs = np.array([2.0, 20.0, 73.0, 365.0])
+        self.tau_obs = np.array([2.0, 5.0, 11.0, 20.0, 46.5, 73.0])
         self.ra_col = "fieldRA"
         self.mjdCol = "observationStartMJD"
 
@@ -176,7 +176,7 @@ class transientTimeSamplingMetric(maf.BaseMetric):
 
         self.mjdCol = "observationStartMJD"
         self.m5Col = "fiveSigmaDepth"
-        self.tau_obs = np.array([2.0, 20.0, 73.0, 365.0])
+        self.tau_obs = np.array([2.0, 5.0, 11.0, 20.0, 46.5, 73.0])
 
         super().__init__(col=cols, metricName=metricName, metricDtype="object")
 
