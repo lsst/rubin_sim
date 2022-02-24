@@ -7,6 +7,7 @@ import numpy as np
 import healpy as hp
 import rubin_sim.maf as maf
 
+
 class calcVisitIntervalMetric(maf.BaseMetric):
     """Metric to evaluate the intervals between sequential observations in a
     lightcurve relative to the scientifically desired sampling interval.
@@ -141,15 +142,16 @@ class calcSeasonVisibilityGapsMetric(maf.BaseMetric):
             if tau >= expected_gap:
                 metric_data[tau] = 0.0
                 for t in season_gaps:
-                    metric_data[
-                    tau
-                    ] += interval_metric.calc_interval_metric(np.array([t]), tau)
+                    metric_data[tau] += interval_metric.calc_interval_metric(
+                        np.array([t]), tau
+                    )
                 metric_data[tau] /= 10.0
 
             else:
                 metric_data[tau] = 1.0
 
         return metric_data
+
 
 class transientTimeSamplingMetric(maf.BaseMetric):
     """Metric to evaluate how well a survey strategy will sample lightcurves,
