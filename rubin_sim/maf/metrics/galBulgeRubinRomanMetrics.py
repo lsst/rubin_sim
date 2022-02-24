@@ -10,8 +10,7 @@ import numpy as np
 import healpy as hp
 import rubin_sim.maf as maf
 from astropy import units as u
-from astropy_healpix import HEALPix
-from astropy.coordinates import Galactic, TETE, SkyCoord
+from astropy.coordinates import Galactic, SkyCoord
 from astropy.time import Time
 from datetime import datetime
 from rubin_sim.data import get_data_dir
@@ -48,6 +47,7 @@ class RGESSurvey():
     nominal and likely subject to later revision.
     """
     def __init__(self):
+        self.nside = 64
         self.location = {'l_center': 2.216, 'b_center': -3.14,
                             'l_width': 1.75, 'b_height': 1.75}
         self.seasonLength = 72.0    # days
@@ -75,12 +75,16 @@ class RGESSurvey():
             mjdSeasons.append( {'start': start.mjd, 'end': end.mjd} )
         self.seasons = mjdSeasons
 
-    def calcHealpix(self,ahp):
+    def calcHealpix(self):
         self.skycoord = SkyCoord(self.location['l_center']*u.deg,
                                  self.location['b_center']*u.deg,
                                  frame=Galactic())
-        self.pixels = ahp.cone_search_skycoord(self.skycoord,
-                                            self.location['l_width']*u.deg/2.0)
+        self.skycoord = self.skycoord.transform_to('icrs')
+        phi = np.deg2rad(self.skycoord.ra.deg)
+        theta = np.deg2rad(self.skycoord.dec.deg) + (np.pi/2.0)
+        radius = np.deg2rad(self.location['l_width']/2.0)
+        xyz = hp.ang2vec(theta, phi)
+        self.pixels = hp.query_disc(self.nside, xyz, radius)
 
     def calcTimeStamps(self):
         """Calculate the timestamps of observations within the specified
@@ -93,6 +97,12 @@ class RGESSurvey():
                                             np.arange(season['start'],
                                                         season['end'],
                                                         self.cadence)) )
+
+    def check_point_within_footprint(self,pixel):
+        if pixel in self.pixels:
+            return True
+        else:
+            return False
 
 def simLensingEvents(nSimEvents,obsSeasons,nSeasons):
     """Based on code by Etienne Bachelet, adapted by Rachel Street"""
@@ -136,6 +146,8 @@ class lensDetectRubinRomanMetric(maf.BaseMetric):
     """Metric to evaluate the fraction of microlensing events in the Roman
     Galactic Exoplanet Survey field that will be detected from the
     Rubin as well as the Roman Observatory.
+
+    WARNING: This metric requires a HEALpixel slicer
 
     Parameters
     ----------
@@ -207,9 +219,8 @@ class lensDetectRubinRomanMetric(maf.BaseMetric):
         # Minimum number of datapoints required within the event duration to
         # consider that event detected:
         minDataPoints = 10
-        ahp = HEALPix(nside=self.NSIDE, order='ring', frame=TETE())
         self.defineRGES()
-        self.RGES.calcHealpix(ahp)
+        self.RGES.calcHealpix()
 
         # Simulate a range of event parameters,
         # for events within the RGES footprint
@@ -226,53 +237,41 @@ class lensDetectRubinRomanMetric(maf.BaseMetric):
             match = list(set(idx1).intersection(set(idx2)))
             match_obs += match
 
-        # Calculate the coordinates of where the matching observations
-        # were acquired and convert this to a list of HEALpixels
-        coords_icrs = SkyCoord(
-            dataSlice[self.ra_col][match_obs],
-            dataSlice[self.dec_col][match_obs],
-            frame="icrs",
-            unit=(u.deg, u.deg),
-        )
-        coords_gal = coords_icrs.transform_to(Galactic())
-        pixels = ahp.skycoord_to_healpix(coords_gal)
+        # Check whether the current slicePoint HEALpixels is in the RGES footprint
+        within_footprint = self.RGES.check_point_within_footprint(slicePoint['sid'])
 
-        # Identify the observations from HEALpixels in the RGES footprint
-        overlap_pixels = list(set(pixels.tolist()).intersection(set(self.RGES.pixels.tolist())))
+        # Metric is the percentage of events jointly detected by both surveys
+        if within_footprint:
+            # Extract the timestamps of matching Rubin observations of the
+            # RGES footprint
+            rubinTimestamps = dataSlice[self.mjdCol][match_obs]
 
-        # Identify which observations from the dataSlice correspond to
-        # the overlapping survey region.  This may produce multiple
-        # indices in the array, referred to different observations
-        match = np.array(match_obs)
-        match_obs = []
-        for p in overlap_pixels:
-            ip = np.where(pixels == p)[0]
-            match_obs += match[ip].tolist()
+            # Compute number of events jointly detected by both surveys
+            nJointDetections = 0
+            for i in range(0, self.nSimEvents, 1):
 
-        # Extract the timestamps of matching Rubin observations of the
-        # RGES footprint
-        rubinTimestamps = dataSlice[self.mjdCol][match_obs]
+                # Calculate the timestamps of Roman observations within the
+                # event timeframe, taking account of the Roman seasons
+                self.calcRomanObsInWindow(self.events[i])
 
-        # Compute metric - number of events jointly detected by both surveys
-        nJointDetections = 0
-        for i in range(0, self.nSimEvents, 1):
+                # Metric value: Test whether both observatories would provide
+                # at least 10 datapoints within the event window
+                if len(rubinTimestamps) > minDataPoints and \
+                    len(self.events[i].romanTimestamps) > minDataPoints:
+                    nJointDetections += 1
 
-            # Calculate the timestamps of Roman observations within the
-            # event timeframe, taking account of the Roman seasons
-            self.calcRomanObsInWindow(self.events[i])
+            metric = float(nJointDetections)/float(self.nSimEvents)*100.0
+        else:
+            metric = 0.0
 
-            # Metric value: Test whether both observatories would provide
-            # at least 10 datapoints within the event window
-            if len(rubinTimestamps) > minDataPoints and \
-                len(self.events[i].romanTimestamps) > minDataPoints:
-                nJointDetections += 1
-
-        return float(nJointDetections)/float(self.nSimEvents)*100.0
+        return metric
 
 class complementaryObsMetric(maf.BaseMetric):
     """Metric to evaluate whether a Rubin OpSim will acquire observations of
     the Roman Galactic Exoplanet Survey region contemporaneously with (within
     24hrs of) Roman observations.
+
+    WARNING: This metric requires a HEALpixel slicer
 
     Parameters
     ----------
@@ -356,9 +355,8 @@ class complementaryObsMetric(maf.BaseMetric):
         metric_data = {}
 
         # Establish the parameters of the RGES survey
-        ahp = HEALPix(nside=self.NSIDE, order='ring', frame=TETE())
         self.defineRGES()
-        self.RGES.calcHealpix(ahp)
+        self.RGES.calcHealpix()
 
         # Calculate timestamps of Roman observations
         self.RGES.calcTimeStamps()
@@ -372,29 +370,11 @@ class complementaryObsMetric(maf.BaseMetric):
             match = list(set(idx1).intersection(set(idx2)))
             match_obs += match
 
-        # Calculate the coordinates of where the matching observations
-        # were acquired and convert this to a list of HEALpixels
-        coords_icrs = SkyCoord(
-            dataSlice[self.ra_col][match_obs],
-            dataSlice[self.dec_col][match_obs],
-            frame="icrs",
-            unit=(u.deg, u.deg),
-        )
-        coords_gal = coords_icrs.transform_to(Galactic())
-        pixels = ahp.skycoord_to_healpix(coords_gal)
+        # Check whether the current slicePoint HEALpixels is in the RGES footprint
+        within_footprint = self.RGES.check_point_within_footprint(slicePoint['sid'])
 
-        # Identify the observations from HEALpixels in the RGES footprint
-        overlap_pixels = list(set(pixels.tolist()).intersection(set(self.RGES.pixels.tolist())))
-
-        if len(overlap_pixels) > 0:
-            # Identify which observations from the dataSlice correspond to
-            # the overlapping survey region.  This may produce multiple
-            # indices in the array, referred to different observations
-            match = np.array(match_obs)
-            match_obs = []
-            for p in overlap_pixels:
-                ip = np.where(pixels == p)[0]
-                match_obs += match[ip].tolist()
+        # Metric is the percentage of events jointly detected by both surveys
+        if within_footprint:
 
             # Extract the timestamps of matching Rubin observations of the
             # RGES footprint
