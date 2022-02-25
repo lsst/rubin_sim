@@ -81,7 +81,7 @@ class RGESSurvey():
                                  frame=Galactic())
         self.skycoord = self.skycoord.transform_to('icrs')
         phi = np.deg2rad(self.skycoord.ra.deg)
-        theta = np.deg2rad(self.skycoord.dec.deg) + (np.pi/2.0)
+        theta = (np.pi/2.0) - np.deg2rad(self.skycoord.dec.deg)
         radius = np.deg2rad(self.location['l_width']/2.0)
         xyz = hp.ang2vec(theta, phi)
         self.pixels = hp.query_disc(self.nside, xyz, radius)
