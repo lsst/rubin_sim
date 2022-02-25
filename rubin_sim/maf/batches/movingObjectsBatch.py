@@ -18,7 +18,7 @@ from .common import (
 )
 
 __all__ = [
-    "get_defaults",
+    "ss_population_defaults",
     "setupMoSlicer",
     "quickDiscoveryBatch",
     "discoveryBatch",
@@ -35,7 +35,7 @@ __all__ = [
 ]
 
 
-def get_defaults(objtype):
+def ss_population_defaults(objtype):
     "Provide useful default ranges for H, based on objtype of population type."
     defaults = {}
     defaults["PHA"] = {

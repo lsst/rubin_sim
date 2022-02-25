@@ -121,7 +121,7 @@ if __name__ == "__main__":
         exit()
 
     # Get default H and other values:
-    defaults = batches.get_defaults(args.objtype)
+    defaults = batches.ss_population_defaults(args.objtype)
     hMin = defaults["Hrange"][0]
     hMax = defaults["Hrange"][1]
     hStep = defaults["Hrange"][2]
