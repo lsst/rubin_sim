@@ -35,7 +35,6 @@ if __name__ == "__main__":
 
         bdict = {}
         bdict.update(batches.glanceBatch(colmap, name))
-        bdict.update(batches.fOBatch(colmap, name))
         resultsDb = db.ResultsDb(outDir=name + '_glance')
         group = mb.MetricBundleGroup(bdict, opsdb, outDir=name + '_glance', resultsDb=resultsDb, saveEarly=False)
         group.runAll(clearMemory=True, plotNow=True)

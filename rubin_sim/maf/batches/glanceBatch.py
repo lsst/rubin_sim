@@ -342,6 +342,94 @@ def glanceBatch(
         metricb.summaryMetrics = []
         bundleList.append(metricb)
 
+    # Add a sky saturation check
+    displayDict = {}
+    displayDict["group"] = "Basic Stats"
+    displayDict["subgroup"] = "Saturation"
+    sql = ""
+    metric = metrics.SkySaturationMetric()
+    summary = metrics.SumMetric()
+    slicer = slicers.UniSlicer()
+    bundleList.append(
+        metricBundles.MetricBundle(
+            metric, slicer, sql, summaryMetrics=summary, displayDict=displayDict
+        )
+    )
+
+    benchmarkArea = 18000
+    benchmarkNvisits = 825
+    minNvisits = 750
+    displayDict = {"group": "SRD", "subgroup": "FO metrics", "order": 0}
+
+    # Configure the count metric which is what is used for f0 slicer.
+    metric = metrics.CountExplimMetric(col="observationStartMJD", metricName="fO")
+    plotDict = {
+        "xlabel": "Number of Visits",
+        "Asky": benchmarkArea,
+        "Nvisit": benchmarkNvisits,
+        "xMin": 0,
+        "xMax": 1500,
+    }
+    summaryMetrics = [
+        metrics.fOArea(
+            nside=nside,
+            norm=False,
+            metricName="fOArea",
+            Asky=benchmarkArea,
+            Nvisit=benchmarkNvisits,
+        ),
+        metrics.fOArea(
+            nside=nside,
+            norm=True,
+            metricName="fOArea/benchmark",
+            Asky=benchmarkArea,
+            Nvisit=benchmarkNvisits,
+        ),
+        metrics.fONv(
+            nside=nside,
+            norm=False,
+            metricName="fONv",
+            Asky=benchmarkArea,
+            Nvisit=benchmarkNvisits,
+        ),
+        metrics.fONv(
+            nside=nside,
+            norm=True,
+            metricName="fONv/benchmark",
+            Asky=benchmarkArea,
+            Nvisit=benchmarkNvisits,
+        ),
+        metrics.fOArea(
+            nside=nside,
+            norm=False,
+            metricName=f"fOArea_{minNvisits}",
+            Asky=benchmarkArea,
+            Nvisit=minNvisits,
+        ),
+    ]
+    caption = "The FO metric evaluates the overall efficiency of observing. "
+    caption += (
+        "foNv: out of %.2f sq degrees, the area receives at least X and a median of Y visits "
+        "(out of %d, if compared to benchmark). " % (benchmarkArea, benchmarkNvisits)
+    )
+    caption += (
+        "fOArea: this many sq deg (out of %.2f sq deg if compared "
+        "to benchmark) receives at least %d visits. "
+        % (benchmarkArea, benchmarkNvisits)
+    )
+    displayDict["caption"] = caption
+    slicer = slicers.HealpixSlicer(nside=nside)
+    bundle = metricBundles.MetricBundle(
+        metric,
+        slicer,
+        "",
+        plotDict=plotDict,
+        displayDict=displayDict,
+        summaryMetrics=summaryMetrics,
+        plotFuncs=[plots.FOPlot()],
+    )
+    bundleList.append(bundle)
+
     for b in bundleList:
         b.setRunName(runName)
 
@@ -352,6 +440,7 @@ def glanceBatch(
         colmap=colmap, runName=runName, nyears=nyears, extraSql=sqlConstraint
     )
     bd.update(hrDict)
+
     # Add basic slew stats.
     try:
         slewDict = slewBasics(colmap=colmap, runName=runName)
