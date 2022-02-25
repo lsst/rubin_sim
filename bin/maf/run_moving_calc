@@ -168,7 +168,7 @@ if __name__ == "__main__":
         constraint=args.constraint,
         detectionLosses="trailing",
         albedo=args.albedo,
-        Hmark=args.hMark,
+        Hmark=hMark,
     )
     # Run these discovery metrics
     print("Calculating quick discovery metrics with simple trailing losses.")

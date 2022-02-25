@@ -3,7 +3,6 @@ import glob
 import os
 from rubin_sim.data import get_data_dir
 import argparse
-from rubin_sim.maf import ss_population_defaults
 
 
 def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False):
@@ -65,7 +64,6 @@ def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False
         with open(outfile, "w") as f:
             for pop in pops:
                 objtype = objtypes[pop]
-                default_plots_values = ss_population_defaults(objtype)
                 if split:
                     splitfiles = glob.glob(
                         os.path.join(data_dir, "split") + f"/*{pop}*"
@@ -121,7 +119,6 @@ def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False
                     s3 = (
                         f"run_moving_fractions --workDir {run}_ss"
                         f" --metadata {objtype}"
-                        f" --hMark {default_plots_values['Hmark']} "
                         f" --startTime {start_mjd}"
                     )
                     print(s1 + " ; " + s2 + " ; " + s3, file=f)
