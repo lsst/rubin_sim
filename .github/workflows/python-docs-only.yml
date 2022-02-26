@@ -33,7 +33,7 @@ jobs:
         shell: bash -l {0}
         run: |
           export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
-          rs_download_data -d 'maf'
+          rs_download_data -d 'maf,throughputs'
       - name: conda list
         shell: bash -l {0}
         run: conda list
