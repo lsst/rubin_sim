@@ -86,6 +86,8 @@ def makeCompletenessBundle(bundle, completenessMetric, Hmark=None, resultsDb=Non
         mb.setSummaryMetrics(metric)
         mb.computeSummaryStats(resultsDb)
         val = mb.summaryValues["Value At H=%.1f" % Hmark]
+        if val is None:
+            val = 0
         if summaryName.startswith("Cumulative"):
             plotDict["label"] += ": @ H(<=%.1f) = %.1f%s" % (Hmark, val * 100, "%")
         else:
