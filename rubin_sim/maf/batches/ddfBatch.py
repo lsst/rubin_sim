@@ -7,7 +7,7 @@ import rubin_sim.maf as maf
 __all__ = ["ddfBatch"]
 
 
-def ddfBatch(runName="opsim", nside=512, radius=4.0):
+def ddfBatch(runName="opsim", nside=32, radius=4.0):
 
     radius = np.radians(radius)
     bundle_list = []
@@ -55,7 +55,7 @@ def ddfBatch(runName="opsim", nside=512, radius=4.0):
                 displayDict=displayDict,
             )
         )
-
+        """
         # Strong lensed SNe
         displayDict["subgroup"] = "SL SNe"
         metric = maf.SNSLMetric(metricName="SnL_%s" % label)
@@ -70,6 +70,7 @@ def ddfBatch(runName="opsim", nside=512, radius=4.0):
                 displayDict=displayDict,
             )
         )
+        """
 
         # Number of QSOs in each band
         displayDict["group"] = "QSO"
