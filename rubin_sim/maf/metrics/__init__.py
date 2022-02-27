@@ -42,3 +42,6 @@ from .qsoNumberCountsMetric import *
 from .agnTimeLagMetric import *
 from .surfbMetric import *
 from .cumulativeMetric import *
+from .galacticPlaneMetrics import *
+from .galplaneTimeSamplingMetrics import *
+

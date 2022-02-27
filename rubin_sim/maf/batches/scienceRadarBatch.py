@@ -1257,6 +1257,79 @@ def scienceRadarBatch(
 
     #########################
     #########################
+    # Galactic Plane - TVS/MW
+    #########################
+    #########################
+    footprint_summaries = [metrics.SumMetric()]
+    footprint_plotDicts = {"percentileClip": 95}
+    filter_summaries = [
+        metrics.MeanMetric(),
+        metrics.MedianMetric(),
+        metrics.RmsMetric(),
+        metrics.AreaThresholdMetric(lower_threshold=0.8),
+    ]
+    filter_plotdicts = {"colorMin": 0, "colorMax": 2, "xMin": 0, "xMax": 5}
+    timescale_summaries = [
+        metrics.SumMetric(),
+        metrics.MedianMetric(),
+        metrics.AreaThresholdMetric(lower_threshold=0.5),
+    ]
+    timescale_plotdicts = {"colorMin": 0, "colorMax": 1, "xMin": 0, "xMax": 1}
+
+    galactic_plane_map_keys = maps.galplane_priority_map(nside=64, get_keys=True)
+    science_maps = [
+        s.replace("galplane_priority_", "").split(":")[0]
+        for s in galactic_plane_map_keys
+        if "sum" in s
+    ]
+
+    slicer = slicers.HealpixSlicer(nside=64, useCache=False)
+    sql = None
+    bundles = {}
+    for m in science_maps:
+        footprintmetric = metrics.GalPlaneFootprintMetric(science_map=m)
+        bundles[f"{m} footprint"] = mb.MetricBundle(
+            footprintmetric,
+            slicer,
+            sql,
+            plotDict=footprint_plotDicts,
+            runName=runName,
+            summaryMetrics=footprint_summaries,
+        )
+        filtermetric = metrics.GalPlaneTimePerFilterMetric(science_map=m)
+        bundles[f"{m} filter"] = mb.MetricBundle(
+            filtermetric,
+            slicer,
+            sql,
+            plotDict=filter_plotdicts,
+            runName=runName,
+            summaryMetrics=filter_summaries,
+        )
+        visit_timescalesmetric = metrics.GalPlaneVisitIntervalsTimescaleMetric(
+            science_map=m
+        )
+        bundles[f"{m} visit intervals"] = mb.MetricBundle(
+            visit_timescalesmetric,
+            slicer,
+            sql,
+            plotDict=timescale_plotdicts,
+            runName=runName,
+            summaryMetrics=timescale_summaries,
+        )
+        season_timescalemetric = metrics.GalPlaneSeasonGapsTimescaleMetric(
+            science_map=m
+        )
+        bundles[f"{m} season gaps"] = mb.MetricBundle(
+            season_timescalemetric,
+            slicer,
+            sql,
+            plotDict=timescale_plotdicts,
+            runName=runName,
+            summaryMetrics=timescale_summaries,
+        )
+
+    #########################
+    #########################
     # Milky Way
     #########################
     #########################

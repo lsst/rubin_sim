@@ -5,3 +5,5 @@ from .stellarDensityMap import *
 from .trilegalMap import *
 from .ebv3Dhp import *
 from .dustMap3D import *
+from .galacticPlanePriorityMaps import *
+
