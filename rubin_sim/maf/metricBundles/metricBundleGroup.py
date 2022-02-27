@@ -523,7 +523,7 @@ class MetricBundleGroup(object):
         """
         for constraint in self.constraints:
             self.setCurrent(constraint)
-            self.reduceCurrent(updateSummaries=updateSummaries)
+            # self.reduceCurrent(updateSummaries=updateSummaries)
 
     def reduceCurrent(self, updateSummaries=True):
         """Run all reduce functions for the metricbundle in the currently active set of MetricBundles.
@@ -541,8 +541,10 @@ class MetricBundleGroup(object):
             # If there are no reduce functions associated with the metric, skip this metricBundle.
             if len(b.metric.reduceFuncs) > 0:
                 # Apply reduce functions, creating a new metricBundle in the process (new metric values).
-                for reduceFunc in b.metric.reduceFuncs.values():
-                    newmetricbundle = b.reduceMetric(reduceFunc)
+                for r in b.metric.reduceFuncs:
+                    newmetricbundle = b.reduceMetric(
+                        b.metric.reduceFuncs[r], reduceFuncName=r
+                    )
                     # Add the new metricBundle to our metricBundleGroup dictionary.
                     name = newmetricbundle.metric.name
                     if name in self.bundleDict:

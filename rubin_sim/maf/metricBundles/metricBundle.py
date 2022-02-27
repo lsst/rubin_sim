@@ -600,7 +600,13 @@ class MetricBundle(object):
                         metricId, summaryName=summaryName, summaryValue=summaryVal
                     )
 
-    def reduceMetric(self, reduceFunc, reducePlotDict=None, reduceDisplayDict=None):
+    def reduceMetric(
+        self,
+        reduceFunc,
+        reduceFuncName=None,
+        reducePlotDict=None,
+        reduceDisplayDict=None,
+    ):
         """Run 'reduceFunc' (any function that operates on self.metricValues).
         Typically reduceFunc will be the metric reduce functions, as they are tailored to expect the
         metricValues format.
@@ -623,7 +629,10 @@ class MetricBundle(object):
            metric values calculated with the 'reduceFunc'.
         """
         # Generate a name for the metric values processed by the reduceFunc.
-        rName = reduceFunc.__name__.replace("reduce", "")
+        if reduceFuncName is not None:
+            rName = reduceFuncName.replace("reduce", "")
+        else:
+            rName = reduceFunc.__name__.replace("reduce", "")
         reduceName = self.metric.name + "_" + rName
         # Set up metricBundle to store new metric values, and add plotDict/displayDict.
         newmetric = deepcopy(self.metric)

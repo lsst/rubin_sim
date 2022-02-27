@@ -75,7 +75,8 @@ class PeriodicDetectMetric(BaseMetric):
         n_pts = np.size(dataSlice[self.mjdCol])
         n_filt = np.size(np.unique(dataSlice[self.filterCol]))
 
-        # If we had a correct model with phase, amplitude, period, mean_mags, then chi_squared/DoF would be ~1 with 3+n_filt free parameters.
+        # If we had a correct model with phase, amplitude, period, mean_mags,
+        # then chi_squared/DoF would be ~1 with 3+n_filt free parameters.
         # The mean is one free parameter
         p1 = n_filt
         p2 = 3.0 + n_filt
@@ -104,7 +105,8 @@ class PeriodicDetectMetric(BaseMetric):
                 # Yes, I'm fitting magnitudes rather than flux. At least I feel kinda bad about it.
                 # F-test for nested models Regression problems:  https://en.wikipedia.org/wiki/F-test
                 f_numerator = (chi_sq_1 - chi_sq_2) / (p2 - p1)
-                f_denom = 1.0  # This is just reduced chi-squared for the more complicated model, so should be 1.
+                f_denom = 1.0
+                # This is just reduced chi-squared for the more complicated model, so should be 1.
                 f_val = f_numerator / f_denom
                 # Has DoF (p2-p1, n-p2)
                 # https://stackoverflow.com/questions/21494141/how-do-i-do-a-f-test-in-python/21503346
