@@ -1,11 +1,8 @@
 import warnings
 import numpy as np
 import palpy
-from rubin_sim.utils import Site, m5_flat_sed, SysEngVals
+from rubin_sim.utils import Site, m5_flat_sed
 from .baseStacker import BaseStacker
-from rubin_sim.photUtils import Bandpass, PhotometricParameters
-from rubin_sim.data import get_data_dir
-import os
 from rubin_sim.maf.utils import load_inst_zeropoints
 
 __all__ = [
