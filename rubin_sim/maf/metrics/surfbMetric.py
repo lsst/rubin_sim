@@ -1,8 +1,7 @@
 import numpy as np
 from .baseMetric import BaseMetric
-from rubin_sim.photUtils import Bandpass, PhotometricParameters
-import rubin_sim.utils as rsUtils
-from rubin_sim.data import get_data_dir
+from rubin_sim.maf.utils import load_inst_zeropoints
+
 import os
 import warnings
 
@@ -150,27 +149,11 @@ class SurfaceBrightLimitMetric(BaseMetric):
 
         # Compute default zeropoints
         if zpt is None:
-            zp_inst = {}
-            datadir = get_data_dir()
-            for filtername in "ugrizy":
-                # set gain and exptime to 1 so the instrumental zeropoint will be in photoelectrons and per second
-                phot_params = PhotometricParameters(
-                    nexp=1, gain=1, exptime=1, bandpass=filtername
-                )
-                bp = Bandpass()
-                bp.readThroughput(
-                    os.path.join(
-                        datadir, "throughputs/baseline/", "total_%s.dat" % filtername
-                    )
-                )
-                zp_inst[filtername] = bp.calcZP_t(phot_params)
+            zp_inst, kAtm = load_inst_zeropoints()
             self.zpt = zp_inst
+            self.kAtm = kAtm
         else:
             self.zpt = zpt
-        if kAtm is None:
-            syseng = rsUtils.SysEngVals()
-            self.kAtm = syseng.kAtm
-        else:
             self.kAtm = kAtm
 
     def run(self, dataSlice, slicePoint):

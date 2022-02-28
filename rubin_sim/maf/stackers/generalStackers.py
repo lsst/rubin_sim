@@ -6,6 +6,7 @@ from .baseStacker import BaseStacker
 from rubin_sim.photUtils import Bandpass, PhotometricParameters
 from rubin_sim.data import get_data_dir
 import os
+from rubin_sim.maf.utils import load_inst_zeropoints
 
 __all__ = [
     "NormAirmassStacker",
@@ -26,8 +27,6 @@ class SaturationStacker(BaseStacker):
     ----------
     pixscale : float, optional (0.2)
         Arcsec per pixel
-    gain : float, optional (2.3)
-        electrons per adu
     saturation_e : float, optional (150e3)
         The saturation level in electrons
     zeropoints : dict-like, optional (None)
@@ -52,7 +51,6 @@ class SaturationStacker(BaseStacker):
         zeropoints=None,
         km=None,
         pixscale=0.2,
-        gain=1.0,
     ):
         self.units = ["mag"]
         self.colsReq = [
@@ -69,33 +67,14 @@ class SaturationStacker(BaseStacker):
         self.nexpCol = nexpCol
         self.filterCol = filterCol
         self.airmassCol = airmassCol
-        self.saturation_adu = saturation_e / gain
+        self.saturation_e = saturation_e
         self.pixscale = pixscale
-        self.saturation_adu = saturation_e
         if zeropoints is None:
-            zp_inst = {}
-            datadir = get_data_dir()
-            for filtername in "ugrizy":
-                # set gain and exptime to 1 so the instrumental zeropoint will be in photoelectrons and per second
-                phot_params = PhotometricParameters(
-                    nexp=1, gain=1, exptime=1, bandpass=filtername
-                )
-                bp = Bandpass()
-                bp.readThroughput(
-                    os.path.join(
-                        datadir, "throughputs/baseline/", "total_%s.dat" % filtername
-                    )
-                )
-                zp_inst[filtername] = bp.calcZP_t(phot_params)
+            zp_inst, kAtm = load_inst_zeropoints()
             self.zeropoints = zp_inst
-
+            self.km = kAtm
         else:
             self.zeropoints = zeropoints
-
-        if km is None:
-            syseng = SysEngVals()
-            self.km = syseng.kAtm
-        else:
             self.km = km
 
     def _run(self, simData, cols_present=False):
@@ -119,7 +98,7 @@ class SaturationStacker(BaseStacker):
             sky_counts = sky_counts * exptime
             # The counts available to the source (at peak) in each exposure is the
             # difference between saturation and sky
-            remaining_counts_peak = self.saturation_adu - sky_counts
+            remaining_counts_peak = self.saturation_e - sky_counts
             # Now to figure out how many counts there would be total, if there are that many in the peak
             sigma = simData[self.seeingCol][in_filt] / 2.354
             source_counts = (
