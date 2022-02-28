@@ -28,16 +28,18 @@ def radec2gal(ra, dec):
     return gal_l, gal_b
 
 
-def _load_hash(fileGalactic="TotalCubeNorm_1000Obj.pkl",
-               fileExtragalactic="TotalCubeNorm_1000Obj.pkl",
-               skyregion="extragalactic"):
+def _load_hash(
+    fileGalactic="TotalCubeNorm_1000Obj.pkl",
+    fileExtragalactic="TotalCubeNorm_1000Obj.pkl",
+    skyregion="extragalactic",
+):
     """Helper function to load large hash table without being a metric attribute.
     Note, bad things could happen if you try to run different sky regions at the same time
     (like, it might thrash loading one then the other. So, keep that in mind if/when this
     gets extended)
     """
-    
-    if hasattr(_load_hash, 'InfoDict'):
+
+    if hasattr(_load_hash, "InfoDict"):
         if skyregion == _load_hash.skyregion:
             return _load_hash.InfoDict, _load_hash.HashTable
 
@@ -63,7 +65,7 @@ def generatePrestoPopSlicer(
     n_files=100,
     d_min=10,
     d_max=300,
-    gb_cut=20
+    gb_cut=20,
 ):
     """Generate a population of KNe events, and put the info about them
     into a UserPointSlicer object
