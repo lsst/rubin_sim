@@ -2,7 +2,10 @@ import numpy as np
 import healpy as hp
 import warnings
 from scipy.stats import binned_statistic
-from rubin_sim.utils import int_binned_stat
+from rubin_sim.utils import int_binned_stat, SysEngVals
+from rubin_sim.photUtils import Bandpass, PhotometricParameters
+from rubin_sim.data import get_data_dir
+import os
 
 
 __all__ = [
@@ -11,7 +14,29 @@ __all__ = [
     "gnomonic_project_toxy",
     "radec2pix",
     "collapse_night",
+    "load_inst_zeropoints",
 ]
+
+
+def load_inst_zeropoints():
+    """Load up and return instumental zeropoints and atmospheric extinctions"""
+    zp_inst = {}
+    datadir = get_data_dir()
+    for filtername in "ugrizy":
+        # set gain and exptime to 1 so the instrumental zeropoint will be in photoelectrons and per second
+        phot_params = PhotometricParameters(
+            nexp=1, gain=1, exptime=1, bandpass=filtername
+        )
+        bp = Bandpass()
+        bp.readThroughput(
+            os.path.join(datadir, "throughputs/baseline/", "total_%s.dat" % filtername)
+        )
+        zp_inst[filtername] = bp.calcZP_t(phot_params)
+
+    syseng = SysEngVals()
+    kAtm = syseng.kAtm
+
+    return zp_inst, kAtm
 
 
 def coaddM5(mags):

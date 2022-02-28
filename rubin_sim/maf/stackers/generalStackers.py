@@ -3,6 +3,7 @@ import numpy as np
 import palpy
 from rubin_sim.utils import Site, m5_flat_sed
 from .baseStacker import BaseStacker
+from rubin_sim.maf.utils import load_inst_zeropoints
 
 __all__ = [
     "NormAirmassStacker",
@@ -23,8 +24,6 @@ class SaturationStacker(BaseStacker):
     ----------
     pixscale : float, optional (0.2)
         Arcsec per pixel
-    gain : float, optional (2.3)
-        electrons per adu
     saturation_e : float, optional (150e3)
         The saturation level in electrons
     zeropoints : dict-like, optional (None)
@@ -49,7 +48,6 @@ class SaturationStacker(BaseStacker):
         zeropoints=None,
         km=None,
         pixscale=0.2,
-        gain=1.0,
     ):
         self.units = ["mag"]
         self.colsReq = [
@@ -66,26 +64,14 @@ class SaturationStacker(BaseStacker):
         self.nexpCol = nexpCol
         self.filterCol = filterCol
         self.airmassCol = airmassCol
-        self.saturation_adu = saturation_e / gain
-        self.pixscale = 0.2
-        names = ["u", "g", "r", "i", "z", "y"]
-        types = [float] * 6
+        self.saturation_e = saturation_e
+        self.pixscale = pixscale
         if zeropoints is None:
-            # Note these zeropoints are calculating the number of *electrons* per second (thus gain=1)
-            # https://github.com/lsst-pst/syseng_throughputs/blob/master/notebooks/Syseng%20Throughputs%20Repo%20Demo.ipynb
-            self.zeropoints = np.array([27.03, 28.38, 28.15, 27.86, 27.46, 26.68]).view(
-                list(zip(names, types))
-            )
-            self.saturation_adu = saturation_e
+            zp_inst, kAtm = load_inst_zeropoints()
+            self.zeropoints = zp_inst
+            self.km = kAtm
         else:
             self.zeropoints = zeropoints
-
-        if km is None:
-            # Also from notebook above
-            self.km = np.array([0.491, 0.213, 0.126, 0.096, 0.069, 0.170]).view(
-                list(zip(names, types))
-            )
-        else:
             self.km = km
 
     def _run(self, simData, cols_present=False):
@@ -109,7 +95,7 @@ class SaturationStacker(BaseStacker):
             sky_counts = sky_counts * exptime
             # The counts available to the source (at peak) in each exposure is the
             # difference between saturation and sky
-            remaining_counts_peak = self.saturation_adu - sky_counts
+            remaining_counts_peak = self.saturation_e - sky_counts
             # Now to figure out how many counts there would be total, if there are that many in the peak
             sigma = simData[self.seeingCol][in_filt] / 2.354
             source_counts = (
@@ -125,6 +111,8 @@ class SaturationStacker(BaseStacker):
             simData["saturation_mag"][in_filt] -= self.km[filtername] * (
                 simData[self.airmassCol][in_filt] - 1.0
             )
+            # Explicitly make sure if sky has saturated we return NaN
+            simData["saturation_mag"][np.where(remaining_counts_peak < 0)] = np.nan
 
         return simData
 
