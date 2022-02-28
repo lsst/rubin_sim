@@ -37,6 +37,15 @@ def _load_hash(
     Note, bad things could happen if you try to run different sky regions at the same time
     (like, it might thrash loading one then the other. So, keep that in mind if/when this
     gets extended)
+
+    Parameters
+    ----------
+    skyregion : string
+        The skyregion of interst. Only two options: 'galactic' and 'extragalaxtic'
+    filePathGalactic : string
+        The path to the file contains galactic Prest-Color phase space information
+    filePathExtragalactic : string
+        The path to the file contains galactic Prest-Color phase space information
     """
 
     if hasattr(_load_hash, "InfoDict"):
@@ -87,10 +96,6 @@ def generatePrestoPopSlicer(
         Minimum luminosity distance (Mpc)
     d_max : float or int (300)
         Maximum luminosity distance (Mpc)
-    filePathGalactic : string
-        The path to the file contains galactic Prest-Color phase space information
-    filePathExtragalactic : string
-        The path to the file contains galactic Prest-Color phase space information
     """
 
     def rndm(a, b, g, size=1):
