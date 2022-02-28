@@ -28,6 +28,32 @@ def radec2gal(ra, dec):
     return gal_l, gal_b
 
 
+def _load_hash(fileGalactic="TotalCubeNorm_1000Obj.pkl",
+               fileExtragalactic="TotalCubeNorm_1000Obj.pkl",
+               skyregion="extragalactic"):
+    """Helper function to load large hash table without being a metric attribute.
+    Note, bad things could happen if you try to run different sky regions at the same time
+    (like, it might thrash loading one then the other. So, keep that in mind if/when this
+    gets extended)
+    """
+    
+    if hasattr(_load_hash, 'InfoDict'):
+        if skyregion == _load_hash.skyregion:
+            return _load_hash.InfoDict, _load_hash.HashTable
+
+    data_dir = get_data_dir()
+    if skyregion == "galactic":
+        filePath = os.path.join(data_dir, "maf", fileGalactic)
+    elif skyregion == "extragalactic":
+        filePath = os.path.join(data_dir, "maf", fileExtragalactic)
+
+    with open(filePath, "rb") as f:
+        _load_hash.InfoDict = pickle.load(f)
+        _load_hash.HashTable = pickle.load(f)
+    _load_hash.skyregion = skyregion
+    return _load_hash.InfoDict, _load_hash.HashTable
+
+
 def generatePrestoPopSlicer(
     skyregion="galactic",
     t_start=1,
@@ -37,9 +63,7 @@ def generatePrestoPopSlicer(
     n_files=100,
     d_min=10,
     d_max=300,
-    gb_cut=20,
-    fileGalactic="TotalCubeNorm_1000Obj.pkl",
-    fileExtragalactic="TotalCubeNorm_1000Obj.pkl",
+    gb_cut=20
 ):
     """Generate a population of KNe events, and put the info about them
     into a UserPointSlicer object
@@ -66,16 +90,6 @@ def generatePrestoPopSlicer(
     filePathExtragalactic : string
         The path to the file contains galactic Prest-Color phase space information
     """
-
-    data_dir = get_data_dir()
-    if skyregion == "galactic":
-        filePath = os.path.join(data_dir, "maf", fileGalactic)
-    elif skyregion == "extragalactic":
-        filePath = os.path.join(data_dir, "maf", fileExtragalactic)
-
-    with open(filePath, "rb") as f:
-        InfoDict = pickle.load(f)
-        HashTable = pickle.load(f)
 
     def rndm(a, b, g, size=1):
         """Power-law gen for pdf(x)\propto x^{g-1} for a<=x<=b"""
@@ -114,11 +128,6 @@ def generatePrestoPopSlicer(
     slicer.slicePoints["peak_time"] = peak_times
     slicer.slicePoints["file_indx"] = file_indx
     slicer.slicePoints["distance"] = distance
-
-    # Add the InfoDict and HashTable
-    slicer.slicePoints["InfoDict"] = [InfoDict]
-    slicer.slicePoints["HashTable"] = [HashTable]
-
     return slicer
 
 
@@ -153,7 +162,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         # Boolean variable, if True the light curve will be exported
         self.outputLc = outputLc
         self.thr = thr
-
+        self.skyregion = skyregion
         # read in file as light curve object;
         self.lightcurves = KN_lc(file_list=file_list)
         self.mjd0 = mjd0
@@ -552,10 +561,11 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
             result["slicePoint"] = slicePoint
 
         if result["presto_color_detect"] == 1:
+            InfoDict, HashTable = _load_hash(skyregion=self.skyregion)
             result["scoreS"], result["scoreP"] = self._getScore(
                 pd.DataFrame(lc),
-                HashTable=slicePoint["HashTable"][0],
-                InfoDict=slicePoint["InfoDict"][0],
+                HashTable=HashTable,
+                InfoDict=InfoDict,
                 thr=self.thr,
             )
         else:
