@@ -38,6 +38,8 @@ def generatePrestoPopSlicer(
     d_min=10,
     d_max=300,
     gb_cut=20,
+    fileGalactic="TotalCubeNorm_1000Obj.pkl",
+    fileExtragalactic="TotalCubeNorm_1000Obj.pkl",
 ):
     """Generate a population of KNe events, and put the info about them
     into a UserPointSlicer object
@@ -59,7 +61,21 @@ def generatePrestoPopSlicer(
         Minimum luminosity distance (Mpc)
     d_max : float or int (300)
         Maximum luminosity distance (Mpc)
+    filePathGalactic : string
+        The path to the file contains galactic Prest-Color phase space information
+    filePathExtragalactic : string
+        The path to the file contains galactic Prest-Color phase space information
     """
+
+    data_dir = get_data_dir()
+    if skyregion == "galactic":
+        filePath = os.path.join(data_dir, "maf", fileGalactic)
+    elif skyregion == "extragalactic":
+        filePath = os.path.join(data_dir, "maf", fileExtragalactic)
+
+    with open(filePath, "rb") as f:
+        InfoDict = pickle.load(f)
+        HashTable = pickle.load(f)
 
     def rndm(a, b, g, size=1):
         """Power-law gen for pdf(x)\propto x^{g-1} for a<=x<=b"""
@@ -99,6 +115,10 @@ def generatePrestoPopSlicer(
     slicer.slicePoints["file_indx"] = file_indx
     slicer.slicePoints["distance"] = distance
 
+    # Add the InfoDict and HashTable
+    slicer.slicePoints["InfoDict"] = [InfoDict]
+    slicer.slicePoints["HashTable"] = [HashTable]
+
     return slicer
 
 
@@ -116,9 +136,6 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         outputLc=False,
         skyregion="galactic",
         thr=0.003,
-        fileGalactic="TotalCubeNorm_1000Obj.pkl",
-        fileExtragalactic="TotalCubeNorm_1000Obj.pkl",
-        #         fileExtragalactic="Extragalactic_PrestoColor_Cube.pkl",
         **kwargs
     ):
         """
@@ -126,10 +143,6 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         ----------
         skyregion : string
             The skyregion of interst. Only two options: 'galactic' and 'extragalaxtic'
-        filePathGalactic : string
-            The path to the file contains galactic Prest-Color phase space information
-        filePathExtragalactic : string
-            The path to the file contains galactic Prest-Color phase space information
         """
         maps = ["DustMap"]
         self.mjdCol = mjdCol
@@ -140,16 +153,6 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         # Boolean variable, if True the light curve will be exported
         self.outputLc = outputLc
         self.thr = thr
-
-        data_dir = get_data_dir()
-        if skyregion == "galactic":
-            self.filePath = os.path.join(data_dir, "maf", fileGalactic)
-        elif skyregion == "extragalactic":
-            self.filePath = os.path.join(data_dir, "maf", fileExtragalactic)
-
-        with open(self.filePath, "rb") as f:
-            self.InfoDict = pickle.load(f)
-            self.HashTable = pickle.load(f)
 
         # read in file as light curve object;
         self.lightcurves = KN_lc(file_list=file_list)
@@ -551,8 +554,8 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         if result["presto_color_detect"] == 1:
             result["scoreS"], result["scoreP"] = self._getScore(
                 pd.DataFrame(lc),
-                HashTable=self.HashTable,
-                InfoDict=self.InfoDict,
+                HashTable=slicePoint["HashTable"][0],
+                InfoDict=slicePoint["InfoDict"][0],
                 thr=self.thr,
             )
         else:
