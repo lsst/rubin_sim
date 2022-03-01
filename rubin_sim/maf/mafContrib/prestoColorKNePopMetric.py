@@ -28,6 +28,43 @@ def radec2gal(ra, dec):
     return gal_l, gal_b
 
 
+def _load_hash(
+    fileGalactic="TotalCubeNorm_1000Obj.pkl",
+    fileExtragalactic="TotalCubeNorm_1000Obj.pkl",
+    skyregion="extragalactic",
+):
+    """Helper function to load large hash table without being a metric attribute.
+    Note, bad things could happen if you try to run different sky regions at the same time
+    (like, it might thrash loading one then the other. So, keep that in mind if/when this
+    gets extended)
+
+    Parameters
+    ----------
+    skyregion : string
+        The skyregion of interst. Only two options: 'galactic' and 'extragalaxtic'
+    filePathGalactic : string
+        The path to the file contains galactic Prest-Color phase space information
+    filePathExtragalactic : string
+        The path to the file contains galactic Prest-Color phase space information
+    """
+
+    if hasattr(_load_hash, "InfoDict"):
+        if skyregion == _load_hash.skyregion:
+            return _load_hash.InfoDict, _load_hash.HashTable
+
+    data_dir = get_data_dir()
+    if skyregion == "galactic":
+        filePath = os.path.join(data_dir, "maf", fileGalactic)
+    elif skyregion == "extragalactic":
+        filePath = os.path.join(data_dir, "maf", fileExtragalactic)
+
+    with open(filePath, "rb") as f:
+        _load_hash.InfoDict = pickle.load(f)
+        _load_hash.HashTable = pickle.load(f)
+    _load_hash.skyregion = skyregion
+    return _load_hash.InfoDict, _load_hash.HashTable
+
+
 def generatePrestoPopSlicer(
     skyregion="galactic",
     t_start=1,
@@ -98,7 +135,6 @@ def generatePrestoPopSlicer(
     slicer.slicePoints["peak_time"] = peak_times
     slicer.slicePoints["file_indx"] = file_indx
     slicer.slicePoints["distance"] = distance
-
     return slicer
 
 
@@ -116,9 +152,6 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         outputLc=False,
         skyregion="galactic",
         thr=0.003,
-        fileGalactic="TotalCubeNorm_1000Obj.pkl",
-        fileExtragalactic="TotalCubeNorm_1000Obj.pkl",
-        #         fileExtragalactic="Extragalactic_PrestoColor_Cube.pkl",
         **kwargs
     ):
         """
@@ -126,10 +159,6 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         ----------
         skyregion : string
             The skyregion of interst. Only two options: 'galactic' and 'extragalaxtic'
-        filePathGalactic : string
-            The path to the file contains galactic Prest-Color phase space information
-        filePathExtragalactic : string
-            The path to the file contains galactic Prest-Color phase space information
         """
         maps = ["DustMap"]
         self.mjdCol = mjdCol
@@ -140,17 +169,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         # Boolean variable, if True the light curve will be exported
         self.outputLc = outputLc
         self.thr = thr
-
-        data_dir = get_data_dir()
-        if skyregion == "galactic":
-            self.filePath = os.path.join(data_dir, "maf", fileGalactic)
-        elif skyregion == "extragalactic":
-            self.filePath = os.path.join(data_dir, "maf", fileExtragalactic)
-
-        with open(self.filePath, "rb") as f:
-            self.InfoDict = pickle.load(f)
-            self.HashTable = pickle.load(f)
-
+        self.skyregion = skyregion
         # read in file as light curve object;
         self.lightcurves = KN_lc(file_list=file_list)
         self.mjd0 = mjd0
@@ -549,10 +568,11 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
             result["slicePoint"] = slicePoint
 
         if result["presto_color_detect"] == 1:
+            InfoDict, HashTable = _load_hash(skyregion=self.skyregion)
             result["scoreS"], result["scoreP"] = self._getScore(
                 pd.DataFrame(lc),
-                HashTable=self.HashTable,
-                InfoDict=self.InfoDict,
+                HashTable=HashTable,
+                InfoDict=InfoDict,
                 thr=self.thr,
             )
         else:
