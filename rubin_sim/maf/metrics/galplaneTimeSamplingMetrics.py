@@ -19,20 +19,6 @@ __all__ = [
     "GalPlaneSeasonGapsTimescaleMetric",
 ]
 
-SCIENCE_MAP_OPTIONS = [
-    "combined_map",
-    "galactic_plane_map",
-    "magellenic_clouds_map",
-    "galactic_bulge_map",
-    "clementini_stellarpops_map",
-    "bonito_sfr_map",
-    "globular_clusters_map",
-    "open_clusters_map",
-    "zucker_sfr_map",
-    "pencilbeams_map",
-    "xrb_priority_map",
-]
-
 TAU_OBS = np.array([2.0, 5.0, 11.0, 20.0, 46.5, 73.0])
 
 
@@ -85,10 +71,6 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
         m5Col="fiveSigmaDepth",
         **kwargs,
     ):
-        if science_map not in SCIENCE_MAP_OPTIONS:
-            message = f"Must specify scienceMap from the options expected in the map: {SCIENCE_MAP_OPTIONS}"
-            message += f" but received {science_map}"
-            raise ValueError(message)
         self.science_map = science_map
         self.priority_map_threshold = galplane_priority_map_thresholds(self.science_map)
         # tau_obs is an array of minimum-required observation intervals for
@@ -177,10 +159,6 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
         m5Col="fiveSigmaDepth",
         **kwargs,
     ):
-        if science_map not in SCIENCE_MAP_OPTIONS:
-            message = f"Must specify scienceMap from the options expected in the map: {SCIENCE_MAP_OPTIONS}"
-            message += f" but received {science_map}"
-            raise ValueError(message)
         self.science_map = science_map
         self.priority_map_threshold = galplane_priority_map_thresholds(self.science_map)
         # tau_obs is an array of minimum-required observation intervals for
@@ -229,9 +207,6 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
         if len(season_gaps) == 0:
             return self.badval
         metric_data = {}
-        metric_data["seasons_start"] = times[firstOfSeason]
-        metric_data["seasons_end"] = times[lastOfSeason]
-        metric_data["season_gaps"] = season_gaps
         for i, tau in enumerate(self.tau_var):
             metric_data[tau] = calc_interval_decay(season_gaps, tau)
             metric_data[tau] /= len(season_gaps)

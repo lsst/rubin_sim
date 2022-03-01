@@ -17,20 +17,6 @@ __all__ = [
 # in relation to the desired coverage from the galactic plane priority map.
 # There is a related metric in transientTimeSampling which evaluates the cadence weighted by this same map.
 
-SCIENCE_MAP_OPTIONS = [
-    "combined_map",
-    "galactic_plane_map",
-    "magellenic_clouds_map",
-    "galactic_bulge_map",
-    "clementini_stellarpops_map",
-    "bonito_sfr_map",
-    "globular_clusters_map",
-    "open_clusters_map",
-    "zucker_sfr_map",
-    "pencilbeams_map",
-    "xrb_priority_map",
-]
-
 TAU_OBS = np.array([2.0, 5.0, 11.0, 20.0, 46.5, 73.0])
 
 
@@ -59,31 +45,6 @@ def galplane_nvisits_thresholds(tau_obs, nyears=10):
     # And account for the fact that each 'night' will (currently) need 2 visits
     nnights = nnights_total * (6.5 / 12) * 2
     n_visits_thresholds = nnights / tau_obs
-    return n_visits_thresholds
-
-
-def calcNVisitsThresholds_orig(tau_obs, nyears=10):
-    """ "Return estimated nvisits required to well-sample lightcurves that need sampling every tau_obs (days).
-
-    The values returned here seem very high, and only realistically kick in to
-    allow sampling at 20 day intervals .. which seems not quite right.
-
-    Parameters
-    ----------
-    tau_obs : `np.ndarray` or `list` of `float`
-        Timescale that variability must be sampled at, in days.
-    nyears : `float`, opt
-        Number of years in the survey (as sampled).  Default 10.
-
-    Returns
-    -------
-    n_visits_thresholds : `np.ndarray`
-        Estimated number of visits required to well sample lightcurves which require sampling on tau_obs
-    """
-    hours_in_obs_season = 6.0 * 30.0 * 24.0  # months, days/month, hours/day
-    hours_per_night = 8.0
-    n_visits_per_year = (hours_in_obs_season * hours_per_night) / (tau_obs * 24.0)
-    n_visits_thresholds = n_visits_per_year * nyears
     return n_visits_thresholds
 
 
@@ -160,10 +121,6 @@ class GalPlaneFootprintMetric(BaseMetric):
         filterlist=None,
         **kwargs,
     ):
-        if science_map not in SCIENCE_MAP_OPTIONS:
-            message = f"Must specify scienceMap from the options expected in the map: {SCIENCE_MAP_OPTIONS}"
-            message += f" but received {science_map}"
-            raise ValueError(message)
         self.science_map = science_map
         self.priority_map_threshold = galplane_priority_map_thresholds(self.science_map)
         # tau_obs is an array of minimum-required observation intervals for
@@ -287,10 +244,6 @@ class GalPlaneTimePerFilterMetric(BaseMetric):
         filterlist=None,
         **kwargs,
     ):
-        if science_map not in SCIENCE_MAP_OPTIONS:
-            message = f"Must specify scienceMap from the options expected in the map: {SCIENCE_MAP_OPTIONS}"
-            message += f" but received {science_map}"
-            raise ValueError(message)
         self.science_map = science_map
         self.priority_map_threshold = galplane_priority_map_thresholds(self.science_map)
         self.filterCol = filterCol
