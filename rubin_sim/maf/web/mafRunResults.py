@@ -394,7 +394,7 @@ class MafRunResults(object):
             metrics = metrics[np.where(metrics["metricName"] == metricName)]
         return metrics
 
-    def metricInfo(self, metric=None, withDataLink=True, withSlicerName=True):
+    def metricInfo(self, metric=None, withDataLink=False, withSlicerName=True):
         """
         Return a dict with the metric info we want to show on the webpages.
 
