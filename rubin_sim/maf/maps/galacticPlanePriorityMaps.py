@@ -90,9 +90,9 @@ def galplane_priority_map(
         science_maps = []
         for f in galplane_priority_map.filterlist:
             if use_alt_maps:
-                filename = f"priority_galPlane_footprint_alt_map_data_{f}.fits"
+                filename = f"priority_GalPlane_footprint_alt_map_data_{f}.fits"
             else:
-                filename = f"priority_galPlane_footprint_map_data_{f}.fits"
+                filename = f"priority_GalPlane_footprint_map_data_{f}.fits"
             mapfile = os.path.join(data_dir, filename)
             with fits.open(mapfile) as hdul:
                 galplane_priority_map.maps[f] = hdul[1].data
