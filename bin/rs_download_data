@@ -15,7 +15,7 @@ def data_dict():
     """
     file_dict = {
         "maf": "maf_2022_2_24.tgz",
-        "maps": "maps_2022_2_24.tgz",
+        "maps": "maps_2022_2_28.tgz",
         "movingObjects": "movingObjects_oct_2021.tgz",
         "orbits": "orbits_oct_2021.tgz",
         "sim_baseline": "sim_baseline_nov_2021.tgz",
