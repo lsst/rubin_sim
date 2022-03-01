@@ -26,7 +26,14 @@ def gp_priority_map_keys_to_components(mapname):
 
 
 def galplane_priority_map(
-    nside=64, get_keys=False, ra=None, dec=None, pixels=None, interp=False, mapPath=None
+    nside=64,
+    get_keys=False,
+    ra=None,
+    dec=None,
+    pixels=None,
+    interp=False,
+    mapPath=None,
+    use_alt_maps=False,
 ):
     """Reads and saves the galactic plane priority maps.
 
@@ -45,12 +52,15 @@ def galplane_priority_map(
         Healpixel IDs, to sub-select particular healpix points. Default uses all points.
         Easiest way to access healpix values.
         Note that the pixels in the healpix array MUST come from a healpix grid with the same nside
-        as the ebv_3d_hp map. Using different nsides can potentially fail silently.
+        as the galactic plane priority map. Using different nsides can potentially fail silently.
     interp : `bool`, opt
         Should returned values be interpolated (True) or just nearest neighbor (False).
         Default False.
     mapPath : `str`, opt
         Path to directory containing dust map files. Default None, uses $RUBIN_SIM_DATA_DIR/maps.
+    use_alt_maps : `bool`, opt
+        Use the priority_GalPlane_footprint_alt_map_data_{ugrizysum}.fits files instead of the default
+        priority_galPlane_footprint_map_data_{ugrizysum}.fits files.  Default False.
     """
     # This is a function that will read the galactic plane priority map data and hold onto it indefinitely
     # this also lets us use a range of slicers, as it will set the slicePoint data appropriately.
@@ -79,9 +89,11 @@ def galplane_priority_map(
         galplane_priority_map.maps = {}
         science_maps = []
         for f in galplane_priority_map.filterlist:
-            mapfile = os.path.join(
-                data_dir, f"priority_galPlane_footprint_map_data_{f}.fits"
-            )
+            if use_alt_maps:
+                filename = f"priority_galPlane_footprint_alt_map_data_{f}.fits"
+            else:
+                filename = f"priority_galPlane_footprint_map_data_{f}.fits"
+            mapfile = os.path.join(data_dir, filename)
             with fits.open(mapfile) as hdul:
                 galplane_priority_map.maps[f] = hdul[1].data
                 print(f"Read galplane priority map from {mapfile}")

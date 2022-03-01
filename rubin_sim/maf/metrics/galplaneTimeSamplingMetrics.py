@@ -28,7 +28,7 @@ def calc_interval_decay(delta_tobs, tau):
     m = np.exp(-K * (delta_tobs - tau))
     # But where observation interval is <= tau, replace with 1
     m[np.where(delta_tobs <= tau)] = 1.0
-    return m.sum()
+    return m
 
 
 # this is a bit of a hack .. it helps us use a variety of tau_obs values,
@@ -123,7 +123,9 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
         metric_data = {}
         for tau in self.tau_obs:
             # Normalize
-            metric_data[tau] = calc_interval_decay(delta_tobs, tau) / len(delta_tobs)
+            metric_data[tau] = calc_interval_decay(delta_tobs, tau).sum() / len(
+                delta_tobs
+            )
         return metric_data
 
 
@@ -144,6 +146,9 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
     mag_limit : `float`, opt
         Magnitude limit to use as a cutoff for various observations.
         Default 22.0.
+    expected_season_gap : `float`, opt
+        The typical season gap expected for a galactic plane field in days.
+        The default, 145 days, is typical for a bulge field.
     mjdCol : `str`, opt
         The name of the observation start MJD column. Default 'observationStartMJD'.
     m5Col : `str', opt
@@ -155,6 +160,7 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
         science_map,
         tau_var=None,
         mag_limit=22.0,
+        expected_season_gap=145,
         mjdCol="observationStartMJD",
         m5Col="fiveSigmaDepth",
         **kwargs,
@@ -171,6 +177,7 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
         ### NOTE: I would recommend dropping tau_var 10 and 25 from this analysis unless the metric is changed
         ### these intervals are so short they will *always* be dropped during the season gap
         self.mag_limit = mag_limit
+        self.expected_season_gap = expected_season_gap
         self.mjdCol = mjdCol
         self.m5Col = m5Col
         if "metricName" not in kwargs:
@@ -209,5 +216,8 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
         metric_data = {}
         for i, tau in enumerate(self.tau_var):
             metric_data[tau] = calc_interval_decay(season_gaps, tau)
+            # if the season gap is shorter than the expected season gap, count this as 'good'
+            good_season_gaps = np.where(season_gaps <= self.expected_season_gap)
+            metric_data[tau][good_season_gaps] = 1
             metric_data[tau] /= len(season_gaps)
         return metric_data
