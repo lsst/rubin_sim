@@ -43,3 +43,5 @@ from .agnTimeLagMetric import *
 from .surfbMetric import *
 from .cumulativeMetric import *
 from .skySatMetric import *
+from .galacticPlaneMetrics import *
+from .galplaneTimeSamplingMetrics import *

@@ -173,6 +173,48 @@ class TestMaps(unittest.TestCase):
         else:
             warnings.warn("Did not find stellar density map, skipping test.")
 
+    @unittest.skipUnless(
+        os.path.isdir(os.path.join(get_data_dir(), "maps")),
+        "Skip the galplane priority map data unless maps data present, required for setup",
+    )
+    def testGalplanePriorityMaps(self):
+
+        mapPath = os.path.join(get_data_dir(), "maps")
+        nside = 64
+        data = makeDataValues(random=981)
+        galplane_map = maps.GalacticPlanePriorityMap(
+            nside=nside, mapPath=mapPath, interp=False
+        )
+
+        # Set up basic case - healpix
+        slicer1 = slicers.HealpixSlicer(latLonDeg=False, nside=nside, useCamera=False)
+        slicer1.setupSlicer(data)
+        result1 = galplane_map.run(slicer1.slicePoints)
+        key = maps.gp_priority_map_components_to_keys("sum", "combined_map")
+        assert key in list(result1.keys())
+
+        # Set up more advanced case - random ra/dec
+        fieldData = makeFieldData(2234)
+        slicer2 = slicers.UserPointsSlicer(
+            fieldData["fieldRA"], fieldData["fieldDec"], latLonDeg=False
+        )
+        result2 = galplane_map.run(slicer2.slicePoints)
+        assert key in list(result2.keys())
+
+        # Check interpolation works
+        galplane_map = maps.GalacticPlanePriorityMap(
+            interp=True, nside=nside, mapPath=mapPath
+        )
+        result3 = galplane_map.run(slicer2.slicePoints)
+        assert key in list(result3.keys())
+
+        # Check warning gets raised
+        galplane_map = maps.GalacticPlanePriorityMap(nside=4, mapPath=mapPath)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            galplane_map.run(slicer1.slicePoints)
+            self.assertIn("nside", str(w[-1].message))
+
 
 if __name__ == "__main__":
     unittest.main()
