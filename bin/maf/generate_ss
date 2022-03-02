@@ -15,6 +15,7 @@ def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False
     orbit_files = {
         "granvik_5k": os.path.join(data_dir, "granvik_5k.txt"),
         "granvik_pha_5k": os.path.join(data_dir, "granvik_pha_5k.txt"),
+        "vatira_10k": os.path.join(data_dir, "vatiras_granvik_10k.txt"),
         "l7_5k": os.path.join(data_dir, "l7_5k.txt"),
         "mba_5k": os.path.join(data_dir, "mba_5k.txt"),
         "occ_rmax5_5k": os.path.join(data_dir, "occ_rmax5_5k.txt"),
@@ -25,6 +26,7 @@ def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False
     objtypes = {
         "granvik_5k": "NEO",
         "granvik_pha_5k": "PHA",
+        "vatira_10k": "Vatira",
         "l7_5k": "TNO",
         "mba_5k": "MBA",
         "occ_rmax5_5k": "OCC_r5",
@@ -44,6 +46,8 @@ def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False
             "occ_rmax5_5k",
             "occ_rmax20_5k",
         ]
+        # Vatiras will typically have 0 discoveries.
+        # They should be run for the baseline and neo twilight runs.
     elif pops is not None:
         pp = [p for p in orbit_files.keys() if p == pops]
         if len(pp) == 0:
@@ -68,9 +72,7 @@ def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False
         for pop in pops:
             objtype = objtypes[pop]
             if split:
-                splitfiles = glob.glob(
-                    os.path.join(data_dir, "split") + f"/*{pop}*"
-                )
+                splitfiles = glob.glob(os.path.join(data_dir, "split") + f"/*{pop}*")
                 outfile_split = outfile.replace(".sh", f"_{pop}_split.sh")
                 # If the output split file already exists, remove it (as we append, not write)
                 if os.path.isfile(outfile_split):
@@ -107,7 +109,8 @@ def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False
                     f" --startTime {start_mjd}"
                 )
                 print(
-                    f"cat {outfile_split} | parallel -j 10 ; {s3}  ; {s4}", file=output_file
+                    f"cat {outfile_split} | parallel -j 10 ; {s3}  ; {s4}",
+                    file=output_file,
                 )
             else:
                 s1 = f"makeLSSTobs --opsimDb {filename} --orbitFile {orbit_files[pop]}"
