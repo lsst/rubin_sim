@@ -7,12 +7,13 @@ import rubin_sim.maf as maf
 __all__ = ["ddfBatch"]
 
 
-def ddfBatch(runName="opsim", nside=512, radius=4.0):
+def ddfBatch(runName="opsim", nside=512, radius=4.0, nside_sne=128):
 
     radius = np.radians(radius)
     bundle_list = []
 
     ra, dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
+    ra_sne, dec_sne = _hpid2RaDec(nside_sne, np.arange(hp.nside2npix(nside_sne)))
 
     ddf_surveys = generate_dd_surveys()
 
@@ -38,11 +39,13 @@ def ddfBatch(runName="opsim", nside=512, radius=4.0):
         dist = _angularSeparation(ra, dec, np.mean(ddf.ra), np.mean(ddf.dec))
         good = np.where(dist <= radius)[0]
 
+        dist = _angularSeparation(ra_sne, dec_sne, np.mean(ddf.ra), np.mean(ddf.dec))
+        good_sne = np.where(dist <= radius)[0]
         # Number of SNe
         displayDict["order"] = 1
         displayDict["group"] = "SNe"
         displayDict["subgroup"] = "N SNe"
-        slicer = maf.HealpixSubsetSlicer(nside, good)
+        slicer = maf.HealpixSubsetSlicer(nside_sne, good_sne, useCache=False)
         metric = maf.metrics.SNNSNMetric(verbose=False, metricName="%s, SNe" % label)
         bundle_list.append(
             maf.MetricBundle(
@@ -55,9 +58,9 @@ def ddfBatch(runName="opsim", nside=512, radius=4.0):
                 displayDict=displayDict,
             )
         )
-
         # Strong lensed SNe
         displayDict["subgroup"] = "SL SNe"
+        slicer = maf.HealpixSubsetSlicer(nside, good, useCache=False)
         metric = maf.SNSLMetric(metricName="SnL_%s" % label)
         bundle_list.append(
             maf.MetricBundle(

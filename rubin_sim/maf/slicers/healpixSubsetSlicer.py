@@ -175,7 +175,7 @@ class HealpixSubsetSlicer(HealpixSlicer):
             """Return indexes for relevant opsim data at slicepoint
             (slicepoint=lonCol/latCol value .. usually ra/dec)."""
             # Subclass this method, just to make sure we return no data for points not in self.hpid
-            slicePoint = {"sid": islice}
+            slicePoint = {"sid": islice, "nside": self.nside}
             if islice not in self.hpid:
                 indices = []
             else:
