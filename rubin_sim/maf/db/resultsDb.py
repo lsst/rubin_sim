@@ -191,7 +191,7 @@ class ResultsDb(object):
 
         engine = create_engine(dbAddress, echo=verbose)
         self.Session = sessionmaker(bind=engine)
-        self.session = self.Session()
+        self.open()
         # Create the tables, if they don't already exist.
         try:
             Base.metadata.create_all(engine)
@@ -209,6 +209,15 @@ class ResultsDb(object):
             versioninfo = VersionRow(version=vers, rundate=rundate)
             self.session.add(versioninfo)
             self.session.commit()
+
+        self.close()
+
+    def open(self):
+        """
+        Open connection to database
+        """
+        self.session = self.Session()
+        self.session.expire_on_commit = False
 
     def close(self):
         """
@@ -252,6 +261,7 @@ class ResultsDb(object):
         If same metric (same metricName, slicerName, simDataName, sqlConstraint, metadata)
         already exists, it does nothing.
         """
+        self.open()
         if simDataName is None:
             simDataName = "NULL"
         if sqlConstraint is None:
@@ -285,6 +295,8 @@ class ResultsDb(object):
             self.session.commit()
         else:
             metricinfo = prev[0]
+        self.close()
+
         return metricinfo.metricId
 
     def updateDisplay(self, metricId, displayDict, overwrite=True):
@@ -302,6 +314,7 @@ class ResultsDb(object):
         """
         # Because we want to maintain 1-1 relationship between metricId's and displayDict's:
         # First check if a display line is present with this metricID.
+        self.open()
         displayinfo = self.session.query(DisplayRow).filter_by(metricId=metricId).all()
         if len(displayinfo) > 0:
             if overwrite:
@@ -334,6 +347,7 @@ class ResultsDb(object):
         )
         self.session.add(displayinfo)
         self.session.commit()
+        self.close()
 
     def updatePlot(self, metricId, plotType, plotFile, overwrite=False):
         """
@@ -351,6 +365,7 @@ class ResultsDb(object):
             Replaces existing row with the same metricId and plotType, if True.
             Default False, in which case additional plot is added to output (e.g. with different range)
         """
+        self.open()
         plotinfo = (
             self.session.query(PlotRow)
             .filter_by(metricId=metricId, plotType=plotType)
@@ -362,6 +377,7 @@ class ResultsDb(object):
         plotinfo = PlotRow(metricId=metricId, plotType=plotType, plotFile=plotFile)
         self.session.add(plotinfo)
         self.session.commit()
+        self.close()
 
     def updateSummaryStat(self, metricId, summaryName, summaryValue):
         """
@@ -386,6 +402,7 @@ class ResultsDb(object):
         """
         # Allow for special summary statistics which return data in a np structured array with
         #   'name' and 'value' columns.  (specificially needed for TableFraction summary statistic).
+        self.open()
         if isinstance(summaryValue, np.ndarray):
             if ("name" in summaryValue.dtype.names) and (
                 "value" in summaryValue.dtype.names
@@ -419,6 +436,7 @@ class ResultsDb(object):
                 warnings.warn(
                     "Warning! Cannot save summary statistic that is not a simple float or int"
                 )
+        self.close()
 
     def getMetricId(
         self, metricName, slicerName=None, metricMetadata=None, simDataName=None
@@ -441,6 +459,7 @@ class ResultsDb(object):
         metricId : `list` of `int`
             List of matching metricIds
         """
+        self.open()
         metricId = []
         query = self.session.query(
             MetricRow.metricId,
@@ -458,6 +477,7 @@ class ResultsDb(object):
         query = query.order_by(MetricRow.slicerName, MetricRow.metricMetadata)
         for m in query:
             metricId.append(m.metricId)
+        self.close()
         return metricId
 
     def getMetricIdLike(
@@ -486,6 +506,7 @@ class ResultsDb(object):
         metricId : `list` of `int`
             List of matching metricIds
         """
+        self.open()
         metricId = []
         query = self.session.query(
             MetricRow.metricId,
@@ -506,15 +527,18 @@ class ResultsDb(object):
             query = query.filter(MetricRow.simDataName == simDataName)
         for m in query:
             metricId.append(m.metricId)
+        self.close()
         return metricId
 
     def getAllMetricIds(self):
         """
         Return a list of all metricIds.
         """
+        self.open()
         metricIds = []
         for m in self.session.query(MetricRow.metricId).all():
             metricIds.append(m.metricId)
+        self.close()
         return metricIds
 
     @staticmethod
@@ -576,6 +600,7 @@ class ResultsDb(object):
                 metricId,
             ]
         summarystats = []
+        self.open()
         for mid in metricId:
             # Join the metric table and the summarystat table, based on the metricID (the second filter)
             query = (
@@ -629,6 +654,7 @@ class ResultsDb(object):
             dtype_list += [("simDataName", str, self.slen)]
         dtype = np.dtype(dtype_list)
         summarystats = np.array(summarystats, dtype)
+        self.close()
         return summarystats
 
     def getPlotFiles(self, metricId=None, withSimName=False):
@@ -668,6 +694,7 @@ class ResultsDb(object):
             metricId = [
                 metricId,
             ]
+        self.open()
         plotFiles = []
         for mid in metricId:
             # Join the metric table and the plot table based on the metricID (the second filter does the join)
@@ -706,6 +733,7 @@ class ResultsDb(object):
         dtype = np.dtype(dtype_list)
 
         plotFiles = np.array(plotFiles, dtype)
+        self.close()
         return plotFiles
 
     def getMetricDataFiles(self, metricId=None):
@@ -715,6 +743,7 @@ class ResultsDb(object):
         """
         if metricId is None:
             metricId = self.getAllMetricIds()
+        self.open()
         if not hasattr(metricId, "__iter__"):
             metricId = [
                 metricId,
@@ -725,6 +754,7 @@ class ResultsDb(object):
                 self.session.query(MetricRow).filter(MetricRow.metricId == mid).all()
             ):
                 dataFiles.append(m.metricDataFile)
+        self.close()
         return dataFiles
 
     def getMetricInfo(self, metricId=None, withSimName=False):
@@ -765,6 +795,7 @@ class ResultsDb(object):
             metricId = [
                 metricId,
             ]
+        self.open()
         metricInfo = []
         for mId in metricId:
             # Query for all rows in metrics and displays that match any of the metricIds.
@@ -798,6 +829,7 @@ class ResultsDb(object):
             dtype_list += [("simDataName", str, self.slen)]
         dtype = np.dtype(dtype_list)
         metricInfo = np.array(metricInfo, dtype)
+        self.close()
         return metricInfo
 
     def getMetricDisplayInfo(self, metricId=None):
@@ -816,6 +848,7 @@ class ResultsDb(object):
             metricId = [
                 metricId,
             ]
+        self.open()
         metricInfo = []
         for mId in metricId:
             # Query for all rows in metrics and displays that match any of the metricIds.
@@ -857,12 +890,15 @@ class ResultsDb(object):
             ]
         )
         metricInfo = np.array(metricInfo, dtype)
+        self.close()
         return metricInfo
 
     def getSimDataName(self):
         """Return a list of the simDataNames for the metric bundles in the database."""
+        self.open()
         query = self.session.query(MetricRow.simDataName.distinct()).all()
         simDataName = []
         for s in query:
             simDataName.append(s[0])
+        self.close()
         return simDataName
