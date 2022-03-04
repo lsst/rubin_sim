@@ -5,7 +5,6 @@ import warnings
 from functools import wraps
 import rubin_sim.utils as simsUtils
 import matplotlib.path as mplPath
-from rubin_sim.maf.utils.mafUtils import gnomonic_project_toxy
 
 
 __all__ = ["HealpixComCamSlicer"]
@@ -177,7 +176,7 @@ class HealpixComCamSlicer(HealpixSlicer):
                         self.corners_x * sin_rot[i] + self.corners_y * cos_rot[i]
                     )
                     # How far is the pointing center from the healpix center
-                    xshift, yshift = gnomonic_project_toxy(
+                    xshift, yshift = simsUtils.gnomonic_project_toxy(
                         lon[i],
                         lat[i],
                         self.slicePoints["ra"][islice],
