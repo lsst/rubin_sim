@@ -24,3 +24,4 @@ from .projections import *
 from .season_utils import *
 from .ddf_locations import *
 from .cameraFootprint import *
+from .bearing import *

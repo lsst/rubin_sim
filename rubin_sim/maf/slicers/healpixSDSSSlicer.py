@@ -2,7 +2,7 @@ import numpy as np
 from .healpixSlicer import HealpixSlicer
 from functools import wraps
 import matplotlib.path as mplPath
-from rubin_sim.maf.utils.mafUtils import gnomonic_project_toxy
+from rubin_sim.utils import gnomonic_project_toxy
 from rubin_sim.maf.plots import HealpixSDSSSkyMap
 
 __all__ = ["HealpixSDSSSlicer"]

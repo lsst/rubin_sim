@@ -1,38 +1,15 @@
 import numpy as np
 from rubin_sim.scheduler.detailers import Base_detailer
-from rubin_sim.utils import _approx_RaDec2AltAz, _approx_altaz2pa
+from rubin_sim.utils import (
+    _approx_RaDec2AltAz,
+    _approx_altaz2pa,
+    gnomonic_project_tosky,
+    bearing,
+    dest_latlon,
+)
 
 
 __all__ = ["Dither_detailer", "Camera_rot_detailer", "Euclid_dither_detailer"]
-
-
-def gnomonic_project_toxy(ra, dec, raCen, decCen):
-    """Calculate x/y projection of RA1/Dec1 in system with center at RAcen, Deccenp.
-    Input radians. Returns x/y."""
-    # also used in Global Telescope Network website
-    if len(ra) != len(dec):
-        raise Exception(
-            "Expect RA and Dec arrays input to gnomonic projection to be same length."
-        )
-    cosc = np.sin(decCen) * np.sin(dec) + np.cos(decCen) * np.cos(dec) * np.cos(
-        ra - raCen
-    )
-    x = np.cos(dec) * np.sin(ra - raCen) / cosc
-    y = (
-        np.cos(decCen) * np.sin(dec) - np.sin(decCen) * np.cos(dec) * np.cos(ra - raCen)
-    ) / cosc
-    return x, y
-
-
-def gnomonic_project_tosky(x, y, raCen, decCen):
-    """Calculate RA/Dec on sky of object with x/y and RA/Cen of field of view.
-    Returns Ra/Dec in radians."""
-    denom = np.cos(decCen) - y * np.sin(decCen)
-    ra = raCen + np.arctan2(x, denom)
-    dec = np.arctan2(
-        np.sin(decCen) + y * np.cos(decCen), np.sqrt(x * x + denom * denom)
-    )
-    return ra, dec
 
 
 class Dither_detailer(Base_detailer):
@@ -94,29 +71,6 @@ class Dither_detailer(Base_detailer):
             observation_list[i]["RA"] = newRA[i]
             observation_list[i]["dec"] = newDec[i]
         return observation_list
-
-
-def bearing(lon1, lat1, lon2, lat2):
-    """Bearing between two points"""
-
-    delta_l = lon2 - lon1
-    X = np.cos(lat2) * np.sin(delta_l)
-    Y = np.cos(lat1) * np.sin(lat2) - np.sin(lat1) * np.cos(lat2) * np.cos(delta_l)
-    theta = np.arctan2(X, Y)
-
-    return theta
-
-
-def dest(dist, bearing, lat1, lon1):
-
-    lat2 = np.arcsin(
-        np.sin(lat1) * np.cos(dist) + np.cos(lat1) * np.sin(dist) * np.cos(bearing)
-    )
-    lon2 = lon1 + np.arctan2(
-        np.sin(bearing) * np.sin(dist) * np.cos(lat1),
-        np.cos(dist) - np.sin(lat1) * np.sin(lat2),
-    )
-    return lat2, lon2
 
 
 class Euclid_dither_detailer(Base_detailer):
@@ -191,10 +145,10 @@ class Euclid_dither_detailer(Base_detailer):
                 bearing_mag = self.bearings_mag_1[night]
                 perp_mag = self.perp_mag_1[night]
                 # Move point a along the bearings
-                self.shifted_dec_a, self.shifted_ra_a = dest(
+                self.shifted_dec_a, self.shifted_ra_a = dest_latlon(
                     bearing_mag, self.bearing_atob, self.dec_a, self.ra_a
                 )
-                self.shifted_dec_a, self.shifted_ra_a = dest(
+                self.shifted_dec_a, self.shifted_ra_a = dest_latlon(
                     perp_mag,
                     self.bearing_atob + np.pi / 2.0,
                     self.shifted_dec_a,
@@ -205,10 +159,10 @@ class Euclid_dither_detailer(Base_detailer):
                 bearing_mag = self.bearings_mag_2[night]
                 perp_mag = self.perp_mag_2[night]
 
-                self.shifted_dec_b, self.shifted_ra_b = dest(
+                self.shifted_dec_b, self.shifted_ra_b = dest_latlon(
                     bearing_mag, self.bearing_btoa, self.dec_b, self.ra_b
                 )
-                self.shifted_dec_b, self.shifted_ra_b = dest(
+                self.shifted_dec_b, self.shifted_ra_b = dest_latlon(
                     perp_mag,
                     self.bearing_btoa + np.pi / 2.0,
                     self.shifted_dec_b,

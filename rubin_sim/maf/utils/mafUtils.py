@@ -11,7 +11,6 @@ import os
 __all__ = [
     "optimalBins",
     "percentileClipping",
-    "gnomonic_project_toxy",
     "radec2pix",
     "collapse_night",
     "load_inst_zeropoints",
@@ -182,37 +181,6 @@ def percentileClipping(data, percentile=95.0):
     min_value = np.percentile(data, lower_percentile)
     max_value = np.percentile(data, upper_percentile)
     return min_value, max_value
-
-
-def gnomonic_project_toxy(RA1, Dec1, RAcen, Deccen):
-    """
-    Calculate the x/y values of RA1/Dec1 in a gnomonic projection with center at RAcen/Deccen.
-
-    Parameters
-    ----------
-    RA1 : numpy.ndarray
-        RA values of the data to be projected, in radians.
-    Dec1 : numpy.ndarray
-        Dec values of the data to be projected, in radians.
-    RAcen: float
-        RA value of the center of the projection, in radians.
-    Deccen : float
-        Dec value of the center of the projection, in radians.
-
-    Returns
-    -------
-    numpy.ndarray, numpy.ndarray
-        The x/y values of the projected RA1/Dec1 positions.
-    """
-    cosc = np.sin(Deccen) * np.sin(Dec1) + np.cos(Deccen) * np.cos(Dec1) * np.cos(
-        RA1 - RAcen
-    )
-    x = np.cos(Dec1) * np.sin(RA1 - RAcen) / cosc
-    y = (
-        np.cos(Deccen) * np.sin(Dec1)
-        - np.sin(Deccen) * np.cos(Dec1) * np.cos(RA1 - RAcen)
-    ) / cosc
-    return x, y
 
 
 def radec2pix(nside, ra, dec):
