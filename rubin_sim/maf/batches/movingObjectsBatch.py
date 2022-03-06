@@ -81,14 +81,14 @@ def ss_population_defaults(objtype):
         "char": "outer",
     }
     defaults["LPC"] = {
-        "Hrange": [4, 20, 0.5],
-        "Hmark": 5,
+        "Hrange": [6, 22, 0.5],
+        "Hmark": 13,
         "magtype": "comet_oort",
         "char": "outer",
     }
     defaults["SPC"] = {
         "Hrange": [4, 20, 0.5],
-        "Hmark": 5,
+        "Hmark": 8,
         "magtype": "comet_short",
         "char": "outer",
     }
@@ -1362,6 +1362,9 @@ def runFractionSummary(bdict, Hmark, outDir, resultsDb):
             Hmark = bundle.plotDict["Hmark"] - 2
         if Hmark is None:
             Hmark = np.median(bundle.slicer.slicePoints["H"]) - 2
+        # Make sure we didn't push Hmark outside the range of H values for metric
+        if Hmark < bundle.slicer.slicePoints["H"].min():
+            Hmark = bundle.slicer.slicePoints["H"].min()
         for k in asteroidSummaryMetrics:
             if k in b:
                 for summary_metric in asteroidSummaryMetrics[k]:
