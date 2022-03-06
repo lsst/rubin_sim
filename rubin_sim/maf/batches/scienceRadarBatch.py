@@ -1200,7 +1200,7 @@ def scienceRadarBatch(
         bundleList.append(
             mb.MetricBundle(
                 m3,
-                slicer,
+                healslicer,
                 constraint=filtersqls[f],
                 metadata=filtermetadata[f],
                 runName=runName,
