@@ -181,7 +181,7 @@ def scienceRadarBatch(
             area=18000,
             reduce_func=np.median,
             decreasing=False,
-            metricName="Median Parallax Error (18k)",
+            metricName="Median Parallax Uncert (18k)",
         ),
         metrics.AreaThresholdMetric(
             upper_threshold=good_parallax_limit,
@@ -190,14 +190,14 @@ def scienceRadarBatch(
     ]
     summary.append(
         metrics.PercentileMetric(
-            percentile=95, metricName="95th Percentile Parallax Error"
+            percentile=95, metricName="95th Percentile Parallax Uncert"
         )
     )
     summary.extend(standardSummary())
     for rmag, plotmax in zip(rmags_para, plotmaxVals):
         plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
         metric = metrics.ParallaxMetric(
-            metricName="Parallax Error @ %.1f" % (rmag),
+            metricName="Parallax Uncert @ %.1f" % (rmag),
             rmag=rmag,
             normalize=False,
         )
@@ -281,17 +281,17 @@ def scienceRadarBatch(
             area=18000,
             reduce_func=np.median,
             decreasing=False,
-            metricName="Median Proper Motion Error (18k)",
+            metricName="Median Proper Motion Uncert (18k)",
         )
     ]
     summary.append(
-        metrics.PercentileMetric(metricName="95th Percentile Proper Motion Error")
+        metrics.PercentileMetric(metricName="95th Percentile Proper Motion Uncert")
     )
     summary.extend(standardSummary())
     for rmag, plotmax in zip(rmags_pm, plotmaxVals):
         plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
         metric = metrics.ProperMotionMetric(
-            metricName="Proper Motion Error @ %.1f" % rmag,
+            metricName="Proper Motion Uncert @ %.1f" % rmag,
             rmag=rmag,
             normalize=False,
         )
@@ -755,15 +755,15 @@ def scienceRadarBatch(
     summaryMetrics = extendedSummary()
     summaryMetrics += [metrics.AreaThresholdMetric(upper_threshold=threshold)]
     for f in filterlist:
-        m = metrics.SFErrorMetric(
+        m = metrics.SFUncertMetric(
             mag=agn_m5[f],
-            metricName="AGN SF_error",
+            metricName="AGN SF_uncert",
         )
         plotDict = {"color": colors[f]}
         displayDict["order"] = filterorders[f]
-        displayDict["subgroup"] = "SFError"
+        displayDict["subgroup"] = "SFUncert"
         displayDict["caption"] = (
-            "Expected AGN structure function errors, based on observations in "
+            "Expected AGN structure function uncertainties, based on observations in "
             f"{f} band, for an AGN of magnitude {agn_m5[f]:.2f}"
         )
         bundleList.append(
@@ -1343,7 +1343,7 @@ def scienceRadarBatch(
         stellar_map = maps.StellarDensityMap(filtername=f)
         displayDict["order"] = filterorders[f]
         displayDict["caption"] = (
-            "Number of stars in %s band with an measurement error due to crowding "
+            "Number of stars in %s band with an measurement uncertainty due to crowding "
             "of less than 0.2 mag" % f
         )
         # Configure the NstarsMetric - note 'filtername' refers to the filter in which to evaluate crowding
@@ -1373,7 +1373,7 @@ def scienceRadarBatch(
         stellar_map = maps.StellarDensityMap(filtername=f)
         displayDict["order"] = filterorders[f]
         displayDict["caption"] = (
-            "Number of stars in %s band with an measurement error "
+            "Number of stars in %s band with an measurement uncertainty "
             "of less than 0.2 mag, not considering crowding" % f
         )
         # Configure the NstarsMetric - note 'filtername' refers to the filter in which to evaluate crowding
