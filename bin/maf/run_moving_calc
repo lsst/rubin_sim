@@ -82,7 +82,7 @@ if __name__ == "__main__":
         "If unset, defaults from objtype will be used.",
     )
     parser.add_argument(
-        "--constraintMetadata",
+        "--constraintInfoLabel",
         type=str,
         default="",
         help="Metadata to add to the output files beyond objtype. Typically translation of "
@@ -164,7 +164,7 @@ if __name__ == "__main__":
         colmap=colmap,
         runName=args.opsimRun,
         objtype=args.objtype,
-        constraintMetadata=args.constraintMetadata,
+        constraintInfoLabel=args.constraintInfoLabel,
         constraint=args.constraint,
         detectionLosses="trailing",
         albedo=args.albedo,
@@ -181,7 +181,7 @@ if __name__ == "__main__":
         colmap=colmap,
         runName=args.opsimRun,
         objtype=args.objtype,
-        constraintMetadata=args.constraintMetadata,
+        constraintInfoLabel=args.constraintInfoLabel,
         constraint=args.constraint,
         detectionLosses="detection",
         albedo=args.albedo,
@@ -192,7 +192,7 @@ if __name__ == "__main__":
         colmap=colmap,
         runName=args.opsimRun,
         objtype=args.objtype,
-        constraintMetadata=args.constraintMetadata,
+        constraintInfoLabel=args.constraintInfoLabel,
         constraint=args.constraint,
         detectionLosses="detection",
         albedo=args.albedo,
@@ -213,7 +213,7 @@ if __name__ == "__main__":
             runName=args.opsimRun,
             objtype=args.objtype,
             albedo=args.albedo,
-            constraintMetadata=args.constraintMetadata,
+            constraintInfoLabel=args.constraintInfoLabel,
             constraint=args.constraint,
             Hmark=hMark,
         )
@@ -224,7 +224,7 @@ if __name__ == "__main__":
             runName=args.opsimRun,
             objtype=args.objtype,
             albedo=args.albedo,
-            constraintMetadata=args.constraintMetadata,
+            constraintInfoLabel=args.constraintInfoLabel,
             constraint=args.constraint,
             Hmark=hMark,
         )

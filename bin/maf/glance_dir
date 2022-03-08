@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import matplotlib
+
 matplotlib.use("Agg")
 import os
 import glob
@@ -21,22 +22,26 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.db is None:
-        db_files = glob.glob('*.db')
-        db_files = [filename for filename in db_files if 'trackingDb' not in filename]
+        db_files = glob.glob("*.db")
+        db_files = [filename for filename in db_files if "trackingDb" not in filename]
     else:
         db_files = [args.db]
-    run_names = [os.path.basename(name).replace('.db', '') for name in db_files]
+    run_names = [os.path.basename(name).replace(".db", "") for name in db_files]
 
     for filename, name in zip(db_files, run_names):
-        if os.path.isdir(name + '_glance'):
-            shutil.rmtree(name + '_glance')
+        if os.path.isdir(name + "_glance"):
+            shutil.rmtree(name + "_glance")
         opsdb = db.OpsimDatabase(filename)
         colmap = batches.ColMapDict()
 
         bdict = {}
         bdict.update(batches.glanceBatch(colmap, name))
-        resultsDb = db.ResultsDb(outDir=name + '_glance')
-        group = mb.MetricBundleGroup(bdict, opsdb, outDir=name + '_glance', resultsDb=resultsDb, saveEarly=False)
+        resultsDb = db.ResultsDb(outDir=name + "_glance")
+        group = mb.MetricBundleGroup(
+            bdict, opsdb, outDir=name + "_glance", resultsDb=resultsDb, saveEarly=False
+        )
         group.runAll(clearMemory=True, plotNow=True)
         resultsDb.close()
-        db.addRunToDatabase(name + '_glance', 'trackingDb_sqlite.db', None, name, '', '', name+'.db')
+        db.addRunToDatabase(
+            name + "_glance", "trackingDb_sqlite.db", None, name, "", "", name + ".db"
+        )

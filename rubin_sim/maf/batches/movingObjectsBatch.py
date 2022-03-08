@@ -149,7 +149,7 @@ def quickDiscoveryBatch(
     albedo=None,
     Hmark=None,
     npReduce=np.mean,
-    constraintMetadata="",
+    constraintInfoLabel="",
     constraint=None,
     magtype="asteroid",
 ):
@@ -167,11 +167,11 @@ def quickDiscoveryBatch(
     plotFuncs = [plots.MetricVsH()]
     displayDict = {"group": f"{objtype}", "subgroup": "Discovery"}
 
-    if constraintMetadata == "" and constraint is not None:
-        constraintMetadata = (
+    if constraintInfoLabel == "" and constraint is not None:
+        constraintInfoLabel = (
             constraint.replace("filter", "").replace("==", "").replace("  ", " ")
         )
-    info_label = objtype + " " + constraintMetadata
+    info_label = objtype + " " + constraintInfoLabel
     info_label = info_label.rstrip(" ")
 
     if detectionLosses not in ("detection", "trailing"):
@@ -293,7 +293,7 @@ def discoveryBatch(
     albedo=None,
     Hmark=None,
     npReduce=np.mean,
-    constraintMetadata="",
+    constraintInfoLabel="",
     constraint=None,
     magtype="asteroid",
 ):
@@ -311,11 +311,11 @@ def discoveryBatch(
     plotFuncs = [plots.MetricVsH()]
     displayDict = {"group": f"{objtype}", "subgroup": "Discovery"}
 
-    if constraintMetadata == "" and constraint is not None:
-        constraintMetadata = (
+    if constraintInfoLabel == "" and constraint is not None:
+        constraintInfoLabel = (
             constraint.replace("filter", "").replace("==", "").replace("  ", " ")
         )
-    info_label = objtype + " " + constraintMetadata
+    info_label = objtype + " " + constraintInfoLabel
     info_label = info_label.rstrip(" ")
 
     if detectionLosses not in ("detection", "trailing"):
@@ -940,7 +940,7 @@ def characterizationInnerBatch(
     objtype="",
     albedo=None,
     Hmark=None,
-    constraintMetadata="",
+    constraintInfoLabel="",
     constraint=None,
     npReduce=np.mean,
     windows=None,
@@ -970,11 +970,11 @@ def characterizationInnerBatch(
     }
     plotFuncs = [plots.MetricVsH()]
 
-    if constraintMetadata == "" and constraint is not None:
-        constraintMetadata = (
+    if constraintInfoLabel == "" and constraint is not None:
+        constraintInfoLabel = (
             constraint.replace("filter", "").replace("==", "").replace("  ", " ")
         )
-    info_label = objtype + " " + constraintMetadata
+    info_label = objtype + " " + constraintInfoLabel
     info_label = info_label.rstrip(" ")
 
     displayDict = {"group": f"{objtype}"}
@@ -1140,7 +1140,7 @@ def characterizationOuterBatch(
     objtype="",
     albedo=None,
     Hmark=None,
-    constraintMetadata="",
+    constraintInfoLabel="",
     constraint=None,
     npReduce=np.mean,
     windows=None,
@@ -1170,11 +1170,11 @@ def characterizationOuterBatch(
     }
     plotFuncs = [plots.MetricVsH()]
 
-    if constraintMetadata == "" and constraint is not None:
-        constraintMetadata = (
+    if constraintInfoLabel == "" and constraint is not None:
+        constraintInfoLabel = (
             constraint.replace("filter", "").replace("==", "").replace("  ", " ")
         )
-    info_label = objtype + " " + constraintMetadata
+    info_label = objtype + " " + constraintInfoLabel
     info_label = info_label.rstrip(" ")
 
     displayDict = {"group": f"{objtype}"}
