@@ -48,6 +48,7 @@ class TestArchive(unittest.TestCase):
 
         self.assertEqual(runs.index.name, "run")
 
+    @unittest.skip("skipping long running test.")
     def test_download_runs(self):
         run = maf.get_runs(FAMILY_SOURCE).index.values[0]
 
@@ -155,6 +156,19 @@ class TestArchive(unittest.TestCase):
         plot_metric_set = all_metric_sets.loc["Nvis"]
         fig, ax = maf.describe_families(
             disp_families, summary=summary, plot_metric_set=plot_metric_set
+        )
+
+    def test_create_metric_set_df(self):
+        metrics = ["Urania", "Thalia", "Calliope", "Terpsichore"]
+        metric_set_name = "Muses"
+        metric_set = maf.create_metric_set_df(metric_set_name, metrics)
+        self.assertSequenceEqual(metrics, metric_set.metric.tolist())
+        self.assertSequenceEqual(
+            metric_set.columns.tolist(),
+            ["metric", "short_name", "style", "invert", "mag"],
+        )
+        self.assertSequenceEqual(
+            metric_set.index.names, ["metric set", "metric"]
         )
 
 
