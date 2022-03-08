@@ -6,7 +6,7 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.metricBundles as mb
 from .colMapDict import ColMapDict
-from .common import standardMetrics, combineMetadata
+from .common import standardMetrics, combineInfoLabels
 
 __all__ = ["slewBasics", "slewAngles", "slewSpeeds", "slewActivities"]
 
@@ -37,9 +37,9 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
     # Calculate basic stats on slew times. (mean/median/min/max + total).
     slicer = slicers.UniSlicer()
 
-    metadata = "All visits"
+    info_label = "All visits"
     if sqlConstraint is not None and len(sqlConstraint) > 0:
-        metadata = "%s" % (sqlConstraint)
+        info_label = "%s" % (sqlConstraint)
     displayDict = {
         "group": "Slew",
         "subgroup": "Slew Basics",
@@ -51,14 +51,18 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
     displayDict["caption"] = "Total number of slews recorded in summary table."
     displayDict["order"] += 1
     bundle = mb.MetricBundle(
-        metric, slicer, sqlConstraint, metadata=metadata, displayDict=displayDict
+        metric, slicer, sqlConstraint, info_label=info_label, displayDict=displayDict
     )
     bundleList.append(bundle)
     for metric in standardMetrics(colmap["slewtime"]):
         displayDict["caption"] = "%s in seconds." % (metric.name)
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
-            metric, slicer, sqlConstraint, metadata=metadata, displayDict=displayDict
+            metric,
+            slicer,
+            sqlConstraint,
+            info_label=info_label,
+            displayDict=displayDict,
         )
         bundleList.append(bundle)
 
@@ -67,7 +71,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
     metric = metrics.CountMetric(
         col=colmap["slewtime"], metricName="Slew Time Histogram"
     )
-    metadata = "All visits"
+    info_label = "All visits"
     plotDict = {"logScale": True, "ylabel": "Count"}
     displayDict["caption"] = "Histogram of slew times (seconds) for all visits."
     displayDict["order"] += 1
@@ -75,7 +79,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
         metric,
         slicer,
         sqlConstraint,
-        metadata=metadata,
+        info_label=info_label,
         plotDict=plotDict,
         displayDict=displayDict,
     )
@@ -87,7 +91,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
     metric = metrics.CountMetric(
         col=colmap["slewtime"], metricName="Zoom Slew Time Histogram"
     )
-    metadata = "All visits"
+    info_label = "All visits"
     plotDict = {"logScale": True, "ylabel": "Count"}
     displayDict["caption"] = "Histogram of slew times (seconds) for all visits (zoom)."
     displayDict["order"] += 1
@@ -95,7 +99,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
         metric,
         slicer,
         sqlConstraint,
-        metadata=metadata,
+        info_label=info_label,
         plotDict=plotDict,
         displayDict=displayDict,
     )
@@ -117,7 +121,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
             metric,
             slicer,
             sqlConstraint,
-            metadata=metadata,
+            info_label=info_label,
             plotDict=plotDict,
             displayDict=displayDict,
         )
@@ -142,7 +146,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
             metric,
             slicer,
             sqlConstraint,
-            metadata=metadata,
+            info_label=info_label,
             plotDict=plotDict,
             displayDict=displayDict,
         )
@@ -193,7 +197,7 @@ def slewAngles(colmap=None, runName="opsim", sqlConstraint=None):
         "caption": None,
     }
     for angle in angles:
-        metadata = combineMetadata(angle, sqlConstraint)
+        info_label = combineInfoLabels(angle, sqlConstraint)
         metriclist = standardMetrics(colmap[angle], replace_colname="")
         metriclist += [metrics.RmsMetric(colmap[angle], metricName="RMS")]
         for metric in metriclist:
@@ -204,7 +208,7 @@ def slewAngles(colmap=None, runName="opsim", sqlConstraint=None):
                 slicer,
                 sqlConstraint,
                 displayDict=displayDict,
-                metadata=metadata,
+                info_label=info_label,
             )
             bundleList.append(bundle)
 
@@ -254,12 +258,16 @@ def slewSpeeds(colmap=None, runName="opsim", sqlConstraint=None):
         "caption": None,
     }
     for speed in speeds:
-        metadata = combineMetadata(speed, sqlConstraint)
+        info_label = combineInfoLabels(speed, sqlConstraint)
         metric = metrics.AbsMaxMetric(col=colmap[speed], metricName="Max (Abs)")
         displayDict["caption"] = "Maximum absolute value of %s." % speed
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
-            metric, slicer, sqlConstraint, displayDict=displayDict, metadata=metadata
+            metric,
+            slicer,
+            sqlConstraint,
+            displayDict=displayDict,
+            info_label=info_label,
         )
         bundleList.append(bundle)
 
@@ -267,7 +275,11 @@ def slewSpeeds(colmap=None, runName="opsim", sqlConstraint=None):
         displayDict["caption"] = "Mean absolute value of %s." % speed
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
-            metric, slicer, sqlConstraint, displayDict=displayDict, metadata=metadata
+            metric,
+            slicer,
+            sqlConstraint,
+            displayDict=displayDict,
+            info_label=info_label,
         )
         bundleList.append(bundle)
 
@@ -277,7 +289,11 @@ def slewSpeeds(colmap=None, runName="opsim", sqlConstraint=None):
         )
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
-            metric, slicer, sqlConstraint, displayDict=displayDict, metadata=metadata
+            metric,
+            slicer,
+            sqlConstraint,
+            displayDict=displayDict,
+            info_label=info_label,
         )
         bundleList.append(bundle)
 
@@ -339,7 +355,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
     }
 
     for slewType in slewTypeDict:
-        metadata = combineMetadata(slewType, sqlConstraint)
+        info_label = combineInfoLabels(slewType, sqlConstraint)
         tableValue = slewTypeDict[slewType]
 
         # Metrics for all activities of this type.
@@ -356,7 +372,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
         )
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
-            metric, slicer, sql, displayDict=displayDict, metadata=metadata
+            metric, slicer, sql, displayDict=displayDict, info_label=info_label
         )
         bundleList.append(bundle)
 
@@ -367,7 +383,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
         ] = "Mean amount of time (in seconds) for %s movements." % (slewType)
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
-            metric, slicer, sql, displayDict=displayDict, metadata=metadata
+            metric, slicer, sql, displayDict=displayDict, info_label=info_label
         )
         bundleList.append(bundle)
 
@@ -378,7 +394,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
         )
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
-            metric, slicer, sql, displayDict=displayDict, metadata=metadata
+            metric, slicer, sql, displayDict=displayDict, info_label=info_label
         )
         bundleList.append(bundle)
 
@@ -399,7 +415,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
         )
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
-            metric, slicer, sql, displayDict=displayDict, metadata=metadata
+            metric, slicer, sql, displayDict=displayDict, info_label=info_label
         )
         bundleList.append(bundle)
 
@@ -412,7 +428,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
         )
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
-            metric, slicer, sql, displayDict=displayDict, metadata=metadata
+            metric, slicer, sql, displayDict=displayDict, info_label=info_label
         )
         bundleList.append(bundle)
 
@@ -425,7 +441,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
         )
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
-            metric, slicer, sql, displayDict=displayDict, metadata=metadata
+            metric, slicer, sql, displayDict=displayDict, info_label=info_label
         )
         bundleList.append(bundle)
 

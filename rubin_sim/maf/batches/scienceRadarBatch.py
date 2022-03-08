@@ -34,7 +34,9 @@ def scienceRadarBatch(
 
     bundleList = []
     # Get some standard per-filter coloring and sql constraints
-    filterlist, colors, filterorders, filtersqls, filtermetadata = filterList(all=False)
+    filterlist, colors, filterorders, filtersqls, filterinfo_label = filterList(
+        all=False
+    )
 
     standardStats = standardSummary(withCount=False)
 
@@ -125,7 +127,7 @@ def scienceRadarBatch(
     value = "fiveSigmaDepth"
     for f in filterlist:
         displayDict["caption"] = "Histogram of %s" % (value)
-        displayDict["caption"] += " for %s." % (filtermetadata[f])
+        displayDict["caption"] += " for %s." % (filterinfo_label[f])
         displayDict["order"] = filterorders[f]
         m = metrics.CountMetric(value, metricName="%s Histogram" % (value))
         slicer = slicers.OneDSlicer(sliceColName=value)
@@ -422,7 +424,7 @@ def scienceRadarBatch(
                 slicer,
                 filtersqls[f],
                 plotDict=plotDict,
-                metadata=filtermetadata[f],
+                info_label=filterinfo_label[f],
                 displayDict=displayDict,
                 summaryMetrics=summary,
             )
@@ -526,7 +528,7 @@ def scienceRadarBatch(
         ptsrc_lim_mag_i_band = mag_cuts[yr_cut]
         sqlconstraint = "night <= %s" % (yr_cut * 365.25)
         sqlconstraint += ' and note not like "DD%"'
-        metadata = f"{bandpass} band non-DD year {yr_cut}"
+        info_label = f"{bandpass} band non-DD year {yr_cut}"
         ThreebyTwoSummary_simple = metrics.StaticProbesFoMEmulatorMetricSimple(
             nside=nside, year=yr_cut, metricName="3x2ptFoM_simple"
         )
@@ -560,7 +562,7 @@ def scienceRadarBatch(
             s,
             sqlconstraint,
             mapsList=[dustmap],
-            metadata=metadata,
+            info_label=info_label,
             summaryMetrics=summaryMetrics
             + [ThreebyTwoSummary, ThreebyTwoSummary_simple],
             displayDict=displayDict,
@@ -578,7 +580,7 @@ def scienceRadarBatch(
     # Have to include all filters in query, so that we check for all-band coverage.
     # Galaxy numbers calculated using 'bandpass' images only though.
     sqlconstraint = f'note not like "DD%"'
-    metadata = f"{bandpass} band galaxies non-DD"
+    info_label = f"{bandpass} band galaxies non-DD"
     metric = maf.DepthLimitedNumGalMetric(
         nside=nside,
         filterBand=bandpass,
@@ -602,7 +604,7 @@ def scienceRadarBatch(
         slicer,
         sqlconstraint,
         plotDict=plotDict,
-        metadata=metadata,
+        info_label=info_label,
         mapsList=[dustmap],
         displayDict=displayDict,
         summaryMetrics=summary,
@@ -616,7 +618,7 @@ def scienceRadarBatch(
     displayDict["subgroup"] = f"{subgroupCount}: WL"
     displayDict["order"] = 0
     sqlconstraint = f'note not like "DD%" and filter = "{bandpass}"'
-    metadata = f"{bandpass} band non-DD"
+    info_label = f"{bandpass} band non-DD"
     minExpTime = 15
     m = metrics.WeakLensingNvisits(
         lsstFilter=bandpass,
@@ -638,7 +640,7 @@ def scienceRadarBatch(
         s,
         sqlconstraint,
         mapsList=[dustmap],
-        metadata=metadata,
+        info_label=info_label,
         summaryMetrics=standardStats,
         displayDict=displayDict,
     )
@@ -652,8 +654,8 @@ def scienceRadarBatch(
     slicer = slicers.HealpixSlicer(nside=nside)
     metric1 = metrics.KuiperMetric("rotSkyPos")
     metric2 = metrics.KuiperMetric("rotTelPos")
-    filterlist, colors, filterorders, filtersqls, filtermetadata = filterList(
-        all=False, extraSql=None, extraMetadata=None
+    filterlist, colors, filterorders, filtersqls, filterinfo_label = filterList(
+        all=False, extraSql=None, extraInfoLabel=None
     )
     for f in filterlist:
         for m in [metric1, metric2]:
@@ -716,7 +718,7 @@ def scienceRadarBatch(
     # Calculate the number of expected QSOs, in each band
     for f in filterlist:
         sql = filtersqls[f] + ' and note not like "%DD%"'
-        md = filtermetadata[f] + " and non-DD"
+        md = filterinfo_label[f] + " and non-DD"
         summaryMetrics = [metrics.SumMetric(metricName="Total QSO")]
         zmin = 0.3
         m = metrics.QSONumberCountsMetric(
@@ -739,7 +741,7 @@ def scienceRadarBatch(
                 m,
                 slicer,
                 constraint=sql,
-                metadata=md,
+                info_label=md,
                 runName=runName,
                 summaryMetrics=summaryMetrics,
                 displayDict=displayDict,
@@ -771,7 +773,7 @@ def scienceRadarBatch(
                 m,
                 slicer,
                 constraint=filtersqls[f],
-                metadata=filtermetadata[f],
+                info_label=filterinfo_label[f],
                 runName=runName,
                 plotDict=plotDict,
                 summaryMetrics=summaryMetrics,
@@ -798,7 +800,7 @@ def scienceRadarBatch(
                 m,
                 slicer,
                 constraint=filtersqls[f],
-                metadata=filtermetadata[f],
+                info_label=filterinfo_label[f],
                 runName=runName,
                 plotDict=plotDict,
                 summaryMetrics=summaryMetrics,
@@ -910,7 +912,7 @@ def scienceRadarBatch(
                 displayDict=displayDict,
                 runName=runName,
                 summaryMetrics=summaryStats,
-                metadata=f"dm {dM} interval {time_interval} RRc",
+                info_label=f"dm {dM} interval {time_interval} RRc",
             )
             bundleList.append(bundle)
 
@@ -925,7 +927,7 @@ def scienceRadarBatch(
             starMags = [magnitude] * len(amplitudes)
 
             plotDict = {"nTicks": 3, "colorMin": 0, "colorMax": 3, "xMin": 0, "xMax": 3}
-            metadata = "P_%.1f_Mag_%.0f_Amp_0.05-0.1-1" % (period, magnitude)
+            info_label = "P_%.1f_Mag_%.0f_Amp_0.05-0.1-1" % (period, magnitude)
             sql = ""
             displayDict["caption"] = (
                 "Metric evaluates if a periodic signal of period %.1f days could "
@@ -943,7 +945,7 @@ def scienceRadarBatch(
                 metric,
                 healslicer,
                 sql,
-                metadata=metadata,
+                info_label=info_label,
                 displayDict=displayDict,
                 plotDict=plotDict,
                 plotFuncs=subsetPlots,
@@ -1024,7 +1026,7 @@ def scienceRadarBatch(
                 None,
                 runName=runName,
                 summaryMetrics=summaryMetrics,
-                metadata=f"tE {crossing[0]}_{crossing[1]} days",
+                info_label=f"tE {crossing[0]}_{crossing[1]} days",
                 displayDict=displayDict,
                 plotFuncs=[plots.HealpixSkyMap()],
             )
@@ -1053,7 +1055,7 @@ def scienceRadarBatch(
                     None,
                     runName=runName,
                     summaryMetrics=summaryMetrics,
-                    metadata=f"tE {crossing[0]}_{crossing[1]} days",
+                    info_label=f"tE {crossing[0]}_{crossing[1]} days",
                     displayDict=displayDict,
                     plotFuncs=[],
                 )
@@ -1080,7 +1082,7 @@ def scienceRadarBatch(
                     None,
                     runName=runName,
                     summaryMetrics=summaryMetrics,
-                    metadata=f"tE {crossing[0]}_{crossing[1]} days",
+                    info_label=f"tE {crossing[0]}_{crossing[1]} days",
                     displayDict=displayDict,
                     plotFuncs=[],
                 )
@@ -1150,7 +1152,7 @@ def scienceRadarBatch(
                 m1,
                 healslicer,
                 constraint=filtersqls[f],
-                metadata=filtermetadata[f],
+                info_label=filterinfo_label[f],
                 runName=runName,
                 plotDict=plotDict,
                 plotFuncs=plotFuncs,
@@ -1177,7 +1179,7 @@ def scienceRadarBatch(
                 m2,
                 healslicer,
                 constraint=filtersqls[f],
-                metadata=filtermetadata[f],
+                info_label=filterinfo_label[f],
                 runName=runName,
                 summaryMetrics=summaryMetrics,
                 plotDict=plotDict,
@@ -1202,7 +1204,7 @@ def scienceRadarBatch(
                 m3,
                 healslicer,
                 constraint=filtersqls[f],
-                metadata=filtermetadata[f],
+                info_label=filterinfo_label[f],
                 runName=runName,
                 summaryMetrics=summaryMetrics,
                 plotDict=plotDict,

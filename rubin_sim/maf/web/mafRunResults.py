@@ -204,13 +204,13 @@ class MafRunResults(object):
             "baseMetricNames",
             "slicerName",
             "displayOrder",
-            "metricMetadata",
+            "metricInfoLabel",
         ),
     ):
         """
         Sort the metrics by order specified by 'order'.
 
-        Default is to sort by group, subgroup, metric name, slicer, display order, then metadata.
+        Default is to sort by group, subgroup, metric name, slicer, display order, then info_label.
         Returns sorted numpy array.
         """
         if len(metrics) > 0:
@@ -298,7 +298,7 @@ class MafRunResults(object):
         stats = self.stats[np.in1d(self.stats["summaryMetric"], summaryStatName)]
         # Identify the subset of relevant metrics.
         metrics = self.metricIdsToMetrics(stats["metricId"], metrics)
-        # Re-sort metrics because at this point, probably want displayOrder + metadata before metric name.
+        # Re-sort metrics because at this point, probably want displayOrder + info_label before metric name.
         metrics = self.sortMetrics(
             metrics,
             order=[
@@ -306,7 +306,7 @@ class MafRunResults(object):
                 "displaySubgroup",
                 "slicerName",
                 "displayOrder",
-                "metricMetadata",
+                "metricInfoLabel",
                 "baseMetricNames",
             ],
         )
@@ -327,7 +327,7 @@ class MafRunResults(object):
                 "displaySubgroup",
                 "slicerName",
                 "displayOrder",
-                "metricMetadata",
+                "metricInfoLabel",
                 "baseMetricNames",
             ],
         )
@@ -350,36 +350,36 @@ class MafRunResults(object):
         metrics = metrics[np.where(metrics["slicerName"] == slicer)]
         return metrics
 
-    def uniqueMetricNameAndMetadata(self, metrics=None):
+    def uniqueMetricNameAndInfoLabel(self, metrics=None):
         """
-        For an array of metrics, return the unique metric names + metadata combo in same order.
+        For an array of metrics, return the unique metric names + info_label combo in same order.
         """
         if metrics is None:
             metrics = self.metrics
-        metricmetadata = []
-        for metricName, metadata in zip(
-            metrics["metricName"], metrics["metricMetadata"]
+        metricInfoLabel = []
+        for metricName, info_label in zip(
+            metrics["metricName"], metrics["metricInfoLabel"]
         ):
-            metricmeta = " ".join([metricName, metadata])
-            if metricmeta not in metricmetadata:
-                metricmetadata.append(metricmeta)
-        return metricmetadata
+            metricinfo = " ".join([metricName, info_label])
+            if metricinfo not in metricInfoLabel:
+                metricInfoLabel.append(metricinfo)
+        return metricInfoLabel
 
-    def uniqueMetricMetadata(self, metrics=None):
+    def uniqueMetricInfoLabel(self, metrics=None):
         """
-        For an array of metrics, return a list of the unique metadata.
+        For an array of metrics, return a list of the unique info_label.
         """
         if metrics is None:
             metrics = self.metrics
-        return list(np.unique(metrics["metricMetadata"]))
+        return list(np.unique(metrics["metricInfoLabel"]))
 
-    def metricsWithMetadata(self, metadata, metrics=None):
+    def metricsWithInfoLabel(self, info_label, metrics=None):
         """
-        For an array of metrics, return the subset which match a particular 'metadata' value.
+        For an array of metrics, return the subset which match a particular 'info_label' value.
         """
         if metrics is None:
             metrics = self.metrics
-        metrics = metrics[np.where(metrics["metricMetadata"] == metadata)]
+        metrics = metrics[np.where(metrics["metricInfoLabel"] == info_label)]
         return metrics
 
     def metricsWithMetricName(self, metricName, metrics=None, baseonly=True):
@@ -398,7 +398,7 @@ class MafRunResults(object):
         """
         Return a dict with the metric info we want to show on the webpages.
 
-        Currently : MetricName / Slicer/ Metadata / datafile (for download)
+        Currently : MetricName / Slicer/ InfoLabel / datafile (for download)
         Used to build a lot of tables in showMaf.
         """
         metricInfo = OrderedDict()
@@ -406,7 +406,7 @@ class MafRunResults(object):
             metricInfo["MetricName"] = ""
             if withSlicerName:
                 metricInfo["Slicer"] = ""
-            metricInfo["Metadata"] = ""
+            metricInfo["InfoLabel"] = ""
             if withDataLink:
                 metricInfo["Data"] = []
                 metricInfo["Data"].append([None, None])
@@ -415,7 +415,7 @@ class MafRunResults(object):
         metricInfo["MetricName"] = metric["metricName"]
         if withSlicerName:
             metricInfo["Slicer"] = metric["slicerName"]
-        metricInfo["Metadata"] = metric["metricMetadata"]
+        metricInfo["InfoLabel"] = metric["metricInfoLabel"]
         if withDataLink:
             metricInfo["Data"] = []
             metricInfo["Data"].append(metric["metricDataFile"])

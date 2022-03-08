@@ -9,7 +9,7 @@ __all__ = ["hourglassPlots"]
 
 
 def hourglassPlots(
-    colmap=None, runName="opsim", nyears=10, extraSql=None, extraMetadata=None
+    colmap=None, runName="opsim", nyears=10, extraSql=None, extraInfoLabel=None
 ):
     """Run the hourglass metric, for each individual year.
 
@@ -23,23 +23,23 @@ def hourglassPlots(
         How many years to attempt to make hourglass plots for. Default is 10.
     extraSql : str, optional
         Add an extra sql constraint before running metrics. Default None.
-    extraMetadata : str, optional
-        Add an extra piece of metadata before running metrics. Default None.
+    extraInfoLabel : str, optional
+        Add an extra piece of info_label before running metrics. Default None.
     """
     if colmap is None:
         colmap = ColMapDict("opsimV4")
     bundleList = []
 
     sql = ""
-    metadata = ""
-    # Add additional sql constraint (such as wfdWhere) and metadata, if provided.
+    info_label = ""
+    # Add additional sql constraint (such as wfdWhere) and info_label, if provided.
     if (extraSql is not None) and (len(extraSql) > 0):
         sql = extraSql
-        if extraMetadata is None:
-            metadata = extraSql.replace("filter =", "").replace("filter=", "")
-            metadata = metadata.replace('"', "").replace("'", "")
-    if extraMetadata is not None:
-        metadata = extraMetadata
+        if extraInfoLabel is None:
+            info_label = extraSql.replace("filter =", "").replace("filter=", "")
+            info_label = info_label.replace('"', "").replace("'", "")
+    if extraInfoLabel is not None:
+        info_label = extraInfoLabel
 
     years = list(range(nyears + 1))
     displayDict = {"group": "Hourglass"}
@@ -56,7 +56,7 @@ def hourglassPlots(
         )
         if len(sql) > 0:
             sqlconstraint = "(%s) and (%s)" % (sqlconstraint, sql)
-        md = metadata + " year %i-%i" % (year - 1, year)
+        md = info_label + " year %i-%i" % (year - 1, year)
         slicer = slicers.HourglassSlicer()
         metric = metrics.HourglassMetric(
             nightCol=colmap["night"], mjdCol=colmap["mjd"], metricName="Hourglass"
@@ -65,7 +65,7 @@ def hourglassPlots(
             metric,
             slicer,
             constraint=sqlconstraint,
-            metadata=md,
+            info_label=md,
             displayDict=displayDict,
         )
         bundleList.append(bundle)

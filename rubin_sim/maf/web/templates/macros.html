@@ -62,7 +62,7 @@
 {# Always split tables so that one table per slicer. #}
 {# Table can either be: metric rows x stat cols (if #metrics > #stats) #}
 {#                   OR stat rows x metric cols (if #stats > #metrics) #}
-{#                   OR metadata rows x metric cols (if only single summary stat)  #}
+{#                   OR info_label rows x metric cols (if only single summary stat)  #}
 
 {# Check that there is *some* summary stat info from this group/subgroup to put into a table #}
   {% set statNames = run.allStatNames(metrics) %}
@@ -86,19 +86,19 @@
     {# Count number of metric names. #}
     {% set metricNames = run.uniqueMetricNames(slicermetrics, baseonly=False) %}
 
-    {# Count the number of metric + metadata combinations #}
-    {% set metricNameMeta = run.uniqueMetricNameAndMetadata(slicermetrics) %}
+    {# Count the number of metric + info_label combinations #}
+    {% set metricNameInfo = run.uniqueMetricNameAndInfoLabel(slicermetrics) %}
 
     {# Count number of different summary metric names. #}
     {% set statNames = run.allStatNames(slicermetrics) %}
 
 
     {% if statNames|length == 1 %}
-      {# Only one stat reported per metric/metadata combo #}
-      {#  so we make a metadata rows x metric cols table. #}
+      {# Only one stat reported per metric/info_label combo #}
+      {#  so we make a info_label rows x metric cols table. #}
 
       {% set statName = statNames[0] %}
-      {% set metadata = run.uniqueMetricMetadata(slicermetrics) %}
+      {% set InfoLabel = run.uniqueMetricInfoLabel(slicermetrics) %}
 
       {% set ncols = metricNames|length + 1 %}
 
@@ -117,13 +117,13 @@
       {% endfor %}
       </tr>
 
-      {% for meta in metadata %}
+      {% for il in InfoLabel %}
          <tr>
-     	 <td><b>{{meta}}</b> </td>
-	 {# Find metric that matches the metric name for this column and this metadata. #}
+     	 <td><b>{{il}}</b> </td>
+	 {# Find metric that matches the metric name for this column and this info_label. #}
          {% for mName in metricNames %}
 	    {% set mset = run.metricsWithMetricName(mName, slicermetrics, baseonly=False) %}
-            {% set m = run.metricsWithMetadata(meta, mset) %}
+            {% set m = run.metricsWithInfoLabel(il, mset) %}
             {% if m|length > 0 %}
               {% set stats = run.statsForMetric(m) %}
               {% set statDict = run.statDict(stats) %}
@@ -137,7 +137,7 @@
         {% endfor %}
         </table>
 
-   {% elif statNames|length <= (metricNameMeta|length + lenMinfo + 3) %}
+   {% elif statNames|length <= (metricNameInfo|length + lenMinfo + 3) %}
       {# make a table with rows = each metric, columns = summary stats #}
       {% set ncols = statNames|length + lenMinfo %}
 
@@ -166,7 +166,7 @@
 
        {% if statDict|length > 0 %}
       <tr>
-        {# print the metric info - metricname/slicer/metadata #}
+        {# print the metric info - metricname/slicer/info_label #}
          {% for key in metricInfo %}
            <td><b>{{ metricInfo[key]|escape }}</b></td>
          {% endfor %}
@@ -182,9 +182,9 @@
      {% endfor %}
      </table>
 
-   {% elif statNames|length > (metricNameMeta|length + lenMinfo + 3) %}
+   {% elif statNames|length > (metricNameInfo|length + lenMinfo + 3) %}
       {# make a table with rows = each summary stats, columns = metrics #}
-      {% set ncols = metricNameMeta|length + 1 %}
+      {% set ncols = metricNameInfo|length + 1 %}
 
       <table>
       <tr class="lightestgray">
@@ -208,7 +208,7 @@
       {% for m in slicermetrics %}
 	  {% set mInfo = run.metricInfo(m, withDataLink=False, withSlicerName=False) %}
 	  <th>
-	   {{mInfo['Metadata']}}
+	   {{mInfo['InfoLabel']}}
 	  </th>
       {% endfor %}
       </tr>
@@ -221,7 +221,7 @@
 	{% for m in slicermetrics %}
            {% set stats = run.statsForMetric(m, statName=statName) %}
            {# there should only ever be either 1 or 0
-      statName/metricName/metricMetadata combo #}
+      statName/metricName/metricInfoLabel combo #}
            {% if stats|length == 0 %}
                 <td> -- </td>
            {% else %}

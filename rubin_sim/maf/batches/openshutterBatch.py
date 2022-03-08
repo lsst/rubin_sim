@@ -10,7 +10,7 @@ __all__ = ["openshutterFractions"]
 
 
 def openshutterFractions(
-    colmap=None, runName="opsim", extraSql=None, extraMetadata=None
+    colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None
 ):
     """Evaluate open shutter fraction over whole survey and per night.
 
@@ -23,8 +23,8 @@ def openshutterFractions(
     extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'night<365')
         Default None, for no additional constraints.
-    extraMetadata : str, optional
-        Additional metadata to add before any below (i.e. "WFD").  Default is None.
+    extraInfoLabel : str, optional
+        Additional info_label to add before any below (i.e. "WFD").  Default is None.
     """
     if colmap is None:
         colmap = ColMapDict("opsimV4")
@@ -33,9 +33,9 @@ def openshutterFractions(
     group = "Open Shutter Fraction"
 
     subgroup = "All visits"
-    if extraMetadata is not None:
-        subgroup = extraMetadata + " " + subgroup.lower()
-    elif extraSql is not None and extraMetadata is None:
+    if extraInfoLabel is not None:
+        subgroup = extraInfoLabel + " " + subgroup.lower()
+    elif extraSql is not None and extraInfoLabel is None:
         subgroup = subgroup + " " + extraSql
 
     # Open Shutter fraction over whole survey.
@@ -49,7 +49,7 @@ def openshutterFractions(
     )
     slicer = slicers.UniSlicer()
     bundle = mb.MetricBundle(
-        metric, slicer, extraSql, metadata=subgroup, displayDict=displayDict
+        metric, slicer, extraSql, info_label=subgroup, displayDict=displayDict
     )
     bundleList.append(bundle)
     # Count the number of nights on-sky in the survey.
@@ -59,7 +59,7 @@ def openshutterFractions(
     metric = metrics.CountUniqueMetric(colmap["night"])
     slicer = slicers.UniSlicer()
     bundle = mb.MetricBundle(
-        metric, slicer, extraSql, metadata=subgroup, displayDict=displayDict
+        metric, slicer, extraSql, info_label=subgroup, displayDict=displayDict
     )
     bundleList.append(bundle)
     # Count the number of nights total in the survey (start to finish of observations).
@@ -69,15 +69,15 @@ def openshutterFractions(
     metric = metrics.FullRangeMetric(colmap["night"])
     slicer = slicers.UniSlicer()
     bundle = mb.MetricBundle(
-        metric, slicer, extraSql, metadata=subgroup, displayDict=displayDict
+        metric, slicer, extraSql, info_label=subgroup, displayDict=displayDict
     )
     bundleList.append(bundle)
 
     # Open shutter fraction per night.
     subgroup = "Per night"
-    if extraMetadata is not None:
-        subgroup = extraMetadata + " " + subgroup.lower()
-    elif extraSql is not None and extraMetadata is None:
+    if extraInfoLabel is not None:
+        subgroup = extraInfoLabel + " " + subgroup.lower()
+    elif extraSql is not None and extraInfoLabel is None:
         subgroup = subgroup + " " + extraSql
     displayDict = {"group": group, "subgroup": subgroup, "order": 0}
     displayDict["caption"] = "Open shutter fraction %s." % (subgroup.lower())
@@ -95,7 +95,7 @@ def openshutterFractions(
         metric,
         slicer,
         extraSql,
-        metadata=subgroup,
+        info_label=subgroup,
         summaryMetrics=standardSummary(),
         displayDict=displayDict,
     )

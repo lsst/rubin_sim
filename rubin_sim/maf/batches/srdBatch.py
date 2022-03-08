@@ -9,7 +9,7 @@ import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.metricBundles as mb
 from .colMapDict import ColMapDict
-from .common import standardSummary, radecCols, combineMetadata
+from .common import standardSummary, radecCols, combineInfoLabels
 
 __all__ = ["fOBatch", "astrometryBatch", "rapidRevisitBatch"]
 
@@ -18,7 +18,7 @@ def fOBatch(
     colmap=None,
     runName="opsim",
     extraSql=None,
-    extraMetadata=None,
+    extraInfoLabel=None,
     nside=64,
     benchmarkArea=18000,
     benchmarkNvisits=825,
@@ -36,8 +36,8 @@ def fOBatch(
         Nside for the healpix slicer. Default 64.
     extraSql : str or None, optional
         Additional sql constraint to apply to all metrics.
-    extraMetadata : str or None, optional
-        Additional metadata to apply to all results.
+    extraInfoLabel : str or None, optional
+        Additional info_label to apply to all results.
 
     Returns
     -------
@@ -49,21 +49,21 @@ def fOBatch(
     bundleList = []
 
     sql = ""
-    metadata = "All visits"
-    # Add additional sql constraint (such as wfdWhere) and metadata, if provided.
+    info_label = "All visits"
+    # Add additional sql constraint (such as wfdWhere) and info_label, if provided.
     if (extraSql is not None) and (len(extraSql) > 0):
         sql = extraSql
-        if extraMetadata is None:
-            metadata = extraSql.replace("filter =", "").replace("filter=", "")
-            metadata = metadata.replace('"', "").replace("'", "")
-    if extraMetadata is not None:
-        metadata = extraMetadata
+        if extraInfoLabel is None:
+            info_label = extraSql.replace("filter =", "").replace("filter=", "")
+            info_label = info_label.replace('"', "").replace("'", "")
+    if extraInfoLabel is not None:
+        info_label = extraInfoLabel
 
-    subgroup = metadata
+    subgroup = info_label
 
     raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
     # Don't want dither info in subgroup (too long), but do want it in bundle name.
-    metadata = combineMetadata(metadata, ditherMeta)
+    info_label = combineInfoLabels(info_label, ditherMeta)
 
     # Set up fO metric.
     slicer = slicers.HealpixSlicer(
@@ -140,7 +140,7 @@ def fOBatch(
         displayDict=displayDict,
         summaryMetrics=summaryMetrics,
         plotFuncs=[plots.FOPlot()],
-        metadata=metadata,
+        info_label=info_label,
     )
     bundleList.append(bundle)
     # Set the runName for all bundles and return the bundleDict.
@@ -153,7 +153,7 @@ def astrometryBatch(
     colmap=None,
     runName="opsim",
     extraSql=None,
-    extraMetadata=None,
+    extraInfoLabel=None,
     nside=64,
     ditherStacker=None,
     ditherkwargs=None,
@@ -170,8 +170,8 @@ def astrometryBatch(
         Nside for the healpix slicer. Default 64.
     extraSql : str or None, optional
         Additional sql constraint to apply to all metrics.
-    extraMetadata : str or None, optional
-        Additional metadata to apply to all results.
+    extraInfoLabel : str or None, optional
+        Additional info_label to apply to all results.
     ditherStacker: str or rubin_sim.maf.stackers.BaseDitherStacker
         Optional dither stacker to use to define ra/dec columns.
     ditherkwargs: dict, optional
@@ -186,23 +186,23 @@ def astrometryBatch(
     bundleList = []
 
     sql = ""
-    metadata = "All visits"
-    # Add additional sql constraint (such as wfdWhere) and metadata, if provided.
+    info_label = "All visits"
+    # Add additional sql constraint (such as wfdWhere) and info_label, if provided.
     if (extraSql is not None) and (len(extraSql) > 0):
         sql = extraSql
-        if extraMetadata is None:
-            metadata = extraSql.replace("filter =", "").replace("filter=", "")
-            metadata = metadata.replace('"', "").replace("'", "")
-    if extraMetadata is not None:
-        metadata = extraMetadata
+        if extraInfoLabel is None:
+            info_label = extraSql.replace("filter =", "").replace("filter=", "")
+            info_label = info_label.replace('"', "").replace("'", "")
+    if extraInfoLabel is not None:
+        info_label = extraInfoLabel
 
-    subgroup = metadata
+    subgroup = info_label
 
     raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(
         ditherStacker, colmap, ditherkwargs
     )
     # Don't want dither info in subgroup (too long), but do want it in bundle name.
-    metadata = combineMetadata(metadata, ditherMeta)
+    info_label = combineInfoLabels(info_label, ditherMeta)
 
     rmags_para = [22.4, 24.0]
     rmags_pm = [20.5, 24.0]
@@ -269,7 +269,7 @@ def astrometryBatch(
             metric,
             slicer,
             sql,
-            metadata=metadata,
+            info_label=info_label,
             stackerList=[parallaxStacker, ditherStacker],
             displayDict=displayDict,
             plotDict=plotDict,
@@ -294,7 +294,7 @@ def astrometryBatch(
             metric,
             slicer,
             sql,
-            metadata=metadata,
+            info_label=info_label,
             stackerList=[parallaxStacker, ditherStacker],
             displayDict=displayDict,
             summaryMetrics=standardSummary(),
@@ -316,7 +316,7 @@ def astrometryBatch(
             metric,
             slicer,
             sql,
-            metadata=metadata,
+            info_label=info_label,
             stackerList=[parallaxStacker, ditherStacker],
             displayDict=displayDict,
             summaryMetrics=standardSummary(),
@@ -342,7 +342,7 @@ def astrometryBatch(
             metric,
             slicer,
             sql,
-            metadata=metadata,
+            info_label=info_label,
             stackerList=[dcrStacker, parallaxStacker, ditherStacker],
             displayDict=displayDict,
             summaryMetrics=standardSummary(),
@@ -387,7 +387,7 @@ def astrometryBatch(
             metric,
             slicer,
             sql,
-            metadata=metadata,
+            info_label=info_label,
             stackerList=[ditherStacker],
             displayDict=displayDict,
             plotDict=plotDict,
@@ -411,7 +411,7 @@ def astrometryBatch(
             metric,
             slicer,
             sql,
-            metadata=metadata,
+            info_label=info_label,
             stackerList=[ditherStacker],
             displayDict=displayDict,
             summaryMetrics=standardSummary(),
@@ -430,7 +430,7 @@ def rapidRevisitBatch(
     colmap=None,
     runName="opsim",
     extraSql=None,
-    extraMetadata=None,
+    extraInfoLabel=None,
     nside=64,
     ditherStacker=None,
     ditherkwargs=None,
@@ -447,8 +447,8 @@ def rapidRevisitBatch(
         Nside for the healpix slicer. Default 64.
     extraSql : str or None, optional
         Additional sql constraint to apply to all metrics.
-    extraMetadata : str or None, optional
-        Additional metadata to apply to all results.
+    extraInfoLabel : str or None, optional
+        Additional info_label to apply to all results.
     ditherStacker: str or rubin_sim.maf.stackers.BaseDitherStacker
         Optional dither stacker to use to define ra/dec columns.
     ditherkwargs: dict, optional
@@ -463,23 +463,23 @@ def rapidRevisitBatch(
     bundleList = []
 
     sql = ""
-    metadata = "All visits"
-    # Add additional sql constraint (such as wfdWhere) and metadata, if provided.
+    info_label = "All visits"
+    # Add additional sql constraint (such as wfdWhere) and info_label, if provided.
     if (extraSql is not None) and (len(extraSql) > 0):
         sql = extraSql
-        if extraMetadata is None:
-            metadata = extraSql.replace("filter =", "").replace("filter=", "")
-            metadata = metadata.replace('"', "").replace("'", "")
-    if extraMetadata is not None:
-        metadata = extraMetadata
+        if extraInfoLabel is None:
+            info_label = extraSql.replace("filter =", "").replace("filter=", "")
+            info_label = info_label.replace('"', "").replace("'", "")
+    if extraInfoLabel is not None:
+        info_label = extraInfoLabel
 
-    subgroup = metadata
+    subgroup = info_label
 
     raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(
         ditherStacker, colmap, ditherkwargs
     )
     # Don't want dither info in subgroup (too long), but do want it in bundle name.
-    metadata = combineMetadata(metadata, ditherMeta)
+    info_label = combineInfoLabels(info_label, ditherMeta)
 
     slicer = slicers.HealpixSlicer(
         nside=nside, lonCol=raCol, latCol=decCol, latLonDeg=degrees
@@ -512,7 +512,7 @@ def rapidRevisitBatch(
         plotDict=plotDict,
         plotFuncs=subsetPlots,
         stackerList=[ditherStacker],
-        metadata=metadata,
+        info_label=info_label,
         displayDict=displayDict,
         summaryMetrics=standardSummary(withCount=False),
     )
@@ -563,7 +563,7 @@ def rapidRevisitBatch(
         plotDict=plotDict,
         plotFuncs=subsetPlots,
         stackerList=[ditherStacker],
-        metadata=metadata,
+        info_label=info_label,
         displayDict=displayDict,
         summaryMetrics=summaryStats,
     )

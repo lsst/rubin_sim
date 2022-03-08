@@ -171,8 +171,8 @@ def quickDiscoveryBatch(
         constraintMetadata = (
             constraint.replace("filter", "").replace("==", "").replace("  ", " ")
         )
-    metadata = objtype + " " + constraintMetadata
-    metadata = metadata.rstrip(" ")
+    info_label = objtype + " " + constraintMetadata
+    info_label = info_label.rstrip(" ")
 
     if detectionLosses not in ("detection", "trailing"):
         raise ValueError(
@@ -222,7 +222,7 @@ def quickDiscoveryBatch(
         return
 
     # 3 pairs in 15
-    md = metadata + " 3 pairs in 15 nights" + detectionLosses
+    md = info_label + " 3 pairs in 15 nights" + detectionLosses
     # Set up plot dict.
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -241,7 +241,7 @@ def quickDiscoveryBatch(
         constraint,
         stackerList=[magStacker],
         runName=runName,
-        metadata=md,
+        info_label=md,
         childMetrics=childMetrics,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
@@ -251,7 +251,7 @@ def quickDiscoveryBatch(
     bundleList.append(bundle)
 
     # 3 pairs in 30
-    md = metadata + " 3 pairs in 30 nights" + detectionLosses
+    md = info_label + " 3 pairs in 30 nights" + detectionLosses
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
@@ -269,7 +269,7 @@ def quickDiscoveryBatch(
         constraint,
         stackerList=[magStacker],
         runName=runName,
-        metadata=md,
+        info_label=md,
         childMetrics=childMetrics,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
@@ -315,8 +315,8 @@ def discoveryBatch(
         constraintMetadata = (
             constraint.replace("filter", "").replace("==", "").replace("  ", " ")
         )
-    metadata = objtype + " " + constraintMetadata
-    metadata = metadata.rstrip(" ")
+    info_label = objtype + " " + constraintMetadata
+    info_label = info_label.rstrip(" ")
 
     if detectionLosses not in ("detection", "trailing"):
         raise ValueError(
@@ -369,7 +369,7 @@ def discoveryBatch(
     # 3 pairs in 15 and 3 pairs in 30 done in 'quickDiscoveryBatch' (with vis).
 
     # 4 pairs in 20
-    md = metadata + " 4 pairs in 20 nights" + detectionLosses
+    md = info_label + " 4 pairs in 20 nights" + detectionLosses
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
@@ -387,7 +387,7 @@ def discoveryBatch(
         constraint,
         stackerList=[magStacker],
         runName=runName,
-        metadata=md,
+        info_label=md,
         childMetrics=childMetrics,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
@@ -397,7 +397,7 @@ def discoveryBatch(
     bundleList.append(bundle)
 
     # 3 triplets in 30
-    md = metadata + " 3 triplets in 30 nights" + detectionLosses
+    md = info_label + " 3 triplets in 30 nights" + detectionLosses
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
@@ -415,7 +415,7 @@ def discoveryBatch(
         constraint,
         stackerList=[magStacker],
         runName=runName,
-        metadata=md,
+        info_label=md,
         childMetrics=childMetrics,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
@@ -425,7 +425,7 @@ def discoveryBatch(
     bundleList.append(bundle)
 
     # 1 quad
-    md = metadata + " 1 quad in 1 night" + detectionLosses
+    md = info_label + " 1 quad in 1 night" + detectionLosses
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
@@ -443,7 +443,7 @@ def discoveryBatch(
         constraint,
         stackerList=[magStacker],
         runName=runName,
-        metadata=md,
+        info_label=md,
         childMetrics=childMetrics,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
@@ -455,7 +455,7 @@ def discoveryBatch(
     # Play with SNR.
     # First standard SNR / probabilistic visibility (SNR~5)
     # 3 pairs in 15
-    md = metadata + " 3 pairs in 15 nights SNR=5" + detectionLosses
+    md = info_label + " 3 pairs in 15 nights SNR=5" + detectionLosses
     # Set up plot dict.
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
@@ -475,7 +475,7 @@ def discoveryBatch(
         constraint,
         stackerList=[magStacker],
         runName=runName,
-        metadata=md,
+        info_label=md,
         childMetrics=childMetrics,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
@@ -485,7 +485,7 @@ def discoveryBatch(
     bundleList.append(bundle)
 
     # 3 pairs in 15, SNR=4.
-    md = metadata + " 3 pairs in 15 nights SNR=4" + detectionLosses
+    md = info_label + " 3 pairs in 15 nights SNR=4" + detectionLosses
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
@@ -504,7 +504,7 @@ def discoveryBatch(
         constraint,
         stackerList=[magStacker],
         runName=runName,
-        metadata=md,
+        info_label=md,
         childMetrics=childMetrics,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
@@ -514,7 +514,7 @@ def discoveryBatch(
     bundleList.append(bundle)
 
     # 3 pairs in 15, SNR=3
-    md = metadata + " 3 pairs in 15 nights SNR=3" + detectionLosses
+    md = info_label + " 3 pairs in 15 nights SNR=3" + detectionLosses
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
@@ -533,7 +533,7 @@ def discoveryBatch(
         constraint,
         stackerList=[magStacker],
         runName=runName,
-        metadata=md,
+        info_label=md,
         childMetrics=childMetrics,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
@@ -544,7 +544,7 @@ def discoveryBatch(
 
     # SNR = 0
     # 3 pairs in 15, SNR=0
-    md = metadata + " 3 pairs in 15 nights SNR=0" + detectionLosses
+    md = info_label + " 3 pairs in 15 nights SNR=0" + detectionLosses
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
@@ -563,7 +563,7 @@ def discoveryBatch(
         constraint,
         stackerList=[magStacker],
         runName=runName,
-        metadata=md,
+        info_label=md,
         childMetrics=childMetrics,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
@@ -574,7 +574,7 @@ def discoveryBatch(
 
     # Play with weird strategies.
     # Single detection.
-    md = metadata + " Single detection" + detectionLosses
+    md = info_label + " Single detection" + detectionLosses
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
@@ -592,7 +592,7 @@ def discoveryBatch(
         constraint,
         stackerList=[magStacker],
         runName=runName,
-        metadata=md,
+        info_label=md,
         childMetrics=childMetrics,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
@@ -602,7 +602,7 @@ def discoveryBatch(
     bundleList.append(bundle)
 
     # Single pair of detections.
-    md = metadata + " Single pair" + detectionLosses
+    md = info_label + " Single pair" + detectionLosses
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
@@ -620,7 +620,7 @@ def discoveryBatch(
         constraint,
         stackerList=[magStacker],
         runName=runName,
-        metadata=md,
+        info_label=md,
         childMetrics=childMetrics,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
@@ -630,7 +630,7 @@ def discoveryBatch(
     bundleList.append(bundle)
 
     # High velocity discovery.
-    md = metadata + " High velocity pair" + detectionLosses
+    md = info_label + " High velocity pair" + detectionLosses
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.HighVelocityNightsMetric(
@@ -642,7 +642,7 @@ def discoveryBatch(
         constraint,
         stackerList=[magStacker],
         runName=runName,
-        metadata=md,
+        info_label=md,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
         displayDict=displayDict,
@@ -650,7 +650,7 @@ def discoveryBatch(
     bundleList.append(bundle)
 
     # "magic" detection - 6 in 60 days.
-    md = metadata + " 6 detections in 60 nights" + detectionLosses
+    md = info_label + " 6 detections in 60 nights" + detectionLosses
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.MagicDiscoveryMetric(nObs=6, tWindow=60, **colkwargs)
@@ -660,7 +660,7 @@ def discoveryBatch(
         constraint,
         stackerList=[magStacker],
         runName=runName,
-        metadata=md,
+        info_label=md,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
         displayDict=displayDict,
@@ -773,7 +773,7 @@ def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
     # Calculate total number of objects - currently for NEOs and PHAs only
     for b, bundle in completeness.items():
         if "DifferentialCompleteness" in b and "@Time" not in b:
-            if "NEO" in bundle.metadata:
+            if "NEO" in bundle.info_label:
                 nobj_metrics = [
                     metrics.TotalNumberSSO(
                         Hmark=22, dndh_func=metrics.neo_dndh_granvik
@@ -784,7 +784,7 @@ def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
                 ]
                 bundle.setSummaryMetrics(nobj_metrics)
                 bundle.computeSummaryStats(resultsDb)
-            if "PHA" in bundle.metadata:
+            if "PHA" in bundle.info_label:
                 nobj_metrics = [
                     metrics.TotalNumberSSO(Hmark=22, dndh_func=metrics.pha_dndh_granvik)
                 ]
@@ -974,8 +974,8 @@ def characterizationInnerBatch(
         constraintMetadata = (
             constraint.replace("filter", "").replace("==", "").replace("  ", " ")
         )
-    metadata = objtype + " " + constraintMetadata
-    metadata = metadata.rstrip(" ")
+    info_label = objtype + " " + constraintMetadata
+    info_label = info_label.rstrip(" ")
 
     displayDict = {"group": f"{objtype}"}
 
@@ -992,7 +992,7 @@ def characterizationInnerBatch(
         bins = np.arange(5, 185, 20.0)
 
     # Number of observations.
-    md = metadata
+    md = info_label
     displayDict["subgroup"] = f"N Obs"
     plotDict = {
         "ylabel": "Number of observations (#)",
@@ -1006,7 +1006,7 @@ def characterizationInnerBatch(
         constraint,
         stackerList=stackerList,
         runName=runName,
-        metadata=md,
+        info_label=md,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
         displayDict=displayDict,
@@ -1014,7 +1014,7 @@ def characterizationInnerBatch(
     bundleList.append(bundle)
 
     # Observational arc.
-    md = metadata
+    md = info_label
     displayDict["subgroup"] = f"Obs Arc"
     plotDict = {
         "ylabel": "Observational Arc (days)",
@@ -1028,7 +1028,7 @@ def characterizationInnerBatch(
         constraint,
         stackerList=stackerList,
         runName=runName,
-        metadata=md,
+        info_label=md,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
         displayDict=displayDict,
@@ -1038,7 +1038,7 @@ def characterizationInnerBatch(
     # Activity detection.
     displayDict["subgroup"] = f"Activity"
     for w in windows:
-        md = metadata + " activity lasting %.0f days" % w
+        md = info_label + " activity lasting %.0f days" % w
         plotDict = {
             "title": "%s: Chances of detecting %s" % (runName, md),
             "ylabel": "Probability of detection per %.0f day window" % w,
@@ -1051,7 +1051,7 @@ def characterizationInnerBatch(
             constraint,
             stackerList=stackerList,
             runName=runName,
-            metadata=metadata,
+            info_label=info_label,
             plotDict=plotDict,
             plotFuncs=plotFuncs,
             displayDict=displayDict,
@@ -1059,7 +1059,7 @@ def characterizationInnerBatch(
         bundleList.append(bundle)
 
     for b in bins:
-        md = metadata + " activity covering %.0f deg" % (b)
+        md = info_label + " activity covering %.0f deg" % (b)
         plotDict = {
             "title": "%s: Chances of detecting %s" % (runName, md),
             "ylabel": "Probability of detection per %.0f deg window" % b,
@@ -1072,7 +1072,7 @@ def characterizationInnerBatch(
             constraint,
             stackerList=stackerList,
             runName=runName,
-            metadata=metadata,
+            info_label=info_label,
             plotDict=plotDict,
             plotFuncs=plotFuncs,
             displayDict=displayDict,
@@ -1080,7 +1080,7 @@ def characterizationInnerBatch(
         bundleList.append(bundle)
 
     # Lightcurve inversion.
-    md = metadata
+    md = info_label
     displayDict["subgroup"] = f"Color/Inversion"
     plotDict = {
         "yMin": 0,
@@ -1096,7 +1096,7 @@ def characterizationInnerBatch(
         constraint,
         stackerList=stackerList,
         runName=runName,
-        metadata=md,
+        info_label=md,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
         displayDict=displayDict,
@@ -1104,7 +1104,7 @@ def characterizationInnerBatch(
     bundleList.append(bundle)
 
     # Color determination.
-    md = metadata
+    md = info_label
     plotDict = {
         "yMin": 0,
         "yMax": 1,
@@ -1120,7 +1120,7 @@ def characterizationInnerBatch(
         constraint,
         stackerList=stackerList,
         runName=runName,
-        metadata=md,
+        info_label=md,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
         displayDict=displayDict,
@@ -1174,8 +1174,8 @@ def characterizationOuterBatch(
         constraintMetadata = (
             constraint.replace("filter", "").replace("==", "").replace("  ", " ")
         )
-    metadata = objtype + " " + constraintMetadata
-    metadata = metadata.rstrip(" ")
+    info_label = objtype + " " + constraintMetadata
+    info_label = info_label.rstrip(" ")
 
     displayDict = {"group": f"{objtype}"}
 
@@ -1192,7 +1192,7 @@ def characterizationOuterBatch(
         bins = np.arange(5, 185, 20.0)
 
     # Number of observations.
-    md = metadata
+    md = info_label
     displayDict["subgroup"] = f"N Obs"
     plotDict = {
         "ylabel": "Number of observations (#)",
@@ -1206,7 +1206,7 @@ def characterizationOuterBatch(
         constraint,
         stackerList=stackerList,
         runName=runName,
-        metadata=md,
+        info_label=md,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
         displayDict=displayDict,
@@ -1214,7 +1214,7 @@ def characterizationOuterBatch(
     bundleList.append(bundle)
 
     # Observational arc.
-    md = metadata
+    md = info_label
     displayDict["subgroup"] = f"Obs Arc"
     plotDict = {
         "ylabel": "Observational Arc (days)",
@@ -1228,7 +1228,7 @@ def characterizationOuterBatch(
         constraint,
         stackerList=stackerList,
         runName=runName,
-        metadata=md,
+        info_label=md,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
         displayDict=displayDict,
@@ -1238,7 +1238,7 @@ def characterizationOuterBatch(
     # Activity detection.
     displayDict["subgroup"] = f"Activity"
     for w in windows:
-        md = metadata + " activity lasting %.0f days" % w
+        md = info_label + " activity lasting %.0f days" % w
         plotDict = {
             "title": "%s: Chances of detecting %s" % (runName, md),
             "ylabel": "Probability of detection per %.0f day window" % w,
@@ -1251,7 +1251,7 @@ def characterizationOuterBatch(
             constraint,
             stackerList=stackerList,
             runName=runName,
-            metadata=metadata,
+            info_label=info_label,
             plotDict=plotDict,
             plotFuncs=plotFuncs,
             displayDict=displayDict,
@@ -1259,7 +1259,7 @@ def characterizationOuterBatch(
         bundleList.append(bundle)
 
     for b in bins:
-        md = metadata + " activity covering %.0f deg" % (b)
+        md = info_label + " activity covering %.0f deg" % (b)
         plotDict = {
             "title": "%s: Chances of detecting %s" % (runName, md),
             "ylabel": "Probability of detection per %.2f deg window" % b,
@@ -1272,7 +1272,7 @@ def characterizationOuterBatch(
             constraint,
             stackerList=stackerList,
             runName=runName,
-            metadata=metadata,
+            info_label=info_label,
             plotDict=plotDict,
             plotFuncs=plotFuncs,
             displayDict=displayDict,
@@ -1280,7 +1280,7 @@ def characterizationOuterBatch(
         bundleList.append(bundle)
 
     # Color determination.
-    md = metadata
+    md = info_label
     displayDict["subgroup"] = f"Color/Inversion"
     plotDict = {
         "yMin": 0,
@@ -1297,7 +1297,7 @@ def characterizationOuterBatch(
         constraint,
         stackerList=stackerList,
         runName=runName,
-        metadata=md,
+        info_label=md,
         plotDict=plotDict,
         plotFuncs=plotFuncs,
         displayDict=displayDict,
@@ -1597,7 +1597,7 @@ def combineSubsets(mbSubsets):
     joint.metricValues = ma.MaskedArray(
         data=metricValues, mask=metricValuesMask, fill_value=0
     )
-    joint.metadata = first.metadata
+    joint.info_label = first.info_label
     joint.runName = first.runName
     joint.fileRoot = first.fileRoot.replace(".npz", "")
     joint.plotDict = first.plotDict
