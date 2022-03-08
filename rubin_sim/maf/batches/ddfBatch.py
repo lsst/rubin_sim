@@ -7,7 +7,7 @@ import rubin_sim.maf as maf
 __all__ = ["ddfBatch"]
 
 
-def ddfBatch(runName="opsim", nside=512, radius=4.0, nside_sne=128):
+def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
 
     radius = np.radians(radius)
     bundle_list = []
@@ -36,11 +36,24 @@ def ddfBatch(runName="opsim", nside=512, radius=4.0, nside_sne=128):
             "rot": (np.degrees(np.mean(ddf.ra)), np.degrees(np.mean(ddf.dec)), 0),
             "xsize": 500,
         }
-        dist = _angularSeparation(ra, dec, np.mean(ddf.ra), np.mean(ddf.dec))
-        good = np.where(dist <= radius)[0]
+        if np.size(ddf.ra) > 1:
+            goods = []
+            goods_sne = []
+            for ddf_ra, ddf_dec in zip(ddf.ra, ddf.dec):
+                dist = _angularSeparation(ra, dec, ddf_ra, ddf_dec)
+                goods.append(np.where(dist <= radius)[0])
+                dist = _angularSeparation(ra_sne, dec_sne, ddf_ra, ddf_dec)
+                goods_sne.append(np.where(dist <= radius)[0])
+            good = np.unique(np.concatenate(goods))
+            good_sne = np.unique(np.concatenate(goods_sne))
+        else:
+            dist = _angularSeparation(ra, dec, np.mean(ddf.ra), np.mean(ddf.dec))
+            good = np.where(dist <= radius)[0]
+            dist = _angularSeparation(
+                ra_sne, dec_sne, np.mean(ddf.ra), np.mean(ddf.dec)
+            )
+            good_sne = np.where(dist <= radius)[0]
 
-        dist = _angularSeparation(ra_sne, dec_sne, np.mean(ddf.ra), np.mean(ddf.dec))
-        good_sne = np.where(dist <= radius)[0]
         # Number of SNe
         displayDict["order"] = 1
         displayDict["group"] = "SNe"
