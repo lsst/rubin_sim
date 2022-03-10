@@ -167,9 +167,7 @@ class TestArchive(unittest.TestCase):
             metric_set.columns.tolist(),
             ["metric", "short_name", "style", "invert", "mag"],
         )
-        self.assertSequenceEqual(
-            metric_set.index.names, ["metric set", "metric"]
-        )
+        self.assertSequenceEqual(metric_set.index.names, ["metric set", "metric"])
 
 
 run_tests_now = __name__ == "__main__"
