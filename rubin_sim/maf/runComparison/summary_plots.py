@@ -1,4 +1,4 @@
-"""Summary metric plotting functions
+"""Summary metric plotting functions.
 """
 
 # imports
