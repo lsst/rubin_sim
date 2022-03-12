@@ -9,6 +9,7 @@ __all__ = [
     "get_metric_summaries",
     "get_family_descriptions",
     "describe_families",
+    "create_metric_set_df",
 ]
 
 
@@ -520,3 +521,51 @@ def describe_families(
         fig, ax = None, None  # pylint: disable=invalid-name
 
     return fig, ax
+
+
+def create_metric_set_df(
+    metric_set, metrics, short_name=None, style="-", invert=False, mag=False
+):
+    """Create a DataFrame that defines a metric set.
+
+    Parameters
+    ----------
+    metric_set : `str`
+        The name of a metric set.
+    metrics : `list` [`str`]
+        A list of metric names in the set.
+    short_name : `list` [`str`], optional
+        A list of shorter metric names, by default None
+    style : `list` [`str`], optional
+        The matplotlib line style symbol for lines representing the metric,
+        by default "-"
+    invert : `list` [`bool`], optional
+        Are lower values of the metric better?, by default False
+    mag : `list` [`bool`], optional
+        Is the metric an astronomical magnitude?, by default False
+
+    Returns
+    -------
+    metric_set : `pandas.DataFrame`
+        A table of metrics and normalization and plotting flags defining the
+        content of a metric set.
+    """
+    if short_name is None:
+        short_name = metrics
+
+    metric_set = (
+        pd.DataFrame(
+            {
+                "metric set": metric_set,
+                "metric": metrics,
+                "short_name": short_name,
+                "style": style,
+                "invert": invert,
+                "mag": mag,
+            }
+        )
+        .set_index("metric set")
+        .set_index("metric", append=True, drop=False)
+    )
+
+    return metric_set
