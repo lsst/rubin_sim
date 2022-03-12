@@ -1,4 +1,4 @@
-"""Summary metric plotting functions
+"""Summary metric plotting functions.
 """
 
 # imports
@@ -144,6 +144,7 @@ def plot_run_metric(
     cmap=colorcet.glasbey_hv,
     linestyles=None,
     markers=["o"],
+    shade_fraction=0.05,
 ):
     """Plot normalized metric values as colored points on a cartesian plane.
 
@@ -304,6 +305,47 @@ def plot_run_metric(
                 plot_args.append(metric_style)
 
         ax.plot(*plot_args, label=str(idx).strip())
+
+    if shade_fraction is not None and shade_fraction > 0:
+        if vertical_quantity == "value":
+            xlim = ax.get_xlim()
+            high_shade_bottom = 1 + shade_fraction
+            high_shade_top = ax.get_ylim()[1]
+            if high_shade_top > high_shade_bottom:
+                ax.fill_between(
+                    xlim,
+                    high_shade_bottom,
+                    high_shade_top,
+                    color="g",
+                    alpha=0.1,
+                )
+
+            low_shade_top = 1 - shade_fraction
+            low_shade_bottom = ax.get_ylim()[0]
+            if low_shade_top > low_shade_bottom:
+                ax.fill_between(
+                    xlim, low_shade_bottom, low_shade_top, color="r", alpha=0.1
+                )
+
+        elif horizontal_quantity == "value":
+            ylim = ax.get_ylim()
+            high_shade_left = 1 + shade_fraction
+            high_shade_right = ax.get_xlim()[1]
+            if high_shade_right > high_shade_left:
+                ax.fill_betweenx(
+                    ylim,
+                    high_shade_left,
+                    high_shade_right,
+                    color="g",
+                    alpha=0.1,
+                )
+
+            low_shade_right = 1 - shade_fraction
+            low_shade_left = ax.get_xlim()[0]
+            if low_shade_right > low_shade_left:
+                ax.fill_betweenx(
+                    ylim, low_shade_left, low_shade_right, color="r", alpha=0.1
+                )
 
     if horizontal_quantity in ["run", "metric"]:
         ax.tick_params("x", labelrotation=90)
