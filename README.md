@@ -51,7 +51,7 @@ If you are only interested in a subset of the data, you can specify which direct
 rs_download_data  --dirs "throughputs,skybrightness,tests,maps"
 ```
 
-If you have a previous installation of rubin_sim or wish to oupdate your data download, the flag `--force` will force an update of the data in the relevant $RUBIN_SIM_DATA_DIR directories. 
+If you have a previous installation of rubin_sim or wish to update your data download, the flag `--force` will force an update of the data in the relevant $RUBIN_SIM_DATA_DIR directories. 
 
 
 **Example notebooks** to test and further explore rubin_sim, are available at [rubin_sim_notebooks](https://github.com/lsst/rubin_sim_notebooks). 
