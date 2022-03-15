@@ -6,10 +6,10 @@ import warnings
 from rubin_sim.photUtils import Dust_values
 
 
-__all__ = ["SFErrorMetric"]
+__all__ = ["SFUncertMetric"]
 
 
-class SFErrorMetric(BaseMetric):
+class SFUncertMetric(BaseMetric):
     """Structure Function (SF) Uncertainty Metric. Developed on top of LogTGaps
 
     Adapted from Weixiang Yu & Gordon Richards at:
@@ -47,7 +47,7 @@ class SFErrorMetric(BaseMetric):
         units="mag",
         bins=np.logspace(0, np.log10(3650), 11),
         weight=np.full(10, 0.1),
-        metricName="Structure Function Error",
+        metricName="Structure Function Uncert",
         snr_cut=5,
         filterCol="filter",
         dust=True,
@@ -66,7 +66,7 @@ class SFErrorMetric(BaseMetric):
         self.dust = dust
 
         maps = ["DustMap"]
-        super(SFErrorMetric, self).__init__(
+        super(SFUncertMetric, self).__init__(
             col=[self.timesCol, m5Col, filterCol],
             metricName=self.metricName,
             units=units,
