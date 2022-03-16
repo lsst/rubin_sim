@@ -9,11 +9,19 @@ from matplotlib.spines import Spine
 from matplotlib.projections.polar import PolarAxes
 from matplotlib.projections import register_projection
 
-__all__ = ["radar_factory", "unit_poly_verts", "radar", 'norm_df']
+__all__ = ["radar_factory", "unit_poly_verts", "radar", "norm_df"]
 
 
-def norm_df(df, runs, cols, norm_run='baseline',
-            invert_cols=None, reverse_cols=None, run_label='run_name', mag_cols=[]):
+def norm_df(
+    df,
+    runs,
+    cols,
+    norm_run="baseline",
+    invert_cols=None,
+    reverse_cols=None,
+    run_label="run_name",
+    mag_cols=[],
+):
     """
     Normalize values in a dataframe to a given run
 
@@ -28,7 +36,7 @@ def norm_df(df, runs, cols, norm_run='baseline',
     norm_run : str
         The row to use to normalize things to
     invert_cols : list of str
-        A list of column names that should be inverted (e.g., columns that 
+        A list of column names that should be inverted (e.g., columns that
         are uncertainties and are better with a smaller value)
     reverse_cols : list of str
         Columns to reverse (e.g., magnitudes)
@@ -44,16 +52,20 @@ def norm_df(df, runs, cols, norm_run='baseline',
             out_df[colname] = -out_df[colname]
     if invert_cols is not None:
         for colname in invert_cols:
-            out_df[colname] = 1./out_df[colname]
+            out_df[colname] = 1.0 / out_df[colname]
     if norm_run is not None:
         indx = np.max(np.where(out_df.index == norm_run)[0])
         for col in out_df.columns:
             # maybe just check that it's not a
-            if col != 'run_name':
-                if (col in mag_cols) | (mag_cols == 'all'):
-                    out_df[col] = 1. + (out_df[col] - out_df[col].iloc[indx])
+            if col != "run_name":
+                if (col in mag_cols) | (mag_cols == "all"):
+                    out_df[col] = 1.0 + (out_df[col] - out_df[col].iloc[indx])
                 else:
-                    out_df[col] = 1. + (out_df[col] - out_df[col].iloc[indx])/out_df[col].iloc[indx]
+                    out_df[col] = (
+                        1.0
+                        + (out_df[col] - out_df[col].iloc[indx])
+                        / out_df[col].iloc[indx]
+                    )
     return out_df
 
 
@@ -161,7 +173,7 @@ def radar(
     figsize=(8.5, 5),
     fill=False,
     bbox_to_anchor=(1.6, 0.5),
-    legend_font_size=None
+    legend_font_size=None,
 ):
     """
     make a radar plot!
