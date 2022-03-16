@@ -82,7 +82,7 @@ class Rottep2Rotsp_desired_detailer(Base_detailer):
         )
         obs_pa = _approx_altaz2pa(alt, az, conditions.site.latitude_rad)
 
-        rotSkyPos_desired = obs_array["rotTelPos"] - obs_pa
+        rotSkyPos_desired = (obs_array["rotTelPos"] - obs_pa) % (2.*np.pi)
 
         for obs, rotsp_d in zip(observation_list, rotSkyPos_desired):
             obs["rotTelPos_backup"] = obs["rotTelPos"] + 0
