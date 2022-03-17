@@ -93,7 +93,7 @@ def radecCols(ditherStacker, colmap, ditherkwargs=None):
         raCol = colmap["ra"]
         decCol = colmap["dec"]
         stacker = None
-        ditherMeta = None
+        ditherInfoLabel = None
     else:
         if isinstance(ditherStacker, stackers.BaseDitherStacker):
             stacker = ditherStacker
@@ -113,11 +113,11 @@ def radecCols(ditherStacker, colmap, ditherkwargs=None):
         raCol = stacker.colsAdded[0]
         decCol = stacker.colsAdded[1]
         # Send back some info_label information.
-        ditherMeta = stacker.__class__.__name__.replace("Stacker", "")
+        ditherInfoLabel = stacker.__class__.__name__.replace("Stacker", "")
         if ditherkwargs is not None:
             for k, v in ditherkwargs.items():
-                ditherMeta += " " + "%s:%s" % (k, v)
-    return raCol, decCol, degrees, stacker, ditherMeta
+                ditherInfoLabel += " " + "%s:%s" % (k, v)
+    return raCol, decCol, degrees, stacker, ditherInfoLabel
 
 
 def standardSummary(withCount=True):

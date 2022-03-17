@@ -1,6 +1,7 @@
 """Metrics to investigate quantities related to SRD.
 Potentially could diverge from versions in scienceRadar.
 """
+import warnings
 import numpy as np
 import healpy as hp
 import rubin_sim.maf.metrics as metrics
@@ -19,7 +20,7 @@ def fOBatch(
     runName="opsim",
     extraSql=None,
     extraInfoLabel=None,
-    nside=64,
+    slicer=None,
     benchmarkArea=18000,
     benchmarkNvisits=825,
     minNvisits=750,
@@ -28,16 +29,17 @@ def fOBatch(
 
     Parameters
     ----------
-    colmap : dict or None, optional
+    colmap : `dict` or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
+    runName : `str`, optional
         The name of the simulated survey. Default is "opsim".
-    nside : int, optional
-        Nside for the healpix slicer. Default 64.
-    extraSql : str or None, optional
+    extraSql : `str` or None, optional
         Additional sql constraint to apply to all metrics.
-    extraInfoLabel : str or None, optional
+    extraInfoLabel : `str` or None, optional
         Additional info_label to apply to all results.
+    slicer : `rubin_sim.maf.slicer.HealpixSlicer` or None, optional
+         This must be a HealpixSlicer or some kind, although could be a HealpixSubsetSlicer.
+         Default is a HealpixSlicer with nside=64.
 
     Returns
     -------
@@ -66,9 +68,20 @@ def fOBatch(
     info_label = combineInfoLabels(info_label, ditherMeta)
 
     # Set up fO metric.
-    slicer = slicers.HealpixSlicer(
-        nside=nside, lonCol=raCol, latCol=decCol, latLonDeg=degrees
-    )
+    if slicer is None:
+        nside = 64
+        slicer = slicers.HealpixSlicer(
+            nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+        )
+    else:
+        try:
+            nside = slicer.nside
+        except AttributeError:
+            warnings.warn("Must use a healpix slicer. Swapping to the default.")
+            nside = 64
+            slicer = slicers.HealpixSlicer(
+                nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+            )
 
     displayDict = {"group": "SRD FO metrics", "subgroup": subgroup, "order": 0}
 
@@ -154,28 +167,22 @@ def astrometryBatch(
     runName="opsim",
     extraSql=None,
     extraInfoLabel=None,
-    nside=64,
-    ditherStacker=None,
-    ditherkwargs=None,
+    slicer=None,
 ):
     """Metrics for evaluating proper motion and parallax.
 
     Parameters
     ----------
-    colmap : dict or None, optional
+    colmap : `dict` or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
+    runName : `str`, optional
         The name of the simulated survey. Default is "opsim".
-    nside : int, optional
-        Nside for the healpix slicer. Default 64.
-    extraSql : str or None, optional
+    extraSql : `str` or None, optional
         Additional sql constraint to apply to all metrics.
-    extraInfoLabel : str or None, optional
+    extraInfoLabel : `str` or None, optional
         Additional info_label to apply to all results.
-    ditherStacker: str or rubin_sim.maf.stackers.BaseDitherStacker
-        Optional dither stacker to use to define ra/dec columns.
-    ditherkwargs: dict, optional
-        Optional dictionary of kwargs for the dither stacker.
+    slicer : `rubin_sim.maf.slicer` or None, optional
+        Optionally, specify something other than an nside=64 healpix slicer.
 
     Returns
     -------
@@ -198,11 +205,9 @@ def astrometryBatch(
 
     subgroup = info_label
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(
-        ditherStacker, colmap, ditherkwargs
-    )
-    # Don't want dither info in subgroup (too long), but do want it in bundle name.
-    info_label = combineInfoLabels(info_label, ditherMeta)
+    raCol = colmap["ra"]
+    decCol = colmap["dec"]
+    degrees = colmap["raDecDeg"]
 
     rmags_para = [22.4, 24.0]
     rmags_pm = [20.5, 24.0]
@@ -223,9 +228,10 @@ def astrometryBatch(
     )
 
     # Set up parallax metrics.
-    slicer = slicers.HealpixSlicer(
-        nside=nside, lonCol=raCol, latCol=decCol, latLonDeg=degrees
-    )
+    if slicer is None:
+        slicer = slicers.HealpixSlicer(
+            nside=64, lonCol=raCol, latCol=decCol, latLonDeg=degrees
+        )
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
     displayDict = {
@@ -270,7 +276,7 @@ def astrometryBatch(
             slicer,
             sql,
             info_label=info_label,
-            stackerList=[parallaxStacker, ditherStacker],
+            stackerList=[parallaxStacker],
             displayDict=displayDict,
             plotDict=plotDict,
             summaryMetrics=summary,
@@ -295,7 +301,7 @@ def astrometryBatch(
             slicer,
             sql,
             info_label=info_label,
-            stackerList=[parallaxStacker, ditherStacker],
+            stackerList=[parallaxStacker],
             displayDict=displayDict,
             summaryMetrics=standardSummary(),
             plotFuncs=subsetPlots,
@@ -317,7 +323,7 @@ def astrometryBatch(
             slicer,
             sql,
             info_label=info_label,
-            stackerList=[parallaxStacker, ditherStacker],
+            stackerList=[parallaxStacker],
             displayDict=displayDict,
             summaryMetrics=standardSummary(),
             plotFuncs=subsetPlots,
@@ -343,7 +349,7 @@ def astrometryBatch(
             slicer,
             sql,
             info_label=info_label,
-            stackerList=[dcrStacker, parallaxStacker, ditherStacker],
+            stackerList=[dcrStacker, parallaxStacker],
             displayDict=displayDict,
             summaryMetrics=standardSummary(),
             plotFuncs=subsetPlots,
@@ -388,7 +394,6 @@ def astrometryBatch(
             slicer,
             sql,
             info_label=info_label,
-            stackerList=[ditherStacker],
             displayDict=displayDict,
             plotDict=plotDict,
             summaryMetrics=summary,
@@ -412,7 +417,6 @@ def astrometryBatch(
             slicer,
             sql,
             info_label=info_label,
-            stackerList=[ditherStacker],
             displayDict=displayDict,
             summaryMetrics=standardSummary(),
             plotFuncs=subsetPlots,
@@ -431,28 +435,22 @@ def rapidRevisitBatch(
     runName="opsim",
     extraSql=None,
     extraInfoLabel=None,
-    nside=64,
-    ditherStacker=None,
-    ditherkwargs=None,
+    slicer=None,
 ):
     """Metrics for evaluating proper motion and parallax.
 
     Parameters
     ----------
-    colmap : dict or None, optional
+    colmap : `dict` or None, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
+    runName : `str`, optional
         The name of the simulated survey. Default is "opsim".
-    nside : int, optional
-        Nside for the healpix slicer. Default 64.
-    extraSql : str or None, optional
+    extraSql : `str` or None, optional
         Additional sql constraint to apply to all metrics.
-    extraInfoLabel : str or None, optional
+    extraInfoLabel : `str` or None, optional
         Additional info_label to apply to all results.
-    ditherStacker: str or rubin_sim.maf.stackers.BaseDitherStacker
-        Optional dither stacker to use to define ra/dec columns.
-    ditherkwargs: dict, optional
-        Optional dictionary of kwargs for the dither stacker.
+    slicer : `rubin_sim_maf.slicers.HealpixSlicer` or None, optional
+        Optionally, specify something other than an nside=64 healpix slicer. (must be a healpix slicer)
 
     Returns
     -------
@@ -475,15 +473,25 @@ def rapidRevisitBatch(
 
     subgroup = info_label
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(
-        ditherStacker, colmap, ditherkwargs
-    )
-    # Don't want dither info in subgroup (too long), but do want it in bundle name.
-    info_label = combineInfoLabels(info_label, ditherMeta)
+    raCol = colmap["ra"]
+    decCol = colmap["dec"]
+    degrees = colmap["raDecDeg"]
 
-    slicer = slicers.HealpixSlicer(
-        nside=nside, lonCol=raCol, latCol=decCol, latLonDeg=degrees
-    )
+    if slicer is None:
+        nside = 64
+        slicer = slicers.HealpixSlicer(
+            nside=nside, lonCol=raCol, latCol=decCol, latLonDeg=degrees
+        )
+    else:
+        try:
+            nside = slicer.nside
+        except AttributeError:
+            warnings.warn("Must use a healpix slicer. Swapping to the default.")
+            nside = 64
+            slicer = slicers.HealpixSlicer(
+                nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+            )
+
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
     displayDict = {
@@ -511,7 +519,6 @@ def rapidRevisitBatch(
         sql,
         plotDict=plotDict,
         plotFuncs=subsetPlots,
-        stackerList=[ditherStacker],
         info_label=info_label,
         displayDict=displayDict,
         summaryMetrics=standardSummary(withCount=False),
@@ -562,7 +569,6 @@ def rapidRevisitBatch(
         sql,
         plotDict=plotDict,
         plotFuncs=subsetPlots,
-        stackerList=[ditherStacker],
         info_label=info_label,
         displayDict=displayDict,
         summaryMetrics=summaryStats,

@@ -3,48 +3,18 @@
 import os
 import argparse
 import glob
+import numpy as np
 import shutil
 import matplotlib
+
 matplotlib.use("Agg")
 
+from rubin_sim.maf.metrics import CountExplimMetric
+from rubin_sim.maf.slicers import HealpixSlicer, HealpixSubsetSlicer
+from rubin_sim.maf.metricBundles import MetricBundle, MetricBundleGroup
+from rubin_sim.maf.utils import getDateVersion
+from rubin_sim.maf.db import TrackingDb, ResultsDb
 import rubin_sim.maf.batches as batches
-import rubin_sim.maf.db as db
-import rubin_sim.maf.metricBundles as mb
-import rubin_sim.maf.utils as mafUtils
-
-def setSQL(opsdb, sqlConstraint=None, extraMeta=None):
-    # Fetch the proposal ID values from the database
-    # If there is no proposal database, propids and proptags will be empty dictionaries.
-    propids, proptags = opsdb.fetchPropInfo()
-    sqltags = {'All': sqlConstraint}
-    metadata = {'All': ''}
-    if 'WFD' in proptags:
-        # Construct a WFD SQL where clause so multiple propIDs can query by WFD:
-        wfdWhere = opsdb.createSQLWhere('WFD', proptags)
-        sqltags['WFD'] = wfdWhere
-        metadata['WFD'] = 'WFD'
-    if 'DD' in proptags:
-        ddWhere = opsdb.createSQLWhere('DD', proptags)
-        sqltags['DD'] = ddWhere
-        metadata['DD'] = 'DD'
-    if sqlConstraint is not None:
-        sqltags['WFD'] = '(%s) and (%s)' % (sqlConstraint, wfdWhere)
-        sqltags['DD'] = '(%s) and (%s)' % (sqlConstraint, ddWhere)
-    # Use extra metadata if available
-    if extraMeta is not None and len(extraMeta) > 0:
-        for t in metadata:
-            metadata[t] += ' %s' % extraMeta
-    # else, if sqlconstraint present (only) use that.
-    elif sqlConstraint is not None and len(sqlConstraint) > 0:
-        md = sqlConstraint.replace('=', '').replace('filter', '').replace("'", '')
-        md = md.replace('"', '').replace('  ', ' ')
-        for t in metadata:
-            metadata[t] += ' %s' % md
-    # Reset metadata to None if there was nothing there. (helpful for batches).
-    for t in metadata:
-        if len(metadata[t]) == 0:
-            metadata[t] = None
-    return (propids, proptags, sqltags, metadata)
 
 
 if __name__ == "__main__":
@@ -53,6 +23,12 @@ if __name__ == "__main__":
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--db", type=str, default=None)
+    parser.add_argument(
+        "--nside",
+        type=float,
+        default=64,
+        help="nside to use for the healpix slicer and subsetslicer for metrics",
+    )
     args = parser.parse_args()
 
     # If runNames not given, scan for opsim databases in current directory and use those
@@ -60,14 +36,14 @@ if __name__ == "__main__":
 
     if args.db is None:
         # Just look for any .db files in this directory
-        dbFiles = glob.glob('.db')
+        dbFiles = glob.glob(".db")
         # But remove trackingDb and resultsDb if they're there
         try:
-            dbFiles.remove('trackingDb_sqlite.db')
+            dbFiles.remove("trackingDb_sqlite.db")
         except ValueError:
             pass
         try:
-            dbFiles.remove('resultsDb_sqlite.db')
+            dbFiles.remove("resultsDb_sqlite.db")
         except ValueError:
             pass
     elif isinstance(args.db, str):
@@ -75,112 +51,129 @@ if __name__ == "__main__":
     else:
         dbFiles = args.db
 
-    sim_names = [os.path.basename(name).replace('.db', '') for name in dbFiles]
+    sim_names = [os.path.basename(name).replace(".db", "") for name in dbFiles]
 
-    trackingDb = db.TrackingDb(database=None)
-    mafDate, mafVersion = mafUtils.getDateVersion()
-    mafVersion = mafVersion['__version__']
+    trackingDb = TrackingDb(database=None)
+    mafDate, mafVersion = getDateVersion()
+    mafVersion = mafVersion["__version__"]
 
     for filename, opsim in zip(dbFiles, sim_names):
-        # label visits
-        newdb_file = mafUtils.labelVisits(filename)
+        # Connect to the database
+        opsdb = filename
+        colmap = batches.ColMapDict()
+
         # Set and create if needed the output directory
         # I guess 'meta' really means to be more like 'conditions' of visits here.
         outDir = opsim + "_meta"
         if os.path.isdir(outDir):
             shutil.rmtree(outDir)
-        # Connect to the opsim database
-        opsdb = db.OpsimDatabase(newdb_file)
-        colmap = batches.ColMapDict()
+
+        # Find the 'wfd' footprint
+        m = CountExplimMetric(col="observationStartMJD")
+        allsky_slicer = HealpixSlicer(nside=args.nside)
+        constraint = 'note not like "%DD%"'
+        bundle = MetricBundle(m, allsky_slicer, constraint, runName=opsim)
+        g = MetricBundleGroup({f"{opsim} footprint": bundle}, opsdb, outDir=outDir)
+        g.runAll()
+        wfd_footprint = bundle.metricValues.filled(0)
+        wfd_footprint = np.where(wfd_footprint > 750, 1, 0)
+        wfd_hpix = np.where(wfd_footprint == 1)[0]
+        wfd_slicer = HealpixSubsetSlicer(nside=args.nside, hpid=wfd_hpix)
 
         # Set up the bundle dicts
-        # Set up WFD sql constraint, if possible.
-        propids, proptags, sqls, metadata = setSQL(opsdb)
-        if 'WFD' in sqls:
-            tags = ['All', 'WFD']
-        else:
-            tags = ['All']
-
         # Some of these metrics are reproduced in other scripts - srd and cadence
         bdict = {}
 
-        for tag in tags:
-            fO = batches.fOBatch(colmap=colmap, runName=opsim,
-                                 extraSql=sqls[tag], extraMetadata=metadata[tag])
+        for tag, slicer in zip(["All sky", "WFD"], [allsky_slicer, wfd_slicer]):
+            fO = batches.fOBatch(
+                colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag
+            )
             bdict.update(fO)
-            astrometry = batches.astrometryBatch(colmap=colmap, runName=opsim,
-                                                 extraSql=sqls[tag], extraMetadata=metadata[tag])
+            astrometry = batches.astrometryBatch(
+                colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag
+            )
             bdict.update(astrometry)
-            rapidrevisit = batches.rapidRevisitBatch(colmap=colmap, runName=opsim,
-                                                     extraSql=sqls[tag], extraMetadata=metadata[tag])
+            rapidrevisit = batches.rapidRevisitBatch(
+                colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag
+            )
             bdict.update(rapidrevisit)
 
         # Intranight (pairs/time)
-        intranight_all = batches.intraNight(colmap, opsim, extraSql=None)
-        bdict.update(intranight_all)
+        for tag, slicer in zip(["All sky", "WFD"], [allsky_slicer, wfd_slicer]):
+            intranight = batches.intraNight(
+                colmap, opsim, slicer=slicer, extraInfoLabel=tag
+            )
+            bdict.update(intranight)
 
         # Internight (nights between visits)
-        for tag in tags:
-            internight = batches.interNight(colmap, opsim, extraSql=sqls[tag],
-                                                   extraMetadata=metadata[tag])
+        for tag, slicer in zip(["All sky", "WFD"], [allsky_slicer, wfd_slicer]):
+            internight = batches.interNight(
+                colmap, opsim, slicer=slicer, extraInfoLabel=tag
+            )
             bdict.update(internight)
 
         # Intraseason (length of season)
-        for tag in tags:
-            season = batches.seasons(colmap=colmap, runName=opsim,
-                                            extraSql=sqls[tag], extraMetadata=metadata[tag])
+        for tag, slicer in zip(["All sky", "WFD"], [allsky_slicer, wfd_slicer]):
+            season = batches.seasons(
+                colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag
+            )
             bdict.update(season)
 
         # Run all metadata metrics, All and just WFD.
-        for tag in tags:
-            bdict.update(batches.allMetadata(colmap, opsim, extraSql=sqls[tag],
-                                             extraMetadata=metadata[tag]))
+        for tag, slicer in zip(["All sky", "WFD"], [allsky_slicer, wfd_slicer]):
+            bdict.update(
+                batches.allMetadata(colmap, opsim, slicer=slicer, extraInfoLabel=tag)
+            )
 
         # Nvisits + m5 maps + Teff maps, All and just WFD.
-        for tag in tags:
-            bdict.update(batches.nvisitsM5Maps(colmap, opsim,
-                                               extraSql=sqls[tag], extraMetadata=metadata[tag]))
-            bdict.update(batches.tEffMetrics(colmap, opsim, extraSql=sqls[tag],
-                                             extraMetadata=metadata[tag]))
+        for tag, slicer in zip(["All sky", "WFD"], [allsky_slicer, wfd_slicer]):
+            bdict.update(
+                batches.nvisitsM5Maps(colmap, opsim, slicer=slicer, extraInfoLabel=tag)
+            )
+            bdict.update(
+                batches.tEffMetrics(colmap, opsim, slicer=slicer, extraInfoLabel=tag)
+            )
 
         # Nvisits per proposal and per night.
-        bdict.update(batches.nvisitsPerProp(opsdb, colmap, opsim,
-                                            extraSql=None))
+        ### NEED MORE HERE
+        # bdict.update(batches.nvisitsPerProp(opsdb, colmap, opsim,
+        #                                    slicer=allsky_slicer))
 
         # NVisits alt/az LambertSkyMap (all filters, per filter)
-        bdict.update(batches.altazLambert(colmap, opsim, extraSql=None))
+        bdict.update(batches.altazLambert(colmap, opsim))
 
         # Slew metrics.
-        bdict.update(batches.slewBasics(colmap, opsim, sqlConstraint=None))
+        bdict.update(batches.slewBasics(colmap, opsim))
 
         # Open shutter metrics.
-        bdict.update(batches.openshutterFractions(colmap, opsim, extraSql=None))
+        bdict.update(batches.openshutterFractions(colmap, opsim))
 
         # Per night and whole survey filter changes.
         bdict.update(batches.filtersPerNight(colmap, opsim, nights=1, extraSql=None))
         bdict.update(batches.filtersWholeSurvey(colmap, opsim, extraSql=None))
 
-        # Hourglass plots.
-        #bdict.update(batches.hourglassPlots(colmap, opsim,
-        #                                    nyears=args.nyears, extraSql=None))
-
         # Set up the resultsDB
-        resultsDb = db.ResultsDb(outDir=outDir)
+        resultsDb = ResultsDb(outDir=outDir)
         # Go and run it
-        group = mb.MetricBundleGroup(bdict, opsdb, outDir=outDir, resultsDb=resultsDb, saveEarly=False)
+        group = MetricBundleGroup(
+            bdict, opsdb, outDir=outDir, resultsDb=resultsDb, saveEarly=False
+        )
         group.runAll(clearMemory=True, plotNow=True)
         resultsDb.close()
 
-        # Write configs to disk - these are useful for tracking provenance if we need to re-generate the
-        # tracking database, for example (to keep things in a particular order).
-        mafUtils.writeConfigs(opsdb, outDir)
-        # Close connection to opsim database.
-        opsdb.close()
-
         # Add outputs to tracking database. -- note possible race condition if running in parallel.
-        trackingDb.addRun(opsimRun=opsim, opsimVersion=None, opsimDate=None,
-                          mafComment='Metadata', mafVersion=mafVersion, mafDate=mafDate,
-                          mafDir=outDir, dbFile=filename, mafRunId=None,
-                          opsimGroup=None, opsimComment=None)
+        trackingDb.addRun(
+            opsimRun=opsim,
+            opsimVersion=None,
+            opsimDate=None,
+            mafComment="Metadata",
+            mafVersion=mafVersion,
+            mafDate=mafDate,
+            mafDir=outDir,
+            dbFile=filename,
+            mafRunId=None,
+            opsimGroup=None,
+            opsimComment=None,
+        )
     # Close trackingDB
     trackingDb.close()
