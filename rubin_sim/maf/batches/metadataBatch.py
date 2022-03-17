@@ -91,7 +91,7 @@ def metadataBasics(
         skyslicer = slicer
     else:
         skyslicer = slicers.HealpixSlicer(
-            nside=64, lonCol=raCol, latCol=decCol, degrees=degrees
+            nside=64, lonCol=raCol, latCol=decCol, latLonDeg=degrees
         )
 
     # Hack to make HA work, but really I need to account for any stackers/colmaps.
@@ -243,7 +243,7 @@ def metadataBasicsAngle(
         skyslicer = slicer
     else:
         skyslicer = slicers.HealpixSlicer(
-            nside=64, lonCol=raCol, latCol=decCol, degrees=degrees
+            nside=64, lonCol=raCol, latCol=decCol, latLonDeg=degrees
         )
 
     # Summarize values over all and per filter.
@@ -388,9 +388,6 @@ def metadataMaps(
 ):
     """Calculate 25/50/75 percentile values on maps across sky for a single metadata value.
 
-    TODO: handle stackers which need configuration (degrees, in particular) more automatically.
-    Currently have a hack for HA & normairmass.
-
     Parameters
     ----------
     value : `str`
@@ -448,7 +445,7 @@ def metadataMaps(
     if value == "HA":
         stackerList = [
             stackers.HourAngleStacker(
-                lstCol=colmap["lst"], raCol=raCol, degrees=degrees
+                lstCol=colmap["lst"], raCol=raCol, latLonDeg=degrees
             )
         ]
     elif value == "normairmass":

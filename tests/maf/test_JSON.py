@@ -104,14 +104,14 @@ class TestJSONoutUniSlicer(unittest.TestCase):
             metricVal,
             metricName="testMetric",
             simDataName="testSim",
-            metadata="testmeta",
+            info_label="testmeta",
         )
         jsn = json.loads(io.getvalue())
         jsn_header = jsn[0]
         jsn_data = jsn[1]
         self.assertEqual(jsn_header["metricName"], "testMetric")
         self.assertEqual(jsn_header["simDataName"], "testSim")
-        self.assertEqual(jsn_header["metadata"], "testmeta")
+        self.assertEqual(jsn_header["info_label"], "testmeta")
         self.assertEqual(jsn_header["slicerName"], "UniSlicer")
         self.assertEqual(jsn_header["slicerLen"], 1)
         self.assertEqual(len(jsn_data), 1)
@@ -164,40 +164,6 @@ class TestJSONoutHealpixSlicer(unittest.TestCase):
         jsn_header = jsn[0]
         jsn_data = jsn[1]
         self.assertEqual(jsn_header["slicerName"], "HealpixSlicer")
-        self.assertEqual(jsn_header["slicerLen"], len(self.testslicer))
-        self.assertEqual(len(jsn_data), len(metricVal))
-        for jsndat, ra, dec, mval in zip(
-            jsn_data,
-            self.testslicer.slicePoints["ra"],
-            self.testslicer.slicePoints["dec"],
-            metricVal.data,
-        ):
-            self.assertAlmostEqual(jsndat[0], ra / np.pi * 180.0)
-            self.assertAlmostEqual(jsndat[1], dec / np.pi * 180.0)
-            self.assertEqual(jsndat[2], mval)
-
-
-class TestJSONoutOpsimFieldSlicer(unittest.TestCase):
-    def setUp(self):
-        # Set up a slicer and some metric data for that slicer.
-        self.testslicer = slicers.OpsimFieldSlicer()
-        self.fieldData = makeFieldData()
-        self.simData = makeOpsimDataValues(self.fieldData, random=7162)
-        self.testslicer.setupSlicer(self.simData, self.fieldData)
-
-    def tearDown(self):
-        del self.testslicer
-
-    @unittest.skip(
-        "13 March 2017--Skipping to clear python 3 update. Probably string unicode issues."
-    )
-    def test(self):
-        metricVal = makeMetricData(self.testslicer, "float", seed=334)
-        io = self.testslicer.outputJSON(metricVal)
-        jsn = json.loads(io.getvalue())
-        jsn_header = jsn[0]
-        jsn_data = jsn[1]
-        self.assertEqual(jsn_header["slicerName"], "OpsimFieldSlicer")
         self.assertEqual(jsn_header["slicerLen"], len(self.testslicer))
         self.assertEqual(len(jsn_data), len(metricVal))
         for jsndat, ra, dec, mval in zip(
