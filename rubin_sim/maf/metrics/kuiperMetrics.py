@@ -13,7 +13,7 @@ class KuiperMetric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         """"""
         # Assume input in degrees
-        values = np.sort(dataSlice[self.colname])
+        values = np.sort(dataSlice[self.colname] % 360)
 
         dist_1 = (np.arange(values.size) + 1) / values.size
         uniform = values / (360.0)
