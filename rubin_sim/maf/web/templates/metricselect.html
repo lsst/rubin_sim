@@ -30,7 +30,7 @@
 
 <table>
 
-{% set metricInfo = run.metricInfo(withDataLink=True) %}
+{% set metricInfo = run.metricInfo(withDataLink=False) %}
 {% set mInfoLen = metricInfo|length  %}
 
 <tr>
@@ -60,7 +60,7 @@
         </tr>
        {% set metrics = run.metricsInSubgroup(group, subgroup) %}
         {% for metric in metrics %}
-          {% set metricInfo = run.metricInfo(metric, withDataLink=True) %}
+          {% set metricInfo = run.metricInfo(metric, withDataLink=False) %}
           <tr>
 	  <td>
           <input type='checkbox' name="metricId" value="{{metric['metricId']}}">
