@@ -67,26 +67,26 @@ def setColorLims(metricValue, plotDict):
     # Use plot dict if these values are set.
     colorMin = plotDict["colorMin"]
     colorMax = plotDict["colorMax"]
-    # If not, try to use percentile clipping.
-    if (plotDict["percentileClip"] is not None) & (
-        np.size(metricValue.compressed()) > 0
-    ):
-        pcMin, pcMax = percentileClipping(
-            metricValue.compressed(), percentile=plotDict["percentileClip"]
-        )
+    # If either is not set and we have data ..
+    if colorMin or colorMax is None & (np.size(metricValue.compressed()) > 0):
+        # is percentile clipping set?
+        if plotDict["percentileClip"] is not None:
+            pcMin, pcMax = percentileClipping(
+                metricValue.compressed(), percentile=plotDict["percentileClip"]
+            )
+            if colorMin is None:
+                colorMin = pcMin
+            if colorMax is None:
+                colorMax = pcMax
+        # If not, just use the data limits.
         if colorMin is None:
-            colorMin = pcMin
+            colorMin = metricValue.compressed().min()
         if colorMax is None:
-            colorMax = pcMax
-    # If not, just use the data limits.
-    if colorMin is None:
-        colorMin = metricValue.compressed().min()
-    if colorMax is None:
-        colorMax = metricValue.compressed().max()
-    # But make sure there is some range on the colorbar
-    if colorMin == colorMax:
-        colorMin = colorMin - 0.5
-        colorMax = colorMax + 0.5
+            colorMax = metricValue.compressed().max()
+        # But make sure there is some range on the colorbar
+        if colorMin == colorMax:
+            colorMin = colorMin - 0.5
+            colorMax = colorMax + 0.5
     return np.sort([colorMin, colorMax])
 
 
