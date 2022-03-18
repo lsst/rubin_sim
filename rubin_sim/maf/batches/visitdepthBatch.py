@@ -1,6 +1,7 @@
 """Sets of metrics to look at general sky coverage - nvisits/coadded depth/Teff.
 """
 import numpy as np
+import copy
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
@@ -95,6 +96,10 @@ def nvisitsM5Maps(
         slicerDust = slicers.HealpixSlicer(
             nside=64, latCol=decCol, lonCol=raCol, latLonDeg=degrees, usecache=False
         )
+    else:
+        slicer.useCache = True
+        slicerDust = copy.deepcopy(slicer)
+        slicerDust.useCache = False
 
     for f in filterlist:
         sql = sqls[f]
