@@ -68,7 +68,7 @@ def setColorLims(metricValue, plotDict):
     colorMin = plotDict["colorMin"]
     colorMax = plotDict["colorMax"]
     # If either is not set and we have data ..
-    if colorMin or colorMax is None & (np.size(metricValue.compressed()) > 0):
+    if (colorMin is None or colorMax is None) & (np.size(metricValue.compressed()) > 0):
         # is percentile clipping set?
         if plotDict["percentileClip"] is not None:
             pcMin, pcMax = percentileClipping(
