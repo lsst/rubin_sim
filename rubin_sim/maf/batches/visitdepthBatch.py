@@ -5,7 +5,6 @@ import copy
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
-import rubin_sim.maf.plots as plots
 import rubin_sim.maf.metricBundles as mb
 import rubin_sim.maf.utils as mafUtils
 from .colMapDict import ColMapDict, getColMap
@@ -96,8 +95,8 @@ def nvisitsM5Maps(
         slicerDust = slicers.HealpixSlicer(
             nside=64, latCol=decCol, lonCol=raCol, latLonDeg=degrees, usecache=False
         )
-    else:
-        slicer.useCache = True
+    elif slicer.useCache:
+        # If there is already a slicer set up which *is* using caching
         slicerDust = copy.deepcopy(slicer)
         slicerDust.useCache = False
 
