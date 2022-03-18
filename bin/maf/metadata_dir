@@ -27,7 +27,14 @@ if __name__ == "__main__":
         "--nside",
         type=float,
         default=64,
-        help="nside to use for the healpix slicer and subsetslicer for metrics",
+        help="nside to use for the healpix slicer and subsetslicer for metrics.",
+    )
+    parser.add_argument(
+        "--wfd_threshold",
+        type=float,
+        default=750,
+        help="Threshold number of visits per pointing to use to define the WFD footprint."
+        "Default value of 750 corresponds to the minimum median value per pointing from the SRD.",
     )
     args = parser.parse_args()
 
@@ -76,7 +83,7 @@ if __name__ == "__main__":
         g = MetricBundleGroup({f"{opsim} footprint": bundle}, opsdb, outDir=outDir)
         g.runAll()
         wfd_footprint = bundle.metricValues.filled(0)
-        wfd_footprint = np.where(wfd_footprint > 750, 1, 0)
+        wfd_footprint = np.where(wfd_footprint > args.wfd_threshold, 1, 0)
         wfd_hpix = np.where(wfd_footprint == 1)[0]
         wfd_slicer = HealpixSubsetSlicer(nside=args.nside, hpid=wfd_hpix)
 
