@@ -111,7 +111,7 @@
       <div id='metricset'>
 	{% set metricInfo = run.metricInfo(m) %}
         {{ metricInfo['MetricName']|escape }} ({{metricInfo['Slicer']|escape}})
-	</br> <div id='indent'> {{metricInfo['Metadata']|escape}} </div> </br>
+	</br> <div id='indent'> {{metricInfo['InfoLabel']|escape}} </div> </br>
 	{% for plotfile, thumbfile in zip(combohist['plotFile'], combohist['thumbFile']) %}
         <a href="{{plotfile}}"> <img class="thumbnail" src='{{thumbfile}}'></a>
 	 {% endfor %}
@@ -123,7 +123,7 @@
    <div id='metricset'>
    {% for h in hourglassMetrics %}
       {% set metricInfo = run.metricInfo(h) %}
-      {# {{metricInfo['Metadata']|escape}} </br> #}
+      {# {{metricInfo['InfoLabel']|escape}} </br> #}
       {% set hourglassplots = run.plotsForMetric(h) %}
       {% set hourglassdict = run.plotDict(hourglassplots) %}
       {% set hourglass = hourglassdict['Hourglass'] %}

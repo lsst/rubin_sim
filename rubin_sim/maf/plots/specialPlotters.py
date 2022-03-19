@@ -195,6 +195,9 @@ class SummaryHistogram(BasePlotter):
             raise ValueError(
                 "Expected plotDict[metricReduce] to be a MAF metric object."
             )
+        # Check that there is data to plot
+        if np.size(metricValue.compressed()) == 0:
+            raise ValueError(f"Did not find any data to plot in {self.plotType}.")
         # Get the data type
         dt = metricValue.compressed()[0].dtype
         # Change an array of arrays (dtype=object) to a 2-d array of correct dtype

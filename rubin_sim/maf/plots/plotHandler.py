@@ -214,22 +214,22 @@ class PlotHandler(object):
 
     def _combineMetadata(self):
         """
-        Combine metadata.
+        Combine info_label.
         """
-        metadata = set()
+        info_label = set()
         for mB in self.mBundles:
-            metadata.add(mB.metadata)
-        self.metadata = metadata
-        # Find a pleasing combination of the metadata.
-        if len(metadata) == 1:
-            self.jointMetadata = " ".join(metadata)
+            info_label.add(mB.info_label)
+        self.info_label = info_label
+        # Find a pleasing combination of the info_label.
+        if len(info_label) == 1:
+            self.jointMetadata = " ".join(info_label)
         else:
             order = ["u", "g", "r", "i", "z", "y"]
             # See if there are any subcomponents we can combine,
-            # splitting on some values we expect to separate metadata clauses.
+            # splitting on some values we expect to separate info_label clauses.
             splitmetas = []
-            for m in self.metadata:
-                # Try to split metadata into separate phrases (filter / proposal / constraint..).
+            for m in self.info_label:
+                # Try to split info_label into separate phrases (filter / proposal / constraint..).
                 if " and " in m:
                     m = m.split(" and ")
                 elif ", " in m:
@@ -241,7 +241,7 @@ class PlotHandler(object):
                 # Strip white spaces from individual elements.
                 m = set([im.strip() for im in m])
                 splitmetas.append(m)
-            # Look for common elements and separate from the general metadata.
+            # Look for common elements and separate from the general info_label.
             common = set.intersection(*splitmetas)
             diff = [x.difference(common) for x in splitmetas]
             # Now look within the 'diff' elements and see if there are any common words to split off.
@@ -303,18 +303,18 @@ class PlotHandler(object):
 
     def _buildTitle(self):
         """
-        Build a plot title from the metric names, runNames and metadata.
+        Build a plot title from the metric names, runNames and info_label.
         """
-        # Create a plot title from the unique parts of the metric/runName/metadata.
+        # Create a plot title from the unique parts of the metric/runName/info_label.
         plotTitle = ""
         if len(self.runNames) == 1:
             plotTitle += list(self.runNames)[0]
-        if len(self.metadata) == 1:
-            plotTitle += " " + list(self.metadata)[0]
+        if len(self.info_label) == 1:
+            plotTitle += " " + list(self.info_label)[0]
         if len(self.metricNames) == 1:
             plotTitle += ": " + list(self.metricNames)[0]
         if plotTitle == "":
-            # If there were more than one of everything above, use joint metadata and metricNames.
+            # If there were more than one of everything above, use joint info_label and metricNames.
             plotTitle = self.jointMetadata + " " + self.jointMetricNames
         return plotTitle
 
@@ -377,7 +377,7 @@ class PlotHandler(object):
 
     def _buildLegendLabels(self):
         """
-        Build a set of legend labels, using parts of the runName/metadata/metricNames that change.
+        Build a set of legend labels, using parts of the runName/info_label/metricNames that change.
         """
         if len(self.mBundles) == 1:
             return [None]
@@ -389,8 +389,8 @@ class PlotHandler(object):
                 label = ""
                 if len(self.runNames) > 1:
                     label += mB.runName
-                if len(self.metadata) > 1:
-                    label += " " + mB.metadata
+                if len(self.info_label) > 1:
+                    label += " " + mB.info_label
                 if len(self.metricNames) > 1:
                     label += " " + mB.metric.name
             labels.append(label)
@@ -455,7 +455,7 @@ class PlotHandler(object):
         """
         Build a root filename for plot outputs.
         If there is only one metricBundle, this is equal to the metricBundle fileRoot + outfileSuffix.
-        For multiple metricBundles, this is created from the runNames, metadata and metric names.
+        For multiple metricBundles, this is created from the runNames, info_label and metric names.
 
         If you do not wish to use the automatic filenames, then you could set 'savefig' to False and
           save the file manually to disk, using the plot figure numbers returned by 'plot'.
@@ -501,7 +501,7 @@ class PlotHandler(object):
 
             displayDict[
                 "caption"
-            ] = "%s metric(s) calculated on a %s grid, for opsim runs %s, for metadata values of %s." % (
+            ] = "%s metric(s) calculated on a %s grid, for opsim runs %s, for info_label values of %s." % (
                 self.jointMetricNames,
                 self.mBundles[0].slicer.slicerName,
                 self.jointRunNames,
@@ -648,7 +648,7 @@ class PlotHandler(object):
         slicerName,
         runName,
         constraint,
-        metadata,
+        info_label,
         displayDict=None,
     ):
         fig = plt.figure(fignum)
@@ -675,7 +675,7 @@ class PlotHandler(object):
             if displayDict is None:
                 displayDict = {}
             metricId = self.resultsDb.updateMetric(
-                metricName, slicerName, runName, constraint, metadata, None
+                metricName, slicerName, runName, constraint, info_label, None
             )
             self.resultsDb.updateDisplay(
                 metricId=metricId, displayDict=displayDict, overwrite=False

@@ -17,7 +17,7 @@ class TestResultsDb(unittest.TestCase):
         self.slicerName = "OneDSlicer"
         self.runName = "fakeopsim"
         self.constraint = ""
-        self.metadata = "Dithered"
+        self.info_label = "Dithered"
         self.metricDataFile = "testmetricdatafile.npz"
         self.plotType = "BinnedData"
         self.plotName = "testmetricplot_BinnedData.png"
@@ -59,7 +59,7 @@ class TestResultsDb(unittest.TestCase):
             self.slicerName,
             self.runName,
             self.constraint,
-            self.metadata,
+            self.info_label,
             self.metricDataFile,
         )
         # Try to re-add metric (should get back same metric id as previous, with no add).
@@ -68,7 +68,7 @@ class TestResultsDb(unittest.TestCase):
             self.slicerName,
             self.runName,
             self.constraint,
-            self.metadata,
+            self.info_label,
             self.metricDataFile,
         )
         self.assertEqual(metricId, metricId2)
@@ -109,7 +109,7 @@ class TestUseResultsDb(unittest.TestCase):
         self.slicerName = "OneDSlicer"
         self.runName = "fakeopsim"
         self.constraint = ""
-        self.metadata = "Dithered"
+        self.info_label = "Dithered"
         self.metricDataFile = "testmetricdatafile.npz"
         self.plotType = "BinnedData"
         self.plotName = "testmetricplot_BinnedData.png"
@@ -124,7 +124,7 @@ class TestUseResultsDb(unittest.TestCase):
             self.slicerName,
             self.runName,
             self.constraint,
-            self.metadata,
+            self.info_label,
             self.metricDataFile,
         )
         self.resultsDb.updatePlot(self.metricId, self.plotType, self.plotName)

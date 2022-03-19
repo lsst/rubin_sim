@@ -72,12 +72,12 @@ def makeCompletenessBundle(bundle, completenessMetric, Hmark=None, resultsDb=Non
         bundle.slicer,
         constraint=bundle.constraint,
         runName=bundle.runName,
-        metadata=bundle.metadata,
+        info_label=bundle.info_label,
         displayDict=bundle.displayDict,
     )
     plotDict = {}
     plotDict.update(bundle.plotDict)
-    plotDict["label"] = bundle.metadata
+    plotDict["label"] = bundle.info_label
     if "Completeness" not in summaryName:
         plotDict["label"] += " " + summaryName.replace("FractionPop_", "")
     mb.metricValues = completeness.reshape(1, len(completeness))
@@ -104,7 +104,7 @@ class MoMetricBundle(MetricBundle):
         constraint=None,
         stackerList=None,
         runName="opsim",
-        metadata=None,
+        info_label=None,
         fileRoot=None,
         plotDict=None,
         plotFuncs=None,
@@ -149,9 +149,9 @@ class MoMetricBundle(MetricBundle):
         self.mapsList = []
         # Add the summary stats, if applicable.
         self.setSummaryMetrics(summaryMetrics)
-        # Set the provenance/metadata.
+        # Set the provenance/info_label.
         self.runName = runName
-        self._buildMetadata(metadata)
+        self._buildMetadata(info_label)
         # Build the output filename root if not provided.
         if fileRoot is not None:
             self.fileRoot = fileRoot
@@ -181,7 +181,7 @@ class MoMetricBundle(MetricBundle):
         self.summaryMetrics = []
         self.plotFuncs = []
         self.runName = "opsim"
-        self.metadata = ""
+        self.info_label = ""
         self.dbCols = None
         self.fileRoot = None
         self.plotDict = {}
@@ -190,21 +190,23 @@ class MoMetricBundle(MetricBundle):
         self.metricValues = None
         self.summaryValues = None
 
-    def _buildMetadata(self, metadata):
-        """If no metadata is provided, auto-generate it from the obsFile + constraint."""
-        if metadata is None:
+    def _buildMetadata(self, info_label):
+        """If no info_label is provided, auto-generate it from the obsFile + constraint."""
+        if info_label is None:
             try:
-                self.metadata = self.slicer.obsfile.replace(".txt", "").replace(
+                self.info_label = self.slicer.obsfile.replace(".txt", "").replace(
                     ".dat", ""
                 )
-                self.metadata = self.metadata.replace("_obs", "").replace("_allObs", "")
+                self.info_label = self.info_label.replace("_obs", "").replace(
+                    "_allObs", ""
+                )
             except AttributeError:
-                self.metadata = "noObs"
+                self.info_label = "noObs"
             # And modify by constraint.
             if self.constraint is not None:
-                self.metadata += " " + self.constraint
+                self.info_label += " " + self.constraint
         else:
-            self.metadata = metadata
+            self.info_label = info_label
 
     def _findReqCols(self):
         # Doesn't quite work the same way yet. No stacker list, for example.
@@ -226,7 +228,7 @@ class MoMetricBundle(MetricBundle):
                 constraint=self.constraint,
                 stackerList=self.stackerList,
                 runName=self.runName,
-                metadata=self.metadata,
+                info_label=self.info_label,
                 plotDict=self.plotDict,
                 plotFuncs=self.plotFuncs,
                 displayDict=self.displayDict,
@@ -255,7 +257,7 @@ class MoMetricBundle(MetricBundle):
                         self.slicer.slicerName,
                         self.runName,
                         self.constraint,
-                        self.metadata,
+                        self.info_label,
                         None,
                     )
                     resultsDb.updateSummaryStat(

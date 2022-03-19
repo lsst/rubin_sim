@@ -10,7 +10,7 @@ from .common import (
     standardSummary,
     extendedSummary,
     filterList,
-    combineMetadata,
+    combineInfoLabels,
     radecCols,
 )
 
@@ -22,7 +22,7 @@ def intraNight(
     runName="opsim",
     nside=64,
     extraSql=None,
-    extraMetadata=None,
+    extraInfoLabel=None,
     slicer=None,
     display_group="IntraNight",
     subgroup="Pairs",
@@ -39,8 +39,8 @@ def intraNight(
         Nside for the healpix slicer. Default 64.
     extraSql : str or None, optional
         Additional sql constraint to apply to all metrics.
-    extraMetadata : str or None, optional
-        Additional metadata to apply to all results.
+    extraInfoLabel : str or None, optional
+        Additional info_label to apply to all results.
     slicer : slicer object (None)
         Optionally use something other than a HealpixSlicer
 
@@ -52,13 +52,13 @@ def intraNight(
     if colmap is None:
         colmap = ColMapDict("opsimV4")
 
-    metadata = extraMetadata
+    info_label = extraInfoLabel
     if extraSql is not None and len(extraSql) > 0:
-        if metadata is None:
-            metadata = extraSql
+        if info_label is None:
+            info_label = extraSql
 
     raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
-    metadata = combineMetadata(metadata, ditherMeta)
+    info_label = combineInfoLabels(info_label, ditherMeta)
 
     bundleList = []
     standardStats = standardSummary()
@@ -81,8 +81,8 @@ def intraNight(
     else:
         sql = 'filter="g" or filter="r" or filter="i"'
     md = "gri"
-    if metadata is not None:
-        md += " " + metadata
+    if info_label is not None:
+        md += " " + info_label
     dtMin = 10.0
     dtMax = 60.0
     metric = metrics.PairFractionMetric(
@@ -101,7 +101,7 @@ def intraNight(
         metric,
         slicer,
         sql,
-        metadata=md,
+        info_label=md,
         summaryMetrics=standardStats,
         plotFuncs=subsetPlots,
         displayDict=displayDict,
@@ -126,7 +126,7 @@ def intraNight(
         metric,
         slicer,
         sql,
-        metadata=md,
+        info_label=md,
         summaryMetrics=standardStats,
         plotFuncs=subsetPlots,
         displayDict=displayDict,
@@ -155,7 +155,7 @@ def intraNight(
         metric,
         slicer,
         sql,
-        metadata=md,
+        info_label=md,
         summaryMetrics=standardStats,
         plotFuncs=subsetPlots,
         displayDict=displayDict,
@@ -169,17 +169,17 @@ def intraNight(
     displayDict[
         "caption"
     ] = "Median gap between consecutive visits within a night, all bands"
-    if metadata is None or len(metadata) == 0:
+    if info_label is None or len(info_label) == 0:
         displayDict["caption"] += ", all proposals."
     else:
-        displayDict["caption"] += ", %s." % metadata
+        displayDict["caption"] += ", %s." % info_label
     displayDict["order"] += 1
     plotDict = {"percentileClip": 95}
     bundle = mb.MetricBundle(
         metric,
         slicer,
         extraSql,
-        metadata=metadata,
+        info_label=info_label,
         displayDict=displayDict,
         plotFuncs=subsetPlots,
         plotDict=plotDict,
@@ -196,10 +196,10 @@ def intraNight(
     displayDict[
         "caption"
     ] = "Histogram of the number of visits in each night, per point on the sky"
-    if metadata is None or len(metadata) == 0:
+    if info_label is None or len(info_label) == 0:
         displayDict["caption"] += ", all proposals."
     else:
-        displayDict["caption"] += ", %s." % metadata
+        displayDict["caption"] += ", %s." % info_label
     displayDict["order"] = 0
     plotFunc = plots.SummaryHistogram()
     bundle = mb.MetricBundle(
@@ -208,7 +208,7 @@ def intraNight(
         extraSql,
         plotDict=plotDict,
         displayDict=displayDict,
-        metadata=metadata,
+        info_label=info_label,
         plotFuncs=[plotFunc],
     )
     bundleList.append(bundle)
@@ -230,10 +230,10 @@ def intraNight(
         "on the sky, considering visits between %.1f and %.1f minutes"
         % (binMin, binMax)
     )
-    if metadata is None or len(metadata) == 0:
+    if info_label is None or len(info_label) == 0:
         displayDict["caption"] += ", all proposals."
     else:
-        displayDict["caption"] += ", %s." % metadata
+        displayDict["caption"] += ", %s." % info_label
     displayDict["order"] += 1
     plotFunc = plots.SummaryHistogram()
     bundle = mb.MetricBundle(
@@ -242,7 +242,7 @@ def intraNight(
         extraSql,
         plotDict=plotDict,
         displayDict=displayDict,
-        metadata=metadata,
+        info_label=info_label,
         plotFuncs=[plotFunc],
     )
     bundleList.append(bundle)
@@ -258,7 +258,7 @@ def interNight(
     runName="opsim",
     nside=64,
     extraSql=None,
-    extraMetadata=None,
+    extraInfoLabel=None,
     slicer=None,
     display_group="InterNight",
     subgroup="Night gaps",
@@ -275,8 +275,8 @@ def interNight(
         Nside for the healpix slicer. Default 64.
     extraSql : str or None, optional
         Additional sql constraint to apply to all metrics.
-    extraMetadata : str or None, optional
-        Additional metadata to use for all outputs.
+    extraInfoLabel : str or None, optional
+        Additional info_label to use for all outputs.
     slicer : slicer object (None)
         Optionally use something other than a HealpixSlicer
 
@@ -292,9 +292,9 @@ def interNight(
 
     # Set up basic all and per filter sql constraints.
     raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
-    metadata = combineMetadata(extraMetadata, ditherMeta)
-    filterlist, colors, orders, sqls, metadata = filterList(
-        all=True, extraSql=extraSql, extraMetadata=metadata
+    info_label = combineInfoLabels(extraInfoLabel, ditherMeta)
+    filterlist, colors, orders, sqls, info_label = filterList(
+        all=True, extraSql=extraSql, extraInfoLabel=info_label
     )
 
     if slicer is None:
@@ -320,10 +320,10 @@ def interNight(
         "given point on the sky, considering separations between %d and %d"
         % (bins.min(), bins.max())
     )
-    if metadata["all"] is None or len(metadata["all"]) == 0:
+    if info_label["all"] is None or len(info_label["all"]) == 0:
         displayDict["caption"] += ", all proposals."
     else:
-        displayDict["caption"] += ", %s." % metadata["all"]
+        displayDict["caption"] += ", %s." % info_label["all"]
     plotFunc = plots.SummaryHistogram()
     bundle = mb.MetricBundle(
         metric,
@@ -331,7 +331,7 @@ def interNight(
         sqls["all"],
         plotDict=plotDict,
         displayDict=displayDict,
-        metadata=metadata["all"],
+        info_label=info_label["all"],
         plotFuncs=[plotFunc],
     )
     bundleList.append(bundle)
@@ -345,7 +345,7 @@ def interNight(
     )
     for f in filterlist:
         displayDict["caption"] = (
-            "Median gap between nights with observations, %s." % metadata[f]
+            "Median gap between nights with observations, %s." % info_label[f]
         )
         displayDict["order"] = orders[f]
         plotDict = {"color": colors[f], "percentileClip": 95.0}
@@ -353,7 +353,7 @@ def interNight(
             metric,
             slicer,
             sqls[f],
-            metadata=metadata[f],
+            info_label=info_label[f],
             displayDict=displayDict,
             plotFuncs=subsetPlots,
             plotDict=plotDict,
@@ -367,7 +367,7 @@ def interNight(
     )
     for f in filterlist:
         displayDict["caption"] = (
-            "Maximum gap between nights with observations, %s." % metadata[f]
+            "Maximum gap between nights with observations, %s." % info_label[f]
         )
         displayDict["order"] = orders[f]
         plotDict = {"color": colors[f], "percentileClip": 95.0, "binsize": 5}
@@ -375,7 +375,7 @@ def interNight(
             metric,
             slicer,
             sqls[f],
-            metadata=metadata[f],
+            info_label=info_label[f],
             displayDict=displayDict,
             plotFuncs=subsetPlots,
             plotDict=plotDict,
@@ -394,7 +394,7 @@ def timeGaps(
     runName="opsim",
     nside=64,
     extraSql=None,
-    extraMetadata=None,
+    extraInfoLabel=None,
     slicer=None,
     display_group="TimeGaps",
     subgroup="Time",
@@ -411,8 +411,8 @@ def timeGaps(
         Nside for the healpix slicer. Default 64.
     extraSql : str or None, optional
         Additional sql constraint to apply to all metrics.
-    extraMetadata : str or None, optional
-        Additional metadata to use for all outputs.
+    extraInfoLabel : str or None, optional
+        Additional info_label to use for all outputs.
     slicer : slicer object (None)
         Optionally use something other than a HealpixSlicer
 
@@ -429,8 +429,8 @@ def timeGaps(
     raCol = colmap["ra"]
     decCol = colmap["dec"]
     degrees = colmap["raDecDeg"]
-    filterlist, colors, orders, sqls, metadata = filterList(
-        all=True, extraSql=extraSql, extraMetadata=extraMetadata
+    filterlist, colors, orders, sqls, info_label = filterList(
+        all=True, extraSql=extraSql, extraInfoLabel=extraInfoLabel
     )
 
     if slicer is None:
@@ -472,7 +472,7 @@ def timeGaps(
                 m1,
                 slicer,
                 constraint=sqls[f],
-                metadata=metadata[f],
+                info_label=info_label[f],
                 runName=runName,
                 plotDict=plotDict,
                 plotFuncs=plotFuncs,
@@ -499,7 +499,7 @@ def timeGaps(
                 m2,
                 slicer,
                 constraint=sqls[f],
-                metadata=metadata[f],
+                info_label=info_label[f],
                 runName=runName,
                 summaryMetrics=summaryMetrics,
                 plotDict=plotDict,
@@ -524,7 +524,7 @@ def timeGaps(
                 m3,
                 slicer,
                 constraint=sqls[f],
-                metadata=metadata[f],
+                info_label=info_label[f],
                 runName=runName,
                 summaryMetrics=summaryMetrics,
                 plotDict=plotDict,
@@ -540,7 +540,7 @@ def seasons(
     runName="opsim",
     nside=64,
     extraSql=None,
-    extraMetadata=None,
+    extraInfoLabel=None,
     slicer=None,
 ):
     """Generate a set of statistics about the length and number of seasons.
@@ -555,8 +555,8 @@ def seasons(
         Nside for the healpix slicer. Default 64.
     extraSql : str or None, optional
         Additional sql constraint to apply to all metrics.
-    extraMetadata : str or None, optional
-        Additional metadata to use for all outputs.
+    extraInfoLabel : str or None, optional
+        Additional info_label to use for all outputs.
     slicer : slicer object (None)
          Optionally use something other than a HealpixSlicer
 
@@ -572,9 +572,9 @@ def seasons(
 
     # Set up basic all and per filter sql constraints.
     raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
-    metadata = combineMetadata(extraMetadata, ditherMeta)
-    filterlist, colors, orders, sqls, metadata = filterList(
-        all=True, extraSql=extraSql, extraMetadata=metadata
+    info_label = combineInfoLabels(extraInfoLabel, ditherMeta)
+    filterlist, colors, orders, sqls, info_label = filterList(
+        all=True, extraSql=extraSql, extraInfoLabel=info_label
     )
 
     if slicer is None:
@@ -596,7 +596,7 @@ def seasons(
         metricName="Median Season Length", mjdCol=colmap["mjd"], reduceFunc=np.median
     )
     for f in filterlist:
-        displayDict["caption"] = "Median season length, %s." % metadata[f]
+        displayDict["caption"] = "Median season length, %s." % info_label[f]
         displayDict["order"] = orders[f]
         maxS = 250
         if f == "all":
@@ -614,7 +614,7 @@ def seasons(
             metric,
             slicer,
             sqls[f],
-            metadata=metadata[f],
+            info_label=info_label[f],
             displayDict=displayDict,
             plotFuncs=subsetPlots,
             plotDict=plotDict,
@@ -636,7 +636,7 @@ def seasons(
         metric,
         slicer,
         sqls["all"],
-        metadata=metadata["all"],
+        info_label=info_label["all"],
         displayDict=displayDict,
         plotFuncs=subsetPlots,
         plotDict=plotDict,
