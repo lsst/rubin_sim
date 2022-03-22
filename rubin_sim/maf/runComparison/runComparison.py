@@ -282,7 +282,7 @@ class RunComparison:
         self.addSummaryStats(**kwargs)
         return self.summaryStats
 
-    def getFileNames(self, metricName, metricMetadata=None, slicerName=None):
+    def getFileNames(self, metricName, metricInfoLabel=None, slicerName=None):
         """Find the locations of a given metric in all available directories.
 
         Parameters
@@ -303,15 +303,15 @@ class RunComparison:
         for r in self.runDirs:
             mId = self.runresults[r].getMetricId(
                 metricName=metricName,
-                metricMetadata=metricMetadata,
+                metricInfoLabel=metricInfoLabel,
                 slicerName=slicerName,
             )
             if len(mId) > 0:
                 if len(mId) > 1:
                     warnings.warn(
                         "Found more than one metric data file matching "
-                        + "metricName %s metricMetadata %s and slicerName %s"
-                        % (metricName, metricMetadata, slicerName)
+                        + "metricName %s metricInfoLabel %s and slicerName %s"
+                        % (metricName, metricInfoLabel, slicerName)
                         + " Skipping this combination."
                     )
                 else:
@@ -320,11 +320,11 @@ class RunComparison:
         return filepaths
 
     # Plot actual metric values (skymaps or histograms or power spectra) (values not stored in class).
-    def readMetricData(self, metricName, metricMetadata, slicerName):
+    def readMetricData(self, metricName, metricInfoLabel, slicerName):
         # Get the names of the individual files for all runs.
         # Dictionary, keyed by run name.
-        filenames = self.getFileNames(metricName, metricMetadata, slicerName)
-        mname = ResultsDb.buildSummaryName(metricName, metricMetadata, slicerName, None)
+        filenames = self.getFileNames(metricName, metricInfoLabel, slicerName)
+        mname = ResultsDb.buildSummaryName(metricName, metricInfoLabel, slicerName, None)
         bundleDict = {}
         for r in filenames:
             b = mb.createEmptyMetricBundle()
