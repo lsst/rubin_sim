@@ -123,13 +123,13 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
         displayDict["group"] = "QSO"
         displayDict["order"] = 2
         displayDict["subgroup"] = "Structure Function"
-        agn_mag = 24.0
+        agn_mags = {"u": 22.0, "g": 24, "r": 24, "i": 24, "z": 22, "y": 22}
         for f in "ugrizy":
             sql = 'filter="%s"' % f
             summaryMetrics = [
                 maf.MedianMetric(metricName="Median AGN SF Uncert, %s" % (label))
             ]
-            metric = maf.SFUncertMetric(mag=agn_mag, metricName="SFU, %s" % label)
+            metric = maf.SFUncertMetric(mag=agn_mags[f], metricName="SFU, %s" % label)
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
