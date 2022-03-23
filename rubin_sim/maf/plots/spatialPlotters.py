@@ -712,14 +712,25 @@ class BaseSkyMap(BasePlotter):
             ax.add_collection(p)
             # Add color bar (with optional setting of limits)
             if plotDict["cbar"]:
-                cb = plt.colorbar(
-                    p,
-                    # aspect=40,
-                    shrink=0.5,
-                    extendrect=True,
-                    location="right",  # "horizontal",
-                    format=plotDict["cbarFormat"],
-                )
+                if plotDict["cbarOrientation"].lower() == "vertical":
+                    cb = plt.colorbar(
+                        p,
+                        shrink=0.5,
+                        extendrect=True,
+                        location="right",
+                        format=plotDict["cbarFormat"],
+                    )
+                else:
+                    # Most of the time we just want a standard horizontal colorbar
+                    cb = plt.colorbar(
+                        p,
+                        shrink=0.75,
+                        aspect=25,
+                        pad=0.1,
+                        orientation="horizontal",
+                        format=plotDict["cbarFormat"],
+                        extendrect=True,
+                    )
                 # If outputing to PDF, this fixes the colorbar white stripes
                 if plotDict["cbar_edge"]:
                     cb.solids.set_edgecolor("face")
