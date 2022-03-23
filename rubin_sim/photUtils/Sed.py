@@ -671,11 +671,11 @@ class Sed(object):
             sourcewavelen.append(float(values[0]))
             sourcefnu.append(float(values[1]))
         f.close()
-        # Convert to numpy arrays.
-        sourcewavelen = numpy.array(sourcewavelen)
-        sourcefnu = numpy.array(sourcefnu)
-        # Convert fnu to flambda
-        self.fnuToflambda(sourcewavelen, sourcefnu)
+        # Convert to numpy arrays and set members
+        self.wavelen = numpy.array(sourcewavelen)
+        self.fnu = numpy.array(sourcefnu)
+        # convert fnu to flambda
+        self.fnuToflambda()
         if name is None:
             self.name = filename
         else:
