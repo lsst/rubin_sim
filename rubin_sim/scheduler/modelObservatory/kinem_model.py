@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 from rubin_sim.utils import (
     Site,
     _approx_altAz2RaDec,
@@ -126,8 +127,8 @@ class Kinem_model(object):
         accel : `float` (1.0)
             The acceleration of the rotator (degrees/s^2)
         two_motion_time : `float` (15.)
-            The time required for two shutter motions (seconds). So, if one takes
-            a 1-snap 10s exposure, there will be a 5s overhead before the next exposure can start.
+            The time required for two shutter motions (seconds). If one takes
+            a 1-snap 10s exposure, there will be a 5s of overhead before the next exposure can start.
         """
         self.readtime = readtime
         self.shuttertime = shuttertime
@@ -630,6 +631,14 @@ class Kinem_model(object):
 
         If slew is not allowed, returns np.nan and does not update state.
         """
+        if (observation["nexp"] > 2) & (
+            observation["exptime"] / observation["nexp"] < self.two_motion_time
+        ):
+            warnings.warn(
+                "%i exposures in %i seconds is violating number of shutter motion limit"
+                % (observation["nexp"], observation["exptime"])
+            )
+
         slewtime = self.slew_times(
             observation["RA"],
             observation["dec"],
