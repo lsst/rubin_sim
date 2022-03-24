@@ -324,7 +324,9 @@ class RunComparison:
         # Get the names of the individual files for all runs.
         # Dictionary, keyed by run name.
         filenames = self.getFileNames(metricName, metricInfoLabel, slicerName)
-        mname = ResultsDb.buildSummaryName(metricName, metricInfoLabel, slicerName, None)
+        mname = ResultsDb.buildSummaryName(
+            metricName, metricInfoLabel, slicerName, None
+        )
         bundleDict = {}
         for r in filenames:
             b = mb.createEmptyMetricBundle()
