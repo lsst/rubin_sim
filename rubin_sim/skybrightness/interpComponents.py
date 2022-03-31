@@ -249,7 +249,7 @@ class BaseSingleInterp(object):
     def interpSpec(self, interpPoints):
         result = self._weighting(interpPoints, self.logSpec)
         mask = np.where(result == 0.0)
-        result = 10.0 ** result
+        result = 10.0**result
         result[mask] = 0.0
         return {"spec": result, "wave": self.wave}
 

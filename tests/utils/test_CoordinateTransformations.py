@@ -34,7 +34,7 @@ def controlCalcGmstGast(mjd):
     d = jd - jd2000
     d_o = jd_o - jd2000
     t = d / 36525.0
-    gmst = 6.697374558 + 0.06570982441908 * d_o + 1.00273790935 * h + 0.000026 * t ** 2
+    gmst = 6.697374558 + 0.06570982441908 * d_o + 1.00273790935 * h + 0.000026 * t**2
     gast = gmst + 24.0 * utils.equationOfEquinoxes(mjd) / (2.0 * np.pi)
     gmst %= 24.0
     gast %= 24.0

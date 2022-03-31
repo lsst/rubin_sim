@@ -67,7 +67,7 @@ class DcrPrecisionMetric(BaseMetric):
 
         position_errors = np.sqrt(
             mafUtils.astrom_precision(dataSlice[self.seeingCol], snr) ** 2
-            + self.atm_err ** 2
+            + self.atm_err**2
         )
 
         x_coord = np.tan(np.radians(dataSlice["zenithDistance"])) * np.sin(
@@ -85,7 +85,7 @@ class DcrPrecisionMetric(BaseMetric):
         slope_uncerts2 = position_errors / x_coord2
 
         total_slope_uncert = 1.0 / np.sqrt(
-            np.sum(1.0 / slope_uncerts ** 2) + np.sum(1.0 / slope_uncerts2 ** 2)
+            np.sum(1.0 / slope_uncerts**2) + np.sum(1.0 / slope_uncerts2**2)
         )
 
         # So, this will be the uncertainty in the RA or Dec offset at x= +/- 1. A.K.A., the uncertainty in the slope

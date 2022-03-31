@@ -33,10 +33,10 @@ def _compCrowdError(magVector, lumFunc, seeing, singleMag=None):
 
     Equation from Olsen, Blum, & Rigaut 2003, AJ, 126, 452
     """
-    lumAreaArcsec = 3600.0 ** 2
+    lumAreaArcsec = 3600.0**2
     lumVector = 10 ** (-0.4 * magVector)
     coeff = np.sqrt(np.pi / lumAreaArcsec) * seeing / 2.0
-    myInt = (np.add.accumulate((lumVector ** 2 * lumFunc)[::-1]))[::-1]
+    myInt = (np.add.accumulate((lumVector**2 * lumFunc)[::-1]))[::-1]
     temp = np.sqrt(myInt) / lumVector
     if singleMag is not None:
         interp = interp1d(magVector, temp)

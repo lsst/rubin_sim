@@ -167,7 +167,7 @@ class UniqueRatioMetric(BaseMetric):
 
 
 class CountMetric(BaseMetric):
-    """Count the length of a simData column slice. """
+    """Count the length of a simData column slice."""
 
     def __init__(self, col=None, **kwargs):
         super(CountMetric, self).__init__(col=col, **kwargs)
@@ -391,7 +391,7 @@ class MeanAngleMetric(BaseMetric):
         meanx = np.mean(x)
         meany = np.mean(y)
         angle = np.arctan2(meany, meanx)
-        radius = np.sqrt(meanx ** 2 + meany ** 2)
+        radius = np.sqrt(meanx**2 + meany**2)
         mean = angle % twopi
         if radius < 0.1:
             mean = np.pi

@@ -84,9 +84,9 @@ class SeeingModel:
         combined in quadrature.
         """
         self.fwhm_system_zenith = np.sqrt(
-            self.telescope_seeing ** 2
-            + self.optical_design_seeing ** 2
-            + self.camera_seeing ** 2
+            self.telescope_seeing**2
+            + self.optical_design_seeing**2
+            + self.camera_seeing**2
         )
 
     def __call__(self, fwhm_z, airmass):
@@ -136,7 +136,7 @@ class SeeingModel:
             fwhm_system = self.fwhm_system_zenith * airmass_correction
             fwhm_atmo = fwhm_z * wavelen_correction * airmass_correction
         # Calculate combined FWHMeff.
-        fwhm_eff = 1.16 * np.sqrt(fwhm_system ** 2 + 1.04 * fwhm_atmo ** 2)
+        fwhm_eff = 1.16 * np.sqrt(fwhm_system**2 + 1.04 * fwhm_atmo**2)
         # Translate to FWHMgeom.
         fwhm_geom = self.fwhmEff_to_fwhmGeom(fwhm_eff)
         return {"fwhmEff": fwhm_eff, "fwhmGeom": fwhm_geom}

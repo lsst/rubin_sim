@@ -72,7 +72,7 @@ def potential_single(coord0, x, y, z):
     y0 = coord0[1]
     z0 = coord0[2]
     # Enforce point has to be on a sphere
-    rsq = x0 ** 2 + y0 ** 2 + z0 ** 2
+    rsq = x0**2 + y0**2 + z0**2
     r = np.sqrt(rsq)
     x0 = x0 / r
     y0 = y0 / r
@@ -122,7 +122,7 @@ def iterate_potential_smart(x0, stepfrac=0.1):
             potential_single, [x[i], y[i], z[i]], args=(x[mask], y[mask], z[mask])
         )
         mask[i] = 1
-        xyz_new[i] = fit.x / np.sqrt(np.sum(fit.x ** 2))
+        xyz_new[i] = fit.x / np.sqrt(np.sum(fit.x**2))
 
     xyz_input = np.array((x, y, z)).T
     diff = xyz_input - xyz_new
@@ -130,7 +130,7 @@ def iterate_potential_smart(x0, stepfrac=0.1):
     # Move half way in x-y-z space
     xyz_out = xyz_input + stepfrac * diff
     # Project back onto sphere
-    xyz_out = xyz_out.T / np.sqrt(np.sum(xyz_out ** 2, axis=1))
+    xyz_out = xyz_out.T / np.sqrt(np.sum(xyz_out**2, axis=1))
     U_new = xyz2U(xyz_out[0, :], xyz_out[1, :], xyz_out[2, :])
     theta, phi = xyz2thetaphi(xyz_out[0, :], xyz_out[1, :], xyz_out[2, :])
     return np.concatenate((theta, phi)), U_new
@@ -165,7 +165,7 @@ def iterate_potential_random(x0, stepsize=0.05):
     y_new = y + np.random.random(theta.size) * stepsize
     z_new = z + np.random.random(theta.size) * stepsize
 
-    r = (x_new ** 2 + y_new ** 2 + z_new ** 2) ** 0.5
+    r = (x_new**2 + y_new**2 + z_new**2) ** 0.5
     # put back on the sphere
     x_new = x_new / r
     y_new = y_new / r
@@ -262,7 +262,7 @@ def elec_potential_xyz(x0):
     z = x0[2, :]
     dsq = 0.0
 
-    r = np.sqrt(x ** 2 + y ** 2 + z ** 2)
+    r = np.sqrt(x**2 + y**2 + z**2)
     x = x / r
     y = y / r
     z = z / r
@@ -286,7 +286,7 @@ def elec_p_xyx_loop(x0):
     z = x0[2, :]
     U = 0.0
 
-    r = np.sqrt(x ** 2 + y ** 2 + z ** 2)
+    r = np.sqrt(x**2 + y**2 + z**2)
     x = x / r
     y = y / r
     z = z / r
@@ -305,7 +305,7 @@ def x02sphere(x0):
     y = x0[1, :]
     z = x0[2, :]
 
-    r = np.sqrt(x ** 2 + y ** 2 + z ** 2)
+    r = np.sqrt(x**2 + y**2 + z**2)
     x = x / r
     y = y / r
     z = z / r

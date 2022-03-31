@@ -285,7 +285,7 @@ def _ra_dec_from_xyz(x, y, z):
     ra, dec : floats or arrays
         Ra and dec coordinates in radians.
     """
-    rad = np.sqrt(x ** 2 + y ** 2 + z ** 2)
+    rad = np.sqrt(x**2 + y**2 + z**2)
     ra = np.arctan2(y, x)
     dec = np.arcsin(z / rad)
 

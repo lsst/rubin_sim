@@ -93,7 +93,7 @@ def gal_cyn(b_deg, l_deg, dist):
     x = np.cos(l_rad) * xy
     y = np.sin(l_rad) * xy
     x_new = 8000.0 - x
-    R = np.power(x_new ** 2 + y ** 2, 0.5)
+    R = np.power(x_new**2 + y**2, 0.5)
     rho = np.arctan(y / x)
     return R, rho, Z
 

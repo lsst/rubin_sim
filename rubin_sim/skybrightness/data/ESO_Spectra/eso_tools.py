@@ -24,7 +24,7 @@ def read_eso_output(filename="output/radspec.fits"):
     header = fitsfile[0].header["comment"]
     spec = fitsfile[1].data["flux"].copy()
     # Convert spectra from ph/s/m2/micron/arcsec2 to erg/s/cm2/nm/arcsec2
-    spec = spec / (100.0 ** 2) * hPlank * cLight / (wave * 1e-7) / 1e3
+    spec = spec / (100.0**2) * hPlank * cLight / (wave * 1e-7) / 1e3
 
     return spec, wave, header
 

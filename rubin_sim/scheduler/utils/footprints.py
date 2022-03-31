@@ -938,7 +938,7 @@ def calc_norm_factor(goal_dict, radius=1.75):
         all_maps_sum += goal_dict[key][good].sum()
     nside = hp.npix2nside(goal_dict[key].size)
     hp_area = hp.nside2pixarea(nside, degrees=True)
-    norm_val = radius ** 2 * np.pi / hp_area / all_maps_sum
+    norm_val = radius**2 * np.pi / hp_area / all_maps_sum
     return norm_val
 
 

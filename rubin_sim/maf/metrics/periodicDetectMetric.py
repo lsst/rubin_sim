@@ -99,9 +99,9 @@ class PeriodicDetectMetric(BaseMetric):
                     )
                     snr = m52snr(lc, dataSlice[self.m5Col][in_filt])
                     delta_m = 2.5 * np.log10(1.0 + 1.0 / snr)
-                    weights = 1.0 / (delta_m ** 2)
+                    weights = 1.0 / (delta_m**2)
                     weighted_mean = np.sum(weights * lc) / np.sum(weights)
-                    chi_sq_1 += np.sum(((lc - weighted_mean) ** 2 / delta_m ** 2))
+                    chi_sq_1 += np.sum(((lc - weighted_mean) ** 2 / delta_m**2))
                 # Yes, I'm fitting magnitudes rather than flux. At least I feel kinda bad about it.
                 # F-test for nested models Regression problems:  https://en.wikipedia.org/wiki/F-test
                 f_numerator = (chi_sq_1 - chi_sq_2) / (p2 - p1)

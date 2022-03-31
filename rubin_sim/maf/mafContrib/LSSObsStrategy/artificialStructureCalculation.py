@@ -824,7 +824,7 @@ def artificialStructureCalculation(
                 0
             ]  # make sure the uncertainty is valid; no division by 0
             temp = np.var(z_i[ind] / np.sqrt(nObs_i[ind]))  # see equation 1
-            kValue[dither] = solve(k ** 2 * temp - 0.01 ** 2, k)[1]
+            kValue[dither] = solve(k**2 * temp - 0.01**2, k)[1]
 
             err = np.empty(len(z_i))
             err.fill(-500)  # initiate

@@ -304,7 +304,7 @@ class CometAppMagStacker(BaseMoStacker):
         # Calculate radius from the current H value (Hval).
         radius = 10 ** (0.2 * (VMAG_SUN - Hval)) / np.sqrt(self.Ap) * KM_PER_AU
         # Calculate expected Afrho - this is a value that describes how the brightness of the coma changes
-        afrho1 = self.Afrho1_const * radius ** 2
+        afrho1 = self.Afrho1_const * radius**2
         phase_val = phase_HalleyMarcus(ssoObs[self.phaseCol])
         # afrho is equivalent to a sort of 'absolute' magnitude of the coma
         afrho = afrho1 * ssoObs[self.rhCol] ** self.k * phase_val

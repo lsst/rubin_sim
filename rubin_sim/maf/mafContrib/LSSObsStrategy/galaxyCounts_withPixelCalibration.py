@@ -62,7 +62,7 @@ def GalaxyCounts_withPixelCalibration(
     """
     # Need to scale down to indivdual HEALpix pixels. Galaxy count from the Coadded depth is per 1 square degree.
     # Number of galaxies ~= 41253 sq. degrees in the full sky divided by number of HEALpix pixels.
-    scale = 41253.0 / (int(12) * nside ** 2)
+    scale = 41253.0 / (int(12) * nside**2)
     # Reset units (otherwise uses magnitudes).
     units = "Galaxy Counts"
 

@@ -119,7 +119,7 @@ def get_theory_spectra(mock_data_path, mag_cut=25.6, plot_spectra=True, nside=25
     # read in the surface number density and convert
     for j, key in enumerate(wBAO_cls.keys()):
         surf_num_density[key] = np.array(
-            shot_noise_data[j][5] * 1.18 * 10 ** 7
+            shot_noise_data[j][5] * 1.18 * 10**7
         )  # 1/arcmin^2 to 1/Sr
 
     # want Cl*W^2 where W is the pixel window function
@@ -131,7 +131,7 @@ def get_theory_spectra(mock_data_path, mag_cut=25.6, plot_spectra=True, nside=25
     ell = np.array(ell[0:lmax])
     # pixelize the spectra
     for key in wBAO_cls:
-        wBAO_cls[key] = np.array(wBAO_cls[key][0:lmax]) * (wl_nside ** 2)
+        wBAO_cls[key] = np.array(wBAO_cls[key][0:lmax]) * (wl_nside**2)
 
     if plot_spectra:
         plt.clf()
@@ -386,8 +386,8 @@ def get_fom(
     ]
 
     lGood = np.arange(ell_min, ell_max + 1)
-    num_sq = np.sum(floor_wo_shot_noise ** 2)
-    denom_sq = np.sum(floor_with_shot_noise ** 2 + osbias ** 2)
+    num_sq = np.sum(floor_wo_shot_noise**2)
+    denom_sq = np.sum(floor_with_shot_noise**2 + osbias**2)
 
     return np.sqrt(num_sq / denom_sq)
 

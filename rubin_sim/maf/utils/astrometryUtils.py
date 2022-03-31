@@ -23,8 +23,8 @@ def sigma_slope(x, sigma_y):
     float
         The uncertainty in the line fit
     """
-    w = 1.0 / sigma_y ** 2
-    denom = np.sum(w) * np.sum(w * x ** 2) - np.sum(w * x) ** 2
+    w = 1.0 / sigma_y**2
+    denom = np.sum(w) * np.sum(w * x**2) - np.sum(w * x) ** 2
     if denom <= 0:
         return np.nan
     else:

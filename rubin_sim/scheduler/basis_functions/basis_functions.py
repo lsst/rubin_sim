@@ -1943,7 +1943,7 @@ class AvoidDirectWind(Base_basis_function):
             conditions.az - conditions.wind_direction
         )
 
-        reward_map -= wind_pressure ** 2.0
+        reward_map -= wind_pressure**2.0
 
         mask = wind_pressure > self.wind_speed_maximum
 

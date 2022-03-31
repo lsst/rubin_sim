@@ -74,7 +74,7 @@ class UniformityMetric(BaseMetric):
     def __init__(
         self, mjdCol="observationStartMJD", units="", surveyLength=10.0, **kwargs
     ):
-        """surveyLength = time span of survey (years) """
+        """surveyLength = time span of survey (years)"""
         self.mjdCol = mjdCol
         super(UniformityMetric, self).__init__(col=self.mjdCol, units=units, **kwargs)
         self.surveyLength = surveyLength

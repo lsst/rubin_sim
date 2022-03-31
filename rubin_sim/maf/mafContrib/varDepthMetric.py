@@ -87,7 +87,7 @@ class VarDepth(BaseMetric):
         xsig = np.linspace(chi2.ppf(0.001, N), chi2.ppf(0.999, N), numsignalsamples)
         signalpdf = chi2.pdf(xsig, N)
         # correct x to the proper variance scale
-        xsig = (self.signal ** 2.0) * xsig / N
+        xsig = (self.signal**2.0) * xsig / N
         pdfstepsize = xsig[1] - xsig[0]
         # Since everything is going to use this stepsize down the line,
         # normalize so the pdf integrates to 1 when summed (no factor of stepsize needed)

@@ -110,10 +110,10 @@ class ParallaxMetric(BaseMetric):
         with np.errstate(divide="ignore", invalid="ignore"):
             sigma_A = position_errors / ra_pi_amp
             sigma_B = position_errors / dec_pi_amp
-            sigma_ra = np.sqrt(1.0 / np.sum(1.0 / sigma_A ** 2))
-            sigma_dec = np.sqrt(1.0 / np.sum(1.0 / sigma_B ** 2))
+            sigma_ra = np.sqrt(1.0 / np.sum(1.0 / sigma_A**2))
+            sigma_dec = np.sqrt(1.0 / np.sum(1.0 / sigma_B**2))
             # Combine RA and Dec uncertainties, convert to mas
-            sigma = np.sqrt(1.0 / (1.0 / sigma_ra ** 2 + 1.0 / sigma_dec ** 2)) * 1e3
+            sigma = np.sqrt(1.0 / (1.0 / sigma_ra**2 + 1.0 / sigma_dec**2)) * 1e3
         return sigma
 
     def run(self, dataslice, slicePoint=None):
@@ -129,7 +129,7 @@ class ParallaxMetric(BaseMetric):
             )
         position_errors = np.sqrt(
             mafUtils.astrom_precision(dataslice[self.seeingCol], snr) ** 2
-            + self.atm_err ** 2
+            + self.atm_err**2
         )
         sigma = self._final_sigma(
             position_errors, dataslice["ra_pi_amp"], dataslice["dec_pi_amp"]
@@ -255,7 +255,7 @@ class ProperMotionMetric(BaseMetric):
                     dataslice[self.seeingCol][observations], snr
                 )
                 precis[observations] = np.sqrt(
-                    precis[observations] ** 2 + self.atm_err ** 2
+                    precis[observations] ** 2 + self.atm_err**2
                 )
         good = np.where(precis != self.badval)
         result = mafUtils.sigma_slope(dataslice[self.mjdCol][good], precis[good])
@@ -387,15 +387,15 @@ class ParallaxCoverageMetric(BaseMetric):
         # Compute centroid uncertainty in each visit
         position_errors = np.sqrt(
             mafUtils.astrom_precision(dataSlice[self.seeingCol], snr) ** 2
-            + self.atm_err ** 2
+            + self.atm_err**2
         )
-        weights = 1.0 / position_errors ** 2
+        weights = 1.0 / position_errors**2
         return weights
 
     def _weightedR(self, dec_pi_amp, ra_pi_amp, weights):
         ycoord = dec_pi_amp - np.average(dec_pi_amp, weights=weights)
         xcoord = ra_pi_amp - np.average(ra_pi_amp, weights=weights)
-        radius = np.sqrt(xcoord ** 2 + ycoord ** 2)
+        radius = np.sqrt(xcoord**2 + ycoord**2)
         aveRad = np.average(radius, weights=weights)
         return aveRad
 
@@ -526,7 +526,7 @@ class ParallaxDcrDegenMetric(BaseMetric):
         # we are using seeingFwhmGeom for these metrics, not seeingFwhmEff.
         position_errors = np.sqrt(
             mafUtils.astrom_precision(dataSlice[self.seeingCol], snr) ** 2
-            + self.atm_err ** 2
+            + self.atm_err**2
         )
         # Construct the vectors of RA/Dec offsets. xdata is the "input data". ydata is the "output".
         xdata = np.empty((2, dataSlice.size * 2), dtype=float)

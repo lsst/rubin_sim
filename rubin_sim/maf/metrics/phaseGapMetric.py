@@ -126,7 +126,7 @@ class PeriodicQualityMetric(BaseMetric):
         x_ave = np.average(x, weights=snr)
         y_ave = np.average(y, weights=snr)
 
-        vector_off = np.sqrt(x_ave ** 2 + y_ave ** 2)
+        vector_off = np.sqrt(x_ave**2 + y_ave**2)
         return 1.0 - vector_off
 
     def _calc_amp(self, dataSlice):
@@ -139,9 +139,9 @@ class PeriodicQualityMetric(BaseMetric):
             )
             * snr
         )
-        amp_snr = np.min(np.sqrt(np.sum(amp_snrs ** 2, axis=1)))
+        amp_snr = np.min(np.sqrt(np.sum(amp_snrs**2, axis=1)))
 
-        max_snr = np.sqrt(np.sum(snr ** 2))
+        max_snr = np.sqrt(np.sum(snr**2))
         return amp_snr / max_snr
 
     def run(self, dataSlice, slicePoint=None):

@@ -400,7 +400,7 @@ class ChebyFits(object):
             nPoly=self.nCoeff["position"],
         )
         max_pos_resid = np.max(
-            np.sqrt(resid_dec ** 2 + (resid_ra * np.cos(np.radians(ephs["dec"]))) ** 2)
+            np.sqrt(resid_dec**2 + (resid_ra * np.cos(np.radians(ephs["dec"]))) ** 2)
         )
         # Convert position residuals to mas.
         max_pos_resid *= 3600.0 * 1000.0

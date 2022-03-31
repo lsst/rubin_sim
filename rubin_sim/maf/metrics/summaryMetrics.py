@@ -52,7 +52,7 @@ class fONv(BaseMetric):
         metricName="fONv",
         **kwargs
     ):
-        """Asky = square degrees """
+        """Asky = square degrees"""
         super().__init__(col=col, metricName=metricName, **kwargs)
         self.Nvisit = Nvisit
         self.nside = nside
@@ -119,7 +119,7 @@ class fOArea(BaseMetric):
         metricName="fOArea",
         **kwargs
     ):
-        """Asky = square degrees """
+        """Asky = square degrees"""
         super().__init__(col=col, metricName=metricName, **kwargs)
         self.Nvisit = Nvisit
         self.nside = nside

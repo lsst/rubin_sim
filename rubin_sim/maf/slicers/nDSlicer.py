@@ -44,7 +44,7 @@ class NDSlicer(BaseSlicer):
         self.plotFuncs = [TwoDSubsetData, OneDSubsetData]
 
     def setupSlicer(self, simData, maps=None):
-        """Set up bins. """
+        """Set up bins."""
         # Parse input bins choices.
         self.bins = []
         # If we were given a single number for the binsList, convert to list.

@@ -338,9 +338,9 @@ class LVDwarfsMetric(maf.BaseMetric):
         if "nside" in slicePoint.keys():
             nside = slicePoint["nside"]
             # Calculate the factor to go from number per healpix to number per square arcminute or per square arcsec
-            area_deg = hp.nside2pixarea(nside, degrees=True) * (u.degree ** 2)
-            area_arcmin = area_deg.to(u.arcmin ** 2)
-            area_arcsec = area_deg.to(u.arcsec ** 2)
+            area_deg = hp.nside2pixarea(nside, degrees=True) * (u.degree**2)
+            area_arcmin = area_deg.to(u.arcmin**2)
+            area_arcsec = area_deg.to(u.arcsec**2)
         else:
             # Calculate the factor for a UserPointSlicer area:
             area_arcsec = np.pi * ((self.radius * u.deg).to(u.arcsec) ** 2)

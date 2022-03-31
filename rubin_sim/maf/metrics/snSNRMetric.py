@@ -374,7 +374,7 @@ class SNSNRMetric(metrics.BaseMetric):
                 fluxes_tot[name] = np.concatenate((fluxes_tot[name], fluxes))
 
             flux_5sigma = self.lim_sn.mag_to_flux[ib](m5_vals)
-            snr = fluxes ** 2 / flux_5sigma ** 2
+            snr = fluxes**2 / flux_5sigma**2
             snr_season = 5.0 * np.sqrt(np.sum(snr * flag, axis=1))
 
             if snr_tab is None:

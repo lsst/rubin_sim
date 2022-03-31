@@ -4,6 +4,7 @@ import shutil
 import glob
 import argparse
 import matplotlib
+
 matplotlib.use("Agg")
 
 import rubin_sim.maf.batches as batches
@@ -16,19 +17,19 @@ if __name__ == "__main__":
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--db", type=str, default=None)
-    parser.add_argument("--long_micro", dest='long_micro', action='store_true')
+    parser.add_argument("--long_micro", dest="long_micro", action="store_true")
     parser.set_defaults(long_micro=False)
     args = parser.parse_args()
 
     if args.db is None:
-        db_files = glob.glob('*.db')
-        db_files = [filename for filename in db_files if 'trackingDb' not in filename]
+        db_files = glob.glob("*.db")
+        db_files = [filename for filename in db_files if "trackingDb" not in filename]
     else:
         db_files = [args.db]
-    run_names = [os.path.basename(name).replace('.db', '') for name in db_files]
+    run_names = [os.path.basename(name).replace(".db", "") for name in db_files]
 
     for filename, name in zip(db_files, run_names):
-        outDir = name + '_sci'
+        outDir = name + "_sci"
         # Clobber output directory if it exists
         if os.path.isdir(outDir):
             shutil.rmtree(outDir)
@@ -36,13 +37,21 @@ if __name__ == "__main__":
         colmap = batches.ColMapDict()
         resultsDb = db.ResultsDb(outDir=outDir)
         # Set up the metricBundles
-        bdict = batches.scienceRadarBatch(runName=name, long_microlensing=args.long_micro)
+        bdict = batches.scienceRadarBatch(
+            runName=name, long_microlensing=args.long_micro
+        )
         # Run them, including generating plots
-        group = mb.MetricBundleGroup(bdict, opsdb, outDir=outDir, resultsDb=resultsDb, saveEarly=False)
+        group = mb.MetricBundleGroup(
+            bdict, opsdb, outDir=outDir, resultsDb=resultsDb, saveEarly=False
+        )
         group.runAll(clearMemory=True, plotNow=True)
         resultsDb.close()
-        db.addRunToDatabase(outDir, 'trackingDb_sqlite.db',
-                            opsimGroup=None, opsimRun=name,
-                            opsimComment=None,
-                            mafComment='ScienceRadar',
-                            dbFile=name+'.db')
+        db.addRunToDatabase(
+            outDir,
+            "trackingDb_sqlite.db",
+            opsimGroup=None,
+            opsimRun=name,
+            opsimComment=None,
+            mafComment="ScienceRadar",
+            dbFile=name + ".db",
+        )

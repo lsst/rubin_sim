@@ -107,9 +107,9 @@ def calcInstrNoiseSq(photParams):
 
     # instrumental squared noise in electrons
     instNoiseSq = (
-        photParams.nexp * photParams.readnoise ** 2
+        photParams.nexp * photParams.readnoise**2
         + photParams.darkcurrent * photParams.exptime * photParams.nexp
-        + photParams.nexp * photParams.othernoise ** 2
+        + photParams.nexp * photParams.othernoise**2
     )
 
     # convert to ADU counts
@@ -281,8 +281,8 @@ def calcM5(skysed, totalBandpass, hardware, photParams, FWHMeff=None):
     snr = 5.0
     v_n = calcTotalNonSourceNoiseSq(skysed, hardware, photParams, FWHMeff)
 
-    counts_5sigma = (snr ** 2) / 2.0 / photParams.gain + numpy.sqrt(
-        (snr ** 4) / 4.0 / photParams.gain + (snr ** 2) * v_n
+    counts_5sigma = (snr**2) / 2.0 / photParams.gain + numpy.sqrt(
+        (snr**4) / 4.0 / photParams.gain + (snr**2) * v_n
     )
 
     # renormalize flatsource so that it has the required counts to be a 5-sigma detection
@@ -506,7 +506,7 @@ def calcSNR_sed(
     snr = sourcecounts / noise
     if verbose:
         skycounts = skysed.calcADU(hardwarebandpass, photParams) * (
-            photParams.platescale ** 2
+            photParams.platescale**2
         )
         noise_sky_sq = skycounts / photParams.gain
         neff = calcNeff(FWHMeff, photParams.platescale)

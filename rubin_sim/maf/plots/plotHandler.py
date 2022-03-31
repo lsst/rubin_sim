@@ -499,13 +499,14 @@ class PlotHandler(object):
             else:
                 displayDict["subgroup"] = list(subgroup)[0]
 
-            displayDict[
-                "caption"
-            ] = "%s metric(s) calculated on a %s grid, for opsim runs %s, for info_label values of %s." % (
-                self.jointMetricNames,
-                self.mBundles[0].slicer.slicerName,
-                self.jointRunNames,
-                self.jointMetadata,
+            displayDict["caption"] = (
+                "%s metric(s) calculated on a %s grid, for opsim runs %s, for info_label values of %s."
+                % (
+                    self.jointMetricNames,
+                    self.mBundles[0].slicer.slicerName,
+                    self.jointRunNames,
+                    self.jointMetadata,
+                )
             )
 
             return displayDict

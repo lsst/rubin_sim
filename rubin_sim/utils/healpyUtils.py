@@ -223,9 +223,9 @@ def moc2array(data, uniq, nside=128, reduceFunc=np.sum, density=True, fillVal=0.
 
     # NUNIQ packing, from page 12 of http://ivoa.net/documents/MOC/20190404/PR-MOC-1.1-20190404.pdf
     orders = np.floor(np.log2(uniq / 4) / 2).astype(int)
-    npixs = (uniq - 4 * 4 ** orders).astype(int)
+    npixs = (uniq - 4 * 4**orders).astype(int)
 
-    nsides = 2 ** orders
+    nsides = 2**orders
     names = ["ra", "dec", "area"]
     types = [float] * len(names)
     data_points = np.zeros(data.size, dtype=list(zip(names, types)))

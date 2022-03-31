@@ -616,8 +616,8 @@ class SpiralDitherFieldPerVisitStacker(BaseDitherStacker):
             a
             / 2.0
             * (
-                theta * np.sqrt(1 + theta ** 2)
-                + np.log(theta + np.sqrt(1 + theta ** 2))
+                theta * np.sqrt(1 + theta**2)
+                + np.log(theta + np.sqrt(1 + theta**2))
             )
         )
         stepsize = arc.max() / float(self.numPoints)
@@ -932,7 +932,7 @@ class HexDitherFieldPerVisitStacker(BaseDitherStacker):
     def _generateHexOffsets(self):
         # Set up basics of dither pattern.
         dith_level = 4
-        nrows = 2 ** dith_level
+        nrows = 2**dith_level
         halfrows = int(nrows / 2.0)
         # Calculate size of each offset
         dith_size_x = self.maxDither * 2.0 / float(nrows)

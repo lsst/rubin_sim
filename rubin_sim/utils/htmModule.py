@@ -597,7 +597,7 @@ def getAllTrixels(level):
     ct = 0
     for t0 in start_trixels:
         t0 = t0 << n_bits_added
-        for dt in range(2 ** n_bits_added):
+        for dt in range(2**n_bits_added):
             htmid = t0 + dt  # htmid we are currently generating
             ct += 1
             if htmid in trixel_dict:
@@ -1353,7 +1353,7 @@ def halfSpaceFromPoints(pt1, pt2, pt3):
         ]
     )
 
-    axis /= np.sqrt(np.sum(axis ** 2))
+    axis /= np.sqrt(np.sum(axis**2))
 
     vv3 = cartesianFromSpherical(np.radians(pt3[0]), np.radians(pt3[1]))
     if np.dot(axis, vv3) < 0.0:
@@ -1385,11 +1385,11 @@ def intersectHalfSpaces(hs1, hs2):
         # Half Spaces are based on parallel planes that don't intersect
         return []
 
-    denom = 1.0 - gamma ** 2
+    denom = 1.0 - gamma**2
     if denom < 0.0:
         return []
 
-    num = hs1.dd ** 2 + hs2.dd ** 2 - 2.0 * gamma * hs1.dd * hs2.dd
+    num = hs1.dd**2 + hs2.dd**2 - 2.0 * gamma * hs1.dd * hs2.dd
     if denom < num:
         return []
 

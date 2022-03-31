@@ -210,8 +210,8 @@ class BaseObs(object):
         a_det = 0.420
         b_det = 0.003
         x = velocity * texp / seeing / 24.0
-        dmagTrail = 1.25 * np.log10(1 + a_trail * x ** 2 / (1 + b_trail * x))
-        dmagDetect = 1.25 * np.log10(1 + a_det * x ** 2 / (1 + b_det * x))
+        dmagTrail = 1.25 * np.log10(1 + a_trail * x**2 / (1 + b_trail * x))
+        dmagDetect = 1.25 * np.log10(1 + a_det * x**2 / (1 + b_det * x))
         return (dmagTrail, dmagDetect)
 
     def readFilters(

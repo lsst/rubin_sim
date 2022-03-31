@@ -31,5 +31,5 @@ class StarDensityMetric(BaseMetric):
             slicePoint["starLumFunc_%s" % self.filtername],
         )
         # convert from stars/sq degree to stars/sq arcsec
-        result = interp(self.rmagLimit) / (3600.0 ** 2)
+        result = interp(self.rmagLimit) / (3600.0**2)
         return result
