@@ -783,3 +783,38 @@ class MetricBundle(object):
                 fignum = plotHandler.plot(plotFunc, outfileSuffix=outfileSuffix)
                 madePlots[plotFunc.plotType] = fignum
         return madePlots
+
+    def same_slicer_data_source(self, other_data_source, this_slicer_ds=None):
+        if this_slicer_ds is None:
+            this_slicer_ds = self.slicer.make_column_data_source()
+
+        # This test is imperfect, because we do not know which columns in
+        # other_data_source are part of the slice points, and which are
+        # metric values. So, we cannot verify that both slicers have the
+        # same columns. We can only test if those in this slicer are
+        # also in the other.
+
+        for key in this_slicer_ds.data:
+            same = np.array_equal(this_slicer_ds[key], other_data_source[key])
+            if not same:
+                return False
+
+        return True
+
+    @property
+    def data_source_metric_column_name(self):
+        column_name = f"{self.runName} {self.metric.name} {self.info_label}"
+        return column_name
+
+    def make_column_data_source(self, data_source=None, metric_column_name=None):
+        if data_source is None:
+            data_source = self.slicer.make_column_data_source()
+        else:
+            # TODO should raise a proper exception here
+            assert self.same_slicer_data_source(data_source)
+
+        if metric_column_name is None:
+            metric_column_name = self.data_source_metric_column_name
+
+        data_source.add(data=self.metricValues.filled(np.nan), name=metric_column_name)
+        return data_source

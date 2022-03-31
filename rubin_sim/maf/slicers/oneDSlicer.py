@@ -1,6 +1,8 @@
 # oneDSlicer - slices based on values in one data column in simData.
 
 import numpy as np
+import bokeh
+import bokeh.models
 from functools import wraps
 import warnings
 from rubin_sim.maf.utils import optimalBins
@@ -196,3 +198,15 @@ class OneDSlicer(BaseSlicer):
                         ):
                             result = True
         return result
+
+    def make_column_data_source(self, slice_column_name=None):
+        if slice_column_name is None:
+            slice_column_name = self.sliceColName
+        column_data_source = bokeh.models.ColumnDataSource(
+            {
+                "sid": self.slicePoints["sid"],
+                "bin_min": self.slicePoints["bins"][:-1],
+                "bin_max": self.slicePoints["bins"][1:],
+            }
+        )
+        return column_data_source

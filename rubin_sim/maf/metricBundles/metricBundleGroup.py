@@ -4,6 +4,8 @@ import os
 import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
+import bokeh.io
+import bokeh.models 
 from collections import OrderedDict
 
 import rubin_sim.maf.utils as utils
@@ -80,6 +82,8 @@ class MetricBundleGroup(object):
         If False, metric values will only be saved after summary statistics are calculated.
     dbTable : `str`, optional
         The name of the table in the dbObj to query for data.
+    plotHandlerFactory : `Callable`, optional
+        The callable to return the PlotHandler to use (usually the class).
     """
 
     def __init__(
@@ -91,8 +95,11 @@ class MetricBundleGroup(object):
         verbose=True,
         saveEarly=True,
         dbTable=None,
+        plotHandlerFactory=PlotHandler,
     ):
         """Set up the MetricBundleGroup."""
+        self.plotHandlerFactory = plotHandlerFactory
+
         if type(bundleDict) is list:
             bundleDict = makeBundlesDictFromList(bundleDict)
         # Print occasional messages to screen.
@@ -588,6 +595,7 @@ class MetricBundleGroup(object):
         trimWhitespace=True,
         thumbnail=True,
         closefigs=True,
+        show=False,
     ):
         """Generate all the plots for all the metricBundles in bundleDict.
 
@@ -613,6 +621,8 @@ class MetricBundleGroup(object):
         closefigs : `bool`, optional
             Close the matplotlib figures after they are saved to disk. If many figures are
             generated, closing the figures saves significant memory. Default True.
+        show : `bool`, optional
+            Use bokeh to "show" the plot. Default False.
         """
         for constraint in self.constraints:
             if self.verbose:
@@ -627,6 +637,7 @@ class MetricBundleGroup(object):
                 trimWhitespace=trimWhitespace,
                 thumbnail=thumbnail,
                 closefigs=closefigs,
+                show=show,
             )
 
     def plotCurrent(
@@ -638,6 +649,7 @@ class MetricBundleGroup(object):
         trimWhitespace=True,
         thumbnail=True,
         closefigs=True,
+        show=False,
     ):
         """Generate the plots for the currently active set of MetricBundles.
 
@@ -660,8 +672,10 @@ class MetricBundleGroup(object):
         closefigs : `bool`, optional
             Close the matplotlib figures after they are saved to disk. If many figures are
             generated, closing the figures saves significant memory. Default True.
+        show : `bool`, optional
+            Use bokeh to "show" the plot.
         """
-        plotHandler = PlotHandler(
+        plotHandler = self.plotHandlerFactory(
             outDir=self.outDir,
             resultsDb=self.resultsDb,
             savefig=savefig,
@@ -673,17 +687,30 @@ class MetricBundleGroup(object):
 
         for b in self.currentBundleDict.values():
             try:
-                b.plot(
+                plots = b.plot(
                     plotHandler=plotHandler,
                     outfileSuffix=outfileSuffix,
                     savefig=savefig,
                 )
+
+                if show:
+                    for plot in plots.values():
+                        # Bokeh doesn't like plots or their elements to appear in multiple "documents",
+                        # so we need to clear out the old documents. 
+                        for model in plot.select({'type': bokeh.models.Model}):
+                            if model.document is not None:
+                                model.document.clear()
+
+                        bokeh.io.show(plot)
+
             except ValueError as ve:
                 message = "Plotting failed for metricBundle %s." % (b.fileRoot)
                 message += " Error message: %s" % (ve)
+                raise
                 warnings.warn(message)
             if closefigs:
                 plt.close("all")
+
         if self.verbose:
             print("Plotting complete.")
 

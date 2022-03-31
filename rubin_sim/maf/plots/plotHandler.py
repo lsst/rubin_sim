@@ -5,9 +5,10 @@ import os
 import numpy as np
 import warnings
 import matplotlib.pyplot as plt
+import bokeh.io
 import rubin_sim.maf.utils as utils
 
-__all__ = ["applyZPNorm", "PlotHandler", "BasePlotter"]
+__all__ = ["applyZPNorm", "PlotHandler", "BasePlotter", "BokehPlotHandler"]
 
 
 def applyZPNorm(metricValue, plotDict):
@@ -683,3 +684,174 @@ class PlotHandler(object):
             self.resultsDb.updatePlot(
                 metricId=metricId, plotType=plotType, plotFile=plotFile
             )
+
+class BokehPlotHandler(PlotHandler):
+    def __init__(
+        self,
+        outDir=".",
+        resultsDb=None,
+        savefig=True,
+        figformat="html",
+        thumbnail=True,
+        **kwargs, # Lets the code ignore unused arguments
+    ):
+        super().__init__(outDir, resultsDb, savefig, figformat, None, thumbnail, False)
+
+    def plot(
+        self,
+        plotFunc,
+        plotDicts=None,
+        displayDict=None,
+        outfileRoot=None,
+        outfileSuffix=None,
+    ):
+        """
+        Create plot for mBundles, using plotFunc.
+
+        plotDicts:  List of plotDicts if one wants to use a _new_ plotDict per MetricBundle.
+        """
+        if not plotFunc.objectPlotter:
+            # Check that metricValues type and plotter are compatible (most are float/float, but
+            #  some plotters expect object data .. and some only do sometimes).
+            for mB in self.mBundles:
+                if mB.metric.metricDtype == "object":
+                    metricIsColor = mB.plotDict.get("metricIsColor", False)
+                    if not metricIsColor:
+                        warnings.warn(
+                            "Cannot plot object metric values with this plotter."
+                        )
+                        return
+
+        # Update x/y labels using plotType.
+        self.setPlotDicts(plotDicts=plotDicts, plotFunc=plotFunc, reset=False)
+        # Set outfile name.
+        if outfileRoot is None:
+            outfile = self._buildFileRoot(outfileSuffix)
+        else:
+            outfile = outfileRoot
+        plotType = plotFunc.plotType
+        if len(self.mBundles) > 1:
+            plotType = "Combo" + plotType
+        # Make plot.
+        plot = None
+        for mB, plotDict in zip(self.mBundles, self.plotDicts):
+            if mB.metricValues is None:
+                # Skip this metricBundle.
+                msg = 'MetricBundle (%s) has no attribute "metricValues".' % (
+                    mB.fileRoot
+                )
+                msg += " Either the values have not been calculated or they have been deleted."
+                warnings.warn(msg)
+            else:
+                plot = plotFunc(mB, plotDict, plot=plot)
+
+        # Add a legend if more than one metricValue is being plotted or if legendloc is specified.
+        # TODO Deal with legends
+
+        # Add the super title if provided.
+        if "suptitle" in self.plotDicts[0]:
+            plot.title.text = self.plotDicts[0]["suptitle"]
+
+        # Save to disk and file info to resultsDb if desired.
+        if self.savefig:
+            if displayDict is None:
+                displayDict = self._buildDisplayDict()
+            self.saveFig(
+                plot,
+                outfile,
+                plotType,
+                self.jointMetricNames,
+                self.slicer.slicerName,
+                self.jointRunNames,
+                self.constraints,
+                self.jointMetadata,
+                displayDict,
+            )
+        return plot
+
+    def saveFig(
+        self,
+        plot,
+        outfileRoot,
+        plotType,
+        metricName,
+        slicerName,
+        runName,
+        constraint,
+        info_label,
+        displayDict=None,
+    ):
+
+        plotFile = outfileRoot + "_" + plotType + "." + self.figformat
+        if self.figformat=='html':
+            bokeh.plotting.save(plot, filename=plotFile)
+        elif self.figformat=='svg':
+            bokeh.io.export_svg(plot, filename=plotFile)
+        else:
+            raise ValueError(f"Figure format {self.figformat} is not supported by bokeh plots")
+
+        # Generate a png thumbnail.
+        if self.thumbnail:
+            thumbFile = "thumb." + outfileRoot + "_" + plotType + ".png"
+            bokeh.io.export_png(plot, filename=thumbFile)
+
+        # Save information about the file to resultsDb.
+        if self.resultsDb:
+            if displayDict is None:
+                displayDict = {}
+            metricId = self.resultsDb.updateMetric(
+                metricName, slicerName, runName, constraint, info_label, None
+            )
+            self.resultsDb.updateDisplay(
+                metricId=metricId, displayDict=displayDict, overwrite=False
+            )
+            self.resultsDb.updatePlot(
+                metricId=metricId, plotType=plotType, plotFile=plotFile
+            )
+
+    def setPlotDicts(self, plotDicts=None, plotFunc=None, reset=False):
+        """
+        Set or update (or 'reset') the plotDict for the (possibly joint) plots.
+
+        """
+        # TODO: deal with color bar
+        # TODO: deal with legend
+
+        if reset:
+            # Have to explicitly set each dictionary to a (separate) blank dictionary.
+            self.plotDicts = [{} for b in self.mBundles]
+
+        if isinstance(plotDicts, dict):
+            # We were passed a single dictionary, not a list.
+            plotDicts = [plotDicts] * len(self.mBundles)
+
+        for i, bundle in enumerate(self.mBundles):
+            update_plotDict(self.plotDicts[i], bundle.plotDict)
+            if plotFunc is not None:
+                update_plotDict(self.plotDicts[i], plotFunc.infer_plotDict(bundle))
+            if plotDicts is not None:
+                update_plotDict(self.plotDicts[i], plotDicts[i])
+
+        # TODO: Call to check plotdict needs to be restored
+
+def update_plotDict(plotDict, updateDict):
+    try:
+        figure_args = plotDict['figure_args']
+    except KeyError:
+        figure_args = {}
+
+    if 'figure_args' in updateDict:
+        figure_args.update(updateDict['figure_args'])
+
+    try:
+        glyph_args = plotDict['glyph_args']
+    except KeyError:
+        glyph_args = {}
+
+    if 'gylph_args' in updateDict:
+        glyph_args.update(updateDict['gylph_args'])
+
+    plotDict.update(updateDict)
+    plotDict['figure_args'] = figure_args
+    plotDict['glyph_args'] = glyph_args
+    return plotDict
