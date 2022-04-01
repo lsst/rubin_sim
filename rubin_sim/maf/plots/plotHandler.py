@@ -7,6 +7,7 @@ import warnings
 import matplotlib.pyplot as plt
 import bokeh.io
 import bokeh.resources
+import colorcet
 import rubin_sim.maf.utils as utils
 
 __all__ = ["applyZPNorm", "PlotHandler", "BasePlotter", "BokehPlotHandler"]
@@ -671,7 +672,7 @@ class PlotHandler(object):
 
 
 class BokehPlotHandler(PlotHandler):
-    default_color = 'blue'
+    palette = colorcet.glasbey
 
     def __init__(
         self,
@@ -685,15 +686,30 @@ class BokehPlotHandler(PlotHandler):
         super().__init__(outDir, resultsDb, savefig, figformat, None, thumbnail, False)
 
         # bokeh does not have colors with the same names as matplotlib's single letter colors
-        self.filtercolors = {
+        self.label_colors = {
             'u': '#56b4e9',
             'g': '#008060',
             'r': '#ff4000',
             'i': '#850000',
             'z': '#6600cc',
             'y': '#000000',
-            ' ': None,
         }
+
+    def _buildColors(self):
+        """Try to set an appropriate range of colors for the metric Bundles."""
+
+        num_bundles = len(self.mBundles)
+        info_labels = set([mb.info_label for mb in self.mBundles])
+        no_duplicate_labels = len(info_labels) == num_bundles
+        all_labels_have_colors = info_labels.issubset(set(self.label_colors.keys()))
+        if no_duplicate_labels and all_labels_have_colors:
+            colors = [self.label_colors[mb.info_label] for mb in self.mBundles]
+        else:
+            # repeat colors if more bundles than colors in the palette. The default
+            # palette has 256 colors, which should be more than enough to ensure this
+            # will not happen for reasonable plots and the default palette.
+            colors = [self.color_palette[i % len(self.color_palette)] for i in range(num_bundles)]
+        return colors
 
     def plot(
         self,
