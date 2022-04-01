@@ -44,6 +44,8 @@ class BasePlotter(object):
 
 
 class PlotHandler(object):
+    default_color = 'b'
+
     def __init__(
         self,
         outDir=".",
@@ -402,10 +404,10 @@ class PlotHandler(object):
             if "color" in self.mBundles[0].plotDict:
                 return [self.mBundles[0].plotDict["color"]]
             else:
-                return ["b"]
+                return [self.default_color]
         colors = []
         for mB in self.mBundles:
-            color = "b"
+            color = self.default_color
             if "color" in mB.plotDict:
                 color = mB.plotDict["color"]
             else:
@@ -669,6 +671,8 @@ class PlotHandler(object):
 
 
 class BokehPlotHandler(PlotHandler):
+    default_color = 'blue'
+
     def __init__(
         self,
         outDir=".",
@@ -679,6 +683,17 @@ class BokehPlotHandler(PlotHandler):
         **kwargs,  # Lets the code ignore unused arguments
     ):
         super().__init__(outDir, resultsDb, savefig, figformat, None, thumbnail, False)
+
+        # bokeh does not have colors with the same names as matplotlib's single letter colors
+        self.filtercolors = {
+            'u': '#56b4e9',
+            'g': '#008060',
+            'r': '#ff4000',
+            'i': '#850000',
+            'z': '#6600cc',
+            'y': '#000000',
+            ' ': None,
+        }
 
     def plot(
         self,
@@ -784,6 +799,13 @@ class BokehPlotHandler(PlotHandler):
             self.resultsDb.updateDisplay(metricId=metricId, displayDict=displayDict, overwrite=False)
             self.resultsDb.updatePlot(metricId=metricId, plotType=plotType, plotFile=plotFile)
 
+        # Saving assigns bokeh model elements to documents, but that makes the instance of
+        # plot harder to use later, because models can only be associoted with one document.
+        # So, clear out the document assignments created by the save.
+        for model in plot.select({'type': bokeh.models.Model}):
+            if model.document is not None:
+                model.document.clear()
+
     def setPlotDicts(self, plotDicts=None, plotFunc=None, reset=False):
         """
         Set or update (or 'reset') the plotDict for the (possibly joint) plots.
@@ -800,10 +822,13 @@ class BokehPlotHandler(PlotHandler):
             # We were passed a single dictionary, not a list.
             plotDicts = [plotDicts] * len(self.mBundles)
 
+        auto_color = self._buildColors()
+
         for i, bundle in enumerate(self.mBundles):
+            self.plotDicts[i]['color'] = auto_color[i]
             update_plotDict(self.plotDicts[i], bundle.plotDict)
             if plotFunc is not None:
-                update_plotDict(self.plotDicts[i], plotFunc.infer_plotDict(bundle))
+                plotFunc.infer_plotDict(bundle, self.plotDicts[i], inplace=True)
             if plotDicts is not None:
                 update_plotDict(self.plotDicts[i], plotDicts[i])
 

@@ -1,2 +1,2 @@
 from .BaseBokehPlotter import *
-from .OneDBinnedDataQuad import *
+from .binned import *
