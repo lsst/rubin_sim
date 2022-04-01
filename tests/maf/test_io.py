@@ -25,13 +25,13 @@ class TestSlicers(unittest.TestCase):
             fill_value=slicer.badval,
         )
         with TemporaryFile() as filename:
-            metadata = "testdata"
-            slicer.writeData(filename, metricValues, metadata=metadata)
+            info_label = "testdata"
+            slicer.writeData(filename, metricValues, info_label=info_label)
             _ = filename.seek(0)
             metricValuesBack, slicerBack, header = self.baseslicer.readData(filename)
             np.testing.assert_almost_equal(metricValuesBack, metricValues)
             assert slicer == slicerBack
-            assert metadata == header["metadata"]
+            assert info_label == header["info_label"]
             attr2check = ["nside", "nslice", "columnsNeeded", "lonCol", "latCol"]
             for att in attr2check:
                 assert getattr(slicer, att) == getattr(slicerBack, att)
@@ -42,7 +42,7 @@ class TestSlicers(unittest.TestCase):
         slicer = slicers.HealpixSlicer(nside=nside)
         metricValues = rng.rand(hp.nside2npix(nside))
         with TemporaryFile() as filename:
-            slicer.writeData(filename, metricValues, metadata="testdata")
+            slicer.writeData(filename, metricValues, info_label="testdata")
             _ = filename.seek(0)
             metricValuesBack, slicerBack, header = self.baseslicer.readData(filename)
             np.testing.assert_almost_equal(metricValuesBack, metricValues)
@@ -62,7 +62,7 @@ class TestSlicers(unittest.TestCase):
             fill_value=slicer.badval,
         )
         with TemporaryFile() as filename:
-            slicer.writeData(filename, metricValues, metadata="testdata")
+            slicer.writeData(filename, metricValues, info_label="testdata")
             _ = filename.seek(0)
             metricValuesBack, slicerBack, header = self.baseslicer.readData(filename)
             np.testing.assert_almost_equal(metricValuesBack, metricValues)

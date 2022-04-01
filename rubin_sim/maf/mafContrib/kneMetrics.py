@@ -442,7 +442,7 @@ def generateKNPopSlicer(
     def rndm(a, b, g, size=1):
         """Power-law gen for pdf(x)\propto x^{g-1} for a<=x<=b"""
         r = np.random.random(size=size)
-        ag, bg = a ** g, b ** g
+        ag, bg = a**g, b**g
         return (ag + (bg - ag) * r) ** (1.0 / g)
 
     ra, dec = uniformSphere(n_events, seed=seed)

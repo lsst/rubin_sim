@@ -16,7 +16,7 @@ from scipy.interpolate import RegularGridInterpolator
 from astropy.cosmology import FlatLambdaCDM
 
 
-STERADIAN2SQDEG = 180.0 ** 2 / np.pi ** 2
+STERADIAN2SQDEG = 180.0**2 / np.pi**2
 # Mpc^3 -> Mpc^3/sr
 norm = 1.0 / (4.0 * np.pi)
 
@@ -376,7 +376,7 @@ class LCfast:
         """
 
         x = 10 ** (0.4 * (mag - m5))
-        return np.sqrt((0.04 - gamma) * x + gamma * x ** 2)
+        return np.sqrt((0.04 - gamma) * x + gamma * x**2)
 
 
 class Throughputs(object):
@@ -700,7 +700,7 @@ class Telescope(Throughputs):
         flux0b = np.power(10.0, -0.4 * self.mag_sky(band))
         flatSedb.multiplyFluxNorm(flux0b)
         photParams = PhotometricParameters(bandpass=band)
-        norm = photParams.platescale ** 2 / 2.0 * photParams.exptime / photParams.gain
+        norm = photParams.platescale**2 / 2.0 * photParams.exptime / photParams.gain
         trans = filter_trans
 
         if self.atmos:
@@ -751,14 +751,14 @@ class Telescope(Throughputs):
         Diameter = 2.0 * np.sqrt(
             photParams.effarea * 1.0e-4 / np.pi
         )  # diameter in meter
-        Cte = 3631.0 * np.pi * Diameter ** 2 * 2.0 * photParams.exptime / 4 / h / 1.0e36
+        Cte = 3631.0 * np.pi * Diameter**2 * 2.0 * photParams.exptime / 4 / h / 1.0e36
 
         self.data["Skyb"][band] = (
             Cte
             * np.power(Diameter / 6.5, 2.0)
             * np.power(2.0 * photParams.exptime / 30.0, 2.0)
             * np.power(photParams.platescale, 2.0)
-            * 10.0 ** 0.4
+            * 10.0**0.4
             * (25.0 - self.mag_sky(band))
             * self.Sigmab(band)
         )
@@ -1768,7 +1768,7 @@ class SN_Rate:
         nsn_sum = np.cumsum(nsn)
 
         if norm is False:
-            plt.errorbar(zz, nsn_sum, yerr=np.sqrt(np.cumsum(err_nsn ** 2)))
+            plt.errorbar(zz, nsn_sum, yerr=np.sqrt(np.cumsum(err_nsn**2)))
         else:
             plt.errorbar(zz, nsn_sum / nsn_sum[-1])
         plt.xlabel("z")

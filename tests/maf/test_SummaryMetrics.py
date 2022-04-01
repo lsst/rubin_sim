@@ -9,7 +9,7 @@ import rubin_sim.maf.metrics as metrics
 
 class TestSummaryMetrics(unittest.TestCase):
     def testTableFractionMetric(self):
-        """Test the table summary metric """
+        """Test the table summary metric"""
         metricdata1 = np.arange(0, 1.5, 0.02)
         metricdata = np.array(list(zip(metricdata1)), dtype=[("testdata", "float")])
         for nbins in [10, 20, 5]:
@@ -93,7 +93,7 @@ class TestSummaryMetrics(unittest.TestCase):
 
     def testTotalPowerMetric(self):
         nside = 128
-        data = np.ones(12 * nside ** 2, dtype=list(zip(["testcol"], ["float"])))
+        data = np.ones(12 * nside**2, dtype=list(zip(["testcol"], ["float"])))
         metric = metrics.TotalPowerMetric(col="testcol")
         result = metric.run(data)
         np.testing.assert_equal(result, 0.0)

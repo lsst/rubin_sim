@@ -40,10 +40,10 @@ def microlensing_amplification(
     """
 
     lightcurve_u = np.sqrt(
-        impact_parameter ** 2 + ((t - peak_time) ** 2 / crossing_time ** 2)
+        impact_parameter**2 + ((t - peak_time) ** 2 / crossing_time**2)
     )
-    amplified_mag = (lightcurve_u ** 2 + 2) / (
-        lightcurve_u * np.sqrt(lightcurve_u ** 2 + 4)
+    amplified_mag = (lightcurve_u**2 + 2) / (
+        lightcurve_u * np.sqrt(lightcurve_u**2 + 4)
     ) * blending_factor + (1 - blending_factor)
 
     return amplified_mag
@@ -68,10 +68,10 @@ def microlensing_amplification_fsfb(
     """
 
     lightcurve_u = np.sqrt(
-        impact_parameter ** 2 + ((t - peak_time) ** 2 / crossing_time ** 2)
+        impact_parameter**2 + ((t - peak_time) ** 2 / crossing_time**2)
     )
-    amplified_mag = (lightcurve_u ** 2 + 2) / (
-        lightcurve_u * np.sqrt(lightcurve_u ** 2 + 4)
+    amplified_mag = (lightcurve_u**2 + 2) / (
+        lightcurve_u * np.sqrt(lightcurve_u**2 + 4)
     ) * fs + fb
 
     return amplified_mag
@@ -97,8 +97,8 @@ def info_peak_before_t0(impact_parameter=1, crossing_time=100.0):
     optimal_time = (
         crossing_time
         * np.sqrt(
-            -(impact_parameter ** 2)
-            + np.sqrt(9 * impact_parameter ** 4 + 36 * impact_parameter ** 2 + 4)
+            -(impact_parameter**2)
+            + np.sqrt(9 * impact_parameter**4 + 36 * impact_parameter**2 + 4)
             - 2
         )
         / 2
@@ -130,12 +130,12 @@ def coefficients_pspl(t, t0, te, u0, fs, fb):
     """
     x0 = te ** (-2)
     x1 = (t - t0) ** 2
-    x2 = u0 ** 2 + x0 * x1
+    x2 = u0**2 + x0 * x1
     x3 = 1 / np.sqrt(x2)
     x4 = 2 * x3
     x5 = x2 + 4
     x6 = fs / np.sqrt(x5)
-    x7 = x1 / te ** 3
+    x7 = x1 / te**3
     x8 = x6 * x7
     x9 = x2 + 2
     x10 = x9 / x2 ** (3 / 2)
@@ -175,7 +175,7 @@ def coefficients_fsfb(t, t0, te, u0, fs, fb):
         Blend flux (counts/s but here fs = 10.**(-0.4*mag_blend)
         in the respective passband)
     """
-    x0 = u0 ** 2 + (t - t0) ** 2 / te ** 2
+    x0 = u0**2 + (t - t0) ** 2 / te**2
     c0 = (x0 + 2) / (np.sqrt(x0) * np.sqrt(x0 + 4))
     c1 = 1
     return [c1, c0]
@@ -236,11 +236,11 @@ def fisher_matrix(t, t0, te, u0, fs, fb, snr, filters="ugriz", filter_name="i"):
         matrix = matrix + matrix.T - np.diag(np.diag(matrix))
 
         # microlenisng_amplification function to replace
-        usqr = (t_value - t0) ** 2 / te ** 2 + u0 ** 2
+        usqr = (t_value - t0) ** 2 / te**2 + u0**2
         mu = (usqr + 2.0) / (usqr * (usqr + 4)) ** 0.5
         flux_err = (fs * mu + fb) / snr[i]  # may need to check shape of snr and t
 
-        matrix = matrix / (flux_err ** 2)
+        matrix = matrix / (flux_err**2)
         FisMat = FisMat + matrix
     return FisMat
 

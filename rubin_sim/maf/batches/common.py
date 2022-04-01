@@ -5,7 +5,7 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.stackers as stackers
 
 __all__ = [
-    "combineMetadata",
+    "combineInfoLabels",
     "filterList",
     "radecCols",
     "standardSummary",
@@ -21,19 +21,19 @@ __all__ = [
 ]
 
 
-def combineMetadata(meta1, meta2):
-    if meta1 is not None and meta2 is not None:
-        meta = meta1 + " " + meta2
-    elif meta1 is not None:
-        meta = meta1
-    elif meta2 is not None:
-        meta = meta2
+def combineInfoLabels(info1, info2):
+    if info1 is not None and info2 is not None:
+        info = info1 + " " + info2
+    elif info1 is not None:
+        info = info1
+    elif info2 is not None:
+        info = info2
     else:
-        meta = None
-    return meta
+        info = None
+    return info
 
 
-def filterList(all=True, extraSql=None, extraMetadata=None):
+def filterList(all=True, extraSql=None, extraInfoLabel=None):
     """Return a list of filters, plot colors and orders.
 
     Parameters
@@ -44,8 +44,8 @@ def filterList(all=True, extraSql=None, extraMetadata=None):
     extraSql : str, optional
         Additional sql constraint to add to sqlconstraints returned per filter.
         Default None.
-    extraMetadata : str, optional
-        Substitute metadata to add to metadata strings composed per band.
+    extraInfoLabel : str, optional
+        Substitute info_label to add to info_label strings composed per band.
         Default None.
 
     Returns
@@ -63,28 +63,28 @@ def filterList(all=True, extraSql=None, extraMetadata=None):
         colors["all"] = "k"
         orders["all"] = 0
     sqls = {}
-    metadata = {}
-    if extraMetadata is None:
+    info_labels = {}
+    if extraInfoLabel is None:
         if extraSql is None or len(extraSql) == 0:
             md = ""
         else:
             md = "%s " % extraSql
     else:
-        md = "%s " % extraMetadata
+        md = "%s " % extraInfoLabel
     for f in filterlist:
         if f == "all":
             sqls[f] = ""
-            metadata[f] = md + "all bands"
+            info_labels[f] = md + "all bands"
         else:
             sqls[f] = 'filter = "%s"' % f
-            metadata[f] = md + "%s band" % f
+            info_labels[f] = md + "%s band" % f
     if extraSql is not None and len(extraSql) > 0:
         for s in sqls:
             if s == "all":
                 sqls[s] = extraSql
             else:
                 sqls[s] = "(%s) and (%s)" % (extraSql, sqls[s])
-    return filterlist, colors, orders, sqls, metadata
+    return filterlist, colors, orders, sqls, info_labels
 
 
 def radecCols(ditherStacker, colmap, ditherkwargs=None):
@@ -93,7 +93,7 @@ def radecCols(ditherStacker, colmap, ditherkwargs=None):
         raCol = colmap["ra"]
         decCol = colmap["dec"]
         stacker = None
-        ditherMeta = None
+        ditherInfoLabel = None
     else:
         if isinstance(ditherStacker, stackers.BaseDitherStacker):
             stacker = ditherStacker
@@ -112,12 +112,12 @@ def radecCols(ditherStacker, colmap, ditherkwargs=None):
             stacker = s(degrees=degrees, **kwargs)
         raCol = stacker.colsAdded[0]
         decCol = stacker.colsAdded[1]
-        # Send back some metadata information.
-        ditherMeta = stacker.__class__.__name__.replace("Stacker", "")
+        # Send back some info_label information.
+        ditherInfoLabel = stacker.__class__.__name__.replace("Stacker", "")
         if ditherkwargs is not None:
             for k, v in ditherkwargs.items():
-                ditherMeta += " " + "%s:%s" % (k, v)
-    return raCol, decCol, degrees, stacker, ditherMeta
+                ditherInfoLabel += " " + "%s:%s" % (k, v)
+    return raCol, decCol, degrees, stacker, ditherInfoLabel
 
 
 def standardSummary(withCount=True):

@@ -28,7 +28,6 @@ __all__ = [
     "HealpixSkyMap",
     "HealpixPowerSpectrum",
     "HealpixHistogram",
-    "OpsimHistogram",
     "BaseHistogram",
     "BaseSkyMap",
     "HealpixSDSSSkyMap",
@@ -62,32 +61,39 @@ baseDefaultPlotDict = {
 }
 
 
-def setColorLims(metricValue, plotDict):
-    """Set up color bar limits."""
-    # Use plot dict if these values are set.
-    colorMin = plotDict["colorMin"]
-    colorMax = plotDict["colorMax"]
-    # If not, try to use percentile clipping.
-    if (plotDict["percentileClip"] is not None) & (
-        np.size(metricValue.compressed()) > 0
-    ):
-        pcMin, pcMax = percentileClipping(
-            metricValue.compressed(), percentile=plotDict["percentileClip"]
-        )
-        if colorMin is None:
-            colorMin = pcMin
-        if colorMax is None:
-            colorMax = pcMax
-    # If not, just use the data limits.
+def setColorLims(metricValue, plotDict, keyMin="colorMin", keyMax="colorMax"):
+    """Set up x or color bar limits."""
+    # Use plotdict values if available
+    colorMin = plotDict[keyMin]
+    colorMax = plotDict[keyMax]
+    # If either is not set and we have data ..
+    if colorMin is None or colorMax is None:
+        if np.size(metricValue.compressed()) > 0:
+            # is percentile clipping set?
+            if plotDict["percentileClip"] is not None:
+                pcMin, pcMax = percentileClipping(
+                    metricValue.compressed(), percentile=plotDict["percentileClip"]
+                )
+                tempcolorMin = pcMin
+                tempcolorMax = pcMax
+            # If not, just use the data limits.
+            else:
+                tempcolorMin = metricValue.compressed().min()
+                tempcolorMax = metricValue.compressed().max()
+            # But make sure there is some range on the colorbar
+            if tempcolorMin == tempcolorMax:
+                tempcolorMin = tempcolorMin - 0.5
+                tempcolorMax = tempcolorMax + 0.5
+            tempcolorMin, tempcolorMax = np.sort([tempcolorMin, tempcolorMax])
+        else:
+            # There is no metric data to plot, but here we are.
+            tempcolorMin = 0
+            tempcolorMax = 1
     if colorMin is None:
-        colorMin = metricValue.compressed().min()
+        colorMin = tempcolorMin
     if colorMax is None:
-        colorMax = metricValue.compressed().max()
-    # But make sure there is some range on the colorbar
-    if colorMin == colorMax:
-        colorMin = colorMin - 0.5
-        colorMax = colorMax + 0.5
-    return np.sort([colorMin, colorMax])
+        colorMax = tempcolorMax
+    return [colorMin, colorMax]
 
 
 def setColorMap(plotDict):
@@ -387,38 +393,6 @@ class HealpixHistogram(BasePlotter):
         return fignum
 
 
-class OpsimHistogram(BasePlotter):
-    def __init__(self):
-        self.plotType = "Histogram"
-        self.objectPlotter = False
-        self.defaultPlotDict = {}
-        self.defaultPlotDict.update(baseDefaultPlotDict)
-        self.defaultPlotDict.update(
-            {
-                "ylabel": "Number of Fields",
-                "yaxisformat": "%d",
-                "bins": None,
-                "binsize": None,
-                "cumulative": False,
-                "scale": 1.0,
-                "linestyle": "-",
-            }
-        )
-        self.baseHist = BaseHistogram()
-
-    def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
-        """
-        Histogram metricValue for all healpix points.
-        """
-        if slicer.slicerName != "OpsimFieldSlicer":
-            raise ValueError("OpsimHistogram is for use with OpsimFieldSlicer.")
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
-        fignum = self.baseHist(metricValue, slicer, plotDict, fignum=fignum)
-        return fignum
-
-
 class BaseHistogram(BasePlotter):
     def __init__(self):
         self.plotType = "Histogram"
@@ -446,27 +420,10 @@ class BaseHistogram(BasePlotter):
         plotDict.update(self.defaultPlotDict)
         plotDict.update(userPlotDict)
         metricValue = applyZPNorm(metricValueIn, plotDict)
-        metricValue = metricValue.compressed()
         # Toss any NaNs or infs
         metricValue = metricValue[np.isfinite(metricValue)]
-        # Determine percentile clipped X range, if set. (and xmin/max not set).
-        if plotDict["xMin"] is None and plotDict["xMax"] is None:
-            if plotDict["percentileClip"]:
-                plotDict["xMin"], plotDict["xMax"] = percentileClipping(
-                    metricValue, percentile=plotDict["percentileClip"]
-                )
-        # Set the histogram range values, to avoid cases of trying to histogram single-valued data.
-        # First we try to use the range specified by a user, if there is one. Then use the data if not.
-        # all of this only works if plotDict is not cumulative.
-        histRange = [plotDict["xMin"], plotDict["xMax"]]
-        if histRange[0] is None:
-            histRange[0] = metricValue.min()
-        if histRange[1] is None:
-            histRange[1] = metricValue.max()
-        # Need to have some range of values on the histogram, or it will fail.
-        if histRange[0] == histRange[1]:
-            warnings.warn("Histogram range was single-valued; expanding default range.")
-            histRange[1] = histRange[0] + 1.0
+        xMin, xMax = setColorLims(metricValue, plotDict, keyMin="xMin", keyMax="xMax")
+        metricValue = metricValue.compressed()
         # Set up the bins for the histogram. User specified 'bins' overrides 'binsize'.
         # Note that 'bins' could be a single number or an array, simply passed to plt.histogram.
         if plotDict["bins"] is not None:
@@ -476,23 +433,17 @@ class BaseHistogram(BasePlotter):
             #    .. but if user set histRange to be wider than full range of data, then
             #       extend bins to cover this range, so we can make prettier plots.
             if plotDict["cumulative"]:
-                if plotDict["xMin"] is not None:
-                    # Potentially, expand the range for the cumulative histogram.
-                    bmin = np.min([metricValue.min(), plotDict["xMin"]])
-                else:
-                    bmin = metricValue.min()
-                if plotDict["xMax"] is not None:
-                    bmax = np.max([metricValue.max(), plotDict["xMax"]])
-                else:
-                    bmax = metricValue.max()
+                # Potentially, expand the range for the cumulative histogram.
+                bmin = np.min([metricValue.min(), xMin])
+                bmax = np.max([metricValue.max(), xMax])
                 bins = np.arange(
                     bmin, bmax + plotDict["binsize"] / 2.0, plotDict["binsize"]
                 )
             #  Otherwise, not cumulative so just use metric values, without potential expansion.
             else:
                 bins = np.arange(
-                    histRange[0],
-                    histRange[1] + plotDict["binsize"] / 2.0,
+                    xMin,
+                    xMax + plotDict["binsize"] / 2.0,
                     plotDict["binsize"],
                 )
             # Catch edge-case where there is only 1 bin value
@@ -519,7 +470,7 @@ class BaseHistogram(BasePlotter):
         if isinstance(bins, np.ndarray):
             condition = (metricValue >= bins.min()) & (metricValue <= bins.max())
         else:
-            condition = (metricValue >= histRange[0]) & (metricValue <= histRange[1])
+            condition = (metricValue >= xMin) & (metricValue <= xMax)
         plotValue = metricValue[condition]
         if len(plotValue) == 0:
             # No data is within histRange/bins. So let's just make a simple histogram anyway.
@@ -533,11 +484,11 @@ class BaseHistogram(BasePlotter):
                 color=plotDict["color"],
             )
         else:
-            # There is data to plot, and we've already ensured histRange/bins are more than single value.
+            # There is data to plot, and we've already ensured xMin/xMax/bins are more than single value.
             n, b, p = plt.hist(
                 metricValue,
                 bins=bins,
-                range=histRange,
+                range=[xMin, xMax],
                 histtype="step",
                 log=plotDict["logScale"],
                 cumulative=plotDict["cumulative"],
@@ -761,14 +712,25 @@ class BaseSkyMap(BasePlotter):
             ax.add_collection(p)
             # Add color bar (with optional setting of limits)
             if plotDict["cbar"]:
-                cb = plt.colorbar(
-                    p,
-                    # aspect=40,
-                    shrink=0.5,
-                    extendrect=True,
-                    location="right",  # "horizontal",
-                    format=plotDict["cbarFormat"],
-                )
+                if plotDict["cbarOrientation"].lower() == "vertical":
+                    cb = plt.colorbar(
+                        p,
+                        shrink=0.5,
+                        extendrect=True,
+                        location="right",
+                        format=plotDict["cbarFormat"],
+                    )
+                else:
+                    # Most of the time we just want a standard horizontal colorbar
+                    cb = plt.colorbar(
+                        p,
+                        shrink=0.75,
+                        aspect=25,
+                        pad=0.1,
+                        orientation="horizontal",
+                        format=plotDict["cbarFormat"],
+                        extendrect=True,
+                    )
                 # If outputing to PDF, this fixes the colorbar white stripes
                 if plotDict["cbar_edge"]:
                     cb.solids.set_edgecolor("face")

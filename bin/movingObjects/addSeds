@@ -6,12 +6,12 @@ import numpy as np
 from rubin_sim.movingObjects import Orbits
 from itertools import repeat
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Add SEDs to a series of orbits.")
-    parser.add_argument("--orbitFile", type=str, default=None,
-                        help="File containing the orbits.")
-    parser.add_argument("--outFile", type=str, default=None,
-                        help="Output orbit file.")
+    parser.add_argument(
+        "--orbitFile", type=str, default=None, help="File containing the orbits."
+    )
+    parser.add_argument("--outFile", type=str, default=None, help="Output orbit file.")
     args = parser.parse_args()
 
     # Parse orbit file input values.
@@ -29,5 +29,5 @@ if __name__ == '__main__':
     # An alternative method to assign the seds:
     # sedfilenames = orbits.assignSed(orbits.orbits, randomSeed=None)
     formatcol = np.array([x for x in repeat(orbits.format, len(orbits.orbits))])
-    orbits.orbits.insert(1, 'FORMAT', formatcol)
-    orbits.orbits.to_csv(args.outFile, sep=' ', index=False, header=True)
+    orbits.orbits.insert(1, "FORMAT", formatcol)
+    orbits.orbits.to_csv(args.outFile, sep=" ", index=False, header=True)

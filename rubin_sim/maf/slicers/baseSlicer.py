@@ -176,7 +176,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         metricName="",
         simDataName="",
         constraint=None,
-        metadata="",
+        info_label="",
         plotDict=None,
         displayDict=None,
     ):
@@ -185,15 +185,15 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
 
         Parameters
         -----------
-        outfilename : str
+        outfilename : `str`
             The output file name.
-        metricValues : np.ma.MaskedArray or np.ndarray
+        metricValues : `np.ma.MaskedArray` or `np.ndarray`
             The metric values to save to disk.
         """
         header = {}
         header["metricName"] = metricName
         header["constraint"] = constraint
-        header["metadata"] = metadata
+        header["info_label"] = info_label
         header["simDataName"] = simDataName
         date, versionInfo = getDateVersion()
         header["dateRan"] = date
@@ -226,7 +226,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         )
 
     def outputJSON(
-        self, metricValues, metricName="", simDataName="", metadata="", plotDict=None
+        self, metricValues, metricName="", simDataName="", info_label="", plotDict=None
     ):
         """
         Send metric data to JSON streaming API, along with a little bit of metadata.
@@ -242,8 +242,8 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
             The name of the metric. Default ''.
         simDataName : str, optional
             The name of the simulated data source. Default ''.
-        metadata : str, optional
-            The metadata about this metric. Default ''.
+        info_label : str, optional
+            Some additional information about this metric and how it was calculated. Default ''.
         plotDict : dict, optional.
             The plotDict for this metric bundle. Default None.
 
@@ -268,7 +268,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         # Preserve some of the metadata for the plot.
         header = {}
         header["metricName"] = metricName
-        header["metadata"] = metadata
+        header["info_label"] = info_label
         header["simDataName"] = simDataName
         header["slicerName"] = self.slicerName
         header["slicerLen"] = int(self.nslice)

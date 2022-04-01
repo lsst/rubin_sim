@@ -157,7 +157,7 @@ class RunComparison:
             for mId in mIds:
                 info = self.runresults[r].getMetricInfo(mId)
                 metricName = info["metricName"][0]
-                metricMetadata = info["metricMetadata"][0]
+                metricMetadata = info["metricInfoLabel"][0]
                 slicerName = info["slicerName"][0]
                 # Build a hash from the metric Name, metadata, slicer --
                 # this will automatically remove duplicates
@@ -166,7 +166,7 @@ class RunComparison:
                 )
                 mDict[hash] = {
                     "metricName": metricName,
-                    "metricMetadata": metricMetadata,
+                    "metricInfoLabel": metricMetadata,
                     "slicerName": slicerName,
                 }
         return mDict
@@ -174,7 +174,7 @@ class RunComparison:
     def _findSummaryStats(
         self,
         metricName,
-        metricMetadata=None,
+        metricInfoLabel=None,
         slicerName=None,
         summaryName=None,
         verbose=False,
@@ -209,7 +209,7 @@ class RunComparison:
             # Look for this metric/metadata/slicer/summary stat name combo in this resultsDb.
             mId = self.runresults[r].getMetricId(
                 metricName=metricName,
-                metricMetadata=metricMetadata,
+                metricInfoLabel=metricInfoLabel,
                 slicerName=slicerName,
             )
             # Note that we may have more than one matching summary metric value per resultsDb.
@@ -225,7 +225,7 @@ class RunComparison:
             if len(stats) == 0 and verbose:
                 warnings.warn(
                     "Warning: Found no metric results for %s %s %s %s in run %s"
-                    % (metricName, metricMetadata, slicerName, summaryName, r)
+                    % (metricName, metricInfoLabel, slicerName, summaryName, r)
                 )
         # Make DataFrame for stat values
         stats = pd.DataFrame(summaryValues).T
@@ -260,7 +260,7 @@ class RunComparison:
                 metric["summaryMetric"] = None
             tempStats = self._findSummaryStats(
                 metricName=metric["metricName"],
-                metricMetadata=metric["metricMetadata"],
+                metricInfoLabel=metric["metricInfoLabel"],
                 slicerName=metric["slicerName"],
                 summaryName=metric["summaryMetric"],
                 verbose=verbose,
@@ -282,7 +282,7 @@ class RunComparison:
         self.addSummaryStats(**kwargs)
         return self.summaryStats
 
-    def getFileNames(self, metricName, metricMetadata=None, slicerName=None):
+    def getFileNames(self, metricName, metricInfoLabel=None, slicerName=None):
         """Find the locations of a given metric in all available directories.
 
         Parameters
@@ -303,15 +303,15 @@ class RunComparison:
         for r in self.runDirs:
             mId = self.runresults[r].getMetricId(
                 metricName=metricName,
-                metricMetadata=metricMetadata,
+                metricInfoLabel=metricInfoLabel,
                 slicerName=slicerName,
             )
             if len(mId) > 0:
                 if len(mId) > 1:
                     warnings.warn(
                         "Found more than one metric data file matching "
-                        + "metricName %s metricMetadata %s and slicerName %s"
-                        % (metricName, metricMetadata, slicerName)
+                        + "metricName %s metricInfoLabel %s and slicerName %s"
+                        % (metricName, metricInfoLabel, slicerName)
                         + " Skipping this combination."
                     )
                 else:
@@ -320,11 +320,13 @@ class RunComparison:
         return filepaths
 
     # Plot actual metric values (skymaps or histograms or power spectra) (values not stored in class).
-    def readMetricData(self, metricName, metricMetadata, slicerName):
+    def readMetricData(self, metricName, metricInfoLabel, slicerName):
         # Get the names of the individual files for all runs.
         # Dictionary, keyed by run name.
-        filenames = self.getFileNames(metricName, metricMetadata, slicerName)
-        mname = ResultsDb.buildSummaryName(metricName, metricMetadata, slicerName, None)
+        filenames = self.getFileNames(metricName, metricInfoLabel, slicerName)
+        mname = ResultsDb.buildSummaryName(
+            metricName, metricInfoLabel, slicerName, None
+        )
         bundleDict = {}
         for r in filenames:
             b = mb.createEmptyMetricBundle()

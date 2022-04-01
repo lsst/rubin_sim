@@ -35,7 +35,7 @@ def thickdisk(R, Z):
 
 def bulge(R, Z):
     factor = 2 * (diskprofile(0, 0, 2150.0, 245.0) + diskprofile(0, 0, 3261.0, 743.0))
-    distance = (R ** 2 + Z ** 2) ** 0.5
+    distance = (R**2 + Z**2) ** 0.5
     expfunc = np.exp(-distance / 800)
     return factor * expfunc
 
@@ -44,7 +44,7 @@ def halo(R, Z):
     qH = 0.64
     nH = 2.77
     fH = 0.001
-    part1 = R ** 2.0 + (Z / qH) ** 2.0
+    part1 = R**2.0 + (Z / qH) ** 2.0
     part2 = Rsun / np.power(part1, 0.5)
     part3 = np.power(part2, nH)
     tot = densityRsun * fH * part3

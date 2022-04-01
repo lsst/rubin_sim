@@ -153,14 +153,14 @@ class TestCalibrationMetrics(unittest.TestCase):
         data["ra_pi_amp"][50:] = -1
         data["dec_pi_amp"][50:] = -1
         val = metric.run(data)
-        self.assertAlmostEqual(val, 2.0 ** 0.5)
+        self.assertAlmostEqual(val, 2.0**0.5)
 
         data["ra_pi_amp"][0:50] = 0.5
         data["dec_pi_amp"][0:50] = 0.5
         data["ra_pi_amp"][50:] = -0.5
         data["dec_pi_amp"][50:] = -0.5
         val = metric.run(data)
-        self.assertAlmostEqual(val, 0.5 * 2 ** 0.5)
+        self.assertAlmostEqual(val, 0.5 * 2**0.5)
 
         data["ra_pi_amp"][0:50] = 1
         data["dec_pi_amp"][0:50] = 0

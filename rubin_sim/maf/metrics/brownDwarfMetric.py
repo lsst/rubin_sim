@@ -111,10 +111,10 @@ class BDParallaxMetric(BaseMetric):
         All inputs assumed to be arcsec"""
         sigma_A = position_errors / ra_pi_amp
         sigma_B = position_errors / dec_pi_amp
-        sigma_ra = np.sqrt(1.0 / np.sum(1.0 / sigma_A ** 2, axis=1))
-        sigma_dec = np.sqrt(1.0 / np.sum(1.0 / sigma_B ** 2, axis=1))
+        sigma_ra = np.sqrt(1.0 / np.sum(1.0 / sigma_A**2, axis=1))
+        sigma_dec = np.sqrt(1.0 / np.sum(1.0 / sigma_B**2, axis=1))
         # Combine RA and Dec uncertainties, convert to mas
-        sigma = np.sqrt(1.0 / (1.0 / sigma_ra ** 2 + 1.0 / sigma_dec ** 2)) * 1e3
+        sigma = np.sqrt(1.0 / (1.0 / sigma_ra**2 + 1.0 / sigma_dec**2)) * 1e3
         return sigma
 
     def run(self, dataslice, slicePoint=None):
@@ -131,7 +131,7 @@ class BDParallaxMetric(BaseMetric):
 
         position_errors = np.sqrt(
             mafUtils.astrom_precision(dataslice[self.seeingCol], snr) ** 2
-            + self.atm_err ** 2
+            + self.atm_err**2
         )
         # uncertainty in the parallax in mas
         sigma = self._final_sigma(

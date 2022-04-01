@@ -394,20 +394,23 @@ class CosmologyUnitTest(unittest.TestCase):
                         for zz in np.arange(start=0.1, stop=4.2, step=2.0):
                             comovingControl = universe.comovingDistance(redshift=zz)
 
-                            comovingTest = self.speedOfLight * scipy.integrate.quad(
-                                comovingDistanceIntegrand,
-                                0.0,
-                                zz,
-                                args=(
-                                    H0,
-                                    Om0,
-                                    Ode0,
-                                    Og0,
-                                    Onu0,
-                                    w0,
-                                    wa,
-                                ),
-                            )[0]
+                            comovingTest = (
+                                self.speedOfLight
+                                * scipy.integrate.quad(
+                                    comovingDistanceIntegrand,
+                                    0.0,
+                                    zz,
+                                    args=(
+                                        H0,
+                                        Om0,
+                                        Ode0,
+                                        Og0,
+                                        Onu0,
+                                        w0,
+                                        wa,
+                                    ),
+                                )[0]
+                            )
 
                             self.assertAlmostEqual(
                                 comovingControl / comovingTest, 1.0, 4
@@ -442,20 +445,23 @@ class CosmologyUnitTest(unittest.TestCase):
                         for zz in np.arange(start=0.1, stop=4.2, step=2.0):
                             luminosityControl = universe.luminosityDistance(redshift=zz)
 
-                            comovingDistance = self.speedOfLight * scipy.integrate.quad(
-                                comovingDistanceIntegrand,
-                                0.0,
-                                zz,
-                                args=(
-                                    H0,
-                                    Om0,
-                                    Ode0,
-                                    Og0,
-                                    Onu0,
-                                    w0,
-                                    wa,
-                                ),
-                            )[0]
+                            comovingDistance = (
+                                self.speedOfLight
+                                * scipy.integrate.quad(
+                                    comovingDistanceIntegrand,
+                                    0.0,
+                                    zz,
+                                    args=(
+                                        H0,
+                                        Om0,
+                                        Ode0,
+                                        Og0,
+                                        Onu0,
+                                        w0,
+                                        wa,
+                                    ),
+                                )[0]
+                            )
 
                             if universe.OmegaCurvature() < 0.0:
                                 nn = sqrtkCurvature * comovingDistance
@@ -502,20 +508,23 @@ class CosmologyUnitTest(unittest.TestCase):
                                 redshift=zz
                             )
 
-                            comovingDistance = self.speedOfLight * scipy.integrate.quad(
-                                comovingDistanceIntegrand,
-                                0.0,
-                                zz,
-                                args=(
-                                    H0,
-                                    Om0,
-                                    Ode0,
-                                    Og0,
-                                    Onu0,
-                                    w0,
-                                    wa,
-                                ),
-                            )[0]
+                            comovingDistance = (
+                                self.speedOfLight
+                                * scipy.integrate.quad(
+                                    comovingDistanceIntegrand,
+                                    0.0,
+                                    zz,
+                                    args=(
+                                        H0,
+                                        Om0,
+                                        Ode0,
+                                        Og0,
+                                        Onu0,
+                                        w0,
+                                        wa,
+                                    ),
+                                )[0]
+                            )
 
                             if universe.OmegaCurvature() < 0.0:
                                 nn = sqrtkCurvature * comovingDistance
@@ -559,20 +568,23 @@ class CosmologyUnitTest(unittest.TestCase):
                         for zz in np.arange(start=0.1, stop=4.2, step=2.0):
                             modulusControl = universe.distanceModulus(redshift=zz)
 
-                            comovingDistance = self.speedOfLight * scipy.integrate.quad(
-                                comovingDistanceIntegrand,
-                                0.0,
-                                zz,
-                                args=(
-                                    H0,
-                                    Om0,
-                                    Ode0,
-                                    Og0,
-                                    Onu0,
-                                    w0,
-                                    wa,
-                                ),
-                            )[0]
+                            comovingDistance = (
+                                self.speedOfLight
+                                * scipy.integrate.quad(
+                                    comovingDistanceIntegrand,
+                                    0.0,
+                                    zz,
+                                    args=(
+                                        H0,
+                                        Om0,
+                                        Ode0,
+                                        Og0,
+                                        Onu0,
+                                        w0,
+                                        wa,
+                                    ),
+                                )[0]
+                            )
 
                             if universe.OmegaCurvature() < 0.0:
                                 nn = sqrtkCurvature * comovingDistance

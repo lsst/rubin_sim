@@ -67,10 +67,10 @@ if __name__ == "__main__":
 
     print("")
     # Look at a cirular area the same area as the healpix it's centered on.
-    boundLength = hpsizeDeg / np.pi ** 0.5
+    boundLength = hpsizeDeg / np.pi**0.5
     radius = boundLength
 
-    blockArea = hpsizeDeg ** 2  # sq deg
+    blockArea = hpsizeDeg**2  # sq deg
 
     checksize = 1000
     printsize = 10

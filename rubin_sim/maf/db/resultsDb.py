@@ -29,7 +29,7 @@ class MetricRow(Base):
     """
     Define contents and format of metric list table.
 
-    (Table to list all metrics, their metadata, and their output data files).
+    (Table to list all metrics, their info_label, and their output data files).
     """
 
     __tablename__ = "metrics"
@@ -39,20 +39,20 @@ class MetricRow(Base):
     slicerName = Column(String)
     simDataName = Column(String)
     sqlConstraint = Column(String)
-    metricMetadata = Column(String)
+    metricInfoLabel = Column(String)
     metricDataFile = Column(String)
 
     def __repr__(self):
         return (
             "<Metric(metricId='%d', metricName='%s', slicerName='%s', "
-            "simDataName='%s', sqlConstraint='%s', metadata='%s', metricDataFile='%s')>"
+            "simDataName='%s', sqlConstraint='%s', metricInfoLabel='%s', metricDataFile='%s')>"
         ) % (
             self.metricId,
             self.metricName,
             self.slicerName,
             self.simDataName,
             self.sqlConstraint,
-            self.metricMetadata,
+            self.metricInfoLabel,
             self.metricDataFile,
         )
 
@@ -187,6 +187,7 @@ class ResultsDb(object):
         # If this is a new file, then we should record date and version later.
         needs_version = not os.path.isfile(self.database)
 
+        # Connect to the specified file; this will create the database if it doesn't exist.
         dbAddress = url.URL.create(self.driver, database=self.database)
 
         engine = create_engine(dbAddress, echo=verbose)
@@ -201,6 +202,11 @@ class ResultsDb(object):
                 % (self.driver, self.database)
             )
         self.slen = 1024
+        # Check if we have a database matching this schema (with metricInfoLabel)
+        query = "select * from metrics limit 1"
+        cols = self.session.execute(query)._metadata.keys
+        if "metricInfoLabel" not in cols:
+            self.updateDatabase()
 
         # record the version we are on
         if needs_version:
@@ -210,6 +216,37 @@ class ResultsDb(object):
             self.session.add(versioninfo)
             self.session.commit()
 
+        self.close()
+
+    def updateDatabase(self):
+        """Update the resultsDb from 'metricMetaata' to 'metricInfoLabel'
+
+        This updates resultsDb to work with the current version of MAF, including RunComparison and showMaf.
+        There is also a 'downgradeDatabase' to revert to the older style with 'metricMetadata.
+        """
+        warnings.warn(
+            "Updating database to match new schema with metricInfoLabel."
+            "Undo with self.downgradeDatabase if necessary (for older maf versions)."
+        )
+        query = "alter table metrics rename column metricMetadata to metricInfoLabel"
+        self.session.execute(query)
+        self.session.commit()
+        self.close()
+
+    def downgradeDatabase(self):
+        """Update the resultsDb from 'metricInfoLabel' to 'metricMetadata'
+
+        This updates resultsDb to work with older versions of MAF.
+        There is also a 'upgradeDatabase' to update to the newer style with 'metricInfoLabel.
+        """
+        warnings.warn(
+            "Found a version of the resultsDb which is using metricMetadata not metricInfoLabel.\n"
+            " Running an automatic update!\n"
+            " Note that this can be undone by running ResultsDb.downgradeDatabase"
+        )
+        query = "alter table metrics rename column metricInfoLabel to metricMetadata"
+        self.session.execute(query)
+        self.session.commit()
         self.close()
 
     def open(self):
@@ -231,7 +268,7 @@ class ResultsDb(object):
         slicerName,
         simDataName,
         sqlConstraint,
-        metricMetadata,
+        metricInfoLabel,
         metricDataFile,
     ):
         """
@@ -246,9 +283,9 @@ class ResultsDb(object):
         simDataName : `str`
             Name of the simulation (runName, simName, simDataName..)
         sqlConstraint : `str`
-            Sql constraint relevant for the metric bundle
-        metricMetadata : `str`
-            Metadata associated with the metric. Could be derived from the sqlconstraint or could
+            Constraint relevant for the metric bundle
+        metricInfoLabel : `str`
+            Information associated with the metric. Could be derived from the sqlconstraint or could
             be a more descriptive version, specified by the user.
         metricDataFile : `str`
             The data file the metric bundle output is stored in.
@@ -258,7 +295,7 @@ class ResultsDb(object):
         metricId : `int`
             The Id number of this metric in the metrics table.
 
-        If same metric (same metricName, slicerName, simDataName, sqlConstraint, metadata)
+        If same metric (same metricName, slicerName, simDataName, sqlConstraint, infoLabel)
         already exists, it does nothing.
         """
         self.open()
@@ -266,8 +303,8 @@ class ResultsDb(object):
             simDataName = "NULL"
         if sqlConstraint is None:
             sqlConstraint = "NULL"
-        if metricMetadata is None:
-            metricMetadata = "NULL"
+        if metricInfoLabel is None:
+            metricInfoLabel = "NULL"
         if metricDataFile is None:
             metricDataFile = "NULL"
         # Check if metric has already been added to database.
@@ -277,7 +314,7 @@ class ResultsDb(object):
                 metricName=metricName,
                 slicerName=slicerName,
                 simDataName=simDataName,
-                metricMetadata=metricMetadata,
+                metricInfoLabel=metricInfoLabel,
                 sqlConstraint=sqlConstraint,
             )
             .all()
@@ -288,7 +325,7 @@ class ResultsDb(object):
                 slicerName=slicerName,
                 simDataName=simDataName,
                 sqlConstraint=sqlConstraint,
-                metricMetadata=metricMetadata,
+                metricInfoLabel=metricInfoLabel,
                 metricDataFile=metricDataFile,
             )
             self.session.add(metricinfo)
@@ -439,7 +476,7 @@ class ResultsDb(object):
         self.close()
 
     def getMetricId(
-        self, metricName, slicerName=None, metricMetadata=None, simDataName=None
+        self, metricName, slicerName=None, metricInfoLabel=None, simDataName=None
     ):
         """Find metric bundle Ids from the metric table.
 
@@ -449,7 +486,7 @@ class ResultsDb(object):
             Name of the Metric
         slicerName : `str`, opt
             Name of the Slicer to match
-        metricMetadata : `str`, opt
+        metricInfoLabel : `str`, opt
             Metadata value to match
         simDataName : `str`, opt
             Name of the simulation (simDataName) to match
@@ -465,16 +502,16 @@ class ResultsDb(object):
             MetricRow.metricId,
             MetricRow.metricName,
             MetricRow.slicerName,
-            MetricRow.metricMetadata,
+            MetricRow.metricInfoLabel,
             MetricRow.simDataName,
         ).filter(MetricRow.metricName == metricName)
         if slicerName is not None:
             query = query.filter(MetricRow.slicerName == slicerName)
-        if metricMetadata is not None:
-            query = query.filter(MetricRow.metricMetadata == metricMetadata)
+        if metricInfoLabel is not None:
+            query = query.filter(MetricRow.metricInfoLabel == metricInfoLabel)
         if simDataName is not None:
             query = query.filter(MetricRow.simDataName == simDataName)
-        query = query.order_by(MetricRow.slicerName, MetricRow.metricMetadata)
+        query = query.order_by(MetricRow.slicerName, MetricRow.metricInfoLabel)
         for m in query:
             metricId.append(m.metricId)
         self.close()
@@ -484,7 +521,7 @@ class ResultsDb(object):
         self,
         metricNameLike=None,
         slicerNameLike=None,
-        metricMetadataLike=None,
+        metricInfoLabelLike=None,
         simDataName=None,
     ):
         """Find metric bundle Ids from the metric table, but search for names 'like' the values.
@@ -496,8 +533,8 @@ class ResultsDb(object):
             Partial name of the Metric
         slicerName : `str`, opt
             Partial name of the Slicer to match
-        metricMetadata : `str`, opt
-            Partial metadata value to match
+        metricInfoLabel : `str`, opt
+            Partial info_label value to match
         simDataName : `str`, opt
             Name of the simulation (simDataName) to match (exact)
 
@@ -512,16 +549,16 @@ class ResultsDb(object):
             MetricRow.metricId,
             MetricRow.metricName,
             MetricRow.slicerName,
-            MetricRow.metricMetadata,
+            MetricRow.metricInfoLabel,
             MetricRow.simDataName,
         )
         if metricNameLike is not None:
             query = query.filter(MetricRow.metricName.like(f"%{str(metricNameLike)}%"))
         if slicerNameLike is not None:
             query = query.filter(MetricRow.slicerName.like(f"%{str(slicerNameLike)}%"))
-        if metricMetadataLike is not None:
+        if metricInfoLabelLike is not None:
             query = query.filter(
-                MetricRow.metricMetadata.like(f"%{str(metricMetadataLike)}%")
+                MetricRow.metricInfoLabel.like(f"%{str(metricInfoLabelLike)}%")
             )
         if simDataName is not None:
             query = query.filter(MetricRow.simDataName == simDataName)
@@ -542,10 +579,10 @@ class ResultsDb(object):
         return metricIds
 
     @staticmethod
-    def buildSummaryName(metricName, metricMetadata, slicerName, summaryStatName=None):
-        """Standardize a complete summary metric name, combining the metric + slicer + summary + metadata"""
-        if metricMetadata is None:
-            metricMetadata = ""
+    def buildSummaryName(metricName, metricInfoLabel, slicerName, summaryStatName=None):
+        """Standardize a complete summary metric name, combining the metric + slicer + summary + info_label"""
+        if metricInfoLabel is None:
+            metricInfoLabel = ""
         if slicerName is None:
             slicerName = ""
         sName = summaryStatName
@@ -555,7 +592,7 @@ class ResultsDb(object):
         if slName == "UniSlicer":
             slName = ""
         name = (
-            " ".join([sName, metricName, metricMetadata, slName])
+            " ".join([sName, metricName, metricInfoLabel, slName])
             .rstrip(" ")
             .lstrip(" ")
         )
@@ -626,14 +663,14 @@ class ResultsDb(object):
                     )
             for m, s in query:
                 long_name = self.buildSummaryName(
-                    m.metricName, m.metricMetadata, m.slicerName, s.summaryName
+                    m.metricName, m.metricInfoLabel, m.slicerName, s.summaryName
                 )
                 vals = (
                     m.metricId,
                     long_name,
                     m.metricName,
                     m.slicerName,
-                    m.metricMetadata,
+                    m.metricInfoLabel,
                     s.summaryName,
                     s.summaryValue,
                 )
@@ -646,7 +683,7 @@ class ResultsDb(object):
             ("summaryName", str, self.slen),
             ("metricName", str, self.slen),
             ("slicerName", str, self.slen),
-            ("metricMetadata", str, self.slen),
+            ("metricInfoLabel", str, self.slen),
             ("summaryMetric", str, self.slen),
             ("summaryValue", float),
         ]
@@ -659,7 +696,7 @@ class ResultsDb(object):
 
     def getPlotFiles(self, metricId=None, withSimName=False):
         """
-        Return the metricId, name, metadata, and all plot info (optionally for metricId list).
+        Return the metricId, name, info_label, and all plot info (optionally for metricId list).
         Returns a numpy array of the metric information + plot file names.
 
         Parameters
@@ -677,8 +714,8 @@ class ResultsDb(object):
                 The metric ID
             ``metricName``
                 The metric name
-            ``metricMetadata``
-                Metadata extracted from the sql constraint (usually the filter)
+            ``metricInfoLabel``
+                info_label extracted from the sql constraint (usually the filter)
             ``plotType``
                 The plot type
             ``plotFile``
@@ -709,7 +746,7 @@ class ResultsDb(object):
                 plot_file_fields = (
                     m.metricId,
                     m.metricName,
-                    m.metricMetadata,
+                    m.metricInfoLabel,
                     p.plotType,
                     p.plotFile,
                     thumbfile,
@@ -722,7 +759,7 @@ class ResultsDb(object):
         dtype_list = [
             ("metricId", int),
             ("metricName", str, self.slen),
-            ("metricMetadata", str, self.slen),
+            ("metricInfoLabel", str, self.slen),
             ("plotType", str, self.slen),
             ("plotFile", str, self.slen),
             ("thumbFile", str, self.slen),
@@ -781,7 +818,7 @@ class ResultsDb(object):
                 The name of the slicer used in the bundleGroup
             ``sqlConstraint``
                 The full sql constraint used in the bundleGroup
-            ``metricMetadata``
+            ``metricInfoLabel``
                 Metadata extracted from the `sqlConstraint` (usually the filter)
             ``metricDataFile``
                 The file name of the file with the metric data itself.
@@ -808,7 +845,7 @@ class ResultsDb(object):
                     baseMetricName,
                     m.slicerName,
                     m.sqlConstraint,
-                    m.metricMetadata,
+                    m.metricInfoLabel,
                     m.metricDataFile,
                 )
                 if withSimName:
@@ -822,7 +859,7 @@ class ResultsDb(object):
             ("baseMetricNames", str, self.slen),
             ("slicerName", str, self.slen),
             ("sqlConstraint", str, self.slen),
-            ("metricMetadata", str, self.slen),
+            ("metricInfoLabel", str, self.slen),
             ("metricDataFile", str, self.slen),
         ]
         if withSimName:
@@ -865,7 +902,7 @@ class ResultsDb(object):
                     baseMetricName,
                     m.slicerName,
                     m.sqlConstraint,
-                    m.metricMetadata,
+                    m.metricInfoLabel,
                     m.metricDataFile,
                     d.displayGroup,
                     d.displaySubgroup,
@@ -881,7 +918,7 @@ class ResultsDb(object):
                 ("baseMetricNames", np.str_, self.slen),
                 ("slicerName", np.str_, self.slen),
                 ("sqlConstraint", np.str_, self.slen),
-                ("metricMetadata", np.str_, self.slen),
+                ("metricInfoLabel", np.str_, self.slen),
                 ("metricDataFile", np.str_, self.slen),
                 ("displayGroup", np.str_, self.slen),
                 ("displaySubgroup", np.str_, self.slen),

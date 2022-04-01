@@ -119,7 +119,7 @@ class SFUncertMetric(BaseMetric):
         # note that variance is replaced by median_absolute_deviate^2
         # mean is replaced by median in this implementation to make it robust to
         # outliers in simulations (e.g., dcr simulations)
-        err_var = mag_err ** 2
+        err_var = mag_err**2
         err_var_mu = np.median(err_var)
         err_var_std = mad_std(err_var)
 

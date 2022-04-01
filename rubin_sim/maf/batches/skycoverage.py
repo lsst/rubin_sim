@@ -9,7 +9,7 @@ from .colMapDict import ColMapDict
 __all__ = ["meanRADec", "eastWestBias"]
 
 
-def meanRADec(colmap=None, runName="opsim", extraSql=None, extraMetadata=None):
+def meanRADec(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
     """Plot the range of RA/Dec as a function of night.
 
     Parameters
@@ -21,8 +21,8 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraMetadata=None):
     extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'night<365')
         Default None, for no additional constraints.
-    extraMetadata : str, optional
-        Additional metadata to add before any below (i.e. "WFD").  Default is None.
+    extraInfoLabel : str, optional
+        Additional info_label to add before any below (i.e. "WFD").  Default is None.
     """
     if colmap is None:
         colmap = ColMapDict("opsimV4")
@@ -31,8 +31,8 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraMetadata=None):
     group = "RA Dec coverage"
 
     subgroup = "All visits"
-    if extraMetadata is not None:
-        subgroup = extraMetadata
+    if extraInfoLabel is not None:
+        subgroup = extraInfoLabel
 
     displayDict = {"group": group, "subgroup": subgroup, "order": 0}
 
@@ -55,7 +55,7 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraMetadata=None):
             m,
             slicer,
             extraSql,
-            metadata=extraMetadata,
+            info_label=extraInfoLabel,
             displayDict=displayDict,
             plotDict=plotDict,
         )
@@ -64,7 +64,7 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraMetadata=None):
     for m in dec_metrics:
         slicer = slicers.OneDSlicer(sliceColName=colmap["night"], binsize=1)
         bundle = mb.MetricBundle(
-            m, slicer, extraSql, metadata=extraMetadata, displayDict=displayDict
+            m, slicer, extraSql, info_label=extraInfoLabel, displayDict=displayDict
         )
         bundleList.append(bundle)
 
@@ -74,7 +74,7 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraMetadata=None):
     return mb.makeBundlesDictFromList(bundleList)
 
 
-def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraMetadata=None):
+def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
     """Plot the number of observations to the east vs to the west, per night.
 
     Parameters
@@ -86,8 +86,8 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraMetadata=None
     extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'night<365')
         Default None, for no additional constraints.
-    extraMetadata : str, optional
-        Additional metadata to add before any below (i.e. "WFD").  Default is None.
+    extraInfoLabel : str, optional
+        Additional info_label to add before any below (i.e. "WFD").  Default is None.
     """
     if colmap is None:
         colmap = ColMapDict("opsimV4")
@@ -96,8 +96,8 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraMetadata=None
     group = "East vs West"
 
     subgroup = "All visits"
-    if extraMetadata is not None:
-        subgroup = extraMetadata
+    if extraInfoLabel is not None:
+        subgroup = extraInfoLabel
 
     displayDict = {"group": group, "subgroup": subgroup, "order": 0}
 
@@ -120,7 +120,7 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraMetadata=None
         metric,
         slicer,
         sql,
-        metadata=extraMetadata,
+        info_label=extraInfoLabel,
         displayDict=displayDict,
         plotDict=plotDict,
     )
@@ -139,7 +139,7 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraMetadata=None
         metric,
         slicer,
         sql,
-        metadata=extraMetadata,
+        info_label=extraInfoLabel,
         displayDict=displayDict,
         plotDict=plotDict,
     )

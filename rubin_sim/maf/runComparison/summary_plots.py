@@ -106,13 +106,10 @@ def normalize_metric_summaries(
             1.0 / summary.loc[:, metric_sets["invert"]]
         )
 
-        norm_summary.loc[:, metric_sets["mag"]] = (
-            1.0
-            + summary.loc[
-                :,
-                metric_sets["mag"],
-            ].subtract(summary.loc[baseline_run, metric_sets["mag"]], axis="columns")
-        )
+        norm_summary.loc[:, metric_sets["mag"]] = 1.0 + summary.loc[
+            :,
+            metric_sets["mag"],
+        ].subtract(summary.loc[baseline_run, metric_sets["mag"]], axis="columns")
 
         # Look a the fractional difference compared with the baseline
         norm_summary.loc[:, :] = 1 + (

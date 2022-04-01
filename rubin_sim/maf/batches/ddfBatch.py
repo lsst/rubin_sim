@@ -90,7 +90,7 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
         # Number of QSOs in each band
         displayDict["group"] = "QSO"
         displayDict["order"] = 2
-        displayDict["subgroup"] = ""
+        displayDict["subgroup"] = "Number"
         zmin = 0.3
         extinction_cut = 1.0
         for f in "ugrizy":
@@ -107,6 +107,29 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
                 zmax=None,
                 metricName="QSO_N_%s_%s" % (f, label),
             )
+            bundle_list.append(
+                maf.MetricBundle(
+                    metric,
+                    slicer,
+                    sql,
+                    plotDict=plotDict,
+                    plotFuncs=plotFuncs,
+                    summaryMetrics=summaryMetrics,
+                    displayDict=displayDict,
+                )
+            )
+
+        # AGN structure function
+        displayDict["group"] = "QSO"
+        displayDict["order"] = 2
+        displayDict["subgroup"] = "Structure Function"
+        agn_mags = {"u": 22.0, "g": 24, "r": 24, "i": 24, "z": 22, "y": 22}
+        for f in "ugrizy":
+            sql = 'filter="%s"' % f
+            summaryMetrics = [
+                maf.MedianMetric(metricName="Median AGN SF Uncert, %s" % (label))
+            ]
+            metric = maf.SFUncertMetric(mag=agn_mags[f], metricName="SFU, %s" % label)
             bundle_list.append(
                 maf.MetricBundle(
                     metric,

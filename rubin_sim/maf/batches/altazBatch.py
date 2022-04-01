@@ -29,7 +29,7 @@ def altazHealpix(
     colmap=None,
     runName="opsim",
     extraSql=None,
-    extraMetadata=None,
+    extraInfoLabel=None,
     metricName="NVisits Alt/Az",
 ):
 
@@ -45,8 +45,8 @@ def altazHealpix(
     extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str, optional
-        Additional metadata to add before any below (i.e. "WFD").  Default is None.
+    extraInfoLabel : str, optional
+        Additional info_label to add before any below (i.e. "WFD").  Default is None.
     metricName : str, optional
         Unique name to assign to metric
 
@@ -58,8 +58,8 @@ def altazHealpix(
     colmap, slicer, metric = basicSetup(metricName=metricName, colmap=colmap)
 
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, metadata = filterList(
-        all=True, extraSql=extraSql, extraMetadata=extraMetadata
+    filterlist, colors, orders, sqls, info_label = filterList(
+        all=True, extraSql=extraSql, extraInfoLabel=extraInfoLabel
     )
 
     bundleList = []
@@ -85,7 +85,7 @@ def altazHealpix(
             sqls[f],
             plotDict=plotDict,
             runName=runName,
-            metadata=metadata[f],
+            info_label=info_label[f],
             plotFuncs=[plotFunc],
             displayDict=displayDict,
         )
@@ -100,7 +100,7 @@ def altazLambert(
     colmap=None,
     runName="opsim",
     extraSql=None,
-    extraMetadata=None,
+    extraInfoLabel=None,
     metricName="Nvisits as function of Alt/Az",
 ):
 
@@ -116,8 +116,8 @@ def altazLambert(
     extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str, optional
-        Additional metadata to add before any below (i.e. "WFD").  Default is None.
+    extraInfoLabel : str, optional
+        Additional info_label to add before any below (i.e. "WFD").  Default is None.
     metricName : str, optional
         Unique name to assign to metric
 
@@ -129,8 +129,8 @@ def altazLambert(
     colmap, slicer, metric = basicSetup(metricName=metricName, colmap=colmap)
 
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, metadata = filterList(
-        all=True, extraSql=extraSql, extraMetadata=extraMetadata
+    filterlist, colors, orders, sqls, info_label = filterList(
+        all=True, extraSql=extraSql, extraInfoLabel=extraInfoLabel
     )
 
     bundleList = []
@@ -153,7 +153,7 @@ def altazLambert(
             slicer,
             sqls[f],
             runName=runName,
-            metadata=metadata[f],
+            info_label=info_label[f],
             plotFuncs=[plotFunc],
             displayDict=displayDict,
         )

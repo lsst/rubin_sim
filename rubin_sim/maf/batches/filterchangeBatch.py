@@ -65,7 +65,7 @@ def setupMetrics(colmap, wholesurvey=False):
 
 
 def filtersPerNight(
-    colmap=None, runName="opsim", nights=1, extraSql=None, extraMetadata=None
+    colmap=None, runName="opsim", nights=1, extraSql=None, extraInfoLabel=None
 ):
     """Generate a set of metrics measuring the number and rate of filter changes over a given span of nights.
 
@@ -80,8 +80,8 @@ def filtersPerNight(
     extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str, optional
-        Additional metadata to add before any below (i.e. "WFD").  Default is None.
+    extraInfoLabel : str, optional
+        Additional info_label to add before any below (i.e. "WFD").  Default is None.
 
     Returns
     -------
@@ -92,25 +92,25 @@ def filtersPerNight(
         colmap = ColMapDict("opsimV4")
     bundleList = []
 
-    # Set up sql and metadata, if passed any additional information.
+    # Set up sql and info_label, if passed any additional information.
     sql = ""
-    metadata = "Per"
+    info_label = "Per"
     if nights == 1:
-        metadata += " Night"
+        info_label += " Night"
     else:
-        metadata += " %s Nights" % nights
-    metacaption = metadata.lower()
+        info_label += " %s Nights" % nights
+    metacaption = info_label.lower()
     if (extraSql is not None) and (len(extraSql) > 0):
         sql = extraSql
-        if extraMetadata is None:
-            metadata += " %s" % extraSql
+        if extraInfoLabel is None:
+            info_label += " %s" % extraSql
             metacaption += ", with %s selection" % extraSql
-    if extraMetadata is not None:
-        metadata += " %s" % extraMetadata
-        metacaption += ", %s only" % extraMetadata
+    if extraInfoLabel is not None:
+        info_label += " %s" % extraInfoLabel
+        metacaption += ", %s only" % extraInfoLabel
     metacaption += "."
 
-    displayDict = {"group": "Filter Changes", "subgroup": metadata}
+    displayDict = {"group": "Filter Changes", "subgroup": info_label}
     summaryStats = standardSummary()
 
     slicer = slicers.OneDSlicer(sliceColName=colmap["night"], binsize=nights)
@@ -122,7 +122,7 @@ def filtersPerNight(
             slicer,
             sql,
             runName=runName,
-            metadata=metadata,
+            info_label=info_label,
             displayDict=displayDict,
             summaryMetrics=summaryStats,
         )
@@ -133,7 +133,9 @@ def filtersPerNight(
     return mb.makeBundlesDictFromList(bundleList)
 
 
-def filtersWholeSurvey(colmap=None, runName="opsim", extraSql=None, extraMetadata=None):
+def filtersWholeSurvey(
+    colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None
+):
     """Generate a set of metrics measuring the number and rate of filter changes over the entire survey.
 
     Parameters
@@ -145,8 +147,8 @@ def filtersWholeSurvey(colmap=None, runName="opsim", extraSql=None, extraMetadat
     extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
-    extraMetadata : str, optional
-        Additional metadata to add before any below (i.e. "WFD").  Default is None.
+    extraInfoLabel : str, optional
+        Additional info_label to add before any below (i.e. "WFD").  Default is None.
 
     Returns
     -------
@@ -156,28 +158,33 @@ def filtersWholeSurvey(colmap=None, runName="opsim", extraSql=None, extraMetadat
         colmap = ColMapDict("opsimV4")
     bundleList = []
 
-    # Set up sql and metadata, if passed any additional information.
+    # Set up sql and info_label, if passed any additional information.
     sql = ""
-    metadata = "Whole Survey"
+    info_label = "Whole Survey"
     metacaption = "over the whole survey"
     if (extraSql is not None) and (len(extraSql) > 0):
         sql = extraSql
-        if extraMetadata is None:
-            metadata += " %s" % extraSql
+        if extraInfoLabel is None:
+            info_label += " %s" % extraSql
             metacaption += ", with %s selction" % extraSql
-    if extraMetadata is not None:
-        metadata += " %s" % extraMetadata
-        metacaption += ", %s only" % (extraMetadata)
+    if extraInfoLabel is not None:
+        info_label += " %s" % extraInfoLabel
+        metacaption += ", %s only" % (extraInfoLabel)
     metacaption += "."
 
-    displayDict = {"group": "Filter Changes", "subgroup": metadata}
+    displayDict = {"group": "Filter Changes", "subgroup": info_label}
 
     slicer = slicers.UniSlicer()
     metricList, captionList = setupMetrics(colmap)
     for m, caption in zip(metricList, captionList):
         displayDict["caption"] = caption + metacaption
         bundle = mb.MetricBundle(
-            m, slicer, sql, runName=runName, metadata=metadata, displayDict=displayDict
+            m,
+            slicer,
+            sql,
+            runName=runName,
+            info_label=info_label,
+            displayDict=displayDict,
         )
         bundleList.append(bundle)
 

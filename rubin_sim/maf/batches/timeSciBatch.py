@@ -6,7 +6,7 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.metricBundles as mb
 from .colMapDict import ColMapDict
-from .common import standardSummary, filterList, combineMetadata, radecCols
+from .common import standardSummary, filterList, combineInfoLabels, radecCols
 
 __all__ = ["phaseGap"]
 
@@ -16,7 +16,7 @@ def phaseGap(
     runName="opsim",
     nside=64,
     extraSql=None,
-    extraMetadata=None,
+    extraInfoLabel=None,
     ditherStacker=None,
     ditherkwargs=None,
 ):
@@ -32,8 +32,8 @@ def phaseGap(
         Nside for the healpix slicer. Default 64.
     extraSql : str or None, optional
         Additional sql constraint to apply to all metrics.
-    extraMetadata : str or None, optional
-        Additional metadata to apply to all results.
+    extraInfoLabel : str or None, optional
+        Additional info_label to apply to all results.
     ditherStacker: str or rubin_sim.maf.stackers.BaseDitherStacker
         Optional dither stacker to use to define ra/dec columns.
     ditherkwargs: dict or None, optional
@@ -47,15 +47,15 @@ def phaseGap(
     if colmap is None:
         colmap = ColMapDict("opsimV4")
 
-    metadata = extraMetadata
+    info_label = extraInfoLabel
     if extraSql is not None and len(extraSql) > 0:
-        if metadata is None:
-            metadata = extraSql
+        if info_label is None:
+            info_label = extraSql
 
     raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(
         ditherStacker, colmap, ditherkwargs
     )
-    metadata = combineMetadata(metadata, ditherMeta)
+    info_label = combineInfoLabels(info_label, ditherMeta)
 
     bundleList = []
     standardStats = standardSummary()
@@ -74,14 +74,14 @@ def phaseGap(
         "",
     ]
     filterNames = ["u", "r", "griz", "all"]
-    metadatas = filterNames
-    if metadata is not None:
-        metadatas = [combineMetadata(m, metadata) for m in metadatas]
+    info_labels = filterNames
+    if info_label is not None:
+        info_labels = [combineInfoLabels(m, info_label) for m in info_labels]
     if extraSql is not None and len(extraSql) > 0:
         for sql in sqls:
             sqls[sql] = "(%s) and (%s)" % (sqls[sql], extraSql)
 
-    for sql, md, f in zip(sqls, metadatas, filterNames):
+    for sql, md, f in zip(sqls, info_labels, filterNames):
         for period in periods:
             displayDict = {
                 "group": "PhaseGap",
@@ -101,7 +101,7 @@ def phaseGap(
                 metric,
                 slicer,
                 constraint=sql,
-                metadata=md,
+                info_label=md,
                 displayDict=displayDict,
                 summaryMetrics=standardStats,
                 plotFuncs=subsetPlots,

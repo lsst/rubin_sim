@@ -493,7 +493,7 @@ class Blob_survey(Greedy_survey):
         meanx = np.mean(x)
         meany = np.mean(y)
         angle = np.arctan2(meany, meanx)
-        radius = np.sqrt(meanx ** 2 + meany ** 2)
+        radius = np.sqrt(meanx**2 + meany**2)
         mid_az = angle % (2.0 * np.pi)
         if radius < 0.1:
             mid_az = np.pi

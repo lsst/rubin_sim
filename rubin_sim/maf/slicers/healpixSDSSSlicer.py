@@ -9,7 +9,7 @@ __all__ = ["HealpixSDSSSlicer"]
 
 
 class HealpixSDSSSlicer(HealpixSlicer):
-    """For use with SDSS stripe 82 square images """
+    """For use with SDSS stripe 82 square images"""
 
     def __init__(
         self,
@@ -22,7 +22,7 @@ class HealpixSDSSSlicer(HealpixSlicer):
         leafsize=100,
         **kwargs
     ):
-        """Using one corner of the chip as the spatial key and the diagonal as the radius.  """
+        """Using one corner of the chip as the spatial key and the diagonal as the radius."""
         super(HealpixSDSSSlicer, self).__init__(
             verbose=verbose,
             lonCol=lonCol,

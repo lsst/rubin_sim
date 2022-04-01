@@ -31,7 +31,7 @@ def createEmptyMetricBundle():
 class MetricBundle(object):
     """The MetricBundle is defined by a combination of a (single) metric, slicer and
     constraint - together these define a unique combination of an opsim benchmark.
-    An example would be: a CountMetric, a HealpixSlicer, and a sqlconstraint 'filter="r"'.
+    An example would be: a CountMetric, a HealpixSlicer, and a constraint 'filter="r"'.
 
     After the metric is evaluated over the slicePoints of the slicer, the resulting
     metric values are saved in the MetricBundle.
@@ -40,8 +40,44 @@ class MetricBundle(object):
     statistics over those metric values, as well as the resulting summary statistic values.
 
     Plotting parameters and display parameters (for showMaf) are saved in the MetricBundle,
-    as well as additional metadata such as the opsim run name, and relevant stackers and maps
+    as well as additional info_label such as the opsim run name, and relevant stackers and maps
     to apply when calculating the metric values.
+
+    Parameters
+    ----------
+    metric : `~rubin_sim.maf.metric`
+        The Metric class to run per slicePoint
+    slicer : `~rubin_sim.maf.slicer`
+        The Slicer to apply to the incoming visit data (the observations).
+    constraint : `str` or None, opt
+        A (sql-style) constraint to apply to the visit data, to apply a broad sub-selection.
+    stackerList : `list` of `~rubin_sim.maf.stacker`, opt
+        A list of pre-configured stackers to use to generate additional columns per visit.
+        These will be generated automatically if needed, but pre-configured versions will override these.
+    runName : `str`, opt
+        The name of the simulation being run. This will be added to output files and plots.
+        Setting it prevents file conflicts when running the same metric on multiple simulations, and
+        provides a way to identify which simulation is being analyzed.
+    metadata : `str`, opt
+        A deprecated version of info_label (below).
+        Values set by metadata will be used for info_label. If both are set, info_label is used.
+    info_label : `str` or None, opt
+        Information to add to the output metric data file name and plot labels.
+        If this is not provided, it will be auto-generated from the constraint (if any).
+        Setting this provides an easy way to specify different configurations of a metric, a slicer,
+        or just to rewrite your constraint into friendlier terms.
+        (i.e. a constraint like 'note not like "%DD%"' can become "non-DD" in the file name and plot labels
+        by specifying info_label).
+    plotDict : `dict` of plotting parameters, opt
+        Specify general plotting parameters, such as x/y/color limits.
+    displayDict : `dict` of display parameters, opt
+        Specify parameters for showMaf web pages, such as the side bar labels and figure captions.
+        Keys: 'group', 'subgroup', 'caption', and 'order' (such as to set metrics in filter order, etc)
+    summaryMetrics : `list` of `~rubin_sim.maf.metrics`
+        A list of summary metrics to run to summarize the primary metric, such as MedianMetric, etc.
+    mapsList : `list` of `~rubin_sim.maf.maps`
+        A list of pre-configured maps to use for the metric. This will be auto-generated if specified
+        by the metric class, but pre-configured versions will override these.
     """
 
     colInfo = ColInfo()
@@ -55,6 +91,7 @@ class MetricBundle(object):
         stackerList=None,
         runName="opsim",
         metadata=None,
+        info_label=None,
         plotDict=None,
         displayDict=None,
         summaryMetrics=None,
@@ -131,8 +168,8 @@ class MetricBundle(object):
 
         # Add the summary stats, if applicable.
         self.setSummaryMetrics(summaryMetrics)
-        # Set the provenance/metadata.
-        self._buildMetadata(metadata)
+        # Set the provenance/info_label.
+        self._buildMetadata(info_label, metadata)
         # Set the run name and build the output filename base (fileRoot).
         self.setRunName(runName)
         # Reset fileRoot, if provided.
@@ -162,7 +199,7 @@ class MetricBundle(object):
         self.plotFuncs = []
         self.mapsList = None
         self.runName = "opsim"
-        self.metadata = ""
+        self.info_label = ""
         self.dbCols = None
         self.fileRoot = None
         self.plotDict = {}
@@ -188,19 +225,26 @@ class MetricBundle(object):
         if hasattr(self.slicer, "mask"):
             self.metricValues.mask = self.slicer.mask
 
-    def _buildMetadata(self, metadata):
-        """If no metadata is provided, process the constraint
-        (by removing extra spaces, quotes, the word 'filter' and equal signs) to make a metadata version.
+    def _buildMetadata(self, info_label, metadata=None):
+        """If no info_label is provided, process the constraint
+        (by removing extra spaces, quotes, the word 'filter' and equal signs) to make a info_label version.
         e.g. 'filter = "r"' becomes 'r'
         """
-        if metadata is None:
-            self.metadata = (
+        # Pass the deprecated version into info_label if info_label is not set
+        if metadata is not None and info_label is None:
+            warnings.warn(
+                'Use of "metadata" as a kwarg is deprecated, please use info_label instead.'
+                f" (copying {metadata} into info_label). "
+            )
+            info_label = metadata
+        if info_label is None:
+            self.info_label = (
                 self.constraint.replace("=", "").replace("filter", "").replace("'", "")
             )
-            self.metadata = self.metadata.replace('"', "").replace("  ", " ")
-            self.metadata = self.metadata.strip(" ")
+            self.info_label = self.info_label.replace('"', "").replace("  ", " ")
+            self.info_label = self.info_label.strip(" ")
         else:
-            self.metadata = metadata
+            self.info_label = info_label
 
     def _buildFileRoot(self):
         """
@@ -211,7 +255,7 @@ class MetricBundle(object):
             [
                 self.runName,
                 self.metric.name,
-                self.metadata,
+                self.info_label,
                 self.slicer.slicerName[:4].upper(),
             ]
         )
@@ -408,7 +452,7 @@ class MetricBundle(object):
                 self.slicer.slicerName,
                 self.runName,
                 self.constraint,
-                self.metadata,
+                self.info_label,
                 None,
             )
             resultsDb.updateDisplay(metricId, self.displayDict)
@@ -439,13 +483,13 @@ class MetricBundle(object):
                 self.slicer.slicerName,
                 self.runName,
                 self.constraint,
-                self.metadata,
+                self.info_label,
                 outfile,
             )
             resultsDb.updateDisplay(metricId, self.displayDict)
 
     def write(self, comment="", outDir=".", outfileSuffix=None, resultsDb=None):
-        """Write metricValues (and associated metadata) to disk.
+        """Write metricValues (and associated info_label) to disk.
 
         Parameters
         ----------
@@ -468,7 +512,7 @@ class MetricBundle(object):
             metricName=self.metric.name,
             simDataName=self.runName,
             constraint=self.constraint,
-            metadata=self.metadata + comment,
+            info_label=self.info_label + comment,
             displayDict=self.displayDict,
             plotDict=self.plotDict,
         )
@@ -487,13 +531,13 @@ class MetricBundle(object):
             self.metricValues,
             metricName=self.metric.name,
             simDataName=self.runName,
-            metadata=self.metadata,
+            info_label=self.info_label,
             plotDict=self.plotDict,
         )
         return io
 
     def read(self, filename):
-        """Read metricValues and associated metadata from disk.
+        """Read metricValues and associated info_label from disk.
         Overwrites any data currently in metricbundle.
 
         Parameters
@@ -528,12 +572,18 @@ class MetricBundle(object):
                 self.constraint = header["constraint"]
             except KeyError:
                 self.constraint = header["sqlconstraint"]
-            self.metadata = header["metadata"]
+            # Handle potential old datafile, where 'metadata' may be used instead of info_label
+            # use metadata if it's there
+            if "metadata" in header:
+                self.info_label = header["metadata"]
+            # and then use info_label if it's there instead
+            if "info_label" in header:
+                self.info_label = header["info_label"]
             if "plotDict" in header:
                 self.setPlotDict(header["plotDict"])
             if "displayDict" in header:
                 self.setDisplayDict(header["displayDict"])
-        if self.metadata is None:
+        if self.info_label is None:
             self._buildMetadata()
         path, head = os.path.split(filename)
         self.fileRoot = head.replace(".npz", "")
@@ -593,7 +643,7 @@ class MetricBundle(object):
                         self.slicer.slicerName,
                         self.runName,
                         self.constraint,
-                        self.metadata,
+                        self.info_label,
                         None,
                     )
                     resultsDb.updateSummaryStat(
@@ -625,7 +675,7 @@ class MetricBundle(object):
         Returns
         -------
         MetricBundle
-           New metric bundle, inheriting metadata from this metric bundle, but containing the new
+           New metric bundle, inheriting info_label from this metric bundle, but containing the new
            metric values calculated with the 'reduceFunc'.
         """
         # Generate a name for the metric values processed by the reduceFunc.
@@ -646,7 +696,7 @@ class MetricBundle(object):
             slicer=self.slicer,
             stackerList=self.stackerList,
             constraint=self.constraint,
-            metadata=self.metadata,
+            info_label=self.info_label,
             runName=self.runName,
             plotDict=None,
             plotFuncs=self.plotFuncs,

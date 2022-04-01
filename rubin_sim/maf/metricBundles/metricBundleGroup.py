@@ -293,7 +293,7 @@ class MetricBundleGroup(object):
                 for b in self.currentBundleDict.values():
                     metricsSkipped.append(
                         "%s : %s : %s"
-                        % (b.metric.name, b.metadata, b.slicer.slicerName)
+                        % (b.metric.name, b.info_label, b.slicer.slicerName)
                     )
                 warnings.warn(" This means skipping metrics %s" % metricsSkipped)
                 return
@@ -306,7 +306,7 @@ class MetricBundleGroup(object):
                 for b in self.currentBundleDict.values():
                     metricsSkipped.append(
                         "%s : %s : %s"
-                        % (b.metric.name, b.metadata, b.slicer.slicerName)
+                        % (b.metric.name, b.info_label, b.slicer.slicerName)
                     )
                 warnings.warn(" This means skipping metrics %s" % metricsSkipped)
                 return
@@ -427,7 +427,7 @@ class MetricBundleGroup(object):
 
         # Pull out one of the slicers to use as our 'slicer'.
         # This will be forced back into all of the metricBundles at the end (so that they track
-        #  the same metadata such as the slicePoints, in case the same actual object wasn't used).
+        #  the same info_label such as the slicePoints, in case the same actual object wasn't used).
         slicer = list(bDict.values())[0].slicer
         slicer.setupSlicer(self.simData, maps=uniqMaps)
         # Copy the slicer (after setup) back into the individual metricBundles.
@@ -759,7 +759,7 @@ class MetricBundleGroup(object):
                             constraint=bundle.constraint,
                             stackerList=bundle.stackerList,
                             runName=bundle.runName,
-                            metadata=bundle.metadata,
+                            info_label=bundle.info_label,
                             plotDict=bundle.plotDict,
                             displayDict=bundle.displayDict,
                             summaryMetrics=bundle.summaryMetrics,

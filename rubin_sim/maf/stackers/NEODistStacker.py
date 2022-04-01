@@ -80,14 +80,14 @@ class NEODistStacker(BaseStacker):
         for i, elong in enumerate(elongRad):
             # Law of cosines:
             # Heliocentric Radius of the object
-            R = np.sqrt(1.0 + self.deltas ** 2 - 2.0 * self.deltas * np.cos(elong))
+            R = np.sqrt(1.0 + self.deltas**2 - 2.0 * self.deltas * np.cos(elong))
             # Angle between sun and earth as seen by NEO
             alphas = np.arccos(
-                (1.0 - R ** 2 - self.deltas ** 2) / (-2.0 * self.deltas * R)
+                (1.0 - R**2 - self.deltas**2) / (-2.0 * self.deltas * R)
             )
             ta2 = np.tan(alphas / 2.0)
-            phi1 = np.exp(-self.a1 * ta2 ** self.b1)
-            phi2 = np.exp(-self.a2 * ta2 ** self.b2)
+            phi1 = np.exp(-self.a1 * ta2**self.b1)
+            phi2 = np.exp(-self.a2 * ta2**self.b2)
 
             alpha_term = 2.5 * np.log10((1.0 - self.G) * phi1 + self.G * phi2)
             appmag = self.H + 5.0 * np.log10(R * self.deltas) - alpha_term

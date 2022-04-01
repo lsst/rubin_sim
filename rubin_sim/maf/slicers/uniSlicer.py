@@ -13,7 +13,7 @@ class UniSlicer(BaseSlicer):
     """UniSlicer."""
 
     def __init__(self, verbose=True, badval=-666):
-        """Instantiate unislicer. """
+        """Instantiate unislicer."""
         super(UniSlicer, self).__init__(verbose=verbose, badval=badval)
         self.nslice = 1
         self.shape = self.nslice
@@ -33,7 +33,7 @@ class UniSlicer(BaseSlicer):
 
         @wraps(self._sliceSimData)
         def _sliceSimData(islice):
-            """Return all indexes in simData. """
+            """Return all indexes in simData."""
             idxs = self.indices
             return {"idxs": idxs, "slicePoint": {"sid": islice}}
 

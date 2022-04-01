@@ -65,7 +65,7 @@ class SNMetric(BaseMetric):
         sky_mag_arcsec = dataSlice[self.skyBCol]
         exptime = dataSlice[self.expTCol]
         sky_adu = 10 ** (-(sky_mag_arcsec - zptArr) / 2.5) * exptime
-        sky_adu = sky_adu * np.pi * seeing ** 2  # adu per seeing circle
+        sky_adu = sky_adu * np.pi * seeing**2  # adu per seeing circle
 
         source_fluxes = 10 ** (-mag / 2.5)
         source_adu = 10 ** (-(mag - zptArr) / 2.5) * exptime

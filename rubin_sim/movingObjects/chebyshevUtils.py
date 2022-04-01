@@ -347,7 +347,7 @@ def chebfit(t, x, dxdt=None, xMultiplier=None, dxMultiplier=None, nPoly=7):
         xApprox, _ = chebeval(tScaled, a_n, interval=tInterval, doVelocity=False)
 
     residuals = x - xApprox
-    se = np.sum(residuals ** 2)
+    se = np.sum(residuals**2)
     rms = np.sqrt(se / (nPoints - 1))
     maxresid = np.max(np.abs(residuals))
 
