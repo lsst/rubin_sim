@@ -95,7 +95,7 @@ class GalaxyCountsMetric_extended(BaseMetric):
         # Need to scale down to indivdual HEALpix pixels.
         # Galaxy count from the coadded depth is per 1 square degree.
         # Number of galaxies ~= 41253 sq. degrees in the full sky divided by number of HEALpix pixels.
-        self.scale = 41253.0 / (int(12) * nside ** 2)
+        self.scale = 41253.0 / (int(12) * nside**2)
         # Consider power laws from various redshift bins: importing the constant
         # General power law form: 10**(a*m+b).
         self.powerLawConst_a = powerLawConst_a

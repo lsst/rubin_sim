@@ -25,5 +25,6 @@ def makePRCmap():
     mpl_colors = []
     for color in colors:
         mpl_colors.append(tuple([x / 255.0 for x in color]))
+    # Set up the colormap
     cmap = LinearSegmentedColormap.from_list("perceptual_rainbow", mpl_colors)
     return cmap

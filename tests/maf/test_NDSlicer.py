@@ -68,7 +68,7 @@ class TestNDSlicerSetup(unittest.TestCase):
                 # expect one more 'bin' to accomodate last right edge, but nbins accounts for this
                 testslicer = NDSlicer(self.dvlist, binsList=nbins)
                 testslicer.setupSlicer(dv)
-                self.assertEqual(testslicer.nslice, nbins ** self.nd)
+                self.assertEqual(testslicer.nslice, nbins**self.nd)
                 # Bins of the right size?
                 for i in range(self.nd):
                     bindiff = np.diff(testslicer.bins[i])
@@ -93,7 +93,7 @@ class TestNDSlicerSetup(unittest.TestCase):
             warnings.simplefilter("always")
             testslicer.setupSlicer(dv)
             self.assertIn("creasing binMax", str(w[-1].message))
-        expectednbins = nbins ** self.nd
+        expectednbins = nbins**self.nd
         self.assertEqual(testslicer.nslice, expectednbins)
 
     def testSetupSlicerEquivalent(self):

@@ -28,21 +28,21 @@ alpha = 2.35
 def IMF(lower, upper):
     exp = alpha - 1.0
     part1 = xi / exp
-    part2 = lower ** -exp - upper ** -exp
+    part2 = lower**-exp - upper**-exp
     part3 = part1 * part2
     return part3
 
 
 def get_distance(apparent, absolute):
     part1 = (apparent - absolute) / 5.0
-    part2 = 10 * 10 ** part1
+    part2 = 10 * 10**part1
     return part2
 
 
 def noise_opt(m, band, sigma):
     part1 = mag_error(m, band)
-    part2 = part1 ** 2.0
-    part3 = sigma ** 2.0
+    part2 = part1**2.0
+    part3 = sigma**2.0
     total = part2 - part3
     return total
 
@@ -54,7 +54,7 @@ def mag_error(ap_mag, band, calcm5=0):  # apparent magnitude and band
         calcm5 = m5[band]
     X = 10.0 ** (0.4 * (ap_mag - calcm5))
     random_2 = np.sqrt((0.04 - gamma[band]) * X + gamma[band] * X * X)
-    error_2 = random_2 ** 2.0 + (0.005) ** 2.0
+    error_2 = random_2**2.0 + (0.005) ** 2.0
     mag_error = np.sqrt(error_2)
     return mag_error
 
@@ -65,10 +65,10 @@ def noise_calc(band):
     sigma = 0.03
     sigma_sys = 0.005
     fun = (
-        lambda x: sigma_sys ** 2
+        lambda x: sigma_sys**2
         + (0.04 - gamma[band]) * 10 ** (0.4 * (x - m5[band]))
         + gamma[band] * 10 ** (0.8 * (x - m5[band]))
-        - sigma ** 2
+        - sigma**2
     )
     return newton(fun, 25)
 

@@ -158,7 +158,7 @@ class CoaddStacker(BaseStacker):
 
         fluxes = 10 ** (-0.4 * m5)
         sigmas = fluxes / 5.0
-        sigma_tot = 1.0 / np.sqrt(np.sum(1.0 / sigmas ** 2))
+        sigma_tot = 1.0 / np.sqrt(np.sum(1.0 / sigmas**2))
         flux_tot = 5.0 * sigma_tot
 
         return -2.5 * np.log10(flux_tot)

@@ -310,7 +310,7 @@ class Hour_Angle_limit_basis_function(Base_basis_function):
 
 
 class Moon_down_basis_function(Base_basis_function):
-    """Demand the moon is down """
+    """Demand the moon is down"""
 
     def check_feasibility(self, conditions):
         result = True

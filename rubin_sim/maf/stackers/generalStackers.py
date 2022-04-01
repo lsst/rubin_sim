@@ -89,7 +89,7 @@ class SaturationStacker(BaseStacker):
                         - simData[self.skybrightnessCol][in_filt]
                     )
                 )
-                * self.pixscale ** 2
+                * self.pixscale**2
             )
             # Total sky counts in each exposure
             sky_counts = sky_counts * exptime
@@ -417,7 +417,7 @@ class HourAngleStacker(BaseStacker):
         self.degrees = degrees
 
     def _run(self, simData, cols_present=False):
-        """HA = LST - RA """
+        """HA = LST - RA"""
         if cols_present:
             # Column already present in data; assume it is correct and does not need recalculating.
             return simData

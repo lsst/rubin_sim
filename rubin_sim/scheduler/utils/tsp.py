@@ -31,7 +31,7 @@ def generate_dist_matrix(towns):
     # Broadcast to i,j
     x_dist = x - x[:, np.newaxis]
     y_dist = y - y[:, np.newaxis]
-    distances = np.sqrt(x_dist ** 2 + y_dist ** 2)
+    distances = np.sqrt(x_dist**2 + y_dist**2)
 
     return distances
 

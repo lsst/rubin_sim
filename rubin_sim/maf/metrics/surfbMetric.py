@@ -55,13 +55,13 @@ def surface_brightness_limit_approx(
     aka the surface brightness that reaches SNR=nsigma when measured over tot_area.
     """
 
-    A_pix = pixscale ** 2
+    A_pix = pixscale**2
 
     n_pix = tot_area / A_pix
 
     # Sky limited case
     mu_sky_lim = (
-        -1.25 * np.log10(nsigma ** 2 / (A_pix * t_exp * n_pix))
+        -1.25 * np.log10(nsigma**2 / (A_pix * t_exp * n_pix))
         + 0.5 * mu_sky
         + 0.5 * zp
         - k * airmass
@@ -75,7 +75,7 @@ def surface_brightness_limit_approx(
 
     # Readnoise limited case
     mu_rn_lim = (
-        -2.5 * np.log10(nsigma * rn / (t_exp * A_pix * n_pix ** 0.5)) + zp - k * airmass
+        -2.5 * np.log10(nsigma * rn / (t_exp * A_pix * n_pix**0.5)) + zp - k * airmass
     )
 
     d1 = np.min(np.abs(mu_sky_lim - mu_source_lim))

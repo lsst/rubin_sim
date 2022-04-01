@@ -12,7 +12,7 @@ __all__ = ["PeriodDeviationMetric"]
 
 
 def find_period_LS(
-    times, mags, minperiod=2.0, maxperiod=35.0, nbinmax=10 ** 5, verbose=False
+    times, mags, minperiod=2.0, maxperiod=35.0, nbinmax=10**5, verbose=False
 ):
     """Find the period of a lightcurve using scipy's lombscargle method.
     The parameters used here imply magnitudes but there is no reason this would not work if fluxes are passed.

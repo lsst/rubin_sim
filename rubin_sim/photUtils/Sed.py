@@ -423,7 +423,7 @@ def cache_LSST_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
 
 
 class Sed(object):
-    """"Hold and use spectral energy distributions (SEDs)"""
+    """ "Hold and use spectral energy distributions (SEDs)"""
 
     def __init__(
         self, wavelen=None, flambda=None, fnu=None, badval=numpy.NaN, name=None
@@ -1044,23 +1044,23 @@ class Sed(object):
         condition = (x >= 0.3) & (x <= 1.1)
         if len(a_x[condition]) > 0:
             y = x[condition]
-            a_x[condition] = 0.574 * y ** 1.61
-            b_x[condition] = -0.527 * y ** 1.61
+            a_x[condition] = 0.574 * y**1.61
+            b_x[condition] = -0.527 * y**1.61
         # Dust in optical/NIR 1.1 /mu < x < 3.3 /mu region.
         condition = (x >= 1.1) & (x <= 3.3)
         if len(a_x[condition]) > 0:
             y = x[condition] - 1.82
             a_x[condition] = (
-                1 + 0.17699 * y - 0.50447 * y ** 2 - 0.02427 * y ** 3 + 0.72085 * y ** 4
+                1 + 0.17699 * y - 0.50447 * y**2 - 0.02427 * y**3 + 0.72085 * y**4
             )
             a_x[condition] = (
-                a_x[condition] + 0.01979 * y ** 5 - 0.77530 * y ** 6 + 0.32999 * y ** 7
+                a_x[condition] + 0.01979 * y**5 - 0.77530 * y**6 + 0.32999 * y**7
             )
             b_x[condition] = (
-                1.41338 * y + 2.28305 * y ** 2 + 1.07233 * y ** 3 - 5.38434 * y ** 4
+                1.41338 * y + 2.28305 * y**2 + 1.07233 * y**3 - 5.38434 * y**4
             )
             b_x[condition] = (
-                b_x[condition] - 0.62251 * y ** 5 + 5.30260 * y ** 6 - 2.09002 * y ** 7
+                b_x[condition] - 0.62251 * y**5 + 5.30260 * y**6 - 2.09002 * y**7
             )
         # Dust in ultraviolet and UV (if needed for high-z) 3.3 /mu< x< 8 /mu.
         condition = (x >= 3.3) & (x < 5.9)
@@ -1115,31 +1115,31 @@ class Sed(object):
         condition = (x >= 0.3) & (x <= 1.1)
         if len(a_x[condition]) > 0:
             y = x[condition]
-            a_x[condition] = 0.574 * y ** 1.61
-            b_x[condition] = -0.527 * y ** 1.61
+            a_x[condition] = 0.574 * y**1.61
+            b_x[condition] = -0.527 * y**1.61
         # Dust in optical/NIR 1.1 /mu < x < 3.3 /mu region.
         condition = (x >= 1.1) & (x <= 3.3)
         if len(a_x[condition]) > 0:
             y = x[condition] - 1.82
             a_x[condition] = (
-                1 + 0.104 * y - 0.609 * y ** 2 + 0.701 * y ** 3 + 1.137 * y ** 4
+                1 + 0.104 * y - 0.609 * y**2 + 0.701 * y**3 + 1.137 * y**4
             )
             a_x[condition] = (
                 a_x[condition]
-                - 1.718 * y ** 5
-                - 0.827 * y ** 6
-                + 1.647 * y ** 7
-                - 0.505 * y ** 8
+                - 1.718 * y**5
+                - 0.827 * y**6
+                + 1.647 * y**7
+                - 0.505 * y**8
             )
             b_x[condition] = (
-                1.952 * y + 2.908 * y ** 2 - 3.989 * y ** 3 - 7.985 * y ** 4
+                1.952 * y + 2.908 * y**2 - 3.989 * y**3 - 7.985 * y**4
             )
             b_x[condition] = (
                 b_x[condition]
-                + 11.102 * y ** 5
-                + 5.491 * y ** 6
-                - 10.805 * y ** 7
-                + 3.347 * y ** 8
+                + 11.102 * y**5
+                + 5.491 * y**6
+                - 10.805 * y**7
+                + 3.347 * y**8
             )
         # Dust in ultraviolet and UV (if needed for high-z) 3.3 /mu< x< 8 /mu.
         condition = (x >= 3.3) & (x < 5.9)

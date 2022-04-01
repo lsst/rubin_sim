@@ -249,7 +249,7 @@ class ZernikePolynomialGenerator(object):
         # divide by zero and invalid double scalar
         # RuntimeWarnings
         with np.errstate(divide="ignore", invalid="ignore"):
-            r = np.sqrt(x ** 2 + y ** 2)
+            r = np.sqrt(x**2 + y**2)
             cos_phi = np.where(r > 0.0, x / r, 0.0)
             arccos_phi = np.arccos(cos_phi)
             phi = np.where(y >= 0.0, arccos_phi, 0.0 - arccos_phi)

@@ -310,7 +310,7 @@ class Kinem_model(object):
         -------
         numpy.ndarray
         """
-        dm = vmax ** 2 / accel
+        dm = vmax**2 / accel
         slewTime = np.where(
             distance < dm,
             2 * np.sqrt(distance / accel),
@@ -489,7 +489,7 @@ class Kinem_model(object):
         if lax_dome:
             # model dome creep, dome slit, and no azimuth settle
             # if we can fit both exposures in the dome slit, do so
-            sameDome = np.where(deltaAlt ** 2 + deltaAz ** 2 < self.camera_fov ** 2)
+            sameDome = np.where(deltaAlt**2 + deltaAz**2 < self.camera_fov**2)
 
             # else, we take the minimum time from two options:
             # 1. assume we line up alt in the center of the dome slit so we

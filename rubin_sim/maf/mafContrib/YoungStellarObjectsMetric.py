@@ -31,7 +31,7 @@ class star_density(object):
         self.gall = gall
         self.galb = galb
 
-        self.A = 0.8e8 / (4.0 * np.pi * self.h_thin * self.r_thin ** 2)
+        self.A = 0.8e8 / (4.0 * np.pi * self.h_thin * self.r_thin**2)
 
     def __call__(self, r):
         """
@@ -48,7 +48,7 @@ class star_density(object):
             -1.0 * r * np.abs(np.sin(self.galb)) / self.h_thin - R_galac / self.r_thin
         )
 
-        result = self.A * r ** 2 * np.exp(exponent)
+        result = self.A * r**2 * np.exp(exponent)
         return result
 
 

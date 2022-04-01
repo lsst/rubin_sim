@@ -178,7 +178,7 @@ class TestSNmetrics(unittest.TestCase):
         t = Telescope(airmass=1.2)
 
     def testSNCadenceMetric(self):
-        """Test the SN cadence metric """
+        """Test the SN cadence metric"""
 
         # Load up the files from sims_maf_contrib if possible
         sims_maf_contrib_dir = os.path.join(get_data_dir(), "maf")
@@ -244,7 +244,7 @@ class TestSNmetrics(unittest.TestCase):
             warnings.warn("skipping SN test because no rubin_sim_data set")
 
     def testSNSNRMetric(self):
-        """Test the SN SNR metric """
+        """Test the SN SNR metric"""
 
         sims_maf_contrib_dir = os.path.join(get_data_dir(), "maf")
         if sims_maf_contrib_dir is not None:
@@ -324,7 +324,7 @@ class TestSNmetrics(unittest.TestCase):
             warnings.warn("skipping SN test because no rubin_sim_data set")
 
     def testSNSLMetric(self):
-        """Test the SN SL metric """
+        """Test the SN SL metric"""
 
         # load some fake data
         data = None
@@ -357,7 +357,7 @@ class TestSNmetrics(unittest.TestCase):
         assert np.abs(nSL - nSL_ref) < 1.0e-8
 
     def testNSNMetric(self):
-        """ Test the SN NSN metric """
+        """Test the SN NSN metric"""
         sims_maf_contrib_dir = os.path.join(get_data_dir(), "maf")
         if sims_maf_contrib_dir is not None:
 

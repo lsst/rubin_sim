@@ -37,7 +37,7 @@ class TestSeeingModel(unittest.TestCase):
         self.assertEqual(fwhm_eff.shape, (len(seeingModel.eff_wavelens),))
         # Check actual value of seeing in @ wavelen[0] @ zenith after addition of system.
         fwhm_system = seeingModel.fwhm_system_zenith
-        expected_fwhm_eff = 1.16 * np.sqrt(fwhm_system ** 2 + 1.04 * fwhm_500 ** 2)
+        expected_fwhm_eff = 1.16 * np.sqrt(fwhm_system**2 + 1.04 * fwhm_500**2)
         self.assertAlmostEqual(fwhm_eff[0], expected_fwhm_eff, 15)
         # Check expected value if we remove the system component.
         seeingModel.fwhm_system_zenith = 0

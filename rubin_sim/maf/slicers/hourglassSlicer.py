@@ -8,7 +8,7 @@ __all__ = ["HourglassSlicer"]
 
 
 class HourglassSlicer(UniSlicer):
-    """Slicer to make the filter hourglass plots """
+    """Slicer to make the filter hourglass plots"""
 
     def __init__(self, verbose=True, badval=-666):
         # Inherits from UniSlicer, so nslice=1 and only one 'slice'.

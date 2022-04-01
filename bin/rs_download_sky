@@ -3,13 +3,13 @@ from rubin_sim.data import get_data_dir
 import os
 import subprocess
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    source = 'lsst-rsync.ncsa.illinois.edu::sim/sims_skybrightness_pre/healpix/*'
+    source = "lsst-rsync.ncsa.illinois.edu::sim/sims_skybrightness_pre/healpix/*"
     data_dir = get_data_dir()
-    destination = os.path.join(data_dir, 'skybrightness_pre')
+    destination = os.path.join(data_dir, "skybrightness_pre")
     if not os.path.isdir(data_dir):
         os.mkdir(data_dir)
         os.mkdir(destination)
 
-    subprocess.Popen(["rsync", "-av", "--progress", source, destination+'/']).wait()
+    subprocess.Popen(["rsync", "-av", "--progress", source, destination + "/"]).wait()

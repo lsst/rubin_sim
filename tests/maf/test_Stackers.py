@@ -101,7 +101,7 @@ class TestStackerClasses(unittest.TestCase):
     def _tDitherRange(self, diffsra, diffsdec, ra, dec, maxDither):
         self.assertLessEqual(np.abs(diffsra).max(), maxDither)
         self.assertLessEqual(np.abs(diffsdec).max(), maxDither)
-        offsets = np.sqrt(diffsra ** 2 + diffsdec ** 2)
+        offsets = np.sqrt(diffsra**2 + diffsdec**2)
         self.assertLessEqual(offsets.max(), maxDither)
         self.assertGreater(diffsra.max(), 0)
         self.assertGreater(diffsdec.max(), 0)
@@ -372,7 +372,7 @@ class TestStackerClasses(unittest.TestCase):
         np.testing.assert_almost_equal(data["HA"], -6.0)
 
     def testPAStacker(self):
-        """ Test the parallacticAngleStacker"""
+        """Test the parallacticAngleStacker"""
         data = np.zeros(
             100,
             dtype=list(

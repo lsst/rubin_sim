@@ -73,7 +73,7 @@ def trixel_intersects_half_space(trix, hspace):
                     c1[0] * c2[1] - c2[0] * c1[1],
                 ]
             )
-            z_axis = z_axis / np.sqrt((z_axis ** 2).sum())
+            z_axis = z_axis / np.sqrt((z_axis**2).sum())
 
             if np.dot(z_axis, c3) < 0.0:
                 z_axis *= -1.0
@@ -120,7 +120,7 @@ def trixel_intersects_half_space(trix, hspace):
 
             assert cos_a >= 0.0
             assert sin_a >= 0.0
-            assert np.abs(1.0 - cos_a ** 2 - sin_a ** 2) < 1.0e-10
+            assert np.abs(1.0 - cos_a**2 - sin_a**2) < 1.0e-10
             assert np.abs(np.dot(x_axis, z_axis)) < 1.0e-10
             assert np.abs(np.dot(x_axis, y_axis)) < 1.0e-10
             assert np.abs(np.dot(y_axis, z_axis)) < 1.0e-10
@@ -529,11 +529,11 @@ class HalfSpaceTest(unittest.TestCase):
         vv_list = np.zeros((n_pts, 3), dtype=float)
         for ii in range(n_pts):
             vv = rng.random_sample(3) - 0.5
-            vv /= np.sqrt(np.sum(vv ** 2))
+            vv /= np.sqrt(np.sum(vv**2))
             vv_list[ii] = vv
 
         vv = rng.random_sample(3) - 0.5
-        vv /= np.sqrt(np.sum(vv ** 2))
+        vv /= np.sqrt(np.sum(vv**2))
         hs = HalfSpace(vv, 0.3)
         results = hs.contains_many_pts(vv_list)
         is_true = np.where(results)[0]
@@ -604,16 +604,16 @@ class TrixelFinderTest(unittest.TestCase):
         for ii in range(8, 16):
             self.assertEqual(levelFromHtmid(ii), 1)
 
-        self.assertEqual(levelFromHtmid(2 ** 9 + 5), 4)
-        self.assertEqual(levelFromHtmid(2 ** 15 + 88), 7)
+        self.assertEqual(levelFromHtmid(2**9 + 5), 4)
+        self.assertEqual(levelFromHtmid(2**15 + 88), 7)
 
         with self.assertRaises(RuntimeError) as context:
-            levelFromHtmid(2 ** 10)
+            levelFromHtmid(2**10)
         self.assertIn("4+2n", context.exception.args[0])
 
         for ii in range(8):
             with self.assertRaises(RuntimeError) as context:
-                levelFromHtmid(2 ** 10)
+                levelFromHtmid(2**10)
             self.assertIn("4+2n", context.exception.args[0])
 
     def test_trixel_finding(self):
@@ -792,7 +792,7 @@ class TrixelFinderTest(unittest.TestCase):
         rng = np.random.RandomState(142)
         n_test_cases = 5
         for i_test in range(n_test_cases):
-            htmid = (13 << 6) + rng.randint(1, 2 ** 6 - 1)
+            htmid = (13 << 6) + rng.randint(1, 2**6 - 1)
             trixel = trixelFromHtmid(htmid)
             bounding_circle = trixel.bounding_circle
             ra_0, dec_0 = sphericalFromCartesian(bounding_circle[0])
