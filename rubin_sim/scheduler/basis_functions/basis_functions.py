@@ -48,6 +48,7 @@ __all__ = [
     "N_good_seeing_basis_function",
     "AvoidDirectWind",
     "BalanceVisits",
+    "RewardNObsSequence",
 ]
 
 
@@ -1944,7 +1945,7 @@ class AvoidDirectWind(Base_basis_function):
             conditions.az - conditions.wind_direction
         )
 
-        reward_map -= wind_pressure ** 2.0
+        reward_map -= wind_pressure**2.0
 
         mask = wind_pressure > self.wind_speed_maximum
 
@@ -1978,3 +1979,28 @@ class BalanceVisits(Base_basis_function):
             if self.survey_features["N_obs_survey"].feature > 0
             else 1
         )
+
+
+class RewardNObsSequence(Base_basis_function):
+    """Reward taking a sequence of observations.
+
+    Parameters
+    ----------
+    n_obs_survey : int
+        Number of observations to reward.
+    note_survey : str
+        The value of the observation note, to take into account.
+    nside : int, optional
+        Healpix map resolution (ignored).
+    """
+
+    def __init__(self, n_obs_survey, note_survey, nside=None):
+        super().__init__(nside=nside)
+
+        self.n_obs_survey = n_obs_survey
+
+        self.survey_features = {}
+        self.survey_features["N_obs_survey"] = features.N_obs_survey(note=note_survey)
+
+    def _calc_value(self, conditions, indx=None):
+        return self.survey_features["N_obs_survey"].feature % self.n_obs_survey
