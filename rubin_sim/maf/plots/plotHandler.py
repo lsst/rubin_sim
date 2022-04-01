@@ -708,7 +708,7 @@ class BokehPlotHandler(PlotHandler):
             # repeat colors if more bundles than colors in the palette. The default
             # palette has 256 colors, which should be more than enough to ensure this
             # will not happen for reasonable plots and the default palette.
-            colors = [self.color_palette[i % len(self.color_palette)] for i in range(num_bundles)]
+            colors = [self.palette[i % len(self.palette)] for i in range(num_bundles)]
         return colors
 
     def plot(
@@ -755,8 +755,9 @@ class BokehPlotHandler(PlotHandler):
             else:
                 plot = plotFunc(mB, plotDict, plot=plot)
 
-        # Add a legend if more than one metricValue is being plotted or if legendloc is specified.
-        # TODO Deal with legends
+        # If there is only one metric bundle being plotted, hide the legend
+        if len(self.mBundles)==1:
+            plot.legend.items = []
 
         # Add the super title if provided.
         if "suptitle" in self.plotDicts[0]:

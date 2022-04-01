@@ -24,7 +24,7 @@ class BaseBokehPlotter(BasePlotter, abc.ABC):
         }
 
     @abc.abstractmethod
-    def create_glyph(self, metric_bundle, glyph_args):
+    def add_glyph(self, metric_bundle, glyph_args):
         pass
 
     def check_data_source(self, data_source):
@@ -64,15 +64,15 @@ class BaseBokehPlotter(BasePlotter, abc.ABC):
                 if color_arg not in plotDict['glyph_args']:
                     glyph_args[color_arg] = plotDict['color']
 
+        if 'legend_label' not in glyph_args:
+            glyph_args['legend_label'] = metric_bundle.info_label
+
         plotDict['figure_args'] = figure_args
         plotDict['glyph_args'] = glyph_args
 
         return plotDict
 
     def __call__(self, metric_bundle, userPlotDict={}, plot=None):
-        data_source = metric_bundle.make_column_data_source()
-        self.check_data_source(data_source)
-
         plotDict = {}
         plotDict.update(self.defaultPlotDict)
         plotDict.update(userPlotDict)
@@ -85,9 +85,8 @@ class BaseBokehPlotter(BasePlotter, abc.ABC):
         glyph_args.update(self.default_glyph_args)
         user_glyph_args = plotDict.get("glyph_args", {})
         glyph_args.update(user_glyph_args)
-        glyph = self.create_glyph(metric_bundle, glyph_args)
 
-        plot.add_glyph(data_source, glyph)
+        self.add_glyph(plot, metric_bundle, glyph_args)
 
         self.refine_plot(plot, plotDict)
 

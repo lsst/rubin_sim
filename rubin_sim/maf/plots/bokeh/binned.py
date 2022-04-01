@@ -22,19 +22,23 @@ class OneDBinnedPlotter(BaseBokehPlotter):
 class OneDBinnedQuad(OneDBinnedPlotter):
     color_glyph_args = ['line_color', 'fill_color']
 
-    def create_glyph(self, metric_bundle, glyph_args):
+    def add_glyph(self, plot, metric_bundle, glyph_args):
+        data_source = metric_bundle.make_column_data_source()
+        self.check_data_source(data_source)
         metric_column_name = metric_bundle.data_source_metric_column_name
-        glyph = bokeh.models.Quad(
-            left="bin_min", right="bin_max", bottom=0, top=metric_column_name, **glyph_args
+        plot.quad(
+            left="bin_min", right="bin_max", bottom=0, top=metric_column_name, source=data_source, **glyph_args
         )
-        return glyph
+        return plot
 
 
 class OneDBinnedStep(OneDBinnedPlotter):
     color_glyph_args = ['line_color']
     default_glyph_args = {'mode': 'after'}
 
-    def create_glyph(self, metric_bundle, glyph_args):
+    def add_glyph(self, plot, metric_bundle, glyph_args):
+        data_source = metric_bundle.make_column_data_source()
+        self.check_data_source(data_source)
         metric_column_name = metric_bundle.data_source_metric_column_name
 
         if glyph_args['mode'] == 'after':
@@ -44,7 +48,6 @@ class OneDBinnedStep(OneDBinnedPlotter):
         else:
             raise NotImplementedError(f"Step mode {glyph_args['mode']} not supported by {self.__class__}")
 
-        glyph = bokeh.models.Step(
-            x="bin_min", y=metric_column_name, **glyph_args
-        )
-        return glyph
+        plot.step(x="bin_min", y=metric_column_name, source=data_source, **glyph_args)
+
+        return plot
