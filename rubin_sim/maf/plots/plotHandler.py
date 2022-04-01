@@ -6,6 +6,7 @@ import numpy as np
 import warnings
 import matplotlib.pyplot as plt
 import bokeh.io
+import bokeh.resources
 import rubin_sim.maf.utils as utils
 
 __all__ = ["applyZPNorm", "PlotHandler", "BasePlotter", "BokehPlotHandler"]
@@ -332,13 +333,9 @@ class PlotHandler(object):
             if len(self.mBundles) == 1:
                 mB = self.mBundles[0]
                 if len(mB.slicer.sliceColName) < len_max:
-                    xlabel = (
-                        mB.slicer.sliceColName + " (" + mB.slicer.sliceColUnits + ")"
-                    )
+                    xlabel = mB.slicer.sliceColName + " (" + mB.slicer.sliceColUnits + ")"
                 else:
-                    xlabel = (
-                        mB.slicer.sliceColName + " \n(" + mB.slicer.sliceColUnits + ")"
-                    )
+                    xlabel = mB.slicer.sliceColName + " \n(" + mB.slicer.sliceColUnits + ")"
                 ylabel = mB.metric.name + " (" + mB.metric.units + ")"
             else:
                 xlabel = set()
@@ -464,9 +461,7 @@ class PlotHandler(object):
         if len(self.mBundles) == 1:
             outfile = self.mBundles[0].fileRoot
         else:
-            outfile = "_".join(
-                [self.jointRunNames, self.jointMetricNames, self.jointMetadata]
-            )
+            outfile = "_".join([self.jointRunNames, self.jointMetricNames, self.jointMetadata])
             outfile += "_" + self.mBundles[0].slicer.slicerName[:4].upper()
         if outfileSuffix is not None:
             outfile += "_" + outfileSuffix
@@ -551,8 +546,7 @@ class PlotHandler(object):
                             pd["title"] = title
                     else:
                         warnings.warn(
-                            'Found more than one value to be set for "%s" in the plotDicts.'
-                            % (key)
+                            'Found more than one value to be set for "%s" in the plotDicts.' % (key)
                             + " Will reset to default value. (found values %s)" % values
                         )
                         reset_keys.append(key)
@@ -581,9 +575,7 @@ class PlotHandler(object):
                 if mB.metric.metricDtype == "object":
                     metricIsColor = mB.plotDict.get("metricIsColor", False)
                     if not metricIsColor:
-                        warnings.warn(
-                            "Cannot plot object metric values with this plotter."
-                        )
+                        warnings.warn("Cannot plot object metric values with this plotter.")
                         return
 
         # Update x/y labels using plotType.
@@ -601,9 +593,7 @@ class PlotHandler(object):
         for mB, plotDict in zip(self.mBundles, self.plotDicts):
             if mB.metricValues is None:
                 # Skip this metricBundle.
-                msg = 'MetricBundle (%s) has no attribute "metricValues".' % (
-                    mB.fileRoot
-                )
+                msg = 'MetricBundle (%s) has no attribute "metricValues".' % (mB.fileRoot)
                 msg += " Either the values have not been calculated or they have been deleted."
                 warnings.warn(msg)
             else:
@@ -662,15 +652,11 @@ class PlotHandler(object):
                 format=self.figformat,
             )
         else:
-            fig.savefig(
-                os.path.join(self.outDir, plotFile), dpi=self.dpi, format=self.figformat
-            )
+            fig.savefig(os.path.join(self.outDir, plotFile), dpi=self.dpi, format=self.figformat)
         # Generate a png thumbnail.
         if self.thumbnail:
             thumbFile = "thumb." + outfileRoot + "_" + plotType + ".png"
-            plt.savefig(
-                os.path.join(self.outDir, thumbFile), dpi=72, bbox_inches="tight"
-            )
+            plt.savefig(os.path.join(self.outDir, thumbFile), dpi=72, bbox_inches="tight")
         # Save information about the file to resultsDb.
         if self.resultsDb:
             if displayDict is None:
@@ -678,12 +664,9 @@ class PlotHandler(object):
             metricId = self.resultsDb.updateMetric(
                 metricName, slicerName, runName, constraint, info_label, None
             )
-            self.resultsDb.updateDisplay(
-                metricId=metricId, displayDict=displayDict, overwrite=False
-            )
-            self.resultsDb.updatePlot(
-                metricId=metricId, plotType=plotType, plotFile=plotFile
-            )
+            self.resultsDb.updateDisplay(metricId=metricId, displayDict=displayDict, overwrite=False)
+            self.resultsDb.updatePlot(metricId=metricId, plotType=plotType, plotFile=plotFile)
+
 
 class BokehPlotHandler(PlotHandler):
     def __init__(
@@ -693,7 +676,7 @@ class BokehPlotHandler(PlotHandler):
         savefig=True,
         figformat="html",
         thumbnail=True,
-        **kwargs, # Lets the code ignore unused arguments
+        **kwargs,  # Lets the code ignore unused arguments
     ):
         super().__init__(outDir, resultsDb, savefig, figformat, None, thumbnail, False)
 
@@ -717,9 +700,7 @@ class BokehPlotHandler(PlotHandler):
                 if mB.metric.metricDtype == "object":
                     metricIsColor = mB.plotDict.get("metricIsColor", False)
                     if not metricIsColor:
-                        warnings.warn(
-                            "Cannot plot object metric values with this plotter."
-                        )
+                        warnings.warn("Cannot plot object metric values with this plotter.")
                         return
 
         # Update x/y labels using plotType.
@@ -737,9 +718,7 @@ class BokehPlotHandler(PlotHandler):
         for mB, plotDict in zip(self.mBundles, self.plotDicts):
             if mB.metricValues is None:
                 # Skip this metricBundle.
-                msg = 'MetricBundle (%s) has no attribute "metricValues".' % (
-                    mB.fileRoot
-                )
+                msg = 'MetricBundle (%s) has no attribute "metricValues".' % (mB.fileRoot)
                 msg += " Either the values have not been calculated or they have been deleted."
                 warnings.warn(msg)
             else:
@@ -783,9 +762,9 @@ class BokehPlotHandler(PlotHandler):
     ):
 
         plotFile = outfileRoot + "_" + plotType + "." + self.figformat
-        if self.figformat=='html':
-            bokeh.plotting.save(plot, filename=plotFile)
-        elif self.figformat=='svg':
+        if self.figformat == "html":
+            bokeh.plotting.save(plot, filename=plotFile, resources=bokeh.resources.CDN, title=outfileRoot)
+        elif self.figformat == "svg":
             bokeh.io.export_svg(plot, filename=plotFile)
         else:
             raise ValueError(f"Figure format {self.figformat} is not supported by bokeh plots")
@@ -802,12 +781,8 @@ class BokehPlotHandler(PlotHandler):
             metricId = self.resultsDb.updateMetric(
                 metricName, slicerName, runName, constraint, info_label, None
             )
-            self.resultsDb.updateDisplay(
-                metricId=metricId, displayDict=displayDict, overwrite=False
-            )
-            self.resultsDb.updatePlot(
-                metricId=metricId, plotType=plotType, plotFile=plotFile
-            )
+            self.resultsDb.updateDisplay(metricId=metricId, displayDict=displayDict, overwrite=False)
+            self.resultsDb.updatePlot(metricId=metricId, plotType=plotType, plotFile=plotFile)
 
     def setPlotDicts(self, plotDicts=None, plotFunc=None, reset=False):
         """
@@ -834,24 +809,25 @@ class BokehPlotHandler(PlotHandler):
 
         # TODO: Call to check plotdict needs to be restored
 
+
 def update_plotDict(plotDict, updateDict):
     try:
-        figure_args = plotDict['figure_args']
+        figure_args = plotDict["figure_args"]
     except KeyError:
         figure_args = {}
 
-    if 'figure_args' in updateDict:
-        figure_args.update(updateDict['figure_args'])
+    if "figure_args" in updateDict:
+        figure_args.update(updateDict["figure_args"])
 
     try:
-        glyph_args = plotDict['glyph_args']
+        glyph_args = plotDict["glyph_args"]
     except KeyError:
         glyph_args = {}
 
-    if 'gylph_args' in updateDict:
-        glyph_args.update(updateDict['gylph_args'])
+    if "gylph_args" in updateDict:
+        glyph_args.update(updateDict["gylph_args"])
 
     plotDict.update(updateDict)
-    plotDict['figure_args'] = figure_args
-    plotDict['glyph_args'] = glyph_args
+    plotDict["figure_args"] = figure_args
+    plotDict["glyph_args"] = glyph_args
     return plotDict
