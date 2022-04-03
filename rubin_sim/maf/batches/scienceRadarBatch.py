@@ -43,6 +43,7 @@ def scienceRadarBatch(
     healslicer = slicers.HealpixSlicer(nside=nside)
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
+    """
     #########################
     #########################
     # SRD, DM, etc
@@ -1256,7 +1257,7 @@ def scienceRadarBatch(
             displayDict=displayDict,
         )
     )
-
+    """
     #########################
     #########################
     # Galactic Plane - TVS/MW
@@ -1351,8 +1352,8 @@ def scienceRadarBatch(
         )
 
     bundleList += list(bundles.values())
-    tmpBundleList = list(bundles.values())
 
+    """
     #########################
     #########################
     # Milky Way
@@ -1517,9 +1518,8 @@ def scienceRadarBatch(
         displayDict=displayDict,
     )
     bundleList.append(bundle)
-
+    """
     # Set the runName for all bundles and return the bundleDict.
-    bundleList = tmpBundleList
     for b in bundleList:
         b.setRunName(runName)
     bundleDict = mb.makeBundlesDictFromList(bundleList)
