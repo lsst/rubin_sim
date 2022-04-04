@@ -866,8 +866,8 @@ def update_plotDict(plotDict, updateDict):
     except KeyError:
         glyph_args = {}
 
-    if "gylph_args" in updateDict:
-        glyph_args.update(updateDict["gylph_args"])
+    if "glyph_args" in updateDict:
+        glyph_args.update(updateDict["glyph_args"])
 
     plotDict.update(updateDict)
     plotDict["figure_args"] = figure_args
