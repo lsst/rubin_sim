@@ -77,6 +77,11 @@ class BaseBokehPlotter(BasePlotter, abc.ABC):
         plotDict.update(self.defaultPlotDict)
         plotDict.update(userPlotDict)
 
+        # Do not modify in place, because that will make the inferred values
+        # persist into different kinds of plots where not all keywords will
+        # be valid.
+        plotDict = self.infer_plotDict(metric_bundle, plotDict, inplace=False)
+
         if plot is None:
             figure_args = plotDict.get("figure_args", {})
             plot = bokeh.plotting.figure(**figure_args)

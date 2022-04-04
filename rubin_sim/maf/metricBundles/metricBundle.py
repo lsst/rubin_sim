@@ -782,6 +782,7 @@ class MetricBundle(object):
             for plotFunc in self.plotFuncs:
                 fignum = plotHandler.plot(plotFunc, outfileSuffix=outfileSuffix)
                 madePlots[plotFunc.plotType] = fignum
+
         return madePlots
 
     def same_slicer_data_source(self, other_data_source, this_slicer_ds=None):

@@ -844,8 +844,6 @@ class BokehPlotHandler(PlotHandler):
         for i, bundle in enumerate(self.mBundles):
             self.plotDicts[i]['color'] = auto_color[i]
             update_plotDict(self.plotDicts[i], bundle.plotDict)
-            if plotFunc is not None:
-                plotFunc.infer_plotDict(bundle, self.plotDicts[i], inplace=True)
             if plotDicts is not None:
                 update_plotDict(self.plotDicts[i], plotDicts[i])
 
