@@ -65,6 +65,7 @@ class Kinem_model(object):
     def __init__(
         self, location=None, park_alt=86.5, park_az=0.0, start_filter="r", mjd0=0
     ):
+
         self.park_alt_rad = np.radians(park_alt)
         self.park_az_rad = np.radians(park_az)
         self.current_filter = start_filter
@@ -105,7 +106,7 @@ class Kinem_model(object):
         maxspeed=3.5,
         accel=1.0,
         decel=1.0,
-        two_motion_time=15.0,
+        shutter_2motion_min_time=15.0,
     ):
         """
         Parameters
@@ -126,7 +127,7 @@ class Kinem_model(object):
             The maximum speed of the rotator (degrees/s)
         accel : `float` (1.0)
             The acceleration of the rotator (degrees/s^2)
-        two_motion_time : `float` (15.)
+        shutter_2motion_min_time : `float` (15.)
             The time required for two shutter motions (seconds). If one takes
             a 1-snap 10s exposure, there will be a 5s of overhead before the next exposure can start.
         """
@@ -140,7 +141,7 @@ class Kinem_model(object):
         self.telrot_maxspeed_rad = np.radians(maxspeed)
         self.telrot_accel_rad = np.radians(accel)
         self.telrot_decel_rad = np.radians(decel)
-        self.two_motion_time = two_motion_time
+        self.shutter_2motion_min_time = shutter_2motion_min_time
         self.mounted_filters = ["u", "g", "r", "i", "y"]
 
     def setup_dome(
@@ -622,8 +623,8 @@ class Kinem_model(object):
         """Time we need to stall after shutter closes to let things cool down"""
         result = 0.0
         delta_t = observation["exptime"] / observation["nexp"]
-        if delta_t < self.two_motion_time:
-            result = self.two_motion_time - delta_t
+        if delta_t < self.shutter_2motion_min_time:
+            result = self.shutter_2motion_min_time - delta_t
         return result
 
     def observe(self, observation, mjd, rotTelPos=None, lax_dome=True):
@@ -631,13 +632,14 @@ class Kinem_model(object):
 
         If slew is not allowed, returns np.nan and does not update state.
         """
-        if (observation["nexp"] > 2) & (
-            observation["exptime"] / observation["nexp"] < self.two_motion_time
+        if (observation["nexp"] >= 2) & (
+            observation["exptime"] / observation["nexp"] < self.shutter_2motion_min_time
         ):
-            warnings.warn(
+            msg = (
                 "%i exposures in %i seconds is violating number of shutter motion limit"
                 % (observation["nexp"], observation["exptime"])
             )
+            warnings.warn(msg)
 
         slewtime = self.slew_times(
             observation["RA"],
