@@ -43,7 +43,6 @@ def scienceRadarBatch(
     healslicer = slicers.HealpixSlicer(nside=nside)
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
-    """
     #########################
     #########################
     # SRD, DM, etc
@@ -221,7 +220,7 @@ def scienceRadarBatch(
     # This separates the effect of cadence from depth.
     for rmag in rmags_para:
         metric = metrics.ParallaxMetric(
-            metricName="Normalized Parallax @ %.1f" % (rmag),
+            metricName="Normalized Parallax Uncert @ %.1f" % (rmag),
             rmag=rmag,
             normalize=True,
         )
@@ -312,7 +311,7 @@ def scienceRadarBatch(
     # Normalized proper motion.
     for rmag in rmags_pm:
         metric = metrics.ProperMotionMetric(
-            metricName="Normalized Proper Motion @ %.1f" % rmag,
+            metricName="Normalized Proper Motion Uncert @ %.1f" % rmag,
             rmag=rmag,
             normalize=True,
         )
@@ -1257,7 +1256,7 @@ def scienceRadarBatch(
             displayDict=displayDict,
         )
     )
-    """
+
     #########################
     #########################
     # Galactic Plane - TVS/MW
@@ -1353,7 +1352,6 @@ def scienceRadarBatch(
 
     bundleList += list(bundles.values())
 
-    """
     #########################
     #########################
     # Milky Way
@@ -1518,7 +1516,7 @@ def scienceRadarBatch(
         displayDict=displayDict,
     )
     bundleList.append(bundle)
-    """
+
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
         b.setRunName(runName)
