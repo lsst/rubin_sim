@@ -221,6 +221,9 @@ def quickDiscoveryBatch(
         parentBundle.childBundles["N_Chances"].setDisplayDict(dispDict)
         return
 
+    tMin = 5.0 / 60.0 / 24.0
+    tMax = 90.0 / 60.0 / 24.0
+
     # 3 pairs in 15
     md = info_label + " 3 pairs in 15 nights" + detectionLosses
     # Set up plot dict.
@@ -228,8 +231,8 @@ def quickDiscoveryBatch(
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
         nObsPerNight=2,
-        tMin=0,
-        tMax=90.0 / 60.0 / 24.0,
+        tMin=tMin,
+        tMax=tMax,
         nNightsPerWindow=3,
         tWindow=15,
         **colkwargs,
@@ -256,8 +259,8 @@ def quickDiscoveryBatch(
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
         nObsPerNight=2,
-        tMin=0,
-        tMax=90.0 / 60.0 / 24.0,
+        tMin=tMin,
+        tMax=tMax,
         nNightsPerWindow=3,
         tWindow=30,
         **colkwargs,
@@ -366,6 +369,9 @@ def discoveryBatch(
         }
         parentBundle.childBundles["N_Chances"].setDisplayDict(dispDict)
 
+    tMin = 5.0 / 60.0 / 24.0
+    tMax = 90.0 / 60.0 / 24.0
+
     # 3 pairs in 15 and 3 pairs in 30 done in 'quickDiscoveryBatch' (with vis).
 
     # 4 pairs in 20
@@ -374,8 +380,8 @@ def discoveryBatch(
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
         nObsPerNight=2,
-        tMin=0,
-        tMax=90.0 / 60.0 / 24.0,
+        tMin=tMin,
+        tMax=tMax,
         nNightsPerWindow=4,
         tWindow=20,
         **colkwargs,
@@ -402,7 +408,7 @@ def discoveryBatch(
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
         nObsPerNight=3,
-        tMin=0,
+        tMin=tMin,
         tMax=120.0 / 60.0 / 24.0,
         nNightsPerWindow=3,
         tWindow=30,
@@ -430,7 +436,7 @@ def discoveryBatch(
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
         nObsPerNight=4,
-        tMin=0,
+        tMin=tMin,
         tMax=150.0 / 60.0 / 24.0,
         nNightsPerWindow=1,
         tWindow=2,
@@ -461,8 +467,8 @@ def discoveryBatch(
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
         nObsPerNight=2,
-        tMin=0,
-        tMax=90.0 / 60.0 / 24.0,
+        tMin=tMin,
+        tMax=tMax,
         nNightsPerWindow=3,
         tWindow=15,
         snrLimit=5,
@@ -490,8 +496,8 @@ def discoveryBatch(
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
         nObsPerNight=2,
-        tMin=0,
-        tMax=90.0 / 60.0 / 24.0,
+        tMin=tMin,
+        tMax=tMax,
         nNightsPerWindow=3,
         tWindow=15,
         snrLimit=4,
@@ -519,8 +525,8 @@ def discoveryBatch(
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
         nObsPerNight=2,
-        tMin=0,
-        tMax=90.0 / 60.0 / 24.0,
+        tMin=tMin,
+        tMax=tMax,
         nNightsPerWindow=3,
         tWindow=15,
         snrLimit=3,
@@ -549,8 +555,8 @@ def discoveryBatch(
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
         nObsPerNight=2,
-        tMin=0,
-        tMax=90.0 / 60.0 / 24.0,
+        tMin=tMin,
+        tMax=tMax,
         nNightsPerWindow=3,
         tWindow=15,
         snrLimit=0,
@@ -579,8 +585,8 @@ def discoveryBatch(
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
         nObsPerNight=1,
-        tMin=0,
-        tMax=90.0 / 60.0 / 24.0,
+        tMin=tMin,
+        tMax=tMax,
         nNightsPerWindow=1,
         tWindow=5,
         **colkwargs,
@@ -607,8 +613,8 @@ def discoveryBatch(
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
         nObsPerNight=2,
-        tMin=0,
-        tMax=90.0 / 60.0 / 24.0,
+        tMin=tMin,
+        tMax=tMax,
         nNightsPerWindow=1,
         tWindow=5,
         **colkwargs,
