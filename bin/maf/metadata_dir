@@ -36,6 +36,12 @@ if __name__ == "__main__":
         help="Threshold number of visits per pointing to use to define the WFD footprint."
         "Default value of 750 corresponds to the minimum median value per pointing from the SRD.",
     )
+    parser.add_argument(
+        "--no_clobber",
+        dest="no_clobber",
+        action="store_false",
+        help="Do not remove existing directory outputs",
+    )
     args = parser.parse_args()
 
     # If runNames not given, scan for opsim databases in current directory and use those
@@ -70,10 +76,10 @@ if __name__ == "__main__":
         colmap = batches.ColMapDict()
 
         # Set and create if needed the output directory
-        # I guess 'meta' really means to be more like 'conditions' of visits here.
         outDir = opsim + "_meta"
-        if os.path.isdir(outDir):
-            shutil.rmtree(outDir)
+        if not args.no_clobber:
+            if os.path.isdir(outDir):
+                shutil.rmtree(outDir)
 
         # Find the 'wfd' footprint
         m = CountExplimMetric(col="observationStartMJD")
@@ -173,7 +179,7 @@ if __name__ == "__main__":
             opsimRun=opsim,
             opsimVersion=None,
             opsimDate=None,
-            mafComment="Metadata",
+            mafComment="Simple",
             mafVersion=mafVersion,
             mafDate=mafDate,
             mafDir=outDir,

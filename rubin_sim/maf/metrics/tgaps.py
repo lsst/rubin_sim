@@ -7,6 +7,7 @@ __all__ = [
     "NightgapsMetric",
     "NVisitsPerNightMetric",
     "MaxGapMetric",
+    "NightTimespanMetric",
 ]
 
 
@@ -44,7 +45,7 @@ class TgapsMetric(BaseMetric):
         allGaps=False,
         bins=np.arange(0, 120.0, 5.0) / 60.0 / 24.0,
         units="days",
-        **kwargs
+        **kwargs,
     ):
         # Pass the same bins to the plotter.
         self.bins = bins
@@ -107,7 +108,7 @@ class TgapsPercentMetric(BaseMetric):
         minTime=2.0 / 24,
         maxTime=14.0 / 24,
         units="percent",
-        **kwargs
+        **kwargs,
     ):
         self.timesCol = timesCol
         assert minTime <= maxTime
@@ -167,7 +168,7 @@ class NightgapsMetric(BaseMetric):
         allGaps=False,
         bins=np.arange(0, 10, 1),
         units="nights",
-        **kwargs
+        **kwargs,
     ):
         # Pass the same bins to the plotter.
         self.bins = bins
@@ -228,7 +229,7 @@ class NVisitsPerNightMetric(BaseMetric):
 
 
 class MaxGapMetric(BaseMetric):
-    """Find the maximum gap in between observations.
+    """Find the maximum gap (in days) in between successive observations.
 
     Useful for making sure there is an image within the last year that would make a good template image.
 
@@ -254,4 +255,49 @@ class MaxGapMetric(BaseMetric):
             result = np.max(gaps)
         else:
             result = self.badval
+        return result
+
+
+class NightTimespanMetric(BaseMetric):
+    """Calculate the maximum time span covered in each night, report the `percentile` value of all timespans.
+
+    Parameters
+    ----------
+    percentile : `float`, opt
+        Percentile value to report. Default 75th percentile.
+    nightCol : `str`, opt
+        Name of the night column. Default 'night'.
+    mjdCol : `str`, opt
+        Name of the MJD visit column. Default 'observationStartMJD'.
+    """
+
+    def __init__(
+        self, percentile=75, nightCol="night", mjdCol="observationStartMJD", **kwargs
+    ):
+        self.percentile = percentile
+        self.nightCol = nightCol
+        self.mjdCol = mjdCol
+        if "metricName" in kwargs:
+            metricName = kwargs["metricName"]
+            del kwargs["metricName"]
+        else:
+            metricName = f"{percentile}th Percentile Intranight Timespan"
+        super().__init__(
+            col=[self.nightCol, self.mjdCol],
+            units="minutes",
+            metricName=metricName,
+            **kwargs,
+        )
+
+    def run(self, dataSlice, slicePoint=None):
+        data = np.sort(dataSlice, order=self.mjdCol)
+        unights, counts = np.unique(data[self.nightCol], return_counts=True)
+        unights = unights[np.where(counts > 1)]
+        if len(unights) == 0:
+            result = self.badval
+        else:
+            nstart = np.searchsorted(data[self.nightCol], unights, side="left")
+            nend = np.searchsorted(data[self.nightCol], unights, side="right") - 1
+            tspans = (data[self.mjdCol][nend] - data[self.mjdCol][nstart]) * 24.0 * 60.0
+            result = np.percentile(tspans, self.percentile)
         return result
