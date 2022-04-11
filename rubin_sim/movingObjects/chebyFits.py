@@ -486,7 +486,7 @@ class ChebyFits(object):
                     fitFailed = True
             if fitFailed:
                 warnings.warn(
-                    "Fit failed for orbitObj %d for times between %f and %f"
+                    "Fit failed for orbitObj %s for times between %f and %f"
                     % (objId, tSegmentStart, tSegmentEnd)
                 )
                 self.failed.append(
