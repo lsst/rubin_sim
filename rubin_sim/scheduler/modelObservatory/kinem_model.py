@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 from rubin_sim.utils import (
     Site,
     _approx_altAz2RaDec,
@@ -64,6 +65,7 @@ class Kinem_model(object):
     def __init__(
         self, location=None, park_alt=86.5, park_az=0.0, start_filter="r", mjd0=0
     ):
+
         self.park_alt_rad = np.radians(park_alt)
         self.park_az_rad = np.radians(park_az)
         self.current_filter = start_filter
@@ -104,6 +106,7 @@ class Kinem_model(object):
         maxspeed=3.5,
         accel=1.0,
         decel=1.0,
+        shutter_2motion_min_time=15.0,
     ):
         """
         Parameters
@@ -124,6 +127,9 @@ class Kinem_model(object):
             The maximum speed of the rotator (degrees/s)
         accel : `float` (1.0)
             The acceleration of the rotator (degrees/s^2)
+        shutter_2motion_min_time : `float` (15.)
+            The time required for two shutter motions (seconds). If one takes
+            a 1-snap 10s exposure, there will be a 5s of overhead before the next exposure can start.
         """
         self.readtime = readtime
         self.shuttertime = shuttertime
@@ -135,6 +141,7 @@ class Kinem_model(object):
         self.telrot_maxspeed_rad = np.radians(maxspeed)
         self.telrot_accel_rad = np.radians(accel)
         self.telrot_decel_rad = np.radians(decel)
+        self.shutter_2motion_min_time = shutter_2motion_min_time
         self.mounted_filters = ["u", "g", "r", "i", "y"]
 
     def setup_dome(
@@ -276,6 +283,10 @@ class Kinem_model(object):
         self.last_alt_rad = self.park_alt_rad
         self.last_rot_tel_pos_rad = 0
 
+        # Any overhead that must happen before next exposure can start. Slew
+        # motions are allowed during the overhead time
+        self.overhead = 0.0
+
     def current_alt_az(self, mjd):
         """return the current alt az position that we have tracked to."""
         if self.parked:
@@ -333,7 +344,6 @@ class Kinem_model(object):
         starting_az_rad=None,
         starting_rotTelPos_rad=None,
         update_tracking=False,
-        include_readtime=True,
     ):
         """Calculates ``slew'' time to a series of alt/az/filter positions from the current
         position (stored internally).
@@ -390,10 +400,6 @@ class Kinem_model(object):
         update_tracking : `bool` (False)
             If True, update the internal attributes to say we are tracking the
             specified RA,Dec,RotSkyPos position.
-        include_readtime : `bool` (True)
-            Assume the camera must be read before opening the shutter,
-            and include that readtime in the returned slewtime.
-            Readtime will never be included if the telescope was parked before the slew.
 
         Returns
         -------
@@ -478,9 +484,9 @@ class Kinem_model(object):
         totTelTime[settleAndOL] += np.maximum(
             0, self.mount_settletime - olTime[settleAndOL]
         )
-        # And readout puts a floor on tel time
-        if include_readtime:
-            totTelTime = np.maximum(self.readtime, totTelTime)
+
+        # And any leftover overhead sets a minimum on the total telescope time
+        totTelTime = np.maximum(self.overhead, totTelTime)
 
         # now compute dome slew time
         # the dome can spin all the way around, so we will let it go the shortest angle,
@@ -605,7 +611,7 @@ class Kinem_model(object):
         return slewTime
 
     def visit_time(self, observation):
-        # How long does it take to make an observation. Assume final read can be done during next slew.
+        # How long does it take to make an observation.
         visit_time = (
             observation["exptime"]
             + observation["nexp"] * self.shuttertime
@@ -613,11 +619,28 @@ class Kinem_model(object):
         )
         return visit_time
 
+    def shutter_stall(self, observation):
+        """Time we need to stall after shutter closes to let things cool down"""
+        result = 0.0
+        delta_t = observation["exptime"] / observation["nexp"]
+        if delta_t < self.shutter_2motion_min_time:
+            result = self.shutter_2motion_min_time - delta_t
+        return result
+
     def observe(self, observation, mjd, rotTelPos=None, lax_dome=True):
         """observe a target, and return the slewtime and visit time for the action
 
         If slew is not allowed, returns np.nan and does not update state.
         """
+        if (observation["nexp"] >= 2) & (
+            observation["exptime"] / observation["nexp"] < self.shutter_2motion_min_time
+        ):
+            msg = (
+                "%i exposures in %i seconds is violating number of shutter motion limit"
+                % (observation["nexp"], observation["exptime"])
+            )
+            warnings.warn(msg)
+
         slewtime = self.slew_times(
             observation["RA"],
             observation["dec"],
@@ -629,4 +652,8 @@ class Kinem_model(object):
             lax_dome=lax_dome,
         )
         visit_time = self.visit_time(observation)
+        # Compute any overhead that is left over from this
+        if ~np.isnan(slewtime):
+            self.overhead = np.max([self.readtime, self.shutter_stall(observation)])
+
         return slewtime, visit_time
