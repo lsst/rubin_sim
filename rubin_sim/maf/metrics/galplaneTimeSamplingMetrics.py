@@ -219,5 +219,5 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
             # if the season gap is shorter than the expected season gap, count this as 'good'
             good_season_gaps = np.where(season_gaps <= self.expected_season_gap)
             metric_data[tau][good_season_gaps] = 1
-            metric_data[tau] /= len(season_gaps)
+            metric_data[tau] = metric_data[tau].sum() / len(season_gaps)
         return metric_data

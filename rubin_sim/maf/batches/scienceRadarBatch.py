@@ -220,7 +220,7 @@ def scienceRadarBatch(
     # This separates the effect of cadence from depth.
     for rmag in rmags_para:
         metric = metrics.ParallaxMetric(
-            metricName="Normalized Parallax @ %.1f" % (rmag),
+            metricName="Normalized Parallax Uncert @ %.1f" % (rmag),
             rmag=rmag,
             normalize=True,
         )
@@ -311,7 +311,7 @@ def scienceRadarBatch(
     # Normalized proper motion.
     for rmag in rmags_pm:
         metric = metrics.ProperMotionMetric(
-            metricName="Normalized Proper Motion @ %.1f" % rmag,
+            metricName="Normalized Proper Motion Uncert @ %.1f" % rmag,
             rmag=rmag,
             normalize=True,
         )
@@ -1262,6 +1262,9 @@ def scienceRadarBatch(
     # Galactic Plane - TVS/MW
     #########################
     #########################
+
+    displayDict = {"group": "Galactic Plane", "subgroup": ""}
+
     footprint_summaries = [metrics.SumMetric()]
     footprint_plotDicts = {"percentileClip": 95}
     filter_summaries = [
@@ -1289,6 +1292,10 @@ def scienceRadarBatch(
     sql = None
     bundles = {}
     for m in science_maps:
+        displayDict["subgroup"] = m
+        displayDict[
+            "caption"
+        ] = f"Footprint relevant for {m} galactic plane science case."
         footprintmetric = metrics.GalPlaneFootprintMetric(science_map=m)
         bundles[f"{m} footprint"] = mb.MetricBundle(
             footprintmetric,
@@ -1297,7 +1304,11 @@ def scienceRadarBatch(
             plotDict=footprint_plotDicts,
             runName=runName,
             summaryMetrics=footprint_summaries,
+            displayDict=displayDict,
         )
+        displayDict[
+            "caption"
+        ] = f"Filter balance in region of {m}  galactic plane science case."
         filtermetric = metrics.GalPlaneTimePerFilterMetric(science_map=m)
         bundles[f"{m} filter"] = mb.MetricBundle(
             filtermetric,
@@ -1306,7 +1317,11 @@ def scienceRadarBatch(
             plotDict=filter_plotdicts,
             runName=runName,
             summaryMetrics=filter_summaries,
+            displayDict=displayDict,
         )
+        displayDict[
+            "caption"
+        ] = f"Timescale intervals in region of {m} galactic plane science case."
         visit_timescalesmetric = metrics.GalPlaneVisitIntervalsTimescaleMetric(
             science_map=m
         )
@@ -1317,7 +1332,11 @@ def scienceRadarBatch(
             plotDict=timescale_plotdicts,
             runName=runName,
             summaryMetrics=timescale_summaries,
+            displayDict=displayDict,
         )
+        displayDict[
+            "caption"
+        ] = f"Seasonal coverage in region of {m} galactic plane science case."
         season_timescalemetric = metrics.GalPlaneSeasonGapsTimescaleMetric(
             science_map=m
         )
@@ -1328,7 +1347,10 @@ def scienceRadarBatch(
             plotDict=timescale_plotdicts,
             runName=runName,
             summaryMetrics=timescale_summaries,
+            displayDict=displayDict,
         )
+
+    bundleList += list(bundles.values())
 
     #########################
     #########################

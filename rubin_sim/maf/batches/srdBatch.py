@@ -248,7 +248,7 @@ def astrometryBatch(
             area=18000,
             reduce_func=np.median,
             decreasing=False,
-            metricName="Median Parallax Error (18k)",
+            metricName="Median Parallax Uncert (18k)",
         ),
         metrics.AreaThresholdMetric(
             upper_threshold=good_parallax_limit,
@@ -257,14 +257,14 @@ def astrometryBatch(
     ]
     summary.append(
         metrics.PercentileMetric(
-            percentile=95, metricName="95th Percentile Parallax Error"
+            percentile=95, metricName="95th Percentile Parallax Uncert"
         )
     )
     summary.extend(standardSummary())
     for rmag, plotmax in zip(rmags_para, plotmaxVals):
         plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
         metric = metrics.ParallaxMetric(
-            metricName="Parallax Error @ %.1f" % (rmag),
+            metricName="Parallax Uncert @ %.1f" % (rmag),
             rmag=rmag,
             seeingCol=colmap["seeingGeom"],
             filterCol=colmap["filter"],
@@ -289,7 +289,7 @@ def astrometryBatch(
     # This separates the effect of cadence from depth.
     for rmag in rmags_para:
         metric = metrics.ParallaxMetric(
-            metricName="Normalized Parallax @ %.1f" % (rmag),
+            metricName="Normalized Parallax Uncert @ %.1f" % (rmag),
             rmag=rmag,
             seeingCol=colmap["seeingGeom"],
             filterCol=colmap["filter"],
@@ -371,17 +371,17 @@ def astrometryBatch(
             area=18000,
             reduce_func=np.median,
             decreasing=False,
-            metricName="Median Proper Motion Error (18k)",
+            metricName="Median Proper Motion Uncert (18k)",
         )
     ]
     summary.append(
-        metrics.PercentileMetric(metricName="95th Percentile Proper Motion Error")
+        metrics.PercentileMetric(metricName="95th Percentile Proper Motion Uncert")
     )
     summary.extend(standardSummary())
     for rmag, plotmax in zip(rmags_pm, plotmaxVals):
         plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
         metric = metrics.ProperMotionMetric(
-            metricName="Proper Motion Error @ %.1f" % rmag,
+            metricName="Proper Motion Uncert @ %.1f" % rmag,
             rmag=rmag,
             m5Col=colmap["fiveSigmaDepth"],
             mjdCol=colmap["mjd"],
@@ -404,7 +404,7 @@ def astrometryBatch(
     # Normalized proper motion.
     for rmag in rmags_pm:
         metric = metrics.ProperMotionMetric(
-            metricName="Normalized Proper Motion @ %.1f" % rmag,
+            metricName="Normalized Proper Motion Uncert @ %.1f" % rmag,
             rmag=rmag,
             m5Col=colmap["fiveSigmaDepth"],
             mjdCol=colmap["mjd"],

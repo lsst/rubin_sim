@@ -170,7 +170,7 @@ def intraNight(
         "caption"
     ] = "Median gap between consecutive visits within a night, all bands"
     if info_label is None or len(info_label) == 0:
-        displayDict["caption"] += ", all proposals."
+        displayDict["caption"] += ", all visits."
     else:
         displayDict["caption"] += ", %s." % info_label
     displayDict["order"] += 1
@@ -186,6 +186,79 @@ def intraNight(
         summaryMetrics=standardStats,
     )
     bundleList.append(bundle)
+
+    # Max Timespans (in each night)
+    # Run in all filters, u+g, g+r, r+i, i+z and z+y filters, and individual filters
+
+    metric = metrics.NightTimespanMetric(
+        percentile=75, nightCol=colmap["night"], mjdCol=colmap["mjd"]
+    )
+    displayDict[
+        "caption"
+    ] = "75th percentile value of the maximum intra-night timespan, on each night"
+    # individual and all filters
+    filterlist, colors, orders, sqls, info_labels = filterList(
+        all=True, extraSql=extraSql, extraInfoLabel=info_label
+    )
+    for sql, info in zip(sqls, info_labels):
+        if info_label is None or len(info_label) == 0:
+            displayDict["caption"] += ", all visits."
+        else:
+            displayDict["caption"] += ", %s." % info_label
+        displayDict["order"] += 1
+        plotDict = {"percentileClip": 98}
+        bundle = mb.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            info_label=info,
+            displayDict=displayDict,
+            plotFuncs=subsetPlots,
+            plotDict=plotDict,
+            summaryMetrics=standardStats,
+        )
+        bundleList.append(bundle)
+    # subsets of adjacent filters
+    filtersubsets = {
+        "ug": '(filter = "u" or filter = "g")',
+        "gr": '(filter = "g" or filter = "r")',
+        "ri": '(filter = "r" or filter = "i")',
+        "iz": '(filter = "i" or filter = "z")',
+        "zy": '(filter = "z" or filter = "y")',
+    }
+    sqls = [extraSql]
+    if extraSql is not None and len(extraSql) > 0:
+        for fi in filtersubsets:
+            sqls.append(f"{extraSql} and {filtersubsets[fi]}")
+    else:
+        for fi in filtersubsets:
+            sqls.append(f"{filtersubsets[fi]}")
+    md = [info_label]
+    if info_label is not None:
+        for fi in filtersubsets:
+            md.append(f"{info_label} {fi} bands")
+    else:
+        for fi in filtersubsets:
+            md.append(f"{fi} bands")
+
+    for sql, info in zip(sqls, md):
+        if info_label is None or len(info_label) == 0:
+            displayDict["caption"] += ", all visits."
+        else:
+            displayDict["caption"] += ", %s." % info_label
+        displayDict["order"] += 1
+        plotDict = {"percentileClip": 98}
+        bundle = mb.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            info_label=info,
+            displayDict=displayDict,
+            plotFuncs=subsetPlots,
+            plotDict=plotDict,
+            summaryMetrics=standardStats,
+        )
+        bundleList.append(bundle)
 
     # Histogram the number of visits per night.
     countbins = np.arange(0, 10, 1)
@@ -338,6 +411,23 @@ def interNight(
 
     standardStats = standardSummary()
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
+
+    # Look at the total number of unique nights with visits
+    metric = metrics.CountUniqueMetric(
+        col=colmap["night"], metricName="N Unique Nights"
+    )
+    displayDict["caption"] = "Number of unique nights with visits"
+    bundle = mb.MetricBundle(
+        metric,
+        slicer,
+        sqls["all"],
+        info_label=info_label["all"],
+        displayDict=displayDict,
+        plotFuncs=subsetPlots,
+        plotDict={"colorMin": 0, "colorMax": 500},
+        summaryMetrics=standardStats,
+    )
+    bundleList.append(bundle)
 
     # Median inter-night gap (each and all filters)
     metric = metrics.InterNightGapsMetric(
