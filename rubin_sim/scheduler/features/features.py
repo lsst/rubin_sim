@@ -586,7 +586,11 @@ class Pair_in_night(BaseSurveyFeature):
         self.hpid_log = []
 
     def add_observation(self, observation, indx=None):
-        if observation["filter"][0] in self.filtername:
+        if self.filtername is None:
+            infilt = True
+        else:
+            infilt = observation["filter"][0] in self.filtername
+        if infilt:
             if indx is None:
                 indx = self.indx
             # Clear values if on a new night
