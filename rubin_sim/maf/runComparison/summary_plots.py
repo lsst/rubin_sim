@@ -1,6 +1,8 @@
 """Summary metric plotting functions.
 """
 
+__all__ = ["normalize_metric_summaries", "plot_run_metric", "plot_run_metric_mesh"]
+
 # imports
 import warnings
 import numpy as np
@@ -133,7 +135,6 @@ def plot_run_metric(
     baseline_run=None,
     vertical_quantity="run",
     horizontal_quantity="value",
-    vwidth=1,
     run_label_map=None,
     metric_label_map=None,
     metric_set=None,
@@ -166,7 +167,7 @@ def plot_run_metric(
         it makes it harder to match plots to data.
     metric_label_map : mapping
         A python `mapping` between canonical metric names and metric labels
-        as they should appear on plot labels. Use of this option is discouraged, because
+        as they should appear on plot labels. Use this option carefully, because
         it makes it harder to match plots to metric calculation code..
     metric_set : `pandas.DataFrame`
         Metric metadata as returned by `archive.get_metric_sets`
@@ -215,12 +216,11 @@ def plot_run_metric(
                 baseline_run, summary, metric_sets=metric_set
             )
         )
-        .stack()
+        .stack(dropna=False)
         .rename("value")
         .reset_index()
         .rename(columns={"OpsimRun": "run"})
     )
-    norm_summary = norm_summary.loc[np.isfinite(norm_summary.value), :]
 
     if run_label_map is not None:
         norm_summary["run"] = norm_summary["run"].map(run_label_map)
@@ -261,7 +261,7 @@ def plot_run_metric(
         plot_df["color"] = norm_summary[color_quantity]
 
     if ax is None:
-        fig, ax = plt.subplots(figsize=(6, 6))
+        fig, ax = plt.subplots(figsize=(10, 6))
     else:
         fig = plt.Figure(figsize=(6, 10)) if ax is None else ax.get_figure()
 
@@ -284,13 +284,13 @@ def plot_run_metric(
     )
 
     plot_df.set_index("color", inplace=True)
-    for idx in plot_df.index.unique():
-        # good_points = np.isfinite(plot_df.loc[idx, "x"])
 
-        # Due to wierdness with matplotlib arg handling,
+    for idx in plot_df.index.unique():
+        # Due to weirdness with matplotlib arg handling,
         # make sure we get to pass the style argument
         # as a positional argument, whether or not it is
         # specified.
+
         plot_args = [plot_df.loc[idx, "x"], plot_df.loc[idx, "y"]]
         if (
             this_metric_set is not None
@@ -300,17 +300,18 @@ def plot_run_metric(
             metric_style = this_metric_set.loc[idx, "style"]
             if metric_style is not None:
                 plot_args.append(metric_style)
-
         ax.plot(*plot_args, label=str(idx).strip())
 
     if shade_fraction is not None and shade_fraction > 0:
         if vertical_quantity == "value":
-            xlim = ax.get_xlim()
+            # Set xlim to be exact length of number of runs
+            xlim_new = [0, len(summary) - 1]
+            ax.set_xlim(xlim_new)
             high_shade_bottom = 1 + shade_fraction
             high_shade_top = ax.get_ylim()[1]
             if high_shade_top > high_shade_bottom:
                 ax.fill_between(
-                    xlim,
+                    xlim_new,
                     high_shade_bottom,
                     high_shade_top,
                     color="g",
@@ -321,7 +322,7 @@ def plot_run_metric(
             low_shade_bottom = ax.get_ylim()[0]
             if low_shade_top > low_shade_bottom:
                 ax.fill_between(
-                    xlim, low_shade_bottom, low_shade_top, color="r", alpha=0.1
+                    xlim_new, low_shade_bottom, low_shade_top, color="r", alpha=0.1
                 )
 
         elif horizontal_quantity == "value":

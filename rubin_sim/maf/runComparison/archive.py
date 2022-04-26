@@ -18,7 +18,7 @@ import sys
 import os
 import urllib
 import copy
-
+import numpy as np
 import pandas as pd
 
 try:
@@ -26,11 +26,11 @@ try:
 except ModuleNotFoundError:
     pass
 
-from rubin_sim import maf
+from .summary_plots import plot_run_metric
 
 FAMILY_SOURCE = os.environ.get(
     "RUBIN_SIM_FAMILY_SOURCE",
-    "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/runs_v2.0.json",
+    "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/runs_v2.1.json",
 )
 
 METRIC_SET_SOURCE = os.environ.get(
@@ -40,11 +40,11 @@ METRIC_SET_SOURCE = os.environ.get(
 
 SUMMARY_SOURCE = os.environ.get(
     "RUBIN_SIM_SUMMARY_SOURCE",
-    "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/summary_11_8.csv",
+    "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/summary_2022_04_23.csv",
 )
 
 if os.uname().nodename.endswith(".datalab.noao.edu"):
-    DEFAULT_OPSIM_DB_DIR = "/sims_maf/fbs_2.0"
+    DEFAULT_OPSIM_DB_DIR = "/sims_maf"
 else:
     DEFAULT_OPSIM_DB_DIR = os.getcwd()
 OPSIM_DB_DIR = os.environ.get("OPSIM_DB_DIR", DEFAULT_OPSIM_DB_DIR)
@@ -55,7 +55,7 @@ BY_RUN_COLS = ["run", "brief", "filepath", "url"]
 def get_family_runs(run_source=None):
     """Load a data frame that supplies run names for each run family
 
-    PaSrameters
+    Parameters
     ----------
     run_source : `None` or `str`
         File name or URL for the json file from which to load the metadata.
@@ -426,6 +426,7 @@ def describe_families(
     table_metric_set=None,
     plot_metric_set=None,
     baseline_run=None,
+    round_table=2,
 ):
     """Display (in a jupyter on IPython notebook) family descirptions
 
@@ -446,6 +447,8 @@ def describe_families(
     baseline_run : `str`
         The name of the run to use to normalize metrics in the plot.
         None if normalization should be skipped.
+    round_table : `int`, opt
+        Decimal places to which to round the table_metrics. Default 2.
 
     Returns
     -------
@@ -454,6 +457,7 @@ def describe_families(
     ax : `matplotilb.axes.Axes`
         The plot axes.
     """
+
     family_runs = families.explode(["run", "brief", "filepath"]).loc[
         :, ["run", "brief", "filepath"]
     ]
@@ -479,15 +483,16 @@ def describe_families(
             if table_metric_set is not None:
                 table_metric_summary = summary.loc[
                     these_runs["run"], table_metric_set["metric"]
-                ].rename(columns=table_metric_set["short_name"])
+                ]
+                table_metric_summary.rename(
+                    table_metric_set["short_name"], axis=1, inplace=True
+                )
+                if round_table is not None:
+                    table_metric_summary = table_metric_summary.round(round_table)
             else:
                 table_metric_summary = summary.loc[these_runs["run"]]
 
-            metric_table_showable = len(summary.columns) > 20 and len(summary) < 500
-            if metric_table_showable:
-                these_runs = these_runs.join(table_metric_summary, on="run", how="left")
-            else:
-                print("Too many metrics to show in table, skipping.")
+            these_runs = these_runs.join(table_metric_summary, on="run", how="left")
 
             num_columns = len(these_runs.columns)
             if num_columns > 5 and "filepath" in these_runs.columns:
@@ -506,13 +511,14 @@ def describe_families(
                 print(these_runs.set_index("run"))
 
     if plot_metric_set is not None:
-        baseline_list = [] if baseline_run is None else [baseline_run]
-        these_runs = sum(families["run"], baseline_list)
+        these_runs = family_runs["run"].values
+        if baseline_run is not None and baseline_run not in these_runs:
+            these_runs = np.concatenate([[baseline_run], these_runs])
         these_metrics = [m for m in plot_metric_set["metric"] if m in summary.columns]
-
-        fig, ax = maf.plot_run_metric(  # pylint: disable=invalid-name
+        fig, ax = plot_run_metric(  # pylint: disable=invalid-name
             summary.loc[these_runs, these_metrics],
             metric_set=plot_metric_set,
+            metric_label_map=plot_metric_set["short_name"],
             baseline_run=baseline_run,
             vertical_quantity="value",
             horizontal_quantity="run",
