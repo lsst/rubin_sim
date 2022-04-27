@@ -12,9 +12,10 @@ from rubin_sim import maf
 
 # constants
 
-FAMILY_SOURCE = "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/runs_v2.0.json"
-METRIC_SET_SOURCE = "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/metric_sets.json"
-SUMMARY_SOURCE = "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/summary_11_8.csv"
+URLROOT = "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/"
+FAMILY_SOURCE = URLROOT + "runs_v2.1.json"
+METRIC_SET_SOURCE = URLROOT + "metric_sets.json"
+SUMMARY_SOURCE = URLROOT + "summary_2022_04_23.csv"
 
 # exception classes
 
@@ -79,9 +80,9 @@ class TestArchive(unittest.TestCase):
         my_summary = maf.get_metric_summaries(
             runs=["baseline_v2.0_10yrs", "baseline_retrofoot_v2.0_10yrs"],
             metrics=[
-                "Rms Max normairmass all bands HealpixSlicer",
-                "Median Max normairmass all bands HealpixSlicer",
-                "Max Max normairmass all bands HealpixSlicer",
+                "Rms Max normairmass All sky all bands HealpixSlicer",
+                "Median Max normairmass All sky all bands HealpixSlicer",
+                "Max Max normairmass All sky all bands HealpixSlicer",
             ],
             summary_source=summary,
         )
@@ -97,7 +98,7 @@ class TestArchive(unittest.TestCase):
         self.assertLess(len(rolling_sum), len(summary))
 
         rollingddf_sum = maf.get_metric_summaries(
-            run_families=["rolling", "ddf"],
+            run_families=["rolling", "ddf percent"],
             summary_source=summary,
             runs_source=FAMILY_SOURCE,
         )
