@@ -1,8 +1,5 @@
 # imports
-import os
 import unittest
-
-import numpy as np
 from numpy.random import default_rng
 import pandas as pd
 import matplotlib.pyplot as plt

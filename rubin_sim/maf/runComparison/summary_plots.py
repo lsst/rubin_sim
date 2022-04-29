@@ -306,7 +306,11 @@ def plot_run_metric(
         # make sure we get to pass the style argument
         # as a positional argument, whether or not it is
         # specified.
-        if np.isinf(plot_df.loc[idx, "y"]).any():
+        # Let the user know why some of their plot values might be disappearing
+        # (tends to happen if baseline value is 0 or Nan and plot_df being normalized)
+        if vertical_quantity == "value" and np.isinf(plot_df.loc[idx, "y"]).any():
+            warnings.warn(f"There are infinite values in the plot of {idx}.")
+        if horizontal_quantity == "value" and np.isinf(plot_df.loc[idx, "x"]).any():
             warnings.warn(f"There are infinite values in the plot of {idx}.")
         plot_args = [plot_df.loc[idx, "x"], plot_df.loc[idx, "y"]]
         idx_label = f"{str(idx).strip()}"
