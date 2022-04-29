@@ -296,12 +296,6 @@ def plot_run_metric(
 
     plot_df.set_index("color", inplace=True)
 
-    """
-    for feature, column_name in ((horizontal_quantity, 'x'), (vertical_quantity, 'y')):
-        if feature == 'value':
-            if np.isinf(plot_df.loc[idx, column_name]).any():
-                warnings.warn(f"There are infinite values in the normalized plot of {idx}")
-    """
     # 'color' or 'plot_df.index' is now either 'run' or 'metric'
     if color_quantity == "run":
         idx_order = run_order
@@ -312,7 +306,7 @@ def plot_run_metric(
         # make sure we get to pass the style argument
         # as a positional argument, whether or not it is
         # specified.
-        if np.isinf(plot_df.loc[idx, "y"].any()):
+        if np.isinf(plot_df.loc[idx, "y"]).any():
             warnings.warn(f"There are infinite values in the plot of {idx}.")
         plot_args = [plot_df.loc[idx, "x"], plot_df.loc[idx, "y"]]
         idx_label = f"{str(idx).strip()}"
