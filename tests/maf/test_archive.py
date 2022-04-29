@@ -15,7 +15,7 @@ from rubin_sim import maf
 URLROOT = "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/"
 FAMILY_SOURCE = URLROOT + "runs_v2.1.json"
 METRIC_SET_SOURCE = URLROOT + "metric_sets.json"
-SUMMARY_SOURCE = URLROOT + "summary_2022_04_23.csv"
+SUMMARY_SOURCE = URLROOT + "summary_2022_04_28.csv"
 
 # exception classes
 
