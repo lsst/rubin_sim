@@ -165,10 +165,12 @@ def plot_run_metric(
         A python `mapping` between canonical run names and run labels as they
         should appear on plot labels. Use of this option is discouraged, because
         it makes it harder to match plots to data.
+        run_label_map could be created by archive.get_runs().loc[these_runs]['brief']
     metric_label_map : mapping
         A python `mapping` between canonical metric names and metric labels
         as they should appear on plot labels. Use this option carefully, because
         it makes it harder to match plots to metric calculation code..
+        metric_label_map could be equivalent to metric_set['short_name']
     metric_set : `pandas.DataFrame`
         Metric metadata as returned by `archive.get_metric_sets`
     ax : `matplotlib.axes.Axes`
@@ -187,6 +189,10 @@ def plot_run_metric(
     ax : `matplotilb.axes.Axes`
         The plot axes.
 
+
+    The run order and metric order (imposed into the summary dataframe passed here as `summary`)
+    are important and preserved in the plot. These should be set in the (subset) `summary` dataframe
+    passed here; the metric_set is available, but used for normalization and plot styling.
     """
 
     # If the metric sets we are passed has a multilevel index,
@@ -221,12 +227,16 @@ def plot_run_metric(
         .reset_index()
         .rename(columns={"OpsimRun": "run"})
     )
-
+    # Pull original order for metric & runs from summary
+    run_order = summary.index.values
+    metric_order = summary.columns.values
     if run_label_map is not None:
+        run_order = [run_label_map[r] for r in run_order]
         norm_summary["run"] = norm_summary["run"].map(run_label_map)
-
     if metric_label_map is not None:
+        metric_order = [metric_label_map[m] for m in metric_order]
         norm_summary["metric"] = norm_summary["metric"].map(metric_label_map)
+        # Create this_metric_set - equivalent to metric_set but with updated names.
         if metric_set is not None:
             this_metric_set = (
                 metric_set.drop(columns=["metric"])
@@ -258,6 +268,7 @@ def plot_run_metric(
 
         plot_df["color"] = pd.cut(norm_summary[color_quantity], bins)
     else:
+        # At this point, color has to be metric or run
         plot_df["color"] = norm_summary[color_quantity]
 
     if ax is None:
@@ -285,33 +296,52 @@ def plot_run_metric(
 
     plot_df.set_index("color", inplace=True)
 
-    for idx in plot_df.index.unique():
+    """
+    for feature, column_name in ((horizontal_quantity, 'x'), (vertical_quantity, 'y')):
+        if feature == 'value':
+            if np.isinf(plot_df.loc[idx, column_name]).any():
+                warnings.warn(f"There are infinite values in the normalized plot of {idx}")
+    """
+    # 'color' or 'plot_df.index' is now either 'run' or 'metric'
+    if color_quantity == "run":
+        idx_order = run_order
+    if color_quantity == "metric":
+        idx_order = metric_order
+    for idx in idx_order:  # plot_df.index.unique():
         # Due to weirdness with matplotlib arg handling,
         # make sure we get to pass the style argument
         # as a positional argument, whether or not it is
         # specified.
-
+        if np.isinf(plot_df.loc[idx, "y"].any()):
+            warnings.warn(f"There are infinite values in the plot of {idx}.")
         plot_args = [plot_df.loc[idx, "x"], plot_df.loc[idx, "y"]]
-        if (
-            this_metric_set is not None
-            and "style" in this_metric_set.columns
-            and idx in this_metric_set.index
-        ):
-            metric_style = this_metric_set.loc[idx, "style"]
-            if metric_style is not None:
-                plot_args.append(metric_style)
-        ax.plot(*plot_args, label=str(idx).strip())
+        idx_label = f"{str(idx).strip()}"
+        if this_metric_set is not None and idx in this_metric_set.index:
+            # Set the style from the metric_set if available
+            if "style" in this_metric_set.columns:
+                metric_style = this_metric_set.loc[idx, "style"]
+                if metric_style is not None:
+                    plot_args.append(metric_style)
+            # Update the plot label if we inverted the column during normalization
+            if "invert" in this_metric_set.columns and baseline_run is not None:
+                inv = this_metric_set.loc[idx, "invert"]
+                if inv:
+                    idx_label = f"1 / {idx_label}"
+        ax.plot(*plot_args, label=idx_label)
+
+    if vertical_quantity == "value":
+        # Set xlim to be exact length of number of runs
+        xlim_new = [0, len(summary) - 1]
+        ax.set_xlim(xlim_new)
 
     if shade_fraction is not None and shade_fraction > 0:
         if vertical_quantity == "value":
-            # Set xlim to be exact length of number of runs
-            xlim_new = [0, len(summary) - 1]
-            ax.set_xlim(xlim_new)
+            xlim = ax.get_xlim()
             high_shade_bottom = 1 + shade_fraction
             high_shade_top = ax.get_ylim()[1]
             if high_shade_top > high_shade_bottom:
                 ax.fill_between(
-                    xlim_new,
+                    xlim,
                     high_shade_bottom,
                     high_shade_top,
                     color="g",
@@ -322,7 +352,7 @@ def plot_run_metric(
             low_shade_bottom = ax.get_ylim()[0]
             if low_shade_top > low_shade_bottom:
                 ax.fill_between(
-                    xlim_new, low_shade_bottom, low_shade_top, color="r", alpha=0.1
+                    xlim, low_shade_bottom, low_shade_top, color="r", alpha=0.1
                 )
 
         elif horizontal_quantity == "value":
