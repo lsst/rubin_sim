@@ -252,6 +252,10 @@ class SNNSNMetric(BaseMetric):
         idx = season_info["season_length"] >= 60.0
         season_info = season_info[idx]
 
+        # If we don't have many observations, bail out
+        if season_info.empty:
+            return nlr.merge_arrays([idarray, self.bad], flatten=True)
+
         # check wether requested seasons can be processed
         test_season = season_info[season_info["season"].isin(seasons)]
         # if len(test_season) == 0:
