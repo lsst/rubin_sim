@@ -1006,6 +1006,7 @@ def scienceRadarBatch(
     ]
     metric = maf.MicrolensingMetric()
     summaryMetrics = maf.batches.lightcurveSummary()
+    order = 0
     for crossing in crossing_times:
         key = f"{crossing[0]} to {crossing[1]}"
         displayDict[
@@ -1014,6 +1015,8 @@ def scienceRadarBatch(
             crossing[0],
             crossing[1],
         )
+        displayDict["order"] = order
+        order += 1
         slicer = maf.generateMicrolensingSlicer(
             min_crossing_time=crossing[0],
             max_crossing_time=crossing[1],
@@ -1035,7 +1038,7 @@ def scienceRadarBatch(
     if long_microlensing:
         metric_Npts = maf.MicrolensingMetric(metricCalc="Npts")
         summaryMetrics = maf.batches.microlensingSummary(metricType="Npts")
-
+        order = 0
         for crossing in crossing_times:
             slicer = maf.generateMicrolensingSlicer(
                 min_crossing_time=crossing[0],
@@ -1048,6 +1051,8 @@ def scienceRadarBatch(
                 crossing[0],
                 crossing[1],
             )
+            displayDict["order"] = order
+            order += 1
             bundleList.append(
                 maf.MetricBundle(
                     metric_Npts,
@@ -1063,6 +1068,7 @@ def scienceRadarBatch(
 
         metric_Fisher = maf.MicrolensingMetric(metricCalc="Fisher")
         summaryMetrics = maf.batches.microlensingSummary(metricType="Fisher")
+        order = 0
         for crossing in crossing_times:
             displayDict[
                 "caption"
@@ -1070,6 +1076,8 @@ def scienceRadarBatch(
                 crossing[0],
                 crossing[1],
             )
+            displayDict["order"] = order
+            order += 1
             slicer = maf.generateMicrolensingSlicer(
                 min_crossing_time=crossing[0],
                 max_crossing_time=crossing[1],
