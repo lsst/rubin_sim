@@ -464,12 +464,14 @@ class MicrolensingMetric(metrics.BaseMetric):
                     (dataSlice[self.filterCol] == filtername)
                     & (t < (slicePoint["peak_time"]))
                     & (t > (slicePoint["peak_time"] - slicePoint["crossing_time"]))
+                    & (snr > self.detect_sigma)
                 )[0]
                 # observations post-peak and in the given filter within 2tE
                 outfilt = np.where(
                     (dataSlice[self.filterCol] == filtername)
                     & (t > (slicePoint["peak_time"]))
                     & (t < (slicePoint["peak_time"] + slicePoint["crossing_time"]))
+                    & (snr > self.detect_sigma)
                 )[0]
                 n_pre.append(len(infilt))
                 n_post.append(len(outfilt))
