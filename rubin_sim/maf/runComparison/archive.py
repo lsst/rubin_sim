@@ -246,8 +246,6 @@ def get_metric_sets(metric_set_source=METRIC_SET_SOURCE):
             The full name of the metric (`str`).
         ``short_name``
             An abbreviated name for the metric (`str`)..
-        ``short_names_norm``
-            The name for the metric after normalization (`str`).
         ``style``
             The ``matplotlib`` linestyle suggested for plots of the
             metric (`str`).
