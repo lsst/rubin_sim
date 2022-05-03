@@ -332,6 +332,10 @@ def plot_run_metric(
         xlim_new = [0, len(summary) - 1]
         ax.set_xlim(xlim_new)
 
+    if vertical_quantity == "run":
+        ylim_new = [0, len(summary) - 1]
+        ax.set_ylim(ylim_new)
+
     if shade_fraction is not None and shade_fraction > 0:
         if vertical_quantity == "value":
             xlim = ax.get_xlim()
@@ -390,7 +394,7 @@ def plot_run_metric_mesh(
     run_label_map=None,
     metric_label_map=None,
     ax=None,
-    cmap=colorcet.cm.coolwarm_r,
+    cmap=colorcet.cm.diverging_rainbow_bgymr_45_85_c67_r,
 ):
     """Plot normalized metric values as colored points on a cartesian plane.
 
