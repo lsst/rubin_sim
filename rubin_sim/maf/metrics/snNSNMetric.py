@@ -875,7 +875,6 @@ class SNNSNMetric(BaseMetric):
         ax.yaxis.set_tick_params(labelsize=ftsize)
         ax.legend(fontsize=ftsize)
 
-    
     def zlims(self, effi_seasondf, dur_z, groupnames):
         """
         Method to estimate redshift limits
