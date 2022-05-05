@@ -10,6 +10,7 @@ __all__ = [
     "get_family_descriptions",
     "describe_families",
     "create_metric_set_df",
+    "write_metric_sets",
 ]
 
 
@@ -266,6 +267,20 @@ def get_metric_sets(metric_set_source=METRIC_SET_SOURCE):
             .set_index("metric", append=True, drop=False)
         )
     return metric_sets
+
+
+def write_metric_sets(metric_set_file, metric_sets):
+    """Write an updated metric_set dataframe to disk
+
+    Parameters
+    ----------
+    metric_set_file : `str`
+        Output file name.
+    metric_sets : `pandas.DataFrame`
+        Metric_set dataframe, as defined in get_metric_sets
+    """
+    tmp = metric_sets.reset_index("metric set")
+    tmp.to_json(metric_set_file, orient="records", indent=2)
 
 
 def get_metric_summaries(

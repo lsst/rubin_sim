@@ -394,7 +394,7 @@ def plot_run_metric_mesh(
     run_label_map=None,
     metric_label_map=None,
     ax=None,
-    cmap=colorcet.cm.diverging_rainbow_bgymr_45_85_c67_r,
+    cmap=colorcet.cm["CET_D1A_r"],
 ):
     """Plot normalized metric values as colored points on a cartesian plane.
 
@@ -420,6 +420,8 @@ def plot_run_metric_mesh(
         The axes on which to plot the data.
     cmap : `matplotlib.colors.ColorMap`
         The color map to use for point colors.
+        A red/blue diverging color map - CET_D1A_r or CET_D1_r
+        A rainbow diverging color map - CET_R3_r
 
     Returns
     -------
