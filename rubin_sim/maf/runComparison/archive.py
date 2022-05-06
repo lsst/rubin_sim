@@ -291,7 +291,7 @@ def get_metric_summaries(
     summary_source=None,
     runs_source=None,
     metric_set_source=None,
-    run_order="summary",
+    run_order="family",
     metric_order="summary",
 ):
     """Get summary metric values for a set of runs and metrics.
