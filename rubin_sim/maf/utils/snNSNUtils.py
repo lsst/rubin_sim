@@ -146,7 +146,7 @@ class LCfast:
             # print('multiproc',band,j,len(obs[idx]))
             if len(obs[idx]) > 0:
                 res = self.processBand(obs[idx], band, gen_par)
-                tab_tot = tab_tot.append(res, ignore_index=True)
+                tab_tot = pd.concat([tab_tot, res], ignore_index=True)
 
         # return produced LC
         return tab_tot

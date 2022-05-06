@@ -12,6 +12,55 @@ from rubin_sim.photUtils import Dust_values
 __all__ = ["SNNSNMetric"]
 
 
+def effiObsdf(data, color_cut=0.04):
+    """
+    Method to estimate observing efficiencies for supernovae
+
+    Parameters
+    -----------
+    data: pandas df - grp
+        data to process
+
+    Returns
+    ----------
+    pandas df with the following cols:
+        - cols used to make the group
+        - effi, effi_err: observing efficiency and associated error
+    """
+
+    # reference df to estimate efficiencies
+    df = data.loc[lambda dfa: np.sqrt(dfa["Cov_colorcolor"]) < 100000.0, :]
+
+    # selection on sigma_c<= 0.04
+    df_sel = df.loc[lambda dfa: np.sqrt(dfa["Cov_colorcolor"]) <= color_cut, :]
+
+    # make groups (with z)
+    group = df.groupby("z")
+    group_sel = df_sel.groupby("z")
+
+    # Take the ratio to get efficiencies
+    rb = group_sel.size() / group.size()
+    err = np.sqrt(rb * (1.0 - rb) / group.size())
+    var = rb * (1.0 - rb) * group.size()
+
+    rb = rb.array
+    err = err.array
+    var = var.array
+
+    rb[np.isnan(rb)] = 0.0
+    err[np.isnan(err)] = 0.0
+    var[np.isnan(var)] = 0.0
+
+    return pd.DataFrame(
+        {
+            group.keys: list(group.groups.keys()),
+            "effi": rb,
+            "effi_err": err,
+            "effi_var": var,
+        }
+    )
+
+
 class SNNSNMetric(BaseMetric):
     """
     Estimate (nSN,zlim) of type Ia supernovae.
@@ -251,6 +300,10 @@ class SNNSNMetric(BaseMetric):
         # select seasons of at least 30 days
         idx = season_info["season_length"] >= 60.0
         season_info = season_info[idx]
+
+        # If we don't have many observations, bail out
+        if season_info.empty:
+            return nlr.merge_arrays([idarray, self.bad], flatten=True)
 
         # check wether requested seasons can be processed
         test_season = season_info[season_info["season"].isin(seasons)]
@@ -575,6 +628,8 @@ class SNNSNMetric(BaseMetric):
 
         # from these supernovae: estimate observation efficiency vs z
         effi_seasondf = self.effidf(sn)
+        if effi_seasondf is None:
+            return None
 
         # zlims can only be estimated if efficiencies are ok
         idx = effi_seasondf["z"] <= 0.2
@@ -758,11 +813,11 @@ class SNNSNMetric(BaseMetric):
         groups = sndf.groupby(listNames)
 
         # estimating efficiencies
-        effi = (
-            groups[["Cov_colorcolor", "z"]]
-            .apply(lambda x: self.effiObsdf(x, color_cut))
-            .reset_index(level=list(range(len(listNames))))
-        )
+        effi = groups[["Cov_colorcolor", "z"]].apply(lambda x: effiObsdf(x, color_cut))
+
+        if np.mean(effi["effi"]) == 0:
+            return None
+        effi = effi.reset_index(level=[0, 1, 2])
 
         # this is to plot efficiencies and also sigma_color vs z
         if self.ploteffi:
@@ -819,54 +874,6 @@ class SNNSNMetric(BaseMetric):
         ax.xaxis.set_tick_params(labelsize=ftsize)
         ax.yaxis.set_tick_params(labelsize=ftsize)
         ax.legend(fontsize=ftsize)
-
-    def effiObsdf(self, data, color_cut=0.04):
-        """
-        Method to estimate observing efficiencies for supernovae
-
-        Parameters
-        -----------
-        data: pandas df - grp
-            data to process
-
-        Returns
-        ----------
-        pandas df with the following cols:
-            - cols used to make the group
-            - effi, effi_err: observing efficiency and associated error
-        """
-
-        # reference df to estimate efficiencies
-        df = data.loc[lambda dfa: np.sqrt(dfa["Cov_colorcolor"]) < 100000.0, :]
-
-        # selection on sigma_c<= 0.04
-        df_sel = df.loc[lambda dfa: np.sqrt(dfa["Cov_colorcolor"]) <= color_cut, :]
-
-        # make groups (with z)
-        group = df.groupby("z")
-        group_sel = df_sel.groupby("z")
-
-        # Take the ratio to get efficiencies
-        rb = group_sel.size() / group.size()
-        err = np.sqrt(rb * (1.0 - rb) / group.size())
-        var = rb * (1.0 - rb) * group.size()
-
-        rb = rb.array
-        err = err.array
-        var = var.array
-
-        rb[np.isnan(rb)] = 0.0
-        err[np.isnan(err)] = 0.0
-        var[np.isnan(var)] = 0.0
-
-        return pd.DataFrame(
-            {
-                group.keys: list(group.groups.keys()),
-                "effi": rb,
-                "effi_err": err,
-                "effi_var": var,
-            }
-        )
 
     def zlims(self, effi_seasondf, dur_z, groupnames):
         """
