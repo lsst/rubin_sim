@@ -9,67 +9,12 @@ from matplotlib.spines import Spine
 from matplotlib.projections.polar import PolarAxes
 from matplotlib.projections import register_projection
 
-__all__ = ["radar_factory", "unit_poly_verts", "radar", "norm_df"]
+__all__ = [
+    "radar",
+]
 
 
-def norm_df(
-    df,
-    runs,
-    cols,
-    norm_run="baseline",
-    invert_cols=None,
-    reverse_cols=None,
-    run_label="run_name",
-    mag_cols=[],
-):
-    """
-    Normalize values in a dataframe to a given run
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        The input data frame
-    runs : list of str
-        A list of run numes
-    cols : list of str
-        A list of columns in df to use
-    norm_run : str
-        The row to use to normalize things to
-    invert_cols : list of str
-        A list of column names that should be inverted (e.g., columns that
-        are uncertainties and are better with a smaller value)
-    reverse_cols : list of str
-        Columns to reverse (e.g., magnitudes)
-    run_label : str (run_name)
-        The column that has run names
-    mag_cols : list of str
-        Columns that are in magnitudes
-    """
-    indices = [np.max(np.where(df.index == name)[0]) for name in runs]
-    out_df = df[cols].iloc[indices].copy()
-    if reverse_cols is not None:
-        for colname in reverse_cols:
-            out_df[colname] = -out_df[colname]
-    if invert_cols is not None:
-        for colname in invert_cols:
-            out_df[colname] = 1.0 / out_df[colname]
-    if norm_run is not None:
-        indx = np.max(np.where(out_df.index == norm_run)[0])
-        for col in out_df.columns:
-            # maybe just check that it's not a
-            if col != "run_name":
-                if (col in mag_cols) | (mag_cols == "all"):
-                    out_df[col] = 1.0 + (out_df[col] - out_df[col].iloc[indx])
-                else:
-                    out_df[col] = (
-                        1.0
-                        + (out_df[col] - out_df[col].iloc[indx])
-                        / out_df[col].iloc[indx]
-                    )
-    return out_df
-
-
-def radar_factory(num_vars, frame="circle"):
+def _radar_factory(num_vars, frame="circle"):
     """Create a radar chart with `num_vars` axes.
 
     This function creates a RadarAxes projection and registers it.
@@ -89,7 +34,7 @@ def radar_factory(num_vars, frame="circle"):
     theta = theta % (2.0 * np.pi)
 
     def draw_poly_patch(self):
-        verts = unit_poly_verts(theta)
+        verts = _unit_poly_verts(theta)
         return plt.Polygon(verts, closed=True, edgecolor="k")
 
     def draw_circle_patch(self):
@@ -141,7 +86,7 @@ def radar_factory(num_vars, frame="circle"):
 
             # spine_type must be 'left', 'right', 'top', 'bottom', or `circle`.
             spine_type = "circle"
-            verts = unit_poly_verts(theta)
+            verts = _unit_poly_verts(theta)
             # close off polygon by repeating first vertex
             verts.append(verts[0])
             path = Path(verts)
@@ -154,7 +99,7 @@ def radar_factory(num_vars, frame="circle"):
     return theta
 
 
-def unit_poly_verts(theta):
+def _unit_poly_verts(theta):
     """Return vertices of polygon for subplot axes.
 
     This polygon is circumscribed by a unit circle centered at (0.5, 0.5)
@@ -178,7 +123,7 @@ def radar(
     """
     make a radar plot!
     """
-    theta = radar_factory(np.size(df.columns), frame="polygon")
+    theta = _radar_factory(np.size(df.columns), frame="polygon")
     fig, axes = plt.subplots(figsize=figsize, subplot_kw=dict(projection="radar"))
     axes.set_rgrids(rgrids, fontsize="x-large")
 
