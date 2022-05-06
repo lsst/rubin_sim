@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
     # Save summary statistics
     if args.to_hdf:
-        rc.summaryStats.to_hdf(outfile, key='stats')
+        rc.summaryStats.to_hdf(outfile, key="stats")
     else:
         # Create a CSV file
         rc.summaryStats.to_csv(outfile)
