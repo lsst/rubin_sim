@@ -20,7 +20,7 @@ setup(
         "bin/maf/ddf_dir",
         "bin/maf/maf_night_report",
         "bin/maf/metadata_dir",
-        "bin/maf/resultdb_combine",
+        "bin/maf/gather_summaries",
         "bin/maf/scimaf_dir",
         "bin/maf/showMaf",
         "bin/maf/generate_ss",
