@@ -1,6 +1,6 @@
 import numpy as np
 import healpy as hp
-from rubin_sim.utils import _hpid2RaDec, angularSeparation, ddf_locations
+from rubin_sim.utils import hpid2RaDec, angularSeparation, ddf_locations
 import rubin_sim.maf as maf
 
 __all__ = ["ddfBatch"]
@@ -8,11 +8,10 @@ __all__ = ["ddfBatch"]
 
 def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
 
-    radius = np.radians(radius)
     bundle_list = []
 
-    ra, dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
-    ra_sne, dec_sne = _hpid2RaDec(nside_sne, np.arange(hp.nside2npix(nside_sne)))
+    ra, dec = hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
+    ra_sne, dec_sne = hpid2RaDec(nside_sne, np.arange(hp.nside2npix(nside_sne)))
 
     ddfs_rough = ddf_locations()
 
@@ -22,6 +21,8 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
         ddfs[ddf] = {'ra': ddfs_rough[ddf][0], 'dec': ddfs_rough[ddf][1]}
     ddfs['EDFS'] = {'ra': [ddfs['EDFS_a']['ra'], ddfs['EDFS_b']['ra']],
                     'dec': [ddfs['EDFS_a']['dec'], ddfs['EDFS_b']['dec']]}
+    del ddfs['EDFS_a']
+    del ddfs['EDFS_b']
 
     summary_stats = [maf.MeanMetric(), maf.MedianMetric(), maf.SumMetric()]
 
