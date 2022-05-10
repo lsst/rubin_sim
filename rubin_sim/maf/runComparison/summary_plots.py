@@ -444,6 +444,7 @@ def plot_run_metric_mesh(
 
     vmin = 1 - color_range / 2
     vmax = vmin + color_range
+
     norm_values = norm_summary.T.values
 
     if ax is None:
@@ -469,6 +470,10 @@ def plot_run_metric_mesh(
         metric_labels = metrics
     else:
         metric_labels = [metric_label_map[m] for m in metrics]
+    # Update the plot label if we inverted the column during normalization
+    if baseline_run is not None and metric_set is not None:
+        for i in np.where(metric_set["invert"])[0]:
+            metric_labels[i] = f"1/{metric_labels[i]}"
     ax.set_yticklabels(metric_labels)
 
     ax.set_xticks(np.arange(0.5, norm_summary.shape[0] + 0.5))
