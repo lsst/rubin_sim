@@ -10,6 +10,7 @@ __all__ = [
     "get_family_descriptions",
     "describe_families",
     "create_metric_set_df",
+    "write_metric_sets",
 ]
 
 
@@ -40,7 +41,7 @@ METRIC_SET_SOURCE = os.environ.get(
 
 SUMMARY_SOURCE = os.environ.get(
     "RUBIN_SIM_SUMMARY_SOURCE",
-    "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/summary_2022_04_23.csv",
+    "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/summary_2022_04_28.csv",
 )
 
 if os.uname().nodename.endswith(".datalab.noao.edu"):
@@ -246,8 +247,6 @@ def get_metric_sets(metric_set_source=METRIC_SET_SOURCE):
             The full name of the metric (`str`).
         ``short_name``
             An abbreviated name for the metric (`str`)..
-        ``short_names_norm``
-            The name for the metric after normalization (`str`).
         ``style``
             The ``matplotlib`` linestyle suggested for plots of the
             metric (`str`).
@@ -270,6 +269,20 @@ def get_metric_sets(metric_set_source=METRIC_SET_SOURCE):
     return metric_sets
 
 
+def write_metric_sets(metric_set_file, metric_sets):
+    """Write an updated metric_set dataframe to disk
+
+    Parameters
+    ----------
+    metric_set_file : `str`
+        Output file name.
+    metric_sets : `pandas.DataFrame`
+        Metric_set dataframe, as defined in get_metric_sets
+    """
+    tmp = metric_sets.reset_index("metric set")
+    tmp.to_json(metric_set_file, orient="records", indent=2)
+
+
 def get_metric_summaries(
     run_families=tuple(),
     metric_sets=tuple(),
@@ -278,7 +291,7 @@ def get_metric_summaries(
     summary_source=None,
     runs_source=None,
     metric_set_source=None,
-    run_order="summary",
+    run_order="family",
     metric_order="summary",
 ):
     """Get summary metric values for a set of runs and metrics.

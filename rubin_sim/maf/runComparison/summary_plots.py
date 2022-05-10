@@ -332,6 +332,10 @@ def plot_run_metric(
         xlim_new = [0, len(summary) - 1]
         ax.set_xlim(xlim_new)
 
+    if vertical_quantity == "run":
+        ylim_new = [0, len(summary) - 1]
+        ax.set_ylim(ylim_new)
+
     if shade_fraction is not None and shade_fraction > 0:
         if vertical_quantity == "value":
             xlim = ax.get_xlim()
@@ -390,7 +394,7 @@ def plot_run_metric_mesh(
     run_label_map=None,
     metric_label_map=None,
     ax=None,
-    cmap=colorcet.cm.coolwarm_r,
+    cmap=colorcet.cm["CET_D1A_r"],
 ):
     """Plot normalized metric values as colored points on a cartesian plane.
 
@@ -416,6 +420,8 @@ def plot_run_metric_mesh(
         The axes on which to plot the data.
     cmap : `matplotlib.colors.ColorMap`
         The color map to use for point colors.
+        A red/blue diverging color map - CET_D1A_r or CET_D1_r
+        A rainbow diverging color map - CET_R3_r
 
     Returns
     -------
@@ -438,6 +444,7 @@ def plot_run_metric_mesh(
 
     vmin = 1 - color_range / 2
     vmax = vmin + color_range
+
     norm_values = norm_summary.T.values
 
     if ax is None:
@@ -463,6 +470,10 @@ def plot_run_metric_mesh(
         metric_labels = metrics
     else:
         metric_labels = [metric_label_map[m] for m in metrics]
+    # Update the plot label if we inverted the column during normalization
+    if baseline_run is not None and metric_set is not None:
+        for i in np.where(metric_set["invert"])[0]:
+            metric_labels[i] = f"1/{metric_labels[i]}"
     ax.set_yticklabels(metric_labels)
 
     ax.set_xticks(np.arange(0.5, norm_summary.shape[0] + 0.5))

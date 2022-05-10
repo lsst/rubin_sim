@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
         description="Find resultsDbs in a series of directories and "
-        "gather up their summary stats into a single CSV file. "
+        "gather up their summary stats into a single CSV or hdf5 file. "
         "Intended to run on a set of metrics run on multiple "
         "simulations, so that each resultsDb has similar summary"
         "statistics."
@@ -20,13 +20,13 @@ if __name__ == "__main__":
         "--baseDir",
         type=str,
         default=".",
-        help="Director from where to search for MAF directories.",
+        help="Root directory from where to search for MAF (sub)directories.",
     )
     parser.add_argument(
-        "--outDir",
+        "--outfile",
         type=str,
-        default=".",
-        help="Directory to place the output csv file (file = [suffix_]summary.csv)",
+        default=None,
+        help="Output file name. Default (None) will create a file = [suffix_]summary.csv)",
     )
     parser.add_argument(
         "--suffix",
@@ -35,23 +35,41 @@ if __name__ == "__main__":
         help="Suffix for directories within which to find resultsDbs. "
         "Default is None, which searches for all potential MAF directories.",
     )
+    parser.add_argument(
+        "--to_hdf",
+        dest="to_hdf",
+        action="store_true",
+        help="Create a .hdf5 file, instead of the default csv file.",
+    )
     args = parser.parse_args()
 
+    # Identify a subset of MAF directories if suffix is set
     if args.suffix is None:
         runDirs = None
     else:
         runDirs = glob.glob(f"*{args.suffix}")
 
+    # Create output file name if needed
+    if args.outfile is None:
+        if args.suffix is None:
+            outfile = "summary"
+        else:
+            outfile = f"{args.suffix.replace('_', '')}_summary"
+        if args.to_hdf:
+            outfile = outfile + ".h5"
+        else:
+            outfile = outfile + ".csv"
+
     # Connect to resultsDbs and pull summary stats into a nice Dataframe
     rc = RunComparison(baseDir=args.baseDir, runDirs=runDirs)
     print(f"Found directories {rc.runDirs}")
     mdict = rc.buildMetricDict()
-    print("len mdict", len(mdict))
+    print(f"And found {len(mdict)} metrics.")
     rc.addSummaryStats(mdict)
 
     # Save summary statistics
-    if args.suffix is None:
-        outfile = "summary.csv"
+    if args.to_hdf:
+        rc.summaryStats.to_hdf(outfile, key="stats")
     else:
-        outfile = f"{args.suffix.replace('_', '')}_summary.csv"
-    rc.summaryStats.to_csv(os.path.join(args.outDir, outfile))
+        # Create a CSV file
+        rc.summaryStats.to_csv(outfile)

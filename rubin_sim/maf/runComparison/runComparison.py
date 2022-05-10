@@ -276,9 +276,7 @@ class RunComparison:
         self.summaryStats.columns.name = "metric"
 
     def __call__(self, **kwargs):
-        """Convenience method if one just wants to gererate and return the
-        dataframe with summary stats
-        """
+        """Convenience method to wrap up returning all summary stats only."""
         self.addSummaryStats(**kwargs)
         return self.summaryStats
 
