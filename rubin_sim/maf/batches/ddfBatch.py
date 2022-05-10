@@ -230,7 +230,7 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
 
         # Now to compute some things at just the center of the DDF
         slicer = maf.UserPointsSlicer(
-            np.degrees(np.mean(ddfs[ddf]["ra"])), np.degrees(np.mean(ddfs[ddf]["dec"]))
+            np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"])
         )
 
         displayDict["order"] = 4
