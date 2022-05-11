@@ -79,7 +79,7 @@ class NYoungStarsMetric(BaseMetric):
         m5Col="fiveSigmaDepth",
         filterCol="filter",
         badval=0,
-        mags={"g": 10.32, "r": 9.28, "i": 7.37},
+        mags={"g": 10.32, "r": 9.28, "i": 7.97},
         galb_limit=90.0,
         snrs={"g": 5.0, "r": 5.0, "i": 5.0},
         nside=64,
