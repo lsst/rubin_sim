@@ -2,6 +2,7 @@
 import glob
 import os
 from rubin_sim.data import get_data_dir
+import rubin_sim.maf.db as db
 import argparse
 
 
@@ -85,6 +86,8 @@ def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False
                 os.mkdir(outDir)
             except FileExistsError:
                 pass
+            # Create the results DB so multiple threads don't try to create it later
+            resultsDb = db.ResultsDb(outDir=outDir)
             outfile = f"{run}_ss_script.sh"
             if split:
                 output_file = open(outfile, "w")
