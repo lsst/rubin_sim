@@ -195,7 +195,7 @@ class ResultsDb(object):
         self.Session = sessionmaker(bind=engine)
         self.open()
         # Create the tables, if they don't already exist.
-        if ~already_file:
+        if not already_file:
             try:
                 Base.metadata.create_all(engine)
             except DatabaseError:
