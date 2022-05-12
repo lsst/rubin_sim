@@ -188,7 +188,7 @@ class ResultsDb(object):
         needs_version = not os.path.isfile(self.database)
 
         # Connect to the specified file; this will create the database if it doesn't exist.
-        already_file = os.isfile(self.database)
+        already_file = os.path.isfile(self.database)
         dbAddress = url.URL.create(self.driver, database=self.database)
 
         engine = create_engine(dbAddress, echo=verbose)
