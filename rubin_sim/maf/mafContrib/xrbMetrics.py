@@ -299,6 +299,7 @@ class XRBPopMetric(BaseMetric):
             badval=badval,
             **kwargs,
         )
+        self.comment = "Number or characterization of XRBs."
 
     def _ever_detect(self, where_detected):
         """Simple detection criteria: detect at least a certain number of times"""
