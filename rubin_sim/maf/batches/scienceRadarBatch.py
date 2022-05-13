@@ -752,8 +752,8 @@ def scienceRadarBatch(
     # These agn test magnitude values are determined by looking at the baseline median m5 depths
     # For v1.7.1 these values are:
     agn_m5 = {"u": 22.89, "g": 23.94, "r": 23.5, "i": 22.93, "z": 22.28, "y": 21.5}
-    # And the expected medians SF error at those values is about 0.04
-    threshold = 0.04
+    # And the expected medians SF error at those values is about 0.04 - set the threshold slightly below
+    threshold = 0.025
     summaryMetrics = extendedSummary()
     summaryMetrics += [metrics.AreaThresholdMetric(upper_threshold=threshold)]
     for f in filterlist:
@@ -761,7 +761,7 @@ def scienceRadarBatch(
             mag=agn_m5[f],
             metricName="AGN SF_uncert",
         )
-        plotDict = {"color": colors[f]}
+        plotDict = {"color": colors[f], "colorMin": 0, "colorMax": 0.2}
         displayDict["order"] = filterorders[f]
         displayDict["subgroup"] = "SFUncert"
         displayDict["caption"] = (
@@ -852,7 +852,7 @@ def scienceRadarBatch(
         "",
         runName=runName,
         plotDict=plotDict,
-        summaryMetrics=lightcurveSummary(),
+        summaryMetrics=metrics.SumMetric(metricName="Total detected"),
         displayDict=displayDict,
     )
     bundleList.append(bundle)
@@ -884,13 +884,12 @@ def scienceRadarBatch(
     distMod = (18, 19, 20, 21)
     summaryStats = [metrics.MeanMetric(), metrics.MedianMetric(), metrics.MaxMetric()]
     s = slicers.HealpixSlicer(nside=8)
-    sql = "night < 365*2"
     for time_interval in time_intervals:
         for dM in distMod:
             displayDict["caption"] = (
                 "Periodic star modulation metric, evaluates the likelihood of "
                 "measuring variation in an RRLyrae periodic variable. "
-                "Evaluated based on the first two years of the LSST survey data only. "
+                "Evaluated based on the full LSST survey data. "
                 f"Searching time interval of {time_interval} and distance modulus {dM}."
             )
             m = maf.PeriodicStarModulationMetric(
@@ -908,7 +907,7 @@ def scienceRadarBatch(
             bundle = mb.MetricBundle(
                 m,
                 s,
-                sql,
+                None,
                 displayDict=displayDict,
                 runName=runName,
                 summaryMetrics=summaryStats,
@@ -985,10 +984,6 @@ def scienceRadarBatch(
     # Microlensing events
 
     displayDict["subgroup"] = "Microlensing"
-    displayDict[
-        "caption"
-    ] = "Microlensing events with crossing times between 1 to 10 days."
-
     plotDict = {"nside": 128}
 
     n_events = 10000
@@ -1008,7 +1003,6 @@ def scienceRadarBatch(
     summaryMetrics = maf.batches.lightcurveSummary()
     order = 0
     for crossing in crossing_times:
-        key = f"{crossing[0]} to {crossing[1]}"
         displayDict[
             "caption"
         ] = "Microlensing events with crossing times between %i to %i days." % (
@@ -1224,6 +1218,7 @@ def scienceRadarBatch(
     # Presto KNe metric
     displayDict["group"] = "Variables/Transients"
     displayDict["subgroup"] = "Presto KNe"
+    displayDict["caption"] = "Probability of detecting and classifying a KNe"
     slicer = maf.generatePrestoPopSlicer(skyregion="extragalactic")
     metric = maf.PrestoColorKNePopMetric(
         skyregion="extragalactic", metricName="PrestoKNe"
@@ -1242,6 +1237,8 @@ def scienceRadarBatch(
 
     # XRB metric
     displayDict["subgroup"] = "XRB"
+    displayDict["order"] = 0
+    displayDict["caption"] = "Number or characterization of XRBs."
     n_events = 10000
     slicer = maf.generateXRBPopSlicer(n_events=n_events)
     metric = maf.XRBPopMetric(outputLc=False)
@@ -1432,11 +1429,15 @@ def scienceRadarBatch(
 
     # Brown Dwarf Volume
     displayDict["subgroup"] = "Brown Dwarf"
+    displayDict["order"] = 0
+    l7_bd_mags = {"i": 20.09, "z": 18.18, "y": 17.13}
+    displayDict["caption"] = (
+        f"The expected parallax uncertainty for L7 "
+        f"brown dwarfs with magnitudes {l7_bd_mags}."
+    )
     slicer = slicers.HealpixSlicer(nside=nside)
     sum_stats = [metrics.VolumeSumMetric(nside=nside)]
-    metric = metrics.BDParallaxMetric(
-        mags={"i": 20.09, "z": 18.18, "y": 17.13}, metricName="Brown Dwarf, L7"
-    )
+    metric = metrics.BDParallaxMetric(mags=l7_bd_mags, metricName="Brown Dwarf, L7")
     sql = ""
     plotDict = {}
     bundleList.append(
@@ -1451,9 +1452,12 @@ def scienceRadarBatch(
         )
     )
 
-    metric = metrics.BDParallaxMetric(
-        mags={"i": 18.35, "z": 16.68, "y": 15.66}, metricName="Brown Dwarf, L4"
+    l4_bd_mags = {"i": 18.35, "z": 16.68, "y": 15.66}
+    displayDict["caption"] = (
+        f"The expected parallax uncertainty for L4 "
+        f"brown dwarfs with magnitudes {l4_bd_mags}."
     )
+    metric = metrics.BDParallaxMetric(mags=l4_bd_mags, metricName="Brown Dwarf, L4")
     bundleList.append(
         mb.MetricBundle(
             metric,
@@ -1467,6 +1471,10 @@ def scienceRadarBatch(
     )
 
     displayDict["subgroup"] = "Young Stellar Objects"
+    displayDict["caption"] = (
+        "The number of expected Young Stellar Objects with age t<10 Myr and "
+        "mass >0.3 solar masses, using coadded depths in g, r and i bands."
+    )
     nside_yso = 64
     sql = ""
     # Let's plug in the magnitudes for one type
