@@ -9,7 +9,7 @@ from .colMapDict import ColMapDict
 from .common import standardSummary
 from .slewBatch import slewBasics
 from .hourglassBatch import hourglassPlots
-from rubin_sim.scheduler.surveys import generate_dd_surveys
+from rubin_sim.utils import ddf_locations
 
 __all__ = ["glanceBatch"]
 
@@ -323,11 +323,11 @@ def glanceBatch(
         bundleList.append(bundle)
 
     # DDF progress
-    ddf_surveys = generate_dd_surveys()
+    ddf_surveys = ddf_locations()
     displayDict["group"] = "DDF"
     displayDict["subgroup"] = ""
     for ddf in ddf_surveys:
-        label = ddf.survey_name.replace("DD:", "")
+        label = ddf.replace("DD:", "")
         sql = 'note like "%s%%"' % ("DD:" + label)
         slicer = slicers.UniSlicer()
         metric = metrics.CumulativeMetric()

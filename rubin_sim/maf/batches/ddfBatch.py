@@ -1,21 +1,48 @@
 import numpy as np
 import healpy as hp
-from rubin_sim.scheduler.surveys import generate_dd_surveys
-from rubin_sim.utils import _hpid2RaDec, _angularSeparation
+from rubin_sim.utils import hpid2RaDec, angularSeparation, ddf_locations
 import rubin_sim.maf as maf
 
 __all__ = ["ddfBatch"]
 
 
 def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
+    """
+    Parameters
+    ----------
+    nside : int (512)
+        The HEALpix nside to run most of the metrics on. default 512.
+    radius : float (2.5)
+        The radius to select around each ddf (degrees). Default 2.5. Note that
+        Going too large will result in more background being selected, which
+        can throw off things like the median number of visits. But going too
+        small risks missing some DDF area on the double Euclid field, or a regular
+        field with large dithers.
+    nside_sne : int (128)
+        The HEALpix nside to use with the SNe metric.
+    """
 
-    radius = np.radians(radius)
     bundle_list = []
 
-    ra, dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
-    ra_sne, dec_sne = _hpid2RaDec(nside_sne, np.arange(hp.nside2npix(nside_sne)))
+    ra, dec = hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
+    ra_sne, dec_sne = hpid2RaDec(nside_sne, np.arange(hp.nside2npix(nside_sne)))
 
-    ddf_surveys = generate_dd_surveys()
+    ddfs_rough = ddf_locations()
+
+    # Reformat as a dict for later
+    ddfs = {}
+    for ddf in ddfs_rough:
+        ddfs[ddf] = {"ra": ddfs_rough[ddf][0], "dec": ddfs_rough[ddf][1]}
+    # Combine the Euclid double-field into one
+    ddfs["EDFS"] = {
+        "ra": [ddfs["EDFS_a"]["ra"], ddfs["EDFS_b"]["ra"]],
+        "dec": [ddfs["EDFS_a"]["dec"], ddfs["EDFS_b"]["dec"]],
+    }
+    del ddfs["EDFS_a"]
+    del ddfs["EDFS_b"]
+
+    # Let's include an arbitrary point that should be in the WFD for comparision
+    ddfs["WFD"] = {"ra": 0, "dec": -20.0}
 
     summary_stats = [maf.MeanMetric(), maf.MedianMetric(), maf.SumMetric()]
 
@@ -28,29 +55,31 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
 
     displayDict = {"group": "", "subgroup": "", "order": 0}
 
-    for ddf in ddf_surveys:
+    for ddf in ddfs:
         sql = ""
-        label = ddf.survey_name.replace("DD:", "")
+        label = ddf.replace("DD:", "")
         plotDict = {
             "visufunc": hp.gnomview,
-            "rot": (np.degrees(np.mean(ddf.ra)), np.degrees(np.mean(ddf.dec)), 0),
+            "rot": (np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]), 0),
             "xsize": 500,
         }
-        if np.size(ddf.ra) > 1:
+        if np.size(ddfs[ddf]["ra"]) > 1:
             goods = []
             goods_sne = []
-            for ddf_ra, ddf_dec in zip(ddf.ra, ddf.dec):
-                dist = _angularSeparation(ra, dec, ddf_ra, ddf_dec)
+            for ddf_ra, ddf_dec in zip(ddfs[ddf]["ra"], ddfs[ddf]["dec"]):
+                dist = angularSeparation(ra, dec, ddf_ra, ddf_dec)
                 goods.append(np.where(dist <= radius)[0])
-                dist = _angularSeparation(ra_sne, dec_sne, ddf_ra, ddf_dec)
+                dist = angularSeparation(ra_sne, dec_sne, ddf_ra, ddf_dec)
                 goods_sne.append(np.where(dist <= radius)[0])
             good = np.unique(np.concatenate(goods))
             good_sne = np.unique(np.concatenate(goods_sne))
         else:
-            dist = _angularSeparation(ra, dec, np.mean(ddf.ra), np.mean(ddf.dec))
+            dist = angularSeparation(
+                ra, dec, np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"])
+            )
             good = np.where(dist <= radius)[0]
-            dist = _angularSeparation(
-                ra_sne, dec_sne, np.mean(ddf.ra), np.mean(ddf.dec)
+            dist = angularSeparation(
+                ra_sne, dec_sne, np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"])
             )
             good_sne = np.where(dist <= radius)[0]
 
@@ -201,7 +230,7 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
 
         # Now to compute some things at just the center of the DDF
         slicer = maf.UserPointsSlicer(
-            np.degrees(np.mean(ddf.ra)), np.degrees(np.mean(ddf.dec))
+            np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"])
         )
 
         displayDict["order"] = 4
@@ -244,7 +273,7 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
             )
         )
 
-        # median season Length
+        # Median season Length
         displayDict["subgroup"] = "Season Length"
         metric = maf.SeasonLengthMetric(metricName="Median Season Length, %s" % label)
         bundle_list.append(
