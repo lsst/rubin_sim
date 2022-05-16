@@ -106,7 +106,7 @@ class TestArchive(unittest.TestCase):
         self.assertLess(len(rollingddf_sum), len(summary))
 
         srd_sim = maf.get_metric_summaries(
-            metric_sets="srd",
+            metric_sets="SRD",
             summary_source=summary,
             metric_set_source=METRIC_SET_SOURCE,
         )
@@ -114,7 +114,7 @@ class TestArchive(unittest.TestCase):
         self.assertLess(len(srd_sim.columns), len(summary.columns))
 
         srdnvis_sim = maf.get_metric_summaries(
-            metric_sets=["srd", "Nvis"],
+            metric_sets=["SRD", "N Visits"],
             summary_source=summary,
             metric_set_source=METRIC_SET_SOURCE,
         )
@@ -147,14 +147,14 @@ class TestArchive(unittest.TestCase):
         all_metric_sets = maf.get_metric_sets(METRIC_SET_SOURCE)
         summary = maf.get_metric_summaries(summary_source=SUMMARY_SOURCE)
 
-        table_metric_set = all_metric_sets.loc["srd"]
+        table_metric_set = all_metric_sets.loc["SRD"]
         fig, ax = maf.describe_families(
             disp_families, summary=summary, table_metric_set=table_metric_set
         )
         self.assertIsNone(fig)
         self.assertIsNone(ax)
 
-        plot_metric_set = all_metric_sets.loc["Nvis"]
+        plot_metric_set = all_metric_sets.loc["N Visits"]
         fig, ax = maf.describe_families(
             disp_families, summary=summary, plot_metric_set=plot_metric_set
         )
