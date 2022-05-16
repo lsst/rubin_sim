@@ -1,7 +1,12 @@
 """Summary metric plotting functions.
 """
 
-__all__ = ["normalize_metric_summaries", "plot_run_metric", "plot_run_metric_mesh"]
+__all__ = [
+    "normalize_metric_summaries",
+    "plot_run_metric",
+    "plot_run_metric_mesh",
+    "find_family_lines",
+]
 
 # imports
 import warnings
@@ -487,6 +492,14 @@ def plot_run_metric_mesh(
     fig.colorbar(im, ax=ax, label="Fractional difference")
 
     return fig, ax
+
+
+def find_family_lines(families, family_list):
+    lines = []
+    for f in family_list:
+        lines += [len(families.loc[f]["run"])]
+    lines = np.array(lines).cumsum()
+    return lines
 
 
 # classes
