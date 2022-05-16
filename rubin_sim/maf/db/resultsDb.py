@@ -188,19 +188,21 @@ class ResultsDb(object):
         needs_version = not os.path.isfile(self.database)
 
         # Connect to the specified file; this will create the database if it doesn't exist.
+        already_file = os.path.isfile(self.database)
         dbAddress = url.URL.create(self.driver, database=self.database)
 
         engine = create_engine(dbAddress, echo=verbose)
         self.Session = sessionmaker(bind=engine)
         self.open()
         # Create the tables, if they don't already exist.
-        try:
-            Base.metadata.create_all(engine)
-        except DatabaseError:
-            raise ValueError(
-                "Cannot create a %s database at %s. Check directory exists."
-                % (self.driver, self.database)
-            )
+        if not already_file:
+            try:
+                Base.metadata.create_all(engine)
+            except DatabaseError:
+                raise ValueError(
+                    "Cannot create a %s database at %s. Check directory exists."
+                    % (self.driver, self.database)
+                )
         self.slen = 1024
         # Check if we have a database matching this schema (with metricInfoLabel)
         query = "select * from metrics limit 1"
