@@ -230,14 +230,14 @@ if __name__ == "__main__":
     # generate_sky(mjd0=59579, mjd_max=59579+10., outpath='healpix', outfile='small_example.npz_small')
     # generate_sky(mjd0=59579, mjd_max=59579+10., outpath='opsimFields', fieldID=True)
 
-    nyears = .001 #15.0  # 20  # 13
-    day_pad = 3
+    nyears = 15.0  # 20  # 13
+    day_pad = 30
     # Full year
     # mjds = np.arange(59560, 59560+365.25*nyears+day_pad+366, 366)
     # 6-months
     mjds = np.arange(59560, 59560 + 366 * nyears + 366 / 2.0, 366 / 2.0)
     #mjds = [59560, 59563.5]
-    mjds = [60218, 60226]
+    # mjds = [60218, 60226]
     # Add some time ahead of time for ComCam
     # nyears = 3
     # mjds = np.arange(58462, 58462+366*nyears+366/2., 366/2.)
