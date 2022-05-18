@@ -35,4 +35,4 @@ if __name__ == "__main__":
     )
     for filtername in filternames:
         dark_maps[filtername] = maximum_maps[filtername]
-    np.savez("dark_maps.npz", dark_maps)
+    np.savez("dark_maps.npz", dark_maps=dark_maps)

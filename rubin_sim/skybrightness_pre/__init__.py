@@ -1,2 +1,2 @@
 from .SkyModelPre import *
-from .m5percentiles import *
+from .dark_sky import *
