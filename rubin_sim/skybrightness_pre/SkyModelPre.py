@@ -3,7 +3,7 @@ import glob
 import os
 import healpy as hp
 import warnings
-from rubin_sim.utils import _angularSeparation
+from rubin_sim.utils import _angularSeparation, _hpid2RaDec
 from rubin_sim.data import get_data_dir
 import h5py
 
@@ -69,7 +69,7 @@ class SkyModelPre(object):
     arbitrary dates.
     """
 
-    def __init__(self, data_path=None, load_length=None, verbose=False, mjd0=60218.0):
+    def __init__(self, data_path=None, load_length=365, verbose=False, mjd0=60218.0):
         """
         Parameters
         ----------
@@ -77,7 +77,7 @@ class SkyModelPre(object):
             path to the numpy save files. Looks in standard SIMS_SKYBRIGHTNESS_DATA or RUBIN_SIM_DATA_DIR
             if set to default (None).
         load_length : `float`, opt
-            The length of time (days) to load from disk initially.
+            The length of time (days) to load from disk initially. Set to something small for fast reads.
         mjd0 : `float` (60218.0)
             The starting MJD to load on initilization (days).
         """
@@ -122,11 +122,14 @@ class SkyModelPre(object):
         self.loaded_range = np.array([-1])
         self.timestep_max = -1
 
-        # Go ahead and load the small one in the repo by default
+        self.load_length = load_length
         if load_length is not None:
-            self._load_data(60218.0, load_length=load_length)
+            self._load_data(mjd0)
+        self.nside = 32
+        hpid = np.arange(hp.nside2npix(self.nside))
+        self.ra, self.dec = _hpid2RaDec(self.nside, hpid)
 
-    def _load_data(self, mjd, filename=None, npyfile=None, load_length=183):
+    def _load_data(self, mjd, filename=None, npyfile=None):
         """
         Load up the .npz file to interpolate things. After python 3 upgrade, numpy.savez refused
         to write large .npz files, so data is split between .npz and .npy files.
@@ -164,7 +167,7 @@ class SkyModelPre(object):
             print("Loading file %s" % filename)
         h5 = h5py.File(filename, 'r')
         mjds = h5["mjds"][:]
-        indxs = np.where((mjds >= mjd) & (mjds <= (mjd + load_length)))
+        indxs = np.where((mjds >= mjd) & (mjds <= (mjd + self.load_length)))
         indxs = [np.min(indxs), np.max(indxs)]
         if indxs[0] > 0:
             indxs[0] -= 1
@@ -248,7 +251,6 @@ class SkyModelPre(object):
             baseline = self.mjds[right] - self.mjds[left]
 
         # Check if we are between sunrise/set
-        # XXX--update to load the max timestep
         if baseline > self.timestep_max+1e-6:
             warnings.warn(
                 "Requested MJD between sunrise and sunset, returning closest maps"
@@ -286,8 +288,8 @@ class SkyModelPre(object):
                     (full_sky_sb[filters[0]] != badval)
                     & ~np.isnan(full_sky_sb[filters[0]])
                 )[0]
-                ra_full = np.radians(self.header["ra"][good])
-                dec_full = np.radians(self.header["dec"][good])
+                ra_full = self.ra[good] # np.radians(self.header["ra"][good])
+                dec_full = self.dec[good] #np.radians(self.header["dec"][good])
                 for filtername in filters:
                     full_sky_sb[filtername] = full_sky_sb[filtername][good]
                 # Going to assume the masked pixels are the same in all filters
@@ -298,8 +300,8 @@ class SkyModelPre(object):
                 for i, mi in enumerate(masked_indx):
                     # Note, this is going to be really slow for many pixels, should use a kdtree
                     dist = _angularSeparation(
-                        np.radians(self.header["ra"][indx[i]]),
-                        np.radians(self.header["dec"][indx[i]]),
+                        self.ra[indx[i]],
+                        self.dec[indx[i]],
                         ra_full,
                         dec_full,
                     )
