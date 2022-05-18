@@ -96,7 +96,7 @@ def generate_sky(
         outfile = os.path.join(outpath, outfile)
 
     site = utils.Site("LSST")
-    
+
     location = EarthLocation(lat=site.latitude, lon=site.longitude, height=site.height)
     t_sparse = Time(mjds, format="mjd", location=location)
 
@@ -151,8 +151,10 @@ def generate_sky(
                 if dict_of_lists["mjds"][-2] not in required_mjds:
                     # Check if we can interpolate the second to last sky brightnesses
 
-                    if (dict_of_lists["mjds"][-1] - dict_of_lists["mjds"][-3]
-                        < timestep_max):
+                    if (
+                        dict_of_lists["mjds"][-1] - dict_of_lists["mjds"][-3]
+                        < timestep_max
+                    ):
                         can_interp = True
                         for mjd2 in last_5_mjds:
                             mjd1 = dict_of_lists["mjds"][-3]
@@ -164,15 +166,10 @@ def generate_sky(
                                 w1 = 1.0 - wterm
                                 w2 = wterm
                                 for filter_name in filter_names:
-                                    interp_sky = (
-                                        w1 * sky_brightness[filter_name][-3]
-                                    )
-                                    interp_sky += (
-                                        w2 * sky_brightness[filter_name][-1]
-                                    )
+                                    interp_sky = w1 * sky_brightness[filter_name][-3]
+                                    interp_sky += w2 * sky_brightness[filter_name][-1]
                                     diff = np.abs(
-                                        last_5_mags[int(indx)][filter_name]
-                                        - interp_sky
+                                        last_5_mags[int(indx)][filter_name] - interp_sky
                                     )
                                     if np.size(diff[~np.isnan(diff)]) > 0:
                                         if np.max(diff[~np.isnan(diff)]) > dm:
@@ -184,8 +181,11 @@ def generate_sky(
                                 del sky_brightness[key][-2]
     print("")
 
-    final_mjds = np.array(dict_of_lists['mjds'])
-    final_sky_mags = np.zeros((final_mjds.size, sky_brightness['r'][0].size), dtype=list(zip(filter_names, ['float']*6)))
+    final_mjds = np.array(dict_of_lists["mjds"])
+    final_sky_mags = np.zeros(
+        (final_mjds.size, sky_brightness["r"][0].size),
+        dtype=list(zip(filter_names, ["float"] * 6)),
+    )
     for key in sky_brightness:
         final_sky_mags[key] = sky_brightness[key]
 
@@ -216,12 +216,11 @@ def generate_sky(
     }
 
     # Save mjd and sky brightness arrays to an hdf5 file
-    hf = h5py.File(outfile, 'w')
-    hf.create_dataset('mjds', data=final_mjds)
-    hf.create_dataset('sky_mags', data=final_sky_mags, compression="gzip")
-    hf.create_dataset('timestep_max', data=timestep_max)
+    hf = h5py.File(outfile, "w")
+    hf.create_dataset("mjds", data=final_mjds)
+    hf.create_dataset("sky_mags", data=final_sky_mags, compression="gzip")
+    hf.create_dataset("timestep_max", data=timestep_max)
     hf.close()
-
 
 
 if __name__ == "__main__":
@@ -236,7 +235,7 @@ if __name__ == "__main__":
     # mjds = np.arange(59560, 59560+365.25*nyears+day_pad+366, 366)
     # 6-months
     mjds = np.arange(59560, 59560 + 366 * nyears + 366 / 2.0, 366 / 2.0)
-    #mjds = [59560, 59563.5]
+    # mjds = [59560, 59563.5]
     # mjds = [60218, 60226]
     # Add some time ahead of time for ComCam
     # nyears = 3
