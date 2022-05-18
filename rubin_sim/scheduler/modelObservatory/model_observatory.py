@@ -40,13 +40,13 @@ class Model_observatory(object):
         nside=None,
         mjd_start=60218.0,
         seed=42,
-        quickTest=True,
         alt_min=5.0,
         lax_dome=True,
         cloud_limit=0.3,
         sim_ToO=None,
         seeing_db=None,
         park_after=10.0,
+        load_length = 10
     ):
         """
         Parameters
@@ -140,7 +140,7 @@ class Model_observatory(object):
 
         self.cloud_data = CloudData(mjd_start_time, offset_year=0)
 
-        self.sky_model = sb.SkyModelPre(speedLoad=quickTest)
+        self.sky_model = sb.SkyModelPre(load_length=load_length)
 
         self.observatory = Kinem_model(mjd0=mjd_start)
 
@@ -227,12 +227,7 @@ class Model_observatory(object):
 
         # sky brightness
         self.conditions.skybrightness = self.sky_model.returnMags(
-            self.mjd,
-            airmass_mask=False,
-            planet_mask=False,
-            moon_mask=False,
-            zenith_mask=False,
-        )
+            self.mjd)
 
         self.conditions.mounted_filters = self.observatory.mounted_filters
         self.conditions.current_filter = self.observatory.current_filter[0]
