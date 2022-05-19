@@ -183,7 +183,7 @@ class N_good_seeing_basis_function(Base_basis_function):
         )
         self.result = np.zeros(hp.nside2npix(self.nside))
         if self.filtername is not None:
-            
+
             self.dark_map = dark_sky[filtername]
         self.footprint = footprint
 
@@ -864,7 +864,7 @@ class M5_diff_basis_function(Base_basis_function):
 
         super(M5_diff_basis_function, self).__init__(nside=nside, filtername=filtername)
         # Need to look up the deepest m5 values for all the healpixels
-        
+
         self.dark_map = dark_sky()[filtername]
 
     def _calc_value(self, conditions, indx=None):

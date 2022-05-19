@@ -46,7 +46,7 @@ class Model_observatory(object):
         sim_ToO=None,
         seeing_db=None,
         park_after=10.0,
-        load_length = 10
+        load_length=10,
     ):
         """
         Parameters
@@ -226,8 +226,7 @@ class Model_observatory(object):
         self.conditions.FWHMeff = self.seeing_FWHMeff
 
         # sky brightness
-        self.conditions.skybrightness = self.sky_model.returnMags(
-            self.mjd)
+        self.conditions.skybrightness = self.sky_model.returnMags(self.mjd)
 
         self.conditions.mounted_filters = self.observatory.mounted_filters
         self.conditions.current_filter = self.observatory.current_filter[0]
