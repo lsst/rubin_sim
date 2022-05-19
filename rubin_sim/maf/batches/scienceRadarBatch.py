@@ -40,7 +40,9 @@ def scienceRadarBatch(
 
     standardStats = standardSummary(withCount=False)
 
-    healslicer = slicers.HealpixSlicer(nside=nside)
+    # This is the default slicer for most purposes in this batch. Note that the cache is off -
+    # if the metric requires a dust map, this is not the right slicer to use.
+    healpixslicer = slicers.HealpixSlicer(nside=nside, useCache=True)
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
     #########################
@@ -108,10 +110,9 @@ def scienceRadarBatch(
         % (benchmarkArea, benchmarkNvisits)
     )
     displayDict["caption"] = caption
-    slicer = slicers.HealpixSlicer(nside=nside)
     bundle = mb.MetricBundle(
         metric,
-        slicer,
+        healpixslicer,
         "",
         plotDict=plotDict,
         displayDict=displayDict,
@@ -151,13 +152,6 @@ def scienceRadarBatch(
         )
         bundleList.append(bundle)
 
-    if srd_only:
-        for b in bundleList:
-            b.setRunName(runName)
-        bundleDict = mb.makeBundlesDictFromList(bundleList)
-
-        return bundleDict
-
     ##############
     # Astrometry
     ###############
@@ -170,9 +164,6 @@ def scienceRadarBatch(
     dcrStacker = maf.DcrStacker()
 
     # Set up parallax metrics.
-    slicer = slicers.HealpixSlicer(nside=nside)
-    subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
-
     displayDict["subgroup"] = "Parallax"
     displayDict["order"] += 1
     # Expected error on parallax at 10 AU.
@@ -205,7 +196,7 @@ def scienceRadarBatch(
         )
         bundle = mb.MetricBundle(
             metric,
-            slicer,
+            healpixslicer,
             "",
             stackerList=[parallaxStacker],
             displayDict=displayDict,
@@ -226,7 +217,7 @@ def scienceRadarBatch(
         )
         bundle = mb.MetricBundle(
             metric,
-            slicer,
+            healpixslicer,
             "",
             stackerList=[parallaxStacker],
             displayDict=displayDict,
@@ -242,7 +233,7 @@ def scienceRadarBatch(
         )
         bundle = mb.MetricBundle(
             metric,
-            slicer,
+            healpixslicer,
             "",
             stackerList=[parallaxStacker],
             displayDict=displayDict,
@@ -263,7 +254,7 @@ def scienceRadarBatch(
         caption += " (0 is good, near -1 or 1 is bad)."
         bundle = mb.MetricBundle(
             metric,
-            slicer,
+            healpixslicer,
             "",
             stackerList=[dcrStacker, parallaxStacker],
             displayDict=displayDict,
@@ -275,7 +266,7 @@ def scienceRadarBatch(
 
     # Proper Motion metrics.
     displayDict["subgroup"] = "Proper Motion"
-    displayDict["order"] += 1
+    displayDict["order"] = 0
     # Proper motion errors.
     plotmaxVals = (1.0, 5.0)
     summary = [
@@ -299,7 +290,7 @@ def scienceRadarBatch(
         )
         bundle = mb.MetricBundle(
             metric,
-            slicer,
+            healpixslicer,
             "",
             displayDict=displayDict,
             plotDict=plotDict,
@@ -317,7 +308,7 @@ def scienceRadarBatch(
         )
         bundle = mb.MetricBundle(
             metric,
-            slicer,
+            healpixslicer,
             "",
             displayDict=displayDict,
             summaryMetrics=standardSummary(),
@@ -327,11 +318,8 @@ def scienceRadarBatch(
         displayDict["order"] += 1
 
     # Rapid Revisit
-    slicer = slicers.HealpixSlicer(nside=nside)
-    subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
-
     displayDict["subgroup"] = "Rapid Revisits"
-
+    displayDict["order"] = 0
     # Calculate the actual number of revisits within 30 minutes.
     dTmax = 30  # time in minutes
     m2 = metrics.NRevisitsMetric(
@@ -346,7 +334,7 @@ def scienceRadarBatch(
     displayDict["caption"] = caption
     bundle = mb.MetricBundle(
         m2,
-        slicer,
+        healpixslicer,
         "",
         plotDict=plotDict,
         plotFuncs=subsetPlots,
@@ -392,9 +380,10 @@ def scienceRadarBatch(
         " (SRD design specification is 2000 sq deg)."
     )
     displayDict["caption"] = caption
+    displayDict["order"] = 0
     bundle = mb.MetricBundle(
         m1,
-        slicer,
+        healpixslicer,
         "",
         plotDict=plotDict,
         plotFuncs=subsetPlots,
@@ -403,13 +392,21 @@ def scienceRadarBatch(
     )
     bundleList.append(bundle)
 
+    # For SRD batch only, return here.
+    if srd_only:
+        for b in bundleList:
+            b.setRunName(runName)
+        bundleDict = mb.makeBundlesDictFromList(bundleList)
+
+        return bundleDict
+
     # Year Coverage
     displayDict["subgroup"] = "Year Coverage"
-    displayDict["order"] += 1
-    slicer = slicers.HealpixSlicer(nside=nside)
     metric = metrics.YearCoverageMetric()
     for f in filterlist:
         plotDict = {"colorMin": 7, "colorMax": 10, "color": colors[f]}
+        displayDict["caption"] = f"Number of years of coverage in {f} band."
+        displayDict["order"] = filterorders[f]
         summary = [
             metrics.AreaSummaryMetric(
                 area=18000,
@@ -421,7 +418,7 @@ def scienceRadarBatch(
         bundleList.append(
             mb.MetricBundle(
                 metric,
-                slicer,
+                healpixslicer,
                 filtersqls[f],
                 plotDict=plotDict,
                 info_label=filterinfo_label[f],
@@ -471,20 +468,19 @@ def scienceRadarBatch(
         plotFuncs=subsetPlots,
     )
     bundleList.append(bundle)
-    displayDict["order"] += 1
 
     displayDict["subgroup"] = "Surface Brightness"
-    slicer = slicers.HealpixSlicer(nside=nside)
     summary = [metrics.MedianMetric()]
     for filtername in "ugrizy":
         displayDict["caption"] = (
             "Surface brightness limit in %s, no extinction applied." % filtername
         )
+        displayDict["order"] = filterorders[f]
         sql = 'filter="%s"' % filtername
         metric = metrics.SurfaceBrightLimitMetric()
         bundle = mb.MetricBundle(
             metric,
-            slicer,
+            healpixslicer,
             sql,
             displayDict=displayDict,
             summaryMetrics=summary,
@@ -524,6 +520,7 @@ def scienceRadarBatch(
         ),
     ]
     displayDict["order"] = 0
+    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
     for yr_cut in yrs:
         ptsrc_lim_mag_i_band = mag_cuts[yr_cut]
         sqlconstraint = "night <= %s" % (yr_cut * 365.25)
@@ -542,7 +539,6 @@ def scienceRadarBatch(
             extinction_cut=lim_ebv,
             depth_cut=ptsrc_lim_mag_i_band,
         )
-        s = slicers.HealpixSlicer(nside=nside, useCache=False)
         caption = (
             f"Cosmology/Static Science metrics are based on evaluating the region of "
         )
@@ -559,7 +555,7 @@ def scienceRadarBatch(
         displayDict["caption"] = caption
         bundle = mb.MetricBundle(
             m,
-            s,
+            slicer,
             sqlconstraint,
             mapsList=[dustmap],
             info_label=info_label,
@@ -627,17 +623,16 @@ def scienceRadarBatch(
         min_expTime=minExpTime,
         metricName="WeakLensingNvisits",
     )
-    s = slicers.HealpixSlicer(nside=nside, useCache=False)
+    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
     displayDict[
         "caption"
     ] = f"The number of visits per pointing, over the same reduced footprint as "
     displayDict[
         "caption"
     ] += f"described above. A cutoff of {minExpTime} removes very short visits."
-    displayDict["order"] = 1
     bundle = mb.MetricBundle(
         m,
-        s,
+        slicer,
         sqlconstraint,
         mapsList=[dustmap],
         info_label=info_label,
@@ -651,7 +646,6 @@ def scienceRadarBatch(
     displayDict[
         "caption"
     ] = "Kuiper statistic (0 is uniform, 1 is delta function) of the "
-    slicer = slicers.HealpixSlicer(nside=nside)
     metric1 = metrics.KuiperMetric("rotSkyPos")
     metric2 = metrics.KuiperMetric("rotTelPos")
     filterlist, colors, filterorders, filtersqls, filterinfo_label = filterList(
@@ -665,7 +659,7 @@ def scienceRadarBatch(
             bundleList.append(
                 mb.MetricBundle(
                     m,
-                    slicer,
+                    healpixslicer,
                     filtersqls[f],
                     plotDict=plotDict,
                     displayDict=displayDict,
@@ -682,7 +676,7 @@ def scienceRadarBatch(
         "group": "Cosmology",
         "subgroup": "5: SNe Ia",
         "order": 0,
-        "caption": None,
+        "caption": "Expected discoveries of SNeIa, using the SNNSNMetric.",
     }
     sne_nside = 16
     sn_summary = [
@@ -691,11 +685,11 @@ def scienceRadarBatch(
         metrics.SumMetric(metricName="Total detected"),
         metrics.CountMetric(metricName="Total on sky", maskVal=0),
     ]
-    slicer = slicers.HealpixSlicer(nside=sne_nside, useCache=False)
+    snslicer = slicers.HealpixSlicer(nside=sne_nside, useCache=False)
     metric = metrics.SNNSNMetric(verbose=False)  # zlim_coeff=0.98)
     bundle = mb.MetricBundle(
         metric,
-        slicer,
+        snslicer,
         "",
         plotDict=plotDict,
         displayDict=displayDict,
@@ -712,7 +706,7 @@ def scienceRadarBatch(
     #########################
 
     # AGN structure function error
-    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    agnslicer = slicers.HealpixSlicer(nside=nside, useCache=False)
     displayDict = {"group": "AGN", "order": 0}
 
     # Calculate the number of expected QSOs, in each band
@@ -736,10 +730,11 @@ def scienceRadarBatch(
             "The expected number of QSOs in regions of low dust extinction,"
             f"based on detection in {f} bandpass."
         )
+        displayDict["order"] = filterorders[f]
         bundleList.append(
             mb.MetricBundle(
                 m,
-                slicer,
+                agnslicer,
                 constraint=sql,
                 info_label=md,
                 runName=runName,
@@ -771,7 +766,7 @@ def scienceRadarBatch(
         bundleList.append(
             mb.MetricBundle(
                 m,
-                slicer,
+                agnslicer,
                 constraint=filtersqls[f],
                 info_label=filterinfo_label[f],
                 runName=runName,
@@ -798,7 +793,7 @@ def scienceRadarBatch(
         bundleList.append(
             mb.MetricBundle(
                 m,
-                slicer,
+                agnslicer,
                 constraint=filtersqls[f],
                 info_label=filterinfo_label[f],
                 runName=runName,
@@ -816,7 +811,10 @@ def scienceRadarBatch(
 
     # TDC metric
     # Calculate a subset of DESC WFD-related metrics.
-    nside_tdc = 64
+    if nside > 64:
+        nside_tdc = 64
+    else:
+        nside_tdc = nside
     displayDict = {"group": "Strong Lensing"}
     displayDict["subgroup"] = "Lens Time Delay"
 
@@ -844,7 +842,7 @@ def scienceRadarBatch(
         "caption"
     ] = "Strongly Lensed SNe, evaluated with the addition of galactic dust extinction."
     metric = metrics.SNSLMetric()
-    slicer = slicers.HealpixSlicer(nside=64, useCache=False)
+    slicer = slicers.HealpixSlicer(nside=nside_tdc, useCache=False)
     plotDict = {}
     bundle = mb.MetricBundle(
         metric,
@@ -883,7 +881,7 @@ def scienceRadarBatch(
     time_intervals = (15, 30)
     distMod = (18, 19, 20, 21)
     summaryStats = [metrics.MeanMetric(), metrics.MedianMetric(), metrics.MaxMetric()]
-    s = slicers.HealpixSlicer(nside=8)
+    slicer = slicers.HealpixSlicer(nside=8)
     for time_interval in time_intervals:
         for dM in distMod:
             displayDict["caption"] = (
@@ -892,6 +890,7 @@ def scienceRadarBatch(
                 "Evaluated based on the full LSST survey data. "
                 f"Searching time interval of {time_interval} and distance modulus {dM}."
             )
+            displayDict["order"] += 1
             m = maf.PeriodicStarModulationMetric(
                 period=0.3,
                 amplitude=0.3,
@@ -906,7 +905,7 @@ def scienceRadarBatch(
             )
             bundle = mb.MetricBundle(
                 m,
-                s,
+                slicer,
                 None,
                 displayDict=displayDict,
                 runName=runName,
@@ -919,6 +918,7 @@ def scienceRadarBatch(
 
     # our periodic star metrics
     displayDict["subgroup"] = "Periodic Stars"
+    displayDict["order"] = 0
     for period in [0.5, 1, 2]:
         for magnitude in [21.0, 24.0]:
             amplitudes = [0.05, 0.1, 1.0]
@@ -938,11 +938,11 @@ def scienceRadarBatch(
                 periods=periods,
                 starMags=starMags,
                 amplitudes=amplitudes,
-                metricName="PeriodDetection",
+                metricName="PeriodicDetect",
             )
             bundle = mb.MetricBundle(
                 metric,
-                healslicer,
+                healpixslicer,
                 sql,
                 info_label=info_label,
                 displayDict=displayDict,
@@ -956,12 +956,12 @@ def scienceRadarBatch(
     # Tidal Disruption Events
     displayDict["subgroup"] = "TDE"
     displayDict["caption"] = "TDE lightcurves that could be identified"
-
+    displayDict["order"] = 0
     metric = maf.TdePopMetric()
-    slicer = maf.generateTdePopSlicer()
+    tdeslicer = maf.generateTdePopSlicer()
     bundle = mb.MetricBundle(
         metric,
-        slicer,
+        tdeslicer,
         "",
         runName=runName,
         summaryMetrics=lightcurveSummary(),
@@ -973,7 +973,7 @@ def scienceRadarBatch(
     metric = maf.TdePopMetricQuality(metricName="TDE_Quality")
     bundle = mb.MetricBundle(
         metric,
-        slicer,
+        tdeslicer,
         "",
         runName=runName,
         summaryMetrics=lightcurveSummary(),
@@ -1025,6 +1025,7 @@ def scienceRadarBatch(
                 summaryMetrics=summaryMetrics,
                 info_label=f"tE {crossing[0]}_{crossing[1]} days",
                 displayDict=displayDict,
+                plotDict=plotDict,
                 plotFuncs=[plots.HealpixSkyMap()],
             )
         )
@@ -1056,6 +1057,7 @@ def scienceRadarBatch(
                     summaryMetrics=summaryMetrics,
                     info_label=f"tE {crossing[0]}_{crossing[1]} days",
                     displayDict=displayDict,
+                    plotDict=plotDict,
                     plotFuncs=[],
                 )
             )
@@ -1086,6 +1088,7 @@ def scienceRadarBatch(
                     summaryMetrics=summaryMetrics,
                     info_label=f"tE {crossing[0]}_{crossing[1]} days",
                     displayDict=displayDict,
+                    plotDict=plotDict,
                     plotFuncs=[],
                 )
             )
@@ -1097,21 +1100,21 @@ def scienceRadarBatch(
     displayDict[
         "caption"
     ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky."
-
+    displayDict["order"] = 0
     # Kilonova parameters
     inj_params_list = [
         {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 25.8},
         {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 0.0},
     ]
     filename = maf.get_KNe_filename(inj_params_list)
-    slicer = maf.generateKNPopSlicer(
+    kneslicer = maf.generateKNPopSlicer(
         n_events=n_events, n_files=len(filename), d_min=10, d_max=600
     )
     # Set outputLc=True if you want light curves
     metric = maf.KNePopMetric(outputLc=False, file_list=filename)
     bundle = mb.MetricBundle(
         metric,
-        slicer,
+        kneslicer,
         "",
         runName=runName,
         summaryMetrics=lightcurveSummary(),
@@ -1152,7 +1155,7 @@ def scienceRadarBatch(
         bundleList.append(
             mb.MetricBundle(
                 m1,
-                healslicer,
+                healpixslicer,
                 constraint=filtersqls[f],
                 info_label=filterinfo_label[f],
                 runName=runName,
@@ -1179,7 +1182,7 @@ def scienceRadarBatch(
         bundleList.append(
             mb.MetricBundle(
                 m2,
-                healslicer,
+                healpixslicer,
                 constraint=filtersqls[f],
                 info_label=filterinfo_label[f],
                 runName=runName,
@@ -1204,7 +1207,7 @@ def scienceRadarBatch(
         bundleList.append(
             mb.MetricBundle(
                 m3,
-                healslicer,
+                healpixslicer,
                 constraint=filtersqls[f],
                 info_label=filterinfo_label[f],
                 runName=runName,
@@ -1219,7 +1222,7 @@ def scienceRadarBatch(
     displayDict["group"] = "Variables/Transients"
     displayDict["subgroup"] = "Presto KNe"
     displayDict["caption"] = "Probability of detecting and classifying a KNe"
-    slicer = maf.generatePrestoPopSlicer(skyregion="extragalactic")
+    prestoslicer = maf.generatePrestoPopSlicer(skyregion="extragalactic")
     metric = maf.PrestoColorKNePopMetric(
         skyregion="extragalactic", metricName="PrestoKNe"
     )
@@ -1227,7 +1230,7 @@ def scienceRadarBatch(
     bundleList.append(
         maf.MetricBundle(
             metric,
-            slicer,
+            prestoslicer,
             None,
             runName=runName,
             displayDict=displayDict,
@@ -1240,7 +1243,7 @@ def scienceRadarBatch(
     displayDict["order"] = 0
     displayDict["caption"] = "Number or characterization of XRBs."
     n_events = 10000
-    slicer = maf.generateXRBPopSlicer(n_events=n_events)
+    xrbslicer = maf.generateXRBPopSlicer(n_events=n_events)
     metric = maf.XRBPopMetric(outputLc=False)
     xrb_summaryMetrics = [
         maf.SumMetric(metricName="Total detected"),
@@ -1254,7 +1257,7 @@ def scienceRadarBatch(
     bundleList.append(
         maf.MetricBundle(
             metric,
-            slicer,
+            xrbslicer,
             "",
             runName=runName,
             summaryMetrics=xrb_summaryMetrics,
@@ -1432,10 +1435,10 @@ def scienceRadarBatch(
     displayDict["order"] = 0
     l7_bd_mags = {"i": 20.09, "z": 18.18, "y": 17.13}
     displayDict["caption"] = (
-        f"The expected parallax uncertainty for L7 "
-        f"brown dwarfs with magnitudes {l7_bd_mags}."
+        f"The expected maximum distance at which an L7 brown dwarf with magnitude {l7_bd_mags} "
+        f"would have a parallax SNR of 10.0. The summary statistic represents the volume enclosed by "
+        f"the result of this metric (BDParallaxMetric)."
     )
-    slicer = slicers.HealpixSlicer(nside=nside)
     sum_stats = [metrics.VolumeSumMetric(nside=nside)]
     metric = metrics.BDParallaxMetric(mags=l7_bd_mags, metricName="Brown Dwarf, L7")
     sql = ""
@@ -1443,7 +1446,7 @@ def scienceRadarBatch(
     bundleList.append(
         mb.MetricBundle(
             metric,
-            slicer,
+            healpixslicer,
             sql,
             plotDict=plotDict,
             summaryMetrics=sum_stats,
@@ -1454,14 +1457,15 @@ def scienceRadarBatch(
 
     l4_bd_mags = {"i": 18.35, "z": 16.68, "y": 15.66}
     displayDict["caption"] = (
-        f"The expected parallax uncertainty for L4 "
-        f"brown dwarfs with magnitudes {l4_bd_mags}."
+        f"The expected maximum distance at which an L4 brown dwarf with magnitude {l4_bd_mags} "
+        f"would have a parallax SNR of 10.0. The summary statistic represents the total volume enclosed "
+        f"by the result of this metric (BDParallaxMetric)."
     )
     metric = metrics.BDParallaxMetric(mags=l4_bd_mags, metricName="Brown Dwarf, L4")
     bundleList.append(
         mb.MetricBundle(
             metric,
-            slicer,
+            healpixslicer,
             sql,
             plotDict=plotDict,
             summaryMetrics=sum_stats,
@@ -1475,7 +1479,9 @@ def scienceRadarBatch(
         "The number of expected Young Stellar Objects with age t<10 Myr and "
         "mass >0.3 solar masses, using coadded depths in g, r and i bands."
     )
+    # The underlying dustmap is nside=64, but can be resampled
     nside_yso = 64
+    dustmap3d = maps.DustMap3D(nside=nside_yso)
     sql = ""
     # Let's plug in the magnitudes for one type
     metric = maf.mafContrib.NYoungStarsMetric(nside=nside_yso)
@@ -1487,6 +1493,7 @@ def scienceRadarBatch(
             metric,
             slicer,
             sql,
+            mapsList=[dustmap3d],
             plotDict=plotDict,
             summaryMetrics=summaryStats,
             runName=runName,
@@ -1504,7 +1511,12 @@ def scienceRadarBatch(
     displayDict["subgroup"] = "N gals"
     sql = 'filter="i"'
     metric = metrics.NgalScaleMetric()
-    slicer = slicers.HealpixSlicer(useCache=False)
+    # galaxy counting uses dustmap
+    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    displayDict["caption"] = (
+        f"Approximate number of resolvable galaxies in i band, scaled by the "
+        f"coadded depth and median seeing. A dust and magnitude cut has been applied."
+    )
     bundle = mb.MetricBundle(
         metric,
         slicer,
@@ -1518,13 +1530,18 @@ def scienceRadarBatch(
     bundleList.append(bundle)
 
     displayDict["subgroup"] = "Lightcurve Pts"
-    sql = ""
     metric = metrics.NlcPointsMetric(nside=nside)
+    # NlcPoints metric uses star density maps
     slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    displayDict["caption"] = (
+        f"Approximate number of expected stellar measurements (nstars * nobs) "
+        f"in all filters, where the limiting magnitude for at least 10 visits "
+        f"is fainter than 21st magnitude, using a TRILEGAL stellar density map."
+    )
     bundle = mb.MetricBundle(
         metric,
         slicer,
-        sql,
+        None,
         runName=runName,
         summaryMetrics=[metrics.SumMetric()],
         plotFuncs=subsetPlots,
