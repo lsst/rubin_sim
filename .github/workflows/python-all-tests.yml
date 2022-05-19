@@ -32,7 +32,7 @@ jobs:
         run: |
           echo `pwd`
           ls ${{ github.workspace }}
-          python -m pip install . --use-feature=in-tree-build
+          python -m pip install .
       - name: download rubin_sim_data components needed for unit tests
         shell: bash -l {0}
         run: |
