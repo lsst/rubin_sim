@@ -183,8 +183,7 @@ class N_good_seeing_basis_function(Base_basis_function):
         )
         self.result = np.zeros(hp.nside2npix(self.nside))
         if self.filtername is not None:
-
-            self.dark_map = dark_sky[filtername]
+            self.dark_map = dark_sky()[filtername]
         self.footprint = footprint
 
     def _calc_value(self, conditions, indx=None):
