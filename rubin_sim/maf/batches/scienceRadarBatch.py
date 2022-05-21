@@ -37,6 +37,13 @@ def scienceRadarBatch(
     filterlist, colors, filterorders, filtersqls, filterinfo_label = filterList(
         all=False
     )
+    (
+        allfilterlist,
+        allcolors,
+        allfilterorders,
+        allfiltersqls,
+        allfilterinfo_label,
+    ) = filterList(all=True)
 
     standardStats = standardSummary(withCount=False)
 
@@ -648,9 +655,6 @@ def scienceRadarBatch(
     ] = "Kuiper statistic (0 is uniform, 1 is delta function) of the "
     metric1 = metrics.KuiperMetric("rotSkyPos")
     metric2 = metrics.KuiperMetric("rotTelPos")
-    filterlist, colors, filterorders, filtersqls, filterinfo_label = filterList(
-        all=False, extraSql=None, extraInfoLabel=None
-    )
     for f in filterlist:
         for m in [metric1, metric2]:
             plotDict = {"color": colors[f]}
@@ -782,9 +786,9 @@ def scienceRadarBatch(
     summaryMetrics = extendedSummary()
     summaryMetrics += [metrics.AreaThresholdMetric(lower_threshold=nquist_threshold)]
     m = metrics.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
-    for f in filterlist:
+    for f in allfilterlist:
         plotDict = {"color": colors[f], "percentileClip": 95}
-        displayDict["order"] = filterorders[f]
+        displayDict["order"] = allfilterorders[f]
         displayDict["subgroup"] = "Time Lags"
         displayDict["caption"] = (
             f"Comparion of the time between visits compared to a defined sampling gap ({lag} days) in "
@@ -794,8 +798,8 @@ def scienceRadarBatch(
             mb.MetricBundle(
                 m,
                 agnslicer,
-                constraint=filtersqls[f],
-                info_label=filterinfo_label[f],
+                constraint=allfiltersqls[f],
+                info_label=allfilterinfo_label[f],
                 runName=runName,
                 plotDict=plotDict,
                 summaryMetrics=summaryMetrics,
@@ -864,7 +868,7 @@ def scienceRadarBatch(
     # Periodic Stars
     displayDict = {"group": "Variables/Transients", "order": 0}
 
-    # PeriodicStarModulation metric (Nina Hernischek)
+    # PeriodicStarModulation metric
     # colors for c type RRLyrae
     displayDict["subgroup"] = "Periodic Star Modulation"
     I_rrc_lmc = 18.9
