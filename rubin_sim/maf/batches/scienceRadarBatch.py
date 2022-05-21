@@ -711,6 +711,7 @@ def scienceRadarBatch(
 
     # AGN structure function error
     agnslicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    dustmap = maps.DustMap(nside=nside)
     displayDict = {"group": "AGN", "order": 0}
 
     # Calculate the number of expected QSOs, in each band
@@ -742,6 +743,7 @@ def scienceRadarBatch(
                 constraint=sql,
                 info_label=md,
                 runName=runName,
+                mapsList=[dustmap],
                 summaryMetrics=summaryMetrics,
                 displayDict=displayDict,
             )
@@ -774,6 +776,7 @@ def scienceRadarBatch(
                 constraint=filtersqls[f],
                 info_label=filterinfo_label[f],
                 runName=runName,
+                mapsList=[dustmap],
                 plotDict=plotDict,
                 summaryMetrics=summaryMetrics,
                 displayDict=displayDict,
@@ -787,7 +790,12 @@ def scienceRadarBatch(
     summaryMetrics += [metrics.AreaThresholdMetric(lower_threshold=nquist_threshold)]
     m = metrics.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
     for f in allfilterlist:
-        plotDict = {"color": colors[f], "percentileClip": 95}
+        plotDict = {
+            "color": colors[f],
+            "colorMin": 0,
+            "colorMax": 5,
+            "percentileClip": 95,
+        }
         displayDict["order"] = allfilterorders[f]
         displayDict["subgroup"] = "Time Lags"
         displayDict["caption"] = (
@@ -801,6 +809,7 @@ def scienceRadarBatch(
                 constraint=allfiltersqls[f],
                 info_label=allfilterinfo_label[f],
                 runName=runName,
+                mapsList=[dustmap],
                 plotDict=plotDict,
                 summaryMetrics=summaryMetrics,
                 displayDict=displayDict,
