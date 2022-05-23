@@ -329,8 +329,8 @@ class TdcMetric(BaseMetric):
             "accuracy": accuracy,
             "precision": precision,
             "rate": rate,
-            "cadence": cad,
-            "season": sea,
+            "cadence (days)": cad,
+            "season (months)": sea,
             "campaign": camp,
         }
 
@@ -344,10 +344,10 @@ class TdcMetric(BaseMetric):
         return metricValue["rate"]
 
     def reduceCadence(self, metricValue):
-        return metricValue["cadence"]
+        return metricValue["cadence (days)"]
 
     def reduceSeason(self, metricValue):
-        return metricValue["season"]
+        return metricValue["season (months)"]
 
     def reduceCampaign(self, metricValue):
         return metricValue["campaign"]
