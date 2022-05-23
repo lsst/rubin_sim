@@ -184,8 +184,11 @@ def plot_run_metric(
         The color map to use for point colors.
     linestyles : `list`
         A list of matplotlib linestyles to use to connect the lines
-    markers : `list`
+    markers : `list`, opt
         A list of matplotlib markers to use to represent the points
+    shade_fraction : `float`, opt
+        Add a red/green shading to the plot, starting at 1 +/- shade_fraction.
+        Set to 0 or None for no shading.
 
     Returns
     -------
