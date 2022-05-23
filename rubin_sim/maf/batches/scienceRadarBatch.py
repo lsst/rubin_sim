@@ -440,17 +440,13 @@ def scienceRadarBatch(
     #########################
     #########################
 
+    # Run this per filter, to look at variations in counts of galaxies in blue bands?
     displayDict = {
         "group": "Galaxies",
         "subgroup": "Galaxy Counts",
         "order": 0,
         "caption": None,
     }
-    plotDict = {"percentileClip": 95.0, "nTicks": 5}
-    sql = 'filter="i"'
-    metric = maf.GalaxyCountsMetric_extended(
-        filterBand="i", redshiftBin="all", nside=nside
-    )
     summary = [
         metrics.AreaSummaryMetric(
             area=18000,
@@ -462,19 +458,26 @@ def scienceRadarBatch(
     summary.append(metrics.SumMetric(metricName="N Galaxies (all)"))
     # make sure slicer has cache off
     slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
-    displayDict[
-        "caption"
-    ] = "Number of galaxies across the sky, in i band. Generally, full survey footprint."
-    bundle = mb.MetricBundle(
-        metric,
-        slicer,
-        sql,
-        plotDict=plotDict,
-        displayDict=displayDict,
-        summaryMetrics=summary,
-        plotFuncs=subsetPlots,
-    )
-    bundleList.append(bundle)
+    for f in filterlist:
+        plotDict = {"percentileClip": 95.0, "nTicks": 5, "color": colors[f]}
+        sql = (filtersqls[f],)
+        metric = maf.GalaxyCountsMetric_extended(
+            filterBand=f, redshiftBin="all", nside=nside
+        )
+        displayDict[
+            "caption"
+        ] = f"Number of galaxies across the sky, in {f} band. Generally, full survey footprint."
+        displayDict["order"] = filterorders[f]
+        bundle = mb.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            plotDict=plotDict,
+            displayDict=displayDict,
+            summaryMetrics=summary,
+            plotFuncs=subsetPlots,
+        )
+        bundleList.append(bundle)
 
     displayDict["subgroup"] = "Surface Brightness"
     summary = [metrics.MedianMetric()]
@@ -832,6 +835,7 @@ def scienceRadarBatch(
     displayDict["subgroup"] = "Lens Time Delay"
 
     tdc_plots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
+    plotDict = {"xMin": 0.01, "colorMin": 0.01, "percentileClip": 70, "nTicks": 5}
     tdc_summary = [metrics.MeanMetric(), metrics.MedianMetric(), metrics.RmsMetric()]
     # Ideally need a way to do better on calculating the summary metrics for the high accuracy area.
     slicer = slicers.HealpixSlicer(nside=nside_tdc, useCache=False)
@@ -842,6 +846,7 @@ def scienceRadarBatch(
         slicer,
         constraint="",
         displayDict=displayDict,
+        plotDict=plotDict,
         plotFuncs=tdc_plots,
         mapsList=[dustmap],
         summaryMetrics=tdc_summary,
