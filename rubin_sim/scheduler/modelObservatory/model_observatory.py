@@ -46,7 +46,7 @@ class Model_observatory(object):
         sim_ToO=None,
         seeing_db=None,
         park_after=10.0,
-        load_length=10,
+        init_load_length=10,
     ):
         """
         Parameters
@@ -67,6 +67,8 @@ class Model_observatory(object):
             If one would like to use an alternate seeing database
         park_after : float (10)
             Park the telescope after a gap longer than park_after (minutes)
+        init_load_length : int (10)
+            The length of pre-scheduled sky brighntess to load initially (days). 
         """
 
         if nside is None:
@@ -140,7 +142,7 @@ class Model_observatory(object):
 
         self.cloud_data = CloudData(mjd_start_time, offset_year=0)
 
-        self.sky_model = sb.SkyModelPre(load_length=load_length)
+        self.sky_model = sb.SkyModelPre(init_load_length=init_load_length)
 
         self.observatory = Kinem_model(mjd0=mjd_start)
 

@@ -69,15 +69,17 @@ class SkyModelPre(object):
     arbitrary dates.
     """
 
-    def __init__(self, data_path=None, load_length=365, verbose=False, mjd0=60218.0):
+    def __init__(self, data_path=None, init_load_length=10, load_length=365, verbose=False, mjd0=60218.0):
         """
         Parameters
         ----------
         data_path : `str`, opt
             path to the numpy save files. Looks in standard SIMS_SKYBRIGHTNESS_DATA or RUBIN_SIM_DATA_DIR
             if set to default (None).
-        load_length : `float`, opt
+        init_load_length : `int` (10)
             The length of time (days) to load from disk initially. Set to something small for fast reads.
+        load_length : `int` (365)
+            The number of days to load after the initial load.
         mjd0 : `float` (60218.0)
             The starting MJD to load on initilization (days).
         """
@@ -122,9 +124,12 @@ class SkyModelPre(object):
         self.loaded_range = np.array([-1])
         self.timestep_max = -1
 
-        self.load_length = load_length
-        if load_length is not None:
+        # Do a quick initial load if set
+        if init_load_length is not None:
+            self.load_length = init_load_length
             self._load_data(mjd0)
+        # swap back to the longer load length
+        self.load_length = load_length
         self.nside = 32
         hpid = np.arange(hp.nside2npix(self.nside))
         self.ra, self.dec = _hpid2RaDec(self.nside, hpid)
