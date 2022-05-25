@@ -68,7 +68,7 @@ class Model_observatory(object):
         park_after : float (10)
             Park the telescope after a gap longer than park_after (minutes)
         init_load_length : int (10)
-            The length of pre-scheduled sky brighntess to load initially (days). 
+            The length of pre-scheduled sky brighntess to load initially (days).
         """
 
         if nside is None:

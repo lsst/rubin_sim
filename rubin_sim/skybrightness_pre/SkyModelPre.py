@@ -69,7 +69,14 @@ class SkyModelPre(object):
     arbitrary dates.
     """
 
-    def __init__(self, data_path=None, init_load_length=10, load_length=365, verbose=False, mjd0=60218.0):
+    def __init__(
+        self,
+        data_path=None,
+        init_load_length=10,
+        load_length=365,
+        verbose=False,
+        mjd0=60218.0,
+    ):
         """
         Parameters
         ----------
@@ -103,7 +110,9 @@ class SkyModelPre(object):
             errmssg += (
                 "Copy data from NCSA with sims_skybrightness_pre/data/data_down.sh \n"
             )
-            errmssg += "or build by running sims_skybrightness_pre/data/generate_hdf5.py"
+            errmssg += (
+                "or build by running sims_skybrightness_pre/data/generate_hdf5.py"
+            )
             warnings.warn(errmssg)
         self.filesizes = np.array(
             [os.path.getsize(filename) for filename in self.files]
@@ -170,22 +179,22 @@ class SkyModelPre(object):
 
         if self.verbose:
             print("Loading file %s" % filename)
-        h5 = h5py.File(filename, 'r')
+        h5 = h5py.File(filename, "r")
         mjds = h5["mjds"][:]
         indxs = np.where((mjds >= mjd) & (mjds <= (mjd + self.load_length)))
         indxs = [np.min(indxs), np.max(indxs)]
         if indxs[0] > 0:
             indxs[0] -= 1
         self.loaded_range = np.array([mjds[indxs[0]], mjds[indxs[1]]])
-        self.mjds = mjds[indxs[0]:indxs[1]]
+        self.mjds = mjds[indxs[0] : indxs[1]]
         _timestep_max = np.empty(1, dtype=float)
         h5["timestep_max"].read_direct(_timestep_max)
         self.timestep_max = np.max(_timestep_max)
 
-        self.sb = h5["sky_mags"][indxs[0]:indxs[1]]
+        self.sb = h5["sky_mags"][indxs[0] : indxs[1]]
         self.filter_names = self.sb.dtype.names
         h5.close()
-        
+
         if self.verbose:
             print("%s loaded" % os.path.split(filename)[1])
 
@@ -256,11 +265,11 @@ class SkyModelPre(object):
             baseline = self.mjds[right] - self.mjds[left]
 
         # Check if we are between sunrise/set
-        if baseline > self.timestep_max+1e-6:
+        if baseline > self.timestep_max + 1e-6:
             warnings.warn(
                 "Requested MJD between sunrise and sunset, returning closest maps"
             )
-            diff = np.abs(self.mjds[left.max(): right.max() + 1] - mjd)
+            diff = np.abs(self.mjds[left.max() : right.max() + 1] - mjd)
             closest_indx = np.array([left, right])[np.where(diff == np.min(diff))].min()
             sbs = {}
             for filter_name in filters:
@@ -293,8 +302,8 @@ class SkyModelPre(object):
                     (full_sky_sb[filters[0]] != badval)
                     & ~np.isnan(full_sky_sb[filters[0]])
                 )[0]
-                ra_full = self.ra[good] # np.radians(self.header["ra"][good])
-                dec_full = self.dec[good] #np.radians(self.header["dec"][good])
+                ra_full = self.ra[good]  # np.radians(self.header["ra"][good])
+                dec_full = self.dec[good]  # np.radians(self.header["dec"][good])
                 for filtername in filters:
                     full_sky_sb[filtername] = full_sky_sb[filtername][good]
                 # Going to assume the masked pixels are the same in all filters
