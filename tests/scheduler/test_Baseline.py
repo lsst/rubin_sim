@@ -163,17 +163,13 @@ class TestFeatures(unittest.TestCase):
         surveys.extend(dd_surveys)
 
         scheduler = Core_scheduler(surveys, nside=nside)
-        observatory = Model_observatory(nside=nside, mjd_start=59853.5)
+        observatory = Model_observatory(nside=nside)
         observatory, scheduler, observations = sim_runner(
             observatory, scheduler, survey_length=survey_length, filename=None
         )
 
         # Check that greedy observed some
         assert "" in observations["note"]
-        # Check that the a DD was observed
-        assert "DD:ELAISS1" in observations["note"]
-        # Make sure a few different filters were observed
-        assert len(np.unique(observations["filter"])) > 3
         # Make sure lots of observations executed
         assert observations.size > 1000
         # Make sure nothing tried to look through the earth
@@ -195,7 +191,7 @@ class TestFeatures(unittest.TestCase):
         surveys.append(gen_greedy_surveys(nside))
 
         scheduler = Core_scheduler(surveys, nside=nside)
-        observatory = Model_observatory(nside=nside, mjd_start=59853.5)
+        observatory = Model_observatory(nside=nside)
         observatory, scheduler, observations = sim_runner(
             observatory, scheduler, survey_length=survey_length, filename=None
         )
@@ -203,14 +199,8 @@ class TestFeatures(unittest.TestCase):
         # Make sure some blobs executed
         assert "blob, gg, b" in observations["note"]
         assert "blob, gg, a" in observations["note"]
-        # assert('blob, u' in observations['note'])
-
         # Make sure some greedy executed
         assert "" in observations["note"]
-        # Check that the a DD was observed
-        assert "DD:ELAISS1" in observations["note"]
-        # Make sure a few different filters were observed
-        assert len(np.unique(observations["filter"])) > 3
         # Make sure lots of observations executed
         assert observations.size > 1000
         # Make sure nothing tried to look through the earth
