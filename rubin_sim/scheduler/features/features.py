@@ -4,7 +4,7 @@ import numpy as np
 import healpy as hp
 from rubin_sim.scheduler import utils
 from rubin_sim.utils import m5_flat_sed, _raDec2Hpid, calcSeason, _hpid2RaDec
-from rubin_sim.skybrightness_pre import M5percentiles
+from rubin_sim.skybrightness_pre import dark_sky
 from rubin_sim.scheduler.utils import int_rounded
 
 
@@ -412,8 +412,7 @@ class N_observations_current_season(BaseSurveyFeature):
 
         self.feature = np.zeros(hp.nside2npix(nside), dtype=float)
         if self.filtername is not None:
-            m5p = M5percentiles()
-            self.dark_map = m5p.dark_map(filtername=filtername, nside_out=self.nside)
+            self.dark_map = dark_sky()[filtername]
         self.ones = np.ones(hp.nside2npix(self.nside))
         self.ra, self.dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
 

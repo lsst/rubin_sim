@@ -3,8 +3,10 @@ import glob
 import os
 import healpy as hp
 import warnings
-from rubin_sim.utils import _angularSeparation
+from rubin_sim.utils import _angularSeparation, _hpid2RaDec
 from rubin_sim.data import get_data_dir
+import h5py
+
 
 __all__ = ["SkyModelPre", "interp_angle"]
 
@@ -67,16 +69,26 @@ class SkyModelPre(object):
     arbitrary dates.
     """
 
-    def __init__(self, data_path=None, speedLoad=True, verbose=False):
+    def __init__(
+        self,
+        data_path=None,
+        init_load_length=10,
+        load_length=365,
+        verbose=False,
+        mjd0=60218.0,
+    ):
         """
         Parameters
         ----------
         data_path : `str`, opt
             path to the numpy save files. Looks in standard SIMS_SKYBRIGHTNESS_DATA or RUBIN_SIM_DATA_DIR
             if set to default (None).
-        speedLoad : `bool`, opt
-            If True, use the small 3-day file to load found in the usual spot. Default True.
-            If False, does not load any skybrightness files until called (with a date).
+        init_load_length : `int` (10)
+            The length of time (days) to load from disk initially. Set to something small for fast reads.
+        load_length : `int` (365)
+            The number of days to load after the initial load.
+        mjd0 : `float` (60218.0)
+            The starting MJD to load on initilization (days).
         """
 
         self.info = None
@@ -92,13 +104,15 @@ class SkyModelPre(object):
             data_path = os.path.join(get_data_dir(), "skybrightness_pre")
 
         # Expect filenames of the form mjd1_mjd2.npz, e.g., 59632.155_59633.2.npz
-        self.files = glob.glob(os.path.join(data_path, "*.npz"))
+        self.files = glob.glob(os.path.join(data_path, "*.h5"))
         if len(self.files) == 0:
-            errmssg = "Failed to find pre-computed .npz files. "
+            errmssg = "Failed to find pre-computed .h5 files. "
             errmssg += (
                 "Copy data from NCSA with sims_skybrightness_pre/data/data_down.sh \n"
             )
-            errmssg += "or build by running sims_skybrightness_pre/data/generate_sky.py"
+            errmssg += (
+                "or build by running sims_skybrightness_pre/data/generate_hdf5.py"
+            )
             warnings.warn(errmssg)
         self.filesizes = np.array(
             [os.path.getsize(filename) for filename in self.files]
@@ -108,7 +122,7 @@ class SkyModelPre(object):
         # glob does not always order things I guess?
         self.files.sort()
         for filename in self.files:
-            temp = os.path.split(filename)[-1].replace(".npz", "").split("_")
+            temp = os.path.split(filename)[-1].replace(".h5", "").split("_")
             mjd_left.append(float(temp[0]))
             mjd_right.append(float(temp[1]))
 
@@ -117,18 +131,17 @@ class SkyModelPre(object):
 
         # Set that nothing is loaded at this point
         self.loaded_range = np.array([-1])
+        self.timestep_max = -1
 
-        # Go ahead and load the small one in the repo by default
-        if speedLoad:
-            self._load_data(
-                60218.0,
-                filename=os.path.join(
-                    get_data_dir(), "skybrightness_pre_small", "60218_60226.npz"
-                ),
-                npyfile=os.path.join(
-                    get_data_dir(), "skybrightness_pre_small", "60218_60226.npy"
-                ),
-            )
+        # Do a quick initial load if set
+        if init_load_length is not None:
+            self.load_length = init_load_length
+            self._load_data(mjd0)
+        # swap back to the longer load length
+        self.load_length = load_length
+        self.nside = 32
+        hpid = np.arange(hp.nside2npix(self.nside))
+        self.ra, self.dec = _hpid2RaDec(self.nside, hpid)
 
     def _load_data(self, mjd, filename=None, npyfile=None):
         """
@@ -145,10 +158,9 @@ class SkyModelPre(object):
         npyfile : `str` (None)
             If sky brightness data not in npz file, checks the .npy file with same root name.
         """
-        del self.info
         del self.sb
-        del self.header
         del self.filter_names
+        del self.timestep_max
 
         if filename is None:
             # Figure out which file to load.
@@ -162,186 +174,36 @@ class SkyModelPre(object):
             file_indx = np.max(file_indx)
 
             filename = self.files[file_indx]
-
-            self.loaded_range = np.array(
-                [self.mjd_left[file_indx], self.mjd_right[file_indx]]
-            )
         else:
             self.loaded_range = None
 
         if self.verbose:
             print("Loading file %s" % filename)
-        # Add encoding kwarg to restore Python 2.7 generated files
-        data = np.load(filename, encoding="bytes", allow_pickle=True)
-        self.info = data["dict_of_lists"][()]
-        self.header = data["header"][()]
-        if "sky_brightness" in data.keys():
-            self.sb = data["sky_brightness"][()]
-            data.close()
-        else:
-            # the sky brightness had to go in it's own npy file
-            data.close()
-            if npyfile is None:
-                npyfile = filename[:-3] + "npy"
-            self.sb = np.load(npyfile)
-            if self.verbose:
-                print("also loading %s" % npyfile)
+        h5 = h5py.File(filename, "r")
+        mjds = h5["mjds"][:]
+        indxs = np.where((mjds >= mjd) & (mjds <= (mjd + self.load_length)))
+        indxs = [np.min(indxs), np.max(indxs)]
+        if indxs[0] > 0:
+            indxs[0] -= 1
+        self.loaded_range = np.array([mjds[indxs[0]], mjds[indxs[1]]])
+        self.mjds = mjds[indxs[0] : indxs[1]]
+        _timestep_max = np.empty(1, dtype=float)
+        h5["timestep_max"].read_direct(_timestep_max)
+        self.timestep_max = np.max(_timestep_max)
 
-        # Step to make sure keys are strings not bytes
-        all_dicts = [self.info, self.sb, self.header]
-        all_dicts = [
-            single_dict for single_dict in all_dicts if hasattr(single_dict, "keys")
-        ]
-        for selfDict in all_dicts:
-            for key in list(selfDict.keys()):
-                if type(key) != str:
-                    selfDict[key.decode("utf-8")] = selfDict.pop(key)
-
-        # Ugh, different versions of the save files could have dicts or np.array.
-        # Let's hope someone fits some Fourier components to the sky brightnesses and gets rid
-        # of the giant save files for good.
-        if hasattr(self.sb, "keys"):
-            self.filter_names = list(self.sb.keys())
-        else:
-            self.filter_names = self.sb.dtype.names
+        self.sb = h5["sky_mags"][indxs[0] : indxs[1]]
+        self.filter_names = self.sb.dtype.names
+        h5.close()
 
         if self.verbose:
             print("%s loaded" % os.path.split(filename)[1])
 
         self.nside = hp.npix2nside(self.sb[self.filter_names[0]][0, :].size)
 
-        if self.loaded_range is None:
-            self.loaded_range = np.array(
-                [self.info["mjds"].min(), self.info["mjds"].max()]
-            )
-
-    def returnSunMoon(self, mjd):
-        """
-        Parameters
-        ----------
-        mjd : `float`
-           Modified Julian Date(s) to interpolate to
-
-        Returns
-        -------
-        sunMoon : `dict`
-            Dict with keys for the sun and moon RA and Dec and the
-            mooon-sun separation. All values in radians, except for moonSunSep
-            that is in degrees for some reason (that reason is probably because I'm sloppy).
-        """
-
-        # warnings.warn('Method returnSunMoon to be depreciated. Interpolating angles is bad!')
-
-        keys = [
-            "sunAlts",
-            "moonAlts",
-            "moonRAs",
-            "moonDecs",
-            "sunRAs",
-            "sunDecs",
-            "moonSunSep",
-        ]
-
-        degrees = [False, False, False, False, False, False, True]
-
-        if mjd < self.loaded_range.min() or (mjd > self.loaded_range.max()):
-            self._load_data(mjd)
-
-        result = {}
-        for key, degree in zip(keys, degrees):
-            if key[-1] == "s":
-                newkey = key[:-1]
-            else:
-                newkey = key
-            if "RA" in key:
-                result[newkey] = interp_angle(
-                    mjd, self.info["mjds"], self.info[key], degrees=degree
-                )
-                # Return a scalar if only doing 1 date.
-                if np.size(result[newkey]) == 1:
-                    result[newkey] = np.max(result[newkey])
-            else:
-                result[newkey] = np.interp(mjd, self.info["mjds"], self.info[key])
-        return result
-
-    def returnAirmass(self, mjd, maxAM=10.0, indx=None, badval=hp.UNSEEN):
-        """
-
-        Parameters
-        ----------
-        mjd : `float`
-            Modified Julian Date to interpolate to
-        indx : `list` of `int` (None)
-            indices to interpolate the sky values at. Returns full sky if None. The indx is the healpix ID.
-        maxAM : `float` (10)
-            The maximum airmass to return, everything above this airmass will be set to badval
-
-        Returns
-        -------
-        airmass : `np.array`
-            Array of airmass values. If the MJD is between sunrise and sunset, all values are masked.
-        """
-        if mjd < self.loaded_range.min() or (mjd > self.loaded_range.max()):
-            self._load_data(mjd)
-
-        left = np.searchsorted(self.info["mjds"], mjd) - 1
-        right = left + 1
-
-        # If we are out of bounds
-        if right >= self.info["mjds"].size:
-            right -= 1
-            baseline = 1.0
-        elif left < 0:
-            left += 1
-            baseline = 1.0
-        else:
-            baseline = self.info["mjds"][right] - self.info["mjds"][left]
-
-        if indx is None:
-            result_size = self.sb[self.filter_names[0]][left, :].size
-            indx = np.arange(result_size)
-        else:
-            result_size = len(indx)
-        # Check if we are between sunrise/set
-        if baseline > self.header["timestep_max"]:
-            warnings.warn(
-                "Requested MJD between sunrise and sunset, returning closest maps"
-            )
-            diff = np.abs(self.info["mjds"][left.max() : right.max() + 1] - mjd)
-            closest_indx = np.array([left, right])[np.where(diff == np.min(diff))]
-            airmass = self.info["airmass"][closest_indx, indx]
-            mask = np.where(
-                (self.info["airmass"][closest_indx, indx].ravel() < 1.0)
-                | (self.info["airmass"][closest_indx, indx].ravel() > maxAM)
-            )
-            airmass = airmass.ravel()
-
-        else:
-            wterm = (mjd - self.info["mjds"][left]) / baseline
-            w1 = 1.0 - wterm
-            w2 = wterm
-            airmass = (
-                self.info["airmass"][left, indx] * w1
-                + self.info["airmass"][right, indx] * w2
-            )
-            mask = np.where(
-                (self.info["airmass"][left, indx] < 1.0)
-                | (self.info["airmass"][left, indx] > maxAM)
-                | (self.info["airmass"][right, indx] < 1.0)
-                | (self.info["airmass"][right, indx] > maxAM)
-            )
-        airmass[mask] = badval
-
-        return airmass
-
     def returnMags(
         self,
         mjd,
         indx=None,
-        airmass_mask=True,
-        planet_mask=True,
-        moon_mask=True,
-        zenith_mask=True,
         badval=hp.UNSEEN,
         filters=["u", "g", "r", "i", "z", "y"],
         extrapolate=False,
@@ -382,14 +244,7 @@ class SkyModelPre(object):
         if mjd < self.loaded_range.min() or (mjd > self.loaded_range.max()):
             self._load_data(mjd)
 
-        mask_rules = {
-            "airmass": airmass_mask,
-            "planet": planet_mask,
-            "moon": moon_mask,
-            "zenith": zenith_mask,
-        }
-
-        left = np.searchsorted(self.info["mjds"], mjd) - 1
+        left = np.searchsorted(self.mjds, mjd) - 1
         right = left + 1
 
         # Do full sky by default
@@ -400,35 +255,29 @@ class SkyModelPre(object):
             full_sky = False
 
         # If we are out of bounds
-        if right >= self.info["mjds"].size:
+        if right >= self.mjds.size:
             right -= 1
             baseline = 1.0
         elif left < 0:
             left += 1
             baseline = 1.0
         else:
-            baseline = self.info["mjds"][right] - self.info["mjds"][left]
+            baseline = self.mjds[right] - self.mjds[left]
 
         # Check if we are between sunrise/set
-        if baseline > self.header["timestep_max"]:
+        if baseline > self.timestep_max + 1e-6:
             warnings.warn(
                 "Requested MJD between sunrise and sunset, returning closest maps"
             )
-            diff = np.abs(self.info["mjds"][left.max() : right.max() + 1] - mjd)
+            diff = np.abs(self.mjds[left.max() : right.max() + 1] - mjd)
             closest_indx = np.array([left, right])[np.where(diff == np.min(diff))].min()
             sbs = {}
             for filter_name in filters:
                 sbs[filter_name] = self.sb[filter_name][closest_indx, indx]
-                for mask_name in mask_rules:
-                    if mask_rules[mask_name]:
-                        toMask = np.where(
-                            self.info[mask_name + "_masks"][closest_indx, indx]
-                        )
-                        sbs[filter_name][toMask] = badval
                 sbs[filter_name][np.isinf(sbs[filter_name])] = badval
                 sbs[filter_name][np.where(sbs[filter_name] == hp.UNSEEN)] = badval
         else:
-            wterm = (mjd - self.info["mjds"][left]) / baseline
+            wterm = (mjd - self.mjds[left]) / baseline
             w1 = 1.0 - wterm
             w2 = wterm
             sbs = {}
@@ -437,17 +286,6 @@ class SkyModelPre(object):
                     self.sb[filter_name][left, indx] * w1
                     + self.sb[filter_name][right, indx] * w2
                 )
-                for mask_name in mask_rules:
-                    if mask_rules[mask_name]:
-                        toMask = np.where(
-                            self.info[mask_name + "_masks"][left, indx]
-                            | self.info[mask_name + "_masks"][right, indx]
-                            | np.isinf(sbs[filter_name])
-                        )
-                        sbs[filter_name][toMask] = badval
-                sbs[filter_name][np.where(sbs[filter_name] == hp.UNSEEN)] = badval
-                sbs[filter_name][np.where(sbs[filter_name] == hp.UNSEEN)] = badval
-
         # If requested a certain pixel(s), and want to extrapolate.
         if (not full_sky) & extrapolate:
             masked_pix = False
@@ -458,18 +296,14 @@ class SkyModelPre(object):
                 # We have pixels that are masked that we want reasonable values for
                 full_sky_sb = self.returnMags(
                     mjd,
-                    airmass_mask=False,
-                    planet_mask=False,
-                    moon_mask=False,
-                    zenith_mask=False,
                     filters=filters,
                 )
                 good = np.where(
                     (full_sky_sb[filters[0]] != badval)
                     & ~np.isnan(full_sky_sb[filters[0]])
                 )[0]
-                ra_full = np.radians(self.header["ra"][good])
-                dec_full = np.radians(self.header["dec"][good])
+                ra_full = self.ra[good]  # np.radians(self.header["ra"][good])
+                dec_full = self.dec[good]  # np.radians(self.header["dec"][good])
                 for filtername in filters:
                     full_sky_sb[filtername] = full_sky_sb[filtername][good]
                 # Going to assume the masked pixels are the same in all filters
@@ -480,8 +314,8 @@ class SkyModelPre(object):
                 for i, mi in enumerate(masked_indx):
                     # Note, this is going to be really slow for many pixels, should use a kdtree
                     dist = _angularSeparation(
-                        np.radians(self.header["ra"][indx[i]]),
-                        np.radians(self.header["dec"][indx[i]]),
+                        self.ra[indx[i]],
+                        self.dec[indx[i]],
                         ra_full,
                         dec_full,
                     )

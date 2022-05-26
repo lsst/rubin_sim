@@ -4,7 +4,7 @@ from rubin_sim.scheduler import utils
 from rubin_sim.scheduler.utils import int_rounded
 import healpy as hp
 import matplotlib.pylab as plt
-from rubin_sim.skybrightness_pre import M5percentiles
+from rubin_sim.skybrightness_pre import dark_sky
 import warnings
 from rubin_sim.utils import _hpid2RaDec
 from astropy.coordinates import SkyCoord
@@ -183,8 +183,7 @@ class N_good_seeing_basis_function(Base_basis_function):
         )
         self.result = np.zeros(hp.nside2npix(self.nside))
         if self.filtername is not None:
-            m5p = M5percentiles()
-            self.dark_map = m5p.dark_map(filtername=filtername, nside_out=self.nside)
+            self.dark_map = dark_sky()[filtername]
         self.footprint = footprint
 
     def _calc_value(self, conditions, indx=None):
@@ -864,8 +863,8 @@ class M5_diff_basis_function(Base_basis_function):
 
         super(M5_diff_basis_function, self).__init__(nside=nside, filtername=filtername)
         # Need to look up the deepest m5 values for all the healpixels
-        m5p = M5percentiles()
-        self.dark_map = m5p.dark_map(filtername=filtername, nside_out=self.nside)
+
+        self.dark_map = dark_sky()[filtername]
 
     def _calc_value(self, conditions, indx=None):
         # No way to get the sign on this right the first time.

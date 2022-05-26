@@ -4,17 +4,10 @@ import rubin_sim.utils as utils
 import healpy as hp
 import sys
 import os
-import ephem
-
-
-def mjd2djd(inDate):
-    """
-    Convert Modified Julian Date to Dublin Julian Date (what pyephem uses).
-    """
-    if not hasattr(mjd2djd, "doff"):
-        mjd2djd.doff = ephem.Date(0) - ephem.Date("1858/11/17")
-    djd = inDate - mjd2djd.doff
-    return djd
+from astropy.coordinates import get_sun, get_moon, EarthLocation, AltAz
+import astropy.units as u
+from astropy.time import Time
+import h5py
 
 
 def generate_sky(
@@ -25,13 +18,10 @@ def generate_sky(
     outfile=None,
     outpath=None,
     nside=32,
-    sunLimit=-12.0,
-    fieldID=False,
+    sunLimit=-11.5,
     airmass_overhead=1.5,
     dm=0.2,
     airmass_limit=2.5,
-    moon_dist_limit=10.0,
-    planet_dist_limit=2.0,
     alt_limit=86.5,
     requireStride=3,
     verbose=True,
@@ -90,7 +80,6 @@ def generate_sky(
     """
 
     sunLimit_rad = np.radians(sunLimit)
-    alt_limit_rad = np.radians(alt_limit)
 
     # Set the time steps
     timestep = timestep / 60.0 / 24.0  # Convert to days
@@ -102,45 +91,25 @@ def generate_sky(
     sunAlts = np.zeros(mjds.size, dtype=float)
 
     if outfile is None:
-        outfile = "%i_%i.npz" % (mjd0, mjd_max)
+        outfile = "%i_%i.h5" % (mjd0, mjd_max)
     if outpath is not None:
         outfile = os.path.join(outpath, outfile)
 
-    telescope = utils.Site("LSST")
-    Observatory = ephem.Observer()
-    Observatory.lat = telescope.latitude_rad
-    Observatory.lon = telescope.longitude_rad
-    Observatory.elevation = telescope.height
+    site = utils.Site("LSST")
 
-    sun = ephem.Sun()
+    location = EarthLocation(lat=site.latitude, lon=site.longitude, height=site.height)
+    t_sparse = Time(mjds, format="mjd", location=location)
 
-    # Planets we want to avoid
-    planets = [ephem.Venus(), ephem.Mars(), ephem.Jupiter(), ephem.Saturn()]
+    sun = get_sun(t_sparse)
+    aa = AltAz(location=location, obstime=t_sparse)
+    sunAlts = sun.transform_to(aa)
 
-    # Compute the sun altitude for all the possible MJDs
-    for i, mjd in enumerate(mjds):
-        Observatory.date = mjd2djd(mjd)
-        sun.compute(Observatory)
-        sunAlts[i] = sun.alt
-
-    mjds = mjds[np.where(sunAlts <= sunLimit_rad)]
+    mjds = mjds[np.where(sunAlts.alt.rad <= sunLimit_rad)]
     required_mjds = mjds[::3]
 
-    if fieldID:
-        field_data = np.loadtxt(
-            "fieldID.dat",
-            delimiter="|",
-            skiprows=1,
-            dtype=list(zip(["id", "ra", "dec"], [int, float, float])),
-        )
-        ra = field_data["ra"]
-        dec = field_data["dec"]
-    else:
-        hpindx = np.arange(hp.nside2npix(nside))
-        ra, dec = utils.hpid2RaDec(nside, hpindx)
+    hpindx = np.arange(hp.nside2npix(nside))
+    ra, dec = utils.hpid2RaDec(nside, hpindx)
 
-    ra_rad = np.radians(ra)
-    dec_rad = np.radians(dec)
     if verbose:
         print("using %i points on the sky" % ra.size)
         print("using %i mjds" % mjds.size)
@@ -152,19 +121,7 @@ def generate_sky(
 
     # Initialize the relevant lists
     dict_of_lists = {
-        "airmass": [],
-        "sunAlts": [],
         "mjds": [],
-        "airmass_masks": [],
-        "planet_masks": [],
-        "moonAlts": [],
-        "moonRAs": [],
-        "moonDecs": [],
-        "sunRAs": [],
-        "sunDecs": [],
-        "moonSunSep": [],
-        "moon_masks": [],
-        "zenith_masks": [],
     }
     sky_brightness = {}
     for filter_name in filter_names:
@@ -173,7 +130,6 @@ def generate_sky(
     length = mjds[-1] - mjds[0]
     last_5_mags = []
     last_5_mjds = []
-    full_masks = []
     for mjd in mjds:
         progress = (mjd - mjd0) / length * 100
         text = "\rprogress = %.1f%%" % progress
@@ -184,66 +140,18 @@ def generate_sky(
             mags = sm.returnMags()
             for key in filter_names:
                 sky_brightness[key].append(mags[key])
-            dict_of_lists["airmass"].append(sm.airmass)
-            dict_of_lists["sunAlts"].append(sm.sunAlt)
             dict_of_lists["mjds"].append(mjd)
-            dict_of_lists["sunRAs"].append(sm.sunRA)
-            dict_of_lists["sunDecs"].append(sm.sunDec)
-            dict_of_lists["moonRAs"].append(sm.moonRA)
-            dict_of_lists["moonDecs"].append(sm.moonDec)
-            dict_of_lists["moonSunSep"].append(sm.moonSunSep)
-            dict_of_lists["moonAlts"].append(sm.moonAlt)
             last_5_mjds.append(mjd)
             last_5_mags.append(mags)
             if len(last_5_mjds) > 5:
                 del last_5_mjds[0]
                 del last_5_mags[0]
 
-            masks = {"moon": None, "airmass": None, "planet": None, "zenith": None}
-            for mask in masks:
-                masks[mask] = np.zeros(np.size(ra), dtype=bool)
-                masks[mask].fill(False)
-
-            # Apply airmass masking limit
-            masks["airmass"][
-                np.where((sm.airmass > airmass_limit) | (sm.airmass < 1.0))
-            ] = True
-
-            # Apply moon distance limit
-            masks["moon"][
-                np.where(sm.moonTargSep <= np.radians(moon_dist_limit))
-            ] = True
-
-            # Apply altitude limit
-            masks["zenith"][np.where(sm.alts >= alt_limit_rad)] = True
-
-            # Apply the planet distance limits
-            Observatory.date = mjd2djd(mjd)
-            for planet in planets:
-                planet.compute(Observatory)
-                distances = utils.haversine(ra_rad, dec_rad, planet.ra, planet.dec)
-                masks["planet"][
-                    np.where(distances <= np.radians(planet_dist_limit))
-                ] = True
-
-            full_mask = np.zeros(np.size(ra), dtype=bool)
-            full_mask.fill(False)
-            for key in masks:
-                dict_of_lists[key + "_masks"].append(masks[key])
-                full_mask[masks[key]] = True
-                full_masks.append(full_mask)
-
-            if len(dict_of_lists["airmass"]) > 3:
+            if np.size(dict_of_lists["mjds"]) > 3:
                 if dict_of_lists["mjds"][-2] not in required_mjds:
                     # Check if we can interpolate the second to last sky brightnesses
-                    overhead = np.where(
-                        (dict_of_lists["airmass"][-1] <= airmass_overhead)
-                        & (dict_of_lists["airmass"][-2] <= airmass_overhead)
-                        & (~full_masks[-1])
-                        & (~full_masks[-2])
-                    )
 
-                    if (np.size(overhead[0]) > 0) & (
+                    if (
                         dict_of_lists["mjds"][-1] - dict_of_lists["mjds"][-3]
                         < timestep_max
                     ):
@@ -258,15 +166,10 @@ def generate_sky(
                                 w1 = 1.0 - wterm
                                 w2 = wterm
                                 for filter_name in filter_names:
-                                    interp_sky = (
-                                        w1 * sky_brightness[filter_name][-3][overhead]
-                                    )
-                                    interp_sky += (
-                                        w2 * sky_brightness[filter_name][-1][overhead]
-                                    )
+                                    interp_sky = w1 * sky_brightness[filter_name][-3]
+                                    interp_sky += w2 * sky_brightness[filter_name][-1]
                                     diff = np.abs(
-                                        last_5_mags[int(indx)][filter_name][overhead]
-                                        - interp_sky
+                                        last_5_mags[int(indx)][filter_name] - interp_sky
                                     )
                                     if np.size(diff[~np.isnan(diff)]) > 0:
                                         if np.max(diff[~np.isnan(diff)]) > dm:
@@ -278,10 +181,13 @@ def generate_sky(
                                 del sky_brightness[key][-2]
     print("")
 
-    for key in dict_of_lists:
-        dict_of_lists[key] = np.array(dict_of_lists[key])
+    final_mjds = np.array(dict_of_lists["mjds"])
+    final_sky_mags = np.zeros(
+        (final_mjds.size, sky_brightness["r"][0].size),
+        dtype=list(zip(filter_names, ["float"] * 6)),
+    )
     for key in sky_brightness:
-        sky_brightness[key] = np.array(sky_brightness[key])
+        final_sky_mags[key] = sky_brightness[key]
 
     import rubin_sim
 
@@ -297,12 +203,9 @@ def generate_sky(
         "outpath": outpath,
         "nside": nside,
         "sunLimit": sunLimit,
-        "fieldID": fieldID,
         "airmas_overhead": airmass_overhead,
         "dm": dm,
         "airmass_limit": airmass_limit,
-        "moon_dist_limit": moon_dist_limit,
-        "planet_dist_limit": planet_dist_limit,
         "alt_limit": alt_limit,
         "ra": ra,
         "dec": dec,
@@ -312,16 +215,12 @@ def generate_sky(
         "fingerprint": fingerprint,
     }
 
-    np.savez(outfile, dict_of_lists=dict_of_lists, header=header)
-    # Convert sky_brightness to a true array so it's easier to save
-    types = [float] * len(sky_brightness.keys())
-    result = np.zeros(
-        sky_brightness[list(sky_brightness.keys())[0]].shape,
-        dtype=list(zip(sky_brightness.keys(), types)),
-    )
-    for key in sky_brightness.keys():
-        result[key] = sky_brightness[key]
-    np.save(outfile[:-3] + "npy", result)
+    # Save mjd and sky brightness arrays to an hdf5 file
+    hf = h5py.File(outfile, "w")
+    hf.create_dataset("mjds", data=final_mjds)
+    hf.create_dataset("sky_mags", data=final_sky_mags, compression="gzip")
+    hf.create_dataset("timestep_max", data=timestep_max)
+    hf.close()
 
 
 if __name__ == "__main__":
@@ -336,6 +235,8 @@ if __name__ == "__main__":
     # mjds = np.arange(59560, 59560+365.25*nyears+day_pad+366, 366)
     # 6-months
     mjds = np.arange(59560, 59560 + 366 * nyears + 366 / 2.0, 366 / 2.0)
+    # mjds = [59560, 59563.5]
+    # mjds = [60218, 60226]
     # Add some time ahead of time for ComCam
     # nyears = 3
     # mjds = np.arange(58462, 58462+366*nyears+366/2., 366/2.)
@@ -343,5 +244,5 @@ if __name__ == "__main__":
     for mjd1, mjd2 in zip(mjds[:-1], mjds[1:]):
         print("Generating file %i" % count)
         # generate_sky(mjd0=mjd1, mjd_max=mjd2+day_pad, outpath='opsimFields', fieldID=True)
-        generate_sky(mjd0=mjd1, mjd_max=mjd2 + day_pad, outpath="healpix")
+        generate_sky(mjd0=mjd1, mjd_max=mjd2 + day_pad)
         count += 1
