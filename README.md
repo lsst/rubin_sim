@@ -14,10 +14,9 @@ To install rubin_sim into a new conda environment (the typical use-case), set up
 ```
 git clone https://github.com/lsst/rubin_sim.git
 cd rubin_sim
-conda create -n rubin   ### optional (but recommended)
-conda activate rubin    ### optional (if new environment created above)
+conda create -n rubin & conda activate rubin  ### optional (but recommended)
 conda install -c conda-forge --file=requirements.txt
-conda install jupyter   ### if you want to use jupyter notebook in this environment
+conda install -c conda-forge jupyter   ### if you want to use jupyter notebook in this environment
 pip install -e .
 ```
 
