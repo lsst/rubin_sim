@@ -451,6 +451,33 @@ def interNight(
         )
         bundleList.append(bundle)
 
+    # 20th percentile inter-night gap (each and all filters) - aimed at active rolling years
+    def rfunc(simdata):
+        return np.percentile(simdata, 20)
+
+    metric = metrics.InterNightGapsMetric(
+        metricName="20thPercentile Inter-Night Gap",
+        mjdCol=colmap["mjd"],
+        reduceFunc=rfunc,
+    )
+    for f in filterlist:
+        displayDict["caption"] = (
+            "Median gap between nights with observations, %s." % info_label[f]
+        )
+        displayDict["order"] = orders[f]
+        plotDict = {"color": colors[f], "percentileClip": 95.0}
+        bundle = mb.MetricBundle(
+            metric,
+            slicer,
+            sqls[f],
+            info_label=info_label[f],
+            displayDict=displayDict,
+            plotFuncs=subsetPlots,
+            plotDict=plotDict,
+            summaryMetrics=standardStats,
+        )
+        bundleList.append(bundle)
+
     # Maximum inter-night gap (in each and all filters).
     metric = metrics.InterNightGapsMetric(
         metricName="Max Inter-Night Gap", mjdCol=colmap["mjd"], reduceFunc=np.max
