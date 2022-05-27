@@ -325,16 +325,13 @@ def scienceRadarBatch(
         displayDict["order"] += 1
 
     # DCR precision metric
-    slicer = slicers.HealpixSlicer(nside=nside)
-    subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
-
     displayDict["subgroup"] = "DCR"
+    displayDict["order"] = 0
     plotDict = {"caption": "Precision of DCR slope."}
     metric = metrics.DcrPrecisionMetric()
-    sql = ""
     bundle = mb.MetricBundle(
         metric,
-        slicer,
+        healpixslicer,
         "",
         plotDict=plotDict,
         plotFuncs=subsetPlots,
@@ -342,7 +339,6 @@ def scienceRadarBatch(
         summaryMetrics=standardSummary(withCount=False),
     )
     bundleList.append(bundle)
-    displayDict["order"] += 1
 
     # Rapid Revisit
     displayDict["subgroup"] = "Rapid Revisits"
