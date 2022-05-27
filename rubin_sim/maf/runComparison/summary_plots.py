@@ -1,7 +1,12 @@
 """Summary metric plotting functions.
 """
 
-__all__ = ["normalize_metric_summaries", "plot_run_metric", "plot_run_metric_mesh"]
+__all__ = [
+    "normalize_metric_summaries",
+    "plot_run_metric",
+    "plot_run_metric_mesh",
+    "find_family_lines",
+]
 
 # imports
 import warnings
@@ -179,8 +184,11 @@ def plot_run_metric(
         The color map to use for point colors.
     linestyles : `list`
         A list of matplotlib linestyles to use to connect the lines
-    markers : `list`
+    markers : `list`, opt
         A list of matplotlib markers to use to represent the points
+    shade_fraction : `float`, opt
+        Add a red/green shading to the plot, starting at 1 +/- shade_fraction.
+        Set to 0 or None for no shading.
 
     Returns
     -------
@@ -487,6 +495,14 @@ def plot_run_metric_mesh(
     fig.colorbar(im, ax=ax, label="Fractional difference")
 
     return fig, ax
+
+
+def find_family_lines(families, family_list):
+    lines = []
+    for f in family_list:
+        lines += [len(families.loc[f]["run"])]
+    lines = np.array(lines).cumsum()
+    return lines
 
 
 # classes

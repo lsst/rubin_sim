@@ -9,8 +9,18 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 
 Prerequisites:  A working [conda installation ](https://www.anaconda.com/products/individual)
 
+### Conda installation ###
+For a simple conda installation:
+```
+conda create -n rubin -c conda-forge rubin_sim
+conda activate rubin
+conda install -c conda-forge jupyter
+```
+Then follow the data download directions below.
+Note that this is not the best option for developers working on their own metrics - a pip installation from their own fork of the repo may work better.
 
-To install rubin_sim into a new conda environment (the typical use-case), set up a conda environment and pip install rubin_sim from source:
+### Pip installation ###
+To install rubin_sim from source using pip:
 ```
 git clone https://github.com/lsst/rubin_sim.git
 cd rubin_sim
@@ -19,6 +29,8 @@ conda install -c conda-forge --file=requirements.txt
 conda install -c conda-forge jupyter   ### if you want to use jupyter notebook in this environment
 pip install -e .
 ```
+Note that **developers** will likely want to follow similar directions, except create a fork of our rubin_sim github repo first (and then clone from there).
+Follow the data download directions below in order to install the necessary data files.
 
 The installation can be tested by running `pytest` in the package directory.
 In order to run the unit tests, install the following additional packages:
@@ -26,11 +38,11 @@ In order to run the unit tests, install the following additional packages:
 conda install -c conda-forge --file=test-requirements.txt
 ```
 
-However, we expect some users to want to install rubin_sim into an LSST stack environment, using only some of the basic options within rubin_sim such as photUtils. 
+We expect some users to want to install rubin_sim into an LSST stack environment, using only some of the basic options within rubin_sim such as photUtils.
 This can be done without impacting the LSST environment by 
 ```
 source loadLSST.sh (or your equivalent)
-conda install setuptools_scm
+conda install -c conda-forge setuptools_scm
 git clone https://github.com/lsst/rubin_sim.git
 cd rubin_sim
 pip install -e .
@@ -39,7 +51,7 @@ pip install -e .
 
 ### Data download for rubin_sim ###
 
-**Optional: Set $RUBIN_SIM_DATA_DIR data directory.** By default, `rubin_sim` will download needed data files to `$HOME/rubin_sim_data`. If you would like the data to go somewhere else, you can set the `RUBIN_SIM_DATA_DIR` environment variable. In bash  `export RUBIN_SIM_DATA_DIR="/my/preferred/data/path"` (note, always make sure this is set before trying to run `rubin_sim` packages, so put in your .bashrc or whatnot). Another possibility is to set the location via sym-link, `ln -s /my/preferred/data/path ~/rubin_sim_data`. 
+**Optional: Set $RUBIN_SIM_DATA_DIR data directory.** By default, `rubin_sim` will download needed data files to `$HOME/rubin_sim_data`. If you would like the data to save elsewhere, you should set the `RUBIN_SIM_DATA_DIR` environment variable. In bash  `export RUBIN_SIM_DATA_DIR="/my/preferred/data/path"` (note, always make sure this is set before trying to run `rubin_sim` packages, so put in your .bashrc or whatnot). Another possibility is to set the location via sym-link, `ln -s /my/preferred/data/path ~/rubin_sim_data`.
 
 ```
 export RUBIN_SIM_DATA_DIR=$HOME/rubin_sim_data # Optional. Set the data directory path via env variable
@@ -83,7 +95,7 @@ Example jupyter notebooks can be found at:  https://github.com/lsst/rubin_sim_no
 
 To create a local build of the documentation:
 ```
-conda install lsst-documenteer-pipelines
+conda install -c conda-forge lsst-documenteer-pipelines
 cd doc
 make html
 ```
@@ -107,7 +119,7 @@ A new anaconda install is around 11 GB (and hyak has a home dir quota of 10GB), 
 The `conda activate` command fails in a bash script. One must first `source ~/anaconda3/etc/profile.d/conda.sh
 ` (replace with path to your anaconda install if different), then `conda activate rubin`.
 
-The conda create command failed a few times. It looks like creating the conda environement and then installing dependencies in 3-4 batches can be a work-around.
+The conda create command failed a few times. It looks like creating the conda environment and then installing dependencies in 3-4 batches can be a work-around.
 
 Handy command to get a build node on hyak `srun -p build --time=2:00:00 --mem=20G --pty /bin/bash`
 
@@ -117,7 +129,7 @@ Handy command to get a build node on hyak `srun -p build --time=2:00:00 --mem=20
 If you have push permissions to rubin_sim, you can make changes to the code by checking out a new branch, making edits, push and then make a pull request.
 However, we do expect many users who wish to contribute metrics will not have these permissions -- for these contributors the easiest way to do development on rubin_sim may be the following:
  - create a fork of rubin_sim 
- - install the fork copy as above (but git clone your own fork, and then use this copy of rubin_sim)
+ - pip install the fork copy as above (but git clone your own fork, and then use this copy of rubin_sim)
  - edit the code in your fork of rubin_sim, test it, etc.
  - issue a PR from your fork to our original lsst/rubin_sim repository
 
@@ -132,7 +144,7 @@ To install the `pre-commit` hook first install the `pre-commit` package with:
 conda install -c conda-forge pre-commit
 ```
 
-Then, install wthe hook with:
+Then, install the hook with:
 ```
 pre-commit install
 ```
