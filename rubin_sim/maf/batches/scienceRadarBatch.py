@@ -1,5 +1,6 @@
 import numpy as np
 import healpy as hp
+import astropy.units as u
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
@@ -835,6 +836,39 @@ def scienceRadarBatch(
             )
         )
 
+    # Run the TimeLag for each filter *and* all filters but for 5 days
+    nquist_threshold = 2.2
+    lag = 5
+    summaryMetrics = extendedSummary()
+    summaryMetrics += [metrics.AreaThresholdMetric(lower_threshold=nquist_threshold)]
+    m = metrics.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
+    for f in allfilterlist:
+        plotDict = {
+            "color": colors[f],
+            "colorMin": 0,
+            "colorMax": 5,
+            "percentileClip": 95,
+        }
+        displayDict["order"] = allfilterorders[f]
+        displayDict["subgroup"] = "Time Lags"
+        displayDict["caption"] = (
+            f"Comparion of the time between visits compared to a defined sampling gap ({lag} days) in "
+            f"{f} band."
+        )
+        bundleList.append(
+            mb.MetricBundle(
+                m,
+                agnslicer,
+                constraint=allfiltersqls[f],
+                info_label=allfilterinfo_label[f],
+                runName=runName,
+                mapsList=[dustmap],
+                plotDict=plotDict,
+                summaryMetrics=summaryMetrics,
+                displayDict=displayDict,
+            )
+        )
+
     #########################
     #########################
     # Strong Lensing
@@ -1534,6 +1568,79 @@ def scienceRadarBatch(
             displayDict=displayDict,
         )
     )
+
+    ## Local Volume Dwarf Satellites
+    displayDict["group"] = "Local Volume"
+    displayDict["subgroup"] = "LV dwarf satellites"
+    displayDict["order"] = 0
+    # First the known dwarf satellite galaxies
+    displayDict["caption"] = (
+        "Predicted magnitude detection limit (including stellar density and "
+        "star-galaxy separation) at the location of known LV dwarf galaxies. "
+    )
+    lv_slicer = maf.mafContrib.generateKnownLVDwarfSlicer()
+    lv_metric = maf.mafContrib.LVDwarfsMetric()
+    sqlconstraint = '(filter = "r" OR filter = "i" OR filter = "g")'
+    info_label = "gri"
+    summary_metric = maf.metrics.CountBeyondThreshold(
+        lower_threshold=-5.5, metricName="Total detected"
+    )
+    bundle = maf.MetricBundle(
+        lv_metric,
+        lv_slicer,
+        sqlconstraint,
+        summaryMetrics=summary_metric,
+        info_label=info_label,
+        displayDict=displayDict,
+    )
+    bundleList.append(bundle)
+
+    displayDict["order"] += 1
+    displayDict["caption"] = (
+        "Predicted magnitude detection limit (including stellar density and "
+        "star-galaxy separation), over the whole sky to a distance of 4 Mpc."
+    )
+    lv_metric2 = maf.mafContrib.LVDwarfsMetric(
+        distlim=4.0 * u.Mpc
+    )  # for a distance limit, healpix map
+    lv_healpix_slicer = maf.slicers.HealpixSlicer(nside=32, useCache=False)
+    summary_area = maf.AreaThresholdMetric(
+        lower_threshold=-5.5, metricName="Area M_v>-5.5"
+    )
+    bundle = maf.MetricBundle(
+        lv_metric2,
+        lv_healpix_slicer,
+        sqlconstraint,
+        info_label=info_label,
+        displayDict=displayDict,
+        summaryMetrics=summary_area,
+    )
+    bundleList.append(bundle)
+
+    displayDict["order"] += 1
+    displayDict["caption"] = (
+        "Predicted magnitude detection limit (including stellar density and "
+        "star-galaxy separation), over the southern celestial pole,"
+        "to a distance of 0.1 Mpc."
+    )
+    sqlconstraint = '(filter = "r" OR filter = "i" OR filter = "g") and fieldDec < -60'
+    info_label = "gri SCP"
+    lv_metric3 = maf.mafContrib.LVDwarfsMetric(
+        distlim=0.1 * u.Mpc
+    )  # for a distance limit, healpix map
+    summary_area = maf.metrics.AreaThresholdMetric(
+        lower_threshold=0.0, metricName="Area M_v>0.0"
+    )
+    summary_median = maf.metrics.MedianMetric()
+    bundle = maf.MetricBundle(
+        lv_metric3,
+        lv_healpix_slicer,
+        sqlconstraint,
+        info_label=info_label,
+        displayDict=displayDict,
+        summaryMetrics=[summary_area, summary_median],
+    )
+    bundleList.append(bundle)
 
     #########################
     #########################

@@ -21,6 +21,7 @@ __all__ = [
     "CountMetric",
     "CountRatioMetric",
     "CountSubsetMetric",
+    "CountBeyondThreshold",
     "RobustRmsMetric",
     "MaxPercentMetric",
     "AbsMaxPercentMetric",
@@ -226,6 +227,32 @@ class CountSubsetMetric(BaseMetric):
 
     def run(self, dataSlice, slicePoint=None):
         count = len(np.where(dataSlice[self.colname] == self.subset)[0])
+        return count
+
+
+class CountBeyondThreshold(BaseMetric):
+    """Count the number of entries in a data column above or below the threshold."""
+
+    def __init__(self, col=None, lower_threshold=None, upper_threshold=None, **kwargs):
+        super().__init__(col=col, **kwargs)
+        self.lower_threshold = lower_threshold
+        self.upper_threshold = upper_threshold
+
+    def run(self, dataSlice, slicePoint=None):
+        # Look for data values which match the criteria for the thresholds
+        if self.upper_threshold is None and self.lower_threshold is None:
+            count = len(dataSlice)
+        elif self.upper_threshold is None:
+            count = len(np.where(dataSlice[self.colname] > self.lower_threshold)[0])
+        elif self.lower_threshold is None:
+            count = len(np.where(dataSlice[self.colname] < self.upper_threshold)[0])
+        else:
+            count = len(
+                np.where(
+                    (dataSlice[self.colname] > self.lower_threshold)
+                    and (dataSlice[self.colname] < self.upper_threshold)
+                )[0]
+            )
         return count
 
 
