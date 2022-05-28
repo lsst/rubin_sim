@@ -71,6 +71,10 @@ class Coaddm5Metric(BaseMetric):
         super(Coaddm5Metric, self).__init__(col=m5Col, metricName=metricName, **kwargs)
 
     def run(self, dataSlice, slicePoint=None):
+        # Running this metric directly from the slicer, this should never come up.
+        # However, other metrics call this one and maybe had visits in other filters ..
+        if len(dataSlice) == 0:
+            return self.badval
         return 1.25 * np.log10(np.sum(10.0 ** (0.8 * dataSlice[self.colname])))
 
 

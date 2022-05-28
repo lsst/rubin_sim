@@ -1578,20 +1578,30 @@ def scienceRadarBatch(
         "Predicted magnitude detection limit (including stellar density and "
         "star-galaxy separation) at the location of known LV dwarf galaxies. "
     )
+    i_starMap = maf.maps.StellarDensityMap(filtername="i")
     lv_slicer = maf.mafContrib.generateKnownLVDwarfSlicer()
     lv_metric = maf.mafContrib.LVDwarfsMetric()
-    sqlconstraint = '(filter = "r" OR filter = "i" OR filter = "g")'
-    info_label = "gri"
-    summary_metric = maf.metrics.CountBeyondThreshold(
-        lower_threshold=-5.5, metricName="Total detected"
-    )
+    sqlconstraint = '(filter = "i" OR filter = "g")'
+    info_label = "gi"
+    cutoff = -6.4
+    summary_metrics = [
+        maf.metrics.CountBeyondThreshold(
+            lower_threshold=cutoff, metricName=f"Total detected {cutoff}"
+        ),
+        maf.metrics.CountBeyondThreshold(
+            lower_threshold=-7.0, metricName="Total detected -7.0"
+        ),
+    ]
+    plotDict = {"nTicks": 7}
     bundle = maf.MetricBundle(
         lv_metric,
         lv_slicer,
         sqlconstraint,
-        summaryMetrics=summary_metric,
+        mapsList=[i_starMap],
+        summaryMetrics=summary_metrics,
         info_label=info_label,
         displayDict=displayDict,
+        plotDict=plotDict,
     )
     bundleList.append(bundle)
 
@@ -1603,17 +1613,20 @@ def scienceRadarBatch(
     lv_metric2 = maf.mafContrib.LVDwarfsMetric(
         distlim=4.0 * u.Mpc
     )  # for a distance limit, healpix map
+    dustmap = maf.maps.DustMap(nside=32)
     lv_healpix_slicer = maf.slicers.HealpixSlicer(nside=32, useCache=False)
     summary_area = maf.AreaThresholdMetric(
-        lower_threshold=-5.5, metricName="Area M_v>-5.5"
+        lower_threshold=cutoff, metricName=f"Area M_v>{cutoff}"
     )
     bundle = maf.MetricBundle(
         lv_metric2,
         lv_healpix_slicer,
         sqlconstraint,
+        mapsList=[i_starMap, dustmap],
         info_label=info_label,
         displayDict=displayDict,
         summaryMetrics=summary_area,
+        plotDict=plotDict,
     )
     bundleList.append(bundle)
 
@@ -1623,8 +1636,8 @@ def scienceRadarBatch(
         "star-galaxy separation), over the southern celestial pole,"
         "to a distance of 0.1 Mpc."
     )
-    sqlconstraint = '(filter = "r" OR filter = "i" OR filter = "g") and fieldDec < -60'
-    info_label = "gri SCP"
+    sqlconstraint = '(filter = "i" OR filter = "g") and fieldDec < -60'
+    info_label = "gi SCP"
     lv_metric3 = maf.mafContrib.LVDwarfsMetric(
         distlim=0.1 * u.Mpc
     )  # for a distance limit, healpix map
@@ -1636,8 +1649,10 @@ def scienceRadarBatch(
         lv_metric3,
         lv_healpix_slicer,
         sqlconstraint,
+        mapsList=[i_starMap, dustmap],
         info_label=info_label,
         displayDict=displayDict,
+        plotDict=plotDict,
         summaryMetrics=[summary_area, summary_median],
     )
     bundleList.append(bundle)
