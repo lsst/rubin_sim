@@ -200,18 +200,18 @@ def intraNight(
     filterlist, colors, orders, sqls, info_labels = filterList(
         all=True, extraSql=extraSql, extraInfoLabel=info_label
     )
-    for sql, info in zip(sqls, info_labels):
-        if info_label is None or len(info_label) == 0:
+    for f in filterlist:
+        if info_labels[f] is None or len(info_labels[f]) == 0:
             displayDict["caption"] += ", all visits."
         else:
-            displayDict["caption"] += ", %s." % info_label
-        displayDict["order"] += 1
+            displayDict["caption"] += ", %s." % info_labels[f]
+        displayDict["order"] = orders[f]
         plotDict = {"percentileClip": 98}
         bundle = mb.MetricBundle(
             metric,
             slicer,
-            sql,
-            info_label=info,
+            sqls[f],
+            info_label=info_labels[f],
             displayDict=displayDict,
             plotFuncs=subsetPlots,
             plotDict=plotDict,

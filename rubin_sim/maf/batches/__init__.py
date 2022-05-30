@@ -14,3 +14,4 @@ from .movingObjectsBatch import *
 from .scienceRadarBatch import *
 from .ddfBatch import *
 from .srdBatch import *
+from .infoBatch import *

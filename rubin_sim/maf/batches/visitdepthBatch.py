@@ -146,12 +146,13 @@ def nvisitsM5Maps(
         ] += " More positive numbers indicate fainter limiting magnitudes."
         displayDict["order"] = orders[f]
         plotDict = {
-            "zp": mag_zp,
-            "xMin": -0.6,
-            "xMax": 0.6,
-            "xlabel": "coadded m5 - %.1f" % mag_zp,
-            "colorMin": -0.6,
-            "colorMax": 0.6,
+            # "zp": mag_zp,
+            # "xMin": -0.6,
+            # "xMax": 0.6,
+            # "xlabel": "coadded m5 - %.1f" % mag_zp,
+            # "colorMin": -0.6,
+            # "colorMax": 0.6,
+            "percentileClip": 95,
             "color": colors[f],
         }
         bundle = mb.MetricBundle(
@@ -187,12 +188,13 @@ def nvisitsM5Maps(
         ] += " More positive numbers indicate fainter limiting magnitudes."
         displayDict["order"] = orders[f]
         plotDict = {
-            "zp": mag_zp,
-            "xMin": -0.6,
-            "xMax": 0.6,
-            "xlabel": "coadded m5 - %.1f" % mag_zp,
-            "colorMin": -0.6,
-            "colorMax": 0.6,
+            # "zp": mag_zp,
+            # "xMin": -0.6,
+            # "xMax": 0.6,
+            # "xlabel": "coadded m5 - %.1f" % mag_zp,
+            # "colorMin": -0.6,
+            # "colorMax": 0.6,
+            "percentileClip": 95,
             "color": colors[f],
         }
         bundle = mb.MetricBundle(
@@ -451,7 +453,7 @@ def nvisitsPerSubset(
     bdict = {}
     bundleList = []
 
-    if constraint is not None and len(constraint) > 0:
+    if constraint is not None and len(constraint) > 0 and footprintConstraint is None:
         if extraInfoLabel is None:
             extraInfoLabel += " %s" % constraint
         # Nvisits per night, this constraint.
@@ -487,7 +489,10 @@ def nvisitsPerSubset(
         if extraInfoLabel is None:
             extraInfoLabel = "Footprint"
         footprintStacker = stackers.WFDlabelStacker(
-            footprint=footprintConstraint, fp_threshold=0.4, area_id_name=extraInfoLabel
+            footprint=footprintConstraint,
+            fp_threshold=0.4,
+            area_id_name=extraInfoLabel,
+            excludeDD=True,
         )
         metric = metrics.CountSubsetMetric(col="areaId", subset=extraInfoLabel)
         slicer = slicers.UniSlicer()

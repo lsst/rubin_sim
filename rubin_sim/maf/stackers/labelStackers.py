@@ -56,6 +56,7 @@ class WFDlabelStacker(BaseStacker):
         raCol="fieldRA",
         decCol="fieldDec",
         noteCol="note",
+        excludeDD=True,
     ):
         self.raCol = raCol
         self.decCol = decCol
@@ -65,6 +66,7 @@ class WFDlabelStacker(BaseStacker):
         self.units = [None]
         self.fp_threshold = fp_threshold
         self.area_id_name = area_id_name
+        self.excludeDD = excludeDD
         if footprint is None:
             # If footprint was not defined, just set it to cover the entire sky, at nside=64
             footprint = np.ones(hp.nside2npix(64))
@@ -96,7 +98,7 @@ class WFDlabelStacker(BaseStacker):
             # So in_fp= the number of healpixels which were in the specified footprint
             # .. in the # in / total # > limit (0.4) then "yes" it's in the footprint
             in_fp = hp_in_fp / len(pointing_healpix)
-            if note.startswith("DD"):
+            if note.startswith("DD") and self.excludeDD:
                 areaId[i] = self.define_ddname(note)
             else:
                 if in_fp >= self.fp_threshold:
