@@ -11,7 +11,7 @@ from rubin_sim.maf.utils import m52snr
 __all__ = ["get_KNe_filename", "KN_lc", "KNePopMetric", "generateKNPopSlicer"]
 
 
-def get_KNe_filename(inj_params_list):
+def get_KNe_filename(inj_params_list=None):
     """Given kilonova parameters, get the filename from the grid of models
     developed by M. Bulla
 
@@ -31,6 +31,11 @@ def get_KNe_filename(inj_params_list):
     datadir = get_data_dir()
     file_list = glob.glob(os.path.join(datadir, "maf", "bns", "*.dat"))
 
+    # If no specific parameters passed - return everything.
+    if inj_params_list is None or len(inj_params_list) == 0:
+        return file_list
+
+    # Otherwise find the parameters for each file and then find the relevant matches.
     params = {}
     matched_files = []
     for filename in file_list:
@@ -416,7 +421,7 @@ class KNePopMetric(BaseMetric):
 
 
 def generateKNPopSlicer(
-    t_start=1, t_end=3652, n_events=10000, seed=42, n_files=100, d_min=10, d_max=300
+    t_start=1, t_end=3652, n_events=10000, seed=42, n_files=308, d_min=10, d_max=300
 ):
     """Generate a population of KNe events, and put the info about them
     into a UserPointSlicer object
@@ -431,8 +436,9 @@ def generateKNPopSlicer(
         The number of kilonova events to generate
     seed : float
         The seed passed to np.random
-    n_files : int (7)
+    n_files : int (308)
         The number of different kilonova lightcurves to use
+        This should match the length of the filenames list passed to the KNePopMetric directly.
     d_min : float or int (10)
         Minimum luminosity distance (Mpc)
     d_max : float or int (300)

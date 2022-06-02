@@ -436,20 +436,19 @@ def scienceRadarBatch(
                 area=18000,
                 reduce_func=np.mean,
                 decreasing=True,
-                metricName="N Seasons (18k) %s" % f,
+                metricName="N Years (18k) %s" % f,
             )
         ]
-        bundleList.append(
-            mb.MetricBundle(
-                metric,
-                healpixslicer,
-                filtersqls[f],
-                plotDict=plotDict,
-                info_label=filterinfo_label[f],
-                displayDict=displayDict,
-                summaryMetrics=summary,
-            )
+        bundle = mb.MetricBundle(
+            metric,
+            healpixslicer,
+            filtersqls[f],
+            plotDict=plotDict,
+            info_label=filterinfo_label[f],
+            displayDict=displayDict,
+            summaryMetrics=summary,
         )
+        bundleList.append(bundle)
 
     #########################
     #########################
@@ -477,7 +476,6 @@ def scienceRadarBatch(
     slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
     for f in filterlist:
         plotDict = {"percentileClip": 95.0, "nTicks": 5, "color": colors[f]}
-        sql = (filtersqls[f],)
         metric = maf.GalaxyCountsMetric_extended(
             filterBand=f, redshiftBin="all", nside=nside
         )
@@ -488,7 +486,7 @@ def scienceRadarBatch(
         bundle = mb.MetricBundle(
             metric,
             slicer,
-            sql,
+            filtersqls[f],
             plotDict=plotDict,
             displayDict=displayDict,
             summaryMetrics=summary,
@@ -811,7 +809,7 @@ def scienceRadarBatch(
     m = metrics.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
     for f in allfilterlist:
         plotDict = {
-            "color": colors[f],
+            "color": allcolors[f],
             "colorMin": 0,
             "colorMax": 5,
             "percentileClip": 95,
@@ -844,7 +842,7 @@ def scienceRadarBatch(
     m = metrics.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
     for f in allfilterlist:
         plotDict = {
-            "color": colors[f],
+            "color": allcolors[f],
             "colorMin": 0,
             "colorMax": 5,
             "percentileClip": 95,
@@ -1164,27 +1162,49 @@ def scienceRadarBatch(
     # Kilonovae metric
     displayDict["group"] = "Variables/Transients"
     displayDict["subgroup"] = "KNe"
-    n_events = 30000
+    n_events = 50000
     displayDict[
         "caption"
-    ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky."
+    ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky, GW170817-like only."
     displayDict["order"] = 0
     # Kilonova parameters
     inj_params_list = [
         {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 25.8},
-        {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 0.0},
+        # {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 0.0}, # no longer preferred
     ]
     filename = maf.get_KNe_filename(inj_params_list)
     kneslicer = maf.generateKNPopSlicer(
         n_events=n_events, n_files=len(filename), d_min=10, d_max=600
     )
-    # Set outputLc=True if you want light curves
     metric = maf.KNePopMetric(outputLc=False, file_list=filename)
     bundle = mb.MetricBundle(
         metric,
         kneslicer,
         "",
         runName=runName,
+        info_label="single model",
+        summaryMetrics=lightcurveSummary(),
+        displayDict=displayDict,
+    )
+    bundleList.append(bundle)
+
+    n_events = 50000
+    displayDict[
+        "caption"
+    ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky, entire model population."
+    displayDict["order"] = 1
+    # Kilonova parameters
+    filename = maf.get_KNe_filename(None)
+    kneslicer_allkne = maf.generateKNPopSlicer(
+        n_events=n_events, n_files=len(filename), d_min=10, d_max=600
+    )
+    metric_allkne = maf.KNePopMetric(outputLc=False, file_list=filename)
+    bundle = mb.MetricBundle(
+        metric_allkne,
+        kneslicer_allkne,
+        "",
+        runName=runName,
+        info_label="all models",
         summaryMetrics=lightcurveSummary(),
         displayDict=displayDict,
     )
@@ -1240,7 +1260,7 @@ def scienceRadarBatch(
             metricName="TgapsPercent_2-14hrs",
         )
         plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
-        plotDict = {"colorMin": 0, "color": colors[f]}
+        plotDict = {"colorMin": 0, "color": colors[f], "percentileClip": 95}
         summaryMetrics = extendedSummary()
         displayDict["caption"] = (
             f"Percent of the total time gaps which fall into the interval"
