@@ -641,7 +641,7 @@ def scienceRadarBatch(
     minExpTime = 15
     m = metrics.WeakLensingNvisits(
         lsstFilter=bandpass,
-        depthlim=mag_cuts[maxYr],
+        depth_cut=mag_cuts[maxYr],
         ebvlim=lim_ebv,
         min_expTime=minExpTime,
         metricName="WeakLensingNvisits",
