@@ -568,7 +568,7 @@ def scienceRadarBatch(
             "fCosmology/Static science metrics are based on evaluating the region "
             f"of the sky that meets the requirements (in year {yr_cut} of coverage"
             f"in all {nfilters_needed} bands, a lower E(B-V) value than {lim_ebv} "
-            f"and at least a coadded depth of {ptsrc_limt_mag_i_band} in {bandpass}. "
+            f"and at least a coadded depth of {ptsrc_lim_mag_i_band} in {bandpass}. "
             f"From there the effective survey area, coadded depth, standard deviation of "
             f"the depth, and a 3x2pt static science figure of merit emulator are "
             f"calculated using the dust-extinction coadded depth map (over that reduced "
