@@ -572,20 +572,6 @@ def create_metric_set_df(
     if short_name is None:
         short_name = metrics
 
-    # Check lengths of style and extend or shorten if needed
-    num_colors = len(style)
-    if len(style) > len(metrics):
-        # Too many linestyles, so shorten then
-        style = style[0 : len(metrics)]
-    elif len(style) < len(metrics):
-        # Not enough, so repeat some
-        # (note these are tougher to extend because 'style' like this has to be the two-character
-        # combination like "b-", and so you are limited to the few single-character letters.
-        # If you want random styles, probably better to swap to no definition and let plot_run_metric
-        # set it there, as it can use a wider range of colors.
-        ls_grow = int(np.ceil(num_colors / len(style)))
-        style = (list(style) * ls_grow)[:num_colors]
-
     metric_set = (
         pd.DataFrame(
             {
