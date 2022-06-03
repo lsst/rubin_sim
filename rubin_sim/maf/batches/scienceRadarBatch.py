@@ -565,18 +565,15 @@ def scienceRadarBatch(
             depth_cut=ptsrc_lim_mag_i_band,
         )
         caption = (
-            f"Cosmology/Static Science metrics are based on evaluating the region of "
+            "fCosmology/Static science metrics are based on evaluating the region "
+            f"of the sky that meets the requirements (in year {yr_cut} of coverage"
+            f"in all {nfilters_needed} bands, a lower E(B-V) value than {lim_ebv} "
+            f"and at least a coadded depth of {ptsrc_limt_mag_i_band} in {bandpass}. "
+            f"From there the effective survey area, coadded depth, standard deviation of "
+            f"the depth, and a 3x2pt static science figure of merit emulator are "
+            f"calculated using the dust-extinction coadded depth map (over that reduced "
+            f"footprint)."
         )
-        caption += (
-            f"the sky that meets the requirements (in year {yr_cut} of coverage in "
-        )
-        caption += (
-            f"all {nfilters_needed}, a lower E(B-V) value than {lim_ebv}, and at "
-        )
-        caption += f"least a coadded depth of {ptsrc_lim_mag_i_band} in {bandpass}. "
-        caption += f"From there the effective survey area, coadded depth, standard deviation of the depth, "
-        caption += f"and a 3x2pt static science figure of merit emulator are calculated using the "
-        caption += f"dust-extincted coadded depth map (over that reduced footprint)."
         displayDict["caption"] = caption
         bundle = mb.MetricBundle(
             m,
@@ -635,11 +632,12 @@ def scienceRadarBatch(
 
     ## WL metrics
     # Calculates the number of visits per pointing, after removing parts of the footprint due to dust/depth
+    # Count visits in gri bands.
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: WL"
     displayDict["order"] = 0
-    sqlconstraint = f'note not like "DD%" and filter = "{bandpass}"'
-    info_label = f"{bandpass} band non-DD"
+    sqlconstraint = f'note not like "DD%" and (filter="g" or filter="r" or filter="i")'
+    info_label = f"gri band non-DD"
     minExpTime = 15
     m = metrics.WeakLensingNvisits(
         lsstFilter=bandpass,
@@ -649,12 +647,12 @@ def scienceRadarBatch(
         metricName="WeakLensingNvisits",
     )
     slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
-    displayDict[
-        "caption"
-    ] = f"The number of visits per pointing, over the same reduced footprint as "
-    displayDict[
-        "caption"
-    ] += f"described above. A cutoff of {minExpTime} removes very short visits."
+    displayDict["caption"] = (
+        f"The number of visits per pointing, over a similarly  reduced footprint as "
+        f"described above for the 3x2pt FOM, but allowing areas of sky with "
+        f"fewer than {nfilters_needed} filters. "
+        f"A cutoff of {minExpTime} removes very short visits."
+    )
     bundle = mb.MetricBundle(
         m,
         slicer,
@@ -969,14 +967,26 @@ def scienceRadarBatch(
                 magTol=0.01,
                 nBands=3,
             )
+            # Run this on year 1 and on year 3.5-4.5
             bundle = mb.MetricBundle(
                 m,
                 slicer,
-                None,
+                "night < 365.25",
                 displayDict=displayDict,
                 runName=runName,
                 summaryMetrics=summaryStats,
-                info_label=f"dm {dM} interval {time_interval} RRc",
+                info_label=f"dm {dM} interval {time_interval} RRc Year 1",
+            )
+            bundleList.append(bundle)
+            # and on year 3.5-4.5
+            bundle = mb.MetricBundle(
+                m,
+                slicer,
+                "night > 365.25*3.5 and night < 365.25*4.5",
+                displayDict=displayDict,
+                runName=runName,
+                summaryMetrics=summaryStats,
+                info_label=f"dm {dM} interval {time_interval} RRc Year 3.5",
             )
             bundleList.append(bundle)
 

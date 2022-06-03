@@ -26,8 +26,6 @@ class ExgalM5_with_cuts(BaseMetric):
         metricName="ExgalM5_with_cuts",
         units="mag",
         lsstFilter="i",
-        wavelen_min=None,
-        wavelen_max=None,
         extinction_cut=0.2,
         depth_cut=25.9,
         nFilters=6,
@@ -50,13 +48,13 @@ class ExgalM5_with_cuts(BaseMetric):
         )
 
     def run(self, dataSlice, slicePoint):
+        # exclude areas with high extinction
+        if slicePoint["ebv"] > self.extinction_cut:
+            return self.badval
+
         # check to make sure there is at least some coverage in the required number of bands
         nFilters = len(set(dataSlice[self.filterCol]))
         if nFilters < self.nFilters:
-            return self.badval
-
-        # exclude areas with high extinction
-        if slicePoint["ebv"] > self.extinction_cut:
             return self.badval
 
         # if coverage and dust criteria are valid, move forward with only lsstFilter-band visits
@@ -76,38 +74,44 @@ class WeakLensingNvisits(BaseMetric):
 
     Weak Lensing systematics metric : Computes the average number of visits per point on a HEALPix grid
     after a maximum E(B-V) cut and a minimum co-added depth cut.
-    Intended to be used with a single filter.
+    Intended to be used to count visits in gri, but can be any filter combination as long as it
+    includes `lsstFilter` band visits.
+
     """
 
     def __init__(
         self,
         m5Col="fiveSigmaDepth",
         expTimeCol="visitExposureTime",
-        lsstFilter="i",
         filterCol="filter",
-        depthlim=24.5,
+        lsstFilter="i",
+        depth_cut=24.5,
         ebvlim=0.2,
         min_expTime=15,
         **kwargs
     ):
-        # First set up the ExgalM5 metric (this will also add the dustmap as a map attribute)
-        self.ExgalM5 = ExgalM5(m5Col=m5Col, filterCol=filterCol)
+        # Set up the coadd metric (using ExgalM5 adds galactic dust extinction)
+        self.exgalM5 = ExgalM5(m5Col=m5Col, filterCol=filterCol)
+        self.lsstFilter = lsstFilter
+        self.depth_cut = depth_cut
         self.m5Col = m5Col
         self.expTimeCol = expTimeCol
-        self.depthlim = depthlim
         self.ebvlim = ebvlim
         self.min_expTime = min_expTime
         super().__init__(
             col=[self.m5Col, self.expTimeCol, filterCol],
-            maps=self.ExgalM5.maps,
+            maps=self.exgalM5.maps,
             **kwargs
         )
 
     def run(self, dataSlice, slicePoint):
+        # If the sky is too dusty here, stop.
         if slicePoint["ebv"] > self.ebvlim:
             return self.badval
-        dustdepth = self.ExgalM5.run(dataSlice=dataSlice, slicePoint=slicePoint)
-        if dustdepth < self.depthlim:
+        # Check that coadded depths meet requirements:
+        dS = dataSlice[dataSlice[self.filterCol] == self.lsstFilter]
+        coaddDepth = self.exgalM5.run(dataSlice=dS, slicePoint=slicePoint)
+        if coaddDepth < self.depth_cut:
             return self.badval
         nvisits = len(np.where(dataSlice[self.expTimeCol] > self.min_expTime)[0])
         return nvisits
