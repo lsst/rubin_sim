@@ -1,77 +1,84 @@
+import os
+import copy
 import numpy as np
+import pandas as pd
 from scipy.interpolate import interp1d
 from gatspy import periodic
 from scipy.optimize import leastsq
 
 from rubin_sim.maf.utils import m52snr
-from rubin_sim.maf.maps import dustMap
-from rubin_sim.maf.stackers.generalStackers import SaturationStacker
-from rubin_sim.maf.maps import StellarDensityMap
 from rubin_sim.photUtils import Dust_values
 from rubin_sim.maf.metrics import BaseMetric
+from rubin_sim.maf.data import get_data_dir
 
-import matplotlib.pyplot as plt
+__all__ = ["meanmag_antilog", "mag_antilog", "PulsatingStarRecovery"]
 
 
-__all__ = ["PulsatingStarRecovery"]
+def meanmag_antilog(mag):
+    # Convert mags to flux, take mean of flux, return as mag
+    mag = np.asarray(mag)
+    flux = 10.0 ** (-mag / 2.5)
+    if len(flux) > 0:
+        result = (-2.5) * np.log10(sum(flux) / len(flux))
+    else:
+        result = 9999.0
+    return result
+
+
+def mag_antilog(mag):
+    # convert mags to fluxes (assume zp = 0), return fluxes
+    mag = np.asarray(mag)
+    flux = 10.0 ** (-mag / 2.5)
+    return flux
 
 
 class PulsatingStarRecovery(BaseMetric):
     """
     Evaluate how well the period and shape of a multi-band lightcurve (from a template in a csv file)
     can be fit.
-    Returns a dictionary with the results of Lcsampling, Lcperiod, Lcfitting:
-    Lcsampling
+    Returns a dictionary with the results of Lcsampling, Lcperiod, Lcfitting:Lcsampling
     This metric  studies how well a given cadence stategy
     is able to recover the period and the shape of a light curve (from a template given in .csv file)
     in a  given point  of the sky. Returns a dictionary with the results of Lcsampling,Lcperiod, Lcfitting
 
     Parameters
     ----------
-    filename : `str`
-        Ascii file containing the light curve of pulsating star. The file must
-        contain nine columns - ['time', 'Mbol', 'u_sloan','g_sloan','r_sloan','i_sloan','z_sloan','y_sloan', period] -
+    lc_filename : `str`
+        CSV file containing the light curve of pulsating star. The file must
+        contain nine columns -
+        ['time', 'Mbol', 'u_lsst','g_lsst','r_lsst','i_lsst','z_lsst','y_lsst', 'P']
+        Default uses $RUBIN_SIM_DATA_DIR/maf/pulsatingStars/RRc.csv
+    do_deblend : `bool`, opt
+        if True, use stellarcatalog (or default version) to add de-blending
+    stellarcatalog : `str`
+        Catalog from TRILEGAL lsst_sim.simdr2, containing magnitudes of the nearest stars.
+        Query example shown in example notebook in rubin_sim_notebooks/maf/science/PulsatingStarRecovery
+        Default is $RUBIN_SIM_DATA_DIR/maf/pulsatingStars/simdr2_270.9_-30.0.hdf
     dmod : `float`
-         Distance modulus
-    sigma_for_noise: `int`
-         Add noise to the simulated light give with this 'sigma'
-         the number of sigma used to generate the noise for the simulated light curve.
-     do_remove_saturated : `boolean`
-        If True,
-          true if you want to remove from the plots the saturated visits (computed with saturation_stacker)
-
-     numberOfHarmonics: int
-          defines the number of harmonics used in LcFitting
-
-     factorForDimensionGap: float
-          fraction of the size of the largest gap in the phase distribution  that is used to calculate numberGaps_X (see LcSampling)
-
-        df came from lsst_sim.simdr2 and contains  magnitudes of the nearest stars (see query inn the notebook .If is empty no effect of blend is considered, see Notebook)
-
-        and use/rename these columns of Opsim:
-        mjdCol = observationStartMJD
-        fiveSigmaDepth = fiveSigmaDepth
-        filters = filter
-        night = night
-        visitExposureTime = visitExposureTime
-        skyBrightness=skyBrightness
-        numExposures=numExposures
-        seeing=seeingFwhmEff
-        airmass=airmass
-
-
-
-
+        Distance modulus. If this is also set in the slicer, the slicer value will override.
+    sigma_for_noise : `int`
+        Add noise to the simulated light give with this 'sigma'
+        the number of sigma used to generate the noise for the simulated light curve.
+    remove_saturated : `bool`
+        If True, remove observations where the saturation magnitude is above the predicted LC magnitude
+    numberOfHarmonics : `int`
+        defines the number of harmonics used in LcFitting
+    factorForDimensionGap : `float`
+        fraction of the size of the largest gap in the phase distribution
+        that is used to calculate numberGaps_X (see LcSampling)
     """
 
     def __init__(
         self,
-        filename,
-        sigma_for_noise,
-        do_remove_saturated,
-        number_of_harmonics,
-        factor_for_dimension_gap,
-        df,
+        lc_filename=None,
+        add_blend=True,
+        stellarcatalog=None,
+        dmod=14.5,
+        sigma_for_noise=1,
+        remove_saturated=True,
+        number_of_harmonics=3,
+        factor_for_dimension_gap=0.5,
+        seed=42,
         mjdCol="observationStartMJD",
         fiveSigmaDepthCol="fiveSigmaDepth",
         filterCol="filter",
@@ -81,8 +88,36 @@ class PulsatingStarRecovery(BaseMetric):
         numExposuresCol="numExposures",
         seeingCol="seeingFwhmEff",
         airmassCol="airmass",
-        **kwargs
+        **kwargs,
     ):
+        # Set up defaults if not specified
+        default_dir = os.path.join(get_data_dir(), "maf/pulsatingStars")
+        if lc_filename is None:
+            self.lc_filename = os.path.join(default_dir, "RRc.csv")
+        # Read lc_file
+        self.read_lc_ascii()
+
+        self.add_blend = add_blend
+        if self.add_blend:
+            if stellarcatalog is None:
+                self.stellarcatalog = os.path.join(
+                    default_dir, "simdr2_270.9_-30.0.hdf"
+                )
+            else:
+                self.stellarcatalog = stellarcatalog
+        else:
+            self.stellarcatalog = None
+        # Read stellarcatalog
+        if self.stellarcatalog is not None:
+            self.stellar_cat = pd.read_hdf(self.stellarcatalog)
+
+        self.sigma_for_noise = sigma_for_noise
+        self.remove_saturated = remove_saturated
+        self.number_of_harmonics = number_of_harmonics
+        self.factor_for_dimension_gap = factor_for_dimension_gap
+        self.dmod = dmod
+        # Find dust extinction values per band
+        self.R_x = Dust_values().R_x
 
         self.mjdCol = mjdCol
         self.fiveSigmaDepthCol = fiveSigmaDepthCol
@@ -93,12 +128,7 @@ class PulsatingStarRecovery(BaseMetric):
         self.numExposuresCol = numExposuresCol
         self.seeingCol = seeingCol
         self.airmassCol = airmassCol
-
-        self.sigma_for_noise = sigma_for_noise
-        self.do_remove_saturated = do_remove_saturated
-        self.number_of_harmonics = number_of_harmonics
-        self.factor_for_dimension_gap = factor_for_dimension_gap
-        self.df = df
+        self.saturationCol = "saturation_mag"
 
         cols = [
             self.mjdCol,
@@ -110,15 +140,15 @@ class PulsatingStarRecovery(BaseMetric):
             self.numExposuresCol,
             self.seeingCol,
             self.airmassCol,
+            self.saturationCol,
         ]
-        # Add the saturation column, which will come (automatically) from the SaturationStacker
-        cols += ["saturation_mag"]
 
         maps = ["DustMap"]
 
-        # the function 'ReadAsciifile' read filename with the theorical  light curve of a pulsating star
-        self.lcModel_ascii = self.ReadAsciifile(filename)
-        print(filename)
+        # Add a random noise generator, so the metric can be repeatable
+        self.rng = np.random.default_rng(seed)
+        # Value for adding noise - currently always 0 (maybe not in the future?)
+        self.blend_percent = 0
 
         super().__init__(
             col=cols,
@@ -126,80 +156,39 @@ class PulsatingStarRecovery(BaseMetric):
             units="#",
             **kwargs,
             metricName="PulsatingStarRecovery",
-            metricDtype="object"
+            metricDtype="object",
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, dataSlice, slicePoint):
 
-        # the function 'ReadTeoSim' puts the pulsating star at distance=dmod+Ax/Av*3.1*slicePoint('ebv').Gives a dictionary
-        ebv1 = slicePoint["ebv"]
-        dmod = 5 * np.log10(slicePoint["distance"] * 10 ** 6) - 5
-        print(slicePoint["distance"])
-        print("sto analizzandola galassia con")
-        print(ebv1)
-        print(dmod)
-        ra1 = slicePoint["ra"]
-        print(ra1)
+        # If the slicer has a distance value in the slicepoint, override the self.dmod with that
+        if "distance" in slicePoint:
+            dmod = (5 * np.log10(slicePoint["distance"]) * 10**6) - 5
+        else:
+            dmod = self.dmod
 
-        #        if df.empty:
-        #            lcModel_noblend=self.ReadTeoSim(self.lcModel_ascii,self.dmod,ebv1)
-        #            lcModel_blend={'amplu':lcModel_noblend['amplu'],'amplg':lcModel_noblend['amplg'],'amplr':lcModel_noblend['amplr'],'ampli':lcModel_noblend['ampli'],'amplz':lcModel_noblend['amplz'],'amply':lcModel_noblend['amply'],'meanu':lcModel_noblend['meanu'],'meang':lcModel_noblend['meang'],'meanr':lcModel_noblend['meanr'],'meani':lcModel_noblend['meani'],'meanz':lcModel_noblend['meanz'],'meany':lcModel_noblend['meany']}
-        #        else:
-        #            lcModel_blend=self.ReadTeoSim_blend(df,self.lcModel_ascii,self.dmod,ebv1)
-        #            lcModel_noblend=self.ReadTeoSim(self.lcModel_ascii,self.dmod,ebv1)
-        #
+        # Modify a copy of the lightcurve template to place it at the desired distance and dust extinction
+        lc_model, means = self.modify_lightcurve_template(dmod, slicePoint["ebv"])
 
-        lcModel_noblend = self.ReadTeoSim(self.lcModel_ascii, dmod, ebv1)
-
-        # Why can't the dataslice be used? (modify access below)
-        # here we build -mv- that will be used in our metrics to build the simulated light curve:
-        mv = {
-            "observationStartMJD": dataSlice[self.mjdCol],
-            "fiveSigmaDepth": dataSlice[self.fiveSigmaDepth],
-            "filter": dataSlice[self.filters],
-            "visitExposureTime": dataSlice[self.visitExposureTime],
-            "night": dataSlice[self.night],
-            "numExposures": dataSlice[self.numExposures],
-            "skyBrightness": dataSlice[self.skyBrightness],
-            "seeingFwhmEff": dataSlice[self.seeing],
-            "airmass": dataSlice[self.airmass],
-            "saturation_mag": dataSlice["saturation_mag"],
-        }
-
-        # define time_lsst as array and filter
-        time_lsst = np.asarray(
-            mv["observationStartMJD"] + mv["visitExposureTime"] / 2.0
-        )
-        filters_lsst = np.asarray(mv["filter"])
-
-        #################################################
-        # The following not consider the blend.
-        #################################################
-
-        # the function self.generateLC generate the temporal series and simulate light curve
-        LcTeoLSST = self.generateLC(time_lsst, filters_lsst, lcModel_noblend)
-
-        # the function 'noising' compute and add errors
-        snr = self.retrieveSnR(mv, lcModel_noblend)
-        LcTeoLSST_noised = self.noising(
-            LcTeoLSST, snr, self.sigmaFORnoise, [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        # Generate the light curve - check that dataslice is in the correct time ordering
+        dataSlice.sort(order=self.mjdCol)
+        (
+            lc_mags_obs,
+            dmags_obs,
+            snr_obs,
+            times_obs,
+            phase_obs,
+            filters_obs,
+            period_final,
+        ) = self.generate_lightcurve_obs(
+            dataSlice[self.mjdCol], dataSlice[self.filterCol], lc_model, means
         )
 
-        # the function 'count_saturation' build an index to exclude saturated stars and those under detection limit.
-        index_notsaturated, saturation_index, detection_index = self.count_saturation(
-            mv, snr, LcTeoLSST, LcTeoLSST_noised, self.do_remove_saturated
-        )
-
-        # The function 'Lcsampling' analize the sampling of the simulated light curve. Give a dictionary with UniformityPrameters obtained with three different methods
-        # 1) for each filter X calculates the number of points (n_X), the size in phase of the largest gap (maxGap_X) and the number of gaps largest than factorForDimensionGap*maxGap_X (numberGaps_X)
-        # 2) the uniformity parameters from Barry F. Madore and Wendy L. Freedman 2005 ApJ 630 1054 (uniformity_X)  useful for n_X<20
-        # 3) a modified version of UniformityMetric by Peter Yoachim (https://sims-maf.lsst.io/_modules/lsst/sims/maf/metrics/cadenceMetrics.html#UniformityMetric.run). Calculate how uniformly the observations are spaced in phase (not time)using KS test.Returns a value between 0 (uniform sampling) and 1 . uniformityKS_X
-
-        period_model = LcTeoLSST["p_model"]
-        uni_meas = self.Lcsampling(
-            LcTeoLSST_noised,
-            period_model,
-            index_notsaturated,
+        # Analyze the uniformity of the observations, using a variety of methods
+        maxGap, numberOfGaps, uniformity, uniformityKS = self.Lcsampling(
+            times_obs,
+            filters_obs,
+            period_final,
             self.factorForDimensionGap,
         )
 
@@ -209,13 +198,13 @@ class PulsatingStarRecovery(BaseMetric):
         # 3)diffper_abs=(DeltaP/P)*100
         # 4)diffcicli= DeltaP/P*1/number of cycle
         best_per_temp, diffper, diffper_abs, diffcicli = self.LcPeriodLight(
-            mv, LcTeoLSST, LcTeoLSST_noised, index_notsaturated
+            times_obs, filters_obs, lc_mags_obs, dmags_obs, period_final
         )
-        period = best_per_temp  # or period_model or fitLS_multi.best_period
-        # period=LcTeoLSST['p_model']
+        period = best_per_temp
 
-        # The function 'LcFitting' fit the simulated light curve with number of harmonics=numberOfHarmonics.Return a dictionary with mean magnitudes, amplitudes and chi of the fits
-
+        # The function 'LcFitting' fit the simulated light curve with number of
+        # harmonics=numberOfHarmonics.
+        # Return a dictionary with mean magnitudes, amplitudes and chi of the fits
         finalResult = self.LcFitting(
             LcTeoLSST_noised, index_notsaturated, period, self.numberOfHarmonics
         )
@@ -293,33 +282,6 @@ class PulsatingStarRecovery(BaseMetric):
                 "chi_y": finalResult["chi_y"],
             }
         else:
-            lcModel_blend = self.ReadTeoSim_blend(
-                self.df, self.lcModel_ascii, dmod, ebv1
-            )
-
-            LcTeoLSST_blend = self.generateLC(time_lsst, filters_lsst, lcModel_blend)
-
-            # the function 'noising' compute and add errors
-            snr_blend = self.retrieveSnR(mv, lcModel_blend)
-            LcTeoLSST_noised_blend = self.noising(
-                LcTeoLSST_blend,
-                snr_blend,
-                self.sigmaFORnoise,
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            )
-
-            # the function 'count_saturation' build an index to exclude saturated stars and those under detection limit.
-            (
-                index_notsaturated_blend,
-                saturation_index_blend,
-                detection_index_blend,
-            ) = self.count_saturation(
-                mv,
-                snr_blend,
-                LcTeoLSST_blend,
-                LcTeoLSST_noised_blend,
-                self.do_remove_saturated,
-            )
 
             # The function 'Lcsampling' analize the sampling of the simulated light curve. Give a dictionary with UniformityPrameters obtained with three different methods
             # 1) for each filter X calculates the number of points (n_X), the size in phase of the largest gap (maxGap_X) and the number of gaps largest than factorForDimensionGap*maxGap_X (numberGaps_X)
@@ -378,12 +340,6 @@ class PulsatingStarRecovery(BaseMetric):
             deltaamp_y_blend = lcModel_blend["amply"] - finalResult_blend["ampl_y"]
 
             output_metric = {
-                "n_u": uni_meas["n_u"],
-                "n_g": uni_meas["n_g"],
-                "n_r": uni_meas["n_r"],
-                "n_i": uni_meas["n_i"],
-                "n_z": uni_meas["n_z"],
-                "n_y": uni_meas["n_y"],
                 "maxGap_u": uni_meas["maxGap_u"],
                 "maxGap_g": uni_meas["maxGap_g"],
                 "maxGap_r": uni_meas["maxGap_r"],
@@ -569,770 +525,183 @@ class PulsatingStarRecovery(BaseMetric):
     def get_chi_y_blend(self, metricValue):
         return metricValue["chi_y_blend"]
 
-    def meanmag_antilog(self, mag):
-        mag = np.asarray(mag)
-        flux = 10.0 ** (-mag / 2.5)
-        if len(flux) > 0:
-            result = (-2.5) * np.log10(sum(flux) / len(flux))
-        else:
-            result = 9999.0
-        return result
-
-    def mag_antilog(self, mag):
-        mag = np.asarray(mag)
-        flux = 10.0 ** (-mag / 2.5)
-        return flux
-
-    def ReadAsciifile(self, filename):
+    def read_lc_ascii(self):
         """
-        Reads in an ascii file the light curve of the pulsating stars that we want simulate. Must be
-        in the following format, 9 columns: time, bolometric_mag, filterLSST_mag,period.
+        Reads in an ascii CSV file the light curve of the pulsating stars that we want simulate.
+        Expecting to find the following columns:
+        `time,Mbol,u_lsst,g_lsst,r_lsst,i_lsst,z_lsst,y_lsst,P`
+        Time should be in units of days,
+        the per-band brightness values in magnitudes,
+        period is units of days.
+        """
+        lc = pd.read_csv(self.lc_filename)
+        # Modify period to seconds
+        lc["period"] = lc["P"] * 24 * 60 * 60
+        lc = lc.drop("P", axis=1)
+        # Add a phased version of the time
+        lc["phase"] = ((lc["time"] - lc["time"][0]) / lc["period"]) % 1
+        # Rename the columns
+        name_mapper = {f"{f}_lsst": f"{f}" for f in "ugrizy"}
+        lc.rename(columns=name_mapper, inplace=True)
+        self.lc_model = lc
+        return
+
+    def modify_lightcurve_template(self, dmod, ebv):
+        """
+        Add distance modulus and dust extinction to the magnitudes in the lc_model.
+        If the stellar catalog is provided, take into account blends caused by nearby stars.
+
         Parameters
         -----------
-        filename: str
-            string containing the path to the ascii file containing the
-            light curve.
-        """
-        time_model = []
-        u_model = []
-        g_model = []
-        r_model = []
-        i_model = []
-        z_model = []
-        y_model = []
-        phase_model = []
-
-        f = open(filename, "r")
-        c = -1
-        for line in f:
-            c = c + 1
-            if c == 0:
-                header = line
-                continue
-            ll = line.split(",")
-            if c == 1:
-                period_sec = float(ll[8]) * 86400.0
-                period_day = float(ll[8])
-                time_0 = float(ll[0])
-            time_model.append(float(ll[0]))
-            phase_model.append((float(ll[0]) - time_0) / period_sec % 1)
-            u_model.append(float(ll[2]))
-            g_model.append(float(ll[3]))
-            r_model.append(float(ll[4]))
-            i_model.append(float(ll[5]))
-            z_model.append(float(ll[6]))
-            y_model.append(float(ll[7]))
-        f.close()
-        output_ascii = {
-            "time": time_model,
-            "phase": phase_model,
-            "period": period_sec,
-            "u": u_model,
-            "g": g_model,
-            "r": r_model,
-            "i": i_model,
-            "z": z_model,
-            "y": y_model,
-        }
-        return output_ascii
-
-    def ReadTeoSim(self, model, dmod, ebv):
-        """
-        Put the  model at a given distance moduli using the E(b-v) given by dustMap.
-        Parameters
-        -----------
-        model:dictionary
-             output of ReadAsciifile
         dmod: float
-             distance modulus
+            distance modulus
         ebv: float
-             E(B-V)=slicePoint('ebv')
-
-
-        """
-
-        time_model = model["time"].copy()
-        u_mod = model["u"].copy()
-        g_mod = model["g"].copy()
-        r_mod = model["r"].copy()
-        i_mod = model["i"].copy()
-        z_mod = model["z"].copy()
-        y_mod = model["y"].copy()
-
-        u_model = []
-        g_model = []
-        r_model = []
-        i_model = []
-        z_model = []
-        y_model = []
-
-        phase_model = model["phase"].copy()
-
-        period_model = model["period"]
-
-        time_0 = time_model[0]
-
-        for i in range(len(u_mod)):
-            u_model.append(u_mod[i] + dmod + 1.55607 * 3.1 * ebv)
-        for i in range(len(g_mod)):
-            g_model.append(g_mod[i] + dmod + 1.18379 * 3.1 * ebv)
-        for i in range(len(r_mod)):
-            r_model.append(r_mod[i] + dmod + 1.87075 * 3.1 * ebv)
-        for i in range(len(i_mod)):
-            i_model.append(i_mod[i] + dmod + 0.67897 * 3.1 * ebv)
-        for i in range(len(z_mod)):
-            z_model.append(z_mod[i] + dmod + 0.51683 * 3.1 * ebv)
-        for i in range(len(y_mod)):
-            y_model.append(y_mod[i] + dmod + 0.42839 * 3.1 * ebv)
-
-        # compute the intensity means
-        meanu = self.meanmag_antilog(u_model)
-        meang = self.meanmag_antilog(g_model)
-        meanr = self.meanmag_antilog(r_model)
-        meani = self.meanmag_antilog(i_model)
-        meanz = self.meanmag_antilog(z_model)
-        meany = self.meanmag_antilog(y_model)
-        u_model_flux = self.mag_antilog(u_model)
-        g_model_flux = self.mag_antilog(g_model)
-        r_model_flux = self.mag_antilog(r_model)
-        i_model_flux = self.mag_antilog(i_model)
-        z_model_flux = self.mag_antilog(z_model)
-        y_model_flux = self.mag_antilog(y_model)
-        mean_flux_u = np.mean(u_model_flux)
-        mean_flux_g = np.mean(g_model_flux)
-        mean_flux_r = np.mean(r_model_flux)
-        mean_flux_i = np.mean(i_model_flux)
-        mean_flux_z = np.mean(z_model_flux)
-        mean_flux_y = np.mean(y_model_flux)
-        amplu = max(u_model) - min(u_model)
-        amplg = max(g_model) - min(g_model)
-        amplr = max(r_model) - min(r_model)
-        ampli = max(i_model) - min(i_model)
-        amplz = max(z_model) - min(z_model)
-        amply = max(y_model) - min(y_model)
-
-        phase_model.append(1.0)
-        ind_0 = phase_model.index(0.0)
-        u_model.append(u_model[ind_0])
-        g_model.append(g_model[ind_0])
-        r_model.append(r_model[ind_0])
-        i_model.append(i_model[ind_0])
-        z_model.append(z_model[ind_0])
-        y_model.append(y_model[ind_0])
-
-        #    return time_model,phase_model,u_model,g_model,r_model,i_model,z_model,y_model
-        output = {
-            "time": time_model,
-            "phase": phase_model,
-            "period": period_model,
-            "u": u_model,
-            "g": g_model,
-            "r": r_model,
-            "i": i_model,
-            "z": z_model,
-            "y": y_model,
-            "meanu": meanu,
-            "meang": meang,
-            "meanr": meanr,
-            "meani": meani,
-            "meanz": meanz,
-            "meany": meany,
-            "amplu": amplu,
-            "amplg": amplg,
-            "amplr": amplr,
-            "ampli": ampli,
-            "amplz": amplz,
-            "amply": amply,
-            "mean_flux_u": mean_flux_u,
-            "mean_flux_g": mean_flux_g,
-            "mean_flux_r": mean_flux_r,
-            "mean_flux_i": mean_flux_i,
-            "mean_flux_z": mean_flux_z,
-            "mean_flux_y": mean_flux_y,
-        }
-        return output
-
-    def ReadTeoSim_blend(self, df, model, dmod, ebv):
-        """
-        Put the  model at a given distance moduli using the E(b-v) given by dustMap and take into account the blend using df
-        Parameters
-        -----------
-        df:list of stars (max 100) from TRILEGAL('lsst_sim.simdr2) in a cone search centered on test_ra and test_dec and a given radii (in degree).
-        model:dictionary
-             output of ReadAsciifile
-        dmod: float
-             distance modulus
-        ebv: float
-             E(B-V)=slicePoint('ebv')
-
+            E(B-V)=slicePoint('ebv')
 
         """
-        # df1= df['umag'][df['umag']<27]
-        flux_blend_u = self.mag_antilog(df["umag"])
-        flux_blend_g = self.mag_antilog(df["gmag"])
-        flux_blend_r = self.mag_antilog(df["rmag"])
-        flux_blend_i = self.mag_antilog(df["imag"])
-        flux_blend_z = self.mag_antilog(df["zmag"])
-        flux_blend_y = self.mag_antilog(df["ymag"])
+        # 'self' contains lc_model (pd.DataFrame with lightcurve template)
+        # 'self' also has R_x per band
+        lc_model = copy.deepcopy(self.lc_model)
 
-        time_model_blend = model["time"].copy()
-        u_mod_blend = model["u"].copy()
-        g_mod_blend = model["g"].copy()
-        r_mod_blend = model["r"].copy()
-        i_mod_blend = model["i"].copy()
-        z_mod_blend = model["z"].copy()
-        y_mod_blend = model["y"].copy()
+        # Add distance modulus and dust extinction
+        for f in "ugrizy":
+            lc_model[f] = lc_model[f] + dmod + self.R_x[f] * 3.1 * ebv
 
-        u_model_blend = []
-        g_model_blend = []
-        r_model_blend = []
-        i_model_blend = []
-        z_model_blend = []
-        y_model_blend = []
-        phase_model_blend = []
+        # Set up to calculate the intensity means
+        if self.add_blend:
+            flux_blend = {}
+            for f in "ugrizy":
+                flux_blend[f] = mag_antilog(self.stellar_cat[f"{f}mag"])
 
-        phase_model_blend = model["phase"].copy()
-        period_model_blend = model["period"]
+        # Compute the intensity means
+        means = {}
+        for f in "ugrizy":
+            if self.add_blend:
+                model_flux = mag_antilog(lc_model[f]) + sum(flux_blend[f])
+            else:
+                model_flux = mag_antilog(lc_model[f])
+            means[f"mean_flux_{f}"] = np.mean(model_flux)
+            mags = -2.5 * np.log10(model_flux)
+            means[f"mean_{f}"] = meanmag_antilog(mags)
+            means[f"amp_{f}"] = max(mags) - min(mags)
 
-        time_0 = time_model_blend[0]
+        # Add a repeat of the first value, at the end of the template
+        repeat = pd.DataFrame(lc_model.iloc[0]).T
+        repeat["phase"] = 1
+        lc_model = pd.concat([lc_model, repeat]).reset_index(drop=True)
+        return lc_model, means
 
-        for i in range(len(u_mod_blend)):
-            u_model_blend.append(u_mod_blend[i] + dmod + 1.55607 * 3.1 * ebv)
-        for i in range(len(g_mod_blend)):
-            g_model_blend.append(g_mod_blend[i] + dmod + 1.18379 * 3.1 * ebv)
-        for i in range(len(r_mod_blend)):
-            r_model_blend.append(r_mod_blend[i] + dmod + 1.87075 * 3.1 * ebv)
-        for i in range(len(i_mod_blend)):
-            i_model_blend.append(i_mod_blend[i] + dmod + 0.67897 * 3.1 * ebv)
-        for i in range(len(z_mod_blend)):
-            z_model_blend.append(z_mod_blend[i] + dmod + 0.51683 * 3.1 * ebv)
-        for i in range(len(y_mod_blend)):
-            y_model_blend.append(y_mod_blend[i] + dmod + 0.42839 * 3.1 * ebv)
-
-        # compute the intensity means
-
-        u_model_flux_blend = self.mag_antilog(u_model_blend) + sum(flux_blend_u)
-        g_model_flux_blend = self.mag_antilog(g_model_blend) + sum(flux_blend_g)
-        r_model_flux_blend = self.mag_antilog(r_model_blend) + sum(flux_blend_r)
-        i_model_flux_blend = self.mag_antilog(i_model_blend) + sum(flux_blend_i)
-        z_model_flux_blend = self.mag_antilog(z_model_blend) + sum(flux_blend_z)
-        y_model_flux_blend = self.mag_antilog(y_model_blend) + sum(flux_blend_y)
-        mean_flux_u_blend = np.mean(u_model_flux_blend)
-        mean_flux_g_blend = np.mean(g_model_flux_blend)
-        mean_flux_r_blend = np.mean(r_model_flux_blend)
-        mean_flux_i_blend = np.mean(i_model_flux_blend)
-        mean_flux_z_blend = np.mean(z_model_flux_blend)
-        mean_flux_y_blend = np.mean(y_model_flux_blend)
-
-        u_blend = (-2.5) * np.log10(u_model_flux_blend)
-        g_blend = (-2.5) * np.log10(g_model_flux_blend)
-        r_blend = (-2.5) * np.log10(r_model_flux_blend)
-        i_blend = (-2.5) * np.log10(i_model_flux_blend)
-        z_blend = (-2.5) * np.log10(z_model_flux_blend)
-        y_blend = (-2.5) * np.log10(y_model_flux_blend)
-        meanu_blend = self.meanmag_antilog(u_blend)
-        meang_blend = self.meanmag_antilog(g_blend)
-        meanr_blend = self.meanmag_antilog(r_blend)
-        meani_blend = self.meanmag_antilog(i_blend)
-        meanz_blend = self.meanmag_antilog(z_blend)
-        meany_blend = self.meanmag_antilog(y_blend)
-        amplu_blend = max(u_blend) - min(u_blend)
-        amplg_blend = max(g_blend) - min(g_blend)
-        amplr_blend = max(r_blend) - min(r_blend)
-        ampli_blend = max(i_blend) - min(i_blend)
-        amplz_blend = max(z_blend) - min(z_blend)
-        amply_blend = max(y_blend) - min(y_blend)
-
-        phase_model_blend.append(1.0)
-        ind_0_blend = phase_model_blend.index(0.0)
-        u_model_blend.append(u_model_blend[ind_0_blend])
-        g_model_blend.append(g_model_blend[ind_0_blend])
-        r_model_blend.append(r_model_blend[ind_0_blend])
-        i_model_blend.append(i_model_blend[ind_0_blend])
-        z_model_blend.append(z_model_blend[ind_0_blend])
-        y_model_blend.append(y_model_blend[ind_0_blend])
-
-        #    return time_model,phase_model,u_model,g_model,r_model,i_model,z_model,y_model
-        output = {
-            "time": time_model_blend,
-            "phase": phase_model_blend,
-            "period": period_model_blend,
-            "u": u_model_blend,
-            "g": g_model_blend,
-            "r": r_model_blend,
-            "i": i_model_blend,
-            "z": z_model_blend,
-            "y": y_model_blend,
-            "meanu": meanu_blend,
-            "meang": meang_blend,
-            "meanr": meanr_blend,
-            "meani": meani_blend,
-            "meanz": meanz_blend,
-            "meany": meany_blend,
-            "amplu": amplu_blend,
-            "amplg": amplg_blend,
-            "amplr": amplr_blend,
-            "ampli": ampli_blend,
-            "amplz": amplz_blend,
-            "amply": amply_blend,
-            "mean_flux_u": mean_flux_u_blend,
-            "mean_flux_g": mean_flux_g_blend,
-            "mean_flux_r": mean_flux_r_blend,
-            "mean_flux_i": mean_flux_i_blend,
-            "mean_flux_z": mean_flux_z_blend,
-            "mean_flux_y": mean_flux_y_blend,
-        }
-        return output
-
-    def generateLC(
+    def generate_lightcurve_obs(
         self,
-        time_lsst,
-        filters_lsst,
-        output_ReadLCTeo,
-        period_true=-99,
-        ampl_true=1.0,
-        phase_true=0.0,
+        times,
+        filters,
+        m5_mags,
+        saturation_mags,
+        lc_model,
+        means,
+        period_true=None,
+        ampl_true=1,
         do_normalize=False,
     ):
         """
-        Generate the observed teporal series and light curve from teplate  and opsim
+        Generate the observed temporal series and light curve from template  and opsim
+
         Parameters
         -----------
-        Parameters:
-        time_lsst: float
-
-        filters_lsst: float
-             E(B-V)=slicePoint('ebv')
-
-        output_ReadLCTeo: dictionary
-
-        period_true:
-
-        ampl_true:
-
-        phase_true:
-
-        do_normalize:
-
+        time : `np.ndarray`
+        filters : `np.ndarray`
+        lc_model : `pd.Dataframe`
+        period_true : `float`, opt
+        ampl_true : `float`, opt
+        do_normalize : `bool`, opt
+            Default False
 
         """
-
-        u_model = output_ReadLCTeo["u"]
-        g_model = output_ReadLCTeo["g"]
-        r_model = output_ReadLCTeo["r"]
-        i_model = output_ReadLCTeo["i"]
-        z_model = output_ReadLCTeo["z"]
-        y_model = output_ReadLCTeo["y"]
-        phase_model = output_ReadLCTeo["phase"]
-
-        # you can use  different period
-        if period_true < -90:
-            period_final = (output_ReadLCTeo["period"]) / 86400.0
+        # Choose the desired period (default is to use period from lightcurve)
+        if period_true is None:
+            # Convert the period in the lightcurve model template to days
+            period_final = (lc_model["period"].iloc[0]) / 24 / 60 / 60
         else:
             period_final = period_true
+        # The amplitude can be increased by a factor of ampl_true
 
-        # you can normalize
+        # Can normalize the lc model, subtracting the mean magnitude (will be added back later), and
+        # dividing by the amplitude in g band (will not be muliplied by in, unless ampl_true != 1
         if do_normalize:
-            meanu = output_ReadLCTeo["meanu"]
-            meang = output_ReadLCTeo["meang"]
-            meanr = output_ReadLCTeo["meanr"]
-            meani = output_ReadLCTeo["meani"]
-            meanz = output_ReadLCTeo["meanz"]
-            meany = output_ReadLCTeo["meany"]
-            amplg = output_ReadLCTeo["amplg"]
-
-            # normalizzo ad ampiezza g
-            meanmags = [meanu, meang, meanr, meani, meanz, meany]
-            mags_model_norm = [
-                [(u_model - meanu) / amplg],
-                [(g_model - meang) / amplg],
-                [(r_model - meanr) / amplg],
-                [(i_model - meani) / amplg],
-                [(z_model - meanz) / amplg],
-                [(y_model - meany) / amplg],
-            ]
-            model_u = interp1d(phase_model, mags_model_norm[0])
-            model_g = interp1d(phase_model, mags_model_norm[1])
-            model_r = interp1d(phase_model, mags_model_norm[2])
-            model_i = interp1d(phase_model, mags_model_norm[3])
-            model_z = interp1d(phase_model, mags_model_norm[4])
-            model_y = interp1d(phase_model, mags_model_norm[5])
+            mean_mags = {}
+            for f in "ugrizy":
+                # Normalize by subtracting mean (new mean = 0) and making amplitude in g = 1
+                lc_model[f] = (lc_model[f] - means[f"mean_{f}"]) / means["amp_g"]
+                # And then keep a record of the mean_mags, so we add them back to the LC later
+                mean_mags = means[f"mean_{f}"]
         else:
-            print(len(phase_model), len(u_model))
-            model_u = interp1d(phase_model, u_model)
-            model_g = interp1d(phase_model, g_model)
-            model_r = interp1d(phase_model, r_model)
-            model_i = interp1d(phase_model, i_model)
-            model_z = interp1d(phase_model, z_model)
-            model_y = interp1d(phase_model, y_model)
-            meanmags = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        allmodels = [model_u, model_g, model_r, model_i, model_z, model_y]
+            # If did not normalize, then do not need to add offsets back in later.
+            mean_mags = {}
+            for f in "ugrizy":
+                mean_mags[f] = 0
 
-        t_time_0 = min(time_lsst)
+        # Create interpolators for each bandpass using the PHASE and MAGNITUDE
+        interp = {}
+        for f in "ugrizy":
+            interp[f] = interp1d(lc_model["phase"], lc_model[f])
 
-        ind_u = (np.where(filters_lsst == "u"))[0]
-        ind_g = (np.where(filters_lsst == "g"))[0]
-        ind_r = (np.where(filters_lsst == "r"))[0]
-        ind_i = (np.where(filters_lsst == "i"))[0]
-        ind_z = (np.where(filters_lsst == "z"))[0]
-        ind_y = (np.where(filters_lsst == "y"))[0]
+        # Calculate the expected magnitude in each visit
+        t_time_0 = np.min(times)
+        lc_mags_obs = np.zeros(len(times), float)
+        phase_obs = np.zeros(len(times), float)
+        for f in "ugrizy":
+            match = np.where(filters == f)[0]
+            # Calculate the expected phase values for these observations
+            phase_obs[match] = ((times[match] - t_time_0) / period_final) % 1.0
+            lc_mags_obs[match] = mean_mags[f] + ampl_true * interp[f](phase_obs[match])
 
-        timeLSSTu = time_lsst[ind_u]
-        timeLSSTg = time_lsst[ind_g]
-        timeLSSTr = time_lsst[ind_r]
-        timeLSSTi = time_lsst[ind_i]
-        timeLSSTz = time_lsst[ind_z]
-        timeLSSTy = time_lsst[ind_y]
+        # Calculate SNR for each observation (this just uses m5 from each visit)
+        snr_obs = m52snr(lc_mags_obs, m5_mags)
+        # Calculate noise, using self.sigma_for_noise to scale level of noise to be added
+        # (adds uniform distribution of noise from -sigma to sigma)
+        dmags_obs = 2.5 * np.log10(1.0 + 1.0 / snr_obs)  # dmag_obs ~ uncertainty
+        if self.blend_percent > 0:
+            dmags_obs = np.sqrt(2) * dmags_obs
+        noise = (
+            self.rng.random.uniform(-self.sigma_for_noise, self.sigma_for_noise)
+            * dmags_obs
+        )
+        lc_mags_obs += noise
 
-        magLSSTu = np.empty(len(ind_u))
-        magLSSTg = np.empty(len(ind_g))
-        magLSSTr = np.empty(len(ind_r))
-        magLSSTi = np.empty(len(ind_i))
-        magLSSTz = np.empty(len(ind_z))
-        magLSSTy = np.empty(len(ind_y))
+        # Remove saturated observations
+        if self.remove_saturated:
+            # Sometimes the saturation_mag could be np.nan -- entire image saturated
+            not_sat = np.where(lc_mags_obs < saturation_mags, False, True)
+            lc_mags_obs = lc_mags_obs[not_sat]
+            snr_obs = snr_obs[not_sat]
+            times_obs = times[not_sat]
+            filters_obs = filters[not_sat]
+            phase_obs = phase_obs[not_sat]
 
-        def interpola(timeLSST, meanmags, model):
-            magLSST = np.empty(len(timeLSST))
-            phaselsst = np.empty(len(timeLSST))
-            for i in np.arange(len(timeLSST)):
-                phase_lsst_temp = ((timeLSST[i] - t_time_0) / period_final) % 1.0
-                phaselsst[i] = phase_lsst_temp
-                magLSST[i] = meanmags + ampl_true * model(phase_lsst_temp)
-            return phaselsst, magLSST
+        return (
+            lc_mags_obs,
+            dmags_obs,
+            snr_obs,
+            times_obs,
+            phase_obs,
+            filters_obs,
+            period_final,
+        )
 
-        phaselsst_u, magLSSTu = interpola(timeLSSTu, meanmags[0], model_u)
-        phaselsst_g, magLSSTg = interpola(timeLSSTg, meanmags[1], model_g)
-        phaselsst_r, magLSSTr = interpola(timeLSSTr, meanmags[2], model_r)
-        phaselsst_i, magLSSTi = interpola(timeLSSTi, meanmags[3], model_i)
-        phaselsst_z, magLSSTz = interpola(timeLSSTz, meanmags[4], model_z)
-        phaselsst_y, magLSSTy = interpola(timeLSSTy, meanmags[5], model_y)
-
-        mag_all = np.empty(len(time_lsst))
-        phase_all = np.empty(len(time_lsst))
-        time_all = np.empty(len(time_lsst))
-
-        # mag_all è ordinato come time_lsst
-        mag_all[ind_u] = magLSSTu
-        mag_all[ind_g] = magLSSTg
-        mag_all[ind_r] = magLSSTr
-        mag_all[ind_i] = magLSSTi
-        mag_all[ind_z] = magLSSTz
-        mag_all[ind_y] = magLSSTy
-
-        phase_all[ind_u] = phaselsst_u
-        phase_all[ind_g] = phaselsst_g
-        phase_all[ind_r] = phaselsst_r
-        phase_all[ind_i] = phaselsst_i
-        phase_all[ind_z] = phaselsst_z
-        phase_all[ind_y] = phaselsst_y
-
-        time_all[ind_u] = timeLSSTu
-        time_all[ind_g] = timeLSSTg
-        time_all[ind_r] = timeLSSTr
-        time_all[ind_i] = timeLSSTi
-        time_all[ind_z] = timeLSSTz
-        time_all[ind_y] = timeLSSTy
-
-        return {
-            "timeu": timeLSSTu,
-            "timeg": timeLSSTg,
-            "timer": timeLSSTr,
-            "timei": timeLSSTi,
-            "timez": timeLSSTz,
-            "timey": timeLSSTy,
-            "magu": magLSSTu,
-            "magg": magLSSTg,
-            "magr": magLSSTr,
-            "magi": magLSSTi,
-            "magz": magLSSTz,
-            "magy": magLSSTy,
-            "phaseu": phaselsst_u,
-            "phaseg": phaselsst_g,
-            "phaser": phaselsst_r,
-            "phasei": phaselsst_i,
-            "phasez": phaselsst_z,
-            "phasey": phaselsst_y,
-            "mag_all": mag_all,
-            "phase_all": phase_all,
-            "time_all": time_all,
-            "ind_u": ind_u,
-            "ind_g": ind_g,
-            "ind_r": ind_r,
-            "ind_i": ind_i,
-            "ind_z": ind_z,
-            "ind_y": ind_y,
-            "p_model": period_final,
-        }
-
-    def retrieveSnR(self, mv, theoreticModel):
-        """'
-        Generates s/n  based in the 5-sigma limiting depth
-        of each observation
-        """ ""
-        good = np.where(mv["filter"] == "u")
-        sn_u = m52snr(theoreticModel["meanu"], mv["fiveSigmaDepth"][good])
-        good = np.where(mv["filter"] == "g")
-        sn_g = m52snr(theoreticModel["meang"], mv["fiveSigmaDepth"][good])
-        good = np.where(mv["filter"] == "r")
-        sn_r = m52snr(theoreticModel["meanr"], mv["fiveSigmaDepth"][good])
-        good = np.where(mv["filter"] == "i")
-        sn_i = m52snr(theoreticModel["meani"], mv["fiveSigmaDepth"][good])
-        good = np.where(mv["filter"] == "z")
-        sn_z = m52snr(theoreticModel["meanz"], mv["fiveSigmaDepth"][good])
-        good = np.where(mv["filter"] == "y")
-        sn_y = m52snr(theoreticModel["meany"], mv["fiveSigmaDepth"][good])
-
-        snr = {"u": sn_u, "g": sn_g, "r": sn_r, "i": sn_i, "z": sn_z, "y": sn_y}
-        return snr
-
-    def noising(self, LcTeoLSST, snr, sigma, perc_blend):
-
+    def Lcsampling(self, times_obs, filters_obs, period, factor1):
         """
-        generate noise and add to the simulated light curve
+        Analyse the sampling of the simulated light curve (with the period=period_model)
+        Returns a dictionary with UniformityParameters obtained with three different methods
+        1) for each filter X calculates the number of points (n_X),
+        the size in phase of the largest gap (maxGap_X)
+        and the number of gaps largest than factorForDimensionGap*maxGap_X (numberGaps_X)
+        2) the uniformity parameters from Barry F. Madore and Wendy L. Freedman 2005 ApJ 630 1054
+        (uniformity_X)  useful for n_X<20
+        3) a modified version of UniformityMetric by Peter Yoachim
+        (https://sims-maf.lsst.io/_modules/lsst/sims/maf/metrics/cadenceMetrics.html#UniformityMetric.run).
+        Calculate how uniformly the observations are spaced in phase (not time)using KS test.
+        Returns a value between 0 (uniform sampling) and 1 . uniformityKS_X
 
-        Parameters:
-        -----------
-
-        """
-
-        # noising
-        def noisingBand(timeLSSTteo, magLSSTteo, snr, sigma, blend=0):
-            magNoised = []
-            noise = []
-            dmag = []
-            magNoisedComp = []
-            for j in range(len(timeLSSTteo)):
-                dmag = 2.5 * np.log10(1.0 + 1.0 / snr[j])
-                if blend > 0:
-                    dmag = np.sqrt(2) * dmag
-                noise = np.random.uniform(-sigma, sigma) * dmag
-                magNoisedComp = magLSSTteo[j] + noise
-                magNoised.append(magNoisedComp)
-
-            return magNoised, noise, dmag
-
-        magNoisedu, noiseu, dmagu = [], [], []
-        magNoisedg, noiseg, dmagg = [], [], []
-        magNoisedr, noiser, dmagr = [], [], []
-        magNoisedi, noisei, dmagi = [], [], []
-        magNoisedz, noisez, dmagz = [], [], []
-        magNoisedy, noisey, dmagy = [], [], []
-
-        magNoisedu, noiseu, dmagu = noisingBand(
-            LcTeoLSST["timeu"], LcTeoLSST["magu"], snr["u"], sigma, perc_blend[0]
-        )
-        magNoisedg, noiseg, dmagg = noisingBand(
-            LcTeoLSST["timeg"], LcTeoLSST["magg"], snr["g"], sigma, perc_blend[1]
-        )
-        magNoisedr, noiser, dmagr = noisingBand(
-            LcTeoLSST["timer"], LcTeoLSST["magr"], snr["r"], sigma, perc_blend[2]
-        )
-        magNoisedi, noisei, dmagi = noisingBand(
-            LcTeoLSST["timei"], LcTeoLSST["magi"], snr["i"], sigma, perc_blend[3]
-        )
-        magNoisedz, noisez, dmagz = noisingBand(
-            LcTeoLSST["timez"], LcTeoLSST["magz"], snr["z"], sigma, perc_blend[4]
-        )
-        magNoisedy, noisey, dmagy = noisingBand(
-            LcTeoLSST["timey"], LcTeoLSST["magy"], snr["y"], sigma, perc_blend[5]
-        )
-
-        # mag_all è ordinato come time_lsst
-        mag_all = np.empty(len(LcTeoLSST["mag_all"]))
-        mag_all[LcTeoLSST["ind_u"]] = magNoisedu
-        mag_all[LcTeoLSST["ind_g"]] = magNoisedg
-        mag_all[LcTeoLSST["ind_r"]] = magNoisedr
-        mag_all[LcTeoLSST["ind_i"]] = magNoisedi
-        mag_all[LcTeoLSST["ind_z"]] = magNoisedz
-        mag_all[LcTeoLSST["ind_y"]] = magNoisedy
-
-        # noise_all è ordinato come time_lsst
-        noise_all = np.empty(len(LcTeoLSST["mag_all"]))
-        noise_all[LcTeoLSST["ind_u"]] = noiseu
-        noise_all[LcTeoLSST["ind_g"]] = noiseg
-        noise_all[LcTeoLSST["ind_r"]] = noiser
-        noise_all[LcTeoLSST["ind_i"]] = noisei
-        noise_all[LcTeoLSST["ind_z"]] = noisez
-        noise_all[LcTeoLSST["ind_y"]] = noisey
-
-        # mag_all è ordinato come time_lsst
-        dmag_all = np.empty(len(LcTeoLSST["mag_all"]))
-        dmag_all[LcTeoLSST["ind_u"]] = dmagu
-        dmag_all[LcTeoLSST["ind_g"]] = dmagg
-        dmag_all[LcTeoLSST["ind_r"]] = dmagr
-        dmag_all[LcTeoLSST["ind_i"]] = dmagi
-        dmag_all[LcTeoLSST["ind_z"]] = dmagz
-        dmag_all[LcTeoLSST["ind_y"]] = dmagy
-
-        output2 = {
-            "timeu": LcTeoLSST["timeu"],
-            "timeg": LcTeoLSST["timeg"],
-            "timer": LcTeoLSST["timer"],
-            "timei": LcTeoLSST["timei"],
-            "timez": LcTeoLSST["timez"],
-            "timey": LcTeoLSST["timey"],
-            "magu": np.asarray(magNoisedu),
-            "magg": np.asarray(magNoisedg),
-            "magr": np.asarray(magNoisedr),
-            "magi": np.asarray(magNoisedi),
-            "magz": np.asarray(magNoisedz),
-            "magy": np.asarray(magNoisedy),
-            "phaseu": LcTeoLSST["phaseu"],
-            "phaseg": LcTeoLSST["phaseg"],
-            "phaser": LcTeoLSST["phaser"],
-            "phasei": LcTeoLSST["phasei"],
-            "phasez": LcTeoLSST["phasez"],
-            "phasey": LcTeoLSST["phasey"],
-            "mag_all": mag_all,
-            "time_all": LcTeoLSST["time_all"],
-            "noise_all": noise_all,
-            "dmag_all": dmag_all,
-        }
-        return output2
-
-    def count_saturation(
-        self, mv, snr, LcTeoLSST, LcTeoLSST_noised, do_remove_saturated
-    ):
-        """
-        Build an index that will be used to esclude saturated stars from the following analysis.
-        Build an index  to flag those stars that are under detection limit
-
-        Parameters:
-        -----------
-
-        """
-
-        satlevel_lsst = np.asarray(mv["saturation_mag"])
-
-        ind_mv_u = np.where(mv["filter"] == "u")
-        ind_mv_g = np.where(mv["filter"] == "g")
-        ind_mv_r = np.where(mv["filter"] == "r")
-        ind_mv_i = np.where(mv["filter"] == "i")
-        ind_mv_z = np.where(mv["filter"] == "z")
-        ind_mv_y = np.where(mv["filter"] == "y")
-
-        if do_remove_saturated:
-            ind_notsaturated = (np.where(LcTeoLSST_noised["mag_all"] > satlevel_lsst))[
-                0
-            ]
-            ind_notsaturated_u = (
-                np.where(LcTeoLSST_noised["magu"] > satlevel_lsst[ind_mv_u])
-            )[0]
-            ind_notsaturated_g = (
-                np.where(LcTeoLSST_noised["magg"] > satlevel_lsst[ind_mv_g])
-            )[0]
-            ind_notsaturated_r = (
-                np.where(LcTeoLSST_noised["magr"] > satlevel_lsst[ind_mv_r])
-            )[0]
-            ind_notsaturated_i = (
-                np.where(LcTeoLSST_noised["magi"] > satlevel_lsst[ind_mv_i])
-            )[0]
-            ind_notsaturated_z = (
-                np.where(LcTeoLSST_noised["magz"] > satlevel_lsst[ind_mv_z])
-            )[0]
-            ind_notsaturated_y = (
-                np.where(LcTeoLSST_noised["magy"] > satlevel_lsst[ind_mv_y])
-            )[0]
-
-            index_notsaturated = {
-                "ind_notsaturated_u": ind_notsaturated_u,
-                "ind_notsaturated_g": ind_notsaturated_g,
-                "ind_notsaturated_r": ind_notsaturated_r,
-                "ind_notsaturated_i": ind_notsaturated_i,
-                "ind_notsaturated_z": ind_notsaturated_z,
-                "ind_notsaturated_y": ind_notsaturated_y,
-                "ind_notsaturated_all": ind_notsaturated,
-            }
-        else:
-            index_notsaturated = {
-                "ind_notsaturated_u": np.arange(len(ind_mv_u[0])),
-                "ind_notsaturated_g": np.arange(len(ind_mv_g[0])),
-                "ind_notsaturated_r": np.arange(len(ind_mv_r[0])),
-                "ind_notsaturated_i": np.arange(len(ind_mv_i[0])),
-                "ind_notsaturated_z": np.arange(len(ind_mv_z[0])),
-                "ind_notsaturated_y": np.arange(len(ind_mv_y[0])),
-                "ind_notsaturated_all": np.arange(len(mv["filter"])),
-            }
-
-        print("Useful (at all S/N and NOT saturated)  Nvisits in ugrizy bands")
-        print(
-            len(index_notsaturated["ind_notsaturated_u"]),
-            len(index_notsaturated["ind_notsaturated_g"]),
-            len(index_notsaturated["ind_notsaturated_r"]),
-            len(index_notsaturated["ind_notsaturated_i"]),
-            len(index_notsaturated["ind_notsaturated_z"]),
-            len(index_notsaturated["ind_notsaturated_y"]),
-        )
-        saturation_index_u = [1] * len(LcTeoLSST["timeu"])
-        saturation_index_g = [1] * len(LcTeoLSST["timeg"])
-        saturation_index_r = [1] * len(LcTeoLSST["timer"])
-        saturation_index_i = [1] * len(LcTeoLSST["timei"])
-        saturation_index_z = [1] * len(LcTeoLSST["timez"])
-        saturation_index_y = [1] * len(LcTeoLSST["timey"])
-
-        for i in index_notsaturated["ind_notsaturated_u"]:
-            saturation_index_u[i] = 0
-        for i in index_notsaturated["ind_notsaturated_g"]:
-            saturation_index_g[i] = 0
-        for i in index_notsaturated["ind_notsaturated_r"]:
-            saturation_index_r[i] = 0
-        for i in index_notsaturated["ind_notsaturated_i"]:
-            saturation_index_i[i] = 0
-        for i in index_notsaturated["ind_notsaturated_z"]:
-            saturation_index_z[i] = 0
-        for i in index_notsaturated["ind_notsaturated_y"]:
-            saturation_index_y[i] = 0
-        saturation_index = {
-            "u": saturation_index_u,
-            "g": saturation_index_g,
-            "r": saturation_index_r,
-            "i": saturation_index_i,
-            "z": saturation_index_z,
-            "y": saturation_index_y,
-        }
-
-        detection_index_u = [0] * len(LcTeoLSST["timeu"])
-        detection_index_g = [0] * len(LcTeoLSST["timeg"])
-        detection_index_r = [0] * len(LcTeoLSST["timer"])
-        detection_index_i = [0] * len(LcTeoLSST["timei"])
-        detection_index_z = [0] * len(LcTeoLSST["timez"])
-        detection_index_y = [0] * len(LcTeoLSST["timey"])
-
-        ind_detection_u = (np.where(snr["u"] < 5.0))[0]
-        ind_detection_g = (np.where(snr["g"] < 5.0))[0]
-        ind_detection_r = (np.where(snr["r"] < 5.0))[0]
-        ind_detection_i = (np.where(snr["i"] < 5.0))[0]
-        ind_detection_z = (np.where(snr["z"] < 5.0))[0]
-        ind_detection_y = (np.where(snr["y"] < 5.0))[0]
-
-        for i in ind_detection_u:
-            detection_index_u[i] = 1
-        for i in ind_detection_g:
-            detection_index_g[i] = 1
-        for i in ind_detection_r:
-            detection_index_r[i] = 1
-        for i in ind_detection_i:
-            detection_index_i[i] = 1
-        for i in ind_detection_z:
-            detection_index_z[i] = 1
-        for i in ind_detection_y:
-            detection_index_y[i] = 1
-        detection_index = {
-            "u": detection_index_u,
-            "g": detection_index_g,
-            "r": detection_index_r,
-            "i": detection_index_i,
-            "z": detection_index_z,
-            "y": detection_index_y,
-        }
-        return index_notsaturated, saturation_index, detection_index
-
-    def Lcsampling(self, data, period, index, factor1):
-        """
-        Analyse the sampling of the simulated light curve (with the period=period_model) Give a dictionary with UniformityPrameters obtained with three different methods
-        1) for each filter X calculates the number of points (n_X), the size in phase of the largest gap (maxGap_X) and the number of gaps largest than factorForDimensionGap*maxGap_X (numberGaps_X)
-        2) the uniformity parameters from Barry F. Madore and Wendy L. Freedman 2005 ApJ 630 1054 (uniformity_X)  useful for n_X<20
-        3) a modified version of UniformityMetric by Peter Yoachim (https://sims-maf.lsst.io/_modules/lsst/sims/maf/metrics/cadenceMetrics.html#UniformityMetric.run). Calculate how uniformly the observations are spaced in phase (not time)using KS test.Returns a value between 0 (uniform sampling) and 1 . uniformityKS_X
         Parameters:
         -----------
         data:
@@ -1341,72 +710,19 @@ class PulsatingStarRecovery(BaseMetric):
         factor1:
             factorForDimensionGap
         """
-        time_u = data["timeu"][index["ind_notsaturated_u"]]  # time must be in days
-        time_g = data["timeg"][index["ind_notsaturated_g"]]
-        time_r = data["timer"][index["ind_notsaturated_r"]]
-        time_i = data["timei"][index["ind_notsaturated_i"]]
-        time_z = data["timez"][index["ind_notsaturated_z"]]
-        time_y = data["timey"][index["ind_notsaturated_y"]]
-        n_u = len(time_u)
-        n_g = len(time_g)
-        n_r = len(time_r)
-        n_i = len(time_i)
-        n_z = len(time_z)
-        n_y = len(time_y)
-        maxGap_u, numberOfGaps_u = self.qualityCheck(time_u, period, factor1)
-        maxGap_g, numberOfGaps_g = self.qualityCheck(time_g, period, factor1)
-        maxGap_r, numberOfGaps_r = self.qualityCheck(time_r, period, factor1)
-        maxGap_i, numberOfGaps_i = self.qualityCheck(time_i, period, factor1)
-        maxGap_z, numberOfGaps_z = self.qualityCheck(time_z, period, factor1)
-        maxGap_y, numberOfGaps_y = self.qualityCheck(time_y, period, factor1)
-        uniformity_u = self.qualityCheck2(time_u, period)
-        uniformity_g = self.qualityCheck2(time_g, period)
-        uniformity_r = self.qualityCheck2(time_r, period)
-        uniformity_i = self.qualityCheck2(time_i, period)
-        uniformity_z = self.qualityCheck2(time_z, period)
-        uniformity_y = self.qualityCheck2(time_y, period)
-        uniformityKS_u = self.qualityCheck3(time_u, period)
-        uniformityKS_g = self.qualityCheck3(time_g, period)
-        uniformityKS_r = self.qualityCheck3(time_r, period)
-        uniformityKS_i = self.qualityCheck3(time_i, period)
-        uniformityKS_z = self.qualityCheck3(time_z, period)
-        uniformityKS_y = self.qualityCheck3(time_y, period)
+        maxGap = {}
+        numberOfGaps = {}
+        uniformity = {}
+        uniformityKS = {}
+        for f in "ugrizy":
+            match = np.where(filters_obs == f)
+            maxGap[f], numberOfGaps[f] = self.qualityCheck(
+                times_obs[match], period, factor1
+            )
+            uniformity[f] = self.qualityCheck2(times_obs[match], period)
+            uniformityKS[f] = self.qualityCheck3(times_obs[match], period)
 
-        finalResult = {
-            "n_u": n_u,
-            "n_g": n_g,
-            "n_r": n_r,
-            "n_u": n_u,
-            "n_i": n_i,
-            "n_z": n_z,
-            "n_y": n_y,
-            "maxGap_u": maxGap_u,
-            "maxGap_g": maxGap_g,
-            "maxGap_r": maxGap_r,
-            "maxGap_i": maxGap_i,
-            "maxGap_z": maxGap_z,
-            "maxGap_y": maxGap_y,
-            "numberGaps_u": numberOfGaps_u,
-            "numberGaps_g": numberOfGaps_g,
-            "numberGaps_r": numberOfGaps_r,
-            "numberGaps_i": numberOfGaps_i,
-            "numberGaps_z": numberOfGaps_z,
-            "numberGaps_y": numberOfGaps_y,
-            "uniformity_u": uniformity_u,
-            "uniformity_g": uniformity_g,
-            "uniformity_r": uniformity_r,
-            "uniformity_i": uniformity_i,
-            "uniformity_z": uniformity_z,
-            "uniformity_y": uniformity_y,
-            "uniformityKS_u": uniformityKS_u,
-            "uniformityKS_g": uniformityKS_g,
-            "uniformityKS_r": uniformityKS_r,
-            "uniformityKS_i": uniformityKS_i,
-            "uniformityKS_z": uniformityKS_z,
-            "uniformityKS_y": uniformityKS_y,
-        }
-
-        return finalResult
+        return maxGap, numberOfGaps, uniformity, uniformityKS
 
     def qualityCheck(self, time, period, factor1):
         if (len(time)) > 0:
@@ -1440,7 +756,7 @@ class PulsatingStarRecovery(BaseMetric):
         else:
             maxDistance = 999.0
             a = 999.0
-        return maxDistance, a  # ,indexStart,indexStop
+        return maxDistance, a
 
     def qualityCheck2(self, time, period):
         # This is based on Madore and Freedman (Apj 2005), uniformity definition
@@ -1449,8 +765,6 @@ class PulsatingStarRecovery(BaseMetric):
             indexSorted = np.argsort(phase)
 
             distances = []
-            indexStart = []
-            indexStop = []
             leftDistance = phase[indexSorted[0]]
             rightDistance = 1 - phase[indexSorted[len(indexSorted) - 1]]
             sumDistances = 0
@@ -1477,25 +791,18 @@ class PulsatingStarRecovery(BaseMetric):
             phase = ((time - time[0]) / period) % 1
             phase_sort = np.sort(phase)
             n_cum = np.arange(1, len(phase) + 1) / float(len(phase))
-            D_max = np.max(
-                np.abs(n_cum - phase_sort - phase_sort[0])
-            )  # ma in origine era phase_u_sort[1] ma non capisco il perché
+            D_max = np.max(np.abs(n_cum - phase_sort - phase_sort[0]))
         else:
             D_max = 999.0
         return D_max
 
-    def LcPeriodLight(self, mv, LcTeoLSST, LcTeoLSST_noised, index_notsaturated):
+    def LcPeriodLight(
+        self, times_obs, filters_obs, lc_mags_obs, dmags_obs, period_model
+    ):
         """
-        compute the period using Gatpsy and return differences with the period of the model.
-        Does not make a figure in its light version
-
-        Parameters:
-        -----------
-
+        Compute the period using Gatpsy and return differences with the period of the model.
         """
         #########################################################################
-        # period range in the periodogram for the plot of the periodogram
-        period_model = LcTeoLSST["p_model"]
 
         minper_opt = period_model - 0.9 * period_model
         maxper_opt = period_model + 0.9 * period_model
@@ -1504,46 +811,28 @@ class PulsatingStarRecovery(BaseMetric):
         #########This is to measure the noise of the periodogramm but is not used yet
 
         LS_multi = periodic.LombScargleMultiband(Nterms_base=1, Nterms_band=0)
-        LS_multi.fit(
-            LcTeoLSST_noised["time_all"][index_notsaturated["ind_notsaturated_all"]],
-            LcTeoLSST_noised["mag_all"][index_notsaturated["ind_notsaturated_all"]],
-            LcTeoLSST_noised["dmag_all"][index_notsaturated["ind_notsaturated_all"]],
-            mv["filter"][index_notsaturated["ind_notsaturated_all"]],
-        )
+        LS_multi.fit(times_obs, lc_mags_obs, dmags_obs, filters_obs)
+
         P_multi = LS_multi.periodogram(periods)
         periodogram_noise = np.median(P_multi)
         periodogram_noise_mean = np.mean(P_multi)
 
-        print("Noise level (median vs mean)")
-        print(periodogram_noise, periodogram_noise_mean)
+        # print("Noise level (median vs mean)")
+        # print(periodogram_noise, periodogram_noise_mean)
 
         ########This is to measure the best period
         fitLS_multi = periodic.LombScargleMultiband(fit_period=True)
         fitLS_multi.optimizer.period_range = (minper_opt, maxper_opt)
-        fitLS_multi.fit(
-            LcTeoLSST_noised["time_all"][index_notsaturated["ind_notsaturated_all"]],
-            LcTeoLSST_noised["mag_all"][index_notsaturated["ind_notsaturated_all"]],
-            LcTeoLSST_noised["dmag_all"][index_notsaturated["ind_notsaturated_all"]],
-            mv["filter"][index_notsaturated["ind_notsaturated_all"]],
-        )
+        fitLS_multi.fit(times_obs, lc_mags_obs, dmags_obs, filters_obs)
         best_per_temp = fitLS_multi.best_period
 
-        tmin = min(LcTeoLSST_noised["time_all"])
-        tmax = max(LcTeoLSST_noised["time_all"])
+        tmin = np.min(times_obs)
+        tmax = np.max(times_obs)
         cicli = (tmax - tmin) / period_model
 
         diffper = best_per_temp - period_model
         diffper_abs = abs(best_per_temp - period_model) / period_model * 100
         diffcicli = abs(best_per_temp - period_model) / period_model * 1 / cicli
-        #        print(' Period of the model:')
-        #        print(period_model)
-        #        print(' Period found by Gatpy:')
-        #        print(best_per_temp)
-        #        print(' DeltaP/P (in perc):')
-        #        print(diffper)
-        #        print(' DeltaP/P*1/number of cycle:')
-        #        print(diffcicli)
-        #
 
         return best_per_temp, diffper, diffper_abs, diffcicli
 
@@ -1551,15 +840,8 @@ class PulsatingStarRecovery(BaseMetric):
         """
         Fit of the light curve and gives a dictionary with the mean amplitudes and magnitudes of the
         fitting curve
-
-        Parameters:
-        -----------
-
         """
 
-        zeroTimeRef = min(data["time_all"])
-
-        print("fitting...")
         fitting = self.computingLcModel(data, period, numberOfHarmonics, index)
         # timeForModel=np.arange(data['timeu'][0],data['timeu'][0]+2*period,0.01)
         # computing the magModelFromFit
