@@ -522,7 +522,19 @@ def scienceRadarBatch(
     bandpass = "i"
     nfilters_needed = 6
     lim_ebv = 0.2
-    mag_cuts = {1: 24.75 - 0.1, 3: 25.35 - 0.1, 6: 25.72 - 0.1, 10: 26.0 - 0.1}
+    offset = 0.1
+    mag_cuts = {
+        1: 24.75 - offset,
+        2: 25.12 - offset,
+        3: 25.35 - offset,
+        4: 25.5 - offset,
+        5: 25.62 - offset,
+        6: 25.72 - offset,
+        7: 25.8 - offset,
+        8: 25.87 - offset,
+        9: 25.94 - offset,
+        10: 26.0 - offset,
+    }
     yrs = list(mag_cuts.keys())
     maxYr = max(yrs)
 
@@ -548,7 +560,7 @@ def scienceRadarBatch(
     slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
     for yr_cut in yrs:
         ptsrc_lim_mag_i_band = mag_cuts[yr_cut]
-        sqlconstraint = "night <= %s" % (yr_cut * 365.25)
+        sqlconstraint = "night <= %s" % (yr_cut * 365.25 + 0.5)
         sqlconstraint += ' and note not like "DD%"'
         info_label = f"{bandpass} band non-DD year {yr_cut}"
         ThreebyTwoSummary_simple = metrics.StaticProbesFoMEmulatorMetricSimple(
@@ -967,26 +979,15 @@ def scienceRadarBatch(
                 magTol=0.01,
                 nBands=3,
             )
-            # Run this on year 1 and on year 3.5-4.5
+            # Run this on year 1-2.
             bundle = mb.MetricBundle(
                 m,
                 slicer,
-                "night < 365.25",
+                "night < 365.25*2",
                 displayDict=displayDict,
                 runName=runName,
                 summaryMetrics=summaryStats,
-                info_label=f"dm {dM} interval {time_interval} RRc Year 1",
-            )
-            bundleList.append(bundle)
-            # and on year 3.5-4.5
-            bundle = mb.MetricBundle(
-                m,
-                slicer,
-                "night > 365.25*3.5 and night < 365.25*4.5",
-                displayDict=displayDict,
-                runName=runName,
-                summaryMetrics=summaryStats,
-                info_label=f"dm {dM} interval {time_interval} RRc Year 3.5",
+                info_label=f"dm {dM} interval {time_interval} RRc Year 1-2",
             )
             bundleList.append(bundle)
 
