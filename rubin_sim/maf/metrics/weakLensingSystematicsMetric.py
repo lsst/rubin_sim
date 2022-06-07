@@ -95,6 +95,7 @@ class WeakLensingNvisits(BaseMetric):
         self.lsstFilter = lsstFilter
         self.depth_cut = depth_cut
         self.m5Col = m5Col
+        self.filterCol = filterCol
         self.expTimeCol = expTimeCol
         self.ebvlim = ebvlim
         self.min_expTime = min_expTime
