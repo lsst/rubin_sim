@@ -70,8 +70,9 @@ def metadata_bundle_dicts(
             colmap,
             opsim,
             slicer=allsky_slicer,
-            extraInfoLabel="yr1",
+            extraInfoLabel="Yr 1",
             extraSql="night < 365.5",
+            runLength=1,
         )
     )
     bdict.update(
@@ -80,7 +81,8 @@ def metadata_bundle_dicts(
             opsim,
             slicer=allsky_slicer,
             extraSql='night > 365*3.5 and night < 365*4.5 and note not like "%DD%"',
-            extraInfoLabel="yr3.5",
+            extraInfoLabel="Yr 3.5",
+            runLength=1,
         )
     )
 

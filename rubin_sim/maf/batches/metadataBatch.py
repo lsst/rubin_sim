@@ -536,7 +536,7 @@ def firstYearMetadata(
         extraSql = f"({firstYr}) and ({extraSql})"
     else:
         extraSql = firstYr
-    extraInfoLabel = combineInfoLabels("yr1", extraInfoLabel)
+    extraInfoLabel = combineInfoLabels("Yr 1", extraInfoLabel)
 
     subset = ["airmass", "seeingEff", "seeingGeom", "skyBrightness", "fiveSigmaDepth"]
     for valueName in subset:
