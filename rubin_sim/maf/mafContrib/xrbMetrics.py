@@ -395,13 +395,17 @@ class XRBPopMetric(BaseMetric):
         result["ever_detect"] = self._ever_detect(where_detected)
         result["early_detect"] = self._early_detect(where_detected, t)
         result["number_of_detections"] = self._number_of_detections(where_detected)
-        result["mean_time_between_detections"] = self._mean_time_between_detections(
-            [
-                slicePoint["visible_start_time"],
-                *t[where_detected].tolist(),
-                slicePoint["visible_end_time"],
-            ]
-        )
+
+        if result["number_of_detections"] > 1:
+            result["mean_time_between_detections"] = self._mean_time_between_detections(
+                [
+                    slicePoint["visible_start_time"],
+                    *t[where_detected].tolist(),
+                    slicePoint["visible_end_time"],
+                ]
+            )
+        else:
+            result["mean_time_between_detections"] = -999
 
         # Export the light curve
         if self.outputLc is True:
@@ -431,7 +435,11 @@ class XRBPopMetric(BaseMetric):
         return metric["number_of_detections"]
 
     def reduce_mean_time_between_detections(self, metric):
-        return metric["mean_time_between_detections"]
+        tt = metric["mean_time_between_detections"]
+        if tt < 0:
+            return self.badval
+        else:
+            return tt
 
 
 def generateXRBPopSlicer(t_start=1, t_end=3652, n_events=10000, seed=42):

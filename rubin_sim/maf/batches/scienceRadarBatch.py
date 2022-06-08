@@ -328,7 +328,7 @@ def scienceRadarBatch(
     # DCR precision metric
     displayDict["subgroup"] = "DCR"
     displayDict["order"] = 0
-    plotDict = {"caption": "Precision of DCR slope."}
+    plotDict = {"caption": "Precision of DCR slope.", "percentileClip": 95}
     metric = metrics.DcrPrecisionMetric()
     bundle = mb.MetricBundle(
         metric,
@@ -1351,6 +1351,7 @@ def scienceRadarBatch(
         maf.MeanMetric(metricName="Fraction detected in footprint"),
         maf.MeanMetric(maskVal=0, metricName="Fraction detected of total"),
         maf.MedianMetric(metricName="Median"),
+        maf.MeanMetric(metricName="Mean"),
     ]
 
     bundleList.append(
