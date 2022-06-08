@@ -1,3 +1,4 @@
+import numpy as np
 import rubin_sim.maf.batches as batches
 
 __all__ = ["metadata_bundle_dicts"]
@@ -86,11 +87,6 @@ def metadata_bundle_dicts(
         )
     )
 
-    # Nvisits per proposal and per night.
-    ### NEED MORE HERE
-    # bdict.update(batches.nvisitsPerProp(opsdb, colmap, opsim,
-    #                                    slicer=allsky_slicer))
-
     # NVisits alt/az LambertSkyMap (all filters, per filter)
     bdict.update(batches.altazLambert(colmap, opsim))
 
@@ -99,6 +95,37 @@ def metadata_bundle_dicts(
 
     # Open shutter metrics.
     bdict.update(batches.openshutterFractions(colmap, opsim))
+
+    # Some basic nvisits per purpose metrics
+    wfd_footprint_mask = np.where(wfd_slicer.mask, 1, 0)
+    bdict.update(
+        batches.nvisitsPerSubset(
+            colmap,
+            opsim,
+            constraint="visitExposureTime > 11s",
+            footprintConstraint=wfd_footprint_mask,
+            extraInfoLabel="WFD",
+        )
+    )
+    dd_constraint = "note like '%DD%'"
+    bdict.update(
+        batches.nvisitsPerSubset(
+            colmap,
+            opsim,
+            constraint=dd_constraint,
+            footprintConstraint=None,
+            extraInfoLabel="DDFs",
+        )
+    )
+    bdict.update(
+        batches.nvisitsPerSubset(
+            colmap,
+            opsim,
+            constraint=None,
+            footprintConstraint=None,
+            extraInfoLabel="All visits",
+        )
+    )
 
     # Per night and whole survey filter changes.
     bdict.update(batches.filtersPerNight(colmap, opsim, nights=1, extraSql=None))

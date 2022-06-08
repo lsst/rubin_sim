@@ -374,7 +374,7 @@ def nvisitsPerNight(
     metricBundleDict
     """
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = ColMapDict("FBS")
 
     subgroup = subgroup
     if subgroup is None:
@@ -413,7 +413,6 @@ def nvisitsPerNight(
 
 
 def nvisitsPerSubset(
-    opsdb,
     colmap=None,
     runName="opsim",
     binNights=1,
@@ -448,13 +447,13 @@ def nvisitsPerSubset(
     metricBundleDict : `dict` of `rubin_sim.maf.MetricBundle`
     """
     if colmap is None:
-        colmap = getColMap(opsdb)
+        colmap = getColMap("FBS")
 
     bdict = {}
     bundleList = []
 
-    if constraint is not None and len(constraint) > 0 and footprintConstraint is None:
-        if extraInfoLabel is None:
+    if footprintConstraint is None:
+        if extraInfoLabel is None and constraint is not None:
             extraInfoLabel += " %s" % constraint
         # Nvisits per night, this constraint.
         bdict.update(
