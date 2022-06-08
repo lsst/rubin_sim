@@ -148,6 +148,7 @@ def metadataBasics(
         bundleList.append(bundle)
 
     # Make maps of min/median/max for all and per filter, per RA/Dec, with standard summary stats.
+    plotDict = {"percentileClip": 98}
     mList = []
     mList.append(metrics.MinMetric(value, metricName="Min %s" % (valueName)))
     mList.append(metrics.MedianMetric(value, metricName="Median %s" % (valueName)))
@@ -166,6 +167,7 @@ def metadataBasics(
                 sqls[f],
                 stackerList=stackerList,
                 info_label=info_label[f],
+                plotDict=plotDict,
                 displayDict=displayDict,
                 summaryMetrics=standardSummary(),
             )
@@ -294,6 +296,7 @@ def metadataBasicsAngle(
         metrics.FullRangeAngleMetric(value, metricName="AngleRange %s" % (valueName))
     )
     mList.append(metrics.RmsAngleMetric(value, metricName="AngleRms %s" % (valueName)))
+    plotDict = {"percentileClip": 98}
     slicer = skyslicer
     for f in filterlist:
         for m in mList:
@@ -307,6 +310,7 @@ def metadataBasicsAngle(
                 slicer,
                 sqls[f],
                 info_label=info_label[f],
+                plotDict=plotDict,
                 displayDict=displayDict,
                 summaryMetrics=standardSummary(),
             )

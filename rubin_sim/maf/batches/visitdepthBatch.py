@@ -152,7 +152,7 @@ def nvisitsM5Maps(
             # "xlabel": "coadded m5 - %.1f" % mag_zp,
             # "colorMin": -0.6,
             # "colorMax": 0.6,
-            "percentileClip": 95,
+            "percentileClip": 98,
             "color": colors[f],
         }
         bundle = mb.MetricBundle(
@@ -194,7 +194,7 @@ def nvisitsM5Maps(
             # "xlabel": "coadded m5 - %.1f" % mag_zp,
             # "colorMin": -0.6,
             # "colorMax": 0.6,
-            "percentileClip": 95,
+            "percentileClip": 98,
             "color": colors[f],
         }
         bundle = mb.MetricBundle(

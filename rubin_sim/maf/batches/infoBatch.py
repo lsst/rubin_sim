@@ -81,7 +81,7 @@ def metadata_bundle_dicts(
             opsim,
             slicer=allsky_slicer,
             extraSql='night > 365*3.5 and night < 365*4.5 and note not like "%DD%"',
-            extraInfoLabel="Yr 3.5",
+            extraInfoLabel="Yr 3-4",
             runLength=1,
         )
     )
