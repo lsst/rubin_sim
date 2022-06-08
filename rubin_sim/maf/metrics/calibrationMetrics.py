@@ -487,10 +487,9 @@ class ParallaxDcrDegenMetric(BaseMetric):
         super(ParallaxDcrDegenMetric, self).__init__(
             cols, metricName=metricName, units=units, **kwargs
         )
-        self.filters = ["u", "g", "r", "i", "z", "y"]
         self.mags = {}
         if SedTemplate == "flat":
-            for f in self.filters:
+            for f in ["u", "g", "r", "i", "z", "y"]:
                 self.mags[f] = rmag
         else:
             self.mags = utils.stellarMags(SedTemplate, rmag=rmag)
@@ -516,7 +515,7 @@ class ParallaxDcrDegenMetric(BaseMetric):
         # then we should be able to disentangle the parallax and DCR offsets when fitting 'for real'.
         # compute SNR for all observations
         snr = np.zeros(len(dataSlice), dtype="float")
-        for filt in self.filters:
+        for filt in np.unique(dataSlice[self.filterCol]):
             inFilt = np.where(dataSlice[self.filterCol] == filt)
             snr[inFilt] = mafUtils.m52snr(
                 self.mags[filt], dataSlice[self.m5Col][inFilt]
