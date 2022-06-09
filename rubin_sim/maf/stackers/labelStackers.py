@@ -63,7 +63,7 @@ class WFDlabelStacker(BaseStacker):
         self.noteCol = noteCol
         self.colsRequired = [self.raCol, self.decCol, self.noteCol]
         self.colsAddedDtypes = [(str, 15)]
-        self.units = [None]
+        self.units = [""]
         self.fp_threshold = fp_threshold
         self.area_id_name = area_id_name
         self.excludeDD = excludeDD

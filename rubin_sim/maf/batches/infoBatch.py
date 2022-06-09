@@ -114,7 +114,7 @@ def metadata_bundle_dicts(
             opsim,
             constraint=dd_constraint,
             footprintConstraint=None,
-            extraInfoLabel="DDFs",
+            extraInfoLabel="DDF",
         )
     )
     bdict.update(

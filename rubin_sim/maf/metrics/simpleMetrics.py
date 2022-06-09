@@ -223,8 +223,8 @@ class CountRatioMetric(BaseMetric):
 class CountSubsetMetric(BaseMetric):
     """Count the length of a simData column slice which matches 'subset'."""
 
-    def __init__(self, col=None, subset=None, **kwargs):
-        super(CountSubsetMetric, self).__init__(col=col, **kwargs)
+    def __init__(self, col=None, subset=None, units="#", **kwargs):
+        super(CountSubsetMetric, self).__init__(col=col, units=units, **kwargs)
         self.metricDtype = "int"
         self.badval = 0
         self.subset = subset
