@@ -102,7 +102,7 @@ def metadata_bundle_dicts(
         batches.nvisitsPerSubset(
             colmap,
             opsim,
-            constraint="visitExposureTime > 11s",
+            constraint="visitExposureTime > 11",
             footprintConstraint=wfd_footprint_mask,
             extraInfoLabel="WFD",
         )
