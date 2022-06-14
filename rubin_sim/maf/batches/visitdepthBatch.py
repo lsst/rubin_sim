@@ -146,12 +146,13 @@ def nvisitsM5Maps(
         ] += " More positive numbers indicate fainter limiting magnitudes."
         displayDict["order"] = orders[f]
         plotDict = {
-            "zp": mag_zp,
-            "xMin": -0.6,
-            "xMax": 0.6,
-            "xlabel": "coadded m5 - %.1f" % mag_zp,
-            "colorMin": -0.6,
-            "colorMax": 0.6,
+            # "zp": mag_zp,
+            # "xMin": -0.6,
+            # "xMax": 0.6,
+            # "xlabel": "coadded m5 - %.1f" % mag_zp,
+            # "colorMin": -0.6,
+            # "colorMax": 0.6,
+            "percentileClip": 98,
             "color": colors[f],
         }
         bundle = mb.MetricBundle(
@@ -187,12 +188,13 @@ def nvisitsM5Maps(
         ] += " More positive numbers indicate fainter limiting magnitudes."
         displayDict["order"] = orders[f]
         plotDict = {
-            "zp": mag_zp,
-            "xMin": -0.6,
-            "xMax": 0.6,
-            "xlabel": "coadded m5 - %.1f" % mag_zp,
-            "colorMin": -0.6,
-            "colorMax": 0.6,
+            # "zp": mag_zp,
+            # "xMin": -0.6,
+            # "xMax": 0.6,
+            # "xlabel": "coadded m5 - %.1f" % mag_zp,
+            # "colorMin": -0.6,
+            # "colorMax": 0.6,
+            "percentileClip": 98,
             "color": colors[f],
         }
         bundle = mb.MetricBundle(
@@ -372,7 +374,7 @@ def nvisitsPerNight(
     metricBundleDict
     """
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = ColMapDict("FBS")
 
     subgroup = subgroup
     if subgroup is None:
@@ -411,7 +413,6 @@ def nvisitsPerNight(
 
 
 def nvisitsPerSubset(
-    opsdb,
     colmap=None,
     runName="opsim",
     binNights=1,
@@ -446,13 +447,13 @@ def nvisitsPerSubset(
     metricBundleDict : `dict` of `rubin_sim.maf.MetricBundle`
     """
     if colmap is None:
-        colmap = getColMap(opsdb)
+        colmap = getColMap("FBS")
 
     bdict = {}
     bundleList = []
 
-    if constraint is not None and len(constraint) > 0:
-        if extraInfoLabel is None:
+    if footprintConstraint is None:
+        if extraInfoLabel is None and constraint is not None:
             extraInfoLabel += " %s" % constraint
         # Nvisits per night, this constraint.
         bdict.update(
@@ -487,9 +488,14 @@ def nvisitsPerSubset(
         if extraInfoLabel is None:
             extraInfoLabel = "Footprint"
         footprintStacker = stackers.WFDlabelStacker(
-            footprint=footprintConstraint, fp_threshold=0.4, area_id_name=extraInfoLabel
+            footprint=footprintConstraint,
+            fp_threshold=0.4,
+            area_id_name=extraInfoLabel,
+            excludeDD=True,
         )
-        metric = metrics.CountSubsetMetric(col="areaId", subset=extraInfoLabel)
+        metric = metrics.CountSubsetMetric(
+            col="areaId", subset=extraInfoLabel, units="#", metricName="Nvisits"
+        )
         slicer = slicers.UniSlicer()
         displayDict = {
             "group": "Nvisit Summary",

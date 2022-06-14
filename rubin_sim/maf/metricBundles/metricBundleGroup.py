@@ -523,7 +523,7 @@ class MetricBundleGroup(object):
         """
         for constraint in self.constraints:
             self.setCurrent(constraint)
-            # self.reduceCurrent(updateSummaries=updateSummaries)
+            self.reduceCurrent(updateSummaries=updateSummaries)
 
     def reduceCurrent(self, updateSummaries=True):
         """Run all reduce functions for the metricbundle in the currently active set of MetricBundles.

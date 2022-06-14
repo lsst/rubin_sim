@@ -725,7 +725,7 @@ class MetricBundle(object):
         # Set up new metricBundle's metricValues masked arrays, copying metricValue's mask.
         newmetricBundle.metricValues = ma.MaskedArray(
             data=np.empty(len(self.slicer), "float"),
-            mask=self.metricValues.mask,
+            mask=self.metricValues.mask.copy(),
             fill_value=self.slicer.badval,
         )
         # Fill the reduced metric data using the reduce function.

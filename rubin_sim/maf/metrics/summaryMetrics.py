@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 import healpy as hp
 from scipy import interpolate
@@ -363,7 +364,8 @@ class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
                 [5.504419e02, 5.624697e02, 6.441837e02],
             ]
         else:
-            raise ValueError("FoMEmulator is not defined for this year")
+            warnings.warn("FoMEmulator is not defined for this year")
+            return self.badval
 
         # Interpolate FoM to the actual values for this sim
         areas = [[i] * 3 for i in areas]

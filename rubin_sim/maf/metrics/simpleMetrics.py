@@ -21,6 +21,7 @@ __all__ = [
     "CountMetric",
     "CountRatioMetric",
     "CountSubsetMetric",
+    "CountBeyondThreshold",
     "RobustRmsMetric",
     "MaxPercentMetric",
     "AbsMaxPercentMetric",
@@ -70,6 +71,10 @@ class Coaddm5Metric(BaseMetric):
         super(Coaddm5Metric, self).__init__(col=m5Col, metricName=metricName, **kwargs)
 
     def run(self, dataSlice, slicePoint=None):
+        # Running this metric directly from the slicer, this should never come up.
+        # However, other metrics call this one and maybe had visits in other filters ..
+        if len(dataSlice) == 0:
+            return self.badval
         return 1.25 * np.log10(np.sum(10.0 ** (0.8 * dataSlice[self.colname])))
 
 
@@ -218,14 +223,40 @@ class CountRatioMetric(BaseMetric):
 class CountSubsetMetric(BaseMetric):
     """Count the length of a simData column slice which matches 'subset'."""
 
-    def __init__(self, col=None, subset=None, **kwargs):
-        super(CountSubsetMetric, self).__init__(col=col, **kwargs)
+    def __init__(self, col=None, subset=None, units="#", **kwargs):
+        super(CountSubsetMetric, self).__init__(col=col, units=units, **kwargs)
         self.metricDtype = "int"
         self.badval = 0
         self.subset = subset
 
     def run(self, dataSlice, slicePoint=None):
         count = len(np.where(dataSlice[self.colname] == self.subset)[0])
+        return count
+
+
+class CountBeyondThreshold(BaseMetric):
+    """Count the number of entries in a data column above or below the threshold."""
+
+    def __init__(self, col=None, lower_threshold=None, upper_threshold=None, **kwargs):
+        super().__init__(col=col, **kwargs)
+        self.lower_threshold = lower_threshold
+        self.upper_threshold = upper_threshold
+
+    def run(self, dataSlice, slicePoint=None):
+        # Look for data values which match the criteria for the thresholds
+        if self.upper_threshold is None and self.lower_threshold is None:
+            count = len(dataSlice)
+        elif self.upper_threshold is None:
+            count = len(np.where(dataSlice[self.colname] > self.lower_threshold)[0])
+        elif self.lower_threshold is None:
+            count = len(np.where(dataSlice[self.colname] < self.upper_threshold)[0])
+        else:
+            count = len(
+                np.where(
+                    (dataSlice[self.colname] > self.lower_threshold)
+                    and (dataSlice[self.colname] < self.upper_threshold)
+                )[0]
+            )
         return count
 
 

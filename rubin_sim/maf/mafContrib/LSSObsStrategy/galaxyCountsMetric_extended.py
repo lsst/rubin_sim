@@ -179,11 +179,14 @@ class GalaxyCountsMetric_extended(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         # Calculate the coadded depth.
         infilt = np.where(dataSlice[self.filterCol] == self.filterBand)[0]
+        # If there are no visits in this filter, return immediately with a flagged value
+        if len(infilt) == 0:
+            return self.badval
+
         coaddm5 = self.coaddmetric.run(dataSlice[infilt], slicePoint)
 
         # some coaddm5 values are really small (i.e. min=10**-314). Zero them out.
         if coaddm5 < 1:
-            coaddm5 = 0
             numGal = 0
 
         else:

@@ -19,6 +19,12 @@ if __name__ == "__main__":
     parser.add_argument("--db", type=str, default=None)
     parser.add_argument("--long_micro", dest="long_micro", action="store_true")
     parser.set_defaults(long_micro=False)
+    parser.add_argument(
+        "--no_clobber",
+        dest="no_clobber",
+        action="store_false",
+        help="Do not remove existing directory outputs",
+    )
     args = parser.parse_args()
 
     if args.db is None:
@@ -31,8 +37,9 @@ if __name__ == "__main__":
     for filename, name in zip(db_files, run_names):
         outDir = name + "_sci"
         # Clobber output directory if it exists
-        if os.path.isdir(outDir):
-            shutil.rmtree(outDir)
+        if not args.no_clobber:
+            if os.path.isdir(outDir):
+                shutil.rmtree(outDir)
         opsdb = db.OpsimDatabase(filename)
         colmap = batches.ColMapDict()
         resultsDb = db.ResultsDb(outDir=outDir)

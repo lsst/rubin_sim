@@ -49,6 +49,8 @@ class ExgalM5(BaseMetric):
         Compute the co-added m5 depth and then apply dust extinction to that magnitude.
         """
         m5 = self.Coaddm5Metric.run(dataSlice)
+        if m5 == self.Coaddm5Metric.badval:
+            return self.badval
         # Total dust extinction along this line of sight. Correct default A to this EBV value.
         A_x = self.Ax1[dataSlice[self.filterCol][0]] * slicePoint["ebv"]
         return m5 - A_x

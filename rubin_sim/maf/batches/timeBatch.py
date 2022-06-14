@@ -200,18 +200,18 @@ def intraNight(
     filterlist, colors, orders, sqls, info_labels = filterList(
         all=True, extraSql=extraSql, extraInfoLabel=info_label
     )
-    for sql, info in zip(sqls, info_labels):
-        if info_label is None or len(info_label) == 0:
+    for f in filterlist:
+        if info_labels[f] is None or len(info_labels[f]) == 0:
             displayDict["caption"] += ", all visits."
         else:
-            displayDict["caption"] += ", %s." % info_label
-        displayDict["order"] += 1
+            displayDict["caption"] += ", %s." % info_labels[f]
+        displayDict["order"] = orders[f]
         plotDict = {"percentileClip": 98}
         bundle = mb.MetricBundle(
             metric,
             slicer,
-            sql,
-            info_label=info,
+            sqls[f],
+            info_label=info_labels[f],
             displayDict=displayDict,
             plotFuncs=subsetPlots,
             plotDict=plotDict,
@@ -436,6 +436,33 @@ def interNight(
     for f in filterlist:
         displayDict["caption"] = (
             "Median gap between nights with observations, %s." % info_label[f]
+        )
+        displayDict["order"] = orders[f]
+        plotDict = {"color": colors[f], "percentileClip": 95.0}
+        bundle = mb.MetricBundle(
+            metric,
+            slicer,
+            sqls[f],
+            info_label=info_label[f],
+            displayDict=displayDict,
+            plotFuncs=subsetPlots,
+            plotDict=plotDict,
+            summaryMetrics=standardStats,
+        )
+        bundleList.append(bundle)
+
+    # 20th percentile inter-night gap (each and all filters) - aimed at active rolling years
+    def rfunc(simdata):
+        return np.percentile(simdata, 20)
+
+    metric = metrics.InterNightGapsMetric(
+        metricName="20thPercentile Inter-Night Gap",
+        mjdCol=colmap["mjd"],
+        reduceFunc=rfunc,
+    )
+    for f in filterlist:
+        displayDict["caption"] = (
+            "20th percentile gap between nights with observations, %s." % info_label[f]
         )
         displayDict["order"] = orders[f]
         plotDict = {"color": colors[f], "percentileClip": 95.0}
@@ -689,6 +716,42 @@ def seasons(
         displayDict["caption"] = "Median season length, %s." % info_label[f]
         displayDict["order"] = orders[f]
         maxS = 250
+        if f == "all":
+            minS = 90
+        else:
+            minS = 30
+        plotDict = {
+            "color": colors[f],
+            "colorMin": minS,
+            "colorMax": maxS,
+            "xMin": minS,
+            "xMax": maxS,
+        }
+        bundle = mb.MetricBundle(
+            metric,
+            slicer,
+            sqls[f],
+            info_label=info_label[f],
+            displayDict=displayDict,
+            plotFuncs=subsetPlots,
+            plotDict=plotDict,
+            summaryMetrics=standardStats,
+        )
+        bundleList.append(bundle)
+
+    # 80th percentile season length - aimed at finding season length during rolling or long years
+    def rfunc(simdata):
+        return np.percentile(simdata, 80)
+
+    metric = metrics.SeasonLengthMetric(
+        metricName="80thPercentile Season Length",
+        mjdCol=colmap["mjd"],
+        reduceFunc=rfunc,
+    )
+    for f in filterlist:
+        displayDict["caption"] = "80th percentile season length, %s." % info_label[f]
+        displayDict["order"] = orders[f]
+        maxS = 350
         if f == "all":
             minS = 90
         else:

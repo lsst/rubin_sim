@@ -56,7 +56,7 @@ class AGN_TimeLagMetric(BaseMetric):
         # Dust extinction
         filterlist = np.unique(dataSlice[self.filterCol])
         if self.dust:
-            m5 = dataSlice[self.m5Col] * 0
+            m5 = np.zeros(len(dataSlice))
             for filtername in filterlist:
                 in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
                 A_x = self.Ax1[dataSlice[self.filterCol][0]] * slicePoint["ebv"]
@@ -68,7 +68,7 @@ class AGN_TimeLagMetric(BaseMetric):
         mjds = np.zeros(len(dataSlice))
         for filtername in filterlist:
             in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
-            if filtername in ("u", "i", "z", "y"):
+            if filtername in ("u", "i", "z", "y", "r", "g"):
                 mjds[in_filt] = dataSlice[self.mjdCol][in_filt]
             elif filtername == "g":
                 faint = np.where(m5[in_filt] > self.g_cutoff)

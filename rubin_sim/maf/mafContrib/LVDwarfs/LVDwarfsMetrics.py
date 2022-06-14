@@ -1,22 +1,22 @@
+import os
 import numpy as np
 from astropy.io import ascii, fits
 import healpy as hp
 from astropy.coordinates import SkyCoord
 import astropy.units as u
-import rubin_sim.maf as maf
-from rubin_sim.maf.metrics.baseMetric import BaseMetric
-from rubin_sim.maf.metrics.simpleMetrics import Coaddm5Metric
-from rubin_sim.maf.metrics.starDensity import StarDensityMetric
-from rubin_sim.maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import (
-    GalaxyCountsMetric_extended as GalaxyCountsMetric,
-)
+
+from rubin_sim.data import get_data_dir
+from rubin_sim.maf.slicers import UserPointsSlicer
+from rubin_sim.maf.metrics import BaseMetric
+from rubin_sim.maf.metrics import ExgalM5
+from rubin_sim.maf.metrics import StarDensityMetric
+from rubin_sim.maf.mafContrib import GalaxyCountsMetric_extended
+
 
 __all__ = [
     "generateKnownLVDwarfSlicer",
-    "makeFakeLF",
-    "make_LF_dicts",
-    "sum_luminosity",
-    "sblimit",
+    "make_FakeOldGalaxyLF",
+    "make_dwarf_LF_dicts",
     "LVDwarfsMetric",
 ]
 
@@ -25,10 +25,10 @@ def generateKnownLVDwarfSlicer():
     """Read the Karachentsev+ catalog of nearby galaxies, and put the info about them
     into a UserPointSlicer object.
     """
-
-    # path = '/dlusers/jcarlin/rubin_sim_data/maf/LVDwarfs_data/'
-    # path = '/dlusers/jcarlin/sims_maf/SMWLV-metrics/notebooks/'
-    lv_dat0 = fits.getdata("lsst_galaxies_1p25to9Mpc_table.fits")
+    filename = os.path.join(
+        get_data_dir(), "maf/lvdwarfs", "lsst_galaxies_1p25to9Mpc_table.fits"
+    )
+    lv_dat0 = fits.getdata(filename)
 
     # Keep only galaxies at dec < 35 deg., and with stellar masses > 10^7 M_Sun (and <1e14).
     lv_dat_cuts = (
@@ -37,9 +37,7 @@ def generateKnownLVDwarfSlicer():
     lv_dat = lv_dat0[lv_dat_cuts]
 
     # Set up the slicer to evaluate the catalog we just made
-    slicer = maf.UserPointsSlicer(
-        lv_dat["ra"], lv_dat["dec"], latLonDeg=True, badval=-666
-    )
+    slicer = UserPointsSlicer(lv_dat["ra"], lv_dat["dec"], latLonDeg=True, badval=-666)
     # Add any additional information about each object to the slicer
     slicer.slicePoints["distance"] = lv_dat["dist_Mpc"]
 
@@ -47,7 +45,7 @@ def generateKnownLVDwarfSlicer():
 
 
 # make a simulated LF for old galaxy of given integrated B, distance modulus mu, in any of filters ugrizY
-def makeFakeLF(intB, mu, filtername):
+def make_FakeOldGalaxyLF(intB, mu, filtername):
     """
     Make a simulated luminosity function for an old (10 Gyr) dwarf galaxy of given
         integrated B magnitude, at a given distance modulus, in any of the filters ugrizY.
@@ -65,8 +63,8 @@ def makeFakeLF(intB, mu, filtername):
         filtername == "Y"
     modelBmag = 6.856379  # integrated B mag of the model LF being read
     # Read a simulated luminosity function of [M/H]=-1.5, 10 Gyr stellar population:
-    # path = '/dlusers/jcarlin/repos/forks/rubin_sim/rubin_sim/maf/mafContrib/LVDwarfs/'
-    LF = ascii.read("LF_-1.5_10Gyr.dat", header_start=12)
+    filename = os.path.join(get_data_dir(), "maf/lvdwarfs", "LF_-1.5_10Gyr.dat")
+    LF = ascii.read(filename, header_start=12)
     mags = LF["magbinc"]
     counts = LF[filtername + "mag"]
     # shift model LF to requested distance and dim it
@@ -78,7 +76,7 @@ def makeFakeLF(intB, mu, filtername):
     return mags, counts
 
 
-def make_LF_dicts():
+def make_dwarf_LF_dicts():
     """
     Create dicts containing g- and i-band LFs for simulated dwarfs between
         -10 < M_B < +3, so they can simply be looked up rather than having to
@@ -91,16 +89,16 @@ def make_LF_dicts():
 
     for i in range(151):
         mbkey = f"MB{tmp_MB:.2f}"
-        iLFmags, iLFcounts = makeFakeLF(tmp_MB, 0.0, "i")
+        iLFmags, iLFcounts = make_FakeOldGalaxyLF(tmp_MB, 0.0, "i")
         lf_dict_i[mbkey] = (np.array(iLFmags), np.array(iLFcounts))
-        gLFmags, gLFcounts = makeFakeLF(tmp_MB, 0.0, "g")
+        gLFmags, gLFcounts = make_FakeOldGalaxyLF(tmp_MB, 0.0, "g")
         lf_dict_g[mbkey] = (np.array(gLFmags), np.array(gLFcounts))
         tmp_MB += 0.1
 
     return lf_dict_g, lf_dict_i
 
 
-def sum_luminosity(LFmags, LFcounts):
+def _sum_luminosity(LFmags, LFcounts):
     """
     Sum the luminosities from a given luminosity function.
 
@@ -125,11 +123,11 @@ def sum_luminosity(LFmags, LFcounts):
     return mtot
 
 
-def sblimit(glim, ilim, nstars, lf_dict_g, lf_dict_i, distlim):
+def _dwarf_sblimit(glim, ilim, nstars, lf_dict_g, lf_dict_i, distlim, rng):
     """
     Calculate the surface brightness limit given the g- and i-band limiting
-        magnitudes and the number of stars required to detect the dwarf of
-        interest.
+    magnitudes and the number of stars required to detect the dwarf of
+    interest.
 
     Parameters
     ----------
@@ -145,6 +143,8 @@ def sblimit(glim, ilim, nstars, lf_dict_g, lf_dict_i, distlim):
     distlim : `float`
         Distance limit (in Mpc) for which to calculate the limiting
         surface brightness for dwarf detection.
+    rng : `np.random.Generator`
+        Random noise generator for poisson random number use.
     """
     distance_limit = distlim * 1e6  # distance limit in parsecs
     distmod_lim = 5.0 * np.log10(distance_limit) - 5.0
@@ -160,8 +160,8 @@ def sblimit(glim, ilim, nstars, lf_dict_g, lf_dict_i, distlim):
             mbkey = f"MB{fake_MB:.2f}"
             iLFmags0, iLFcounts0 = lf_dict_i[mbkey]
             gLFmags0, gLFcounts0 = lf_dict_g[mbkey]
-            iLFcounts = np.random.poisson(iLFcounts0)
-            gLFcounts = np.random.poisson(gLFcounts0)
+            iLFcounts = rng.poisson(iLFcounts0)
+            gLFcounts = rng.poisson(gLFcounts0)
             iLFmags = (
                 iLFmags0 + distmod_lim
             )  # Add the distance modulus to make it apparent mags
@@ -176,9 +176,9 @@ def sblimit(glim, ilim, nstars, lf_dict_g, lf_dict_i, distlim):
             # print('fake_MB: ',fake_MB, ' ng: ',ng, ' ni: ', ni, ' nstars: ', nstars)
             fake_MB += 0.1
 
-        if fake_MB > -9.9:
-            gmag_tot = sum_luminosity(gLFmags[gsel], gLFcounts[gsel]) - distmod_lim
-            imag_tot = sum_luminosity(iLFmags[isel], iLFcounts[isel]) - distmod_lim
+        if fake_MB > -9.9 and (ng > 0) and (ni > 0):
+            gmag_tot = _sum_luminosity(gLFmags[gsel], gLFcounts[gsel]) - distmod_lim
+            imag_tot = _sum_luminosity(iLFmags[isel], iLFcounts[isel]) - distmod_lim
             # S = m + 2.5logA, where in this case things are in sq. arcmin, so A = 1 arcmin^2 = 3600 arcsec^2
             sbtot_g = distmod_lim + gmag_tot + 2.5 * np.log10(3600.0)
             sbtot_i = distmod_lim + imag_tot + 2.5 * np.log10(3600.0)
@@ -195,24 +195,30 @@ def sblimit(glim, ilim, nstars, lf_dict_g, lf_dict_i, distlim):
             mi_lim = 999.9
             sbg_lim = 999.9
             sbi_lim = 999.9
-            flag_lim = "none"
+            flag_lim = None
     else:
         mg_lim = 999.9
         mi_lim = 999.9
         sbg_lim = -999.9
         sbi_lim = -999.9
-        flag_lim = "none"
+        flag_lim = None
 
     return mg_lim, mi_lim, sbg_lim, sbi_lim, flag_lim
 
 
-class LVDwarfsMetric(maf.BaseMetric):
+class LVDwarfsMetric(BaseMetric):
     """
+    Estimate the detection limit in total dwarf luminosity for resolved dwarf galaxies
+    at a given distance.
+
     This metric class uses simulated luminosity functions of dwarf galaxies with
     known (assumed) luminosities to estimate the detection limit (in total dwarf
     luminosity, M_V) for resolved dwarf galaxies at a given distance. It can be
     applied to either known galaxies with their discrete positions and distances,
     or an entire survey simulation with a fixed distance limit.
+
+    In the default use (with the KnownLvDwarfsSlicer), it returns detection limits for
+    a catalog of known local volume dwarfs, from the Karachentsev+ catalog of nearby galaxies.
 
     Parameters
     ----------
@@ -240,6 +246,8 @@ class LVDwarfsMetric(maf.BaseMetric):
         cmd_frac=0.1,
         stargal_contamination=0.40,
         nsigma=10.0,
+        metricName="LVDwarfs",
+        seed=505,
         **kwargs,
     ):
         self.radius = radius
@@ -256,7 +264,10 @@ class LVDwarfsMetric(maf.BaseMetric):
             # If no distance limit specified, assume the intention is to search
             #   around known Local Volume host galaxies.
             self.distlim = None
-            lv_dat0 = fits.getdata("lsst_galaxies_1p25to9Mpc_table.fits")
+            filename = os.path.join(
+                get_data_dir(), "maf/lvdwarfs", "lsst_galaxies_1p25to9Mpc_table.fits"
+            )
+            lv_dat0 = fits.getdata(filename)
             # Keep only galaxies at dec < 35 deg., and with stellar masses > 10^7 M_Sun.
             lv_dat_cuts = (
                 (lv_dat0["dec"] < 35.0)
@@ -271,93 +282,76 @@ class LVDwarfsMetric(maf.BaseMetric):
             )
             self.sc_dat = sc_dat
 
-        self.lf_dict_g, self.lf_dict_i = make_LF_dicts()
+        self.lf_dict_g, self.lf_dict_i = make_dwarf_LF_dicts()
 
         # Set up already-defined metrics that we will need:
-        self.Coaddm5Metric = maf.simpleMetrics.Coaddm5Metric(m5Col=self.m5Col)
-        self.StarDensityMetric24 = maf.starDensity.StarDensityMetric(rmagLimit=24)
-        self.StarDensityMetric24p5 = maf.starDensity.StarDensityMetric(rmagLimit=24.5)
-        self.StarDensityMetric25 = maf.starDensity.StarDensityMetric(rmagLimit=25)
-        self.StarDensityMetric25p5 = maf.starDensity.StarDensityMetric(rmagLimit=25.5)
-        self.StarDensityMetric26 = maf.starDensity.StarDensityMetric(rmagLimit=26)
-        self.StarDensityMetric26p5 = maf.starDensity.StarDensityMetric(rmagLimit=26.5)
-        self.StarDensityMetric27 = maf.starDensity.StarDensityMetric(rmagLimit=27)
-        self.GalaxyCountsMetric = maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended.GalaxyCountsMetric_extended(
-            m5Col=self.m5Col
+        self.ExgalCoaddm5 = ExgalM5(m5Col=self.m5Col, filterCol=self.filterCol)
+        # The StarDensityMetric calculates the number of stars in i band
+        self.StarDensityMetric = StarDensityMetric(filtername="i")
+        # The galaxy counts metric calculates the number of galaxies in i band
+        self.GalaxyCountsMetric = GalaxyCountsMetric_extended(
+            m5Col=self.m5Col, filterBand="i", includeDustExtinction=True
         )
+        # Set the scale for the GalaxyCountMetric_extended to 1, so it returns
+        # galaxies per sq deg, not n galaxies per healpixel
+        self.GalaxyCountsMetric.scale = 1
+
         cols = [self.m5Col, self.filterCol]
         # GalaxyCountsMetric needs the DustMap, and StarDensityMetric needs StellarDensityMap:
         maps = ["DustMap", "StellarDensityMap"]
-        super().__init__(col=cols, maps=maps, units="#", **kwargs)
+        super().__init__(
+            col=cols, metricName=metricName, maps=maps, units="M_V limit", **kwargs
+        )
 
-    def run(self, dataSlice, slicePoint=None):
-        rband = dataSlice[self.filterCol] == "r"
+        # Set up a random number generator, so that metric results are repeatable
+        self.rng = np.random.default_rng(seed)
+
+    def run(self, dataSlice, slicePoint):
+
+        # Identify observations in g and i bandpasses
         gband = dataSlice[self.filterCol] == "g"
         iband = dataSlice[self.filterCol] == "i"
-        # Extract the 5-sigma limiting mags in the gri bands:
-        r5 = self.Coaddm5Metric.run(dataSlice[rband])
-        g5 = self.Coaddm5Metric.run(dataSlice[gband])
-        i5 = self.Coaddm5Metric.run(dataSlice[iband])
-        # Extract stellar densities at rmags betweeen 24 < r < 27 in 0.5-mag bins:
-        nstar24 = self.StarDensityMetric24.run(dataSlice, slicePoint)
-        nstar24p5 = self.StarDensityMetric24p5.run(dataSlice, slicePoint)
-        nstar25 = self.StarDensityMetric25.run(dataSlice, slicePoint)
-        nstar25p5 = self.StarDensityMetric25p5.run(dataSlice, slicePoint)
-        nstar26 = self.StarDensityMetric26.run(dataSlice, slicePoint)
-        nstar26p5 = self.StarDensityMetric26p5.run(dataSlice, slicePoint)
-        nstar27 = self.StarDensityMetric27.run(dataSlice, slicePoint)
-        nstar = nstar27
+        # if there are no visits in either of g or i band, exit
+        if len(np.where(gband)[0]) == 0 or len(np.where(iband)[0]) == 0:
+            return self.badval
 
-        ngal = self.GalaxyCountsMetric.run(dataSlice, slicePoint)
+        # calculate the dust-extincted coadded 5-sigma limiting mags in the g and i bands:
+        g5 = self.ExgalCoaddm5.run(dataSlice[gband], slicePoint)
+        i5 = self.ExgalCoaddm5.run(dataSlice[iband], slicePoint)
+
+        if g5 < 15 or i5 < 15:
+            # If the limiting magnitudes won't even match the stellar density maps, exit
+            return self.badval
+
+        # Find the number of stars per sq arcsecond at the i band limit
+        # (this is a bit of a hack to get the starDensityMetric to calculate the nstars at this mag exactly)
+        star_i5 = min(27.9, i5)
+        self.StarDensityMetric.magLimit = star_i5
+
+        nstar_sqarcsec = self.StarDensityMetric.run(dataSlice, slicePoint)
+
+        # Calculate the number of galaxies per sq degree
+        ngal_sqdeg = self.GalaxyCountsMetric.run(dataSlice, slicePoint)
         # GalaxyCountsMetric is undefined in some places. These cases return
         #   zero; catch these and set the galaxy counts in those regions to a
-        #   very high value.
-        if ngal < 10.0:
-            ngal = 1e7
+        #   very high value. (this may not be true after catching earlier no-visits issues)
+        if ngal_sqdeg < 10.0:
+            ngal_sqdeg = 1e7
 
-        # Initialize some things we'll want:
-        nstar_all = nstar * 0.0
-        rbinvals = np.arange(24.0, 27.5, 0.5)
-        rbinlimits = [
-            nstar24,
-            nstar24p5,
-            nstar25,
-            nstar25p5,
-            nstar26,
-            nstar26p5,
-            nstar27,
-        ]
+        # Convert from per sq deg and per sq arcsecond into #'s per sq arcminute
+        ngal_sqarcmin = ngal_sqdeg / 3600
+        nstar_sqarcmin = nstar_sqarcsec * 3600
 
-        # Star density is number of stars per square arcsec.
-        # Convert to a total number per healpix, then number per sq. arcmin:
-        # First, get the slicer pixel area.
-
-        # Extract the stellar density corresponding to r5:
-        nstar0 = rbinlimits[np.argmin(np.abs(rbinvals - r5))]
-
-        if "nside" in slicePoint.keys():
-            nside = slicePoint["nside"]
-            # Calculate the factor to go from number per healpix to number per square arcminute or per square arcsec
-            area_deg = hp.nside2pixarea(nside, degrees=True) * (u.degree**2)
-            area_arcmin = area_deg.to(u.arcmin**2)
-            area_arcsec = area_deg.to(u.arcsec**2)
-        else:
-            # Calculate the factor for a UserPointSlicer area:
-            area_arcsec = np.pi * ((self.radius * u.deg).to(u.arcsec) ** 2)
-            area_arcmin = np.pi * ((self.radius * u.deg).to(u.arcmin) ** 2)
-
-        # Convert from a number density per sq arcsec to a total number of stars:
-        nstar_all = nstar0 * area_arcsec.value
-
-        # Calculate density of stars/galaxies per sq arcmin
-        ngal_per_arcmin = ngal / area_arcmin.value
-        nstar_all_per_arcmin = nstar_all / area_arcmin.value
-
+        if ngal_sqarcmin < 0 or nstar_sqarcmin < 0:
+            print(
+                f"Here be a problem - ngals_sqarcmin {ngal_sqarcmin} or nstar_sqarcmin {nstar_sqarcmin} "
+                f'are negative. depths: {g5}, {i5}. {slicePoint["ra"], slicePoint["dec"], slicePoint["sid"]}'
+            )
         # The number of stars required to reach nsigma is nsigma times the Poisson
         #   fluctuations of the background (stars+galaxies contamination):
         nstars_required = self.nsigma * np.sqrt(
-            ngal_per_arcmin * (self.cmd_frac * self.stargal_contamination)
-            + (nstar_all_per_arcmin * self.cmd_frac)
+            (ngal_sqarcmin * self.cmd_frac * self.stargal_contamination)
+            + (nstar_sqarcmin * self.cmd_frac)
         )
 
         if self.distlim is not None:
@@ -371,19 +365,24 @@ class LVDwarfsMetric(maf.BaseMetric):
             # distlim = self.sc_dat[seps.argmin()].distance
 
         # Calculate the limiting luminosity and surface brightness based on g5 and i5:
-        mg_lim, mi_lim, sb_g_lim, sb_i_lim, flag_lim = sblimit(
+        mg_lim, mi_lim, sb_g_lim, sb_i_lim, flag_lim = _dwarf_sblimit(
             g5,
             i5,
             nstars_required,
             self.lf_dict_g,
             self.lf_dict_i,
             distlim=distlim.value,
+            rng=self.rng,
         )
 
-        # To go from HSC g and i bands to V, use the conversion from Appendix A
-        #   of Komiyama+2018, ApJ, 853, 29:
-        # V = g_hsc - 0.371*(gi_hsc)-0.068
-        mv = mg_lim - 0.371 * (mg_lim - mi_lim) - 0.068
-        # sbv = sb_g_lim - 0.371 * (sb_g_lim - sb_i_lim) - 0.068
+        if flag_lim is None:
+            mv = self.badval
+
+        else:
+            # To go from HSC g and i bands to V, use the conversion from Appendix A
+            #   of Komiyama+2018, ApJ, 853, 29:
+            # V = g_hsc - 0.371*(gi_hsc)-0.068
+            mv = mg_lim - 0.371 * (mg_lim - mi_lim) - 0.068
+            # sbv = sb_g_lim - 0.371 * (sb_g_lim - sb_i_lim) - 0.068
 
         return mv

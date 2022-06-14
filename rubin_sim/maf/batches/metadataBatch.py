@@ -15,7 +15,13 @@ from .common import (
     combineInfoLabels,
 )
 
-__all__ = ["metadataBasics", "metadataBasicsAngle", "allMetadata", "metadataMaps"]
+__all__ = [
+    "metadataBasics",
+    "metadataBasicsAngle",
+    "allMetadata",
+    "metadataMaps",
+    "firstYearMetadata",
+]
 
 
 def metadataBasics(
@@ -142,6 +148,7 @@ def metadataBasics(
         bundleList.append(bundle)
 
     # Make maps of min/median/max for all and per filter, per RA/Dec, with standard summary stats.
+    plotDict = {"percentileClip": 98}
     mList = []
     mList.append(metrics.MinMetric(value, metricName="Min %s" % (valueName)))
     mList.append(metrics.MedianMetric(value, metricName="Median %s" % (valueName)))
@@ -160,6 +167,7 @@ def metadataBasics(
                 sqls[f],
                 stackerList=stackerList,
                 info_label=info_label[f],
+                plotDict=plotDict,
                 displayDict=displayDict,
                 summaryMetrics=standardSummary(),
             )
@@ -288,6 +296,7 @@ def metadataBasicsAngle(
         metrics.FullRangeAngleMetric(value, metricName="AngleRange %s" % (valueName))
     )
     mList.append(metrics.RmsAngleMetric(value, metricName="AngleRms %s" % (valueName)))
+    plotDict = {"percentileClip": 98}
     slicer = skyslicer
     for f in filterlist:
         for m in mList:
@@ -301,6 +310,7 @@ def metadataBasicsAngle(
                 slicer,
                 sqls[f],
                 info_label=info_label[f],
+                plotDict=plotDict,
                 displayDict=displayDict,
                 summaryMetrics=standardSummary(),
             )
@@ -494,3 +504,59 @@ def metadataMaps(
         b.setRunName(runName)
 
     return mb.makeBundlesDictFromList(bundleList)
+
+
+def firstYearMetadata(
+    colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None, slicer=None
+):
+    """Measure the distribution of some basic metadata in the first year of operations -
+    distributions of airmass, seeing, sky brightness, single visit depth.
+
+    Parameters
+    ----------
+    colmap : `dict` or None, optional
+        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
+    runName : `str`, optional
+        The name of the simulated survey. Default is "opsim".
+    extraSql : `str`, optional
+        Sql constraint (such as WFD only). Default is None.
+    extraInfoLabel : `str`, optional
+        Metadata to identify the sql constraint (such as WFD). Default is None.
+    slicer : `rubin_sim.maf.slicer.BaseSlicer` or None, optional
+        Optionally use something other than an nside=64 healpix slicer.
+
+    Returns
+    -------
+    metricBundleDict
+    """
+
+    if colmap is None:
+        colmap = ColMapDict("opsimV4")
+
+    bdict = {}
+
+    firstYr = "night < 365.5"
+    if extraSql is not None:
+        extraSql = f"({firstYr}) and ({extraSql})"
+    else:
+        extraSql = firstYr
+    extraInfoLabel = combineInfoLabels("Yr 1", extraInfoLabel)
+
+    subset = ["airmass", "seeingEff", "seeingGeom", "skyBrightness", "fiveSigmaDepth"]
+    for valueName in subset:
+        if valueName in colmap:
+            value = colmap[valueName]
+        else:
+            value = valueName
+        mdict = metadataBasics(
+            value,
+            colmap=colmap,
+            runName=runName,
+            valueName=valueName,
+            extraSql=extraSql,
+            extraInfoLabel=extraInfoLabel,
+            slicer=slicer,
+        )
+        bdict.update(mdict)
+
+    return bdict
