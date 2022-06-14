@@ -494,7 +494,7 @@ def nvisitsPerSubset(
             excludeDD=True,
         )
         metric = metrics.CountSubsetMetric(
-            col="areaId", subset=extraInfoLabel, units="#"
+            col="areaId", subset=extraInfoLabel, units="#", metricName="Nvisits"
         )
         slicer = slicers.UniSlicer()
         displayDict = {

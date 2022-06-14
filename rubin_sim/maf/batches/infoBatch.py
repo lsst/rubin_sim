@@ -97,12 +97,12 @@ def metadata_bundle_dicts(
     bdict.update(batches.openshutterFractions(colmap, opsim))
 
     # Some basic nvisits per purpose metrics
-    wfd_footprint_mask = np.where(wfd_slicer.mask, 1, 0)
+    wfd_footprint_mask = np.where(wfd_slicer.mask, 0, 1)
     bdict.update(
         batches.nvisitsPerSubset(
             colmap,
             opsim,
-            constraint="visitExposureTime > 11",
+            constraint="visitExposureTime > 19",
             footprintConstraint=wfd_footprint_mask,
             extraInfoLabel="WFD",
         )
