@@ -1,4 +1,6 @@
 import numpy as np
+from copy import deepcopy
+import pandas as pd
 from rubin_sim.scheduler.utils import (
     empty_observation,
     set_default_nside,
@@ -162,6 +164,84 @@ class BaseSurvey(object):
         # XXX--zomg, we should have a method that goes through all the objects and
         # makes plots/prints info so there can be a little notebook showing the config!
         pass
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} survey_name='{self.survey_name}' at {hex(id(self))}>"
+
+    def make_reward_df(self, conditions):
+        """Create a pandas.DataFrame describing the reward from the survey.
+
+        Parameters
+        ----------
+        conditions : `rubin_sim.scheduler.features.Conditions`
+            Conditions for which rewards are to be returned
+
+        Returns
+        -------
+        reward_df : `pandas.DataFrame`
+            A table of surveys listing the rewards.
+        """
+
+        feasibility = []
+        accum_reward = []
+        bf_reward = []
+        bf_label = []
+        basis_functions = []
+        for basis_function in self.basis_functions:
+            basis_functions.append(basis_function)
+            test_survey = deepcopy(self)
+            test_survey.basis_functions = basis_functions
+            bf_label.append(basis_function.label())
+            bf_reward.append(np.nanmax(basis_function(conditions)))
+            feasibility.append(basis_function.check_feasibility(conditions))
+            try:
+                accum_reward.append(
+                    np.nanmax(test_survey.calc_reward_function(conditions))
+                )
+            except IndexError:
+                accum_reward.append(None)
+
+        reward_df = pd.DataFrame(
+            {
+                "basis_function": bf_label,
+                "feasible": feasibility,
+                "basis_reward": bf_reward,
+                "accum_reward": accum_reward,
+            }
+        )
+        return reward_df
+
+    def reward_changes(self, conditions):
+        """List the rewards for each basis function used by the survey.
+
+        Parameters
+        ----------
+        conditions : `rubin_sim.scheduler.features.Conditions`
+            Conditions for which rewards are to be returned
+
+        Returns
+        -------
+        rewards : `list`
+            A list of tuples, each with a basis function name and the
+            maximum reward returned by that basis function for the
+            provided conditions.
+        """
+
+        reward_values = []
+        basis_functions = []
+        for basis_function in self.basis_functions:
+            test_survey = deepcopy(self)
+            basis_functions.append(basis_function)
+            test_survey.basis_functions = basis_functions
+            try:
+                reward_values.append(
+                    np.nanmax(test_survey.calc_reward_function(conditions))
+                )
+            except IndexError:
+                reward_values.append(None)
+
+        bf_names = [bf.__class__.__name__ for bf in self.basis_functions]
+        return list(zip(bf_names, reward_values))
 
 
 def rotx(theta, x, y, z):
@@ -390,3 +470,84 @@ class BaseMarkovDF_survey(BaseSurvey):
 
         # XXX Use self.reward to decide what to observe.
         return None
+
+    def make_reward_df(self, conditions):
+        """Create a pandas.DataFrame describing the reward from the survey.
+
+        Parameters
+        ----------
+        conditions : `rubin_sim.scheduler.features.Conditions`
+            Conditions for which rewards are to be returned
+
+        Returns
+        -------
+        reward_df : `pandas.DataFrame`
+            A table of surveys listing the rewards.
+        """
+
+        feasibility = []
+        accum_reward = []
+        bf_reward = []
+        bf_label = []
+        basis_functions = []
+        basis_weights = []
+        for (weight, basis_function) in zip(self.basis_weights, self.basis_functions):
+            basis_functions.append(basis_function)
+            basis_weights.append(weight)
+            test_survey = deepcopy(self)
+            test_survey.basis_functions = basis_functions
+            test_survey.basis_weights = basis_weights
+            bf_label.append(basis_function.label())
+            bf_reward.append(np.nanmax(basis_function(conditions)))
+            feasibility.append(basis_function.check_feasibility(conditions))
+            try:
+                accum_reward.append(
+                    np.nanmax(test_survey.calc_reward_function(conditions))
+                )
+            except IndexError:
+                accum_reward.append(None)
+
+        reward_df = pd.DataFrame(
+            {
+                "basis_function": bf_label,
+                "feasible": feasibility,
+                "basis_reward": bf_reward,
+                "accum_reward": accum_reward,
+            }
+        )
+        return reward_df
+
+    def reward_changes(self, conditions):
+        """List the rewards for each basis function used by the survey.
+
+        Parameters
+        ----------
+        conditions : `rubin_sim.scheduler.features.Conditions`
+            Conditions for which rewards are to be returned
+
+        Returns
+        -------
+        rewards : `list`
+            A list of tuples, each with a basis function name and the
+            maximum reward returned by that basis function for the
+            provided conditions.
+        """
+
+        reward_values = []
+        basis_functions = []
+        basis_weights = []
+        for (weight, basis_function) in zip(self.basis_weights, self.basis_functions):
+            test_survey = deepcopy(self)
+            basis_functions.append(basis_function)
+            test_survey.basis_functions = basis_functions
+            basis_weights.append(weight)
+            test_survey.basis_weights = basis_weights
+            try:
+                reward_values.append(
+                    np.nanmax(test_survey.calc_reward_function(conditions))
+                )
+            except IndexError:
+                reward_values.append(None)
+
+        bf_names = [bf.label() for bf in self.basis_functions]
+        return list(zip(bf_names, reward_values))

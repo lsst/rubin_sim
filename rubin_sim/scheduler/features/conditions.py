@@ -1,4 +1,6 @@
+from io import StringIO
 import numpy as np
+import pandas as pd
 from rubin_sim.utils import (
     _approx_RaDec2AltAz,
     Site,
@@ -474,3 +476,148 @@ class Conditions(object):
             self._season = None
 
         return self._season
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} mjd_start='{self.mjd_start}' at {hex(id(self))}>"
+
+    def __str__(self):
+        output = StringIO()
+        print(f"{self.__class__.__qualname__} at {hex(id(self))}", file=output)
+        print("============================", file=output)
+        print("nside: ", self.nside, file=output)
+        print("site: ", self.site.name, file=output)
+        print("exptime: ", self.exptime, file=output)
+        print("lmst: ", self.lmst, file=output)
+        print("season_offset: ", self.season_offset, file=output)
+        print("sun_RA_start: ", self.sun_RA_start, file=output)
+        print("clouds: ", self.clouds, file=output)
+        print("current_filter: ", self.current_filter, file=output)
+        print("mounted_filters: ", self.mounted_filters, file=output)
+        print("night: ", self.night, file=output)
+        print("wind_speed: ", self.wind_speed, file=output)
+        print("wind_direction: ", self.wind_direction, file=output)
+        print(
+            "len(scheduled_observations): ",
+            len(self.scheduled_observations),
+            file=output,
+        )
+        print("len(queue): ", len(self.queue), file=output)
+        print("moonPhase: ", self.moonPhase, file=output)
+        print("bulk_cloud: ", self.bulk_cloud, file=output)
+        print("targets_of_opportunity: ", self.targets_of_opportunity, file=output)
+        print("season_modulo: ", self.season_modulo, file=output)
+        print("season_max_season: ", self.season_max_season, file=output)
+        print("season_length: ", self.season_length, file=output)
+        print("season_floor: ", self.season_floor, file=output)
+        print("cumulative_azimuth_rad: ", self.cumulative_azimuth_rad, file=output)
+
+        positions = [
+            {
+                "name": "sun",
+                "alt": self.sunAlt,
+                "az": self.sunAz,
+                "RA": self.sunRA,
+                "decl": self.sunDec,
+            }
+        ]
+        positions.append(
+            {
+                "name": "moon",
+                "alt": self.moonAlt,
+                "az": self.moonAz,
+                "RA": self.moonRA,
+                "decl": self.moonDec,
+            }
+        )
+        for planet_name in ("venus", "mars", "jupiter", "saturn"):
+            positions.append(
+                {
+                    "name": planet_name,
+                    "RA": np.asscalar(self.planet_positions[planet_name + "_RA"]),
+                    "decl": np.asscalar(self.planet_positions[planet_name + "_dec"]),
+                }
+            )
+        positions.append(
+            {
+                "name": "telescope",
+                "alt": self.telAlt,
+                "az": self.telAz,
+                "RA": self.telRA,
+                "decl": self.telDec,
+                "rot": self.rotTelPos,
+            }
+        )
+        positions = pd.DataFrame(positions).set_index("name")
+        print(file=output)
+        print("Positions (radians)", file=output)
+        print("-------------------", file=output)
+        print(positions.to_markdown(), file=output)
+
+        positions_deg = np.degrees(positions)
+        print(file=output)
+        print("Positions (degrees)", file=output)
+        print("-------------------", file=output)
+        print(positions_deg.to_markdown(), file=output)
+
+        events = (
+            "mjd_start",
+            "mjd",
+            "sunset",
+            "sun_n12_setting",
+            "sun_n18_setting",
+            "sun_n18_rising",
+            "sun_n12_rising",
+            "sunrise",
+            "moonrise",
+            "moonset",
+            "sun_0_setting",
+            "sun_0_rising",
+        )
+        event_rows = []
+        for event in events:
+            mjd = getattr(self, event)
+            time = pd.to_datetime(mjd + 2400000.5, unit="D", origin="julian")
+            event_rows.append({"event": event, "MJD": mjd, "date": time})
+        event_df = pd.DataFrame(event_rows).set_index("event").sort_values(by="MJD")
+        print("", file=output)
+        print("Events", file=output)
+        print("------", file=output)
+        print(event_df.to_markdown(), file=output)
+
+        map_stats = []
+        for map_name in ("ra", "dec", "slewtime", "airmass"):
+            values = getattr(self, map_name)
+            map_stats.append(
+                {
+                    "map": map_name,
+                    "nside": hp.npix2nside(len(values)),
+                    "min": np.nanmin(values),
+                    "max": np.nanmax(values),
+                    "median": np.nanmedian(values),
+                }
+            )
+
+        for base_map_name in ("skybrightness", "FWHMeff"):
+            for band in "ugrizy":
+                values = getattr(self, base_map_name)[band]
+                map_name = f"{base_map_name}_{band}"
+                map_stats.append(
+                    {
+                        "map": map_name,
+                        "nside": hp.npix2nside(len(values)),
+                        "min": np.nanmin(values),
+                        "max": np.nanmax(values),
+                        "median": np.nanmedian(values),
+                    }
+                )
+        maps_df = pd.DataFrame(map_stats).set_index("map")
+        print("", file=output)
+        print("Maps", file=output)
+        print("----", file=output)
+        print(maps_df.to_markdown(), file=output)
+
+        result = output.getvalue()
+        return result
+
+    def _repr_markdown_(self):
+        return str(self)

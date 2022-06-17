@@ -1,7 +1,12 @@
 from __future__ import absolute_import
+import reprlib
+from collections import OrderedDict
+from io import StringIO
+from copy import deepcopy
 from builtins import object
 import numpy as np
 import healpy as hp
+import pandas as pd
 from rubin_sim.utils import _hpid2RaDec
 from rubin_sim.scheduler.utils import (
     hp_in_lsst_fov,
@@ -248,3 +253,203 @@ class Core_scheduler(object):
 
         if len(self.queue) == 0:
             self.log.warning("Failed to fill queue")
+
+    def get_basis_functions(self, survey_index=None, conditions=None):
+        """Get the basis functions for a specific survey, in provided conditions.
+
+        Parameters
+        ----------
+        survey_index : `List` [`int`], optional
+            A list with two elements: the survey list and the element within that
+            survey list for which the basis function should be retrieved. If ``None``,
+            use the latest survey to make an addition to the queue.
+        conditions : `rubin_sim.scheduler.features.conditions.Conditions`, optional
+            The conditions for which to return the basis functions. If ``None``, use
+            the conditions associated with this sceduler. By default None.
+
+        Returns
+        -------
+        basis_funcs : `OrderedDict` ['str`, `rubin_sim.scheduler.basis_functions.basis_functions.Base_basis_function`]
+            A dictionary of the basis functions, where the keys are names for the basis functions and the values
+            are the functions themselves.
+        """
+
+        if survey_index is None:
+            survey_index = self.survey_index
+
+        if conditions is None:
+            conditions = self.conditions
+
+        survey = self.survey_lists[survey_index[0]][survey_index[1]]
+        basis_funcs = OrderedDict()
+        for basis_func in survey.basis_functions:
+            if hasattr(basis_func(conditions), "__len__"):
+                basis_funcs[basis_func.__class__.__name__] = basis_func
+        return basis_funcs
+
+    def get_healpix_maps(self, survey_index=None, conditions=None):
+        """Get the healpix maps for a specific survey, in provided conditions.
+
+        Parameters
+        ----------
+        survey_index : `List` [`int`], optional
+            A list with two elements: the survey list and the element within that
+            survey list for which the maps that should be retrieved. If ``None``,
+            use the latest survey to make an addition to the queue.
+        conditions : `rubin_sim.scheduler.features.conditions.Conditions`, optional
+            The conditions for the maps to be returned. If ``None``, use
+            the conditions associated with this sceduler. By default None.
+
+        Returns
+        -------
+        basis_funcs : `OrderedDict` ['str`, `numpy.ndarray`]
+            A dictionary of the maps, where the keys are names for the maps and
+            values are the numpy arrays as used by ``healpy``.
+        """
+
+        if survey_index is None:
+            survey_index = self.survey_index
+
+        if conditions is None:
+            conditions = self.conditions
+
+        maps = OrderedDict()
+        for band in conditions.skybrightness.keys():
+            maps[f"{band}_sky"] = deepcopy(conditions.skybrightness[band])
+            maps[f"{band}_sky"][maps[f"{band}_sky"] < -1e30] = np.nan
+
+        basis_functions = self.get_basis_functions(survey_index, conditions)
+
+        for basis_func_key in basis_functions.keys():
+            label = basis_functions[basis_func_key].label()
+            maps[label] = basis_functions[basis_func_key](conditions)
+
+        return maps
+
+    def __repr__(self):
+        if isinstance(self.pointing2hpindx, hp_in_lsst_fov):
+            camera = "LSST"
+        elif isinstance(self.pointing2hpindx, hp_in_comcam_fov):
+            camera = "comcam"
+        else:
+            camera = None
+
+        this_repr = f"""{self.__class__.__qualname__}(
+            surveys={repr(self.survey_lists)},
+            camera="{camera}",
+            nside={repr(self.nside)},
+            rotator_limits={repr(self.rotator_limits)},
+            survey_index={repr(self.survey_index)},
+            log={repr(self.log)}
+        )"""
+        return this_repr
+
+    def __str__(self):
+        if isinstance(self.pointing2hpindx, hp_in_lsst_fov):
+            camera = "LSST"
+        elif isinstance(self.pointing2hpindx, hp_in_comcam_fov):
+            camera = "comcam"
+        else:
+            camera = None
+
+        output = StringIO()
+        print(f"# {self.__class__.__name__} at {hex(id(self))}", file=output)
+
+        misc = pd.Series(
+            {
+                "camera": camera,
+                "nside": self.nside,
+                "rotator limits": self.rotator_limits,
+                "survey index": self.survey_index,
+                "Last chosen": str(
+                    self.survey_lists[self.survey_index[0]][self.survey_index[1]]
+                ),
+            }
+        )
+        misc.name = "value"
+        print(misc.to_markdown(), file=output)
+
+        print("", file=output)
+        print("## Surveys", file=output)
+
+        if len(self.survey_lists) == 0:
+            print("Scheduler contains no surveys.", file=output)
+
+        for tier_index, tier_surveys in enumerate(self.survey_lists):
+            print(file=output)
+            print(f"### Survey list {tier_index}", file=output)
+            print(self.surveys_df(tier_index).to_markdown(), file=output)
+
+        print("", file=output)
+        print(str(self.conditions), file=output)
+
+        print("", file=output)
+        print("## Queue", file=output)
+        print(
+            pd.concat(pd.DataFrame(q) for q in self.queue)[
+                ["ID", "flush_by_mjd", "RA", "dec", "filter", "exptime", "note"]
+            ]
+            .set_index("ID")
+            .to_markdown(),
+            file=output,
+        )
+
+        result = output.getvalue()
+        return result
+
+    def _repr_markdown_(self):
+        # This is used by jupyter
+        return str(self)
+
+    def surveys_df(self, tier):
+        """Create a pandas.DataFrame describing rewards from surveys in one list.
+
+        Parameters
+        ----------
+        conditions : `rubin_sim.scheduler.features.Conditions`
+            Conditions for which rewards are to be returned.
+        tier : `int`
+            The level of the list of survey lists for which to return values.
+
+        Returns
+        -------
+        reward_df : `pandas.DataFrame`
+            A table of surveys listing the rewards.
+        """
+
+        surveys = []
+        survey_list = self.survey_lists[tier]
+        for survey_list_elem, survey in enumerate(survey_list):
+            reward = np.max(survey.reward) if tier <= self.survey_index[0] else None
+            chosen = (tier == self.survey_index[0]) and (
+                survey_list_elem == self.survey_index[1]
+            )
+            surveys.append({"survey": str(survey), "reward": reward, "chosen": chosen})
+
+        df = pd.DataFrame(surveys).set_index("survey")
+        return df
+
+    def make_reward_df(self, conditions):
+        """Create a pandas.DataFrame describing rewards from contained surveys.
+
+        Parameters
+        ----------
+        conditions : `rubin_sim.scheduler.features.Conditions`
+            Conditions for which rewards are to be returned
+
+        Returns
+        -------
+        reward_df : `pandas.DataFrame`
+            A table of surveys listing the rewards.
+        """
+
+        survey_dfs = []
+        for index0, survey_list in enumerate(self.survey_lists):
+            for index1, survey in enumerate(survey_list):
+                survey_df = survey.make_reward_df(conditions)
+                survey_df["list_index"] = index0
+                survey_df["survey_index"] = index1
+                survey_dfs.append(survey_df)
+
+        reward_df = pd.concat(survey_dfs).set_index(["list_index", "survey_index"])
+        return reward_df

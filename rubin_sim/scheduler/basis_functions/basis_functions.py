@@ -134,6 +134,18 @@ class Base_basis_function(object):
                 self.value = self._calc_value(conditions, **kwargs)
         return self.value
 
+    def label(self):
+        """Creata a label for this basis function.
+
+        Returns
+        -------
+        label : `str`
+            A string suitable for labeling the basis function in a plot or table.
+        """
+
+        label = self.__class__.__name__.replace("_basis_function", "")
+        return label
+
 
 class Constant_basis_function(Base_basis_function):
     """Just add a constant"""
@@ -1191,6 +1203,18 @@ class Slewtime_basis_function(Base_basis_function):
             else:
                 result = -conditions.slewtime / self.maxtime
         return result
+
+    def label(self):
+        """Creata a label for this basis function.
+
+        Returns
+        -------
+        label : `str`
+            A string suitable for labeling the basis function in a plot or table.
+        """
+
+        label = f"{self.__class__.__name__.replace('_basis_function', '')} {self.maxtime} {self.filtername}"
+        return label
 
 
 class Aggressive_Slewtime_basis_function(Base_basis_function):
