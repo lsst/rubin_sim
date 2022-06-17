@@ -385,9 +385,7 @@ class Conditions(object):
     def skybrightness(self, indict):
         for key in indict:
 
-            self._skybrightness[key] = match_hp_resolution(
-                indict[key], nside_out=self.nside
-            )
+            self._skybrightness[key] = match_hp_resolution(indict[key], nside_out=self.nside)
         # If sky brightness changes, need to recalc M5 depth.
         self._M5Depth = None
 
@@ -421,9 +419,7 @@ class Conditions(object):
             )
 
     def calc_solar_elongation(self):
-        self._solar_elongation = _angularSeparation(
-            self.ra, self.dec, self.sunRA, self.sunDec
-        )
+        self._solar_elongation = _angularSeparation(self.ra, self.dec, self.sunRA, self.sunDec)
 
     @property
     def solar_elongation(self):
@@ -481,6 +477,12 @@ class Conditions(object):
         return f"<{self.__class__.__name__} mjd_start='{self.mjd_start}' at {hex(id(self))}>"
 
     def __str__(self):
+        # If dependencies of to_markdown are not installed, fall back on repr
+        try:
+            pd.DataFrame().to_markdown()
+        except ImportError:
+            return repr(self)
+
         output = StringIO()
         print(f"{self.__class__.__qualname__} at {hex(id(self))}", file=output)
         print("============================", file=output)

@@ -40,9 +40,7 @@ class Core_scheduler(object):
         generate a default if set to None.
     """
 
-    def __init__(
-        self, surveys, nside=None, camera="LSST", rotator_limits=[85.0, 275.0], log=None
-    ):
+    def __init__(self, surveys, nside=None, camera="LSST", rotator_limits=[85.0, 275.0], log=None):
         """
         Parameters
         ----------
@@ -144,9 +142,7 @@ class Core_scheduler(object):
         else:
             all_scheduled = np.sort(np.concatenate(all_scheduled).ravel())
             # In case the surveys have not been removing executed observations
-            all_scheduled = all_scheduled[
-                np.where(all_scheduled >= self.conditions.mjd)
-            ]
+            all_scheduled = all_scheduled[np.where(all_scheduled >= self.conditions.mjd)]
             self.conditions.scheduled_observations = all_scheduled
 
     def _check_queue_mjd_only(self, mjd):
@@ -207,18 +203,12 @@ class Core_scheduler(object):
                 )
                 obs_pa = _approx_altaz2pa(alt, az, self.conditions.site.latitude_rad)
                 rotTelPos_expected = (obs_pa - observation["rotSkyPos"]) % (2.0 * np.pi)
-                if (
-                    int_rounded(rotTelPos_expected)
-                    > int_rounded(self.rotator_limits[0])
-                ) & (
-                    int_rounded(rotTelPos_expected)
-                    < int_rounded(self.rotator_limits[1])
+                if (int_rounded(rotTelPos_expected) > int_rounded(self.rotator_limits[0])) & (
+                    int_rounded(rotTelPos_expected) < int_rounded(self.rotator_limits[1])
                 ):
                     diff = np.abs(self.rotator_limits - rotTelPos_expected)
                     limit_indx = np.min(np.where(diff == np.min(diff))[0])
-                    observation["rotSkyPos"] = (
-                        obs_pa - self.rotator_limits[limit_indx]
-                    ) % (2.0 * np.pi)
+                    observation["rotSkyPos"] = (obs_pa - self.rotator_limits[limit_indx]) % (2.0 * np.pi)
             return observation
 
     def _fill_queue(self):
@@ -245,9 +235,9 @@ class Core_scheduler(object):
             # entered if there is a tie.
             self.survey_index[1] = np.min(np.where(rewards == np.nanmax(rewards)))
             # Survey return list of observations
-            result = self.survey_lists[self.survey_index[0]][
-                self.survey_index[1]
-            ].generate_observations(self.conditions)
+            result = self.survey_lists[self.survey_index[0]][self.survey_index[1]].generate_observations(
+                self.conditions
+            )
 
             self.queue = result
 
@@ -345,6 +335,12 @@ class Core_scheduler(object):
         return this_repr
 
     def __str__(self):
+        # If dependencies of to_markdown are not installed, fall back on repr
+        try:
+            pd.DataFrame().to_markdown()
+        except ImportError:
+            return repr(self)
+
         if isinstance(self.pointing2hpindx, hp_in_lsst_fov):
             camera = "LSST"
         elif isinstance(self.pointing2hpindx, hp_in_comcam_fov):
@@ -355,15 +351,18 @@ class Core_scheduler(object):
         output = StringIO()
         print(f"# {self.__class__.__name__} at {hex(id(self))}", file=output)
 
+        try:
+            last_chosen = str(self.survey_lists[self.survey_index[0]][self.survey_index[1]])
+        except TypeError:
+            last_chosen = "None"
+
         misc = pd.Series(
             {
                 "camera": camera,
                 "nside": self.nside,
                 "rotator limits": self.rotator_limits,
                 "survey index": self.survey_index,
-                "Last chosen": str(
-                    self.survey_lists[self.survey_index[0]][self.survey_index[1]]
-                ),
+                "Last chosen": last_chosen,
             }
         )
         misc.name = "value"
@@ -421,9 +420,7 @@ class Core_scheduler(object):
         survey_list = self.survey_lists[tier]
         for survey_list_elem, survey in enumerate(survey_list):
             reward = np.max(survey.reward) if tier <= self.survey_index[0] else None
-            chosen = (tier == self.survey_index[0]) and (
-                survey_list_elem == self.survey_index[1]
-            )
+            chosen = (tier == self.survey_index[0]) and (survey_list_elem == self.survey_index[1])
             surveys.append({"survey": str(survey), "reward": reward, "chosen": chosen})
 
         df = pd.DataFrame(surveys).set_index("survey")
