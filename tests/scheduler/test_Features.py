@@ -1,7 +1,10 @@
+import os
 import numpy as np
 import unittest
 import rubin_sim.scheduler.features as features
 from rubin_sim.scheduler.utils import empty_observation
+from rubin_sim.scheduler.modelObservatory import Model_observatory
+from rubin_sim.data import get_data_dir
 
 
 class TestFeatures(unittest.TestCase):
@@ -28,6 +31,14 @@ class TestFeatures(unittest.TestCase):
         obs["mjd"] += delta
         pin.add_observation(obs, indx=indx)
         self.assertEqual(np.max(pin.feature), 2.0)
+
+    def testConditions(self):
+        observatory = Model_observatory(
+            seeing_db=os.path.join(get_data_dir(), "tests", "seeing.db"),
+        )
+        conditions = observatory.return_conditions()
+        self.assertIsInstance(repr(conditions), str)
+        self.assertIsInstance(str(conditions), str)
 
 
 if __name__ == "__main__":

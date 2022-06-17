@@ -33,6 +33,13 @@ class TestBasis(unittest.TestCase):
         conditions.mjd += delta
         self.assertEqual(np.max(bf(conditions)), 0.0)
 
+    def test_label(self):
+        bf = basis_functions.Visit_repeat_basis_function()
+        self.assertIsInstance(bf.label(), str)
+
+        bf = basis_functions.Slewtime_basis_function(nside=16)
+        self.assertIsInstance(bf.label(), str)
+
 
 if __name__ == "__main__":
     unittest.main()
