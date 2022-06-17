@@ -14,7 +14,8 @@ import pandas as pd
 from scipy import interpolate
 from scipy.interpolate import RegularGridInterpolator
 from astropy.cosmology import FlatLambdaCDM
-
+import warnings
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 STERADIAN2SQDEG = 180.0**2 / np.pi**2
 # Mpc^3 -> Mpc^3/sr
@@ -146,7 +147,8 @@ class LCfast:
             # print('multiproc',band,j,len(obs[idx]))
             if len(obs[idx]) > 0:
                 res = self.processBand(obs[idx], band, gen_par)
-                tab_tot = pd.concat([tab_tot, res], ignore_index=True)
+                #tab_tot = pd.concat([tab_tot, res], ignore_index=True)
+                tab_tot = pd.concat((tab_tot, res))
 
         # return produced LC
         return tab_tot
@@ -206,6 +208,13 @@ class LCfast:
             fluxes_obs = self.reference_lc.flux[band](pts)
             fluxes_obs_err = self.reference_lc.fluxerr[band](pts)
 
+            """
+            print('***************************', band)
+            print('phases', p)
+            print('redshift', yi_arr)
+            print('fluxes', fluxes_obs)
+            print('flux errors', fluxes_obs_err)
+            """
             # Fisher components estimation
 
             dFlux = {}
@@ -220,8 +229,8 @@ class LCfast:
             #                      method=method, fill_value=0.)
 
         # replace crazy fluxes by dummy values
-        fluxes_obs[fluxes_obs <= 0.0] = 1.0e-10
-        fluxes_obs_err[fluxes_obs_err <= 0.0] = 1.0e-10
+        #fluxes_obs[fluxes_obs <= 0.0] = 5.0e-10
+        #fluxes_obs_err[fluxes_obs_err <= 0.0] = 1.0e-10
 
         # Fisher matrix components estimation
         # loop on SN parameters (x0,x1,color)
@@ -230,7 +239,8 @@ class LCfast:
         for ia, vala in enumerate(self.param_Fisher):
             for jb, valb in enumerate(self.param_Fisher):
                 if jb >= ia:
-                    Derivative_for_Fisher[vala + valb] = dFlux[vala] * dFlux[valb]
+                    Derivative_for_Fisher[vala +
+                                          valb] = dFlux[vala] * dFlux[valb]
 
         # remove LC points outside the restframe phase range
         min_rf_phase = gen_par["min_rf_phase"][:, np.newaxis]
@@ -247,7 +257,7 @@ class LCfast:
         flag &= (mean_restframe_wavelength > self.blue_cutoff) & (
             mean_restframe_wavelength < self.red_cutoff
         )
-
+        flag &= fluxes_obs > 1.e-10
         flag_idx = np.argwhere(flag)
 
         # Correct fluxes_err (m5 in generation probably different from m5 obs)
@@ -267,11 +277,13 @@ class LCfast:
 
         m5 = np.asarray([self.reference_lc.m5_ref[band]] * len(sel_obs))
 
-        gammaref = np.asarray([self.reference_lc.gamma_ref[band]] * len(sel_obs))
+        gammaref = np.asarray(
+            [self.reference_lc.gamma_ref[band]] * len(sel_obs))
 
         m5_tile = np.tile(m5, (len(p), 1))
 
-        srand_ref = self.srand(np.tile(gammaref, (len(p), 1)), mag_obs, m5_tile)
+        srand_ref = self.srand(
+            np.tile(gammaref, (len(p), 1)), mag_obs, m5_tile)
 
         srand_obs = self.srand(
             np.tile(gamma_obs, (len(p), 1)),
@@ -295,8 +307,10 @@ class LCfast:
 
         nvals = len(phases)
 
-        obs_time = np.ma.array(np.tile(sel_obs[self.mjdCol], (nvals, 1)), mask=~flag)
-        seasons = np.ma.array(np.tile(sel_obs[self.seasonCol], (nvals, 1)), mask=~flag)
+        obs_time = np.ma.array(
+            np.tile(sel_obs[self.mjdCol], (nvals, 1)), mask=~flag)
+        seasons = np.ma.array(
+            np.tile(sel_obs[self.seasonCol], (nvals, 1)), mask=~flag)
 
         z_vals = gen_par["z"][flag_idx[:, 0]]
         daymax_vals = gen_par["daymax"][flag_idx[:, 0]]
@@ -421,8 +435,10 @@ class Throughputs(object):
     def __init__(self, **kwargs):
 
         params = {}
-        params["through_dir"] = os.path.join(get_data_dir(), "throughputs", "baseline")
-        params["atmos_dir"] = os.path.join(get_data_dir(), "throughputs", "atmos")
+        params["through_dir"] = os.path.join(
+            get_data_dir(), "throughputs", "baseline")
+        params["atmos_dir"] = os.path.join(
+            get_data_dir(), "throughputs", "atmos")
         params["atmos"] = True
         params["aerosol"] = True
         params["telescope_files"] = [
@@ -455,14 +471,16 @@ class Throughputs(object):
         self.throughputsDir = params["through_dir"]
 
         self.telescope_files = params["telescope_files"]
-        self.filter_files = ["filter_" + f + ".dat" for f in params["filterlist"]]
+        self.filter_files = ["filter_" + f +
+                             ".dat" for f in params["filterlist"]]
         if "filter_files" in kwargs.keys():
             self.filter_files = kwargs["filter_files"]
         self.wave_min = params["wave_min"]
         self.wave_max = params["wave_max"]
 
         self.filterlist = params["filterlist"]
-        self.filtercolors = {"u": "b", "g": "c", "r": "g", "i": "y", "z": "r", "y": "m"}
+        self.filtercolors = {"u": "b", "g": "c",
+                             "r": "g", "i": "y", "z": "r", "y": "m"}
 
         self.lsst_std = {}
         self.lsst_system = {}
@@ -507,7 +525,8 @@ class Throughputs(object):
             self.lsst_system[f] = Bandpass()
 
             if len(self.telescope_files) > 0:
-                index = [i for i, x in enumerate(self.filter_files) if f + ".dat" in x]
+                index = [i for i, x in enumerate(
+                    self.filter_files) if f + ".dat" in x]
                 telfiles = self.telescope_files + [self.filter_files[index[0]]]
             else:
                 telfiles = self.filter_files
@@ -521,7 +540,8 @@ class Throughputs(object):
     def Load_DarkSky(self):
         """Load DarkSky"""
         self.darksky = Sed()
-        self.darksky.readSED_flambda(os.path.join(self.throughputsDir, "darksky.dat"))
+        self.darksky.readSED_flambda(os.path.join(
+            self.throughputsDir, "darksky.dat"))
 
     def Load_Atmosphere(self, airmass=1.2):
         """Load atmosphere files
@@ -541,10 +561,12 @@ class Throughputs(object):
             )
             if os.path.exists(path_atmos):
                 atmosphere.readThroughput(
-                    os.path.join(self.atmosDir, "atmos_%d.dat" % (self.airmass * 10))
+                    os.path.join(self.atmosDir, "atmos_%d.dat" %
+                                 (self.airmass * 10))
                 )
             else:
-                atmosphere.readThroughput(os.path.join(self.atmosDir, "atmos.dat"))
+                atmosphere.readThroughput(
+                    os.path.join(self.atmosDir, "atmos.dat"))
             self.atmos = Bandpass(wavelen=atmosphere.wavelen, sb=atmosphere.sb)
 
             for f in self.filterlist:
@@ -557,7 +579,8 @@ class Throughputs(object):
                 atmosphere_aero = Bandpass()
                 atmosphere_aero.readThroughput(
                     os.path.join(
-                        self.atmosDir, "atmos_%d_aerosol.dat" % (self.airmass * 10)
+                        self.atmosDir, "atmos_%d_aerosol.dat" % (
+                            self.airmass * 10)
                     )
                 )
                 self.atmos_aerosol = Bandpass(
@@ -568,7 +591,8 @@ class Throughputs(object):
                     wavelen, sb = self.lsst_system[f].multiplyThroughputs(
                         atmosphere_aero.wavelen, atmosphere_aero.sb
                     )
-                    self.lsst_atmos_aerosol[f] = Bandpass(wavelen=wavelen, sb=sb)
+                    self.lsst_atmos_aerosol[f] = Bandpass(
+                        wavelen=wavelen, sb=sb)
         else:
             for f in self.filterlist:
                 self.lsst_atmos[f] = self.lsst_system[f]
@@ -670,7 +694,8 @@ class Telescope(Throughputs):
         for par in params:
             self.data[par] = {}
 
-        self.data["FWHMeff"] = dict(zip("ugrizy", [0.92, 0.87, 0.83, 0.80, 0.78, 0.76]))
+        self.data["FWHMeff"] = dict(
+            zip("ugrizy", [0.92, 0.87, 0.83, 0.80, 0.78, 0.76]))
 
         # self.atmos = atmos
 
@@ -898,7 +923,8 @@ class Telescope(Throughputs):
             wavelen = sed.wavelen
             fnu = sed.fnu
         # Make sure wavelen/fnu are on the same wavelength grid as bandpass.
-        wavelen, fnu = sed.resampleSED(wavelen, fnu, wavelen_match=bandpass.wavelen)
+        wavelen, fnu = sed.resampleSED(
+            wavelen, fnu, wavelen_match=bandpass.wavelen)
 
         # Calculate the number of photons.
         nphoton = (fnu / wavelen * bandpass.sb).sum()
@@ -996,7 +1022,8 @@ class Telescope(Throughputs):
             flux0 = sed.calcFluxNorm(mag, self.atmosphere[band])
             sed.multiplyFluxNorm(flux0)
             photParams = PhotometricParameters(nexp=exptime / 15.0)
-            counts = sed.calcADU(bandpass=self.atmosphere[band], photParams=photParams)
+            counts = sed.calcADU(
+                bandpass=self.atmosphere[band], photParams=photParams)
             e_per_sec = counts
             e_per_sec /= exptime / photParams.gain
             # print('hello',photParams.gain,exptime)
@@ -1101,7 +1128,8 @@ class Load_Reference:
         for j in range(len(x1_colors)):
             x1 = x1_colors[j][0]
             color = x1_colors[j][1]
-            fname = "LC_{}_{}_380.0_800.0_ebvofMW_0.0_vstack.hdf5".format(x1, color)
+            fname = "LC_{}_{}_380.0_800.0_ebvofMW_0.0_vstack.hdf5".format(
+                x1, color)
             list_files += [fname]
 
         self.check_grab(templateDir, list_files)
@@ -1197,7 +1225,8 @@ class GetReference:
     """
 
     def __init__(
-        self, lcName, gammaName, tel_par, param_Fisher=["x0", "x1", "color", "daymax"]
+        self, lcName, gammaName, tel_par, param_Fisher=[
+            "x0", "x1", "color", "daymax"]
     ):
 
         # Load the file - lc reference
@@ -1264,7 +1293,7 @@ class GetReference:
             """
                select phases between -20 and 50 only
             """
-            idx = lc_sel["phase"] < 50.0
+            idx = lc_sel["phase"] < 60.0
             idx &= lc_sel["phase"] > -20.0
             lc_sel = lc_sel[idx]
 
@@ -1300,16 +1329,17 @@ class GetReference:
             fluxerr = np.reshape(lc_sel[index]["fluxerr"], (npha, nz))
 
             self.flux[band] = RegularGridInterpolator(
-                (phav, zv), flux, method=method, bounds_error=False, fill_value=0.0
+                (phav, zv), flux, method=method, bounds_error=False, fill_value=-1.0
             )
             self.fluxerr[band] = RegularGridInterpolator(
-                (phav, zv), fluxerr, method=method, bounds_error=False, fill_value=0.0
+                (phav, zv), fluxerr, method=method, bounds_error=False, fill_value=-1.0
             )
 
             # Flux derivatives
             self.param[band] = {}
             for par in param_Fisher:
-                valpar = np.reshape(lc_sel[index]["d{}".format(par)], (npha, nz))
+                valpar = np.reshape(
+                    lc_sel[index]["d{}".format(par)], (npha, nz))
                 self.param[band][par] = RegularGridInterpolator(
                     (phav, zv),
                     valpar,
@@ -1323,10 +1353,12 @@ class GetReference:
             rec = Table.read(gammaName, path="gamma_{}".format(band))
 
             rec["mag"] = rec["mag"].data.round(decimals=4)
-            rec["single_exptime"] = rec["single_exptime"].data.round(decimals=4)
+            rec["single_exptime"] = rec["single_exptime"].data.round(
+                decimals=4)
 
             magmin, magmax, magstep, nmag = self.limVals(rec, "mag")
-            expmin, expmax, expstep, nexpo = self.limVals(rec, "single_exptime")
+            expmin, expmax, expstep, nexpo = self.limVals(
+                rec, "single_exptime")
             nexpmin, nexpmax, nexpstep, nnexp = self.limVals(rec, "nexp")
             mag = np.linspace(magmin, magmax, nmag)
             exp = np.linspace(expmin, expmax, nexpo)
@@ -1607,7 +1639,8 @@ class SN_Rate:
         dvol = dvol[1:] - dvol[:-1]
 
         if account_for_edges:
-            margin = (1.0 + zz) * (self.max_rf_phase - self.min_rf_phase) / 365.25
+            margin = (1.0 + zz) * (self.max_rf_phase -
+                                   self.min_rf_phase) / 365.25
             effective_duration = duration / 365.25 - margin
             effective_duration[effective_duration <= 0.0] = 0.0
         else:
