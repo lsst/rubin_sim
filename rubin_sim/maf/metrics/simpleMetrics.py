@@ -210,7 +210,7 @@ class CountExplimMetric(BaseMetric):
 class CountRatioMetric(BaseMetric):
     """Count the length of a simData column slice, then divide by 'normVal'."""
 
-    def __init__(self, col=None, normVal=1.0, metricName=None, **kwargs):
+    def __init__(self, col=None, normVal=1.0, metricName=None, units="", **kwargs):
         self.normVal = float(normVal)
         if metricName is None:
             metricName = "CountRatio %s div %.1f" % (col, normVal)
