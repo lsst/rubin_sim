@@ -1232,7 +1232,9 @@ def scienceRadarBatch(
     kneslicer = maf.generateKNPopSlicer(
         n_events=n_events, n_files=len(filename), d_min=10, d_max=600
     )
-    metric = maf.KNePopMetric(outputLc=False, file_list=filename)
+    metric = maf.KNePopMetric(
+        outputLc=False, file_list=filename, metricName="KNePopMetric_single"
+    )
     bundle = mb.MetricBundle(
         metric,
         kneslicer,
@@ -1254,7 +1256,9 @@ def scienceRadarBatch(
     kneslicer_allkne = maf.generateKNPopSlicer(
         n_events=n_events, n_files=len(filename), d_min=10, d_max=600
     )
-    metric_allkne = maf.KNePopMetric(outputLc=False, file_list=filename)
+    metric_allkne = maf.KNePopMetric(
+        outputLc=False, file_list=filename, metricName="KNePopMetric_all"
+    )
     bundle = mb.MetricBundle(
         metric_allkne,
         kneslicer_allkne,
