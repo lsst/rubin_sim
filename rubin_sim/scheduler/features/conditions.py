@@ -385,7 +385,9 @@ class Conditions(object):
     def skybrightness(self, indict):
         for key in indict:
 
-            self._skybrightness[key] = match_hp_resolution(indict[key], nside_out=self.nside)
+            self._skybrightness[key] = match_hp_resolution(
+                indict[key], nside_out=self.nside
+            )
         # If sky brightness changes, need to recalc M5 depth.
         self._M5Depth = None
 
@@ -419,7 +421,9 @@ class Conditions(object):
             )
 
     def calc_solar_elongation(self):
-        self._solar_elongation = _angularSeparation(self.ra, self.dec, self.sunRA, self.sunDec)
+        self._solar_elongation = _angularSeparation(
+            self.ra, self.dec, self.sunRA, self.sunDec
+        )
 
     @property
     def solar_elongation(self):
