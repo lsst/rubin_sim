@@ -156,7 +156,7 @@ To update the source contents of the data files:
 
 * Update the files in your local installation
 * If you are updating the baseline sim, create a symlink of the new database to baseline.db
-* Create a new tar file with a new name, e.g., `tar -chvzf maf_june_2021.tgz maf`
+* Create a new tar file with a new name, e.g., `tar -chvzf maf_2021_06_01.tgz maf` (no `-h` if symlinks should stay as symlinks)
 * Copy your new tar file to NCSA lsst-login01.ncsa.illinois.edu:/lsstdata/user/staff/web_data/sim-data/rubin_sim_data/
 * You can check that it is uploaded here: https://lsst.ncsa.illinois.edu/sim-data/rubin_sim_data/
 * Update `bin/rs_download_data` so the `data_dict` function uses your new filename
