@@ -41,7 +41,7 @@ METRIC_SET_SOURCE = os.environ.get(
 
 SUMMARY_SOURCE = os.environ.get(
     "RUBIN_SIM_SUMMARY_SOURCE",
-    "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/summary_2022_06_12.csv",
+    "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/summary_2022_06_22.csv",
 )
 
 if os.uname().nodename.endswith(".datalab.noao.edu"):
