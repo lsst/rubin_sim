@@ -8,12 +8,11 @@ import matplotlib
 
 matplotlib.use("Agg")
 
-import rubin_sim.maf.batches as batches
-
-"""Join split metric outputs into a single metric output file."""
+from . import batches
 
 
-if __name__ == "__main__":
+def run_moving_join():
+    """Join split metric outputs into a single metric output file."""
     parser = argparse.ArgumentParser(
         description="Join moving object metrics (from splits) for a particular "
         "opsim run.  Assumes split metric files are in "

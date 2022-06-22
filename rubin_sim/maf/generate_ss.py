@@ -71,7 +71,7 @@ def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False
             resultsDb = db.ResultsDb(outDir=outDir)
             for pop in pops:
                 objtype = objtypes[pop]
-            
+
                 s1 = f"makeLSSTobs --opsimDb {filename} --orbitFile {orbit_files[pop]}"
                 s2 = (
                     f"run_moving_calc --obsFile {run}__{pop}_obs.txt"
@@ -147,7 +147,9 @@ def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False
     output_file.close()
 
 
-if __name__ == "__main__":
+def generate_ss():
+    """Generate solar system processing commands."""
+
     parser = argparse.ArgumentParser(
         description="Generate solar system processing commands"
     )

@@ -7,14 +7,14 @@ import matplotlib
 
 matplotlib.use("Agg")
 
-import rubin_sim.maf.batches as batches
-import rubin_sim.maf.db as db
-import rubin_sim.maf.metricBundles as mb
+from . import batches as batches
+from . import db as db
+from . import metricBundles as mb
 
-if __name__ == "__main__":
-    """
-    Run the science batch on all .db files in a directory.
-    """
+
+def scimaf_dir():
+    """Run the science batch on all .db files in a directory."""
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--db", type=str, default=None)
     parser.add_argument(

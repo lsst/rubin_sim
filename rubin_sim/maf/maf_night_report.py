@@ -5,14 +5,14 @@ import matplotlib
 
 # Set matplotlib backend (to create plots where DISPLAY is not set).
 matplotlib.use("Agg")
-import matplotlib.cm as cm
-import rubin_sim.maf.db as db
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metricBundles as metricBundles
-import rubin_sim.maf.plots as plots
-import rubin_sim.maf.utils as utils
-from rubin_sim.maf.batches import ColMapDict
+from . import db as db
+from . import metrics as metrics
+from . import slicers as slicers
+from . import metricBundles as metricBundles
+from . import plots as plots
+from . import utils as utils
+
+from .batches import ColMapDict
 
 
 def makeBundleList(
@@ -151,7 +151,8 @@ def makeBundleList(
     return metricBundles.makeBundlesDictFromList(bundleList)
 
 
-if __name__ == "__main__":
+def maf_night_report():
+    """Generate a report on a single night."""
 
     parser = argparse.ArgumentParser(
         description="Python script to generate a report on a single night."

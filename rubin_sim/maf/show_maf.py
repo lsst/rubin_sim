@@ -130,7 +130,10 @@ def make_app():
     return application
 
 
-if __name__ == "__main__":
+def showMaf():
+    """Display MAF output in a web browser. After launching, point your browser
+    to 'http://localhost:8888/'.
+    """
 
     parser = argparse.ArgumentParser(
         description="Python script to display MAF output in a web browser."

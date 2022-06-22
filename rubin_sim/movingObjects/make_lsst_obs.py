@@ -199,7 +199,7 @@ def setupArgs(parser=None):
     return args
 
 
-if __name__ == "__main__":
+def make_lsst_obs():
 
     # Parser command
     args = setupArgs()

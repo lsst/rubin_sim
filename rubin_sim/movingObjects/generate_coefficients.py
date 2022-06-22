@@ -7,7 +7,12 @@ import numpy as np
 from rubin_sim.movingObjects import Orbits
 from rubin_sim.movingObjects import ChebyFits
 
-if __name__ == "__main__":
+
+def generate_coefficients():
+    """Generate Chebyshev polynomial coefficients for a set of orbits, over a
+    given timespan.
+    """
+
     parser = argparse.ArgumentParser(
         description="Generate Chebyshev polynomial coefficients"
         + " for a set of orbits, over a given timespan."

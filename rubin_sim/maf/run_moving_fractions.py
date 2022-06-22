@@ -5,15 +5,13 @@ import glob
 import argparse
 import numpy as np
 
-import rubin_sim.maf.db as db
-import rubin_sim.maf.metricBundles as mmb
-import rubin_sim.maf.batches as batches
-
-"""Calculate completeness and fractions for moving object metrics."""
+from . import db as db
+from . import metricBundles as mmb
+from . import batches as batches
 
 
-if __name__ == "__main__":
-
+def run_moving_fractions():
+    """Calculate completeness and fractions for moving object metrics."""
     parser = argparse.ArgumentParser(
         description="Run moving object metrics for a particular opsim run."
     )
