@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pandas as pd
 import unittest
 from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler.schedulers import Core_scheduler
@@ -37,6 +38,22 @@ class TestCoreSched(unittest.TestCase):
 
         # Check that we can add an observation
         scheduler.add_observation(obs)
+
+        # Check dunder methods
+        self.assertIsInstance(repr(scheduler), str)
+        self.assertIsInstance(str(scheduler), str)
+
+        # Check access methods
+        these_basis_functions = scheduler.get_basis_functions([0, 0])
+        healpix_maps = scheduler.get_healpix_maps([0, 0])
+
+        # Check survey access methods
+        reward_df = scheduler.make_reward_df(observatory.return_conditions())
+        self.assertIsInstance(reward_df, pd.DataFrame)
+
+        obs = scheduler.request_observation()
+        surveys_df = scheduler.surveys_df(0)
+        self.assertIsInstance(surveys_df, pd.DataFrame)
 
 
 if __name__ == "__main__":
