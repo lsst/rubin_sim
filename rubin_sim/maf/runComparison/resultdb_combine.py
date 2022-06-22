@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import argparse
-from rubin_sim.maf import RunComparison
+from .runComparison import RunComparison
 
-if __name__ == "__main__":
+
+def resultdb_combine():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--base_dir", type=str, default=".")

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 import argparse
-from rubin_sim.maf.db import addRunToDatabase
+from . import addRunToDatabase
 
 
-if __name__ == "__main__":
+def addRun():
 
     parser = argparse.ArgumentParser(
         description="Add a MAF run to the tracking database."

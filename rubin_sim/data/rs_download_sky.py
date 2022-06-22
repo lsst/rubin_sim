@@ -1,9 +1,12 @@
 #!/usr/bin/env python
-from rubin_sim.data import get_data_dir
 import os
 import subprocess
 
-if __name__ == "__main__":
+from . import get_data_dir
+
+
+def rs_download_sky():
+    """Download sky files."""
 
     source = "lsst-rsync.ncsa.illinois.edu::sim/sims_skybrightness_pre/h5/*"
     data_dir = get_data_dir()

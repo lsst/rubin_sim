@@ -9,15 +9,15 @@ import matplotlib
 
 matplotlib.use("Agg")
 
-from rubin_sim.maf.metrics import CountExplimMetric
-from rubin_sim.maf.slicers import HealpixSlicer, HealpixSubsetSlicer
-from rubin_sim.maf.metricBundles import MetricBundle, MetricBundleGroup
-from rubin_sim.maf.utils import getDateVersion
-from rubin_sim.maf.db import TrackingDb, ResultsDb
-import rubin_sim.maf.batches as batches
+from . import batches as batches
+from .metrics import CountExplimMetric
+from .slicers import HealpixSlicer, HealpixSubsetSlicer
+from .metricBundles import MetricBundle, MetricBundleGroup
+from .utils import getDateVersion
+from .db import TrackingDb, ResultsDb
 
 
-if __name__ == "__main__":
+def metadata_dir():
     """
     Run the metadata batch on all .db files in a directory.
     """

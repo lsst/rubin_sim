@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 
-import os
 import glob
 import argparse
 
-from rubin_sim.maf.runComparison import RunComparison
+from .runComparison import RunComparison
 
 
-if __name__ == "__main__":
+def gather_summaries():
+    """Find resultsDbs in a series of directories and gather up their summary
+    stats into a single CSV or hdf5 file. Intended to run on a set of metrics
+    run on multiple simulations, so that each resultsDb has similar summary
+    statistics.
+    """
 
     parser = argparse.ArgumentParser(
         description="Find resultsDbs in a series of directories and "

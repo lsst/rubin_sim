@@ -6,7 +6,10 @@ import numpy as np
 from rubin_sim.movingObjects import Orbits
 from itertools import repeat
 
-if __name__ == "__main__":
+
+def add_seds():
+    """Add SEDs to a series of orbits."""
+
     parser = argparse.ArgumentParser(description="Add SEDs to a series of orbits.")
     parser.add_argument(
         "--orbitFile", type=str, default=None, help="File containing the orbits."

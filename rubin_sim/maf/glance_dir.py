@@ -12,14 +12,13 @@ import rubin_sim.maf.metricBundles as mb
 import argparse
 
 
-if __name__ == "__main__":
+def glance_dir():
     """
     Run the glance batch on all .db files in a directory.
     """
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--db", type=str, default=None)
-    parser.add_argument("--nside", type=int, default=512)
     args = parser.parse_args()
 
     if args.db is None:
@@ -30,19 +29,19 @@ if __name__ == "__main__":
     run_names = [os.path.basename(name).replace(".db", "") for name in db_files]
 
     for filename, name in zip(db_files, run_names):
-        if os.path.isdir(name + "_ddf"):
-            shutil.rmtree(name + "_ddf")
+        if os.path.isdir(name + "_glance"):
+            shutil.rmtree(name + "_glance")
         opsdb = db.OpsimDatabase(filename)
         colmap = batches.ColMapDict()
 
         bdict = {}
-        bdict.update(batches.ddfBatch(runName=name, nside=args.nside))
-        resultsDb = db.ResultsDb(outDir=name + "_ddf")
+        bdict.update(batches.glanceBatch(colmap, name))
+        resultsDb = db.ResultsDb(outDir=name + "_glance")
         group = mb.MetricBundleGroup(
-            bdict, opsdb, outDir=name + "_ddf", resultsDb=resultsDb, saveEarly=False
+            bdict, opsdb, outDir=name + "_glance", resultsDb=resultsDb, saveEarly=False
         )
         group.runAll(clearMemory=True, plotNow=True)
         resultsDb.close()
         db.addRunToDatabase(
-            name + "_ddf", "trackingDb_sqlite.db", None, name, "", "", name + ".db"
+            name + "_glance", "trackingDb_sqlite.db", None, name, "", "", name + ".db"
         )
