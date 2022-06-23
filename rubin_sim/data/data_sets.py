@@ -28,7 +28,7 @@ def get_baseline():
     """Get the path to the baseline cadence simulation and the run name"""
     dd = get_data_dir()
     path = os.path.join(dd, "sim_baseline")
-    file = glob.glob(path + '/*10yrs.db')[0]
+    file = glob.glob(path + "/*10yrs.db")[0]
     return file
 
 
