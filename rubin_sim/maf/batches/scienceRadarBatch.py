@@ -19,7 +19,7 @@ def scienceRadarBatch(
     benchmarkArea=18000,
     benchmarkNvisits=825,
     minNvisits=750,
-    long_microlensing=False,
+    long_microlensing=True,
     srd_only=False,
 ):
     """A batch of metrics for looking at survey performance relative to the SRD and the main
@@ -27,8 +27,8 @@ def scienceRadarBatch(
 
     Parameters
     ----------
-    long_microlensing : `bool` (False)
-        Add the longer running microlensing metrics to the batch
+    long_microlensing : `bool` (True)
+        Add the longer running microlensing metrics to the batch (subset of crossing times only)
     srd_only : `bool` (False)
         Only return the SRD metrics
     """
@@ -1145,6 +1145,14 @@ def scienceRadarBatch(
         )
 
     if long_microlensing:
+        n_events = 10000
+        # Let's evaluate a subset of the crossing times for these
+        crossing_times = [
+            [10, 20],
+            [20, 30],
+            [30, 60],
+            [200, 500],
+        ]
         metric_Npts = maf.MicrolensingMetric(metricCalc="Npts")
         summaryMetrics = maf.batches.microlensingSummary(metricType="Npts")
         order = 0
@@ -1224,7 +1232,9 @@ def scienceRadarBatch(
     kneslicer = maf.generateKNPopSlicer(
         n_events=n_events, n_files=len(filename), d_min=10, d_max=600
     )
-    metric = maf.KNePopMetric(outputLc=False, file_list=filename)
+    metric = maf.KNePopMetric(
+        outputLc=False, file_list=filename, metricName="KNePopMetric_single"
+    )
     bundle = mb.MetricBundle(
         metric,
         kneslicer,
@@ -1246,7 +1256,9 @@ def scienceRadarBatch(
     kneslicer_allkne = maf.generateKNPopSlicer(
         n_events=n_events, n_files=len(filename), d_min=10, d_max=600
     )
-    metric_allkne = maf.KNePopMetric(outputLc=False, file_list=filename)
+    metric_allkne = maf.KNePopMetric(
+        outputLc=False, file_list=filename, metricName="KNePopMetric_all"
+    )
     bundle = mb.MetricBundle(
         metric_allkne,
         kneslicer_allkne,

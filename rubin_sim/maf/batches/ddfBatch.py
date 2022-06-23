@@ -6,63 +6,58 @@ import rubin_sim.maf as maf
 __all__ = ["ddfBatch"]
 
 
-def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
+def ddfBatch(
+    runName="opsim",
+    nside=512,
+    radius=2.5,
+    nside_sne=128,
+    extraSql=None,
+    extra_info_label=None,
+):
     """
     Parameters
     ----------
-    nside : int (512)
+    nside : `int` (512)
         The HEALpix nside to run most of the metrics on. default 512.
-    radius : float (2.5)
+    radius : `float` (2.5)
         The radius to select around each ddf (degrees). Default 2.5. Note that
         Going too large will result in more background being selected, which
         can throw off things like the median number of visits. But going too
         small risks missing some DDF area on the double Euclid field, or a regular
         field with large dithers.
-    nside_sne : int (128)
+    nside_sne : `int` (128)
         The HEALpix nside to use with the SNe metric.
+    extraSql : `str` (None)
+        Additional sql constraint (such as night<=365) to add to the necessary sql constraints below
+    extra_info_label : `str` (None)
+        Additional description information to add (alongside the extraSql)
     """
 
     bundle_list = []
 
-    ra, dec = hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
-    ra_sne, dec_sne = hpid2RaDec(nside_sne, np.arange(hp.nside2npix(nside_sne)))
-
-    ddfs_rough = ddf_locations()
-
-    # Reformat as a dict for later
+    # Define the slicer to use for each DDF
+    # Get standard DDF locations and reformat information as a dictionary
     ddfs = {}
+    ddfs_rough = ddf_locations()
     for ddf in ddfs_rough:
         ddfs[ddf] = {"ra": ddfs_rough[ddf][0], "dec": ddfs_rough[ddf][1]}
-    # Combine the Euclid double-field into one
+    # Combine the Euclid double-field into one - but with two ra/dec values
     ddfs["EDFS"] = {
         "ra": [ddfs["EDFS_a"]["ra"], ddfs["EDFS_b"]["ra"]],
         "dec": [ddfs["EDFS_a"]["dec"], ddfs["EDFS_b"]["dec"]],
     }
     del ddfs["EDFS_a"]
     del ddfs["EDFS_b"]
-
     # Let's include an arbitrary point that should be in the WFD for comparision
     ddfs["WFD"] = {"ra": 0, "dec": -20.0}
 
-    summary_stats = [maf.MeanMetric(), maf.MedianMetric(), maf.SumMetric()]
+    ra, dec = hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
+    ra_sne, dec_sne = hpid2RaDec(nside_sne, np.arange(hp.nside2npix(nside_sne)))
 
-    filternames = "ugrizy"
-    filter_all_sql = ['filter="%s"' % filtername for filtername in filternames]
-    filter_all_sql.append("")
-
-    depth_stats = [maf.MedianMetric()]
-    plotFuncs = [maf.HealpixSkyMap()]
-
-    displayDict = {"group": "", "subgroup": "", "order": 0}
-
+    ddf_slicers = {}
+    ddf_slicers_sne = {}
     for ddf in ddfs:
-        sql = ""
-        label = ddf.replace("DD:", "")
-        plotDict = {
-            "visufunc": hp.gnomview,
-            "rot": (np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]), 0),
-            "xsize": 500,
-        }
+        # Define the healpixels to use for this DDF
         if np.size(ddfs[ddf]["ra"]) > 1:
             goods = []
             goods_sne = []
@@ -82,18 +77,50 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
                 ra_sne, dec_sne, np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"])
             )
             good_sne = np.where(dist <= radius)[0]
+        ddf_slicers_sne[ddf] = maf.HealpixSubsetSlicer(
+            nside_sne, good_sne, useCache=False
+        )
+        ddf_slicers[ddf] = maf.HealpixSubsetSlicer(nside, good, useCache=False)
+
+    # Now define metrics
+
+    # Set up basic all and per filter sql constraints.
+    filterlist, colors, orders, sqls, info_labels = maf.filterList(
+        all=True, extraSql=extraSql, extraInfoLabel=extra_info_label
+    )
+
+    summary_stats = [maf.MeanMetric(), maf.MedianMetric(), maf.SumMetric()]
+    depth_stats = [maf.MedianMetric()]
+
+    plotFuncs = [maf.HealpixSkyMap()]
+
+    displayDict = {"group": "", "subgroup": "", "order": 0}
+
+    for ddf in ddfs:
+        fieldname = ddf
+        if not (fieldname.startswith("DD")):
+            fieldname = f"DD:{fieldname}"
+
+        plotDict = {
+            "visufunc": hp.gnomview,
+            "rot": (np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]), 0),
+            "xsize": 500,
+        }
 
         # Number of SNe
-        displayDict["order"] = 1
         displayDict["group"] = "SNe"
         displayDict["subgroup"] = "N SNe"
-        slicer = maf.HealpixSubsetSlicer(nside_sne, good_sne, useCache=False)
-        metric = maf.metrics.SNNSNMetric(verbose=False, metricName="%s, SNe" % label)
+        metric = maf.metrics.SNNSNMetric(
+            verbose=False,
+            n_bef=4,
+            n_aft=10,
+        )
         bundle_list.append(
             maf.MetricBundle(
                 metric,
-                slicer,
-                sql,
+                ddf_slicers_sne[ddf],
+                constraint=sqls["all"],
+                info_label=" ".join([fieldname, info_labels["all"]]),
                 plotDict=plotDict,
                 plotFuncs=plotFuncs,
                 summaryMetrics=summary_stats,
@@ -102,13 +129,13 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
         )
         # Strong lensed SNe
         displayDict["subgroup"] = "SL SNe"
-        slicer = maf.HealpixSubsetSlicer(nside, good, useCache=False)
-        metric = maf.SNSLMetric(metricName="SnL_%s" % label)
+        metric = maf.SNSLMetric()
         bundle_list.append(
             maf.MetricBundle(
                 metric,
-                slicer,
-                sql,
+                ddf_slicers[ddf],
+                constraint=sqls["all"],
+                info_label=" ".join([fieldname, info_labels["all"]]),
                 plotDict=plotDict,
                 plotFuncs=plotFuncs,
                 summaryMetrics=summary_stats,
@@ -118,12 +145,11 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
 
         # Number of QSOs in each band
         displayDict["group"] = "QSO"
-        displayDict["order"] = 2
         displayDict["subgroup"] = "Number"
         zmin = 0.3
         extinction_cut = 1.0
         for f in "ugrizy":
-            sql = 'filter="%s"' % f
+            displayDict["order"] = orders[f]
             summaryMetrics = [maf.SumMetric(metricName="Total QSO")]
             metric = maf.QSONumberCountsMetric(
                 f,
@@ -134,13 +160,13 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
                 SED_model="Richards06",
                 zmin=zmin,
                 zmax=None,
-                metricName="QSO_N_%s_%s" % (f, label),
             )
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
-                    slicer,
-                    sql,
+                    ddf_slicers[ddf],
+                    sqls[f],
+                    info_label=" ".join([fieldname, info_labels[f]]),
                     plotDict=plotDict,
                     plotFuncs=plotFuncs,
                     summaryMetrics=summaryMetrics,
@@ -150,20 +176,18 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
 
         # AGN structure function
         displayDict["group"] = "QSO"
-        displayDict["order"] = 2
         displayDict["subgroup"] = "Structure Function"
         agn_mags = {"u": 22.0, "g": 24, "r": 24, "i": 24, "z": 22, "y": 22}
         for f in "ugrizy":
-            sql = 'filter="%s"' % f
-            summaryMetrics = [
-                maf.MedianMetric(metricName="Median AGN SF Uncert, %s" % (label))
-            ]
-            metric = maf.SFUncertMetric(mag=agn_mags[f], metricName="SFU, %s" % label)
+            displayDict["order"] = orders[f]
+            summaryMetrics = [maf.MedianMetric(), maf.RmsMetric()]
+            metric = maf.SFUncertMetric(mag=agn_mags[f])
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
-                    slicer,
-                    sql,
+                    ddf_slicers[ddf],
+                    sqls[f],
+                    info_label=" ".join([fieldname, info_labels[f]]),
                     plotDict=plotDict,
                     plotFuncs=plotFuncs,
                     summaryMetrics=summaryMetrics,
@@ -173,18 +197,16 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
 
         # Coadded depth per filter, and count per filter
         displayDict["group"] = "Basics"
-        displayDict["subgroup"] = "Depth"
-        displayDict["order"] = 3
-        for filtername in "ugrizy":
-            metric = maf.Coaddm5Metric(
-                metricName="%s, 5-sigma %s" % (label, filtername)
-            )
-            sql = 'filter="%s"' % filtername
+        for f in "ugrizy":
+            displayDict["subgroup"] = "Coadd M5"
+            displayDict["order"] = orders[f]
+            metric = maf.Coaddm5Metric(metricName=f"{fieldname} CoaddM5")
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
-                    slicer,
-                    sql,
+                    ddf_slicers[ddf],
+                    sqls[f],
+                    info_label=info_labels[f],
                     plotDict=plotDict,
                     runName=runName,
                     plotFuncs=plotFuncs,
@@ -192,17 +214,16 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
                     displayDict=displayDict,
                 )
             )
-
-            displayDict["subgroup"] = "Count"
+            displayDict["subgroup"] = "N Visits"
             metric = maf.CountMetric(
-                col="night", units="#", metricName="%s, Count %s" % (label, filtername)
+                col="observationStartMJD", units="#", metricName=f"{fieldname} NVisits"
             )
-            sql = 'filter="%s"' % filtername
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
-                    slicer,
-                    sql,
+                    ddf_slicers[ddf],
+                    sqls[f],
+                    info_label=info_labels[f],
                     plotDict=plotDict,
                     runName=runName,
                     plotFuncs=plotFuncs,
@@ -211,15 +232,37 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
                 )
             )
         # Count over all filter
+        displayDict["subgroup"] = "N Visits"
+        displayDict["order"] = orders["all"]
         metric = maf.CountMetric(
-            col="night", units="#", metricName="%s, Count all" % (label)
+            col="observationStartMJD", units="#", metricName=f"{fieldname} NVisits"
         )
-        sql = ""
         bundle_list.append(
             maf.MetricBundle(
                 metric,
-                slicer,
-                sql,
+                ddf_slicers[ddf],
+                constraint=sqls["all"],
+                info_label=info_labels["all"],
+                plotDict=plotDict,
+                runName=runName,
+                plotFuncs=plotFuncs,
+                summaryMetrics=depth_stats,
+                displayDict=displayDict,
+            )
+        )
+        # Count number of unique nights with visits
+        displayDict["group"] = "Cadence"
+        displayDict["subgroup"] = "N Nights"
+        displayDict["order"] = orders["all"]
+        metric = maf.CountUniqueMetric(
+            col="night", units="#", metricName=f"{fieldname} N Unique Nights"
+        )
+        bundle_list.append(
+            maf.MetricBundle(
+                metric,
+                ddf_slicers[ddf],
+                constraint=sqls["all"],
+                info_label=info_labels["all"],
                 plotDict=plotDict,
                 runName=runName,
                 plotFuncs=plotFuncs,
@@ -229,58 +272,144 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
         )
 
         # Now to compute some things at just the center of the DDF
-        slicer = maf.UserPointsSlicer(
+        # For these metrics, add a requirement that the 'note' label match the DDF,
+        # to avoid WFD visits skewing the results (we want to exclude these)
+        ptslicer = maf.UserPointsSlicer(
             np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"])
         )
 
-        displayDict["order"] = 4
-        displayDict["group"] = "Gaps"
-        displayDict["subgroup"] = "Internight Gap"
-        # Median inter-night gap (each and all filters)
-        # I think need to use the note label so that the regular WFD
-        # observations don't skew the results. The griy filters should all have about the same
-        # median internight gap.
-        for filtername in filternames:
-            sql = 'note like "%s%%" and filter="%s"' % ("DD:" + label, filtername)
+        displayDict["group"] = "Cadence"
+
+        fieldsqls = {}
+        if ddf == "WFD":
+            for f in filterlist:
+                fieldsqls[f] = sqls[f]
+        else:
+            fieldsql = f"note like '%{fieldname}%'"
+            for f in filterlist:
+                if len(sqls[f]) > 0:
+                    fieldsqls[f] = fieldsql + " and " + sqls[f]
+                else:
+                    fieldsqls[f] = fieldsql
+
+        displayDict["subgroup"] = "Sequence length"
+        # Number of observations per night, any filter (sequence length)
+        # Histogram the number of visits per night at the center of the DDF
+        countbins = np.arange(0, 200, 5)
+        metric = maf.NVisitsPerNightMetric(
+            nightCol="night", bins=countbins, metricName=f"{fieldname} NVisitsPerNight"
+        )
+        plotDict = {"bins": countbins, "xlabel": "Number of visits per night"}
+        displayDict[
+            "caption"
+        ] = f"Histogram of the number of visits in each night, at the center of {fieldname}."
+        plotFunc = maf.SummaryHistogram()
+        bundle = maf.MetricBundle(
+            metric,
+            ptslicer,
+            fieldsqls["all"],
+            info_label=info_labels["all"],
+            plotDict=plotDict,
+            displayDict=displayDict,
+            plotFuncs=[plotFunc],
+        )
+        bundle_list.append(bundle)
+
+        if fieldname.endswith("WFD"):
+            pass
+        else:
+            displayDict["caption"] = "Number of visits per night for {fieldname}."
+            metric = maf.CountMetric(
+                "observationStartMJD", metricName=f"{fieldname} Nvisits Per Night"
+            )
+            slicer = maf.OneDSlicer(sliceColName="night", binsize=1)
+            bundle = maf.MetricBundle(
+                metric,
+                slicer,
+                fieldsqls["all"],
+                info_label=info_labels["all"],
+                displayDict=displayDict,
+                summaryMetrics=[
+                    maf.MedianMetric(),
+                    maf.PercentileMetric(percentile=80, metricName="80thPercentile"),
+                    maf.MinMetric(),
+                    maf.MaxMetric(),
+                ],
+            )
+            bundle_list.append(bundle)
+
+        displayDict["subgroup"] = "Sequence gaps"
+        # Histogram of the number of nights between visits, all filters
+        bins = np.arange(1, 40, 1)
+        metric = maf.NightgapsMetric(
+            bins=bins,
+            nightCol="night",
+            metricName=f"{fieldname} Delta Nights Histogram",
+        )
+        plotDict = {"bins": bins, "xlabel": "dT (nights)"}
+        plotFunc = maf.SummaryHistogram()
+        bundle = maf.MetricBundle(
+            metric,
+            ptslicer,
+            constraint=fieldsqls["all"],
+            info_label=info_labels["all"],
+            plotDict=plotDict,
+            displayDict=displayDict,
+            plotFuncs=[plotFunc],
+        )
+        bundle_list.append(bundle)
+
+        # Median inter-night gap in each and all filters
+        for f in filterlist:
             metric = maf.InterNightGapsMetric(
-                metricName="Median Inter-Night Gap, %s %s" % (label, filtername),
-                reduceFunc=np.median,
+                metricName=f"{fieldname} Median Inter-Night Gap", reduceFunc=np.median
             )
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
-                    slicer,
-                    sql,
+                    ptslicer,
+                    fieldsqls[f],
+                    info_label=info_labels[f],
                     runName=runName,
                     summaryMetrics=[maf.MeanMetric()],
                     plotFuncs=[],
                     displayDict=displayDict,
                 )
             )
-        sql = 'note like "%s%%"' % ("DD:" + label)
-        metric = maf.InterNightGapsMetric(
-            metricName="Median Inter-Night Gap, %s" % label, reduceFunc=np.median
+
+        displayDict["subgroup"] = "Season length"
+        # Histogram of the season lengths, all filters
+        def rfunc(simdata):
+            # Sometimes number of seasons is 10, sometimes 11 (depending on where survey starts/end)
+            # so normalize it so there's always 11 values
+            if len(simdata) < 11:
+                simdata = np.concatenate([simdata, np.array([0], float)])
+            return simdata
+
+        metric = maf.SeasonLengthMetric(reduceFunc=rfunc, metricDtype="object")
+        plotDict = {"bins": np.arange(0, 12), "xlabel": "Season length (days)"}
+        plotFunc = maf.SummaryHistogram()
+        bundle = maf.MetricBundle(
+            metric,
+            ptslicer,
+            fieldsqls["all"],
+            info_label=" ".join([fieldname, info_labels["all"]]),
+            plotDict=plotDict,
+            displayDict=displayDict,
+            plotFuncs=[plotFunc],
         )
-        bundle_list.append(
-            maf.MetricBundle(
-                metric,
-                slicer,
-                sql,
-                runName=runName,
-                summaryMetrics=[maf.MeanMetric()],
-                plotFuncs=[],
-                displayDict=displayDict,
-            )
-        )
+        bundle_list.append(bundle)
 
         # Median season Length
-        displayDict["subgroup"] = "Season Length"
-        metric = maf.SeasonLengthMetric(metricName="Median Season Length, %s" % label)
+        metric = maf.SeasonLengthMetric(
+            metricName=f"{fieldname} Median Season Length", reduceFunc=np.median
+        )
         bundle_list.append(
             maf.MetricBundle(
                 metric,
-                slicer,
-                sql,
+                ptslicer,
+                fieldsqls[f],
+                info_label=info_labels["all"],
                 runName=runName,
                 summaryMetrics=[maf.MeanMetric()],
                 plotFuncs=[],
@@ -288,21 +417,28 @@ def ddfBatch(runName="opsim", nside=512, radius=2.5, nside_sne=128):
             )
         )
 
-        # Cumulative distribution
-        displayDict["group"] = "Progress"
-        displayDict["subgroup"] = ""
-        slicer = maf.UniSlicer()
-        metric = maf.CumulativeMetric()
-        metricb = maf.MetricBundle(
-            metric,
-            slicer,
-            sql,
-            plotFuncs=[maf.XyPlotter()],
-            runName=runName,
-            displayDict=displayDict,
-        )
-        metricb.summaryMetrics = []
-        bundle_list.append(metricb)
+        # Cumulative distribution - only for DDF fields
+        if fieldname.endswith("WFD"):
+            pass
+        else:
+            displayDict["group"] = "Progress"
+            displayDict["subgroup"] = ""
+            displayDict[
+                "caption"
+            ] = f"Cumulative number of visits for the {fieldname.replace('DD:', '')} field."
+            slicer = maf.UniSlicer()
+            metric = maf.CumulativeMetric(metricName=f"{fieldname} Cumulative NVisits")
+            metricb = maf.MetricBundle(
+                metric,
+                slicer,
+                fieldsqls["all"],
+                info_label=info_labels["all"],
+                plotFuncs=[maf.XyPlotter()],
+                runName=runName,
+                displayDict=displayDict,
+            )
+            metricb.summaryMetrics = []
+            bundle_list.append(metricb)
 
     for b in bundle_list:
         b.setRunName(runName)

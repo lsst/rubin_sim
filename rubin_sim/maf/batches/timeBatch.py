@@ -62,7 +62,6 @@ def intraNight(
 
     bundleList = []
     standardStats = standardSummary()
-    subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
     if slicer is None:
         slicer = slicers.HealpixSlicer(
@@ -103,7 +102,6 @@ def intraNight(
         sql,
         info_label=md,
         summaryMetrics=standardStats,
-        plotFuncs=subsetPlots,
         displayDict=displayDict,
     )
     bundleList.append(bundle)
@@ -128,7 +126,6 @@ def intraNight(
         sql,
         info_label=md,
         summaryMetrics=standardStats,
-        plotFuncs=subsetPlots,
         displayDict=displayDict,
     )
     bundleList.append(bundle)
@@ -157,7 +154,6 @@ def intraNight(
         sql,
         info_label=md,
         summaryMetrics=standardStats,
-        plotFuncs=subsetPlots,
         displayDict=displayDict,
     )
     bundleList.append(bundle)
@@ -181,7 +177,6 @@ def intraNight(
         extraSql,
         info_label=info_label,
         displayDict=displayDict,
-        plotFuncs=subsetPlots,
         plotDict=plotDict,
         summaryMetrics=standardStats,
     )
@@ -213,7 +208,6 @@ def intraNight(
             sqls[f],
             info_label=info_labels[f],
             displayDict=displayDict,
-            plotFuncs=subsetPlots,
             plotDict=plotDict,
             summaryMetrics=standardStats,
         )
@@ -254,7 +248,6 @@ def intraNight(
             sql,
             info_label=info,
             displayDict=displayDict,
-            plotFuncs=subsetPlots,
             plotDict=plotDict,
             summaryMetrics=standardStats,
         )
@@ -359,7 +352,7 @@ def interNight(
     """
 
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = ColMapDict("FBS")
 
     bundleList = []
 
@@ -410,7 +403,6 @@ def interNight(
     bundleList.append(bundle)
 
     standardStats = standardSummary()
-    subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
     # Look at the total number of unique nights with visits
     metric = metrics.CountUniqueMetric(
@@ -423,7 +415,6 @@ def interNight(
         sqls["all"],
         info_label=info_label["all"],
         displayDict=displayDict,
-        plotFuncs=subsetPlots,
         plotDict={"colorMin": 0, "colorMax": 500},
         summaryMetrics=standardStats,
     )
@@ -445,7 +436,6 @@ def interNight(
             sqls[f],
             info_label=info_label[f],
             displayDict=displayDict,
-            plotFuncs=subsetPlots,
             plotDict=plotDict,
             summaryMetrics=standardStats,
         )
@@ -472,7 +462,6 @@ def interNight(
             sqls[f],
             info_label=info_label[f],
             displayDict=displayDict,
-            plotFuncs=subsetPlots,
             plotDict=plotDict,
             summaryMetrics=standardStats,
         )
@@ -494,7 +483,6 @@ def interNight(
             sqls[f],
             info_label=info_label[f],
             displayDict=displayDict,
-            plotFuncs=subsetPlots,
             plotDict=plotDict,
             summaryMetrics=standardStats,
         )
@@ -707,7 +695,6 @@ def seasons(
     }
 
     standardStats = standardSummary()
-    subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
     metric = metrics.SeasonLengthMetric(
         metricName="Median Season Length", mjdCol=colmap["mjd"], reduceFunc=np.median
@@ -733,7 +720,6 @@ def seasons(
             sqls[f],
             info_label=info_label[f],
             displayDict=displayDict,
-            plotFuncs=subsetPlots,
             plotDict=plotDict,
             summaryMetrics=standardStats,
         )
@@ -769,7 +755,6 @@ def seasons(
             sqls[f],
             info_label=info_label[f],
             displayDict=displayDict,
-            plotFuncs=subsetPlots,
             plotDict=plotDict,
             summaryMetrics=standardStats,
         )
@@ -791,7 +776,6 @@ def seasons(
         sqls["all"],
         info_label=info_label["all"],
         displayDict=displayDict,
-        plotFuncs=subsetPlots,
         plotDict=plotDict,
         summaryMetrics=standardStats,
     )

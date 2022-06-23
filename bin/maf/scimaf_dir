@@ -17,14 +17,13 @@ if __name__ == "__main__":
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--db", type=str, default=None)
-    parser.add_argument("--long_micro", dest="long_micro", action="store_true")
-    parser.set_defaults(long_micro=False)
     parser.add_argument(
         "--no_clobber",
         dest="no_clobber",
         action="store_false",
         help="Do not remove existing directory outputs",
     )
+    parser.set_defaults(no_long_micro=False)
     args = parser.parse_args()
 
     if args.db is None:
@@ -45,7 +44,7 @@ if __name__ == "__main__":
         resultsDb = db.ResultsDb(outDir=outDir)
         # Set up the metricBundles
         bdict = batches.scienceRadarBatch(
-            runName=name, long_microlensing=args.long_micro
+            runName=name,
         )
         # Run them, including generating plots
         group = mb.MetricBundleGroup(
