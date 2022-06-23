@@ -1,12 +1,12 @@
 import numpy as np
-#from lsst.sims.maf.utils import radec2pix
-
+#import lsst.sims.maf.metrics as metrics
 # if rubin_sim installed
-from rubin_sim.maf.utils.mafUtils import radec2pix
 import rubin_sim.maf.metrics as metrics
 
 class filterPairTGapsMetric(metrics.BaseMetric):
     """
+    figure of merit to measure the coverage the time gaps in same and different filter pairs;
+    FoM is defined as sum of Nv / standard deviation after a clip;
     Parameters:
         colname: list, ['observationStartMJD', 'filter', 'fiveSigmaDepth']
         fltpairs: filter pair, default ['uu', 'ug', 'ur', 'ui', 'uz','uy',
@@ -18,22 +18,32 @@ class filterPairTGapsMetric(metrics.BaseMetric):
         mag_lim: list, fiveSigmaDepth threshold each filter, default {'u':18, 'g':18, 'r':18, 'i':18, 'z':18, 'y':18}
         bins_same: np.array, bins to get histogram for same-filter pair ;
         bins_diff: np.array, bins to get histogram for diff-filter pair ;
-        save_dT: boolean, save time gaps array as result if True
+        Nv_clip: number of visits of pairs to clip, std is calculated below Nv_clip
         allgaps: boolean, all possible pairs if True, else consider only nearest 
         
     Returns:
-        result: dictionary, 
-        reduce_tgaps: median
+        result: sum of fom for all filterpairs, 
         
     """
 
     def __init__(self, colname=['observationStartMJD', 'filter', 'fiveSigmaDepth'], 
-                 fltpairs= ['uu', 'ug', 'ur', 'ui', 'uz','uy', 'gg', 'gr', 'gi', 'gz', 'gy', \
-                             'rr', 'ri', 'rz', 'ry', 'ii', 'iz', 'iy',  'zz', 'zy', 'yy'],
+                 fltpairs= ['uu', 'ug', 'ur', 'ui', 'uz','uy', \
+                            'gg', 'gr', 'gi', 'gz', 'gy', \
+                            'rr', 'ri', 'rz', 'ry', \
+                            'ii', 'iz', 'iy',  \
+                            'zz', 'zy', \
+                            'yy'],
                  mag_lim={'u':18, 'g':18, 'r':18, 'i':18, 'z':18, 'y':18}, 
                  bins_same=np.logspace(np.log10( 5/60/60/24), np.log10(3650), 50), 
                  bins_diff=np.logspace(np.log10(5/60/60/24), np.log10(2), 50), 
-                 save_dT=False, allgaps=True,  **kwargs):
+                 Nv_clip = {'uu': 30, 'ug': 30, 'ur': 30, 'ui': 30, 'uz': 30, 'uy': 30, \
+                        'gg': 69, 'gr': 30, 'gi': 30, 'gz': 30, 'gy': 30, \
+                        'rr': 344, 'ri': 30, 'rz': 30, 'ry': 30, \
+                        'ii': 355, 'iz': 30, 'iy': 30, \
+                        'zz': 282, 'zy': 30, \
+                        'yy': 288},
+                 
+                 allgaps=True,  **kwargs):
         
         self.colname = colname
         self.fltpairs = fltpairs
@@ -41,16 +51,10 @@ class filterPairTGapsMetric(metrics.BaseMetric):
         self.bins_same = bins_same
         self.bins_diff = bins_diff
 
-        self.save_dT = save_dT
         self.allgaps = allgaps
         
-        # number of visits to clip, got from average baseline_v2.0 WFD
-        self.Nv_clip = {'uu': 30, 'ug': 4, 'ur': 4, 'ui': 4, 'uz': 4, 'uy': 4, \
-                        'gg': 69, 'gr': 4, 'gi': 4, 'gz': 4, 'gy': 4, \
-                        'rr': 344, 'ri': 4, 'rz': 4, 'ry': 4, \
-                        'ii': 355, 'iz': 4, 'iy': 4, \
-                        'zz': 282, 'zy': 4, \
-                        'yy': 288}
+        # number of visits to clip, default got from 1/10th of baseline_v2.0 WFD
+        self.Nv_clip = Nv_clip
                         
         super().__init__(col=self.colname, **kwargs)
     
@@ -120,14 +124,9 @@ class filterPairTGapsMetric(metrics.BaseMetric):
         
         return dT
     
-    def run(self, dataSlice, slicePoint=None):
-                        
+    def run(self, dataSlice, slicePoint=None):             
         # sort the dataSlice in order of time.  
         dataSlice.sort(order='observationStartMJD')
-        
-        fieldRA = np.mean(dataSlice['fieldRA']) 
-        fieldDec = np.mean(dataSlice['fieldDec'])
-        pixId = radec2pix(nside=16, ra=np.radians(fieldRA), dec=np.radians(fieldDec))
         
         fom_dic = {}
         dT_dic = {}
@@ -135,8 +134,8 @@ class filterPairTGapsMetric(metrics.BaseMetric):
             dT = self._get_dT(dataSlice, fltpair[0], fltpair[1])
             # calculate FoM
             # cut out at average
-            # std below 
-            # FOM = Nv  / std
+            # std below  
+            # FOM = Nv / std
             
             if fltpair[0]==fltpair[1]:
                 bins = self.bins_same
@@ -152,24 +151,6 @@ class filterPairTGapsMetric(metrics.BaseMetric):
             else:
                 fom = np.nan
             fom_dic[fltpair] = fom
-            
-            print(pixId, fltpair, fom)
-            
-        if self.save_dT:
-            result = {
-                'pixId': pixId,
-                'dT_dic': dT_dic,
-                'fom_dic': fom_dic,
-                'dataSlice': dataSlice
-                  }
-        else:
-            result = {
-                'pixId': pixId,
-                'fom_dic': fom_dic,
-                  }
-        return result
+            #print( fltpair, fom)
 
-    def reduce_tgaps_FoM(self, metric):
-        return np.nansum( list(metric['fom_dic'].values()) )
-
-
+        return np.nansum( list(fom_dic.values()) )
