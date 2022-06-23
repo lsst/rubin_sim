@@ -111,6 +111,16 @@ class SNNSNMetric(BaseMetric):
         number of LC points with phase<= -5(default:1)
     n_phase_max : `int`, optional
         number of LC points with phase>= 20 (default: 1)
+    templateDir: str, opt
+        template directory for reference files (default: None)
+    zlim_coeff: float, opt
+      ith percentile to estimate the redshift completeness (default: 0.95)
+    dust: bool, opt
+      to apply dust (default: False)
+     mjd_LSST_Start: float, opt
+       mjd LSST start (this is just to have a first night estimator) (default: 60218.83514)
+     bands: str, opt
+       filters to consider (default: 'griz')
     """
 
     def __init__(
@@ -127,19 +137,23 @@ class SNNSNMetric(BaseMetric):
         nexpCol="numExposures",
         vistimeCol="visitTime",
         season=[-1],
-        zmin=0.0,
-        zmax=1.2,
+        zmin=0.10,
+        zmax=0.50,
+        zStep=0.03,
+        daymaxStep=4.,
         pixArea=9.6,
-        verbose=False,
+        verbose=True,
         ploteffi=False,
-        n_bef=4,
-        n_aft=10,
-        snr_min=5.0,
+        n_bef=3,
+        n_aft=8,
+        snr_min=1.0,
         n_phase_min=1,
         n_phase_max=1,
         templateDir=None,
-        zlim_coeff=-1.0,
-        dust=True,
+        zlim_coeff=0.95,
+        dust=False,
+        mjd_LSST_Start=60218.83514,
+        bands='griz',
         **kwargs
     ):
 
@@ -173,6 +187,10 @@ class SNNSNMetric(BaseMetric):
             self.nexpCol,
             self.vistimeCol,
             self.exptimeCol,
+            'seeingFwhmEff',
+            'seeingFwhmGeom',
+            'airmass',
+            'moonPhase'
         ]
 
         super(SNNSNMetric, self).__init__(
@@ -212,22 +230,22 @@ class SNNSNMetric(BaseMetric):
         # loading parameters
         self.zmin = zmin  # zmin for the study
         self.zmax = zmax  # zmax for the study
-        self.zStep = 0.05  # zstep
-        self.daymaxStep = 3.0  # daymax step
+        self.zStep = zStep  # zstep
+        self.daymaxStep = daymaxStep  # daymax step
         self.min_rf_phase = -20.0  # min ref phase for LC points selection
-        self.max_rf_phase = 40.0  # max ref phase for LC points selection
+        self.max_rf_phase = 60.0  # max ref phase for LC points selection
 
         self.min_rf_phase_qual = -15.0  # min ref phase for bounds effects
-        self.max_rf_phase_qual = 25.0  # max ref phase for bounds effects
+        self.max_rf_phase_qual = 30.0  # max ref phase for bounds effects
 
         # snrate
-        self.rateSN = SN_Rate(
-            min_rf_phase=self.min_rf_phase_qual, max_rf_phase=self.max_rf_phase_qual
-        )
+        self.rateSN = SN_Rate(H0=70., Om0=0.3,
+                              min_rf_phase=self.min_rf_phase_qual, max_rf_phase=self.max_rf_phase_qual
+                              )
 
         # verbose mode - useful for debug and code performance estimation
-        self.verbose = False
-        self.ploteffi = False
+        self.verbose = verbose
+        self.ploteffi = ploteffi
 
         # supernovae parameters
         self.params = ["x0", "x1", "daymax", "color"]
@@ -236,14 +254,23 @@ class SNNSNMetric(BaseMetric):
         self.bad = np.rec.fromrecords([(-1.0, -1.0)], names=["nSN", "zlim"])
         # self.bad = {'nSN': -1.0, 'zlim': -1.0}
 
+        # LSST starting date
+        self.mjd_LSST_Start = mjd_LSST_Start
+
+        # filters
+        self.bands = bands
+
     def run(self, dataSlice, slicePoint=None):
         idarray = None
         healpixID = -1
+        pixRA = -1
+        pixDec = -1
         if slicePoint is not None:
             if "nside" in slicePoint.keys():
                 import healpy as hp
 
-                self.pixArea = hp.nside2pixarea(slicePoint["nside"], degrees=True)
+                self.pixArea = hp.nside2pixarea(
+                    slicePoint["nside"], degrees=True)
                 r = []
                 names = []
 
@@ -254,12 +281,22 @@ class SNNSNMetric(BaseMetric):
                     nest=True,
                     lonlat=True,
                 )
+                coord = hp.pix2ang(slicePoint["nside"],
+                                   healpixID, nest=True, lonlat=True)
+                pixRA = coord[0]
+                pixDec = coord[1]
                 for kk, vv in slicePoint.items():
                     r.append(vv)
                     names.append(kk)
                 idarray = np.rec.fromrecords([r], names=names)
         else:
             idarray = np.rec.fromrecords([0.0, 0.0], names=["RA", "Dec"])
+
+        # select obs with good filters
+        goodFilters = np.in1d(dataSlice[self.filterCol], list(self.bands))
+        dataSlice = dataSlice[goodFilters]
+
+        dataSlice.sort(order=self.mjdCol)
 
         # Two things to do: concatenate data (per band, night) and estimate seasons
         dataSlice = rf.drop_fields(dataSlice, ["season"])
@@ -269,6 +306,7 @@ class SNNSNMetric(BaseMetric):
         dataSlice = self.getseason(dataSlice, mjdCol=self.mjdCol)
 
         # If we want to apply dust extinction.
+
         if self.dust:
             new_m5 = dataSlice[self.m5Col] * 0
             for filtername in np.unique(dataSlice[self.filterCol]):
@@ -292,11 +330,10 @@ class SNNSNMetric(BaseMetric):
         self.zRange = np.unique(zRange)
         # season infos
         dfa = pd.DataFrame(np.copy(dataSlice))
-        season_info = (
-            dfa.groupby(["season"]).apply(lambda x: self.seasonInfo(x)).reset_index()
-        )
 
-        # print('season info', season_info)
+        season_info = dfa.groupby(["season"]).apply(
+            lambda x: self.seasonInfo(x)).reset_index()
+
         # select seasons of at least 30 days
         idx = season_info["season_length"] >= 60.0
         season_info = season_info[idx]
@@ -304,17 +341,20 @@ class SNNSNMetric(BaseMetric):
         # If we don't have many observations, bail out
         if season_info.empty:
             return nlr.merge_arrays([idarray, self.bad], flatten=True)
+        else:
+            if self.verbose:
+                print('season info', season_info)
 
         # check wether requested seasons can be processed
         test_season = season_info[season_info["season"].isin(seasons)]
-        # if len(test_season) == 0:
 
         if test_season.empty:
             return nlr.merge_arrays([idarray, self.bad], flatten=True)
         else:
             seasons = test_season["season"]
-        # print('test_seas', seasons)
-        # print('hh', season_info)
+
+        if self.verbose:
+            print('info season', seasons)
 
         # get season length depending on the redshift
         dur_z = (
@@ -324,9 +364,11 @@ class SNNSNMetric(BaseMetric):
         )
 
         # remove dur_z with negative season lengths
-        idx = dur_z["season_length"] >= 10.0
+        idx = dur_z["season_length"] >= 60.0
         dur_z = dur_z[idx]
 
+        if self.verbose:
+            print('duration', dur_z)
         # generating simulation parameters
         gen_par = (
             dur_z.groupby(["z", "season"])
@@ -348,10 +390,13 @@ class SNNSNMetric(BaseMetric):
         if resdf.empty:
             return nlr.merge_arrays([idarray, self.bad], flatten=True)
 
-        resdf = resdf.round({"zlim": 3, "nsn_med": 3})
+        resdf = resdf.round({"zlim": 5, "nsn_med": 5})
+
+        if self.verbose:
+            print('final result', resdf)
+
         x1_ref = -2.0
         color_ref = 0.2
-
         idx = np.abs(resdf["x1"] - x1_ref) < 1.0e-5
         idx &= np.abs(resdf["color"] - color_ref) < 1.0e-5
         idx &= resdf["zlim"] > 0
@@ -369,6 +414,8 @@ class SNNSNMetric(BaseMetric):
 
             res = nlr.merge_arrays([idarray, self.bad], flatten=True)
 
+        if self.verbose:
+            print('returning', res)
         return res
 
     def reducenSN(self, metricVal):
@@ -405,6 +452,8 @@ class SNNSNMetric(BaseMetric):
 
         data.sort_values(by=keygroup, ascending=[True, True], inplace=True)
 
+        # get the median single exptime
+        exptime_single = data[self.exptimeCol].median()
         coadd_df = (
             data.groupby(keygroup)
             .agg(
@@ -415,7 +464,7 @@ class SNNSNMetric(BaseMetric):
                     self.mjdCol: ["mean"],
                     self.RACol: ["min"],
                     self.DecCol: ["mean"],
-                    self.m5Col: ["mean"],
+                    self.m5Col: ["mean"]
                 }
             )
             .reset_index()
@@ -433,11 +482,9 @@ class SNNSNMetric(BaseMetric):
             self.m5Col,
         ]
 
-        coadd_df.loc[:, self.m5Col] += 1.25 * np.log10(coadd_df[self.vistimeCol] / 30.0)
-
-        coadd_df.sort_values(
-            by=[self.filterCol, self.nightCol], ascending=[True, True], inplace=True
-        )
+        coadd_df = coadd_df.sort_values(by=self.mjdCol)
+        coadd_df[self.m5Col] += 1.25 * \
+            np.log10(coadd_df[self.exptimeCol]/exptime_single)
 
         return coadd_df.to_records(index=False)
 
@@ -472,7 +519,7 @@ class SNNSNMetric(BaseMetric):
 
             if len(flag) > 0:
                 for i, indx in enumerate(flag):
-                    seasoncalc[indx + 1 :] = i + 2
+                    seasoncalc[indx + 1:] = i + 2
 
         obs = rf.append_fields(obs, "season", seasoncalc)
 
@@ -500,6 +547,7 @@ class SNNSNMetric(BaseMetric):
             to = grp.groupby(["night"])[self.mjdCol].median().sort_values()
             df["cadence"] = np.mean(to.diff())
 
+        # print('result', df)
         return df
 
     def duration_z(self, grp):
@@ -551,12 +599,13 @@ class SNNSNMetric(BaseMetric):
         T0_min = grp["T0_min"].values
         num = (T0_max - T0_min) / self.daymaxStep
         if T0_max - T0_min > 10:
-            df = pd.DataFrame(np.linspace(T0_min, T0_max, int(num)), columns=["daymax"])
+            df = pd.DataFrame(np.linspace(
+                T0_min, T0_max, int(num)), columns=["daymax"])
         else:
             df = pd.DataFrame([-1], columns=["daymax"])
 
-        df["min_rf_phase"] = self.min_rf_phase_qual
-        df["max_rf_phase"] = self.max_rf_phase_qual
+        df["min_rf_phase"] = self.min_rf_phase
+        df["max_rf_phase"] = self.max_rf_phase
 
         return df
 
@@ -592,30 +641,27 @@ class SNNSNMetric(BaseMetric):
             if self.verbose:
                 print("No generator parameter found")
             return None
+        else:
+            if self.verbose:
+                print("generator parameters", gen_p, len(gen_p))
         dur_z = dura_z[dura_z["season"].isin(season)]
         obs = pd.DataFrame(np.copy(dataSlice))
         obs = obs[obs["season"].isin(season)]
 
         obs = obs.sort_values(by=["night"])
-        # print('data here', obs.columns)
-        # print(obs[['night', 'filter', 'observationStartMJD', 'fieldRA', 'fieldDec']])
-        """
-        import matplotlib.pyplot as plt
-        plt.plot(dataSlice['fieldRA'], dataSlice['fieldDec'], 'ko')
-        print('data', len(dataSlice))
-        plt.show()
-        """
+
         # simulate supernovae and lc
         if self.verbose:
             print("SN generation")
             print(season, obs)
-        sn = self.genSN(obs.to_records(index=False), gen_p.to_records(index=False))
+        sn = self.genSN(obs.to_records(index=False),
+                        gen_p.to_records(index=False))
         if np.size(sn) == 0:
             return None
 
         if self.verbose:
             idx = np.abs(sn["x1"] + 2) < 1.0e-5
-            idx &= np.abs(sn["z"] - 0.2) < 1.0e-5
+            idx &= sn["z"] <= 0.1
             sel = sn[idx]
             sel = sel.sort_values(by=["z", "daymax"])
 
@@ -623,13 +669,18 @@ class SNNSNMetric(BaseMetric):
                 "sn and lc",
                 len(sn),
                 sel.columns,
-                sel[["x1", "color", "z", "daymax", "Cov_colorcolor", "n_bef", "n_aft"]],
+                sel[["x1", "color", "z", "daymax",
+                    "Cov_colorcolor", "n_bef", "n_aft"]],
             )
+            print('effidf', self.effidf(sel))
 
         # from these supernovae: estimate observation efficiency vs z
         effi_seasondf = self.effidf(sn)
         if effi_seasondf is None:
             return None
+
+        if self.verbose:
+            print('effi df', effi_seasondf)
 
         # zlims can only be estimated if efficiencies are ok
         idx = effi_seasondf["z"] <= 0.2
@@ -642,6 +693,8 @@ class SNNSNMetric(BaseMetric):
         if np.mean(sel["effi"]) > 0.02:
             # estimate zlims
             zlimsdf = self.zlims(effi_seasondf, dur_z, groupnames)
+            if self.verbose:
+                print('zlims', zlimsdf)
 
             # estimate number of medium supernovae
             zlimsdf["nsn_med"], zlimsdf["var_nsn_med"] = zlimsdf.apply(
@@ -679,13 +732,22 @@ class SNNSNMetric(BaseMetric):
             gen_par_cp = np.copy(gen_par)
             if key == (-2.0, 0.2):
                 idx = gen_par_cp["z"] < 0.9
+                #idx &= np.abs(gen_par_cp['daymax']-61016.17090) < 1.e-5
                 gen_par_cp = gen_par_cp[idx]
+
             lc = vals(obs, gen_par_cp, bands="grizy")
+            """
+            if key == (-2.0, 0.2):
+                obs.sort(order=self.mjdCol)
+                print('obs', obs[[self.mjdCol, self.filterCol]])
+                self.plotLC_debug(lc, daymax=61016.17090)
+            """
             if self.verbose:
                 print("End of simulation", key, time.time() - time_refs)
 
             if self.verbose:
-                print("End of simulation after concat", key, time.time() - time_refs)
+                print("End of simulation after concat",
+                      key, time.time() - time_refs)
 
             # estimate SN
 
@@ -739,7 +801,11 @@ class SNNSNMetric(BaseMetric):
             n_phmax:  number of LC points with a phase > 20
         """
         # now groupby
-        tab = tab.round({"daymax": 3, "z": 3, "x1": 2, "color": 2})
+        tab = tab.round({"daymax": 5, "z": 3, "x1": 2, "color": 2})
+
+        idx = tab['snr_m5'] >= self.snr_min
+        tab = tab[idx]
+
         groups = tab.groupby(["daymax", "season", "z", "x1", "color"])
 
         tosum = []
@@ -749,8 +815,8 @@ class SNNSNMetric(BaseMetric):
                     tosum.append("F_" + vala + valb)
         tosum += ["n_aft", "n_bef", "n_phmin", "n_phmax"]
         # apply the sum on the group
-        sums = groups[tosum].sum().reset_index()
-
+        #sums = groups[tosum].sum().reset_index()
+        sums = groups.apply(lambda x: self.sumIt(x, tosum)).reset_index()
         # select LC according to the number of points bef/aft peak
         idx = sums["n_aft"] >= self.n_aft
         idx &= sums["n_bef"] >= self.n_bef
@@ -765,13 +831,19 @@ class SNNSNMetric(BaseMetric):
                 self.n_phase_min,
                 self.n_phase_max,
             )
+            print('for sel', sums)
         finalsn = pd.DataFrame()
         goodsn = pd.DataFrame(sums.loc[idx])
+        if self.verbose:
+            print('goodSN', len(goodsn))
 
         # estimate the color for SN that passed the selection cuts
         if len(goodsn) > 0:
             goodsn.loc[:, "Cov_colorcolor"] = CovColor(goodsn).Cov_colorcolor
             finalsn = pd.concat([finalsn, goodsn], sort=False)
+            if self.verbose:
+                idb = goodsn['z'] <= 0.1
+                print('goodsn', len(goodsn[idb]), goodsn[idb])
 
         badsn = pd.DataFrame(sums.loc[~idx])
 
@@ -779,7 +851,10 @@ class SNNSNMetric(BaseMetric):
         if len(badsn) > 0:
             badsn.loc[:, "Cov_colorcolor"] = 100.0
             finalsn = pd.concat([finalsn, badsn], sort=False)
-
+            if self.verbose:
+                print('finalsn', len(finalsn))
+                idx = finalsn['z'] <= 0.1
+                print('finalsn', len(finalsn[idx]), finalsn[idx])
         return finalsn
 
     def effidf(self, sn_tot, color_cut=0.04):
@@ -813,8 +888,11 @@ class SNNSNMetric(BaseMetric):
         groups = sndf.groupby(listNames)
 
         # estimating efficiencies
-        effi = groups[["Cov_colorcolor", "z"]].apply(lambda x: effiObsdf(x, color_cut))
+        effi = groups[["Cov_colorcolor", "z"]].apply(
+            lambda x: effiObsdf(x, color_cut))
 
+        if self.verbose:
+            print('efficiencies', effi)
         if np.mean(effi["effi"]) == 0:
             return None
         effi = effi.reset_index(level=[0, 1, 2])
@@ -826,7 +904,8 @@ class SNNSNMetric(BaseMetric):
             fig, ax = plt.subplots()
             figb, axb = plt.subplots()
 
-            self.plot(ax, effi, "effi", "effi_err", "Observing Efficiencies", ls="-")
+            self.plot(ax, effi, "effi", "effi_err",
+                      "Observing Efficiencies", ls="-")
             sndf["sigma_color"] = np.sqrt(sndf["Cov_colorcolor"])
             self.plot(axb, sndf, "sigma_color", None, "$\sigma_{color}$")
             # get efficiencies vs z
@@ -964,7 +1043,8 @@ class SNNSNMetric(BaseMetric):
             # status = self.status['ok']
 
         else:
-            zlimit = self.zlim_from_cumul(grp, duration_z, effiInterp, zplot)
+            zlimit = self.zlim_from_cumul(
+                grp, duration_z, effiInterp, zplot, rate='SN_rate')
 
         return pd.DataFrame({"zlim": [zlimit]})
         # 'status': [int(status)]})
@@ -1015,6 +1095,7 @@ class SNNSNMetric(BaseMetric):
                 zmax=self.zmax,
                 duration_z=durinterp_z,
                 survey_area=self.pixArea,
+                account_for_edges=False
             )
 
             # rate interpolation
@@ -1029,7 +1110,12 @@ class SNNSNMetric(BaseMetric):
             )
 
         nsn_cum = np.cumsum(effiInterp(zplot) * rateInterp(zplot))
-
+        if self.verbose:
+            print('zlim estimation ', self.pixArea, self.zlim_coeff)
+            print('season', duration_z[['z', 'season_length']])
+            print('effis', effiInterp(zplot))
+            print('rate', rateInterp(zplot))
+            print('nsn', nsn_cum)
         if nsn_cum[-1] >= 1.0e-5:
             nsn_cum_norm = nsn_cum / nsn_cum[-1]  # normalize
             zlim = interp1d(nsn_cum_norm, zplot)
@@ -1099,7 +1185,8 @@ class SNNSNMetric(BaseMetric):
         if np.size(idx) == 0:
             return 0
 
-        z_effi = np.array(zplot[idx], dtype={"names": ["z"], "formats": [float]})
+        z_effi = np.array(zplot[idx], dtype={
+            "names": ["z"], "formats": [float]})
         # from this make some "z-periods" to avoid accidental zdecrease at low z
         z_gap = 0.05
         seasoncalc = np.ones(z_effi.size, dtype=int)
@@ -1108,7 +1195,7 @@ class SNNSNMetric(BaseMetric):
 
         if len(flag) > 0:
             for i, indx in enumerate(flag):
-                seasoncalc[indx + 1 :] = i + 2
+                seasoncalc[indx + 1:] = i + 2
         z_effi = rf.append_fields(z_effi, "season", seasoncalc)
 
         # now take the highest season (end of the efficiency curve)
@@ -1168,7 +1255,6 @@ class SNNSNMetric(BaseMetric):
         idx = duration_z["season"] == season
         seas_duration_z = duration_z[idx]
 
-        # print('hhh1', seas_duration_z)
         durinterp_z = interp1d(
             seas_duration_z["z"],
             seas_duration_z["season_length"],
@@ -1185,7 +1271,8 @@ class SNNSNMetric(BaseMetric):
         )
 
         # rate interpolation
-        rateInterp = interp1d(zz, nsn, kind="linear", bounds_error=False, fill_value=0)
+        rateInterp = interp1d(zz, nsn, kind="linear",
+                              bounds_error=False, fill_value=0)
 
         # estimate the cumulated number of SN vs z
         nsn_cum = np.cumsum(effiInterp(zplot) * rateInterp(zplot))
@@ -1204,7 +1291,8 @@ class SNNSNMetric(BaseMetric):
                 color = grp["color"].unique()[0]
 
                 ax.plot(
-                    zplot, nsn_cum_norm, label="(x1,color)=({},{})".format(x1, color)
+                    zplot, nsn_cum_norm, label="(x1,color)=({},{})".format(
+                        x1, color)
                 )
 
                 ftsize = 15
@@ -1264,7 +1352,6 @@ class SNNSNMetric(BaseMetric):
         idx = duration_z["season"] == season
         seas_duration_z = duration_z[idx]
 
-        # print('hhh2', seas_duration_z)
         durinterp_z = interp1d(
             seas_duration_z["z"],
             seas_duration_z["season_length"],
@@ -1339,3 +1426,118 @@ class SNNSNMetric(BaseMetric):
         nsn = nsn_interp(zlim).item()
 
         return [nsn, 0.0]
+
+    def sumIt_nonight(self, grpa, tosum):
+        """
+        Method to estimate the sum of some of the group col
+        and also of the number of epochs before and after peak
+
+        Parameters
+        --------------
+        grpa: pandas df
+          pandas group to process
+        tosum: list(str)
+          list of the columns to sum
+
+        Returns
+        ----------
+        pandas df with the summed columns and the estimation of the number of epochs (n_bef and n_aft)
+
+        """
+
+        grp = pd.DataFrame(grpa)
+        grp = grp.reset_index()
+        grp = grp.sort_values(by=['time'])
+
+        gap = 12./24.  # in days
+        df_time = grp['time'].diff()
+        index = list((df_time[df_time > gap].index))
+        index.insert(0, grp.index.min())
+        index.insert(len(index), grp.index.max())
+        grp['epoch'] = 1
+
+        for i in range(0, len(index)-1):
+            grp.loc[index[i]: index[i+1], 'epoch'] = i+1
+
+        #grp = grp.sort_values(by=['epoch'])
+        idx = grp['phase'] <= 0
+        sel = grp[idx]
+
+        n_bef = len(grp[idx]['epoch'].unique())
+
+        idx = grp['phase'] >= 0
+        n_aft = len(grp[idx]['epoch'].unique())
+
+        sums = grpa[tosum].sum()
+        sums['n_bef'] = n_bef
+        sums['n_aft'] = n_aft
+
+        return sums
+
+    def sumIt(self, grp, tosum):
+        """
+        Method to estimate the sum of some of the group col
+        and also of the number of epochs before and after peak
+
+        Parameters
+        --------------
+        grp: pandas df
+          pandas group to process
+        tosum: list(str)
+          list of the columns to sum
+
+        Returns
+        ----------
+        pandas df with the summed columns and the estimation of the number of epochs (n_bef and n_aft)
+
+        """
+        sums = grp[tosum].sum()
+
+        grp['night'] = grp['time']-self.mjd_LSST_Start+1.
+        grp['night'] = grp['night'].astype(int)
+
+        grp = grp.sort_values(by=['night'])
+        idx = grp['phase'] <= 0
+        sel = grp[idx]
+
+        n_bef = len(grp[idx]['night'].unique())
+
+        idx = grp['phase'] >= 0
+        n_aft = len(grp[idx]['night'].unique())
+
+        sums['n_bef'] = n_bef
+        sums['n_aft'] = n_aft
+
+        return sums
+
+    def plotLC_debug(self, lc, daymax=60896.88112):
+        """
+        Method to plot LC for a given daymax (debug purpose)
+
+        Parameters
+        --------------
+        lc: pandas df
+          set of light curves
+        daymax: float, opt
+          T0 value (default: 60896.88112)
+
+        """
+        print('bands', np.unique(lc['band']))
+        ido = np.abs(lc['daymax']-daymax) < 1.e-5
+        ido &= np.abs(lc['x1']+2.0) < 1.e-5
+        ido &= lc['snr_m5'] >= 1
+        lcsel = lc[ido]
+        lcsel = lcsel.sort_values(by=['phase'])
+        print('light curve ',
+              lcsel[['phase', 'flux', 'band', 'daymax', 'snr_m5', 'time']])
+        """
+        for ir, row in lcsel.iterrows():
+            print(row['phase'], row['flux'],
+                  row['band'], row['night'], row['z'], row['x1'], row['daymax'])
+            print('light curve ',
+                  lcsel[['phase', 'flux', 'band', 'night', 'daymax']])
+        """
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots()
+        ax.plot(lcsel['phase'], lcsel['flux'], 'ko')
+        plt.show()
