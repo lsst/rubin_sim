@@ -1,6 +1,7 @@
 import os
 import warnings
 import subprocess
+import glob
 
 
 __all__ = ["get_data_dir", "data_versions", "get_baseline"]
@@ -26,10 +27,9 @@ def get_data_dir():
 def get_baseline():
     """Get the path to the baseline cadence simulation and the run name"""
     dd = get_data_dir()
-    path = os.path.join(dd, "sim_baseline", "baseline.db")
-    link = os.readlink(path)
-    final_path = os.path.join(dd, "sim_baseline", link)
-    return final_path
+    path = os.path.join(dd, "sim_baseline")
+    file = glob.glob(path + "/*10yrs.db")[0]
+    return file
 
 
 def data_versions():
