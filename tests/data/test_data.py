@@ -9,9 +9,8 @@ class DataTest(unittest.TestCase):
         Get the baseline sim location
         """
         data_dir = get_data_dir()
-        print(data_dir)
-        print(os.listdir(os.path.join(data_dir, "sim_baseline")))
-        baseline = get_baseline()
+        if "sim_baseline" in os.listdir(data_dir):
+            baseline = get_baseline()
         versions = data_versions()
 
 
