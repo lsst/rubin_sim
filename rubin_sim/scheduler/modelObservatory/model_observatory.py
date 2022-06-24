@@ -8,6 +8,7 @@ from rubin_sim.utils import (
     _approx_RaDec2AltAz,
     _angularSeparation,
     _approx_altaz2pa,
+    survey_start_mjd,
 )
 import rubin_sim.skybrightness_pre as sb
 import healpy as hp
@@ -38,7 +39,7 @@ class Model_observatory(object):
     def __init__(
         self,
         nside=None,
-        mjd_start=60218.0,
+        mjd_start=None,
         seed=42,
         alt_min=5.0,
         lax_dome=True,
@@ -53,8 +54,8 @@ class Model_observatory(object):
         ----------
         nside : int (None)
             The healpix nside resolution
-        mjd_start : float (60218)
-            The MJD to start the observatory up at. 60218 = Oct 1, 2023.
+        mjd_start : float (None)
+            The MJD to start the observatory up at. Uses util to lookup default if None.
         alt_min : float (5.)
             The minimum altitude to compute models at (degrees).
         lax_dome : bool (True)
@@ -79,7 +80,8 @@ class Model_observatory(object):
 
         self.alt_min = np.radians(alt_min)
         self.lax_dome = lax_dome
-
+        if mjd_start is None:
+            mjd_start = survey_start_mjd()
         self.mjd_start = mjd_start
 
         self.sim_ToO = sim_ToO
