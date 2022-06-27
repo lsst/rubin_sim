@@ -24,6 +24,7 @@ norm = 1.0 / (4.0 * np.pi)
 
 __all__ = [
     "LCfast",
+    "LCfast_new",
     "Throughputs",
     "Telescope",
     "Load_Reference",
@@ -240,7 +241,8 @@ class LCfast:
         for ia, vala in enumerate(self.param_Fisher):
             for jb, valb in enumerate(self.param_Fisher):
                 if jb >= ia:
-                    Derivative_for_Fisher[vala + valb] = dFlux[vala] * dFlux[valb]
+                    Derivative_for_Fisher[vala +
+                                          valb] = dFlux[vala] * dFlux[valb]
 
         # remove LC points outside the restframe phase range
         min_rf_phase = gen_par["min_rf_phase"][:, np.newaxis]
@@ -277,11 +279,13 @@ class LCfast:
 
         m5 = np.asarray([self.reference_lc.m5_ref[band]] * len(sel_obs))
 
-        gammaref = np.asarray([self.reference_lc.gamma_ref[band]] * len(sel_obs))
+        gammaref = np.asarray(
+            [self.reference_lc.gamma_ref[band]] * len(sel_obs))
 
         m5_tile = np.tile(m5, (len(p), 1))
 
-        srand_ref = self.srand(np.tile(gammaref, (len(p), 1)), mag_obs, m5_tile)
+        srand_ref = self.srand(
+            np.tile(gammaref, (len(p), 1)), mag_obs, m5_tile)
 
         srand_obs = self.srand(
             np.tile(gamma_obs, (len(p), 1)),
@@ -305,8 +309,10 @@ class LCfast:
 
         nvals = len(phases)
 
-        obs_time = np.ma.array(np.tile(sel_obs[self.mjdCol], (nvals, 1)), mask=~flag)
-        seasons = np.ma.array(np.tile(sel_obs[self.seasonCol], (nvals, 1)), mask=~flag)
+        obs_time = np.ma.array(
+            np.tile(sel_obs[self.mjdCol], (nvals, 1)), mask=~flag)
+        seasons = np.ma.array(
+            np.tile(sel_obs[self.seasonCol], (nvals, 1)), mask=~flag)
 
         z_vals = gen_par["z"][flag_idx[:, 0]]
         daymax_vals = gen_par["daymax"][flag_idx[:, 0]]
@@ -389,6 +395,428 @@ class LCfast:
         return np.sqrt((0.04 - gamma) * x + gamma * x**2)
 
 
+class LCfast_new:
+    """
+    class to simulate supernovae light curves in a fast way
+    The method relies on templates and broadcasting to increase speed
+
+    Parameters
+    ---------------
+    reference_lc: RegularGridData
+        lc reference files
+    x1: float
+      SN stretch
+    color: float
+      SN color
+    telescope: Telescope()
+      telescope for the study
+    mjdCol: str, opt
+      name of the MJD col in data to simulate (default: observationStartMJD)
+    RACol: str, opt
+      name of the RA col in data to simulate (default: fieldRA)
+    DecCol: str, opt
+       name of the Dec col in data to simulate (default: fieldDec)
+    filterCol: str, opt
+       name of the filter col in data to simulate (default: filter)
+    exptimeCol: str, opt
+      name of the exposure time  col in data to simulate (default: visitExposureTime)
+    m5Col: str, opt
+       name of the fiveSigmaDepth col in data to simulate (default: fiveSigmaDepth)
+    seasonCol: str, opt
+       name of the season col in data to simulate (default: season)
+    snr_min: float, opt
+       minimal Signal-to-Noise Ratio to apply on LC points (default: 5)
+    lightOutput: bool, opt
+        to get a lighter output (ie lower number of cols) (default: True)
+    bluecutoff: float,opt
+       blue cutoff for SN (default: 380.0 nm)
+    redcutoff: float, opt
+       red cutoff for SN (default: 800.0 nm)
+
+    """
+
+    def __init__(self, reference_lc, x1, color,
+                 telescope, mjdCol='observationStartMJD',
+                 RACol='fieldRA', DecCol='fieldDec',
+                 filterCol='filter', exptimeCol='visitExposureTime',
+                 m5Col='fiveSigmaDepth', seasonCol='season', nexpCol='numExposures', seeingCol='seeingFwhmEff',
+                 snr_min=5.,
+                 lightOutput=True,
+                 ebvofMW=-1.0,
+                 bluecutoff=380.0,
+                 redcutoff=800.0):
+
+        # grab all vals
+        self.RACol = RACol
+        self.DecCol = DecCol
+        self.filterCol = filterCol
+        self.mjdCol = mjdCol
+        self.m5Col = m5Col
+        self.exptimeCol = exptimeCol
+        self.seasonCol = seasonCol
+        self.nexpCol = nexpCol
+        self.seeingCol = seeingCol
+
+        self.x1 = x1
+        self.color = color
+        self.lightOutput = lightOutput
+        self.ebvofMW = ebvofMW
+
+        # Loading reference file
+        self.reference_lc = reference_lc
+
+        self.telescope = telescope
+
+        # This cutoffs are used to select observations:
+        # phase = (mjd - DayMax)/(1.+z)
+        # selection: min_rf_phase < phase < max_rf_phase
+        # and        blue_cutoff < mean_rest_frame < red_cutoff
+        # where mean_rest_frame = telescope.mean_wavelength/(1.+z)
+        self.blue_cutoff = bluecutoff
+        self.red_cutoff = redcutoff
+
+        # SN parameters for Fisher matrix estimation
+        self.param_Fisher = ['x0', 'x1', 'daymax', 'color']
+
+        self.snr_min = snr_min
+
+        # getting the telescope zp
+        self.zp = {}
+        for b in 'ugrizy':
+            self.zp[b] = telescope.zp(b)
+
+        """
+        test = np.array(['u','g','g'])
+        index = np.argwhere(zp['band'] == test[:,None])
+
+        print(index)
+        print(zp['zp'][index][:,1])
+        print(toto)
+        """
+
+    def __call__(self, obs, ebvofMW, gen_par=None, bands='grizy'):
+        """ Simulation of the light curve
+
+
+        Parameters
+        ----------------
+        obs: array
+         array of observations
+        ebvofMW: float
+           E(B-V) for MW
+        gen_par: array, opt
+         simulation parameters (default: None)
+        bands: str, opt
+          filters to consider for simulation (default: grizy)
+
+
+        Returns
+        ------------
+        astropy table with:
+        columns: band, flux, fluxerr, snr_m5,flux_e,zp,zpsys,time
+        metadata : SNID,RA,Dec,DayMax,X1,Color,z
+        """
+
+        if len(obs) == 0:
+            return None
+
+        # result in this df
+        tab_tot = pd.DataFrame()
+
+        # loop on the bands
+        for band in bands:
+            idx = obs[self.filterCol] == band
+            if len(obs[idx]) > 0:
+                resband = self.processBand(obs[idx], ebvofMW, band, gen_par)
+                tab_tot = tab_tot.append(resband, ignore_index=True)
+
+        # return produced LC
+        return tab_tot
+
+    def call_multiproc(self, obs, gen_par=None, bands='grizy'):
+        """ Simulation of the light curve
+        This method uses multiprocessing (one band per process) to increase speed
+
+        Parameters
+        ----------------
+        obs: array
+         array of observations
+        gen_par: array, opt
+         simulation parameters (default: None)
+        bands: str, opt
+          filters to consider for simulation (default: grizy)
+
+        Returns
+        ------------
+        astropy table with:
+        columns: band, flux, fluxerr, snr_m5,flux_e,zp,zpsys,time
+        metadata : SNID,RA,Dec,DayMax,X1,Color,z
+        """
+
+        ra = np.mean(obs[self.RACol])
+        dec = np.mean(obs[self.DecCol])
+
+        if len(obs) == 0:
+            return None
+
+        result_queue = multiprocessing.Queue()
+
+        tab_tot = pd.DataFrame()
+
+        # multiprocessing here: one process (processBand) per band
+        jproc = -1
+        for j, band in enumerate(bands):
+            idx = obs[self.filterCol] == band
+            # print('multiproc',band,j,len(obs[idx]))
+            if len(obs[idx]) > 0:
+                jproc += 1
+                p = multiprocessing.Process(name='Subprocess-'+str(
+                    j), target=self.processBand, args=(obs[idx], band, gen_par, jproc, result_queue))
+                p.start()
+
+        resultdict = {}
+        for j in range(jproc+1):
+            resultdict.update(result_queue.get())
+
+        for p in multiprocessing.active_children():
+            p.join()
+
+        for j in range(jproc+1):
+            if not resultdict[j].empty:
+                tab_tot = tab_tot.append(resultdict[j], ignore_index=True)
+
+        # return produced LC
+        return tab_tot
+
+    def processBand(self, sel_obs, ebvofMW, band, gen_par, j=-1, output_q=None):
+        """ LC simulation of a set of obs corresponding to a band
+        The idea is to use python broadcasting so as to estimate
+        all the requested values (flux, flux error, Fisher components, ...)
+        in a single path (i.e no loop!)
+
+        Parameters
+        ---------------
+        sel_obs: array
+         array of observations
+        band: str
+         band of observations
+        gen_par: array
+         simulation parameters
+        j: int, opt
+         index for multiprocessing (default: -1)
+        output_q: multiprocessing.Queue(),opt
+         queue for multiprocessing (default: None)
+
+
+        Returns
+        -------
+        astropy table with fields corresponding to LC components
+
+        """
+
+        # if there are no observations in this filter: return None
+        if len(sel_obs) == 0:
+            if output_q is not None:
+                output_q.put({j: None})
+            else:
+                return None
+
+        # Get the fluxes (from griddata reference)
+
+        # xi = MJD-T0
+        xi = sel_obs[self.mjdCol]-gen_par['daymax'][:, np.newaxis]
+
+        # yi = redshift simulated values
+        # requested to avoid interpolation problems near boundaries
+        yi = np.round(gen_par['z'], 4)
+        # yi = gen_par['z']
+
+        # p = phases of LC points = xi/(1.+z)
+        p = xi/(1.+yi[:, np.newaxis])
+        yi_arr = np.ones_like(p)*yi[:, np.newaxis]
+
+        # get fluxes
+        pts = (p, yi_arr)
+        fluxes_obs = self.reference_lc.flux[band](pts)
+
+        # Fisher components estimation
+
+        dFlux = {}
+
+        # loop on Fisher parameters
+        for val in self.param_Fisher:
+            dFlux[val] = self.reference_lc.param[band][val](pts)
+
+        # Fisher matrix components estimation
+        # loop on SN parameters (x0,x1,color)
+        # estimate: dF/dxi*dF/dxj
+        Derivative_for_Fisher = {}
+        for ia, vala in enumerate(self.param_Fisher):
+            for jb, valb in enumerate(self.param_Fisher):
+                if jb >= ia:
+                    Derivative_for_Fisher[vala +
+                                          valb] = dFlux[vala] * dFlux[valb]
+
+        flag = self.getFlag(sel_obs, gen_par, fluxes_obs, band, p)
+        flag_idx = np.argwhere(flag)
+
+        # now apply the flag to select LC points - masked arrays
+        fluxes = self.marray(fluxes_obs, flag)
+        phases = self.marray(p, flag)
+        z_vals = gen_par['z'][flag_idx[:, 0]]
+        daymax_vals = gen_par['daymax'][flag_idx[:, 0]]
+        Fisher_Mat = {}
+        for key, vals in Derivative_for_Fisher.items():
+            Fisher_Mat[key] = self.marray(vals, flag)
+
+        ndata = len(fluxes[~fluxes.mask])
+
+        if ndata <= 0:
+            return pd.DataFrame()
+
+        nvals = len(phases)
+        # masked - tile arrays
+
+        #sel_obs['healpixID'] = sel_obs['healpixID'].astype(int)
+
+        cols = [self.mjdCol, self.seasonCol, self.m5Col, self.exptimeCol,
+                self.nexpCol, self.seeingCol, 'night', 'healpixID', 'pixRA', 'pixDec']
+
+        # take columns common with obs cols
+        colcoms = set(cols).intersection(sel_obs.dtype.names)
+
+        masked_tile = {}
+        for vv in list(colcoms):
+            masked_tile[vv] = self.tarray(sel_obs[vv], nvals, flag)
+
+        # mag_obs = np.ma.array(mag_obs, mask=~flag)
+
+        # put data in a pandas df
+        lc = pd.DataFrame()
+
+        lc['flux'] = fluxes[~fluxes.mask]
+        lc['mag'] = -2.5*np.log10(lc['flux']/3631.)
+        lc['phase'] = phases[~phases.mask]
+        lc['band'] = ['LSST::'+band]*len(lc)
+        lc['zp'] = self.zp[band]
+        lc['zp'] = 2.5*np.log10(3631)
+        lc['zpsys'] = 'ab'
+        lc['z'] = z_vals
+        lc['daymax'] = daymax_vals
+
+        for key, vals in masked_tile.items():
+            lc[key] = vals[~vals.mask]
+
+        lc['time'] = lc[self.mjdCol]
+        lc.loc[:, 'x1'] = self.x1
+        lc.loc[:, 'color'] = self.color
+
+        # estimate errors
+        lc['flux_e_sec'] = self.reference_lc.mag_to_flux[band]((
+            lc['mag'], lc[self.exptimeCol]/lc[self.nexpCol], lc[self.nexpCol]))
+        lc['flux_5'] = 10**(-0.4*(lc[self.m5Col]-self.zp[band]))
+        lc['snr_m5'] = lc['flux_e_sec'] / \
+            np.sqrt((lc['flux_5']/5.)**2 +
+                    lc['flux_e_sec']/lc[self.exptimeCol])
+        lc['fluxerr_photo'] = lc['flux']/lc['snr_m5']
+        lc['magerr'] = (2.5/np.log(10.))/lc['snr_m5']
+        lc['fluxerr'] = lc['fluxerr_photo']
+
+        # Fisher matrix components
+        for key, vals in Fisher_Mat.items():
+            lc.loc[:, 'F_{}'.format(
+                key)] = vals[~vals.mask]/(lc['fluxerr_photo'].values**2)
+
+        lc.loc[:, 'n_aft'] = (np.sign(lc['phase']) == 1) & (
+            lc['snr_m5'] >= self.snr_min)
+        lc.loc[:, 'n_bef'] = (np.sign(lc['phase'])
+                              == -1) & (lc['snr_m5'] >= self.snr_min)
+
+        lc.loc[:, 'n_phmin'] = (lc['phase'] <= -5.)
+        lc.loc[:, 'n_phmax'] = (lc['phase'] >= 20)
+
+        # if len(lc) > 0.:
+        #    lc = self.dust_corrections(lc, ebvofMW)
+
+        if output_q is not None:
+            output_q.put({j: lc})
+        else:
+            return lc
+
+    def getFlag(self, sel_obs, gen_par, fluxes_obs, band, p):
+        """
+        Method to flag events corresponding to selection criteria
+
+        Parameters
+        ---------------
+        sel_obs: array
+          observations
+        gen_par: array
+           simulation parameters
+        fluxes_obs: array
+           LC fluxes
+        band: str
+          filter
+        p: array
+          LC phases
+        """
+        # remove LC points outside the restframe phase range
+        min_rf_phase = gen_par['minRFphase'][:, np.newaxis]
+        max_rf_phase = gen_par['maxRFphase'][:, np.newaxis]
+        flag = (p >= min_rf_phase) & (p <= max_rf_phase)
+
+        # remove LC points outside the (blue-red) range
+        mean_restframe_wavelength = np.array(
+            [self.telescope.mean_wavelength[band]]*len(sel_obs))
+        mean_restframe_wavelength = np.tile(
+            mean_restframe_wavelength, (len(gen_par), 1))/(1.+gen_par['z'][:, np.newaxis])
+        # flag &= (mean_restframe_wavelength > 0.) & (
+        #    mean_restframe_wavelength < 1000000.)
+        flag &= (mean_restframe_wavelength > self.blue_cutoff) & (
+            mean_restframe_wavelength < self.red_cutoff)
+
+        # remove points with neg flux
+        flag &= fluxes_obs > 1.e-10
+
+        return flag
+
+    def marray(self, val, flag):
+        """
+        method to estimate a masked array
+
+        Parameters
+        ---------------
+        val: array
+        flag: mask
+
+        Returns
+        ----------
+        the masked array
+
+        """
+        return np.ma.array(val, mask=~flag)
+
+    def tarray(self, arr, nvals, flag):
+        """
+        method to estimate a masked tiled array
+
+        Parameters
+        ---------------
+        val: array
+        nvals: int
+          number of tiles
+        flag: mask
+
+        Returns
+        ----------
+        the masked tiled array
+
+        """
+
+        vv = np.ma.array(np.tile(arr, (nvals, 1)), mask=~flag)
+        return vv
+
+
 class Throughputs(object):
     """class to handle instrument throughput
 
@@ -431,8 +859,10 @@ class Throughputs(object):
     def __init__(self, **kwargs):
 
         params = {}
-        params["through_dir"] = os.path.join(get_data_dir(), "throughputs", "baseline")
-        params["atmos_dir"] = os.path.join(get_data_dir(), "throughputs", "atmos")
+        params["through_dir"] = os.path.join(
+            get_data_dir(), "throughputs", "baseline")
+        params["atmos_dir"] = os.path.join(
+            get_data_dir(), "throughputs", "atmos")
         params["atmos"] = True
         params["aerosol"] = True
         params["telescope_files"] = [
@@ -465,14 +895,16 @@ class Throughputs(object):
         self.throughputsDir = params["through_dir"]
 
         self.telescope_files = params["telescope_files"]
-        self.filter_files = ["filter_" + f + ".dat" for f in params["filterlist"]]
+        self.filter_files = ["filter_" + f +
+                             ".dat" for f in params["filterlist"]]
         if "filter_files" in kwargs.keys():
             self.filter_files = kwargs["filter_files"]
         self.wave_min = params["wave_min"]
         self.wave_max = params["wave_max"]
 
         self.filterlist = params["filterlist"]
-        self.filtercolors = {"u": "b", "g": "c", "r": "g", "i": "y", "z": "r", "y": "m"}
+        self.filtercolors = {"u": "b", "g": "c",
+                             "r": "g", "i": "y", "z": "r", "y": "m"}
 
         self.lsst_std = {}
         self.lsst_system = {}
@@ -517,7 +949,8 @@ class Throughputs(object):
             self.lsst_system[f] = Bandpass()
 
             if len(self.telescope_files) > 0:
-                index = [i for i, x in enumerate(self.filter_files) if f + ".dat" in x]
+                index = [i for i, x in enumerate(
+                    self.filter_files) if f + ".dat" in x]
                 telfiles = self.telescope_files + [self.filter_files[index[0]]]
             else:
                 telfiles = self.filter_files
@@ -531,7 +964,8 @@ class Throughputs(object):
     def Load_DarkSky(self):
         """Load DarkSky"""
         self.darksky = Sed()
-        self.darksky.readSED_flambda(os.path.join(self.throughputsDir, "darksky.dat"))
+        self.darksky.readSED_flambda(os.path.join(
+            self.throughputsDir, "darksky.dat"))
 
     def Load_Atmosphere(self, airmass=1.2):
         """Load atmosphere files
@@ -551,10 +985,12 @@ class Throughputs(object):
             )
             if os.path.exists(path_atmos):
                 atmosphere.readThroughput(
-                    os.path.join(self.atmosDir, "atmos_%d.dat" % (self.airmass * 10))
+                    os.path.join(self.atmosDir, "atmos_%d.dat" %
+                                 (self.airmass * 10))
                 )
             else:
-                atmosphere.readThroughput(os.path.join(self.atmosDir, "atmos.dat"))
+                atmosphere.readThroughput(
+                    os.path.join(self.atmosDir, "atmos.dat"))
             self.atmos = Bandpass(wavelen=atmosphere.wavelen, sb=atmosphere.sb)
 
             for f in self.filterlist:
@@ -567,7 +1003,8 @@ class Throughputs(object):
                 atmosphere_aero = Bandpass()
                 atmosphere_aero.readThroughput(
                     os.path.join(
-                        self.atmosDir, "atmos_%d_aerosol.dat" % (self.airmass * 10)
+                        self.atmosDir, "atmos_%d_aerosol.dat" % (
+                            self.airmass * 10)
                     )
                 )
                 self.atmos_aerosol = Bandpass(
@@ -578,7 +1015,8 @@ class Throughputs(object):
                     wavelen, sb = self.lsst_system[f].multiplyThroughputs(
                         atmosphere_aero.wavelen, atmosphere_aero.sb
                     )
-                    self.lsst_atmos_aerosol[f] = Bandpass(wavelen=wavelen, sb=sb)
+                    self.lsst_atmos_aerosol[f] = Bandpass(
+                        wavelen=wavelen, sb=sb)
         else:
             for f in self.filterlist:
                 self.lsst_atmos[f] = self.lsst_system[f]
@@ -680,7 +1118,8 @@ class Telescope(Throughputs):
         for par in params:
             self.data[par] = {}
 
-        self.data["FWHMeff"] = dict(zip("ugrizy", [0.92, 0.87, 0.83, 0.80, 0.78, 0.76]))
+        self.data["FWHMeff"] = dict(
+            zip("ugrizy", [0.92, 0.87, 0.83, 0.80, 0.78, 0.76]))
 
         # self.atmos = atmos
 
@@ -908,7 +1347,8 @@ class Telescope(Throughputs):
             wavelen = sed.wavelen
             fnu = sed.fnu
         # Make sure wavelen/fnu are on the same wavelength grid as bandpass.
-        wavelen, fnu = sed.resampleSED(wavelen, fnu, wavelen_match=bandpass.wavelen)
+        wavelen, fnu = sed.resampleSED(
+            wavelen, fnu, wavelen_match=bandpass.wavelen)
 
         # Calculate the number of photons.
         nphoton = (fnu / wavelen * bandpass.sb).sum()
@@ -1006,7 +1446,8 @@ class Telescope(Throughputs):
             flux0 = sed.calcFluxNorm(mag, self.atmosphere[band])
             sed.multiplyFluxNorm(flux0)
             photParams = PhotometricParameters(nexp=exptime / 15.0)
-            counts = sed.calcADU(bandpass=self.atmosphere[band], photParams=photParams)
+            counts = sed.calcADU(
+                bandpass=self.atmosphere[band], photParams=photParams)
             e_per_sec = counts
             e_per_sec /= exptime / photParams.gain
             # print('hello',photParams.gain,exptime)
@@ -1049,7 +1490,7 @@ class Telescope(Throughputs):
             )
 
 
-def load_sne_cached():
+def load_sne_cached(gammaName='gamma_WFD.hdf5'):
     """Load up the SNe files with a simple function that caches the result so each metric
     doesn't need to load it on it's own
     """
@@ -1057,7 +1498,7 @@ def load_sne_cached():
     if hasattr(load_sne_cached, "data"):
         return load_sne_cached.data
     else:
-        ref = Load_Reference().ref
+        ref = Load_Reference(gammaName=gammaName).ref
         load_sne_cached.data = ref
         return ref
 
@@ -1077,7 +1518,7 @@ class Load_Reference:
     """
 
     def __init__(
-        self, server="https://me.lsst.eu/gris/DESC_SN_pipeline", templateDir=None
+            self, server="https://me.lsst.eu/gris/DESC_SN_pipeline", templateDir=None, gammaName='gamma_WFD.hdf5'
     ):
 
         if templateDir is None:
@@ -1107,11 +1548,12 @@ class Load_Reference:
         if not os.path.isdir(templateDir):
             os.system("mkdir {}".format(templateDir))
 
-        list_files = ["gamma.hdf5"]
+        list_files = [gammaName]
         for j in range(len(x1_colors)):
             x1 = x1_colors[j][0]
             color = x1_colors[j][1]
-            fname = "LC_{}_{}_380.0_800.0_ebvofMW_0.0_vstack.hdf5".format(x1, color)
+            fname = "LC_{}_{}_380.0_800.0_ebvofMW_0.0_vstack.hdf5".format(
+                x1, color)
             list_files += [fname]
 
         self.check_grab(templateDir, list_files)
@@ -1207,7 +1649,8 @@ class GetReference:
     """
 
     def __init__(
-        self, lcName, gammaName, tel_par, param_Fisher=["x0", "x1", "color", "daymax"]
+        self, lcName, gammaName, tel_par, param_Fisher=[
+            "x0", "x1", "color", "daymax"]
     ):
 
         # Load the file - lc reference
@@ -1249,6 +1692,7 @@ class GetReference:
         self.gamma = {}
         self.m5_ref = {}
         self.mag_to_flux_e_sec = {}
+        self.mag_to_flux = {}
 
         self.flux = {}
         self.fluxerr = {}
@@ -1319,7 +1763,8 @@ class GetReference:
             # Flux derivatives
             self.param[band] = {}
             for par in param_Fisher:
-                valpar = np.reshape(lc_sel[index]["d{}".format(par)], (npha, nz))
+                valpar = np.reshape(
+                    lc_sel[index]["d{}".format(par)], (npha, nz))
                 self.param[band][par] = RegularGridInterpolator(
                     (phav, zv),
                     valpar,
@@ -1333,10 +1778,12 @@ class GetReference:
             rec = Table.read(gammaName, path="gamma_{}".format(band))
 
             rec["mag"] = rec["mag"].data.round(decimals=4)
-            rec["single_exptime"] = rec["single_exptime"].data.round(decimals=4)
+            rec["single_exptime"] = rec["single_exptime"].data.round(
+                decimals=4)
 
             magmin, magmax, magstep, nmag = self.limVals(rec, "mag")
-            expmin, expmax, expstep, nexpo = self.limVals(rec, "single_exptime")
+            expmin, expmax, expstep, nexpo = self.limVals(
+                rec, "single_exptime")
             nexpmin, nexpmax, nexpstep, nnexp = self.limVals(rec, "nexp")
             mag = np.linspace(magmin, magmax, nmag)
             exp = np.linspace(expmin, expmax, nexpo)
@@ -1354,10 +1801,10 @@ class GetReference:
                 bounds_error=False,
                 fill_value=0.0,
             )
-            """
+
             self.mag_to_flux[band] = RegularGridInterpolator(
                 (mag, exp, nexp), fluxb, method='linear', bounds_error=False, fill_value=0.)
-
+            """
             
             print('hello', rec.columns)
             rec['mag'] = rec['mag'].data.round(decimals=4)
@@ -1617,7 +2064,8 @@ class SN_Rate:
         dvol = dvol[1:] - dvol[:-1]
 
         if account_for_edges:
-            margin = (1.0 + zz) * (self.max_rf_phase - self.min_rf_phase) / 365.25
+            margin = (1.0 + zz) * (self.max_rf_phase -
+                                   self.min_rf_phase) / 365.25
             effective_duration = duration / 365.25 - margin
             effective_duration[effective_duration <= 0.0] = 0.0
         else:
