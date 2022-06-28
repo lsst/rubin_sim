@@ -4,17 +4,17 @@ import os
 import argparse
 import numpy as np
 
-import rubin_sim.maf.db as db
-import rubin_sim.maf.metricBundles as mmb
-import rubin_sim.maf.batches as batches
-
-"""Calculate metric values for an input population. Can be used on either a split or complete population.
-If running on a split population for later re-combining, use the complete set of orbits as the 
-'orbitFile'. Assumes you have already created the moving object observation files.
-"""
+from . import db as db
+from . import metricBundles as mmb
+from . import batches as batches
 
 
-if __name__ == "__main__":
+def run_moving_calc():
+    """Calculate metric values for an input population. Can be used on either
+    a split or complete population. If running on a split population for later
+    re-combining, use the complete set of orbits as the 'orbitFile'. Assumes
+    you have already created the moving object observation files.
+    """
 
     parser = argparse.ArgumentParser(
         description="Run moving object metrics for a particular opsim run."

@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-from rubin_sim.data import get_data_dir, data_versions
-from shutil import unpack_archive, rmtree
 import os
 import warnings
 import requests
 import argparse
+
+from shutil import unpack_archive, rmtree
+
+from .data_sets import get_data_dir, data_versions
 
 
 def data_dict():
@@ -28,7 +30,8 @@ def data_dict():
     return file_dict
 
 
-if __name__ == "__main__":
+def rs_download_data():
+    """Download data."""
 
     files = data_dict()
     parser = argparse.ArgumentParser(
