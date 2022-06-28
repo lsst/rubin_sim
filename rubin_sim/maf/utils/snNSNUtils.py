@@ -4,7 +4,7 @@ from rubin_sim.photUtils import Bandpass, Sed
 from rubin_sim.data import get_data_dir
 
 import numpy as np
-from scipy.constants import *
+from scipy.constants import h
 from functools import wraps
 import os
 import h5py
@@ -180,7 +180,6 @@ class LCfast:
         """
 
         # method used for interpolation
-        method = "linear"
         interpType = "regular"
 
         # if there are no observations in this filter: return None
@@ -558,9 +557,6 @@ class LCfast_new:
         columns: band, flux, fluxerr, snr_m5,flux_e,zp,zpsys,time
         metadata : SNID,RA,Dec,DayMax,X1,Color,z
         """
-
-        ra = np.mean(obs[self.RACol])
-        dec = np.mean(obs[self.DecCol])
 
         if len(obs) == 0:
             return None
@@ -1156,8 +1152,6 @@ class Telescope(Throughputs):
             None, None, None
         )
 
-        bandpass = Bandpass(wavelen=filter_trans.wavelen, sb=filter_trans.sb)
-
         flatSedb = Sed()
         flatSedb.setFlatSED(wavelen_min, wavelen_max, wavelen_step)
         flux0b = np.power(10.0, -0.4 * self.mag_sky(band))
@@ -1669,7 +1663,6 @@ class GetReference:
         # Load the file - lc reference
 
         f = h5py.File(lcName, "r")
-        keys = list(f.keys())
         # lc_ref_tot = Table.read(filename, path=keys[0])
         lc_ref_tot = Table.from_pandas(pd.read_hdf(lcName))
 
@@ -1696,8 +1689,6 @@ class GetReference:
                 "ugrizy", telescope, gammaName, mag_range=mag_range, exptimes=exptimes
             )
             print("end of gamma estimation")
-
-        fgamma = h5py.File(gammaName, "r")
 
         # Load references needed for the following
         self.lc_ref = {}
@@ -2069,7 +2060,6 @@ class SN_Rate:
             thebins = bins
 
         rate, err_rate = self.SNRate(zz)
-        error_rel = err_rate / rate
 
         area = survey_area / STERADIAN2SQDEG
         # or area= self.survey_area/41253.
@@ -2154,7 +2144,7 @@ class SN_Rate:
 
         rate = 2.6e-5
         expn = 1.5
-        err_rate = 0.01
+        # err_rate = 0.01
         err_expn = 0.6
         my_z = np.copy(z)
         my_z[my_z > 1.0] = 1.0

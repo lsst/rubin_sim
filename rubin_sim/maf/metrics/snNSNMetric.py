@@ -1,8 +1,7 @@
 import numpy as np
 from rubin_sim.maf.metrics import BaseMetric
-from rubin_sim.maf.utils.snNSNUtils import SN_Rate, CovColor
+from rubin_sim.maf.utils.snNSNUtils import SN_Rate
 from rubin_sim.maf.utils.snNSNUtils import load_sne_cached, Telescope, LCfast_new
-import time
 import pandas as pd
 from scipy.interpolate import interp1d
 import numpy.lib.recfunctions as nlr
@@ -618,7 +617,6 @@ class SNNSNMetric(BaseMetric):
         deltaT = lcarr["daymax"] - T0s[:, np.newaxis]
 
         flag = np.abs(deltaT) < 1.0e-5
-        flag_idx = np.argwhere(flag)
 
         resdf = pd.DataFrame(T0s, columns=["daymax"])
 
@@ -732,7 +730,6 @@ class SNNSNMetric(BaseMetric):
         Big_Diag = []
 
         for iv in range(size):
-            Fisher_Matrix = np.zeros((npar, npar))
             for ia, vala in enumerate(self.params):
                 for jb, valb in enumerate(self.params):
                     if jb >= ia:
