@@ -7,11 +7,8 @@ from rubin_sim.maf.metrics import SNSNRMetric
 from rubin_sim.maf.metrics import SNSLMetric
 from rubin_sim.maf.metrics import SNNSNMetric
 from rubin_sim.data import get_data_dir
-
 import os
 import warnings
-import healpy as hp
-import time
 
 m5_ref = dict(zip("ugrizy", [23.60, 24.83, 24.38, 23.92, 23.35, 22.44]))
 
@@ -377,27 +374,19 @@ class TestSNmetrics(unittest.TestCase):
 
             # this is to mimic healpixilization
             nside = 128
-            area = hp.nside2pixarea(nside, degrees=True)
+            slicePoint = {"nside": nside}
+
             # metric instance
-            templateDir = None
-            metric = SNNSNMetric(
-                pixArea=area,
-                season=[-1],
-                verbose=False,
-                templateDir=templateDir,
-                dust=False,
-            )
+            metric = SNNSNMetric(season=[-1], verbose=False)
 
-            time_ref = time.time()
-
-            res = metric.run(data)
+            res = metric.run(data, slicePoint=slicePoint)
 
             nSN = res["nSN"].item()
             zlim = res["zlim"].item()
 
             # print(time.time()-time_ref, nSN, zlim)
-            nSN_ref = 2.523
-            zlim_ref = 0.65
+            nSN_ref = 2.04949  # 2.523, old value
+            zlim_ref = 0.617285  # 0.65, old value
 
             assert np.isclose(nSN, nSN_ref)
             assert np.isclose(zlim, zlim_ref)
