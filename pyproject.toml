@@ -11,10 +11,10 @@ classifiers = [
     "License :: OSI Approved ::  GNU General Public License v3 or later (GPLv3+)",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.10",
     "Topic :: Scientific/Engineering :: Astronomy",
  ]
-urls = {documentation = "https://jira.lsstcorp.org/secure/Dashboard.jspa", repository = "https://github.com/lsst/rubin_sim" }
+urls = {documentation = "https://rubin-sim.lsst.io", repository = "https://github.com/lsst/rubin_sim" }
 dynamic = [ "version" ]
 
 [project.scripts]
@@ -27,14 +27,11 @@ generate_ss = "rubin_sim.maf.generate_ss:generate_ss"
 glance_dir = "rubin_sim.maf.glance_dir:glance_dir"
 maf_night_report = "rubin_sim.maf.maf_night_report:maf_night_report"
 metadata_dir = "rubin_sim.maf.metadata_dir:metadata_dir"
-resultdb_combine = "rubin_sim.maf.runComparison.resultdb_combine:resultdb_combine"
 run_moving_calc = "rubin_sim.maf.run_moving_calc:run_moving_calc"
 run_moving_fractions = "rubin_sim.maf.run_moving_fractions:run_moving_fractions"
 run_moving_join = "rubin_sim.maf.batches.run_moving_join:run_moving_join"
 scimaf_dir = "rubin_sim.maf.scimaf_dir:scimaf_dir"
 showMaf = "rubin_sim.maf.show_maf:showMaf"
-addSeds = "rubin_sim.movingObjects.add_seds:add_seds"
-generateCoefficients = "rubin_sim.movingObjects.generate_coefficients:generate_coefficients"
 makeLSSTobs = "rubin_sim.movingObjects.make_lsst_obs:make_lsst_obs"
 
 [project.optional-dependencies]
