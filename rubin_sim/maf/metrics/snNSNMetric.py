@@ -96,7 +96,7 @@ class SNNSNMetric(BaseMetric):
         sigmaC=0.04,
         zlim_coeff=0.95,
         bands="grizy",
-        gammaName="gamma.hdf5",
+        gammaName="gamma_WFD.hdf5",
         **kwargs
     ):
 
@@ -201,7 +201,7 @@ class SNNSNMetric(BaseMetric):
         self.params = ["x0", "x1", "daymax", "color"]
 
         # bad pixel
-        self.bad = np.rec.fromrecords([(0., 0.)], names=["nSN", "zlim"])
+        self.bad = np.rec.fromrecords([(0.0, 0.0)], names=["nSN", "zlim"])
 
     def run(self, dataSlice, slicePoint=None):
         """
@@ -221,7 +221,6 @@ class SNNSNMetric(BaseMetric):
         idarray = None
 
         # get slicePoint infos
-        self.pixArea = 9.6  # by default: 9.6 deg2
         if slicePoint is not None and "nside" in slicePoint.keys():
             idarray = np.rec.fromrecords(
                 list(slicePoint.values()), names=list(slicePoint.keys())
@@ -401,6 +400,11 @@ class SNNSNMetric(BaseMetric):
         sn_effis["effi_err"] = (
             np.sqrt(sn_effis["nsel"] * (1.0 - sn_effis["effi"])) / sn_effis["ntot"]
         )
+
+        # prevent NaNs, set effi to 0 where there is 0 ntot
+        zero = np.where(sn_effis["ntot"] == 0)
+        sn_effis["effi"].values[zero] = 0
+        sn_effis["effi_err"].values[zero] = 0
 
         if self.ploteffi:
             from sn_metrics.sn_plot_live import plotNSN_effi
@@ -983,8 +987,6 @@ class SNNSNMetric(BaseMetric):
         """
 
         # check whether season has already been estimated
-        import numpy.lib.recfunctions as rf
-
         obs.sort(order=mjdCol)
 
         seasoncalc = np.ones(obs.size, dtype=int)
@@ -997,7 +999,7 @@ class SNNSNMetric(BaseMetric):
                 for i, indx in enumerate(flag):
                     seasoncalc[indx + 1 :] = i + 2
 
-        obs = rf.append_fields(obs, "season", seasoncalc)
+        obs = nlr.append_fields(obs, "season", seasoncalc)
 
         return obs
 

@@ -370,8 +370,6 @@ class TestSNmetrics(unittest.TestCase):
                 else:
                     data = np.concatenate((data, dat))
 
-            # print('data generated', len(data))
-
             # this is to mimic healpixilization
             nside = 128
             slicePoint = {"nside": nside}
@@ -384,9 +382,8 @@ class TestSNmetrics(unittest.TestCase):
             nSN = res["nSN"].item()
             zlim = res["zlim"].item()
 
-            # print(time.time()-time_ref, nSN, zlim)
-            nSN_ref = 2.04949  # 2.523, old value
-            zlim_ref = 0.617285  # 0.65, old value
+            nSN_ref = 0.013257  # 2.04949  # 2.523, old value with nside=128
+            zlim_ref = 0.107721  # 0.617285  # 0.65, old value
 
             assert np.isclose(nSN, nSN_ref)
             assert np.isclose(zlim, zlim_ref)
