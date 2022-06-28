@@ -97,7 +97,7 @@ class SNNSNMetric(BaseMetric):
         sigmaC=0.04,
         zlim_coeff=0.95,
         bands="grizy",
-        gammaName="gamma_WFD.hdf5",
+        gammaName="gamma.hdf5",
         **kwargs
     ):
 
@@ -202,7 +202,7 @@ class SNNSNMetric(BaseMetric):
         self.params = ["x0", "x1", "daymax", "color"]
 
         # bad pixel
-        self.bad = np.rec.fromrecords([(-1.0, -1.0)], names=["nSN", "zlim"])
+        self.bad = np.rec.fromrecords([(0., 0.)], names=["nSN", "zlim"])
 
     def run(self, dataSlice, slicePoint=None):
         """
@@ -301,13 +301,9 @@ class SNNSNMetric(BaseMetric):
         if len(selmet) > 0:
             zcomp = selmet["zcomp"].median()
             nSN = selmet["nsn"].sum()
-
-            resd = np.rec.fromrecords([(nSN, zcomp)], names=["nSN", "zlim"])
-            res = nlr.merge_arrays([idarray, resd], flatten=True)
-
+            res = np.rec.fromrecords([(nSN, zcomp)], names=["nSN", "zlim"])
         else:
-
-            res = nlr.merge_arrays([idarray, self.bad], flatten=True)
+            res = self.bad
 
         if self.verbose:
             print("final result", res)
@@ -401,9 +397,7 @@ class SNNSNMetric(BaseMetric):
         )
 
         # estimate efficiencies
-        # for vv in ['healpixID', 'season']:
-        for vv in ["season"]:
-            sn_effis[vv] = sn_effis[vv].astype(int)
+        sn_effis["season"] = sn_effis["season"].astype(int)
         sn_effis["effi"] = sn_effis["nsel"] / sn_effis["ntot"]
         sn_effis["effi_err"] = (
             np.sqrt(sn_effis["nsel"] * (1.0 - sn_effis["effi"])) / sn_effis["ntot"]
@@ -1009,3 +1003,18 @@ class SNNSNMetric(BaseMetric):
         obs = rf.append_fields(obs, "season", seasoncalc)
 
         return obs
+
+    def reducenSN(self, metricVal):
+
+        # At each slicepoint, return the sum nSN value.
+
+        return np.sum(metricVal["nSN"])
+
+    def reducezlim(self, metricVal):
+
+        # At each slicepoint, return the median zlim
+        result = np.median(metricVal["zlim"])
+        if result < 0:
+            result = self.badval
+
+        return result

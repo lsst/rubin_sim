@@ -1502,7 +1502,7 @@ class Telescope(Throughputs):
             )
 
 
-def load_sne_cached(gammaName="gamma_WFD.hdf5"):
+def load_sne_cached(gammaName="gamma.hdf5"):
     """Load up the SNe files with a simple function that caches the result so each metric
     doesn't need to load it on it's own
     """
@@ -1533,7 +1533,7 @@ class Load_Reference:
         self,
         server="https://me.lsst.eu/gris/DESC_SN_pipeline",
         templateDir=None,
-        gammaName="gamma_WFD.hdf5",
+        gammaName="gamma.hdf5",
     ):
 
         if templateDir is None:
@@ -1573,7 +1573,7 @@ class Load_Reference:
         self.check_grab(templateDir, list_files)
 
         # gamma_reference
-        self.gamma_reference = "{}/gamma.hdf5".format(templateDir)
+        self.gamma_reference = os.path.join(templateDir, gammaName)
 
         # print('Loading reference files')
 
