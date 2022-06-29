@@ -490,32 +490,42 @@ class Conditions(object):
         output = StringIO()
         print(f"{self.__class__.__qualname__} at {hex(id(self))}", file=output)
         print("============================", file=output)
-        print("nside: ", self.nside, file=output)
-        print("site: ", self.site.name, file=output)
-        print("exptime: ", self.exptime, file=output)
-        print("lmst: ", self.lmst, file=output)
-        print("season_offset: ", self.season_offset, file=output)
-        print("sun_RA_start: ", self.sun_RA_start, file=output)
-        print("clouds: ", self.clouds, file=output)
-        print("current_filter: ", self.current_filter, file=output)
-        print("mounted_filters: ", self.mounted_filters, file=output)
-        print("night: ", self.night, file=output)
-        print("wind_speed: ", self.wind_speed, file=output)
-        print("wind_direction: ", self.wind_direction, file=output)
+        print("nside: ", self.nside, "  ", file=output)
+        print("site: ", self.site.name, "  ", file=output)
+        print("exptime: ", self.exptime, "  ", file=output)
+        print("lmst: ", self.lmst, "  ", file=output)
+        print("season_offset: ", self.season_offset, "  ", file=output)
+        print("sun_RA_start: ", self.sun_RA_start, "  ", file=output)
+        print("clouds: ", self.clouds, "  ", file=output)
+        print("current_filter: ", self.current_filter, "  ", file=output)
+        print("mounted_filters: ", self.mounted_filters, "  ", file=output)
+        print("night: ", self.night, "  ", file=output)
+        print("wind_speed: ", self.wind_speed, "  ", file=output)
+        print("wind_direction: ", self.wind_direction, "  ", file=output)
         print(
             "len(scheduled_observations): ",
             len(self.scheduled_observations),
+            "  ",
             file=output,
         )
-        print("len(queue): ", len(self.queue), file=output)
-        print("moonPhase: ", self.moonPhase, file=output)
-        print("bulk_cloud: ", self.bulk_cloud, file=output)
-        print("targets_of_opportunity: ", self.targets_of_opportunity, file=output)
-        print("season_modulo: ", self.season_modulo, file=output)
-        print("season_max_season: ", self.season_max_season, file=output)
-        print("season_length: ", self.season_length, file=output)
-        print("season_floor: ", self.season_floor, file=output)
-        print("cumulative_azimuth_rad: ", self.cumulative_azimuth_rad, file=output)
+        print(
+            "len(queue): ",
+            None if self.queue is None else len(self.queue),
+            "  ",
+            file=output,
+        )
+        print("moonPhase: ", self.moonPhase, "  ", file=output)
+        print("bulk_cloud: ", self.bulk_cloud, "  ", file=output)
+        print(
+            "targets_of_opportunity: ", self.targets_of_opportunity, "  ", file=output
+        )
+        print("season_modulo: ", self.season_modulo, "  ", file=output)
+        print("season_max_season: ", self.season_max_season, "  ", file=output)
+        print("season_length: ", self.season_length, "  ", file=output)
+        print("season_floor: ", self.season_floor, "  ", file=output)
+        print(
+            "cumulative_azimuth_rad: ", self.cumulative_azimuth_rad, "  ", file=output
+        )
 
         positions = [
             {
@@ -581,9 +591,13 @@ class Conditions(object):
         )
         event_rows = []
         for event in events:
-            mjd = getattr(self, event)
-            time = pd.to_datetime(mjd + 2400000.5, unit="D", origin="julian")
-            event_rows.append({"event": event, "MJD": mjd, "date": time})
+            try:
+                mjd = getattr(self, event)
+                time = pd.to_datetime(mjd + 2400000.5, unit="D", origin="julian")
+                event_rows.append({"event": event, "MJD": mjd, "date": time})
+            except AttributeError:
+                pass
+
         event_df = pd.DataFrame(event_rows).set_index("event").sort_values(by="MJD")
         print("", file=output)
         print("Events", file=output)
