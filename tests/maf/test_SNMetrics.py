@@ -306,7 +306,7 @@ class TestSNmetrics(unittest.TestCase):
             data["filter"] = band
 
             # Run the metric with these fake data
-            slicePoint = {"nside": 64}
+            slicePoint = {"nside": 64, "ebv": 0.0}
             metric = SNSNRMetric(
                 lim_sn=lim_sn, coadd=coadd, names_ref=names_ref, season=season, z=z
             )
@@ -372,7 +372,7 @@ class TestSNmetrics(unittest.TestCase):
 
             # this is to mimic healpixilization
             nside = 128
-            slicePoint = {"nside": nside}
+            slicePoint = {"nside": nside, "ebv": 0.0}
 
             # metric instance
             metric = SNNSNMetric(season=[-1], verbose=False)

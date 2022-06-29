@@ -6,6 +6,7 @@ import pandas as pd
 from scipy.interpolate import interp1d
 import numpy.lib.recfunctions as nlr
 import healpy as hp
+from rubin_sim.photUtils import Dust_values
 
 __all__ = ["SNNSNMetric"]
 
@@ -96,6 +97,8 @@ class SNNSNMetric(BaseMetric):
         sigmaC=0.04,
         zlim_coeff=0.95,
         bands="grizy",
+        dust=True,
+        hard_dust_cut=None,
         gammaName="gamma_WFD.hdf5",
         **kwargs
     ):
@@ -117,6 +120,12 @@ class SNNSNMetric(BaseMetric):
         self.T0s = "all"
         self.zlim_coeff = zlim_coeff
         self.bands = bands
+        self.dust = dust
+        self.hard_dust_cut = hard_dust_cut
+
+        maps = ["DustMap"]
+        dust_properties = Dust_values()
+        self.Ax1 = dust_properties.Ax1
 
         cols = [
             self.nightCol,
@@ -130,7 +139,7 @@ class SNNSNMetric(BaseMetric):
         ]
 
         super(SNNSNMetric, self).__init__(
-            col=cols, metricDtype="object", metricName=metricName, **kwargs
+            col=cols, metricDtype="object", metricName=metricName, maps=maps, **kwargs
         )
 
         self.season = season
@@ -201,7 +210,7 @@ class SNNSNMetric(BaseMetric):
         self.params = ["x0", "x1", "daymax", "color"]
 
         # bad pixel
-        self.bad = np.rec.fromrecords([(0.0, 0.0)], names=["nSN", "zlim"])
+        self.badval = np.rec.fromrecords([(0.0, 0.0)], names=["nSN", "zlim"])
 
     def run(self, dataSlice, slicePoint=None):
         """
@@ -218,23 +227,27 @@ class SNNSNMetric(BaseMetric):
         ----------
 
         """
-        idarray = None
 
         # get slicePoint infos
         if slicePoint is not None and "nside" in slicePoint.keys():
-            idarray = np.rec.fromrecords(
-                list(slicePoint.values()), names=list(slicePoint.keys())
-            )
             self.pixArea = hp.nside2pixarea(slicePoint["nside"], degrees=True)
         else:
             ValueError("No slicePoint given")
 
-        # dust
-        ebvofMW = 0.0
-        if "ebv" in slicePoint.keys():
+        # If we want to apply dust extinction.
+        if self.dust:
+            new_m5 = dataSlice[self.m5Col] * 0
+            for filtername in np.unique(dataSlice[self.filterCol]):
+                in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
+                A_x = self.Ax1[filtername] * slicePoint["ebv"]
+                new_m5[in_filt] = dataSlice[self.m5Col][in_filt] - A_x
+            dataSlice[self.m5Col] = new_m5
+
+        # Hard dust cut
+        if self.hard_dust_cut is not None:
             ebvofMW = slicePoint["ebv"]
-        if ebvofMW > 0.25:
-            return nlr.merge_arrays([idarray, self.bad], flatten=True)
+            if ebvofMW > self.hard_dust_cut:
+                return self.badval
 
         # select observations filter
         goodFilters = np.in1d(dataSlice[self.filterCol], list(self.bands))
@@ -251,7 +264,7 @@ class SNNSNMetric(BaseMetric):
         seasons, dur_z = self.season_length(self.season, dataSlice)
 
         if not seasons or dur_z.empty:
-            return nlr.merge_arrays([idarray, self.bad], flatten=True)
+            return self.badval
 
         # get simulation parameters
         gen_par = (
@@ -261,7 +274,7 @@ class SNNSNMetric(BaseMetric):
         )
 
         if gen_par.empty:
-            return nlr.merge_arrays([idarray, self.bad], flatten=True)
+            return self.badval
 
         # select observations corresponding to seasons
         obs = pd.DataFrame(np.copy(dataSlice))
@@ -274,7 +287,7 @@ class SNNSNMetric(BaseMetric):
             print(lc["daymax"].unique())
 
         if len(lc) == 0:
-            return nlr.merge_arrays([idarray, self.bad], flatten=True)
+            return self.badval
 
         # get observing efficiencies and build sn for metric
         lc.index = lc.index.droplevel()
@@ -301,7 +314,7 @@ class SNNSNMetric(BaseMetric):
             nSN = selmet["nsn"].sum()
             res = np.rec.fromrecords([(nSN, zcomp)], names=["nSN", "zlim"])
         else:
-            res = self.bad
+            res = self.badval
 
         if self.verbose:
             print("final result", res)
