@@ -800,7 +800,6 @@ class SNNSNMetric(BaseMetric):
 
         return pd.DataFrame({"ntot": [len(allSN)], "nsel": [len(allSN[idx])]})
 
-
     def zlim_or_nsn(self, effi, sntype="faint", zlim=-1):
         """
         Method to estimate the redshift limit or the number of sn

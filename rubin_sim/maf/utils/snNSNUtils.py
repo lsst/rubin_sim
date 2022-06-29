@@ -1282,7 +1282,7 @@ class GetReference:
 
         bands = np.unique(lc_ref_tot["band"])
         mag_range = np.arange(10.0, 38.0, 0.01)
-        
+
         method = "linear"
 
         # for each band: load data to be used for interpolation
