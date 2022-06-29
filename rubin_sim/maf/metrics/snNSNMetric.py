@@ -459,8 +459,6 @@ class SNNSNMetric(BaseMetric):
         # estimate the number of supernovae
         sn_effis["nsn"] = sn_effis["effi"] * sn_effis["nsn_expected"]
 
-        # sn_effis['nsn'] = sn_effis['effi']*self.nsn_expected(
-        #    sn_effis['z'].to_list())/(1.+(sn_effis['season_length_orig']/self.duration_ref)/sn_effis['season_length'])
         return sn_effis
 
     def seasonInfo(self, grp, min_duration):
@@ -802,24 +800,6 @@ class SNNSNMetric(BaseMetric):
 
         return pd.DataFrame({"ntot": [len(allSN)], "nsel": [len(allSN[idx])]})
 
-        """
-        arr = df.to_records(index=False)
-
-        T0s = np.unique(arr['daymax'])
-
-        deltaT = arr['daymax']-T0s[:, np.newaxis]
-
-        flag = np.abs(deltaT) < 1.e-5
-        flag_idx = np.argwhere(flag)
-
-        all_sn = np.tile(arr['all'], (len(deltaT), 1))
-        sel_sn = np.tile(arr['select'], (len(deltaT), 1))
-
-        A = np.ma.array(all_sn, mask=~flag).count(axis=0)
-        B = np.ma.array(sel_sn, mask=~flag).count(axis=0)
-
-        print(A, B)
-        """
 
     def zlim_or_nsn(self, effi, sntype="faint", zlim=-1):
         """
