@@ -182,7 +182,7 @@ class LCfast_new:
         # return produced LC
         return tab_tot
 
-    def processBand(self, sel_obs, ebvofMW, band, gen_par, j=-1, output_q=None):
+    def processBand(self, sel_obs, ebvofMW, band, gen_par):
         """LC simulation of a set of obs corresponding to a band
         The idea is to use python broadcasting so as to estimate
         all the requested values (flux, flux error, Fisher components, ...)
@@ -196,11 +196,6 @@ class LCfast_new:
          band of observations
         gen_par: array
          simulation parameters
-        j: int, opt
-         index for multiprocessing (default: -1)
-        output_q: multiprocessing.Queue(),opt
-         queue for multiprocessing (default: None)
-
 
         Returns
         -------
@@ -210,10 +205,7 @@ class LCfast_new:
 
         # if there are no observations in this filter: return None
         if len(sel_obs) == 0:
-            if output_q is not None:
-                output_q.put({j: None})
-            else:
-                return None
+            return None
 
         # Get the fluxes (from griddata reference)
 
@@ -345,10 +337,7 @@ class LCfast_new:
         # if len(lc) > 0.:
         #    lc = self.dust_corrections(lc, ebvofMW)
 
-        if output_q is not None:
-            output_q.put({j: lc})
-        else:
-            return lc
+        return lc
 
     def getFlag(self, sel_obs, gen_par, fluxes_obs, band, p):
         """
