@@ -65,6 +65,10 @@ class SNNSNMetric(BaseMetric):
       bands to consider (default: grizy)
     gammaName: str
       name of the gamma ref file to load (default: gamma_WFD.hdf5)
+    dust : bool (True)
+      Apply dust extinction to visit depth values
+    hard_dust_cut : float (None)
+      If set, cut any point on the sky that has an ebv extinction higher than the hard_dust_cut value.
     """
 
     def __init__(
