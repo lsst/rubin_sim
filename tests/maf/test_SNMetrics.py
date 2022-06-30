@@ -1,7 +1,6 @@
 import numpy as np
 import unittest
 from rubin_sim.maf.utils.snUtils import Lims, ReferenceData
-from rubin_sim.maf.utils.snNSNUtils import Throughputs, Telescope
 from rubin_sim.maf.metrics import SNCadenceMetric
 from rubin_sim.maf.metrics import SNSNRMetric
 from rubin_sim.maf.metrics import SNSLMetric
@@ -162,17 +161,6 @@ class TestSNmetrics(unittest.TestCase):
             self.skipTest(
                 "Skipping SN tests because running unit tests without full rubin_sim_data."
             )
-
-    def testThroughputs(self):
-        """Test the Throughputs class"""
-        ## Again, this should not be in MAF but should use appropriate classes in rubin_sim.photUtils.
-        # Can we set it up - are the relevant standard environment variables present?
-        tp = Throughputs()
-
-    def testTelescope(self):
-        """Test the Telescope class"""
-        # The Telescope class should be replaced by rubin_sim.photUtils.BandpassSet
-        t = Telescope(airmass=1.2)
 
     def testSNCadenceMetric(self):
         """Test the SN cadence metric"""
@@ -382,8 +370,8 @@ class TestSNmetrics(unittest.TestCase):
             nSN = res["nSN"].item()
             zlim = res["zlim"].item()
 
-            nSN_ref = 0.013257  # 2.04949  # 2.523, old value with nside=128
-            zlim_ref = 0.107721  # 0.617285  # 0.65, old value
+            nSN_ref = 0.015039  # 0.013257 value before tossing Telesope class # 2.04949  # 2.523, old value with nside=128
+            zlim_ref = 0.132494  # 0.107721  # 0.617285  # 0.65, old value
 
             assert np.isclose(nSN, nSN_ref)
             assert np.isclose(zlim, zlim_ref)

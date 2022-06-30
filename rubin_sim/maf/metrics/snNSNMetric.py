@@ -1,12 +1,14 @@
 import numpy as np
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.utils.snNSNUtils import SN_Rate
-from rubin_sim.maf.utils.snNSNUtils import load_sne_cached, Telescope, LCfast_new
+from rubin_sim.maf.utils.snNSNUtils import load_sne_cached, LCfast_new
 import pandas as pd
 from scipy.interpolate import interp1d
 import numpy.lib.recfunctions as nlr
 import healpy as hp
-from rubin_sim.photUtils import Dust_values
+from rubin_sim.photUtils import Dust_values, Bandpass, PhotometricParameters
+from rubin_sim.data import get_data_dir
+import os
 
 __all__ = ["SNNSNMetric"]
 
@@ -148,7 +150,17 @@ class SNNSNMetric(BaseMetric):
 
         self.season = season
 
-        telescope = Telescope(airmass=1.2)
+        data_dir = get_data_dir()
+        fdir = os.path.join(data_dir, 'throughputs', 'baseline')
+        mean_wavelengths = {}
+        bp = Bandpass()
+        phot_params = PhotometricParameters(exptime=1)
+        zp_s = {}
+        for f in bands:
+            bp.readThroughput(os.path.join(fdir, f'total_{f}.dat'))
+            mean_wavelengths[f] = bp.calcEffWavelen()[1]
+            zp_s[f] = bp.calcZP_t(phot_params)
+        telescope = {'zp_s': zp_s, 'mean_wavelengths': mean_wavelengths}
 
         # LC selection parameters
         self.n_bef = n_bef  # nb points before peak
