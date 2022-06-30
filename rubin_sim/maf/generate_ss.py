@@ -4,9 +4,15 @@ import os
 from rubin_sim.data import get_data_dir
 import rubin_sim.maf.db as db
 import argparse
+from rubin_sim.utils import survey_start_mjd
 
 
-def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False):
+def generate_ss_commands(
+    dbfiles=None, pops=None, start_mjd=None, split=False, vatiras=False
+):
+
+    if start_mjd is None:
+        start_mjd = survey_start_mjd()
 
     if dbfiles is None:
         dbfiles = glob.glob("*.db")
@@ -57,6 +63,8 @@ def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False
             )
         pops = [pops]
 
+    if vatiras:
+        pops.append("vatiras_granvik_10k")
     runs = [os.path.split(file)[-1].replace(".db", "") for file in dbfiles]
     runs = [run for run in runs if "tracking" not in run]
     if not split:
@@ -69,7 +77,8 @@ def generate_ss_commands(dbfiles=None, pops=None, start_mjd=60218.0, split=False
                 pass
             # Create the results DB so multiple threads don't try to create it later
             resultsDb = db.ResultsDb(outDir=outDir)
-            for pop in pops:
+        for pop in pops:
+            for run, filename in zip(runs, dbfiles):
                 objtype = objtypes[pop]
 
                 s1 = f"makeLSSTobs --opsimDb {filename} --orbitFile {orbit_files[pop]}"
@@ -154,11 +163,13 @@ def generate_ss():
         description="Generate solar system processing commands"
     )
     parser.add_argument("--db", type=str, default=None, help="database to process")
+    parser.add_argument("--vatiras", action="store_true", help="include vatiras pop")
+    parser.set_defaults(vatiras=False)
     parser.add_argument(
         "--pop", type=str, default=None, help="identify one population to run"
     )
     parser.add_argument(
-        "--start_mjd", type=float, default=60218, help="start of the sim"
+        "--start_mjd", type=float, default=None, help="start of the sim"
     )
     parser.add_argument(
         "--split",
@@ -187,5 +198,9 @@ def generate_ss():
         dbFiles = args.db
 
     generate_ss_commands(
-        start_mjd=args.start_mjd, split=args.split, dbfiles=dbFiles, pops=args.pop
+        start_mjd=args.start_mjd,
+        split=args.split,
+        dbfiles=dbFiles,
+        pops=args.pop,
+        vatiras=args.vatiras,
     )

@@ -7,6 +7,7 @@ import numpy as np
 from . import db as db
 from . import metricBundles as mmb
 from . import batches as batches
+from rubin_sim.utils import survey_start_mjd
 
 
 def run_moving_calc():
@@ -111,7 +112,7 @@ def run_moving_calc():
     parser.add_argument(
         "--startTime",
         type=float,
-        default=60218,
+        default=None,
         help="Time at start of survey (to set time for summary metrics).",
     )
     args = parser.parse_args()
@@ -142,9 +143,14 @@ def run_moving_calc():
     Hrange = np.arange(hMin, hMax + hStep, hStep)
 
     # Default parameters for metric setup.
+    if args.startTime is None:
+        startTime = survey_start_mjd()
+    else:
+        startTime = args.startTime
+
     stepsize = 365 / 2.0
     times = np.arange(0, args.nYearsMax * 365 + stepsize / 2, stepsize)
-    times += args.startTime
+    times += startTime
 
     # Set up resultsDb.
     if not (os.path.isdir(args.outDir)):
