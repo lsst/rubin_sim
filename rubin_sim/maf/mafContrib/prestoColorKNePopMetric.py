@@ -172,10 +172,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         self.skyregion = skyregion
         # read in file as light curve object;
         self.lightcurves = KN_lc(file_list=file_list)
-        if mjd0 is None:
-            self.mjd0 = survey_start_mjd()
-        else:
-            self.mjd0 = mjd0
+        self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
 
         dust_properties = Dust_values()
         self.Ax1 = dust_properties.Ax1

@@ -80,9 +80,7 @@ class Model_observatory(object):
 
         self.alt_min = np.radians(alt_min)
         self.lax_dome = lax_dome
-        if mjd_start is None:
-            mjd_start = survey_start_mjd()
-        self.mjd_start = mjd_start
+        self.mjd0 = survey_start_mjd() if mjd_start is None else mjd_start
 
         self.sim_ToO = sim_ToO
 
