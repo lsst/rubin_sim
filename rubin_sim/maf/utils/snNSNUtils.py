@@ -112,8 +112,8 @@ class LCfast_new:
         # Loading reference file
         self.reference_lc = reference_lc
 
-        self.mean_wavelength = telescope['mean_wavelengths']
-        self.zp = telescope['zp_s']
+        self.mean_wavelength = telescope["mean_wavelengths"]
+        self.zp = telescope["zp_s"]
 
         # This cutoffs are used to select observations:
         # phase = (mjd - DayMax)/(1.+z)

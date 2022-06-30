@@ -106,7 +106,7 @@ class SNNSNMetric(BaseMetric):
         dust=True,
         hard_dust_cut=None,
         gammaName="gamma_WFD.hdf5",
-        **kwargs
+        **kwargs,
     ):
 
         self.mjdCol = mjdCol
@@ -151,16 +151,16 @@ class SNNSNMetric(BaseMetric):
         self.season = season
 
         data_dir = get_data_dir()
-        fdir = os.path.join(data_dir, 'throughputs', 'baseline')
+        fdir = os.path.join(data_dir, "throughputs", "baseline")
         mean_wavelengths = {}
         bp = Bandpass()
         phot_params = PhotometricParameters(exptime=1)
         zp_s = {}
         for f in bands:
-            bp.readThroughput(os.path.join(fdir, f'total_{f}.dat'))
+            bp.readThroughput(os.path.join(fdir, f"total_{f}.dat"))
             mean_wavelengths[f] = bp.calcEffWavelen()[1]
             zp_s[f] = bp.calcZP_t(phot_params)
-        telescope = {'zp_s': zp_s, 'mean_wavelengths': mean_wavelengths}
+        telescope = {"zp_s": zp_s, "mean_wavelengths": mean_wavelengths}
 
         # LC selection parameters
         self.n_bef = n_bef  # nb points before peak
