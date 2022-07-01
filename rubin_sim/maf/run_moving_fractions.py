@@ -8,6 +8,7 @@ import numpy as np
 from . import db as db
 from . import metricBundles as mmb
 from . import batches as batches
+from rubin_sim.utils import survey_start_mjd
 
 
 def run_moving_fractions():
@@ -44,15 +45,19 @@ def run_moving_fractions():
     parser.add_argument(
         "--startTime",
         type=float,
-        default=60218,
+        default=None,
         help="Time at start of survey (to set time for summary metrics).",
     )
     args = parser.parse_args()
 
     # Default parameters for metric setup.
+    if args.startTime is None:
+        startTime = survey_start_mjd()
+    else:
+        startTime = args.startTime
     stepsize = 365 / 6.0
     times = np.arange(0, args.nYearsMax * 365 + stepsize / 2, stepsize)
-    times += args.startTime
+    times += startTime
 
     # Create a results Db.
     resultsDb = db.ResultsDb(outDir=args.workDir)

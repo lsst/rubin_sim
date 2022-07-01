@@ -3,7 +3,7 @@ import glob
 import os
 import healpy as hp
 import warnings
-from rubin_sim.utils import _angularSeparation, _hpid2RaDec
+from rubin_sim.utils import _angularSeparation, _hpid2RaDec, survey_start_mjd
 from rubin_sim.data import get_data_dir
 import h5py
 
@@ -75,7 +75,7 @@ class SkyModelPre(object):
         init_load_length=10,
         load_length=365,
         verbose=False,
-        mjd0=60218.0,
+        mjd0=None,
     ):
         """
         Parameters
@@ -87,8 +87,8 @@ class SkyModelPre(object):
             The length of time (days) to load from disk initially. Set to something small for fast reads.
         load_length : `int` (365)
             The number of days to load after the initial load.
-        mjd0 : `float` (60218.0)
-            The starting MJD to load on initilization (days).
+        mjd0 : `float` (None)
+            The starting MJD to load on initilization (days). Uses util to lookup default if None.
         """
 
         self.info = None
@@ -132,6 +132,9 @@ class SkyModelPre(object):
         # Set that nothing is loaded at this point
         self.loaded_range = np.array([-1])
         self.timestep_max = -1
+
+        if mjd0 is None:
+            mjd0 = survey_start_mjd()
 
         # Do a quick initial load if set
         if init_load_length is not None:

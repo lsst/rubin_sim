@@ -1210,7 +1210,7 @@ class KnownObjectsMetric(BaseMoMetric):
         elongThresh=100.0,
         vMagThresh1=20.0,
         eff1=0.1,
-        tSwitch1=53371,
+        tSwitch1=53371,  # XXX--maybe swap to survey_start_mjd and then delta_t's
         vMagThresh2=21.5,
         eff2=0.1,
         tSwitch2=57023,

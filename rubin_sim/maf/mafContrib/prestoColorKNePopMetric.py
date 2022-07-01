@@ -8,7 +8,7 @@ from .kneMetrics import KN_lc
 from itertools import combinations
 import pickle
 import warnings
-from rubin_sim.utils import uniformSphere
+from rubin_sim.utils import uniformSphere, survey_start_mjd
 from rubin_sim.photUtils import Dust_values
 from rubin_sim.data import get_data_dir
 
@@ -148,7 +148,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         nightCol="night",
         ptsNeeded=2,
         file_list=None,
-        mjd0=59853.5,
+        mjd0=None,
         outputLc=False,
         skyregion="galactic",
         thr=0.003,
@@ -172,7 +172,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         self.skyregion = skyregion
         # read in file as light curve object;
         self.lightcurves = KN_lc(file_list=file_list)
-        self.mjd0 = mjd0
+        self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
 
         dust_properties = Dust_values()
         self.Ax1 = dust_properties.Ax1

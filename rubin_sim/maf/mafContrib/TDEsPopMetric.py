@@ -1,8 +1,7 @@
 import numpy as np
-from rubin_sim.maf.utils import m52snr
 import rubin_sim.maf.metrics as metrics
 import os
-from rubin_sim.utils import uniformSphere
+from rubin_sim.utils import uniformSphere, survey_start_mjd
 import rubin_sim.maf.slicers as slicers
 import glob
 from rubin_sim.photUtils import Dust_values
@@ -75,7 +74,7 @@ class TdePopMetric(metrics.BaseMetric):
         nightCol="night",
         ptsNeeded=2,
         file_list=None,
-        mjd0=59853.5,
+        mjd0=None,
         **kwargs
     ):
         maps = ["DustMap"]
@@ -86,7 +85,7 @@ class TdePopMetric(metrics.BaseMetric):
         self.ptsNeeded = ptsNeeded
 
         self.lightcurves = Tde_lc(file_list=file_list)
-        self.mjd0 = mjd0
+        self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
 
         dust_properties = Dust_values()
         self.Ax1 = dust_properties.Ax1
@@ -225,7 +224,6 @@ class TdePopMetricQuality(metrics.BaseMetric):
         )
 
     def _some_color_pnum_detect(self, dataSlice, slicePoint, mags, t):
-        result = 1
         # 1 detection pre peak
         pre_peak_detected = np.where((t < -10) & (mags < dataSlice[self.m5Col]))[0]
         if np.size(pre_peak_detected) < 1:
@@ -257,7 +255,6 @@ class TdePopMetricQuality(metrics.BaseMetric):
         return nresult
 
     def _some_color_pu_pnum_detect(self, dataSlice, slicePoint, mags, t):
-        result = 1
         # 1 detection pre peak
         pre_peak_detected = np.where((t < -10) & (mags < dataSlice[self.m5Col]))[0]
         if np.size(pre_peak_detected) < 1:
