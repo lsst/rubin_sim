@@ -1,17 +1,13 @@
 import numpy as np
 import unittest
 from rubin_sim.maf.utils.snUtils import Lims, ReferenceData
-from rubin_sim.maf.utils.snNSNUtils import Throughputs, Telescope
 from rubin_sim.maf.metrics import SNCadenceMetric
 from rubin_sim.maf.metrics import SNSNRMetric
 from rubin_sim.maf.metrics import SNSLMetric
 from rubin_sim.maf.metrics import SNNSNMetric
 from rubin_sim.data import get_data_dir
-
 import os
 import warnings
-import healpy as hp
-import time
 
 m5_ref = dict(zip("ugrizy", [23.60, 24.83, 24.38, 23.92, 23.35, 22.44]))
 
@@ -166,17 +162,6 @@ class TestSNmetrics(unittest.TestCase):
                 "Skipping SN tests because running unit tests without full rubin_sim_data."
             )
 
-    def testThroughputs(self):
-        """Test the Throughputs class"""
-        ## Again, this should not be in MAF but should use appropriate classes in rubin_sim.photUtils.
-        # Can we set it up - are the relevant standard environment variables present?
-        tp = Throughputs()
-
-    def testTelescope(self):
-        """Test the Telescope class"""
-        # The Telescope class should be replaced by rubin_sim.photUtils.BandpassSet
-        t = Telescope(airmass=1.2)
-
     def testSNCadenceMetric(self):
         """Test the SN cadence metric"""
 
@@ -309,7 +294,7 @@ class TestSNmetrics(unittest.TestCase):
             data["filter"] = band
 
             # Run the metric with these fake data
-            slicePoint = {"nside": 64}
+            slicePoint = {"nside": 64, "ebv": 0.0}
             metric = SNSNRMetric(
                 lim_sn=lim_sn, coadd=coadd, names_ref=names_ref, season=season, z=z
             )
@@ -373,31 +358,20 @@ class TestSNmetrics(unittest.TestCase):
                 else:
                     data = np.concatenate((data, dat))
 
-            # print('data generated', len(data))
-
             # this is to mimic healpixilization
             nside = 128
-            area = hp.nside2pixarea(nside, degrees=True)
+            slicePoint = {"nside": nside, "ebv": 0.0}
+
             # metric instance
-            templateDir = None
-            metric = SNNSNMetric(
-                pixArea=area,
-                season=[-1],
-                verbose=False,
-                templateDir=templateDir,
-                dust=False,
-            )
+            metric = SNNSNMetric(season=[-1], verbose=False)
 
-            time_ref = time.time()
-
-            res = metric.run(data)
+            res = metric.run(data, slicePoint=slicePoint)
 
             nSN = res["nSN"].item()
             zlim = res["zlim"].item()
 
-            # print(time.time()-time_ref, nSN, zlim)
-            nSN_ref = 2.523
-            zlim_ref = 0.65
+            nSN_ref = 0.015039  # 0.013257 value before tossing Telesope class # 2.04949  # 2.523, old value with nside=128
+            zlim_ref = 0.132494  # 0.107721  # 0.617285  # 0.65, old value
 
             assert np.isclose(nSN, nSN_ref)
             assert np.isclose(zlim, zlim_ref)
