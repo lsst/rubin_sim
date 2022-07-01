@@ -127,6 +127,9 @@ def _healbin(
         A function that will return a single value given a subset of `values`.
     dtype : dtype ('float')
         Data type of the resulting mask
+    fillVal : float (hp.UNSEEN)
+        Value to fill in with healpixels that have no value.
+        Default is the healpy mask value.
 
     Returns
     -------
@@ -156,7 +159,9 @@ def _healbin(
     return mapVals
 
 
-def healbin(ra, dec, values, nside=128, reduceFunc=np.mean, dtype=float):
+def healbin(
+    ra, dec, values, nside=128, reduceFunc=np.mean, dtype=float, fillVal=hp.UNSEEN
+):
     """
     Take arrays of ra's, dec's, and value and bin into healpixels. Like numpy.hexbin but for
     bins on a sphere.
@@ -175,6 +180,9 @@ def healbin(ra, dec, values, nside=128, reduceFunc=np.mean, dtype=float):
         A function that will return a single value given a subset of `values`.
     dtype : dtype ('float')
         Data type of the resulting mask
+    fillVal : float (hp.UNSEEN)
+        Value to fill in with healpixels that have no value.
+        Default is the healpy mask value.
 
     Returns
     -------
@@ -188,6 +196,7 @@ def healbin(ra, dec, values, nside=128, reduceFunc=np.mean, dtype=float):
         nside=nside,
         reduceFunc=reduceFunc,
         dtype=dtype,
+        fillVal=fillVal,
     )
 
 
