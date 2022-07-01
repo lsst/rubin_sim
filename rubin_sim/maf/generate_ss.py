@@ -64,7 +64,7 @@ def generate_ss_commands(
         pops = [pops]
 
     if vatiras:
-        pops.append("vatiras_granvik_10k")
+        pops = ["vatiras_granvik_10k"] + pops
     runs = [os.path.split(file)[-1].replace(".db", "") for file in dbfiles]
     runs = [run for run in runs if "tracking" not in run]
     if not split:
