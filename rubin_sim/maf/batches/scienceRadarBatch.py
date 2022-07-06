@@ -1367,7 +1367,7 @@ def scienceRadarBatch(
         )
 
     # FilterPairTgaps Metric (for TVS)
-    m1 = metrics.FilterPairTGapsMetric()
+    m1 = maf.FilterPairTGapsMetric()
     plotDict = {"colorMin": 0, "colorMax": 1500, "xMin": 0, "xMax": 2000}
     displayDict["order"] = 0
     displayDict["caption"] = (
