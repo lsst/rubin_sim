@@ -1366,6 +1366,31 @@ def scienceRadarBatch(
             )
         )
 
+    # FilterPairTgaps Metric (for TVS)
+    m1 = metrics.FilterPairTGapsMetric()
+    plotDict = {"colorMin": 0, "colorMax": 1500, "xMin": 0, "xMax": 2000}
+    displayDict["order"] = 0
+    displayDict["caption"] = (
+        f"Evaluate the distribution of filter pairs and time gaps at each point in "
+        f"the sky. The time gaps are evaluated on a logarithmic spacing "
+        f"from 0-100 days for pairs of filters, and 0-3650 days for same filters."
+    )
+    summarystats = [
+        metrics.MedianMetric(),
+        metrics.MeanMetric(),
+        metrics.PercentileMetric(percentile=80),
+    ]
+    bundle = maf.MetricBundle(
+        m1,
+        healpixslicer,
+        None,
+        runName=runName,
+        summaryMetrics=summarystats,
+        plotDict=plotDict,
+        displayDict=displayDict,
+    )
+    bundleList.append(bundle)
+
     # Presto KNe metric
     displayDict["group"] = "Variables/Transients"
     displayDict["subgroup"] = "Presto KNe"

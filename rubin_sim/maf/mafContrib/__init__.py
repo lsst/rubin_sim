@@ -22,3 +22,4 @@ from .prestoColorKNePopMetric import *
 from .YoungStellarObjectsMetric import *
 from .xrbMetrics import *
 from .depthLimitedNumGalMetric import *
+from .filterPairTGapsMetric import *
