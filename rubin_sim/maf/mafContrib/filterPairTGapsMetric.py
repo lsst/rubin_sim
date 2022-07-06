@@ -1,11 +1,10 @@
 import numpy as np
+from ..metrics.baseMetric import BaseMetric
 
-# import lsst.sims.maf.metrics as metrics
-# if rubin_sim installed
-import rubin_sim.maf.metrics as metrics
+__all__ = ["FilterPairTGapsMetric"]
 
 
-class filterPairTGapsMetric(metrics.BaseMetric):
+class FilterPairTGapsMetric(BaseMetric):
     """
     figure of merit to measure the coverage the time gaps in same and different filter pairs;
     FoM is defined as sum of Nv / standard deviation after a clip;
@@ -30,7 +29,9 @@ class filterPairTGapsMetric(metrics.BaseMetric):
 
     def __init__(
         self,
-        colname=["observationStartMJD", "filter", "fiveSigmaDepth"],
+        mjdCol="observationStartMJD",
+        filterCol="filter",
+        m5Col="fiveSigmaDepth",
         fltpairs=[
             "uu",
             "ug",
@@ -84,7 +85,9 @@ class filterPairTGapsMetric(metrics.BaseMetric):
         **kwargs
     ):
 
-        self.colname = colname
+        self.mjdCol = mjdCol
+        self.filterCol = filterCol
+        self.m5Col = m5Col
         self.fltpairs = fltpairs
         self.mag_lim = mag_lim
         self.bins_same = bins_same
@@ -95,20 +98,20 @@ class filterPairTGapsMetric(metrics.BaseMetric):
         # number of visits to clip, default got from 1/10th of baseline_v2.0 WFD
         self.Nv_clip = Nv_clip
 
-        super().__init__(col=self.colname, **kwargs)
+        super().__init__(col=[self.mjdCol, self.filterCol, self.m5Col], **kwargs)
 
     def _get_dT(self, dataSlice, f0, f1):
 
         # select
-        idx0 = (dataSlice["filter"] == f0) & (
-            dataSlice["fiveSigmaDepth"] > self.mag_lim[f0]
+        idx0 = (dataSlice[self.filterCol] == f0) & (
+            dataSlice[self.m5Col] > self.mag_lim[f0]
         )
-        idx1 = (dataSlice["filter"] == f1) & (
-            dataSlice["fiveSigmaDepth"] > self.mag_lim[f1]
+        idx1 = (dataSlice[self.filterCol] == f1) & (
+            dataSlice[self.m5Col] > self.mag_lim[f1]
         )
 
-        timeCol0 = dataSlice["observationStartMJD"][idx0]
-        timeCol1 = dataSlice["observationStartMJD"][idx1]
+        timeCol0 = dataSlice[self.mjdCol][idx0]
+        timeCol1 = dataSlice[self.mjdCol][idx1]
 
         # timeCol0 = timeCol0.reshape((len(timeCol0), 1))
         # timeCol1 = timeCol1.reshape((len(timeCol1), 1))
@@ -147,8 +150,8 @@ class filterPairTGapsMetric(metrics.BaseMetric):
                 # dT = np.diagonal(diffmat, offset=1)
                 dT = np.diff(timeCol0)
             else:
-                timeCol0 = dataSlice["observationStartMJD"][idx0]
-                timeCol1 = dataSlice["observationStartMJD"][idx1]
+                timeCol0 = dataSlice[self.mjdCol][idx0]
+                timeCol1 = dataSlice[self.mjdCol][idx1]
 
                 timeCol0 = timeCol0.reshape((len(timeCol0), 1))
                 timeCol1 = timeCol1.reshape((len(timeCol1), 1))
@@ -175,7 +178,7 @@ class filterPairTGapsMetric(metrics.BaseMetric):
 
     def run(self, dataSlice, slicePoint=None):
         # sort the dataSlice in order of time.
-        dataSlice.sort(order="observationStartMJD")
+        dataSlice.sort(order=self.mjdCol)
 
         fom_dic = {}
         dT_dic = {}
