@@ -1385,10 +1385,9 @@ def scienceRadarBatch(
         healpixslicer,
         None,
         runName=runName,
-        plotDict=plotDict,
         summaryMetrics=summarystats,
+        plotDict=plotDict,
         displayDict=displayDict,
-        runName=runName,
     )
     bundleList.append(bundle)
 
