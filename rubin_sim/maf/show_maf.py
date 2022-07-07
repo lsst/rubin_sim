@@ -202,6 +202,7 @@ def showMaf():
     faviconPath = os.path.join(mafDir, "web/")
     global jsPath
     jsPath = os.path.join(mafDir, "web/")
+    global env
     env = Environment(loader=FileSystemLoader(templateDir))
     # Add 'zip' to jinja templates.
     env.globals.update(zip=zip)
