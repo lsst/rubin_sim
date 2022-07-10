@@ -41,8 +41,7 @@ class xrb_lc(object):
 
         # Derive random orbital periods from the sample in Casares 18 Table 4
         # Since there are significant outliers from a single Gaussian sample,
-        # take random choices with replacement and then perturb them by
-        # the width of the main Gaussian
+        # take random choices with replacement and then perturb them fractionally
         catalog_Porb = np.array(
             [
                 33.85,
@@ -66,7 +65,7 @@ class xrb_lc(object):
         )
 
         sample_Porbs = self.rng.choice(catalog_Porb, size=size)
-        sample_Porbs += self.rng.normal(loc=0.0, scale=0.14, size=size)
+        sample_Porbs *= self.rng.uniform(low=0.5, high=1.5, size=size)
 
         # lmxb_abs_mag_r = 4.6 # johnson+18
         # Casares 18
