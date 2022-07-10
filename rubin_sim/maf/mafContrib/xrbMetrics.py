@@ -28,14 +28,14 @@ class xrb_lc(object):
 
         Parameters
         ----------
-        size : n
-            Rise, decay, and amplitude parameters.
+        size : `int`
+            Number of samples to generate.
 
         Returns
         -------
-        abs_mags : list of dict
+        abs_mags : `list` [`dict`]
             Absolute magnitudes for each LSST filter.
-        Porbs: array of float
+        Porbs: `array` [`float`]
             Randomized orbital periods in days
         """
 
@@ -90,7 +90,7 @@ class xrb_lc(object):
 
         Returns
         -------
-        params : list of dict
+        params : `list` [`dict`]
             Rise, decay, and amplitude parameters.
         """
 
@@ -140,13 +140,13 @@ class xrb_lc(object):
 
         Parameters
         ----------
-        t : array of floats
+        t : `array` [`float`]
             The times relative to the start of the outburst
-        amplitude : float
+        amplitude : `float`
             Peak amplitude
-        tau_rise : float
+        tau_rise : `float`
             E-folding time for the rise
-        tau_decay : float
+        tau_decay : `float`
             E-folding time for the decay
         """
         return (
@@ -166,16 +166,16 @@ class xrb_lc(object):
 
         Parameters
         ----------
-        t : array of floats
+        t : `array` [`float`]
             The times relative to the start of the outburst
-        filtername : str
+        filtername : `str`
             The filter. one of ugrizy
-        params : dict
+        params : `dict`
             parameters for the FRED lightcurve.
 
         Returns
         -------
-        lc : array
+        lc : `array`
             Magnitudes of the outburst at the specified times in the given filter
         """
 
@@ -203,18 +203,18 @@ class xrb_lc(object):
 
         Parameters
         ----------
-        params : dict
+        params : `dict`
             lightcurve parameters for xrb_lc
-        ebv : float
+        ebv : `float`
             E(B-V)
-        distance : float
+        distance : `float`
             distance in kpc
 
         Returns
         ----------
-        visible_start_time : float
+        visible_start_time : `float`
             first time relative to outburst start that the outburst could be detected
-        visible_end_time : float
+        visible_end_time : `float`
             last time relative to outburst start that the outburst could be detected
         """
 
@@ -314,15 +314,15 @@ class XRBPopMetric(BaseMetric):
 
         Parameters
         ----------
-        where_detected : array
-            indexes corresponding to 5sigma detections
-        mags : array
+        where_detected : `array`
+            indexes corresponding to 5 sigma detections
+        mags : `array`
             magnitudes obtained interpolating models on the dataSlice
-        time : array
+        time : `array`
             relative times
-        early_window_days : float
+        early_window_days : `float`
             time since start of outburst
-        n_early_detections : int
+        n_early_detections : `int`
             number of required early detections
         """
 
@@ -333,12 +333,12 @@ class XRBPopMetric(BaseMetric):
 
         Parameters
         ----------
-        t : array
+        t : `array`
             Times of detections, bracketed by the start and end visibility times
 
         Return
         ----------
-        med_dt : float
+        med_dt : `float`
              separation between observations.
         """
 
@@ -349,13 +349,13 @@ class XRBPopMetric(BaseMetric):
 
         Parameters
         ----------
-        visible_duration : float
+        visible_duration : `float`
             Length of time the outburst is above LSST's fiducial limiting mag.
             May be nan.
 
         Return
         ----------
-        detectable : bool
+        detectable : `bool`
              Return True if outburst is ever detectable by LSST.
         """
 
@@ -443,14 +443,14 @@ def generateXRBPopSlicer(t_start=1, t_end=3652, n_events=10000, seed=42):
 
     Parameters
     ----------
-    t_start : float (1)
-        The night to start an XRB outburst on (days)
-    t_end : float (3652)
-        The final night of XRBs events
-    n_events : int (10000)
-        The number of XRB outbursts to generate
-    seed : float
-        The seed passed to np.random
+    t_start : `float`
+        The night to start an XRB outburst on (days; default 1)
+    t_end : `float`
+        The final night of XRBs events (days; default 3652)
+    n_events : `int`
+        The number of XRB outbursts to generate (default 10000)
+    seed : `float`
+        The seed passed to np.random (default 42)
     """
 
     rng = np.random.default_rng(seed)
