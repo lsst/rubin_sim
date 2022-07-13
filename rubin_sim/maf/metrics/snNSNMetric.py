@@ -141,7 +141,7 @@ class SNNSNMetric(BaseMetric):
             self.obsidCol,
             self.nexpCol,
             self.vistimeCol,
-            self.exptimeCol,
+            self.exptimeCol
         ]
 
         super(SNNSNMetric, self).__init__(
@@ -269,55 +269,46 @@ class SNNSNMetric(BaseMetric):
         goodFilters = np.in1d(dataSlice[self.filterCol], list(self.bands))
         dataSlice = dataSlice[goodFilters]
 
+        if len(dataSlice) <= 10:
+            return self.badval
+
         # coaddition per night and per band (if requested by the user)
         if self.coadd is not None:
             dataSlice = self.coadd(dataSlice)
 
+        if len(dataSlice) <= 10:
+            return self.badval
         # get seasons
         dataSlice = self.getseason(dataSlice, mjdCol=self.mjdCol)
 
-        # get the season durations
-        seasons, dur_z = self.season_length(self.season, dataSlice)
+        # get redshift values per season
+        zseason = self.z_season(self.season, dataSlice)
+        zseason_allz = self.z_season_allz(zseason)
 
-        if not seasons or dur_z.empty:
+        # estimate redshift completeness
+        metricValues = self.metric(
+            dataSlice, zseason_allz, x1=-2.0, color=0.2, zlim=-1, metric='zlim')
+
+        if metricValues is None:
             return self.badval
 
-        # get simulation parameters
-        gen_par = (
-            dur_z.groupby(["z", "season"])
-            .apply(lambda x: self.calcDaymax(x))
-            .reset_index()
-        )
+        # get redshift values per season up to zcomp
+        zseason = pd.DataFrame(metricValues[['season', 'zcomp']])
+        zseason.loc[:, 'zmin'] = 0.01
+        zseason.loc[:, 'zstep'] = self.zstep
+        zseason = zseason.rename(columns={"zcomp": "zmax"})
+        zseason['zmax'] += self.zstep
+        zseason_allz = self.z_season_allz(zseason)
 
-        if gen_par.empty:
+        # get the total number of well-sampled SN up to zcomp
+        nsn_zcomp = self.metric(
+            dataSlice, zseason_allz, x1=0.0, color=0.0, zlim=metricValues[['season', 'zcomp']], metric='nsn')
+
+        # final results
+        if nsn_zcomp is None:
             return self.badval
-
-        # select observations corresponding to seasons
-        obs = pd.DataFrame(np.copy(dataSlice))
-        obs = obs[obs["season"].isin(seasons)]
-
-        # generate LC here
-        lc = self.step_lc(obs, gen_par)
-
-        if self.verbose:
-            print(lc["daymax"].unique())
-
-        if len(lc) == 0:
-            return self.badval
-
-        # get observing efficiencies and build sn for metric
-        lc.index = lc.index.droplevel()
-
-        # estimate efficiencies
-        sn_effis = self.step_efficiencies(lc)
-
-        # estimate nsn
-        sn = self.step_nsn(sn_effis, dur_z)
-
-        # estimate redshift limit and nsn
-        metricValues = (
-            sn.groupby(["season"]).apply(lambda x: self.metric(x)).reset_index()
-        )
+        metricValues = metricValues.merge(
+            nsn_zcomp, left_on=['season'], right_on=['season'])
 
         if self.verbose:
             print("metricValues", metricValues[["season", "zcomp", "nsn"]])
@@ -336,7 +327,85 @@ class SNNSNMetric(BaseMetric):
             print("final result", res)
         return res
 
-    def season_length(self, seasons, dataSlice):
+    def season_length(self, seasons, dataSlice, zseason):
+        """
+        Method to estimate season lengths vs z
+
+        Parameters
+        ---------------
+        seasons: list(int)
+          list of seasons to process
+        dataSlice: numpy array
+          array of observations
+
+        Returns
+        -----------
+        seasons: list(int)
+          list of seasons to process
+        dur_z: pandas df
+          season lengths vs z
+        """
+        # if seasons = -1: process the seasons seen in data
+        if seasons == [-1]:
+            seasons = np.unique(dataSlice[self.seasonCol])
+
+        # season infos
+        dfa = pd.DataFrame(np.copy(dataSlice))
+        dfa = pd.DataFrame(dfa[dfa['season'].isin(seasons)])
+
+        season_info = self.get_season_info(dfa, zseason)
+
+        if season_info.empty:
+            return [], pd.DataFrame()
+
+        season_info_cp = pd.DataFrame(season_info)
+        # get season length depending on the redshift
+        season_info_cp['season'] = season_info_cp['season'].astype(int)
+
+        dur_z = season_info.groupby('season').apply(
+            lambda x: self.nsn_expected_z(x)).reset_index()
+        return season_info['season'].to_list(), dur_z
+
+    def get_season_info(self, dfa, zseason, min_duration=60.):
+        """
+        method to get season infos vs z
+
+        Parameters
+        --------------
+        dfa: pandas df
+          dat to process
+        zseason: pandas df
+          redshift infos per season
+        min_duration: float, opt
+          min season length to be accepted (default: 60 days)
+
+        Returns
+        ----------
+        pandas df with season length infos
+
+        """
+
+        season_info = dfa.groupby('season').apply(
+            lambda x: self.seasonInfo(x, min_duration=min_duration)).reset_index()
+
+        # season_info.index = season_info.index.droplevel()
+        season_info = season_info.drop(columns=['level_1'])
+
+        season_info = season_info.merge(
+            zseason, left_on=['season'], right_on=['season'])
+
+        season_info['T0_min'] = season_info['MJD_min'] - \
+            (1.+season_info['z'])*self.min_rf_phase_qual
+        season_info['T0_max'] = season_info['MJD_max'] - \
+            (1.+season_info['z'])*self.max_rf_phase_qual
+        season_info['season_length'] = season_info['T0_max'] - \
+            season_info['T0_min']
+
+        idx = season_info['season_length'] >= min_duration
+
+        return pd.DataFrame(season_info[idx])
+
+    def season_length_deprecated(self, seasons, dataSlice):
         """
         Method to estimate season lengths vs z
 
@@ -379,7 +448,32 @@ class SNNSNMetric(BaseMetric):
 
         return season_info["season"].to_list(), dur_z
 
-    def step_lc(self, obs, gen_par):
+    def step_lc(self, obs, gen_par, x1=-2.0, color=0.2):
+        """
+        Method to generate lc
+
+        Parameters
+        ---------------
+        obs: array
+          observations
+        gen_par: array
+          simulation parameters
+        x1: float, opt
+           stretch value (default: -2.0)
+        color: float, opt
+          color value (default: 0.2)
+
+        Returns
+        ----------
+        SN light curves (astropy table)
+
+        """
+
+        lc = obs.groupby(['season']).apply(
+            lambda x: self.genLC(x, gen_par, x1, color))
+        return lc
+
+    def step_lc_deprecated(self, obs, gen_par):
         """
         Method to generate lc
 
@@ -427,7 +521,8 @@ class SNNSNMetric(BaseMetric):
         sn_effis["season"] = sn_effis["season"].astype(int)
         sn_effis["effi"] = sn_effis["nsel"] / sn_effis["ntot"]
         sn_effis["effi_err"] = (
-            np.sqrt(sn_effis["nsel"] * (1.0 - sn_effis["effi"])) / sn_effis["ntot"]
+            np.sqrt(sn_effis["nsel"] *
+                    (1.0 - sn_effis["effi"])) / sn_effis["ntot"]
         )
 
         # prevent NaNs, set effi to 0 where there is 0 ntot
@@ -552,7 +647,43 @@ class SNNSNMetric(BaseMetric):
             return pd.DataFrame()
         return dur_z
 
-    def calcDaymax(self, grp):
+    def calcDaymax(self, grp, daymaxStep):
+        """
+        Method to estimate T0 (daymax) values for simulation.
+
+        Parameters
+        --------------
+        grp: group (pandas df sense)
+         group of data to process with the following cols:
+           T0_min: T0 min value (per season)
+           T0_max: T0 max value (per season)
+        daymaxStep: float
+          step for T0 simulation
+
+        Returns
+        ----------
+        pandas df with daymax, min_rf_phase, max_rf_phase values
+
+        """
+
+        if self.T0s == 'all':
+            T0_max = grp['T0_max'].values
+            T0_min = grp['T0_min'].values
+            num = (T0_max-T0_min)/daymaxStep
+            if T0_max-T0_min > 10:
+                df = pd.DataFrame(np.linspace(
+                    T0_min, T0_max, int(num)), columns=['daymax'])
+            else:
+                df = pd.DataFrame([-1], columns=['daymax'])
+        else:
+            df = pd.DataFrame([0.], columns=['daymax'])
+
+        df['minRFphase'] = self.min_rf_phase
+        df['maxRFphase'] = self.max_rf_phase
+
+        return df
+
+    def calcDaymax_deprecated(self, grp):
         """
         Method to estimate T0 (daymax) values for simulation.
 
@@ -587,7 +718,49 @@ class SNNSNMetric(BaseMetric):
 
         return df
 
-    def genLC(self, grp, gen_par_orig):
+    def genLC(self, grp, gen_par_orig, x1, color):
+        """
+        Method to generate light curves from observations
+
+        Parameters
+        ---------------
+        grp: pandas group
+          observations to process
+        gen_par_orig: pandas df
+          simulation parameters
+        x1: float
+          SN stretch
+        color: float
+          SN color
+
+        Returns
+        ----------
+        light curves as pandas df
+
+        """
+        season = grp.name
+        idx = gen_par_orig['season'] == season
+        gen_par = gen_par_orig[idx].to_records(index=False)
+
+        sntype = dict(zip([(-2.0, 0.2), (0.0, 0.0)], ['faint', 'medium']))
+        res = pd.DataFrame()
+        key = (np.round(x1, 1), np.round(color, 1))
+        vals = self.lcFast[key]
+
+        gen_par_cp = gen_par.copy()
+        if key == (-2.0, 0.2):
+            idx = gen_par_cp['z'] < 0.9
+            gen_par_cp = gen_par_cp[idx]
+        lc = vals(grp.to_records(index=False),
+                  0.0, gen_par_cp, bands='grizy')
+        lc['x1'] = key[0]
+        lc['color'] = key[1]
+        lc['sntype'] = sntype[key]
+        res = pd.concat((res, lc))
+
+        return res
+
+    def genLC_deprecated(self, grp, gen_par_orig):
         """
         Method to generate light curves from observations
 
@@ -614,7 +787,8 @@ class SNNSNMetric(BaseMetric):
             if key == (-2.0, 0.2):
                 idx = gen_par_cp["z"] < 0.9
                 gen_par_cp = gen_par_cp[idx]
-            lc = vals(grp.to_records(index=False), 0.0, gen_par_cp, bands="grizy")
+            lc = vals(grp.to_records(index=False),
+                      0.0, gen_par_cp, bands="grizy")
             lc["x1"] = key[0]
             lc["color"] = key[1]
             lc["sntype"] = sntype[key]
@@ -764,7 +938,8 @@ class SNNSNMetric(BaseMetric):
             for ia, vala in enumerate(self.params):
                 for jb, valb in enumerate(self.params):
                     if jb >= ia:
-                        Fisher_Big[ia + npar * iv][jb + npar * iv] = parts[ia, jb][iv]
+                        Fisher_Big[ia + npar * iv][jb +
+                                                   npar * iv] = parts[ia, jb][iv]
 
         # pprint.pprint(Fisher_Big)
 
@@ -812,7 +987,7 @@ class SNNSNMetric(BaseMetric):
 
         return pd.DataFrame({"ntot": [len(allSN)], "nsel": [len(allSN[idx])]})
 
-    def zlim_or_nsn(self, effi, sntype="faint", zlim=-1):
+    def zlim_or_nsn_deprecated(self, effi, sntype="faint", zlim=-1):
         """
         Method to estimate the redshift limit or the number of sn
 
@@ -854,7 +1029,96 @@ class SNNSNMetric(BaseMetric):
 
         return np.round(res, 6)
 
-    def metric(self, grp):
+    def metric(self, dataSlice, zseason, x1=-2.0, color=0.2,  zlim=-1, metric='zlim'):
+
+        snType = 'medium'
+        if np.abs(x1+2.0) <= 1.e-5:
+            snType = 'faint'
+
+        # get the season durations
+        seasons, dur_z = self.season_length(self.season, dataSlice, zseason)
+
+        #print('hhha', dur_z)
+        if not seasons or dur_z.empty:
+            return None
+
+        # get simulation parameters
+        gen_par = dur_z.groupby(['z', 'season']).apply(
+            lambda x: self.calcDaymax(x, self.daymaxStep)).reset_index()
+
+        if gen_par.empty:
+            return None
+
+        # select observations corresponding to seasons
+        obs = pd.DataFrame(np.copy(dataSlice))
+        obs = obs[obs['season'].isin(seasons)]
+
+        # metric values in a DataFrame
+        metricValues = pd.DataFrame()
+
+        # generate LC here
+        lc = self.step_lc(obs, gen_par, x1=x1, color=color)
+
+        #print('hhhb', lc)
+        if self.verbose:
+            print(lc['daymax'].unique())
+
+        if len(lc) == 0:
+            return None
+
+        # get observing efficiencies and build sn for metric
+        lc.index = lc.index.droplevel()
+
+        # estimate efficiencies
+        sn_effis = self.step_efficiencies(lc)
+
+        # estimate nsn
+        sn = self.step_nsn(sn_effis, dur_z)
+
+        # estimate redshift completeness
+        if metric == 'zlim':
+            metricValues = sn.groupby(['season']).apply(
+                lambda x: self.zlim(x)).reset_index()
+
+        if metric == 'nsn':
+            sn = sn.merge(zlim, left_on=['season'], right_on=['season'])
+            metricValues = sn.groupby(['season']).apply(
+                lambda x: self.nsn(x)).reset_index()
+
+        return metricValues
+
+    def z_season(self, seasons, dataSlice):
+        """
+        Fill the z values per season
+
+        Parameters
+        --------------
+        seasons: list
+          seasons to process
+        dataSlice: array
+          data to process
+
+        """
+        # if seasons = -1: process the seasons seen in data
+        if seasons == [-1]:
+            seasons = np.unique(dataSlice[self.seasonCol])
+
+        # pandas df with zmin, zmax, zstep per season
+        zseason = pd.DataFrame(seasons, columns=['season'])
+        zseason['zmin'] = self.zmin
+        zseason['zmax'] = self.zmax
+        zseason['zstep'] = self.zstep
+
+        return zseason
+
+    def z_season_allz(self, zseason):
+
+        zseason_allz = zseason.groupby(['season']).apply(lambda x: pd.DataFrame(
+            {'z': list(np.arange(x['zmin'].mean(), x['zmax'].mean(), x['zstep'].mean()))})).reset_index()
+
+        return zseason_allz[['season', 'z']]
+
+    def metric_deprecated(self, grp):
         """
         Method to estimate the metric(zcomp, nsn)
 
@@ -1005,7 +1269,7 @@ class SNNSNMetric(BaseMetric):
 
             if len(flag) > 0:
                 for i, indx in enumerate(flag):
-                    seasoncalc[indx + 1 :] = i + 2
+                    seasoncalc[indx + 1:] = i + 2
 
         obs = nlr.append_fields(obs, "season", seasoncalc)
 
@@ -1025,3 +1289,160 @@ class SNNSNMetric(BaseMetric):
             result = self.badval
 
         return result
+
+    def nsn_expected_z(self, grp):
+        """
+        Method to estimate the expected nsn  vs redshift
+
+        Parameters
+        --------------
+        grp: pandas df group
+          data to process: season infos
+
+        Returns
+        ----------
+        pandas df with season_length, z, nsn_expected cols
+
+        """
+
+        if len(grp) < 2:
+            nsn = pd.DataFrame(grp['z'].to_list(), columns=['z'])
+            nsn.loc[:, 'nsn_expected'] = 0
+        else:
+            nsn = self.nsn_from_rate(grp)
+
+        if self.verbose:
+            print('nsn expected', nsn)
+
+        dur_z = pd.DataFrame(grp)
+        dur_z = dur_z.merge(nsn, left_on=['z'], right_on=['z'])
+
+        if 'season' in dur_z.columns:
+            dur_z = dur_z.drop(columns=['season'])
+
+        return dur_z
+
+    def zlim_or_nsn(self, effi, sntype='faint', zlim=-1.0):
+        """
+        Method to estimate the redshift limit or the number of sn
+
+        Parameters
+        ---------------
+        effi: pandas df
+          data to process
+        sntype: str, opt
+          type of SN to consider for estimation (default: faint)
+        zlim: float, opt
+          redshift limit
+
+        Returns
+        -----------
+        if zlim<0: returns the redshift limit
+        if zlim>0: returns the number of sn up to zlim
+
+
+        """
+
+        seleffi = effi[effi['sntype'] == sntype]
+        seleffi = seleffi.sort_values(by=['z'])
+        nsn_cum = np.cumsum(seleffi['nsn'].to_list())
+
+        resa = -1.0
+        if zlim < 0:
+            df = pd.DataFrame(seleffi).reset_index()
+            df.loc[:, 'nsn_cum'] = nsn_cum/nsn_cum[-1]
+            index = df[df['nsn_cum'] < 1].index
+            if len(index) == 0:
+                return resa, resb
+            dfb = df[:index[-1]+2]
+            zlim = interp1d(dfb['nsn_cum'], dfb['z'], kind='linear',
+                            bounds_error=False, fill_value=0)
+            resa = zlim(self.zlim_coeff)
+        else:
+            effi = interp1d(seleffi['z'], seleffi['effi'], kind='linear',
+                            bounds_error=False, fill_value=0)
+            durinterp_z = interp1d(seleffi['z'], seleffi['season_length'], kind='linear',
+                                   bounds_error=False, fill_value=0)
+            zmin, zstep = 0.1, 0.001
+            resa = self.get_nsn(effi, durinterp_z, zmin, zlim, zstep)
+
+        return np.round(resa, 6)
+
+    def zlim(self, grp, snType='faint'):
+        """
+        Method to estimate the metric zcomp
+
+        Parameters
+        ---------------
+        grp: pandas group
+        snType: str, opt
+          type of SN to estimate zlim (default: faint)
+
+        Returns
+        ------------
+        pandas df with the metric as cols
+        """
+        zcomp = -1
+
+        if grp['effi'].mean() > 0.02 and len(grp['effi']) >= 2:
+            zcomp = self.zlim_or_nsn(grp, snType, -1)
+
+        return pd.DataFrame({'zcomp': [zcomp]})
+
+    def nsn(self, grp, snType='medium'):
+        """
+        Method to estimate the metric nsn up to zlim
+
+        Parameters
+        ---------------
+        grp: pandas group
+        snType: str, opt
+          type of SN to estimate zlim (default: medium)
+
+        Returns
+        ------------
+        pandas df with the metric as cols
+        """
+        nsn = -1
+
+        if grp['effi'].mean() > 0.02:
+            nsn = self.zlim_or_nsn(
+                grp, snType, grp['zcomp'].mean())
+
+        return pd.DataFrame({'nsn': [nsn]})
+
+    def get_nsn(self, effi, durinterp_z, zmin, zmax, zstep):
+        """
+        Method to estimate to total number of SN: NSN = Sum(effi(z)*rate(z))
+
+        Parameters
+        ---------------
+        effi: 1D interpolator
+          efficiencies vs z
+        durinterp_z: 1D interpolator
+         duration vs z
+        zmin: float
+          redshift min
+        zmax: float
+          redshift max
+        zstep: float
+          redshift step
+
+       Returns
+       ----------
+        total number of SN up to zmax
+
+
+        """
+
+        zz, rate, err_rate, nsn, err_nsn = self.rateSN(zmin=zmin,
+                                                       zmax=zmax+zstep,
+                                                       dz=zstep,
+                                                       duration_z=durinterp_z,
+                                                       # duration=180.,
+                                                       survey_area=self.pixArea,
+                                                       account_for_edges=False)
+
+        res = np.cumsum(effi(zz)*nsn)[-1]
+
+        return res
