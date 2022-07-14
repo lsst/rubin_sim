@@ -120,13 +120,13 @@ class LCfast_new:
         Parameters
         ----------------
         obs: array
-         array of observations
+            array of observations
         ebvofMW: float
-           E(B-V) for MW
+            E(B-V) for MW
         gen_par: array, opt
-         simulation parameters (default: None)
+            simulation parameters (default: None)
         bands: str, opt
-          filters to consider for simulation (default: grizy)
+            filters to consider for simulation (default: grizy)
 
 
         Returns
@@ -161,16 +161,15 @@ class LCfast_new:
         Parameters
         ---------------
         sel_obs: array
-         array of observations
+            array of observations
         band: str
-         band of observations
+            band of observations
         gen_par: array
-         simulation parameters
+            simulation parameters
 
         Returns
         -------
         astropy table with fields corresponding to LC components
-
         """
 
         # if there are no observations in this filter: return None
@@ -520,13 +519,13 @@ class GetReference:
 
     Parameters
     ----------------
-    lcName: str
+    lcName: `str`
         name of the reference file to load (lc)
-    gammaName: str
+    gammaName: `str`
         name of the reference file to load (gamma)
-    tel_par: dict
+    tel_par: `dict`
         telescope parameters
-    param_Fisher : list(str), optional
+    param_Fisher : `list` [`str`], optional
         list of SN parameter for Fisher estimation to consider
         (default: ['x0', 'x1', 'color', 'daymax'])
 
@@ -537,7 +536,7 @@ class GetReference:
     flux : dict of RegularGridInterpolator of fluxes (key: filters, (x,y)=(phase, z), result=flux)
     fluxerr : dict of RegularGridInterpolator of flux errors (key: filters, (x,y)=(phase, z), result=fluxerr)
     param : dict of dict of RegularGridInterpolator of flux derivatives wrt SN parameters
-                  (key: filters plus param_Fisher parameters; (x,y)=(phase, z), result=flux derivatives)
+        (key: filters plus param_Fisher parameters; (x,y)=(phase, z), result=flux derivatives)
     gamma : dict of RegularGridInterpolator of gamma values (key: filters)
     """
 
@@ -749,37 +748,37 @@ class SN_Rate:
         """
         Parameters
         ----------------
-        zmin : float, optional
+        zmin : `float`, optional
             minimal redshift (default : 0.1)
-        zmax : float, optional
+        zmax : `float`, optional
             max redshift (default : 0.2)
-        dz : float, optional
+        dz : `float`, optional
             redshift bin (default : 0.001)
-        survey_area : float, optional
+        survey_area : `float`, optional
             area of the survey (:math:`deg^{2}`) (default : 9.6 :math:`deg^{2}`)
         bins : `list` [`float`], optional
             redshift bins (default : None)
-        account_for_edges : bool
+        account_for_edges : `bool`
             to account for season edges.
             If true, duration of the survey will be reduced by (1+z)*(maf_rf_phase-min_rf_phase)/365.25
             (default : False)
-        duration : float, optional
+        duration : `float`, optional
             survey duration (in days) (default : 140 days)
-        duration_z : list(float), optional
+        duration_z : `list` [`float`], optional
             survey duration (as a function of z) (default : None)
 
         Returns
         -----------
         Lists :
-        zz : float
+        zz : `float`
             redshift values
-        rate : float
+        rate : `float`
             production rate
-        err_rate : float
+        err_rate : `float`
             production rate error
-        nsn : float
+        nsn : `float`
             number of SN
-        err_nsn : float
+        err_nsn : `float`
             error on the number of SN
         """
 
@@ -820,13 +819,13 @@ class SN_Rate:
 
         Parameters
         --------------
-        z : float
+        z : `float`
             redshift
 
         Returns
         ----------
-        rate : float
-        error_rate : float
+        rate : `float`
+        error_rate : `float`
         """
         rate = 1.53e-4 * 0.343
         expn = 2.14
@@ -840,13 +839,13 @@ class SN_Rate:
 
         Parameters
         --------------
-        z : float
+        z : `float`
             redshift
 
         Returns
         ----------
-        rate : float
-        error_rate : float
+        rate : `float`
+        error_rate : `float`
         """
         rate = 0.17e-4
         expn = 2.11
@@ -864,13 +863,13 @@ class SN_Rate:
 
         Parameters
         --------------
-        z : float
+        z : `float`
             redshift
 
         Returns
         ----------
-        rate : float
-        error_rate : float
+        rate : `float`
+        error_rate : `float`
         """
 
         rate = 2.6e-5
@@ -883,23 +882,18 @@ class SN_Rate:
         err_rate_sn = rate_sn * np.log(1 + my_z) * err_expn
         return rate_sn, err_rate_sn
 
-    """
-    def flat_rate(self, z):
-        return 1., 0.1
-    """
-
     def SNRate(self, z):
         """SN rate estimation
 
         Parameters
         --------------
-        z : float
+        z : `float`
             redshift
 
         Returns
         ----------
-        rate : float
-        error_rate : float
+        rate : `float`
+        error_rate : `float`
         """
         if self.rate == "Ripoche":
             return self.RipocheRate(z)
@@ -915,9 +909,9 @@ class CovColor:
 
     Parameters
     ---------------
-    lc: pandas df
-    lc to process. Should contain the Fisher matrix components
-    ie the sum of the derivative of the fluxes wrt SN parameters
+    lc : `pandas.DataFrame`
+        lc to process. Should contain the Fisher matrix components
+        ie the sum of the derivative of the fluxes wrt SN parameters
     """
 
     def __init__(self, lc):
@@ -930,12 +924,12 @@ class CovColor:
 
         Parameters
         --------------
-        lc: pandas df
+        lc : `pandas.DataFrame`
             data to process containing the derivative of the flux with respect to SN parameters
 
         Returns
         ----------
-        float: Cov_colorcolor
+        Cov_colorcolor : `float`
         """
         a1 = lc["F_x0x0"]
         a2 = lc["F_x0x1"]

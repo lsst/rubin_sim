@@ -178,8 +178,6 @@ class SNNSNMetric(BaseMetric):
                 key[1],
                 telescope,
                 self.mjdCol,
-                self.RACol,
-                self.DecCol,
                 self.filterCol,
                 self.exptimeCol,
                 self.m5Col,
@@ -230,14 +228,14 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         --------------
-        dataSlice: numpy array
+        dataSlice: `np.array`
             Observations to process (scheduler simulations)
-        slicePoint: bool, opt
+        slicePoint: `bool`, opt
             Information about the location on the sky from the slicer
 
         Returns
         -------
-        metricVal : np.recarray
+        metricVal : `np.recarray`
             ['nSN', 'zlim'] at this point on the sky
         """
 
