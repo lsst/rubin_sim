@@ -23,10 +23,6 @@ class SNNSNMetric(BaseMetric):
       metric name (default : SNSNRMetric)
     mjdCol : str, opt
       mjd column name (default : observationStartMJD)
-    RACol : str,opt
-      Right Ascension column name (default : fieldRA)
-    DecCol : str,opt
-      Declinaison column name (default : fieldDec)
     filterCol : str,opt
        filter column name (default: filter)
     m5Col : str, opt
@@ -77,8 +73,6 @@ class SNNSNMetric(BaseMetric):
         self,
         metricName="SNNSNMetric",
         mjdCol="observationStartMJD",
-        RACol="fieldRA",
-        DecCol="fieldDec",
         filterCol="filter",
         m5Col="fiveSigmaDepth",
         exptimeCol="visitExposureTime",
@@ -103,8 +97,8 @@ class SNNSNMetric(BaseMetric):
         sigmaC=0.04,
         zlim_coeff=0.95,
         bands="grizy",
-        add_dust=False,
-        hard_dust_cut=0.25,
+        add_dust=True,
+        hard_dust_cut=None,
         gammaName="gamma_WFD.hdf5",
         **kwargs,
     ):
@@ -112,8 +106,6 @@ class SNNSNMetric(BaseMetric):
         self.mjdCol = mjdCol
         self.m5Col = m5Col
         self.filterCol = filterCol
-        self.RACol = RACol
-        self.DecCol = DecCol
         self.exptimeCol = exptimeCol
         self.seasonCol = "season"
         self.nightCol = nightCol
@@ -1214,8 +1206,6 @@ class SNNSNMetric(BaseMetric):
                     self.vistimeCol: ["sum"],
                     self.exptimeCol: ["sum"],
                     self.mjdCol: ["mean"],
-                    self.RACol: ["min"],
-                    self.DecCol: ["mean"],
                     self.m5Col: ["mean"],
                 }
             )
@@ -1229,8 +1219,6 @@ class SNNSNMetric(BaseMetric):
             self.vistimeCol,
             self.exptimeCol,
             self.mjdCol,
-            self.RACol,
-            self.DecCol,
             self.m5Col,
         ]
 
