@@ -147,7 +147,10 @@ class SNNSNMetric(BaseMetric):
         fdir = os.path.join(data_dir, "throughputs", "baseline")
         mean_wavelengths = {}
         bp = Bandpass()
-        phot_params = PhotometricParameters(exptime=1, nexp=1)
+        # nexp=2 .. probably should this be 1?
+        # 2 matches Philipe's expectations for zp from "Telescope" though
+        # and is part of the fisher matrix calculations which look complicated
+        phot_params = PhotometricParameters(exptime=1, nexp=2)
         zp_s = {}
         for f in bands:
             bp.readThroughput(os.path.join(fdir, f"total_{f}.dat"))
