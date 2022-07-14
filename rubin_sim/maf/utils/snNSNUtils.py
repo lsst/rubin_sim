@@ -41,10 +41,6 @@ class LCfast_new:
         telescope for the study
     mjdCol: str, opt
         name of the MJD col in data to simulate (default: observationStartMJD)
-    RACol: str, opt
-        name of the RA col in data to simulate (default: fieldRA)
-    DecCol: str, opt
-        name of the Dec col in data to simulate (default: fieldDec)
     filterCol: str, opt
         name of the filter col in data to simulate (default: filter)
     exptimeCol: str, opt
@@ -84,8 +80,6 @@ class LCfast_new:
     ):
 
         # grab all vals
-        self.RACol = RACol
-        self.DecCol = DecCol
         self.filterCol = filterCol
         self.mjdCol = mjdCol
         self.m5Col = m5Col
@@ -237,8 +231,6 @@ class LCfast_new:
 
         nvals = len(phases)
         # masked - tile arrays
-
-        # sel_obs['healpixID'] = sel_obs['healpixID'].astype(int)
 
         cols = [
             self.mjdCol,
