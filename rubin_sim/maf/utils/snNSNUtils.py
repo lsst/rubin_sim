@@ -34,34 +34,33 @@ class LCfast_new:
     reference_lc: RegularGridData
         lc reference files
     x1: float
-      SN stretch
+        SN stretch
     color: float
-      SN color
+        SN color
     telescope: Telescope()
-      telescope for the study
+        telescope for the study
     mjdCol: str, opt
-      name of the MJD col in data to simulate (default: observationStartMJD)
+        name of the MJD col in data to simulate (default: observationStartMJD)
     RACol: str, opt
-      name of the RA col in data to simulate (default: fieldRA)
+        name of the RA col in data to simulate (default: fieldRA)
     DecCol: str, opt
-       name of the Dec col in data to simulate (default: fieldDec)
+        name of the Dec col in data to simulate (default: fieldDec)
     filterCol: str, opt
-       name of the filter col in data to simulate (default: filter)
+        name of the filter col in data to simulate (default: filter)
     exptimeCol: str, opt
-      name of the exposure time  col in data to simulate (default: visitExposureTime)
+        name of the exposure time  col in data to simulate (default: visitExposureTime)
     m5Col: str, opt
-       name of the fiveSigmaDepth col in data to simulate (default: fiveSigmaDepth)
+        name of the fiveSigmaDepth col in data to simulate (default: fiveSigmaDepth)
     seasonCol: str, opt
-       name of the season col in data to simulate (default: season)
+        name of the season col in data to simulate (default: season)
     snr_min: float, opt
-       minimal Signal-to-Noise Ratio to apply on LC points (default: 5)
+        minimal Signal-to-Noise Ratio to apply on LC points (default: 5)
     lightOutput: bool, opt
         to get a lighter output (ie lower number of cols) (default: True)
     bluecutoff: float,opt
-       blue cutoff for SN (default: 380.0 nm)
+        blue cutoff for SN (default: 380.0 nm)
     redcutoff: float, opt
-       red cutoff for SN (default: 800.0 nm)
-
+        red cutoff for SN (default: 800.0 nm)
     """
 
     def __init__(
@@ -71,8 +70,6 @@ class LCfast_new:
         color,
         telescope,
         mjdCol="observationStartMJD",
-        RACol="fieldRA",
-        DecCol="fieldDec",
         filterCol="filter",
         exptimeCol="visitExposureTime",
         m5Col="fiveSigmaDepth",
@@ -121,14 +118,6 @@ class LCfast_new:
 
         self.snr_min = snr_min
 
-        """
-        test = np.array(['u','g','g'])
-        index = np.argwhere(zp['band'] == test[:,None])
-
-        print(index)
-        print(zp['zp'][index][:,1])
-        print(toto)
-        """
 
     def __call__(self, obs, ebvofMW, gen_par=None, bands="grizy"):
         """Simulation of the light curve
@@ -149,7 +138,7 @@ class LCfast_new:
         Returns
         ------------
         astropy table with:
-        columns: band, flux, fluxerr, snr_m5,flux_e,zp,zpsys,time
+            columns: band, flux, fluxerr, snr_m5,flux_e,zp,zpsys,time
         metadata : SNID,RA,Dec,DayMax,X1,Color,z
         """
 
@@ -163,8 +152,8 @@ class LCfast_new:
         for band in bands:
             idx = obs[self.filterCol] == band
             if len(obs[idx]) > 0:
-                resband = self.processBand(obs[idx], ebvofMW, band, gen_par)
-                tab_tot = tab_tot.append(resband, ignore_index=True)
+                tab_tot = pd.concat([tab_tot, self.processBand(obs[idx], ebvofMW, band, gen_par)],
+                                    ignore_index=True)
 
         # return produced LC
         return tab_tot
@@ -259,9 +248,6 @@ class LCfast_new:
             self.nexpCol,
             self.seeingCol,
             "night",
-            "healpixID",
-            "pixRA",
-            "pixDec",
         ]
 
         # take columns common with obs cols
