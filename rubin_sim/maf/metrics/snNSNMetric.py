@@ -88,11 +88,11 @@ class SNNSNMetric(BaseMetric):
         vistimeCol="visitTime",
         seeingCol="seeingFwhmEff",
         season=[-1],
-        coadd=True,
+        coadd_night=True,
         zmin=0.0,
         zmax=1.2,
         zStep=0.03,
-        daymaxStep=4.0,
+        daymaxStep=3.0,
         verbose=False,
         ploteffi=False,
         n_bef=5,
@@ -103,8 +103,8 @@ class SNNSNMetric(BaseMetric):
         sigmaC=0.04,
         zlim_coeff=0.95,
         bands="grizy",
-        dust=True,
-        hard_dust_cut=None,
+        add_dust=False,
+        hard_dust_cut=0.25,
         gammaName="gamma_WFD.hdf5",
         **kwargs,
     ):
@@ -126,7 +126,8 @@ class SNNSNMetric(BaseMetric):
         self.T0s = "all"
         self.zlim_coeff = zlim_coeff
         self.bands = bands
-        self.dust = dust
+        self.coadd_night = coadd_night
+        self.add_dust = add_dust
         self.hard_dust_cut = hard_dust_cut
 
         maps = ["DustMap"]
@@ -154,7 +155,7 @@ class SNNSNMetric(BaseMetric):
         fdir = os.path.join(data_dir, "throughputs", "baseline")
         mean_wavelengths = {}
         bp = Bandpass()
-        phot_params = PhotometricParameters(exptime=1)
+        phot_params = PhotometricParameters(exptime=1, nexp=1)
         zp_s = {}
         for f in bands:
             bp.readThroughput(os.path.join(fdir, f"total_{f}.dat"))
@@ -228,42 +229,43 @@ class SNNSNMetric(BaseMetric):
         # bad pixel
         self.badval = np.rec.fromrecords([(0.0, 0.0)], names=["nSN", "zlim"])
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, dataSlice, slicePoint):
         """
         Run method of the metric
 
         Parameters
         --------------
         dataSlice: numpy array
-          data to process (scheduler simulations)
+            Observations to process (scheduler simulations)
         slicePoint: bool, opt
-          (default: None)
+            Information about the location on the sky from the slicer
 
         Returns
-        ----------
-
+        -------
+        metricVal : np.recarray
+            ['nSN', 'zlim'] at this point on the sky
         """
-
-        # get slicePoint infos
-        if slicePoint is not None and "nside" in slicePoint.keys():
-            self.pixArea = hp.nside2pixarea(slicePoint["nside"], degrees=True)
-        else:
-            ValueError("No slicePoint given")
-
-        # If we want to apply dust extinction.
-        if self.dust:
-            new_m5 = dataSlice[self.m5Col] * 0
-            for filtername in np.unique(dataSlice[self.filterCol]):
-                in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
-                A_x = self.Ax1[filtername] * slicePoint["ebv"]
-                new_m5[in_filt] = dataSlice[self.m5Col][in_filt] - A_x
-            dataSlice[self.m5Col] = new_m5
 
         # Hard dust cut
         if self.hard_dust_cut is not None:
             ebvofMW = slicePoint["ebv"]
             if ebvofMW > self.hard_dust_cut:
                 return self.badval
+
+        # get area on-sky in this slicePoint
+        if "nside" in slicePoint:
+            self.pixArea = hp.nside2pixarea(slicePoint["nside"], degrees=True)
+        else:
+            self.pixArea = 9.6
+
+        # If we want to apply dust extinction.
+        if self.add_dust:
+            new_m5 = dataSlice[self.m5Col] * 0
+            for filtername in np.unique(dataSlice[self.filterCol]):
+                in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
+                A_x = self.Ax1[filtername] * slicePoint["ebv"]
+                new_m5[in_filt] = dataSlice[self.m5Col][in_filt] - A_x
+            dataSlice[self.m5Col] = new_m5
 
         # select observations filter
         goodFilters = np.in1d(dataSlice[self.filterCol], list(self.bands))
@@ -273,7 +275,7 @@ class SNNSNMetric(BaseMetric):
             return self.badval
 
         # coaddition per night and per band (if requested by the user)
-        if self.coadd is not None:
+        if self.coadd_night:
             dataSlice = self.coadd(dataSlice)
 
         if len(dataSlice) <= 10:
