@@ -767,41 +767,6 @@ class SNNSNMetric(BaseMetric):
 
         return res
 
-    def genLC_deprecated(self, grp, gen_par_orig):
-        """
-        Method to generate light curves from observations
-
-        Parameters
-        ---------------
-        grp: pandas group
-          observations to process
-        gen_par_orig: pandas df
-          simulation parameters
-
-        Returns
-        ----------
-        light curves as pandas df
-
-        """
-        season = grp.name
-        idx = gen_par_orig["season"] == season
-        gen_par = gen_par_orig[idx].to_records(index=False)
-
-        sntype = dict(zip([(-2.0, 0.2), (0.0, 0.0)], ["faint", "medium"]))
-        res = pd.DataFrame()
-        for key, vals in self.lcFast.items():
-            gen_par_cp = gen_par.copy()
-            if key == (-2.0, 0.2):
-                idx = gen_par_cp["z"] < 0.9
-                gen_par_cp = gen_par_cp[idx]
-            lc = vals(grp.to_records(index=False), 0.0, gen_par_cp, bands="grizy")
-            lc["x1"] = key[0]
-            lc["color"] = key[1]
-            lc["sntype"] = sntype[key]
-            res = pd.concat((res, lc))
-            # break
-        return res
-
     def sn_effi(self, lc):
         """
         Method to transform LCs to supernovae
@@ -991,48 +956,6 @@ class SNNSNMetric(BaseMetric):
         idx = allSN["select"] == 1
 
         return pd.DataFrame({"ntot": [len(allSN)], "nsel": [len(allSN[idx])]})
-
-    def zlim_or_nsn_deprecated(self, effi, sntype="faint", zlim=-1):
-        """
-        Method to estimate the redshift limit or the number of sn
-
-        Parameters
-        ---------------
-        effi: pandas df
-          data to process
-        sntype: str, opt
-          type of SN to consider for estimation (default: faint)
-        zlim: float, opt
-          redshift limit
-
-        Returns
-        -----------
-        if zlim<0: returns the redshift limit
-        if zlim>0: returns the number of sn up to zlim
-
-
-        """
-        seleffi = effi[effi["sntype"] == sntype]
-        seleffi = seleffi.sort_values(by=["z"])
-        nsn_cum = np.cumsum(seleffi["nsn"].to_list())
-
-        res = -999
-        if zlim < 0:
-            zlim = interp1d(
-                nsn_cum / nsn_cum[-1],
-                seleffi["z"],
-                kind="linear",
-                bounds_error=False,
-                fill_value=0,
-            )
-            res = zlim(self.zlim_coeff)
-        else:
-            nsn = interp1d(
-                seleffi["z"], nsn_cum, kind="linear", bounds_error=False, fill_value=0
-            )
-            res = nsn(zlim)
-
-        return np.round(res, 6)
 
     def metric(self, dataSlice, zseason, x1=-2.0, color=0.2, zlim=-1, metric="zlim"):
 
@@ -1485,7 +1408,8 @@ class SNNSNMetric(BaseMetric):
             survey_area=self.pixArea,
             account_for_edges=False,
         )
-
-        res = np.cumsum(effi(zz) * nsn)[-1]
-
-        return res
+        res = np.cumsum(effi(zz) * nsn)
+        if np.size(res) > 0:
+            return res[-1]
+        else:
+            return 0
