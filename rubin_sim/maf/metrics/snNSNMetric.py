@@ -219,9 +219,6 @@ class SNNSNMetric(BaseMetric):
         # supernovae parameters for fisher estimation
         self.params = ["x0", "x1", "daymax", "color"]
 
-        # bad pixel
-        self.badval = np.rec.fromrecords([(0.0, 0.0)], names=["nSN", "zlim"])
-
     def run(self, dataSlice, slicePoint):
         """
         Run method of the metric
@@ -1045,12 +1042,11 @@ class SNNSNMetric(BaseMetric):
 
         # get the season durations
         seasons, dur_z = self.season_length(self.season, dataSlice, zseason)
-        # Stick a season column on in case there's only 1
-        if np.size(np.unique(seasons)) < 2:
-            dur_z["season"] = dur_z["index"] * 0 + np.unique(seasons)
-
         if not seasons or dur_z.empty:
             return None
+        # Stick a season column on in case it got killed by a groupby
+        if "season" not in list(dur_z.columns):
+            dur_z["season"] = dur_z["index"] * 0 + np.unique(seasons)
 
         # get simulation parameters
         if np.size(np.unique(seasons)) > 1:
