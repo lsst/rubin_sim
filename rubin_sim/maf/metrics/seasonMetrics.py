@@ -57,7 +57,7 @@ class SeasonLengthMetric(BaseMetric):
         self,
         mjdCol="observationStartMJD",
         expTimeCol="visitExposureTime",
-        minExpTime=20,
+        minExpTime=16,
         reduceFunc=np.median,
         metricName="SeasonLength",
         **kwargs
