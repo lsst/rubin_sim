@@ -112,7 +112,6 @@ class LCfast_new:
 
         self.snr_min = snr_min
 
-
     def __call__(self, obs, ebvofMW, gen_par=None, bands="grizy"):
         """Simulation of the light curve
 
@@ -146,8 +145,10 @@ class LCfast_new:
         for band in bands:
             idx = obs[self.filterCol] == band
             if len(obs[idx]) > 0:
-                tab_tot = pd.concat([tab_tot, self.processBand(obs[idx], ebvofMW, band, gen_par)],
-                                    ignore_index=True)
+                tab_tot = pd.concat(
+                    [tab_tot, self.processBand(obs[idx], ebvofMW, band, gen_par)],
+                    ignore_index=True,
+                )
 
         # return produced LC
         return tab_tot

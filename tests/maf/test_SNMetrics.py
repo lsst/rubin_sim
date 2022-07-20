@@ -370,8 +370,8 @@ class TestSNmetrics(unittest.TestCase):
             nSN = res["nSN"].item()
             zlim = res["zlim"].item()
 
-            nSN_ref = 0.015039  # 0.013257 value before tossing Telesope class # 2.04949  # 2.523, old value with nside=128
-            zlim_ref = 0.132494  # 0.107721  # 0.617285  # 0.65, old value
+            nSN_ref = 0.006413  # 0.013257 value before tossing Telesope class # 2.04949  # 2.523, old value with nside=128
+            zlim_ref = 0.134486  # 0.107721  # 0.617285  # 0.65, old value
 
             assert np.isclose(nSN, nSN_ref)
             assert np.isclose(zlim, zlim_ref)
