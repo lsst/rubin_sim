@@ -89,19 +89,20 @@ class SNNSNMetric(BaseMetric):
         daymaxStep=3.0,
         verbose=False,
         ploteffi=False,
-        n_bef=5,
-        n_aft=10,
+        n_bef=3,
+        n_aft=8,
         snr_min=5.0,
         n_phase_min=1,
         n_phase_max=1,
         sigmaC=0.04,
         zlim_coeff=0.95,
         bands="grizy",
-        add_dust=True,
-        hard_dust_cut=None,
+        add_dust=False,
+        hard_dust_cut=0.25,
         gammaName="gamma_WFD.hdf5",
         **kwargs,
     ):
+        # n_bef / n_aft = 3/8 for WFD, 4/10 for DDF
 
         self.mjdCol = mjdCol
         self.m5Col = m5Col
@@ -261,16 +262,15 @@ class SNNSNMetric(BaseMetric):
         goodFilters = np.in1d(dataSlice[self.filterCol], list(self.bands))
         dataSlice = dataSlice[goodFilters]
 
-        if len(dataSlice) <= 10:
-            return self.badval
-
         # coaddition per night and per band (if requested by the user)
         if self.coadd_night:
             dataSlice = self.coadd(dataSlice)
 
-        if len(dataSlice) <= 10:
+        # This seems unlikely, but is a possible bailout point
+        if len(dataSlice) <= self.n_aft + self.n_bef:
             return self.badval
-        # get seasons
+
+        # get season information (seasons calculated by gaps, not by place on sky)
         dataSlice = self.getseason(dataSlice, mjdCol=self.mjdCol)
 
         # get redshift values per season
@@ -284,6 +284,7 @@ class SNNSNMetric(BaseMetric):
 
         if metricValues is None:
             return self.badval
+
         if np.max(metricValues["zcomp"]) < 0:
             return self.badval
 
@@ -360,10 +361,6 @@ class SNNSNMetric(BaseMetric):
         if season_info.empty:
             return [], pd.DataFrame()
 
-        season_info_cp = pd.DataFrame(season_info)
-        # get season length depending on the redshift
-        season_info_cp["season"] = season_info_cp["season"].astype(int)
-
         dur_z = (
             season_info.groupby("season")
             .apply(lambda x: self.nsn_expected_z(x))
@@ -415,49 +412,6 @@ class SNNSNMetric(BaseMetric):
 
         return pd.DataFrame(season_info[idx])
 
-    def season_length_deprecated(self, seasons, dataSlice):
-        """
-        Method to estimate season lengths vs z
-
-        Parameters
-        ---------------
-        seasons: list(int)
-          list of seasons to process
-        dataSlice: numpy array
-          array of observations
-
-        Returns
-        -----------
-        seasons: list(int)
-          list of seasons to process
-        dur_z: pandas df
-          season lengths vs z
-        """
-        # if seasons = -1: process the seasons seen in data
-        if seasons == [-1]:
-            seasons = np.unique(dataSlice[self.seasonCol])
-
-        # season infos
-        dfa = pd.DataFrame(np.copy(dataSlice))
-        dfa = dfa[dfa["season"].isin(seasons)]
-        season_info = (
-            dfa.groupby(["season"])
-            .apply(lambda x: self.seasonInfo(x, min_duration=60))
-            .reset_index()
-        )
-
-        if season_info.empty:
-            return [], pd.DataFrame()
-
-        # get season length depending on the redshift
-        dur_z = (
-            season_info.groupby(["season"])
-            .apply(lambda x: self.duration_z(x))
-            .reset_index()
-        )
-
-        return season_info["season"].to_list(), dur_z
-
     def step_lc(self, obs, gen_par, x1=-2.0, color=0.2):
         """
         Method to generate lc
@@ -479,27 +433,6 @@ class SNNSNMetric(BaseMetric):
 
         """
         lc = obs.groupby(["season"]).apply(lambda x: self.genLC(x, gen_par, x1, color))
-        return lc
-
-    def step_lc_deprecated(self, obs, gen_par):
-        """
-        Method to generate lc
-
-        Parameters
-        ---------------
-        obs: array
-          observations
-        gen_par: array
-          simulation parameters
-
-        Returns
-        ----------
-        SN light curves (astropy table)
-
-        """
-
-        lc = obs.groupby(["season"]).apply(lambda x: self.genLC(x, gen_par))
-
         return lc
 
     def step_efficiencies(self, lc):
@@ -677,41 +610,6 @@ class SNNSNMetric(BaseMetric):
             T0_max = grp["T0_max"].values
             T0_min = grp["T0_min"].values
             num = (T0_max - T0_min) / daymaxStep
-            if T0_max - T0_min > 10:
-                df = pd.DataFrame(
-                    np.linspace(T0_min, T0_max, int(num)), columns=["daymax"]
-                )
-            else:
-                df = pd.DataFrame([-1], columns=["daymax"])
-        else:
-            df = pd.DataFrame([0.0], columns=["daymax"])
-
-        df["minRFphase"] = self.min_rf_phase
-        df["maxRFphase"] = self.max_rf_phase
-
-        return df
-
-    def calcDaymax_deprecated(self, grp):
-        """
-        Method to estimate T0 (daymax) values for simulation.
-
-        Parameters
-        --------------
-        grp: group (pandas df sense)
-         group of data to process with the following cols:
-           T0_min: T0 min value (per season)
-           T0_max: T0 max value (per season)
-
-        Returns
-        ----------
-        pandas df with daymax, min_rf_phase, max_rf_phase values
-
-        """
-
-        if self.T0s == "all":
-            T0_max = grp["T0_max"].values
-            T0_min = grp["T0_min"].values
-            num = (T0_max - T0_min) / self.daymaxStep
             if T0_max - T0_min > 10:
                 df = pd.DataFrame(
                     np.linspace(T0_min, T0_max, int(num)), columns=["daymax"]
@@ -1071,32 +969,6 @@ class SNNSNMetric(BaseMetric):
         )
 
         return zseason_allz[["season", "z"]]
-
-    def metric_deprecated(self, grp):
-        """
-        Method to estimate the metric(zcomp, nsn)
-
-        Parameters
-        ---------------
-        grp: pandas group
-
-        Returns
-        ------------
-        pandas df with the metric as cols
-        """
-        zcomp = -1
-        nsn = -1
-        if grp["effi"].mean() > 0.02:
-            zcomp = self.zlim_or_nsn(grp, "faint", -1)
-            nsn = self.zlim_or_nsn(grp, "medium", zcomp)
-
-        if self.ploteffi:
-            from sn_metrics.sn_plot_live import plot_zlim, plot_nsn
-
-            plot_zlim(grp, "faint", self.zmin, self.zmax, self.zlim_coeff)
-            plot_nsn(grp, "medium", self.zmin, self.zmax, zcomp)
-
-        return pd.DataFrame({"zcomp": [zcomp], "nsn": [nsn]})
 
     def nsn_from_rate(self, grp):
         """
