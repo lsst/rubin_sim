@@ -114,6 +114,8 @@ def ddfBatch(
             verbose=False,
             n_bef=4,
             n_aft=10,
+            coadd_night=True,
+            metricName=f"SNNSNMetric_{ddf}"  # have to add here, as must be in reduceDict key
         )
         bundle_list.append(
             maf.MetricBundle(
