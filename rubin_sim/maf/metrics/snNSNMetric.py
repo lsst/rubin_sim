@@ -1175,7 +1175,7 @@ class SNNSNMetric(BaseMetric):
             df.loc[:, "nsn_cum"] = nsn_cum / nsn_cum[-1]
             index = df[df["nsn_cum"] < 1].index
             if len(index) == 0:
-                return resa, resb
+                return resa
             dfb = df[: index[-1] + 2]
             zlim = interp1d(
                 dfb["nsn_cum"],
