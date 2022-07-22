@@ -727,7 +727,7 @@ def scienceRadarBatch(
         hard_dust_cut=0.25,
         zmin=0,
         zmax=1.2,
-        zstep=0.03,
+        zStep=0.03,
         daymaxStep=3.0,
         zlim_coeff=0.95,
         gammaName="gamma_WFD.hdf5",
