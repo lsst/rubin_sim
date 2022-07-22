@@ -485,9 +485,13 @@ class MetricBundleGroup(object):
                 # Not using memoize, just calculate things normally
                 else:
                     for b in bDict.values():
-                        b.metricValues.data[i] = b.metric.run(
-                            slicedata, slicePoint=slice_i["slicePoint"]
-                        )
+                        try:
+                            b.metricValues.data[i] = b.metric.run(
+                                slicedata, slicePoint=slice_i["slicePoint"]
+                            )
+                        except BaseException as e:
+                            print(f'Failed at slicePoint {slice_i}, sid {i}')
+                            raise e
         # Mask data where metrics could not be computed (according to metric bad value).
         for b in bDict.values():
             if b.metricValues.dtype.name == "object":
