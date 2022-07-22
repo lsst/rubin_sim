@@ -718,11 +718,20 @@ def scienceRadarBatch(
         metrics.CountMetric(metricName="Total on sky", maskVal=0),
     ]
     snslicer = slicers.HealpixSlicer(nside=sne_nside, useCache=False)
-    metric = metrics.SNNSNMetric(n_bef=3, n_aft=8,
-                                 coadd_night=True, add_dust=False, hard_dust_cut=0.25,
-                                 zmin=0, zmax=1.2, zstep=0.03, daymaxStep=3.0, zlim_coeff=0.95,
-                                 gammaName="gamma_WFD.hdf5",
-                                 verbose=False)  # zlim_coeff=0.98)
+    metric = metrics.SNNSNMetric(
+        n_bef=3,
+        n_aft=8,
+        coadd_night=True,
+        add_dust=False,
+        hard_dust_cut=0.25,
+        zmin=0,
+        zmax=1.2,
+        zstep=0.03,
+        daymaxStep=3.0,
+        zlim_coeff=0.95,
+        gammaName="gamma_WFD.hdf5",
+        verbose=False,
+    )  # zlim_coeff=0.98)
     bundle = mb.MetricBundle(
         metric,
         snslicer,
