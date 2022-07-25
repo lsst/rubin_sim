@@ -415,15 +415,14 @@ class N_observations_current_season(BaseSurveyFeature):
             self.dark_map = dark_sky()[filtername]
         self.ones = np.ones(hp.nside2npix(self.nside))
         self.ra, self.dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
-
-        self.season_map = calcSeason(self.ra, mjd_start)
+        self.season_map = calcSeason(np.degrees(self.ra), mjd_start)
 
     def season_update(self, observation=None, conditions=None):
         """clear the map anywhere the season has rolled over"""
         if observation is not None:
-            current_season = calcSeason(self.ra, observation["mjd"])
+            current_season = calcSeason(np.degrees(self.ra), observation["mjd"])
         if conditions is not None:
-            current_season = calcSeason(self.ra, conditions.mjd)
+            current_season = calcSeason(np.degrees(self.ra), conditions.mjd)
 
         # If the season has changed anywhere, set that count to zero
         new_season = np.where((self.season_map - current_season) != 0)
