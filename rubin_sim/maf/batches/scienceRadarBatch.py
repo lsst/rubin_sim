@@ -678,16 +678,16 @@ def scienceRadarBatch(
 
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: Camera Rotator"
-    displayDict[
-        "caption"
-    ] = "Kuiper statistic (0 is uniform, 1 is delta function) of the "
     metric1 = metrics.KuiperMetric("rotSkyPos")
     metric2 = metrics.KuiperMetric("rotTelPos")
+    caption_root = "Kuiper statistic (0 is uniform, 1 is delta function) of the "
     for f in filterlist:
         for m in [metric1, metric2]:
             plotDict = {"color": colors[f]}
             displayDict["order"] = filterorders[f]
-            displayDict["caption"] += f"{m.colname} for visits in {f} band."
+            displayDict["caption"] = (
+                caption_root + f"{m.colname} for visits in {f} band."
+            )
             bundleList.append(
                 mb.MetricBundle(
                     m,

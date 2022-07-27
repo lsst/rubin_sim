@@ -296,6 +296,8 @@ class Model_observatory(object):
         self.conditions.moonrise = self.almanac.sunsets["moonrise"][self.almanac_indx]
         self.conditions.moonset = self.almanac.sunsets["moonset"][self.almanac_indx]
 
+        self.conditions.mjd_start = self.mjd_start
+
         # Planet positions from almanac
         self.conditions.planet_positions = self.almanac.get_planet_positions(self.mjd)
 
