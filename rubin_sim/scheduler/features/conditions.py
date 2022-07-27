@@ -146,6 +146,8 @@ class Conditions(object):
             From interpolation.
         sunrise : float
             The MJD of sunrise during the current night. From interpolation
+        mjd_start : float
+            The starting MJD of the survey.
         moonrise : float
             The MJD of moonrise during the current night. From interpolation.
         moonset : float
