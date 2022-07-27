@@ -685,7 +685,9 @@ def scienceRadarBatch(
         for m in [metric1, metric2]:
             plotDict = {"color": colors[f]}
             displayDict["order"] = filterorders[f]
-            displayDict["caption"] = caption_root + f"{m.colname} for visits in {f} band."
+            displayDict["caption"] = (
+                caption_root + f"{m.colname} for visits in {f} band."
+            )
             bundleList.append(
                 mb.MetricBundle(
                     m,
