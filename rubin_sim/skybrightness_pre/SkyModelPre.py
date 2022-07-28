@@ -11,7 +11,7 @@ import h5py
 __all__ = ["SkyModelPre", "interp_angle"]
 
 
-def shortAngleDist(a0, a1):
+def short_angle_dist(a0, a1):
     """
     from https://gist.github.com/shaunlebron/8832585
     """
@@ -51,14 +51,14 @@ def interp_angle(x_out, xp, anglep, degrees=False):
     wterm[np.where(baseline == 0)] = 0
     if degrees:
         result = (
-            np.radians(anglep[left])
-            + shortAngleDist(np.radians(anglep[left]), np.radians(anglep[right]))
-            * wterm
+                np.radians(anglep[left])
+                + short_angle_dist(np.radians(anglep[left]), np.radians(anglep[right]))
+                * wterm
         )
         result = result % (2.0 * np.pi)
         result = np.degrees(result)
     else:
-        result = anglep[left] + shortAngleDist(anglep[left], anglep[right]) * wterm
+        result = anglep[left] + short_angle_dist(anglep[left], anglep[right]) * wterm
         result = result % (2.0 * np.pi)
     return result
 
@@ -146,7 +146,7 @@ class SkyModelPre(object):
         hpid = np.arange(hp.nside2npix(self.nside))
         self.ra, self.dec = _hpid2RaDec(self.nside, hpid)
 
-    def _load_data(self, mjd, filename=None, npyfile=None):
+    def _load_data(self, mjd, filename=None):
         """
         Load up the .npz file to interpolate things. After python 3 upgrade, numpy.savez refused
         to write large .npz files, so data is split between .npz and .npy files.
@@ -203,7 +203,7 @@ class SkyModelPre(object):
 
         self.nside = hp.npix2nside(self.sb[self.filter_names[0]][0, :].size)
 
-    def returnMags(
+    def return_mags(
         self,
         mjd,
         indx=None,
@@ -221,14 +221,6 @@ class SkyModelPre(object):
         indx : `List` of `int` (None)
             indices to interpolate the sky values at. Returns full sky if None. If the class was
             instatiated with opsimFields, indx is the field ID, otherwise it is the healpix ID.
-        airmass_mask : `bool` (True)
-            Set high (>2.5) airmass pixels to badval.
-        planet_mask : `bool` (True)
-            Set sky maps to badval near (2 degrees) bright planets.
-        moon_mask : `bool` (True)
-            Set sky maps near (10 degrees) the moon to badval.
-        zenith_mask : `bool` (True)
-            Set sky maps at high altitude (>86.5) to badval.
         badval : `float` (-1.6375e30)
             Mask value. Defaults to the healpy mask value.
         filters : `list`, opt
@@ -297,7 +289,7 @@ class SkyModelPre(object):
                     masked_pix = True
             if masked_pix:
                 # We have pixels that are masked that we want reasonable values for
-                full_sky_sb = self.returnMags(
+                full_sky_sb = self.return_mags(
                     mjd,
                     filters=filters,
                 )

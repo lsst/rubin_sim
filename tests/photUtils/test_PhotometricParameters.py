@@ -217,7 +217,7 @@ class PhotometricParametersUnitTest(unittest.TestCase):
         testSed.setFlatSED()
 
         testBandpass = Bandpass()
-        testBandpass.readThroughput(
+        testBandpass.read_throughput(
             os.path.join(get_data_dir(), "throughputs", "baseline", "total_g.dat")
         )
 

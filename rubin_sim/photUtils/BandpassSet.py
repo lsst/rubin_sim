@@ -97,14 +97,14 @@ class BandpassSet(object):
             # Initialize bandpass object.
             bandpass[f] = Bandpass()
             # Read the throughput curve, sampling onto grid of wavelen min/max/step.
-            bandpass[f].readThroughput(
+            bandpass[f].read_throughput(
                 filename,
                 wavelen_min=WAVELEN_MIN,
                 wavelen_max=WAVELEN_MAX,
                 wavelen_step=WAVELEN_STEP,
             )
             # Calculate phi as well.
-            bandpass[f].sbTophi()
+            bandpass[f].sb_to_phi()
         # Set data in self.
         self.bandpass = bandpass
         self.filterlist = filterlist
@@ -143,13 +143,13 @@ class BandpassSet(object):
                 print("Reading throughput curves ", complist, " for filter ", f)
             # Initialize bandpass object.
             bandpass[f] = Bandpass()
-            bandpass[f].readThroughputList(
+            bandpass[f].read_throughput_list(
                 complist,
                 wavelen_min=WAVELEN_MIN,
                 wavelen_max=WAVELEN_MAX,
                 wavelen_step=WAVELEN_STEP,
             )
-            bandpass[f].sbTophi()
+            bandpass[f].sb_to_phi()
         self.bandpass = bandpass
         self.filterlist = filterlist
         return
@@ -162,7 +162,7 @@ class BandpassSet(object):
         # Set up dictionary to hold new bandpass objects.
         newBpDict = {}
         for f in self.filterlist:
-            wavelen, sb = self.bandpass[f].multiplyThroughputs(
+            wavelen, sb = self.bandpass[f].multiply_throughputs(
                 otherBpSet.bandpass[f].wavelen, otherBpSet.bandpass[f].sb
             )
             newBpDict[f] = Bandpass(wavelen=wavelen, sb=sb)
@@ -207,7 +207,7 @@ class BandpassSet(object):
         effphi = {}
         # Calculate values for each filter.
         for f in self.filterlist:
-            effphi[f], effsb[f] = self.bandpass[f].calcEffWavelen()
+            effphi[f], effsb[f] = self.bandpass[f].calc_eff_wavelen()
         self.effsb = effsb
         self.effphi = effphi
         if verbose:
@@ -225,7 +225,7 @@ class BandpassSet(object):
         zpt = {}
         print("Filter Zeropoint")
         for f in self.filterlist:
-            zpt[f] = self.bandpass[f].calcZP_t(
+            zpt[f] = self.bandpass[f].calc_zp_t(
                 expTime=exptime, effarea=effarea, gain=gain
             )
             print(" %s     %.3f" % (f, zpt[f]))
@@ -541,7 +541,7 @@ class BandpassSet(object):
         if atmos:
             atmosfile = os.path.join(rootdir, "atmos_std.dat")
             atmosphere = Bandpass()
-            atmosphere.readThroughput(atmosfile)
+            atmosphere.read_throughput(atmosfile)
         Xatm = _stdX
         # set up colors for plot output
         colors = ("k", "b", "g", "y", "r", "m", "burlywood", "k")

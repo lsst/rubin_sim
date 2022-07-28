@@ -142,12 +142,12 @@ class BandpassDict(object):
                 os.path.join(filedir, "%s.dat" % (bandpassRoot + w))
             ]
             bandpassDummy = Bandpass()
-            bandpassDummy.readThroughputList(components)
+            bandpassDummy.read_throughput_list(components)
             hardwareBandpassList.append(bandpassDummy)
 
             components += [atmoTransmission]
             bandpassDummy = Bandpass()
-            bandpassDummy.readThroughputList(components)
+            bandpassDummy.read_throughput_list(components)
             bandpassList.append(bandpassDummy)
 
         bandpassDict = cls(bandpassList, bandpassNames)
@@ -189,7 +189,7 @@ class BandpassDict(object):
 
         for w in bandpassNames:
             bandpassDummy = Bandpass()
-            bandpassDummy.readThroughput(
+            bandpassDummy.read_throughput(
                 os.path.join(bandpassDir, "%s.dat" % (bandpassRoot + w))
             )
             bandpassList.append(bandpassDummy)

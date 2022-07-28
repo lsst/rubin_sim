@@ -56,7 +56,7 @@ class photometryUnitTest(unittest.TestCase):
 
         for kk in keys:
             testBandPasses[kk] = Bandpass()
-            testBandPasses[kk].readThroughput(
+            testBandPasses[kk].read_throughput(
                 os.path.join(bandpassDir, "test_bandpass_%s.dat" % kk)
             )
             bplist.append(testBandPasses[kk])

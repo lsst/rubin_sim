@@ -36,7 +36,7 @@ class BandpassDictTest(unittest.TestCase):
         for dex in dexList:
             name = self.bandpassPossibilities[dex]
             bp = Bandpass()
-            bp.readThroughput(os.path.join(self.bandpassDir, "total_%s.dat" % name))
+            bp.read_throughput(os.path.join(self.bandpassDir, "total_%s.dat" % name))
             while name in bandpassNameList:
                 name += "0"
             bandpassNameList.append(name)
@@ -733,7 +733,7 @@ class BandpassDictTest(unittest.TestCase):
         controlBandpassList = []
         for bpn in bandpassNames:
             dummyBp = Bandpass()
-            dummyBp.readThroughput(
+            dummyBp.read_throughput(
                 os.path.join(bandpassDir, bandpassRoot + bpn + ".dat")
             )
             controlBandpassList.append(dummyBp)
@@ -743,7 +743,7 @@ class BandpassDictTest(unittest.TestCase):
         wStep = controlBandpassList[0].wavelen[1] - controlBandpassList[0].wavelen[0]
 
         for bp in controlBandpassList:
-            bp.resampleBandpass(wavelen_min=wMin, wavelen_max=wMax, wavelen_step=wStep)
+            bp.resample_bandpass(wavelen_min=wMin, wavelen_max=wMax, wavelen_step=wStep)
 
         for test, control in zip(bandpassDict.values(), controlBandpassList):
             np.testing.assert_array_almost_equal(test.wavelen, control.wavelen, 19)
@@ -779,7 +779,7 @@ class BandpassDictTest(unittest.TestCase):
             ]
 
             dummyBp = Bandpass()
-            dummyBp.readThroughputList(componentList)
+            dummyBp.read_throughput_list(componentList)
             controlHardwareList.append(dummyBp)
 
             componentList = [
@@ -789,7 +789,7 @@ class BandpassDictTest(unittest.TestCase):
             ]
 
             dummyBp = Bandpass()
-            dummyBp.readThroughputList(componentList)
+            dummyBp.read_throughput_list(componentList)
             controlBandpassList.append(dummyBp)
 
         wMin = controlBandpassList[0].wavelen[0]
@@ -797,8 +797,8 @@ class BandpassDictTest(unittest.TestCase):
         wStep = controlBandpassList[0].wavelen[1] - controlBandpassList[0].wavelen[0]
 
         for bp, hh in zip(controlBandpassList, controlHardwareList):
-            bp.resampleBandpass(wavelen_min=wMin, wavelen_max=wMax, wavelen_step=wStep)
-            hh.resampleBandpass(wavelen_min=wMin, wavelen_max=wMax, wavelen_step=wStep)
+            bp.resample_bandpass(wavelen_min=wMin, wavelen_max=wMax, wavelen_step=wStep)
+            hh.resample_bandpass(wavelen_min=wMin, wavelen_max=wMax, wavelen_step=wStep)
 
         for test, control in zip(bandpassDict.values(), controlBandpassList):
             np.testing.assert_array_almost_equal(test.wavelen, control.wavelen, 19)

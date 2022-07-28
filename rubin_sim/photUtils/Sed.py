@@ -1436,7 +1436,7 @@ class Sed(object):
         wavelen, fnu = self.resampleSED(wavelen, fnu, wavelen_match=bandpass.wavelen)
         # Calculate bandpass phi value if required.
         if bandpass.phi is None:
-            bandpass.sbTophi()
+            bandpass.sb_to_phi()
         # Calculate flux in bandpass and return this value.
         dlambda = wavelen[1] - wavelen[0]
         flux = (fnu * bandpass.phi).sum() * dlambda
@@ -1715,12 +1715,12 @@ class Sed(object):
         i = 0
         for bp in bandpasslist:
             # Be sure bandpasses on same grid and calculate phi.
-            bp.resampleBandpass(
+            bp.resample_bandpass(
                 wavelen_min=wavelen_min,
                 wavelen_max=wavelen_max,
                 wavelen_step=wavelen_step,
             )
-            bp.sbTophi()
+            bp.sb_to_phi()
             phiarray[i] = bp.phi
             i = i + 1
         return phiarray, wavelen_step

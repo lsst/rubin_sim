@@ -157,9 +157,9 @@ class SNNSNMetric(BaseMetric):
         phot_params = PhotometricParameters(exptime=1)
         zp_s = {}
         for f in bands:
-            bp.readThroughput(os.path.join(fdir, f"total_{f}.dat"))
-            mean_wavelengths[f] = bp.calcEffWavelen()[1]
-            zp_s[f] = bp.calcZP_t(phot_params)
+            bp.read_throughput(os.path.join(fdir, f"total_{f}.dat"))
+            mean_wavelengths[f] = bp.calc_eff_wavelen()[1]
+            zp_s[f] = bp.calc_zp_t(phot_params)
         telescope = {"zp_s": zp_s, "mean_wavelengths": mean_wavelengths}
 
         # LC selection parameters

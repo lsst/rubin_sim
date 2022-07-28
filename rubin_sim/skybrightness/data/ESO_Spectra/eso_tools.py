@@ -117,10 +117,10 @@ def spec2mags(spectra_list, wave):
             dtype=list(zip(["wave", "trans"], [float] * 2)),
         )
         tempB = Bandpass()
-        tempB.setBandpass(bp["wave"], bp["trans"])
+        tempB.set_bandpass(bp["wave"], bp["trans"])
         filters[filtername] = tempB
 
-    filterwave = np.array([filters[f].calcEffWavelen()[0] for f in keys])
+    filterwave = np.array([filters[f].calc_eff_wavelen()[0] for f in keys])
 
     for i, spectrum in enumerate(spectra_list):
         tempSed = Sed()

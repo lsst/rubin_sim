@@ -27,10 +27,10 @@ def load_inst_zeropoints():
             nexp=1, gain=1, exptime=1, bandpass=filtername
         )
         bp = Bandpass()
-        bp.readThroughput(
+        bp.read_throughput(
             os.path.join(datadir, "throughputs/baseline/", "total_%s.dat" % filtername)
         )
-        zp_inst[filtername] = bp.calcZP_t(phot_params)
+        zp_inst[filtername] = bp.calc_zp_t(phot_params)
 
     syseng = SysEngVals()
     kAtm = syseng.kAtm

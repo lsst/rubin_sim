@@ -259,11 +259,11 @@ class BaseObs(object):
         self.lsst = {}
         for f in self.filterlist:
             self.lsst[f] = Bandpass()
-            self.lsst[f].readThroughput(
+            self.lsst[f].read_throughput(
                 os.path.join(filterDir, bandpassRoot + f + bandpassSuffix)
             )
         self.vband = Bandpass()
-        self.vband.readThroughput(os.path.join(vDir, vFilter))
+        self.vband.read_throughput(os.path.join(vDir, vFilter))
 
     def calcColors(self, sedname="C.dat", sedDir=None):
         """Calculate the colors for a given SED.

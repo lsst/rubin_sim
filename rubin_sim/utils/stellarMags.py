@@ -35,7 +35,7 @@ def calcWDColors():
             dtype=list(zip(["wave", "trans"], [float] * 2)),
         )
         tempB = Bandpass()
-        tempB.setBandpass(bp["wave"], bp["trans"])
+        tempB.set_bandpass(bp["wave"], bp["trans"])
         bps.append(tempB)
 
     # Read in the SEDs and compute mags

@@ -49,14 +49,14 @@ class TestSNRmethods(unittest.TestCase):
         self.hardwareList = []
         for name in totalNameList:
             dummy = Bandpass()
-            dummy.readThroughput(os.path.join(hardwareDir, name))
+            dummy.read_throughput(os.path.join(hardwareDir, name))
             self.bpList.append(dummy)
 
             dummy = Bandpass()
             hardwareNameList = [os.path.join(hardwareDir, name)]
             for component in componentList:
                 hardwareNameList.append(os.path.join(hardwareDir, component))
-            dummy.readThroughputList(hardwareNameList)
+            dummy.read_throughput_list(hardwareNameList)
             self.hardwareList.append(dummy)
 
         self.filterNameList = ["u", "g", "r", "i", "z", "y"]

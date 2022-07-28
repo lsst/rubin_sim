@@ -665,7 +665,7 @@ class SedListTest(unittest.TestCase):
         normalizing bandpass
         """
         normalizingBand = Bandpass()
-        normalizingBand.readThroughput(
+        normalizingBand.read_throughput(
             os.path.join(get_data_dir(), "throughputs", "baseline", "total_r.dat")
         )
         nSed = 10

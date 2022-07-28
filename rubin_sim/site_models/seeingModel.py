@@ -58,8 +58,8 @@ class SeeingModel:
             eff_wavelens = []
             for f in filter_list:
                 bp = Bandpass()
-                bp.readThroughput(os.path.join(fdir, "total_" + f + ".dat"))
-                eff_wavelens.append(bp.calcEffWavelen()[1])
+                bp.read_throughput(os.path.join(fdir, "total_" + f + ".dat"))
+                eff_wavelens.append(bp.calc_eff_wavelen()[1])
         self.eff_wavelens = np.array(eff_wavelens)
         self.telescope_seeing = telescope_seeing
         self.optical_design_seeing = optical_design_seeing
