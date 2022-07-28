@@ -9,34 +9,34 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 
 Prerequisites:  A working [conda installation ](https://www.anaconda.com/products/individual)
 
-### Conda installation ###
-For a simple conda installation:
+### Conda Installation ###
+
+If you are only running `rubin_sim` code and not making changes. If you will be editing the code or need the very latest verison, use the pip instructions below.
 ```
-conda create -n rubin -c conda-forge rubin_sim
+conda create -n rubin -c conda-forge rubin_sim # Create a new environment
 conda activate rubin
-conda install -c conda-forge jupyter
+rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
+conda install -c conda-forge jupyter # Optional install of jupyter
 ```
-Then follow the data download directions below.
 Note that this is not the best option for developers working on their own metrics - a pip installation from their own fork of the repo may work better.
 
-### Pip installation ###
+### Pip Installation ###
+
 To install rubin_sim from source using pip:
 ```
 git clone https://github.com/lsst/rubin_sim.git
 cd rubin_sim
-conda create -n rubin & conda activate rubin  ### optional (but recommended)
+conda create -n rubin & conda activate rubin  # optional (but recommended)
 conda install -c conda-forge --file=requirements.txt
-conda install -c conda-forge jupyter   ### if you want to use jupyter notebook in this environment
+conda install -c conda-forge jupyter   # if you want to use jupyter notebook in this environment
+conda install -c conda-forge --file=test-requirements.txt # If you will want to run unit tests
 pip install -e .
+rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
 ```
-Note that **developers** will likely want to follow similar directions, except create a fork of our rubin_sim github repo first (and then clone from there).
-Follow the data download directions below in order to install the necessary data files.
+Note that external collaborators will likely want to follow similar directions, except create a fork of our rubin_sim github repo first (and then clone from there).
 
-The installation can be tested by running `pytest` in the package directory.
-In order to run the unit tests, install the following additional packages:
-```
-conda install -c conda-forge --file=test-requirements.txt
-```
+
+###Install into an LSST Stack Environment ###
 
 We expect some users to want to install rubin_sim into an LSST stack environment, using only some of the basic options within rubin_sim such as photUtils.
 This can be done without impacting the LSST environment by 
@@ -46,8 +46,8 @@ conda install -c conda-forge setuptools_scm
 git clone https://github.com/lsst/rubin_sim.git
 cd rubin_sim
 pip install -e .
+rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
 ```
-(and if you need to use additional modules within rubin_sim, you can conda install additional packages as needed). 
 
 ### Data download for rubin_sim ###
 
@@ -100,6 +100,9 @@ cd doc
 make html
 ```
 
+## Getting Help ##
+
+Questions about `rubin_sim` can be posted on the [sims slack channel](https://lsstc.slack.com/archives/C2LQ5JW9W), or on https://community.lsst.org/
 
 # Mix and match data files
 
@@ -159,7 +162,7 @@ To update the source contents of the data files:
 * Create a new tar file with a new name, e.g., `tar -chvzf maf_2021_06_01.tgz maf` (no `-h` if symlinks should stay as symlinks)
 * Copy your new tar file to NCSA lsst-login01.ncsa.illinois.edu:/lsstdata/user/staff/web_data/sim-data/rubin_sim_data/
 * You can check that it is uploaded here: https://lsst.ncsa.illinois.edu/sim-data/rubin_sim_data/
-* Update `bin/rs_download_data` so the `data_dict` function uses your new filename
+* Update `rubin_sim/data/rs_download_data.py` so the `data_dict` function uses your new filename
 * Push and merge the change to `bin/rs_download_data`
 * Probably add a new tag.
 
