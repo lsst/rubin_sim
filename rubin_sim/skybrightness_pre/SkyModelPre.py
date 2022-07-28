@@ -51,9 +51,9 @@ def interp_angle(x_out, xp, anglep, degrees=False):
     wterm[np.where(baseline == 0)] = 0
     if degrees:
         result = (
-                np.radians(anglep[left])
-                + short_angle_dist(np.radians(anglep[left]), np.radians(anglep[right]))
-                * wterm
+            np.radians(anglep[left])
+            + short_angle_dist(np.radians(anglep[left]), np.radians(anglep[right]))
+            * wterm
         )
         result = result % (2.0 * np.pi)
         result = np.degrees(result)
