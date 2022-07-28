@@ -22,14 +22,14 @@ Note that this is not the best option for developers working on their own metric
 
 ### Pip Installation ###
 
-To install rubin_sim from source using pip:
+To install `rubin_sim` from source using pip:
 ```
 git clone https://github.com/lsst/rubin_sim.git
 cd rubin_sim
 conda create -n rubin & conda activate rubin  # optional (but recommended)
 conda install -c conda-forge --file=requirements.txt
 conda install -c conda-forge jupyter   # if you want to use jupyter notebook in this environment
-conda install -c conda-forge --file=test-requirements.txt # If you will want to run unit tests
+conda install -c conda-forge --file=test-requirements.txt # optional (If you will want to run unit tests)
 pip install -e .
 rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
 ```
