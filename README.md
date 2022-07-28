@@ -36,7 +36,7 @@ rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_d
 Note that external collaborators will likely want to follow similar directions, except create a fork of our rubin_sim github repo first (and then clone from there).
 
 
-###Install into an LSST Stack Environment ###
+### Install into an LSST Stack Environment ###
 
 We expect some users to want to install rubin_sim into an LSST stack environment, using only some of the basic options within rubin_sim such as photUtils.
 This can be done without impacting the LSST environment by 
