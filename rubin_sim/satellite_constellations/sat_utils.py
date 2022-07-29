@@ -12,9 +12,9 @@ from shapely.geometry import LineString, Point
 
 __all__ = [
     "create_constellation",
-    "starlink_constellation_v1",
-    "starlink_constellation_v2",
-    "oneweb_constellation",
+    "starlink_tles_v1",
+    "starlink_tles_v2",
+    "oneweb_tles",
     "Constellation",
 ]
 
@@ -130,7 +130,7 @@ def create_constellation(
     return my_sat_tles
 
 
-def starlink_constellation_v1():
+def starlink_tles_v1():
     """
     Create a list of satellite TLE's.
     For starlink v1 (as of July 2022). Should create 4,408 orbits
@@ -147,7 +147,7 @@ def starlink_constellation_v1():
     return my_sat_tles
 
 
-def starlink_constellation_v2():
+def starlink_tles_v2():
     """
     Create a list of satellite TLE's
     For starlink v2 (as of July 2022). Should create 29,988 orbits
@@ -164,7 +164,7 @@ def starlink_constellation_v2():
     return my_sat_tles
 
 
-def oneweb_constellation():
+def oneweb_tles():
     """
     Create a list of satellite TLE's
     for OneWeb plans (as of July 2022). Should create 6,372 orbits
@@ -219,7 +219,6 @@ class Constellation(object):
     def update_mjd(self, mjd):
         """
         Record the alt,az position and illumination status for all the satellites at a given time
-        XXX--need to update so this will work with an array of MJD values, so we can avoid mjd loops.
         """
         jd = mjd + MJDOFFSET
         t = self.ts.ut1_jd(jd)
@@ -271,71 +270,6 @@ class Constellation(object):
             alts.append(alt.radians)
         return np.vstack(ras), np.vstack(decs), np.vstack(alts), np.vstack(illums)
 
-    def check_pointing(
-        self, pointing_alt, pointing_az, mjd, visit_time, fov_radius=1.75
-    ):
-        """Calculates the length of satellite streaks in a pointing.
-
-        Parameters
-        ----------
-        pointing_alt : float
-            the altitude of the pointing (degrees).
-        pointing_az : float
-            the azimuth of the pointing (degrees).
-        mjd : float
-            the current mjd (days).
-        visit_time: float
-            the length of exposure (seconds).
-        fov_radius : float (1.75)
-            The radius of the field of view (degrees), default 1.75.
-
-        Returns
-        -------
-        list
-            list of streak length in the given pointing (degrees)
-            and the number of satellites that contributed to the length"""
-
-        fov_radius = np.radians(fov_radius)
-        pointing_alt_rad = np.radians(pointing_alt)
-        pointing_az_rad = np.radians(pointing_az)
-        visit_time = visit_time / 86400
-        streak_len_rad = 0.0
-        n_streaks = 0
-
-        self.update_mjd(mjd)
-        inAlt_list = self.altitudes_rad + 0
-        inAz_list = self.azimuth_rad + 0
-        illum1 = self.visible.copy()
-
-        self.update_mjd(mjd + visit_time)
-        finAlt_list = self.altitudes_rad + 0
-        finAz_list = self.azimuth_rad + 0
-
-        vis_sometime = np.unique(np.hstack([illum1, self.visible]))
-
-        for index in vis_sometime:
-            distance = pointToLineDistance(
-                inAz_list[index],
-                inAlt_list[index],
-                finAz_list[index],
-                finAlt_list[index],
-                pointing_az_rad,
-                pointing_alt_rad,
-            )
-
-            if distance < fov_radius:
-                streak_len_rad += _calculate_length(
-                    inAlt_list[index],
-                    inAz_list[index],
-                    finAlt_list[index],
-                    finAz_list[index],
-                    pointing_alt_rad,
-                    pointing_az_rad,
-                    fov_radius,
-                )
-                n_streaks += 1
-        return np.degrees(streak_len_rad), n_streaks
-
     def check_pointings(
         self,
         pointing_ras,
@@ -346,7 +280,8 @@ class Constellation(object):
         test_radius=10.0,
         dt=2.0,
     ):
-        """Just like `check_pointing`, but now use arrays for all the things
+        """Find streak length and number of streaks in an image
+
         Parameters
         ----------
         pointing_ras : array
@@ -444,9 +379,6 @@ class Constellation(object):
             if length > 0:
                 lengths_rad[ob_indx] += length
                 n_streaks[ob_indx] += 1
-        # Since we had degrees in, do degrees out. Probably poor form that we don't have
-        # uniform behavior over all methods. Maybe change methods that are radians in/out
-        # to have a leading underscore _ in name to make clear.
         return np.degrees(lengths_rad), n_streaks
 
 
@@ -456,47 +388,6 @@ def _streak_length(sat_ras, sat_decs, pointing_ra, pointing_dec, radius):
     x, y = gnomonic_project_toxy(sat_ras, sat_decs, pointing_ra, pointing_dec)
     ls = LineString(zip(x, y))
     p = Point(0, 0)
-    circle_buffer = p.buffer(radius)
-    length = circle_buffer.intersection(ls).length
-    return length
-
-
-def _calculate_length(
-    initial_alt, initial_az, end_alt, end_az, pointing_alt, pointing_az, radius
-):
-    """Helper function for check_pointing.
-    calculate the length of a streak after projecting the locations of the satellite and the pointing onto plane.
-
-    Parameters
-    ----------
-    initial_alt : float
-        the initial altitude of the satellite (radians)
-    initial_az : float
-        the initial azimuth of the satellite (radians)
-    end_alt : float
-        the end altitude of the satellite (radians)
-    end_az: float
-        the end azimuth of the satellite (radians)
-    pointing_alt : float
-        the altitude of the pointing (radians)
-    pointing_az: float
-        the azimuth of the pointing(radians)
-    radius : float
-        the radius of the pointing (radians)
-    Returns
-    -------
-    float
-        the length of the satellite streak in the pointing (radians)
-    """
-    # start location
-    x1, y1 = gnomonic_project_toxy(initial_az, initial_alt, pointing_az, pointing_alt)
-    # end location
-    x2, y2 = gnomonic_project_toxy(end_az, end_alt, pointing_az, pointing_alt)
-
-    # from https://stackoverflow.com/questions/30844482/what-is-most-efficient-way-to-find-the-intersection-of-a-line-and-a-circle-in-py
-    p = Point(0, 0)
-    circle_buffer = p.buffer(radius)
-    ls = LineString([(x1, y1), (x2, y2)])
     circle_buffer = p.buffer(radius)
     length = circle_buffer.intersection(ls).length
     return length
