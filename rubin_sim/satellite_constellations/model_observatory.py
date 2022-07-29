@@ -1,5 +1,7 @@
 import numpy as np
-from rubin_sim.scheduler.modelObservatory import Model_observatory as orig_model_observatory
+from rubin_sim.scheduler.modelObservatory import (
+    Model_observatory as orig_model_observatory,
+)
 from rubin_sim.utils import survey_start_mjd, _healbin
 from rubin_sim.site_models import Almanac
 
@@ -8,6 +10,7 @@ __all__ = ["Model_observatory"]
 
 
 # Take the model observatory from the scheduler and subclass and expand to include satellite constellations
+
 
 class Model_observatory(orig_model_observatory):
     """A class to generate a realistic telemetry stream for the scheduler"""
@@ -25,9 +28,9 @@ class Model_observatory(orig_model_observatory):
         park_after=10.0,
         init_load_length=10,
         sat_nside=64,
-        satellite_dt=10.,
+        satellite_dt=10.0,
         constellation=None,
-        alt_limit=20.
+        alt_limit=20.0,
     ):
         """
         Parameters
@@ -53,7 +56,7 @@ class Model_observatory(orig_model_observatory):
         """
         # Add in the new satellite information
         self.alt_limit = np.radians(alt_limit)
-        self.satelite_dt = satellite_dt/3600./24.  # Seconds to days
+        self.satelite_dt = satellite_dt / 3600.0 / 24.0  # Seconds to days
         self.sat_nside = sat_nside
         self.constellation = constellation
 
@@ -61,12 +64,21 @@ class Model_observatory(orig_model_observatory):
         self.mjd_start = survey_start_mjd() if mjd_start is None else mjd_start
         self.almanac = Almanac(mjd_start=self.mjd_start)
         self.night = -1
-        
+
         # Run the rest of the regular __init__ steps
-        super().__init__(nside=None, mjd_start=self.mjd_start, seed=42, alt_min=5.0, lax_dome=True,
-                         cloud_limit=0.3, sim_ToO=None, seeing_db=None, park_after=10.0,
-                         init_load_length=10)
-   
+        super().__init__(
+            nside=None,
+            mjd_start=self.mjd_start,
+            seed=42,
+            alt_min=5.0,
+            lax_dome=True,
+            cloud_limit=0.3,
+            sim_ToO=None,
+            seeing_db=None,
+            park_after=10.0,
+            init_load_length=10,
+        )
+
     def return_conditions(self):
         """
         Returns
@@ -78,7 +90,7 @@ class Model_observatory(orig_model_observatory):
         self.conditions.satellite_mjds = self.sat_mjds
         self.conditions.satellite_maps = self.satellite_maps
 
-        # Run the regular return conditions 
+        # Run the regular return conditions
         super().return_conditions()
         # I guess running super() means return statement gets skipped?
         return self.conditions
@@ -103,12 +115,8 @@ class Model_observatory(orig_model_observatory):
         will set self.sat_mjds and self.satellite_maps that can then be attached to
         a conditions object in self.return_conditions
         """
-        sunset = self.almanac.sunsets["sun_n12_setting"][
-            self.almanac_indx
-        ]
-        sunrise = self.almanac.sunsets["sun_n12_rising"][
-            self.almanac_indx
-        ]
+        sunset = self.almanac.sunsets["sun_n12_setting"][self.almanac_indx]
+        sunrise = self.almanac.sunsets["sun_n12_rising"][self.almanac_indx]
 
         self.sat_mjds = np.arange(sunset, sunrise, self.satelite_dt)
 
@@ -124,10 +132,16 @@ class Model_observatory(orig_model_observatory):
         satellite_maps = []
         for i, mjd in enumerate(self.sat_mjds):
 
-            spot_map = _healbin(ras[:, i][illums[:, i]], decs[:, i][illums[:, i]],
-                                weights[:, i][illums[:, i]], self.sat_nside, reduceFunc=np.sum, dtype=int,
-                                fillVal=0)
-                
+            spot_map = _healbin(
+                ras[:, i][illums[:, i]],
+                decs[:, i][illums[:, i]],
+                weights[:, i][illums[:, i]],
+                self.sat_nside,
+                reduceFunc=np.sum,
+                dtype=int,
+                fillVal=0,
+            )
+
             satellite_maps.append(spot_map)
 
         self.satellite_maps = np.vstack(satellite_maps)
