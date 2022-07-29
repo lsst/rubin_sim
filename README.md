@@ -102,7 +102,7 @@ make html
 
 ## Getting Help ##
 
-Questions about `rubin_sim` can be posted on the [sims slack channel](https://lsstc.slack.com/archives/C2LQ5JW9W), or on https://community.lsst.org/
+Questions about `rubin_sim` can be posted on the [sims slack channel](https://lsstc.slack.com/archives/C2LQ5JW9W), or on https://community.lsst.org/ (tag @yoachim and/or @ljones so we get notifications about it).
 
 # Mix and match data files
 
