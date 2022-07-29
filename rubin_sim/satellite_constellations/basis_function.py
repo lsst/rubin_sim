@@ -14,9 +14,10 @@ class Satellite_avoid_basis_function(bf.Base_basis_function):
     forecast_time : `float` (90)
         The time ahead to forecast satellite streaks (minutes).
     """
-    def __init__(self, nside=32, forecast_time=90., smooth_fwhm=3.5):
+
+    def __init__(self, nside=32, forecast_time=90.0, smooth_fwhm=3.5):
         super().__init__(nside=nside)
-        self.forecast_time = forecast_time / 60. / 24  # To days
+        self.forecast_time = forecast_time / 60.0 / 24  # To days
         self.smooth_fwhm = np.radians(smooth_fwhm)
 
     def _calc_value(self, conditions, indx=None):
@@ -24,7 +25,11 @@ class Satellite_avoid_basis_function(bf.Base_basis_function):
         result = 0
         # find the indices that are relevant
         indx_min = np.min(np.searchsorted(conditions.satellite_mjds, conditions.mjd))
-        indx_max = np.max(np.searchsorted(conditions.satellite_mjds, conditions.mjd + self.forecast_time))
+        indx_max = np.max(
+            np.searchsorted(
+                conditions.satellite_mjds, conditions.mjd + self.forecast_time
+            )
+        )
 
         if indx_max > indx_min:
             result = np.sum(conditions.satellite_maps[indx_min:indx_max], axis=0)
