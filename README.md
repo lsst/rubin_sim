@@ -42,7 +42,6 @@ We expect some users to want to install rubin_sim into an LSST stack environment
 This can be done without impacting the LSST environment by 
 ```
 source loadLSST.sh (or your equivalent)
-conda install -c conda-forge setuptools_scm
 git clone https://github.com/lsst/rubin_sim.git
 cd rubin_sim
 pip install -e .
