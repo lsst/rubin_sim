@@ -84,10 +84,12 @@ def normalize_metric_summaries(
     summary = summary.T.groupby("metric").first().T.groupby("run").first()
 
     if metric_sets is None:
+        # If no invert/mag - just do simple normalization (1 + (x-0)/x0)
         norm_summary = 1 + (
             summary.loc[:, :].sub(summary.loc[baseline_run, :], axis="columns")
         ).div(summary.loc[baseline_run, :], axis="columns")
     else:
+        # Reindex metric set and remove duplicates or non-available metrics
         metric_names = [n for n in metric_sets.index.names if not n == "metric"]
         metric_sets = (
             metric_sets.reset_index(metric_names)
@@ -103,8 +105,6 @@ def normalize_metric_summaries(
             dtype="float",
         )
 
-        assert not np.any(np.logical_and(metric_sets["invert"], metric_sets["mag"]))
-
         # Direct metrics are those that are neither inverted, nor compared as magnitudes
         direct = ~np.logical_or(metric_sets["invert"], metric_sets["mag"])
         norm_summary.loc[:, direct] = summary.loc[:, direct]
@@ -117,6 +117,12 @@ def normalize_metric_summaries(
             :,
             metric_sets["mag"],
         ].subtract(summary.loc[baseline_run, metric_sets["mag"]], axis="columns")
+
+        # Some metrics can be both inverted and magnitudes (eg rms mag values)
+        both = np.logical_and(metric_sets["invert"], metric_sets["mag"])
+        norm_summary.loc[:, both] = 1.0 - summary.loc[:, both].subtract(
+            summary.loc[baseline_run, both], axis="columns"
+        )
 
         # Look a the fractional difference compared with the baseline
         norm_summary.loc[:, :] = 1 + (
@@ -460,8 +466,9 @@ def plot_run_metric_mesh(
     else:
         fig = plt.Figure(figsize=(6, 10)) if ax is None else ax.get_figure()
 
-    y_nums, x_nums = np.arange(norm_summary.shape[1] + 1), np.arange(
-        norm_summary.shape[0] + 1
+    y_nums, x_nums = (
+        np.arange(norm_summary.shape[1] + 1),
+        np.arange(norm_summary.shape[0] + 1),
     )
     im = ax.pcolormesh(
         x_nums,
