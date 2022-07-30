@@ -543,7 +543,12 @@ def describe_families(
 
 
 def create_metric_set_df(
-    metric_set, metrics, short_name=None, style="-", invert=False, mag=False
+    metric_set,
+    metrics,
+    short_name=None,
+    style="-",
+    invert=False,
+    mag=False,
 ):
     """Create a DataFrame that defines a metric set.
 
@@ -559,7 +564,7 @@ def create_metric_set_df(
         The matplotlib line style symbol for lines representing the metric,
         by default "-"
     invert : `list` [`bool`], optional
-        Are lower values of the metric better?, by default False
+        Are smaller values of the metric better, such as for errors?, by default False
     mag : `list` [`bool`], optional
         Is the metric an astronomical magnitude?, by default False
 
