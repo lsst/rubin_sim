@@ -111,9 +111,7 @@ def ddfBatch(
         displayDict["group"] = "SNe"
         displayDict["subgroup"] = "N SNe"
         metric = maf.metrics.SNNSNMetric(
-            verbose=False,
-            n_bef=4,
-            n_aft=10,
+            verbose=False, n_bef=4, n_aft=10, metricName=f"SNNSNMetric {fieldname}"
         )
         bundle_list.append(
             maf.MetricBundle(
@@ -167,6 +165,60 @@ def ddfBatch(
                     ddf_slicers[ddf],
                     sqls[f],
                     info_label=" ".join([fieldname, info_labels[f]]),
+                    plotDict=plotDict,
+                    plotFuncs=plotFuncs,
+                    summaryMetrics=summaryMetrics,
+                    displayDict=displayDict,
+                )
+            )
+
+        # Run the TimeLag for each filter *and* all filters
+        displayDict["group"] = "QSO"
+        displayDict["subgroup"] = "TimeLags"
+        nquist_threshold = 2.2
+        lag = 100
+        summaryMetrics = [maf.MeanMetric(), maf.MedianMetric(), maf.RmsMetric()]
+        m = maf.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
+        for f in filterlist:
+            displayDict["order"] = orders[f]
+            displayDict["caption"] = (
+                f"Comparion of the time between visits compared to a defined sampling gap ({lag} days) in "
+                f"{f} band."
+            )
+            bundle_list.append(
+                maf.MetricBundle(
+                    m,
+                    ddf_slicers[ddf],
+                    constraint=sqls[f],
+                    info_label=" ".join([fieldname, info_labels[f]]),
+                    runName=runName,
+                    plotDict=plotDict,
+                    plotFuncs=plotFuncs,
+                    summaryMetrics=summaryMetrics,
+                    displayDict=displayDict,
+                )
+            )
+
+        # Run the TimeLag for each filter *and* all filters
+        displayDict["group"] = "QSO"
+        displayDict["subgroup"] = "TimeLags"
+        nquist_threshold = 2.2
+        lag = 5
+        summaryMetrics = [maf.MeanMetric(), maf.MedianMetric(), maf.RmsMetric()]
+        m = maf.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
+        for f in filterlist:
+            displayDict["order"] = orders[f]
+            displayDict["caption"] = (
+                f"Comparion of the time between visits compared to a defined sampling gap ({lag} days) in "
+                f"{f} band."
+            )
+            bundle_list.append(
+                maf.MetricBundle(
+                    m,
+                    ddf_slicers[ddf],
+                    constraint=sqls[f],
+                    info_label=" ".join([fieldname, info_labels[f]]),
+                    runName=runName,
                     plotDict=plotDict,
                     plotFuncs=plotFuncs,
                     summaryMetrics=summaryMetrics,
