@@ -1,5 +1,5 @@
 from rubin_sim.scheduler.detailers import Base_detailer
-from rubin_sim.utils import _raDec2Hpid, m5_flat_sed
+from rubin_sim.utils import survey_start_mjd
 import rubin_sim.scheduler.features as features
 from rubin_sim.scheduler.utils import hp_in_lsst_fov
 import numpy as np
@@ -32,7 +32,7 @@ class Short_expt_detailer(Base_detailer):
         nside=32,
         footprint=None,
         nobs=2,
-        mjd0=59853.5,
+        mjd0=None,
         survey_name="short",
         read_approx=2.0,
         night_max=None,
@@ -45,7 +45,7 @@ class Short_expt_detailer(Base_detailer):
         self.footprint = footprint
         self.nobs = nobs
         self.survey_name = survey_name
-        self.mjd0 = mjd0
+        self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
         self.night_max = night_max
         self.n_repeat = n_repeat
 
