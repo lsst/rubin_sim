@@ -6,9 +6,7 @@ import pandas as pd
 from scipy.interpolate import interp1d
 import numpy.lib.recfunctions as nlr
 import healpy as hp
-from rubin_sim.photUtils import Dust_values, Bandpass, PhotometricParameters
-from rubin_sim.data import get_data_dir
-import os
+from rubin_sim.photUtils import Dust_values
 
 __all__ = ["SNNSNMetric"]
 
@@ -71,8 +69,6 @@ class SNNSNMetric(BaseMetric):
       Apply dust extinction to visit depth values
     hard_dust_cut : float (None)
       If set, cut any point on the sky that has an ebv extinction higher than the hard_dust_cut value.  
-    telescope_params: dict,opt
-      telescope parameters (zp and mean wave lenghts per band)
     DD_list: list(str), opt
       list of DD runs in simu db
     fieldType: str, opt
@@ -111,8 +107,6 @@ class SNNSNMetric(BaseMetric):
         add_dust=False,
         hard_dust_cut=0.25,
         gammaName="gamma_WFD.hdf5",
-        telescope_params={'zp': {'u': 26.878, 'g': 28.376, 'r': 28.165, 'i': 27.852, 'z': 27.438, 'y': 26.646},
-                          'mean_wavelength': {'u': 368.42, 'g': 479.98, 'r': 623.0, 'i': 754.10, 'z': 869.013, 'y': 973.60}},
         DD_list=['DD:COSMOS', 'DD:ECDFS', 'DD:EDFS, a', 'DD:EDFS, b', 'DD:ELAISS1',
                  'DD:XMM-LSS'],
             fieldType='WFD',
@@ -164,23 +158,6 @@ class SNNSNMetric(BaseMetric):
 
         self.season = season
 
-        """
-        data_dir = get_data_dir()
-        fdir = os.path.join(data_dir, "throughputs", "baseline")
-        mean_wavelengths = {}
-        bp = Bandpass()
-        # nexp=2 .. probably should this be 1?
-        # 2 matches Philipe's expectations for zp from "Telescope" though
-        # and is part of the fisher matrix calculations which look complicated
-        phot_params = PhotometricParameters(exptime=1, nexp=2)
-        zp_s = {}
-        for f in bands:
-            bp.readThroughput(os.path.join(fdir, f"total_{f}.dat"))
-            mean_wavelengths[f] = bp.calcEffWavelen()[1]
-            zp_s[f] = bp.calcZP_t(phot_params)
-        telescope = {"zp_s": zp_s, "mean_wavelengths": mean_wavelengths}
-        """
-
         # LC selection parameters
         self.n_bef = n_bef  # nb points before peak
         self.n_aft = n_aft  # nb points after peak
@@ -207,8 +184,7 @@ class SNNSNMetric(BaseMetric):
                 self.nexpCol,
                 self.seeingCol,
                 self.snr_min,
-                lightOutput=False,
-                telescope_params=telescope_params
+                lightOutput=False
             )
         # loading parameters
         self.zmin = zmin  # zmin for the study
@@ -766,6 +742,7 @@ class SNNSNMetric(BaseMetric):
         resdf["nepochs_bef"] = self.get_epochs(nights, flag, flagph)
 
         # replace NaN by 0
+        resdf = resdf.fillna(0)
 
         # get selection efficiencies
         effis = self.efficiencies(resdf)
@@ -915,10 +892,31 @@ class SNNSNMetric(BaseMetric):
         return pd.DataFrame({"ntot": [len(allSN)], "nsel": [len(allSN[idx])]})
 
     def metric(self, dataSlice, zseason, x1=-2.0, color=0.2, zlim=-1, metric="zlim"):
+        """
+        Method to run the metric
 
+        Parameters
+        ---------------
+        dataSlice: array
+          observations to use for processing
+        zseason: array
+          season infos (season length vs z)
+        x1: float, opt
+          SN stretch (default: -2.0)
+        color: float, opt
+          SN color (default: -0.2)
+        zlim: float, opt
+          redshift limit used to estimate NSN (default: -1)
+        metric: str, opt
+          metric to estimate [zlim or nsn] (default: zlim)
+
+
+        """
+        """
         snType = "medium"
         if np.abs(x1 + 2.0) <= 1.0e-5:
             snType = "faint"
+        """
 
         # get the season durations
         seasons, dur_z = self.season_length(self.season, dataSlice, zseason)
