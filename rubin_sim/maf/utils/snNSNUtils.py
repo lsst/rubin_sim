@@ -76,8 +76,6 @@ class LCfast_new:
         ebvofMW=-1.0,
         bluecutoff=380.0,
         redcutoff=800.0,
-        telescope_params={'zp': {'u': 26.878, 'g': 28.376, 'r': 28.165, 'i': 27.852, 'z': 27.438, 'y': 26.646},
-                          'mean_wavelength': {'u': 368.42, 'g': 479.98, 'r': 623.0, 'i': 754.10, 'z': 869.013, 'y': 973.60}}
     ):
 
         # grab all vals
@@ -96,10 +94,6 @@ class LCfast_new:
 
         # Loading reference file
         self.reference_lc = reference_lc
-
-        # telescope parameters - required to estimate flux errors
-        self.mean_wavelength = telescope_params["mean_wavelength"]
-        self.zp = telescope_params['zp']
 
         # This cutoffs are used to select observations:
         # phase = (mjd - DayMax)/(1.+z)
@@ -262,7 +256,7 @@ class LCfast_new:
         lc["mag"] = -2.5 * np.log10(lc["flux"] / 3631.0)
         lc["phase"] = phases[~phases.mask]
         lc["band"] = ["LSST::" + band] * len(lc)
-        lc["zp"] = self.zp[band]
+        lc["zp"] = self.reference_lc.zp[band]
         lc["zp"] = 2.5 * np.log10(3631)
         lc["zpsys"] = "ab"
         lc["z"] = z_vals
@@ -280,7 +274,8 @@ class LCfast_new:
             (lc["mag"], lc[self.exptimeCol] /
              lc[self.nexpCol], lc[self.nexpCol])
         )
-        lc["flux_5"] = 10 ** (-0.4 * (lc[self.m5Col] - self.zp[band]))
+        lc["flux_5"] = 10 ** (-0.4 * (lc[self.m5Col] -
+                              self.reference_lc.zp[band]))
         lc["snr_m5"] = lc["flux_e_sec"] / np.sqrt(
             (lc["flux_5"] / 5.0) ** 2 + lc["flux_e_sec"] / lc[self.exptimeCol]
         )
@@ -337,7 +332,7 @@ class LCfast_new:
 
         # remove LC points outside the (blue-red) range
         mean_restframe_wavelength = np.array(
-            [self.mean_wavelength[band]] * len(sel_obs)
+            [self.reference_lc.mean_wavelength[band]] * len(sel_obs)
         )
         mean_restframe_wavelength = np.tile(
             mean_restframe_wavelength, (len(gen_par), 1)
@@ -558,7 +553,6 @@ class GetReference:
 
         # Load the file - lc reference
 
-        f = h5py.File(lcName, "r")
         # lc_ref_tot = Table.read(filename, path=keys[0])
         lc_ref_tot = Table.from_pandas(pd.read_hdf(lcName))
 
@@ -568,13 +562,7 @@ class GetReference:
         # Load the file - gamma values
         if not os.path.exists(gammaName):
             print("gamma file {} does not exist")
-            print("will generate it - few minutes")
-            mag_range = np.arange(15.0, 38.0, 1.0)
-            exptimes = np.arange(1.0, 3000.0, 10.0)
-            Gamma(
-                "ugrizy", telescope, gammaName, mag_range=mag_range, exptimes=exptimes
-            )
-            print("end of gamma estimation")
+            print("This file is mandatory to run")
 
         # Load references needed for the following
         self.lc_ref = {}
@@ -583,13 +571,14 @@ class GetReference:
         self.m5_ref = {}
         self.mag_to_flux_e_sec = {}
         self.mag_to_flux = {}
+        self.zp = {}
+        self.mean_wavelength = {}
 
         self.flux = {}
         self.fluxerr = {}
         self.param = {}
 
         bands = np.unique(lc_ref_tot["band"])
-        mag_range = np.arange(10.0, 38.0, 0.01)
 
         method = "linear"
 
@@ -655,6 +644,8 @@ class GetReference:
             # gamma estimator
 
             rec = Table.read(gammaName, path="gamma_{}".format(band))
+            self.zp = rec.meta['zp']
+            self.mean_wavelength = rec.meta['mean_wavelength']
 
             rec["mag"] = rec["mag"].data.round(decimals=4)
             rec["single_exptime"] = rec["single_exptime"].data.round(
