@@ -703,7 +703,8 @@ def scienceRadarBatch(
     ##############
     # SNe Ia
     ##############
-
+    # Temporarily skip SN metric until it can be reconcilied with DESC.
+    """
     displayDict = {
         "group": "Cosmology",
         "subgroup": "5: SNe Ia",
@@ -730,6 +731,7 @@ def scienceRadarBatch(
     )
 
     bundleList.append(bundle)
+    """
 
     #########################
     #########################

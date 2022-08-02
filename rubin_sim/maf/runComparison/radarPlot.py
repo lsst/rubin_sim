@@ -11,44 +11,42 @@ from matplotlib.projections import register_projection
 
 __all__ = [
     "radar",
-    "norm_df",
+    "normalize_for_radar",
 ]
 
 
-def norm_df(
-    df,
-    runs,
-    cols,
+def normalize_for_radar(
+    summary,
     norm_run="baseline",
     invert_cols=None,
     reverse_cols=None,
-    run_label="run_name",
     mag_cols=[],
 ):
     """
-    Normalize values in a dataframe to a given run
+    Normalize values in a dataframe to a given run, return output in a dataframe.
+
+    This provides a similar functionality as the normalize_metric_summaries method, and returns a similar
+    dataframe. The options for specifying which columns to invert, reverse, or identify as 'magnitudes'
+    are slightly different, instead of using a 'metric_set'.
+
     Parameters
     ----------
-    df : pandas.DataFrame
-        The input data frame
-    runs : list of str
-        A list of run numes
-    cols : list of str
-        A list of columns in df to use
+    summary : pandas.DataFrame
+        The data frame containing the metric summary stats to normalize (such as from `get_metric_summaries`).
+        Note that this should contain only the runs and metrics to be normalized -- e.g.
+        `summary.loc[[list of runs], [list of metrics]]`
+        summary should be indexed by the run name.
     norm_run : str
-        The row to use to normalize things to
+        The name of the run to use to define the normalization.
     invert_cols : list of str
         A list of column names that should be inverted (e.g., columns that
         are uncertainties and are better with a smaller value)
     reverse_cols : list of str
         Columns to reverse (e.g., magnitudes)
-    run_label : str (run_name)
-        The column that has run names
     mag_cols : list of str
         Columns that are in magnitudes
     """
-    indices = [np.max(np.where(df.index == name)[0]) for name in runs]
-    out_df = df[cols].iloc[indices].copy()
+    out_df = summary.copy()
     if reverse_cols is not None:
         for colname in reverse_cols:
             out_df[colname] = -out_df[colname]
@@ -58,7 +56,6 @@ def norm_df(
     if norm_run is not None:
         indx = np.max(np.where(out_df.index == norm_run)[0])
         for col in out_df.columns:
-            # maybe just check that it's not a
             if col != "run_name":
                 if (col in mag_cols) | (mag_cols == "all"):
                     out_df[col] = 1.0 + (out_df[col] - out_df[col].iloc[indx])
