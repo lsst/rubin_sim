@@ -144,8 +144,13 @@ class Base_basis_function(object):
         label : `str`
             A string suitable for labeling the basis function in a plot or table.
         """
-
         label = self.__class__.__name__.replace("_basis_function", "")
+
+        if self.filtername is not None:
+            label += f" {self.filtername}"
+
+        label += f" @{id(self)}"
+
         return label
 
 
@@ -1205,18 +1210,6 @@ class Slewtime_basis_function(Base_basis_function):
             else:
                 result = -conditions.slewtime / self.maxtime
         return result
-
-    def label(self):
-        """Creata a label for this basis function.
-
-        Returns
-        -------
-        label : `str`
-            A string suitable for labeling the basis function in a plot or table.
-        """
-
-        label = f"{self.__class__.__name__.replace('_basis_function', '')} {self.maxtime} {self.filtername}"
-        return label
 
 
 class Aggressive_Slewtime_basis_function(Base_basis_function):

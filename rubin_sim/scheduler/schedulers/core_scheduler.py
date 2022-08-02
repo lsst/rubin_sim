@@ -283,8 +283,10 @@ class Core_scheduler(object):
         survey = self.survey_lists[survey_index[0]][survey_index[1]]
         basis_funcs = OrderedDict()
         for basis_func in survey.basis_functions:
-            if hasattr(basis_func(conditions), "__len__"):
-                basis_funcs[basis_func.__class__.__name__] = basis_func
+            sample_values = basis_func(conditions)
+            if hasattr(sample_values, "__len__"):
+                key = f"{basis_func.__class__.__name__} @{id(basis_func)}"
+                basis_funcs[key] = basis_func
         return basis_funcs
 
     def get_healpix_maps(self, survey_index=None, conditions=None):
@@ -320,9 +322,11 @@ class Core_scheduler(object):
 
         basis_functions = self.get_basis_functions(survey_index, conditions)
 
-        for basis_func_key in basis_functions.keys():
-            label = basis_functions[basis_func_key].label()
-            maps[label] = basis_functions[basis_func_key](conditions)
+        for this_basis_func in basis_functions.values():
+            label = this_basis_func.label()
+            if label in maps:
+                label = f"{label} @{id(this_basis_func)}"
+            maps[label] = this_basis_func(conditions)
 
         return maps
 
