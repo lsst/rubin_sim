@@ -67,7 +67,7 @@ class Short_expt_detailer(Base_detailer):
 
         out_observations = []
         # Compute how many observations we should have taken by now
-        n_goal = self.nobs * np.round((conditions.mjd - self.mjd0) / 365.25 + 1)
+        n_goal = self.nobs * np.ceil(conditions.night / self.night_max)
         time_to_add = 0.0
         for observation in observation_list:
             out_observations.append(observation)
