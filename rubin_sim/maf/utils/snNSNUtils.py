@@ -142,8 +142,7 @@ class LCfast_new:
             idx = obs[self.filterCol] == band
             if len(obs[idx]) > 0:
                 tab_tot = pd.concat(
-                    [tab_tot, self.processBand(
-                        obs[idx], ebvofMW, band, gen_par)],
+                    [tab_tot, self.processBand(obs[idx], ebvofMW, band, gen_par)],
                     ignore_index=True,
                 )
 
@@ -207,8 +206,7 @@ class LCfast_new:
         for ia, vala in enumerate(self.param_Fisher):
             for jb, valb in enumerate(self.param_Fisher):
                 if jb >= ia:
-                    Derivative_for_Fisher[vala +
-                                          valb] = dFlux[vala] * dFlux[valb]
+                    Derivative_for_Fisher[vala + valb] = dFlux[vala] * dFlux[valb]
 
         flag = self.getFlag(sel_obs, gen_par, fluxes_obs, band, p)
         flag_idx = np.argwhere(flag)
@@ -271,11 +269,9 @@ class LCfast_new:
 
         # estimate errors
         lc["flux_e_sec"] = self.reference_lc.mag_to_flux[band](
-            (lc["mag"], lc[self.exptimeCol] /
-             lc[self.nexpCol], lc[self.nexpCol])
+            (lc["mag"], lc[self.exptimeCol] / lc[self.nexpCol], lc[self.nexpCol])
         )
-        lc["flux_5"] = 10 ** (-0.4 * (lc[self.m5Col] -
-                              self.reference_lc.zp[band]))
+        lc["flux_5"] = 10 ** (-0.4 * (lc[self.m5Col] - self.reference_lc.zp[band]))
         lc["snr_m5"] = lc["flux_e_sec"] / np.sqrt(
             (lc["flux_5"] / 5.0) ** 2 + lc["flux_e_sec"] / lc[self.exptimeCol]
         )
@@ -303,7 +299,7 @@ class LCfast_new:
         #    lc = self.dust_corrections(lc, ebvofMW)
 
         # remove lc points with no flux
-        idx = lc['flux_e_sec'] > 0.
+        idx = lc["flux_e_sec"] > 0.0
         lc_flux = lc[idx]
 
         return lc_flux
@@ -450,8 +446,7 @@ class Load_Reference:
         for j in range(len(x1_colors)):
             x1 = x1_colors[j][0]
             color = x1_colors[j][1]
-            fname = "LC_{}_{}_380.0_800.0_ebvofMW_0.0_vstack.hdf5".format(
-                x1, color)
+            fname = "LC_{}_{}_380.0_800.0_ebvofMW_0.0_vstack.hdf5".format(x1, color)
             list_files += [fname]
 
         self.check_grab(templateDir, list_files)
@@ -547,8 +542,7 @@ class GetReference:
     """
 
     def __init__(
-        self, lcName, gammaName, tel_par, param_Fisher=[
-            "x0", "x1", "color", "daymax"]
+        self, lcName, gammaName, tel_par, param_Fisher=["x0", "x1", "color", "daymax"]
     ):
 
         # Load the file - lc reference
@@ -631,8 +625,7 @@ class GetReference:
             # Flux derivatives
             self.param[band] = {}
             for par in param_Fisher:
-                valpar = np.reshape(
-                    lc_sel[index]["d{}".format(par)], (npha, nz))
+                valpar = np.reshape(lc_sel[index]["d{}".format(par)], (npha, nz))
                 self.param[band][par] = RegularGridInterpolator(
                     (phav, zv),
                     valpar,
@@ -644,16 +637,14 @@ class GetReference:
             # gamma estimator
 
             rec = Table.read(gammaName, path="gamma_{}".format(band))
-            self.zp = rec.meta['zp']
-            self.mean_wavelength = rec.meta['mean_wavelength']
+            self.zp = rec.meta["zp"]
+            self.mean_wavelength = rec.meta["mean_wavelength"]
 
             rec["mag"] = rec["mag"].data.round(decimals=4)
-            rec["single_exptime"] = rec["single_exptime"].data.round(
-                decimals=4)
+            rec["single_exptime"] = rec["single_exptime"].data.round(decimals=4)
 
             magmin, magmax, magstep, nmag = self.limVals(rec, "mag")
-            expmin, expmax, expstep, nexpo = self.limVals(
-                rec, "single_exptime")
+            expmin, expmax, expstep, nexpo = self.limVals(rec, "single_exptime")
             nexpmin, nexpmax, nexpstep, nnexp = self.limVals(rec, "nexp")
             mag = np.linspace(magmin, magmax, nmag)
             exp = np.linspace(expmin, expmax, nexpo)
@@ -805,8 +796,7 @@ class SN_Rate:
         dvol = dvol[1:] - dvol[:-1]
 
         if account_for_edges:
-            margin = (1.0 + zz) * (self.max_rf_phase -
-                                   self.min_rf_phase) / 365.25
+            margin = (1.0 + zz) * (self.max_rf_phase - self.min_rf_phase) / 365.25
             effective_duration = duration / 365.25 - margin
             effective_duration[effective_duration <= 0.0] = 0.0
         else:
