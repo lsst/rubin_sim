@@ -22,6 +22,8 @@ class Short_expt_detailer(Base_detailer):
         Do not apply any changes to the observation list if the current night is greater than night_max.
     n_repeat : `int` (1)
         How many short observations to do in a row.
+    time_scale : `bool` (False)
+        Should the short observations be scaled throughout the year (True), or taken as fast as possible (False).
 
     """
 
@@ -37,6 +39,7 @@ class Short_expt_detailer(Base_detailer):
         read_approx=2.0,
         night_max=None,
         n_repeat=1,
+        time_scale=False,
     ):
         self.read_approx = read_approx
         self.exp_time = exp_time
@@ -48,6 +51,7 @@ class Short_expt_detailer(Base_detailer):
         self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
         self.night_max = night_max
         self.n_repeat = n_repeat
+        self.time_scale = time_scale
 
         self.survey_features = {}
         # XXX--need a feature that tracks short exposures in the filter
@@ -67,7 +71,10 @@ class Short_expt_detailer(Base_detailer):
 
         out_observations = []
         # Compute how many observations we should have taken by now
-        n_goal = self.nobs * np.ceil(conditions.night / self.night_max)
+        if self.time_scale:
+            n_goal = self.nobs * np.ceil(conditions.night / self.night_max)
+        else:
+            n_goal = self.nobs
         time_to_add = 0.0
         for observation in observation_list:
             out_observations.append(observation)
