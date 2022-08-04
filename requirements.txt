@@ -20,3 +20,5 @@ colorcet
 george
 scikit-learn
 requests
+shapely
+skyfield
