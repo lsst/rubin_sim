@@ -53,6 +53,14 @@ class Model_observatory(orig_model_observatory):
             Park the telescope after a gap longer than park_after (minutes)
         init_load_length : int (10)
             The length of pre-scheduled sky brighntess to load initially (days).
+        alt_limit : `float` (20)
+            Altitude limit for considering satellite streaks (degrees).
+        satellite_dt : `float` (10)
+            The time step to use for computing satellite positions (seconds).
+        sat_nside : `int` (64)
+            The HEALpix nside to use for satellite streak maps.
+        constellation : rubin_sim.satellite_constellations.Constellation object
+            The satellite constellation to use.
         """
         # Add in the new satellite information
         self.alt_limit = np.radians(alt_limit)

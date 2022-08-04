@@ -299,6 +299,13 @@ class Constellation(object):
             because satellites can be moving at ~1 deg/s
         dt : float (2)
             The timestep to use for high resolution checking if a satellite crossed
+
+        Returns
+        -------
+        streak length : `float`
+            The total length of satellite streaks in the FoV (degrees)
+        n_streak : `int`
+            The number of streaks that were in the FoV.
         """
         test_radius_rad = np.radians(test_radius)
         dt = dt / 3600 / 24  # to days
@@ -334,7 +341,7 @@ class Constellation(object):
         )
 
         # pointToLineDistance can take arrays, but they all need to be the same shape,
-        # thus why we broadcasted pointing ra and dec above.
+        # thus why we broadcast pointing ra and dec above.
         distances = pointToLineDistance(
             sat_ra_1[above_illum_indx],
             sat_dec_1[above_illum_indx],

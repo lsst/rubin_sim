@@ -13,6 +13,8 @@ class Satellite_avoid_basis_function(bf.Base_basis_function):
     ----------
     forecast_time : `float` (90)
         The time ahead to forecast satellite streaks (minutes).
+    smooth_fwhm : `float` (3.5)
+        The smoothing full width half max to use (degrees)
     """
 
     def __init__(self, nside=32, forecast_time=90.0, smooth_fwhm=3.5):
