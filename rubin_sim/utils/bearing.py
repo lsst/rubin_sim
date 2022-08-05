@@ -38,7 +38,7 @@ def pointToLineDistance(lon1, lat1, lon2, lat2, lon3, lat3):
     this finds the distance of point 3 to the arc segment.
     """
 
-    result = lon1*0
+    result = lon1 * 0
     needed = np.ones(result.size, dtype=bool)
 
     bear12 = bearing(lon1, lat1, lon2, lat2)
@@ -49,12 +49,12 @@ def pointToLineDistance(lon1, lat1, lon2, lat2, lon3, lat3):
     diff = np.abs(bear13 - bear12)
     if np.size(diff) == 1:
         if diff > np.pi:
-            diff = 2*np.pi - diff
+            diff = 2 * np.pi - diff
         if diff > (np.pi / 2):
             return dis13
     else:
         over = np.where(diff > np.pi)
-        diff[over] = 2*np.pi - diff[over]
+        diff[over] = 2 * np.pi - diff[over]
         solved = np.where(diff > (np.pi / 2))[0]
         result[solved] = dis13[solved]
         needed[solved] = False
@@ -70,7 +70,9 @@ def pointToLineDistance(lon1, lat1, lon2, lat2, lon3, lat3):
             return _angularSeparation(lon2, lat2, lon3, lat3)
     else:
         solved = np.where((dis14 > dis12) & needed)[0]
-        result[solved] = _angularSeparation(lon2[solved], lat2[solved], lon3[solved], lat3[solved])
+        result[solved] = _angularSeparation(
+            lon2[solved], lat2[solved], lon3[solved], lat3[solved]
+        )
         needed[solved] = False
 
     if np.size(lon1) == 1:
