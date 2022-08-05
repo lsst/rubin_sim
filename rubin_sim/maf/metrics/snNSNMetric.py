@@ -17,61 +17,62 @@ class SNNSNMetric(BaseMetric):
 
     Parameters
     --------------
-    metricName : str, opt
-      metric name (default : SNSNRMetric)
-    mjdCol : str, opt
-      mjd column name (default : observationStartMJD)
-    filterCol : str,opt
-       filter column name (default: filter)
-    m5Col : str, opt
-       five-sigma depth column name (default : fiveSigmaDepth)
-    exptimeCol : str,opt
-       exposure time column name (default : visitExposureTime)
-    nightCol : str,opt
-       night column name (default : night)
-    obsidCol : str,opt
-      observation id column name (default : observationId)
-    nexpCol : str,opt
-      number of exposure column name (default : numExposures)
-     vistimeCol : str,opt
+    metricName : `str`, opt
+        metric name (default : SNSNRMetric)
+    mjdCol : `str`, opt
+        mjd column name (default : observationStartMJD)
+    filterCol : `str`, opt
+        filter column name (default: filter)
+    m5Col : `str`, opt
+        five-sigma depth column name (default : fiveSigmaDepth)
+    exptimeCol : `str`, opt
+        exposure time column name (default : visitExposureTime)
+    nightCol : `str`, opt
+        night column name (default : night)
+    obsidCol : `str`, opt
+        observation id column name (default : observationId)
+    nexpCol : `str`, opt
+        number of exposure column name (default : numExposures)
+    vistimeCol : `str`, opt
         visit time column name (default : visitTime)
-    seeingCol : str,opt
-         seeing column name (default: seeingFwhmEff)
-    noteCol: str, opt
-         note column name (default: note)
-    season : list,opt
-       list of seasons to process (float)(default: -1 = all seasons)
-    coadd : bool,opt
-       coaddition per night (and per band) (default : True)
-    zmin : float,opt
-       min redshift for the study (default: 0.0)
-    zmax : float,opt
-       max redshift for the study (default: 1.2)
-    verbose: bool,opt
-      verbose mode (default: False)
-    n_bef: int, opt
-      number of LC points LC before T0 (default:5)
-    n_aft: int, opt
-      number of LC points after T0 (default: 10)
-     snr_min: float, opt
-       minimal SNR of LC points (default: 5.0)
-     n_phase_min: int, opt
-       number of LC points with phase<= -5(default:1)
-    n_phase_max: int, opt
-      number of LC points with phase>= 20 (default: 1)
+    seeingCol : `str`, opt
+        seeing column name (default: seeingFwhmEff)
+    noteCol : `str`, opt
+        note column name (default: note)
+    season : `list`, opt
+        list of seasons to process (float)(default: -1 = all seasons)
+    coadd : `bool`, opt
+        coaddition per night (and per band) (default : True)
+    zmin : `float`, opt
+        min redshift for the study (default: 0.0)
+    zmax : `float`, opt
+        max redshift for the study (default: 1.2)
+    verbose : `bool`, opt
+        verbose mode (default: False)
+    n_bef : `int`, opt
+        number of LC points LC before T0 (default:5)
+    n_aft : `int`, opt
+        number of LC points after T0 (default: 10)
+    snr_min : `float`, opt
+        minimal SNR of LC points (default: 5.0)
+    n_phase_min : `int`, opt
+        number of LC points with phase<= -5(default:1)
+    n_phase_max : `int`, opt
+        number of LC points with phase>= 20 (default: 1)
     zlim_coeff: float, opt
-     corresponds to the zlim_coeff fraction of SN with z<zlim
-    bands: str, opt
-      bands to consider (default: grizy)
-    gammaName: str
-      name of the gamma ref file to load (default: gamma_WFD.hdf5)
-    dust : bool (True)
-      Apply dust extinction to visit depth values
-    hard_dust_cut : float (None)
+        corresponds to the zlim_coeff fraction of SN with z<zlim
+    bands : `str`, opt
+        bands to consider (default: grizy)
+    gammaName: `str`, opt
+        name of the gamma ref file to load (default: gamma_WFD.hdf5)
+    dust : `bool`, opt
+        Apply dust extinction to visit depth values (default False)
+    hard_dust_cut : `float`, opt
       If set, cut any point on the sky that has an ebv extinction higher than the hard_dust_cut value.
-    DD_list: list(str), opt
-      list of DD runs in simu db
-    fieldType: str, opt
+      Default 0.25
+    DD_list : `list` [`str`], opt
+      list of DD runs in simulation db (matches with the "note" column).
+    fieldType : `str`, opt
       type of field to process (WFD or DD)(default: WFD)
     """
 
@@ -348,16 +349,16 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ---------------
-        seasons: list(int)
+        seasons : list(int)
           list of seasons to process
         dataSlice: numpy array
           array of observations
 
         Returns
         -----------
-        seasons: list(int)
+        seasons : list(int)
           list of seasons to process
-        dur_z: pandas df
+        dur_z : pandas df
           season lengths vs z
         """
         # if seasons = -1: process the seasons seen in data

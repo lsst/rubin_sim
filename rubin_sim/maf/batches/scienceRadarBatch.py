@@ -725,14 +725,15 @@ def scienceRadarBatch(
         coadd_night=True,
         add_dust=False,
         hard_dust_cut=0.25,
-        zmin=0,
-        zmax=1.2,
+        zmin=0.2,
+        zmax=0.5,
         zStep=0.03,
         daymaxStep=3.0,
         zlim_coeff=0.95,
         gammaName="gamma_WFD.hdf5",
         verbose=False,
-    )  # zlim_coeff=0.98)
+    )  
+    plotDict = {'percentileClip': 95, 'nTicks': 5}
     bundle = mb.MetricBundle(
         metric,
         snslicer,
