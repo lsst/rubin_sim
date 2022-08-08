@@ -11,7 +11,7 @@ from rubin_sim.satellite_constellations import (
 
 class TestSatellites(unittest.TestCase):
     def test_constellations(self):
-        """Test instantiation of slicer sets slicer type as expected."""
+        """Test stellite constellations"""
 
         mjd0 = survey_start_mjd()
         sv1 = starlink_tles_v1()
