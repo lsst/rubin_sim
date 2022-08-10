@@ -16,7 +16,7 @@ __all__ = [
     "starlink_tles_v2",
     "oneweb_tles",
     "Constellation",
-    "sun_alt_limits"
+    "sun_alt_limits",
 ]
 
 
