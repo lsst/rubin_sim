@@ -69,14 +69,20 @@ class Scripted_survey(BaseSurvey):
                 indx = np.searchsorted(
                     self.obs_wanted["scripted_id"], observation["scripted_id"]
                 )
-                # If it matches scripted_id and note, mark it as observed and update scheduled observation list.
-                if (
-                    self.obs_wanted["scripted_id"][indx] == observation["scripted_id"]
-                ) & (self.obs_wanted["note"][indx] == observation["note"]):
-                    self.obs_wanted["observed"][indx] = True
-                    self.scheduled_obs = self.obs_wanted["mjd"][
-                        ~self.obs_wanted["observed"]
-                    ]
+                # If it matches scripted_id, note, and filter, mark it as observed and update scheduled observation list.
+                if indx < self.obs_wanted["scripted_id"].size:
+                    if (
+                        (
+                            self.obs_wanted["scripted_id"][indx]
+                            == observation["scripted_id"]
+                        )
+                        & (self.obs_wanted["note"][indx] == observation["note"])
+                        & (self.obs_wanted["filter"][indx] == observation["filter"])
+                    ):
+                        self.obs_wanted["observed"][indx] = True
+                        self.scheduled_obs = self.obs_wanted["mjd"][
+                            ~self.obs_wanted["observed"]
+                        ]
 
     def calc_reward_function(self, conditions):
         """If there is an observation ready to go, execute it, otherwise, -inf"""
