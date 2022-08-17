@@ -4,6 +4,9 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 
 [![Run Tests and Build Documentation](https://github.com/lsst/rubin_sim/actions/workflows/python-tests-doc.yml/badge.svg)](https://github.com/lsst/rubin_sim/actions/workflows/python-tests-doc.yml)
 
+# NOTICE # 
+#### The location of the datafiles for download with rs_download_data or rs_download_sky are being moved between NCSA and the LSST USDF, and are unavailable for this week (8/15-8/19 or so). We will update the software package with the new URL for downloads when it is available. ####
+
 
 # Installation
 
