@@ -29,7 +29,8 @@ To install `rubin_sim` from source using pip:
 ```
 git clone https://github.com/lsst/rubin_sim.git
 cd rubin_sim
-conda create -n rubin & conda activate rubin  # optional (but recommended)
+conda create -n rubin # optional (but recommended)
+conda activate rubin  
 conda install -c conda-forge --file=requirements.txt
 conda install -c conda-forge jupyter   # if you want to use jupyter notebook in this environment
 conda install -c conda-forge --file=test-requirements.txt # optional (If you will want to run unit tests)
