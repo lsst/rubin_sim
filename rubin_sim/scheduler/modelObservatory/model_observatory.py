@@ -34,15 +34,15 @@ __all__ = ["Model_observatory"]
 
 
 class NoClouds(object):
-    """Dummy class that will always say there are no clouds
-    """
+    """Dummy class that will always say there are no clouds"""
+
     def __call__(self, mjd):
         return 0
 
 
 class NominalSeeing(object):
-    """Dummy class to always return nominal seeing
-    """
+    """Dummy class to always return nominal seeing"""
+
     def __call__(self, mjd):
         FWHM_500 = 0.7
         return FWHM_500
