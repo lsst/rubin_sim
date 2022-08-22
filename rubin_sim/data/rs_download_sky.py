@@ -57,8 +57,8 @@ def rs_download_sky():
     # Copy the sky data files, if they're not already present
     for file in parser.filenames:
         if not os.path.isfile(os.path.join(destination, file)) or args.force:
-            print(f'Downloading file {file}')
             url = args.url_base + file
+            print(f'Downloading file {file} from {url}')
             r = requests.get(url)
             with open(os.path.join(destination, file), "wb") as f:
                 f.write(r.content)
