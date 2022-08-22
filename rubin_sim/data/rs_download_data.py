@@ -52,6 +52,12 @@ def rs_download_data():
         action="store_true",
         help="Force re-download of data directory(ies)",
     )
+    parser.add_argument(
+        "--url_base",
+        type=str,
+        default="https://s3df.slac.stanford.edu/groups/rubin/static/sim-data/rubin_sim_data/",
+        help="Root URL of download location"
+    )
     args = parser.parse_args()
 
     dirs = args.dirs
@@ -59,7 +65,7 @@ def rs_download_data():
         dirs = files.keys()
     else:
         dirs = dirs.split(",")
-    url_base = "https://lsst.ncsa.illinois.edu/sim-data/rubin_sim_data/"
+    url_base = args.url_base
     data_dir = get_data_dir()
     if not os.path.isdir(data_dir):
         os.mkdir(data_dir)
