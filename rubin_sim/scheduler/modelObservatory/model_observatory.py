@@ -33,6 +33,21 @@ from rubin_sim.data import data_versions
 __all__ = ["Model_observatory"]
 
 
+class NoClouds(object):
+    """Dummy class that will always say there are no clouds
+    """
+    def __call__(self, mjd):
+        return 0
+
+
+class NominalSeeing(object):
+    """Dummy class to always return nominal seeing
+    """
+    def __call__(self, mjd):
+        FWHM_500 = 0.7
+        return FWHM_500
+
+
 class Model_observatory(object):
     """A class to generate a realistic telemetry stream for the scheduler"""
 
@@ -48,6 +63,7 @@ class Model_observatory(object):
         seeing_db=None,
         park_after=10.0,
         init_load_length=10,
+        ideal_conditions=False,
     ):
         """
         Parameters
@@ -70,6 +86,9 @@ class Model_observatory(object):
             Park the telescope after a gap longer than park_after (minutes)
         init_load_length : int (10)
             The length of pre-scheduled sky brighntess to load initially (days).
+        ideal_conditions : bool (False)
+            If the scheduler should assume ideal conditions. This results in no uncheduled downtime,
+            no weather downtime, and nominal seeing.
         """
 
         if nside is None:
@@ -108,9 +127,10 @@ class Model_observatory(object):
         for dt in sched_downtimes:
             down_starts.append(dt["start"].mjd)
             down_ends.append(dt["end"].mjd)
-        for dt in unsched_downtimes:
-            down_starts.append(dt["start"].mjd)
-            down_ends.append(dt["end"].mjd)
+        if not ideal_conditions:
+            for dt in unsched_downtimes:
+                down_starts.append(dt["start"].mjd)
+                down_ends.append(dt["end"].mjd)
 
         self.downtimes = np.array(
             list(zip(down_starts, down_ends)),
@@ -134,7 +154,10 @@ class Model_observatory(object):
             self.downtimes = self.downtimes[good]
             diff = self.downtimes["start"][1:] - self.downtimes["end"][0:-1]
 
-        self.seeing_data = SeeingData(mjd_start_time, seeing_db=seeing_db)
+        if ideal_conditions:
+            self.seeing_data = NominalSeeing()
+        else:
+            self.seeing_data = SeeingData(mjd_start_time, seeing_db=seeing_db)
         self.seeing_model = SeeingModel()
         self.seeing_indx_dict = {}
         for i, filtername in enumerate(self.seeing_model.filter_list):
