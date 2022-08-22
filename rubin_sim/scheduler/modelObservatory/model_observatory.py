@@ -163,7 +163,10 @@ class Model_observatory(object):
         for i, filtername in enumerate(self.seeing_model.filter_list):
             self.seeing_indx_dict[filtername] = i
 
-        self.cloud_data = CloudData(mjd_start_time, offset_year=0)
+        if ideal_conditions:
+            self.cloud_data = NoClouds()
+        else:
+            self.cloud_data = CloudData(mjd_start_time, offset_year=0)
 
         self.sky_model = sb.SkyModelPre(init_load_length=init_load_length)
 
