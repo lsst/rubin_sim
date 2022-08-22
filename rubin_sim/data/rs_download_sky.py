@@ -58,7 +58,7 @@ def rs_download_sky():
     for file in parser.filenames:
         if not os.path.isfile(os.path.join(destination, file)) or args.force:
             print(f'Downloading file {file}')
-            url = args.url_base + f
+            url = args.url_base + file
             r = requests.get(url)
             with open(os.path.join(destination, file), "wb") as f:
                 f.write(r.content)
