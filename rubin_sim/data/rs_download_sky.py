@@ -12,10 +12,10 @@ class MyHTMLParser(HTMLParser):
         try:
             self.filenames
         except AttributeError:
-            setattr(self, 'filenames', [])
+            setattr(self, "filenames", [])
         if tag == "a":
             if attrs[0][0] == "href":
-                if attrs[0][1].endswith('.h5'):
+                if attrs[0][1].endswith(".h5"):
                     self.filenames.append(attrs[0][1])
 
 
@@ -31,13 +31,13 @@ def rs_download_sky():
         dest="force",
         default=False,
         action="store_true",
-        help="Force re-download of sky brightness data."
+        help="Force re-download of sky brightness data.",
     )
     parser.add_argument(
         "--url_base",
         type=str,
         default="https://s3df.slac.stanford.edu/groups/rubin/static/sim-data/sims_skybrightness_pre/h5/",
-        help="Root URL of download location"
+        help="Root URL of download location",
     )
     args = parser.parse_args()
 
@@ -58,7 +58,7 @@ def rs_download_sky():
     for file in parser.filenames:
         if not os.path.isfile(os.path.join(destination, file)) or args.force:
             url = args.url_base + file
-            print(f'Downloading file {file} from {url}')
+            print(f"Downloading file {file} from {url}")
             r = requests.get(url)
             with open(os.path.join(destination, file), "wb") as f:
                 f.write(r.content)

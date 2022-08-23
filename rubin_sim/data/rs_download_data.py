@@ -56,7 +56,7 @@ def rs_download_data():
         "--url_base",
         type=str,
         default="https://s3df.slac.stanford.edu/groups/rubin/static/sim-data/rubin_sim_data/",
-        help="Root URL of download location"
+        help="Root URL of download location",
     )
     args = parser.parse_args()
 
