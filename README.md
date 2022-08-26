@@ -4,9 +4,6 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 
 [![Run Tests and Build Documentation](https://github.com/lsst/rubin_sim/actions/workflows/python-tests-doc.yml/badge.svg)](https://github.com/lsst/rubin_sim/actions/workflows/python-tests-doc.yml)
 
-# NOTICE # 
-#### The location of the datafiles for download with rs_download_data or rs_download_sky are being moved between NCSA and the LSST USDF, and are unavailable for this week (8/15-8/19 or so). We will update the software package with the new URL for downloads when it is available. ####
-
 
 # Installation
 
@@ -163,8 +160,8 @@ To update the source contents of the data files:
 * Update the files in your local installation
 * If you are updating the baseline sim, create a symlink of the new database to baseline.db
 * Create a new tar file with a new name, e.g., `tar -chvzf maf_2021_06_01.tgz maf` (no `-h` if symlinks should stay as symlinks)
-* Copy your new tar file to NCSA lsst-login01.ncsa.illinois.edu:/lsstdata/user/staff/web_data/sim-data/rubin_sim_data/
-* You can check that it is uploaded here: https://lsst.ncsa.illinois.edu/sim-data/rubin_sim_data/
+* Copy your new tar file to S3DF USDF s3dflogin.slac.stanford.edu:/sdf/group/rubin/web_data/sim-data/rubin_sim_data/
+* You can check that it is uploaded here: https://s3df.slac.stanford.edu/groups/rubin/static/sim-data/rubin_sim_data/
 * Update `rubin_sim/data/rs_download_data.py` so the `data_dict` function uses your new filename
 * Push and merge the change to `bin/rs_download_data`
 * Probably add a new tag.
