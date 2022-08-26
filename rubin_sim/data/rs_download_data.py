@@ -16,7 +16,7 @@ def data_dict():
     tar -chvzf maf_may_2021.tgz maf
     """
     file_dict = {
-        "maf": "maf_2022_06_30.tgz",
+        "maf": "maf_2022_08_26.tgz",
         "maps": "maps_2022_2_28.tgz",
         "movingObjects": "movingObjects_oct_2021.tgz",
         "orbits": "orbits_2022_3_1.tgz",
