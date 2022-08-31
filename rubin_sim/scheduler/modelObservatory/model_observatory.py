@@ -64,6 +64,7 @@ class Model_observatory(object):
         park_after=10.0,
         init_load_length=10,
         ideal_conditions=False,
+        kinem_model=None
     ):
         """
         Parameters
@@ -89,6 +90,9 @@ class Model_observatory(object):
         ideal_conditions : bool (False)
             If the scheduler should assume ideal conditions. This results in no uncheduled downtime,
             no weather downtime, and nominal seeing.
+        kinem_model : kinematic model object (None)
+            A instantiated rubin_sim.scheduler.modelObservatory.Kinem_model object. If None, the 
+            default is used
         """
 
         if nside is None:
@@ -170,7 +174,10 @@ class Model_observatory(object):
 
         self.sky_model = sb.SkyModelPre(init_load_length=init_load_length)
 
-        self.observatory = Kinem_model(mjd0=self.mjd_start)
+        if kinem_model is None:
+            self.observatory = Kinem_model(mjd0=self.mjd_start)
+        else:
+            self.observatory = kinem_model
 
         self.filterlist = ["u", "g", "r", "i", "z", "y"]
         self.seeing_FWHMeff = {}
@@ -588,3 +595,16 @@ class Model_observatory(object):
                 new_night = True
 
         return result, new_night
+
+    # methods to reach through and adjust the kinematic model if desired
+    def setup_camera(self, **kwargs):
+        self.observatory.setup_camera(**kwargs)
+
+    def setup_dome(self, **kwargs):
+        self.observatory.setup_dome(**kwargs)
+
+    def setup_telescope(self, **kwargs):
+        self.observatory.setup_telescope(**kwargs)
+        
+    def setup_setup_optics(self, **kwargs):
+        self.observatory.setup_optics(**kwargs)
