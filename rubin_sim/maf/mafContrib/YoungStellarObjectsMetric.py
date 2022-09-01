@@ -6,6 +6,7 @@ import healpy as hp
 import numpy as np
 import scipy.integrate as integrate
 from rubin_sim.maf.metrics.baseMetric import BaseMetric
+from rubin_sim.maf.metrics.crowdingMetric import CrowdingM5Metric
 from rubin_sim.photUtils import Dust_values
 from rubin_sim.maf.maps import DustMap3D
 
@@ -85,14 +86,14 @@ class NYoungStarsMetric(BaseMetric):
         nside=64,
         **kwargs
     ):
-        Cols = [m5Col, filterCol]
-        maps = ["DustMap3D"]
+        Cols = [m5Col, filterCol, 'seeingFwhmGeom']
+        maps = ["DustMap3D", "StellarDensityMap"]
         # This will give us access to the dust map get_distance_at_dmag routine
         # but does not require loading another copy of the map
         self.ebvmap = DustMap3D()
         units = "N stars"
         super().__init__(
-            Cols, metricName=metricName, maps=maps, units=units, badval=badval, *kwargs
+            Cols, metricName=metricName, maps=maps, units=units, badval=badval, **kwargs
         )
         # Save R_x values for on-the-fly calculation of dust extinction with map
         self.R_x = Dust_values().R_x.copy()
@@ -103,6 +104,7 @@ class NYoungStarsMetric(BaseMetric):
         self.mags = mags
         self.filters = list(self.mags.keys())
         self.snrs = snrs
+        self.m5crowding = {f:CrowdingM5Metric(crowding_error=0.25, filtername=f) for f in self.filters}
 
     def run(self, dataSlice, slicePoint=None):
 
@@ -115,16 +117,18 @@ class NYoungStarsMetric(BaseMetric):
         if np.abs(slicePoint["galb"]) > self.galb_limit:
             return self.badval
 
-        # Coadd depths for each filter
+        # Compute depth for each filter
         depths = {}
         # ignore the divide by zero warnings
         with np.errstate(divide="ignore"):
             for filtername in self.filters:
                 in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
                 # Calculate coadded depth per filter
-                depths[filtername] = 1.25 * np.log10(
+                depth_m5 = 1.25 * np.log10(
                     np.sum(10.0 ** (0.8 * dataSlice[self.m5Col][in_filt]))
-                )
+                )                
+                depth_crowding = self.m5crowding[filtername].run(dataSlice, slicePoint)
+                depths[filtername] = min(depth_m5, depth_crowding)
 
         # solve for the distances in each filter where we hit the required SNR
         distances = []
