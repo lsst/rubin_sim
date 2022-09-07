@@ -73,18 +73,19 @@ class TestSNmetrics(unittest.TestCase):
             [(0.870031, 0.289703)], names=["nSN", "zlim"]
         )
 
+        verbose = False
         for k in self.simdata:
             res = metric.run(self.simdata[k], slicePoint=slicePoint)
-            print("")
-            print(f"pointing test {k} with {len(self.simdata[k])} visits")
-            try:
-                print(f"expected results {expected[k]}")
-            except KeyError:
-                print(f"no expected results for {k}")
-            print(f"calculated results {res}")
-            print("")
-
-            # self.assertEqual(expected[k], res)
+            if verbose:
+                print("")
+                print(f"pointing test {k} with {len(self.simdata[k])} visits")
+                try:
+                    print(f"expected results {expected[k]}")
+                except KeyError:
+                    print(f"no expected results for {k}")
+                print(f"calculated results {res}")
+                print("")
+            self.assertEqual(expected[k], res)
 
 
 if __name__ == "__main__":
