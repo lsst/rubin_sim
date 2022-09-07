@@ -91,7 +91,7 @@ class Model_observatory(object):
             If the scheduler should assume ideal conditions. This results in no uncheduled downtime,
             no weather downtime, and nominal seeing.
         kinem_model : kinematic model object (None)
-            A instantiated rubin_sim.scheduler.modelObservatory.Kinem_model object. If None, the 
+            A instantiated rubin_sim.scheduler.modelObservatory.Kinem_model object. If None, the
             default is used
         """
 
@@ -605,6 +605,6 @@ class Model_observatory(object):
 
     def setup_telescope(self, **kwargs):
         self.observatory.setup_telescope(**kwargs)
-        
+
     def setup_setup_optics(self, **kwargs):
         self.observatory.setup_optics(**kwargs)
