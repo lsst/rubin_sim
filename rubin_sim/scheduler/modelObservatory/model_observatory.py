@@ -64,7 +64,7 @@ class Model_observatory(object):
         park_after=10.0,
         init_load_length=10,
         ideal_conditions=False,
-        kinem_model=None
+        kinem_model=None,
     ):
         """
         Parameters
