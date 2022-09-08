@@ -60,8 +60,8 @@ import warnings
 import numpy
 import scipy.interpolate as interpolate
 import gzip
-from .PhysicalParameters import PhysicalParameters
-from .Sed import Sed  # For ZP_t and M5 calculations. And for 'fast mags' calculation.
+from .physical_parameters import PhysicalParameters
+from .sed import Sed  # For ZP_t and M5 calculations. And for 'fast mags' calculation.
 
 __all__ = ["Bandpass"]
 

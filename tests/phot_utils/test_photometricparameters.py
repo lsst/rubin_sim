@@ -2,7 +2,12 @@ import os
 import numpy as np
 import unittest
 from rubin_sim.data import get_data_dir
-from rubin_sim.photUtils import Bandpass, Sed, PhotometricParameters, PhysicalParameters
+from rubin_sim.phot_utils import (
+    Bandpass,
+    Sed,
+    PhotometricParameters,
+    PhysicalParameters,
+)
 
 
 class PhotometricParametersUnitTest(unittest.TestCase):

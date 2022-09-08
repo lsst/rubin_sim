@@ -3,8 +3,8 @@ import numpy
 import os
 from rubin_sim.data import get_data_dir
 from collections import OrderedDict
-from .Bandpass import Bandpass
-from .Sed import Sed
+from .bandpass import Bandpass
+from .sed import Sed
 
 __all__ = ["BandpassDict"]
 
