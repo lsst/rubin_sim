@@ -1,7 +1,7 @@
 import os
 import warnings
 import numpy as np
-from .chebyshevUtils import chebfit, makeChebMatrix, makeChebMatrixOnlyX
+from .chebyshev_utils import chebfit, makeChebMatrix, makeChebMatrixOnlyX
 from .orbits import Orbits
 from .ooephemerides import PyOrbEphemerides, get_oorb_data_dir
 

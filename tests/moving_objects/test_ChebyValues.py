@@ -6,10 +6,10 @@ from astropy.time import Time
 import tempfile
 import shutil
 
-from rubin_sim.movingObjects import Orbits
-from rubin_sim.movingObjects import PyOrbEphemerides
-from rubin_sim.movingObjects import ChebyFits
-from rubin_sim.movingObjects import ChebyValues
+from rubin_sim.moving_objects import Orbits
+from rubin_sim.moving_objects import PyOrbEphemerides
+from rubin_sim.moving_objects import ChebyFits
+from rubin_sim.moving_objects import ChebyValues
 from rubin_sim.data import get_data_dir
 
 
