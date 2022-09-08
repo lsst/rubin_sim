@@ -56,7 +56,7 @@ def Observations_band(
     return data
 
 
-def Observations_season(day0=59000, mjdmin=59000, cadence=3.0):
+def Observations_season(mjdmin=59000, cadence=3.0):
     bands = "grizy"
     Nvisits = dict(zip(bands, [10, 20, 20, 26, 20]))
     rat = 34.0 / 3600.0 / 24.0
@@ -162,6 +162,7 @@ class TestSNmetrics(unittest.TestCase):
                 "Skipping SN tests because running unit tests without full rubin_sim_data."
             )
 
+    @unittest.skip("The SNCadenceMetric is not used")
     def testSNCadenceMetric(self):
         """Test the SN cadence metric"""
 
@@ -217,7 +218,7 @@ class TestSNmetrics(unittest.TestCase):
             data["filter"] = band
 
             # Run the metric with these fake data
-            slicePoint = {"nside": 64}
+            slicePoint = {"nside": 64, "ebv": 0}
             metric = SNCadenceMetric(lim_sn=lim_sn, coadd=False)
             result = metric.run(data, slicePoint)
 
@@ -225,9 +226,11 @@ class TestSNmetrics(unittest.TestCase):
             result_ref = 0.3743514
 
             assert np.abs(result - result_ref) < 1.0e-5
+
         else:
             warnings.warn("skipping SN test because no rubin_sim_data set")
 
+    @unittest.skip("This metric is not used")
     def testSNSNRMetric(self):
         """Test the SN SNR metric"""
 
@@ -340,43 +343,6 @@ class TestSNmetrics(unittest.TestCase):
         # Change again to reflect updated calculation (due to counting year = 365.25 days, not 360)
         nSL_ref = 1.4569195613987307e-06  # 1.478166e-6  # 1.42168e-6  # 0.00012650940
         assert np.abs(nSL - nSL_ref) < 1.0e-8
-
-    def testNSNMetric(self):
-        """Test the SN NSN metric"""
-        sims_maf_contrib_dir = os.path.join(get_data_dir(), "maf")
-        if sims_maf_contrib_dir is not None:
-
-            day0 = 59000
-            data = None
-
-            diff_season = 280.0
-            nseasons = 1
-            for val in np.arange(59000, 59000 + nseasons * diff_season, diff_season):
-                dat = Observations_season(day0, val)
-                if data is None:
-                    data = dat
-                else:
-                    data = np.concatenate((data, dat))
-
-            # this is to mimic healpixilization
-            nside = 128
-            slicePoint = {"nside": nside, "ebv": 0.0}
-
-            # metric instance
-            metric = SNNSNMetric(season=[-1], verbose=False)
-
-            res = metric.run(data, slicePoint=slicePoint)
-
-            nSN = res["nSN"].item()
-            zlim = res["zlim"].item()
-
-            nSN_ref = 0.015039  # 0.013257 value before tossing Telesope class # 2.04949  # 2.523, old value with nside=128
-            zlim_ref = 0.132494  # 0.107721  # 0.617285  # 0.65, old value
-
-            assert np.isclose(nSN, nSN_ref)
-            assert np.isclose(zlim, zlim_ref)
-        else:
-            warnings.warn("skipping SN test because no rubin_sim_data set")
 
 
 if __name__ == "__main__":

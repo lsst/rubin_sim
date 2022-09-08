@@ -34,34 +34,29 @@ class LCfast_new:
     reference_lc: RegularGridData
         lc reference files
     x1: float
-      SN stretch
+        SN stretch
     color: float
-      SN color
+        SN color
     telescope: Telescope()
-      telescope for the study
+        telescope for the study
     mjdCol: str, opt
-      name of the MJD col in data to simulate (default: observationStartMJD)
-    RACol: str, opt
-      name of the RA col in data to simulate (default: fieldRA)
-    DecCol: str, opt
-       name of the Dec col in data to simulate (default: fieldDec)
+        name of the MJD col in data to simulate (default: observationStartMJD)
     filterCol: str, opt
-       name of the filter col in data to simulate (default: filter)
+        name of the filter col in data to simulate (default: filter)
     exptimeCol: str, opt
-      name of the exposure time  col in data to simulate (default: visitExposureTime)
+        name of the exposure time  col in data to simulate (default: visitExposureTime)
     m5Col: str, opt
-       name of the fiveSigmaDepth col in data to simulate (default: fiveSigmaDepth)
+        name of the fiveSigmaDepth col in data to simulate (default: fiveSigmaDepth)
     seasonCol: str, opt
-       name of the season col in data to simulate (default: season)
+        name of the season col in data to simulate (default: season)
     snr_min: float, opt
-       minimal Signal-to-Noise Ratio to apply on LC points (default: 5)
+        minimal Signal-to-Noise Ratio to apply on LC points (default: 5)
     lightOutput: bool, opt
         to get a lighter output (ie lower number of cols) (default: True)
     bluecutoff: float,opt
-       blue cutoff for SN (default: 380.0 nm)
+        blue cutoff for SN (default: 380.0 nm)
     redcutoff: float, opt
-       red cutoff for SN (default: 800.0 nm)
-
+        red cutoff for SN (default: 800.0 nm)
     """
 
     def __init__(
@@ -69,10 +64,7 @@ class LCfast_new:
         reference_lc,
         x1,
         color,
-        telescope,
         mjdCol="observationStartMJD",
-        RACol="fieldRA",
-        DecCol="fieldDec",
         filterCol="filter",
         exptimeCol="visitExposureTime",
         m5Col="fiveSigmaDepth",
@@ -87,8 +79,6 @@ class LCfast_new:
     ):
 
         # grab all vals
-        self.RACol = RACol
-        self.DecCol = DecCol
         self.filterCol = filterCol
         self.mjdCol = mjdCol
         self.m5Col = m5Col
@@ -105,9 +95,6 @@ class LCfast_new:
         # Loading reference file
         self.reference_lc = reference_lc
 
-        self.mean_wavelength = telescope["mean_wavelengths"]
-        self.zp = telescope["zp_s"]
-
         # This cutoffs are used to select observations:
         # phase = (mjd - DayMax)/(1.+z)
         # selection: min_rf_phase < phase < max_rf_phase
@@ -121,15 +108,6 @@ class LCfast_new:
 
         self.snr_min = snr_min
 
-        """
-        test = np.array(['u','g','g'])
-        index = np.argwhere(zp['band'] == test[:,None])
-
-        print(index)
-        print(zp['zp'][index][:,1])
-        print(toto)
-        """
-
     def __call__(self, obs, ebvofMW, gen_par=None, bands="grizy"):
         """Simulation of the light curve
 
@@ -137,19 +115,19 @@ class LCfast_new:
         Parameters
         ----------------
         obs: array
-         array of observations
+            array of observations
         ebvofMW: float
-           E(B-V) for MW
+            E(B-V) for MW
         gen_par: array, opt
-         simulation parameters (default: None)
+            simulation parameters (default: None)
         bands: str, opt
-          filters to consider for simulation (default: grizy)
+            filters to consider for simulation (default: grizy)
 
 
         Returns
         ------------
         astropy table with:
-        columns: band, flux, fluxerr, snr_m5,flux_e,zp,zpsys,time
+            columns: band, flux, fluxerr, snr_m5,flux_e,zp,zpsys,time
         metadata : SNID,RA,Dec,DayMax,X1,Color,z
         """
 
@@ -163,8 +141,10 @@ class LCfast_new:
         for band in bands:
             idx = obs[self.filterCol] == band
             if len(obs[idx]) > 0:
-                resband = self.processBand(obs[idx], ebvofMW, band, gen_par)
-                tab_tot = tab_tot.append(resband, ignore_index=True)
+                tab_tot = pd.concat(
+                    [tab_tot, self.processBand(obs[idx], ebvofMW, band, gen_par)],
+                    ignore_index=True,
+                )
 
         # return produced LC
         return tab_tot
@@ -178,16 +158,15 @@ class LCfast_new:
         Parameters
         ---------------
         sel_obs: array
-         array of observations
+            array of observations
         band: str
-         band of observations
+            band of observations
         gen_par: array
-         simulation parameters
+            simulation parameters
 
         Returns
         -------
         astropy table with fields corresponding to LC components
-
         """
 
         # if there are no observations in this filter: return None
@@ -249,8 +228,6 @@ class LCfast_new:
         nvals = len(phases)
         # masked - tile arrays
 
-        # sel_obs['healpixID'] = sel_obs['healpixID'].astype(int)
-
         cols = [
             self.mjdCol,
             self.seasonCol,
@@ -259,9 +236,6 @@ class LCfast_new:
             self.nexpCol,
             self.seeingCol,
             "night",
-            "healpixID",
-            "pixRA",
-            "pixDec",
         ]
 
         # take columns common with obs cols
@@ -280,7 +254,7 @@ class LCfast_new:
         lc["mag"] = -2.5 * np.log10(lc["flux"] / 3631.0)
         lc["phase"] = phases[~phases.mask]
         lc["band"] = ["LSST::" + band] * len(lc)
-        lc["zp"] = self.zp[band]
+        lc["zp"] = self.reference_lc.zp[band]
         lc["zp"] = 2.5 * np.log10(3631)
         lc["zpsys"] = "ab"
         lc["z"] = z_vals
@@ -297,7 +271,7 @@ class LCfast_new:
         lc["flux_e_sec"] = self.reference_lc.mag_to_flux[band](
             (lc["mag"], lc[self.exptimeCol] / lc[self.nexpCol], lc[self.nexpCol])
         )
-        lc["flux_5"] = 10 ** (-0.4 * (lc[self.m5Col] - self.zp[band]))
+        lc["flux_5"] = 10 ** (-0.4 * (lc[self.m5Col] - self.reference_lc.zp[band]))
         lc["snr_m5"] = lc["flux_e_sec"] / np.sqrt(
             (lc["flux_5"] / 5.0) ** 2 + lc["flux_e_sec"] / lc[self.exptimeCol]
         )
@@ -324,7 +298,11 @@ class LCfast_new:
         # if len(lc) > 0.:
         #    lc = self.dust_corrections(lc, ebvofMW)
 
-        return lc
+        # remove lc points with no flux
+        idx = lc["flux_e_sec"] > 0.0
+        lc_flux = lc[idx]
+
+        return lc_flux
 
     def getFlag(self, sel_obs, gen_par, fluxes_obs, band, p):
         """
@@ -350,7 +328,7 @@ class LCfast_new:
 
         # remove LC points outside the (blue-red) range
         mean_restframe_wavelength = np.array(
-            [self.mean_wavelength[band]] * len(sel_obs)
+            [self.reference_lc.mean_wavelength[band]] * len(sel_obs)
         )
         mean_restframe_wavelength = np.tile(
             mean_restframe_wavelength, (len(gen_par), 1)
@@ -542,13 +520,13 @@ class GetReference:
 
     Parameters
     ----------------
-    lcName: str
+    lcName: `str`
         name of the reference file to load (lc)
-    gammaName: str
+    gammaName: `str`
         name of the reference file to load (gamma)
-    tel_par: dict
+    tel_par: `dict`
         telescope parameters
-    param_Fisher : list(str), optional
+    param_Fisher : `list` [`str`], optional
         list of SN parameter for Fisher estimation to consider
         (default: ['x0', 'x1', 'color', 'daymax'])
 
@@ -559,7 +537,7 @@ class GetReference:
     flux : dict of RegularGridInterpolator of fluxes (key: filters, (x,y)=(phase, z), result=flux)
     fluxerr : dict of RegularGridInterpolator of flux errors (key: filters, (x,y)=(phase, z), result=fluxerr)
     param : dict of dict of RegularGridInterpolator of flux derivatives wrt SN parameters
-                  (key: filters plus param_Fisher parameters; (x,y)=(phase, z), result=flux derivatives)
+        (key: filters plus param_Fisher parameters; (x,y)=(phase, z), result=flux derivatives)
     gamma : dict of RegularGridInterpolator of gamma values (key: filters)
     """
 
@@ -569,7 +547,6 @@ class GetReference:
 
         # Load the file - lc reference
 
-        f = h5py.File(lcName, "r")
         # lc_ref_tot = Table.read(filename, path=keys[0])
         lc_ref_tot = Table.from_pandas(pd.read_hdf(lcName))
 
@@ -579,13 +556,7 @@ class GetReference:
         # Load the file - gamma values
         if not os.path.exists(gammaName):
             print("gamma file {} does not exist")
-            print("will generate it - few minutes")
-            mag_range = np.arange(15.0, 38.0, 1.0)
-            exptimes = np.arange(1.0, 3000.0, 10.0)
-            Gamma(
-                "ugrizy", telescope, gammaName, mag_range=mag_range, exptimes=exptimes
-            )
-            print("end of gamma estimation")
+            print("This file is mandatory to run")
 
         # Load references needed for the following
         self.lc_ref = {}
@@ -594,13 +565,14 @@ class GetReference:
         self.m5_ref = {}
         self.mag_to_flux_e_sec = {}
         self.mag_to_flux = {}
+        self.zp = {}
+        self.mean_wavelength = {}
 
         self.flux = {}
         self.fluxerr = {}
         self.param = {}
 
         bands = np.unique(lc_ref_tot["band"])
-        mag_range = np.arange(10.0, 38.0, 0.01)
 
         method = "linear"
 
@@ -665,6 +637,8 @@ class GetReference:
             # gamma estimator
 
             rec = Table.read(gammaName, path="gamma_{}".format(band))
+            self.zp = rec.meta["zp"]
+            self.mean_wavelength = rec.meta["mean_wavelength"]
 
             rec["mag"] = rec["mag"].data.round(decimals=4)
             rec["single_exptime"] = rec["single_exptime"].data.round(decimals=4)
@@ -771,37 +745,37 @@ class SN_Rate:
         """
         Parameters
         ----------------
-        zmin : float, optional
+        zmin : `float`, optional
             minimal redshift (default : 0.1)
-        zmax : float, optional
+        zmax : `float`, optional
             max redshift (default : 0.2)
-        dz : float, optional
+        dz : `float`, optional
             redshift bin (default : 0.001)
-        survey_area : float, optional
+        survey_area : `float`, optional
             area of the survey (:math:`deg^{2}`) (default : 9.6 :math:`deg^{2}`)
         bins : `list` [`float`], optional
             redshift bins (default : None)
-        account_for_edges : bool
+        account_for_edges : `bool`
             to account for season edges.
             If true, duration of the survey will be reduced by (1+z)*(maf_rf_phase-min_rf_phase)/365.25
             (default : False)
-        duration : float, optional
+        duration : `float`, optional
             survey duration (in days) (default : 140 days)
-        duration_z : list(float), optional
+        duration_z : `list` [`float`], optional
             survey duration (as a function of z) (default : None)
 
         Returns
         -----------
         Lists :
-        zz : float
+        zz : `float`
             redshift values
-        rate : float
+        rate : `float`
             production rate
-        err_rate : float
+        err_rate : `float`
             production rate error
-        nsn : float
+        nsn : `float`
             number of SN
-        err_nsn : float
+        err_nsn : `float`
             error on the number of SN
         """
 
@@ -842,13 +816,13 @@ class SN_Rate:
 
         Parameters
         --------------
-        z : float
+        z : `float`
             redshift
 
         Returns
         ----------
-        rate : float
-        error_rate : float
+        rate : `float`
+        error_rate : `float`
         """
         rate = 1.53e-4 * 0.343
         expn = 2.14
@@ -862,13 +836,13 @@ class SN_Rate:
 
         Parameters
         --------------
-        z : float
+        z : `float`
             redshift
 
         Returns
         ----------
-        rate : float
-        error_rate : float
+        rate : `float`
+        error_rate : `float`
         """
         rate = 0.17e-4
         expn = 2.11
@@ -886,13 +860,13 @@ class SN_Rate:
 
         Parameters
         --------------
-        z : float
+        z : `float`
             redshift
 
         Returns
         ----------
-        rate : float
-        error_rate : float
+        rate : `float`
+        error_rate : `float`
         """
 
         rate = 2.6e-5
@@ -905,23 +879,18 @@ class SN_Rate:
         err_rate_sn = rate_sn * np.log(1 + my_z) * err_expn
         return rate_sn, err_rate_sn
 
-    """
-    def flat_rate(self, z):
-        return 1., 0.1
-    """
-
     def SNRate(self, z):
         """SN rate estimation
 
         Parameters
         --------------
-        z : float
+        z : `float`
             redshift
 
         Returns
         ----------
-        rate : float
-        error_rate : float
+        rate : `float`
+        error_rate : `float`
         """
         if self.rate == "Ripoche":
             return self.RipocheRate(z)
@@ -937,9 +906,9 @@ class CovColor:
 
     Parameters
     ---------------
-    lc: pandas df
-    lc to process. Should contain the Fisher matrix components
-    ie the sum of the derivative of the fluxes wrt SN parameters
+    lc : `pandas.DataFrame`
+        lc to process. Should contain the Fisher matrix components
+        ie the sum of the derivative of the fluxes wrt SN parameters
     """
 
     def __init__(self, lc):
@@ -952,12 +921,12 @@ class CovColor:
 
         Parameters
         --------------
-        lc: pandas df
+        lc : `pandas.DataFrame`
             data to process containing the derivative of the flux with respect to SN parameters
 
         Returns
         ----------
-        float: Cov_colorcolor
+        Cov_colorcolor : `float`
         """
         a1 = lc["F_x0x0"]
         a2 = lc["F_x0x1"]

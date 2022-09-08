@@ -111,7 +111,16 @@ def ddfBatch(
         displayDict["group"] = "SNe"
         displayDict["subgroup"] = "N SNe"
         metric = maf.metrics.SNNSNMetric(
-            verbose=False, n_bef=4, n_aft=10, metricName=f"SNNSNMetric {fieldname}"
+            verbose=False,
+            n_bef=4,
+            n_aft=10,
+            zmin=0.1,
+            zmax=1.0,
+            zStep=0.03,
+            daymaxStep=3,
+            coadd_night=True,
+            fieldType="DD",
+            metricName=f"SNNSNMetric {fieldname}",  # have to add here, as must be in reduceDict key
         )
         bundle_list.append(
             maf.MetricBundle(
