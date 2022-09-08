@@ -72,6 +72,11 @@ class NYoungStarsMetric(BaseMetric):
         The galactic latitude above which to return zero (degrees).
     badval : float, opt
         The value to return when the metric value cannot be calculated. Default 0.
+    
+    Keyword arguments
+    -----------------
+    returnDistance : bool, opt
+        Whether the metric will return the maximum distance that can be reached for each slicePoint.
     """
 
     def __init__(
@@ -91,7 +96,8 @@ class NYoungStarsMetric(BaseMetric):
         # This will give us access to the dust map get_distance_at_dmag routine
         # but does not require loading another copy of the map
         self.ebvmap = DustMap3D()
-        units = "N stars"
+        self.returnDistance = kwargs.pop('returnDistance', False)
+        units = "kpc" if self.returnDistance else "N stars"
         super().__init__(
             Cols, metricName=metricName, maps=maps, units=units, badval=badval, **kwargs
         )
@@ -152,4 +158,6 @@ class NYoungStarsMetric(BaseMetric):
         stars_per_sterr, _err = integrate.quad(sd, 0, final_distance)
         stars_tot = stars_per_sterr * sky_area
 
+        if self.returnDistance:
+            return final_distance
         return stars_tot
