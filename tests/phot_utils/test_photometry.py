@@ -4,9 +4,9 @@ import os
 import unittest
 from rubin_sim.utils import ObservationMetaData
 from rubin_sim.utils.CodeUtilities import sims_clean_up
-from rubin_sim.photUtils.Bandpass import Bandpass
-from rubin_sim.photUtils.Sed import Sed
-from rubin_sim.photUtils import BandpassDict
+from rubin_sim.phot_utils.bandpass import Bandpass
+from rubin_sim.phot_utils.sed import Sed
+from rubin_sim.phot_utils import BandpassDict
 from rubin_sim.data import get_data_dir
 import rubin_sim
 

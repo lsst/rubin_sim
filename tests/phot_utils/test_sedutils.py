@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from rubin_sim.photUtils import Sed, Bandpass, getImsimFluxNorm
+from rubin_sim.phot_utils import Sed, Bandpass, getImsimFluxNorm
 
 
 class ImSimNormTestCase(unittest.TestCase):

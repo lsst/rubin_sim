@@ -2,9 +2,9 @@ import os
 import numpy as np
 import unittest
 from rubin_sim.utils import ObservationMetaData
-import rubin_sim.photUtils.SignalToNoise as snr
-from rubin_sim.photUtils import Sed, Bandpass, PhotometricParameters, LSSTdefaults
-from rubin_sim.photUtils.utils import setM5
+import rubin_sim.phot_utils.signaltonoise as snr
+from rubin_sim.phot_utils import Sed, Bandpass, PhotometricParameters, LSSTdefaults
+from rubin_sim.phot_utils.utils import setM5
 import rubin_sim
 from rubin_sim.data import get_data_dir
 
