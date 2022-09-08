@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-from .chebyshevUtils import chebeval
+from .chebyshev_utils import chebeval
 
 __all__ = ["ChebyValues"]
 
