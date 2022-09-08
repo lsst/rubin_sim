@@ -43,8 +43,8 @@ import os
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
-from .Bandpass import Bandpass
-from .Sed import Sed
+from .bandpass import Bandpass
+from .sed import Sed
 
 # airmass of standard atmosphere
 _stdX = 1.2

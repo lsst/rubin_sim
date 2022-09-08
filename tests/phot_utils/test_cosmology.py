@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
 import scipy
-from rubin_sim.photUtils import CosmologyObject
-from rubin_sim.photUtils.utils import comovingDistanceIntegrand, cosmologicalOmega
+from rubin_sim.phot_utils import CosmologyObject
+from rubin_sim.phot_utils.utils import comovingDistanceIntegrand, cosmologicalOmega
 
 
 class CosmologyUnitTest(unittest.TestCase):

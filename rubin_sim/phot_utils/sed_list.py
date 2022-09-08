@@ -1,7 +1,7 @@
 import os
 import copy
-from .Sed import Sed
-from rubin_sim.photUtils import getImsimFluxNorm
+from .sed import Sed
+from rubin_sim.phot_utils import getImsimFluxNorm
 
 __all__ = ["SedList"]
 
