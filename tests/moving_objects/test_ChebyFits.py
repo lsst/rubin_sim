@@ -4,7 +4,7 @@ import warnings
 import tempfile
 import shutil
 import numpy as np
-from rubin_sim.movingObjects import Orbits, ChebyFits
+from rubin_sim.moving_bjects import Orbits, ChebyFits
 from rubin_sim.data import get_data_dir
 
 
