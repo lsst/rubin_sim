@@ -11,7 +11,7 @@ This module is intended to test whether this is happening.
 import os
 import unittest
 import numpy as np
-from rubin_sim.photUtils import BandpassDict
+from rubin_sim.phot_utils import BandpassDict
 from rubin_sim.data import get_data_dir
 
 

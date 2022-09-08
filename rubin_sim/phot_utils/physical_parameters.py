@@ -4,7 +4,7 @@ __all__ = ["PhysicalParameters"]
 class PhysicalParameters(object):
     """
     A class to store physical constants and other immutable parameters
-    used by the sims_photUtils code
+    used by the sims_phot_utils code
     """
 
     def __init__(self):

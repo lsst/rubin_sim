@@ -94,7 +94,7 @@ import scipy.interpolate as interpolate
 import gzip
 import pickle
 import os
-from .PhysicalParameters import PhysicalParameters
+from .physical_parameters import PhysicalParameters
 from rubin_sim.data import get_data_dir
 
 
@@ -207,7 +207,7 @@ def _compare_cached_versus_uncached():
         "it is possible that the pickled cache was incorrectly "
         "created in sims_sed_library\n\n"
         "Try removing the cache file (the name should hav been printed "
-        "to stdout above) and re-running sims_photUtils.cache_LSST_seds()"
+        "to stdout above) and re-running sims_phot_utils.cache_LSST_seds()"
     )
     for ix in range(5):
         full_name = os.path.join(sed_dir, sed_name_list[ix])
@@ -226,7 +226,7 @@ def _generate_sed_cache(cache_dir, cache_name):
     """
     Read all of the SEDs from sims_sed_library into a dict.
     Pickle the dict and store it in
-    sims_photUtils/cacheDir/lsst_sed_cache.p
+    sims_phot_utils/cacheDir/lsst_sed_cache.p
 
     Parameters
     ----------
@@ -299,7 +299,7 @@ def _generate_sed_cache(cache_dir, cache_name):
 def cache_LSST_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
     """
     Read all of the SEDs in sims_sed_library into a dict.  Pickle the dict
-    and store it in sims_photUtils/cacheDir/lsst_sed_cache.p for future use.
+    and store it in sims_phot_utils/cacheDir/lsst_sed_cache.p for future use.
 
     After the file has initially been created, the next time you run this script,
     it will just use pickle to load the dict.
@@ -340,7 +340,7 @@ def cache_LSST_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
     except:
         print(
             "An exception was raised related to sims_sed_library. If you did not "
-            "install sims_photUtils with a full LSST simulations stack, you cannot "
+            "install sims_phot_utils with a full LSST simulations stack, you cannot "
             "load and generate the cache of LSST SEDs. If you did install the full sims "
             "stack but are getting this message, please check that sims_sed_library is "
             "actually setup and active in your environment."
@@ -1299,8 +1299,8 @@ class Sed(object):
 
         Parameters
         ----------
-        bandpass : `rubin_sim.photUtils.Bandpass`
-        photParams : `rubin_sim.photUtils.PhotometricParameters`
+        bandpass : `rubin_sim.phot_utils.Bandpass`
+        photParams : `rubin_sim.phot_utils.PhotometricParameters`
         wavelen : `np.ndarray`, optional
             wavelength grid in nm
         fnu : `np.ndarray`, optional
