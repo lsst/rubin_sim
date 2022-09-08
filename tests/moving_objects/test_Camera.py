@@ -2,7 +2,7 @@ import numpy as np
 import unittest
 import os
 from rubin_sim.data import get_data_dir
-from rubin_sim.movingObjects import BaseObs
+from rubin_sim.moving_objects import BaseObs
 
 
 class TestCamera(unittest.TestCase):

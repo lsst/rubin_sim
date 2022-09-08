@@ -3,8 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 from astropy.time import Time
-from rubin_sim.movingObjects import Orbits
-from rubin_sim.movingObjects import PyOrbEphemerides
+from rubin_sim.moving_objects import Orbits
+from rubin_sim.moving_objects import PyOrbEphemerides
 from rubin_sim.data import get_data_dir
 
 

@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 from scipy import interpolate
 
-from .baseObs import BaseObs
+from .base_obs import BaseObs
 
 __all__ = ["LinearObs"]
 
