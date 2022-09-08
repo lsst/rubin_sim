@@ -3,7 +3,7 @@ import logging
 import numpy as np
 from rubin_sim.maf.utils import getSimData
 from .orbits import Orbits
-from .directObs import DirectObs
+from .direct_obs import DirectObs
 
 __all__ = ["readOpsim", "readOrbits", "setupColors", "runObs"]
 

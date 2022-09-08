@@ -1,7 +1,7 @@
 import numpy as np
 import unittest
 
-from rubin_sim.movingObjects import (
+from rubin_sim.moving_objects import (
     chebfit,
     makeChebMatrix,
     makeChebMatrixOnlyX,

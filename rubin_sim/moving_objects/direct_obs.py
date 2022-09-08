@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import datetime
 
-from .baseObs import BaseObs
+from .base_obs import BaseObs
 
 __all__ = ["DirectObs"]
 
