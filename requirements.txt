@@ -17,6 +17,7 @@ openorb
 openorb-data-de405
 astroplan
 colorcet
+cycler
 george
 scikit-learn
 requests
