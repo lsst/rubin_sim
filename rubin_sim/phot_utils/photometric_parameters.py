@@ -1,5 +1,5 @@
 import numpy as np
-from rubin_sim.photUtils import Sed, BandpassDict
+from rubin_sim.phot_utils import Sed, BandpassDict
 
 __all__ = ["PhotometricParameters", "Dust_values"]
 
@@ -12,7 +12,7 @@ class Dust_values(object):
     R_v : float (3.1)
         Extinction law parameter (3.1).
     bandpassDict : dict (None)
-        A dict with keys of filtername and values of rubin_sim.photUtils.Bandpass objects. Default
+        A dict with keys of filtername and values of rubin_sim.phot_utils.Bandpass objects. Default
         of None will load the standard ugrizy bandpasses.
     ref_ev : float (1.)
         The reference E(B-V) value to use. Things in MAF assume 1.

@@ -6,9 +6,7 @@ import os
 import tempfile
 import shutil
 
-import rubin_sim.photUtils.Sed as Sed
-import rubin_sim.photUtils.Bandpass as Bandpass
-from rubin_sim.photUtils import PhotometricParameters
+from rubin_sim.phot_utils import Sed, Bandpass, PhotometricParameters
 from rubin_sim.data import get_data_dir
 import rubin_sim
 
