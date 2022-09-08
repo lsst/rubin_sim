@@ -1,5 +1,5 @@
 import numpy as np
-from rubin_sim.photUtils import Bandpass
+from rubin_sim.phot_utils import Bandpass
 
 
 __all__ = ["getImsimFluxNorm"]

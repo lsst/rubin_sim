@@ -1,7 +1,7 @@
 import numpy
-from .Sed import Sed
-from .PhotometricParameters import PhotometricParameters
-from . import LSSTdefaults
+from .sed import Sed
+from .photometric_parameters import PhotometricParameters
+from . import lsst_defaults
 
 
 __all__ = [

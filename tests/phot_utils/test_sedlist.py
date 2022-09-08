@@ -2,7 +2,7 @@ import unittest
 import os
 import numpy as np
 
-from rubin_sim.photUtils import Bandpass, Sed, SedList
+from rubin_sim.phot_utils import Bandpass, Sed, SedList
 import rubin_sim
 from rubin_sim.data import get_data_dir
 
