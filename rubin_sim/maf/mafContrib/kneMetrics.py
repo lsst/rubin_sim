@@ -4,7 +4,7 @@ import numpy as np
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.slicers import UserPointsSlicer
 from rubin_sim.utils import uniformSphere, survey_start_mjd
-from rubin_sim.photUtils import Dust_values
+from rubin_sim.phot_utils import Dust_values
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import m52snr
 
