@@ -4,8 +4,8 @@ import pandas as pd
 import warnings
 import datetime
 
-from rubin_sim.photUtils import Bandpass
-from rubin_sim.photUtils import Sed
+from rubin_sim.phot_utils import Bandpass
+from rubin_sim.phot_utils import Sed
 from rubin_sim.utils import angularSeparation
 from rubin_sim.data import get_data_dir
 

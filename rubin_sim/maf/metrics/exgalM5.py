@@ -1,6 +1,6 @@
 from .baseMetric import BaseMetric
 from .simpleMetrics import Coaddm5Metric
-from rubin_sim.photUtils import Dust_values
+from rubin_sim.phot_utils import Dust_values
 
 __all__ = ["ExgalM5"]
 
@@ -9,7 +9,7 @@ class ExgalM5(BaseMetric):
     """
     Calculate co-added five-sigma limiting depth after dust extinction.
 
-    Uses photUtils to calculate dust extinction.
+    Uses phot_utils to calculate dust extinction.
 
     Parameters
     ----------
