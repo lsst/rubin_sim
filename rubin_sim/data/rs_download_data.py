@@ -38,6 +38,13 @@ def rs_download_data():
         description="Download data files for rubin_sim package"
     )
     parser.add_argument(
+        "--versions",
+        dest="versions",
+        default=False,
+        action="store_true",
+        help="Report expected versions, then quit",
+    )
+    parser.add_argument(
         "-d",
         "--dirs",
         type=str,
@@ -74,6 +81,12 @@ def rs_download_data():
     if versions is None:
         versions = {}
 
+    if args.versions:
+        print("Versions on disk currently // versions expected for this release:")
+        for k in files:
+            print(f"{k} : {versions.get(k, '')} // {files[k]}")
+        exit()
+
     for key in dirs:
         filename = files[key]
         path = os.path.join(data_dir, key)
@@ -102,13 +115,11 @@ def rs_download_data():
             print(key + "," + versions[key], file=f)
 
     # Write a little table to stdout
-    with open(version_file, "r") as f:
-        print()
-        print("Currently available data versions:")
-        for l in f.readlines():
-            vals = l.rstrip("\n").split(",")
-            if len(vals[0]) > 10:
-                sep = "\t"
-            else:
-                sep = "\t\t"
-            print(f"{vals[0]}{sep}{vals[1]}")
+    new_versions = data_versions()
+    print("Current/updated data versions:")
+    for k in new_versions:
+        if len(k) <= 10:
+            sep = "\t\t"
+        else:
+            sep = "\t"
+        print(f"{k}{sep}{new_versions[k]}")
