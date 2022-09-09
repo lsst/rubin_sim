@@ -20,7 +20,7 @@ from .interpComponents import (
     MoonInterp,
     ZodiacalInterp,
 )
-from rubin_sim.photUtils import Sed
+from rubin_sim.phot_utils import Sed
 from astropy.coordinates import SkyCoord, get_sun, get_moon, EarthLocation, AltAz
 from astropy import units as u
 from astropy.time import Time

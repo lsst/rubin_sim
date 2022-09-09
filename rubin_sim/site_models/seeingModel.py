@@ -1,7 +1,7 @@
 import numpy as np
 import warnings
 import os
-from rubin_sim.photUtils import Bandpass
+from rubin_sim.phot_utils import Bandpass
 from rubin_sim.data import get_data_dir
 
 

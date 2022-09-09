@@ -1,7 +1,7 @@
 import numpy as np
 import rubin_sim.skybrightness as sb
 import unittest
-import rubin_sim.photUtils.Bandpass as Bandpass
+from rubin_sim.phot_utils import Bandpass
 from rubin_sim.data import get_data_dir
 import os
 
