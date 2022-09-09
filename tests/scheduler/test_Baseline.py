@@ -206,6 +206,37 @@ class TestFeatures(unittest.TestCase):
         # Make sure nothing tried to look through the earth
         assert np.min(observations["alt"]) > 0
 
+    def TestNside(self):
+        """
+        test running at higher nside
+        """
+        nside = 64
+        survey_length = 2.0  # days
+
+        surveys = []
+        # Set up the DD
+        dd_surveys = generate_dd_surveys(nside=nside)
+        surveys.append(dd_surveys)
+
+        surveys.append(gen_blob_surveys(nside))
+        surveys.append(gen_greedy_surveys(nside))
+
+        scheduler = Core_scheduler(surveys, nside=nside)
+        observatory = Model_observatory(nside=nside)
+        observatory, scheduler, observations = sim_runner(
+            observatory, scheduler, survey_length=survey_length, filename=None
+        )
+
+        # Make sure some blobs executed
+        assert "blob, gg, b" in observations["note"]
+        assert "blob, gg, a" in observations["note"]
+        # Make sure some greedy executed
+        assert "" in observations["note"]
+        # Make sure lots of observations executed
+        assert observations.size > 1000
+        # Make sure nothing tried to look through the earth
+        assert np.min(observations["alt"]) > 0
+
 
 if __name__ == "__main__":
     unittest.main()
