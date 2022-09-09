@@ -9,13 +9,13 @@ from rubin_sim.data import get_data_dir
 __all__ = ["dark_sky"]
 
 
-def dark_sky(nside=None):
+def dark_sky(nside=32):
     """Load an array of HEALpix maps that have the darkest expected sky
     backgrounds per filter.
 
     Parameters
     ----------
-    nside : `int`, optional
+    nside : `int` (32)
         Desired nside resolution (default=32).
 
     Returns
@@ -30,14 +30,11 @@ def dark_sky(nside=None):
         dark_sky.data = data["dark_maps"].copy()
         data.close()
 
-    if nside is not None:
-        dark_sky_data = np.empty(hp.nside2npix(nside), dtype=dark_sky.data.dtype)
+    dark_sky_data = np.empty(hp.nside2npix(nside), dtype=dark_sky.data.dtype)
 
-        for band in dark_sky_data.dtype.names:
-            dark_sky_data[band] = hp.pixelfunc.ud_grade(
-                dark_sky.data[band], nside_out=nside
-            )
-    else:
-        dark_sky_data = dark_sky.data
-
+    for band in dark_sky_data.dtype.names:
+        dark_sky_data[band] = hp.pixelfunc.ud_grade(
+            dark_sky.data[band], nside_out=nside
+        )
+    
     return dark_sky_data
