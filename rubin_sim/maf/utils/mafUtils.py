@@ -3,7 +3,7 @@ import healpy as hp
 import warnings
 from scipy.stats import binned_statistic
 from rubin_sim.utils import int_binned_stat, SysEngVals
-from rubin_sim.photUtils import Bandpass, PhotometricParameters
+from rubin_sim.phot_utils import Bandpass, PhotometricParameters
 from rubin_sim.data import get_data_dir
 import os
 

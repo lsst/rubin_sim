@@ -106,9 +106,9 @@ class SurfaceBrightLimitMetric(BaseMetric):
     tot_area : `float` (100)
         Total sky area summed over, square arcseconds
     zpt : `dict` of `float` (None)
-        telescope zeropoints. If None, computed from photUtils
+        telescope zeropoints. If None, computed from phot_utils
     kAtm : `dict` of `float` (None)
-        Atmospheric extinction parameters. If None, computed from photUtils
+        Atmospheric extinction parameters. If None, computed from phot_utils
     readnoise : `float` (8.8)
         Readnoise in electrons
     """

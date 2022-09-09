@@ -2,7 +2,7 @@ import numpy as np
 import healpy as hp
 
 import rubin_sim.maf.metrics as metrics
-from rubin_sim.photUtils import Dust_values
+from rubin_sim.phot_utils import Dust_values
 from rubin_sim.maf.utils import collapse_night
 from rubin_sim.utils import calcSeason
 

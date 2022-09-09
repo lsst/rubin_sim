@@ -3,7 +3,7 @@ from scipy.stats import loguniform
 from ..metrics import BaseMetric
 from ..slicers import UserPointsSlicer
 from rubin_sim.utils import survey_start_mjd
-from rubin_sim.photUtils import Dust_values
+from rubin_sim.phot_utils import Dust_values
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import m52snr
 
