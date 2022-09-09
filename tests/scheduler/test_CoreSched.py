@@ -13,9 +13,10 @@ from rubin_sim.scheduler.modelObservatory import Model_observatory
 class TestCoreSched(unittest.TestCase):
     def testsched(self):
         target_map = standard_goals()["r"]
+        nside = 32
 
         bfs = []
-        bfs.append(basis_functions.M5_diff_basis_function())
+        bfs.append(basis_functions.M5_diff_basis_function(nside=nside))
         bfs.append(basis_functions.Target_map_basis_function(target_map=target_map))
         weights = np.array([1.0, 1])
         survey = surveys.Greedy_survey(bfs, weights)

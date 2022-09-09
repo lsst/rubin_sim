@@ -36,5 +36,5 @@ def dark_sky(nside=32):
         dark_sky_data[band] = hp.pixelfunc.ud_grade(
             dark_sky.data[band], nside_out=nside
         )
-    
+
     return dark_sky_data
