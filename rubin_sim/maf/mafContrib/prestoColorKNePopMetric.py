@@ -9,7 +9,7 @@ from itertools import combinations
 import pickle
 import warnings
 from rubin_sim.utils import uniformSphere, survey_start_mjd
-from rubin_sim.photUtils import Dust_values
+from rubin_sim.phot_utils import Dust_values
 from rubin_sim.data import get_data_dir
 
 

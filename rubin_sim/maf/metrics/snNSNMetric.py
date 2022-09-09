@@ -6,7 +6,7 @@ import pandas as pd
 from scipy.interpolate import interp1d
 import numpy.lib.recfunctions as nlr
 import healpy as hp
-from rubin_sim.photUtils import Dust_values, Bandpass, PhotometricParameters
+from rubin_sim.phot_utils import Dust_values, Bandpass, PhotometricParameters
 from rubin_sim.data import get_data_dir
 import os
 
