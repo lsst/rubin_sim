@@ -1,13 +1,28 @@
-import numpy as np
 import os
+
+import healpy as hp
+import numpy as np
+
 from rubin_sim.data import get_data_dir
 
 
 __all__ = ["dark_sky"]
 
 
-def dark_sky():
-    """Load an array of HEALpix maps that have the darkest expected sky backgrounds per filter"""
+def dark_sky(nside=None):
+    """Load an array of HEALpix maps that have the darkest expected sky
+    backgrounds per filter.
+
+    Parameters
+    ----------
+    nside : `int`, optional
+        Desired nside resolution (default=32).
+
+    Returns
+    -------
+    dark_sky_data : `np.ndarray`
+        Named array with dark sky data for each band.
+    """
     if not hasattr(dark_sky, "data"):
         # Load up the data
         data_dir = get_data_dir()
@@ -15,4 +30,14 @@ def dark_sky():
         dark_sky.data = data["dark_maps"].copy()
         data.close()
 
-    return dark_sky.data
+    if nside is not None:
+        dark_sky_data = np.empty(hp.nside2npix(nside), dtype=dark_sky.data.dtype)
+
+        for band in dark_sky_data.dtype.names:
+            dark_sky_data[band] = hp.pixelfunc.ud_grade(
+                dark_sky.data[band], nside_out=nside
+            )
+    else:
+        dark_sky_data = dark_sky.data
+
+    return dark_sky_data
