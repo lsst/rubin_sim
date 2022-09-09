@@ -412,7 +412,7 @@ class N_observations_current_season(BaseSurveyFeature):
 
         self.feature = np.zeros(hp.nside2npix(nside), dtype=float)
         if self.filtername is not None:
-            self.dark_map = dark_sky()[filtername]
+            self.dark_map = dark_sky(nside)[filtername]
         self.ones = np.ones(hp.nside2npix(self.nside))
         self.ra, self.dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
         self.season_map = calcSeason(np.degrees(self.ra), mjd_start)
