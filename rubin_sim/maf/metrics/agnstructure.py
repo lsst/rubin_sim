@@ -3,7 +3,7 @@ from astropy.stats import mad_std
 from .baseMetric import BaseMetric
 from rubin_sim.maf.utils import m52snr
 import warnings
-from rubin_sim.photUtils import Dust_values
+from rubin_sim.phot_utils import Dust_values
 
 
 __all__ = ["SFUncertMetric"]

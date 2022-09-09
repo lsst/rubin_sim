@@ -4,7 +4,7 @@ In addition, these supports the time delay metric calculation for strong lensing
 
 import numpy as np
 from .baseMetric import BaseMetric
-from rubin_sim.photUtils import Dust_values
+from rubin_sim.phot_utils import Dust_values
 from rubin_sim.utils import calcSeason
 
 __all__ = [

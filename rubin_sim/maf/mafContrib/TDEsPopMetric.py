@@ -4,7 +4,7 @@ import os
 from rubin_sim.utils import uniformSphere, survey_start_mjd
 import rubin_sim.maf.slicers as slicers
 import glob
-from rubin_sim.photUtils import Dust_values
+from rubin_sim.phot_utils import Dust_values
 from rubin_sim.data import get_data_dir
 
 __all__ = ["Tde_lc", "TdePopMetric", "TdePopMetricQuality", "generateTdePopSlicer"]
