@@ -1,5 +1,5 @@
 import numpy as np
-from .CoordinateTransformations import _angularSeparation
+from .coordinate_transformations import _angularSeparation
 
 __all__ = ["bearing", "dest_latlon", "pointToLineDistance"]
 
