@@ -3,9 +3,9 @@ import numpy as np
 from scipy.optimize import curve_fit
 import random
 
-from rubin_sim.maf.metrics.baseMetric import BaseMetric
+from rubin_sim.maf.metrics.base_metric import BaseMetric
 from rubin_sim.maf.utils import m52snr
-from .periodicStarMetric import periodicStar
+from .periodic_star_metric import periodicStar
 
 __all__ = ["PeriodicStarModulationMetric"]
 

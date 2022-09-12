@@ -1,6 +1,6 @@
 import numpy as np
 import rubin_sim.maf.metrics as metrics
-from rubin_sim.maf.mafContrib.LSSObsStrategy.galaxyCountsMetric_extended import (
+from rubin_sim.maf.maf_contrib.lss_obs_strategy.galaxy_counts_metric_extended import (
     GalaxyCountsMetric_extended as GalaxyCountsMetric,
 )
 

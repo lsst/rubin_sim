@@ -4,8 +4,8 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.plots as plots
-import rubin_sim.maf.metricBundles as mb
-from .colMapDict import ColMapDict
+import rubin_sim.maf.metric_bundles as mb
+from .col_map_dict import col_map_dict
 from .common import (
     standardSummary,
     extendedMetrics,
@@ -65,10 +65,10 @@ def metadataBasics(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
     if colmap is None:
-        colmap = ColMapDict("fbs")
+        colmap = col_map_dict("fbs")
     bundleList = []
 
     if valueName is None:
@@ -219,10 +219,10 @@ def metadataBasicsAngle(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     if valueName is None:
@@ -345,11 +345,11 @@ def allMetadata(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
 
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
 
     bdict = {}
 
@@ -423,10 +423,10 @@ def metadataMaps(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     if valueName is None:
@@ -527,11 +527,11 @@ def firstYearMetadata(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
 
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
 
     bdict = {}
 

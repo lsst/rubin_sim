@@ -4,9 +4,9 @@ import tempfile
 import shutil
 from rubin_sim.data import get_data_dir
 import rubin_sim.maf.batches as batches
-from rubin_sim.utils.CodeUtilities import sims_clean_up
+from rubin_sim.utils.code_utilities import sims_clean_up
 import rubin_sim.maf.db as db
-import rubin_sim.maf.metricBundles as metricBundles
+import rubin_sim.maf.metric_bundles as metric_bundles
 from rubin_sim.maf.slicers import MoObjSlicer
 
 
@@ -63,7 +63,7 @@ class TestBatches(unittest.TestCase):
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
         opsdb = db.OpsimDatabase(database=database)
         resultsDb = db.ResultsDb(outDir=self.outDir)
-        bgroup = metricBundles.MetricBundleGroup(
+        bgroup = metric_bundles.MetricBundleGroup(
             ack, opsdb, outDir=self.outDir, resultsDb=resultsDb
         )
         bgroup.runAll()
