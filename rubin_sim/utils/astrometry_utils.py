@@ -1,6 +1,6 @@
 import numpy as np
 import palpy
-from rubin_sim.utils.CodeUtilities import _validate_inputs
+from rubin_sim.utils.code_utilities import _validate_inputs
 from rubin_sim.utils import (
     arcsecFromRadians,
     cartesianFromSpherical,

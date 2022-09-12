@@ -3,7 +3,7 @@ import os
 import glob
 import healpy as hp
 from rubin_sim.phot_utils import Sed, Bandpass
-from .twilightFunc import twilightFunc
+from .twilight_func import twilightFunc
 from scipy.interpolate import InterpolatedUnivariateSpline, interp1d
 from rubin_sim.data import get_data_dir
 import warnings
