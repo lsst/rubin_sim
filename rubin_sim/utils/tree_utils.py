@@ -5,7 +5,7 @@ cartesian coordinates and to grid id using a spatial tree.
 import numpy as np
 from scipy.spatial import cKDTree as kdTree
 
-from rubin_sim.utils.CoordinateTransformations import _xyz_from_ra_dec
+from rubin_sim.utils.coordinate_transformations import _xyz_from_ra_dec
 
 __all__ = ["_buildTree"]
 
