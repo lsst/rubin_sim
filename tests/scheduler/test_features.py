@@ -3,7 +3,7 @@ import numpy as np
 import unittest
 import rubin_sim.scheduler.features as features
 from rubin_sim.scheduler.utils import empty_observation
-from rubin_sim.scheduler.modelObservatory import Model_observatory
+from rubin_sim.scheduler.model_observatory import Model_observatory
 from rubin_sim.data import get_data_dir
 
 

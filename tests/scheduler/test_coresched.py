@@ -7,7 +7,7 @@ from rubin_sim.scheduler.schedulers import Core_scheduler
 import rubin_sim.scheduler.basis_functions as basis_functions
 import rubin_sim.scheduler.surveys as surveys
 from rubin_sim.scheduler.utils import standard_goals
-from rubin_sim.scheduler.modelObservatory import Model_observatory
+from rubin_sim.scheduler.model_observatory import Model_observatory
 
 
 class TestCoreSched(unittest.TestCase):

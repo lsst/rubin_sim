@@ -1,6 +1,6 @@
 import numpy as np
 import numbers
-from .SpatialBounds import SpatialBounds
+from .spatial_bounds import SpatialBounds
 from rubin_sim.utils import ModifiedJulianDate
 from rubin_sim.utils import Site
 
