@@ -1,4 +1,4 @@
-__all__ = ["getColMap", "ColMapDict"]
+__all__ = ["getColMap", "col_map_dict"]
 
 
 def getColMap(opsdb):
@@ -17,11 +17,11 @@ def getColMap(opsdb):
         version = "opsim" + version.lower()
     except AttributeError:
         version = "fbs"
-    colmap = ColMapDict(version)
+    colmap = col_map_dict(version)
     return colmap
 
 
-def ColMapDict(dictName=None):
+def col_map_dict(dictName=None):
 
     if dictName is None:
         dictName = "FBS"

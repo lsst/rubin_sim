@@ -7,13 +7,13 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.maps as maps
-import rubin_sim.maf.metricBundles as metricBundles
+import rubin_sim.maf.metric_bundles as metric_bundles
 import rubin_sim.maf.db as db
 import glob
 import os
 import tempfile
 import shutil
-from rubin_sim.utils.CodeUtilities import sims_clean_up
+from rubin_sim.utils.code_utilities import sims_clean_up
 from rubin_sim.data import get_data_dir
 
 
@@ -40,7 +40,7 @@ class TestMetricBundle(unittest.TestCase):
         stacker2 = stackers.GalacticStacker()
         map = maps.GalCoordsMap()
 
-        metricB = metricBundles.MetricBundle(
+        metricB = metric_bundles.MetricBundle(
             metric, slicer, sql, stackerList=[stacker1, stacker2], mapsList=[map]
         )
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
@@ -48,7 +48,7 @@ class TestMetricBundle(unittest.TestCase):
         opsdb = db.OpsimDatabase(database=database)
         resultsDb = db.ResultsDb(outDir=self.outDir)
 
-        bgroup = metricBundles.MetricBundleGroup(
+        bgroup = metric_bundles.MetricBundleGroup(
             {0: metricB}, opsdb, outDir=self.outDir, resultsDb=resultsDb
         )
         bgroup.runAll()

@@ -1,1 +1,1 @@
-from .LVDwarfsMetrics import *
+from .lv_dwarfs_metrics import *

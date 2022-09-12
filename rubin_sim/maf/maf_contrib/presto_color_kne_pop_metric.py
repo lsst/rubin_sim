@@ -4,7 +4,7 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import healpy as hp
 import os
-from .kneMetrics import KN_lc
+from .kne_metrics import KN_lc
 from itertools import combinations
 import pickle
 import warnings
