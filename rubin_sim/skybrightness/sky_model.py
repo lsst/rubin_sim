@@ -10,7 +10,7 @@ from rubin_sim.utils import (
 )
 import warnings
 from .utils import wrapRA
-from .interpComponents import (
+from .interp_components import (
     ScatteredStar,
     Airglow,
     LowerAtm,

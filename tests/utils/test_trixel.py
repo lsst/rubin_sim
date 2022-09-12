@@ -6,8 +6,8 @@ from rubin_sim.utils import halfSpaceFromPoints
 from rubin_sim.utils import intersectHalfSpaces
 from rubin_sim.utils import getAllTrixels
 from rubin_sim.utils import arcsecFromRadians
-from rubin_sim.utils.htmModule import _findHtmid_fast
-from rubin_sim.utils.htmModule import _findHtmid_slow
+from rubin_sim.utils.htm_module import _findHtmid_fast
+from rubin_sim.utils.htm_module import _findHtmid_slow
 from rubin_sim.data import get_data_dir
 
 import numpy as np
