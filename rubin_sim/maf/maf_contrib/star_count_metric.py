@@ -10,7 +10,7 @@ from __future__ import absolute_import
 
 from rubin_sim.maf.metrics import BaseMetric
 import numpy as np
-from .StarCounts.StarCounts import *
+from .star_counts import *
 
 __all__ = ["StarCountMetric"]
 

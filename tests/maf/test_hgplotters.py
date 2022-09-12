@@ -7,7 +7,7 @@ import pandas as pd
 
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.metricBundles as metricBundles
+import rubin_sim.maf.metric_bundles as metric_bundles
 import rubin_sim.maf.db as db
 import rubin_sim.maf.plots as plots
 
@@ -28,11 +28,11 @@ class TestScalarHourglassPlots(unittest.TestCase):
     )
     def test_month_plot(self):
         sql_constraint = ""
-        metric_bundle = metricBundles.MetricBundle(
+        metric_bundle = metric_bundles.MetricBundle(
             self.metric, self.slicer, sql_constraint
         )
         bundle_dict = {1: metric_bundle}
-        bundle_group = metricBundles.MetricBundleGroup(
+        bundle_group = metric_bundles.MetricBundleGroup(
             bundle_dict,
             self.ops_db,
             outDir=self.out_dir,
@@ -58,11 +58,11 @@ class TestTimeUseHourglassPlots(unittest.TestCase):
     @unittest.skip("XXX-seems like this was erroneously passing before?")
     def test_year_plot(self):
         sql_constraint = ""
-        metric_bundle = metricBundles.MetricBundle(
+        metric_bundle = metric_bundles.MetricBundle(
             self.metric, self.slicer, sql_constraint
         )
         bundle_dict = {1: metric_bundle}
-        bundle_group = metricBundles.MetricBundleGroup(
+        bundle_group = metric_bundles.MetricBundleGroup(
             bundle_dict,
             self.ops_db,
             outDir=self.out_dir,

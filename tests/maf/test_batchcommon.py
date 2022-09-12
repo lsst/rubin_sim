@@ -4,7 +4,7 @@ import rubin_sim.maf.batches as batches
 
 class TestCommon(unittest.TestCase):
     def testColMap(self):
-        colmap = batches.ColMapDict("opsimv4")
+        colmap = batches.col_map_dict("opsimv4")
         self.assertEqual(colmap["raDecDeg"], True)
         self.assertEqual(colmap["ra"], "fieldRA")
         colmap = batches.getColMap("_temp")

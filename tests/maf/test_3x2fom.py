@@ -3,7 +3,7 @@ import os
 import tempfile
 import shutil
 from rubin_sim.data import get_data_dir
-from rubin_sim.utils.CodeUtilities import sims_clean_up
+from rubin_sim.utils.code_utilities import sims_clean_up
 import rubin_sim.maf as maf
 
 
@@ -24,7 +24,7 @@ class Test3x2(unittest.TestCase):
         # output values are valid.
         bundleList = []
         nside = 64
-        colmap = maf.batches.colMapDict.ColMapDict("fbs")
+        colmap = maf.batches.col_map_dict("fbs")
         nfilters_needed = 6
         lim_ebv = 0.2
         ptsrc_lim_mag_i_band = 25.9
@@ -41,11 +41,11 @@ class Test3x2(unittest.TestCase):
         ThreebyTwoSummary_simple = maf.metrics.StaticProbesFoMEmulatorMetricSimple(
             nside=nside, metricName="3x2ptFoM_simple"
         )
-        ThreebyTwoSummary = maf.mafContrib.StaticProbesFoMEmulatorMetric(
+        ThreebyTwoSummary = maf.maf_contrib.StaticProbesFoMEmulatorMetric(
             nside=nside, metricName="3x2ptFoM"
         )
         bundleList.append(
-            maf.metricBundles.MetricBundle(
+            maf.metric_bundles.MetricBundle(
                 m, s, sql, summaryMetrics=[ThreebyTwoSummary, ThreebyTwoSummary_simple]
             )
         )
@@ -53,8 +53,8 @@ class Test3x2(unittest.TestCase):
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
         conn = maf.db.OpsimDatabase(database=database)
         resultsDb = maf.db.ResultsDb(outDir=self.outDir)
-        bd = maf.metricBundles.makeBundlesDictFromList(bundleList)
-        bg = maf.metricBundles.MetricBundleGroup(
+        bd = maf.metric_bundles.makeBundlesDictFromList(bundleList)
+        bg = maf.metric_bundles.MetricBundleGroup(
             bd, conn, outDir=self.outDir, resultsDb=resultsDb
         )
         bg.runAll()

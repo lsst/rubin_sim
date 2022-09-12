@@ -8,7 +8,7 @@ import numpy.ma as ma
 import unittest
 import healpy as hp
 from rubin_sim.data import get_data_dir
-from rubin_sim.maf.slicers.healpixSlicer import HealpixSlicer
+from rubin_sim.maf.slicers import HealpixSlicer
 
 
 def makeDataValues(

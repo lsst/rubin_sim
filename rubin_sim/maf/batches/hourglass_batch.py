@@ -2,8 +2,8 @@
 """
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metricBundles as mb
-from .colMapDict import ColMapDict
+import rubin_sim.maf.metric_bundles as mb
+from .col_map_dict import col_map_dict
 
 __all__ = ["hourglassPlots"]
 
@@ -27,7 +27,7 @@ def hourglassPlots(
         Add an extra piece of info_label before running metrics. Default None.
     """
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     sql = ""

@@ -25,11 +25,11 @@ from .db import *
 from .metrics import *
 from .slicers import *
 from .stackers import *
-from .metricBundles import *
+from .metric_bundles import *
 from .maps import *
 from .plots import *
 from .utils import *
 from .batches import *
-from .runComparison import *
+from .run_comparison import *
 from .web import *
-from .mafContrib import *
+from .maf_contrib import *

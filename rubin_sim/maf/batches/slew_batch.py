@@ -4,8 +4,8 @@ import warnings
 import numpy as np
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metricBundles as mb
-from .colMapDict import ColMapDict
+import rubin_sim.maf.metric_bundles as mb
+from .col_map_dict import col_map_dict
 from .common import standardMetrics, combineInfoLabels
 
 __all__ = ["slewBasics", "slewAngles", "slewSpeeds", "slewActivities"]
@@ -26,11 +26,11 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
 
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
 
     bundleList = []
 
@@ -175,10 +175,10 @@ def slewAngles(colmap=None, runName="opsim", sqlConstraint=None):
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     # All of these metrics are run with a unislicer.
@@ -234,10 +234,10 @@ def slewSpeeds(colmap=None, runName="opsim", sqlConstraint=None):
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     # All of these metrics run with a unislicer, on all the slew data.
@@ -326,7 +326,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
     if totalSlewN == 1:
         warnings.warn(
@@ -334,7 +334,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
         )
 
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     # All of these metrics run with a unislicer, on all the slew data.

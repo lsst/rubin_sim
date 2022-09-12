@@ -1,5 +1,5 @@
 import numpy as np
-from rubin_sim.scheduler.modelObservatory import (
+from rubin_sim.scheduler.model_observatory import (
     Model_observatory as orig_model_observatory,
 )
 from rubin_sim.utils import survey_start_mjd, _healbin
