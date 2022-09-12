@@ -1,5 +1,5 @@
 import numpy as np
-from .sysEngVals import SysEngVals
+from .sys_eng_vals import SysEngVals
 
 __all__ = ["m5_flat_sed", "m5_scale"]
 

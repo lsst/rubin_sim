@@ -1,6 +1,6 @@
 import numpy as np
 import unittest
-from rubin_sim.site_models.seeingModel import SeeingModel
+from rubin_sim.site_models import SeeingModel
 
 
 class TestSeeingModel(unittest.TestCase):

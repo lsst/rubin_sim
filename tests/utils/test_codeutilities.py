@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from rubin_sim.utils.CodeUtilities import _validate_inputs
+from rubin_sim.utils.code_utilities import _validate_inputs
 
 
 class CodeUtilsTest(unittest.TestCase):

@@ -2,7 +2,7 @@ import unittest
 import os
 from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler.utils import season_calc
-from rubin_sim.scheduler.modelObservatory import Model_observatory
+from rubin_sim.scheduler.model_observatory import Model_observatory
 from rubin_sim.scheduler.utils import run_info_table
 
 

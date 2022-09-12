@@ -12,7 +12,7 @@ from rubin_sim.scheduler.surveys import (
 )
 from rubin_sim.scheduler.schedulers import Core_scheduler
 from rubin_sim.scheduler import sim_runner
-from rubin_sim.scheduler.modelObservatory import Model_observatory
+from rubin_sim.scheduler.model_observatory import Model_observatory
 import rubin_sim.scheduler.detailers as detailers
 
 
