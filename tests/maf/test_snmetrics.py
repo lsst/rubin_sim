@@ -1,6 +1,6 @@
 import numpy as np
 import unittest
-from rubin_sim.maf.utils.snUtils import Lims, ReferenceData
+from rubin_sim.maf.utils.sn_utils import Lims, ReferenceData
 from rubin_sim.maf.metrics import SNCadenceMetric
 from rubin_sim.maf.metrics import SNSNRMetric
 from rubin_sim.maf.metrics import SNSLMetric

@@ -1,5 +1,5 @@
 import numpy as np
-from .baseMetric import BaseMetric
+from .base_metric import BaseMetric
 
 __all__ = [
     "TgapsMetric",

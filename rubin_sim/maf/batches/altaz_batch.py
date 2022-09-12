@@ -1,8 +1,8 @@
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metricBundles as mb
+import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.plots as plots
-from .colMapDict import ColMapDict
+from .col_map_dict import col_map_dict
 from .common import filterList
 
 __all__ = ["altazHealpix", "altazLambert"]
@@ -11,7 +11,7 @@ __all__ = ["altazHealpix", "altazLambert"]
 def basicSetup(metricName, colmap=None, nside=64):
 
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
 
     slicer = slicers.HealpixSlicer(
         nside=nside,
@@ -52,7 +52,7 @@ def altazHealpix(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
 
     colmap, slicer, metric = basicSetup(metricName=metricName, colmap=colmap)
@@ -123,7 +123,7 @@ def altazLambert(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
 
     colmap, slicer, metric = basicSetup(metricName=metricName, colmap=colmap)

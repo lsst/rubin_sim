@@ -5,7 +5,7 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.maps as maps
-import rubin_sim.maf.metricBundles as mb
+import rubin_sim.maf.metric_bundles as mb
 from .common import standardSummary, extendedSummary, lightcurveSummary, filterList
 import rubin_sim.maf as maf
 
@@ -1660,12 +1660,12 @@ def scienceRadarBatch(
     dustmap3d = maps.DustMap3D(nside=nside_yso)
     sql = ""
     # Let's plug in the magnitudes for one type
-    metric = maf.mafContrib.NYoungStarsMetric(nside=nside_yso)
+    metric = maf.maf_contrib.NYoungStarsMetric(nside=nside_yso)
     slicer = maf.slicers.HealpixSlicer(nside=nside_yso, useCache=False)
     summaryStats = [maf.metrics.SumMetric()]
     plotDict = {"logScale": True, "colorMin": 1}
     bundleList.append(
-        maf.metricBundles.MetricBundle(
+        maf.metric_bundles.MetricBundle(
             metric,
             slicer,
             sql,
@@ -1687,8 +1687,8 @@ def scienceRadarBatch(
         "star-galaxy separation) at the location of known LV dwarf galaxies. "
     )
     i_starMap = maf.maps.StellarDensityMap(filtername="i")
-    lv_slicer = maf.mafContrib.generateKnownLVDwarfSlicer()
-    lv_metric = maf.mafContrib.LVDwarfsMetric()
+    lv_slicer = maf.maf_contrib.generateKnownLVDwarfSlicer()
+    lv_metric = maf.maf_contrib.LVDwarfsMetric()
     sqlconstraint = '(filter = "i" OR filter = "g")'
     info_label = "gi"
     cutoff = -6.4
@@ -1718,7 +1718,7 @@ def scienceRadarBatch(
         "Predicted magnitude detection limit (including stellar density and "
         "star-galaxy separation), over the whole sky to a distance of 4 Mpc."
     )
-    lv_metric2 = maf.mafContrib.LVDwarfsMetric(
+    lv_metric2 = maf.maf_contrib.LVDwarfsMetric(
         distlim=4.0 * u.Mpc
     )  # for a distance limit, healpix map
     dustmap = maf.maps.DustMap(nside=32)
@@ -1746,7 +1746,7 @@ def scienceRadarBatch(
     )
     sqlconstraint = '(filter = "i" OR filter = "g") and fieldDec < -60'
     info_label = "gi SCP"
-    lv_metric3 = maf.mafContrib.LVDwarfsMetric(
+    lv_metric3 = maf.maf_contrib.LVDwarfsMetric(
         distlim=0.1 * u.Mpc
     )  # for a distance limit, healpix map
     summary_area = maf.metrics.AreaThresholdMetric(

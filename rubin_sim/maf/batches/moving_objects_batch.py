@@ -8,9 +8,9 @@ import rubin_sim.maf.metrics as metrics
 from rubin_sim.maf.slicers import MoObjSlicer
 import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.plots as plots
-import rubin_sim.maf.metricBundles as mb
-from rubin_sim.maf.metricBundles import MoMetricBundle
-from .colMapDict import ColMapDict
+import rubin_sim.maf.metric_bundles as mb
+from rubin_sim.maf.metric_bundles import MoMetricBundle
+from .col_map_dict import col_map_dict
 from .common import (
     summaryCompletenessAtTime,
     summaryCompletenessOverH,
@@ -154,7 +154,7 @@ def quickDiscoveryBatch(
     magtype="asteroid",
 ):
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     basicPlotDict = {
@@ -301,7 +301,7 @@ def discoveryBatch(
     magtype="asteroid",
 ):
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     basicPlotDict = {
@@ -688,7 +688,7 @@ def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
 
     Parameters
     ----------
-    bdict : dict of metricBundles
+    bdict : dict of metric_bundles
         Dict containing ~rubin_sim.maf.MoMetricBundles,
         including bundles we're expecting to contain completeness.
     Hmark : float
@@ -704,7 +704,7 @@ def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
 
     Returns
     -------
-    dict of metricBundles
+    dict of metric_bundles
         A dictionary of the new completeness bundles. Keys match original keys,
         with additions of "[Differential,Cumulative]Completeness@Time"
         and "[Differential,Cumulative]Completeness" to distinguish new entries.
@@ -954,7 +954,7 @@ def characterizationInnerBatch(
 ):
     """Characterization metrics for inner solar system objects."""
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     # Set up a dictionary to pass to each metric for the column names.
@@ -1154,7 +1154,7 @@ def characterizationOuterBatch(
 ):
     """Characterization metrics for outer solar system objects."""
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     # Set up a dictionary to pass to each metric for the column names.
@@ -1324,7 +1324,7 @@ def runFractionSummary(bdict, Hmark, outDir, resultsDb):
 
     Parameters
     ----------
-    bdict : dict of metricBundles
+    bdict : dict of metric_bundles
         Dict containing ~rubin_sim.maf.MoMetricBundles,
         including bundles we're expecting to contain lightcurve/color evaluations.
     Hmark : float
@@ -1340,7 +1340,7 @@ def runFractionSummary(bdict, Hmark, outDir, resultsDb):
 
     Returns
     -------
-    dict of metricBundles
+    dict of metric_bundles
         Dictionary of the metric bundles for the fractional evaluation of the population.
     """
     fractions = {}

@@ -10,7 +10,7 @@ import os
 import healpy as hp
 import datetime
 from collections import OrderedDict
-from rubin_sim.maf.mafContrib.LSSObsStrategy.constantsForPipeline import powerLawConst_a
+from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import powerLawConst_a
 
 __all__ = [
     "get_fsky",

@@ -7,7 +7,7 @@ import unittest
 from rubin_sim.data import get_data_dir
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metricBundles as metricBundle
+import rubin_sim.maf.metric_bundles as metricBundle
 
 
 class Test2D(unittest.TestCase):

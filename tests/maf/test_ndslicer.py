@@ -6,8 +6,7 @@ import numpy as np
 import numpy.lib.recfunctions as rfn
 import itertools
 import unittest
-from rubin_sim.maf.slicers.nDSlicer import NDSlicer
-from rubin_sim.maf.slicers.uniSlicer import UniSlicer
+from rubin_sim.maf.slicers import NDSlicer, UniSlicer
 
 
 def makeDataValues(size=100, min=0.0, max=1.0, nd=3, random=-1):

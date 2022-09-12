@@ -4,8 +4,7 @@ matplotlib.use("Agg")
 import numpy as np
 import warnings
 import unittest
-from rubin_sim.maf.slicers.movieSlicer import MovieSlicer
-from rubin_sim.maf.slicers.uniSlicer import UniSlicer
+from rubin_sim.maf.slicers import MovieSlicer, UniSlicer
 
 
 def makeTimes(size=100, min=0.0, max=10.0, random=-1):

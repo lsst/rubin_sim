@@ -2,7 +2,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import unittest
-import rubin_sim.maf.utils.opsimUtils as opsimUtils
+import rubin_sim.maf.utils.opsim_utils as opsimUtils
 import os
 from rubin_sim.data import get_data_dir
 import numpy as np
