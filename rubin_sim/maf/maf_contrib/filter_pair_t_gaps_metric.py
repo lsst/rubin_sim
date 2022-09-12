@@ -1,5 +1,5 @@
 import numpy as np
-from ..metrics.baseMetric import BaseMetric
+from ..metrics.base_metric import BaseMetric
 
 __all__ = ["FilterPairTGapsMetric"]
 

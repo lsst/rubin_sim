@@ -2,8 +2,8 @@
 """
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metricBundles as mb
-from .colMapDict import ColMapDict
+import rubin_sim.maf.metric_bundles as mb
+from .col_map_dict import col_map_dict
 from .common import standardSummary
 
 __all__ = ["openshutterFractions"]
@@ -27,7 +27,7 @@ def openshutterFractions(
         Additional info_label to add before any below (i.e. "WFD").  Default is None.
     """
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     group = "Open Shutter Fraction"

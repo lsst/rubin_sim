@@ -3,7 +3,7 @@ import numpy as np
 import os
 import unittest
 from rubin_sim.utils import ObservationMetaData
-from rubin_sim.utils.CodeUtilities import sims_clean_up
+from rubin_sim.utils.code_utilities import sims_clean_up
 from rubin_sim.phot_utils.bandpass import Bandpass
 from rubin_sim.phot_utils.sed import Sed
 from rubin_sim.phot_utils import BandpassDict

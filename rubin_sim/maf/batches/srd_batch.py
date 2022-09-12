@@ -8,8 +8,8 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.plots as plots
-import rubin_sim.maf.metricBundles as mb
-from .colMapDict import ColMapDict
+import rubin_sim.maf.metric_bundles as mb
+from .col_map_dict import col_map_dict
 from .common import standardSummary, radecCols, combineInfoLabels
 
 __all__ = ["fOBatch", "astrometryBatch", "rapidRevisitBatch"]
@@ -43,10 +43,10 @@ def fOBatch(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
     if colmap is None:
-        colmap = ColMapDict("fbs")
+        colmap = col_map_dict("fbs")
 
     bundleList = []
 
@@ -186,10 +186,10 @@ def astrometryBatch(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
     if colmap is None:
-        colmap = ColMapDict("fbs")
+        colmap = col_map_dict("fbs")
     bundleList = []
 
     sql = ""
@@ -454,10 +454,10 @@ def rapidRevisitBatch(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
     if colmap is None:
-        colmap = ColMapDict("fbs")
+        colmap = col_map_dict("fbs")
     bundleList = []
 
     sql = ""

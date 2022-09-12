@@ -4,8 +4,8 @@ import numpy as np
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
-import rubin_sim.maf.metricBundles as mb
-from .colMapDict import ColMapDict
+import rubin_sim.maf.metric_bundles as mb
+from .col_map_dict import col_map_dict
 from .common import standardSummary, filterList, combineInfoLabels, radecCols
 
 __all__ = ["phaseGap"]
@@ -41,11 +41,11 @@ def phaseGap(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
 
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
 
     info_label = extraInfoLabel
     if extraSql is not None and len(extraSql) > 0:
