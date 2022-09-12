@@ -5,9 +5,9 @@ import copy
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
-import rubin_sim.maf.metricBundles as mb
+import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.utils as mafUtils
-from .colMapDict import ColMapDict, getColMap
+from .col_map_dict import col_map_dict, getColMap
 from .common import standardSummary, filterList, radecCols, combineInfoLabels
 
 __all__ = ["nvisitsM5Maps", "tEffMetrics", "nvisitsPerNight", "nvisitsPerSubset"]
@@ -43,10 +43,10 @@ def nvisitsM5Maps(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     subgroup = extraInfoLabel
@@ -240,10 +240,10 @@ def tEffMetrics(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     subgroup = extraInfoLabel
@@ -371,10 +371,10 @@ def nvisitsPerNight(
 
     Returns
     -------
-    metricBundleDict
+    metric_bundleDict
     """
     if colmap is None:
-        colmap = ColMapDict("FBS")
+        colmap = col_map_dict("FBS")
 
     subgroup = subgroup
     if subgroup is None:
@@ -444,7 +444,7 @@ def nvisitsPerSubset(
 
     Returns
     -------
-    metricBundleDict : `dict` of `rubin_sim.maf.MetricBundle`
+    metric_bundleDict : `dict` of `rubin_sim.maf.MetricBundle`
     """
     if colmap is None:
         colmap = getColMap("FBS")

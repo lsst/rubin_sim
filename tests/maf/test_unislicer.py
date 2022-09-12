@@ -3,8 +3,7 @@ import matplotlib
 matplotlib.use("Agg")
 import numpy as np
 import unittest
-from rubin_sim.maf.slicers.uniSlicer import UniSlicer
-from rubin_sim.maf.slicers.oneDSlicer import OneDSlicer
+from rubin_sim.maf.slicers import UniSlicer, OneDSlicer
 
 
 def makeDataValues(size=100, min=0.0, max=1.0, random=-1):

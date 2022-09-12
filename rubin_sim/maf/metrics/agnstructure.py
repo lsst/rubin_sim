@@ -1,6 +1,6 @@
 import numpy as np
 from astropy.stats import mad_std
-from .baseMetric import BaseMetric
+from .base_metric import BaseMetric
 from rubin_sim.maf.utils import m52snr
 import warnings
 from rubin_sim.phot_utils import Dust_values

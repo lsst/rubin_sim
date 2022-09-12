@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from .plotHandler import BasePlotter
+from .plot_handler import BasePlotter
 
 
 __all__ = ["XyPlotter"]
