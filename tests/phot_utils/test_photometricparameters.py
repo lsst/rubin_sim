@@ -26,7 +26,7 @@ class PhotometricParametersUnitTest(unittest.TestCase):
             "darkcurrent",
             "othernoise",
             "platescale",
-            "sigmaSys",
+            "sigma_sys",
         ]
 
         for attribute in params:
@@ -62,7 +62,7 @@ class PhotometricParametersUnitTest(unittest.TestCase):
             "effarea": "did not set effarea",
             "gain": "did not set gain",
             "platescale": "did not set platescale",
-            "sigmaSys": "did not set sigmaSys",
+            "sigma_sys": "did not set sigma_sys",
             "readnoise": "did not set readnoise",
             "darkcurrent": "did not set darkcurrent",
             "othernoise": "did not set othernoise",
@@ -109,9 +109,9 @@ class PhotometricParametersUnitTest(unittest.TestCase):
             self.assertAlmostEqual(phot_params.othernoise, 0, 7)
             self.assertAlmostEqual(phot_params.platescale, 0.2, 7)
             if bp not in ["u", "z", "y"]:
-                self.assertAlmostEqual(phot_params.sigmaSys, 0.005, 7)
+                self.assertAlmostEqual(phot_params.sigma_sys, 0.005, 7)
             else:
-                self.assertAlmostEqual(phot_params.sigmaSys, 0.0075, 7)
+                self.assertAlmostEqual(phot_params.sigma_sys, 0.0075, 7)
 
     def test_no_bandpass(self):
         """
@@ -130,7 +130,7 @@ class PhotometricParametersUnitTest(unittest.TestCase):
         self.assertAlmostEqual(phot_params.readnoise, 8.8, 7)
         self.assertAlmostEqual(phot_params.othernoise, 0, 7)
         self.assertAlmostEqual(phot_params.platescale, 0.2, 7)
-        self.assertAlmostEqual(phot_params.sigmaSys, 0.005, 7)
+        self.assertAlmostEqual(phot_params.sigma_sys, 0.005, 7)
 
     def test_assignment(self):
         """
@@ -198,11 +198,11 @@ class PhotometricParametersUnitTest(unittest.TestCase):
             self.assertEqual(test_case.platescale, control_case.platescale)
 
         try:
-            test_case.sigmaSys = -1.0
+            test_case.sigma_sys = -1.0
             success += 1
-            msg += "was able to assign sigmaSys; "
+            msg += "was able to assign sigma_sys; "
         except:
-            self.assertEqual(test_case.sigmaSys, control_case.sigmaSys)
+            self.assertEqual(test_case.sigma_sys, control_case.sigma_sys)
 
         try:
             test_case.bandpass = "z"
@@ -216,23 +216,23 @@ class PhotometricParametersUnitTest(unittest.TestCase):
     def test_application(self):
         """
         Test that PhotometricParameters get properly propagated into
-        Sed methods.  We will test this using Sed.calcADU, since the ADU
+        Sed methods.  We will test this using Sed.calc_adu, since the ADU
         scale linearly with the appropriate parameter.
         """
 
         test_sed = Sed()
-        test_sed.setFlatSED()
+        test_sed.set_flat_sed()
 
         test_bandpass = Bandpass()
         test_bandpass.read_throughput(
             os.path.join(get_data_dir(), "throughputs", "baseline", "total_g.dat")
         )
 
-        control = test_sed.calcADU(test_bandpass, photParams=PhotometricParameters())
+        control = test_sed.calc_adu(test_bandpass, phot_params=PhotometricParameters())
 
         test_case = PhotometricParameters(exptime=30.0)
 
-        test = test_sed.calcADU(test_bandpass, photParams=test_case)
+        test = test_sed.calc_adu(test_bandpass, phot_params=test_case)
 
         self.assertGreater(control, 0.0)
         self.assertEqual(control, 0.5 * test)
