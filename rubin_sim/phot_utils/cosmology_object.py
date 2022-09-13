@@ -115,18 +115,18 @@ class CosmologyObject(object):
             is_flat = True
 
         if is_cosmological_constant and is_flat:
-            universe = cosmology.FlatLambdaCDM(h0=h0, om0=om0)
+            universe = cosmology.FlatLambdaCDM(H0=h0, Om0=om0)
         elif is_cosmological_constant:
-            tmpmodel = cosmology.FlatLambdaCDM(h0=h0, om0=om0)
-            ode0 = 1.0 - om0 - tmpmodel.Ogamma0 - tmpmodel.onu0 - ok0
-            universe = cosmology.LambdaCDM(h0=h0, om0=om0, ode0=ode0)
+            tmpmodel = cosmology.FlatLambdaCDM(H0=h0, Om0=om0)
+            ode0 = 1.0 - om0 - tmpmodel.Ogamma0 - tmpmodel.Onu0 - ok0
+            universe = cosmology.LambdaCDM(H0=h0, Om0=om0, Ode0=ode0)
         elif is_flat:
-            universe = cosmology.Flatw0waCDM(h0=h0, om0=om0, w0=w0, wa=wa)
+            universe = cosmology.Flatw0waCDM(H0=h0, Om0=om0, w0=w0, wa=wa)
         else:
-            tmpmodel = cosmology.Flatw0waCDM(h0=h0, om0=om0, w0=w0, wa=wa)
-            ode0 = 1.0 - om0 - tmpmodel.Ogamma0 - tmpmodel.onu0 - ok0
+            tmpmodel = cosmology.Flatw0waCDM(H0=h0, Om0=om0, w0=w0, wa=wa)
+            ode0 = 1.0 - om0 - tmpmodel.Ogamma0 - tmpmodel.Onu0 - ok0
 
-            universe = cosmology.w0waCDM(h0=h0, om0=om0, ode0=ode0, w0=w0, wa=wa)
+            universe = cosmology.w0waCDM(H0=h0, Om0=om0, Ode0=ode0, w0=w0, wa=wa)
 
         self.set_current(universe)
 
