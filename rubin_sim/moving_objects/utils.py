@@ -5,10 +5,10 @@ from rubin_sim.maf.utils import getSimData
 from .orbits import Orbits
 from .direct_obs import DirectObs
 
-__all__ = ["readOpsim", "readOrbits", "setupColors", "runObs"]
+__all__ = ["read_opsim", "read_orbits", "setup_colors", "run_obs"]
 
 
-def readOpsim(opsimfile, colmap, constraint=None, footprint="camera", dbcols=None):
+def read_opsim(opsimfile, colmap, constraint=None, footprint="camera", dbcols=None):
     """Read the opsim database.
 
     Parameters
@@ -66,7 +66,7 @@ def readOpsim(opsimfile, colmap, constraint=None, footprint="camera", dbcols=Non
     return simdata
 
 
-def readOrbits(orbitfile):
+def read_orbits(orbitfile):
     """Read the orbits from the orbitfile.
 
     Parameters
@@ -82,12 +82,12 @@ def readOrbits(orbitfile):
     if not os.path.isfile(orbitfile):
         logging.critical("Could not find orbit file %s" % (orbitfile))
     orbits = Orbits()
-    orbits.readOrbits(orbitfile)
+    orbits.read_orbits(orbitfile)
     logging.info("Read orbit information from %s" % (orbitfile))
     return orbits
 
 
-def setupColors(obs, filterlist, orbits):
+def setup_colors(obs, filterlist, orbits):
     # Set up filters
     obs.readFilters(filterlist=filterlist)
     # Calculate all colors ahead of time.
@@ -97,22 +97,22 @@ def setupColors(obs, filterlist, orbits):
     return obs
 
 
-def runObs(
+def run_obs(
     orbits,
     simdata,
     colmap,
-    obsFile,
+    obs_file,
     footprint="camera",
-    rFov=1.75,
-    xTol=5,
-    yTol=3,
-    ephMode="nbody",
-    prelimEphMode="nbody",
-    obsCode="I11",
-    ephType="basic",
-    tStep=1,
-    roughTol=10,
-    obsMetadata=None,
+    r_fov=1.75,
+    x_tol=5,
+    y_tol=3,
+    eph_mode="nbody",
+    prelim_eph_mode="nbody",
+    obs_code="I11",
+    eph_type="basic",
+    t_step=1,
+    rough_tol=10,
+    obs_metadata=None,
 ):
     """Generate the observations.
 
@@ -124,57 +124,57 @@ def runObs(
         The simulated pointing history data from OpSim
     colmap : `dict`
         Dictionary of the column mappings (from column names here to opsim columns).
-    obsFile : `str`
+    obs_file : `str`
         Output file for the observations
     footprint : `str`, opt
         Footprint - camera, circle or rectangle. Default camera footprint.
-    rFov : `float`, opt
+    r_fov : `float`, opt
         If using a circular FOV, this is the radius of that circle.
         Default 1.75, but only used if footprint is 'circle'.
-    xTol : `float`, opt
+    x_tol : `float`, opt
         If using a rectangular footprint, this is the tolerance in the RA direction.
         Default 5.
-    yTol : `float`, opt
+    y_tol : `float`, opt
         If using a rectangular footprint, this is the tolerance in the Dec direction
         Default 3.
-    ephMode : `str`, opt
+    eph_mode : `str`, opt
         Ephemeris generation mode (2body or nbody) for exact matching. Default nbody.
-    prelimEphMode : `str`, opt
+    prelim_eph_mode : `str`, opt
         Preliminary (rough grid) ephemeris generation mode (2body or nbody). Default nbody.
-    obsCode : `str`, opt
+    obs_code : `str`, opt
         Observatory code for ephemeris generation. Default I11 = Cerro Pachon.
-    ephType : `str`, opt
+    eph_type : `str`, opt
         ephemeris type (from oorb.generate_ephemeris) to return ('full' or 'basic'). Default 'basic'.
-    tStep : `float`, opt
+    t_step : `float`, opt
         Time step for rough grid, in days. Default 1 day.
-    roughTol : `float`, opt
+    rough_tol : `float`, opt
         Tolerance in degrees between rough grid position and opsim pointings. Default 10 deg.
-    obsMetadata : `str`, opt
+    obs_metadata : `str`, opt
         Metadata to write into output file header.
     """
     obs = DirectObs(
         footprint=footprint,
-        rFov=rFov,
-        xTol=xTol,
-        yTol=yTol,
-        ephMode=ephMode,
-        prelimEphMode=prelimEphMode,
-        obsCode=obsCode,
-        ephFile=None,
-        ephType=ephType,
-        obsTimeCol=colmap["mjd"],
-        obsTimeScale="TAI",
-        seeingCol=colmap["seeingGeom"],
-        visitExpTimeCol=colmap["exptime"],
-        obsRA=colmap["ra"],
-        obsDec=colmap["dec"],
-        obsRotSkyPos=colmap["rotSkyPos"],
-        obsDegrees=colmap["raDecDeg"],
-        outfileName=obsFile,
-        tstep=tStep,
-        roughTol=roughTol,
-        obsMetadata=obsMetadata,
+        r_fov=r_fov,
+        x_tol=x_tol,
+        y_tol=y_tol,
+        eph_mode=eph_mode,
+        prelim_eph_mode=prelim_eph_mode,
+        obs_code=obs_code,
+        eph_file=None,
+        eph_type=eph_type,
+        obs_time_col=colmap["mjd"],
+        obs_time_scale="TAI",
+        seeing_col=colmap["seeingGeom"],
+        visit_exp_time_col=colmap["exptime"],
+        obs_ra=colmap["ra"],
+        obs_dec=colmap["dec"],
+        obs_rot_sky_pos=colmap["rotSkyPos"],
+        obs_degrees=colmap["raDecDeg"],
+        outfile_name=obs_file,
+        tstep=t_step,
+        rough_tol=rough_tol,
+        obs_metadata=obs_metadata,
     )
     filterlist = np.unique(simdata["filter"])
-    obs = setupColors(obs, filterlist, orbits)
+    obs = setup_colors(obs, filterlist, orbits)
     obs.run(orbits, simdata)

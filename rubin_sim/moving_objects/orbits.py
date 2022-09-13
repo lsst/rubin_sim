@@ -8,7 +8,7 @@ __all__ = ["Orbits"]
 class Orbits(object):
     """Orbits reads, checks for required values, and stores orbit parameters for moving objects.
 
-    Instantiate the class and then use readOrbits or setOrbits to set the orbit values.
+    Instantiate the class and then use read_orbits or set_orbits to set the orbit values.
 
     self.orbits stores the orbital parameters, as a pandas dataframe.
     self.dataCols defines the columns required, although objId, H, g, and sed_filename are optional.
@@ -20,8 +20,8 @@ class Orbits(object):
 
         # Specify the required columns/values in the self.orbits dataframe.
         # Which columns are required depends on self.orb_format.
-        self.dataCols = {}
-        self.dataCols["COM"] = [
+        self.data_cols = {}
+        self.data_cols["COM"] = [
             "objId",
             "q",
             "e",
@@ -34,7 +34,7 @@ class Orbits(object):
             "g",
             "sed_filename",
         ]
-        self.dataCols["KEP"] = [
+        self.data_cols["KEP"] = [
             "objId",
             "a",
             "e",
@@ -47,7 +47,7 @@ class Orbits(object):
             "g",
             "sed_filename",
         ]
-        self.dataCols["CAR"] = [
+        self.data_cols["CAR"] = [
             "objId",
             "x",
             "y",
@@ -66,22 +66,22 @@ class Orbits(object):
 
     def __getitem__(self, i):
         orb = Orbits()
-        orb.setOrbits(self.orbits.iloc[i])
+        orb.set_orbits(self.orbits.iloc[i])
         return orb
 
     def __iter__(self):
         for i, orbit in self.orbits.iterrows():
             orb = Orbits()
-            orb.setOrbits(orbit)
+            orb.set_orbits(orbit)
             yield orb
 
-    def __eq__(self, otherOrbits):
-        if isinstance(otherOrbits, Orbits):
-            if self.orb_format != otherOrbits.orb_format:
+    def __eq__(self, other_orbits):
+        if isinstance(other_orbits, Orbits):
+            if self.orb_format != other_orbits.orb_format:
                 return False
-            for col in self.dataCols[self.orb_format]:
+            for col in self.data_cols[self.orb_format]:
                 if not np.all(
-                    self.orbits[col].values == otherOrbits.orbits[col].values
+                    self.orbits[col].values == other_orbits.orbits[col].values
                 ):
                     return False
                 else:
@@ -89,13 +89,13 @@ class Orbits(object):
         else:
             return False
 
-    def __neq__(self, otherOrbits):
-        if self == otherOrbits:
+    def __neq__(self, other_orbits):
+        if self == other_orbits:
             return False
         else:
             return True
 
-    def setOrbits(self, orbits):
+    def set_orbits(self, orbits):
         """Set and validate orbital parameters contain all required values.
 
         Sets self.orbits and self.orb_format.
@@ -127,10 +127,10 @@ class Orbits(object):
         if "index" in orbits:
             del orbits["index"]
 
-        nSso = len(orbits)
+        n_sso = len(orbits)
 
         # Error if orbits is empty (this avoids hard-to-interpret error messages from pyoorb).
-        if nSso == 0:
+        if n_sso == 0:
             raise ValueError("Length of the orbits dataframe was 0.")
 
         # Discover which type of orbital parameters we have on disk.
@@ -189,18 +189,18 @@ class Orbits(object):
             )
 
         # If these columns are not available in the input data, auto-generate them.
-        if "objId" not in orbits:
-            objId = np.arange(0, nSso, 1)
-            orbits = orbits.assign(objId=objId)
+        if "obj_id" not in orbits:
+            obj_id = np.arange(0, n_sso, 1)
+            orbits = orbits.assign(obj_id=obj_id)
         if "H" not in orbits:
             orbits = orbits.assign(H=20.0)
         if "g" not in orbits:
             orbits = orbits.assign(g=0.15)
         if "sed_filename" not in orbits:
-            orbits = orbits.assign(sed_filename=self.assignSed(orbits))
+            orbits = orbits.assign(sed_filename=self.assign_sed(orbits))
 
         # Make sure we gave all the columns we need.
-        for col in self.dataCols[self.orb_format]:
+        for col in self.data_cols[self.orb_format]:
             if col not in orbits:
                 raise ValueError(
                     "Missing required orbital element %s for orbital format type %s"
@@ -208,15 +208,15 @@ class Orbits(object):
                 )
 
         # Check to see if we have duplicates.
-        if len(orbits["objId"].unique()) != nSso:
+        if len(orbits["obj_id"].unique()) != n_sso:
             warnings.warn(
-                "There are duplicates in the orbit objId values"
+                "There are duplicates in the orbit obj_id values"
                 + " - was this intended? (continuing)."
             )
         # All is good.
         self.orbits = orbits
 
-    def assignSed(self, orbits, randomSeed=None):
+    def assign_sed(self, orbits, random_seed=None):
         """Assign either a C or S type SED, depending on the semi-major axis of the object.
         P(C type) = 0 (a<2); 0.5*a - 1 (2<a<4); 1 (a > 4),
         based on figure 23 from Ivezic et al 2001 (AJ, 122, 2749).
@@ -249,8 +249,8 @@ class Orbits(object):
             raise ValueError("Need either a or q (plus e) in orbit data frame.")
 
         if not hasattr(self, "_rng"):
-            if randomSeed is not None:
-                self._rng = np.random.RandomState(randomSeed)
+            if random_seed is not None:
+                self._rng = np.random.RandomState(random_seed)
             else:
                 self._rng = np.random.RandomState(42)
 
@@ -260,11 +260,11 @@ class Orbits(object):
         sedvals = np.where(chance <= prob_c, "C.dat", "S.dat")
         return sedvals
 
-    def readOrbits(self, orbitfile, delim=None, skiprows=None):
+    def read_orbits(self, orbitfile, delim=None, skiprows=None):
         """Read orbits from a file, generating a pandas dataframe containing columns matching dataCols,
         for the appropriate orbital parameter format (currently accepts COM, KEP or CAR formats).
 
-        After reading and standardizing the column names, calls self.setOrbits to validate the
+        After reading and standardizing the column names, calls self.set_orbits to validate the
         orbital parameters. Expects angles in orbital element formats to be in degrees.
 
         Note that readOrbits uses pandas.read_csv to read the data file with the orbital parameters.
@@ -323,7 +323,7 @@ class Orbits(object):
         if skiprows == -1:
             # No header; assume it's a typical DES file -
             # we'll assign the column names based on the FORMAT.
-            names_COM = (
+            names_com = (
                 "objId",
                 "FORMAT",
                 "q",
@@ -339,7 +339,7 @@ class Orbits(object):
                 "MOID",
                 "COMPCODE",
             )
-            names_KEP = (
+            names_kep = (
                 "objId",
                 "FORMAT",
                 "a",
@@ -355,7 +355,7 @@ class Orbits(object):
                 "MOID",
                 "COMPCODE",
             )
-            names_CAR = (
+            names_car = (
                 "objId",
                 "FORMAT",
                 "x",
@@ -371,15 +371,15 @@ class Orbits(object):
                 "MOID",
                 "COMPCODE",
             )
-            # First use names_COM, and then change if required.
+            # First use names_com, and then change if required.
             orbits = pd.read_csv(
-                orbitfile, delim_whitespace=True, header=None, names=names_COM
+                orbitfile, delim_whitespace=True, header=None, names=names_com
             )
 
             if orbits["FORMAT"][0] == "KEP":
-                orbits.columns = names_KEP
+                orbits.columns = names_kep
             elif orbits["FORMAT"][0] == "CAR":
-                orbits.columns = names_CAR
+                orbits.columns = names_car
 
         else:
             if delim is None:
@@ -404,13 +404,13 @@ class Orbits(object):
             del orbits["tmp"]
 
         # Normalize the column names to standard values and identify the orbital element types.
-        ssoCols = orbits.columns.values.tolist()
+        sso_cols = orbits.columns.values.tolist()
 
         # These are the alternative possibilities for various column headers
         # (depending on file version, origin, etc.)
         # that might need remapping from the on-file values to our standardized values.
-        altNames = {}
-        altNames["objId"] = [
+        alt_names = {}
+        alt_names["objId"] = [
             "objId",
             "objid",
             "!!ObjID",
@@ -421,11 +421,11 @@ class Orbits(object):
             "full_name",
             "#name",
         ]
-        altNames["q"] = ["q"]
-        altNames["a"] = ["a"]
-        altNames["e"] = ["e", "ecc"]
-        altNames["inc"] = ["inc", "i", "i(deg)", "incl"]
-        altNames["Omega"] = [
+        alt_names["q"] = ["q"]
+        alt_names["a"] = ["a"]
+        alt_names["e"] = ["e", "ecc"]
+        alt_names["inc"] = ["inc", "i", "i(deg)", "incl"]
+        alt_names["Omega"] = [
             "Omega",
             "omega",
             "node",
@@ -435,7 +435,7 @@ class Orbits(object):
             "Omega/node",
             "longNode",
         ]
-        altNames["argPeri"] = [
+        alt_names["argPeri"] = [
             "argPeri",
             "argperi",
             "omega/argperi",
@@ -443,29 +443,29 @@ class Orbits(object):
             "argperi(deg)",
             "peri",
         ]
-        altNames["tPeri"] = ["tPeri", "t_p", "timeperi", "t_peri", "T_peri"]
-        altNames["epoch"] = ["epoch", "t_0", "Epoch", "epoch_mjd"]
-        altNames["H"] = ["H", "magH", "magHv", "Hv", "H_v"]
-        altNames["g"] = ["g", "phaseV", "phase", "gV", "phase_g", "G"]
-        altNames["meanAnomaly"] = ["meanAnomaly", "meanAnom", "M", "ma"]
-        altNames["sed_filename"] = ["sed_filename", "sed"]
-        altNames["xdot"] = ["xdot", "xDot"]
-        altNames["ydot"] = ["ydot", "yDot"]
-        altNames["zdot"] = ["zdot", "zDot"]
+        alt_names["tPeri"] = ["tPeri", "t_p", "timeperi", "t_peri", "T_peri"]
+        alt_names["epoch"] = ["epoch", "t_0", "Epoch", "epoch_mjd"]
+        alt_names["H"] = ["H", "magH", "magHv", "Hv", "H_v"]
+        alt_names["g"] = ["g", "phaseV", "phase", "gV", "phase_g", "G"]
+        alt_names["meanAnomaly"] = ["meanAnomaly", "meanAnom", "M", "ma"]
+        alt_names["sed_filename"] = ["sed_filename", "sed"]
+        alt_names["xdot"] = ["xdot", "xDot"]
+        alt_names["ydot"] = ["ydot", "yDot"]
+        alt_names["zdot"] = ["zdot", "zDot"]
 
         # Update column names that match any of the alternatives above.
-        for name, alternatives in altNames.items():
-            intersection = list(set(alternatives) & set(ssoCols))
+        for name, alternatives in alt_names.items():
+            intersection = list(set(alternatives) & set(sso_cols))
             if len(intersection) > 1:
                 raise ValueError(
                     "Received too many possible matches to %s in orbit file %s"
                     % (name, orbitfile)
                 )
             if len(intersection) == 1:
-                idx = ssoCols.index(intersection[0])
-                ssoCols[idx] = name
+                idx = sso_cols.index(intersection[0])
+                sso_cols[idx] = name
         # Assign the new column names back to the orbits dataframe.
-        orbits.columns = ssoCols
+        orbits.columns = sso_cols
 
         # Failing on negaitive inclinations.
         if "inc" in orbits.keys():
@@ -478,9 +478,9 @@ class Orbits(object):
                 )
 
         # Validate and assign orbits to self.
-        self.setOrbits(orbits)
+        self.set_orbits(orbits)
 
-    def updateOrbits(self, neworb):
+    def update_orbits(self, neworb):
         """Update existing orbits with new values, leaving OrbitIds, H, g, and sed_filenames in place.
 
         Example use: transform orbital parameters (using PyOrbEphemerides) and then replace original values.
@@ -493,4 +493,4 @@ class Orbits(object):
         col_orig = ["objId", "sed_filename"]
         new_order = ["objId"] + [n for n in neworb.columns] + ["sed_filename"]
         updated_orbits = neworb.join(self.orbits[col_orig])[new_order]
-        self.setOrbits(updated_orbits)
+        self.set_orbits(updated_orbits)
