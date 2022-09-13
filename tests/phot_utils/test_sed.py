@@ -85,9 +85,9 @@ class TestSedWavelenLimits(unittest.TestCase):
             self.assertEqual(len(w), 1)
             self.assertIn("non-overlap", str(w[-1].message))
         np.testing.assert_equal(mag, np.NaN)
-        # Test handling in calcADU
+        # Test handling in calc_adu
         with warnings.catch_warnings(record=True) as w:
-            adu = testsed.calcADU(self.testbandpass, photParams=PhotometricParameters())
+            adu = testsed.calc_adu(self.testbandpass, phot_params=PhotometricParameters())
             self.assertEqual(len(w), 1)
             self.assertIn("non-overlap", str(w[-1].message))
         np.testing.assert_equal(adu, np.NaN)
