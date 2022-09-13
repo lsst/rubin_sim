@@ -27,9 +27,7 @@ class TestChebyValues(unittest.TestCase):
         self.orbits.read_orbits(
             os.path.join(self.testdatadir, "test_orbitsNEO.s3m"), skiprows=1
         )
-        self.pyephems = PyOrbEphemerides(
-            os.path.join(get_data_dir(), "movingObjects", "de405.dat")
-        )
+        self.pyephems = PyOrbEphemerides()
         self.pyephems.set_orbits(self.orbits)
         self.t_start = self.orbits.orbits.epoch.iloc[0]
         self.interval = 30
