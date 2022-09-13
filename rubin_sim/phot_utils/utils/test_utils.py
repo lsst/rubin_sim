@@ -5,7 +5,7 @@ To date (30 October 2014) testPhotometry.py and testCosmology.py import from thi
 """
 
 import numpy
-from rubin_sim.phot_utils import calcSkyCountsPerPixelForM5, Sed
+from rubin_sim.phot_utils import calc_sky_counts_per_pixel_for_m5, Sed
 
 __all__ = ["set_m5", "comoving_distance_integrand", "cosmological_omega"]
 
@@ -57,7 +57,7 @@ def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwh_meff=Non
         fwh_meff = LSSTdefaults().FWHMeff("r")
 
     sky_counts_target = calcSkyCountsPerPixelForM5(
-        m5target, total_bandpass, fwh_meff=fwh_meff, phot_params=phot_params
+        m5target, total_bandpass, fwhm_eff=fwh_meff, phot_params=phot_params
     )
 
     sky_sed_out = Sed(
