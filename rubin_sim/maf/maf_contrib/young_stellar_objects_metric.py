@@ -6,7 +6,7 @@ import healpy as hp
 import numpy as np
 import scipy.integrate as integrate
 from rubin_sim.maf.metrics.base_metric import BaseMetric
-from rubin_sim.phot_utils import Dust_values
+from rubin_sim.phot_utils import DustValues
 from rubin_sim.maf.maps import DustMap3D
 
 __all__ = ["NYoungStarsMetric"]
@@ -95,7 +95,7 @@ class NYoungStarsMetric(BaseMetric):
             Cols, metricName=metricName, maps=maps, units=units, badval=badval, *kwargs
         )
         # Save R_x values for on-the-fly calculation of dust extinction with map
-        self.R_x = Dust_values().R_x.copy()
+        self.R_x = DustValues().R_x.copy()
         # set return type
         self.m5Col = m5Col
         self.filterCol = filterCol

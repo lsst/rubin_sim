@@ -1,6 +1,6 @@
 import numpy as np
 from .base_metric import BaseMetric
-from rubin_sim.phot_utils import Dust_values
+from rubin_sim.phot_utils import DustValues
 import healpy as hp
 from rubin_sim.maf.maps import TrilegalDensityMap
 
@@ -49,7 +49,7 @@ class NgalScaleMetric(BaseMetric):
             metricName=metricName,
             **kwargs,
         )
-        dust_properties = Dust_values()
+        dust_properties = DustValues()
         self.Ax1 = dust_properties.Ax1
 
     def run(self, dataSlice, slicePoint):

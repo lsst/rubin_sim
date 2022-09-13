@@ -1,6 +1,6 @@
 from .base_metric import BaseMetric
 from .simple_metrics import Coaddm5Metric
-from rubin_sim.phot_utils import Dust_values
+from rubin_sim.phot_utils import DustValues
 
 __all__ = ["ExgalM5"]
 
@@ -39,7 +39,7 @@ class ExgalM5(BaseMetric):
             **kwargs
         )
         # Set the default wavelength limits for the lsst filters. These are approximately correct.
-        dust_properties = Dust_values()
+        dust_properties = DustValues()
         self.Ax1 = dust_properties.Ax1
         # We will call Coaddm5Metric to calculate the coadded depth. Set it up here.
         self.Coaddm5Metric = Coaddm5Metric(m5Col=m5Col)
