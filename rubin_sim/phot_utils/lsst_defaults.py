@@ -10,8 +10,8 @@ class LSSTdefaults(object):
     """
 
     def __init__(self):
-        # Standard FWHMeffective in arcseconds
-        self._FWHMeff = {
+        # Standard fwhm_effective in arcseconds
+        self._fwhm_eff = {
             "u": 0.92,
             "g": 0.87,
             "r": 0.83,
@@ -28,7 +28,7 @@ class LSSTdefaults(object):
             "z": 869.1,
             "y": 971.0,
         }
-        # Expected m5 depths (using FWHMeffective + dark sky + X=1.2 atmosphere + throughput curves)
+        # Expected m5 depths (using fwhm_effective + dark sky + X=1.2 atmosphere + throughput curves)
         self._m5 = {
             "u": 23.68,
             "g": 24.89,
@@ -61,22 +61,22 @@ class LSSTdefaults(object):
         """
         return self._m5[tag]
 
-    def FWHMeff(self, tag):
+    def fwhm_eff(self, tag):
         """
         From arXiv 0805.2366 XXX version (Table 2):
 
-        The expected FWHMeff in arcseconds. This is the width of a single gaussian
-        which produces the appropriate number of effective pixels in the PSF (thus 'FWHMeff').
+        The expected fwhm_eff in arcseconds. This is the width of a single gaussian
+        which produces the appropriate number of effective pixels in the PSF (thus 'fwhm_eff').
         This is the value to use for calculating Neffective, when Neffective assumes a single gaussian.
         It can be converted to a geometric FWHM (equivalent to the approximate value which would
-        be measured across a van Karmen PSF profile) using SignalToNoise.FWHMeff2FWHMgeom.
+        be measured across a van Karmen PSF profile) using SignalToNoise.fwhm_eff2FWHMgeom.
 
         @param [in] the name of a filter i.e. 'u', 'g', 'r', 'i', 'z', or 'y'
 
-        @param [out] the corresponding FWHMeff
+        @param [out] the corresponding fwhm_eff
         """
 
-        return self._FWHMeff[tag]
+        return self._fwhm_eff[tag]
 
     def effwavelen(self, tag):
         """

@@ -21,15 +21,15 @@ checks dir(cosmology.comoving_distance()) etc.  If 'units' is defined, Cosmology
 member variables such as self.distanceUnits, self.hUnits, and self.modulusUnits defining the units
 in which we want to return those quantities.  When you call the wrapper for comoving_distance,
 CosmologyObject will make sure that the output is returned in the units we expect (Mpc).
-The expected units are set in CosmologyObject.setUnits()
+The expected units are set in CosmologyObject.set_units()
 
 The other API difference is in how 'default_cosmology' is stored.  astropy.cosmology allows
 the user to set a default cosmology that the system stores so that the user does not have to
 constantly redeclare the same cosmology object at different points in the code.  Unfortunately,
 the naming conventions for the methods to set and retrieve this default cosmology have changed
 between recent versions of astropy.  CosmologyObject deals with this change in API using
-CosmologyObject.setCurrent() (called automatically by CosmologyObject's __init__)
-and CosmologyObject.getCurrent(), which returns a cosmology object containing the activeCosmology
+CosmologyObject.set_current() (called automatically by CosmologyObject's __init__)
+and CosmologyObject.get_current(), which returns a cosmology object containing the activeCosmology
 contained in CosmologyObject.
 
 A user who wants to interact with the naked
@@ -58,16 +58,16 @@ __all__ = ["CosmologyObject"]
 
 
 class CosmologyObject(object):
-    def __init__(self, H0=73.0, Om0=0.25, Ok0=None, w0=None, wa=None):
+    def __init__(self, h0=73.0, om0=0.25, ok0=None, w0=None, wa=None):
         """
         Initialize the cosmology wrapper with the parameters specified
         (e.g. does not account for massive neutrinos)
 
-        param [in] H0 is the Hubble parameter at the present epoch in km/s/Mpc
+        param [in] h0 is the Hubble parameter at the present epoch in km/s/Mpc
 
-        param [in] Om0 is the current matter density Parameter (fraction of critical density)
+        param [in] om0 is the current matter density Parameter (fraction of critical density)
 
-        param [in] Ok0 is the current curvature density parameter
+        param [in] ok0 is the current curvature density parameter
 
         param [in] w0 is the current dark energy equation of state w0 Parameter
 
@@ -83,15 +83,15 @@ class CosmologyObject(object):
         in the Millennium Simulation (Springel et al 2005, Nature 435, 629 or
         arXiv:astro-ph/0504097)
 
-        Om0 = 0.25
+        om0 = 0.25
         Ob0  = 0.045 (baryons; not currently used in this code)
-        H0 = 73.0
-        Ok0 = 0.0, (implying Ode0 approx 0.75)
+        h0 = 73.0
+        ok0 = 0.0, (implying ode0 approx 0.75)
         w0 = -1.0
         wa = 0.0
 
         where
-        Om0 + Ok0 + Ode0 + Ogamma0 + Onu0 = 1.0
+        om0 + ok0 + ode0 + Ogamma0 + onu0 = 1.0
 
         sigma_8 = 0.9 (rms mass flucutation in an 8 h^-1 Mpc sphere;
                        not currently used in this code)
@@ -101,41 +101,41 @@ class CosmologyObject(object):
 
         """
 
-        self.activeCosmology = None
+        self.active_cosmology = None
 
         if w0 is not None and wa is None:
             wa = 0.0
 
-        isCosmologicalConstant = False
+        is_cosmological_constant = False
         if (w0 is None and wa is None) or (w0 == -1.0 and wa == 0.0):
-            isCosmologicalConstant = True
+            is_cosmological_constant = True
 
-        isFlat = False
-        if Ok0 is None or (numpy.abs(Ok0) < flatnessthresh):
-            isFlat = True
+        is_flat = False
+        if ok0 is None or (numpy.abs(ok0) < flatnessthresh):
+            is_flat = True
 
-        if isCosmologicalConstant and isFlat:
-            universe = cosmology.FlatLambdaCDM(H0=H0, Om0=Om0)
-        elif isCosmologicalConstant:
-            tmpmodel = cosmology.FlatLambdaCDM(H0=H0, Om0=Om0)
-            Ode0 = 1.0 - Om0 - tmpmodel.Ogamma0 - tmpmodel.Onu0 - Ok0
-            universe = cosmology.LambdaCDM(H0=H0, Om0=Om0, Ode0=Ode0)
-        elif isFlat:
-            universe = cosmology.Flatw0waCDM(H0=H0, Om0=Om0, w0=w0, wa=wa)
+        if is_cosmological_constant and is_flat:
+            universe = cosmology.FlatLambdaCDM(h0=h0, om0=om0)
+        elif is_cosmological_constant:
+            tmpmodel = cosmology.FlatLambdaCDM(h0=h0, om0=om0)
+            ode0 = 1.0 - om0 - tmpmodel.Ogamma0 - tmpmodel.onu0 - ok0
+            universe = cosmology.LambdaCDM(h0=h0, om0=om0, ode0=ode0)
+        elif is_flat:
+            universe = cosmology.Flatw0waCDM(h0=h0, om0=om0, w0=w0, wa=wa)
         else:
-            tmpmodel = cosmology.Flatw0waCDM(H0=H0, Om0=Om0, w0=w0, wa=wa)
-            Ode0 = 1.0 - Om0 - tmpmodel.Ogamma0 - tmpmodel.Onu0 - Ok0
+            tmpmodel = cosmology.Flatw0waCDM(h0=h0, om0=om0, w0=w0, wa=wa)
+            ode0 = 1.0 - om0 - tmpmodel.Ogamma0 - tmpmodel.onu0 - ok0
 
-            universe = cosmology.w0waCDM(H0=H0, Om0=Om0, Ode0=Ode0, w0=w0, wa=wa)
+            universe = cosmology.w0waCDM(h0=h0, om0=om0, ode0=ode0, w0=w0, wa=wa)
 
-        self.setCurrent(universe)
+        self.set_current(universe)
 
-    def setCurrent(self, universe):
+    def set_current(self, universe):
         """
         Take the cosmology indicated by 'universe' and set it as the current/default
         cosmology (depending on the API of the version of astropy being run)
 
-        universe is also assigned to self.activeCosmology, which is the cosmology that
+        universe is also assigned to self.active_cosmology, which is the cosmology that
         this wrapper's methods use for calculations.
         """
 
@@ -145,13 +145,13 @@ class CosmologyObject(object):
             cosmology.set_current(universe)
         else:
             raise RuntimeError(
-                "CosmologyObject.setCurrent does not know how to handle this version of astropy"
+                "CosmologyObject.set_current does not know how to handle this version of astropy"
             )
 
-        self.activeCosmology = universe
-        self.setUnits()
+        self.active_cosmology = universe
+        self.set_units()
 
-    def setUnits(self):
+    def set_units(self):
         """
         This method specifies the units in which various outputs from the wrapper are expected
         (this is because the latest version of astropy.cosmology outputs quantities such as
@@ -159,25 +159,25 @@ class CosmologyObject(object):
         astropy.cosmology that comes within anaconda does not do this as of 30 October 2014)
         """
 
-        H = self.activeCosmology.H(0.0)
+        H = self.active_cosmology.H(0.0)
         if "unit" in dir(H):
-            self.hUnits = units.Unit("km / (Mpc s)")
+            self.h_units = units.Unit("km / (Mpc s)")
         else:
-            self.hUnits = None
+            self.h_units = None
 
-        dd = self.activeCosmology.comoving_distance(0.0)
+        dd = self.active_cosmology.comoving_distance(0.0)
         if "unit" in dir(dd):
-            self.distanceUnits = units.Mpc
+            self.distance_units = units.Mpc
         else:
-            self.distanceUnits = None
+            self.distance_units = None
 
-        mm = self.activeCosmology.distmod(1.0)
+        mm = self.active_cosmology.distmod(1.0)
         if "unit" in dir(mm):
-            self.modulusUnits = units.mag
+            self.modulus_units = units.mag
         else:
-            self.modulusUnits = None
+            self.modulus_units = None
 
-    def getCurrent(self):
+    def get_current(self):
         """
         Return the cosmology currently stored as the current cosmology
 
@@ -191,7 +191,7 @@ class CosmologyObject(object):
         https://astropy.readthedocs.org/en/v0.2.5/cosmology/index.html
         """
 
-        return self.activeCosmology
+        return self.active_cosmology
 
     def H(self, redshift=0.0):
         """
@@ -200,44 +200,44 @@ class CosmologyObject(object):
         effectively wrapps astropy.cosmology.FLRW.H()
         """
 
-        H = self.activeCosmology.H(redshift)
+        H = self.active_cosmology.H(redshift)
 
         if "value" in dir(H):
-            if H.unit == self.hUnits:
+            if H.unit == self.h_units:
                 return H.value
             else:
-                return H.to(self.hUnits).value
+                return H.to(self.h_units).value
         else:
             return H
 
-    def OmegaMatter(self, redshift=0.0):
+    def omega_matter(self, redshift=0.0):
         """
         return the matter density Parameter (fraction of critical density) at the specified redshift
 
         effectively wraps astropy.cosmology.FLRW.Om()
         """
 
-        return self.activeCosmology.Om(redshift)
+        return self.active_cosmology.Om(redshift)
 
-    def OmegaDarkEnergy(self, redshift=0.0):
+    def omega_dark_energy(self, redshift=0.0):
         """
         return the dark energy density Parameter (fraction of critical density) at the specified redshift
 
         effectively wraps astropy.cosmology.FLRW.Ode()
         """
 
-        return self.activeCosmology.Ode(redshift)
+        return self.active_cosmology.Ode(redshift)
 
-    def OmegaPhotons(self, redshift=0.0):
+    def omega_photons(self, redshift=0.0):
         """
         return the photon density Parameter (fraction of critical density) at the specified redshift
 
         effectively wraps astropy.cosmology.FLRW.Ogamma()
         """
 
-        return self.activeCosmology.Ogamma(redshift)
+        return self.active_cosmology.Ogamma(redshift)
 
-    def OmegaNeutrinos(self, redshift=0.0):
+    def omega_neutrinos(self, redshift=0.0):
         """
         return the neutrino density Parameter (fraction of critical density) at the specified redshift
 
@@ -246,9 +246,9 @@ class CosmologyObject(object):
         effectively wraps astropy.cosmology.FLRW.Onu()
         """
 
-        return self.activeCosmology.Onu(redshift)
+        return self.active_cosmology.Onu(redshift)
 
-    def OmegaCurvature(self, redshift=0.0):
+    def omega_curvature(self, redshift=0.0):
         """
         return the effective curvature density Parameter (fraction of critical density) at the
         specified redshift.
@@ -262,7 +262,7 @@ class CosmologyObject(object):
         effectively wraps astropy.cosmology.FLRW.Ok()
         """
 
-        return self.activeCosmology.Ok(redshift)
+        return self.active_cosmology.Ok(redshift)
 
     def w(self, redshift=0.0):
         """
@@ -271,9 +271,9 @@ class CosmologyObject(object):
         effecitvely wraps astropy.cosmology.FLRW.w()
         """
 
-        return self.activeCosmology.w(redshift)
+        return self.active_cosmology.w(redshift)
 
-    def comovingDistance(self, redshift=0.0):
+    def comoving_distance(self, redshift=0.0):
         """
         return the comoving distance to the specified redshift in Mpc
 
@@ -286,17 +286,17 @@ class CosmologyObject(object):
 
         effectively wraps astropy.cosmology.FLRW.comoving_distance()
         """
-        dd = self.activeCosmology.comoving_distance(redshift)
+        dd = self.active_cosmology.comoving_distance(redshift)
 
         if "value" in dir(dd):
-            if dd.unit == self.distanceUnits:
+            if dd.unit == self.distance_units:
                 return dd.value
             else:
-                return dd.to(self.distanceUnits).value
+                return dd.to(self.distance_units).value
         else:
             return dd
 
-    def luminosityDistance(self, redshift=0.0):
+    def luminosity_distance(self, redshift=0.0):
         """
         the luminosity distance to the specified redshift in Mpc
 
@@ -305,46 +305,46 @@ class CosmologyObject(object):
         effectively wraps astropy.cosmology.FLRW.luminosity_distance()
         """
 
-        dd = self.activeCosmology.luminosity_distance(redshift)
+        dd = self.active_cosmology.luminosity_distance(redshift)
 
         if "value" in dir(dd):
-            if dd.unit == self.distanceUnits:
+            if dd.unit == self.distance_units:
                 return dd.value
             else:
-                return dd.to(self.distanceUnits).value
+                return dd.to(self.distance_units).value
         else:
             return dd
 
-    def angularDiameterDistance(self, redshift=0.0):
+    def angular_diameter_distance(self, redshift=0.0):
         """
         angular diameter distance to the specified redshift in Mpc
 
         effectively wraps astropy.cosmology.FLRW.angular_diameter_distance()
         """
 
-        dd = self.activeCosmology.angular_diameter_distance(redshift)
+        dd = self.active_cosmology.angular_diameter_distance(redshift)
 
         if "value" in dir(dd):
-            if dd.unit == self.distanceUnits:
+            if dd.unit == self.distance_units:
                 return dd.value
             else:
-                return dd.to(self.distanceUnits).value
+                return dd.to(self.distance_units).value
         else:
             return dd
 
-    def distanceModulus(self, redshift=0.0):
+    def distance_modulus(self, redshift=0.0):
         """
         distance modulus to the specified redshift
 
         effectively wraps astropy.cosmology.FLRW.distmod()
         """
 
-        mm = self.activeCosmology.distmod(redshift)
+        mm = self.active_cosmology.distmod(redshift)
         if "unit" in dir(mm):
-            if mm.unit == self.modulusUnits:
+            if mm.unit == self.modulus_units:
                 mod = mm.value
             else:
-                mod = mm.to(self.modulusUnits).value
+                mod = mm.to(self.modulus_units).value
         else:
             mod = mm
 
