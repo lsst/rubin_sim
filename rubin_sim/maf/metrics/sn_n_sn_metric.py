@@ -5,7 +5,7 @@ import pandas as pd
 from scipy.interpolate import interp1d
 import numpy.lib.recfunctions as nlr
 import healpy as hp
-from rubin_sim.phot_utils import Dust_values
+from rubin_sim.phot_utils import DustValues
 from rubin_sim.data import get_data_dir
 import os
 
@@ -145,7 +145,7 @@ class SNNSNMetric(BaseMetric):
         self.fieldType = fieldType
 
         maps = ["DustMap"]
-        dust_properties = Dust_values()
+        dust_properties = DustValues()
         self.Ax1 = dust_properties.Ax1
 
         cols = [
