@@ -1,6 +1,6 @@
 import numpy as np
 from rubin_sim.maf.metrics import BaseMetric
-from rubin_sim.maf.utils.sn_n_sn_utils import (SN_Rate, load_sne_cached, LCfast_new)
+from rubin_sim.maf.utils.sn_n_sn_utils import SN_Rate, load_sne_cached, LCfast_new
 import pandas as pd
 from scipy.interpolate import interp1d
 import numpy.lib.recfunctions as nlr
