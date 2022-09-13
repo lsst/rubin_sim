@@ -31,14 +31,14 @@ class TestOrbits(unittest.TestCase):
         assert_frame_equal(orbits_single.orbits, orbits.orbits.query("index==3"))
         # Test iteration through all orbits.
         for orb, (i, orbi) in zip(orbits, orbits.orbits.iterrows()):
-            self.assertEqual(orb.orbits.objId.values[0], orbi.objId)
+            self.assertEqual(orb.orbits.obj_id.values[0], orbi.obj_id)
             self.assertTrue(isinstance(orb, Orbits))
             self.assertEqual(orb.orbits.index, i)
         # Test iteration through a subset of orbits.
         orbits_sub = Orbits()
-        orbits_sub.setOrbits(orbits.orbits.query("index > 4"))
+        orbits_sub.set_orbits(orbits.orbits.query("index > 4"))
         for orb, (i, orbi) in zip(orbits_sub, orbits_sub.orbits.iterrows()):
-            self.assertEqual(orb.orbits.objId.values[0], orbi.objId)
+            self.assertEqual(orb.orbits.obj_id.values[0], orbi.obj_id)
             self.assertTrue(isinstance(orb, Orbits))
             self.assertEqual(orb.orbits.index, i)
 
@@ -71,7 +71,7 @@ class TestOrbits(unittest.TestCase):
         orbits0.read_orbits(os.path.join(self.testdir, "test_orbitsNEO.s3m"))
 
         orbits_sub = Orbits()
-        orbits_sub.setOrbits(orbits0.orbits.query("index>1"))
+        orbits_sub.set_orbits(orbits0.orbits.query("index>1"))
 
         self.assertEqual(len(orbits_sub), 6)
 
@@ -109,28 +109,28 @@ class TestOrbits(unittest.TestCase):
         # Test that we can set the orbits using a dataframe.
         suborbits = orbits.orbits.head(1)
         new_orbits = Orbits()
-        new_orbits.setOrbits(suborbits)
+        new_orbits.set_orbits(suborbits)
         self.assertEqual(len(new_orbits), 1)
         self.assertEqual(new_orbits.orb_format, "COM")
         assert_frame_equal(new_orbits.orbits, suborbits)
         # Test that we can set the orbits using a Series.
         for i, sso in suborbits.iterrows():
             new_orbits = Orbits()
-            new_orbits.setOrbits(sso)
+            new_orbits.set_orbits(sso)
             self.assertEqual(len(new_orbits), 1)
             self.assertEqual(new_orbits.orb_format, "COM")
             assert_frame_equal(new_orbits.orbits, suborbits)
         # Test that we can set the orbits using a numpy array with many objects.
         numpyorbits = orbits.orbits.to_records(index=False)
         new_orbits = Orbits()
-        new_orbits.setOrbits(numpyorbits)
+        new_orbits.set_orbits(numpyorbits)
         self.assertEqual(len(new_orbits), len(orbits))
         self.assertEqual(new_orbits.orb_format, "COM")
         assert_frame_equal(new_orbits.orbits, orbits.orbits)
         # And test that this works for a single row of the numpy array.
         onenumpyorbits = numpyorbits[0]
         new_orbits = Orbits()
-        new_orbits.setOrbits(onenumpyorbits)
+        new_orbits.set_orbits(onenumpyorbits)
         self.assertEqual(len(new_orbits), 1)
         self.assertEqual(new_orbits.orb_format, "COM")
         assert_frame_equal(new_orbits.orbits, suborbits)
@@ -142,7 +142,7 @@ class TestOrbits(unittest.TestCase):
         neworbits.columns = newcols
         new_orbits = Orbits()
         with self.assertRaises(ValueError):
-            new_orbits.setOrbits(neworbits)
+            new_orbits.set_orbits(neworbits)
 
     def test_set_seds(self):
         """
@@ -152,15 +152,15 @@ class TestOrbits(unittest.TestCase):
         # Test with a range of a values.
         a = np.arange(0, 5, 0.05)
         orbs = pd.DataFrame(a, columns=["a"])
-        seds = orbits.assignSed(orbs)
+        seds = orbits.assign_sed(orbs)
         self.assertEqual(np.unique(seds[np.where(a < 2)]), "S.dat")
         self.assertEqual(np.unique(seds[np.where(a > 4)]), "C.dat")
         # Test when read a values.
         orbits.read_orbits(os.path.join(self.testdir, "test_orbitsA.des"))
-        sedvals = orbits.assignSed(orbits.orbits, randomSeed=42)
+        sedvals = orbits.assign_sed(orbits.orbits, random_seed=42)
         orbits2 = Orbits()
         orbits2.read_orbits(os.path.join(self.testdir, "test_orbitsQ.des"))
-        sedvals2 = orbits2.assignSed(orbits2.orbits, randomSeed=42)
+        sedvals2 = orbits2.assign_sed(orbits2.orbits, random_seed=42)
         np.testing.assert_array_equal(sedvals, sedvals2)
 
 
