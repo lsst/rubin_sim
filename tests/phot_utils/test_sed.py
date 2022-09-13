@@ -29,7 +29,7 @@ class TestSedWavelenLimits(unittest.TestCase):
         del self.wmin
         del self.wmax
 
-    def testSedWavelenRange(self):
+    def test_sed_wavelen_range(self):
         """Test setting sed with wavelength range different from standard values works properly."""
         sedwavelen = self.bandpasswavelen * 1.0
         sedflambda = np.ones(len(sedwavelen))
@@ -38,7 +38,7 @@ class TestSedWavelenLimits(unittest.TestCase):
         np.testing.assert_equal(testsed.flambda, sedflambda)
         self.assertEqual(testsed.name, "TestSed")
 
-    def testSedBandpassMatch(self):
+    def test_sed_bandpass_match(self):
         """Test errors when bandpass and sed do not completely overlap in wavelength range."""
         # Test case where they do match (no error message)
         sedwavelen = np.arange(self.wmin, self.wmax + 0.5, 1)
@@ -74,14 +74,14 @@ class TestSedWavelenLimits(unittest.TestCase):
         np.testing.assert_equal(testsed.flambda[0], np.NaN)
         np.testing.assert_equal(testsed.flambda[49], np.NaN)
 
-    def testSedMagErrors(self):
+    def test_sed_mag_errors(self):
         """Test error handling at mag and adu calculation levels of sed."""
         sedwavelen = np.arange(self.wmin + 50, self.wmax, 1)
         sedflambda = np.ones(len(sedwavelen))
         testsed = Sed(wavelen=sedwavelen, flambda=sedflambda)
-        # Test handling in calcMag
+        # Test handling in calc_mag
         with warnings.catch_warnings(record=True) as w:
-            mag = testsed.calcMag(self.testbandpass)
+            mag = testsed.calc_mag(self.testbandpass)
             self.assertEqual(len(w), 1)
             self.assertIn("non-overlap", str(w[-1].message))
         np.testing.assert_equal(mag, np.NaN)
@@ -91,9 +91,9 @@ class TestSedWavelenLimits(unittest.TestCase):
             self.assertEqual(len(w), 1)
             self.assertIn("non-overlap", str(w[-1].message))
         np.testing.assert_equal(adu, np.NaN)
-        # Test handling in calcFlux
+        # Test handling in calc_flux
         with warnings.catch_warnings(record=True) as w:
-            flux = testsed.calcFlux(self.testbandpass)
+            flux = testsed.calc_flux(self.testbandpass)
             self.assertEqual(len(w), 1)
             self.assertIn("non-overlap", str(w[-1].message))
         np.testing.assert_equal(flux, np.NaN)
@@ -113,10 +113,10 @@ class TestSedName(unittest.TestCase):
         del self.name
         del self.testsed
 
-    def testSetName(self):
+    def test_set_name(self):
         self.assertEqual(self.testsed.name, self.name)
 
-    def testRedshiftName(self):
+    def test_redshift_name(self):
         testsed = Sed(
             self.testsed.wavelen, self.testsed.flambda, name=self.testsed.name
         )
@@ -129,7 +129,7 @@ class TestSedName(unittest.TestCase):
 
 class SedBasicFunctionsTestCase(unittest.TestCase):
 
-    longMessage = True
+    long_message = True
 
     def test_read_sed_flambda(self):
         """
@@ -238,7 +238,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         self.assertNotEqual(ss1, ss2, msg=msg)
         self.assertNotEqual(ss2, ss3, msg=msg)
 
-    def test_calcErgs(self):
+    def test_calc_ergs(self):
         """
         Test that calcErgs actually calculates the flux of a source in
         ergs/s/cm^2 by running it on black bodies with flat bandpasses
@@ -327,7 +327,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
 
     def test_mags_vs_flux(self):
         """
-        Verify that the relationship between Sed.calcMag() and Sed.calcFlux()
+        Verify that the relationship between Sed.calc_mag() and Sed.calc_flux()
         is as expected
         """
         wavelen = np.arange(100.0, 1500.0, 1.0)
@@ -337,8 +337,8 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         ss = Sed(wavelen=wavelen, flambda=flambda)
         bp = Bandpass(wavelen=wavelen, sb=sb)
 
-        mag = ss.calcMag(bp)
-        flux = ss.calcFlux(bp)
+        mag = ss.calc_mag(bp)
+        flux = ss.calc_flux(bp)
 
         self.assertAlmostEqual(ss.magFromFlux(flux) / mag, 1.0, 10)
         self.assertAlmostEqual(ss.fluxFromMag(mag) / flux, 1.0, 10)
