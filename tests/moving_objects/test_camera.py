@@ -17,24 +17,24 @@ class TestCamera(unittest.TestCase):
         obs_ra = np.array([10.0, 10.0], float)
         obs_dec = np.array([-30.0, -30.0], float)
         obs_mjd = np.array([59580.16, 59580.16], float)
-        obs_rotSkyPos = np.zeros(2)
+        obs_rot_sky_pos = np.zeros(2)
         self.obs = np.array(
-            list(zip(obs_ra, obs_dec, obs_rotSkyPos, obs_mjd)),
+            list(zip(obs_ra, obs_dec, obs_rot_sky_pos, obs_mjd)),
             dtype=(
                 [("ra", float), ("dec", float), ("rotSkyPos", float), ("mjd", float)]
             ),
         )
 
-    def testCameraFov(self):
+    def test_camera_fov(self):
         obs = BaseObs(
-            obsRA="ra",
-            obsDec="dec",
-            obsTimeCol="mjd",
+            obs_ra="ra",
+            obs_dec="dec",
+            obs_time_col="mjd",
             footprint="camera",
             camera_footprint_file=os.path.join(get_data_dir(), "tests", "fov_map.npz"),
         )
-        idxObs = obs.ssoInCameraFov(self.ephems, self.obs)
-        self.assertEqual(idxObs, [0])
+        idx_obs = obs.sso_in_camera_fov(self.ephems, self.obs)
+        self.assertEqual(idx_obs, [0])
 
 
 if __name__ == "__main__":

@@ -20,48 +20,48 @@ class LinearObs(BaseObs):
         Specify the footprint for the FOV. Options include "camera", "circle", "rectangle".
         'Camera' means use the actual LSST camera footprint (following a rough cut with a circular FOV).
         Default is circular FOV.
-    rFov : `float`, optional
+    r_fov : `float`, optional
         If footprint is "circle", this is the radius of the fov (in degrees).
         Default 1.75 degrees.
-    xTol : `float`, optional
+    x_tol : `float`, optional
         If footprint is "rectangle", this is half of the width of the (on-sky) fov in the RA
         direction (in degrees).
         Default 5 degrees. (so size of footprint in degrees will be 10 degrees in the RA direction).
-    yTol : `float`, optional
+    y_tol : `float`, optional
         If footprint is "rectangular", this is half of the width of the fov in Declination (in degrees).
         Default is 3 degrees (so size of footprint in degrees will be 6 degrees in the Dec direction).
-    ephMode: `str`, optional
+    eph_mode: `str`, optional
         Mode for ephemeris generation - nbody or 2body. Default is nbody.
-    ephType: `str`, optional
+    eph_type: `str`, optional
         Type of ephemerides to generate - full or basic.
         Full includes all values calculated by openorb; Basic includes a more basic set.
         Default is Basic.  (this includes enough information for most standard MAF metrics).
-    ephFile: `str` or None, optional
+    eph_file: `str` or None, optional
         The name of the planetary ephemerides file to use for ephemeris generation.
         Default (None) will use the default for PyOrbEphemerides.
-    obsCode: `str`, optional
+    obs_code: `str`, optional
         Observatory code for ephemeris generation. Default is "I11" - Cerro Pachon.
-    obsTimeCol: `str`, optional
+    obs_time_col: `str`, optional
         Name of the time column in the obsData. Default 'observationStartMJD'.
-    obsTimeScale: `str`, optional
+    obs_time_scale: `str`, optional
         Type of timescale for MJD (TAI or UTC currently). Default TAI.
-    seeingCol: `str`, optional
+    seeing_col: `str`, optional
         Name of the seeing column in the obsData. Default 'seeingFwhmGeom'.
         This should be the geometric/physical seeing as it is used for the trailing loss calculation.
-    visitExpTimeCol: `str`, optional
+    visit_exp_time_col: `str`, optional
         Name of the visit exposure time column in the obsData. Default 'visitExposureTime'.
-    obsRA: `str`, optional
+    obs_ra: `str`, optional
         Name of the RA column in the obsData. Default 'fieldRA'.
-    obsDec: `str`, optional
+    obs_dec: `str`, optional
         Name of the Dec column in the obsData. Default 'fieldDec'.
-    obsRotSkyPos: str, optional
+    obs_rot_sky_pos: str, optional
         Name of the Rotator column in the obsData. Default 'rotSkyPos'.
-    obsDegrees: `bool`, optional
+    obs_degrees: `bool`, optional
         Whether the observational data is in degrees or radians. Default True (degrees).
-    outfileName : `str`, optional
+    outfile_name : `str`, optional
         The output file name.
         Default is 'lsst_obs.dat'.
-    obsMetadata : `str`, optional
+    obs_metadata : `str`, optional
         A string that captures provenance information about the observations.
         For example: 'baseline_v2.0_10yrs', MJD 59853-61677' or 'baseline2018a minus NES'
         Default ''.
@@ -73,58 +73,58 @@ class LinearObs(BaseObs):
     def __init__(
         self,
         footprint="camera",
-        rFov=1.75,
-        xTol=5,
-        yTol=3,
-        ephMode="nbody",
-        ephType="basic",
-        obsCode="I11",
-        ephFile=None,
-        obsTimeCol="observationStartMJD",
-        obsTimeScale="TAI",
-        seeingCol="seeingFwhmGeom",
-        visitExpTimeCol="visitExposureTime",
-        obsRA="fieldRA",
-        obsDec="fieldDec",
-        obsRotSkyPos="rotSkyPos",
-        obsDegrees=True,
-        outfileName="lsst_obs.dat",
-        obsMetadata="",
+        r_fov=1.75,
+        x_tol=5,
+        y_tol=3,
+        eph_mode="nbody",
+        eph_type="basic",
+        obs_code="I11",
+        eph_file=None,
+        obs_time_col="observationStartMJD",
+        obs_time_scale="TAI",
+        seeing_col="seeingFwhmGeom",
+        visit_exp_time_col="visitExposureTime",
+        obs_ra="fieldRA",
+        obs_dec="fieldDec",
+        obs_rot_sky_pos="rotSkyPos",
+        obs_degrees=True,
+        outfile_name="lsst_obs.dat",
+        obs_metadata="",
         tstep=2.0 / 24.0,
     ):
         super().__init__(
             footprint=footprint,
-            rFov=rFov,
-            xTol=xTol,
-            yTol=yTol,
-            ephMode=ephMode,
-            ephType=ephType,
-            obsCode=obsCode,
-            ephFile=ephFile,
-            obsTimeCol=obsTimeCol,
-            obsTimeScale=obsTimeScale,
-            seeingCol=seeingCol,
-            visitExpTimeCol=visitExpTimeCol,
-            obsRA=obsRA,
-            obsDec=obsDec,
-            obsRotSkyPos=obsRotSkyPos,
-            obsDegrees=obsDegrees,
-            outfileName=outfileName,
-            obsMetadata=obsMetadata,
+            r_fov=r_fov,
+            x_tol=x_tol,
+            y_tol=y_tol,
+            eph_mode=eph_mode,
+            eph_type=eph_type,
+            obs_code=obs_code,
+            eph_file=eph_file,
+            obs_time_col=obs_time_col,
+            obs_time_scale=obs_time_scale,
+            seeing_col=seeing_col,
+            visit_exp_time_col=visit_exp_time_col,
+            obs_ra=obs_ra,
+            obs_dec=obs_dec,
+            obs_rot_sky_pos=obs_rot_sky_pos,
+            obs_degrees=obs_degrees,
+            outfile_name=outfile_name,
+            obs_metadata=obs_metadata,
         )
         self.tstep = tstep
 
-    def _headerMeta(self):
+    def _header_meta(self):
         # Linear obs header metadata.
         self.outfile.write("# linear obs header metadata\n")
         self.outfile.write(
             "# observation generation via %s\n" % self.__class__.__name__
         )
-        self.outfile.write("# ephMode %s\n" % (self.ephMode))
+        self.outfile.write("# ephMode %s\n" % (self.eph_mode))
         self.outfile.write("# time step for ephemeris grid %f\n" % self.tstep)
 
     # Linear interpolation
-    def _makeInterps(self, ephs):
+    def _make_interps(self, ephs):
         """Generate the interpolation functions for the linear interpolation.
 
         Parameters
@@ -146,7 +146,7 @@ class LinearObs(BaseObs):
             )
         return interpfuncs
 
-    def _interpEphs(self, interpfuncs, times, columns=None):
+    def _interp_ephs(self, interpfuncs, times, columns=None):
         """Calculate the linear interpolation approximations of the ephemeride columns.
 
         Parameters
@@ -176,7 +176,7 @@ class LinearObs(BaseObs):
         ephs["time"] = times
         return ephs
 
-    def run(self, orbits, obsData):
+    def run(self, orbits, obs_data):
         """Find and write the observations of each object to disk.
 
         For each object, identify the observations where the object is
@@ -188,17 +188,17 @@ class LinearObs(BaseObs):
         ----------
         orbits : `rubin_sim.movingObjects.Orbits`
             The orbits to generate ephemerides for.
-        obsData : `np.ndarray`
+        obs_data : `np.ndarray`
             The simulated pointing history data.
         """
         # Set the times for the ephemeris grid.
-        timeStep = float(self.tstep)
-        timeStart = obsData[self.obsTimeCol].min() - timeStep
-        timeEnd = obsData[self.obsTimeCol].max() + timeStep
-        times = np.arange(timeStart, timeEnd + timeStep / 2.0, timeStep)
+        time_step = float(self.tstep)
+        time_start = obs_data[self.obs_time_col].min() - time_step
+        time_end = obs_data[self.obs_time_col].max() + time_step
+        times = np.arange(time_start, time_end + time_step / 2.0, time_step)
         logging.info(
             "Generating ephemerides on a grid of %f day timesteps, then will extrapolate "
-            "to opsim times." % (timeStep)
+            "to opsim times." % (time_step)
         )
         # For each object, identify observations where the object is within the FOV (or camera footprint).
         for i, sso in enumerate(orbits):
@@ -210,25 +210,25 @@ class LinearObs(BaseObs):
                 + datetime.datetime.now().strftime("Start: %Y-%m-%d %H:%M:%S")
                 + " nTimes: %s" % len(times)
             )
-            ephs = self.generateEphemerides(
-                sso, times, ephMode=self.ephMode, ephType=self.ephType
+            ephs = self.generate_ephemerides(
+                sso, times, eph_mode=self.eph_mode, eph_type=self.eph_type
             )[0]
-            interpfuncs = self._makeInterps(ephs)
-            ephs = self._interpEphs(
-                interpfuncs, times=obsData[self.obsTimeCol], columns=["ra", "dec"]
+            interpfuncs = self._make_interps(ephs)
+            ephs = self._interp_ephs(
+                interpfuncs, times=obs_data[self.obs_time_col], columns=["ra", "dec"]
             )
             logging.debug(
                 ("%d/%d   id=%s : " % (i, len(orbits), objid))
                 + datetime.datetime.now().strftime("Interp end: %Y-%m-%d %H:%M:%S")
             )
             # Find objects in the chosen footprint (circular, rectangular or camera)
-            idxObs = self.ssoInFov(ephs, obsData)
+            idx_obs = self.sso_in_fov(ephs, obs_data)
             logging.info(
                 ("Object %d/%d   id=%s : " % (i, len(orbits), objid))
-                + "Object in %d visits" % (len(idxObs))
+                + "Object in %d visits" % (len(idx_obs))
             )
-            if len(idxObs) > 0:
-                obsdat = obsData[idxObs]
-                ephs = self._interpEphs(interpfuncs, times=obsdat[self.obsTimeCol])
+            if len(idx_obs) > 0:
+                obsdat = obs_data[idx_obs]
+                ephs = self._interp_ephs(interpfuncs, times=obsdat[self.obs_time_col])
                 # Write these observations to disk.
-                self.writeObs(objid, ephs, obsdat, sedname=sedname)
+                self.write_obs(objid, ephs, obsdat, sedname=sedname)
