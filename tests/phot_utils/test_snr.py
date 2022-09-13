@@ -71,7 +71,7 @@ class TestSNRmethods(unittest.TestCase):
 
         # create a cartoon spectrum to test on
         spectrum = Sed()
-        spectrum.setFlatSED()
+        spectrum.set_flat_sed()
         spectrum.multiplyFluxNorm(1.0e-9)
 
         # find the magnitudes of that spectrum in our bandpasses
@@ -115,7 +115,7 @@ class TestSNRmethods(unittest.TestCase):
 
         # create a cartoon spectrum to test on
         spectrum = Sed()
-        spectrum.setFlatSED()
+        spectrum.set_flat_sed()
         spectrum.multiplyFluxNorm(1.0e-9)
 
         snr.calcSNR_sed(
@@ -184,7 +184,7 @@ class TestSNRmethods(unittest.TestCase):
         """
         sigma_sys = 0.002
         m5_list = [23.5, 24.3, 22.1, 20.0, 19.5, 21.7]
-        phot_params = PhotometricParameters(sigmaSys=sigma_sys)
+        phot_params = PhotometricParameters(sigma_sys=sigma_sys)
 
         obs_metadata = ObservationMetaData(
             pointing_ra=23.0,
@@ -231,7 +231,7 @@ class TestSNRmethods(unittest.TestCase):
             )
 
             test_snr, gamma = snr.calcSNR_m5(
-                mm, bp, m5, phot_params=PhotometricParameters(sigmaSys=0.0)
+                mm, bp, m5, phot_params=PhotometricParameters(sigma_sys=0.0)
             )
 
             self.assertAlmostEqual(
@@ -254,7 +254,7 @@ class TestSNRmethods(unittest.TestCase):
         Test that systematic uncertainty is handled correctly when set to None.
         """
         m5_list = [23.5, 24.3, 22.1, 20.0, 19.5, 21.7]
-        phot_params = PhotometricParameters(sigmaSys=0.0)
+        phot_params = PhotometricParameters(sigma_sys=0.0)
 
         obs_metadata = ObservationMetaData(
             pointing_ra=23.0,
@@ -302,7 +302,7 @@ class TestSNRmethods(unittest.TestCase):
             )
 
             test_snr, gamma = snr.calcSNR_m5(
-                mm, bp, m5, phot_params=PhotometricParameters(sigmaSys=0.0)
+                mm, bp, m5, phot_params=PhotometricParameters(sigma_sys=0.0)
             )
 
             self.assertAlmostEqual(
