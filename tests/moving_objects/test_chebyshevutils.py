@@ -23,15 +23,15 @@ class TestChebgrid(unittest.TestCase):
         y = np.sin(x)
         dy = np.cos(x)
         p, resid, rms, maxresid = chebfit(x, y, dy, nPoly=4)
-        yy_wVel, vv = chebeval(np.linspace(-1, 1, 17), p)
-        yy_woutVel, vv = chebeval(np.linspace(-1, 1, 17), p, doVelocity=False)
-        self.assertTrue(np.allclose(yy_woutVel, yy_wVel))
+        yy_w_vel, vv = chebeval(np.linspace(-1, 1, 17), p)
+        yy_wout_vel, vv = chebeval(np.linspace(-1, 1, 17), p, doVelocity=False)
+        self.assertTrue(np.allclose(yy_wout_vel, yy_w_vel))
         # Test that we get a nan for a value outside the range of the 'interval', if mask=True
-        yy_wVel, vv = chebeval(np.linspace(-2, 1, 17), p, mask=True)
+        yy_w_vel, vv = chebeval(np.linspace(-2, 1, 17), p, mask=True)
         self.assertTrue(
-            np.isnan(yy_wVel[0]),
+            np.isnan(yy_w_vel[0]),
             msg="Expected NaN for masked/out of range value, but got %.2e"
-            % (yy_wVel[0]),
+            % (yy_w_vel[0]),
         )
 
     def test_ends_locked(self):
