@@ -4,7 +4,7 @@ import os
 from rubin_sim.utils import uniformSphere, survey_start_mjd
 import rubin_sim.maf.slicers as slicers
 import glob
-from rubin_sim.phot_utils import Dust_values
+from rubin_sim.phot_utils import DustValues
 from rubin_sim.data import get_data_dir
 
 __all__ = ["Tde_lc", "TdePopMetric", "TdePopMetricQuality", "generateTdePopSlicer"]
@@ -87,7 +87,7 @@ class TdePopMetric(metrics.BaseMetric):
         self.lightcurves = Tde_lc(file_list=file_list)
         self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
 
-        dust_properties = Dust_values()
+        dust_properties = DustValues()
         self.Ax1 = dust_properties.Ax1
 
         cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]
@@ -211,7 +211,7 @@ class TdePopMetricQuality(metrics.BaseMetric):
         self.lightcurves = Tde_lc(file_list=file_list)
         self.mjd0 = mjd0
 
-        dust_properties = Dust_values()
+        dust_properties = DustValues()
         self.Ax1 = dust_properties.Ax1
 
         cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]
