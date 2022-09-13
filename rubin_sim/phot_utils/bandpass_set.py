@@ -47,7 +47,7 @@ from .bandpass import Bandpass
 from .sed import Sed
 
 # airmass of standard atmosphere
-_stdX = 1.2
+_std_x = 1.2
 
 # wavelength range parameters for calculations.
 WAVELEN_MIN = 300  # minimum wavelength for transmission/source (nm)
@@ -66,17 +66,17 @@ class BandpassSet(object):
         """Initialize the class but don't do anything yet."""
         return
 
-    def setBandpassSet(
-        self, bpDict, bpDictlist=("u", "g", "r", "i", "z", "y"), verbose=True
+    def set_bandpass_set(
+        self, bp_dict, bp_dictlist=("u", "g", "r", "i", "z", "y"), verbose=True
     ):
         """Simply set throughputs from a pre-made dictionary."""
-        if len(bpDictlist) != len(list(bpDict.keys())):
-            bpDictList = list(bpDict.keys())
-        self.bandpass = copy.deepcopy(bpDict)
-        self.filterlist = copy.deepcopy(bpDictlist)
+        if len(bp_dictlist) != len(list(bp_dict.keys())):
+            bp_dict_list = list(bp_dict.keys())
+        self.bandpass = copy.deepcopy(bp_dict)
+        self.filterlist = copy.deepcopy(bp_dictlist)
         return
 
-    def setThroughputs_SingleFiles(
+    def set_throughputs__single_files(
         self,
         filterlist=("u", "g", "r", "i", "z", "y"),
         rootdir="./",
@@ -97,20 +97,20 @@ class BandpassSet(object):
             # Initialize bandpass object.
             bandpass[f] = Bandpass()
             # Read the throughput curve, sampling onto grid of wavelen min/max/step.
-            bandpass[f].readThroughput(
+            bandpass[f].read_throughput(
                 filename,
                 wavelen_min=WAVELEN_MIN,
                 wavelen_max=WAVELEN_MAX,
                 wavelen_step=WAVELEN_STEP,
             )
             # Calculate phi as well.
-            bandpass[f].sbTophi()
+            bandpass[f].sb_tophi()
         # Set data in self.
         self.bandpass = bandpass
         self.filterlist = filterlist
         return
 
-    def setThroughputs_ComponentFiles(
+    def set_throughputs__component_files(
         self,
         filterlist=("u", "g", "r", "i", "z", "y"),
         all_filter_complist=(
@@ -143,34 +143,34 @@ class BandpassSet(object):
                 print("Reading throughput curves ", complist, " for filter ", f)
             # Initialize bandpass object.
             bandpass[f] = Bandpass()
-            bandpass[f].readThroughputList(
+            bandpass[f].read_throughputList(
                 complist,
                 wavelen_min=WAVELEN_MIN,
                 wavelen_max=WAVELEN_MAX,
                 wavelen_step=WAVELEN_STEP,
             )
-            bandpass[f].sbTophi()
+            bandpass[f].sb_tophi()
         self.bandpass = bandpass
         self.filterlist = filterlist
         return
 
-    def multiplyBandpassSets(self, otherBpSet):
+    def multiply_bandpass_sets(self, other_bp_set):
         """Multiply two bandpass sets together, filter by filter. Filterlists must match!
         Returns a new bandpassSet object."""
-        if self.filterlist != otherBpSet.filterlist:
+        if self.filterlist != other_bp_set.filterlist:
             raise Exception("The bandpassSet filter lists must match.")
         # Set up dictionary to hold new bandpass objects.
-        newBpDict = {}
+        new_bp_dict = {}
         for f in self.filterlist:
-            wavelen, sb = self.bandpass[f].multiplyThroughputs(
-                otherBpSet.bandpass[f].wavelen, otherBpSet.bandpass[f].sb
+            wavelen, sb = self.bandpass[f].multiply_throughputs(
+                other_bp_set.bandpass[f].wavelen, other_bp_set.bandpass[f].sb
             )
-            newBpDict[f] = Bandpass(wavelen=wavelen, sb=sb)
-        newBpSet = BandpassSet()
-        newBpSet.setBandpassSet(newBpDict, self.filterlist)
-        return newBpSet
+            new_bp_dict[f] = Bandpass(wavelen=wavelen, sb=sb)
+        new_bp_set = BandpassSet()
+        new_bp_set.set_bandpass_set(new_bp_dict, self.filterlist)
+        return new_bp_set
 
-    def writePhis(self, filename):
+    def write_phis(self, filename):
         """Write all phi values and wavelength to stdout"""
         # This is useful for getting a data file with only phi's, as requested by some science collaborations.
         file = open(filename, "w")
@@ -188,7 +188,7 @@ class BandpassSet(object):
         file.close()
         return
 
-    def writePhotozThroughputs(self, filename):
+    def write_photoz_throughputs(self, filename):
         """Write all throughputs in format AndyC needs for photoz"""
         file = open(filename, "w")
         for i, filter in enumerate(self.filterlist):
@@ -200,14 +200,14 @@ class BandpassSet(object):
         file.close()
         return
 
-    def calcFilterEffWave(self, verbose=True):
+    def calc_filter_eff_wave(self, verbose=True):
         """Calculate the effective wavelengths for all filters."""
         # Set up dictionaries for effective wavelengths, as calculated for Transmission (sb) and Phi (phi).
         effsb = {}
         effphi = {}
         # Calculate values for each filter.
         for f in self.filterlist:
-            effphi[f], effsb[f] = self.bandpass[f].calcEffWavelen()
+            effphi[f], effsb[f] = self.bandpass[f].calc_eff_wavelen()
         self.effsb = effsb
         self.effphi = effphi
         if verbose:
@@ -216,7 +216,7 @@ class BandpassSet(object):
                 print(" %s      %.3f  %.3f" % (f, self.effsb[f], effphi[f]))
         return
 
-    def calcZeroPoints(self, gain=1.0, verbose=True):
+    def calc_zero_points(self, gain=1.0, verbose=True):
         """Calculate the theoretical zeropoints for the bandpass, in AB magnitudes."""
         exptime = 15  # Default exposure time.
         effarea = (
@@ -225,13 +225,13 @@ class BandpassSet(object):
         zpt = {}
         print("Filter Zeropoint")
         for f in self.filterlist:
-            zpt[f] = self.bandpass[f].calcZP_t(
+            zpt[f] = self.bandpass[f].calc_zp_t(
                 expTime=exptime, effarea=effarea, gain=gain
             )
             print(" %s     %.3f" % (f, zpt[f]))
         return
 
-    def calcFilterEdges(self, drop_peak=0.1, drop_percent=50, verbose=True):
+    def calc_filter_edges(self, drop_peak=0.1, drop_percent=50, verbose=True):
         """Calculate the edges of each filter for Sb, at values of 'drop_*'.
 
         Values for drop_peak are X percent of max throughput, drop_percent is where the
@@ -242,7 +242,7 @@ class BandpassSet(object):
             effsb = self.effsb
             effphi = self.effphi
         except AttributeError:
-            self.calcFilterEffWave()
+            self.calc_filter_eff_wave()
             effsb = self.effsb
             effphi = self.effphi
         # Set up dictionary for effective wavelengths and X% peak_drop wavelengths.
@@ -317,7 +317,7 @@ class BandpassSet(object):
         self.drop_perc_blue = drop_perc_blue
         return
 
-    def calcFilterLeaks(
+    def calc_filter_leaks(
         self,
         ten_nm_limit=0.01,
         out_of_band_limit=0.05,
@@ -339,12 +339,12 @@ class BandpassSet(object):
         filterlist = self.filterlist
         bandpass = self.bandpass
         # Make sure effective wavelengths defined.
-        self.calcFilterEffWave(verbose=False)
+        self.calc_filter_eff_wave(verbose=False)
         effsb = self.effsb
         # Look for the new FWHM definition for the 10nm filter leak definition
         if filter_edges == "FWHM":
-            self.calcFilterEffWave(verbose=False)
-            self.calcFilterEdges(drop_percent=0.50, verbose=False)
+            self.calc_filter_eff_wave(verbose=False)
+            self.calc_filter_edges(drop_percent=0.50, verbose=False)
             # Calculate FWHM values.
             fwhm = {}
             for f in filterlist:
@@ -355,7 +355,7 @@ class BandpassSet(object):
                 self.drop_peak_blue[f] = self.effsb[f] - fwhm[f]
         # Otherwise, traditional % definition.
         else:
-            self.calcFilterEdges(drop_peak=filter_edges, verbose=False)
+            self.calc_filter_edges(drop_peak=filter_edges, verbose=False)
         drop_peak_red = self.drop_peak_red
         drop_peak_blue = self.drop_peak_blue
         # Set up plot colors.
@@ -414,7 +414,7 @@ class BandpassSet(object):
             # calculate transmission in each 10nm interval.
             sb_10nm = np.zeros(len(bandpass[f].sb), dtype="float")
             gapsize_10nm = 10.0  # wavelen gap in nm
-            meet_SRD = True
+            meet_srd = True
             maxsb_10nm = 0.0
             maxwavelen_10nm = 0.0
             # Convert 10nm limit into actual value (and account for %)
@@ -437,12 +437,12 @@ class BandpassSet(object):
             sb_10nm[condition] = 0
             # now check for violation of SRD
             if sb_10nm.max() > ten_nm_limit_value:
-                meet_SRD = False
+                meet_srd = False
                 maxsb_10nm = sb_10nm.max()
                 maxwavelen_10nm = bandpass[f].wavelen[
                     np.where(sb_10nm == sb_10nm.max())
                 ]
-            if meet_SRD == False:
+            if meet_srd == False:
                 print(
                     "Does not meet SRD - %s has at least one region not meeting the 10nm SRD filter leak requirement (max is %f%s of peak transmission at %.1f A)"
                     % (f, maxsb_10nm, "%", maxwavelen_10nm)
@@ -493,7 +493,7 @@ class BandpassSet(object):
         # end of loop through filters
         return
 
-    def plotFilters(
+    def plot_filters(
         self,
         rootdir=".",
         throughput=True,
@@ -529,9 +529,9 @@ class BandpassSet(object):
                 self.drop_peak_red
                 self.drop_peak_blue
         except AttributeError:
-            self.calcFilterEffWave(verbose=False)
+            self.calc_filter_eff_wave(verbose=False)
             if plotdropoffs:
-                self.calcFilterEdges(verbose=False)
+                self.calc_filter_edges(verbose=False)
         effsb = self.effsb
         effphi = self.effphi
         if plotdropoffs:
@@ -541,8 +541,8 @@ class BandpassSet(object):
         if atmos:
             atmosfile = os.path.join(rootdir, "atmos_std.dat")
             atmosphere = Bandpass()
-            atmosphere.readThroughput(atmosfile)
-        Xatm = _stdX
+            atmosphere.read_throughput(atmosfile)
+        xatm = _std_x
         # set up colors for plot output
         colors = ("k", "b", "g", "y", "r", "m", "burlywood", "k")
         # colors = ('r', 'b', 'r', 'b', 'r', 'b', 'r', 'b')
@@ -613,7 +613,7 @@ class BandpassSet(object):
                 if compare_tag != None:
                     legendtext = legendtext + "\n%s = dashed" % (compare_tag)
             if atmos:
-                legendtext = legendtext + "\nAirmass %.1f" % (Xatm)
+                legendtext = legendtext + "\nAirmass %.1f" % (xatm)
             plt.figtext(0.15, 0.8, legendtext)
             # add names to filter throughputs
             if filter_tags == "side":

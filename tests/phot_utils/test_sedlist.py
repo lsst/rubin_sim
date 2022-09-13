@@ -10,912 +10,917 @@ from rubin_sim.data import get_data_dir
 class SedListTest(unittest.TestCase):
     def setUp(self):
         self.rng = np.random.RandomState(18233)
-        self.sedDir = os.path.join(
+        self.sed_dir = os.path.join(
             get_data_dir(), "tests", "cartoonSedTestData", "galaxySed"
         )
-        self.sedPossibilities = os.listdir(self.sedDir)
+        self.sed_possibilities = os.listdir(self.sed_dir)
 
-    def getListOfSedNames(self, nNames):
+    def get_list_of_sed_names(self, n_names):
         return [
-            self.sedPossibilities[ii].replace(".gz", "")
-            for ii in self.rng.randint(0, len(self.sedPossibilities) - 1, nNames)
+            self.sed_possibilities[ii].replace(".gz", "")
+            for ii in self.rng.randint(0, len(self.sed_possibilities) - 1, n_names)
         ]
 
-    def testExceptions(self):
+    def test_exceptions(self):
         """
         Test that exceptions are raised when they should be
         """
-        nSed = 10
-        sedNameList = self.getListOfSedNames(nSed)
-        magNormList = self.rng.random_sample(nSed) * 5.0 + 15.0
-        internalAvList = self.rng.random_sample(nSed) * 0.3 + 0.1
-        redshiftList = self.rng.random_sample(nSed) * 5.0
-        galacticAvList = self.rng.random_sample(nSed) * 0.3 + 0.1
+        n_sed = 10
+        sed_name_list = self.get_list_of_sed_names(n_sed)
+        mag_norm_list = self.rng.random_sample(n_sed) * 5.0 + 15.0
+        internal_av_list = self.rng.random_sample(n_sed) * 0.3 + 0.1
+        redshift_list = self.rng.random_sample(n_sed) * 5.0
+        galactic_av_list = self.rng.random_sample(n_sed) * 0.3 + 0.1
         wavelen_match = np.arange(300.0, 1500.0, 10.0)
-        testList = SedList(
-            sedNameList,
-            magNormList,
-            fileDir=self.sedDir,
-            internalAvList=internalAvList,
-            redshiftList=redshiftList,
-            galacticAvList=galacticAvList,
-            wavelenMatch=wavelen_match,
+        test_list = SedList(
+            sed_name_list,
+            mag_norm_list,
+            file_dir=self.sed_dir,
+            internal_av_list=internal_av_list,
+            redshift_list=redshift_list,
+            galactic_av_list=galactic_av_list,
+            wavelen_match=wavelen_match,
         )
 
         with self.assertRaises(AttributeError) as context:
-            testList.wavelenMatch = np.arange(10.0, 1000.0, 1000.0)
+            test_list.wavelen_match = np.arange(10.0, 1000.0, 1000.0)
 
         with self.assertRaises(AttributeError) as context:
-            testList.cosmologicalDimming = False
+            test_list.cosmologicalDimming = False
 
         with self.assertRaises(AttributeError) as context:
-            testList.redshiftList = [1.8]
+            test_list.redshift_list = [1.8]
 
         with self.assertRaises(AttributeError) as context:
-            testList.internalAvList = [2.5]
+            test_list.internal_av_list = [2.5]
 
         with self.assertRaises(AttributeError) as context:
-            testList.galacticAvList = [1.9]
+            test_list.galactic_av_list = [1.9]
 
-        testList = SedList(sedNameList, magNormList, fileDir=self.sedDir)
+        test_list = SedList(sed_name_list, mag_norm_list, file_dir=self.sed_dir)
 
         with self.assertRaises(RuntimeError) as context:
-            testList.loadSedsFromList(
-                sedNameList, magNormList, internalAvList=internalAvList
+            test_list.loadSedsFromList(
+                sed_name_list, mag_norm_list, internal_av_list=internal_av_list
             )
-        self.assertIn("does not contain internalAvList", context.exception.args[0])
+        self.assertIn("does not contain internal_av_list", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            testList.loadSedsFromList(
-                sedNameList, magNormList, galacticAvList=galacticAvList
+            test_list.loadSedsFromList(
+                sed_name_list, mag_norm_list, galactic_av_list=galactic_av_list
             )
-        self.assertIn("does not contain galacticAvList", context.exception.args[0])
+        self.assertIn("does not contain galactic_av_list", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            testList.loadSedsFromList(
-                sedNameList, magNormList, redshiftList=redshiftList
+            test_list.loadSedsFromList(
+                sed_name_list, mag_norm_list, redshift_list=redshift_list
             )
-        self.assertIn("does not contain redshiftList", context.exception.args[0])
+        self.assertIn("does not contain redshift_list", context.exception.args[0])
 
-    def testSetUp(self):
+    def test_setUp(self):
         """
         Test the SedList can be successfully initialized
         """
 
         ############## Try just reading in an normalizing some SEDs
-        nSed = 10
-        sedNameList = self.getListOfSedNames(nSed)
-        magNormList = self.rng.random_sample(nSed) * 5.0 + 15.0
-        testList = SedList(sedNameList, magNormList, fileDir=self.sedDir)
-        self.assertEqual(len(testList), nSed)
-        self.assertIsNone(testList.internalAvList)
-        self.assertIsNone(testList.galacticAvList)
-        self.assertIsNone(testList.redshiftList)
-        self.assertIsNone(testList.wavelenMatch)
-        self.assertTrue(testList.cosmologicalDimming)
+        n_sed = 10
+        sed_name_list = self.get_list_of_sed_names(n_sed)
+        mag_norm_list = self.rng.random_sample(n_sed) * 5.0 + 15.0
+        test_list = SedList(sed_name_list, mag_norm_list, file_dir=self.sed_dir)
+        self.assertEqual(len(test_list), n_sed)
+        self.assertIsNone(test_list.internal_av_list)
+        self.assertIsNone(test_list.galactic_av_list)
+        self.assertIsNone(test_list.redshift_list)
+        self.assertIsNone(test_list.wavelen_match)
+        self.assertTrue(test_list.cosmologicalDimming)
 
-        imsimBand = Bandpass()
-        imsimBand.imsimBandpass()
+        imsim_band = Bandpass()
+        imsim_band.imsimBandpass()
 
-        for name, norm, sedTest in zip(sedNameList, magNormList, testList):
-            sedControl = Sed()
-            sedControl.readSED_flambda(os.path.join(self.sedDir, name + ".gz"))
-            fnorm = sedControl.calcFluxNorm(norm, imsimBand)
-            sedControl.multiplyFluxNorm(fnorm)
+        for name, norm, sedTest in zip(sed_name_list, mag_norm_list, test_list):
+            sed_control = Sed()
+            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
+            sed_control.multiplyFluxNorm(fnorm)
 
-            np.testing.assert_array_equal(sedControl.wavelen, sedTest.wavelen)
-            np.testing.assert_array_equal(sedControl.flambda, sedTest.flambda)
-            np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+            np.testing.assert_array_equal(sed_control.wavelen, sedTest.wavelen)
+            np.testing.assert_array_equal(sed_control.flambda, sedTest.flambda)
+            np.testing.assert_array_equal(sed_control.fnu, sedTest.fnu)
 
         ################# now add an internalAv
-        sedNameList = self.getListOfSedNames(nSed)
-        magNormList = self.rng.random_sample(nSed) * 5.0 + 15.0
-        internalAvList = self.rng.random_sample(nSed) * 0.3 + 0.1
-        testList = SedList(
-            sedNameList, magNormList, fileDir=self.sedDir, internalAvList=internalAvList
+        sed_name_list = self.get_list_of_sed_names(n_sed)
+        mag_norm_list = self.rng.random_sample(n_sed) * 5.0 + 15.0
+        internal_av_list = self.rng.random_sample(n_sed) * 0.3 + 0.1
+        test_list = SedList(
+            sed_name_list,
+            mag_norm_list,
+            file_dir=self.sed_dir,
+            internal_av_list=internal_av_list,
         )
-        self.assertIsNone(testList.galacticAvList)
-        self.assertIsNone(testList.redshiftList)
-        self.assertIsNone(testList.wavelenMatch)
-        self.assertTrue(testList.cosmologicalDimming)
-        for avControl, avTest in zip(internalAvList, testList.internalAvList):
-            self.assertAlmostEqual(avControl, avTest, 10)
+        self.assertIsNone(test_list.galactic_av_list)
+        self.assertIsNone(test_list.redshift_list)
+        self.assertIsNone(test_list.wavelen_match)
+        self.assertTrue(test_list.cosmologicalDimming)
+        for av_control, avTest in zip(internal_av_list, test_list.internal_av_list):
+            self.assertAlmostEqual(av_control, avTest, 10)
 
         for name, norm, av, sedTest in zip(
-            sedNameList, magNormList, internalAvList, testList
+            sed_name_list, mag_norm_list, internal_av_list, test_list
         ):
-            sedControl = Sed()
-            sedControl.readSED_flambda(os.path.join(self.sedDir, name + ".gz"))
-            fnorm = sedControl.calcFluxNorm(norm, imsimBand)
-            sedControl.multiplyFluxNorm(fnorm)
+            sed_control = Sed()
+            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
+            sed_control.multiplyFluxNorm(fnorm)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=av)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=av)
 
-            np.testing.assert_array_equal(sedControl.wavelen, sedTest.wavelen)
-            np.testing.assert_array_equal(sedControl.flambda, sedTest.flambda)
-            np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+            np.testing.assert_array_equal(sed_control.wavelen, sedTest.wavelen)
+            np.testing.assert_array_equal(sed_control.flambda, sedTest.flambda)
+            np.testing.assert_array_equal(sed_control.fnu, sedTest.fnu)
 
         ################ now add redshift
-        sedNameList = self.getListOfSedNames(nSed)
-        magNormList = self.rng.random_sample(nSed) * 5.0 + 15.0
-        internalAvList = self.rng.random_sample(nSed) * 0.3 + 0.1
-        redshiftList = self.rng.random_sample(nSed) * 5.0
-        testList = SedList(
-            sedNameList,
-            magNormList,
-            fileDir=self.sedDir,
-            internalAvList=internalAvList,
-            redshiftList=redshiftList,
+        sed_name_list = self.get_list_of_sed_names(n_sed)
+        mag_norm_list = self.rng.random_sample(n_sed) * 5.0 + 15.0
+        internal_av_list = self.rng.random_sample(n_sed) * 0.3 + 0.1
+        redshift_list = self.rng.random_sample(n_sed) * 5.0
+        test_list = SedList(
+            sed_name_list,
+            mag_norm_list,
+            file_dir=self.sed_dir,
+            internal_av_list=internal_av_list,
+            redshift_list=redshift_list,
         )
-        self.assertIsNone(testList.galacticAvList)
-        self.assertIsNone(testList.wavelenMatch)
-        self.assertTrue(testList.cosmologicalDimming)
-        for avControl, avTest in zip(internalAvList, testList.internalAvList):
-            self.assertAlmostEqual(avControl, avTest, 10)
+        self.assertIsNone(test_list.galactic_av_list)
+        self.assertIsNone(test_list.wavelen_match)
+        self.assertTrue(test_list.cosmologicalDimming)
+        for av_control, avTest in zip(internal_av_list, test_list.internal_av_list):
+            self.assertAlmostEqual(av_control, avTest, 10)
 
-        for zControl, zTest in zip(redshiftList, testList.redshiftList):
-            self.assertAlmostEqual(zControl, zTest, 10)
+        for z_control, zTest in zip(redshift_list, test_list.redshift_list):
+            self.assertAlmostEqual(z_control, zTest, 10)
 
         for name, norm, av, zz, sedTest in zip(
-            sedNameList, magNormList, internalAvList, redshiftList, testList
+            sed_name_list, mag_norm_list, internal_av_list, redshift_list, test_list
         ):
 
-            sedControl = Sed()
-            sedControl.readSED_flambda(os.path.join(self.sedDir, name + ".gz"))
-            fnorm = sedControl.calcFluxNorm(norm, imsimBand)
-            sedControl.multiplyFluxNorm(fnorm)
+            sed_control = Sed()
+            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
+            sed_control.multiplyFluxNorm(fnorm)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=av)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=av)
 
-            sedControl.redshiftSED(zz, dimming=True)
+            sed_control.redshiftSED(zz, dimming=True)
 
-            np.testing.assert_array_equal(sedControl.wavelen, sedTest.wavelen)
-            np.testing.assert_array_equal(sedControl.flambda, sedTest.flambda)
-            np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+            np.testing.assert_array_equal(sed_control.wavelen, sedTest.wavelen)
+            np.testing.assert_array_equal(sed_control.flambda, sedTest.flambda)
+            np.testing.assert_array_equal(sed_control.fnu, sedTest.fnu)
 
         ################# without cosmological dimming
-        sedNameList = self.getListOfSedNames(nSed)
-        magNormList = self.rng.random_sample(nSed) * 5.0 + 15.0
-        internalAvList = self.rng.random_sample(nSed) * 0.3 + 0.1
-        redshiftList = self.rng.random_sample(nSed) * 5.0
-        testList = SedList(
-            sedNameList,
-            magNormList,
-            fileDir=self.sedDir,
-            internalAvList=internalAvList,
-            redshiftList=redshiftList,
+        sed_name_list = self.get_list_of_sed_names(n_sed)
+        mag_norm_list = self.rng.random_sample(n_sed) * 5.0 + 15.0
+        internal_av_list = self.rng.random_sample(n_sed) * 0.3 + 0.1
+        redshift_list = self.rng.random_sample(n_sed) * 5.0
+        test_list = SedList(
+            sed_name_list,
+            mag_norm_list,
+            file_dir=self.sed_dir,
+            internal_av_list=internal_av_list,
+            redshift_list=redshift_list,
             cosmologicalDimming=False,
         )
-        self.assertIsNone(testList.galacticAvList)
-        self.assertIsNone(testList.wavelenMatch)
-        self.assertFalse(testList.cosmologicalDimming)
-        for avControl, avTest in zip(internalAvList, testList.internalAvList):
-            self.assertAlmostEqual(avControl, avTest, 10)
+        self.assertIsNone(test_list.galactic_av_list)
+        self.assertIsNone(test_list.wavelen_match)
+        self.assertFalse(test_list.cosmologicalDimming)
+        for av_control, avTest in zip(internal_av_list, test_list.internal_av_list):
+            self.assertAlmostEqual(av_control, avTest, 10)
 
-        for zControl, zTest in zip(redshiftList, testList.redshiftList):
-            self.assertAlmostEqual(zControl, zTest, 10)
+        for z_control, zTest in zip(redshift_list, test_list.redshift_list):
+            self.assertAlmostEqual(z_control, zTest, 10)
 
         for name, norm, av, zz, sedTest in zip(
-            sedNameList, magNormList, internalAvList, redshiftList, testList
+            sed_name_list, mag_norm_list, internal_av_list, redshift_list, test_list
         ):
 
-            sedControl = Sed()
-            sedControl.readSED_flambda(os.path.join(self.sedDir, name + ".gz"))
-            fnorm = sedControl.calcFluxNorm(norm, imsimBand)
-            sedControl.multiplyFluxNorm(fnorm)
+            sed_control = Sed()
+            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
+            sed_control.multiplyFluxNorm(fnorm)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=av)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=av)
 
-            sedControl.redshiftSED(zz, dimming=False)
+            sed_control.redshiftSED(zz, dimming=False)
 
-            np.testing.assert_array_equal(sedControl.wavelen, sedTest.wavelen)
-            np.testing.assert_array_equal(sedControl.flambda, sedTest.flambda)
-            np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+            np.testing.assert_array_equal(sed_control.wavelen, sedTest.wavelen)
+            np.testing.assert_array_equal(sed_control.flambda, sedTest.flambda)
+            np.testing.assert_array_equal(sed_control.fnu, sedTest.fnu)
 
         ################ now add galacticAv
-        sedNameList = self.getListOfSedNames(nSed)
-        magNormList = self.rng.random_sample(nSed) * 5.0 + 15.0
-        internalAvList = self.rng.random_sample(nSed) * 0.3 + 0.1
-        redshiftList = self.rng.random_sample(nSed) * 5.0
-        galacticAvList = self.rng.random_sample(nSed) * 0.3 + 0.1
-        testList = SedList(
-            sedNameList,
-            magNormList,
-            fileDir=self.sedDir,
-            internalAvList=internalAvList,
-            redshiftList=redshiftList,
-            galacticAvList=galacticAvList,
+        sed_name_list = self.get_list_of_sed_names(n_sed)
+        mag_norm_list = self.rng.random_sample(n_sed) * 5.0 + 15.0
+        internal_av_list = self.rng.random_sample(n_sed) * 0.3 + 0.1
+        redshift_list = self.rng.random_sample(n_sed) * 5.0
+        galactic_av_list = self.rng.random_sample(n_sed) * 0.3 + 0.1
+        test_list = SedList(
+            sed_name_list,
+            mag_norm_list,
+            file_dir=self.sed_dir,
+            internal_av_list=internal_av_list,
+            redshift_list=redshift_list,
+            galactic_av_list=galactic_av_list,
         )
-        self.assertIsNone(testList.wavelenMatch)
-        self.assertTrue(testList.cosmologicalDimming)
-        for avControl, avTest in zip(internalAvList, testList.internalAvList):
-            self.assertAlmostEqual(avControl, avTest, 10)
+        self.assertIsNone(test_list.wavelen_match)
+        self.assertTrue(test_list.cosmologicalDimming)
+        for av_control, avTest in zip(internal_av_list, test_list.internal_av_list):
+            self.assertAlmostEqual(av_control, avTest, 10)
 
-        for zControl, zTest in zip(redshiftList, testList.redshiftList):
-            self.assertAlmostEqual(zControl, zTest, 10)
+        for z_control, zTest in zip(redshift_list, test_list.redshift_list):
+            self.assertAlmostEqual(z_control, zTest, 10)
 
-        for avControl, avTest in zip(galacticAvList, testList.galacticAvList):
-            self.assertAlmostEqual(avControl, avTest, 10)
+        for av_control, avTest in zip(galactic_av_list, test_list.galactic_av_list):
+            self.assertAlmostEqual(av_control, avTest, 10)
 
         for name, norm, av, zz, gav, sedTest in zip(
-            sedNameList,
-            magNormList,
-            internalAvList,
-            redshiftList,
-            galacticAvList,
-            testList,
+            sed_name_list,
+            mag_norm_list,
+            internal_av_list,
+            redshift_list,
+            galactic_av_list,
+            test_list,
         ):
 
-            sedControl = Sed()
-            sedControl.readSED_flambda(os.path.join(self.sedDir, name + ".gz"))
-            fnorm = sedControl.calcFluxNorm(norm, imsimBand)
-            sedControl.multiplyFluxNorm(fnorm)
+            sed_control = Sed()
+            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
+            sed_control.multiplyFluxNorm(fnorm)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=av)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=av)
 
-            sedControl.redshiftSED(zz, dimming=True)
+            sed_control.redshiftSED(zz, dimming=True)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
 
-            np.testing.assert_array_equal(sedControl.wavelen, sedTest.wavelen)
-            np.testing.assert_array_equal(sedControl.flambda, sedTest.flambda)
-            np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+            np.testing.assert_array_equal(sed_control.wavelen, sedTest.wavelen)
+            np.testing.assert_array_equal(sed_control.flambda, sedTest.flambda)
+            np.testing.assert_array_equal(sed_control.fnu, sedTest.fnu)
 
         ################ now use a wavelen_match
-        sedNameList = self.getListOfSedNames(nSed)
-        magNormList = self.rng.random_sample(nSed) * 5.0 + 15.0
-        internalAvList = self.rng.random_sample(nSed) * 0.3 + 0.1
-        redshiftList = self.rng.random_sample(nSed) * 5.0
-        galacticAvList = self.rng.random_sample(nSed) * 0.3 + 0.1
+        sed_name_list = self.get_list_of_sed_names(n_sed)
+        mag_norm_list = self.rng.random_sample(n_sed) * 5.0 + 15.0
+        internal_av_list = self.rng.random_sample(n_sed) * 0.3 + 0.1
+        redshift_list = self.rng.random_sample(n_sed) * 5.0
+        galactic_av_list = self.rng.random_sample(n_sed) * 0.3 + 0.1
         wavelen_match = np.arange(300.0, 1500.0, 10.0)
-        testList = SedList(
-            sedNameList,
-            magNormList,
-            fileDir=self.sedDir,
-            internalAvList=internalAvList,
-            redshiftList=redshiftList,
-            galacticAvList=galacticAvList,
-            wavelenMatch=wavelen_match,
+        test_list = SedList(
+            sed_name_list,
+            mag_norm_list,
+            file_dir=self.sed_dir,
+            internal_av_list=internal_av_list,
+            redshift_list=redshift_list,
+            galactic_av_list=galactic_av_list,
+            wavelen_match=wavelen_match,
         )
 
-        self.assertTrue(testList.cosmologicalDimming)
-        for avControl, avTest in zip(internalAvList, testList.internalAvList):
-            self.assertAlmostEqual(avControl, avTest, 10)
+        self.assertTrue(test_list.cosmologicalDimming)
+        for av_control, avTest in zip(internal_av_list, test_list.internal_av_list):
+            self.assertAlmostEqual(av_control, avTest, 10)
 
-        for zControl, zTest in zip(redshiftList, testList.redshiftList):
-            self.assertAlmostEqual(zControl, zTest, 10)
+        for z_control, zTest in zip(redshift_list, test_list.redshift_list):
+            self.assertAlmostEqual(z_control, zTest, 10)
 
-        for avControl, avTest in zip(galacticAvList, testList.galacticAvList):
-            self.assertAlmostEqual(avControl, avTest, 10)
+        for av_control, avTest in zip(galactic_av_list, test_list.galactic_av_list):
+            self.assertAlmostEqual(av_control, avTest, 10)
 
-        np.testing.assert_array_equal(wavelen_match, testList.wavelenMatch)
+        np.testing.assert_array_equal(wavelen_match, test_list.wavelen_match)
 
         for name, norm, av, zz, gav, sedTest in zip(
-            sedNameList,
-            magNormList,
-            internalAvList,
-            redshiftList,
-            galacticAvList,
-            testList,
+            sed_name_list,
+            mag_norm_list,
+            internal_av_list,
+            redshift_list,
+            galactic_av_list,
+            test_list,
         ):
 
-            sedControl = Sed()
-            sedControl.readSED_flambda(os.path.join(self.sedDir, name + ".gz"))
+            sed_control = Sed()
+            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sedControl.calcFluxNorm(norm, imsimBand)
-            sedControl.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
+            sed_control.multiplyFluxNorm(fnorm)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=av)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=av)
 
-            sedControl.redshiftSED(zz, dimming=True)
-            sedControl.resampleSED(wavelen_match=wavelen_match)
+            sed_control.redshiftSED(zz, dimming=True)
+            sed_control.resampleSED(wavelen_match=wavelen_match)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
 
-            np.testing.assert_array_equal(sedControl.wavelen, sedTest.wavelen)
-            np.testing.assert_array_equal(sedControl.flambda, sedTest.flambda)
-            np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+            np.testing.assert_array_equal(sed_control.wavelen, sedTest.wavelen)
+            np.testing.assert_array_equal(sed_control.flambda, sedTest.flambda)
+            np.testing.assert_array_equal(sed_control.fnu, sedTest.fnu)
 
-    def testAddingToList(self):
+    def test_adding_to_list(self):
         """
         Test that we can add Seds to an already instantiated SedList
         """
-        imsimBand = Bandpass()
-        imsimBand.imsimBandpass()
-        nSed = 10
-        sedNameList_0 = self.getListOfSedNames(nSed)
-        magNormList_0 = self.rng.random_sample(nSed) * 5.0 + 15.0
-        internalAvList_0 = self.rng.random_sample(nSed) * 0.3 + 0.1
-        redshiftList_0 = self.rng.random_sample(nSed) * 5.0
-        galacticAvList_0 = self.rng.random_sample(nSed) * 0.3 + 0.1
+        imsim_band = Bandpass()
+        imsim_band.imsimBandpass()
+        n_sed = 10
+        sed_name_list_0 = self.get_list_of_sed_names(n_sed)
+        mag_norm_list_0 = self.rng.random_sample(n_sed) * 5.0 + 15.0
+        internal_av_list_0 = self.rng.random_sample(n_sed) * 0.3 + 0.1
+        redshift_list_0 = self.rng.random_sample(n_sed) * 5.0
+        galactic_av_list_0 = self.rng.random_sample(n_sed) * 0.3 + 0.1
         wavelen_match = np.arange(300.0, 1500.0, 10.0)
-        testList = SedList(
-            sedNameList_0,
-            magNormList_0,
-            fileDir=self.sedDir,
-            internalAvList=internalAvList_0,
-            redshiftList=redshiftList_0,
-            galacticAvList=galacticAvList_0,
-            wavelenMatch=wavelen_match,
+        test_list = SedList(
+            sed_name_list_0,
+            mag_norm_list_0,
+            file_dir=self.sed_dir,
+            internal_av_list=internal_av_list_0,
+            redshift_list=redshift_list_0,
+            galactic_av_list=galactic_av_list_0,
+            wavelen_match=wavelen_match,
         )
 
         # experiment with adding different combinations of physical parameter lists
         # as None and not None
-        for addIav in [True, False]:
-            for addRedshift in [True, False]:
-                for addGav in [True, False]:
+        for add_iav in [True, False]:
+            for add_redshift in [True, False]:
+                for add_gav in [True, False]:
 
-                    testList = SedList(
-                        sedNameList_0,
-                        magNormList_0,
-                        fileDir=self.sedDir,
-                        internalAvList=internalAvList_0,
-                        redshiftList=redshiftList_0,
-                        galacticAvList=galacticAvList_0,
-                        wavelenMatch=wavelen_match,
+                    test_list = SedList(
+                        sed_name_list_0,
+                        mag_norm_list_0,
+                        file_dir=self.sed_dir,
+                        internal_av_list=internal_av_list_0,
+                        redshift_list=redshift_list_0,
+                        galactic_av_list=galactic_av_list_0,
+                        wavelen_match=wavelen_match,
                     )
 
-                    sedNameList_1 = self.getListOfSedNames(nSed)
-                    magNormList_1 = self.rng.random_sample(nSed) * 5.0 + 15.0
+                    sed_name_list_1 = self.get_list_of_sed_names(n_sed)
+                    mag_norm_list_1 = self.rng.random_sample(n_sed) * 5.0 + 15.0
 
-                    if addIav:
-                        internalAvList_1 = self.rng.random_sample(nSed) * 0.3 + 0.1
+                    if add_iav:
+                        internal_av_list_1 = self.rng.random_sample(n_sed) * 0.3 + 0.1
                     else:
-                        internalAvList_1 = None
+                        internal_av_list_1 = None
 
-                    if addRedshift:
-                        redshiftList_1 = self.rng.random_sample(nSed) * 5.0
+                    if add_redshift:
+                        redshift_list_1 = self.rng.random_sample(n_sed) * 5.0
                     else:
-                        redshiftList_1 = None
+                        redshift_list_1 = None
 
-                    if addGav:
-                        galacticAvList_1 = self.rng.random_sample(nSed) * 0.3 + 0.1
+                    if add_gav:
+                        galactic_av_list_1 = self.rng.random_sample(n_sed) * 0.3 + 0.1
                     else:
-                        galacticAvList_1 = None
+                        galactic_av_list_1 = None
 
-                    testList.loadSedsFromList(
-                        sedNameList_1,
-                        magNormList_1,
-                        internalAvList=internalAvList_1,
-                        galacticAvList=galacticAvList_1,
-                        redshiftList=redshiftList_1,
+                    test_list.loadSedsFromList(
+                        sed_name_list_1,
+                        mag_norm_list_1,
+                        internal_av_list=internal_av_list_1,
+                        galactic_av_list=galactic_av_list_1,
+                        redshift_list=redshift_list_1,
                     )
 
-                    self.assertEqual(len(testList), 2 * nSed)
-                    np.testing.assert_array_equal(wavelen_match, testList.wavelenMatch)
+                    self.assertEqual(len(test_list), 2 * n_sed)
+                    np.testing.assert_array_equal(wavelen_match, test_list.wavelen_match)
 
-                    for ix in range(len(sedNameList_0)):
+                    for ix in range(len(sed_name_list_0)):
                         self.assertAlmostEqual(
-                            internalAvList_0[ix], testList.internalAvList[ix], 10
+                            internal_av_list_0[ix], test_list.internal_av_list[ix], 10
                         )
                         self.assertAlmostEqual(
-                            galacticAvList_0[ix], testList.galacticAvList[ix], 10
+                            galactic_av_list_0[ix], test_list.galactic_av_list[ix], 10
                         )
                         self.assertAlmostEqual(
-                            redshiftList_0[ix], testList.redshiftList[ix], 10
+                            redshift_list_0[ix], test_list.redshift_list[ix], 10
                         )
 
-                    for ix in range(len(sedNameList_1)):
-                        if addIav:
+                    for ix in range(len(sed_name_list_1)):
+                        if add_iav:
                             self.assertAlmostEqual(
-                                internalAvList_1[ix],
-                                testList.internalAvList[ix + nSed],
+                                internal_av_list_1[ix],
+                                test_list.internal_av_list[ix + n_sed],
                                 10,
                             )
                         else:
-                            self.assertIsNone(testList.internalAvList[ix + nSed])
+                            self.assertIsNone(test_list.internal_av_list[ix + n_sed])
 
-                        if addGav:
+                        if add_gav:
                             self.assertAlmostEqual(
-                                galacticAvList_1[ix],
-                                testList.galacticAvList[ix + nSed],
+                                galactic_av_list_1[ix],
+                                test_list.galactic_av_list[ix + n_sed],
                                 10,
                             )
                         else:
-                            self.assertIsNone(testList.galacticAvList[ix + nSed])
+                            self.assertIsNone(test_list.galactic_av_list[ix + n_sed])
 
-                        if addRedshift:
+                        if add_redshift:
                             self.assertAlmostEqual(
-                                redshiftList_1[ix], testList.redshiftList[ix + nSed], 10
+                                redshift_list_1[ix],
+                                test_list.redshift_list[ix + n_sed],
+                                10,
                             )
                         else:
-                            self.assertIsNone(testList.redshiftList[ix + nSed])
+                            self.assertIsNone(test_list.redshift_list[ix + n_sed])
 
                     for ix, (name, norm, iav, gav, zz) in enumerate(
                         zip(
-                            sedNameList_0,
-                            magNormList_0,
-                            internalAvList_0,
-                            galacticAvList_0,
-                            redshiftList_0,
+                            sed_name_list_0,
+                            mag_norm_list_0,
+                            internal_av_list_0,
+                            galactic_av_list_0,
+                            redshift_list_0,
                         )
                     ):
 
-                        sedControl = Sed()
-                        sedControl.readSED_flambda(
-                            os.path.join(self.sedDir, name + ".gz")
+                        sed_control = Sed()
+                        sed_control.readSED_flambda(
+                            os.path.join(self.sed_dir, name + ".gz")
                         )
 
-                        fnorm = sedControl.calcFluxNorm(norm, imsimBand)
-                        sedControl.multiplyFluxNorm(fnorm)
+                        fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
+                        sed_control.multiplyFluxNorm(fnorm)
 
-                        a_coeff, b_coeff = sedControl.setupCCM_ab()
-                        sedControl.addDust(a_coeff, b_coeff, A_v=iav)
+                        a_coeff, b_coeff = sed_control.setupCCM_ab()
+                        sed_control.addDust(a_coeff, b_coeff, A_v=iav)
 
-                        sedControl.redshiftSED(zz, dimming=True)
-                        sedControl.resampleSED(wavelen_match=wavelen_match)
+                        sed_control.redshiftSED(zz, dimming=True)
+                        sed_control.resampleSED(wavelen_match=wavelen_match)
 
-                        a_coeff, b_coeff = sedControl.setupCCM_ab()
-                        sedControl.addDust(a_coeff, b_coeff, A_v=gav)
+                        a_coeff, b_coeff = sed_control.setupCCM_ab()
+                        sed_control.addDust(a_coeff, b_coeff, A_v=gav)
 
-                        sedTest = testList[ix]
+                        sed_test = test_list[ix]
 
                         np.testing.assert_array_equal(
-                            sedControl.wavelen, sedTest.wavelen
+                            sed_control.wavelen, sed_test.wavelen
                         )
                         np.testing.assert_array_equal(
-                            sedControl.flambda, sedTest.flambda
+                            sed_control.flambda, sed_test.flambda
                         )
-                        np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+                        np.testing.assert_array_equal(sed_control.fnu, sed_test.fnu)
 
-                    if not addIav:
-                        internalAvList_1 = [None] * nSed
+                    if not add_iav:
+                        internal_av_list_1 = [None] * n_sed
 
-                    if not addRedshift:
-                        redshiftList_1 = [None] * nSed
+                    if not add_redshift:
+                        redshift_list_1 = [None] * n_sed
 
-                    if not addGav:
-                        galacticAvList_1 = [None] * nSed
+                    if not add_gav:
+                        galactic_av_list_1 = [None] * n_sed
 
                     for ix, (name, norm, iav, gav, zz) in enumerate(
                         zip(
-                            sedNameList_1,
-                            magNormList_1,
-                            internalAvList_1,
-                            galacticAvList_1,
-                            redshiftList_1,
+                            sed_name_list_1,
+                            mag_norm_list_1,
+                            internal_av_list_1,
+                            galactic_av_list_1,
+                            redshift_list_1,
                         )
                     ):
 
-                        sedControl = Sed()
-                        sedControl.readSED_flambda(
-                            os.path.join(self.sedDir, name + ".gz")
+                        sed_control = Sed()
+                        sed_control.readSED_flambda(
+                            os.path.join(self.sed_dir, name + ".gz")
                         )
 
-                        fnorm = sedControl.calcFluxNorm(norm, imsimBand)
-                        sedControl.multiplyFluxNorm(fnorm)
+                        fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
+                        sed_control.multiplyFluxNorm(fnorm)
 
-                        if addIav:
-                            a_coeff, b_coeff = sedControl.setupCCM_ab()
-                            sedControl.addDust(a_coeff, b_coeff, A_v=iav)
+                        if add_iav:
+                            a_coeff, b_coeff = sed_control.setupCCM_ab()
+                            sed_control.addDust(a_coeff, b_coeff, A_v=iav)
 
-                        if addRedshift:
-                            sedControl.redshiftSED(zz, dimming=True)
+                        if add_redshift:
+                            sed_control.redshiftSED(zz, dimming=True)
 
-                        sedControl.resampleSED(wavelen_match=wavelen_match)
+                        sed_control.resampleSED(wavelen_match=wavelen_match)
 
-                        if addGav:
-                            a_coeff, b_coeff = sedControl.setupCCM_ab()
-                            sedControl.addDust(a_coeff, b_coeff, A_v=gav)
+                        if add_gav:
+                            a_coeff, b_coeff = sed_control.setupCCM_ab()
+                            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
 
-                        sedTest = testList[ix + nSed]
+                        sed_test = test_list[ix + n_sed]
 
                         np.testing.assert_array_equal(
-                            sedControl.wavelen, sedTest.wavelen
+                            sed_control.wavelen, sed_test.wavelen
                         )
                         np.testing.assert_array_equal(
-                            sedControl.flambda, sedTest.flambda
+                            sed_control.flambda, sed_test.flambda
                         )
-                        np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+                        np.testing.assert_array_equal(sed_control.fnu, sed_test.fnu)
 
-    def testAddingNonesToList(self):
+    def test_adding_nones_to_list(self):
         """
         Test what happens if you add SEDs to an SedList that have None for
         one or more of the physical parameters (i.e. galacticAv, internalAv, or redshift)
         """
-        imsimBand = Bandpass()
-        imsimBand.imsimBandpass()
-        nSed = 10
-        sedNameList_0 = self.getListOfSedNames(nSed)
-        magNormList_0 = self.rng.random_sample(nSed) * 5.0 + 15.0
-        internalAvList_0 = self.rng.random_sample(nSed) * 0.3 + 0.1
-        redshiftList_0 = self.rng.random_sample(nSed) * 5.0
-        galacticAvList_0 = self.rng.random_sample(nSed) * 0.3 + 0.1
+        imsim_band = Bandpass()
+        imsim_band.imsimBandpass()
+        n_sed = 10
+        sed_name_list_0 = self.get_list_of_sed_names(n_sed)
+        mag_norm_list_0 = self.rng.random_sample(n_sed) * 5.0 + 15.0
+        internal_av_list_0 = self.rng.random_sample(n_sed) * 0.3 + 0.1
+        redshift_list_0 = self.rng.random_sample(n_sed) * 5.0
+        galactic_av_list_0 = self.rng.random_sample(n_sed) * 0.3 + 0.1
         wavelen_match = np.arange(300.0, 1500.0, 10.0)
-        testList = SedList(
-            sedNameList_0,
-            magNormList_0,
-            fileDir=self.sedDir,
-            internalAvList=internalAvList_0,
-            redshiftList=redshiftList_0,
-            galacticAvList=galacticAvList_0,
-            wavelenMatch=wavelen_match,
+        test_list = SedList(
+            sed_name_list_0,
+            mag_norm_list_0,
+            file_dir=self.sed_dir,
+            internal_av_list=internal_av_list_0,
+            redshift_list=redshift_list_0,
+            galactic_av_list=galactic_av_list_0,
+            wavelen_match=wavelen_match,
         )
 
-        sedNameList_1 = self.getListOfSedNames(nSed)
-        magNormList_1 = list(self.rng.random_sample(nSed) * 5.0 + 15.0)
-        internalAvList_1 = list(self.rng.random_sample(nSed) * 0.3 + 0.1)
-        redshiftList_1 = list(self.rng.random_sample(nSed) * 5.0)
-        galacticAvList_1 = list(self.rng.random_sample(nSed) * 0.3 + 0.1)
+        sed_name_list_1 = self.get_list_of_sed_names(n_sed)
+        mag_norm_list_1 = list(self.rng.random_sample(n_sed) * 5.0 + 15.0)
+        internal_av_list_1 = list(self.rng.random_sample(n_sed) * 0.3 + 0.1)
+        redshift_list_1 = list(self.rng.random_sample(n_sed) * 5.0)
+        galactic_av_list_1 = list(self.rng.random_sample(n_sed) * 0.3 + 0.1)
 
-        internalAvList_1[0] = None
-        redshiftList_1[1] = None
-        galacticAvList_1[2] = None
+        internal_av_list_1[0] = None
+        redshift_list_1[1] = None
+        galactic_av_list_1[2] = None
 
-        internalAvList_1[3] = None
-        redshiftList_1[3] = None
+        internal_av_list_1[3] = None
+        redshift_list_1[3] = None
 
-        internalAvList_1[4] = None
-        galacticAvList_1[4] = None
+        internal_av_list_1[4] = None
+        galactic_av_list_1[4] = None
 
-        redshiftList_1[5] = None
-        galacticAvList_1[5] = None
+        redshift_list_1[5] = None
+        galactic_av_list_1[5] = None
 
-        internalAvList_1[6] = None
-        redshiftList_1[6] = None
-        galacticAvList_1[6] = None
+        internal_av_list_1[6] = None
+        redshift_list_1[6] = None
+        galactic_av_list_1[6] = None
 
-        testList.loadSedsFromList(
-            sedNameList_1,
-            magNormList_1,
-            internalAvList=internalAvList_1,
-            galacticAvList=galacticAvList_1,
-            redshiftList=redshiftList_1,
+        test_list.loadSedsFromList(
+            sed_name_list_1,
+            mag_norm_list_1,
+            internal_av_list=internal_av_list_1,
+            galactic_av_list=galactic_av_list_1,
+            redshift_list=redshift_list_1,
         )
 
-        self.assertEqual(len(testList), 2 * nSed)
-        np.testing.assert_array_equal(wavelen_match, testList.wavelenMatch)
+        self.assertEqual(len(test_list), 2 * n_sed)
+        np.testing.assert_array_equal(wavelen_match, test_list.wavelen_match)
 
-        for ix in range(len(sedNameList_0)):
+        for ix in range(len(sed_name_list_0)):
             self.assertAlmostEqual(
-                internalAvList_0[ix], testList.internalAvList[ix], 10
+                internal_av_list_0[ix], test_list.internal_av_list[ix], 10
             )
             self.assertAlmostEqual(
-                galacticAvList_0[ix], testList.galacticAvList[ix], 10
+                galactic_av_list_0[ix], test_list.galactic_av_list[ix], 10
             )
-            self.assertAlmostEqual(redshiftList_0[ix], testList.redshiftList[ix], 10)
+            self.assertAlmostEqual(redshift_list_0[ix], test_list.redshift_list[ix], 10)
 
-        for ix in range(len(sedNameList_1)):
+        for ix in range(len(sed_name_list_1)):
             self.assertAlmostEqual(
-                internalAvList_1[ix], testList.internalAvList[ix + nSed], 10
+                internal_av_list_1[ix], test_list.internal_av_list[ix + n_sed], 10
             )
             self.assertAlmostEqual(
-                galacticAvList_1[ix], testList.galacticAvList[ix + nSed], 10
+                galactic_av_list_1[ix], test_list.galactic_av_list[ix + n_sed], 10
             )
             self.assertAlmostEqual(
-                redshiftList_1[ix], testList.redshiftList[ix + nSed], 10
+                redshift_list_1[ix], test_list.redshift_list[ix + n_sed], 10
             )
 
         for ix, (name, norm, iav, gav, zz) in enumerate(
             zip(
-                sedNameList_0,
-                magNormList_0,
-                internalAvList_0,
-                galacticAvList_0,
-                redshiftList_0,
+                sed_name_list_0,
+                mag_norm_list_0,
+                internal_av_list_0,
+                galactic_av_list_0,
+                redshift_list_0,
             )
         ):
 
-            sedControl = Sed()
-            sedControl.readSED_flambda(os.path.join(self.sedDir, name + ".gz"))
+            sed_control = Sed()
+            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sedControl.calcFluxNorm(norm, imsimBand)
-            sedControl.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
+            sed_control.multiplyFluxNorm(fnorm)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=iav)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=iav)
 
-            sedControl.redshiftSED(zz, dimming=True)
-            sedControl.resampleSED(wavelen_match=wavelen_match)
+            sed_control.redshiftSED(zz, dimming=True)
+            sed_control.resampleSED(wavelen_match=wavelen_match)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
 
-            sedTest = testList[ix]
+            sed_test = test_list[ix]
 
-            np.testing.assert_array_equal(sedControl.wavelen, sedTest.wavelen)
-            np.testing.assert_array_equal(sedControl.flambda, sedTest.flambda)
-            np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+            np.testing.assert_array_equal(sed_control.wavelen, sed_test.wavelen)
+            np.testing.assert_array_equal(sed_control.flambda, sed_test.flambda)
+            np.testing.assert_array_equal(sed_control.fnu, sed_test.fnu)
 
         for ix, (name, norm, iav, gav, zz) in enumerate(
             zip(
-                sedNameList_1,
-                magNormList_1,
-                internalAvList_1,
-                galacticAvList_1,
-                redshiftList_1,
+                sed_name_list_1,
+                mag_norm_list_1,
+                internal_av_list_1,
+                galactic_av_list_1,
+                redshift_list_1,
             )
         ):
 
-            sedControl = Sed()
-            sedControl.readSED_flambda(os.path.join(self.sedDir, name + ".gz"))
+            sed_control = Sed()
+            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sedControl.calcFluxNorm(norm, imsimBand)
-            sedControl.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
+            sed_control.multiplyFluxNorm(fnorm)
 
             if iav is not None:
-                a_coeff, b_coeff = sedControl.setupCCM_ab()
-                sedControl.addDust(a_coeff, b_coeff, A_v=iav)
+                a_coeff, b_coeff = sed_control.setupCCM_ab()
+                sed_control.addDust(a_coeff, b_coeff, A_v=iav)
 
             if zz is not None:
-                sedControl.redshiftSED(zz, dimming=True)
+                sed_control.redshiftSED(zz, dimming=True)
 
-            sedControl.resampleSED(wavelen_match=wavelen_match)
+            sed_control.resampleSED(wavelen_match=wavelen_match)
 
             if gav is not None:
-                a_coeff, b_coeff = sedControl.setupCCM_ab()
-                sedControl.addDust(a_coeff, b_coeff, A_v=gav)
+                a_coeff, b_coeff = sed_control.setupCCM_ab()
+                sed_control.addDust(a_coeff, b_coeff, A_v=gav)
 
-            sedTest = testList[ix + nSed]
+            sed_test = test_list[ix + n_sed]
 
-            np.testing.assert_array_equal(sedControl.wavelen, sedTest.wavelen)
-            np.testing.assert_array_equal(sedControl.flambda, sedTest.flambda)
-            np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+            np.testing.assert_array_equal(sed_control.wavelen, sed_test.wavelen)
+            np.testing.assert_array_equal(sed_control.flambda, sed_test.flambda)
+            np.testing.assert_array_equal(sed_control.fnu, sed_test.fnu)
 
-    def testAlternateNormalizingBandpass(self):
+    def test_alternate_normalizing_bandpass(self):
         """
         A reiteration of testAddingToList, but testing with a non-imsimBandpass
         normalizing bandpass
         """
-        normalizingBand = Bandpass()
-        normalizingBand.readThroughput(
+        normalizing_band = Bandpass()
+        normalizing_band.read_throughput(
             os.path.join(get_data_dir(), "throughputs", "baseline", "total_r.dat")
         )
-        nSed = 10
-        sedNameList_0 = self.getListOfSedNames(nSed)
-        magNormList_0 = self.rng.random_sample(nSed) * 5.0 + 15.0
-        internalAvList_0 = self.rng.random_sample(nSed) * 0.3 + 0.1
-        redshiftList_0 = self.rng.random_sample(nSed) * 5.0
-        galacticAvList_0 = self.rng.random_sample(nSed) * 0.3 + 0.1
+        n_sed = 10
+        sed_name_list_0 = self.get_list_of_sed_names(n_sed)
+        mag_norm_list_0 = self.rng.random_sample(n_sed) * 5.0 + 15.0
+        internal_av_list_0 = self.rng.random_sample(n_sed) * 0.3 + 0.1
+        redshift_list_0 = self.rng.random_sample(n_sed) * 5.0
+        galactic_av_list_0 = self.rng.random_sample(n_sed) * 0.3 + 0.1
         wavelen_match = np.arange(300.0, 1500.0, 10.0)
-        testList = SedList(
-            sedNameList_0,
-            magNormList_0,
-            fileDir=self.sedDir,
-            normalizingBandpass=normalizingBand,
-            internalAvList=internalAvList_0,
-            redshiftList=redshiftList_0,
-            galacticAvList=galacticAvList_0,
-            wavelenMatch=wavelen_match,
+        test_list = SedList(
+            sed_name_list_0,
+            mag_norm_list_0,
+            file_dir=self.sed_dir,
+            normalizingBandpass=normalizing_band,
+            internal_av_list=internal_av_list_0,
+            redshift_list=redshift_list_0,
+            galactic_av_list=galactic_av_list_0,
+            wavelen_match=wavelen_match,
         )
 
-        sedNameList_1 = self.getListOfSedNames(nSed)
-        magNormList_1 = self.rng.random_sample(nSed) * 5.0 + 15.0
+        sed_name_list_1 = self.get_list_of_sed_names(n_sed)
+        mag_norm_list_1 = self.rng.random_sample(n_sed) * 5.0 + 15.0
 
-        internalAvList_1 = self.rng.random_sample(nSed) * 0.3 + 0.1
+        internal_av_list_1 = self.rng.random_sample(n_sed) * 0.3 + 0.1
 
-        redshiftList_1 = self.rng.random_sample(nSed) * 5.0
+        redshift_list_1 = self.rng.random_sample(n_sed) * 5.0
 
-        galacticAvList_1 = self.rng.random_sample(nSed) * 0.3 + 0.1
+        galactic_av_list_1 = self.rng.random_sample(n_sed) * 0.3 + 0.1
 
-        testList.loadSedsFromList(
-            sedNameList_1,
-            magNormList_1,
-            internalAvList=internalAvList_1,
-            galacticAvList=galacticAvList_1,
-            redshiftList=redshiftList_1,
+        test_list.loadSedsFromList(
+            sed_name_list_1,
+            mag_norm_list_1,
+            internal_av_list=internal_av_list_1,
+            galactic_av_list=galactic_av_list_1,
+            redshift_list=redshift_list_1,
         )
 
-        self.assertEqual(len(testList), 2 * nSed)
-        np.testing.assert_array_equal(wavelen_match, testList.wavelenMatch)
+        self.assertEqual(len(test_list), 2 * n_sed)
+        np.testing.assert_array_equal(wavelen_match, test_list.wavelen_match)
 
-        for ix in range(len(sedNameList_0)):
+        for ix in range(len(sed_name_list_0)):
             self.assertAlmostEqual(
-                internalAvList_0[ix], testList.internalAvList[ix], 10
+                internal_av_list_0[ix], test_list.internal_av_list[ix], 10
             )
             self.assertAlmostEqual(
-                galacticAvList_0[ix], testList.galacticAvList[ix], 10
+                galactic_av_list_0[ix], test_list.galactic_av_list[ix], 10
             )
-            self.assertAlmostEqual(redshiftList_0[ix], testList.redshiftList[ix], 10)
+            self.assertAlmostEqual(redshift_list_0[ix], test_list.redshift_list[ix], 10)
 
-        for ix in range(len(sedNameList_1)):
+        for ix in range(len(sed_name_list_1)):
             self.assertAlmostEqual(
-                internalAvList_1[ix], testList.internalAvList[ix + nSed], 10
+                internal_av_list_1[ix], test_list.internal_av_list[ix + n_sed], 10
             )
             self.assertAlmostEqual(
-                galacticAvList_1[ix], testList.galacticAvList[ix + nSed], 10
+                galactic_av_list_1[ix], test_list.galactic_av_list[ix + n_sed], 10
             )
             self.assertAlmostEqual(
-                redshiftList_1[ix], testList.redshiftList[ix + nSed], 10
+                redshift_list_1[ix], test_list.redshift_list[ix + n_sed], 10
             )
 
         for ix, (name, norm, iav, gav, zz) in enumerate(
             zip(
-                sedNameList_0,
-                magNormList_0,
-                internalAvList_0,
-                galacticAvList_0,
-                redshiftList_0,
+                sed_name_list_0,
+                mag_norm_list_0,
+                internal_av_list_0,
+                galactic_av_list_0,
+                redshift_list_0,
             )
         ):
 
-            sedControl = Sed()
-            sedControl.readSED_flambda(os.path.join(self.sedDir, name + ".gz"))
+            sed_control = Sed()
+            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sedControl.calcFluxNorm(norm, normalizingBand)
-            sedControl.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_fluxNorm(norm, normalizing_band)
+            sed_control.multiplyFluxNorm(fnorm)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=iav)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=iav)
 
-            sedControl.redshiftSED(zz, dimming=True)
-            sedControl.resampleSED(wavelen_match=wavelen_match)
+            sed_control.redshiftSED(zz, dimming=True)
+            sed_control.resampleSED(wavelen_match=wavelen_match)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
 
-            sedTest = testList[ix]
+            sed_test = test_list[ix]
 
-            np.testing.assert_array_equal(sedControl.wavelen, sedTest.wavelen)
-            np.testing.assert_array_equal(sedControl.flambda, sedTest.flambda)
-            np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+            np.testing.assert_array_equal(sed_control.wavelen, sed_test.wavelen)
+            np.testing.assert_array_equal(sed_control.flambda, sed_test.flambda)
+            np.testing.assert_array_equal(sed_control.fnu, sed_test.fnu)
 
         for ix, (name, norm, iav, gav, zz) in enumerate(
             zip(
-                sedNameList_1,
-                magNormList_1,
-                internalAvList_1,
-                galacticAvList_1,
-                redshiftList_1,
+                sed_name_list_1,
+                mag_norm_list_1,
+                internal_av_list_1,
+                galactic_av_list_1,
+                redshift_list_1,
             )
         ):
 
-            sedControl = Sed()
-            sedControl.readSED_flambda(os.path.join(self.sedDir, name + ".gz"))
+            sed_control = Sed()
+            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sedControl.calcFluxNorm(norm, normalizingBand)
-            sedControl.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_fluxNorm(norm, normalizing_band)
+            sed_control.multiplyFluxNorm(fnorm)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=iav)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=iav)
 
-            sedControl.redshiftSED(zz, dimming=True)
+            sed_control.redshiftSED(zz, dimming=True)
 
-            sedControl.resampleSED(wavelen_match=wavelen_match)
+            sed_control.resampleSED(wavelen_match=wavelen_match)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
 
-            sedTest = testList[ix + nSed]
+            sed_test = test_list[ix + n_sed]
 
-            np.testing.assert_array_equal(sedControl.wavelen, sedTest.wavelen)
-            np.testing.assert_array_equal(sedControl.flambda, sedTest.flambda)
-            np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+            np.testing.assert_array_equal(sed_control.wavelen, sed_test.wavelen)
+            np.testing.assert_array_equal(sed_control.flambda, sed_test.flambda)
+            np.testing.assert_array_equal(sed_control.fnu, sed_test.fnu)
 
-    def testFlush(self):
+    def test_flush(self):
         """
         Test that the flush method of SedList behaves properly
         """
-        imsimBand = Bandpass()
-        imsimBand.imsimBandpass()
-        nSed = 10
-        sedNameList_0 = self.getListOfSedNames(nSed)
-        magNormList_0 = self.rng.random_sample(nSed) * 5.0 + 15.0
-        internalAvList_0 = self.rng.random_sample(nSed) * 0.3 + 0.1
-        redshiftList_0 = self.rng.random_sample(nSed) * 5.0
-        galacticAvList_0 = self.rng.random_sample(nSed) * 0.3 + 0.1
+        imsim_band = Bandpass()
+        imsim_band.imsimBandpass()
+        n_sed = 10
+        sed_name_list_0 = self.get_list_of_sed_names(n_sed)
+        mag_norm_list_0 = self.rng.random_sample(n_sed) * 5.0 + 15.0
+        internal_av_list_0 = self.rng.random_sample(n_sed) * 0.3 + 0.1
+        redshift_list_0 = self.rng.random_sample(n_sed) * 5.0
+        galactic_av_list_0 = self.rng.random_sample(n_sed) * 0.3 + 0.1
         wavelen_match = np.arange(300.0, 1500.0, 10.0)
-        testList = SedList(
-            sedNameList_0,
-            magNormList_0,
-            fileDir=self.sedDir,
-            internalAvList=internalAvList_0,
-            redshiftList=redshiftList_0,
-            galacticAvList=galacticAvList_0,
-            wavelenMatch=wavelen_match,
+        test_list = SedList(
+            sed_name_list_0,
+            mag_norm_list_0,
+            file_dir=self.sed_dir,
+            internal_av_list=internal_av_list_0,
+            redshift_list=redshift_list_0,
+            galactic_av_list=galactic_av_list_0,
+            wavelen_match=wavelen_match,
         )
 
-        self.assertEqual(len(testList), nSed)
-        np.testing.assert_array_equal(wavelen_match, testList.wavelenMatch)
+        self.assertEqual(len(test_list), n_sed)
+        np.testing.assert_array_equal(wavelen_match, test_list.wavelen_match)
 
-        for ix in range(len(sedNameList_0)):
+        for ix in range(len(sed_name_list_0)):
             self.assertAlmostEqual(
-                internalAvList_0[ix], testList.internalAvList[ix], 10
+                internal_av_list_0[ix], test_list.internal_av_list[ix], 10
             )
             self.assertAlmostEqual(
-                galacticAvList_0[ix], testList.galacticAvList[ix], 10
+                galactic_av_list_0[ix], test_list.galactic_av_list[ix], 10
             )
-            self.assertAlmostEqual(redshiftList_0[ix], testList.redshiftList[ix], 10)
+            self.assertAlmostEqual(redshift_list_0[ix], test_list.redshift_list[ix], 10)
 
         for ix, (name, norm, iav, gav, zz) in enumerate(
             zip(
-                sedNameList_0,
-                magNormList_0,
-                internalAvList_0,
-                galacticAvList_0,
-                redshiftList_0,
+                sed_name_list_0,
+                mag_norm_list_0,
+                internal_av_list_0,
+                galactic_av_list_0,
+                redshift_list_0,
             )
         ):
 
-            sedControl = Sed()
-            sedControl.readSED_flambda(os.path.join(self.sedDir, name + ".gz"))
+            sed_control = Sed()
+            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sedControl.calcFluxNorm(norm, imsimBand)
-            sedControl.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
+            sed_control.multiplyFluxNorm(fnorm)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=iav)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=iav)
 
-            sedControl.redshiftSED(zz, dimming=True)
-            sedControl.resampleSED(wavelen_match=wavelen_match)
+            sed_control.redshiftSED(zz, dimming=True)
+            sed_control.resampleSED(wavelen_match=wavelen_match)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
 
-            sedTest = testList[ix]
+            sed_test = test_list[ix]
 
-            np.testing.assert_array_equal(sedControl.wavelen, sedTest.wavelen)
-            np.testing.assert_array_equal(sedControl.flambda, sedTest.flambda)
-            np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+            np.testing.assert_array_equal(sed_control.wavelen, sed_test.wavelen)
+            np.testing.assert_array_equal(sed_control.flambda, sed_test.flambda)
+            np.testing.assert_array_equal(sed_control.fnu, sed_test.fnu)
 
-        testList.flush()
+        test_list.flush()
 
-        sedNameList_1 = self.getListOfSedNames(nSed // 2)
-        magNormList_1 = self.rng.random_sample(nSed // 2) * 5.0 + 15.0
-        internalAvList_1 = self.rng.random_sample(nSed // 2) * 0.3 + 0.1
-        redshiftList_1 = self.rng.random_sample(nSed // 2) * 5.0
-        galacticAvList_1 = self.rng.random_sample(nSed // 2) * 0.3 + 0.1
+        sed_name_list_1 = self.get_list_of_sed_names(n_sed // 2)
+        mag_norm_list_1 = self.rng.random_sample(n_sed // 2) * 5.0 + 15.0
+        internal_av_list_1 = self.rng.random_sample(n_sed // 2) * 0.3 + 0.1
+        redshift_list_1 = self.rng.random_sample(n_sed // 2) * 5.0
+        galactic_av_list_1 = self.rng.random_sample(n_sed // 2) * 0.3 + 0.1
 
-        testList.loadSedsFromList(
-            sedNameList_1,
-            magNormList_1,
-            internalAvList=internalAvList_1,
-            galacticAvList=galacticAvList_1,
-            redshiftList=redshiftList_1,
+        test_list.loadSedsFromList(
+            sed_name_list_1,
+            mag_norm_list_1,
+            internal_av_list=internal_av_list_1,
+            galactic_av_list=galactic_av_list_1,
+            redshift_list=redshift_list_1,
         )
 
-        self.assertEqual(len(testList), nSed / 2)
-        self.assertEqual(len(testList.redshiftList), nSed / 2)
-        self.assertEqual(len(testList.internalAvList), nSed / 2)
-        self.assertEqual(len(testList.galacticAvList), nSed / 2)
-        np.testing.assert_array_equal(wavelen_match, testList.wavelenMatch)
+        self.assertEqual(len(test_list), n_sed / 2)
+        self.assertEqual(len(test_list.redshift_list), n_sed / 2)
+        self.assertEqual(len(test_list.internal_av_list), n_sed / 2)
+        self.assertEqual(len(test_list.galactic_av_list), n_sed / 2)
+        np.testing.assert_array_equal(wavelen_match, test_list.wavelen_match)
 
-        for ix in range(len(sedNameList_1)):
+        for ix in range(len(sed_name_list_1)):
             self.assertAlmostEqual(
-                internalAvList_1[ix], testList.internalAvList[ix], 10
+                internal_av_list_1[ix], test_list.internal_av_list[ix], 10
             )
             self.assertAlmostEqual(
-                galacticAvList_1[ix], testList.galacticAvList[ix], 10
+                galactic_av_list_1[ix], test_list.galactic_av_list[ix], 10
             )
-            self.assertAlmostEqual(redshiftList_1[ix], testList.redshiftList[ix], 10)
+            self.assertAlmostEqual(redshift_list_1[ix], test_list.redshift_list[ix], 10)
 
         for ix, (name, norm, iav, gav, zz) in enumerate(
             zip(
-                sedNameList_1,
-                magNormList_1,
-                internalAvList_1,
-                galacticAvList_1,
-                redshiftList_1,
+                sed_name_list_1,
+                mag_norm_list_1,
+                internal_av_list_1,
+                galactic_av_list_1,
+                redshift_list_1,
             )
         ):
 
-            sedControl = Sed()
-            sedControl.readSED_flambda(os.path.join(self.sedDir, name + ".gz"))
+            sed_control = Sed()
+            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sedControl.calcFluxNorm(norm, imsimBand)
-            sedControl.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
+            sed_control.multiplyFluxNorm(fnorm)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=iav)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=iav)
 
-            sedControl.redshiftSED(zz, dimming=True)
-            sedControl.resampleSED(wavelen_match=wavelen_match)
+            sed_control.redshiftSED(zz, dimming=True)
+            sed_control.resampleSED(wavelen_match=wavelen_match)
 
-            a_coeff, b_coeff = sedControl.setupCCM_ab()
-            sedControl.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setupCCM_ab()
+            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
 
-            sedTest = testList[ix]
+            sed_test = test_list[ix]
 
-            np.testing.assert_array_equal(sedControl.wavelen, sedTest.wavelen)
-            np.testing.assert_array_equal(sedControl.flambda, sedTest.flambda)
-            np.testing.assert_array_equal(sedControl.fnu, sedTest.fnu)
+            np.testing.assert_array_equal(sed_control.wavelen, sed_test.wavelen)
+            np.testing.assert_array_equal(sed_control.flambda, sed_test.flambda)
+            np.testing.assert_array_equal(sed_control.fnu, sed_test.fnu)
 
 
 if __name__ == "__main__":
