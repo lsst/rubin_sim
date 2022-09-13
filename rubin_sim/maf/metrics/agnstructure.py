@@ -3,7 +3,7 @@ from astropy.stats import mad_std
 from .base_metric import BaseMetric
 from rubin_sim.maf.utils import m52snr
 import warnings
-from rubin_sim.phot_utils import Dust_values
+from rubin_sim.phot_utils import DustValues
 
 
 __all__ = ["SFUncertMetric"]
@@ -73,7 +73,7 @@ class SFUncertMetric(BaseMetric):
             maps=maps,
             **kwargs
         )
-        dust_properties = Dust_values()
+        dust_properties = DustValues()
         self.Ax1 = dust_properties.Ax1
 
     def run(self, dataSlice, slicePoint=None):

@@ -2,7 +2,7 @@ import warnings
 import numpy as np
 
 from rubin_sim.maf.maps import BaseMap
-from rubin_sim.phot_utils import Dust_values
+from rubin_sim.phot_utils import DustValues
 from .ebv_3d_hp import ebv_3d_hp, get_x_at_nearest_y
 
 __all__ = ["DustMap3D"]
@@ -35,7 +35,7 @@ class DustMap3D(BaseMap):
         Should returned values be interpolated (True) or just nearest neighbor (False).
         Default True, but is ignored if 'pixels' is provided.
     filtername : 'str', opt
-        Name of the filter (to match the lsst filter names in rubin_sim.photUtils.Dust_values)
+        Name of the filter (to match the lsst filter names in rubin_sim.photUtils.DustValues)
         in which to calculate dust extinction magnitudes
     distPc : `float`, opt
         Distance at which to precalculate the nearest ebv value
@@ -44,7 +44,7 @@ class DustMap3D(BaseMap):
         dMag == m-mO (dust extinction + distance modulus)
     R_x : `dict` {`str`: `float`}, opt
         Per-filter dust extinction curve coefficients.
-        Calculated by rubin_sim.photUtils.Dust_values if "None".
+        Calculated by rubin_sim.photUtils.DustValues if "None".
     """
 
     def __init__(
@@ -65,10 +65,10 @@ class DustMap3D(BaseMap):
         self.dMag = dMag
         # R_x is the extinction coefficient (A_v = R_v * E(B-V) .. A_x = R_x * E(B-V)) per filter
         # This is equivalent to calculating A_x (using rubin_sim.photUtils.Sed.addDust) in each
-        # filter and setting E(B-V) to 1 [so similar to the values calculated in Dust_values ..
+        # filter and setting E(B-V) to 1 [so similar to the values calculated in DustValues ..
         # we probably should rename those (from Ax1 to R_x)
         if R_x is None:
-            self.R_x = Dust_values().R_x.copy()
+            self.R_x = DustValues().R_x.copy()
         else:
             self.R_x = R_x
         # The values that will be added to the slicepoints
