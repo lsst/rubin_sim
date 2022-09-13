@@ -11,7 +11,7 @@ from rubin_sim.phot_utils import (
 
 
 class PhotometricParametersUnitTest(unittest.TestCase):
-    def testInit(self):
+    def test_init(self):
         """
         Test that the init and getters of PhotometricParameters work
         properly
@@ -32,21 +32,21 @@ class PhotometricParametersUnitTest(unittest.TestCase):
         for attribute in params:
             kwargs = {}
             kwargs[attribute] = -100.0
-            testCase = PhotometricParameters(**kwargs)
+            test_case = PhotometricParameters(**kwargs)
 
             for pp in params:
                 if pp != attribute:
                     self.assertEqual(
-                        defaults.__getattribute__(pp), testCase.__getattribute__(pp)
+                        defaults.__getattribute__(pp), test_case.__getattribute__(pp)
                     )
                 else:
                     self.assertNotEqual(
-                        defaults.__getattribute__(pp), testCase.__getattribute__(pp)
+                        defaults.__getattribute__(pp), test_case.__getattribute__(pp)
                     )
 
-                    self.assertEqual(testCase.__getattribute__(pp), -100.0)
+                    self.assertEqual(test_case.__getattribute__(pp), -100.0)
 
-    def testExceptions(self):
+    def test_exceptions(self):
         """
         Test that exceptions get raised when they ought to by the
         PhotometricParameters constructor
@@ -56,7 +56,7 @@ class PhotometricParametersUnitTest(unittest.TestCase):
         error messages correctly point out which parameters were ignored.
         """
 
-        expectedMessage = {
+        expected_message = {
             "exptime": "did not set exptime",
             "nexp": "did not set nexp",
             "effarea": "did not set effarea",
@@ -71,173 +71,175 @@ class PhotometricParametersUnitTest(unittest.TestCase):
         with self.assertRaises(RuntimeError) as context:
             PhotometricParameters(bandpass="x")
 
-        for name in expectedMessage:
-            self.assertIn(expectedMessage[name], context.exception.args[0])
+        for name in expected_message:
+            self.assertIn(expected_message[name], context.exception.args[0])
 
-        for name1 in expectedMessage:
-            for name2 in expectedMessage:
-                setParameters = {name1: 2.0, name2: 2.0}
+        for name1 in expected_message:
+            for name2 in expected_message:
+                set_parameters = {name1: 2.0, name2: 2.0}
                 with self.assertRaises(RuntimeError) as context:
-                    PhotometricParameters(bandpass="x", **setParameters)
+                    PhotometricParameters(bandpass="x", **set_parameters)
 
-                for name3 in expectedMessage:
-                    if name3 not in setParameters:
-                        self.assertIn(expectedMessage[name3], context.exception.args[0])
+                for name3 in expected_message:
+                    if name3 not in set_parameters:
+                        self.assertIn(
+                            expected_message[name3], context.exception.args[0]
+                        )
                     else:
                         self.assertNotIn(
-                            expectedMessage[name3], context.exception.args[0]
+                            expected_message[name3], context.exception.args[0]
                         )
 
-    def testDefaults(self):
+    def test_defaults(self):
         """
         Test that PhotometricParameters are correctly assigned to defaults
         """
-        bandpassNames = ["u", "g", "r", "i", "z", "y", None]
-        for bp in bandpassNames:
-            photParams = PhotometricParameters(bandpass=bp)
-            self.assertEqual(photParams.bandpass, bp)
-            self.assertAlmostEqual(photParams.exptime, 15.0, 7)
-            self.assertAlmostEqual(photParams.nexp, 2, 7)
+        bandpass_names = ["u", "g", "r", "i", "z", "y", None]
+        for bp in bandpass_names:
+            phot_params = PhotometricParameters(bandpass=bp)
+            self.assertEqual(phot_params.bandpass, bp)
+            self.assertAlmostEqual(phot_params.exptime, 15.0, 7)
+            self.assertAlmostEqual(phot_params.nexp, 2, 7)
             self.assertAlmostEqual(
-                photParams.effarea / (np.pi * (6.423 * 100 / 2.0) ** 2), 1.0, 7
+                phot_params.effarea / (np.pi * (6.423 * 100 / 2.0) ** 2), 1.0, 7
             )
-            self.assertAlmostEqual(photParams.gain, 2.3, 7)
-            self.assertAlmostEqual(photParams.darkcurrent, 0.2, 7)
-            self.assertAlmostEqual(photParams.readnoise, 8.8, 7)
-            self.assertAlmostEqual(photParams.othernoise, 0, 7)
-            self.assertAlmostEqual(photParams.platescale, 0.2, 7)
+            self.assertAlmostEqual(phot_params.gain, 2.3, 7)
+            self.assertAlmostEqual(phot_params.darkcurrent, 0.2, 7)
+            self.assertAlmostEqual(phot_params.readnoise, 8.8, 7)
+            self.assertAlmostEqual(phot_params.othernoise, 0, 7)
+            self.assertAlmostEqual(phot_params.platescale, 0.2, 7)
             if bp not in ["u", "z", "y"]:
-                self.assertAlmostEqual(photParams.sigmaSys, 0.005, 7)
+                self.assertAlmostEqual(phot_params.sigmaSys, 0.005, 7)
             else:
-                self.assertAlmostEqual(photParams.sigmaSys, 0.0075, 7)
+                self.assertAlmostEqual(phot_params.sigmaSys, 0.0075, 7)
 
-    def testNoBandpass(self):
+    def test_no_bandpass(self):
         """
         Test that if no bandpass is set, bandpass stays 'None' even after all other
         parameters are assigned.
         """
-        photParams = PhotometricParameters()
-        self.assertEqual(photParams.bandpass, None)
-        self.assertAlmostEqual(photParams.exptime, 15.0, 7)
-        self.assertAlmostEqual(photParams.nexp, 2, 7)
+        phot_params = PhotometricParameters()
+        self.assertEqual(phot_params.bandpass, None)
+        self.assertAlmostEqual(phot_params.exptime, 15.0, 7)
+        self.assertAlmostEqual(phot_params.nexp, 2, 7)
         self.assertAlmostEqual(
-            photParams.effarea / (np.pi * (6.423 * 100 / 2.0) ** 2), 1.0, 7
+            phot_params.effarea / (np.pi * (6.423 * 100 / 2.0) ** 2), 1.0, 7
         )
-        self.assertAlmostEqual(photParams.gain, 2.3, 7)
-        self.assertAlmostEqual(photParams.darkcurrent, 0.2, 7)
-        self.assertAlmostEqual(photParams.readnoise, 8.8, 7)
-        self.assertAlmostEqual(photParams.othernoise, 0, 7)
-        self.assertAlmostEqual(photParams.platescale, 0.2, 7)
-        self.assertAlmostEqual(photParams.sigmaSys, 0.005, 7)
+        self.assertAlmostEqual(phot_params.gain, 2.3, 7)
+        self.assertAlmostEqual(phot_params.darkcurrent, 0.2, 7)
+        self.assertAlmostEqual(phot_params.readnoise, 8.8, 7)
+        self.assertAlmostEqual(phot_params.othernoise, 0, 7)
+        self.assertAlmostEqual(phot_params.platescale, 0.2, 7)
+        self.assertAlmostEqual(phot_params.sigmaSys, 0.005, 7)
 
-    def testAssignment(self):
+    def test_assignment(self):
         """
         Test that it is impossible to set PhotometricParameters on the fly
         """
-        testCase = PhotometricParameters()
-        controlCase = PhotometricParameters()
+        test_case = PhotometricParameters()
+        control_case = PhotometricParameters()
         success = 0
 
         msg = ""
         try:
-            testCase.exptime = -1.0
+            test_case.exptime = -1.0
             success += 1
             msg += "was able to assign exptime; "
         except:
-            self.assertEqual(testCase.exptime, controlCase.exptime)
+            self.assertEqual(test_case.exptime, control_case.exptime)
 
         try:
-            testCase.nexp = -1.0
+            test_case.nexp = -1.0
             success += 1
             msg += "was able to assign nexp; "
         except:
-            self.assertEqual(testCase.nexp, controlCase.nexp)
+            self.assertEqual(test_case.nexp, control_case.nexp)
 
         try:
-            testCase.effarea = -1.0
+            test_case.effarea = -1.0
             success += 1
             msg += "was able to assign effarea; "
         except:
-            self.assertEqual(testCase.effarea, controlCase.effarea)
+            self.assertEqual(test_case.effarea, control_case.effarea)
 
         try:
-            testCase.gain = -1.0
+            test_case.gain = -1.0
             success += 1
             msg += "was able to assign gain; "
         except:
-            self.assertEqual(testCase.gain, controlCase.gain)
+            self.assertEqual(test_case.gain, control_case.gain)
 
         try:
-            testCase.readnoise = -1.0
+            test_case.readnoise = -1.0
             success += 1
             msg += "was able to assign readnoise; "
         except:
-            self.assertEqual(testCase.readnoise, controlCase.readnoise)
+            self.assertEqual(test_case.readnoise, control_case.readnoise)
 
         try:
-            testCase.darkcurrent = -1.0
+            test_case.darkcurrent = -1.0
             success += 1
             msg += "was able to assign darkcurrent; "
         except:
-            self.assertEqual(testCase.darkcurrent, controlCase.darkcurrent)
+            self.assertEqual(test_case.darkcurrent, control_case.darkcurrent)
 
         try:
-            testCase.othernoise = -1.0
+            test_case.othernoise = -1.0
             success += 1
             msg += "was able to assign othernoise; "
         except:
-            self.assertEqual(testCase.othernoise, controlCase.othernoise)
+            self.assertEqual(test_case.othernoise, control_case.othernoise)
 
         try:
-            testCase.platescale = -1.0
+            test_case.platescale = -1.0
             success += 1
             msg += "was able to assign platescale; "
         except:
-            self.assertEqual(testCase.platescale, controlCase.platescale)
+            self.assertEqual(test_case.platescale, control_case.platescale)
 
         try:
-            testCase.sigmaSys = -1.0
+            test_case.sigmaSys = -1.0
             success += 1
             msg += "was able to assign sigmaSys; "
         except:
-            self.assertEqual(testCase.sigmaSys, controlCase.sigmaSys)
+            self.assertEqual(test_case.sigmaSys, control_case.sigmaSys)
 
         try:
-            testCase.bandpass = "z"
+            test_case.bandpass = "z"
             success += 1
             msg += "was able to assign bandpass; "
         except:
-            self.assertEqual(testCase.bandpass, controlCase.bandpass)
+            self.assertEqual(test_case.bandpass, control_case.bandpass)
 
         self.assertEqual(success, 0, msg=msg)
 
-    def testApplication(self):
+    def test_application(self):
         """
         Test that PhotometricParameters get properly propagated into
         Sed methods.  We will test this using Sed.calcADU, since the ADU
         scale linearly with the appropriate parameter.
         """
 
-        testSed = Sed()
-        testSed.setFlatSED()
+        test_sed = Sed()
+        test_sed.setFlatSED()
 
-        testBandpass = Bandpass()
-        testBandpass.readThroughput(
+        test_bandpass = Bandpass()
+        test_bandpass.read_throughput(
             os.path.join(get_data_dir(), "throughputs", "baseline", "total_g.dat")
         )
 
-        control = testSed.calcADU(testBandpass, photParams=PhotometricParameters())
+        control = test_sed.calcADU(test_bandpass, photParams=PhotometricParameters())
 
-        testCase = PhotometricParameters(exptime=30.0)
+        test_case = PhotometricParameters(exptime=30.0)
 
-        test = testSed.calcADU(testBandpass, photParams=testCase)
+        test = test_sed.calcADU(test_bandpass, photParams=test_case)
 
         self.assertGreater(control, 0.0)
         self.assertEqual(control, 0.5 * test)
 
 
 class PhysicalParametersUnitTest(unittest.TestCase):
-    def testAssignment(self):
+    def test_assignment(self):
         """
         Make sure it is impossible to change the values stored in
         PhysicalParameters

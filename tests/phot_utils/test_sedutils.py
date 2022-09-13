@@ -7,7 +7,7 @@ class ImSimNormTestCase(unittest.TestCase):
     def test_norm(self):
         """
         Test that the special test case getImsimFluxNorm
-        returns the same value as calling calcFluxNorm actually
+        returns the same value as calling calc_fluxNorm actually
         passing in the imsim Bandpass
         """
 
@@ -23,7 +23,7 @@ class ImSimNormTestCase(unittest.TestCase):
             sed.setSED(wavelen=wavelen, flambda=flux)
             magmatch = rng.random_sample() * 5.0 + 10.0
 
-            control = sed.calcFluxNorm(magmatch, bp)
+            control = sed.calc_fluxNorm(magmatch, bp)
             test = getImsimFluxNorm(sed, magmatch)
 
             # something about how interpolation is done in Sed means

@@ -1,7 +1,7 @@
 import os
 import copy
 from .sed import Sed
-from rubin_sim.phot_utils import getImsimFluxNorm
+from rubin_sim.phot_utils import get_imsim_flux_norm
 
 __all__ = ["SedList"]
 
@@ -18,73 +18,73 @@ class SedList(object):
     etc.), it will refer back to its own memory, rather than reading the
     file from disk a second time.
 
-    The method loadSedsFromList allows the user to add Seds to the list
+    The method load_seds_from_list allows the user to add Seds to the list
     after the constructor has been called.
     """
 
     def __init__(
         self,
-        sedNameList,
-        magNormList,
-        normalizingBandpass=None,
-        specMap=None,
-        fileDir="",
-        wavelenMatch=None,
-        redshiftList=None,
-        galacticAvList=None,
-        internalAvList=None,
-        cosmologicalDimming=True,
+        sed_name_list,
+        mag_norm_list,
+        normalizing_bandpass=None,
+        spec_map=None,
+        file_dir="",
+        wavelen_match=None,
+        redshift_list=None,
+        galactic_av_list=None,
+        internal_av_list=None,
+        cosmological_dimming=True,
     ):
 
         """
-        @param [in] sedNameList is a list of SED file names.
+        @param [in] sed_name_list is a list of SED file names.
 
-        @param [in] magNormList is a list of magnitude normalizations
-        (in the normalizingBandpass) for each of the Seds.
+        @param [in] mag_norm_list is a list of magnitude normalizations
+        (in the normalizing_bandpass) for each of the Seds.
 
-        @param[in] normalizingBandpass is an instantiation of the Bandpass
-        class defining the bandpass in which the magNorms from magNormList
-        are calculated.  This defaults to the Bandpass().imsimBandpass(),
+        @param[in] normalizing_bandpass is an instantiation of the Bandpass
+        class defining the bandpass in which the magNorms from mag_norm_list
+        are calculated.  This defaults to the Bandpass().imsim_bandpass(),
         which is essentially a delta function at 500 nm.
 
-        @param [in] fileDir is the base directory where the Sed files are stored
+        @param [in] file_dir is the base directory where the Sed files are stored
         (defaults to current working directory).
 
-        @param [in] specMap is a specMap (defined in sims_utils/../fileMaps.py)
-        that maps the names in sedNameList to paths of the files relative to
-        fileDir (defaults to None; a defaultSpecMap targeted at
+        @param [in] spec_map is a spec_map (defined in sims_utils/../fileMaps.py)
+        that maps the names in sed_name_list to paths of the files relative to
+        file_dir (defaults to None; a defaultSpecMap targeted at
         sims_sed_library is defined in sims_utils)
 
-        @param [in] wavelenMatch is an optional numpy array representing
+        @param [in] wavelen_match is an optional numpy array representing
         the wavelength grid to which all Seds will be re-mapped.
 
-        @param [in] redshiftList is an optional list of redshifts for the Sed
+        @param [in] redshift_list is an optional list of redshifts for the Sed
 
-        @param [in] internalAvList is an optional list of A(V) due to internal
+        @param [in] internal_av_list is an optional list of A(V) due to internal
         dust (for spectra of galaxies).
 
-        @param [in] galacticAvList is an optional list of A(V) due to
+        @param [in] galactic_av_list is an optional list of A(V) due to
         Milky Way Dust.
 
-        @param [in] cosmologicalDimming is a `bool` indicating whether cosmological
+        @param [in] cosmological_dimming is a `bool` indicating whether cosmological
         dimming (the extray (1+z)^-1 factor in flux) should be applied to spectra
         when they are redshifted (defaults to True)
 
-        Note: once wavelenMatch and cosmologicalDimming have been set in
+        Note: once wavelen_match and cosmological_dimming have been set in
         the constructor, they cannot be un-set.
 
-        Similarly: if you construct a SedList without a galacticAvList,
-        internalAvList, or redshiftList, you cannot later add spectra with
+        Similarly: if you construct a SedList without a galactic_av_list,
+        internal_av_list, or redshift_list, you cannot later add spectra with
         whichever of those features were left out.
         """
 
         self._initialized = False
-        self._spec_map = specMap
-        self._wavelen_match = copy.deepcopy(wavelenMatch)
-        self._file_dir = fileDir
-        self._cosmological_dimming = cosmologicalDimming
+        self._spec_map = spec_map
+        self._wavelen_match = copy.deepcopy(wavelen_match)
+        self._file_dir = file_dir
+        self._cosmological_dimming = cosmological_dimming
 
-        self._normalizing_bandpass = normalizingBandpass
+        self._normalizing_bandpass = normalizing_bandpass
 
         self._sed_list = []
         self._redshift_list = None
@@ -99,12 +99,12 @@ class SedList(object):
         self._b_gal = None
         self._av_gal_wavelen = None
 
-        self.loadSedsFromList(
-            sedNameList,
-            magNormList,
-            internalAvList=internalAvList,
-            galacticAvList=galacticAvList,
-            redshiftList=redshiftList,
+        self.load_seds_from_list(
+            sed_name_list,
+            mag_norm_list,
+            internal_av_list=internal_av_list,
+            galactic_av_list=galactic_av_list,
+            redshift_list=redshift_list,
         )
 
     def __len__(self):
@@ -118,121 +118,121 @@ class SedList(object):
             yield val
 
     # Handy routines for handling Sed/Bandpass routines with sets of dictionaries.
-    def loadSedsFromList(
+    def load_seds_from_list(
         self,
-        sedNameList,
-        magNormList,
-        internalAvList=None,
-        galacticAvList=None,
-        redshiftList=None,
+        sed_name_list,
+        mag_norm_list,
+        internal_av_list=None,
+        galactic_av_list=None,
+        redshift_list=None,
     ):
         """
-        Load the Seds specified by sedNameList, applying the specified normalization,
+        Load the Seds specified by sed_name_list, applying the specified normalization,
         extinction, and redshift.
 
         @param [in] sedList is a list of file names containing Seds
 
         @param [in] magNorm is the magnitude normalization
 
-        @param [in] internalAvList is an optional list of A(V) due to internal
+        @param [in] internal_av_list is an optional list of A(V) due to internal
         dust
 
-        @param [in] galacticAvList is an optional list of A(V) due to
+        @param [in] galactic_av_list is an optional list of A(V) due to
         Milky Way dust
 
-        @param [in] redshiftList is an optional list of redshifts for the
+        @param [in] redshift_list is an optional list of redshifts for the
         input Sed
 
         Seds are read in and stored to this object's internal list of Seds.
 
-        Note: if you constructed this SedList object without internalAvList,
-        you cannot load Seds with internalAvList now.  Likewise for galacticAvlist
-        and redshiftList.
+        Note: if you constructed this SedList object without internal_av_list,
+        you cannot load Seds with internal_av_list now.  Likewise for galacticAvlist
+        and redshift_list.
         """
 
         if not self._initialized:
-            if internalAvList is not None:
-                self._internal_av_list = copy.deepcopy(list(internalAvList))
+            if internal_av_list is not None:
+                self._internal_av_list = copy.deepcopy(list(internal_av_list))
             else:
                 self._internal_av_list = None
 
-            if galacticAvList is not None:
-                self._galactic_av_list = copy.deepcopy(list(galacticAvList))
+            if galactic_av_list is not None:
+                self._galactic_av_list = copy.deepcopy(list(galactic_av_list))
             else:
                 self._galactic_av_list = None
 
-            if redshiftList is not None:
-                self._redshift_list = copy.deepcopy(list(redshiftList))
+            if redshift_list is not None:
+                self._redshift_list = copy.deepcopy(list(redshift_list))
             else:
                 self._redshift_list = None
 
         else:
-            if self._internal_av_list is None and internalAvList is not None:
-                raise RuntimeError("This SedList does not contain internalAvList")
+            if self._internal_av_list is None and internal_av_list is not None:
+                raise RuntimeError("This SedList does not contain internal_av_list")
             elif self._internal_av_list is not None:
-                if internalAvList is None:
-                    self._internal_av_list += [None] * len(sedNameList)
+                if internal_av_list is None:
+                    self._internal_av_list += [None] * len(sed_name_list)
                 else:
-                    self._internal_av_list += list(internalAvList)
+                    self._internal_av_list += list(internal_av_list)
 
-            if self._galactic_av_list is None and galacticAvList is not None:
-                raise RuntimeError("This SedList does not contain galacticAvList")
+            if self._galactic_av_list is None and galactic_av_list is not None:
+                raise RuntimeError("This SedList does not contain galactic_av_list")
             elif self._galactic_av_list is not None:
-                if galacticAvList is None:
-                    self._galactic_av_list += [None] * len(sedNameList)
+                if galactic_av_list is None:
+                    self._galactic_av_list += [None] * len(sed_name_list)
                 else:
-                    self._galactic_av_list += list(galacticAvList)
+                    self._galactic_av_list += list(galactic_av_list)
 
-            if self._redshift_list is None and redshiftList is not None:
-                raise RuntimeError("This SedList does not contain redshiftList")
+            if self._redshift_list is None and redshift_list is not None:
+                raise RuntimeError("This SedList does not contain redshift_list")
             elif self._redshift_list is not None:
-                if redshiftList is None:
-                    self._redshift_list += [None] * len(sedNameList)
+                if redshift_list is None:
+                    self._redshift_list += [None] * len(sed_name_list)
                 else:
-                    self._redshift_list += list(redshiftList)
+                    self._redshift_list += list(redshift_list)
 
         temp_sed_list = []
-        for sedName, magNorm in zip(sedNameList, magNormList):
+        for sed_name, magNorm in zip(sed_name_list, mag_norm_list):
             sed = Sed()
 
-            if sedName != "None":
+            if sed_name != "None":
                 if self._spec_map is not None:
-                    sed.readSED_flambda(
-                        os.path.join(self._file_dir, self._spec_map[sedName])
+                    sed.read_sed_flambda(
+                        os.path.join(self._file_dir, self._spec_map[sed_name])
                     )
                 else:
-                    sed.readSED_flambda(os.path.join(self._file_dir, sedName))
+                    sed.read_sed_flambda(os.path.join(self._file_dir, sed_name))
 
                 if self._normalizing_bandpass is not None:
-                    fNorm = sed.calcFluxNorm(magNorm, self._normalizing_bandpass)
+                    f_norm = sed.calc_flux_norm(magNorm, self._normalizing_bandpass)
                 else:
-                    fNorm = getImsimFluxNorm(sed, magNorm)
+                    f_norm = get_imsim_flux_norm(sed, magNorm)
 
-                sed.multiplyFluxNorm(fNorm)
+                sed.multiply_flux_norm(f_norm)
 
             temp_sed_list.append(sed)
 
-        if internalAvList is not None:
-            self._av_int_wavelen, self._a_int, self._b_int = self.applyAv(
+        if internal_av_list is not None:
+            self._av_int_wavelen, self._a_int, self._b_int = self.apply_av(
                 temp_sed_list,
-                internalAvList,
+                internal_av_list,
                 self._av_int_wavelen,
                 self._a_int,
                 self._b_int,
             )
 
-        if redshiftList is not None:
-            self.applyRedshift(temp_sed_list, redshiftList)
+        if redshift_list is not None:
+            self.apply_redshift(temp_sed_list, redshift_list)
 
         if self._wavelen_match is not None:
-            for sedObj in temp_sed_list:
-                if sedObj.wavelen is not None:
-                    sedObj.resampleSED(wavelen_match=self._wavelen_match)
+            for sed_obj in temp_sed_list:
+                if sed_obj.wavelen is not None:
+                    sed_obj.resample_sed(wavelen_match=self._wavelen_match)
 
-        if galacticAvList is not None:
-            self._av_gal_wavelen, self._a_gal, self._b_gal = self.applyAv(
+        if galactic_av_list is not None:
+            self._av_gal_wavelen, self._a_gal, self._b_gal = self.apply_av(
                 temp_sed_list,
-                galacticAvList,
+                galactic_av_list,
                 self._av_gal_wavelen,
                 self._a_gal,
                 self._b_gal,
@@ -242,77 +242,77 @@ class SedList(object):
 
         self._initialized = True
 
-    def applyAv(self, sedList, avList, dustWavelen, aCoeffs, bCoeffs):
+    def apply_av(self, sed_list, av_list, dust_wavelen, a_coeffs, b_coeffs):
         """
-        Take the array of Sed objects sedList and apply extinction due to dust.
+        Take the array of Sed objects sed_list and apply extinction due to dust.
 
         This method makes the necessary changes to the Seds in SedList in situ.
         It returns the wavelength grid and corresponding dust coefficients so that
         they an be reused on Seds with identical wavelength grids.
 
-        @param [in] sedList is a list of Sed objects
+        @param [in] sed_list is a list of Sed objects
 
-        @param [in] avList is a list of Av extinction values internal to each object
+        @param [in] av_list is a list of Av extinction values internal to each object
 
-        @param [in] dustWavelen is the wavelength grid corresponding to the
+        @param [in] dust_wavelen is the wavelength grid corresponding to the
         dust model coefficients.  If this differs from the wavelength grid
-        of any of the Seds in sedList, the dust model coefficients will be
+        of any of the Seds in sed_list, the dust model coefficients will be
         re-generated.
 
-        @param [in] aCoeffs are the 'a' dust model coefficients (see O'Donnell 1994
+        @param [in] a_coeffs are the 'a' dust model coefficients (see O'Donnell 1994
         ApJ 422 158)
 
-        @param [in] bCoeffs are the 'b' dust model coefficients from O'Donnell.
+        @param [in] b_coeffs are the 'b' dust model coefficients from O'Donnell.
 
-        @param [out] dustWavelen as generated/used by this method
+        @param [out] dust_wavelen as generated/used by this method
 
-        @param [out] aCoeffs as generated/used by this method
+        @param [out] a_coeffs as generated/used by this method
 
-        @param [out] bCoeffs as generated/used by this method
+        @param [out] b_coeffs as generated/used by this method
 
-        aCoeffs and bCoeffs are re-generated as needed
+        a_coeffs and b_coeffs are re-generated as needed
         """
 
-        for sedobj, av in zip(sedList, avList):
+        for sedobj, av in zip(sed_list, av_list):
             if sedobj.wavelen is not None and av is not None:
-                # setupCCM_ab only depends on the wavelen array
+                # setup_ccm_ab only depends on the wavelen array
                 # because this is supposed to be the same for every
-                # SED object in sedList, it is only called once for
+                # SED object in sed_list, it is only called once for
                 # each invocation of applyAv
 
                 if (
-                    dustWavelen is None
-                    or len(sedobj.wavelen) != len(dustWavelen)
-                    or (sedobj.wavelen != dustWavelen).any()
+                    dust_wavelen is None
+                    or len(sedobj.wavelen) != len(dust_wavelen)
+                    or (sedobj.wavelen != dust_wavelen).any()
                 ):
-                    aCoeffs, bCoeffs = sedobj.setupCCM_ab()
-                    dustWavelen = sedobj.wavelen
+                    a_coeffs, b_coeffs = sedobj.setup_ccm_ab()
+                    dust_wavelen = sedobj.wavelen
 
-                sedobj.addDust(aCoeffs, bCoeffs, A_v=av)
+                sedobj.add_dust(a_coeffs, b_coeffs, a_v=av)
 
-        return dustWavelen, aCoeffs, bCoeffs
+        return dust_wavelen, a_coeffs, b_coeffs
 
-    def applyRedshift(self, sedList, redshiftList):
+    def apply_redshift(self, sed_list, redshift_list):
         """
-        Take the array of SED objects sedList and apply the arrays of extinction and redshift
+        Take the array of SED objects sed_list and apply the arrays of extinction and redshift
         (internalAV and redshift)
 
         This method does not return anything.  It makes the necessary changes
         to the Seds in SedList in situ.
 
-        @param [in] sedList is a list of Sed objects
+        @param [in] sed_list is a list of Sed objects
 
-        @param [in] redshiftList is a list of redshift values
+        @param [in] redshift_list is a list of redshift values
 
-        This method will redshift each Sed object in sedList
+        This method will redshift each Sed object in sed_list
         """
 
-        if redshiftList is None:
+        if redshift_list is None:
             return
 
-        for sedobj, redshift in zip(sedList, redshiftList):
+        for sedobj, redshift in zip(sed_list, redshift_list):
             if sedobj.wavelen is not None and redshift is not None:
-                sedobj.redshiftSED(redshift, dimming=self._cosmological_dimming)
+                sedobj.redshift_sed(redshift, dimming=self._cosmological_dimming)
                 sedobj.name = sedobj.name + "_Z" + "%.2f" % (redshift)
 
     def flush(self):
@@ -326,7 +326,7 @@ class SedList(object):
         self._redshift_list = None
 
     @property
-    def cosmologicalDimming(self):
+    def cosmological_dimming(self):
         """
         `bool` determining whether cosmological dimming (the extra
         (1+z)^-1 factor in flux) is applied to Seds when they are
@@ -335,7 +335,7 @@ class SedList(object):
         return self._cosmological_dimming
 
     @property
-    def wavelenMatch(self):
+    def wavelen_match(self):
         """
         Wavelength grid against which to match Seds stored in this
         SedList.
@@ -343,7 +343,7 @@ class SedList(object):
         return self._wavelen_match
 
     @property
-    def redshiftList(self):
+    def redshift_list(self):
         """
         List of redshifts applied to the Seds stored in this
         SedList.
@@ -351,7 +351,7 @@ class SedList(object):
         return self._redshift_list
 
     @property
-    def internalAvList(self):
+    def internal_av_list(self):
         """
         A(V) due to internal dust applied to the Seds stored in
         this SedList.
@@ -359,7 +359,7 @@ class SedList(object):
         return self._internal_av_list
 
     @property
-    def galacticAvList(self):
+    def galactic_av_list(self):
         """
         List of A(V) due to Milky Way dust applied to the Seds
         stored in this SedList
