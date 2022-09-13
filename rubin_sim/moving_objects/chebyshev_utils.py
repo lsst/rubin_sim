@@ -5,12 +5,12 @@ Implementation of Newhall, X. X. 1989, Celestial Mechanics, 45, p. 305-310
 
 import numpy as np
 
-__all__ = ["chebeval", "chebfit", "makeChebMatrix", "makeChebMatrixOnlyX"]
+__all__ = ["chebeval", "chebfit", "make_cheb_matrix", "make_cheb_matrix_only_x"]
 
 # Evaluation routine.
 
 
-def chebeval(x, p, interval=(-1.0, 1.0), doVelocity=True, mask=False):
+def chebeval(x, p, interval=(-1.0, 1.0), do_velocity=True, mask=False):
     """Evaluate a Chebyshev series and first derivative at points x.
 
     If p is of length n + 1, this function returns:
@@ -29,7 +29,7 @@ def chebeval(x, p, interval=(-1.0, 1.0), doVelocity=True, mask=False):
         Chebyshev polynomial coefficients, as returned by chebfit.
     interval: 2-element list/tuple
         Bounds the x-interval on which the Chebyshev coefficients were fit.
-    doVelocity: `bool`
+    do_velocity: `bool`
         If True, compute the first derivative at points x.
     mask: `bool`
         If True, return Nans when the x goes beyond 'interval'.
@@ -42,10 +42,10 @@ def chebeval(x, p, interval=(-1.0, 1.0), doVelocity=True, mask=False):
     if len(interval) != 2:
         raise RuntimeError("interval must have length 2")
 
-    intervalBegin = float(interval[0])
-    intervalEnd = float(interval[-1])
-    t = 2.0 * np.array(x, dtype=np.float64) - intervalBegin - intervalEnd
-    t /= intervalEnd - intervalBegin
+    interval_begin = float(interval[0])
+    interval_end = float(interval[-1])
+    t = 2.0 * np.array(x, dtype=np.float64) - interval_begin - interval_end
+    t /= interval_end - interval_begin
 
     y = 0.0
     v = 0.0
@@ -57,7 +57,7 @@ def chebeval(x, p, interval=(-1.0, 1.0), doVelocity=True, mask=False):
     t = 2.0 * t
     N = len(p)
 
-    if doVelocity:
+    if do_velocity:
         for i in np.arange(0, N, 2):
             if i == N - 1:
                 y1 = 0.0
@@ -78,10 +78,10 @@ def chebeval(x, p, interval=(-1.0, 1.0), doVelocity=True, mask=False):
             v1 = v3
 
         if mask:
-            mask = np.where((x < intervalBegin) | (x > intervalEnd), True, False)
+            mask = np.where((x < interval_begin) | (x > interval_end), True, False)
             y = np.where(mask, np.nan, y)
             v = np.where(mask, np.nan, v)
-        return y, 2 * v / (intervalEnd - intervalBegin)
+        return y, 2 * v / (interval_end - interval_begin)
     else:
         for i in np.arange(0, N, 2):
             if i == N - 1:
@@ -91,7 +91,7 @@ def chebeval(x, p, interval=(-1.0, 1.0), doVelocity=True, mask=False):
             y0 = t * y1 - y0
             y1 = t * y0 - y1
         if mask:
-            mask = np.where((x < intervalBegin) | (x > intervalEnd), True, False)
+            mask = np.where((x < interval_begin) | (x > interval_end), True, False)
             y = np.where(mask, np.nan, y)
         return y, None
 
@@ -99,7 +99,7 @@ def chebeval(x, p, interval=(-1.0, 1.0), doVelocity=True, mask=False):
 # Fitting routines.
 
 
-def makeChebMatrix(nPoints, nPoly, weight=0.16):
+def make_cheb_matrix(n_points, n_poly, weight=0.16):
     """Compute C1^(-1)C2 using Newhall89 approach.
 
     Utility function for fitting chebyshev polynomials to x(t) and dx/dt(t) forcing
@@ -108,19 +108,19 @@ def makeChebMatrix(nPoints, nPoly, weight=0.16):
     coefficient. This function need only be called once for a given polynomial degree and
     number of points.
 
-    The matrices returned are of shape(nPoints+1)x(nPoly).
-    The coefficients fitting the nPoints+1 points, X, are found by:
+    The matrices returned are of shape(n_points+1)x(n_poly).
+    The coefficients fitting the n_points+1 points, X, are found by:
     A = xMultiplier * x  +  dxMultiplier * dxdt if derivative information is known, or
     A = xMultiplier * x  if no derivative information is known.
     The xMultiplier matrices are different, depending on whether derivative information is known.
-    Use function makeChebMatrixOnlyX if derviative is not known.
+    Use function make_cheb_matrix_only_x if derviative is not known.
     See Newhall, X. X. 1989, Celestial Mechanics, 45, p. 305-310 for details.
 
     Parameters
     ----------
-    nPoints: `int`
+    n_points: `int`
         Number of point to be fits. Must be greater than 2.
-    nPoly:  `int`
+    n_poly:  `int`
         Number of polynomial terms. Polynomial degree + 1
     weight: `float`, optional
         Weight to allow control of relative effectos of position and velocity
@@ -130,17 +130,17 @@ def makeChebMatrix(nPoints, nPoly, weight=0.16):
     Returns
     -------
     c1c2: `np.ndarray`
-        xMultiplier, C1^(-1)C2 even rows of shape (nPoints+1)x(nPoly) to be multiplied by x values.
+        xMultiplier, C1^(-1)C2 even rows of shape (n_points+1)x(n_poly) to be multiplied by x values.
     c1c2: `np.ndarray`
-        dxMultiplier, C1^(-1)C2 odd rows of shape (nPoints+1)x(nPoly) to be multiplied by dx/dy values
+        dxMultiplier, C1^(-1)C2 odd rows of shape (n_points+1)x(n_poly) to be multiplied by dx/dy values
     """
-    tmat = np.zeros([nPoints, nPoly])
-    tdot = np.zeros([nPoints, nPoly])
+    tmat = np.zeros([n_points, n_poly])
+    tdot = np.zeros([n_points, n_poly])
 
-    cj = np.zeros([nPoly])
-    xj = np.linspace(1, -1, nPoints)
+    cj = np.zeros([n_poly])
+    xj = np.linspace(1, -1, n_points)
 
-    for i in np.arange(0, nPoly):
+    for i in np.arange(0, n_poly):
         cj[:] = 0
         cj[i] = 1
         y, v = chebeval(xj, cj)
@@ -148,43 +148,43 @@ def makeChebMatrix(nPoints, nPoly, weight=0.16):
         tdot[:, i] = v
 
     # make matrix T*W
-    tw = np.zeros([nPoly, nPoints, 2])
+    tw = np.zeros([n_poly, n_points, 2])
     tw[:, :, 0] = tmat.transpose()
     tw[:, :, 1] = tdot.transpose() * weight
 
     # make matrix T*WT
     twt = np.dot(tw[:, :, 0], tmat) + np.dot(tw[:, :, 1], tdot)
-    tw = tw.reshape(nPoly, 2 * nPoints)
+    tw = tw.reshape(n_poly, 2 * n_points)
 
     # insert matrix T*W in matrix C2
-    c2 = np.zeros([nPoly + 4, 2 * nPoints])
-    c2[0:nPoly] = tw
-    c2[nPoly, 0] = 1
-    c2[nPoly + 1, 1] = 1
-    c2[nPoly + 2, -2] = 1
-    c2[nPoly + 3, -1] = 1
+    c2 = np.zeros([n_poly + 4, 2 * n_points])
+    c2[0:n_poly] = tw
+    c2[n_poly, 0] = 1
+    c2[n_poly + 1, 1] = 1
+    c2[n_poly + 2, -2] = 1
+    c2[n_poly + 3, -1] = 1
 
     # insert matrix T*WT in matrix C1
-    c1 = np.zeros([nPoly + 4, nPoly + 4])
-    c1[0:nPoly, 0:nPoly] = twt
-    c1[nPoly + 0, 0:nPoly] = tmat[0]
-    c1[nPoly + 1, 0:nPoly] = tdot[0]
-    c1[nPoly + 2, 0:nPoly] = tmat[-1]
-    c1[nPoly + 3, 0:nPoly] = tdot[-1]
+    c1 = np.zeros([n_poly + 4, n_poly + 4])
+    c1[0:n_poly, 0:n_poly] = twt
+    c1[n_poly + 0, 0:n_poly] = tmat[0]
+    c1[n_poly + 1, 0:n_poly] = tdot[0]
+    c1[n_poly + 2, 0:n_poly] = tmat[-1]
+    c1[n_poly + 3, 0:n_poly] = tdot[-1]
 
-    c1[0:nPoly, nPoly:] = c1[nPoly:, 0:nPoly].transpose()
+    c1[0:n_poly, n_poly:] = c1[n_poly:, 0:n_poly].transpose()
 
     c1inv = np.linalg.inv(c1)
     c1c2 = np.dot(c1inv, c2)
-    c1c2 = c1c2.reshape(nPoly + 4, nPoints, 2)
+    c1c2 = c1c2.reshape(n_poly + 4, n_points, 2)
     c1c2 = c1c2[:, ::-1, :]
-    c1c2 = c1c2.reshape(nPoly + 4, 2 * nPoints)
+    c1c2 = c1c2.reshape(n_poly + 4, 2 * n_points)
 
     # separate even rows for x, and odd rows for dx/dt
-    return c1c2[0:nPoly, 0::2], c1c2[0:nPoly, 1::2]
+    return c1c2[0:n_poly, 0::2], c1c2[0:n_poly, 1::2]
 
 
-def makeChebMatrixOnlyX(nPoints, nPoly):
+def make_cheb_matrix_only_x(n_points, n_poly):
     """Compute C1^(-1)C2 using Newhall89 approach without dx/dt
 
     Compute xMultiplier using only the equality constraint of the x-values at the endpoints.
@@ -197,48 +197,48 @@ def makeChebMatrixOnlyX(nPoints, nPoly):
 
     Parameters
     ----------
-    nPoints : `int`
+    n_points : `int`
         Number of point to be fits. Must be greater than 2.
-    nPoly : `int`
+    n_poly : `int`
         Number of polynomial terms. Polynomial degree + 1
 
     Returns
     -------
     c1c2: `np.ndarray`
-        xMultiplier, Even rows of C1^(-1)C2 w/ shape (nPoints+1)x(nPoly) to be multiplied by x values
+        xMultiplier, Even rows of C1^(-1)C2 w/ shape (n_points+1)x(n_poly) to be multiplied by x values
     """
 
-    tmat = np.zeros([nPoints, nPoly])
-    cj = np.zeros([nPoly])
-    xj = np.linspace(1, -1, nPoints)
-    for i in range(0, nPoly):
+    tmat = np.zeros([n_points, n_poly])
+    cj = np.zeros([n_poly])
+    xj = np.linspace(1, -1, n_points)
+    for i in range(0, n_poly):
         cj[:] = 0
         cj[i] = 1
         tmat[:, i], v = chebeval(xj, cj)
 
     # Augment matrix T to get matrix C2
-    c2 = np.zeros([nPoly + 2, nPoints])
-    c2[0:nPoly] = tmat.transpose()
-    c2[nPoly, 0] = 1
-    c2[nPoly + 1, nPoints - 1] = 1
+    c2 = np.zeros([n_poly + 2, n_points])
+    c2[0:n_poly] = tmat.transpose()
+    c2[n_poly, 0] = 1
+    c2[n_poly + 1, n_points - 1] = 1
 
     # Augment matrix T*WT to get the matrix C1
-    c1 = np.zeros([nPoly + 2, nPoly + 2])
-    c1[0:nPoly, 0:nPoly] = np.dot(tmat.transpose(), tmat)
-    c1[nPoly + 0, 0:nPoly] = tmat[0]
-    c1[nPoly + 1, 0:nPoly] = tmat[-1]
-    c1[0:nPoly, nPoly:] = c1[nPoly:, 0:nPoly].transpose()
+    c1 = np.zeros([n_poly + 2, n_poly + 2])
+    c1[0:n_poly, 0:n_poly] = np.dot(tmat.transpose(), tmat)
+    c1[n_poly + 0, 0:n_poly] = tmat[0]
+    c1[n_poly + 1, 0:n_poly] = tmat[-1]
+    c1[0:n_poly, n_poly:] = c1[n_poly:, 0:n_poly].transpose()
 
     c1inv = np.linalg.inv(c1)
     # C1^(-1) C2
     c1c2 = np.dot(c1inv, c2)
 
-    c1c2 = c1c2.reshape(nPoly + 2, nPoints)
+    c1c2 = c1c2.reshape(n_poly + 2, n_points)
     c1c2 = c1c2[:, ::-1]
-    return c1c2[0:nPoly]
+    return c1c2[0:n_poly]
 
 
-def chebfit(t, x, dxdt=None, xMultiplier=None, dxMultiplier=None, nPoly=7):
+def chebfit(t, x, dxdt=None, x_multiplier=None, dx_multiplier=None, n_poly=7):
     """Fit Chebyshev polynomial constrained at endpoints using Newhall89 approach.
 
     Return Chebyshev coefficients and statistics from fit
@@ -250,7 +250,7 @@ def chebfit(t, x, dxdt=None, xMultiplier=None, dxMultiplier=None, nPoly=7):
     and its first derivative will be continuous across boundaries. If derivatives
     are not provided, only the function value will be continuous across boundaries.
 
-    If xMultiplier and dxMultiplier are not provided or
+    If x_multiplier and dx_multiplier are not provided or
     are an inappropriate shape for t and x, they will be recomputed.
     See Newhall, X. X. 1989, Celestial Mechanics, 45, p. 305-310
     for details.
@@ -264,21 +264,21 @@ def chebfit(t, x, dxdt=None, xMultiplier=None, dxMultiplier=None, nPoly=7):
     dxdt : `np.ndarray', optional
         Optionally, array of first derivatives of x with respect to t,
         at the same grid points. (e.g. sky velocity ddecl/dt)
-    xMultiplier : `np.ndarray`, optional
+    x_multiplier : `np.ndarray`, optional
         Optional 2D Matrix with rows of C1^(-1)C2 corresponding to x.
-        Use makeChebMatrix to compute
-    dxMultiplier : `np.ndarray`, optional
+        Use make_cheb_matrix to compute
+    dx_multiplier : `np.ndarray`, optional
         Optional 2D Matrix with rows of C1^(-1)C2 corresponding to dx/dt.
-        Use makeChebMatrix to compute
-    nPoly : `int`, optional
-        Number of polynomial terms. Degree + 1.  Must be >=2 and <=2*nPoints,
-        when derivative information is specified, or <=nPoints, when no
+        Use make_cheb_matrix to compute
+    n_poly : `int`, optional
+        Number of polynomial terms. Degree + 1.  Must be >=2 and <=2*n_points,
+        when derivative information is specified, or <=n_points, when no
         derivative information is specified. Default = 7.
 
     Returns
     -------
     a_n : `np.ndarray`
-        Array of chebyshev coefficients with length=nPoly.
+        Array of chebyshev coefficients with length=n_poly.
     residuals : `np.ndarray`
         Array of residuals of the tabulated function x minus the approximated function.
     rms : `float`
@@ -286,69 +286,71 @@ def chebfit(t, x, dxdt=None, xMultiplier=None, dxMultiplier=None, nPoly=7):
     maxresid : `float`
         The maximum of the residals to the fit.
     """
-    nPoints = len(t)
-    if len(x) != nPoints:
-        raise ValueError("length of x (%s) != length of t (%s)" % (len(x), nPoints))
+    n_points = len(t)
+    if len(x) != n_points:
+        raise ValueError("length of x (%s) != length of t (%s)" % (len(x), n_points))
     if dxdt is None:
-        if nPoly > nPoints:
+        if n_poly > n_points:
             raise RuntimeError(
-                "Without velocity constraints, nPoly (%d) must be less than %s"
-                % (nPoly, nPoints)
+                "Without velocity constraints, n_poly (%d) must be less than %s"
+                % (n_poly, n_points)
             )
-        if nPoly < 2:
+        if n_poly < 2:
             raise RuntimeError(
-                "Without velocity constraints, nPoly (%d) must be greater than 2"
-                % nPoly
+                "Without velocity constraints, n_poly (%d) must be greater than 2"
+                % n_poly
             )
     else:
-        if nPoly > 2 * nPoints:
+        if n_poly > 2 * n_points:
             raise RuntimeError(
-                "nPoly (%d) must be less than %s (%d)"
-                % (nPoly, "2 * nPoints", 2 * (nPoints))
+                "n_poly (%d) must be less than %s (%d)"
+                % (n_poly, "2 * n_points", 2 * (n_points))
             )
-        if nPoly < 4:
-            raise RuntimeError("nPoly (%d) must be greater than 4" % nPoly)
+        if n_poly < 4:
+            raise RuntimeError("n_poly (%d) must be greater than 4" % n_poly)
 
-    # Recompute C1invX2 if xMultiplier and dxMultiplier are None or
+    # Recompute C1invX2 if x_multiplier and dx_multiplier are None or
     # they are not appropriate for sizes of input positions and velocities.
 
-    if xMultiplier is None:
-        redoX = True
+    if x_multiplier is None:
+        redo_x = True
     else:
-        redoX = (xMultiplier.shape[1] != nPoints) | (xMultiplier.shape[0] != nPoly)
+        redo_x = (x_multiplier.shape[1] != n_points) | (x_multiplier.shape[0] != n_poly)
 
-    if dxMultiplier is None:
-        redoV = True
+    if dx_multiplier is None:
+        redo_v = True
     else:
-        redoV = (dxMultiplier.shape[1] != nPoints) | (dxMultiplier.shape[0] != nPoly)
+        redo_v = (dx_multiplier.shape[1] != n_points) | (
+            dx_multiplier.shape[0] != n_poly
+        )
 
-    if (dxdt is None) & redoX:
-        xMultiplier = makeChebMatrixOnlyX(nPoints, nPoly)
+    if (dxdt is None) & redo_x:
+        x_multiplier = make_cheb_matrix_only_x(n_points, n_poly)
 
-    if (dxdt is not None) & (redoV | redoX):
-        xMultiplier, dxMultiplier = makeChebMatrix(nPoints, nPoly)
+    if (dxdt is not None) & (redo_v | redo_x):
+        x_multiplier, dx_multiplier = make_cheb_matrix(n_points, n_poly)
 
-    if x.size != nPoints:
+    if x.size != n_points:
         raise RuntimeError("Not enough elements in X")
 
-    tInterval = np.array([t[0], t[-1]]) - t[0]
-    tScaled = t - t[0]
+    t_interval = np.array([t[0], t[-1]]) - t[0]
+    t_scaled = t - t[0]
 
     # Compute the X portion of the coefficients
-    a_n = np.dot(xMultiplier, x)
+    a_n = np.dot(x_multiplier, x)
 
     # Compute statistics
     # for x and dxdt if it is available
     if dxdt is not None:
-        a_n = a_n + np.dot(dxMultiplier, dxdt * (tInterval[1] - tInterval[0]) / 2.0)
-        xApprox, dxApprox = chebeval(tScaled, a_n, interval=tInterval)
+        a_n = a_n + np.dot(dx_multiplier, dxdt * (t_interval[1] - t_interval[0]) / 2.0)
+        x_approx, dx_approx = chebeval(t_scaled, a_n, interval=t_interval)
     else:
         # Statistics for x only
-        xApprox, _ = chebeval(tScaled, a_n, interval=tInterval, doVelocity=False)
+        x_approx, _ = chebeval(t_scaled, a_n, interval=t_interval, do_velocity=False)
 
-    residuals = x - xApprox
+    residuals = x - x_approx
     se = np.sum(residuals**2)
-    rms = np.sqrt(se / (nPoints - 1))
+    rms = np.sqrt(se / (n_points - 1))
     maxresid = np.max(np.abs(residuals))
 
     return a_n, residuals, rms, maxresid

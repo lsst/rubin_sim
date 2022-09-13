@@ -12,31 +12,31 @@ class TestPyOrbEphemerides(unittest.TestCase):
     def setUp(self):
         self.testdir = os.path.join(get_data_dir(), "tests", "orbits_testdata")
         self.orbits = Orbits()
-        self.orbits.readOrbits(os.path.join(self.testdir, "test_orbitsQ.des"))
-        self.orbitsKEP = Orbits()
-        self.orbitsKEP.readOrbits(os.path.join(self.testdir, "test_orbitsA.des"))
+        self.orbits.read_orbits(os.path.join(self.testdir, "test_orbitsQ.des"))
+        self.orbits_kep = Orbits()
+        self.orbits_kep.read_orbits(os.path.join(self.testdir, "test_orbitsA.des"))
         self.ephems = PyOrbEphemerides()
         self.ephems.setOrbits(self.orbits)
         self.len_ephems_basic = 11
         self.len_ephems_full = 34
 
-    def tearDown(self):
+    def tear_down(self):
         del self.orbits
-        del self.orbitsKEP
+        del self.orbits_kep
         del self.ephems
 
-    def testSetOrbits(self):
+    def test_set_orbits(self):
         # Test that we can set orbits.
         self.ephems.setOrbits(self.orbits)
         # Test that setting with an empty orbit object fails.
         # (Avoids hard-to-interpret errors from pyoorb).
         with self.assertRaises(ValueError):
-            emptyOrb = Orbits()
+            empty_orb = Orbits()
             empty = pd.DataFrame([], columns=self.orbits.dataCols["KEP"])
-            emptyOrb.setOrbits(empty)
-            self.ephems.setOrbits(emptyOrb)
+            empty_orb.setOrbits(empty)
+            self.ephems.setOrbits(empty_orb)
 
-    def testConvertToOorbArray(self):
+    def test_convert_to_oorb_array(self):
         # Check that orbital elements are converted.
         self.ephems._convertToOorbElem(self.orbits.orbits, self.orbits.orb_format)
         self.assertEqual(len(self.ephems.oorbElem), len(self.orbits))
@@ -44,67 +44,71 @@ class TestPyOrbEphemerides(unittest.TestCase):
         self.assertEqual(self.ephems.oorbElem[0][9], 3)
         self.assertEqual(self.ephems.oorbElem[0][1], self.orbits.orbits["q"][0])
         # Test that we can convert KEP orbital elements too.
-        self.ephems._convertToOorbElem(self.orbitsKEP.orbits, self.orbitsKEP.orb_format)
-        self.assertEqual(len(self.ephems.oorbElem), len(self.orbitsKEP))
+        self.ephems._convertToOorbElem(
+            self.orbits_kep.orbits, self.orbits_kep.orb_format
+        )
+        self.assertEqual(len(self.ephems.oorbElem), len(self.orbits_kep))
         self.assertEqual(self.ephems.oorbElem[0][7], 3)
-        self.assertEqual(self.ephems.oorbElem[0][1], self.orbitsKEP.orbits["a"][0])
+        self.assertEqual(self.ephems.oorbElem[0][1], self.orbits_kep.orbits["a"][0])
 
-    def testConvertFromOorbArray(self):
+    def test_convert_from_oorb_array(self):
         # Check that we can convert orbital elements TO oorb format and back
         # without losing info (except ObjId -- we will lose that unless we use updateOrbits.)
         self.ephems._convertToOorbElem(self.orbits.orbits, self.orbits.orb_format)
-        newOrbits = Orbits()
-        newOrbits.setOrbits(self.orbits.orbits)
-        newOrbits.updateOrbits(self.ephems.convertFromOorbElem())
-        self.assertEqual(newOrbits, self.orbits)
+        new_orbits = Orbits()
+        new_orbits.setOrbits(self.orbits.orbits)
+        new_orbits.updateOrbits(self.ephems.convertFromOorbElem())
+        self.assertEqual(new_orbits, self.orbits)
 
-    def testConvertTimes(self):
+    def test_convert_times(self):
         times = np.arange(49353, 49353 + 10, 0.5)
-        ephTimes = self.ephems._convertTimes(times, "UTC")
-        # Check that shape of ephTimes is correct. (times x 2)
-        self.assertEqual(ephTimes.shape[0], len(times))
-        self.assertEqual(ephTimes.shape[1], 2)
-        # Check that 'timescale' for ephTimes is correct.
-        self.assertEqual(ephTimes[0][1], 1)
-        ephTimes = self.ephems._convertTimes(times, "TAI")
-        self.assertEqual(ephTimes[0][1], 4)
+        eph_times = self.ephems._convertTimes(times, "UTC")
+        # Check that shape of eph_times is correct. (times x 2)
+        self.assertEqual(eph_times.shape[0], len(times))
+        self.assertEqual(eph_times.shape[1], 2)
+        # Check that 'timescale' for eph_times is correct.
+        self.assertEqual(eph_times[0][1], 1)
+        eph_times = self.ephems._convertTimes(times, "TAI")
+        self.assertEqual(eph_times[0][1], 4)
 
-    def testOorbEphemeris(self):
+    def test_oorb_ephemeris(self):
         self.ephems.setOrbits(self.orbits)
         times = np.arange(49353, 49353 + 3, 0.25)
-        ephTimes = self.ephems._convertTimes(times)
+        eph_times = self.ephems._convertTimes(times)
         # Basic ephemerides.
-        oorbEphs = self.ephems._generateOorbEphsBasic(
-            ephTimes, obscode=807, ephMode="N"
+        oorb_ephs = self.ephems._generateOorbEphsBasic(
+            eph_times, obscode=807, ephMode="N"
         )
         # Check that it returned the right sort of array.
         self.assertEqual(
-            oorbEphs.shape,
+            oorb_ephs.shape,
             (len(self.ephems.oorbElem), len(times), self.len_ephems_basic),
         )
         # Full ephemerides
-        oorbEphs = self.ephems._generateOorbEphsFull(ephTimes, obscode=807, ephMode="N")
+        oorb_ephs = self.ephems._generateOorbEphsFull(
+            eph_times, obscode=807, ephMode="N"
+        )
         # Check that it returned the right sort of array.
         self.assertEqual(
-            oorbEphs.shape,
+            oorb_ephs.shape,
             (len(self.ephems.oorbElem), len(times), self.len_ephems_full),
         )
 
-    def testEphemeris(self):
+    def test_ephemeris(self):
         # Calculate and convert ephemerides.
         self.ephems.setOrbits(self.orbits)
         times = np.arange(49353, 49353 + 2, 0.3)
-        ephTimes = self.ephems._convertTimes(times)
-        oorbEphs = self.ephems._generateOorbEphsBasic(ephTimes, obscode=807)
+        eph_times = self.ephems._convertTimes(times)
+        oorb_ephs = self.ephems._generateOorbEphsBasic(eph_times, obscode=807)
         # Group by object, and check grouping.
-        ephs = self.ephems._convertOorbEphsBasic(oorbEphs, byObject=True)
+        ephs = self.ephems._convertOorbEphsBasic(oorb_ephs, byObject=True)
         self.assertEqual(len(ephs), len(self.orbits))
         # Group by time, and check grouping.
-        oorbEphs = self.ephems._generateOorbEphsBasic(ephTimes, obscode=807)
-        ephs = self.ephems._convertOorbEphsBasic(oorbEphs, byObject=False)
+        oorb_ephs = self.ephems._generateOorbEphsBasic(eph_times, obscode=807)
+        ephs = self.ephems._convertOorbEphsBasic(oorb_ephs, byObject=False)
         self.assertEqual(len(ephs), len(times))
         # And test all-wrapped-up method:
-        ephsAll = self.ephems.generateEphemerides(
+        ephs_all = self.ephems.generateEphemerides(
             times,
             obscode=807,
             ephMode="N",
@@ -113,21 +117,21 @@ class TestPyOrbEphemerides(unittest.TestCase):
             byObject=False,
         )
         # Temp removing this as it is giving an intermittent fail. Not sure why
-        # np.testing.assert_equal(ephsAll, ephs)
+        # np.testing.assert_equal(ephs_all, ephs)
         # Reset ephems to use KEP Orbits, and calculate new ephemerides.
-        self.ephems.setOrbits(self.orbitsKEP)
-        oorbEphs = self.ephems._generateOorbEphsBasic(
-            ephTimes, obscode=807, ephMode="N"
+        self.ephems.setOrbits(self.orbits_kep)
+        oorb_ephs = self.ephems._generateOorbEphsBasic(
+            eph_times, obscode=807, ephMode="N"
         )
-        ephsKEP = self.ephems._convertOorbEphsBasic(oorbEphs, byObject=True)
-        self.assertEqual(len(ephsKEP), len(self.orbitsKEP))
-        oorbEphs = self.ephems._generateOorbEphsBasic(
-            ephTimes, obscode=807, ephMode="N"
+        ephs_kep = self.ephems._convertOorbEphsBasic(oorb_ephs, byObject=True)
+        self.assertEqual(len(ephs_kep), len(self.orbits_kep))
+        oorb_ephs = self.ephems._generateOorbEphsBasic(
+            eph_times, obscode=807, ephMode="N"
         )
-        ephsKEP = self.ephems._convertOorbEphsBasic(oorbEphs, byObject=False)
-        self.assertEqual(len(ephsKEP), len(times))
+        ephs_kep = self.ephems._convertOorbEphsBasic(oorb_ephs, byObject=False)
+        self.assertEqual(len(ephs_kep), len(times))
         # And test all-wrapped-up method:
-        ephsAllKEP = self.ephems.generateEphemerides(
+        ephs_all_kep = self.ephems.generateEphemerides(
             times,
             obscode=807,
             ephMode="N",
@@ -151,26 +155,26 @@ class TestJPLValues(unittest.TestCase):
     def setUp(self):
         # Read orbits.
         self.orbits = Orbits()
-        self.jplDir = os.path.join(get_data_dir(), "tests", "jpl_testdata")
-        self.orbits.readOrbits(os.path.join(self.jplDir, "S0_n747.des"), skiprows=1)
+        self.jpl_dir = os.path.join(get_data_dir(), "tests", "jpl_testdata")
+        self.orbits.read_orbits(os.path.join(self.jpl_dir, "S0_n747.des"), skiprows=1)
         # Read JPL ephems.
         self.jpl = pd.read_csv(
-            os.path.join(self.jplDir, "807_n747.txt"), delim_whitespace=True
+            os.path.join(self.jpl_dir, "807_n747.txt"), delim_whitespace=True
         )
         # Add times in TAI and UTC, because.
         t = Time(self.jpl["epoch_mjd"], format="mjd", scale="utc")
         self.jpl["mjdTAI"] = t.tai.mjd
         self.jpl["mjdUTC"] = t.utc.mjd
 
-    def tearDown(self):
+    def tear_down(self):
         del self.orbits
         del self.jpl
 
-    def testRADec(self):
+    def test_ra_dec(self):
         # We won't compare Vmag, because this also needs information on trailing losses.
         times = self.jpl["mjdUTC"].unique()
-        deltaRA = np.zeros(len(times), float)
-        deltaDec = np.zeros(len(times), float)
+        delta_ra = np.zeros(len(times), float)
+        delta_dec = np.zeros(len(times), float)
         for i, t in enumerate(times):
             # Find the JPL objIds visible at this time.
             j = self.jpl.query("mjdUTC == @t").sort_values("objId")
@@ -178,10 +182,10 @@ class TestJPLValues(unittest.TestCase):
             suborbits = self.orbits.orbits.query("objId in @j.objId").sort_values(
                 "objId"
             )
-            subOrbits = Orbits()
-            subOrbits.setOrbits(suborbits)
+            sub_orbits = Orbits()
+            sub_orbits.setOrbits(suborbits)
             ephems = PyOrbEphemerides()
-            ephems.setOrbits(subOrbits)
+            ephems.setOrbits(sub_orbits)
             ephs = ephems.generateEphemerides(
                 [t],
                 timeScale="UTC",
@@ -190,18 +194,18 @@ class TestJPLValues(unittest.TestCase):
                 ephType="Basic",
                 byObject=False,
             )
-            deltaRA[i] = np.abs(ephs["ra"] - j["ra_deg"].values).max()
-            deltaDec[i] = np.abs(ephs["dec"] - j["dec_deg"].values).max()
+            delta_ra[i] = np.abs(ephs["ra"] - j["ra_deg"].values).max()
+            delta_dec[i] = np.abs(ephs["dec"] - j["dec_deg"].values).max()
         # Convert to mas
-        deltaRA *= 3600.0 * 1000.0
-        deltaDec *= 3600.0 * 1000.0
+        delta_ra *= 3600.0 * 1000.0
+        delta_dec *= 3600.0 * 1000.0
         # Much of the time we're closer than 1mas, but there are a few which hit higher values.
-        print("max JPL errors", np.max(deltaRA), np.max(deltaDec))
-        print("std JPL errors", np.std(deltaRA), np.std(deltaDec))
-        self.assertLess(np.max(deltaRA), 25)
-        self.assertLess(np.max(deltaDec), 25)
-        self.assertLess(np.std(deltaRA), 3)
-        self.assertLess(np.std(deltaDec), 3)
+        print("max JPL errors", np.max(delta_ra), np.max(delta_dec))
+        print("std JPL errors", np.std(delta_ra), np.std(delta_dec))
+        self.assertLess(np.max(delta_ra), 25)
+        self.assertLess(np.max(delta_dec), 25)
+        self.assertLess(np.std(delta_ra), 3)
+        self.assertLess(np.std(delta_dec), 3)
 
 
 if __name__ == "__main__":

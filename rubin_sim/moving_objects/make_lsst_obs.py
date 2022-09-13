@@ -7,10 +7,10 @@ import logging
 import rubin_sim.movingObjects as mo
 from rubin_sim.maf.batches import ColMapDict
 
-__all__ = ["setupArgs"]
+__all__ = ["setup_args"]
 
 
-def setupArgs(parser=None):
+def setup_args(parser=None):
     """Parse the command line arguments.
 
     Parameters
@@ -62,12 +62,12 @@ def setupArgs(parser=None):
         help="SQL constraint to use to select data from opsimDb. Default no constraint.",
     )
     parser.add_argument(
-        "--obsMetadata",
+        "--obs_metadata",
         type=str,
         default=None,
         help="Additional metadata to write into output file. "
         "The default metadata will combine the opsimDb name, the sqlconstraint, and "
-        "the name of the orbit file; obsMetadata is an optional addition.",
+        "the name of the orbit file; obs_metadata is an optional addition.",
     )
     parser.add_argument(
         "--footprint",
@@ -188,13 +188,13 @@ def setupArgs(parser=None):
         args.obsFile = os.path.join(args.outDir, args.obsFile)
 
     # Build some provenance metadata to add to output file.
-    obsMetadata = "Opsim %s" % args.opsimRun
+    obs_metadata = "Opsim %s" % args.opsimRun
     if len(args.sqlConstraint) > 0:
-        obsMetadata += " selected with sqlconstraint %s" % (args.sqlConstraint)
-    obsMetadata += " + Orbitfile %s" % args.orbitbase
+        obs_metadata += " selected with sqlconstraint %s" % (args.sqlConstraint)
+    obs_metadata += " + Orbitfile %s" % args.orbitbase
     if args.obsMetadata is not None:
-        obsMetadata += "\n# %s" % args.obsMetadata
-    args.obsMetadata = obsMetadata
+        obs_metadata += "\n# %s" % args.obsMetadata
+    args.obsMetadata = obs_metadata
 
     return args
 
@@ -202,7 +202,7 @@ def setupArgs(parser=None):
 def make_lsst_obs():
 
     # Parser command
-    args = setupArgs()
+    args = setup_args()
 
     # Send info and above logging messages to the console or logfile.
     if args.logFile is not None:
