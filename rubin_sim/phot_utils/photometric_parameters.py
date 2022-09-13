@@ -1,10 +1,10 @@
 import numpy as np
 from rubin_sim.phot_utils import Sed, BandpassDict
 
-__all__ = ["PhotometricParameters", "Dust_values"]
+__all__ = ["PhotometricParameters", "DustValues"]
 
 
-class Dust_values(object):
+class DustValues(object):
     """Calculate extinction values
 
     Parameters
@@ -17,37 +17,37 @@ class Dust_values(object):
     ref_ev : float (1.)
         The reference E(B-V) value to use. Things in MAF assume 1.
 
-    Note: the value that dust_values calls "Ax1" is actually equivalent to R_x in any filter.
-    And then it's more clear that R_x * ebv = A_x (the extinction due to dust in any bandpass).
-    Dust_values.R_x is also provided as a copy of Dust_values.Ax1 .. eventually Ax1 may be deprecated
-    in favor of R_x.
+    Note: the value that dust_values calls "ax1" is actually equivalent to r_x in any filter.
+    And then it's more clear that r_x * ebv = A_x (the extinction due to dust in any bandpass).
+    DustValues.r_x is also provided as a copy of DustValues.ax1 .. eventually ax1 may be deprecated
+    in favor of r_x.
     """
 
-    def __init__(self, R_v=3.1, bandpassDict=None, ref_ebv=1.0):
+    def __init__(self, r_v=3.1, bandpass_dict=None, ref_ebv=1.0):
         # Calculate dust extinction values
-        self.Ax1 = {}
-        if bandpassDict is None:
-            bandpassDict = BandpassDict.loadTotalBandpassesFromFiles(
+        self.ax1 = {}
+        if bandpass_dict is None:
+            bandpass_dict = BandpassDict.load_total_bandpasses_from_files(
                 ["u", "g", "r", "i", "z", "y"]
             )
 
-        for filtername in bandpassDict:
-            wavelen_min = bandpassDict[filtername].wavelen.min()
-            wavelen_max = bandpassDict[filtername].wavelen.max()
+        for filtername in bandpass_dict:
+            wavelen_min = bandpass_dict[filtername].wavelen.min()
+            wavelen_max = bandpass_dict[filtername].wavelen.max()
             testsed = Sed()
-            testsed.setFlatSED(
+            testsed.set_flat_sed(
                 wavelen_min=wavelen_min, wavelen_max=wavelen_max, wavelen_step=1.0
             )
             self.ref_ebv = ref_ebv
             # Calculate non-dust-extincted magnitude
-            flatmag = testsed.calcMag(bandpassDict[filtername])
+            flatmag = testsed.calc_mag(bandpass_dict[filtername])
             # Add dust
-            a, b = testsed.setupCCM_ab()
-            testsed.addDust(a, b, ebv=self.ref_ebv, R_v=R_v)
+            a, b = testsed.setup_ccm_ab()
+            testsed.add_dust(a, b, ebv=self.ref_ebv, r_v=r_v)
             # Calculate difference due to dust when EBV=1.0 (m_dust = m_nodust - Ax, Ax > 0)
-            self.Ax1[filtername] = testsed.calcMag(bandpassDict[filtername]) - flatmag
+            self.ax1[filtername] = testsed.calc_mag(bandpass_dict[filtername]) - flatmag
         # Add the R_x term, to start to transition toward this name.
-        self.R_x = self.Ax1.copy()
+        self.r_x = self.ax1.copy()
 
 
 class DefaultPhotometricParameters(object):
@@ -74,50 +74,50 @@ class DefaultPhotometricParameters(object):
     #
     # 'any' values should be kept consistent with r band
 
-    bandpassNames = ["u", "g", "r", "i", "z", "y", "any"]
+    bandpass_names = ["u", "g", "r", "i", "z", "y", "any"]
 
-    def makeDict(value, bandpassNames=("u", "g", "r", "i", "z", "y", "any")):
+    def make_dict(value, bandpass_names=("u", "g", "r", "i", "z", "y", "any")):
         newdict = {}
-        for f in bandpassNames:
+        for f in bandpass_names:
             newdict[f] = value
         return newdict
 
     # exposure time in seconds
-    exptimeSec = 15.0
-    exptime = makeDict(exptimeSec)
+    exptime_sec = 15.0
+    exptime = make_dict(exptime_sec)
 
     # number of exposures
-    nexpN = 2
-    nexp = makeDict(nexpN)
+    nexp_n = 2
+    nexp = make_dict(nexp_n)
 
     # effective area in cm^2
-    effareaCm2 = np.pi * (6.423 / 2.0 * 100) ** 2
-    effarea = makeDict(effareaCm2)
+    effarea_cm2 = np.pi * (6.423 / 2.0 * 100) ** 2
+    effarea = make_dict(effarea_cm2)
 
     # electrons per ADU
-    gainADU = 2.3
-    gain = makeDict(gainADU)
+    gain_adu = 2.3
+    gain = make_dict(gain_adu)
 
     # electrons per pixel per exposure
-    readnoiseE = 8.8
-    readnoise = makeDict(readnoiseE)
+    readnoise_e = 8.8
+    readnoise = make_dict(readnoise_e)
 
     # electrons per pixel per second
-    darkcurrentE = 0.2
-    darkcurrent = makeDict(darkcurrentE)
+    darkcurrent_e = 0.2
+    darkcurrent = make_dict(darkcurrent_e)
 
     # electrons per pixel per exposure
-    othernoiseE = 0.0
-    othernoise = makeDict(othernoiseE)
+    othernoise_e = 0.0
+    othernoise = make_dict(othernoise_e)
 
     # arcseconds per pixel
-    platescaleAS = 0.2
-    platescale = makeDict(platescaleAS)
+    platescale_as = 0.2
+    platescale = make_dict(platescale_as)
 
     # systematic squared error in magnitudes
     # see Table 14 of the SRD document
     # https://docushare.lsstcorp.org/docushare/dsweb/Get/LPM-17
-    sigmaSys = {
+    sigma_sys = {
         "u": 0.0075,
         "g": 0.005,
         "r": 0.005,
@@ -139,7 +139,7 @@ class PhotometricParameters(object):
         darkcurrent=None,
         othernoise=None,
         platescale=None,
-        sigmaSys=None,
+        sigma_sys=None,
         bandpass=None,
     ):
 
@@ -160,7 +160,7 @@ class PhotometricParameters(object):
 
         @param [in] platescale arcseconds per pixel (defaults to LSST value)
 
-        @param [in] sigmaSys systematic error in magnitudes
+        @param [in] sigma_sys systematic error in magnitudes
         (defaults to LSST value)
 
         @param [in] bandpass is the name of the bandpass to which these parameters
@@ -189,7 +189,7 @@ class PhotometricParameters(object):
         self._effarea = None
         self._gain = None
         self._platescale = None
-        self._sigmaSys = None
+        self._sigma_sys = None
         self._readnoise = None
         self._darkcurrent = None
         self._othernoise = None
@@ -198,23 +198,23 @@ class PhotometricParameters(object):
         defaults = DefaultPhotometricParameters()
 
         if bandpass is None:
-            bandpassKey = "any"
+            bandpass_key = "any"
             # This is so we do not set the self._bandpass member variable
             # without the user's explicit consent, but we can still access
             # default values from the PhotometricParameterDefaults
         else:
-            bandpassKey = bandpass
+            bandpass_key = bandpass
 
-        if bandpassKey in defaults.bandpassNames:
-            self._exptime = defaults.exptime[bandpassKey]
-            self._nexp = defaults.nexp[bandpassKey]
-            self._effarea = defaults.effarea[bandpassKey]
-            self._gain = defaults.gain[bandpassKey]
-            self._platescale = defaults.platescale[bandpassKey]
-            self._sigmaSys = defaults.sigmaSys[bandpassKey]
-            self._readnoise = defaults.readnoise[bandpassKey]
-            self._darkcurrent = defaults.darkcurrent[bandpassKey]
-            self._othernoise = defaults.othernoise[bandpassKey]
+        if bandpass_key in defaults.bandpass_names:
+            self._exptime = defaults.exptime[bandpass_key]
+            self._nexp = defaults.nexp[bandpass_key]
+            self._effarea = defaults.effarea[bandpass_key]
+            self._gain = defaults.gain[bandpass_key]
+            self._platescale = defaults.platescale[bandpass_key]
+            self._sigma_sys = defaults.sigma_sys[bandpass_key]
+            self._readnoise = defaults.readnoise[bandpass_key]
+            self._darkcurrent = defaults.darkcurrent[bandpass_key]
+            self._othernoise = defaults.othernoise[bandpass_key]
 
         if exptime is not None:
             self._exptime = exptime
@@ -231,8 +231,8 @@ class PhotometricParameters(object):
         if platescale is not None:
             self._platescale = platescale
 
-        if sigmaSys is not None:
-            self._sigmaSys = sigmaSys
+        if sigma_sys is not None:
+            self._sigma_sys = sigma_sys
 
         if readnoise is not None:
             self._readnoise = readnoise
@@ -243,47 +243,47 @@ class PhotometricParameters(object):
         if othernoise is not None:
             self._othernoise = othernoise
 
-        failureMessage = ""
-        failureCt = 0
+        failure_message = ""
+        failure_ct = 0
 
         if self._exptime is None:
-            failureMessage += "did not set exptime\n"
-            failureCt += 1
+            failure_message += "did not set exptime\n"
+            failure_ct += 1
 
         if self._nexp is None:
-            failureMessage += "did not set nexp\n"
-            failureCt += 1
+            failure_message += "did not set nexp\n"
+            failure_ct += 1
 
         if self._effarea is None:
-            failureMessage += "did not set effarea\n"
-            failureCt += 1
+            failure_message += "did not set effarea\n"
+            failure_ct += 1
 
         if self._gain is None:
-            failureMessage += "did not set gain\n"
-            failureCt += 1
+            failure_message += "did not set gain\n"
+            failure_ct += 1
 
         if self._platescale is None:
-            failureMessage += "did not set platescale\n"
-            failureCt += 1
+            failure_message += "did not set platescale\n"
+            failure_ct += 1
 
-        if self._sigmaSys is None:
-            failureMessage += "did not set sigmaSys\n"
-            failureCt += 1
+        if self._sigma_sys is None:
+            failure_message += "did not set sigma_sys\n"
+            failure_ct += 1
 
         if self._readnoise is None:
-            failureMessage += "did not set readnoise\n"
-            failureCt += 1
+            failure_message += "did not set readnoise\n"
+            failure_ct += 1
 
         if self._darkcurrent is None:
-            failureMessage += "did not set darkcurrent\n"
-            failureCt += 1
+            failure_message += "did not set darkcurrent\n"
+            failure_ct += 1
 
         if self._othernoise is None:
-            failureMessage += "did not set othernoise\n"
-            failureCt += 1
+            failure_message += "did not set othernoise\n"
+            failure_ct += 1
 
-        if failureCt > 0:
-            raise RuntimeError("In PhotometricParameters:\n%s" % failureMessage)
+        if failure_ct > 0:
+            raise RuntimeError("In PhotometricParameters:\n%s" % failure_message)
 
     @property
     def bandpass(self):
@@ -412,15 +412,15 @@ class PhotometricParameters(object):
         )
 
     @property
-    def sigmaSys(self):
+    def sigma_sys(self):
         """
         systematic error in magnitudes
         """
-        return self._sigmaSys
+        return self._sigma_sys
 
-    @sigmaSys.setter
-    def sigmaSys(self, value):
+    @sigma_sys.setter
+    def sigma_sys(self, value):
         raise RuntimeError(
-            "You should not be setting sigmaSys on the fly; "
+            "You should not be setting sigma_sys on the fly; "
             + "Just instantiate a new case of PhotometricParameters"
         )

@@ -20,25 +20,27 @@ class ApproximateBandPassTest(unittest.TestCase):
     Tests for the approximate Bandpasses in the throughputs directory
     """
 
-    longMessage = True
+    long_message = True
 
     def setUp(self):
         """
         setup before tests
         """
-        throughputsDir = os.path.join(get_data_dir(), "throughputs")
-        self.approxBandPassDir = os.path.join(throughputsDir, "approximate_baseline")
-        self.refBandPassDir = os.path.join(throughputsDir, "baseline")
-        self.refBandPassDict = BandpassDict.loadTotalBandpassesFromFiles()
-        self.approxBandPassDict = BandpassDict.loadTotalBandpassesFromFiles(
-            bandpassDir=self.approxBandPassDir
+        throughputs_dir = os.path.join(get_data_dir(), "throughputs")
+        self.approx_band_pass_dir = os.path.join(
+            throughputs_dir, "approximate_baseline"
         )
-        self.errorMsg = "The failure of this test indicates that the"
+        self.ref_band_pass_dir = os.path.join(throughputs_dir, "baseline")
+        self.ref_band_pass_dict = BandpassDict.load_total_bandpasses_from_files()
+        self.approx_band_pass_dict = BandpassDict.load_total_bandpasses_from_files(
+            bandpass_dir=self.approx_band_pass_dir
+        )
+        self.error_msg = "The failure of this test indicates that the"
         " approximate bandpasses in the lsst throughputs directory do not"
         "sync up with the baseline bandpasses is throughputs. This may require running"
         " the script : throughputs.approximate_baseline/approximateBandpasses.py"
 
-    def test_BandPassIntegrals(self):
+    def test_band_pass_integrals(self):
         """
         Test that the ratio of the quantity
         int dlambda T(lambda) = band flux for a SED proportional to $lambda$
@@ -47,10 +49,10 @@ class ApproximateBandPassTest(unittest.TestCase):
 
         """
         for bn in "ugrizy":
-            refBandPass = self.refBandPassDict[bn]
-            approxBandPass = self.approxBandPassDict[bn]
-            refStep = np.diff(refBandPass.wavelen)
-            approxStep = np.diff(approxBandPass.wavelen)
+            ref_band_pass = self.ref_band_pass_dict[bn]
+            approx_band_pass = self.approx_band_pass_dict[bn]
+            ref_step = np.diff(ref_band_pass.wavelen)
+            approx_step = np.diff(approx_band_pass.wavelen)
 
             # Currently we have uniform sampling, but the end points have
             # very slightly different steps. This accounts for 3 possible values
@@ -58,37 +60,36 @@ class ApproximateBandPassTest(unittest.TestCase):
             msg = "The step sizes in {} seem to be unequal".format(
                 "Approximate Baseline"
             )
-            self.assertEqual(len(np.unique(approxStep)), 3, msg=msg)
+            self.assertEqual(len(np.unique(approx_step)), 3, msg=msg)
             msg = "The step sizes in {} seem to be unequal".format("Baseline")
-            self.assertEqual(len(np.unique(refStep)), 3, msg=msg)
+            self.assertEqual(len(np.unique(ref_step)), 3, msg=msg)
             ratio = (
-                approxStep[1]
-                * approxBandPass.sb.sum()
-                / refStep[1]
-                / refBandPass.sb.sum()
+                approx_step[1]
+                * approx_band_pass.sb.sum()
+                / ref_step[1]
+                / ref_band_pass.sb.sum()
             )
-            self.assertAlmostEqual(ratio, 1.0, delta=1.0e-4, msg=self.errorMsg)
+            self.assertAlmostEqual(ratio, 1.0, delta=1.0e-4, msg=self.error_msg)
 
-        def test_BandpassesIndiviaually(self):
-            """
-            Test that individual transmission values at wavelengths kept in the
-            approximate bandpasses match the individual transmission values in
-            the reference bandpasses
-            """
-            for bn in "ugrizy":
-                approxBandPass = self.approxBandPassDict[bn]
-                refBandPass = self.refBandPass[bn]
-                refwavelen = refBandPass.wavelen
-                approxwavelen = approxBandPass.wavelen
-                mask = np.zeros(len(refwavelen), dtype=bool)
-                for i, wave in enumerate(refwavelen):
-                    if wave in approxwavelen:
-                        mask[i] = True
-                # Assume that the wavelengths are in order
-                msg = "individual matches failed on band {}".format(bn)
-                self.assertAlmostEqual(
-                    refBandPass.sb[mask], approxBandPass.sb, 1.0e-4, msg=msg
-                )
+    def test_bandpasses_indiv(self):
+        """
+        Test that individual transmission values at wavelengths kept in the
+        approximate bandpasses match the individual transmission values in
+        the reference bandpasses
+        """
+        for bn in "ugrizy":
+            approx_band_pass = self.approx_band_pass_dict[bn]
+            ref_band_pass = self.ref_band_pass_dict[bn]
+            refwavelen = ref_band_pass.wavelen
+            approxwavelen = approx_band_pass.wavelen
+            mask = np.zeros(len(refwavelen), dtype=bool)
+            for i, wave in enumerate(refwavelen):
+                if wave in approxwavelen:
+                    mask[i] = True
+            # Assume that the wavelengths are in order
+            np.testing.assert_array_almost_equal(
+                ref_band_pass.sb[mask], approx_band_pass.sb, decimal=3
+            )
 
         def tearDown(self):
             pass

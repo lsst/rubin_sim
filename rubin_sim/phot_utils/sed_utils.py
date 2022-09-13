@@ -2,10 +2,10 @@ import numpy as np
 from rubin_sim.phot_utils import Bandpass
 
 
-__all__ = ["getImsimFluxNorm"]
+__all__ = ["get_imsim_flux_norm"]
 
 
-def getImsimFluxNorm(sed, magmatch):
+def get_imsim_flux_norm(sed, magmatch):
     """
     Calculate the flux normalization of an SED in the imsim bandpass.
 
@@ -27,29 +27,30 @@ def getImsimFluxNorm(sed, magmatch):
     # identical to calling Sed.calcFluxNorm and passing in the imsim bandpass,
     # will fail and we will know to modify this method.
 
-    if not hasattr(getImsimFluxNorm, "imsim_wavelen"):
+    if not hasattr(get_imsim_flux_norm, "imsim_wavelen"):
         bp = Bandpass()
-        bp.imsimBandpass()
+        bp.imsim_bandpass()
         non_zero_dex = np.where(bp.sb > 0.0)[0][0]
-        getImsimFluxNorm.imsim_wavelen = bp.wavelen[non_zero_dex]
+        get_imsim_flux_norm.imsim_wavelen = bp.wavelen[non_zero_dex]
 
     if sed.fnu is None:
-        sed.flambdaTofnu()
+        sed.flambda_tofnu()
 
     if (
-        getImsimFluxNorm.imsim_wavelen < sed.wavelen.min()
-        or getImsimFluxNorm.imsim_wavelen > sed.wavelen.max()
+        get_imsim_flux_norm.imsim_wavelen < sed.wavelen.min()
+        or get_imsim_flux_norm.imsim_wavelen > sed.wavelen.max()
     ):
 
         raise RuntimeError(
             "Cannot normalize sed "
-            "at wavelength of %e nm\n" % getImsimFluxNorm.imsim_wavelen
+            "at wavelength of %e nm\n" % get_imsim_flux_norm.imsim_wavelen
             + "The SED does not cover that wavelength\n"
             + "(Covers %e < lambda %e)" % (sed.wavelen.min(), sed.wavelen.max())
         )
 
     mag = (
-        -2.5 * np.log10(np.interp(getImsimFluxNorm.imsim_wavelen, sed.wavelen, sed.fnu))
+        -2.5
+        * np.log10(np.interp(get_imsim_flux_norm.imsim_wavelen, sed.wavelen, sed.fnu))
         - sed.zp
     )
     dmag = magmatch - mag
