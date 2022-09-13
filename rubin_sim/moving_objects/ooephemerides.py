@@ -99,7 +99,7 @@ class PyOrbEphemerides(object):
         Sets self.oorb_elem, the orbit parameters in an array formatted for OpenOrb.
         """
         oorb_elem = np.zeros([len(orbit_dataframe), 12], dtype=np.double, order="F")
-        # Put in simple values for objid, or add method to test if any objId is a string.
+        # Put in simple values for objid, or add method to test if any obj_id is a string.
         # NOTE THAT THIS MEANS WE'VE LOST THE OBJID
         oorb_elem[:, 0] = np.arange(0, len(orbit_dataframe), dtype=int) + 1
         # Add the appropriate element and epoch types:
@@ -220,7 +220,7 @@ class PyOrbEphemerides(object):
         del new_orbits["elem_type"]
         del new_orbits["epoch_type"]
         del new_orbits["oorbId"]
-        # To incorporate with original Orbits object, need to swap back to original objIds
+        # To incorporate with original Orbits object, need to swap back to original obj_ids
         # as well as put back in original SEDs.
         return new_orbits
 

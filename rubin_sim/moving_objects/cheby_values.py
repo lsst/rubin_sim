@@ -14,9 +14,9 @@ class ChebyValues(object):
     def __init__(self):
         self.coeffs = {}
         self.coeff_keys = [
-            "objId",
-            "tStart",
-            "tEnd",
+            "obj_id",
+            "t_start",
+            "t_end",
             "ra",
             "dec",
             "geo_dist",
@@ -35,7 +35,7 @@ class ChebyValues(object):
 
     def set_coefficients(self, cheby_fits):
         """Set coefficients using a ChebyFits object.
-        (which contains a dictionary of objId, tStart, tEnd, ra, dec, delta, vmag, and elongation lists).
+        (which contains a dictionary of obj_id, t_start, t_end, ra, dec, delta, vmag, and elongation lists).
 
         Parameters
         ----------
@@ -76,9 +76,9 @@ class ChebyValues(object):
             cols[k] = [x for x in datacols if x.startswith(k)]
         # Translate dataframe to dictionary of numpy arrays
         # while consolidating RA/Dec/Delta/Vmag/Elongation coeffs.
-        self.coeffs["objId"] = coeffs.objId.values
-        self.coeffs["tStart"] = coeffs.tStart.values
-        self.coeffs["tEnd"] = coeffs.tEnd.values
+        self.coeffs["obj_id"] = coeffs.obj_id.values
+        self.coeffs["t_start"] = coeffs.t_start.values
+        self.coeffs["t_end"] = coeffs.t_end.values
         for k in coeff_cols:
             self.coeffs[k] = np.empty([len(cols[k]), len(coeffs)], float)
             for i in range(len(cols[k])):
@@ -102,7 +102,7 @@ class ChebyValues(object):
             The times at which to evaluate the segment.
         subset_segments : `np.ndarray`, optional
             Optionally specify a subset of the total segment indexes.
-            This lets you pick out particular objIds.
+            This lets you pick out particular obj_ids.
         mask : `bool`, optional
             If True, returns NaNs for values outside the range of times in the segment.
             If False, extrapolates segment for times outside the segment time range.
@@ -114,7 +114,7 @@ class ChebyValues(object):
            at the time indicated.
         """
         if subset_segments is None:
-            subset_segments = np.ones(len(self.coeffs["objId"]), dtype=bool)
+            subset_segments = np.ones(len(self.coeffs["obj_id"]), dtype=bool)
         t_start = self.coeffs["t_start"][subset_segments][segment_idx]
         t_end = self.coeffs["t_end"][subset_segments][segment_idx]
         t_scaled = times - t_start
@@ -173,31 +173,31 @@ class ChebyValues(object):
             times = np.array([times], float)
         ntimes = len(times)
         ephemerides = {}
-        # Find subset of segments which match objId, if specified.
+        # Find subset of segments which match obj_id, if specified.
         if obj_ids is None:
-            obj_match = np.ones(len(self.coeffs["objId"]), dtype=bool)
-            ephemerides["objId"] = np.unique(self.coeffs["objId"])
+            obj_match = np.ones(len(self.coeffs["obj_id"]), dtype=bool)
+            ephemerides["obj_id"] = np.unique(self.coeffs["obj_id"])
         else:
             if isinstance(obj_ids, str) or isinstance(obj_ids, int):
                 obj_ids = np.array([obj_ids])
-            obj_match = np.in1d(self.coeffs["objId"], obj_ids)
-            ephemerides["objId"] = obj_ids
+            obj_match = np.in1d(self.coeffs["obj_id"], obj_ids)
+            ephemerides["obj_id"] = obj_ids
         # Now find ephemeris values.
         ephemerides["time"] = (
-            np.zeros((len(ephemerides["objId"]), ntimes), float) + times
+            np.zeros((len(ephemerides["obj_id"]), ntimes), float) + times
         )
         for k in self.ephemeris_keys:
-            ephemerides[k] = np.zeros((len(ephemerides["objId"]), ntimes), float)
+            ephemerides[k] = np.zeros((len(ephemerides["obj_id"]), ntimes), float)
         for it, t in enumerate(times):
             # Find subset of segments which contain the appropriate time.
             # Look for simplest subset first.
             segments = np.where(
-                (self.coeffs["tStart"][obj_match] <= t)
-                & (self.coeffs["tEnd"][obj_match] > t)
+                (self.coeffs["t_start"][obj_match] <= t)
+                & (self.coeffs["t_end"][obj_match] > t)
             )[0]
             if len(segments) == 0:
-                seg_start = self.coeffs["tStart"][obj_match].min()
-                seg_end = self.coeffs["tEnd"][obj_match].max()
+                seg_start = self.coeffs["t_start"][obj_match].min()
+                seg_end = self.coeffs["t_end"][obj_match].max()
                 if seg_start > t or seg_end < t:
                     if not extrapolate:
                         for k in self.ephemeris_keys:
@@ -206,22 +206,22 @@ class ChebyValues(object):
                         # Find the segments to use to extrapolate the times.
                         if seg_start > t:
                             segments = np.where(
-                                self.coeffs["tStart"][obj_match] == seg_start
+                                self.coeffs["t_start"][obj_match] == seg_start
                             )[0]
                         if seg_end < t:
                             segments = np.where(
-                                self.coeffs["tEnd"][obj_match] == seg_end
+                                self.coeffs["t_end"][obj_match] == seg_end
                             )[0]
                 elif seg_end == t:
                     # Not extrapolating, but outside the simple match case above.
-                    segments = np.where(self.coeffs["tEnd"][obj_match] == seg_end)[0]
+                    segments = np.where(self.coeffs["t_end"][obj_match] == seg_end)[0]
             for i, segmentIdx in enumerate(segments):
                 ephemeris = self._eval_segment(segmentIdx, t, obj_match, mask=False)
                 for k in self.ephemeris_keys:
                     ephemerides[k][i][it] = ephemeris[k]
-                ephemerides["objId"][i] = self.coeffs["objId"][obj_match][segmentIdx]
+                ephemerides["obj_id"][i] = self.coeffs["obj_id"][obj_match][segmentIdx]
         if obj_ids is not None:
-            if set(ephemerides["objId"]) != set(obj_ids):
+            if set(ephemerides["obj_id"]) != set(obj_ids):
                 raise ValueError(
                     "Did not find expected match between obj_ids provided and ephemeride obj_ids."
                 )
