@@ -1,5 +1,5 @@
 import numpy as np
-from rubin_sim.phot_utils import Dust_values
+from rubin_sim.phot_utils import DustValues
 from .base_metric import BaseMetric
 
 __all__ = ["AGN_TimeLagMetric"]
@@ -37,7 +37,7 @@ class AGN_TimeLagMetric(BaseMetric):
         self.r_cutoff = r_cutoff
         if dust:
             maps = ["DustMap"]
-            dust_properties = Dust_values()
+            dust_properties = DustValues()
             self.Ax1 = dust_properties.Ax1
         else:
             maps = []

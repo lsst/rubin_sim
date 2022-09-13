@@ -4,7 +4,7 @@ import numpy as np
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.slicers import UserPointsSlicer
 from rubin_sim.utils import uniformSphere, survey_start_mjd
-from rubin_sim.phot_utils import Dust_values
+from rubin_sim.phot_utils import DustValues
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import m52snr
 
@@ -161,7 +161,7 @@ class KNePopMetric(BaseMetric):
         self.lightcurves = KN_lc(file_list=file_list)
         self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
 
-        dust_properties = Dust_values()
+        dust_properties = DustValues()
         self.Ax1 = dust_properties.Ax1
 
         cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]

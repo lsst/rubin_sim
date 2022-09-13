@@ -2,7 +2,7 @@ import numpy as np
 import healpy as hp
 
 import rubin_sim.maf.metrics as metrics
-from rubin_sim.phot_utils import Dust_values
+from rubin_sim.phot_utils import DustValues
 from rubin_sim.maf.utils import collapse_night
 from rubin_sim.utils import calcSeason
 
@@ -105,7 +105,7 @@ class SNSLMetric(metrics.BaseMetric):
         self.min_season_obs = min_season_obs
         self.nfilters_min = nfilters_min
         # Set up dust-extinction values to use to interpret the dust map.
-        self.phot_properties = Dust_values()
+        self.phot_properties = DustValues()
 
     def n_lensed(self, area, cadence, season_length):
         """
