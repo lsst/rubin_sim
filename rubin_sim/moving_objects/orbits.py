@@ -11,7 +11,7 @@ class Orbits(object):
     Instantiate the class and then use read_orbits or set_orbits to set the orbit values.
 
     self.orbits stores the orbital parameters, as a pandas dataframe.
-    self.dataCols defines the columns required, although objId, H, g, and sed_filename are optional.
+    self.dataCols defines the columns required, although obj_id, H, g, and sed_filename are optional.
     """
 
     def __init__(self):
@@ -22,7 +22,7 @@ class Orbits(object):
         # Which columns are required depends on self.orb_format.
         self.data_cols = {}
         self.data_cols["COM"] = [
-            "objId",
+            "obj_id",
             "q",
             "e",
             "inc",
@@ -35,7 +35,7 @@ class Orbits(object):
             "sed_filename",
         ]
         self.data_cols["KEP"] = [
-            "objId",
+            "obj_id",
             "a",
             "e",
             "inc",
@@ -48,7 +48,7 @@ class Orbits(object):
             "sed_filename",
         ]
         self.data_cols["CAR"] = [
-            "objId",
+            "obj_id",
             "x",
             "y",
             "z",
@@ -324,7 +324,7 @@ class Orbits(object):
             # No header; assume it's a typical DES file -
             # we'll assign the column names based on the FORMAT.
             names_com = (
-                "objId",
+                "obj_id",
                 "FORMAT",
                 "q",
                 "e",
@@ -340,7 +340,7 @@ class Orbits(object):
                 "COMPCODE",
             )
             names_kep = (
-                "objId",
+                "obj_id",
                 "FORMAT",
                 "a",
                 "e",
@@ -356,7 +356,7 @@ class Orbits(object):
                 "COMPCODE",
             )
             names_car = (
-                "objId",
+                "obj_id",
                 "FORMAT",
                 "x",
                 "y",
@@ -410,8 +410,8 @@ class Orbits(object):
         # (depending on file version, origin, etc.)
         # that might need remapping from the on-file values to our standardized values.
         alt_names = {}
-        alt_names["objId"] = [
-            "objId",
+        alt_names["obj_id"] = [
+            "obj_id",
             "objid",
             "!!ObjID",
             "!!OID",
@@ -471,9 +471,9 @@ class Orbits(object):
         if "inc" in orbits.keys():
             if np.min(orbits["inc"]) < 0:
                 negative_incs = np.where(orbits["inc"].values < 0)[0]
-                negative_ids = orbits["objId"].values[negative_incs]
+                negative_ids = orbits["obj_id"].values[negative_incs]
                 ValueError(
-                    "Negative orbital inclinations not supported. Problem objIds=%s"
+                    "Negative orbital inclinations not supported. Problem obj_ids=%s"
                     % negative_ids
                 )
 
@@ -490,7 +490,7 @@ class Orbits(object):
         ----------
         neworb: `pd.DataFrame`
         """
-        col_orig = ["objId", "sed_filename"]
-        new_order = ["objId"] + [n for n in neworb.columns] + ["sed_filename"]
+        col_orig = ["obj_id", "sed_filename"]
+        new_order = ["obj_id"] + [n for n in neworb.columns] + ["sed_filename"]
         updated_orbits = neworb.join(self.orbits[col_orig])[new_order]
         self.set_orbits(updated_orbits)

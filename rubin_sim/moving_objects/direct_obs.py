@@ -167,7 +167,7 @@ class DirectObs(BaseObs):
         )
         # For each object, identify observations where the object is within the FOV (or camera footprint).
         for i, sso in enumerate(orbits):
-            objid = sso.orbits["objId"].iloc[0]
+            objid = sso.orbits["obj_id"].iloc[0]
             sedname = sso.orbits["sed_filename"].iloc[0]
             # Generate ephemerides on the rough grid.
             logging.debug(
