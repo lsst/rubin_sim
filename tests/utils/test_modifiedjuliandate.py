@@ -18,7 +18,7 @@ class MjdTest(unittest.TestCase):
     testTimeTransformations.py
     """
 
-    longMessage = True
+    long_message = True
 
     def test_tai_from_utc(self):
         """
@@ -227,34 +227,34 @@ class MjdTest(unittest.TestCase):
             # Note that this may also trigger astropy warnings,
             # depending on the order in which tests are run.
             mjd.UT1
-        expected_MJD_warnings = 1
-        MJD_warnings = 0
+        expected_mjd_warnings = 1
+        mjd_warnings = 0
         for w in w_list:
             # Count the number of warnings and test we can filter by category.
             if w.category == UTCtoUT1Warning:
-                MJD_warnings += 1
+                mjd_warnings += 1
                 # Test that the string "ModifiedJulianDate.UT1" actually showed up in the message.
                 # This indicates what method the warning occured from (UT1 vs dut).
                 self.assertIn("ModifiedJulianDate.UT1", str(w.message))
         self.assertEqual(
-            expected_MJD_warnings,
-            MJD_warnings,
+            expected_mjd_warnings,
+            mjd_warnings,
             msg="UT1 did not emit a UTCtoUT1Warning",
         )
 
-        expected_MJD_warnings = 1
-        MJD_warnings = 0
+        expected_mjd_warnings = 1
+        mjd_warnings = 0
         with warnings.catch_warnings(record=True) as w_list:
             warnings.simplefilter("always")
             mjd = ModifiedJulianDate(1000000.0)
             mjd.dut1
         for w in w_list:
             if w.category == UTCtoUT1Warning:
-                MJD_warnings += 1
+                mjd_warnings += 1
                 self.assertIn("ModifiedJulianDate.dut1", str(w.message))
         self.assertEqual(
-            expected_MJD_warnings,
-            MJD_warnings,
+            expected_mjd_warnings,
+            mjd_warnings,
             msg="dut1 did not emit a UTCtoUT1Warning",
         )
 

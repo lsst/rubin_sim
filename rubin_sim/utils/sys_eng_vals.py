@@ -10,7 +10,7 @@ class SysEngVals(object):
     """
 
     def __init__(self):
-        self.Zp_t = {
+        self.zp_t = {
             "u": 27.029555,
             "g": 28.380922,
             "r": 28.155692,
@@ -18,7 +18,7 @@ class SysEngVals(object):
             "z": 27.460876,
             "y": 26.680288,
         }
-        self.Tb = {
+        self.tb = {
             "u": 0.036516,
             "g": 0.126775,
             "r": 0.103025,
@@ -34,7 +34,7 @@ class SysEngVals(object):
             "z": 0.039219,
             "y": 0.039300,
         }
-        self.kAtm = {
+        self.k_atm = {
             "u": 0.502296,
             "g": 0.213738,
             "r": 0.125886,
@@ -42,7 +42,7 @@ class SysEngVals(object):
             "z": 0.068623,
             "y": 0.169504,
         }
-        self.Cm = {
+        self.cm = {
             "u": 23.390261,
             "g": 24.506791,
             "r": 24.489914,
@@ -50,7 +50,7 @@ class SysEngVals(object):
             "z": 24.202753,
             "y": 23.769195,
         }
-        self.dCm_infinity = {
+        self.d_cm_infinity = {
             "u": 0.371939,
             "g": 0.098515,
             "r": 0.051961,
@@ -58,7 +58,7 @@ class SysEngVals(object):
             "z": 0.024581,
             "y": 0.018609,
         }
-        self.dCm_double = {
+        self.d_cm_double = {
             "u": 0.220178,
             "g": 0.049343,
             "r": 0.024140,
@@ -66,7 +66,7 @@ class SysEngVals(object):
             "z": 0.010146,
             "y": 0.007225,
         }
-        self.skyMag = {
+        self.sky_mag = {
             "u": 22.960730,
             "g": 22.257758,
             "r": 21.196590,

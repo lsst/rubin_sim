@@ -1,9 +1,9 @@
 import numpy as np
 
-__all__ = ["calcSeason"]
+__all__ = ["calc_season"]
 
 
-def calcSeason(ra, time):
+def calc_season(ra, time):
     """Calculate the 'season' in the survey for a series of ra/time values of an observation.
     Based only on the RA of the point on the sky, it calculates the 'season' based on when the sun
     passes through this RA (this marks the start of a 'season').
@@ -26,14 +26,14 @@ def calcSeason(ra, time):
     """
     # A reference time and sun RA location to anchor the location of the Sun
     # This time was chosen as it is close to the expected start of the survey.
-    refTime = 60575.0
-    refSunRA = 179.20796047239727
+    ref_time = 60575.0
+    ref_sun_ra = 179.20796047239727
     # Calculate the fraction of the sphere/"year" for this location
-    offset = (ra - refSunRA) / 360 * 365.25
+    offset = (ra - ref_sun_ra) / 360 * 365.25
     # Calculate when the seasons should begin
-    seasonBegan = refTime + offset
+    season_began = ref_time + offset
     # Calculate the season value for each point.
-    seasons = (time - seasonBegan) / 365.25
+    seasons = (time - season_began) / 365.25
     # (usually) Set first season at this point to 0
     seasons = seasons - np.floor(np.min(seasons))
     return seasons

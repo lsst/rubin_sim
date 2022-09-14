@@ -44,7 +44,7 @@ class LsstCameraFootprint(object):
         self.indx_max = len(self.x_camera)
 
     def __call__(
-        self, obj_ra, obj_dec, boresight_ra, boresight_dec, boresight_rotSkyPos
+        self, obj_ra, obj_dec, boresight_ra, boresight_dec, boresight_rot_sky_pos
     ):
         """Determine which observations are within the actual camera footprint for a series of observations.
 
@@ -58,7 +58,7 @@ class LsstCameraFootprint(object):
             RA value for the pointing
         boresight_dec : `float`
             Dec value for the pointing
-        boresight_rotSkyPos : `float`
+        boresight_rot_sky_pos : `float`
             RotSkyPos value for the pointing.
 
         Returns
@@ -79,13 +79,13 @@ class LsstCameraFootprint(object):
             # rotate them by rotskypos
             # TODO: look up whether this is a positive or negative rotation
             #  in the observatory documentation
-            x_proj, y_proj = rotate(x_proj, y_proj, np.radians(boresight_rotSkyPos))
+            x_proj, y_proj = rotate(x_proj, y_proj, np.radians(boresight_rot_sky_pos))
 
         else:
             x_proj, y_proj = gnomonic_project_toxy(
                 obj_ra, obj_dec, boresight_ra, boresight_dec
             )
-            x_proj, y_proj = rotate(x_proj, y_proj, boresight_rotSkyPos)
+            x_proj, y_proj = rotate(x_proj, y_proj, boresight_rot_sky_pos)
 
         # look up which points are good
         x_indx = np.round((x_proj - self.x_camera[0]) / self.plate_scale).astype(int)

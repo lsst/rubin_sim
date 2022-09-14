@@ -1,11 +1,11 @@
 import numpy as np
 
-__all__ = ["stellarMags"]
+__all__ = ["stellar_mags"]
 
 
-def calcWDColors():
+def calc_wd_colors():
     """
-    Calculate a few example WD colors. Values to go in stellarMags(). Here in case
+    Calculate a few example WD colors. Values to go in stellar_mags(). Here in case
     values need to be regenerated (different stars, bandpasses change, etc.)
     """
 
@@ -22,36 +22,36 @@ def calcWDColors():
         "bergeron_10500_85.dat_11000.gz",
         "bergeron_2750_85.dat_3000.gz",
     ]
-    wdDir = os.path.join(getPackageDir("sims_sed_library"), "starSED/wDs/")
-    files = [os.path.join(wdDir, filename) for filename in fns]
+    wd_dir = os.path.join(getPackageDir("sims_sed_library"), "starSED/wDs/")
+    files = [os.path.join(wd_dir, filename) for filename in fns]
 
     # Read in the LSST bandpasses
-    bpNames = ["u", "g", "r", "i", "z", "y"]
+    bp_names = ["u", "g", "r", "i", "z", "y"]
     bps = []
-    throughPath = os.path.join(getPackageDir("throughputs"), "baseline")
-    for key in bpNames:
+    through_path = os.path.join(getPackageDir("throughputs"), "baseline")
+    for key in bp_names:
         bp = np.loadtxt(
-            os.path.join(throughPath, "filter_" + key + ".dat"),
+            os.path.join(through_path, "filter_" + key + ".dat"),
             dtype=list(zip(["wave", "trans"], [float] * 2)),
         )
-        tempB = Bandpass()
-        tempB.setBandpass(bp["wave"], bp["trans"])
-        bps.append(tempB)
+        temp_b = Bandpass()
+        temp_b.setBandpass(bp["wave"], bp["trans"])
+        bps.append(temp_b)
 
     # Read in the SEDs and compute mags
     mags = []
     for filename in files:
         star = Sed()
         star.readSED_flambda(filename)
-        singleMags = [star.calcMag(band) for band in bps]
-        mags.append([singleMags[i - 1] - singleMags[i] for i in range(1, 6)])
+        single_mags = [star.calcMag(band) for band in bps]
+        mags.append([single_mags[i - 1] - single_mags[i] for i in range(1, 6)])
 
     for maglist, fn, name in zip(mags, fns, names):
         format = (name, fn) + tuple(maglist)
         print("['%s', '%s', %f, %f, %f, %f, %f]" % format)
 
 
-def stellarMags(stellarType, rmag=19.0):
+def stellar_mags(stellar_type, rmag=19.0):
     """
     Calculates the expected magnitudes in LSST filters for a
     typical star of the given spectral type.
@@ -62,7 +62,7 @@ def stellarMags(stellarType, rmag=19.0):
 
     Parameters
     ----------
-    stellarType : str
+    stellar_type : str
         Spectral type of a star (O,B,A,F,G,K,M), or for white dwarf colors,
         one of 'HeWD_25200_80, 'WD_11000_85', 'WD_3000_85'
     rmag : float
@@ -75,8 +75,8 @@ def stellarMags(stellarType, rmag=19.0):
     """
 
     # If this is the first time running the function, set up the data array
-    if not hasattr(stellarMags, "data"):
-        names = ["stellarType", "Model Name", "u-g", "g-r", "r-i", "i-z", "z-y"]
+    if not hasattr(stellar_mags, "data"):
+        names = ["stellar_type", "Model Name", "u-g", "g-r", "r-i", "i-z", "z-y"]
         types = [("U", 20), ("U", 35), float, float, float, float, float]
         data = np.core.records.fromrecords(
             [
@@ -174,21 +174,21 @@ def stellarMags(stellarType, rmag=19.0):
             dtype=list(zip(names, types)),
         )
         # Switch to a dict for faster look-up
-        stellarMags.data = {}
+        stellar_mags.data = {}
         for row in data:
-            stellarMags.data["%s" % row["stellarType"]] = row
+            stellar_mags.data["%s" % row["stellar_type"]] = row
 
     results = {}
-    # good = np.where(stellarMags.data['stellarType'] == stellarType)
-    if stellarType not in stellarMags.data:
-        message = "Received stellarType %s" % stellarType
-        message += " but expected one of %s" % ", ".join(stellarMags.data.keys())
+    # good = np.where(stellar_mags.data['stellar_type'] == stellar_type)
+    if stellar_type not in stellar_mags.data:
+        message = "Received stellar_type %s" % stellar_type
+        message += " but expected one of %s" % ", ".join(stellar_mags.data.keys())
         raise ValueError(message)
 
     results["r"] = rmag
-    results["i"] = rmag - stellarMags.data[stellarType]["r-i"]
-    results["z"] = results["i"] - stellarMags.data[stellarType]["i-z"]
-    results["y"] = results["z"] - stellarMags.data[stellarType]["z-y"]
-    results["g"] = stellarMags.data[stellarType]["g-r"] + results["r"]
-    results["u"] = stellarMags.data[stellarType]["u-g"] + results["g"]
+    results["i"] = rmag - stellar_mags.data[stellar_type]["r-i"]
+    results["z"] = results["i"] - stellar_mags.data[stellar_type]["i-z"]
+    results["y"] = results["z"] - stellar_mags.data[stellar_type]["z-y"]
+    results["g"] = stellar_mags.data[stellar_type]["g-r"] + results["r"]
+    results["u"] = stellar_mags.data[stellar_type]["u-g"] + results["g"]
     return results

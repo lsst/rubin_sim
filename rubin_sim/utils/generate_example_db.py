@@ -426,61 +426,61 @@ def nes_light_footprints(nside=None):
     A quick function to generate the "standard" goal maps. This is the traditional WFD/mini survey footprint.
     """
 
-    NES_scaledown = 2.0
-    SCP_scaledown = 1.5
+    nes_scaledown = 2.0
+    scp_scaledown = 1.5
 
     result = {}
     result["u"] = generate_goal_map(
         nside=nside,
-        NES_fraction=0.0 / NES_scaledown,
-        WFD_fraction=0.31,
-        SCP_fraction=0.15 / SCP_scaledown,
-        GP_fraction=0.15,
+        nes_fraction=0.0 / nes_scaledown,
+        wfd_fraction=0.31,
+        scp_fraction=0.15 / scp_scaledown,
+        gp_fraction=0.15,
         wfd_dec_min=-62.5,
         wfd_dec_max=3.6,
     )
     result["g"] = generate_goal_map(
         nside=nside,
-        NES_fraction=0.2 / NES_scaledown,
-        WFD_fraction=0.44,
-        SCP_fraction=0.15 / SCP_scaledown,
-        GP_fraction=0.15,
+        nes_fraction=0.2 / nes_scaledown,
+        wfd_fraction=0.44,
+        scp_fraction=0.15 / scp_scaledown,
+        gp_fraction=0.15,
         wfd_dec_min=-62.5,
         wfd_dec_max=3.6,
     )
     result["r"] = generate_goal_map(
         nside=nside,
-        NES_fraction=0.46 / NES_scaledown,
-        WFD_fraction=1.0,
-        SCP_fraction=0.15 / SCP_scaledown,
-        GP_fraction=0.15,
+        nes_fraction=0.46 / nes_scaledown,
+        wfd_fraction=1.0,
+        scp_fraction=0.15 / scp_scaledown,
+        gp_fraction=0.15,
         wfd_dec_min=-62.5,
         wfd_dec_max=3.6,
     )
     result["i"] = generate_goal_map(
         nside=nside,
-        NES_fraction=0.46 / NES_scaledown,
-        WFD_fraction=1.0,
-        SCP_fraction=0.15 / SCP_scaledown,
-        GP_fraction=0.15,
+        nes_fraction=0.46 / nes_scaledown,
+        wfd_fraction=1.0,
+        scp_fraction=0.15 / scp_scaledown,
+        gp_fraction=0.15,
         wfd_dec_min=-62.5,
         wfd_dec_max=3.6,
     )
     result["z"] = generate_goal_map(
         nside=nside,
-        NES_fraction=0.4 / NES_scaledown,
-        WFD_fraction=0.9,
-        SCP_fraction=0.15 / SCP_scaledown,
-        GP_fraction=0.15,
+        nes_fraction=0.4 / nes_scaledown,
+        wfd_fraction=0.9,
+        scp_fraction=0.15 / scp_scaledown,
+        gp_fraction=0.15,
         wfd_dec_min=-62.5,
         wfd_dec_max=3.6,
     )
     result["y"] = generate_goal_map(
         nside=nside,
-        NES_fraction=0.0 / NES_scaledown,
-        WFD_fraction=0.9,
-        SCP_fraction=0.15 / SCP_scaledown,
-        GP_fraction=0.15,
+        nes_fraction=0.0 / nes_scaledown,
+        wfd_fraction=0.9,
+        scp_fraction=0.15 / scp_scaledown,
+        gp_fraction=0.15,
         wfd_dec_min=-62.5,
         wfd_dec_max=3.6,
     )
@@ -520,7 +520,7 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", dest="verbose", action="store_true")
     parser.set_defaults(verbose=False)
     parser.add_argument("--survey_length", type=float, default=15)
-    parser.add_argument("--outDir", type=str, default="")
+    parser.add_argument("--out_dir", type=str, default="")
     parser.add_argument(
         "--maxDither", type=float, default=0.7, help="Dither size for DDFs (deg)"
     )
@@ -536,7 +536,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     survey_length = args.survey_length  # Days
-    outDir = args.outDir
+    out_dir = args.outDir
     verbose = args.verbose
     max_dither = args.maxDither
     illum_limit = args.moon_illum_limit
@@ -572,7 +572,7 @@ if __name__ == "__main__":
     observatory = Model_observatory(nside=nside)
     conditions = observatory.return_conditions()
     footprints = Footprint(
-        conditions.mjd_start, sun_RA_start=conditions.sun_RA_start, nside=nside
+        conditions.mjd_start, sun_ra_start=conditions.sun_RA_start, nside=nside
     )
     for i, key in enumerate(footprints_hp):
         footprints.footprints[i, :] = footprints_hp[key]
@@ -604,7 +604,7 @@ if __name__ == "__main__":
         surveys,
         survey_length=survey_length,
         verbose=verbose,
-        fileroot=os.path.join(outDir, fileroot + file_end),
+        fileroot=os.path.join(out_dir, fileroot + file_end),
         extra_info=extra_info,
         nside=nside,
         illum_limit=illum_limit,

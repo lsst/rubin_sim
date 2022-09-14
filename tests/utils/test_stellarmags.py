@@ -8,7 +8,7 @@ class StellarMagsTest(unittest.TestCase):
     Test the example stellar colors code
     """
 
-    def testSM(self):
+    def test_sm(self):
         keys = [
             "O",
             "B",
@@ -21,12 +21,12 @@ class StellarMagsTest(unittest.TestCase):
             "WD_11000_85",
             "WD_3000_85",
         ]
-        filterNames = ["u", "g", "r", "i", "z", "y"]
+        filter_names = ["u", "g", "r", "i", "z", "y"]
 
         # Check each type returns the correct format
         for key in keys:
             result = utils.stellarMags(key)
-            for fn in filterNames:
+            for fn in filter_names:
                 self.assertIn(fn, result)
                 self.assertTrue(
                     (isinstance(result[fn], float))

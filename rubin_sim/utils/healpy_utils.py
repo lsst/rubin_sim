@@ -3,18 +3,18 @@ import healpy as hp
 import warnings
 
 __all__ = [
-    "hpid2RaDec",
-    "raDec2Hpid",
+    "hpid2_ra_dec",
+    "ra_dec2_hpid",
     "healbin",
-    "_hpid2RaDec",
-    "_raDec2Hpid",
+    "_hpid2_ra_dec",
+    "_ra_dec2_hpid",
     "_healbin",
     "moc2array",
     "hp_grow_argsort",
 ]
 
 
-def _hpid2RaDec(nside, hpids, **kwargs):
+def _hpid2_ra_dec(nside, hpids, **kwargs):
     """
     Correct for healpy being silly and running dec from 0-180.
 
@@ -27,20 +27,20 @@ def _hpid2RaDec(nside, hpids, **kwargs):
 
     Returns
     -------
-    raRet : float (or np.array)
+    ra_ret : float (or np.array)
         RA positions of the input healpixel IDs. In radians.
-    decRet : float (or np.array)
+    dec_ret : float (or np.array)
         Dec positions of the input healpixel IDs. In radians.
     """
 
     lat, lon = hp.pix2ang(nside, hpids, **kwargs)
-    decRet = np.pi / 2.0 - lat
-    raRet = lon
+    dec_ret = np.pi / 2.0 - lat
+    ra_ret = lon
 
-    return raRet, decRet
+    return ra_ret, dec_ret
 
 
-def hpid2RaDec(nside, hpids, **kwargs):
+def hpid2_ra_dec(nside, hpids, **kwargs):
     """
     Correct for healpy being silly and running dec from 0-180.
 
@@ -58,11 +58,11 @@ def hpid2RaDec(nside, hpids, **kwargs):
     decRet : float (or np.array)
         Dec positions of the input healpixel IDs. In degrees.
     """
-    ra, dec = _hpid2RaDec(nside, hpids, **kwargs)
+    ra, dec = _hpid2_ra_dec(nside, hpids, **kwargs)
     return np.degrees(ra), np.degrees(dec)
 
 
-def _raDec2Hpid(nside, ra, dec, **kwargs):
+def _ra_dec2_hpid(nside, ra, dec, **kwargs):
     """
     Assign ra,dec points to the correct healpixel.
 
@@ -85,7 +85,7 @@ def _raDec2Hpid(nside, ra, dec, **kwargs):
     return hpids
 
 
-def raDec2Hpid(nside, ra, dec, **kwargs):
+def ra_dec2_hpid(nside, ra, dec, **kwargs):
     """
     Assign ra,dec points to the correct healpixel.
 
@@ -103,11 +103,11 @@ def raDec2Hpid(nside, ra, dec, **kwargs):
     hpids : np.array
         Healpixel IDs for the input positions.
     """
-    return _raDec2Hpid(nside, np.radians(ra), np.radians(dec), **kwargs)
+    return _ra_dec2_hpid(nside, np.radians(ra), np.radians(dec), **kwargs)
 
 
 def _healbin(
-    ra, dec, values, nside=128, reduceFunc=np.mean, dtype=float, fillVal=hp.UNSEEN
+    ra, dec, values, nside=128, reduce_func=np.mean, dtype=float, fill_val=hp.UNSEEN
 ):
     """
     Take arrays of ra's, dec's, and value and bin into healpixels. Like numpy.hexbin but for
@@ -123,21 +123,21 @@ def _healbin(
         The values at each ra,dec position.
     nside : int
         Healpixel nside resolution. Must be a value of 2^N.
-    reduceFunc : function (numpy.mean)
+    reduce_func : function (numpy.mean)
         A function that will return a single value given a subset of `values`.
     dtype : dtype ('float')
         Data type of the resulting mask
-    fillVal : float (hp.UNSEEN)
+    fill_val : float (hp.UNSEEN)
         Value to fill in with healpixels that have no value.
         Default is the healpy mask value.
 
     Returns
     -------
-    mapVals : np.array
+    map_vals : np.array
         A numpy array that is a valid Healpixel map.
     """
 
-    hpids = _raDec2Hpid(nside, ra, dec)
+    hpids = _ra_dec2_hpid(nside, ra, dec)
 
     order = np.argsort(hpids)
     hpids = hpids[order]
@@ -147,20 +147,20 @@ def _healbin(
     left = np.searchsorted(hpids, pixids)
     right = np.searchsorted(hpids, pixids, side="right")
 
-    mapVals = np.zeros(hp.nside2npix(nside), dtype=dtype) + fillVal
+    map_vals = np.zeros(hp.nside2npix(nside), dtype=dtype) + fill_val
 
     # Wow, I thought histogram would be faster than the loop, but this has been faster!
     for i, idx in enumerate(pixids):
-        mapVals[idx] = reduceFunc(values[left[i] : right[i]])
+        map_vals[idx] = reduce_func(values[left[i] : right[i]])
 
     # Change any NaNs to fill value
-    mapVals[np.isnan(mapVals)] = fillVal
+    map_vals[np.isnan(map_vals)] = fill_val
 
-    return mapVals
+    return map_vals
 
 
 def healbin(
-    ra, dec, values, nside=128, reduceFunc=np.mean, dtype=float, fillVal=hp.UNSEEN
+    ra, dec, values, nside=128, reduce_func=np.mean, dtype=float, fill_val=hp.UNSEEN
 ):
     """
     Take arrays of ra's, dec's, and value and bin into healpixels. Like numpy.hexbin but for
@@ -176,11 +176,11 @@ def healbin(
         The values at each ra,dec position.
     nside : int
         Healpixel nside resolution. Must be a value of 2^N.
-    reduceFunc : function (numpy.mean)
+    reduce_func : function (numpy.mean)
         A function that will return a single value given a subset of `values`.
     dtype : dtype ('float')
         Data type of the resulting mask
-    fillVal : float (hp.UNSEEN)
+    fill_val : float (hp.UNSEEN)
         Value to fill in with healpixels that have no value.
         Default is the healpy mask value.
 
@@ -194,13 +194,13 @@ def healbin(
         np.radians(dec),
         values,
         nside=nside,
-        reduceFunc=reduceFunc,
+        reduce_func=reduce_func,
         dtype=dtype,
-        fillVal=fillVal,
+        fill_val=fill_val,
     )
 
 
-def moc2array(data, uniq, nside=128, reduceFunc=np.sum, density=True, fillVal=0.0):
+def moc2array(data, uniq, nside=128, reduce_func=np.sum, density=True, fill_val=0.0):
     """Convert a Multi-Order Coverage Map to a single nside HEALPix array. Useful
     for converting maps output by LIGO alerts. Expect that future versions of
     healpy or astropy will be able to replace this functionality. Note that this is
@@ -217,17 +217,17 @@ def moc2array(data, uniq, nside=128, reduceFunc=np.sum, density=True, fillVal=0.
         The UNIQ values for the MOC map
     nside : int (128)
         The output map nside
-    reduceFunc : function (np.sum)
+    reduce_func : function (np.sum)
         The function to use to combine data into single healpixels.
     density : bool (True)
-        If True, multiplies data values by pixel area before applying reduceFunc, and divides
+        If True, multiplies data values by pixel area before applying reduce_func, and divides
         the final array by the output pixel area. Should be True if working on a probability density MOC.
-    fillVal : float (0.)
+    fill_val : float (0.)
         Value to fill empty HEALPixels with. Good choices include 0 (default), hp.UNSEEN, and np.nan.
 
     Returns
     -------
-    np.array : HEALpy array of nside. Units should be the same as the input map as processed by reduceFunc.
+    np.array : HEALpy array of nside. Units should be the same as the input map as processed by reduce_func.
     """
 
     # NUNIQ packing, from page 12 of http://ivoa.net/documents/MOC/20190404/PR-MOC-1.1-20190404.pdf
@@ -240,7 +240,7 @@ def moc2array(data, uniq, nside=128, reduceFunc=np.sum, density=True, fillVal=0.
     data_points = np.zeros(data.size, dtype=list(zip(names, types)))
     for order in np.unique(orders):
         good = np.where(orders == order)
-        ra, dec = _hpid2RaDec(nsides[good][0], npixs[good], nest=True)
+        ra, dec = _hpid2_ra_dec(nsides[good][0], npixs[good], nest=True)
         data_points["ra"][good] = ra
         data_points["dec"][good] = dec
         data_points["area"][good] = hp.nside2pixarea(nsides[good][0])
@@ -255,12 +255,12 @@ def moc2array(data, uniq, nside=128, reduceFunc=np.sum, density=True, fillVal=0.
         data_points["dec"],
         tobin_data,
         nside=nside,
-        reduceFunc=reduceFunc,
-        fillVal=fillVal,
+        reduce_func=reduce_func,
+        fill_val=fill_val,
     )
 
     if density:
-        good = np.where(result != fillVal)
+        good = np.where(result != fill_val)
         result[good] = result[good] / hp.nside2pixarea(nside)
 
     return result

@@ -5,7 +5,7 @@ import copy
 from astropy.time import Time
 from astropy.utils.iers.iers import IERSRangeError
 
-__all__ = ["ModifiedJulianDate", "MJDWarning", "UTCtoUT1Warning"]
+__all__ = ["ModifiedJulianDate", "MJDWarning", "utctout1Warning"]
 
 
 # Filter out ERFA's complaints that we are simulating dates which
@@ -23,12 +23,12 @@ class MJDWarning(Warning):
     pass
 
 
-class UTCtoUT1Warning(MJDWarning):
+class utctout1Warning(MJDWarning):
     """
     A sub-class of MJDWarning meant for use when astropy.Time cannot interpolate
-    UT1-UTC as a function of UTC because UTC is out of bounds of the data.
+    ut1-utc as a function of utc because utc is out of bounds of the data.
     This class exists so that users can filter these warnings out by creating
-    a simple filter targeted at category=UTCtoUT1Warning.
+    a simple filter targeted at category=utctout1Warning.
     """
 
     pass
@@ -36,24 +36,24 @@ class UTCtoUT1Warning(MJDWarning):
 
 class ModifiedJulianDate(object):
     @classmethod
-    def _get_ut1_from_utc(cls, UTC):
+    def _get_ut1_from_utc(cls, utc):
         """
-        Take a numpy array of UTC values and return a numpy array of UT1 and dut1 values
+        Take a numpy array of utc values and return a numpy array of ut1 and dut1 values
         """
 
-        time_list = Time(UTC, scale="utc", format="mjd")
+        time_list = Time(utc, scale="utc", format="mjd")
 
         try:
             dut1_out = time_list.delta_ut1_utc
             ut1_out = time_list.ut1.mjd
         except IERSRangeError:
-            ut1_out = np.copy(UTC)
-            dut1_out = np.zeros(len(UTC))
+            ut1_out = np.copy(utc)
+            dut1_out = np.zeros(len(utc))
             warnings.warn(
                 "ModifiedJulianData.get_list() was given date values that are outside "
-                "astropy's range of interpolation for converting from UTC to UT1. "
-                "We will treat UT1=UTC for those dates, lacking a better alternative.",
-                category=UTCtoUT1Warning,
+                "astropy's range of interpolation for converting from utc to ut1. "
+                "We will treat ut1=utc for those dates, lacking a better alternative.",
+                category=utctout1Warning,
             )
             from astropy.utils.iers import (
                 TIME_BEFORE_IERS_RANGE,
@@ -68,7 +68,7 @@ class ModifiedJulianDate(object):
             )
 
             if len(good_dexes[0]) > 0:
-                time_good = Time(UTC[good_dexes], scale="utc", format="mjd")
+                time_good = Time(utc[good_dexes], scale="utc", format="mjd")
                 dut1_good = time_good.delta_ut1_utc
                 ut1_good = time_good.ut1.mjd
 
@@ -78,35 +78,35 @@ class ModifiedJulianDate(object):
         return ut1_out, dut1_out
 
     @classmethod
-    def get_list(cls, TAI=None, UTC=None):
+    def get_list(cls, TAI=None, utc=None):
         """
         Instantiate a list of ModifiedJulianDates from a numpy array of either TAI
-        or UTC values.
+        or utc values.
 
         @param[in] TAI (optional) a numpy array of MJD' in TAI
 
-        @param[in] UTC (optional) a numpy array of MJDs in UTC
+        @param[in] utc (optional) a numpy array of MJDs in utc
 
         @param[out] a list of ModifiedJulianDate instantiations with all of their
         properties already set (so the code does not waste time converting from TAI
         to TT, TDB, etc. when those time scales are called for).
         """
 
-        if TAI is None and UTC is None:
+        if TAI is None and utc is None:
             return None
 
-        if TAI is not None and UTC is not None:
+        if TAI is not None and utc is not None:
             raise RuntimeError(
-                "You should not specify both TAI and UTC in ModifiedJulianDate.get_list()"
+                "You should not specify both TAI and utc in ModifiedJulianDate.get_list()"
             )
 
         if TAI is not None:
             time_list = Time(TAI, scale="tai", format="mjd")
             tai_list = TAI
             utc_list = time_list.utc.mjd
-        elif UTC is not None:
-            time_list = Time(UTC, scale="utc", format="mjd")
-            utc_list = UTC
+        elif utc is not None:
+            time_list = Time(utc, scale="utc", format="mjd")
+            utc_list = utc
             tai_list = time_list.tai.mjd
 
         tt_list = time_list.tt.mjd
@@ -126,7 +126,7 @@ class ModifiedJulianDate(object):
 
         return output
 
-    def __init__(self, TAI=None, UTC=None):
+    def __init__(self, TAI=None, utc=None):
         """
         Must specify either:
 
@@ -134,12 +134,12 @@ class ModifiedJulianDate(object):
 
         or
 
-        @param [in] UTC = Universal Coordinate Time as an MJD
+        @param [in] utc = Universal Coordinate Time as an MJD
         """
 
-        if TAI is None and UTC is None:
+        if TAI is None and utc is None:
             raise RuntimeError(
-                "You must specify either TAI or UTC to "
+                "You must specify either TAI or utc to "
                 "instantiate ModifiedJulianDate"
             )
 
@@ -149,10 +149,10 @@ class ModifiedJulianDate(object):
             self._utc = None
             self._initialized_with = "TAI"
         else:
-            self._time = Time(UTC, scale="utc", format="mjd")
-            self._utc = UTC
+            self._time = Time(utc, scale="utc", format="mjd")
+            self._utc = utc
             self._tai = None
-            self._initialized_with = "UTC"
+            self._initialized_with = "utc"
 
         self._tt = None
         self._tdb = None
@@ -163,7 +163,7 @@ class ModifiedJulianDate(object):
         """
         Force the properties of this ModifiedJulianDate to have specific values.
 
-        values is a list of [TAI, UTC, TT, TDB, UT1, UT1-UTC] values.
+        values is a list of [TAI, utc, TT, TDB, ut1, ut1-utc] values.
 
         This method exists so that, when instantiating lists of ModifiedJulianDates,
         we can use astropy.time.Time's vectorized methods to quickly perform many
@@ -186,7 +186,7 @@ class ModifiedJulianDate(object):
         if self._initialized_with == "TAI":
             new_mjd = ModifiedJulianDate(TAI=self.TAI)
         else:
-            new_mjd = ModifiedJulianDate(UTC=self.UTC)
+            new_mjd = ModifiedJulianDate(utc=self.utc)
 
         new_mjd._tai = copy.deepcopy(self._tai, memo)
         new_mjd._utc = copy.deepcopy(self._utc, memo)
@@ -199,16 +199,16 @@ class ModifiedJulianDate(object):
 
     def _warn_utc_out_of_bounds(self, method_name):
         """
-        Raise a standard warning if UTC is outside of the range that can
+        Raise a standard warning if utc is outside of the range that can
         be interpolated on the IERS tables.
 
         method_name is the name of the method that caused this warning.
         """
         warnings.warn(
-            "UTC is outside of IERS table for UT1-UTC.\n"
-            "Returning UT1 = UTC for lack of a better idea\n"
+            "utc is outside of IERS table for ut1-utc.\n"
+            "Returning ut1 = utc for lack of a better idea\n"
             "This warning was caused by calling ModifiedJulianDate.%s\n" % method_name,
-            category=UTCtoUT1Warning,
+            category=utctout1Warning,
         )
 
     @property
@@ -222,7 +222,7 @@ class ModifiedJulianDate(object):
         return self._tai
 
     @property
-    def UTC(self):
+    def utc(self):
         """
         Universal Coordinate Time as an MJD
         """
@@ -232,7 +232,7 @@ class ModifiedJulianDate(object):
         return self._utc
 
     @property
-    def UT1(self):
+    def ut1(self):
         """
         Universal Time as an MJD
         """
@@ -240,15 +240,15 @@ class ModifiedJulianDate(object):
             try:
                 self._ut1 = self._time.ut1.mjd
             except IERSRangeError:
-                self._warn_utc_out_of_bounds("UT1")
-                self._ut1 = self.UTC
+                self._warn_utc_out_of_bounds("ut1")
+                self._ut1 = self.utc
 
         return self._ut1
 
     @property
     def dut1(self):
         """
-        UT1-UTC in seconds
+        ut1-utc in seconds
         """
 
         if self._dut1 is None:
