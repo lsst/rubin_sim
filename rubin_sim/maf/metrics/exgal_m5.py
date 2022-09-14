@@ -40,7 +40,7 @@ class ExgalM5(BaseMetric):
         )
         # Set the default wavelength limits for the lsst filters. These are approximately correct.
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.Ax1
+        self.Ax1 = dust_properties.ax1
         # We will call Coaddm5Metric to calculate the coadded depth. Set it up here.
         self.Coaddm5Metric = Coaddm5Metric(m5Col=m5Col)
 

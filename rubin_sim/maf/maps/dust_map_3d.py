@@ -68,7 +68,7 @@ class DustMap3D(BaseMap):
         # filter and setting E(B-V) to 1 [so similar to the values calculated in DustValues ..
         # we probably should rename those (from Ax1 to R_x)
         if R_x is None:
-            self.R_x = DustValues().R_x.copy()
+            self.R_x = DustValues().r_x.copy()
         else:
             self.R_x = R_x
         # The values that will be added to the slicepoints

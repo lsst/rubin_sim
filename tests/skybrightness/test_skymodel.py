@@ -203,7 +203,7 @@ class TestSkyModel(unittest.TestCase):
                 dtype=list(zip(["wave", "trans"], [float] * 2)),
             )
             lsst_bp = Bandpass()
-            lsst_bp.setBandpass(bp["wave"], bp["trans"])
+            lsst_bp.set_bandpass(bp["wave"], bp["trans"])
             bps[filterName] = lsst_bp
 
         sm1 = self.sm_spec

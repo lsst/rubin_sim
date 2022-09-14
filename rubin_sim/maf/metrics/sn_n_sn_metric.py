@@ -146,7 +146,7 @@ class SNNSNMetric(BaseMetric):
 
         maps = ["DustMap"]
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.Ax1
+        self.Ax1 = dust_properties.ax1
 
         cols = [
             self.nightCol,

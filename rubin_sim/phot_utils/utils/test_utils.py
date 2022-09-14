@@ -10,7 +10,7 @@ from rubin_sim.phot_utils import calc_sky_counts_per_pixel_for_m5, Sed
 __all__ = ["set_m5", "comoving_distance_integrand", "cosmological_omega"]
 
 
-def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwh_meff=None):
+def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwhm_eff=None):
     """
     Take an SED representing the sky and normalize it so that
     m5 (the magnitude at which an object is detected in this
@@ -40,7 +40,7 @@ def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwh_meff=Non
     PhotometricParameters class that carries details about the
     photometric response of the telescope.
 
-    @param [in] fwh_meff in arcseconds
+    @param [in] fwhm_eff in arcseconds
 
     @param [out] returns an instantiation of the Sed class that is the skysed renormalized
     so that m5 has the desired value.
@@ -53,11 +53,11 @@ def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwh_meff=Non
     # This is based on the LSST SNR document (v1.2, May 2010)
     # www.astro.washington.edu/users/ivezic/Astr511/LSST_SNRdoc.pdf
 
-    if fwh_meff is None:
-        fwh_meff = LSSTdefaults().FWHMeff("r")
+    if fwhm_eff is None:
+        fwhm_eff = LSSTdefaults().FWHMeff("r")
 
-    sky_counts_target = calcSkyCountsPerPixelForM5(
-        m5target, total_bandpass, fwhm_eff=fwh_meff, phot_params=phot_params
+    sky_counts_target = calc_sky_counts_per_pixel_for_m5(
+        m5target, total_bandpass, fwhm_eff=fwhm_eff, phot_params=phot_params
     )
 
     sky_sed_out = Sed(
@@ -65,11 +65,11 @@ def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwh_meff=Non
     )
 
     sky_counts = (
-        sky_sed_out.calcADU(hardware, phot_params=phot_params)
+        sky_sed_out.calc_adu(hardware, phot_params=phot_params)
         * phot_params.platescale
         * phot_params.platescale
     )
-    sky_sed_out.multiplyFluxNorm(sky_counts_target / sky_counts)
+    sky_sed_out.multiply_flux_norm(sky_counts_target / sky_counts)
 
     return sky_sed_out
 
