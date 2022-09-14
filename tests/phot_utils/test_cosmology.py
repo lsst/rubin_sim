@@ -44,7 +44,9 @@ class CosmologyUnitTest(unittest.TestCase):
                     ok_control,
                 ) = cosmological_omega(zz, h0, om0, og0=og0, onu0=onu0)
 
-                self.assertAlmostEqual(om_control, universe.omega_matter(redshift=zz), 6)
+                self.assertAlmostEqual(
+                    om_control, universe.omega_matter(redshift=zz), 6
+                )
                 self.assertAlmostEqual(
                     ode_control, universe.omega_dark_energy(redshift=zz), 6
                 )

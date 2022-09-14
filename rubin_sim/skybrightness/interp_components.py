@@ -385,7 +385,7 @@ class TwilightInterp(object):
                 dtype=list(zip(["wave", "through"], [float] * 2)),
             )
             bpTemp = Bandpass()
-            bpTemp.setBandpass(bpdata["wave"], bpdata["through"])
+            bpTemp.set_bandpass(bpdata["wave"], bpdata["through"])
             canonFilters[filterName] = bpTemp
 
         # Tack on the LSST filters
@@ -397,7 +397,7 @@ class TwilightInterp(object):
                 dtype=list(zip(["wave", "trans"], [float] * 2)),
             )
             tempB = Bandpass()
-            tempB.setBandpass(bp["wave"], bp["trans"])
+            tempB.set_bandpass(bp["wave"], bp["trans"])
             canonFilters[key] = tempB
             self.filterNames.append(key)
 
@@ -459,8 +459,8 @@ class TwilightInterp(object):
         self.effWave = []
         self.solarMag = []
         for filterName in self.filterNames:
-            self.effWave.append(canonFilters[filterName].calcEffWavelen()[0])
-            self.solarMag.append(self.solarSpec.calcMag(canonFilters[filterName]))
+            self.effWave.append(canonFilters[filterName].calc_eff_wavelen()[0])
+            self.solarMag.append(self.solarSpec.calc_mag(canonFilters[filterName]))
 
         order = np.argsort(self.effWave)
         self.filterNames = np.array(self.filterNames)[order]
@@ -500,8 +500,8 @@ class TwilightInterp(object):
                     dtype=list(zip(["wave", "trans"], [float] * 2)),
                 )
                 tempB = Bandpass()
-                tempB.setBandpass(bp["wave"], bp["trans"])
-                self.lsstEffWave.append(tempB.calcEffWavelen()[0])
+                tempB.set_bandpass(bp["wave"], bp["trans"])
+                self.lsstEffWave.append(tempB.calc_eff_wavelen()[0])
             # Loop through the parameters and interpolate to new eff wavelengths
             for i in np.arange(self.lsstEquations[0, :].size):
                 interp = InterpolatedUnivariateSpline(self.effWave, fits[:, i])
