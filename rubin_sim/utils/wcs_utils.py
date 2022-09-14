@@ -222,15 +222,15 @@ def _native_lon_lat_from_ra_dec(ra_in, dec_in, obs_metadata):
     """
 
     ra, dec = _observed_from_icrs(
-        ra_in, dec_in, obs_metadata=obs_metadata, epoch=2000.0, includeRefraction=True
+        ra_in, dec_in, obs_metadata=obs_metadata, epoch=2000.0, include_refraction=True
     )
 
     ra_pointing, dec_pointing = _observed_from_icrs(
-        obs_metadata._pointingRA,
-        obs_metadata._pointingDec,
+        obs_metadata._pointing_ra,
+        obs_metadata._pointing_dec,
         obs_metadata=obs_metadata,
         epoch=2000.0,
-        includeRefraction=True,
+        include_refraction=True,
     )
 
     return _native_lon_lat_from_pointing(ra, dec, ra_pointing, dec_pointing)
@@ -302,11 +302,11 @@ def _ra_dec_from_native_lon_lat(lon, lat, obs_metadata):
     """
 
     ra_pointing, dec_pointing = _observed_from_icrs(
-        obs_metadata._pointingRA,
-        obs_metadata._pointingDec,
+        obs_metadata._pointing_ra,
+        obs_metadata._pointing_dec,
         obs_metadata=obs_metadata,
         epoch=2000.0,
-        includeRefraction=True,
+        include_refraction=True,
     )
 
     ra_obs, dec_obs = _lon_lat_from_native_lon_lat(lon, lat, ra_pointing, dec_pointing)
@@ -315,7 +315,7 @@ def _ra_dec_from_native_lon_lat(lon, lat, obs_metadata):
     # coordinates
 
     ra_out, dec_out = _icrs_from_observed(
-        ra_obs, dec_obs, obs_metadata=obs_metadata, epoch=2000.0, includeRefraction=True
+        ra_obs, dec_obs, obs_metadata=obs_metadata, epoch=2000.0, include_refraction=True
     )
 
     return ra_out, dec_out

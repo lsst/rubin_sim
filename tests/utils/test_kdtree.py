@@ -12,7 +12,7 @@ class KdTreeTestCase(unittest.TestCase):
         _dec = np.linspace(-np.pi, np.pi)
 
         ra, dec = np.meshgrid(_ra, _dec)
-        tree = utils._buildTree(ra.flatten(), dec.flatten())
+        tree = utils._build_tree(ra.flatten(), dec.flatten())
 
         x, y, z = utils._xyz_from_ra_dec(_ra, _dec)
         indx = tree.query_ball_point(list(zip(x, y, z)), utils.xyz_angular_radius())

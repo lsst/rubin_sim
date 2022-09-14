@@ -8,10 +8,10 @@ class PhotoM5Test(unittest.TestCase):
         kwargs = {}
         # List all parameters to test, with better conditions first
         kwargs["musky"] = [23.0, 22.0]
-        kwargs["FWHMeff"] = [1.0, 1.5]
-        kwargs["expTime"] = [60.0, 30.0]
+        kwargs["fwhm_eff"] = [1.0, 1.5]
+        kwargs["exp_time"] = [60.0, 30.0]
         kwargs["airmass"] = [1.0, 2.2]
-        kwargs["tauCloud"] = [0.0, 2.2]
+        kwargs["tau_cloud"] = [0.0, 2.2]
 
         k_default = {}
         for key in kwargs:

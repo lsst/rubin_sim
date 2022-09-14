@@ -18,25 +18,25 @@ class ObservationMetaDataTest(unittest.TestCase):
         """
 
         self.assertRaises(
-            RuntimeError, ObservationMetaData, bandpassName="u", m5=[12.0, 13.0]
+            RuntimeError, ObservationMetaData, bandpass_name="u", m5=[12.0, 13.0]
         )
         self.assertRaises(
-            RuntimeError, ObservationMetaData, bandpassName=["u", "g"], m5=15.0
+            RuntimeError, ObservationMetaData, bandpass_name=["u", "g"], m5=15.0
         )
         self.assertRaises(
             RuntimeError,
             ObservationMetaData,
-            bandpassName=["u", "g"],
+            bandpass_name=["u", "g"],
             m5=[12.0, 13.0, 15.0],
         )
 
         obs_md = ObservationMetaData()
         self.assertIsNone(obs_md.m5)
 
-        obs_md = ObservationMetaData(bandpassName="g", m5=12.0)
+        obs_md = ObservationMetaData(bandpass_name="g", m5=12.0)
         self.assertAlmostEqual(obs_md.m5["g"], 12.0, 10)
 
-        obs_md = ObservationMetaData(bandpassName=["u", "g", "r"], m5=[10, 11, 12])
+        obs_md = ObservationMetaData(bandpass_name=["u", "g", "r"], m5=[10, 11, 12])
         self.assertEqual(obs_md.m5["u"], 10)
         self.assertEqual(obs_md.m5["g"], 11)
         self.assertEqual(obs_md.m5["r"], 12)
@@ -47,26 +47,26 @@ class ObservationMetaDataTest(unittest.TestCase):
         """
 
         self.assertRaises(
-            RuntimeError, ObservationMetaData, bandpassName="u", seeing=[0.7, 0.6]
+            RuntimeError, ObservationMetaData, bandpass_name="u", seeing=[0.7, 0.6]
         )
         self.assertRaises(
-            RuntimeError, ObservationMetaData, bandpassName=["u", "g"], seeing=0.7
+            RuntimeError, ObservationMetaData, bandpass_name=["u", "g"], seeing=0.7
         )
         self.assertRaises(
             RuntimeError,
             ObservationMetaData,
-            bandpassName=["u", "g"],
+            bandpass_name=["u", "g"],
             seeing=[0.8, 0.7, 0.6],
         )
 
         obs_md = ObservationMetaData()
         self.assertIsNone(obs_md.seeing)
 
-        obs_md = ObservationMetaData(bandpassName="g", seeing=0.7)
+        obs_md = ObservationMetaData(bandpass_name="g", seeing=0.7)
         self.assertAlmostEqual(obs_md.seeing["g"], 0.7, 10)
 
         obs_md = ObservationMetaData(
-            bandpassName=["u", "g", "r"], seeing=[0.7, 0.6, 0.5]
+            bandpass_name=["u", "g", "r"], seeing=[0.7, 0.6, 0.5]
         )
         self.assertEqual(obs_md.seeing["u"], 0.7)
         self.assertEqual(obs_md.seeing["g"], 0.6)
@@ -77,15 +77,15 @@ class ObservationMetaDataTest(unittest.TestCase):
         Test assignment of m5 and seeing seeing and bandpass in ObservationMetaData
         """
         obs_md = ObservationMetaData(
-            bandpassName=["u", "g"], m5=[15.0, 16.0], seeing=[0.7, 0.6]
+            bandpass_name=["u", "g"], m5=[15.0, 16.0], seeing=[0.7, 0.6]
         )
         self.assertAlmostEqual(obs_md.m5["u"], 15.0, 10)
         self.assertAlmostEqual(obs_md.m5["g"], 16.0, 10)
         self.assertAlmostEqual(obs_md.seeing["u"], 0.7, 10)
         self.assertAlmostEqual(obs_md.seeing["g"], 0.6, 10)
 
-        obs_md.setBandpassM5andSeeing(
-            bandpassName=["i", "z"], m5=[25.0, 22.0], seeing=[0.5, 0.4]
+        obs_md.set_bandpass_m5and_seeing(
+            bandpass_name=["i", "z"], m5=[25.0, 22.0], seeing=[0.5, 0.4]
         )
         self.assertAlmostEqual(obs_md.m5["i"], 25.0, 10)
         self.assertAlmostEqual(obs_md.m5["z"], 22.0, 10)
@@ -105,12 +105,12 @@ class ObservationMetaDataTest(unittest.TestCase):
         self.assertAlmostEqual(obs_md.seeing["i"], 0.2, 10)
         self.assertAlmostEqual(obs_md.seeing["z"], 0.3, 10)
 
-        obs_md.setBandpassM5andSeeing(bandpassName=["k", "j"], m5=[21.0, 23.0])
+        obs_md.set_bandpass_m5and_seeing(bandpass_name=["k", "j"], m5=[21.0, 23.0])
         self.assertAlmostEqual(obs_md.m5["k"], 21.0, 10)
         self.assertAlmostEqual(obs_md.m5["j"], 23.0, 10)
         self.assertIsNone(obs_md.seeing)
 
-        obs_md.setBandpassM5andSeeing(bandpassName=["w", "x"], seeing=[0.9, 1.1])
+        obs_md.set_bandpass_m5and_seeing(bandpass_name=["w", "x"], seeing=[0.9, 1.1])
         self.assertAlmostEqual(obs_md.seeing["w"], 0.9, 10)
         self.assertAlmostEqual(obs_md.seeing["x"], 1.1, 10)
 
@@ -178,7 +178,7 @@ class ObservationMetaDataTest(unittest.TestCase):
         test_obs_md.pointing_ra = RA
         test_obs_md.pointing_dec = dec
         test_obs_md.rot_sky_pos = rot_sky_pos
-        test_obs_md.skyBrightness = sky_brightness
+        test_obs_md.sky_brightness = sky_brightness
         test_obs_md.mjd = mjd
         test_obs_md.bound_type = "box"
         test_obs_md.bound_length = [1.2, 3.0]
@@ -186,7 +186,7 @@ class ObservationMetaDataTest(unittest.TestCase):
         self.assertAlmostEqual(test_obs_md.pointing_ra, RA, 10)
         self.assertAlmostEqual(test_obs_md.pointing_dec, dec, 10)
         self.assertAlmostEqual(test_obs_md.rot_sky_pos, rot_sky_pos, 10)
-        self.assertAlmostEqual(test_obs_md.skyBrightness, sky_brightness, 10)
+        self.assertAlmostEqual(test_obs_md.sky_brightness, sky_brightness, 10)
         self.assertEqual(test_obs_md.bound_type, "box")
         self.assertAlmostEqual(test_obs_md.bound_length[0], 1.2, 10)
         self.assertAlmostEqual(test_obs_md.bound_length[1], 3.0, 10)
@@ -197,7 +197,7 @@ class ObservationMetaDataTest(unittest.TestCase):
         test_obs_md.pointing_ra = RA + 1.0
         test_obs_md.pointing_dec = dec + 1.0
         test_obs_md.rot_sky_pos = rot_sky_pos + 1.0
-        test_obs_md.skyBrightness = sky_brightness + 1.0
+        test_obs_md.sky_brightness = sky_brightness + 1.0
         test_obs_md.bound_length = 2.2
         test_obs_md.bound_type = "circle"
         test_obs_md.mjd = mjd + 10.0
@@ -205,7 +205,7 @@ class ObservationMetaDataTest(unittest.TestCase):
         self.assertAlmostEqual(test_obs_md.pointing_ra, RA + 1.0, 10)
         self.assertAlmostEqual(test_obs_md.pointing_dec, dec + 1.0, 10)
         self.assertAlmostEqual(test_obs_md.rot_sky_pos, rot_sky_pos + 1.0, 10)
-        self.assertAlmostEqual(test_obs_md.skyBrightness, sky_brightness + 1.0, 10)
+        self.assertAlmostEqual(test_obs_md.sky_brightness, sky_brightness + 1.0, 10)
         self.assertEqual(test_obs_md.bound_type, "circle")
         self.assertAlmostEqual(test_obs_md.bound_length, 2.2, 10)
         self.assertAlmostEqual(test_obs_md.mjd.TAI, mjd + 10.0, 10)
@@ -215,8 +215,8 @@ class ObservationMetaDataTest(unittest.TestCase):
             pointing_ra=RA,
             pointing_dec=dec,
             rot_sky_pos=rot_sky_pos,
-            bandpassName="z",
-            skyBrightness=sky_brightness,
+            bandpass_name="z",
+            sky_brightness=sky_brightness,
         )
 
         self.assertAlmostEqual(test_obs_md.mjd.TAI, 5120.0, 10)
@@ -224,7 +224,7 @@ class ObservationMetaDataTest(unittest.TestCase):
         self.assertAlmostEqual(test_obs_md.pointing_dec, -1.1, 10)
         self.assertAlmostEqual(test_obs_md.rot_sky_pos, -10.0, 10)
         self.assertEqual(test_obs_md.bandpass, "z")
-        self.assertAlmostEqual(test_obs_md.skyBrightness, sky_brightness, 10)
+        self.assertAlmostEqual(test_obs_md.sky_brightness, sky_brightness, 10)
 
         # test assigning ModifiedJulianDate
         obs = ObservationMetaData()
@@ -313,30 +313,30 @@ class ObservationMetaDataTest(unittest.TestCase):
         obs = ObservationMetaData()
         obs.summary
 
-    def test_opsim_meta_data(self):
+    def test_sim_meta_data(self):
         """
         Make sure that an exception is raised if you pass a non-dict
-        object in as OpsimMetaData
+        object in as simMetaData
         """
         obs = ObservationMetaData(pointing_ra=23.0, pointing_dec=-11.0)
 
         with self.assertRaises(RuntimeError) as ee:
-            obs.OpsimMetaData = 5.0
+            obs.sim_meta_data = 5.0
         self.assertIn("must be a dict", ee.exception.args[0])
 
         with self.assertRaises(RuntimeError) as ee:
-            obs.OpsimMetaData = 5
+            obs.sim_meta_data = 5
         self.assertIn("must be a dict", ee.exception.args[0])
 
         with self.assertRaises(RuntimeError) as ee:
-            obs.OpsimMetaData = [5.0, 3.0]
+            obs.sim_meta_data = [5.0, 3.0]
         self.assertIn("must be a dict", ee.exception.args[0])
 
         with self.assertRaises(RuntimeError) as ee:
-            obs.OpsimMetaData = (5.0, 3.0)
+            obs.sim_meta_data = (5.0, 3.0)
         self.assertIn("must be a dict", ee.exception.args[0])
 
-        obs.OpsimMetaData = {"a": 1, "b": 2}
+        obs.sim_meta_data = {"a": 1, "b": 2}
 
     def test_eq(self):
         """
@@ -363,9 +363,9 @@ class ObservationMetaDataTest(unittest.TestCase):
             pointing_dec=-19.1,
             mjd=59580.1,
             rot_sky_pos=91.2,
-            bandpassName="u",
+            bandpass_name="u",
             m5=24.3,
-            skyBrightness=22.1,
+            sky_brightness=22.1,
             seeing=0.8,
             site=dummy_site,
         )
@@ -375,9 +375,9 @@ class ObservationMetaDataTest(unittest.TestCase):
             pointing_dec=-19.1,
             mjd=59580.1,
             rot_sky_pos=91.2,
-            bandpassName="u",
+            bandpass_name="u",
             m5=24.3,
-            skyBrightness=22.1,
+            sky_brightness=22.1,
             seeing=0.8,
             site=dummy_site,
         )
@@ -391,9 +391,9 @@ class ObservationMetaDataTest(unittest.TestCase):
             pointing_dec=-19.1,
             mjd=59580.1,
             rot_sky_pos=91.2,
-            bandpassName="u",
+            bandpass_name="u",
             m5=24.3,
-            skyBrightness=22.1,
+            sky_brightness=22.1,
             seeing=0.8,
             site=dummy_site,
         )
@@ -407,9 +407,9 @@ class ObservationMetaDataTest(unittest.TestCase):
             pointing_dec=-19.2,
             mjd=59580.1,
             rot_sky_pos=91.2,
-            bandpassName="u",
+            bandpass_name="u",
             m5=24.3,
-            skyBrightness=22.1,
+            sky_brightness=22.1,
             seeing=0.8,
             site=dummy_site,
         )
@@ -423,9 +423,9 @@ class ObservationMetaDataTest(unittest.TestCase):
             pointing_dec=-19.1,
             mjd=59580.2,
             rot_sky_pos=91.2,
-            bandpassName="u",
+            bandpass_name="u",
             m5=24.3,
-            skyBrightness=22.1,
+            sky_brightness=22.1,
             seeing=0.8,
             site=dummy_site,
         )
@@ -439,9 +439,9 @@ class ObservationMetaDataTest(unittest.TestCase):
             pointing_dec=-19.1,
             mjd=59580.1,
             rot_sky_pos=91.1,
-            bandpassName="u",
+            bandpass_name="u",
             m5=24.3,
-            skyBrightness=22.1,
+            sky_brightness=22.1,
             seeing=0.8,
             site=dummy_site,
         )
@@ -455,9 +455,9 @@ class ObservationMetaDataTest(unittest.TestCase):
             pointing_dec=-19.1,
             mjd=59580.1,
             rot_sky_pos=91.2,
-            bandpassName="g",
+            bandpass_name="g",
             m5=24.3,
-            skyBrightness=22.1,
+            sky_brightness=22.1,
             seeing=0.8,
             site=dummy_site,
         )
@@ -471,9 +471,9 @@ class ObservationMetaDataTest(unittest.TestCase):
             pointing_dec=-19.1,
             mjd=59580.1,
             rot_sky_pos=91.2,
-            bandpassName="u",
+            bandpass_name="u",
             m5=24.1,
-            skyBrightness=22.1,
+            sky_brightness=22.1,
             seeing=0.8,
             site=dummy_site,
         )
@@ -487,9 +487,9 @@ class ObservationMetaDataTest(unittest.TestCase):
             pointing_dec=-19.1,
             mjd=59580.1,
             rot_sky_pos=91.2,
-            bandpassName="u",
+            bandpass_name="u",
             m5=24.3,
-            skyBrightness=22.2,
+            sky_brightness=22.2,
             seeing=0.8,
             site=dummy_site,
         )
@@ -503,9 +503,9 @@ class ObservationMetaDataTest(unittest.TestCase):
             pointing_dec=-19.1,
             mjd=59580.1,
             rot_sky_pos=91.2,
-            bandpassName="u",
+            bandpass_name="u",
             m5=24.3,
-            skyBrightness=22.1,
+            sky_brightness=22.1,
             seeing=0.81,
             site=dummy_site,
         )
@@ -519,9 +519,9 @@ class ObservationMetaDataTest(unittest.TestCase):
             pointing_dec=-19.1,
             mjd=59580.1,
             rot_sky_pos=91.2,
-            bandpassName="u",
+            bandpass_name="u",
             m5=24.3,
-            skyBrightness=22.1,
+            sky_brightness=22.1,
             seeing=0.8,
         )
 
@@ -537,44 +537,44 @@ class ObservationMetaDataTest(unittest.TestCase):
         self.assertFalse(ref_obs != other_obs)
 
         # now try cases of m5, bandpass, and seeing being lists
-        ref_obs.setBandpassM5andSeeing(
-            bandpassName=["u", "r", "z"], m5=[22.1, 23.5, 24.2], seeing=[0.6, 0.7, 0.8]
+        ref_obs.set_bandpass_m5and_seeing(
+            bandpass_name=["u", "r", "z"], m5=[22.1, 23.5, 24.2], seeing=[0.6, 0.7, 0.8]
         )
 
-        other_obs.setBandpassM5andSeeing(
-            bandpassName=["u", "r", "z"], m5=[22.1, 23.5, 24.2], seeing=[0.6, 0.7, 0.8]
+        other_obs.set_bandpass_m5and_seeing(
+            bandpass_name=["u", "r", "z"], m5=[22.1, 23.5, 24.2], seeing=[0.6, 0.7, 0.8]
         )
 
         self.assertEqual(ref_obs, other_obs)
         self.assertTrue(ref_obs == other_obs)
         self.assertFalse(ref_obs != other_obs)
 
-        other_obs.setBandpassM5andSeeing(
-            bandpassName=["u", "i", "z"], m5=[22.1, 23.5, 24.2], seeing=[0.6, 0.7, 0.8]
+        other_obs.set_bandpass_m5and_seeing(
+            bandpass_name=["u", "i", "z"], m5=[22.1, 23.5, 24.2], seeing=[0.6, 0.7, 0.8]
         )
 
         self.assertNotEqual(ref_obs, other_obs)
         self.assertFalse(ref_obs == other_obs)
         self.assertTrue(ref_obs != other_obs)
 
-        other_obs.setBandpassM5andSeeing(
-            bandpassName=["u", "r", "z"], m5=[22.1, 23.4, 24.2], seeing=[0.6, 0.7, 0.8]
+        other_obs.set_bandpass_m5and_seeing(
+            bandpass_name=["u", "r", "z"], m5=[22.1, 23.4, 24.2], seeing=[0.6, 0.7, 0.8]
         )
 
         self.assertNotEqual(ref_obs, other_obs)
         self.assertFalse(ref_obs == other_obs)
         self.assertTrue(ref_obs != other_obs)
 
-        other_obs.setBandpassM5andSeeing(
-            bandpassName=["u", "r", "z"], m5=[22.1, 23.5, 24.2], seeing=[0.2, 0.7, 0.8]
+        other_obs.set_bandpass_m5and_seeing(
+            bandpass_name=["u", "r", "z"], m5=[22.1, 23.5, 24.2], seeing=[0.2, 0.7, 0.8]
         )
 
         self.assertNotEqual(ref_obs, other_obs)
         self.assertFalse(ref_obs == other_obs)
         self.assertTrue(ref_obs != other_obs)
 
-        other_obs.setBandpassM5andSeeing(
-            bandpassName=["u", "z"], m5=[22.1, 24.2], seeing=[0.2, 0.8]
+        other_obs.set_bandpass_m5and_seeing(
+            bandpass_name=["u", "z"], m5=[22.1, 24.2], seeing=[0.2, 0.8]
         )
 
         self.assertNotEqual(ref_obs, other_obs)

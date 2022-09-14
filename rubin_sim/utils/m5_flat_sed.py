@@ -8,7 +8,7 @@ def m5_scale(
     exp_time,
     nexp,
     airmass,
-    fwh_meff,
+    fwhm_eff,
     musky,
     dark_sky_mag,
     cm,
@@ -27,7 +27,7 @@ def m5_scale(
         Number of exposures
     airmass : float
         Airmass of the observation
-    fwh_meff : np.ndarray or pd.DataFrame
+    fwhm_eff : np.ndarray or pd.DataFrame
         FWHM (in arcseconds) per filter
     musky : np.ndarray or pd.DataFrame
         Sky background (in magnitudes/sq arcsecond) per filter of the observation
@@ -64,7 +64,7 @@ def m5_scale(
         cm
         + d_cm
         + 0.50 * (musky - 21.0)
-        + 2.5 * np.log10(0.7 / fwh_meff)
+        + 2.5 * np.log10(0.7 / fwhm_eff)
         + 1.25 * np.log10(exp_time / 30.0)
         - k_atm * (airmass - 1.0)
         - 1.1 * tau_cloud
@@ -74,7 +74,7 @@ def m5_scale(
     return m5
 
 
-def m5_flat_sed(visit_filter, musky, fwh_meff, exp_time, airmass, nexp=1, tau_cloud=0):
+def m5_flat_sed(visit_filter, musky, fwhm_eff, exp_time, airmass, nexp=1, tau_cloud=0):
     """Calculate the m5 value, using photometric scaling.  Note, does not include shape of the object SED.
 
     Parameters
@@ -83,7 +83,7 @@ def m5_flat_sed(visit_filter, musky, fwh_meff, exp_time, airmass, nexp=1, tau_cl
          One of u,g,r,i,z,y
     musky : float
         Surface brightness of the sky in mag/sq arcsec
-    fwh_meff : float
+    fwhm_eff : float
         The seeing effective FWHM (arcsec)
     exp_time : float
         Exposure time for each exposure in the visit.
@@ -137,7 +137,7 @@ def m5_flat_sed(visit_filter, musky, fwh_meff, exp_time, airmass, nexp=1, tau_cl
         m5_flat_sed.Cm[visit_filter]
         + d_cm
         + 0.50 * (musky - 21.0)
-        + 2.5 * np.log10(0.7 / fwh_meff)
+        + 2.5 * np.log10(0.7 / fwhm_eff)
         + 1.25 * np.log10(exp_time / 30.0)
         - m5_flat_sed.kAtm[visit_filter] * (airmass - 1.0)
         - 1.1 * tau_cloud

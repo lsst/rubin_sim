@@ -35,7 +35,7 @@ def control_calc_gmst_gast(mjd):
     d_o = jd_o - jd2000
     t = d / 36525.0
     gmst = 6.697374558 + 0.06570982441908 * d_o + 1.00273790935 * h + 0.000026 * t**2
-    gast = gmst + 24.0 * utils.equationOfEquinoxes(mjd) / (2.0 * np.pi)
+    gast = gmst + 24.0 * utils.equation_of_equinoxes(mjd) / (2.0 * np.pi)
     gmst %= 24.0
     gast %= 24.0
     return gmst, gast
@@ -605,17 +605,17 @@ class TestCoordinateTransformations(unittest.TestCase):
         long_float = 1.2
         long_arr = np.array([1.2, 1.4])
 
-        self.assertRaises(RuntimeError, utils.calcLmstLast, mjd_float, long_arr)
-        self.assertRaises(RuntimeError, utils.calcLmstLast, mjd3, long_arr)
-        self.assertRaises(RuntimeError, utils.calcLmstLast, list(mjd2), long_arr)
-        self.assertRaises(RuntimeError, utils.calcLmstLast, mjd2, list(long_arr))
-        self.assertRaises(RuntimeError, utils.calcLmstLast, mjd_float, long_arr)
-        utils.calcLmstLast(mjd2, long_float)
-        utils.calcLmstLast(mjd_float, long_float)
-        utils.calcLmstLast(int(mjd_float), long_float)
-        utils.calcLmstLast(mjd_float, int(long_float))
-        utils.calcLmstLast(int(mjd_float), int(long_float))
-        utils.calcLmstLast(mjd2, long_arr)
+        self.assertRaises(RuntimeError, utils.calc_lmst_last, mjd_float, long_arr)
+        self.assertRaises(RuntimeError, utils.calc_lmst_last, mjd3, long_arr)
+        self.assertRaises(RuntimeError, utils.calc_lmst_last, list(mjd2), long_arr)
+        self.assertRaises(RuntimeError, utils.calc_lmst_last, mjd2, list(long_arr))
+        self.assertRaises(RuntimeError, utils.calc_lmst_last, mjd_float, long_arr)
+        utils.calc_lmst_last(mjd2, long_float)
+        utils.calc_lmst_last(mjd_float, long_float)
+        utils.calc_lmst_last(int(mjd_float), long_float)
+        utils.calc_lmst_last(mjd_float, int(long_float))
+        utils.calc_lmst_last(int(mjd_float), int(long_float))
+        utils.calc_lmst_last(mjd2, long_arr)
 
     def test_equation_of_equinoxes(self):
         """
@@ -624,13 +624,13 @@ class TestCoordinateTransformations(unittest.TestCase):
 
         # test vectorized version
         control = control_equation_of_equinoxes(self.mjd)
-        test = utils.equationOfEquinoxes(self.mjd)
+        test = utils.equation_of_equinoxes(self.mjd)
         self.assertLess(np.abs(test - control).max(), self.tolerance)
 
         # test non-vectorized version
         for mm in self.mjd:
             control = control_equation_of_equinoxes(mm)
-            test = utils.equationOfEquinoxes(mm)
+            test = utils.equation_of_equinoxes(mm)
             self.assertLess(np.abs(test - control), self.tolerance)
 
     def test_gmst_gast(self):
@@ -639,14 +639,14 @@ class TestCoordinateTransformations(unittest.TestCase):
         """
 
         control_gmst, control_gast = control_calc_gmst_gast(self.mjd)
-        test_gmst, test_gast = utils.calcGmstGast(self.mjd)
+        test_gmst, test_gast = utils.calc_gmst_gast(self.mjd)
         self.assertLess(np.abs(test_gmst - control_gmst).max(), self.tolerance)
         self.assertLess(np.abs(test_gast - control_gast).max(), self.tolerance)
 
         # test non-vectorized version
         for mm in self.mjd:
             control_gmst, control_gast = control_calc_gmst_gast(mm)
-            test_gmst, test_gast = utils.calcGmstGast(mm)
+            test_gmst, test_gast = utils.calc_gmst_gast(mm)
             self.assertLess(np.abs(test_gmst - control_gmst), self.tolerance)
             self.assertLess(np.abs(test_gast - control_gast), self.tolerance)
 
@@ -655,7 +655,7 @@ class TestCoordinateTransformations(unittest.TestCase):
         Test calculation of local mean and apparent sidereal time
         """
 
-        gmst, gast = utils.calcGmstGast(self.mjd)
+        gmst, gast = utils.calc_gmst_gast(self.mjd)
         ll = [1.2, 2.2]
 
         # test passing a float for longitude and a numpy array for mjd
@@ -667,7 +667,7 @@ class TestCoordinateTransformations(unittest.TestCase):
             control_last = gast + hours
             control_lmst %= 24.0
             control_last %= 24.0
-            test_lmst, test_last = utils.calcLmstLast(self.mjd, longitude)
+            test_lmst, test_last = utils.calc_lmst_last(self.mjd, longitude)
             self.assertLess(np.abs(test_lmst - control_lmst).max(), self.tolerance)
             self.assertLess(np.abs(test_last - control_last).max(), self.tolerance)
             self.assertIsInstance(test_lmst, np.ndarray)
@@ -676,7 +676,7 @@ class TestCoordinateTransformations(unittest.TestCase):
         # test passing two floats
         for longitude in ll:
             for mm in self.mjd:
-                gmst, gast = utils.calcGmstGast(mm)
+                gmst, gast = utils.calc_gmst_gast(mm)
                 hours = np.degrees(longitude) / 15.0
                 if hours > 24.0:
                     hours -= 24.0
@@ -684,7 +684,7 @@ class TestCoordinateTransformations(unittest.TestCase):
                 control_last = gast + hours
                 control_lmst %= 24.0
                 control_last %= 24.0
-                test_lmst, test_last = utils.calcLmstLast(mm, longitude)
+                test_lmst, test_last = utils.calc_lmst_last(mm, longitude)
                 self.assertLess(np.abs(test_lmst - control_lmst), self.tolerance)
                 self.assertLess(np.abs(test_last - control_last), self.tolerance)
                 self.assertIsInstance(test_lmst, float)
@@ -692,11 +692,11 @@ class TestCoordinateTransformations(unittest.TestCase):
 
         # test passing two numpy arrays
         ll = self.rng.random_sample(len(self.mjd)) * 2.0 * np.pi
-        test_lmst, test_last = utils.calcLmstLast(self.mjd, ll)
+        test_lmst, test_last = utils.calc_lmst_last(self.mjd, ll)
         self.assertIsInstance(test_lmst, np.ndarray)
         self.assertIsInstance(test_last, np.ndarray)
         for ix, (longitude, mm) in enumerate(zip(ll, self.mjd)):
-            control_lmst, control_last = utils.calcLmstLast(mm, longitude)
+            control_lmst, control_last = utils.calc_lmst_last(mm, longitude)
             self.assertAlmostEqual(control_lmst, test_lmst[ix], 10)
             self.assertAlmostEqual(control_last, test_last[ix], 10)
 
@@ -712,7 +712,7 @@ class TestCoordinateTransformations(unittest.TestCase):
         ra[2] = 7.740864769302191473e-01
         dec[2] = 2.758053025017753179e-01
 
-        glon, glat = utils._galacticFromEquatorial(ra, dec)
+        glon, glat = utils._galactic_from_equatorial(ra, dec)
 
         self.assertIsInstance(glon, np.ndarray)
         self.assertIsInstance(glat, np.ndarray)
@@ -726,7 +726,7 @@ class TestCoordinateTransformations(unittest.TestCase):
 
         # test passing in floats as args
         for ix, (rr, dd) in enumerate(zip(ra, dec)):
-            gl, gb = utils._galacticFromEquatorial(rr, dd)
+            gl, gb = utils._galactic_from_equatorial(rr, dd)
             self.assertIsInstance(rr, float)
             self.assertIsInstance(dd, float)
             self.assertIsInstance(gl, float)
@@ -746,7 +746,7 @@ class TestCoordinateTransformations(unittest.TestCase):
         lon[2] = 2.829585540991265358e00
         lat[2] = -6.510790587552289788e-01
 
-        ra, dec = utils._equatorialFromGalactic(lon, lat)
+        ra, dec = utils._equatorial_from_galactic(lon, lat)
 
         self.assertIsInstance(ra, np.ndarray)
         self.assertIsInstance(dec, np.ndarray)
@@ -760,7 +760,7 @@ class TestCoordinateTransformations(unittest.TestCase):
 
         # test passing in floats as args
         for ix, (ll, bb) in enumerate(zip(lon, lat)):
-            rr, dd = utils._equatorialFromGalactic(ll, bb)
+            rr, dd = utils._equatorial_from_galactic(ll, bb)
             self.assertIsInstance(ll, float)
             self.assertIsInstance(bb, float)
             self.assertIsInstance(rr, float)
@@ -835,14 +835,14 @@ class TestCoordinateTransformations(unittest.TestCase):
 
         points = np.array(points)
         lon, lat = utils.spherical_from_cartesian(points)
-        out_points = utils.cartesianFromSpherical(lon, lat)
+        out_points = utils.cartesian_from_spherical(lon, lat)
 
         for pp, oo in zip(points, out_points):
             np.testing.assert_array_almost_equal(pp, oo, decimal=6)
 
         # test passing in arguments as floats
         for ix, (ll, bb) in enumerate(zip(lon, lat)):
-            xyz = utils.cartesianFromSpherical(ll, bb)
+            xyz = utils.cartesian_from_spherical(ll, bb)
             self.assertIsInstance(xyz[0], float)
             self.assertIsInstance(xyz[1], float)
             self.assertIsInstance(xyz[2], float)
@@ -852,7 +852,7 @@ class TestCoordinateTransformations(unittest.TestCase):
 
         # test _xyz_from_ra_dec <-> testCartesianFromSpherical
         np.testing.assert_array_equal(
-            utils.cartesianFromSpherical(lon, lat),
+            utils.cartesian_from_spherical(lon, lat),
             utils._xyz_from_ra_dec(lon, lat).transpose(),
         )
 
@@ -878,7 +878,7 @@ class TestCoordinateTransformations(unittest.TestCase):
         v1[2] = 7.795545496018386755e-01
         v2[2] = -5.757495946632366079e-01
 
-        output = utils.rotationMatrixFromVectors(v1, v2)
+        output = utils.rotation_matrix_from_vectors(v1, v2)
 
         for i in range(3):
             for j in range(3):
@@ -888,8 +888,8 @@ class TestCoordinateTransformations(unittest.TestCase):
             self.assertAlmostEqual(v3[i], v2[i], 7)
 
         v1 = np.array([1.0, 1.0, 1.0])
-        self.assertRaises(RuntimeError, utils.rotationMatrixFromVectors, v1, v2)
-        self.assertRaises(RuntimeError, utils.rotationMatrixFromVectors, v2, v1)
+        self.assertRaises(RuntimeError, utils.rotation_matrix_from_vectors, v1, v2)
+        self.assertRaises(RuntimeError, utils.rotation_matrix_from_vectors, v2, v1)
 
 
 class RotationTestCase(unittest.TestCase):
@@ -914,26 +914,26 @@ class RotationTestCase(unittest.TestCase):
         self.ny_nz_vec = np.array([0.0, -self.sqrt2o2, -self.sqrt2o2])
 
     def test_rot_z(self):
-        out = utils.rotAboutZ(self.x_vec, 0.5 * np.pi)
+        out = utils.rot_about_z(self.x_vec, 0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, self.y_vec, decimal=10)
-        out = utils.rotAboutZ(self.x_vec, -0.5 * np.pi)
+        out = utils.rot_about_z(self.x_vec, -0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, -1.0 * self.y_vec, decimal=10)
-        out = utils.rotAboutZ(self.x_vec, np.pi)
+        out = utils.rot_about_z(self.x_vec, np.pi)
         np.testing.assert_array_almost_equal(out, -1.0 * self.x_vec, decimal=10)
-        out = utils.rotAboutZ(self.x_vec, 0.25 * np.pi)
+        out = utils.rot_about_z(self.x_vec, 0.25 * np.pi)
         np.testing.assert_array_almost_equal(out, self.px_py_vec, decimal=10)
-        out = utils.rotAboutZ(self.x_vec, -0.25 * np.pi)
+        out = utils.rot_about_z(self.x_vec, -0.25 * np.pi)
         np.testing.assert_array_almost_equal(out, self.px_ny_vec, decimal=10)
-        out = utils.rotAboutZ(self.x_vec, 0.75 * np.pi)
+        out = utils.rot_about_z(self.x_vec, 0.75 * np.pi)
         np.testing.assert_array_almost_equal(out, self.nx_py_vec, decimal=10)
-        out = utils.rotAboutZ(self.y_vec, 0.5 * np.pi)
+        out = utils.rot_about_z(self.y_vec, 0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, -1.0 * self.x_vec, decimal=10)
-        out = utils.rotAboutZ(self.px_py_vec, 0.5 * np.pi)
+        out = utils.rot_about_z(self.px_py_vec, 0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, self.nx_py_vec, decimal=10)
-        out = utils.rotAboutZ(self.px_py_vec, 0.75 * np.pi)
+        out = utils.rot_about_z(self.px_py_vec, 0.75 * np.pi)
         np.testing.assert_array_almost_equal(out, -1.0 * self.x_vec, decimal=10)
 
-        out = utils.rotAboutZ(
+        out = utils.rot_about_z(
             np.array([self.x_vec, self.y_vec, self.nx_py_vec, self.nx_ny_vec]),
             -0.25 * np.pi,
         )
@@ -943,16 +943,16 @@ class RotationTestCase(unittest.TestCase):
         np.testing.assert_array_almost_equal(out[3], -1.0 * self.x_vec, decimal=10)
 
     def test_rot_y(self):
-        out = utils.rotAboutY(self.x_vec, 0.5 * np.pi)
+        out = utils.rot_about_y(self.x_vec, 0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, -1.0 * self.z_vec, decimal=10)
-        out = utils.rotAboutY(self.z_vec, 0.5 * np.pi)
+        out = utils.rot_about_y(self.z_vec, 0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, self.x_vec, decimal=10)
-        out = utils.rotAboutY(self.px_pz_vec, 0.75 * np.pi)
+        out = utils.rot_about_y(self.px_pz_vec, 0.75 * np.pi)
         np.testing.assert_array_almost_equal(out, -1.0 * self.z_vec, decimal=10)
-        out = utils.rotAboutY(self.px_pz_vec, -0.5 * np.pi)
+        out = utils.rot_about_y(self.px_pz_vec, -0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, self.nx_pz_vec, decimal=10)
 
-        out = utils.rotAboutY(
+        out = utils.rot_about_y(
             np.array([self.px_pz_vec, self.nx_pz_vec, self.z_vec, self.x_vec]),
             -0.75 * np.pi,
         )
@@ -963,20 +963,20 @@ class RotationTestCase(unittest.TestCase):
         np.testing.assert_array_almost_equal(out[3], self.nx_pz_vec, decimal=10)
 
     def test_rot_x(self):
-        out = utils.rotAboutX(self.y_vec, 0.5 * np.pi)
+        out = utils.rot_about_x(self.y_vec, 0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, self.z_vec, decimal=10)
-        out = utils.rotAboutX(self.y_vec, 0.75 * np.pi)
+        out = utils.rot_about_x(self.y_vec, 0.75 * np.pi)
         np.testing.assert_array_almost_equal(out, self.ny_pz_vec, decimal=10)
-        out = utils.rotAboutX(self.z_vec, 0.5 * np.pi)
+        out = utils.rot_about_x(self.z_vec, 0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, -1.0 * self.y_vec, decimal=10)
-        out = utils.rotAboutX(self.z_vec, -0.25 * np.pi)
+        out = utils.rot_about_x(self.z_vec, -0.25 * np.pi)
         np.testing.assert_array_almost_equal(out, self.py_pz_vec, decimal=10)
-        out = utils.rotAboutX(self.py_nz_vec, -0.5 * np.pi)
+        out = utils.rot_about_x(self.py_nz_vec, -0.5 * np.pi)
         np.testing.assert_array_almost_equal(out, self.ny_nz_vec, decimal=10)
-        out = utils.rotAboutX(self.ny_nz_vec, 0.25 * np.pi)
+        out = utils.rot_about_x(self.ny_nz_vec, 0.25 * np.pi)
         np.testing.assert_array_almost_equal(out, -1.0 * self.z_vec, decimal=10)
 
-        out = utils.rotAboutX(
+        out = utils.rot_about_x(
             np.array([self.z_vec, self.py_pz_vec, self.ny_pz_vec, self.y_vec]),
             0.25 * np.pi,
         )
