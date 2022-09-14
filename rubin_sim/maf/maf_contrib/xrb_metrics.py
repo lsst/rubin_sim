@@ -16,7 +16,7 @@ class xrb_lc(object):
     def __init__(self, seed=42):
 
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.Ax1
+        self.Ax1 = dust_properties.ax1
 
         self.rng = np.random.default_rng(seed)
 
@@ -285,7 +285,7 @@ class XRBPopMetric(BaseMetric):
         self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
 
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.Ax1
+        self.Ax1 = dust_properties.ax1
 
         cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]
         super(XRBPopMetric, self).__init__(

@@ -737,10 +737,10 @@ class SkyModel(object):
                 maxWave = bandpasses[key].wavelen[isThrough].max()
                 inBand = np.where((self.wave >= minWave) & (self.wave <= maxWave))
                 for i, ra in enumerate(self.ra):
-                    # Check that there is flux in the band, otherwise calcMag fails
+                    # Check that there is flux in the band, otherwise calc_mag fails
                     if np.max(self.spec[i, inBand]) > 0:
-                        tempSed.setSED(self.wave, flambda=self.spec[i, :])
-                        mags[i] = tempSed.calcMag(bandpasses[key])
+                        tempSed.set_sed(self.wave, flambda=self.spec[i, :])
+                        mags[i] = tempSed.calc_mag(bandpasses[key])
                 # Mask out high airmass
                 mags[self.mask] *= np.nan
                 magsBack[key] = mags
