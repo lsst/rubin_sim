@@ -1,9 +1,9 @@
 import numpy as np
 import unittest
 
-from rubin_sim.utils import ObservationMetaData, _nativeLonLatFromRaDec
-from rubin_sim.utils import _pupilCoordsFromRaDec, pupilCoordsFromRaDec
-from rubin_sim.utils import _raDecFromPupilCoords
+from rubin_sim.utils import ObservationMetaData, _native_lon_lat_from_ra_dec
+from rubin_sim.utils import _pupil_coords_from_ra_dec, pupil_coords_from_ra_dec
+from rubin_sim.utils import _ra_dec_from_pupil_coords
 from rubin_sim.utils import _observed_from_icrs, _icrs_from_observed
 from rubin_sim.utils import (
     haversine,
@@ -14,8 +14,8 @@ from rubin_sim.utils import (
 )
 from rubin_sim.utils import ra_dec_from_alt_az, observed_from_icrs, icrs_from_observed
 from rubin_sim.utils import radians_from_arcsec
-from rubin_sim.utils import _observedFromPupilCoords
-from rubin_sim.utils import observedFromPupilCoords
+from rubin_sim.utils import _observed_from_pupil_coords
+from rubin_sim.utils import observed_from_pupil_coords
 
 
 class PupilCoordinateUnitTest(unittest.TestCase):
@@ -41,7 +41,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         dec_short = np.array([1.0])
 
         # test without obs_metadata
-        self.assertRaises(RuntimeError, _pupilCoordsFromRaDec, ra, dec, epoch=2000.0)
+        self.assertRaises(RuntimeError, _pupil_coords_from_ra_dec, ra, dec, epoch=2000.0)
 
         # test without pointing_ra
         dummy = ObservationMetaData(
@@ -51,7 +51,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         )
         self.assertRaises(
             RuntimeError,
-            _pupilCoordsFromRaDec,
+            _pupil_coords_from_ra_dec,
             ra,
             dec,
             epoch=2000.0,
@@ -66,7 +66,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         )
         self.assertRaises(
             RuntimeError,
-            _pupilCoordsFromRaDec,
+            _pupil_coords_from_ra_dec,
             ra,
             dec,
             epoch=2000.0,
@@ -81,7 +81,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         )
         self.assertRaises(
             RuntimeError,
-            _pupilCoordsFromRaDec,
+            _pupil_coords_from_ra_dec,
             ra,
             dec,
             epoch=2000.0,
@@ -96,7 +96,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         )
         self.assertRaises(
             RuntimeError,
-            _pupilCoordsFromRaDec,
+            _pupil_coords_from_ra_dec,
             ra,
             dec,
             epoch=2000.0,
@@ -113,7 +113,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
 
         self.assertRaises(
             RuntimeError,
-            _pupilCoordsFromRaDec,
+            _pupil_coords_from_ra_dec,
             ra,
             dec_short,
             epoch=2000.0,
@@ -122,7 +122,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
 
         self.assertRaises(
             RuntimeError,
-            _pupilCoordsFromRaDec,
+            _pupil_coords_from_ra_dec,
             ra_short,
             dec,
             epoch=2000.0,
@@ -131,12 +131,12 @@ class PupilCoordinateUnitTest(unittest.TestCase):
 
         # test that it actually runs (and that passing in either numpy arrays or floats gives
         # the same results)
-        xx_arr, yy_arr = _pupilCoordsFromRaDec(ra, dec, obs_metadata=obs_metadata)
+        xx_arr, yy_arr = _pupil_coords_from_ra_dec(ra, dec, obs_metadata=obs_metadata)
         self.assertIsInstance(xx_arr, np.ndarray)
         self.assertIsInstance(yy_arr, np.ndarray)
 
         for ix in range(len(ra)):
-            xx_f, yy_f = _pupilCoordsFromRaDec(
+            xx_f, yy_f = _pupil_coords_from_ra_dec(
                 ra[ix], dec[ix], obs_metadata=obs_metadata
             )
             self.assertIsInstance(xx_f, float)
@@ -170,8 +170,8 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         I have verified that OpSim follows the rot_sky_pos = rotTelPos - paralacticAngle
         convention.
 
-        I have verified that altAzPaFromRaDec follows the convention that objects
-        east of the meridian have a negative parallactic angle.  (altAzPaFromRaDec
+        I have verified that alt_az_pa_from_ra_dec follows the convention that objects
+        east of the meridian have a negative parallactic angle.  (alt_az_pa_from_ra_dec
         uses PALPY under the hood, so it can probably be taken as correct)
 
         It will verify this convention for multiple random pointings.
@@ -210,11 +210,11 @@ class PupilCoordinateUnitTest(unittest.TestCase):
                     include_refraction=True,
                 )
 
-                x, y = _pupilCoordsFromRaDec(
+                x, y = _pupil_coords_from_ra_dec(
                     ra_test, dec_test, obs_metadata=obs, epoch=epoch
                 )
 
-                lon, lat = _nativeLonLatFromRaDec(ra_test, dec_test, obs)
+                lon, lat = _native_lon_lat_from_ra_dec(ra_test, dec_test, obs)
                 rr = np.abs(np.cos(lat) / np.sin(lat))
 
                 if np.abs(rot_sky_pos) < 0.01:  # rot_sky_pos == 0
@@ -277,9 +277,9 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         rng = np.random.RandomState(42)
         ra = (rng.random_sample(n_samples) * 0.1 - 0.2) + np.radians(ra_center)
         dec = (rng.random_sample(n_samples) * 0.1 - 0.2) + np.radians(dec_center)
-        xp, yp = _pupilCoordsFromRaDec(ra, dec, obs_metadata=obs, epoch=2000.0)
+        xp, yp = _pupil_coords_from_ra_dec(ra, dec, obs_metadata=obs, epoch=2000.0)
 
-        ra_test, dec_test = _raDecFromPupilCoords(xp, yp, obs_metadata=obs, epoch=2000.0)
+        ra_test, dec_test = _ra_dec_from_pupil_coords(xp, yp, obs_metadata=obs, epoch=2000.0)
 
         distance = arcsec_from_radians(haversine(ra, dec, ra_test, dec_test))
 
@@ -290,7 +290,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         )
 
         msg = (
-            "_raDecFromPupilCoords off by %e arcsec at distance to Sun of %e degrees"
+            "_ra_dec_from_pupil_coords off by %e arcsec at distance to Sun of %e degrees"
             % (distance.max(), worst_solar_distance)
         )
 
@@ -299,7 +299,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         # now check that passing in the xp, yp values one at a time still gives
         # the right answer
         for ix in range(len(ra)):
-            ra_f, dec_f = _raDecFromPupilCoords(
+            ra_f, dec_f = _ra_dec_from_pupil_coords(
                 xp[ix], yp[ix], obs_metadata=obs, epoch=2000.0
             )
             self.assertIsInstance(ra_f, float)
@@ -334,11 +334,11 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         rng = np.random.RandomState(42)
         ra = (rng.random_sample(n_samples) * 0.1 - 0.2) + np.radians(ra_center)
         dec = (rng.random_sample(n_samples) * 0.1 - 0.2) + np.radians(dec_center)
-        xp, yp = _pupilCoordsFromRaDec(
+        xp, yp = _pupil_coords_from_ra_dec(
             ra, dec, obs_metadata=obs, epoch=2000.0, include_refraction=False
         )
 
-        ra_test, dec_test = _raDecFromPupilCoords(
+        ra_test, dec_test = _ra_dec_from_pupil_coords(
             xp, yp, obs_metadata=obs, epoch=2000.0, include_refraction=False
         )
 
@@ -351,7 +351,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         )
 
         msg = (
-            "_raDecFromPupilCoords off by %e arcsec at distance to Sun of %e degrees"
+            "_ra_dec_from_pupil_coords off by %e arcsec at distance to Sun of %e degrees"
             % (distance.max(), worst_solar_distance)
         )
 
@@ -360,7 +360,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         # now check that passing in the xp, yp values one at a time still gives
         # the right answer
         for ix in range(len(ra)):
-            ra_f, dec_f = _raDecFromPupilCoords(
+            ra_f, dec_f = _ra_dec_from_pupil_coords(
                 xp[ix], yp[ix], obs_metadata=obs, epoch=2000.0, include_refraction=False
             )
             self.assertIsInstance(ra_f, float)
@@ -394,7 +394,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         rng = np.random.RandomState(4453)
         ra = (rng.random_sample(n_samples) * 0.1 - 0.2) + np.radians(ra_center)
         dec = (rng.random_sample(n_samples) * 0.1 - 0.2) + np.radians(dec_center)
-        xp, yp = _pupilCoordsFromRaDec(
+        xp, yp = _pupil_coords_from_ra_dec(
             ra, dec, obs_metadata=obs, epoch=2000.0, include_refraction=True
         )
 
@@ -402,7 +402,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
             ra, dec, obs_metadata=obs, epoch=2000.0, include_refraction=True
         )
 
-        ra_obs_test, dec_obs_test = _observedFromPupilCoords(
+        ra_obs_test, dec_obs_test = _observed_from_pupil_coords(
             xp, yp, obs_metadata=obs, epoch=2000.0, include_refraction=True
         )
 
@@ -410,7 +410,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         self.assertLess(dist.max(), 1.0e-6)
 
         # test output in degrees
-        ra_obs_deg, dec_obs_deg = observedFromPupilCoords(
+        ra_obs_deg, dec_obs_deg = observed_from_pupil_coords(
             xp, yp, obs_metadata=obs, epoch=2000.0, include_refraction=True
         )
 
@@ -423,13 +423,13 @@ class PupilCoordinateUnitTest(unittest.TestCase):
 
         # test one-at-a-time input
         for ii in range(len(ra_obs)):
-            rr, dd = _observedFromPupilCoords(
+            rr, dd = _observed_from_pupil_coords(
                 xp[ii], yp[ii], obs_metadata=obs, epoch=2000.0, include_refraction=True
             )
             self.assertAlmostEqual(rr, ra_obs_test[ii], 16)
             self.assertAlmostEqual(dd, dec_obs_test[ii], 16)
 
-            rr, dd = observedFromPupilCoords(
+            rr, dd = observed_from_pupil_coords(
                 xp[ii], yp[ii], obs_metadata=obs, epoch=2000.0, include_refraction=True
             )
             self.assertAlmostEqual(rr, ra_obs_deg[ii], 16)
@@ -462,7 +462,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         rng = np.random.RandomState(4453)
         ra = (rng.random_sample(n_samples) * 0.1 - 0.2) + np.radians(ra_center)
         dec = (rng.random_sample(n_samples) * 0.1 - 0.2) + np.radians(dec_center)
-        xp, yp = _pupilCoordsFromRaDec(
+        xp, yp = _pupil_coords_from_ra_dec(
             ra, dec, obs_metadata=obs, epoch=2000.0, include_refraction=False
         )
 
@@ -470,7 +470,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
             ra, dec, obs_metadata=obs, epoch=2000.0, include_refraction=False
         )
 
-        ra_obs_test, dec_obs_test = _observedFromPupilCoords(
+        ra_obs_test, dec_obs_test = _observed_from_pupil_coords(
             xp, yp, obs_metadata=obs, epoch=2000.0, include_refraction=False
         )
 
@@ -478,7 +478,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         self.assertLess(dist.max(), 1.0e-6)
 
         # test output in degrees
-        ra_obs_deg, dec_obs_deg = observedFromPupilCoords(
+        ra_obs_deg, dec_obs_deg = observed_from_pupil_coords(
             xp, yp, obs_metadata=obs, epoch=2000.0, include_refraction=False
         )
 
@@ -491,13 +491,13 @@ class PupilCoordinateUnitTest(unittest.TestCase):
 
         # test one-at-a-time input
         for ii in range(len(ra_obs)):
-            rr, dd = _observedFromPupilCoords(
+            rr, dd = _observed_from_pupil_coords(
                 xp[ii], yp[ii], obs_metadata=obs, epoch=2000.0, include_refraction=False
             )
             self.assertAlmostEqual(rr, ra_obs_test[ii], 16)
             self.assertAlmostEqual(dd, dec_obs_test[ii], 16)
 
-            rr, dd = observedFromPupilCoords(
+            rr, dd = observed_from_pupil_coords(
                 xp[ii], yp[ii], obs_metadata=obs, epoch=2000.0, include_refraction=False
             )
             self.assertAlmostEqual(rr, ra_obs_deg[ii], 16)
@@ -505,7 +505,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
 
     def test_na_ns(self):
         """
-        Test how _pupilCoordsFromRaDec handles improper values
+        Test how _pupil_coords_from_ra_dec handles improper values
         """
         obs = ObservationMetaData(
             pointing_ra=42.0, pointing_dec=-28.0, rot_sky_pos=111.0, mjd=42356.0
@@ -515,7 +515,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         ra_list = np.radians(rng.random_sample(n_samples) * 2.0 + 42.0)
         dec_list = np.radians(rng.random_sample(n_samples) * 2.0 - 28.0)
 
-        x_control, y_control = _pupilCoordsFromRaDec(
+        x_control, y_control = _pupil_coords_from_ra_dec(
             ra_list, dec_list, obs_metadata=obs, epoch=2000.0
         )
 
@@ -525,7 +525,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         dec_list[20] = np.NaN
         ra_list[30] = np.radians(42.0) + np.pi
 
-        x_test, y_test = _pupilCoordsFromRaDec(
+        x_test, y_test = _pupil_coords_from_ra_dec(
             ra_list, dec_list, obs_metadata=obs, epoch=2000.0
         )
 
@@ -543,8 +543,8 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         """
         Test that calculating pupil coordinates in the presence of proper motion, parallax,
         and radial velocity is equivalent to
-        observed_from_icrs -> icrs_from_observed -> pupilCoordsFromRaDec
-        (mostly to make surethat pupilCoordsFromRaDec is correctly calling observed_from_icrs
+        observed_from_icrs -> icrs_from_observed -> pupil_coords_from_ra_dec
+        (mostly to make surethat pupil_coords_from_ra_dec is correctly calling observed_from_icrs
         with non-zero proper motion, etc.)
         """
         rng = np.random.RandomState(38442)
@@ -593,7 +593,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
                 include_refraction=include_refraction,
             )
 
-            xp_control, yp_control = pupilCoordsFromRaDec(
+            xp_control, yp_control = pupil_coords_from_ra_dec(
                 ra_icrs,
                 dec_icrs,
                 obs_metadata=obs,
@@ -601,7 +601,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
                 include_refraction=include_refraction,
             )
 
-            xp_test, yp_test = pupilCoordsFromRaDec(
+            xp_test, yp_test = pupil_coords_from_ra_dec(
                 ra_list,
                 dec_list,
                 pm_ra=pm_ra_list,
@@ -622,7 +622,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
             self.assertLess(distance.max(), 0.006)
 
             # now test it in radians
-            xp_rad, yp_rad = _pupilCoordsFromRaDec(
+            xp_rad, yp_rad = _pupil_coords_from_ra_dec(
                 np.radians(ra_list),
                 np.radians(dec_list),
                 pm_ra=radians_from_arcsec(pm_ra_list),
@@ -656,7 +656,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
                 include_refraction=include_refraction,
             )
 
-            xp_control, yp_control = pupilCoordsFromRaDec(
+            xp_control, yp_control = pupil_coords_from_ra_dec(
                 ra_icrs,
                 dec_icrs,
                 obs_metadata=obs,
@@ -664,7 +664,7 @@ class PupilCoordinateUnitTest(unittest.TestCase):
                 include_refraction=include_refraction,
             )
 
-            xp_test, yp_test = pupilCoordsFromRaDec(
+            xp_test, yp_test = pupil_coords_from_ra_dec(
                 ra_list,
                 dec_list,
                 parallax=px_list,
