@@ -14,8 +14,8 @@ import numpy as np
 import os
 import numbers
 
-from rubin_sim.utils import spherical_from_cartesian, cartesianFromSpherical
-from rubin_sim.utils import rotAboutY, rotAboutX, rotAboutZ
+from rubin_sim.utils import spherical_from_cartesian, cartesian_from_spherical
+from rubin_sim.utils import rot_about_y, rot_about_x, rot_about_z
 from rubin_sim.utils import angular_separation, _angular_separation
 import rubin_sim
 
@@ -168,7 +168,7 @@ class HalfSpaceTest(unittest.TestCase):
             ra,
             dec,
         ) in zip(ra_list, dec_list):
-            xyz = cartesianFromSpherical(ra, dec)
+            xyz = cartesian_from_spherical(ra, dec)
             self.assertTrue(hs.contains_pt(xyz))
             self.assertFalse(nhs.contains_pt(xyz))
 
@@ -178,7 +178,7 @@ class HalfSpaceTest(unittest.TestCase):
             ra,
             dec,
         ) in zip(ra_list, dec_list):
-            xyz = cartesianFromSpherical(ra, dec)
+            xyz = cartesian_from_spherical(ra, dec)
             self.assertFalse(hs.contains_pt(xyz))
             self.assertTrue(nhs.contains_pt(xyz))
 
@@ -188,8 +188,8 @@ class HalfSpaceTest(unittest.TestCase):
         ra_list = rng.random_sample(n_tests) * 2.0 * np.pi
         dec_list = rng.random_sample(n_tests) * (0.5 * np.pi - theta) + theta
         for ra, dec in zip(ra_list, dec_list):
-            xyz_rot = cartesianFromSpherical(ra, dec)
-            xyz = rotAboutY(xyz_rot, 0.5 * np.pi)
+            xyz_rot = cartesian_from_spherical(ra, dec)
+            xyz = rot_about_y(xyz_rot, 0.5 * np.pi)
             self.assertTrue(hs.contains_pt(xyz))
             self.assertFalse(nhs.contains_pt(xyz))
 
@@ -199,8 +199,8 @@ class HalfSpaceTest(unittest.TestCase):
             ra,
             dec,
         ) in zip(ra_list, dec_list):
-            xyz_rot = cartesianFromSpherical(ra, dec)
-            xyz = rotAboutY(xyz_rot, 0.5 * np.pi)
+            xyz_rot = cartesian_from_spherical(ra, dec)
+            xyz = rot_about_y(xyz_rot, 0.5 * np.pi)
             self.assertFalse(hs.contains_pt(xyz))
             self.assertTrue(nhs.contains_pt(xyz))
 
@@ -212,9 +212,9 @@ class HalfSpaceTest(unittest.TestCase):
         dec_list = rng.random_sample(n_tests) * (0.5 * np.pi - theta) + theta
 
         for ra, dec in zip(ra_list, dec_list):
-            xyz_rot = cartesianFromSpherical(ra, dec)
-            xyz_rot = rotAboutX(xyz_rot, 0.5 * np.pi)
-            xyz = rotAboutZ(xyz_rot, 0.25 * np.pi)
+            xyz_rot = cartesian_from_spherical(ra, dec)
+            xyz_rot = rot_about_x(xyz_rot, 0.5 * np.pi)
+            xyz = rot_about_z(xyz_rot, 0.25 * np.pi)
             self.assertTrue(hs.contains_pt(xyz))
             self.assertFalse(nhs.contains_pt(xyz))
 
@@ -224,9 +224,9 @@ class HalfSpaceTest(unittest.TestCase):
             ra,
             dec,
         ) in zip(ra_list, dec_list):
-            xyz_rot = cartesianFromSpherical(ra, dec)
-            xyz_rot = rotAboutX(xyz_rot, 0.5 * np.pi)
-            xyz = rotAboutZ(xyz_rot, 0.25 * np.pi)
+            xyz_rot = cartesian_from_spherical(ra, dec)
+            xyz_rot = rot_about_x(xyz_rot, 0.5 * np.pi)
+            xyz = rot_about_z(xyz_rot, 0.25 * np.pi)
             self.assertFalse(hs.contains_pt(xyz))
             self.assertTrue(nhs.contains_pt(xyz))
 
@@ -436,7 +436,7 @@ class HalfSpaceTest(unittest.TestCase):
             hs = halfSpaceFromPoints(pt1, pt2, pt3)
 
             # check that the HalfSpace contains pt3
-            vv3 = cartesianFromSpherical(np.radians(pt3[0]), np.radians(pt3[1]))
+            vv3 = cartesian_from_spherical(np.radians(pt3[0]), np.radians(pt3[1]))
             self.assertTrue(hs.contains_pt(vv3))
 
             # check that the HalfSpace encompasses 1/2 of the unit sphere
@@ -445,8 +445,8 @@ class HalfSpaceTest(unittest.TestCase):
 
             # check that pt1 and pt2 are 90 degrees away from the center
             # of the HalfSpace
-            vv1 = cartesianFromSpherical(np.radians(pt1[0]), np.radians(pt1[1]))
-            vv2 = cartesianFromSpherical(np.radians(pt2[0]), np.radians(pt2[1]))
+            vv1 = cartesian_from_spherical(np.radians(pt1[0]), np.radians(pt1[1]))
+            vv2 = cartesian_from_spherical(np.radians(pt2[0]), np.radians(pt2[1]))
             self.assertAlmostEqual(np.dot(vv1, hs.vector), 0.0, 10)
             self.assertAlmostEqual(np.dot(vv2, hs.vector), 0.0, 10)
 
@@ -839,7 +839,7 @@ class TrixelFinderTest(unittest.TestCase):
         self.assertGreater(n_in, 0)
         self.assertGreater(n_out, 0)
 
-        xyz_list = cartesianFromSpherical(np.radians(ra_list), np.radians(dec_list))
+        xyz_list = cartesian_from_spherical(np.radians(ra_list), np.radians(dec_list))
 
         contains_xyz_arr = trixel.contains_pt(xyz_list)
         np.testing.assert_array_equal(contains_xyz_arr, contains_arr)
