@@ -9,94 +9,94 @@ import palpy
 from rubin_sim.utils.code_utilities import _validate_inputs
 
 __all__ = [
-    "_galacticFromEquatorial",
-    "galacticFromEquatorial",
-    "_equatorialFromGalactic",
-    "equatorialFromGalactic",
-    "sphericalFromCartesian",
-    "cartesianFromSpherical",
+    "_galactic_from_equatorial",
+    "galactic_from_equatorial",
+    "_equatorial_from_galactic",
+    "equatorial_from_galactic",
+    "spherical_from_cartesian",
+    "cartesian_from_spherical",
     "xyz_from_ra_dec",
     "_xyz_from_ra_dec",
     "_ra_dec_from_xyz",
     "ra_dec_from_xyz",
     "xyz_angular_radius",
     "_xyz_angular_radius",
-    "rotationMatrixFromVectors",
-    "rotAboutZ",
-    "rotAboutY",
-    "rotAboutX",
-    "equationOfEquinoxes",
-    "calcGmstGast",
-    "calcLmstLast",
-    "angularSeparation",
-    "_angularSeparation",
+    "rotation_matrix_from_vectors",
+    "rot_about_z",
+    "rot_about_y",
+    "rot_about_x",
+    "equation_of_equinoxes",
+    "calc_gmst_gast",
+    "calc_lmst_last",
+    "angular_separation",
+    "_angular_separation",
     "haversine",
-    "arcsecFromRadians",
-    "radiansFromArcsec",
-    "arcsecFromDegrees",
-    "degreesFromArcsec",
+    "arcsec_from_radians",
+    "radians_from_arcsec",
+    "arcsec_from_degrees",
+    "degrees_from_arcsec",
 ]
 
 
-def calcLmstLast(mjd, longRad):
+def calc_lmst_last(mjd, long_rad):
     """
     calculates local mean sidereal time and local apparent sidereal time
 
-    @param [in] mjd is the universal time (UT1) expressed as an MJD.
+    @param [in] mjd is the universal time (ut1) expressed as an MJD.
     This can be a numpy array or a single value.
 
-    @param [in] longRad is the longitude in radians (positive east of the prime meridian)
+    @param [in] long_rad is the longitude in radians (positive east of the prime meridian)
     This can be numpy array or a single value.  If a numpy array, should have the same length as mjd.  In that
-    case, each longRad will be applied only to the corresponding mjd.
+    case, each long_rad will be applied only to the corresponding mjd.
 
     @param [out] lmst is the local mean sidereal time in hours
 
     @param [out] last is the local apparent sideral time in hours
     """
-    mjdIsArray = False
-    longRadIsArray = False
+    mjd_is_array = False
+    long_rad_is_array = False
     if isinstance(mjd, np.ndarray):
-        mjdIsArray = True
+        mjd_is_array = True
 
-    if isinstance(longRad, np.ndarray):
-        longRadIsArray = True
+    if isinstance(long_rad, np.ndarray):
+        long_rad_is_array = True
 
-    if longRadIsArray and mjdIsArray:
-        if len(longRad) != len(mjd):
-            raise RuntimeError("In calcLmstLast mjd and longRad have different lengths")
+    if long_rad_is_array and mjd_is_array:
+        if len(long_rad) != len(mjd):
+            raise RuntimeError("In calc_lmst_last mjd and long_rad have different lengths")
 
     valid_type = False
-    if isinstance(mjd, np.ndarray) and isinstance(longRad, np.ndarray):
+    if isinstance(mjd, np.ndarray) and isinstance(long_rad, np.ndarray):
         valid_type = True
-    elif isinstance(mjd, np.ndarray) and isinstance(longRad, numbers.Number):
+    elif isinstance(mjd, np.ndarray) and isinstance(long_rad, numbers.Number):
         valid_type = True
-    elif isinstance(mjd, numbers.Number) and isinstance(longRad, numbers.Number):
+    elif isinstance(mjd, numbers.Number) and isinstance(long_rad, numbers.Number):
         valid_type = True
 
     if not valid_type:
         msg = (
-            "Valid input types for calcLmstLast are:\n"
-            "mjd and longRad as numpy arrays of the same length\n"
-            "mjd as a numpy array and longRad as a number\n"
-            "mjd as a number and longRad as a number\n"
-            "You gave mjd: %s\n" % type(mjd) + "and longRad: %s\n" % type(longRad)
+            "Valid input types for calc_lmst_last are:\n"
+            "mjd and long_rad as numpy arrays of the same length\n"
+            "mjd as a numpy array and long_rad as a number\n"
+            "mjd as a number and long_rad as a number\n"
+            "You gave mjd: %s\n" % type(mjd) + "and long_rad: %s\n" % type(long_rad)
         )
 
         raise RuntimeError(msg)
 
-    longDeg0 = np.degrees(longRad)
-    longDeg0 %= 360.0
+    long_deg0 = np.degrees(long_rad)
+    long_deg0 %= 360.0
 
-    if longRadIsArray:
-        longDeg = np.where(longDeg0 > 180.0, longDeg0 - 360.0, longDeg0)
+    if long_rad_is_array:
+        long_deg = np.where(long_deg0 > 180.0, long_deg0 - 360.0, long_deg0)
     else:
-        if longDeg0 > 180.0:
-            longDeg = longDeg0 - 360.0
+        if long_deg0 > 180.0:
+            long_deg = long_deg0 - 360.0
         else:
-            longDeg = longDeg0
+            long_deg = long_deg0
 
-    hrs = longDeg / 15.0
-    gmstgast = calcGmstGast(mjd)
+    hrs = long_deg / 15.0
+    gmstgast = calc_gmst_gast(mjd)
     lmst = gmstgast[0] + hrs
     last = gmstgast[1] + hrs
     lmst %= 24.0
@@ -104,23 +104,23 @@ def calcLmstLast(mjd, longRad):
     return lmst, last
 
 
-def galacticFromEquatorial(ra, dec):
+def galactic_from_equatorial(ra, dec):
     """Convert RA,Dec (J2000) to Galactic Coordinates
 
     @param [in] ra is right ascension in degrees, either a number or a numpy array
 
     @param [in] dec is declination in degrees, either a number or a numpy array
 
-    @param [out] gLong is galactic longitude in degrees
+    @param [out] g_long is galactic longitude in degrees
 
-    @param [out] gLat is galactic latitude in degrees
+    @param [out] g_lat is galactic latitude in degrees
     """
 
-    gLong, gLat = _galacticFromEquatorial(np.radians(ra), np.radians(dec))
-    return np.degrees(gLong), np.degrees(gLat)
+    g_long, g_lat = _galactic_from_equatorial(np.radians(ra), np.radians(dec))
+    return np.degrees(g_long), np.degrees(g_lat)
 
 
-def _galacticFromEquatorial(ra, dec):
+def _galactic_from_equatorial(ra, dec):
     """Convert RA,Dec (J2000) to Galactic Coordinates
 
     All angles are in radians
@@ -129,60 +129,60 @@ def _galacticFromEquatorial(ra, dec):
 
     @param [in] dec is declination in radians, either a number or a numpy array
 
-    @param [out] gLong is galactic longitude in radians
+    @param [out] g_long is galactic longitude in radians
 
-    @param [out] gLat is galactic latitude in radians
+    @param [out] g_lat is galactic latitude in radians
     """
 
     if isinstance(ra, np.ndarray):
-        gLong, gLat = palpy.eqgalVector(ra, dec)
+        g_long, g_lat = palpy.eqgalVector(ra, dec)
     else:
-        gLong, gLat = palpy.eqgal(ra, dec)
+        g_long, g_lat = palpy.eqgal(ra, dec)
 
-    return gLong, gLat
+    return g_long, g_lat
 
 
-def equatorialFromGalactic(gLong, gLat):
+def equatorial_from_galactic(g_long, g_lat):
     """Convert Galactic Coordinates to RA, dec (J2000)
 
-    @param [in] gLong is galactic longitude in degrees, either a number or a numpy array
-    (0 <= gLong <= 360.)
+    @param [in] g_long is galactic longitude in degrees, either a number or a numpy array
+    (0 <= g_long <= 360.)
 
-    @param [in] gLat is galactic latitude in degrees, either a number or a numpy array
-    (-90. <= gLat <= 90.)
+    @param [in] g_lat is galactic latitude in degrees, either a number or a numpy array
+    (-90. <= g_lat <= 90.)
 
     @param [out] ra is right ascension in degrees
 
     @param [out] dec is declination in degrees
     """
 
-    ra, dec = _equatorialFromGalactic(np.radians(gLong), np.radians(gLat))
+    ra, dec = _equatorial_from_galactic(np.radians(g_long), np.radians(g_lat))
     return np.degrees(ra), np.degrees(dec)
 
 
-def _equatorialFromGalactic(gLong, gLat):
+def _equatorial_from_galactic(g_long, g_lat):
     """Convert Galactic Coordinates to RA, dec (J2000)
 
-    @param [in] gLong is galactic longitude in radians, either a number or a numpy array
-    (0 <= gLong <= 2*pi)
+    @param [in] g_long is galactic longitude in radians, either a number or a numpy array
+    (0 <= g_long <= 2*pi)
 
-    @param [in] gLat is galactic latitude in radians, either a number or a numpy array
-    (-pi/2 <= gLat <= pi/2)
+    @param [in] g_lat is galactic latitude in radians, either a number or a numpy array
+    (-pi/2 <= g_lat <= pi/2)
 
     @param [out] ra is right ascension in radians (J2000)
 
     @param [out] dec is declination in radians (J2000)
     """
 
-    if isinstance(gLong, np.ndarray):
-        ra, dec = palpy.galeqVector(gLong, gLat)
+    if isinstance(g_long, np.ndarray):
+        ra, dec = palpy.galeqVector(g_long, g_lat)
     else:
-        ra, dec = palpy.galeq(gLong, gLat)
+        ra, dec = palpy.galeq(g_long, g_lat)
 
     return ra, dec
 
 
-def cartesianFromSpherical(longitude, latitude):
+def cartesian_from_spherical(longitude, latitude):
     """
     Transforms between spherical and Cartesian coordinates.
 
@@ -204,7 +204,7 @@ def cartesianFromSpherical(longitude, latitude):
     return _xyz_from_ra_dec(longitude, latitude).transpose()
 
 
-def sphericalFromCartesian(xyz):
+def spherical_from_cartesian(xyz):
     """
     Transforms between Cartesian and spherical coordinates
 
@@ -218,7 +218,7 @@ def sphericalFromCartesian(xyz):
     Also, look at ra_dec_from_xyz().
     """
     if not isinstance(xyz, np.ndarray):
-        raise RuntimeError("You need to pass a numpy array to sphericalFromCartesian")
+        raise RuntimeError("You need to pass a numpy array to spherical_from_cartesian")
 
     if len(xyz.shape) > 1:
         return _ra_dec_from_xyz(xyz[:, 0], xyz[:, 1], xyz[:, 2])
@@ -263,8 +263,8 @@ def _xyz_from_ra_dec(ra, dec):
     """
     # It is ok to mix floats and numpy arrays.
 
-    cosDec = np.cos(dec)
-    return np.array([np.cos(ra) * cosDec, np.sin(ra) * cosDec, np.sin(dec)])
+    cos_dec = np.cos(dec)
+    return np.array([np.cos(ra) * cos_dec, np.sin(ra) * cos_dec, np.sin(dec)])
 
 
 def _ra_dec_from_xyz(x, y, z):
@@ -349,53 +349,53 @@ def _xyz_angular_radius(radius):
     return result
 
 
-def zRotationMatrix(theta):
+def z_rotation_matrix(theta):
     cc = np.cos(theta)
     ss = np.sin(theta)
     return np.array([[cc, -ss, 0.0], [ss, cc, 0.0], [0.0, 0.0, 1.0]])
 
 
-def rotAboutZ(vec, theta):
+def rot_about_z(vec, theta):
     """
     Rotate a Cartesian vector an angle theta about the z axis.
     Theta is in radians.
     Positive theta rotates +x towards +y.
     """
-    return np.dot(zRotationMatrix(theta), vec.transpose()).transpose()
+    return np.dot(z_rotation_matrix(theta), vec.transpose()).transpose()
 
 
-def yRotationMatrix(theta):
+def y_rotation_matrix(theta):
     cc = np.cos(theta)
     ss = np.sin(theta)
     return np.array([[cc, 0.0, ss], [0.0, 1.0, 0.0], [-ss, 0.0, cc]])
 
 
-def rotAboutY(vec, theta):
+def rot_about_y(vec, theta):
     """
     Rotate a Cartesian vector an angle theta about the y axis.
     Theta is in radians.
     Positive theta rotates +x towards -z.
     """
-    return np.dot(yRotationMatrix(theta), vec.transpose()).transpose()
+    return np.dot(y_rotation_matrix(theta), vec.transpose()).transpose()
 
 
-def xRotationMatrix(theta):
+def x_rotation_matrix(theta):
     cc = np.cos(theta)
     ss = np.sin(theta)
 
     return np.array([[1.0, 0.0, 0.0], [0.0, cc, -ss], [0.0, ss, cc]])
 
 
-def rotAboutX(vec, theta):
+def rot_about_x(vec, theta):
     """
     Rotate a Cartesian vector an angle theta about the x axis.
     Theta is in radians.
     Positive theta rotates +y towards +z.
     """
-    return np.dot(xRotationMatrix(theta), vec.transpose()).transpose()
+    return np.dot(x_rotation_matrix(theta), vec.transpose()).transpose()
 
 
-def rotationMatrixFromVectors(v1, v2):
+def rotation_matrix_from_vectors(v1, v2):
     """
     Given two vectors v1,v2 calculate the rotation matrix for v1->v2 using the axis-angle approach
 
@@ -406,10 +406,10 @@ def rotationMatrixFromVectors(v1, v2):
     """
 
     if np.abs(np.sqrt(np.dot(v1, v1)) - 1.0) > 0.01:
-        raise RuntimeError("v1 in rotationMatrixFromVectors is not a unit vector")
+        raise RuntimeError("v1 in rotation_matrix_from_vectors is not a unit vector")
 
     if np.abs(np.sqrt(np.dot(v2, v2)) - 1.0) > 0.01:
-        raise RuntimeError("v2 in rotationMatrixFromVectors is not a unit vector")
+        raise RuntimeError("v2 in rotation_matrix_from_vectors is not a unit vector")
 
     # Calculate the axis of rotation by the cross product of v1 and v2
     cross = np.cross(v1, v2)
@@ -417,33 +417,33 @@ def rotationMatrixFromVectors(v1, v2):
 
     # calculate the angle of rotation via dot product
     angle = np.arccos(np.dot(v1, v2))
-    sinDot = np.sin(angle)
-    cosDot = np.cos(angle)
+    sin_dot = np.sin(angle)
+    cos_dot = np.cos(angle)
 
     # calculate the corresponding rotation matrix
     # http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
     rot = [
         [
-            cosDot + cross[0] * cross[0] * (1 - cosDot),
-            -cross[2] * sinDot + (1 - cosDot) * cross[0] * cross[1],
-            cross[1] * sinDot + (1 - cosDot) * cross[0] * cross[2],
+            cos_dot + cross[0] * cross[0] * (1 - cos_dot),
+            -cross[2] * sin_dot + (1 - cos_dot) * cross[0] * cross[1],
+            cross[1] * sin_dot + (1 - cos_dot) * cross[0] * cross[2],
         ],
         [
-            cross[2] * sinDot + (1 - cosDot) * cross[0] * cross[1],
-            cosDot + (1 - cosDot) * cross[1] * cross[1],
-            -cross[0] * sinDot + (1 - cosDot) * cross[1] * cross[2],
+            cross[2] * sin_dot + (1 - cos_dot) * cross[0] * cross[1],
+            cos_dot + (1 - cos_dot) * cross[1] * cross[1],
+            -cross[0] * sin_dot + (1 - cos_dot) * cross[1] * cross[2],
         ],
         [
-            -cross[1] * sinDot + (1 - cosDot) * cross[0] * cross[2],
-            cross[0] * sinDot + (1 - cosDot) * cross[1] * cross[2],
-            cosDot + (1 - cosDot) * (cross[2] * cross[2]),
+            -cross[1] * sin_dot + (1 - cos_dot) * cross[0] * cross[2],
+            cross[0] * sin_dot + (1 - cos_dot) * cross[1] * cross[2],
+            cos_dot + (1 - cos_dot) * (cross[2] * cross[2]),
         ],
     ]
 
     return rot
 
 
-def equationOfEquinoxes(d):
+def equation_of_equinoxes(d):
     """
     The equation of equinoxes. See http://aa.usno.navy.mil/faq/docs/GAST.php
 
@@ -459,12 +459,12 @@ def equationOfEquinoxes(d):
         return palpy.eqeqx(d)
 
 
-def calcGmstGast(mjd):
+def calc_gmst_gast(mjd):
     """
     Compute Greenwich mean sidereal time and Greenwich apparent sidereal time
     see: From http://aa.usno.navy.mil/faq/docs/GAST.php
 
-    @param [in] mjd is the universal time (UT1) expressed as an MJD
+    @param [in] mjd is the universal time (ut1) expressed as an MJD
 
     @param [out] gmst Greenwich mean sidereal time in hours
 
@@ -478,7 +478,7 @@ def calcGmstGast(mjd):
     else:
         gmst = palpy.gmsta(date, ut1)
 
-    eqeq = equationOfEquinoxes(mjd)
+    eqeq = equation_of_equinoxes(mjd)
     gast = gmst + eqeq
 
     gmst = gmst * 24.0 / (2.0 * np.pi)
@@ -490,7 +490,7 @@ def calcGmstGast(mjd):
     return gmst, gast
 
 
-def _angularSeparation(long1, lat1, long2, lat2):
+def _angular_separation(long1, lat1, long2, lat2):
     """
     Angular separation between two points in radians
 
@@ -512,15 +512,15 @@ def _angularSeparation(long1, lat1, long2, lat2):
     From http://en.wikipedia.org/wiki/Haversine_formula
     """
     are_arrays_1 = _validate_inputs(
-        [long1, lat1], ["long1", "lat1"], "angularSeparation"
+        [long1, lat1], ["long1", "lat1"], "angular_separation"
     )
 
     are_arrays_2 = _validate_inputs(
-        [long2, lat2], ["long2", "lat2"], "angularSeparation"
+        [long2, lat2], ["long2", "lat2"], "angular_separation"
     )
 
     # The code below is necessary because the call to np.radians() in
-    # angularSeparation() will automatically convert floats
+    # angular_separation() will automatically convert floats
     # into length 1 numpy arrays, confusing validate_inputs()
     if are_arrays_1 and len(long1) == 1:
         are_arrays_1 = False
@@ -536,7 +536,7 @@ def _angularSeparation(long1, lat1, long2, lat2):
         if len(long1) != len(long2):
             raise RuntimeError(
                 "You need to pass arrays of the same length "
-                "as arguments to angularSeparation()"
+                "as arguments to angular_separation()"
             )
 
     t1 = np.sin(lat2 / 2.0 - lat1 / 2.0) ** 2
@@ -552,7 +552,7 @@ def _angularSeparation(long1, lat1, long2, lat2):
     return 2.0 * np.arcsin(np.sqrt(_sum))
 
 
-def angularSeparation(long1, lat1, long2, lat2):
+def angular_separation(long1, lat1, long2, lat2):
     """
     Angular separation between two points in degrees
 
@@ -571,7 +571,7 @@ def angularSeparation(long1, lat1, long2, lat2):
     The angular separation between the two points in degrees
     """
     return np.degrees(
-        _angularSeparation(
+        _angular_separation(
             np.radians(long1), np.radians(lat1), np.radians(long2), np.radians(lat2)
         )
     )
@@ -579,7 +579,7 @@ def angularSeparation(long1, lat1, long2, lat2):
 
 def haversine(long1, lat1, long2, lat2):
     """
-    DEPRECATED; use angularSeparation() instead
+    DEPRECATED; use angular_separation() instead
 
     Return the angular distance between two points in radians
 
@@ -593,10 +593,10 @@ def haversine(long1, lat1, long2, lat2):
 
     @param [out] the angular separation between points 1 and 2 in radians
     """
-    return _angularSeparation(long1, lat1, long2, lat2)
+    return _angular_separation(long1, lat1, long2, lat2)
 
 
-def arcsecFromRadians(value):
+def arcsec_from_radians(value):
     """
     Convert an angle in radians to arcseconds
 
@@ -608,7 +608,7 @@ def arcsecFromRadians(value):
     return 3600.0 * np.degrees(value)
 
 
-def radiansFromArcsec(value):
+def radians_from_arcsec(value):
     """
     Convert an angle in arcseconds to radians
 
@@ -620,7 +620,7 @@ def radiansFromArcsec(value):
     return np.radians(value / 3600.0)
 
 
-def arcsecFromDegrees(value):
+def arcsec_from_degrees(value):
     """
     Convert an angle in degrees to arcseconds
 
@@ -632,7 +632,7 @@ def arcsecFromDegrees(value):
     return 3600.0 * value
 
 
-def degreesFromArcsec(value):
+def degrees_from_arcsec(value):
     """
     Convert an angle in arcseconds to degrees
 

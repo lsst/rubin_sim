@@ -4,7 +4,7 @@ import warnings
 __all__ = ["Site"]
 
 
-class LSST_site_parameters(object):
+class LsstSiteParameters(object):
     """
     This is a struct containing the LSST site parameters as defined in
 
@@ -23,7 +23,7 @@ class LSST_site_parameters(object):
         self.temperature = 11.5  # in centigrade
         self.pressure = 750.0  # in millibars
         self.humidity = 0.4  # scale 0-1
-        self.lapseRate = 0.0065  # in Kelvin per meter
+        self.lapse_rate = 0.0065  # in Kelvin per meter
         # the lapse rate was not specified by LSE-30;
         # 0.0065 K/m appears to be the "standard" value
         # see, for example http://mnras.oxfordjournals.org/content/365/4/1235.full
@@ -54,7 +54,7 @@ class Site(object):
         Pressure for the site in millibars.
     humidity : `float`, opt
         Relative humidity (range 0-1).
-    lapseRate : `float`, opt
+    lapse_rate : `float`, opt
         Change in temperature in Kelvins per meter
     """
 
@@ -67,13 +67,13 @@ class Site(object):
         temperature=None,
         pressure=None,
         humidity=None,
-        lapseRate=None,
+        lapse_rate=None,
     ):
 
         default_params = None
         self._name = name
         if self._name == "LSST":
-            default_params = LSST_site_parameters()
+            default_params = LsstSiteParameters()
 
         if default_params is not None:
             if longitude is None:
@@ -94,8 +94,8 @@ class Site(object):
             if humidity is None:
                 humidity = default_params.humidity
 
-            if lapseRate is None:
-                lapseRate = default_params.lapseRate
+            if lapse_rate is None:
+                lapse_rate = default_params.lapse_rate
 
         if longitude is not None:
             self._longitude_rad = np.radians(longitude)
@@ -119,7 +119,7 @@ class Site(object):
 
         self._temperature_centigrade = temperature
         self._humidity = humidity
-        self._lapseRate = lapseRate
+        self._lapse_rate = lapse_rate
 
         # Go through all the attributes of this Site.
         # Raise a warning if any are None so that the user
@@ -165,8 +165,8 @@ class Site(object):
         if self.humidity is None:
             list_of_nones.append("humidity")
 
-        if self.lapseRate is None:
-            list_of_nones.append("lapseRate")
+        if self.lapse_rate is None:
+            list_of_nones.append("lapse_rate")
 
         if len(list_of_nones) != 0:
             msg = "The following attributes of your Site were None:\n"
@@ -264,8 +264,8 @@ class Site(object):
         return self._humidity
 
     @property
-    def lapseRate(self):
+    def lapse_rate(self):
         """
         temperature lapse rate (in Kelvin per meter)
         """
-        return self._lapseRate
+        return self._lapse_rate

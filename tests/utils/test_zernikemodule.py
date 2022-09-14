@@ -27,10 +27,10 @@ class FactorialTestCase(unittest.TestCase):
 
 class ZernikeTestCase(unittest.TestCase):
 
-    longMessage = True
+    long_message = True
 
     @classmethod
-    def setUpClass(cls):
+    def setUp_class(cls):
         cls.d_r = 0.01
         cls.d_phi = 0.005 * np.pi
         r_grid = np.arange(0.0, 1.0, cls.d_r)
@@ -157,7 +157,7 @@ class ZernikeTestCase(unittest.TestCase):
             self.assertAlmostEqual(vv_r, vv_xy, 14)
             self.assertIsInstance(vv_xy, numbers.Number)
 
-    def test_Zernike_origin(self):
+    def test__zernike_origin(self):
         """
         Test that ZernikePolynomialGenerator is well-behaved
         at r=0

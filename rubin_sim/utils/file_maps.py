@@ -1,7 +1,7 @@
 import os
 import re
 
-__all__ = ["SpecMap", "defaultSpecMap"]
+__all__ = ["SpecMap", "default_spec_map"]
 
 
 class SpecMap(object):
@@ -14,18 +14,18 @@ class SpecMap(object):
         "^(Exp|Inst|Burst|Const)": "galaxySED",
     }
 
-    def __init__(self, fileDict=None, dirDict=None):
+    def __init__(self, file_dict=None, dir_dict=None):
         """
-        @param [in] fileDict is a dict mapping the names of files to their
+        @param [in] file_dict is a dict mapping the names of files to their
         relative paths, one-to-one, e.g.
 
-            fileDict = {'A.dat':'ssmSED/A.dat.gz',
+            file_dict = {'A.dat':'ssmSED/A.dat.gz',
                         'Sa.dat':'ssmSED/Sa.dat.gz'}
 
-        @param [in] dirDict is a dict mapping forms of names of file to their
+        @param [in] dir_dict is a dict mapping forms of names of file to their
         sub directories using regular expressions, e.g.
 
-            dirDict = {'(^km)|(^kp)':'starSED/kurucz',
+            dir_dict = {'(^km)|(^kp)':'starSED/kurucz',
                        '(^bergeron)':'starSED/wDs'}
 
         which maps files begining in either 'km' or 'kp' to files with
@@ -36,27 +36,27 @@ class SpecMap(object):
         These dicts will take precedence over the subdir_map that is defined
         as a class member variable of the SpecMap class.
         """
-        if fileDict:
-            self.fileDict = fileDict
+        if file_dict:
+            self.file_dict = file_dict
         else:
-            self.fileDict = {}
+            self.file_dict = {}
 
-        if dirDict:
-            self.dirDict = dirDict
+        if dir_dict:
+            self.dir_dict = dir_dict
         else:
-            self.dirDict = {}
+            self.dir_dict = {}
 
     def __setitem__(self, key, val):
-        self.fileDict[key] = val
+        self.file_dict[key] = val
 
     def __getitem__(self, item):
 
         item = item.strip()
 
-        if item in self.fileDict:
-            return self.fileDict[item]
+        if item in self.file_dict:
+            return self.file_dict[item]
 
-        for key, val in sorted(self.dirDict.items()):
+        for key, val in sorted(self.dir_dict.items()):
             if re.match(key, item):
                 full_name = item if item.endswith(".gz") else item + ".gz"
                 return os.path.join(val, full_name)
@@ -83,8 +83,8 @@ class SpecMap(object):
             return False
 
 
-defaultSpecMap = SpecMap(
-    fileDict={
+default_spec_map = SpecMap(
+    file_dict={
         "A.dat": "ssmSED/A.dat.gz",
         "Sa.dat": "ssmSED/Sa.dat.gz",
         "O.dat": "ssmSED/O.dat.gz",

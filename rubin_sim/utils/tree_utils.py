@@ -7,10 +7,10 @@ from scipy.spatial import cKDTree as kdTree
 
 from rubin_sim.utils.coordinate_transformations import _xyz_from_ra_dec
 
-__all__ = ["_buildTree"]
+__all__ = ["_build_tree"]
 
 
-def _buildTree(ra, dec, leafsize=100, scale=None):
+def _build_tree(ra, dec, leafsize=100, scale=None):
     """
     Build KD tree on simDataRA/Dec and set radius (via setRad) for matching.
 

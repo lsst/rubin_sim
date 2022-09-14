@@ -1,11 +1,11 @@
 import numpy as np
-from rubin_sim.utils import calcLmstLast
+from rubin_sim.utils import calc_lmst_last
 
 __all__ = [
-    "_approx_altAz2RaDec",
-    "_approx_RaDec2AltAz",
-    "approx_altAz2RaDec",
-    "approx_RaDec2AltAz",
+    "_approx_alt_az2_ra_dec",
+    "_approx_ra_dec2_alt_az",
+    "approx_alt_az2_ra_dec",
+    "approx_ra_dec2_alt_az",
     "_approx_altaz2pa",
     "approx_altaz2pa",
 ]
@@ -62,7 +62,7 @@ def approx_altaz2pa(alt_deg, az_deg, latitude_deg):
     return np.degrees(pa)
 
 
-def approx_altAz2RaDec(alt, az, lat, lon, mjd, lmst=None):
+def approx_alt_az2_ra_dec(alt, az, lat, lon, mjd, lmst=None):
     """Convert alt, az to RA, Dec without taking into account aberration, precession, diffraction, etc.
 
     Parameters
@@ -87,7 +87,7 @@ def approx_altAz2RaDec(alt, az, lat, lon, mjd, lmst=None):
     dec : array_like
         Dec, in degrees.
     """
-    ra, dec = _approx_altAz2RaDec(
+    ra, dec = _approx_alt_az2_ra_dec(
         np.radians(alt),
         np.radians(az),
         np.radians(lat),
@@ -98,7 +98,7 @@ def approx_altAz2RaDec(alt, az, lat, lon, mjd, lmst=None):
     return np.degrees(ra), np.degrees(dec)
 
 
-def _approx_altAz2RaDec(alt, az, lat, lon, mjd, lmst=None):
+def _approx_alt_az2_ra_dec(alt, az, lat, lon, mjd, lmst=None):
     """
     Convert alt, az to RA, Dec without taking into account aberration, precession, diffraction, etc.
 
@@ -125,7 +125,7 @@ def _approx_altAz2RaDec(alt, az, lat, lon, mjd, lmst=None):
         Dec, in radians.
     """
     if lmst is None:
-        lmst, last = calcLmstLast(mjd, lon)
+        lmst, last = calc_lmst_last(mjd, lon)
     lmst = lmst / 12.0 * np.pi  # convert to rad
     sindec = np.sin(lat) * np.sin(alt) + np.cos(lat) * np.cos(alt) * np.cos(az)
     sindec = np.clip(sindec, -1, 1)
@@ -142,7 +142,7 @@ def _approx_altAz2RaDec(alt, az, lat, lon, mjd, lmst=None):
     return ra, dec
 
 
-def approx_RaDec2AltAz(ra, dec, lat, lon, mjd, lmst=None):
+def approx_ra_dec2_alt_az(ra, dec, lat, lon, mjd, lmst=None):
     """
     Convert Ra,Dec to Altitude and Azimuth.
 
@@ -171,7 +171,7 @@ def approx_RaDec2AltAz(ra, dec, lat, lon, mjd, lmst=None):
     az : numpy.array
         Azimuth, same length as `ra` and `dec`. degrees.
     """
-    alt, az = _approx_RaDec2AltAz(
+    alt, az = _approx_ra_dec2_alt_az(
         np.radians(ra),
         np.radians(dec),
         np.radians(lat),
@@ -182,7 +182,7 @@ def approx_RaDec2AltAz(ra, dec, lat, lon, mjd, lmst=None):
     return np.degrees(alt), np.degrees(az)
 
 
-def _approx_RaDec2AltAz(ra, dec, lat, lon, mjd, lmst=None, return_pa=False):
+def _approx_ra_dec2_alt_az(ra, dec, lat, lon, mjd, lmst=None, return_pa=False):
     """
     Convert Ra,Dec to Altitude and Azimuth.
 
@@ -212,7 +212,7 @@ def _approx_RaDec2AltAz(ra, dec, lat, lon, mjd, lmst=None, return_pa=False):
         Azimuth, same length as `ra` and `dec`. Radians.
     """
     if lmst is None:
-        lmst, last = calcLmstLast(mjd, lon)
+        lmst, last = calc_lmst_last(mjd, lon)
     lmst = lmst / 12.0 * np.pi  # convert to rad
     ha = lmst - ra
     sindec = np.sin(dec)
