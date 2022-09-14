@@ -15,19 +15,19 @@ arXiv:cs/0701164
 
 import numpy as np
 import numbers
-from rubin_sim.utils import cartesianFromSpherical, sphericalFromCartesian
+from rubin_sim.utils import cartesian_from_spherical, spherical_from_cartesian
 
 __all__ = [
     "Trixel",
     "HalfSpace",
-    "findHtmid",
-    "trixelFromHtmid",
+    "find_htmid",
+    "trixel_from_htmid",
     "basic_trixels",
-    "halfSpaceFromRaDec",
-    "levelFromHtmid",
-    "getAllTrixels",
-    "halfSpaceFromPoints",
-    "intersectHalfSpaces",
+    "half_space_from_ra_dec",
+    "level_from_htmid",
+    "get_all_trixels",
+    "half_space_from_points",
+    "intersect_half_spaces",
 ]
 
 
@@ -38,7 +38,7 @@ class Trixel(object):
 
     Instantiating this class directly is a bad idea. __init__() does nothing
     to ensure that the parameters you give it are self-consistent.  Instead,
-    use the trixelFromHtmid() or getAllTrixels() methods in this module
+    use the trixel_from_htmid() or get_all_trixels() methods in this module
     to instantiate trixels.
     """
 
@@ -59,7 +59,7 @@ class Trixel(object):
         No effort is made to ensure that the parameters
         passed in are self consistent.  You should probably
         not being calling __init__() directly.  Use the
-        trixelFromHtmid() or getAllTrixels() methods to
+        trixel_from_htmid() or get_all_trixels() methods to
         instantiate trixels.
         """
         self._corners = present_corners
@@ -99,7 +99,7 @@ class Trixel(object):
 
         RA and Dec are in degrees.
         """
-        xyz = cartesianFromSpherical(np.radians(ra), np.radians(dec))
+        xyz = cartesian_from_spherical(np.radians(ra), np.radians(dec))
         return self.contains_pt(xyz)
 
     @property
@@ -325,7 +325,7 @@ class Trixel(object):
         Return the RA, Dec of the center of the circle bounding
         this trixel (RA, Dec both in degrees)
         """
-        ra, dec = sphericalFromCartesian(self.bounding_circle[0])
+        ra, dec = spherical_from_cartesian(self.bounding_circle[0])
         return np.degrees(ra), np.degrees(dec)
 
     def get_radius(self):
@@ -419,37 +419,37 @@ class Trixel(object):
 # ESO Astrophysics Symposia
 # https://www.researchgate.net/publication/226072008_The_Hierarchical_Triangular_Mesh
 
-_N0_trixel = Trixel(
+_n0_trixel = Trixel(
     12,
     [np.array([1.0, 0.0, 0.0]), np.array([0.0, 0.0, 1.0]), np.array([0.0, -1.0, 0.0])],
 )
 
-_N1_trixel = Trixel(
+_n1_trixel = Trixel(
     13,
     [np.array([0.0, -1.0, 0.0]), np.array([0.0, 0.0, 1.0]), np.array([-1.0, 0.0, 0.0])],
 )
 
-_N2_trixel = Trixel(
+_n2_trixel = Trixel(
     14,
     [np.array([-1.0, 0.0, 0.0]), np.array([0.0, 0.0, 1.0]), np.array([0.0, 1.0, 0.0])],
 )
 
-_N3_trixel = Trixel(
+_n3_trixel = Trixel(
     15,
     [np.array([0.0, 1.0, 0.0]), np.array([0.0, 0.0, 1.0]), np.array([1.0, 0.0, 0.0])],
 )
 
-_S0_trixel = Trixel(
+_s0_trixel = Trixel(
     8,
     [np.array([1.0, 0.0, 0.0]), np.array([0.0, 0.0, -1.0]), np.array([0.0, 1.0, 0.0])],
 )
 
-_S1_trixel = Trixel(
+_s1_trixel = Trixel(
     9,
     [np.array([0.0, 1.0, 0.0]), np.array([0.0, 0.0, -1.0]), np.array([-1.0, 0.0, 0.0])],
 )
 
-_S2_trixel = Trixel(
+_s2_trixel = Trixel(
     10,
     [
         np.array([-1.0, 0.0, 0.0]),
@@ -458,24 +458,24 @@ _S2_trixel = Trixel(
     ],
 )
 
-_S3_trixel = Trixel(
+_s3_trixel = Trixel(
     11,
     [np.array([0.0, -1.0, 0.0]), np.array([0.0, 0.0, -1.0]), np.array([1.0, 0.0, 0.0])],
 )
 
 basic_trixels = {
-    "N0": _N0_trixel,
-    "N1": _N1_trixel,
-    "N2": _N2_trixel,
-    "N3": _N3_trixel,
-    "S0": _S0_trixel,
-    "S1": _S1_trixel,
-    "S2": _S2_trixel,
-    "S3": _S3_trixel,
+    "N0": _n0_trixel,
+    "N1": _n1_trixel,
+    "N2": _n2_trixel,
+    "N3": _n3_trixel,
+    "S0": _s0_trixel,
+    "S1": _s1_trixel,
+    "S2": _s2_trixel,
+    "S3": _s3_trixel,
 }
 
 
-def levelFromHtmid(htmid):
+def level_from_htmid(htmid):
     """
     Find the level of a trixel from its htmid.  The level
     indicates how refined the triangular mesh is.
@@ -505,7 +505,7 @@ def levelFromHtmid(htmid):
     return i_level
 
 
-def trixelFromHtmid(htmid):
+def trixel_from_htmid(htmid):
     """
     Return the trixel corresponding to the given htmid
     (htmid is the unique integer identifying each trixel).
@@ -514,33 +514,33 @@ def trixelFromHtmid(htmid):
     trixels.  It recursively generates trixels and their
     children until it finds the right htmid without
     remembering which trixels it has already generated.
-    To generate many trixels, use the getAllTrixels()
+    To generate many trixels, use the get_all_trixels()
     method, which efficiently generates all of the trixels
     up to a given mesh level.
 
     Note: valid htmids have 4+2n bits with a leading bit of 1
     """
-    level = levelFromHtmid(htmid)
+    level = level_from_htmid(htmid)
     base_htmid = htmid >> 2 * (level - 1)
 
     ans = None
 
     if base_htmid == 8:
-        ans = _S0_trixel
+        ans = _s0_trixel
     elif base_htmid == 9:
-        ans = _S1_trixel
+        ans = _s1_trixel
     elif base_htmid == 10:
-        ans = _S2_trixel
+        ans = _s2_trixel
     elif base_htmid == 11:
-        ans = _S3_trixel
+        ans = _s3_trixel
     elif base_htmid == 12:
-        ans = _N0_trixel
+        ans = _n0_trixel
     elif base_htmid == 13:
-        ans = _N1_trixel
+        ans = _n1_trixel
     elif base_htmid == 14:
-        ans = _N2_trixel
+        ans = _n2_trixel
     elif base_htmid == 15:
-        ans = _N3_trixel
+        ans = _n3_trixel
 
     if ans is None:
         raise RuntimeError("Unable to find trixel for id %d" % htmid)
@@ -575,7 +575,7 @@ def trixelFromHtmid(htmid):
     return ans
 
 
-def getAllTrixels(level):
+def get_all_trixels(level):
     """
     Return a dict of all of the trixels up to a given mesh level.
     The dict is keyed on htmid, unique integer identifying
@@ -591,7 +591,7 @@ def getAllTrixels(level):
     start_trixels = range(8, 16)
     trixel_dict = {}
     for t0 in start_trixels:
-        trix0 = trixelFromHtmid(t0)
+        trix0 = trixel_from_htmid(t0)
         trixel_dict[t0] = trix0
 
     ct = 0
@@ -620,7 +620,7 @@ def getAllTrixels(level):
                 if to_gen in trixel_dict:
                     trix0 = trixel_dict[to_gen]
                 else:
-                    trix0 = trixelFromHtmid(to_gen)
+                    trix0 = trixel_from_htmid(to_gen)
                     trixel_dict[to_gen] = trix0
 
                 # add the children of to_gen to trixel_dict
@@ -640,7 +640,7 @@ def getAllTrixels(level):
     return trixel_dict
 
 
-def _iterateTrixelFinder(pt, parent, max_level):
+def _iterate_trixel_finder(pt, parent, max_level):
     """
     Method to iteratively find the htmid of the trixel containing
     a point.
@@ -666,10 +666,10 @@ def _iterateTrixelFinder(pt, parent, max_level):
             if child.level == max_level:
                 return child.htmid
             else:
-                return _iterateTrixelFinder(pt, child, max_level)
+                return _iterate_trixel_finder(pt, child, max_level)
 
 
-def _findHtmid_slow(ra, dec, max_level):
+def _find_htmid_slow(ra, dec, max_level):
     """
     Find the htmid (the unique integer identifying
     each trixel) of the trixel containing a given
@@ -694,31 +694,31 @@ def _findHtmid_slow(ra, dec, max_level):
 
     ra_rad = np.radians(ra)
     dec_rad = np.radians(dec)
-    pt = cartesianFromSpherical(ra_rad, dec_rad)
+    pt = cartesian_from_spherical(ra_rad, dec_rad)
 
-    if _S0_trixel.contains_pt(pt):
-        parent = _S0_trixel
-    elif _S1_trixel.contains_pt(pt):
-        parent = _S1_trixel
-    elif _S2_trixel.contains_pt(pt):
-        parent = _S2_trixel
-    elif _S3_trixel.contains_pt(pt):
-        parent = _S3_trixel
-    elif _N0_trixel.contains_pt(pt):
-        parent = _N0_trixel
-    elif _N1_trixel.contains_pt(pt):
-        parent = _N1_trixel
-    elif _N2_trixel.contains_pt(pt):
-        parent = _N2_trixel
-    elif _N3_trixel.contains_pt(pt):
-        parent = _N3_trixel
+    if _s0_trixel.contains_pt(pt):
+        parent = _s0_trixel
+    elif _s1_trixel.contains_pt(pt):
+        parent = _s1_trixel
+    elif _s2_trixel.contains_pt(pt):
+        parent = _s2_trixel
+    elif _s3_trixel.contains_pt(pt):
+        parent = _s3_trixel
+    elif _n0_trixel.contains_pt(pt):
+        parent = _n0_trixel
+    elif _n1_trixel.contains_pt(pt):
+        parent = _n1_trixel
+    elif _n2_trixel.contains_pt(pt):
+        parent = _n2_trixel
+    elif _n3_trixel.contains_pt(pt):
+        parent = _n3_trixel
     else:
         raise RuntimeError("could not find parent Trixel")
 
-    return _iterateTrixelFinder(pt, parent, max_level)
+    return _iterate_trixel_finder(pt, parent, max_level)
 
 
-def _findHtmid_fast(ra, dec, max_level):
+def _find_htmid_fast(ra, dec, max_level):
     """
     Find the htmid (the unique integer identifying
     each trixel) of the trixels containing arrays
@@ -743,33 +743,33 @@ def _findHtmid_fast(ra, dec, max_level):
 
     if max_level > 10:
         raise RuntimeError(
-            "Do not call _findHtmid_fast with max_level>10; "
+            "Do not call _find_htmid_fast with max_level>10; "
             "the cache of trixels generated will be too large. "
-            "Call findHtmid or _findHtmid_slow (findHtmid will "
-            "redirect to _findHtmid_slow for large max_level)."
+            "Call find_htmid or _find_htmid_slow (find_htmid will "
+            "redirect to _find_htmid_slow for large max_level)."
         )
 
     if (
-        not hasattr(_findHtmid_fast, "_trixel_dict")
-        or _findHtmid_fast._level < max_level
+        not hasattr(_find_htmid_fast, "_trixel_dict")
+        or _find_htmid_fast._level < max_level
     ):
 
-        _findHtmid_fast._trixel_dict = getAllTrixels(max_level)
-        _findHtmid_fast._level = max_level
+        _find_htmid_fast._trixel_dict = get_all_trixels(max_level)
+        _find_htmid_fast._level = max_level
 
     ra_rad = np.radians(ra)
     dec_rad = np.radians(dec)
-    pt_arr = cartesianFromSpherical(ra_rad, dec_rad)
+    pt_arr = cartesian_from_spherical(ra_rad, dec_rad)
 
     base_trixels = [
-        _S0_trixel,
-        _S1_trixel,
-        _S2_trixel,
-        _S3_trixel,
-        _N0_trixel,
-        _N1_trixel,
-        _N2_trixel,
-        _N3_trixel,
+        _s0_trixel,
+        _s1_trixel,
+        _s2_trixel,
+        _s3_trixel,
+        _n0_trixel,
+        _n1_trixel,
+        _n2_trixel,
+        _n3_trixel,
     ]
 
     htmid_arr = np.zeros(len(pt_arr), dtype=int)
@@ -802,7 +802,7 @@ def _findHtmid_fast(ra, dec, max_level):
                 considered = considered_raw[un_found]
                 if len(considered) == 0:
                     break
-                child_trixel = _findHtmid_fast._trixel_dict[child]
+                child_trixel = _find_htmid_fast._trixel_dict[child]
                 contains = child_trixel.contains_pt(pt_arr[considered])
                 valid = np.where(contains)
                 if len(valid[0]) == 0:
@@ -817,7 +817,7 @@ def _findHtmid_fast(ra, dec, max_level):
     return htmid_arr
 
 
-def findHtmid(ra, dec, max_level):
+def find_htmid(ra, dec, max_level):
     """
     Find the htmid (the unique integer identifying
     each trixel) of the trixel containing a given
@@ -857,14 +857,14 @@ def findHtmid(ra, dec, max_level):
 
     if are_arrays:
         if max_level <= 10 and len(ra) > 100:
-            return _findHtmid_fast(ra, dec, max_level)
+            return _find_htmid_fast(ra, dec, max_level)
         else:
             htmid_arr = np.zeros(len(ra), dtype=int)
             for ii in range(len(ra)):
-                htmid_arr[ii] = _findHtmid_slow(ra[ii], dec[ii], max_level)
+                htmid_arr[ii] = _find_htmid_slow(ra[ii], dec[ii], max_level)
             return htmid_arr
 
-    return _findHtmid_slow(ra, dec, max_level)
+    return _find_htmid_slow(ra, dec, max_level)
 
 
 class HalfSpace(object):
@@ -1110,12 +1110,12 @@ class HalfSpace(object):
     @staticmethod
     def merge_trixel_bounds(bounds):
         """
-        Take a list of trixel bounds as returned by HalfSpace.findAllTrixels
+        Take a list of trixel bounds as returned by HalfSpace.find_all_trixels
         and merge any tuples that should be merged
 
         Parameters
         ----------
-        bounds is a list of trixel bounds as returned by HalfSpace.findAllTrixels
+        bounds is a list of trixel bounds as returned by HalfSpace.find_all_trixels
 
         Returns
         -------
@@ -1145,7 +1145,7 @@ class HalfSpace(object):
     @staticmethod
     def join_trixel_bound_sets(b1, b2):
         """
-        Take two sets of trixel bounds as returned by HalfSpace.findAllTrixels
+        Take two sets of trixel bounds as returned by HalfSpace.find_all_trixels
         and return a set of trixel bounds that represents the intersection of
         the original sets of bounds
         """
@@ -1208,7 +1208,7 @@ class HalfSpace(object):
 
         return HalfSpace.merge_trixel_bounds(joint_bounds)
 
-    def findAllTrixels(self, level):
+    def find_all_trixels(self, level):
         """
         Find the HTMIDs of all of the trixels filling the half space
 
@@ -1274,13 +1274,13 @@ class HalfSpace(object):
                         # some assertions for debugging purposes
                         # assert min_htmid<max_htmid
                         # try:
-                        #     test_trix = trixelFromHtmid(min_htmid)
+                        #     test_trix = trixel_from_htmid(min_htmid)
                         #     assert self.contains_trixel(test_trix) != 'outside'
-                        #     test_trix = trixelFromHtmid(max_htmid)
+                        #     test_trix = trixel_from_htmid(max_htmid)
                         #     assert self.contains_trixel(test_trix) != 'outside'
                         # except AssertionError:
                         #     print('is_contained %s' % is_contained)
-                        #     print('level %d' % levelFromHtmid(tt._htmid))
+                        #     print('level %d' % level_from_htmid(tt._htmid))
                         #     raise
 
                 active_trixels = new_active_trixels
@@ -1303,7 +1303,7 @@ class HalfSpace(object):
         return self.merge_trixel_bounds(output)
 
 
-def halfSpaceFromRaDec(ra, dec, radius):
+def half_space_from_ra_dec(ra, dec, radius):
     """
     Take an RA, Dec and radius of a circular field of view and return
     a HalfSpace
@@ -1321,11 +1321,11 @@ def halfSpaceFromRaDec(ra, dec, radius):
     HalfSpace corresponding to the circular field of view
     """
     dd = np.cos(np.radians(radius))
-    xyz = cartesianFromSpherical(np.radians(ra), np.radians(dec))
+    xyz = cartesian_from_spherical(np.radians(ra), np.radians(dec))
     return HalfSpace(xyz, dd)
 
 
-def halfSpaceFromPoints(pt1, pt2, pt3):
+def half_space_from_points(pt1, pt2, pt3):
     """
     Return a Half Space defined by two points on a Great Circle
     and a third point contained in the Half Space.
@@ -1343,8 +1343,8 @@ def halfSpaceFromPoints(pt1, pt2, pt3):
     A Half Space
     """
 
-    vv1 = cartesianFromSpherical(np.radians(pt1[0]), np.radians(pt1[1]))
-    vv2 = cartesianFromSpherical(np.radians(pt2[0]), np.radians(pt2[1]))
+    vv1 = cartesian_from_spherical(np.radians(pt1[0]), np.radians(pt1[1]))
+    vv2 = cartesian_from_spherical(np.radians(pt2[0]), np.radians(pt2[1]))
     axis = np.array(
         [
             vv1[1] * vv2[2] - vv1[2] * vv2[1],
@@ -1355,14 +1355,14 @@ def halfSpaceFromPoints(pt1, pt2, pt3):
 
     axis /= np.sqrt(np.sum(axis**2))
 
-    vv3 = cartesianFromSpherical(np.radians(pt3[0]), np.radians(pt3[1]))
+    vv3 = cartesian_from_spherical(np.radians(pt3[0]), np.radians(pt3[1]))
     if np.dot(axis, vv3) < 0.0:
         axis *= -1.0
 
     return HalfSpace(axis, 0.0)
 
 
-def intersectHalfSpaces(hs1, hs2):
+def intersect_half_spaces(hs1, hs2):
     """
     Parameters
     ----------

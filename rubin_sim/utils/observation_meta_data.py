@@ -20,16 +20,16 @@ class ObservationMetaData(object):
         [RA,Dec] float
         The coordinates of the pointing (in degrees; in the International
         Celestial Reference System)
-    boundType : `str`, opt
+    bound_type : `str`, opt
         characterizes the shape of the field of view.  Current options are 'box, and 'circle'
-    boundLength : `float` or `np.ndarray`, opt
+    bound_length : `float` or `np.ndarray`, opt
         is the characteristic length scale of the field of view in degrees.
-        If boundType is 'box', boundLength can be a float (in which case boundLength is
-        half the length of the side of each box) or boundLength can be a numpy array
+        If bound_type is 'box', bound_length can be a float (in which case bound_length is
+        half the length of the side of each box) or bound_length can be a numpy array
         in which case the first argument is half the width of the RA side of the box
         and the second argument is half the Dec side of the box.
-        If boundType is 'circle,' this will be the radius of the circle.
-        The bound will be centered on the point (pointingRA, pointingDec), however,
+        If bound_type is 'circle,' this will be the radius of the circle.
+        The bound will be centered on the point (pointing_ra, pointing_dec), however,
         because objects are stored at their mean RA, Dec in the LSST databases
         (i.e. they are stored at values of RA, Dec which neglect proper motion), the
         bounds applied to database queries will be made slightly larger so that queries
@@ -51,46 +51,46 @@ class ObservationMetaData(object):
         you will be able to access m5 from outside of this class using, for
         example:
         myObservationMetaData.m5['u']
-    skyBrightness : `float`, opt
+    sky_brightness : `float`, opt
         the magnitude of the sky in the filter specified by bandpassName
     seeing : `float` or `list` of `float, opt
         Analogous to m5, corresponds to the seeing in arcseconds in the bandpasses in bandpassName
-    rotSkyPos : `float`, opt
+    rot_sky_pos : `float`, opt
         The orientation of the telescope in degrees.
-        The convention for rotSkyPos is as follows:
-        rotSkyPos = 0 means north is in the +y direction on the focal plane and east is +x
-        rotSkyPos = 90 means north is +x and east is -y
-        rotSkyPos = -90 means north is -x and east is +y
-        rotSkyPos = 180 means north is -y and east is -x
+        The convention for rot_sky_pos is as follows:
+        rot_sky_pos = 0 means north is in the +y direction on the focal plane and east is +x
+        rot_sky_pos = 90 means north is +x and east is -y
+        rot_sky_pos = -90 means north is -x and east is +y
+        rot_sky_pos = 180 means north is -y and east is -x
         This should be consistent with PhoSim conventions.
 
     Examples
     --------
-    ```>>> data = ObservationMetaData(boundType='box', pointingRA=5.0, pointingDec=15.0, boundLength=5.0)```
+    ```>>> data = ObservationMetaData(bound_type='box', pointing_ra=5.0, pointing_dec=15.0, bound_length=5.0)```
 
     """
 
     def __init__(
         self,
-        boundType=None,
-        boundLength=None,
+        bound_type=None,
+        bound_length=None,
         mjd=None,
-        pointingRA=None,
-        pointingDec=None,
-        rotSkyPos=None,
-        bandpassName=None,
+        pointing_ra=None,
+        pointing_dec=None,
+        rot_sky_pos=None,
+        bandpass_name=None,
         site=Site(name="LSST"),
         m5=None,
-        skyBrightness=None,
+        sky_brightness=None,
         seeing=None,
     ):
 
         self._bounds = None
-        self._boundType = boundType
-        self._bandpass = bandpassName
-        self._skyBrightness = skyBrightness
+        self._bound_type = bound_type
+        self._bandpass = bandpass_name
+        self._sky_brightness = sky_brightness
         self._site = site
-        self._OpsimMetaData = None
+        self.__opsim_meta_data = None
 
         if mjd is not None:
             if isinstance(mjd, numbers.Number):
@@ -105,43 +105,43 @@ class ObservationMetaData(object):
         else:
             self._mjd = None
 
-        if rotSkyPos is not None:
-            self._rotSkyPos = np.radians(rotSkyPos)
+        if rot_sky_pos is not None:
+            self._rot_sky_pos = np.radians(rot_sky_pos)
         else:
-            self._rotSkyPos = None
+            self._rot_sky_pos = None
 
-        if pointingRA is not None:
-            self._pointingRA = np.radians(pointingRA)
+        if pointing_ra is not None:
+            self._pointing_ra = np.radians(pointing_ra)
         else:
-            self._pointingRA = None
+            self._pointing_ra = None
 
-        if pointingDec is not None:
-            self._pointingDec = np.radians(pointingDec)
+        if pointing_dec is not None:
+            self._pointing_dec = np.radians(pointing_dec)
         else:
-            self._pointingDec = None
+            self._pointing_dec = None
 
-        if boundLength is not None:
-            self._boundLength = np.radians(boundLength)
+        if bound_length is not None:
+            self._bound_length = np.radians(bound_length)
         else:
-            self._boundLength = None
+            self._bound_length = None
 
-        self._m5 = self._assignDictKeyedToBandpass(m5, "m5")
+        self._m5 = self._assign_dict_keyed_to_bandpass(m5, "m5")
 
-        self._seeing = self._assignDictKeyedToBandpass(seeing, "seeing")
+        self._seeing = self._assign_dict_keyed_to_bandpass(seeing, "seeing")
 
         if self._bounds is None:
-            self._buildBounds()
+            self._build_bounds()
 
     @property
     def summary(self):
         mydict = {}
         mydict["site"] = self.site
 
-        mydict["boundType"] = self.boundType
-        mydict["boundLength"] = self.boundLength
-        mydict["pointingRA"] = self.pointingRA
-        mydict["pointingDec"] = self.pointingDec
-        mydict["rotSkyPos"] = self.rotSkyPos
+        mydict["bound_type"] = self.bound_type
+        mydict["boundLength"] = self.bound_length
+        mydict["pointingRA"] = self.pointing_ra
+        mydict["pointingDec"] = self.pointing_dec
+        mydict["rotSkyPos"] = self.rot_sky_pos
 
         if self.mjd is None:
             mydict["mjd"] = None
@@ -149,10 +149,10 @@ class ObservationMetaData(object):
             mydict["mjd"] = self.mjd.TAI
 
         mydict["bandpass"] = self.bandpass
-        mydict["skyBrightness"] = self.skyBrightness
+        mydict["skyBrightness"] = self.sky_brightness
         # mydict['m5'] = self.m5
 
-        mydict["OpsimMetaData"] = self._OpsimMetaData
+        mydict["OpsimMetaData"] = self.__opsim_meta_data
 
         return mydict
 
@@ -164,13 +164,13 @@ class ObservationMetaData(object):
         if self.bounds != other.bounds:
             return False
 
-        if self.pointingRA != other.pointingRA:
+        if self.pointing_ra != other.pointingRA:
             return False
 
-        if self.pointingDec != other.pointingDec:
+        if self.pointing_dec != other.pointingDec:
             return False
 
-        if self.rotSkyPos != other.rotSkyPos:
+        if self.rot_sky_pos != other.rotSkyPos:
             return False
 
         if self.bandpass != other.bandpass:
@@ -188,15 +188,15 @@ class ObservationMetaData(object):
         if self.mjd != other.mjd:
             return False
 
-        if self.skyBrightness != other.skyBrightness:
+        if self.sky_brightness != other.skyBrightness:
             return False
 
-        if self.OpsimMetaData != other.OpsimMetaData:
+        if self.opsim_meta_data != other.OpsimMetaData:
             return False
 
         return True
 
-    def _assignDictKeyedToBandpass(self, inputValue, inputName):
+    def _assign_dict_keyed_to_bandpass(self, input_value, input_name):
         """
         This method sets up a dict of either m5 or seeing values (or any other quantity
         keyed to bandpassName).  It reads in a list of values and associates them with
@@ -205,125 +205,125 @@ class ObservationMetaData(object):
         Note: this method assumes that self._bandpass has already been set.
         It will raise an exception of self._bandpass is None.
 
-        @param [in] inputValue is a single value or list of m5/seeing/etc. corresponding to
+        @param [in] input_value is a single value or list of m5/seeing/etc. corresponding to
         the bandpasses stored in self._bandpass
 
-        @param [in] inputName is the name of the Parameter stored in inputValue
+        @param [in] input_name is the name of the Parameter stored in input_value
         (for constructing helpful error message)
 
-        @param [out] returns a dict of inputValue values keed to self._bandpass
+        @param [out] returns a dict of input_value values keed to self._bandpass
         """
 
-        if inputValue is None:
+        if input_value is None:
             return None
         else:
-            bandpassIsList = False
-            inputIsList = False
+            bandpass_is_list = False
+            input_is_list = False
 
             if self._bandpass is None:
                 raise RuntimeError(
-                    "You cannot set %s if you have not set " % inputName
+                    "You cannot set %s if you have not set " % input_name
                     + "bandpass in ObservationMetaData"
                 )
 
             if hasattr(self._bandpass, "__iter__") and not isinstance(
                 self._bandpass, str
             ):
-                bandpassIsList = True
+                bandpass_is_list = True
 
-            if hasattr(inputValue, "__iter__") and not isinstance(inputValue, str):
-                inputIsList = True
+            if hasattr(input_value, "__iter__") and not isinstance(input_value, str):
+                input_is_list = True
 
-            if bandpassIsList and not inputIsList:
+            if bandpass_is_list and not input_is_list:
                 raise RuntimeError(
                     "You passed a list of bandpass names"
-                    + "but did not pass a list of %s to ObservationMetaData" % inputName
+                    + "but did not pass a list of %s to ObservationMetaData" % input_name
                 )
 
-            if inputIsList and not bandpassIsList:
+            if input_is_list and not bandpass_is_list:
                 raise RuntimeError(
-                    "You passed a list of %s " % inputName
+                    "You passed a list of %s " % input_name
                     + "but did not pass a list of bandpass names to ObservationMetaData"
                 )
 
-            if inputIsList:
-                if len(inputValue) != len(self._bandpass):
+            if input_is_list:
+                if len(input_value) != len(self._bandpass):
                     raise RuntimeError(
-                        "The list of %s you passed to ObservationMetaData " % inputName
+                        "The list of %s you passed to ObservationMetaData " % input_name
                         + "has a different length than the list of bandpass names you passed"
                     )
 
             # now build the dict
-            if bandpassIsList:
-                if len(inputValue) != len(self._bandpass):
+            if bandpass_is_list:
+                if len(input_value) != len(self._bandpass):
                     raise RuntimeError(
                         "In ObservationMetaData you tried to assign bandpass "
-                        + "and %s with lists of different length" % inputName
+                        + "and %s with lists of different length" % input_name
                     )
 
-                outputDict = {}
-                for b, m in zip(self._bandpass, inputValue):
-                    outputDict[b] = m
+                output_dict = {}
+                for b, m in zip(self._bandpass, input_value):
+                    output_dict[b] = m
             else:
-                outputDict = {self._bandpass: inputValue}
+                output_dict = {self._bandpass: input_value}
 
-            return outputDict
+            return output_dict
 
-    def _buildBounds(self):
+    def _build_bounds(self):
         """
         Set up the member variable self._bounds.
 
-        If self._boundType, self._boundLength, self._pointingRA, or
-        self._pointingDec are None, nothing will happen.
+        If self._bound_type, self._bound_length, self._pointing_ra, or
+        self._pointing_dec are None, nothing will happen.
         """
 
-        if self._boundType is None:
+        if self._bound_type is None:
             return
 
-        if self._boundLength is None:
+        if self._bound_length is None:
             return
 
-        if self._pointingRA is None or self._pointingDec is None:
+        if self._pointing_ra is None or self._pointing_dec is None:
             return
 
-        self._bounds = SpatialBounds.getSpatialBounds(
-            self._boundType, self._pointingRA, self._pointingDec, self._boundLength
+        self._bounds = SpatialBounds.get_spatial_bounds(
+            self._bound_type, self._pointing_ra, self._pointing_dec, self._bound_length
         )
 
     @property
-    def pointingRA(self):
+    def pointing_ra(self):
         """
         The RA of the telescope pointing in degrees
         (in the International Celestial Reference System).
         """
-        if self._pointingRA is not None:
-            return np.degrees(self._pointingRA)
+        if self._pointing_ra is not None:
+            return np.degrees(self._pointing_ra)
         else:
             return None
 
-    @pointingRA.setter
-    def pointingRA(self, value):
-        self._pointingRA = np.radians(value)
-        self._buildBounds()
+    @pointing_ra.setter
+    def pointing_ra(self, value):
+        self._pointing_ra = np.radians(value)
+        self._build_bounds()
 
     @property
-    def pointingDec(self):
+    def pointing_dec(self):
         """
         The Dec of the telescope pointing in degrees
         (in the International Celestial Reference System).
         """
-        if self._pointingDec is not None:
-            return np.degrees(self._pointingDec)
+        if self._pointing_dec is not None:
+            return np.degrees(self._pointing_dec)
         else:
             return None
 
-    @pointingDec.setter
-    def pointingDec(self, value):
-        self._pointingDec = np.radians(value)
-        self._buildBounds()
+    @pointing_dec.setter
+    def pointing_dec(self, value):
+        self._pointing_dec = np.radians(value)
+        self._build_bounds()
 
     @property
-    def boundLength(self):
+    def bound_length(self):
         """
         Either a list or a float indicating the size of the field
         of view associated with this ObservationMetaData.
@@ -335,28 +335,28 @@ class ObservationMetaData(object):
         the length should be in radians.  The present class converts
         from degrees to radians before passing to SpatialBounds).
         """
-        if self._boundLength is None:
+        if self._bound_length is None:
             return None
 
-        return np.degrees(self._boundLength)
+        return np.degrees(self._bound_length)
 
-    @boundLength.setter
-    def boundLength(self, value):
-        self._boundLength = np.radians(value)
-        self._buildBounds()
+    @bound_length.setter
+    def bound_length(self, value):
+        self._bound_length = np.radians(value)
+        self._build_bounds()
 
     @property
-    def boundType(self):
+    def bound_type(self):
         """
         Tag indicating what sub-class of SpatialBounds should
         be instantiated for this ObservationMetaData.
         """
-        return self._boundType
+        return self._bound_type
 
-    @boundType.setter
-    def boundType(self, value):
-        self._boundType = value
-        self._buildBounds()
+    @bound_type.setter
+    def bound_type(self, value):
+        self._bound_type = value
+        self._build_bounds()
 
     @property
     def bounds(self):
@@ -368,19 +368,19 @@ class ObservationMetaData(object):
         return self._bounds
 
     @property
-    def rotSkyPos(self):
+    def rot_sky_pos(self):
         """
         The rotation of the telescope with respect to the sky in degrees.
         It is a parameter you should get from OpSim.
         """
-        if self._rotSkyPos is not None:
-            return np.degrees(self._rotSkyPos)
+        if self._rot_sky_pos is not None:
+            return np.degrees(self._rot_sky_pos)
         else:
             return None
 
-    @rotSkyPos.setter
-    def rotSkyPos(self, value):
-        self._rotSkyPos = np.radians(value)
+    @rot_sky_pos.setter
+    def rot_sky_pos(self, value):
+        self._rot_sky_pos = np.radians(value)
 
     @property
     def m5(self):
@@ -393,7 +393,7 @@ class ObservationMetaData(object):
 
     @m5.setter
     def m5(self, value):
-        self._m5 = self._assignDictKeyedToBandpass(value, "m5")
+        self._m5 = self._assign_dict_keyed_to_bandpass(value, "m5")
 
     @property
     def seeing(self):
@@ -405,7 +405,7 @@ class ObservationMetaData(object):
 
     @seeing.setter
     def seeing(self, value):
-        self._seeing = self._assignDictKeyedToBandpass(value, "seeing")
+        self._seeing = self._assign_dict_keyed_to_bandpass(value, "seeing")
 
     @property
     def site(self):
@@ -449,50 +449,50 @@ class ObservationMetaData(object):
         """
         return self._bandpass
 
-    def setBandpassM5andSeeing(self, bandpassName=None, m5=None, seeing=None):
+    def set_bandpass_m5and_seeing(self, bandpass_name=None, m5=None, seeing=None):
         """
         Set the bandpasses and associated 5-sigma limiting magnitudes
         and seeing values for this ObservationMetaData.
 
-        @param [in] bandpassName is either a char or a list of chars denoting
+        @param [in] bandpass_name is either a char or a list of chars denoting
         the name of the bandpass associated with this ObservationMetaData.
 
         @param [in] m5 is the 5-sigma-limiting magnitude(s) associated
-        with bandpassName
+        with bandpass_name
 
         @param [in] seeing is the seeing(s) in arcseconds associated
-        with bandpassName
+        with bandpass_name
 
         Nothing is returned.  This method just sets member variables of
         this ObservationMetaData.
         """
 
-        self._bandpass = bandpassName
-        self._m5 = self._assignDictKeyedToBandpass(m5, "m5")
-        self._seeing = self._assignDictKeyedToBandpass(seeing, "seeing")
+        self._bandpass = bandpass_name
+        self._m5 = self._assign_dict_keyed_to_bandpass(m5, "m5")
+        self._seeing = self._assign_dict_keyed_to_bandpass(seeing, "seeing")
 
     @property
-    def skyBrightness(self):
+    def sky_brightness(self):
         """
         The sky brightness in mags per square arcsecond associated
         with this ObservationMetaData.
         """
-        return self._skyBrightness
+        return self._sky_brightness
 
-    @skyBrightness.setter
-    def skyBrightness(self, value):
-        self._skyBrightness = value
+    @sky_brightness.setter
+    def sky_brightness(self, value):
+        self._sky_brightness = value
 
     @property
-    def OpsimMetaData(self):
+    def opsim_meta_data(self):
         """
         A dict of all of the columns taken from OpSim when constructing this
         ObservationMetaData
         """
-        return self._OpsimMetaData
+        return self.__opsim_meta_data
 
-    @OpsimMetaData.setter
-    def OpsimMetaData(self, value):
+    @opsim_meta_data.setter
+    def opsim_meta_data(self, value):
         if not isinstance(value, dict):
             raise RuntimeError("OpsimMetaData must be a dict")
-        self._OpsimMetaData = value
+        self.__opsim_meta_data = value

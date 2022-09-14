@@ -1,10 +1,10 @@
 import numpy as np
 import warnings
 
-__all__ = ["spatiallySample_obsmetadata", "samplePatchOnSphere", "uniformSphere"]
+__all__ = ["spatially_sample_obsmetadata", "sample_patch_on_sphere", "uniform_sphere"]
 
 
-def spatiallySample_obsmetadata(obsmetadata, size=1, seed=1):
+def spatially_sample_obsmetadata(obsmetadata, size=1, seed=1):
     """
     Sample a square patch on the sphere overlapping obsmetadata
     field of view by picking the area enclosed in
@@ -28,19 +28,19 @@ def spatiallySample_obsmetadata(obsmetadata, size=1, seed=1):
     phi = obsmetadata.pointingRA
     theta = obsmetadata.pointingDec
 
-    if obsmetadata.boundType != "box":
+    if obsmetadata.bound_type != "box":
         warnings.warn(
             "Warning: sampling obsmetata with provided boundLen and"
-            'boundType="box", despite diff boundType specified\n'
+            'bound_type="box", despite diff bound_type specified\n'
         )
     equalrange = obsmetadata.boundLength
-    ravals, thetavals = samplePatchOnSphere(
+    ravals, thetavals = sample_patch_on_sphere(
         phi=phi, theta=theta, delta=equalrange, size=size, seed=seed
     )
     return ravals, thetavals
 
 
-def uniformSphere(npoints, seed=42):
+def uniform_sphere(npoints, seed=42):
     """
     Just make RA, dec points on a sphere
     """
@@ -55,7 +55,7 @@ def uniformSphere(npoints, seed=42):
     return np.degrees(ra), np.degrees(dec)
 
 
-def samplePatchOnSphere(phi, theta, delta, size, seed=1):
+def sample_patch_on_sphere(phi, theta, delta, size, seed=1):
     """
     Uniformly distributes samples on a patch on a sphere between phi pm delta,
     and theta pm delta on a sphere. Uniform distribution implies that the

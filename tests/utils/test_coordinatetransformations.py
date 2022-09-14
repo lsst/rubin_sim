@@ -3,7 +3,7 @@ import unittest
 import rubin_sim.utils as utils
 
 
-def controlEquationOfEquinoxes(mjd):
+def control_equation_of_equinoxes(mjd):
     """
     Taken from http://aa.usno.navy.mil/faq/docs/GAST.php
 
@@ -14,22 +14,22 @@ def controlEquationOfEquinoxes(mjd):
 
     JD = mjd + 2400000.5
     D = JD - 2451545.0
-    omegaDegrees = 125.04 - 0.052954 * D
-    Ldegrees = 280.47 + 0.98565 * D
-    deltaPsiHours = -0.000319 * np.sin(np.radians(omegaDegrees)) - 0.000024 * np.sin(
-        2.0 * np.radians(Ldegrees)
+    omega_degrees = 125.04 - 0.052954 * D
+    ldegrees = 280.47 + 0.98565 * D
+    delta_psi_hours = -0.000319 * np.sin(np.radians(omega_degrees)) - 0.000024 * np.sin(
+        2.0 * np.radians(ldegrees)
     )
-    epsilonDegrees = 23.4393 - 0.0000004 * D
-    return (deltaPsiHours / 24.0) * 2.0 * np.pi * np.cos(np.radians(epsilonDegrees))
+    epsilon_degrees = 23.4393 - 0.0000004 * D
+    return (delta_psi_hours / 24.0) * 2.0 * np.pi * np.cos(np.radians(epsilon_degrees))
 
 
-def controlCalcGmstGast(mjd):
+def control_calc_gmst_gast(mjd):
     # From http://aa.usno.navy.mil/faq/docs/GAST.php Nov. 9 2013
-    mjdConv = 2400000.5
+    mjd_conv = 2400000.5
     jd2000 = 2451545.0
     mjd_o = np.floor(mjd)
-    jd = mjd + mjdConv
-    jd_o = mjd_o + mjdConv
+    jd = mjd + mjd_conv
+    jd_o = mjd_o + mjd_conv
     h = 24.0 * (jd - jd_o)
     d = jd - jd2000
     d_o = jd_o - jd2000
@@ -42,10 +42,10 @@ def controlCalcGmstGast(mjd):
 
 
 class AngularSeparationTestCase(unittest.TestCase):
-    def testAngSepExceptions(self):
+    def test_ang_sep_exceptions(self):
         """
         Test that an exception is raised when you pass
-        mismatched inputs to angularSeparation.
+        mismatched inputs to angular_separation.
         """
         ra1 = 23.0
         dec1 = -12.0
@@ -57,193 +57,193 @@ class AngularSeparationTestCase(unittest.TestCase):
         dec2_arr = np.array([11.1, -45.0, -71.0])
 
         # test that everything runs
-        utils._angularSeparation(
+        utils._angular_separation(
             np.radians(ra1), np.radians(dec1), np.radians(ra2), np.radians(dec2)
         )
-        utils.angularSeparation(ra1, dec1, ra2, dec2)
-        ans = utils._angularSeparation(
+        utils.angular_separation(ra1, dec1, ra2, dec2)
+        ans = utils._angular_separation(
             np.radians(ra1_arr),
             np.radians(dec1_arr),
             np.radians(ra2_arr),
             np.radians(dec2_arr),
         )
         self.assertEqual(len(ans), 3)
-        ans = utils.angularSeparation(ra1_arr, dec1_arr, ra2_arr, dec2_arr)
+        ans = utils.angular_separation(ra1_arr, dec1_arr, ra2_arr, dec2_arr)
         self.assertEqual(len(ans), 3)
 
-        ans = utils.angularSeparation(ra1_arr, dec1_arr, ra2, dec2)
+        ans = utils.angular_separation(ra1_arr, dec1_arr, ra2, dec2)
         self.assertEqual(len(ans), 3)
-        ans = utils._angularSeparation(ra1_arr, ra2_arr, ra2, dec2)
+        ans = utils._angular_separation(ra1_arr, ra2_arr, ra2, dec2)
         self.assertEqual(len(ans), 3)
 
-        ans = utils.angularSeparation(ra1, dec1, ra2_arr, dec2_arr)
+        ans = utils.angular_separation(ra1, dec1, ra2_arr, dec2_arr)
         self.assertEqual(len(ans), 3)
-        ans = utils._angularSeparation(dec1, ra1, ra2_arr, dec2_arr)
+        ans = utils._angular_separation(dec1, ra1, ra2_arr, dec2_arr)
         self.assertEqual(len(ans), 3)
 
         # test with lists
         # Note: these exceptions will not get raised if you call
-        # angularSeparation() with lists instead of numpy arrays
+        # angular_separation() with lists instead of numpy arrays
         # because the conversion from degrees to radians with
         # np.radians will automatically convert the lists into arrays
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(list(ra1_arr), dec1_arr, ra2_arr, dec2_arr)
+            utils._angular_separation(list(ra1_arr), dec1_arr, ra2_arr, dec2_arr)
         self.assertIn("number", context.exception.args[0])
         self.assertIn("numpy array", context.exception.args[0])
         self.assertIn("long1", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1_arr, list(dec1_arr), ra2_arr, dec2_arr)
+            utils._angular_separation(ra1_arr, list(dec1_arr), ra2_arr, dec2_arr)
         self.assertIn("number", context.exception.args[0])
         self.assertIn("numpy array", context.exception.args[0])
         self.assertIn("lat1", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1_arr, dec1_arr, list(ra2_arr), dec2_arr)
+            utils._angular_separation(ra1_arr, dec1_arr, list(ra2_arr), dec2_arr)
         self.assertIn("number", context.exception.args[0])
         self.assertIn("numpy array", context.exception.args[0])
         self.assertIn("long2", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1_arr, dec1_arr, ra2_arr, list(dec2_arr))
+            utils._angular_separation(ra1_arr, dec1_arr, ra2_arr, list(dec2_arr))
         self.assertIn("number", context.exception.args[0])
         self.assertIn("numpy array", context.exception.args[0])
         self.assertIn("lat2", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         # test with numbers and arrays
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1_arr, dec1, ra2, dec2)
+            utils._angular_separation(ra1_arr, dec1, ra2, dec2)
         self.assertIn("the same type", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1, dec1_arr, ra2, dec2)
+            utils._angular_separation(ra1, dec1_arr, ra2, dec2)
         self.assertIn("the same type", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1, dec1, ra2_arr, dec2)
+            utils._angular_separation(ra1, dec1, ra2_arr, dec2)
         self.assertIn("the same type", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1, dec1, ra2, dec2_arr)
+            utils._angular_separation(ra1, dec1, ra2, dec2_arr)
         self.assertIn("the same type", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils.angularSeparation(ra1_arr, dec1, ra2, dec2)
+            utils.angular_separation(ra1_arr, dec1, ra2, dec2)
         self.assertIn("the same type", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils.angularSeparation(ra1, dec1_arr, ra2, dec2)
+            utils.angular_separation(ra1, dec1_arr, ra2, dec2)
         self.assertIn("the same type", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils.angularSeparation(ra1, dec1, ra2_arr, dec2)
+            utils.angular_separation(ra1, dec1, ra2_arr, dec2)
         self.assertIn("the same type", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils.angularSeparation(ra1, dec1, ra2, dec2_arr)
+            utils.angular_separation(ra1, dec1, ra2, dec2_arr)
         self.assertIn("the same type", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         # test with mismatched arrays
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1_arr[:2], dec1_arr, ra2_arr, dec2_arr)
+            utils._angular_separation(ra1_arr[:2], dec1_arr, ra2_arr, dec2_arr)
         self.assertIn("same length", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1_arr, dec1_arr[:2], ra2_arr, dec2_arr)
+            utils._angular_separation(ra1_arr, dec1_arr[:2], ra2_arr, dec2_arr)
         self.assertIn("same length", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1_arr, dec1_arr, ra2_arr[:2], dec2_arr)
+            utils._angular_separation(ra1_arr, dec1_arr, ra2_arr[:2], dec2_arr)
         self.assertIn("same length", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1_arr, dec1_arr, ra2_arr, dec2_arr[:2])
+            utils._angular_separation(ra1_arr, dec1_arr, ra2_arr, dec2_arr[:2])
         self.assertIn("same length", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils.angularSeparation(ra1_arr[:2], dec1_arr, ra2_arr, dec2_arr)
+            utils.angular_separation(ra1_arr[:2], dec1_arr, ra2_arr, dec2_arr)
         self.assertIn("same length", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils.angularSeparation(ra1_arr, dec1_arr[:2], ra2_arr, dec2_arr)
+            utils.angular_separation(ra1_arr, dec1_arr[:2], ra2_arr, dec2_arr)
         self.assertIn("same length", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils.angularSeparation(ra1_arr, dec1_arr, ra2_arr[:2], dec2_arr)
+            utils.angular_separation(ra1_arr, dec1_arr, ra2_arr[:2], dec2_arr)
         self.assertIn("same length", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils.angularSeparation(ra1_arr, dec1_arr, ra2_arr, dec2_arr[:2])
+            utils.angular_separation(ra1_arr, dec1_arr, ra2_arr, dec2_arr[:2])
         self.assertIn("same length", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1_arr[:2], dec1_arr[:2], ra2_arr, dec2_arr)
+            utils._angular_separation(ra1_arr[:2], dec1_arr[:2], ra2_arr, dec2_arr)
         self.assertIn("same length", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1_arr, dec1_arr, ra2_arr[:2], dec2_arr[:2])
+            utils._angular_separation(ra1_arr, dec1_arr, ra2_arr[:2], dec2_arr[:2])
         self.assertIn("same length", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils.angularSeparation(ra1_arr[:2], dec1_arr[:2], ra2_arr, dec2_arr)
+            utils.angular_separation(ra1_arr[:2], dec1_arr[:2], ra2_arr, dec2_arr)
         self.assertIn("same length", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils.angularSeparation(ra1_arr, dec1_arr, ra2_arr[:2], dec2_arr[:2])
+            utils.angular_separation(ra1_arr, dec1_arr, ra2_arr[:2], dec2_arr[:2])
         self.assertIn("same length", context.exception.args[0])
-        self.assertIn("angularSeparation", context.exception.args[0])
+        self.assertIn("angular_separation", context.exception.args[0])
 
         # test that a sensible error is raised if you pass a string
-        # into angularSeparation
+        # into angular_separation
         # Note: a different error will be raised if you pass these
-        # bad inputs into angularSeparation().  The exception will come
+        # bad inputs into angular_separation().  The exception will come
         # from trying to convert a str with np.radians
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation("a", dec1, ra2, dec2)
-        self.assertIn("angularSeparation", context.exception.args[0])
+            utils._angular_separation("a", dec1, ra2, dec2)
+        self.assertIn("angular_separation", context.exception.args[0])
         self.assertIn("number", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1, "a", ra2, dec2)
-        self.assertIn("angularSeparation", context.exception.args[0])
+            utils._angular_separation(ra1, "a", ra2, dec2)
+        self.assertIn("angular_separation", context.exception.args[0])
         self.assertIn("number", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1, dec1, "a", dec2)
-        self.assertIn("angularSeparation", context.exception.args[0])
+            utils._angular_separation(ra1, dec1, "a", dec2)
+        self.assertIn("angular_separation", context.exception.args[0])
         self.assertIn("number", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            utils._angularSeparation(ra1, dec1, ra2, "a")
-        self.assertIn("angularSeparation", context.exception.args[0])
+            utils._angular_separation(ra1, dec1, ra2, "a")
+        self.assertIn("angular_separation", context.exception.args[0])
         self.assertIn("number", context.exception.args[0])
 
-    def testAngSepResultsArr(self):
+    def test_ang_sep_results_arr(self):
         """
-        Test that angularSeparation gives the correct answer by comparing
+        Test that angular_separation gives the correct answer by comparing
         results with the dot products of Cartesian vectors.  Pass in arrays
         of arguments.
         """
@@ -266,12 +266,12 @@ class AngularSeparationTestCase(unittest.TestCase):
         y2 = np.cos(dec2) * np.sin(ra2)
         z2 = np.sin(dec2)
 
-        test = utils._angularSeparation(ra1, dec1, ra2, dec2)
+        test = utils._angular_separation(ra1, dec1, ra2, dec2)
         test = np.cos(test)
         control = x1 * x2 + y1 * y2 + z1 * z2
         np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
-        test = utils.angularSeparation(
+        test = utils.angular_separation(
             np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
         )
         test = np.cos(np.radians(test))
@@ -283,11 +283,11 @@ class AngularSeparationTestCase(unittest.TestCase):
         y1 = np.cos(dec1) * np.sin(ra1)
         z1 = np.sin(dec1)
         control = x1 * x2 + y1 * y2 + z1 * z2
-        test = utils._angularSeparation(ra1, dec1, ra2, dec2)
+        test = utils._angular_separation(ra1, dec1, ra2, dec2)
         test = np.cos(test)
         np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
-        test = utils.angularSeparation(
+        test = utils.angular_separation(
             np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
         )
         test = np.cos(np.radians(test))
@@ -299,19 +299,19 @@ class AngularSeparationTestCase(unittest.TestCase):
         y1 = np.cos(dec1) * np.sin(ra1)
         z1 = np.sin(dec1)
         control = x1 * x2 + y1 * y2 + z1 * z2
-        test = utils._angularSeparation(ra1, dec1, ra2, dec2)
+        test = utils._angular_separation(ra1, dec1, ra2, dec2)
         test = np.cos(test)
         np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
-        test = utils.angularSeparation(
+        test = utils.angular_separation(
             np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
         )
         test = np.cos(np.radians(test))
         np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
-    def testAngSepResultsExtreme(self):
+    def test_ang_sep_results_extreme(self):
         """
-        Test that angularSeparation gives the correct answer by comparing
+        Test that angular_separation gives the correct answer by comparing
         results with the dot products of Cartesian vectors.  Test on extremal
         values (i.e. longitudes that go beyond 360.0 and latitudes that go
         beyond 90.0)
@@ -332,12 +332,12 @@ class AngularSeparationTestCase(unittest.TestCase):
             y2 = np.cos(dec2) * np.sin(ra2)
             z2 = np.sin(dec2)
 
-            test = utils._angularSeparation(ra1, dec1, ra2, dec2)
+            test = utils._angular_separation(ra1, dec1, ra2, dec2)
             test = np.cos(test)
             control = x1 * x2 + y1 * y2 + z1 * z2
             np.testing.assert_array_almost_equal(test, control, decimal=14)
 
-            test = utils.angularSeparation(
+            test = utils.angular_separation(
                 np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
             )
             test = np.cos(np.radians(test))
@@ -349,11 +349,11 @@ class AngularSeparationTestCase(unittest.TestCase):
             y1 = np.cos(dec1) * np.sin(ra1)
             z1 = np.sin(dec1)
             control = x1 * x2 + y1 * y2 + z1 * z2
-            test = utils._angularSeparation(ra1, dec1, ra2, dec2)
+            test = utils._angular_separation(ra1, dec1, ra2, dec2)
             test = np.cos(test)
             np.testing.assert_array_almost_equal(test, control, decimal=14)
 
-            test = utils.angularSeparation(
+            test = utils.angular_separation(
                 np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
             )
             test = np.cos(np.radians(test))
@@ -366,19 +366,19 @@ class AngularSeparationTestCase(unittest.TestCase):
             y1 = np.cos(dec1) * np.sin(ra1)
             z1 = np.sin(dec1)
             control = x1 * x2 + y1 * y2 + z1 * z2
-            test = utils._angularSeparation(ra1, dec1, ra2, dec2)
+            test = utils._angular_separation(ra1, dec1, ra2, dec2)
             test = np.cos(test)
             np.testing.assert_array_almost_equal(test, control, decimal=14)
 
-            test = utils.angularSeparation(
+            test = utils.angular_separation(
                 np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
             )
             test = np.cos(np.radians(test))
             np.testing.assert_array_almost_equal(test, control, decimal=14)
 
-    def testAngSepResultsFloat(self):
+    def test_ang_sep_results_float(self):
         """
-        Test that angularSeparation gives the correct answer by comparing
+        Test that angular_separation gives the correct answer by comparing
         results with the dot products of Cartesian vectors.  Pass in floats
         as arguments.
         """
@@ -400,17 +400,17 @@ class AngularSeparationTestCase(unittest.TestCase):
 
         control = x1 * x2 + y1 * y2 + z1 * z2
 
-        test = utils._angularSeparation(ra1, dec1, ra2, dec2)
+        test = utils._angular_separation(ra1, dec1, ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(test)
         self.assertAlmostEqual(control, test, precision)
 
-        test = utils._angularSeparation(np.array([ra1]), np.array([dec1]), ra2, dec2)
+        test = utils._angular_separation(np.array([ra1]), np.array([dec1]), ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(test)
         self.assertAlmostEqual(control, test, precision)
 
-        test = utils._angularSeparation(ra1, dec1, np.array([ra2]), np.array([dec2]))
+        test = utils._angular_separation(ra1, dec1, np.array([ra2]), np.array([dec2]))
         self.assertIsInstance(test, float)
         test = np.cos(test)
         self.assertAlmostEqual(control, test, precision)
@@ -422,17 +422,17 @@ class AngularSeparationTestCase(unittest.TestCase):
         z1 = np.sin(dec1)
         control = x1 * x2 + y1 * y2 + z1 * z2
 
-        test = utils._angularSeparation(ra1, dec1, ra2, dec2)
+        test = utils._angular_separation(ra1, dec1, ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(test)
         self.assertAlmostEqual(control, test, precision)
 
-        test = utils._angularSeparation(np.array([ra1]), np.array([dec1]), ra2, dec2)
+        test = utils._angular_separation(np.array([ra1]), np.array([dec1]), ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(test)
         self.assertAlmostEqual(control, test, precision)
 
-        test = utils._angularSeparation(ra1, dec1, np.array([ra2]), np.array([dec2]))
+        test = utils._angular_separation(ra1, dec1, np.array([ra2]), np.array([dec2]))
         self.assertIsInstance(test, float)
         test = np.cos(test)
         self.assertAlmostEqual(control, test, precision)
@@ -452,17 +452,17 @@ class AngularSeparationTestCase(unittest.TestCase):
 
         control = x1 * x2 + y1 * y2 + z1 * z2
 
-        test = utils.angularSeparation(ra1, dec1, ra2, dec2)
+        test = utils.angular_separation(ra1, dec1, ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(np.radians(test))
         self.assertAlmostEqual(control, test, precision)
 
-        test = utils.angularSeparation(np.array([ra1]), np.array([dec1]), ra2, dec2)
+        test = utils.angular_separation(np.array([ra1]), np.array([dec1]), ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(np.radians(test))
         self.assertAlmostEqual(control, test, precision)
 
-        test = utils.angularSeparation(ra1, dec1, np.array([ra2]), np.array([dec2]))
+        test = utils.angular_separation(ra1, dec1, np.array([ra2]), np.array([dec2]))
         self.assertIsInstance(test, float)
         test = np.cos(np.radians(test))
         self.assertAlmostEqual(control, test, precision)
@@ -474,24 +474,24 @@ class AngularSeparationTestCase(unittest.TestCase):
         z1 = np.sin(np.radians(dec1))
         control = x1 * x2 + y1 * y2 + z1 * z2
 
-        test = utils.angularSeparation(ra1, dec1, ra2, dec2)
+        test = utils.angular_separation(ra1, dec1, ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(np.radians(test))
         self.assertAlmostEqual(control, test, precision)
 
-        test = utils.angularSeparation(np.array([ra1]), np.array([dec1]), ra2, dec2)
+        test = utils.angular_separation(np.array([ra1]), np.array([dec1]), ra2, dec2)
         self.assertIsInstance(test, float)
         test = np.cos(np.radians(test))
         self.assertAlmostEqual(control, test, precision)
 
-        test = utils.angularSeparation(ra1, dec1, np.array([ra2]), np.array([dec2]))
+        test = utils.angular_separation(ra1, dec1, np.array([ra2]), np.array([dec2]))
         self.assertIsInstance(test, float)
         test = np.cos(np.radians(test))
         self.assertAlmostEqual(control, test, precision)
 
-    def testAngSepResultsMixed(self):
+    def test_ang_sep_results_mixed(self):
         """
-        Test that angularSeparation gives the correct answer by comparing
+        Test that angular_separation gives the correct answer by comparing
         results with the dot products of Cartesian vectors.  Pass in mixtures
         of floats and arrays as arguments.
         """
@@ -515,10 +515,10 @@ class AngularSeparationTestCase(unittest.TestCase):
         z2 = np.sin(dec2)
 
         control = x1 * x2 + y1 * y2 + z1 * z2
-        test = utils._angularSeparation(ra1, dec1, ra2, dec2)
+        test = utils._angular_separation(ra1, dec1, ra2, dec2)
         test = np.cos(test)
         np.testing.assert_array_almost_equal(test, control, decimal=15)
-        test = utils._angularSeparation(ra2, dec2, ra1, dec1)
+        test = utils._angular_separation(ra2, dec2, ra1, dec1)
         test = np.cos(test)
         np.testing.assert_array_almost_equal(test, control, decimal=15)
 
@@ -541,16 +541,16 @@ class AngularSeparationTestCase(unittest.TestCase):
         z2 = np.sin(np.radians(dec2))
 
         control = x1 * x2 + y1 * y2 + z1 * z2
-        test = utils.angularSeparation(ra1, dec1, ra2, dec2)
+        test = utils.angular_separation(ra1, dec1, ra2, dec2)
         test = np.cos(np.radians(test))
         np.testing.assert_array_almost_equal(test, control, decimal=15)
-        test = utils.angularSeparation(ra2, dec2, ra1, dec1)
+        test = utils.angular_separation(ra2, dec2, ra1, dec1)
         test = np.cos(np.radians(test))
         np.testing.assert_array_almost_equal(test, control, decimal=15)
 
-    def testHaversine(self):
+    def test_haversine(self):
         """
-        Test that haversine() returns the same thing as _angularSeparation
+        Test that haversine() returns the same thing as _angular_separation
         """
 
         ra1 = 0.2
@@ -559,98 +559,98 @@ class AngularSeparationTestCase(unittest.TestCase):
         dec2 = -0.5
         ra3 = np.array([1.9, 2.1, 0.3])
         dec3 = np.array([-1.1, 0.34, 0.01])
-        control = utils._angularSeparation(ra1, dec1, ra2, dec2)
+        control = utils._angular_separation(ra1, dec1, ra2, dec2)
         test = utils.haversine(ra1, dec1, ra2, dec2)
         self.assertIsInstance(test, float)
         self.assertEqual(test, control)
 
-        control = utils._angularSeparation(ra1, dec1, ra3, dec3)
+        control = utils._angular_separation(ra1, dec1, ra3, dec3)
         test = utils.haversine(ra1, dec1, ra3, dec3)
         np.testing.assert_array_equal(test, control)
 
-        control = utils._angularSeparation(np.array([ra1]), np.array([dec1]), ra3, dec3)
+        control = utils._angular_separation(np.array([ra1]), np.array([dec1]), ra3, dec3)
         test = utils.haversine(np.array([ra1]), np.array([dec1]), ra3, dec3)
         np.testing.assert_array_equal(test, control)
 
-        control = utils._angularSeparation(ra3, dec3, np.array([ra1]), np.array([dec1]))
+        control = utils._angular_separation(ra3, dec3, np.array([ra1]), np.array([dec1]))
         test = utils.haversine(ra3, dec3, np.array([ra1]), np.array([dec1]))
         np.testing.assert_array_equal(test, control)
 
-        control = utils._angularSeparation(ra2, dec2, np.array([ra1]), np.array([dec1]))
+        control = utils._angular_separation(ra2, dec2, np.array([ra1]), np.array([dec1]))
         test = utils.haversine(ra2, dec2, np.array([ra1]), np.array([dec1]))
         self.assertIsInstance(test, float)
         self.assertEqual(test, control)
 
-        control = utils._angularSeparation(np.array([ra1]), np.array([dec1]), ra2, dec2)
+        control = utils._angular_separation(np.array([ra1]), np.array([dec1]), ra2, dec2)
         test = utils.haversine(np.array([ra1]), np.array([dec1]), ra2, dec2)
         self.assertIsInstance(test, float)
         self.assertEqual(test, control)
 
 
-class testCoordinateTransformations(unittest.TestCase):
+class TestCoordinateTransformations(unittest.TestCase):
     def setUp(self):
         self.rng = np.random.RandomState(32)
         ntests = 100
         self.mjd = 57087.0 - 1000.0 * (self.rng.random_sample(ntests) - 0.5)
         self.tolerance = 1.0e-5
 
-    def testExceptions(self):
+    def test_exceptions(self):
         """
         Test to make sure that methods complain when incorrect data types are passed.
         """
-        mjdFloat = 52000.0
+        mjd_float = 52000.0
         mjd2 = np.array([52000.0, 53000.0])
         mjd3 = np.array([53000.0, 53000.0, 54000.0])
 
-        longFloat = 1.2
-        longArr = np.array([1.2, 1.4])
+        long_float = 1.2
+        long_arr = np.array([1.2, 1.4])
 
-        self.assertRaises(RuntimeError, utils.calcLmstLast, mjdFloat, longArr)
-        self.assertRaises(RuntimeError, utils.calcLmstLast, mjd3, longArr)
-        self.assertRaises(RuntimeError, utils.calcLmstLast, list(mjd2), longArr)
-        self.assertRaises(RuntimeError, utils.calcLmstLast, mjd2, list(longArr))
-        self.assertRaises(RuntimeError, utils.calcLmstLast, mjdFloat, longArr)
-        utils.calcLmstLast(mjd2, longFloat)
-        utils.calcLmstLast(mjdFloat, longFloat)
-        utils.calcLmstLast(int(mjdFloat), longFloat)
-        utils.calcLmstLast(mjdFloat, int(longFloat))
-        utils.calcLmstLast(int(mjdFloat), int(longFloat))
-        utils.calcLmstLast(mjd2, longArr)
+        self.assertRaises(RuntimeError, utils.calcLmstLast, mjd_float, long_arr)
+        self.assertRaises(RuntimeError, utils.calcLmstLast, mjd3, long_arr)
+        self.assertRaises(RuntimeError, utils.calcLmstLast, list(mjd2), long_arr)
+        self.assertRaises(RuntimeError, utils.calcLmstLast, mjd2, list(long_arr))
+        self.assertRaises(RuntimeError, utils.calcLmstLast, mjd_float, long_arr)
+        utils.calcLmstLast(mjd2, long_float)
+        utils.calcLmstLast(mjd_float, long_float)
+        utils.calcLmstLast(int(mjd_float), long_float)
+        utils.calcLmstLast(mjd_float, int(long_float))
+        utils.calcLmstLast(int(mjd_float), int(long_float))
+        utils.calcLmstLast(mjd2, long_arr)
 
-    def testEquationOfEquinoxes(self):
+    def test_equation_of_equinoxes(self):
         """
         Test equation of equninoxes calculation
         """
 
         # test vectorized version
-        control = controlEquationOfEquinoxes(self.mjd)
+        control = control_equation_of_equinoxes(self.mjd)
         test = utils.equationOfEquinoxes(self.mjd)
         self.assertLess(np.abs(test - control).max(), self.tolerance)
 
         # test non-vectorized version
         for mm in self.mjd:
-            control = controlEquationOfEquinoxes(mm)
+            control = control_equation_of_equinoxes(mm)
             test = utils.equationOfEquinoxes(mm)
             self.assertLess(np.abs(test - control), self.tolerance)
 
-    def testGmstGast(self):
+    def test_gmst_gast(self):
         """
         Test calculation of Greenwich mean and apparent sidereal times
         """
 
-        controlGmst, controlGast = controlCalcGmstGast(self.mjd)
-        testGmst, testGast = utils.calcGmstGast(self.mjd)
-        self.assertLess(np.abs(testGmst - controlGmst).max(), self.tolerance)
-        self.assertLess(np.abs(testGast - controlGast).max(), self.tolerance)
+        control_gmst, control_gast = control_calc_gmst_gast(self.mjd)
+        test_gmst, test_gast = utils.calcGmstGast(self.mjd)
+        self.assertLess(np.abs(test_gmst - control_gmst).max(), self.tolerance)
+        self.assertLess(np.abs(test_gast - control_gast).max(), self.tolerance)
 
         # test non-vectorized version
         for mm in self.mjd:
-            controlGmst, controlGast = controlCalcGmstGast(mm)
-            testGmst, testGast = utils.calcGmstGast(mm)
-            self.assertLess(np.abs(testGmst - controlGmst), self.tolerance)
-            self.assertLess(np.abs(testGast - controlGast), self.tolerance)
+            control_gmst, control_gast = control_calc_gmst_gast(mm)
+            test_gmst, test_gast = utils.calcGmstGast(mm)
+            self.assertLess(np.abs(test_gmst - control_gmst), self.tolerance)
+            self.assertLess(np.abs(test_gast - control_gast), self.tolerance)
 
-    def testLmstLast(self):
+    def test_lmst_last(self):
         """
         Test calculation of local mean and apparent sidereal time
         """
@@ -663,15 +663,15 @@ class testCoordinateTransformations(unittest.TestCase):
             hours = np.degrees(longitude) / 15.0
             if hours > 24.0:
                 hours -= 24.0
-            controlLmst = gmst + hours
-            controlLast = gast + hours
-            controlLmst %= 24.0
-            controlLast %= 24.0
-            testLmst, testLast = utils.calcLmstLast(self.mjd, longitude)
-            self.assertLess(np.abs(testLmst - controlLmst).max(), self.tolerance)
-            self.assertLess(np.abs(testLast - controlLast).max(), self.tolerance)
-            self.assertIsInstance(testLmst, np.ndarray)
-            self.assertIsInstance(testLast, np.ndarray)
+            control_lmst = gmst + hours
+            control_last = gast + hours
+            control_lmst %= 24.0
+            control_last %= 24.0
+            test_lmst, test_last = utils.calcLmstLast(self.mjd, longitude)
+            self.assertLess(np.abs(test_lmst - control_lmst).max(), self.tolerance)
+            self.assertLess(np.abs(test_last - control_last).max(), self.tolerance)
+            self.assertIsInstance(test_lmst, np.ndarray)
+            self.assertIsInstance(test_last, np.ndarray)
 
         # test passing two floats
         for longitude in ll:
@@ -680,27 +680,27 @@ class testCoordinateTransformations(unittest.TestCase):
                 hours = np.degrees(longitude) / 15.0
                 if hours > 24.0:
                     hours -= 24.0
-                controlLmst = gmst + hours
-                controlLast = gast + hours
-                controlLmst %= 24.0
-                controlLast %= 24.0
-                testLmst, testLast = utils.calcLmstLast(mm, longitude)
-                self.assertLess(np.abs(testLmst - controlLmst), self.tolerance)
-                self.assertLess(np.abs(testLast - controlLast), self.tolerance)
-                self.assertIsInstance(testLmst, float)
-                self.assertIsInstance(testLast, float)
+                control_lmst = gmst + hours
+                control_last = gast + hours
+                control_lmst %= 24.0
+                control_last %= 24.0
+                test_lmst, test_last = utils.calcLmstLast(mm, longitude)
+                self.assertLess(np.abs(test_lmst - control_lmst), self.tolerance)
+                self.assertLess(np.abs(test_last - control_last), self.tolerance)
+                self.assertIsInstance(test_lmst, float)
+                self.assertIsInstance(test_last, float)
 
         # test passing two numpy arrays
         ll = self.rng.random_sample(len(self.mjd)) * 2.0 * np.pi
-        testLmst, testLast = utils.calcLmstLast(self.mjd, ll)
-        self.assertIsInstance(testLmst, np.ndarray)
-        self.assertIsInstance(testLast, np.ndarray)
+        test_lmst, test_last = utils.calcLmstLast(self.mjd, ll)
+        self.assertIsInstance(test_lmst, np.ndarray)
+        self.assertIsInstance(test_last, np.ndarray)
         for ix, (longitude, mm) in enumerate(zip(ll, self.mjd)):
-            controlLmst, controlLast = utils.calcLmstLast(mm, longitude)
-            self.assertAlmostEqual(controlLmst, testLmst[ix], 10)
-            self.assertAlmostEqual(controlLast, testLast[ix], 10)
+            control_lmst, control_last = utils.calcLmstLast(mm, longitude)
+            self.assertAlmostEqual(control_lmst, test_lmst[ix], 10)
+            self.assertAlmostEqual(control_last, test_last[ix], 10)
 
-    def test_galacticFromEquatorial(self):
+    def test_galactic_from_equatorial(self):
 
         ra = np.zeros((3), dtype=float)
         dec = np.zeros((3), dtype=float)
@@ -734,7 +734,7 @@ class testCoordinateTransformations(unittest.TestCase):
             self.assertAlmostEqual(gl, glon[ix], 10)
             self.assertAlmostEqual(gb, glat[ix], 10)
 
-    def test_equatorialFromGalactic(self):
+    def test_equatorial_from_galactic(self):
 
         lon = np.zeros((3), dtype=float)
         lat = np.zeros((3), dtype=float)
@@ -768,7 +768,7 @@ class testCoordinateTransformations(unittest.TestCase):
             self.assertAlmostEqual(rr, ra[ix], 10)
             self.assertAlmostEqual(dd, dec[ix], 10)
 
-    def testSphericalFromCartesian(self):
+    def test_spherical_from_cartesian(self):
         """
         Note that xyz[i][j] is the ith component of the jth vector
 
@@ -790,7 +790,7 @@ class testCoordinateTransformations(unittest.TestCase):
             points.append(vv)
 
         points = np.array(points)
-        lon, lat = utils.sphericalFromCartesian(points)
+        lon, lat = utils.spherical_from_cartesian(points)
         for ix in range(nsamples):
             self.assertAlmostEqual(np.cos(lon[ix]), np.cos(phi[ix]), 5)
             self.assertAlmostEqual(np.sin(lon[ix]), np.sin(phi[ix]), 5)
@@ -799,26 +799,26 @@ class testCoordinateTransformations(unittest.TestCase):
 
         # test passing in the points one at a time
         for pp, th, ph in zip(points, theta, phi):
-            lon, lat = utils.sphericalFromCartesian(pp)
+            lon, lat = utils.spherical_from_cartesian(pp)
             self.assertAlmostEqual(np.cos(lon), np.cos(ph), 5)
             self.assertAlmostEqual(np.sin(lon), np.sin(ph), 5)
             self.assertAlmostEqual(np.cos(lat), np.cos(th), 5)
             self.assertAlmostEqual(np.sin(lat), np.sin(th), 5)
 
-        # test ra_dec_from_xyz <-> sphericalFromCartesian
+        # test ra_dec_from_xyz <-> spherical_from_cartesian
         np.testing.assert_array_equal(
-            utils.sphericalFromCartesian(points),
+            utils.spherical_from_cartesian(points),
             utils._ra_dec_from_xyz(points[:, 0], points[:, 1], points[:, 2]),
         )
 
         # now, test passing one at a time
         for pp in points:
             np.testing.assert_array_equal(
-                utils.sphericalFromCartesian(pp),
+                utils.spherical_from_cartesian(pp),
                 utils._ra_dec_from_xyz(pp[0], pp[1], pp[2]),
             )
 
-    def testCartesianFromSpherical(self):
+    def test_cartesian_from_spherical(self):
         nsamples = 10
         theta = self.rng.random_sample(nsamples) * np.pi - 0.5 * np.pi
         phi = self.rng.random_sample(nsamples) * 2.0 * np.pi
@@ -834,10 +834,10 @@ class testCoordinateTransformations(unittest.TestCase):
             points.append(vv)
 
         points = np.array(points)
-        lon, lat = utils.sphericalFromCartesian(points)
-        outPoints = utils.cartesianFromSpherical(lon, lat)
+        lon, lat = utils.spherical_from_cartesian(points)
+        out_points = utils.cartesianFromSpherical(lon, lat)
 
-        for pp, oo in zip(points, outPoints):
+        for pp, oo in zip(points, out_points):
             np.testing.assert_array_almost_equal(pp, oo, decimal=6)
 
         # test passing in arguments as floats
@@ -846,9 +846,9 @@ class testCoordinateTransformations(unittest.TestCase):
             self.assertIsInstance(xyz[0], float)
             self.assertIsInstance(xyz[1], float)
             self.assertIsInstance(xyz[2], float)
-            self.assertAlmostEqual(xyz[0], outPoints[ix][0], 12)
-            self.assertAlmostEqual(xyz[1], outPoints[ix][1], 12)
-            self.assertAlmostEqual(xyz[2], outPoints[ix][2], 12)
+            self.assertAlmostEqual(xyz[0], out_points[ix][0], 12)
+            self.assertAlmostEqual(xyz[1], out_points[ix][1], 12)
+            self.assertAlmostEqual(xyz[2], out_points[ix][2], 12)
 
         # test _xyz_from_ra_dec <-> testCartesianFromSpherical
         np.testing.assert_array_equal(
@@ -856,7 +856,7 @@ class testCoordinateTransformations(unittest.TestCase):
             utils._xyz_from_ra_dec(lon, lat).transpose(),
         )
 
-    def testHaversine(self):
+    def test_haversine(self):
         arg1 = 7.853981633974482790e-01
         arg2 = 3.769911184307751517e-01
         arg3 = 5.026548245743668986e00
@@ -866,7 +866,7 @@ class testCoordinateTransformations(unittest.TestCase):
 
         self.assertAlmostEqual(output, 2.162615946398791955e00, 10)
 
-    def testRotationMatrixFromVectors(self):
+    def test_rotation_matrix_from_vectors(self):
         v1 = np.zeros((3), dtype=float)
         v2 = np.zeros((3), dtype=float)
         v3 = np.zeros((3), dtype=float)

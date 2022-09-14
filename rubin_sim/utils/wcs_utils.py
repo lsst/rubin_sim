@@ -1,18 +1,18 @@
 import numpy as np
 import numbers
-from rubin_sim.utils import _observedFromICRS, _icrsFromObserved
+from rubin_sim.utils import _observed_from_icrs, _icrs_from_observed
 
 __all__ = [
-    "_nativeLonLatFromPointing",
-    "_lonLatFromNativeLonLat",
-    "_nativeLonLatFromRaDec",
-    "_raDecFromNativeLonLat",
-    "nativeLonLatFromRaDec",
-    "raDecFromNativeLonLat",
+    "_native_lon_lat_from_pointing",
+    "_lon_lat_from_native_lon_lat",
+    "_native_lon_lat_from_ra_dec",
+    "_ra_dec_from_native_lon_lat",
+    "native_lon_lat_from_ra_dec",
+    "ra_dec_from_native_lon_lat",
 ]
 
 
-def _nativeLonLatFromPointing(lon, lat, lonPointing, latPointing):
+def _native_lon_lat_from_pointing(lon, lat, lon_pointing, lat_pointing):
     """
     Convert the longitude and latitude of a point into `native'
     longitude and latitude defined by a telescope pointing.
@@ -47,8 +47,8 @@ def _nativeLonLatFromPointing(lon, lat, lonPointing, latPointing):
     y = np.cos(lat) * np.cos(lon)
     z = np.sin(lat)
 
-    alpha = latPointing - 0.5 * np.pi
-    beta = lonPointing
+    alpha = lat_pointing - 0.5 * np.pi
+    beta = lon_pointing
 
     ca = np.cos(alpha)
     sa = np.sin(alpha)
@@ -64,9 +64,9 @@ def _nativeLonLatFromPointing(lon, lat, lonPointing, latPointing):
     )
 
     cc = np.sqrt(v2[0] * v2[0] + v2[1] * v2[1])
-    latOut = np.arctan2(v2[2], cc)
+    lat_out = np.arctan2(v2[2], cc)
 
-    _y = v2[1] / np.cos(latOut)
+    _y = v2[1] / np.cos(lat_out)
     _ra_raw = np.arccos(_y)
 
     # control for _y=1.0, -1.0 but actually being stored as just outside
@@ -91,16 +91,16 @@ def _nativeLonLatFromPointing(lon, lat, lonPointing, latPointing):
 
     if isinstance(_ra, numbers.Number):
         if np.isnan(_ra):
-            lonOut = 0.0
+            lon_out = 0.0
         elif (np.abs(_x) > 1.0e-9 and np.sign(_x) != np.sign(v2[0])) or (
             np.abs(_y) > 1.0e-9 and np.sign(_y) != np.sign(v2[1])
         ):
 
-            lonOut = 2.0 * np.pi - _ra
+            lon_out = 2.0 * np.pi - _ra
         else:
-            lonOut = _ra
+            lon_out = _ra
     else:
-        _lonOut = [
+        _lon_out = [
             2.0 * np.pi - rr
             if (np.abs(xx) > 1.0e-9 and np.sign(xx) != np.sign(v2_0))
             or (np.abs(yy) > 1.0e-9 and np.sign(yy) != np.sign(v2_1))
@@ -108,40 +108,40 @@ def _nativeLonLatFromPointing(lon, lat, lonPointing, latPointing):
             for rr, xx, yy, v2_0, v2_1 in zip(_ra, _x, _y, v2[0], v2[1])
         ]
 
-        lonOut = np.array([0.0 if np.isnan(ll) else ll for ll in _lonOut])
+        lon_out = np.array([0.0 if np.isnan(ll) else ll for ll in _lon_out])
 
-    return lonOut, latOut
+    return lon_out, lat_out
 
 
-def _lonLatFromNativeLonLat(nativeLon, nativeLat, lonPointing, latPointing):
+def _lon_lat_from_native_lon_lat(native_lon, native_lat, lon_pointing, lat_pointing):
     """
     Transform a position in native longitude and latitude into
     longitude and latitude in a coordinate system where the telescope pointing
-    is defined.  See the doc string for _nativeLonLatFromPointing for definitions
+    is defined.  See the doc string for _native_lon_lat_from_pointing for definitions
     of native longitude and latitude.
 
-    @param [in] nativeLon is the native longitude in radians
+    @param [in] native_lon is the native longitude in radians
 
-    @param [in] nativeLat is the native latitude in radians
+    @param [in] native_lat is the native latitude in radians
 
-    @param [in] lonPointing is the longitude-like coordinate of the telescope
+    @param [in] lon_pointing is the longitude-like coordinate of the telescope
     pointing in radians
 
-    @param [in] latPointing is the latitude-like coordinate of the telescope
+    @param [in] lat_pointing is the latitude-like coordinate of the telescope
     pointing in radians
 
-    @param [out] latOut is the latitude of the transformed point(s)
+    @param [out] lat_out is the latitude of the transformed point(s)
     in the same coordinate system as the telescope pointing in radians
 
-    @param [in] latOut is the latitude of the transformed point(s)
+    @param [in] lat_out is the latitude of the transformed point(s)
     in the same coordinate system as the telescope pointing in radians
     """
-    x = -1.0 * np.cos(nativeLat) * np.sin(nativeLon)
-    y = np.cos(nativeLat) * np.cos(nativeLon)
-    z = np.sin(nativeLat)
+    x = -1.0 * np.cos(native_lat) * np.sin(native_lon)
+    y = np.cos(native_lat) * np.cos(native_lon)
+    z = np.sin(native_lat)
 
-    alpha = 0.5 * np.pi - latPointing
-    beta = lonPointing
+    alpha = 0.5 * np.pi - lat_pointing
+    beta = lon_pointing
 
     ca = np.cos(alpha)
     sa = np.sin(alpha)
@@ -157,37 +157,37 @@ def _lonLatFromNativeLonLat(nativeLon, nativeLat, lonPointing, latPointing):
     )
 
     cc = np.sqrt(v2[0] * v2[0] + v2[1] * v2[1])
-    latOut = np.arctan2(v2[2], cc)
+    lat_out = np.arctan2(v2[2], cc)
 
-    _y = v2[1] / np.cos(latOut)
-    _lonOut = np.arccos(_y)
-    _x = -np.sin(_lonOut)
+    _y = v2[1] / np.cos(lat_out)
+    _lon_out = np.arccos(_y)
+    _x = -np.sin(_lon_out)
 
-    if isinstance(_lonOut, numbers.Number):
-        if np.isnan(_lonOut):
-            lonOut = 0.0
+    if isinstance(_lon_out, numbers.Number):
+        if np.isnan(_lon_out):
+            lon_out = 0.0
         elif (np.abs(_x) > 1.0e-9 and np.sign(_x) != np.sign(v2[0])) or (
             np.abs(_y) > 1.0e-9 and np.sign(_y) != np.sign(v2[1])
         ):
 
-            lonOut = 2.0 * np.pi - _lonOut
+            lon_out = 2.0 * np.pi - _lon_out
         else:
-            lonOut = _lonOut
+            lon_out = _lon_out
     else:
-        _lonOut = [
+        _lon_out = [
             2.0 * np.pi - rr
             if (np.abs(xx) > 1.0e-9 and np.sign(xx) != np.sign(v2_0))
             or (np.abs(yy) > 1.0e-9 and np.sign(yy) != np.sign(v2_1))
             else rr
-            for rr, xx, yy, v2_0, v2_1 in zip(_lonOut, _x, _y, v2[0], v2[1])
+            for rr, xx, yy, v2_0, v2_1 in zip(_lon_out, _x, _y, v2[0], v2[1])
         ]
 
-        lonOut = np.array([0.0 if np.isnan(rr) else rr for rr in _lonOut])
+        lon_out = np.array([0.0 if np.isnan(rr) else rr for rr in _lon_out])
 
-    return lonOut, latOut
+    return lon_out, lat_out
 
 
-def _nativeLonLatFromRaDec(ra_in, dec_in, obs_metadata):
+def _native_lon_lat_from_ra_dec(ra_in, dec_in, obs_metadata):
     """
     Convert the RA and Dec of a star into `native' longitude and latitude.
 
@@ -221,11 +221,11 @@ def _nativeLonLatFromRaDec(ra_in, dec_in, obs_metadata):
     @param [out] latOut is the native latitude in radians
     """
 
-    ra, dec = _observedFromICRS(
+    ra, dec = _observed_from_icrs(
         ra_in, dec_in, obs_metadata=obs_metadata, epoch=2000.0, includeRefraction=True
     )
 
-    raPointing, decPointing = _observedFromICRS(
+    ra_pointing, dec_pointing = _observed_from_icrs(
         obs_metadata._pointingRA,
         obs_metadata._pointingDec,
         obs_metadata=obs_metadata,
@@ -233,10 +233,10 @@ def _nativeLonLatFromRaDec(ra_in, dec_in, obs_metadata):
         includeRefraction=True,
     )
 
-    return _nativeLonLatFromPointing(ra, dec, raPointing, decPointing)
+    return _native_lon_lat_from_pointing(ra, dec, ra_pointing, dec_pointing)
 
 
-def nativeLonLatFromRaDec(ra, dec, obs_metadata):
+def native_lon_lat_from_ra_dec(ra, dec, obs_metadata):
     """
     Convert the RA and Dec of a star into `native' longitude and latitude.
 
@@ -272,15 +272,15 @@ def nativeLonLatFromRaDec(ra, dec, obs_metadata):
     @param [out] latOut is the native latitude in degrees
     """
 
-    lon, lat = _nativeLonLatFromRaDec(np.radians(ra), np.radians(dec), obs_metadata)
+    lon, lat = _native_lon_lat_from_ra_dec(np.radians(ra), np.radians(dec), obs_metadata)
 
     return np.degrees(lon), np.degrees(lat)
 
 
-def _raDecFromNativeLonLat(lon, lat, obs_metadata):
+def _ra_dec_from_native_lon_lat(lon, lat, obs_metadata):
     """
     Transform a star's position in native longitude and latitude into
-    RA and Dec.  See the doc string for _nativeLonLatFromRaDec for definitions
+    RA and Dec.  See the doc string for _native_lon_lat_from_ra_dec for definitions
     of native longitude and latitude.
 
     @param [in] lon is the native longitude in radians
@@ -290,18 +290,18 @@ def _raDecFromNativeLonLat(lon, lat, obs_metadata):
     @param [in] obs_metadata is an ObservationMetaData characterizing the pointing
     of the telescope
 
-    @param [out] raOut is the RA of the star in radians
+    @param [out] ra_out is the RA of the star in radians
     (in the International Celestial Reference System)
 
-    @param [in] decOut is the Dec of the star in radians
+    @param [in] dec_out is the Dec of the star in radians
     (in the International Celestial Reference System)
 
-    Note: Because of its reliance on icrsFromObserved, this
+    Note: Because of its reliance on icrs_from_observed, this
     method is only accurate at angular distances from the sun of greater
     than 45 degrees and zenith distances of less than 75 degrees.
     """
 
-    raPointing, decPointing = _observedFromICRS(
+    ra_pointing, dec_pointing = _observed_from_icrs(
         obs_metadata._pointingRA,
         obs_metadata._pointingDec,
         obs_metadata=obs_metadata,
@@ -309,22 +309,22 @@ def _raDecFromNativeLonLat(lon, lat, obs_metadata):
         includeRefraction=True,
     )
 
-    raObs, decObs = _lonLatFromNativeLonLat(lon, lat, raPointing, decPointing)
+    ra_obs, dec_obs = _lon_lat_from_native_lon_lat(lon, lat, ra_pointing, dec_pointing)
 
     # convert from observed geocentric coordinates to International Celestial Reference System
     # coordinates
 
-    raOut, decOut = _icrsFromObserved(
-        raObs, decObs, obs_metadata=obs_metadata, epoch=2000.0, includeRefraction=True
+    ra_out, dec_out = _icrs_from_observed(
+        ra_obs, dec_obs, obs_metadata=obs_metadata, epoch=2000.0, includeRefraction=True
     )
 
-    return raOut, decOut
+    return ra_out, dec_out
 
 
-def raDecFromNativeLonLat(lon, lat, obs_metadata):
+def ra_dec_from_native_lon_lat(lon, lat, obs_metadata):
     """
     Transform a star's position in native longitude and latitude into
-    RA and Dec.  See the doc string for nativeLonLatFromRaDec for definitions
+    RA and Dec.  See the doc string for native_lon_lat_from_ra_dec for definitions
     of native longitude and latitude.
 
     @param [in] lon is the native longitude in degrees
@@ -340,11 +340,11 @@ def raDecFromNativeLonLat(lon, lat, obs_metadata):
     @param [in] decOut is the Dec of the star in degrees
     (in the International Celestial Reference System)
 
-    Note: Because of its reliance on icrsFromObserved, this
+    Note: Because of its reliance on icrs_from_observed, this
     method is only accurate at angular distances from the sun of greater
     than 45 degrees and zenith distances of less than 75 degrees.
     """
 
-    ra, dec = _raDecFromNativeLonLat(np.radians(lon), np.radians(lat), obs_metadata)
+    ra, dec = _ra_dec_from_native_lon_lat(np.radians(lon), np.radians(lat), obs_metadata)
 
     return np.degrees(ra), np.degrees(dec)

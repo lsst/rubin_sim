@@ -14,9 +14,9 @@ class SiteTest(unittest.TestCase):
         self.temperature = 11.5
         self.humidity = 0.4
         self.pressure = 750.0
-        self.lapseRate = 0.0065
+        self.lapse_rate = 0.0065
 
-    def testLSST_values(self):
+    def test_lsst_values(self):
         """
         Test that LSST values are set correctly
         """
@@ -30,10 +30,10 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.temperature_kelvin, self.temperature + 273.15)
         self.assertEqual(site.pressure, self.pressure)
         self.assertEqual(site.humidity, self.humidity)
-        self.assertEqual(site.lapseRate, self.lapseRate)
+        self.assertEqual(site.lapse_rate, self.lapse_rate)
         self.assertEqual(site.height, self.height)
 
-    def testNoDefaults(self):
+    def test_no_defaults(self):
         """
         Test that, if name is not 'LSST', values are set to None
         """
@@ -47,7 +47,7 @@ class SiteTest(unittest.TestCase):
         self.assertIn("temperature", msg)
         self.assertIn("pressure", msg)
         self.assertIn("height", msg)
-        self.assertIn("lapseRate", msg)
+        self.assertIn("lapse_rate", msg)
         self.assertIn("humidity", msg)
 
         self.assertEqual(site.name, "bob")
@@ -59,10 +59,10 @@ class SiteTest(unittest.TestCase):
         self.assertIsNone(site.temperature_kelvin)
         self.assertIsNone(site.pressure)
         self.assertIsNone(site.humidity)
-        self.assertIsNone(site.lapseRate)
+        self.assertIsNone(site.lapse_rate)
         self.assertIsNone(site.height)
 
-    def testOverrideLSSTdefaults(self):
+    def test_override_lss_tdefaults(self):
         """
         Test that, even if LSST is specified, we are capable of overriding
         defaults
@@ -76,7 +76,7 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.temperature, self.temperature)
         self.assertEqual(site.pressure, self.pressure)
         self.assertEqual(site.humidity, self.humidity)
-        self.assertEqual(site.lapseRate, self.lapseRate)
+        self.assertEqual(site.lapse_rate, self.lapse_rate)
         self.assertEqual(site.height, self.height)
 
         site = Site(name="LSST", latitude=88.0)
@@ -89,7 +89,7 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.temperature_kelvin, self.temperature + 273.15)
         self.assertEqual(site.pressure, self.pressure)
         self.assertEqual(site.humidity, self.humidity)
-        self.assertEqual(site.lapseRate, self.lapseRate)
+        self.assertEqual(site.lapse_rate, self.lapse_rate)
         self.assertEqual(site.height, self.height)
 
         site = Site(name="LSST", height=4.0)
@@ -102,7 +102,7 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.temperature_kelvin, self.temperature + 273.15)
         self.assertEqual(site.pressure, self.pressure)
         self.assertEqual(site.humidity, self.humidity)
-        self.assertEqual(site.lapseRate, self.lapseRate)
+        self.assertEqual(site.lapse_rate, self.lapse_rate)
         self.assertEqual(site.height, 4.0)
 
         site = Site(name="LSST", temperature=7.0)
@@ -115,7 +115,7 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.temperature_kelvin, 280.15)
         self.assertEqual(site.pressure, self.pressure)
         self.assertEqual(site.humidity, self.humidity)
-        self.assertEqual(site.lapseRate, self.lapseRate)
+        self.assertEqual(site.lapse_rate, self.lapse_rate)
         self.assertEqual(site.height, self.height)
 
         site = Site(name="LSST", pressure=14.0)
@@ -128,7 +128,7 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.temperature_kelvin, self.temperature + 273.15)
         self.assertEqual(site.pressure, 14.0)
         self.assertEqual(site.humidity, self.humidity)
-        self.assertEqual(site.lapseRate, self.lapseRate)
+        self.assertEqual(site.lapse_rate, self.lapse_rate)
         self.assertEqual(site.height, self.height)
 
         site = Site(name="LSST", humidity=2.1)
@@ -141,10 +141,10 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.temperature_kelvin, self.temperature + 273.15)
         self.assertEqual(site.pressure, self.pressure)
         self.assertEqual(site.humidity, 2.1)
-        self.assertEqual(site.lapseRate, self.lapseRate)
+        self.assertEqual(site.lapse_rate, self.lapse_rate)
         self.assertEqual(site.height, self.height)
 
-        site = Site(name="LSST", lapseRate=3.2)
+        site = Site(name="LSST", lapse_rate=3.2)
         self.assertEqual(site.name, "LSST")
         self.assertEqual(site.longitude, self.longitude)
         self.assertEqual(site.longitude_rad, np.radians(self.longitude))
@@ -154,10 +154,10 @@ class SiteTest(unittest.TestCase):
         self.assertEqual(site.temperature_kelvin, self.temperature + 273.15)
         self.assertEqual(site.pressure, self.pressure)
         self.assertEqual(site.humidity, self.humidity)
-        self.assertEqual(site.lapseRate, 3.2)
+        self.assertEqual(site.lapse_rate, 3.2)
         self.assertEqual(site.height, self.height)
 
-    def testPartialParams(self):
+    def test_partial_params(self):
         """
         test that unspecified parameters get set to None
         """
@@ -168,7 +168,7 @@ class SiteTest(unittest.TestCase):
         self.assertIn("latitude", msg)
         self.assertIn("height", msg)
         self.assertIn("pressure", msg)
-        self.assertIn("lapseRate", msg)
+        self.assertIn("lapse_rate", msg)
         self.assertIn("humidity", msg)
         self.assertNotIn("longitue", msg)
         self.assertNotIn("temperature", msg)
@@ -179,7 +179,7 @@ class SiteTest(unittest.TestCase):
         self.assertIsNone(site.height)
         self.assertIsNone(site.pressure)
         self.assertIsNone(site.humidity)
-        self.assertIsNone(site.lapseRate)
+        self.assertIsNone(site.lapse_rate)
         self.assertEqual(site.longitude, 45.0)
         self.assertEqual(site.longitude_rad, np.pi / 4.0)
         self.assertEqual(site.temperature, 20.0)
@@ -197,7 +197,7 @@ class SiteTest(unittest.TestCase):
             height=3124.2,
             pressure=891.2,
             humidity=0.341,
-            lapseRate=0.008,
+            lapse_rate=0.008,
         )
 
         other_site = Site(
@@ -208,7 +208,7 @@ class SiteTest(unittest.TestCase):
             height=3124.2,
             pressure=891.2,
             humidity=0.341,
-            lapseRate=0.008,
+            lapse_rate=0.008,
         )
 
         self.assertEqual(reference_site, other_site)
@@ -245,7 +245,7 @@ class SiteTest(unittest.TestCase):
             height=3124.2,
             pressure=891.2,
             humidity=0.341,
-            lapseRate=0.008,
+            lapse_rate=0.008,
         )
 
         self.assertNotEqual(reference_site, other_site)
@@ -260,7 +260,7 @@ class SiteTest(unittest.TestCase):
             height=3124.2,
             pressure=891.2,
             humidity=0.341,
-            lapseRate=0.008,
+            lapse_rate=0.008,
         )
 
         self.assertNotEqual(reference_site, other_site)
@@ -275,7 +275,7 @@ class SiteTest(unittest.TestCase):
             height=3124.2,
             pressure=891.2,
             humidity=0.341,
-            lapseRate=0.008,
+            lapse_rate=0.008,
         )
 
         self.assertNotEqual(reference_site, other_site)
@@ -290,7 +290,7 @@ class SiteTest(unittest.TestCase):
             height=3124.2,
             pressure=891.2,
             humidity=0.341,
-            lapseRate=0.008,
+            lapse_rate=0.008,
         )
 
         self.assertNotEqual(reference_site, other_site)
@@ -305,7 +305,7 @@ class SiteTest(unittest.TestCase):
             height=3124.3,
             pressure=891.2,
             humidity=0.341,
-            lapseRate=0.008,
+            lapse_rate=0.008,
         )
 
         self.assertNotEqual(reference_site, other_site)
@@ -320,7 +320,7 @@ class SiteTest(unittest.TestCase):
             height=3124.2,
             pressure=891.3,
             humidity=0.341,
-            lapseRate=0.008,
+            lapse_rate=0.008,
         )
 
         self.assertNotEqual(reference_site, other_site)
@@ -335,7 +335,7 @@ class SiteTest(unittest.TestCase):
             height=3124.2,
             pressure=891.2,
             humidity=0.342,
-            lapseRate=0.008,
+            lapse_rate=0.008,
         )
 
         self.assertNotEqual(reference_site, other_site)
@@ -350,7 +350,7 @@ class SiteTest(unittest.TestCase):
             height=3124.2,
             pressure=891.2,
             humidity=0.341,
-            lapseRate=0.009,
+            lapse_rate=0.009,
         )
 
         self.assertNotEqual(reference_site, other_site)
