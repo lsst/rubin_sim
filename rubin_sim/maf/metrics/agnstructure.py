@@ -77,7 +77,7 @@ class SFUncertMetric(BaseMetric):
             **kwargs
         )
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.Ax1
+        self.Ax1 = dust_properties.ax1
 
     def run(self, dataSlice, slicePoint=None):
         """Code executed at each healpix pixel to compute the metric"""

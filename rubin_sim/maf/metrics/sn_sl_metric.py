@@ -163,7 +163,7 @@ class SNSLMetric(metrics.BaseMetric):
         # Calculate the dust extinction-corrected m5 values and cut visits which don't meet self.m5mins
         for f in np.unique(nightSlice[self.filterCol]):
             in_filt = np.where(nightSlice[self.filterCol] == f)[0]
-            A_x = self.phot_properties.Ax1[f] * slicePoint["ebv"]
+            A_x = self.phot_properties.ax1[f] * slicePoint["ebv"]
             nightSlice[self.m5Col][in_filt] = nightSlice[self.m5Col][in_filt] - A_x
             # Set the visits which fall below the minimum to an obvious non-valid value
             nightSlice[self.m5Col][in_filt] = np.where(

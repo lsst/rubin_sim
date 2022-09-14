@@ -650,7 +650,9 @@ class BandpassDictTest(unittest.TestCase):
         )
 
         flux_list = test_bp_dict.flux_list_for_sed_list(test_sed_list, indices=indices)
-        flux_array = test_bp_dict.flux_array_for_sed_list(test_sed_list, indices=indices)
+        flux_array = test_bp_dict.flux_array_for_sed_list(
+            test_sed_list, indices=indices
+        )
         self.assertEqual(flux_list.shape[0], n_sed)
         self.assertEqual(flux_list.shape[1], n_bandpasses)
         self.assertEqual(flux_array.shape[0], n_sed)
@@ -690,7 +692,9 @@ class BandpassDictTest(unittest.TestCase):
         )
 
         flux_list = test_bp_dict.flux_list_for_sed_list(test_sed_list, indices=indices)
-        flux_array = test_bp_dict.flux_array_for_sed_list(test_sed_list, indices=indices)
+        flux_array = test_bp_dict.flux_array_for_sed_list(
+            test_sed_list, indices=indices
+        )
         self.assertEqual(flux_list.shape[0], n_sed)
         self.assertEqual(flux_list.shape[1], n_bandpasses)
         self.assertEqual(flux_array.shape[0], n_sed)
