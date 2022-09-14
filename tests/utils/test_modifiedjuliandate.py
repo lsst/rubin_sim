@@ -5,7 +5,7 @@ import numpy as np
 import os
 import copy
 import inspect
-from rubin_sim.utils import ModifiedJulianDate, UTCtoUT1Warning
+from rubin_sim.utils import ModifiedJulianDate, utctout1Warning
 from rubin_sim.data import get_data_dir
 import rubin_sim
 
@@ -22,7 +22,7 @@ class MjdTest(unittest.TestCase):
 
     def test_tai_from_utc(self):
         """
-        Load a table of UTC vs. TAI (as JD) generated directly
+        Load a table of utc vs. TAI (as JD) generated directly
         with ERFA.  Verify our ModifiedJulianDate wrapper against
         this data.  This is mostly so that we can catch any major
         API changes in astropy.
@@ -40,12 +40,12 @@ class MjdTest(unittest.TestCase):
         )
 
         for uu, tt in zip(data["utc"] - 2400000.5, data["tai"] - 2400000.5):
-            mjd = ModifiedJulianDate(UTC=uu)
+            mjd = ModifiedJulianDate(utc=uu)
             dd_sec = np.abs(mjd.TAI - tt) * 86400.0
             self.assertLess(dd_sec, 5.0e-5, msg=msg)
-            self.assertAlmostEqual(mjd.UTC, uu, 15, msg=msg)
+            self.assertAlmostEqual(mjd.utc, uu, 15, msg=msg)
             mjd = ModifiedJulianDate(TAI=tt)
-            dd_sec = np.abs(mjd.UTC - uu) * 86400.0
+            dd_sec = np.abs(mjd.utc - uu) * 86400.0
             self.assertLess(dd_sec, 5.0e-5, msg=msg)
             self.assertAlmostEqual(mjd.TAI, tt, 15, msg=msg)
 
@@ -94,10 +94,10 @@ class MjdTest(unittest.TestCase):
 
     def test_dut1(self):
         """
-        Test that UT1 is within 0.9 seconds of UTC and that dut1 is equal
-        to UT1-UTC to within a microsecond.
+        Test that ut1 is within 0.9 seconds of utc and that dut1 is equal
+        to ut1-utc to within a microsecond.
 
-        (Because calculating UT1-UTC requires loading a lookup
+        (Because calculating ut1-utc requires loading a lookup
         table, we will just do this somewhat gross unit test to
         make sure that the astropy.time API doesn't change out
         from under us in some weird way... for instance, returning
@@ -108,26 +108,26 @@ class MjdTest(unittest.TestCase):
 
         utc_list = rng.random_sample(1000) * 10000.0 + 43000.0
         for utc in utc_list:
-            mjd = ModifiedJulianDate(UTC=utc)
+            mjd = ModifiedJulianDate(utc=utc)
 
             # first, test the self-consistency of ModifiedJulianData.dut1
-            # and ModifiedJulianData.UT1-ModifiedJulianData.UTC
+            # and ModifiedJulianData.ut1-ModifiedJulianData.utc
             #
             # this only works for days on which a leap second is not applied
-            dt = (mjd.UT1 - mjd.UTC) * 86400.0
+            dt = (mjd.ut1 - mjd.utc) * 86400.0
 
             self.assertLess(
-                np.abs(dt - mjd.dut1), 1.0e-5, msg="failed on UTC: %.12f" % mjd.UTC
+                np.abs(dt - mjd.dut1), 1.0e-5, msg="failed on utc: %.12f" % mjd.utc
             )
 
             self.assertLess(np.abs(mjd.dut1), 0.9)
 
     def test_dut1_future(self):
         """
-        Test that UT1 is within 0.9 seconds of UTC and that dut1 is equal
-        to UT1-UTC to within a microsecond.  Consider times far in the future.
+        Test that ut1 is within 0.9 seconds of utc and that dut1 is equal
+        to ut1-utc to within a microsecond.  Consider times far in the future.
 
-        (Because calculating UT1-UTC requires loading a lookup
+        (Because calculating ut1-utc requires loading a lookup
         table, we will just do this somewhat gross unit test to
         make sure that the astropy.time API doesn't change out
         from under us in some weird way... for instance, returning
@@ -138,16 +138,16 @@ class MjdTest(unittest.TestCase):
 
         utc_list = rng.random_sample(1000) * 10000.0 + 63000.0
         for utc in utc_list:
-            mjd = ModifiedJulianDate(UTC=utc)
+            mjd = ModifiedJulianDate(utc=utc)
 
             # first, test the self-consistency of ModifiedJulianData.dut1
-            # and ModifiedJulianData.UT1-ModifiedJulianData.UTC
+            # and ModifiedJulianData.ut1-ModifiedJulianData.utc
             #
             # this only works for days on which a leap second is not applied
-            dt = (mjd.UT1 - mjd.UTC) * 86400.0
+            dt = (mjd.ut1 - mjd.utc) * 86400.0
 
             self.assertLess(
-                np.abs(dt - mjd.dut1), 1.0e-5, msg="failed on UTC %.12f" % mjd.UTC
+                np.abs(dt - mjd.dut1), 1.0e-5, msg="failed on utc %.12f" % mjd.utc
             )
 
             self.assertLess(np.abs(mjd.dut1), 0.9)
@@ -177,11 +177,11 @@ class MjdTest(unittest.TestCase):
         self.assertEqual(mjd1, equiv_mjd2)
         self.assertEqual(mjd1.__repr__(), equiv_mjd2.__repr__())
 
-        mjd1 = ModifiedJulianDate(UTC=43590.0)
+        mjd1 = ModifiedJulianDate(utc=43590.0)
         mjd1.dut1
         deep_mjd2 = copy.deepcopy(mjd1)
         self.assertEqual(mjd1, deep_mjd2)
-        self.assertEqual(mjd1.UTC, deep_mjd2.UTC)
+        self.assertEqual(mjd1.utc, deep_mjd2.utc)
         self.assertEqual(mjd1.dut1, deep_mjd2.dut1)
         self.assertNotEqual(mjd1.__repr__(), deep_mjd2.__repr__())
         equiv_mjd2 = mjd1
@@ -191,16 +191,16 @@ class MjdTest(unittest.TestCase):
         # make sure that deepcopy() still works, even if you have called
         # all of the original ModifiedJulianDate's properties
         mjd1 = ModifiedJulianDate(TAI=42590.0)
-        mjd1.UTC
+        mjd1.utc
         mjd1.dut1
-        mjd1.UT1
+        mjd1.ut1
         mjd1.TT
         mjd1.TDB
         mjd2 = copy.deepcopy(mjd1)
         self.assertEqual(mjd1.TAI, mjd2.TAI)
-        self.assertEqual(mjd1.UTC, mjd2.UTC)
+        self.assertEqual(mjd1.utc, mjd2.utc)
         self.assertEqual(mjd1.dut1, mjd2.dut1)
-        self.assertEqual(mjd1.UT1, mjd2.UT1)
+        self.assertEqual(mjd1.ut1, mjd2.ut1)
         self.assertEqual(mjd1.TT, mjd2.TT)
         self.assertEqual(mjd1.TDB, mjd2.TDB)
         self.assertEqual(mjd1, mjd2)
@@ -213,8 +213,8 @@ class MjdTest(unittest.TestCase):
     )
     def test_warnings(self):
         """
-        Test that warnings raised when trying to interpolate UT1-UTC
-        for UTC too far in the future are of the type UTCtoUT1Warning
+        Test that warnings raised when trying to interpolate ut1-utc
+        for utc too far in the future are of the type utctout1Warning
         """
         with warnings.catch_warnings(record=True) as w_list:
             mjd = ModifiedJulianDate(1000000.0)
@@ -226,20 +226,20 @@ class MjdTest(unittest.TestCase):
             # Trigger a warning.
             # Note that this may also trigger astropy warnings,
             # depending on the order in which tests are run.
-            mjd.UT1
+            mjd.ut1
         expected_mjd_warnings = 1
         mjd_warnings = 0
         for w in w_list:
             # Count the number of warnings and test we can filter by category.
-            if w.category == UTCtoUT1Warning:
+            if w.category == utctout1Warning:
                 mjd_warnings += 1
-                # Test that the string "ModifiedJulianDate.UT1" actually showed up in the message.
-                # This indicates what method the warning occured from (UT1 vs dut).
-                self.assertIn("ModifiedJulianDate.UT1", str(w.message))
+                # Test that the string "ModifiedJulianDate.ut1" actually showed up in the message.
+                # This indicates what method the warning occured from (ut1 vs dut).
+                self.assertIn("ModifiedJulianDate.ut1", str(w.message))
         self.assertEqual(
             expected_mjd_warnings,
             mjd_warnings,
-            msg="UT1 did not emit a UTCtoUT1Warning",
+            msg="ut1 did not emit a utctout1Warning",
         )
 
         expected_mjd_warnings = 1
@@ -249,13 +249,13 @@ class MjdTest(unittest.TestCase):
             mjd = ModifiedJulianDate(1000000.0)
             mjd.dut1
         for w in w_list:
-            if w.category == UTCtoUT1Warning:
+            if w.category == utctout1Warning:
                 mjd_warnings += 1
                 self.assertIn("ModifiedJulianDate.dut1", str(w.message))
         self.assertEqual(
             expected_mjd_warnings,
             mjd_warnings,
-            msg="dut1 did not emit a UTCtoUT1Warning",
+            msg="dut1 did not emit a utctout1Warning",
         )
 
     def test_force_values(self):
@@ -267,20 +267,20 @@ class MjdTest(unittest.TestCase):
         values = np.arange(6)
         tt._force_values(values)
         self.assertEqual(tt.TAI, 0.0)
-        self.assertEqual(tt.UTC, 1.0)
+        self.assertEqual(tt.utc, 1.0)
         self.assertEqual(tt.TT, 2.0)
         self.assertEqual(tt.TDB, 3.0)
-        self.assertEqual(tt.UT1, 4.0)
+        self.assertEqual(tt.ut1, 4.0)
         self.assertEqual(tt.dut1, 5.0)
 
-        tt = ModifiedJulianDate(UTC=59580.0)
+        tt = ModifiedJulianDate(utc=59580.0)
         values = 2.0 * np.arange(6)
         tt._force_values(values)
         self.assertEqual(tt.TAI, 0.0)
-        self.assertEqual(tt.UTC, 2.0)
+        self.assertEqual(tt.utc, 2.0)
         self.assertEqual(tt.TT, 4.0)
         self.assertEqual(tt.TDB, 6.0)
-        self.assertEqual(tt.UT1, 8.0)
+        self.assertEqual(tt.ut1, 8.0)
         self.assertEqual(tt.dut1, 10.0)
 
     def test_list(self):
@@ -300,22 +300,22 @@ class MjdTest(unittest.TestCase):
             control = ModifiedJulianDate(TAI=tai)
             self.assertAlmostEqual(mjd.TAI, tai, 11, msg=msg)
             self.assertAlmostEqual(mjd.TAI, control.TAI, tol, msg=msg)
-            self.assertAlmostEqual(mjd.UTC, control.UTC, tol, msg=msg)
-            self.assertAlmostEqual(mjd.UT1, control.UT1, tol, msg=msg)
+            self.assertAlmostEqual(mjd.utc, control.utc, tol, msg=msg)
+            self.assertAlmostEqual(mjd.ut1, control.ut1, tol, msg=msg)
             self.assertAlmostEqual(mjd.TT, control.TT, tol, msg=msg)
             self.assertAlmostEqual(mjd.TDB, control.TDB, tol, msg=msg)
             self.assertAlmostEqual(mjd.dut1, control.dut1, tol, msg=msg)
 
         utc_list = 40000.0 + 10000.0 * rng.random_sample(20)
         utc_list = np.append(utc_list, 59580.0 + 10000.0 * rng.random_sample(20))
-        mjd_list = ModifiedJulianDate.get_list(UTC=utc_list)
+        mjd_list = ModifiedJulianDate.get_list(utc=utc_list)
         for utc, mjd in zip(utc_list, mjd_list):
-            msg = "Offending UTC: %f" % utc
-            control = ModifiedJulianDate(UTC=utc)
-            self.assertAlmostEqual(mjd.UTC, utc, tol, msg=msg)
+            msg = "Offending utc: %f" % utc
+            control = ModifiedJulianDate(utc=utc)
+            self.assertAlmostEqual(mjd.utc, utc, tol, msg=msg)
             self.assertAlmostEqual(mjd.TAI, control.TAI, tol, msg=msg)
-            self.assertAlmostEqual(mjd.UTC, control.UTC, tol, msg=msg)
-            self.assertAlmostEqual(mjd.UT1, control.UT1, tol, msg=msg)
+            self.assertAlmostEqual(mjd.utc, control.utc, tol, msg=msg)
+            self.assertAlmostEqual(mjd.ut1, control.ut1, tol, msg=msg)
             self.assertAlmostEqual(mjd.TT, control.TT, tol, msg=msg)
             self.assertAlmostEqual(mjd.TDB, control.TDB, tol, msg=msg)
             self.assertAlmostEqual(mjd.dut1, control.dut1, tol, msg=msg)
@@ -330,8 +330,8 @@ class MjdTest(unittest.TestCase):
             control = ModifiedJulianDate(TAI=tai)
             self.assertAlmostEqual(mjd.TAI, tai, 11, msg=msg)
             self.assertAlmostEqual(mjd.TAI, control.TAI, tol, msg=msg)
-            self.assertAlmostEqual(mjd.UTC, control.UTC, tol, msg=msg)
-            self.assertAlmostEqual(mjd.UT1, control.UT1, tol, msg=msg)
+            self.assertAlmostEqual(mjd.utc, control.utc, tol, msg=msg)
+            self.assertAlmostEqual(mjd.ut1, control.ut1, tol, msg=msg)
             self.assertAlmostEqual(mjd.TT, control.TT, tol, msg=msg)
             self.assertAlmostEqual(mjd.TDB, control.TDB, tol, msg=msg)
             self.assertAlmostEqual(mjd.dut1, control.dut1, tol, msg=msg)

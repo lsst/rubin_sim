@@ -90,7 +90,7 @@ class ObservationMetaData(object):
         self._bandpass = bandpass_name
         self._sky_brightness = sky_brightness
         self._site = site
-        self.__opsim_meta_data = None
+        self.__sim_meta_data = None
 
         if mjd is not None:
             if isinstance(mjd, numbers.Number):
@@ -139,9 +139,9 @@ class ObservationMetaData(object):
 
         mydict["bound_type"] = self.bound_type
         mydict["boundLength"] = self.bound_length
-        mydict["pointingRA"] = self.pointing_ra
-        mydict["pointingDec"] = self.pointing_dec
-        mydict["rotSkyPos"] = self.rot_sky_pos
+        mydict["pointing_ra"] = self.pointing_ra
+        mydict["pointing_dec"] = self.pointing_dec
+        mydict["rot_sky_pos"] = self.rot_sky_pos
 
         if self.mjd is None:
             mydict["mjd"] = None
@@ -149,10 +149,10 @@ class ObservationMetaData(object):
             mydict["mjd"] = self.mjd.TAI
 
         mydict["bandpass"] = self.bandpass
-        mydict["skyBrightness"] = self.sky_brightness
+        mydict["sky_brightness"] = self.sky_brightness
         # mydict['m5'] = self.m5
 
-        mydict["OpsimMetaData"] = self.__opsim_meta_data
+        mydict["sim_meta_data"] = self.__sim_meta_data
 
         return mydict
 
@@ -164,13 +164,13 @@ class ObservationMetaData(object):
         if self.bounds != other.bounds:
             return False
 
-        if self.pointing_ra != other.pointingRA:
+        if self.pointing_ra != other.pointing_ra:
             return False
 
-        if self.pointing_dec != other.pointingDec:
+        if self.pointing_dec != other.pointing_dec:
             return False
 
-        if self.rot_sky_pos != other.rotSkyPos:
+        if self.rot_sky_pos != other.rot_sky_pos:
             return False
 
         if self.bandpass != other.bandpass:
@@ -188,10 +188,10 @@ class ObservationMetaData(object):
         if self.mjd != other.mjd:
             return False
 
-        if self.sky_brightness != other.skyBrightness:
+        if self.sky_brightness != other.sky_brightness:
             return False
 
-        if self.opsim_meta_data != other.OpsimMetaData:
+        if self.sim_meta_data != other.sim_meta_data:
             return False
 
         return True
@@ -484,15 +484,15 @@ class ObservationMetaData(object):
         self._sky_brightness = value
 
     @property
-    def opsim_meta_data(self):
+    def sim_meta_data(self):
         """
         A dict of all of the columns taken from OpSim when constructing this
         ObservationMetaData
         """
-        return self.__opsim_meta_data
+        return self.__sim_meta_data
 
-    @opsim_meta_data.setter
-    def opsim_meta_data(self, value):
+    @sim_meta_data.setter
+    def sim_meta_data(self, value):
         if not isinstance(value, dict):
-            raise RuntimeError("OpsimMetaData must be a dict")
-        self.__opsim_meta_data = value
+            raise RuntimeError("sim_meta_data must be a dict")
+        self.__sim_meta_data = value

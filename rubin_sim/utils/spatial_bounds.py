@@ -152,8 +152,8 @@ class CircleBounds(SpatialBounds):
         self.DEC = dec
         self.radius = radius
 
-        self.r_adeg = np.degrees(ra)
-        self.de_cdeg = np.degrees(dec)
+        self.ra_deg = np.degrees(ra)
+        self.dec_deg = np.degrees(dec)
         self.radiusdeg = np.degrees(radius)
 
     def __eq__(self, other):
@@ -162,8 +162,8 @@ class CircleBounds(SpatialBounds):
             and (self.RA == other.RA)
             and (self.DEC == other.DEC)
             and (self.radius == other.radius)
-            and (self.r_adeg == other.RAdeg)
-            and (self.de_cdeg == other.DECdeg)
+            and (self.ra_deg == other.ra_deg)
+            and (self.dec_deg == other.dec_deg)
             and (self.radiusdeg == other.radiusdeg)
         )
 
@@ -173,8 +173,8 @@ class CircleBounds(SpatialBounds):
         adjusted_radius = np.abs(np.degrees(np.arcsin(np.sin(self.radius) / cos_dec)))
 
         if np.abs(cos_dec) > 1.0e-20:
-            r_amax = self.r_adeg + 2.0 * adjusted_radius
-            r_amin = self.r_adeg - 2.0 * adjusted_radius
+            r_amax = self.ra_deg + 2.0 * adjusted_radius
+            r_amin = self.ra_deg - 2.0 * adjusted_radius
         else:
             # just in case, for some reason, we are looking at the poles
             r_amax = 361.0
@@ -190,8 +190,8 @@ class CircleBounds(SpatialBounds):
             r_amax = 361.0
             r_amin = -361.0
 
-        de_cmax = self.de_cdeg + self.radiusdeg
-        de_cmin = self.de_cdeg - self.radiusdeg
+        de_cmax = self.dec_deg + self.radiusdeg
+        de_cmin = self.dec_deg - self.radiusdeg
 
         # initially demand that all objects are within a box containing the circle
         # set from the DEC1=DEC2 and RA1=RA2 limits of the haversine function
@@ -212,14 +212,14 @@ class CircleBounds(SpatialBounds):
         # http://en.wikipedia.org/wiki/Haversine_formula
         bound = bound + (
             "and 2 * ASIN(SQRT( POWER(SIN(0.5*(%s - %s) * PI() / 180.0),2)"
-            % (de_cname, self.de_cdeg)
+            % (de_cname, self.dec_deg)
         )
         bound = bound + (
             "+ COS(%s * PI() / 180.0) * COS(%s * PI() / 180.0) "
-            % (de_cname, self.de_cdeg)
+            % (de_cname, self.dec_deg)
         )
         bound = bound + (
-            "* POWER(SIN(0.5 * (%s - %s) * PI() / 180.0),2)))" % (r_aname, self.r_adeg)
+            "* POWER(SIN(0.5 * (%s - %s) * PI() / 180.0),2)))" % (r_aname, self.ra_deg)
         )
         bound = bound + (" < %s " % self.radius)
 
@@ -265,21 +265,21 @@ class BoxBounds(SpatialBounds):
         self.RA = ra
         self.DEC = dec
 
-        self.r_adeg = np.degrees(ra)
-        self.de_cdeg = np.degrees(dec)
+        self.ra_deg = np.degrees(ra)
+        self.dec_deg = np.degrees(dec)
 
         try:
             if hasattr(length, "__len__"):
                 if len(length) == 1:
-                    length_r_adeg = np.degrees(length[0])
-                    length_de_cdeg = np.degrees(length[0])
+                    length_ra_deg = np.degrees(length[0])
+                    length_dec_deg = np.degrees(length[0])
                 else:
-                    length_r_adeg = np.degrees(length[0])
-                    length_de_cdeg = np.degrees(length[1])
+                    length_ra_deg = np.degrees(length[0])
+                    length_dec_deg = np.degrees(length[1])
             else:
                 length = float(length)
-                length_r_adeg = np.degrees(length)
-                length_de_cdeg = np.degrees(length)
+                length_ra_deg = np.degrees(length)
+                length_dec_deg = np.degrees(length)
 
         except:
             raise RuntimeError(
@@ -287,25 +287,25 @@ class BoxBounds(SpatialBounds):
                 % (str(length), type(length))
             )
 
-        self.r_amin_deg = self.r_adeg - length_r_adeg
-        self.r_amax_deg = self.r_adeg + length_r_adeg
-        self.de_cmin_deg = self.de_cdeg - length_de_cdeg
-        self.de_cmax_deg = self.de_cdeg + length_de_cdeg
+        self.ra_min_deg = self.ra_deg - length_ra_deg
+        self.ra_max_deg = self.ra_deg + length_ra_deg
+        self.dec_min_deg = self.dec_deg - length_dec_deg
+        self.dec_max_deg = self.dec_deg + length_dec_deg
 
-        self.r_amin_deg %= 360.0
-        self.r_amax_deg %= 360.0
+        self.ra_min_deg %= 360.0
+        self.ra_max_deg %= 360.0
 
     def __eq__(self, other):
         return (
             (type(self) == type(other))
             and (self.RA == other.RA)
-            and (self.r_adeg == other.RAdeg)
+            and (self.ra_deg == other.ra_deg)
             and (self.DEC == other.DEC)
-            and (self.de_cdeg == other.DECdeg)
-            and (self.r_amin_deg == other.RAminDeg)
-            and (self.r_amax_deg == other.RAmaxDeg)
-            and (self.de_cmin_deg == other.DECminDeg)
-            and (self.de_cmax_deg == other.DECmaxDeg)
+            and (self.dec_deg == other.dec_deg)
+            and (self.ra_min_deg == other.ra_min_deg)
+            and (self.ra_max_deg == other.ra_max_deg)
+            and (self.dec_min_deg == other.dec_min_deg)
+            and (self.dec_max_deg == other.dec_max_deg)
         )
 
     def to_sql(self, r_aname, de_cname):
@@ -315,32 +315,32 @@ class BoxBounds(SpatialBounds):
         #                                     (RAmin, RAmax, DECmin, DECmax))
 
         # Special case where the whole region is selected
-        if self.r_amin_deg < 0 and self.r_amax_deg > 360.0:
-            bound = "%s between %f and %f" % (de_cname, self.de_cmin_deg, self.de_cmax_deg)
+        if self.ra_min_deg < 0 and self.ra_max_deg > 360.0:
+            bound = "%s between %f and %f" % (de_cname, self.dec_min_deg, self.dec_max_deg)
             return bound
 
-        if self.r_amin_deg > self.r_amax_deg:
+        if self.ra_min_deg > self.ra_max_deg:
             bound = "%s not between %f and %f and %s between %f and %f" % (
                 r_aname,
-                self.r_amax_deg,
-                self.r_amin_deg,
+                self.ra_max_deg,
+                self.ra_min_deg,
                 de_cname,
-                self.de_cmin_deg,
-                self.de_cmax_deg,
+                self.dec_min_deg,
+                self.dec_max_deg,
             )
             bound += " and %s+360.0 not between %f and %f" % (
                 r_aname,
-                self.r_amax_deg,
-                self.r_amin_deg,
+                self.ra_max_deg,
+                self.ra_min_deg,
             )
         else:
             bound = "%s between %f and %f and %s between %f and %f" % (
                 r_aname,
-                self.r_amin_deg,
-                self.r_amax_deg,
+                self.ra_min_deg,
+                self.ra_max_deg,
                 de_cname,
-                self.de_cmin_deg,
-                self.de_cmax_deg,
+                self.dec_min_deg,
+                self.dec_max_deg,
             )
 
         return bound

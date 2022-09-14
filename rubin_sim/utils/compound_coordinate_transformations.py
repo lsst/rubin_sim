@@ -215,10 +215,10 @@ def get_rot_sky_pos(ra, dec, obs, rot_tel):
     If a numpy array, should have the same length as ra and dec.  In this case,
     each rot_tel will be associated with the corresponding ra, dec pair.
 
-    @param [out] rotSkyPos in degrees
+    @param [out] rot_sky_pos in degrees
 
     WARNING: As of 13 April 2015, this method does not agree with OpSim on
-    the relationship between rotSkyPos and rotTelPos.  This is due to a
+    the relationship between rot_sky_pos and rotTelPos.  This is due to a
     discrepancy between the time that OpSim uses as the MJD when calculating
     rotTelPos and the time that OpSim reports as being the actual expmjd
     of the exposure (rotTelPos is calculated at the beginning of the exposure;
@@ -246,10 +246,10 @@ def _get_rot_sky_pos(ra_rad, dec_rad, obs, rot_tel_rad):
     If a numpy array, should have the same length as ra_rad and dec_rad.  In this case,
     each rot_tel_rad will be associated with the corresponding ra_rad, dec_rad pair.
 
-    @param [out] rotSkyPos in radians
+    @param [out] rot_sky_pos in radians
 
     WARNING: As of 13 April 2015, this method does not agree with OpSim on
-    the relationship between rotSkyPos and rotTelPos.  This is due to a
+    the relationship between rot_sky_pos and rotTelPos.  This is due to a
     discrepancy between the time that OpSim uses as the MJD when calculating
     rotTelPos and the time that OpSim reports as being the actual expmjd
     of the exposure (rotTelPos is calculated at the beginning of the exposure;
@@ -271,16 +271,16 @@ def get_rot_tel_pos(ra, dec, obs, rot_sky):
     @param [in] obs is an ObservationMetaData characterizing the telescope pointing
     and site.
 
-    @param [in] rot_sky is rotSkyPos in degrees
+    @param [in] rot_sky is rot_sky_pos in degrees
     (the angle of the field of view relative to the South pole given a
     rotator angle).  Can be a numpy array or a single value.  If a numpy array, should
-    have the same length as ra and dec.  In this case, each rotSkyPos
+    have the same length as ra and dec.  In this case, each rot_sky_pos
     will be associated with the corresponding ra, dec pair.
 
     @param [out] rotTelPos in degrees.
 
     WARNING: As of 13 April 2015, this method does not agree with OpSim on
-    the relationship between rotSkyPos and rotTelPos.  This is due to a
+    the relationship between rot_sky_pos and rotTelPos.  This is due to a
     discrepancy between the time that OpSim uses as the MJD when calculating
     rotTelPos and the time that OpSim reports as being the actual expmjd
     of the exposure (rotTelPos is calculated at the beginning of the exposure;
@@ -302,16 +302,16 @@ def _get_rot_tel_pos(ra_rad, dec_rad, obs, rot_sky_rad):
     @param [in] obs is an ObservationMetaData characterizing the telescope pointing
     and site.
 
-    @param [in] rot_sky_rad is rotSkyPos in radians
+    @param [in] rot_sky_rad is rot_sky_pos in radians
     (the angle of the field of view relative to the South pole given a
     rotator angle).  Can be a numpy array or a single value.  If a numpy array, should
-    have the same length as ra_rad and dec_rad.  In this case, each rotSkyPos
+    have the same length as ra_rad and dec_rad.  In this case, each rot_sky_pos
     will be associated with the corresponding ra_rad, dec_rad pair.
 
     @param [out] rotTelPos in radians.
 
     WARNING: As of 13 April 2015, this method does not agree with OpSim on
-    the relationship between rotSkyPos and rotTelPos.  This is due to a
+    the relationship between rot_sky_pos and rotTelPos.  This is due to a
     discrepancy between the time that OpSim uses as the MJD when calculating
     rotTelPos and the time that OpSim reports as being the actual expmjd
     of the exposure (rotTelPos is calculated at the beginning of the exposure;
