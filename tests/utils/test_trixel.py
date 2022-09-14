@@ -5,7 +5,7 @@ from rubin_sim.utils import halfSpaceFromRaDec, levelFromHtmid
 from rubin_sim.utils import halfSpaceFromPoints
 from rubin_sim.utils import intersectHalfSpaces
 from rubin_sim.utils import getAllTrixels
-from rubin_sim.utils import arcsecFromRadians
+from rubin_sim.utils import arcsec_from_radians
 from rubin_sim.utils.htm_module import _findHtmid_fast
 from rubin_sim.utils.htm_module import _findHtmid_slow
 from rubin_sim.data import get_data_dir
@@ -14,9 +14,9 @@ import numpy as np
 import os
 import numbers
 
-from rubin_sim.utils import sphericalFromCartesian, cartesianFromSpherical
+from rubin_sim.utils import spherical_from_cartesian, cartesianFromSpherical
 from rubin_sim.utils import rotAboutY, rotAboutX, rotAboutZ
-from rubin_sim.utils import angularSeparation, _angularSeparation
+from rubin_sim.utils import angular_separation, _angular_separation
 import rubin_sim
 
 
@@ -32,10 +32,10 @@ def trixel_intersects_half_space(trix, hspace):
 
     # if any of the trixel's corners are within the
     # HalfSpace, return True
-    raRad, decRad = sphericalFromCartesian(hspace.vector)
+    ra_rad, dec_rad = spherical_from_cartesian(hspace.vector)
     for corner in trix.corners:
-        raRad1, decRad1 = sphericalFromCartesian(corner)
-        if _angularSeparation(raRad, decRad, raRad1, decRad1) < hspace.phi:
+        ra_rad1, dec_rad1 = spherical_from_cartesian(corner)
+        if _angular_separation(ra_rad, dec_rad, ra_rad1, dec_rad1) < hspace.phi:
             return True
 
     # if the trixel contains the HalfSpace's center,
@@ -154,7 +154,7 @@ def trixel_intersects_half_space(trix, hspace):
 
 class HalfSpaceTest(unittest.TestCase):
 
-    longMessage = True
+    long_message = True
 
     def test_half_space_contains_pt(self):
         hs = HalfSpace(np.array([0.0, 0.0, 1.0]), 0.1)
@@ -316,7 +316,7 @@ class HalfSpaceTest(unittest.TestCase):
         hs2 = HalfSpace(vv - 1.0e-4 * np.array([1.0, 0.0, 0.0]), 0.1)
         self.assertNotEqual(hs1, hs2)
 
-    def test_findAllTrixels_radius(self):
+    def test_find_all_trixels_radius(self):
         """
         Test the method that attempts to find all of the trixels
         inside a given half space by approximating the angular
@@ -361,7 +361,7 @@ class HalfSpaceTest(unittest.TestCase):
                 # check that the returned trixels are within
                 # radius+angular_scale of the center of the HalfSpace
                 self.assertLess(
-                    angularSeparation(ra, dec, ra_trix, dec_trix),
+                    angular_separation(ra, dec, ra_trix, dec_trix),
                     radius + angular_scale,
                 )
 
@@ -378,10 +378,10 @@ class HalfSpaceTest(unittest.TestCase):
                     self.assertEqual(half_space.contains_trixel(test_trixel), "outside")
                     ra_trix, dec_trix = test_trixel.get_center()
                     self.assertGreater(
-                        angularSeparation(ra, dec, ra_trix, dec_trix), radius
+                        angular_separation(ra, dec, ra_trix, dec_trix), radius
                     )
 
-    def test_findAllTrixels_brute(self):
+    def test_find_all_trixels_brute(self):
         """
         Use the method trixel_intersects_half_space defined at the
         top of this script to verify that HalfSpace.findAllTrixels works
@@ -427,7 +427,7 @@ class HalfSpaceTest(unittest.TestCase):
             trix = trixel_dict[htmid]
             self.assertFalse(trixel_intersects_half_space(trix, hspace))
 
-    def test_halfSpaceFromPoints(self):
+    def test_half_space_from_points(self):
         rng = np.random.RandomState(88)
         for ii in range(10):
             pt1 = (rng.random_sample() * 360.0, rng.random_sample() * 180.0 - 90.0)
@@ -450,7 +450,7 @@ class HalfSpaceTest(unittest.TestCase):
             self.assertAlmostEqual(np.dot(vv1, hs.vector), 0.0, 10)
             self.assertAlmostEqual(np.dot(vv2, hs.vector), 0.0, 10)
 
-    def test_HalfSpaceIntersection(self):
+    def test__half_space_intersection(self):
 
         # Test that the two roots of an intersection are the
         # correct angular distance from the centers of the
@@ -467,15 +467,15 @@ class HalfSpaceTest(unittest.TestCase):
         self.assertEqual(len(roots), 2)
         self.assertAlmostEqual(np.sqrt(np.sum(roots[0] ** 2)), 1.0, 10)
         self.assertAlmostEqual(np.sqrt(np.sum(roots[1] ** 2)), 1.0, 10)
-        ra_r1, dec_r1 = np.degrees(sphericalFromCartesian(roots[0]))
-        ra_r2, dec_r2 = np.degrees(sphericalFromCartesian(roots[1]))
-        dd = angularSeparation(ra1, dec1, ra_r1, dec_r1)
+        ra_r1, dec_r1 = np.degrees(spherical_from_cartesian(roots[0]))
+        ra_r2, dec_r2 = np.degrees(spherical_from_cartesian(roots[1]))
+        dd = angular_separation(ra1, dec1, ra_r1, dec_r1)
         self.assertAlmostEqual(dd, rad1, 10)
-        dd = angularSeparation(ra1, dec1, ra_r2, dec_r2)
+        dd = angular_separation(ra1, dec1, ra_r2, dec_r2)
         self.assertAlmostEqual(dd, rad1, 10)
-        dd = angularSeparation(ra2, dec2, ra_r1, dec_r1)
+        dd = angular_separation(ra2, dec2, ra_r1, dec_r1)
         self.assertAlmostEqual(dd, rad2, 10)
-        dd = angularSeparation(ra2, dec2, ra_r2, dec_r2)
+        dd = angular_separation(ra2, dec2, ra_r2, dec_r2)
         self.assertAlmostEqual(dd, rad2, 10)
 
         # test that two non-intersecting HalfSpaces return no roots
@@ -545,7 +545,7 @@ class HalfSpaceTest(unittest.TestCase):
 
 class TrixelFinderTest(unittest.TestCase):
 
-    longMessage = True
+    long_message = True
 
     def check_pt(self, pt, answer):
         """
@@ -554,7 +554,7 @@ class TrixelFinderTest(unittest.TestCase):
         for the point using findHtmid and verify that
         we get the expected answer.
         """
-        ra, dec = sphericalFromCartesian(pt)
+        ra, dec = spherical_from_cartesian(pt)
         ii = findHtmid(np.degrees(ra), np.degrees(dec), 3)
         binary = "{0:b}".format(ii)
         self.assertEqual(binary, answer)
@@ -575,7 +575,7 @@ class TrixelFinderTest(unittest.TestCase):
             level_test = levelFromHtmid(htmid_test)
             self.assertEqual(level_test, 21)
 
-    def test_findHtmid_vectorized(self):
+    def test_find_htmid_vectorized(self):
         """
         Test that findHtmid works correctly on vectors
         """
@@ -597,7 +597,7 @@ class TrixelFinderTest(unittest.TestCase):
             self.assertIsInstance(htmid_single, numbers.Number)
             self.assertEqual(htmid_single, htmid_vec[ii])
 
-    def test_levelFromHtmid(self):
+    def test_level_from_htmid(self):
         """
         Test that levelFromHtmid behaves as expected
         """
@@ -722,7 +722,7 @@ class TrixelFinderTest(unittest.TestCase):
         n_tests = 100
         for i_test in range(n_tests):
             pt = rng.normal(0.0, 1.0, 3)
-            ra, dec = sphericalFromCartesian(pt)
+            ra, dec = spherical_from_cartesian(pt)
             ra = np.degrees(ra)
             dec = np.degrees(dec)
             ii = findHtmid(ra, dec, 5)
@@ -795,18 +795,18 @@ class TrixelFinderTest(unittest.TestCase):
             htmid = (13 << 6) + rng.randint(1, 2**6 - 1)
             trixel = trixelFromHtmid(htmid)
             bounding_circle = trixel.bounding_circle
-            ra_0, dec_0 = sphericalFromCartesian(bounding_circle[0])
+            ra_0, dec_0 = spherical_from_cartesian(bounding_circle[0])
             ra_list = []
             dec_list = []
             for cc in trixel.corners:
-                ra, dec = sphericalFromCartesian(cc)
+                ra, dec = spherical_from_cartesian(cc)
                 ra_list.append(ra)
                 dec_list.append(dec)
             ra_list = np.array(ra_list)
             dec_list = np.array(dec_list)
-            distance = _angularSeparation(ra_0, dec_0, ra_list, dec_list)
-            distance = arcsecFromRadians(distance)
-            radius = arcsecFromRadians(bounding_circle[2])
+            distance = _angular_separation(ra_0, dec_0, ra_list, dec_list)
+            distance = arcsec_from_radians(distance)
+            radius = arcsec_from_radians(bounding_circle[2])
             self.assertLessEqual(distance.max() - radius, 1.0e-8)
             self.assertLess(np.abs(distance.max() - radius), 1.0e-8)
 
