@@ -46,7 +46,7 @@ class SedListTest(unittest.TestCase):
             test_list.wavelen_match = np.arange(10.0, 1000.0, 1000.0)
 
         with self.assertRaises(AttributeError) as context:
-            test_list.cosmologicalDimming = False
+            test_list.cosmological_dimming = False
 
         with self.assertRaises(AttributeError) as context:
             test_list.redshift_list = [1.8]
@@ -60,19 +60,19 @@ class SedListTest(unittest.TestCase):
         test_list = SedList(sed_name_list, mag_norm_list, file_dir=self.sed_dir)
 
         with self.assertRaises(RuntimeError) as context:
-            test_list.loadSedsFromList(
+            test_list.load_seds_from_list(
                 sed_name_list, mag_norm_list, internal_av_list=internal_av_list
             )
         self.assertIn("does not contain internal_av_list", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            test_list.loadSedsFromList(
+            test_list.load_seds_from_list(
                 sed_name_list, mag_norm_list, galactic_av_list=galactic_av_list
             )
         self.assertIn("does not contain galactic_av_list", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            test_list.loadSedsFromList(
+            test_list.load_seds_from_list(
                 sed_name_list, mag_norm_list, redshift_list=redshift_list
             )
         self.assertIn("does not contain redshift_list", context.exception.args[0])
@@ -92,16 +92,16 @@ class SedListTest(unittest.TestCase):
         self.assertIsNone(test_list.galactic_av_list)
         self.assertIsNone(test_list.redshift_list)
         self.assertIsNone(test_list.wavelen_match)
-        self.assertTrue(test_list.cosmologicalDimming)
+        self.assertTrue(test_list.cosmological_dimming)
 
         imsim_band = Bandpass()
-        imsim_band.imsimBandpass()
+        imsim_band.imsim_bandpass()
 
         for name, norm, sedTest in zip(sed_name_list, mag_norm_list, test_list):
             sed_control = Sed()
-            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
-            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
-            sed_control.multiplyFluxNorm(fnorm)
+            sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            fnorm = sed_control.calc_flux_norm(norm, imsim_band)
+            sed_control.multiply_flux_norm(fnorm)
 
             np.testing.assert_array_equal(sed_control.wavelen, sedTest.wavelen)
             np.testing.assert_array_equal(sed_control.flambda, sedTest.flambda)
@@ -120,7 +120,7 @@ class SedListTest(unittest.TestCase):
         self.assertIsNone(test_list.galactic_av_list)
         self.assertIsNone(test_list.redshift_list)
         self.assertIsNone(test_list.wavelen_match)
-        self.assertTrue(test_list.cosmologicalDimming)
+        self.assertTrue(test_list.cosmological_dimming)
         for av_control, avTest in zip(internal_av_list, test_list.internal_av_list):
             self.assertAlmostEqual(av_control, avTest, 10)
 
@@ -128,12 +128,12 @@ class SedListTest(unittest.TestCase):
             sed_name_list, mag_norm_list, internal_av_list, test_list
         ):
             sed_control = Sed()
-            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
-            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
-            sed_control.multiplyFluxNorm(fnorm)
+            sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            fnorm = sed_control.calc_flux_norm(norm, imsim_band)
+            sed_control.multiply_flux_norm(fnorm)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=av)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=av)
 
             np.testing.assert_array_equal(sed_control.wavelen, sedTest.wavelen)
             np.testing.assert_array_equal(sed_control.flambda, sedTest.flambda)
@@ -153,7 +153,7 @@ class SedListTest(unittest.TestCase):
         )
         self.assertIsNone(test_list.galactic_av_list)
         self.assertIsNone(test_list.wavelen_match)
-        self.assertTrue(test_list.cosmologicalDimming)
+        self.assertTrue(test_list.cosmological_dimming)
         for av_control, avTest in zip(internal_av_list, test_list.internal_av_list):
             self.assertAlmostEqual(av_control, avTest, 10)
 
@@ -165,14 +165,14 @@ class SedListTest(unittest.TestCase):
         ):
 
             sed_control = Sed()
-            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
-            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
-            sed_control.multiplyFluxNorm(fnorm)
+            sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            fnorm = sed_control.calc_flux_norm(norm, imsim_band)
+            sed_control.multiply_flux_norm(fnorm)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=av)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=av)
 
-            sed_control.redshiftSED(zz, dimming=True)
+            sed_control.redshift_sed(zz, dimming=True)
 
             np.testing.assert_array_equal(sed_control.wavelen, sedTest.wavelen)
             np.testing.assert_array_equal(sed_control.flambda, sedTest.flambda)
@@ -189,11 +189,11 @@ class SedListTest(unittest.TestCase):
             file_dir=self.sed_dir,
             internal_av_list=internal_av_list,
             redshift_list=redshift_list,
-            cosmologicalDimming=False,
+            cosmological_dimming=False,
         )
         self.assertIsNone(test_list.galactic_av_list)
         self.assertIsNone(test_list.wavelen_match)
-        self.assertFalse(test_list.cosmologicalDimming)
+        self.assertFalse(test_list.cosmological_dimming)
         for av_control, avTest in zip(internal_av_list, test_list.internal_av_list):
             self.assertAlmostEqual(av_control, avTest, 10)
 
@@ -205,14 +205,14 @@ class SedListTest(unittest.TestCase):
         ):
 
             sed_control = Sed()
-            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
-            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
-            sed_control.multiplyFluxNorm(fnorm)
+            sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            fnorm = sed_control.calc_flux_norm(norm, imsim_band)
+            sed_control.multiply_flux_norm(fnorm)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=av)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=av)
 
-            sed_control.redshiftSED(zz, dimming=False)
+            sed_control.redshift_sed(zz, dimming=False)
 
             np.testing.assert_array_equal(sed_control.wavelen, sedTest.wavelen)
             np.testing.assert_array_equal(sed_control.flambda, sedTest.flambda)
@@ -233,7 +233,7 @@ class SedListTest(unittest.TestCase):
             galactic_av_list=galactic_av_list,
         )
         self.assertIsNone(test_list.wavelen_match)
-        self.assertTrue(test_list.cosmologicalDimming)
+        self.assertTrue(test_list.cosmological_dimming)
         for av_control, avTest in zip(internal_av_list, test_list.internal_av_list):
             self.assertAlmostEqual(av_control, avTest, 10)
 
@@ -253,17 +253,17 @@ class SedListTest(unittest.TestCase):
         ):
 
             sed_control = Sed()
-            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
-            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
-            sed_control.multiplyFluxNorm(fnorm)
+            sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            fnorm = sed_control.calc_flux_norm(norm, imsim_band)
+            sed_control.multiply_flux_norm(fnorm)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=av)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=av)
 
-            sed_control.redshiftSED(zz, dimming=True)
+            sed_control.redshift_sed(zz, dimming=True)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=gav)
 
             np.testing.assert_array_equal(sed_control.wavelen, sedTest.wavelen)
             np.testing.assert_array_equal(sed_control.flambda, sedTest.flambda)
@@ -286,7 +286,7 @@ class SedListTest(unittest.TestCase):
             wavelen_match=wavelen_match,
         )
 
-        self.assertTrue(test_list.cosmologicalDimming)
+        self.assertTrue(test_list.cosmological_dimming)
         for av_control, avTest in zip(internal_av_list, test_list.internal_av_list):
             self.assertAlmostEqual(av_control, avTest, 10)
 
@@ -308,19 +308,19 @@ class SedListTest(unittest.TestCase):
         ):
 
             sed_control = Sed()
-            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
-            sed_control.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_flux_norm(norm, imsim_band)
+            sed_control.multiply_flux_norm(fnorm)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=av)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=av)
 
-            sed_control.redshiftSED(zz, dimming=True)
-            sed_control.resampleSED(wavelen_match=wavelen_match)
+            sed_control.redshift_sed(zz, dimming=True)
+            sed_control.resample_sed(wavelen_match=wavelen_match)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=gav)
 
             np.testing.assert_array_equal(sed_control.wavelen, sedTest.wavelen)
             np.testing.assert_array_equal(sed_control.flambda, sedTest.flambda)
@@ -331,7 +331,7 @@ class SedListTest(unittest.TestCase):
         Test that we can add Seds to an already instantiated SedList
         """
         imsim_band = Bandpass()
-        imsim_band.imsimBandpass()
+        imsim_band.imsim_bandpass()
         n_sed = 10
         sed_name_list_0 = self.get_list_of_sed_names(n_sed)
         mag_norm_list_0 = self.rng.random_sample(n_sed) * 5.0 + 15.0
@@ -383,7 +383,7 @@ class SedListTest(unittest.TestCase):
                     else:
                         galactic_av_list_1 = None
 
-                    test_list.loadSedsFromList(
+                    test_list.load_seds_from_list(
                         sed_name_list_1,
                         mag_norm_list_1,
                         internal_av_list=internal_av_list_1,
@@ -392,7 +392,9 @@ class SedListTest(unittest.TestCase):
                     )
 
                     self.assertEqual(len(test_list), 2 * n_sed)
-                    np.testing.assert_array_equal(wavelen_match, test_list.wavelen_match)
+                    np.testing.assert_array_equal(
+                        wavelen_match, test_list.wavelen_match
+                    )
 
                     for ix in range(len(sed_name_list_0)):
                         self.assertAlmostEqual(
@@ -444,21 +446,21 @@ class SedListTest(unittest.TestCase):
                     ):
 
                         sed_control = Sed()
-                        sed_control.readSED_flambda(
+                        sed_control.read_sed_flambda(
                             os.path.join(self.sed_dir, name + ".gz")
                         )
 
-                        fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
-                        sed_control.multiplyFluxNorm(fnorm)
+                        fnorm = sed_control.calc_flux_norm(norm, imsim_band)
+                        sed_control.multiply_flux_norm(fnorm)
 
-                        a_coeff, b_coeff = sed_control.setupCCM_ab()
-                        sed_control.addDust(a_coeff, b_coeff, A_v=iav)
+                        a_coeff, b_coeff = sed_control.setup_ccm_ab()
+                        sed_control.add_dust(a_coeff, b_coeff, a_v=iav)
 
-                        sed_control.redshiftSED(zz, dimming=True)
-                        sed_control.resampleSED(wavelen_match=wavelen_match)
+                        sed_control.redshift_sed(zz, dimming=True)
+                        sed_control.resample_sed(wavelen_match=wavelen_match)
 
-                        a_coeff, b_coeff = sed_control.setupCCM_ab()
-                        sed_control.addDust(a_coeff, b_coeff, A_v=gav)
+                        a_coeff, b_coeff = sed_control.setup_ccm_ab()
+                        sed_control.add_dust(a_coeff, b_coeff, a_v=gav)
 
                         sed_test = test_list[ix]
 
@@ -490,25 +492,25 @@ class SedListTest(unittest.TestCase):
                     ):
 
                         sed_control = Sed()
-                        sed_control.readSED_flambda(
+                        sed_control.read_sed_flambda(
                             os.path.join(self.sed_dir, name + ".gz")
                         )
 
-                        fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
-                        sed_control.multiplyFluxNorm(fnorm)
+                        fnorm = sed_control.calc_flux_norm(norm, imsim_band)
+                        sed_control.multiply_flux_norm(fnorm)
 
                         if add_iav:
-                            a_coeff, b_coeff = sed_control.setupCCM_ab()
-                            sed_control.addDust(a_coeff, b_coeff, A_v=iav)
+                            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+                            sed_control.add_dust(a_coeff, b_coeff, a_v=iav)
 
                         if add_redshift:
-                            sed_control.redshiftSED(zz, dimming=True)
+                            sed_control.redshift_sed(zz, dimming=True)
 
-                        sed_control.resampleSED(wavelen_match=wavelen_match)
+                        sed_control.resample_sed(wavelen_match=wavelen_match)
 
                         if add_gav:
-                            a_coeff, b_coeff = sed_control.setupCCM_ab()
-                            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
+                            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+                            sed_control.add_dust(a_coeff, b_coeff, a_v=gav)
 
                         sed_test = test_list[ix + n_sed]
 
@@ -526,7 +528,7 @@ class SedListTest(unittest.TestCase):
         one or more of the physical parameters (i.e. galacticAv, internalAv, or redshift)
         """
         imsim_band = Bandpass()
-        imsim_band.imsimBandpass()
+        imsim_band.imsim_bandpass()
         n_sed = 10
         sed_name_list_0 = self.get_list_of_sed_names(n_sed)
         mag_norm_list_0 = self.rng.random_sample(n_sed) * 5.0 + 15.0
@@ -567,7 +569,7 @@ class SedListTest(unittest.TestCase):
         redshift_list_1[6] = None
         galactic_av_list_1[6] = None
 
-        test_list.loadSedsFromList(
+        test_list.load_seds_from_list(
             sed_name_list_1,
             mag_norm_list_1,
             internal_av_list=internal_av_list_1,
@@ -609,19 +611,19 @@ class SedListTest(unittest.TestCase):
         ):
 
             sed_control = Sed()
-            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
-            sed_control.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_flux_norm(norm, imsim_band)
+            sed_control.multiply_flux_norm(fnorm)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=iav)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=iav)
 
-            sed_control.redshiftSED(zz, dimming=True)
-            sed_control.resampleSED(wavelen_match=wavelen_match)
+            sed_control.redshift_sed(zz, dimming=True)
+            sed_control.resample_sed(wavelen_match=wavelen_match)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=gav)
 
             sed_test = test_list[ix]
 
@@ -640,23 +642,23 @@ class SedListTest(unittest.TestCase):
         ):
 
             sed_control = Sed()
-            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
-            sed_control.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_flux_norm(norm, imsim_band)
+            sed_control.multiply_flux_norm(fnorm)
 
             if iav is not None:
-                a_coeff, b_coeff = sed_control.setupCCM_ab()
-                sed_control.addDust(a_coeff, b_coeff, A_v=iav)
+                a_coeff, b_coeff = sed_control.setup_ccm_ab()
+                sed_control.add_dust(a_coeff, b_coeff, a_v=iav)
 
             if zz is not None:
-                sed_control.redshiftSED(zz, dimming=True)
+                sed_control.redshift_sed(zz, dimming=True)
 
-            sed_control.resampleSED(wavelen_match=wavelen_match)
+            sed_control.resample_sed(wavelen_match=wavelen_match)
 
             if gav is not None:
-                a_coeff, b_coeff = sed_control.setupCCM_ab()
-                sed_control.addDust(a_coeff, b_coeff, A_v=gav)
+                a_coeff, b_coeff = sed_control.setup_ccm_ab()
+                sed_control.add_dust(a_coeff, b_coeff, a_v=gav)
 
             sed_test = test_list[ix + n_sed]
 
@@ -666,7 +668,7 @@ class SedListTest(unittest.TestCase):
 
     def test_alternate_normalizing_bandpass(self):
         """
-        A reiteration of testAddingToList, but testing with a non-imsimBandpass
+        A reiteration of testAddingToList, but testing with a non-imsim_bandpass
         normalizing bandpass
         """
         normalizing_band = Bandpass()
@@ -684,7 +686,7 @@ class SedListTest(unittest.TestCase):
             sed_name_list_0,
             mag_norm_list_0,
             file_dir=self.sed_dir,
-            normalizingBandpass=normalizing_band,
+            normalizing_bandpass=normalizing_band,
             internal_av_list=internal_av_list_0,
             redshift_list=redshift_list_0,
             galactic_av_list=galactic_av_list_0,
@@ -700,7 +702,7 @@ class SedListTest(unittest.TestCase):
 
         galactic_av_list_1 = self.rng.random_sample(n_sed) * 0.3 + 0.1
 
-        test_list.loadSedsFromList(
+        test_list.load_seds_from_list(
             sed_name_list_1,
             mag_norm_list_1,
             internal_av_list=internal_av_list_1,
@@ -742,19 +744,19 @@ class SedListTest(unittest.TestCase):
         ):
 
             sed_control = Sed()
-            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sed_control.calc_fluxNorm(norm, normalizing_band)
-            sed_control.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_flux_norm(norm, normalizing_band)
+            sed_control.multiply_flux_norm(fnorm)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=iav)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=iav)
 
-            sed_control.redshiftSED(zz, dimming=True)
-            sed_control.resampleSED(wavelen_match=wavelen_match)
+            sed_control.redshift_sed(zz, dimming=True)
+            sed_control.resample_sed(wavelen_match=wavelen_match)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=gav)
 
             sed_test = test_list[ix]
 
@@ -773,20 +775,20 @@ class SedListTest(unittest.TestCase):
         ):
 
             sed_control = Sed()
-            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sed_control.calc_fluxNorm(norm, normalizing_band)
-            sed_control.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_flux_norm(norm, normalizing_band)
+            sed_control.multiply_flux_norm(fnorm)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=iav)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=iav)
 
-            sed_control.redshiftSED(zz, dimming=True)
+            sed_control.redshift_sed(zz, dimming=True)
 
-            sed_control.resampleSED(wavelen_match=wavelen_match)
+            sed_control.resample_sed(wavelen_match=wavelen_match)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=gav)
 
             sed_test = test_list[ix + n_sed]
 
@@ -799,7 +801,7 @@ class SedListTest(unittest.TestCase):
         Test that the flush method of SedList behaves properly
         """
         imsim_band = Bandpass()
-        imsim_band.imsimBandpass()
+        imsim_band.imsim_bandpass()
         n_sed = 10
         sed_name_list_0 = self.get_list_of_sed_names(n_sed)
         mag_norm_list_0 = self.rng.random_sample(n_sed) * 5.0 + 15.0
@@ -840,19 +842,19 @@ class SedListTest(unittest.TestCase):
         ):
 
             sed_control = Sed()
-            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
-            sed_control.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_flux_norm(norm, imsim_band)
+            sed_control.multiply_flux_norm(fnorm)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=iav)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=iav)
 
-            sed_control.redshiftSED(zz, dimming=True)
-            sed_control.resampleSED(wavelen_match=wavelen_match)
+            sed_control.redshift_sed(zz, dimming=True)
+            sed_control.resample_sed(wavelen_match=wavelen_match)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=gav)
 
             sed_test = test_list[ix]
 
@@ -868,7 +870,7 @@ class SedListTest(unittest.TestCase):
         redshift_list_1 = self.rng.random_sample(n_sed // 2) * 5.0
         galactic_av_list_1 = self.rng.random_sample(n_sed // 2) * 0.3 + 0.1
 
-        test_list.loadSedsFromList(
+        test_list.load_seds_from_list(
             sed_name_list_1,
             mag_norm_list_1,
             internal_av_list=internal_av_list_1,
@@ -902,19 +904,19 @@ class SedListTest(unittest.TestCase):
         ):
 
             sed_control = Sed()
-            sed_control.readSED_flambda(os.path.join(self.sed_dir, name + ".gz"))
+            sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
-            fnorm = sed_control.calc_fluxNorm(norm, imsim_band)
-            sed_control.multiplyFluxNorm(fnorm)
+            fnorm = sed_control.calc_flux_norm(norm, imsim_band)
+            sed_control.multiply_flux_norm(fnorm)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=iav)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=iav)
 
-            sed_control.redshiftSED(zz, dimming=True)
-            sed_control.resampleSED(wavelen_match=wavelen_match)
+            sed_control.redshift_sed(zz, dimming=True)
+            sed_control.resample_sed(wavelen_match=wavelen_match)
 
-            a_coeff, b_coeff = sed_control.setupCCM_ab()
-            sed_control.addDust(a_coeff, b_coeff, A_v=gav)
+            a_coeff, b_coeff = sed_control.setup_ccm_ab()
+            sed_control.add_dust(a_coeff, b_coeff, a_v=gav)
 
             sed_test = test_list[ix]
 

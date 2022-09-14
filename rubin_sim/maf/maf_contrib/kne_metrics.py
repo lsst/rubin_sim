@@ -162,7 +162,7 @@ class KNePopMetric(BaseMetric):
         self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
 
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.Ax1
+        self.Ax1 = dust_properties.ax1
 
         cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]
         super(KNePopMetric, self).__init__(

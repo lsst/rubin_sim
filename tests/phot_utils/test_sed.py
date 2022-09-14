@@ -47,7 +47,7 @@ class TestSedWavelenLimits(unittest.TestCase):
         print("")
         # Test that no warning is made.
         with warnings.catch_warnings(record=True) as wa:
-            w, f = testsed.resampleSED(
+            w, f = testsed.resample_sed(
                 wavelen_match=self.testbandpass.wavelen,
                 wavelen=testsed.wavelen,
                 flux=testsed.flambda,
@@ -60,7 +60,7 @@ class TestSedWavelenLimits(unittest.TestCase):
         sedflambda = np.ones(len(sedwavelen))
         testsed = Sed(wavelen=sedwavelen, flambda=sedflambda)
         with warnings.catch_warnings(record=True) as wa:
-            testsed.resampleSED(wavelen_match=self.testbandpass.wavelen)
+            testsed.resample_sed(wavelen_match=self.testbandpass.wavelen)
             self.assertEqual(len(wa), 1)
             self.assertIn("non-overlap", str(wa[-1].message))
         np.testing.assert_equal(testsed.flambda[-1:], np.NaN)
@@ -68,7 +68,7 @@ class TestSedWavelenLimits(unittest.TestCase):
         sedflambda = np.ones(len(sedwavelen))
         testsed = Sed(wavelen=sedwavelen, flambda=sedflambda)
         with warnings.catch_warnings(record=True) as wa:
-            testsed.resampleSED(wavelen_match=self.testbandpass.wavelen)
+            testsed.resample_sed(wavelen_match=self.testbandpass.wavelen)
             self.assertEqual(len(wa), 1)
             self.assertIn("non-overlap", str(wa[-1].message))
         np.testing.assert_equal(testsed.flambda[0], np.NaN)
@@ -87,7 +87,9 @@ class TestSedWavelenLimits(unittest.TestCase):
         np.testing.assert_equal(mag, np.NaN)
         # Test handling in calc_adu
         with warnings.catch_warnings(record=True) as w:
-            adu = testsed.calc_adu(self.testbandpass, phot_params=PhotometricParameters())
+            adu = testsed.calc_adu(
+                self.testbandpass, phot_params=PhotometricParameters()
+            )
             self.assertEqual(len(w), 1)
             self.assertIn("non-overlap", str(w[-1].message))
         np.testing.assert_equal(adu, np.NaN)
@@ -121,7 +123,7 @@ class TestSedName(unittest.TestCase):
             self.testsed.wavelen, self.testsed.flambda, name=self.testsed.name
         )
         redshift = 0.2
-        testsed.redshiftSED(redshift=redshift)
+        testsed.redshift_sed(redshift=redshift)
         newname = testsed.name + "_Z" + "%.2f" % (redshift)
         testsed.name = newname
         self.assertEqual(testsed.name, newname)
@@ -133,7 +135,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
 
     def test_read_sed_flambda(self):
         """
-        Test how readSED_flambda handles the reading of SED filenames
+        Test how read_sed_flambda handles the reading of SED filenames
         when we fail to correctly specify their gzipped state.
         """
 
@@ -156,15 +158,15 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
                 output_file.write("%e %e\n" % (ww, ff))
 
         ss = Sed()
-        ss.readSED_flambda(zipped_name)
-        ss.readSED_flambda(zipped_name[:-3])
-        ss.readSED_flambda(unzipped_name)
-        ss.readSED_flambda(unzipped_name + ".gz")
+        ss.read_sed_flambda(zipped_name)
+        ss.read_sed_flambda(zipped_name[:-3])
+        ss.read_sed_flambda(unzipped_name)
+        ss.read_sed_flambda(unzipped_name + ".gz")
 
         # make sure an error is raised when you try to read
         # a file that does not exist
         with self.assertRaises(IOError) as context:
-            ss.readSED_flambda(os.path.join(scratch_dir, "nonsense.txt"))
+            ss.read_sed_flambda(os.path.join(scratch_dir, "nonsense.txt"))
         self.assertIn("sed file", context.exception.args[0])
 
         if os.path.exists(scratch_dir):
@@ -181,18 +183,18 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         sedname1 = os.path.join(sed_dir, list_of_seds[0])
         sedname2 = os.path.join(sed_dir, list_of_seds[1])
         ss1 = Sed()
-        ss1.readSED_flambda(sedname1)
+        ss1.read_sed_flambda(sedname1)
         ss2 = Sed()
-        ss2.readSED_flambda(sedname2)
+        ss2.read_sed_flambda(sedname2)
         ss3 = Sed()
-        ss3.readSED_flambda(sedname1)
+        ss3.read_sed_flambda(sedname1)
 
         self.assertFalse(ss1 == ss2)
         self.assertTrue(ss1 != ss2)
         self.assertTrue(ss1 == ss3)
         self.assertFalse(ss1 != ss3)
 
-        ss3.flambdaTofnu()
+        ss3.flambda_tofnu()
 
         self.assertFalse(ss1 == ss3)
         self.assertTrue(ss1 != ss3)
@@ -202,7 +204,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         Verify that loading an SED from the cache gives identical
         results to loading the same SED from ASCII (since we are
         not calling cache_LSST_seds(), as soon as we load an SED
-        with readSED_flambda, it should get stored in the
+        with read_sed_flambda, it should get stored in the
         _global_misc_sed_cache)
         """
         sed_dir = os.path.join(
@@ -217,9 +219,9 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         for ix in range(5):
             full_name = os.path.join(sed_dir, sed_name_list[ix])
             ss_uncache = Sed()
-            ss_uncache.readSED_flambda(full_name)
+            ss_uncache.read_sed_flambda(full_name)
             ss_cache = Sed()
-            ss_cache.readSED_flambda(full_name)
+            ss_cache.read_sed_flambda(full_name)
 
             self.assertEqual(ss_cache, ss_uncache, msg=msg)
 
@@ -227,12 +229,12 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         # to the cache
         full_name = os.path.join(sed_dir, sed_name_list[0])
         ss1 = Sed()
-        ss1.readSED_flambda(full_name)
+        ss1.read_sed_flambda(full_name)
         ss2 = Sed()
-        ss2.readSED_flambda(full_name)
+        ss2.read_sed_flambda(full_name)
         ss2.flambda *= 2.0
         ss3 = Sed()
-        ss3.readSED_flambda(full_name)
+        ss3.read_sed_flambda(full_name)
         msg = "Changes to SED made it into the cache"
         self.assertEqual(ss1, ss3, msg=msg)
         self.assertNotEqual(ss1, ss2, msg=msg)
@@ -240,7 +242,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
 
     def test_calc_ergs(self):
         """
-        Test that calcErgs actually calculates the flux of a source in
+        Test that calc_ergs actually calculates the flux of a source in
         ergs/s/cm^2 by running it on black bodies with flat bandpasses
         and comparing to the Stefan-Boltzmann law.
         """
@@ -277,7 +279,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
             )
 
             sed = Sed(wavelen=wavelen_arr, flambda=bb_flambda)
-            ergs = sed.calcErgs(bp)
+            ergs = sed.calc_ergs(bp)
 
             log10_ergs = np.log10(stefan_boltzmann_sigma) + 4.0 * np.log10(temp)
             ergs_truth = np.power(10.0, log10_ergs)
@@ -317,7 +319,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
             )
 
             sed = Sed(wavelen=wavelen_arr, flambda=bb_flambda)
-            ergs = sed.calcErgs(bp)
+            ergs = sed.calc_ergs(bp)
 
             log10_ergs = np.log10(stefan_boltzmann_sigma) + 4.0 * np.log10(temp)
             ergs_truth = np.power(10.0, log10_ergs)
@@ -340,8 +342,8 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         mag = ss.calc_mag(bp)
         flux = ss.calc_flux(bp)
 
-        self.assertAlmostEqual(ss.magFromFlux(flux) / mag, 1.0, 10)
-        self.assertAlmostEqual(ss.fluxFromMag(mag) / flux, 1.0, 10)
+        self.assertAlmostEqual(ss.mag_from_flux(flux) / mag, 1.0, 10)
+        self.assertAlmostEqual(ss.flux_from_mag(mag) / flux, 1.0, 10)
 
 
 if __name__ == "__main__":
