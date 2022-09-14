@@ -23,10 +23,10 @@ class SpatialBoundsMetaClass(type):
     # dbConnection.py
 
     def __init__(cls, name, bases, dct):
-        if not hasattr(cls, "SBregistry"):
-            cls.SBregistry = {}
+        if not hasattr(cls, "sb_registry"):
+            cls.sb_registry = {}
         else:
-            cls.SBregistry[cls.boundType] = cls
+            cls.sb_registry[cls.bound_type] = cls
 
         return super(SpatialBoundsMetaClass, cls).__init__(name, bases, dct)
 
@@ -40,14 +40,14 @@ class SpatialBounds(with_metaclass(SpatialBoundsMetaClass, object)):
 
     Daughter classes of this class need the following:
 
-    self.boundType = a string by which the class is identified in the
+    self.bound_type = a string by which the class is identified in the
     registry of FieldOfView classes
 
     __init__() that accepts (in this order) RA, Dec, and characteristic
     length.  Init should then construct the parameters defining the bound
     however is appropriate (e.g. setting self.RAmax and self.RAmin for a box)
 
-    to_SQL() = a method that accepts RAcolname and DECcolname (strings denoting
+    to_sql() = a method that accepts RAcolname and DECcolname (strings denoting
     the names of the database columns containing RA and DEc) and which returns
     a string that characterizes the bound as an SQL 'WHERE' statement.
     """
@@ -67,7 +67,7 @@ class SpatialBounds(with_metaclass(SpatialBoundsMetaClass, object)):
 
         raise NotImplementedError()
 
-    def to_SQL(self, *args):
+    def to_sql(self, *args):
         """
         Accepts the names of the columns referring to RA and Dec in the database.
         Uses the stored RA, Dec, and length for this object to return an SQL
@@ -100,16 +100,16 @@ class SpatialBounds(with_metaclass(SpatialBoundsMetaClass, object)):
         return not self.__eq__(other)
 
     @classmethod
-    def getSpatialBounds(self, name, *args, **kwargs):
-        if name in self.SBregistry:
-            return self.SBregistry[name](*args, **kwargs)
+    def get_spatial_bounds(self, name, *args, **kwargs):
+        if name in self.sb_registry:
+            return self.sb_registry[name](*args, **kwargs)
         else:
             raise RuntimeError("There is no SpatialBounds class keyed to %s" % name)
 
 
 class CircleBounds(SpatialBounds):
 
-    boundType = "circle"
+    bound_type = "circle"
 
     def __init__(self, ra, dec, radius):
         """
@@ -152,8 +152,8 @@ class CircleBounds(SpatialBounds):
         self.DEC = dec
         self.radius = radius
 
-        self.RAdeg = np.degrees(ra)
-        self.DECdeg = np.degrees(dec)
+        self.r_adeg = np.degrees(ra)
+        self.de_cdeg = np.degrees(dec)
         self.radiusdeg = np.degrees(radius)
 
     def __eq__(self, other):
@@ -162,64 +162,64 @@ class CircleBounds(SpatialBounds):
             and (self.RA == other.RA)
             and (self.DEC == other.DEC)
             and (self.radius == other.radius)
-            and (self.RAdeg == other.RAdeg)
-            and (self.DECdeg == other.DECdeg)
+            and (self.r_adeg == other.RAdeg)
+            and (self.de_cdeg == other.DECdeg)
             and (self.radiusdeg == other.radiusdeg)
         )
 
-    def to_SQL(self, RAname, DECname):
+    def to_sql(self, r_aname, de_cname):
 
-        cosDec = np.cos(self.DEC)
-        adjusted_radius = np.abs(np.degrees(np.arcsin(np.sin(self.radius) / cosDec)))
+        cos_dec = np.cos(self.DEC)
+        adjusted_radius = np.abs(np.degrees(np.arcsin(np.sin(self.radius) / cos_dec)))
 
-        if np.abs(cosDec) > 1.0e-20:
-            RAmax = self.RAdeg + 2.0 * adjusted_radius
-            RAmin = self.RAdeg - 2.0 * adjusted_radius
+        if np.abs(cos_dec) > 1.0e-20:
+            r_amax = self.r_adeg + 2.0 * adjusted_radius
+            r_amin = self.r_adeg - 2.0 * adjusted_radius
         else:
             # just in case, for some reason, we are looking at the poles
-            RAmax = 361.0
-            RAmin = -361.0
+            r_amax = 361.0
+            r_amin = -361.0
 
         if (
-            np.isnan(RAmax)
-            or np.isnan(RAmin)
-            or RAmin < adjusted_radius
-            or RAmax > 360.0 - adjusted_radius
+            np.isnan(r_amax)
+            or np.isnan(r_amin)
+            or r_amin < adjusted_radius
+            or r_amax > 360.0 - adjusted_radius
         ):
 
-            RAmax = 361.0
-            RAmin = -361.0
+            r_amax = 361.0
+            r_amin = -361.0
 
-        DECmax = self.DECdeg + self.radiusdeg
-        DECmin = self.DECdeg - self.radiusdeg
+        de_cmax = self.de_cdeg + self.radiusdeg
+        de_cmin = self.de_cdeg - self.radiusdeg
 
         # initially demand that all objects are within a box containing the circle
         # set from the DEC1=DEC2 and RA1=RA2 limits of the haversine function
-        if RAmax - RAmin < 361.0:
+        if r_amax - r_amin < 361.0:
             bound = "%s between %f and %f and %s between %f and %f " % (
-                RAname,
-                RAmin,
-                RAmax,
-                DECname,
-                DECmin,
-                DECmax,
+                r_aname,
+                r_amin,
+                r_amax,
+                de_cname,
+                de_cmin,
+                de_cmax,
             )
         else:
-            bound = "%s between %f and %f " % (DECname, DECmin, DECmax)
+            bound = "%s between %f and %f " % (de_cname, de_cmin, de_cmax)
 
         # then use the Haversine function to constrain the angular distance form boresite to be within
         # the desired radius.  See
         # http://en.wikipedia.org/wiki/Haversine_formula
         bound = bound + (
             "and 2 * ASIN(SQRT( POWER(SIN(0.5*(%s - %s) * PI() / 180.0),2)"
-            % (DECname, self.DECdeg)
+            % (de_cname, self.de_cdeg)
         )
         bound = bound + (
             "+ COS(%s * PI() / 180.0) * COS(%s * PI() / 180.0) "
-            % (DECname, self.DECdeg)
+            % (de_cname, self.de_cdeg)
         )
         bound = bound + (
-            "* POWER(SIN(0.5 * (%s - %s) * PI() / 180.0),2)))" % (RAname, self.RAdeg)
+            "* POWER(SIN(0.5 * (%s - %s) * PI() / 180.0),2)))" % (r_aname, self.r_adeg)
         )
         bound = bound + (" < %s " % self.radius)
 
@@ -228,7 +228,7 @@ class CircleBounds(SpatialBounds):
 
 class BoxBounds(SpatialBounds):
 
-    boundType = "box"
+    bound_type = "box"
 
     def __init__(self, ra, dec, length):
         """
@@ -265,21 +265,21 @@ class BoxBounds(SpatialBounds):
         self.RA = ra
         self.DEC = dec
 
-        self.RAdeg = np.degrees(ra)
-        self.DECdeg = np.degrees(dec)
+        self.r_adeg = np.degrees(ra)
+        self.de_cdeg = np.degrees(dec)
 
         try:
             if hasattr(length, "__len__"):
                 if len(length) == 1:
-                    lengthRAdeg = np.degrees(length[0])
-                    lengthDECdeg = np.degrees(length[0])
+                    length_r_adeg = np.degrees(length[0])
+                    length_de_cdeg = np.degrees(length[0])
                 else:
-                    lengthRAdeg = np.degrees(length[0])
-                    lengthDECdeg = np.degrees(length[1])
+                    length_r_adeg = np.degrees(length[0])
+                    length_de_cdeg = np.degrees(length[1])
             else:
                 length = float(length)
-                lengthRAdeg = np.degrees(length)
-                lengthDECdeg = np.degrees(length)
+                length_r_adeg = np.degrees(length)
+                length_de_cdeg = np.degrees(length)
 
         except:
             raise RuntimeError(
@@ -287,60 +287,60 @@ class BoxBounds(SpatialBounds):
                 % (str(length), type(length))
             )
 
-        self.RAminDeg = self.RAdeg - lengthRAdeg
-        self.RAmaxDeg = self.RAdeg + lengthRAdeg
-        self.DECminDeg = self.DECdeg - lengthDECdeg
-        self.DECmaxDeg = self.DECdeg + lengthDECdeg
+        self.r_amin_deg = self.r_adeg - length_r_adeg
+        self.r_amax_deg = self.r_adeg + length_r_adeg
+        self.de_cmin_deg = self.de_cdeg - length_de_cdeg
+        self.de_cmax_deg = self.de_cdeg + length_de_cdeg
 
-        self.RAminDeg %= 360.0
-        self.RAmaxDeg %= 360.0
+        self.r_amin_deg %= 360.0
+        self.r_amax_deg %= 360.0
 
     def __eq__(self, other):
         return (
             (type(self) == type(other))
             and (self.RA == other.RA)
-            and (self.RAdeg == other.RAdeg)
+            and (self.r_adeg == other.RAdeg)
             and (self.DEC == other.DEC)
-            and (self.DECdeg == other.DECdeg)
-            and (self.RAminDeg == other.RAminDeg)
-            and (self.RAmaxDeg == other.RAmaxDeg)
-            and (self.DECminDeg == other.DECminDeg)
-            and (self.DECmaxDeg == other.DECmaxDeg)
+            and (self.de_cdeg == other.DECdeg)
+            and (self.r_amin_deg == other.RAminDeg)
+            and (self.r_amax_deg == other.RAmaxDeg)
+            and (self.de_cmin_deg == other.DECminDeg)
+            and (self.de_cmax_deg == other.DECmaxDeg)
         )
 
-    def to_SQL(self, RAname, DECname):
+    def to_sql(self, r_aname, de_cname):
         # KSK:  I don't know exactly what we do here.  This is in code, but operating
         # on a database is it less confusing to work in degrees or radians?
         # (RAmin, RAmax, DECmin, DECmax) = map(math.radians,
         #                                     (RAmin, RAmax, DECmin, DECmax))
 
         # Special case where the whole region is selected
-        if self.RAminDeg < 0 and self.RAmaxDeg > 360.0:
-            bound = "%s between %f and %f" % (DECname, self.DECminDeg, self.DECmaxDeg)
+        if self.r_amin_deg < 0 and self.r_amax_deg > 360.0:
+            bound = "%s between %f and %f" % (de_cname, self.de_cmin_deg, self.de_cmax_deg)
             return bound
 
-        if self.RAminDeg > self.RAmaxDeg:
+        if self.r_amin_deg > self.r_amax_deg:
             bound = "%s not between %f and %f and %s between %f and %f" % (
-                RAname,
-                self.RAmaxDeg,
-                self.RAminDeg,
-                DECname,
-                self.DECminDeg,
-                self.DECmaxDeg,
+                r_aname,
+                self.r_amax_deg,
+                self.r_amin_deg,
+                de_cname,
+                self.de_cmin_deg,
+                self.de_cmax_deg,
             )
             bound += " and %s+360.0 not between %f and %f" % (
-                RAname,
-                self.RAmaxDeg,
-                self.RAminDeg,
+                r_aname,
+                self.r_amax_deg,
+                self.r_amin_deg,
             )
         else:
             bound = "%s between %f and %f and %s between %f and %f" % (
-                RAname,
-                self.RAminDeg,
-                self.RAmaxDeg,
-                DECname,
-                self.DECminDeg,
-                self.DECmaxDeg,
+                r_aname,
+                self.r_amin_deg,
+                self.r_amax_deg,
+                de_cname,
+                self.de_cmin_deg,
+                self.de_cmax_deg,
             )
 
         return bound
