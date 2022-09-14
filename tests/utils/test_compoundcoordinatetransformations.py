@@ -28,7 +28,7 @@ def control_alt_az_from_ra_dec(ra_rad_in, dec_rad_in, long_rad, lat_rad, mjd):
     see: http://www.stargazing.net/kepler/altaz.html#twig04
     """
     obs = utils.ObservationMetaData(
-        mjd=utils.ModifiedJulianDate(UTC=mjd),
+        mjd=utils.ModifiedJulianDate(utc=mjd),
         site=utils.Site(
             longitude=np.degrees(long_rad), latitude=np.degrees(lat_rad), name="LSST"
         ),
@@ -43,7 +43,7 @@ def control_alt_az_from_ra_dec(ra_rad_in, dec_rad_in, long_rad, lat_rad, mjd):
             ra_rad_in, dec_rad_in, obs_metadata=obs, epoch=2000.0, include_refraction=True
         )
 
-    lst = utils.calcLmstLast(obs.mjd.UT1, long_rad)
+    lst = utils.calc_lmst_last(obs.mjd.ut1, long_rad)
     last = lst[1]
     ha_rad = np.radians(last * 15.0) - ra_rad
 
@@ -77,20 +77,20 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
         dec_float = 1.1
         dec_list = np.array([0.2, 0.3])
 
-        self.assertRaises(RuntimeError, utils._altAzPaFromRaDec, ra_list, dec_float, obs)
-        self.assertRaises(RuntimeError, utils._altAzPaFromRaDec, ra_float, dec_list, obs)
-        utils._altAzPaFromRaDec(ra_float, dec_float, obs)
-        utils._altAzPaFromRaDec(ra_list, dec_list, obs)
+        self.assertRaises(RuntimeError, utils._alt_az_pa_from_ra_dec, ra_list, dec_float, obs)
+        self.assertRaises(RuntimeError, utils._alt_az_pa_from_ra_dec, ra_float, dec_list, obs)
+        utils._alt_az_pa_from_ra_dec(ra_float, dec_float, obs)
+        utils._alt_az_pa_from_ra_dec(ra_list, dec_list, obs)
 
         self.assertRaises(RuntimeError, utils._ra_dec_from_alt_az, ra_list, dec_float, obs)
         self.assertRaises(RuntimeError, utils._ra_dec_from_alt_az, ra_float, dec_list, obs)
         utils._ra_dec_from_alt_az(ra_float, dec_float, obs)
         utils._ra_dec_from_alt_az(ra_list, dec_list, obs)
 
-        self.assertRaises(RuntimeError, utils.altAzPaFromRaDec, ra_list, dec_float, obs)
-        self.assertRaises(RuntimeError, utils.altAzPaFromRaDec, ra_float, dec_list, obs)
-        utils.altAzPaFromRaDec(ra_float, dec_float, obs)
-        utils.altAzPaFromRaDec(ra_list, dec_list, obs)
+        self.assertRaises(RuntimeError, utils.alt_az_pa_from_ra_dec, ra_list, dec_float, obs)
+        self.assertRaises(RuntimeError, utils.alt_az_pa_from_ra_dec, ra_float, dec_list, obs)
+        utils.alt_az_pa_from_ra_dec(ra_float, dec_float, obs)
+        utils.alt_az_pa_from_ra_dec(ra_list, dec_list, obs)
 
         self.assertRaises(RuntimeError, utils.ra_dec_from_alt_az, ra_list, dec_float, obs)
         self.assertRaises(RuntimeError, utils.ra_dec_from_alt_az, ra_float, dec_list, obs)
@@ -130,7 +130,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
         longitude_list.append(np.radians(-22.0 - 33.0 / 60.0))
         latitude_list.append(np.radians(11.0 + 45.0 / 60.0))
-        mjd_list.append(2457364.958333 - 2400000.5)  # 8 December 2015 11:00 UTC
+        mjd_list.append(2457364.958333 - 2400000.5)  # 8 December 2015 11:00 utc
         alt_list.append(np.radians(41.1))
         az_list.append(np.radians(134.7))
         ra_app_list.append(16.0 * hours + 59.0 * minutes + 16.665 * seconds)
@@ -138,7 +138,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
         longitude_list.append(np.radians(-22.0 - 33.0 / 60.0))
         latitude_list.append(np.radians(11.0 + 45.0 / 60.0))
-        mjd_list.append(2457368.958333 - 2400000.5)  # 12 December 2015 11:00 UTC
+        mjd_list.append(2457368.958333 - 2400000.5)  # 12 December 2015 11:00 utc
         alt_list.append(np.radians(40.5))
         az_list.append(np.radians(134.7))
         ra_app_list.append(17.0 * hours + 16.0 * minutes + 51.649 * seconds)
@@ -146,7 +146,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
         longitude_list.append(np.radians(145.0 + 23.0 / 60.0))
         latitude_list.append(np.radians(-64.0 - 5.0 / 60.0))
-        mjd_list.append(2456727.583333 - 2400000.5)  # 11 March 2014, 02:00 UTC
+        mjd_list.append(2456727.583333 - 2400000.5)  # 11 March 2014, 02:00 utc
         alt_list.append(np.radians(29.5))
         az_list.append(np.radians(8.2))
         ra_app_list.append(23.0 * hours + 24.0 * minutes + 46.634 * seconds)
@@ -154,7 +154,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
         longitude_list.append(np.radians(145.0 + 23.0 / 60.0))
         latitude_list.append(np.radians(-64.0 - 5.0 / 60.0))
-        mjd_list.append(2456731.583333 - 2400000.5)  # 15 March 2014, 02:00 UTC
+        mjd_list.append(2456731.583333 - 2400000.5)  # 15 March 2014, 02:00 utc
         alt_list.append(np.radians(28.0))
         az_list.append(np.radians(7.8))
         ra_app_list.append(23.0 * hours + 39.0 * minutes + 27.695 * seconds)
@@ -176,7 +176,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
                     latitude=np.degrees(latitude),
                     name="LSST",
                 ),
-                mjd=utils.ModifiedJulianDate(UTC=mjd),
+                mjd=utils.ModifiedJulianDate(utc=mjd),
             )
 
             ra_icrs, dec_icrs = utils._ra_dec_from_alt_az(alt, az, obs)
@@ -193,7 +193,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
     def test_alt_az_ra_dec_round_trip(self):
         """
-        Test that altAzPaFromRaDec and ra_dec_from_alt_az really invert each other
+        Test that alt_az_pa_from_ra_dec and ra_dec_from_alt_az really invert each other
         """
 
         mjd = 58350.0
@@ -233,7 +233,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
                     self.assertAlmostEqual(ra_f, ra_in[ix], 12)
                     self.assertAlmostEqual(dec_f, dec_in[ix], 12)
 
-                alt_out, az_out, pa_out = utils.altAzPaFromRaDec(ra_in, dec_in, obs)
+                alt_out, az_out, pa_out = utils.alt_az_pa_from_ra_dec(ra_in, dec_in, obs)
 
                 self.assertFalse(
                     np.isnan(pa_out).any(), msg="there were NaNs in pa_out"
@@ -266,7 +266,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
         )
 
         obs = utils.ObservationMetaData(
-            mjd=utils.ModifiedJulianDate(UTC=self.mjd),
+            mjd=utils.ModifiedJulianDate(utc=self.mjd),
             site=utils.Site(
                 longitude=np.degrees(lon_rad), latitude=np.degrees(lat_rad), name="LSST"
             ),
@@ -279,11 +279,11 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
             ra, dec, obs_metadata=obs, epoch=2000.0, include_refraction=True
         )
 
-        lmst, last = utils.calcLmstLast(obs.mjd.UT1, lon_rad)
+        lmst, last = utils.calc_lmst_last(obs.mjd.ut1, lon_rad)
         hour_angle = np.radians(last * 15.0) - ra_obs
         control_sin_pa = np.sin(hour_angle) * np.cos(lat_rad) / np.cos(control_alt)
 
-        test_alt, test_az, test_pa = utils._altAzPaFromRaDec(ra, dec, obs)
+        test_alt, test_az, test_pa = utils._alt_az_pa_from_ra_dec(ra, dec, obs)
 
         distance = utils.arcsec_from_radians(
             utils.haversine(control_az, control_alt, test_az, test_alt)
@@ -296,8 +296,8 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
             control_alt, control_az = control_alt_az_from_ra_dec(
                 r, d, lon_rad, lat_rad, self.mjd
             )
-            test_alt, test_az, test_pa = utils._altAzPaFromRaDec(r, d, obs)
-            lmst, last = utils.calcLmstLast(obs.mjd.UT1, lon_rad)
+            test_alt, test_az, test_pa = utils._alt_az_pa_from_ra_dec(r, d, obs)
+            lmst, last = utils.calc_lmst_last(obs.mjd.ut1, lon_rad)
             r_obs, dec_obs = utils._observed_from_icrs(
                 r, d, obs_metadata=obs, epoch=2000.0, include_refraction=True
             )
@@ -311,7 +311,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
     def test_alt_az_pa_from_ra_dec_no_refraction(self):
         """
-        Test that altAzPaFromRaDec gives a sane answer when you turn off
+        Test that alt_az_pa_from_ra_dec gives a sane answer when you turn off
         refraction.
         """
 
@@ -350,7 +350,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
                 ra_sane, dec_sane, obs_sane, alt_sane, az_sane
             ):
 
-                alt, az, pa = utils.altAzPaFromRaDec(
+                alt, az, pa = utils.alt_az_pa_from_ra_dec(
                     ra, dec, obs, include_refraction=False
                 )
 
@@ -383,7 +383,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
     def test_ra_dec_from_alt_az_noref(self):
         """
-        test that ra_dec_from_alt_az correctly inverts altAzPaFromRaDec, even when
+        test that ra_dec_from_alt_az correctly inverts alt_az_pa_from_ra_dec, even when
         refraction is turned off
         """
 
@@ -406,7 +406,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
                 d_sun = utils.distance_to_sun(ra_in, dec_in, obs.mjd).min()
 
-            alt_out, az_out, pa_out = utils.altAzPaFromRaDec(
+            alt_out, az_out, pa_out = utils.alt_az_pa_from_ra_dec(
                 ra_in, dec_in, obs=obs, include_refraction=False
             )
 
@@ -420,7 +420,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
     def test_ra_dec_alt_az_no_refraction_deg_vs_radians(self):
         """
-        Check that ra_dec_from_alt_az and altAzPaFromRaDec are consistent in a degrees-versus-radians
+        Check that ra_dec_from_alt_az and alt_az_pa_from_ra_dec are consistent in a degrees-versus-radians
         sense when refraction is turned off
         """
 
@@ -430,10 +430,10 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
         dec_in = rng.random_sample(n_samples) * 180.0 - 90.0
         mjd = 43000.0
         obs = utils.ObservationMetaData(mjd=mjd)
-        alt, az, pa = utils.altAzPaFromRaDec(
+        alt, az, pa = utils.alt_az_pa_from_ra_dec(
             ra_in, dec_in, obs, include_refraction=False
         )
-        alt_rad, az_rad, pa_rad = utils._altAzPaFromRaDec(
+        alt_rad, az_rad, pa_rad = utils._alt_az_pa_from_ra_dec(
             np.radians(ra_in), np.radians(dec_in), obs, include_refraction=False
         )
 

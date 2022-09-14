@@ -1,18 +1,18 @@
 """Tests for sims.utils.samplingFunctions.py
 
-1.  test_raiseWraparoundError: The `samplePatchOnSphere` function  does not
+1.  test_raiseWraparoundError: The `sample_patch_on_sphere` function  does not
  wrap around theta values near the pole. Check if the approporiate error is
  by such a call
 2. test_checkWithinBounds : Check that the samples are indeed within the bounds
 prescribed by ObsMetaData
-3. test_samplePatchOnSphere : Check functionality by showing that binning up in
+3. test_sample_patch_on_sphere : Check functionality by showing that binning up in
     dec results in numbers in dec bins changing with area.
  """
 import numpy as np
 import unittest
 from rubin_sim.utils import ObservationMetaData
-from rubin_sim.utils import samplePatchOnSphere
-from rubin_sim.utils import spatiallySample_obsmetadata
+from rubin_sim.utils import sample_patch_on_sphere
+from rubin_sim.utils import spatially_sample_obsmetadata
 
 
 class SamplingTests(unittest.TestCase):
@@ -24,18 +24,18 @@ class SamplingTests(unittest.TestCase):
             bound_length=np.degrees(0.25),
             pointing_ra=np.degrees(0.13),
             pointing_dec=np.degrees(-1.2),
-            bandpassName=["r"],
+            bandpass_name=["r"],
             mjd=49350.0,
         )
         obs_meta_data = cls.obs_meta_datafor_cat
-        cls.samples = spatiallySample_obsmetadata(obs_meta_data, size=1000)
+        cls.samples = spatially_sample_obsmetadata(obs_meta_data, size=1000)
 
         cls.theta_c = -60.0
         cls.phi_c = 30.0
         cls.delta = 30.0
         cls.size = 1000000
 
-        cls.dense_samples = samplePatchOnSphere(
+        cls.dense_samples = sample_patch_on_sphere(
             phi=cls.phi_c, theta=cls.theta_c, delta=cls.delta, size=cls.size, seed=42
         )
 
@@ -48,14 +48,14 @@ class SamplingTests(unittest.TestCase):
         # to be lower than thetamin
         deltamin = 2.67
         with self.assertRaises(ValueError):
-            samplePatchOnSphere(
+            sample_patch_on_sphere(
                 phi=self.phi_c,
                 theta=self.theta_c,
                 delta=deltamax,
                 size=self.size,
                 seed=42,
             )
-            samplePatchOnSphere(
+            sample_patch_on_sphere(
                 phi=self.phi_c,
                 theta=self.theta_c,
                 delta=deltamin,

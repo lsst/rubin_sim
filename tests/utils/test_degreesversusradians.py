@@ -19,8 +19,8 @@ class TestDegrees(unittest.TestCase):
 
     def test_unit_conversion(self):
         """
-        Test that arcsec_from_radians, arcsecFromDegrees,
-        radians_from_arcsec, and degreesFromArcsec are all
+        Test that arcsec_from_radians, arcsec_from_degrees,
+        radians_from_arcsec, and degrees_from_arcsec are all
         self-consistent
         """
 
@@ -28,21 +28,21 @@ class TestDegrees(unittest.TestCase):
         deg_list = np.degrees(rad_list)
 
         arcsec_rad_list = utils.arcsec_from_radians(rad_list)
-        arcsec_deg_list = utils.arcsecFromDegrees(deg_list)
+        arcsec_deg_list = utils.arcsec_from_degrees(deg_list)
 
         np.testing.assert_array_equal(arcsec_rad_list, arcsec_deg_list)
 
         arcsec_list = self.rng.random_sample(100) * 1.0
         rad_list = utils.radians_from_arcsec(arcsec_list)
-        deg_list = utils.degreesFromArcsec(arcsec_list)
+        deg_list = utils.degrees_from_arcsec(arcsec_list)
         np.testing.assert_array_equal(np.radians(deg_list), rad_list)
 
     def test_galactic_from_equatorial(self):
         ra_list = self.ra_list
         dec_list = self.dec_list
 
-        lon_rad, lat_rad = utils._galacticFromEquatorial(ra_list, dec_list)
-        lon_deg, lat_deg = utils.galacticFromEquatorial(
+        lon_rad, lat_rad = utils._galactic_from_equatorial(ra_list, dec_list)
+        lon_deg, lat_deg = utils.galactic_from_equatorial(
             np.degrees(ra_list), np.degrees(dec_list)
         )
 
@@ -50,8 +50,8 @@ class TestDegrees(unittest.TestCase):
         np.testing.assert_array_almost_equal(lat_rad, np.radians(lat_deg), 10)
 
         for ra, dec in zip(ra_list, dec_list):
-            lon_rad, lat_rad = utils._galacticFromEquatorial(ra, dec)
-            lon_deg, lat_deg = utils.galacticFromEquatorial(
+            lon_rad, lat_rad = utils._galactic_from_equatorial(ra, dec)
+            lon_deg, lat_deg = utils.galactic_from_equatorial(
                 np.degrees(ra), np.degrees(dec)
             )
             self.assertAlmostEqual(lon_rad, np.radians(lon_deg), 10)
@@ -61,8 +61,8 @@ class TestDegrees(unittest.TestCase):
         lon_list = self.ra_list
         lat_list = self.dec_list
 
-        ra_rad, dec_rad = utils._equatorialFromGalactic(lon_list, lat_list)
-        ra_deg, dec_deg = utils.equatorialFromGalactic(
+        ra_rad, dec_rad = utils._equatorial_from_galactic(lon_list, lat_list)
+        ra_deg, dec_deg = utils.equatorial_from_galactic(
             np.degrees(lon_list), np.degrees(lat_list)
         )
 
@@ -70,8 +70,8 @@ class TestDegrees(unittest.TestCase):
         np.testing.assert_array_almost_equal(dec_rad, np.radians(dec_deg), 10)
 
         for lon, lat in zip(lon_list, lat_list):
-            ra_rad, dec_rad = utils._equatorialFromGalactic(lon, lat)
-            ra_deg, dec_deg = utils.equatorialFromGalactic(
+            ra_rad, dec_rad = utils._equatorial_from_galactic(lon, lat)
+            ra_deg, dec_deg = utils.equatorial_from_galactic(
                 np.degrees(lon), np.degrees(lat)
             )
             self.assertAlmostEqual(ra_rad, np.radians(ra_deg), 10)
@@ -83,9 +83,9 @@ class TestDegrees(unittest.TestCase):
             mjd=mjd, site=Site(longitude=self.lon, latitude=self.lat, name="LSST")
         )
 
-        alt_rad, az_rad, pa_rad = utils._altAzPaFromRaDec(self.ra_list, self.dec_list, obs)
+        alt_rad, az_rad, pa_rad = utils._alt_az_pa_from_ra_dec(self.ra_list, self.dec_list, obs)
 
-        alt_deg, az_deg, pa_deg = utils.altAzPaFromRaDec(
+        alt_deg, az_deg, pa_deg = utils.alt_az_pa_from_ra_dec(
             np.degrees(self.ra_list), np.degrees(self.dec_list), obs
         )
 
@@ -93,9 +93,9 @@ class TestDegrees(unittest.TestCase):
         np.testing.assert_array_almost_equal(az_rad, np.radians(az_deg), 10)
         np.testing.assert_array_almost_equal(pa_rad, np.radians(pa_deg), 10)
 
-        alt_rad, az_rad, pa_rad = utils._altAzPaFromRaDec(self.ra_list, self.dec_list, obs)
+        alt_rad, az_rad, pa_rad = utils._alt_az_pa_from_ra_dec(self.ra_list, self.dec_list, obs)
 
-        alt_deg, az_deg, pa_deg = utils.altAzPaFromRaDec(
+        alt_deg, az_deg, pa_deg = utils.alt_az_pa_from_ra_dec(
             np.degrees(self.ra_list), np.degrees(self.dec_list), obs
         )
 
@@ -107,8 +107,8 @@ class TestDegrees(unittest.TestCase):
             ra,
             dec,
         ) in zip(self.ra_list, self.dec_list):
-            alt_rad, az_rad, pa_rad = utils._altAzPaFromRaDec(ra, dec, obs)
-            alt_deg, az_deg, pa_deg = utils.altAzPaFromRaDec(
+            alt_rad, az_rad, pa_rad = utils._alt_az_pa_from_ra_dec(ra, dec, obs)
+            alt_deg, az_deg, pa_deg = utils.alt_az_pa_from_ra_dec(
                 np.degrees(ra), np.degrees(dec), obs
             )
 
@@ -379,7 +379,7 @@ class AstrometryDegreesTest(unittest.TestCase):
                 self.ra_list,
                 self.dec_list,
                 include_refraction=include_refraction,
-                altAzHr=False,
+                alt_az_hr=False,
                 obs_metadata=obs,
             )
 
@@ -387,7 +387,7 @@ class AstrometryDegreesTest(unittest.TestCase):
                 np.degrees(self.ra_list),
                 np.degrees(self.dec_list),
                 include_refraction=include_refraction,
-                altAzHr=False,
+                alt_az_hr=False,
                 obs_metadata=obs,
             )
 
@@ -401,7 +401,7 @@ class AstrometryDegreesTest(unittest.TestCase):
                 self.ra_list,
                 self.dec_list,
                 include_refraction=include_refraction,
-                altAzHr=True,
+                alt_az_hr=True,
                 obs_metadata=obs,
             )
 
@@ -413,7 +413,7 @@ class AstrometryDegreesTest(unittest.TestCase):
                 np.degrees(self.ra_list),
                 np.degrees(self.dec_list),
                 include_refraction=include_refraction,
-                altAzHr=True,
+                alt_az_hr=True,
                 obs_metadata=obs,
             )
 
@@ -563,10 +563,10 @@ class AstrometryDegreesTest(unittest.TestCase):
         xp_list = self.rng.random_sample(100) * 0.25 * np.pi
         yp_list = self.rng.random_sample(100) * 0.25 * np.pi
 
-        ra_rad, dec_rad = utils._raDecFromPupilCoords(
+        ra_rad, dec_rad = utils._ra_dec_from_pupil_coords(
             xp_list, yp_list, obs_metadata=obs, epoch=2000.0
         )
-        ra_deg, dec_deg = utils.raDecFromPupilCoords(
+        ra_deg, dec_deg = utils.ra_dec_from_pupil_coords(
             xp_list, yp_list, obs_metadata=obs, epoch=2000.0
         )
 
@@ -590,11 +590,11 @@ class AstrometryDegreesTest(unittest.TestCase):
             -115.0
         )
 
-        xp_control, yp_control = utils._pupilCoordsFromRaDec(
+        xp_control, yp_control = utils._pupil_coords_from_ra_dec(
             ra_list, dec_list, obs_metadata=obs, epoch=2000.0
         )
 
-        xp_test, yp_test = utils.pupilCoordsFromRaDec(
+        xp_test, yp_test = utils.pupil_coords_from_ra_dec(
             np.degrees(ra_list), np.degrees(dec_list), obs_metadata=obs, epoch=2000.0
         )
 

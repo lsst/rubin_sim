@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
 
-from rubin_sim.utils import raDecFromNativeLonLat, nativeLonLatFromRaDec
-from rubin_sim.utils import _raDecFromNativeLonLat, _nativeLonLatFromRaDec
+from rubin_sim.utils import raDecFromNativeLonLat, native_lon_lat_from_ra_dec
+from rubin_sim.utils import _raDecFromNativeLonLat, _native_lon_lat_from_ra_dec
 from rubin_sim.utils import observed_from_icrs, icrs_from_observed
 from rubin_sim.utils import ObservationMetaData, haversine
 from rubin_sim.utils import arcsec_from_radians, ra_dec_from_alt_az, Site
@@ -11,7 +11,7 @@ from rubin_sim.utils import arcsec_from_radians, ra_dec_from_alt_az, Site
 class NativeLonLatTest(unittest.TestCase):
     def test_native_lon_lat(self):
         """
-        Test that nativeLonLatFromRaDec works by considering stars and pointings
+        Test that native_lon_lat_from_ra_dec works by considering stars and pointings
         at intuitive locations
         """
 
@@ -46,7 +46,7 @@ class NativeLonLatTest(unittest.TestCase):
             )
 
             obs = ObservationMetaData(pointing_ra=rr[1], pointing_dec=dd[1], mjd=mjd)
-            lon, lat = nativeLonLatFromRaDec(rr[0], dd[0], obs)
+            lon, lat = native_lon_lat_from_ra_dec(rr[0], dd[0], obs)
             distance = arcsec_from_radians(haversine(lon, lat, lonc, latc))
             self.assertLess(distance, 1.0)
 
@@ -121,7 +121,7 @@ class NativeLonLatTest(unittest.TestCase):
                 z_axis = np.dot(rot_z, np.dot(rot_x, np.array([0.0, 0.0, 1.0])))
 
                 # calculate the local longitude and latitude of the star
-                lon, lat = nativeLonLatFromRaDec(ra_icrs, dec_icrs, obs)
+                lon, lat = native_lon_lat_from_ra_dec(ra_icrs, dec_icrs, obs)
                 cos_lon = np.cos(np.radians(lon))
                 sin_lon = np.sin(np.radians(lon))
                 cos_lat = np.cos(np.radians(lat))
@@ -146,7 +146,7 @@ class NativeLonLatTest(unittest.TestCase):
 
     def test_native_lon_lat_vector(self):
         """
-        Test that nativeLonLatFromRaDec works in a vectorized way; we do this
+        Test that native_lon_lat_from_ra_dec works in a vectorized way; we do this
         by performing a bunch of tansformations passing in ra and dec as numpy arrays
         and then comparing them to results computed in an element-wise way
         """
@@ -158,10 +158,10 @@ class NativeLonLatTest(unittest.TestCase):
         ra_list = rng.random_sample(n_samples) * 360.0
         dec_list = rng.random_sample(n_samples) * 180.0 - 90.0
 
-        lon_list, lat_list = nativeLonLatFromRaDec(ra_list, dec_list, obs)
+        lon_list, lat_list = native_lon_lat_from_ra_dec(ra_list, dec_list, obs)
 
         for rr, dd, lon, lat in zip(ra_list, dec_list, lon_list, lat_list):
-            lon_control, lat_control = nativeLonLatFromRaDec(rr, dd, obs)
+            lon_control, lat_control = native_lon_lat_from_ra_dec(rr, dd, obs)
             distance = arcsec_from_radians(
                 haversine(
                     np.radians(lon),
@@ -176,7 +176,7 @@ class NativeLonLatTest(unittest.TestCase):
     def test_ra_dec(self):
         """
         Test that raDecFromNativeLonLat does invert
-        nativeLonLatFromRaDec
+        native_lon_lat_from_ra_dec
         """
         rng = np.random.RandomState(42)
         n_samples = 100
@@ -224,7 +224,7 @@ class NativeLonLatTest(unittest.TestCase):
             )
 
             for rr, dd, dd_icrs_obs in zip(ra_list_icrs, dec_list_icrs, dd_icrs_obs_list):
-                lon, lat = nativeLonLatFromRaDec(rr, dd, obs)
+                lon, lat = native_lon_lat_from_ra_dec(rr, dd, obs)
                 r1, d1 = raDecFromNativeLonLat(lon, lat, obs)
 
                 # the distance between the input RA, Dec and the round-trip output
@@ -251,7 +251,7 @@ class NativeLonLatTest(unittest.TestCase):
     def test_ra_dec_vector(self):
         """
         Test that raDecFromNativeLonLat does invert
-        nativeLonLatFromRaDec (make sure it works in a vectorized way)
+        native_lon_lat_from_ra_dec (make sure it works in a vectorized way)
         """
         rng = np.random.RandomState(42)
         n_samples = 100
@@ -277,7 +277,7 @@ class NativeLonLatTest(unittest.TestCase):
 
     def test_degrees_versus_radians(self):
         """
-        Test that the radian and degree versions of nativeLonLatFromRaDec
+        Test that the radian and degree versions of native_lon_lat_from_ra_dec
         and raDecFromNativeLonLat are consistent with each other
         """
 
@@ -287,8 +287,8 @@ class NativeLonLatTest(unittest.TestCase):
         ra_list = rng.random_sample(n_samples) * 360.0
         dec_list = rng.random_sample(n_samples) * 180.0 - 90.0
 
-        lon_deg, lat_deg = nativeLonLatFromRaDec(ra_list, dec_list, obs)
-        lon_rad, lat_rad = _nativeLonLatFromRaDec(
+        lon_deg, lat_deg = native_lon_lat_from_ra_dec(ra_list, dec_list, obs)
+        lon_rad, lat_rad = _native_lon_lat_from_ra_dec(
             np.radians(ra_list), np.radians(dec_list), obs
         )
         np.testing.assert_array_almost_equal(np.radians(lon_deg), lon_rad, 15)
