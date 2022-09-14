@@ -276,7 +276,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         if "title" in plotDict:
             header["title"] = plotDict["title"]
         else:
-            header["title"] = "%s %s: %s" % (simDataName, metadata, metricName)
+            header["title"] = "%s %s: %s" % (simDataName, info_label, metricName)
         if "xlabel" in plotDict:
             header["xlabel"] = plotDict["xlabel"]
         else:
