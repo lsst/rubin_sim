@@ -159,7 +159,9 @@ def _pupil_coords_from_ra_dec(
         raise RuntimeError("Cannot call pupil_coords_from_ra_dec without obs_metadata")
 
     if obs_metadata.mjd is None:
-        raise RuntimeError("Cannot call pupil_coords_from_ra_dec; obs_metadata.mjd is None")
+        raise RuntimeError(
+            "Cannot call pupil_coords_from_ra_dec; obs_metadata.mjd is None"
+        )
 
     if epoch is None:
         raise RuntimeError("Cannot call pupil_coords_from_ra_dec; epoch is None")
@@ -188,7 +190,11 @@ def _pupil_coords_from_ra_dec(
     )
 
     return _pupil_coords_from_observed(
-        ra_obs, dec_obs, obs_metadata, epoch=epoch, include_refraction=include_refraction
+        ra_obs,
+        dec_obs,
+        obs_metadata,
+        epoch=epoch,
+        include_refraction=include_refraction,
     )
 
 
@@ -221,7 +227,9 @@ def _pupil_coords_from_observed(
     )
 
     if obs_metadata.rot_sky_pos is None:
-        raise RuntimeError("Cannot call pupilCoordsFromObserved; " "rot_sky_pos is None")
+        raise RuntimeError(
+            "Cannot call pupilCoordsFromObserved; " "rot_sky_pos is None"
+        )
 
     theta = -1.0 * obs_metadata._rot_sky_pos
 
@@ -308,14 +316,17 @@ def _observed_from_pupil_coords(
     )
 
     if obs_metadata is None:
-        raise RuntimeError("Cannot call observed_from_pupil_coords without obs_metadata")
+        raise RuntimeError(
+            "Cannot call observed_from_pupil_coords without obs_metadata"
+        )
 
     if epoch is None:
         raise RuntimeError("Cannot call observed_from_pupil_coords; epoch is None")
 
     if obs_metadata.rot_sky_pos is None:
         raise RuntimeError(
-            "Cannot call observed_from_pupil_coords without rot_sky_pos " + "in obs_metadata"
+            "Cannot call observed_from_pupil_coords without rot_sky_pos "
+            + "in obs_metadata"
         )
 
     if obs_metadata.pointing_ra is None or obs_metadata.pointing_dec is None:
@@ -474,7 +485,8 @@ def _ra_dec_from_pupil_coords(
 
     if obs_metadata.rot_sky_pos is None:
         raise RuntimeError(
-            "Cannot call ra_dec_from_pupil_coords without rot_sky_pos " + "in obs_metadata"
+            "Cannot call ra_dec_from_pupil_coords without rot_sky_pos "
+            + "in obs_metadata"
         )
 
     if obs_metadata.pointing_ra is None or obs_metadata.pointing_dec is None:

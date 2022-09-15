@@ -115,7 +115,9 @@ def distance_to_sun(ra, dec, mjd, epoch=2000.0):
     @param [out] distance on the sky to the Sun in degrees
     """
 
-    return np.degrees(_distance_to_sun(np.radians(ra), np.radians(dec), mjd, epoch=epoch))
+    return np.degrees(
+        _distance_to_sun(np.radians(ra), np.radians(dec), mjd, epoch=epoch)
+    )
 
 
 def refraction_coefficients(wavelength=0.5, site=None):
@@ -266,7 +268,9 @@ def _apply_precession(ra, dec, epoch=2000.0, mjd=None):
     return np.array([ra_out, dec_out])
 
 
-def apply_proper_motion(ra, dec, pm_ra, pm_dec, parallax, v_rad, epoch=2000.0, mjd=None):
+def apply_proper_motion(
+    ra, dec, pm_ra, pm_dec, parallax, v_rad, epoch=2000.0, mjd=None
+):
     """Applies proper motion between two epochs.
 
     units:  ra (degrees), dec (degrees), pm_ra (arcsec/year), pm_dec
@@ -317,7 +321,9 @@ def apply_proper_motion(ra, dec, pm_ra, pm_dec, parallax, v_rad, epoch=2000.0, m
     return np.degrees(output)
 
 
-def _apply_proper_motion(ra, dec, pm_ra, pm_dec, parallax, v_rad, epoch=2000.0, mjd=None):
+def _apply_proper_motion(
+    ra, dec, pm_ra, pm_dec, parallax, v_rad, epoch=2000.0, mjd=None
+):
     """Applies proper motion between two epochs.
 
     units:  ra (radians), dec (radians), pm_ra (radians/year), pm_dec
@@ -409,11 +415,25 @@ def _apply_proper_motion(ra, dec, pm_ra, pm_dec, parallax, v_rad, epoch=2000.0, 
             )
 
         ra_out, dec_out = palpy.pmVector(
-            ra, dec, pm_ra_corrected, pm_dec, parallax_arcsec, v_rad, epoch, julian_epoch
+            ra,
+            dec,
+            pm_ra_corrected,
+            pm_dec,
+            parallax_arcsec,
+            v_rad,
+            epoch,
+            julian_epoch,
         )
     else:
         ra_out, dec_out = palpy.pm(
-            ra, dec, pm_ra_corrected, pm_dec, parallax_arcsec, v_rad, epoch, julian_epoch
+            ra,
+            dec,
+            pm_ra_corrected,
+            pm_dec,
+            parallax_arcsec,
+            v_rad,
+            epoch,
+            julian_epoch,
         )
 
     return np.array([ra_out, dec_out])
@@ -889,7 +909,9 @@ def _observed_from_app_geo(
     #
 
     if are_arrays:
-        azimuth, zenith, hour_angle, dec_out, ra_out = palpy.aopqkVector(ra, dec, obs_prms)
+        azimuth, zenith, hour_angle, dec_out, ra_out = palpy.aopqkVector(
+            ra, dec, obs_prms
+        )
     else:
         azimuth, zenith, hour_angle, dec_out, ra_out = palpy.aopqk(ra, dec, obs_prms)
 
@@ -1210,7 +1232,9 @@ def icrs_from_observed(ra, dec, obs_metadata=None, epoch=None, include_refractio
     return np.array([np.degrees(ra_out), np.degrees(dec_out)])
 
 
-def _icrs_from_observed(ra, dec, obs_metadata=None, epoch=None, include_refraction=True):
+def _icrs_from_observed(
+    ra, dec, obs_metadata=None, epoch=None, include_refraction=True
+):
     """
     Convert observed RA, Dec into mean International Celestial Reference Frame (ICRS)
     RA, Dec.  This method undoes the effects of precession, nutation, aberration (annual

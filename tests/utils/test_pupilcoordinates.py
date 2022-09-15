@@ -41,7 +41,9 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         dec_short = np.array([1.0])
 
         # test without obs_metadata
-        self.assertRaises(RuntimeError, _pupil_coords_from_ra_dec, ra, dec, epoch=2000.0)
+        self.assertRaises(
+            RuntimeError, _pupil_coords_from_ra_dec, ra, dec, epoch=2000.0
+        )
 
         # test without pointing_ra
         dummy = ObservationMetaData(
@@ -279,7 +281,9 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         dec = (rng.random_sample(n_samples) * 0.1 - 0.2) + np.radians(dec_center)
         xp, yp = _pupil_coords_from_ra_dec(ra, dec, obs_metadata=obs, epoch=2000.0)
 
-        ra_test, dec_test = _ra_dec_from_pupil_coords(xp, yp, obs_metadata=obs, epoch=2000.0)
+        ra_test, dec_test = _ra_dec_from_pupil_coords(
+            xp, yp, obs_metadata=obs, epoch=2000.0
+        )
 
         distance = arcsec_from_radians(haversine(ra, dec, ra_test, dec_test))
 
@@ -304,7 +308,9 @@ class PupilCoordinateUnitTest(unittest.TestCase):
             )
             self.assertIsInstance(ra_f, float)
             self.assertIsInstance(dec_f, float)
-            dist_f = arcsec_from_radians(haversine(ra_f, dec_f, ra_test[ix], dec_test[ix]))
+            dist_f = arcsec_from_radians(
+                haversine(ra_f, dec_f, ra_test[ix], dec_test[ix])
+            )
             self.assertLess(dist_f, 1.0e-9)
 
     def test_ra_dec_from_pupil_no_refraction(self):
@@ -365,7 +371,9 @@ class PupilCoordinateUnitTest(unittest.TestCase):
             )
             self.assertIsInstance(ra_f, float)
             self.assertIsInstance(dec_f, float)
-            dist_f = arcsec_from_radians(haversine(ra_f, dec_f, ra_test[ix], dec_test[ix]))
+            dist_f = arcsec_from_radians(
+                haversine(ra_f, dec_f, ra_test[ix], dec_test[ix])
+            )
             self.assertLess(dist_f, 1.0e-9)
 
     def test_observed_from_pupil(self):
@@ -406,7 +414,9 @@ class PupilCoordinateUnitTest(unittest.TestCase):
             xp, yp, obs_metadata=obs, epoch=2000.0, include_refraction=True
         )
 
-        dist = arcsec_from_radians(haversine(ra_obs, dec_obs, ra_obs_test, dec_obs_test))
+        dist = arcsec_from_radians(
+            haversine(ra_obs, dec_obs, ra_obs_test, dec_obs_test)
+        )
         self.assertLess(dist.max(), 1.0e-6)
 
         # test output in degrees
@@ -474,7 +484,9 @@ class PupilCoordinateUnitTest(unittest.TestCase):
             xp, yp, obs_metadata=obs, epoch=2000.0, include_refraction=False
         )
 
-        dist = arcsec_from_radians(haversine(ra_obs, dec_obs, ra_obs_test, dec_obs_test))
+        dist = arcsec_from_radians(
+            haversine(ra_obs, dec_obs, ra_obs_test, dec_obs_test)
+        )
         self.assertLess(dist.max(), 1.0e-6)
 
         # test output in degrees
@@ -529,7 +541,9 @@ class PupilCoordinateUnitTest(unittest.TestCase):
             ra_list, dec_list, obs_metadata=obs, epoch=2000.0
         )
 
-        for ix, (xc, yc, xt, yt) in enumerate(zip(x_control, y_control, x_test, y_test)):
+        for ix, (xc, yc, xt, yt) in enumerate(
+            zip(x_control, y_control, x_test, y_test)
+        ):
             if ix != 5 and ix != 15 and ix != 20 and ix != 30:
                 self.assertAlmostEqual(xc, xt, 10)
                 self.assertAlmostEqual(yc, yt, 10)

@@ -138,7 +138,7 @@ class ObservationMetaData(object):
         mydict["site"] = self.site
 
         mydict["bound_type"] = self.bound_type
-        mydict["boundLength"] = self.bound_length
+        mydict["bound_length"] = self.bound_length
         mydict["pointing_ra"] = self.pointing_ra
         mydict["pointing_dec"] = self.pointing_dec
         mydict["rot_sky_pos"] = self.rot_sky_pos
@@ -237,7 +237,8 @@ class ObservationMetaData(object):
             if bandpass_is_list and not input_is_list:
                 raise RuntimeError(
                     "You passed a list of bandpass names"
-                    + "but did not pass a list of %s to ObservationMetaData" % input_name
+                    + "but did not pass a list of %s to ObservationMetaData"
+                    % input_name
                 )
 
             if input_is_list and not bandpass_is_list:
