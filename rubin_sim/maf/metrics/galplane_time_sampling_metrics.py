@@ -5,7 +5,7 @@
 ################################################################################################
 from types import MethodType
 import numpy as np
-from rubin_sim.utils import calcSeason
+from rubin_sim.utils import calc_season
 from rubin_sim.maf.maps.galactic_plane_priority_maps import (
     gp_priority_map_components_to_keys,
 )
@@ -207,7 +207,7 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
         times.sort()
         # data = np.sort(dataSlice[self.mjdCol], order=self.mjdCol)
         # SlicePoints ra/dec are always in radians - convert to degrees to calculate season
-        seasons = calcSeason(np.degrees(slicePoint["ra"]), times)
+        seasons = calc_season(np.degrees(slicePoint["ra"]), times)
         firstOfSeason, lastOfSeason = findSeasonEdges(seasons)
         # season_lengths = times[lastOfSeason] - times[firstOfSeason]  # would this match interval calc better?
         season_gaps = times[firstOfSeason][1:] - times[lastOfSeason][:-1]

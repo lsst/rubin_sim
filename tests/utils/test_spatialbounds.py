@@ -34,50 +34,50 @@ class SpatialBoundsTest(unittest.TestCase):
         BoxBounds(1, 2, [3, 5])
 
     def test_circle(self):
-        my_fov = SpatialBounds.getSpatialBounds("circle", 1.0, 2.0, 1.0)
+        my_fov = SpatialBounds.get_spatial_bounds("circle", 1.0, 2.0, 1.0)
         self.assertEqual(my_fov.RA, 1.0)
         self.assertEqual(my_fov.DEC, 2.0)
         self.assertEqual(my_fov.radius, 1.0)
 
     def test_square(self):
-        my_fov1 = SpatialBounds.getSpatialBounds("box", 1.0, 2.0, 1.0)
+        my_fov1 = SpatialBounds.get_spatial_bounds("box", 1.0, 2.0, 1.0)
         self.assertEqual(my_fov1.RA, 1.0)
         self.assertEqual(my_fov1.DEC, 2.0)
-        self.assertEqual(my_fov1.RAmaxDeg, np.degrees(2.0))
-        self.assertEqual(my_fov1.RAminDeg, np.degrees(0.0))
-        self.assertEqual(my_fov1.DECmaxDeg, np.degrees(3.0))
-        self.assertEqual(my_fov1.DECminDeg, np.degrees(1.0))
+        self.assertEqual(my_fov1.ra_max_deg, np.degrees(2.0))
+        self.assertEqual(my_fov1.ra_min_deg, np.degrees(0.0))
+        self.assertEqual(my_fov1.dec_max_deg, np.degrees(3.0))
+        self.assertEqual(my_fov1.dec_min_deg, np.degrees(1.0))
 
         length = [1.0]
-        my_fov2 = SpatialBounds.getSpatialBounds("box", 1.0, 2.0, length)
+        my_fov2 = SpatialBounds.get_spatial_bounds("box", 1.0, 2.0, length)
         self.assertEqual(my_fov2.RA, 1.0)
         self.assertEqual(my_fov2.DEC, 2.0)
-        self.assertEqual(my_fov2.RAmaxDeg, np.degrees(2.0))
-        self.assertEqual(my_fov2.RAminDeg, np.degrees(0.0))
-        self.assertEqual(my_fov2.DECmaxDeg, np.degrees(3.0))
-        self.assertEqual(my_fov2.DECminDeg, np.degrees(1.0))
+        self.assertEqual(my_fov2.ra_max_deg, np.degrees(2.0))
+        self.assertEqual(my_fov2.ra_min_deg, np.degrees(0.0))
+        self.assertEqual(my_fov2.dec_max_deg, np.degrees(3.0))
+        self.assertEqual(my_fov2.dec_min_deg, np.degrees(1.0))
 
         length = 1.0
-        my_fov3 = SpatialBounds.getSpatialBounds("box", 1.0, 2.0, length)
+        my_fov3 = SpatialBounds.get_spatial_bounds("box", 1.0, 2.0, length)
         self.assertEqual(my_fov3.RA, 1.0)
         self.assertEqual(my_fov3.DEC, 2.0)
-        self.assertEqual(my_fov3.RAmaxDeg, np.degrees(2.0))
-        self.assertEqual(my_fov3.RAminDeg, np.degrees(0.0))
-        self.assertEqual(my_fov3.DECmaxDeg, np.degrees(3.0))
-        self.assertEqual(my_fov3.DECminDeg, np.degrees(1.0))
+        self.assertEqual(my_fov3.ra_max_deg, np.degrees(2.0))
+        self.assertEqual(my_fov3.ra_min_deg, np.degrees(0.0))
+        self.assertEqual(my_fov3.dec_max_deg, np.degrees(3.0))
+        self.assertEqual(my_fov3.dec_min_deg, np.degrees(1.0))
 
         length = np.array([1.0])
-        my_fov4 = SpatialBounds.getSpatialBounds("box", 1.0, 2.0, length)
+        my_fov4 = SpatialBounds.get_spatial_bounds("box", 1.0, 2.0, length)
         self.assertEqual(my_fov4.RA, 1.0)
         self.assertEqual(my_fov4.DEC, 2.0)
-        self.assertEqual(my_fov4.RAmaxDeg, np.degrees(2.0))
-        self.assertEqual(my_fov4.RAminDeg, np.degrees(0.0))
-        self.assertEqual(my_fov4.DECmaxDeg, np.degrees(3.0))
-        self.assertEqual(my_fov4.DECminDeg, np.degrees(1.0))
+        self.assertEqual(my_fov4.ra_max_deg, np.degrees(2.0))
+        self.assertEqual(my_fov4.ra_min_deg, np.degrees(0.0))
+        self.assertEqual(my_fov4.dec_max_deg, np.degrees(3.0))
+        self.assertEqual(my_fov4.dec_min_deg, np.degrees(1.0))
 
         self.assertRaises(
             RuntimeError,
-            SpatialBounds.getSpatialBounds,
+            SpatialBounds.get_spatial_bounds,
             "utterNonsense",
             1.0,
             2.0,
@@ -87,35 +87,35 @@ class SpatialBoundsTest(unittest.TestCase):
     def test_rectangle(self):
 
         length = [1.0, 2.0]
-        my_fov2 = SpatialBounds.getSpatialBounds("box", 1.0, 2.0, length)
+        my_fov2 = SpatialBounds.get_spatial_bounds("box", 1.0, 2.0, length)
         self.assertEqual(my_fov2.RA, 1.0)
         self.assertEqual(my_fov2.DEC, 2.0)
-        self.assertEqual(my_fov2.RAmaxDeg, np.degrees(2.0))
-        self.assertEqual(my_fov2.RAminDeg, np.degrees(0.0))
-        self.assertEqual(my_fov2.DECmaxDeg, np.degrees(4.0))
-        self.assertEqual(my_fov2.DECminDeg, np.degrees(0.0))
+        self.assertEqual(my_fov2.ra_max_deg, np.degrees(2.0))
+        self.assertEqual(my_fov2.ra_min_deg, np.degrees(0.0))
+        self.assertEqual(my_fov2.dec_max_deg, np.degrees(4.0))
+        self.assertEqual(my_fov2.dec_min_deg, np.degrees(0.0))
 
         length = (1.0, 2.0)
-        my_fov3 = SpatialBounds.getSpatialBounds("box", 1.0, 2.0, length)
+        my_fov3 = SpatialBounds.get_spatial_bounds("box", 1.0, 2.0, length)
         self.assertEqual(my_fov3.RA, 1.0)
         self.assertEqual(my_fov3.DEC, 2.0)
-        self.assertEqual(my_fov3.RAmaxDeg, np.degrees(2.0))
-        self.assertEqual(my_fov3.RAminDeg, np.degrees(0.0))
-        self.assertEqual(my_fov3.DECmaxDeg, np.degrees(4.0))
-        self.assertEqual(my_fov3.DECminDeg, np.degrees(0.0))
+        self.assertEqual(my_fov3.ra_max_deg, np.degrees(2.0))
+        self.assertEqual(my_fov3.ra_min_deg, np.degrees(0.0))
+        self.assertEqual(my_fov3.dec_max_deg, np.degrees(4.0))
+        self.assertEqual(my_fov3.dec_min_deg, np.degrees(0.0))
 
         length = np.array([1.0, 2.0])
-        my_fov4 = SpatialBounds.getSpatialBounds("box", 1.0, 2.0, length)
+        my_fov4 = SpatialBounds.get_spatial_bounds("box", 1.0, 2.0, length)
         self.assertEqual(my_fov4.RA, 1.0)
         self.assertEqual(my_fov4.DEC, 2.0)
-        self.assertEqual(my_fov4.RAmaxDeg, np.degrees(2.0))
-        self.assertEqual(my_fov4.RAminDeg, np.degrees(0.0))
-        self.assertEqual(my_fov4.DECmaxDeg, np.degrees(4.0))
-        self.assertEqual(my_fov4.DECminDeg, np.degrees(0.0))
+        self.assertEqual(my_fov4.ra_max_deg, np.degrees(2.0))
+        self.assertEqual(my_fov4.ra_min_deg, np.degrees(0.0))
+        self.assertEqual(my_fov4.dec_max_deg, np.degrees(4.0))
+        self.assertEqual(my_fov4.dec_min_deg, np.degrees(0.0))
 
         self.assertRaises(
             RuntimeError,
-            SpatialBounds.getSpatialBounds,
+            SpatialBounds.get_spatial_bounds,
             "box",
             1.0,
             2.0,

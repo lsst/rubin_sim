@@ -36,11 +36,19 @@ def control_alt_az_from_ra_dec(ra_rad_in, dec_rad_in, long_rad, lat_rad, mjd):
 
     if hasattr(ra_rad_in, "__len__"):
         ra_rad, dec_rad = utils._observed_from_icrs(
-            ra_rad_in, dec_rad_in, obs_metadata=obs, epoch=2000.0, include_refraction=True
+            ra_rad_in,
+            dec_rad_in,
+            obs_metadata=obs,
+            epoch=2000.0,
+            include_refraction=True,
         )
     else:
         ra_rad, dec_rad = utils._observed_from_icrs(
-            ra_rad_in, dec_rad_in, obs_metadata=obs, epoch=2000.0, include_refraction=True
+            ra_rad_in,
+            dec_rad_in,
+            obs_metadata=obs,
+            epoch=2000.0,
+            include_refraction=True,
         )
 
     lst = utils.calc_lmst_last(obs.mjd.ut1, long_rad)
@@ -69,7 +77,9 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
         """
         Test to make sure that methods complain when incorrect data types are passed.
         """
-        obs = utils.ObservationMetaData(pointing_ra=55.0, pointing_dec=-72.0, mjd=53467.8)
+        obs = utils.ObservationMetaData(
+            pointing_ra=55.0, pointing_dec=-72.0, mjd=53467.8
+        )
 
         ra_float = 1.1
         ra_list = np.array([0.2, 0.3])
@@ -77,23 +87,39 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
         dec_float = 1.1
         dec_list = np.array([0.2, 0.3])
 
-        self.assertRaises(RuntimeError, utils._alt_az_pa_from_ra_dec, ra_list, dec_float, obs)
-        self.assertRaises(RuntimeError, utils._alt_az_pa_from_ra_dec, ra_float, dec_list, obs)
+        self.assertRaises(
+            RuntimeError, utils._alt_az_pa_from_ra_dec, ra_list, dec_float, obs
+        )
+        self.assertRaises(
+            RuntimeError, utils._alt_az_pa_from_ra_dec, ra_float, dec_list, obs
+        )
         utils._alt_az_pa_from_ra_dec(ra_float, dec_float, obs)
         utils._alt_az_pa_from_ra_dec(ra_list, dec_list, obs)
 
-        self.assertRaises(RuntimeError, utils._ra_dec_from_alt_az, ra_list, dec_float, obs)
-        self.assertRaises(RuntimeError, utils._ra_dec_from_alt_az, ra_float, dec_list, obs)
+        self.assertRaises(
+            RuntimeError, utils._ra_dec_from_alt_az, ra_list, dec_float, obs
+        )
+        self.assertRaises(
+            RuntimeError, utils._ra_dec_from_alt_az, ra_float, dec_list, obs
+        )
         utils._ra_dec_from_alt_az(ra_float, dec_float, obs)
         utils._ra_dec_from_alt_az(ra_list, dec_list, obs)
 
-        self.assertRaises(RuntimeError, utils.alt_az_pa_from_ra_dec, ra_list, dec_float, obs)
-        self.assertRaises(RuntimeError, utils.alt_az_pa_from_ra_dec, ra_float, dec_list, obs)
+        self.assertRaises(
+            RuntimeError, utils.alt_az_pa_from_ra_dec, ra_list, dec_float, obs
+        )
+        self.assertRaises(
+            RuntimeError, utils.alt_az_pa_from_ra_dec, ra_float, dec_list, obs
+        )
         utils.alt_az_pa_from_ra_dec(ra_float, dec_float, obs)
         utils.alt_az_pa_from_ra_dec(ra_list, dec_list, obs)
 
-        self.assertRaises(RuntimeError, utils.ra_dec_from_alt_az, ra_list, dec_float, obs)
-        self.assertRaises(RuntimeError, utils.ra_dec_from_alt_az, ra_float, dec_list, obs)
+        self.assertRaises(
+            RuntimeError, utils.ra_dec_from_alt_az, ra_list, dec_float, obs
+        )
+        self.assertRaises(
+            RuntimeError, utils.ra_dec_from_alt_az, ra_float, dec_list, obs
+        )
         utils.ra_dec_from_alt_az(ra_float, dec_float, obs)
         utils.ra_dec_from_alt_az(ra_list, dec_list, obs)
 
@@ -233,7 +259,9 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
                     self.assertAlmostEqual(ra_f, ra_in[ix], 12)
                     self.assertAlmostEqual(dec_f, dec_in[ix], 12)
 
-                alt_out, az_out, pa_out = utils.alt_az_pa_from_ra_dec(ra_in, dec_in, obs)
+                alt_out, az_out, pa_out = utils.alt_az_pa_from_ra_dec(
+                    ra_in, dec_in, obs
+                )
 
                 self.assertFalse(
                     np.isnan(pa_out).any(), msg="there were NaNs in pa_out"

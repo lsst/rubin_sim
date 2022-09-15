@@ -83,7 +83,9 @@ class TestDegrees(unittest.TestCase):
             mjd=mjd, site=Site(longitude=self.lon, latitude=self.lat, name="LSST")
         )
 
-        alt_rad, az_rad, pa_rad = utils._alt_az_pa_from_ra_dec(self.ra_list, self.dec_list, obs)
+        alt_rad, az_rad, pa_rad = utils._alt_az_pa_from_ra_dec(
+            self.ra_list, self.dec_list, obs
+        )
 
         alt_deg, az_deg, pa_deg = utils.alt_az_pa_from_ra_dec(
             np.degrees(self.ra_list), np.degrees(self.dec_list), obs
@@ -93,7 +95,9 @@ class TestDegrees(unittest.TestCase):
         np.testing.assert_array_almost_equal(az_rad, np.radians(az_deg), 10)
         np.testing.assert_array_almost_equal(pa_rad, np.radians(pa_deg), 10)
 
-        alt_rad, az_rad, pa_rad = utils._alt_az_pa_from_ra_dec(self.ra_list, self.dec_list, obs)
+        alt_rad, az_rad, pa_rad = utils._alt_az_pa_from_ra_dec(
+            self.ra_list, self.dec_list, obs
+        )
 
         alt_deg, az_deg, pa_deg = utils.alt_az_pa_from_ra_dec(
             np.degrees(self.ra_list), np.degrees(self.dec_list), obs
@@ -144,7 +148,9 @@ class TestDegrees(unittest.TestCase):
 
         for alt, az in zip(alt_list, az_list):
             ra_rad, dec_rad = utils._ra_dec_from_alt_az(alt, az, obs)
-            ra_deg, dec_deg = utils.ra_dec_from_alt_az(np.degrees(alt), np.degrees(az), obs)
+            ra_deg, dec_deg = utils.ra_dec_from_alt_az(
+                np.degrees(alt), np.degrees(az), obs
+            )
 
             self.assertAlmostEqual(ra_rad, np.radians(ra_deg), 10)
             self.assertAlmostEqual(dec_rad, np.radians(dec_deg), 10)
@@ -157,7 +163,9 @@ class TestDegrees(unittest.TestCase):
             mjd=mjd, site=Site(longitude=self.lon, latitude=self.lat, name="LSST")
         )
 
-        rot_sky_rad = utils._get_rot_sky_pos(self.ra_list, self.dec_list, obs_temp, rot_tel_list)
+        rot_sky_rad = utils._get_rot_sky_pos(
+            self.ra_list, self.dec_list, obs_temp, rot_tel_list
+        )
 
         rot_sky_deg = utils.get_rot_sky_pos(
             np.degrees(self.ra_list),
@@ -198,7 +206,9 @@ class TestDegrees(unittest.TestCase):
             mjd=mjd, site=Site(longitude=self.lon, latitude=self.lat, name="LSST")
         )
 
-        rot_tel_rad = utils._get_rot_tel_pos(self.ra_list, self.dec_list, obs_temp, rot_sky_list)
+        rot_tel_rad = utils._get_rot_tel_pos(
+            self.ra_list, self.dec_list, obs_temp, rot_sky_list
+        )
 
         rot_tel_deg = utils.get_rot_tel_pos(
             np.degrees(self.ra_list),
@@ -250,7 +260,9 @@ class AstrometryDegreesTest(unittest.TestCase):
         self.pm_dec_list = utils.radians_from_arcsec(
             self.rng.random_sample(self.n_stars) * 10.0 - 5.0
         )
-        self.px_list = utils.radians_from_arcsec(self.rng.random_sample(self.n_stars) * 2.0)
+        self.px_list = utils.radians_from_arcsec(
+            self.rng.random_sample(self.n_stars) * 2.0
+        )
         self.v_rad_list = self.rng.random_sample(self.n_stars) * 500.0 - 250.0
 
     def test_apply_precession(self):
@@ -518,12 +530,16 @@ class AstrometryDegreesTest(unittest.TestCase):
                                 include_refraction=include_refraction,
                             )
 
-                            d_ra = utils.arcsec_from_radians(ra_rad - np.radians(ra_deg))
+                            d_ra = utils.arcsec_from_radians(
+                                ra_rad - np.radians(ra_deg)
+                            )
                             np.testing.assert_array_almost_equal(
                                 d_ra, np.zeros(self.n_stars), 9
                             )
 
-                            d_dec = utils.arcsec_from_radians(dec_rad - np.radians(dec_deg))
+                            d_dec = utils.arcsec_from_radians(
+                                dec_rad - np.radians(dec_deg)
+                            )
                             np.testing.assert_array_almost_equal(
                                 d_dec, np.zeros(self.n_stars), 9
                             )

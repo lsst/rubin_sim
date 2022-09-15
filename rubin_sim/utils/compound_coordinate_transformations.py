@@ -84,7 +84,9 @@ def _alt_az_pa_from_ra_dec(ra_rad, dec_rad, obs, include_refraction=True):
     to positions on the celestial sphere.
     """
 
-    are_arrays = _validate_inputs([ra_rad, dec_rad], ["ra", "dec"], "alt_az_pa_from_ra_dec")
+    are_arrays = _validate_inputs(
+        [ra_rad, dec_rad], ["ra", "dec"], "alt_az_pa_from_ra_dec"
+    )
 
     ra_obs, dec_obs = _observed_from_icrs(
         ra_rad,
@@ -169,7 +171,9 @@ def _ra_dec_from_alt_az(alt_rad, az_rad, obs, include_refraction=True):
         sin_alt = np.sin(alt_rad)
         cos_lat = np.cos(obs.site.latitude_rad)
         sin_lat = np.sin(obs.site.latitude_rad)
-        dec_obs = np.arcsin(sin_lat * sin_alt + cos_lat * np.cos(alt_rad) * np.cos(az_rad))
+        dec_obs = np.arcsin(
+            sin_lat * sin_alt + cos_lat * np.cos(alt_rad) * np.cos(az_rad)
+        )
         costheta = (sin_alt - np.sin(dec_obs) * sin_lat) / (np.cos(dec_obs) * cos_lat)
         if are_arrays:
             ha_rad0 = np.arccos(costheta)
@@ -225,7 +229,9 @@ def get_rot_sky_pos(ra, dec, obs, rot_tel):
     expmjd is reckoned at the middle of the exposure).
     """
 
-    rot_sky = _get_rot_sky_pos(np.radians(ra), np.radians(dec), obs, np.radians(rot_tel))
+    rot_sky = _get_rot_sky_pos(
+        np.radians(ra), np.radians(dec), obs, np.radians(rot_tel)
+    )
 
     return np.degrees(rot_sky)
 
@@ -286,7 +292,9 @@ def get_rot_tel_pos(ra, dec, obs, rot_sky):
     of the exposure (rotTelPos is calculated at the beginning of the exposure;
     expmjd is reckoned at the middle of the exposure).
     """
-    rot_tel = _get_rot_tel_pos(np.radians(ra), np.radians(dec), obs, np.radians(rot_sky))
+    rot_tel = _get_rot_tel_pos(
+        np.radians(ra), np.radians(dec), obs, np.radians(rot_sky)
+    )
 
     return np.degrees(rot_tel)
 

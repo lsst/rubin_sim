@@ -33,9 +33,9 @@ def load_inst_zeropoints():
         zp_inst[filtername] = bp.calc_zp_t(phot_params)
 
     syseng = SysEngVals()
-    kAtm = syseng.kAtm
+    k_atm = syseng.k_atm
 
-    return zp_inst, kAtm
+    return zp_inst, k_atm
 
 
 def coaddM5(mags):

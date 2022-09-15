@@ -8,8 +8,8 @@ def spatially_sample_obsmetadata(obsmetadata, size=1, seed=1):
     """
     Sample a square patch on the sphere overlapping obsmetadata
     field of view by picking the area enclosed in
-    obsmetadata.pointing_ra pm obsmetadata.boundLength
-    obsmetadata.pointing_dec pm obsmetadata.boundLength
+    obsmetadata.pointing_ra pm obsmetadata.bound_length
+    obsmetadata.pointing_dec pm obsmetadata.bound_length
 
     Parameters
     ----------
@@ -33,7 +33,7 @@ def spatially_sample_obsmetadata(obsmetadata, size=1, seed=1):
             "Warning: sampling obsmetata with provided boundLen and"
             'bound_type="box", despite diff bound_type specified\n'
         )
-    equalrange = obsmetadata.boundLength
+    equalrange = obsmetadata.bound_length
     ravals, thetavals = sample_patch_on_sphere(
         phi=phi, theta=theta, delta=equalrange, size=size, seed=seed
     )
