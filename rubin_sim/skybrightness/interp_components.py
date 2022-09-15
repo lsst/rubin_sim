@@ -3,7 +3,7 @@ import os
 import glob
 import healpy as hp
 from rubin_sim.phot_utils import Sed, Bandpass
-from .twilight_func import twilightFunc
+from .twilight_func import twilight_func
 from scipy.interpolate import InterpolatedUnivariateSpline, interp1d
 from rubin_sim.data import get_data_dir
 import warnings
@@ -22,7 +22,7 @@ else:
 __all__ = [
     "id2intid",
     "intid2id",
-    "loadSpecFiles",
+    "load_spec_files",
     "BaseSingleInterp",
     "ScatteredStar",
     "LowerAtm",
@@ -72,23 +72,24 @@ def intid2id(intids, uintids, uids, dtype=int):
     return result
 
 
-def loadSpecFiles(filenames, mags=False):
+def load_spec_files(filenames, mags=False):
     """Load up the ESO spectra.
 
     The ESO npz files contain the following arrays:
-    * filterWave: The central wavelengths of the pre-computed magnitudes
+    * filter_wave: The central wavelengths of the pre-computed magnitudes
     * wave: wavelengths for the spectra
     * spec: array of spectra and magnitudes along with the relevant variable inputs.  For example,
-    airglow has dtype = [('airmass', '<f8'), ('solarFlux', '<f8'), ('spectra', '<f8', (17001,)),
+    airglow has dtype = [('airmass', '<f8'), ('solar_flux', '<f8'), ('spectra', '<f8', (17001,)),
     ('mags', '<f8', (6,)]
 
-    For each unique airmass and solarFlux value, there is a 17001 elements spectra and 6 magnitudes.
+    For each unique airmass and solar_flux value, there is a 17001 elements spectra and 6 magnitudes.
     """
 
     if len(filenames) == 1:
         temp = np.load(filenames[0])
         wave = temp["wave"].copy()
-        filterWave = temp["filterWave"].copy()
+        # Note old camelCase here. Might need to update if sav files regenerated
+        filter_wave = temp["filterWave"].copy()
         if mags:
             # don't copy the spectra to save memory space
             dt = np.dtype(
@@ -107,7 +108,7 @@ def loadSpecFiles(filenames, mags=False):
     else:
         temp = np.load(filenames[0])
         wave = temp["wave"].copy()
-        filterWave = temp["filterWave"].copy()
+        filter_wave = temp["filterWave"].copy()
         if mags:
             # don't copy the spectra to save memory space
             dt = np.dtype(
@@ -141,7 +142,7 @@ def loadSpecFiles(filenames, mags=False):
             else:
                 tempspec = temp["spec"]
             spec = np.append(spec, tempspec)
-    return spec, wave, filterWave
+    return spec, wave, filter_wave
 
 
 class BaseSingleInterp(object):
@@ -150,7 +151,7 @@ class BaseSingleInterp(object):
     """
 
     def __init__(
-        self, compName=None, sortedOrder=["airmass", "nightTimes"], mags=False
+        self, comp_name=None, sorted_order=["airmass", "nightTimes"], mags=False
     ):
         """
         mags: Rather than the full spectrum, return the LSST ugrizy magnitudes.
@@ -158,40 +159,40 @@ class BaseSingleInterp(object):
 
         self.mags = mags
 
-        dataDir = os.path.join(
-            get_data_dir(), "skybrightness", "ESO_Spectra/" + compName
+        data_dir = os.path.join(
+            get_data_dir(), "skybrightness", "ESO_Spectra/" + comp_name
         )
 
-        filenames = sorted(glob.glob(dataDir + "/*.npz"))
-        self.spec, self.wave, self.filterWave = loadSpecFiles(filenames, mags=self.mags)
+        filenames = sorted(glob.glob(data_dir + "/*.npz"))
+        self.spec, self.wave, self.filter_wave = load_spec_files(filenames, mags=self.mags)
 
         # Take the log of the spectra in case we want to interp in log space.
         if not mags:
-            self.logSpec = np.zeros(self.spec["spectra"].shape, dtype=float)
+            self.log_spec = np.zeros(self.spec["spectra"].shape, dtype=float)
             good = np.where(self.spec["spectra"] != 0)
-            self.logSpec[good] = np.log10(self.spec["spectra"][good])
-            self.specSize = self.spec["spectra"][0].size
+            self.log_spec[good] = np.log10(self.spec["spectra"][good])
+            self.spec_size = self.spec["spectra"][0].size
         else:
-            self.specSize = 0
+            self.spec_size = 0
 
         # What order are the dimesions sorted by (from how the .npz was packaged)
-        self.sortedOrder = sortedOrder
-        self.dimDict = {}
-        self.dimSizes = {}
-        for dt in self.sortedOrder:
-            self.dimDict[dt] = np.unique(self.spec[dt])
-            self.dimSizes[dt] = np.size(np.unique(self.spec[dt]))
+        self.sorted_order = sorted_order
+        self.dim_dict = {}
+        self.dim_sizes = {}
+        for dt in self.sorted_order:
+            self.dim_dict[dt] = np.unique(self.spec[dt])
+            self.dim_sizes[dt] = np.size(np.unique(self.spec[dt]))
 
         # Set up and save the dict to order the filters once.
-        self.filterNameDict = {"u": 0, "g": 1, "r": 2, "i": 3, "z": 4, "y": 5}
+        self.filter_name_dict = {"u": 0, "g": 1, "r": 2, "i": 3, "z": 4, "y": 5}
 
-    def __call__(self, intepPoints, filterNames=["u", "g", "r", "i", "z", "y"]):
+    def __call__(self, intep_points, filter_names=["u", "g", "r", "i", "z", "y"]):
         if self.mags:
-            return self.interpMag(intepPoints, filterNames=filterNames)
+            return self.interp_mag(intep_points, filter_names=filter_names)
         else:
-            return self.interpSpec(intepPoints)
+            return self.interp_spec(intep_points)
 
-    def indxAndWeights(self, points, grid):
+    def indx_and_weights(self, points, grid):
         """
         for given 1-D points, find the grid points on either side and return the weights
         assume grid is sorted
@@ -199,67 +200,67 @@ class BaseSingleInterp(object):
 
         order = np.argsort(points)
 
-        indxL = np.empty(points.size, dtype=int)
-        indxR = np.empty(points.size, dtype=int)
+        indx_l = np.empty(points.size, dtype=int)
+        indx_r = np.empty(points.size, dtype=int)
 
-        indxR[order] = np.searchsorted(grid, points[order])
-        indxL = indxR - 1
+        indx_r[order] = np.searchsorted(grid, points[order])
+        indx_l = indx_r - 1
 
         # If points off the grid were requested, just use the edge grid point
-        offGrid = np.where(indxR == grid.size)
-        indxR[offGrid] = grid.size - 1
-        fullRange = grid[indxR] - grid[indxL]
+        off_grid = np.where(indx_r == grid.size)
+        indx_r[off_grid] = grid.size - 1
+        full_range = grid[indx_r] - grid[indx_l]
 
-        wL = np.zeros(fullRange.size, dtype=float)
-        wR = np.ones(fullRange.size, dtype=float)
+        w_l = np.zeros(full_range.size, dtype=float)
+        w_r = np.ones(full_range.size, dtype=float)
 
-        good = np.where(fullRange != 0)
-        wL[good] = (grid[indxR][good] - points[good]) / fullRange[good]
-        wR[good] = (points[good] - grid[indxL[good]]) / fullRange[good]
+        good = np.where(full_range != 0)
+        w_l[good] = (grid[indx_r][good] - points[good]) / full_range[good]
+        w_r[good] = (points[good] - grid[indx_l[good]]) / full_range[good]
 
-        return indxR, indxL, wR, wL
+        return indx_r, indx_l, w_r, w_l
 
-    def _weighting(self, interpPoints, values):
+    def _weighting(self, interp_points, values):
         """
         given a list/array of airmass values, return a dict with the interpolated
         spectrum at each airmass and the wavelength array.
 
-        Input interpPoints should be sorted
+        Input interp_points should be sorted
         """
-        results = np.zeros((interpPoints.size, np.size(values[0])), dtype=float)
+        results = np.zeros((interp_points.size, np.size(values[0])), dtype=float)
 
-        inRange = np.where(
-            (interpPoints["airmass"] <= np.max(self.dimDict["airmass"]))
-            & (interpPoints["airmass"] >= np.min(self.dimDict["airmass"]))
+        in_range = np.where(
+            (interp_points["airmass"] <= np.max(self.dim_dict["airmass"]))
+            & (interp_points["airmass"] >= np.min(self.dim_dict["airmass"]))
         )
-        indxR, indxL, wR, wL = self.indxAndWeights(
-            interpPoints["airmass"][inRange], self.dimDict["airmass"]
+        indx_r, indx_l, w_r, w_l = self.indx_and_weights(
+            interp_points["airmass"][in_range], self.dim_dict["airmass"]
         )
 
         nextra = 1
 
         # XXX--should I use the log spectra?  Make a check and switch back and forth?
-        results[inRange] = (
-            wR[:, np.newaxis] * values[indxR * nextra]
-            + wL[:, np.newaxis] * values[indxL * nextra]
+        results[in_range] = (
+            w_r[:, np.newaxis] * values[indx_r * nextra]
+            + w_l[:, np.newaxis] * values[indx_l * nextra]
         )
 
         return results
 
-    def interpSpec(self, interpPoints):
-        result = self._weighting(interpPoints, self.logSpec)
+    def interp_spec(self, interp_points):
+        result = self._weighting(interp_points, self.log_spec)
         mask = np.where(result == 0.0)
         result = 10.0**result
         result[mask] = 0.0
         return {"spec": result, "wave": self.wave}
 
-    def interpMag(self, interpPoints, filterNames=["u", "g", "r", "i", "z", "y"]):
-        filterindx = [self.filterNameDict[key] for key in filterNames]
-        result = self._weighting(interpPoints, self.spec["mags"][:, filterindx])
+    def interp_mag(self, interp_points, filter_names=["u", "g", "r", "i", "z", "y"]):
+        filterindx = [self.filter_name_dict[key] for key in filter_names]
+        result = self._weighting(interp_points, self.spec["mags"][:, filterindx])
         mask = np.where(result == 0.0)
         result = 10.0 ** (-0.4 * (result - np.log10(3631.0)))
         result[mask] = 0.0
-        return {"spec": result, "wave": self.filterWave}
+        return {"spec": result, "wave": self.filter_wave}
 
 
 class ScatteredStar(BaseSingleInterp):
@@ -267,8 +268,8 @@ class ScatteredStar(BaseSingleInterp):
     Interpolate the spectra caused by scattered starlight.
     """
 
-    def __init__(self, compName="ScatteredStarLight", mags=False):
-        super(ScatteredStar, self).__init__(compName=compName, mags=mags)
+    def __init__(self, comp_name="ScatteredStarLight", mags=False):
+        super(ScatteredStar, self).__init__(comp_name=comp_name, mags=mags)
 
 
 class LowerAtm(BaseSingleInterp):
@@ -276,8 +277,8 @@ class LowerAtm(BaseSingleInterp):
     Interpolate the spectra caused by the lower atmosphere.
     """
 
-    def __init__(self, compName="LowerAtm", mags=False):
-        super(LowerAtm, self).__init__(compName=compName, mags=mags)
+    def __init__(self, comp_name="LowerAtm", mags=False):
+        super(LowerAtm, self).__init__(comp_name=comp_name, mags=mags)
 
 
 class UpperAtm(BaseSingleInterp):
@@ -285,8 +286,8 @@ class UpperAtm(BaseSingleInterp):
     Interpolate the spectra caused by the upper atmosphere.
     """
 
-    def __init__(self, compName="UpperAtm", mags=False):
-        super(UpperAtm, self).__init__(compName=compName, mags=mags)
+    def __init__(self, comp_name="UpperAtm", mags=False):
+        super(UpperAtm, self).__init__(comp_name=comp_name, mags=mags)
 
 
 class MergedSpec(BaseSingleInterp):
@@ -294,8 +295,8 @@ class MergedSpec(BaseSingleInterp):
     Interpolate the spectra caused by the sum of the scattered starlight, airglow, upper and lower atmosphere.
     """
 
-    def __init__(self, compName="MergedSpec", mags=False):
-        super(MergedSpec, self).__init__(compName=compName, mags=mags)
+    def __init__(self, comp_name="MergedSpec", mags=False):
+        super(MergedSpec, self).__init__(comp_name=comp_name, mags=mags)
 
 
 class Airglow(BaseSingleInterp):
@@ -304,55 +305,55 @@ class Airglow(BaseSingleInterp):
     """
 
     def __init__(
-        self, compName="Airglow", sortedOrder=["airmass", "solarFlux"], mags=False
+        self, comp_name="Airglow", sorted_order=["airmass", "solarFlux"], mags=False
     ):
         super(Airglow, self).__init__(
-            compName=compName, mags=mags, sortedOrder=sortedOrder
+            comp_name=comp_name, mags=mags, sorted_order=sorted_order
         )
-        self.nSolarFlux = np.size(self.dimDict["solarFlux"])
+        self.n_solar_flux = np.size(self.dim_dict["solarFlux"])
 
-    def _weighting(self, interpPoints, values):
+    def _weighting(self, interp_points, values):
 
-        results = np.zeros((interpPoints.size, np.size(values[0])), dtype=float)
+        results = np.zeros((interp_points.size, np.size(values[0])), dtype=float)
         # Only interpolate point that lie in the model grid
-        inRange = np.where(
-            (interpPoints["airmass"] <= np.max(self.dimDict["airmass"]))
-            & (interpPoints["airmass"] >= np.min(self.dimDict["airmass"]))
-            & (interpPoints["solarFlux"] >= np.min(self.dimDict["solarFlux"]))
-            & (interpPoints["solarFlux"] <= np.max(self.dimDict["solarFlux"]))
+        in_range = np.where(
+            (interp_points["airmass"] <= np.max(self.dim_dict["airmass"]))
+            & (interp_points["airmass"] >= np.min(self.dim_dict["airmass"]))
+            & (interp_points["solar_flux"] >= np.min(self.dim_dict["solarFlux"]))
+            & (interp_points["solar_flux"] <= np.max(self.dim_dict["solarFlux"]))
         )
-        usePoints = interpPoints[inRange]
-        amRightIndex, amLeftIndex, amRightW, amLeftW = self.indxAndWeights(
-            usePoints["airmass"], self.dimDict["airmass"]
-        )
-
-        sfRightIndex, sfLeftIndex, sfRightW, sfLeftW = self.indxAndWeights(
-            usePoints["solarFlux"], self.dimDict["solarFlux"]
+        use_points = interp_points[in_range]
+        am_right_index, am_left_index, am_right_w, am_left_w = self.indx_and_weights(
+            use_points["airmass"], self.dim_dict["airmass"]
         )
 
-        for amIndex, amW in zip([amRightIndex, amLeftIndex], [amRightW, amLeftW]):
-            for sfIndex, sfW in zip([sfRightIndex, sfLeftIndex], [sfRightW, sfLeftW]):
-                results[inRange] += (
+        sf_right_index, sf_left_index, sf_right_w, sf_left_w = self.indx_and_weights(
+            use_points["solar_flux"], self.dim_dict["solarFlux"]
+        )
+
+        for am_index, amW in zip([am_right_index, am_left_index], [am_right_w, am_left_w]):
+            for sf_index, sfW in zip([sf_right_index, sf_left_index], [sf_right_w, sf_left_w]):
+                results[in_range] += (
                     amW[:, np.newaxis]
                     * sfW[:, np.newaxis]
-                    * values[amIndex * self.nSolarFlux + sfIndex]
+                    * values[am_index * self.n_solar_flux + sf_index]
                 )
         return results
 
 
 class TwilightInterp(object):
-    def __init__(self, mags=False, darkSkyMags=None, fitResults=None):
+    def __init__(self, mags=False, dark_sky_mags=None, fit_results=None):
         """
         Read the Solar spectrum into a handy object and compute mags in different filters
         mags:  If true, only return the LSST filter magnitudes, otherwise return the full spectrum
 
-        darkSkyMags = dict of the zenith dark sky values to be assumed. The twilight fits are
+        dark_sky_mags = dict of the zenith dark sky values to be assumed. The twilight fits are
         done relative to the dark sky level.
-        fitResults = dict of twilight parameters based on twilightFunc. Keys should be filter names.
+        fit_results = dict of twilight parameters based on twilight_func. Keys should be filter names.
         """
 
-        if darkSkyMags is None:
-            darkSkyMags = {
+        if dark_sky_mags is None:
+            dark_sky_mags = {
                 "u": 22.8,
                 "g": 22.3,
                 "r": 21.2,
@@ -366,40 +367,40 @@ class TwilightInterp(object):
 
         self.mags = mags
 
-        dataDir = os.path.join(get_data_dir(), "skybrightness")
+        data_dir = os.path.join(get_data_dir(), "skybrightness")
 
-        solarSaved = np.load(os.path.join(dataDir, "solarSpec/solarSpec.npz"))
-        self.solarSpec = Sed(wavelen=solarSaved["wave"], flambda=solarSaved["spec"])
-        solarSaved.close()
+        solar_saved = np.load(os.path.join(data_dir, "solarSpec/solarSpec.npz"))
+        self.solar_spec = Sed(wavelen=solar_saved["wave"], flambda=solar_saved["spec"])
+        solar_saved.close()
 
-        canonFilters = {}
+        canon_filters = {}
         fnames = ["blue_canon.csv", "green_canon.csv", "red_canon.csv"]
 
         # Filter names, from bluest to reddest.
-        self.filterNames = ["B", "G", "R"]
+        self.filter_names = ["B", "G", "R"]
 
-        for fname, filterName in zip(fnames, self.filterNames):
+        for fname, filter_name in zip(fnames, self.filter_names):
             bpdata = np.genfromtxt(
-                os.path.join(dataDir, "Canon/", fname),
+                os.path.join(data_dir, "Canon/", fname),
                 delimiter=", ",
                 dtype=list(zip(["wave", "through"], [float] * 2)),
             )
-            bpTemp = Bandpass()
-            bpTemp.set_bandpass(bpdata["wave"], bpdata["through"])
-            canonFilters[filterName] = bpTemp
+            bp_temp = Bandpass()
+            bp_temp.set_bandpass(bpdata["wave"], bpdata["through"])
+            canon_filters[filter_name] = bp_temp
 
         # Tack on the LSST filters
-        throughPath = os.path.join(get_data_dir(), "throughputs", "baseline")
-        lsstKeys = ["u", "g", "r", "i", "z", "y"]
-        for key in lsstKeys:
+        through_path = os.path.join(get_data_dir(), "throughputs", "baseline")
+        lsst_keys = ["u", "g", "r", "i", "z", "y"]
+        for key in lsst_keys:
             bp = np.loadtxt(
-                os.path.join(throughPath, "total_" + key + ".dat"),
+                os.path.join(through_path, "total_" + key + ".dat"),
                 dtype=list(zip(["wave", "trans"], [float] * 2)),
             )
-            tempB = Bandpass()
-            tempB.set_bandpass(bp["wave"], bp["trans"])
-            canonFilters[key] = tempB
-            self.filterNames.append(key)
+            temp_b = Bandpass()
+            temp_b.set_bandpass(bp["wave"], bp["trans"])
+            canon_filters[key] = temp_b
+            self.filter_names.append(key)
 
         # MAGIC NUMBERS from fitting the all-sky camera:
         # Code to generate values in sims_skybrightness/examples/fitTwiSlopesSimul.py
@@ -414,8 +415,8 @@ class TwilightInterp(object):
         # For z and y, just assuming the shape parameter fits are similar to the other bands.
         # Looks like the diode is not sensitive enough to detect faint sky.
         # Using the Patat et al 2006 I-band values for z and modeified a little for y as a temp fix.
-        if fitResults is None:
-            self.fitResults = {
+        if fit_results is None:
+            self.fit_results = {
                 "B": [
                     7.56765633e00,
                     2.29798055e01,
@@ -443,7 +444,7 @@ class TwilightInterp(object):
 
             # XXX-completely arbitrary fudge factor to make things brighter in the blue
             # Just copy the blue and say it's brighter.
-            self.fitResults["u"] = [
+            self.fit_results["u"] = [
                 16.0,
                 2.29622121e01,
                 2.85862729e-01,
@@ -451,79 +452,79 @@ class TwilightInterp(object):
                 2.32325117e-04,
             ]
         else:
-            self.fitResults = fitResults
+            self.fit_results = fit_results
 
         # Take out any filters that don't have fit results
-        self.filterNames = [key for key in self.filterNames if key in self.fitResults]
+        self.filter_names = [key for key in self.filter_names if key in self.fit_results]
 
-        self.effWave = []
-        self.solarMag = []
-        for filterName in self.filterNames:
-            self.effWave.append(canonFilters[filterName].calc_eff_wavelen()[0])
-            self.solarMag.append(self.solarSpec.calc_mag(canonFilters[filterName]))
+        self.eff_wave = []
+        self.solar_mag = []
+        for filter_name in self.filter_names:
+            self.eff_wave.append(canon_filters[filter_name].calc_eff_wavelen()[0])
+            self.solar_mag.append(self.solar_spec.calc_mag(canon_filters[filter_name]))
 
-        order = np.argsort(self.effWave)
-        self.filterNames = np.array(self.filterNames)[order]
-        self.effWave = np.array(self.effWave)[order]
-        self.solarMag = np.array(self.solarMag)[order]
+        order = np.argsort(self.eff_wave)
+        self.filter_names = np.array(self.filter_names)[order]
+        self.eff_wave = np.array(self.eff_wave)[order]
+        self.solar_mag = np.array(self.solar_mag)[order]
 
         # update the fit results to be zeropointed properly
-        for key in self.fitResults:
-            f0 = 10.0 ** (-0.4 * (darkSkyMags[key] - np.log10(3631.0)))
-            self.fitResults[key][-1] = f0
+        for key in self.fit_results:
+            f0 = 10.0 ** (-0.4 * (dark_sky_mags[key] - np.log10(3631.0)))
+            self.fit_results[key][-1] = f0
 
-        self.solarWave = self.solarSpec.wavelen
-        self.solarFlux = self.solarSpec.flambda
+        self.solar_wave = self.solar_spec.wavelen
+        self.solar_flux = self.solar_spec.flambda
         # This one isn't as bad as the model grids, maybe we could get away with computing the magnitudes
         # in the __call__ each time.
         if mags:
             # Load up the LSST filters and convert the solarSpec.flabda and solarSpec.wavelen to fluxes
-            throughPath = throughPath = os.path.join(
+            through_path = through_path = os.path.join(
                 get_data_dir(), "throughputs", "baseline"
             )
-            self.lsstFilterNames = ["u", "g", "r", "i", "z", "y"]
-            self.lsstEquations = np.zeros(
-                (np.size(self.lsstFilterNames), np.size(self.fitResults["B"])),
+            self.lsst_filter_names = ["u", "g", "r", "i", "z", "y"]
+            self.lsst_equations = np.zeros(
+                (np.size(self.lsst_filter_names), np.size(self.fit_results["B"])),
                 dtype=float,
             )
-            self.lsstEffWave = []
+            self.lsst_eff_wave = []
 
             fits = np.empty(
-                (np.size(self.effWave), np.size(self.fitResults["B"])), dtype=float
+                (np.size(self.eff_wave), np.size(self.fit_results["B"])), dtype=float
             )
-            for i, fn in enumerate(self.filterNames):
-                fits[i, :] = self.fitResults[fn]
+            for i, fn in enumerate(self.filter_names):
+                fits[i, :] = self.fit_results[fn]
 
-            for filtername in self.lsstFilterNames:
+            for filtername in self.lsst_filter_names:
                 bp = np.loadtxt(
-                    os.path.join(throughPath, "total_" + filtername + ".dat"),
+                    os.path.join(through_path, "total_" + filtername + ".dat"),
                     dtype=list(zip(["wave", "trans"], [float] * 2)),
                 )
-                tempB = Bandpass()
-                tempB.set_bandpass(bp["wave"], bp["trans"])
-                self.lsstEffWave.append(tempB.calc_eff_wavelen()[0])
+                temp_b = Bandpass()
+                temp_b.set_bandpass(bp["wave"], bp["trans"])
+                self.lsst_eff_wave.append(temp_b.calc_eff_wavelen()[0])
             # Loop through the parameters and interpolate to new eff wavelengths
-            for i in np.arange(self.lsstEquations[0, :].size):
-                interp = InterpolatedUnivariateSpline(self.effWave, fits[:, i])
-                self.lsstEquations[:, i] = interp(self.lsstEffWave)
+            for i in np.arange(self.lsst_equations[0, :].size):
+                interp = InterpolatedUnivariateSpline(self.eff_wave, fits[:, i])
+                self.lsst_equations[:, i] = interp(self.lsst_eff_wave)
             # Set the dark sky flux
-            for i, filterName in enumerate(self.lsstFilterNames):
-                self.lsstEquations[i, -1] = 10.0 ** (
-                    -0.4 * (darkSkyMags[filterName] - np.log10(3631.0))
+            for i, filter_name in enumerate(self.lsst_filter_names):
+                self.lsst_equations[i, -1] = 10.0 ** (
+                    -0.4 * (dark_sky_mags[filter_name] - np.log10(3631.0))
                 )
 
-        self.filterNameDict = {"u": 0, "g": 1, "r": 2, "i": 3, "z": 4, "y": 5}
+        self.filter_name_dict = {"u": 0, "g": 1, "r": 2, "i": 3, "z": 4, "y": 5}
 
-    def printFitsUsed(self):
+    def print_fits_used(self):
         """
         Print out the fit parameters being used
         """
         print(
             "\\tablehead{\colhead{Filter} & \colhead{$r_{12/z}$} & \colhead{$a$ (1/radians)} & \colhead{$b$ (1/airmass)} & \colhead{$c$ (az term/airmass)} & \colhead{$f_z_dark$ (erg/s/cm$^2$)$\\times 10^8$} & \colhead{m$_z_dark$}}"
         )
-        for key in self.fitResults:
+        for key in self.fit_results:
             numbers = ""
-            for num in self.fitResults[key]:
+            for num in self.fit_results[key]:
                 if num > 0.001:
                     numbers += " & %.2f" % num
                 else:
@@ -532,101 +533,101 @@ class TwilightInterp(object):
                 key,
                 numbers,
                 " & ",
-                "%.2f" % (-2.5 * np.log10(self.fitResults[key][-1]) + np.log10(3631.0)),
+                "%.2f" % (-2.5 * np.log10(self.fit_results[key][-1]) + np.log10(3631.0)),
             )
 
-    def __call__(self, intepPoints, filterNames=["u", "g", "r", "i", "z", "y"]):
+    def __call__(self, intep_points, filter_names=["u", "g", "r", "i", "z", "y"]):
         if self.mags:
-            return self.interpMag(intepPoints, filterNames=filterNames)
+            return self.interp_mag(intep_points, filter_names=filter_names)
         else:
-            return self.interpSpec(intepPoints)
+            return self.interp_spec(intep_points)
 
-    def interpMag(
+    def interp_mag(
         self,
-        interpPoints,
-        maxAM=3.0,
+        interp_points,
+        max_am=3.0,
         limits=(np.radians(15.0), np.radians(-20.0)),
-        filterNames=["u", "g", "r", "i", "z", "y"],
+        filter_names=["u", "g", "r", "i", "z", "y"],
     ):
         """
         Originally fit the twilight with a cutoff of sun altitude of -11 degrees. I think it can be safely
         extrapolated farther, but be warned you may be entering a regime where it breaks down.
         """
-        npts = len(filterNames)
-        result = np.zeros((np.size(interpPoints), npts), dtype=float)
+        npts = len(filter_names)
+        result = np.zeros((np.size(interp_points), npts), dtype=float)
 
-        out_of_range = np.where(interpPoints["sunAlt"] > np.radians(-11))[0]
+        out_of_range = np.where(interp_points["sunAlt"] > np.radians(-11))[0]
         if np.size(out_of_range) > 0:
             warnings.warn("Extrapolating twilight beyond a sun altitude of -11 degrees")
 
         good = np.where(
-            (interpPoints["sunAlt"] >= np.min(limits))
-            & (interpPoints["sunAlt"] <= np.max(limits))
-            & (interpPoints["airmass"] <= maxAM)
-            & (interpPoints["airmass"] >= 1.0)
+            (interp_points["sunAlt"] >= np.min(limits))
+            & (interp_points["sunAlt"] <= np.max(limits))
+            & (interp_points["airmass"] <= max_am)
+            & (interp_points["airmass"] >= 1.0)
         )[0]
 
-        for i, filterName in enumerate(filterNames):
-            out_of_range = np.where(interpPoints["sunAlt"] > np.max(limits))[0]
+        for i, filterName in enumerate(filter_names):
+            out_of_range = np.where(interp_points["sunAlt"] > np.max(limits))[0]
             if np.size(out_of_range) > 0:
                 result[:, i] = np.nan
             else:
-                result[good, i] = twilightFunc(
-                    interpPoints[good],
-                    *self.lsstEquations[self.filterNameDict[filterName], :].tolist()
+                result[good, i] = twilight_func(
+                    interp_points[good],
+                    *self.lsst_equations[self.filter_name_dict[filterName], :].tolist()
                 )
 
-        return {"spec": result, "wave": self.lsstEffWave}
+        return {"spec": result, "wave": self.lsst_eff_wave}
 
-    def interpSpec(
-        self, interpPoints, maxAM=3.0, limits=(np.radians(15.0), np.radians(-20.0))
+    def interp_spec(
+        self, interp_points, max_am=3.0, limits=(np.radians(15.0), np.radians(-20.0))
     ):
         """
-        interpPoints should have airmass, azRelSun, and sunAlt.
+        interp_points should have airmass, azRelSun, and sunAlt.
         """
 
-        npts = np.size(self.solarWave)
-        result = np.zeros((np.size(interpPoints), npts), dtype=float)
+        npts = np.size(self.solar_wave)
+        result = np.zeros((np.size(interp_points), npts), dtype=float)
 
-        out_of_range = np.where(interpPoints["sunAlt"] > np.radians(-11))[0]
+        out_of_range = np.where(interp_points["sunAlt"] > np.radians(-11))[0]
         if np.size(out_of_range) > 0:
             warnings.warn("Extrapolating twilight beyond a sun altitude of -11 degrees")
 
         good = np.where(
-            (interpPoints["sunAlt"] >= np.min(limits))
-            & (interpPoints["sunAlt"] <= np.max(limits))
-            & (interpPoints["airmass"] <= maxAM)
-            & (interpPoints["airmass"] >= 1.0)
+            (interp_points["sunAlt"] >= np.min(limits))
+            & (interp_points["sunAlt"] <= np.max(limits))
+            & (interp_points["airmass"] <= max_am)
+            & (interp_points["airmass"] >= 1.0)
         )[0]
 
         # Compute the expected flux in each of the filters that we have fits for
         fluxes = []
-        for filterName in self.filterNames:
-            out_of_range = np.where(interpPoints["sunAlt"] > np.max(limits))[0]
+        for filter_name in self.filter_names:
+            out_of_range = np.where(interp_points["sunAlt"] > np.max(limits))[0]
             if np.size(out_of_range) > 0:
                 fluxes.append(np.nan)
             else:
                 fluxes.append(
-                    twilightFunc(interpPoints[good], *self.fitResults[filterName])
+                    twilight_func(interp_points[good], *self.fit_results[filter_name])
                 )
         fluxes = np.array(fluxes)
 
         # ratio of model flux to raw solar flux:
-        yvals = fluxes.T / (10.0 ** (-0.4 * (self.solarMag - np.log10(3631.0))))
+        yvals = fluxes.T / (10.0 ** (-0.4 * (self.solar_mag - np.log10(3631.0))))
 
         # Find wavelengths bluer than cutoff
-        blueRegion = np.where(self.solarWave < np.min(self.effWave))
+        blue_region = np.where(self.solar_wave < np.min(self.eff_wave))
 
         for i, yval in enumerate(yvals):
-            interpF = interp1d(
-                self.effWave, yval, bounds_error=False, fill_value=yval[-1]
+            interp_f = interp1d(
+                self.eff_wave, yval, bounds_error=False, fill_value=yval[-1]
             )
-            ratio = interpF(self.solarWave)
-            interpBlue = InterpolatedUnivariateSpline(self.effWave, yval, k=1)
-            ratio[blueRegion] = interpBlue(self.solarWave[blueRegion])
-            result[good[i]] = self.solarFlux * ratio
+            ratio = interp_f(self.solar_wave)
+            interp_blue = InterpolatedUnivariateSpline(self.eff_wave, yval, k=1)
+            ratio[blue_region] = interp_blue(self.solar_wave[blue_region])
+            result[good[i]] = self.solar_flux * ratio
 
-        return {"spec": result, "wave": self.solarWave}
+        return {"spec": result, "wave": self.solar_wave}
 
 
 class MoonInterp(BaseSingleInterp):
@@ -636,33 +637,33 @@ class MoonInterp(BaseSingleInterp):
 
     def __init__(
         self,
-        compName="Moon",
-        sortedOrder=["moonSunSep", "moonAltitude", "hpid"],
+        comp_name="Moon",
+        sorted_order=["moonSunSep", "moonAltitude", "hpid"],
         mags=False,
     ):
         super(MoonInterp, self).__init__(
-            compName=compName, sortedOrder=sortedOrder, mags=mags
+            comp_name=comp_name, sorted_order=sorted_order, mags=mags
         )
         # Magic number from when the templates were generated
         self.nside = 4
 
-    def _weighting(self, interpPoints, values):
+    def _weighting(self, interp_points, values):
         """
         Weighting for the scattered moonlight.
         """
 
-        result = np.zeros((interpPoints.size, np.size(values[0])), dtype=float)
+        result = np.zeros((interp_points.size, np.size(values[0])), dtype=float)
 
         # Check that moonAltitude is in range, otherwise return zero array
-        if np.max(interpPoints["moonAltitude"]) < np.min(self.dimDict["moonAltitude"]):
+        if np.max(interp_points["moonAltitude"]) < np.min(self.dim_dict["moonAltitude"]):
             return result
 
         # Find the neighboring healpixels
         hpids, hweights = get_neighbours(
-            self.nside, np.pi / 2.0 - interpPoints["alt"], interpPoints["azRelMoon"]
+            self.nside, np.pi / 2.0 - interp_points["alt"], interp_points["azRelMoon"]
         )
 
-        badhp = np.in1d(hpids.ravel(), self.dimDict["hpid"], invert=True).reshape(
+        badhp = np.in1d(hpids.ravel(), self.dim_dict["hpid"], invert=True).reshape(
             hpids.shape
         )
         hweights[badhp] = 0.0
@@ -672,31 +673,31 @@ class MoonInterp(BaseSingleInterp):
         hweights[:, good] = hweights[:, good] / norm[good]
 
         # Find the neighboring moonAltitude points in the grid
-        rightMAs, leftMAs, maRightW, maLeftW = self.indxAndWeights(
-            interpPoints["moonAltitude"], self.dimDict["moonAltitude"]
+        right_m_as, left_m_as, ma_right_w, ma_left_w = self.indx_and_weights(
+            interp_points["moonAltitude"], self.dim_dict["moonAltitude"]
         )
 
         # Find the neighboring moonSunSep points in the grid
-        rightMss, leftMss, mssRightW, mssLeftW = self.indxAndWeights(
-            interpPoints["moonSunSep"], self.dimDict["moonSunSep"]
+        right_mss, left_mss, mss_right_w, mss_left_w = self.indx_and_weights(
+            interp_points["moonSunSep"], self.dim_dict["moonSunSep"]
         )
 
-        nhpid = self.dimDict["hpid"].size
-        nMA = self.dimDict["moonAltitude"].size
+        nhpid = self.dim_dict["hpid"].size
+        n_ma = self.dim_dict["moonAltitude"].size
         # Convert the hpid to an index.
         tmp = intid2id(
-            hpids.ravel(), self.dimDict["hpid"], np.arange(self.dimDict["hpid"].size)
+            hpids.ravel(), self.dim_dict["hpid"], np.arange(self.dim_dict["hpid"].size)
         )
         hpindx = tmp.reshape(hpids.shape)
         # loop though the hweights and the moonAltitude weights
 
         for hpid, hweight in zip(hpindx, hweights):
-            for maid, maW in zip([rightMAs, leftMAs], [maRightW, maLeftW]):
-                for mssid, mssW in zip([rightMss, leftMss], [mssRightW, mssLeftW]):
+            for maid, maW in zip([right_m_as, left_m_as], [ma_right_w, ma_left_w]):
+                for mssid, mssW in zip([right_mss, left_mss], [mss_right_w, mss_left_w]):
                     weight = hweight * maW * mssW
                     result += (
                         weight[:, np.newaxis]
-                        * values[mssid * nhpid * nMA + maid * nhpid + hpid]
+                        * values[mssid * nhpid * n_ma + maid * nhpid + hpid]
                     )
 
         return result
@@ -709,10 +710,10 @@ class ZodiacalInterp(BaseSingleInterp):
     """
 
     def __init__(
-        self, compName="Zodiacal", sortedOrder=["airmass", "hpid"], mags=False
+        self, comp_name="Zodiacal", sorted_order=["airmass", "hpid"], mags=False
     ):
         super(ZodiacalInterp, self).__init__(
-            compName=compName, sortedOrder=sortedOrder, mags=mags
+            comp_name=comp_name, sorted_order=sorted_order, mags=mags
         )
         self.nside = hp.npix2nside(
             np.size(
@@ -720,24 +721,24 @@ class ZodiacalInterp(BaseSingleInterp):
             )
         )
 
-    def _weighting(self, interpPoints, values):
+    def _weighting(self, interp_points, values):
         """
-        interpPoints is a numpy array where interpolation is desired
+        interp_points is a numpy array where interpolation is desired
         values are the model values.
         """
-        result = np.zeros((interpPoints.size, np.size(values[0])), dtype=float)
+        result = np.zeros((interp_points.size, np.size(values[0])), dtype=float)
 
-        inRange = np.where(
-            (interpPoints["airmass"] <= np.max(self.dimDict["airmass"]))
-            & (interpPoints["airmass"] >= np.min(self.dimDict["airmass"]))
+        in_range = np.where(
+            (interp_points["airmass"] <= np.max(self.dim_dict["airmass"]))
+            & (interp_points["airmass"] >= np.min(self.dim_dict["airmass"]))
         )
-        usePoints = interpPoints[inRange]
+        use_points = interp_points[in_range]
         # Find the neighboring healpixels
         hpids, hweights = get_neighbours(
-            self.nside, np.pi / 2.0 - usePoints["altEclip"], usePoints["azEclipRelSun"]
+            self.nside, np.pi / 2.0 - use_points["altEclip"], use_points["azEclipRelSun"]
         )
 
-        badhp = np.in1d(hpids.ravel(), self.dimDict["hpid"], invert=True).reshape(
+        badhp = np.in1d(hpids.ravel(), self.dim_dict["hpid"], invert=True).reshape(
             hpids.shape
         )
         hweights[badhp] = 0.0
@@ -746,17 +747,17 @@ class ZodiacalInterp(BaseSingleInterp):
         good = np.where(norm != 0.0)[0]
         hweights[:, good] = hweights[:, good] / norm[good]
 
-        amRightIndex, amLeftIndex, amRightW, amLeftW = self.indxAndWeights(
-            usePoints["airmass"], self.dimDict["airmass"]
+        am_right_index, am_left_index, am_right_w, am_left_w = self.indx_and_weights(
+            use_points["airmass"], self.dim_dict["airmass"]
         )
 
-        nhpid = self.dimDict["hpid"].size
+        nhpid = self.dim_dict["hpid"].size
         # loop though the hweights and the airmass weights
         for hpid, hweight in zip(hpids, hweights):
-            for amIndex, amW in zip([amRightIndex, amLeftIndex], [amRightW, amLeftW]):
+            for am_index, amW in zip([am_right_index, am_left_index], [am_right_w, am_left_w]):
                 weight = hweight * amW
-                result[inRange] += (
-                    weight[:, np.newaxis] * values[amIndex * nhpid + hpid]
+                result[in_range] += (
+                    weight[:, np.newaxis] * values[am_index * nhpid + hpid]
                 )
 
         return result

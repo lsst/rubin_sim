@@ -1,9 +1,9 @@
 import numpy as np
 
-__all__ = ["twilightFunc", "zenithTwilight", "simpleTwi"]
+__all__ = ["twilight_func", "zenith_twilight", "simple_twi"]
 
 
-def simpleTwi(xdata, *args):
+def simple_twi(xdata, *args):
     """
     Fit a simple slope and constant to many healpixels
 
@@ -26,13 +26,13 @@ def simpleTwi(xdata, *args):
     return result
 
 
-def twilightFunc(xdata, *args, amCut=1.0):
+def twilight_func(xdata, *args, amCut=1.0):
     """
     xdata: numpy array with columns 'alt', 'az', 'sunAlt' all in radians.
     az should be relative to the sun (i.e., sun is at az zero.
 
     based on what I've seen, here's my guess for how to fit the twilight:
-    args[0] = ratio of (zenith twilight flux at sunAlt = -12) and dark sky zenith flux
+    args[0] = ratio of (zenith twilight flux at sun_alt = -12) and dark sky zenith flux
     args[1] = decay slope for all pixels (mags/radian)
     args[2] = airmass term for hemisphere away from the sun. (factor to multiply max brightness at zenith by)
     args[3] = az term for hemisphere towards sun
@@ -48,7 +48,7 @@ def twilightFunc(xdata, *args, amCut=1.0):
     args = np.array(args)
     az = xdata["azRelSun"]
     airmass = xdata["airmass"]
-    sunAlt = xdata["sunAlt"]
+    sun_alt = xdata["sunAlt"]
     flux = np.zeros(az.size, dtype=float)
     away = np.where((airmass <= amCut) | ((az >= np.pi / 2) & (az <= 3.0 * np.pi / 2)))
     towards = np.where((airmass > amCut) & ((az < np.pi / 2) | (az > 3.0 * np.pi / 2)))
@@ -56,7 +56,7 @@ def twilightFunc(xdata, *args, amCut=1.0):
     flux = (
         args[0]
         * args[4]
-        * 10.0 ** (args[1] * (sunAlt + np.radians(12.0)) + args[2] * (airmass - 1.0))
+        * 10.0 ** (args[1] * (sun_alt + np.radians(12.0)) + args[2] * (airmass - 1.0))
     )
     flux[towards] *= 10.0 ** (args[3] * np.cos(az[towards]) * (airmass[towards] - 1.0))
 
@@ -73,7 +73,7 @@ def twilightFunc(xdata, *args, amCut=1.0):
     return flux
 
 
-def zenithTwilight(alpha, *args):
+def zenith_twilight(alpha, *args):
     """
     The flux at zenith as a linear combination of a twilight component and a constant:
     alpha = sun altitude (radians)

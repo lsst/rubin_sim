@@ -65,7 +65,7 @@ class SNCadenceMetric(metrics.BaseMetric):
 
         super(SNCadenceMetric, self).__init__(col=cols, metricName=metricName, **kwargs)
 
-        self.filterNames = np.array(["u", "g", "r", "i", "z", "y"])
+        self.filter_names = np.array(["u", "g", "r", "i", "z", "y"])
 
         self.lim_sn = lim_sn
 
@@ -73,7 +73,7 @@ class SNCadenceMetric(metrics.BaseMetric):
 
         # Cut down to only include filters in correct wave range.
 
-        goodFilters = np.in1d(dataSlice["filter"], self.filterNames)
+        goodFilters = np.in1d(dataSlice["filter"], self.filter_names)
         dataSlice = dataSlice[goodFilters]
         if dataSlice.size == 0:
             return None

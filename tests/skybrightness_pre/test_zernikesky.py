@@ -104,10 +104,10 @@ class TestSkyModelZernike(unittest.TestCase):
         self.fname = os.path.join(self.cut_pre_data_dir, "zernsky.h5")
 
     @unittest.skip("skipping because slow")
-    def test_getMags(self):
+    def test_get_mags(self):
         mjd = 59823.97
         sky_model_zern = zernike.SkyModelZernike(data_file=self.fname)
-        sky = sky_model_zern.returnMags(mjd, badval=np.nan)
+        sky = sky_model_zern.return_mags(mjd, badval=np.nan)
         self.assertEqual(set(sky.keys()), set(("u", "g", "r", "i", "z", "y")))
 
         nside = sky_model_zern.zernike_model["g"].nside
@@ -121,10 +121,10 @@ class TestSkyModelZernike(unittest.TestCase):
             self.assertGreater(sky[band][notnan].min(), 8)
 
     @unittest.skip("skipping because slow")
-    def test_getMags_day(self):
+    def test_get_mags_day(self):
         mjd = 59824.8
         sky_model_zern = zernike.SkyModelZernike(data_file=self.fname)
-        sky = sky_model_zern.returnMags(mjd, badval=np.nan)
+        sky = sky_model_zern.return_mags(mjd, badval=np.nan)
         self.assertEqual(set(sky.keys()), set(("u", "g", "r", "i", "z", "y")))
 
         nside = sky_model_zern.zernike_model["g"].nside

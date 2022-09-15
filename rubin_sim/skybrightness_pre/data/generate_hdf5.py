@@ -135,9 +135,9 @@ def generate_sky(
         text = "\rprogress = %.1f%%" % progress
         sys.stdout.write(text)
         sys.stdout.flush()
-        sm.setRaDecMjd(ra, dec, mjd, degrees=True)
+        sm.set_ra_dec_mjd(ra, dec, mjd, degrees=True)
         if sm.sunAlt <= sunLimit_rad:
-            mags = sm.returnMags()
+            mags = sm.return_mags()
             for key in filter_names:
                 sky_brightness[key].append(mags[key])
             dict_of_lists["mjds"].append(mjd)

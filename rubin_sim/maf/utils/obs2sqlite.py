@@ -123,17 +123,17 @@ def obs2sqlite(
         if full_sky:
             sm = SkyModel(mags=True)
             for i, obs in enumerate(observations):
-                sm.setRaDecMjd(obs["ra"], obs["dec"], obs["mjd"], degrees=True)
-                observations["skybrightness"][i] = sm.returnMags()[obs["filter"]]
+                sm.set_ra_dec_mjd(obs["ra"], obs["dec"], obs["mjd"], degrees=True)
+                observations["skybrightness"][i] = sm.return_mags()[obs["filter"]]
         else:
             # Let's try using the pre-computed sky brighntesses
             sm = sb.SkyModelPre(preload=False)
-            full = sm.returnMags(observations["mjd"][0])
+            full = sm.return_mags(observations["mjd"][0])
             nside = hp.npix2nside(full["r"].size)
             imax = float(np.size(observations))
             for i, obs in enumerate(observations):
                 indx = raDec2Hpid(nside, obs["ra"], obs["dec"])
-                observations["skybrightness"][i] = sm.returnMags(
+                observations["skybrightness"][i] = sm.return_mags(
                     obs["mjd"], indx=[indx]
                 )[obs["filter"]]
                 sunMoon = sm.returnSunMoon(obs["mjd"])

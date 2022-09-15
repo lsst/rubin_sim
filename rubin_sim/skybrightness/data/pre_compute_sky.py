@@ -151,11 +151,11 @@ def generate_sky(
         text = "\rprogress = %.1f%%" % progress
         sys.stdout.write(text)
         sys.stdout.flush()
-        sm.setRaDecMjd(
+        sm.set_ra_dec_mjd(
             az[above_alt_limit], alt[above_alt_limit], mjd, degrees=True, azAlt=True
         )
         if sm.sunAlt <= sunLimit_rad:
-            mags_dict = sm.returnMags()
+            mags_dict = sm.return_mags()
             mags = {}
             for key in mags_dict:
                 mags[key] = np.zeros(az.size, dtype=float)

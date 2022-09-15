@@ -20,8 +20,8 @@ def generate_sky_slopes():
     airmass_limit = 2.0
     dec, ra = hp.pix2ang(nside, np.arange(hp.nside2npix(nside)))
     dec = np.pi / 2 - dec
-    sm.setRaDecMjd(ra, dec, mjd)
-    mags = sm.returnMags()
+    sm.set_ra_dec_mjd(ra, dec, mjd)
+    mags = sm.return_mags()
     filters = mags.dtype.names
     filter_slopes = {}
     for filterName in filters:

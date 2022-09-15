@@ -261,7 +261,7 @@ class Model_observatory(object):
         self.conditions.FWHMeff = self.seeing_FWHMeff
 
         # sky brightness
-        self.conditions.skybrightness = self.sky_model.returnMags(self.mjd)
+        self.conditions.skybrightness = self.sky_model.return_mags(self.mjd)
 
         self.conditions.mounted_filters = self.observatory.mounted_filters
         self.conditions.current_filter = self.observatory.current_filter[0]
@@ -375,7 +375,7 @@ class Model_observatory(object):
         observation["mjd"] = self.mjd
 
         hpid = ra_dec2_hpid(self.sky_model.nside, observation["RA"], observation["dec"])
-        observation["skybrightness"] = self.sky_model.returnMags(
+        observation["skybrightness"] = self.sky_model.return_mags(
             self.mjd, indx=[hpid], extrapolate=True
         )[observation["filter"][0]]
 
