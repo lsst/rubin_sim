@@ -104,8 +104,8 @@ class M5OptimalStacker(BaseStacker):
     def _run(self, simData, cols_present=False):
         simData, m5col_present = self.m5_stacker._addStackerCols(simData)
         simData = self.m5_stacker._run(simData, m5col_present)
-        # kAtm values from rubin_sim.operations gen_output.py
-        kAtm = {"u": 0.50, "g": 0.21, "r": 0.13, "i": 0.10, "z": 0.07, "y": 0.18}
+        # k_atm values from rubin_sim.operations gen_output.py
+        k_atm = {"u": 0.50, "g": 0.21, "r": 0.13, "i": 0.10, "z": 0.07, "y": 0.18}
         # Linear fits to sky brightness change, no moon, twilight, or zodiacal components
         # Use generate_sky_slopes to regenerate if needed.
         skySlopes = {
@@ -136,7 +136,7 @@ class M5OptimalStacker(BaseStacker):
                 simData[self.m5Col]
                 - 0.5 * deltaSky
                 - 0.15 * np.log10(min_airmass_possible / simData[self.airmassCol])
-                - kAtm[filterName] * (min_airmass_possible - simData[self.airmassCol])
+                - k_atm[filterName] * (min_airmass_possible - simData[self.airmassCol])
             )
             good = np.where(simData[self.filterCol] == filterName)
             simData["m5Optimal"][good] = m5Optimal[good]

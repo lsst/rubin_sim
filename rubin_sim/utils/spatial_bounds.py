@@ -316,7 +316,11 @@ class BoxBounds(SpatialBounds):
 
         # Special case where the whole region is selected
         if self.ra_min_deg < 0 and self.ra_max_deg > 360.0:
-            bound = "%s between %f and %f" % (de_cname, self.dec_min_deg, self.dec_max_deg)
+            bound = "%s between %f and %f" % (
+                de_cname,
+                self.dec_min_deg,
+                self.dec_max_deg,
+            )
             return bound
 
         if self.ra_min_deg > self.ra_max_deg:

@@ -1,4 +1,4 @@
-from rubin_sim.utils import _galacticFromEquatorial
+from rubin_sim.utils import _galactic_from_equatorial
 from rubin_sim.maf.maps import BaseMap
 
 __all__ = ["GalCoordsMap"]
@@ -9,7 +9,7 @@ class GalCoordsMap(BaseMap):
         self.keynames = ["gall", "galb"]
 
     def run(self, slicePoints):
-        gall, galb = _galacticFromEquatorial(slicePoints["ra"], slicePoints["dec"])
+        gall, galb = _galactic_from_equatorial(slicePoints["ra"], slicePoints["dec"])
         slicePoints["gall"] = gall
         slicePoints["galb"] = galb
         return slicePoints
