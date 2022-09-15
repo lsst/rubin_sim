@@ -15,7 +15,7 @@ from matplotlib.collections import PatchCollection
 from rubin_sim.maf.utils import optimalBins, percentileClipping
 from .plot_handler import BasePlotter, applyZPNorm
 
-from rubin_sim.utils import _equatorialFromGalactic, _healbin
+from rubin_sim.utils import _equatorial_from_galactic, _healbin
 from .perceptual_rainbow import makePRCmap
 
 perceptual_rainbow = makePRCmap()
@@ -609,10 +609,10 @@ class BaseSkyMap(BasePlotter):
         galB2 = np.where(np.abs(galL) <= taperLength, -val, 0)
         # Convert to ra/dec.
         # Convert to lon/lat and plot.
-        ra, dec = _equatorialFromGalactic(galL, galB1)
+        ra, dec = _equatorial_from_galactic(galL, galB1)
         lon = -(ra - raCen - np.pi) % (np.pi * 2) - np.pi
         ax.plot(lon, dec, "b.", markersize=1.8, alpha=0.4)
-        ra, dec = _equatorialFromGalactic(galL, galB2)
+        ra, dec = _equatorial_from_galactic(galL, galB2)
         lon = -(ra - raCen - np.pi) % (np.pi * 2) - np.pi
         ax.plot(lon, dec, "b.", markersize=1.8, alpha=0.4)
 

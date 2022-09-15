@@ -108,7 +108,7 @@ def generate_sky(
     required_mjds = mjds[::3]
 
     hpindx = np.arange(hp.nside2npix(nside))
-    ra, dec = utils.hpid2RaDec(nside, hpindx)
+    ra, dec = utils.hpid2_ra_dec(nside, hpindx)
 
     if verbose:
         print("using %i points on the sky" % ra.size)

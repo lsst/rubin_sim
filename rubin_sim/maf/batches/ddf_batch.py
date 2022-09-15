@@ -1,6 +1,6 @@
 import numpy as np
 import healpy as hp
-from rubin_sim.utils import hpid2RaDec, angularSeparation, ddf_locations
+from rubin_sim.utils import hpid2_ra_dec, angular_separation, ddf_locations
 import rubin_sim.maf as maf
 
 __all__ = ["ddfBatch"]
@@ -51,8 +51,8 @@ def ddfBatch(
     # Let's include an arbitrary point that should be in the WFD for comparision
     ddfs["WFD"] = {"ra": 0, "dec": -20.0}
 
-    ra, dec = hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
-    ra_sne, dec_sne = hpid2RaDec(nside_sne, np.arange(hp.nside2npix(nside_sne)))
+    ra, dec = hpid2_ra_dec(nside, np.arange(hp.nside2npix(nside)))
+    ra_sne, dec_sne = hpid2_ra_dec(nside_sne, np.arange(hp.nside2npix(nside_sne)))
 
     ddf_slicers = {}
     ddf_slicers_sne = {}
@@ -62,18 +62,18 @@ def ddfBatch(
             goods = []
             goods_sne = []
             for ddf_ra, ddf_dec in zip(ddfs[ddf]["ra"], ddfs[ddf]["dec"]):
-                dist = angularSeparation(ra, dec, ddf_ra, ddf_dec)
+                dist = angular_separation(ra, dec, ddf_ra, ddf_dec)
                 goods.append(np.where(dist <= radius)[0])
-                dist = angularSeparation(ra_sne, dec_sne, ddf_ra, ddf_dec)
+                dist = angular_separation(ra_sne, dec_sne, ddf_ra, ddf_dec)
                 goods_sne.append(np.where(dist <= radius)[0])
             good = np.unique(np.concatenate(goods))
             good_sne = np.unique(np.concatenate(goods_sne))
         else:
-            dist = angularSeparation(
+            dist = angular_separation(
                 ra, dec, np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"])
             )
             good = np.where(dist <= radius)[0]
-            dist = angularSeparation(
+            dist = angular_separation(
                 ra_sne, dec_sne, np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"])
             )
             good_sne = np.where(dist <= radius)[0]

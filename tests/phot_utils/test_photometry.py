@@ -19,11 +19,11 @@ class PhotometryUnitTest(unittest.TestCase):
     def setUp(self):
         self.obs_metadata = ObservationMetaData(
             mjd=52000.7,
-            bandpassName="i",
-            boundType="circle",
-            pointingRA=200.0,
-            pointingDec=-30.0,
-            boundLength=1.0,
+            bandpass_name="i",
+            bound_type="circle",
+            pointing_ra=200.0,
+            pointing_dec=-30.0,
+            bound_length=1.0,
             m5=25.0,
         )
 

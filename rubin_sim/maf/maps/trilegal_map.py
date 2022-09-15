@@ -2,9 +2,9 @@ import os
 import numpy as np
 import healpy as hp
 from rubin_sim.utils import (
-    _hpid2RaDec,
-    _equatorialFromGalactic,
-    _buildTree,
+    _hpid2_ra_dec,
+    _equatorial_from_galactic,
+    _build_tree,
     _xyz_from_ra_dec,
 )
 from rubin_sim.data import get_data_dir
@@ -50,13 +50,13 @@ class TrilegalDensityMap(BaseMap):
         self.starMapBins = starMap["bins"].copy()
         self.starmapNside = hp.npix2nside(np.size(self.starMap[:, 0]))
         # note, the trilegal maps are in galactic coordinates, and nested healpix.
-        gal_l, gal_b = _hpid2RaDec(
+        gal_l, gal_b = _hpid2_ra_dec(
             self.nside, np.arange(hp.nside2npix(self.nside)), nest=True
         )
 
         # Convert that to RA,dec. Then do nearest neighbor lookup.
-        ra, dec = _equatorialFromGalactic(gal_l, gal_b)
-        self.tree = _buildTree(ra, dec)
+        ra, dec = _equatorial_from_galactic(gal_l, gal_b)
+        self.tree = _build_tree(ra, dec)
 
     def run(self, slicePoints):
         self._readMap()

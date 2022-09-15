@@ -79,7 +79,7 @@ class TestSkyPre(unittest.TestCase):
             pre_calc_model = self.sm
 
             hpindx = np.arange(hp.nside2npix(self.nside))
-            ra, dec = utils.hpid2RaDec(self.nside, hpindx)
+            ra, dec = utils.hpid2_ra_dec(self.nside, hpindx)
 
             # Run through a number of mjd values
             step = 30.0 / 60.0 / 24.0  # 30 minute timestep

@@ -153,7 +153,7 @@ class Sky_area_generator:
     def _set_circular_region(self, ra_center, dec_center, radius):
         # find the healpixels that cover a circle of radius radius around ra/dec center (deg)
         result = np.zeros(len(self.ra))
-        distance = rs_utils._angularSeparation(
+        distance = rs_utils._angular_separation(
             np.radians(ra_center),
             np.radians(dec_center),
             np.radians(self.ra),

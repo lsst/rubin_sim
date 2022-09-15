@@ -112,7 +112,7 @@ class BandpassDict(object):
 
         @param [in] bandpass_root is the root of the names of the files associated with the
         bandpasses.  This method assumes that bandpasses are stored in
-        filedir/bandpassRoot_bandpassNames[i].dat
+        filedir/bandpassRoot_bandpass_names[i].dat
 
         @param [in] component_list lists the files associated with bandpasses representing
         hardware components shared by all filters
@@ -177,7 +177,7 @@ class BandpassDict(object):
         @param [in] bandpass_root contains the first part of the bandpass file name, i.e., it is assumed
         that the bandpasses are stored in files of the type
 
-        bandpass_dir/bandpassRoot_bandpassNames[i].dat
+        bandpass_dir/bandpassRoot_bandpass_names[i].dat
 
         if we want to load bandpasses for a telescope other than LSST, we would do so
         by altering bandpass_dir and bandpass_root
