@@ -11,7 +11,7 @@ import h5py
 __all__ = ["SkyModelPre", "interp_angle"]
 
 
-def shortAngleDist(a0, a1):
+def short_angle_dist(a0, a1):
     """
     from https://gist.github.com/shaunlebron/8832585
     """
@@ -52,13 +52,13 @@ def interp_angle(x_out, xp, anglep, degrees=False):
     if degrees:
         result = (
             np.radians(anglep[left])
-            + shortAngleDist(np.radians(anglep[left]), np.radians(anglep[right]))
+            + short_angle_dist(np.radians(anglep[left]), np.radians(anglep[right]))
             * wterm
         )
         result = result % (2.0 * np.pi)
         result = np.degrees(result)
     else:
-        result = anglep[left] + shortAngleDist(anglep[left], anglep[right]) * wterm
+        result = anglep[left] + short_angle_dist(anglep[left], anglep[right]) * wterm
         result = result % (2.0 * np.pi)
     return result
 
@@ -203,7 +203,7 @@ class SkyModelPre(object):
 
         self.nside = hp.npix2nside(self.sb[self.filter_names[0]][0, :].size)
 
-    def returnMags(
+    def return_mags(
         self,
         mjd,
         indx=None,
@@ -297,7 +297,7 @@ class SkyModelPre(object):
                     masked_pix = True
             if masked_pix:
                 # We have pixels that are masked that we want reasonable values for
-                full_sky_sb = self.returnMags(
+                full_sky_sb = self.return_mags(
                     mjd,
                     filters=filters,
                 )

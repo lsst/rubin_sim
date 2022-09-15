@@ -26,10 +26,10 @@ class periodicStar(object):
         x8: mean y mag
         """
         filter2index = {"u": 3, "g": 4, "r": 5, "i": 6, "z": 7, "y": 8}
-        filterNames = np.unique(self.filternames)
+        filter_names = np.unique(self.filternames)
         mags = x2 * np.sin((t + x1) / x0 * 2.0 * np.pi)
         x = [x0, x1, x2, x3, x4, x5, x6, x7, x8]
-        for f in filterNames:
+        for f in filter_names:
             good = np.where(self.filternames == f)
             mags[good] += x[filter2index[f]]
         return mags

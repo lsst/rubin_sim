@@ -5,38 +5,38 @@ from rubin_sim.data import get_data_dir
 
 # Tools for using an all-sky sqlite DB with cannon and photodiode data from the site.
 
-__all__ = ["allSkyDB", "diodeSkyDB"]
+__all__ = ["all_sky_db", "diode_sky_db"]
 
 
-def allSkyDB(dateID, sqlQ=None, dtypes=None, dbAddress=None, filt="R"):
+def all_sky_db(date_id, sql_q=None, dtypes=None, db_address=None, filt="R"):
     """
-    Take in a dateID (that corresponds to a single MJD, and
+    Take in a date_id (that corresponds to a single MJD, and
     return the star and sky magnitudes in a numpy structured array.
     """
-    if dbAddress is None:
-        dataPath = os.path.join(get_data_dir(), "skybrightness")
-        dbAddress = "sqlite:///" + os.path.join(
-            dataPath, "photometry", "skydata.sqlite"
+    if db_address is None:
+        data_path = os.path.join(get_data_dir(), "skybrightness")
+        db_address = "sqlite:///" + os.path.join(
+            data_path, "photometry", "skydata.sqlite"
         )
-    if sqlQ is None:
-        sqlQ = (
+    if sql_q is None:
+        sql_q = (
             "select stars.ra, stars.dec,  obs.alt, obs.starMag, obs.sky, obs.filter from obs, "
             'stars where obs.starID = stars.ID and obs.filter = "%s" and obs.dateID = %i;'
-            % (filt, dateID)
+            % (filt, date_id)
         )
     if dtypes is None:
         names = ["ra", "dec", "alt", "starMag", "sky", "filter"]
         types = [float, float, float, float, float, "|S1"]
         dtypes = list(zip(names, types))
 
-    engine = sqla.create_engine(dbAddress)
+    engine = sqla.create_engine(db_address)
     connection = engine.raw_connection()
     cursor = connection.cursor()
-    cursor.execute(sqlQ)
+    cursor.execute(sql_q)
     data = cursor.fetchall()
     data = np.asarray(data, dtype=dtypes)
 
-    q2 = "select mjd from dates where ID = %i" % dateID
+    q2 = "select mjd from dates where ID = %i" % date_id
     cursor.execute(q2)
 
     mjd = cursor.fetchall()
@@ -47,26 +47,26 @@ def allSkyDB(dateID, sqlQ=None, dtypes=None, dbAddress=None, filt="R"):
     return data, mjd
 
 
-def diodeSkyDB(midMJD, sqlQ=None, dtypes=None, dbAddress=None, clean=True):
-    if dbAddress is None:
-        dataPath = os.getenv("SIMS_SKYBRIGHTNESS_DATA_DIR")
-        dbAddress = "sqlite:///" + os.path.join(
-            dataPath, "photometry", "skydata.sqlite"
+def diode_sky_db(mid_mjd, sql_q=None, dtypes=None, db_address=None, clean=True):
+    if db_address is None:
+        data_path = os.getenv("SIMS_SKYBRIGHTNESS_DATA_DIR")
+        db_address = "sqlite:///" + os.path.join(
+            data_path, "photometry", "skydata.sqlite"
         )
-    if sqlQ is None:
-        sqlQ = "select mjd, R, Y, Z from photdiode where mjd > %f-1 and  mjd < %f+1" % (
-            midMJD,
-            midMJD,
+    if sql_q is None:
+        sql_q = "select mjd, R, Y, Z from photdiode where mjd > %f-1 and  mjd < %f+1" % (
+            mid_mjd,
+            mid_mjd,
         )
     if dtypes is None:
         names = ["mjd", "r", "y", "z"]
         types = [float] * 4
         dtypes = list(zip(names, types))
 
-    engine = sqla.create_engine(dbAddress)
+    engine = sqla.create_engine(db_address)
     connection = engine.raw_connection()
     cursor = connection.cursor()
-    cursor.execute(sqlQ)
+    cursor.execute(sql_q)
     data = cursor.fetchall()
     data = np.asarray(data, dtype=dtypes)
 

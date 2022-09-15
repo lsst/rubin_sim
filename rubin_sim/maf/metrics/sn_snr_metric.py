@@ -83,7 +83,7 @@ class SNSNRMetric(metrics.BaseMetric):
             cols += ["coadd"]
         super(SNSNRMetric, self).__init__(col=cols, metricName=metricName, **kwargs)
 
-        self.filterNames = np.array(["u", "g", "r", "i", "z", "y"])
+        self.filter_names = np.array(["u", "g", "r", "i", "z", "y"])
         self.blue_cutoff = 300.0
         self.red_cutoff = 800.0
         self.min_rf_phase = -20.0
@@ -115,7 +115,7 @@ class SNSNRMetric(metrics.BaseMetric):
 
         """
         time_ref = time.time()
-        goodFilters = np.in1d(dataSlice["filter"], self.filterNames)
+        goodFilters = np.in1d(dataSlice["filter"], self.filter_names)
         dataSlice = dataSlice[goodFilters]
         if dataSlice.size == 0:
             return None

@@ -26,10 +26,10 @@ def calc_target_m5s(alt=65.0, fiducial_seeing=0.9, exptime=20.0):
     import rubin_sim.skybrightness as sb
 
     sm = sb.SkyModel(moon=False, twilight=False, mags=True)
-    sm.setRaDecMjd(
+    sm.set_ra_dec_mjd(
         np.array([0.0]), np.array([alt]), 49353.177645, degrees=True, azAlt=True
     )
-    sky_mags = sm.returnMags()
+    sky_mags = sm.return_mags()
     airmass = 1.0 / np.cos(np.pi / 2.0 - np.radians(alt))
 
     goal_m5 = {}

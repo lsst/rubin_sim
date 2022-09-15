@@ -13,7 +13,7 @@ class TestSkyPre(unittest.TestCase):
         try:
             cls.sm = sbp.SkyModelPre(init_load_length=3, load_length=3)
             mjd = cls.sm.mjds[1] + 4.0 / 60.0 / 24.0
-            tmp = cls.sm.returnMags(mjd)
+            tmp = cls.sm.return_mags(mjd)
             cls.nside = hp.npix2nside(tmp["r"].size)
             cls.data_present = True
         except:
@@ -22,7 +22,7 @@ class TestSkyPre(unittest.TestCase):
                 "Data files not found, skipping tests. Check data/ for instructions to pull data."
             )
 
-    def testReturnMags(self):
+    def test_return_mags(self):
         """
         Test all the ways ReturnMags can be used
         """
@@ -47,7 +47,7 @@ class TestSkyPre(unittest.TestCase):
                 for mjd in mjds:
                     for indx in indxes:
                         for filt in filters:
-                            mags = sm.returnMags(mjd, indx=indx, filters=filt)
+                            mags = sm.return_mags(mjd, indx=indx, filters=filt)
                             # Check the filters returned are correct
                             self.assertEqual(len(filt), len(list(mags.keys())))
                             self.assertEqual(set(filt), set(mags.keys()))
@@ -58,19 +58,19 @@ class TestSkyPre(unittest.TestCase):
                                     np.size(indx),
                                 )
 
-    def testCrazyDate(self):
+    def test_crazy_date(self):
         """
         Test date that falls at akward time
         """
         if self.data_present:
             mjd = 60291.35423611111
             sm = self.sm
-            mags = sm.returnMags(mjd)
+            mags = sm.return_mags(mjd)
 
-            goodVals = np.where(mags["g"] != hp.UNSEEN)[0]
-            assert len(goodVals) > 0
+            good_vals = np.where(mags["g"] != hp.UNSEEN)[0]
+            assert len(good_vals) > 0
 
-    def testSBP(self):
+    def test_sbp(self):
         """
         Check that values are similar enough
         """
@@ -91,10 +91,10 @@ class TestSkyPre(unittest.TestCase):
             mag_tol = 0.27  # mags
 
             for mjd in mjds:
-                original_model.setRaDecMjd(ra, dec, mjd, degrees=True)
-                if original_model.sunAlt < np.radians(-12.0):
-                    sky1 = original_model.returnMags()
-                    sky2 = pre_calc_model.returnMags(mjd)
+                original_model.set_ra_dec_mjd(ra, dec, mjd, degrees=True)
+                if original_model.sun_alt < np.radians(-12.0):
+                    sky1 = original_model.return_mags()
+                    sky2 = pre_calc_model.return_mags(mjd)
                     am1 = original_model.airmass
 
                     for filtername in sky1:
@@ -113,7 +113,7 @@ class TestSkyPre(unittest.TestCase):
         # check that the sims_data stuff loads
         sm = sbp.SkyModelPre(init_load_length=3)
         mjd = self.sm.mjds[10] + 0.1
-        mags = sm.returnMags(mjd)
+        mags = sm.return_mags(mjd)
 
 
 if __name__ == "__main__":
