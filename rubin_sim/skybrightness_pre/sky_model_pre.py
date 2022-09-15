@@ -3,7 +3,7 @@ import glob
 import os
 import healpy as hp
 import warnings
-from rubin_sim.utils import _angularSeparation, _hpid2RaDec, survey_start_mjd
+from rubin_sim.utils import _angular_separation, _hpid2_ra_dec, survey_start_mjd
 from rubin_sim.data import get_data_dir
 import h5py
 
@@ -144,7 +144,7 @@ class SkyModelPre(object):
         self.load_length = load_length
         self.nside = 32
         hpid = np.arange(hp.nside2npix(self.nside))
-        self.ra, self.dec = _hpid2RaDec(self.nside, hpid)
+        self.ra, self.dec = _hpid2_ra_dec(self.nside, hpid)
 
     def _load_data(self, mjd, filename=None, npyfile=None):
         """
@@ -316,7 +316,7 @@ class SkyModelPre(object):
                 )[0]
                 for i, mi in enumerate(masked_indx):
                     # Note, this is going to be really slow for many pixels, should use a kdtree
-                    dist = _angularSeparation(
+                    dist = _angular_separation(
                         self.ra[indx[i]],
                         self.dec[indx[i]],
                         ra_full,

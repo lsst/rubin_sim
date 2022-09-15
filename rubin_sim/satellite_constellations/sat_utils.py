@@ -3,7 +3,7 @@ from rubin_sim.utils import (
     gnomonic_project_toxy,
     Site,
     survey_start_mjd,
-    pointToLineDistance,
+    point_to_line_distance,
 )
 from skyfield.api import load, wgs84, EarthSatellite
 from astropy import units as u
@@ -341,9 +341,9 @@ class Constellation(object):
             & ((sat_illum_1 == True) | (sat_illum_2 == True))
         )
 
-        # pointToLineDistance can take arrays, but they all need to be the same shape,
+        # point_to_line_distance can take arrays, but they all need to be the same shape,
         # thus why we broadcast pointing ra and dec above.
-        distances = pointToLineDistance(
+        distances = point_to_line_distance(
             sat_ra_1[above_illum_indx],
             sat_dec_1[above_illum_indx],
             sat_ra_2[above_illum_indx],

@@ -1,7 +1,7 @@
 from rubin_sim.utils import (
-    _raDec2Hpid,
-    _approx_RaDec2AltAz,
-    _angularSeparation,
+    ra_dec2_hpid,
+    _approx_ra_dec2_alt_az,
+    _angular_separation,
     _approx_altaz2pa,
 )
 import numpy as np
@@ -73,7 +73,7 @@ class Rottep2Rotsp_desired_detailer(Base_detailer):
     def __call__(self, observation_list, conditions):
         obs_array = np.concatenate(observation_list)
 
-        alt, az = _approx_RaDec2AltAz(
+        alt, az = _approx_ra_dec2_alt_az(
             obs_array["RA"],
             obs_array["dec"],
             conditions.site.latitude_rad,
@@ -105,7 +105,7 @@ class Zero_rot_detailer(Base_detailer):
 
         # XXX--should I convert the list into an array and get rid of this loop?
         for obs in observation_list:
-            alt, az = _approx_RaDec2AltAz(
+            alt, az = _approx_ra_dec2_alt_az(
                 obs["RA"],
                 obs["dec"],
                 conditions.site.latitude_rad,
@@ -144,7 +144,7 @@ class Comcam_90rot_detailer(Base_detailer):
     def __call__(self, observation_list, conditions):
         favored_rotSkyPos = np.radians([0.0, 90.0, 180.0, 270.0, 360.0]).reshape(5, 1)
         obs_array = np.concatenate(observation_list)
-        alt, az = _approx_RaDec2AltAz(
+        alt, az = _approx_ra_dec2_alt_az(
             obs_array["RA"],
             obs_array["dec"],
             conditions.site.latitude_rad,
@@ -202,7 +202,7 @@ class Close_alt_detailer(Base_detailer):
 
     def __call__(self, observation_list, conditions):
         obs_array = np.concatenate(observation_list)
-        alt, az = _approx_RaDec2AltAz(
+        alt, az = _approx_ra_dec2_alt_az(
             obs_array["RA"],
             obs_array["dec"],
             conditions.site.latitude_rad,
@@ -215,7 +215,7 @@ class Close_alt_detailer(Base_detailer):
             in_band = np.arange(alt.size)
 
         # Find the closest in angular distance of the points that are in band
-        ang_dist = _angularSeparation(
+        ang_dist = _angular_separation(
             az[in_band], alt[in_band], conditions.telAz, conditions.telAlt
         )
         good = np.min(np.where(ang_dist == ang_dist.min())[0])

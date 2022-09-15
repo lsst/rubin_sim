@@ -131,13 +131,13 @@ class BaseSpatialSlicer(BaseSlicer):
                 self.data_rot = np.radians(self.data_rot)
             self._setupLSSTCamera()
         if self.latLonDeg:
-            self._buildTree(
+            self._build_tree(
                 np.radians(simData[self.lonCol]),
                 np.radians(simData[self.latCol]),
                 self.leafsize,
             )
         else:
-            self._buildTree(simData[self.lonCol], simData[self.latCol], self.leafsize)
+            self._build_tree(simData[self.lonCol], simData[self.latCol], self.leafsize)
 
         @wraps(self._sliceSimData)
         def _sliceSimData(islice):
@@ -186,12 +186,12 @@ class BaseSpatialSlicer(BaseSlicer):
             units="radians", footprint_file=self.cameraFootprintFile
         )
 
-    def _buildTree(self, simDataRa, simDataDec, leafsize=100):
+    def _build_tree(self, simDataRa, simDataDec, leafsize=100):
         """Build KD tree on simDataRA/Dec using utility function from mafUtils.
 
         simDataRA, simDataDec = RA and Dec values (in radians).
         leafsize = the number of Ra/Dec pointings in each leaf node."""
-        self.opsimtree = simsUtils._buildTree(simDataRa, simDataDec, leafsize)
+        self.opsimtree = simsUtils._build_tree(simDataRa, simDataDec, leafsize)
 
     def _setRad(self, radius=1.75):
         """Set radius (in degrees) for kdtree search using utility function from mafUtils."""

@@ -1,6 +1,6 @@
 import numpy as np
 
-from rubin_sim.utils import _raDec2Hpid
+from rubin_sim.utils import ra_dec2_hpid
 
 from .dd_surveys import Deep_drilling_survey
 
@@ -51,10 +51,10 @@ class FieldSurvey(Deep_drilling_survey):
 
     def calc_reward_function(self, conditions):
         self.reward_checked = True
-        indx = _raDec2Hpid(self.nside, self.ra, self.dec)
+        indx = ra_dec2_hpid(self.nside, self.ra, self.dec)
         if self._check_feasibility(conditions):
             self.reward = 0
-            indx = _raDec2Hpid(self.nside, self.ra, self.dec)
+            indx = ra_dec2_hpid(self.nside, self.ra, self.dec)
             for bf, weight in zip(self.basis_functions, self.basis_weights):
                 basis_value = bf(conditions, indx=indx)
                 self.reward += basis_value * weight

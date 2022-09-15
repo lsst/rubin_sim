@@ -1,5 +1,5 @@
 from rubin_sim.scheduler.detailers import Base_detailer
-from rubin_sim.utils import _raDec2Hpid, m5_flat_sed
+from rubin_sim.utils import ra_dec2_hpid, m5_flat_sed
 import numpy as np
 import healpy as hp
 
@@ -88,7 +88,7 @@ class Vary_expt_detailer(Base_detailer):
         List of observations.
         """
         obs_array = np.concatenate(observation_list)
-        hpids = _raDec2Hpid(self.nside, obs_array["RA"], obs_array["dec"])
+        hpids = ra_dec2_hpid(self.nside, obs_array["RA"], obs_array["dec"])
         new_expts = np.zeros(obs_array.size, dtype=float)
         for filtername in np.unique(obs_array["filter"]):
             in_filt = np.where(obs_array["filter"] == filtername)

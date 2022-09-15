@@ -114,13 +114,13 @@ class HealpixComCamSlicer(HealpixSlicer):
             self._presliceFootprint(simData)
         else:
             if self.latLonDeg:
-                self._buildTree(
+                self._build_tree(
                     np.radians(simData[self.lonCol]),
                     np.radians(simData[self.latCol]),
                     self.leafsize,
                 )
             else:
-                self._buildTree(
+                self._build_tree(
                     simData[self.lonCol], simData[self.latCol], self.leafsize
                 )
 

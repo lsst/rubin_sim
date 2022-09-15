@@ -1,6 +1,6 @@
 import numpy as np
 import healpy as hp
-from rubin_sim.utils import _hpid2RaDec, Site, _angularSeparation, _xyz_from_ra_dec
+from rubin_sim.utils import _hpid2_ra_dec, Site, _angular_separation, _xyz_from_ra_dec
 import matplotlib.pylab as plt
 from rubin_sim.scheduler.basis_functions import Base_basis_function
 from rubin_sim.scheduler.utils import hp_in_lsst_fov, int_rounded
@@ -205,7 +205,7 @@ class Zenith_shadow_mask_basis_function(Base_basis_function):
 
         self.min_alt = np.radians(min_alt)
         self.max_alt = np.radians(max_alt)
-        self.ra, self.dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
+        self.ra, self.dec = _hpid2_ra_dec(nside, np.arange(hp.nside2npix(nside)))
         self.shadow_minutes = np.radians(shadow_minutes / 60.0 * 360.0 / 24.0)
         # Compute the declination band where things could drift into zenith
         self.decband = np.zeros(self.dec.size, dtype=float)
@@ -266,7 +266,7 @@ class Moon_avoidance_basis_function(Base_basis_function):
     def _calc_value(self, conditions, indx=None):
         result = self.result.copy()
 
-        angular_distance = _angularSeparation(
+        angular_distance = _angular_separation(
             conditions.az, conditions.alt, conditions.moonAz, conditions.moonAlt
         )
 
