@@ -1,9 +1,9 @@
 import numpy as np
 
-__all__ = ["wrapRA", "robustRMS"]
+__all__ = ["wrap_ra", "robust_rms"]
 
 
-def wrapRA(ra):
+def wrap_ra(ra):
     """
     Wrap only RA values into 0-2pi (using mod).
     """
@@ -11,7 +11,7 @@ def wrapRA(ra):
     return ra
 
 
-def robustRMS(array, missing=0.0):
+def robust_rms(array, missing=0.0):
     """
     Use the interquartile range to compute a robust approximation of the RMS.
     if passed an array smaller than 2 elements, return missing value

@@ -760,7 +760,7 @@ class SkyModelZernike:
             self.zernike_model[band] = sky
         self.nside = sky.nside
 
-    def returnMags(
+    def return_mags(
         self,
         mjd,
         indx=None,
