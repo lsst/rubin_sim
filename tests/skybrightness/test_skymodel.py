@@ -50,7 +50,7 @@ class TestSkyModel(unittest.TestCase):
             cls._sm_spec2 = sb.SkyModel(mags=False)
         return cls._sm_spec2
 
-    def testmergedComp(self):
+    def testmerged_comp(self):
         """
         Test that the 3 components that have been merged return the
         same result if they are computed independently
@@ -60,28 +60,28 @@ class TestSkyModel(unittest.TestCase):
             twilight=False,
             zodiacal=False,
             moon=False,
-            lowerAtm=False,
-            upperAtm=False,
+            lower_atm=False,
+            upper_atm=False,
             airglow=False,
-            scatteredStar=False,
-            mergedSpec=True,
+            scattered_star=False,
+            merged_spec=True,
         )
-        sky1.setRaDecMjd([36.0], [-68.0], 49353.18, degrees=True)
+        sky1.set_ra_dec_mjd([36.0], [-68.0], 49353.18, degrees=True)
 
         sky2 = sb.SkyModel(
             twilight=False,
             zodiacal=False,
             moon=False,
-            lowerAtm=True,
-            upperAtm=True,
+            lower_atm=True,
+            upper_atm=True,
             airglow=False,
-            scatteredStar=True,
-            mergedSpec=False,
+            scattered_star=True,
+            merged_spec=False,
         )
-        sky2.setRaDecMjd([36.0], [-68.0], 49353.18, degrees=True)
+        sky2.set_ra_dec_mjd([36.0], [-68.0], 49353.18, degrees=True)
 
-        dummy, spec1 = sky1.returnWaveSpec()
-        dummy, spec2 = sky2.returnWaveSpec()
+        dummy, spec1 = sky1.return_wave_spec()
+        dummy, spec2 = sky2.return_wave_spec()
 
         np.testing.assert_almost_equal(spec1, spec2)
 
@@ -90,95 +90,95 @@ class TestSkyModel(unittest.TestCase):
             twilight=False,
             zodiacal=False,
             moon=False,
-            lowerAtm=False,
-            upperAtm=False,
+            lower_atm=False,
+            upper_atm=False,
             airglow=False,
-            scatteredStar=False,
-            mergedSpec=True,
+            scattered_star=False,
+            merged_spec=True,
             mags=True,
         )
-        sky1.setRaDecMjd([36.0], [-68.0], 49353.18, degrees=True)
+        sky1.set_ra_dec_mjd([36.0], [-68.0], 49353.18, degrees=True)
 
         sky2 = sb.SkyModel(
             twilight=False,
             zodiacal=False,
             moon=False,
-            lowerAtm=True,
-            upperAtm=True,
+            lower_atm=True,
+            upper_atm=True,
             airglow=False,
-            scatteredStar=True,
-            mergedSpec=False,
+            scattered_star=True,
+            merged_spec=False,
             mags=True,
         )
-        sky2.setRaDecMjd([36.0], [-68.0], 49353.18, degrees=True)
+        sky2.set_ra_dec_mjd([36.0], [-68.0], 49353.18, degrees=True)
 
-        m1 = sky1.returnMags()
-        m2 = sky2.returnMags()
+        m1 = sky1.return_mags()
+        m2 = sky2.return_mags()
         for key in m1:
             np.testing.assert_almost_equal(m1[key], m2[key], decimal=2)
 
-    def testSetups(self):
+    def test_setups(self):
         """
         Check that things are the same if the model is set up with
         radecmjd or all the parameters independently
         """
 
         sm1 = self.sm_spec
-        sm1.setRaDecMjd([36.0], [-68.0], 49353.18, degrees=True)
+        sm1.set_ra_dec_mjd([36.0], [-68.0], 49353.18, degrees=True)
 
         sm2 = self.sm_spec2
-        sm2.setParams(
+        sm2.set_params(
             azs=sm1.azs,
             alts=sm1.alts,
-            moonPhase=sm1.moonPhase,
-            moonAlt=sm1.moonAlt,
-            moonAz=sm1.moonAz,
-            sunAlt=sm1.sunAlt,
-            sunAz=sm1.sunAz,
-            sunEclipLon=sm1.sunEclipLon,
-            eclipLon=sm1.eclipLon,
-            eclipLat=sm1.eclipLat,
-            solarFlux=sm1.solarFlux,
+            moon_phase=sm1.moon_phase,
+            moon_alt=sm1.moon_alt,
+            moon_az=sm1.moon_az,
+            sun_alt=sm1.sun_alt,
+            sun_az=sm1.sun_az,
+            sun_eclip_lon=sm1.sun_eclip_lon,
+            eclip_lon=sm1.eclip_lon,
+            eclip_lat=sm1.eclip_lat,
+            solar_flux=sm1.solar_flux,
             degrees=False,
         )
 
-        dummy, spec1 = sm1.returnWaveSpec()
-        dummy, spec2 = sm2.returnWaveSpec()
+        dummy, spec1 = sm1.return_wave_spec()
+        dummy, spec2 = sm2.return_wave_spec()
 
         np.testing.assert_array_equal(spec1, spec2)
 
         # Check that the degrees kwarg works
-        sm2.setParams(
+        sm2.set_params(
             azs=np.degrees(sm1.azs),
             alts=np.degrees(sm1.alts),
-            moonPhase=sm1.moonPhase,
-            moonAlt=np.degrees(sm1.moonAlt),
-            moonAz=np.degrees(sm1.moonAz),
-            sunAlt=np.degrees(sm1.sunAlt),
-            sunAz=np.degrees(sm1.sunAz),
-            sunEclipLon=np.degrees(sm1.sunEclipLon),
-            eclipLon=np.degrees(sm1.eclipLon),
-            eclipLat=np.degrees(sm1.eclipLat),
-            solarFlux=sm1.solarFlux,
+            moon_phase=sm1.moon_phase,
+            moon_alt=np.degrees(sm1.moon_alt),
+            moon_az=np.degrees(sm1.moon_az),
+            sun_alt=np.degrees(sm1.sun_alt),
+            sun_az=np.degrees(sm1.sun_az),
+            sun_eclip_lon=np.degrees(sm1.sun_eclip_lon),
+            eclip_lon=np.degrees(sm1.eclip_lon),
+            eclip_lat=np.degrees(sm1.eclip_lat),
+            solar_flux=sm1.solar_flux,
             degrees=True,
         )
 
-        atList = [
+        at_list = [
             "azs",
             "alts",
-            "moonPhase",
-            "moonAlt",
-            "moonAz",
-            "sunAlt",
-            "sunAz",
-            "sunEclipLon",
-            "eclipLon",
-            "eclipLat",
-            "solarFlux",
+            "moon_phase",
+            "moon_alt",
+            "moon_az",
+            "sun_alt",
+            "sun_az",
+            "sun_eclip_lon",
+            "eclip_lon",
+            "eclip_lat",
+            "solar_flux",
         ]
 
         # Check each attribute that should match
-        for attr in atList:
+        for attr in at_list:
             np.testing.assert_allclose(getattr(sm1, attr), getattr(sm2, attr))
 
         # Check the interpolation points
@@ -188,31 +188,31 @@ class TestSkyModel(unittest.TestCase):
         # Check the final output spectra
         np.testing.assert_allclose(sm1.spec, sm2.spec)
 
-    def testMags(self):
+    def test_mags(self):
         """
         Test that the interpolated mags are similar to mags computed from interpolated spectra
         """
 
-        throughPath = os.path.join(get_data_dir(), "throughputs", "baseline")
+        through_path = os.path.join(get_data_dir(), "throughputs", "baseline")
         filters = ["u", "g", "r", "i", "z", "y"]
 
         bps = {}
-        for filterName in filters:
+        for filter_name in filters:
             bp = np.loadtxt(
-                os.path.join(throughPath, "total_%s.dat" % filterName),
+                os.path.join(through_path, "total_%s.dat" % filter_name),
                 dtype=list(zip(["wave", "trans"], [float] * 2)),
             )
             lsst_bp = Bandpass()
             lsst_bp.set_bandpass(bp["wave"], bp["trans"])
-            bps[filterName] = lsst_bp
+            bps[filter_name] = lsst_bp
 
         sm1 = self.sm_spec
-        sm1.setRaDecMjd([36.0], [-68.0], 49353.18, degrees=True)
-        mags1 = sm1.returnMags(bandpasses=bps)
+        sm1.set_ra_dec_mjd([36.0], [-68.0], 49353.18, degrees=True)
+        mags1 = sm1.return_mags(bandpasses=bps)
 
         sm2 = self.sm_mags
-        sm2.setRaDecMjd([36.0], [-68.0], 49353.18, degrees=True)
-        mag2 = sm2.returnMags()
+        sm2.set_ra_dec_mjd([36.0], [-68.0], 49353.18, degrees=True)
+        mag2 = sm2.return_mags()
 
         # Let's set the tolerance for matching the throughputs to be 0.001
         # This allows for small changes in the filter throughputs without requiring recomputation of
@@ -220,109 +220,119 @@ class TestSkyModel(unittest.TestCase):
         for i, filtername in enumerate(filters):
             np.testing.assert_allclose(mags1[filtername], mag2[filtername], rtol=5e-3)
 
-    def testGetComputed(self):
+    def test_get_computed(self):
         """
         Make sure we can recover computed values.
         """
 
         sm = self.sm_mags
-        sm.setRaDecMjd([36.0, 36.0], [-68.0, -70.0], 49353.18, degrees=True)
-        valDict = sm.getComputedVals()
+        sm.set_ra_dec_mjd([36.0, 36.0], [-68.0, -70.0], 49353.18, degrees=True)
+        val_dict = sm.get_computed_vals()
 
-        attrToCheck = [
+        attr_to_check = [
             "ra",
             "dec",
             "alts",
             "azs",
             "airmass",
-            "solarFlux",
-            "moonPhase",
-            "moonAz",
-            "moonAlt",
-            "sunAlt",
-            "sunAz",
-            "azRelSun",
-            "moonSunSep",
-            "azRelMoon",
-            "eclipLon",
-            "eclipLat",
-            "moonRA",
-            "moonDec",
-            "sunRA",
-            "sunDec",
-            "sunEclipLon",
+            "solar_flux",
+            "moon_phase",
+            "moon_az",
+            "moon_alt",
+            "sun_alt",
+            "sun_az",
+            "az_rel_sun",
+            "moon_sun_sep",
+            "az_rel_moon",
+            "eclip_lon",
+            "eclip_lat",
+            "moon_ra",
+            "moon_dec",
+            "sun_ra",
+            "sun_dec",
+            "sun_eclip_lon",
         ]
 
-        for attr in attrToCheck:
-            assert attr in valDict
-            if np.size(valDict[attr]) > 1:
-                np.testing.assert_array_equal(getattr(sm, attr), valDict[attr])
+        for attr in attr_to_check:
+            assert attr in val_dict
+            if np.size(val_dict[attr]) > 1:
+                np.testing.assert_array_equal(getattr(sm, attr), val_dict[attr])
             else:
-                self.assertEqual(getattr(sm, attr), valDict[attr])
+                self.assertEqual(getattr(sm, attr), val_dict[attr])
 
         # Check that things that should be radians are in radian range
-        radList = [
+        rad_list = [
             "ra",
             "azs",
-            "moonAz",
-            "sunAz",
-            "azRelSun",
-            "azRelMoon",
-            "eclipLon",
-            "moonRA",
-            "sunRA",
-            "sunEclipLon",
+            "moon_az",
+            "sun_az",
+            "az_rel_sun",
+            "az_rel_moon",
+            "eclip_lon",
+            "moon_ra",
+            "sun_ra",
+            "sun_eclip_lon",
         ]
 
-        for attr in radList:
-            if valDict[attr] is not None:
-                assert np.min(valDict[attr]) >= 0
-                assert np.max(valDict[attr]) <= 2.0 * np.pi
+        for attr in rad_list:
+            if val_dict[attr] is not None:
+                assert np.min(val_dict[attr]) >= 0
+                assert np.max(val_dict[attr]) <= 2.0 * np.pi
 
         # Radians in negative to positive pi range
-        radList = ["moonAlt", "sunAlt", "alts", "dec", "moonDec", "sunDec", "eclipLat"]
-        for attr in radList:
-            if valDict[attr] is not None:
-                assert np.min(valDict[attr]) >= -np.pi
-                assert np.max(valDict[attr]) <= np.pi
+        rad_list = [
+            "moon_alt",
+            "sun_alt",
+            "alts",
+            "dec",
+            "moon_dec",
+            "sun_dec",
+            "eclip_lat",
+        ]
+        for attr in rad_list:
+            if val_dict[attr] is not None:
+                assert np.min(val_dict[attr]) >= -np.pi
+                assert np.max(val_dict[attr]) <= np.pi
 
-    def test90Deg(self):
+    def test90_deg(self):
         """
         Make sure we can look all the way to 90 degree altitude.
         """
         mjd = 56973.268218
         sm = self.sm_mags
-        sm.setRaDecMjd(0.0, 90.0, mjd, degrees=True, azAlt=True)
-        mags = sm.returnMags()
+        sm.set_ra_dec_mjd(0.0, 90.0, mjd, degrees=True, az_alt=True)
+        mags = sm.return_mags()
         for key in mags:
             assert True not in np.isnan(mags[key])
         assert True not in np.isnan(sm.spec)
 
-    def testFewerMags(self):
+    def test_fewer_mags(self):
         """
         Test that can call and only interpolate a few magnitudes.
         """
         mjd = 56973.268218
         sm = self.sm_mags
-        sm.setRaDecMjd(0.0, 90.0, mjd, degrees=True, azAlt=True)
-        all_mags = sm.returnMags()
+        sm.set_ra_dec_mjd(0.0, 90.0, mjd, degrees=True, az_alt=True)
+        all_mags = sm.return_mags()
 
-        filterNames = ["u", "g", "r", "i", "z", "y"]
-        for filterName in filterNames:
-            sm.setRaDecMjd(
-                0.0, 90.0, mjd, degrees=True, azAlt=True, filterNames=[filterName]
+        filter_names = ["u", "g", "r", "i", "z", "y"]
+        for filter_name in filter_names:
+            sm.set_ra_dec_mjd(
+                0.0, 90.0, mjd, degrees=True, az_alt=True, filter_names=[filter_name]
             )
-            one_mag = sm.returnMags()
-            self.assertEqual(all_mags[filterName], one_mag[filterName])
+            one_mag = sm.return_mags()
+            self.assertEqual(all_mags[filter_name], one_mag[filter_name])
 
         # Test that I can do subset of mags
         subset = ["u", "r", "y"]
-        sm.setRaDecMjd(0.0, 90.0, mjd, degrees=True, azAlt=True, filterNames=subset)
-        sub_mags = sm.returnMags()
-        for filterName in subset:
-            self.assertEqual(all_mags[filterName], sub_mags[filterName])
+        sm.set_ra_dec_mjd(
+            0.0, 90.0, mjd, degrees=True, az_alt=True, filter_names=subset
+        )
+        sub_mags = sm.return_mags()
+        for filter_name in subset:
+            self.assertEqual(all_mags[filter_name], sub_mags[filter_name])
 
-    def test_setRaDecAltAzMjd(self):
+    def test_set_ra_dec_alt_az_mjd(self):
         """
         Make sure sending in self-computed alt, az works
         """
@@ -331,13 +341,13 @@ class TestSkyModel(unittest.TestCase):
         ra = np.array([0.0, 0.0, 0.0])
         dec = np.array([-0.1, -0.2, -0.3])
         mjd = 5900
-        sm1.setRaDecMjd(ra, dec, mjd)
-        m1 = sm1.returnMags()
-        sm2.setRaDecAltAzMjd(ra, dec, sm1.alts, sm1.azs, mjd)
-        m2 = sm1.returnMags()
+        sm1.set_ra_dec_mjd(ra, dec, mjd)
+        m1 = sm1.return_mags()
+        sm2.set_ra_dec_alt_az_mjd(ra, dec, sm1.alts, sm1.azs, mjd)
+        m2 = sm1.return_mags()
 
-        attrList = ["ra", "dec", "alts", "azs"]
-        for attr in attrList:
+        attr_list = ["ra", "dec", "alts", "azs"]
+        for attr in attr_list:
             np.testing.assert_equal(getattr(sm1, attr), getattr(sm2, attr))
 
         for key in m1:

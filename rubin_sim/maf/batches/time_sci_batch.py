@@ -73,15 +73,15 @@ def phaseGap(
         'filter="g" or filter="r" or filter="i" or filter="z"',
         "",
     ]
-    filterNames = ["u", "r", "griz", "all"]
-    info_labels = filterNames
+    filter_names = ["u", "r", "griz", "all"]
+    info_labels = filter_names
     if info_label is not None:
         info_labels = [combineInfoLabels(m, info_label) for m in info_labels]
     if extraSql is not None and len(extraSql) > 0:
         for sql in sqls:
             sqls[sql] = "(%s) and (%s)" % (sqls[sql], extraSql)
 
-    for sql, md, f in zip(sqls, info_labels, filterNames):
+    for sql, md, f in zip(sqls, info_labels, filter_names):
         for period in periods:
             displayDict = {
                 "group": "PhaseGap",
