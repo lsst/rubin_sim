@@ -8,7 +8,7 @@ from .kne_metrics import KN_lc
 from itertools import combinations
 import pickle
 import warnings
-from rubin_sim.utils import uniformSphere, survey_start_mjd
+from rubin_sim.utils import uniform_sphere, survey_start_mjd
 from rubin_sim.phot_utils import DustValues
 from rubin_sim.data import get_data_dir
 
@@ -104,7 +104,7 @@ def generatePrestoPopSlicer(
         ag, bg = a**g, b**g
         return (ag + (bg - ag) * r) ** (1.0 / g)
 
-    ra, dec = uniformSphere(n_events, seed=seed)
+    ra, dec = uniform_sphere(n_events, seed=seed)
 
     ###Convert ra, dec to gl, gb
     gl, gb = radec2gal(ra, dec)

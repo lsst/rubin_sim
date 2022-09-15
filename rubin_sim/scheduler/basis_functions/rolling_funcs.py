@@ -5,7 +5,7 @@ import healpy as hp
 import matplotlib.pylab as plt
 import warnings
 from rubin_sim.scheduler.basis_functions import Base_basis_function
-from rubin_sim.utils import _hpid2RaDec
+from rubin_sim.utils import _hpid2_ra_dec
 
 
 __all__ = [

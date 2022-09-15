@@ -3,7 +3,7 @@ import astropy.units as u
 from astropy.time import Time
 from rubin_sim.utils import Site
 from astropy.coordinates import get_sun, get_moon, EarthLocation, AltAz
-from rubin_sim.utils import _angularSeparation
+from rubin_sim.utils import _angular_separation
 
 # want to generate moon and sun position information.
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     sun_moon_info["moon_alt"] = moon_aa.alt.rad
     sun_moon_info["moon_az"] = moon_aa.az.rad
 
-    sun_moon_sep = _angularSeparation(
+    sun_moon_sep = _angular_separation(
         sun.ra.rad, sun.dec.rad, moon.ra.rad, moon.dec.rad
     )
     sun_moon_info["moon_phase"] = sun_moon_sep / np.pi * 100.0

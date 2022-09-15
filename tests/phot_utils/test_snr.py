@@ -187,10 +187,10 @@ class TestSNRmethods(unittest.TestCase):
         phot_params = PhotometricParameters(sigma_sys=sigma_sys)
 
         obs_metadata = ObservationMetaData(
-            pointingRA=23.0,
-            pointingDec=45.0,
+            pointing_ra=23.0,
+            pointing_dec=45.0,
             m5=m5_list,
-            bandpassName=self.filter_name_list,
+            bandpass_name=self.filter_name_list,
         )
         magnitude_list = []
         for bp in self.bp_list:
@@ -257,10 +257,10 @@ class TestSNRmethods(unittest.TestCase):
         phot_params = PhotometricParameters(sigma_sys=0.0)
 
         obs_metadata = ObservationMetaData(
-            pointingRA=23.0,
-            pointingDec=45.0,
+            pointing_ra=23.0,
+            pointing_dec=45.0,
             m5=m5_list,
-            bandpassName=self.filter_name_list,
+            bandpass_name=self.filter_name_list,
         )
 
         magnitude_list = []

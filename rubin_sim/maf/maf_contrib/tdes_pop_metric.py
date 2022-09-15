@@ -1,7 +1,7 @@
 import numpy as np
 import rubin_sim.maf.metrics as metrics
 import os
-from rubin_sim.utils import uniformSphere, survey_start_mjd
+from rubin_sim.utils import uniform_sphere, survey_start_mjd
 import rubin_sim.maf.slicers as slicers
 import glob
 from rubin_sim.phot_utils import DustValues
@@ -337,7 +337,7 @@ def generateTdePopSlicer(t_start=1, t_end=3652, n_events=10000, seed=42, n_files
         The number of different TDE lightcurves to use
     """
 
-    ra, dec = uniformSphere(n_events, seed=seed)
+    ra, dec = uniform_sphere(n_events, seed=seed)
     peak_times = np.random.uniform(low=t_start, high=t_end, size=n_events)
     file_indx = np.floor(np.random.uniform(low=0, high=n_files, size=n_events)).astype(
         int

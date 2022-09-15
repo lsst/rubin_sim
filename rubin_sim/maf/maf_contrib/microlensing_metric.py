@@ -2,7 +2,7 @@ import numpy as np
 from rubin_sim.maf.utils import m52snr
 import rubin_sim.maf.metrics as metrics
 import os
-from rubin_sim.utils import hpid2RaDec, equatorialFromGalactic
+from rubin_sim.utils import hpid2_ra_dec, equatorial_from_galactic
 import rubin_sim.maf.slicers as slicers
 from rubin_sim.data import get_data_dir
 from copy import deepcopy
@@ -601,8 +601,8 @@ def generateMicrolensingSlicer(
     uniform_draw = np.random.uniform(size=n_events)
     indexes = np.floor(np.interp(uniform_draw, cumm_dist, np.arange(cumm_dist.size)))
     hp_ids = order[indexes.astype(int)]
-    gal_l, gal_b = hpid2RaDec(nside, hp_ids, nest=True)
-    ra, dec = equatorialFromGalactic(gal_l, gal_b)
+    gal_l, gal_b = hpid2_ra_dec(nside, hp_ids, nest=True)
+    ra, dec = equatorial_from_galactic(gal_l, gal_b)
 
     # Set up the slicer to evaluate the catalog we just made
     slicer = slicers.UserPointsSlicer(ra, dec, latLonDeg=True, badval=0)

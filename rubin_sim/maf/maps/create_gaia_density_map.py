@@ -19,7 +19,7 @@ if __name__ == "__main__":
     from rubin_sim.catalogs.db import DBObject
     from rubin_sim.utils import halfSpaceFromRaDec
     from rubin_sim.utils import levelFromHtmid
-    from rubin_sim.utils import angularSeparation, raDec2Hpid
+    from rubin_sim.utils import angular_separation, raDec2Hpid
 
     # from rubin_sim.catalogs.generation.db import CatalogDBObject
     # Import the bits needed to get the catalog to work
@@ -67,8 +67,8 @@ if __name__ == "__main__":
 
     print("")
     # Look at a cirular area the same area as the healpix it's centered on.
-    boundLength = hpsizeDeg / np.pi**0.5
-    radius = boundLength
+    bound_length = hpsizeDeg / np.pi**0.5
+    radius = bound_length
 
     blockArea = hpsizeDeg**2  # sq deg
 
@@ -81,12 +81,12 @@ if __name__ == "__main__":
     chunk_size = 10000
     for i in np.arange(indxMin, int(npix)):
         lastCP = ""
-        # wonder what the units of boundLength are...degrees! And it's a radius
+        # wonder what the units of bound_length are...degrees! And it's a radius
         # The newer interface:
-        # obs_metadata = ObservationMetaData(boundType='circle',
-        ##                                   pointingRA=np.degrees(ra[i]),
-        #                                   pointingDec=np.degrees(dec[i]),
-        #                                   boundLength=boundLength, mjd=5700)
+        # obs_metadata = ObservationMetaData(bound_type='circle',
+        ##                                   pointing_ra=np.degrees(ra[i]),
+        #                                   pointing_dec=np.degrees(dec[i]),
+        #                                   bound_length=bound_length, mjd=5700)
 
         # t = dbobj.getCatalog('ref_catalog_star', obs_metadata=obs_metadata)
         hs = halfSpaceFromRaDec(ra[i], dec[i], radius)
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         )
         result = list(results)[0]
 
-        distances = angularSeparation(
+        distances = angular_separation(
             result["ra"], result["dec"], ra[i], dec[i]
         )  # Degrees
         result = result[np.where(distances < radius)]
