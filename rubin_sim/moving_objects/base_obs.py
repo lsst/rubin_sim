@@ -6,7 +6,7 @@ import datetime
 
 from rubin_sim.phot_utils import Bandpass
 from rubin_sim.phot_utils import Sed
-from rubin_sim.utils import angularSeparation
+from rubin_sim.utils import angular_separation
 from rubin_sim.data import get_data_dir
 
 from .ooephemerides import PyOrbEphemerides
@@ -317,14 +317,14 @@ class BaseObs(object):
 
     def _sso_in_circle_fov(self, ephems, obs_data, r_fov):
         if not self.obs_degrees:
-            sep = angularSeparation(
+            sep = angular_separation(
                 ephems["ra"],
                 ephems["dec"],
                 np.degrees(obs_data[self.obs_ra]),
                 np.degrees(obs_data[self.obs_dec]),
             )
         else:
-            sep = angularSeparation(
+            sep = angular_separation(
                 ephems["ra"],
                 ephems["dec"],
                 obs_data[self.obs_ra],

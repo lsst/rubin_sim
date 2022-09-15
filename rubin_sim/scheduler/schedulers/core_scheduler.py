@@ -7,14 +7,14 @@ from builtins import object
 import numpy as np
 import healpy as hp
 import pandas as pd
-from rubin_sim.utils import _hpid2RaDec
+from rubin_sim.utils import _hpid2_ra_dec
 from rubin_sim.scheduler.utils import (
     hp_in_lsst_fov,
     set_default_nside,
     hp_in_comcam_fov,
     int_rounded,
 )
-from rubin_sim.utils import _approx_RaDec2AltAz, _approx_altaz2pa
+from rubin_sim.utils import _approx_ra_dec2_alt_az, _approx_altaz2pa
 import logging
 
 
@@ -77,7 +77,7 @@ class Core_scheduler(object):
             self.survey_lists = [surveys]
         self.nside = nside
         hpid = np.arange(hp.nside2npix(nside))
-        self.ra_grid_rad, self.dec_grid_rad = _hpid2RaDec(nside, hpid)
+        self.ra_grid_rad, self.dec_grid_rad = _hpid2_ra_dec(nside, hpid)
         # Should just make camera a class that takes a pointing and returns healpix indices
         if camera == "LSST":
             self.pointing2hpindx = hp_in_lsst_fov(nside=nside)
@@ -198,7 +198,7 @@ class Core_scheduler(object):
             observation = self.queue.pop(0)
             # If we are limiting the camera rotator
             if self.rotator_limits is not None:
-                alt, az = _approx_RaDec2AltAz(
+                alt, az = _approx_ra_dec2_alt_az(
                     observation["RA"],
                     observation["dec"],
                     self.conditions.site.latitude_rad,

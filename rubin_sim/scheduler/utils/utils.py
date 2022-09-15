@@ -7,9 +7,9 @@ import healpy as hp
 import pandas as pd
 import matplotlib.path as mplPath
 from rubin_sim.utils import (
-    _hpid2RaDec,
+    _hpid2_ra_dec,
     xyz_angular_radius,
-    _buildTree,
+    _build_tree,
     _xyz_from_ra_dec,
 )
 from rubin_sim.site_models import FieldsDatabase
@@ -695,8 +695,8 @@ def hp_kd_tree(nside=None, leafsize=100, scale=1e5):
         nside = set_default_nside()
 
     hpid = np.arange(hp.nside2npix(nside))
-    ra, dec = _hpid2RaDec(nside, hpid)
-    return _buildTree(ra, dec, leafsize, scale=scale)
+    ra, dec = _hpid2_ra_dec(nside, hpid)
+    return _build_tree(ra, dec, leafsize, scale=scale)
 
 
 class hp_in_lsst_fov(object):
@@ -823,7 +823,7 @@ class hp_in_comcam_fov(object):
             )
         )
 
-        ra_to_check, dec_to_check = _hpid2RaDec(self.nside, indices_to_check)
+        ra_to_check, dec_to_check = _hpid2_ra_dec(self.nside, indices_to_check)
 
         # Project the indices to check to the tangent plane, see if they fall inside the polygon
         x, y = gnomonic_project_toxy(ra_to_check, dec_to_check, ra, dec)
@@ -949,7 +949,7 @@ def create_season_offset(nside, sun_RA_rad):
     Make an offset map so seasons roll properly
     """
     hpindx = np.arange(hp.nside2npix(nside))
-    ra, dec = _hpid2RaDec(nside, hpindx)
+    ra, dec = _hpid2_ra_dec(nside, hpindx)
     offset = ra - sun_RA_rad + 2.0 * np.pi
     offset = offset % (np.pi * 2)
     offset = offset * 365.25 / (np.pi * 2)

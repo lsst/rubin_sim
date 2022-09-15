@@ -115,7 +115,7 @@ def generate_sky(
     required_mjds = mjds[::3]
 
     hpindx = np.arange(hp.nside2npix(nside))
-    az, alt = utils.hpid2RaDec(nside, hpindx)
+    az, alt = utils.hpid2_ra_dec(nside, hpindx)
     above_alt_limit = np.where(alt > alt_limit)[0]
 
     if verbose:

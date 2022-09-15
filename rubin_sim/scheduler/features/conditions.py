@@ -2,12 +2,12 @@ from io import StringIO
 import numpy as np
 import pandas as pd
 from rubin_sim.utils import (
-    _approx_RaDec2AltAz,
+    _approx_ra_dec2_alt_az,
     Site,
-    _hpid2RaDec,
+    _hpid2_ra_dec,
     m5_flat_sed,
     _approx_altaz2pa,
-    _angularSeparation,
+    _angular_separation,
 )
 import healpy as hp
 from rubin_sim.scheduler.utils import (
@@ -204,7 +204,7 @@ class Conditions(object):
         self.nan_map = np.zeros(hp.nside2npix(nside), dtype=float)
         self.nan_map.fill(np.nan)
         # The RA, Dec grid we are using
-        self.ra, self.dec = _hpid2RaDec(nside, hpids)
+        self.ra, self.dec = _hpid2_ra_dec(nside, hpids)
 
         # Modified Julian Date (day)
         self._mjd = None
@@ -353,7 +353,7 @@ class Conditions(object):
         return self._az
 
     def calc_altAz(self):
-        self._alt, self._az = _approx_RaDec2AltAz(
+        self._alt, self._az = _approx_ra_dec2_alt_az(
             self.ra,
             self.dec,
             self.site.latitude_rad,
@@ -423,7 +423,7 @@ class Conditions(object):
             )
 
     def calc_solar_elongation(self):
-        self._solar_elongation = _angularSeparation(
+        self._solar_elongation = _angular_separation(
             self.ra, self.dec, self.sunRA, self.sunDec
         )
 

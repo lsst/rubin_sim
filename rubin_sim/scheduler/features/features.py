@@ -3,7 +3,7 @@ from builtins import object
 import numpy as np
 import healpy as hp
 from rubin_sim.scheduler import utils
-from rubin_sim.utils import m5_flat_sed, _raDec2Hpid, calcSeason, _hpid2RaDec
+from rubin_sim.utils import m5_flat_sed, ra_dec2_hpid, calc_season, _hpid2_ra_dec
 from rubin_sim.skybrightness_pre import dark_sky
 from rubin_sim.scheduler.utils import int_rounded
 
@@ -414,15 +414,15 @@ class N_observations_current_season(BaseSurveyFeature):
         if self.filtername is not None:
             self.dark_map = dark_sky(nside)[filtername]
         self.ones = np.ones(hp.nside2npix(self.nside))
-        self.ra, self.dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
-        self.season_map = calcSeason(np.degrees(self.ra), mjd_start)
+        self.ra, self.dec = _hpid2_ra_dec(nside, np.arange(hp.nside2npix(nside)))
+        self.season_map = calc_season(np.degrees(self.ra), mjd_start)
 
     def season_update(self, observation=None, conditions=None):
         """clear the map anywhere the season has rolled over"""
         if observation is not None:
-            current_season = calcSeason(np.degrees(self.ra), observation["mjd"])
+            current_season = calc_season(np.degrees(self.ra), observation["mjd"])
         if conditions is not None:
-            current_season = calcSeason(np.degrees(self.ra), conditions.mjd)
+            current_season = calc_season(np.degrees(self.ra), conditions.mjd)
 
         # If the season has changed anywhere, set that count to zero
         new_season = np.where((self.season_map - current_season) != 0)
@@ -438,7 +438,7 @@ class N_observations_current_season(BaseSurveyFeature):
             check1 = True
 
         if self.m5_penalty_max is not None:
-            hpid = _raDec2Hpid(self.nside, observation["RA"], observation["dec"])
+            hpid = ra_dec2_hpid(self.nside, observation["RA"], observation["dec"])
             penalty = self.dark_map[hpid] - observation["fivesigmadepth"]
             check2 = penalty <= self.m5_penalty_max
         else:

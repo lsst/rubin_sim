@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize
-from rubin_sim.utils import _angularSeparation
+from rubin_sim.utils import _angular_separation
 
 
 __all__ = [
@@ -200,7 +200,7 @@ def ang_potential(x0):
     theta_j = theta_i.T
     phi_i = np.tile(phi, (phi.size, 1))
     phi_j = phi_i.T
-    d = _angularSeparation(
+    d = _angular_separation(
         theta_i[indices], phi_i[indices], theta_j[indices], phi_j[indices]
     )
     U = np.sum(1.0 / d)

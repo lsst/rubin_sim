@@ -3,7 +3,7 @@ from astropy.io import fits
 import os, subprocess
 from lsst.sims.photUtils import Sed, Bandpass
 import healpy as hp
-from lsst.sims.utils import angularSeparation
+from lsst.sims.utils import angular_separation
 
 ## Tools for calling and reading things from the ESO sky model.
 # Downloaded and installed from XXX.
@@ -292,7 +292,7 @@ def generate_moon(outDir=None):
 
     for moonSunSep in moonSunSeps:
         for moonAlt in moonAlts:
-            angDists = angularSeparation(0.0, moonAlt, az, alt)
+            angDists = angular_separation(0.0, moonAlt, az, alt)
             for salt, saz, am, angDist, hpid in zip(alt, az, airmass, angDists, hpids):
                 write_config(
                     alpha=moonSunSep,
