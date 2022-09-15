@@ -95,9 +95,6 @@ class TestJSONoutUniSlicer(unittest.TestCase):
     def tearDown(self):
         del self.testslicer
 
-    @unittest.skip(
-        "13 March 2017--Skipping to clear python 3 update. Probably string unicode issues."
-    )
     def test(self):
         metricVal = makeMetricData(self.testslicer, "float", seed=88102231)
         io = self.testslicer.outputJSON(
@@ -127,9 +124,6 @@ class TestJSONoutOneDSlicer2(unittest.TestCase):
     def tearDown(self):
         del self.testslicer
 
-    @unittest.skip(
-        "13 March 2017--Skipping to clear python 3 update. Probably string unicode issues."
-    )
     def test(self):
         metricVal = makeMetricData(self.testslicer, "float", seed=18)
         io = self.testslicer.outputJSON(metricVal)
@@ -154,9 +148,6 @@ class TestJSONoutHealpixSlicer(unittest.TestCase):
     def tearDown(self):
         del self.testslicer
 
-    @unittest.skip(
-        "13 March 2017--Skipping to clear python 3 update. Probably string unicode issues."
-    )
     def test(self):
         metricVal = makeMetricData(self.testslicer, "float", seed=452)
         io = self.testslicer.outputJSON(metricVal)
