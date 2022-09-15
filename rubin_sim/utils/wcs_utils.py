@@ -272,7 +272,9 @@ def native_lon_lat_from_ra_dec(ra, dec, obs_metadata):
     @param [out] latOut is the native latitude in degrees
     """
 
-    lon, lat = _native_lon_lat_from_ra_dec(np.radians(ra), np.radians(dec), obs_metadata)
+    lon, lat = _native_lon_lat_from_ra_dec(
+        np.radians(ra), np.radians(dec), obs_metadata
+    )
 
     return np.degrees(lon), np.degrees(lat)
 
@@ -315,7 +317,11 @@ def _ra_dec_from_native_lon_lat(lon, lat, obs_metadata):
     # coordinates
 
     ra_out, dec_out = _icrs_from_observed(
-        ra_obs, dec_obs, obs_metadata=obs_metadata, epoch=2000.0, include_refraction=True
+        ra_obs,
+        dec_obs,
+        obs_metadata=obs_metadata,
+        epoch=2000.0,
+        include_refraction=True,
     )
 
     return ra_out, dec_out
@@ -345,6 +351,8 @@ def ra_dec_from_native_lon_lat(lon, lat, obs_metadata):
     than 45 degrees and zenith distances of less than 75 degrees.
     """
 
-    ra, dec = _ra_dec_from_native_lon_lat(np.radians(lon), np.radians(lat), obs_metadata)
+    ra, dec = _ra_dec_from_native_lon_lat(
+        np.radians(lon), np.radians(lat), obs_metadata
+    )
 
     return np.degrees(ra), np.degrees(dec)

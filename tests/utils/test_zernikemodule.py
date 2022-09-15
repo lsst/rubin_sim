@@ -30,7 +30,7 @@ class ZernikeTestCase(unittest.TestCase):
     long_message = True
 
     @classmethod
-    def setUp_class(cls):
+    def setUpClass(cls):
         cls.d_r = 0.01
         cls.d_phi = 0.005 * np.pi
         r_grid = np.arange(0.0, 1.0, cls.d_r)

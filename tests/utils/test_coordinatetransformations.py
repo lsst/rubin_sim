@@ -568,20 +568,28 @@ class AngularSeparationTestCase(unittest.TestCase):
         test = utils.haversine(ra1, dec1, ra3, dec3)
         np.testing.assert_array_equal(test, control)
 
-        control = utils._angular_separation(np.array([ra1]), np.array([dec1]), ra3, dec3)
+        control = utils._angular_separation(
+            np.array([ra1]), np.array([dec1]), ra3, dec3
+        )
         test = utils.haversine(np.array([ra1]), np.array([dec1]), ra3, dec3)
         np.testing.assert_array_equal(test, control)
 
-        control = utils._angular_separation(ra3, dec3, np.array([ra1]), np.array([dec1]))
+        control = utils._angular_separation(
+            ra3, dec3, np.array([ra1]), np.array([dec1])
+        )
         test = utils.haversine(ra3, dec3, np.array([ra1]), np.array([dec1]))
         np.testing.assert_array_equal(test, control)
 
-        control = utils._angular_separation(ra2, dec2, np.array([ra1]), np.array([dec1]))
+        control = utils._angular_separation(
+            ra2, dec2, np.array([ra1]), np.array([dec1])
+        )
         test = utils.haversine(ra2, dec2, np.array([ra1]), np.array([dec1]))
         self.assertIsInstance(test, float)
         self.assertEqual(test, control)
 
-        control = utils._angular_separation(np.array([ra1]), np.array([dec1]), ra2, dec2)
+        control = utils._angular_separation(
+            np.array([ra1]), np.array([dec1]), ra2, dec2
+        )
         test = utils.haversine(np.array([ra1]), np.array([dec1]), ra2, dec2)
         self.assertIsInstance(test, float)
         self.assertEqual(test, control)

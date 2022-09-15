@@ -4,7 +4,7 @@ import healpy as hp
 import rubin_sim.maf.metrics as metrics
 from rubin_sim.phot_utils import DustValues
 from rubin_sim.maf.utils import collapse_night
-from rubin_sim.utils import calcSeason
+from rubin_sim.utils import calc_season
 
 __all__ = ["SNSLMetric"]
 
@@ -183,7 +183,7 @@ class SNSLMetric(metrics.BaseMetric):
         area = hp.nside2pixarea(slicePoint["nside"], degrees=True)
 
         # Note that 'seasons' is the same length as nightSlice, and contains integer (season) + float (day)
-        seasons = calcSeason(np.degrees(slicePoint["ra"]), nightSlice[self.mjdCol])
+        seasons = calc_season(np.degrees(slicePoint["ra"]), nightSlice[self.mjdCol])
         season_ints = np.floor(seasons)
 
         if self.season == [-1]:

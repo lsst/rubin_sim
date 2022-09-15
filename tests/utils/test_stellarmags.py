@@ -25,7 +25,7 @@ class StellarMagsTest(unittest.TestCase):
 
         # Check each type returns the correct format
         for key in keys:
-            result = utils.stellarMags(key)
+            result = utils.stellar_mags(key)
             for fn in filter_names:
                 self.assertIn(fn, result)
                 self.assertTrue(
@@ -35,12 +35,12 @@ class StellarMagsTest(unittest.TestCase):
                 )
 
         # Check the exception gets raised
-        self.assertRaises(ValueError, utils.stellarMags, "ack")
+        self.assertRaises(ValueError, utils.stellar_mags, "ack")
 
         # Check the mags get fainter
         for st in keys:
-            mags = utils.stellarMags(st)
-            mags2 = utils.stellarMags(st, rmag=20.0)
+            mags = utils.stellar_mags(st)
+            mags2 = utils.stellar_mags(st, rmag=20.0)
         for key in mags:
             self.assertLess(mags[key], mags2[key])
 

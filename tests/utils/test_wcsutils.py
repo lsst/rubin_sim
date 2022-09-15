@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
 
-from rubin_sim.utils import raDecFromNativeLonLat, native_lon_lat_from_ra_dec
-from rubin_sim.utils import _raDecFromNativeLonLat, _native_lon_lat_from_ra_dec
+from rubin_sim.utils import ra_dec_from_native_lon_lat, native_lon_lat_from_ra_dec
+from rubin_sim.utils import _ra_dec_from_native_lon_lat, _native_lon_lat_from_ra_dec
 from rubin_sim.utils import observed_from_icrs, icrs_from_observed
 from rubin_sim.utils import ObservationMetaData, haversine
 from rubin_sim.utils import arcsec_from_radians, ra_dec_from_alt_az, Site
@@ -101,7 +101,9 @@ class NativeLonLatTest(unittest.TestCase):
                 cos_dec = np.cos(dec_rad)
 
                 # the three dimensional position of the star
-                control_position = np.array([-cos_dec * sin_ra, cos_dec * cos_ra, sin_dec])
+                control_position = np.array(
+                    [-cos_dec * sin_ra, cos_dec * cos_ra, sin_dec]
+                )
 
                 # calculate the rotation matrices needed to transform the
                 # x, y, and z axes into the local x, y, and z axes
@@ -175,12 +177,12 @@ class NativeLonLatTest(unittest.TestCase):
 
     def test_ra_dec(self):
         """
-        Test that raDecFromNativeLonLat does invert
+        Test that ra_dec_from_native_lon_lat does invert
         native_lon_lat_from_ra_dec
         """
         rng = np.random.RandomState(42)
         n_samples = 100
-        # because raDecFromNativeLonLat is only good
+        # because ra_dec_from_native_lon_lat is only good
         rr_list = rng.random_sample(n_samples) * 50.0
         # out to a zenith distance of ~ 70 degrees
 
@@ -199,7 +201,9 @@ class NativeLonLatTest(unittest.TestCase):
 
             rp = ra_zenith + rrp * np.cos(thetap)
             dp = dec_zenith + rrp * np.sin(thetap)
-            obs = ObservationMetaData(pointing_ra=rp, pointing_dec=dp, mjd=mjd, site=site)
+            obs = ObservationMetaData(
+                pointing_ra=rp, pointing_dec=dp, mjd=mjd, site=site
+            )
 
             ra_list_icrs = (ra_zenith + rr_list * np.cos(theta_list)) % 360.0
             dec_list_icrs = dec_zenith + rr_list * np.sin(theta_list)
@@ -223,9 +227,11 @@ class NativeLonLatTest(unittest.TestCase):
                 )
             )
 
-            for rr, dd, dd_icrs_obs in zip(ra_list_icrs, dec_list_icrs, dd_icrs_obs_list):
+            for rr, dd, dd_icrs_obs in zip(
+                ra_list_icrs, dec_list_icrs, dd_icrs_obs_list
+            ):
                 lon, lat = native_lon_lat_from_ra_dec(rr, dd, obs)
-                r1, d1 = raDecFromNativeLonLat(lon, lat, obs)
+                r1, d1 = ra_dec_from_native_lon_lat(lon, lat, obs)
 
                 # the distance between the input RA, Dec and the round-trip output
                 # RA, Dec
@@ -250,7 +256,7 @@ class NativeLonLatTest(unittest.TestCase):
 
     def test_ra_dec_vector(self):
         """
-        Test that raDecFromNativeLonLat does invert
+        Test that ra_dec_from_native_lon_lat does invert
         native_lon_lat_from_ra_dec (make sure it works in a vectorized way)
         """
         rng = np.random.RandomState(42)
@@ -264,10 +270,10 @@ class NativeLonLatTest(unittest.TestCase):
             pointing_ra=ra_point, pointing_dec=dec_point, mjd=53467.89
         )
 
-        ra_list, dec_list = raDecFromNativeLonLat(lon_list, lat_list, obs)
+        ra_list, dec_list = ra_dec_from_native_lon_lat(lon_list, lat_list, obs)
 
         for lon, lat, ra0, dec0 in zip(lon_list, lat_list, ra_list, dec_list):
-            ra1, dec1 = raDecFromNativeLonLat(lon, lat, obs)
+            ra1, dec1 = ra_dec_from_native_lon_lat(lon, lat, obs)
             distance = arcsec_from_radians(
                 haversine(
                     np.radians(ra0), np.radians(dec0), np.radians(ra1), np.radians(dec1)
@@ -278,7 +284,7 @@ class NativeLonLatTest(unittest.TestCase):
     def test_degrees_versus_radians(self):
         """
         Test that the radian and degree versions of native_lon_lat_from_ra_dec
-        and raDecFromNativeLonLat are consistent with each other
+        and ra_dec_from_native_lon_lat are consistent with each other
         """
 
         rng = np.random.RandomState(873)
@@ -294,8 +300,8 @@ class NativeLonLatTest(unittest.TestCase):
         np.testing.assert_array_almost_equal(np.radians(lon_deg), lon_rad, 15)
         np.testing.assert_array_almost_equal(np.radians(lat_deg), lat_rad, 15)
 
-        ra_deg, dec_deg = raDecFromNativeLonLat(ra_list, dec_list, obs)
-        ra_rad, dec_rad = _raDecFromNativeLonLat(
+        ra_deg, dec_deg = ra_dec_from_native_lon_lat(ra_list, dec_list, obs)
+        ra_rad, dec_rad = _ra_dec_from_native_lon_lat(
             np.radians(ra_list), np.radians(dec_list), obs
         )
         np.testing.assert_array_almost_equal(np.radians(ra_deg), ra_rad, 15)

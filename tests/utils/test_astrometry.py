@@ -31,13 +31,22 @@ from rubin_sim.utils import (
     _angular_separation,
 )
 
-from rubin_sim.utils import solar_ra_dec, _solar_ra_dec, distance_to_sun, _distance_to_sun
+from rubin_sim.utils import (
+    solar_ra_dec,
+    _solar_ra_dec,
+    distance_to_sun,
+    _distance_to_sun,
+)
 from rubin_sim.utils import _apply_precession, _apply_proper_motion
 from rubin_sim.utils import _app_geo_from_icrs, _observed_from_app_geo
 from rubin_sim.utils import _observed_from_icrs, _icrs_from_observed
 from rubin_sim.utils import _app_geo_from_observed, _icrs_from_app_geo
 from rubin_sim.utils import refraction_coefficients, apply_refraction
-from rubin_sim.utils import observed_from_icrs, apply_proper_motion, spherical_from_cartesian
+from rubin_sim.utils import (
+    observed_from_icrs,
+    apply_proper_motion,
+    spherical_from_cartesian,
+)
 
 # Tell astropy not to download the IERS tables
 from astropy.utils import iers
@@ -885,7 +894,9 @@ class AstrometryUnitTest(unittest.TestCase):
             self.assertIsInstance(ra_test, float)
             self.assertIsInstance(dec_test, float)
 
-            distance = arcsec_from_radians(haversine(ra_app, dec_app, ra_test, dec_test))
+            distance = arcsec_from_radians(
+                haversine(ra_app, dec_app, ra_test, dec_test)
+            )
             self.assertLess(distance, 0.1)
 
         # test on Sirius
@@ -934,7 +945,9 @@ class AstrometryUnitTest(unittest.TestCase):
             self.assertIsInstance(ra_test, float)
             self.assertIsInstance(dec_test, float)
 
-            distance = arcsec_from_radians(haversine(ra_app, dec_app, ra_test, dec_test))
+            distance = arcsec_from_radians(
+                haversine(ra_app, dec_app, ra_test, dec_test)
+            )
             self.assertLess(distance, 0.1)
 
     def test_app_geo_from_icrs_inputs(self):
@@ -1216,7 +1229,9 @@ class AstrometryUnitTest(unittest.TestCase):
 
             ra_app, dec_app = _app_geo_from_icrs(ra_in, dec_in, mjd=mjd)
 
-            ra_icrs, dec_icrs = _icrs_from_app_geo(ra_app, dec_app, epoch=2000.0, mjd=mjd)
+            ra_icrs, dec_icrs = _icrs_from_app_geo(
+                ra_app, dec_app, epoch=2000.0, mjd=mjd
+            )
 
             self.assertFalse(
                 np.isnan(ra_icrs).any(), msg="There were NaNs in ra_icrs; should not be"
@@ -1272,7 +1287,9 @@ class AstrometryUnitTest(unittest.TestCase):
 
                         obs = ObservationMetaData(mjd=tai, site=site)
 
-                        ra_zenith, dec_zenith = _ra_dec_from_alt_az(0.5 * np.pi, 0.0, obs)
+                        ra_zenith, dec_zenith = _ra_dec_from_alt_az(
+                            0.5 * np.pi, 0.0, obs
+                        )
 
                         obs = ObservationMetaData(
                             pointing_ra=ra_pointing,
@@ -1324,7 +1341,10 @@ class AstrometryUnitTest(unittest.TestCase):
 
                         # test a round-trip between observed_from_app_geo and
                         # app_geo_from_observed
-                        ra_obs_from_app_geo, dec_obs_from_app_geo = _observed_from_app_geo(
+                        (
+                            ra_obs_from_app_geo,
+                            dec_obs_from_app_geo,
+                        ) = _observed_from_app_geo(
                             ra_in,
                             dec_in,
                             obs_metadata=obs,
@@ -1421,7 +1441,11 @@ class AstrometryUnitTest(unittest.TestCase):
                 ra_in, dec_in, obs_metadata=obs, include_refraction=False, epoch=2000.0
             )
             ra_icrs, dec_icrs = _icrs_from_observed(
-                ra_obs, dec_obs, obs_metadata=obs, include_refraction=False, epoch=2000.0
+                ra_obs,
+                dec_obs,
+                obs_metadata=obs,
+                include_refraction=False,
+                epoch=2000.0,
             )
             distance = pal.dsepVector(ra_in, dec_in, ra_icrs, dec_icrs)
 
@@ -1574,7 +1598,9 @@ class AstrometryUnitTest(unittest.TestCase):
             pointing_ra=25.0, pointing_dec=-12.0, mjd=ModifiedJulianDate(TAI=52000.0)
         )
         with self.assertRaises(RuntimeError) as context:
-            ra_out, dec_out = _app_geo_from_observed(ra_in[:2], dec_in, obs_metadata=obs)
+            ra_out, dec_out = _app_geo_from_observed(
+                ra_in[:2], dec_in, obs_metadata=obs
+            )
         self.assertEqual(
             context.exception.args[0],
             "The arrays input to app_geo_from_observed all need to have the same length",

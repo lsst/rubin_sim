@@ -1,13 +1,13 @@
 import unittest
-from rubin_sim.utils import findHtmid, trixelFromHtmid
+from rubin_sim.utils import find_htmid, trixel_from_htmid
 from rubin_sim.utils import HalfSpace, basic_trixels
-from rubin_sim.utils import halfSpaceFromRaDec, levelFromHtmid
-from rubin_sim.utils import halfSpaceFromPoints
-from rubin_sim.utils import intersectHalfSpaces
-from rubin_sim.utils import getAllTrixels
+from rubin_sim.utils import half_space_from_ra_dec, level_from_htmid
+from rubin_sim.utils import half_space_from_points
+from rubin_sim.utils import intersect_half_spaces
+from rubin_sim.utils import get_all_trixels
 from rubin_sim.utils import arcsec_from_radians
-from rubin_sim.utils.htm_module import _findHtmid_fast
-from rubin_sim.utils.htm_module import _findHtmid_slow
+from rubin_sim.utils.htm_module import _find_htmid_fast
+from rubin_sim.utils.htm_module import _find_htmid_slow
 from rubin_sim.data import get_data_dir
 
 import numpy as np
@@ -338,8 +338,8 @@ class HalfSpaceTest(unittest.TestCase):
         ra = 43.0
         dec = 22.0
         radius = 20.0
-        half_space = halfSpaceFromRaDec(ra, dec, radius)
-        trixel_list = half_space.findAllTrixels(level)
+        half_space = half_space_from_ra_dec(ra, dec, radius)
+        trixel_list = half_space.find_all_trixels(level)
         self.assertGreater(len(trixel_list), 2)
 
         # first, check that all of the returned trixels are
@@ -353,7 +353,7 @@ class HalfSpaceTest(unittest.TestCase):
                 self.assertGreater(limits[0], trixel_list[i_limit - 1][1])
 
             for htmid in range(limits[0], limits[1] + 1):
-                test_trixel = trixelFromHtmid(htmid)
+                test_trixel = trixel_from_htmid(htmid)
                 ra_trix, dec_trix = test_trixel.get_center()
                 good_htmid_list.append(htmid)
                 self.assertNotEqual(half_space.contains_trixel(test_trixel), "outside")
@@ -369,12 +369,12 @@ class HalfSpaceTest(unittest.TestCase):
         # were not returned are outside the HalfSpace
         for base_htmid in range(8, 16):
             htmid_0 = base_htmid << 2 * (level - 1)
-            self.assertEqual(levelFromHtmid(htmid_0), level)
+            self.assertEqual(level_from_htmid(htmid_0), level)
             for ii in range(2 ** (2 * level - 2)):
                 htmid = htmid_0 + ii
-                self.assertEqual(levelFromHtmid(htmid), level)
+                self.assertEqual(level_from_htmid(htmid), level)
                 if htmid not in good_htmid_list:
-                    test_trixel = trixelFromHtmid(htmid)
+                    test_trixel = trixel_from_htmid(htmid)
                     self.assertEqual(half_space.contains_trixel(test_trixel), "outside")
                     ra_trix, dec_trix = test_trixel.get_center()
                     self.assertGreater(
@@ -384,16 +384,16 @@ class HalfSpaceTest(unittest.TestCase):
     def test_find_all_trixels_brute(self):
         """
         Use the method trixel_intersects_half_space defined at the
-        top of this script to verify that HalfSpace.findAllTrixels works
+        top of this script to verify that HalfSpace.find_all_trixels works
         """
         level = 7
-        trixel_dict = getAllTrixels(level)
+        trixel_dict = get_all_trixels(level)
         all_htmid = []
         for htmid in trixel_dict.keys():
-            if levelFromHtmid(htmid) == level:
+            if level_from_htmid(htmid) == level:
                 all_htmid.append(htmid)
 
-        hspace = halfSpaceFromRaDec(36.0, 22.1, 2.0)
+        hspace = half_space_from_ra_dec(36.0, 22.1, 2.0)
 
         # make sure that the two methods of determining if
         # a HalfSpace contains a trixel (HalfSpace.contains_trixel
@@ -406,7 +406,7 @@ class HalfSpaceTest(unittest.TestCase):
             else:
                 self.assertEqual(hspace.contains_trixel(trix), "outside", msg=msg)
 
-        trixel_limits = hspace.findAllTrixels(level)
+        trixel_limits = hspace.find_all_trixels(level)
         intersecting_htmid = set()
 
         # check that all of the trixels included in the limits
@@ -433,7 +433,7 @@ class HalfSpaceTest(unittest.TestCase):
             pt1 = (rng.random_sample() * 360.0, rng.random_sample() * 180.0 - 90.0)
             pt2 = (rng.random_sample() * 360.0, rng.random_sample() * 180.0 - 90.0)
             pt3 = (rng.random_sample() * 360.0, rng.random_sample() * 180.0 - 90.0)
-            hs = halfSpaceFromPoints(pt1, pt2, pt3)
+            hs = half_space_from_points(pt1, pt2, pt3)
 
             # check that the HalfSpace contains pt3
             vv3 = cartesian_from_spherical(np.radians(pt3[0]), np.radians(pt3[1]))
@@ -461,9 +461,9 @@ class HalfSpaceTest(unittest.TestCase):
         ra2 = 23.5
         dec2 = 37.9
         rad2 = 9.2
-        hs1 = halfSpaceFromRaDec(ra1, dec1, rad1)
-        hs2 = halfSpaceFromRaDec(ra2, dec2, rad2)
-        roots = intersectHalfSpaces(hs1, hs2)
+        hs1 = half_space_from_ra_dec(ra1, dec1, rad1)
+        hs2 = half_space_from_ra_dec(ra2, dec2, rad2)
+        roots = intersect_half_spaces(hs1, hs2)
         self.assertEqual(len(roots), 2)
         self.assertAlmostEqual(np.sqrt(np.sum(roots[0] ** 2)), 1.0, 10)
         self.assertAlmostEqual(np.sqrt(np.sum(roots[1] ** 2)), 1.0, 10)
@@ -479,26 +479,26 @@ class HalfSpaceTest(unittest.TestCase):
         self.assertAlmostEqual(dd, rad2, 10)
 
         # test that two non-intersecting HalfSpaces return no roots
-        hs1 = halfSpaceFromRaDec(0.0, 90.0, 1.0)
-        hs2 = halfSpaceFromRaDec(20.0, -75.0, 5.0)
-        roots = intersectHalfSpaces(hs1, hs2)
+        hs1 = half_space_from_ra_dec(0.0, 90.0, 1.0)
+        hs2 = half_space_from_ra_dec(20.0, -75.0, 5.0)
+        roots = intersect_half_spaces(hs1, hs2)
         self.assertEqual(len(roots), 0)
 
         # test that two half spaces that are inside each other
         # return no roots
-        hs1 = halfSpaceFromRaDec(77.0, 10.0, 20.0)
-        hs2 = halfSpaceFromRaDec(75.0, 8.0, 0.2)
-        roots = intersectHalfSpaces(hs1, hs2)
+        hs1 = half_space_from_ra_dec(77.0, 10.0, 20.0)
+        hs2 = half_space_from_ra_dec(75.0, 8.0, 0.2)
+        roots = intersect_half_spaces(hs1, hs2)
         self.assertEqual(len(roots), 0)
 
         # test that two half spaces with identical centers
         # return no roots
-        hs1 = halfSpaceFromRaDec(11.0, -23.0, 1.0)
-        hs2 = halfSpaceFromRaDec(11.0, -23.0, 0.2)
-        roots = intersectHalfSpaces(hs1, hs2)
+        hs1 = half_space_from_ra_dec(11.0, -23.0, 1.0)
+        hs2 = half_space_from_ra_dec(11.0, -23.0, 0.2)
+        roots = intersect_half_spaces(hs1, hs2)
         self.assertEqual(len(roots), 0)
 
-        roots = intersectHalfSpaces(hs1, hs1)
+        roots = intersect_half_spaces(hs1, hs1)
         self.assertEqual(len(roots), 0)
 
     def test_merge_trixel_bounds(self):
@@ -551,17 +551,17 @@ class TrixelFinderTest(unittest.TestCase):
         """
         Take a Cartesian point (pt) and a known
         htmid for that point (answer).  Find the htmid
-        for the point using findHtmid and verify that
+        for the point using find_htmid and verify that
         we get the expected answer.
         """
         ra, dec = spherical_from_cartesian(pt)
-        ii = findHtmid(np.degrees(ra), np.degrees(dec), 3)
+        ii = find_htmid(np.degrees(ra), np.degrees(dec), 3)
         binary = "{0:b}".format(ii)
         self.assertEqual(binary, answer)
 
     def test_against_fatboy(self):
         """
-        Test findHtmid against a random selection of stars from fatboy
+        Test find_htmid against a random selection of stars from fatboy
         """
         dtype = np.dtype([("htmid", int), ("ra", float), ("dec", float)])
         data = np.genfromtxt(
@@ -570,58 +570,58 @@ class TrixelFinderTest(unittest.TestCase):
         )
         self.assertGreater(len(data), 20)
         for i_pt in range(len(data)):
-            htmid_test = findHtmid(data["ra"][i_pt], data["dec"][i_pt], 21)
+            htmid_test = find_htmid(data["ra"][i_pt], data["dec"][i_pt], 21)
             self.assertEqual(htmid_test, data["htmid"][i_pt])
-            level_test = levelFromHtmid(htmid_test)
+            level_test = level_from_htmid(htmid_test)
             self.assertEqual(level_test, 21)
 
     def test_find_htmid_vectorized(self):
         """
-        Test that findHtmid works correctly on vectors
+        Test that find_htmid works correctly on vectors
         """
         rng = np.random.RandomState(81723122)
         n_samples = 1000
         ra = rng.random_sample(n_samples) * 360.0
         dec = rng.random_sample(n_samples) * 180.0 - 90.0
         level = 7
-        htmid_vec = findHtmid(ra, dec, level)
+        htmid_vec = find_htmid(ra, dec, level)
         self.assertIsInstance(htmid_vec, np.ndarray)
-        htmid_fast = _findHtmid_fast(ra, dec, level)
+        htmid_fast = _find_htmid_fast(ra, dec, level)
         self.assertIsInstance(htmid_fast, np.ndarray)
         np.testing.assert_array_equal(htmid_vec, htmid_fast)
         for ii in range(n_samples):
-            htmid_slow = _findHtmid_slow(ra[ii], dec[ii], level)
+            htmid_slow = _find_htmid_slow(ra[ii], dec[ii], level)
             self.assertIsInstance(htmid_slow, numbers.Number)
             self.assertEqual(htmid_slow, htmid_vec[ii])
-            htmid_single = findHtmid(ra[ii], dec[ii], level)
+            htmid_single = find_htmid(ra[ii], dec[ii], level)
             self.assertIsInstance(htmid_single, numbers.Number)
             self.assertEqual(htmid_single, htmid_vec[ii])
 
     def test_level_from_htmid(self):
         """
-        Test that levelFromHtmid behaves as expected
+        Test that level_from_htmid behaves as expected
         """
         for ii in range(8, 16):
-            self.assertEqual(levelFromHtmid(ii), 1)
+            self.assertEqual(level_from_htmid(ii), 1)
 
-        self.assertEqual(levelFromHtmid(2**9 + 5), 4)
-        self.assertEqual(levelFromHtmid(2**15 + 88), 7)
+        self.assertEqual(level_from_htmid(2**9 + 5), 4)
+        self.assertEqual(level_from_htmid(2**15 + 88), 7)
 
         with self.assertRaises(RuntimeError) as context:
-            levelFromHtmid(2**10)
+            level_from_htmid(2**10)
         self.assertIn("4+2n", context.exception.args[0])
 
         for ii in range(8):
             with self.assertRaises(RuntimeError) as context:
-                levelFromHtmid(2**10)
+                level_from_htmid(2**10)
             self.assertIn("4+2n", context.exception.args[0])
 
     def test_trixel_finding(self):
         """
-        Check that findHtmid works by passing in some
+        Check that find_htmid works by passing in some
         points whose htmid are known because of their
         proximity to the corners of low-level Trixels.
-        Use check_pt to verify that findHtmid gives
+        Use check_pt to verify that find_htmid gives
         the right answer.
         """
         epsilon = 1.0e-6
@@ -711,7 +711,7 @@ class TrixelFinderTest(unittest.TestCase):
 
     def test_trixel_from_htmid(self):
         """
-        Check that trixelFromHtmid works by
+        Check that trixel_from_htmid works by
         finding the htmid from an RA, Dec pair,
         instantiating the Trixel corresponding
         to that htmid, and verifying that that
@@ -725,22 +725,22 @@ class TrixelFinderTest(unittest.TestCase):
             ra, dec = spherical_from_cartesian(pt)
             ra = np.degrees(ra)
             dec = np.degrees(dec)
-            ii = findHtmid(ra, dec, 5)
-            tt = trixelFromHtmid(ii)
+            ii = find_htmid(ra, dec, 5)
+            tt = trixel_from_htmid(ii)
             self.assertTrue(tt.contains(ra, dec))
-            tt1 = trixelFromHtmid(ii - 1)
+            tt1 = trixel_from_htmid(ii - 1)
             self.assertFalse(tt1.contains(ra, dec))
-            tt2 = trixelFromHtmid(ii + 1)
+            tt2 = trixel_from_htmid(ii + 1)
             self.assertFalse(tt2.contains(ra, dec))
 
     def test_trixel_eq_ne(self):
         """
         Test that the __eq__ and __ne__ operators on the Trixel class work
         """
-        t1 = trixelFromHtmid(8 * 16 + 1)
-        t2 = trixelFromHtmid(8 * 16 + 1)
+        t1 = trixel_from_htmid(8 * 16 + 1)
+        t2 = trixel_from_htmid(8 * 16 + 1)
         self.assertEqual(t1, t2)
-        t3 = trixelFromHtmid(8 * 16 + 3)
+        t3 = trixel_from_htmid(8 * 16 + 3)
         self.assertNotEqual(t1, t3)
         self.assertTrue(t1 == t2)
         self.assertFalse(t1 == t3)
@@ -758,13 +758,13 @@ class TrixelFinderTest(unittest.TestCase):
         for level in range(1, max_level + 1):
             n_trixel_per_level[level] = 8 * (4 ** (level - 1))
 
-        trixel_dict = getAllTrixels(max_level)
+        trixel_dict = get_all_trixels(max_level)
         n_found = {}
         for level in range(max_level + 1):
             n_found[level] = 0
 
         for htmid in trixel_dict:
-            level = levelFromHtmid(htmid)
+            level = level_from_htmid(htmid)
             n_found[level] += 1
 
         # verify that the correct number of trixels were
@@ -777,10 +777,10 @@ class TrixelFinderTest(unittest.TestCase):
         self.assertEqual(len(np.unique(list(trixel_dict.keys()))), len(trixel_dict))
 
         for htmid in trixel_dict.keys():
-            level = levelFromHtmid(htmid)
+            level = level_from_htmid(htmid)
             self.assertLessEqual(level, max_level)
             self.assertGreaterEqual(level, 1)
-            t0 = trixelFromHtmid(htmid)
+            t0 = trixel_from_htmid(htmid)
             self.assertEqual(t0, trixel_dict[htmid])
 
     def test_trixel_bounding_circle(self):
@@ -793,7 +793,7 @@ class TrixelFinderTest(unittest.TestCase):
         n_test_cases = 5
         for i_test in range(n_test_cases):
             htmid = (13 << 6) + rng.randint(1, 2**6 - 1)
-            trixel = trixelFromHtmid(htmid)
+            trixel = trixel_from_htmid(htmid)
             bounding_circle = trixel.bounding_circle
             ra_0, dec_0 = spherical_from_cartesian(bounding_circle[0])
             ra_list = []
@@ -816,7 +816,7 @@ class TrixelFinderTest(unittest.TestCase):
         work with numpy arrays of input
         """
         htmid = (15 << 6) + 45
-        trixel = trixelFromHtmid(htmid)
+        trixel = trixel_from_htmid(htmid)
         ra_0, dec_0 = trixel.get_center()
         radius = trixel.get_radius()
         rng = np.random.RandomState(44)

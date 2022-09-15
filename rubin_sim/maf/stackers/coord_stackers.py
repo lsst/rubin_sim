@@ -1,5 +1,5 @@
 import numpy as np
-from rubin_sim.utils import _galacticFromEquatorial, calcLmstLast
+from rubin_sim.utils import _galactic_from_equatorial, calc_lmst_last
 from astropy import units as u
 from astropy.coordinates import SkyCoord, get_sun
 from .base_stacker import BaseStacker
@@ -37,7 +37,7 @@ def raDec2AltAz(ra, dec, lat, lon, mjd, altonly=False):
     az : numpy.array
         Azimuth, same length as `ra` and `dec`. Radians.
     """
-    lmst, last = calcLmstLast(mjd, lon)
+    lmst, last = calc_lmst_last(mjd, lon)
     lmst = lmst / 12.0 * np.pi  # convert to rad
     ha = lmst - ra
     sindec = np.sin(dec)
@@ -89,11 +89,11 @@ class GalacticStacker(BaseStacker):
             # Column already present in data; assume it is correct and does not need recalculating.
             return simData
         if self.degrees:
-            simData["gall"], simData["galb"] = _galacticFromEquatorial(
+            simData["gall"], simData["galb"] = _galactic_from_equatorial(
                 np.radians(simData[self.raCol]), np.radians(simData[self.decCol])
             )
         else:
-            simData["gall"], simData["galb"] = _galacticFromEquatorial(
+            simData["gall"], simData["galb"] = _galactic_from_equatorial(
                 simData[self.raCol], simData[self.decCol]
             )
         return simData
