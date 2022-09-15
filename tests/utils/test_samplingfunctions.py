@@ -17,7 +17,7 @@ from rubin_sim.utils import spatially_sample_obsmetadata
 
 class SamplingTests(unittest.TestCase):
     @classmethod
-    def setUp_class(cls):
+    def setUpClass(cls):
         """"""
         cls.obs_meta_datafor_cat = ObservationMetaData(
             bound_type="circle",
@@ -73,10 +73,12 @@ class SamplingTests(unittest.TestCase):
         max_theta = -1.2 + delta
 
         self.assertTrue(
-            all(np.radians(self.samples[0]) <= max_phi), msg="samples are not <= max_phi"
+            all(np.radians(self.samples[0]) <= max_phi),
+            msg="samples are not <= max_phi",
         )
         self.assertTrue(
-            all(np.radians(self.samples[0]) >= min_phi), msg="samples are not >= min_phi"
+            all(np.radians(self.samples[0]) >= min_phi),
+            msg="samples are not >= min_phi",
         )
         self.assertTrue(
             all(np.radians(self.samples[1]) >= min_theta),

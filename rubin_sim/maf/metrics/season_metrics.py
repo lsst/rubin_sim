@@ -5,7 +5,7 @@ In addition, these supports the time delay metric calculation for strong lensing
 import numpy as np
 from .base_metric import BaseMetric
 from rubin_sim.phot_utils import DustValues
-from rubin_sim.utils import calcSeason
+from rubin_sim.utils import calc_season
 
 __all__ = [
     "findSeasonEdges",
@@ -22,7 +22,7 @@ def findSeasonEdges(seasons):
     Parameters
     ----------
     seasons: np.ndarray
-        Seasons, such as calculated by calcSeason.
+        Seasons, such as calculated by calc_season.
         Note that seasons should be sorted!!
 
     Returns
@@ -97,7 +97,7 @@ class SeasonLengthMetric(BaseMetric):
             return self.badval
         data = np.sort(dataSlice[long], order=self.mjdCol)
         # SlicePoints ra/dec are always in radians - convert to degrees to calculate season
-        seasons = calcSeason(np.degrees(slicePoint["ra"]), data[self.mjdCol])
+        seasons = calc_season(np.degrees(slicePoint["ra"]), data[self.mjdCol])
         firstOfSeason, lastOfSeason = findSeasonEdges(seasons)
         seasonlengths = (
             data[self.mjdCol][lastOfSeason] - data[self.mjdCol][firstOfSeason]
@@ -130,7 +130,7 @@ class CampaignLengthMetric(BaseMetric):
         if len(long[0]) == 0:
             return self.badval
         data = np.sort(dataSlice[long], order=self.mjdCol)
-        seasons = calcSeason(np.degrees(slicePoint["ra"]), data[self.mjdCol])
+        seasons = calc_season(np.degrees(slicePoint["ra"]), data[self.mjdCol])
         intSeasons = np.floor(seasons)
         count = len(np.unique(intSeasons))
         return count
@@ -165,7 +165,7 @@ class MeanCampaignFrequencyMetric(BaseMetric):
             return self.badval
         data = np.sort(dataSlice[long], order=self.mjdCol)
         # SlicePoints ra/dec are always in radians - convert to degrees to calculate season
-        seasons = calcSeason(np.degrees(slicePoint["ra"]), data[self.mjdCol])
+        seasons = calc_season(np.degrees(slicePoint["ra"]), data[self.mjdCol])
         firstOfSeason, lastOfSeason = findSeasonEdges(seasons)
         seasonMeans = np.zeros(len(firstOfSeason), float)
         for i, (first, last) in enumerate(zip(firstOfSeason, lastOfSeason)):
@@ -288,7 +288,7 @@ class TdcMetric(BaseMetric):
             return self.badval
         data = np.sort(dataSlice[idxs], order=self.mjdCol)
         # SlicePoints ra/dec are always in radians - convert to degrees to calculate season
-        seasons = calcSeason(np.degrees(slicePoint["ra"]), data[self.mjdCol])
+        seasons = calc_season(np.degrees(slicePoint["ra"]), data[self.mjdCol])
         intSeasons = np.floor(seasons)
         firstOfSeason, lastOfSeason = findSeasonEdges(seasons)
         # Campaign length

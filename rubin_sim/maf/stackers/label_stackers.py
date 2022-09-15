@@ -4,7 +4,7 @@ import healpy as hp
 from rubin_sim.utils import (
     xyz_from_ra_dec,
     xyz_angular_radius,
-    _buildTree,
+    _build_tree,
     _xyz_from_ra_dec,
 )
 from rubin_sim.site_models import FieldsDatabase

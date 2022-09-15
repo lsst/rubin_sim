@@ -67,9 +67,9 @@ class SaturationStacker(BaseStacker):
         self.saturation_e = saturation_e
         self.pixscale = pixscale
         if zeropoints is None:
-            zp_inst, kAtm = load_inst_zeropoints()
+            zp_inst, k_atm = load_inst_zeropoints()
             self.zeropoints = zp_inst
-            self.km = kAtm
+            self.km = k_atm
         else:
             self.zeropoints = zeropoints
             self.km = km

@@ -63,7 +63,9 @@ def calc_lmst_last(mjd, long_rad):
 
     if long_rad_is_array and mjd_is_array:
         if len(long_rad) != len(mjd):
-            raise RuntimeError("In calc_lmst_last mjd and long_rad have different lengths")
+            raise RuntimeError(
+                "In calc_lmst_last mjd and long_rad have different lengths"
+            )
 
     valid_type = False
     if isinstance(mjd, np.ndarray) and isinstance(long_rad, np.ndarray):
