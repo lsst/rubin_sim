@@ -8,7 +8,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 
-from . import batches
+from . import batches as batches
 
 
 def run_moving_join():
