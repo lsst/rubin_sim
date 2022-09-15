@@ -2,7 +2,7 @@ import numpy as np
 from rubin_sim.scheduler.utils import empty_observation, set_default_nside
 import rubin_sim.scheduler.features as features
 from rubin_sim.scheduler.surveys import BaseSurvey
-from rubin_sim.utils import _approx_RaDec2AltAz, _raDec2Hpid
+from rubin_sim.utils import _approx_ra_dec2_alt_az, ra_dec2_hpid
 import logging
 
 log = logging.getLogger(__name__)
@@ -120,7 +120,7 @@ class Scripted_survey(BaseSurvey):
             An array of scheduled observations. Probably generated with rubin_sim.scheduler.utils.scheduled_observation
         """
         # Just do a fast ra,dec to alt,az conversion.
-        alt, az = _approx_RaDec2AltAz(
+        alt, az = _approx_ra_dec2_alt_az(
             observation["RA"],
             observation["dec"],
             conditions.site.latitude_rad,
@@ -354,7 +354,7 @@ class Pairs_survey_scripted(Scripted_survey):
         result = False
         # Just do a fast ra,dec to alt,az conversion. Can use LMST from a feature.
 
-        alt, az = _approx_RaDec2AltAz(
+        alt, az = _approx_ra_dec2_alt_az(
             observation["RA"],
             observation["dec"],
             self.lat,
@@ -373,7 +373,7 @@ class Pairs_survey_scripted(Scripted_survey):
         False if the proposed observation is masked
         """
 
-        hpid = np.max(_raDec2Hpid(self.nside, observation["RA"], observation["dec"]))
+        hpid = np.max(ra_dec2_hpid(self.nside, observation["RA"], observation["dec"]))
         skyval = conditions.M5Depth[observation["filter"][0]][hpid]
 
         if skyval > 0:
@@ -410,7 +410,7 @@ class Pairs_survey_scripted(Scripted_survey):
             delta_t,
             self.ttol,
         )
-        obs_hp = _raDec2Hpid(self.nside, observation["RA"], observation["dec"])
+        obs_hp = ra_dec2_hpid(self.nside, observation["RA"], observation["dec"])
         slewtime = conditions.slewtime[obs_hp[0]]
         in_slew_window = slewtime <= self.max_slew_to_pair or delta_t < 0.0
         in_time_window = np.abs(delta_t) < self.ttol

@@ -1,7 +1,7 @@
 import numpy as np
 from rubin_sim.maf.plots.spatial_plotters import BaseSkyMap, BaseHistogram
 from .base_spatial_slicer import BaseSpatialSlicer
-from rubin_sim.utils import _galacticFromEquatorial
+from rubin_sim.utils import _galactic_from_equatorial
 
 __all__ = ["UserPointsSlicer"]
 
@@ -84,7 +84,7 @@ class UserPointsSlicer(BaseSpatialSlicer):
         self.slicePoints["sid"] = np.arange(np.size(ra))
         self.slicePoints["ra"] = np.array(ra)
         self.slicePoints["dec"] = np.array(dec)
-        gall, galb = _galacticFromEquatorial(
+        gall, galb = _galactic_from_equatorial(
             self.slicePoints["ra"], self.slicePoints["dec"]
         )
         self.slicePoints["gall"] = gall

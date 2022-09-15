@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from rubin_sim.skybrightness import SkyModel
 import rubin_sim.skybrightness_pre as sb
-from rubin_sim.utils import raDec2Hpid, m5_flat_sed, Site, _approx_RaDec2AltAz
+from rubin_sim.utils import raDec2Hpid, m5_flat_sed, Site, _approx_ra_dec2_alt_az
 import healpy as hp
 import sqlite3
 import sys
@@ -97,7 +97,7 @@ def obs2sqlite(
 
     # Let's just use the stupid-fast to get alt-az
     if "alt" not in in_cols:
-        alt, az = _approx_RaDec2AltAz(
+        alt, az = _approx_ra_dec2_alt_az(
             np.radians(observations["ra"]),
             np.radians(observations["dec"]),
             telescope.latitude_rad,

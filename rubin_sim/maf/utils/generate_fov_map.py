@@ -47,8 +47,8 @@ if __name__ == "__main__":
     mjd = 5300.0
 
     obs_metadata = simsUtils.ObservationMetaData(
-        pointingRA=np.degrees(ra),
-        pointingDec=np.degrees(dec),
+        pointing_ra=np.degrees(ra),
+        pointing_dec=np.degrees(dec),
         rotSkyPos=np.degrees(rotSkyPos),
         mjd=mjd,
     )

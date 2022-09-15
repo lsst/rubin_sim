@@ -11,9 +11,9 @@ from rubin_sim.scheduler.utils import (
 )
 import copy
 from rubin_sim.utils import (
-    _angularSeparation,
-    _hpid2RaDec,
-    _approx_RaDec2AltAz,
+    _angular_separation,
+    _hpid2_ra_dec,
+    _approx_ra_dec2_alt_az,
     hp_grow_argsort,
 )
 import warnings
@@ -245,7 +245,7 @@ class Blob_survey(Greedy_survey):
         else:
             self.filter2_set = set(filtername2)
 
-        self.ra, self.dec = _hpid2RaDec(self.nside, self.hpids)
+        self.ra, self.dec = _hpid2_ra_dec(self.nside, self.hpids)
 
         self.survey_note = survey_note
         self.counter = 1  # start at 1, because 0 is default in empty observation
@@ -383,7 +383,7 @@ class Blob_survey(Greedy_survey):
                 return -np.inf
 
             # Apply radius selection
-            dists = _angularSeparation(
+            dists = _angular_separation(
                 self.ra[peak_reward], self.dec[peak_reward], self.ra, self.dec
             )
             out_hp = np.where(int_rounded(dists) > int_rounded(self.search_radius))
@@ -474,7 +474,7 @@ class Blob_survey(Greedy_survey):
             return []
 
         # Let's find the alt, az coords of the points (right now, hopefully doesn't change much in time block)
-        pointing_alt, pointing_az = _approx_RaDec2AltAz(
+        pointing_alt, pointing_az = _approx_ra_dec2_alt_az(
             self.fields["RA"][self.best_fields],
             self.fields["dec"][self.best_fields],
             conditions.site.latitude_rad,

@@ -3,7 +3,7 @@ import os
 import numpy as np
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.slicers import UserPointsSlicer
-from rubin_sim.utils import uniformSphere, survey_start_mjd
+from rubin_sim.utils import uniform_sphere, survey_start_mjd
 from rubin_sim.phot_utils import DustValues
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import m52snr
@@ -451,7 +451,7 @@ def generateKNPopSlicer(
         ag, bg = a**g, b**g
         return (ag + (bg - ag) * r) ** (1.0 / g)
 
-    ra, dec = uniformSphere(n_events, seed=seed)
+    ra, dec = uniform_sphere(n_events, seed=seed)
     peak_times = np.random.uniform(low=t_start, high=t_end, size=n_events)
     file_indx = np.floor(np.random.uniform(low=0, high=n_files, size=n_events)).astype(
         int

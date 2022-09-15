@@ -6,7 +6,7 @@ import healpy as hp
 import matplotlib.pylab as plt
 from rubin_sim.skybrightness_pre import dark_sky
 import warnings
-from rubin_sim.utils import _hpid2RaDec
+from rubin_sim.utils import _hpid2_ra_dec
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
@@ -464,7 +464,7 @@ class Ecliptic_basis_function(Base_basis_function):
     def __init__(self, nside=None, distance_to_eclip=25.0):
         super(Ecliptic_basis_function, self).__init__(nside=nside)
         self.distance_to_eclip = np.radians(distance_to_eclip)
-        ra, dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(self.nside)))
+        ra, dec = _hpid2_ra_dec(nside, np.arange(hp.nside2npix(self.nside)))
         self.result = np.zeros(ra.size)
         coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad)
         eclip_lat = coord.barycentrictrueecliptic.lat.radian
@@ -1706,7 +1706,7 @@ class Dec_modulo_basis_function(Base_basis_function):
 
         npix = hp.nside2npix(nside)
         hpids = np.arange(npix)
-        ra, dec = _hpid2RaDec(nside, hpids)
+        ra, dec = _hpid2_ra_dec(nside, hpids)
 
         self.results = []
 

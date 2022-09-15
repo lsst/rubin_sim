@@ -5,10 +5,10 @@ import warnings
 import unittest
 import rubin_sim.maf.stackers as stackers
 from rubin_sim.utils import (
-    _galacticFromEquatorial,
-    calcLmstLast,
+    _galactic_from_equatorial,
+    calc_lmst_last,
     Site,
-    _altAzPaFromRaDec,
+    _alt_az_pa_from_ra_dec,
     ObservationMetaData,
 )
 from rubin_sim.site_models import FieldsDatabase
@@ -389,7 +389,7 @@ class TestStackerClasses(unittest.TestCase):
         )
         data["observationStartMJD"] = np.arange(100) * 0.2 + 50000
         site = Site(name="LSST")
-        data["observationStartLST"], last = calcLmstLast(
+        data["observationStartLST"], last = calc_lmst_last(
             data["observationStartMJD"], site.longitude_rad
         )
         data["observationStartLST"] = data["observationStartLST"] * 180.0 / 12.0
@@ -404,7 +404,7 @@ class TestStackerClasses(unittest.TestCase):
         ras = np.radians(data["fieldRA"])
         decs = np.radians(data["fieldDec"])
         for ra, dec, mjd in zip(ras, decs, data["observationStartMJD"]):
-            alt, az, pa = _altAzPaFromRaDec(
+            alt, az, pa = _alt_az_pa_from_ra_dec(
                 ra, dec, ObservationMetaData(mjd=mjd, site=site)
             )
 
@@ -428,7 +428,9 @@ class TestStackerClasses(unittest.TestCase):
         data["dec"] += dec
         s = stackers.GalacticStacker(raCol="ra", decCol="dec")
         newData = s.run(data)
-        expectedL, expectedB = _galacticFromEquatorial(np.radians(ra), np.radians(dec))
+        expectedL, expectedB = _galactic_from_equatorial(
+            np.radians(ra), np.radians(dec)
+        )
         np.testing.assert_array_equal(newData["gall"], expectedL)
         np.testing.assert_array_equal(newData["galb"], expectedB)
 

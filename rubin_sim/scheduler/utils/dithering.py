@@ -2,7 +2,7 @@ import numpy as np
 import healpy as hp
 from scipy.optimize import minimize
 from .utils import hp_kd_tree, set_default_nside, read_fields
-from rubin_sim.utils import _hpid2RaDec, _xyz_angular_radius, _xyz_from_ra_dec
+from rubin_sim.utils import _hpid2_ra_dec, _xyz_angular_radius, _xyz_from_ra_dec
 
 default_nside = set_default_nside()
 
@@ -162,7 +162,7 @@ class hpmap_cross(object):
         self.dec = fields["dec"]
 
         # Healpixel ra and dec
-        self.hp_ra, self.hp_dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
+        self.hp_ra, self.hp_dec = _hpid2_ra_dec(nside, np.arange(hp.nside2npix(nside)))
 
     def set_map(self, inmap):
         """

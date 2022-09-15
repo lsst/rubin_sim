@@ -14,7 +14,7 @@ import healpy as hp
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from .utils import set_default_nside, int_rounded
-from rubin_sim.utils import _hpid2RaDec, _angularSeparation, angularSeparation
+from rubin_sim.utils import _hpid2_ra_dec, _angular_separation, angular_separation
 from rubin_sim.utils import Site
 from rubin_sim.data import get_data_dir
 
@@ -320,7 +320,7 @@ class Footprint(object):
         self.sun_RA_start = sun_RA_start
         self.npix = hp.nside2npix(nside)
         self.filters = filters
-        self.ra, self.dec = _hpid2RaDec(self.nside, np.arange(self.npix))
+        self.ra, self.dec = _hpid2_ra_dec(self.nside, np.arange(self.npix))
         # Set the phase of each healpixel. If RA to sun is zero, we are at phase np.pi/2.
         self.phase = (-self.ra + self.sun_RA_start + np.pi / 2) % (2.0 * np.pi)
         self.phase = self.phase * (self.period / 2.0 / np.pi)
@@ -437,7 +437,7 @@ def ra_dec_hp_map(nside=None):
     """
     if nside is None:
         nside = set_default_nside()
-    ra, dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
+    ra, dec = _hpid2_ra_dec(nside, np.arange(hp.nside2npix(nside)))
     return ra, dec
 
 
@@ -766,11 +766,11 @@ def magellanic_clouds_healpixels(nside=None, lmc_radius=10, smc_radius=5):
     smc_dec = np.radians(-72.828599)
     smc_radius = np.radians(smc_radius)
 
-    dist_to_lmc = _angularSeparation(lmc_ra, lmc_dec, ra, dec)
+    dist_to_lmc = _angular_separation(lmc_ra, lmc_dec, ra, dec)
     lmc_pix = np.where(int_rounded(dist_to_lmc) < int_rounded(lmc_radius))
     result[lmc_pix] = 1
 
-    dist_to_smc = _angularSeparation(smc_ra, smc_dec, ra, dec)
+    dist_to_smc = _angular_separation(smc_ra, smc_dec, ra, dec)
     smc_pix = np.where(int_rounded(dist_to_smc) < int_rounded(smc_radius))
     result[smc_pix] = 1
     return result
@@ -1057,7 +1057,7 @@ def combo_dust_fp(
         result[key][outer_disk] = wfd_weights[key]
 
     # Make a bulge go WFD
-    dist_to_bulge = angularSeparation(gal_lon, gal_lat, 0.0, 0.0)
+    dist_to_bulge = angular_separation(gal_lon, gal_lat, 0.0, 0.0)
     bulge_pix = np.where(dist_to_bulge <= bulge_radius)
     for key in result:
         result[key][bulge_pix] = wfd_weights[key]

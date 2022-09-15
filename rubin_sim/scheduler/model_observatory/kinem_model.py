@@ -2,9 +2,9 @@ import numpy as np
 import warnings
 from rubin_sim.utils import (
     Site,
-    _approx_altAz2RaDec,
+    approx_alt_az2_ra_dec,
     _approx_altaz2pa,
-    _approx_RaDec2AltAz,
+    _approx_ra_dec2_alt_az,
 )
 from rubin_sim.scheduler.utils import smallest_signed_angle
 
@@ -19,7 +19,7 @@ class radec2altazpa(object):
         self.location = location
 
     def __call__(self, ra, dec, mjd):
-        alt, az, pa = _approx_RaDec2AltAz(
+        alt, az, pa = _approx_ra_dec2_alt_az(
             ra, dec, self.location.lat_rad, self.location.lon_rad, mjd, return_pa=True
         )
         return alt, az, pa
@@ -423,7 +423,7 @@ class Kinem_model(object):
         else:
             pa = _approx_altaz2pa(alt_rad, az_rad, self.location.lat_rad)
             if update_tracking:
-                ra_rad, dec_rad = _approx_altAz2RaDec(
+                ra_rad, dec_rad = approx_alt_az2_ra_dec(
                     alt_rad, az_rad, self.location.lat_rad, self.location.lon_rad, mjd
                 )
 

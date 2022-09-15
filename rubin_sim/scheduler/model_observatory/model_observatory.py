@@ -1,12 +1,12 @@
 import numpy as np
 from rubin_sim.utils import (
-    _hpid2RaDec,
-    _raDec2Hpid,
+    _hpid2_ra_dec,
+    ra_dec2_hpid,
     Site,
-    calcLmstLast,
+    calc_lmst_last,
     m5_flat_sed,
-    _approx_RaDec2AltAz,
-    _angularSeparation,
+    _approx_ra_dec2_alt_az,
+    _angular_separation,
     _approx_altaz2pa,
     survey_start_mjd,
 )
@@ -308,7 +308,7 @@ class Model_observatory(object):
         self.conditions.sunRA = sun_moon_info["sun_RA"]
         self.conditions.sunDec = sun_moon_info["sun_dec"]
 
-        self.conditions.lmst, last = calcLmstLast(self.mjd, self.site.longitude_rad)
+        self.conditions.lmst, last = calc_lmst_last(self.mjd, self.site.longitude_rad)
 
         self.conditions.telRA = self.observatory.current_RA_rad
         self.conditions.telDec = self.observatory.current_dec_rad
@@ -382,7 +382,7 @@ class Model_observatory(object):
         observation["night"] = self.night
         observation["mjd"] = self.mjd
 
-        hpid = _raDec2Hpid(self.sky_model.nside, observation["RA"], observation["dec"])
+        hpid = ra_dec2_hpid(self.sky_model.nside, observation["RA"], observation["dec"])
         observation["skybrightness"] = self.sky_model.returnMags(
             self.mjd, indx=[hpid], extrapolate=True
         )[observation["filter"][0]]
@@ -396,7 +396,7 @@ class Model_observatory(object):
             nexp=observation["nexp"],
         )
 
-        lmst, last = calcLmstLast(self.mjd, self.site.longitude_rad)
+        lmst, last = calc_lmst_last(self.mjd, self.site.longitude_rad)
         observation["lmst"] = lmst
 
         sun_moon_info = self.almanac.get_sun_moon_positions(self.mjd)
@@ -408,13 +408,13 @@ class Model_observatory(object):
         observation["moonAz"] = sun_moon_info["moon_az"]
         observation["moonRA"] = sun_moon_info["moon_RA"]
         observation["moonDec"] = sun_moon_info["moon_dec"]
-        observation["moonDist"] = _angularSeparation(
+        observation["moonDist"] = _angular_separation(
             observation["RA"],
             observation["dec"],
             observation["moonRA"],
             observation["moonDec"],
         )
-        observation["solarElong"] = _angularSeparation(
+        observation["solarElong"] = _angular_separation(
             observation["RA"],
             observation["dec"],
             observation["sunRA"],
@@ -496,7 +496,7 @@ class Model_observatory(object):
             self.observatory.telrot_maxpos_rad,
         ]
 
-        alt, az = _approx_RaDec2AltAz(
+        alt, az = _approx_ra_dec2_alt_az(
             observation["RA"],
             observation["dec"],
             self.site.latitude_rad,
@@ -571,7 +571,7 @@ class Model_observatory(object):
         if observation_worked:
             observation["visittime"] = visittime
             observation["slewtime"] = slewtime
-            observation["slewdist"] = _angularSeparation(
+            observation["slewdist"] = _angular_separation(
                 start_az,
                 start_alt,
                 self.observatory.last_az_rad,

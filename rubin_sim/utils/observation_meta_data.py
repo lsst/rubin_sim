@@ -39,22 +39,22 @@ class ObservationMetaData(object):
         Either a float (in which case, it will be assumed to be in International
         Atomic Time), or an instantiation of the ModifiedJulianDate class representing
         the date of the observation
-    bandpassName : `str` or `list` of `str`, opt
+    bandpass_name : `str` or `list` of `str`, opt
         a char (e.g. 'u') or list (e.g. ['u', 'g', 'z']) denoting the bandpasses used
         for this particular observation
     site : `rubin_sim.utils.Site`, opt
         an instantiation of the rubin_sim.utils.Site class characterizing the site of the observatory.
     m5 : `float` or `list` of `float, opt
         this should be the 5-sigma limiting magnitude in the bandpass or
-        bandpasses specified in bandpassName.  Ultimately, m5 will be stored
-        in a dict keyed to the bandpassName (or Names) you passed in, i.e.
+        bandpasses specified in bandpass_name.  Ultimately, m5 will be stored
+        in a dict keyed to the bandpass_name (or Names) you passed in, i.e.
         you will be able to access m5 from outside of this class using, for
         example:
         myObservationMetaData.m5['u']
     sky_brightness : `float`, opt
-        the magnitude of the sky in the filter specified by bandpassName
+        the magnitude of the sky in the filter specified by bandpass_name
     seeing : `float` or `list` of `float, opt
-        Analogous to m5, corresponds to the seeing in arcseconds in the bandpasses in bandpassName
+        Analogous to m5, corresponds to the seeing in arcseconds in the bandpasses in bandpass_name
     rot_sky_pos : `float`, opt
         The orientation of the telescope in degrees.
         The convention for rot_sky_pos is as follows:
@@ -199,7 +199,7 @@ class ObservationMetaData(object):
     def _assign_dict_keyed_to_bandpass(self, input_value, input_name):
         """
         This method sets up a dict of either m5 or seeing values (or any other quantity
-        keyed to bandpassName).  It reads in a list of values and associates them with
+        keyed to bandpass_name).  It reads in a list of values and associates them with
         the list of bandpass names in self._bandpass.
 
         Note: this method assumes that self._bandpass has already been set.

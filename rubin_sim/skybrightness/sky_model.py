@@ -1,12 +1,12 @@
 import numpy as np
 from rubin_sim.utils import (
     haversine,
-    _raDecFromAltAz,
-    _altAzPaFromRaDec,
+    _ra_dec_from_alt_az,
+    _alt_az_pa_from_ra_dec,
     Site,
     ObservationMetaData,
-    _approx_altAz2RaDec,
-    _approx_RaDec2AltAz,
+    _approx_alt_az2_ra_dec,
+    _approx_ra_dec2_alt_az,
 )
 import warnings
 from .utils import wrapRA
@@ -262,13 +262,13 @@ class SkyModel(object):
             self.azs = self.ra.copy()
             self.alts = self.dec.copy()
             if self.preciseAltAz:
-                self.ra, self.dec = _raDecFromAltAz(
+                self.ra, self.dec = _ra_dec_from_alt_az(
                     self.alts,
                     self.azs,
                     ObservationMetaData(mjd=self.mjd, site=self.telescope),
                 )
             else:
-                self.ra, self.dec = _approx_altAz2RaDec(
+                self.ra, self.dec = _approx_alt_az2_ra_dec(
                     self.alts,
                     self.azs,
                     self.telescope.latitude_rad,
@@ -277,13 +277,13 @@ class SkyModel(object):
                 )
         else:
             if self.preciseAltAz:
-                self.alts, self.azs, pa = _altAzPaFromRaDec(
+                self.alts, self.azs, pa = _alt_az_pa_from_ra_dec(
                     self.ra,
                     self.dec,
                     ObservationMetaData(mjd=self.mjd, site=self.telescope),
                 )
             else:
-                self.alts, self.azs = _approx_RaDec2AltAz(
+                self.alts, self.azs = _approx_ra_dec2_alt_az(
                     self.ra,
                     self.dec,
                     self.telescope.latitude_rad,

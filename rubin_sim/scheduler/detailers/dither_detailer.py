@@ -1,7 +1,7 @@
 import numpy as np
 from rubin_sim.scheduler.detailers import Base_detailer
 from rubin_sim.utils import (
-    _approx_RaDec2AltAz,
+    _approx_ra_dec2_alt_az,
     _approx_altaz2pa,
     gnomonic_project_tosky,
     bearing,
@@ -245,7 +245,7 @@ class Camera_rot_detailer(Base_detailer):
         offsets = self._generate_offsets(len(observation_list), conditions.night)
 
         for i, obs in enumerate(observation_list):
-            alt, az = _approx_RaDec2AltAz(
+            alt, az = _approx_ra_dec2_alt_az(
                 obs["RA"],
                 obs["dec"],
                 conditions.site.latitude_rad,

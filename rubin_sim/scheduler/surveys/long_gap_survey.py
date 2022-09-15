@@ -1,7 +1,7 @@
 import numpy as np
 from rubin_sim.scheduler.utils import scheduled_observation
 from rubin_sim.scheduler.surveys import BaseSurvey
-from rubin_sim.utils import _approx_RaDec2AltAz
+from rubin_sim.utils import _approx_ra_dec2_alt_az
 import logging
 
 log = logging.getLogger(__name__)
@@ -158,7 +158,7 @@ class Long_gap_survey(BaseSurvey):
                     )
                     # Let's compute the alt of everything at earliest and scheduled
                     for mjd in mjds:
-                        alt, az = _approx_RaDec2AltAz(
+                        alt, az = _approx_ra_dec2_alt_az(
                             sched_array["RA"],
                             sched_array["dec"],
                             conditions.site.latitude_rad,
@@ -180,7 +180,7 @@ class Long_gap_survey(BaseSurvey):
                         )
                         # Let's compute the alt of everything at earliest and scheduled
                         for mjd in mjds:
-                            alt, az = _approx_RaDec2AltAz(
+                            alt, az = _approx_ra_dec2_alt_az(
                                 sched_array["RA"],
                                 sched_array["dec"],
                                 conditions.site.latitude_rad,
