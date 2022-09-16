@@ -65,6 +65,8 @@ class Model_observatory(object):
         init_load_length=10,
         ideal_conditions=False,
         kinem_model=None,
+        cloud_db=None,
+        cloud_offset_year=0
     ):
         """
         Parameters
@@ -93,6 +95,10 @@ class Model_observatory(object):
         kinem_model : kinematic model object (None)
             A instantiated rubin_sim.scheduler.modelObservatory.Kinem_model object. If None, the
             default is used
+        cloud_db : str (None)
+            The file to use for clouds. Default of None uses the database in rubin_sim_data.
+        cloud_offset_year : 0
+            The year offset to be passed to CloudData.
         """
 
         if nside is None:
@@ -170,7 +176,8 @@ class Model_observatory(object):
         if ideal_conditions:
             self.cloud_data = NoClouds()
         else:
-            self.cloud_data = CloudData(mjd_start_time, offset_year=0)
+            self.cloud_data = CloudData(mjd_start_time, cloud_db=cloud_db,
+                                        offset_year=cloud_offset_year)
 
         self.sky_model = sb.SkyModelPre(init_load_length=init_load_length)
 
