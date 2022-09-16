@@ -66,7 +66,7 @@ class Model_observatory(object):
         ideal_conditions=False,
         kinem_model=None,
         cloud_db=None,
-        cloud_offset_year=0
+        cloud_offset_year=0,
     ):
         """
         Parameters
@@ -176,8 +176,9 @@ class Model_observatory(object):
         if ideal_conditions:
             self.cloud_data = NoClouds()
         else:
-            self.cloud_data = CloudData(mjd_start_time, cloud_db=cloud_db,
-                                        offset_year=cloud_offset_year)
+            self.cloud_data = CloudData(
+                mjd_start_time, cloud_db=cloud_db, offset_year=cloud_offset_year
+            )
 
         self.sky_model = sb.SkyModelPre(init_load_length=init_load_length)
 
