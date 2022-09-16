@@ -5,6 +5,10 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 [![Run Tests and Build Documentation](https://github.com/lsst/rubin_sim/actions/workflows/python-tests-doc.yml/badge.svg)](https://github.com/lsst/rubin_sim/actions/workflows/python-tests-doc.yml)
 
 
+[![DOI](https://zenodo.org/badge/365031715.svg)](https://zenodo.org/badge/latestdoi/365031715)
+
+
+
 # Installation
 
 Prerequisites:  A working [conda installation ](https://www.anaconda.com/products/individual)
