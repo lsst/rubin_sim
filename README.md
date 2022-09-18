@@ -161,8 +161,8 @@ To update the source contents of the data files:
 * If you are updating the baseline sim, create a symlink of the new database to baseline.db
 * Create a new tar file with a new name, e.g., `tar -chvzf maf_2021_06_01.tgz maf` (no `-h` if symlinks should stay as symlinks)
 * Copy your new tar file to S3DF USDF s3dflogin.slac.stanford.edu:/sdf/group/rubin/web_data/sim-data/rubin_sim_data/
-* You can check that it is uploaded here: https://s3df.slac.stanford.edu/groups/rubin/static/sim-data/rubin_sim_data/
+* You can check that it is uploaded here: https://s3df.slac.stanford.edu/data/rubin/sim-data/rubin_sim_data/
 * Update `rubin_sim/data/rs_download_data.py` so the `data_dict` function uses your new filename
 * Push and merge the change to `bin/rs_download_data`
-* Probably add a new tag.
+* Add a new tag, with a message indicating how the data package was changed. 
 
