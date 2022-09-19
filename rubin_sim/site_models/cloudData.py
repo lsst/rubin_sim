@@ -103,10 +103,11 @@ class CloudData(object):
         # Make sure seeing dates are ordered appropriately (monotonically increasing).
         ordidx = self.cloud_dates.argsort()
         self.cloud_dates = self.cloud_dates[ordidx]
-        if self.scale is not None:
-            self.cloud_dates = np.round(self.cloud_dates * self.scale).astype(int)
-        self.cloud_values = self.cloud_values[ordidx]
         # Record this information, in case the cloud database does not start at t=0.
         self.min_time = self.cloud_dates[0]
         self.max_time = self.cloud_dates[-1]
         self.time_range = self.max_time - self.min_time
+        if self.scale is not None:
+            self.cloud_dates = np.round(self.cloud_dates * self.scale).astype(int)
+        self.cloud_values = self.cloud_values[ordidx]
+        
