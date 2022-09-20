@@ -110,4 +110,3 @@ class CloudData(object):
         if self.scale is not None:
             self.cloud_dates = np.round(self.cloud_dates * self.scale).astype(int)
         self.cloud_values = self.cloud_values[ordidx]
-        
