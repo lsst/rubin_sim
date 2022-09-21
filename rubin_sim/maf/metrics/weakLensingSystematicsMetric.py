@@ -2,7 +2,7 @@ import numpy as np
 from .baseMetric import BaseMetric
 from .exgalM5 import ExgalM5
 
-__all__ = ["ExgalM5_with_cuts", "WeakLensingNvisits"]
+__all__ = ["ExgalM5_with_cuts", "WeakLensingNvisits", "RIZDetectionCoaddExposureTime"]
 
 
 class ExgalM5_with_cuts(BaseMetric):
@@ -116,3 +116,87 @@ class WeakLensingNvisits(BaseMetric):
             return self.badval
         nvisits = len(np.where(dataSlice[self.expTimeCol] > self.min_expTime)[0])
         return nvisits
+
+
+class RIZDetectionCoaddExposureTime(BaseMetric):
+    """A metric computing the total exposure time of an riz coadd.
+
+    This metric is intended to be used as a proxy for depth fluctuations in catalogs detected
+    from coadds of the r, i and z bands together. This coadding + detection scheme is used by
+    metadetection (weak lensing shear estimator) and will likely be adopted by the Rubin science
+    pipelines.
+
+    It counts the total exposure time in all three bands, excluding dusty regions, exposures
+    that are too short, or areas where not all bands ugrizY are present. We do not make a depth
+    cut explicitly since that is circular (and thus confuses my feeble mind :/).
+
+    TODO:
+     - apply some sort of inverse variance weighting to the coadd based on sky level?
+     - use some sort of effective exposure time that accounts for the PSF?
+
+    Parameters
+    ----------
+    expTimeCol : str, optional
+        The column name for the exposure time.
+    filterCol : str, optional
+        The column name for the filter name.
+    ebvlim : float, optional
+        The upper limit on E(B-V). Regions with E(B-V) greater than this
+        limit are excluded.
+    min_expTime : float, optional
+        The minimal exposure time for a visit to contribute to a coadd.
+    det_bands : list of str, optional
+        If not None, the bands to use for detection. If None, defaults to riz.
+    min_bands : list of str, optional
+        If not None, the bands whose presence is used to cut the survey data.
+        If None, defaults to ugrizY.
+    """
+    def __init__(
+        self,
+        expTimeCol="visitExposureTime",
+        filterCol="filter",
+        ebvlim=0.2,
+        min_expTime=15,
+        det_bands=None,
+        min_bands=None,
+        **kwargs
+    ):
+        # Set up the coadd metric (using ExgalM5 adds galactic dust extinction)
+        self.filterCol = filterCol
+        self.expTimeCol = expTimeCol
+        self.ebvlim = ebvlim
+        self.min_expTime = min_expTime
+        self.det_bands = det_bands or ["r", "i", "z"]
+        self.min_bands = set(min_bands or ["u", "g", "r", "i", "z", "y"])
+        super().__init__(
+            col=[self.m5Col, self.expTimeCol, filterCol],
+            maps=self.exgalM5.maps,
+            **kwargs
+        )
+
+    def run(self, dataSlice, slicePoint):
+        # If the sky is too dusty here, stop.
+        if slicePoint["ebv"] > self.ebvlim:
+            return self.badval
+
+        # check to make sure there is at least some
+        # coverage in the required bands
+        filters = set(dataSlice[self.filterCol])
+        if filters != self.min_bands:
+            return self.badval
+
+        exptime_msk = (dataSlice[self.expTimeCol] > self.min_expTime)
+        filter_msk = None
+        for band in self.det_bands:
+            msk = dataSlice[self.filterCol] == band
+            if filter_msk is None:
+                filter_msk = msk
+            else:
+                filter_msk |= msk
+
+        tot_msk = exptime_msk & filter_msk
+        # if nothing passes, we exclude this region
+        if not np.any(tot_msk):
+            return self.badval
+
+        return np.sum(dataSlice[tot_msk][self.expTimeCol])
