@@ -1,4 +1,4 @@
-name: Run Full Tests
+name: Run All Tests
 
 on:
   release:
