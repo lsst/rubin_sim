@@ -151,6 +151,7 @@ class RIZDetectionCoaddExposureTime(BaseMetric):
         If not None, the bands whose presence is used to cut the survey data.
         If None, defaults to ugrizY.
     """
+
     def __init__(
         self,
         expTimeCol="visitExposureTime",
@@ -185,7 +186,7 @@ class RIZDetectionCoaddExposureTime(BaseMetric):
         if filters != self.min_bands:
             return self.badval
 
-        exptime_msk = (dataSlice[self.expTimeCol] > self.min_expTime)
+        exptime_msk = dataSlice[self.expTimeCol] > self.min_expTime
         filter_msk = None
         for band in self.det_bands:
             msk = dataSlice[self.filterCol] == band
