@@ -59,7 +59,7 @@ class Model_observatory(object):
         alt_min=5.0,
         lax_dome=True,
         cloud_limit=0.3,
-        sim_ToO=None,
+        sim_to_o=None,
         seeing_db=None,
         park_after=10.0,
         init_load_length=10,
@@ -81,7 +81,7 @@ class Model_observatory(object):
             Passed to observatory model. If true, allows dome creep.
         cloud_limit : float (0.3)
             The limit to stop taking observations if the cloud model returns something equal or higher
-        sim_ToO : sim_targetoO object (None)
+        sim_to_o : sim_targetoO object (None)
             If one would like to inject simulated ToOs into the telemetry stream.
         seeing_db : filename of the seeing data database (None)
             If one would like to use an alternate seeing database
@@ -111,7 +111,7 @@ class Model_observatory(object):
         self.lax_dome = lax_dome
         self.mjd_start = survey_start_mjd() if mjd_start is None else mjd_start
 
-        self.sim_ToO = sim_ToO
+        self.sim_ToO = sim_to_o
 
         self.park_after = park_after / 60.0 / 24.0  # To days
 
