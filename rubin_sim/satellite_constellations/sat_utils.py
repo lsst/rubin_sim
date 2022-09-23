@@ -21,7 +21,7 @@ __all__ = [
 
 
 MJDOFFSET = 2400000.5
-MJD0 = survey_start_mjd()
+mjd0 = survey_start_mjd()
 
 
 def sun_alt_limits():
