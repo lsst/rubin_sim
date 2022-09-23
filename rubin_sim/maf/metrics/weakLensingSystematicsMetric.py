@@ -186,6 +186,8 @@ class RIZDetectionCoaddExposureTime(BaseMetric):
         if filters != self.min_bands:
             return self.badval
 
+        # find all entries where exposure time is long enough and
+        # in the detection bands
         exptime_msk = dataSlice[self.expTimeCol] > self.min_expTime
         filter_msk = None
         for band in self.det_bands:
@@ -194,8 +196,8 @@ class RIZDetectionCoaddExposureTime(BaseMetric):
                 filter_msk = msk
             else:
                 filter_msk |= msk
-
         tot_msk = exptime_msk & filter_msk
+
         # if nothing passes, we exclude this region
         if not np.any(tot_msk):
             return self.badval
