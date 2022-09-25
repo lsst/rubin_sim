@@ -63,6 +63,8 @@ def gather_summaries():
             outfile = outfile + ".h5"
         else:
             outfile = outfile + ".csv"
+    else:
+        outfile = args.outfile
 
     # Connect to resultsDbs and pull summary stats into a nice Dataframe
     rc = RunComparison(baseDir=args.baseDir, runDirs=runDirs)
