@@ -577,7 +577,7 @@ def scienceRadarBatch(
             depth_cut=ptsrc_lim_mag_i_band,
         )
         caption = (
-            "fCosmology/Static science metrics are based on evaluating the region "
+            f"Cosmology/Static science metrics are based on evaluating the region "
             f"of the sky that meets the requirements (in year {yr_cut} of coverage"
             f"in all {nfilters_needed} bands, a lower E(B-V) value than {lim_ebv} "
             f"and at least a coadded depth of {ptsrc_lim_mag_i_band} in {bandpass}. "
