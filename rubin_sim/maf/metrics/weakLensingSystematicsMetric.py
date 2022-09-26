@@ -137,6 +137,11 @@ class RIZDetectionCoaddExposureTime(VectorMetric):
      - apply some sort of inverse variance weighting to the coadd based on sky
        level?
      - use some sort of effective exposure time that accounts for the PSF?
+     - @rhiannonlynne nicely suggested this Teff computation:
+       rubin_sim/rubin_sim/maf/metrics/technicalMetrics.py
+
+    However, given the unknown nature of detection will look like in LSST,
+    a simple sum of exposure time is probably ok.
 
     Parameters
     ----------
