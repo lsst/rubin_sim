@@ -133,7 +133,7 @@ class RIZDetectionCoaddExposureTime(VectorMetric):
     ugrizY are present. We do not make a depth cut explicitly since that is
     circular (and thus confuses MRB's feeble mind :/).
 
-    TODO:
+    TODO maybe:
      - apply some sort of inverse variance weighting to the coadd based on sky
        level?
      - use some sort of effective exposure time that accounts for the PSF?
@@ -186,7 +186,7 @@ class RIZDetectionCoaddExposureTime(VectorMetric):
             binCol=binCol,
             col=[self.expTimeCol, self.filterCol],
             metricName="riz_detcoadd_exptime",
-            units='seconds',
+            units="seconds",
             maps=["DustMap"],
             **kwargs
         )
