@@ -62,7 +62,7 @@ def rs_download_data():
     parser.add_argument(
         "--url_base",
         type=str,
-        default="https://s3df.slac.stanford.edu/groups/rubin/static/sim-data/rubin_sim_data/",
+        default="https://s3df.slac.stanford.edu/data/rubin/sim-data/rubin_sim_data/",
         help="Root URL of download location",
     )
     args = parser.parse_args()

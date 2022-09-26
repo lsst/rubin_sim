@@ -1,6 +1,10 @@
-name: Run Full Tests
+name: Run All Tests
 
-on: [workflow_dispatch]
+on:
+  release:
+    types:
+      - created
+  workflow_dispatch:
 
 jobs:
   AllTests:
@@ -10,7 +14,7 @@ jobs:
       fail-fast: True
       matrix:
         os: ["ubuntu-latest", "macos-latest"]
-        python-version: ["3.8"]
+        python-version: ["3.10", "3.9"]
     steps:
       - uses: actions/checkout@v2
 

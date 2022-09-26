@@ -1,7 +1,9 @@
 name: Build and Push Documentation
 
 on:
-  # Trigger the workflow manually (otherwise runs automatically after unit tests)
+  release:
+    types:
+      - created
   workflow_dispatch:
 
 jobs:
@@ -13,7 +15,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: 3.8
+          python-version: "3.10"
           channels: conda-forge,defaults
           channel-priority: strict
           show-channel-urls: true
