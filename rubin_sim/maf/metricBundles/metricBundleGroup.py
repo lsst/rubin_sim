@@ -1,10 +1,12 @@
 from __future__ import print_function
 from builtins import object
 import os
+import sys
 import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
 from collections import OrderedDict
+import tqdm
 
 import rubin_sim.maf.utils as utils
 from rubin_sim.maf.plots import PlotHandler
@@ -447,7 +449,17 @@ class MetricBundleGroup(object):
         else:
             cache = False
         # Run through all slicepoints and calculate metrics.
-        for slice_i in slicer:
+        if self.verbose:
+            slicer_iter = tqdm.tqdm(
+                slicer,
+                desc="Processing slices",
+                ncols=79,
+                file=sys.stdout,
+            )
+        else:
+            slicer_iter = slicer
+
+        for slice_i in slicer_iter:
             i = slice_i["slicePoint"]["sid"]
             slicedata = self.simData[slice_i["idxs"]]
             if len(slicedata) == 0:

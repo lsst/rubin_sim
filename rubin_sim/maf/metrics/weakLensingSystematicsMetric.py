@@ -1,6 +1,7 @@
 import numpy as np
 from .baseMetric import BaseMetric
 from .exgalM5 import ExgalM5
+from .vectorMetrics import VectorMetric
 
 __all__ = ["ExgalM5_with_cuts", "WeakLensingNvisits", "RIZDetectionCoaddExposureTime"]
 
@@ -118,24 +119,32 @@ class WeakLensingNvisits(BaseMetric):
         return nvisits
 
 
-class RIZDetectionCoaddExposureTime(BaseMetric):
+class RIZDetectionCoaddExposureTime(VectorMetric):
     """A metric computing the total exposure time of an riz coadd.
 
-    This metric is intended to be used as a proxy for depth fluctuations in catalogs detected
-    from coadds of the r, i and z bands together. This coadding + detection scheme is used by
-    metadetection (weak lensing shear estimator) and will likely be adopted by the Rubin science
+    This metric is intended to be used as a proxy for depth fluctuations in
+    catalogs detected from coadds of the r, i and z bands together. This
+    coadding + detection scheme is used by metadetection (weak lensing
+    shear estimator) and will likely be adopted by the Rubin science
     pipelines.
 
-    It counts the total exposure time in all three bands, excluding dusty regions, exposures
-    that are too short, or areas where not all bands ugrizY are present. We do not make a depth
-    cut explicitly since that is circular (and thus confuses my feeble mind :/).
+    It counts the total exposure time in all three bands, excluding dusty
+    regions, exposures that are too short, or areas where not all bands
+    ugrizY are present. We do not make a depth cut explicitly since that is
+    circular (and thus confuses MRB's feeble mind :/).
 
     TODO:
-     - apply some sort of inverse variance weighting to the coadd based on sky level?
+     - apply some sort of inverse variance weighting to the coadd based on sky
+       level?
      - use some sort of effective exposure time that accounts for the PSF?
 
     Parameters
     ----------
+    bins : list of float
+        The bin edges. Typically this will be a list of nights for which to
+        compute the riz coadd exposure times.
+    binCol : str, optional
+        The column to bin on. The default is 'night'.
     expTimeCol : str, optional
         The column name for the exposure time.
     filterCol : str, optional
@@ -154,6 +163,9 @@ class RIZDetectionCoaddExposureTime(BaseMetric):
 
     def __init__(
         self,
+        *,
+        bins,
+        binCol="night",
         expTimeCol="visitExposureTime",
         filterCol="filter",
         ebvlim=0.2,
@@ -170,36 +182,51 @@ class RIZDetectionCoaddExposureTime(BaseMetric):
         self.det_bands = det_bands or ["r", "i", "z"]
         self.min_bands = set(min_bands or ["u", "g", "r", "i", "z", "y"])
         super().__init__(
-            col=[self.m5Col, self.expTimeCol, filterCol],
-            maps=self.exgalM5.maps,
+            bins=bins,
+            binCol=binCol,
+            col=[self.expTimeCol, self.filterCol],
+            metricName="riz_detcoadd_exptime",
+            units='seconds',
+            maps=["DustMap"],
             **kwargs
         )
 
     def run(self, dataSlice, slicePoint):
+        res = np.zeros(self.shape, dtype=self.metricDtype)
+
         # If the sky is too dusty here, stop.
         if slicePoint["ebv"] > self.ebvlim:
-            return self.badval
+            res[:] = self.badval
+            return res
 
-        # check to make sure there is at least some
-        # coverage in the required bands
-        filters = set(dataSlice[self.filterCol])
-        if filters != self.min_bands:
-            return self.badval
+        dataSlice.sort(order=self.binCol)
+        cutinds = np.searchsorted(dataSlice[self.binCol], self.bins[1:], side="right")
+        maxcutind = dataSlice.shape[0]
+        cutinds = np.clip(cutinds, 0, maxcutind)
 
         # find all entries where exposure time is long enough and
         # in the detection bands
         exptime_msk = dataSlice[self.expTimeCol] > self.min_expTime
-        filter_msk = None
-        for band in self.det_bands:
-            msk = dataSlice[self.filterCol] == band
-            if filter_msk is None:
-                filter_msk = msk
-            else:
-                filter_msk |= msk
+        filter_msk = np.in1d(dataSlice[self.filterCol], self.det_bands)
         tot_msk = exptime_msk & filter_msk
 
-        # if nothing passes, we exclude this region
-        if not np.any(tot_msk):
-            return self.badval
+        for i, cutind in enumerate(cutinds):
+            if cutind == 0:
+                res[i] = self.badval
+                continue
 
-        return np.sum(dataSlice[tot_msk][self.expTimeCol])
+            # check to make sure there is at least some
+            # coverage in the required bands
+            filters = set(dataSlice[self.filterCol][:cutind])
+            if filters != self.min_bands:
+                res[i] = self.badval
+                continue
+
+            # if nothing passes for detection, we exclude this region
+            if not np.any(tot_msk[:cutind]):
+                res[i] = self.badval
+                continue
+
+            res[i] = np.sum(dataSlice[self.expTimeCol][:cutind][tot_msk[:cutind]])
+
+        return res

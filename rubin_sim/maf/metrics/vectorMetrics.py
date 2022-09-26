@@ -26,8 +26,13 @@ class VectorMetric(BaseMetric):
         metricDtype=float,
         **kwargs
     ):
+        if isinstance(col, str):
+            cols = [col, binCol]
+        else:
+            cols = list(col) + [binCol]
+
         super(VectorMetric, self).__init__(
-            col=[col, binCol], units=units, metricDtype=metricDtype, **kwargs
+            col=cols, units=units, metricDtype=metricDtype, **kwargs
         )
         self.bins = bins
         self.binCol = binCol
