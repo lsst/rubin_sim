@@ -138,11 +138,11 @@ class SeeingModel:
         # Calculate combined FWHMeff.
         fwhm_eff = 1.16 * np.sqrt(fwhm_system**2 + 1.04 * fwhm_atmo**2)
         # Translate to FWHMgeom.
-        fwhm_geom = self.fwhmEff_to_fwhmGeom(fwhm_eff)
+        fwhm_geom = self.fwhm_eff_to_fwhm_geom(fwhm_eff)
         return {"fwhmEff": fwhm_eff, "fwhmGeom": fwhm_geom}
 
     @staticmethod
-    def fwhmEff_to_fwhmGeom(fwhm_eff):
+    def fwhm_eff_to_fwhm_geom(fwhm_eff):
         """Calculate FWHM_geom from FWHM_eff.
 
         Parameters
@@ -156,7 +156,7 @@ class SeeingModel:
         return 0.822 * fwhm_eff + 0.052
 
     @staticmethod
-    def fwhmGeom_to_fwhmEff(fwhm_geom):
+    def fwhm_geom_to_fwhm_eff(fwhm_geom):
         """Calculate FWHM_eff from FWHM_geom.
 
         Parameters
