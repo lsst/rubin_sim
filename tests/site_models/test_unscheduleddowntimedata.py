@@ -12,60 +12,60 @@ class UnscheduledDowntimeDataTest(unittest.TestCase):
         self.survey_length = 3650 * 2
 
     def test_basic_information_after_creation(self):
-        downtimeData = UnscheduledDowntimeData(
+        downtime_data = UnscheduledDowntimeData(
             self.th,
             start_of_night_offset=self.startofnight,
             survey_length=self.survey_length,
             seed=self.seed,
         )
-        self.assertEqual(downtimeData.seed, self.seed)
-        self.assertEqual(downtimeData.survey_length, self.survey_length)
+        self.assertEqual(downtime_data.seed, self.seed)
+        self.assertEqual(downtime_data.survey_length, self.survey_length)
         self.assertEqual(
-            self.th + TimeDelta(self.startofnight, format="jd"), downtimeData.night0
+            self.th + TimeDelta(self.startofnight, format="jd"), downtime_data.night0
         )
-        downtimeData = UnscheduledDowntimeData(
+        downtime_data = UnscheduledDowntimeData(
             self.th,
             start_of_night_offset=0,
             survey_length=self.survey_length,
             seed=self.seed,
         )
-        self.assertEqual(downtimeData.night0, self.th)
+        self.assertEqual(downtime_data.night0, self.th)
 
     def test_information_after_initialization(self):
-        downtimeData = UnscheduledDowntimeData(
+        downtime_data = UnscheduledDowntimeData(
             self.th,
             start_of_night_offset=self.startofnight,
             survey_length=self.survey_length,
             seed=self.seed,
         )
-        downtimeData.make_data()
-        self.assertEqual(len(downtimeData.downtime), 155)
+        downtime_data.make_data()
+        self.assertEqual(len(downtime_data.downtime), 155)
         # Check some of the downtime values.
-        dnight = downtimeData.downtime["end"] - downtimeData.downtime["start"]
+        dnight = downtime_data.downtime["end"] - downtime_data.downtime["start"]
         self.assertEqual(dnight[0].jd, 1)
-        self.assertEqual(downtimeData.downtime["activity"][0], "minor event")
+        self.assertEqual(downtime_data.downtime["activity"][0], "minor event")
         self.assertEqual(dnight[2].jd, 7)
-        self.assertEqual(downtimeData.downtime["activity"][2], "major event")
+        self.assertEqual(downtime_data.downtime["activity"][2], "major event")
 
     def test_alternate_seed(self):
-        downtimeData = UnscheduledDowntimeData(
+        downtime_data = UnscheduledDowntimeData(
             self.th,
             start_of_night_offset=self.startofnight,
             survey_length=self.survey_length,
             seed=3,
         )
-        downtimeData.make_data()
-        self.assertEqual(len(downtimeData.downtime), 145)
+        downtime_data.make_data()
+        self.assertEqual(len(downtime_data.downtime), 145)
 
     def test_call(self):
-        downtimeData = UnscheduledDowntimeData(
+        downtime_data = UnscheduledDowntimeData(
             self.th,
             start_of_night_offset=self.startofnight,
             survey_length=self.survey_length,
             seed=self.seed,
         )
-        downtimeData.make_data()
-        downtimes = downtimeData()
+        downtime_data.make_data()
+        downtimes = downtime_data()
         self.assertEqual(downtimes["activity"][2], "major event")
 
 

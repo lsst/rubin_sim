@@ -64,7 +64,7 @@ class UnscheduledDowntimeData(object):
         """
         return self.downtime
 
-    def _downtimeStatus(self, time):
+    def _downtime_status(self, time):
         """Look behind the scenes at the downtime status/next values"""
         next_start = self.downtime["start"].searchsorted(time, side="right")
         next_end = self.downtime["end"].searchsorted(time, side="right")

@@ -14,35 +14,35 @@ class ScheduledDowntimeDataTest(unittest.TestCase):
         )
 
     def test_basic_information_after_creation(self):
-        downtimeData = ScheduledDowntimeData(
+        downtime_data = ScheduledDowntimeData(
             self.th, start_of_night_offset=self.startofnight
         )
-        self.assertEqual(downtimeData.scheduled_downtime_db, self.downtime_db)
+        self.assertEqual(downtime_data.scheduled_downtime_db, self.downtime_db)
         self.assertEqual(
-            self.th + TimeDelta(self.startofnight, format="jd"), downtimeData.night0
+            self.th + TimeDelta(self.startofnight, format="jd"), downtime_data.night0
         )
-        downtimeData = ScheduledDowntimeData(self.th, start_of_night_offset=0)
-        self.assertEqual(downtimeData.night0, self.th)
+        downtime_data = ScheduledDowntimeData(self.th, start_of_night_offset=0)
+        self.assertEqual(downtime_data.night0, self.th)
 
     def test_information_after_initialization(self):
-        downtimeData = ScheduledDowntimeData(
+        downtime_data = ScheduledDowntimeData(
             self.th, start_of_night_offset=self.startofnight
         )
-        downtimeData.read_data()
-        self.assertEqual(len(downtimeData.downtime), 31)
+        downtime_data.read_data()
+        self.assertEqual(len(downtime_data.downtime), 31)
         # Check some of the downtime values.
-        dnight = downtimeData.downtime["end"] - downtimeData.downtime["start"]
+        dnight = downtime_data.downtime["end"] - downtime_data.downtime["start"]
         self.assertEqual(dnight[0].jd, 7)
-        self.assertEqual(downtimeData.downtime["activity"][0], "general maintenance")
+        self.assertEqual(downtime_data.downtime["activity"][0], "general maintenance")
         self.assertEqual(dnight[4].jd, 14)
-        self.assertEqual(downtimeData.downtime["activity"][4], "recoat mirror")
+        self.assertEqual(downtime_data.downtime["activity"][4], "recoat mirror")
 
     def test_call(self):
-        downtimeData = ScheduledDowntimeData(
+        downtime_data = ScheduledDowntimeData(
             self.th, start_of_night_offset=self.startofnight
         )
-        downtimeData.read_data()
-        downtimes = downtimeData()
+        downtime_data.read_data()
+        downtimes = downtime_data()
         self.assertEqual(downtimes["activity"][4], "recoat mirror")
 
 

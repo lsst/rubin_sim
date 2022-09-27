@@ -24,14 +24,14 @@ class DowntimeModel(object):
 
     def __init__(
         self,
-        schedDownCol="scheduled_downtimes",
-        unschedDownCol="unscheduled_downtimes",
-        timeCol="time",
+        sched_down_col="scheduled_downtimes",
+        unsched_down_col="unscheduled_downtimes",
+        time_col="time",
     ):
 
-        self.schedDown = schedDownCol
-        self.unschedDown = unschedDownCol
-        self.target_requirements = timeCol
+        self.sched_down = sched_down_col
+        self.unsched_down = unsched_down_col
+        self.target_requirements = time_col
 
     def configure(self, config=None):
         warnings.warn("The configure method is deprecated.")
@@ -39,16 +39,16 @@ class DowntimeModel(object):
     def config_info(self):
         warnings.warn("The configure method is deprecated.")
 
-    def __call__(self, efdData, targetDict):
+    def __call__(self, efd_data, target_dict):
         """Calculate the sky coverage due to clouds.
 
         Parameters
         ----------
-        efdData: dict
+        efd_data: dict
             Dictionary of input telemetry, typically from the EFD.
             This must contain columns self.efd_requirements.
             (work in progress on handling time history).
-        targetDict: dict
+        target_dict: dict
             Dictionary of target values over which to calculate the processed telemetry.
             (e.g. mapDict = {'ra': [], 'dec': [], 'altitude': [], 'azimuth': [], 'airmass': []})
             Here we use 'time', an astropy.time.Time, as we just need to know the time.
@@ -61,23 +61,25 @@ class DowntimeModel(object):
             time of next scheduled downtime (~noon of the first available day).
         """
         # Check for downtime in scheduled downtimes.
-        time = targetDict[self.target_requirements]
-        next_start = efdData[self.schedDown]["start"].searchsorted(time, side="right")
-        next_end = efdData[self.schedDown]["end"].searchsorted(time, side="right")
+        time = target_dict[self.target_requirements]
+        next_start = efd_data[self.sched_down]["start"].searchsorted(time, side="right")
+        next_end = efd_data[self.sched_down]["end"].searchsorted(time, side="right")
         if next_start > next_end:
             # Currently in a scheduled downtime.
-            current_sched = efdData[self.schedDown][next_end]
+            current_sched = efd_data[self.sched_down][next_end]
         else:
             # Not currently in a scheduled downtime.
             current_sched = None
         # This will be the next reported/expected downtime.
-        next_sched = efdData[self.schedDown][next_start]
+        next_sched = efd_data[self.sched_down][next_start]
         # Check for downtime in unscheduled downtimes.
-        next_start = efdData[self.unschedDown]["start"].searchsorted(time, side="right")
-        next_end = efdData[self.unschedDown]["end"].searchsorted(time, side="right")
+        next_start = efd_data[self.unsched_down]["start"].searchsorted(
+            time, side="right"
+        )
+        next_end = efd_data[self.unsched_down]["end"].searchsorted(time, side="right")
         if next_start > next_end:
             # Currently in an unscheduled downtime.
-            current_unsched = efdData[self.unschedDown][next_end]
+            current_unsched = efd_data[self.unsched_down][next_end]
         else:
             current_unsched = None
 
