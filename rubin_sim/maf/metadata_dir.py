@@ -66,10 +66,6 @@ def metadata_dir():
 
     sim_names = [os.path.basename(name).replace(".db", "") for name in dbFiles]
 
-    trackingDb = TrackingDb(database=None)
-    mafDate, mafVersion = getDateVersion()
-    mafVersion = mafVersion["__version__"]
-
     for filename, opsim in zip(dbFiles, sim_names):
         # Connect to the database
         opsdb = filename
@@ -104,19 +100,3 @@ def metadata_dir():
         group.runAll(clearMemory=True, plotNow=True)
         resultsDb.close()
 
-        # Add outputs to tracking database. -- note possible race condition if running in parallel.
-        trackingDb.addRun(
-            opsimRun=opsim,
-            opsimVersion=None,
-            opsimDate=None,
-            mafComment="Simple",
-            mafVersion=mafVersion,
-            mafDate=mafDate,
-            mafDir=outDir,
-            dbFile=filename,
-            mafRunId=None,
-            opsimGroup=None,
-            opsimComment=None,
-        )
-    # Close trackingDB
-    trackingDb.close()
