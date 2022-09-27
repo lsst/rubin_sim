@@ -120,7 +120,7 @@ class FieldsDatabase(object):
         return numpy.array(ra), numpy.array(dec)
 
     def get_id_ra_dec_arrays(self, query):
-        """Retrieve lists of fieldId, RA and Dec.
+        """Retrieve lists of field_id, RA and Dec.
 
         Parameters
         ----------
@@ -130,19 +130,19 @@ class FieldsDatabase(object):
         Returns
         -------
         numpy.array, numpy.array, numpy.array
-            The arrays of fieldId, RA and Dec.
+            The arrays of field_id, RA and Dec.
         """
         self.get_connect()
         rows = self.get_rows(query)
-        fieldId = []
+        field_id = []
         ra = []
         dec = []
         for row in rows:
-            fieldId.append(int(row[0]))
+            field_id.append(int(row[0]))
             ra.append(row[2])
             dec.append(row[3])
 
-        return numpy.array(fieldId, dtype=int), numpy.array(ra), numpy.array(dec)
+        return numpy.array(field_id, dtype=int), numpy.array(ra), numpy.array(dec)
 
     def get_rows(self, query):
         """Get the rows from a query.

@@ -13,35 +13,35 @@ class TestCloudModel(unittest.TestCase):
         self.num_original_values = 29201
 
     def test_basic_information_after_creation(self):
-        cloudData = CloudData(self.th, cloud_db=self.cloud_db)
-        self.assertEqual(cloudData.start_time, self.th)
-        cloudData = CloudData(self.th, cloud_db=self.cloud_db, offset_year=1)
+        cloud_data = CloudData(self.th, cloud_db=self.cloud_db)
+        self.assertEqual(cloud_data.start_time, self.th)
+        cloud_data = CloudData(self.th, cloud_db=self.cloud_db, offset_year=1)
         self.assertEqual(
-            cloudData.start_time, Time("2021-01-01", format="isot", scale="tai")
+            cloud_data.start_time, Time("2021-01-01", format="isot", scale="tai")
         )
 
     def test_information_after_initialization(self):
         # Test setting cloud_db explicitly.
-        cloudData = CloudData(self.th, cloud_db=self.cloud_db)
-        cloudData.read_data()
-        self.assertEqual(cloudData.cloud_values.size, self.num_original_values)
-        self.assertEqual(cloudData.cloud_dates.size, self.num_original_values)
+        cloud_data = CloudData(self.th, cloud_db=self.cloud_db)
+        cloud_data.read_data()
+        self.assertEqual(cloud_data.cloud_values.size, self.num_original_values)
+        self.assertEqual(cloud_data.cloud_dates.size, self.num_original_values)
         # Test that find built-in module automatically.
-        cloudData = CloudData(self.th)
-        cloudData.read_data()
-        self.assertEqual(cloudData.cloud_dates.size, self.num_original_values)
+        cloud_data = CloudData(self.th)
+        cloud_data.read_data()
+        self.assertEqual(cloud_data.cloud_dates.size, self.num_original_values)
 
     def test_get_clouds(self):
-        cloudData = CloudData(self.th, cloud_db=self.cloud_db)
-        cloudData.read_data()
+        cloud_data = CloudData(self.th, cloud_db=self.cloud_db)
+        cloud_data.read_data()
         dt = TimeDelta(700000, format="sec")
-        self.assertEqual(cloudData(self.th + dt), 0.5)
+        self.assertEqual(cloud_data(self.th + dt), 0.5)
         dt = TimeDelta(701500, format="sec")
-        self.assertEqual(cloudData(self.th + dt), 0.5)
+        self.assertEqual(cloud_data(self.th + dt), 0.5)
         dt = TimeDelta(705000, format="sec")
-        self.assertEqual(cloudData(self.th + dt), 0.375)
+        self.assertEqual(cloud_data(self.th + dt), 0.375)
         dt = TimeDelta(6306840, format="sec")
-        self.assertEqual(cloudData(self.th + dt), 0.0)
+        self.assertEqual(cloud_data(self.th + dt), 0.0)
 
     def test_get_clouds_using_different_start_month(self):
         # Just changing the starting month
