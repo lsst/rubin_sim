@@ -23,3 +23,4 @@ scikit-learn
 requests
 shapely
 skyfield
+tqdm
