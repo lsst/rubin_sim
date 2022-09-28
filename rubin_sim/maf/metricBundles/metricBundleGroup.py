@@ -90,7 +90,7 @@ class MetricBundleGroup(object):
         dbCon,
         outDir=".",
         resultsDb=None,
-        verbose=True,
+        verbose=False,
         saveEarly=True,
         dbTable=None,
     ):
