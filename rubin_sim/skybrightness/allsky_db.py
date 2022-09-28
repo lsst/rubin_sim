@@ -54,9 +54,12 @@ def diode_sky_db(mid_mjd, sql_q=None, dtypes=None, db_address=None, clean=True):
             data_path, "photometry", "skydata.sqlite"
         )
     if sql_q is None:
-        sql_q = "select mjd, R, Y, Z from photdiode where mjd > %f-1 and  mjd < %f+1" % (
-            mid_mjd,
-            mid_mjd,
+        sql_q = (
+            "select mjd, R, Y, Z from photdiode where mjd > %f-1 and  mjd < %f+1"
+            % (
+                mid_mjd,
+                mid_mjd,
+            )
         )
     if dtypes is None:
         names = ["mjd", "r", "y", "z"]

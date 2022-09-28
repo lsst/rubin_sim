@@ -164,7 +164,9 @@ class BaseSingleInterp(object):
         )
 
         filenames = sorted(glob.glob(data_dir + "/*.npz"))
-        self.spec, self.wave, self.filter_wave = load_spec_files(filenames, mags=self.mags)
+        self.spec, self.wave, self.filter_wave = load_spec_files(
+            filenames, mags=self.mags
+        )
 
         # Take the log of the spectra in case we want to interp in log space.
         if not mags:
@@ -331,8 +333,12 @@ class Airglow(BaseSingleInterp):
             use_points["solar_flux"], self.dim_dict["solarFlux"]
         )
 
-        for am_index, amW in zip([am_right_index, am_left_index], [am_right_w, am_left_w]):
-            for sf_index, sfW in zip([sf_right_index, sf_left_index], [sf_right_w, sf_left_w]):
+        for am_index, amW in zip(
+            [am_right_index, am_left_index], [am_right_w, am_left_w]
+        ):
+            for sf_index, sfW in zip(
+                [sf_right_index, sf_left_index], [sf_right_w, sf_left_w]
+            ):
                 results[in_range] += (
                     amW[:, np.newaxis]
                     * sfW[:, np.newaxis]
@@ -455,7 +461,9 @@ class TwilightInterp(object):
             self.fit_results = fit_results
 
         # Take out any filters that don't have fit results
-        self.filter_names = [key for key in self.filter_names if key in self.fit_results]
+        self.filter_names = [
+            key for key in self.filter_names if key in self.fit_results
+        ]
 
         self.eff_wave = []
         self.solar_mag = []
@@ -533,7 +541,8 @@ class TwilightInterp(object):
                 key,
                 numbers,
                 " & ",
-                "%.2f" % (-2.5 * np.log10(self.fit_results[key][-1]) + np.log10(3631.0)),
+                "%.2f"
+                % (-2.5 * np.log10(self.fit_results[key][-1]) + np.log10(3631.0)),
             )
 
     def __call__(self, intep_points, filter_names=["u", "g", "r", "i", "z", "y"]):
@@ -655,7 +664,9 @@ class MoonInterp(BaseSingleInterp):
         result = np.zeros((interp_points.size, np.size(values[0])), dtype=float)
 
         # Check that moonAltitude is in range, otherwise return zero array
-        if np.max(interp_points["moonAltitude"]) < np.min(self.dim_dict["moonAltitude"]):
+        if np.max(interp_points["moonAltitude"]) < np.min(
+            self.dim_dict["moonAltitude"]
+        ):
             return result
 
         # Find the neighboring healpixels
@@ -693,7 +704,9 @@ class MoonInterp(BaseSingleInterp):
 
         for hpid, hweight in zip(hpindx, hweights):
             for maid, maW in zip([right_m_as, left_m_as], [ma_right_w, ma_left_w]):
-                for mssid, mssW in zip([right_mss, left_mss], [mss_right_w, mss_left_w]):
+                for mssid, mssW in zip(
+                    [right_mss, left_mss], [mss_right_w, mss_left_w]
+                ):
                     weight = hweight * maW * mssW
                     result += (
                         weight[:, np.newaxis]
@@ -735,7 +748,9 @@ class ZodiacalInterp(BaseSingleInterp):
         use_points = interp_points[in_range]
         # Find the neighboring healpixels
         hpids, hweights = get_neighbours(
-            self.nside, np.pi / 2.0 - use_points["altEclip"], use_points["azEclipRelSun"]
+            self.nside,
+            np.pi / 2.0 - use_points["altEclip"],
+            use_points["azEclipRelSun"],
         )
 
         badhp = np.in1d(hpids.ravel(), self.dim_dict["hpid"], invert=True).reshape(
@@ -754,7 +769,9 @@ class ZodiacalInterp(BaseSingleInterp):
         nhpid = self.dim_dict["hpid"].size
         # loop though the hweights and the airmass weights
         for hpid, hweight in zip(hpids, hweights):
-            for am_index, amW in zip([am_right_index, am_left_index], [am_right_w, am_left_w]):
+            for am_index, amW in zip(
+                [am_right_index, am_left_index], [am_right_w, am_left_w]
+            ):
                 weight = hweight * amW
                 result[in_range] += (
                     weight[:, np.newaxis] * values[am_index * nhpid + hpid]
