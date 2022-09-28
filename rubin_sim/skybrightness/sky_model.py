@@ -513,7 +513,9 @@ class SkyModel(object):
 
             # Calc azimuth relative to moon
             self.az_rel_moon = calc_az_rel_moon(self.azs, self.moon_az)
-            self.moon_targ_sep = haversine(self.azs, self.alts, self.moon_az, self.moon_alt)
+            self.moon_targ_sep = haversine(
+                self.azs, self.alts, self.moon_az, self.moon_alt
+            )
             # Oof, looks like some things were stored as degrees.
 <<<<<<< HEAD
             self.points["moonAltitude"] += np.degrees(self.moonAlt)
@@ -543,9 +545,9 @@ class SkyModel(object):
             self.points["altEclip"] += self.eclip_lat
             self.points["azEclipRelSun"] += wrap_ra(self.eclip_lon - self.sun_eclip_lon)
 
-        self.mask = np.where((self.airmass > self.airmass_limit) | (self.airmass < 1.0))[
-            0
-        ]
+        self.mask = np.where(
+            (self.airmass > self.airmass_limit) | (self.airmass < 1.0)
+        )[0]
         self.good_pix = np.where(
             (self.airmass <= self.airmass_limit) & (self.airmass >= 1.0)
         )[0]
@@ -635,9 +637,9 @@ class SkyModel(object):
 
         self.params_set = True
 
-        self.mask = np.where((self.airmass > self.airmass_limit) | (self.airmass < 1.0))[
-            0
-        ]
+        self.mask = np.where(
+            (self.airmass > self.airmass_limit) | (self.airmass < 1.0)
+        )[0]
         self.good_pix = np.where(
             (self.airmass <= self.airmass_limit) & (self.airmass >= 1.0)
         )[0]
