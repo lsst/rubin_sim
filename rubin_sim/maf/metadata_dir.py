@@ -99,4 +99,3 @@ def metadata_dir():
         )
         group.runAll(clearMemory=True, plotNow=True)
         resultsDb.close()
-
