@@ -74,7 +74,9 @@ def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwhm_eff=Non
     return sky_sed_out
 
 
-def cosmological_omega(redshift, h0, om0, ode0=None, og0=0.0, onu0=0.0, w0=-1.0, wa=0.0):
+def cosmological_omega(
+    redshift, h0, om0, ode0=None, og0=0.0, onu0=0.0, w0=-1.0, wa=0.0
+):
     """
     A method to compute the evolution of the Hubble and density parameters
     with redshift (as a baseline against which to test the cosmology unittest)
