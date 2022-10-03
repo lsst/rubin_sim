@@ -1,7 +1,6 @@
 from rubin_sim.data import get_data_dir
 import numpy as np
 import os
-import h5py
 from astropy.table import Table
 import pandas as pd
 from scipy.interpolate import RegularGridInterpolator
@@ -381,66 +380,51 @@ class LCfast_new:
         return vv
 
 
-def load_sne_cached(gammaName="gamma.hdf5"):
-    """Load up the SNe files with a simple function that caches the result so each metric
+def load_sne_cached(gammaName="gamma_WFD.hdf5"):
+    """Load up the SNe lightcurve files with a simple function that caches the result so each metric
     doesn't need to load it on it's own
     """
-
+    need_data = True
     if hasattr(load_sne_cached, "data"):
-        return load_sne_cached.data
-    else:
-        ref = Load_Reference(gammaName=gammaName).ref
-        load_sne_cached.data = ref
-        return ref
+        # Only return data if the current gamma file matches the loaded gamma file
+        if load_sne_cached.gammaName == gammaName:
+            need_data = False
+    if need_data:
+        load_sne_cached.data = Load_Reference(gammaName=gammaName).ref
+        load_sne_cached.gammaName = gammaName
+    return load_sne_cached.data
 
 
 class Load_Reference:
     """
     class to load template files requested for LCFast
-    These files should be stored in a reference_files directory
+    These files should be stored in a reference_files
+    The files should be part of the rubin_sim_data/maf/SNe_dat files.
+    They are also available for download from https://me.lsst.eu/gris/DESC_SN_pipeline/.
 
     Parameters
     ---------------
-    server: str, optional
-        where to get the files (default: https://me.lsst.eu/gris/DESC_SN_pipeline/Reference_Files)
     templateDir: str, optional
         where to put the files (default: reference_files)
-
+    gammaName : `str`, optional
+        The name of the gamma file (for photometric zeropoint and SNR calculation information).
+        Note that these are similar to, but not necessarily the same as, the current expected
+        LSST zeropoints and SNR gamma values.
     """
 
     def __init__(
         self,
-        server="https://me.lsst.eu/gris/DESC_SN_pipeline",
         templateDir=None,
-        gammaName="gamma.hdf5",
+        gammaName="gamma_WFD.hdf5",
     ):
 
         if templateDir is None:
             sims_maf_contrib_dir = get_data_dir()
             templateDir = os.path.join(sims_maf_contrib_dir, "maf/SNe_data")
 
-        self.server = server
-        # define instrument
-        self.Instrument = {}
-        self.Instrument["name"] = "LSST"  # name of the telescope (internal)
-        # dir of throughput
-        self.Instrument["throughput_dir"] = os.path.join(
-            get_data_dir(), "throughputs", "baseline"
-        )
-        self.Instrument["atmos_dir"] = os.path.join(
-            get_data_dir(), "throughputs", "atmos"
-        )
-        self.Instrument["airmass"] = 1.2  # airmass value
-        self.Instrument["atmos"] = True  # atmos
-        self.Instrument["aerosol"] = False  # aerosol
-
         x1_colors = [(-2.0, 0.2), (0.0, 0.0)]
 
         lc_reference = {}
-
-        # create this directory if it does not exist
-        if not os.path.isdir(templateDir):
-            os.system("mkdir {}".format(templateDir))
 
         list_files = [gammaName]
         for j in range(len(x1_colors)):
@@ -448,8 +432,6 @@ class Load_Reference:
             color = x1_colors[j][1]
             fname = "LC_{}_{}_380.0_800.0_ebvofMW_0.0_vstack.hdf5".format(x1, color)
             list_files += [fname]
-
-        self.check_grab(templateDir, list_files)
 
         # gamma_reference
         self.gamma_reference = os.path.join(templateDir, gammaName)
@@ -464,53 +446,13 @@ class Load_Reference:
             fname = "{}/LC_{}_{}_380.0_800.0_ebvofMW_0.0_vstack.hdf5".format(
                 templateDir, x1, color
             )
-            resultdict[j] = self.load(fname)
+            resultdict[j] = GetReference(fname, self.gamma_reference)
 
         for j in range(len(x1_colors)):
             if resultdict[j] is not None:
                 lc_reference[x1_colors[j]] = resultdict[j]
 
         self.ref = lc_reference
-
-    def load(self, fname):
-        """
-        Method to load reference files
-
-        Parameters
-        ---------------
-        fname: str
-            file name
-        """
-        lc_ref = GetReference(fname, self.gamma_reference, self.Instrument)
-
-        return lc_ref
-
-    def check_grab(self, templateDir, listfiles):
-        """
-        Method that check if files are on disk.
-        If not: grab them from a server (self.server)
-
-        Parameters
-        ---------------
-        templateDir: `str`
-            directory where files are (or will be)
-        listfiles: `list` [`str`]
-            list of files that are (will be) in templateDir
-        """
-
-        for fi in listfiles:
-            # check whether the file is available; if not-> get it!
-            fname = "{}/{}".format(templateDir, fi)
-            if not os.path.isfile(fname):
-                if "gamma" in fname:
-                    fullname = "{}/reference_files/{}".format(self.server, fi)
-                else:
-                    fullname = "{}/Template_LC/{}".format(self.server, fi)
-                print("wget path:", fullname)
-                cmd = "wget --no-clobber --no-verbose {} --directory-prefix {}".format(
-                    fullname, templateDir
-                )
-                os.system(cmd)
 
 
 class GetReference:
@@ -542,21 +484,20 @@ class GetReference:
     """
 
     def __init__(
-        self, lcName, gammaName, tel_par, param_Fisher=["x0", "x1", "color", "daymax"]
+        self, lcName, gammaName, param_Fisher=["x0", "x1", "color", "daymax"]
     ):
 
         # Load the file - lc reference
-
-        # lc_ref_tot = Table.read(filename, path=keys[0])
-        lc_ref_tot = Table.from_pandas(pd.read_hdf(lcName))
-
-        idx = lc_ref_tot["z"] > 0.005
-        lc_ref_tot = np.copy(lc_ref_tot[idx])
+        if not os.path.exists(lcName):
+            raise FileExistsError(f"{lcName} does not exist - NSN metric cannot run")
 
         # Load the file - gamma values
         if not os.path.exists(gammaName):
-            print("gamma file {} does not exist")
-            print("This file is mandatory to run")
+            raise FileExistsError("gamma file {} does not exist - NSN metric cannot run")
+
+        lc_ref_tot = Table.from_pandas(pd.read_hdf(lcName))
+        idx = lc_ref_tot["z"] > 0.005
+        lc_ref_tot = np.copy(lc_ref_tot[idx])
 
         # Load references needed for the following
         self.lc_ref = {}
@@ -602,12 +543,7 @@ class GetReference:
             zmin, zmax, zstep, nz = self.limVals(lc_sel, "z")
             phamin, phamax, phastep, npha = self.limVals(lc_sel, "phase")
 
-            zstep = np.round(zstep, 1)
-            phastep = np.round(phastep, 1)
-
             zv = np.linspace(zmin, zmax, nz)
-            # zv = np.round(zv,2)
-            # print(band,zv)
             phav = np.linspace(phamin, phamax, npha)
 
             print("Loading ", lcName, band, len(lc_sel), npha, nz)
