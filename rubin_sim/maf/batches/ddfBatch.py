@@ -224,7 +224,7 @@ def ddfBatch(
         summaryMetrics = [maf.MeanMetric(), maf.MedianMetric(), maf.RmsMetric()]
         m = maf.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
         for f in filterlist:
-            displayDict["order"] =  order * 10 + orders[f]
+            displayDict["order"] = order * 10 + orders[f]
             displayDict["caption"] = (
                 f"Comparion of the time between visits compared to a defined sampling gap ({lag} days) in "
                 f"{f} band."
@@ -249,7 +249,9 @@ def ddfBatch(
         agn_mags = {"u": 22.0, "g": 24, "r": 24, "i": 24, "z": 22, "y": 22}
         for f in "ugrizy":
             displayDict["order"] = order * 10 + orders[f]
-            displayDict["caption"] = f"AGN Structure Function Error in {f} band in the {fieldname} DDF."
+            displayDict[
+                "caption"
+            ] = f"AGN Structure Function Error in {f} band in the {fieldname} DDF."
             summaryMetrics = [maf.MedianMetric(), maf.RmsMetric()]
             metric = maf.SFUncertMetric(mag=agn_mags[f])
             bundle_list.append(
@@ -286,7 +288,9 @@ def ddfBatch(
                 )
             )
             displayDict["subgroup"] = "N Visits"
-            displayDict["caption"] = f"Number of visits in the {f} band in the {fieldname} DDF."
+            displayDict[
+                "caption"
+            ] = f"Number of visits in the {f} band in the {fieldname} DDF."
             metric = maf.CountMetric(
                 col="observationStartMJD", units="#", metricName=f"{fieldname} NVisits"
             )
@@ -306,7 +310,9 @@ def ddfBatch(
         # Count over all filter
         displayDict["subgroup"] = "N Visits"
         displayDict["order"] = order * 10 + orders["all"]
-        displayDict["caption"] = f"Number of visits in all bands in the {fieldname} DDF."
+        displayDict[
+            "caption"
+        ] = f"Number of visits in all bands in the {fieldname} DDF."
         metric = maf.CountMetric(
             col="observationStartMJD", units="#", metricName=f"{fieldname} NVisits"
         )
@@ -423,7 +429,9 @@ def ddfBatch(
             nightCol="night",
             metricName=f"{fieldname} Delta Nights Histogram",
         )
-        displayDict["caption"] = f"Histogram of intervals between nights with visits, in the {fieldname} DDF."
+        displayDict[
+            "caption"
+        ] = f"Histogram of intervals between nights with visits, in the {fieldname} DDF."
         plotDict = {"bins": bins, "xlabel": "dT (nights)"}
         plotFunc = maf.SummaryHistogram()
         bundle = maf.MetricBundle(
@@ -443,7 +451,9 @@ def ddfBatch(
                 metricName=f"{fieldname} Median Inter-Night Gap", reduceFunc=np.median
             )
             displayDict["order"] = order * 10 + orders[f]
-            displayDict["caption"] = f"Median internight gap in {f} band in the {fieldname} DDF."
+            displayDict[
+                "caption"
+            ] = f"Median internight gap in {f} band in the {fieldname} DDF."
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
@@ -465,10 +475,13 @@ def ddfBatch(
             if len(simdata) < 11:
                 simdata = np.concatenate([simdata, np.array([0], float)])
             return simdata
+
         metric = maf.SeasonLengthMetric(reduceFunc=rfunc, metricDtype="object")
         plotDict = {"bins": np.arange(0, 12), "xlabel": "Season length (days)"}
         plotFunc = maf.SummaryHistogram()
-        displayDict["caption"] = f"Plot of the season length per season in the {fieldname} DDF."
+        displayDict[
+            "caption"
+        ] = f"Plot of the season length per season in the {fieldname} DDF."
         displayDict["order"] = order
         bundle = maf.MetricBundle(
             metric,

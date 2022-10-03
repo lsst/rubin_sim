@@ -110,7 +110,7 @@ class HealpixSubsetSlicer(HealpixSlicer):
         )
         self.hpid = hpid
         # add hpid to the slicer_init values
-        self.slicer_init['hpid'] = hpid
+        self.slicer_init["hpid"] = hpid
         self.len_hpid = len(self.hpid)
         # Set up a mask for the metric values to use
         self.mask = np.ones(hp.nside2npix(self.nside), bool)

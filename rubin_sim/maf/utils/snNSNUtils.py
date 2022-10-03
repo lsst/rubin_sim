@@ -483,9 +483,7 @@ class GetReference:
     gamma : dict of RegularGridInterpolator of gamma values (key: filters)
     """
 
-    def __init__(
-        self, lcName, gammaName, param_Fisher=["x0", "x1", "color", "daymax"]
-    ):
+    def __init__(self, lcName, gammaName, param_Fisher=["x0", "x1", "color", "daymax"]):
 
         # Load the file - lc reference
         if not os.path.exists(lcName):
@@ -493,7 +491,9 @@ class GetReference:
 
         # Load the file - gamma values
         if not os.path.exists(gammaName):
-            raise FileExistsError("gamma file {} does not exist - NSN metric cannot run")
+            raise FileExistsError(
+                "gamma file {} does not exist - NSN metric cannot run"
+            )
 
         lc_ref_tot = Table.from_pandas(pd.read_hdf(lcName))
         idx = lc_ref_tot["z"] > 0.005

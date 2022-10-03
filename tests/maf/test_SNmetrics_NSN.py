@@ -87,7 +87,7 @@ class TestSNmetrics(unittest.TestCase):
                     print(f"no expected results for {k}")
                 print(f"calculated results {res}")
                 print("")
-            #self.assertEqual(expected[k], res)
+            # self.assertEqual(expected[k], res)
 
         # And run for DD observations
         metric = maf.SNNSNMetric(
@@ -109,7 +109,7 @@ class TestSNmetrics(unittest.TestCase):
             coadd_night=True,
             verbose=False,
         )
-        for k in ['one_season_wDD']:
+        for k in ["one_season_wDD"]:
             res = metric.run(self.simdata[k], slicePoint=slicePoint)
             if verbose:
                 print("")
