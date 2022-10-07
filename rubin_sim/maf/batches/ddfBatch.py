@@ -164,7 +164,7 @@ def ddfBatch(
         zmin = 0.3
         extinction_cut = 1.0
         for f in "ugrizy":
-            displayDict["order"] = order * 10 + orders[f]
+            displayDict["order"] = orders[f]
             summaryMetrics = [maf.SumMetric(metricName="Total QSO")]
             metric = maf.QSONumberCountsMetric(
                 f,
@@ -197,7 +197,7 @@ def ddfBatch(
         summaryMetrics = [maf.MeanMetric(), maf.MedianMetric(), maf.RmsMetric()]
         m = maf.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
         for f in filterlist:
-            displayDict["order"] = order * 10 + orders[f]
+            displayDict["order"] = orders[f]
             displayDict["caption"] = (
                 f"Comparion of the time between visits compared to a defined sampling gap ({lag} days) in "
                 f"{f} band."
@@ -224,7 +224,7 @@ def ddfBatch(
         summaryMetrics = [maf.MeanMetric(), maf.MedianMetric(), maf.RmsMetric()]
         m = maf.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
         for f in filterlist:
-            displayDict["order"] = order * 10 + orders[f]
+            displayDict["order"] = orders[f]
             displayDict["caption"] = (
                 f"Comparion of the time between visits compared to a defined sampling gap ({lag} days) in "
                 f"{f} band."
@@ -248,7 +248,7 @@ def ddfBatch(
         displayDict["subgroup"] = "Structure Function"
         agn_mags = {"u": 22.0, "g": 24, "r": 24, "i": 24, "z": 22, "y": 22}
         for f in "ugrizy":
-            displayDict["order"] = order * 10 + orders[f]
+            displayDict["order"] = orders[f]
             displayDict[
                 "caption"
             ] = f"AGN Structure Function Error in {f} band in the {fieldname} DDF."
@@ -271,7 +271,7 @@ def ddfBatch(
         displayDict["group"] = "Basics"
         for f in "ugrizy":
             displayDict["subgroup"] = "Coadd M5"
-            displayDict["order"] = order * 10 + orders[f]
+            displayDict["order"] = orders[f]
             displayDict["caption"] = f"Coadded m5 in {f} band in the {fieldname} DDF."
             metric = maf.Coaddm5Metric(metricName=f"{fieldname} CoaddM5")
             bundle_list.append(
@@ -309,7 +309,7 @@ def ddfBatch(
             )
         # Count over all filter
         displayDict["subgroup"] = "N Visits"
-        displayDict["order"] = order * 10 + orders["all"]
+        displayDict["order"] = orders["all"]
         displayDict[
             "caption"
         ] = f"Number of visits in all bands in the {fieldname} DDF."
@@ -332,7 +332,7 @@ def ddfBatch(
         # Count number of unique nights with visits
         displayDict["group"] = "Cadence"
         displayDict["subgroup"] = "N Nights"
-        displayDict["order"] = order * 10 + orders["all"]
+        displayDict["order"] = orders["all"]
         displayDict["caption"] = f"Number of nights with visits in the {fieldname} DDF."
         metric = maf.CountUniqueMetric(
             col="night", units="#", metricName=f"{fieldname} N Unique Nights"
@@ -450,7 +450,7 @@ def ddfBatch(
             metric = maf.InterNightGapsMetric(
                 metricName=f"{fieldname} Median Inter-Night Gap", reduceFunc=np.median
             )
-            displayDict["order"] = order * 10 + orders[f]
+            displayDict["order"] = orders[f]
             displayDict[
                 "caption"
             ] = f"Median internight gap in {f} band in the {fieldname} DDF."
