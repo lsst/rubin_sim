@@ -794,13 +794,22 @@ def scienceRadarBatch(
     # These agn test magnitude values are determined by looking at the baseline median m5 depths
     # For v1.7.1 these values are:
     agn_m5 = {"u": 22.89, "g": 23.94, "r": 23.5, "i": 22.93, "z": 22.28, "y": 21.5}
-    # And the expected medians SF error at those values is about 0.04 - set the threshold slightly below
-    threshold = 0.025
+    # And the expected medians SF error at those values is about 0.04
     summaryMetrics = extendedSummary()
-    summaryMetrics += [metrics.AreaThresholdMetric(upper_threshold=threshold)]
+    summaryMetrics += [
+        metrics.AreaThresholdMetric(
+            upper_threshold=0.03, metricName="AreaThreshold_0.03"
+        )
+    ]
+    summaryMetrics += [
+        metrics.AreaThresholdMetric(
+            upper_threshold=0.06, metricName="AreaThreshold_0.06"
+        )
+    ]
     for f in filterlist:
         m = metrics.SFUncertMetric(
             mag=agn_m5[f],
+            bins=np.logspace(0, np.log10(3650), 16),
             metricName="AGN SF_uncert",
         )
         plotDict = {"color": colors[f], "colorMin": 0, "colorMax": 0.2}

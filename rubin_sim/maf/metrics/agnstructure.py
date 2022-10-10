@@ -27,11 +27,11 @@ class SFUncertMetric(BaseMetric):
     units: `str` ('mag')
         Unit of this metric. Defaults to "mag".
     bins: `object`
-        An array of bin edges. Defaults to "np.logspace(0, np.log10(3650), 11)" for a
-        total of 10 bins.
+        An array of bin edges. Defaults to "np.logspace(0, np.log10(3650), 16)" for a
+        total of 15 (final) bins.
     weight: `object
         The weight assigned to each delta_t bin for deriving the final metric.
-        Defaluts to "weight=np.full(10, 0.1)".
+        Defaults to flat weighting with sum of 1. Should have length 1 less than bins.
     snr_cut : float (5)
         Ignore observations below an SNR limit, default 5.
     dust : `bool` (True)
@@ -45,8 +45,8 @@ class SFUncertMetric(BaseMetric):
         m5Col="fiveSigmaDepth",
         allGaps=True,
         units="mag",
-        bins=np.logspace(0, np.log10(3650), 11),
-        weight=np.full(10, 0.1),
+        bins=np.logspace(0, np.log10(3650), 16),
+        weight=None,
         metricName="Structure Function Uncert",
         snr_cut=5,
         filterCol="filter",
@@ -59,7 +59,10 @@ class SFUncertMetric(BaseMetric):
         self.filterCol = filterCol
         self.allGaps = allGaps
         self.bins = bins
-        self.weight = weight
+        if weight is None:
+            # If weight is none, set weight so that sum over bins = 1
+            self.weight = np.ones(len(self.bins) - 1)
+            self.weight /= self.weight.sum()
         self.metricName = metricName
         self.mag = mag
         self.snr_cut = snr_cut
