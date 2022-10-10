@@ -115,7 +115,7 @@ def ddfBatch(
         displayDict["subgroup"] = "N SNe"
         displayDict["caption"] = f"SNIa in the {fieldname} DDF."
         displayDict["order"] = order
-        if ddf.contains("WFD"):
+        if "WFD" in ddf:
             gammaName = "gamma_WFD.hdf5"
             fieldType = "WFD"
         else:
