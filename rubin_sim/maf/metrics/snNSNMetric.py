@@ -111,10 +111,10 @@ class SNNSNMetric(BaseMetric):
         DD_list=[
             "DD:COSMOS",
             "DD:ECDFS",
-            "DD:EDFS, a",
-            "DD:EDFS, b",
+            "DD:EDFS_a",
+            "DD:EDFS_b",
             "DD:ELAISS1",
-            "DD:XMM-LSS",
+            "DD:XMM_LSS",
         ],
         fieldType="WFD",
         **kwargs,
