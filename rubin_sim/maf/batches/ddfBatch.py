@@ -39,6 +39,7 @@ def ddfBatch(
     # Get standard DDF locations and reformat information as a dictionary
     ddfs = {}
     ddfs_rough = ddf_locations()
+    ddf_sn_fieldnames = [f"DD:{k}" for k in ddfs_rough.keys()]
     for ddf in ddfs_rough:
         ddfs[ddf] = {"ra": ddfs_rough[ddf][0], "dec": ddfs_rough[ddf][1]}
     # Combine the Euclid double-field into one - but with two ra/dec values
@@ -114,16 +115,24 @@ def ddfBatch(
         displayDict["subgroup"] = "N SNe"
         displayDict["caption"] = f"SNIa in the {fieldname} DDF."
         displayDict["order"] = order
+        if ddf.contains("WFD"):
+            gammaName = "gamma_WFD.hdf5"
+            fieldType = "WFD"
+        else:
+            gammaName = "gamma_DDF.hdf5"
+            fieldType = "DD"
         metric = maf.metrics.SNNSNMetric(
             verbose=False,
             n_bef=4,
             n_aft=10,
             zmin=0.1,
-            zmax=1.0,
+            zmax=1.1,
             zStep=0.03,
             daymaxStep=3,
             coadd_night=True,
-            fieldType="DD",
+            gammaName=gammaName,
+            fieldType=fieldType,
+            DD_list=[ddf_sn_fieldnames],
             metricName=f"SNNSNMetric {fieldname}",  # have to add here, as must be in reduceDict key
         )
         bundle_list.append(
@@ -253,7 +262,10 @@ def ddfBatch(
                 "caption"
             ] = f"AGN Structure Function Error in {f} band in the {fieldname} DDF."
             summaryMetrics = [maf.MedianMetric(), maf.RmsMetric()]
-            metric = maf.SFUncertMetric(mag=agn_mags[f])
+            metric = maf.SFUncertMetric(
+                mag=agn_mags[f],
+                bins=np.logspace(0, np.log10(3650), 21),
+            )
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
