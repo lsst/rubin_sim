@@ -108,15 +108,6 @@ class SNNSNMetric(BaseMetric):
         add_dust=False,
         hard_dust_cut=0.25,
         gammaName="gamma_WFD.hdf5",
-        DD_list=[
-            "DD:COSMOS",
-            "DD:ECDFS",
-            "DD:EDFS_a",
-            "DD:EDFS_b",
-            "DD:ELAISS1",
-            "DD:XMM_LSS",
-        ],
-        fieldType="WFD",
         **kwargs,
     ):
         # n_bef / n_aft = 3/8 for WFD, 4/10 for DDF
@@ -140,8 +131,6 @@ class SNNSNMetric(BaseMetric):
         self.coadd_night = coadd_night
         self.add_dust = add_dust
         self.hard_dust_cut = hard_dust_cut
-        self.DD_list = DD_list
-        self.fieldType = fieldType
 
         maps = ["DustMap"]
         dust_properties = Dust_values()
@@ -241,14 +230,6 @@ class SNNSNMetric(BaseMetric):
         metricVal : `np.recarray`
             ['nSN', 'zlim'] at this point on the sky
         """
-        # remove or keep DD runs depending on fieldType to process
-
-        DDobs = np.in1d(dataSlice[self.noteCol], self.DD_list)
-        if self.fieldType == "DD":
-            dataSlice = dataSlice[DDobs]
-        else:
-            dataSlice = dataSlice[~DDobs]
-
         # Hard dust cut
         if self.hard_dust_cut is not None:
             ebvofMW = slicePoint["ebv"]

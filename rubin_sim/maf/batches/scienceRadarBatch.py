@@ -732,10 +732,11 @@ def scienceRadarBatch(
         verbose=False,
     )
     plotDict = {"percentileClip": 95, "nTicks": 5}
+    # Run without DDF observations
     bundle = mb.MetricBundle(
         metric,
         snslicer,
-        "",
+        "note not like %DD%",
         plotDict=plotDict,
         displayDict=displayDict,
         summaryMetrics=sn_summary,

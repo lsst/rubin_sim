@@ -43,7 +43,6 @@ class TestSNmetrics(unittest.TestCase):
             sigmaC=0.04,
             bands="grizy",
             gammaName="gamma_WFD.hdf5",
-            fieldType="WFD",
             verbose=False,
         )
 
@@ -105,7 +104,6 @@ class TestSNmetrics(unittest.TestCase):
             sigmaC=0.04,
             bands="grizy",
             gammaName="gamma_DDF.hdf5",
-            fieldType="DD",
             coadd_night=True,
             verbose=False,
         )
