@@ -114,7 +114,7 @@ class RunComparison:
             self.runresults[r].close()
 
     def buildMetricDict(
-        self, metricNameLike=None, metricMetadataLike=None, slicerNameLike=None
+        self, metricNameLike=None, metricInfoLabelLike=None, slicerNameLike=None
     ):
         """Return a metric dictionary based on finding all metrics which match 'like' the various kwargs.
         Note that metrics may not be present in all runDirs, and may not all have summary statistics.
@@ -136,7 +136,7 @@ class RunComparison:
         """
         if (
             metricNameLike is None
-            and metricMetadataLike is None
+            and metricInfoLabelLike is None
             and slicerNameLike is None
         ):
             getAll = True
@@ -151,7 +151,7 @@ class RunComparison:
             else:
                 mIds = self.runresults[r].getMetricIdLike(
                     metricNameLike=metricNameLike,
-                    metricMetadataLike=metricMetadataLike,
+                    metricInfoLabelLike=metricInfoLabelLike,
                     slicerNameLike=slicerNameLike,
                 )
             for mId in mIds:
