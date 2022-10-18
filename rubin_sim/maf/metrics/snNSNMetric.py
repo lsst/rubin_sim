@@ -355,7 +355,7 @@ class SNNSNMetric(BaseMetric):
             return [], pd.DataFrame()
 
         dur_z = (
-            season_info.groupby("season")
+            season_info.groupby("season", group_keys=False)
             .apply(lambda x: self.nsn_expected_z(x))
             .reset_index(drop=True)
         )
