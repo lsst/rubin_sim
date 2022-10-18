@@ -70,10 +70,6 @@ class SNNSNMetric(BaseMetric):
     hard_dust_cut : `float`, opt
       If set, cut any point on the sky that has an ebv extinction higher than the hard_dust_cut value.
       Default 0.25
-    DD_list : `list` [`str`], opt
-      list of DD runs in simulation db (matches with the "note" column).
-    fieldType : `str`, opt
-      type of field to process (WFD or DD)(default: WFD)
     """
 
     def __init__(
