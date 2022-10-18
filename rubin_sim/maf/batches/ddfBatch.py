@@ -115,12 +115,7 @@ def ddfBatch(
         displayDict["subgroup"] = "N SNe"
         displayDict["caption"] = f"SNIa in the {fieldname} DDF."
         displayDict["order"] = order
-        if "WFD" in ddf:
-            gammaName = "gamma_WFD.hdf5"
-            fieldType = "WFD"
-        else:
-            gammaName = "gamma_DDF.hdf5"
-            fieldType = "DD"
+        
         metric = maf.metrics.SNNSNMetric(
             verbose=False,
             n_bef=4,
@@ -130,9 +125,7 @@ def ddfBatch(
             zStep=0.03,
             daymaxStep=3,
             coadd_night=True,
-            gammaName=gammaName,
-            fieldType=fieldType,
-            DD_list=[ddf_sn_fieldnames],
+            gammaName="gamma_DDF.hdf5",
             metricName=f"SNNSNMetric {fieldname}",  # have to add here, as must be in reduceDict key
         )
         bundle_list.append(
