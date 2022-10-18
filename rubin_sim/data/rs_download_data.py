@@ -25,7 +25,7 @@ def data_dict():
         "skybrightness": "skybrightness_may_2021.tgz",
         "skybrightness_pre": "skybrightness_pre_2022_5_18.tgz",
         "throughputs": "throughputs_aug_2021.tgz",
-        "tests": "tests_2022_2_3.tgz",
+        "tests": "tests_2022_10_18.tgz",
     }
     return file_dict
 
@@ -83,9 +83,17 @@ def rs_download_data():
 
     if args.versions:
         print("Versions on disk currently // versions expected for this release:")
+        match = True
         for k in files:
             print(f"{k} : {versions.get(k, '')} // {files[k]}")
-        exit()
+            if versions.get(k, "") != files[k]:
+                match = False
+        if match:
+            print("Versions are in sync")
+            return 0
+        else:
+            print("Versions do not match")
+            return 1
 
     for key in dirs:
         filename = files[key]
