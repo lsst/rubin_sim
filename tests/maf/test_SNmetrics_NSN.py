@@ -16,7 +16,7 @@ class TestSNmetrics(unittest.TestCase):
         # Read test point data
         testfile = os.path.join(get_data_dir(), "tests", "test_simData.hdf")
         if not os.path.isfile(testfile):
-            ValueError("%s not found" % testfile)
+            raise FileExistsError("%s not found" % testfile)
         self.simdata = {}
         with pd.HDFStore(testfile) as f:
             keys = f.keys()
