@@ -15,6 +15,8 @@ class TestSNmetrics(unittest.TestCase):
             )
         # Read test point data
         testfile = os.path.join(get_data_dir(), "tests", "test_simData.hdf")
+        if not os.path.isfile(testfile):
+            ValueError("%s not found" % testfile)
         self.simdata = {}
         with pd.HDFStore(testfile) as f:
             keys = f.keys()
@@ -57,7 +59,9 @@ class TestSNmetrics(unittest.TestCase):
             [(5.158324, 0.276509)], names=["nSN", "zlim"]
         )
         # These are of the same point on the sky, with/without DD fields - they should be the same
-        # as the metric rejects DD visits internally
+        # as the metric rejects DD visits internally---XXX except now the metric does
+        # not reject visits based on notes, so not sure why these still pass fine.
+
         expected["one_season_noDD"] = np.rec.fromrecords(
             [(0.870031, 0.289703)], names=["nSN", "zlim"]
         )
