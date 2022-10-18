@@ -736,7 +736,7 @@ def scienceRadarBatch(
     bundle = mb.MetricBundle(
         metric,
         snslicer,
-        "note not like %%DD%%",
+        "note not like '%DD%'",
         plotDict=plotDict,
         displayDict=displayDict,
         summaryMetrics=sn_summary,
