@@ -39,7 +39,6 @@ def ddfBatch(
     # Get standard DDF locations and reformat information as a dictionary
     ddfs = {}
     ddfs_rough = ddf_locations()
-    ddf_sn_fieldnames = [f"DD:{k}" for k in ddfs_rough.keys()]
     for ddf in ddfs_rough:
         ddfs[ddf] = {"ra": ddfs_rough[ddf][0], "dec": ddfs_rough[ddf][1]}
     # Combine the Euclid double-field into one - but with two ra/dec values
