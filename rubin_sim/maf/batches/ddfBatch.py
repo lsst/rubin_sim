@@ -114,7 +114,7 @@ def ddfBatch(
         displayDict["subgroup"] = "N SNe"
         displayDict["caption"] = f"SNIa in the {fieldname} DDF."
         displayDict["order"] = order
-        
+
         metric = maf.metrics.SNNSNMetric(
             verbose=False,
             n_bef=4,
