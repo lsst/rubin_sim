@@ -739,6 +739,7 @@ def scienceRadarBatch(
         "note not like '%DD%'",
         plotDict=plotDict,
         displayDict=displayDict,
+        info_label="DDF excluded",
         summaryMetrics=sn_summary,
         plotFuncs=subsetPlots,
     )
