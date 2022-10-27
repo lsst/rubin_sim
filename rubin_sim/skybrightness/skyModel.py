@@ -418,7 +418,7 @@ class SkyModel(object):
         moonPhase : float
             Phase of the moon (0-100)
         moonSunSep : float
-            Seperation of moon and sun (degrees)
+            Seperation of moon and sun (radians)
         azRelMoon : np.array
             Azimuth of each point relative to teh moon
         eclipLon : np.array
@@ -517,8 +517,8 @@ class SkyModel(object):
             # Oof, looks like some things were stored as degrees.
             self.points["moonAltitude"] += np.degrees(self.moonAlt)
             self.points["azRelMoon"] += self.azRelMoon
-            self.moonSunSep = sep.deg
-            self.points["moonSunSep"] += self.moonSunSep
+            self.moonSunSep = sep.rad
+            self.points["moonSunSep"] += np.degrees(self.moonSunSep)
 
         if self.zodiacal:
             self.eclipLon = np.zeros(self.npts)
@@ -603,7 +603,9 @@ class SkyModel(object):
         self.azRelMoon = calcAzRelMoon(self.azs, self.moonAz)
         self.points["moonAltitude"] += np.degrees(self.moonAlt)
         self.points["azRelMoon"] = self.azRelMoon
-        self.points["moonSunSep"] += self.moonPhase / 100.0 * 180.0
+        self.moonSunSep = self.moonPhase / 100.0 * 2 * np.pi
+        # Ugh, point are in degrees.
+        self.points["moonSunSep"] = self.moonPhase / 100.0 * 180.0
 
         self.eclipLon = convertFunc(eclipLon)
         self.eclipLat = convertFunc(eclipLat)
