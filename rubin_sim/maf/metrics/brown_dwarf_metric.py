@@ -52,11 +52,11 @@ class BDParallaxMetric(BaseMetric):
     ----------
     metricName : `str`, opt
         Default 'parallax'.
-    m5Col : `str`, opt
+    m5_col : `str`, opt
         The default column name for m5 information in the input data. Default fiveSigmaDepth.
-    filterCol : `str`, opt
+    filter_col : `str`, opt
         The column name for the filter information. Default filter.
-    seeingCol : `str`, opt
+    seeing_col : `str`, opt
         The column name for the seeing information. Since the astrometry errors are based on the physical
         size of the PSF, this should be the FWHM of the physical psf. Default seeingFwhmGeom.
     mags : `dict` (None)
@@ -72,10 +72,10 @@ class BDParallaxMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="bdParallax",
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
-        seeingCol="seeingFwhmGeom",
+        metric_name="bdParallax",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        seeing_col="seeingFwhmGeom",
         badval=0,
         mags=None,
         parallax_snr=10.0,
@@ -84,16 +84,16 @@ class BDParallaxMetric(BaseMetric):
         normalize=False,
         **kwargs
     ):
-        cols = [m5Col, filterCol, seeingCol, "ra_pi_amp", "dec_pi_amp"]
+        cols = [m5_col, filter_col, seeing_col, "ra_pi_amp", "dec_pi_amp"]
 
         units = "pc"
         super().__init__(
-            cols, metricName=metricName, units=units, badval=badval, **kwargs
+            cols, metric_name=metric_name, units=units, badval=badval, **kwargs
         )
         # set return types
-        self.m5Col = m5Col
-        self.seeingCol = seeingCol
-        self.filterCol = filterCol
+        self.m5_col = m5_col
+        self.seeing_col = seeing_col
+        self.filter_col = filter_col
         self.distances = distances
         self.mags = {}
         distance_mod = 5.0 * np.log10(distances) - 5.0
@@ -109,28 +109,28 @@ class BDParallaxMetric(BaseMetric):
     def _final_sigma(self, position_errors, ra_pi_amp, dec_pi_amp):
         """Assume parallax in RA and DEC are fit independently, then combined.
         All inputs assumed to be arcsec"""
-        sigma_A = position_errors / ra_pi_amp
-        sigma_B = position_errors / dec_pi_amp
-        sigma_ra = np.sqrt(1.0 / np.sum(1.0 / sigma_A**2, axis=1))
-        sigma_dec = np.sqrt(1.0 / np.sum(1.0 / sigma_B**2, axis=1))
+        sigma_a = position_errors / ra_pi_amp
+        sigma_b = position_errors / dec_pi_amp
+        sigma_ra = np.sqrt(1.0 / np.sum(1.0 / sigma_a**2, axis=1))
+        sigma_dec = np.sqrt(1.0 / np.sum(1.0 / sigma_b**2, axis=1))
         # Combine RA and Dec uncertainties, convert to mas
         sigma = np.sqrt(1.0 / (1.0 / sigma_ra**2 + 1.0 / sigma_dec**2)) * 1e3
         return sigma
 
-    def run(self, dataslice, slicePoint=None):
+    def run(self, dataslice, slice_point=None):
         snr = np.zeros(
             (np.size(self.mags[self.filters[0]]), len(dataslice)), dtype="float"
         )
         # compute SNR for all observations
         for filt in self.filters:
-            good = np.where(dataslice[self.filterCol] == filt)[0]
+            good = np.where(dataslice[self.filter_col] == filt)[0]
             if np.size(good) > 0:
                 snr[:, good] = mafUtils.m52snr(
-                    self.mags[str(filt)][:, np.newaxis], dataslice[self.m5Col][good]
+                    self.mags[str(filt)][:, np.newaxis], dataslice[self.m5_col][good]
                 )
 
         position_errors = np.sqrt(
-            mafUtils.astrom_precision(dataslice[self.seeingCol], snr) ** 2
+            mafUtils.astrom_precision(dataslice[self.seeing_col], snr) ** 2
             + self.atm_err**2
         )
         # uncertainty in the parallax in mas
@@ -151,11 +151,11 @@ class BDParallaxMetric(BaseMetric):
 class VolumeSumMetric(BaseMetric):
     """Compute the total volume assuming a metric has values of distance"""
 
-    def __init__(self, col=None, metricName="VolumeSum", nside=None, **kwargs):
-        super(VolumeSumMetric, self).__init__(col=col, metricName=metricName, **kwargs)
+    def __init__(self, col=None, metric_name="VolumeSum", nside=None, **kwargs):
+        super(VolumeSumMetric, self).__init__(col=col, metric_name=metric_name, **kwargs)
         self.pix_area = hp.nside2pixarea(nside)
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # volume of sphere, times ratio of pixel area divided by area of sphere
-        vols = 1.0 / 3.0 * dataSlice[self.colname] ** 3 * self.pix_area
+        vols = 1.0 / 3.0 * data_slice[self.colname] ** 3 * self.pix_area
         return np.sum(vols)

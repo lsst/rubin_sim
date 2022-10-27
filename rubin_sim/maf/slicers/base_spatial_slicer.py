@@ -1,6 +1,6 @@
 # The base class for all spatial slicers.
 # Slicers are 'data slicers' at heart; spatial slicers slice data by RA/Dec and
-#  return the relevant indices in the simData to the metric.
+#  return the relevant indices in the sim_data to the metric.
 # The primary things added here are the methods to slice the data (for any spatial slicer)
 #  as this uses a KD-tree built on spatial (RA/Dec type) indexes.
 
@@ -78,11 +78,11 @@ class BaseSpatialSlicer(BaseSlicer):
         self.latCol = latCol
         self.latLonDeg = latLonDeg
         self.rotSkyPosColName = rotSkyPosColName
-        self.columnsNeeded = [lonCol, latCol]
+        self.columns_needed = [lonCol, latCol]
         self.useCamera = useCamera
         self.cameraFootprintFile = cameraFootprintFile
         if useCamera:
-            self.columnsNeeded.append(rotSkyPosColName)
+            self.columns_needed.append(rotSkyPosColName)
         self.slicer_init = {
             "lonCol": lonCol,
             "latCol": latCol,
@@ -99,14 +99,14 @@ class BaseSpatialSlicer(BaseSlicer):
         self.slicePoints["dec"] = None
         self.nslice = None
         self.shape = None
-        self.plotFuncs = [BaseHistogram, BaseSkyMap]
+        self.plot_funcs = [BaseHistogram, BaseSkyMap]
 
-    def setupSlicer(self, simData, maps=None):
-        """Use simData[self.lonCol] and simData[self.latCol] (in radians) to set up KDTree.
+    def setup_slicer(self, sim_data, maps=None):
+        """Use sim_data[self.lonCol] and sim_data[self.latCol] (in radians) to set up KDTree.
 
         Parameters
         -----------
-        simData : `numpy.ndarray`
+        sim_data : `numpy.ndarray`
             The simulated data, including the location of each pointing.
         maps : `list` of `rubin_sim.maf.maps` objects, optional
             List of maps (such as dust extinction) that will run to build up additional metadata at each
@@ -122,9 +122,9 @@ class BaseSpatialSlicer(BaseSlicer):
             self._runMaps(maps)
         self._setRad(self.radius)
         if self.useCamera:
-            self.data_ra = simData[self.lonCol]
-            self.data_dec = simData[self.latCol]
-            self.data_rot = simData[self.rotSkyPosColName]
+            self.data_ra = sim_data[self.lonCol]
+            self.data_dec = sim_data[self.latCol]
+            self.data_rot = sim_data[self.rotSkyPosColName]
             if self.latLonDeg:
                 self.data_ra = np.radians(self.data_ra)
                 self.data_dec = np.radians(self.data_dec)
@@ -132,15 +132,15 @@ class BaseSpatialSlicer(BaseSlicer):
             self._setupLSSTCamera()
         if self.latLonDeg:
             self._build_tree(
-                np.radians(simData[self.lonCol]),
-                np.radians(simData[self.latCol]),
+                np.radians(sim_data[self.lonCol]),
+                np.radians(sim_data[self.latCol]),
                 self.leafsize,
             )
         else:
-            self._build_tree(simData[self.lonCol], simData[self.latCol], self.leafsize)
+            self._build_tree(sim_data[self.lonCol], sim_data[self.latCol], self.leafsize)
 
-        @wraps(self._sliceSimData)
-        def _sliceSimData(islice):
+        @wraps(self._slice_sim_data)
+        def _slice_sim_data(islice):
             """Return indexes for relevant opsim data at slicepoint
             (slicepoint=lonCol/latCol value .. usually ra/dec)."""
 
@@ -178,7 +178,7 @@ class BaseSpatialSlicer(BaseSlicer):
                     slicePoint[key] = self.slicePoints[key]
             return {"idxs": indices, "slicePoint": slicePoint}
 
-        setattr(self, "_sliceSimData", _sliceSimData)
+        setattr(self, "_slice_sim_data", _slice_sim_data)
 
     def _setupLSSTCamera(self):
         """If we want to include the camera chip gaps, etc"""
@@ -186,12 +186,12 @@ class BaseSpatialSlicer(BaseSlicer):
             units="radians", footprint_file=self.cameraFootprintFile
         )
 
-    def _build_tree(self, simDataRa, simDataDec, leafsize=100):
-        """Build KD tree on simDataRA/Dec using utility function from mafUtils.
+    def _build_tree(self, sim_dataRa, sim_dataDec, leafsize=100):
+        """Build KD tree on sim_dataRA/Dec using utility function from mafUtils.
 
-        simDataRA, simDataDec = RA and Dec values (in radians).
+        sim_dataRA, sim_dataDec = RA and Dec values (in radians).
         leafsize = the number of Ra/Dec pointings in each leaf node."""
-        self.opsimtree = simsUtils._build_tree(simDataRa, simDataDec, leafsize)
+        self.opsimtree = simsUtils._build_tree(sim_dataRa, sim_dataDec, leafsize)
 
     def _setRad(self, radius=1.75):
         """Set radius (in degrees) for kdtree search using utility function from mafUtils."""

@@ -8,11 +8,11 @@ from rubin_sim.utils import (
 )
 from rubin_sim.scheduler.utils import smallest_signed_angle
 
-__all__ = ["Kinem_model"]
-TwoPi = 2.0 * np.pi
+__all__ = ["KinemModel"]
+two_pi = 2.0 * np.pi
 
 
-class radec2altazpa(object):
+class Radec2altazpa(object):
     """Class to make it easy to swap in different alt/az conversion if wanted"""
 
     def __init__(self, location):
@@ -25,23 +25,23 @@ class radec2altazpa(object):
         return alt, az, pa
 
 
-def _getRotSkyPos(paRad, rotTelRad):
+def _get_rot_sky_pos(pa_rad, rot_tel_rad):
     """
     Paramteres
     ----------
-    paRad : float or array
+    pa_rad : float or array
         The parallactic angle
     """
-    return (rotTelRad - paRad) % TwoPi
+    return (rot_tel_rad - pa_rad) % two_pi
 
 
-def _getRotTelPos(paRad, rotSkyRad):
+def _get_rot_tel_pos(pa_rad, rot_sky_rad):
     """Make it run from -180 to 180"""
-    result = (rotSkyRad + paRad) % TwoPi
+    result = (rot_sky_rad + pa_rad) % two_pi
     return result
 
 
-class Kinem_model(object):
+class KinemModel(object):
     """
     A Kinematic model of the telescope.
 
@@ -74,7 +74,7 @@ class Kinem_model(object):
             self.location.lat_rad = np.radians(self.location.latitude)
             self.location.lon_rad = np.radians(self.location.longitude)
         # Our RA,Dec to Alt,Az converter
-        self.radec2altaz = radec2altazpa(self.location)
+        self.radec2altaz = Radec2altazpa(self.location)
 
         self.setup_camera()
         self.setup_dome()
@@ -273,9 +273,9 @@ class Kinem_model(object):
         self.parked = True
 
         # We have no current position we are tracking
-        self.current_RA_rad = None
+        self.current_ra_rad = None
         self.current_dec_rad = None
-        self.current_rotSkyPos_rad = None
+        self.current_rot_sky_pos_rad = None
         self.cumulative_azimuth_rad = 0
 
         # The last position we were at (or the current if we are parked)
@@ -293,12 +293,12 @@ class Kinem_model(object):
             return self.last_alt_rad, self.last_az_rad, self.last_rot_tel_pos_rad
         else:
             alt_rad, az_rad, pa = self.radec2altaz(
-                self.current_RA_rad, self.current_dec_rad, mjd
+                self.current_ra_rad, self.current_dec_rad, mjd
             )
-            rotTelPos = _getRotTelPos(pa, self.last_rot_tel_pos_rad)
-            return alt_rad, az_rad, rotTelPos
+            rot_tel_pos = _get_rot_tel_pos(pa, self.last_rot_tel_pos_rad)
+            return alt_rad, az_rad, rot_tel_pos
 
-    def _uamSlewTime(self, distance, vmax, accel):
+    def _uam_slew_time(self, distance, vmax, accel):
         """Compute slew time delay assuming uniform acceleration (for any component).
         If you accelerate uniformly to vmax, then slow down uniformly to zero, distance traveled is
         d  = vmax**2 / accel
@@ -322,34 +322,34 @@ class Kinem_model(object):
         numpy.ndarray
         """
         dm = vmax**2 / accel
-        slewTime = np.where(
+        slew_time = np.where(
             distance < dm,
             2 * np.sqrt(distance / accel),
             2 * vmax / accel + (distance - dm) / vmax,
         )
-        return slewTime
+        return slew_time
 
     def slew_times(
         self,
         ra_rad,
         dec_rad,
         mjd,
-        rotSkyPos=None,
-        rotTelPos=None,
+        rot_sky_pos=None,
+        rot_tel_pos=None,
         filtername="r",
         lax_dome=True,
         alt_rad=None,
         az_rad=None,
         starting_alt_rad=None,
         starting_az_rad=None,
-        starting_rotTelPos_rad=None,
+        starting_rot_tel_pos_rad=None,
         update_tracking=False,
     ):
         """Calculates ``slew'' time to a series of alt/az/filter positions from the current
         position (stored internally).
 
         Assumptions (currently):
-        Assumes we have been tracking on ra,dec,rotSkyPos position.
+        Assumes we have been tracking on ra,dec,rot_sky_pos position.
         Ignores the motion of the sky while we are slewing
         (this approx should probably average out over time).
         No checks for if we have tracked beyond limits.
@@ -369,12 +369,12 @@ class Kinem_model(object):
             The declination(s) of the location(s) we wish to slew to (radians)
         mjd : `float`
             The current moodified julian date (days)
-        rotSkyPos : `np.ndarray`
-            The desired rotSkyPos(s) (radians). Angle between up on the chip and North. Note,
-            it is possible to set a rotSkyPos outside the allowed camera rotator range, in which case
-            the slewtime will be np.inf. If both rotSkyPos and rotTelPos are set, rotTelPos will be used.
-        rotTelPos : `np.ndarray`
-            The desired rotTelPos(s) (radians).
+        rot_sky_pos : `np.ndarray`
+            The desired rot_sky_pos(s) (radians). Angle between up on the chip and North. Note,
+            it is possible to set a rot_sky_pos outside the allowed camera rotator range, in which case
+            the slewtime will be np.inf. If both rot_sky_pos and rot_tel_pos are set, rot_tel_pos will be used.
+        rot_tel_pos : `np.ndarray`
+            The desired rot_tel_pos(s) (radians).
         filtername : `str`
             The filter(s) of the desired observations.
             Set to None to compute only telescope and dome motion times.
@@ -394,7 +394,7 @@ class Kinem_model(object):
         starting_az_rad : `float` (None)
             The starting azimuth for the slew (radians).
             If None, will use internally stored last pointing.
-        starting_rotTelPos_rad : `float` (None)
+        starting_rot_tel_pos_rad : `float` (None)
             The starting camera rotation for the slew (radians).
             If None, will use internally stored last pointing.
         update_tracking : `bool` (False)
@@ -403,19 +403,19 @@ class Kinem_model(object):
 
         Returns
         -------
-        slewTime : `np.ndarray`
+        slew_time : `np.ndarray`
             The number of seconds between the two specified exposures.
             Will be np.nan or np.inf if slew is not possible.
         """
         if filtername not in self.mounted_filters:
             return np.nan
 
-        # Don't trust folks to do pa calculation correctly, if both rotations set, rotSkyPos wins
-        if (rotTelPos is not None) & (rotSkyPos is not None):
-            if np.isfinite(rotTelPos):
-                rotSkyPos = None
+        # Don't trust folks to do pa calculation correctly, if both rotations set, rot_sky_pos wins
+        if (rot_tel_pos is not None) & (rot_sky_pos is not None):
+            if np.isfinite(rot_tel_pos):
+                rot_sky_pos = None
             else:
-                rotTelPos = None
+                rot_tel_pos = None
 
         # alt,az not provided, calculate from RA,Dec
         if alt_rad is None:
@@ -433,16 +433,16 @@ class Kinem_model(object):
                 starting_az_rad = self.park_az_rad
             else:
                 starting_alt_rad, starting_az_rad, starting_pa = self.radec2altaz(
-                    self.current_RA_rad, self.current_dec_rad, mjd
+                    self.current_ra_rad, self.current_dec_rad, mjd
                 )
 
-        deltaAlt = np.abs(alt_rad - starting_alt_rad)
+        delta_alt = np.abs(alt_rad - starting_alt_rad)
         delta_az_short = smallest_signed_angle(starting_az_rad, az_rad)
-        delta_az_long = delta_az_short - TwoPi
+        delta_az_long = delta_az_short - two_pi
         daslz = np.where(delta_az_short < 0)[0]
-        delta_az_long[daslz] = TwoPi + delta_az_short[daslz]
+        delta_az_long[daslz] = two_pi + delta_az_short[daslz]
         azlz = np.where(delta_az_short < 0)[0]
-        delta_az_long[azlz] = TwoPi + delta_az_short[azlz]
+        delta_az_long[azlz] = two_pi + delta_az_short[azlz]
         # So, for every position, we can get there by slewing long or short way
         cummulative_az_short = delta_az_short + self.cumulative_azimuth_rad
         oob = np.where(
@@ -459,43 +459,43 @@ class Kinem_model(object):
         delta_az_long[oob] = np.inf
 
         # Taking minimum of abs, so only possible azimuths slews should show up.
-        # And deltaAz is signed properly.
+        # And delta_az is signed properly.
         stacked_az = np.vstack([delta_az_short, delta_az_long])
         indx = np.argmin(np.abs(stacked_az), axis=0)
-        deltaAztel = np.take_along_axis(
+        delta_aztel = np.take_along_axis(
             stacked_az, np.expand_dims(indx, axis=0), axis=0
         ).squeeze(axis=0)
 
         # Calculate how long the telescope will take to slew to this position.
-        telAltSlewTime = self._uamSlewTime(
-            deltaAlt, self.telalt_maxspeed_rad, self.telalt_accel_rad
+        tel_alt_slew_time = self._uam_slew_time(
+            delta_alt, self.telalt_maxspeed_rad, self.telalt_accel_rad
         )
-        telAzSlewTime = self._uamSlewTime(
-            np.abs(deltaAztel), self.telaz_maxspeed_rad, self.telaz_accel_rad
+        tel_az_slew_time = self._uam_slew_time(
+            np.abs(delta_aztel), self.telaz_maxspeed_rad, self.telaz_accel_rad
         )
-        totTelTime = np.maximum(telAltSlewTime, telAzSlewTime)
+        tot_tel_time = np.maximum(tel_alt_slew_time, tel_az_slew_time)
 
         # Time for open loop optics correction
-        olTime = deltaAlt / self.optics_ol_slope
-        totTelTime += olTime
+        ol_time = delta_alt / self.optics_ol_slope
+        tot_tel_time += ol_time
         # Add time for telescope settle.
         # note, this means we're going to have a settle time even for very small slews like dithering.
-        settleAndOL = np.where(totTelTime > 0)
-        totTelTime[settleAndOL] += np.maximum(
-            0, self.mount_settletime - olTime[settleAndOL]
+        settle_and_ol = np.where(tot_tel_time > 0)
+        tot_tel_time[settle_and_ol] += np.maximum(
+            0, self.mount_settletime - ol_time[settle_and_ol]
         )
 
         # And any leftover overhead sets a minimum on the total telescope time
-        totTelTime = np.maximum(self.overhead, totTelTime)
+        tot_tel_time = np.maximum(self.overhead, tot_tel_time)
 
         # now compute dome slew time
         # the dome can spin all the way around, so we will let it go the shortest angle,
         # even if the telescope has to unwind
-        deltaAz = np.abs(smallest_signed_angle(starting_az_rad, az_rad))
+        delta_az = np.abs(smallest_signed_angle(starting_az_rad, az_rad))
         if lax_dome:
             # model dome creep, dome slit, and no azimuth settle
             # if we can fit both exposures in the dome slit, do so
-            sameDome = np.where(deltaAlt**2 + deltaAz**2 < self.camera_fov**2)
+            same_dome = np.where(delta_alt**2 + delta_az**2 < self.camera_fov**2)
 
             # else, we take the minimum time from two options:
             # 1. assume we line up alt in the center of the dome slit so we
@@ -508,107 +508,107 @@ class Kinem_model(object):
             #   field in the other (which depends which of the two options used)
             # * that we don't have to slow down until after the shutter
             #   starts opening
-            domDeltaAlt = deltaAlt
+            dom_delta_alt = delta_alt
             # on each side, we can start out with the dome shifted away from
             # the center of the field by an amount domSlitRadius - fovRadius
-            domSlitDiam = self.camera_fov / 2.0
-            domDeltaAz = deltaAz - 2 * (domSlitDiam / 2 - self.camera_fov / 2)
-            domAltSlewTime = domDeltaAlt / self.domalt_maxspeed_rad
-            domAzSlewTime = domDeltaAz / self.domaz_maxspeed_rad
-            totDomTime1 = np.maximum(domAltSlewTime, domAzSlewTime)
+            dom_slit_diam = self.camera_fov / 2.0
+            dom_delta_az = delta_az - 2 * (dom_slit_diam / 2 - self.camera_fov / 2)
+            dom_alt_slew_time = dom_delta_alt / self.domalt_maxspeed_rad
+            dom_az_slew_time = dom_delta_az / self.domaz_maxspeed_rad
+            tot_dom_time1 = np.maximum(dom_alt_slew_time, dom_az_slew_time)
 
-            domDeltaAlt = deltaAlt - 2 * (domSlitDiam / 2 - self.camera_fov / 2)
-            domDeltaAz = deltaAz
-            domAltSlewTime = domDeltaAlt / self.domalt_maxspeed_rad
-            domAzSlewTime = domDeltaAz / self.domaz_maxspeed_rad
-            totDomTime2 = np.maximum(domAltSlewTime, domAzSlewTime)
+            dom_delta_alt = delta_alt - 2 * (dom_slit_diam / 2 - self.camera_fov / 2)
+            dom_delta_az = delta_az
+            dom_alt_slew_time = dom_delta_alt / self.domalt_maxspeed_rad
+            dom_az_slew_time = dom_delta_az / self.domaz_maxspeed_rad
+            tot_dom_time2 = np.maximum(dom_alt_slew_time, dom_az_slew_time)
 
-            totDomTime = np.minimum(totDomTime1, totDomTime2)
-            totDomTime[sameDome] = 0
+            tot_dom_time = np.minimum(tot_dom_time1, tot_dom_time2)
+            tot_dom_time[same_dome] = 0
 
         else:
             # the above models a dome slit and dome creep. However, it appears that
             # SOCS requires the dome to slew exactly to each field and settle in az
-            domAltSlewTime = self._uamSlewTime(
-                deltaAlt, self.domalt_maxspeed_rad, self.domalt_accel_rad
+            dom_alt_slew_time = self._uam_slew_time(
+                delta_alt, self.domalt_maxspeed_rad, self.domalt_accel_rad
             )
-            domAzSlewTime = self._uamSlewTime(
-                deltaAz, self.domaz_maxspeed_rad, self.domaz_accel_rad
+            dom_az_slew_time = self._uam_slew_time(
+                delta_az, self.domaz_maxspeed_rad, self.domaz_accel_rad
             )
             # Dome takes 1 second to settle in az
-            domAzSlewTime = np.where(
-                domAzSlewTime > 0, domAzSlewTime + self.domaz_settletime, domAzSlewTime
+            dom_az_slew_time = np.where(
+                dom_az_slew_time > 0, dom_az_slew_time + self.domaz_settletime, dom_az_slew_time
             )
-            totDomTime = np.maximum(domAltSlewTime, domAzSlewTime)
+            tot_dom_time = np.maximum(dom_alt_slew_time, dom_az_slew_time)
         # Find the max of the above for slew time.
-        slewTime = np.maximum(totTelTime, totDomTime)
+        slew_time = np.maximum(tot_tel_time, tot_dom_time)
         # include filter change time if necessary
-        filterChange = np.where(filtername != self.current_filter)
-        slewTime[filterChange] = np.maximum(
-            slewTime[filterChange], self.filter_changetime
+        filter_change = np.where(filtername != self.current_filter)
+        slew_time[filter_change] = np.maximum(
+            slew_time[filter_change], self.filter_changetime
         )
         # Add closed loop optics correction
         # Find the limit where we must add the delay
         cl_limit = self.optics_cl_altlimit[1]
         cl_delay = self.optics_cl_delay[1]
-        closeLoop = np.where(deltaAlt >= cl_limit)
-        slewTime[closeLoop] += cl_delay
+        close_loop = np.where(delta_alt >= cl_limit)
+        slew_time[close_loop] += cl_delay
 
         # Mask min/max altitude limits so slewtime = np.nan
-        outsideLimits = np.where(
+        outside_limits = np.where(
             (alt_rad > self.telalt_maxpos_rad) | (alt_rad < self.telalt_minpos_rad)
         )[0]
-        slewTime[outsideLimits] = np.nan
+        slew_time[outside_limits] = np.nan
 
         # If we want to include the camera rotation time
-        if (rotSkyPos is not None) | (rotTelPos is not None):
-            if rotTelPos is None:
-                rotTelPos = _getRotTelPos(pa, rotSkyPos)
-            if rotSkyPos is None:
-                rotSkyPos = _getRotSkyPos(pa, rotTelPos)
+        if (rot_sky_pos is not None) | (rot_tel_pos is not None):
+            if rot_tel_pos is None:
+                rot_tel_pos = _get_rot_tel_pos(pa, rot_sky_pos)
+            if rot_sky_pos is None:
+                rot_sky_pos = _get_rot_sky_pos(pa, rot_tel_pos)
             # If the new rotation angle would move us out of the limits, return nan
-            rotTelPos_ranged = rotTelPos + 0
-            over = np.where(rotTelPos > np.pi)[0]
-            rotTelPos_ranged[over] -= TwoPi
-            if (rotTelPos_ranged < self.telrot_minpos_rad) | (
-                rotTelPos_ranged > self.telrot_maxpos_rad
+            rot_tel_pos_ranged = rot_tel_pos + 0
+            over = np.where(rot_tel_pos > np.pi)[0]
+            rot_tel_pos_ranged[over] -= two_pi
+            if (rot_tel_pos_ranged < self.telrot_minpos_rad) | (
+                rot_tel_pos_ranged > self.telrot_maxpos_rad
             ):
                 return np.nan
             # If there was no kwarg for starting rotator position
-            if starting_rotTelPos_rad is None:
-                # If there is no current rotSkyPos, we were parked
-                if self.current_rotSkyPos_rad is None:
-                    current_rotTelPos = self.last_rot_tel_pos_rad
+            if starting_rot_tel_pos_rad is None:
+                # If there is no current rot_sky_pos, we were parked
+                if self.current_rot_sky_pos_rad is None:
+                    current_rot_tel_pos = self.last_rot_tel_pos_rad
                 else:
-                    # We have been tracking, so rotTelPos needs to be updated
-                    current_rotTelPos = _getRotTelPos(pa, self.current_rotSkyPos_rad)
+                    # We have been tracking, so rot_tel_pos needs to be updated
+                    current_rot_tel_pos = _get_rot_tel_pos(pa, self.current_rot_sky_pos_rad)
             else:
                 # kwarg overrides if it was supplied
-                current_rotTelPos = starting_rotTelPos_rad
-            deltaRotation = np.abs(smallest_signed_angle(current_rotTelPos, rotTelPos))
-            rotator_time = self._uamSlewTime(
-                deltaRotation, self.telrot_maxspeed_rad, self.telrot_accel_rad
+                current_rot_tel_pos = starting_rot_tel_pos_rad
+            delta_rotation = np.abs(smallest_signed_angle(current_rot_tel_pos, rot_tel_pos))
+            rotator_time = self._uam_slew_time(
+                delta_rotation, self.telrot_maxspeed_rad, self.telrot_accel_rad
             )
-            slewTime = np.maximum(slewTime, rotator_time)
+            slew_time = np.maximum(slew_time, rotator_time)
 
         # Update the internal attributes to note that we are now pointing and tracking
-        # at the requested RA,Dec,rotSkyPos
+        # at the requested RA,Dec,rot_sky_pos
         if update_tracking:
-            self.current_RA_rad = ra_rad
+            self.current_ra_rad = ra_rad
             self.current_dec_rad = dec_rad
-            self.current_rotSkyPos_rad = rotSkyPos
+            self.current_rot_sky_pos_rad = rot_sky_pos
             self.parked = False
             # Handy to keep as reference, but not used for any calculations
-            self.last_rot_tel_pos_rad = rotTelPos
+            self.last_rot_tel_pos_rad = rot_tel_pos
             self.last_az_rad = az_rad
             self.last_alt_rad = alt_rad
             self.last_pa_rad = pa
             # Track the cumulative azimuth
-            self.cumulative_azimuth_rad += deltaAztel
+            self.cumulative_azimuth_rad += delta_aztel
             self.current_filter = filtername
             self.last_mjd = mjd
 
-        return slewTime
+        return slew_time
 
     def visit_time(self, observation):
         # How long does it take to make an observation.
@@ -627,7 +627,7 @@ class Kinem_model(object):
             result = self.shutter_2motion_min_time - delta_t
         return result
 
-    def observe(self, observation, mjd, rotTelPos=None, lax_dome=True):
+    def observe(self, observation, mjd, rot_tel_pos=None, lax_dome=True):
         """observe a target, and return the slewtime and visit time for the action
 
         If slew is not allowed, returns np.nan and does not update state.
@@ -645,8 +645,8 @@ class Kinem_model(object):
             observation["RA"],
             observation["dec"],
             mjd,
-            rotSkyPos=observation["rotSkyPos"],
-            rotTelPos=rotTelPos,
+            rot_sky_pos=observation["rotSkyPos"],
+            rot_tel_pos=rot_tel_pos,
             filtername=observation["filter"],
             update_tracking=True,
             lax_dome=lax_dome,

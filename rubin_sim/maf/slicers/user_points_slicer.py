@@ -49,28 +49,28 @@ class UserPointsSlicer(BaseSpatialSlicer):
         self,
         ra,
         dec,
-        lonCol="fieldRA",
-        latCol="fieldDec",
-        latLonDeg=True,
+        lon_col="fieldRA",
+        lat_col="fieldDec",
+        lat_lon_deg=True,
         verbose=True,
         badval=-666,
         leafsize=100,
         radius=2.45,
-        useCamera=True,
-        cameraFootprintFile=None,
-        rotSkyPosColName="rotSkyPos",
+        use_camera=True,
+        camera_footprint_file=None,
+        rot_sky_pos_col_name="rotSkyPos",
     ):
         super().__init__(
-            lonCol=lonCol,
-            latCol=latCol,
-            latLonDeg=latLonDeg,
+            lon_col=lon_col,
+            lat_col=lat_col,
+            lat_lon_deg=lat_lon_deg,
             verbose=verbose,
             badval=badval,
             radius=radius,
             leafsize=leafsize,
-            useCamera=useCamera,
-            cameraFootprintFile=cameraFootprintFile,
-            rotSkyPosColName=rotSkyPosColName,
+            use_camera=use_camera,
+            camera_footprint_file=camera_footprint_file,
+            rot_sky_pos_col_name=rot_sky_pos_col_name,
         )
         # check that ra and dec are iterable, if not, they are probably naked numbers, wrap in list
         if not hasattr(ra, "__iter__"):
@@ -92,45 +92,45 @@ class UserPointsSlicer(BaseSpatialSlicer):
 
         self.nslice = np.size(ra)
         self.shape = self.nslice
-        self.spatialExtent = [0, self.nslice - 1]
+        self.spatial_extent = [0, self.nslice - 1]
         self.slicer_init = {
             "ra": ra,
             "dec": dec,
-            "lonCol": lonCol,
-            "latCol": latCol,
+            "lon_col": lon_col,
+            "lat_col": lat_col,
             "radius": radius,
         }
-        self.plotFuncs = [BaseSkyMap, BaseHistogram]
+        self.plot_funcs = [BaseSkyMap, BaseHistogram]
 
-    def __eq__(self, otherSlicer):
+    def __eq__(self, other_slicer):
         """Evaluate if two slicers are equivalent."""
         result = False
         # check the slicePoints
-        for key in otherSlicer.slicePoints:
+        for key in other_slicer.slicePoints:
             if key in self.slicePoints.keys():
                 if not np.array_equal(
-                    otherSlicer.slicePoints[key], self.slicePoints[key]
+                    other_slicer.slicePoints[key], self.slicePoints[key]
                 ):
                     return False
             else:
                 return False
-        if isinstance(otherSlicer, UserPointsSlicer):
-            if otherSlicer.nslice == self.nslice:
+        if isinstance(other_slicer, UserPointsSlicer):
+            if other_slicer.nslice == self.nslice:
                 if np.array_equal(
-                    otherSlicer.slicePoints["ra"], self.slicePoints["ra"]
+                    other_slicer.slicePoints["ra"], self.slicePoints["ra"]
                 ) and np.array_equal(
-                    otherSlicer.slicePoints["dec"], self.slicePoints["dec"]
+                    other_slicer.slicePoints["dec"], self.slicePoints["dec"]
                 ):
                     if (
-                        otherSlicer.lonCol == self.lonCol
-                        and otherSlicer.latCol == self.latCol
+                        other_slicer.lonCol == self.lonCol
+                        and other_slicer.latCol == self.latCol
                     ):
-                        if otherSlicer.radius == self.radius:
-                            if otherSlicer.useCamera == self.useCamera:
+                        if other_slicer.radius == self.radius:
+                            if other_slicer.useCamera == self.useCamera:
                                 if (
-                                    otherSlicer.rotSkyPosColName
+                                    other_slicer.rotSkyPosColName
                                     == self.rotSkyPosColName
                                 ):
-                                    if np.array_equal(otherSlicer.shape, self.shape):
+                                    if np.array_equal(other_slicer.shape, self.shape):
                                         result = True
         return result

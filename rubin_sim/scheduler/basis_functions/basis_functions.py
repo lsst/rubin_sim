@@ -1,7 +1,7 @@
 import numpy as np
 from rubin_sim.scheduler import features
 from rubin_sim.scheduler import utils
-from rubin_sim.scheduler.utils import int_rounded
+from rubin_sim.scheduler.utils import IntRounded
 import healpy as hp
 import matplotlib.pylab as plt
 from rubin_sim.skybrightness_pre import dark_sky
@@ -12,47 +12,47 @@ from astropy import units as u
 
 
 __all__ = [
-    "Base_basis_function",
-    "Constant_basis_function",
-    "Target_map_basis_function",
-    "Avoid_long_gaps_basis_function",
-    "Avoid_Fast_Revists",
-    "Visit_repeat_basis_function",
-    "M5_diff_basis_function",
-    "Strict_filter_basis_function",
-    "Goal_Strict_filter_basis_function",
-    "Filter_change_basis_function",
-    "Slewtime_basis_function",
-    "Aggressive_Slewtime_basis_function",
-    "Skybrightness_limit_basis_function",
-    "CableWrap_unwrap_basis_function",
-    "Cadence_enhance_basis_function",
-    "Cadence_enhance_trapezoid_basis_function",
-    "Azimuth_basis_function",
-    "Az_modulo_basis_function",
-    "Dec_modulo_basis_function",
-    "Map_modulo_basis_function",
-    "Template_generate_basis_function",
-    "Footprint_nvis_basis_function",
-    "Third_observation_basis_function",
-    "Season_coverage_basis_function",
-    "N_obs_per_year_basis_function",
-    "Cadence_in_season_basis_function",
-    "Near_sun_twilight_basis_function",
-    "N_obs_high_am_basis_function",
-    "Good_seeing_basis_function",
-    "Observed_twice_basis_function",
-    "Ecliptic_basis_function",
-    "Limit_repeat_basis_function",
+    "BaseBasisFunction",
+    "ConstantBasisFunction",
+    "TargetMapBasisFunction",
+    "AvoidLongGapsBasisFunction",
+    "AvoidFastRevists",
+    "VisitRepeatBasisFunction",
+    "M5DiffBasisFunction",
+    "StrictFilterBasisFunction",
+    "GoalStrictFilterBasisFunction",
+    "FilterChangeBasisFunction",
+    "SlewtimeBasisFunction",
+    "AggressiveSlewtimeBasisFunction",
+    "SkybrightnessLimitBasisFunction",
+    "CablewrapUnwrapBasisFunction",
+    "CadenceEnhanceBasisFunction",
+    "CadenceEnhanceTrapezoidBasisFunction",
+    "AzimuthBasisFunction",
+    "AzModuloBasisFunction",
+    "DecModuloBasisFunction",
+    "MapModuloBasisFunction",
+    "TemplateGenerateBasisFunction",
+    "FootprintNvisBasisFunction",
+    "ThirdObservationBasisFunction",
+    "SeasonCoverageBasisFunction",
+    "NObsPerYearBasisFunction",
+    "CadenceInSeasonBasisFunction",
+    "NearSunTwilightBasisFunction",
+    "NObsHighAmBasisFunction",
+    "GoodSeeingBasisFunction",
+    "ObservedTwiceBasisFunction",
+    "EclipticBasisFunction",
+    "LimitRepeatBasisFunction",
     "VisitGap",
-    "N_good_seeing_basis_function",
+    "NGoodSeeingBasisFunction",
     "AvoidDirectWind",
     "BalanceVisits",
     "RewardNObsSequence",
 ]
 
 
-class Base_basis_function(object):
+class BaseBasisFunction(object):
     """Class that takes features and computes a reward function when called."""
 
     def __init__(self, nside=None, filtername=None, **kwargs):
@@ -154,19 +154,19 @@ class Base_basis_function(object):
         return label
 
 
-class Constant_basis_function(Base_basis_function):
+class ConstantBasisFunction(BaseBasisFunction):
     """Just add a constant"""
 
     def __call__(self, conditions, **kwargs):
         return 1
 
 
-class N_good_seeing_basis_function(Base_basis_function):
+class NGoodSeeingBasisFunction(BaseBasisFunction):
     """Try to get N "good seeing" images each observing season
 
     Parameters
     ----------
-    seeingFWHM_max : `float` (0.8)
+    seeing_fwhm_max : `float` (0.8)
         Value to consider as "good" threshold (arcsec).
     m5_penalty_max : `float` (0.5)
         The maximum depth loss that is considered acceptable (magnitudes)
@@ -182,21 +182,21 @@ class N_good_seeing_basis_function(Base_basis_function):
         self,
         filtername="r",
         nside=None,
-        seeingFWHM_max=0.8,
+        seeing_fwhm_max=0.8,
         m5_penalty_max=0.5,
         n_obs_desired=3,
         footprint=None,
         mjd_start=1,
     ):
         super().__init__(nside=nside, filtername=filtername)
-        self.seeingFWHM_max = seeingFWHM_max
+        self.seeing_fwhm_max = seeing_fwhm_max
         self.m5_penalty_max = m5_penalty_max
-        self.N_obs_desired = n_obs_desired
+        self.n_obs_desired = n_obs_desired
 
         self.survey_features["N_good_seeing"] = features.N_observations_current_season(
             filtername=filtername,
             mjd_start=mjd_start,
-            seeingFWHM_max=seeingFWHM_max,
+            seeing_fwhm_max=seeing_fwhm_max,
             m5_penalty_max=m5_penalty_max,
             nside=nside,
         )
@@ -214,8 +214,8 @@ class N_good_seeing_basis_function(Base_basis_function):
         m5_penalty = self.dark_map - conditions.M5Depth[self.filtername]
         potential_pixels = np.where(
             (m5_penalty <= self.m5_penalty_max)
-            & (conditions.FWHMeff[self.filtername] <= self.seeingFWHM_max)
-            & (self.survey_features["N_good_seeing"].feature < self.N_obs_desired)
+            & (conditions.FWHMeff[self.filtername] <= self.seeing_fwhm_max)
+            & (self.survey_features["N_good_seeing"].feature < self.n_obs_desired)
             & (self.footprint > 0)
         )[0]
 
@@ -225,7 +225,7 @@ class N_good_seeing_basis_function(Base_basis_function):
         return result
 
 
-class Avoid_long_gaps_basis_function(Base_basis_function):
+class AvoidLongGapsBasisFunction(BaseBasisFunction):
     """Boost the reward on parts of the survey that haven't been observed for a
     while.
     """
@@ -239,7 +239,7 @@ class Avoid_long_gaps_basis_function(Base_basis_function):
         max_gap=40.0,
         ha_limit=3.5,
     ):
-        super(Avoid_long_gaps_basis_function, self).__init__(
+        super(AvoidLongGapsBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
         self.min_gap = min_gap
@@ -272,7 +272,7 @@ class Avoid_long_gaps_basis_function(Base_basis_function):
         return result
 
 
-class Target_map_basis_function(Base_basis_function):
+class TargetMapBasisFunction(BaseBasisFunction):
     """Basis function that tracks number of observations and tries to match a
     specified spatial distribution
 
@@ -306,7 +306,7 @@ class Target_map_basis_function(Base_basis_function):
         out_of_bounds_val=-10.0,
     ):
 
-        super(Target_map_basis_function, self).__init__(
+        super(TargetMapBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
 
@@ -352,30 +352,30 @@ class Target_map_basis_function(Base_basis_function):
             indx = self.all_indx
 
         # Find out how many observations we want now at those points
-        goal_N = (
+        goal_n = (
             self.target_map[indx]
             * self.survey_features["N_obs_count_all"].feature
             * self.norm_factor
         )
 
-        result[indx] = goal_N - self.survey_features["N_obs"].feature[indx]
+        result[indx] = goal_n - self.survey_features["N_obs"].feature[indx]
         result[self.out_of_bounds_area] = self.out_of_bounds_val
 
         return result
 
 
-def azRelPoint(azs, pointAz):
-    azRelMoon = (azs - pointAz) % (2.0 * np.pi)
+def az_rel_point(azs, point_az):
+    az_rel_moon = (azs - point_az) % (2.0 * np.pi)
     if isinstance(azs, np.ndarray):
-        over = np.where(azRelMoon > np.pi)
-        azRelMoon[over] = 2.0 * np.pi - azRelMoon[over]
+        over = np.where(az_rel_moon > np.pi)
+        az_rel_moon[over] = 2.0 * np.pi - az_rel_moon[over]
     else:
-        if azRelMoon > np.pi:
-            azRelMoon = 2.0 * np.pi - azRelMoon
-    return azRelMoon
+        if az_rel_moon > np.pi:
+            az_rel_moon = 2.0 * np.pi - az_rel_moon
+    return az_rel_moon
 
 
-class N_obs_high_am_basis_function(Base_basis_function):
+class NObsHighAmBasisFunction(BaseBasisFunction):
     """Reward only reward/count observations at high airmass"""
 
     def __init__(
@@ -388,7 +388,7 @@ class N_obs_high_am_basis_function(Base_basis_function):
         am_limits=[1.5, 2.2],
         out_of_bounds_val=np.nan,
     ):
-        super(N_obs_high_am_basis_function, self).__init__(
+        super(NObsHighAmBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
         self.footprint = footprint
@@ -439,13 +439,13 @@ class N_obs_high_am_basis_function(Base_basis_function):
         result = self.result.copy()
         behind_pix = np.where(
             (
-                int_rounded(
+                IntRounded(
                     conditions.mjd - self.survey_features["last_n_mjds"].feature[0]
                 )
-                > int_rounded(self.season)
+                > IntRounded(self.season)
             )
-            & (int_rounded(conditions.airmass) > int_rounded(np.min(self.am_limits)))
-            & (int_rounded(conditions.airmass) < int_rounded(np.max(self.am_limits)))
+            & (IntRounded(conditions.airmass) > IntRounded(np.min(self.am_limits)))
+            & (IntRounded(conditions.airmass) < IntRounded(np.max(self.am_limits)))
         )
         result[behind_pix] = 1
         result[self.out_footprint] = self.out_of_bounds_val
@@ -458,11 +458,11 @@ class N_obs_high_am_basis_function(Base_basis_function):
         return result
 
 
-class Ecliptic_basis_function(Base_basis_function):
+class EclipticBasisFunction(BaseBasisFunction):
     """Mark the area around the ecliptic"""
 
     def __init__(self, nside=None, distance_to_eclip=25.0):
-        super(Ecliptic_basis_function, self).__init__(nside=nside)
+        super(EclipticBasisFunction, self).__init__(nside=nside)
         self.distance_to_eclip = np.radians(distance_to_eclip)
         ra, dec = _hpid2_ra_dec(nside, np.arange(hp.nside2npix(self.nside)))
         self.result = np.zeros(ra.size)
@@ -475,7 +475,7 @@ class Ecliptic_basis_function(Base_basis_function):
         return self.result
 
 
-class N_obs_per_year_basis_function(Base_basis_function):
+class NObsPerYearBasisFunction(BaseBasisFunction):
     """Reward areas that have not been observed N-times in the last year
 
     Parameters
@@ -504,7 +504,7 @@ class N_obs_per_year_basis_function(Base_basis_function):
         season_start_hour=-4.0,
         season_end_hour=2.0,
     ):
-        super(N_obs_per_year_basis_function, self).__init__(
+        super(NObsPerYearBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
         self.footprint = footprint
@@ -536,8 +536,8 @@ class N_obs_per_year_basis_function(Base_basis_function):
         # ok, now
         relative_ra[
             np.where(
-                int_rounded(relative_ra)
-                > int_rounded(self.season_end_hour - self.season_start_hour)
+                IntRounded(relative_ra)
+                > IntRounded(self.season_end_hour - self.season_start_hour)
             )
         ] = 0
 
@@ -550,7 +550,7 @@ class N_obs_per_year_basis_function(Base_basis_function):
         return result
 
 
-class Cadence_in_season_basis_function(Base_basis_function):
+class CadenceInSeasonBasisFunction(BaseBasisFunction):
     """Drive observations at least every N days in a given area
 
     Parameters
@@ -568,7 +568,7 @@ class Cadence_in_season_basis_function(Base_basis_function):
     def __init__(
         self, drive_map, filtername="griz", season_span=2.5, cadence=2.5, nside=None
     ):
-        super(Cadence_in_season_basis_function, self).__init__(
+        super(CadenceInSeasonBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
         self.drive_map = drive_map
@@ -584,22 +584,22 @@ class Cadence_in_season_basis_function(Base_basis_function):
         ra_mid_season = (conditions.sunRA + np.pi) % (2.0 * np.pi)
 
         angle_to_mid_season = np.abs(conditions.ra - ra_mid_season)
-        over = np.where(int_rounded(angle_to_mid_season) > int_rounded(np.pi))
+        over = np.where(IntRounded(angle_to_mid_season) > IntRounded(np.pi))
         angle_to_mid_season[over] = 2.0 * np.pi - angle_to_mid_season[over]
 
         days_lag = conditions.mjd - self.survey_features["last_observed"].feature
 
         active_pix = np.where(
-            (int_rounded(days_lag) >= int_rounded(self.cadence))
+            (IntRounded(days_lag) >= IntRounded(self.cadence))
             & (self.drive_map == 1)
-            & (int_rounded(angle_to_mid_season) < int_rounded(self.season_span))
+            & (IntRounded(angle_to_mid_season) < IntRounded(self.season_span))
         )
         result[active_pix] = 1.0
 
         return result
 
 
-class Season_coverage_basis_function(Base_basis_function):
+class SeasonCoverageBasisFunction(BaseBasisFunction):
     """Basis function to encourage N observations per observing season
 
     Parameters
@@ -624,7 +624,7 @@ class Season_coverage_basis_function(Base_basis_function):
         offset=None,
         season_frac_start=0.5,
     ):
-        super(Season_coverage_basis_function, self).__init__(
+        super(SeasonCoverageBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
 
@@ -647,8 +647,8 @@ class Season_coverage_basis_function(Base_basis_function):
             & (feature < self.n_per_season)
             & (
                 (
-                    int_rounded(season - np.floor(season))
-                    > int_rounded(self.season_frac_start)
+                    IntRounded(season - np.floor(season))
+                    > IntRounded(self.season_frac_start)
                 )
             )
             & (season >= 0)
@@ -657,7 +657,7 @@ class Season_coverage_basis_function(Base_basis_function):
         return result
 
 
-class Footprint_nvis_basis_function(Base_basis_function):
+class FootprintNvisBasisFunction(BaseBasisFunction):
     """Basis function to drive observations of a given footprint. Good to target of opportunity targets
     where one might want to observe a region 3 times.
 
@@ -677,7 +677,7 @@ class Footprint_nvis_basis_function(Base_basis_function):
         nvis=1,
         out_of_bounds_val=np.nan,
     ):
-        super(Footprint_nvis_basis_function, self).__init__(
+        super(FootprintNvisBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
         self.footprint = footprint
@@ -695,18 +695,18 @@ class Footprint_nvis_basis_function(Base_basis_function):
 
     def _calc_value(self, conditions, indx=None):
         result = self.result.copy()
-        diff = int_rounded(
+        diff = IntRounded(
             self.footprint * self.nvis - self.survey_features["N_obs"].feature
         )
 
-        result[np.where(diff > int_rounded(0))] = 1
+        result[np.where(diff > IntRounded(0))] = 1
 
         # Any spot where we have enough visits is out of bounds now.
-        result[np.where(diff <= int_rounded(0))] = self.out_of_bounds_val
+        result[np.where(diff <= IntRounded(0))] = self.out_of_bounds_val
         return result
 
 
-class Third_observation_basis_function(Base_basis_function):
+class ThirdObservationBasisFunction(BaseBasisFunction):
     """If there have been observations in two filters long enough ago, go for a third
 
     Parameters
@@ -720,11 +720,11 @@ class Third_observation_basis_function(Base_basis_function):
     def __init__(
         self, nside=32, filtername1="r", filtername2="z", gap_min=40.0, gap_max=120.0
     ):
-        super(Third_observation_basis_function, self).__init__(nside=nside)
+        super(ThirdObservationBasisFunction, self).__init__(nside=nside)
         self.filtername1 = filtername1
         self.filtername2 = filtername2
-        self.gap_min = int_rounded(gap_min / 60.0 / 24.0)
-        self.gap_max = int_rounded(gap_max / 60.0 / 24.0)
+        self.gap_min = IntRounded(gap_min / 60.0 / 24.0)
+        self.gap_max = IntRounded(gap_max / 60.0 / 24.0)
 
         self.survey_features = {}
         self.survey_features["last_obs_f1"] = features.Last_observed(
@@ -738,8 +738,8 @@ class Third_observation_basis_function(Base_basis_function):
 
     def _calc_value(self, conditions, indx=None):
         result = self.result.copy()
-        d1 = int_rounded(conditions.mjd - self.survey_features["last_obs_f1"].feature)
-        d2 = int_rounded(conditions.mjd - self.survey_features["last_obs_f2"].feature)
+        d1 = IntRounded(conditions.mjd - self.survey_features["last_obs_f1"].feature)
+        d2 = IntRounded(conditions.mjd - self.survey_features["last_obs_f2"].feature)
         good = np.where(
             (d1 > self.gap_min)
             & (d1 < self.gap_max)
@@ -750,7 +750,7 @@ class Third_observation_basis_function(Base_basis_function):
         return result
 
 
-class Avoid_Fast_Revists(Base_basis_function):
+class AvoidFastRevists(BaseBasisFunction):
     """Marks targets as unseen if they are in a specified time window in order to avoid fast revisits.
 
     Parameters
@@ -766,12 +766,12 @@ class Avoid_Fast_Revists(Base_basis_function):
     """
 
     def __init__(self, filtername="r", nside=None, gap_min=25.0, penalty_val=np.nan):
-        super(Avoid_Fast_Revists, self).__init__(nside=nside, filtername=filtername)
+        super(AvoidFastRevists, self).__init__(nside=nside, filtername=filtername)
 
         self.filtername = filtername
         self.penalty_val = penalty_val
 
-        self.gap_min = int_rounded(gap_min / 60.0 / 24.0)
+        self.gap_min = IntRounded(gap_min / 60.0 / 24.0)
         self.nside = nside
 
         self.survey_features = dict()
@@ -783,7 +783,7 @@ class Avoid_Fast_Revists(Base_basis_function):
         result = np.ones(hp.nside2npix(self.nside), dtype=float)
         if indx is None:
             indx = np.arange(result.size)
-        diff = int_rounded(
+        diff = IntRounded(
             conditions.mjd - self.survey_features["Last_observed"].feature[indx]
         )
         bad = np.where(diff < self.gap_min)[0]
@@ -791,7 +791,7 @@ class Avoid_Fast_Revists(Base_basis_function):
         return result
 
 
-class Near_sun_twilight_basis_function(Base_basis_function):
+class NearSunTwilightBasisFunction(BaseBasisFunction):
     """Reward looking into the twilight for NEOs at high airmass
 
     Parameters
@@ -801,8 +801,8 @@ class Near_sun_twilight_basis_function(Base_basis_function):
     """
 
     def __init__(self, nside=None, max_airmass=2.5, penalty=np.nan):
-        super(Near_sun_twilight_basis_function, self).__init__(nside=nside)
-        self.max_airmass = int_rounded(max_airmass)
+        super(NearSunTwilightBasisFunction, self).__init__(nside=nside)
+        self.max_airmass = IntRounded(max_airmass)
         self.result = np.empty(hp.nside2npix(self.nside))
         self.result.fill(penalty)
 
@@ -810,14 +810,14 @@ class Near_sun_twilight_basis_function(Base_basis_function):
         result = self.result.copy()
         good_pix = np.where(
             (conditions.airmass >= 1.0)
-            & (int_rounded(conditions.airmass) < self.max_airmass)
-            & (int_rounded(np.abs(conditions.az_to_sun)) < int_rounded(np.pi / 2.0))
+            & (IntRounded(conditions.airmass) < self.max_airmass)
+            & (IntRounded(np.abs(conditions.az_to_sun)) < IntRounded(np.pi / 2.0))
         )
         result[good_pix] = conditions.airmass[good_pix] / self.max_airmass.initial
         return result
 
 
-class Visit_repeat_basis_function(Base_basis_function):
+class VisitRepeatBasisFunction(BaseBasisFunction):
     """
     Basis function to reward re-visiting an area on the sky. Looking for Solar System objects.
 
@@ -837,12 +837,12 @@ class Visit_repeat_basis_function(Base_basis_function):
         self, gap_min=25.0, gap_max=45.0, filtername="r", nside=None, npairs=1
     ):
 
-        super(Visit_repeat_basis_function, self).__init__(
+        super(VisitRepeatBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
 
-        self.gap_min = int_rounded(gap_min / 60.0 / 24.0)
-        self.gap_max = int_rounded(gap_max / 60.0 / 24.0)
+        self.gap_min = IntRounded(gap_min / 60.0 / 24.0)
+        self.gap_max = IntRounded(gap_max / 60.0 / 24.0)
         self.npairs = npairs
 
         self.survey_features = {}
@@ -860,7 +860,7 @@ class Visit_repeat_basis_function(Base_basis_function):
         result = np.zeros(hp.nside2npix(self.nside), dtype=float)
         if indx is None:
             indx = np.arange(result.size)
-        diff = int_rounded(
+        diff = IntRounded(
             conditions.mjd - self.survey_features["Last_observed"].feature[indx]
         )
         good = np.where(
@@ -872,7 +872,7 @@ class Visit_repeat_basis_function(Base_basis_function):
         return result
 
 
-class M5_diff_basis_function(Base_basis_function):
+class M5DiffBasisFunction(BaseBasisFunction):
     """Basis function based on the 5-sigma depth.
     Look up the best depth a healpixel achieves, and compute
     the limiting depth difference given current conditions
@@ -880,7 +880,7 @@ class M5_diff_basis_function(Base_basis_function):
 
     def __init__(self, filtername="r", nside=None):
 
-        super(M5_diff_basis_function, self).__init__(nside=nside, filtername=filtername)
+        super(M5DiffBasisFunction, self).__init__(nside=nside, filtername=filtername)
         # Need to look up the deepest m5 values for all the healpixels
 
         self.dark_map = dark_sky(nside)[filtername]
@@ -891,7 +891,7 @@ class M5_diff_basis_function(Base_basis_function):
         return result
 
 
-class Strict_filter_basis_function(Base_basis_function):
+class StrictFilterBasisFunction(BaseBasisFunction):
     """Remove the bonus for staying in the same filter if certain conditions are met.
 
     If the moon rises/sets or twilight starts/ends, it makes a lot of sense to consider
@@ -911,7 +911,7 @@ class Strict_filter_basis_function(Base_basis_function):
 
     def __init__(self, time_lag=10.0, filtername="r", twi_change=-18.0, note_free="DD"):
 
-        super(Strict_filter_basis_function, self).__init__(filtername=filtername)
+        super(StrictFilterBasisFunction, self).__init__(filtername=filtername)
 
         self.time_lag = time_lag / 60.0 / 24.0  # Convert to days
         self.twi_change = np.radians(twi_change)
@@ -934,9 +934,9 @@ class Strict_filter_basis_function(Base_basis_function):
         )
 
         # Has enough time past?
-        time_past = int_rounded(
+        time_past = IntRounded(
             conditions.mjd - self.survey_features["Last_observation"].feature["mjd"]
-        ) > int_rounded(self.time_lag)
+        ) > IntRounded(self.time_lag)
 
         # Did twilight start/end?
         twi_changed = (conditions.sunAlt - self.twi_change) * (
@@ -944,14 +944,14 @@ class Strict_filter_basis_function(Base_basis_function):
         ) < 0
 
         # Did we just finish a DD sequence
-        wasDD = (
+        was_dd = (
             self.note_free in self.survey_features["Last_observation"].feature["note"]
         )
 
         # Is the filter mounted?
         mounted = self.filtername in conditions.mounted_filters
 
-        if (moon_changed | in_filter | time_past | twi_changed | wasDD) & mounted:
+        if (moon_changed | in_filter | time_past | twi_changed | was_dd) & mounted:
             result = 1.0
         else:
             result = 0.0
@@ -959,7 +959,7 @@ class Strict_filter_basis_function(Base_basis_function):
         return result
 
 
-class Goal_Strict_filter_basis_function(Base_basis_function):
+class GoalStrictFilterBasisFunction(BaseBasisFunction):
     """Remove the bonus for staying in the same filter if certain conditions are met.
 
     If the moon rises/sets or twilight starts/ends, it makes a lot of sense to consider
@@ -1009,7 +1009,7 @@ class Goal_Strict_filter_basis_function(Base_basis_function):
         aways_available=False,
     ):
 
-        super(Goal_Strict_filter_basis_function, self).__init__(filtername=filtername)
+        super(GoalStrictFilterBasisFunction, self).__init__(filtername=filtername)
 
         self.time_lag_min = time_lag_min / 60.0 / 24.0  # Convert to days
         self.time_lag_max = time_lag_max / 60.0 / 24.0  # Convert to days
@@ -1050,12 +1050,12 @@ class Goal_Strict_filter_basis_function(Base_basis_function):
             bonus[before_lag] = -np.inf if self.unseen_before_lag else 0.0
             after_lag = np.where(time >= lag_max)
             bonus[after_lag] = 1.0 if time < self.time_lag_boost else self.boost_gain
-        elif int_rounded(time) <= int_rounded(lag_min):
+        elif IntRounded(time) <= IntRounded(lag_min):
             return -np.inf if self.unseen_before_lag else 0.0
-        elif int_rounded(time) >= int_rounded(lag_max):
+        elif IntRounded(time) >= IntRounded(lag_max):
             return (
                 1.0
-                if int_rounded(time) < int_rounded(self.time_lag_boost)
+                if IntRounded(time) < IntRounded(self.time_lag_boost)
                 else self.boost_gain
             )
 
@@ -1098,7 +1098,7 @@ class Goal_Strict_filter_basis_function(Base_basis_function):
 
         # Has enough time past?
         lag = conditions.mjd - self.survey_features["Last_filter_change"].feature["mjd"]
-        time_past = int_rounded(lag) > int_rounded(self.time_lag_min)
+        time_past = IntRounded(lag) > IntRounded(self.time_lag_min)
 
         # Did twilight start/end?
         twi_changed = (conditions.sunAlt - self.twi_change) * (
@@ -1106,12 +1106,12 @@ class Goal_Strict_filter_basis_function(Base_basis_function):
         ) < 0
 
         # Did we just finish a DD sequence
-        wasDD = self.survey_features["Last_observation"].feature["note"] == "DD"
+        was_dd = self.survey_features["Last_observation"].feature["note"] == "DD"
 
         # Is the filter mounted?
         mounted = self.filtername in conditions.mounted_filters
 
-        if (moon_changed | time_past | twi_changed | wasDD) & mounted & not_in_filter:
+        if (moon_changed | time_past | twi_changed | was_dd) & mounted & not_in_filter:
             return True
         else:
             return False
@@ -1143,12 +1143,12 @@ class Goal_Strict_filter_basis_function(Base_basis_function):
         ) < 0
 
         # Did we just finish a DD sequence
-        wasDD = self.survey_features["Last_observation"].feature["note"] == "DD"
+        was_dd = self.survey_features["Last_observation"].feature["note"] == "DD"
 
         # Is the filter mounted?
         mounted = self.filtername in conditions.mounted_filters
 
-        if (moon_changed | time_past | twi_changed | wasDD) & mounted:
+        if (moon_changed | time_past | twi_changed | was_dd) & mounted:
             result = self.filter_change_bonus(lag) if time_past else 0.0
         else:
             result = -100.0 if self.unseen_before_lag else 0.0
@@ -1156,11 +1156,11 @@ class Goal_Strict_filter_basis_function(Base_basis_function):
         return result
 
 
-class Filter_change_basis_function(Base_basis_function):
+class FilterChangeBasisFunction(BaseBasisFunction):
     """Reward staying in the current filter."""
 
     def __init__(self, filtername="r"):
-        super(Filter_change_basis_function, self).__init__(filtername=filtername)
+        super(FilterChangeBasisFunction, self).__init__(filtername=filtername)
 
     def _calc_value(self, conditions, **kwargs):
 
@@ -1173,7 +1173,7 @@ class Filter_change_basis_function(Base_basis_function):
         return result
 
 
-class Slewtime_basis_function(Base_basis_function):
+class SlewtimeBasisFunction(BaseBasisFunction):
     """Reward slews that take little time
 
     Parameters
@@ -1184,7 +1184,7 @@ class Slewtime_basis_function(Base_basis_function):
     """
 
     def __init__(self, max_time=135.0, filtername="r", nside=None):
-        super(Slewtime_basis_function, self).__init__(
+        super(SlewtimeBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
 
@@ -1198,7 +1198,7 @@ class Slewtime_basis_function(Base_basis_function):
         pass
 
     def _calc_value(self, conditions, indx=None):
-        # If we are in a different filter, the Filter_change_basis_function will take it
+        # If we are in a different filter, the FilterChangeBasisFunction will take it
         if conditions.current_filter != self.filtername:
             result = 0
         else:
@@ -1212,17 +1212,17 @@ class Slewtime_basis_function(Base_basis_function):
         return result
 
 
-class Aggressive_Slewtime_basis_function(Base_basis_function):
+class AggressiveSlewtimeBasisFunction(BaseBasisFunction):
     """Reward slews that take little time
 
-    XXX--not sure how this is different from Slewtime_basis_function?
+    XXX--not sure how this is different from SlewtimeBasisFunction?
     Looks like it's checking the slewtime to the field position rather than the healpix maybe?
     """
 
     def __init__(
         self, max_time=135.0, order=1.0, hard_max=None, filtername="r", nside=None
     ):
-        super(Aggressive_Slewtime_basis_function, self).__init__(
+        super(AggressiveSlewtimeBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
 
@@ -1232,7 +1232,7 @@ class Aggressive_Slewtime_basis_function(Base_basis_function):
         self.result = np.zeros(hp.nside2npix(nside), dtype=float)
 
     def _calc_value(self, conditions, indx=None):
-        # If we are in a different filter, the Filter_change_basis_function will take it
+        # If we are in a different filter, the FilterChangeBasisFunction will take it
         if conditions.current_filter != self.filtername:
             result = 0.0
         else:
@@ -1261,7 +1261,7 @@ class Aggressive_Slewtime_basis_function(Base_basis_function):
         return result
 
 
-class Skybrightness_limit_basis_function(Base_basis_function):
+class SkybrightnessLimitBasisFunction(BaseBasisFunction):
     """Mask regions that are outside a sky brightness limit
 
     XXX--TODO:  This should probably go to the mask basis functions.
@@ -1276,12 +1276,12 @@ class Skybrightness_limit_basis_function(Base_basis_function):
     """
 
     def __init__(self, nside=None, filtername="r", sbmin=20.0, sbmax=30.0):
-        super(Skybrightness_limit_basis_function, self).__init__(
+        super(SkybrightnessLimitBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
 
-        self.min = int_rounded(sbmin)
-        self.max = int_rounded(sbmax)
+        self.min = IntRounded(sbmin)
+        self.max = IntRounded(sbmax)
         self.result = np.empty(hp.nside2npix(self.nside), dtype=float)
         self.result.fill(np.nan)
 
@@ -1290,8 +1290,8 @@ class Skybrightness_limit_basis_function(Base_basis_function):
 
         good = np.where(
             np.bitwise_and(
-                int_rounded(conditions.skybrightness[self.filtername]) > self.min,
-                int_rounded(conditions.skybrightness[self.filtername]) < self.max,
+                IntRounded(conditions.skybrightness[self.filtername]) > self.min,
+                IntRounded(conditions.skybrightness[self.filtername]) < self.max,
             )
         )
         result[good] = 1.0
@@ -1299,13 +1299,13 @@ class Skybrightness_limit_basis_function(Base_basis_function):
         return result
 
 
-class CableWrap_unwrap_basis_function(Base_basis_function):
+class CablewrapUnwrapBasisFunction(BaseBasisFunction):
     """
     Parameters
     ----------
-    minAz : `float` (20.)
+    min_az : `float` (20.)
         The minimum azimuth to activate bf (degrees)
-    maxAz : `float` (82.)
+    max_az : `float` (82.)
         The maximum azimuth to activate bf (degrees)
     unwrap_until: `float` (90.)
         The window in which the bf is activated (degrees)
@@ -1314,26 +1314,26 @@ class CableWrap_unwrap_basis_function(Base_basis_function):
     def __init__(
         self,
         nside=None,
-        minAz=-270.0,
-        maxAz=270.0,
-        minAlt=20.0,
-        maxAlt=82.0,
+        min_az=-270.0,
+        max_az=270.0,
+        min_alt=20.0,
+        max_alt=82.0,
         activate_tol=20.0,
         delta_unwrap=1.2,
         unwrap_until=70.0,
         max_duration=30.0,
     ):
-        super(CableWrap_unwrap_basis_function, self).__init__(nside=nside)
+        super(CablewrapUnwrapBasisFunction, self).__init__(nside=nside)
 
-        self.minAz = np.radians(minAz)
-        self.maxAz = np.radians(maxAz)
+        self.min_az = np.radians(min_az)
+        self.max_az = np.radians(max_az)
 
         self.activate_tol = np.radians(activate_tol)
         self.delta_unwrap = np.radians(delta_unwrap)
         self.unwrap_until = np.radians(unwrap_until)
 
-        self.minAlt = np.radians(minAlt)
-        self.maxAlt = np.radians(maxAlt)
+        self.min_alt = np.radians(min_alt)
+        self.max_alt = np.radians(max_alt)
         # Convert to half-width for convienence
         self.nside = nside
         self.active = False
@@ -1348,20 +1348,20 @@ class CableWrap_unwrap_basis_function(Base_basis_function):
 
         current_abs_rad = np.radians(conditions.az)
         unseen = np.where(
-            np.bitwise_or(conditions.alt < self.minAlt, conditions.alt > self.maxAlt)
+            np.bitwise_or(conditions.alt < self.min_alt, conditions.alt > self.max_alt)
         )
         result[unseen] = np.nan
 
         if (
-            self.minAz + self.activate_tol
+            self.min_az + self.activate_tol
             < current_abs_rad
-            < self.maxAz - self.activate_tol
+            < self.max_az - self.activate_tol
         ) and not self.active:
             return result
         elif (
             self.active
             and self.unwrap_direction == 1
-            and current_abs_rad > self.minAz + self.unwrap_until
+            and current_abs_rad > self.min_az + self.unwrap_until
         ):
             self.active = False
             self.unwrap_direction = 0.0
@@ -1370,7 +1370,7 @@ class CableWrap_unwrap_basis_function(Base_basis_function):
         elif (
             self.active
             and self.unwrap_direction == -1
-            and current_abs_rad < self.maxAz - self.unwrap_until
+            and current_abs_rad < self.max_az - self.unwrap_until
         ):
             self.active = False
             self.unwrap_direction = 0.0
@@ -1394,8 +1394,8 @@ class CableWrap_unwrap_basis_function(Base_basis_function):
 
         self.active = True
 
-        max_abs_rad = self.maxAz
-        min_abs_rad = self.minAz
+        max_abs_rad = self.max_az
+        min_abs_rad = self.min_az
 
         TWOPI = 2.0 * np.pi
 
@@ -1436,7 +1436,7 @@ class CableWrap_unwrap_basis_function(Base_basis_function):
         return result
 
 
-class Cadence_enhance_basis_function(Base_basis_function):
+class CadenceEnhanceBasisFunction(BaseBasisFunction):
     """Drive a certain cadence
 
     Parameters
@@ -1459,7 +1459,7 @@ class Cadence_enhance_basis_function(Base_basis_function):
         enhance_val=1.0,
         apply_area=None,
     ):
-        super(Cadence_enhance_basis_function, self).__init__(
+        super(CadenceEnhanceBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
 
@@ -1494,13 +1494,13 @@ class Cadence_enhance_basis_function(Base_basis_function):
                 conditions.mjd - self.survey_features["last_observed"].feature[ind]
             )
             to_supress = np.where(
-                (int_rounded(mjd_diff) > int_rounded(self.supress_window[0]))
-                & (int_rounded(mjd_diff) < int_rounded(self.supress_window[1]))
+                (IntRounded(mjd_diff) > IntRounded(self.supress_window[0]))
+                & (IntRounded(mjd_diff) < IntRounded(self.supress_window[1]))
             )
             result[ind[to_supress]] = self.supress_val
             to_enhance = np.where(
-                (int_rounded(mjd_diff) > int_rounded(self.enhance_window[0]))
-                & (int_rounded(mjd_diff) < int_rounded(self.enhance_window[1]))
+                (IntRounded(mjd_diff) > IntRounded(self.enhance_window[0]))
+                & (IntRounded(mjd_diff) < IntRounded(self.enhance_window[1]))
             )
             result[ind[to_enhance]] = self.enhance_val
         return result
@@ -1530,8 +1530,8 @@ def trapezoid(x, amplitude, x_0, width, slope):
     return result
 
 
-class Cadence_enhance_trapezoid_basis_function(Base_basis_function):
-    """Drive a certain cadence, like Cadence_enhance_basis_function but with smooth transitions
+class CadenceEnhanceTrapezoidBasisFunction(BaseBasisFunction):
+    """Drive a certain cadence, like CadenceEnhanceBasisFunction but with smooth transitions
 
     Parameters
     ----------
@@ -1556,7 +1556,7 @@ class Cadence_enhance_trapezoid_basis_function(Base_basis_function):
         apply_area=None,
         season_limit=None,
     ):
-        super(Cadence_enhance_trapezoid_basis_function, self).__init__(
+        super(CadenceEnhanceTrapezoidBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
 
@@ -1601,7 +1601,7 @@ class Cadence_enhance_trapezoid_basis_function(Base_basis_function):
     def season_calc(self, conditions):
         ra_mid_season = (conditions.sunRA + np.pi) % (2.0 * np.pi)
         angle_to_mid_season = np.abs(conditions.ra - ra_mid_season)
-        over = np.where(int_rounded(angle_to_mid_season) > int_rounded(np.pi))
+        over = np.where(IntRounded(angle_to_mid_season) > IntRounded(np.pi))
         angle_to_mid_season[over] = 2.0 * np.pi - angle_to_mid_season[over]
 
         return angle_to_mid_season
@@ -1629,14 +1629,14 @@ class Cadence_enhance_trapezoid_basis_function(Base_basis_function):
         return result
 
 
-class Azimuth_basis_function(Base_basis_function):
+class AzimuthBasisFunction(BaseBasisFunction):
     """Reward staying in the same azimuth range.
     Possibly better than using slewtime, especially when selecting a large area of sky.
 
     """
 
     def __init__(self, nside=None):
-        super(Azimuth_basis_function, self).__init__(nside=nside)
+        super(AzimuthBasisFunction, self).__init__(nside=nside)
 
     def _calc_value(self, conditions, indx=None):
         az_dist = conditions.az - conditions.telAz
@@ -1648,7 +1648,7 @@ class Azimuth_basis_function(Base_basis_function):
         return result
 
 
-class Az_modulo_basis_function(Base_basis_function):
+class AzModuloBasisFunction(BaseBasisFunction):
     """Try to replicate the Rothchild et al cadence forcing by only observing on limited az ranges per night.
 
     Parameters
@@ -1658,7 +1658,7 @@ class Az_modulo_basis_function(Base_basis_function):
     """
 
     def __init__(self, nside=None, az_limits=None, out_of_bounds_val=-1.0):
-        super(Az_modulo_basis_function, self).__init__(nside=nside)
+        super(AzModuloBasisFunction, self).__init__(nside=nside)
         self.result = np.ones(hp.nside2npix(self.nside))
         if az_limits is None:
             spread = 100.0 / 2.0
@@ -1680,19 +1680,19 @@ class Az_modulo_basis_function(Base_basis_function):
 
         if az_lim[0] < az_lim[1]:
             out_pix = np.where(
-                (int_rounded(conditions.az) < int_rounded(az_lim[0]))
-                | (int_rounded(conditions.az) > int_rounded(az_lim[1]))
+                (IntRounded(conditions.az) < IntRounded(az_lim[0]))
+                | (IntRounded(conditions.az) > IntRounded(az_lim[1]))
             )
         else:
             out_pix = np.where(
-                (int_rounded(conditions.az) < int_rounded(az_lim[0]))
-                | (int_rounded(conditions.az) > int_rounded(az_lim[1]))
+                (IntRounded(conditions.az) < IntRounded(az_lim[0]))
+                | (IntRounded(conditions.az) > IntRounded(az_lim[1]))
             )[0]
         result[out_pix] = self.out_of_bounds_val
         return result
 
 
-class Dec_modulo_basis_function(Base_basis_function):
+class DecModuloBasisFunction(BaseBasisFunction):
     """Emphasize dec bands on a nightly varying basis
 
     Parameters
@@ -1702,7 +1702,7 @@ class Dec_modulo_basis_function(Base_basis_function):
     """
 
     def __init__(self, nside=None, dec_limits=None, out_of_bounds_val=-1.0):
-        super(Dec_modulo_basis_function, self).__init__(nside=nside)
+        super(DecModuloBasisFunction, self).__init__(nside=nside)
 
         npix = hp.nside2npix(nside)
         hpids = np.arange(npix)
@@ -1732,7 +1732,7 @@ class Dec_modulo_basis_function(Base_basis_function):
         return result
 
 
-class Map_modulo_basis_function(Base_basis_function):
+class MapModuloBasisFunction(BaseBasisFunction):
     """Similar to Dec_modulo, but now use input masks
 
     Parameters
@@ -1742,7 +1742,7 @@ class Map_modulo_basis_function(Base_basis_function):
 
     def __init__(self, inmaps):
         nside = hp.npix2nside(np.size(inmaps[0]))
-        super(Map_modulo_basis_function, self).__init__(nside=nside)
+        super(MapModuloBasisFunction, self).__init__(nside=nside)
         self.maps = inmaps
         self.mod_val = len(inmaps)
 
@@ -1752,7 +1752,7 @@ class Map_modulo_basis_function(Base_basis_function):
         return result
 
 
-class Good_seeing_basis_function(Base_basis_function):
+class GoodSeeingBasisFunction(BaseBasisFunction):
     """Drive observations in good seeing conditions"""
 
     def __init__(
@@ -1760,13 +1760,13 @@ class Good_seeing_basis_function(Base_basis_function):
         nside=None,
         filtername="r",
         footprint=None,
-        FWHMeff_limit=0.8,
+        fwh_meff_limit=0.8,
         mag_diff=0.75,
     ):
-        super(Good_seeing_basis_function, self).__init__(nside=nside)
+        super(GoodSeeingBasisFunction, self).__init__(nside=nside)
 
         self.filtername = filtername
-        self.FWHMeff_limit = int_rounded(FWHMeff_limit)
+        self.fwh_meff_limit = IntRounded(fwh_meff_limit)
         if footprint is None:
             fp = utils.standard_goals(nside=nside)[filtername]
         else:
@@ -1774,18 +1774,18 @@ class Good_seeing_basis_function(Base_basis_function):
         self.out_of_bounds = np.where(fp == 0)[0]
         self.result = fp * 0
 
-        self.mag_diff = int_rounded(mag_diff)
+        self.mag_diff = IntRounded(mag_diff)
         self.survey_features = {}
         self.survey_features["coadd_depth_all"] = features.Coadded_depth(
             filtername=filtername, nside=nside
         )
         self.survey_features["coadd_depth_good"] = features.Coadded_depth(
-            filtername=filtername, nside=nside, FWHMeff_limit=FWHMeff_limit
+            filtername=filtername, nside=nside, fwh_meff_limit=fwh_meff_limit
         )
 
     def _calc_value(self, conditions, **kwargs):
         # Seeing is "bad"
-        if int_rounded(conditions.FWHMeff[self.filtername].min()) > self.FWHMeff_limit:
+        if IntRounded(conditions.FWHMeff[self.filtername].min()) > self.fwh_meff_limit:
             return 0
         result = self.result.copy()
 
@@ -1795,8 +1795,8 @@ class Good_seeing_basis_function(Base_basis_function):
         )
         # Where are there things we want to observe?
         good_pix = np.where(
-            (int_rounded(diff) > self.mag_diff)
-            & (int_rounded(conditions.FWHMeff[self.filtername]) <= self.FWHMeff_limit)
+            (IntRounded(diff) > self.mag_diff)
+            & (IntRounded(conditions.FWHMeff[self.filtername]) <= self.fwh_meff_limit)
         )
         # Hm, should this scale by the mag differences? Probably.
         result[good_pix] = diff[good_pix]
@@ -1805,7 +1805,7 @@ class Good_seeing_basis_function(Base_basis_function):
         return result
 
 
-class Template_generate_basis_function(Base_basis_function):
+class TemplateGenerateBasisFunction(BaseBasisFunction):
     """Emphasize areas that have not been observed in a long time
 
     Parameters
@@ -1817,7 +1817,7 @@ class Template_generate_basis_function(Base_basis_function):
     """
 
     def __init__(self, nside=None, day_gap=250.0, filtername="r", footprint=None):
-        super(Template_generate_basis_function, self).__init__(nside=nside)
+        super(TemplateGenerateBasisFunction, self).__init__(nside=nside)
         self.day_gap = day_gap
         self.filtername = filtername
         self.survey_features = {}
@@ -1835,11 +1835,11 @@ class Template_generate_basis_function(Base_basis_function):
         result = self.result.copy()
         overdue = np.where(
             (
-                int_rounded(
+                IntRounded(
                     conditions.mjd - self.survey_features["Last_observed"].feature
                 )
             )
-            > int_rounded(self.day_gap)
+            > IntRounded(self.day_gap)
         )
         result[overdue] = 1
         result[self.out_of_bounds] = 0
@@ -1847,11 +1847,11 @@ class Template_generate_basis_function(Base_basis_function):
         return result
 
 
-class Limit_repeat_basis_function(Base_basis_function):
+class LimitRepeatBasisFunction(BaseBasisFunction):
     """Mask out pixels that haven't been observed in the night"""
 
     def __init__(self, nside=None, filtername="r", n_limit=2):
-        super(Limit_repeat_basis_function, self).__init__(nside=nside)
+        super(LimitRepeatBasisFunction, self).__init__(nside=nside)
         self.filtername = filtername
         self.n_limit = n_limit
         self.survey_features = {}
@@ -1869,13 +1869,13 @@ class Limit_repeat_basis_function(Base_basis_function):
         return result
 
 
-class Observed_twice_basis_function(Base_basis_function):
+class ObservedTwiceBasisFunction(BaseBasisFunction):
     """Mask out pixels that haven't been observed in the night"""
 
     def __init__(
         self, nside=None, filtername="r", n_obs_needed=2, n_obs_in_filt_needed=1
     ):
-        super(Observed_twice_basis_function, self).__init__(nside=nside)
+        super(ObservedTwiceBasisFunction, self).__init__(nside=nside)
         self.n_obs_needed = n_obs_needed
         self.n_obs_in_filt_needed = n_obs_in_filt_needed
         self.filtername = filtername
@@ -1900,9 +1900,8 @@ class Observed_twice_basis_function(Base_basis_function):
         return result
 
 
-class VisitGap(Base_basis_function):
-    """Basis function to create a visit gap based on the survey note field and,
-    optionaly, a list of filters.
+class VisitGap(BaseBasisFunction):
+    """Basis function to create a visit gap based on the survey note field.
 
     Parameters
     ----------
@@ -1961,7 +1960,7 @@ class VisitGap(Base_basis_function):
         return 1.0 if self.check_feasibility(conditions) else self.penalty_val
 
 
-class AvoidDirectWind(Base_basis_function):
+class AvoidDirectWind(BaseBasisFunction):
     """Basis function to avoid direct wind.
 
     Parameters
@@ -1995,7 +1994,7 @@ class AvoidDirectWind(Base_basis_function):
         return reward_map
 
 
-class BalanceVisits(Base_basis_function):
+class BalanceVisits(BaseBasisFunction):
     """Balance visits across multiple surveys.
 
     Parameters
@@ -2049,7 +2048,7 @@ class BalanceVisits(Base_basis_function):
         )
 
 
-class RewardNObsSequence(Base_basis_function):
+class RewardNObsSequence(BaseBasisFunction):
     """Reward taking a sequence of observations.
 
     Parameters

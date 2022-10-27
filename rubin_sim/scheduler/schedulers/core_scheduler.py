@@ -9,19 +9,19 @@ import healpy as hp
 import pandas as pd
 from rubin_sim.utils import _hpid2_ra_dec
 from rubin_sim.scheduler.utils import (
-    hp_in_lsst_fov,
+    HpInLsstFov,
     set_default_nside,
-    hp_in_comcam_fov,
-    int_rounded,
+    HpInComcamFov,
+    IntRounded,
 )
 from rubin_sim.utils import _approx_ra_dec2_alt_az, _approx_altaz2pa
 import logging
 
 
-__all__ = ["Core_scheduler"]
+__all__ = ["CoreScheduler"]
 
 
-class Core_scheduler(object):
+class CoreScheduler(object):
     """Core scheduler that takes completed observations and observatory status and requests observations
 
     Parameters
@@ -80,9 +80,9 @@ class Core_scheduler(object):
         self.ra_grid_rad, self.dec_grid_rad = _hpid2_ra_dec(nside, hpid)
         # Should just make camera a class that takes a pointing and returns healpix indices
         if camera == "LSST":
-            self.pointing2hpindx = hp_in_lsst_fov(nside=nside)
+            self.pointing2hpindx = HpInLsstFov(nside=nside)
         elif camera == "comcam":
-            self.pointing2hpindx = hp_in_comcam_fov(nside=nside)
+            self.pointing2hpindx = HpInComcamFov(nside=nside)
         else:
             raise ValueError("camera %s not implamented" % camera)
 
@@ -157,7 +157,7 @@ class Core_scheduler(object):
         """
         result = False
         if len(self.queue) > 0:
-            if (int_rounded(mjd) < int_rounded(self.queue[0]["flush_by_mjd"])) | (
+            if (IntRounded(mjd) < IntRounded(self.queue[0]["flush_by_mjd"])) | (
                 self.queue[0]["flush_by_mjd"] == 0
             ):
                 result = True
@@ -187,7 +187,7 @@ class Core_scheduler(object):
             return None
         else:
             # If the queue has gone stale, flush and refill. Zero means no flush_by was set.
-            if (int_rounded(mjd) > int_rounded(self.queue[0]["flush_by_mjd"])) & (
+            if (IntRounded(mjd) > IntRounded(self.queue[0]["flush_by_mjd"])) & (
                 self.queue[0]["flush_by_mjd"] != 0
             ):
                 self.flushed += len(self.queue)
@@ -206,15 +206,15 @@ class Core_scheduler(object):
                     mjd,
                 )
                 obs_pa = _approx_altaz2pa(alt, az, self.conditions.site.latitude_rad)
-                rotTelPos_expected = (obs_pa - observation["rotSkyPos"]) % (2.0 * np.pi)
+                rot_tel_pos_expected = (obs_pa - observation["rotSkyPos"]) % (2.0 * np.pi)
                 if (
-                    int_rounded(rotTelPos_expected)
-                    > int_rounded(self.rotator_limits[0])
+                    IntRounded(rot_tel_pos_expected)
+                    > IntRounded(self.rotator_limits[0])
                 ) & (
-                    int_rounded(rotTelPos_expected)
-                    < int_rounded(self.rotator_limits[1])
+                    IntRounded(rot_tel_pos_expected)
+                    < IntRounded(self.rotator_limits[1])
                 ):
-                    diff = np.abs(self.rotator_limits - rotTelPos_expected)
+                    diff = np.abs(self.rotator_limits - rot_tel_pos_expected)
                     limit_indx = np.min(np.where(diff == np.min(diff))[0])
                     observation["rotSkyPos"] = (
                         obs_pa - self.rotator_limits[limit_indx]
@@ -331,9 +331,9 @@ class Core_scheduler(object):
         return maps
 
     def __repr__(self):
-        if isinstance(self.pointing2hpindx, hp_in_lsst_fov):
+        if isinstance(self.pointing2hpindx, HpInLsstFov):
             camera = "LSST"
-        elif isinstance(self.pointing2hpindx, hp_in_comcam_fov):
+        elif isinstance(self.pointing2hpindx, HpInComcamFov):
             camera = "comcam"
         else:
             camera = None
@@ -355,9 +355,9 @@ class Core_scheduler(object):
         except ImportError:
             return repr(self)
 
-        if isinstance(self.pointing2hpindx, hp_in_lsst_fov):
+        if isinstance(self.pointing2hpindx, HpInLsstFov):
             camera = "LSST"
-        elif isinstance(self.pointing2hpindx, hp_in_comcam_fov):
+        elif isinstance(self.pointing2hpindx, HpInComcamFov):
             camera = "comcam"
         else:
             camera = None

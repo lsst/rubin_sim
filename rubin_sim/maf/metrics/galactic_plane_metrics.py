@@ -100,9 +100,9 @@ class GalPlaneFootprintMetric(BaseMetric):
     mag_cuts : `dict` of `float`, opt
         Magnitudes to use as cutoffs for individual image depths.
         Default None uses a default set of values which correspond roughly to the 50th percentile.
-    filterCol : `str`, opt
+    filter_col : `str`, opt
         Name of the filter column. Default 'filter'.
-    m5Col : `str`, opt
+    m5_col : `str`, opt
         Name of the five-sigma depth column. Default 'fiveSigmaDepth'.
     filterlist : `list` of `str`, opt
         The filters to consider from the priority map and observations.
@@ -116,8 +116,8 @@ class GalPlaneFootprintMetric(BaseMetric):
         science_map,
         tau_obs=None,
         mag_cuts=None,
-        filterCol="filter",
-        m5Col="fiveSigmaDepth",
+        filter_col="filter",
+        m5_col="fiveSigmaDepth",
         filterlist=None,
         **kwargs,
     ):
@@ -130,8 +130,8 @@ class GalPlaneFootprintMetric(BaseMetric):
         else:
             self.tau_obs = TAU_OBS
         self.nvisits_threshold = galplane_nvisits_thresholds(self.tau_obs)
-        self.filterCol = filterCol
-        self.m5Col = m5Col
+        self.filter_col = filter_col
+        self.m5_col = m5_col
         if filterlist is not None:
             self.filterlist = filterlist
         else:
@@ -148,61 +148,61 @@ class GalPlaneFootprintMetric(BaseMetric):
                 "y": 21.4,
             }
         maps = ["GalacticPlanePriorityMap"]
-        if "metricName" not in kwargs:
-            metricName = f"GalplaneFootprintMetric_{self.science_map}"
+        if "metric_name" not in kwargs:
+            metric_name = f"GalplaneFootprintMetric_{self.science_map}"
         else:
-            metricName = kwargs["metricName"]
-            del kwargs["metricName"]
+            metric_name = kwargs["metric_name"]
+            del kwargs["metric_name"]
         for tau, nvisits in zip(self.tau_obs, self.nvisits_threshold):
-            tauReduceName = f"reduceTau_{tau:.1f}".replace(".", "_")
+            tau_reduce_name = f"reduceTau_{tau:.1f}".replace(".", "_")
             rfunc = help_set_reduce_func(self, None, nvisits)
             # MethodType(newmethod, self) is how this next line SHOULD go
             # but that doesn't work .. the scope isn't correct somehow.
-            # Using this alternate string of tauReduceName *does* work.
-            setattr(self, tauReduceName, MethodType(rfunc, tauReduceName))
+            # Using this alternate string of tau_reduce_name *does* work.
+            setattr(self, tau_reduce_name, MethodType(rfunc, tau_reduce_name))
         super().__init__(
-            col=[self.filterCol, self.m5Col],
-            metricName=metricName,
+            col=[self.filter_col, self.m5_col],
+            metric_name=metric_name,
             maps=maps,
             **kwargs,
         )
-        self.reduceOrder = {"NObs": 0, "NObsPriority": 1}
+        self.reduce_order = {"NObs": 0, "NObsPriority": 1}
         for i, tau in enumerate(self.tau_obs):
-            rName = f"Tau_{tau:.1f}".replace(".", "_")
-            self.reduceOrder[rName] = i + 2
+            r_name = f"Tau_{tau:.1f}".replace(".", "_")
+            self.reduce_order[r_name] = i + 2
 
-    def run(self, dataSlice, slicePoint):
-        """Calculate the number of observations that meet the mag_cut values at each slicePoint.
+    def run(self, data_slice, slice_point):
+        """Calculate the number of observations that meet the mag_cut values at each slice_point.
         Also calculate the number of observations * the priority map summed over all filter.
         Return both of these values as a dictionary.
         """
         # Check if we want to evaluate this part of the sky, or if the weight is below threshold.
         mapkey = gp_priority_map_components_to_keys("sum", self.science_map)
-        priority = slicePoint[mapkey]
+        priority = slice_point[mapkey]
         if priority <= self.priority_map_threshold:
             return self.badval
         # Count the number of observations per filter, above the mag cuts
-        nObs = 0
-        nObsPriority = 0
+        n_obs = 0
+        n_obs_priority = 0
         for f in self.filterlist:
-            obs_in_filter = np.where(dataSlice[self.filterCol] == f)
+            obs_in_filter = np.where(data_slice[self.filter_col] == f)
             above_cut = np.where(
-                dataSlice[obs_in_filter][self.m5Col] >= self.mag_cuts[f]
+                data_slice[obs_in_filter][self.m5_col] >= self.mag_cuts[f]
             )
-            nObs += len(above_cut[0])
+            n_obs += len(above_cut[0])
             mapkey = gp_priority_map_components_to_keys(f, self.science_map)
-            nObsPriority += len(above_cut[0]) * slicePoint[mapkey]
+            n_obs_priority += len(above_cut[0]) * slice_point[mapkey]
 
         return {
-            "nObservations": nObs,
-            "nObsPriority": nObsPriority,
+            "nObservations": n_obs,
+            "n_obs_priority": n_obs_priority,
             "map_priority": priority,
         }
 
-    def reduceNObs(self, metricval):
+    def reduce_n_obs(self, metricval):
         return metricval["nObservations"]
 
-    def reduceNObsPriority(self, metricval):
+    def reduce_n_obs_priority(self, metricval):
         return metricval["nObsPriority"]
 
 
@@ -218,13 +218,13 @@ class GalPlaneTimePerFilterMetric(BaseMetric):
     magCuts : `dict` of `float`, opt
         Magnitudes to use as cutoffs for individual image depths.
         Default None uses a default set of values which correspond roughly to the 50th percentile.
-    mjdCol : `str`, opt
+    mjd_col : `str`, opt
         Name of the observation start MJD column. Default 'observationStartMJD'.
-    expTimeCol : `str`, opt
+    exp_time_col : `str`, opt
         Name of the exposure time column. Default 'visitExposureTime'.
-    filterCol : `str`, opt
+    filter_col : `str`, opt
         Name of the filter column. Default 'filter'.
-    m5Col : `str`, opt
+    m5_col : `str`, opt
         Name of the five-sigma depth column. Default 'fiveSigmaDepth'.
     filterlist : `list` of `str`, opt
         The filters to consider from the priority map and observations.
@@ -237,19 +237,19 @@ class GalPlaneTimePerFilterMetric(BaseMetric):
         self,
         science_map,
         mag_cuts=None,
-        mjdCol="observationStartMJD",
-        expTimeCol="visitExposureTime",
-        filterCol="filter",
-        m5Col="fiveSigmaDepth",
+        mjd_col="observationStartMJD",
+        exp_time_col="visitExposureTime",
+        filter_col="filter",
+        m5_col="fiveSigmaDepth",
         filterlist=None,
         **kwargs,
     ):
         self.science_map = science_map
         self.priority_map_threshold = galplane_priority_map_thresholds(self.science_map)
-        self.filterCol = filterCol
-        self.m5Col = m5Col
-        self.mjdCol = mjdCol
-        self.expTimeCol = expTimeCol
+        self.filter_col = filter_col
+        self.m5_col = m5_col
+        self.mjd_col = mjd_col
+        self.exp_time_col = exp_time_col
         if filterlist is not None:
             self.filterlist = filterlist
         else:
@@ -266,27 +266,27 @@ class GalPlaneTimePerFilterMetric(BaseMetric):
                 "y": 21.4,
             }
         maps = ["GalacticPlanePriorityMap"]
-        if "metricName" not in kwargs:
-            metricName = f"GalplaneTimePerFilter_{self.science_map}"
+        if "metric_name" not in kwargs:
+            metric_name = f"GalplaneTimePerFilter_{self.science_map}"
         else:
-            metricName = kwargs["metricName"]
-            del kwargs["metricName"]
+            metric_name = kwargs["metric_name"]
+            del kwargs["metric_name"]
         super().__init__(
-            col=[self.filterCol, self.m5Col, self.mjdCol, self.expTimeCol],
+            col=[self.filter_col, self.m5_col, self.mjd_col, self.exp_time_col],
             maps=maps,
-            metricName=metricName,
+            metric_name=metric_name,
             **kwargs,
         )
         # Put the reduce functions into filter order
         for i, f in enumerate(self.filterlist):
-            self.reduceOrder[f"{f}"] = i
+            self.reduce_order[f"{f}"] = i
 
-    def run(self, dataSlice, slicePoint):
+    def run(self, data_slice, slice_point):
         """Calculate the ratio of the actual on-sky exposure time per filter
         compared to the ideal on-sky exposure time per filter at this point on the sky across all filters.
         """
         # Check if we want to evaluate this part of the sky, or if the weight is below threshold.
-        weight_all_filters = slicePoint[
+        weight_all_filters = slice_point[
             gp_priority_map_components_to_keys("sum", self.science_map)
         ]
         if weight_all_filters <= self.priority_map_threshold:
@@ -296,25 +296,25 @@ class GalPlaneTimePerFilterMetric(BaseMetric):
         relative_filter_weight = {}
         for f in self.filterlist:
             mapkey = gp_priority_map_components_to_keys(f, self.science_map)
-            relative_filter_weight[f] = slicePoint[mapkey] / weight_all_filters
+            relative_filter_weight[f] = slice_point[mapkey] / weight_all_filters
 
         exp_time_per_filter = {}
         for f in self.filterlist:
             # Select observations within the OpSim for the current filter
             # which match the S/N requirement, and extract the exposure times
             # for those observations
-            idx1 = np.where(dataSlice[self.filterCol] == f)[0]
-            idx2 = np.where(dataSlice[self.m5Col] >= self.mag_cuts[f])[0]
+            idx1 = np.where(data_slice[self.filter_col] == f)[0]
+            idx2 = np.where(data_slice[self.m5_col] >= self.mag_cuts[f])[0]
             match = list(set(idx1).intersection(set(idx2)))
 
             # Now calculate the actual fraction of exposure time spent
-            # in this filter for the current slicePoint, relative to the total
-            # exposure time spent on this slicePoint.
+            # in this filter for the current slice_point, relative to the total
+            # exposure time spent on this slice_point.
             # Note that this includes dithered observations.
             # If no exposures are expected in this filter, this returns 1
             # on the principle that 100% of the expected observations are
             # provided, and additional data in other filters is usually welcome
-            exp_time_per_filter[f] = dataSlice[self.expTimeCol][match].sum()
+            exp_time_per_filter[f] = data_slice[self.exp_time_col][match].sum()
 
         # Calculate the time on-sky in each filter that overlaps this point, and meets mag_cuts
         total_expt_mag_cut = 0

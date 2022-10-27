@@ -19,9 +19,9 @@ class SFUncertMetric(BaseMetric):
     ----------
     mag: `float` (22)
         The magnitude of the fiducial object. Default 22.
-    timesCol: `str`  ('observationStartMJD')
+    times_col: `str`  ('observationStartMJD')
         Time column name. Defaults to "observationStartMJD".
-    allGaps: `bool` (True)
+    all_gaps: `bool` (True)
          Whether to use all gaps (between any two pairs of observations).
          If False, only use consecutive paris. Defaults to True.
     units: `str` ('mag')
@@ -41,72 +41,72 @@ class SFUncertMetric(BaseMetric):
     def __init__(
         self,
         mag=22,
-        timesCol="observationStartMJD",
-        m5Col="fiveSigmaDepth",
-        allGaps=True,
+        times_col="observationStartMJD",
+        m5_col="fiveSigmaDepth",
+        all_gaps=True,
         units="mag",
         bins=np.logspace(0, np.log10(3650), 16),
         weight=None,
-        metricName="Structure Function Uncert",
+        metric_name="Structure Function Uncert",
         snr_cut=5,
-        filterCol="filter",
+        filter_col="filter",
         dust=True,
         **kwargs
     ):
         # Assign metric parameters to instance object
-        self.timesCol = timesCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
-        self.allGaps = allGaps
+        self.times_col = times_col
+        self.m5_col = m5_col
+        self.filter_col = filter_col
+        self.all_gaps = all_gaps
         self.bins = bins
         if weight is None:
             # If weight is none, set weight so that sum over bins = 1
             self.weight = np.ones(len(self.bins) - 1)
             self.weight /= self.weight.sum()
-        self.metricName = metricName
+        self.metric_name = metric_name
         self.mag = mag
         self.snr_cut = snr_cut
         self.dust = dust
 
         maps = ["DustMap"]
         super(SFUncertMetric, self).__init__(
-            col=[self.timesCol, m5Col, filterCol],
-            metricName=self.metricName,
+            col=[self.times_col, m5_col, filter_col],
+            metric_name=self.metric_name,
             units=units,
             maps=maps,
             **kwargs
         )
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.ax1
+        self.ax1 = dust_properties.ax1
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         """Code executed at each healpix pixel to compute the metric"""
 
-        df = np.unique(dataSlice[self.filterCol])
+        df = np.unique(data_slice[self.filter_col])
         if np.size(df) > 1:
             msg = """Running structure function on multiple filters simultaneously. 
                      Should probably change your SQL query to limit to a single filter."""
             warnings.warn(msg)
         if self.dust:
-            A_x = self.Ax1[dataSlice[self.filterCol][0]] * slicePoint["ebv"]
-            extincted_mag = self.mag + A_x
+            a_x = self.ax1[data_slice[self.filter_col][0]] * slice_point["ebv"]
+            extincted_mag = self.mag + a_x
         else:
             extincted_mag = self.mag
-        snr = m52snr(extincted_mag, dataSlice[self.m5Col])
+        snr = m52snr(extincted_mag, data_slice[self.m5_col])
         bright_enough = np.where(snr > self.snr_cut)[0]
 
         # If the total number of visits < 2, mask as bad pixel
-        if dataSlice[bright_enough].size < 2:
+        if data_slice[bright_enough].size < 2:
             return self.badval
 
         # sort data by time column
-        order = np.argsort(dataSlice[self.timesCol][bright_enough])
-        times = dataSlice[self.timesCol][bright_enough][order]
+        order = np.argsort(data_slice[self.times_col][bright_enough])
+        times = data_slice[self.times_col][bright_enough][order]
         # Using the simple Gaussian approximation for magnitude uncertainty.
         mag_err = 2.5 * np.log10(1.0 + 1.0 / snr[bright_enough][order])
 
         # check if use all gaps (between any pairs of observations)
-        if self.allGaps:
+        if self.all_gaps:
             # use the vectorized method
             dt_matrix = times.reshape((1, times.size)) - times.reshape((times.size, 1))
             dts = dt_matrix[dt_matrix > 0].flatten().astype(np.float16)

@@ -13,7 +13,7 @@ class ExgalM5(BaseMetric):
 
     Parameters
     ----------
-    m5Col : `str`, optional
+    m5_col : `str`, optional
         Column name for five sigma depth. Default 'fiveSigmaDepth'.
     unit : `str`, optional
         Label for units. Default 'mag'.
@@ -21,36 +21,36 @@ class ExgalM5(BaseMetric):
 
     def __init__(
         self,
-        m5Col="fiveSigmaDepth",
-        metricName="ExgalM5",
+        m5_col="fiveSigmaDepth",
+        metric_name="ExgalM5",
         units="mag",
-        filterCol="filter",
+        filter_col="filter",
         **kwargs
     ):
         # Set the name for the dust map to use. This is gathered into the MetricBundle.
         maps = ["DustMap"]
-        self.m5Col = m5Col
-        self.filterCol = filterCol
+        self.m5_col = m5_col
+        self.filter_col = filter_col
         super().__init__(
-            col=[self.m5Col, self.filterCol],
+            col=[self.m5_col, self.filter_col],
             maps=maps,
-            metricName=metricName,
+            metric_name=metric_name,
             units=units,
             **kwargs
         )
         # Set the default wavelength limits for the lsst filters. These are approximately correct.
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.ax1
+        self.ax1 = dust_properties.ax1
         # We will call Coaddm5Metric to calculate the coadded depth. Set it up here.
-        self.Coaddm5Metric = Coaddm5Metric(m5Col=m5Col)
+        self.coaddm5_metric = Coaddm5Metric(m5_col=m5_col)
 
-    def run(self, dataSlice, slicePoint):
+    def run(self, data_slice, slice_point):
         """
         Compute the co-added m5 depth and then apply dust extinction to that magnitude.
         """
-        m5 = self.Coaddm5Metric.run(dataSlice)
-        if m5 == self.Coaddm5Metric.badval:
+        m5 = self.coaddm5_metric.run(data_slice)
+        if m5 == self.coaddm5_metric.badval:
             return self.badval
         # Total dust extinction along this line of sight. Correct default A to this EBV value.
-        A_x = self.Ax1[dataSlice[self.filterCol][0]] * slicePoint["ebv"]
-        return m5 - A_x
+        a_x = self.ax1[data_slice[self.filter_col][0]] * slice_point["ebv"]
+        return m5 - a_x

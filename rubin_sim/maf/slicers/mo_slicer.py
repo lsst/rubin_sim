@@ -26,14 +26,14 @@ class MoObjSlicer(BaseSlicer):
         super(MoObjSlicer, self).__init__(verbose=verbose, badval=badval)
         self.Hrange = Hrange
         self.slicer_init = {"Hrange": Hrange, "badval": badval}
-        # Set default plotFuncs.
-        self.plotFuncs = [
+        # Set default plot_funcs.
+        self.plot_funcs = [
             MetricVsH(),
             MetricVsOrbit(xaxis="q", yaxis="e"),
             MetricVsOrbit(xaxis="q", yaxis="inc"),
         ]
 
-    def setupSlicer(self, orbitFile, delim=None, skiprows=None, obsFile=None):
+    def setup_slicer(self, orbitFile, delim=None, skiprows=None, obsFile=None):
         """Set up the slicer and read orbitFile and obsFile from disk.
 
         Sets self.orbits (with orbit parameters), self.allObs, and self.obs
@@ -65,7 +65,7 @@ class MoObjSlicer(BaseSlicer):
         orb.readOrbits(orbitFile, delim=delim, skiprows=skiprows)
         self.orbitFile = orbitFile
         self.orbits = orb.orbits
-        # Then go on as previously. Need to refactor this into 'setupSlicer' style.
+        # Then go on as previously. Need to refactor this into 'setup_slicer' style.
         self.nSso = len(self.orbits)
         self.slicePoints = {}
         self.slicePoints["orbits"] = self.orbits
@@ -166,16 +166,16 @@ class MoObjSlicer(BaseSlicer):
         # This may not be guaranteed to work if/when we implement chunking of the obsfile.
         return self._sliceObs(idx)
 
-    def __eq__(self, otherSlicer):
+    def __eq__(self, other_slicer):
         """
         Evaluate if two slicers are equal.
         """
         result = False
-        if isinstance(otherSlicer, MoObjSlicer):
-            if otherSlicer.orbitFile == self.orbitFile:
-                if otherSlicer.obsFile == self.obsFile:
+        if isinstance(other_slicer, MoObjSlicer):
+            if other_slicer.orbitFile == self.orbitFile:
+                if other_slicer.obsFile == self.obsFile:
                     if np.array_equal(
-                        otherSlicer.slicePoints["H"], self.slicePoints["H"]
+                        other_slicer.slicePoints["H"], self.slicePoints["H"]
                     ):
                         result = True
         return result

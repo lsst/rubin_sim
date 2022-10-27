@@ -62,18 +62,18 @@ class TimeIntervalSlicer(BaseSlicer):
         super().__init__(verbose=verbose, badval=badval)
         self.interval_seconds = interval_seconds
         self.mjd_column_name = mjd_column_name
-        self.columnsNeeded = [mjd_column_name]
-        self.simIdxs = defaultdict(list)  # pylint: disable=invalid-name
+        self.columns_needed = [mjd_column_name]
+        self.sim_idxs = defaultdict(list)  # pylint: disable=invalid-name
 
-    def setupSlicer(self, simData, maps=None):
-        visit_mjds = simData[self.mjd_column_name]
+    def setup_slicer(self, sim_data, maps=None):
+        visit_mjds = sim_data[self.mjd_column_name]
         start_mjd = np.floor(np.min(visit_mjds)).astype(int)
         end_mjd = np.ceil(np.max(visit_mjds)).astype(int)
         interval_days = self.interval_seconds / (24 * 60 * 60.0)
 
         mjd_bin_edges = np.arange(start_mjd, end_mjd + interval_days, interval_days)
 
-        self.simIdxs.update(
+        self.sim_idxs.update(
             pd.DataFrame(
                 {
                     "visit_idx": np.arange(len(visit_mjds)),
@@ -93,9 +93,9 @@ class TimeIntervalSlicer(BaseSlicer):
         self.shape = self.nslice
         self._runMaps(maps)
 
-        @wraps(self._sliceSimData)
-        def _sliceSimData(islice):  # pylint: disable=invalid-name
-            idxs = self.simIdxs[islice]
+        @wraps(self._slice_sim_data)
+        def _slice_sim_data(islice):  # pylint: disable=invalid-name
+            idxs = self.sim_idxs[islice]
 
             try:
                 _ = idxs[0]
@@ -110,20 +110,20 @@ class TimeIntervalSlicer(BaseSlicer):
 
             return {"idxs": idxs, "slicePoint": slice_points}
 
-        setattr(self, "_sliceSimData", _sliceSimData)
+        setattr(self, "_slice_sim_data", _slice_sim_data)
 
-    def __eq__(self, otherSlicer):
+    def __eq__(self, other_slicer):
         """Evaluate if slicers are equivalent."""
-        if not isinstance(otherSlicer, self.__class__):
+        if not isinstance(other_slicer, self.__class__):
             return False
 
         for key in ["sid", "mjd", "duration"]:
-            if not np.array_equal(otherSlicer.slicePoints[key], self.slicePoints[key]):
+            if not np.array_equal(other_slicer.slicePoints[key], self.slicePoints[key]):
                 return False
 
         return True
 
-    def _sliceSimData(self, *args, **kwargs):
+    def _slice_sim_data(self, *args, **kwargs):
         raise SlicerNotSetup()
 
 
@@ -159,18 +159,18 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
         self.mjd_column_name = mjd_column_name
         self.duration_column_name = duration_column_name
         self.note_column_name = note_column_name
-        self.columnsNeeded = [
+        self.columns_needed = [
             mjd_column_name,
             duration_column_name,
             note_column_name,
         ]
-        self.simIdxs = defaultdict(list)  # pylint: disable=invalid-name
+        self.sim_idxs = defaultdict(list)  # pylint: disable=invalid-name
 
-    def setupSlicer(self, simData, maps=None):
+    def setup_slicer(self, sim_data, maps=None):
         visits = pd.DataFrame(
-            simData,
+            sim_data,
             index=pd.Index(
-                np.arange(len(simData[self.mjd_column_name])), name="visit_idx"
+                np.arange(len(sim_data[self.mjd_column_name])), name="visit_idx"
             ),
         )
         visits.rename(
@@ -203,7 +203,7 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
 
         self.nslice = len(blocks)
         self.shape = self.nslice
-        self.simIdxs.update(
+        self.sim_idxs.update(
             visits.reset_index()[["sid", "visit_idx"]]
             .groupby("sid")
             .agg(list)
@@ -215,9 +215,9 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
         self.slicePoints["duration"] = blocks.duration.values
         self._runMaps(maps)
 
-        @wraps(self._sliceSimData)
-        def _sliceSimData(islice):  # pylint: disable=invalid-name
-            idxs = self.simIdxs[islice]
+        @wraps(self._slice_sim_data)
+        def _slice_sim_data(islice):  # pylint: disable=invalid-name
+            idxs = self.sim_idxs[islice]
 
             try:
                 _ = idxs[0]
@@ -231,7 +231,7 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
 
             return {"idxs": idxs, "slicePoint": slice_points}
 
-        setattr(self, "_sliceSimData", _sliceSimData)
+        setattr(self, "_slice_sim_data", _slice_sim_data)
 
 
 class VisitIntervalSlicer(TimeIntervalSlicer):
@@ -261,24 +261,24 @@ class VisitIntervalSlicer(TimeIntervalSlicer):
         self.mjd_column_name = mjd_column_name
         self.duration_column_name = duration_column_name
         self.extra_column_names = extra_column_names
-        self.columnsNeeded = [mjd_column_name, duration_column_name]
-        self.simIdxs = None  # pylint: disable=invalid-name
+        self.columns_needed = [mjd_column_name, duration_column_name]
+        self.sim_idxs = None  # pylint: disable=invalid-name
 
-    def setupSlicer(self, simData, maps=None):
-        self.nslice = len(simData[self.mjd_column_name])
+    def setup_slicer(self, sim_data, maps=None):
+        self.nslice = len(sim_data[self.mjd_column_name])
         self.shape = self.nslice
 
-        self.simIdxs = np.argsort(simData[self.mjd_column_name])
+        self.sim_idxs = np.argsort(sim_data[self.mjd_column_name])
         self.slicePoints["sid"] = np.arange(self.nslice)
-        self.slicePoints["mjd"] = simData[self.mjd_column_name]
-        self.slicePoints["duration"] = simData[self.duration_column_name]
+        self.slicePoints["mjd"] = sim_data[self.mjd_column_name]
+        self.slicePoints["duration"] = sim_data[self.duration_column_name]
         for column_name in self.extra_column_names:
-            self.slicePoints[column_name] = simData[column_name]
+            self.slicePoints[column_name] = sim_data[column_name]
         self._runMaps(maps)
 
-        @wraps(self._sliceSimData)
-        def _sliceSimData(islice):  # pylint: disable=invalid-name
-            idxs = self.simIdxs[islice]
+        @wraps(self._slice_sim_data)
+        def _slice_sim_data(islice):  # pylint: disable=invalid-name
+            idxs = self.sim_idxs[islice]
             slice_points = {
                 "sid": [idxs],
                 "mjd": self.slicePoints["mjd"][islice],
@@ -289,7 +289,7 @@ class VisitIntervalSlicer(TimeIntervalSlicer):
 
             return {"idxs": idxs, "slicePoint": slice_points}
 
-        setattr(self, "_sliceSimData", _sliceSimData)
+        setattr(self, "_slice_sim_data", _slice_sim_data)
 
 
 # internal functions & classes

@@ -6,28 +6,28 @@ from rubin_sim.scheduler.utils import int_rounded
 
 
 __all__ = [
-    "Filter_loaded_basis_function",
-    "Time_to_twilight_basis_function",
-    "Not_twilight_basis_function",
-    "After_evening_twi_basis_function",
-    "Force_delay_basis_function",
-    "Hour_Angle_limit_basis_function",
-    "Moon_down_basis_function",
-    "Fraction_of_obs_basis_function",
-    "Clouded_out_basis_function",
-    "Rising_more_basis_function",
-    "Soft_delay_basis_function",
-    "Look_ahead_ddf_basis_function",
-    "Sun_alt_limit_basis_function",
-    "Time_in_twilight_basis_function",
-    "Night_modulo_basis_function",
-    "End_of_evening_basis_function",
-    "Time_to_scheduled_basis_function",
-    "Limit_obs_pnight_basis_function",
+    "FilterLoadedBasisFunction",
+    "TimeToTwilightBasisFunction",
+    "NotTwilightBasisFunction",
+    "AfterEveningTwiBasisFunction",
+    "ForceDelayBasisFunction",
+    "HourAngleLimitBasisFunction",
+    "MoonDownBasisFunction",
+    "FractionOfObsBasisFunction",
+    "CloudedOutBasisFunction",
+    "RisingMoreBasisFunction",
+    "SoftDelayBasisFunction",
+    "LookAheadDdfBasisFunction",
+    "SunAltLimitBasisFunction",
+    "TimeInTwilightBasisFunction",
+    "NightModuloBasisFunction",
+    "EndOfEveningBasisFunction",
+    "TimeToScheduledBasisFunction",
+    "LimitObsPnightBasisFunction",
 ]
 
 
-class Filter_loaded_basis_function(Base_basis_function):
+class FilterLoadedBasisFunction(Base_basis_function):
     """Check that the filter(s) needed are loaded
 
     Parameters
@@ -37,7 +37,7 @@ class Filter_loaded_basis_function(Base_basis_function):
     """
 
     def __init__(self, filternames="r"):
-        super(Filter_loaded_basis_function, self).__init__()
+        super(FilterLoadedBasisFunction, self).__init__()
         if type(filternames) is not list:
             filternames = [filternames]
         self.filternames = filternames
@@ -51,11 +51,11 @@ class Filter_loaded_basis_function(Base_basis_function):
         return result
 
 
-class Limit_obs_pnight_basis_function(Base_basis_function):
+class LimitObsPnightBasisFunction(Base_basis_function):
     """"""
 
     def __init__(self, survey_str="", nlimit=100.0):
-        super(Limit_obs_pnight_basis_function, self).__init__()
+        super(LimitObsPnightBasisFunction, self).__init__()
         self.nlimit = nlimit
         self.survey_features["N_in_night"] = features.Survey_in_night(
             survey_str=survey_str
@@ -68,11 +68,11 @@ class Limit_obs_pnight_basis_function(Base_basis_function):
             return True
 
 
-class Night_modulo_basis_function(Base_basis_function):
+class NightModuloBasisFunction(Base_basis_function):
     """Only return true on certain nights"""
 
     def __init__(self, pattern=None):
-        super(Night_modulo_basis_function, self).__init__()
+        super(NightModuloBasisFunction, self).__init__()
         if pattern is None:
             pattern = [True, False]
         self.pattern = pattern
@@ -84,7 +84,7 @@ class Night_modulo_basis_function(Base_basis_function):
         return result
 
 
-class Time_in_twilight_basis_function(Base_basis_function):
+class TimeInTwilightBasisFunction(Base_basis_function):
     """Make sure there is some time left in twilight.
 
     Parameters
@@ -94,7 +94,7 @@ class Time_in_twilight_basis_function(Base_basis_function):
     """
 
     def __init__(self, time_needed=5.0):
-        super(Time_in_twilight_basis_function, self).__init__()
+        super(TimeInTwilightBasisFunction, self).__init__()
         self.time_needed = time_needed / 60.0 / 24.0  # To days
 
     def check_feasibility(self, conditions):
@@ -111,11 +111,11 @@ class Time_in_twilight_basis_function(Base_basis_function):
         return result
 
 
-class After_evening_twi_basis_function(Base_basis_function):
+class AfterEveningTwiBasisFunction(Base_basis_function):
     """Only execute right after evening twilight"""
 
     def __init__(self, time_after=30.0, alt_limit=18):
-        super(After_evening_twi_basis_function, self).__init__()
+        super(AfterEveningTwiBasisFunction, self).__init__()
         self.time_after = int_rounded(time_after / 60.0 / 24.0)
         self.alt_limit = str(alt_limit)
 
@@ -127,11 +127,11 @@ class After_evening_twi_basis_function(Base_basis_function):
         return result
 
 
-class End_of_evening_basis_function(Base_basis_function):
+class EndOfEveningBasisFunction(Base_basis_function):
     """Only let observations happen in a limited time before twilight"""
 
     def __init__(self, time_remaining=30.0, alt_limit=18):
-        super(End_of_evening_basis_function, self).__init__()
+        super(EndOfEveningBasisFunction, self).__init__()
         self.time_remaining = int_rounded(time_remaining / 60.0 / 24.0)
         self.alt_limit = str(alt_limit)
 
@@ -143,7 +143,7 @@ class End_of_evening_basis_function(Base_basis_function):
         return result
 
 
-class Time_to_twilight_basis_function(Base_basis_function):
+class TimeToTwilightBasisFunction(Base_basis_function):
     """Make sure there is enough time before twilight. Useful
     if you want to check before starting a long sequence of observations.
 
@@ -156,7 +156,7 @@ class Time_to_twilight_basis_function(Base_basis_function):
     """
 
     def __init__(self, time_needed=30.0, alt_limit=18):
-        super(Time_to_twilight_basis_function, self).__init__()
+        super(TimeToTwilightBasisFunction, self).__init__()
         self.time_needed = time_needed / 60.0 / 24.0  # To days
         self.alt_limit = str(alt_limit)
 
@@ -168,7 +168,7 @@ class Time_to_twilight_basis_function(Base_basis_function):
         return result
 
 
-class Time_to_scheduled_basis_function(Base_basis_function):
+class TimeToScheduledBasisFunction(Base_basis_function):
     """Make sure there is enough time before next scheduled observation. Useful
     if you want to check before starting a long sequence of observations.
 
@@ -179,7 +179,7 @@ class Time_to_scheduled_basis_function(Base_basis_function):
     """
 
     def __init__(self, time_needed=30.0):
-        super(Time_to_scheduled_basis_function, self).__init__()
+        super(TimeToScheduledBasisFunction, self).__init__()
         self.time_needed = time_needed / 60.0 / 24.0  # To days
 
     def check_feasibility(self, conditions):
@@ -191,13 +191,13 @@ class Time_to_scheduled_basis_function(Base_basis_function):
         return result
 
 
-class Not_twilight_basis_function(Base_basis_function):
+class NotTwilightBasisFunction(Base_basis_function):
     def __init__(self, sun_alt_limit=-18):
         """
         # Should be -18 or -12
         """
         self.sun_alt_limit = str(int(sun_alt_limit)).replace("-", "n")
-        super(Not_twilight_basis_function, self).__init__()
+        super(NotTwilightBasisFunction, self).__init__()
 
     def check_feasibility(self, conditions):
         result = True
@@ -212,7 +212,7 @@ class Not_twilight_basis_function(Base_basis_function):
         return result
 
 
-class Force_delay_basis_function(Base_basis_function):
+class ForceDelayBasisFunction(Base_basis_function):
     """Keep a survey from executing to rapidly.
 
     Parameters
@@ -222,7 +222,7 @@ class Force_delay_basis_function(Base_basis_function):
     """
 
     def __init__(self, days_delay=2.0, survey_name=None):
-        super(Force_delay_basis_function, self).__init__()
+        super(ForceDelayBasisFunction, self).__init__()
         self.days_delay = days_delay
         self.survey_name = survey_name
         self.survey_features["last_obs_self"] = features.Last_observation(
@@ -239,7 +239,7 @@ class Force_delay_basis_function(Base_basis_function):
         return result
 
 
-class Soft_delay_basis_function(Base_basis_function):
+class SoftDelayBasisFunction(Base_basis_function):
     """Like Force_delay, but go ahead and let things catch up if they fall far behind.
 
     Parameters
@@ -252,7 +252,7 @@ class Soft_delay_basis_function(Base_basis_function):
     ):
         if len(fractions) != len(delays):
             raise ValueError("fractions and delays must be same length")
-        super(Soft_delay_basis_function, self).__init__()
+        super(SoftDelayBasisFunction, self).__init__()
         self.delays = delays
         self.survey_name = survey_name
         self.survey_features["last_obs_self"] = features.Last_observation(
@@ -280,7 +280,7 @@ class Soft_delay_basis_function(Base_basis_function):
         return result
 
 
-class Hour_Angle_limit_basis_function(Base_basis_function):
+class HourAngleLimitBasisFunction(Base_basis_function):
     """Only execute a survey in limited hour angle ranges. Useful for
     limiting Deep Drilling Fields.
 
@@ -294,22 +294,22 @@ class Hour_Angle_limit_basis_function(Base_basis_function):
     """
 
     def __init__(self, RA=0.0, ha_limits=None):
-        super(Hour_Angle_limit_basis_function, self).__init__()
+        super(HourAngleLimitBasisFunction, self).__init__()
         self.ra_hours = RA / 360.0 * 24.0
-        self.HA_limits = np.array(ha_limits)
+        self.ha_limits = np.array(ha_limits)
 
     def check_feasibility(self, conditions):
-        target_HA = (conditions.lmst - self.ra_hours) % 24
+        target_ha = (conditions.lmst - self.ra_hours) % 24
         # Are we in any of the possible windows
         result = False
-        for limit in self.HA_limits:
-            lres = limit[0] <= target_HA < limit[1]
+        for limit in self.ha_limits:
+            lres = limit[0] <= target_ha < limit[1]
             result = result or lres
 
         return result
 
 
-class Moon_down_basis_function(Base_basis_function):
+class MoonDownBasisFunction(Base_basis_function):
     """Demand the moon is down"""
 
     def check_feasibility(self, conditions):
@@ -319,7 +319,7 @@ class Moon_down_basis_function(Base_basis_function):
         return result
 
 
-class Fraction_of_obs_basis_function(Base_basis_function):
+class FractionOfObsBasisFunction(Base_basis_function):
     """Limit the fraction of all observations that can be labled a certain
     survey name. Useful for keeping DDFs from exceeding a given fraction of the
     total survey.
@@ -333,7 +333,7 @@ class Fraction_of_obs_basis_function(Base_basis_function):
     """
 
     def __init__(self, frac_total, survey_name=""):
-        super(Fraction_of_obs_basis_function, self).__init__()
+        super(FractionOfObsBasisFunction, self).__init__()
         self.survey_name = survey_name
         self.frac_total = frac_total
         self.survey_features["Ntot"] = features.N_obs_survey()
@@ -353,7 +353,7 @@ class Fraction_of_obs_basis_function(Base_basis_function):
         return result
 
 
-class Look_ahead_ddf_basis_function(Base_basis_function):
+class LookAheadDdfBasisFunction(Base_basis_function):
     """Look into the future to decide if it's a good time to observe or block.
 
     Parameters
@@ -389,13 +389,13 @@ class Look_ahead_ddf_basis_function(Base_basis_function):
         time_jump=44.0,
         sun_alt_limit=-18.0,
     ):
-        super(Look_ahead_ddf_basis_function, self).__init__()
+        super(LookAheadDdfBasisFunction, self).__init__()
         if aggressive_fraction > frac_total:
             raise ValueError("aggressive_fraction should be less than frac_total")
         self.survey_name = survey_name
         self.frac_total = frac_total
         self.ra_hours = RA / 360.0 * 24.0
-        self.HA_limits = np.array(ha_limits)
+        self.ha_limits = np.array(ha_limits)
         self.sun_alt_limit = str(int(sun_alt_limit)).replace("-", "n")
         self.time_jump = time_jump / 60.0 / 24.0  # To days
         self.time_needed = time_needed / 60.0 / 24.0  # To days
@@ -405,7 +405,7 @@ class Look_ahead_ddf_basis_function(Base_basis_function):
 
     def check_feasibility(self, conditions):
         result = True
-        target_HA = (conditions.lmst - self.ra_hours) % 24
+        target_ha = (conditions.lmst - self.ra_hours) % 24
         ratio = (
             self.survey_features["N_survey"].feature
             / self.survey_features["Ntot"].feature
@@ -416,8 +416,8 @@ class Look_ahead_ddf_basis_function(Base_basis_function):
         )
         # If it's more that self.time_jump to hour angle zero
         # See if there will be enough time to twilight in the future
-        if (int_rounded(target_HA) > int_rounded(12)) & (
-            int_rounded(target_HA) < int_rounded(24.0 - self.time_jump)
+        if (int_rounded(target_ha) > int_rounded(12)) & (
+            int_rounded(target_ha) < int_rounded(24.0 - self.time_jump)
         ):
             if int_rounded(available_time) > int_rounded(
                 self.time_needed + self.time_jump
@@ -446,9 +446,9 @@ class Look_ahead_ddf_basis_function(Base_basis_function):
         return result
 
 
-class Clouded_out_basis_function(Base_basis_function):
+class CloudedOutBasisFunction(Base_basis_function):
     def __init__(self, cloud_limit=0.7):
-        super(Clouded_out_basis_function, self).__init__()
+        super(CloudedOutBasisFunction, self).__init__()
         self.cloud_limit = cloud_limit
 
     def check_feasibility(self, conditions):
@@ -458,7 +458,7 @@ class Clouded_out_basis_function(Base_basis_function):
         return result
 
 
-class Rising_more_basis_function(Base_basis_function):
+class RisingMoreBasisFunction(Base_basis_function):
     """Say a spot is not available if it will rise substatially before twilight.
 
     Parameters
@@ -470,13 +470,13 @@ class Rising_more_basis_function(Base_basis_function):
     """
 
     def __init__(self, RA, pad=30.0):
-        super(Rising_more_basis_function, self).__init__()
-        self.RA_hours = RA * 24 / 360.0
+        super(RisingMoreBasisFunction, self).__init__()
+        self.ra_hours = RA * 24 / 360.0
         self.pad = pad / 60.0  # To hours
 
     def check_feasibility(self, conditions):
         result = True
-        hour_angle = conditions.lmst - self.RA_hours
+        hour_angle = conditions.lmst - self.ra_hours
         # If it's rising, and twilight is well beyond when it crosses the meridian
         time_to_twi = (conditions.sun_n18_rising - conditions.mjd) * 24.0
         if (hour_angle < -self.pad) & (np.abs(hour_angle) < (time_to_twi - self.pad)):
@@ -484,11 +484,11 @@ class Rising_more_basis_function(Base_basis_function):
         return result
 
 
-class Sun_alt_limit_basis_function(Base_basis_function):
+class SunAltLimitBasisFunction(Base_basis_function):
     """Don't try unless the sun is below some limit"""
 
     def __init__(self, alt_limit=-12.1):
-        super(Sun_alt_limit_basis_function, self).__init__()
+        super(SunAltLimitBasisFunction, self).__init__()
         self.alt_limit = np.radians(alt_limit)
 
     def check_feasibility(self, conditions):

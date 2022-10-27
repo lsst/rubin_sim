@@ -3,10 +3,10 @@ from .vector_metrics import VectorMetric
 from .base_metric import BaseMetric
 from .exgal_m5 import ExgalM5
 
-__all__ = ["ExgalM5_with_cuts", "WeakLensingNvisits", "RIZDetectionCoaddExposureTime"]
+__all__ = ["Exgalm5WithCuts", "WeakLensingNvisits", "RIZDetectionCoaddExposureTime"]
 
 
-class ExgalM5_with_cuts(BaseMetric):
+class Exgalm5WithCuts(BaseMetric):
     """
     Calculate co-added five-sigma limiting depth, but apply dust extinction and depth cuts.
     This means that places on the sky that don't meet the dust extinction, coadded depth, or filter coverage
@@ -16,52 +16,52 @@ class ExgalM5_with_cuts(BaseMetric):
     In particular, it is required as input for the StaticProbesFoMEmulatorMetricSimple
     (a summary metric to emulate a 3x2pt FOM).
 
-    Note: this metric calculates the depth after dust extinction in band 'lsstFilter', but because
+    Note: this metric calculates the depth after dust extinction in band 'lsst_filter', but because
     it looks for coverage in all bands, there should generally be no filter-constraint on the sql query.
     """
 
     def __init__(
         self,
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
-        metricName="ExgalM5_with_cuts",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        metric_name="Exgalm5WithCuts",
         units="mag",
-        lsstFilter="i",
+        lsst_filter="i",
         extinction_cut=0.2,
         depth_cut=25.9,
-        nFilters=6,
+        n_filters=6,
         **kwargs
     ):
-        self.m5Col = m5Col
-        self.filterCol = filterCol
+        self.m5_col = m5_col
+        self.filter_col = filter_col
         self.extinction_cut = extinction_cut
         self.depth_cut = depth_cut
-        self.nFilters = nFilters
-        self.lsstFilter = lsstFilter
+        self.n_filters = n_filters
+        self.lsst_filter = lsst_filter
         # I thought about inheriting from ExGalM5 instead, but the columns specification is more complicated
-        self.exgalM5 = ExgalM5(m5Col=m5Col, units=units)
+        self.exgal_m5 = ExgalM5(m5_col=m5_col, units=units)
         super().__init__(
-            col=[self.m5Col, self.filterCol],
-            metricName=metricName,
+            col=[self.m5_col, self.filter_col],
+            metric_name=metric_name,
             units=units,
-            maps=self.exgalM5.maps,
+            maps=self.exgal_m5.maps,
             **kwargs
         )
 
-    def run(self, dataSlice, slicePoint):
+    def run(self, data_slice, slice_point):
         # exclude areas with high extinction
-        if slicePoint["ebv"] > self.extinction_cut:
+        if slice_point["ebv"] > self.extinction_cut:
             return self.badval
 
         # check to make sure there is at least some coverage in the required number of bands
-        nFilters = len(set(dataSlice[self.filterCol]))
-        if nFilters < self.nFilters:
+        n_filters = len(set(data_slice[self.filter_col]))
+        if n_filters < self.n_filters:
             return self.badval
 
         # if coverage and dust criteria are valid, move forward with only lsstFilter-band visits
-        dS = dataSlice[dataSlice[self.filterCol] == self.lsstFilter]
+        d_s = data_slice[data_slice[self.filter_col] == self.lsst_filter]
         # calculate the lsstFilter-band coadded depth
-        dustdepth = self.exgalM5.run(dS, slicePoint)
+        dustdepth = self.exgal_m5.run(d_s, slice_point)
 
         # exclude areas that are shallower than the depth cut
         if dustdepth < self.depth_cut:
@@ -76,46 +76,46 @@ class WeakLensingNvisits(BaseMetric):
     Weak Lensing systematics metric : Computes the average number of visits per point on a HEALPix grid
     after a maximum E(B-V) cut and a minimum co-added depth cut.
     Intended to be used to count visits in gri, but can be any filter combination as long as it
-    includes `lsstFilter` band visits.
+    includes `lsst_filter` band visits.
 
     """
 
     def __init__(
         self,
-        m5Col="fiveSigmaDepth",
-        expTimeCol="visitExposureTime",
-        filterCol="filter",
-        lsstFilter="i",
+        m5_col="fiveSigmaDepth",
+        exp_time_col="visitExposureTime",
+        filter_col="filter",
+        lsst_filter="i",
         depth_cut=24.5,
         ebvlim=0.2,
-        min_expTime=15,
+        min_exp_time=15,
         **kwargs
     ):
         # Set up the coadd metric (using ExgalM5 adds galactic dust extinction)
-        self.exgalM5 = ExgalM5(m5Col=m5Col, filterCol=filterCol)
-        self.lsstFilter = lsstFilter
+        self.exgal_m5 = ExgalM5(m5_col=m5_col, filter_col=filter_col)
+        self.lsst_filter = lsst_filter
         self.depth_cut = depth_cut
-        self.m5Col = m5Col
-        self.filterCol = filterCol
-        self.expTimeCol = expTimeCol
+        self.m5_col = m5_col
+        self.filter_col = filter_col
+        self.exp_time_col = exp_time_col
         self.ebvlim = ebvlim
-        self.min_expTime = min_expTime
+        self.min_exp_time = min_exp_time
         super().__init__(
-            col=[self.m5Col, self.expTimeCol, filterCol],
-            maps=self.exgalM5.maps,
+            col=[self.m5_col, self.exp_time_col, filter_col],
+            maps=self.exgal_m5.maps,
             **kwargs
         )
 
-    def run(self, dataSlice, slicePoint):
+    def run(self, data_slice, slice_point):
         # If the sky is too dusty here, stop.
-        if slicePoint["ebv"] > self.ebvlim:
+        if slice_point["ebv"] > self.ebvlim:
             return self.badval
         # Check that coadded depths meet requirements:
-        dS = dataSlice[dataSlice[self.filterCol] == self.lsstFilter]
-        coaddDepth = self.exgalM5.run(dataSlice=dS, slicePoint=slicePoint)
-        if coaddDepth < self.depth_cut:
+        d_s = data_slice[data_slice[self.filter_col] == self.lsst_filter]
+        coadd_depth = self.exgal_m5.run(data_slice=d_s, slice_point=slice_point)
+        if coadd_depth < self.depth_cut:
             return self.badval
-        nvisits = len(np.where(dataSlice[self.expTimeCol] > self.min_expTime)[0])
+        nvisits = len(np.where(data_slice[self.exp_time_col] > self.min_exp_time)[0])
         return nvisits
 
 
@@ -148,16 +148,16 @@ class RIZDetectionCoaddExposureTime(VectorMetric):
     bins : list of float
         The bin edges. Typically this will be a list of nights for which to
         compute the riz coadd exposure times.
-    binCol : str, optional
+    bin_col : str, optional
         The column to bin on. The default is 'night'.
-    expTimeCol : str, optional
+    exp_time_col : str, optional
         The column name for the exposure time.
-    filterCol : str, optional
+    filter_col : str, optional
         The column name for the filter name.
     ebvlim : float, optional
         The upper limit on E(B-V). Regions with E(B-V) greater than this
         limit are excluded.
-    min_expTime : float, optional
+    min_exp_time : float, optional
         The minimal exposure time for a visit to contribute to a coadd.
     det_bands : list of str, optional
         If not None, the bands to use for detection. If None, defaults to riz.
@@ -180,39 +180,39 @@ class RIZDetectionCoaddExposureTime(VectorMetric):
         **kwargs
     ):
         # Set up the coadd metric (using ExgalM5 adds galactic dust extinction)
-        self.filterCol = filterCol
-        self.expTimeCol = expTimeCol
+        self.filter_col = filterCol
+        self.exp_time_col = expTimeCol
         self.ebvlim = ebvlim
-        self.min_expTime = min_expTime
+        self.min_exp_time = min_expTime
         self.det_bands = det_bands or ["r", "i", "z"]
         self.min_bands = set(min_bands or ["u", "g", "r", "i", "z", "y"])
         super().__init__(
             bins=bins,
             binCol=binCol,
-            col=[self.expTimeCol, self.filterCol],
+            col=[self.exp_time_col, self.filter_col],
             metricName="riz_detcoadd_exptime",
             units="seconds",
             maps=["DustMap"],
             **kwargs
         )
 
-    def run(self, dataSlice, slicePoint):
-        res = np.zeros(self.shape, dtype=self.metricDtype)
+    def run(self, data_slice, slice_point):
+        res = np.zeros(self.shape, dtype=self.metric_dtype)
 
         # If the sky is too dusty here, stop.
-        if slicePoint["ebv"] > self.ebvlim:
+        if slice_point["ebv"] > self.ebvlim:
             res[:] = self.badval
             return res
 
-        dataSlice.sort(order=self.binCol)
-        cutinds = np.searchsorted(dataSlice[self.binCol], self.bins[1:], side="right")
-        maxcutind = dataSlice.shape[0]
+        data_slice.sort(order=self.bin_col)
+        cutinds = np.searchsorted(data_slice[self.bin_col], self.bins[1:], side="right")
+        maxcutind = data_slice.shape[0]
         cutinds = np.clip(cutinds, 0, maxcutind)
 
         # find all entries where exposure time is long enough and
         # in the detection bands
-        exptime_msk = dataSlice[self.expTimeCol] > self.min_expTime
-        filter_msk = np.in1d(dataSlice[self.filterCol], self.det_bands)
+        exptime_msk = data_slice[self.exp_time_col] > self.min_exp_time
+        filter_msk = np.in1d(data_slice[self.filter_col], self.det_bands)
         tot_msk = exptime_msk & filter_msk
 
         for i, cutind in enumerate(cutinds):
@@ -222,7 +222,7 @@ class RIZDetectionCoaddExposureTime(VectorMetric):
 
             # check to make sure there is at least some
             # coverage in the required bands
-            filters = set(dataSlice[self.filterCol][:cutind])
+            filters = set(data_slice[self.filter_col][:cutind])
             if filters != self.min_bands:
                 res[i] = self.badval
                 continue
@@ -232,6 +232,6 @@ class RIZDetectionCoaddExposureTime(VectorMetric):
                 res[i] = self.badval
                 continue
 
-            res[i] = np.sum(dataSlice[self.expTimeCol][:cutind][tot_msk[:cutind]])
+            res[i] = np.sum(data_slice[self.exp_time_col][:cutind][tot_msk[:cutind]])
 
         return res

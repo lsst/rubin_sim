@@ -4,22 +4,22 @@ import healpy as hp
 import copy
 
 
-__all__ = ["ToO_master", "ToO_survey"]
+__all__ = ["TooMaster", "TooSurvey"]
 
 
-class ToO_master(BaseSurvey):
+class TooMaster(BaseSurvey):
     """
     A target of opportunity class. Every time a new ToO comes in, it will spawn a new sub-survey.
 
     Parameters
     ----------
-    example_ToO_survey : rubin_sim.scheduler.surveys.ToO_survey object
+    example__to_o_survey : rubin_sim.scheduler.surveys.ToO_survey object
         A survey object that will be coppied and have a new target map set
         for each incoming ToO.
     """
 
-    def __init__(self, example_ToO_survey):
-        self.example_ToO_survey = example_ToO_survey
+    def __init__(self, example__to_o_survey):
+        self.example__to_o_survey = example__to_o_survey
         self.surveys = []
         self.highest_reward = -np.inf
         self.scheduled_obs = None
@@ -36,7 +36,7 @@ class ToO_master(BaseSurvey):
         ----------
         too : rubin_sim.scheduler.utils.TargetoO object
         """
-        new_survey = copy.deepcopy(self.example_ToO_survey)
+        new_survey = copy.deepcopy(self.example__to_o_survey)
         new_survey.set_id(too.id)
         new_survey.set_target_map(too.footprint)
 
@@ -83,7 +83,7 @@ class ToO_master(BaseSurvey):
             return result
 
 
-class ToO_survey(Blob_survey):
+class TooSurvey(Blob_survey):
     """Survey class to catch incoming target of opportunity anouncements and try to observe them.
 
     The idea is that we can dynamically update the target footprint basis function, and add new features as more ToOs come in.
@@ -121,7 +121,7 @@ class ToO_survey(Blob_survey):
         camera="LSST",
         too_id=None,
     ):
-        super(ToO_survey, self).__init__(
+        super(TooSurvey, self).__init__(
             basis_functions=basis_functions,
             basis_weights=basis_weights,
             filtername1=filtername1,
@@ -167,5 +167,5 @@ class ToO_survey(Blob_survey):
         # Always spin the tesselation before generating a new block.
         if self.dither:
             self._spin_fields(conditions)
-        result = super(ToO_survey, self).generate_observations_rough(conditions)
+        result = super(TooSurvey, self).generate_observations_rough(conditions)
         return result

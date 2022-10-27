@@ -55,13 +55,13 @@ def surface_brightness_limit_approx(
     aka the surface brightness that reaches SNR=nsigma when measured over tot_area.
     """
 
-    A_pix = pixscale**2
+    a_pix = pixscale**2
 
-    n_pix = tot_area / A_pix
+    n_pix = tot_area / a_pix
 
     # Sky limited case
     mu_sky_lim = (
-        -1.25 * np.log10(nsigma**2 / (A_pix * t_exp * n_pix))
+        -1.25 * np.log10(nsigma**2 / (a_pix * t_exp * n_pix))
         + 0.5 * mu_sky
         + 0.5 * zp
         - k * airmass
@@ -70,12 +70,12 @@ def surface_brightness_limit_approx(
     # Source limited case
     # XXX--double check this algerbra. Pretty sure it's right now.
     mu_source_lim = (
-        -5 * np.log10(nsigma) + 2.5 * np.log10(n_pix * A_pix * t_exp) + zp - k * airmass
+        -5 * np.log10(nsigma) + 2.5 * np.log10(n_pix * a_pix * t_exp) + zp - k * airmass
     )
 
     # Readnoise limited case
     mu_rn_lim = (
-        -2.5 * np.log10(nsigma * rn / (t_exp * A_pix * n_pix**0.5)) + zp - k * airmass
+        -2.5 * np.log10(nsigma * rn / (t_exp * a_pix * n_pix**0.5)) + zp - k * airmass
     )
 
     d1 = np.min(np.abs(mu_sky_lim - mu_source_lim))
@@ -107,7 +107,7 @@ class SurfaceBrightLimitMetric(BaseMetric):
         Total sky area summed over, square arcseconds
     zpt : `dict` of `float` (None)
         telescope zeropoints. If None, computed from phot_utils
-    kAtm : `dict` of `float` (None)
+    k_atm : `dict` of `float` (None)
         Atmospheric extinction parameters. If None, computed from phot_utils
     readnoise : `float` (8.8)
         Readnoise in electrons
@@ -118,29 +118,29 @@ class SurfaceBrightLimitMetric(BaseMetric):
         pixscale=0.2,
         nsigma=3.0,
         tot_area=100.0,
-        filterCol="filter",
+        filter_col="filter",
         units="mag/sq arcsec",
-        airmassCol="airmass",
-        exptimeCol="visitExposureTime",
-        metricName="SurfaceBrightLimit",
-        skybrightnessCol="skyBrightness",
-        nexpCol="numExposures",
+        airmass_col="airmass",
+        exptime_col="visitExposureTime",
+        metric_name="SurfaceBrightLimit",
+        skybrightness_col="skyBrightness",
+        nexp_col="numExposures",
         zpt=None,
-        kAtm=None,
+        k_atm=None,
         readnoise=8.8,
         **kwargs
     ):
         super().__init__(
-            col=[filterCol, airmassCol, exptimeCol, skybrightnessCol, nexpCol],
+            col=[filter_col, airmass_col, exptime_col, skybrightness_col, nexp_col],
             units=units,
-            metricName=metricName,
+            metric_name=metric_name,
             **kwargs
         )
-        self.filterCol = filterCol
-        self.airmassCol = airmassCol
-        self.exptimeCol = exptimeCol
-        self.skybrightnessCol = skybrightnessCol
-        self.nexpCol = nexpCol
+        self.filter_col = filter_col
+        self.airmass_col = airmass_col
+        self.exptime_col = exptime_col
+        self.skybrightness_col = skybrightness_col
+        self.nexp_col = nexp_col
 
         self.readnoise = readnoise
         self.pixscale = pixscale
@@ -149,15 +149,15 @@ class SurfaceBrightLimitMetric(BaseMetric):
 
         # Compute default zeropoints
         if zpt is None:
-            zp_inst, kAtm = load_inst_zeropoints()
+            zp_inst, k_atm = load_inst_zeropoints()
             self.zpt = zp_inst
-            self.kAtm = kAtm
+            self.k_atm = k_atm
         else:
             self.zpt = zpt
-            self.kAtm = kAtm
+            self.k_atm = k_atm
 
-    def run(self, dataSlice, slicePoint):
-        filtername = np.unique(dataSlice[self.filterCol])
+    def run(self, data_slice, slice_point):
+        filtername = np.unique(data_slice[self.filter_col])
         if np.size(filtername) > 1:
             ValueError(
                 "Can only coadd depth in single filter, got filters %s" % filtername
@@ -165,17 +165,17 @@ class SurfaceBrightLimitMetric(BaseMetric):
         filtername = filtername[0]
 
         # Scale up readnoise if the visit was split into multiple snaps
-        readnoise = self.readnoise * np.sqrt(dataSlice[self.nexpCol])
+        readnoise = self.readnoise * np.sqrt(data_slice[self.nexp_col])
 
         sb_per_visit = surface_brightness_limit_approx(
             self.zpt[filtername],
-            self.kAtm[filtername],
-            dataSlice[self.airmassCol],
-            dataSlice[self.skybrightnessCol],
+            self.k_atm[filtername],
+            data_slice[self.airmass_col],
+            data_slice[self.skybrightness_col],
             rn=readnoise,
             pixscale=self.pixscale,
             nsigma=self.nsigma,
-            t_exp=dataSlice[self.exptimeCol],
+            t_exp=data_slice[self.exptime_col],
             tot_area=self.tot_area,
         )
 

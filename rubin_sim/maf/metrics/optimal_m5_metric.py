@@ -13,10 +13,10 @@ class OptimalM5Metric(BaseMetric):
 
     Parameters
     ----------
-    m5Col : str ('fiveSigmaDepth')
+    m5_col : str ('fiveSigmaDepth')
         Column name that contains the five-sigma limiting depth of
         each observation
-    optM5Col : str ('m5Optimal')
+    opt_m5_col : str ('m5Optimal')
         The column name of the five-sigma-limiting depth if the
         observation had been taken on the meridian.
     normalize : bool (False)
@@ -24,7 +24,7 @@ class OptimalM5Metric(BaseMetric):
         to be taken to reach the optimal depth.  If True, the number
         is normalized by the total number of observations already taken
         at that position.
-    magDiff : bool (False)
+    mag_diff : bool (False)
         If True, metric returns the magnitude difference between the
         achieved coadded depth and the optimal coadded depth.
 
@@ -32,7 +32,7 @@ class OptimalM5Metric(BaseMetric):
     --------
     numpy.array
 
-    If magDiff is True, returns the magnitude difference between the
+    If mag_diff is True, returns the magnitude difference between the
     optimal and actual coadded depth.  If normalize is False
     (default), the result is the number of additional observations
     (taken at the median depth) the survey needs to catch up to
@@ -45,10 +45,10 @@ class OptimalM5Metric(BaseMetric):
 
     def __init__(
         self,
-        m5Col="fiveSigmaDepth",
-        optM5Col="m5Optimal",
-        filterCol="filter",
-        magDiff=False,
+        m5_col="fiveSigmaDepth",
+        opt_m5_col="m5Optimal",
+        filter_col="filter",
+        mag_diff=False,
         normalize=False,
         **kwargs
     ):
@@ -57,40 +57,40 @@ class OptimalM5Metric(BaseMetric):
             self.units = "% behind"
         else:
             self.units = "N visits behind"
-        if magDiff:
+        if mag_diff:
             self.units = "mags"
         super(OptimalM5Metric, self).__init__(
-            col=[m5Col, optM5Col, filterCol], units=self.units, **kwargs
+            col=[m5_col, opt_m5_col, filter_col], units=self.units, **kwargs
         )
-        self.m5Col = m5Col
-        self.optM5Col = optM5Col
+        self.m5_col = m5_col
+        self.opt_m5_col = opt_m5_col
         self.normalize = normalize
-        self.filterCol = filterCol
-        self.magDiff = magDiff
-        self.coaddRegular = Coaddm5Metric(m5Col=m5Col)
-        self.coaddOptimal = Coaddm5Metric(m5Col=optM5Col)
+        self.filter_col = filter_col
+        self.mag_diff = mag_diff
+        self.coadd_regular = Coaddm5Metric(m5_col=m5_col)
+        self.coadd_optimal = Coaddm5Metric(m5_col=opt_m5_col)
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
 
-        filters = np.unique(dataSlice[self.filterCol])
+        filters = np.unique(data_slice[self.filter_col])
         if np.size(filters) > 1:
             warnings.warn(
                 "OptimalM5Metric does not make sense mixing filters. Currently using filters "
                 + str(filters)
             )
-        regularDepth = self.coaddRegular.run(dataSlice)
-        optimalDepth = self.coaddOptimal.run(dataSlice)
-        if self.magDiff:
-            return optimalDepth - regularDepth
+        regular_depth = self.coadd_regular.run(data_slice)
+        optimal_depth = self.coadd_optimal.run(data_slice)
+        if self.mag_diff:
+            return optimal_depth - regular_depth
 
-        medianSingle = np.median(dataSlice[self.m5Col])
+        median_single = np.median(data_slice[self.m5_col])
 
         # Number of additional median observations to get as deep as optimal
-        result = (10.0 ** (0.8 * optimalDepth) - 10.0 ** (0.8 * regularDepth)) / (
-            10.0 ** (0.8 * medianSingle)
+        result = (10.0 ** (0.8 * optimal_depth) - 10.0 ** (0.8 * regular_depth)) / (
+            10.0 ** (0.8 * median_single)
         )
 
         if self.normalize:
-            result = result / np.size(dataSlice) * 100.0
+            result = result / np.size(data_slice) * 100.0
 
         return result

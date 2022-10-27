@@ -10,10 +10,10 @@ class KuiperMetric(BaseMetric):
     Value of 0 means perfecty uniform, 1 means delta function
     """
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         """"""
         # Assume input in degrees
-        values = np.sort(dataSlice[self.colname] % 360)
+        values = np.sort(data_slice[self.colname] % 360)
 
         dist_1 = (np.arange(values.size) + 1) / values.size
         uniform = values / (360.0)

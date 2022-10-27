@@ -9,8 +9,8 @@ __all__ = [
     "neo_dndh_grav",
     "pha_dndh_granvik",
     "pha_dndh_grav",
-    "integrateOverH",
-    "sumOverH",
+    "integrate_over_h",
+    "sum_over_h",
     "TotalNumberSSO",
     "ValueAtHMetric",
     "MeanValueAtHMetric",
@@ -19,76 +19,76 @@ __all__ = [
 ]
 
 
-def power_law_dndh(Hvalues, Hindex=0.33, No=None, Ho=None, **kwargs):
+def power_law_dndh(hvalues, hindex=0.33, no=None, ho=None, **kwargs):
     """Power law distribution of objects.
 
     Parameters
     ----------
-    Hvalues : `numpy.ndarray`
+    hvalues : `numpy.ndarray`
         The H values corresponding to each metricValue (must be the same length).
-        The Hvalues are expected to be evenly spaced.
-    Hindex : `float`, optional
+        The hvalues are expected to be evenly spaced.
+    hindex : `float`, optional
         The power-law index expected for the H value distribution.
-        Default is 0.33  (dN/dH = 10^(Hindex * H) ).
-    No : `float`, optional
-    Ho: `float`, optional
-        If No and Ho are specified, this provides an anchor for the power law distribution,
-        so that the expected number No of objects at Ho is returned.
+        Default is 0.33  (dN/dH = 10^(hindex * H) ).
+    no : `float`, optional
+    ho: `float`, optional
+        If no and ho are specified, this provides an anchor for the power law distribution,
+        so that the expected number no of objects at ho is returned.
         Do not need to be set if just doing comparative weighting.
 
     Returns
     -------
     dndh : `numpy.ndarray`
     """
-    if No is None or Ho is None:
-        Ho = Hvalues.min()
-        No = 10
-    binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff(Hvalues)[-1])) / 0.1
-    dndh = (No * 0.1) * np.power(10.0, Hindex * (Hvalues - Ho)) * binratio
+    if no is None or ho is None:
+        ho = hvalues.min()
+        no = 10
+    binratio = (np.diff(hvalues, append=hvalues[-1] + np.diff(hvalues)[-1])) / 0.1
+    dndh = (no * 0.1) * np.power(10.0, hindex * (hvalues - ho)) * binratio
     return dndh
 
 
-def neo_dndh_granvik(Hvalues, **kwargs):
-    binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff(Hvalues)[-1])) / 0.1
+def neo_dndh_granvik(hvalues, **kwargs):
+    binratio = (np.diff(hvalues, append=hvalues[-1] + np.diff(hvalues)[-1])) / 0.1
     y0 = 0  # 10 * np.power(10, 0.55 * (x - 17))
-    y1 = 150 * np.power(10, 0.3 * (Hvalues - 18.5))
-    y2 = 2500 * np.power(10, 0.92 * (Hvalues - 23.2))
+    y1 = 150 * np.power(10, 0.3 * (hvalues - 18.5))
+    y2 = 2500 * np.power(10, 0.92 * (hvalues - 23.2))
     dndh = (y0 + y1 + y2) * binratio
     return dndh
 
 
-def neo_dndh_grav(Hvalues, **kwargs):
-    binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff(Hvalues)[-1])) / 0.1
-    y1 = 110 * np.power(10, 0.35 * (Hvalues - 18.5))
+def neo_dndh_grav(hvalues, **kwargs):
+    binratio = (np.diff(hvalues, append=hvalues[-1] + np.diff(hvalues)[-1])) / 0.1
+    y1 = 110 * np.power(10, 0.35 * (hvalues - 18.5))
     dndh = y1 * binratio
     return dndh
 
 
-def pha_dndh_granvik(Hvalues, **kwargs):
-    binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff(Hvalues)[-1])) / 0.1
+def pha_dndh_granvik(hvalues, **kwargs):
+    binratio = (np.diff(hvalues, append=hvalues[-1] + np.diff(hvalues)[-1])) / 0.1
     y0 = 0  # 10 * np.power(10, 0.55 * (x - 17))
-    y1 = 20 * np.power(10, 0.3 * (Hvalues - 18.5))
-    y2 = 500 * np.power(10, 0.92 * (Hvalues - 23.2))
+    y1 = 20 * np.power(10, 0.3 * (hvalues - 18.5))
+    y2 = 500 * np.power(10, 0.92 * (hvalues - 23.2))
     dndh = (y0 + y1 + y2) * binratio
     return dndh
 
 
-def pha_dndh_grav(Hvalues, **kwargs):
-    binratio = (np.diff(Hvalues, append=Hvalues[-1] + np.diff[Hvalues][-1])) / 0.1
-    y1 = 23.5 * np.power(10, 0.35 * (Hvalues - 18.5))
+def pha_dndh_grav(hvalues, **kwargs):
+    binratio = (np.diff(hvalues, append=hvalues[-1] + np.diff[hvalues][-1])) / 0.1
+    y1 = 23.5 * np.power(10, 0.35 * (hvalues - 18.5))
     dndh = y1 * binratio
     return dndh
 
 
-def integrateOverH(metricValues, Hvalues, dndh_func=power_law_dndh, **kwargs):
+def integrate_over_h(metric_values, hvalues, dndh_func=power_law_dndh, **kwargs):
     """Calculate a metric value integrated over an Hrange.
     This is the metric value *weighted* by the size distribution.
 
     Parameters
     ----------
-    metricValues : `numpy.ndarray`
+    metric_values : `numpy.ndarray`
         The metric values at each H value.
-    Hvalues : `numpy.ndarray`
+    hvalues : `numpy.ndarray`
         The H values corresponding to each metricValue (must be the same length).
     dndh_func : function, optional
         One of the dN/dH functions defined below. Default is a simple power law.
@@ -97,27 +97,27 @@ def integrateOverH(metricValues, Hvalues, dndh_func=power_law_dndh, **kwargs):
 
     Returns
     --------
-    intVals : `numpy.ndarray`
+    int_vals : `numpy.ndarray`
        The integrated metric values.
     """
     # Set expected H distribution.
     # dndh = differential size distribution (number in this bin)
-    dndh = dndh_func(Hvalues, **kwargs)
+    dndh = dndh_func(hvalues, **kwargs)
     # calculate the metric values *weighted* by the number of objects in this bin and brighter
-    intVals = np.cumsum(metricValues * dndh) / np.cumsum(dndh)
-    return intVals
+    int_vals = np.cumsum(metric_values * dndh) / np.cumsum(dndh)
+    return int_vals
 
 
-def sumOverH(metricValues, Hvalues, dndh_func=power_law_dndh, **kwargs):
+def sum_over_h(metric_values, hvalues, dndh_func=power_law_dndh, **kwargs):
     """Calculate the sum of the metric value multiplied by the number of objects at each H value.
     This is equivalent to calculating the number of objects meeting X requirement in the
     differential completeness or fraction of objects with lightcurves, etc.
 
     Parameters
     ----------
-    metricValues : `numpy.ndarray`
+    metric_values : `numpy.ndarray`
         The metric values at each H value.
-    Hvalues : `numpy.ndarray`
+    hvalues : `numpy.ndarray`
         The H values corresponding to each metricValue (must be the same length).
     dndh_func : function, optional
         One of the dN/dH functions defined below. Default is a simple power law.
@@ -126,15 +126,15 @@ def sumOverH(metricValues, Hvalues, dndh_func=power_law_dndh, **kwargs):
 
     Returns
     --------
-    sumVals : `numpy.ndarray`
+    sum_vals : `numpy.ndarray`
        The cumulative metric values.
     """
     # Set expected H distribution.
     # dndh = differential size distribution (number in this bin)
-    dndh = dndh_func(Hvalues, **kwargs)
+    dndh = dndh_func(hvalues, **kwargs)
     # calculate the metric values *weighted* by the number of objects in this bin and brighter
-    sumVals = np.cumsum(metricValues * dndh)
-    return sumVals
+    sum_vals = np.cumsum(metric_values * dndh)
+    return sum_vals
 
 
 class TotalNumberSSO(BaseMoMetric):
@@ -145,7 +145,7 @@ class TotalNumberSSO(BaseMoMetric):
 
     Parameters
     ----------
-    Hmark : `float`, optional
+    hmark : `float`, optional
         The H value at which to calculate the expected total number of objects. Default = 22.
     dndh_func : `function`, optional
         The dN/dH distribution to use to calculate the expected population size.
@@ -156,17 +156,17 @@ class TotalNumberSSO(BaseMoMetric):
         The predicted number of objects in the population.
     """
 
-    def __init__(self, Hmark=22, dndh_func=neo_dndh_granvik, **kwargs):
-        self.Hmark = Hmark
+    def __init__(self, hmark=22, dndh_func=neo_dndh_granvik, **kwargs):
+        self.hmark = hmark
         self.dndh_func = dndh_func
-        metricName = "Nobj <= %.1f" % (Hmark)
+        metric_name = "Nobj <= %.1f" % (hmark)
         self.kwargs = kwargs
-        super().__init__(metricName=metricName, **kwargs)
+        super().__init__(metric_name=metric_name, **kwargs)
 
-    def run(self, metricVals, Hvals):
-        totals = sumOverH(metricVals, Hvals, self.dndh_func, **self.kwargs)
-        nObj = np.interp(self.Hmark, Hvals, totals)
-        return nObj
+    def run(self, metric_vals, hvals):
+        totals = sum_over_h(metric_vals, hvals, self.dndh_func, **self.kwargs)
+        n_obj = np.interp(self.hmark, hvals, totals)
+        return n_obj
 
 
 class ValueAtHMetric(BaseMoMetric):
@@ -176,7 +176,7 @@ class ValueAtHMetric(BaseMoMetric):
 
     Parameters
     ----------
-    Hmark : `float`, optional
+    hmark : `float`, optional
         The H value at which to look up the metric value. Default = 22.
 
     Returns
@@ -184,25 +184,25 @@ class ValueAtHMetric(BaseMoMetric):
     value: : `float`
     """
 
-    def __init__(self, Hmark=22, **kwargs):
-        metricName = "Value At H=%.1f" % (Hmark)
-        units = "<= %.1f" % (Hmark)
-        super().__init__(metricName=metricName, **kwargs)
-        self.Hmark = Hmark
+    def __init__(self, hmark=22, **kwargs):
+        metric_name = "Value At H=%.1f" % (hmark)
+        units = "<= %.1f" % (hmark)
+        super().__init__(metric_name=metric_name, **kwargs)
+        self.hmark = hmark
 
-    def run(self, metricVals, Hvals):
+    def run(self, metric_vals, hvals):
         # Check if desired H value is within range of H values.
-        if (self.Hmark < Hvals.min()) or (self.Hmark > Hvals.max()):
+        if (self.hmark < hvals.min()) or (self.hmark > hvals.max()):
             warnings.warn(
                 "Desired H value of metric outside range of provided H values."
             )
             return None
-        if metricVals.shape[0] != 1:
+        if metric_vals.shape[0] != 1:
             warnings.warn(
                 "This is not an appropriate summary statistic for this data - need 1d values."
             )
             return None
-        value = np.interp(self.Hmark, Hvals, metricVals[0])
+        value = np.interp(self.hmark, hvals, metric_vals[0])
         return value
 
 
@@ -213,7 +213,7 @@ class MeanValueAtHMetric(BaseMoMetric):
 
     Parameters
     ----------
-    Hmark : `float`, optional
+    hmark : `float`, optional
         The H value at which to look up the metric value. Default = 22.
 
     Returns
@@ -221,22 +221,22 @@ class MeanValueAtHMetric(BaseMoMetric):
     value: : `float`
     """
 
-    def __init__(self, Hmark=22, reduceFunc=np.mean, metricName=None, **kwargs):
-        if metricName is None:
-            metricName = "Mean Value At H=%.1f" % (Hmark)
-        super().__init__(metricName=metricName, **kwargs)
-        self.Hmark = Hmark
-        self.reduceFunc = reduceFunc
+    def __init__(self, hmark=22, reduce_func=np.mean, metric_name=None, **kwargs):
+        if metric_name is None:
+            metric_name = "Mean Value At H=%.1f" % (hmark)
+        super().__init__(metric_name=metric_name, **kwargs)
+        self.hmark = hmark
+        self.reduce_func = reduce_func
 
-    def run(self, metricVals, Hvals):
+    def run(self, metric_vals, hvals):
         # Check if desired H value is within range of H values.
-        if (self.Hmark < Hvals.min()) or (self.Hmark > Hvals.max()):
+        if (self.hmark < hvals.min()) or (self.hmark > hvals.max()):
             warnings.warn(
                 "Desired H value of metric outside range of provided H values."
             )
             return None
         value = np.interp(
-            self.Hmark, Hvals, self.reduceFunc(metricVals.swapaxes(0, 1), axis=1)
+            self.hmark, hvals, self.reduce_func(metric_vals.swapaxes(0, 1), axis=1)
         )
         return value
 
@@ -257,7 +257,7 @@ class MoCompletenessMetric(BaseMoMetric):
     nbins : `int`, optional
         If the H values for the metric are not a cloned distribution, then split up H into this many bins.
         Default 20.
-    minHrange : `float`, optional
+    min_hrange : `float`, optional
         If the H values for the metric are not a cloned distribution, then split up H into at least this
         range (otherwise just use the min/max of the H values). Default 1.0
     cumulative : `bool`, optional
@@ -265,100 +265,100 @@ class MoCompletenessMetric(BaseMoMetric):
         If True, integrate over the H distribution (using IntegrateOverH) to report a cumulative fraction.
         Default None which becomes True;
         if metricName is set and starts with 'Differential' this will then set to False.
-    Hindex : `float`, optional
-        Use Hindex as the power law to integrate over H, if cumulative is True. Default 0.3.
+    hindex : `float`, optional
+        Use hindex as the power law to integrate over H, if cumulative is True. Default 0.3.
     """
 
     def __init__(
         self,
         threshold=1,
         nbins=20,
-        minHrange=1.0,
+        min_hrange=1.0,
         cumulative=None,
-        Hindex=0.33,
+        hindex=0.33,
         **kwargs,
     ):
         if (
             cumulative is None
-        ):  # if metricName does not start with 'differential', then cumulative->True
-            if "metricName" not in kwargs:
+        ):  # if metric_name does not start with 'differential', then cumulative->True
+            if "metric_name" not in kwargs:
                 self.cumulative = True
-                metricName = "CumulativeCompleteness"
-            else:  #  'metricName' in kwargs:
-                metricName = kwargs.pop("metricName")
-                if metricName.lower().startswith("differential"):
+                metric_name = "CumulativeCompleteness"
+            else:  #  'metric_name' in kwargs:
+                metric_name = kwargs.pop("metric_name")
+                if metric_name.lower().startswith("differential"):
                     self.cumulative = False
                 else:
                     self.cumulative = True
         else:  # cumulative was set
             self.cumulative = cumulative
-            if "metricName" in kwargs:
-                metricName = kwargs.pop("metricName")
-                if metricName.lower().startswith("differential") and self.cumulative:
+            if "metric_name" in kwargs:
+                metric_name = kwargs.pop("metric_name")
+                if metric_name.lower().startswith("differential") and self.cumulative:
                     warnings.warn(
-                        f"Completeness metricName is {metricName} but cumulative is True"
+                        f"Completeness metric_name is {metric_name} but cumulative is True"
                     )
             else:
                 if self.cumulative:
-                    metricName = "CumulativeCompleteness"
+                    metric_name = "CumulativeCompleteness"
                 else:
-                    metricName = "DifferentialCompleteness"
+                    metric_name = "DifferentialCompleteness"
         if self.cumulative:
             units = "<=H"
         else:
             units = "@H"
-        super().__init__(metricName=metricName, units=units, **kwargs)
+        super().__init__(metric_name=metric_name, units=units, **kwargs)
         self.threshold = threshold
         # If H is not a cloned distribution, then we need to specify how to bin these values.
         self.nbins = nbins
-        self.minHrange = minHrange
-        self.Hindex = Hindex
+        self.min_hrange = min_hrange
+        self.hindex = hindex
 
-    def run(self, metricValues, Hvals):
-        nSsos = metricValues.shape[0]
-        nHval = len(Hvals)
-        metricValH = metricValues.swapaxes(0, 1)
-        if nHval == metricValues.shape[1]:
-            # Hvals array is probably the same as the cloned H array.
-            completeness = np.zeros(len(Hvals), float)
-            for i, H in enumerate(Hvals):
-                completeness[i] = np.where(metricValH[i].filled(0) >= self.threshold)[
+    def run(self, metric_values, hvals):
+        n_ssos = metric_values.shape[0]
+        n_hval = len(hvals)
+        metric_val_h = metric_values.swapaxes(0, 1)
+        if n_hval == metric_values.shape[1]:
+            # hvals array is probably the same as the cloned H array.
+            completeness = np.zeros(len(hvals), float)
+            for i, H in enumerate(hvals):
+                completeness[i] = np.where(metric_val_h[i].filled(0) >= self.threshold)[
                     0
                 ].size
-            completeness = completeness / float(nSsos)
+            completeness = completeness / float(n_ssos)
         else:
-            # The Hvals are spread more randomly among the objects (we probably used one per object).
-            hrange = Hvals.max() - Hvals.min()
-            minH = Hvals.min()
-            if hrange < self.minHrange:
-                hrange = self.minHrange
-                minH = Hvals.min() - hrange / 2.0
+            # The hvals are spread more randomly among the objects (we probably used one per object).
+            hrange = hvals.max() - hvals.min()
+            min_h = hvals.min()
+            if hrange < self.min_hrange:
+                hrange = self.min_hrange
+                min_h = hvals.min() - hrange / 2.0
             stepsize = hrange / float(self.nbins)
-            bins = np.arange(minH, minH + hrange + stepsize / 2.0, stepsize)
-            Hvals = bins[:-1]
-            n_all, b = np.histogram(metricValH[0], bins)
-            condition = np.where(metricValH[0] >= self.threshold)[0]
-            n_found, b = np.histogram(metricValH[0][condition], bins)
+            bins = np.arange(min_h, min_h + hrange + stepsize / 2.0, stepsize)
+            hvals = bins[:-1]
+            n_all, b = np.histogram(metric_val_h[0], bins)
+            condition = np.where(metric_val_h[0] >= self.threshold)[0]
+            n_found, b = np.histogram(metric_val_h[0][condition], bins)
             completeness = n_found.astype(float) / n_all.astype(float)
             completeness = np.where(n_all == 0, 0, completeness)
         if self.cumulative:
-            completenessInt = integrateOverH(
-                completeness, Hvals, power_law_dndh, Hindex=self.Hindex
+            completeness_int = integrate_over_h(
+                completeness, hvals, power_law_dndh, Hindex=self.hindex
             )
-            summaryVal = np.empty(
-                len(completenessInt), dtype=[("name", np.str_, 20), ("value", float)]
+            summary_val = np.empty(
+                len(completeness_int), dtype=[("name", np.str_, 20), ("value", float)]
             )
-            summaryVal["value"] = completenessInt
-            for i, Hval in enumerate(Hvals):
-                summaryVal["name"][i] = "H <= %f" % (Hval)
+            summary_val["value"] = completeness_int
+            for i, Hval in enumerate(hvals):
+                summary_val["name"][i] = "H <= %f" % (Hval)
         else:
-            summaryVal = np.empty(
+            summary_val = np.empty(
                 len(completeness), dtype=[("name", np.str_, 20), ("value", float)]
             )
-            summaryVal["value"] = completeness
-            for i, Hval in enumerate(Hvals):
-                summaryVal["name"][i] = "H = %f" % (Hval)
-        return summaryVal
+            summary_val["value"] = completeness
+            for i, Hval in enumerate(hvals):
+                summary_val["name"][i] = "H = %f" % (Hval)
+        return summary_val
 
 
 class MoCompletenessAtTimeMetric(BaseMoMetric):
@@ -372,91 +372,91 @@ class MoCompletenessAtTimeMetric(BaseMoMetric):
     ----------
     times : `numpy.ndarray` like
         The bins to distribute the discovery times into. Same units as the discovery time (typically MJD).
-    Hval : `float`, optional
+    hval : `float`, optional
         The value of H to count completeness at (or cumulative completeness to).
         Default None, in which case a value halfway through Hvals (the slicer H range) will be chosen.
     cumulative : `bool`, optional
         If True, calculate the cumulative completeness (completeness <= H).
         If False, calculate the differential completeness (completeness @ H).
         Default None which becomes 'True' unless metricName starts with 'differential'.
-    Hindex : `float`, optional
-        Use Hindex as the power law to integrate over H, if cumulative is True. Default 0.3.
+    hindex : `float`, optional
+        Use hindex as the power law to integrate over H, if cumulative is True. Default 0.3.
     """
 
-    def __init__(self, times, Hval=None, cumulative=None, Hindex=0.33, **kwargs):
-        self.Hval = Hval
+    def __init__(self, times, hval=None, cumulative=None, hindex=0.33, **kwargs):
+        self.hval = hval
         self.times = times
-        self.Hindex = Hindex
+        self.hindex = hindex
         if (
             cumulative is None
-        ):  # if metricName does not start with 'differential', then cumulative->True
-            if "metricName" not in kwargs:
+        ):  # if metric_name does not start with 'differential', then cumulative->True
+            if "metric_name" not in kwargs:
                 self.cumulative = True
-                metricName = "CumulativeCompleteness@Time@H=%.2f" % self.Hval
-            else:  #  'metricName' in kwargs:
-                metricName = kwargs.pop("metricName")
-                if metricName.lower().startswith("differential"):
+                metric_name = "CumulativeCompleteness@Time@H=%.2f" % self.hval
+            else:  #  'metric_name' in kwargs:
+                metric_name = kwargs.pop("metric_name")
+                if metric_name.lower().startswith("differential"):
                     self.cumulative = False
                 else:
                     self.cumulative = True
         else:  # cumulative was set
             self.cumulative = cumulative
-            if "metricName" in kwargs:
-                metricName = kwargs.pop("metricName")
-                if metricName.lower().startswith("differential") and self.cumulative:
+            if "metric_name" in kwargs:
+                metric_name = kwargs.pop("metric_name")
+                if metric_name.lower().startswith("differential") and self.cumulative:
                     warnings.warn(
-                        f"Completeness metricName is {metricName} but cumulative is True"
+                        f"Completeness metric_name is {metric_name} but cumulative is True"
                     )
             else:
                 if self.cumulative:
-                    metricName = "CumulativeCompleteness@Time@H=%.2f" % self.Hval
+                    metric_name = "CumulativeCompleteness@Time@H=%.2f" % self.hval
                 else:
-                    metricName = "DifferentialCompleteness@Time@H=%.2f" % self.Hval
-        self._setLabels()
-        super().__init__(metricName=metricName, units=self.units, **kwargs)
+                    metric_name = "DifferentialCompleteness@Time@H=%.2f" % self.hval
+        self._set_labels()
+        super().__init__(metric_name=metric_name, units=self.units, **kwargs)
 
-    def _setLabels(self):
-        if self.Hval is not None:
+    def _set_labels(self):
+        if self.hval is not None:
             if self.cumulative:
-                self.units = "H <=%.1f" % (self.Hval)
+                self.units = "H <=%.1f" % (self.hval)
             else:
-                self.units = "H = %.1f" % (self.Hval)
+                self.units = "H = %.1f" % (self.hval)
         else:
             self.units = "H"
 
-    def run(self, discoveryTimes, Hvals):
-        if len(Hvals) != discoveryTimes.shape[1]:
+    def run(self, discovery_times, hvals):
+        if len(hvals) != discovery_times.shape[1]:
             warnings.warn(
                 "This summary metric expects cloned H distribution. Cannot calculate summary."
             )
             return
-        nSsos = discoveryTimes.shape[0]
-        timesinH = discoveryTimes.swapaxes(0, 1)
-        completenessH = np.empty([len(Hvals), len(self.times)], float)
-        for i, H in enumerate(Hvals):
-            n, b = np.histogram(timesinH[i].compressed(), bins=self.times)
-            completenessH[i][0] = 0
-            completenessH[i][1:] = n.cumsum()
-        completenessH = completenessH / float(nSsos)
-        completeness = completenessH.swapaxes(0, 1)
+        n_ssos = discovery_times.shape[0]
+        timesin_h = discovery_times.swapaxes(0, 1)
+        completeness_h = np.empty([len(hvals), len(self.times)], float)
+        for i, H in enumerate(hvals):
+            n, b = np.histogram(timesin_h[i].compressed(), bins=self.times)
+            completeness_h[i][0] = 0
+            completeness_h[i][1:] = n.cumsum()
+        completeness_h = completeness_h / float(n_ssos)
+        completeness = completeness_h.swapaxes(0, 1)
         if self.cumulative:
             for i, t in enumerate(self.times):
-                completeness[i] = integrateOverH(completeness[i], Hvals)
+                completeness[i] = integrate_over_h(completeness[i], hvals)
         # To save the summary statistic, we must pick out a given H value.
-        if self.Hval is None:
-            Hidx = len(Hvals) // 2
-            self.Hval = Hvals[Hidx]
-            self._setLabels()
+        if self.hval is None:
+            hidx = len(hvals) // 2
+            self.hval = hvals[hidx]
+            self._set_labels()
         else:
-            Hidx = np.where(
-                np.abs(Hvals - self.Hval) == np.abs(Hvals - self.Hval).min()
+            hidx = np.where(
+                np.abs(hvals - self.hval) == np.abs(hvals - self.hval).min()
             )[0][0]
-            self.Hval = Hvals[Hidx]
-            self._setLabels()
-        summaryVal = np.empty(
+            self.hval = hvals[hidx]
+            self._set_labels()
+        summary_val = np.empty(
             len(self.times), dtype=[("name", np.str_, 20), ("value", float)]
         )
-        summaryVal["value"] = completeness[:, Hidx]
+        summary_val["value"] = completeness[:, hidx]
         for i, time in enumerate(self.times):
-            summaryVal["name"][i] = "%s @ %.2f" % (self.units, time)
-        return summaryVal
+            summary_val["name"][i] = "%s @ %.2f" % (self.units, time)
+        return summary_val

@@ -18,63 +18,63 @@ class DcrPrecisionMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="DCRprecision",
-        seeingCol="seeingFwhmGeom",
-        m5Col="fiveSigmaDepth",
-        HACol="HA",
-        PACol="paraAngle",
-        filterCol="filter",
+        metric_name="DCRprecision",
+        seeing_col="seeingFwhmGeom",
+        m5_col="fiveSigmaDepth",
+        ha_col="HA",
+        pa_col="paraAngle",
+        filter_col="filter",
         atm_err=0.01,
-        SedTemplate="flat",
+        sed_template="flat",
         rmag=20.0,
         **kwargs
     ):
 
-        self.m5Col = m5Col
-        self.filterCol = filterCol
-        self.PACol = PACol
-        self.seeingCol = seeingCol
+        self.m5_col = m5_col
+        self.filter_col = filter_col
+        self.pa_col = pa_col
+        self.seeing_col = seeing_col
         self.mags = {}
         self.filters = ["u", "g", "r", "i", "z", "y"]
-        if SedTemplate == "flat":
+        if sed_template == "flat":
             for f in self.filters:
                 self.mags[f] = rmag
         else:
-            self.mags = utils.stellarMags(SedTemplate, rmag=rmag)
+            self.mags = utils.stellarMags(sed_template, rmag=rmag)
         cols = [
             "ra_dcr_amp",
             "dec_dcr_amp",
-            seeingCol,
-            m5Col,
-            filterCol,
+            seeing_col,
+            m5_col,
+            filter_col,
             "zenithDistance",
-            PACol,
+            pa_col,
         ]
         units = "arcseconds"
         self.atm_err = atm_err
         super(DcrPrecisionMetric, self).__init__(
-            cols, metricName=metricName, units=units, **kwargs
+            cols, metric_name=metric_name, units=units, **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
 
-        snr = np.zeros(len(dataSlice), dtype="float")
+        snr = np.zeros(len(data_slice), dtype="float")
         for filt in self.filters:
-            inFilt = np.where(dataSlice[self.filterCol] == filt)
-            snr[inFilt] = mafUtils.m52snr(
-                self.mags[filt], dataSlice[self.m5Col][inFilt]
+            in_filt = np.where(data_slice[self.filter_col] == filt)
+            snr[in_filt] = mafUtils.m52snr(
+                self.mags[filt], data_slice[self.m5_col][in_filt]
             )
 
         position_errors = np.sqrt(
-            mafUtils.astrom_precision(dataSlice[self.seeingCol], snr) ** 2
+            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2
             + self.atm_err**2
         )
 
-        x_coord = np.tan(np.radians(dataSlice["zenithDistance"])) * np.sin(
-            np.radians(dataSlice[self.PACol])
+        x_coord = np.tan(np.radians(data_slice["zenithDistance"])) * np.sin(
+            np.radians(data_slice[self.pa_col])
         )
-        x_coord2 = np.tan(np.radians(dataSlice["zenithDistance"])) * np.cos(
-            np.radians(dataSlice[self.PACol])
+        x_coord2 = np.tan(np.radians(data_slice["zenithDistance"])) * np.cos(
+            np.radians(data_slice[self.pa_col])
         )
         # Things should be the same for RA and dec.
         # Now I want to compute the error if I interpolate/extrapolate to +/-1.

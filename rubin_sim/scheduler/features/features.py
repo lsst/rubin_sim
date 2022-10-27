@@ -5,28 +5,28 @@ import healpy as hp
 from rubin_sim.scheduler import utils
 from rubin_sim.utils import m5_flat_sed, ra_dec2_hpid, calc_season, _hpid2_ra_dec
 from rubin_sim.skybrightness_pre import dark_sky
-from rubin_sim.scheduler.utils import int_rounded
+from rubin_sim.scheduler.utils import IntRounded
 
 
 __all__ = [
     "BaseFeature",
     "BaseSurveyFeature",
-    "N_obs_count",
-    "N_obs_survey",
-    "Last_observation",
-    "LastSequence_observation",
+    "NObsCount",
+    "NObsSurvey",
+    "LastObservation",
+    "LastsequenceObservation",
     "LastFilterChange",
-    "N_observations",
-    "Coadded_depth",
-    "Last_observed",
-    "N_obs_night",
-    "Pair_in_night",
-    "Rotator_angle",
-    "N_observations_season",
-    "N_obs_count_season",
-    "N_observations_current_season",
-    "Last_N_obs_times",
-    "Survey_in_night",
+    "NObservations",
+    "CoaddedDepth",
+    "LastObserved",
+    "NObsNight",
+    "PairInNight",
+    "RotatorAngle",
+    "NObservationsSeason",
+    "NObsCountSeason",
+    "NObservationsCurrentSeason",
+    "LastNObsTimes",
+    "SurveyInNight",
     "NoteLastObserved",
 ]
 
@@ -61,7 +61,7 @@ class BaseSurveyFeature(BaseFeature):
         raise NotImplementedError
 
 
-class Survey_in_night(BaseSurveyFeature):
+class SurveyInNight(BaseSurveyFeature):
     """Keep track of how many times a survey has executed in a night."""
 
     def __init__(self, survey_str=""):
@@ -78,7 +78,7 @@ class Survey_in_night(BaseSurveyFeature):
             self.feature += 1
 
 
-class N_obs_count(BaseSurveyFeature):
+class NObsCount(BaseSurveyFeature):
     """Count the number of observations. Total number, not tracked over sky
 
     Parameters
@@ -122,7 +122,7 @@ class N_obs_count(BaseSurveyFeature):
             self.feature += 1
 
 
-class N_obs_count_season(BaseSurveyFeature):
+class NObsCountSeason(BaseSurveyFeature):
     """Count the number of observations.
 
     Parameters
@@ -192,7 +192,7 @@ class N_obs_count_season(BaseSurveyFeature):
                 self.feature += 1
 
 
-class N_obs_survey(BaseSurveyFeature):
+class NObsSurvey(BaseSurveyFeature):
     """Count the number of observations.
 
      Parameters
@@ -214,7 +214,7 @@ class N_obs_survey(BaseSurveyFeature):
                 self.feature += 1
 
 
-class Last_observation(BaseSurveyFeature):
+class LastObservation(BaseSurveyFeature):
     """Track the last observation. Useful if you want to see when the
     last time a survey took an observation.
 
@@ -237,7 +237,7 @@ class Last_observation(BaseSurveyFeature):
             self.feature = observation
 
 
-class LastSequence_observation(BaseSurveyFeature):
+class LastsequenceObservation(BaseSurveyFeature):
     """When was the last observation"""
 
     def __init__(self, sequence_ids=""):
@@ -267,7 +267,7 @@ class LastFilterChange(BaseSurveyFeature):
             self.feature["current_filter"] = observation["filter"][0]
 
 
-class N_observations(BaseSurveyFeature):
+class NObservations(BaseSurveyFeature):
     """
     Track the number of observations that have been made across the sky.
 
@@ -312,7 +312,7 @@ class N_observations(BaseSurveyFeature):
                 pass
 
 
-class N_observations_season(BaseSurveyFeature):
+class NObservationsSeason(BaseSurveyFeature):
     """
     Track the number of observations that have been made across sky
 
@@ -374,7 +374,7 @@ class N_observations_season(BaseSurveyFeature):
                 self.feature[indx] += 1
 
 
-class Last_N_obs_times(BaseSurveyFeature):
+class LastNObsTimes(BaseSurveyFeature):
     """Record the last three observations for each healpixel"""
 
     def __init__(self, filtername=None, n_obs=3, nside=None):
@@ -391,14 +391,14 @@ class Last_N_obs_times(BaseSurveyFeature):
             self.feature[-1, indx] = observation["mjd"]
 
 
-class N_observations_current_season(BaseSurveyFeature):
+class NObservationsCurrentSeason(BaseSurveyFeature):
     """Track how many observations have been taken in the current season that meet criteria"""
 
     def __init__(
         self,
         filtername=None,
         nside=None,
-        seeingFWHM_max=None,
+        seeing_fwhm_max=None,
         m5_penalty_max=None,
         mjd_start=1,
     ):
@@ -407,7 +407,7 @@ class N_observations_current_season(BaseSurveyFeature):
             self.nside = utils.set_default_nside()
         else:
             self.nside = nside
-        self.seeingFWHM_max = seeingFWHM_max
+        self.seeing_fwhm_max = seeing_fwhm_max
         self.m5_penalty_max = m5_penalty_max
 
         self.feature = np.zeros(hp.nside2npix(nside), dtype=float)
@@ -432,8 +432,8 @@ class N_observations_current_season(BaseSurveyFeature):
     def add_observation(self, observation, indx=None):
         self.season_update(observation=observation)
 
-        if self.seeingFWHM_max is not None:
-            check1 = observation["FWHMeff"] <= self.seeingFWHM_max
+        if self.seeing_fwhm_max is not None:
+            check1 = observation["FWHMeff"] <= self.seeing_fwhm_max
         else:
             check1 = True
 
@@ -449,29 +449,29 @@ class N_observations_current_season(BaseSurveyFeature):
                 self.feature[indx] += 1
 
 
-class Coadded_depth(BaseSurveyFeature):
+class CoaddedDepth(BaseSurveyFeature):
     """
     Track the co-added depth that has been reached accross the sky
 
     Parameters
     ----------
-    FWHMeff_limit : float (100)
+    fwh_meff_limit : float (100)
         The effective FWHM of the seeing (arcsecond). Images will only be added to the
         coadded depth if the observation FWHM is less than or equal to the limit.  Default 100.
     """
 
-    def __init__(self, filtername="r", nside=None, FWHMeff_limit=100.0):
+    def __init__(self, filtername="r", nside=None, fwh_meff_limit=100.0):
         if nside is None:
             nside = utils.set_default_nside()
         self.filtername = filtername
-        self.FWHMeff_limit = int_rounded(FWHMeff_limit)
+        self.fwh_meff_limit = IntRounded(fwh_meff_limit)
         # Starting at limiting mag of zero should be fine.
         self.feature = np.zeros(hp.nside2npix(nside), dtype=float)
 
     def add_observation(self, observation, indx=None):
 
         if observation["filter"] == self.filtername:
-            if int_rounded(observation["FWHMeff"]) <= self.FWHMeff_limit:
+            if IntRounded(observation["FWHMeff"]) <= self.fwh_meff_limit:
                 m5 = m5_flat_sed(
                     observation["filter"],
                     observation["skybrightness"],
@@ -485,7 +485,7 @@ class Coadded_depth(BaseSurveyFeature):
                 )
 
 
-class Last_observed(BaseSurveyFeature):
+class LastObserved(BaseSurveyFeature):
     """
     Track when a pixel was last observed. Assumes observations are added in chronological
     order.
@@ -527,7 +527,7 @@ class NoteLastObserved(BaseSurveyFeature):
             self.feature = observation["mjd"]
 
 
-class N_obs_night(BaseSurveyFeature):
+class NObsNight(BaseSurveyFeature):
     """
     Track how many times something has been observed in a night
     (Note, even if there are two, it might not be a good pair.)
@@ -559,7 +559,7 @@ class N_obs_night(BaseSurveyFeature):
             self.feature[indx] += 1
 
 
-class Pair_in_night(BaseSurveyFeature):
+class PairInNight(BaseSurveyFeature):
     """
     Track how many pairs have been observed within a night
 
@@ -578,7 +578,7 @@ class Pair_in_night(BaseSurveyFeature):
         self.filtername = filtername
         self.feature = np.zeros(hp.nside2npix(nside), dtype=float)
         self.indx = np.arange(self.feature.size)
-        self.last_observed = Last_observed(filtername=filtername)
+        self.last_observed = LastObserved(filtername=filtername)
         self.gap_min = gap_min / (24.0 * 60)  # Days
         self.gap_max = gap_max / (24.0 * 60)  # Days
         self.night = 0
@@ -618,7 +618,7 @@ class Pair_in_night(BaseSurveyFeature):
             self.feature[indx[matches]] += 1
 
 
-class Rotator_angle(BaseSurveyFeature):
+class RotatorAngle(BaseSurveyFeature):
     """
     Track what rotation angles things are observed with.
     XXX-under construction

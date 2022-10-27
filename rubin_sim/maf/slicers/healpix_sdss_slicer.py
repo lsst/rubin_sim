@@ -33,22 +33,22 @@ class HealpixSDSSSlicer(HealpixSlicer):
             nside=nside,
         )
         self.cornerLables = ["RA1", "Dec1", "RA2", "Dec2", "RA3", "Dec3", "RA4", "Dec4"]
-        self.plotFuncs = [
+        self.plot_funcs = [
             HealpixSDSSSkyMap,
         ]
 
-    def setupSlicer(self, simData, maps=None):
+    def setup_slicer(self, sim_data, maps=None):
         """
-        Use simData[self.lonCol] and simData[self.latCol]
+        Use sim_data[self.lonCol] and sim_data[self.latCol]
         (in radians) to set up KDTree.
         """
         self._runMaps(maps)
-        self._build_tree(simData[self.lonCol], simData[self.latCol], self.leafsize)
+        self._build_tree(sim_data[self.lonCol], sim_data[self.latCol], self.leafsize)
         self._setRad(self.radius)
-        self.corners = simData[self.cornerLables]
+        self.corners = sim_data[self.cornerLables]
 
-        @wraps(self._sliceSimData)
-        def _sliceSimData(islice):
+        @wraps(self._slice_sim_data)
+        def _slice_sim_data(islice):
             """Return indexes for relevant opsim data at slicepoint
             (slicepoint=lonCol/latCol value .. usually ra/dec)."""
             sx, sy, sz = self._treexyz(
@@ -58,9 +58,9 @@ class HealpixSDSSSlicer(HealpixSlicer):
             initIndices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
             # Loop through all the images and check if the slicepoint is inside the corners of the chip
             # XXX--should check if there's a better/faster way to do this.
-            # Maybe in the setupSlicer loop through each image, and use the contains_points method to test all the
+            # Maybe in the setup_slicer loop through each image, and use the contains_points method to test all the
             # healpixels simultaneously?  Then just have a dict with keys = healpix id and values = list of indices?
-            # That way _sliceSimData is just doing a dict look-up and we can get rid of the spatialkey kwargs.
+            # That way _slice_sim_data is just doing a dict look-up and we can get rid of the spatialkey kwargs.
 
             indices = []
             # Gnomic project all the corners that are near the slice point, centered on slice point
@@ -115,4 +115,4 @@ class HealpixSDSSSlicer(HealpixSlicer):
                 },
             }
 
-        setattr(self, "_sliceSimData", _sliceSimData)
+        setattr(self, "_slice_sim_data", _slice_sim_data)

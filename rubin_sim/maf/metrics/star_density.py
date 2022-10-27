@@ -7,9 +7,9 @@ __all__ = ["StarDensityMetric"]
 
 class StarDensityMetric(BaseMetric):
     """Interpolate the stellar luminosity function to return the number of
-    stars per square arcsecond brighter than the magLimit.
+    stars per square arcsecond brighter than the mag_limit.
     Note that the map is built from CatSim stars in the range 20 < r < 28.
-    magLimit values outside that the range of the map's starMapBins will return self.badval
+    mag_limit values outside that the range of the map's starMapBins will return self.badval
 
     The stellar density maps are available in any bandpass, but bandpasses other
     than r band must use a pre-configured StellarDensityMap (not just the default).
@@ -17,14 +17,14 @@ class StarDensityMetric(BaseMetric):
     using (as an example) a HealpixSlicer:
     ```
     map = maf.StellarDensityMap(filtername='i')
-    metric = maf.StarDensityMetric(filtername='i', magLimit=25.0)
+    metric = maf.StarDensityMetric(filtername='i', mag_limit=25.0)
     slicer = maf.HealpixSlicer()
     bundle = maf.MetricBundle(metric, slicer, "", mapsList=[map])
     ```
 
     Parameters
     ----------
-    magLimit : `float`, opt
+    mag_limit : `float`, opt
         Magnitude limit at which to evaluate the stellar luminosity function.
         Returns number of stars per square arcsecond brighter than this limit.
         Default 25.
@@ -40,12 +40,12 @@ class StarDensityMetric(BaseMetric):
     Returns
     -------
     result : `float`
-        Number of stars brighter than magLimit in filtername, based on the stellar density map.
+        Number of stars brighter than mag_limit in filtername, based on the stellar density map.
     """
 
     def __init__(
         self,
-        magLimit=25.0,
+        mag_limit=25.0,
         filtername="r",
         units="stars/sq arcsec",
         maps=["StellarDensityMap"],
@@ -55,24 +55,24 @@ class StarDensityMetric(BaseMetric):
         super(StarDensityMetric, self).__init__(
             col=[], maps=maps, units=units, **kwargs
         )
-        self.magLimit = magLimit
+        self.mag_limit = mag_limit
         if "rmagLimit" in kwargs:
             warnings.warn(
-                "rmagLimit is deprecated; please use magLimit instead "
+                "rmagLimit is deprecated; please use mag_limit instead "
                 "(will use the provided rmagLimit for now)."
             )
-            self.magLimit = kwargs["rmagLimit"]
+            self.mag_limit = kwargs["rmagLimit"]
         self.filtername = filtername
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # Interpolate the data to the requested mag
         interp = interp1d(
-            slicePoint["starMapBins_%s" % self.filtername][1:],
-            slicePoint["starLumFunc_%s" % self.filtername],
+            slice_point["starMapBins_%s" % self.filtername][1:],
+            slice_point["starLumFunc_%s" % self.filtername],
         )
         # convert from stars/sq degree to stars/sq arcsec
         try:
-            result = interp(self.magLimit) / (3600.0**2)
+            result = interp(self.mag_limit) / (3600.0**2)
         except ValueError:
             # This probably means the interpolation went out of range (magLimit <15 or >28)
             return self.badval

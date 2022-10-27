@@ -20,22 +20,22 @@ class VectorMetric(BaseMetric):
     def __init__(
         self,
         bins=None,
-        binCol="night",
+        bin_col="night",
         col="night",
         units=None,
-        metricDtype=float,
+        metric_dtype=float,
         **kwargs
     ):
         if isinstance(col, str):
-            cols = [col, binCol]
+            cols = [col, bin_col]
         else:
-            cols = list(col) + [binCol]
+            cols = list(col) + [bin_col]
 
         super(VectorMetric, self).__init__(
-            col=cols, units=units, metricDtype=metricDtype, **kwargs
+            col=cols, units=units, metric_dtype=metric_dtype, **kwargs
         )
         self.bins = bins
-        self.binCol = binCol
+        self.bin_col = bin_col
         self.shape = np.size(bins) - 1
 
 
@@ -47,11 +47,11 @@ class HistogramMetric(VectorMetric):
     def __init__(
         self,
         bins=None,
-        binCol="night",
+        bin_col="night",
         col="night",
         units="Count",
         statistic="count",
-        metricDtype=float,
+        metric_dtype=float,
         **kwargs
     ):
         self.statistic = statistic
@@ -59,17 +59,17 @@ class HistogramMetric(VectorMetric):
         super(HistogramMetric, self).__init__(
             col=col,
             bins=bins,
-            binCol=binCol,
+            bin_col=bin_col,
             units=units,
-            metricDtype=metricDtype,
+            metric_dtype=metric_dtype,
             **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
-        dataSlice.sort(order=self.binCol)
-        result, binEdges, binNumber = stats.binned_statistic(
-            dataSlice[self.binCol],
-            dataSlice[self.col],
+    def run(self, data_slice, slice_point=None):
+        data_slice.sort(order=self.bin_col)
+        result, bin_edges, bin_number = stats.binned_statistic(
+            data_slice[self.bin_col],
+            data_slice[self.col],
             bins=self.bins,
             statistic=self.statistic,
         )
@@ -85,22 +85,22 @@ class AccumulateMetric(VectorMetric):
         self,
         col="night",
         bins=None,
-        binCol="night",
+        bin_col="night",
         function=np.add,
-        metricDtype=float,
+        metric_dtype=float,
         **kwargs
     ):
         self.function = function
         super(AccumulateMetric, self).__init__(
-            col=col, binCol=binCol, bins=bins, metricDtype=metricDtype, **kwargs
+            col=col, bin_col=bin_col, bins=bins, metric_dtype=metric_dtype, **kwargs
         )
         self.col = col
 
-    def run(self, dataSlice, slicePoint=None):
-        dataSlice.sort(order=self.binCol)
+    def run(self, data_slice, slice_point=None):
+        data_slice.sort(order=self.bin_col)
 
-        result = self.function.accumulate(dataSlice[self.col])
-        indices = np.searchsorted(dataSlice[self.binCol], self.bins[1:], side="right")
+        result = self.function.accumulate(data_slice[self.col])
+        indices = np.searchsorted(data_slice[self.bin_col], self.bins[1:], side="right")
         indices[np.where(indices >= np.size(result))] = np.size(result) - 1
         result = result[indices]
         result[np.where(indices == 0)] = self.badval
@@ -108,11 +108,11 @@ class AccumulateMetric(VectorMetric):
 
 
 class AccumulateCountMetric(AccumulateMetric):
-    def run(self, dataSlice, slicePoint=None):
-        dataSlice.sort(order=self.binCol)
-        toCount = np.ones(dataSlice.size, dtype=int)
-        result = self.function.accumulate(toCount)
-        indices = np.searchsorted(dataSlice[self.binCol], self.bins[1:], side="right")
+    def run(self, data_slice, slice_point=None):
+        data_slice.sort(order=self.bin_col)
+        to_count = np.ones(data_slice.size, dtype=int)
+        result = self.function.accumulate(to_count)
+        indices = np.searchsorted(data_slice[self.bin_col], self.bins[1:], side="right")
         indices[np.where(indices >= np.size(result))] = np.size(result) - 1
         result = result[indices]
         result[np.where(indices == 0)] = self.badval
@@ -127,32 +127,32 @@ class HistogramM5Metric(HistogramMetric):
     def __init__(
         self,
         bins=None,
-        binCol="night",
-        m5Col="fiveSigmaDepth",
+        bin_col="night",
+        m5_col="fiveSigmaDepth",
         units="mag",
-        metricName="HistogramM5Metric",
+        metric_name="HistogramM5Metric",
         **kwargs
     ):
 
         super(HistogramM5Metric, self).__init__(
-            col=m5Col,
-            binCol=binCol,
+            col=m5_col,
+            bin_col=bin_col,
             bins=bins,
-            metricName=metricName,
+            metricName=metric_name,
             units=units,
             **kwargs
         )
-        self.m5Col = m5Col
+        self.m5_col = m5_col
 
-    def run(self, dataSlice, slicePoint=None):
-        dataSlice.sort(order=self.binCol)
-        flux = 10.0 ** (0.8 * dataSlice[self.m5Col])
-        result, binEdges, binNumber = stats.binned_statistic(
-            dataSlice[self.binCol], flux, bins=self.bins, statistic="sum"
+    def run(self, data_slice, slice_point=None):
+        data_slice.sort(order=self.bin_col)
+        flux = 10.0 ** (0.8 * data_slice[self.m5_col])
+        result, bin_edges, bin_number = stats.binned_statistic(
+            data_slice[self.bin_col], flux, bins=self.bins, statistic="sum"
         )
-        noFlux = np.where(result == 0.0)
+        no_flux = np.where(result == 0.0)
         result = 1.25 * np.log10(result)
-        result[noFlux] = self.badval
+        result[no_flux] = self.badval
         return result
 
 
@@ -160,22 +160,22 @@ class AccumulateM5Metric(AccumulateMetric):
     def __init__(
         self,
         bins=None,
-        binCol="night",
-        m5Col="fiveSigmaDepth",
-        metricName="AccumulateM5Metric",
+        bin_col="night",
+        m5_col="fiveSigmaDepth",
+        metric_name="AccumulateM5Metric",
         **kwargs
     ):
-        self.m5Col = m5Col
+        self.m5_col = m5_col
         super(AccumulateM5Metric, self).__init__(
-            bins=bins, binCol=binCol, col=m5Col, metricName=metricName, **kwargs
+            bins=bins, bin_col=bin_col, col=m5_col, metricName=metric_name, **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
-        dataSlice.sort(order=self.binCol)
-        flux = 10.0 ** (0.8 * dataSlice[self.m5Col])
+    def run(self, data_slice, slice_point=None):
+        data_slice.sort(order=self.bin_col)
+        flux = 10.0 ** (0.8 * data_slice[self.m5_col])
 
         result = np.add.accumulate(flux)
-        indices = np.searchsorted(dataSlice[self.binCol], self.bins[1:], side="right")
+        indices = np.searchsorted(data_slice[self.bin_col], self.bins[1:], side="right")
         indices[np.where(indices >= np.size(result))] = np.size(result) - 1
         result = result[indices]
         result = 1.25 * np.log10(result)
@@ -191,38 +191,38 @@ class AccumulateUniformityMetric(AccumulateMetric):
     def __init__(
         self,
         bins=None,
-        binCol="night",
-        expMJDCol="observationStartMJD",
-        metricName="AccumulateUniformityMetric",
-        surveyLength=10.0,
+        bin_col="night",
+        exp_mjd_col="observationStartMJD",
+        metric_name="AccumulateUniformityMetric",
+        survey_length=10.0,
         units="Fraction",
         **kwargs
     ):
-        self.expMJDCol = expMJDCol
+        self.exp_mjd_col = exp_mjd_col
         if bins is None:
-            bins = np.arange(0, np.ceil(surveyLength * 365.25)) - 0.5
+            bins = np.arange(0, np.ceil(survey_length * 365.25)) - 0.5
         super(AccumulateUniformityMetric, self).__init__(
             bins=bins,
-            binCol=binCol,
-            col=expMJDCol,
-            metricName=metricName,
+            bin_col=bin_col,
+            col=exp_mjd_col,
+            metricName=metric_name,
             units=units,
             **kwargs
         )
-        self.surveyLength = surveyLength
+        self.survey_length = survey_length
 
-    def run(self, dataSlice, slicePoint=None):
-        dataSlice.sort(order=self.binCol)
-        if dataSlice.size == 1:
+    def run(self, data_slice, slice_point=None):
+        data_slice.sort(order=self.bin_col)
+        if data_slice.size == 1:
             return np.ones(self.bins.size - 1, dtype=float)
 
-        visitsPerNight, blah = np.histogram(dataSlice[self.binCol], bins=self.bins)
-        visitsPerNight = np.add.accumulate(visitsPerNight)
-        expectedPerNight = (
-            np.arange(0.0, self.bins.size - 1) / (self.bins.size - 2) * dataSlice.size
+        visits_per_night, blah = np.histogram(data_slice[self.bin_col], bins=self.bins)
+        visits_per_night = np.add.accumulate(visits_per_night)
+        expected_per_night = (
+            np.arange(0.0, self.bins.size - 1) / (self.bins.size - 2) * data_slice.size
         )
 
-        D_max = np.abs(visitsPerNight - expectedPerNight)
-        D_max = np.maximum.accumulate(D_max)
-        result = D_max / expectedPerNight.max()
+        d_max = np.abs(visits_per_night - expected_per_night)
+        d_max = np.maximum.accumulate(d_max)
+        result = d_max / expected_per_night.max()
         return result

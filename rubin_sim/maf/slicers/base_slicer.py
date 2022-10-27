@@ -49,7 +49,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
     """
     Base class for all slicers: sets required methods and implements common functionality.
 
-    After first construction, the slicer should be ready for setupSlicer to define slicePoints, which will
+    After first construction, the slicer should be ready for setup_slicer to define slicePoints, which will
     let the slicer 'slice' data and generate plots.
     After init after a restore: everything necessary for using slicer for plotting or
     saving/restoring metric data should be present (although slicer does not need to be able to
@@ -78,13 +78,13 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         self.shape = self.nslice
         self.slicePoints = {}
         self.slicerName = self.__class__.__name__
-        self.columnsNeeded = []
+        self.columns_needed = []
         # Create a dict that saves how to re-init the slicer.
         #  This may not be the whole set of args/kwargs, but those which carry useful metadata or
         #   are absolutely necesary for init.
         # Will often be overwritten by individual slicer slicer_init dictionaries.
         self.slicer_init = {"badval": badval}
-        self.plotFuncs = []
+        self.plot_funcs = []
         # Note if the slicer needs OpSim field ID info
         self.needsFields = False
         # Set the y-axis range be on the two-d plot
@@ -97,20 +97,20 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
             for m in maps:
                 self.slicePoints = m.run(self.slicePoints)
 
-    def setupSlicer(self, simData, maps=None):
+    def setup_slicer(self, sim_data, maps=None):
         """Set up Slicer for data slicing.
 
-        Set up internal parameters necessary for slicer to slice data and generates indexes on simData.
-        Also sets _sliceSimData for a particular slicer.
+        Set up internal parameters necessary for slicer to slice data and generates indexes on sim_data.
+        Also sets _slice_sim_data for a particular slicer.
 
         Parameters
         -----------
-        simData : np.recarray
+        sim_data : np.recarray
             The simulated data to be sliced.
         maps : list of rubin_sim.maf.maps objects, optional.
             Maps to apply at each slicePoint, to add to the slicePoint metadata. Default None.
         """
-        # Typically args will be simData, but opsimFieldSlicer also uses fieldData.
+        # Typically args will be sim_data, but opsimFieldSlicer also uses fieldData.
         raise NotImplementedError()
 
     def getSlicePoints(self):
@@ -127,9 +127,9 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         return self
 
     def __next__(self):
-        """Returns results of self._sliceSimData when iterating over slicer.
+        """Returns results of self._slice_sim_data when iterating over slicer.
 
-        Results of self._sliceSimData should be dictionary of
+        Results of self._slice_sim_data should be dictionary of
         {'idxs': the data indexes relevant for this slice of the slicer,
         'slicePoint': the metadata for the slicePoint, which always includes 'sid' key for ID of slicePoint.}
         """
@@ -137,36 +137,36 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
             raise StopIteration
         islice = self.islice
         self.islice += 1
-        return self._sliceSimData(islice)
+        return self._slice_sim_data(islice)
 
     def __getitem__(self, islice):
-        return self._sliceSimData(islice)
+        return self._slice_sim_data(islice)
 
-    def __eq__(self, otherSlicer):
+    def __eq__(self, other_slicer):
         """
         Evaluate if two slicers are equivalent.
         """
         raise NotImplementedError()
 
-    def __ne__(self, otherSlicer):
+    def __ne__(self, other_slicer):
         """
         Evaluate if two slicers are not equivalent.
         """
-        if self == otherSlicer:
+        if self == other_slicer:
             return False
         else:
             return True
 
-    def _sliceSimData(self, slicePoint):
+    def _slice_sim_data(self, slicePoint):
         """
         Slice the simulation data appropriately for the slicer.
 
         Given the identifying slicePoint metadata
-        The slice of data returned will be the indices of the numpy rec array (the simData)
+        The slice of data returned will be the indices of the numpy rec array (the sim_data)
         which are appropriate for the metric to be working on, for that slicePoint.
         """
         raise NotImplementedError(
-            'This method is set up by "setupSlicer" - run that first.'
+            'This method is set up by "setup_slicer" - run that first.'
         )
 
     def writeData(
@@ -174,7 +174,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         outfilename,
         metricValues,
         metricName="",
-        simDataName="",
+        sim_dataName="",
         constraint=None,
         info_label="",
         plotDict=None,
@@ -194,7 +194,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         header["metricName"] = metricName
         header["constraint"] = constraint
         header["info_label"] = info_label
-        header["simDataName"] = simDataName
+        header["sim_dataName"] = sim_dataName
         date, versionInfo = getDateVersion()
         header["dateRan"] = date
         if displayDict is None:
@@ -226,7 +226,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         )
 
     def outputJSON(
-        self, metricValues, metricName="", simDataName="", info_label="", plotDict=None
+        self, metricValues, metricName="", sim_dataName="", info_label="", plotDict=None
     ):
         """
         Send metric data to JSON streaming API, along with a little bit of metadata.
@@ -240,7 +240,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
             The metric values.
         metricName : str, optional
             The name of the metric. Default ''.
-        simDataName : str, optional
+        sim_dataName : str, optional
             The name of the simulated data source. Default ''.
         info_label : str, optional
             Some additional information about this metric and how it was calculated. Default ''.
@@ -250,7 +250,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         Returns
         --------
         StringIO
-            StringIO object containing a header dictionary with metricName/metadata/simDataName/slicerName,
+            StringIO object containing a header dictionary with metricName/metadata/sim_dataName/slicerName,
             and plot labels from plotDict, and metric values/data for plot.
             if oneDSlicer, the data is [ [bin_left_edge, value], [bin_left_edge, value]..].
             if a spatial slicer, the data is [ [lon, lat, value], [lon, lat, value] ..].
@@ -269,19 +269,19 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         header = {}
         header["metricName"] = metricName
         header["info_label"] = info_label
-        header["simDataName"] = simDataName
+        header["sim_dataName"] = sim_dataName
         header["slicerName"] = self.slicerName
         header["slicerLen"] = int(self.nslice)
         # Set some default plot labels if appropriate.
         if "title" in plotDict:
             header["title"] = plotDict["title"]
         else:
-            header["title"] = "%s %s: %s" % (simDataName, info_label, metricName)
+            header["title"] = "%s %s: %s" % (sim_dataName, info_label, metricName)
         if "xlabel" in plotDict:
             header["xlabel"] = plotDict["xlabel"]
         else:
-            if hasattr(self, "sliceColName"):
-                header["xlabel"] = "%s (%s)" % (self.sliceColName, self.sliceColUnits)
+            if hasattr(self, "slice_col_name"):
+                header["xlabel"] = "%s (%s)" % (self.slice_col_name, self.slice_col_units)
             else:
                 header["xlabel"] = "%s" % (metricName)
                 if "units" in plotDict:
@@ -289,7 +289,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         if "ylabel" in plotDict:
             header["ylabel"] = plotDict["ylabel"]
         else:
-            if hasattr(self, "sliceColName"):
+            if hasattr(self, "slice_col_name"):
                 header["ylabel"] = "%s" % (metricName)
                 if "units" in plotDict:
                     header["ylabel"] += " (%s)" % (plotDict["units"])
@@ -366,7 +366,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
 
         # Allowing pickles here is required, because otherwise we cannot restore data saved as objects.
         restored = np.load(infilename, allow_pickle=True)
-        # Get metadata and other simData info.
+        # Get metadata and other sim_data info.
         header = restored["header"][()]
         slicer_init = restored["slicer_init"][()]
         slicerName = str(restored["slicerName"])

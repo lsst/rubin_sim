@@ -21,43 +21,43 @@ class PairFractionMetric(BaseMetric):
 
     Parameters
     ----------
-    minGap : float, optional
+    min_gap : float, optional
         Minimum time to consider something part of a pair (minutes). Default 15.
-    maxGap : float, optional
+    max_gap : float, optional
         Maximum time to consider something part of a pair (minutes). Default 90.
     """
 
     def __init__(
         self,
-        mjdCol="observationStartMJD",
-        metricName="PairFraction",
-        minGap=15.0,
-        maxGap=90.0,
+        mjd_col="observationStartMJD",
+        metric_name="PairFraction",
+        min_gap=15.0,
+        max_gap=90.0,
         **kwargs
     ):
-        self.mjdCol = mjdCol
-        self.minGap = minGap / 60.0 / 24.0
-        self.maxGap = maxGap / 60.0 / 24.0
+        self.mjd_col = mjd_col
+        self.min_gap = min_gap / 60.0 / 24.0
+        self.max_gap = max_gap / 60.0 / 24.0
         units = ""
         super(PairFractionMetric, self).__init__(
-            col=[mjdCol], metricName=metricName, units=units, **kwargs
+            col=[mjd_col], metric_name=metric_name, units=units, **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
-        nobs = np.size(dataSlice[self.mjdCol])
-        times = np.sort(dataSlice[self.mjdCol])
+    def run(self, data_slice, slice_point=None):
+        nobs = np.size(data_slice[self.mjd_col])
+        times = np.sort(data_slice[self.mjd_col])
 
         # Check which ones have a forard match
-        t_plus = times + self.maxGap
-        t_minus = times + self.minGap
+        t_plus = times + self.max_gap
+        t_minus = times + self.min_gap
         ind1 = np.searchsorted(times, t_plus)
         ind2 = np.searchsorted(times, t_minus)
         # If ind1 and ind2 are the same, there is no pairable image for that exposure
         diff1 = ind1 - ind2
 
         # Check which have a back match
-        t_plus = times - self.maxGap
-        t_minus = times - self.minGap
+        t_plus = times - self.max_gap
+        t_minus = times - self.min_gap
         ind1 = np.searchsorted(times, t_plus)
         ind2 = np.searchsorted(times, t_minus)
 
@@ -70,44 +70,44 @@ class PairFractionMetric(BaseMetric):
 
 
 class VisitGroupsMetric(BaseMetric):
-    """Count the number of visits per night within deltaTmin and deltaTmax."""
+    """Count the number of visits per night within delta_tmin and delta_tmax."""
 
     def __init__(
         self,
-        timeCol="observationStartMJD",
-        nightsCol="night",
-        metricName="VisitGroups",
-        deltaTmin=15.0 / 60.0 / 24.0,
-        deltaTmax=90.0 / 60.0 / 24.0,
-        minNVisits=2,
+        time_col="observationStartMJD",
+        nights_col="night",
+        metric_name="VisitGroups",
+        delta_tmin=15.0 / 60.0 / 24.0,
+        delta_tmax=90.0 / 60.0 / 24.0,
+        min_n_visits=2,
         window=30,
-        minNNights=3,
+        min_n_nights=3,
         **kwargs
     ):
         """
         Instantiate metric.
 
-        'timeCol' = column with the time of the visit (default expmjd),
-        'nightsCol' = column with the night of the visit (default night),
-        'deltaTmin' = minimum time of window: units are days (default 15 min),
-        'deltaTmax' = maximum time of window: units are days (default 90 min),
-        'minNVisits' = the minimum number of visits within a night (with spacing between deltaTmin/max
+        'time_col' = column with the time of the visit (default expmjd),
+        'nights_col' = column with the night of the visit (default night),
+        'delta_tmin' = minimum time of window: units are days (default 15 min),
+        'delta_tmax' = maximum time of window: units are days (default 90 min),
+        'min_n_visits' = the minimum number of visits within a night (with spacing between delta_tmin/max
         from any other visit) required,
         'window' = the number of nights to consider within a window (for reduce methods),
-        'minNNights' = the minimum required number of nights within window to make a full 'group'.
+        'min_n_nights' = the minimum required number of nights within window to make a full 'group'.
         """
-        self.times = timeCol
-        self.nights = nightsCol
+        self.times = time_col
+        self.nights = nights_col
         eps = 1e-10
-        self.deltaTmin = float(deltaTmin) - eps
-        self.deltaTmax = float(deltaTmax)
-        self.minNVisits = int(minNVisits)
+        self.delta_tmin = float(delta_tmin) - eps
+        self.delta_tmax = float(delta_tmax)
+        self.min_n_visits = int(min_n_visits)
         self.window = int(window)
-        self.minNNights = int(minNNights)
+        self.min_n_nights = int(min_n_nights)
         super(VisitGroupsMetric, self).__init__(
-            col=[self.times, self.nights], metricName=metricName, **kwargs
+            col=[self.times, self.nights], metric_name=metric_name, **kwargs
         )
-        self.reduceOrder = {
+        self.reduce_order = {
             "Median": 0,
             "NNightsWithNVisits": 1,
             "NVisitsInWindow": 2,
@@ -117,38 +117,38 @@ class VisitGroupsMetric(BaseMetric):
         }
         self.comment = "Evaluation of the number of visits within a night, with separations between "
         self.comment += "tMin %.1f and tMax %.1f minutes." % (
-            self.deltaTmin * 24.0 * 60.0,
-            self.deltaTmax * 24.0 * 60.0,
+            self.delta_tmin * 24.0 * 60.0,
+            self.delta_tmax * 24.0 * 60.0,
         )
         self.comment += (
             "Groups of visits use a minimum number of visits per night of %d, "
-            % (self.minNVisits)
+            % (self.min_n_visits)
         )
-        self.comment += "and minimum number of nights of %d." % (self.minNNights)
+        self.comment += "and minimum number of nights of %d." % (self.min_n_nights)
         self.comment += "Two visits within this interval would count as 2. "
         self.comment += "Visits closer than tMin, paired with visits that do fall within tMin/tMax, "
         self.comment += "count as half visits. <br>"
         self.comment += "VisitsGroups_Median calculates the median number of visits between tMin/tMax for "
         self.comment += "all nights. <br>"
         self.comment += "VisitGroups_NNightsWithNNights calculates the number of nights that have at "
-        self.comment += "least %d visits. <br>" % (self.minNVisits)
+        self.comment += "least %d visits. <br>" % (self.min_n_visits)
         self.comment += "VisitGroups_NVisitsInWindow calculates the max number of visits within a window of "
         self.comment += "%d days. <br>" % (self.window)
         self.comment += "VisitGroups_NNightsInWindow calculates the max number of nights that have more "
         self.comment += "than %d visits within %d days. <br>" % (
-            self.minNVisits,
+            self.min_n_visits,
             self.window,
         )
         self.comment += "VisitGroups_NLunations calculates the number of lunations (30 days) that have "
         self.comment += (
             "at least one group of more than %d nights with more than %d visits, within "
-            % (self.minNNights, self.minNVisits)
+            % (self.min_n_nights, self.min_n_visits)
         )
         self.comment += "%d days. <br>" % (self.window)
         self.comment += "VisitGroups_MaxSeqLunations calculates the maximum sequential lunations that have "
         self.comment += 'at least one "group". <br>'
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         """
         Return a dictionary of:
         the number of visits within a night (within delta tmin/tmax of another visit),
@@ -161,21 +161,21 @@ class VisitGroupsMetric(BaseMetric):
         than deltaTmin, the two would be counted as 1.5 visits together (if only 1 and 2 existed,
         then there would be 0 visits as none would be within the qualifying time interval).
         """
-        uniquenights = np.unique(dataSlice[self.nights])
+        uniquenights = np.unique(data_slice[self.nights])
         nights = []
-        visitNum = []
+        visit_num = []
         # Find the nights with visits within deltaTmin/max of one another and count the number of visits
         for n in uniquenights:
-            condition = dataSlice[self.nights] == n
-            times = np.sort(dataSlice[self.times][condition])
+            condition = data_slice[self.nights] == n
+            times = np.sort(data_slice[self.times][condition])
             nvisits = 0
             ntooclose = 0
             # Calculate difference between each visit and time of previous visit (tnext- tnow)
             timediff = np.diff(times)
             timegood = np.where(
-                (timediff <= self.deltaTmax) & (timediff >= self.deltaTmin), True, False
+                (timediff <= self.delta_tmax) & (timediff >= self.delta_tmin), True, False
             )
-            timetooclose = np.where(timediff < self.deltaTmin, True, False)
+            timetooclose = np.where(timediff < self.delta_tmin, True, False)
             if len(timegood) > 1:
                 # Count visits for all but last index in timediff
                 for tg1, ttc1, tg2, ttc2 in zip(
@@ -202,126 +202,126 @@ class VisitGroupsMetric(BaseMetric):
             # Count up all visits for night.
             if nvisits > 0:
                 nvisits = nvisits + ntooclose / 2.0
-                visitNum.append(nvisits)
+                visit_num.append(nvisits)
                 nights.append(n)
         # Convert to numpy arrays.
-        visitNum = np.array(visitNum)
+        visit_num = np.array(visit_num)
         nights = np.array(nights)
-        metricval = {"visits": visitNum, "nights": nights}
-        if len(visitNum) == 0:
+        metricval = {"visits": visit_num, "nights": nights}
+        if len(visit_num) == 0:
             return self.badval
         return metricval
 
-    def reduceMedian(self, metricval):
+    def reduce_median(self, metricval):
         """Reduce to median number of visits per night."""
         return np.median(metricval["visits"])
 
-    def reduceNNightsWithNVisits(self, metricval):
+    def reduce_n_nights_with_n_visits(self, metricval):
         """Reduce to total number of nights with more than 'minNVisits' visits."""
-        condition = metricval["visits"] >= self.minNVisits
+        condition = metricval["visits"] >= self.min_n_visits
         return len(metricval["visits"][condition])
 
-    def _inWindow(self, visits, nights, night, window, minNVisits):
+    def _in_window(self, visits, nights, night, window, min_n_visits):
         condition = (nights >= night) & (nights < night + window)
-        condition2 = visits[condition] >= minNVisits
+        condition2 = visits[condition] >= min_n_visits
         return visits[condition][condition2], nights[condition][condition2]
 
-    def reduceNVisitsInWindow(self, metricval):
+    def reduce_n_visits_in_window(self, metricval):
         """Reduce to max number of total visits on all nights with more than minNVisits,
         within any 'window' (default=30 nights)."""
         maxnvisits = 0
         for n in metricval["nights"]:
-            vw, nw = self._inWindow(
+            vw, nw = self._in_window(
                 metricval["visits"],
                 metricval["nights"],
                 n,
                 self.window,
-                self.minNVisits,
+                self.min_n_visits,
             )
             maxnvisits = max((vw.sum(), maxnvisits))
         return maxnvisits
 
-    def reduceNNightsInWindow(self, metricval):
+    def reduce_n_nights_in_window(self, metricval):
         """Reduce to max number of nights with more than minNVisits, within 'window' over all windows."""
         maxnights = 0
         for n in metricval["nights"]:
-            vw, nw = self._inWindow(
+            vw, nw = self._in_window(
                 metricval["visits"],
                 metricval["nights"],
                 n,
                 self.window,
-                self.minNVisits,
+                self.min_n_visits,
             )
             maxnights = max(len(nw), maxnights)
         return maxnights
 
-    def _inLunation(self, visits, nights, lunationStart, lunationLength):
-        condition = (nights >= lunationStart) & (
-            nights < lunationStart + lunationLength
+    def _in_lunation(self, visits, nights, lunation_start, lunation_length):
+        condition = (nights >= lunation_start) & (
+            nights < lunation_start + lunation_length
         )
         return visits[condition], nights[condition]
 
-    def reduceNLunations(self, metricval):
+    def reduce_n_lunations(self, metricval):
         """Reduce to number of lunations (unique 30 day windows) that contain at least one 'group':
         a set of more than minNVisits per night, with more than minNNights of visits within 'window' time period.
         """
-        lunationLength = 30
+        lunation_length = 30
         lunations = np.arange(
             metricval["nights"][0],
-            metricval["nights"][-1] + lunationLength / 2.0,
-            lunationLength,
+            metricval["nights"][-1] + lunation_length / 2.0,
+            lunation_length,
         )
-        nLunations = 0
+        n_lunations = 0
         for l in lunations:
             # Find visits within lunation.
-            vl, nl = self._inLunation(
-                metricval["visits"], metricval["nights"], l, lunationLength
+            vl, nl = self._in_lunation(
+                metricval["visits"], metricval["nights"], l, lunation_length
             )
             for n in nl:
                 # Find visits which are in groups within the lunation.
-                vw, nw = self._inWindow(vl, nl, n, self.window, self.minNVisits)
-                if len(nw) >= self.minNNights:
-                    nLunations += 1
+                vw, nw = self._in_window(vl, nl, n, self.window, self.min_n_visits)
+                if len(nw) >= self.min_n_nights:
+                    n_lunations += 1
                     break
-        return nLunations
+        return n_lunations
 
-    def reduceMaxSeqLunations(self, metricval):
+    def reduce_max_seq_lunations(self, metricval):
         """Count the max number of sequential lunations (unique 30 day windows) that contain at least one 'group':
         a set of more than minNVisits per night, with more than minNNights of visits within 'window' time period.
         """
-        lunationLength = 30
+        lunation_length = 30
         lunations = np.arange(
             metricval["nights"][0],
-            metricval["nights"][-1] + lunationLength / 2.0,
-            lunationLength,
+            metricval["nights"][-1] + lunation_length / 2.0,
+            lunation_length,
         )
-        maxSequence = 0
-        curSequence = 0
-        inSeq = False
+        max_sequence = 0
+        cur_sequence = 0
+        in_seq = False
         for l in lunations:
             # Find visits within lunation.
-            vl, nl = self._inLunation(
-                metricval["visits"], metricval["nights"], l, lunationLength
+            vl, nl = self._in_lunation(
+                metricval["visits"], metricval["nights"], l, lunation_length
             )
             # If no visits this lunation:
             if len(vl) == 0:
-                inSeq = False
-                maxSequence = max(maxSequence, curSequence)
-                curSequence = 0
+                in_seq = False
+                max_sequence = max(max_sequence, cur_sequence)
+                cur_sequence = 0
             # Else, look to see if groups can be made from the visits.
             for n in nl:
                 # Find visits which are in groups within the lunation.
-                vw, nw = self._inWindow(vl, nl, n, self.window, self.minNVisits)
+                vw, nw = self._in_window(vl, nl, n, self.window, self.min_n_visits)
                 # If there was a group within this lunation:
-                if len(nw) >= self.minNNights:
-                    curSequence += 1
-                    inSeq = True
+                if len(nw) >= self.min_n_nights:
+                    cur_sequence += 1
+                    in_seq = True
                     break
                 # Otherwise we're not in a sequence (anymore, or still).
                 else:
-                    inSeq = False
-                    maxSequence = max(maxSequence, curSequence)
-                    curSequence = 0
+                    in_seq = False
+                    max_sequence = max(max_sequence, cur_sequence)
+                    cur_sequence = 0
         # Pick up last sequence if were in a sequence at last lunation.
-        maxSequence = max(maxSequence, curSequence)
-        return maxSequence
+        max_sequence = max(max_sequence, cur_sequence)
+        return max_sequence

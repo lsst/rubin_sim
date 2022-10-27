@@ -19,14 +19,14 @@ class NChangesMetric(BaseMetric):
     (useful for filter changes in particular).
     """
 
-    def __init__(self, col="filter", orderBy="observationStartMJD", **kwargs):
+    def __init__(self, col="filter", order_by="observationStartMJD", **kwargs):
         self.col = col
-        self.orderBy = orderBy
-        super(NChangesMetric, self).__init__(col=[col, orderBy], units="#", **kwargs)
+        self.order_by = order_by
+        super(NChangesMetric, self).__init__(col=[col, order_by], units="#", **kwargs)
 
-    def run(self, dataSlice, slicePoint=None):
-        idxs = np.argsort(dataSlice[self.orderBy])
-        diff = dataSlice[self.col][idxs][1:] != dataSlice[self.col][idxs][:-1]
+    def run(self, data_slice, slice_point=None):
+        idxs = np.argsort(data_slice[self.order_by])
+        diff = data_slice[self.col][idxs][1:] != data_slice[self.col][idxs][:-1]
         return np.size(np.where(diff == True)[0])
 
 
@@ -39,35 +39,35 @@ class MinTimeBetweenStatesMetric(BaseMetric):
 
     def __init__(
         self,
-        changeCol="filter",
-        timeCol="observationStartMJD",
-        metricName=None,
+        change_col="filter",
+        time_col="observationStartMJD",
+        metric_name=None,
         **kwargs,
     ):
         """
-        changeCol = column that changes state
-        timeCol = column tracking time of each visit
+        change_col = column that changes state
+        time_col = column tracking time of each visit
         """
-        self.changeCol = changeCol
-        self.timeCol = timeCol
-        if metricName is None:
-            metricName = "Minimum time between %s changes (minutes)" % (changeCol)
+        self.change_col = change_col
+        self.time_col = time_col
+        if metric_name is None:
+            metric_name = "Minimum time between %s changes (minutes)" % (change_col)
         super(MinTimeBetweenStatesMetric, self).__init__(
-            col=[changeCol, timeCol], metricName=metricName, units="", **kwargs
+            col=[change_col, time_col], metric_name=metric_name, units="", **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # Sort on time, to be sure we've got filter (or other col) changes in the right order.
-        idxs = np.argsort(dataSlice[self.timeCol])
+        idxs = np.argsort(data_slice[self.time_col])
         changes = (
-            dataSlice[self.changeCol][idxs][1:] != dataSlice[self.changeCol][idxs][:-1]
+            data_slice[self.change_col][idxs][1:] != data_slice[self.change_col][idxs][:-1]
         )
         condition = np.where(changes == True)[0]
-        changetimes = dataSlice[self.timeCol][idxs][1:][condition]
+        changetimes = data_slice[self.time_col][idxs][1:][condition]
         prevchangetime = np.concatenate(
             (
-                np.array([dataSlice[self.timeCol][idxs][0]]),
-                dataSlice[self.timeCol][idxs][1:][condition][:-1],
+                np.array([data_slice[self.time_col][idxs][0]]),
+                data_slice[self.time_col][idxs][1:][condition][:-1],
             )
         )
         dtimes = changetimes - prevchangetime
@@ -86,41 +86,41 @@ class NStateChangesFasterThanMetric(BaseMetric):
 
     def __init__(
         self,
-        changeCol="filter",
-        timeCol="observationStartMJD",
-        metricName=None,
+        change_col="filter",
+        time_col="observationStartMJD",
+        metric_name=None,
         cutoff=20,
         **kwargs,
     ):
         """
         col = column tracking changes in
-        timeCol = column keeping the time of each visit
+        time_col = column keeping the time of each visit
         cutoff = the cutoff value for the reduce method 'NBelow'
         """
-        if metricName is None:
-            metricName = "Number of %s changes faster than <%.1f minutes" % (
-                changeCol,
+        if metric_name is None:
+            metric_name = "Number of %s changes faster than <%.1f minutes" % (
+                change_col,
                 cutoff,
             )
-        self.changeCol = changeCol
-        self.timeCol = timeCol
+        self.change_col = change_col
+        self.time_col = time_col
         self.cutoff = cutoff / 24.0 / 60.0  # Convert cutoff from minutes to days.
         super(NStateChangesFasterThanMetric, self).__init__(
-            col=[changeCol, timeCol], metricName=metricName, units="#", **kwargs
+            col=[change_col, time_col], metric_name=metric_name, units="#", **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # Sort on time, to be sure we've got filter (or other col) changes in the right order.
-        idxs = np.argsort(dataSlice[self.timeCol])
+        idxs = np.argsort(data_slice[self.time_col])
         changes = (
-            dataSlice[self.changeCol][idxs][1:] != dataSlice[self.changeCol][idxs][:-1]
+            data_slice[self.change_col][idxs][1:] != data_slice[self.change_col][idxs][:-1]
         )
         condition = np.where(changes == True)[0]
-        changetimes = dataSlice[self.timeCol][idxs][1:][condition]
+        changetimes = data_slice[self.time_col][idxs][1:][condition]
         prevchangetime = np.concatenate(
             (
-                np.array([dataSlice[self.timeCol][idxs][0]]),
-                dataSlice[self.timeCol][idxs][1:][condition][:-1],
+                np.array([data_slice[self.time_col][idxs][0]]),
+                data_slice[self.time_col][idxs][1:][condition][:-1],
             )
         )
         dtimes = changetimes - prevchangetime
@@ -136,42 +136,42 @@ class MaxStateChangesWithinMetric(BaseMetric):
 
     def __init__(
         self,
-        changeCol="filter",
-        timeCol="observationStartMJD",
-        metricName=None,
+        change_col="filter",
+        time_col="observationStartMJD",
+        metric_name=None,
         timespan=20,
         **kwargs,
     ):
         """
         col = column tracking changes in
-        timeCol = column keeping the time of each visit
+        time_col = column keeping the time of each visit
         timespan = the timespan to count the number of changes within (in minutes)
         """
-        if metricName is None:
-            metricName = "Max number of %s changes within %.1f minutes" % (
-                changeCol,
+        if metric_name is None:
+            metric_name = "Max number of %s changes within %.1f minutes" % (
+                change_col,
                 timespan,
             )
-        self.changeCol = changeCol
-        self.timeCol = timeCol
+        self.change_col = change_col
+        self.time_col = time_col
         self.timespan = timespan / 24.0 / 60.0  # Convert timespan from minutes to days.
         super(MaxStateChangesWithinMetric, self).__init__(
-            col=[changeCol, timeCol], metricName=metricName, units="#", **kwargs
+            col=[change_col, time_col], metric_name=metric_name, units="#", **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # This operates slightly differently from the metrics above; those calculate only successive times
         # between changes, but here we must calculate the actual times of each change.
         # Check if there was only one observation (and return 0 if so).
-        if dataSlice[self.changeCol].size == 1:
+        if data_slice[self.change_col].size == 1:
             return 0
         # Sort on time, to be sure we've got filter (or other col) changes in the right order.
-        idxs = np.argsort(dataSlice[self.timeCol])
+        idxs = np.argsort(data_slice[self.time_col])
         changes = (
-            dataSlice[self.changeCol][idxs][:-1] != dataSlice[self.changeCol][idxs][1:]
+            data_slice[self.change_col][idxs][:-1] != data_slice[self.change_col][idxs][1:]
         )
         condition = np.where(changes == True)[0]
-        changetimes = dataSlice[self.timeCol][idxs][1:][condition]
+        changetimes = data_slice[self.time_col][idxs][1:][condition]
         # If there are 0 filter changes ...
         if changetimes.size == 0:
             return 0
@@ -190,17 +190,17 @@ class TeffMetric(BaseMetric):
 
     def __init__(
         self,
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
-        metricName="tEff",
-        fiducialDepth=None,
-        teffBase=30.0,
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        metric_name="tEff",
+        fiducial_depth=None,
+        teff_base=30.0,
         normed=False,
         **kwargs,
     ):
-        self.m5Col = m5Col
-        self.filterCol = filterCol
-        if fiducialDepth is None:
+        self.m5_col = m5_col
+        self.filter_col = filter_col
+        if fiducial_depth is None:
             # From reference von Karman 500nm zenith seeing of 0.69"
             # median zenith dark seeing from sims_skybrightness_pre
             # airmass = 1
@@ -220,18 +220,18 @@ class TeffMetric(BaseMetric):
                 "y": 22.40,
             }
         else:
-            if isinstance(fiducialDepth, dict):
-                self.depth = fiducialDepth
+            if isinstance(fiducial_depth, dict):
+                self.depth = fiducial_depth
             else:
-                raise ValueError("fiducialDepth should be None or dictionary")
-        self.teffBase = teffBase
+                raise ValueError("fiducial_depth should be None or dictionary")
+        self.teff_base = teff_base
         self.normed = normed
         if self.normed:
             units = ""
         else:
             units = "seconds"
         super(TeffMetric, self).__init__(
-            col=[m5Col, filterCol], metricName=metricName, units=units, **kwargs
+            col=[m5_col, filter_col], metric_name=metric_name, units=units, **kwargs
         )
         if self.normed:
             self.comment = "Normalized effective time"
@@ -247,18 +247,18 @@ class TeffMetric(BaseMetric):
         if self.normed:
             self.comment += " Normalized by the total amount of time actual on-sky."
 
-    def run(self, dataSlice, slicePoint=None):
-        filters = np.unique(dataSlice[self.filterCol])
+    def run(self, data_slice, slice_point=None):
+        filters = np.unique(data_slice[self.filter_col])
         teff = 0.0
         for f in filters:
-            match = np.where(dataSlice[self.filterCol] == f)[0]
+            match = np.where(data_slice[self.filter_col] == f)[0]
             teff += (
-                10.0 ** (0.8 * (dataSlice[self.m5Col][match] - self.depth[f]))
+                10.0 ** (0.8 * (data_slice[self.m5_col][match] - self.depth[f]))
             ).sum()
-        teff *= self.teffBase
+        teff *= self.teff_base
         if self.normed:
             # Normalize by the t_eff if each observation was at the fiducial depth.
-            teff = teff / (self.teffBase * dataSlice[self.m5Col].size)
+            teff = teff / (self.teff_base * data_slice[self.m5_col].size)
         return teff
 
 
@@ -269,30 +269,30 @@ class OpenShutterFractionMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="OpenShutterFraction",
-        slewTimeCol="slewTime",
-        expTimeCol="visitExposureTime",
-        visitTimeCol="visitTime",
+        metric_name="OpenShutterFraction",
+        slew_time_col="slewTime",
+        exp_time_col="visitExposureTime",
+        visit_time_col="visitTime",
         **kwargs,
     ):
-        self.expTimeCol = expTimeCol
-        self.visitTimeCol = visitTimeCol
-        self.slewTimeCol = slewTimeCol
+        self.exp_time_col = exp_time_col
+        self.visit_time_col = visit_time_col
+        self.slew_time_col = slew_time_col
         super(OpenShutterFractionMetric, self).__init__(
-            col=[self.expTimeCol, self.visitTimeCol, self.slewTimeCol],
-            metricName=metricName,
+            col=[self.exp_time_col, self.visit_time_col, self.slew_time_col],
+            metric_name=metric_name,
             units="OpenShutter/TotalTime",
             **kwargs,
         )
         self.comment = (
             "Open shutter time (%s total) divided by total visit time "
             "(%s) + slewtime (%s)."
-            % (self.expTimeCol, self.visitTimeCol, self.slewTimeCol)
+            % (self.exp_time_col, self.visit_time_col, self.slew_time_col)
         )
 
-    def run(self, dataSlice, slicePoint=None):
-        result = np.sum(dataSlice[self.expTimeCol]) / np.sum(
-            dataSlice[self.slewTimeCol] + dataSlice[self.visitTimeCol]
+    def run(self, data_slice, slice_point=None):
+        result = np.sum(data_slice[self.exp_time_col]) / np.sum(
+            data_slice[self.slew_time_col] + data_slice[self.visit_time_col]
         )
         return result
 
@@ -306,9 +306,9 @@ class BruteOSFMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="BruteOSFMetric",
-        expTimeCol="visitExposureTime",
-        mjdCol="observationStartMJD",
+        metric_name="BruteOSFMetric",
+        exp_time_col="visitExposureTime",
+        mjd_col="observationStartMJD",
         maxgap=10.0,
         fudge=0.0,
         **kwargs,
@@ -320,26 +320,26 @@ class BruteOSFMetric(BaseMetric):
             The maximum gap between observations. Assume anything longer the dome has closed.
         fudge : float (0.)
             Fudge factor if a constant has to be added to the exposure time values (like in OpSim 3.61).
-        expTimeCol : str ('expTime')
+        exp_time_col : str ('expTime')
             The name of the exposure time column. Assumed to be in seconds.
-        mjdCol : str ('observationStartMJD')
+        mjd_col : str ('observationStartMJD')
             The name of the start of the exposures. Assumed to be in units of days.
         """
-        self.expTimeCol = expTimeCol
+        self.exp_time_col = exp_time_col
         self.maxgap = maxgap / 60.0 / 24.0  # convert from min to days
-        self.mjdCol = mjdCol
+        self.mjd_col = mjd_col
         self.fudge = fudge
         super(BruteOSFMetric, self).__init__(
-            col=[self.expTimeCol, mjdCol],
-            metricName=metricName,
+            col=[self.exp_time_col, mjd_col],
+            metric_name=metric_name,
             units="OpenShutter/TotalTime",
             **kwargs,
         )
 
-    def run(self, dataSlice, slicePoint=None):
-        times = np.sort(dataSlice[self.mjdCol])
+    def run(self, data_slice, slice_point=None):
+        times = np.sort(data_slice[self.mjd_col])
         diff = np.diff(times)
         good = np.where(diff < self.maxgap)
-        openTime = np.sum(diff[good]) * 24.0 * 3600.0
-        result = np.sum(dataSlice[self.expTimeCol] + self.fudge) / float(openTime)
+        open_time = np.sum(diff[good]) * 24.0 * 3600.0
+        result = np.sum(data_slice[self.exp_time_col] + self.fudge) / float(open_time)
         return result

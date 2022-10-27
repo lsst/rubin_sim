@@ -3,11 +3,11 @@ import numpy as np
 import pandas as pd
 import unittest
 from rubin_sim.data import get_data_dir
-from rubin_sim.scheduler.schedulers import Core_scheduler
+from rubin_sim.scheduler.schedulers import CoreScheduler
 import rubin_sim.scheduler.basis_functions as basis_functions
 import rubin_sim.scheduler.surveys as surveys
 from rubin_sim.scheduler.utils import standard_goals
-from rubin_sim.scheduler.model_observatory import Model_observatory
+from rubin_sim.scheduler.model_observatory import ModelObservatory
 
 
 class TestCoreSched(unittest.TestCase):
@@ -16,13 +16,13 @@ class TestCoreSched(unittest.TestCase):
         nside = 32
 
         bfs = []
-        bfs.append(basis_functions.M5_diff_basis_function(nside=nside))
-        bfs.append(basis_functions.Target_map_basis_function(target_map=target_map))
+        bfs.append(basis_functions.M5DiffBasisFunction(nside=nside))
+        bfs.append(basis_functions.TargetMapBasisFunction(target_map=target_map))
         weights = np.array([1.0, 1])
-        survey = surveys.Greedy_survey(bfs, weights)
-        scheduler = Core_scheduler([survey])
+        survey = surveys.GreedySurvey(bfs, weights)
+        scheduler = CoreScheduler([survey])
 
-        observatory = Model_observatory(
+        observatory = ModelObservatory(
             seeing_db=os.path.join(get_data_dir(), "tests", "seeing.db"),
         )
 
