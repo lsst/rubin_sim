@@ -2,12 +2,12 @@ import numpy as np
 
 from rubin_sim.utils import ra_dec2_hpid
 
-from .dd_surveys import Deep_drilling_survey
+from .dd_surveys import DeepDrillingSurvey
 
 __all__ = ["FieldSurvey"]
 
 
-class FieldSurvey(Deep_drilling_survey):
+class FieldSurvey(DeepDrillingSurvey):
     def __init__(
         self,
         basis_functions,

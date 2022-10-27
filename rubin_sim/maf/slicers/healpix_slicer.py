@@ -149,23 +149,23 @@ class HealpixSlicer(BaseSpatialSlicer):
         self.slicePoints["galb"] = galb
 
         # Set the default plotting functions.
-        self.plotFuncs = [HealpixSkyMap, HealpixHistogram]
+        self.plot_funcs = [HealpixSkyMap, HealpixHistogram]
 
-    def __eq__(self, otherSlicer):
+    def __eq__(self, other_slicer):
         """Evaluate if two slicers are equivalent."""
         # If the two slicers are both healpix slicers, check nsides value.
         result = False
-        if isinstance(otherSlicer, HealpixSlicer):
-            if otherSlicer.nside == self.nside:
+        if isinstance(other_slicer, HealpixSlicer):
+            if other_slicer.nside == self.nside:
                 if (
-                    otherSlicer.lonCol == self.lonCol
-                    and otherSlicer.latCol == self.latCol
+                    other_slicer.lonCol == self.lonCol
+                    and other_slicer.latCol == self.latCol
                 ):
-                    if otherSlicer.radius == self.radius:
-                        if otherSlicer.useCamera == self.useCamera:
-                            if otherSlicer.rotSkyPosColName == self.rotSkyPosColName:
-                                if np.all(otherSlicer.shape == self.shape):
-                                    if otherSlicer.useCache == self.useCache:
+                    if other_slicer.radius == self.radius:
+                        if other_slicer.useCamera == self.useCamera:
+                            if other_slicer.rotSkyPosColName == self.rotSkyPosColName:
+                                if np.all(other_slicer.shape == self.shape):
+                                    if other_slicer.useCache == self.useCache:
                                         result = True
         return result
 

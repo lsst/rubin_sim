@@ -3,7 +3,7 @@ from rubin_sim.utils import ra_dec2_hpid, m5_flat_sed
 import numpy as np
 import healpy as hp
 
-__all__ = ["Vary_expt_detailer", "calc_target_m5s"]
+__all__ = ["VaryExptDetailer", "calc_target_m5s"]
 
 
 def calc_target_m5s(alt=65.0, fiducial_seeing=0.9, exptime=20.0):
@@ -41,7 +41,7 @@ def calc_target_m5s(alt=65.0, fiducial_seeing=0.9, exptime=20.0):
     return goal_m5
 
 
-class Vary_expt_detailer(Base_detailer):
+class VaryExptDetailer(Base_detailer):
     """Vary the exposure time on observations to try and keep each observation at uniform depth.
 
     Parameters

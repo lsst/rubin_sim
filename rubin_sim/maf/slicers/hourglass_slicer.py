@@ -13,13 +13,13 @@ class HourglassSlicer(UniSlicer):
     def __init__(self, verbose=True, badval=-666):
         # Inherits from UniSlicer, so nslice=1 and only one 'slice'.
         super(HourglassSlicer, self).__init__(verbose=verbose, badval=badval)
-        self.columnsNeeded = []
-        self.slicerName = "HourglassSlicer"
-        self.plotFuncs = [
+        self.columns_needed = []
+        self.slicer_name = "HourglassSlicer"
+        self.plot_funcs = [
             HourglassPlot,
         ]
 
-    def writeData(self, outfilename, metricValues, metricName="", **kwargs):
+    def write_data(self, outfilename, metric_values, metric_name="", **kwargs):
         """
         Override base write method: we don't want to save hourglass metric data.
 
@@ -27,7 +27,7 @@ class HourglassSlicer(UniSlicer):
         """
         pass
 
-    def readMetricData(self, infilename):
+    def read_metric_data(self, infilename):
         """
         Override base read method to 'pass': we don't save or read hourglass metric data.
 

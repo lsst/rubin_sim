@@ -12,15 +12,15 @@ class TransientMetric(BaseMetric):
 
     Parameters
     ----------
-    transDuration : float, optional
+    trans_duration : float, optional
         How long the transient lasts (days). Default 10.
-    peakTime : float, optional
+    peak_time : float, optional
         How long it takes to reach the peak magnitude (days). Default 5.
-    riseSlope : float, optional
+    rise_slope : float, optional
         Slope of the light curve before peak time (mags/day).
         This should be negative since mags are backwards (magnitudes decrease towards brighter fluxes).
         Default 0.
-    declineSlope : float, optional
+    decline_slope : float, optional
         Slope of the light curve after peak time (mags/day).
         This should be positive since mags are backwards. Default 0.
     uPeak : float, optional
@@ -35,35 +35,35 @@ class TransientMetric(BaseMetric):
         Peak magnitude in z band. Default 20.
     yPeak : float, optional
         Peak magnitude in y band. Default 20.
-    surveyDuration : float, optional
+    survey_duration : float, optional
         Length of survey (years).
         Default 10.
-    surveyStart : float, optional
+    survey_start : float, optional
         MJD for the survey start date.
         Default None (uses the time of the first observation).
-    detectM5Plus : float, optional
-        An observation will be used if the light curve magnitude is brighter than m5+detectM5Plus.
+    detect_m5_plus : float, optional
+        An observation will be used if the light curve magnitude is brighter than m5+detect_m5_plus.
         Default 0.
-    nPrePeak : int, optional
-        Number of observations (in any filter(s)) to demand before peakTime,
+    n_pre_peak : int, optional
+        Number of observations (in any filter(s)) to demand before peak_time,
         before saying a transient has been detected.
         Default 0.
-    nPerLC : int, optional
-        Number of sections of the light curve that must be sampled above the detectM5Plus theshold
+    n_per_lc : int, optional
+        Number of sections of the light curve that must be sampled above the detect_m5_plus theshold
         (in a single filter) for the light curve to be counted.
-        For example, setting nPerLC = 2 means a light curve  is only considered detected if there
+        For example, setting n_per_lc = 2 means a light curve  is only considered detected if there
         is at least 1 observation in the first half of the LC, and at least one in the second half of the LC.
-        nPerLC = 4 means each quarter of the light curve must be detected to count.
+        n_per_lc = 4 means each quarter of the light curve must be detected to count.
         Default 1.
-    nFilters : int, optional
+    n_filters : int, optional
         Number of filters that need to be observed for an object to be counted as detected.
         Default 1.
-    nPhaseCheck : int, optional
+    n_phase_check : int, optional
         Sets the number of phases that should be checked.
         One can imagine pathological cadences where many objects pass the detection criteria,
         but would not if the observations were offset by a phase-shift.
         Default 1.
-    countMethod : {'full' 'partialLC'}, defaults to 'full'
+    count_method : {'full' 'partialLC'}, defaults to 'full'
         Sets the method of counting max number of transients. if 'full', the
         only full light curves that fit the survey duration are counted. If
         'partialLC', then the max number of possible transients is taken to be
@@ -72,61 +72,61 @@ class TransientMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="TransientDetectMetric",
-        mjdCol="observationStartMJD",
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
-        transDuration=10.0,
-        peakTime=5.0,
-        riseSlope=0.0,
-        declineSlope=0.0,
-        surveyDuration=10.0,
-        surveyStart=None,
-        detectM5Plus=0.0,
-        uPeak=20,
-        gPeak=20,
-        rPeak=20,
-        iPeak=20,
-        zPeak=20,
-        yPeak=20,
-        nPrePeak=0,
-        nPerLC=1,
-        nFilters=1,
-        nPhaseCheck=1,
-        countMethod="full",
+        metric_name="TransientDetectMetric",
+        mjd_col="observationStartMJD",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        trans_duration=10.0,
+        peak_time=5.0,
+        rise_slope=0.0,
+        decline_slope=0.0,
+        survey_duration=10.0,
+        survey_start=None,
+        detect_m5_plus=0.0,
+        u_peak=20,
+        g_peak=20,
+        r_peak=20,
+        i_peak=20,
+        z_peak=20,
+        y_peak=20,
+        n_pre_peak=0,
+        n_per_lc=1,
+        n_filters=1,
+        n_phase_check=1,
+        count_method="full",
         **kwargs
     ):
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        self.filter_col = filter_col
         super(TransientMetric, self).__init__(
-            col=[self.mjdCol, self.m5Col, self.filterCol],
+            col=[self.mjd_col, self.m5_col, self.filter_col],
             units="Fraction Detected",
-            metricName=metricName,
+            metric_name=metric_name,
             **kwargs
         )
         self.peaks = {
-            "u": uPeak,
-            "g": gPeak,
-            "r": rPeak,
-            "i": iPeak,
-            "z": zPeak,
-            "y": yPeak,
+            "u": u_peak,
+            "g": g_peak,
+            "r": r_peak,
+            "i": i_peak,
+            "z": z_peak,
+            "y": y_peak,
         }
-        self.transDuration = transDuration
-        self.peakTime = peakTime
-        self.riseSlope = riseSlope
-        self.declineSlope = declineSlope
-        self.surveyDuration = surveyDuration
-        self.surveyStart = surveyStart
-        self.detectM5Plus = detectM5Plus
-        self.nPrePeak = nPrePeak
-        self.nPerLC = nPerLC
-        self.nFilters = nFilters
-        self.nPhaseCheck = nPhaseCheck
-        self.countMethod = countMethod
+        self.trans_duration = trans_duration
+        self.peak_time = peak_time
+        self.rise_slope = rise_slope
+        self.decline_slope = decline_slope
+        self.survey_duration = survey_duration
+        self.survey_start = survey_start
+        self.detect_m5_plus = detect_m5_plus
+        self.n_pre_peak = n_pre_peak
+        self.n_per_lc = n_per_lc
+        self.n_filters = n_filters
+        self.n_phase_check = n_phase_check
+        self.count_method = count_method
 
-    def lightCurve(self, time, filters):
+    def light_curve(self, time, filters):
         """
         Calculate the magnitude of the object at each time, in each filter.
 
@@ -142,25 +142,25 @@ class TransientMetric(BaseMetric):
         numpy.ndarray
             The magnitudes of the object at each time, in each filter.
         """
-        lcMags = np.zeros(time.size, dtype=float)
-        rise = np.where(time <= self.peakTime)
-        lcMags[rise] += self.riseSlope * time[rise] - self.riseSlope * self.peakTime
-        decline = np.where(time > self.peakTime)
-        lcMags[decline] += self.declineSlope * (time[decline] - self.peakTime)
+        lc_mags = np.zeros(time.size, dtype=float)
+        rise = np.where(time <= self.peak_time)
+        lc_mags[rise] += self.rise_slope * time[rise] - self.rise_slope * self.peak_time
+        decline = np.where(time > self.peak_time)
+        lc_mags[decline] += self.decline_slope * (time[decline] - self.peak_time)
         for key in self.peaks:
-            fMatch = np.where(filters == key)
-            lcMags[fMatch] += self.peaks[key]
-        return lcMags
+            f_match = np.where(filters == key)
+            lc_mags[f_match] += self.peaks[key]
+        return lc_mags
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         """ "
         Calculate the detectability of a transient with the specified lightcurve.
 
         Parameters
         ----------
-        dataSlice : numpy.array
+        data_slice : numpy.array
             Numpy structured array containing the data related to the visits provided by the slicer.
-        slicePoint : dict, optional
+        slice_point : dict, optional
             Dictionary containing information about the slicepoint currently active in the slicer.
 
         Returns
@@ -169,94 +169,94 @@ class TransientMetric(BaseMetric):
             The total number of transients that could be detected.
         """
         # Total number of transients that could go off back-to-back
-        if self.countMethod == "partialLC":
-            _nTransMax = np.ceil(self.surveyDuration / (self.transDuration / 365.25))
+        if self.count_method == "partialLC":
+            _n_trans_max = np.ceil(self.survey_duration / (self.trans_duration / 365.25))
         else:
-            _nTransMax = np.floor(self.surveyDuration / (self.transDuration / 365.25))
+            _n_trans_max = np.floor(self.survey_duration / (self.trans_duration / 365.25))
         tshifts = (
-            np.arange(self.nPhaseCheck) * self.transDuration / float(self.nPhaseCheck)
+            np.arange(self.n_phase_check) * self.trans_duration / float(self.n_phase_check)
         )
-        nDetected = 0
-        nTransMax = 0
+        n_detected = 0
+        n_trans_max = 0
         for tshift in tshifts:
             # Compute the total number of back-to-back transients are possible to detect
             # given the survey duration and the transient duration.
-            nTransMax += _nTransMax
+            n_trans_max += _n_trans_max
             if tshift != 0:
-                nTransMax -= 1
-            if self.surveyStart is None:
-                surveyStart = dataSlice[self.mjdCol].min()
-            time = (dataSlice[self.mjdCol] - surveyStart + tshift) % self.transDuration
+                n_trans_max -= 1
+            if self.survey_start is None:
+                survey_start = data_slice[self.mjd_col].min()
+            time = (data_slice[self.mjd_col] - survey_start + tshift) % self.trans_duration
 
             # Which lightcurve does each point belong to
-            lcNumber = np.floor(
-                (dataSlice[self.mjdCol] - surveyStart) / self.transDuration
+            lc_number = np.floor(
+                (data_slice[self.mjd_col] - survey_start) / self.trans_duration
             )
 
-            lcMags = self.lightCurve(time, dataSlice[self.filterCol])
+            lc_mags = self.light_curve(time, data_slice[self.filter_col])
 
             # How many criteria needs to be passed
-            detectThresh = 0
+            detect_thresh = 0
 
             # Flag points that are above the SNR limit
-            detected = np.zeros(dataSlice.size, dtype=int)
-            detected[np.where(lcMags < dataSlice[self.m5Col] + self.detectM5Plus)] += 1
-            detectThresh += 1
+            detected = np.zeros(data_slice.size, dtype=int)
+            detected[np.where(lc_mags < data_slice[self.m5_col] + self.detect_m5_plus)] += 1
+            detect_thresh += 1
 
             # If we demand points on the rise
-            if self.nPrePeak > 0:
-                detectThresh += 1
-                ord = np.argsort(dataSlice[self.mjdCol])
-                dataSlice = dataSlice[ord]
+            if self.n_pre_peak > 0:
+                detect_thresh += 1
+                ord = np.argsort(data_slice[self.mjd_col])
+                data_slice = data_slice[ord]
                 detected = detected[ord]
-                lcNumber = lcNumber[ord]
+                lc_number = lc_number[ord]
                 time = time[ord]
-                ulcNumber = np.unique(lcNumber)
-                left = np.searchsorted(lcNumber, ulcNumber)
-                right = np.searchsorted(lcNumber, ulcNumber, side="right")
+                ulc_number = np.unique(lc_number)
+                left = np.searchsorted(lc_number, ulc_number)
+                right = np.searchsorted(lc_number, ulc_number, side="right")
                 # Note here I'm using np.searchsorted to basically do a 'group by'
                 # might be clearer to use scipy.ndimage.measurements.find_objects or pandas, but
                 # this numpy function is known for being efficient.
                 for le, ri in zip(left, right):
                     # Number of points where there are a detection
-                    good = np.where(time[le:ri] < self.peakTime)
+                    good = np.where(time[le:ri] < self.peak_time)
                     nd = np.sum(detected[le:ri][good])
-                    if nd >= self.nPrePeak:
+                    if nd >= self.n_pre_peak:
                         detected[le:ri] += 1
 
             # Check if we need multiple points per light curve or multiple filters
-            if (self.nPerLC > 1) | (self.nFilters > 1):
+            if (self.n_per_lc > 1) | (self.n_filters > 1):
                 # make sure things are sorted by time
-                ord = np.argsort(dataSlice[self.mjdCol])
-                dataSlice = dataSlice[ord]
+                ord = np.argsort(data_slice[self.mjd_col])
+                data_slice = data_slice[ord]
                 detected = detected[ord]
-                lcNumber = lcNumber[ord]
+                lc_number = lc_number[ord]
                 time = time[ord]
-                ulcNumber = np.unique(lcNumber)
-                left = np.searchsorted(lcNumber, ulcNumber)
-                right = np.searchsorted(lcNumber, ulcNumber, side="right")
-                detectThresh += self.nFilters
+                ulc_number = np.unique(lc_number)
+                left = np.searchsorted(lc_number, ulc_number)
+                right = np.searchsorted(lc_number, ulc_number, side="right")
+                detect_thresh += self.n_filters
 
                 for le, ri in zip(left, right):
                     points = np.where(detected[le:ri] > 0)
-                    ufilters = np.unique(dataSlice[self.filterCol][le:ri][points])
-                    phaseSections = np.floor(
-                        time[le:ri][points] / self.transDuration * self.nPerLC
+                    ufilters = np.unique(data_slice[self.filter_col][le:ri][points])
+                    phase_sections = np.floor(
+                        time[le:ri][points] / self.trans_duration * self.n_per_lc
                     )
-                    for filtName in ufilters:
+                    for filt_name in ufilters:
                         good = np.where(
-                            dataSlice[self.filterCol][le:ri][points] == filtName
+                            data_slice[self.filter_col][le:ri][points] == filt_name
                         )
-                        if np.size(np.unique(phaseSections[good])) >= self.nPerLC:
+                        if np.size(np.unique(phase_sections[good])) >= self.n_per_lc:
                             detected[le:ri] += 1
 
             # Find the unique number of light curves that passed the required number of conditions
-            nDetected += np.size(
-                np.unique(lcNumber[np.where(detected >= detectThresh)])
+            n_detected += np.size(
+                np.unique(lc_number[np.where(detected >= detect_thresh)])
             )
 
         # Rather than keeping a single "detected" variable, maybe make a mask for each criteria, then
         # reduce functions like: reduce_singleDetect, reduce_NDetect, reduce_PerLC, reduce_perFilter.
         # The way I'm running now it would speed things up.
 
-        return float(nDetected) / nTransMax
+        return float(n_detected) / n_trans_max

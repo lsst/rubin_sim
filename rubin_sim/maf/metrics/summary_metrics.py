@@ -7,8 +7,8 @@ from .base_metric import BaseMetric
 # A collection of metrics which are primarily intended to be used as summary statistics.
 
 __all__ = [
-    "fOArea",
-    "fONv",
+    "FOArea",
+    "FONv",
     "TableFractionMetric",
     "IdentityMetric",
     "NormalizeMetric",
@@ -18,127 +18,127 @@ __all__ = [
 ]
 
 
-class fONv(BaseMetric):
+class FONv(BaseMetric):
     """
     Metrics based on a specified area, but returning NVISITS related to area:
-    given Asky, what is the minimum and median number of visits obtained over that much area?
+    given asky, what is the minimum and median number of visits obtained over that much area?
     (choose the portion of the sky with the highest number of visits first).
 
     Parameters
     ----------
     col : str or list of strs, optional
         Name of the column in the numpy recarray passed to the summary metric.
-    Asky : float, optional
+    asky : float, optional
         Area of the sky to base the evaluation of number of visits over.
         Default 18,0000 sq deg.
     nside : int, optional
         Nside parameter from healpix slicer, used to set the physical relationship between on-sky area
         and number of healpixels. Default 128.
-    Nvisit : int, optional
-        Number of visits to use as the benchmark value, if choosing to return a normalized Nvisit value.
+    nvisit : int, optional
+        Number of visits to use as the benchmark value, if choosing to return a normalized nvisit value.
     norm : `bool`, optional
-        Normalize the returned "nvisit" (min / median) values by Nvisit, if true.
+        Normalize the returned "nvisit" (min / median) values by nvisit, if true.
         Default False.
     metricName : str, optional
-        Name of the summary metric. Default fONv.
+        Name of the summary metric. Default FONv.
     """
 
     def __init__(
         self,
         col="metricdata",
-        Asky=18000.0,
+        asky=18000.0,
         nside=128,
-        Nvisit=825,
+        nvisit=825,
         norm=False,
-        metricName="fONv",
+        metric_name="FONv",
         **kwargs
     ):
-        """Asky = square degrees"""
-        super().__init__(col=col, metricName=metricName, **kwargs)
-        self.Nvisit = Nvisit
+        """asky = square degrees"""
+        super().__init__(col=col, metric_name=metric_name, **kwargs)
+        self.nvisit = nvisit
         self.nside = nside
-        # Determine how many healpixels are included in Asky sq deg.
-        self.Asky = Asky
+        # Determine how many healpixels are included in asky sq deg.
+        self.asky = asky
         self.scale = hp.nside2pixarea(self.nside, degrees=True)
-        self.npix_Asky = int(np.ceil(self.Asky / self.scale))
+        self.npix__asky = int(np.ceil(self.asky / self.scale))
         self.norm = norm
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         result = np.empty(2, dtype=[("name", np.str_, 20), ("value", float)])
         result["name"][0] = "MedianNvis"
         result["name"][1] = "MinNvis"
         # If there is not even as much data as needed to cover Asky:
-        if len(dataSlice) < self.npix_Asky:
+        if len(data_slice) < self.npix__asky:
             # Return the same type of metric value, to make it easier downstream.
             result["value"][0] = self.badval
             result["value"][1] = self.badval
             return result
         # Otherwise, calculate median and mean Nvis:
-        name = dataSlice.dtype.names[0]
-        nvis_sorted = np.sort(dataSlice[name])
+        name = data_slice.dtype.names[0]
+        nvis_sorted = np.sort(data_slice[name])
         # Find the Asky's worth of healpixels with the largest # of visits.
-        nvis_Asky = nvis_sorted[-self.npix_Asky :]
-        result["value"][0] = np.median(nvis_Asky)
-        result["value"][1] = np.min(nvis_Asky)
+        nvis__asky = nvis_sorted[-self.npix__asky :]
+        result["value"][0] = np.median(nvis__asky)
+        result["value"][1] = np.min(nvis__asky)
         if self.norm:
-            result["value"] /= float(self.Nvisit)
+            result["value"] /= float(self.nvisit)
         return result
 
 
-class fOArea(BaseMetric):
+class FOArea(BaseMetric):
     """
     Metrics based on a specified number of visits, but returning AREA related to Nvisits:
-    given Nvisit, what amount of sky is covered with at least that many visits?
+    given nvisit, what amount of sky is covered with at least that many visits?
 
     Parameters
     ----------
     col : str or list of strs, optional
         Name of the column in the numpy recarray passed to the summary metric.
-    Nvisit : int, optional
+    nvisit : int, optional
         Number of visits to use as the minimum required -- metric calculated area that has this many visits.
         Default 825.
-    Asky : float, optional
+    asky : float, optional
         Area to use as the benchmark value, if choosing to returned a normalized Area value.
         Default 18,0000 sq deg.
     nside : int, optional
         Nside parameter from healpix slicer, used to set the physical relationship between on-sky area
         and number of healpixels. Default 128.
     norm : `bool`, optional
-        Normalize the returned "area" (area with minimum Nvisit visits) value by Asky, if true.
+        Normalize the returned "area" (area with minimum nvisit visits) value by asky, if true.
         Default False.
     metricName : str, optional
-        Name of the summary metric. Default fOArea.
+        Name of the summary metric. Default FOArea.
     """
 
     def __init__(
         self,
         col="metricdata",
-        Nvisit=825,
-        Asky=18000.0,
+        nvisit=825,
+        asky=18000.0,
         nside=128,
         norm=False,
-        metricName="fOArea",
+        metric_name="FOArea",
         **kwargs
     ):
-        """Asky = square degrees"""
-        super().__init__(col=col, metricName=metricName, **kwargs)
-        self.Nvisit = Nvisit
+        """asky = square degrees"""
+        super().__init__(col=col, metric_name=metric_name, **kwargs)
+        self.nvisit = nvisit
         self.nside = nside
-        self.Asky = Asky
+        self.asky = asky
         self.scale = hp.nside2pixarea(self.nside, degrees=True)
         self.norm = norm
 
-    def run(self, dataSlice, slicePoint=None):
-        name = dataSlice.dtype.names[0]
-        nvis_sorted = np.sort(dataSlice[name])
+    def run(self, data_slice, slice_point=None):
+        name = data_slice.dtype.names[0]
+        nvis_sorted = np.sort(data_slice[name])
         # Identify the healpixels with more than Nvisits.
-        nvis_min = nvis_sorted[np.where(nvis_sorted >= self.Nvisit)]
+        nvis_min = nvis_sorted[np.where(nvis_sorted >= self.nvisit)]
         if len(nvis_min) == 0:
             result = self.badval
         else:
             result = nvis_min.size * self.scale
             if self.norm:
-                result /= float(self.Asky)
+                result /= float(self.asky)
         return result
 
 
@@ -161,40 +161,40 @@ class TableFractionMetric(BaseMetric):
     Note the 1st and last elements do NOT obey the numpy histogram conventions.
     """
 
-    def __init__(self, col="metricdata", nbins=10, maskVal=0.0):
+    def __init__(self, col="metricdata", nbins=10, mask_val=0.0):
         """
         colname = the column name in the metric data (i.e. 'metricdata' usually).
         nbins = number of bins between 0 and 1. Should divide evenly into 100.
         """
         super(TableFractionMetric, self).__init__(
-            col=col, maskVal=maskVal, metricDtype="float"
+            col=col, mask_val=mask_val, metric_dtype="float"
         )
         self.nbins = nbins
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # Calculate histogram of completeness values that fall between 0-1.
-        goodVals = np.where(
-            (dataSlice[self.colname] > 0) & (dataSlice[self.colname] < 1)
+        good_vals = np.where(
+            (data_slice[self.colname] > 0) & (data_slice[self.colname] < 1)
         )
         bins = np.arange(self.nbins + 1.0) / self.nbins
-        hist, b = np.histogram(dataSlice[self.colname][goodVals], bins=bins)
+        hist, b = np.histogram(data_slice[self.colname][good_vals], bins=bins)
         # Fill in values for exact 0, exact 1 and >1.
-        zero = np.size(np.where(dataSlice[self.colname] == 0)[0])
-        one = np.size(np.where(dataSlice[self.colname] == 1)[0])
-        overone = np.size(np.where(dataSlice[self.colname] > 1)[0])
+        zero = np.size(np.where(data_slice[self.colname] == 0)[0])
+        one = np.size(np.where(data_slice[self.colname] == 1)[0])
+        overone = np.size(np.where(data_slice[self.colname] > 1)[0])
         hist = np.concatenate(
             (np.array([zero]), hist, np.array([one]), np.array([overone]))
         )
         # Create labels for each value
-        binNames = ["0 == P"]
-        binNames.append("0 < P < 0.1")
+        bin_names = ["0 == P"]
+        bin_names.append("0 < P < 0.1")
         for i in np.arange(1, self.nbins):
-            binNames.append("%.2g <= P < %.2g" % (b[i], b[i + 1]))
-        binNames.append("1 == P")
-        binNames.append("1 < P")
+            bin_names.append("%.2g <= P < %.2g" % (b[i], b[i + 1]))
+        bin_names.append("1 == P")
+        bin_names.append("1 < P")
         # Package the names and values up
         result = np.empty(hist.size, dtype=[("name", np.str_, 20), ("value", float)])
-        result["name"] = binNames
+        result["name"] = bin_names
         result["value"] = hist
         return result
 
@@ -204,25 +204,25 @@ class IdentityMetric(BaseMetric):
     Return the metric value itself .. this is primarily useful as a summary statistic for UniSlicer metrics.
     """
 
-    def run(self, dataSlice, slicePoint=None):
-        if len(dataSlice[self.colname]) == 1:
-            result = dataSlice[self.colname][0]
+    def run(self, data_slice, slice_point=None):
+        if len(data_slice[self.colname]) == 1:
+            result = data_slice[self.colname][0]
         else:
-            result = dataSlice[self.colname]
+            result = data_slice[self.colname]
         return result
 
 
 class NormalizeMetric(BaseMetric):
     """
-    Return a metric values divided by 'normVal'. Useful for turning summary statistics into fractions.
+    Return a metric values divided by 'norm_val'. Useful for turning summary statistics into fractions.
     """
 
-    def __init__(self, col="metricdata", normVal=1, **kwargs):
+    def __init__(self, col="metricdata", norm_val=1, **kwargs):
         super(NormalizeMetric, self).__init__(col=col, **kwargs)
-        self.normVal = float(normVal)
+        self.norm_val = float(norm_val)
 
-    def run(self, dataSlice, slicePoint=None):
-        result = dataSlice[self.colname] / self.normVal
+    def run(self, data_slice, slice_point=None):
+        result = data_slice[self.colname] / self.norm_val
         if len(result) == 1:
             return result[0]
         else:
@@ -238,8 +238,8 @@ class ZeropointMetric(BaseMetric):
         super(ZeropointMetric, self).__init__(col=col, **kwargs)
         self.zp = zp
 
-    def run(self, dataSlice, slicePoint=None):
-        result = dataSlice[self.colname] + self.zp
+    def run(self, data_slice, slice_point=None):
+        result = data_slice[self.colname] + self.zp
         if len(result) == 1:
             return result[0]
         else:
@@ -256,21 +256,21 @@ class TotalPowerMetric(BaseMetric):
         col="metricdata",
         lmin=100.0,
         lmax=300.0,
-        removeDipole=True,
-        maskVal=hp.UNSEEN,
+        remove_dipole=True,
+        mask_val=hp.UNSEEN,
         **kwargs
     ):
         self.lmin = lmin
         self.lmax = lmax
-        self.removeDipole = removeDipole
-        super(TotalPowerMetric, self).__init__(col=col, maskVal=maskVal, **kwargs)
+        self.remove_dipole = remove_dipole
+        super(TotalPowerMetric, self).__init__(col=col, mask_val=mask_val, **kwargs)
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # Calculate the power spectrum.
-        if self.removeDipole:
-            cl = hp.anafast(hp.remove_dipole(dataSlice[self.colname], verbose=False))
+        if self.remove_dipole:
+            cl = hp.anafast(hp.remove_dipole(data_slice[self.colname], verbose=False))
         else:
-            cl = hp.anafast(dataSlice[self.colname])
+            cl = hp.anafast(data_slice[self.colname])
         ell = np.arange(np.size(cl))
         condition = np.where((ell <= self.lmax) & (ell >= self.lmin))[0]
         totalpower = np.sum(cl[condition] * (2 * ell[condition] + 1))
@@ -308,13 +308,13 @@ class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
             self.col = "metricdata"
         self.year = year
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         """
         Args:
-            dataSlice (ndarray): Values passed to metric by the slicer,
+            data_slice (ndarray): Values passed to metric by the slicer,
                 which the metric will use to calculate metric values
-                at each slicePoint.
-            slicePoint (Dict): Dictionary of slicePoint metadata passed
+                at each slice_point.
+            slice_point (Dict): Dictionary of slice_point metadata passed
                 to each metric.
         Returns:
              float: Interpolated static-probe statistical Figure-of-Merit.
@@ -322,11 +322,11 @@ class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
              ValueError: If year is not one of the 4 for which a FoM is calculated
         """
         # Chop off any outliers
-        good_pix = np.where(dataSlice[self.col] > 0)[0]
+        good_pix = np.where(data_slice[self.col] > 0)[0]
 
         # Calculate area and med depth from
         area = hp.nside2pixarea(self.nside, degrees=True) * np.size(good_pix)
-        median_depth = np.median(dataSlice[self.col][good_pix])
+        median_depth = np.median(data_slice[self.col][good_pix])
 
         # FoM is calculated at the following values
         if self.year == 1:

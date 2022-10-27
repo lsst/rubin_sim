@@ -11,8 +11,8 @@ class SlewContributionMetric(BaseMetric):
         self,
         col="actDelay",
         activity=None,
-        activeCol="activity",
-        inCritCol="inCriticalPath",
+        active_col="activity",
+        in_crit_col="inCriticalPath",
         **kwargs
     ):
         """
@@ -20,10 +20,10 @@ class SlewContributionMetric(BaseMetric):
         considering critical path activities only.
         """
         self.col = col
-        self.inCritCol = inCritCol
-        col = [col, inCritCol]
-        col.append(activeCol)
-        self.activeCol = activeCol
+        self.in_crit_col = in_crit_col
+        col = [col, in_crit_col]
+        col.append(active_col)
+        self.active_col = active_col
         self.activity = activity
         super(SlewContributionMetric, self).__init__(col=col, **kwargs)
         self.comment = (
@@ -32,23 +32,23 @@ class SlewContributionMetric(BaseMetric):
         )
         self.comment += "multiplied by the percent of total slews in the critical path."
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # Activities of this type, in critical path.
-        goodInCrit = np.where(
-            (dataSlice[self.activeCol] == self.activity)
-            & (dataSlice[self.inCritCol] == "True")
+        good_in_crit = np.where(
+            (data_slice[self.active_col] == self.activity)
+            & (data_slice[self.in_crit_col] == "True")
         )[0]
-        if len(goodInCrit) == 0:
+        if len(good_in_crit) == 0:
             result = 0.0
         else:
             # All activities in critical path.
-            inCrit = np.where((dataSlice[self.inCritCol] == "True"))[0]
+            in_crit = np.where((data_slice[self.in_crit_col] == "True"))[0]
             # Calculate fraction of total in-critical-path slew activities that this activity represents.
-            result = np.sum(dataSlice[self.col][goodInCrit]) / np.sum(
-                dataSlice[self.col][inCrit]
+            result = np.sum(data_slice[self.col][good_in_crit]) / np.sum(
+                data_slice[self.col][in_crit]
             )
             #  and multiply by the mean time required by this activity.
-            result *= np.mean(dataSlice[self.col][goodInCrit])
+            result *= np.mean(data_slice[self.col][good_in_crit])
         return result
 
 
@@ -57,18 +57,18 @@ class AveSlewFracMetric(BaseMetric):
         self,
         col="actDelay",
         activity=None,
-        activeCol="activity",
-        idCol="SlewHistory_slewCount",
+        active_col="activity",
+        id_col="SlewHistory_slewCount",
         **kwargs
     ):
         """
         Return the average time multiplied by fraction of slews.
         """
         self.col = col
-        self.idCol = idCol
-        col = [col, idCol]
-        col.append(activeCol)
-        self.activeCol = activeCol
+        self.id_col = id_col
+        col = [col, id_col]
+        col.append(active_col)
+        self.active_col = active_col
         self.activity = activity
         super(AveSlewFracMetric, self).__init__(col=col, **kwargs)
         self.comment = (
@@ -76,12 +76,12 @@ class AveSlewFracMetric(BaseMetric):
             % (activity)
         )
 
-    def run(self, dataSlice, slicePoint=None):
-        good = np.where(dataSlice[self.activeCol] == self.activity)[0]
+    def run(self, data_slice, slice_point=None):
+        good = np.where(data_slice[self.active_col] == self.activity)[0]
         if len(good) == 0:
             result = 0.0
         else:
-            result = np.mean(dataSlice[self.col][good])
-            nslews = np.size(np.unique(dataSlice[self.idCol]))
+            result = np.mean(data_slice[self.col][good])
+            nslews = np.size(np.unique(data_slice[self.id_col]))
             result = result * np.size(good) / np.float(nslews)
         return result

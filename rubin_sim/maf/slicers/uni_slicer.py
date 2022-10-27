@@ -23,25 +23,25 @@ class UniSlicer(BaseSlicer):
             ],
             int,
         )
-        self.plotFuncs = []
+        self.plot_funcs = []
 
-    def setupSlicer(self, simData, maps=None):
-        """Use simData to set indexes to return."""
+    def setup_slicer(self, sim_data, maps=None):
+        """Use sim_data to set indexes to return."""
         self._runMaps(maps)
-        simDataCol = simData.dtype.names[0]
-        self.indices = np.ones(len(simData[simDataCol]), dtype="bool")
+        sim_dataCol = sim_data.dtype.names[0]
+        self.indices = np.ones(len(sim_data[sim_dataCol]), dtype="bool")
 
-        @wraps(self._sliceSimData)
-        def _sliceSimData(islice):
-            """Return all indexes in simData."""
+        @wraps(self._slice_sim_data)
+        def _slice_sim_data(islice):
+            """Return all indexes in sim_data."""
             idxs = self.indices
             return {"idxs": idxs, "slicePoint": {"sid": islice}}
 
-        setattr(self, "_sliceSimData", _sliceSimData)
+        setattr(self, "_slice_sim_data", _slice_sim_data)
 
-    def __eq__(self, otherSlicer):
+    def __eq__(self, other_slicer):
         """Evaluate if slicers are equivalent."""
-        if isinstance(otherSlicer, UniSlicer):
+        if isinstance(other_slicer, UniSlicer):
             return True
         else:
             return False

@@ -27,17 +27,17 @@ class AreaSummaryMetric(BaseMetric):
     def __init__(
         self,
         col="metricdata",
-        metricName="AreaSummary",
+        metric_name="AreaSummary",
         area=18000.0,
         decreasing=True,
         reduce_func=None,
         **kwargs
     ):
-        super().__init__(col=col, metricName=metricName, **kwargs)
+        super().__init__(col=col, metric_name=metric_name, **kwargs)
         self.area = area
         self.decreasing = decreasing
         self.reduce_func = reduce_func
-        self.maskVal = np.nan  # Include so all values get passed
+        self.mask_val = np.nan  # Include so all values get passed
         self.col = col
         if reduce_func is None:
             if decreasing:
@@ -47,14 +47,14 @@ class AreaSummaryMetric(BaseMetric):
         else:
             self.reduce_func = reduce_func
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # find out what nside we have
-        nside = hp.npix2nside(dataSlice.size)
+        nside = hp.npix2nside(data_slice.size)
         pix_area = hp.nside2pixarea(nside, degrees=True)
         n_pix_needed = int(np.ceil(self.area / pix_area))
 
         # Only use the finite data
-        data = dataSlice[self.col][np.isfinite(dataSlice[self.col].astype(float))]
+        data = data_slice[self.col][np.isfinite(data_slice[self.col].astype(float))]
         order = np.argsort(data)
         if self.decreasing:
             order = order[::-1]
@@ -82,34 +82,34 @@ class AreaThresholdMetric(BaseMetric):
     def __init__(
         self,
         col="metricdata",
-        metricName="AreaThreshold",
+        metric_name="AreaThreshold",
         upper_threshold=None,
         lower_threshold=None,
         **kwargs
     ):
-        super().__init__(col=col, metricName=metricName, **kwargs)
+        super().__init__(col=col, metric_name=metric_name, **kwargs)
         self.upper_threshold = upper_threshold
         self.lower_threshold = lower_threshold
-        self.maskVal = np.nan  # Include so all values get passed
+        self.mask_val = np.nan  # Include so all values get passed
         self.col = col
         self.units = "degrees"
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # find out what nside we have
-        nside = hp.npix2nside(dataSlice.size)
+        nside = hp.npix2nside(data_slice.size)
         pix_area = hp.nside2pixarea(nside, degrees=True)
         # Look for pixels which match the critera for the thresholds
         if self.upper_threshold is None and self.lower_threshold is None:
-            npix = len(dataSlice)
+            npix = len(data_slice)
         elif self.upper_threshold is None:
-            npix = len(np.where(dataSlice[self.col] > self.lower_threshold)[0])
+            npix = len(np.where(data_slice[self.col] > self.lower_threshold)[0])
         elif self.lower_threshold is None:
-            npix = len(np.where(dataSlice[self.col] < self.upper_threshold)[0])
+            npix = len(np.where(data_slice[self.col] < self.upper_threshold)[0])
         else:
             npix = len(
                 np.where(
-                    (dataSlice[self.col] > self.lower_threshold)
-                    and (dataSlice[self.col] < self.upper_threshold)
+                    (data_slice[self.col] > self.lower_threshold)
+                    and (data_slice[self.col] < self.upper_threshold)
                 )[0]
             )
         area = pix_area * npix

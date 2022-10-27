@@ -23,11 +23,11 @@ class ParallaxMetric(BaseMetric):
     ----------
     metricName : str, optional
         Default 'parallax'.
-    m5Col : str, optional
+    m5_col : str, optional
         The default column name for m5 information in the input data. Default fiveSigmaDepth.
-    filterCol : str, optional
+    filter_col : str, optional
         The column name for the filter information. Default filter.
-    seeingCol : str, optional
+    seeing_col : str, optional
         The column name for the seeing information. Since the astrometry errors are based on the physical
         size of the PSF, this should be the FWHM of the physical psf. Default seeingFwhmGeom.
     rmag : float, optional
@@ -47,36 +47,36 @@ class ParallaxMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="parallax",
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
-        seeingCol="seeingFwhmGeom",
+        metric_name="parallax",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        seeing_col="seeingFwhmGeom",
         rmag=20.0,
-        SedTemplate="flat",
+        sed_template="flat",
         badval=-666,
         atm_err=0.01,
         normalize=False,
         **kwargs
     ):
-        Cols = [m5Col, filterCol, seeingCol, "ra_pi_amp", "dec_pi_amp"]
+        cols = [m5_col, filter_col, seeing_col, "ra_pi_amp", "dec_pi_amp"]
         if normalize:
             units = "ratio"
         else:
             units = "mas"
         super(ParallaxMetric, self).__init__(
-            Cols, metricName=metricName, units=units, badval=badval, **kwargs
+            cols, metric_name=metric_name, units=units, badval=badval, **kwargs
         )
         # set return type
-        self.m5Col = m5Col
-        self.seeingCol = seeingCol
-        self.filterCol = filterCol
+        self.m5_col = m5_col
+        self.seeing_col = seeing_col
+        self.filter_col = filter_col
         filters = ["u", "g", "r", "i", "z", "y"]
         self.mags = {}
-        if SedTemplate == "flat":
+        if sed_template == "flat":
             for f in filters:
                 self.mags[f] = rmag
         else:
-            self.mags = utils.stellarMags(SedTemplate, rmag=rmag)
+            self.mags = utils.stellarMags(sed_template, rmag=rmag)
         self.atm_err = atm_err
         self.normalize = normalize
         self.comment = (
@@ -88,7 +88,7 @@ class ParallaxMetric(BaseMetric):
             "and estimates astrometric error based on SNR "
         )
         self.comment += "in each visit. "
-        if SedTemplate == "flat":
+        if sed_template == "flat":
             self.comment += "Assumes a flat SED. "
         if self.normalize:
             self.comment += (
@@ -108,27 +108,27 @@ class ParallaxMetric(BaseMetric):
         """Assume parallax in RA and DEC are fit independently, then combined.
         All inputs assumed to be arcsec"""
         with np.errstate(divide="ignore", invalid="ignore"):
-            sigma_A = position_errors / ra_pi_amp
-            sigma_B = position_errors / dec_pi_amp
-            sigma_ra = np.sqrt(1.0 / np.sum(1.0 / sigma_A**2))
-            sigma_dec = np.sqrt(1.0 / np.sum(1.0 / sigma_B**2))
+            sigma_a = position_errors / ra_pi_amp
+            sigma_b = position_errors / dec_pi_amp
+            sigma_ra = np.sqrt(1.0 / np.sum(1.0 / sigma_a**2))
+            sigma_dec = np.sqrt(1.0 / np.sum(1.0 / sigma_b**2))
             # Combine RA and Dec uncertainties, convert to mas
             sigma = np.sqrt(1.0 / (1.0 / sigma_ra**2 + 1.0 / sigma_dec**2)) * 1e3
         return sigma
 
-    def run(self, dataslice, slicePoint=None):
-        filters = np.unique(dataslice[self.filterCol])
+    def run(self, dataslice, slice_point=None):
+        filters = np.unique(dataslice[self.filter_col])
         if hasattr(filters[0], "decode"):
             filters = [str(f.decode("utf-8")) for f in filters]
         snr = np.zeros(len(dataslice), dtype="float")
         # compute SNR for all observations
         for filt in filters:
-            good = np.where(dataslice[self.filterCol] == filt)
+            good = np.where(dataslice[self.filter_col] == filt)
             snr[good] = mafUtils.m52snr(
-                self.mags[str(filt)], dataslice[self.m5Col][good]
+                self.mags[str(filt)], dataslice[self.m5_col][good]
             )
         position_errors = np.sqrt(
-            mafUtils.astrom_precision(dataslice[self.seeingCol], snr) ** 2
+            mafUtils.astrom_precision(dataslice[self.seeing_col], snr) ** 2
             + self.atm_err**2
         )
         sigma = self._final_sigma(
@@ -156,13 +156,13 @@ class ProperMotionMetric(BaseMetric):
     ----------
     metricName : str, optional
         Default 'properMotion'.
-    m5Col : str, optional
+    m5_col : str, optional
         The default column name for m5 information in the input data. Default fiveSigmaDepth.
-    mjdCol : str, optional
+    mjd_col : str, optional
         The column name for the exposure time. Default observationStartMJD.
     filterCol : str, optional
         The column name for the filter information. Default filter.
-    seeingCol : str, optional
+    seeing_col : str, optional
         The column name for the seeing information. Since the astrometry errors are based on the physical
         size of the PSF, this should be the FWHM of the physical psf. Default seeingFwhmGeom.
     rmag : float, optional
@@ -184,38 +184,38 @@ class ProperMotionMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="properMotion",
-        m5Col="fiveSigmaDepth",
-        mjdCol="observationStartMJD",
-        filterCol="filter",
-        seeingCol="seeingFwhmGeom",
+        metric_name="properMotion",
+        m5_col="fiveSigmaDepth",
+        mjd_col="observationStartMJD",
+        filter_col="filter",
+        seeing_col="seeingFwhmGeom",
         rmag=20.0,
-        SedTemplate="flat",
+        sed_template="flat",
         badval=-666,
         atm_err=0.01,
         normalize=False,
         baseline=10.0,
         **kwargs
     ):
-        cols = [m5Col, mjdCol, filterCol, seeingCol]
+        cols = [m5_col, mjd_col, filter_col, seeing_col]
         if normalize:
             units = "ratio"
         else:
             units = "mas/yr"
         super(ProperMotionMetric, self).__init__(
-            col=cols, metricName=metricName, units=units, badval=badval, **kwargs
+            col=cols, metric_name=metric_name, units=units, badval=badval, **kwargs
         )
         # set return type
-        self.mjdCol = mjdCol
-        self.seeingCol = seeingCol
-        self.m5Col = m5Col
+        self.mjd_col = mjd_col
+        self.seeing_col = seeing_col
+        self.m5_col = m5_col
         filters = ["u", "g", "r", "i", "z", "y"]
         self.mags = {}
-        if SedTemplate == "flat":
+        if sed_template == "flat":
             for f in filters:
                 self.mags[f] = rmag
         else:
-            self.mags = utils.stellarMags(SedTemplate, rmag=rmag)
+            self.mags = utils.stellarMags(sed_template, rmag=rmag)
         self.atm_err = atm_err
         self.normalize = normalize
         self.baseline = baseline
@@ -227,7 +227,7 @@ class ProperMotionMetric(BaseMetric):
             "Uses visits in all bands, and generates approximate "
             "astrometric errors using the SNR in each visit. "
         )
-        if SedTemplate == "flat":
+        if sed_template == "flat":
             self.comment += "Assumes a flat SED. "
         if self.normalize:
             self.comment += (
@@ -241,7 +241,7 @@ class ProperMotionMetric(BaseMetric):
             self.comment += "obtained on the first and last days of the survey). "
             self.comment += "Values closer to 1 indicate more optimal scheduling."
 
-    def run(self, dataslice, slicePoint=None):
+    def run(self, dataslice, slice_point=None):
         filters = np.unique(dataslice["filter"])
         filters = [str(f) for f in filters]
         precis = np.zeros(dataslice.size, dtype="float")
@@ -250,20 +250,20 @@ class ProperMotionMetric(BaseMetric):
             if np.size(observations[0]) < 2:
                 precis[observations] = self.badval
             else:
-                snr = mafUtils.m52snr(self.mags[f], dataslice[self.m5Col][observations])
+                snr = mafUtils.m52snr(self.mags[f], dataslice[self.m5_col][observations])
                 precis[observations] = mafUtils.astrom_precision(
-                    dataslice[self.seeingCol][observations], snr
+                    dataslice[self.seeing_col][observations], snr
                 )
                 precis[observations] = np.sqrt(
                     precis[observations] ** 2 + self.atm_err**2
                 )
         good = np.where(precis != self.badval)
-        result = mafUtils.sigma_slope(dataslice[self.mjdCol][good], precis[good])
+        result = mafUtils.sigma_slope(dataslice[self.mjd_col][good], precis[good])
         result = result * 365.25 * 1e3  # Convert to mas/yr
         if (self.normalize) & (good[0].size > 0):
-            new_dates = dataslice[self.mjdCol][good] * 0
-            nDates = new_dates.size
-            new_dates[nDates // 2 :] = self.baseline * 365.25
+            new_dates = dataslice[self.mjd_col][good] * 0
+            n_dates = new_dates.size
+            new_dates[n_dates // 2 :] = self.baseline * 365.25
             result = (
                 mafUtils.sigma_slope(new_dates, precis[good]) * 365.25 * 1e3
             ) / result
@@ -287,17 +287,17 @@ class ParallaxCoverageMetric(BaseMetric):
     pair of observations separated by 6 months will give the full parallax range for a star on the pole
     but only observations on very specific dates will give the full range for a star on the ecliptic.
 
-    Optionally also demand that there are observations above the snrLimit kwarg spanning thetaRange radians.
+    Optionally also demand that there are observations above the snr_limit kwarg spanning theta_range radians.
 
     Parameters
     ----------
-    m5Col: str, optional
+    m5_col: str, optional
         Column name for individual visit m5. Default fiveSigmaDepth.
-    mjdCol: str, optional
+    mjd_col: str, optional
         Column name for exposure time dates. Default observationStartMJD.
-    filterCol: str, optional
+    filter_col: str, optional
         Column name for filter. Default filter.
-    seeingCol: str, optional
+    seeing_col: str, optional
         Column name for seeing (assumed FWHM). Default seeingFwhmGeom.
     rmag: float, optional
         Magnitude of fiducial star in r filter.  Other filters are scaled using sedTemplate keyword.
@@ -306,10 +306,10 @@ class ParallaxCoverageMetric(BaseMetric):
         Template to use (can be 'flat' or 'O','B','A','F','G','K','M'). Default 'flat'.
     atm_err: float, optional
         Centroiding error due to atmosphere in arcsec. Default 0.01 (arcseconds).
-    thetaRange: float, optional
+    theta_range: float, optional
         Range of parallax offset angles to demand (in radians). Default=0 (means no range requirement).
-    snrLimit: float, optional
-        Only include points above the snrLimit when computing thetaRange. Default 5.
+    snr_limit: float, optional
+        Only include points above the snr_limit when computing theta_range. Default 5.
 
     Returns
     --------
@@ -326,39 +326,39 @@ class ParallaxCoverageMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="ParallaxCoverageMetric",
-        m5Col="fiveSigmaDepth",
-        mjdCol="observationStartMJD",
-        filterCol="filter",
-        seeingCol="seeingFwhmGeom",
+        metric_name="ParallaxCoverageMetric",
+        m5_col="fiveSigmaDepth",
+        mjd_col="observationStartMJD",
+        filter_col="filter",
+        seeing_col="seeingFwhmGeom",
         rmag=20.0,
-        SedTemplate="flat",
+        sed_template="flat",
         atm_err=0.01,
-        thetaRange=0.0,
-        snrLimit=5,
+        theta_range=0.0,
+        snr_limit=5,
         **kwargs
     ):
-        cols = ["ra_pi_amp", "dec_pi_amp", m5Col, mjdCol, filterCol, seeingCol]
+        cols = ["ra_pi_amp", "dec_pi_amp", m5_col, mjd_col, filter_col, seeing_col]
         units = "ratio"
         super(ParallaxCoverageMetric, self).__init__(
-            cols, metricName=metricName, units=units, **kwargs
+            cols, metric_name=metric_name, units=units, **kwargs
         )
-        self.m5Col = m5Col
-        self.seeingCol = seeingCol
-        self.filterCol = filterCol
-        self.mjdCol = mjdCol
+        self.m5_col = m5_col
+        self.seeing_col = seeing_col
+        self.filter_col = filter_col
+        self.mjd_col = mjd_col
 
         # Demand the range of theta values
-        self.thetaRange = thetaRange
-        self.snrLimit = snrLimit
+        self.theta_range = theta_range
+        self.snr_limit = snr_limit
 
         filters = ["u", "g", "r", "i", "z", "y"]
         self.mags = {}
-        if SedTemplate == "flat":
+        if sed_template == "flat":
             for f in filters:
                 self.mags[f] = rmag
         else:
-            self.mags = utils.stellarMags(SedTemplate, rmag=rmag)
+            self.mags = utils.stellarMags(sed_template, rmag=rmag)
         self.atm_err = atm_err
         caption = (
             "Parallax factor coverage for an r=%.2f star (0 is bad, 0.5-1 is good). "
@@ -369,59 +369,59 @@ class ParallaxCoverageMetric(BaseMetric):
         caption += "offset by the full parallax offset." ""
         self.comment = caption
 
-    def _thetaCheck(self, ra_pi_amp, dec_pi_amp, snr):
-        good = np.where(snr >= self.snrLimit)
+    def _theta_check(self, ra_pi_amp, dec_pi_amp, snr):
+        good = np.where(snr >= self.snr_limit)
         theta = np.arctan2(dec_pi_amp[good], ra_pi_amp[good])
         # Make values between 0 and 2pi
         theta = theta - np.min(theta)
         result = 0.0
-        if np.max(theta) >= self.thetaRange:
+        if np.max(theta) >= self.theta_range:
             # Check that things are in differnet quadrants
             theta = (theta + np.pi) % 2.0 * np.pi
             theta = theta - np.min(theta)
-            if np.max(theta) >= self.thetaRange:
+            if np.max(theta) >= self.theta_range:
                 result = 1
         return result
 
-    def _computeWeights(self, dataSlice, snr):
+    def _compute_weights(self, data_slice, snr):
         # Compute centroid uncertainty in each visit
         position_errors = np.sqrt(
-            mafUtils.astrom_precision(dataSlice[self.seeingCol], snr) ** 2
+            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2
             + self.atm_err**2
         )
         weights = 1.0 / position_errors**2
         return weights
 
-    def _weightedR(self, dec_pi_amp, ra_pi_amp, weights):
+    def _weighted_r(self, dec_pi_amp, ra_pi_amp, weights):
         ycoord = dec_pi_amp - np.average(dec_pi_amp, weights=weights)
         xcoord = ra_pi_amp - np.average(ra_pi_amp, weights=weights)
         radius = np.sqrt(xcoord**2 + ycoord**2)
-        aveRad = np.average(radius, weights=weights)
-        return aveRad
+        ave_rad = np.average(radius, weights=weights)
+        return ave_rad
 
-    def run(self, dataSlice, slicePoint=None):
-        if np.size(dataSlice) < 2:
+    def run(self, data_slice, slice_point=None):
+        if np.size(data_slice) < 2:
             return self.badval
 
-        filters = np.unique(dataSlice[self.filterCol])
+        filters = np.unique(data_slice[self.filter_col])
         filters = [str(f) for f in filters]
-        snr = np.zeros(len(dataSlice), dtype="float")
+        snr = np.zeros(len(data_slice), dtype="float")
         # compute SNR for all observations
         for filt in filters:
-            inFilt = np.where(dataSlice[self.filterCol] == filt)
-            snr[inFilt] = mafUtils.m52snr(
-                self.mags[str(filt)], dataSlice[self.m5Col][inFilt]
+            in_filt = np.where(data_slice[self.filter_col] == filt)
+            snr[in_filt] = mafUtils.m52snr(
+                self.mags[str(filt)], data_slice[self.m5_col][in_filt]
             )
 
-        weights = self._computeWeights(dataSlice, snr)
-        aveR = self._weightedR(dataSlice["ra_pi_amp"], dataSlice["dec_pi_amp"], weights)
-        if self.thetaRange > 0:
-            thetaCheck = self._thetaCheck(
-                dataSlice["ra_pi_amp"], dataSlice["dec_pi_amp"], snr
+        weights = self._compute_weights(data_slice, snr)
+        ave_r = self._weighted_r(data_slice["ra_pi_amp"], data_slice["dec_pi_amp"], weights)
+        if self.theta_range > 0:
+            theta_check = self._theta_check(
+                data_slice["ra_pi_amp"], data_slice["dec_pi_amp"], snr
             )
         else:
-            thetaCheck = 1.0
-        result = aveR * thetaCheck
+            theta_check = 1.0
+        result = ave_r * theta_check
         return result
 
 
@@ -432,11 +432,11 @@ class ParallaxDcrDegenMetric(BaseMetric):
     ----------
     metricName : str, optional
         Default 'ParallaxDcrDegenMetric'.
-    seeingCol : str, optional
+    seeing_col : str, optional
         Default 'FWHMgeom'
-    m5Col : str, optional
+    m5_col : str, optional
         Default 'fiveSigmaDepth'
-    filterCol : str
+    filter_col : str
         Default 'filter'
     atm_err : float
         Minimum error in photometry centroids introduced by the atmosphere (arcseconds). Default 0.01.
@@ -460,19 +460,19 @@ class ParallaxDcrDegenMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="ParallaxDcrDegenMetric",
-        seeingCol="seeingFwhmGeom",
-        m5Col="fiveSigmaDepth",
+        metric_name="ParallaxDcrDegenMetric",
+        seeing_col="seeingFwhmGeom",
+        m5_col="fiveSigmaDepth",
         atm_err=0.01,
         rmag=20.0,
-        SedTemplate="flat",
-        filterCol="filter",
+        sed_template="flat",
+        filter_col="filter",
         tol=0.05,
         **kwargs
     ):
-        self.m5Col = m5Col
-        self.seeingCol = seeingCol
-        self.filterCol = filterCol
+        self.m5_col = m5_col
+        self.seeing_col = seeing_col
+        self.filter_col = filter_col
         self.tol = tol
         units = "Correlation"
         # just put all the columns that all the stackers will need here?
@@ -481,18 +481,18 @@ class ParallaxDcrDegenMetric(BaseMetric):
             "dec_pi_amp",
             "ra_dcr_amp",
             "dec_dcr_amp",
-            seeingCol,
-            m5Col,
+            seeing_col,
+            m5_col,
         ]
         super(ParallaxDcrDegenMetric, self).__init__(
-            cols, metricName=metricName, units=units, **kwargs
+            cols, metric_name=metric_name, units=units, **kwargs
         )
         self.mags = {}
-        if SedTemplate == "flat":
+        if sed_template == "flat":
             for f in ["u", "g", "r", "i", "z", "y"]:
                 self.mags[f] = rmag
         else:
-            self.mags = utils.stellarMags(SedTemplate, rmag=rmag)
+            self.mags = utils.stellarMags(sed_template, rmag=rmag)
         self.atm_err = atm_err
 
     def _positions(self, x, a, b):
@@ -505,7 +505,7 @@ class ParallaxDcrDegenMetric(BaseMetric):
         result = a * x[0, :] + b * x[1, :]
         return result
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # The idea here is that we calculate position errors (in RA and Dec) for all observations.
         # Then we generate arrays of the parallax offsets (delta RA parallax = ra_pi_amp, etc)
         #  and the DCR offsets (delta RA DCR = ra_dcr_amp, etc), and just add them together into one
@@ -514,24 +514,24 @@ class ParallaxDcrDegenMetric(BaseMetric):
         # (i.e. the curve_fit result is [a=1, b=1] for the function _positions above)
         # then we should be able to disentangle the parallax and DCR offsets when fitting 'for real'.
         # compute SNR for all observations
-        snr = np.zeros(len(dataSlice), dtype="float")
-        for filt in np.unique(dataSlice[self.filterCol]):
-            inFilt = np.where(dataSlice[self.filterCol] == filt)
-            snr[inFilt] = mafUtils.m52snr(
-                self.mags[filt], dataSlice[self.m5Col][inFilt]
+        snr = np.zeros(len(data_slice), dtype="float")
+        for filt in np.unique(data_slice[self.filter_col]):
+            in_filt = np.where(data_slice[self.filter_col] == filt)
+            snr[in_filt] = mafUtils.m52snr(
+                self.mags[filt], data_slice[self.m5_col][in_filt]
             )
         # Compute the centroiding uncertainties
         # Note that these centroiding uncertainties depend on the physical size of the PSF, thus
         # we are using seeingFwhmGeom for these metrics, not seeingFwhmEff.
         position_errors = np.sqrt(
-            mafUtils.astrom_precision(dataSlice[self.seeingCol], snr) ** 2
+            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2
             + self.atm_err**2
         )
         # Construct the vectors of RA/Dec offsets. xdata is the "input data". ydata is the "output".
-        xdata = np.empty((2, dataSlice.size * 2), dtype=float)
-        xdata[0, :] = np.concatenate((dataSlice["ra_pi_amp"], dataSlice["dec_pi_amp"]))
+        xdata = np.empty((2, data_slice.size * 2), dtype=float)
+        xdata[0, :] = np.concatenate((data_slice["ra_pi_amp"], data_slice["dec_pi_amp"]))
         xdata[1, :] = np.concatenate(
-            (dataSlice["ra_dcr_amp"], dataSlice["dec_dcr_amp"])
+            (data_slice["ra_dcr_amp"], data_slice["dec_dcr_amp"])
         )
         ydata = np.sum(xdata, axis=0)
         # Use curve_fit to compute covariance between parallax and dcr amplitudes
@@ -559,7 +559,7 @@ class ParallaxDcrDegenMetric(BaseMetric):
         return result
 
 
-def calcDist_cosines(RA1, Dec1, RA2, Dec2):
+def calc_dist_cosines(ra1, dec1, ra2, dec2):
     # Taken from simSelfCalib.py
     """Calculates distance on a sphere using spherical law of cosines.
 
@@ -568,7 +568,7 @@ def calcDist_cosines(RA1, Dec1, RA2, Dec2):
     # This formula can have rounding errors for case where distances are small.
     # Oh, the joys of wikipedia - http://en.wikipedia.org/wiki/Great-circle_distance
     # For the purposes of these calculations, this is probably accurate enough.
-    D = np.sin(Dec2) * np.sin(Dec1) + np.cos(Dec1) * np.cos(Dec2) * np.cos(RA2 - RA1)
+    D = np.sin(dec2) * np.sin(dec1) + np.cos(dec1) * np.cos(dec2) * np.cos(ra2 - ra1)
     D = np.arccos(D)
     return D
 
@@ -578,35 +578,35 @@ class RadiusObsMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="radiusObs",
-        raCol="fieldRA",
-        decCol="fieldDec",
+        metric_name="radiusObs",
+        ra_col="fieldRA",
+        dec_col="fieldDec",
         units="radians",
         **kwargs
     ):
-        self.raCol = raCol
-        self.decCol = decCol
+        self.ra_col = ra_col
+        self.dec_col = dec_col
         super(RadiusObsMetric, self).__init__(
-            col=[self.raCol, self.decCol], metricName=metricName, units=units, **kwargs
+            col=[self.ra_col, self.dec_col], metric_name=metric_name, units=units, **kwargs
         )
 
-    def run(self, dataSlice, slicePoint):
-        ra = slicePoint["ra"]
-        dec = slicePoint["dec"]
-        distances = calcDist_cosines(
+    def run(self, data_slice, slice_point):
+        ra = slice_point["ra"]
+        dec = slice_point["dec"]
+        distances = calc_dist_cosines(
             ra,
             dec,
-            np.radians(dataSlice[self.raCol]),
-            np.radians(dataSlice[self.decCol]),
+            np.radians(data_slice[self.ra_col]),
+            np.radians(data_slice[self.dec_col]),
         )
         distances = np.degrees(distances)
         return distances
 
-    def reduceMean(self, distances):
+    def reduce_mean(self, distances):
         return np.mean(distances)
 
-    def reduceRMS(self, distances):
+    def reduce_rms(self, distances):
         return np.std(distances)
 
-    def reduceFullRange(self, distances):
+    def reduce_full_range(self, distances):
         return np.max(distances) - np.min(distances)

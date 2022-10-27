@@ -6,10 +6,10 @@ import numpy as np
 import healpy as hp
 import matplotlib.pylab as plt
 
-__all__ = ["Short_expt_detailer"]
+__all__ = ["ShortExptDetailer"]
 
 
-class Short_expt_detailer(Base_detailer):
+class ShortExptDetailer(Base_detailer):
     """Check if the area has been observed with a short exposure time this year. If not, add some short exposures.
 
     Parameters

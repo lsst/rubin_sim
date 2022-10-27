@@ -147,7 +147,7 @@ def gen_blob_surveys(nside):
 
 
 class TestFeatures(unittest.TestCase):
-    def testGreedy(self):
+    def test_greedy(self):
         """
         Set up a greedy survey and run for a few days. A crude way to touch lots of code.
         """
@@ -175,7 +175,7 @@ class TestFeatures(unittest.TestCase):
         # Make sure nothing tried to look through the earth
         assert np.min(observations["alt"]) > 0
 
-    def testBlobs(self):
+    def test_blobs(self):
         """
         Set up a blob selection survey
         """
@@ -206,7 +206,7 @@ class TestFeatures(unittest.TestCase):
         # Make sure nothing tried to look through the earth
         assert np.min(observations["alt"]) > 0
 
-    def TestNside(self):
+    def test_nside(self):
         """
         test running at higher nside
         """

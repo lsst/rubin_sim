@@ -10,7 +10,7 @@ from rubin_sim.maf.maps.galactic_plane_priority_maps import (
     gp_priority_map_components_to_keys,
 )
 from .galactic_plane_metrics import galplane_priority_map_thresholds
-from .season_metrics import findSeasonEdges
+from .season_metrics import find_season_edges
 from .base_metric import BaseMetric
 
 __all__ = [
@@ -34,10 +34,10 @@ def calc_interval_decay(delta_tobs, tau):
 # this is a bit of a hack .. it helps us use a variety of tau_obs values,
 # and dynamically set up reduce functions
 def help_set_reduce_func(obj, metricval, tau):
-    def _reduceTau(obj, metricval):
+    def _reduce_tau(obj, metricval):
         return metricval[tau]
 
-    return _reduceTau
+    return _reduce_tau
 
 
 class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
@@ -56,9 +56,9 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
     mag_limit : `float`, opt
         Magnitude limit to use as a cutoff for various observations.
         Default 22.0.
-    mjdCol : `str`, opt
+    mjd_col : `str`, opt
         The name of the observation start MJD column. Default 'observationStartMJD'.
-    m5Col : `str', opt
+    m5_col : `str', opt
         The name of the five sigma depth column. Default 'fiveSigmaDepth'.
     """
 
@@ -67,8 +67,8 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
         science_map,
         tau_obs=None,
         mag_limit=22.0,
-        mjdCol="observationStartMJD",
-        m5Col="fiveSigmaDepth",
+        mjd_col="observationStartMJD",
+        m5_col="fiveSigmaDepth",
         **kwargs,
     ):
         self.science_map = science_map
@@ -82,41 +82,41 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
         # Create reduce functions for the class that are return the metric for each value in tau_obs
 
         self.mag_limit = mag_limit
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
         maps = ["GalacticPlanePriorityMap"]
-        if "metricName" not in kwargs:
-            metricName = f"GalPlaneVisitIntervalsTimescales_{self.science_map}"
+        if "metric_name" not in kwargs:
+            metric_name = f"GalPlaneVisitIntervalsTimescales_{self.science_map}"
         else:
-            metricName = kwargs["metricName"]
-            del kwargs["metricName"]
+            metric_name = kwargs["metric_name"]
+            del kwargs["metric_name"]
         for tau in self.tau_obs:
-            tauReduceName = f"reduceTau_{tau:.1f}".replace(".", "_")
+            tau_reduce_name = f"reduceTau_{tau:.1f}".replace(".", "_")
             newmethod = help_set_reduce_func(self, None, tau)
-            setattr(self, tauReduceName, MethodType(newmethod, tauReduceName))
+            setattr(self, tau_reduce_name, MethodType(newmethod, tau_reduce_name))
         super().__init__(
-            col=[self.mjdCol, self.m5Col], metricName=metricName, maps=maps, **kwargs
+            col=[self.mjd_col, self.m5_col], metric_name=metric_name, maps=maps, **kwargs
         )
         for i, tau in enumerate(self.tau_obs):
-            self.reduceOrder[
+            self.reduce_order[
                 f"reduceTau_{tau:.1f}".replace(".", "_").replace("reduce", "")
             ] = i
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # Check if we want to evaluate this part of the sky, or if the weight is below threshold.
         if (
-            slicePoint[gp_priority_map_components_to_keys("sum", self.science_map)]
+            slice_point[gp_priority_map_components_to_keys("sum", self.science_map)]
             <= self.priority_map_threshold
         ):
             return self.badval
         # Select observations in the time sequence that fulfill the
         # S/N requirements:
-        match = np.where(dataSlice[self.m5Col] >= self.mag_limit)[0]
+        match = np.where(data_slice[self.m5_col] >= self.mag_limit)[0]
         # We need at least two visits which match these requirements to calculate visit gaps
         if len(match) < 2:
             return self.badval
         # Find the time gaps between visits (in any filter)
-        times = dataSlice[self.mjdCol][match]
+        times = data_slice[self.mjd_col][match]
         times.sort()
         delta_tobs = np.diff(times)
         # Compare the time gap distribution to the time gap required to characterize variability
@@ -149,9 +149,9 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
     expected_season_gap : `float`, opt
         The typical season gap expected for a galactic plane field in days.
         The default, 145 days, is typical for a bulge field.
-    mjdCol : `str`, opt
+    mjd_col : `str`, opt
         The name of the observation start MJD column. Default 'observationStartMJD'.
-    m5Col : `str', opt
+    m5_col : `str', opt
         The name of the five sigma depth column. Default 'fiveSigmaDepth'.
     """
 
@@ -161,8 +161,8 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
         tau_var=None,
         mag_limit=22.0,
         expected_season_gap=145,
-        mjdCol="observationStartMJD",
-        m5Col="fiveSigmaDepth",
+        mjd_col="observationStartMJD",
+        m5_col="fiveSigmaDepth",
         **kwargs,
     ):
         self.science_map = science_map
@@ -178,39 +178,39 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
         ### these intervals are so short they will *always* be dropped during the season gap
         self.mag_limit = mag_limit
         self.expected_season_gap = expected_season_gap
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        if "metricName" not in kwargs:
-            metricName = f"GalPlaneSeasonGapsTimescales_{self.science_map}"
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        if "metric_name" not in kwargs:
+            metric_name = f"GalPlaneSeasonGapsTimescales_{self.science_map}"
         else:
-            metricName = kwargs["metricName"]
-            del kwargs["metricName"]
+            metric_name = kwargs["metric_name"]
+            del kwargs["metric_name"]
         for tau in self.tau_var:
-            tauReduceName = f"reduceTau_{tau:.1f}".replace(".", "_")
+            tau_reduce_name = f"reduceTau_{tau:.1f}".replace(".", "_")
             newmethod = help_set_reduce_func(self, None, tau)
-            setattr(self, tauReduceName, MethodType(newmethod, tauReduceName))
-        super().__init__(col=[self.mjdCol, self.m5Col], metricName=metricName, **kwargs)
+            setattr(self, tau_reduce_name, MethodType(newmethod, tau_reduce_name))
+        super().__init__(col=[self.mjd_col, self.m5_col], metric_name=metric_name, **kwargs)
         for i, tau in enumerate(self.tau_var):
-            self.reduceOrder[
+            self.reduce_order[
                 f"reduceTau_{tau:.1f}".replace(".", "_").replace("reduce", "")
             ] = i
 
-    def run(self, dataSlice, slicePoint):
+    def run(self, data_slice, slice_point):
         # Check if we want to evaluate this part of the sky, or if the weight is below threshold.
         if (
-            slicePoint[gp_priority_map_components_to_keys("sum", self.science_map)]
+            slice_point[gp_priority_map_components_to_keys("sum", self.science_map)]
             <= self.priority_map_threshold
         ):
             return self.badval
         # Find the length of the gaps between each season
-        times = dataSlice[self.mjdCol]
+        times = data_slice[self.mjd_col]
         times.sort()
-        # data = np.sort(dataSlice[self.mjdCol], order=self.mjdCol)
+        # data = np.sort(data_slice[self.mjd_col], order=self.mjd_col)
         # SlicePoints ra/dec are always in radians - convert to degrees to calculate season
-        seasons = calc_season(np.degrees(slicePoint["ra"]), times)
-        firstOfSeason, lastOfSeason = findSeasonEdges(seasons)
-        # season_lengths = times[lastOfSeason] - times[firstOfSeason]  # would this match interval calc better?
-        season_gaps = times[firstOfSeason][1:] - times[lastOfSeason][:-1]
+        seasons = calc_season(np.degrees(slice_point["ra"]), times)
+        first_of_season, last_of_season = find_season_edges(seasons)
+        # season_lengths = times[last_of_season] - times[first_of_season]  # would this match interval calc better?
+        season_gaps = times[first_of_season][1:] - times[last_of_season][:-1]
         if len(season_gaps) == 0:
             return self.badval
         metric_data = {}

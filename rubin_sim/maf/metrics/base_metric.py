@@ -41,7 +41,7 @@ class MetricRegistry(type):
         if metricname not in ["BaseMetric", "SimpleScalarMetric"]:
             cls.registry[metricname] = cls
 
-    def getClass(cls, metricname):
+    def get_class(cls, metricname):
         return cls.registry[metricname]
 
     def help(cls, doc=False):
@@ -64,42 +64,42 @@ class ColRegistry(object):
     """
     ColRegistry tracks the columns needed for all metric objects (kept internally in a set).
 
-    ColRegistry.colSet : a set of all unique columns required for metrics.
+    ColRegistry.col_set : a set of all unique columns required for metrics.
     ColRegistry.dbCols : the subset of these which come from the database.
     ColRegistry.stackerCols : the dictionary of [columns: stacker class].
     """
 
-    colInfo = ColInfo()
+    col_info = ColInfo()
 
     def __init__(self):
-        self.colSet = set()
-        self.dbSet = set()
-        self.stackerDict = {}
+        self.col_set = set()
+        self.db_set = set()
+        self.stacker_dict = {}
 
-    def clearReg(self):
+    def clear_reg(self):
         """Clear the registry"""
         self.__init__()
 
-    def addCols(self, colArray):
+    def add_cols(self, col_array):
         """Add the columns in ColArray into the ColRegistry.
 
-        Add the columns in colArray into the ColRegistry set (self.colSet) and identifies their source,
+        Add the columns in col_array into the ColRegistry set (self.col_set) and identifies their source,
          using ColInfo (rubin_sim.maf.stackers.getColInfo).
 
         Parameters
         ----------
-        colArray : list
+        col_array : list
             list of columns used in a metric.
         """
-        for col in colArray:
+        for col in col_array:
             if col is not None:
-                self.colSet.add(col)
-                source = self.colInfo.getDataSource(col)
-                if source == self.colInfo.defaultDataSource:
-                    self.dbSet.add(col)
+                self.col_set.add(col)
+                source = self.col_info.getDataSource(col)
+                if source == self.col_info.defaultDataSource:
+                    self.db_set.add(col)
                 else:
-                    if col not in self.stackerDict:
-                        self.stackerDict[col] = source
+                    if col not in self.stacker_dict:
+                        self.stacker_dict[col] = source
 
 
 class BaseMetric(with_metaclass(MetricRegistry, object)):
@@ -107,7 +107,7 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
     Base class for the metrics.
     Sets up some basic functionality for the MAF framework: after __init__ every metric will
     record the columns (and stackers) it requires into the column registry, and the metricName,
-    metricDtype, and units for the metric will be set.
+    metric_dtype, and units for the metric will be set.
 
     Parameters
     ----------
@@ -122,69 +122,69 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
     units : `str`
         The units for the value returned by the metric (optional - if not set,
         will be derived from the ColInfo).
-    metricDtype : `str`
+    metric_dtype : `str`
         The type of value returned by the metric - 'int', 'float', 'object'.
         If not set, will be derived by introspection.
     badval : `float`
         The value indicating "bad" values calculated by the metric.
     """
 
-    colRegistry = ColRegistry()
-    colInfo = ColInfo()
+    col_registry = ColRegistry()
+    col_info = ColInfo()
 
     def __init__(
         self,
         col=None,
-        metricName=None,
+        metric_name=None,
         maps=None,
         units=None,
-        metricDtype=None,
+        metric_dtype=None,
         badval=-666,
-        maskVal=None,
+        mask_val=None,
     ):
         # Turn cols into numpy array so we know we can iterate over the columns.
-        self.colNameArr = np.array(col, copy=False, ndmin=1)
+        self.col_name_arr = np.array(col, copy=False, ndmin=1)
         # To support simple metrics operating on a single column, set self.colname
-        if len(self.colNameArr) == 1:
-            self.colname = self.colNameArr[0]
+        if len(self.col_name_arr) == 1:
+            self.colname = self.col_name_arr[0]
         # Add the columns to the colRegistry.
-        self.colRegistry.addCols(self.colNameArr)
+        self.col_registry.add_cols(self.col_name_arr)
         # Set the maps that are needed:
         if maps is None:
             maps = []
         self.maps = maps
         # Value to return if the metric can't be computed
         self.badval = badval
-        if maskVal is not None:
-            self.maskVal = maskVal
+        if mask_val is not None:
+            self.mask_val = mask_val
         # Save a unique name for the metric.
-        self.name = metricName
+        self.name = metric_name
         if self.name is None:
             # If none provided, construct our own from the class name and the data columns.
             self.name = (
                 self.__class__.__name__.replace("Metric", "", 1)
                 + " "
-                + ", ".join(map(str, self.colNameArr))
+                + ", ".join(map(str, self.col_name_arr))
             )
         # Set up dictionary of reduce functions (may be empty).
-        self.reduceFuncs = {}
-        self.reduceOrder = {}
+        self.reduce_funcs = {}
+        self.reduce_order = {}
         for i, r in enumerate(inspect.getmembers(self, predicate=inspect.ismethod)):
             if r[0].startswith("reduce"):
                 reducename = r[0].replace("reduce", "", 1)
-                self.reduceFuncs[reducename] = r[1]
-                self.reduceOrder[reducename] = i
+                self.reduce_funcs[reducename] = r[1]
+                self.reduce_order[reducename] = i
         # Identify type of metric return value.
-        if metricDtype is not None:
-            self.metricDtype = metricDtype
-        elif len(list(self.reduceFuncs.keys())) > 0:
-            self.metricDtype = "object"
+        if metric_dtype is not None:
+            self.metric_dtype = metric_dtype
+        elif len(list(self.reduce_funcs.keys())) > 0:
+            self.metric_dtype = "object"
         else:
-            self.metricDtype = "float"
+            self.metric_dtype = "float"
         # Set physical units, for plotting purposes.
         if units is None:
             units = " ".join(
-                [self.colInfo.getUnits(colName) for colName in self.colNameArr]
+                [self.col_info.getUnits(col_name) for col_name in self.col_name_arr]
             )
             if len(units.replace(" ", "")) == 0:
                 units = ""
@@ -196,21 +196,21 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
         # Default to only return one metric value per slice
         self.shape = 1
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         """Calculate metric values.
 
         Parameters
         ----------
-        dataSlice : `numpy.recarray`
+        data_slice : `numpy.recarray`
            Values passed to metric by the slicer, which the metric will use to calculate
-           metric values at each slicePoint.
-        slicePoint : `dict` or None
-           Dictionary of slicePoint metadata passed to each metric.
+           metric values at each slice_point.
+        slice_point : `dict` or None
+           Dictionary of slice_point metadata passed to each metric.
            E.g. the ra/dec of the healpix pixel or opsim fieldId.
 
         Returns
         -------
         metricValue: `int` `float` or `object`
-            The metric value at each slicePoint.
+            The metric value at each slice_point.
         """
         raise NotImplementedError("Please implement your metric calculation.")

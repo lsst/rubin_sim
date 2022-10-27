@@ -18,10 +18,10 @@ __all__ = ["MovieSlicer"]
 class MovieSlicer(BaseSlicer):
     def __init__(
         self,
-        sliceColName=None,
-        sliceColUnits=None,
+        slice_col_name=None,
+        slice_col_units=None,
         bins=None,
-        binMin=None,
+        bin_min=None,
         binMax=None,
         binsize=None,
         verbose=True,
@@ -35,13 +35,13 @@ class MovieSlicer(BaseSlicer):
         (together with a set of Metrics) calculates metric values + plots at each slice created by the movieSlicer.
         The job of the movieSlicer is to track those slices and put them together into a movie.
 
-        'sliceColName' is the name of the data column to use for slicing.
-        'sliceColUnits' lets the user set the units (for plotting purposes) of the slice column.
+        'slice_col_name' is the name of the data column to use for slicing.
+        'slice_col_units' lets the user set the units (for plotting purposes) of the slice column.
         'bins' can be a numpy array with the binpoints for sliceCol or a single integer value
-        (if a single value, this will be used as the number of bins, together with data min/max or binMin/Max),
+        (if a single value, this will be used as the number of bins, together with data min/max or bin_min/Max),
         as in numpy's histogram function.
         If 'binsize' is used, this will override the bins value and will be used together with the data min/max
-        or binMin/Max to set the binpoint values.
+        or bin_min/Max to set the binpoint values.
 
         Bins work like numpy histogram bins: the last 'bin' value is end value of last bin;
           all bins except for last bin are half-open ([a, b>), the last one is ([a, b]).
@@ -61,38 +61,38 @@ class MovieSlicer(BaseSlicer):
                     " Use forceNoFfmpeg=True to override this error and create individual images."
                 )
         super().__init__(verbose=verbose, badval=badval)
-        self.sliceColName = sliceColName
-        self.columnsNeeded = [sliceColName]
+        self.slice_col_name = slice_col_name
+        self.columns_needed = [slice_col_name]
         self.bins = bins
-        self.binMin = binMin
+        self.bin_min = bin_min
         self.binMax = binMax
         self.binsize = binsize
         self.cumulative = cumulative
-        if sliceColUnits is None:
+        if slice_col_units is None:
             co = ColInfo()
-            self.sliceColUnits = co.getUnits(self.sliceColName)
+            self.slice_col_units = co.getUnits(self.slice_col_name)
         self.slicer_init = {
-            "sliceColName": self.sliceColName,
-            "sliceColUnits": sliceColUnits,
+            "slice_col_name": self.slice_col_name,
+            "slice_col_units": slice_col_units,
             "badval": badval,
         }
 
-    def setupSlicer(self, simData, maps=None):
+    def setup_slicer(self, sim_data, maps=None):
         """
         Set up bins in slicer.
         """
-        if self.sliceColName is None:
-            raise Exception("sliceColName was not defined when slicer instantiated.")
-        sliceCol = simData[self.sliceColName]
+        if self.slice_col_name is None:
+            raise Exception("slice_col_name was not defined when slicer instantiated.")
+        sliceCol = sim_data[self.slice_col_name]
         # Set bin min/max values.
-        if self.binMin is None:
-            self.binMin = sliceCol.min()
+        if self.bin_min is None:
+            self.bin_min = sliceCol.min()
         if self.binMax is None:
             self.binMax = sliceCol.max()
-        # Give warning if binMin = binMax, and do something at least slightly reasonable.
-        if self.binMin == self.binMax:
+        # Give warning if bin_min = binMax, and do something at least slightly reasonable.
+        if self.bin_min == self.binMax:
             warnings.warn(
-                "binMin = binMax (maybe your data is single-valued?). "
+                "bin_min = binMax (maybe your data is single-valued?). "
                 "Increasing binMax by 1 (or 2*binsize, if binsize set)."
             )
             if self.binsize is not None:
@@ -108,7 +108,7 @@ class MovieSlicer(BaseSlicer):
                     % (self.binsize)
                 )
             self.bins = np.arange(
-                self.binMin,
+                self.bin_min,
                 self.binMax + self.binsize / 2.0,
                 float(self.binsize),
                 "float",
@@ -121,11 +121,11 @@ class MovieSlicer(BaseSlicer):
             # Or bins was a single value.
             else:
                 if self.bins is None:
-                    self.bins = optimalBins(sliceCol, self.binMin, self.binMax)
+                    self.bins = optimalBins(sliceCol, self.bin_min, self.binMax)
                 nbins = int(self.bins)
-                self.binsize = (self.binMax - self.binMin) / float(nbins)
+                self.binsize = (self.binMax - self.bin_min) / float(nbins)
                 self.bins = np.arange(
-                    self.binMin, self.binMax + self.binsize / 2.0, self.binsize, "float"
+                    self.bin_min, self.binMax + self.binsize / 2.0, self.binsize, "float"
                 )
         # Set nbins to be one less than # of bins because last binvalue is RH edge only
         self.nslice = len(self.bins) - 1
@@ -135,8 +135,8 @@ class MovieSlicer(BaseSlicer):
         # Add metadata from maps.
         self._runMaps(maps)
         # Set up data slicing.
-        self.simIdxs = np.argsort(simData[self.sliceColName])
-        simFieldsSorted = np.sort(simData[self.sliceColName])
+        self.sim_idxs = np.argsort(sim_data[self.slice_col_name])
+        simFieldsSorted = np.sort(sim_data[self.slice_col_name])
         # "left" values are location where simdata == bin value
         self.left = np.searchsorted(simFieldsSorted, self.bins[:-1], "left")
         self.left = np.concatenate(
@@ -144,23 +144,23 @@ class MovieSlicer(BaseSlicer):
                 self.left,
                 np.array(
                     [
-                        len(self.simIdxs),
+                        len(self.sim_idxs),
                     ]
                 ),
             )
         )
-        # Set up _sliceSimData method for this class.
+        # Set up _slice_sim_data method for this class.
         if self.cumulative:
 
-            @wraps(self._sliceSimData)
-            def _sliceSimData(islice):
+            @wraps(self._slice_sim_data)
+            def _slice_sim_data(islice):
                 """
-                Slice simData on oneD sliceCol, to return relevant indexes for slicepoint.
+                Slice sim_data on oneD sliceCol, to return relevant indexes for slicepoint.
                 """
                 # this is the important part. The ids here define the pieces of data that get
                 # passed on to subsequent slicers
                 # cumulative version of 1D slicing
-                idxs = self.simIdxs[0 : self.left[islice + 1]]
+                idxs = self.sim_idxs[0 : self.left[islice + 1]]
                 return {
                     "idxs": idxs,
                     "slicePoint": {
@@ -170,15 +170,15 @@ class MovieSlicer(BaseSlicer):
                     },
                 }
 
-            setattr(self, "_sliceSimData", _sliceSimData)
+            setattr(self, "_slice_sim_data", _slice_sim_data)
         else:
 
-            @wraps(self._sliceSimData)
-            def _sliceSimData(islice):
+            @wraps(self._slice_sim_data)
+            def _slice_sim_data(islice):
                 """
-                Slice simData on oneD sliceCol, to return relevant indexes for slicepoint.
+                Slice sim_data on oneD sliceCol, to return relevant indexes for slicepoint.
                 """
-                idxs = self.simIdxs[self.left[islice] : self.left[islice + 1]]
+                idxs = self.sim_idxs[self.left[islice] : self.left[islice + 1]]
                 return {
                     "idxs": idxs,
                     "slicePoint": {
@@ -188,15 +188,15 @@ class MovieSlicer(BaseSlicer):
                     },
                 }
 
-            setattr(self, "_sliceSimData", _sliceSimData)
+            setattr(self, "_slice_sim_data", _slice_sim_data)
 
-    def __eq__(self, otherSlicer):
+    def __eq__(self, other_slicer):
         """
         Evaluate if slicers are equivalent.
         """
-        if isinstance(otherSlicer, MovieSlicer):
+        if isinstance(other_slicer, MovieSlicer):
             return np.array_equal(
-                otherSlicer.slicePoints["bins"], self.slicePoints["bins"]
+                other_slicer.slicePoints["bins"], self.slicePoints["bins"]
             )
         else:
             return False

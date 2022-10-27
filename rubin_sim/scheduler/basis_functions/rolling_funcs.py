@@ -9,13 +9,13 @@ from rubin_sim.utils import _hpid2_ra_dec
 
 
 __all__ = [
-    "Target_map_modulo_basis_function",
-    "Footprint_basis_function",
-    "Footprint_rolling_basis_function",
+    "TargetMapModuloBasisFunction",
+    "FootprintBasisFunction",
+    "FootprintRollingBasisFunction",
 ]
 
 
-class Footprint_basis_function(Base_basis_function):
+class FootprintBasisFunction(Base_basis_function):
     """Basis function that tries to maintain a uniformly covered footprint
 
     Parameters
@@ -42,7 +42,7 @@ class Footprint_basis_function(Base_basis_function):
         window_size=6.0,
     ):
 
-        super(Footprint_basis_function, self).__init__(
+        super(FootprintBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
         self.footprint = footprint
@@ -76,7 +76,7 @@ class Footprint_basis_function(Base_basis_function):
         return result
 
 
-class Footprint_rolling_basis_function(Base_basis_function):
+class FootprintRollingBasisFunction(Base_basis_function):
     """Let's get the rolling really right.
 
     Parameters
@@ -112,7 +112,7 @@ class Footprint_rolling_basis_function(Base_basis_function):
         day_offset=None,
         window_size=6.0,
     ):
-        super(Footprint_rolling_basis_function, self).__init__(
+        super(FootprintRollingBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
 
@@ -255,7 +255,7 @@ class Footprint_rolling_basis_function(Base_basis_function):
         return result
 
 
-class Target_map_modulo_basis_function(Base_basis_function):
+class TargetMapModuloBasisFunction(Base_basis_function):
     """Basis function that tracks number of observations and tries to match a specified spatial distribution
     can enter multiple maps that will be used at different times in the survey
 
@@ -298,7 +298,7 @@ class Target_map_modulo_basis_function(Base_basis_function):
         season_length=365.25,
     ):
 
-        super(Target_map_modulo_basis_function, self).__init__(
+        super(TargetMapModuloBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
 
@@ -403,7 +403,7 @@ class Target_map_modulo_basis_function(Base_basis_function):
         composite_target = self.result.copy()[indx]
         composite_nobs = self.result.copy()[indx]
 
-        composite_goal_N = self.result.copy()[indx]
+        composite_goal_n = self.result.copy()[indx]
 
         for season in np.unique(seasons):
             season_indx = np.where(seasons == season)[0]
@@ -411,13 +411,13 @@ class Target_map_modulo_basis_function(Base_basis_function):
             composite_nobs[season_indx] = self.survey_features[
                 "N_obs_%i" % season
             ].feature[season_indx]
-            composite_goal_N[season_indx] = (
+            composite_goal_n[season_indx] = (
                 composite_target[season_indx]
                 * self.survey_features["N_obs_count_all_%i" % season].feature
                 * self.norm_factor
             )
 
-        result[indx] = composite_goal_N - composite_nobs[indx]
+        result[indx] = composite_goal_n - composite_nobs[indx]
         result[self.out_of_bounds_area] = self.out_of_bounds_val
 
         return result

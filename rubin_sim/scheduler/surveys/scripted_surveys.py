@@ -7,10 +7,10 @@ import logging
 
 log = logging.getLogger(__name__)
 
-__all__ = ["Scripted_survey", "Pairs_survey_scripted"]
+__all__ = ["ScriptedSurvey", "PairsSurveyScripted"]
 
 
-class Scripted_survey(BaseSurvey):
+class ScriptedSurvey(BaseSurvey):
     """
     Take a set of scheduled observations and serve them up.
 
@@ -43,7 +43,7 @@ class Scripted_survey(BaseSurvey):
         self.reward = -np.inf
         self.id_start = id_start
         self.return_n_limit = return_n_limit
-        super(Scripted_survey, self).__init__(
+        super(ScriptedSurvey, self).__init__(
             basis_functions=basis_functions,
             ignore_obs=ignore_obs,
             nside=nside,
@@ -111,7 +111,7 @@ class Scripted_survey(BaseSurvey):
             observation[key] = obs_row[key]
         return observation
 
-    def _check_alts_HA(self, observation, conditions):
+    def _check_alts_ha(self, observation, conditions):
         """Given scheduled observations, check which ones can be done in current conditions.
 
         Parameters
@@ -150,7 +150,7 @@ class Scripted_survey(BaseSurvey):
             )[0]
 
             if np.size(in_time_window) > 0:
-                pass_checks = self._check_alts_HA(
+                pass_checks = self._check_alts_ha(
                     self.obs_wanted[in_time_window], conditions
                 )
                 matches = in_time_window[pass_checks]
@@ -214,7 +214,7 @@ class Scripted_survey(BaseSurvey):
         return observations
 
 
-class Pairs_survey_scripted(Scripted_survey):
+class PairsSurveyScripted(ScriptedSurvey):
     """Check if incoming observations will need a pair in 30 minutes. If so, add to the queue"""
 
     def __init__(
@@ -246,7 +246,7 @@ class Pairs_survey_scripted(Scripted_survey):
         if nside is None:
             nside = set_default_nside()
 
-        super(Pairs_survey_scripted, self).__init__(
+        super(PairsSurveyScripted, self).__init__(
             basis_functions=basis_functions,
             ignore_obs=ignore_obs,
             min_alt=min_alt,

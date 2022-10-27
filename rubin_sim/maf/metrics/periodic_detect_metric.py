@@ -24,7 +24,7 @@ class PeriodicDetectMetric(BaseMetric):
         The mean magnitude of the star in r (mags).
     sig_level : float (0.05)
         The value to use to compare to the p-value when deciding if we can reject the null hypothesis.
-    SedTemplate : str ('F')
+    sed_template : str ('F')
         The stellar SED template to use to generate realistic colors (default is an F star, so RR Lyrae-like)
 
     Returns
@@ -36,44 +36,44 @@ class PeriodicDetectMetric(BaseMetric):
 
     def __init__(
         self,
-        mjdCol="observationStartMJD",
+        mjd_col="observationStartMJD",
         periods=2.0,
         amplitudes=0.1,
-        m5Col="fiveSigmaDepth",
-        metricName="PeriodicDetectMetric",
-        filterCol="filter",
-        starMags=20,
+        m5_col="fiveSigmaDepth",
+        metric_name="PeriodicDetectMetric",
+        filter_col="filter",
+        star_mags=20,
         sig_level=0.05,
-        SedTemplate="F",
+        sed_template="F",
         **kwargs
     ):
 
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        self.filter_col = filter_col
         if np.size(periods) == 1:
             self.periods = [periods]
             # Using the same magnitude for all filters. Could expand to fit the mean in each filter.
-            self.starMags = [starMags]
+            self.star_mags = [star_mags]
             self.amplitudes = [amplitudes]
         else:
             self.periods = periods
-            self.starMags = starMags
+            self.star_mags = star_mags
             self.amplitudes = amplitudes
         self.sig_level = sig_level
-        self.SedTemplate = SedTemplate
+        self.sed_template = sed_template
 
         super(PeriodicDetectMetric, self).__init__(
-            [mjdCol, m5Col, filterCol],
-            metricName=metricName,
+            [mjd_col, m5_col, filter_col],
+            metric_name=metric_name,
             units="N Detected (0, %i)" % np.size(periods),
             **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         result = 0
-        n_pts = np.size(dataSlice[self.mjdCol])
-        n_filt = np.size(np.unique(dataSlice[self.filterCol]))
+        n_pts = np.size(data_slice[self.mjd_col])
+        n_filt = np.size(np.unique(data_slice[self.filter_col]))
 
         # If we had a correct model with phase, amplitude, period, mean_mags,
         # then chi_squared/DoF would be ~1 with 3+n_filt free parameters.
@@ -82,22 +82,22 @@ class PeriodicDetectMetric(BaseMetric):
         p2 = 3.0 + n_filt
         chi_sq_2 = 1.0 * (n_pts - p2)
 
-        u_filters = np.unique(dataSlice[self.filterCol])
+        u_filters = np.unique(data_slice[self.filter_col])
 
         if n_pts > p2:
             for period, starMag, amplitude in zip(
-                self.periods, self.starMags, self.amplitudes
+                self.periods, self.star_mags, self.amplitudes
             ):
                 chi_sq_1 = 0
-                mags = utils.stellarMags(self.SedTemplate, rmag=starMag)
+                mags = utils.stellarMags(self.sed_template, rmag=starMag)
                 for filtername in u_filters:
-                    in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
+                    in_filt = np.where(data_slice[self.filter_col] == filtername)[0]
                     lc = (
                         amplitude
-                        * np.sin(dataSlice[self.mjdCol][in_filt] * (np.pi * 2) / period)
+                        * np.sin(data_slice[self.mjd_col][in_filt] * (np.pi * 2) / period)
                         + mags[filtername]
                     )
-                    snr = m52snr(lc, dataSlice[self.m5Col][in_filt])
+                    snr = m52snr(lc, data_slice[self.m5_col][in_filt])
                     delta_m = 2.5 * np.log10(1.0 + 1.0 / snr)
                     weights = 1.0 / (delta_m**2)
                     weighted_mean = np.sum(weights * lc) / np.sum(weights)

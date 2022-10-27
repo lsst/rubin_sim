@@ -13,7 +13,7 @@ import healpy as hp
 from rubin_sim.scheduler.thomson import xyz2thetaphi, thetaphi2xyz
 from rubin_sim.scheduler.detailers import Zero_rot_detailer
 
-__all__ = ["BaseSurvey", "BaseMarkovDF_survey"]
+__all__ = ["BaseSurvey", "BasemarkovdfSurvey"]
 
 
 class BaseSurvey(object):
@@ -254,7 +254,7 @@ def rotx(theta, x, y, z):
     return xp, yp, zp
 
 
-class BaseMarkovDF_survey(BaseSurvey):
+class BasemarkovdfSurvey(BaseSurvey):
     """A Markov Decision Function survey object. Uses Basis functions to compute a
     final reward function and decide what to observe based on the reward. Includes
     methods for dithering and defaults to dithering nightly.
@@ -292,7 +292,7 @@ class BaseMarkovDF_survey(BaseSurvey):
         npositions=7305,
     ):
 
-        super(BaseMarkovDF_survey, self).__init__(
+        super(BasemarkovdfSurvey, self).__init__(
             basis_functions=basis_functions,
             extra_features=extra_features,
             ignore_obs=ignore_obs,

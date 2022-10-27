@@ -116,24 +116,24 @@ class HealpixSubsetSlicer(HealpixSlicer):
         self.mask = np.ones(hp.nside2npix(self.nside), bool)
         self.mask[self.hpid] = False
 
-    def __eq__(self, otherSlicer):
+    def __eq__(self, other_slicer):
         """Evaluate if two slicers are equivalent."""
         # If the two slicers are both healpix slicers, check nsides value.
         result = False
-        if isinstance(otherSlicer, HealpixSubsetSlicer):
-            if otherSlicer.nside == self.nside:
-                if np.array_equal(otherSlicer.hpid, self.hpid):
+        if isinstance(other_slicer, HealpixSubsetSlicer):
+            if other_slicer.nside == self.nside:
+                if np.array_equal(other_slicer.hpid, self.hpid):
                     if (
-                        otherSlicer.lonCol == self.lonCol
-                        and otherSlicer.latCol == self.latCol
+                        other_slicer.lonCol == self.lonCol
+                        and other_slicer.latCol == self.latCol
                     ):
-                        if otherSlicer.radius == self.radius:
-                            if otherSlicer.useCamera == self.useCamera:
+                        if other_slicer.radius == self.radius:
+                            if other_slicer.useCamera == self.useCamera:
                                 if (
-                                    otherSlicer.rotSkyPosColName
+                                    other_slicer.rotSkyPosColName
                                     == self.rotSkyPosColName
                                 ):
-                                    if np.all(otherSlicer.shape == self.shape):
+                                    if np.all(other_slicer.shape == self.shape):
                                         result = True
         return result
 
@@ -143,9 +143,9 @@ class HealpixSubsetSlicer(HealpixSlicer):
         return self
 
     def __next__(self):
-        """Returns results of self._sliceSimData when iterating over slicer.
+        """Returns results of self._slice_sim_data when iterating over slicer.
 
-        Results of self._sliceSimData should be dictionary of
+        Results of self._slice_sim_data should be dictionary of
         {'idxs': the data indexes relevant for this slice of the slicer,
         'slicePoint': the metadata for the slicePoint, which always includes 'sid' key for ID of slicePoint.}
         """
@@ -156,24 +156,24 @@ class HealpixSubsetSlicer(HealpixSlicer):
         # Set up 'next'
         self.hpid_counter += 1
         # Return 'current'
-        return self._sliceSimData(islice)
+        return self._slice_sim_data(islice)
 
-    def setupSlicer(self, simData, maps=None):
-        """Use simData[self.lonCol] and simData[self.latCol] (in radians) to set up KDTree.
+    def setup_slicer(self, sim_data, maps=None):
+        """Use sim_data[self.lonCol] and sim_data[self.latCol] (in radians) to set up KDTree.
 
         Parameters
         -----------
-        simData : numpy.recarray
+        sim_data : numpy.recarray
             The simulated data, including the location of each pointing.
         maps : list of rubin_sim.maf.maps objects, optional
             List of maps (such as dust extinction) that will run to build up additional metadata at each
             slicePoint. This additional metadata is available to metrics via the slicePoint dictionary.
             Default None.
         """
-        super().setupSlicer(simData=simData, maps=maps)
+        super().setup_slicer(sim_data=sim_data, maps=maps)
 
-        @wraps(self._sliceSimData)
-        def _sliceSimData(islice):
+        @wraps(self._slice_sim_data)
+        def _slice_sim_data(islice):
             """Return indexes for relevant opsim data at slicepoint
             (slicepoint=lonCol/latCol value .. usually ra/dec)."""
             # Subclass this method, just to make sure we return no data for points not in self.hpid
@@ -212,4 +212,4 @@ class HealpixSubsetSlicer(HealpixSlicer):
 
             return {"idxs": indices, "slicePoint": slicePoint}
 
-        setattr(self, "_sliceSimData", _sliceSimData)
+        setattr(self, "_slice_sim_data", _slice_sim_data)

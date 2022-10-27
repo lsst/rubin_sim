@@ -21,83 +21,83 @@ class SNCadenceMetric(metrics.BaseMetric):
 
     def __init__(
         self,
-        metricName="SNCadenceMetric",
-        mjdCol="observationStartMJD",
-        RaCol="fieldRA",
-        DecCol="fieldDec",
-        filterCol="filter",
-        m5Col="fiveSigmaDepth",
-        exptimeCol="visitExposureTime",
-        nightCol="night",
-        obsidCol="observationId",
-        nexpCol="numExposures",
-        vistimeCol="visitTime",
+        metric_name="SNCadenceMetric",
+        mjd_col="observationStartMJD",
+        ra_col="fieldRA",
+        dec_col="fieldDec",
+        filter_col="filter",
+        m5_col="fiveSigmaDepth",
+        exptime_col="visitExposureTime",
+        night_col="night",
+        obsid_col="observationId",
+        nexp_col="numExposures",
+        vistime_col="visitTime",
         coadd=True,
         lim_sn=None,
         **kwargs
     ):
 
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
-        self.RaCol = RaCol
-        self.DecCol = DecCol
-        self.exptimeCol = exptimeCol
-        self.seasonCol = "season"
-        self.nightCol = nightCol
-        self.obsidCol = obsidCol
-        self.nexpCol = nexpCol
-        self.vistimeCol = vistimeCol
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        self.filter_col = filter_col
+        self.ra_col = ra_col
+        self.dec_col = dec_col
+        self.exptime_col = exptime_col
+        self.season_col = "season"
+        self.night_col = night_col
+        self.obsid_col = obsid_col
+        self.nexp_col = nexp_col
+        self.vistime_col = vistime_col
 
         cols = [
-            self.nightCol,
-            self.m5Col,
-            self.filterCol,
-            self.mjdCol,
-            self.obsidCol,
-            self.nexpCol,
-            self.vistimeCol,
-            self.exptimeCol,
-            self.seasonCol,
+            self.night_col,
+            self.m5_col,
+            self.filter_col,
+            self.mjd_col,
+            self.obsid_col,
+            self.nexp_col,
+            self.vistime_col,
+            self.exptime_col,
+            self.season_col,
         ]
         if coadd:
             cols += ["coadd"]
 
-        super(SNCadenceMetric, self).__init__(col=cols, metricName=metricName, **kwargs)
+        super(SNCadenceMetric, self).__init__(col=cols, metric_name=metric_name, **kwargs)
 
         self.filter_names = np.array(["u", "g", "r", "i", "z", "y"])
 
         self.lim_sn = lim_sn
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
 
         # Cut down to only include filters in correct wave range.
 
-        goodFilters = np.in1d(dataSlice["filter"], self.filter_names)
-        dataSlice = dataSlice[goodFilters]
-        if dataSlice.size == 0:
+        good_filters = np.in1d(data_slice["filter"], self.filter_names)
+        data_slice = data_slice[good_filters]
+        if data_slice.size == 0:
             return None
-        dataSlice.sort(order=self.mjdCol)
+        data_slice.sort(order=self.mjd_col)
 
         r = []
-        fieldRA = np.mean(dataSlice[self.RaCol])
-        fieldDec = np.mean(dataSlice[self.DecCol])
-        band = np.unique(dataSlice[self.filterCol])[0]
+        field_ra = np.mean(data_slice[self.ra_col])
+        field_dec = np.mean(data_slice[self.dec_col])
+        band = np.unique(data_slice[self.filter_col])[0]
 
-        sel = dataSlice
+        sel = data_slice
         bins = np.arange(
-            np.floor(sel[self.mjdCol].min()), np.ceil(sel[self.mjdCol].max()), 1.0
+            np.floor(sel[self.mjd_col].min()), np.ceil(sel[self.mjd_col].max()), 1.0
         )
-        c, b = np.histogram(sel[self.mjdCol], bins=bins)
+        c, b = np.histogram(sel[self.mjd_col], bins=bins)
         if (c.mean() < 1.0e-8) | np.isnan(c).any() | np.isnan(c.mean()):
             cadence = 0.0
         else:
             cadence = 1.0 / c.mean()
-        # time_diff = sel[self.mjdCol][1:]-sel[self.mjdCol][:-1]
-        r.append((fieldRA, fieldDec, band, np.mean(sel[self.m5Col]), cadence))
+        # time_diff = sel[self.mjd_col][1:]-sel[self.mjd_col][:-1]
+        r.append((field_ra, field_dec, band, np.mean(sel[self.m5_col]), cadence))
 
         res = np.rec.fromrecords(
-            r, names=["fieldRA", "fieldDec", "band", "m5_mean", "cadence_mean"]
+            r, names=["field_ra", "field_dec", "band", "m5_mean", "cadence_mean"]
         )
 
         zref = self.lim_sn.interp_griddata(res)

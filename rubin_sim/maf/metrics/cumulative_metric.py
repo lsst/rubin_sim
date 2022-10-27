@@ -18,7 +18,7 @@ class CumulativeMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="Cumulative",
+        metric_name="Cumulative",
         time_col="observationStartMJD",
         night_col="night",
         interp_points=None,
@@ -26,24 +26,24 @@ class CumulativeMetric(BaseMetric):
     ):
         super().__init__(
             col=[time_col, night_col],
-            metricName=metricName,
+            metric_name=metric_name,
             metricDtype="object",
             **kwargs
         )
         self.time_col = time_col
         self.night_col = night_col
         self.interp_points = interp_points
-        self.plotDict = {"xlabel": "MJD (days)", "ylabel": "N obs"}
+        self.plot_dict = {"xlabel": "MJD (days)", "ylabel": "N obs"}
 
-    def run(self, dataSlice, slicePoint=None):
-        dataSlice.sort(order=self.time_col)
+    def run(self, data_slice, slice_point=None):
+        data_slice.sort(order=self.time_col)
         if self.interp_points is None:
             interp_points = np.arange(
-                dataSlice[self.night_col].min(), dataSlice[self.night_col].max() + 1, 1
+                data_slice[self.night_col].min(), data_slice[self.night_col].max() + 1, 1
             )
         else:
             interp_points = self.interp_points
-        cumulative_number = np.arange(dataSlice.size) + 1
-        yresult = np.interp(interp_points, dataSlice[self.night_col], cumulative_number)
+        cumulative_number = np.arange(data_slice.size) + 1
+        yresult = np.interp(interp_points, data_slice[self.night_col], cumulative_number)
         xresult = interp_points
-        return {"x": xresult, "y": yresult, "plotDict": self.plotDict}
+        return {"x": xresult, "y": yresult, "plotDict": self.plot_dict}

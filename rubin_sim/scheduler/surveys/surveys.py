@@ -18,10 +18,10 @@ from rubin_sim.utils import (
 )
 import warnings
 
-__all__ = ["Greedy_survey", "Blob_survey"]
+__all__ = ["GreedySurvey", "BlobSurvey"]
 
 
-class Greedy_survey(BaseMarkovDF_survey):
+class GreedySurvey(BaseMarkovDF_survey):
     """
     Select pointings in a greedy way using a Markov Decision Process.
     """
@@ -47,7 +47,7 @@ class Greedy_survey(BaseMarkovDF_survey):
 
         extra_features = {}
 
-        super(Greedy_survey, self).__init__(
+        super(GreedySurvey, self).__init__(
             basis_functions=basis_functions,
             basis_weights=basis_weights,
             extra_features=extra_features,
@@ -105,7 +105,7 @@ class Greedy_survey(BaseMarkovDF_survey):
         return observations
 
 
-class Blob_survey(Greedy_survey):
+class BlobSurvey(GreedySurvey):
     """Select observations in large, mostly contiguous, blobs.
 
     Parameters
@@ -188,7 +188,7 @@ class Blob_survey(Greedy_survey):
         if nside is None:
             nside = set_default_nside()
 
-        super(Blob_survey, self).__init__(
+        super(BlobSurvey, self).__init__(
             basis_functions=basis_functions,
             basis_weights=basis_weights,
             filtername=None,

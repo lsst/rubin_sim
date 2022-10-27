@@ -9,7 +9,7 @@ class LongGapAGNMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="longGapAGNMetric",
+        metric_name="longGapAGNMetric",
         mjdcol="observationStartMJD",
         units="days",
         xgaps=10,
@@ -20,24 +20,24 @@ class LongGapAGNMetric(BaseMetric):
         mjdcol = column name for exposure time dates
         """
         cols = [mjdcol]
-        super(LongGapAGNMetric, self).__init__(cols, metricName, units=units, **kwargs)
+        super(LongGapAGNMetric, self).__init__(cols, metric_name, units=units, **kwargs)
         self.badval = badval
         self.mjdcol = mjdcol
         self.xgaps = xgaps
         self.units = units
 
-    def run(self, dataslice, slicePoint=None):
+    def run(self, dataslice, slice_point=None):
         metricval = np.diff(dataslice[self.mjdcol])
         return metricval
 
-    def reduceMaxGap(self, metricval):
+    def reduce_max_gap(self, metricval):
         if metricval.size > 0:
             result = np.max(metricval)
         else:
             result = self.badval
         return result
 
-    def reduceAverageLongestXGaps(self, metricval):
+    def reduce_average_longest_x_gaps(self, metricval):
         if np.size(metricval) - self.xgaps > 0:
             return np.average(np.sort(metricval)[np.size(metricval) - self.xgaps :])
         else:

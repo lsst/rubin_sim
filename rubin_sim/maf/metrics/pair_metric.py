@@ -11,8 +11,8 @@ class PairMetric(BaseMetric):
 
     def __init__(
         self,
-        mjdCol="observationStartMJD",
-        metricName="Pairs",
+        mjd_col="observationStartMJD",
+        metric_name="Pairs",
         match_min=20.0,
         match_max=40.0,
         binsize=5.0,
@@ -28,22 +28,22 @@ class PairMetric(BaseMetric):
         binsize : float (5.)
             Binsize to use (minutes)
         """
-        self.mjdCol = mjdCol
+        self.mjd_col = mjd_col
         self.binsize = binsize / 60.0 / 24.0
         self.match_min = match_min / 60.0 / 24.0
         self.match_max = match_max / 60.0 / 24.0
         super(PairMetric, self).__init__(
-            col=mjdCol, metricName=metricName, units="N Pairs", **kwargs
+            col=mjd_col, metric_name=metric_name, units="N Pairs", **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         bins = np.arange(
-            dataSlice[self.mjdCol].min(),
-            dataSlice[self.mjdCol].max() + self.binsize,
+            data_slice[self.mjd_col].min(),
+            data_slice[self.mjd_col].max() + self.binsize,
             self.binsize,
         )
 
-        hist, bin_edges = np.histogram(dataSlice[self.mjdCol], bins=bins)
+        hist, bin_edges = np.histogram(data_slice[self.mjd_col], bins=bins)
         nbin_min = np.round(self.match_min / self.binsize)
         nbin_max = np.round(self.match_max / self.binsize)
         bins_to_check = np.arange(nbin_min, nbin_max + 1, 1)

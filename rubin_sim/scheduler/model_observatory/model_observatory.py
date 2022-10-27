@@ -27,10 +27,10 @@ from astropy.time import Time
 import warnings
 import matplotlib.pylab as plt
 from importlib import import_module
-from rubin_sim.scheduler.model_observatory import Kinem_model
+from rubin_sim.scheduler.model_observatory import KinemModel
 from rubin_sim.data import data_versions
 
-__all__ = ["Model_observatory"]
+__all__ = ["ModelObservatory"]
 
 
 class NoClouds(object):
@@ -44,11 +44,11 @@ class NominalSeeing(object):
     """Dummy class to always return nominal seeing"""
 
     def __call__(self, mjd):
-        FWHM_500 = 0.7
-        return FWHM_500
+        fwhm_500 = 0.7
+        return fwhm_500
 
 
-class Model_observatory(object):
+class ModelObservatory(object):
     """A class to generate a realistic telemetry stream for the scheduler"""
 
     def __init__(
@@ -111,7 +111,7 @@ class Model_observatory(object):
         self.lax_dome = lax_dome
         self.mjd_start = survey_start_mjd() if mjd_start is None else mjd_start
 
-        self.sim_ToO = sim_to_o
+        self.sim__to_o = sim_to_o
 
         self.park_after = park_after / 60.0 / 24.0  # To days
 
@@ -183,14 +183,14 @@ class Model_observatory(object):
         self.sky_model = sb.SkyModelPre(init_load_length=init_load_length)
 
         if kinem_model is None:
-            self.observatory = Kinem_model(mjd0=self.mjd_start)
+            self.observatory = KinemModel(mjd0=self.mjd_start)
         else:
             self.observatory = kinem_model
 
         self.filterlist = ["u", "g", "r", "i", "z", "y"]
-        self.seeing_FWHMeff = {}
+        self.seeing_fwh_meff = {}
         for key in self.filterlist:
-            self.seeing_FWHMeff[key] = np.zeros(hp.nside2npix(self.nside), dtype=float)
+            self.seeing_fwh_meff[key] = np.zeros(hp.nside2npix(self.nside), dtype=float)
 
         self.almanac = Almanac(mjd_start=self.mjd_start)
 
@@ -203,16 +203,16 @@ class Model_observatory(object):
 
         sun_moon_info = self.almanac.get_sun_moon_positions(self.mjd)
         season_offset = create_season_offset(self.nside, sun_moon_info["sun_RA"])
-        self.sun_RA_start = sun_moon_info["sun_RA"] + 0
+        self.sun_ra_start = sun_moon_info["sun_RA"] + 0
         # Conditions object to update and return on request
         self.conditions = Conditions(
             nside=self.nside,
             mjd_start=mjd_start,
             season_offset=season_offset,
-            sun_RA_start=self.sun_RA_start,
+            sun_ra_start=self.sun_ra_start,
         )
 
-        self.obsID_counter = 0
+        self.obs_id_counter = 0
 
     def get_info(self):
         """
@@ -258,15 +258,15 @@ class Model_observatory(object):
         self.conditions.airmass = airmass
 
         # reset the seeing
-        for key in self.seeing_FWHMeff:
-            self.seeing_FWHMeff[key].fill(np.nan)
+        for key in self.seeing_fwh_meff:
+            self.seeing_fwh_meff[key].fill(np.nan)
         # Use the model to get the seeing at this time and airmasses.
-        FWHM_500 = self.seeing_data(current_time)
-        seeing_dict = self.seeing_model(FWHM_500, airmass[good])
+        fwhm_500 = self.seeing_data(current_time)
+        seeing_dict = self.seeing_model(fwhm_500, airmass[good])
         fwhm_eff = seeing_dict["fwhmEff"]
         for i, key in enumerate(self.seeing_model.filter_list):
-            self.seeing_FWHMeff[key][good] = fwhm_eff[i, :]
-        self.conditions.FWHMeff = self.seeing_FWHMeff
+            self.seeing_fwh_meff[key][good] = fwhm_eff[i, :]
+        self.conditions.FWHMeff = self.seeing_fwh_meff
 
         # sky brightness
         self.conditions.skybrightness = self.sky_model.return_mags(self.mjd)
@@ -310,7 +310,7 @@ class Model_observatory(object):
 
         self.conditions.lmst, last = calc_lmst_last(self.mjd, self.site.longitude_rad)
 
-        self.conditions.telRA = self.observatory.current_RA_rad
+        self.conditions.telRA = self.observatory.current_ra_rad
         self.conditions.telDec = self.observatory.current_dec_rad
         self.conditions.telAlt = self.observatory.last_alt_rad
         self.conditions.telAz = self.observatory.last_az_rad
@@ -343,8 +343,8 @@ class Model_observatory(object):
         self.conditions.planet_positions = self.almanac.get_planet_positions(self.mjd)
 
         # See if there are any ToOs to include
-        if self.sim_ToO is not None:
-            toos = self.sim_ToO(self.mjd)
+        if self.sim__to_o is not None:
+            toos = self.sim__to_o(self.mjd)
             if toos is not None:
                 self.conditions.targets_of_opportunity = toos
 
@@ -422,8 +422,8 @@ class Model_observatory(object):
         )
         observation["moonPhase"] = sun_moon_info["moon_phase"]
 
-        observation["ID"] = self.obsID_counter
-        self.obsID_counter += 1
+        observation["ID"] = self.obs_id_counter
+        self.obs_id_counter += 1
 
         return observation
 
@@ -487,7 +487,7 @@ class Model_observatory(object):
         else:
             return True, mjd
 
-    def _update_rotSkyPos(self, observation):
+    def _update_rot_sky_pos(self, observation):
         """If we have an undefined rotSkyPos, try to fill it out."""
 
         # Grab the rotator limit from the observatory model
@@ -542,7 +542,7 @@ class Model_observatory(object):
         start_night = self.night.copy()
 
         if np.isnan(observation["rotSkyPos"]):
-            observation = self._update_rotSkyPos(observation)
+            observation = self._update_rot_sky_pos(observation)
 
         # If there has been a long gap, assume telescope stopped tracking and parked
         gap = self.mjd - self.observatory.last_mjd
@@ -550,7 +550,7 @@ class Model_observatory(object):
             self.observatory.park()
 
         # Compute what alt,az we have tracked to (or are parked at)
-        start_alt, start_az, start_rotTelPos = self.observatory.current_alt_az(self.mjd)
+        start_alt, start_az, start_rot_tel_pos = self.observatory.current_alt_az(self.mjd)
         # Slew to new position and execute observation. Use the requested rotTelPos position,
         # obsevation['rotSkyPos'] will be ignored.
         slewtime, visittime = self.observatory.observe(

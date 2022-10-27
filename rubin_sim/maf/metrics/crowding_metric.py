@@ -9,22 +9,22 @@ import healpy as hp
 __all__ = ["CrowdingM5Metric", "CrowdingMagUncertMetric", "NstarsMetric"]
 
 
-def _compCrowdError(magVector, lumFunc, seeing, singleMag=None):
+def _comp_crowd_error(mag_vector, lum_func, seeing, single_mag=None):
     """
     Compute the photometric crowding error given the luminosity function and best seeing.
 
     Parameters
     ----------
-    magVector : np.array
+    mag_vector : np.array
         Stellar magnitudes.
-    lumFunc : np.array
+    lum_func : np.array
         Stellar luminosity function.
     seeing : float
         The best seeing conditions. Assuming forced-photometry can use the best seeing conditions
         to help with confusion errors.
-    singleMag : float (None)
-        If singleMag is None, the crowding error is calculated for each mag in magVector. If
-        singleMag is a float, the crowding error is interpolated to that single value.
+    single_mag : float (None)
+        If single_mag is None, the crowding error is calculated for each mag in mag_vector. If
+        single_mag is a float, the crowding error is interpolated to that single value.
 
     Returns
     -------
@@ -33,16 +33,16 @@ def _compCrowdError(magVector, lumFunc, seeing, singleMag=None):
 
     Equation from Olsen, Blum, & Rigaut 2003, AJ, 126, 452
     """
-    lumAreaArcsec = 3600.0**2
-    lumVector = 10 ** (-0.4 * magVector)
-    coeff = np.sqrt(np.pi / lumAreaArcsec) * seeing / 2.0
-    myInt = (np.add.accumulate((lumVector**2 * lumFunc)[::-1]))[::-1]
-    temp = np.sqrt(myInt) / lumVector
-    if singleMag is not None:
-        interp = interp1d(magVector, temp)
-        temp = interp(singleMag)
-    crowdError = coeff * temp
-    return crowdError
+    lum_area_arcsec = 3600.0**2
+    lum_vector = 10 ** (-0.4 * mag_vector)
+    coeff = np.sqrt(np.pi / lum_area_arcsec) * seeing / 2.0
+    my_int = (np.add.accumulate((lum_vector**2 * lum_func)[::-1]))[::-1]
+    temp = np.sqrt(my_int) / lum_vector
+    if single_mag is not None:
+        interp = interp1d(mag_vector, temp)
+        temp = interp(single_mag)
+    crowd_error = coeff * temp
+    return crowd_error
 
 
 class CrowdingM5Metric(BaseMetric):
@@ -52,8 +52,8 @@ class CrowdingM5Metric(BaseMetric):
         self,
         crowding_error=0.1,
         filtername="r",
-        seeingCol="seeingFwhmGeom",
-        metricName=None,
+        seeing_col="seeingFwhmGeom",
+        metric_name=None,
         maps=["StellarDensityMap"],
         **kwargs,
     ):
@@ -64,7 +64,7 @@ class CrowdingM5Metric(BaseMetric):
             The magnitude uncertainty from crowding in magnitudes. Default 0.1 mags.
         filtername: str, optional
             The bandpass in which to calculate the crowding limit. Default r.
-        seeingCol : str, optional
+        seeing_col : str, optional
             The name of the seeing column.
         m5Col : str, optional
             The name of the m5 depth column.
@@ -77,34 +77,34 @@ class CrowdingM5Metric(BaseMetric):
         The magnitude of a star which has a photometric error of `crowding_error`
         """
 
-        cols = [seeingCol]
+        cols = [seeing_col]
         units = "mag"
         self.crowding_error = crowding_error
         self.filtername = filtername
-        self.seeingCol = seeingCol
-        if metricName is None:
-            metricName = "Crowding to Precision %.2f" % (crowding_error)
+        self.seeing_col = seeing_col
+        if metric_name is None:
+            metric_name = "Crowding to Precision %.2f" % (crowding_error)
         super().__init__(
-            col=cols, maps=maps, units=units, metricName=metricName, **kwargs
+            col=cols, maps=maps, units=units, metric_name=metric_name, **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
-        # Set magVector to the same length as starLumFunc (lower edge of mag bins)
-        magVector = slicePoint[f"starMapBins_{self.filtername}"][1:]
+    def run(self, data_slice, slice_point=None):
+        # Set mag_vector to the same length as starLumFunc (lower edge of mag bins)
+        mag_vector = slice_point[f"starMapBins_{self.filtername}"][1:]
         # Pull up density of stars at this point in the sky
-        lumFunc = slicePoint[f"starLumFunc_{self.filtername}"]
+        lum_func = slice_point[f"starLumFunc_{self.filtername}"]
         # Calculate the crowding error using the best seeing value (in any filter?)
-        crowdError = _compCrowdError(
-            magVector, lumFunc, seeing=min(dataSlice[self.seeingCol])
+        crowd_error = _comp_crowd_error(
+            mag_vector, lum_func, seeing=min(data_slice[self.seeing_col])
         )
         # Locate at which point crowding error is greater than user-defined limit
-        aboveCrowd = np.where(crowdError >= self.crowding_error)[0]
+        above_crowd = np.where(crowd_error >= self.crowding_error)[0]
 
-        if np.size(aboveCrowd) == 0:
-            result = max(magVector)
+        if np.size(above_crowd) == 0:
+            result = max(mag_vector)
         else:
-            crowdMag = magVector[max(aboveCrowd[0] - 1, 0)]
-            result = crowdMag
+            crowd_mag = mag_vector[max(above_crowd[0] - 1, 0)]
+            result = crowd_mag
 
         return result
 
@@ -118,9 +118,9 @@ class NstarsMetric(BaseMetric):
         self,
         crowding_error=0.1,
         filtername="r",
-        seeingCol="seeingFwhmGeom",
-        m5Col="fiveSigmaDepth",
-        metricName=None,
+        seeing_col="seeingFwhmGeom",
+        m5_col="fiveSigmaDepth",
+        metric_name=None,
         maps=["StellarDensityMap"],
         ignore_crowding=False,
         **kwargs,
@@ -132,9 +132,9 @@ class NstarsMetric(BaseMetric):
             The magnitude uncertainty from crowding in magnitudes. Default 0.1 mags.
         filtername: str, optional
             The bandpass in which to calculate the crowding limit. Default r.
-        seeingCol : str, optional
+        seeing_col : str, optional
             The name of the seeing column.
-        m5Col : str, optional
+        m5_col : str, optional
             The name of the m5 depth column.
         maps : list of str, optional
             Names of maps required for the metric.
@@ -147,40 +147,40 @@ class NstarsMetric(BaseMetric):
         The number of stars above the error limit
         """
 
-        cols = [seeingCol, m5Col]
+        cols = [seeing_col, m5_col]
         units = "N stars"
         self.crowding_error = crowding_error
-        self.m5Col = m5Col
+        self.m5_col = m5_col
         self.filtername = filtername
-        self.seeingCol = seeingCol
+        self.seeing_col = seeing_col
         self.ignore_crowding = ignore_crowding
-        if metricName is None:
-            metricName = "N stars to Precision %.2f" % (crowding_error)
+        if metric_name is None:
+            metric_name = "N stars to Precision %.2f" % (crowding_error)
         super().__init__(
-            col=cols, maps=maps, units=units, metricName=metricName, **kwargs
+            col=cols, maps=maps, units=units, metric_name=metric_name, **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
 
-        pix_area = hp.nside2pixarea(slicePoint["nside"], degrees=True)
-        # Set magVector to the same length as starLumFunc (lower edge of mag bins)
-        magVector = slicePoint[f"starMapBins_{self.filtername}"][1:]
+        pix_area = hp.nside2pixarea(slice_point["nside"], degrees=True)
+        # Set mag_vector to the same length as starLumFunc (lower edge of mag bins)
+        mag_vector = slice_point[f"starMapBins_{self.filtername}"][1:]
         # Pull up density of stars at this point in the sky
-        lumFunc = slicePoint[f"starLumFunc_{self.filtername}"]
+        lum_func = slice_point[f"starLumFunc_{self.filtername}"]
         # Calculate the crowding error using the best seeing value (in any filter?)
-        crowdError = _compCrowdError(
-            magVector, lumFunc, seeing=min(dataSlice[self.seeingCol])
+        crowd_error = _comp_crowd_error(
+            mag_vector, lum_func, seeing=min(data_slice[self.seeing_col])
         )
         # Locate at which point crowding error is greater than user-defined limit
-        aboveCrowd = np.where(crowdError >= self.crowding_error)[0]
+        above_crowd = np.where(crowd_error >= self.crowding_error)[0]
 
-        if np.size(aboveCrowd) == 0:
-            crowdMag = max(magVector)
+        if np.size(above_crowd) == 0:
+            crowd_mag = max(mag_vector)
         else:
-            crowdMag = magVector[max(aboveCrowd[0] - 1, 0)]
+            crowd_mag = mag_vector[max(above_crowd[0] - 1, 0)]
 
         # Compute the coadded depth, and the mag where that depth hits the error specified
-        coadded_depth = 1.25 * np.log10(np.sum(10.0 ** (0.8 * dataSlice[self.m5Col])))
+        coadded_depth = 1.25 * np.log10(np.sum(10.0 ** (0.8 * data_slice[self.m5_col])))
         mag_limit = (
             -2.5 * np.log10(1.0 / (self.crowding_error * (1.09 * 5))) + coadded_depth
         )
@@ -189,14 +189,14 @@ class NstarsMetric(BaseMetric):
         if self.ignore_crowding:
             min_mag = mag_limit
         else:
-            min_mag = np.min([crowdMag, mag_limit])
+            min_mag = np.min([crowd_mag, mag_limit])
 
         # Interpolate to the number of stars
         result = (
             np.interp(
                 min_mag,
-                slicePoint[f"starMapBins_{self.filtername}"][1:],
-                slicePoint[f"starLumFunc_{self.filtername}"],
+                slice_point[f"starMapBins_{self.filtername}"][1:],
+                slice_point[f"starLumFunc_{self.filtername}"],
             )
             * pix_area
         )
@@ -212,9 +212,9 @@ class CrowdingMagUncertMetric(BaseMetric):
     def __init__(
         self,
         rmag=20.0,
-        seeingCol="seeingFwhmGeom",
+        seeing_col="seeingFwhmGeom",
         units="mag",
-        metricName=None,
+        metric_name=None,
         filtername="r",
         maps=["StellarDensityMap"],
         **kwargs,
@@ -232,20 +232,20 @@ class CrowdingMagUncertMetric(BaseMetric):
         """
 
         self.filtername = filtername
-        self.seeingCol = seeingCol
+        self.seeing_col = seeing_col
         self.rmag = rmag
-        if metricName is None:
-            metricName = "CrowdingError at %.2f" % (rmag)
+        if metric_name is None:
+            metric_name = "CrowdingError at %.2f" % (rmag)
         super().__init__(
-            col=[seeingCol], maps=maps, units=units, metricName=metricName, **kwargs
+            col=[seeing_col], maps=maps, units=units, metric_name=metric_name, **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
-        magVector = slicePoint[f"starMapBins_{self.filtername}"][1:]
-        lumFunc = slicePoint[f"starLumFunc_{self.filtername}"]
+    def run(self, data_slice, slice_point=None):
+        mag_vector = slice_point[f"starMapBins_{self.filtername}"][1:]
+        lum_func = slice_point[f"starLumFunc_{self.filtername}"]
         # Magnitude uncertainty given crowding
-        dmagCrowd = _compCrowdError(
-            magVector, lumFunc, dataSlice[self.seeingCol], singleMag=self.rmag
+        dmag_crowd = _comp_crowd_error(
+            mag_vector, lum_func, data_slice[self.seeing_col], single_mag=self.rmag
         )
-        result = np.mean(dmagCrowd)
+        result = np.mean(dmag_crowd)
         return result

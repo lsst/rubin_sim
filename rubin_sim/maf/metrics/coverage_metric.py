@@ -5,13 +5,13 @@ __all__ = ["YearCoverageMetric"]
 
 
 class YearCoverageMetric(BaseMetric):
-    """Count the number of bins covered by nightCol -- default bins are 'years'.
+    """Count the number of bins covered by night_col -- default bins are 'years'.
     Handy for checking that a point on the sky gets observed every year, as the default settings
     result in the metric returning the number years in the dataslice (when used with a HealpixSlicer).
 
     Parameters
     ----------
-    nightCol: str, optional
+    night_col: str, optional
         Data column to histogram. Default 'night'.
     bins: numpy.ndarray, optional
         Bins to use in the histogram. Default corresponds to years 0-10 (with 365.25 nights per year).
@@ -22,11 +22,11 @@ class YearCoverageMetric(BaseMetric):
     -------
     integer
         Number of histogram bins where the histogram value is greater than 0.
-        Typically this will be the number of years in the 'nightCol'.
+        Typically this will be the number of years in the 'night_col'.
     """
 
-    def __init__(self, nightCol="night", bins=None, units=None, **kwargs):
-        self.nightCol = nightCol
+    def __init__(self, night_col="night", bins=None, units=None, **kwargs):
+        self.night_col = night_col
         if bins is None:
             self.bins = np.arange(0, np.ceil(365.25 * 10.0), 365.25) - 0.5
         else:
@@ -35,9 +35,9 @@ class YearCoverageMetric(BaseMetric):
         if units is None:
             units = "N years"
 
-        super().__init__([nightCol], units=units)
+        super().__init__([night_col], units=units)
 
-    def run(self, dataSlice, slicePoint):
-        hist, be = np.histogram(dataSlice[self.nightCol], bins=self.bins)
+    def run(self, data_slice, slice_point):
+        hist, be = np.histogram(data_slice[self.night_col], bins=self.bins)
         result = np.where(hist > 0)[0].size
         return result

@@ -10,7 +10,7 @@ from astroplan import Observer
 __all__ = ["HourglassMetric"]
 
 
-def nearestVal(A, val):
+def nearest_val(A, val):
     return A[np.argmin(np.abs(np.array(A) - val))]
 
 
@@ -21,17 +21,17 @@ class HourglassMetric(BaseMetric):
     def __init__(
         self,
         telescope="LSST",
-        mjdCol="observationStartMJD",
-        filterCol="filter",
-        nightCol="night",
+        mjd_col="observationStartMJD",
+        filter_col="filter",
+        night_col="night",
         delta_t=60.0,
         **kwargs
     ):
-        self.mjdCol = mjdCol
-        self.filterCol = filterCol
-        self.nightCol = nightCol
-        cols = [self.mjdCol, self.filterCol, self.nightCol]
-        super(HourglassMetric, self).__init__(col=cols, metricDtype="object", **kwargs)
+        self.mjd_col = mjd_col
+        self.filter_col = filter_col
+        self.night_col = night_col
+        cols = [self.mjd_col, self.filter_col, self.night_col]
+        super(HourglassMetric, self).__init__(col=cols, metric_dtype="object", **kwargs)
         self.telescope = Site(name=telescope)
         self.delta_t = delta_t / 60.0 / 24.0
         self.location = EarthLocation(
@@ -41,25 +41,25 @@ class HourglassMetric(BaseMetric):
         )
         self.observer = Observer(location=self.location)
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
 
-        dataSlice.sort(order=self.mjdCol)
-        unights, uindx = np.unique(dataSlice[self.nightCol], return_index=True)
+        data_slice.sort(order=self.mjd_col)
+        unights, uindx = np.unique(data_slice[self.night_col], return_index=True)
 
         mjds = np.arange(
-            np.min(dataSlice[self.mjdCol]), np.max(dataSlice[self.mjdCol]) + 1, 0.5
+            np.min(data_slice[self.mjd_col]), np.max(data_slice[self.mjd_col]) + 1, 0.5
         )
 
         # Define the breakpoints as where either the filter changes OR
         # there's more than a 2 minute gap in observing
         good = np.where(
-            (dataSlice[self.filterCol] != np.roll(dataSlice[self.filterCol], 1))
+            (data_slice[self.filter_col] != np.roll(data_slice[self.filter_col], 1))
             | (
-                np.abs(np.roll(dataSlice[self.mjdCol], 1) - dataSlice[self.mjdCol])
+                np.abs(np.roll(data_slice[self.mjd_col], 1) - data_slice[self.mjd_col])
                 > 120.0 / 3600.0 / 24.0
             )
         )[0]
-        good = np.concatenate((good, [0], [len(dataSlice[self.filterCol])]))
+        good = np.concatenate((good, [0], [len(data_slice[self.filter_col])]))
         good = np.unique(good)
         left = good[:-1]
         right = good[1:] - 1
@@ -68,10 +68,10 @@ class HourglassMetric(BaseMetric):
         names = ["mjd", "midnight", "filter"]
         types = ["float", "float", (np.str_, 1)]
         perfilter = np.zeros((good.size), dtype=list(zip(names, types)))
-        perfilter["mjd"] = dataSlice[self.mjdCol][good]
-        perfilter["filter"] = dataSlice[self.filterCol][good]
+        perfilter["mjd"] = data_slice[self.mjd_col][good]
+        perfilter["filter"] = data_slice[self.filter_col][good]
 
-        # brute force compute midnight times for all days between start and enc of dataSlice
+        # brute force compute midnight times for all days between start and enc of data_slice
         times = Time(mjds, format="mjd")
         # let's just find the midnight before and after each of the pre_night MJD values
         m_after = self.observer.midnight(times, "next")

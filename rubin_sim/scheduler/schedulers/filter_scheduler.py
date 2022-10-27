@@ -1,9 +1,9 @@
-from rubin_sim.scheduler.utils import int_rounded
+from rubin_sim.scheduler.utils import IntRounded
 
-__all__ = ["filter_swap_scheduler", "simple_filter_sched"]
+__all__ = ["FilterSwapScheduler", "SimpleFilterSched"]
 
 
-class filter_swap_scheduler(object):
+class FilterSwapScheduler(object):
     """A simple way to schedule what filter to load"""
 
     def __init__(self):
@@ -21,12 +21,12 @@ class filter_swap_scheduler(object):
         pass
 
 
-class simple_filter_sched(filter_swap_scheduler):
+class SimpleFilterSched(FilterSwapScheduler):
     def __init__(self, illum_limit=10.0):
-        self.illum_limit_IR = int_rounded(illum_limit)
+        self.illum_limit_ir = IntRounded(illum_limit)
 
     def __call__(self, conditions):
-        if int_rounded(conditions.moonPhase) > self.illum_limit_IR:
+        if IntRounded(conditions.moonPhase) > self.illum_limit_ir:
             result = ["g", "r", "i", "z", "y"]
         else:
             result = ["u", "g", "r", "i", "y"]

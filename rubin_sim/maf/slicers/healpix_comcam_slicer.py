@@ -83,18 +83,18 @@ class HealpixComCamSlicer(HealpixSlicer):
             ]
         )
         # Need the rotation even if not using the camera
-        self.columnsNeeded.append(rotSkyPosColName)
-        self.columnsNeeded = list(set(self.columnsNeeded))
+        self.columns_needed.append(rotSkyPosColName)
+        self.columns_needed = list(set(self.columns_needed))
 
         # The 3D search radius for things inside the raft
         self.side_radius = simsUtils.xyz_angular_radius(side_length / 2.0)
 
-    def setupSlicer(self, simData, maps=None):
-        """Use simData[self.lonCol] and simData[self.latCol] (in radians) to set up KDTree.
+    def setup_slicer(self, sim_data, maps=None):
+        """Use sim_data[self.lonCol] and sim_data[self.latCol] (in radians) to set up KDTree.
 
         Parameters
         -----------
-        simData : numpy.recarray
+        sim_data : numpy.recarray
             The simulated data, including the location of each pointing.
         maps : list of rubin_sim.maf.maps objects, optional
             List of maps (such as dust extinction) that will run to build up additional metadata at each
@@ -111,21 +111,21 @@ class HealpixComCamSlicer(HealpixSlicer):
         self._setRad(self.radius)
         if self.useCamera:
             self._setupLSSTCamera()
-            self._presliceFootprint(simData)
+            self._presliceFootprint(sim_data)
         else:
             if self.latLonDeg:
                 self._build_tree(
-                    np.radians(simData[self.lonCol]),
-                    np.radians(simData[self.latCol]),
+                    np.radians(sim_data[self.lonCol]),
+                    np.radians(sim_data[self.latCol]),
                     self.leafsize,
                 )
             else:
                 self._build_tree(
-                    simData[self.lonCol], simData[self.latCol], self.leafsize
+                    sim_data[self.lonCol], sim_data[self.latCol], self.leafsize
                 )
 
-        @wraps(self._sliceSimData)
-        def _sliceSimData(islice):
+        @wraps(self._slice_sim_data)
+        def _slice_sim_data(islice):
             """Return indexes for relevant opsim data at slicepoint
             (slicepoint=lonCol/latCol value .. usually ra/dec)."""
 
@@ -153,19 +153,19 @@ class HealpixComCamSlicer(HealpixSlicer):
                 ]
 
                 if self.latLonDeg:
-                    lat = np.radians(simData[self.latCol][initial_indices])
-                    lon = np.radians(simData[self.lonCol][initial_indices])
+                    lat = np.radians(sim_data[self.latCol][initial_indices])
+                    lon = np.radians(sim_data[self.lonCol][initial_indices])
                     cos_rot = np.cos(
-                        np.radians(simData[self.rotSkyPosColName][initial_indices])
+                        np.radians(sim_data[self.rotSkyPosColName][initial_indices])
                     )
                     sin_rot = np.cos(
-                        np.radians(simData[self.rotSkyPosColName][initial_indices])
+                        np.radians(sim_data[self.rotSkyPosColName][initial_indices])
                     )
                 else:
-                    lat = simData[self.latCol][initial_indices]
-                    lon = simData[self.lonCol][initial_indices]
-                    cos_rot = np.cos(simData[self.rotSkyPosColName][initial_indices])
-                    sin_rot = np.sin(simData[self.rotSkyPosColName][initial_indices])
+                    lat = sim_data[self.latCol][initial_indices]
+                    lon = sim_data[self.lonCol][initial_indices]
+                    cos_rot = np.cos(sim_data[self.rotSkyPosColName][initial_indices])
+                    sin_rot = np.sin(sim_data[self.rotSkyPosColName][initial_indices])
                 # loop over the observations that might be overlapping the healpix, check each
                 for i, ind in enumerate(initial_indices):
                     # Rotate the camera
@@ -218,4 +218,4 @@ class HealpixComCamSlicer(HealpixSlicer):
 
             return {"idxs": indices, "slicePoint": slicePoint}
 
-        setattr(self, "_sliceSimData", _sliceSimData)
+        setattr(self, "_slice_sim_data", _slice_sim_data)

@@ -7,10 +7,10 @@ import healpy as hp
 import random
 
 
-__all__ = ["DESC_ddf", "generate_desc_dd_surveys"]
+__all__ = ["DescDdf", "generate_desc_dd_surveys"]
 
 
-class DESC_ddf(BaseSurvey):
+class DescDdf(BaseSurvey):
     """DDF survey based on Scolnic et al Cadence White Paper."""
 
     def __init__(
@@ -31,7 +31,7 @@ class DESC_ddf(BaseSurvey):
         seed=42,
         detailers=None,
     ):
-        super(DESC_ddf, self).__init__(
+        super(DescDdf, self).__init__(
             nside=nside,
             basis_functions=basis_functions,
             detailers=detailers,
@@ -165,7 +165,7 @@ def generate_desc_dd_surveys(nside=None, nexp=1, detailers=None):
     ha_limits = ([0.0, 1.18], [21.82, 24.0])
     bfs = desc_dd_bfs(RA, dec, survey_name, ha_limits)
     surveys.append(
-        DESC_ddf(
+        DescDdf(
             bfs,
             RA,
             dec,
@@ -185,7 +185,7 @@ def generate_desc_dd_surveys(nside=None, nexp=1, detailers=None):
     bfs = desc_dd_bfs(RA, dec, survey_name, ha_limits)
 
     surveys.append(
-        DESC_ddf(
+        DescDdf(
             bfs,
             RA,
             dec,
@@ -203,7 +203,7 @@ def generate_desc_dd_surveys(nside=None, nexp=1, detailers=None):
     ha_limits = [[0.5, 3.0], [20.0, 22.5]]
     bfs = desc_dd_bfs(RA, dec, survey_name, ha_limits)
     surveys.append(
-        DESC_ddf(
+        DescDdf(
             bfs,
             RA,
             dec,
@@ -224,7 +224,7 @@ def generate_desc_dd_surveys(nside=None, nexp=1, detailers=None):
     # have a special sequence for COSMOS
     sequences = [{"g": 2, "r": 4, "i": 8}, {"z": 25, "y": 4}]
     surveys.append(
-        DESC_ddf(
+        DescDdf(
             bfs,
             RA,
             dec,
@@ -244,7 +244,7 @@ def generate_desc_dd_surveys(nside=None, nexp=1, detailers=None):
     ha_limits = ([0.0, 1.5], [23.0, 24.0])
     bfs = desc_dd_bfs(RA, dec, survey_name, ha_limits)
     surveys.append(
-        DESC_ddf(
+        DescDdf(
             bfs,
             RA,
             dec,
@@ -262,7 +262,7 @@ def generate_desc_dd_surveys(nside=None, nexp=1, detailers=None):
     ha_limits = ([0.0, 1.5], [23.0, 24.0])
     bfs = desc_dd_bfs(RA, dec, survey_name, ha_limits)
     surveys.append(
-        DESC_ddf(
+        DescDdf(
             bfs,
             RA,
             dec,

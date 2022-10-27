@@ -1,8 +1,8 @@
 import warnings
 import sys
 import numpy as np
-from rubin_sim.scheduler.utils import run_info_table, schema_converter
-from rubin_sim.scheduler.schedulers import simple_filter_sched
+from rubin_sim.scheduler.utils import run_info_table, SchemaConverter
+from rubin_sim.scheduler.schedulers import SimpleFilterSched
 import time
 import sqlite3
 import pandas as pd
@@ -45,7 +45,7 @@ def sim_runner(
     t0 = time.time()
 
     if filter_scheduler is None:
-        filter_scheduler = simple_filter_sched()
+        filter_scheduler = SimpleFilterSched()
 
     if mjd_start is None:
         mjd = observatory.mjd + 0
@@ -119,7 +119,7 @@ def sim_runner(
     observations = np.array(observations)[:, 0]
     if filename is not None:
         info = run_info_table(observatory, extra_info=extra_info)
-        converter = schema_converter()
+        converter = SchemaConverter()
         converter.obs2opsim(
             observations, filename=filename, info=info, delete_past=delete_past
         )

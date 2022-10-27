@@ -9,10 +9,10 @@ import rubin_sim.utils as rs_utils
 from numpy.lib import recfunctions as rfn
 
 
-__all__ = ["Sky_area_generator"]
+__all__ = ["SkyAreaGenerator"]
 
 
-class Sky_area_generator:
+class SkyAreaGenerator:
     """
     Generate survey footprint maps in each filter.
 
@@ -84,7 +84,7 @@ class Sky_area_generator:
         eclat_max=10,
         eclip_dec_min=0,
         nes_glon_limit=45.0,
-        virgo_RA=186.75,
+        virgo_ra=186.75,
         virgo_dec=12.717,
         virgo_radius=8.75,
     ):
@@ -96,7 +96,7 @@ class Sky_area_generator:
         self.lmc_radius = lmc_radius
         self.smc_radius = smc_radius
 
-        self.virgo_RA = virgo_RA
+        self.virgo_ra = virgo_ra
         self.virgo_dec = virgo_dec
         self.virgo_radius = virgo_radius
 
@@ -136,13 +136,13 @@ class Sky_area_generator:
             self.low_dust = hp.smoothing(self.low_dust, fwhm=np.radians(smoothing_beam))
         self.low_dust = np.where(self.low_dust > smoothing_cutoff, 1, 0)
 
-    def read_dustmap(self, dustmapFile=None):
+    def read_dustmap(self, dustmap_file=None):
         """Read the dustmap from rubin_sim, in the appropriate resolution."""
         # Dustmap from rubin_sim_data  - this is basically just a data directory
         # The dustmap data is downloadable from
         # https://lsst.ncsa.illinois.edu/sim-data/rubin_sim_data/maps_may_2021.tgz
         # (then just set RUBIN_SIM_DATA_DIR to where you downloaded it, after untarring the file)
-        if dustmapFile is None:
+        if dustmap_file is None:
             datadir = rs_data.get_data_dir()
             if datadir is None:
                 raise Exception('Cannot find datadir, please set "RUBIN_SIM_DATA_DIR"')
@@ -236,7 +236,7 @@ class Sky_area_generator:
     def add_virgo_cluster(self, filter_ratios, label="virgo"):
         temp_map = np.zeros(hp.nside2npix(self.nside))
         temp_map += self._set_circular_region(
-            self.virgo_RA, self.virgo_dec, self.virgo_radius
+            self.virgo_ra, self.virgo_dec, self.virgo_radius
         )
         # Don't overide any pixels that have already been designated
         indx = np.where((temp_map > 0) & (self.pix_labels == ""))

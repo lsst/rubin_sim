@@ -6,7 +6,7 @@ from rubin_sim.scheduler.features import Conditions
 
 
 class TestBasis(unittest.TestCase):
-    def testVisit_repeat_basis_function(self):
+    def test_visit_repeat_basis_function(self):
         bf = basis_functions.Visit_repeat_basis_function()
 
         indx = np.array([1000])
