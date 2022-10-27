@@ -517,17 +517,10 @@ class SkyModel(object):
                 self.azs, self.alts, self.moon_az, self.moon_alt
             )
             # Oof, looks like some things were stored as degrees.
-<<<<<<< HEAD
-            self.points["moonAltitude"] += np.degrees(self.moonAlt)
-            self.points["azRelMoon"] += self.azRelMoon
-            self.moonSunSep = sep.rad
-            self.points["moonSunSep"] += np.degrees(self.moonSunSep)
-=======
             self.points["moonAltitude"] += np.degrees(self.moon_alt)
             self.points["azRelMoon"] += self.az_rel_moon
-            self.moon_sun_sep = sep.deg
-            self.points["moonSunSep"] += self.moon_sun_sep
->>>>>>> b4b4ba5 (units pass)
+            self.moon_sun_sep = sep.rad
+            self.points["moonSunSep"] += np.degrees(self.moon_sun_sep)
 
         if self.zodiacal:
             self.eclip_lon = np.zeros(self.npts)
@@ -609,19 +602,12 @@ class SkyModel(object):
         self.points["nightTimes"] = 0
         self.points["alt"] = self.alts
         self.points["az"] = self.azs
-<<<<<<< HEAD
-        self.azRelMoon = calcAzRelMoon(self.azs, self.moonAz)
-        self.points["moonAltitude"] += np.degrees(self.moonAlt)
-        self.points["azRelMoon"] = self.azRelMoon
-        self.moonSunSep = self.moonPhase / 100.0 * np.pi
-        # Ugh, point are in degrees.
-        self.points["moonSunSep"] = self.moonPhase / 100.0 * 180.0
-=======
+
         self.az_rel_moon = calc_az_rel_moon(self.azs, self.moon_az)
         self.points["moonAltitude"] += np.degrees(self.moon_alt)
         self.points["azRelMoon"] = self.az_rel_moon
+        self.moonSunSep = self.moon_phase / 100.0 * np.pi
         self.points["moonSunSep"] += self.moon_phase / 100.0 * 180.0
->>>>>>> b4b4ba5 (units pass)
 
         self.eclip_lon = convert_func(eclip_lon)
         self.eclip_lat = convert_func(eclip_lat)
