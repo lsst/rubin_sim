@@ -188,9 +188,9 @@ class ModelObservatory(object):
             self.observatory = kinem_model
 
         self.filterlist = ["u", "g", "r", "i", "z", "y"]
-        self.seeing_fwh_meff = {}
+        self.seeing_fwhm_eff = {}
         for key in self.filterlist:
-            self.seeing_fwh_meff[key] = np.zeros(hp.nside2npix(self.nside), dtype=float)
+            self.seeing_fwhm_eff[key] = np.zeros(hp.nside2npix(self.nside), dtype=float)
 
         self.almanac = Almanac(mjd_start=self.mjd_start)
 
@@ -258,15 +258,15 @@ class ModelObservatory(object):
         self.conditions.airmass = airmass
 
         # reset the seeing
-        for key in self.seeing_fwh_meff:
-            self.seeing_fwh_meff[key].fill(np.nan)
+        for key in self.seeing_fwhm_eff:
+            self.seeing_fwhm_eff[key].fill(np.nan)
         # Use the model to get the seeing at this time and airmasses.
         fwhm_500 = self.seeing_data(current_time)
         seeing_dict = self.seeing_model(fwhm_500, airmass[good])
         fwhm_eff = seeing_dict["fwhmEff"]
         for i, key in enumerate(self.seeing_model.filter_list):
-            self.seeing_fwh_meff[key][good] = fwhm_eff[i, :]
-        self.conditions.FWHMeff = self.seeing_fwh_meff
+            self.seeing_fwhm_eff[key][good] = fwhm_eff[i, :]
+        self.conditions.fwhm_eff = self.seeing_fwhm_eff
 
         # sky brightness
         self.conditions.skybrightness = self.sky_model.return_mags(self.mjd)
@@ -298,24 +298,24 @@ class ModelObservatory(object):
         # convert these to scalars
         for key in sun_moon_info:
             sun_moon_info[key] = sun_moon_info[key].max()
-        self.conditions.moonPhase = sun_moon_info["moon_phase"]
+        self.conditions.moon_phase = sun_moon_info["moon_phase"]
 
-        self.conditions.moonAlt = sun_moon_info["moon_alt"]
-        self.conditions.moonAz = sun_moon_info["moon_az"]
-        self.conditions.moonRA = sun_moon_info["moon_RA"]
-        self.conditions.moonDec = sun_moon_info["moon_dec"]
-        self.conditions.sunAlt = sun_moon_info["sun_alt"]
-        self.conditions.sunRA = sun_moon_info["sun_RA"]
-        self.conditions.sunDec = sun_moon_info["sun_dec"]
+        self.conditions.moon_alt = sun_moon_info["moon_alt"]
+        self.conditions.moon_az = sun_moon_info["moon_az"]
+        self.conditions.moon_ra = sun_moon_info["moon_RA"]
+        self.conditions.moon_dec = sun_moon_info["moon_dec"]
+        self.conditions.sun_alt = sun_moon_info["sun_alt"]
+        self.conditions.sun_ra = sun_moon_info["sun_RA"]
+        self.conditions.sun_dec = sun_moon_info["sun_dec"]
 
         self.conditions.lmst, last = calc_lmst_last(self.mjd, self.site.longitude_rad)
 
-        self.conditions.telRA = self.observatory.current_ra_rad
-        self.conditions.telDec = self.observatory.current_dec_rad
-        self.conditions.telAlt = self.observatory.last_alt_rad
-        self.conditions.telAz = self.observatory.last_az_rad
+        self.conditions.tel_ra = self.observatory.current_ra_rad
+        self.conditions.tel_dec = self.observatory.current_dec_rad
+        self.conditions.tel_alt = self.observatory.last_alt_rad
+        self.conditions.tel_az = self.observatory.last_az_rad
 
-        self.conditions.rotTelPos = self.observatory.last_rot_tel_pos_rad
+        self.conditions.rot_tel_pos = self.observatory.last_rot_tel_pos_rad
         self.conditions.cumulative_azimuth_rad = self.observatory.cumulative_azimuth_rad
 
         # Add in the almanac information
@@ -550,13 +550,15 @@ class ModelObservatory(object):
             self.observatory.park()
 
         # Compute what alt,az we have tracked to (or are parked at)
-        start_alt, start_az, start_rot_tel_pos = self.observatory.current_alt_az(self.mjd)
+        start_alt, start_az, start_rot_tel_pos = self.observatory.current_alt_az(
+            self.mjd
+        )
         # Slew to new position and execute observation. Use the requested rotTelPos position,
         # obsevation['rotSkyPos'] will be ignored.
         slewtime, visittime = self.observatory.observe(
             observation,
             self.mjd,
-            rotTelPos=observation["rotTelPos"],
+            rot_tel_pos=observation["rotTelPos"],
             lax_dome=self.lax_dome,
         )
 
@@ -584,7 +586,7 @@ class ModelObservatory(object):
             observation["az"] = self.observatory.last_az_rad
             observation["pa"] = self.observatory.last_pa_rad
             observation["rotTelPos"] = self.observatory.last_rot_tel_pos_rad
-            observation["rotSkyPos"] = self.observatory.current_rotSkyPos_rad
+            observation["rotSkyPos"] = self.observatory.current_rot_sky_pos_rad
             observation["cummTelAz"] = self.observatory.cumulative_azimuth_rad
 
             # Metadata on observation is after slew and settle, so at start of exposure.

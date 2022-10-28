@@ -1,5 +1,5 @@
 import numpy as np
-from rubin_sim.scheduler.detailers import Base_detailer
+from rubin_sim.scheduler.detailers import BaseDetailer
 from rubin_sim.utils import (
     _approx_ra_dec2_alt_az,
     _approx_altaz2pa,
@@ -12,7 +12,7 @@ from rubin_sim.utils import (
 __all__ = ["DitherDetailer", "CameraRotDetailer", "EuclidDitherDetailer"]
 
 
-class DitherDetailer(Base_detailer):
+class DitherDetailer(BaseDetailer):
     """
     make a uniform dither pattern. Offset by a maximum radius in a random direction.
     Mostly intended for DDF pointings, the BaseMarkovDF_survey class includes dithering
@@ -73,7 +73,7 @@ class DitherDetailer(Base_detailer):
         return observation_list
 
 
-class EuclidDitherDetailer(Base_detailer):
+class EuclidDitherDetailer(BaseDetailer):
     """Directional dithering for Euclid DDFs
 
     Parameters
@@ -197,7 +197,7 @@ class EuclidDitherDetailer(Base_detailer):
         return observation_list
 
 
-class CameraRotDetailer(Base_detailer):
+class CameraRotDetailer(BaseDetailer):
     """
     Randomly set the camera rotation, either for each exposure, or per night.
 

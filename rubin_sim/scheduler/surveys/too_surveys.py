@@ -1,5 +1,5 @@
 import numpy as np
-from rubin_sim.scheduler.surveys import Blob_survey, BaseSurvey
+from rubin_sim.scheduler.surveys import BlobSurvey, BaseSurvey
 import healpy as hp
 import copy
 
@@ -83,7 +83,7 @@ class TooMaster(BaseSurvey):
             return result
 
 
-class TooSurvey(Blob_survey):
+class TooSurvey(BlobSurvey):
     """Survey class to catch incoming target of opportunity anouncements and try to observe them.
 
     The idea is that we can dynamically update the target footprint basis function, and add new features as more ToOs come in.

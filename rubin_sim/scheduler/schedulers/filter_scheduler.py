@@ -26,7 +26,7 @@ class SimpleFilterSched(FilterSwapScheduler):
         self.illum_limit_ir = IntRounded(illum_limit)
 
     def __call__(self, conditions):
-        if IntRounded(conditions.moonPhase) > self.illum_limit_ir:
+        if IntRounded(conditions.moon_phase) > self.illum_limit_ir:
             result = ["g", "r", "i", "z", "y"]
         else:
             result = ["u", "g", "r", "i", "y"]

@@ -537,7 +537,9 @@ class KinemModel(object):
             )
             # Dome takes 1 second to settle in az
             dom_az_slew_time = np.where(
-                dom_az_slew_time > 0, dom_az_slew_time + self.domaz_settletime, dom_az_slew_time
+                dom_az_slew_time > 0,
+                dom_az_slew_time + self.domaz_settletime,
+                dom_az_slew_time,
             )
             tot_dom_time = np.maximum(dom_alt_slew_time, dom_az_slew_time)
         # Find the max of the above for slew time.
@@ -581,11 +583,15 @@ class KinemModel(object):
                     current_rot_tel_pos = self.last_rot_tel_pos_rad
                 else:
                     # We have been tracking, so rot_tel_pos needs to be updated
-                    current_rot_tel_pos = _get_rot_tel_pos(pa, self.current_rot_sky_pos_rad)
+                    current_rot_tel_pos = _get_rot_tel_pos(
+                        pa, self.current_rot_sky_pos_rad
+                    )
             else:
                 # kwarg overrides if it was supplied
                 current_rot_tel_pos = starting_rot_tel_pos_rad
-            delta_rotation = np.abs(smallest_signed_angle(current_rot_tel_pos, rot_tel_pos))
+            delta_rotation = np.abs(
+                smallest_signed_angle(current_rot_tel_pos, rot_tel_pos)
+            )
             rotator_time = self._uam_slew_time(
                 delta_rotation, self.telrot_maxspeed_rad, self.telrot_accel_rad
             )

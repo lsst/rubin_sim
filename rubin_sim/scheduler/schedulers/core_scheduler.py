@@ -206,7 +206,9 @@ class CoreScheduler(object):
                     mjd,
                 )
                 obs_pa = _approx_altaz2pa(alt, az, self.conditions.site.latitude_rad)
-                rot_tel_pos_expected = (obs_pa - observation["rotSkyPos"]) % (2.0 * np.pi)
+                rot_tel_pos_expected = (obs_pa - observation["rotSkyPos"]) % (
+                    2.0 * np.pi
+                )
                 if (
                     IntRounded(rot_tel_pos_expected)
                     > IntRounded(self.rotator_limits[0])

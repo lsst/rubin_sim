@@ -4,8 +4,7 @@ from rubin_sim.scheduler import utils
 import healpy as hp
 import matplotlib.pylab as plt
 import warnings
-from rubin_sim.scheduler.basis_functions import Base_basis_function
-from rubin_sim.utils import _hpid2_ra_dec
+from rubin_sim.scheduler.basis_functions import BaseBasisFunction
 
 
 __all__ = [
@@ -15,7 +14,7 @@ __all__ = [
 ]
 
 
-class FootprintBasisFunction(Base_basis_function):
+class FootprintBasisFunction(BaseBasisFunction):
     """Basis function that tries to maintain a uniformly covered footprint
 
     Parameters
@@ -42,9 +41,7 @@ class FootprintBasisFunction(Base_basis_function):
         window_size=6.0,
     ):
 
-        super(FootprintBasisFunction, self).__init__(
-            nside=nside, filtername=filtername
-        )
+        super(FootprintBasisFunction, self).__init__(nside=nside, filtername=filtername)
         self.footprint = footprint
 
         self.survey_features = {}
@@ -76,7 +73,7 @@ class FootprintBasisFunction(Base_basis_function):
         return result
 
 
-class FootprintRollingBasisFunction(Base_basis_function):
+class FootprintRollingBasisFunction(BaseBasisFunction):
     """Let's get the rolling really right.
 
     Parameters
@@ -255,7 +252,7 @@ class FootprintRollingBasisFunction(Base_basis_function):
         return result
 
 
-class TargetMapModuloBasisFunction(Base_basis_function):
+class TargetMapModuloBasisFunction(BaseBasisFunction):
     """Basis function that tracks number of observations and tries to match a specified spatial distribution
     can enter multiple maps that will be used at different times in the survey
 

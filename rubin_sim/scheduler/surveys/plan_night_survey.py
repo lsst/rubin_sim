@@ -1,4 +1,4 @@
-from rubin_sim.scheduler.surveys import Blob_survey
+from rubin_sim.scheduler.surveys import BlobSurvey
 from rubin_sim.scheduler import features
 import rubin_sim.scheduler.basis_functions as bfs
 import numpy as np
@@ -10,7 +10,7 @@ import matplotlib.pylab as plt
 __all__ = ["PlanAheadSurvey"]
 
 
-class PlanAheadSurvey(Blob_survey):
+class PlanAheadSurvey(BlobSurvey):
     """Have a survey object that can plan ahead if it will want to observer a blob later in the night
 
     Parameters
@@ -38,9 +38,7 @@ class PlanAheadSurvey(Blob_survey):
         cadence=9,
         **kwargs
     ):
-        super(PlanAheadSurvey, self).__init__(
-            basis_functions, basis_weights, **kwargs
-        )
+        super(PlanAheadSurvey, self).__init__(basis_functions, basis_weights, **kwargs)
         # note that self.night is already being used for tracking tesselation.
         # So here's an attribute for seeing if the night has changed for cadence tracking
         self.night_cad = -100
