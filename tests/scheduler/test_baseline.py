@@ -6,13 +6,13 @@ import rubin_sim.scheduler.basis_functions as bf
 from rubin_sim.scheduler.utils import standard_goals, calc_norm_factor
 from rubin_sim.scheduler.surveys import (
     generate_dd_surveys,
-    Greedy_survey,
-    Blob_survey,
-    Pairs_survey_scripted,
+    GreedySurvey,
+    BlobSurvey,
+    PairsSurveyScripted,
 )
-from rubin_sim.scheduler.schedulers import Core_scheduler
+from rubin_sim.scheduler.schedulers import CoreScheduler
 from rubin_sim.scheduler import sim_runner
-from rubin_sim.scheduler.model_observatory import Model_observatory
+from rubin_sim.scheduler.model_observatory import ModelObservatory
 import rubin_sim.scheduler.detailers as detailers
 
 
@@ -26,32 +26,32 @@ def gen_greedy_surveys(nside):
 
     for filtername in filters:
         bfs = []
-        bfs.append(bf.M5_diff_basis_function(filtername=filtername, nside=nside))
+        bfs.append(bf.M5DiffBasisFunction(filtername=filtername, nside=nside))
         bfs.append(
-            bf.Target_map_basis_function(
+            bf.TargetMapBasisFunction(
                 filtername=filtername,
                 target_map=target_map[filtername],
                 out_of_bounds_val=np.nan,
                 nside=nside,
             )
         )
-        bfs.append(bf.Slewtime_basis_function(filtername=filtername, nside=nside))
-        bfs.append(bf.Strict_filter_basis_function(filtername=filtername))
+        bfs.append(bf.SlewtimeBasisFunction(filtername=filtername, nside=nside))
+        bfs.append(bf.StrictFilterBasisFunction(filtername=filtername))
         # Masks, give these 0 weight
         bfs.append(
-            bf.Zenith_shadow_mask_basis_function(
+            bf.ZenithShadowMaskBasisFunction(
                 nside=nside, shadow_minutes=60.0, max_alt=76.0
             )
         )
-        bfs.append(bf.Moon_avoidance_basis_function(nside=nside, moon_distance=30.0))
-        bfs.append(bf.Clouded_out_basis_function())
+        bfs.append(bf.MoonAvoidanceBasisFunction(nside=nside, moon_distance=30.0))
+        bfs.append(bf.CloudedOutBasisFunction())
 
-        bfs.append(bf.Filter_loaded_basis_function(filternames=filtername))
-        bfs.append(bf.Planet_mask_basis_function(nside=nside))
+        bfs.append(bf.FilterLoadedBasisFunction(filternames=filtername))
+        bfs.append(bf.PlanetMaskBasisFunction(nside=nside))
 
         weights = np.array([3.0, 0.3, 3.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         surveys.append(
-            Greedy_survey(
+            GreedySurvey(
                 bfs,
                 weights,
                 block_size=1,
@@ -79,11 +79,11 @@ def gen_blob_surveys(nside):
     for filtername, filtername2 in zip(filter1s, filter2s):
         detailer_list = []
         bfs = []
-        bfs.append(bf.M5_diff_basis_function(filtername=filtername, nside=nside))
+        bfs.append(bf.M5DiffBasisFunction(filtername=filtername, nside=nside))
         if filtername2 is not None:
-            bfs.append(bf.M5_diff_basis_function(filtername=filtername2, nside=nside))
+            bfs.append(bf.M5DiffBasisFunction(filtername=filtername2, nside=nside))
         bfs.append(
-            bf.Target_map_basis_function(
+            bf.TargetMapBasisFunction(
                 filtername=filtername,
                 target_map=target_map[filtername],
                 out_of_bounds_val=np.nan,
@@ -93,7 +93,7 @@ def gen_blob_surveys(nside):
         )
         if filtername2 is not None:
             bfs.append(
-                bf.Target_map_basis_function(
+                bf.TargetMapBasisFunction(
                     filtername=filtername2,
                     target_map=target_map[filtername2],
                     out_of_bounds_val=np.nan,
@@ -101,22 +101,22 @@ def gen_blob_surveys(nside):
                     norm_factor=norm_factor,
                 )
             )
-        bfs.append(bf.Slewtime_basis_function(filtername=filtername, nside=nside))
-        bfs.append(bf.Strict_filter_basis_function(filtername=filtername))
+        bfs.append(bf.SlewtimeBasisFunction(filtername=filtername, nside=nside))
+        bfs.append(bf.StrictFilterBasisFunction(filtername=filtername))
         # Masks, give these 0 weight
         bfs.append(
-            bf.Zenith_shadow_mask_basis_function(
+            bf.ZenithShadowMaskBasisFunction(
                 nside=nside, shadow_minutes=60.0, max_alt=76.0
             )
         )
-        bfs.append(bf.Moon_avoidance_basis_function(nside=nside, moon_distance=30.0))
-        bfs.append(bf.Clouded_out_basis_function())
+        bfs.append(bf.MoonAvoidanceBasisFunction(nside=nside, moon_distance=30.0))
+        bfs.append(bf.CloudedOutBasisFunction())
         # feasibility basis fucntions. Also give zero weight.
         filternames = [fn for fn in [filtername, filtername2] if fn is not None]
-        bfs.append(bf.Filter_loaded_basis_function(filternames=filternames))
-        bfs.append(bf.Time_to_twilight_basis_function(time_needed=22.0))
-        bfs.append(bf.Not_twilight_basis_function())
-        bfs.append(bf.Planet_mask_basis_function(nside=nside))
+        bfs.append(bf.FilterLoadedBasisFunction(filternames=filternames))
+        bfs.append(bf.TimeToTwilightBasisFunction(time_needed=22.0))
+        bfs.append(bf.NotTwilightBasisFunction())
+        bfs.append(bf.PlanetMaskBasisFunction(nside=nside))
 
         weights = np.array(
             [3.0, 3.0, 0.3, 0.3, 3.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -129,11 +129,9 @@ def gen_blob_surveys(nside):
         else:
             survey_name = "blob, %s%s" % (filtername, filtername2)
         if filtername2 is not None:
-            detailer_list.append(
-                detailers.Take_as_pairs_detailer(filtername=filtername2)
-            )
+            detailer_list.append(detailers.TakeAsPairsDetailer(filtername=filtername2))
         pair_surveys.append(
-            Blob_survey(
+            BlobSurvey(
                 bfs,
                 weights,
                 filtername1=filtername,
@@ -141,6 +139,7 @@ def gen_blob_surveys(nside):
                 survey_note=survey_name,
                 ignore_obs="DD",
                 detailers=detailer_list,
+                nside=nside,
             )
         )
     return pair_surveys
@@ -162,8 +161,8 @@ class TestFeatures(unittest.TestCase):
         dd_surveys = generate_dd_surveys(nside=nside)
         surveys.extend(dd_surveys)
 
-        scheduler = Core_scheduler(surveys, nside=nside)
-        observatory = Model_observatory(nside=nside)
+        scheduler = CoreScheduler(surveys, nside=nside)
+        observatory = ModelObservatory(nside=nside)
         observatory, scheduler, observations = sim_runner(
             observatory, scheduler, survey_length=survey_length, filename=None
         )
@@ -190,8 +189,8 @@ class TestFeatures(unittest.TestCase):
         surveys.append(gen_blob_surveys(nside))
         surveys.append(gen_greedy_surveys(nside))
 
-        scheduler = Core_scheduler(surveys, nside=nside)
-        observatory = Model_observatory(nside=nside)
+        scheduler = CoreScheduler(surveys, nside=nside)
+        observatory = ModelObservatory(nside=nside)
         observatory, scheduler, observations = sim_runner(
             observatory, scheduler, survey_length=survey_length, filename=None
         )
@@ -221,8 +220,8 @@ class TestFeatures(unittest.TestCase):
         surveys.append(gen_blob_surveys(nside))
         surveys.append(gen_greedy_surveys(nside))
 
-        scheduler = Core_scheduler(surveys, nside=nside)
-        observatory = Model_observatory(nside=nside)
+        scheduler = CoreScheduler(surveys, nside=nside)
+        observatory = ModelObservatory(nside=nside)
         observatory, scheduler, observations = sim_runner(
             observatory, scheduler, survey_length=survey_length, filename=None
         )

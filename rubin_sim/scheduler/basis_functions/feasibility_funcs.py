@@ -1,8 +1,8 @@
 import numpy as np
 from rubin_sim.scheduler import features
 import matplotlib.pylab as plt
-from rubin_sim.scheduler.basis_functions import Base_basis_function
-from rubin_sim.scheduler.utils import int_rounded
+from rubin_sim.scheduler.basis_functions import BaseBasisFunction
+from rubin_sim.scheduler.utils import IntRounded
 
 
 __all__ = [
@@ -27,7 +27,7 @@ __all__ = [
 ]
 
 
-class FilterLoadedBasisFunction(Base_basis_function):
+class FilterLoadedBasisFunction(BaseBasisFunction):
     """Check that the filter(s) needed are loaded
 
     Parameters
@@ -51,7 +51,7 @@ class FilterLoadedBasisFunction(Base_basis_function):
         return result
 
 
-class LimitObsPnightBasisFunction(Base_basis_function):
+class LimitObsPnightBasisFunction(BaseBasisFunction):
     """"""
 
     def __init__(self, survey_str="", nlimit=100.0):
@@ -68,7 +68,7 @@ class LimitObsPnightBasisFunction(Base_basis_function):
             return True
 
 
-class NightModuloBasisFunction(Base_basis_function):
+class NightModuloBasisFunction(BaseBasisFunction):
     """Only return true on certain nights"""
 
     def __init__(self, pattern=None):
@@ -84,7 +84,7 @@ class NightModuloBasisFunction(Base_basis_function):
         return result
 
 
-class TimeInTwilightBasisFunction(Base_basis_function):
+class TimeInTwilightBasisFunction(BaseBasisFunction):
     """Make sure there is some time left in twilight.
 
     Parameters
@@ -111,39 +111,39 @@ class TimeInTwilightBasisFunction(Base_basis_function):
         return result
 
 
-class AfterEveningTwiBasisFunction(Base_basis_function):
+class AfterEveningTwiBasisFunction(BaseBasisFunction):
     """Only execute right after evening twilight"""
 
     def __init__(self, time_after=30.0, alt_limit=18):
         super(AfterEveningTwiBasisFunction, self).__init__()
-        self.time_after = int_rounded(time_after / 60.0 / 24.0)
+        self.time_after = IntRounded(time_after / 60.0 / 24.0)
         self.alt_limit = str(alt_limit)
 
     def check_feasibility(self, conditions):
         available_time = conditions.mjd - getattr(
             conditions, "sun_n" + self.alt_limit + "_setting"
         )
-        result = int_rounded(available_time) < self.time_after
+        result = IntRounded(available_time) < self.time_after
         return result
 
 
-class EndOfEveningBasisFunction(Base_basis_function):
+class EndOfEveningBasisFunction(BaseBasisFunction):
     """Only let observations happen in a limited time before twilight"""
 
     def __init__(self, time_remaining=30.0, alt_limit=18):
         super(EndOfEveningBasisFunction, self).__init__()
-        self.time_remaining = int_rounded(time_remaining / 60.0 / 24.0)
+        self.time_remaining = IntRounded(time_remaining / 60.0 / 24.0)
         self.alt_limit = str(alt_limit)
 
     def check_feasibility(self, conditions):
         available_time = (
             getattr(conditions, "sun_n" + self.alt_limit + "_rising") - conditions.mjd
         )
-        result = int_rounded(available_time) < self.time_remaining
+        result = IntRounded(available_time) < self.time_remaining
         return result
 
 
-class TimeToTwilightBasisFunction(Base_basis_function):
+class TimeToTwilightBasisFunction(BaseBasisFunction):
     """Make sure there is enough time before twilight. Useful
     if you want to check before starting a long sequence of observations.
 
@@ -168,7 +168,7 @@ class TimeToTwilightBasisFunction(Base_basis_function):
         return result
 
 
-class TimeToScheduledBasisFunction(Base_basis_function):
+class TimeToScheduledBasisFunction(BaseBasisFunction):
     """Make sure there is enough time before next scheduled observation. Useful
     if you want to check before starting a long sequence of observations.
 
@@ -191,7 +191,7 @@ class TimeToScheduledBasisFunction(Base_basis_function):
         return result
 
 
-class NotTwilightBasisFunction(Base_basis_function):
+class NotTwilightBasisFunction(BaseBasisFunction):
     def __init__(self, sun_alt_limit=-18):
         """
         # Should be -18 or -12
@@ -212,7 +212,7 @@ class NotTwilightBasisFunction(Base_basis_function):
         return result
 
 
-class ForceDelayBasisFunction(Base_basis_function):
+class ForceDelayBasisFunction(BaseBasisFunction):
     """Keep a survey from executing to rapidly.
 
     Parameters
@@ -239,7 +239,7 @@ class ForceDelayBasisFunction(Base_basis_function):
         return result
 
 
-class SoftDelayBasisFunction(Base_basis_function):
+class SoftDelayBasisFunction(BaseBasisFunction):
     """Like Force_delay, but go ahead and let things catch up if they fall far behind.
 
     Parameters
@@ -255,12 +255,12 @@ class SoftDelayBasisFunction(Base_basis_function):
         super(SoftDelayBasisFunction, self).__init__()
         self.delays = delays
         self.survey_name = survey_name
-        self.survey_features["last_obs_self"] = features.Last_observation(
+        self.survey_features["last_obs_self"] = features.LastObservation(
             survey_name=self.survey_name
         )
         self.fractions = fractions
-        self.survey_features["Ntot"] = features.N_obs_survey()
-        self.survey_features["N_survey"] = features.N_obs_survey(note=self.survey_name)
+        self.survey_features["Ntot"] = features.NObsSurvey()
+        self.survey_features["N_survey"] = features.NObsSurvey(note=self.survey_name)
 
     def check_feasibility(self, conditions):
         result = True
@@ -280,7 +280,7 @@ class SoftDelayBasisFunction(Base_basis_function):
         return result
 
 
-class HourAngleLimitBasisFunction(Base_basis_function):
+class HourAngleLimitBasisFunction(BaseBasisFunction):
     """Only execute a survey in limited hour angle ranges. Useful for
     limiting Deep Drilling Fields.
 
@@ -309,17 +309,17 @@ class HourAngleLimitBasisFunction(Base_basis_function):
         return result
 
 
-class MoonDownBasisFunction(Base_basis_function):
+class MoonDownBasisFunction(BaseBasisFunction):
     """Demand the moon is down"""
 
     def check_feasibility(self, conditions):
         result = True
-        if conditions.moonAlt > 0:
+        if conditions.moon_alt > 0:
             result = False
         return result
 
 
-class FractionOfObsBasisFunction(Base_basis_function):
+class FractionOfObsBasisFunction(BaseBasisFunction):
     """Limit the fraction of all observations that can be labled a certain
     survey name. Useful for keeping DDFs from exceeding a given fraction of the
     total survey.
@@ -336,8 +336,8 @@ class FractionOfObsBasisFunction(Base_basis_function):
         super(FractionOfObsBasisFunction, self).__init__()
         self.survey_name = survey_name
         self.frac_total = frac_total
-        self.survey_features["Ntot"] = features.N_obs_survey()
-        self.survey_features["N_survey"] = features.N_obs_survey(note=self.survey_name)
+        self.survey_features["Ntot"] = features.NObsSurvey()
+        self.survey_features["N_survey"] = features.NObsSurvey(note=self.survey_name)
 
     def check_feasibility(self, conditions):
         # If nothing has been observed, fine to go
@@ -353,7 +353,7 @@ class FractionOfObsBasisFunction(Base_basis_function):
         return result
 
 
-class LookAheadDdfBasisFunction(Base_basis_function):
+class LookAheadDdfBasisFunction(BaseBasisFunction):
     """Look into the future to decide if it's a good time to observe or block.
 
     Parameters
@@ -400,8 +400,8 @@ class LookAheadDdfBasisFunction(Base_basis_function):
         self.time_jump = time_jump / 60.0 / 24.0  # To days
         self.time_needed = time_needed / 60.0 / 24.0  # To days
         self.aggressive_fraction = aggressive_fraction
-        self.survey_features["Ntot"] = features.N_obs_survey()
-        self.survey_features["N_survey"] = features.N_obs_survey(note=self.survey_name)
+        self.survey_features["Ntot"] = features.NObsSurvey()
+        self.survey_features["N_survey"] = features.NObsSurvey(note=self.survey_name)
 
     def check_feasibility(self, conditions):
         result = True
@@ -416,37 +416,37 @@ class LookAheadDdfBasisFunction(Base_basis_function):
         )
         # If it's more that self.time_jump to hour angle zero
         # See if there will be enough time to twilight in the future
-        if (int_rounded(target_ha) > int_rounded(12)) & (
-            int_rounded(target_ha) < int_rounded(24.0 - self.time_jump)
+        if (IntRounded(target_ha) > IntRounded(12)) & (
+            IntRounded(target_ha) < IntRounded(24.0 - self.time_jump)
         ):
-            if int_rounded(available_time) > int_rounded(
+            if IntRounded(available_time) > IntRounded(
                 self.time_needed + self.time_jump
             ):
                 result = False
                 # If we paused for better conditions, but the moon will rise, turn things back on.
-                if int_rounded(conditions.moonAlt) < int_rounded(0):
-                    if int_rounded(conditions.moonrise) > int_rounded(conditions.mjd):
-                        if int_rounded(
+                if IntRounded(conditions.moonAlt) < IntRounded(0):
+                    if IntRounded(conditions.moonrise) > IntRounded(conditions.mjd):
+                        if IntRounded(
                             conditions.moonrise - conditions.mjd
-                        ) > int_rounded(self.time_jump):
+                        ) > IntRounded(self.time_jump):
                             result = True
         # If the moon is up and will set soon, pause
-        if int_rounded(conditions.moonAlt) > int_rounded(0):
+        if IntRounded(conditions.moonAlt) > IntRounded(0):
             time_after_moonset = (
                 getattr(conditions, "sun_" + self.sun_alt_limit + "_rising")
                 - conditions.moonset
             )
-            if int_rounded(conditions.moonset) > int_rounded(self.time_jump):
-                if int_rounded(time_after_moonset) > int_rounded(self.time_needed):
+            if IntRounded(conditions.moonset) > IntRounded(self.time_jump):
+                if IntRounded(time_after_moonset) > IntRounded(self.time_needed):
                     result = False
 
         # If the survey has fallen far behind, be agressive and observe anytime it's up.
-        if int_rounded(ratio) < int_rounded(self.aggressive_fraction):
+        if IntRounded(ratio) < IntRounded(self.aggressive_fraction):
             result = True
         return result
 
 
-class CloudedOutBasisFunction(Base_basis_function):
+class CloudedOutBasisFunction(BaseBasisFunction):
     def __init__(self, cloud_limit=0.7):
         super(CloudedOutBasisFunction, self).__init__()
         self.cloud_limit = cloud_limit
@@ -458,7 +458,7 @@ class CloudedOutBasisFunction(Base_basis_function):
         return result
 
 
-class RisingMoreBasisFunction(Base_basis_function):
+class RisingMoreBasisFunction(BaseBasisFunction):
     """Say a spot is not available if it will rise substatially before twilight.
 
     Parameters
@@ -484,7 +484,7 @@ class RisingMoreBasisFunction(Base_basis_function):
         return result
 
 
-class SunAltLimitBasisFunction(Base_basis_function):
+class SunAltLimitBasisFunction(BaseBasisFunction):
     """Don't try unless the sun is below some limit"""
 
     def __init__(self, alt_limit=-12.1):
@@ -496,7 +496,3 @@ class SunAltLimitBasisFunction(Base_basis_function):
         if conditions.sunAlt > self.alt_limit:
             result = False
         return result
-
-
-## XXX--TODO:  Can include checks to see if downtime is coming, clouds are coming, moon rising, or surveys in a higher tier
-# Have observations they want to execute soon.

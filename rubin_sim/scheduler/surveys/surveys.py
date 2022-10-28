@@ -2,10 +2,10 @@ import numpy as np
 from rubin_sim.scheduler.utils import empty_observation, set_default_nside
 import healpy as hp
 import matplotlib.pylab as plt
-from rubin_sim.scheduler.surveys import BaseMarkovDF_survey
+from rubin_sim.scheduler.surveys import BaseMarkovSurvey
 from rubin_sim.scheduler.utils import (
     int_binned_stat,
-    int_rounded,
+    IntRounded,
     gnomonic_project_toxy,
     tsp_convex,
 )
@@ -21,7 +21,7 @@ import warnings
 __all__ = ["GreedySurvey", "BlobSurvey"]
 
 
-class GreedySurvey(BaseMarkovDF_survey):
+class GreedySurvey(BaseMarkovSurvey):
     """
     Select pointings in a greedy way using a Markov Decision Process.
     """
@@ -184,9 +184,6 @@ class BlobSurvey(GreedySurvey):
         grow_blob=True,
         area_required=None,
     ):
-
-        if nside is None:
-            nside = set_default_nside()
 
         super(BlobSurvey, self).__init__(
             basis_functions=basis_functions,
@@ -364,12 +361,11 @@ class BlobSurvey(GreedySurvey):
             for bf, weight in zip(self.basis_functions, self.basis_weights):
                 basis_value = bf(conditions, indx=indx)
                 self.reward += basis_value * weight
-                # might be faster to pull this out into the feasabiliity check?
             if self.smoothing_kernel is not None:
                 self.smooth_reward()
 
             # Apply max altitude cut
-            too_high = np.where(int_rounded(conditions.alt) > int_rounded(self.alt_max))
+            too_high = np.where(IntRounded(conditions.alt) > IntRounded(self.alt_max))
             self.reward[too_high] = np.nan
 
             # Select healpixels within some radius of the max
@@ -386,7 +382,7 @@ class BlobSurvey(GreedySurvey):
             dists = _angular_separation(
                 self.ra[peak_reward], self.dec[peak_reward], self.ra, self.dec
             )
-            out_hp = np.where(int_rounded(dists) > int_rounded(self.search_radius))
+            out_hp = np.where(IntRounded(dists) > IntRounded(self.search_radius))
             self.reward[out_hp] = np.nan
 
             # Apply az cut
@@ -394,10 +390,10 @@ class BlobSurvey(GreedySurvey):
             az_centered[np.where(az_centered < 0)] += 2.0 * np.pi
 
             az_out = np.where(
-                (int_rounded(az_centered) > int_rounded(self.az_range / 2.0))
+                (IntRounded(az_centered) > IntRounded(self.az_range / 2.0))
                 & (
-                    int_rounded(az_centered)
-                    < int_rounded(2.0 * np.pi - self.az_range / 2.0)
+                    IntRounded(az_centered)
+                    < IntRounded(2.0 * np.pi - self.az_range / 2.0)
                 )
             )
             self.reward[az_out] = np.nan

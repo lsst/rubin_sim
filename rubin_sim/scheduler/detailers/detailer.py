@@ -5,7 +5,7 @@ from rubin_sim.utils import (
     _approx_altaz2pa,
 )
 import numpy as np
-from rubin_sim.scheduler.utils import int_rounded
+from rubin_sim.scheduler.utils import IntRounded
 import copy
 
 __all__ = [
@@ -198,7 +198,7 @@ class CloseAltDetailer(BaseDetailer):
 
     def __init__(self, alt_band=10.0):
         super(CloseAltDetailer, self).__init__()
-        self.alt_band = int_rounded(np.radians(alt_band))
+        self.alt_band = IntRounded(np.radians(alt_band))
 
     def __call__(self, observation_list, conditions):
         obs_array = np.concatenate(observation_list)
@@ -210,7 +210,7 @@ class CloseAltDetailer(BaseDetailer):
             conditions.mjd,
         )
         alt_diff = np.abs(alt - conditions.telAlt)
-        in_band = np.where(int_rounded(alt_diff) <= self.alt_band)[0]
+        in_band = np.where(IntRounded(alt_diff) <= self.alt_band)[0]
         if in_band.size == 0:
             in_band = np.arange(alt.size)
 

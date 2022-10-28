@@ -189,19 +189,17 @@ def dd_bfs(
     sun_alt_limit = -18.0
     fractions = [0.00, aggressive_frac, frac_total]
     bfs = []
-    bfs.append(basis_functions.Not_twilight_basis_function(sun_alt_limit=sun_alt_limit))
-    bfs.append(basis_functions.Time_to_twilight_basis_function(time_needed=time_needed))
+    bfs.append(basis_functions.NotTwilightBasisFunction(sun_alt_limit=sun_alt_limit))
+    bfs.append(basis_functions.TimeToTwilightBasisFunction(time_needed=time_needed))
+    bfs.append(basis_functions.HourAngleLimitBasisFunction(RA=RA, ha_limits=ha_limits))
+    bfs.append(basis_functions.MoonDownBasisFunction())
     bfs.append(
-        basis_functions.Hour_Angle_limit_basis_function(RA=RA, ha_limits=ha_limits)
-    )
-    bfs.append(basis_functions.Moon_down_basis_function())
-    bfs.append(
-        basis_functions.Fraction_of_obs_basis_function(
+        basis_functions.FractionOfObsBasisFunction(
             frac_total=frac_total, survey_name=survey_name
         )
     )
     bfs.append(
-        basis_functions.Look_ahead_ddf_basis_function(
+        basis_functions.LookAheadDdfBasisFunction(
             frac_total,
             aggressive_frac,
             sun_alt_limit=sun_alt_limit,
@@ -212,13 +210,11 @@ def dd_bfs(
         )
     )
     bfs.append(
-        basis_functions.Soft_delay_basis_function(
+        basis_functions.SoftDelayBasisFunction(
             fractions=fractions, delays=delays, survey_name=survey_name
         )
     )
-    bfs.append(
-        basis_functions.Time_to_scheduled_basis_function(time_needed=time_needed)
-    )
+    bfs.append(basis_functions.TimeToScheduledBasisFunction(time_needed=time_needed))
 
     return bfs
 

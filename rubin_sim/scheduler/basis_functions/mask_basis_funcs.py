@@ -3,7 +3,7 @@ import healpy as hp
 from rubin_sim.utils import _hpid2_ra_dec, Site, _angular_separation, _xyz_from_ra_dec
 import matplotlib.pylab as plt
 from rubin_sim.scheduler.basis_functions import BaseBasisFunction
-from rubin_sim.scheduler.utils import hp_in_lsst_fov, int_rounded
+from rubin_sim.scheduler.utils import HpInLsstFov, IntRounded
 
 
 __all__ = [
@@ -49,7 +49,7 @@ class HaMaskBasisFunction(BaseBasisFunction):
         return result
 
 
-class AreaCheckMaskBasisFunction(BaseBasisFunctionn):
+class AreaCheckMaskBasisFunction(BaseBasisFunction):
     """Take a list of other mask basis functions, and do an additional check for area available"""
 
     def __init__(self, bf_list, nside=32, min_area=1000.0):
@@ -102,8 +102,8 @@ class SolarElongationMaskBasisFunction(BaseBasisFunction):
     def _calc_value(self, conditions, indx=None):
         result = self.result.copy()
         in_range = np.where(
-            (int_rounded(conditions.solar_elongation) >= int_rounded(self.min_elong))
-            & (int_rounded(conditions.solar_elongation) <= int_rounded(self.max_elong))
+            (IntRounded(conditions.solar_elongation) >= IntRounded(self.min_elong))
+            & (IntRounded(conditions.solar_elongation) <= IntRounded(self.max_elong))
         )[0]
         result[in_range] = 1
         return result
@@ -133,8 +133,8 @@ class ZenithMaskBasisFunction(BaseBasisFunction):
 
         result = self.result.copy()
         alt_limit = np.where(
-            (int_rounded(conditions.alt) > int_rounded(self.min_alt))
-            & (int_rounded(conditions.alt) < int_rounded(self.max_alt))
+            (IntRounded(conditions.alt) > IntRounded(self.min_alt))
+            & (IntRounded(conditions.alt) < IntRounded(self.max_alt))
         )[0]
         result[alt_limit] = 1
         return result
@@ -161,7 +161,7 @@ class PlanetMaskBasisFunction(BaseBasisFunction):
         self.mask_radius = np.radians(mask_radius)
         self.result = np.zeros(hp.nside2npix(nside))
         # set up a kdtree. Could maybe use healpy.query_disc instead.
-        self.in_fov = hp_in_lsst_fov(nside=nside, fov_radius=mask_radius, scale=scale)
+        self.in_fov = HpInLsstFov(nside=nside, fov_radius=mask_radius, scale=scale)
 
     def _calc_value(self, conditions, indx=None):
         result = self.result.copy()
@@ -215,11 +215,8 @@ class ZenithShadowMaskBasisFunction(BaseBasisFunction):
         self.lon_rad = site.longitude_rad
         self.decband[
             np.where(
-                (int_rounded(self.dec) < int_rounded(self.lat_rad + self.zenith_radius))
-                & (
-                    int_rounded(self.dec)
-                    > int_rounded(self.lat_rad - self.zenith_radius)
-                )
+                (IntRounded(self.dec) < IntRounded(self.lat_rad + self.zenith_radius))
+                & (IntRounded(self.dec) > IntRounded(self.lat_rad - self.zenith_radius))
             )
         ] = 1
 
@@ -230,14 +227,14 @@ class ZenithShadowMaskBasisFunction(BaseBasisFunction):
 
         result = self.result.copy()
         alt_limit = np.where(
-            (int_rounded(conditions.alt) > int_rounded(self.min_alt))
-            & (int_rounded(conditions.alt) < int_rounded(self.max_alt))
+            (IntRounded(conditions.alt) > IntRounded(self.min_alt))
+            & (IntRounded(conditions.alt) < IntRounded(self.max_alt))
         )[0]
         result[alt_limit] = 1
         to_mask = np.where(
             (
-                int_rounded(conditions.HA)
-                > int_rounded(2.0 * np.pi - self.shadow_minutes - self.zenith_radius)
+                IntRounded(conditions.HA)
+                > IntRounded(2.0 * np.pi - self.shadow_minutes - self.zenith_radius)
             )
             & (self.decband == 1)
         )
@@ -260,17 +257,17 @@ class MoonAvoidanceBasisFunction(BaseBasisFunction):
         super(MoonAvoidanceBasisFunction, self).__init__(nside=nside)
         self.update_on_newobs = False
 
-        self.moon_distance = int_rounded(np.radians(moon_distance))
+        self.moon_distance = IntRounded(np.radians(moon_distance))
         self.result = np.ones(hp.nside2npix(self.nside), dtype=float)
 
     def _calc_value(self, conditions, indx=None):
         result = self.result.copy()
 
         angular_distance = _angular_separation(
-            conditions.az, conditions.alt, conditions.moonAz, conditions.moonAlt
+            conditions.az, conditions.alt, conditions.moon_az, conditions.moon_alt
         )
 
-        result[int_rounded(angular_distance) < self.moon_distance] = np.nan
+        result[IntRounded(angular_distance) < self.moon_distance] = np.nan
 
         return result
 
@@ -377,15 +374,15 @@ class MaskAzimuthBasisFunction(BaseBasisFunction):
 
     def __init__(self, nside=None, out_of_bounds_val=np.nan, az_min=0.0, az_max=180.0):
         super(MaskAzimuthBasisFunction, self).__init__(nside=nside)
-        self.az_min = int_rounded(np.radians(az_min))
-        self.az_max = int_rounded(np.radians(az_max))
+        self.az_min = IntRounded(np.radians(az_min))
+        self.az_max = IntRounded(np.radians(az_max))
         self.out_of_bounds_val = out_of_bounds_val
         self.result = np.ones(hp.nside2npix(self.nside))
 
     def _calc_value(self, conditions, indx=None):
         to_mask = np.where(
-            (int_rounded(conditions.az) > self.az_min)
-            & (int_rounded(conditions.az) < self.az_max)
+            (IntRounded(conditions.az) > self.az_min)
+            & (IntRounded(conditions.az) < self.az_max)
         )[0]
         result = self.result.copy()
         result[to_mask] = self.out_of_bounds_val

@@ -7,7 +7,7 @@ from rubin_sim.scheduler.features import Conditions
 
 class TestBasis(unittest.TestCase):
     def test_visit_repeat_basis_function(self):
-        bf = basis_functions.Visit_repeat_basis_function()
+        bf = basis_functions.VisitRepeatBasisFunction()
 
         indx = np.array([1000])
 
@@ -34,10 +34,10 @@ class TestBasis(unittest.TestCase):
         self.assertEqual(np.max(bf(conditions)), 0.0)
 
     def test_label(self):
-        bf = basis_functions.Visit_repeat_basis_function()
+        bf = basis_functions.VisitRepeatBasisFunction()
         self.assertIsInstance(bf.label(), str)
 
-        bf = basis_functions.Slewtime_basis_function(nside=16)
+        bf = basis_functions.SlewtimeBasisFunction(nside=16)
         self.assertIsInstance(bf.label(), str)
 
     def test_visit_gap(self):

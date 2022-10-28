@@ -87,34 +87,34 @@ class Conditions(object):
         skybrightness : dict of np.array
             Dictionary keyed by filtername. Values are healpix arrays with the sky brightness at each
             healpix center (mag/acsec^2)
-        FWHMeff : dict of np.array
+        fwhm_eff : dict of np.array
             Dictionary keyed by filtername. Values are the effective seeing FWHM at each healpix
             center (arcseconds)
-        moonAlt : float
+        moon_alt : float
             The altitude of the Moon (radians)
-        moonAz : float
+        moon_az : float
             The Azimuth of the moon (radians)
-        moonRA : float
+        moon_ra : float
             RA of the moon (radians)
-        moonDec : float
+        moon_dec : float
             Declination of the moon (radians)
-        moonPhase : float
+        moon_phase : float
             The Phase of the moon. (percent, 0=new moon, 100=full moon)
-        sunAlt : float
+        sun_alt : float
             The altitude of the sun (radians).
-        sunAz : float
+        sun_az : float
             The Azimuth of the sun (radians).
-        sunRA : float
+        sun_ra : float
             The RA of the sun (radians).
-        sunDec : float
+        sun_dec : float
             The Dec of the sun (radians).
-        telRA : float
+        tel_ra : float
             The current telescope RA pointing (radians).
-        telDec : float
+        tel_dec : float
             The current telescope Declination (radians).
-        telAlt : float
+        tel_alt : float
             The current telescope altitude (radians).
-        telAz : float
+        tel_az : float
             The current telescope azimuth (radians).
         cumulative_azimuth_rad : float
             The cummulative telescope azimuth (radians). For tracking cable wrap
@@ -172,7 +172,7 @@ class Conditions(object):
             Based on the fast approximate alt,az values.
         lmst : float
             The local mean sidearal time (hours). Updates is mjd is changed.
-        M5Depth : dict of np.array
+        m5_depth : dict of np.array
             the 5-sigma limiting depth healpix maps, keyed by filtername (mags). Will be recalculated
             if the skybrightness, seeing, or airmass are updated.
         HA : np.array
