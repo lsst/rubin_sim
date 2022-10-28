@@ -603,7 +603,7 @@ class SkyModel(object):
         self.azRelMoon = calcAzRelMoon(self.azs, self.moonAz)
         self.points["moonAltitude"] += np.degrees(self.moonAlt)
         self.points["azRelMoon"] = self.azRelMoon
-        self.moonSunSep = self.moonPhase / 100.0 * 2 * np.pi
+        self.moonSunSep = self.moonPhase / 100.0 * np.pi
         # Ugh, point are in degrees.
         self.points["moonSunSep"] = self.moonPhase / 100.0 * 180.0
 
