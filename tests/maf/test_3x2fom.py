@@ -39,10 +39,10 @@ class Test3x2(unittest.TestCase):
         s = maf.slicers.HealpixSlicer(nside=nside, useCache=False)
         sql = 'note not like "DD%" and night < 365'
         ThreebyTwoSummary_simple = maf.metrics.StaticProbesFoMEmulatorMetricSimple(
-            nside=nside, metricName="3x2ptFoM_simple"
+            nside=nside, metric_name="3x2ptFoM_simple"
         )
         ThreebyTwoSummary = maf.maf_contrib.StaticProbesFoMEmulatorMetric(
-            nside=nside, metricName="3x2ptFoM"
+            nside=nside, metric_name="3x2ptFoM"
         )
         bundleList.append(
             maf.metric_bundles.MetricBundle(

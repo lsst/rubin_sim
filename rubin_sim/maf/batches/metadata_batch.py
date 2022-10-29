@@ -135,8 +135,8 @@ def metadataBasics(
             displayDict["caption"] += " (%s)" % (valueName)
         displayDict["caption"] += " for %s." % (info_label[f])
         displayDict["order"] = orders[f]
-        m = metrics.CountMetric(value, metricName="%s Histogram" % (valueName))
-        slicer = slicers.OneDSlicer(sliceColName=value)
+        m = metrics.CountMetric(value, metric_name="%s Histogram" % (valueName))
+        slicer = slicers.OneDSlicer(slice_col_name=value)
         bundle = mb.MetricBundle(
             m,
             slicer,
@@ -150,9 +150,9 @@ def metadataBasics(
     # Make maps of min/median/max for all and per filter, per RA/Dec, with standard summary stats.
     plotDict = {"percentileClip": 98}
     mList = []
-    mList.append(metrics.MinMetric(value, metricName="Min %s" % (valueName)))
-    mList.append(metrics.MedianMetric(value, metricName="Median %s" % (valueName)))
-    mList.append(metrics.MaxMetric(value, metricName="Max %s" % (valueName)))
+    mList.append(metrics.MinMetric(value, metric_name="Min %s" % (valueName)))
+    mList.append(metrics.MedianMetric(value, metric_name="Median %s" % (valueName)))
+    mList.append(metrics.MaxMetric(value, metric_name="Max %s" % (valueName)))
     slicer = skyslicer
     for f in filterlist:
         for m in mList:
@@ -276,8 +276,8 @@ def metadataBasicsAngle(
             displayDict["caption"] += " (%s)" % (valueName)
         displayDict["caption"] += " for %s." % (info_label[f])
         displayDict["order"] = orders[f]
-        m = metrics.CountMetric(value, metricName="%s Histogram" % (valueName))
-        slicer = slicers.OneDSlicer(sliceColName=value)
+        m = metrics.CountMetric(value, metric_name="%s Histogram" % (valueName))
+        slicer = slicers.OneDSlicer(slice_col_name=value)
         bundle = mb.MetricBundle(
             m,
             slicer,
@@ -290,12 +290,12 @@ def metadataBasicsAngle(
     # Make maps of min/median/max for all and per filter, per RA/Dec, with standard summary stats.
     mList = []
     mList.append(
-        metrics.MeanAngleMetric(value, metricName="AngleMean %s" % (valueName))
+        metrics.MeanAngleMetric(value, metric_name="AngleMean %s" % (valueName))
     )
     mList.append(
-        metrics.FullRangeAngleMetric(value, metricName="AngleRange %s" % (valueName))
+        metrics.FullRangeAngleMetric(value, metric_name="AngleRange %s" % (valueName))
     )
-    mList.append(metrics.RmsAngleMetric(value, metricName="AngleRms %s" % (valueName)))
+    mList.append(metrics.RmsAngleMetric(value, metric_name="AngleRms %s" % (valueName)))
     plotDict = {"percentileClip": 98}
     slicer = skyslicer
     for f in filterlist:
@@ -467,13 +467,13 @@ def metadataMaps(
     mList = []
     mList.append(
         metrics.PercentileMetric(
-            value, percentile=25, metricName="25thPercentile %s" % (valueName)
+            value, percentile=25, metric_name="25thPercentile %s" % (valueName)
         )
     )
-    mList.append(metrics.MedianMetric(value, metricName="Median %s" % (valueName)))
+    mList.append(metrics.MedianMetric(value, metric_name="Median %s" % (valueName)))
     mList.append(
         metrics.PercentileMetric(
-            value, percentile=75, metricName="75thPercentile %s" % (valueName)
+            value, percentile=75, metric_name="75thPercentile %s" % (valueName)
         )
     )
     if slicer is None:

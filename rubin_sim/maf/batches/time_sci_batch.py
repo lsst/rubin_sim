@@ -93,7 +93,7 @@ def phaseGap(
                 periodMin=period,
                 periodMax=period,
                 nVisitsMin=5,
-                metricName="PhaseGap %.1f day" % period,
+                metric_name="PhaseGap %.1f day" % period,
             )
             metric.reduceFuncs = {metric.reduceFuncs["reduceLargestGap"]}
             metric.reduceOrder = {0}

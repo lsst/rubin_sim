@@ -110,7 +110,7 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=Non
     ] = "Number of visits per night that occur with azimuth <= 180."
     if extraSql is not None:
         displayDict["caption"] += " With additional sql constraint %s." % extraSql
-    metric = metrics.CountMetric(colmap["night"], metricName="Nvisits East")
+    metric = metrics.CountMetric(colmap["night"], metric_name="Nvisits East")
     slicer = slicers.OneDSlicer(sliceColName=colmap["night"], binsize=1)
     sql = "%s <= %f" % (colmap["az"], eastvswest)
     if extraSql is not None:
@@ -129,7 +129,7 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=Non
     displayDict["caption"] = "Number of visits per night that occur with azimuth > 180."
     if extraSql is not None:
         displayDict["caption"] += " With additional sql constraint %s." % extraSql
-    metric = metrics.CountMetric(colmap["night"], metricName="Nvisits West")
+    metric = metrics.CountMetric(colmap["night"], metric_name="Nvisits West")
     slicer = slicers.OneDSlicer(sliceColName=colmap["night"], binsize=1)
     sql = "%s > %f" % (colmap["az"], eastvswest)
     if extraSql is not None:

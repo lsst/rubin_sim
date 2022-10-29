@@ -3,10 +3,10 @@ from .vector_metrics import VectorMetric
 from .base_metric import BaseMetric
 from .exgal_m5 import ExgalM5
 
-__all__ = ["Exgalm5WithCuts", "WeakLensingNvisits", "RIZDetectionCoaddExposureTime"]
+__all__ = ["ExgalM5WithCuts", "WeakLensingNvisits", "RIZDetectionCoaddExposureTime"]
 
 
-class Exgalm5WithCuts(BaseMetric):
+class ExgalM5WithCuts(BaseMetric):
     """
     Calculate co-added five-sigma limiting depth, but apply dust extinction and depth cuts.
     This means that places on the sky that don't meet the dust extinction, coadded depth, or filter coverage

@@ -35,7 +35,7 @@ class GalaxyCountsMetric_extended(BaseMetric):
 
     Parameters
     ------------
-    m5Col : `str`
+    m5_col : `str`
         name of column for depth in the data. Default: 'fiveSigmaDepth'
     nside: `int`, opt
         HEALpix resolution parameter. Default: 128
@@ -63,7 +63,7 @@ class GalaxyCountsMetric_extended(BaseMetric):
 
     def __init__(
         self,
-        m5Col="fiveSigmaDepth",
+        m5_col="fiveSigmaDepth",
         filterCol="filter",
         nside=128,
         metricName="GalaxyCountsMetric_extended",
@@ -76,7 +76,7 @@ class GalaxyCountsMetric_extended(BaseMetric):
         normalizedMockCatalogCounts=True,
         **kwargs
     ):
-        self.m5Col = m5Col
+        self.m5_col = m5_col
         self.filterCol = filterCol
         self.upperMagLimit = upperMagLimit
         self.includeDustExtinction = includeDustExtinction
@@ -88,9 +88,9 @@ class GalaxyCountsMetric_extended(BaseMetric):
         # Specific band (e.g. r-band) will be provided by the sql constraint.
         if self.includeDustExtinction:
             # include dust extinction when calculating the co-added depth
-            self.coaddmetric = ExgalM5(m5Col=self.m5Col)
+            self.coaddmetric = ExgalM5(m5_col=self.m5_col)
         else:
-            self.coaddmetric = Coaddm5Metric(m5Col=self.m5Col)
+            self.coaddmetric = Coaddm5Metric(m5_col=self.m5_col)
 
         # Need to scale down to indivdual HEALpix pixels.
         # Galaxy count from the coadded depth is per 1 square degree.
@@ -102,8 +102,8 @@ class GalaxyCountsMetric_extended(BaseMetric):
         self.powerLawConst_b = powerLawConst_b
 
         super().__init__(
-            col=[self.m5Col, self.filterCol],
-            metricName=metricName,
+            col=[self.m5_col, self.filterCol],
+            metric_name=metricName,
             maps=self.coaddmetric.maps,
             units=units,
             **kwargs

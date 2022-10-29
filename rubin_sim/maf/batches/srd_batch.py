@@ -87,7 +87,7 @@ def fOBatch(
 
     # Configure the count metric which is what is used for f0 slicer.
     metric = metrics.CountExplimMetric(
-        col=colmap["mjd"], metricName="fO", expCol=colmap["exptime"]
+        col=colmap["mjd"], metric_name="fO", expCol=colmap["exptime"]
     )
     plotDict = {
         "xlabel": "Number of Visits",
@@ -100,35 +100,35 @@ def fOBatch(
         metrics.fOArea(
             nside=nside,
             norm=False,
-            metricName="fOArea",
+            metric_name="fOArea",
             Asky=benchmarkArea,
             Nvisit=benchmarkNvisits,
         ),
         metrics.fOArea(
             nside=nside,
             norm=True,
-            metricName="fOArea/benchmark",
+            metric_name="fOArea/benchmark",
             Asky=benchmarkArea,
             Nvisit=benchmarkNvisits,
         ),
         metrics.fONv(
             nside=nside,
             norm=False,
-            metricName="fONv",
+            metric_name="fONv",
             Asky=benchmarkArea,
             Nvisit=benchmarkNvisits,
         ),
         metrics.fONv(
             nside=nside,
             norm=True,
-            metricName="fONv/benchmark",
+            metric_name="fONv/benchmark",
             Asky=benchmarkArea,
             Nvisit=benchmarkNvisits,
         ),
         metrics.fOArea(
             nside=nside,
             norm=False,
-            metricName=f"fOArea_{minNvisits}",
+            metric_name=f"fOArea_{minNvisits}",
             Asky=benchmarkArea,
             Nvisit=minNvisits,
         ),
@@ -248,23 +248,23 @@ def astrometryBatch(
             area=18000,
             reduce_func=np.median,
             decreasing=False,
-            metricName="Median Parallax Uncert (18k)",
+            metric_name="Median Parallax Uncert (18k)",
         ),
         metrics.AreaThresholdMetric(
             upper_threshold=good_parallax_limit,
-            metricName="Area better than %.1f mas uncertainty" % good_parallax_limit,
+            metric_name="Area better than %.1f mas uncertainty" % good_parallax_limit,
         ),
     ]
     summary.append(
         metrics.PercentileMetric(
-            percentile=95, metricName="95th Percentile Parallax Uncert"
+            percentile=95, metric_name="95th Percentile Parallax Uncert"
         )
     )
     summary.extend(standardSummary())
     for rmag, plotmax in zip(rmags_para, plotmaxVals):
         plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
         metric = metrics.ParallaxMetric(
-            metricName="Parallax Uncert @ %.1f" % (rmag),
+            metric_name="Parallax Uncert @ %.1f" % (rmag),
             rmag=rmag,
             seeingCol=colmap["seeingGeom"],
             filterCol=colmap["filter"],
@@ -289,7 +289,7 @@ def astrometryBatch(
     # This separates the effect of cadence from depth.
     for rmag in rmags_para:
         metric = metrics.ParallaxMetric(
-            metricName="Normalized Parallax Uncert @ %.1f" % (rmag),
+            metric_name="Normalized Parallax Uncert @ %.1f" % (rmag),
             rmag=rmag,
             seeingCol=colmap["seeingGeom"],
             filterCol=colmap["filter"],
@@ -311,7 +311,7 @@ def astrometryBatch(
     # Parallax factor coverage.
     for rmag in rmags_para:
         metric = metrics.ParallaxCoverageMetric(
-            metricName="Parallax Coverage @ %.1f" % (rmag),
+            metric_name="Parallax Coverage @ %.1f" % (rmag),
             rmag=rmag,
             m5Col=colmap["fiveSigmaDepth"],
             mjdCol=colmap["mjd"],
@@ -333,7 +333,7 @@ def astrometryBatch(
     # Parallax problems can be caused by HA and DCR degeneracies. Check their correlation.
     for rmag in rmags_para:
         metric = metrics.ParallaxDcrDegenMetric(
-            metricName="Parallax-DCR degeneracy @ %.1f" % (rmag),
+            metric_name="Parallax-DCR degeneracy @ %.1f" % (rmag),
             rmag=rmag,
             seeingCol=colmap["seeingEff"],
             filterCol=colmap["filter"],
@@ -371,17 +371,17 @@ def astrometryBatch(
             area=18000,
             reduce_func=np.median,
             decreasing=False,
-            metricName="Median Proper Motion Uncert (18k)",
+            metric_name="Median Proper Motion Uncert (18k)",
         )
     ]
     summary.append(
-        metrics.PercentileMetric(metricName="95th Percentile Proper Motion Uncert")
+        metrics.PercentileMetric(metric_name="95th Percentile Proper Motion Uncert")
     )
     summary.extend(standardSummary())
     for rmag, plotmax in zip(rmags_pm, plotmaxVals):
         plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
         metric = metrics.ProperMotionMetric(
-            metricName="Proper Motion Uncert @ %.1f" % rmag,
+            metric_name="Proper Motion Uncert @ %.1f" % rmag,
             rmag=rmag,
             m5Col=colmap["fiveSigmaDepth"],
             mjdCol=colmap["mjd"],
@@ -404,7 +404,7 @@ def astrometryBatch(
     # Normalized proper motion.
     for rmag in rmags_pm:
         metric = metrics.ProperMotionMetric(
-            metricName="Normalized Proper Motion Uncert @ %.1f" % rmag,
+            metric_name="Normalized Proper Motion Uncert @ %.1f" % rmag,
             rmag=rmag,
             m5Col=colmap["fiveSigmaDepth"],
             mjdCol=colmap["mjd"],
@@ -504,7 +504,7 @@ def rapidRevisitBatch(
     # Calculate the actual number of revisits within 30 minutes.
     dTmax = 30  # time in minutes
     m2 = metrics.NRevisitsMetric(
-        dT=dTmax, mjdCol=colmap["mjd"], normed=False, metricName="NumberOfQuickRevisits"
+        dT=dTmax, mjdCol=colmap["mjd"], normed=False, metric_name="NumberOfQuickRevisits"
     )
     plotDict = {"colorMin": 400, "colorMax": 2000, "xMin": 400, "xMax": 2000}
     caption = (
@@ -537,7 +537,7 @@ def rapidRevisitBatch(
     pixArea = float(hp.nside2pixarea(nside, degrees=True))
     scale = pixArea * hp.nside2npix(nside)
     m1 = metrics.RapidRevisitMetric(
-        metricName="RapidRevisits",
+        metric_name="RapidRevisits",
         mjdCol=colmap["mjd"],
         dTmin=dTmin / 60.0 / 60.0 / 24.0,
         dTpairs=dTpairs / 60.0 / 24.0,
@@ -548,7 +548,7 @@ def rapidRevisitBatch(
     plotDict = {"xMin": 0, "xMax": 1, "colorMin": 0, "colorMax": 1, "logScale": False}
     cutoff1 = 0.9
     summaryStats = [
-        metrics.FracAboveMetric(cutoff=cutoff1, scale=scale, metricName="Area (sq deg)")
+        metrics.FracAboveMetric(cutoff=cutoff1, scale=scale, metric_name="Area (sq deg)")
     ]
     caption = (
         "Rapid Revisit: area that receives at least %d visits between %.3f and %.1f minutes, "

@@ -86,7 +86,7 @@ def nvisitsM5Maps(
 
     # Generate Nvisit maps in all and per filters
     displayDict = {"group": "Nvisits Maps", "subgroup": subgroup}
-    metric = metrics.CountMetric(colmap["mjd"], metricName="NVisits", units="")
+    metric = metrics.CountMetric(colmap["mjd"], metric_name="NVisits", units="")
 
     if slicer is None:
         slicer = slicers.HealpixSlicer(
@@ -129,7 +129,7 @@ def nvisitsM5Maps(
 
     # Generate Coadded depth maps per filter
     displayDict = {"group": "Coadded M5 Maps", "subgroup": subgroup}
-    metric = metrics.Coaddm5Metric(m5Col=colmap["fiveSigmaDepth"], metricName="CoaddM5")
+    metric = metrics.Coaddm5Metric(m5Col=colmap["fiveSigmaDepth"], metric_name="CoaddM5")
 
     for f in filterlist:
         # Skip "all" for coadded depth.
@@ -169,7 +169,7 @@ def nvisitsM5Maps(
 
     # Add Coadded depth maps per filter WITH extragalactic extinction added
     displayDict = {"group": "Extragalactic Coadded M5 Maps", "subgroup": subgroup}
-    metric = metrics.ExgalM5(m5Col=colmap["fiveSigmaDepth"], metricName="Exgal_CoaddM5")
+    metric = metrics.ExgalM5(m5Col=colmap["fiveSigmaDepth"], metric_name="Exgal_CoaddM5")
 
     for f in filterlist:
         # Skip "all" for coadded depth.
@@ -275,7 +275,7 @@ def tEffMetrics(
         m5Col=colmap["fiveSigmaDepth"],
         filterCol=colmap["filter"],
         normed=False,
-        metricName="Total Teff",
+        metric_name="Total Teff",
     )
     slicer = slicers.UniSlicer()
     bundle = mb.MetricBundle(
@@ -295,7 +295,7 @@ def tEffMetrics(
         m5Col=colmap["fiveSigmaDepth"],
         filterCol=colmap["filter"],
         normed=True,
-        metricName="Normalized Teff",
+        metric_name="Normalized Teff",
     )
     slicer = slicers.UniSlicer()
     bundle = mb.MetricBundle(
@@ -317,7 +317,7 @@ def tEffMetrics(
         m5Col=colmap["fiveSigmaDepth"],
         filterCol=colmap["filter"],
         normed=True,
-        metricName="Normalized Teff",
+        metric_name="Normalized Teff",
     )
     for f in filterlist:
         displayDict["caption"] = (
@@ -394,7 +394,7 @@ def nvisitsPerNight(
     displayDict = {"group": "Nvisits Per Night", "subgroup": subgroup}
     displayDict["caption"] = "Number of visits per night for %s." % (infoCaption)
     displayDict["order"] = 0
-    metric = metrics.CountMetric(colmap["mjd"], metricName="Nvisits")
+    metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits")
     slicer = slicers.OneDSlicer(sliceColName=colmap["night"], binsize=binNights)
     bundle = mb.MetricBundle(
         metric,
@@ -466,7 +466,7 @@ def nvisitsPerSubset(
             )
         )
         # Nvisits total, this constraint.
-        metric = metrics.CountMetric(colmap["mjd"], metricName="Nvisits")
+        metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits")
         slicer = slicers.UniSlicer()
         displayDict = {
             "group": "Nvisit Summary",
@@ -494,7 +494,7 @@ def nvisitsPerSubset(
             excludeDD=True,
         )
         metric = metrics.CountSubsetMetric(
-            col="areaId", subset=extraInfoLabel, units="#", metricName="Nvisits"
+            col="areaId", subset=extraInfoLabel, units="#", metric_name="Nvisits"
         )
         slicer = slicers.UniSlicer()
         displayDict = {

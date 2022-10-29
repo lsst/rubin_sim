@@ -9,7 +9,6 @@ from .base_metric import BaseMetric
 __all__ = [
     "FOArea",
     "FONv",
-    "TableFractionMetric",
     "IdentityMetric",
     "NormalizeMetric",
     "ZeropointMetric",
@@ -139,63 +138,6 @@ class FOArea(BaseMetric):
             result = nvis_min.size * self.scale
             if self.norm:
                 result /= float(self.asky)
-        return result
-
-
-class TableFractionMetric(BaseMetric):
-    """
-    Count the completeness (for many fields) and summarize how many fields have given completeness levels
-    (within a series of bins). Works with completenessMetric only.
-
-    This metric is meant to be used as a summary statistic on something like the completeness metric.
-    The output is DIFFERENT FROM SSTAR and is:
-    element   matching values
-    0         0 == P
-    1         0 < P < .1
-    2         .1 <= P < .2
-    3         .2 <= P < .3
-    ...
-    10        .9 <= P < 1
-    11        1 == P
-    12        1 < P
-    Note the 1st and last elements do NOT obey the numpy histogram conventions.
-    """
-
-    def __init__(self, col="metricdata", nbins=10, mask_val=0.0):
-        """
-        colname = the column name in the metric data (i.e. 'metricdata' usually).
-        nbins = number of bins between 0 and 1. Should divide evenly into 100.
-        """
-        super(TableFractionMetric, self).__init__(
-            col=col, mask_val=mask_val, metric_dtype="float"
-        )
-        self.nbins = nbins
-
-    def run(self, data_slice, slice_point=None):
-        # Calculate histogram of completeness values that fall between 0-1.
-        good_vals = np.where(
-            (data_slice[self.colname] > 0) & (data_slice[self.colname] < 1)
-        )
-        bins = np.arange(self.nbins + 1.0) / self.nbins
-        hist, b = np.histogram(data_slice[self.colname][good_vals], bins=bins)
-        # Fill in values for exact 0, exact 1 and >1.
-        zero = np.size(np.where(data_slice[self.colname] == 0)[0])
-        one = np.size(np.where(data_slice[self.colname] == 1)[0])
-        overone = np.size(np.where(data_slice[self.colname] > 1)[0])
-        hist = np.concatenate(
-            (np.array([zero]), hist, np.array([one]), np.array([overone]))
-        )
-        # Create labels for each value
-        bin_names = ["0 == P"]
-        bin_names.append("0 < P < 0.1")
-        for i in np.arange(1, self.nbins):
-            bin_names.append("%.2g <= P < %.2g" % (b[i], b[i + 1]))
-        bin_names.append("1 == P")
-        bin_names.append("1 < P")
-        # Package the names and values up
-        result = np.empty(hist.size, dtype=[("name", np.str_, 20), ("value", float)])
-        result["name"] = bin_names
-        result["value"] = hist
         return result
 
 

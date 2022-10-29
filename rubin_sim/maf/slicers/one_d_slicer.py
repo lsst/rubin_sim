@@ -24,7 +24,7 @@ class OneDSlicer(BaseSlicer):
     bins : np.ndarray, optional
         The data will be sliced into 'bins': this can be defined as an array here. Default None.
     bin_min : `float`, optional
-    binMax : `float`, optional
+    bin_max : `float`, optional
     binsize : `float`, optional
         If bins is not defined, then bin_min/binMax/binsize can be chosen to anchor the slice points.
         Default None.
@@ -40,7 +40,7 @@ class OneDSlicer(BaseSlicer):
         slice_col_units=None,
         bins=None,
         bin_min=None,
-        binMax=None,
+        bin_max=None,
         binsize=None,
         verbose=True,
         badval=0,
@@ -55,7 +55,7 @@ class OneDSlicer(BaseSlicer):
         self.bins = bins
         # Forget binmin/max/stepsize if bins was set
         if self.bins is not None:
-            if bin_min is not None or binMax is not None or binsize is not None:
+            if bin_min is not None or bin_max is not None or binsize is not None:
                 warnings.warning(
                     f"Both bins and one of the bin_min/binMax/binsize was specified. "
                     f"Using bins ({self.bins} values only."
@@ -67,7 +67,7 @@ class OneDSlicer(BaseSlicer):
                 self.binsize = np.unique(self.binsize)
         else:
             self.bin_min = bin_min
-            self.binMax = binMax
+            self.binMax = bin_max
             self.binsize = binsize
         # Set the column units
         if slice_col_units is not None:

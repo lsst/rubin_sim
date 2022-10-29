@@ -290,7 +290,7 @@ class LVDwarfsMetric(BaseMetric):
         self.StarDensityMetric = StarDensityMetric(filtername="i")
         # The galaxy counts metric calculates the number of galaxies in i band
         self.GalaxyCountsMetric = GalaxyCountsMetric_extended(
-            m5Col=self.m5Col, filterBand="i", includeDustExtinction=True
+            m5_col=self.m5Col, filterBand="i", includeDustExtinction=True
         )
         # Set the scale for the GalaxyCountMetric_extended to 1, so it returns
         # galaxies per sq deg, not n galaxies per healpixel

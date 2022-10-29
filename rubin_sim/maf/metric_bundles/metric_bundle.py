@@ -191,7 +191,7 @@ class MetricBundle(object):
         self.maps_list = None
         self.run_name = "run name"
         self.info_label = ""
-        self.dbCols = None
+        self.db_cols = None
         self.file_root = None
         self.plotDict = {}
         self.displayDict = {}
@@ -200,7 +200,7 @@ class MetricBundle(object):
 
     def _setup_metric_values(self):
         """Set up the numpy masked array to store the metric value data."""
-        dtype = self.metric.metricDtype
+        dtype = self.metric.metric_dtype
         # Can't store healpix slicer mask values in an int array.
         if dtype == "int":
             dtype = "float"
@@ -261,17 +261,17 @@ class MetricBundle(object):
         are needed from database).
         """
         # Find all the columns needed by metric and slicer.
-        known_cols = self.slicer.columnsNeeded + list(self.metric.colNameArr)
+        known_cols = self.slicer.columns_needed + list(self.metric.col_name_arr)
         # For the stackers already set up, find their required columns.
         for s in self.stacker_list:
             known_cols += s.colsReq
         known_cols = set(known_cols)
         # Track sources of all of these columns.
-        self.dbCols = set()
+        self.db_cols = set()
         newstackers = set()
         for col in known_cols:
             if self.colInfo.getDataSource(col) == self.colInfo.defaultDataSource:
-                self.dbCols.add(col)
+                self.db_cols.add(col)
             else:
                 # New default stackers could come from metric/slicer or stackers.
                 newstackers.add(self.colInfo.getDataSource(col))
@@ -291,7 +291,7 @@ class MetricBundle(object):
             newstackers = set()
             for col in new_cols:
                 if self.colInfo.getDataSource(col) == self.colInfo.defaultDataSource:
-                    self.dbCols.add(col)
+                    self.db_cols.add(col)
                 else:
                     newstackers.add(self.colInfo.getDataSource(col))
             for s in self.stacker_list:
@@ -299,10 +299,10 @@ class MetricBundle(object):
                     newstackers.remove(s.__class__)
         # A Bit of cleanup.
         # Remove 'metricdata' from dbcols if it ended here by default.
-        if "metricdata" in self.dbCols:
-            self.dbCols.remove("metricdata")
-        if "None" in self.dbCols:
-            self.dbCols.remove("None")
+        if "metricdata" in self.db_cols:
+            self.db_cols.remove("metricdata")
+        if "None" in self.db_cols:
+            self.db_cols.remove("None")
 
     def set_summary_metrics(self, summary_metrics):
         """Set (or reset) the summary metrics for the metricbundle.
@@ -355,7 +355,7 @@ class MetricBundle(object):
                     self.plot_funcs.append(pFunc)
         else:
             self.plot_funcs = []
-            for pFunc in self.slicer.plotFuncs:
+            for pFunc in self.slicer.plot_funcs:
                 if isinstance(pFunc, plots.BasePlotter):
                     self.plot_funcs.append(pFunc)
                 else:
@@ -501,7 +501,7 @@ class MetricBundle(object):
             os.path.join(out_dir, outfile),
             self.metricValues,
             metricName=self.metric.name,
-            simDataName=self.run_name,
+            sim_dataName=self.run_name,
             constraint=self.constraint,
             info_label=self.info_label + comment,
             displayDict=self.displayDict,

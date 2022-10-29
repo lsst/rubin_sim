@@ -150,7 +150,7 @@ class MoMetricBundle(MetricBundle):
         # Add the summary stats, if applicable.
         self.set_summary_metrics(summary_metrics)
         # Set the provenance/info_label.
-        self.runName = run_name
+        self.run_name = run_name
         self._build_metadata(info_label)
         # Build the output filename root if not provided.
         if file_root is not None:
@@ -180,7 +180,7 @@ class MoMetricBundle(MetricBundle):
         self.mapsList = []
         self.summary_metrics = []
         self.plotFuncs = []
-        self.runName = "opsim"
+        self.run_name = "opsim"
         self.info_label = ""
         self.dbCols = None
         self.fileRoot = None
@@ -220,17 +220,17 @@ class MoMetricBundle(MetricBundle):
         """
         self.child_bundles = {}
         if child_metrics is None:
-            child_metrics = self.metric.childMetrics
+            child_metrics = self.metric.child_metrics
         for cName, cMetric in child_metrics.items():
             c_bundle = MoMetricBundle(
                 metric=cMetric,
                 slicer=self.slicer,
                 constraint=self.constraint,
                 stacker_list=self.stackerList,
-                run_name=self.runName,
+                run_name=self.run_name,
                 info_label=self.info_label,
                 plot_dict=self.plotDict,
-                plot_funcs=self.plotFuncs,
+                plot_funcs=self.plot_funcs,
                 display_dict=self.displayDict,
                 summary_metrics=self.summary_metrics,
             )
@@ -255,7 +255,7 @@ class MoMetricBundle(MetricBundle):
                     metric_id = results_db.update_metric(
                         self.metric.name,
                         self.slicer.slicerName,
-                        self.runName,
+                        self.run_name,
                         self.constraint,
                         self.info_label,
                         None,
