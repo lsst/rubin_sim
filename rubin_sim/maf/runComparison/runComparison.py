@@ -177,6 +177,7 @@ class RunComparison:
         metricInfoLabel=None,
         slicerName=None,
         summaryName=None,
+        summaryNameLike=None,
         verbose=False,
     ):
         """
@@ -194,6 +195,8 @@ class RunComparison:
             The slicer name specifying the metric desired (optional).
         summaryName : `str`, optional
             The name of the summary statistic desired (optional).
+        summaryNameLike : `str`, optional
+            Wildcard matching name of the summary statistic desired (optional).
         verbose : `bool`, optional
             Issue warnings resulting from not finding the summary stat information
             (such as if it was never calculated) will not be issued.   Default False.
@@ -214,7 +217,10 @@ class RunComparison:
             )
             # Note that we may have more than one matching summary metric value per resultsDb.
             stats = self.runresults[r].getSummaryStats(
-                mId, summaryName=summaryName, withSimName=True
+                mId,
+                summaryName=summaryName,
+                summaryNameLike=summaryNameLike,
+                withSimName=True,
             )
             for i in range(len(stats["summaryName"])):
                 name = stats["summaryName"][i]
@@ -231,7 +237,7 @@ class RunComparison:
         stats = pd.DataFrame(summaryValues).T
         return stats
 
-    def addSummaryStats(self, metricDict=None, verbose=False):
+    def addSummaryStats(self, metricDict=None, summaryNameLike=None, verbose=False):
         """
         Combine the summary statistics of a set of metrics into a pandas
         dataframe that is indexed by the opsim run name.
@@ -263,6 +269,7 @@ class RunComparison:
                 metricInfoLabel=metric["metricInfoLabel"],
                 slicerName=metric["slicerName"],
                 summaryName=metric["summaryMetric"],
+                summaryNameLike=summaryNameLike,
                 verbose=verbose,
             )
             if self.summaryStats is None:
