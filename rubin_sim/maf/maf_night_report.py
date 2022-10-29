@@ -56,10 +56,10 @@ def makeBundleList(
     bundleList.append(bundle)
 
     reg_slicer = slicers.HealpixSlicer(
-        nside=nside, lonCol=lonCol, latCol=latCol, latLonDeg=True
+        nside=nside, lon_col=lonCol, lat_col=latCol, lat_lon_deg=True
     )
     altaz_slicer = slicers.HealpixSlicer(
-        nside=nside, latCol=altCol, latLonDeg=True, lonCol=azCol, useCache=False
+        nside=nside, lat_col=altCol, lat_lon_deg=True, lon_col=azCol, useCache=False
     )
 
     unislicer = slicers.UniSlicer()

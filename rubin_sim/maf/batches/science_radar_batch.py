@@ -50,7 +50,7 @@ def science_radar_batch(
 
     # This is the default slicer for most purposes in this batch. Note that the cache is off -
     # if the metric requires a dust map, this is not the right slicer to use.
-    healpixslicer = slicers.HealpixSlicer(nside=nside, useCache=True)
+    healpixslicer = slicers.HealpixSlicer(nside=nside, use_cache=True)
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
     #########################
@@ -473,11 +473,11 @@ def science_radar_batch(
     ]
     summary.append(metrics.SumMetric(metric_name="N Galaxies (all)"))
     # make sure slicer has cache off
-    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     for f in filterlist:
         plotDict = {"percentileClip": 95.0, "nTicks": 5, "color": colors[f]}
         metric = maf.GalaxyCountsMetric_extended(
-            filterBand=f, redshiftBin="all", nside=nside
+            filter_band=f, redshift_bin="all", nside=nside
         )
         displayDict[
             "caption"
@@ -557,7 +557,7 @@ def science_radar_batch(
         ),
     ]
     displayDict["order"] = 0
-    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     for yr_cut in yrs:
         ptsrc_lim_mag_i_band = mag_cuts[yr_cut]
         sqlconstraint = "night <= %s" % (yr_cut * 365.25 + 0.5)
@@ -628,7 +628,7 @@ def science_radar_batch(
         )
     ]
     summary.append(metrics.SumMetric(metric_name="N Galaxies (all)"))
-    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     bundle = mb.MetricBundle(
         metric,
         slicer,
@@ -658,7 +658,7 @@ def science_radar_batch(
         min_exp_time=minExpTime,
         metric_name="WeakLensingNvisits",
     )
-    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     displayDict["caption"] = (
         f"The number of visits per pointing, over a similarly  reduced footprint as "
         f"described above for the 3x2pt FOM, but allowing areas of sky with "
@@ -716,7 +716,7 @@ def science_radar_batch(
         metrics.SumMetric(metric_name="Total detected"),
         metrics.CountMetric(metric_name="Total on sky", mask_val=0),
     ]
-    snslicer = slicers.HealpixSlicer(nside=sne_nside, useCache=False)
+    snslicer = slicers.HealpixSlicer(nside=sne_nside, use_cache=False)
     metric = metrics.SNNSNMetric(
         n_bef=3,
         n_aft=8,
@@ -725,10 +725,10 @@ def science_radar_batch(
         hard_dust_cut=0.25,
         zmin=0.2,
         zmax=0.5,
-        zStep=0.03,
-        daymaxStep=3.0,
+        z_step=0.03,
+        daymax_step=3.0,
         zlim_coeff=0.95,
-        gammaName="gamma_WFD.hdf5",
+        gamma_name="gamma_WFD.hdf5",
         verbose=False,
     )
     plotDict = {"percentileClip": 95, "nTicks": 5}
@@ -753,7 +753,7 @@ def science_radar_batch(
     #########################
 
     # AGN structure function error
-    agnslicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    agnslicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     dustmap = maps.DustMap(nside=nside)
     displayDict = {"group": "AGN", "order": 0}
 
@@ -769,7 +769,7 @@ def science_radar_batch(
             extinction_cut=1.0,
             qlf_module="Shen20",
             qlf_model="A",
-            SED_model="Richards06",
+            sed_model="Richards06",
             zmin=zmin,
             zmax=None,
         )
@@ -840,7 +840,7 @@ def science_radar_batch(
     lag = 100
     summaryMetrics = extendedSummary()
     summaryMetrics += [metrics.AreaThresholdMetric(lower_threshold=nquist_threshold)]
-    m = metrics.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
+    m = metrics.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag)
     for f in allfilterlist:
         plotDict = {
             "color": allcolors[f],
@@ -873,7 +873,7 @@ def science_radar_batch(
     lag = 5
     summaryMetrics = extendedSummary()
     summaryMetrics += [metrics.AreaThresholdMetric(lower_threshold=nquist_threshold)]
-    m = metrics.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
+    m = metrics.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag)
     for f in allfilterlist:
         plotDict = {
             "color": allcolors[f],
@@ -920,7 +920,7 @@ def science_radar_batch(
     plotDict = {"xMin": 0.01, "colorMin": 0.01, "percentileClip": 70, "nTicks": 5}
     tdc_summary = [metrics.MeanMetric(), metrics.MedianMetric(), metrics.RmsMetric()]
     # Ideally need a way to do better on calculating the summary metrics for the high accuracy area.
-    slicer = slicers.HealpixSlicer(nside=nside_tdc, useCache=False)
+    slicer = slicers.HealpixSlicer(nside=nside_tdc, use_cache=False)
     tdcMetric = metrics.TdcMetric(metric_name="TDC")
     dustmap = maps.DustMap(nside=nside_tdc, interp=False)
     bundle = mb.MetricBundle(
@@ -942,7 +942,7 @@ def science_radar_batch(
         "caption"
     ] = "Strongly Lensed SNe, evaluated with the addition of galactic dust extinction."
     metric = metrics.SNSLMetric()
-    slicer = slicers.HealpixSlicer(nside=nside_tdc, useCache=False)
+    slicer = slicers.HealpixSlicer(nside=nside_tdc, use_cache=False)
     plotDict = {}
     bundle = mb.MetricBundle(
         metric,
@@ -996,12 +996,12 @@ def science_radar_batch(
                 amplitude=0.3,
                 random_phase=True,
                 time_interval=time_interval,
-                nMonte=100,
-                periodTol=0.002,
-                ampTol=0.01,
+                n_monte=100,
+                period_tol=0.002,
+                amp_tol=0.01,
                 means=rrc + dM,
-                magTol=0.01,
-                nBands=3,
+                mag_tol=0.01,
+                n_bands=3,
             )
             # Run this on year 1-2.
             bundle = mb.MetricBundle(
@@ -1037,7 +1037,7 @@ def science_radar_batch(
             )
             metric = metrics.PeriodicDetectMetric(
                 periods=periods,
-                starMags=starMags,
+                star_mags=starMags,
                 amplitudes=amplitudes,
                 metric_name="PeriodicDetect",
             )
@@ -1074,7 +1074,7 @@ def science_radar_batch(
             )
             metric = metrics.PeriodicDetectMetric(
                 periods=periods,
-                starMags=starMags,
+                star_mags=starMags,
                 amplitudes=amplitudes,
                 metric_name="PeriodicDetect",
             )
@@ -1308,7 +1308,7 @@ def science_radar_batch(
     tgaps = np.logspace(np.log10(tMin), np.log10(tMax), 100)
 
     for f in filterlist:
-        m1 = metrics.TgapsMetric(bins=tgaps, allGaps=False)
+        m1 = metrics.TgapsMetric(bins=tgaps, all_gaps=False)
         plotDict = {
             "bins": tgaps,
             "xscale": "log",
@@ -1338,9 +1338,9 @@ def science_radar_batch(
         )
 
         m2 = metrics.TgapsPercentMetric(
-            minTime=2 / 24.0,
-            maxTime=14 / 24.0,
-            allGaps=False,
+            min_time=2 / 24.0,
+            max_time=14 / 24.0,
+            all_gaps=False,
             metric_name="TgapsPercent_2-14hrs",
         )
         plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
@@ -1366,9 +1366,9 @@ def science_radar_batch(
         )
 
         m3 = metrics.TgapsPercentMetric(
-            minTime=14.0 / 24.0,
-            maxTime=(14.0 / 24 + 1.0),
-            allGaps=False,
+            min_time=14.0 / 24.0,
+            max_time=(14.0 / 24 + 1.0),
+            all_gaps=False,
             metric_name="TgapsPercent_1day",
         )
         displayDict["caption"] = (
@@ -1445,9 +1445,9 @@ def science_radar_batch(
     xrb_summaryMetrics = [
         maf.SumMetric(metric_name="Total detected"),
         maf.CountMetric(metric_name="Total lightcurves in footprint"),
-        maf.CountMetric(metric_name="Total lightcurves on sky", maskVal=0),
+        maf.CountMetric(metric_name="Total lightcurves on sky", mask_val=0),
         maf.MeanMetric(metric_name="Fraction detected in footprint"),
-        maf.MeanMetric(maskVal=0, metric_name="Fraction detected of total"),
+        maf.MeanMetric(mask_val=0, metric_name="Fraction detected of total"),
         maf.MedianMetric(metric_name="Median"),
         maf.MeanMetric(metric_name="Mean"),
     ]
@@ -1494,7 +1494,7 @@ def science_radar_batch(
         if "sum" in s
     ]
 
-    slicer = slicers.HealpixSlicer(nside=64, useCache=False)
+    slicer = slicers.HealpixSlicer(nside=64, use_cache=False)
     sql = None
     bundles = {}
     for m in science_maps:
@@ -1567,7 +1567,7 @@ def science_radar_batch(
     displayDict = {"group": "Milky Way", "subgroup": ""}
 
     displayDict["subgroup"] = "N stars"
-    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     sum_stats = [metrics.SumMetric(metric_name="Total N Stars, crowding")]
     for f in filterlist:
         stellar_map = maps.StellarDensityMap(filtername=f)
@@ -1597,7 +1597,7 @@ def science_radar_batch(
         )
         bundleList.append(bundle)
 
-    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     sum_stats = [metrics.SumMetric(metric_name="Total N Stars, no crowding")]
     for f in filterlist:
         stellar_map = maps.StellarDensityMap(filtername=f)
@@ -1683,7 +1683,7 @@ def science_radar_batch(
     sql = ""
     # Let's plug in the magnitudes for one type
     metric = maf.maf_contrib.NYoungStarsMetric(nside=nside_yso)
-    slicer = maf.slicers.HealpixSlicer(nside=nside_yso, useCache=False)
+    slicer = maf.slicers.HealpixSlicer(nside=nside_yso, use_cache=False)
     summaryStats = [maf.metrics.SumMetric()]
     plotDict = {"logScale": True, "colorMin": 1}
     bundleList.append(
@@ -1744,7 +1744,7 @@ def science_radar_batch(
         distlim=4.0 * u.Mpc
     )  # for a distance limit, healpix map
     dustmap = maf.maps.DustMap(nside=32)
-    lv_healpix_slicer = maf.slicers.HealpixSlicer(nside=32, useCache=False)
+    lv_healpix_slicer = maf.slicers.HealpixSlicer(nside=32, use_cache=False)
     summary_area = maf.AreaThresholdMetric(
         lower_threshold=cutoff, metric_name=f"Area M_v>{cutoff}"
     )
@@ -1798,7 +1798,7 @@ def science_radar_batch(
     sql = 'filter="i"'
     metric = metrics.NgalScaleMetric()
     # galaxy counting uses dustmap
-    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     displayDict["caption"] = (
         f"Approximate number of resolvable galaxies in i band, scaled by the "
         f"coadded depth and median seeing. A dust and magnitude cut has been applied."
@@ -1818,7 +1818,7 @@ def science_radar_batch(
     displayDict["subgroup"] = "Lightcurve Pts"
     metric = metrics.NlcPointsMetric(nside=nside)
     # NlcPoints metric uses star density maps
-    slicer = slicers.HealpixSlicer(nside=nside, useCache=False)
+    slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     displayDict["caption"] = (
         f"Approximate number of expected stellar measurements (nstars * nobs) "
         f"in all filters, where the limiting magnitude for at least 10 visits "

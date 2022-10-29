@@ -78,9 +78,9 @@ def ddfBatch(
             )
             good_sne = np.where(dist <= radius)[0]
         ddf_slicers_sne[ddf] = maf.HealpixSubsetSlicer(
-            nside_sne, good_sne, useCache=False
+            nside_sne, good_sne, use_cache=False
         )
-        ddf_slicers[ddf] = maf.HealpixSubsetSlicer(nside, good, useCache=False)
+        ddf_slicers[ddf] = maf.HealpixSubsetSlicer(nside, good, use_cache=False)
 
     # Now define metrics
 

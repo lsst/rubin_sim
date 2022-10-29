@@ -97,7 +97,7 @@ def metadataBasics(
         skyslicer = slicer
     else:
         skyslicer = slicers.HealpixSlicer(
-            nside=64, lonCol=raCol, latCol=decCol, latLonDeg=degrees
+            nside=64, lon_col=raCol, lat_col=decCol, lat_lon_deg=degrees
         )
 
     # Hack to make HA work, but really I need to account for any stackers/colmaps.
@@ -251,7 +251,7 @@ def metadataBasicsAngle(
         skyslicer = slicer
     else:
         skyslicer = slicers.HealpixSlicer(
-            nside=64, lonCol=raCol, latCol=decCol, latLonDeg=degrees
+            nside=64, lon_col=raCol, lat_col=decCol, lat_lon_deg=degrees
         )
 
     # Summarize values over all and per filter.
@@ -478,7 +478,7 @@ def metadataMaps(
     )
     if slicer is None:
         slicer = slicers.HealpixSlicer(
-            nside=64, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+            nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
         )
 
     for f in filterlist:

@@ -23,17 +23,17 @@ class IntervalsBetweenObsMetric(BaseMetric):
         self,
         SurveyIntervals,
         Stat,
-        metricName="IntervalsBetweenObsMetric",
+        metric_name="IntervalsBetweenObsMetric",
         TimeCol="observationStartMJD",
         **kwargs
     ):
 
         self.TimeCol = TimeCol
-        self.metricName = metricName
+        self.metric_name = metric_name
         self.SurveyIntervals = SurveyIntervals
         self.Stat = Stat
         super(IntervalsBetweenObsMetric, self).__init__(
-            col=TimeCol, metricName=metricName, **kwargs
+            col=TimeCol, metric_name=metric_name, **kwargs
         )
 
     def run(self, dataSlice, slicePoint=None):

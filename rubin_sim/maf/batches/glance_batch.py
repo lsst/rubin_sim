@@ -127,10 +127,10 @@ def glanceBatch(
     # The alt/az plots of all the pointings
     slicer = spatial_slicer(
         nside=nside,
-        latCol=colmap["alt"],
-        lonCol=colmap["az"],
-        latLonDeg=colmap["raDecDeg"],
-        useCache=False,
+        lat_col=colmap["alt"],
+        lon_col=colmap["az"],
+        lat_lon_deg=colmap["raDecDeg"],
+        use_cache=False,
     )
     metric = metrics.CountMetric(
         colmap["mjd"], metric_name="Nvisits as function of Alt/Az"
@@ -184,9 +184,9 @@ def glanceBatch(
     displayDict = {"group": "Basic Maps", "order": 3}
     slicer = spatial_slicer(
         nside=nside,
-        latCol=colmap["dec"],
-        lonCol=colmap["ra"],
-        latLonDeg=colmap["raDecDeg"],
+        lat_col=colmap["dec"],
+        lon_col=colmap["ra"],
+        lat_lon_deg=colmap["raDecDeg"],
     )
     metric = metrics.CountMetric(col=colmap["mjd"])
     plotDict = {"percentileClip": 95.0}
@@ -293,9 +293,9 @@ def glanceBatch(
     sql = '%s (filter="g" or filter="r" or filter="i")' % sqlC
     pairSlicer = slicers.HealpixSlicer(
         nside=pairnside,
-        latCol=colmap["dec"],
-        lonCol=colmap["ra"],
-        latLonDeg=colmap["raDecDeg"],
+        lat_col=colmap["dec"],
+        lon_col=colmap["ra"],
+        lat_lon_deg=colmap["raDecDeg"],
     )
     metric = metrics.PairFractionMetric(mjd_col=colmap["mjd"])
     bundle = metric_bundles.MetricBundle(

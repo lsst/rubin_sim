@@ -152,7 +152,7 @@ def lightcurveSummary():
     lightcurveSummary = [
         metrics.SumMetric(metric_name="Total detected"),
         metrics.CountMetric(metric_name="Total lightcurves in footprint"),
-        metrics.CountMetric(metric_name="Total lightcurves on sky", maskVal=0),
+        metrics.CountMetric(metric_name="Total lightcurves on sky", mask_val=0),
         metrics.MeanMetric(metric_name="Fraction detected in footprint (mean)"),
         metrics.MeanMetric(mask_val=0, metric_name="Fraction detected of total (mean)"),
     ]
@@ -356,7 +356,7 @@ def microlensingSummary(metricType, npts_required=10, Fisher_sigmatE_tE_cutoff=0
                 metric_name=f"Fraction w/ at least {npts_required} points",
             ),
             metrics.CountMetric(metric_name="Total lightcurves in footprint"),
-            metrics.CountMetric(metric_name="Total lightcurves on sky", maskVal=0),
+            metrics.CountMetric(metric_name="Total lightcurves on sky", mask_val=0),
             metrics.MeanMetric(
                 metric_name="Mean number of points per lightcurves in footprint"
             ),

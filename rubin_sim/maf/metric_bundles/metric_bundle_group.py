@@ -553,11 +553,11 @@ class MetricBundleGroup(object):
         reduceBundleDict = {}
         for b in self.current_bundle_dict.values():
             # If there are no reduce functions associated with the metric, skip this metricBundle.
-            if len(b.metric.reduceFuncs) > 0:
+            if len(b.metric.reduce_funcs) > 0:
                 # Apply reduce functions, creating a new metricBundle in the process (new metric values).
-                for r in b.metric.reduceFuncs:
+                for r in b.metric.reduce_funcs:
                     newmetricbundle = b.reduce_metric(
-                        b.metric.reduceFuncs[r], reduce_func_name=r
+                        b.metric.reduce_funcs[r], reduce_func_name=r
                     )
                     # Add the new metricBundle to our metricBundleGroup dictionary.
                     name = newmetricbundle.metric.name
@@ -605,7 +605,7 @@ class MetricBundleGroup(object):
     ):
         """Generate all the plots for all the metricBundles in bundleDict.
 
-        Generating all ploots, for all MetricBundles, at this point, assumes that
+        Generating all plots, for all MetricBundles, at this point, assumes that
         clearMemory was False.
 
         Parameters
@@ -751,11 +751,11 @@ class MetricBundleGroup(object):
 
             # Look to see if this is a complex metric, with associated 'reduce' functions,
             # and read those in too.
-            if len(bundle.metric.reduceFuncs) > 0:
+            if len(bundle.metric.reduce_funcs) > 0:
                 orig_metric_name = bundle.metric.name
-                for reduceFunc in bundle.metric.reduceFuncs.values():
+                for reduce_func in bundle.metric.reduce_funcs.values():
                     reduce_name = (
-                        orig_metric_name + "_" + reduceFunc.__name__.replace("reduce", "")
+                        orig_metric_name + "_" + reduce_func.__name__.replace("reduce", "")
                     )
                     # Borrow the fileRoot in b (we'll reset it appropriately afterwards).
                     bundle.metric.name = reduce_name

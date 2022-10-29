@@ -62,7 +62,7 @@ def phaseGap(
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
     slicer = slicers.HealpixSlicer(
-        nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+        nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
     )
 
     # largest phase gap for periods

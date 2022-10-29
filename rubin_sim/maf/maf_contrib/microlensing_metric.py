@@ -285,7 +285,7 @@ class MicrolensingMetric(metrics.BaseMetric):
 
     def __init__(
         self,
-        metricName="MicrolensingMetric",
+        metric_name="MicrolensingMetric",
         metricCalc="detect",
         mjdCol="observationStartMJD",
         m5Col="fiveSigmaDepth",
@@ -331,7 +331,7 @@ class MicrolensingMetric(metrics.BaseMetric):
         super(MicrolensingMetric, self).__init__(
             col=cols,
             units=self.units,
-            metricName=metricName + "_" + self.metricCalc,
+            metric_name=metric_name + "_" + self.metricCalc,
             **kwargs
         )
 
@@ -605,7 +605,7 @@ def generateMicrolensingSlicer(
     ra, dec = equatorial_from_galactic(gal_l, gal_b)
 
     # Set up the slicer to evaluate the catalog we just made
-    slicer = slicers.UserPointsSlicer(ra, dec, latLonDeg=True, badval=0)
+    slicer = slicers.UserPointsSlicer(ra, dec, lat_lon_deg=True, badval=0)
     # Add any additional information about each object to the slicer
     slicer.slicePoints["peak_time"] = peak_times
     slicer.slicePoints["crossing_time"] = crossing_times

@@ -130,7 +130,7 @@ def generatePrestoPopSlicer(
     distance = rndm(d_min, d_max, 4, size=n_events)
 
     # Set up the slicer to evaluate the catalog we just made
-    slicer = slicers.UserPointsSlicer(ra, dec, latLonDeg=True, badval=0)
+    slicer = slicers.UserPointsSlicer(ra, dec, lat_lon_deg=True, badval=0)
     # Add any additional information about each object to the slicer
     slicer.slicePoints["peak_time"] = peak_times
     slicer.slicePoints["file_indx"] = file_indx
@@ -141,7 +141,7 @@ def generatePrestoPopSlicer(
 class PrestoColorKNePopMetric(metrics.BaseMetric):
     def __init__(
         self,
-        metricName="KNePopMetric",
+        metric_name="KNePopMetric",
         mjdCol="observationStartMJD",
         m5Col="fiveSigmaDepth",
         filterCol="filter",
@@ -181,7 +181,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         super(PrestoColorKNePopMetric, self).__init__(
             col=cols,
             units="Detected, 0 or 1",
-            metricName=metricName,
+            metric_name=metric_name,
             maps=maps,
             **kwargs
         )

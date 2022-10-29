@@ -41,7 +41,7 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
         cadence,
         start_date,
         end_date,
-        metricName="CadenceOverVisibilityWindowMetric",
+        metric_name="CadenceOverVisibilityWindowMetric",
         ra_col="fieldRA",
         dec_col="fieldDec",
         exp_col="visitExposureTime",
@@ -90,7 +90,7 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
         ]
 
         super(CadenceOverVisibilityWindowMetric, self).__init__(
-            col=columns, metricName=metricName
+            col=columns, metric_name=metric_name
         )
 
     def run(self, dataSlice, slicePoint=None):

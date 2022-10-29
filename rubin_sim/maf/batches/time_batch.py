@@ -65,7 +65,7 @@ def intraNight(
 
     if slicer is None:
         slicer = slicers.HealpixSlicer(
-            nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+            nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
         )
 
     # Look for the fraction of visits in gri where there are pairs within dtMin/dtMax.
@@ -365,7 +365,7 @@ def interNight(
 
     if slicer is None:
         slicer = slicers.HealpixSlicer(
-            nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+            nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
         )
 
     displayDict = {
@@ -540,7 +540,7 @@ def timeGaps(
 
     if slicer is None:
         slicer = slicers.HealpixSlicer(
-            nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+            nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
         )
 
     displayDict = {
@@ -684,7 +684,7 @@ def seasons(
 
     if slicer is None:
         slicer = slicers.HealpixSlicer(
-            nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+            nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
         )
 
     displayDict = {

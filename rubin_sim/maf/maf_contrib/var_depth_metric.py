@@ -16,7 +16,7 @@ class VarDepth(BaseMetric):
     def __init__(
         self,
         m5Col="fiveSigmaDepth",
-        metricName="variability depth",
+        metric_name="variability depth",
         completeness=0.95,
         contamination=0.05,
         numruns=10000,
@@ -39,7 +39,7 @@ class VarDepth(BaseMetric):
         self.numruns = numruns
         self.signal = signal
         self.magres = magres
-        super(VarDepth, self).__init__(col=m5Col, metricName=metricName, **kwargs)
+        super(VarDepth, self).__init__(col=m5Col, metric_name=metric_name, **kwargs)
 
     def run(self, dataSlice, slicePoint=None):
         # Get the visit information

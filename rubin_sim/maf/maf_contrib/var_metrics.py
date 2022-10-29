@@ -57,7 +57,7 @@ class PeriodDeviationMetric(BaseMetric):
         nPeriods=5,
         meanMag=21.0,
         amplitude=1.0,
-        metricName="Period Deviation",
+        metric_name="Period Deviation",
         periodCheck=None,
         **kwargs
     ):
@@ -80,7 +80,7 @@ class PeriodDeviationMetric(BaseMetric):
         self.meanMag = meanMag
         self.amplitude = amplitude
         super(PeriodDeviationMetric, self).__init__(
-            col, metricName=metricName, **kwargs
+            col, metric_name=metric_name, **kwargs
         )
 
     def run(self, dataSlice, slicePoint=None):

@@ -15,10 +15,10 @@ def basicSetup(metric_name, colmap=None, nside=64):
 
     slicer = slicers.HealpixSlicer(
         nside=nside,
-        latCol=colmap["alt"],
-        lonCol=colmap["az"],
-        latLonDeg=colmap["raDecDeg"],
-        useCache=False,
+        lat_col=colmap["alt"],
+        lon_col=colmap["az"],
+        lat_lon_deg=colmap["raDecDeg"],
+        use_cache=False,
     )
     metric = metrics.CountMetric(colmap["mjd"], metric_name=metric_name)
 

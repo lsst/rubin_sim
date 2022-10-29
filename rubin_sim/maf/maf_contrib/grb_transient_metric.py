@@ -73,7 +73,7 @@ class GRBTransientMetric(metrics.BaseMetric):
         alpha=1,
         apparent_mag_1min_mean=15.35,
         apparent_mag_1min_sigma=1.59,
-        metricName="GRBTransientMetric",
+        metric_name="GRBTransientMetric",
         mjdCol="expMJD",
         m5Col="fiveSigmaDepth",
         filterCol="filter",
@@ -93,7 +93,7 @@ class GRBTransientMetric(metrics.BaseMetric):
         super(GRBTransientMetric, self).__init__(
             col=[self.mjdCol, self.m5Col, self.filterCol],
             units="Fraction Detected",
-            metricName=metricName,
+            metric_name=metric_name,
             **kwargs
         )
         self.alpha = alpha

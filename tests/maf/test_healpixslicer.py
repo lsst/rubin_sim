@@ -85,7 +85,7 @@ class TestHealpixSlicerSetup(unittest.TestCase):
     def testSlicertype(self):
         """Test instantiation of slicer sets slicer type as expected."""
         testslicer = HealpixSlicer(
-            nside=16, verbose=False, cameraFootprintFile=self.cameraFootprintFile
+            nside=16, verbose=False, camera_footprint_file=self.cameraFootprintFile
         )
         self.assertEqual(testslicer.slicerName, testslicer.__class__.__name__)
         self.assertEqual(testslicer.slicerName, "HealpixSlicer")
@@ -96,7 +96,7 @@ class TestHealpixSlicerSetup(unittest.TestCase):
         npixx = [12, 48, 192, 768, 3072, 12288, 49152, 196608, 786432, 3145728]
         for nside, npix in zip(nsides, npixx):
             testslicer = HealpixSlicer(
-                nside=nside, verbose=False, cameraFootprintFile=self.cameraFootprintFile
+                nside=nside, verbose=False, camera_footprint_file=self.cameraFootprintFile
             )
             self.assertEqual(testslicer.nslice, npix)
 
@@ -108,9 +108,9 @@ class TestHealpixSlicerEqual(unittest.TestCase):
         self.testslicer = HealpixSlicer(
             nside=self.nside,
             verbose=False,
-            lonCol="ra",
-            latCol="dec",
-            cameraFootprintFile=self.cameraFootprintFile,
+            lon_col="ra",
+            lat_col="dec",
+            camera_footprint_file=self.cameraFootprintFile,
         )
         nvalues = 10000
         self.dv = makeDataValues(
@@ -136,18 +136,18 @@ class TestHealpixSlicerEqual(unittest.TestCase):
         testslicer2 = HealpixSlicer(
             nside=self.nside,
             verbose=False,
-            lonCol="ra",
-            latCol="dec",
-            cameraFootprintFile=self.cameraFootprintFile,
+            lon_col="ra",
+            lat_col="dec",
+            camera_footprint_file=self.cameraFootprintFile,
         )
         self.assertEqual(self.testslicer, testslicer2)
         assert (self.testslicer != testslicer2) is False
         testslicer2 = HealpixSlicer(
             nside=self.nside / 2.0,
             verbose=False,
-            lonCol="ra",
-            latCol="dec",
-            cameraFootprintFile=self.cameraFootprintFile,
+            lon_col="ra",
+            lat_col="dec",
+            camera_footprint_file=self.cameraFootprintFile,
         )
         self.assertNotEqual(self.testslicer, testslicer2)
         assert (self.testslicer != testslicer2) is True
@@ -160,9 +160,9 @@ class TestHealpixSlicerIteration(unittest.TestCase):
         self.testslicer = HealpixSlicer(
             nside=self.nside,
             verbose=False,
-            lonCol="ra",
-            latCol="dec",
-            cameraFootprintFile=self.cameraFootprintFile,
+            lon_col="ra",
+            lat_col="dec",
+            camera_footprint_file=self.cameraFootprintFile,
         )
         nvalues = 10000
         self.dv = makeDataValues(
@@ -212,11 +212,11 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
         self.testslicer = HealpixSlicer(
             nside=self.nside,
             verbose=False,
-            lonCol="ra",
-            latCol="dec",
-            latLonDeg=False,
+            lon_col="ra",
+            lat_col="dec",
+            lat_lon_deg=False,
             radius=self.radius,
-            useCamera=False,
+            use_camera=False,
         )
         nvalues = 10000
         self.dv = makeDataValues(
@@ -265,12 +265,12 @@ class TestHealpixChipGap(unittest.TestCase):
         self.testslicer = HealpixSlicer(
             nside=self.nside,
             verbose=False,
-            lonCol="ra",
-            latCol="dec",
-            latLonDeg=False,
+            lon_col="ra",
+            lat_col="dec",
+            lat_lon_deg=False,
             radius=self.radius,
-            useCamera=True,
-            cameraFootprintFile=self.cameraFootprintFile,
+            use_camera=True,
+            camera_footprint_file=self.cameraFootprintFile,
         )
         nvalues = 1000
         self.dv = makeDataValues(
@@ -317,11 +317,11 @@ class TestHealpixSlicerPlotting(unittest.TestCase):
         self.testslicer = HealpixSlicer(
             nside=self.nside,
             verbose=False,
-            latLonDeg=False,
-            lonCol="ra",
-            latCol="dec",
+            lat_lon_deg=False,
+            lon_col="ra",
+            lat_col="dec",
             radius=self.radius,
-            cameraFootprintFile=self.cameraFootprintFile,
+            camera_footprint_file=self.cameraFootprintFile,
         )
         nvalues = 10000
         self.dv = makeDataValues(

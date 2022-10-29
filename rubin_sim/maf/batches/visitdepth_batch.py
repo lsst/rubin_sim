@@ -90,15 +90,15 @@ def nvisitsM5Maps(
 
     if slicer is None:
         slicer = slicers.HealpixSlicer(
-            nside=64, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+            nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
         )
         slicerDust = slicers.HealpixSlicer(
-            nside=64, latCol=decCol, lonCol=raCol, latLonDeg=degrees, usecache=False
+            nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees, usecache=False
         )
-    elif slicer.useCache:
+    elif slicer.use_cache:
         # If there is already a slicer set up which *is* using caching
         slicerDust = copy.deepcopy(slicer)
-        slicerDust.useCache = False
+        slicerDust.use_cache = False
 
     for f in filterlist:
         sql = sqls[f]
@@ -257,7 +257,7 @@ def tEffMetrics(
         skyslicer = slicer
     else:
         skyslicer = slicers.HealpixSlicer(
-            nside=64, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+            nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
         )
 
     # Set up basic all and per filter sql constraints.

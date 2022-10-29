@@ -67,7 +67,7 @@ class Tde_lc(object):
 class TdePopMetric(metrics.BaseMetric):
     def __init__(
         self,
-        metricName="TDEsPopMetric",
+        metric_name="TDEsPopMetric",
         mjdCol="observationStartMJD",
         m5Col="fiveSigmaDepth",
         filterCol="filter",
@@ -94,7 +94,7 @@ class TdePopMetric(metrics.BaseMetric):
         super(TdePopMetric, self).__init__(
             col=cols,
             units="Detected, 0 or 1",
-            metricName=metricName,
+            metric_name=metric_name,
             maps=maps,
             **kwargs
         )
@@ -189,11 +189,11 @@ class TdePopMetric(metrics.BaseMetric):
 class TdePopMetricQuality(metrics.BaseMetric):
     def __init__(
         self,
-        metricName="TDEsPopMetricQuality",
-        mjdCol="observationStartMJD",
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
-        nightCol="night",
+        metric_name="TDEsPopMetricQuality",
+        mjd_col="observationStartMJD",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        night_col="night",
         tmin=-30,
         tmax=100,
         file_list=None,
@@ -201,10 +201,10 @@ class TdePopMetricQuality(metrics.BaseMetric):
         **kwargs
     ):
         maps = ["DustMap"]
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
-        self.nightCol = nightCol
+        self.mjdCol = mjd_col
+        self.m5Col = m5_col
+        self.filterCol = filter_col
+        self.nightCol = night_col
         self.tmin = tmin
         self.tmax = tmax
 
@@ -218,7 +218,7 @@ class TdePopMetricQuality(metrics.BaseMetric):
         super(TdePopMetricQuality, self).__init__(
             col=cols,
             units="Bad: 0, Good (obs every 2 night): 1",
-            metricName=metricName,
+            metric_name=metric_name,
             maps=maps,
             **kwargs
         )
@@ -344,7 +344,7 @@ def generateTdePopSlicer(t_start=1, t_end=3652, n_events=10000, seed=42, n_files
     )
 
     # Set up the slicer to evaluate the catalog we just made
-    slicer = slicers.UserPointsSlicer(ra, dec, latLonDeg=True, badval=0)
+    slicer = slicers.UserPointsSlicer(ra, dec, lat_lon_deg=True, badval=0)
     # Add any additional information about each object to the slicer
     slicer.slicePoints["peak_time"] = peak_times
     slicer.slicePoints["file_indx"] = file_indx

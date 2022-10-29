@@ -38,13 +38,13 @@ class HealpixSubsetSlicer(HealpixSlicer):
         The subset of healpix id's to use to calculate the metric.
         Because the hpid should be defined based on a particular nside, these first two
         arguments are not optional for this slicer.
-    lonCol : `str`, optional
+    lon_col : `str`, optional
         Name of the longitude (RA equivalent) column to use from the input data.
         Default fieldRA
-    latCol : `str`, optional
+    lat_col : `str`, optional
         Name of the latitude (Dec equivalent) column to use from the input data.
         Default fieldDec
-    latLonDeg : `bool`, optional
+    lat_lon_deg : `bool`, optional
         Flag indicating whether the lat and lon values in the input data are in
         degrees (True) or radians (False).
         Default True.
@@ -54,24 +54,24 @@ class HealpixSubsetSlicer(HealpixSlicer):
     badval : `float`, optional
         Bad value flag, relevant for plotting. Default the hp.UNSEEN value (in order to properly flag
         bad data points for plotting with the healpix plotting routines). This should not be changed.
-    useCache : `bool`, optional
+    use_cache : `bool`, optional
         Flag allowing the user to indicate whether or not to cache (and reuse) metric results
         calculated with the same set of simulated data pointings.
         This can be safely set to True for slicers not using maps and will result in increased speed.
         When calculating metric results using maps, the metadata at each individual ra/dec point may
-        influence the metric results and so useCache should be set to False.
+        influence the metric results and so use_cache should be set to False.
         Default True.
     leafsize : `int`, optional
         Leafsize value for kdtree. Default 100.
     radius : `float`, optional
         Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
         Default 1.75.
-    useCamera : `bool`, optional
+    use_camera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
         Default False.
-    cameraFootprintFile : `str`, optional
+    camera_footprint_file : `str`, optional
         Name of the camera footprint map to use. Can be None, which will use the default.
-    rotSkyPosColName : `str`, optional
+    rot_sky_pos_col_name : `str`, optional
         Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
@@ -81,32 +81,32 @@ class HealpixSubsetSlicer(HealpixSlicer):
         self,
         nside,
         hpid,
-        lonCol="fieldRA",
-        latCol="fieldDec",
-        latLonDeg=True,
+        lon_col="fieldRA",
+        lat_col="fieldDec",
+        lat_lon_deg=True,
         verbose=True,
         badval=hp.UNSEEN,
-        useCache=True,
+        use_cache=True,
         leafsize=100,
         radius=2.45,
-        useCamera=True,
-        cameraFootprintFile=None,
-        rotSkyPosColName="rotSkyPos",
+        use_camera=True,
+        camera_footprint_file=None,
+        rot_sky_pos_col_name="rotSkyPos",
     ):
         """Instantiate and set up healpix slicer object."""
         super().__init__(
             nside=nside,
             verbose=verbose,
-            lonCol=lonCol,
-            latCol=latCol,
+            lon_col=lon_col,
+            lat_col=lat_col,
             badval=badval,
             radius=radius,
             leafsize=leafsize,
-            useCache=useCache,
-            useCamera=useCamera,
-            rotSkyPosColName=rotSkyPosColName,
-            cameraFootprintFile=cameraFootprintFile,
-            latLonDeg=latLonDeg,
+            use_cache=use_cache,
+            use_camera=use_camera,
+            rot_sky_pos_col_name=rot_sky_pos_col_name,
+            camera_footprint_file=camera_footprint_file,
+            lat_lon_deg=lat_lon_deg,
         )
         self.hpid = hpid
         # add hpid to the slicer_init values

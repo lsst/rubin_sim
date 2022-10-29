@@ -69,7 +69,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         self.verbose = verbose
         self.badval = badval
         # Set cacheSize : each slicer will be able to override if appropriate.
-        # Currently only the healpixSlice actually uses the cache: this is set in 'useCache' flag.
+        # Currently only the healpixSlice actually uses the cache: this is set in 'use_cache' flag.
         #  If other slicers have the ability to use the cache, they should add this flag and set the
         #  cacheSize in their __init__ methods.
         self.cacheSize = 0

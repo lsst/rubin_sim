@@ -58,7 +58,7 @@ class NYoungStarsMetric(BaseMetric):
     """Calculate the distance to which one could reach color uncertainties
     Parameters
     ----------
-    metricName : str, opt
+    metric_name : str, opt
         Default 'young_stars'.
     m5Col : str, opt
         The default column name for m5 information in the input data. Default fiveSigmaDepth.
@@ -82,7 +82,7 @@ class NYoungStarsMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="young_stars",
+        metric_name="young_stars",
         m5Col="fiveSigmaDepth",
         filterCol="filter",
         badval=0,
@@ -100,7 +100,7 @@ class NYoungStarsMetric(BaseMetric):
         self.returnDistance = kwargs.pop("returnDistance", False)
         units = "kpc" if self.returnDistance else "N stars"
         super().__init__(
-            Cols, metricName=metricName, maps=maps, units=units, badval=badval, **kwargs
+            Cols, metric_name=metric_name, maps=maps, units=units, badval=badval, **kwargs
         )
         # Save R_x values for on-the-fly calculation of dust extinction with map
         self.R_x = DustValues().r_x.copy()

@@ -39,24 +39,24 @@ class GalaxyCountsMetric_extended(BaseMetric):
         name of column for depth in the data. Default: 'fiveSigmaDepth'
     nside: `int`, opt
         HEALpix resolution parameter. Default: 128
-    upperMagLimit : `float`
+    upper_mag_limit : `float`
         upper limit on magnitude when calculating the galaxy counts.
         Default: 32.0
-    includeDustExtinction : `bool`
+    include_dust_extinction : `bool`
         set to False if do not want to include dust extinction.
         Default: True
-    filterBand : `str`, opt
+    filter_band : `str`, opt
         any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
-    redshiftBin : `str`, opt
+    redshift_bin : `str`, opt
         options include '0.<z<0.15', '0.15<z<0.37', '0.37<z<0.66, '0.66<z<1.0',
         '1.0<z<1.5', '1.5<z<2.0', '2.0<z<2.5', '2.5<z<3.0','3.0<z<3.5', '3.5<z<4.0',
         'all' for no redshift restriction (i.e. 0.<z<4.0)
         Default: 'all'
-    CFHTLSCounts: `bool`, opt
+    cfht_ls_counts: `bool`, opt
         set to True if want to calculate the total galaxy counts from CFHTLS
         powerlaw from LSST Science Book. Must be run with redshiftBin= 'all'
         Default: False
-    normalizedMockCatalogCounts: `bool`, opt
+    normalized_mock_catalog_counts: `bool`, opt
      set to False if  want the raw/un-normalized galaxy counts from mock catalogs.
      Default: True
     """
@@ -64,26 +64,26 @@ class GalaxyCountsMetric_extended(BaseMetric):
     def __init__(
         self,
         m5_col="fiveSigmaDepth",
-        filterCol="filter",
+        filter_col="filter",
         nside=128,
-        metricName="GalaxyCountsMetric_extended",
+        metric_name="GalaxyCountsMetric_extended",
         units="Galaxy Counts",
-        upperMagLimit=32.0,
-        includeDustExtinction=True,
-        filterBand="i",
-        redshiftBin="all",
-        CFHTLSCounts=False,
-        normalizedMockCatalogCounts=True,
+        upper_mag_limit=32.0,
+        include_dust_extinction=True,
+        filter_band="i",
+        redshift_bin="all",
+        cfht_ls_counts=False,
+        normalized_mock_catalog_counts=True,
         **kwargs
     ):
         self.m5_col = m5_col
-        self.filterCol = filterCol
-        self.upperMagLimit = upperMagLimit
-        self.includeDustExtinction = includeDustExtinction
-        self.redshiftBin = redshiftBin
-        self.filterBand = filterBand
-        self.CFHTLSCounts = CFHTLSCounts
-        self.normalizedMockCatalogCounts = normalizedMockCatalogCounts
+        self.filterCol = filter_col
+        self.upperMagLimit = upper_mag_limit
+        self.includeDustExtinction = include_dust_extinction
+        self.redshiftBin = redshift_bin
+        self.filterBand = filter_band
+        self.CFHTLSCounts = cfht_ls_counts
+        self.normalizedMockCatalogCounts = normalized_mock_catalog_counts
         # Use the coadded depth metric to calculate the coadded depth at each point.
         # Specific band (e.g. r-band) will be provided by the sql constraint.
         if self.includeDustExtinction:
@@ -103,7 +103,7 @@ class GalaxyCountsMetric_extended(BaseMetric):
 
         super().__init__(
             col=[self.m5_col, self.filterCol],
-            metric_name=metricName,
+            metric_name=metric_name,
             maps=self.coaddmetric.maps,
             units=units,
             **kwargs
@@ -176,14 +176,14 @@ class GalaxyCountsMetric_extended(BaseMetric):
         return dn_gal * completeness
 
     # ------------------------------------------------------------------------
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # Calculate the coadded depth.
-        infilt = np.where(dataSlice[self.filterCol] == self.filterBand)[0]
+        infilt = np.where(data_slice[self.filterCol] == self.filterBand)[0]
         # If there are no visits in this filter, return immediately with a flagged value
         if len(infilt) == 0:
             return self.badval
 
-        coaddm5 = self.coaddmetric.run(dataSlice[infilt], slicePoint)
+        coaddm5 = self.coaddmetric.run(data_slice[infilt], slice_point)
 
         # some coaddm5 values are really small (i.e. min=10**-314). Zero them out.
         if coaddm5 < 1:

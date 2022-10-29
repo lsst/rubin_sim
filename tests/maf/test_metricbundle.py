@@ -32,7 +32,7 @@ class TestMetricBundle(unittest.TestCase):
         """
         nside = 8
         slicer = slicers.HealpixSlicer(
-            nside=nside, cameraFootprintFile=self.cameraFootprintFile
+            nside=nside, camera_footprint_file=self.cameraFootprintFile
         )
         metric = metrics.MeanMetric(col="airmass")
         sql = 'filter="r"'
