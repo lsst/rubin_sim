@@ -49,7 +49,7 @@ def openshutterFractions(
     )
     slicer = slicers.UniSlicer()
     bundle = mb.MetricBundle(
-        metric, slicer, extraSql, info_label=subgroup, displayDict=displayDict
+        metric, slicer, extraSql, info_label=subgroup, display_dict=displayDict
     )
     bundleList.append(bundle)
     # Count the number of nights on-sky in the survey.
@@ -59,7 +59,7 @@ def openshutterFractions(
     metric = metrics.CountUniqueMetric(colmap["night"])
     slicer = slicers.UniSlicer()
     bundle = mb.MetricBundle(
-        metric, slicer, extraSql, info_label=subgroup, displayDict=displayDict
+        metric, slicer, extraSql, info_label=subgroup, display_dict=displayDict
     )
     bundleList.append(bundle)
     # Count the number of nights total in the survey (start to finish of observations).
@@ -69,7 +69,7 @@ def openshutterFractions(
     metric = metrics.FullRangeMetric(colmap["night"])
     slicer = slicers.UniSlicer()
     bundle = mb.MetricBundle(
-        metric, slicer, extraSql, info_label=subgroup, displayDict=displayDict
+        metric, slicer, extraSql, info_label=subgroup, display_dict=displayDict
     )
     bundleList.append(bundle)
 
@@ -96,12 +96,12 @@ def openshutterFractions(
         slicer,
         extraSql,
         info_label=subgroup,
-        summaryMetrics=standardSummary(),
-        displayDict=displayDict,
+        summary_metrics=standardSummary(),
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)

@@ -99,7 +99,7 @@ class RunComparison:
         self.runNames = {}
         for rdir in self.runDirs:
             # Connect to resultsDB
-            self.runresults[rdir] = ResultsDb(outDir=rdir)
+            self.runresults[rdir] = ResultsDb(out_dir=rdir)
             # Get simulation names
             self.runNames[rdir] = self.runresults[rdir].getSimDataName()
 
@@ -210,7 +210,7 @@ class RunComparison:
         summaryValues = {}
         for r in self.runDirs:
             # Look for this metric/metadata/slicer/summary stat name combo in this resultsDb.
-            mId = self.runresults[r].getMetricId(
+            mId = self.runresults[r].get_metric_id(
                 metricName=metricName,
                 metricInfoLabel=metricInfoLabel,
                 slicerName=slicerName,
@@ -306,7 +306,7 @@ class RunComparison:
         """
         filepaths = {}
         for r in self.runDirs:
-            mId = self.runresults[r].getMetricId(
+            mId = self.runresults[r].get_metric_id(
                 metricName=metricName,
                 metricInfoLabel=metricInfoLabel,
                 slicerName=slicerName,
@@ -334,9 +334,9 @@ class RunComparison:
         )
         bundleDict = {}
         for r in filenames:
-            b = mb.createEmptyMetricBundle()
+            b = mb.create_empty_metric_bundle()
             b.read(filenames[r])
-            hash = b.runName + " " + mname
+            hash = b.run_name + " " + mname
             bundleDict[hash] = b
         return bundleDict, mname
 
@@ -392,7 +392,7 @@ class RunComparison:
                     ncols = layout[0]
                     nrows = layout[1]
                 pdict["subplot"] = int(str(nrows) + str(ncols) + str(i + 1))
-                pdict["title"] = bundle.runName
+                pdict["title"] = bundle.run_name
                 # For the subplots we do not need the label
                 pdict["label"] = ""
                 pdict["legendloc"] = None

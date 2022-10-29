@@ -10,11 +10,11 @@ from .common import standardSummary, extendedSummary, lightcurveSummary, filterL
 import rubin_sim.maf as maf
 
 
-__all__ = ["scienceRadarBatch"]
+__all__ = ["science_radar_batch"]
 
 
-def scienceRadarBatch(
-    runName="opsim",
+def science_radar_batch(
+    runName="run name",
     nside=64,
     benchmarkArea=18000,
     benchmarkNvisits=825,
@@ -122,10 +122,10 @@ def scienceRadarBatch(
         metric,
         healpixslicer,
         "",
-        plotDict=plotDict,
-        displayDict=displayDict,
-        summaryMetrics=summaryMetrics,
-        plotFuncs=[plots.FOPlot()],
+        plot_dict=plotDict,
+        display_dict=displayDict,
+        summary_metrics=summaryMetrics,
+        plot_funcs=[plots.FOPlot()],
     )
     bundleList.append(bundle)
 
@@ -144,7 +144,7 @@ def scienceRadarBatch(
             m,
             slicer,
             filtersqls[f],
-            displayDict=displayDict,
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
@@ -156,7 +156,7 @@ def scienceRadarBatch(
             metric,
             slicer,
             filtersqls[f],
-            displayDict=displayDict,
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
@@ -206,11 +206,11 @@ def scienceRadarBatch(
             metric,
             healpixslicer,
             "",
-            stackerList=[parallaxStacker],
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=summary,
-            plotFuncs=subsetPlots,
+            stacker_list=[parallaxStacker],
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=summary,
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
@@ -227,10 +227,10 @@ def scienceRadarBatch(
             metric,
             healpixslicer,
             "",
-            stackerList=[parallaxStacker],
-            displayDict=displayDict,
-            summaryMetrics=standardSummary(),
-            plotFuncs=subsetPlots,
+            stacker_list=[parallaxStacker],
+            display_dict=displayDict,
+            summary_metrics=standardSummary(),
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
@@ -243,10 +243,10 @@ def scienceRadarBatch(
             metric,
             healpixslicer,
             "",
-            stackerList=[parallaxStacker],
-            displayDict=displayDict,
-            summaryMetrics=standardSummary(),
-            plotFuncs=subsetPlots,
+            stacker_list=[parallaxStacker],
+            display_dict=displayDict,
+            summary_metrics=standardSummary(),
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
@@ -264,10 +264,10 @@ def scienceRadarBatch(
             metric,
             healpixslicer,
             "",
-            stackerList=[dcrStacker, parallaxStacker],
-            displayDict=displayDict,
-            summaryMetrics=standardSummary(),
-            plotFuncs=subsetPlots,
+            stacker_list=[dcrStacker, parallaxStacker],
+            display_dict=displayDict,
+            summary_metrics=standardSummary(),
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
@@ -300,10 +300,10 @@ def scienceRadarBatch(
             metric,
             healpixslicer,
             "",
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=summary,
-            plotFuncs=subsetPlots,
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=summary,
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
@@ -318,9 +318,9 @@ def scienceRadarBatch(
             metric,
             healpixslicer,
             "",
-            displayDict=displayDict,
-            summaryMetrics=standardSummary(),
-            plotFuncs=subsetPlots,
+            display_dict=displayDict,
+            summary_metrics=standardSummary(),
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
@@ -334,10 +334,10 @@ def scienceRadarBatch(
         metric,
         healpixslicer,
         "",
-        plotDict=plotDict,
-        plotFuncs=subsetPlots,
-        displayDict=displayDict,
-        summaryMetrics=standardSummary(withCount=False),
+        plot_dict=plotDict,
+        plot_funcs=subsetPlots,
+        display_dict=displayDict,
+        summary_metrics=standardSummary(withCount=False),
     )
     bundleList.append(bundle)
 
@@ -360,10 +360,10 @@ def scienceRadarBatch(
         m2,
         healpixslicer,
         "",
-        plotDict=plotDict,
-        plotFuncs=subsetPlots,
-        displayDict=displayDict,
-        summaryMetrics=standardSummary(withCount=False),
+        plot_dict=plotDict,
+        plot_funcs=subsetPlots,
+        display_dict=displayDict,
+        summary_metrics=standardSummary(withCount=False),
     )
     bundleList.append(bundle)
     displayDict["order"] += 1
@@ -409,18 +409,18 @@ def scienceRadarBatch(
         m1,
         healpixslicer,
         "",
-        plotDict=plotDict,
-        plotFuncs=subsetPlots,
-        displayDict=displayDict,
-        summaryMetrics=summaryStats,
+        plot_dict=plotDict,
+        plot_funcs=subsetPlots,
+        display_dict=displayDict,
+        summary_metrics=summaryStats,
     )
     bundleList.append(bundle)
 
     # For SRD batch only, return here.
     if srd_only:
         for b in bundleList:
-            b.setRunName(runName)
-        bundleDict = mb.makeBundlesDictFromList(bundleList)
+            b.set_run_name(runName)
+        bundleDict = mb.make_bundles_dict_from_list(bundleList)
 
         return bundleDict
 
@@ -443,10 +443,10 @@ def scienceRadarBatch(
             metric,
             healpixslicer,
             filtersqls[f],
-            plotDict=plotDict,
+            plot_dict=plotDict,
             info_label=filterinfo_label[f],
-            displayDict=displayDict,
-            summaryMetrics=summary,
+            display_dict=displayDict,
+            summary_metrics=summary,
         )
         bundleList.append(bundle)
 
@@ -487,10 +487,10 @@ def scienceRadarBatch(
             metric,
             slicer,
             filtersqls[f],
-            plotDict=plotDict,
-            displayDict=displayDict,
-            summaryMetrics=summary,
-            plotFuncs=subsetPlots,
+            plot_dict=plotDict,
+            display_dict=displayDict,
+            summary_metrics=summary,
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
 
@@ -507,9 +507,9 @@ def scienceRadarBatch(
             metric,
             healpixslicer,
             sql,
-            displayDict=displayDict,
-            summaryMetrics=summary,
-            plotFuncs=subsetPlots,
+            display_dict=displayDict,
+            summary_metrics=summary,
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
 
@@ -591,11 +591,11 @@ def scienceRadarBatch(
             m,
             slicer,
             sqlconstraint,
-            mapsList=[dustmap],
+            maps_list=[dustmap],
             info_label=info_label,
-            summaryMetrics=summaryMetrics
-            + [ThreebyTwoSummary, ThreebyTwoSummary_simple],
-            displayDict=displayDict,
+            summary_metrics=summaryMetrics
+                            + [ThreebyTwoSummary, ThreebyTwoSummary_simple],
+            display_dict=displayDict,
         )
         displayDict["order"] += 1
         bundleList.append(bundle)
@@ -633,12 +633,12 @@ def scienceRadarBatch(
         metric,
         slicer,
         sqlconstraint,
-        plotDict=plotDict,
+        plot_dict=plotDict,
         info_label=info_label,
-        mapsList=[dustmap],
-        displayDict=displayDict,
-        summaryMetrics=summary,
-        plotFuncs=subsetPlots,
+        maps_list=[dustmap],
+        display_dict=displayDict,
+        summary_metrics=summary,
+        plot_funcs=subsetPlots,
     )
     bundleList.append(bundle)
 
@@ -669,10 +669,10 @@ def scienceRadarBatch(
         m,
         slicer,
         sqlconstraint,
-        mapsList=[dustmap],
+        maps_list=[dustmap],
         info_label=info_label,
-        summaryMetrics=standardStats,
-        displayDict=displayDict,
+        summary_metrics=standardStats,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -693,10 +693,10 @@ def scienceRadarBatch(
                     m,
                     healpixslicer,
                     filtersqls[f],
-                    plotDict=plotDict,
-                    displayDict=displayDict,
-                    summaryMetrics=standardStats,
-                    plotFuncs=subsetPlots,
+                    plot_dict=plotDict,
+                    display_dict=displayDict,
+                    summary_metrics=standardStats,
+                    plot_funcs=subsetPlots,
                 )
             )
 
@@ -737,11 +737,11 @@ def scienceRadarBatch(
         metric,
         snslicer,
         "note not like '%DD%'",
-        plotDict=plotDict,
-        displayDict=displayDict,
+        plot_dict=plotDict,
+        display_dict=displayDict,
         info_label="DDF excluded",
-        summaryMetrics=sn_summary,
-        plotFuncs=subsetPlots,
+        summary_metrics=sn_summary,
+        plot_funcs=subsetPlots,
     )
 
     bundleList.append(bundle)
@@ -785,10 +785,10 @@ def scienceRadarBatch(
                 agnslicer,
                 constraint=sql,
                 info_label=md,
-                runName=runName,
-                mapsList=[dustmap],
-                summaryMetrics=summaryMetrics,
-                displayDict=displayDict,
+                run_name=runName,
+                maps_list=[dustmap],
+                summary_metrics=summaryMetrics,
+                display_dict=displayDict,
             )
         )
 
@@ -827,11 +827,11 @@ def scienceRadarBatch(
                 agnslicer,
                 constraint=filtersqls[f],
                 info_label=filterinfo_label[f],
-                runName=runName,
-                mapsList=[dustmap],
-                plotDict=plotDict,
-                summaryMetrics=summaryMetrics,
-                displayDict=displayDict,
+                run_name=runName,
+                maps_list=[dustmap],
+                plot_dict=plotDict,
+                summary_metrics=summaryMetrics,
+                display_dict=displayDict,
             )
         )
 
@@ -860,11 +860,11 @@ def scienceRadarBatch(
                 agnslicer,
                 constraint=allfiltersqls[f],
                 info_label=allfilterinfo_label[f],
-                runName=runName,
-                mapsList=[dustmap],
-                plotDict=plotDict,
-                summaryMetrics=summaryMetrics,
-                displayDict=displayDict,
+                run_name=runName,
+                maps_list=[dustmap],
+                plot_dict=plotDict,
+                summary_metrics=summaryMetrics,
+                display_dict=displayDict,
             )
         )
 
@@ -893,11 +893,11 @@ def scienceRadarBatch(
                 agnslicer,
                 constraint=allfiltersqls[f],
                 info_label=allfilterinfo_label[f],
-                runName=runName,
-                mapsList=[dustmap],
-                plotDict=plotDict,
-                summaryMetrics=summaryMetrics,
-                displayDict=displayDict,
+                run_name=runName,
+                maps_list=[dustmap],
+                plot_dict=plotDict,
+                summary_metrics=summaryMetrics,
+                display_dict=displayDict,
             )
         )
 
@@ -927,11 +927,11 @@ def scienceRadarBatch(
         tdcMetric,
         slicer,
         constraint="",
-        displayDict=displayDict,
-        plotDict=plotDict,
-        plotFuncs=tdc_plots,
-        mapsList=[dustmap],
-        summaryMetrics=tdc_summary,
+        display_dict=displayDict,
+        plot_dict=plotDict,
+        plot_funcs=tdc_plots,
+        maps_list=[dustmap],
+        summary_metrics=tdc_summary,
     )
     bundleList.append(bundle)
 
@@ -948,10 +948,10 @@ def scienceRadarBatch(
         metric,
         slicer,
         "",
-        runName=runName,
-        plotDict=plotDict,
-        summaryMetrics=metrics.SumMetric(metricName="Total detected"),
-        displayDict=displayDict,
+        run_name=runName,
+        plot_dict=plotDict,
+        summary_metrics=metrics.SumMetric(metricName="Total detected"),
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -1008,9 +1008,9 @@ def scienceRadarBatch(
                 m,
                 slicer,
                 "night < 365.25*2",
-                displayDict=displayDict,
-                runName=runName,
-                summaryMetrics=summaryStats,
+                display_dict=displayDict,
+                run_name=runName,
+                summary_metrics=summaryStats,
                 info_label=f"dm {dM} interval {time_interval} RRc Year 1-2",
             )
             bundleList.append(bundle)
@@ -1046,10 +1046,10 @@ def scienceRadarBatch(
                 healpixslicer,
                 sql,
                 info_label=info_label,
-                displayDict=displayDict,
-                plotDict=plotDict,
-                plotFuncs=subsetPlots,
-                summaryMetrics=standardStats,
+                display_dict=displayDict,
+                plot_dict=plotDict,
+                plot_funcs=subsetPlots,
+                summary_metrics=standardStats,
             )
             bundleList.append(bundle)
             displayDict["order"] += 1
@@ -1083,10 +1083,10 @@ def scienceRadarBatch(
                 healpixslicer,
                 sql,
                 info_label=info_label,
-                displayDict=displayDict,
-                plotDict=plotDict,
-                plotFuncs=subsetPlots,
-                summaryMetrics=standardStats,
+                display_dict=displayDict,
+                plot_dict=plotDict,
+                plot_funcs=subsetPlots,
+                summary_metrics=standardStats,
             )
             bundleList.append(bundle)
             displayDict["order"] += 1
@@ -1101,9 +1101,9 @@ def scienceRadarBatch(
         metric,
         tdeslicer,
         "",
-        runName=runName,
-        summaryMetrics=lightcurveSummary(),
-        displayDict=displayDict,
+        run_name=runName,
+        summary_metrics=lightcurveSummary(),
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -1113,9 +1113,9 @@ def scienceRadarBatch(
         metric,
         tdeslicer,
         "",
-        runName=runName,
-        summaryMetrics=lightcurveSummary(),
-        displayDict=displayDict,
+        run_name=runName,
+        summary_metrics=lightcurveSummary(),
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -1159,12 +1159,12 @@ def scienceRadarBatch(
                 metric,
                 slicer,
                 None,
-                runName=runName,
-                summaryMetrics=summaryMetrics,
+                run_name=runName,
+                summary_metrics=summaryMetrics,
                 info_label=f"tE {crossing[0]}_{crossing[1]} days",
-                displayDict=displayDict,
-                plotDict=plotDict,
-                plotFuncs=[plots.HealpixSkyMap()],
+                display_dict=displayDict,
+                plot_dict=plotDict,
+                plot_funcs=[plots.HealpixSkyMap()],
             )
         )
 
@@ -1199,12 +1199,12 @@ def scienceRadarBatch(
                     metric_Npts,
                     slicer,
                     None,
-                    runName=runName,
-                    summaryMetrics=summaryMetrics,
+                    run_name=runName,
+                    summary_metrics=summaryMetrics,
                     info_label=f"tE {crossing[0]}_{crossing[1]} days",
-                    displayDict=displayDict,
-                    plotDict=plotDict,
-                    plotFuncs=[],
+                    display_dict=displayDict,
+                    plot_dict=plotDict,
+                    plot_funcs=[],
                 )
             )
 
@@ -1230,12 +1230,12 @@ def scienceRadarBatch(
                     metric_Fisher,
                     slicer,
                     None,
-                    runName=runName,
-                    summaryMetrics=summaryMetrics,
+                    run_name=runName,
+                    summary_metrics=summaryMetrics,
                     info_label=f"tE {crossing[0]}_{crossing[1]} days",
-                    displayDict=displayDict,
-                    plotDict=plotDict,
-                    plotFuncs=[],
+                    display_dict=displayDict,
+                    plot_dict=plotDict,
+                    plot_funcs=[],
                 )
             )
 
@@ -1263,10 +1263,10 @@ def scienceRadarBatch(
         metric,
         kneslicer,
         "",
-        runName=runName,
+        run_name=runName,
         info_label="single model",
-        summaryMetrics=lightcurveSummary(),
-        displayDict=displayDict,
+        summary_metrics=lightcurveSummary(),
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -1287,10 +1287,10 @@ def scienceRadarBatch(
         metric_allkne,
         kneslicer_allkne,
         "",
-        runName=runName,
+        run_name=runName,
         info_label="all models",
-        summaryMetrics=lightcurveSummary(),
-        displayDict=displayDict,
+        summary_metrics=lightcurveSummary(),
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -1330,10 +1330,10 @@ def scienceRadarBatch(
                 healpixslicer,
                 constraint=filtersqls[f],
                 info_label=filterinfo_label[f],
-                runName=runName,
-                plotDict=plotDict,
-                plotFuncs=plotFuncs,
-                displayDict=displayDict,
+                run_name=runName,
+                plot_dict=plotDict,
+                plot_funcs=plotFuncs,
+                display_dict=displayDict,
             )
         )
 
@@ -1357,11 +1357,11 @@ def scienceRadarBatch(
                 healpixslicer,
                 constraint=filtersqls[f],
                 info_label=filterinfo_label[f],
-                runName=runName,
-                summaryMetrics=summaryMetrics,
-                plotDict=plotDict,
-                plotFuncs=plotFuncs,
-                displayDict=displayDict,
+                run_name=runName,
+                summary_metrics=summaryMetrics,
+                plot_dict=plotDict,
+                plot_funcs=plotFuncs,
+                display_dict=displayDict,
             )
         )
 
@@ -1382,11 +1382,11 @@ def scienceRadarBatch(
                 healpixslicer,
                 constraint=filtersqls[f],
                 info_label=filterinfo_label[f],
-                runName=runName,
-                summaryMetrics=summaryMetrics,
-                plotDict=plotDict,
-                plotFuncs=plotFuncs,
-                displayDict=displayDict,
+                run_name=runName,
+                summary_metrics=summaryMetrics,
+                plot_dict=plotDict,
+                plot_funcs=plotFuncs,
+                display_dict=displayDict,
             )
         )
 
@@ -1408,10 +1408,10 @@ def scienceRadarBatch(
         m1,
         healpixslicer,
         None,
-        runName=runName,
-        summaryMetrics=summarystats,
-        plotDict=plotDict,
-        displayDict=displayDict,
+        run_name=runName,
+        summary_metrics=summarystats,
+        plot_dict=plotDict,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -1429,9 +1429,9 @@ def scienceRadarBatch(
             metric,
             prestoslicer,
             None,
-            runName=runName,
-            displayDict=displayDict,
-            summaryMetrics=summaryMetrics_kne,
+            run_name=runName,
+            display_dict=displayDict,
+            summary_metrics=summaryMetrics_kne,
         )
     )
 
@@ -1457,9 +1457,9 @@ def scienceRadarBatch(
             metric,
             xrbslicer,
             "",
-            runName=runName,
-            summaryMetrics=xrb_summaryMetrics,
-            displayDict=displayDict,
+            run_name=runName,
+            summary_metrics=xrb_summaryMetrics,
+            display_dict=displayDict,
         )
     )
 
@@ -1507,10 +1507,10 @@ def scienceRadarBatch(
             footprintmetric,
             slicer,
             sql,
-            plotDict=footprint_plotDicts,
-            runName=runName,
-            summaryMetrics=footprint_summaries,
-            displayDict=displayDict,
+            plot_dict=footprint_plotDicts,
+            run_name=runName,
+            summary_metrics=footprint_summaries,
+            display_dict=displayDict,
         )
         displayDict[
             "caption"
@@ -1520,10 +1520,10 @@ def scienceRadarBatch(
             filtermetric,
             slicer,
             sql,
-            plotDict=filter_plotdicts,
-            runName=runName,
-            summaryMetrics=filter_summaries,
-            displayDict=displayDict,
+            plot_dict=filter_plotdicts,
+            run_name=runName,
+            summary_metrics=filter_summaries,
+            display_dict=displayDict,
         )
         displayDict[
             "caption"
@@ -1535,10 +1535,10 @@ def scienceRadarBatch(
             visit_timescalesmetric,
             slicer,
             sql,
-            plotDict=timescale_plotdicts,
-            runName=runName,
-            summaryMetrics=timescale_summaries,
-            displayDict=displayDict,
+            plot_dict=timescale_plotdicts,
+            run_name=runName,
+            summary_metrics=timescale_summaries,
+            display_dict=displayDict,
         )
         displayDict[
             "caption"
@@ -1550,10 +1550,10 @@ def scienceRadarBatch(
             season_timescalemetric,
             slicer,
             sql,
-            plotDict=timescale_plotdicts,
-            runName=runName,
-            summaryMetrics=timescale_summaries,
-            displayDict=displayDict,
+            plot_dict=timescale_plotdicts,
+            run_name=runName,
+            summary_metrics=timescale_summaries,
+            display_dict=displayDict,
         )
 
     bundleList += list(bundles.values())
@@ -1588,12 +1588,12 @@ def scienceRadarBatch(
             metric,
             slicer,
             filtersqls[f],
-            runName=runName,
-            summaryMetrics=sum_stats,
-            plotFuncs=subsetPlots,
-            plotDict=plotDict,
-            displayDict=displayDict,
-            mapsList=[stellar_map],
+            run_name=runName,
+            summary_metrics=sum_stats,
+            plot_funcs=subsetPlots,
+            plot_dict=plotDict,
+            display_dict=displayDict,
+            maps_list=[stellar_map],
         )
         bundleList.append(bundle)
 
@@ -1619,12 +1619,12 @@ def scienceRadarBatch(
             metric,
             slicer,
             filtersqls[f],
-            runName=runName,
-            summaryMetrics=sum_stats,
-            plotFuncs=subsetPlots,
-            plotDict=plotDict,
-            displayDict=displayDict,
-            mapsList=[stellar_map],
+            run_name=runName,
+            summary_metrics=sum_stats,
+            plot_funcs=subsetPlots,
+            plot_dict=plotDict,
+            display_dict=displayDict,
+            maps_list=[stellar_map],
         )
         bundleList.append(bundle)
 
@@ -1646,10 +1646,10 @@ def scienceRadarBatch(
             metric,
             healpixslicer,
             sql,
-            plotDict=plotDict,
-            summaryMetrics=sum_stats,
-            displayDict=displayDict,
-            runName=runName,
+            plot_dict=plotDict,
+            summary_metrics=sum_stats,
+            display_dict=displayDict,
+            run_name=runName,
         )
     )
 
@@ -1665,10 +1665,10 @@ def scienceRadarBatch(
             metric,
             healpixslicer,
             sql,
-            plotDict=plotDict,
-            summaryMetrics=sum_stats,
-            displayDict=displayDict,
-            runName=runName,
+            plot_dict=plotDict,
+            summary_metrics=sum_stats,
+            display_dict=displayDict,
+            run_name=runName,
         )
     )
 
@@ -1691,11 +1691,11 @@ def scienceRadarBatch(
             metric,
             slicer,
             sql,
-            mapsList=[dustmap3d],
-            plotDict=plotDict,
-            summaryMetrics=summaryStats,
-            runName=runName,
-            displayDict=displayDict,
+            maps_list=[dustmap3d],
+            plot_dict=plotDict,
+            summary_metrics=summaryStats,
+            run_name=runName,
+            display_dict=displayDict,
         )
     )
 
@@ -1727,11 +1727,11 @@ def scienceRadarBatch(
         lv_metric,
         lv_slicer,
         sqlconstraint,
-        mapsList=[i_starMap],
-        summaryMetrics=summary_metrics,
+        maps_list=[i_starMap],
+        summary_metrics=summary_metrics,
         info_label=info_label,
-        displayDict=displayDict,
-        plotDict=plotDict,
+        display_dict=displayDict,
+        plot_dict=plotDict,
     )
     bundleList.append(bundle)
 
@@ -1752,11 +1752,11 @@ def scienceRadarBatch(
         lv_metric2,
         lv_healpix_slicer,
         sqlconstraint,
-        mapsList=[i_starMap, dustmap],
+        maps_list=[i_starMap, dustmap],
         info_label=info_label,
-        displayDict=displayDict,
-        summaryMetrics=summary_area,
-        plotDict=plotDict,
+        display_dict=displayDict,
+        summary_metrics=summary_area,
+        plot_dict=plotDict,
     )
     bundleList.append(bundle)
 
@@ -1779,11 +1779,11 @@ def scienceRadarBatch(
         lv_metric3,
         lv_healpix_slicer,
         sqlconstraint,
-        mapsList=[i_starMap, dustmap],
+        maps_list=[i_starMap, dustmap],
         info_label=info_label,
-        displayDict=displayDict,
-        plotDict=plotDict,
-        summaryMetrics=[summary_area, summary_median],
+        display_dict=displayDict,
+        plot_dict=plotDict,
+        summary_metrics=[summary_area, summary_median],
     )
     bundleList.append(bundle)
 
@@ -1807,11 +1807,11 @@ def scienceRadarBatch(
         metric,
         slicer,
         sql,
-        runName=runName,
-        summaryMetrics=[metrics.SumMetric()],
-        plotFuncs=subsetPlots,
-        plotDict=plotDict,
-        displayDict=displayDict,
+        run_name=runName,
+        summary_metrics=[metrics.SumMetric()],
+        plot_funcs=subsetPlots,
+        plot_dict=plotDict,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -1828,17 +1828,17 @@ def scienceRadarBatch(
         metric,
         slicer,
         None,
-        runName=runName,
-        summaryMetrics=[metrics.SumMetric()],
-        plotFuncs=subsetPlots,
-        plotDict=plotDict,
-        displayDict=displayDict,
+        run_name=runName,
+        summary_metrics=[metrics.SumMetric()],
+        plot_funcs=subsetPlots,
+        plot_dict=plotDict,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    bundleDict = mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    bundleDict = mb.make_bundles_dict_from_list(bundleList)
 
     return bundleDict

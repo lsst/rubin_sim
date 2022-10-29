@@ -7,7 +7,7 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.utils as mafUtils
-from .col_map_dict import col_map_dict, getColMap
+from .col_map_dict import col_map_dict, get_col_map
 from .common import standardSummary, filterList, radecCols, combineInfoLabels
 
 __all__ = ["nvisitsM5Maps", "tEffMetrics", "nvisitsPerNight", "nvisitsPerSubset"]
@@ -120,10 +120,10 @@ def nvisitsM5Maps(
             slicer,
             sql,
             info_label=info_label[f],
-            stackerList=ditherStacker,
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=standardSummary(),
+            stacker_list=ditherStacker,
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=standardSummary(),
         )
         bundleList.append(bundle)
 
@@ -160,10 +160,10 @@ def nvisitsM5Maps(
             slicer,
             sql,
             info_label=info_label[f],
-            stackerList=ditherStacker,
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=standardSummary(),
+            stacker_list=ditherStacker,
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=standardSummary(),
         )
         bundleList.append(bundle)
 
@@ -202,17 +202,17 @@ def nvisitsM5Maps(
             slicerDust,
             sql,
             info_label=info_label[f],
-            stackerList=ditherStacker,
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=standardSummary(),
+            stacker_list=ditherStacker,
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=standardSummary(),
         )
         bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def tEffMetrics(
@@ -282,7 +282,7 @@ def tEffMetrics(
         metric,
         slicer,
         constraint=sqls["all"],
-        displayDict=displayDict,
+        display_dict=displayDict,
         info_label=info_label["all"],
     )
     bundleList.append(bundle)
@@ -302,7 +302,7 @@ def tEffMetrics(
         metric,
         slicer,
         constraint=sqls["all"],
-        displayDict=displayDict,
+        display_dict=displayDict,
         info_label=info_label["all"],
     )
     bundleList.append(bundle)
@@ -330,17 +330,17 @@ def tEffMetrics(
             skyslicer,
             sqls[f],
             info_label=info_label[f],
-            stackerList=ditherStacker,
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=standardSummary(),
+            stacker_list=ditherStacker,
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=standardSummary(),
         )
         bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def nvisitsPerNight(
@@ -401,15 +401,15 @@ def nvisitsPerNight(
         slicer,
         extraSql,
         info_label=infoCaption,
-        displayDict=displayDict,
-        summaryMetrics=standardSummary(),
+        display_dict=displayDict,
+        summary_metrics=standardSummary(),
     )
     bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def nvisitsPerSubset(
@@ -447,7 +447,7 @@ def nvisitsPerSubset(
     metric_bundleDict : `dict` of `rubin_sim.maf.MetricBundle`
     """
     if colmap is None:
-        colmap = getColMap("FBS")
+        colmap = get_col_map("FBS")
 
     bdict = {}
     bundleList = []
@@ -478,7 +478,7 @@ def nvisitsPerSubset(
             slicer,
             constraint,
             info_label=extraInfoLabel,
-            displayDict=displayDict,
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
@@ -506,13 +506,13 @@ def nvisitsPerSubset(
             metric,
             slicer,
             constraint,
-            stackerList=[footprintStacker],
+            stacker_list=[footprintStacker],
             info_label=extraInfoLabel,
-            displayDict=displayDict,
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
     for b in bundleList:
-        b.setRunName(runName)
-    bdict.update(mb.makeBundlesDictFromList(bundleList))
+        b.set_run_name(runName)
+    bdict.update(mb.make_bundles_dict_from_list(bundleList))
     return bdict

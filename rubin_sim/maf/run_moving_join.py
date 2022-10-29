@@ -95,4 +95,4 @@ def run_moving_join():
     # Read and combine the metric files.
     for m in metricNames:
         b = batches.readAndCombine(orbitRoot, args.baseDir, splits, m)
-        b.write(outDir=outDir)
+        b.write(out_dir=outDir)

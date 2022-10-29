@@ -211,14 +211,14 @@ def quickDiscoveryBatch(
             "caption": "Time of discovery of objects",
             "order": 0,
         }
-        parentBundle.childBundles["Time"].setDisplayDict(dispDict)
+        parentBundle.child_bundles["Time"].set_display_dict(dispDict)
         dispDict = {
             "group": f"{objtype}",
             "subgroup": f"N Chances",
             "caption": "Number of chances for discovery of objects",
             "order": 0,
         }
-        parentBundle.childBundles["N_Chances"].setDisplayDict(dispDict)
+        parentBundle.child_bundles["N_Chances"].set_display_dict(dispDict)
         return
 
     tMin = 5.0 / 60.0 / 24.0
@@ -242,13 +242,13 @@ def quickDiscoveryBatch(
         metric,
         slicer,
         constraint,
-        stackerList=[magStacker],
-        runName=runName,
+        stacker_list=[magStacker],
+        run_name=runName,
         info_label=md,
-        childMetrics=childMetrics,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        child_metrics=childMetrics,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -270,21 +270,21 @@ def quickDiscoveryBatch(
         metric,
         slicer,
         constraint,
-        stackerList=[magStacker],
-        runName=runName,
+        stacker_list=[magStacker],
+        run_name=runName,
         info_label=md,
-        childMetrics=childMetrics,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        child_metrics=childMetrics,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def discoveryBatch(
@@ -360,14 +360,14 @@ def discoveryBatch(
             "caption": "Time of discovery of objects",
             "order": 0,
         }
-        parentBundle.childBundles["Time"].setDisplayDict(dispDict)
+        parentBundle.child_bundles["Time"].set_display_dict(dispDict)
         dispDict = {
             "group": f"{objtype}",
             "subgroup": f"N Chances",
             "caption": "Number of chances for discovery of objects",
             "order": 0,
         }
-        parentBundle.childBundles["N_Chances"].setDisplayDict(dispDict)
+        parentBundle.child_bundles["N_Chances"].set_display_dict(dispDict)
 
     tMin = 5.0 / 60.0 / 24.0
     tMax = 90.0 / 60.0 / 24.0
@@ -391,13 +391,13 @@ def discoveryBatch(
         metric,
         slicer,
         constraint,
-        stackerList=[magStacker],
-        runName=runName,
+        stacker_list=[magStacker],
+        run_name=runName,
         info_label=md,
-        childMetrics=childMetrics,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        child_metrics=childMetrics,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -419,13 +419,13 @@ def discoveryBatch(
         metric,
         slicer,
         constraint,
-        stackerList=[magStacker],
-        runName=runName,
+        stacker_list=[magStacker],
+        run_name=runName,
         info_label=md,
-        childMetrics=childMetrics,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        child_metrics=childMetrics,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -447,13 +447,13 @@ def discoveryBatch(
         metric,
         slicer,
         constraint,
-        stackerList=[magStacker],
-        runName=runName,
+        stacker_list=[magStacker],
+        run_name=runName,
         info_label=md,
-        childMetrics=childMetrics,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        child_metrics=childMetrics,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -479,13 +479,13 @@ def discoveryBatch(
         metric,
         slicer,
         constraint,
-        stackerList=[magStacker],
-        runName=runName,
+        stacker_list=[magStacker],
+        run_name=runName,
         info_label=md,
-        childMetrics=childMetrics,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        child_metrics=childMetrics,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -508,13 +508,13 @@ def discoveryBatch(
         metric,
         slicer,
         constraint,
-        stackerList=[magStacker],
-        runName=runName,
+        stacker_list=[magStacker],
+        run_name=runName,
         info_label=md,
-        childMetrics=childMetrics,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        child_metrics=childMetrics,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -537,13 +537,13 @@ def discoveryBatch(
         metric,
         slicer,
         constraint,
-        stackerList=[magStacker],
-        runName=runName,
+        stacker_list=[magStacker],
+        run_name=runName,
         info_label=md,
-        childMetrics=childMetrics,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        child_metrics=childMetrics,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -567,13 +567,13 @@ def discoveryBatch(
         metric,
         slicer,
         constraint,
-        stackerList=[magStacker],
-        runName=runName,
+        stacker_list=[magStacker],
+        run_name=runName,
         info_label=md,
-        childMetrics=childMetrics,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        child_metrics=childMetrics,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -596,13 +596,13 @@ def discoveryBatch(
         metric,
         slicer,
         constraint,
-        stackerList=[magStacker],
-        runName=runName,
+        stacker_list=[magStacker],
+        run_name=runName,
         info_label=md,
-        childMetrics=childMetrics,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        child_metrics=childMetrics,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -624,13 +624,13 @@ def discoveryBatch(
         metric,
         slicer,
         constraint,
-        stackerList=[magStacker],
-        runName=runName,
+        stacker_list=[magStacker],
+        run_name=runName,
         info_label=md,
-        childMetrics=childMetrics,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        child_metrics=childMetrics,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -646,12 +646,12 @@ def discoveryBatch(
         metric,
         slicer,
         constraint,
-        stackerList=[magStacker],
-        runName=runName,
+        stacker_list=[magStacker],
+        run_name=runName,
         info_label=md,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -664,19 +664,19 @@ def discoveryBatch(
         metric,
         slicer,
         constraint,
-        stackerList=[magStacker],
-        runName=runName,
+        stacker_list=[magStacker],
+        run_name=runName,
         info_label=md,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
@@ -729,35 +729,35 @@ def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
         if "Time" in bundle.metric.name:
             for metric in summaryTimeMetrics:
                 newkey = b + " " + metric.name
-                comp[newkey] = mb.makeCompletenessBundle(
-                    bundle, metric, Hmark=None, resultsDb=resultsDb
+                comp[newkey] = mb.make_completeness_bundle(
+                    bundle, metric, h_mark=None, results_db=resultsDb
                 )
                 comp[newkey].plotDict["times"] = times
                 comp[newkey].plotDict["Hval"] = metric.Hval
             for metric in summaryTimeMetrics2:
                 newkey = b + " " + metric.name
-                comp[newkey] = mb.makeCompletenessBundle(
-                    bundle, metric, Hmark=None, resultsDb=resultsDb
+                comp[newkey] = mb.make_completeness_bundle(
+                    bundle, metric, h_mark=None, results_db=resultsDb
                 )
                 comp[newkey].plotDict["times"] = times
                 comp[newkey].plotDict["Hval"] = metric.Hval
         elif "N_Chances" in bundle.metric.name:
             for metric in summaryHMetrics:
                 newkey = b + " " + metric.name
-                comp[newkey] = mb.makeCompletenessBundle(
-                    bundle, metric, Hmark=Hmark, resultsDb=resultsDb
+                comp[newkey] = mb.make_completeness_bundle(
+                    bundle, metric, h_mark=Hmark, results_db=resultsDb
                 )
         elif "MagicDiscovery" in bundle.metric.name:
             for metric in summaryHMetrics:
                 newkey = b + " " + metric.name
-                comp[newkey] = mb.makeCompletenessBundle(
-                    bundle, metric, Hmark=Hmark, resultsDb=resultsDb
+                comp[newkey] = mb.make_completeness_bundle(
+                    bundle, metric, h_mark=Hmark, results_db=resultsDb
                 )
         elif "HighVelocity" in bundle.metric.name:
             for metric in summaryHMetrics:
                 newkey = b + " " + metric.name
-                comp[newkey] = mb.makeCompletenessBundle(
-                    bundle, metric, Hmark=Hmark, resultsDb=resultsDb
+                comp[newkey] = mb.make_completeness_bundle(
+                    bundle, metric, h_mark=Hmark, results_db=resultsDb
                 )
         return comp
 
@@ -774,7 +774,7 @@ def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
     # (also set the display dict properties, for the resultsDb output).
     for b, bundle in completeness.items():
         bundle.displayDict["subgroup"] = f"Completeness"
-        bundle.write(outDir=outDir, resultsDb=resultsDb)
+        bundle.write(out_dir=outDir, results_db=resultsDb)
 
     # Calculate total number of objects - currently for NEOs and PHAs only
     for b, bundle in completeness.items():
@@ -788,14 +788,14 @@ def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
                         Hmark=25, dndh_func=metrics.neo_dndh_granvik
                     ),
                 ]
-                bundle.setSummaryMetrics(nobj_metrics)
-                bundle.computeSummaryStats(resultsDb)
+                bundle.set_summary_metrics(nobj_metrics)
+                bundle.compute_summary_stats(resultsDb)
             if "PHA" in bundle.info_label:
                 nobj_metrics = [
                     metrics.TotalNumberSSO(Hmark=22, dndh_func=metrics.pha_dndh_granvik)
                 ]
-                bundle.setSummaryMetrics(nobj_metrics)
-                bundle.computeSummaryStats(resultsDb)
+                bundle.set_summary_metrics(nobj_metrics)
+                bundle.compute_summary_stats(resultsDb)
     return completeness
 
 
@@ -843,15 +843,15 @@ def plotCompleteness(
 
     # Apply color-coding.
     for k, b in plotTimes.items():
-        b.setPlotDict(_codePlot(k))
+        b.set_plot_dict(_codePlot(k))
     for k, b in plotDiff.items():
-        b.setPlotDict(_codePlot(k))
+        b.set_plot_dict(_codePlot(k))
     for k, b in plotComp.items():
-        b.setPlotDict(_codePlot(k))
+        b.set_plot_dict(_codePlot(k))
 
     first = bdictCompleteness[list(bdictCompleteness.keys())[0]]
     if runName is None:
-        runName = first.runName
+        runName = first.run_name
     if figroot is None:
         figroot = runName
     displayDict = deepcopy(first.displayDict)
@@ -1010,12 +1010,12 @@ def characterizationInnerBatch(
         metric,
         slicer,
         constraint,
-        stackerList=stackerList,
-        runName=runName,
+        stacker_list=stackerList,
+        run_name=runName,
         info_label=md,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -1032,12 +1032,12 @@ def characterizationInnerBatch(
         metric,
         slicer,
         constraint,
-        stackerList=stackerList,
-        runName=runName,
+        stacker_list=stackerList,
+        run_name=runName,
         info_label=md,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -1055,12 +1055,12 @@ def characterizationInnerBatch(
             metric,
             slicer,
             constraint,
-            stackerList=stackerList,
-            runName=runName,
+            stacker_list=stackerList,
+            run_name=runName,
             info_label=info_label,
-            plotDict=plotDict,
-            plotFuncs=plotFuncs,
-            displayDict=displayDict,
+            plot_dict=plotDict,
+            plot_funcs=plotFuncs,
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
@@ -1076,12 +1076,12 @@ def characterizationInnerBatch(
             metric,
             slicer,
             constraint,
-            stackerList=stackerList,
-            runName=runName,
+            stacker_list=stackerList,
+            run_name=runName,
             info_label=info_label,
-            plotDict=plotDict,
-            plotFuncs=plotFuncs,
-            displayDict=displayDict,
+            plot_dict=plotDict,
+            plot_funcs=plotFuncs,
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
@@ -1100,12 +1100,12 @@ def characterizationInnerBatch(
         metric,
         slicer,
         constraint,
-        stackerList=stackerList,
-        runName=runName,
+        stacker_list=stackerList,
+        run_name=runName,
         info_label=md,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -1124,19 +1124,19 @@ def characterizationInnerBatch(
         metric,
         slicer,
         constraint,
-        stackerList=stackerList,
-        runName=runName,
+        stacker_list=stackerList,
+        run_name=runName,
         info_label=md,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def characterizationOuterBatch(
@@ -1210,12 +1210,12 @@ def characterizationOuterBatch(
         metric,
         slicer,
         constraint,
-        stackerList=stackerList,
-        runName=runName,
+        stacker_list=stackerList,
+        run_name=runName,
         info_label=md,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -1232,12 +1232,12 @@ def characterizationOuterBatch(
         metric,
         slicer,
         constraint,
-        stackerList=stackerList,
-        runName=runName,
+        stacker_list=stackerList,
+        run_name=runName,
         info_label=md,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -1255,12 +1255,12 @@ def characterizationOuterBatch(
             metric,
             slicer,
             constraint,
-            stackerList=stackerList,
-            runName=runName,
+            stacker_list=stackerList,
+            run_name=runName,
             info_label=info_label,
-            plotDict=plotDict,
-            plotFuncs=plotFuncs,
-            displayDict=displayDict,
+            plot_dict=plotDict,
+            plot_funcs=plotFuncs,
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
@@ -1276,12 +1276,12 @@ def characterizationOuterBatch(
             metric,
             slicer,
             constraint,
-            stackerList=stackerList,
-            runName=runName,
+            stacker_list=stackerList,
+            run_name=runName,
             info_label=info_label,
-            plotDict=plotDict,
-            plotFuncs=plotFuncs,
-            displayDict=displayDict,
+            plot_dict=plotDict,
+            plot_funcs=plotFuncs,
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
@@ -1301,19 +1301,19 @@ def characterizationOuterBatch(
         metric,
         slicer,
         constraint,
-        stackerList=stackerList,
-        runName=runName,
+        stacker_list=stackerList,
+        run_name=runName,
         info_label=md,
-        plotDict=plotDict,
-        plotFuncs=plotFuncs,
-        displayDict=displayDict,
+        plot_dict=plotDict,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def runFractionSummary(bdict, Hmark, outDir, resultsDb):
@@ -1375,19 +1375,19 @@ def runFractionSummary(bdict, Hmark, outDir, resultsDb):
             if k in b:
                 for summary_metric in asteroidSummaryMetrics[k]:
                     newkey = b + " " + summary_metric.name
-                    fractions[newkey] = mb.makeCompletenessBundle(
-                        bundle, summary_metric, Hmark=Hmark, resultsDb=resultsDb
+                    fractions[newkey] = mb.make_completeness_bundle(
+                        bundle, summary_metric, h_mark=Hmark, results_db=resultsDb
                     )
         for k in outerSummaryMetrics:
             if k in b:
                 for summary_metric in outerSummaryMetrics[k]:
                     newkey = b + " " + summary_metric.name
-                    fractions[newkey] = mb.makeCompletenessBundle(
-                        bundle, summary_metric, Hmark=Hmark, resultsDb=resultsDb
+                    fractions[newkey] = mb.make_completeness_bundle(
+                        bundle, summary_metric, h_mark=Hmark, results_db=resultsDb
                     )
     # Write the fractional populations bundles to disk, so we can re-read them later.
     for b, bundle in fractions.items():
-        bundle.write(outDir=outDir, resultsDb=resultsDb)
+        bundle.write(out_dir=outDir, results_db=resultsDb)
     return fractions
 
 
@@ -1419,7 +1419,7 @@ def plotFractions(
 
     first = bdictFractions[list(bdictFractions.keys())[0]]
     if figroot is None:
-        figroot = first.runName
+        figroot = first.run_name
     displayDict = deepcopy(first.displayDict)
     displayDict["subgroup"] = f"Characterization Fraction"
 
@@ -1502,7 +1502,7 @@ def plotActivity(bdict, figroot=None, resultsDb=None, outDir=".", figformat="pdf
 
     first = bdict[list(bdict.keys())[0]]
     if figroot is None:
-        figroot = first.runName
+        figroot = first.run_name
     displayDict = deepcopy(first.displayDict)
 
     if len(activity_days) > 0:
@@ -1559,7 +1559,7 @@ def readAndCombine(orbitRoot, baseDir, splits, metricfile):
     """
     subsets = {}
     for i in splits:
-        subsets[i] = mb.createEmptyMoMetricBundle()
+        subsets[i] = mb.create_empty_mo_metric_bundle()
         ddir = os.path.join(baseDir, f"{orbitRoot}_{i}")
         subsets[i].read(os.path.join(ddir, metricfile))
     bundle = combineSubsets(subsets)
@@ -1577,7 +1577,7 @@ def combineSubsets(mbSubsets):
         for i, b in enumerate(mbSubsets):
             subsetdict[i] = b
         mbSubsets = subsetdict
-    joint = mb.createEmptyMoMetricBundle()
+    joint = mb.create_empty_mo_metric_bundle()
     # Check if they're the same slicer.
     slicer = deepcopy(first.slicer)
     for i in mbSubsets:
@@ -1604,8 +1604,8 @@ def combineSubsets(mbSubsets):
         data=metricValues, mask=metricValuesMask, fill_value=0
     )
     joint.info_label = first.info_label
-    joint.runName = first.runName
-    joint.fileRoot = first.fileRoot.replace(".npz", "")
+    joint.run_name = first.run_name
+    joint.file_root = first.file_root.replace(".npz", "")
     joint.plotDict = first.plotDict
     joint.displayDict = first.displayDict
     return joint

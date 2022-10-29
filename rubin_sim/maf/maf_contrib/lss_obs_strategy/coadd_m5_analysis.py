@@ -184,7 +184,7 @@ def coaddM5Analysis(
         )
     )
     print("# outDir: %s" % outDir)
-    resultsDb = db.ResultsDb(outDir=outDir)
+    resultsDb = db.ResultsDb(out_dir=outDir)
 
     # ------------------------------------------------------------------------
     # set up the sql constraint
@@ -441,19 +441,19 @@ def coaddM5Analysis(
                 coaddMetric,
                 slicer[dither],
                 sqlconstraint,
-                stackerList=stackerList[dither],
-                runName=runName,
+                stacker_list=stackerList[dither],
+                run_name=runName,
                 metadata=dither,
-                mapsList=[dustMap],
+                maps_list=[dustMap],
             )
         else:
             coaddBundle[dither] = metricBundles.MetricBundle(
                 coaddMetric,
                 slicer[dither],
                 sqlconstraint,
-                runName=runName,
+                run_name=runName,
                 metadata=dither,
-                mapsList=[dustMap],
+                maps_list=[dustMap],
             )
 
     # ------------------------------------------------------------------------
@@ -463,9 +463,9 @@ def coaddM5Analysis(
     else:
         print("\n# Running coaddBundle without dust extinction ...")
     cGroup = metricBundles.MetricBundleGroup(
-        coaddBundle, opsdb, outDir=outDir, resultsDb=resultsDb, saveEarly=False
+        coaddBundle, opsdb, out_dir=outDir, results_db=resultsDb, save_early=False
     )
-    cGroup.runAll()
+    cGroup.run_all()
 
     # ------------------------------------------------------------------------
     plotHandler = plots.PlotHandler(
@@ -509,11 +509,11 @@ def coaddM5Analysis(
     # Calculate total power
     summarymetric = metrics.TotalPowerMetric()
     for dither in coaddBundle:
-        coaddBundle[dither].setSummaryMetrics(summarymetric)
-        coaddBundle[dither].computeSummaryStats()
+        coaddBundle[dither].set_summary_metrics(summarymetric)
+        coaddBundle[dither].compute_summary_stats()
         print(
             "# Total power for %s case is %f."
-            % (dither, coaddBundle[dither].summaryValues["TotalPower"])
+            % (dither, coaddBundle[dither].summary_values["TotalPower"])
         )
     print("")
 

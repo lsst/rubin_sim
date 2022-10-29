@@ -9,7 +9,7 @@ class TestBaseMetric(unittest.TestCase):
     def testReduceDict(self):
         """Test that reduce dictionary is created."""
         testmetric = metrics.BaseMetric("testcol")
-        self.assertEqual(list(testmetric.reduceFuncs.keys()), [])
+        self.assertEqual(list(testmetric.reduce_funcs.keys()), [])
 
     def testMetricName(self):
         """Test that metric name is set appropriately automatically and explicitly"""
@@ -19,14 +19,14 @@ class TestBaseMetric(unittest.TestCase):
         testmetric = metrics.BaseMetric(["testcol1", "testcol2"])
         self.assertEqual(testmetric.name, "Base testcol1, testcol2")
         # Test explicit setting of metric name
-        testmetric = metrics.BaseMetric("testcol", metricName="Test")
+        testmetric = metrics.BaseMetric("testcol", metric_name="Test")
         self.assertEqual(testmetric.name, "Test")
 
     def testColRegistry(self):
         """Test column registry adds to colRegistry as expected"""
         # Clear the registry to make sure we start clear
         colreg = metrics.ColRegistry()
-        colreg.clearReg()
+        colreg.clear_reg()
 
         cols = "onecolumn"
         colset = set()
@@ -34,31 +34,31 @@ class TestBaseMetric(unittest.TestCase):
         testmetric = metrics.BaseMetric(cols)
         # Class registry should have dictionary with values = set of columns for metric class
         for item in colset:
-            self.assertIn(item, testmetric.colRegistry.colSet)
+            self.assertIn(item, testmetric.col_registry.col_set)
         cols = ["onecolumn", "twocolumn"]
         colset.add("twocolumn")
         testmetric = metrics.BaseMetric(cols)
         for item in colset:
-            self.assertIn(item, testmetric.colRegistry.colSet)
+            self.assertIn(item, testmetric.col_registry.col_set)
         # Test with additional (different) metric
         cols = "twocolumn"
         testmetric2 = metrics.MeanMetric(cols)
         for item in colset:
-            self.assertIn(item, testmetric2.colRegistry.colSet)
+            self.assertIn(item, testmetric2.col_registry.col_set)
 
         # test that the registry can be cleared
-        colreg.clearReg()
-        assert len(colreg.colSet) == 0
-        assert len(colreg.dbSet) == 0
-        assert len(colreg.stackerDict) == 0
+        colreg.clear_reg()
+        assert len(colreg.col_set) == 0
+        assert len(colreg.db_set) == 0
+        assert len(colreg.stacker_dict) == 0
 
     def testMetricDtype(self):
         """Test that base metric data value type set appropriately"""
         cols = "onecolumn"
         testmetric = metrics.BaseMetric(cols)
-        self.assertEqual(testmetric.metricDtype, "float")
-        testmetric = metrics.BaseMetric(cols, metricDtype="object")
-        self.assertEqual(testmetric.metricDtype, "object")
+        self.assertEqual(testmetric.metric_dtype, "float")
+        testmetric = metrics.BaseMetric(cols, metric_dtype="object")
+        self.assertEqual(testmetric.metric_dtype, "object")
 
     def testUnits(self):
         """Test unit setting (including units set by utils.getColInfo)"""

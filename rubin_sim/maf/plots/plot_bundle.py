@@ -63,15 +63,15 @@ class PlotBundle(object):
         Go through the bundles and change the lables if there are the correct summary stats
         """
         for i, mB in enumerate(self.bundleList):
-            if mB.summaryValues is not None:
-                keys = list(mB.summaryValues.keys())
+            if mB.summary_values is not None:
+                keys = list(mB.summary_values.keys())
                 if ("25th%ile" in keys) & ("75th%ile" in keys) & ("Median" in keys):
                     if "label" not in list(self.plotDicts[i].keys()):
                         self.plotDicts[i]["label"] = ""
                     newstr = "%0.1f/%0.1f/%0.1f " % (
-                        mB.summaryValues["25th%ile"],
-                        mB.summaryValues["Median"],
-                        mB.summaryValues["75th%ile"],
+                        mB.summary_values["25th%ile"],
+                        mB.summary_values["Median"],
+                        mB.summary_values["75th%ile"],
                     )
                     self.plotDicts[i]["label"] = newstr + self.plotDicts[i]["label"]
 

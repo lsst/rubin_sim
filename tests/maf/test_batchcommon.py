@@ -7,7 +7,7 @@ class TestCommon(unittest.TestCase):
         colmap = batches.col_map_dict("opsimv4")
         self.assertEqual(colmap["raDecDeg"], True)
         self.assertEqual(colmap["ra"], "fieldRA")
-        colmap = batches.getColMap("_temp")
+        colmap = batches.get_col_map("_temp")
         self.assertEqual(colmap["raDecDeg"], True)
         self.assertEqual(colmap["ra"], "fieldRA")
 

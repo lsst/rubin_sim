@@ -121,16 +121,16 @@ def filtersPerNight(
             m,
             slicer,
             sql,
-            runName=runName,
+            run_name=runName,
             info_label=info_label,
-            displayDict=displayDict,
-            summaryMetrics=summaryStats,
+            display_dict=displayDict,
+            summary_metrics=summaryStats,
         )
         bundleList.append(bundle)
 
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def filtersWholeSurvey(
@@ -182,12 +182,12 @@ def filtersWholeSurvey(
             m,
             slicer,
             sql,
-            runName=runName,
+            run_name=runName,
             info_label=info_label,
-            displayDict=displayDict,
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)

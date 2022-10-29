@@ -83,17 +83,17 @@ def altazHealpix(
             metric,
             slicer,
             sqls[f],
-            plotDict=plotDict,
-            runName=runName,
+            plot_dict=plotDict,
+            run_name=runName,
             info_label=info_label[f],
-            plotFuncs=[plotFunc],
-            displayDict=displayDict,
+            plot_funcs=[plotFunc],
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def altazLambert(
@@ -152,13 +152,13 @@ def altazLambert(
             metric,
             slicer,
             sqls[f],
-            runName=runName,
+            run_name=runName,
             info_label=info_label[f],
-            plotFuncs=[plotFunc],
-            displayDict=displayDict,
+            plot_funcs=[plotFunc],
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)

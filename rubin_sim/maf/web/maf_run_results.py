@@ -140,9 +140,9 @@ class MafRunResults(object):
             return None
         datafile = os.path.join(self.outDir, filename)
         # Read data back into a  bundle.
-        mB = metricBundles.createEmptyMetricBundle()
+        mB = metricBundles.create_empty_metric_bundle()
         mB.read(datafile)
-        io = mB.outputJSON()
+        io = mB.output_json()
         if io is None:
             return None
         return io.getvalue()

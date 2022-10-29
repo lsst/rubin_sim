@@ -41,16 +41,16 @@ def scimaf_dir():
                 shutil.rmtree(out_dir)
         opsdb = db.OpsimDatabase(filename)
         colmap = batches.ColMapDict()
-        results_db = db.ResultsDb(outDir=out_dir)
+        results_db = db.ResultsDb(out_dir=out_dir)
         # Set up the metricBundles
-        bdict = batches.scienceRadarBatch(
+        bdict = batches.science_radar_batch(
             runName=name,
         )
         # Run them, including generating plots
         group = mb.MetricBundleGroup(
-            bdict, opsdb, out_dir=out_dir, results_db=results_db, saveEarly=False
+            bdict, opsdb, out_dir=out_dir, results_db=results_db, save_early=False
         )
-        group.runAll(clearMemory=True, plotNow=True)
+        group.run_all(clear_memory=True, plot_now=True)
         results_db.close()
         db.addRunToDatabase(
             out_dir,

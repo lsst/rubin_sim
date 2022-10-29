@@ -52,7 +52,7 @@ class TestBatches(unittest.TestCase):
         # Loading the science radar batch requires reading a significant set of input files
         # This test is skipped if running with the lighter set of test data.
         # batch requires reading a lot of input files for lightcurves
-        ack = batches.scienceRadarBatch()
+        ack = batches.science_radar_batch()
 
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
@@ -62,11 +62,11 @@ class TestBatches(unittest.TestCase):
         ack = batches.glanceBatch()
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
         opsdb = db.OpsimDatabase(database=database)
-        resultsDb = db.ResultsDb(outDir=self.outDir)
+        resultsDb = db.ResultsDb(out_dir=self.outDir)
         bgroup = metric_bundles.MetricBundleGroup(
-            ack, opsdb, outDir=self.outDir, resultsDb=resultsDb
+            ack, opsdb, out_dir=self.outDir, results_db=resultsDb
         )
-        bgroup.runAll()
+        bgroup.run_all()
 
     def tearDown(self):
         if os.path.isdir(self.outDir):

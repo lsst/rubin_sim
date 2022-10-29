@@ -156,7 +156,7 @@ class ResultsDb(object):
     the plots created, the display information (such as captions), and any summary statistics output.
     """
 
-    def __init__(self, outDir=None, database=None, verbose=False):
+    def __init__(self, out_dir=None, database=None, verbose=False):
         """
         Instantiate the results database, creating metrics, plots and summarystats tables.
         """
@@ -166,32 +166,32 @@ class ResultsDb(object):
         # for sqlite, connecting to non-existent database creates it automatically
         if database is None:
             # Using default value for database name, should specify directory.
-            if outDir is None:
-                outDir = "."
+            if out_dir is None:
+                out_dir = "."
             # Check for output directory, make if needed.
-            if not os.path.isdir(outDir):
+            if not os.path.isdir(out_dir):
                 try:
-                    os.makedirs(outDir)
+                    os.makedirs(out_dir)
                 except OSError as msg:
                     raise OSError(
                         msg,
                         "\n  (If this was the database file (not outDir), "
                         'remember to use kwarg "database")',
                     )
-            self.database = os.path.join(outDir, "resultsDb_sqlite.db")
+            self.database = os.path.join(out_dir, "resultsDb_sqlite.db")
         else:
             # Using non-default database, but may also specify directory root.
-            if outDir is not None:
-                database = os.path.join(outDir, database)
+            if out_dir is not None:
+                database = os.path.join(out_dir, database)
             self.database = database
         # If this is a new file, then we should record date and version later.
         needs_version = not os.path.isfile(self.database)
 
         # Connect to the specified file; this will create the database if it doesn't exist.
         already_file = os.path.isfile(self.database)
-        dbAddress = url.URL.create(self.driver, database=self.database)
+        db_address = url.URL.create(self.driver, database=self.database)
 
-        engine = create_engine(dbAddress, echo=verbose)
+        engine = create_engine(db_address, echo=verbose)
         self.Session = sessionmaker(bind=engine)
         self.open()
         # Create the tables, if they don't already exist.
@@ -208,7 +208,7 @@ class ResultsDb(object):
         query = "select * from metrics limit 1"
         cols = self.session.execute(query)._metadata.keys
         if "metricInfoLabel" not in cols:
-            self.updateDatabase()
+            self.update_database()
 
         # record the version we are on
         if needs_version:
@@ -220,7 +220,7 @@ class ResultsDb(object):
 
         self.close()
 
-    def updateDatabase(self):
+    def update_database(self):
         """Update the resultsDb from 'metricMetaata' to 'metricInfoLabel'
 
         This updates resultsDb to work with the current version of MAF, including RunComparison and showMaf.
@@ -235,7 +235,7 @@ class ResultsDb(object):
         self.session.commit()
         self.close()
 
-    def downgradeDatabase(self):
+    def downgrade_database(self):
         """Update the resultsDb from 'metricInfoLabel' to 'metricMetadata'
 
         This updates resultsDb to work with older versions of MAF.
@@ -264,7 +264,7 @@ class ResultsDb(object):
         """
         self.session.close()
 
-    def updateMetric(
+    def update_metric(
         self,
         metricName,
         slicerName,
@@ -338,7 +338,7 @@ class ResultsDb(object):
 
         return metricinfo.metricId
 
-    def updateDisplay(self, metricId, displayDict, overwrite=True):
+    def update_display(self, metricId, displayDict, overwrite=True):
         """
         Add a row to or update a row in the displays table.
 
@@ -388,7 +388,7 @@ class ResultsDb(object):
         self.session.commit()
         self.close()
 
-    def updatePlot(self, metricId, plotType, plotFile, overwrite=False):
+    def update_plot(self, metricId, plotType, plotFile, overwrite=False):
         """
         Add a row to or update a row in the plot table.
 
@@ -418,7 +418,7 @@ class ResultsDb(object):
         self.session.commit()
         self.close()
 
-    def updateSummaryStat(self, metricId, summaryName, summaryValue):
+    def update_summary_stat(self, metric_id, summary_name, summary_value):
         """
         Add a row to or update a row in the summary statistic table.
 
@@ -430,11 +430,11 @@ class ResultsDb(object):
 
         Parameters
         ----------
-        metricId : `int`
+        metric_id : `int`
             The metric Id of this metric bundle
-        summaryName : `str`
+        summary_name : `str`
             The name of this summary statistic
-        summaryValue: : `float` or `numpy.ndarray`
+        summary_value: : `float` or `numpy.ndarray`
             The value for this summary statistic.
             If this is a numpy recarray, then it should also have 'name' and 'value' columns to save
             each value to rows in the summary statistic table.
@@ -442,19 +442,19 @@ class ResultsDb(object):
         # Allow for special summary statistics which return data in a np structured array with
         #   'name' and 'value' columns.  (specificially needed for TableFraction summary statistic).
         self.open()
-        if isinstance(summaryValue, np.ndarray):
-            if ("name" in summaryValue.dtype.names) and (
-                "value" in summaryValue.dtype.names
+        if isinstance(summary_value, np.ndarray):
+            if ("name" in summary_value.dtype.names) and (
+                "value" in summary_value.dtype.names
             ):
-                for value in summaryValue:
+                for value in summary_value:
                     sSuffix = value["name"]
                     if isinstance(sSuffix, bytes):
                         sSuffix = sSuffix.decode("utf-8")
                     else:
                         sSuffix = str(sSuffix)
                     summarystat = SummaryStatRow(
-                        metricId=metricId,
-                        summaryName=summaryName + " " + sSuffix,
+                        metricId=metric_id,
+                        summaryName=summary_name + " " + sSuffix,
                         summaryValue=value["value"],
                     )
                     self.session.add(summarystat)
@@ -463,11 +463,11 @@ class ResultsDb(object):
                 warnings.warn("Warning! Cannot save non-conforming summary statistic.")
         # Most summary statistics will be simple floats.
         else:
-            if isinstance(summaryValue, float) or isinstance(summaryValue, int):
+            if isinstance(summary_value, float) or isinstance(summary_value, int):
                 summarystat = SummaryStatRow(
-                    metricId=metricId,
-                    summaryName=summaryName,
-                    summaryValue=summaryValue,
+                    metricId=metric_id,
+                    summaryName=summary_name,
+                    summaryValue=summary_value,
                 )
                 self.session.add(summarystat)
                 self.session.commit()
@@ -477,7 +477,7 @@ class ResultsDb(object):
                 )
         self.close()
 
-    def getMetricId(
+    def get_metric_id(
         self, metricName, slicerName=None, metricInfoLabel=None, simDataName=None
     ):
         """Find metric bundle Ids from the metric table.

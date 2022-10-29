@@ -160,7 +160,7 @@ def run_moving_calc():
             # This can happen if you are running these in parallel and two scripts try to make
             # the same directory.
             pass
-    resultsDb = db.ResultsDb(outDir=args.outDir)
+    resultsDb = db.ResultsDb(out_dir=args.outDir)
 
     colmap = batches.ColMapDict()
     slicer = batches.setupMoSlicer(args.orbitFile, Hrange, obsFile=args.obsFile)
@@ -178,7 +178,7 @@ def run_moving_calc():
     )
     # Run these discovery metrics
     print("Calculating quick discovery metrics with simple trailing losses.")
-    bg = mmb.MoMetricBundleGroup(bdictT, outDir=args.outDir, resultsDb=resultsDb)
+    bg = mmb.MoMetricBundleGroup(bdictT, out_dir=args.outDir, resultsDb=resultsDb)
     bg.runAll()
 
     # Run all discovery metrics using 'detection' losses
@@ -208,7 +208,7 @@ def run_moving_calc():
 
     # Run these discovery metrics
     print("Calculating full discovery metrics with detection losses.")
-    bg = mmb.MoMetricBundleGroup(bdictD, outDir=args.outDir, resultsDb=resultsDb)
+    bg = mmb.MoMetricBundleGroup(bdictD, out_dir=args.outDir, resultsDb=resultsDb)
     bg.runAll()
 
     # Run all characterization metrics
@@ -236,5 +236,5 @@ def run_moving_calc():
         )
     # Run these characterization metrics
     print("Calculating characterization metrics.")
-    bg = mmb.MoMetricBundleGroup(bdictC, outDir=args.outDir, resultsDb=resultsDb)
+    bg = mmb.MoMetricBundleGroup(bdictC, out_dir=args.outDir, resultsDb=resultsDb)
     bg.runAll()

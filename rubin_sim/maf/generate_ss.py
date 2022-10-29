@@ -76,7 +76,7 @@ def generate_ss_commands(
             except FileExistsError:
                 pass
             # Create the results DB so multiple threads don't try to create it later
-            resultsDb = db.ResultsDb(outDir=outDir)
+            resultsDb = db.ResultsDb(out_dir=outDir)
         for pop in pops:
             for run, filename in zip(runs, dbfiles):
                 objtype = objtypes[pop]
@@ -104,7 +104,7 @@ def generate_ss_commands(
             except FileExistsError:
                 pass
             # Create the results DB so multiple threads don't try to create it later
-            resultsDb = db.ResultsDb(outDir=outDir)
+            resultsDb = db.ResultsDb(out_dir=outDir)
             outfile = f"{run}_ss_script.sh"
             if split:
                 output_file = open(outfile, "w")

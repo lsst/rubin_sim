@@ -133,10 +133,10 @@ def ddfBatch(
                 ddf_slicers_sne[ddf],
                 constraint="note like '%DD%'",
                 info_label=" ".join([fieldname, "all bands, only DDF observations"]),
-                plotDict=plotDict,
-                plotFuncs=plotFuncs,
-                summaryMetrics=summary_stats,
-                displayDict=displayDict,
+                plot_dict=plotDict,
+                plot_funcs=plotFuncs,
+                summary_metrics=summary_stats,
+                display_dict=displayDict,
             )
         )
         # Strong lensed SNe
@@ -151,10 +151,10 @@ def ddfBatch(
                 ddf_slicers[ddf],
                 constraint=sqls["all"],
                 info_label=" ".join([fieldname, info_labels["all"]]),
-                plotDict=plotDict,
-                plotFuncs=plotFuncs,
-                summaryMetrics=summary_stats,
-                displayDict=displayDict,
+                plot_dict=plotDict,
+                plot_funcs=plotFuncs,
+                summary_metrics=summary_stats,
+                display_dict=displayDict,
             )
         )
 
@@ -183,10 +183,10 @@ def ddfBatch(
                     ddf_slicers[ddf],
                     sqls[f],
                     info_label=" ".join([fieldname, info_labels[f]]),
-                    plotDict=plotDict,
-                    plotFuncs=plotFuncs,
-                    summaryMetrics=summaryMetrics,
-                    displayDict=displayDict,
+                    plot_dict=plotDict,
+                    plot_funcs=plotFuncs,
+                    summary_metrics=summaryMetrics,
+                    display_dict=displayDict,
                 )
             )
 
@@ -209,11 +209,11 @@ def ddfBatch(
                     ddf_slicers[ddf],
                     constraint=sqls[f],
                     info_label=" ".join([fieldname, info_labels[f]]),
-                    runName=runName,
-                    plotDict=plotDict,
-                    plotFuncs=plotFuncs,
-                    summaryMetrics=summaryMetrics,
-                    displayDict=displayDict,
+                    run_name=runName,
+                    plot_dict=plotDict,
+                    plot_funcs=plotFuncs,
+                    summary_metrics=summaryMetrics,
+                    display_dict=displayDict,
                 )
             )
 
@@ -236,11 +236,11 @@ def ddfBatch(
                     ddf_slicers[ddf],
                     constraint=sqls[f],
                     info_label=" ".join([fieldname, info_labels[f]]),
-                    runName=runName,
-                    plotDict=plotDict,
-                    plotFuncs=plotFuncs,
-                    summaryMetrics=summaryMetrics,
-                    displayDict=displayDict,
+                    run_name=runName,
+                    plot_dict=plotDict,
+                    plot_funcs=plotFuncs,
+                    summary_metrics=summaryMetrics,
+                    display_dict=displayDict,
                 )
             )
 
@@ -264,10 +264,10 @@ def ddfBatch(
                     ddf_slicers[ddf],
                     sqls[f],
                     info_label=" ".join([fieldname, info_labels[f]]),
-                    plotDict=plotDict,
-                    plotFuncs=plotFuncs,
-                    summaryMetrics=summaryMetrics,
-                    displayDict=displayDict,
+                    plot_dict=plotDict,
+                    plot_funcs=plotFuncs,
+                    summary_metrics=summaryMetrics,
+                    display_dict=displayDict,
                 )
             )
 
@@ -284,11 +284,11 @@ def ddfBatch(
                     ddf_slicers[ddf],
                     sqls[f],
                     info_label=info_labels[f],
-                    plotDict=plotDict,
-                    runName=runName,
-                    plotFuncs=plotFuncs,
-                    summaryMetrics=depth_stats,
-                    displayDict=displayDict,
+                    plot_dict=plotDict,
+                    run_name=runName,
+                    plot_funcs=plotFuncs,
+                    summary_metrics=depth_stats,
+                    display_dict=displayDict,
                 )
             )
             displayDict["subgroup"] = "N Visits"
@@ -304,11 +304,11 @@ def ddfBatch(
                     ddf_slicers[ddf],
                     sqls[f],
                     info_label=info_labels[f],
-                    plotDict=plotDict,
-                    runName=runName,
-                    plotFuncs=plotFuncs,
-                    summaryMetrics=depth_stats,
-                    displayDict=displayDict,
+                    plot_dict=plotDict,
+                    run_name=runName,
+                    plot_funcs=plotFuncs,
+                    summary_metrics=depth_stats,
+                    display_dict=displayDict,
                 )
             )
         # Count over all filter
@@ -326,11 +326,11 @@ def ddfBatch(
                 ddf_slicers[ddf],
                 constraint=sqls["all"],
                 info_label=info_labels["all"],
-                plotDict=plotDict,
-                runName=runName,
-                plotFuncs=plotFuncs,
-                summaryMetrics=depth_stats,
-                displayDict=displayDict,
+                plot_dict=plotDict,
+                run_name=runName,
+                plot_funcs=plotFuncs,
+                summary_metrics=depth_stats,
+                display_dict=displayDict,
             )
         )
         # Count number of unique nights with visits
@@ -347,11 +347,11 @@ def ddfBatch(
                 ddf_slicers[ddf],
                 constraint=sqls["all"],
                 info_label=info_labels["all"],
-                plotDict=plotDict,
-                runName=runName,
-                plotFuncs=plotFuncs,
-                summaryMetrics=depth_stats,
-                displayDict=displayDict,
+                plot_dict=plotDict,
+                run_name=runName,
+                plot_funcs=plotFuncs,
+                summary_metrics=depth_stats,
+                display_dict=displayDict,
             )
         )
 
@@ -395,9 +395,9 @@ def ddfBatch(
             ptslicer,
             fieldsqls["all"],
             info_label=info_labels["all"],
-            plotDict=plotDict,
-            displayDict=displayDict,
-            plotFuncs=[plotFunc],
+            plot_dict=plotDict,
+            display_dict=displayDict,
+            plot_funcs=[plotFunc],
         )
         bundle_list.append(bundle)
 
@@ -414,8 +414,8 @@ def ddfBatch(
                 slicer,
                 fieldsqls["all"],
                 info_label=info_labels["all"],
-                displayDict=displayDict,
-                summaryMetrics=[
+                display_dict=displayDict,
+                summary_metrics=[
                     maf.MedianMetric(),
                     maf.PercentileMetric(percentile=80, metricName="80thPercentile"),
                     maf.MinMetric(),
@@ -443,9 +443,9 @@ def ddfBatch(
             ptslicer,
             constraint=fieldsqls["all"],
             info_label=info_labels["all"],
-            plotDict=plotDict,
-            displayDict=displayDict,
-            plotFuncs=[plotFunc],
+            plot_dict=plotDict,
+            display_dict=displayDict,
+            plot_funcs=[plotFunc],
         )
         bundle_list.append(bundle)
 
@@ -464,10 +464,10 @@ def ddfBatch(
                     ptslicer,
                     fieldsqls[f],
                     info_label=info_labels[f],
-                    runName=runName,
-                    summaryMetrics=[maf.MeanMetric()],
-                    plotFuncs=[],
-                    displayDict=displayDict,
+                    run_name=runName,
+                    summary_metrics=[maf.MeanMetric()],
+                    plot_funcs=[],
+                    display_dict=displayDict,
                 )
             )
 
@@ -492,9 +492,9 @@ def ddfBatch(
             ptslicer,
             fieldsqls["all"],
             info_label=" ".join([fieldname, info_labels["all"]]),
-            plotDict=plotDict,
-            displayDict=displayDict,
-            plotFuncs=[plotFunc],
+            plot_dict=plotDict,
+            display_dict=displayDict,
+            plot_funcs=[plotFunc],
         )
         bundle_list.append(bundle)
 
@@ -509,10 +509,10 @@ def ddfBatch(
                 ptslicer,
                 fieldsqls[f],
                 info_label=info_labels["all"],
-                runName=runName,
-                summaryMetrics=[maf.MeanMetric()],
-                plotFuncs=[],
-                displayDict=displayDict,
+                run_name=runName,
+                summary_metrics=[maf.MeanMetric()],
+                plot_funcs=[],
+                display_dict=displayDict,
             )
         )
 
@@ -532,15 +532,15 @@ def ddfBatch(
                 slicer,
                 fieldsqls["all"],
                 info_label=info_labels["all"],
-                plotFuncs=[maf.XyPlotter()],
-                runName=runName,
-                displayDict=displayDict,
+                plot_funcs=[maf.XyPlotter()],
+                run_name=runName,
+                display_dict=displayDict,
             )
-            metricb.summaryMetrics = []
+            metricb.summary_metrics = []
             bundle_list.append(metricb)
 
     for b in bundle_list:
-        b.setRunName(runName)
-    bundleDict = maf.makeBundlesDictFromList(bundle_list)
+        b.set_run_name(runName)
+    bundleDict = maf.make_bundles_dict_from_list(bundle_list)
 
     return bundleDict

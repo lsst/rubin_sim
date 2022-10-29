@@ -89,12 +89,12 @@ def glanceBatch(
     metric = metrics.FullRangeMetric(
         col=colmap["mjd"], metricName="Length of Survey (days)"
     )
-    bundle = metric_bundles.MetricBundle(metric, slicer, sql, displayDict=displayDict)
+    bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
     bundleList.append(bundle)
 
     # Total number of filter changes
     metric = metrics.NChangesMetric(col=colmap["filter"], orderBy=colmap["mjd"])
-    bundle = metric_bundles.MetricBundle(metric, slicer, sql, displayDict=displayDict)
+    bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
     bundleList.append(bundle)
 
     # Total open shutter fraction
@@ -103,7 +103,7 @@ def glanceBatch(
         expTimeCol=colmap["exptime"],
         visitTimeCol=colmap["visittime"],
     )
-    bundle = metric_bundles.MetricBundle(metric, slicer, sql, displayDict=displayDict)
+    bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
     bundleList.append(bundle)
 
     # Total effective exposure time
@@ -112,7 +112,7 @@ def glanceBatch(
     )
     for sql in sql_per_and_all_filters:
         bundle = metric_bundles.MetricBundle(
-            metric, slicer, sql, displayDict=displayDict
+            metric, slicer, sql, display_dict=displayDict
         )
         bundleList.append(bundle)
 
@@ -120,7 +120,7 @@ def glanceBatch(
     metric = metrics.CountMetric(col=colmap["mjd"], metricName="Number of Exposures")
     for sql in sql_per_and_all_filters:
         bundle = metric_bundles.MetricBundle(
-            metric, slicer, sql, displayDict=displayDict
+            metric, slicer, sql, display_dict=displayDict
         )
         bundleList.append(bundle)
 
@@ -143,9 +143,9 @@ def glanceBatch(
             metric,
             slicer,
             sql,
-            plotFuncs=plotFuncs,
-            displayDict=displayDict,
-            plotDict=plotDict,
+            plot_funcs=plotFuncs,
+            display_dict=displayDict,
+            plot_dict=plotDict,
         )
         bundleList.append(bundle)
 
@@ -160,7 +160,7 @@ def glanceBatch(
     )
     sql = sqlConstraint
     bundle = metric_bundles.MetricBundle(
-        metric, slicer, sql, summaryMetrics=standardStats, displayDict=displayDict
+        metric, slicer, sql, summary_metrics=standardStats, display_dict=displayDict
     )
     bundleList.append(bundle)
 
@@ -170,7 +170,7 @@ def glanceBatch(
         col=colmap["filter"], orderBy=colmap["mjd"], metricName="Filter Changes"
     )
     bundle = metric_bundles.MetricBundle(
-        metric, slicer, sql, summaryMetrics=standardStats, displayDict=displayDict
+        metric, slicer, sql, summary_metrics=standardStats, display_dict=displayDict
     )
     bundleList.append(bundle)
 
@@ -195,16 +195,16 @@ def glanceBatch(
             metric,
             slicer,
             sql,
-            summaryMetrics=extended_stats,
-            displayDict=displayDict,
-            plotDict=plotDict,
+            summary_metrics=extended_stats,
+            display_dict=displayDict,
+            plot_dict=plotDict,
         )
         bundleList.append(bundle)
 
     metric = metrics.Coaddm5Metric(m5Col=colmap["fiveSigmaDepth"])
     for sql in sql_per_and_all_filters:
         bundle = metric_bundles.MetricBundle(
-            metric, slicer, sql, summaryMetrics=extended_stats, displayDict=displayDict
+            metric, slicer, sql, summary_metrics=extended_stats, display_dict=displayDict
         )
         bundleList.append(bundle)
 
@@ -225,9 +225,9 @@ def glanceBatch(
             metric,
             slicer,
             sql,
-            summaryMetrics=extended_stats,
-            plotDict=plotDict,
-            displayDict=displayDict,
+            summary_metrics=extended_stats,
+            plot_dict=plotDict,
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
@@ -261,11 +261,11 @@ def glanceBatch(
         metric,
         slicer,
         sql,
-        plotFuncs=subsetPlots,
-        displayDict=displayDict,
-        stackerList=stackerList,
-        plotDict=plotDict,
-        summaryMetrics=astrom_stats,
+        plot_funcs=subsetPlots,
+        display_dict=displayDict,
+        stacker_list=stackerList,
+        plot_dict=plotDict,
+        summary_metrics=astrom_stats,
     )
     bundleList.append(bundle)
     displayDict["caption"] = r"Proper motion precision of an $r=20$ flat SED star"
@@ -279,10 +279,10 @@ def glanceBatch(
         metric,
         slicer,
         sql,
-        plotFuncs=subsetPlots,
-        displayDict=displayDict,
-        plotDict=plotDict,
-        summaryMetrics=astrom_stats,
+        plot_funcs=subsetPlots,
+        display_dict=displayDict,
+        plot_dict=plotDict,
+        summary_metrics=astrom_stats,
     )
     bundleList.append(bundle)
 
@@ -299,7 +299,7 @@ def glanceBatch(
     )
     metric = metrics.PairFractionMetric(mjdCol=colmap["mjd"])
     bundle = metric_bundles.MetricBundle(
-        metric, pairSlicer, sql, plotFuncs=subsetPlots, displayDict=displayDict
+        metric, pairSlicer, sql, plot_funcs=subsetPlots, display_dict=displayDict
     )
     bundleList.append(bundle)
 
@@ -312,13 +312,13 @@ def glanceBatch(
         sql = ""
         slicer = slicers.UniSlicer()
         bundle = metric_bundles.MetricBundle(
-            metric, slicer, sql, displayDict=displayDict
+            metric, slicer, sql, display_dict=displayDict
         )
         bundleList.append(bundle)
         displayDict["subgroup"] = "Count Stats"
         metric = metrics.StringCountMetric(col=colmap["note"], metricName="Counts")
         bundle = metric_bundles.MetricBundle(
-            metric, slicer, sql, displayDict=displayDict
+            metric, slicer, sql, display_dict=displayDict
         )
         bundleList.append(bundle)
 
@@ -335,11 +335,11 @@ def glanceBatch(
             metric,
             slicer,
             sql,
-            plotFuncs=[plots.XyPlotter()],
-            runName=runName,
-            displayDict=displayDict,
+            plot_funcs=[plots.XyPlotter()],
+            run_name=runName,
+            display_dict=displayDict,
         )
-        metricb.summaryMetrics = []
+        metricb.summary_metrics = []
         bundleList.append(metricb)
 
     # Add a sky saturation check
@@ -352,7 +352,7 @@ def glanceBatch(
     slicer = slicers.UniSlicer()
     bundleList.append(
         metric_bundles.MetricBundle(
-            metric, slicer, sql, summaryMetrics=summary, displayDict=displayDict
+            metric, slicer, sql, summary_metrics=summary, display_dict=displayDict
         )
     )
 
@@ -423,17 +423,17 @@ def glanceBatch(
         metric,
         slicer,
         "",
-        plotDict=plotDict,
-        displayDict=displayDict,
-        summaryMetrics=summaryMetrics,
-        plotFuncs=[plots.FOPlot()],
+        plot_dict=plotDict,
+        display_dict=displayDict,
+        summary_metrics=summaryMetrics,
+        plot_funcs=[plots.FOPlot()],
     )
     bundleList.append(bundle)
 
     for b in bundleList:
-        b.setRunName(runName)
+        b.set_run_name(runName)
 
-    bd = metric_bundles.makeBundlesDictFromList(bundleList)
+    bd = metric_bundles.make_bundles_dict_from_list(bundleList)
 
     # Add hourglass plots.
     hrDict = hourglassPlots(

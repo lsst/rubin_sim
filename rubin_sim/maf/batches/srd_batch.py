@@ -148,18 +148,18 @@ def fOBatch(
         metric,
         slicer,
         sql,
-        plotDict=plotDict,
-        stackerList=[ditherStacker],
-        displayDict=displayDict,
-        summaryMetrics=summaryMetrics,
-        plotFuncs=[plots.FOPlot()],
+        plot_dict=plotDict,
+        stacker_list=[ditherStacker],
+        display_dict=displayDict,
+        summary_metrics=summaryMetrics,
+        plot_funcs=[plots.FOPlot()],
         info_label=info_label,
     )
     bundleList.append(bundle)
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def astrometryBatch(
@@ -276,11 +276,11 @@ def astrometryBatch(
             slicer,
             sql,
             info_label=info_label,
-            stackerList=[parallaxStacker],
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=summary,
-            plotFuncs=subsetPlots,
+            stacker_list=[parallaxStacker],
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=summary,
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
@@ -301,10 +301,10 @@ def astrometryBatch(
             slicer,
             sql,
             info_label=info_label,
-            stackerList=[parallaxStacker],
-            displayDict=displayDict,
-            summaryMetrics=standardSummary(),
-            plotFuncs=subsetPlots,
+            stacker_list=[parallaxStacker],
+            display_dict=displayDict,
+            summary_metrics=standardSummary(),
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
@@ -323,10 +323,10 @@ def astrometryBatch(
             slicer,
             sql,
             info_label=info_label,
-            stackerList=[parallaxStacker],
-            displayDict=displayDict,
-            summaryMetrics=standardSummary(),
-            plotFuncs=subsetPlots,
+            stacker_list=[parallaxStacker],
+            display_dict=displayDict,
+            summary_metrics=standardSummary(),
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
@@ -349,10 +349,10 @@ def astrometryBatch(
             slicer,
             sql,
             info_label=info_label,
-            stackerList=[dcrStacker, parallaxStacker],
-            displayDict=displayDict,
-            summaryMetrics=standardSummary(),
-            plotFuncs=subsetPlots,
+            stacker_list=[dcrStacker, parallaxStacker],
+            display_dict=displayDict,
+            summary_metrics=standardSummary(),
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
@@ -394,10 +394,10 @@ def astrometryBatch(
             slicer,
             sql,
             info_label=info_label,
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=summary,
-            plotFuncs=subsetPlots,
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=summary,
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
@@ -417,17 +417,17 @@ def astrometryBatch(
             slicer,
             sql,
             info_label=info_label,
-            displayDict=displayDict,
-            summaryMetrics=standardSummary(),
-            plotFuncs=subsetPlots,
+            display_dict=displayDict,
+            summary_metrics=standardSummary(),
+            plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def rapidRevisitBatch(
@@ -517,11 +517,11 @@ def rapidRevisitBatch(
         m2,
         slicer,
         sql,
-        plotDict=plotDict,
-        plotFuncs=subsetPlots,
+        plot_dict=plotDict,
+        plot_funcs=subsetPlots,
         info_label=info_label,
-        displayDict=displayDict,
-        summaryMetrics=standardSummary(withCount=False),
+        display_dict=displayDict,
+        summary_metrics=standardSummary(withCount=False),
     )
     bundleList.append(bundle)
     displayDict["order"] += 1
@@ -567,16 +567,16 @@ def rapidRevisitBatch(
         m1,
         slicer,
         sql,
-        plotDict=plotDict,
-        plotFuncs=subsetPlots,
+        plot_dict=plotDict,
+        plot_funcs=subsetPlots,
         info_label=info_label,
-        displayDict=displayDict,
-        summaryMetrics=summaryStats,
+        display_dict=displayDict,
+        summary_metrics=summaryStats,
     )
     bundleList.append(bundle)
     displayDict["order"] += 1
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
