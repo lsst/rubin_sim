@@ -60,7 +60,7 @@ def run_moving_fractions():
     times += startTime
 
     # Create a results Db.
-    resultsDb = db.ResultsDb(outDir=args.workDir)
+    resultsDb = db.ResultsDb(out_dir=args.workDir)
 
     # Just read in all metrics in the (joint or single) directory, then run completeness and fraction
     # summaries, using the methods in the batches.
@@ -76,11 +76,11 @@ def run_moving_fractions():
 
     bdict = {}
     for mName, mFile in zip(metricNames, metricfiles):
-        bdict[mName] = mmb.createEmptyMoMetricBundle()
+        bdict[mName] = mmb.create_empty_mo_metric_bundle()
         bdict[mName].read(mFile)
 
     first = bdict[metricNames[0]]
-    figroot = f"{first.runName}"
+    figroot = f"{first.run_name}"
     # adding args.metadata to the figroot means that we can narrow down *which* subset of files to work on
     # this lets us add different hMark values to the output plots, if desired (leaving None/default is ok)
     if args.metadata != ".":

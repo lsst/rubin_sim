@@ -101,8 +101,8 @@ def intraNight(
         slicer,
         sql,
         info_label=md,
-        summaryMetrics=standardStats,
-        displayDict=displayDict,
+        summary_metrics=standardStats,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -125,8 +125,8 @@ def intraNight(
         slicer,
         sql,
         info_label=md,
-        summaryMetrics=standardStats,
-        displayDict=displayDict,
+        summary_metrics=standardStats,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -153,8 +153,8 @@ def intraNight(
         slicer,
         sql,
         info_label=md,
-        summaryMetrics=standardStats,
-        displayDict=displayDict,
+        summary_metrics=standardStats,
+        display_dict=displayDict,
     )
     bundleList.append(bundle)
 
@@ -176,9 +176,9 @@ def intraNight(
         slicer,
         extraSql,
         info_label=info_label,
-        displayDict=displayDict,
-        plotDict=plotDict,
-        summaryMetrics=standardStats,
+        display_dict=displayDict,
+        plot_dict=plotDict,
+        summary_metrics=standardStats,
     )
     bundleList.append(bundle)
 
@@ -207,9 +207,9 @@ def intraNight(
             slicer,
             sqls[f],
             info_label=info_labels[f],
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=standardStats,
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=standardStats,
         )
         bundleList.append(bundle)
     # subsets of adjacent filters
@@ -247,9 +247,9 @@ def intraNight(
             slicer,
             sql,
             info_label=info,
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=standardStats,
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=standardStats,
         )
         bundleList.append(bundle)
 
@@ -272,10 +272,10 @@ def intraNight(
         metric,
         slicer,
         extraSql,
-        plotDict=plotDict,
-        displayDict=displayDict,
+        plot_dict=plotDict,
+        display_dict=displayDict,
         info_label=info_label,
-        plotFuncs=[plotFunc],
+        plot_funcs=[plotFunc],
     )
     bundleList.append(bundle)
 
@@ -306,17 +306,17 @@ def intraNight(
         metric,
         slicer,
         extraSql,
-        plotDict=plotDict,
-        displayDict=displayDict,
+        plot_dict=plotDict,
+        display_dict=displayDict,
         info_label=info_label,
-        plotFuncs=[plotFunc],
+        plot_funcs=[plotFunc],
     )
     bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def interNight(
@@ -395,10 +395,10 @@ def interNight(
         metric,
         slicer,
         sqls["all"],
-        plotDict=plotDict,
-        displayDict=displayDict,
+        plot_dict=plotDict,
+        display_dict=displayDict,
         info_label=info_label["all"],
-        plotFuncs=[plotFunc],
+        plot_funcs=[plotFunc],
     )
     bundleList.append(bundle)
 
@@ -414,9 +414,9 @@ def interNight(
         slicer,
         sqls["all"],
         info_label=info_label["all"],
-        displayDict=displayDict,
-        plotDict={"colorMin": 0, "colorMax": 500},
-        summaryMetrics=standardStats,
+        display_dict=displayDict,
+        plot_dict={"colorMin": 0, "colorMax": 500},
+        summary_metrics=standardStats,
     )
     bundleList.append(bundle)
 
@@ -435,9 +435,9 @@ def interNight(
             slicer,
             sqls[f],
             info_label=info_label[f],
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=standardStats,
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=standardStats,
         )
         bundleList.append(bundle)
 
@@ -461,9 +461,9 @@ def interNight(
             slicer,
             sqls[f],
             info_label=info_label[f],
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=standardStats,
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=standardStats,
         )
         bundleList.append(bundle)
 
@@ -482,16 +482,16 @@ def interNight(
             slicer,
             sqls[f],
             info_label=info_label[f],
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=standardStats,
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=standardStats,
         )
         bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def timeGaps(
@@ -578,10 +578,10 @@ def timeGaps(
                 slicer,
                 constraint=sqls[f],
                 info_label=info_label[f],
-                runName=runName,
-                plotDict=plotDict,
-                plotFuncs=plotFuncs,
-                displayDict=displayDict,
+                run_name=runName,
+                plot_dict=plotDict,
+                plot_funcs=plotFuncs,
+                display_dict=displayDict,
             )
         )
 
@@ -605,11 +605,11 @@ def timeGaps(
                 slicer,
                 constraint=sqls[f],
                 info_label=info_label[f],
-                runName=runName,
-                summaryMetrics=summaryMetrics,
-                plotDict=plotDict,
-                plotFuncs=plotFuncs,
-                displayDict=displayDict,
+                run_name=runName,
+                summary_metrics=summaryMetrics,
+                plot_dict=plotDict,
+                plot_funcs=plotFuncs,
+                display_dict=displayDict,
             )
         )
 
@@ -630,14 +630,14 @@ def timeGaps(
                 slicer,
                 constraint=sqls[f],
                 info_label=info_label[f],
-                runName=runName,
-                summaryMetrics=summaryMetrics,
-                plotDict=plotDict,
-                plotFuncs=plotFuncs,
-                displayDict=displayDict,
+                run_name=runName,
+                summary_metrics=summaryMetrics,
+                plot_dict=plotDict,
+                plot_funcs=plotFuncs,
+                display_dict=displayDict,
             )
         )
-    return mb.makeBundlesDictFromList(bundleList)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def seasons(
@@ -719,9 +719,9 @@ def seasons(
             slicer,
             sqls[f],
             info_label=info_label[f],
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=standardStats,
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=standardStats,
         )
         bundleList.append(bundle)
 
@@ -754,9 +754,9 @@ def seasons(
             slicer,
             sqls[f],
             info_label=info_label[f],
-            displayDict=displayDict,
-            plotDict=plotDict,
-            summaryMetrics=standardStats,
+            display_dict=displayDict,
+            plot_dict=plotDict,
+            summary_metrics=standardStats,
         )
         bundleList.append(bundle)
 
@@ -775,13 +775,13 @@ def seasons(
         slicer,
         sqls["all"],
         info_label=info_label["all"],
-        displayDict=displayDict,
-        plotDict=plotDict,
-        summaryMetrics=standardStats,
+        display_dict=displayDict,
+        plot_dict=plotDict,
+        summary_metrics=standardStats,
     )
     bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)

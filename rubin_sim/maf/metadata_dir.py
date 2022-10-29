@@ -83,7 +83,7 @@ def metadata_dir():
         constraint = 'note not like "%DD%"'
         bundle = MetricBundle(m, allsky_slicer, constraint, runName=opsim)
         g = MetricBundleGroup({f"{opsim} footprint": bundle}, opsdb, outDir=outDir)
-        g.runAll()
+        g.run_all()
         wfd_footprint = bundle.metricValues.filled(0)
         wfd_footprint = np.where(wfd_footprint > args.wfd_threshold, 1, 0)
         wfd_hpix = np.where(wfd_footprint == 1)[0]
@@ -92,10 +92,10 @@ def metadata_dir():
         bdict = batches.metadata_bundle_dicts(allsky_slicer, wfd_slicer, opsim, colmap)
 
         # Set up the resultsDB
-        resultsDb = ResultsDb(outDir=outDir)
+        resultsDb = ResultsDb(out_dir=outDir)
         # Go and run it
         group = MetricBundleGroup(
             bdict, opsdb, outDir=outDir, resultsDb=resultsDb, saveEarly=False
         )
-        group.runAll(clearMemory=True, plotNow=True)
+        group.run_all(clear_memory=True, plot_now=True)
         resultsDb.close()

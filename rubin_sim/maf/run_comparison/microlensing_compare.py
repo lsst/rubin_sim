@@ -543,8 +543,8 @@ def bundleDictFromDisk(resultDb, runName, metricDataPath):
         metricName = item["metricName"]
         metricFileName = item["metricDataFile"]
         metricId = item["metricId"]
-        newbundle = metricBundles.createEmptyMetricBundle()
+        newbundle = metricBundles.create_empty_metric_bundle()
         newbundle.read(os.path.join(metricDataPath, metricFileName))
-        newbundle.setRunName(runName)
+        newbundle.set_run_name(runName)
         bundleDict[metricId, metricName] = newbundle
     return bundleDict

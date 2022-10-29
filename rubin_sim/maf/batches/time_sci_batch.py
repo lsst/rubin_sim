@@ -102,13 +102,13 @@ def phaseGap(
                 slicer,
                 constraint=sql,
                 info_label=md,
-                displayDict=displayDict,
-                summaryMetrics=standardStats,
-                plotFuncs=subsetPlots,
+                display_dict=displayDict,
+                summary_metrics=standardStats,
+                plot_funcs=subsetPlots,
             )
             bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)

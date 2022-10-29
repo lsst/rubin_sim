@@ -29,7 +29,7 @@ def saveBundleData_npzFormat(path, bundle, baseFilename, filterBand):
             "%s/%s" % (path, outfile),
             bundle[dither].metricValues,
             metricName=bundle[dither].metric.name,
-            simDataName=bundle[dither].runName,
+            simDataName=bundle[dither].run_name,
             constraint=bundle[dither].constraint,
             metadata=bundle[dither].metadata,
             displayDict=bundle[dither].displayDict,

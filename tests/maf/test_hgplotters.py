@@ -18,7 +18,7 @@ class TestScalarHourglassPlots(unittest.TestCase):
         opsdb_fname = create_sample_visit_db(self._data_dir_itself.name)
         self._out_dir_itself = TemporaryDirectory()
         self.out_dir = self._out_dir_itself.name
-        self.results_db = db.ResultsDb(outDir=self.out_dir)
+        self.results_db = db.ResultsDb(out_dir=self.out_dir)
         self.ops_db = db.OpsimDatabase(opsdb_fname)
         self.slicer = slicers.TimeIntervalSlicer(interval_seconds=3600)
         self.metric = metrics.MedianMetric("seeingFwhmEff")
@@ -35,10 +35,10 @@ class TestScalarHourglassPlots(unittest.TestCase):
         bundle_group = metric_bundles.MetricBundleGroup(
             bundle_dict,
             self.ops_db,
-            outDir=self.out_dir,
-            resultsDb=self.results_db,
+            out_dir=self.out_dir,
+            results_db=self.results_db,
         )
-        run_result = bundle_group.runAll()
+        run_result = bundle_group.run_all()
         plot_func = plots.YearHourglassPlot(2023)
         result = metric_bundle.plot(plotFunc=plot_func)
 
@@ -50,7 +50,7 @@ class TestTimeUseHourglassPlots(unittest.TestCase):
 
         self._out_dir_itself = TemporaryDirectory()
         self.out_dir = self._out_dir_itself.name
-        self.results_db = db.ResultsDb(outDir=self.out_dir)
+        self.results_db = db.ResultsDb(out_dir=self.out_dir)
         self.ops_db = db.OpsimDatabase(opsdb_fname)
         self.slicer = slicers.BlockIntervalSlicer()
         self.metric = metrics.UseMetric()
@@ -65,10 +65,10 @@ class TestTimeUseHourglassPlots(unittest.TestCase):
         bundle_group = metric_bundles.MetricBundleGroup(
             bundle_dict,
             self.ops_db,
-            outDir=self.out_dir,
-            resultsDb=self.results_db,
+            out_dir=self.out_dir,
+            results_db=self.results_db,
         )
-        run_result = bundle_group.runAll()
+        run_result = bundle_group.run_all()
         plot_func = plots.YearHourglassUsePlot(2023)
         result = metric_bundle.plot(plotFunc=plot_func)
 

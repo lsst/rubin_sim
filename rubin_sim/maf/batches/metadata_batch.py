@@ -122,9 +122,9 @@ def metadataBasics(
                 m,
                 slicer,
                 sqls[f],
-                stackerList=stackerList,
+                stacker_list=stackerList,
                 info_label=info_label[f],
-                displayDict=displayDict,
+                display_dict=displayDict,
             )
             bundleList.append(bundle)
 
@@ -141,9 +141,9 @@ def metadataBasics(
             m,
             slicer,
             sqls[f],
-            stackerList=stackerList,
+            stacker_list=stackerList,
             info_label=info_label[f],
-            displayDict=displayDict,
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
@@ -165,18 +165,18 @@ def metadataBasics(
                 m,
                 slicer,
                 sqls[f],
-                stackerList=stackerList,
+                stacker_list=stackerList,
                 info_label=info_label[f],
-                plotDict=plotDict,
-                displayDict=displayDict,
-                summaryMetrics=standardSummary(),
+                plot_dict=plotDict,
+                display_dict=displayDict,
+                summary_metrics=standardSummary(),
             )
             bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def metadataBasicsAngle(
@@ -265,7 +265,7 @@ def metadataBasicsAngle(
                 slicer,
                 sqls[f],
                 info_label=info_label[f],
-                displayDict=displayDict,
+                display_dict=displayDict,
             )
             bundleList.append(bundle)
 
@@ -283,7 +283,7 @@ def metadataBasicsAngle(
             slicer,
             sqls[f],
             info_label=info_label[f],
-            displayDict=displayDict,
+            display_dict=displayDict,
         )
         bundleList.append(bundle)
 
@@ -310,16 +310,16 @@ def metadataBasicsAngle(
                 slicer,
                 sqls[f],
                 info_label=info_label[f],
-                plotDict=plotDict,
-                displayDict=displayDict,
-                summaryMetrics=standardSummary(),
+                plot_dict=plotDict,
+                display_dict=displayDict,
+                summary_metrics=standardSummary(),
             )
             bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def allMetadata(
@@ -492,18 +492,18 @@ def metadataMaps(
                 m,
                 slicer,
                 sqls[f],
-                stackerList=stackerList,
+                stacker_list=stackerList,
                 info_label=info_label[f],
-                displayDict=displayDict,
-                summaryMetrics=standardSummary(),
+                display_dict=displayDict,
+                summary_metrics=standardSummary(),
             )
             bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
+        b.set_run_name(runName)
 
-    return mb.makeBundlesDictFromList(bundleList)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def firstYearMetadata(

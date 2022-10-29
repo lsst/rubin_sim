@@ -51,7 +51,7 @@ def makeBundleList(
         nightCol=colmap["night"], mjdCol=colmap["mjd"], metricName="Hourglass"
     )
     bundle = metricBundles.MetricBundle(
-        metric, hourslicer, constraint=sql, info_label=md, displayDict=displayDict
+        metric, hourslicer, constraint=sql, info_label=md, display_dict=displayDict
     )
     bundleList.append(bundle)
 
@@ -71,7 +71,7 @@ def makeBundleList(
         bundleList.append(bundle)
         metric = metrics.CountMetric(mjdCol, metricName="N visits alt az")
         bundle = metricBundles.MetricBundle(
-            metric, altaz_slicer, sql, plotFuncs=plotFuncs_lam
+            metric, altaz_slicer, sql, plot_funcs=plotFuncs_lam
         )
         bundleList.append(bundle)
 
@@ -80,7 +80,7 @@ def makeBundleList(
         bundleList.append(bundle)
         metric = metrics.MeanMetric(mjdCol, metricName="Mean Visit Time alt az")
         bundle = metricBundles.MetricBundle(
-            metric, altaz_slicer, sql, plotFuncs=plotFuncs_lam
+            metric, altaz_slicer, sql, plot_funcs=plotFuncs_lam
         )
         bundleList.append(bundle)
 
@@ -128,7 +128,7 @@ def makeBundleList(
     slicer = slicers.UniSlicer()
     sql = "night=%i" % night
     plotFuncs = [plots.NightPointingPlotter()]
-    bundle = metricBundles.MetricBundle(metric, slicer, sql, plotFuncs=plotFuncs)
+    bundle = metricBundles.MetricBundle(metric, slicer, sql, plot_funcs=plotFuncs)
     bundleList.append(bundle)
 
     # stats from the note column
@@ -138,17 +138,17 @@ def makeBundleList(
             col="note", percent=True, metricName="Percents"
         )
         bundle = metricBundles.MetricBundle(
-            metric, unislicer, sql, displayDict=displayDict
+            metric, unislicer, sql, display_dict=displayDict
         )
         bundleList.append(bundle)
         displayDict["subgroup"] = "Count Stats"
         metric = metrics.StringCountMetric(col="note", metricName="Counts")
         bundle = metricBundles.MetricBundle(
-            metric, unislicer, sql, displayDict=displayDict
+            metric, unislicer, sql, display_dict=displayDict
         )
         bundleList.append(bundle)
 
-    return metricBundles.makeBundlesDictFromList(bundleList)
+    return metricBundles.make_bundles_dict_from_list(bundleList)
 
 
 def maf_night_report():
@@ -201,16 +201,16 @@ def maf_night_report():
     )
 
     for key in bundleDict:
-        bundleDict[key].setRunName(args.runName)
+        bundleDict[key].set_run_name(args.run_name)
 
     # Set up / connect to resultsDb.
-    resultsDb = db.ResultsDb(outDir=args.outDir)
+    resultsDb = db.ResultsDb(out_dir=args.outDir)
     # Connect to opsimdb.
     opsdb = db.OpsimDatabase(args.dbFile)
 
     # Set up metricBundleGroup.
     group = metricBundles.MetricBundleGroup(
-        bundleDict, opsdb, outDir=args.outDir, resultsDb=resultsDb
+        bundleDict, opsdb, out_dir=args.outDir, results_db=resultsDb
     )
-    group.runAll()
+    group.run_all()
     group.plotAll()

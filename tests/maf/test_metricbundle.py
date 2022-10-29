@@ -41,19 +41,19 @@ class TestMetricBundle(unittest.TestCase):
         map = maps.GalCoordsMap()
 
         metricB = metric_bundles.MetricBundle(
-            metric, slicer, sql, stackerList=[stacker1, stacker2], mapsList=[map]
+            metric, slicer, sql, stacker_list=[stacker1, stacker2], maps_list=[map]
         )
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
 
         opsdb = db.OpsimDatabase(database=database)
-        resultsDb = db.ResultsDb(outDir=self.outDir)
+        resultsDb = db.ResultsDb(out_dir=self.outDir)
 
         bgroup = metric_bundles.MetricBundleGroup(
-            {0: metricB}, opsdb, outDir=self.outDir, resultsDb=resultsDb
+            {0: metricB}, opsdb, out_dir=self.outDir, results_db=resultsDb
         )
-        bgroup.runAll()
+        bgroup.run_all()
         bgroup.plotAll()
-        bgroup.writeAll()
+        bgroup.write_all()
 
         outThumbs = glob.glob(os.path.join(self.outDir, "thumb*"))
         outNpz = glob.glob(os.path.join(self.outDir, "*.npz"))

@@ -77,7 +77,7 @@ class PlotHandler(object):
         # Try to add the metricBundles in filter order.
         if isinstance(mBundles, dict):
             for mB in mBundles.values():
-                vals = mB.fileRoot.split("_")
+                vals = mB.file_root.split("_")
                 forder = [self.filterorder.get(f, None) for f in vals if len(f) == 1]
                 forder = [o for o in forder if o is not None]
                 if len(forder) == 0:
@@ -88,7 +88,7 @@ class PlotHandler(object):
             self.slicer = self.mBundles[0].slicer
         else:
             for mB in mBundles:
-                vals = mB.fileRoot.split("_")
+                vals = mB.file_root.split("_")
                 forder = [self.filterorder.get(f, None) for f in vals if len(f) == 1]
                 forder = [o for o in forder if o is not None]
                 if len(forder) == 0:
@@ -206,7 +206,7 @@ class PlotHandler(object):
         """
         self.runNames = set()
         for mB in self.mBundles:
-            self.runNames.add(mB.runName)
+            self.runNames.add(mB.run_name)
         self.jointRunNames = " ".join(self.runNames)
 
     def _combineMetadata(self):
@@ -385,7 +385,7 @@ class PlotHandler(object):
             else:
                 label = ""
                 if len(self.runNames) > 1:
-                    label += mB.runName
+                    label += mB.run_name
                 if len(self.info_label) > 1:
                     label += " " + mB.info_label
                 if len(self.metricNames) > 1:
@@ -458,7 +458,7 @@ class PlotHandler(object):
           save the file manually to disk, using the plot figure numbers returned by 'plot'.
         """
         if len(self.mBundles) == 1:
-            outfile = self.mBundles[0].fileRoot
+            outfile = self.mBundles[0].file_root
         else:
             outfile = "_".join(
                 [self.jointRunNames, self.jointMetricNames, self.jointMetadata]
@@ -599,7 +599,7 @@ class PlotHandler(object):
             if mB.metricValues is None:
                 # Skip this metricBundle.
                 msg = 'MetricBundle (%s) has no attribute "metricValues".' % (
-                    mB.fileRoot
+                    mB.file_root
                 )
                 msg += " Either the values have not been calculated or they have been deleted."
                 warnings.warn(msg)
@@ -672,12 +672,12 @@ class PlotHandler(object):
         if self.resultsDb:
             if displayDict is None:
                 displayDict = {}
-            metricId = self.resultsDb.updateMetric(
+            metricId = self.resultsDb.update_metric(
                 metricName, slicerName, runName, constraint, info_label, None
             )
-            self.resultsDb.updateDisplay(
+            self.resultsDb.update_display(
                 metricId=metricId, displayDict=displayDict, overwrite=False
             )
-            self.resultsDb.updatePlot(
+            self.resultsDb.update_plot(
                 metricId=metricId, plotType=plotType, plotFile=plotFile
             )

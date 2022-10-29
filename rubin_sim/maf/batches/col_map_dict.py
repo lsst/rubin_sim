@@ -1,7 +1,7 @@
-__all__ = ["getColMap", "col_map_dict"]
+__all__ = ["get_col_map", "col_map_dict"]
 
 
-def getColMap(opsdb):
+def get_col_map(opsdb):
     """Get the colmap dictionary, if you already have a database object.
 
     Parameters
@@ -21,36 +21,36 @@ def getColMap(opsdb):
     return colmap
 
 
-def col_map_dict(dictName=None):
+def col_map_dict(dict_name=None):
 
-    if dictName is None:
-        dictName = "FBS"
-    dictName = dictName.lower()
+    if dict_name is None:
+        dict_name = "FBS"
+    dict_name = dict_name.lower()
 
-    if dictName == "fbs" or dictName == "opsimfbs":
-        colMap = {}
-        colMap["ra"] = "fieldRA"
-        colMap["dec"] = "fieldDec"
-        colMap["raDecDeg"] = True
-        colMap["mjd"] = "observationStartMJD"
-        colMap["exptime"] = "visitExposureTime"
-        colMap["visittime"] = "visitTime"
-        colMap["alt"] = "altitude"
-        colMap["az"] = "azimuth"
-        colMap["lst"] = "observationStartLST"
-        colMap["filter"] = "filter"
-        colMap["fiveSigmaDepth"] = "fiveSigmaDepth"
-        colMap["night"] = "night"
-        colMap["slewtime"] = "slewTime"
-        colMap["slewdist"] = "slewDistance"
-        colMap["seeingEff"] = "seeingFwhmEff"
-        colMap["seeingGeom"] = "seeingFwhmGeom"
-        colMap["skyBrightness"] = "skyBrightness"
-        colMap["moonDistance"] = "moonDistance"
-        colMap["fieldId"] = "fieldId"
-        colMap["proposalId"] = "proposalId"
-        colMap["slewactivities"] = {}
-        colMap["metadataList"] = [
+    if dict_name == "fbs" or dict_name == "opsimfbs":
+        col_map = {}
+        col_map["ra"] = "fieldRA"
+        col_map["dec"] = "fieldDec"
+        col_map["raDecDeg"] = True
+        col_map["mjd"] = "observationStartMJD"
+        col_map["exptime"] = "visitExposureTime"
+        col_map["visittime"] = "visitTime"
+        col_map["alt"] = "altitude"
+        col_map["az"] = "azimuth"
+        col_map["lst"] = "observationStartLST"
+        col_map["filter"] = "filter"
+        col_map["fiveSigmaDepth"] = "fiveSigmaDepth"
+        col_map["night"] = "night"
+        col_map["slewtime"] = "slewTime"
+        col_map["slewdist"] = "slewDistance"
+        col_map["seeingEff"] = "seeingFwhmEff"
+        col_map["seeingGeom"] = "seeingFwhmGeom"
+        col_map["skyBrightness"] = "skyBrightness"
+        col_map["moonDistance"] = "moonDistance"
+        col_map["fieldId"] = "fieldId"
+        col_map["proposalId"] = "proposalId"
+        col_map["slewactivities"] = {}
+        col_map["metadataList"] = [
             "airmass",
             "normairmass",
             "seeingEff",
@@ -61,49 +61,49 @@ def col_map_dict(dictName=None):
             "solarElong",
             "saturation_mag",
         ]
-        colMap["metadataAngleList"] = ["rotSkyPos"]
-        colMap["note"] = "note"
+        col_map["metadataAngleList"] = ["rotSkyPos"]
+        col_map["note"] = "note"
 
-    elif dictName == "opsimv4":
-        colMap = {}
-        colMap["ra"] = "fieldRA"
-        colMap["dec"] = "fieldDec"
-        colMap["raDecDeg"] = True
-        colMap["mjd"] = "observationStartMJD"
-        colMap["exptime"] = "visitExposureTime"
-        colMap["visittime"] = "visitTime"
-        colMap["alt"] = "altitude"
-        colMap["az"] = "azimuth"
-        colMap["lst"] = "observationStartLST"
-        colMap["filter"] = "filter"
-        colMap["fiveSigmaDepth"] = "fiveSigmaDepth"
-        colMap["night"] = "night"
-        colMap["slewtime"] = "slewTime"
-        colMap["slewdist"] = "slewDistance"
-        colMap["seeingEff"] = "seeingFwhmEff"
-        colMap["seeingGeom"] = "seeingFwhmGeom"
-        colMap["skyBrightness"] = "skyBrightness"
-        colMap["moonDistance"] = "moonDistance"
-        colMap["fieldId"] = "fieldId"
-        colMap["proposalId"] = "proposalId"
+    elif dict_name == "opsimv4":
+        col_map = {}
+        col_map["ra"] = "fieldRA"
+        col_map["dec"] = "fieldDec"
+        col_map["raDecDeg"] = True
+        col_map["mjd"] = "observationStartMJD"
+        col_map["exptime"] = "visitExposureTime"
+        col_map["visittime"] = "visitTime"
+        col_map["alt"] = "altitude"
+        col_map["az"] = "azimuth"
+        col_map["lst"] = "observationStartLST"
+        col_map["filter"] = "filter"
+        col_map["fiveSigmaDepth"] = "fiveSigmaDepth"
+        col_map["night"] = "night"
+        col_map["slewtime"] = "slewTime"
+        col_map["slewdist"] = "slewDistance"
+        col_map["seeingEff"] = "seeingFwhmEff"
+        col_map["seeingGeom"] = "seeingFwhmGeom"
+        col_map["skyBrightness"] = "skyBrightness"
+        col_map["moonDistance"] = "moonDistance"
+        col_map["fieldId"] = "fieldId"
+        col_map["proposalId"] = "proposalId"
         # slew speeds table
-        colMap["slewSpeedsTable"] = "SlewMaxSpeeds"
+        col_map["slewSpeedsTable"] = "SlewMaxSpeeds"
         # slew states table
-        colMap["slewStatesTable"] = "SlewFinalState"
+        col_map["slewStatesTable"] = "SlewFinalState"
         # slew activities list
-        colMap["slewActivitiesTable"] = "SlewActivities"
+        col_map["slewActivitiesTable"] = "SlewActivities"
         # Slew columns
-        colMap["Dome Alt Speed"] = "domeAltSpeed"
-        colMap["Dome Az Speed"] = "domeAzSpeed"
-        colMap["Tel Alt Speed"] = "telAltSpeed"
-        colMap["Tel Az Speed"] = "telAzSpeed"
-        colMap["Rotator Speed"] = "rotatorSpeed"
-        colMap["Tel Alt"] = "telAlt"
-        colMap["Tel Az"] = "telAz"
-        colMap["Rot Tel Pos"] = "rotTelPos"
-        colMap["Dome Alt"] = "domeAlt"
-        colMap["Dome Az"] = "domeAz"
-        colMap["slewactivities"] = {
+        col_map["Dome Alt Speed"] = "domeAltSpeed"
+        col_map["Dome Az Speed"] = "domeAzSpeed"
+        col_map["Tel Alt Speed"] = "telAltSpeed"
+        col_map["Tel Az Speed"] = "telAzSpeed"
+        col_map["Rotator Speed"] = "rotatorSpeed"
+        col_map["Tel Alt"] = "telAlt"
+        col_map["Tel Az"] = "telAz"
+        col_map["Rot Tel Pos"] = "rotTelPos"
+        col_map["Dome Alt"] = "domeAlt"
+        col_map["Dome Az"] = "domeAz"
+        col_map["slewactivities"] = {
             "Dome Alt": "domalt",
             "Dome Az": "domaz",
             "Dome Settle": "domazsettle",
@@ -116,7 +116,7 @@ def col_map_dict(dictName=None):
             "Readout": "readout",
             "Filter": "filter",
         }
-        colMap["metadataList"] = [
+        col_map["metadataList"] = [
             "airmass",
             "normairmass",
             "seeingEff",
@@ -126,47 +126,47 @@ def col_map_dict(dictName=None):
             "moonDistance",
             "solarElong",
         ]
-        colMap["metadataAngleList"] = ["rotSkyPos"]
+        col_map["metadataAngleList"] = ["rotSkyPos"]
 
-    elif dictName == "opsimv3":
-        colMap = {}
-        colMap["ra"] = "fieldRA"
-        colMap["dec"] = "fieldDec"
-        colMap["raDecDeg"] = False
-        colMap["mjd"] = "expMJD"
-        colMap["exptime"] = "visitExpTime"
-        colMap["visittime"] = "visitTime"
-        colMap["alt"] = "altitude"
-        colMap["az"] = "azimuth"
-        colMap["lst"] = "lst"
-        colMap["filter"] = "filter"
-        colMap["fiveSigmaDepth"] = "fiveSigmaDepth"
-        colMap["night"] = "night"
-        colMap["slewtime"] = "slewTime"
-        colMap["slewdist"] = "slewDist"
-        colMap["seeingEff"] = "FWHMeff"
-        colMap["seeingGeom"] = "FWHMgeom"
-        colMap["skyBrightness"] = "filtSkyBrightness"
-        colMap["moonDistance"] = "dist2Moon"
-        colMap["fieldId"] = "fieldID"
-        colMap["proposalId"] = "propID"
+    elif dict_name == "opsimv3":
+        col_map = {}
+        col_map["ra"] = "fieldRA"
+        col_map["dec"] = "fieldDec"
+        col_map["raDecDeg"] = False
+        col_map["mjd"] = "expMJD"
+        col_map["exptime"] = "visitExpTime"
+        col_map["visittime"] = "visitTime"
+        col_map["alt"] = "altitude"
+        col_map["az"] = "azimuth"
+        col_map["lst"] = "lst"
+        col_map["filter"] = "filter"
+        col_map["fiveSigmaDepth"] = "fiveSigmaDepth"
+        col_map["night"] = "night"
+        col_map["slewtime"] = "slewTime"
+        col_map["slewdist"] = "slewDist"
+        col_map["seeingEff"] = "FWHMeff"
+        col_map["seeingGeom"] = "FWHMgeom"
+        col_map["skyBrightness"] = "filtSkyBrightness"
+        col_map["moonDistance"] = "dist2Moon"
+        col_map["fieldId"] = "fieldID"
+        col_map["proposalId"] = "propID"
         # slew speeds table
-        colMap["slewSpeedsTable"] = "SlewMaxSpeeds"
+        col_map["slewSpeedsTable"] = "SlewMaxSpeeds"
         # slew states table
-        colMap["slewStatesTable"] = "SlewStates"
+        col_map["slewStatesTable"] = "SlewStates"
         # Slew activities list
-        colMap["slewActivitiesTable"] = "SlewActivities"
-        colMap["Dome Alt Speed"] = "domeAltSpeed"
-        colMap["Dome Az Speed"] = "domeAzSpeed"
-        colMap["Tel Alt Speed"] = "telAltSpeed"
-        colMap["Tel Az Speed"] = "telAzSpeed"
-        colMap["Rotator Speed"] = "rotatorSpeed"
-        colMap["Tel Alt"] = "telAlt"
-        colMap["Tel Az"] = "telAz"
-        colMap["Rot Tel Pos"] = "rotTelPos"
-        colMap["Dome Alt"] = "domAlt"
-        colMap["Dome Az"] = "domAz"
-        colMap["slewactivities"] = {
+        col_map["slewActivitiesTable"] = "SlewActivities"
+        col_map["Dome Alt Speed"] = "domeAltSpeed"
+        col_map["Dome Az Speed"] = "domeAzSpeed"
+        col_map["Tel Alt Speed"] = "telAltSpeed"
+        col_map["Tel Az Speed"] = "telAzSpeed"
+        col_map["Rotator Speed"] = "rotatorSpeed"
+        col_map["Tel Alt"] = "telAlt"
+        col_map["Tel Az"] = "telAz"
+        col_map["Rot Tel Pos"] = "rotTelPos"
+        col_map["Dome Alt"] = "domAlt"
+        col_map["Dome Az"] = "domAz"
+        col_map["slewactivities"] = {
             "Dome Alt": "DomAlt",
             "Dome Az": "DomAz",
             "Tel Alt": "TelAlt",
@@ -178,7 +178,7 @@ def col_map_dict(dictName=None):
             "Readout": "Readout",
             "Filter": "Filter",
         }
-        colMap["metadataList"] = [
+        col_map["metadataList"] = [
             "airmass",
             "normairmass",
             "seeingEff",
@@ -188,26 +188,26 @@ def col_map_dict(dictName=None):
             "moonDistance",
             "solarElong",
         ]
-        colMap["metadataAngleList"] = ["rotSkyPos"]
+        col_map["metadataAngleList"] = ["rotSkyPos"]
 
-    elif dictName == "barebones":
-        colMap = {}
-        colMap["ra"] = "ra"
-        colMap["dec"] = "dec"
-        colMap["raDecDeg"] = True
-        colMap["mjd"] = "mjd"
-        colMap["exptime"] = "exptime"
-        colMap["visittime"] = "exptime"
-        colMap["alt"] = "alt"
-        colMap["az"] = "az"
-        colMap["filter"] = "filter"
-        colMap["fiveSigmaDepth"] = "fivesigmadepth"
-        colMap["night"] = "night"
-        colMap["slewtime"] = "slewtime"
-        colMap["slewdist"] = None
-        colMap["seeingGeom"] = "seeing"
-        colMap["seeingEff"] = "seeing"
-        colMap["metadataList"] = [
+    elif dict_name == "barebones":
+        col_map = {}
+        col_map["ra"] = "ra"
+        col_map["dec"] = "dec"
+        col_map["raDecDeg"] = True
+        col_map["mjd"] = "mjd"
+        col_map["exptime"] = "exptime"
+        col_map["visittime"] = "exptime"
+        col_map["alt"] = "alt"
+        col_map["az"] = "az"
+        col_map["filter"] = "filter"
+        col_map["fiveSigmaDepth"] = "fivesigmadepth"
+        col_map["night"] = "night"
+        col_map["slewtime"] = "slewtime"
+        col_map["slewdist"] = None
+        col_map["seeingGeom"] = "seeing"
+        col_map["seeingEff"] = "seeing"
+        col_map["metadataList"] = [
             "airmass",
             "normairmass",
             "seeingEff",
@@ -215,9 +215,9 @@ def col_map_dict(dictName=None):
             "fiveSigmaDepth",
             "HA",
         ]
-        colMap["metadataAngleList"] = ["rotSkyPos"]
+        col_map["metadataAngleList"] = ["rotSkyPos"]
 
     else:
         raise ValueError(f"No built in column dict with name {dictMap}")
 
-    return colMap
+    return col_map

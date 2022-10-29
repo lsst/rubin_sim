@@ -56,22 +56,22 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
             slicer,
             extraSql,
             info_label=extraInfoLabel,
-            displayDict=displayDict,
-            plotDict=plotDict,
+            display_dict=displayDict,
+            plot_dict=plotDict,
         )
         bundleList.append(bundle)
 
     for m in dec_metrics:
         slicer = slicers.OneDSlicer(sliceColName=colmap["night"], binsize=1)
         bundle = mb.MetricBundle(
-            m, slicer, extraSql, info_label=extraInfoLabel, displayDict=displayDict
+            m, slicer, extraSql, info_label=extraInfoLabel, display_dict=displayDict
         )
         bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
@@ -121,8 +121,8 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=Non
         slicer,
         sql,
         info_label=extraInfoLabel,
-        displayDict=displayDict,
-        plotDict=plotDict,
+        display_dict=displayDict,
+        plot_dict=plotDict,
     )
     bundleList.append(bundle)
 
@@ -140,12 +140,12 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=Non
         slicer,
         sql,
         info_label=extraInfoLabel,
-        displayDict=displayDict,
-        plotDict=plotDict,
+        display_dict=displayDict,
+        plot_dict=plotDict,
     )
     bundleList.append(bundle)
 
     # Set the runName for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)

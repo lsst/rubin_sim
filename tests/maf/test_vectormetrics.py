@@ -64,11 +64,11 @@ class Test2D(unittest.TestCase):
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
-        mb.stackerList = []
-        mbg = metricBundle.MetricBundleGroup({0: mb}, None, saveEarly=False)
-        mbg.setCurrent("")
+        mb.stacker_list = []
+        mbg = metricBundle.MetricBundleGroup({0: mb}, None, save_early=False)
+        mbg.set_current("")
         mbg.fieldData = self.fieldData
-        mbg.runCurrent("", simData=self.simData)
+        mbg.run_current("", sim_data=self.simData)
         expected = np.array([[self.n1, self.n1], [-666.0, self.n2]])
         assert np.array_equal(mb.metricValues.data, expected)
 
@@ -80,10 +80,10 @@ class Test2D(unittest.TestCase):
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
-        mb.stackerList = []
-        mbg = metricBundle.MetricBundleGroup({0: mb}, None, saveEarly=False)
-        mbg.setCurrent("")
-        mbg.runCurrent("", simData=self.simData)
+        mb.stacker_list = []
+        mbg = metricBundle.MetricBundleGroup({0: mb}, None, save_early=False)
+        mbg.set_current("")
+        mbg.run_current("", sim_data=self.simData)
 
         good = np.where(mb.metricValues.mask[:, -1] == False)[0]
         expected = np.array([[self.n1, self.n1], [-666.0, self.n2]])
@@ -97,10 +97,10 @@ class Test2D(unittest.TestCase):
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
-        mb.stackerList = []
-        mbg = metricBundle.MetricBundleGroup({0: mb}, None, saveEarly=False)
-        mbg.setCurrent("")
-        mbg.runCurrent("", simData=self.simData)
+        mb.stacker_list = []
+        mbg = metricBundle.MetricBundleGroup({0: mb}, None, save_early=False)
+        mbg.set_current("")
+        mbg.run_current("", sim_data=self.simData)
 
         good = np.where(mb.metricValues.mask[:, -1] == False)[0]
         expected = np.array([[self.n1, 0.0], [0.0, self.n2]])
@@ -112,10 +112,10 @@ class Test2D(unittest.TestCase):
         )
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
-        mb.stackerList = []
-        mbg = metricBundle.MetricBundleGroup({0: mb}, None, saveEarly=False)
-        mbg.setCurrent("")
-        mbg.runCurrent("", simData=self.simData)
+        mb.stacker_list = []
+        mbg = metricBundle.MetricBundleGroup({0: mb}, None, save_early=False)
+        mbg.set_current("")
+        mbg.run_current("", sim_data=self.simData)
         expected = np.array([[self.m5_1 * self.n1, 0.0], [0.0, self.m5_2 * self.n2]])
         assert np.array_equal(mb.metricValues.data[good, :], expected)
 
@@ -127,10 +127,10 @@ class Test2D(unittest.TestCase):
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
-        mb.stackerList = []
-        mbg = metricBundle.MetricBundleGroup({0: mb}, None, saveEarly=False)
-        mbg.setCurrent("")
-        mbg.runCurrent("", simData=self.simData)
+        mb.stacker_list = []
+        mbg = metricBundle.MetricBundleGroup({0: mb}, None, save_early=False)
+        mbg.set_current("")
+        mbg.run_current("", sim_data=self.simData)
         good = np.where(mb.metricValues.mask[:, -1] == False)[0]
         expected = np.array(
             [[self.n1 * self.m5_1, self.n1 * self.m5_1], [-666.0, self.n2 * self.m5_2]]
@@ -145,10 +145,10 @@ class Test2D(unittest.TestCase):
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
-        mb.stackerList = []
-        mbg = metricBundle.MetricBundleGroup({0: mb}, None, saveEarly=False)
-        mbg.setCurrent("")
-        mbg.runCurrent("", simData=self.simData)
+        mb.stacker_list = []
+        mbg = metricBundle.MetricBundleGroup({0: mb}, None, save_early=False)
+        mbg.set_current("")
+        mbg.run_current("", sim_data=self.simData)
         good = np.where(
             (mb.metricValues.mask[:, 0] == False)
             | (mb.metricValues.mask[:, 1] == False)
@@ -173,10 +173,10 @@ class Test2D(unittest.TestCase):
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
-        mb.stackerList = []
-        mbg = metricBundle.MetricBundleGroup({0: mb}, None, saveEarly=False)
-        mbg.setCurrent("")
-        mbg.runCurrent("", simData=self.simData)
+        mb.stacker_list = []
+        mbg = metricBundle.MetricBundleGroup({0: mb}, None, save_early=False)
+        mbg.set_current("")
+        mbg.run_current("", sim_data=self.simData)
         good = np.where(mb.metricValues.mask[:, -1] == False)[0]
 
         checkMetric = metrics.Coaddm5Metric()
@@ -230,11 +230,11 @@ class Test2D(unittest.TestCase):
         slicer = slicers.HealpixSlicer(nside=16)
         bundleList.append(metricBundle.MetricBundle(metric, slicer, sql))
         for bundle in bundleList:
-            bundle.stackerList = []
-        bd = metricBundle.makeBundlesDictFromList(bundleList)
-        mbg = metricBundle.MetricBundleGroup(bd, None, saveEarly=False)
-        mbg.setCurrent("")
-        mbg.runCurrent("", simData=self.simData)
+            bundle.stacker_list = []
+        bd = metricBundle.make_bundles_dict_from_list(bundleList)
+        mbg = metricBundle.MetricBundleGroup(bd, None, save_early=False)
+        mbg.set_current("")
+        mbg.run_current("", sim_data=self.simData)
 
         assert np.array_equal(
             bundleList[0].metricValues[:, 1].compressed(),

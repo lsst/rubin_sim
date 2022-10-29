@@ -202,7 +202,7 @@ def compute_metric(params):
 
     obsdb = db.OpsimDatabase("/home/docmaf/my_repoes/data/baseline2018a.db")
     outputDir = "/home/docmaf/"
-    resultsDb = db.ResultsDb(outDir=outputDir)
+    resultsDb = db.ResultsDb(out_dir=outputDir)
 
     (propids, proptags) = obsdb.fetchPropInfo()
     surveyWhere = obsdb.createSQLWhere(params["survey"], proptags)
@@ -224,7 +224,7 @@ def compute_metric(params):
     bgroup = metricBundles.MetricBundleGroup(
         {0: bundle}, obsdb, outDir="newmetric_test", resultsDb=resultsDb
     )
-    bgroup.runAll()
+    bgroup.run_all()
 
 
 if __name__ == "__main__":

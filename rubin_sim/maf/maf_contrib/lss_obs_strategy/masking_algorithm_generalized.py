@@ -193,8 +193,8 @@ def maskingAlgorithmGeneralized(
                         "maxl": 500,
                         "cmap": cm.jet,
                     }
-                tempCopy[dither].setPlotDict(plotDict)
-                tempCopy[dither].setPlotFuncs(
+                tempCopy[dither].set_plot_dict(plotDict)
+                tempCopy[dither].set_plot_funcs(
                     [plots.HealpixSkyMap(), plots.HealpixPowerSpectrum()]
                 )
                 tempCopy[dither].plot(plotHandler=plotHandler)
@@ -228,8 +228,8 @@ def maskingAlgorithmGeneralized(
                 "colorMax": skyMapColorMax,
                 "cmap": cm.jet,
             }
-            myBundles[dither].setPlotDict(plotDict)
-            myBundles[dither].setPlotFuncs([plots.HealpixSkyMap()])
+            myBundles[dither].set_plot_dict(plotDict)
+            myBundles[dither].set_plot_funcs([plots.HealpixSkyMap()])
             myBundles[dither].plot(plotHandler=plotHandler)
             # power spectrum
             plotDict = {
@@ -241,8 +241,8 @@ def maskingAlgorithmGeneralized(
                 "maxl": 500,
                 "cmap": cm.jet,
             }
-            myBundles[dither].setPlotDict(plotDict)
-            myBundles[dither].setPlotFuncs([plots.HealpixPowerSpectrum()])
+            myBundles[dither].set_plot_dict(plotDict)
+            myBundles[dither].set_plot_funcs([plots.HealpixPowerSpectrum()])
             myBundles[dither].plot(plotHandler=plotHandler)
             plt.show()
 

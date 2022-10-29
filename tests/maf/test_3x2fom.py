@@ -46,18 +46,18 @@ class Test3x2(unittest.TestCase):
         )
         bundleList.append(
             maf.metric_bundles.MetricBundle(
-                m, s, sql, summaryMetrics=[ThreebyTwoSummary, ThreebyTwoSummary_simple]
+                m, s, sql, summary_metrics=[ThreebyTwoSummary, ThreebyTwoSummary_simple]
             )
         )
 
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
         conn = maf.db.OpsimDatabase(database=database)
-        resultsDb = maf.db.ResultsDb(outDir=self.outDir)
-        bd = maf.metric_bundles.makeBundlesDictFromList(bundleList)
+        resultsDb = maf.db.ResultsDb(out_dir=self.outDir)
+        bd = maf.metric_bundles.make_bundles_dict_from_list(bundleList)
         bg = maf.metric_bundles.MetricBundleGroup(
-            bd, conn, outDir=self.outDir, resultsDb=resultsDb
+            bd, conn, out_dir=self.outDir, results_db=resultsDb
         )
-        bg.runAll()
+        bg.run_all()
 
     def tearDown(self):
         if os.path.isdir(self.outDir):

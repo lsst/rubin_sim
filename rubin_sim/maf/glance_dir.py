@@ -36,11 +36,11 @@ def glance_dir():
 
         bdict = {}
         bdict.update(batches.glanceBatch(colmap, name))
-        results_db = db.ResultsDb(outDir=name + "_glance")
+        results_db = db.ResultsDb(out_dir=name + "_glance")
         group = mb.MetricBundleGroup(
-            bdict, opsdb, outDir=name + "_glance", results_db=results_db, saveEarly=False
+            bdict, opsdb, outDir=name + "_glance", results_db=results_db, save_early=False
         )
-        group.runAll(clearMemory=True, plotNow=True)
+        group.run_all(clear_memory=True, plot_now=True)
         results_db.close()
         db.addRunToDatabase(
             name + "_glance", "trackingDb_sqlite.db", None, name, "", "", name + ".db"

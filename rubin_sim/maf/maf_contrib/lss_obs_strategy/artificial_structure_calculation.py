@@ -273,7 +273,7 @@ def artificialStructureCalculation(
         os.makedirs("%s%s" % (path, outDir))
 
     results_dbname = "resultsDb_%s.db" % np.random.randint(100)
-    resultsDb = db.ResultsDb(database=results_dbname, outDir="%s%s" % (path, outDir))
+    resultsDb = db.ResultsDb(database=results_dbname, out_dir="%s%s" % (path, outDir))
 
     # ------------------------------------------------------------------------
     # set up the sql constraint
@@ -526,19 +526,19 @@ def artificialStructureCalculation(
                 galCountMetric,
                 slicer[dither],
                 sqlconstraint,
-                stackerList=stackerList[dither],
-                runName=runName,
+                stacker_list=stackerList[dither],
+                run_name=runName,
                 metadata=dither,
-                mapsList=[dustMap],
+                maps_list=[dustMap],
             )
         else:
             myBundles[dither] = metricBundles.MetricBundle(
                 galCountMetric,
                 slicer[dither],
                 sqlconstraint,
-                runName=runName,
+                run_name=runName,
                 metadata=dither,
-                mapsList=[dustMap],
+                maps_list=[dustMap],
             )
     # ------------------------------------------------------------------------
     # run the metric/slicer combination for galaxy counts (numGal)
@@ -546,11 +546,11 @@ def artificialStructureCalculation(
     bGroup = metricBundles.MetricBundleGroup(
         myBundles,
         opsdb,
-        outDir="%s%s" % (path, outDir),
-        resultsDb=resultsDb,
-        saveEarly=False,
+        out_dir="%s%s" % (path, outDir),
+        results_db=resultsDb,
+        save_early=False,
     )
-    bGroup.runAll()
+    bGroup.run_all()
     # ------------------------------------------------------------------------
 
     # save the raw numGal data.
@@ -684,79 +684,79 @@ def artificialStructureCalculation(
                     meanMetric,
                     slicer[dither],
                     sqlconstraint,
-                    stackerList=stackerList[dither],
-                    runName=runName,
+                    stacker_list=stackerList[dither],
+                    run_name=runName,
                     metadata=dither,
                 )
                 nObsBundle[dither] = metricBundles.MetricBundle(
                     nObsMetric,
                     slicer[dither],
                     sqlconstraint,
-                    stackerList=stackerList[dither],
-                    runName=runName,
+                    stacker_list=stackerList[dither],
+                    run_name=runName,
                     metadata=dither,
                 )
                 coaddBundle[dither] = metricBundles.MetricBundle(
                     coaddMetric,
                     slicer[dither],
                     sqlconstraint,
-                    stackerList=stackerList[dither],
-                    runName=runName,
+                    stacker_list=stackerList[dither],
+                    run_name=runName,
                     metadata=dither,
-                    mapsList=[dustMap],
+                    maps_list=[dustMap],
                 )
             else:
                 avgSeeingBundle[dither] = metricBundles.MetricBundle(
                     meanMetric,
                     slicer[dither],
                     sqlconstraint,
-                    runName=runName,
+                    run_name=runName,
                     metadata=dither,
                 )
                 nObsBundle[dither] = metricBundles.MetricBundle(
                     nObsMetric,
                     slicer[dither],
                     sqlconstraint,
-                    runName=runName,
+                    run_name=runName,
                     metadata=dither,
                 )
                 coaddBundle[dither] = metricBundles.MetricBundle(
                     coaddMetric,
                     slicer[dither],
                     sqlconstraint,
-                    runName=runName,
+                    run_name=runName,
                     metadata=dither,
-                    mapsList=[dustMap],
+                    maps_list=[dustMap],
                 )
         print("\n# Running avgSeeingBundle ...")
         aGroup = metricBundles.MetricBundleGroup(
             avgSeeingBundle,
             opsdb,
-            outDir="%s%s" % (path, outDir),
-            resultsDb=resultsDb,
-            saveEarly=False,
+            out_dir="%s%s" % (path, outDir),
+            results_db=resultsDb,
+            save_early=False,
         )
-        aGroup.runAll()
+        aGroup.run_all()
 
         print("\n# Running nObsBundle ...")
         nGroup = metricBundles.MetricBundleGroup(
             nObsBundle,
             opsdb,
-            outDir="%s%s" % (path, outDir),
-            resultsDb=resultsDb,
-            saveEarly=False,
+            out_dir="%s%s" % (path, outDir),
+            results_db=resultsDb,
+            save_early=False,
         )
-        nGroup.runAll()
+        nGroup.run_all()
 
         print("\n# Running coaddBundle ...")
         cGroup = metricBundles.MetricBundleGroup(
             coaddBundle,
             opsdb,
-            outDir="%s%s" % (path, outDir),
-            resultsDb=resultsDb,
-            saveEarly=False,
+            out_dir="%s%s" % (path, outDir),
+            results_db=resultsDb,
+            save_early=False,
         )
-        cGroup.runAll()
+        cGroup.run_all()
 
         # ------------------------------------------------------------------------
         # mask the border pixels
@@ -772,17 +772,17 @@ def artificialStructureCalculation(
             meanMetric,
             slicers.UniSlicer(),
             sqlconstraint,
-            runName=runName,
+            run_name=runName,
             metadata="avgSeeingAcrossMap",
         )
         bundleGroup = metricBundles.MetricBundleGroup(
             bundle,
             opsdb,
-            outDir="%s%s" % (path, outDir),
-            resultsDb=resultsDb,
-            saveEarly=False,
+            out_dir="%s%s" % (path, outDir),
+            results_db=resultsDb,
+            save_early=False,
         )
-        bundleGroup.runAll()
+        bundleGroup.run_all()
         avgSeeingAcrossMap = bundle["avgSeeingAcrossMap"].metricValues.data[0]
         printOut = "\n# Average seeing across map: %s" % (avgSeeingAcrossMap)
         print(printOut)
@@ -1144,11 +1144,11 @@ def artificialStructureCalculation(
     summarymetric = metrics.TotalPowerMetric()
     update = ""
     for dither in myBundles:
-        myBundles[dither].setSummaryMetrics(summarymetric)
-        myBundles[dither].computeSummaryStats()
+        myBundles[dither].set_summary_metrics(summarymetric)
+        myBundles[dither].compute_summary_stats()
         printOut = "# Total power for %s case is %f." % (
             dither,
-            myBundles[dither].summaryValues["TotalPower"],
+            myBundles[dither].summary_values["TotalPower"],
         )
         print(printOut)
         update += "\n%s" % (printOut)
