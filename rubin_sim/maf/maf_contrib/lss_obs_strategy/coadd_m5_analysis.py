@@ -232,26 +232,26 @@ def coaddM5Analysis(
             )
         ]
         slicer["RandomDitherFieldPerVisit"] = slicers.HealpixSlicer(
-            lonCol="randomDitherFieldPerVisitRa",
-            latCol="randomDitherFieldPerVisitDec",
-            latLonDeg=raDecInDeg,
+            lon_col="randomDitherFieldPerVisitRa",
+            lat_col="randomDitherFieldPerVisitDec",
+            lat_lon_deg=raDecInDeg,
             nside=nside,
             useCache=False,
         )
     else:
         if slair:
             slicer["NoDither"] = slicers.HealpixSlicer(
-                lonCol="RA",
-                latCol="dec",
-                latLonDeg=raDecInDeg,
+                lon_col="RA",
+                lat_col="dec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
         else:
             slicer["NoDither"] = slicers.HealpixSlicer(
-                lonCol="fieldRA",
-                latCol="fieldDec",
-                latLonDeg=raDecInDeg,
+                lon_col="fieldRA",
+                lat_col="fieldDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
@@ -263,16 +263,16 @@ def coaddM5Analysis(
             #                                                                    latLonDeg=raDecInDeg, nside=nside,
             #                                                                    useCache=False)
             slicer["SequentialHexDitherFieldPerNight"] = slicers.HealpixSlicer(
-                lonCol="hexDitherFieldPerNightRa",
-                latCol="hexDitherFieldPerNightDec",
-                latLonDeg=raDecInDeg,
+                lon_col="hexDitherFieldPerNightRa",
+                lat_col="hexDitherFieldPerNightDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
             slicer["PentagonDitherPerSeason"] = slicers.HealpixSlicer(
-                lonCol="pentagonDitherPerSeasonRa",
-                latCol="pentagonDitherPerSeasonDec",
-                latLonDeg=raDecInDeg,
+                lon_col="pentagonDitherPerSeasonRa",
+                lat_col="pentagonDitherPerSeasonDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
@@ -304,23 +304,23 @@ def coaddM5Analysis(
             # set up slicers for different dithers
             # random dithers on different timescales
             slicer["RandomDitherPerNight"] = slicers.HealpixSlicer(
-                lonCol="randomDitherPerNightRa",
-                latCol="randomDitherPerNightDec",
-                latLonDeg=raDecInDeg,
+                lon_col="randomDitherPerNightRa",
+                lat_col="randomDitherPerNightDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
             slicer["RandomDitherFieldPerNight"] = slicers.HealpixSlicer(
-                lonCol="randomDitherFieldPerNightRa",
-                latCol="randomDitherFieldPerNightDec",
-                latLonDeg=raDecInDeg,
+                lon_col="randomDitherFieldPerNightRa",
+                lat_col="randomDitherFieldPerNightDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
             slicer["RandomDitherFieldPerVisit"] = slicers.HealpixSlicer(
-                lonCol="randomDitherFieldPerVisitRa",
-                latCol="randomDitherFieldPerVisitDec",
-                latLonDeg=raDecInDeg,
+                lon_col="randomDitherFieldPerVisitRa",
+                lat_col="randomDitherFieldPerVisitDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
@@ -338,67 +338,67 @@ def coaddM5Analysis(
             #                                                                    useCache=False)
             # spiral dithers on different timescales
             slicer["FermatSpiralDitherPerNight"] = slicers.HealpixSlicer(
-                lonCol="fermatSpiralDitherPerNightRa",
-                latCol="fermatSpiralDitherPerNightDec",
-                latLonDeg=raDecInDeg,
+                lon_col="fermatSpiralDitherPerNightRa",
+                lat_col="fermatSpiralDitherPerNightDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
             slicer["FermatSpiralDitherFieldPerNight"] = slicers.HealpixSlicer(
-                lonCol="fermatSpiralDitherFieldPerNightRa",
-                latCol="fermatSpiralDitherFieldPerNightDec",
-                latLonDeg=raDecInDeg,
+                lon_col="fermatSpiralDitherFieldPerNightRa",
+                lat_col="fermatSpiralDitherFieldPerNightDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
             slicer["FermatSpiralDitherFieldPerVisit"] = slicers.HealpixSlicer(
-                lonCol="fermatSpiralDitherFieldPerVisitRa",
-                latCol="fermatSpiralDitherFieldPerVisitDec",
-                latLonDeg=raDecInDeg,
+                lon_col="fermatSpiralDitherFieldPerVisitRa",
+                lat_col="fermatSpiralDitherFieldPerVisitDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
             # hex dithers on different timescales
             slicer["SequentialHexDitherPerNight"] = slicers.HealpixSlicer(
-                lonCol="hexDitherPerNightRa",
-                latCol="hexDitherPerNightDec",
-                latLonDeg=raDecInDeg,
+                lon_col="hexDitherPerNightRa",
+                lat_col="hexDitherPerNightDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
             slicer["SequentialHexDitherFieldPerNight"] = slicers.HealpixSlicer(
-                lonCol="hexDitherFieldPerNightRa",
-                latCol="hexDitherFieldPerNightDec",
-                latLonDeg=raDecInDeg,
+                lon_col="hexDitherFieldPerNightRa",
+                lat_col="hexDitherFieldPerNightDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
             slicer["SequentialHexDitherFieldPerVisit"] = slicers.HealpixSlicer(
-                lonCol="hexDitherFieldPerVisitRa",
-                latCol="hexDitherFieldPerVisitDec",
-                latLonDeg=raDecInDeg,
+                lon_col="hexDitherFieldPerVisitRa",
+                lat_col="hexDitherFieldPerVisitDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
             # per season dithers
             slicer["PentagonDitherPerSeason"] = slicers.HealpixSlicer(
-                lonCol="pentagonDitherPerSeasonRa",
-                latCol="pentagonDitherPerSeasonDec",
-                latLonDeg=raDecInDeg,
+                lon_col="pentagonDitherPerSeasonRa",
+                lat_col="pentagonDitherPerSeasonDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
             slicer["PentagonDiamondDitherPerSeason"] = slicers.HealpixSlicer(
-                lonCol="pentagonDiamondDitherPerSeasonRa",
-                latCol="pentagonDiamondDitherPerSeasonDec",
-                latLonDeg=raDecInDeg,
+                lon_col="pentagonDiamondDitherPerSeasonRa",
+                lat_col="pentagonDiamondDitherPerSeasonDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )
             slicer["SpiralDitherPerSeason"] = slicers.HealpixSlicer(
-                lonCol="spiralDitherPerSeasonRa",
-                latCol="spiralDitherPerSeasonDec",
-                latLonDeg=raDecInDeg,
+                lon_col="spiralDitherPerSeasonRa",
+                lat_col="spiralDitherPerSeasonDec",
+                lat_lon_deg=raDecInDeg,
                 nside=nside,
                 useCache=False,
             )

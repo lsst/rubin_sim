@@ -30,15 +30,15 @@ class HealpixComCamSlicer(HealpixSlicer):
     def __init__(
         self,
         nside=128,
-        lonCol="fieldRA",
-        latCol="fieldDec",
-        latLonDeg=True,
+        lon_col="fieldRA",
+        lat_col="fieldDec",
+        lat_lon_deg=True,
         verbose=True,
         badval=hp.UNSEEN,
-        useCache=True,
+        use_cache=True,
         leafsize=100,
-        useCamera=False,
-        rotSkyPosColName="rotSkyPos",
+        use_camera=False,
+        rot_sky_pos_col_name="rotSkyPos",
         mjdColName="observationStartMJD",
         chipNames=center_raft_chips,
         side_length=0.7,
@@ -52,16 +52,16 @@ class HealpixComCamSlicer(HealpixSlicer):
         radius = side_length / 2.0 * np.sqrt(2.0)
         super(HealpixComCamSlicer, self).__init__(
             nside=nside,
-            lonCol=lonCol,
-            latCol=latCol,
-            latLonDeg=latLonDeg,
+            lon_col=lon_col,
+            lat_col=lat_col,
+            lat_lon_deg=lat_lon_deg,
             verbose=verbose,
             badval=badval,
-            useCache=useCache,
+            use_cache=use_cache,
             leafsize=leafsize,
             radius=radius,
-            useCamera=useCamera,
-            rotSkyPosColName=rotSkyPosColName,
+            use_camera=use_camera,
+            rot_sky_pos_col_name=rot_sky_pos_col_name,
             mjdColName=mjdColName,
             chipNames=chipNames,
         )
@@ -83,7 +83,7 @@ class HealpixComCamSlicer(HealpixSlicer):
             ]
         )
         # Need the rotation even if not using the camera
-        self.columns_needed.append(rotSkyPosColName)
+        self.columns_needed.append(rot_sky_pos_col_name)
         self.columns_needed = list(set(self.columns_needed))
 
         # The 3D search radius for things inside the raft
@@ -105,7 +105,7 @@ class HealpixComCamSlicer(HealpixSlicer):
             if self.cacheSize != 0 and len(maps) > 0:
                 warnings.warn(
                     "Warning:  Loading maps but cache on."
-                    "Should probably set useCache=False in slicer."
+                    "Should probably set use_cache=False in slicer."
                 )
             self._runMaps(maps)
         self._setRad(self.radius)

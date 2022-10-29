@@ -2,10 +2,10 @@ import numpy as np
 from rubin_sim.phot_utils import DustValues
 from .base_metric import BaseMetric
 
-__all__ = ["AgnTimelagmetric"]
+__all__ = ["AgnTimeLagMetric"]
 
 
-class AgnTimelagmetric(BaseMetric):
+class AgnTimeLagMetric(BaseMetric):
     def __init__(
         self,
         lag=100,

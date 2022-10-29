@@ -48,7 +48,7 @@ class DepthLimitedNumGalMetric(metrics.BaseMetric):
         nfilters_needed=6,
         lim_mag_i_ptsrc=26.0,
         lim_ebv=0.2,
-        metricName="DepthLimitedNumGalaxiesMetric",
+        metric_name="DepthLimitedNumGalaxiesMetric",
         units="Galaxy Counts",
         **kwargs
     ):
@@ -65,12 +65,12 @@ class DepthLimitedNumGalMetric(metrics.BaseMetric):
         self.galmetric = GalaxyCountsMetric(
             m5_col=self.m5Col,
             nside=nside,
-            upperMagLimit=lim_mag_i_extsrc,
-            includeDustExtinction=True,
-            filterBand=self.filterBand,
-            redshiftBin=redshiftBin,
-            CFHTLSCounts=False,
-            normalizedMockCatalogCounts=True,
+            upper_mag_limit=lim_mag_i_extsrc,
+            include_dust_extinction=True,
+            filter_band=self.filterBand,
+            redshift_bin=redshiftBin,
+            cfht_ls_counts=False,
+            normalized_mock_catalog_counts=True,
         )
         # set up the metric for extragalactic footprint
         self.eg_metric = metrics.ExgalM5WithCuts(
@@ -86,18 +86,18 @@ class DepthLimitedNumGalMetric(metrics.BaseMetric):
         super().__init__(
             col=[self.m5Col, self.filterCol],
             maps=maps,
-            metric_name=metricName,
+            metric_name=metric_name,
             units=units,
             **kwargs
         )
 
-    def run(self, dataslice, slicePoint):
+    def run(self, data_slice, slice_point=None):
         # see if this slicePoint is in the extragalactic footprint
-        pass_egcuts = self.eg_metric.run(dataslice, slicePoint=slicePoint)
+        pass_egcuts = self.eg_metric.run(data_slice, slice_point=slice_point)
 
         if pass_egcuts == self.badval:  # failed dust/depth cuts
             return self.badval
 
         # Otherwise, find the galaxy counts
-        in_filt = np.where(dataslice[self.filterCol] == self.filterBand)[0]
-        return self.galmetric.run(dataslice[in_filt], slicePoint=slicePoint)
+        in_filt = np.where(data_slice[self.filterCol] == self.filterBand)[0]
+        return self.galmetric.run(data_slice[in_filt], slice_point=slice_point)

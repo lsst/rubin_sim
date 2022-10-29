@@ -128,7 +128,7 @@ class transientAsciiSEDMetric(BaseMetric):
 
         super(transientAsciiSEDMetric, self).__init__(
             col=[self.mjdCol, self.m5Col, self.filterCol],
-            metricName=metric_name,
+            metric_name=metric_name,
             **super_dict,
             **kwargs,
         )

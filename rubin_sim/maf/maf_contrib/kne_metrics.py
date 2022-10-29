@@ -137,7 +137,7 @@ class KN_lc(object):
 class KNePopMetric(BaseMetric):
     def __init__(
         self,
-        metricName="KNePopMetric",
+        metric_name="KNePopMetric",
         mjdCol="observationStartMJD",
         m5Col="fiveSigmaDepth",
         filterCol="filter",
@@ -168,7 +168,7 @@ class KNePopMetric(BaseMetric):
         super(KNePopMetric, self).__init__(
             col=cols,
             units="Detected, 0 or 1",
-            metricName=metricName,
+            metric_name=metric_name,
             maps=maps,
             badval=badval,
             **kwargs,
@@ -461,7 +461,7 @@ def generateKNPopSlicer(
     distance = rndm(d_min, d_max, 4, size=n_events)
 
     # Set up the slicer to evaluate the catalog we just made
-    slicer = UserPointsSlicer(ra, dec, latLonDeg=True, badval=0)
+    slicer = UserPointsSlicer(ra, dec, lat_lon_deg=True, badval=0)
     # Add any additional information about each object to the slicer
     slicer.slicePoints["peak_time"] = peak_times
     slicer.slicePoints["file_indx"] = file_indx

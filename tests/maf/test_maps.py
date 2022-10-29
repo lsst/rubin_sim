@@ -56,7 +56,7 @@ class TestMaps(unittest.TestCase):
             dustmap = maps.DustMap(nside=nside, mapPath=mapPath)
 
             slicer1 = slicers.HealpixSlicer(
-                latLonDeg=False, nside=nside, useCamera=False
+                lat_lon_deg=False, nside=nside, use_camera=False
             )
             slicer1.setupSlicer(data)
             result1 = dustmap.run(slicer1.slicePoints)
@@ -94,7 +94,7 @@ class TestMaps(unittest.TestCase):
             dustmap = maps.DustMap3D(nside=nside, mapFile=mapFile, interp=False)
 
             slicer1 = slicers.HealpixSlicer(
-                latLonDeg=False, nside=nside, useCamera=False
+                lat_lon_deg=False, nside=nside, use_camera=False
             )
             slicer1.setupSlicer(data)
             result1 = dustmap.run(slicer1.slicePoints)
@@ -152,7 +152,7 @@ class TestMaps(unittest.TestCase):
             for nside in nsides:
                 starmap = maps.StellarDensityMap(mapDir=mapPath)
                 slicer1 = slicers.HealpixSlicer(
-                    nside=nside, latLonDeg=False, useCamera=False
+                    nside=nside, lat_lon_deg=False, use_camera=False
                 )
                 slicer1.setupSlicer(data)
                 result1 = starmap.run(slicer1.slicePoints)
@@ -187,7 +187,7 @@ class TestMaps(unittest.TestCase):
         )
 
         # Set up basic case - healpix
-        slicer1 = slicers.HealpixSlicer(latLonDeg=False, nside=nside, useCamera=False)
+        slicer1 = slicers.HealpixSlicer(lat_lon_deg=False, nside=nside, use_camera=False)
         slicer1.setupSlicer(data)
         result1 = galplane_map.run(slicer1.slicePoints)
         key = maps.gp_priority_map_components_to_keys("sum", "combined_map")

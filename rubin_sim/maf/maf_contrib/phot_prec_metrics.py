@@ -32,14 +32,14 @@ class SNMetric(BaseMetric):
         skyBCol="filtSkyBrightness",
         expTCol="visitExpTime",
         filterCol="filter",
-        metricName="SNMetric",
+        metric_name="SNMetric",
         filter=None,
         mag=None,
         **kwargs
     ):
         super(SNMetric, self).__init__(
             col=[m5Col, seeingCol, skyBCol, expTCol, filterCol],
-            metricName=metricName,
+            metric_name=metric_name,
             **kwargs
         )
         self.filter = filter
@@ -94,14 +94,14 @@ class SEDSNMetric(BaseMetric):
         skyBCol="filtSkyBrightness",
         expTCol="visitExpTime",
         filterCol="filter",
-        metricName="SEDSNMetric",
+        metric_name="SEDSNMetric",
         # filter=None,
         mags=None,
         **kwargs
     ):
         super(SEDSNMetric, self).__init__(
             col=[m5Col, seeingCol, skyBCol, expTCol, filterCol],
-            metricName=metricName,
+            metric_name=metric_name,
             **kwargs
         )
         self.mags = mags
@@ -114,7 +114,7 @@ class SEDSNMetric(BaseMetric):
     def run(self, dataSlice, slicePoint=None):
         res = {}
         for curf, curm in self.metrics.items():
-            curr = curm.run(dataSlice, slicePoint=slicePoint)
+            curr = curm.run(dataSlice, slice_point=slicePoint)
             res["sn_" + curf] = curr
         return res
 
@@ -140,7 +140,7 @@ class ThreshSEDSNMetric(BaseMetric):
         skyBCol="filtSkyBrightness",
         expTCol="visitExpTime",
         filterCol="filter",
-        metricName="ThreshSEDSNMetric",
+        metric_name="ThreshSEDSNMetric",
         snlim=20,
         # filter=None,
         mags=None,
@@ -149,7 +149,7 @@ class ThreshSEDSNMetric(BaseMetric):
         """Instantiate metric."""
         super(ThreshSEDSNMetric, self).__init__(
             col=[m5Col, seeingCol, skyBCol, expTCol, filterCol],
-            metricName=metricName,
+            metric_name=metric_name,
             **kwargs
         )
         self.xmet = SEDSNMetric(mags=mags)

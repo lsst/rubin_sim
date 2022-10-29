@@ -75,7 +75,7 @@ class Test2D(unittest.TestCase):
     def testHealpix2dSlicer(self):
         metric = metrics.AccumulateCountMetric(bins=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(
-            nside=16, cameraFootprintFile=self.cameraFootprintFile
+            nside=16, camera_footprint_file=self.cameraFootprintFile
         )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -92,7 +92,7 @@ class Test2D(unittest.TestCase):
     def testHistogramMetric(self):
         metric = metrics.HistogramMetric(bins=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(
-            nside=16, cameraFootprintFile=self.cameraFootprintFile
+            nside=16, camera_footprint_file=self.cameraFootprintFile
         )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -122,7 +122,7 @@ class Test2D(unittest.TestCase):
     def testAccumulateMetric(self):
         metric = metrics.AccumulateMetric(col="fiveSigmaDepth", bins=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(
-            nside=16, cameraFootprintFile=self.cameraFootprintFile
+            nside=16, camera_footprint_file=self.cameraFootprintFile
         )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -140,7 +140,7 @@ class Test2D(unittest.TestCase):
     def testHistogramM5Metric(self):
         metric = metrics.HistogramM5Metric(bins=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(
-            nside=16, cameraFootprintFile=self.cameraFootprintFile
+            nside=16, camera_footprint_file=self.cameraFootprintFile
         )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -168,7 +168,7 @@ class Test2D(unittest.TestCase):
     def testAccumulateM5Metric(self):
         metric = metrics.AccumulateM5Metric(bins=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(
-            nside=16, cameraFootprintFile=self.cameraFootprintFile
+            nside=16, camera_footprint_file=self.cameraFootprintFile
         )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -222,7 +222,7 @@ class Test2D(unittest.TestCase):
         bundleList = []
         metric = metrics.AccumulateM5Metric(bins=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(
-            nside=16, cameraFootprintFile=self.cameraFootprintFile
+            nside=16, camera_footprint_file=self.cameraFootprintFile
         )
         sql = ""
         bundleList.append(metricBundle.MetricBundle(metric, slicer, sql))

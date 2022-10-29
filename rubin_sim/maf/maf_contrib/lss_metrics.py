@@ -11,11 +11,11 @@ class GalaxyCountsMetric(BaseMetric):
     """Estimate the number of galaxies expected at a particular coadded depth."""
 
     def __init__(
-        self, m5Col="fiveSigmaDepth", nside=128, metricName="GalaxyCounts", **kwargs
+        self, m5Col="fiveSigmaDepth", nside=128, metric_name="GalaxyCounts", **kwargs
     ):
         self.m5Col = m5Col
         super(GalaxyCountsMetric, self).__init__(
-            col=self.m5Col, metricName=metricName, **kwargs
+            col=self.m5Col, metric_name=metric_name, **kwargs
         )
         # Use the coadded depth metric to calculate the coadded depth at each point.
         self.coaddmetric = Coaddm5Metric(m5Col=self.m5Col)

@@ -55,17 +55,17 @@ class PeriodicStarModulationMetric(BaseMetric):
         a random phase is assigned (default False)
     time_interval : `float`, opt
         days (default 50); the interval over which we want to evaluate the light curve
-    nMonte : `int`, opt
+    n_monte : `int`, opt
         number of noise realizations to make in the Monte Carlo (default 1000)
-    periodTol : `float`, opt
+    period_tol : `float`, opt
         fractional tolerance on the period to demand for a star to be considered well-fit (default 0.05)
-    ampTol : `float`, opt
+    amp_tol : `float`, opt
         fractional tolerance on the amplitude to demand (default 0.10)
     means : `list` of `float`, opt
         mean magnitudes for ugrizy (default all 20)
-    magTol : `float`, opt
+    mag_tol : `float`, opt
         Mean magnitude tolerance (mags) (default 0.1)
-    nBands : `int`, opt
+    n_bands : `int`, opt
         Number of bands that must be within magTol (default 3)
     seed : `int`, opt
         random number seed (default 42)
@@ -73,46 +73,46 @@ class PeriodicStarModulationMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="PeriodicStarModulationMetric",
-        mjdCol="observationStartMJD",
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
+        metric_name="PeriodicStarModulationMetric",
+        mjd_col="observationStartMJD",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
         period=10.0,
         amplitude=0.5,
         phase=2.0,
         random_phase=False,
         time_interval=50,
-        nMonte=1000,
-        periodTol=0.05,
-        ampTol=0.10,
+        n_monte=1000,
+        period_tol=0.05,
+        amp_tol=0.10,
         means=[20.0, 20.0, 20.0, 20.0, 20.0, 20.0],
-        magTol=0.10,
-        nBands=3,
+        mag_tol=0.10,
+        n_bands=3,
         seed=42,
         **kwargs
     ):
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
+        self.mjdCol = mjd_col
+        self.m5Col = m5_col
+        self.filterCol = filter_col
         super(PeriodicStarModulationMetric, self).__init__(
             col=[self.mjdCol, self.m5Col, self.filterCol],
             units="Fraction Detected",
-            metricName=metricName,
+            metric_name=metric_name,
             **kwargs
         )
         self.period = period
         self.amplitude = amplitude
         self.time_interval = time_interval
-        if random_phase == True:
+        if random_phase:
             self.phase = np.NaN
         else:
             self.phase = phase
-        self.nMonte = nMonte
-        self.periodTol = periodTol
-        self.ampTol = ampTol
+        self.nMonte = n_monte
+        self.periodTol = period_tol
+        self.ampTol = amp_tol
         self.means = np.array(means)
-        self.magTol = magTol
-        self.nBands = nBands
+        self.magTol = mag_tol
+        self.nBands = n_bands
         np.random.seed(seed)
         self.filter2index = {"u": 3, "g": 4, "r": 5, "i": 6, "z": 7, "y": 8}
 

@@ -17,15 +17,15 @@ class numObsInSurveyTimeOverlapMetric(BaseMetric):
         self,
         SurveyObsWin,
         TimeCol="observationStartMJD",
-        metricName="numObsInSurveyTimeOverlapMetric",
+        metric_name="numObsInSurveyTimeOverlapMetric",
         **kwargs
     ):
 
         self.TimeCol = TimeCol
-        self.metricName = metricName
+        self.metric_name = metric_name
         self.SurveyObsWin = SurveyObsWin
         super(numObsInSurveyTimeOverlapMetric, self).__init__(
-            col=TimeCol, metricName=metricName, **kwargs
+            col=TimeCol, metric_name=metric_name, **kwargs
         )
 
     def run(self, dataSlice, slicePoint=None):

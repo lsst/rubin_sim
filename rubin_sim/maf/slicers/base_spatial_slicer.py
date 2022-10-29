@@ -30,13 +30,13 @@ class BaseSpatialSlicer(BaseSlicer):
 
     Parameters
     ----------
-    lonCol : `str`, optional
+    lon_col : `str`, optional
         Name of the longitude (RA equivalent) column to use from the input data.
         Default fieldRA
-    latCol : `str`, optional
+    lat_col : `str`, optional
         Name of the latitude (Dec equivalent) column to use from the input data.
         Default fieldDec
-    latLonDeg : `bool`, optional
+    lat_lon_deg : `bool`, optional
         Flag indicating whether lat and lon values from input data are in degrees (True) or radians (False).
         Default True.
     verbose : `bool`, optional
@@ -49,12 +49,12 @@ class BaseSpatialSlicer(BaseSlicer):
     radius : `float`, optional
         Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
         Default 1.75.
-    useCamera : `bool`, optional
+    use_camera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
         Default True.
-    cameraFootprintFile : `str`, optional
+    camera_footprint_file : `str`, optional
         Name of the camera footprint map to use. Can be None, which will use the default.
-    rotSkyPosColName : `str`, optional
+    rot_sky_pos_col_name : `str`, optional
         Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
@@ -62,37 +62,37 @@ class BaseSpatialSlicer(BaseSlicer):
 
     def __init__(
         self,
-        lonCol="fieldRA",
-        latCol="fieldDec",
-        latLonDeg=True,
+        lon_col="fieldRA",
+        lat_col="fieldDec",
+        lat_lon_deg=True,
         verbose=True,
         badval=-666,
         leafsize=100,
         radius=2.45,
-        useCamera=True,
-        cameraFootprintFile=None,
-        rotSkyPosColName="rotSkyPos",
+        use_camera=True,
+        camera_footprint_file=None,
+        rot_sky_pos_col_name="rotSkyPos",
     ):
         super().__init__(verbose=verbose, badval=badval)
-        self.lonCol = lonCol
-        self.latCol = latCol
-        self.latLonDeg = latLonDeg
-        self.rotSkyPosColName = rotSkyPosColName
-        self.columns_needed = [lonCol, latCol]
-        self.useCamera = useCamera
-        self.cameraFootprintFile = cameraFootprintFile
-        if useCamera:
-            self.columns_needed.append(rotSkyPosColName)
+        self.lonCol = lon_col
+        self.latCol = lat_col
+        self.latLonDeg = lat_lon_deg
+        self.rotSkyPosColName = rot_sky_pos_col_name
+        self.columns_needed = [lon_col, lat_col]
+        self.useCamera = use_camera
+        self.cameraFootprintFile = camera_footprint_file
+        if use_camera:
+            self.columns_needed.append(rot_sky_pos_col_name)
         self.slicer_init = {
-            "lonCol": lonCol,
-            "latCol": latCol,
+            "lonCol": lon_col,
+            "latCol": lat_col,
             "radius": radius,
             "badval": badval,
-            "useCamera": useCamera,
+            "useCamera": use_camera,
         }
         self.radius = radius
         self.leafsize = leafsize
-        self.useCamera = useCamera
+        self.useCamera = use_camera
         # RA and Dec are required slicePoint info for any spatial slicer. Slicepoint RA/Dec are in radians.
         self.slicePoints["sid"] = None
         self.slicePoints["ra"] = None
@@ -117,7 +117,7 @@ class BaseSpatialSlicer(BaseSlicer):
             if self.cacheSize != 0 and len(maps) > 0:
                 warnings.warn(
                     "Warning:  Loading maps but cache on."
-                    "Should probably set useCache=False in slicer."
+                    "Should probably set use_cache=False in slicer."
                 )
             self._runMaps(maps)
         self._setRad(self.radius)

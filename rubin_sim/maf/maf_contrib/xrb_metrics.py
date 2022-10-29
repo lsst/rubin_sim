@@ -261,7 +261,7 @@ class xrb_lc(object):
 class XRBPopMetric(BaseMetric):
     def __init__(
         self,
-        metricName="XRBPopMetric",
+        metric_name="XRBPopMetric",
         mjdCol="observationStartMJD",
         m5Col="fiveSigmaDepth",
         filterCol="filter",
@@ -291,7 +291,7 @@ class XRBPopMetric(BaseMetric):
         super(XRBPopMetric, self).__init__(
             col=cols,
             units="Detected, 0 or 1",
-            metricName=metricName,
+            metric_name=metric_name,
             # maps=maps,
             badval=badval,
             **kwargs,
@@ -474,7 +474,7 @@ def generateXRBPopSlicer(t_start=1, t_end=3652, n_events=10000, seed=42):
     start_times = rng.uniform(low=t_start, high=t_end, size=n_events)
 
     # Set up the slicer to evaluate the catalog we just made
-    slicer = UserPointsSlicer(ra, dec, latLonDeg=True, badval=0)
+    slicer = UserPointsSlicer(ra, dec, lat_lon_deg=True, badval=0)
     # Add any additional information about each object to the slicer
     slicer.slicePoints["start_time"] = start_times
     slicer.slicePoints["distance"] = distance_kpc

@@ -14,10 +14,10 @@ class HealpixSDSSSlicer(HealpixSlicer):
     def __init__(
         self,
         nside=128,
-        lonCol="RA1",
-        latCol="Dec1",
+        lon_col="RA1",
+        lat_col="Dec1",
         verbose=True,
-        useCache=True,
+        use_cache=True,
         radius=17.0 / 60.0,
         leafsize=100,
         **kwargs
@@ -25,11 +25,11 @@ class HealpixSDSSSlicer(HealpixSlicer):
         """Using one corner of the chip as the spatial key and the diagonal as the radius."""
         super(HealpixSDSSSlicer, self).__init__(
             verbose=verbose,
-            lonCol=lonCol,
-            latCol=latCol,
+            lon_col=lon_col,
+            lat_col=lat_col,
             radius=radius,
             leafsize=leafsize,
-            useCache=useCache,
+            use_cache=use_cache,
             nside=nside,
         )
         self.cornerLables = ["RA1", "Dec1", "RA2", "Dec2", "RA3", "Dec3", "RA4", "Dec4"]

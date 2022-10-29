@@ -43,7 +43,7 @@ class PeriodicStarMetric(BaseMetric):
 
     def __init__(
         self,
-        metricName="PeriodicStarMetric",
+        metric_name="PeriodicStarMetric",
         mjdCol="observationStartMJD",
         m5Col="fiveSigmaDepth",
         filterCol="filter",
@@ -76,7 +76,7 @@ class PeriodicStarMetric(BaseMetric):
         super(PeriodicStarMetric, self).__init__(
             col=[self.mjdCol, self.m5Col, self.filterCol],
             units="Fraction Detected",
-            metricName=metricName,
+            metric_name=metric_name,
             **kwargs
         )
         self.period = period

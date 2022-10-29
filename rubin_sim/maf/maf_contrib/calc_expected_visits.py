@@ -45,7 +45,7 @@ class CalcExpectedVisitsMetric(BaseMetric):
         filter_id,
         ra_col="fieldRA",
         dec_col="fieldDec",
-        metricName="CalcExpectedVisitsMetric",
+        metric_name="CalcExpectedVisitsMetric",
         verbose=False,
     ):
         """Input:
@@ -75,7 +75,7 @@ class CalcExpectedVisitsMetric(BaseMetric):
         columns = [self.ra_col, self.dec_col]
 
         super(CalcExpectedVisitsMetric, self).__init__(
-            col=columns, metricName=metricName
+            col=columns, metric_name=metric_name
         )
 
     def run(self, dataSlice, slicePoint=None):

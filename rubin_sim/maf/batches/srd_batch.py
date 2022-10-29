@@ -71,7 +71,7 @@ def fOBatch(
     if slicer is None:
         nside = 64
         slicer = slicers.HealpixSlicer(
-            nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+            nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
         )
     else:
         try:
@@ -80,7 +80,7 @@ def fOBatch(
             warnings.warn("Must use a healpix slicer. Swapping to the default.")
             nside = 64
             slicer = slicers.HealpixSlicer(
-                nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+                nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
             )
 
     displayDict = {"group": "SRD FO metrics", "subgroup": subgroup, "order": 0}
@@ -230,7 +230,7 @@ def astrometryBatch(
     # Set up parallax metrics.
     if slicer is None:
         slicer = slicers.HealpixSlicer(
-            nside=64, lonCol=raCol, latCol=decCol, latLonDeg=degrees
+            nside=64, lon_col=raCol, lat_col=decCol, lat_lon_deg=degrees
         )
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
@@ -480,7 +480,7 @@ def rapidRevisitBatch(
     if slicer is None:
         nside = 64
         slicer = slicers.HealpixSlicer(
-            nside=nside, lonCol=raCol, latCol=decCol, latLonDeg=degrees
+            nside=nside, lon_col=raCol, lat_col=decCol, lat_lon_deg=degrees
         )
     else:
         try:
@@ -489,7 +489,7 @@ def rapidRevisitBatch(
             warnings.warn("Must use a healpix slicer. Swapping to the default.")
             nside = 64
             slicer = slicers.HealpixSlicer(
-                nside=nside, latCol=decCol, lonCol=raCol, latLonDeg=degrees
+                nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
             )
 
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]

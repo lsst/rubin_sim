@@ -37,7 +37,7 @@ def generateKnownLVDwarfSlicer():
     lv_dat = lv_dat0[lv_dat_cuts]
 
     # Set up the slicer to evaluate the catalog we just made
-    slicer = UserPointsSlicer(lv_dat["ra"], lv_dat["dec"], latLonDeg=True, badval=-666)
+    slicer = UserPointsSlicer(lv_dat["ra"], lv_dat["dec"], lat_lon_deg=True, badval=-666)
     # Add any additional information about each object to the slicer
     slicer.slicePoints["distance"] = lv_dat["dist_Mpc"]
 
@@ -246,7 +246,7 @@ class LVDwarfsMetric(BaseMetric):
         cmd_frac=0.1,
         stargal_contamination=0.40,
         nsigma=10.0,
-        metricName="LVDwarfs",
+        metric_name="LVDwarfs",
         seed=505,
         **kwargs,
     ):
@@ -285,12 +285,12 @@ class LVDwarfsMetric(BaseMetric):
         self.lf_dict_g, self.lf_dict_i = make_dwarf_LF_dicts()
 
         # Set up already-defined metrics that we will need:
-        self.ExgalCoaddm5 = ExgalM5(m5Col=self.m5Col, filterCol=self.filterCol)
+        self.ExgalCoaddm5 = ExgalM5(m5_col=self.m5Col, filter_col=self.filterCol)
         # The StarDensityMetric calculates the number of stars in i band
         self.StarDensityMetric = StarDensityMetric(filtername="i")
         # The galaxy counts metric calculates the number of galaxies in i band
         self.GalaxyCountsMetric = GalaxyCountsMetric_extended(
-            m5_col=self.m5Col, filterBand="i", includeDustExtinction=True
+            m5_col=self.m5Col, filter_band="i", include_dust_extinction=True
         )
         # Set the scale for the GalaxyCountMetric_extended to 1, so it returns
         # galaxies per sq deg, not n galaxies per healpixel
@@ -300,24 +300,24 @@ class LVDwarfsMetric(BaseMetric):
         # GalaxyCountsMetric needs the DustMap, and StarDensityMetric needs StellarDensityMap:
         maps = ["DustMap", "StellarDensityMap"]
         super().__init__(
-            col=cols, metricName=metricName, maps=maps, units="M_V limit", **kwargs
+            col=cols, metric_name=metric_name, maps=maps, units="M_V limit", **kwargs
         )
 
         # Set up a random number generator, so that metric results are repeatable
         self.rng = np.random.default_rng(seed)
 
-    def run(self, dataSlice, slicePoint):
+    def run(self, data_slice, slice_point=None):
 
         # Identify observations in g and i bandpasses
-        gband = dataSlice[self.filterCol] == "g"
-        iband = dataSlice[self.filterCol] == "i"
+        gband = data_slice[self.filterCol] == "g"
+        iband = data_slice[self.filterCol] == "i"
         # if there are no visits in either of g or i band, exit
         if len(np.where(gband)[0]) == 0 or len(np.where(iband)[0]) == 0:
             return self.badval
 
         # calculate the dust-extincted coadded 5-sigma limiting mags in the g and i bands:
-        g5 = self.ExgalCoaddm5.run(dataSlice[gband], slicePoint)
-        i5 = self.ExgalCoaddm5.run(dataSlice[iband], slicePoint)
+        g5 = self.ExgalCoaddm5.run(data_slice[gband], slice_point)
+        i5 = self.ExgalCoaddm5.run(data_slice[iband], slice_point)
 
         if g5 < 15 or i5 < 15:
             # If the limiting magnitudes won't even match the stellar density maps, exit
@@ -328,10 +328,10 @@ class LVDwarfsMetric(BaseMetric):
         star_i5 = min(27.9, i5)
         self.StarDensityMetric.magLimit = star_i5
 
-        nstar_sqarcsec = self.StarDensityMetric.run(dataSlice, slicePoint)
+        nstar_sqarcsec = self.StarDensityMetric.run(data_slice, slice_point)
 
         # Calculate the number of galaxies per sq degree
-        ngal_sqdeg = self.GalaxyCountsMetric.run(dataSlice, slicePoint)
+        ngal_sqdeg = self.GalaxyCountsMetric.run(data_slice, slice_point)
         # GalaxyCountsMetric is undefined in some places. These cases return
         #   zero; catch these and set the galaxy counts in those regions to a
         #   very high value. (this may not be true after catching earlier no-visits issues)
@@ -345,7 +345,7 @@ class LVDwarfsMetric(BaseMetric):
         if ngal_sqarcmin < 0 or nstar_sqarcmin < 0:
             print(
                 f"Here be a problem - ngals_sqarcmin {ngal_sqarcmin} or nstar_sqarcmin {nstar_sqarcmin} "
-                f'are negative. depths: {g5}, {i5}. {slicePoint["ra"], slicePoint["dec"], slicePoint["sid"]}'
+                f'are negative. depths: {g5}, {i5}. {slice_point["ra"], slice_point["dec"], slice_point["sid"]}'
             )
         # The number of stars required to reach nsigma is nsigma times the Poisson
         #   fluctuations of the background (stars+galaxies contamination):
@@ -359,7 +359,7 @@ class LVDwarfsMetric(BaseMetric):
             distlim = self.distlim
         else:
             # Use discrete distances for known galaxies if a UserPointSlicer:
-            distlim = slicePoint["distance"] * u.Mpc
+            distlim = slice_point["distance"] * u.Mpc
             # sc_slice = SkyCoord(ra=slicePoint['ra']*u.rad, dec=slicePoint['dec']*u.rad)
             # seps = sc_slice.separation(self.sc_dat)
             # distlim = self.sc_dat[seps.argmin()].distance

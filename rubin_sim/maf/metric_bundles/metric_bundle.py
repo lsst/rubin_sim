@@ -613,11 +613,11 @@ class MetricBundle(object):
                 # The summary metric colname should already be set to 'metricdata', but in case it's not:
                 m.colname = "metricdata"
                 summary_name = m.name.replace(" metricdata", "").replace(" None", "")
-                if hasattr(m, "maskVal"):
+                if hasattr(m, "mask_val"):
                     # summary metric requests to use the mask value, as specified by itself,
                     #  rather than skipping masked vals.
                     rarr = np.array(
-                        list(zip(self.metricValues.filled(m.maskVal))),
+                        list(zip(self.metricValues.filled(m.mask_val))),
                         dtype=[("metricdata", self.metricValues.dtype)],
                     )
                 else:
