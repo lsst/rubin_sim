@@ -456,8 +456,17 @@ def plot_run_metric_mesh(
     else:
         norm_summary = summary.rename_axis(index="run", columns="metric").copy()
 
-    vmin = 1 - color_range / 2
-    vmax = vmin + color_range
+    if color_range is not None and (
+        isinstance(color_range, float) or isinstance(color_range, int)
+    ):
+        vmin = 1 - color_range / 2
+        vmax = vmin + color_range
+    elif isinstance(color_range, list):
+        vmin = color_range[0]
+        vmax = color_range[1]
+    else:
+        vmin = norm_summary.min()
+        vmax = norm_summary.max()
 
     norm_values = norm_summary.T.values
 
@@ -499,7 +508,10 @@ def plot_run_metric_mesh(
         run_labels = [run_label_map[r] for r in runs]
     ax.set_xticklabels(run_labels, rotation="vertical")
 
-    fig.colorbar(im, ax=ax, label="Fractional difference")
+    if baseline_run is None:
+        fig.colorbar(im, ax=ax, label=None)
+    else:
+        fig.colorbar(im, ax=ax, label="Fractional difference")
 
     return fig, ax
 
