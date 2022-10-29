@@ -51,7 +51,7 @@ class TgapsMetric(BaseMetric):
         self.bins = bins
         self.times_col = times_col
         super().__init__(
-            col=[self.times_col], metricDtype="object", units=units, **kwargs
+            col=[self.times_col], metric_dtype="object", units=units, **kwargs
         )
         self.all_gaps = all_gaps
 
@@ -115,7 +115,7 @@ class TgapsPercentMetric(BaseMetric):
         self.min_time = min_time
         self.max_time = max_time
         super().__init__(
-            col=[self.times_col], metricDtype="float", units=units, **kwargs
+            col=[self.times_col], metric_dtype="float", units=units, **kwargs
         )
         self.all_gaps = all_gaps
 
@@ -174,7 +174,7 @@ class NightgapsMetric(BaseMetric):
         self.bins = bins
         self.night_col = night_col
         super().__init__(
-            col=[self.night_col], metricDtype="object", units=units, **kwargs
+            col=[self.night_col], metric_dtype="object", units=units, **kwargs
         )
         self.all_gaps = all_gaps
 
@@ -219,7 +219,7 @@ class NVisitsPerNightMetric(BaseMetric):
         self.bins = bins
         self.night_col = night_col
         super().__init__(
-            col=[self.night_col], metricDtype="object", units=units, **kwargs
+            col=[self.night_col], metric_dtype="object", units=units, **kwargs
         )
 
     def run(self, data_slice, slice_point=None):

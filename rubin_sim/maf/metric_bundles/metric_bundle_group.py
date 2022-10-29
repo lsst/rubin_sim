@@ -170,7 +170,7 @@ class MetricBundleGroup(object):
         #   each (nested) list contains the bundleDict _keys_ of a compatible set of metricBundles.
         #
         compatible_lists = []
-        for k, b in self.currentBundleDict.items():
+        for k, b in self.current_bundle_dict.items():
             found_compatible = False
             for compatibleList in compatible_lists:
                 comparison_metric_bundle_key = compatibleList[0]
@@ -241,12 +241,12 @@ class MetricBundleGroup(object):
         self.current_bundle_dict = {}
         for k, b in self.bundleDict.items():
             if b.constraint == constraint:
-                self.currentBundleDict[k] = b
+                self.current_bundle_dict[k] = b
         # Build list of all the columns needed from the database.
         self.db_cols = []
-        for b in self.currentBundleDict.values():
-            self.dbCols.extend(b.dbCols)
-        self.db_cols = list(set(self.dbCols))
+        for b in self.current_bundle_dict.values():
+            self.db_cols.extend(b.db_cols)
+        self.db_cols = list(set(self.db_cols))
 
     def run_current(
         self,
@@ -290,7 +290,7 @@ class MetricBundleGroup(object):
             except UserWarning:
                 warnings.warn("No data matching constraint %s" % constraint)
                 metrics_skipped = []
-                for b in self.currentBundleDict.values():
+                for b in self.current_bundle_dict.values():
                     metrics_skipped.append(
                         "%s : %s : %s"
                         % (b.metric.name, b.info_label, b.slicer.slicerName)
@@ -303,7 +303,7 @@ class MetricBundleGroup(object):
                     + " Skipping constraint %s" % constraint
                 )
                 metrics_skipped = []
-                for b in self.currentBundleDict.values():
+                for b in self.current_bundle_dict.values():
                     metrics_skipped.append(
                         "%s : %s : %s"
                         % (b.metric.name, b.info_label, b.slicer.slicerName)
@@ -340,7 +340,7 @@ class MetricBundleGroup(object):
                 self.plot_current(**plot_kwargs)
         # Optionally: clear results from memory.
         if clear_memory:
-            for b in self.currentBundleDict.values():
+            for b in self.current_bundle_dict.values():
                 b.metricValues = None
             if self.verbose:
                 print("Deleted metricValues from memory.")
@@ -359,18 +359,18 @@ class MetricBundleGroup(object):
             if constraint == "":
                 print(
                     "Querying table %s with no constraint for columns %s."
-                    % (self.dbTable, self.dbCols)
+                    % (self.dbTable, self.db_cols)
                 )
             else:
                 print(
                     "Querying table %s with constraint %s for columns %s"
-                    % (self.dbTable, constraint, self.dbCols)
+                    % (self.dbTable, constraint, self.db_cols)
                 )
         # Note that we do NOT run the stackers at this point (this must be done in each 'compatible' group).
         self.sim_data = utils.getSimData(
             self.dbObj,
             constraint,
-            self.dbCols,
+            self.db_cols,
             tableName=self.dbTable,
         )
 
@@ -393,7 +393,7 @@ class MetricBundleGroup(object):
             return
 
         # Grab a dictionary representation of this subset of the dictionary, for easier iteration.
-        b_dict = {key: self.currentBundleDict.get(key) for key in compatibleList}
+        b_dict = {key: self.current_bundle_dict.get(key) for key in compatibleList}
 
         # Find the unique stackers and maps. These are already "compatible" (as id'd by compatibleList).
         uniq_stackers = []
@@ -429,7 +429,7 @@ class MetricBundleGroup(object):
         # This will be forced back into all of the metricBundles at the end (so that they track
         #  the same info_label such as the slicePoints, in case the same actual object wasn't used).
         slicer = list(b_dict.values())[0].slicer
-        slicer.setupSlicer(self.sim_data, maps=uniq_maps)
+        slicer.setup_slicer(self.sim_data, maps=uniq_maps)
         # Copy the slicer (after setup) back into the individual metricBundles.
         if slicer.slicerName != "HealpixSlicer" or slicer.slicerName != "UniSlicer":
             for b in b_dict.values():
@@ -486,7 +486,7 @@ class MetricBundleGroup(object):
                             ]
                         else:
                             b.metricValues.data[i] = b.metric.run(
-                                slicedata, slicePoint=slice_i["slicePoint"]
+                                slicedata, slice_point=slice_i["slicePoint"]
                             )
                     # If we are above the cache size, drop the oldest element from the cache dict.
                     if len(cache_dict) > slicer.cacheSize:
@@ -497,7 +497,7 @@ class MetricBundleGroup(object):
                     for b in b_dict.values():
                         try:
                             b.metricValues.data[i] = b.metric.run(
-                                slicedata, slicePoint=slice_i["slicePoint"]
+                                slicedata, slice_point=slice_i["slicePoint"]
                             )
                         except BaseException as e:
                             print(f"Failed at slicePoint {slice_i}, sid {i}")
@@ -551,7 +551,7 @@ class MetricBundleGroup(object):
         """
         # Create a temporary dictionary to hold the reduced metricbundles.
         reduceBundleDict = {}
-        for b in self.currentBundleDict.values():
+        for b in self.current_bundle_dict.values():
             # If there are no reduce functions associated with the metric, skip this metricBundle.
             if len(b.metric.reduceFuncs) > 0:
                 # Apply reduce functions, creating a new metricBundle in the process (new metric values).
@@ -576,7 +576,7 @@ class MetricBundleGroup(object):
         # Add the new metricBundles to the MetricBundleGroup dictionary.
         self.bundleDict.update(reduceBundleDict)
         # And add to to the currentBundleDict too, so we run as part of 'summaryCurrent'.
-        self.currentBundleDict.update(reduceBundleDict)
+        self.current_bundle_dict.update(reduceBundleDict)
 
     def summary_all(self):
         """Run the summary statistics for all metrics in bundleDict.
@@ -590,7 +590,7 @@ class MetricBundleGroup(object):
 
     def summary_current(self):
         """Run summary statistics on all the metricBundles in the currently active set of MetricBundles."""
-        for b in self.currentBundleDict.values():
+        for b in self.current_bundle_dict.values():
             b.compute_summary_stats(self.resultsDb)
 
     def plotAll(
@@ -685,7 +685,7 @@ class MetricBundleGroup(object):
             thumbnail=thumbnail,
         )
 
-        for b in self.currentBundleDict.values():
+        for b in self.current_bundle_dict.values():
             try:
                 b.plot(
                     plotHandler=plot_handler,
@@ -717,7 +717,7 @@ class MetricBundleGroup(object):
                 print("Re-saving metric bundles.")
             else:
                 print("Saving metric bundles.")
-        for b in self.currentBundleDict.values():
+        for b in self.current_bundle_dict.values():
             b.write(out_dir=self.outDir, results_db=self.resultsDb)
 
     def read_all(self):

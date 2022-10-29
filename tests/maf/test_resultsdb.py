@@ -13,7 +13,7 @@ import tempfile
 class TestResultsDb(unittest.TestCase):
     def setUp(self):
         self.outDir = "Out"
-        self.metricName = "Count ExpMJD"
+        self.metric_name = "Count ExpMJD"
         self.slicerName = "OneDSlicer"
         self.runName = "fakeopsim"
         self.constraint = ""
@@ -55,7 +55,7 @@ class TestResultsDb(unittest.TestCase):
         resultsDb = db.ResultsDb(out_dir=tempdir)
         # Add metric.
         metricId = resultsDb.update_metric(
-            self.metricName,
+            self.metric_name,
             self.slicerName,
             self.runName,
             self.constraint,
@@ -64,7 +64,7 @@ class TestResultsDb(unittest.TestCase):
         )
         # Try to re-add metric (should get back same metric id as previous, with no add).
         metricId2 = resultsDb.update_metric(
-            self.metricName,
+            self.metric_name,
             self.slicerName,
             self.runName,
             self.constraint,
@@ -105,7 +105,7 @@ class TestResultsDb(unittest.TestCase):
 class TestUseResultsDb(unittest.TestCase):
     def setUp(self):
         self.outDir = "Out"
-        self.metricName = "Count ExpMJD"
+        self.metric_name = "Count ExpMJD"
         self.slicerName = "OneDSlicer"
         self.runName = "fakeopsim"
         self.constraint = ""
@@ -120,7 +120,7 @@ class TestUseResultsDb(unittest.TestCase):
         self.tempdir = tempfile.mkdtemp(prefix="resDb")
         self.resultsDb = db.ResultsDb(self.tempdir)
         self.metricId = self.resultsDb.update_metric(
-            self.metricName,
+            self.metric_name,
             self.slicerName,
             self.runName,
             self.constraint,
@@ -138,7 +138,7 @@ class TestUseResultsDb(unittest.TestCase):
     def testgetIds(self):
         mids = self.resultsDb.getAllMetricIds()
         self.assertEqual(mids[0], self.metricId)
-        mid = self.resultsDb.get_metric_id(self.metricName)
+        mid = self.resultsDb.get_metric_id(self.metric_name)
         self.assertEqual(mid[0], self.metricId)
         mid = self.resultsDb.get_metric_id("notreal")
         self.assertEqual(len(mid), 0)

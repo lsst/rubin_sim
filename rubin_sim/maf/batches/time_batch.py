@@ -88,7 +88,7 @@ def intraNight(
         mjdCol=colmap["mjd"],
         minGap=dtMin,
         maxGap=dtMax,
-        metricName="Fraction of visits in pairs (%.0f-%.0f min)" % (dtMin, dtMax),
+        metric_name="Fraction of visits in pairs (%.0f-%.0f min)" % (dtMin, dtMax),
     )
     displayDict["caption"] = (
         "Fraction of %s visits that have a paired visit"
@@ -112,7 +112,7 @@ def intraNight(
         mjdCol=colmap["mjd"],
         minGap=dtMin,
         maxGap=dtMax,
-        metricName="Fraction of visits in pairs (%.0f-%.0f min)" % (dtMin, dtMax),
+        metric_name="Fraction of visits in pairs (%.0f-%.0f min)" % (dtMin, dtMax),
     )
     displayDict["caption"] = (
         "Fraction of %s visits that have a paired visit"
@@ -136,7 +136,7 @@ def intraNight(
         mjdCol=colmap["mjd"],
         dT=dtMax,
         normed=True,
-        metricName="Fraction of visits with a revisit < %.0f min" % dtMax,
+        metric_name="Fraction of visits with a revisit < %.0f min" % dtMax,
     )
     displayDict[
         "caption"
@@ -160,7 +160,7 @@ def intraNight(
 
     # Intranight gap map, all filters. Returns value in hours.
     metric = metrics.IntraNightGapsMetric(
-        metricName="Median Intra-Night Gap", mjdCol=colmap["mjd"], reduceFunc=np.median
+        metric_name="Median Intra-Night Gap", mjdCol=colmap["mjd"], reduceFunc=np.median
     )
     displayDict[
         "caption"
@@ -256,7 +256,7 @@ def intraNight(
     # Histogram the number of visits per night.
     countbins = np.arange(0, 10, 1)
     metric = metrics.NVisitsPerNightMetric(
-        nightCol=colmap["night"], bins=countbins, metricName="NVisitsPerNight"
+        nightCol=colmap["night"], bins=countbins, metric_name="NVisitsPerNight"
     )
     plotDict = {"bins": countbins, "xlabel": "Number of visits each night"}
     displayDict[
@@ -288,7 +288,7 @@ def intraNight(
     )
     bins_plot = bins_metric * 24.0 * 60.0
     metric = metrics.TgapsMetric(
-        bins=bins_metric, timesCol=colmap["mjd"], metricName="DeltaT Histogram"
+        bins=bins_metric, timesCol=colmap["mjd"], metric_name="DeltaT Histogram"
     )
     plotDict = {"bins": bins_plot, "xlabel": "dT (minutes)"}
     displayDict["caption"] = (
@@ -378,7 +378,7 @@ def interNight(
     # Histogram of the number of nights between visits.
     bins = np.arange(1, 20.5, 1)
     metric = metrics.NightgapsMetric(
-        bins=bins, nightCol=colmap["night"], metricName="DeltaNight Histogram"
+        bins=bins, nightCol=colmap["night"], metric_name="DeltaNight Histogram"
     )
     plotDict = {"bins": bins, "xlabel": "dT (nights)"}
     displayDict["caption"] = (
@@ -406,7 +406,7 @@ def interNight(
 
     # Look at the total number of unique nights with visits
     metric = metrics.CountUniqueMetric(
-        col=colmap["night"], metricName="N Unique Nights"
+        col=colmap["night"], metric_name="N Unique Nights"
     )
     displayDict["caption"] = "Number of unique nights with visits"
     bundle = mb.MetricBundle(
@@ -422,7 +422,7 @@ def interNight(
 
     # Median inter-night gap (each and all filters)
     metric = metrics.InterNightGapsMetric(
-        metricName="Median Inter-Night Gap", mjdCol=colmap["mjd"], reduceFunc=np.median
+        metric_name="Median Inter-Night Gap", mjdCol=colmap["mjd"], reduceFunc=np.median
     )
     for f in filterlist:
         displayDict["caption"] = (
@@ -446,7 +446,7 @@ def interNight(
         return np.percentile(simdata, 20)
 
     metric = metrics.InterNightGapsMetric(
-        metricName="20thPercentile Inter-Night Gap",
+        metric_name="20thPercentile Inter-Night Gap",
         mjdCol=colmap["mjd"],
         reduceFunc=rfunc,
     )
@@ -469,7 +469,7 @@ def interNight(
 
     # Maximum inter-night gap (in each and all filters).
     metric = metrics.InterNightGapsMetric(
-        metricName="Max Inter-Night Gap", mjdCol=colmap["mjd"], reduceFunc=np.max
+        metric_name="Max Inter-Night Gap", mjdCol=colmap["mjd"], reduceFunc=np.max
     )
     for f in filterlist:
         displayDict["caption"] = (
@@ -556,7 +556,7 @@ def timeGaps(
     tgaps = np.logspace(np.log10(tMin), np.log10(tMax), 100)
 
     for f in filterlist:
-        m1 = metrics.TgapsMetric(bins=tgaps, allGaps=False)
+        m1 = metrics.TgapsMetric(bins=tgaps, all_gaps=False)
         plotDict = {
             "bins": tgaps,
             "xscale": "log",
@@ -586,10 +586,10 @@ def timeGaps(
         )
 
         m2 = metrics.TgapsPercentMetric(
-            minTime=2 / 24.0,
-            maxTime=14 / 24.0,
-            allGaps=False,
-            metricName="TgapsPercent_2-14hrs",
+            min_time=2 / 24.0,
+            max_time=14 / 24.0,
+            all_gaps=False,
+            metric_name="TgapsPercent_2-14hrs",
         )
         plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
         plotDict = {"colorMin": 0, "color": colors[f]}
@@ -614,10 +614,10 @@ def timeGaps(
         )
 
         m3 = metrics.TgapsPercentMetric(
-            minTime=14.0 / 24.0,
-            maxTime=(14.0 / 24 + 1.0),
-            allGaps=False,
-            metricName="TgapsPercent_1day",
+            min_time=14.0 / 24.0,
+            max_time=(14.0 / 24 + 1.0),
+            all_gaps=False,
+            metric_name="TgapsPercent_1day",
         )
         displayDict["caption"] = (
             f"Percent of the total time gaps which fall into the interval around 1 day,"
@@ -697,7 +697,7 @@ def seasons(
     standardStats = standardSummary()
 
     metric = metrics.SeasonLengthMetric(
-        metricName="Median Season Length", mjdCol=colmap["mjd"], reduceFunc=np.median
+        metric_name="Median Season Length", mjdCol=colmap["mjd"], reduceFunc=np.median
     )
     for f in filterlist:
         displayDict["caption"] = "Median season length, %s." % info_label[f]
@@ -730,7 +730,7 @@ def seasons(
         return np.percentile(simdata, 80)
 
     metric = metrics.SeasonLengthMetric(
-        metricName="80thPercentile Season Length",
+        metric_name="80thPercentile Season Length",
         mjdCol=colmap["mjd"],
         reduceFunc=rfunc,
     )
@@ -762,7 +762,7 @@ def seasons(
 
     # Number of seasons
     metric = metrics.CampaignLengthMetric(
-        metricName="NSeasons",
+        metric_name="NSeasons",
         mjdCol=colmap["mjd"],
         expTimeCol=colmap["exptime"],
         minExpTime=15,

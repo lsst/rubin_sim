@@ -8,7 +8,7 @@ from .common import filterList
 __all__ = ["altazHealpix", "altazLambert"]
 
 
-def basicSetup(metricName, colmap=None, nside=64):
+def basicSetup(metric_name, colmap=None, nside=64):
 
     if colmap is None:
         colmap = col_map_dict("opsimV4")
@@ -20,17 +20,17 @@ def basicSetup(metricName, colmap=None, nside=64):
         latLonDeg=colmap["raDecDeg"],
         useCache=False,
     )
-    metric = metrics.CountMetric(colmap["mjd"], metricName=metricName)
+    metric = metrics.CountMetric(colmap["mjd"], metric_name=metric_name)
 
     return colmap, slicer, metric
 
 
 def altazHealpix(
     colmap=None,
-    runName="opsim",
+    run_name="run name",
     extraSql=None,
     extraInfoLabel=None,
-    metricName="NVisits Alt/Az",
+    metric_name="NVisits Alt/Az",
 ):
 
     """Generate a set of metrics measuring the number visits as a function of alt/az
@@ -40,14 +40,14 @@ def altazHealpix(
     ----------
     colmap : dict, optional
         A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
+    run_name : str, optional
         The name of the simulated survey. Default is "opsim".
     extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
     extraInfoLabel : str, optional
         Additional info_label to add before any below (i.e. "WFD").  Default is None.
-    metricName : str, optional
+    metric_name : str, optional
         Unique name to assign to metric
 
     Returns
@@ -55,7 +55,7 @@ def altazHealpix(
     metric_bundleDict
     """
 
-    colmap, slicer, metric = basicSetup(metricName=metricName, colmap=colmap)
+    colmap, slicer, metric = basicSetup(metric_name=metric_name, colmap=colmap)
 
     # Set up basic all and per filter sql constraints.
     filterlist, colors, orders, sqls, info_label = filterList(
@@ -84,7 +84,7 @@ def altazHealpix(
             slicer,
             sqls[f],
             plot_dict=plotDict,
-            run_name=runName,
+            run_name=run_name,
             info_label=info_label[f],
             plot_funcs=[plotFunc],
             display_dict=displayDict,
@@ -92,7 +92,7 @@ def altazHealpix(
         bundleList.append(bundle)
 
     for b in bundleList:
-        b.set_run_name(runName)
+        b.set_run_name(run_name)
     return mb.make_bundles_dict_from_list(bundleList)
 
 
@@ -101,7 +101,7 @@ def altazLambert(
     runName="opsim",
     extraSql=None,
     extraInfoLabel=None,
-    metricName="Nvisits as function of Alt/Az",
+    metric_name="Nvisits as function of Alt/Az",
 ):
 
     """Generate a set of metrics measuring the number visits as a function of alt/az
@@ -118,7 +118,7 @@ def altazLambert(
         Default None, for no additional constraints.
     extraInfoLabel : str, optional
         Additional info_label to add before any below (i.e. "WFD").  Default is None.
-    metricName : str, optional
+    metric_name : str, optional
         Unique name to assign to metric
 
     Returns
@@ -126,7 +126,7 @@ def altazLambert(
     metric_bundleDict
     """
 
-    colmap, slicer, metric = basicSetup(metricName=metricName, colmap=colmap)
+    colmap, slicer, metric = basicSetup(metric_name=metric_name, colmap=colmap)
 
     # Set up basic all and per filter sql constraints.
     filterlist, colors, orders, sqls, info_label = filterList(

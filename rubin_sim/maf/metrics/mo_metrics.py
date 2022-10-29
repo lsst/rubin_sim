@@ -10,22 +10,22 @@ __all__ = [
     "NNightsMetric",
     "ObsArcMetric",
     "DiscoveryMetric",
-    "DiscoveryNChancesmetric",
-    "DiscoveryNObsmetric",
-    "DiscoveryTimemetric",
-    "DiscoveryDistancemetric",
-    "DiscoveryRadecmetric",
-    "DiscoveryEclonlatmetric",
-    "DiscoveryVelocitymetric",
+    "DiscoveryNChancesMetric",
+    "DiscoveryNObsMetric",
+    "DiscoveryTimeMetric",
+    "DiscoveryDistanceMetric",
+    "DiscoveryRadecMetric",
+    "DiscoveryEclonlatMetric",
+    "DiscoveryVelocityMetric",
     "ActivityOverTimeMetric",
     "ActivityOverPeriodMetric",
     "MagicDiscoveryMetric",
     "HighVelocityMetric",
     "HighVelocityNightsMetric",
-    "LightcurveinversionAsteroidmetric",
-    "ColorAsteroidmetric",
+    "LightcurveInversionAsteroidMetric",
+    "ColorAsteroidMetric",
     "InstantaneousColorMetric",
-    "LightcurvecolorOutermetric",
+    "LightcurveColorOuterMetric",
     "PeakVMagMetric",
     "KnownObjectsMetric",
 ]
@@ -290,12 +290,12 @@ class DiscoveryMetric(BaseMoMetric):
         # Define anything needed by the child metrics first.
         self.snr_limit = snr_limit
         self.child_metrics = {
-            "N_Chances": DiscoveryNChancesmetric(self),
-            "N_Obs": DiscoveryNObsmetric(self),
-            "Time": DiscoveryTimemetric(self),
-            "Distance": DiscoveryDistancemetric(self),
-            "RADec": DiscoveryRadecmetric(self),
-            "EcLonLat": DiscoveryEclonlatmetric(self),
+            "N_Chances": DiscoveryNChancesMetric(self),
+            "N_Obs": DiscoveryNObsMetric(self),
+            "Time": DiscoveryTimeMetric(self),
+            "Distance": DiscoveryDistanceMetric(self),
+            "RADec": DiscoveryRadecMetric(self),
+            "EcLonLat": DiscoveryEclonlatMetric(self),
         }
         if "metric_name" in kwargs:
             metric_name = kwargs.get("metric_name")
@@ -309,7 +309,7 @@ class DiscoveryMetric(BaseMoMetric):
         # Set up for inheriting from __init__.
         super().__init__(
             metric_name=metric_name,
-            childMetrics=self.child_metrics,
+            child_metrics=self.child_metrics,
             badval=badval,
             **kwargs
         )
@@ -400,7 +400,7 @@ class DiscoveryMetric(BaseMoMetric):
         }
 
 
-class DiscoveryNChancesmetric(BaseChildMetric):
+class DiscoveryNChancesMetric(BaseChildMetric):
     """Calculate total number of discovery opportunities for an SSobject.
 
     Calculates total number of discovery opportunities between night_start / night_end.
@@ -445,7 +445,7 @@ class DiscoveryNChancesmetric(BaseChildMetric):
         return len(valid)
 
 
-class DiscoveryNObsmetric(BaseChildMetric):
+class DiscoveryNObsMetric(BaseChildMetric):
     """Calculates the number of observations in the i-th discovery track of an SSobject."""
 
     def __init__(self, parent_discovery_metric, i=0, badval=0, **kwargs):
@@ -462,7 +462,7 @@ class DiscoveryNObsmetric(BaseChildMetric):
         return nobs
 
 
-class DiscoveryTimemetric(BaseChildMetric):
+class DiscoveryTimeMetric(BaseChildMetric):
     """Returns the time of the i-th discovery track of an SSobject."""
 
     def __init__(self, parent_discovery_metric, i=0, t_start=None, badval=-999, **kwargs):
@@ -486,7 +486,7 @@ class DiscoveryTimemetric(BaseChildMetric):
         return t_disc
 
 
-class DiscoveryDistancemetric(BaseChildMetric):
+class DiscoveryDistanceMetric(BaseChildMetric):
     """Returns the distance of the i-th discovery track of an SSobject."""
 
     def __init__(
@@ -510,7 +510,7 @@ class DiscoveryDistancemetric(BaseChildMetric):
         return dist_disc
 
 
-class DiscoveryRadecmetric(BaseChildMetric):
+class DiscoveryRadecMetric(BaseChildMetric):
     """Returns the RA/Dec of the i-th discovery track of an SSobject."""
 
     def __init__(self, parent_discovery_metric, i=0, badval=None, **kwargs):
@@ -532,7 +532,7 @@ class DiscoveryRadecmetric(BaseChildMetric):
         return (ra[start_idx], dec[start_idx])
 
 
-class DiscoveryEclonlatmetric(BaseChildMetric):
+class DiscoveryEclonlatMetric(BaseChildMetric):
     """Returns the ecliptic lon/lat and solar elong of the i-th discovery track of an SSobject."""
 
     def __init__(self, parent_discovery_metric, i=0, badval=None, **kwargs):
@@ -555,7 +555,7 @@ class DiscoveryEclonlatmetric(BaseChildMetric):
         return (ec_lon[start_idx], ec_lat[start_idx], solar_elong[start_idx])
 
 
-class DiscoveryVelocitymetric(BaseChildMetric):
+class DiscoveryVelocityMetric(BaseChildMetric):
     """Returns the sky velocity of the i-th discovery track of an SSobject."""
 
     def __init__(self, parent_discovery_metric, i=0, badval=-999, **kwargs):
@@ -819,7 +819,7 @@ class HighVelocityNightsMetric(BaseMoMetric):
         return found
 
 
-class LightcurveinversionAsteroidmetric(BaseMoMetric):
+class LightcurveInversionAsteroidMetric(BaseMoMetric):
     """
     This metric is generally applicable to NEOs and MBAs - inner solar system objects.
 
@@ -915,7 +915,7 @@ class LightcurveinversionAsteroidmetric(BaseMoMetric):
         return inversion_possible
 
 
-class ColorAsteroidmetric(BaseMoMetric):
+class ColorAsteroidMetric(BaseMoMetric):
     """
     This metric is appropriate for MBAs and NEOs, and other inner solar system objects.
 
@@ -1010,7 +1010,7 @@ class ColorAsteroidmetric(BaseMoMetric):
         return flag
 
 
-class LightcurvecolorOutermetric(BaseMoMetric):
+class LightcurveColorOuterMetric(BaseMoMetric):
     """
     This metric is appropriate for outer solar system objects, such as TNOs and SDOs.
 

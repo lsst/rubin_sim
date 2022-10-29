@@ -59,7 +59,7 @@ def hourglassPlots(
         md = info_label + " year %i-%i" % (year - 1, year)
         slicer = slicers.HourglassSlicer()
         metric = metrics.HourglassMetric(
-            nightCol=colmap["night"], mjdCol=colmap["mjd"], metricName="Hourglass"
+            night_col=colmap["night"], mjd_col=colmap["mjd"], metric_name="Hourglass"
         )
         bundle = mb.MetricBundle(
             metric,

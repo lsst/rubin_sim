@@ -128,8 +128,8 @@ def standardSummary(withCount=True):
         metrics.MedianMetric(),
         metrics.MaxMetric(),
         metrics.MinMetric(),
-        metrics.NoutliersNsigmaMetric(metricName="N(+3Sigma)", nSigma=3),
-        metrics.NoutliersNsigmaMetric(metricName="N(-3Sigma)", nSigma=-3.0),
+        metrics.NoutliersNsigmaMetric(metric_name="N(+3Sigma)", n_sigma=3),
+        metrics.NoutliersNsigmaMetric(metric_name="N(-3Sigma)", n_sigma=-3.0),
     ]
     if withCount:
         standardSummary += [metrics.CountMetric()]
@@ -142,19 +142,19 @@ def extendedSummary():
 
     extendedStats = standardSummary()
     extendedStats += [
-        metrics.PercentileMetric(metricName="25th%ile", percentile=25),
-        metrics.PercentileMetric(metricName="75th%ile", percentile=75),
+        metrics.PercentileMetric(metric_name="25th%ile", percentile=25),
+        metrics.PercentileMetric(metric_name="75th%ile", percentile=75),
     ]
     return extendedStats
 
 
 def lightcurveSummary():
     lightcurveSummary = [
-        metrics.SumMetric(metricName="Total detected"),
-        metrics.CountMetric(metricName="Total lightcurves in footprint"),
-        metrics.CountMetric(metricName="Total lightcurves on sky", maskVal=0),
-        metrics.MeanMetric(metricName="Fraction detected in footprint (mean)"),
-        metrics.MeanMetric(maskVal=0, metricName="Fraction detected of total (mean)"),
+        metrics.SumMetric(metric_name="Total detected"),
+        metrics.CountMetric(metric_name="Total lightcurves in footprint"),
+        metrics.CountMetric(metric_name="Total lightcurves on sky", maskVal=0),
+        metrics.MeanMetric(metric_name="Fraction detected in footprint (mean)"),
+        metrics.MeanMetric(mask_val=0, metric_name="Fraction detected of total (mean)"),
     ]
     return lightcurveSummary
 
@@ -167,7 +167,7 @@ def standardMetrics(colname, replace_colname=None):
     colname : str
         The column name to apply the metrics to.
     replace_colname: str or None, optional
-        Value to replace colname with in the metricName.
+        Value to replace colname with in the metric_name.
         i.e. if replace_colname='' then metric name is Mean, instead of Mean Airmass, or
         if replace_colname='seeingGeom', then metric name is Mean seeingGeom instead of Mean seeingFwhmGeom.
         Default is None, which does not alter the metric name.
@@ -199,7 +199,7 @@ def extendedMetrics(colname, replace_colname=None):
     colname : str
         The column name to apply the metrics to.
     replace_colname: str or None, optional
-        Value to replace colname with in the metricName.
+        Value to replace colname with in the metric_name.
         i.e. if replace_colname='' then metric name is Mean, instead of Mean Airmass, or
         if replace_colname='seeingGeom', then metric name is Mean seeingGeom instead of Mean seeingFwhmGeom.
         Default is None, which does not alter the metric name.
@@ -212,10 +212,10 @@ def extendedMetrics(colname, replace_colname=None):
     extendedMetrics += [
         metrics.RmsMetric(colname),
         metrics.NoutliersNsigmaMetric(
-            colname, metricName="N(+3Sigma) " + colname, nSigma=3
+            colname, metric_name="N(+3Sigma) " + colname, n_sigma=3
         ),
         metrics.NoutliersNsigmaMetric(
-            colname, metricName="N(-3Sigma) " + colname, nSigma=-3
+            colname, metric_name="N(-3Sigma) " + colname, n_sigma=-3
         ),
         metrics.PercentileMetric(colname, percentile=25),
         metrics.PercentileMetric(colname, percentile=75),
@@ -238,7 +238,7 @@ def standardAngleMetrics(colname, replace_colname=None):
     colname : str
         The column name to apply the metrics to.
     replace_colname: str or None, optional
-        Value to replace colname with in the metricName.
+        Value to replace colname with in the metric_name.
         i.e. if replace_colname='' then metric name is Mean, instead of Mean Airmass, or
         if replace_colname='seeingGeom', then metric name is Mean seeingGeom instead of Mean seeingFwhmGeom.
         Default is None, which does not alter the metric name.
@@ -340,7 +340,7 @@ def fractionPopulationAtThreshold(thresholds, optnames=None):
         else:
             o = threshold
         m = metrics.MoCompletenessMetric(
-            threshold=threshold, cumulative=False, metricName=f"FractionPop {o}"
+            threshold=threshold, cumulative=False, metric_name=f"FractionPop {o}"
         )
         fracMetrics.append(m)
     return fracMetrics
@@ -353,28 +353,28 @@ def microlensingSummary(metricType, npts_required=10, Fisher_sigmatE_tE_cutoff=0
         microlensingSummary = [
             metrics.FracAboveMetric(
                 cutoff=npts_required,
-                metricName=f"Fraction w/ at least {npts_required} points",
+                metric_name=f"Fraction w/ at least {npts_required} points",
             ),
-            metrics.CountMetric(metricName="Total lightcurves in footprint"),
-            metrics.CountMetric(metricName="Total lightcurves on sky", maskVal=0),
+            metrics.CountMetric(metric_name="Total lightcurves in footprint"),
+            metrics.CountMetric(metric_name="Total lightcurves on sky", maskVal=0),
             metrics.MeanMetric(
-                metricName="Mean number of points per lightcurves in footprint"
+                metric_name="Mean number of points per lightcurves in footprint"
             ),
             metrics.MeanMetric(
-                maskVal=0, metricName="Mean number of points per lightcurves in total"
+                mask_val=0, metric_name="Mean number of points per lightcurves in total"
             ),
         ]
     elif metricType == "Fisher":
         microlensingSummary = [
             metrics.FracBelowMetric(
                 cutoff=Fisher_sigmatE_tE_cutoff,
-                metricName=f"Fraction w/ sigma_tE/tE < {Fisher_sigmatE_tE_cutoff}",
+                metric_name=f"Fraction w/ sigma_tE/tE < {Fisher_sigmatE_tE_cutoff}",
             ),
-            metrics.CountMetric(metricName="Total lightcurves in footprint"),
-            metrics.CountMetric(metricName="Total lightcurves on sky", maskVal=0),
-            metrics.RealMeanMetric(metricName="Mean sigma_tE/tE in footprint (mean)"),
+            metrics.CountMetric(metric_name="Total lightcurves in footprint"),
+            metrics.CountMetric(metric_name="Total lightcurves on sky", mask_val=0),
+            metrics.RealMeanMetric(metric_name="Mean sigma_tE/tE in footprint (mean)"),
             metrics.RealMeanMetric(
-                maskVal=0, metricName="Mean sigma_tE/tE of total (mean)"
+                mask_val=0, metric_name="Mean sigma_tE/tE of total (mean)"
             ),
         ]
     return microlensingSummary

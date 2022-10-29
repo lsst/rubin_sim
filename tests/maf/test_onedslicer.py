@@ -68,7 +68,7 @@ class TestOneDSlicerSetup(unittest.TestCase):
         dvmax = 1.5
         dv = makeDataValues(1000, dvmin, dvmax, random=342)
         self.testslicer = OneDSlicer(
-            sliceColName="testdata", binMin=binMin, binMax=binMax
+            sliceColName="testdata", binMin=binMin, bin_max=binMax
         )
         self.testslicer.setupSlicer(dv)
         self.assertAlmostEqual(self.testslicer.bins.min(), binMin)
@@ -171,14 +171,14 @@ class TestOneDSlicerEqual(unittest.TestCase):
         self.assertTrue(self.testslicer != testslicer2)
         self.assertFalse(self.testslicer == testslicer2)
         testslicer2 = OneDSlicer(
-            sliceColName="testdata", binMin=0, binMax=1, binsize=0.5
+            sliceColName="testdata", binMin=0, bin_max=1, binsize=0.5
         )
         testslicer3 = OneDSlicer(
-            sliceColName="testdata", binMin=0, binMax=1, binsize=0.5
+            sliceColName="testdata", binMin=0, bin_max=1, binsize=0.5
         )
         self.assertTrue(testslicer2 == testslicer3)
         self.assertFalse(testslicer2 != testslicer3)
-        testslicer3 = OneDSlicer(sliceColName="testdata", binMin=0, binMax=1)
+        testslicer3 = OneDSlicer(sliceColName="testdata", binMin=0, bin_max=1)
         self.assertFalse(testslicer2 == testslicer3)
         self.assertTrue(testslicer2 != testslicer3)
         usebins = np.arange(0, 1, 0.1)

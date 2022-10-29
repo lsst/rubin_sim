@@ -63,7 +63,7 @@ class DepthLimitedNumGalMetric(metrics.BaseMetric):
         lim_mag_i_extsrc = lim_mag_i_ptsrc - 0.7
         # set up the metric for galaxy counts
         self.galmetric = GalaxyCountsMetric(
-            m5Col=self.m5Col,
+            m5_col=self.m5Col,
             nside=nside,
             upperMagLimit=lim_mag_i_extsrc,
             includeDustExtinction=True,
@@ -73,11 +73,11 @@ class DepthLimitedNumGalMetric(metrics.BaseMetric):
             normalizedMockCatalogCounts=True,
         )
         # set up the metric for extragalactic footprint
-        self.eg_metric = metrics.ExgalM5_with_cuts(
-            m5Col=self.m5Col,
-            filterCol=self.filterCol,
-            lsstFilter=self.filterBand,
-            nFilters=nfilters_needed,
+        self.eg_metric = metrics.ExgalM5WithCuts(
+            m5_col=self.m5Col,
+            filter_col=self.filterCol,
+            lsst_filter=self.filterBand,
+            n_filters=nfilters_needed,
             extinction_cut=lim_ebv,
             depth_cut=lim_mag_i_ptsrc,
         )
@@ -86,7 +86,7 @@ class DepthLimitedNumGalMetric(metrics.BaseMetric):
         super().__init__(
             col=[self.m5Col, self.filterCol],
             maps=maps,
-            metricName=metricName,
+            metric_name=metricName,
             units=units,
             **kwargs
         )

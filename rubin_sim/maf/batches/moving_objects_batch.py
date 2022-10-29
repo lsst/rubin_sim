@@ -187,18 +187,18 @@ def quickDiscoveryBatch(
 
     # Set up a dictionary to pass to each metric for the column names.
     colkwargs = {
-        "mjdCol": colmap["mjd"],
-        "seeingCol": colmap["seeingGeom"],
-        "expTimeCol": colmap["exptime"],
-        "m5Col": colmap["fiveSigmaDepth"],
-        "nightCol": colmap["night"],
-        "filterCol": colmap["filter"],
+        "mjd_col": colmap["mjd"],
+        "seeing_col": colmap["seeingGeom"],
+        "exp_time_col": colmap["exptime"],
+        "m5_col": colmap["fiveSigmaDepth"],
+        "night_col": colmap["night"],
+        "filter_col": colmap["filter"],
     }
 
     def _setup_child_metrics(parentMetric):
         childMetrics = {}
-        childMetrics["Time"] = metrics.Discovery_TimeMetric(parentMetric, **colkwargs)
-        childMetrics["N_Chances"] = metrics.Discovery_N_ChancesMetric(
+        childMetrics["Time"] = metrics.DiscoveryTimeMetric(parentMetric, **colkwargs)
+        childMetrics["N_Chances"] = metrics.DiscoveryNChancesMetric(
             parentMetric, **colkwargs
         )
         # Could expand to add N_chances per year, but not really necessary.
@@ -221,8 +221,8 @@ def quickDiscoveryBatch(
         parentBundle.child_bundles["N_Chances"].set_display_dict(dispDict)
         return
 
-    tMin = 5.0 / 60.0 / 24.0
-    tMax = 90.0 / 60.0 / 24.0
+    t_min = 5.0 / 60.0 / 24.0
+    t_max = 90.0 / 60.0 / 24.0
 
     # 3 pairs in 15
     md = info_label + " 3 pairs in 15 nights" + detectionLosses
@@ -230,11 +230,11 @@ def quickDiscoveryBatch(
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
-        nObsPerNight=2,
-        tMin=tMin,
-        tMax=tMax,
-        nNightsPerWindow=3,
-        tWindow=15,
+        n_obs_per_night=2,
+        t_min=t_min,
+        t_max=t_max,
+        n_nights_per_window=3,
+        t_window=15,
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
@@ -258,11 +258,11 @@ def quickDiscoveryBatch(
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
-        nObsPerNight=2,
-        tMin=tMin,
-        tMax=tMax,
-        nNightsPerWindow=3,
-        tWindow=30,
+        n_obs_per_night=2,
+        t_min=t_min,
+        t_max=t_max,
+        n_nights_per_window=3,
+        t_window=30,
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
@@ -336,18 +336,18 @@ def discoveryBatch(
 
     # Set up a dictionary to pass to each metric for the column names.
     colkwargs = {
-        "mjdCol": colmap["mjd"],
-        "seeingCol": colmap["seeingGeom"],
-        "expTimeCol": colmap["exptime"],
-        "m5Col": colmap["fiveSigmaDepth"],
-        "nightCol": colmap["night"],
-        "filterCol": colmap["filter"],
+        "mjd_col": colmap["mjd"],
+        "seeing_col": colmap["seeingGeom"],
+        "exp_time_col": colmap["exptime"],
+        "m5_col": colmap["fiveSigmaDepth"],
+        "night_col": colmap["night"],
+        "filter_col": colmap["filter"],
     }
 
     def _setup_child_metrics(parentMetric):
         childMetrics = {}
-        childMetrics["Time"] = metrics.Discovery_TimeMetric(parentMetric, **colkwargs)
-        childMetrics["N_Chances"] = metrics.Discovery_N_ChancesMetric(
+        childMetrics["Time"] = metrics.DiscoveryTimeMetric(parentMetric, **colkwargs)
+        childMetrics["N_Chances"] = metrics.DiscoveryNChancesMetric(
             parentMetric, **colkwargs
         )
         # Could expand to add N_chances per year, but not really necessary.
@@ -369,8 +369,8 @@ def discoveryBatch(
         }
         parentBundle.child_bundles["N_Chances"].set_display_dict(dispDict)
 
-    tMin = 5.0 / 60.0 / 24.0
-    tMax = 90.0 / 60.0 / 24.0
+    t_min = 5.0 / 60.0 / 24.0
+    t_max = 90.0 / 60.0 / 24.0
 
     # 3 pairs in 15 and 3 pairs in 30 done in 'quickDiscoveryBatch' (with vis).
 
@@ -379,11 +379,11 @@ def discoveryBatch(
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
-        nObsPerNight=2,
-        tMin=tMin,
-        tMax=tMax,
-        nNightsPerWindow=4,
-        tWindow=20,
+        n_obs_per_night=2,
+        t_min=t_min,
+        t_max=t_max,
+        n_nights_per_window=4,
+        t_window=20,
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
@@ -407,11 +407,11 @@ def discoveryBatch(
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
-        nObsPerNight=3,
-        tMin=tMin,
-        tMax=120.0 / 60.0 / 24.0,
-        nNightsPerWindow=3,
-        tWindow=30,
+        n_obs_per_night=3,
+        t_min=t_min,
+        t_max=120.0 / 60.0 / 24.0,
+        n_nights_per_window=3,
+        t_window=30,
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
@@ -435,11 +435,11 @@ def discoveryBatch(
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
-        nObsPerNight=4,
-        tMin=tMin,
-        tMax=150.0 / 60.0 / 24.0,
-        nNightsPerWindow=1,
-        tWindow=2,
+        n_obs_per_night=4,
+        t_min=t_min,
+        t_max=150.0 / 60.0 / 24.0,
+        n_nights_per_window=1,
+        t_window=2,
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
@@ -466,12 +466,12 @@ def discoveryBatch(
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
-        nObsPerNight=2,
-        tMin=tMin,
-        tMax=tMax,
-        nNightsPerWindow=3,
-        tWindow=15,
-        snrLimit=5,
+        n_obs_per_night=2,
+        t_min=t_min,
+        t_max=t_max,
+        n_nights_per_window=3,
+        t_window=15,
+        snr_limit=5,
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
@@ -495,12 +495,12 @@ def discoveryBatch(
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
-        nObsPerNight=2,
-        tMin=tMin,
-        tMax=tMax,
-        nNightsPerWindow=3,
-        tWindow=15,
-        snrLimit=4,
+        n_obs_per_night=2,
+        t_min=t_min,
+        t_max=t_max,
+        n_nights_per_window=3,
+        t_window=15,
+        snr_limit=4,
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
@@ -524,12 +524,12 @@ def discoveryBatch(
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
-        nObsPerNight=2,
-        tMin=tMin,
-        tMax=tMax,
-        nNightsPerWindow=3,
-        tWindow=15,
-        snrLimit=3,
+        n_obs_per_night=2,
+        t_min=t_min,
+        t_max=t_max,
+        n_nights_per_window=3,
+        t_window=15,
+        snr_limit=3,
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
@@ -554,12 +554,12 @@ def discoveryBatch(
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
-        nObsPerNight=2,
-        tMin=tMin,
-        tMax=tMax,
-        nNightsPerWindow=3,
-        tWindow=15,
-        snrLimit=0,
+        n_obs_per_night=2,
+        t_min=t_min,
+        t_max=t_max,
+        n_nights_per_window=3,
+        t_window=15,
+        snr_limit=0,
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
@@ -584,11 +584,11 @@ def discoveryBatch(
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
-        nObsPerNight=1,
-        tMin=tMin,
-        tMax=tMax,
-        nNightsPerWindow=1,
-        tWindow=5,
+        n_obs_per_night=1,
+        t_min=t_min,
+        t_max=t_max,
+        n_nights_per_window=1,
+        t_window=5,
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
@@ -612,11 +612,11 @@ def discoveryBatch(
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.DiscoveryMetric(
-        nObsPerNight=2,
-        tMin=tMin,
-        tMax=tMax,
-        nNightsPerWindow=1,
-        tWindow=5,
+        n_obs_per_night=2,
+        t_min=t_min,
+        t_max=t_max,
+        n_nights_per_window=1,
+        t_window=5,
         **colkwargs,
     )
     childMetrics = _setup_child_metrics(metric)
@@ -640,7 +640,7 @@ def discoveryBatch(
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
     metric = metrics.HighVelocityNightsMetric(
-        psfFactor=2.0, nObsPerNight=2, **colkwargs
+        psf_factor=2.0, n_obs_per_night=2, **colkwargs
     )
     bundle = MoMetricBundle(
         metric,
@@ -659,7 +659,7 @@ def discoveryBatch(
     md = info_label + " 6 detections in 60 nights" + detectionLosses
     plotDict = {"title": "%s: %s" % (runName, md)}
     plotDict.update(basicPlotDict)
-    metric = metrics.MagicDiscoveryMetric(nObs=6, tWindow=60, **colkwargs)
+    metric = metrics.MagicDiscoveryMetric(n_obs=6, t_window=60, **colkwargs)
     bundle = MoMetricBundle(
         metric,
         slicer,
@@ -959,17 +959,17 @@ def characterizationInnerBatch(
 
     # Set up a dictionary to pass to each metric for the column names.
     colkwargs = {
-        "mjdCol": colmap["mjd"],
-        "seeingCol": colmap["seeingGeom"],
-        "expTimeCol": colmap["exptime"],
-        "m5Col": colmap["fiveSigmaDepth"],
-        "nightCol": colmap["night"],
-        "filterCol": colmap["filter"],
+        "mjd_col": colmap["mjd"],
+        "seeing_col": colmap["seeingGeom"],
+        "exp_time_col": colmap["exptime"],
+        "m5_col": colmap["fiveSigmaDepth"],
+        "night_col": colmap["night"],
+        "filter_col": colmap["filter"],
     }
 
     basicPlotDict = {
         "albedo": albedo,
-        "Hmark": Hmark,
+        "h_mark": Hmark,
         "npReduce": npReduce,
         "nxbins": 200,
         "nybins": 200,
@@ -1049,8 +1049,8 @@ def characterizationInnerBatch(
             "title": "%s: Chances of detecting %s" % (runName, md),
             "ylabel": "Probability of detection per %.0f day window" % w,
         }
-        metricName = "Chances of detecting activity lasting %.0f days" % w
-        metric = metrics.ActivityOverTimeMetric(w, metricName=metricName, **colkwargs)
+        metric_name = "Chances of detecting activity lasting %.0f days" % w
+        metric = metrics.ActivityOverTimeMetric(w, metric_name=metric_name, **colkwargs)
         bundle = MoMetricBundle(
             metric,
             slicer,
@@ -1070,8 +1070,8 @@ def characterizationInnerBatch(
             "title": "%s: Chances of detecting %s" % (runName, md),
             "ylabel": "Probability of detection per %.0f deg window" % b,
         }
-        metricName = "Chances of detecting activity covering %.0f deg" % (b)
-        metric = metrics.ActivityOverPeriodMetric(b, metricName=metricName, **colkwargs)
+        metric_name = "Chances of detecting activity covering %.0f deg" % (b)
+        metric = metrics.ActivityOverPeriodMetric(b, metric_name=metric_name, **colkwargs)
         bundle = MoMetricBundle(
             metric,
             slicer,
@@ -1095,7 +1095,7 @@ def characterizationInnerBatch(
         "title": "%s: Fraction with potential lightcurve inversion %s" % (runName, md),
     }
     plotDict.update(basicPlotDict)
-    metric = metrics.LightcurveInversion_AsteroidMetric(**colkwargs)
+    metric = metrics.LightcurveInversionAsteroidMetric(**colkwargs)
     bundle = MoMetricBundle(
         metric,
         slicer,
@@ -1119,7 +1119,7 @@ def characterizationInnerBatch(
         % (runName, md),
     }
     plotDict.update(basicPlotDict)
-    metric = metrics.Color_AsteroidMetric(**colkwargs)
+    metric = metrics.ColorAsteroidMetric(**colkwargs)
     bundle = MoMetricBundle(
         metric,
         slicer,
@@ -1159,12 +1159,12 @@ def characterizationOuterBatch(
 
     # Set up a dictionary to pass to each metric for the column names.
     colkwargs = {
-        "mjdCol": colmap["mjd"],
-        "seeingCol": colmap["seeingGeom"],
-        "expTimeCol": colmap["exptime"],
-        "m5Col": colmap["fiveSigmaDepth"],
-        "nightCol": colmap["night"],
-        "filterCol": colmap["filter"],
+        "mjd_col": colmap["mjd"],
+        "seeing_col": colmap["seeingGeom"],
+        "exp_time_col": colmap["exptime"],
+        "m5_col": colmap["fiveSigmaDepth"],
+        "night_col": colmap["night"],
+        "filter_col": colmap["filter"],
     }
 
     basicPlotDict = {
@@ -1249,8 +1249,8 @@ def characterizationOuterBatch(
             "title": "%s: Chances of detecting %s" % (runName, md),
             "ylabel": "Probability of detection per %.0f day window" % w,
         }
-        metricName = "Chances of detecting activity lasting %.0f days" % w
-        metric = metrics.ActivityOverTimeMetric(w, metricName=metricName, **colkwargs)
+        metric_name = "Chances of detecting activity lasting %.0f days" % w
+        metric = metrics.ActivityOverTimeMetric(w, metric_name=metric_name, **colkwargs)
         bundle = MoMetricBundle(
             metric,
             slicer,
@@ -1270,8 +1270,8 @@ def characterizationOuterBatch(
             "title": "%s: Chances of detecting %s" % (runName, md),
             "ylabel": "Probability of detection per %.2f deg window" % b,
         }
-        metricName = "Chances of detecting activity covering %.0f deg" % (b)
-        metric = metrics.ActivityOverPeriodMetric(b, metricName=metricName, **colkwargs)
+        metric_name = "Chances of detecting activity covering %.0f deg" % (b)
+        metric = metrics.ActivityOverPeriodMetric(b, metric_name=metric_name, **colkwargs)
         bundle = MoMetricBundle(
             metric,
             slicer,
@@ -1296,7 +1296,7 @@ def characterizationOuterBatch(
         % (runName, md),
     }
     plotDict.update(basicPlotDict)
-    metric = metrics.LightcurveColor_OuterMetric(**colkwargs)
+    metric = metrics.LightcurveColorOuterMetric(**colkwargs)
     bundle = MoMetricBundle(
         metric,
         slicer,

@@ -125,7 +125,7 @@ def ddfBatch(
             daymaxStep=3,
             coadd_night=True,
             gammaName="gamma_DDF.hdf5",
-            metricName=f"SNNSNMetric {fieldname}",  # have to add here, as must be in reduceDict key
+            metric_name=f"SNNSNMetric {fieldname}",  # have to add here, as must be in reduceDict key
         )
         bundle_list.append(
             maf.MetricBundle(
@@ -166,7 +166,7 @@ def ddfBatch(
         extinction_cut = 1.0
         for f in "ugrizy":
             displayDict["order"] = orders[f]
-            summaryMetrics = [maf.SumMetric(metricName="Total QSO")]
+            summaryMetrics = [maf.SumMetric(metric_name="Total QSO")]
             metric = maf.QSONumberCountsMetric(
                 f,
                 units="mag",
@@ -277,7 +277,7 @@ def ddfBatch(
             displayDict["subgroup"] = "Coadd M5"
             displayDict["order"] = orders[f]
             displayDict["caption"] = f"Coadded m5 in {f} band in the {fieldname} DDF."
-            metric = maf.Coaddm5Metric(metricName=f"{fieldname} CoaddM5")
+            metric = maf.Coaddm5Metric(metric_name=f"{fieldname} CoaddM5")
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
@@ -296,7 +296,7 @@ def ddfBatch(
                 "caption"
             ] = f"Number of visits in the {f} band in the {fieldname} DDF."
             metric = maf.CountMetric(
-                col="observationStartMJD", units="#", metricName=f"{fieldname} NVisits"
+                col="observationStartMJD", units="#", metric_name=f"{fieldname} NVisits"
             )
             bundle_list.append(
                 maf.MetricBundle(
@@ -318,7 +318,7 @@ def ddfBatch(
             "caption"
         ] = f"Number of visits in all bands in the {fieldname} DDF."
         metric = maf.CountMetric(
-            col="observationStartMJD", units="#", metricName=f"{fieldname} NVisits"
+            col="observationStartMJD", units="#", metric_name=f"{fieldname} NVisits"
         )
         bundle_list.append(
             maf.MetricBundle(
@@ -339,7 +339,7 @@ def ddfBatch(
         displayDict["order"] = orders["all"]
         displayDict["caption"] = f"Number of nights with visits in the {fieldname} DDF."
         metric = maf.CountUniqueMetric(
-            col="night", units="#", metricName=f"{fieldname} N Unique Nights"
+            col="night", units="#", metric_name=f"{fieldname} N Unique Nights"
         )
         bundle_list.append(
             maf.MetricBundle(
@@ -383,7 +383,7 @@ def ddfBatch(
         # Histogram the number of visits per night at the center of the DDF
         countbins = np.arange(0, 200, 5)
         metric = maf.NVisitsPerNightMetric(
-            nightCol="night", bins=countbins, metricName=f"{fieldname} NVisitsPerNight"
+            nightCol="night", bins=countbins, metric_name=f"{fieldname} NVisitsPerNight"
         )
         plotDict = {"bins": countbins, "xlabel": "Number of visits per night"}
         displayDict[
@@ -406,7 +406,7 @@ def ddfBatch(
         else:
             displayDict["caption"] = f"Number of visits per night for {fieldname}."
             metric = maf.CountMetric(
-                "observationStartMJD", metricName=f"{fieldname} Nvisits Per Night"
+                "observationStartMJD", metric_name=f"{fieldname} Nvisits Per Night"
             )
             slicer = maf.OneDSlicer(sliceColName="night", binsize=1)
             bundle = maf.MetricBundle(
@@ -417,7 +417,7 @@ def ddfBatch(
                 display_dict=displayDict,
                 summary_metrics=[
                     maf.MedianMetric(),
-                    maf.PercentileMetric(percentile=80, metricName="80thPercentile"),
+                    maf.PercentileMetric(percentile=80, metric_name="80thPercentile"),
                     maf.MinMetric(),
                     maf.MaxMetric(),
                 ],
@@ -431,7 +431,7 @@ def ddfBatch(
         metric = maf.NightgapsMetric(
             bins=bins,
             nightCol="night",
-            metricName=f"{fieldname} Delta Nights Histogram",
+            metric_name=f"{fieldname} Delta Nights Histogram",
         )
         displayDict[
             "caption"
@@ -452,7 +452,7 @@ def ddfBatch(
         # Median inter-night gap in each and all filters
         for f in filterlist:
             metric = maf.InterNightGapsMetric(
-                metricName=f"{fieldname} Median Inter-Night Gap", reduceFunc=np.median
+                metric_name=f"{fieldname} Median Inter-Night Gap", reduceFunc=np.median
             )
             displayDict["order"] = orders[f]
             displayDict[
@@ -500,7 +500,7 @@ def ddfBatch(
 
         # Median season Length
         metric = maf.SeasonLengthMetric(
-            metricName=f"{fieldname} Median Season Length", reduceFunc=np.median
+            metric_name=f"{fieldname} Median Season Length", reduceFunc=np.median
         )
         displayDict["caption"] = f"Median season length in the {fieldname} DDF."
         bundle_list.append(
@@ -526,7 +526,7 @@ def ddfBatch(
                 "caption"
             ] = f"Cumulative number of visits for the {fieldname.replace('DD:', '')} field."
             slicer = maf.UniSlicer()
-            metric = maf.CumulativeMetric(metricName=f"{fieldname} Cumulative NVisits")
+            metric = maf.CumulativeMetric(metric_name=f"{fieldname} Cumulative NVisits")
             metricb = maf.MetricBundle(
                 metric,
                 slicer,

@@ -99,14 +99,14 @@ class TestJSONoutUniSlicer(unittest.TestCase):
         metricVal = makeMetricData(self.testslicer, "float", seed=88102231)
         io = self.testslicer.outputJSON(
             metricVal,
-            metricName="testMetric",
+            metric_name="testMetric",
             simDataName="testSim",
             info_label="testmeta",
         )
         jsn = json.loads(io.getvalue())
         jsn_header = jsn[0]
         jsn_data = jsn[1]
-        self.assertEqual(jsn_header["metricName"], "testMetric")
+        self.assertEqual(jsn_header["metric_name"], "testMetric")
         self.assertEqual(jsn_header["simDataName"], "testSim")
         self.assertEqual(jsn_header["info_label"], "testmeta")
         self.assertEqual(jsn_header["slicerName"], "UniSlicer")

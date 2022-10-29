@@ -27,7 +27,7 @@ class CumulativeMetric(BaseMetric):
         super().__init__(
             col=[time_col, night_col],
             metric_name=metric_name,
-            metricDtype="object",
+            metric_dtype="object",
             **kwargs
         )
         self.time_col = time_col

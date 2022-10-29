@@ -63,7 +63,7 @@ class Coaddm5Metric(BaseMetric):
     ----------
     m5Col : `str`, optional
         Name of the m5 column. Default fiveSigmaDepth.
-    metricName : `str`, optional
+    metric_name : `str`, optional
         Name to associate with the metric output.
     """
 
