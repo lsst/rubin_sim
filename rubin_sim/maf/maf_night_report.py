@@ -205,12 +205,10 @@ def maf_night_report():
 
     # Set up / connect to resultsDb.
     resultsDb = db.ResultsDb(out_dir=args.outDir)
-    # Connect to opsimdb.
-    opsdb = db.OpsimDatabase(args.dbFile)
 
     # Set up metricBundleGroup.
     group = metricBundles.MetricBundleGroup(
-        bundleDict, opsdb, out_dir=args.outDir, results_db=resultsDb
+        bundleDict, args.dbFile, out_dir=args.outDir, results_db=resultsDb
     )
     group.run_all()
     group.plotAll()

@@ -284,7 +284,7 @@ class MafRunResults(object):
         if baseonly:
             sortName = "baseMetricNames"
         else:
-            sortName = "metricName"
+            sortName = "metric_name"
         metricNames = list(np.unique(metrics[sortName]))
         return metricNames
 
@@ -358,7 +358,7 @@ class MafRunResults(object):
             metrics = self.metrics
         metricInfoLabel = []
         for metricName, info_label in zip(
-            metrics["metricName"], metrics["metricInfoLabel"]
+            metrics["metric_name"], metrics["metricInfoLabel"]
         ):
             metricinfo = " ".join([metricName, info_label])
             if metricinfo not in metricInfoLabel:
@@ -384,14 +384,14 @@ class MafRunResults(object):
 
     def metricsWithMetricName(self, metricName, metrics=None, baseonly=True):
         """
-        Return all metrics which match metricName (default, only the 'base' metric name).
+        Return all metrics which match metric_name (default, only the 'base' metric name).
         """
         if metrics is None:
             metrics = self.metrics
         if baseonly:
             metrics = metrics[np.where(metrics["baseMetricNames"] == metricName)]
         else:
-            metrics = metrics[np.where(metrics["metricName"] == metricName)]
+            metrics = metrics[np.where(metrics["metric_name"] == metricName)]
         return metrics
 
     def metricInfo(self, metric=None, withDataLink=False, withSlicerName=True):
@@ -412,7 +412,7 @@ class MafRunResults(object):
                 metricInfo["Data"].append([None, None])
             return metricInfo
         # Otherwise, do this for real (not a blank).
-        metricInfo["MetricName"] = metric["metricName"]
+        metricInfo["MetricName"] = metric["metric_name"]
         if withSlicerName:
             metricInfo["Slicer"] = metric["slicerName"]
         metricInfo["InfoLabel"] = metric["metricInfoLabel"]
@@ -446,10 +446,10 @@ class MafRunResults(object):
         """
         Given an array of plots (for a single metric usually).
         Returns an ordered dict with 'plotType' for interfacing with jinja2 templates.
-        plotDict == {'SkyMap': {'plotFile': [], 'thumbFile', []}, 'Histogram': {}..}
+        plot_dict == {'SkyMap': {'plotFile': [], 'thumbFile', []}, 'Histogram': {}..}
 
         If no plot of a particular type, the plotFile and thumbFile are empty lists.
-        Calling with plots=None returns a blank plotDict.
+        Calling with plots=None returns a blank plot_dict.
         """
         plotDict = OrderedDict()
         # Go through plots in 'plotOrder'.

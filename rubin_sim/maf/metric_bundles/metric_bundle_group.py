@@ -343,7 +343,7 @@ class MetricBundleGroup(object):
             for b in self.current_bundle_dict.values():
                 b.metricValues = None
             if self.verbose:
-                print("Deleted metricValues from memory.")
+                print("Deleted metric_values from memory.")
 
     def get_data(self, constraint):
         """Query the data from the database.
@@ -734,10 +734,10 @@ class MetricBundleGroup(object):
             filename = os.path.join(self.outDir, bundle.file_root + ".npz")
             try:
                 # Create a temporary metricBundle to read the data into.
-                #  (we don't use b directly, as this overrides plotDict/etc).
+                #  (we don't use b directly, as this overrides plot_dict/etc).
                 tmp_bundle = create_empty_metric_bundle()
                 tmp_bundle.read(filename)
-                # Copy the tmp_bundle metricValues into bundle.
+                # Copy the tmp_bundle metric_values into bundle.
                 bundle.metricValues = tmp_bundle.metricValues
                 # And copy the slicer into b, to get slicePoints.
                 bundle.slicer = tmp_bundle.slicer
@@ -764,7 +764,7 @@ class MetricBundleGroup(object):
                     tmp_bundle = create_empty_metric_bundle()
                     try:
                         tmp_bundle.read(filename)
-                        # This won't necessarily recreate the plotDict and displayDict exactly
+                        # This won't necessarily recreate the plot_dict and displayDict exactly
                         # as they would have been made if you calculated the reduce metric from scratch.
                         # Perhaps update these metric reduce dictionaries after reading them in?
                         newmetric_bundle = MetricBundle(

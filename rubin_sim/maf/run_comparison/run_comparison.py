@@ -122,7 +122,7 @@ class RunComparison:
         Parameters
         ----------
         metricNameLike: `str`, optional
-            Metric name like this -- i.e. will look for metrics which match metricName like "value".
+            Metric name like this -- i.e. will look for metrics which match metric_name like "value".
         metricMetadataLike: `str`, optional
             Metric Metadata like this.
         slicerNameLike: `str`, optional
@@ -132,7 +132,7 @@ class RunComparison:
         -------
         mDict : `dict`
             Dictionary of union of metric bundle information across all directories.
-            Key = self-created metric 'name', value = Dict{metricName, metricMetadata, slicerName}
+            Key = self-created metric 'name', value = Dict{metric_name, metricMetadata, slicerName}
         """
         if (
             metricNameLike is None
@@ -156,7 +156,7 @@ class RunComparison:
                 )
             for mId in mIds:
                 info = self.runresults[r].getMetricInfo(mId)
-                metricName = info["metricName"][0]
+                metricName = info["metric_name"][0]
                 metricMetadata = info["metricInfoLabel"][0]
                 slicerName = info["slicerName"][0]
                 # Build a hash from the metric Name, metadata, slicer --
@@ -165,7 +165,7 @@ class RunComparison:
                     metricName, metricMetadata, slicerName, None
                 )
                 mDict[hash] = {
-                    "metricName": metricName,
+                    "metric_name": metricName,
                     "metricInfoLabel": metricMetadata,
                     "slicerName": slicerName,
                 }
@@ -180,7 +180,7 @@ class RunComparison:
         verbose=False,
     ):
         """
-        Look for summary metric values matching metricName (and optionally metricMetadata, slicerName
+        Look for summary metric values matching metric_name (and optionally metricMetadata, slicerName
         and summaryName) among the results databases.
         Note that some metrics may not be present in some runDirs.
 
@@ -201,7 +201,7 @@ class RunComparison:
         Returns
         -------
         summaryStats: `pd.DataFrame`
-            <index>   <metricName>  (possibly additional metricNames - multiple summary stats or metadata..)
+            <index>   <metric_name>  (possibly additional metricNames - multiple summary stats or metadata..)
              runName    value
         """
         summaryValues = {}
@@ -259,7 +259,7 @@ class RunComparison:
             if "summaryMetric" not in metric:
                 metric["summaryMetric"] = None
             tempStats = self._findSummaryStats(
-                metricName=metric["metricName"],
+                metricName=metric["metric_name"],
                 metricInfoLabel=metric["metricInfoLabel"],
                 slicerName=metric["slicerName"],
                 summaryName=metric["summaryMetric"],
@@ -308,7 +308,7 @@ class RunComparison:
                 if len(mId) > 1:
                     warnings.warn(
                         "Found more than one metric data file matching "
-                        + "metricName %s metricInfoLabel %s and slicerName %s"
+                        + "metric_name %s metricInfoLabel %s and slicerName %s"
                         % (metricName, metricInfoLabel, slicerName)
                         + " Skipping this combination."
                     )

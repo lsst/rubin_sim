@@ -36,7 +36,7 @@ class PlotBundle(object):
     def addBundle(self, bundle, plotDict=None, plotFunc=None):
         """
         Add bundle to the object.
-        Optionally add a plotDict and/or replace the plotFunc
+        Optionally add a plot_dict and/or replace the plotFunc
         """
         self.bundleList.append(bundle)
         if plotDict is not None:

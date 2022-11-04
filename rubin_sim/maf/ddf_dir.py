@@ -37,12 +37,12 @@ def ddf_dir():
 
         bdict = {}
         bdict.update(batches.ddfBatch(runName=name, nside=args.nside))
-        resultsDb = db.ResultsDb(out_dir=name + "_ddf")
+        results_db = db.ResultsDb(out_dir=name + "_ddf")
         group = mb.MetricBundleGroup(
-            bdict, opsdb, outDir=name + "_ddf", resultsDb=resultsDb, saveEarly=False
+            bdict, opsdb, outDir=name + "_ddf", resultsDb=results_db, saveEarly=False
         )
         group.run_all(clear_memory=True, plot_now=True)
-        resultsDb.close()
+        results_db.close()
         db.addRunToDatabase(
             name + "_ddf", "trackingDb_sqlite.db", None, name, "", "", name + ".db"
         )

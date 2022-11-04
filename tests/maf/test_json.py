@@ -97,7 +97,7 @@ class TestJSONoutUniSlicer(unittest.TestCase):
 
     def test(self):
         metricVal = makeMetricData(self.testslicer, "float", seed=88102231)
-        io = self.testslicer.outputJSON(
+        io = self.testslicer.output_json(
             metricVal,
             metric_name="testMetric",
             simDataName="testSim",
@@ -118,15 +118,15 @@ class TestJSONoutOneDSlicer2(unittest.TestCase):
     def setUp(self):
         # Set up a slicer and some metric data for that slicer.
         dv = makeDataValues(1000, random=40082)
-        self.testslicer = slicers.OneDSlicer(sliceColName="testdata")
-        self.testslicer.setupSlicer(dv)
+        self.testslicer = slicers.OneDSlicer(slice_col_name="testdata")
+        self.testslicer.setup_slicer(dv)
 
     def tearDown(self):
         del self.testslicer
 
     def test(self):
         metricVal = makeMetricData(self.testslicer, "float", seed=18)
-        io = self.testslicer.outputJSON(metricVal)
+        io = self.testslicer.output_json(metricVal)
         jsn = json.loads(io.getvalue())
         jsn_header = jsn[0]
         jsn_data = jsn[1]
@@ -150,7 +150,7 @@ class TestJSONoutHealpixSlicer(unittest.TestCase):
 
     def test(self):
         metricVal = makeMetricData(self.testslicer, "float", seed=452)
-        io = self.testslicer.outputJSON(metricVal)
+        io = self.testslicer.output_json(metricVal)
         jsn = json.loads(io.getvalue())
         jsn_header = jsn[0]
         jsn_data = jsn[1]

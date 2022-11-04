@@ -118,7 +118,7 @@ def ss_population_defaults(objtype):
 
 def setupMoSlicer(orbitFile, Hrange, obsFile=None):
     """
-    Set up the slicer and read orbitFile and obsFile from disk.
+    Set up the slicer and read orbitFile and obs_file from disk.
 
     Parameters
     ----------
@@ -694,7 +694,7 @@ def runCompletenessSummary(bdict, Hmark, times, outDir, resultsDb):
     Hmark : float
         Hmark value to add to completeness plotting dict.
         If not defined (None), then the Hmark from the plotdict from the metric will be used if available.
-        If None and Hmark not in plotDict, then median of Hrange value will be used.
+        If None and Hmark not in plot_dict, then median of Hrange value will be used.
     times : np.ndarray
         The times at which to calculate completeness (over time).
     outDir : str
@@ -1329,7 +1329,7 @@ def runFractionSummary(bdict, Hmark, outDir, resultsDb):
         including bundles we're expecting to contain lightcurve/color evaluations.
     Hmark : float
         Hmark value to add to completeness plotting dict.
-        If defined, this value is used. If None, but Hmark in plotDict for metric, then this value (-2) is
+        If defined, this value is used. If None, but Hmark in plot_dict for metric, then this value (-2) is
         used. If Hmark not in plotdict, then the median Hrange value - 2 is used.
     times : np.ndarray
         The times at which to calculate completeness (over time).
@@ -1592,7 +1592,7 @@ def combineSubsets(mbSubsets):
     # Join metric values.
     joint.slicer = slicer
     joint.metric = first.metric
-    # Don't just use the slicer shape to define the metricValues, because of CompletenessBundles.
+    # Don't just use the slicer shape to define the metric_values, because of CompletenessBundles.
     metricValues = np.zeros(first.metricValues.shape, float)
     metricValuesMask = np.zeros(first.metricValues.shape, bool)
     for i in mbSubsets:

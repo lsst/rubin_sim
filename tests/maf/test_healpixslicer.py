@@ -103,14 +103,14 @@ class TestHealpixSlicerSetup(unittest.TestCase):
 
 class TestHealpixSlicerEqual(unittest.TestCase):
     def setUp(self):
-        self.cameraFootprintFile = os.path.join(get_data_dir(), "tests", "fov_map.npz")
+        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
         self.nside = 16
         self.testslicer = HealpixSlicer(
             nside=self.nside,
             verbose=False,
             lon_col="ra",
             lat_col="dec",
-            camera_footprint_file=self.cameraFootprintFile,
+            camera_footprint_file=self.camera_footprint_file,
         )
         nvalues = 10000
         self.dv = makeDataValues(
@@ -123,7 +123,7 @@ class TestHealpixSlicerEqual(unittest.TestCase):
             decmax=0,
             random=22,
         )
-        self.testslicer.setupSlicer(self.dv)
+        self.testslicer.setup_slicer(self.dv)
 
     def tearDown(self):
         del self.testslicer
@@ -138,7 +138,7 @@ class TestHealpixSlicerEqual(unittest.TestCase):
             verbose=False,
             lon_col="ra",
             lat_col="dec",
-            camera_footprint_file=self.cameraFootprintFile,
+            camera_footprint_file=self.camera_footprint_file,
         )
         self.assertEqual(self.testslicer, testslicer2)
         assert (self.testslicer != testslicer2) is False
@@ -147,7 +147,7 @@ class TestHealpixSlicerEqual(unittest.TestCase):
             verbose=False,
             lon_col="ra",
             lat_col="dec",
-            camera_footprint_file=self.cameraFootprintFile,
+            camera_footprint_file=self.camera_footprint_file,
         )
         self.assertNotEqual(self.testslicer, testslicer2)
         assert (self.testslicer != testslicer2) is True
@@ -155,14 +155,14 @@ class TestHealpixSlicerEqual(unittest.TestCase):
 
 class TestHealpixSlicerIteration(unittest.TestCase):
     def setUp(self):
-        self.cameraFootprintFile = os.path.join(get_data_dir(), "tests", "fov_map.npz")
+        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
         self.nside = 8
         self.testslicer = HealpixSlicer(
             nside=self.nside,
             verbose=False,
             lon_col="ra",
             lat_col="dec",
-            camera_footprint_file=self.cameraFootprintFile,
+            camera_footprint_file=self.camera_footprint_file,
         )
         nvalues = 10000
         self.dv = makeDataValues(
@@ -175,7 +175,7 @@ class TestHealpixSlicerIteration(unittest.TestCase):
             decmax=0,
             random=33,
         )
-        self.testslicer.setupSlicer(self.dv)
+        self.testslicer.setup_slicer(self.dv)
 
     def tearDown(self):
         del self.testslicer
@@ -206,7 +206,7 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
     # Note that this is really testing baseSpatialSlicer, as slicing is done there for healpix grid
 
     def setUp(self):
-        self.cameraFootprintFile = os.path.join(get_data_dir(), "tests", "fov_map.npz")
+        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
         self.nside = 8
         self.radius = 1.8
         self.testslicer = HealpixSlicer(
@@ -236,10 +236,10 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
 
     def testSlicing(self):
         """Test slicing returns (all) data points which are within 'radius' of bin point."""
-        # Test that slicing fails before setupSlicer
-        self.assertRaises(NotImplementedError, self.testslicer._sliceSimData, 0)
+        # Test that slicing fails before setup_slicer
+        self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
         # Set up and test actual slicing.
-        self.testslicer.setupSlicer(self.dv)
+        self.testslicer.setup_slicer(self.dv)
         for s in self.testslicer:
             ra = s["slicePoint"]["ra"]
             dec = s["slicePoint"]["dec"]
@@ -290,10 +290,10 @@ class TestHealpixChipGap(unittest.TestCase):
 
     def testSlicing(self):
         """Test slicing returns (most) data points which are within 'radius' of bin point."""
-        # Test that slicing fails before setupSlicer
-        self.assertRaises(NotImplementedError, self.testslicer._sliceSimData, 0)
+        # Test that slicing fails before setup_slicer
+        self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
         # Set up and test actual slicing.
-        self.testslicer.setupSlicer(self.dv)
+        self.testslicer.setup_slicer(self.dv)
         for s in self.testslicer:
             ra = s["slicePoint"]["ra"]
             dec = s["slicePoint"]["dec"]
@@ -334,7 +334,7 @@ class TestHealpixSlicerPlotting(unittest.TestCase):
             decmax=0,
             random=66,
         )
-        self.testslicer.setupSlicer(self.dv)
+        self.testslicer.setup_slicer(self.dv)
         self.metricdata = ma.MaskedArray(
             data=np.zeros(len(self.testslicer), dtype="float"),
             mask=np.zeros(len(self.testslicer), "bool"),

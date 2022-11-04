@@ -27,7 +27,7 @@ class UniSlicer(BaseSlicer):
 
     def setup_slicer(self, sim_data, maps=None):
         """Use sim_data to set indexes to return."""
-        self._runMaps(maps)
+        self._run_maps(maps)
         sim_dataCol = sim_data.dtype.names[0]
         self.indices = np.ones(len(sim_data[sim_dataCol]), dtype="bool")
 

@@ -31,7 +31,7 @@ def run_moving_calc():
         "(if they're not specified by flags) and to label outputs.",
     )
     parser.add_argument(
-        "--obsFile",
+        "--obs_file",
         type=str,
         help="File containing the observations of the moving objects.",
     )
@@ -117,8 +117,8 @@ def run_moving_calc():
     )
     args = parser.parse_args()
 
-    if args.orbitFile is None or args.obsFile is None:
-        print("Must specify an orbitFile and an obsFile to calculate the metrics.")
+    if args.orbitFile is None or args.obs_file is None:
+        print("Must specify an orbitFile and an obs_file to calculate the metrics.")
         exit()
 
     # Get default H and other values:
@@ -163,7 +163,7 @@ def run_moving_calc():
     resultsDb = db.ResultsDb(out_dir=args.outDir)
 
     colmap = batches.ColMapDict()
-    slicer = batches.setupMoSlicer(args.orbitFile, Hrange, obsFile=args.obsFile)
+    slicer = batches.setupMoSlicer(args.orbitFile, Hrange, obsFile=args.obs_file)
     # Run discovery metrics using 'trailing' losses
     bdictT = batches.quickDiscoveryBatch(
         slicer,

@@ -415,7 +415,7 @@ class DiscoveryNChancesMetric(BaseChildMetric):
         self.night_end = night_end
         self.snr_limit = parent_discovery_metric.snr_limit
         # Update the metric name to use the night_start/night_end values, if an overriding name is not given.
-        if "metricName" not in kwargs:
+        if "metric_name" not in kwargs:
             if night_start is not None:
                 self.name = self.name + "_n%d" % (night_start)
             if night_end is not None:

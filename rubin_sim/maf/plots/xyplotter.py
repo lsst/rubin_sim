@@ -19,7 +19,7 @@ class XyPlotter(BasePlotter):
         plotDict = {}
         plotDict.update(self.defaultPlotDict)
         plotDict.update(userPlotDict)
-        plotDict.update(metricValueIn[0]["plotDict"])
+        plotDict.update(metricValueIn[0]["plot_dict"])
 
         fig = plt.figure(fignum)
         ax = fig.add_subplot(111)

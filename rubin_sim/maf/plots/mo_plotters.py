@@ -69,7 +69,7 @@ class MetricVsH(BasePlotter):
                 nbins = 30
             stepsize = hrange / float(nbins)
             bins = np.arange(minH, minH + hrange + stepsize / 2.0, stepsize)
-            # In each bin of H, calculate the 'npReduce' value of the corresponding metricValues.
+            # In each bin of H, calculate the 'npReduce' value of the corresponding metric_values.
             inds = np.digitize(Hvals, bins)
             inds = inds - 1
             mVals = np.zeros(len(bins), float)
@@ -191,7 +191,7 @@ class MetricVsOrbit(BasePlotter):
             ybins = np.arange(yvals.min(), yvals.max() + ybinsize / 2.0, ybinsize)
         nxbins = len(xbins)
         nybins = len(ybins)
-        # Identify the relevant metricValues for the Hvalue we want to plot.
+        # Identify the relevant metric_values for the Hvalue we want to plot.
         Hvals = slicer.slicePoints["H"]
         Hwidth = plotDict["Hwidth"]
         if Hwidth is None:
@@ -291,7 +291,7 @@ class MetricVsOrbitPoints(BasePlotter):
         fig = plt.figure(fignum, figsize=plotDict["figsize"])
         xvals = slicer.slicePoints["orbits"][plotDict["xaxis"]]
         yvals = slicer.slicePoints["orbits"][plotDict["yaxis"]]
-        # Identify the relevant metricValues for the Hvalue we want to plot.
+        # Identify the relevant metric_values for the Hvalue we want to plot.
         Hvals = slicer.slicePoints["H"]
         Hwidth = plotDict["Hwidth"]
         if Hwidth is None:

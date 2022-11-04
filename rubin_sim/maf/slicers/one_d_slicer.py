@@ -139,7 +139,7 @@ class OneDSlicer(BaseSlicer):
         self.slicePoints["sid"] = np.arange(self.nslice)
         self.slicePoints["bins"] = self.bins
         # Add metadata from map if needed.
-        self._runMaps(maps)
+        self._run_maps(maps)
         # Set up data slicing.
         self.sim_idxs = np.argsort(sim_data[self.slice_col_name])
         simFieldsSorted = np.sort(sim_data[self.slice_col_name])

@@ -12,16 +12,16 @@ class TestTechnicalMetrics(unittest.TestCase):
         Test the NChanges metric.
         """
         filters = np.array(["u", "u", "g", "g", "r"])
-        visitTimes = np.arange(0, filters.size, 1)
+        visit_times = np.arange(0, filters.size, 1)
         data = np.core.records.fromarrays(
-            [visitTimes, filters], names=["observationStartMJD", "filter"]
+            [visit_times, filters], names=["observationStartMJD", "filter"]
         )
         metric = metrics.NChangesMetric()
         result = metric.run(data)
         self.assertEqual(result, 2)
         filters = np.array(["u", "g", "u", "g", "r"])
         data = np.core.records.fromarrays(
-            [visitTimes, filters], names=["observationStartMJD", "filter"]
+            [visit_times, filters], names=["observationStartMJD", "filter"]
         )
         metric = metrics.NChangesMetric()
         result = metric.run(data)
@@ -32,9 +32,9 @@ class TestTechnicalMetrics(unittest.TestCase):
         Test the minTimeBetweenStates metric.
         """
         filters = np.array(["u", "g", "g", "r"])
-        visitTimes = np.array([0, 5, 6, 7])  # days
+        visit_times = np.array([0, 5, 6, 7])  # days
         data = np.core.records.fromarrays(
-            [visitTimes, filters], names=["observationStartMJD", "filter"]
+            [visit_times, filters], names=["observationStartMJD", "filter"]
         )
         metric = metrics.MinTimeBetweenStatesMetric()
         result = metric.run(data)  # minutes
@@ -104,7 +104,7 @@ class TestTechnicalMetrics(unittest.TestCase):
         data = np.core.records.fromarrays(
             [m5, filters], names=["fiveSigmaDepth", "filter"]
         )
-        metric = metrics.TeffMetric(fiducialDepth={"g": 25}, teffBase=30.0)
+        metric = metrics.TeffMetric(fiducial_depth={"g": 25}, teff_base=30.0)
         result = metric.run(data)
         self.assertEqual(result, 30.0 * m5.size)
         filters = np.array(["g", "g", "g", "u", "u"])
@@ -113,7 +113,7 @@ class TestTechnicalMetrics(unittest.TestCase):
         data = np.core.records.fromarrays(
             [m5, filters], names=["fiveSigmaDepth", "filter"]
         )
-        metric = metrics.TeffMetric(fiducialDepth={"u": 20, "g": 25}, teffBase=30.0)
+        metric = metrics.TeffMetric(fiducial_depth={"u": 20, "g": 25}, teff_base=30.0)
         result = metric.run(data)
         self.assertEqual(result, 30.0 * m5.size)
 

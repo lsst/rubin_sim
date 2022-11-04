@@ -264,7 +264,7 @@ class MoCompletenessMetric(BaseMoMetric):
         If False, simply report the differential fractional value (or differential completeness).
         If True, integrate over the H distribution (using IntegrateOverH) to report a cumulative fraction.
         Default None which becomes True;
-        if metricName is set and starts with 'Differential' this will then set to False.
+        if metric_name is set and starts with 'Differential' this will then set to False.
     hindex : `float`, optional
         Use hindex as the power law to integrate over H, if cumulative is True. Default 0.3.
     """
@@ -378,7 +378,7 @@ class MoCompletenessAtTimeMetric(BaseMoMetric):
     cumulative : `bool`, optional
         If True, calculate the cumulative completeness (completeness <= H).
         If False, calculate the differential completeness (completeness @ H).
-        Default None which becomes 'True' unless metricName starts with 'differential'.
+        Default None which becomes 'True' unless metric_name starts with 'differential'.
     hindex : `float`, optional
         Use hindex as the power law to integrate over H, if cumulative is True. Default 0.3.
     """

@@ -108,13 +108,13 @@ class PlotHandler(object):
 
     def setPlotDicts(self, plotDicts=None, plotFunc=None, reset=False):
         """
-        Set or update (or 'reset') the plotDict for the (possibly joint) plots.
+        Set or update (or 'reset') the plot_dict for the (possibly joint) plots.
 
         Resolution is:
         auto-generated items (colors/labels/titles)
         < anything previously set in the plot_handler
         < defaults set by the plotter
-        < explicitly set items in the metricBundle plotDict
+        < explicitly set items in the metricBundle plot_dict
         < explicitly set items in the plotDicts list passed to this method.
         """
         if reset:
@@ -132,7 +132,7 @@ class PlotHandler(object):
         if plotFunc is not None:
             autoXlabel, autoYlabel = self._buildXYlabels(plotFunc)
 
-        # Loop through each bundle and generate a plotDict for it.
+        # Loop through each bundle and generate a plot_dict for it.
         for i, bundle in enumerate(self.mBundles):
             # First use the auto-generated values.
             tmpPlotDict = {}
@@ -142,7 +142,7 @@ class PlotHandler(object):
             tmpPlotDict["cbarFormat"] = autoCbar
             # Then update that with anything previously set in the plot_handler.
             tmpPlotDict.update(self.plotDicts[i])
-            # Then override with plotDict items set explicitly based on the plot type.
+            # Then override with plot_dict items set explicitly based on the plot type.
             if plotFunc is not None:
                 tmpPlotDict["xlabel"] = autoXlabel
                 tmpPlotDict["ylabel"] = autoYlabel
@@ -152,7 +152,7 @@ class PlotHandler(object):
                 for k, v in plotterDefaults.items():
                     if v is not None:
                         tmpPlotDict[k] = v
-            # Then add/override based on the bundle plotDict parameters if they are set.
+            # Then add/override based on the bundle plot_dict parameters if they are set.
             tmpPlotDict.update(bundle.plotDict)
             # Finally, override with anything set explicitly by the user right now.
             if plotDicts is not None:
@@ -569,10 +569,10 @@ class PlotHandler(object):
         """
         Create plot for mBundles, using plotFunc.
 
-        plotDicts:  List of plotDicts if one wants to use a _new_ plotDict per MetricBundle.
+        plotDicts:  List of plotDicts if one wants to use a _new_ plot_dict per MetricBundle.
         """
         if not plotFunc.objectPlotter:
-            # Check that metricValues type and plotter are compatible (most are float/float, but
+            # Check that metric_values type and plotter are compatible (most are float/float, but
             #  some plotters expect object data .. and some only do sometimes).
             for mB in self.mBundles:
                 if mB.metric.metricDtype == "object":
@@ -598,7 +598,7 @@ class PlotHandler(object):
         for mB, plotDict in zip(self.mBundles, self.plotDicts):
             if mB.metricValues is None:
                 # Skip this metricBundle.
-                msg = 'MetricBundle (%s) has no attribute "metricValues".' % (
+                msg = 'MetricBundle (%s) has no attribute "metric_values".' % (
                     mB.file_root
                 )
                 msg += " Either the values have not been calculated or they have been deleted."

@@ -44,7 +44,7 @@ class MetricRow(Base):
 
     def __repr__(self):
         return (
-            "<Metric(metricId='%d', metricName='%s', slicerName='%s', "
+            "<Metric(metricId='%d', metric_name='%s', slicerName='%s', "
             "simDataName='%s', sqlConstraint='%s', metricInfoLabel='%s', metricDataFile='%s')>"
         ) % (
             self.metricId,
@@ -297,7 +297,7 @@ class ResultsDb(object):
         metricId : `int`
             The Id number of this metric in the metrics table.
 
-        If same metric (same metricName, slicerName, simDataName, sqlConstraint, infoLabel)
+        If same metric (same metric_name, slicerName, simDataName, sqlConstraint, infoLabel)
         already exists, it does nothing.
         """
         self.open()
@@ -531,7 +531,7 @@ class ResultsDb(object):
 
         Parameters
         ----------
-        metricName : `str`
+        metric_name : `str`
             Partial name of the Metric
         slicerName : `str`, opt
             Partial name of the Slicer to match
@@ -683,7 +683,7 @@ class ResultsDb(object):
         dtype_list = [
             ("metricId", int),
             ("summaryName", str, self.slen),
-            ("metricName", str, self.slen),
+            ("metric_name", str, self.slen),
             ("slicerName", str, self.slen),
             ("metricInfoLabel", str, self.slen),
             ("summaryMetric", str, self.slen),
@@ -714,7 +714,7 @@ class ResultsDb(object):
         plotFiles : `numpy.recarray`
             ``metricId``
                 The metric ID
-            ``metricName``
+            ``metric_name``
                 The metric name
             ``metricInfoLabel``
                 info_label extracted from the sql constraint (usually the filter)
@@ -760,7 +760,7 @@ class ResultsDb(object):
         # Convert to numpy array.
         dtype_list = [
             ("metricId", int),
-            ("metricName", str, self.slen),
+            ("metric_name", str, self.slen),
             ("metricInfoLabel", str, self.slen),
             ("plotType", str, self.slen),
             ("plotFile", str, self.slen),
@@ -812,7 +812,7 @@ class ResultsDb(object):
         plotFiles : `numpy.recarray`
             ``metricId``
                 The metric ID
-            ``metricName``
+            ``metric_name``
                 The metric name
             ``baseMetricNames``
                 The base metric names
@@ -857,7 +857,7 @@ class ResultsDb(object):
         # Convert to numpy array.
         dtype_list = [
             ("metricId", int),
-            ("metricName", str, self.slen),
+            ("metric_name", str, self.slen),
             ("baseMetricNames", str, self.slen),
             ("slicerName", str, self.slen),
             ("sqlConstraint", str, self.slen),
@@ -916,7 +916,7 @@ class ResultsDb(object):
         dtype = np.dtype(
             [
                 ("metricId", int),
-                ("metricName", np.str_, self.slen),
+                ("metric_name", np.str_, self.slen),
                 ("baseMetricNames", np.str_, self.slen),
                 ("slicerName", np.str_, self.slen),
                 ("sqlConstraint", np.str_, self.slen),

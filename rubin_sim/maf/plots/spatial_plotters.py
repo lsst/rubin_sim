@@ -230,7 +230,7 @@ class HealpixSkyMap(BasePlotter):
             "fig": fig.number,
             "notext": notext,
         }
-        # Keys to specify only if present in plotDict
+        # Keys to specify only if present in plot_dict
         for key in (
             "reso",
             "xsize",
@@ -412,7 +412,7 @@ class BaseHistogram(BasePlotter):
 
     def __call__(self, metricValueIn, slicer, userPlotDict, fignum=None):
         """
-        Plot a histogram of metricValues (such as would come from a spatial slicer).
+        Plot a histogram of metric_values (such as would come from a spatial slicer).
         """
         # Adjust metric values by zeropoint or normVal, and use 'compressed' version of masked array.
         plotDict = {}
@@ -505,7 +505,7 @@ class BaseHistogram(BasePlotter):
         def mjrFormatter(y, pos):
             if not isinstance(plotDict["scale"], numbers.Number):
                 raise ValueError(
-                    'plotDict["scale"] must be a number to scale the y axis.'
+                    'plot_dict["scale"] must be a number to scale the y axis.'
                 )
             return plotDict["yaxisformat"] % (y * plotDict["scale"])
 
@@ -803,7 +803,7 @@ class HealpixSDSSSkyMap(BasePlotter):
         racenters = np.arange(plotDict["raMin"], plotDict["raMax"], plotDict["raLen"])
         nframes = racenters.size
         fig = plt.figure(fignum)
-        # Do not specify or use plotDict['subplot'] because this is done in each call to hp.cartview.
+        # Do not specify or use plot_dict['subplot'] because this is done in each call to hp.cartview.
         for i, racenter in enumerate(racenters):
             if i == 0:
                 useTitle = (
@@ -909,7 +909,7 @@ def draw_grat(ax):
 class LambertSkyMap(BasePlotter):
     """
     Use basemap and contour to make a Lambertian projection.
-    Note that the plotDict can include a 'basemap' key with a dictionary of
+    Note that the plot_dict can include a 'basemap' key with a dictionary of
     arbitrary kwargs to use with the call to Basemap.
     """
 
@@ -968,7 +968,7 @@ class LambertSkyMap(BasePlotter):
         # tmpContour = m.contour(np.degrees(slicer.slicePoints['ra']),
         #                        np.degrees(slicer.slicePoints['dec']),
         #                        metricValue.filled(np.min(clims)-1), levels, tri=True,
-        #                        cmap=plotDict['cmap'], ax=ax, latlon=True,
+        #                        cmap=plot_dict['cmap'], ax=ax, latlon=True,
         #                        lw=1)
 
         # Set masked values to be below the lowest contour level.

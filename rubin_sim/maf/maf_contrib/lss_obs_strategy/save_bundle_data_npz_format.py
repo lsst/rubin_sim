@@ -25,7 +25,7 @@ def saveBundleData_npzFormat(path, bundle, baseFilename, filterBand):
     # run over keys in the bundle and save the data
     for dither in bundle:
         outfile = "%s_%s_%s.npz" % (baseFilename, filterBand, dither)
-        bundle[dither].slicer.writeData(
+        bundle[dither].slicer.write_data(
             "%s/%s" % (path, outfile),
             bundle[dither].metricValues,
             metricName=bundle[dither].metric.name,

@@ -36,21 +36,21 @@ class TestCalibrationMetrics(unittest.TestCase):
             data["finSeeing"] = 0.7
             data["fiveSigmaDepth"] = 24.0
             baseline = metrics.ParallaxMetric(
-                normalize=flag, seeingCol="finSeeing"
+                normalize=flag, seeing_col="finSeeing"
             ).run(data, slicePoint)
             data["finSeeing"] = data["finSeeing"] + 0.3
-            worse1 = metrics.ParallaxMetric(normalize=flag, seeingCol="finSeeing").run(
+            worse1 = metrics.ParallaxMetric(normalize=flag, seeing_col="finSeeing").run(
                 data, slicePoint
             )
             worse2 = metrics.ParallaxMetric(
-                normalize=flag, rmag=22.0, seeingCol="finSeeing"
+                normalize=flag, rmag=22.0, seeing_col="finSeeing"
             ).run(data, slicePoint)
             worse3 = metrics.ParallaxMetric(
-                normalize=flag, rmag=22.0, seeingCol="finSeeing"
+                normalize=flag, rmag=22.0, seeing_col="finSeeing"
             ).run(data[0:300], slicePoint)
             data["fiveSigmaDepth"] = data["fiveSigmaDepth"] - 1.0
             worse4 = metrics.ParallaxMetric(
-                normalize=flag, rmag=22.0, seeingCol="finSeeing"
+                normalize=flag, rmag=22.0, seeing_col="finSeeing"
             ).run(data[0:300], slicePoint)
             # Make sure the RMS increases as seeing increases, the star gets fainter,
             #    the background gets brighter, or the baseline decreases.
@@ -90,21 +90,21 @@ class TestCalibrationMetrics(unittest.TestCase):
             data["finSeeing"] = 0.7
             data["fiveSigmaDepth"] = 24
             baseline = metrics.ProperMotionMetric(
-                normalize=flag, seeingCol="finSeeing"
+                normalize=flag, seeing_col="finSeeing"
             ).run(data, slicePoint)
             data["finSeeing"] = data["finSeeing"] + 0.3
             worse1 = metrics.ProperMotionMetric(
-                normalize=flag, seeingCol="finSeeing"
+                normalize=flag, seeing_col="finSeeing"
             ).run(data, slicePoint)
             worse2 = metrics.ProperMotionMetric(
-                normalize=flag, rmag=22.0, seeingCol="finSeeing"
+                normalize=flag, rmag=22.0, seeing_col="finSeeing"
             ).run(data, slicePoint)
             worse3 = metrics.ProperMotionMetric(
-                normalize=flag, rmag=22.0, seeingCol="finSeeing"
+                normalize=flag, rmag=22.0, seeing_col="finSeeing"
             ).run(data[0:300], slicePoint)
             data["fiveSigmaDepth"] = data["fiveSigmaDepth"] - 1.0
             worse4 = metrics.ProperMotionMetric(
-                normalize=flag, rmag=22.0, seeingCol="finSeeing"
+                normalize=flag, rmag=22.0, seeing_col="finSeeing"
             ).run(data[0:300], slicePoint)
             # Make sure the RMS increases as seeing increases, the star gets fainter,
             # the background gets brighter, or the baseline decreases.
@@ -143,7 +143,7 @@ class TestCalibrationMetrics(unittest.TestCase):
         data["dec_pi_amp"] = 1.0
 
         # All the parallax amplitudes are the same, should return zero
-        metric = metrics.ParallaxCoverageMetric(seeingCol="finSeeing")
+        metric = metrics.ParallaxCoverageMetric(seeing_col="finSeeing")
         val = metric.run(data)
         assert val == 0
 
@@ -195,7 +195,7 @@ class TestCalibrationMetrics(unittest.TestCase):
         data["dec_pi_amp"] = 0.01
         data["ra_dcr_amp"] = 0.2
 
-        metric = metrics.ParallaxDcrDegenMetric(seeingCol="finSeeing")
+        metric = metrics.ParallaxDcrDegenMetric(seeing_col="finSeeing")
         val = metric.run(data)
         np.testing.assert_almost_equal(np.abs(val), 1.0, decimal=2)
 
@@ -204,7 +204,7 @@ class TestCalibrationMetrics(unittest.TestCase):
         data["dec_pi_amp"] = 1.0
         data["ra_dcr_amp"] = 0.2
 
-        metric = metrics.ParallaxDcrDegenMetric(seeingCol="finSeeing")
+        metric = metrics.ParallaxDcrDegenMetric(seeing_col="finSeeing")
         val = metric.run(data)
         np.testing.assert_almost_equal(val, 0.0, decimal=2)
 
@@ -233,10 +233,10 @@ class TestCalibrationMetrics(unittest.TestCase):
         result = metric.run(data, slicePoint)
         for i, r in enumerate(result):
             np.testing.assert_almost_equal(r, abs(data["fieldDec"][i]))
-        assert metric.reduceMean(result) == np.mean(result)
-        assert metric.reduceRMS(result) == np.std(result)
+        assert metric.reduce_mean(result) == np.mean(result)
+        assert metric.reduce_rms(result) == np.std(result)
         np.testing.assert_almost_equal(
-            metric.reduceFullRange(result),
+            metric.reduce_full_range(result),
             np.max(np.abs(data["fieldDec"])) - np.min(np.abs(data["fieldDec"])),
         )
 

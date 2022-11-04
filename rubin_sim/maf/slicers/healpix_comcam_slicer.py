@@ -107,7 +107,7 @@ class HealpixComCamSlicer(HealpixSlicer):
                     "Warning:  Loading maps but cache on."
                     "Should probably set use_cache=False in slicer."
                 )
-            self._runMaps(maps)
+            self._run_maps(maps)
         self._setRad(self.radius)
         if self.useCamera:
             self._setupLSSTCamera()

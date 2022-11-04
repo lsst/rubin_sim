@@ -394,7 +394,7 @@ class GeneralHourglassPlot(BasePlotter):
         # additional elements of the plats that were given matplotlib
         # labels, but are not already in the legend by way of the
         # color map.  The user may limit the enties in the color map
-        # by way of the legend_elements key in the plotDict, which if
+        # by way of the legend_elements key in the plot_dict, which if
         # preset limits the elements of the key to only those
         # requested.
 

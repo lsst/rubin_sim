@@ -66,7 +66,7 @@ class AreaThresholdMetric(BaseMetric):
     """
     Find the amount of area on the sky that meets a given threshold value.
 
-    The area per pixel is determined from the size of the metricValues array passed to the summary metric.
+    The area per pixel is determined from the size of the metric_values array passed to the summary metric.
     This assumes that both all values are passed and that the metric was calculated with a healpix slicer.
 
     Parameters

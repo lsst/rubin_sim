@@ -65,9 +65,9 @@ def maskingAlgorithmGeneralized(
     plotFinalPlots : `bool`
         set to False if do not want to plot the final plots. Default: True
     skyMapColorMin : float
-        colorMin label value for skymap plotDict label. Default: None
+        colorMin label value for skymap plot_dict label. Default: None
     skyMapColorMax : float
-        colorMax label value for skymap plotDict label. Default: None
+        colorMax label value for skymap plot_dict label. Default: None
     """
     # find pixels such that (pixelValue (relation) findValue) AND their neighbors dont have that (relation) findValue.
     # then assign newValue to all these pixels.

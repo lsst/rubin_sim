@@ -91,7 +91,7 @@ class TimeIntervalSlicer(BaseSlicer):
         self.slicePoints["duration"] = np.full_like(mjds, self.interval_seconds)
         self.nslice = len(mjds)
         self.shape = self.nslice
-        self._runMaps(maps)
+        self._run_maps(maps)
 
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):  # pylint: disable=invalid-name
@@ -213,7 +213,7 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
         self.slicePoints["sid"] = blocks.reset_index().sid.values
         self.slicePoints["mjd"] = blocks.mjd.values
         self.slicePoints["duration"] = blocks.duration.values
-        self._runMaps(maps)
+        self._run_maps(maps)
 
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):  # pylint: disable=invalid-name
@@ -274,7 +274,7 @@ class VisitIntervalSlicer(TimeIntervalSlicer):
         self.slicePoints["duration"] = sim_data[self.duration_column_name]
         for column_name in self.extra_column_names:
             self.slicePoints[column_name] = sim_data[column_name]
-        self._runMaps(maps)
+        self._run_maps(maps)
 
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):  # pylint: disable=invalid-name

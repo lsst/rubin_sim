@@ -58,7 +58,7 @@ class TestMaps(unittest.TestCase):
             slicer1 = slicers.HealpixSlicer(
                 lat_lon_deg=False, nside=nside, use_camera=False
             )
-            slicer1.setupSlicer(data)
+            slicer1.setup_slicer(data)
             result1 = dustmap.run(slicer1.slicePoints)
             assert "ebv" in list(result1.keys())
 
@@ -96,7 +96,7 @@ class TestMaps(unittest.TestCase):
             slicer1 = slicers.HealpixSlicer(
                 lat_lon_deg=False, nside=nside, use_camera=False
             )
-            slicer1.setupSlicer(data)
+            slicer1.setup_slicer(data)
             result1 = dustmap.run(slicer1.slicePoints)
             assert "ebv3d_ebvs" in list(result1.keys())
             assert "ebv3d_dists" in list(result1.keys())
@@ -154,7 +154,7 @@ class TestMaps(unittest.TestCase):
                 slicer1 = slicers.HealpixSlicer(
                     nside=nside, lat_lon_deg=False, use_camera=False
                 )
-                slicer1.setupSlicer(data)
+                slicer1.setup_slicer(data)
                 result1 = starmap.run(slicer1.slicePoints)
                 assert "starMapBins_r" in list(result1.keys())
                 assert "starLumFunc_r" in list(result1.keys())
@@ -188,7 +188,7 @@ class TestMaps(unittest.TestCase):
 
         # Set up basic case - healpix
         slicer1 = slicers.HealpixSlicer(lat_lon_deg=False, nside=nside, use_camera=False)
-        slicer1.setupSlicer(data)
+        slicer1.setup_slicer(data)
         result1 = galplane_map.run(slicer1.slicePoints)
         key = maps.gp_priority_map_components_to_keys("sum", "combined_map")
         assert key in list(result1.keys())

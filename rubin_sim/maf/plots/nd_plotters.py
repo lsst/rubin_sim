@@ -14,7 +14,7 @@ perceptual_rainbow = makePRCmap()
 class TwoDSubsetData(BasePlotter):
     """
     Plot 2 axes from the slicer.sliceColList, identified by
-    plotDict['xaxis']/['yaxis'], given the metricValues at all
+    plot_dict['xaxis']/['yaxis'], given the metric_values at all
     slicepoints [sums over non-visible axes].
     """
 
@@ -56,7 +56,7 @@ class TwoDSubsetData(BasePlotter):
         plotDict.update(self.defaultPlotDict)
         plotDict.update(userPlotDict)
         if "xaxis" not in plotDict or "yaxis" not in plotDict:
-            raise ValueError("xaxis and yaxis must be specified in plotDict")
+            raise ValueError("xaxis and yaxis must be specified in plot_dict")
         xaxis = plotDict["xaxis"]
         yaxis = plotDict["yaxis"]
         # Reshape the metric data so we can isolate the values to plot
@@ -117,8 +117,8 @@ class TwoDSubsetData(BasePlotter):
 
 class OneDSubsetData(BasePlotter):
     """
-    Plot a single axes from the sliceColList, identified by plotDict['axis'],
-    given the metricValues at all slicepoints [sums over non-visible axes].
+    Plot a single axes from the sliceColList, identified by plot_dict['axis'],
+    given the metric_values at all slicepoints [sums over non-visible axes].
     """
 
     def __init__(self):
@@ -162,7 +162,7 @@ class OneDSubsetData(BasePlotter):
         plotDict.update(self.defaultPlotDict)
         plotDict.update(userPlotDict)
         if "axis" not in plotDict:
-            raise ValueError("axis for 1-d plot must be specified in plotDict")
+            raise ValueError("axis for 1-d plot must be specified in plot_dict")
         # Reshape the metric data so we can isolate the values to plot
         # (just new view of data, not copy).
         axis = plotDict["axis"]

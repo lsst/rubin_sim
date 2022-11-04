@@ -42,7 +42,7 @@ class HealpixSDSSSlicer(HealpixSlicer):
         Use sim_data[self.lonCol] and sim_data[self.latCol]
         (in radians) to set up KDTree.
         """
-        self._runMaps(maps)
+        self._run_maps(maps)
         self._build_tree(sim_data[self.lonCol], sim_data[self.latCol], self.leafsize)
         self._setRad(self.radius)
         self.corners = sim_data[self.cornerLables]

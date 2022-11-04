@@ -34,10 +34,10 @@ class MoObjSlicer(BaseSlicer):
         ]
 
     def setup_slicer(self, orbitFile, delim=None, skiprows=None, obsFile=None):
-        """Set up the slicer and read orbitFile and obsFile from disk.
+        """Set up the slicer and read orbitFile and obs_file from disk.
 
         Sets self.orbits (with orbit parameters), self.allObs, and self.obs
-        self.orbitFile and self.obsFile
+        self.orbitFile and self.obs_file
 
         Parameters
         ----------
@@ -57,7 +57,7 @@ class MoObjSlicer(BaseSlicer):
             self.obs = None
         # Add these filenames to the slicer init values, to preserve in output files.
         self.slicer_init["orbitFile"] = self.orbitFile
-        self.slicer_init["obsFile"] = self.obsFile
+        self.slicer_init["obs_file"] = self.obsFile
 
     def readOrbits(self, orbitFile, delim=None, skiprows=None):
         # Use sims_movingObjects to read orbit files.

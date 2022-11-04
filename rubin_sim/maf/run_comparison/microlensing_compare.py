@@ -58,7 +58,7 @@ def microlensingFOM(
             resultDbPath + "/" + list(bundleDicts.keys())[run] + ".npz",
             allow_pickle=True,
         )
-        relevant_columns = ["metricValues", "mask"]
+        relevant_columns = ["metric_values", "mask"]
         df = pd.DataFrame.from_dict({item: npz[item] for item in relevant_columns})
         run_name, metric_type, min_tE, max_tE = parse_tE_run_types(
             list(bundleDicts.keys())[run]
@@ -69,9 +69,9 @@ def microlensingFOM(
         max_tEs[run] = max_tE
         results[run] = getResults(df, metric_type)
         if metric_type == "Npts":
-            nan_to_be = np.where(df["metricValues"] >= 10e10)[0]
-            df["metricValues"][nan_to_be] = np.nan
-        results_compare.append(df["metricValues"])
+            nan_to_be = np.where(df["metric_values"] >= 10e10)[0]
+            df["metric_values"][nan_to_be] = np.nan
+        results_compare.append(df["metric_values"])
     run_names = np.array(run_names)
     metric_types = np.array(metric_types)
     results_compare = np.array(results_compare)
@@ -130,20 +130,20 @@ def getResults(df, run_type, Fisher_sigmatE_tE_cutoff=0.1):
     total = len(df)
     if run_type == "detect":
         # Fraction of discovered/detected events
-        result = len(np.where(df["metricValues"] == 1)[0]) / total
+        result = len(np.where(df["metric_values"] == 1)[0]) / total
     elif run_type == "Npts":
         # Average number of points per lightcurve
         result = (
             sum(
-                df["metricValues"][~np.isnan(df["metricValues"])][
-                    df["metricValues"] >= 0
-                ][df["metricValues"] <= 10e10]
+                df["metric_values"][~np.isnan(df["metric_values"])][
+                    df["metric_values"] >= 0
+                ][df["metric_values"] <= 10e10]
             )
             / total
         )
     elif run_type == "Fisher":
         # Fraction of events with sigmatE/tE below the cutoff of 0.1
-        result = len(np.where(df["metricValues"] < Fisher_sigmatE_tE_cutoff)[0]) / total
+        result = len(np.where(df["metric_values"] < Fisher_sigmatE_tE_cutoff)[0]) / total
 
     return result
 
@@ -540,7 +540,7 @@ def bundleDictFromDisk(resultDb, runName, metricDataPath):
     bundleDict = {}
     displayInfo = resultDb.getMetricDisplayInfo()
     for item in displayInfo:
-        metricName = item["metricName"]
+        metricName = item["metric_name"]
         metricFileName = item["metricDataFile"]
         metricId = item["metricId"]
         newbundle = metricBundles.create_empty_metric_bundle()

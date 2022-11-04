@@ -106,7 +106,7 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
     """
     Base class for the metrics.
     Sets up some basic functionality for the MAF framework: after __init__ every metric will
-    record the columns (and stackers) it requires into the column registry, and the metricName,
+    record the columns (and stackers) it requires into the column registry, and the metric_name,
     metric_dtype, and units for the metric will be set.
 
     Parameters
@@ -115,7 +115,7 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
         Names of the data columns that the metric will use.
         The columns required for each metric is tracked in the ColRegistry, and used to retrieve data
         from the opsim database. Can be a single string or a list.
-    metricName : `str`
+    metric_name : `str`
         Name to use for the metric (optional - if not set, will be derived).
     maps : `list` [`rubin_sim.maf.maps`]
         The maps that the metric will need (passed from the slicer).
