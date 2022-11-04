@@ -42,7 +42,7 @@ class TestUniSlicerSetupAndSlice(unittest.TestCase):
         dvmax = 1
         nvalues = 1000
         dv = makeDataValues(nvalues, dvmin, dvmax, random=672)
-        self.testslicer.setupSlicer(dv)
+        self.testslicer.setup_slicer(dv)
         # test slicing
         self.assertEqual(len(self.testslicer.indices), len(dv["testdata"]))
         np.testing.assert_equal(dv[self.testslicer.indices], dv)
@@ -62,7 +62,7 @@ class TestUniSlicerIteration(unittest.TestCase):
         dvmax = 1
         nvalues = 1000
         dv = makeDataValues(nvalues, dvmin, dvmax, random=432)
-        self.testslicer.setupSlicer(dv)
+        self.testslicer.setup_slicer(dv)
         for i, b in enumerate(self.testslicer):
             pass
         self.assertEqual(i, 0)
@@ -73,7 +73,7 @@ class TestUniSlicerIteration(unittest.TestCase):
         dvmax = 1
         nvalues = 1000
         dv = makeDataValues(nvalues, dvmin, dvmax, random=1192)
-        self.testslicer.setupSlicer(dv)
+        self.testslicer.setup_slicer(dv)
         self.assertEqual(self.testslicer[0]["slicePoint"]["sid"], 0)
 
 
@@ -84,7 +84,7 @@ class TestUniSlicerEqual(unittest.TestCase):
         dvmax = 1
         nvalues = 1000
         dv = makeDataValues(nvalues, dvmin, dvmax, random=3482)
-        self.testslicer.setupSlicer(dv)
+        self.testslicer.setup_slicer(dv)
 
     def tearDown(self):
         del self.testslicer
@@ -98,11 +98,11 @@ class TestUniSlicerEqual(unittest.TestCase):
         # These should be the same, even though data is not the same.
         testslicer2 = UniSlicer()
         dv2 = makeDataValues(100, 0, 1, random=43298)
-        testslicer2.setupSlicer(dv2)
+        testslicer2.setup_slicer(dv2)
         self.assertEqual(self.testslicer, testslicer2)
         # these will not be the same, as different slicer type.
-        testslicer2 = OneDSlicer(sliceColName="testdata", bins=np.arange(0, 10, 1))
-        testslicer2.setupSlicer(dv2)
+        testslicer2 = OneDSlicer(slice_col_name="testdata", bins=np.arange(0, 10, 1))
+        testslicer2.setup_slicer(dv2)
         self.assertNotEqual(self.testslicer, testslicer2)
 
 

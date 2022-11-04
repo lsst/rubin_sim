@@ -136,7 +136,7 @@ class SummaryHistogram(BasePlotter):
     such as if a histogram was calculated at each slicepoint
     (e.g. with the rubin_sim.maf.metrics.TgapsMetric).
     Effectively marginalizes the calculated values over the sky, and plots the a summarized
-    version (reduced to a single according to the plotDict['metricReduce'] metric).
+    version (reduced to a single according to the plot_dict['metricReduce'] metric).
     """
 
     def __init__(self):
@@ -193,7 +193,7 @@ class SummaryHistogram(BasePlotter):
         # Combine the metric values across all slicePoints.
         if not isinstance(plotDict["metricReduce"], metrics.BaseMetric):
             raise ValueError(
-                "Expected plotDict[metricReduce] to be a MAF metric object."
+                "Expected plot_dict[metricReduce] to be a MAF metric object."
             )
         # Check that there is data to plot
         if np.size(metricValue.compressed()) == 0:

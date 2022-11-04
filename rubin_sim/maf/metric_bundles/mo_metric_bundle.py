@@ -159,7 +159,7 @@ class MoMetricBundle(MetricBundle):
             self._build_file_root()
         # Set the plotting classes/functions.
         self.set_plot_funcs(plot_funcs)
-        # Set the plotDict and displayDicts.
+        # Set the plot_dict and displayDicts.
         self.plotDict = {"units": "@H"}
         self.set_plot_dict(plot_dict)
         # Update/set displayDict.
@@ -191,7 +191,7 @@ class MoMetricBundle(MetricBundle):
         self.summaryValues = None
 
     def _build_metadata(self, info_label):
-        """If no info_label is provided, auto-generate it from the obsFile + constraint."""
+        """If no info_label is provided, auto-generate it from the obs_file + constraint."""
         if info_label is None:
             try:
                 self.info_label = self.slicer.obsfile.replace(".txt", "").replace(
@@ -240,7 +240,7 @@ class MoMetricBundle(MetricBundle):
 
     def compute_summary_stats(self, results_db=None):
         """
-        Compute summary statistics on metricValues, using summaryMetrics, for self and child bundles.
+        Compute summary statistics on metric_values, using summaryMetrics, for self and child bundles.
         """
         if self.summaryValues is None:
             self.summaryValues = {}

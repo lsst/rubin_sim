@@ -119,7 +119,7 @@ class BaseSpatialSlicer(BaseSlicer):
                     "Warning:  Loading maps but cache on."
                     "Should probably set use_cache=False in slicer."
                 )
-            self._runMaps(maps)
+            self._run_maps(maps)
         self._setRad(self.radius)
         if self.useCamera:
             self.data_ra = sim_data[self.lonCol]

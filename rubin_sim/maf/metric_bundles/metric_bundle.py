@@ -170,7 +170,7 @@ class MetricBundle(object):
         self._find_req_cols()
         # Set the plotting classes/functions.
         self.set_plot_funcs(plot_funcs)
-        # Set the plotDict and displayDicts.
+        # Set the plot_dict and displayDicts.
         self.plotDict = {}
         self.set_plot_dict(plot_dict)
         # Update/set displayDict.
@@ -362,7 +362,7 @@ class MetricBundle(object):
                     self.plot_funcs.append(pFunc())
 
     def set_plot_dict(self, plot_dict):
-        """Set or update any property of plotDict.
+        """Set or update any property of plot_dict.
 
         Parameters
         ----------
@@ -378,14 +378,14 @@ class MetricBundle(object):
             if self.plotDict["zp"] is not None:
                 if not np.isfinite(self.plotDict["zp"]):
                     warnings.warn(
-                        "Warning! Plot zp for %s was infinite: removing zp from plotDict"
+                        "Warning! Plot zp for %s was infinite: removing zp from plot_dict"
                         % (self.file_root)
                     )
                     del self.plotDict["zp"]
         if "normVal" in self.plotDict:
             if self.plotDict["normVal"] == 0:
                 warnings.warn(
-                    "Warning! Plot normalization value for %s was 0: removing normVal from plotDict"
+                    "Warning! Plot normalization value for %s was 0: removing normVal from plot_dict"
                     % (self.file_root)
                 )
                 del self.plotDict["normVal"]
@@ -463,7 +463,7 @@ class MetricBundle(object):
             self._build_file_root()
 
     def write_db(self, results_db=None, outfile_suffix=None):
-        """Write the metricValues to the database"""
+        """Write the metric_values to the database"""
         if outfile_suffix is not None:
             outfile = self.file_root + "_" + outfile_suffix + ".npz"
         else:
@@ -480,7 +480,7 @@ class MetricBundle(object):
             results_db.update_display(metric_id, self.displayDict)
 
     def write(self, comment="", out_dir=".", outfile_suffix=None, results_db=None):
-        """Write metricValues (and associated info_label) to disk.
+        """Write metric_values (and associated info_label) to disk.
 
         Parameters
         ----------
@@ -497,7 +497,7 @@ class MetricBundle(object):
             outfile = self.file_root + "_" + outfile_suffix + ".npz"
         else:
             outfile = self.file_root + ".npz"
-        self.slicer.writeData(
+        self.slicer.write_data(
             os.path.join(out_dir, outfile),
             self.metricValues,
             metricName=self.metric.name,
@@ -518,12 +518,12 @@ class MetricBundle(object):
         io
            IO object containing JSON data representing the metric bundle data.
         """
-        io = self.slicer.outputJSON(
+        io = self.slicer.output_json(
             self.metricValues,
-            metricName=self.metric.name,
+            metric_name=self.metric.name,
             simDataName=self.run_name,
             info_label=self.info_label,
-            plotDict=self.plotDict,
+            plot_dict=self.plotDict,
         )
         return io
 
@@ -543,21 +543,21 @@ class MetricBundle(object):
         # Set up a base slicer to read data (we don't know type yet).
         baseslicer = slicers.BaseSlicer()
         # Use baseslicer to read file.
-        metric_values, slicer, header = baseslicer.readData(filename)
+        metric_values, slicer, header = baseslicer.read_data(filename)
         self.slicer = slicer
         self.metricValues = metric_values
         self.metricValues.fill_value = slicer.badval
         # It's difficult to reinstantiate the metric object, as we don't
-        # know what it is necessarily -- the metricName can be changed.
+        # know what it is necessarily -- the metric_name can be changed.
         self.metric = metrics.BaseMetric()
         # But, for plot label building, we do need to try to recreate the
         #  metric name and units.
         self.metric.units = ""
         if header is not None:
-            self.metric.name = header["metricName"]
-            if "plotDict" in header:
-                if "units" in header["plotDict"]:
-                    self.metric.units = header["plotDict"]["units"]
+            self.metric.name = header["metric_name"]
+            if "plot_dict" in header:
+                if "units" in header["plot_dict"]:
+                    self.metric.units = header["plot_dict"]["units"]
             self.run_name = header["simDataName"]
             try:
                 self.constraint = header["constraint"]
@@ -570,8 +570,8 @@ class MetricBundle(object):
             # and then use info_label if it's there instead
             if "info_label" in header:
                 self.info_label = header["info_label"]
-            if "plotDict" in header:
-                self.set_plot_dict(header["plotDict"])
+            if "plot_dict" in header:
+                self.set_plot_dict(header["plot_dict"])
             if "displayDict" in header:
                 self.set_display_dict(header["displayDict"])
         if self.info_label is None:
@@ -594,7 +594,7 @@ class MetricBundle(object):
         return metric_bundle
 
     def compute_summary_stats(self, results_db=None):
-        """Compute summary statistics on metricValues, using summaryMetrics (metricbundle list).
+        """Compute summary statistics on metric_values, using summaryMetrics (metricbundle list).
 
         Parameters
         ----------
@@ -648,16 +648,16 @@ class MetricBundle(object):
         reduce_plot_dict=None,
         reduce_display_dict=None,
     ):
-        """Run 'reduceFunc' (any function that operates on self.metricValues).
+        """Run 'reduceFunc' (any function that operates on self.metric_values).
         Typically reduceFunc will be the metric reduce functions, as they are tailored to expect the
-        metricValues format.
+        metric_values format.
         reduceDisplayDict and reducePlotDicts are displayDicts and plotDicts to be
         applied to the new metricBundle.
 
         Parameters
         ----------
         reduce_func : Func
-            Any function that will operate on self.metricValues (typically metric.reduce* function).
+            Any function that will operate on self.metric_values (typically metric.reduce* function).
         reduce_plot_dict : Optional[dict]
             Plot dictionary for the results of the reduce function.
         reduce_display_dict : Optional[dict]
@@ -675,7 +675,7 @@ class MetricBundle(object):
         else:
             r_name = reduce_func.__name__.replace("reduce", "")
         reduce_name = self.metric.name + "_" + r_name
-        # Set up metricBundle to store new metric values, and add plotDict/displayDict.
+        # Set up metricBundle to store new metric values, and add plot_dict/displayDict.
         newmetric = deepcopy(self.metric)
         newmetric.name = reduce_name
         newmetric.metricDtype = "float"
@@ -698,7 +698,7 @@ class MetricBundle(object):
         )
         # Build a new output file root name.
         newmetric_bundle._build_file_root()
-        # Add existing plotDict (except for title/xlabels etc) into new plotDict.
+        # Add existing plot_dict (except for title/xlabels etc) into new plot_dict.
         for k, v in self.plotDict.items():
             if k not in newmetric_bundle.plotDict:
                 newmetric_bundle.plotDict[k] = v
@@ -713,7 +713,7 @@ class MetricBundle(object):
         # And then update the newmetric_bundle's display dictionary with any set
         # explicitly by reduceDisplayDict.
         newmetric_bundle.set_display_dict(reduce_display_dict)
-        # Set up new metricBundle's metricValues masked arrays, copying metricValue's mask.
+        # Set up new metricBundle's metric_values masked arrays, copying metricValue's mask.
         newmetric_bundle.metricValues = ma.MaskedArray(
             data=np.empty(len(self.slicer), "float"),
             mask=self.metricValues.mask.copy(),

@@ -37,7 +37,7 @@ class UserPointsSlicer(BaseSpatialSlicer):
     useCamera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
         Default True.
-    cameraFootprintFile : `str`, optional
+    camera_footprint_file : `str`, optional
         Name of the camera footprint map to use. Can be None, which will use the default.
     rotSkyPosColName : `str`, optional
         Name of the rotSkyPos column in the input  data. Only used if useCamera is True.

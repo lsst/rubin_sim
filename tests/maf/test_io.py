@@ -26,13 +26,13 @@ class TestSlicers(unittest.TestCase):
         )
         with TemporaryFile() as filename:
             info_label = "testdata"
-            slicer.writeData(filename, metricValues, info_label=info_label)
+            slicer.write_data(filename, metricValues, info_label=info_label)
             _ = filename.seek(0)
-            metricValuesBack, slicerBack, header = self.baseslicer.readData(filename)
+            metricValuesBack, slicerBack, header = self.baseslicer.read_data(filename)
             np.testing.assert_almost_equal(metricValuesBack, metricValues)
             assert slicer == slicerBack
             assert info_label == header["info_label"]
-            attr2check = ["nside", "nslice", "columnsNeeded", "lonCol", "latCol"]
+            attr2check = ["nside", "nslice", "columns_needed", "lon_col", "lat_col"]
             for att in attr2check:
                 assert getattr(slicer, att) == getattr(slicerBack, att)
 
@@ -42,12 +42,12 @@ class TestSlicers(unittest.TestCase):
         slicer = slicers.HealpixSlicer(nside=nside)
         metricValues = rng.rand(hp.nside2npix(nside))
         with TemporaryFile() as filename:
-            slicer.writeData(filename, metricValues, info_label="testdata")
+            slicer.write_data(filename, metricValues, info_label="testdata")
             _ = filename.seek(0)
-            metricValuesBack, slicerBack, header = self.baseslicer.readData(filename)
+            metricValuesBack, slicerBack, header = self.baseslicer.read_data(filename)
             np.testing.assert_almost_equal(metricValuesBack, metricValues)
             assert slicer == slicerBack
-            attr2check = ["nside", "nslice", "columnsNeeded", "lonCol", "latCol"]
+            attr2check = ["nside", "nslice", "columns_needed", "lon_col", "lat_col"]
             for att in attr2check:
                 assert getattr(slicer, att) == getattr(slicerBack, att)
 
@@ -62,28 +62,28 @@ class TestSlicers(unittest.TestCase):
             fill_value=slicer.badval,
         )
         with TemporaryFile() as filename:
-            slicer.writeData(filename, metricValues, info_label="testdata")
+            slicer.write_data(filename, metricValues, info_label="testdata")
             _ = filename.seek(0)
-            metricValuesBack, slicerBack, header = self.baseslicer.readData(filename)
+            metricValuesBack, slicerBack, header = self.baseslicer.read_data(filename)
             np.testing.assert_almost_equal(metricValuesBack, metricValues)
             assert slicer == slicerBack
-            attr2check = ["nside", "nslice", "columnsNeeded", "lonCol", "latCol"]
+            attr2check = ["nside", "nslice", "columns_needed", "lon_col", "lat_col"]
             for att in attr2check:
                 assert getattr(slicer, att) == getattr(slicerBack, att)
 
     def test_oneDSlicer(self):
         rng = np.random.RandomState(71111)
-        slicer = slicers.OneDSlicer(sliceColName="testdata")
+        slicer = slicers.OneDSlicer(slice_col_name="testdata")
         dataValues = np.zeros(10000, dtype=[("testdata", "float")])
         dataValues["testdata"] = rng.rand(10000)
-        slicer.setupSlicer(dataValues)
+        slicer.setup_slicer(dataValues)
         with TemporaryFile() as filename:
-            slicer.writeData(filename, dataValues[:100])
+            slicer.write_data(filename, dataValues[:100])
             _ = filename.seek(0)
-            dataBack, slicerBack, header = self.baseslicer.readData(filename)
+            dataBack, slicerBack, header = self.baseslicer.read_data(filename)
             assert slicer == slicerBack
             # np.testing.assert_almost_equal(dataBack,dataValues[:100])
-            attr2check = ["nslice", "columnsNeeded"]
+            attr2check = ["nslice", "columns_needed"]
             for att in attr2check:
                 if type(getattr(slicer, att)).__module__ == "numpy":
                     np.testing.assert_almost_equal(
@@ -112,18 +112,18 @@ class TestSlicers(unittest.TestCase):
         simData["data1"] = rng.rand(100)
         simData["fieldId"] = np.arange(100)
         with TemporaryFile() as filename:
-            slicer.writeData(filename, metricValues)
+            slicer.write_data(filename, metricValues)
             _ = filename.seek(0)
-            metricBack, slicerBack, header = self.baseslicer.readData(filename)
+            metricBack, slicerBack, header = self.baseslicer.read_data(filename)
             assert slicer == slicerBack
             np.testing.assert_almost_equal(metricBack, metricValues)
             attr2check = [
                 "nslice",
-                "columnsNeeded",
-                "lonCol",
-                "latCol",
+                "columns_needed",
+                "lon_col",
+                "lat_col",
                 "shape",
-                "spatialExtent",
+                "spatial_extent",
             ]
             for att in attr2check:
                 if type(getattr(slicer, att)).__name__ == "dict":
@@ -139,15 +139,15 @@ class TestSlicers(unittest.TestCase):
         slicer = slicers.UniSlicer()
         data = np.zeros(1, dtype=[("testdata", "float")])
         data[:] = rng.rand(1)
-        slicer.setupSlicer(data)
+        slicer.setup_slicer(data)
         with TemporaryFile() as filename:
             metricValue = np.array([25.0])
-            slicer.writeData(filename, metricValue)
+            slicer.write_data(filename, metricValue)
             _ = filename.seek(0)
-            dataBack, slicerBack, header = self.baseslicer.readData(filename)
+            dataBack, slicerBack, header = self.baseslicer.read_data(filename)
             assert slicer == slicerBack
             np.testing.assert_almost_equal(dataBack, metricValue)
-            attr2check = ["nslice", "columnsNeeded"]
+            attr2check = ["nslice", "columns_needed"]
             for att in attr2check:
                 assert getattr(slicer, att) == getattr(slicerBack, att)
 
@@ -161,9 +161,9 @@ class TestSlicers(unittest.TestCase):
             n_el = rng.rand(1) * 4  # up to 4 elements
             data[i] = np.arange(n_el)
         with TemporaryFile() as filename:
-            slicer.writeData(filename, data)
+            slicer.write_data(filename, data)
             _ = filename.seek(0)
-            dataBack, slicerBack, header = self.baseslicer.readData(filename)
+            dataBack, slicerBack, header = self.baseslicer.read_data(filename)
             assert slicer == slicerBack
             # This is a crazy slow loop!
             for i, ack in enumerate(data):
@@ -176,15 +176,15 @@ class TestSlicers(unittest.TestCase):
         for c in colnames:
             data.append(rng.rand(1000))
         dv = np.core.records.fromarrays(data, names=colnames)
-        slicer = slicers.NDSlicer(colnames, binsList=10)
-        slicer.setupSlicer(dv)
+        slicer = slicers.NDSlicer(colnames, bins_list=10)
+        slicer.setup_slicer(dv)
         with TemporaryFile() as filename:
             metricdata = np.zeros(slicer.nslice, dtype="float")
             for i, s in enumerate(slicer):
                 metricdata[i] = i
-            slicer.writeData(filename, metricdata)
+            slicer.write_data(filename, metricdata)
             _ = filename.seek(0)
-            dataBack, slicerBack, header = self.baseslicer.readData(filename)
+            dataBack, slicerBack, header = self.baseslicer.read_data(filename)
             assert slicer == slicerBack
             np.testing.assert_almost_equal(dataBack, metricdata)
 

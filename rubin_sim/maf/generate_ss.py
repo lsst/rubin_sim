@@ -70,41 +70,41 @@ def generate_ss_commands(
     if not split:
         output_file = open("ss_script.sh", "w")
         for run, filename in zip(runs, dbfiles):
-            outDir = f"{run}_ss"
+            out_dir = f"{run}_ss"
             try:
-                os.mkdir(outDir)
+                os.mkdir(out_dir)
             except FileExistsError:
                 pass
             # Create the results DB so multiple threads don't try to create it later
-            resultsDb = db.ResultsDb(out_dir=outDir)
+            results_db = db.ResultsDb(out_dir=out_dir)
         for pop in pops:
             for run, filename in zip(runs, dbfiles):
                 objtype = objtypes[pop]
 
-                s1 = f"makeLSSTobs --opsimDb {filename} --orbitFile {orbit_files[pop]}"
+                s1 = f"makeLSSTobs --observation_db {filename} --orbit_file {orbit_files[pop]}"
                 s2 = (
-                    f"run_moving_calc --obsFile {run}__{pop}_obs.txt"
-                    f" --opsimDb {filename} --orbitFile {orbit_files[pop]}"
-                    f" --outDir {run}_ss"
-                    f" --opsimRun {run}"
+                    f"run_moving_calc --obs_file {run}__{pop}_obs.txt"
+                    f" --simulation_db {filename} --orbit_file {orbit_files[pop]}"
+                    f" --out_dir {run}_ss"
+                    f" --run_name {run}"
                     f" --objtype {objtype}"
-                    f" --startTime {start_mjd}"
+                    f" --start_time {start_mjd}"
                 )
                 s3 = (
-                    f"run_moving_fractions --workDir {run}_ss"
+                    f"run_moving_fractions --work_dir {run}_ss"
                     f" --metadata {objtype}"
-                    f" --startTime {start_mjd}"
+                    f" --start_time {start_mjd}"
                 )
                 print(s1 + " ; " + s2 + " ; " + s3, file=output_file)
     else:
         for run, filename in zip(runs, dbfiles):
-            outDir = f"{run}_ss"
+            out_dir = f"{run}_ss"
             try:
-                os.mkdir(outDir)
+                os.mkdir(out_dir)
             except FileExistsError:
                 pass
             # Create the results DB so multiple threads don't try to create it later
-            resultsDb = db.ResultsDb(out_dir=outDir)
+            results_db = db.ResultsDb(out_dir=out_dir)
             outfile = f"{run}_ss_script.sh"
             if split:
                 output_file = open(outfile, "w")
@@ -128,12 +128,12 @@ def generate_ss_commands(
                         with open(outfile_split, "a") as wi:
                             s1 = (
                                 f"makeLSSTobs --opsimDb {filename} --orbitFile {splitfile}"
-                                f" --outDir {outDir}"
+                                f" --out_dir {out_dir}"
                             )
                             s2 = (
-                                f"run_moving_calc --obsFile {outDir}/{run}__{split}_obs.txt"
+                                f"run_moving_calc --obsFile {out_dir}/{run}__{split}_obs.txt"
                                 f" --opsimDb {filename} --orbitFile {orbit_files[pop]}"
-                                f" --outDir {outDir}/{split}"
+                                f" --out_dir {out_dir}/{split}"
                                 f" --opsimRun {run}"
                                 f" --objtype {objtype}"
                                 f" --startTime {start_mjd}"
@@ -141,11 +141,11 @@ def generate_ss_commands(
                             print(s1 + " ; " + s2, file=wi)
                     s3 = (
                         f"run_moving_join --orbitFile {pop}"
-                        f" --baseDir {outDir}"
-                        f" --outDir {outDir}/sso"
+                        f" --baseDir {out_dir}"
+                        f" --out_dir {out_dir}/sso"
                     )
                     s4 = (
-                        f"run_moving_fractions --workDir {outDir}/sso"
+                        f"run_moving_fractions --workDir {out_dir}/sso"
                         f" --metadata {objtype}"
                         f" --startTime {start_mjd}"
                     )

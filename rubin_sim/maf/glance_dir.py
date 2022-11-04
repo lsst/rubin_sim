@@ -31,14 +31,13 @@ def glance_dir():
     for filename, name in zip(db_files, run_names):
         if os.path.isdir(name + "_glance"):
             shutil.rmtree(name + "_glance")
-        opsdb = db.OpsimDatabase(filename)
         colmap = batches.ColMapDict()
 
         bdict = {}
         bdict.update(batches.glanceBatch(colmap, name))
         results_db = db.ResultsDb(out_dir=name + "_glance")
         group = mb.MetricBundleGroup(
-            bdict, opsdb, outDir=name + "_glance", results_db=results_db, save_early=False
+            bdict, filename, outDir=name + "_glance", results_db=results_db, save_early=False
         )
         group.run_all(clear_memory=True, plot_now=True)
         results_db.close()

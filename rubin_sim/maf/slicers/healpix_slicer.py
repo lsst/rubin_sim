@@ -28,9 +28,9 @@ class HealpixSlicer(BaseSpatialSlicer):
     When plotting with RA/Dec, the default HealpixSkyMap can be used, corresponding to
     {'rot': (0, 0, 0), 'flip': 'astro'}.
     When plotting with alt/az, either the LambertSkyMap can be used (if Basemap is installed)
-    or the HealpixSkyMap can be used with a modified plotDict,
+    or the HealpixSkyMap can be used with a modified plot_dict,
     {'rot': (90, 90, 90), 'flip': 'geo'}.
-    When plotting with HA/Dec, only the HealpixSkyMap can be used, with a modified plotDict of
+    When plotting with HA/Dec, only the HealpixSkyMap can be used, with a modified plot_dict of
     {'rot': (0, -30, 0), 'flip': 'geo'}.
 
     Parameters

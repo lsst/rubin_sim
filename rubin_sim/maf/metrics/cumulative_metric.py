@@ -46,4 +46,4 @@ class CumulativeMetric(BaseMetric):
         cumulative_number = np.arange(data_slice.size) + 1
         yresult = np.interp(interp_points, data_slice[self.night_col], cumulative_number)
         xresult = interp_points
-        return {"x": xresult, "y": yresult, "plotDict": self.plot_dict}
+        return {"x": xresult, "y": yresult, "plot_dict": self.plot_dict}

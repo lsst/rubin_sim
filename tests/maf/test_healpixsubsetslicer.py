@@ -119,7 +119,7 @@ class TestHealpixSlicerEqual(unittest.TestCase):
             decmax=0,
             random=22,
         )
-        self.testslicer.setupSlicer(self.dv)
+        self.testslicer.setup_slicer(self.dv)
 
     def tearDown(self):
         del self.testslicer
@@ -175,7 +175,7 @@ class TestHealpixSlicerIteration(unittest.TestCase):
             decmax=0,
             random=33,
         )
-        self.testslicer.setupSlicer(self.dv)
+        self.testslicer.setup_slicer(self.dv)
 
     def tearDown(self):
         del self.testslicer
@@ -237,10 +237,10 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
 
     def testSlicing(self):
         """Test slicing returns (all) data points which are within 'radius' of bin point."""
-        # Test that slicing fails before setupSlicer
-        self.assertRaises(NotImplementedError, self.testslicer._sliceSimData, 0)
+        # Test that slicing fails before setup_slicer
+        self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
         # Set up and test actual slicing.
-        self.testslicer.setupSlicer(self.dv)
+        self.testslicer.setup_slicer(self.dv)
         for s in self.testslicer:
             ra = s["slicePoint"]["ra"]
             dec = s["slicePoint"]["dec"]
@@ -266,8 +266,8 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
             radius=self.radius,
             use_camera=False,
         )
-        testslicer.setupSlicer(self.dv)
-        self.testslicer.setupSlicer(self.dv)
+        testslicer.setup_slicer(self.dv)
+        self.testslicer.setup_slicer(self.dv)
         # For points which return values when used with the full set of points (self.testslicer)
         # there will be no data when used with the subset of points
         for s in self.testslicer:

@@ -87,7 +87,7 @@ class NDSlicer(BaseSlicer):
         for bidx in bin_id_iterator:
             self.slicePoints["binIdxs"].append(bidx)
         # Add metadata from maps.
-        self._runMaps(maps)
+        self._run_maps(maps)
         # Set up indexing for data slicing.
         self.sim_idxs = []
         self.lefts = []

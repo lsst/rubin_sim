@@ -44,58 +44,57 @@ def metadata_dir():
     )
     args = parser.parse_args()
 
-    # If runNames not given, scan for opsim databases in current directory and use those
+    # If runNames not given, scan for sim_name databases in current directory and use those
     # Note that 'runNames' can be full path to directories
 
     if args.db is None:
         # Just look for any .db files in this directory
-        dbFiles = glob.glob("*.db")
+        db_files = glob.glob("*.db")
         # But remove trackingDb and resultsDb if they're there
         try:
-            dbFiles.remove("trackingDb_sqlite.db")
+            db_files.remove("trackingDb_sqlite.db")
         except ValueError:
             pass
         try:
-            dbFiles.remove("resultsDb_sqlite.db")
+            db_files.remove("resultsDb_sqlite.db")
         except ValueError:
             pass
     elif isinstance(args.db, str):
-        dbFiles = [args.db]
+        db_files = [args.db]
     else:
-        dbFiles = args.db
+        db_files = args.db
 
-    sim_names = [os.path.basename(name).replace(".db", "") for name in dbFiles]
+    sim_names = [os.path.basename(name).replace(".db", "") for name in db_files]
 
-    for filename, opsim in zip(dbFiles, sim_names):
+    for filename, sim_name in zip(db_files, sim_names):
         # Connect to the database
-        opsdb = filename
         colmap = batches.ColMapDict()
 
         # Set and create if needed the output directory
-        outDir = opsim + "_meta"
+        out_dir = sim_name + "_meta"
         if not args.no_clobber:
-            if os.path.isdir(outDir):
-                shutil.rmtree(outDir)
+            if os.path.isdir(out_dir):
+                shutil.rmtree(out_dir)
 
         # Find the 'wfd' footprint
         m = CountExplimMetric(col="observationStartMJD")
         allsky_slicer = HealpixSlicer(nside=args.nside)
         constraint = 'note not like "%DD%"'
-        bundle = MetricBundle(m, allsky_slicer, constraint, runName=opsim)
-        g = MetricBundleGroup({f"{opsim} footprint": bundle}, opsdb, outDir=outDir)
+        bundle = MetricBundle(m, allsky_slicer, constraint, runName=sim_name)
+        g = MetricBundleGroup({f"{sim_name} footprint": bundle}, filename, outDir=out_dir)
         g.run_all()
         wfd_footprint = bundle.metricValues.filled(0)
         wfd_footprint = np.where(wfd_footprint > args.wfd_threshold, 1, 0)
         wfd_hpix = np.where(wfd_footprint == 1)[0]
         wfd_slicer = HealpixSubsetSlicer(nside=args.nside, hpid=wfd_hpix)
 
-        bdict = batches.metadata_bundle_dicts(allsky_slicer, wfd_slicer, opsim, colmap)
+        bdict = batches.metadata_bundle_dicts(allsky_slicer, wfd_slicer, sim_name, colmap)
 
         # Set up the resultsDB
-        resultsDb = ResultsDb(out_dir=outDir)
+        results_db = ResultsDb(out_dir=out_dir)
         # Go and run it
         group = MetricBundleGroup(
-            bdict, opsdb, outDir=outDir, resultsDb=resultsDb, saveEarly=False
+            bdict, opsdb, outDir=out_dir, resultsDb=results_db, saveEarly=False
         )
         group.run_all(clear_memory=True, plot_now=True)
-        resultsDb.close()
+        results_db.close()

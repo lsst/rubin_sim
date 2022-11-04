@@ -48,10 +48,10 @@ class TestTimeIntervalSlicer(unittest.TestCase):
     def setUp(self):
         self.slicer = TimeIntervalSlicer(interval_seconds=self.interval_seconds)
 
-    def test_setupSlicer(self):
-        self.slicer.setupSlicer(SIMDATA)
+    def test_setup_slicer(self):
+        self.slicer.setup_slicer(SIMDATA)
         self.assertEqual(self.slicer.nslice, 24 * 60)
-        slice_points = self.slicer.getSlicePoints()
+        slice_points = self.slicer.get_slice_points()
         nonempty_slices = [
             item[0] for item in self.slicer.simIdxs.items() if len(item[1]) > 0
         ]
@@ -69,10 +69,10 @@ class TestBlockIntervalSlicer(unittest.TestCase):
     def setUp(self):
         self.slicer = BlockIntervalSlicer()
 
-    def test_setupSlicer(self):
-        self.slicer.setupSlicer(SIMDATA)
+    def test_setup_slicer(self):
+        self.slicer.setup_slicer(SIMDATA)
         self.assertEqual(self.slicer.nslice, 4)
-        slice_points = self.slicer.getSlicePoints()
+        slice_points = self.slicer.get_slice_points()
         sim_idxs = self.slicer.simIdxs
         visits = pd.DataFrame(SIMDATA)
         for sid in slice_points["sid"]:
@@ -86,10 +86,10 @@ class TestVisitIntervalSlicer(unittest.TestCase):
     def setUp(self):
         self.slicer = VisitIntervalSlicer()
 
-    def test_setupSlicer(self):
-        self.slicer.setupSlicer(SIMDATA)
+    def test_setup_slicer(self):
+        self.slicer.setup_slicer(SIMDATA)
         self.assertEqual(self.slicer.nslice, len(SIMDATA["observationStartMJD"]))
-        slice_points = self.slicer.getSlicePoints()
+        slice_points = self.slicer.get_slice_points()
         self.assertIn("sid", slice_points)
         self.assertIn("mjd", slice_points)
         self.assertIn("duration", slice_points)
