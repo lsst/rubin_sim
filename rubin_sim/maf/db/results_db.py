@@ -119,7 +119,7 @@ class PlotRow(Base):
     metric = relationship("MetricRow", backref=backref("plots", order_by=plotId))
 
     def __repr__(self):
-        return "<Plot(metricId='%d', plotType='%s', plotFile='%s')>" % (
+        return "<Plot(metricId='%d', plot_type='%s', plotFile='%s')>" % (
             self.metricId,
             self.plotType,
             self.plotFile,
@@ -175,7 +175,7 @@ class ResultsDb(object):
                 except OSError as msg:
                     raise OSError(
                         msg,
-                        "\n  (If this was the database file (not outDir), "
+                        "\n  (If this was the database file (not out_dir), "
                         'remember to use kwarg "database")',
                     )
             self.database = os.path.join(out_dir, "resultsDb_sqlite.db")
@@ -351,7 +351,7 @@ class ResultsDb(object):
         overwrite : `bool`, opt
             Replaces existing row with same metricId if overwrite is True (default=True).
         """
-        # Because we want to maintain 1-1 relationship between metricId's and displayDict's:
+        # Because we want to maintain 1-1 relationship between metricId's and display_dict's:
         # First check if a display line is present with this metricID.
         self.open()
         displayinfo = self.session.query(DisplayRow).filter_by(metricId=metricId).all()
@@ -361,7 +361,7 @@ class ResultsDb(object):
                     self.session.delete(d)
             else:
                 return
-        # Then go ahead and add new displayDict.
+        # Then go ahead and add new display_dict.
         for k in displayDict:
             if displayDict[k] is None:
                 displayDict[k] = "NULL"
@@ -401,7 +401,7 @@ class ResultsDb(object):
         plotFile : `str`
             The filename for this plot
         overwrite : `bool`
-            Replaces existing row with the same metricId and plotType, if True.
+            Replaces existing row with the same metricId and plot_type, if True.
             Default False, in which case additional plot is added to output (e.g. with different range)
         """
         self.open()
@@ -718,7 +718,7 @@ class ResultsDb(object):
                 The metric name
             ``metricInfoLabel``
                 info_label extracted from the sql constraint (usually the filter)
-            ``plotType``
+            ``plot_type``
                 The plot type
             ``plotFile``
                 The full plot file (pdf by default)
@@ -762,7 +762,7 @@ class ResultsDb(object):
             ("metricId", int),
             ("metric_name", str, self.slen),
             ("metricInfoLabel", str, self.slen),
-            ("plotType", str, self.slen),
+            ("plot_type", str, self.slen),
             ("plotFile", str, self.slen),
             ("thumbFile", str, self.slen),
         ]

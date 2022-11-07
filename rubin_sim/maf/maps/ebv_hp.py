@@ -5,10 +5,10 @@ from rubin_sim.maf.utils import radec2pix
 from rubin_sim.data import get_data_dir
 
 
-__all__ = ["EBVhp"]
+__all__ = ["eb_vhp"]
 
 
-def EBVhp(nside, ra=None, dec=None, pixels=None, interp=False, mapPath=None):
+def eb_vhp(nside, ra=None, dec=None, pixels=None, interp=False, map_path=None):
     """
     Read in a healpix dust map and return values for given RA, Dec values.
 
@@ -25,7 +25,7 @@ def EBVhp(nside, ra=None, dec=None, pixels=None, interp=False, mapPath=None):
         NOTE - to use a healpix map, set pixels and not ra/dec.
     interp : `bool`, opt
         Should returned values be interpolated (True) or just nearest neighbor (False)
-    mapPath : `str`, opt
+    map_path : `str`, opt
         Path to directory containing dust map files.
     """
 
@@ -33,28 +33,28 @@ def EBVhp(nside, ra=None, dec=None, pixels=None, interp=False, mapPath=None):
         raise RuntimeError("Need to set ra,dec or pixels.")
 
     # Load the map
-    if mapPath is not None:
-        ebvDataDir = mapPath
+    if map_path is not None:
+        ebv_data_dir = map_path
     else:
-        ebvDataDir = os.path.join(get_data_dir(), "maps", "DustMaps")
-    if not hasattr(EBVhp, "nside"):
-        EBVhp.nside = nside
+        ebv_data_dir = os.path.join(get_data_dir(), "maps", "DustMaps")
+    if not hasattr(eb_vhp, "nside"):
+        eb_vhp.nside = nside
 
-    if (not hasattr(EBVhp, "dustmap")) | (EBVhp.nside != nside):
-        EBVhp.nside = nside
-        filename = "dust_nside_%i.npz" % EBVhp.nside
-        EBVhp.dustMap = np.load(os.path.join(ebvDataDir, filename))["ebvMap"]
+    if (not hasattr(eb_vhp, "dustmap")) | (eb_vhp.nside != nside):
+        eb_vhp.nside = nside
+        filename = "dust_nside_%i.npz" % eb_vhp.nside
+        eb_vhp.dustMap = np.load(os.path.join(ebv_data_dir, filename))["ebvMap"]
 
     # If we are interpolating to arbitrary positions
     if interp:
-        result = hp.get_interp_val(EBVhp.dustMap, np.pi / 2.0 - dec, ra)
+        result = hp.get_interp_val(eb_vhp.dustMap, np.pi / 2.0 - dec, ra)
     else:
         # If we know the pixel indices we want
         if pixels is not None:
-            result = EBVhp.dustMap[pixels]
+            result = eb_vhp.dustMap[pixels]
         # Look up
         else:
-            pixels = radec2pix(EBVhp.nside, ra, dec)
-            result = EBVhp.dustMap[pixels]
+            pixels = radec2pix(eb_vhp.nside, ra, dec)
+            result = eb_vhp.dustMap[pixels]
 
     return result

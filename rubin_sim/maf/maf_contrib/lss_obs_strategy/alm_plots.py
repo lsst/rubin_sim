@@ -8,20 +8,20 @@ import numpy as np
 import os
 import healpy as hp
 
-__all__ = ["almPlots"]
+__all__ = ["alm_plots"]
 
 
-def almPlots(
+def alm_plots(
     path,
-    outDir,
+    out_dir,
     bundle,
     nside=128,
     lmax=500,
     filterband="i",
-    raRange=[-50, 50],
-    decRange=[-65, 5],
-    subsetsToConsider=[[130, 165], [240, 300]],
-    showPlots=True,
+    ra_range=[-50, 50],
+    dec_range=[-65, 5],
+    subsets_to_consider=[[130, 165], [240, 300]],
+    show_plots=True,
 ):
     """
 
@@ -31,62 +31,62 @@ def almPlots(
     Parameters
     -------------------
       * path: str: path to the main directory where output directory is saved
-      * outDir: str: name of the main output directory
+      * out_dir: str: name of the main output directory
       * bundle: metricBundle object.
       * nside: int: HEALpix resolution parameter. Default: 128
       * lmax: int: upper limit on the multipole. Default: 500
       * filterBand: str: any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
-      * raRange: float array: range of right ascention (in degrees) to consider in cartview plot; only useful when
+      * ra_range: float array: range of right ascention (in degrees) to consider in cartview plot; only useful when
                               cartview= True. Default: [-50,50]
-      * decRange: float array: range of declination (in degrees) to consider in cartview plot; only useful when
+      * dec_range: float array: range of declination (in degrees) to consider in cartview plot; only useful when
                                cartview= True. Default: [-65,5]
-      * subsetsToConsider: array of int arrays: l-ranges to consider, e.g. use [[50, 100]] to consider 50<l<100.
+      * subsets_to_consider: array of int arrays: l-ranges to consider, e.g. use [[50, 100]] to consider 50<l<100.
                                                 Currently built to handle five subsets (= number of colors built in).
                                                 Default: [[130,165], [240, 300]]
-      * showPlots: `bool`: set to True if want to show figures. Default: True
+      * show_plots: `bool`: set to True if want to show figures. Default: True
 
     """
     # set up the output directory
-    outDir2 = "almAnalysisPlots_%s<RA<%s_%s<Dec<%s" % (
-        raRange[0],
-        raRange[1],
-        decRange[0],
-        decRange[1],
+    out_dir2 = "almAnalysisPlots_%s<RA<%s_%s<Dec<%s" % (
+        ra_range[0],
+        ra_range[1],
+        dec_range[0],
+        dec_range[1],
     )
-    if not os.path.exists("%s%s/%s" % (path, outDir, outDir2)):
-        os.makedirs("%s%s/%s" % (path, outDir, outDir2))
+    if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir2)):
+        os.makedirs("%s%s/%s" % (path, out_dir, out_dir2))
 
-    outDir3 = "almSkymaps"
-    if not os.path.exists("%s%s/%s/%s" % (path, outDir, outDir2, outDir3)):
-        os.makedirs("%s%s/%s/%s" % (path, outDir, outDir2, outDir3))
+    out_dir3 = "almSkymaps"
+    if not os.path.exists("%s%s/%s/%s" % (path, out_dir, out_dir2, out_dir3)):
+        os.makedirs("%s%s/%s/%s" % (path, out_dir, out_dir2, out_dir3))
 
-    outDir4 = "almCartviewMaps"
-    if not os.path.exists("%s%s/%s/%s" % (path, outDir, outDir2, outDir4)):
-        os.makedirs("%s%s/%s/%s" % (path, outDir, outDir2, outDir4))
+    out_dir4 = "almCartviewMaps"
+    if not os.path.exists("%s%s/%s/%s" % (path, out_dir, out_dir2, out_dir4)):
+        os.makedirs("%s%s/%s/%s" % (path, out_dir, out_dir2, out_dir4))
 
     # ------------------------------------------------------------------------
     # In order to consider the out-of-survey area as with data=0,  assign the masked region of the
     # skymaps the median of the in-survey data, and then subtract the median off the entire survey.
     # Add the median back later. This gets rid of the massive fake monopole and allows reconstructing
     # the full skymap from components.
-    surveyMedianDict = {}
-    surveyStdDict = {}
+    survey_median_dict = {}
+    survey_std_dict = {}
     for dither in bundle:
-        inSurvey = np.where(bundle[dither].metricValues.mask == False)[0]
-        outSurvey = np.where(bundle[dither].metricValues.mask == True)[0]
-        bundle[dither].metricValues.mask[outSurvey] = False
+        in_survey = np.where(bundle[dither].metricValues.mask == False)[0]
+        out_survey = np.where(bundle[dither].metricValues.mask == True)[0]
+        bundle[dither].metricValues.mask[out_survey] = False
         # data pixels
-        surveyMedian = np.median(bundle[dither].metricValues.data[inSurvey])
-        surveyStd = np.std(bundle[dither].metricValues.data[inSurvey])
-        # assign data[outOfSurvey]= medianData[inSurvey]
-        bundle[dither].metricValues.data[outSurvey] = surveyMedian
+        survey_median = np.median(bundle[dither].metricValues.data[in_survey])
+        survey_std = np.std(bundle[dither].metricValues.data[in_survey])
+        # assign data[outOfSurvey]= medianData[in_survey]
+        bundle[dither].metricValues.data[out_survey] = survey_median
         # subtract median off
         bundle[dither].metricValues.data[:] = (
-            bundle[dither].metricValues.data[:] - surveyMedian
+            bundle[dither].metricValues.data[:] - survey_median
         )
         # save median for later use
-        surveyMedianDict[dither] = surveyMedian
-        surveyStdDict[dither] = surveyStd
+        survey_median_dict[dither] = survey_median
+        survey_std_dict[dither] = survey_std
 
     # ------------------------------------------------------------------------
     # now find the alms correponding to the map.
@@ -101,13 +101,13 @@ def almPlots(
         l = np.arange(len(cl))
 
         lsubsets = {}
-        colorArray = ["y", "r", "g", "m", "c"]
+        color_array = ["y", "r", "g", "m", "c"]
         color = {}
-        for case in range(len(subsetsToConsider)):
-            lsubsets[case] = (l > subsetsToConsider[case][0]) & (
-                l < subsetsToConsider[case][1]
+        for case in range(len(subsets_to_consider)):
+            lsubsets[case] = (l > subsets_to_consider[case][0]) & (
+                l < subsets_to_consider[case][1]
             )
-            color[case] = colorArray[case]
+            color[case] = color_array[case]
 
         # ------------------------------------------------------------------------
         # plot things out
@@ -125,34 +125,34 @@ def almPlots(
         plt.ylabel(r"$\ell(\ell+1)C_\ell/(2\pi)$")
         filename = "cls_%s.png" % (dither)
         plt.savefig(
-            "%s%s/%s/%s" % (path, outDir, outDir2, filename),
+            "%s%s/%s/%s" % (path, out_dir, out_dir2, filename),
             format="png",
             bbox_inches="tight",
         )
 
-        if showPlots:
+        if show_plots:
             plt.show()
         else:
             plt.close()
 
-        surveyMedian = surveyMedianDict[dither]
-        surveyStd = surveyStdDict[dither]
+        survey_median = survey_median_dict[dither]
+        survey_std = survey_std_dict[dither]
 
         # ------------------------------------------------------------------------
         # plot full-sky-alm plots first
-        nTicks = 5
-        colorMin = surveyMedian - 1.5 * surveyStd
-        colorMax = surveyMedian + 1.5 * surveyStd
-        increment = (colorMax - colorMin) / float(nTicks)
-        ticks = np.arange(colorMin + increment, colorMax, increment)
+        n_ticks = 5
+        color_min = survey_median - 1.5 * survey_std
+        color_max = survey_median + 1.5 * survey_std
+        increment = (color_max - color_min) / float(n_ticks)
+        ticks = np.arange(color_min + increment, color_max, increment)
 
         # full skymap
         hp.mollview(
-            hp.alm2map(alm, nside=nside, lmax=lmax) + surveyMedian,
+            hp.alm2map(alm, nside=nside, lmax=lmax) + survey_median,
             flip="astro",
             rot=(0, 0, 0),
-            min=colorMin,
-            max=colorMax,
+            min=color_min,
+            max=color_max,
             title="",
             cbar=False,
         )
@@ -170,19 +170,19 @@ def almPlots(
         cb.set_label("$%s$-band Coadded Depth" % filterband)
         filename = "alm_FullMap_%s.png" % (dither)
         plt.savefig(
-            "%s%s/%s/%s/%s" % (path, outDir, outDir2, outDir3, filename),
+            "%s%s/%s/%s/%s" % (path, out_dir, out_dir2, out_dir3, filename),
             format="png",
             bbox_inches="tight",
         )
 
         # full cartview
         hp.cartview(
-            hp.alm2map(alm, nside=nside, lmax=lmax) + surveyMedian,
-            lonra=raRange,
-            latra=decRange,
+            hp.alm2map(alm, nside=nside, lmax=lmax) + survey_median,
+            lonra=ra_range,
+            latra=dec_range,
             flip="astro",
-            min=colorMin,
-            max=colorMax,
+            min=color_min,
+            max=color_max,
             title="",
             cbar=False,
         )
@@ -198,25 +198,25 @@ def almPlots(
         cb.set_label("$%s$-band Coadded Depth" % filterband)
         filename = "alm_Cartview_FullMap_%s.png" % (dither)
         plt.savefig(
-            "%s%s/%s/%s/%s" % (path, outDir, outDir2, outDir4, filename),
+            "%s%s/%s/%s/%s" % (path, out_dir, out_dir2, out_dir4, filename),
             format="png",
             bbox_inches="tight",
         )
 
         # prepare for the skymaps for l-range subsets
-        colorMin = surveyMedian - 0.1 * surveyStd
-        colorMax = surveyMedian + 0.1 * surveyStd
-        increment = (colorMax - colorMin) / float(nTicks)
+        color_min = survey_median - 0.1 * survey_std
+        color_max = survey_median + 0.1 * survey_std
+        increment = (color_max - color_min) / float(n_ticks)
         increment = 1.15 * increment
-        ticks = np.arange(colorMin + increment, colorMax, increment)
+        ticks = np.arange(color_min + increment, color_max, increment)
 
         # ------------------------------------------------------------------------
         # consider each l-range
         for case in list(lsubsets.keys()):
             index = []
-            lowLim = subsetsToConsider[case][0]
-            upLim = subsetsToConsider[case][1]
-            for ll in np.arange(lowLim, upLim + 1):
+            low_lim = subsets_to_consider[case][0]
+            up_lim = subsets_to_consider[case][1]
+            for ll in np.arange(low_lim, up_lim + 1):
                 for mm in np.arange(0, ll + 1):
                     index.append(hp.Alm.getidx(lmax=lmax, l=ll, m=mm))
             alms1 = alm.copy()
@@ -225,16 +225,16 @@ def almPlots(
 
             # plot the skymap
             hp.mollview(
-                hp.alm2map(alms1, nside=nside, lmax=lmax) + surveyMedian,
+                hp.alm2map(alms1, nside=nside, lmax=lmax) + survey_median,
                 flip="astro",
                 rot=(0, 0, 0),
-                min=colorMin,
-                max=colorMax,
+                min=color_min,
+                max=color_max,
                 title="",
                 cbar=False,
             )
             hp.graticule(dpar=20, dmer=20, verbose=False)
-            plt.title("%s<$\ell$<%s" % (lowLim, upLim))
+            plt.title("%s<$\ell$<%s" % (low_lim, up_lim))
             ax = plt.gca()
             im = ax.get_images()[0]
             fig = plt.gcf()
@@ -245,26 +245,26 @@ def almPlots(
                 im, orientation="horizontal", format="%.3f", ticks=ticks, cax=cbaxes
             )
             cb.set_label("$%s$-band Coadded Depth" % filterband)
-            filename = "almSkymap_%s<l<%s_%s.png" % (lowLim, upLim, dither)
+            filename = "almSkymap_%s<l<%s_%s.png" % (low_lim, up_lim, dither)
             plt.savefig(
-                "%s%s/%s/%s/%s" % (path, outDir, outDir2, outDir3, filename),
+                "%s%s/%s/%s/%s" % (path, out_dir, out_dir2, out_dir3, filename),
                 format="png",
                 bbox_inches="tight",
             )
 
             # plot cartview
             hp.cartview(
-                hp.alm2map(alms1, nside=nside, lmax=lmax) + surveyMedian,
-                lonra=raRange,
-                latra=decRange,
+                hp.alm2map(alms1, nside=nside, lmax=lmax) + survey_median,
+                lonra=ra_range,
+                latra=dec_range,
                 flip="astro",
-                min=colorMin,
-                max=colorMax,
+                min=color_min,
+                max=color_max,
                 title="",
                 cbar=False,
             )
             hp.graticule(dpar=20, dmer=20, verbose=False)
-            plt.title("%s<$\ell$<%s" % (lowLim, upLim))
+            plt.title("%s<$\ell$<%s" % (low_lim, up_lim))
 
             ax = plt.gca()
             im = ax.get_images()[0]
@@ -276,14 +276,14 @@ def almPlots(
                 im, orientation="horizontal", format="%.3f", ticks=ticks, cax=cbaxes
             )
             cb.set_label("$%s$-band Coadded Depth" % filterband)
-            filename = "almCartview_%s<l<%s_%s.png" % (lowLim, upLim, dither)
+            filename = "almCartview_%s<l<%s_%s.png" % (low_lim, up_lim, dither)
             plt.savefig(
-                "%s%s/%s/%s/%s" % (path, outDir, outDir2, outDir4, filename),
+                "%s%s/%s/%s/%s" % (path, out_dir, out_dir2, out_dir4, filename),
                 format="png",
                 bbox_inches="tight",
             )
 
-        if showPlots:
+        if show_plots:
             plt.show()
         else:
             plt.close("all")

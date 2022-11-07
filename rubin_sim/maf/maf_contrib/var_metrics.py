@@ -11,7 +11,7 @@ from rubin_sim.maf.metrics import BaseMetric
 __all__ = ["PeriodDeviationMetric"]
 
 
-def find_period_LS(
+def find_period_ls(
     times, mags, minperiod=2.0, maxperiod=35.0, nbinmax=10**5, verbose=False
 ):
     """Find the period of a lightcurve using scipy's lombscargle method.
@@ -52,95 +52,95 @@ class PeriodDeviationMetric(BaseMetric):
     def __init__(
         self,
         col="observationStartMJD",
-        periodMin=3.0,
-        periodMax=35.0,
-        nPeriods=5,
-        meanMag=21.0,
+        period_min=3.0,
+        period_max=35.0,
+        n_periods=5,
+        mean_mag=21.0,
         amplitude=1.0,
         metric_name="Period Deviation",
-        periodCheck=None,
+        period_check=None,
         **kwargs
     ):
         """
         Construct an instance of a PeriodDeviationMetric class
 
         :param col: Name of the column to use for the observation times, commonly 'expMJD'
-        :param periodMin: Minimum period to test (days)
-        :param periodMax: Maximimum period to test (days)
-        :param periodCheck: Period to use in the reduce function (days)
-        :param meanMag: Mean value of the lightcurve
+        :param period_min: Minimum period to test (days)
+        :param period_max: Maximimum period to test (days)
+        :param period_check: Period to use in the reduce function (days)
+        :param mean_mag: Mean value of the lightcurve
         :param amplitude: Amplitude of the variation (mags)
         """
-        self.periodMin = periodMin
-        self.periodMax = periodMax
-        self.periodCheck = periodCheck
-        self.guessPMin = np.min([self.periodMin * 0.8, self.periodMin - 1])
-        self.guessPMax = np.max([self.periodMax * 1.20, self.periodMax + 1])
-        self.nPeriods = nPeriods
-        self.meanMag = meanMag
+        self.period_min = period_min
+        self.period_max = period_max
+        self.period_check = period_check
+        self.guess_p_min = np.min([self.period_min * 0.8, self.period_min - 1])
+        self.guess_p_max = np.max([self.period_max * 1.20, self.period_max + 1])
+        self.n_periods = n_periods
+        self.mean_mag = mean_mag
         self.amplitude = amplitude
         super(PeriodDeviationMetric, self).__init__(
             col, metric_name=metric_name, **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         """
         Run the PeriodDeviationMetric
-        :param dataSlice : Data for this slice.
-        :param slicePoint: Metadata for the slice. (optional)
+        :param data_slice : Data for this slice.
+        :param slice_point: Metadata for the slice. (optional)
         :return: The error in the period estimated from a Lomb-Scargle periodogram
         """
 
         # Make sure the observation times are sorted
-        data = np.sort(dataSlice[self.colname])
+        data = np.sort(data_slice[self.colname])
 
         # Create 'nPeriods' random periods within range of min to max.
-        if self.periodCheck is not None:
-            periods = [self.periodCheck]
+        if self.period_check is not None:
+            periods = [self.period_check]
         else:
-            periods = self.periodMin + np.random.random(self.nPeriods) * (
-                self.periodMax - self.periodMin
+            periods = self.period_min + np.random.random(self.n_periods) * (
+                self.period_max - self.period_min
             )
         # Make sure the period we want to check is in there
         periodsdev = np.zeros(np.size(periods), dtype="float")
         for i, period in enumerate(periods):
             omega = 1.0 / period
             # Calculate up the amplitude.
-            lc = self.meanMag + self.amplitude * np.sin(omega * data)
+            lc = self.mean_mag + self.amplitude * np.sin(omega * data)
             # Try to recover the period given a window buffered by min of a day or 20% of period value.
             if len(lc) < 3:
                 # Too few points to find a period
                 return self.badval
 
-            pguess = find_period_LS(
-                data, lc, minperiod=self.guessPMin, maxperiod=self.guessPMax
+            pguess = find_period_ls(
+                data, lc, minperiod=self.guess_p_min, maxperiod=self.guess_p_max
             )
             periodsdev[i] = (pguess - period) / period
 
         return {"periods": periods, "periodsdev": periodsdev}
 
-    def reducePDev(self, metricVal):
+    def reduce_p_dev(self, metric_val):
         """
-        At a particular slicepoint, return the period deviation for self.periodCheck.
-        If self.periodCheck is None, just return a random period in the range.
+        At a particular slicepoint, return the period deviation for self.period_check.
+        If self.period_check is None, just return a random period in the range.
         """
-        result = metricVal["periodsdev"][0]
+        result = metric_val["periodsdev"][0]
         return result
 
-    def reduceWorstPeriod(self, metricVal):
+    def reduce_worst_period(self, metric_val):
         """
         At each slicepoint, return the period with the worst period deviation.
         """
-        worstP = np.array(metricVal["periods"])[
-            np.where(metricVal["periodsdev"] == metricVal["periodsdev"].max())[0]
+        worst_p = np.array(metric_val["periods"])[
+            np.where(metric_val["periodsdev"] == metric_val["periodsdev"].max())[0]
         ]
-        return worstP
+        return worst_p
 
-    def reduceWorstPDev(self, metricVal):
+    def reduce_worst_p_dev(self, metric_val):
         """
         At each slicepoint, return the largest period deviation.
         """
-        worstPDev = np.array(metricVal["periodsdev"])[
-            np.where(metricVal["periodsdev"] == metricVal["periodsdev"].max())[0]
+        worst_p_dev = np.array(metric_val["periodsdev"])[
+            np.where(metric_val["periodsdev"] == metric_val["periodsdev"].max())[0]
         ]
-        return worstPDev
+        return worst_p_dev

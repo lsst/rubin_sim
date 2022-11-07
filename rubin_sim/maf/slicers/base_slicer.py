@@ -6,7 +6,7 @@ import json
 import warnings
 import numpy as np
 import numpy.ma as ma
-from rubin_sim.maf.utils import getDateVersion
+from rubin_sim.maf.utils import get_date_version
 from six import with_metaclass
 
 __all__ = ["SlicerRegistry", "BaseSlicer"]
@@ -172,13 +172,13 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
     def write_data(
         self,
         outfilename,
-        metricValues,
-        metricName="",
-        sim_dataName="",
+        metric_values,
+        metric_name="",
+        sim_data_name="",
         constraint=None,
         info_label="",
-        plotDict=None,
-        displayDict=None,
+        plot_dict=None,
+        display_dict=None,
     ):
         """
         Save metric values along with the information required to re-build the slicer.
@@ -187,28 +187,28 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         -----------
         outfilename : `str`
             The output file name.
-        metricValues : `np.ma.MaskedArray` or `np.ndarray`
+        metric_values : `np.ma.MaskedArray` or `np.ndarray`
             The metric values to save to disk.
         """
         header = {}
-        header["metric_name"] = metricName
+        header["metric_name"] = metric_name
         header["constraint"] = constraint
         header["info_label"] = info_label
-        header["sim_data_name"] = sim_dataName
-        date, versionInfo = getDateVersion()
+        header["sim_data_name"] = sim_data_name
+        date, version_info = get_date_version()
         header["dateRan"] = date
-        if displayDict is None:
-            displayDict = {"group": "Ungrouped"}
-        header["displayDict"] = displayDict
-        header["plot_dict"] = plotDict
-        for key in versionInfo:
-            header[key] = versionInfo[key]
-        if hasattr(metricValues, "mask"):  # If it is a masked array
-            data = metricValues.data
-            mask = metricValues.mask
-            fill = metricValues.fill_value
+        if display_dict is None:
+            display_dict = {"group": "Ungrouped"}
+        header["display_dict"] = display_dict
+        header["plot_dict"] = plot_dict
+        for key in version_info:
+            header[key] = version_info[key]
+        if hasattr(metric_values, "mask"):  # If it is a masked array
+            data = metric_values.data
+            mask = metric_values.mask
+            fill = metric_values.fill_value
         else:
-            data = metricValues
+            data = metric_values
             mask = None
             fill = None
         # npz file acts like dictionary: each keyword/value pair below acts as a dictionary in loaded NPZ file.
@@ -245,13 +245,13 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         info_label : str, optional
             Some additional information about this metric and how it was calculated. Default ''.
         plot_dict : dict, optional.
-            The plotDict for this metric bundle. Default None.
+            The plot_dict for this metric bundle. Default None.
 
         Returns
         --------
         StringIO
-            StringIO object containing a header dictionary with metricName/metadata/sim_dataName/slicerName,
-            and plot labels from plotDict, and metric values/data for plot.
+            StringIO object containing a header dictionary with metric_name/metadata/sim_data_name/slicerName,
+            and plot labels from plot_dict, and metric values/data for plot.
             if oneDSlicer, the data is [ [bin_left_edge, value], [bin_left_edge, value]..].
             if a spatial slicer, the data is [ [lon, lat, value], [lon, lat, value] ..].
         """

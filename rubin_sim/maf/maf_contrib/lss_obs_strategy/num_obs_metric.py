@@ -16,7 +16,7 @@ class NumObsMetric(BaseMetric):
 
     Parameters
     -----------
-    nightCol : `str`
+    night_col : `str`
         Name of the night column in the data; basically just need it to
         acccess the data for each visit. Default: 'night'.
     nside : `int`
@@ -24,12 +24,12 @@ class NumObsMetric(BaseMetric):
     """
 
     def __init__(
-        self, nightCol="night", nside=128, metricName="NumObsMetric", **kwargs
+        self, night_col="night", nside=128, metric_name="NumObsMetric", **kwargs
     ):
-        self.nightCol = nightCol
+        self.night_col = night_col
         super(NumObsMetric, self).__init__(
-            col=self.nightCol, metricName=metricName, **kwargs
+            col=self.night_col, metric_name=metric_name, **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
-        return len(dataSlice)
+    def run(self, data_slice, slice_point=None):
+        return len(data_slice)

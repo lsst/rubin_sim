@@ -17,49 +17,49 @@ class CoaddStacker(BaseStacker):
 
     """
 
-    colsAdded = ["coadd"]
+    cols_added = ["coadd"]
 
     def __init__(
         self,
-        mjdCol="observationStartMJD",
-        RaCol="fieldRA",
-        DecCol="fieldDec",
-        m5Col="fiveSigmaDepth",
+        mjd_col="observationStartMJD",
+        ra_col="fieldRA",
+        dec_col="fieldDec",
+        m5_col="fiveSigmaDepth",
         nightcol="night",
-        filterCol="filter",
-        nightCol="night",
-        numExposuresCol="numExposures",
-        visitTimeCol="visitTime",
-        visitExposureTimeCol="visitExposureTime",
+        filter_col="filter",
+        night_col="night",
+        num_exposures_col="numExposures",
+        visit_time_col="visitTime",
+        visit_exposure_time_col="visitExposureTime",
     ):
-        self.colsReq = [
-            mjdCol,
-            RaCol,
-            DecCol,
-            m5Col,
-            filterCol,
-            nightCol,
-            numExposuresCol,
-            visitTimeCol,
-            visitExposureTimeCol,
+        self.cols_req = [
+            mjd_col,
+            ra_col,
+            dec_col,
+            m5_col,
+            filter_col,
+            night_col,
+            num_exposures_col,
+            visit_time_col,
+            visit_exposure_time_col,
         ]
-        self.RaCol = RaCol
-        self.DecCol = DecCol
-        self.nightCol = nightCol
-        self.filterCol = filterCol
-        self.m5Col = m5Col
-        self.numExposuresCol = numExposuresCol
-        self.visitTimeCol = visitTimeCol
-        self.visitExposureTimeCol = visitExposureTimeCol
+        self.ra_col = ra_col
+        self.dec_col = dec_col
+        self.night_col = night_col
+        self.filter_col = filter_col
+        self.m5_col = m5_col
+        self.num_exposures_col = num_exposures_col
+        self.visit_time_col = visit_time_col
+        self.visit_exposure_time_col = visit_exposure_time_col
 
         self.units = ["int"]
 
-    def _run(self, simData, cols_present=False):
+    def _run(self, sim_data, cols_present=False):
         """
 
         Parameters
         ---------------
-        simData : simulation data
+        sim_data : simulation data
         cols_present: to check whether the field has already been estimated
 
         Returns
@@ -75,19 +75,19 @@ class CoaddStacker(BaseStacker):
 
         if cols_present:
             # Column already present in data; assume it is correct and does not need recalculating.
-            return simData
-        self.dtype = simData.dtype
+            return sim_data
+        self.dtype = sim_data.dtype
         r = []
         for ra, dec, band in np.unique(
-            simData[[self.RaCol, self.DecCol, self.filterCol]]
+            sim_data[[self.ra_col, self.dec_col, self.filter_col]]
         ):
-            idx = np.abs(simData[self.RaCol] - ra) < 1.0e-5
-            idx &= np.abs(simData[self.DecCol] - dec) < 1.0e-5
-            idx &= simData[self.filterCol] == band
+            idx = np.abs(sim_data[self.ra_col] - ra) < 1.0e-5
+            idx &= np.abs(sim_data[self.dec_col] - dec) < 1.0e-5
+            idx &= sim_data[self.filter_col] == band
 
-            sel = simData[idx]
-            for night in np.unique(sel[self.nightCol]):
-                idxb = sel[self.nightCol] == night
+            sel = sim_data[idx]
+            for night in np.unique(sel[self.night_col]):
+                idxb = sel[self.night_col] == night
                 r.append(tuple(self.fill(sel[idxb])))
 
         myarray = np.array(r, dtype=self.dtype)
@@ -116,26 +116,26 @@ class CoaddStacker(BaseStacker):
 
         for colname in self.dtype.names:
             if colname not in [
-                self.m5Col,
-                self.numExposuresCol,
-                self.visitTimeCol,
-                self.visitExposureTimeCol,
-                self.filterCol,
+                self.m5_col,
+                self.num_exposures_col,
+                self.visit_time_col,
+                self.visit_exposure_time_col,
+                self.filter_col,
             ]:
                 if colname == "coadd":
                     r.append(1)
                 else:
                     r.append(np.median(tab[colname]))
-            if colname == self.m5Col:
-                r.append(self.m5_coadd(tab[self.m5Col]))
+            if colname == self.m5_col:
+                r.append(self.m5_coadd(tab[self.m5_col]))
             if colname in [
-                self.numExposuresCol,
-                self.visitTimeCol,
-                self.visitExposureTimeCol,
+                self.num_exposures_col,
+                self.visit_time_col,
+                self.visit_exposure_time_col,
             ]:
                 r.append(np.sum(tab[colname]))
-            if colname == self.filterCol:
-                r.append(np.unique(tab[self.filterCol])[0])
+            if colname == self.filter_col:
+                r.append(np.unique(tab[self.filter_col])[0])
 
         return r
 

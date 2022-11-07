@@ -11,23 +11,23 @@ class NEODistStacker(BaseStacker):
     also stack on the x,y position of the object.
     """
 
-    colsAdded = ["MaxGeoDist", "NEOHelioX", "NEOHelioY"]
+    cols_added = ["MaxGeoDist", "NEOHelioX", "NEOHelioY"]
 
     def __init__(
         self,
         stepsize=0.001,
-        maxDist=3.0,
-        minDist=0.3,
+        max_dist=3.0,
+        min_dist=0.3,
         H=22,
-        elongCol="solarElong",
-        filterCol="filter",
-        sunAzCol="sunAz",
-        azCol="azimuth",
-        m5Col="fiveSigmaDepth",
+        elong_col="solarElong",
+        filter_col="filter",
+        sun_az_col="sunAz",
+        az_col="azimuth",
+        m5_col="fiveSigmaDepth",
     ):
         """
         stepsize:  The stepsize to use when solving (in AU)
-        maxDist: How far out to try and measure (in AU)
+        max_dist: How far out to try and measure (in AU)
         H: Asteroid magnitude
 
         Adds columns:
@@ -39,19 +39,19 @@ class NEODistStacker(BaseStacker):
         """
         self.units = ["AU", "AU", "AU"]
         # Also grab things needed for the HA stacker
-        self.colsReq = [elongCol, filterCol, sunAzCol, azCol, m5Col]
+        self.cols_req = [elong_col, filter_col, sun_az_col, az_col, m5_col]
 
-        self.sunAzCol = sunAzCol
-        self.elongCol = elongCol
-        self.filterCol = filterCol
-        self.azCol = azCol
-        self.m5Col = m5Col
+        self.sun_az_col = sun_az_col
+        self.elong_col = elong_col
+        self.filter_col = filter_col
+        self.az_col = az_col
+        self.m5_col = m5_col
 
         self.H = H
         # Magic numbers (Ivezic '15, private comm.)that convert an asteroid
         # V-band magnitude to LSST filters:
         # V_5 = m_5 + (adjust value)
-        self.limitingAdjust = {
+        self.limiting_adjust = {
             "u": -2.1,
             "g": -0.5,
             "r": 0.2,
@@ -59,7 +59,7 @@ class NEODistStacker(BaseStacker):
             "z": 0.6,
             "y": 0.6,
         }
-        self.deltas = np.arange(minDist, maxDist + stepsize, stepsize)
+        self.deltas = np.arange(min_dist, max_dist + stepsize, stepsize)
         self.G = 0.15
 
         # Magic numbers from  http://adsabs.harvard.edu/abs/2002AJ....124.1776J
@@ -68,16 +68,16 @@ class NEODistStacker(BaseStacker):
         self.a2 = 1.87
         self.b2 = 1.22
 
-    def _run(self, simData, cols_present=False):
+    def _run(self, sim_data, cols_present=False):
         if cols_present:
             # This is a pretty rare stacker. Assume we need to rerun
             pass
-        elongRad = np.radians(simData[self.elongCol])
-        v5 = np.zeros(simData.size, dtype=float) + simData[self.m5Col]
-        for filterName in self.limitingAdjust:
-            fmatch = np.where(simData[self.filterCol] == filterName)
-            v5[fmatch] += self.limitingAdjust[filterName]
-        for i, elong in enumerate(elongRad):
+        elong_rad = np.radians(sim_data[self.elong_col])
+        v5 = np.zeros(sim_data.size, dtype=float) + sim_data[self.m5_col]
+        for filter_name in self.limiting_adjust:
+            fmatch = np.where(sim_data[self.filter_col] == filter_name)
+            v5[fmatch] += self.limiting_adjust[filter_name]
+        for i, elong in enumerate(elong_rad):
             # Law of cosines:
             # Heliocentric Radius of the object
             R = np.sqrt(1.0 + self.deltas**2 - 2.0 * self.deltas * np.cos(elong))
@@ -94,41 +94,41 @@ class NEODistStacker(BaseStacker):
             # There can be some local minima/maxima when solving, so
             # need to find the *1st* spot where it is too faint, not the
             # last spot it is bright enough.
-            tooFaint = np.where(appmag > v5[i])
+            too_faint = np.where(appmag > v5[i])
 
             # Check that there is a minimum
-            if np.size(tooFaint[0]) == 0:
-                simData["MaxGeoDist"][i] = 0
+            if np.size(too_faint[0]) == 0:
+                sim_data["MaxGeoDist"][i] = 0
             else:
-                simData["MaxGeoDist"][i] = np.min(self.deltas[tooFaint])
+                sim_data["MaxGeoDist"][i] = np.min(self.deltas[too_faint])
 
         # Make coords in heliocentric
-        interior = np.where(elongRad <= np.pi / 2.0)
-        outer = np.where(elongRad > np.pi / 2.0)
-        simData["NEOHelioX"][interior] = simData["MaxGeoDist"][interior] * np.sin(
-            elongRad[interior]
+        interior = np.where(elong_rad <= np.pi / 2.0)
+        outer = np.where(elong_rad > np.pi / 2.0)
+        sim_data["NEOHelioX"][interior] = sim_data["MaxGeoDist"][interior] * np.sin(
+            elong_rad[interior]
         )
-        simData["NEOHelioY"][interior] = (
-            -simData["MaxGeoDist"][interior] * np.cos(elongRad[interior]) + 1.0
+        sim_data["NEOHelioY"][interior] = (
+            -sim_data["MaxGeoDist"][interior] * np.cos(elong_rad[interior]) + 1.0
         )
 
-        simData["NEOHelioX"][outer] = simData["MaxGeoDist"][outer] * np.sin(
-            np.pi - elongRad[outer]
+        sim_data["NEOHelioX"][outer] = sim_data["MaxGeoDist"][outer] * np.sin(
+            np.pi - elong_rad[outer]
         )
-        simData["NEOHelioY"][outer] = (
-            simData["MaxGeoDist"][outer] * np.cos(np.pi - elongRad[outer]) + 1.0
+        sim_data["NEOHelioY"][outer] = (
+            sim_data["MaxGeoDist"][outer] * np.cos(np.pi - elong_rad[outer]) + 1.0
         )
 
         # Flip the X coord if sun az is negative?
-        if simData[self.azCol].min() < -np.pi / 2.0:
+        if sim_data[self.az_col].min() < -np.pi / 2.0:
             halfval = 180.0
         else:
             halfval = np.pi
         flip = np.where(
-            ((simData[self.sunAzCol] > halfval) & (simData[self.azCol] > halfval))
-            | ((simData[self.sunAzCol] < halfval) & (simData[self.azCol] > halfval))
+            ((sim_data[self.sun_az_col] > halfval) & (sim_data[self.az_col] > halfval))
+            | ((sim_data[self.sun_az_col] < halfval) & (sim_data[self.az_col] > halfval))
         )
 
-        simData["NEOHelioX"][flip] *= -1.0
+        sim_data["NEOHelioX"][flip] *= -1.0
 
-        return simData
+        return sim_data

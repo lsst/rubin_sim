@@ -28,15 +28,15 @@ class Test3x2(unittest.TestCase):
         nfilters_needed = 6
         lim_ebv = 0.2
         ptsrc_lim_mag_i_band = 25.9
-        m = maf.metrics.ExgalM5_with_cuts(
-            m5Col=colmap["fiveSigmaDepth"],
-            filterCol=colmap["filter"],
-            lsstFilter="i",
-            nFilters=nfilters_needed,
+        m = maf.metrics.ExgalM5WithCuts(
+            m5_col=colmap["fiveSigmaDepth"],
+            filter_col=colmap["filter"],
+            lsst_filter="i",
+            n_filters=nfilters_needed,
             extinction_cut=lim_ebv,
             depth_cut=ptsrc_lim_mag_i_band,
         )
-        s = maf.slicers.HealpixSlicer(nside=nside, useCache=False)
+        s = maf.slicers.HealpixSlicer(nside=nside, use_cache=False)
         sql = 'note not like "DD%" and night < 365'
         ThreebyTwoSummary_simple = maf.metrics.StaticProbesFoMEmulatorMetricSimple(
             nside=nside, metric_name="3x2ptFoM_simple"
@@ -51,11 +51,10 @@ class Test3x2(unittest.TestCase):
         )
 
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
-        conn = maf.db.OpsimDatabase(database=database)
         resultsDb = maf.db.ResultsDb(out_dir=self.outDir)
         bd = maf.metric_bundles.make_bundles_dict_from_list(bundleList)
         bg = maf.metric_bundles.MetricBundleGroup(
-            bd, conn, out_dir=self.outDir, results_db=resultsDb
+            bd, database, out_dir=self.outDir, results_db=resultsDb
         )
         bg.run_all()
 

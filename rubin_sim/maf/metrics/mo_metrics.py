@@ -68,7 +68,7 @@ class BaseMoMetric(BaseMetric):
         self.name = metric_name
         if self.name is None:
             self.name = self.__class__.__name__.replace("Metric", "", 1)
-        # Set badval and units, leave space for 'comment' (tied to displayDict).
+        # Set badval and units, leave space for 'comment' (tied to display_dict).
         self.badval = badval
         self.units = units
         self.comment = comment

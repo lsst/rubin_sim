@@ -32,7 +32,7 @@ def galplane_priority_map(
     dec=None,
     pixels=None,
     interp=False,
-    mapPath=None,
+    map_path=None,
     use_alt_maps=False,
 ):
     """Reads and saves the galactic plane priority maps.
@@ -56,7 +56,7 @@ def galplane_priority_map(
     interp : `bool`, opt
         Should returned values be interpolated (True) or just nearest neighbor (False).
         Default False.
-    mapPath : `str`, opt
+    map_path : `str`, opt
         Path to directory containing dust map files. Default None, uses $RUBIN_SIM_DATA_DIR/maps.
     use_alt_maps : `bool`, opt
         Use the priority_GalPlane_footprint_alt_map_data_{ugrizysum}.fits files instead of the default
@@ -82,8 +82,8 @@ def galplane_priority_map(
     if not hasattr(galplane_priority_map, "maps"):
         galplane_priority_map.nside = 64
         galplane_priority_map.filterlist = ["u", "g", "r", "i", "z", "y", "sum"]
-        if mapPath is not None:
-            data_dir = mapPath
+        if map_path is not None:
+            data_dir = map_path
         else:
             data_dir = os.path.join(get_data_dir(), "maps", "GalacticPlanePriorityMaps")
         galplane_priority_map.maps = {}
@@ -151,43 +151,43 @@ class GalacticPlanePriorityMap(BaseMap):
         Default nside value to read the dust map from disk. Primarily useful if the slicer is not
         a healpix slicer.
         Default 64.
-    mapPath : `str`, opt
+    map_path : `str`, opt
         Define a path to the directory holding the dust map files.
         Default None, which uses RUBIN_SIM_DATA_DIR.
     """
 
-    def __init__(self, interp=False, nside=64, mapPath=None):
+    def __init__(self, interp=False, nside=64, map_path=None):
         """
         interp: should the dust map be interpolated (True) or just use the nearest value (False).
         """
         self.keynames = galplane_priority_map(get_keys=True)
         self.interp = interp
         self.nside = nside
-        self.mapPath = mapPath
+        self.map_path = map_path
 
-    def run(self, slicePoints):
+    def run(self, slice_points):
         # If the slicer has nside, it's a healpix slicer so we can read the map directly
-        if "nside" in slicePoints:
-            if slicePoints["nside"] != self.nside:
+        if "nside" in slice_points:
+            if slice_points["nside"] != self.nside:
                 warnings.warn(
-                    f"Slicer value of nside {slicePoints['nside']} different "
+                    f"Slicer value of nside {slice_points['nside']} different "
                     f"from map value {self.nside}, using slicer value"
                 )
             maps = galplane_priority_map(
-                slicePoints["nside"], pixels=slicePoints["sid"], mapPath=self.mapPath
+                slice_points["nside"], pixels=slice_points["sid"], map_path=self.map_path
             )
             for key in self.keynames:
-                slicePoints[key] = maps[key]
+                slice_points[key] = maps[key]
         # Not a healpix slicer, look up values based on RA,dec with possible interpolation
         else:
             maps = galplane_priority_map(
                 self.nside,
-                ra=slicePoints["ra"],
-                dec=slicePoints["dec"],
+                ra=slice_points["ra"],
+                dec=slice_points["dec"],
                 interp=self.interp,
-                mapPath=self.mapPath,
+                map_path=self.map_path,
             )
             for key in self.keynames:
-                slicePoints[key] = maps[key]
+                slice_points[key] = maps[key]
 
-        return slicePoints
+        return slice_points

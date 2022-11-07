@@ -11,75 +11,75 @@ class PlotBundle(object):
     together using the PlotHandler.
     """
 
-    def __init__(self, bundleList=None, plotDicts=None, plotFunc=None):
+    def __init__(self, bundle_list=None, plot_dicts=None, plot_func=None):
         """
         Init object and set things if desired.
-        bundleList: A list of bundleDict objects
-        plotDicts: A list of dictionaries with plotting kwargs
-        plotFunc: A single MAF plotting function
+        bundle_list: A list of bundleDict objects
+        plot_dicts: A list of dictionaries with plotting kwargs
+        plot_func: A single MAF plotting function
         """
-        if bundleList is None:
-            self.bundleList = []
+        if bundle_list is None:
+            self.bundle_list = []
         else:
-            self.bundleList = bundleList
+            self.bundle_list = bundle_list
 
-        if plotDicts is None:
-            if len(self.bundleList) > 0:
-                self.plotDicts = [{}]
+        if plot_dicts is None:
+            if len(self.bundle_list) > 0:
+                self.plot_dicts = [{}]
             else:
-                self.plotDicts = []
+                self.plot_dicts = []
         else:
-            self.plotDicts = plotDicts
+            self.plot_dicts = plot_dicts
 
-        self.plotFunc = plotFunc
+        self.plot_func = plot_func
 
-    def addBundle(self, bundle, plotDict=None, plotFunc=None):
+    def add_bundle(self, bundle, plot_dict=None, plot_func=None):
         """
         Add bundle to the object.
-        Optionally add a plot_dict and/or replace the plotFunc
+        Optionally add a plot_dict and/or replace the plot_func
         """
-        self.bundleList.append(bundle)
-        if plotDict is not None:
-            self.plotDicts.append(plotDict)
+        self.bundle_list.append(bundle)
+        if plot_dict is not None:
+            self.plot_dicts.append(plot_dict)
         else:
-            self.plotDicts.append({})
-        if plotFunc is not None:
-            self.plotFunc = plotFunc
+            self.plot_dicts.append({})
+        if plot_func is not None:
+            self.plot_func = plot_func
 
-    def incrementPlotOrder(self):
+    def increment_plot_order(self):
         """
         Find the maximium order number in the display dicts, and set them to +1 that
         """
-        maxOrder = 0
-        for mB in self.bundleList:
-            if "order" in list(mB.displayDict.keys()):
-                maxOrder = max([maxOrder, mB.displayDict["order"]])
+        max_order = 0
+        for m_b in self.bundle_list:
+            if "order" in list(m_b.displayDict.keys()):
+                max_order = max([max_order, m_b.displayDict["order"]])
 
-        for mB in self.bundleList:
-            mB.displayDict["order"] = maxOrder + 1
+        for m_b in self.bundle_list:
+            m_b.displayDict["order"] = max_order + 1
 
-    def percentileLegend(self):
+    def percentile_legend(self):
         """
         Go through the bundles and change the lables if there are the correct summary stats
         """
-        for i, mB in enumerate(self.bundleList):
+        for i, mB in enumerate(self.bundle_list):
             if mB.summary_values is not None:
                 keys = list(mB.summary_values.keys())
                 if ("25th%ile" in keys) & ("75th%ile" in keys) & ("Median" in keys):
-                    if "label" not in list(self.plotDicts[i].keys()):
-                        self.plotDicts[i]["label"] = ""
+                    if "label" not in list(self.plot_dicts[i].keys()):
+                        self.plot_dicts[i]["label"] = ""
                     newstr = "%0.1f/%0.1f/%0.1f " % (
                         mB.summary_values["25th%ile"],
                         mB.summary_values["Median"],
                         mB.summary_values["75th%ile"],
                     )
-                    self.plotDicts[i]["label"] = newstr + self.plotDicts[i]["label"]
+                    self.plot_dicts[i]["label"] = newstr + self.plot_dicts[i]["label"]
 
-    def plot(self, outDir="Out", resultsDb=None, closeFigs=True):
-        ph = PlotHandler(outDir=outDir, resultsDb=resultsDb)
-        ph.setMetricBundles(self.bundleList)
+    def plot(self, out_dir="Out", results_db=None, close_figs=True):
+        ph = PlotHandler(out_dir=out_dir, results_db=results_db)
+        ph.set_metric_bundles(self.bundle_list)
         # Auto-generate labels and things
-        ph.setPlotDicts(plotDicts=self.plotDicts, plotFunc=self.plotFunc)
-        ph.plot(self.plotFunc, plotDicts=self.plotDicts)
-        if closeFigs:
+        ph.set_plot_dicts(plot_dicts=self.plot_dicts, plot_func=self.plot_func)
+        ph.plot(self.plot_func, plot_dicts=self.plot_dicts)
+        if close_figs:
             plt.close("all")

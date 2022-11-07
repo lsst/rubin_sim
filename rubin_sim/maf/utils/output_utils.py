@@ -5,16 +5,16 @@ from builtins import range
 import sys
 import numpy as np
 
-__all__ = ["nameSanitize", "printDict", "printSimpleDict"]
+__all__ = ["name_sanitize", "print_dict", "print_simple_dict"]
 
 
-def nameSanitize(inString):
+def name_sanitize(in_string):
     """
     Convert a string to a more file name (and web) friendly format.
 
     Parameters
     ----------
-    inString : str
+    in_string : str
         The input string to be sanitized. Typically these are combinations of metric names and metadata.
 
     Returns
@@ -23,21 +23,21 @@ def nameSanitize(inString):
         The string after removal/replacement of non-filename friendly characters.
     """
     # Replace <, > and = signs.
-    outString = inString.replace(">", "gt").replace("<", "lt").replace("=", "eq")
+    out_string = in_string.replace(">", "gt").replace("<", "lt").replace("=", "eq")
     # Remove single-spaces, strip '.'s and ','s
-    outString = outString.replace(" ", "_").replace(".", "_").replace(",", "")
+    out_string = out_string.replace(" ", "_").replace(".", "_").replace(",", "")
     # and remove / and \
-    outString = outString.replace("/", "_").replace("\\", "_")
+    out_string = out_string.replace("/", "_").replace("\\", "_")
     # and remove parentheses
-    outString = outString.replace("(", "").replace(")", "")
+    out_string = out_string.replace("(", "").replace(")", "")
     # Remove ':' and ';"
-    outString = outString.replace(":", "_").replace(";", "_")
+    out_string = out_string.replace(":", "_").replace(";", "_")
     # Replace '%' and #
-    outString = outString.replace("%", "_").replace("#", "_")
+    out_string = out_string.replace("%", "_").replace("#", "_")
     # Remove '__'
-    while "__" in outString:
-        outString = outString.replace("__", "_")
-    return outString
+    while "__" in out_string:
+        out_string = out_string.replace("__", "_")
+    return out_string
 
 
 def _myformat(args, delimiter=" "):
@@ -73,7 +73,7 @@ def _myformatdict(adict, delimiter=" "):
     return writestring
 
 
-def printDict(content, label, filehandle=None, delimiter=" ", _level=0):
+def print_dict(content, label, filehandle=None, delimiter=" ", _level=0):
     """
     Print dictionaries (and/or nested dictionaries) nicely.
     Can also print other simpler items (such as numpy ndarray) nicely too.
@@ -154,11 +154,11 @@ def printDict(content, label, filehandle=None, delimiter=" ", _level=0):
     print("%s%s%s:" % (indent, delimiter, label), file=filehandle)
     _level += 2
     for k in keys:
-        printDict(content[k], k, filehandle, delimiter, _level)
+        print_dict(content[k], k, filehandle, delimiter, _level)
     _level -= 2
 
 
-def printSimpleDict(topdict, subkeyorder, filehandle=None, delimiter=" "):
+def print_simple_dict(topdict, subkeyorder, filehandle=None, delimiter=" "):
     """
     Print a simple one-level nested dictionary nicely across the screen,
     with one line per top-level key and all sub-level keys aligned.

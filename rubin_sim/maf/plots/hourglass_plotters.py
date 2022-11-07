@@ -8,9 +8,9 @@ __all__ = ["HourglassPlot"]
 
 class HourglassPlot(BasePlotter):
     def __init__(self):
-        self.plotType = "Hourglass"
-        self.objectPlotter = True
-        self.defaultPlotDict = {
+        self.plot_type = "Hourglass"
+        self.object_plotter = True
+        self.default_plot_dict = {
             "title": None,
             "xlabel": "Night - min(Night)",
             "ylabel": "Hours from local midnight",
@@ -24,7 +24,7 @@ class HourglassPlot(BasePlotter):
             "y": "red",
         }
 
-    def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
         """
         Generate the hourglass plot
         """
@@ -34,12 +34,12 @@ class HourglassPlot(BasePlotter):
         fig = plt.figure(fignum)
         ax = fig.add_subplot(111)
 
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
 
-        pernight = metricValue[0]["pernight"]
-        perfilter = metricValue[0]["perfilter"]
+        pernight = metric_value[0]["pernight"]
+        perfilter = metric_value[0]["perfilter"]
 
         y = (perfilter["mjd"] - perfilter["midnight"]) * 24.0
         dmin = np.floor(np.min(perfilter["mjd"]))
@@ -89,9 +89,9 @@ class HourglassPlot(BasePlotter):
             "black",
             label="Moon",
         )
-        ax.set_xlabel(plotDict["xlabel"])
-        ax.set_ylabel(plotDict["ylabel"])
-        ax.set_title(plotDict["title"])
+        ax.set_xlabel(plot_dict["xlabel"])
+        ax.set_ylabel(plot_dict["ylabel"])
+        ax.set_title(plot_dict["title"])
 
         # draw things in with lines if we are only plotting one night
         if len(pernight["mjd"]) == 1:

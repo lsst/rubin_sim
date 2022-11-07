@@ -12,7 +12,7 @@ __all__ = ["ebv_3d_hp", "get_x_at_nearest_y"]
 
 def ebv_3d_hp(
     nside,
-    mapFile=None,
+    map_file=None,
     ra=None,
     dec=None,
     pixels=None,
@@ -24,7 +24,7 @@ def ebv_3d_hp(
     ----------
     nside: `int`
         Healpixel resolution (2^x).
-    mapFile : `str`, opt
+    map_file : `str`, opt
         Path to dust map file.
     ra : `np.ndarray` or `float`, opt
         RA (can take numpy array). Default None sets up healpix array of nside. Radians.
@@ -43,39 +43,39 @@ def ebv_3d_hp(
         raise RuntimeError("Need to set ra,dec or pixels.")
 
     # Set up path to map data
-    if mapFile is None:
+    if map_file is None:
         if nside == 64:
-            mapName = "merged_ebv3d_nside64_defaults.fits"
-            mapFile = os.path.join(get_data_dir(), "maps/DustMaps3D", mapName)
+            map_name = "merged_ebv3d_nside64_defaults.fits"
+            map_file = os.path.join(get_data_dir(), "maps/DustMaps3D", map_name)
         elif nside == 128:
-            mapName = "merged_ebv3d_nside128_defaults.fits"
-            mapFile = os.path.join(get_data_dir(), "maps/DustMaps3D", mapName)
+            map_name = "merged_ebv3d_nside128_defaults.fits"
+            map_file = os.path.join(get_data_dir(), "maps/DustMaps3D", map_name)
         else:
             raise Exception(
-                f"mapFile not specified, and nside {nside} not one of 64 or 128. "
-                "Please specify a known mapFile, as a basis for interpolation."
+                f"map_file not specified, and nside {nside} not one of 64 or 128. "
+                "Please specify a known map_file, as a basis for interpolation."
             )
     else:
         # Check if user specified map name but not full map path
-        if not os.path.isfile(mapFile):
-            testPath = os.path.join(get_data_dir(), "maps/DustMaps3D", mapFile)
-            if os.path.isfile(testPath):
-                mapFile = testPath
-    # Keep track of what nside and what mapFile we're using
-    if not hasattr(ebv_3d_hp, "mapFile"):
-        ebv_3d_hp.mapFile = mapFile
+        if not os.path.isfile(map_file):
+            test_path = os.path.join(get_data_dir(), "maps/DustMaps3D", map_file)
+            if os.path.isfile(test_path):
+                map_file = test_path
+    # Keep track of what nside and what map_file we're using
+    if not hasattr(ebv_3d_hp, "map_file"):
+        ebv_3d_hp.mapFile = map_file
         ebv_3d_hp.nside = nside
 
     # Do we need to re-read from disk?
     if (
         (not hasattr(ebv_3d_hp, "ebvs"))
         | (not hasattr(ebv_3d_hp, "dists"))
-        | (mapFile != ebv_3d_hp.mapFile)
+        | (map_file != ebv_3d_hp.mapFile)
     ):
-        ebv_3d_hp.mapFile = mapFile
+        ebv_3d_hp.mapFile = map_file
         ebv_3d_hp.nside = nside
         # Read map from disk
-        hdul = fits.open(mapFile)
+        hdul = fits.open(map_file)
         # hpids = hdul[0].data
         dists = hdul[1].data
         ebvs = hdul[2].data
@@ -107,7 +107,7 @@ def ebv_3d_hp(
                 ebvs[:, i] = hp.reorder(ebvs[:, i], "nest", "ring")
         ebv_3d_hp.dists = dists
         ebv_3d_hp.ebvs = ebvs
-        print(f"Read map {mapFile} from disk")
+        print(f"Read map {map_file} from disk")
 
     if pixels is not None:
         # Assume if pixels is set, then interp is irrelevant
@@ -158,9 +158,9 @@ def get_x_at_nearest_y(x, y, x_goal):
     """
     if x.ndim == 2:
         idx_min = np.argmin(np.abs(x - x_goal), axis=1)
-        iExpand = np.expand_dims(idx_min, axis=-1)
-        x_closest = np.take_along_axis(x, iExpand, axis=-1).squeeze()
-        y_closest = np.take_along_axis(y, iExpand, axis=-1).squeeze()
+        i_expand = np.expand_dims(idx_min, axis=-1)
+        x_closest = np.take_along_axis(x, i_expand, axis=-1).squeeze()
+        y_closest = np.take_along_axis(y, i_expand, axis=-1).squeeze()
     else:
         idx_min = np.argmin(np.abs(x - x_goal))
         x_closest = x[idx_min]

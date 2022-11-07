@@ -17,16 +17,16 @@ class TripletMetric(BaseMetric):
     Triplets are not required to be consecutive observations and may be overlapping.
     """
 
-    def __init__(self, TimeCol="expMJD", **kwargs):
-        self.TimeCol = TimeCol
+    def __init__(self, time_col="expMJD", **kwargs):
+        self.time_col = time_col
         self.delmin = kwargs.pop("DelMin", 1) / 24.0  # convert minutes to hours
         self.delmax = kwargs.pop("DelMax", 12) / 24.0  # convert minutes to hours
         self.ratiomax = kwargs.pop("RatioMax", 1000)
         self.ratiomin = kwargs.pop("RatioMin", 1)
-        super(TripletMetric, self).__init__(col=[self.TimeCol], **kwargs)
+        super(TripletMetric, self).__init__(col=[self.time_col], **kwargs)
 
-    def run(self, dataSlice, slicePoint=None):
-        times = dataSlice[self.TimeCol]
+    def run(self, data_slice, slice_point=None):
+        times = data_slice[self.time_col]
         times = times - 49378  # change times to smaller numbers
         delmax = self.delmax
         delmin = self.delmin
@@ -57,17 +57,17 @@ class TripletBandMetric(BaseMetric):
     Triplets are not required to be consecutive observations and may be overlapping.
     """
 
-    def __init__(self, TimeCol="expMJD", FilterCol="filter", **kwargs):
-        self.TimeCol = TimeCol
-        self.FilterCol = FilterCol
+    def __init__(self, time_col="expMJD", filter_col="filter", **kwargs):
+        self.time_col = time_col
+        self.filter_col = filter_col
         self.delmin = kwargs.pop("DelMin", 1) / 24.0  # convert minutes to hours
         self.delmax = kwargs.pop("DelMax", 12) / 24.0  # convert minutes to hours
         self.ratiomax = kwargs.pop("RatioMax", 1000)
         self.ratiomin = kwargs.pop("RatioMin", 1)
         super(TripletBandMetric, self).__init__(
-            col=[self.TimeCol, self.FilterCol], **kwargs
+            col=[self.time_col, self.filter_col], **kwargs
         )
-        self.reduceOrder = {
+        self.reduce_order = {
             "Bandu": 0,
             "Bandg": 1,
             "Bandr": 2,
@@ -76,10 +76,10 @@ class TripletBandMetric(BaseMetric):
             "Bandy": 5,
         }
 
-    def run(self, dataSlice, slicePoint=None):
-        times = dataSlice[self.TimeCol]
+    def run(self, data_slice, slice_point=None):
+        times = data_slice[self.time_col]
         times = times - 49378  # change times to smaller numbers
-        bands = dataSlice[self.FilterCol]
+        bands = data_slice[self.filter_col]
         bandset = ["u", "g", "r", "i", "z", "y"]  # list of possible bands
         timedict = {}
         delmax = self.delmax
@@ -125,23 +125,23 @@ class TripletBandMetric(BaseMetric):
                             bandcounter[band] = bandcounter[band] + 1
         return bandcounter  # return bandcounter dictionary
 
-    def reduceBandall(self, bandcounter):
+    def reduce_bandall(self, bandcounter):
         return np.sum(list(bandcounter.values()))
 
-    def reduceBandu(self, bandcounter):
+    def reduce_bandu(self, bandcounter):
         return bandcounter["u"]
 
-    def reduceBandg(self, bandcounter):
+    def reduce_bandg(self, bandcounter):
         return bandcounter["g"]
 
-    def reduceBandr(self, bandcounter):
+    def reduce_bandr(self, bandcounter):
         return bandcounter["r"]
 
-    def reduceBandi(self, bandcounter):
+    def reduce_bandi(self, bandcounter):
         return bandcounter["i"]
 
-    def reduceBandz(self, bandcounter):
+    def reduce_bandz(self, bandcounter):
         return bandcounter["z"]
 
-    def reduceBandy(self, bandcounter):
+    def reduce_bandy(self, bandcounter):
         return bandcounter["y"]

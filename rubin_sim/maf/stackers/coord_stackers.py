@@ -3,14 +3,14 @@ from rubin_sim.utils import _galactic_from_equatorial, calc_lmst_last
 from astropy import units as u
 from astropy.coordinates import SkyCoord, get_sun
 from .base_stacker import BaseStacker
-from .dither_stackers import wrapRA
+from .dither_stackers import wrap_ra
 from astropy.time import Time
 
 
-__all__ = ["raDec2AltAz", "GalacticStacker", "EclipticStacker"]
+__all__ = ["ra_dec2_alt_az", "GalacticStacker", "EclipticStacker"]
 
 
-def raDec2AltAz(ra, dec, lat, lon, mjd, altonly=False):
+def ra_dec2_alt_az(ra, dec, lat, lon, mjd, altonly=False):
     """Convert RA/Dec (and telescope site lat/lon) to alt/az.
 
     This uses simple equations and ignores aberation, precession, nutation, etc.
@@ -65,38 +65,38 @@ class GalacticStacker(BaseStacker):
 
     Parameters
     ----------
-    raCol : str, optional
+    ra_col : str, optional
         Name of the RA column. Default fieldRA.
-    decCol : str, optional
+    dec_col : str, optional
         Name of the Dec column. Default fieldDec.
     """
 
-    colsAdded = ["gall", "galb"]
+    cols_added = ["gall", "galb"]
 
-    def __init__(self, raCol="fieldRA", decCol="fieldDec", degrees=True):
-        self.colsReq = [raCol, decCol]
-        self.raCol = raCol
-        self.decCol = decCol
+    def __init__(self, ra_col="fieldRA", dec_col="fieldDec", degrees=True):
+        self.cols_req = [ra_col, dec_col]
+        self.ra_col = ra_col
+        self.dec_col = dec_col
         self.degrees = degrees
         if self.degrees:
             self.units = ["degrees", "degrees"]
         else:
             self.units = ["radians", "radians"]
 
-    def _run(self, simData, cols_present=False):
+    def _run(self, sim_data, cols_present=False):
         # raCol and DecCol in radians, gall/b in radians.
         if cols_present:
             # Column already present in data; assume it is correct and does not need recalculating.
-            return simData
+            return sim_data
         if self.degrees:
-            simData["gall"], simData["galb"] = _galactic_from_equatorial(
-                np.radians(simData[self.raCol]), np.radians(simData[self.decCol])
+            sim_data["gall"], sim_data["galb"] = _galactic_from_equatorial(
+                np.radians(sim_data[self.ra_col]), np.radians(sim_data[self.dec_col])
             )
         else:
-            simData["gall"], simData["galb"] = _galactic_from_equatorial(
-                simData[self.raCol], simData[self.decCol]
+            sim_data["gall"], sim_data["galb"] = _galactic_from_equatorial(
+                sim_data[self.ra_col], sim_data[self.dec_col]
             )
-        return simData
+        return sim_data
 
 
 class EclipticStacker(BaseStacker):
@@ -105,64 +105,64 @@ class EclipticStacker(BaseStacker):
 
     Parameters
     ----------
-    mjdCol : str, optional
+    mjd_col : str, optional
         Name of the MJD column. Default expMJD.
-    raCol : str, optional
+    ra_col : str, optional
         Name of the RA column. Default fieldRA.
-    decCol : str, optional
+    dec_col : str, optional
         Name of the Dec column. Default fieldDec.
-    subtractSunLon : bool, optional
+    subtract_sun_lon : bool, optional
         Flag to subtract the sun's ecliptic longitude. Default False.
     """
 
-    colsAdded = ["eclipLat", "eclipLon"]
+    cols_added = ["eclipLat", "eclipLon"]
 
     def __init__(
         self,
-        mjdCol="observationStartMJD",
-        raCol="fieldRA",
-        decCol="fieldDec",
+        mjd_col="observationStartMJD",
+        ra_col="fieldRA",
+        dec_col="fieldDec",
         degrees=True,
-        subtractSunLon=False,
+        subtract_sun_lon=False,
     ):
 
-        self.colsReq = [mjdCol, raCol, decCol]
-        self.subtractSunLon = subtractSunLon
+        self.cols_req = [mjd_col, ra_col, dec_col]
+        self.subtract_sun_lon = subtract_sun_lon
         self.degrees = degrees
         if self.degrees:
             self.units = ["degrees", "degrees"]
         else:
             self.units = ["radians", "radians"]
-        self.mjdCol = mjdCol
-        self.raCol = raCol
-        self.decCol = decCol
+        self.mjd_col = mjd_col
+        self.ra_col = ra_col
+        self.dec_col = dec_col
 
-    def _run(self, simData, cols_present=False):
+    def _run(self, sim_data, cols_present=False):
         if cols_present:
             # Column already present in data; assume it is correct and does not need recalculating.
-            return simData
-        for i in np.arange(simData.size):
+            return sim_data
+        for i in np.arange(sim_data.size):
             if self.degrees:
                 coord = SkyCoord(
-                    ra=simData[self.raCol] * u.degree,
-                    dec=simData[self.decCol] * u.degree,
+                    ra=sim_data[self.ra_col] * u.degree,
+                    dec=sim_data[self.dec_col] * u.degree,
                 )
             else:
                 coord = SkyCoord(
-                    ra=simData[self.raCol] * u.rad, dec=simData[self.decCol] * u.rad
+                    ra=sim_data[self.ra_col] * u.rad, dec=sim_data[self.dec_col] * u.rad
                 )
             coord_ecl = coord.geocentricmeanecliptic
-            simData["eclipLat"] = coord_ecl.lat.rad
+            sim_data["eclipLat"] = coord_ecl.lat.rad
 
-            if self.subtractSunLon:
-                times = Time(simData[self.mjdCol])
+            if self.subtract_sun_lon:
+                times = Time(sim_data[self.mjd_col])
                 sun = get_sun(times)
-                sunEcl = sun.geocentricmeanecliptic
-                lon = wrapRA(coord_ecl.lon.rad - sunEcl.lon.rad)
-                simData["eclipLon"] = lon
+                sun_ecl = sun.geocentricmeanecliptic
+                lon = wrap_ra(coord_ecl.lon.rad - sun_ecl.lon.rad)
+                sim_data["eclipLon"] = lon
             else:
-                simData["eclipLon"] = coord_ecl.lon.rad
+                sim_data["eclipLon"] = coord_ecl.lon.rad
         if self.degrees:
-            simData["eclipLon"] = np.degrees(simData["eclipLon"])
-            simData["eclipLat"] = np.degrees(simData["eclipLat"])
-        return simData
+            sim_data["eclipLon"] = np.degrees(sim_data["eclipLon"])
+            sim_data["eclipLat"] = np.degrees(sim_data["eclipLat"])
+        return sim_data

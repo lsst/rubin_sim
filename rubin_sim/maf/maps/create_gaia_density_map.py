@@ -43,44 +43,44 @@ if __name__ == "__main__":
     # Set the min to 15 since we saturate there. CatSim max is 28
     mag_max = 15.2
     bins = np.arange(0.0, mag_max, 0.2)
-    starDensity = np.zeros((hp.nside2npix(nside), np.size(bins) - 1), dtype=float)
-    overMaxMask = np.zeros(hp.nside2npix(nside), dtype=bool)
+    star_density = np.zeros((hp.nside2npix(nside), np.size(bins) - 1), dtype=float)
+    over_max_mask = np.zeros(hp.nside2npix(nside), dtype=bool)
     lat, ra = hp.pix2ang(nside, np.arange(0, hp.nside2npix(nside)))
     dec = np.pi / 2.0 - lat
     ra = np.degrees(ra)
     dec = np.degrees(dec)
 
     # Square root of pixel area.
-    hpsizeDeg = hp.nside2resol(nside, arcmin=True) / 60.0
+    hpsize_deg = hp.nside2resol(nside, arcmin=True) / 60.0
 
     # Limit things to a 10 arcmin radius
-    hpsizeDeg = np.min([10.0 / 60.0, hpsizeDeg])
+    hpsize_deg = np.min([10.0 / 60.0, hpsize_deg])
 
-    indxMin = 0
+    indx_min = 0
 
-    restoreFile = glob.glob("gaiaStarDensity_nside_%i.npz" % (nside))
-    if len(restoreFile) > 0:
-        data = np.load(restoreFile[0])
-        starDensity = data["starDensity"].copy()
-        indxMin = data["icheck"].copy()
-        overMaxMask = data["overMaxMask"].copy()
+    restore_file = glob.glob("gaiaStarDensity_nside_%i.npz" % (nside))
+    if len(restore_file) > 0:
+        data = np.load(restore_file[0])
+        star_density = data["star_density"].copy()
+        indx_min = data["icheck"].copy()
+        over_max_mask = data["over_max_mask"].copy()
 
     print("")
     # Look at a cirular area the same area as the healpix it's centered on.
-    bound_length = hpsizeDeg / np.pi**0.5
+    bound_length = hpsize_deg / np.pi**0.5
     radius = bound_length
 
-    blockArea = hpsizeDeg**2  # sq deg
+    block_area = hpsize_deg**2  # sq deg
 
     checksize = 1000
     printsize = 10
     npix = float(hp.nside2npix(nside))
 
     # If the area has more than this number of objects, flag it as a max
-    breakLimit = 1e6
+    break_limit = 1e6
     chunk_size = 10000
-    for i in np.arange(indxMin, int(npix)):
-        lastCP = ""
+    for i in np.arange(indx_min, int(npix)):
+        last_cp = ""
         # wonder what the units of bound_length are...degrees! And it's a radius
         # The newer interface:
         # obs_metadata = ObservationMetaData(bound_type='circle',
@@ -123,39 +123,39 @@ if __name__ == "__main__":
         pdb.set_trace()
         # I could think of setting the chunksize to something really large, then only doing one chunk?
         # Or maybe setting up a way to break out of the loop if everything gets really dense?
-        tempHist = np.zeros(np.size(bins) - 1, dtype=float)
+        temp_hist = np.zeros(np.size(bins) - 1, dtype=float)
         counter = 0
         for chunk in results:
-            chunkHist, bins = np.histogram(chunk[colName], bins)
-            tempHist += chunkHist
+            chunk_hist, bins = np.histogram(chunk[colName], bins)
+            temp_hist += chunk_hist
             counter += chunk_size
-            if counter >= breakLimit:
-                overMaxMask[i] = True
+            if counter >= break_limit:
+                over_max_mask[i] = True
                 break
 
-        starDensity[i] = np.add.accumulate(tempHist) / blockArea
+        star_density[i] = np.add.accumulate(temp_hist) / block_area
 
         # Checkpoint
         if (i % checksize == 0) & (i != 0):
             np.savez(
                 "gaiaStarDensity_nside_%i.npz" % (nside),
-                starDensity=starDensity,
+                starDensity=star_density,
                 bins=bins,
                 icheck=i,
-                overMaxMask=overMaxMask,
+                overMaxMask=over_max_mask,
             )
-            lastCP = "Checkpointed at i=%i of %i" % (i, npix)
+            last_cp = "Checkpointed at i=%i of %i" % (i, npix)
         if i % printsize == 0:
             sys.stdout.write("\r")
-            perComplete = float(i) / npix * 100
-            sys.stdout.write(r"%.2f%% complete. " % (perComplete) + lastCP)
+            per_complete = float(i) / npix * 100
+            sys.stdout.write(r"%.2f%% complete. " % (per_complete) + last_cp)
             sys.stdout.flush()
 
     np.savez(
         "gaiaStarDensity_nside_%i.npz" % (nside),
-        starDensity=starDensity,
+        starDensity=star_density,
         bins=bins,
-        overMaxMask=overMaxMask,
+        overMaxMask=over_max_mask,
     )
     print("")
     print("Completed!")

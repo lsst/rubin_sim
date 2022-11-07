@@ -16,9 +16,9 @@ rad2 = np.radians(62.6)
 rad3 = np.radians(33.0)
 
 
-def eq_gal(eqRA, eqDEC):
-    d = np.radians(eqDEC)
-    a = np.radians(eqRA)
+def eq_gal(eq_ra, eq_dec):
+    d = np.radians(eq_dec)
+    a = np.radians(eq_ra)
 
     def equations(p):
         b, l, x = p
@@ -42,23 +42,23 @@ def eq_gal(eqRA, eqDEC):
     # http://scienceworld.wolfram.com/astronomy/GalacticCoordinates.html
 
 
-def eq_gal2(eqRA, eqDEC):
-    d = np.radians(eqDEC)
-    p = np.radians(eqRA)
+def eq_gal2(eq_ra, eq_dec):
+    d = np.radians(eq_dec)
+    p = np.radians(eq_ra)
     AC = np.radians(90.0) - d
     AB = np.radians(62.8717)
     CAB = np.radians(192.8585) - p
-    cosBC = np.sin(d) * np.cos(AB) + np.cos(d) * np.sin(AB) * np.cos(CAB)
-    BC = np.arccos(cosBC)
+    cos_bc = np.sin(d) * np.cos(AB) + np.cos(d) * np.sin(AB) * np.cos(CAB)
+    BC = np.arccos(cos_bc)
     AD = np.radians(118.9362)
     CAD = np.radians(266.4051) - p
-    cosCD = np.sin(d) * np.cos(AD) + np.cos(d) * np.sin(AD) * np.cos(CAD)
-    cosCBD = cosCD / np.sin(BC)
-    if cosCBD > 1:
-        cosCBD = 1
-    elif cosCBD < -1:
-        cosCBD = -1
-    CBD = np.arccos(cosCBD)
+    cos_cd = np.sin(d) * np.cos(AD) + np.cos(d) * np.sin(AD) * np.cos(CAD)
+    cos_cbd = cos_cd / np.sin(BC)
+    if cos_cbd > 1:
+        cos_cbd = 1
+    elif cos_cbd < -1:
+        cos_cbd = -1
+    CBD = np.arccos(cos_cbd)
     b_deg = 90.0 - np.degrees(BC)
     ad = np.radians(90.0)
     cad = np.radians(282.8595) - p
@@ -76,8 +76,8 @@ def eq_gal2(eqRA, eqDEC):
     return b_deg, l_deg
 
 
-def eq_gal3(eqRA, eqDEC):
-    coordset = ephem.Equatorial(np.radians(eqRA), np.radians(eqDEC), epoch="2000")
+def eq_gal3(eq_ra, eq_dec):
+    coordset = ephem.Equatorial(np.radians(eq_ra), np.radians(eq_dec), epoch="2000")
     g = ephem.Galactic(coordset)
     templon, templat = float(g.lon), float(g.lat)
     l_deg = np.degrees(templon)

@@ -12,18 +12,18 @@ import matplotlib as mpl
 from matplotlib.patches import Ellipse
 from matplotlib.collections import PatchCollection
 
-from rubin_sim.maf.utils import optimalBins, percentileClipping
-from .plot_handler import BasePlotter, applyZPNorm
+from rubin_sim.maf.utils import optimal_bins, percentile_clipping
+from .plot_handler import BasePlotter, apply_zp_norm
 
 from rubin_sim.utils import _equatorial_from_galactic, _healbin
-from .perceptual_rainbow import makePRCmap
+from .perceptual_rainbow import make_pr_cmap
 
-perceptual_rainbow = makePRCmap()
+perceptual_rainbow = make_pr_cmap()
 import numpy.ma as ma
 
 __all__ = [
-    "setColorLims",
-    "setColorMap",
+    "set_color_lims",
+    "set_color_map",
     "HealpixSkyMap",
     "HealpixPowerSpectrum",
     "HealpixHistogram",
@@ -33,7 +33,7 @@ __all__ = [
     "LambertSkyMap",
 ]
 
-baseDefaultPlotDict = {
+base_default_plot_dict = {
     "title": None,
     "xlabel": None,
     "label": None,
@@ -60,43 +60,43 @@ baseDefaultPlotDict = {
 }
 
 
-def setColorLims(metricValue, plotDict, keyMin="colorMin", keyMax="colorMax"):
+def set_color_lims(metric_value, plot_dict, key_min="color_min", key_max="color_max"):
     """Set up x or color bar limits."""
     # Use plotdict values if available
-    colorMin = plotDict[keyMin]
-    colorMax = plotDict[keyMax]
+    color_min = plot_dict[key_min]
+    color_max = plot_dict[key_max]
     # If either is not set and we have data ..
-    if colorMin is None or colorMax is None:
-        if np.size(metricValue.compressed()) > 0:
+    if color_min is None or color_max is None:
+        if np.size(metric_value.compressed()) > 0:
             # is percentile clipping set?
-            if plotDict["percentileClip"] is not None:
-                pcMin, pcMax = percentileClipping(
-                    metricValue.compressed(), percentile=plotDict["percentileClip"]
+            if plot_dict["percentileClip"] is not None:
+                pc_min, pc_max = percentile_clipping(
+                    metric_value.compressed(), percentile=plot_dict["percentileClip"]
                 )
-                tempcolorMin = pcMin
-                tempcolorMax = pcMax
+                tempcolor_min = pc_min
+                tempcolor_max = pc_max
             # If not, just use the data limits.
             else:
-                tempcolorMin = metricValue.compressed().min()
-                tempcolorMax = metricValue.compressed().max()
+                tempcolor_min = metric_value.compressed().min()
+                tempcolor_max = metric_value.compressed().max()
             # But make sure there is some range on the colorbar
-            if tempcolorMin == tempcolorMax:
-                tempcolorMin = tempcolorMin - 0.5
-                tempcolorMax = tempcolorMax + 0.5
-            tempcolorMin, tempcolorMax = np.sort([tempcolorMin, tempcolorMax])
+            if tempcolor_min == tempcolor_max:
+                tempcolor_min = tempcolor_min - 0.5
+                tempcolor_max = tempcolor_max + 0.5
+            tempcolor_min, tempcolor_max = np.sort([tempcolor_min, tempcolor_max])
         else:
             # There is no metric data to plot, but here we are.
-            tempcolorMin = 0
-            tempcolorMax = 1
-    if colorMin is None:
-        colorMin = tempcolorMin
-    if colorMax is None:
-        colorMax = tempcolorMax
-    return [colorMin, colorMax]
+            tempcolor_min = 0
+            tempcolor_max = 1
+    if color_min is None:
+        color_min = tempcolor_min
+    if color_max is None:
+        color_max = tempcolor_max
+    return [color_min, color_max]
 
 
-def setColorMap(plotDict):
-    cmap = plotDict["cmap"]
+def set_color_map(plot_dict):
+    cmap = plot_dict["cmap"]
     if cmap is None:
         cmap = "perceptual_rainbow"
     if type(cmap) == str:
@@ -116,13 +116,13 @@ class HealpixSkyMap(BasePlotter):
 
     def __init__(self):
         super(HealpixSkyMap, self).__init__()
-        # Set the plotType
-        self.plotType = "SkyMap"
-        self.objectPlotter = False
+        # Set the plot_type
+        self.plot_type = "SkyMap"
+        self.object_plotter = False
         # Set up the default plotting parameters.
-        self.defaultPlotDict = {}
-        self.defaultPlotDict.update(baseDefaultPlotDict)
-        self.defaultPlotDict.update(
+        self.default_plot_dict = {}
+        self.default_plot_dict.update(base_default_plot_dict)
+        self.default_plot_dict.update(
             {
                 "rot": (0, 0, 0),
                 "flip": "astro",
@@ -138,13 +138,13 @@ class HealpixSkyMap(BasePlotter):
         self.ax = None
         self.im = None
 
-    def __call__(self, metricValueIn, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
         """
         Parameters
         ----------
-        metricValue : numpy.ma.MaskedArray
+        metric_value : numpy.ma.MaskedArray
         slicer : rubin_sim.maf.slicers.HealpixSlicer
-        userPlotDict: dict
+        user_plot_dict: dict
             Dictionary of plot parameters set by user (overrides default values).
         fignum : int
             Matplotlib figure number to use (default = None, starts new figure).
@@ -155,53 +155,53 @@ class HealpixSkyMap(BasePlotter):
            Matplotlib figure number used to create the plot.
         """
         # Override the default plotting parameters with user specified values.
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
 
-        self.healpy_visufunc = plotDict["visufunc"]
+        self.healpy_visufunc = plot_dict["visufunc"]
 
         # Check if we have a valid HEALpix slicer
         if "Heal" in slicer.slicerName:
             # Update the metric data with zeropoint or normalization.
-            metricValue = applyZPNorm(metricValueIn, plotDict)
+            metric_value = apply_zp_norm(metric_value_in, plot_dict)
         else:
             # Bin the values up on a healpix grid.
-            metricValue = _healbin(
+            metric_value = _healbin(
                 slicer.slicePoints["ra"],
                 slicer.slicePoints["dec"],
-                metricValueIn.filled(slicer.badval),
-                nside=plotDict["nside"],
-                reduceFunc=plotDict["reduceFunc"],
+                metric_value_in.filled(slicer.badval),
+                nside=plot_dict["nside"],
+                reduceFunc=plot_dict["reduceFunc"],
                 fillVal=slicer.badval,
             )
-            mask = np.zeros(metricValue.size)
-            mask[np.where(metricValue == slicer.badval)] = 1
-            metricValue = ma.array(metricValue, mask=mask)
-            metricValue = applyZPNorm(metricValue, plotDict)
+            mask = np.zeros(metric_value.size)
+            mask[np.where(metric_value == slicer.badval)] = 1
+            metric_value = ma.array(metric_value, mask=mask)
+            metric_value = apply_zp_norm(metric_value, plot_dict)
 
-        if plotDict["maskBelow"] is not None:
-            toMask = np.where(metricValue <= plotDict["maskBelow"])[0]
-            metricValue.mask[toMask] = True
+        if plot_dict["maskBelow"] is not None:
+            to_mask = np.where(metric_value <= plot_dict["maskBelow"])[0]
+            metric_value.mask[to_mask] = True
             badval = hp.UNSEEN
         else:
             badval = slicer.badval
 
         # Generate a full-sky plot.
-        fig = plt.figure(fignum, figsize=plotDict["figsize"])
+        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
         # Set up color bar limits.
-        clims = setColorLims(metricValue, plotDict)
-        cmap = setColorMap(plotDict)
+        clims = set_color_lims(metric_value, plot_dict)
+        cmap = set_color_map(plot_dict)
         # Set log scale?
         norm = None
-        if plotDict["logScale"]:
+        if plot_dict["logScale"]:
             norm = "log"
         # Avoid trying to log scale when zero is in the range.
         if (norm == "log") & (
             (clims[0] <= 0 <= clims[1]) or (clims[0] >= 0 >= clims[1])
         ):
             # Try something simple
-            above = metricValue[np.where(metricValue > 0)]
+            above = metric_value[np.where(metric_value > 0)]
             if len(above) > 0:
                 clims[0] = above.max()
             # If still bad, give up and turn off norm
@@ -211,22 +211,22 @@ class HealpixSkyMap(BasePlotter):
                 "Using norm was set to log, but color limits pass through 0. "
                 "Adjusting so plotting doesn't fail"
             )
-        if plotDict["coord"] == "C":
+        if plot_dict["coord"] == "C":
             notext = True
         else:
             notext = False
 
         visufunc_params = {
-            "title": plotDict["title"],
+            "title": plot_dict["title"],
             "cbar": False,
             "min": clims[0],
             "max": clims[1],
-            "rot": plotDict["rot"],
-            "flip": plotDict["flip"],
-            "coord": plotDict["coord"],
+            "rot": plot_dict["rot"],
+            "flip": plot_dict["flip"],
+            "coord": plot_dict["coord"],
             "cmap": cmap,
             "norm": norm,
-            "sub": plotDict["subplot"],
+            "sub": plot_dict["subplot"],
             "fig": fig.number,
             "notext": notext,
         }
@@ -240,35 +240,35 @@ class HealpixSkyMap(BasePlotter):
             "badcolor",
             "bgcolor",
         ):
-            if key in plotDict:
-                visufunc_params[key] = plotDict[key]
+            if key in plot_dict:
+                visufunc_params[key] = plot_dict[key]
 
         visufunc_params.update(self.healpy_visufunc_params)
-        self.healpy_visufunc(metricValue.filled(badval), **visufunc_params)
+        self.healpy_visufunc(metric_value.filled(badval), **visufunc_params)
 
         # Add colorbar (not using healpy default colorbar because we want more tickmarks).
         self.ax = plt.gca()
         im = self.ax.get_images()[0]
 
         # Add a graticule (grid) over the globe.
-        if "noGraticule" not in plotDict:
+        if "noGraticule" not in plot_dict:
             hp.graticule(dpar=30, dmer=30)
 
         # Add label.
-        if plotDict["label"] is not None:
-            plt.figtext(0.8, 0.8, "%s" % (plotDict["label"]))
+        if plot_dict["label"] is not None:
+            plt.figtext(0.8, 0.8, "%s" % (plot_dict["label"]))
         # Make a color bar. Supress silly colorbar warnings.
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             # The vertical colorbar is primarily aimed at the movie
             # but may be useful for other purposes
-            if plotDict["cbarOrientation"].lower() == "vertical":
+            if plot_dict["cbarOrientation"].lower() == "vertical":
                 cb = plt.colorbar(
                     im,
                     shrink=0.5,
                     extendrect=True,
                     location="right",
-                    format=plotDict["cbarFormat"],
+                    format=plot_dict["cbarFormat"],
                 )
             else:
                 # Most of the time we just want a standard horizontal colorbar
@@ -278,61 +278,61 @@ class HealpixSkyMap(BasePlotter):
                     aspect=25,
                     pad=0.1,
                     orientation="horizontal",
-                    format=plotDict["cbarFormat"],
+                    format=plot_dict["cbarFormat"],
                     extendrect=True,
                 )
-            cb.set_label(plotDict["xlabel"], fontsize=plotDict["fontsize"])
-            if plotDict["labelsize"] is not None:
-                cb.ax.tick_params(labelsize=plotDict["labelsize"])
+            cb.set_label(plot_dict["xlabel"], fontsize=plot_dict["fontsize"])
+            if plot_dict["labelsize"] is not None:
+                cb.ax.tick_params(labelsize=plot_dict["labelsize"])
             if norm == "log":
-                tick_locator = ticker.LogLocator(numticks=plotDict["nTicks"])
+                tick_locator = ticker.LogLocator(numticks=plot_dict["nTicks"])
                 cb.locator = tick_locator
                 cb.update_ticks()
-            if (plotDict["nTicks"] is not None) & (norm != "log"):
-                tick_locator = ticker.MaxNLocator(nbins=plotDict["nTicks"])
+            if (plot_dict["nTicks"] is not None) & (norm != "log"):
+                tick_locator = ticker.MaxNLocator(nbins=plot_dict["nTicks"])
                 cb.locator = tick_locator
                 cb.update_ticks()
         # If outputing to PDF, this fixes the colorbar white stripes
-        if plotDict["cbar_edge"]:
+        if plot_dict["cbar_edge"]:
             cb.solids.set_edgecolor("face")
         return fig.number
 
 
 class HealpixPowerSpectrum(BasePlotter):
     def __init__(self):
-        self.plotType = "PowerSpectrum"
-        self.objectPlotter = False
-        self.defaultPlotDict = {}
-        self.defaultPlotDict.update(baseDefaultPlotDict)
-        self.defaultPlotDict.update(
+        self.plot_type = "PowerSpectrum"
+        self.object_plotter = False
+        self.default_plot_dict = {}
+        self.default_plot_dict.update(base_default_plot_dict)
+        self.default_plot_dict.update(
             {"maxl": None, "removeDipole": True, "linestyle": "-"}
         )
 
-    def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
         """
-        Generate and plot the power spectrum of metricValue (calculated on a healpix grid).
+        Generate and plot the power spectrum of metric_value (calculated on a healpix grid).
         """
         if "Healpix" not in slicer.slicerName:
             raise ValueError("HealpixPowerSpectrum for use with healpix metricBundles.")
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
 
-        fig = plt.figure(fignum, figsize=plotDict["figsize"])
-        if plotDict["subplot"] != "111":
-            ax = fig.add_subplot(plotDict["subplot"])
+        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        if plot_dict["subplot"] != "111":
+            ax = fig.add_subplot(plot_dict["subplot"])
         # If the mask is True everywhere (no data), just plot zeros
-        if False not in metricValue.mask:
+        if False not in metric_value.mask:
             return None
-        if plotDict["removeDipole"]:
+        if plot_dict["removeDipole"]:
             cl = hp.anafast(
-                hp.remove_dipole(metricValue.filled(slicer.badval)),
-                lmax=plotDict["maxl"],
+                hp.remove_dipole(metric_value.filled(slicer.badval)),
+                lmax=plot_dict["maxl"],
             )
         else:
-            cl = hp.anafast(metricValue.filled(slicer.badval), lmax=plotDict["maxl"])
+            cl = hp.anafast(metric_value.filled(slicer.badval), lmax=plot_dict["maxl"])
         ell = np.arange(np.size(cl))
-        if plotDict["removeDipole"]:
+        if plot_dict["removeDipole"]:
             condition = ell > 1
         else:
             condition = ell > 0
@@ -342,30 +342,30 @@ class HealpixPowerSpectrum(BasePlotter):
         plt.plot(
             ell,
             (cl * ell * (ell + 1)) / 2.0 / np.pi,
-            color=plotDict["color"],
-            linestyle=plotDict["linestyle"],
-            label=plotDict["label"],
+            color=plot_dict["color"],
+            linestyle=plot_dict["linestyle"],
+            label=plot_dict["label"],
         )
-        if cl.max() > 0 and plotDict["logScale"]:
+        if cl.max() > 0 and plot_dict["logScale"]:
             plt.yscale("log")
-        plt.xlabel(r"$l$", fontsize=plotDict["fontsize"])
-        plt.ylabel(r"$l(l+1)C_l/(2\pi)$", fontsize=plotDict["fontsize"])
-        if plotDict["labelsize"] is not None:
-            plt.tick_params(axis="x", labelsize=plotDict["labelsize"])
-            plt.tick_params(axis="y", labelsize=plotDict["labelsize"])
-        if plotDict["title"] is not None:
-            plt.title(plotDict["title"])
+        plt.xlabel(r"$l$", fontsize=plot_dict["fontsize"])
+        plt.ylabel(r"$l(l+1)C_l/(2\pi)$", fontsize=plot_dict["fontsize"])
+        if plot_dict["labelsize"] is not None:
+            plt.tick_params(axis="x", labelsize=plot_dict["labelsize"])
+            plt.tick_params(axis="y", labelsize=plot_dict["labelsize"])
+        if plot_dict["title"] is not None:
+            plt.title(plot_dict["title"])
         # Return figure number (so we can reuse/add onto/save this figure if desired).
         return fig.number
 
 
 class HealpixHistogram(BasePlotter):
     def __init__(self):
-        self.plotType = "Histogram"
-        self.objectPlotter = False
-        self.defaultPlotDict = {}
-        self.defaultPlotDict.update(baseDefaultPlotDict)
-        self.defaultPlotDict.update(
+        self.plot_type = "Histogram"
+        self.object_plotter = False
+        self.default_plot_dict = {}
+        self.default_plot_dict.update(base_default_plot_dict)
+        self.default_plot_dict.update(
             {
                 "ylabel": "Area (1000s of square degrees)",
                 "bins": None,
@@ -375,30 +375,30 @@ class HealpixHistogram(BasePlotter):
                 "linestyle": "-",
             }
         )
-        self.baseHist = BaseHistogram()
+        self.base_hist = BaseHistogram()
 
-    def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
         """
-        Histogram metricValue for all healpix points.
+        Histogram metric_value for all healpix points.
         """
         if "Healpix" not in slicer.slicerName:
             raise ValueError("HealpixHistogram is for use with healpix slicer.")
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
-        if plotDict["scale"] is None:
-            plotDict["scale"] = hp.nside2pixarea(slicer.nside, degrees=True) / 1000.0
-        fignum = self.baseHist(metricValue, slicer, plotDict, fignum=fignum)
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
+        if plot_dict["scale"] is None:
+            plot_dict["scale"] = hp.nside2pixarea(slicer.nside, degrees=True) / 1000.0
+        fignum = self.base_hist(metric_value, slicer, plot_dict, fignum=fignum)
         return fignum
 
 
 class BaseHistogram(BasePlotter):
     def __init__(self):
-        self.plotType = "Histogram"
-        self.objectPlotter = False
-        self.defaultPlotDict = {}
-        self.defaultPlotDict.update(baseDefaultPlotDict)
-        self.defaultPlotDict.update(
+        self.plot_type = "Histogram"
+        self.object_plotter = False
+        self.default_plot_dict = {}
+        self.default_plot_dict.update(base_default_plot_dict)
+        self.default_plot_dict.update(
             {
                 "ylabel": "Count",
                 "bins": None,
@@ -410,133 +410,133 @@ class BaseHistogram(BasePlotter):
             }
         )
 
-    def __call__(self, metricValueIn, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
         """
         Plot a histogram of metric_values (such as would come from a spatial slicer).
         """
         # Adjust metric values by zeropoint or normVal, and use 'compressed' version of masked array.
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
-        metricValue = applyZPNorm(metricValueIn, plotDict)
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
+        metric_value = apply_zp_norm(metric_value_in, plot_dict)
         # Toss any NaNs or infs
-        metricValue = metricValue[np.isfinite(metricValue)]
-        xMin, xMax = setColorLims(metricValue, plotDict, keyMin="xMin", keyMax="xMax")
-        metricValue = metricValue.compressed()
+        metric_value = metric_value[np.isfinite(metric_value)]
+        x_min, x_max = set_color_lims(metric_value, plot_dict, key_min="x_min", key_max="x_max")
+        metric_value = metric_value.compressed()
         # Set up the bins for the histogram. User specified 'bins' overrides 'binsize'.
         # Note that 'bins' could be a single number or an array, simply passed to plt.histogram.
-        if plotDict["bins"] is not None:
-            bins = plotDict["bins"]
-        elif plotDict["binsize"] is not None:
+        if plot_dict["bins"] is not None:
+            bins = plot_dict["bins"]
+        elif plot_dict["binsize"] is not None:
             #  If generating a cumulative histogram, want to use full range of data (but with given binsize).
             #    .. but if user set histRange to be wider than full range of data, then
             #       extend bins to cover this range, so we can make prettier plots.
-            if plotDict["cumulative"]:
+            if plot_dict["cumulative"]:
                 # Potentially, expand the range for the cumulative histogram.
-                bmin = np.min([metricValue.min(), xMin])
-                bmax = np.max([metricValue.max(), xMax])
+                bmin = np.min([metric_value.min(), x_min])
+                bmax = np.max([metric_value.max(), x_max])
                 bins = np.arange(
-                    bmin, bmax + plotDict["binsize"] / 2.0, plotDict["binsize"]
+                    bmin, bmax + plot_dict["binsize"] / 2.0, plot_dict["binsize"]
                 )
             #  Otherwise, not cumulative so just use metric values, without potential expansion.
             else:
                 bins = np.arange(
-                    xMin,
-                    xMax + plotDict["binsize"] / 2.0,
-                    plotDict["binsize"],
+                    x_min,
+                    x_max + plot_dict["binsize"] / 2.0,
+                    plot_dict["binsize"],
                 )
             # Catch edge-case where there is only 1 bin value
             if bins.size < 2:
                 bins = np.arange(
-                    bins.min() - plotDict["binsize"] * 2.0,
-                    bins.max() + plotDict["binsize"] * 2.0,
-                    plotDict["binsize"],
+                    bins.min() - plot_dict["binsize"] * 2.0,
+                    bins.max() + plot_dict["binsize"] * 2.0,
+                    plot_dict["binsize"],
                 )
         else:
             # If user did not specify bins or binsize, then we try to figure out a good number of bins.
-            bins = optimalBins(metricValue)
+            bins = optimal_bins(metric_value)
         # Generate plots.
-        fig = plt.figure(fignum, figsize=plotDict["figsize"])
+        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
         if (
-            plotDict["subplot"] != 111
-            and plotDict["subplot"] != (1, 1, 1)
-            and plotDict["subplot"] is not None
+            plot_dict["subplot"] != 111
+            and plot_dict["subplot"] != (1, 1, 1)
+            and plot_dict["subplot"] is not None
         ):
-            ax = fig.add_subplot(plotDict["subplot"])
+            ax = fig.add_subplot(plot_dict["subplot"])
         else:
             ax = plt.gca()
         # Check if any data falls within histRange, because otherwise histogram generation will fail.
         if isinstance(bins, np.ndarray):
-            condition = (metricValue >= bins.min()) & (metricValue <= bins.max())
+            condition = (metric_value >= bins.min()) & (metric_value <= bins.max())
         else:
-            condition = (metricValue >= xMin) & (metricValue <= xMax)
-        plotValue = metricValue[condition]
-        if len(plotValue) == 0:
+            condition = (metric_value >= x_min) & (metric_value <= x_max)
+        plot_value = metric_value[condition]
+        if len(plot_value) == 0:
             # No data is within histRange/bins. So let's just make a simple histogram anyway.
             n, b, p = plt.hist(
-                metricValue,
+                metric_value,
                 bins=50,
                 histtype="step",
-                cumulative=plotDict["cumulative"],
-                log=plotDict["logScale"],
-                label=plotDict["label"],
-                color=plotDict["color"],
+                cumulative=plot_dict["cumulative"],
+                log=plot_dict["logScale"],
+                label=plot_dict["label"],
+                color=plot_dict["color"],
             )
         else:
-            # There is data to plot, and we've already ensured xMin/xMax/bins are more than single value.
+            # There is data to plot, and we've already ensured x_min/x_max/bins are more than single value.
             n, b, p = plt.hist(
-                metricValue,
+                metric_value,
                 bins=bins,
-                range=[xMin, xMax],
+                range=[x_min, x_max],
                 histtype="step",
-                log=plotDict["logScale"],
-                cumulative=plotDict["cumulative"],
-                label=plotDict["label"],
-                color=plotDict["color"],
+                log=plot_dict["logScale"],
+                cumulative=plot_dict["cumulative"],
+                label=plot_dict["label"],
+                color=plot_dict["color"],
             )
         hist_ylims = plt.ylim()
         if n.max() > hist_ylims[1]:
             plt.ylim(top=n.max())
-        if n.min() < hist_ylims[0] and not plotDict["logScale"]:
+        if n.min() < hist_ylims[0] and not plot_dict["logScale"]:
             plt.ylim(bottom=n.min())
         # Fill in axes labels and limits.
         # Option to use 'scale' to turn y axis into area or other value.
 
-        def mjrFormatter(y, pos):
-            if not isinstance(plotDict["scale"], numbers.Number):
+        def mjr_formatter(y, pos):
+            if not isinstance(plot_dict["scale"], numbers.Number):
                 raise ValueError(
                     'plot_dict["scale"] must be a number to scale the y axis.'
                 )
-            return plotDict["yaxisformat"] % (y * plotDict["scale"])
+            return plot_dict["yaxisformat"] % (y * plot_dict["scale"])
 
-        ax.yaxis.set_major_formatter(FuncFormatter(mjrFormatter))
+        ax.yaxis.set_major_formatter(FuncFormatter(mjr_formatter))
         # Set optional x, y limits.
-        if "xMin" in plotDict:
-            plt.xlim(left=plotDict["xMin"])
-        if "xMax" in plotDict:
-            plt.xlim(right=plotDict["xMax"])
-        if "yMin" in plotDict:
-            plt.ylim(bottom=plotDict["yMin"])
-        if "yMax" in plotDict:
-            plt.ylim(top=plotDict["yMax"])
+        if "x_min" in plot_dict:
+            plt.xlim(left=plot_dict["x_min"])
+        if "x_max" in plot_dict:
+            plt.xlim(right=plot_dict["x_max"])
+        if "yMin" in plot_dict:
+            plt.ylim(bottom=plot_dict["yMin"])
+        if "yMax" in plot_dict:
+            plt.ylim(top=plot_dict["yMax"])
         # Set/Add various labels.
-        plt.xlabel(plotDict["xlabel"], fontsize=plotDict["fontsize"])
-        plt.ylabel(plotDict["ylabel"], fontsize=plotDict["fontsize"])
-        plt.title(plotDict["title"])
-        if plotDict["labelsize"] is not None:
-            plt.tick_params(axis="x", labelsize=plotDict["labelsize"])
-            plt.tick_params(axis="y", labelsize=plotDict["labelsize"])
+        plt.xlabel(plot_dict["xlabel"], fontsize=plot_dict["fontsize"])
+        plt.ylabel(plot_dict["ylabel"], fontsize=plot_dict["fontsize"])
+        plt.title(plot_dict["title"])
+        if plot_dict["labelsize"] is not None:
+            plt.tick_params(axis="x", labelsize=plot_dict["labelsize"])
+            plt.tick_params(axis="y", labelsize=plot_dict["labelsize"])
         # Return figure number
         return fig.number
 
 
 class BaseSkyMap(BasePlotter):
     def __init__(self):
-        self.plotType = "SkyMap"
-        self.objectPlotter = False  # unless 'metricIsColor' is true..
-        self.defaultPlotDict = {}
-        self.defaultPlotDict.update(baseDefaultPlotDict)
-        self.defaultPlotDict.update(
+        self.plot_type = "SkyMap"
+        self.object_plotter = False  # unless 'metricIsColor' is true..
+        self.default_plot_dict = {}
+        self.default_plot_dict.update(base_default_plot_dict)
+        self.default_plot_dict.update(
             {
                 "projection": "aitoff",
                 "radius": np.radians(1.75),
@@ -581,7 +581,7 @@ class BaseSkyMap(BasePlotter):
             ellipses.append(el)
         return ellipses
 
-    def _plot_ecliptic(self, raCen=0, ax=None):
+    def _plot_ecliptic(self, ra_cen=0, ax=None):
         """
         Plot a red line at location of ecliptic.
         """
@@ -590,11 +590,11 @@ class BaseSkyMap(BasePlotter):
         ecinc = 23.439291 * (np.pi / 180.0)
         ra_ec = np.arange(0, np.pi * 2.0, (np.pi * 2.0 / 360.0))
         dec_ec = np.sin(ra_ec) * ecinc
-        lon = -(ra_ec - raCen - np.pi) % (np.pi * 2) - np.pi
+        lon = -(ra_ec - ra_cen - np.pi) % (np.pi * 2) - np.pi
         ax.plot(lon, dec_ec, "r.", markersize=1.8, alpha=0.4)
 
-    def _plot_mwZone(
-        self, raCen=0, peakWidth=np.radians(10.0), taperLength=np.radians(80.0), ax=None
+    def _plot_mw_zone(
+        self, ra_cen=0, peak_width=np.radians(10.0), taper_length=np.radians(80.0), ax=None
     ):
         """
         Plot blue lines to mark the milky way galactic exclusion zone.
@@ -603,63 +603,63 @@ class BaseSkyMap(BasePlotter):
             ax = plt.gca()
         # Calculate galactic coordinates for mw location.
         step = 0.02
-        galL = np.arange(-np.pi, np.pi + step / 2.0, step)
-        val = peakWidth * np.cos(galL / taperLength * np.pi / 2.0)
-        galB1 = np.where(np.abs(galL) <= taperLength, val, 0)
-        galB2 = np.where(np.abs(galL) <= taperLength, -val, 0)
+        gal_l = np.arange(-np.pi, np.pi + step / 2.0, step)
+        val = peak_width * np.cos(gal_l / taper_length * np.pi / 2.0)
+        gal_b1 = np.where(np.abs(gal_l) <= taper_length, val, 0)
+        gal_b2 = np.where(np.abs(gal_l) <= taper_length, -val, 0)
         # Convert to ra/dec.
         # Convert to lon/lat and plot.
-        ra, dec = _equatorial_from_galactic(galL, galB1)
-        lon = -(ra - raCen - np.pi) % (np.pi * 2) - np.pi
+        ra, dec = _equatorial_from_galactic(gal_l, gal_b1)
+        lon = -(ra - ra_cen - np.pi) % (np.pi * 2) - np.pi
         ax.plot(lon, dec, "b.", markersize=1.8, alpha=0.4)
-        ra, dec = _equatorial_from_galactic(galL, galB2)
-        lon = -(ra - raCen - np.pi) % (np.pi * 2) - np.pi
+        ra, dec = _equatorial_from_galactic(gal_l, gal_b2)
+        lon = -(ra - ra_cen - np.pi) % (np.pi * 2) - np.pi
         ax.plot(lon, dec, "b.", markersize=1.8, alpha=0.4)
 
-    def __call__(self, metricValueIn, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
         """
-        Plot the sky map of metricValue for a generic spatial slicer.
+        Plot the sky map of metric_value for a generic spatial slicer.
         """
         if "ra" not in slicer.slicePoints or "dec" not in slicer.slicePoints:
-            errMessage = (
+            err_message = (
                 'SpatialSlicer must contain "ra" and "dec" in slicePoints metadata.'
             )
-            errMessage += " SlicePoints only contains keys %s." % (
+            err_message += " SlicePoints only contains keys %s." % (
                 slicer.slicePoints.keys()
             )
-            raise ValueError(errMessage)
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
-        metricValue = applyZPNorm(metricValueIn, plotDict)
+            raise ValueError(err_message)
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
+        metric_value = apply_zp_norm(metric_value_in, plot_dict)
 
-        fig = plt.figure(fignum, figsize=plotDict["figsize"])
+        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
         # other projections available include
         # ['aitoff', 'hammer', 'lambert', 'mollweide', 'polar', 'rectilinear']
-        ax = fig.add_subplot(plotDict["subplot"], projection=plotDict["projection"])
+        ax = fig.add_subplot(plot_dict["subplot"], projection=plot_dict["projection"])
         # Set up valid datapoints and colormin/max values.
-        if plotDict["plotMask"]:
+        if plot_dict["plotMask"]:
             # Plot all data points.
-            mask = np.ones(len(metricValue), dtype="bool")
+            mask = np.ones(len(metric_value), dtype="bool")
         else:
             # Only plot points which are not masked. Flip numpy ma mask where 'False' == 'good'.
-            good = ~metricValue.mask
+            good = ~metric_value.mask
 
         # Add ellipses at RA/Dec locations - but don't add colors yet.
         lon = (
-            -(slicer.slicePoints["ra"][good] - plotDict["raCen"] - np.pi) % (np.pi * 2)
+            -(slicer.slicePoints["ra"][good] - plot_dict["raCen"] - np.pi) % (np.pi * 2)
             - np.pi
         )
         ellipses = self._plot_tissot_ellipse(
             lon,
             slicer.slicePoints["dec"][good],
-            plotDict["radius"],
+            plot_dict["radius"],
             rasterized=True,
             ax=ax,
         )
-        if plotDict["metricIsColor"]:
+        if plot_dict["metricIsColor"]:
             current = None
-            for ellipse, mVal in zip(ellipses, metricValue.data[good]):
+            for ellipse, mVal in zip(ellipses, metric_value.data[good]):
                 if mVal[3] > 1:
                     ellipse.set_alpha(1.0)
                     ellipse.set_facecolor((mVal[0], mVal[1], mVal[2]))
@@ -673,25 +673,25 @@ class BaseSkyMap(BasePlotter):
                 ax.add_patch(current)
         else:
             # Determine color min/max values. metricValue.compressed = non-masked points.
-            clims = setColorLims(metricValue, plotDict)
+            clims = set_color_lims(metric_value, plot_dict)
             # Determine whether or not to use auto-log scale.
-            if plotDict["logScale"] == "auto":
+            if plot_dict["logScale"] == "auto":
                 if clims[0] > 0:
                     if np.log10(clims[1]) - np.log10(clims[0]) > 3:
-                        plotDict["logScale"] = True
+                        plot_dict["logScale"] = True
                     else:
-                        plotDict["logScale"] = False
+                        plot_dict["logScale"] = False
                 else:
-                    plotDict["logScale"] = False
-            if plotDict["logScale"]:
+                    plot_dict["logScale"] = False
+            if plot_dict["logScale"]:
                 # Move min/max values to things that can be marked on the colorbar.
                 # clims[0] = 10 ** (int(np.log10(clims[0])))
                 # clims[1] = 10 ** (int(np.log10(clims[1])))
                 norml = colors.LogNorm()
                 p = PatchCollection(
                     ellipses,
-                    cmap=plotDict["cmap"],
-                    alpha=plotDict["alpha"],
+                    cmap=plot_dict["cmap"],
+                    alpha=plot_dict["alpha"],
                     linewidth=0,
                     edgecolor=None,
                     norm=norml,
@@ -700,24 +700,24 @@ class BaseSkyMap(BasePlotter):
             else:
                 p = PatchCollection(
                     ellipses,
-                    cmap=plotDict["cmap"],
-                    alpha=plotDict["alpha"],
+                    cmap=plot_dict["cmap"],
+                    alpha=plot_dict["alpha"],
                     linewidth=0,
                     edgecolor=None,
                     rasterized=True,
                 )
-            p.set_array(metricValue.data[good])
+            p.set_array(metric_value.data[good])
             p.set_clim(clims)
             ax.add_collection(p)
             # Add color bar (with optional setting of limits)
-            if plotDict["cbar"]:
-                if plotDict["cbarOrientation"].lower() == "vertical":
+            if plot_dict["cbar"]:
+                if plot_dict["cbarOrientation"].lower() == "vertical":
                     cb = plt.colorbar(
                         p,
                         shrink=0.5,
                         extendrect=True,
                         location="right",
-                        format=plotDict["cbarFormat"],
+                        format=plot_dict["cbarFormat"],
                     )
                 else:
                     # Most of the time we just want a standard horizontal colorbar
@@ -727,49 +727,49 @@ class BaseSkyMap(BasePlotter):
                         aspect=25,
                         pad=0.1,
                         orientation="horizontal",
-                        format=plotDict["cbarFormat"],
+                        format=plot_dict["cbarFormat"],
                         extendrect=True,
                     )
                 # If outputing to PDF, this fixes the colorbar white stripes
-                if plotDict["cbar_edge"]:
+                if plot_dict["cbar_edge"]:
                     cb.solids.set_edgecolor("face")
-                cb.set_label(plotDict["xlabel"], fontsize=plotDict["fontsize"])
-                cb.ax.tick_params(labelsize=plotDict["labelsize"])
-                tick_locator = ticker.MaxNLocator(nbins=plotDict["nTicks"])
+                cb.set_label(plot_dict["xlabel"], fontsize=plot_dict["fontsize"])
+                cb.ax.tick_params(labelsize=plot_dict["labelsize"])
+                tick_locator = ticker.MaxNLocator(nbins=plot_dict["nTicks"])
                 cb.locator = tick_locator
                 cb.update_ticks()
         # Add ecliptic
-        self._plot_ecliptic(plotDict["raCen"], ax=ax)
-        if plotDict["mwZone"]:
-            self._plot_mwZone(plotDict["raCen"], ax=ax)
+        self._plot_ecliptic(plot_dict["raCen"], ax=ax)
+        if plot_dict["mwZone"]:
+            self._plot_mw_zone(plot_dict["raCen"], ax=ax)
         ax.grid(True, zorder=1)
         ax.xaxis.set_ticklabels([])
-        if plotDict["bgcolor"] is not None:
-            ax.set_facecolor(plotDict["bgcolor"])
+        if plot_dict["bgcolor"] is not None:
+            ax.set_facecolor(plot_dict["bgcolor"])
         # Add label.
-        if plotDict["label"] is not None:
+        if plot_dict["label"] is not None:
             plt.figtext(
-                0.75, 0.9, "%s" % plotDict["label"], fontsize=plotDict["fontsize"]
+                0.75, 0.9, "%s" % plot_dict["label"], fontsize=plot_dict["fontsize"]
             )
-        if plotDict["title"] is not None:
+        if plot_dict["title"] is not None:
             plt.text(
                 0.5,
                 1.09,
-                plotDict["title"],
+                plot_dict["title"],
                 horizontalalignment="center",
                 transform=ax.transAxes,
-                fontsize=plotDict["fontsize"],
+                fontsize=plot_dict["fontsize"],
             )
         return fig.number
 
 
 class HealpixSDSSSkyMap(BasePlotter):
     def __init__(self):
-        self.plotType = "SkyMap"
-        self.objectPlotter = False
-        self.defaultPlotDict = {}
-        self.defaultPlotDict.update(baseDefaultPlotDict)
-        self.defaultPlotDict.update(
+        self.plot_type = "SkyMap"
+        self.object_plotter = False
+        self.default_plot_dict = {}
+        self.default_plot_dict.update(base_default_plot_dict)
+        self.default_plot_dict.update(
             {
                 "cbarFormat": "%.2f",
                 "raMin": -90,
@@ -780,46 +780,46 @@ class HealpixSDSSSkyMap(BasePlotter):
             }
         )
 
-    def __call__(self, metricValueIn, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
 
         """
-        Plot the sky map of metricValue using healpy cartview plots in thin strips.
+        Plot the sky map of metric_value using healpy cartview plots in thin strips.
         raMin: Minimum RA to plot (deg)
         raMax: Max RA to plot (deg).  Note raMin/raMax define the centers that will be plotted.
         raLen:  Length of the plotted strips in degrees
         decMin: minimum dec value to plot
         decMax: max dec value to plot
-        metricValueIn: metric values
+        metric_value_in: metric values
         """
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
-        metricValue = applyZPNorm(metricValueIn, plotDict)
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
+        metric_value = apply_zp_norm(metric_value_in, plot_dict)
         norm = None
-        if plotDict["logScale"]:
+        if plot_dict["logScale"]:
             norm = "log"
-        clims = setColorLims(metricValue, plotDict)
-        cmap = setColorMap(plotDict)
-        racenters = np.arange(plotDict["raMin"], plotDict["raMax"], plotDict["raLen"])
+        clims = set_color_lims(metric_value, plot_dict)
+        cmap = set_color_map(plot_dict)
+        racenters = np.arange(plot_dict["raMin"], plot_dict["raMax"], plot_dict["raLen"])
         nframes = racenters.size
         fig = plt.figure(fignum)
         # Do not specify or use plot_dict['subplot'] because this is done in each call to hp.cartview.
         for i, racenter in enumerate(racenters):
             if i == 0:
-                useTitle = (
-                    plotDict["title"]
+                use_title = (
+                    plot_dict["title"]
                     + " /n"
                     + "%i < RA < %i"
-                    % (racenter - plotDict["raLen"], racenter + plotDict["raLen"])
+                    % (racenter - plot_dict["raLen"], racenter + plot_dict["raLen"])
                 )
             else:
-                useTitle = "%i < RA < %i" % (
-                    racenter - plotDict["raLen"],
-                    racenter + plotDict["raLen"],
+                use_title = "%i < RA < %i" % (
+                    racenter - plot_dict["raLen"],
+                    racenter + plot_dict["raLen"],
                 )
             hp.cartview(
-                metricValue.filled(slicer.badval),
-                title=useTitle,
+                metric_value.filled(slicer.badval),
+                title=use_title,
                 cbar=False,
                 min=clims[0],
                 max=clims[1],
@@ -827,8 +827,8 @@ class HealpixSDSSSkyMap(BasePlotter):
                 rot=(racenter, 0, 0),
                 cmap=cmap,
                 norm=norm,
-                lonra=[-plotDict["raLen"], plotDict["raLen"]],
-                latra=[plotDict["decMin"], plotDict["decMax"]],
+                lonra=[-plot_dict["raLen"], plot_dict["raLen"]],
+                latra=[plot_dict["decMin"], plot_dict["decMax"]],
                 sub=(nframes + 1, 1, i + 1),
                 fig=fig,
             )
@@ -836,8 +836,8 @@ class HealpixSDSSSkyMap(BasePlotter):
         # Add colorbar (not using healpy default colorbar because want more tickmarks).
         ax = fig.add_axes([0.1, 0.15, 0.8, 0.075])  # left, bottom, width, height
         # Add label.
-        if plotDict["label"] is not None:
-            plt.figtext(0.8, 0.9, "%s" % plotDict["label"])
+        if plot_dict["label"] is not None:
+            plt.figtext(0.8, 0.9, "%s" % plot_dict["label"])
         # Make the colorbar as a seperate figure,
         # from http: //matplotlib.org/examples/api/colorbar_only.html
         cnorm = colors.Normalize(vmin=clims[0], vmax=clims[1])
@@ -849,20 +849,20 @@ class HealpixSDSSSkyMap(BasePlotter):
                 cmap=cmap,
                 norm=cnorm,
                 orientation="horizontal",
-                format=plotDict["cbarFormat"],
+                format=plot_dict["cbarFormat"],
             )
-            cb.set_label(plotDict["xlabel"])
-            cb.ax.tick_params(labelsize=plotDict["labelsize"])
+            cb.set_label(plot_dict["xlabel"])
+            cb.ax.tick_params(labelsize=plot_dict["labelsize"])
             if norm == "log":
-                tick_locator = ticker.LogLocator(numticks=plotDict["nTicks"])
+                tick_locator = ticker.LogLocator(numticks=plot_dict["nTicks"])
                 cb.locator = tick_locator
                 cb.update_ticks()
-            if (plotDict["nTicks"] is not None) & (norm != "log"):
-                tick_locator = ticker.MaxNLocator(nbins=plotDict["nTicks"])
+            if (plot_dict["nTicks"] is not None) & (norm != "log"):
+                tick_locator = ticker.MaxNLocator(nbins=plot_dict["nTicks"])
                 cb.locator = tick_locator
                 cb.update_ticks()
         # If outputing to PDF, this fixes the colorbar white stripes
-        if plotDict["cbar_edge"]:
+        if plot_dict["cbar_edge"]:
             cb.solids.set_edgecolor("face")
         fig = plt.gcf()
         return fig.number
@@ -914,11 +914,11 @@ class LambertSkyMap(BasePlotter):
     """
 
     def __init__(self):
-        self.plotType = "SkyMap"
-        self.objectPlotter = False
-        self.defaultPlotDict = {}
-        self.defaultPlotDict.update(baseDefaultPlotDict)
-        self.defaultPlotDict.update(
+        self.plot_type = "SkyMap"
+        self.object_plotter = False
+        self.default_plot_dict = {}
+        self.default_plot_dict.update(base_default_plot_dict)
+        self.default_plot_dict.update(
             {
                 "basemap": {
                     "projection": "nplaea",
@@ -934,32 +934,32 @@ class LambertSkyMap(BasePlotter):
             }
         )
 
-    def __call__(self, metricValueIn, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
 
         if "ra" not in slicer.slicePoints or "dec" not in slicer.slicePoints:
-            errMessage = (
+            err_message = (
                 'SpatialSlicer must contain "ra" and "dec" in slicePoints metadata.'
             )
-            errMessage += " SlicePoints only contains keys %s." % (
+            err_message += " SlicePoints only contains keys %s." % (
                 slicer.slicePoints.keys()
             )
-            raise ValueError(errMessage)
+            raise ValueError(err_message)
 
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
 
-        metricValue = applyZPNorm(metricValueIn, plotDict)
-        clims = setColorLims(metricValue, plotDict)
+        metric_value = apply_zp_norm(metric_value_in, plot_dict)
+        clims = set_color_lims(metric_value, plot_dict)
         # Calculate the levels to use for the contour
-        if np.size(plotDict["levels"]) > 1:
-            levels = plotDict["levels"]
+        if np.size(plot_dict["levels"]) > 1:
+            levels = plot_dict["levels"]
         else:
-            step = (clims[1] - clims[0]) / plotDict["levels"]
+            step = (clims[1] - clims[0]) / plot_dict["levels"]
             levels = np.arange(clims[0], clims[1] + step, step)
 
-        fig = plt.figure(fignum, figsize=plotDict["figsize"])
-        ax = fig.add_subplot(plotDict["subplot"])
+        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        ax = fig.add_subplot(plot_dict["subplot"])
 
         x, y = project_lambert(slicer.slicePoints["ra"], slicer.slicePoints["dec"])
         # Contour the plot first to remove any anti-aliasing artifacts.  Doesn't seem to work though. See:
@@ -967,22 +967,22 @@ class LambertSkyMap(BasePlotter):
         # -filled-contour-plot-to-pdf-or-eps
         # tmpContour = m.contour(np.degrees(slicer.slicePoints['ra']),
         #                        np.degrees(slicer.slicePoints['dec']),
-        #                        metricValue.filled(np.min(clims)-1), levels, tri=True,
+        #                        metric_value.filled(np.min(clims)-1), levels, tri=True,
         #                        cmap=plot_dict['cmap'], ax=ax, latlon=True,
         #                        lw=1)
 
         # Set masked values to be below the lowest contour level.
-        if plotDict["norm"] == "log":
-            z_val = metricValue.filled(np.min(clims) - 0.9)
+        if plot_dict["norm"] == "log":
+            z_val = metric_value.filled(np.min(clims) - 0.9)
             norm = colors.LogNorm(vmin=z_val.min(), vmax=z_val.max())
         else:
-            norm = plotDict["norm"]
+            norm = plot_dict["norm"]
         tcf = ax.tricontourf(
             x,
             y,
-            metricValue.filled(np.min(clims) - 0.9),
+            metric_value.filled(np.min(clims) - 0.9),
             levels,
-            cmap=plotDict["cmap"],
+            cmap=plot_dict["cmap"],
             norm=norm,
         )
 
@@ -1000,13 +1000,13 @@ class LambertSkyMap(BasePlotter):
         for c in tcf.collections:
             c.set_edgecolor("face")
 
-        cb = plt.colorbar(tcf, format=plotDict["cbarFormat"])
-        cb.set_label(plotDict["xlabel"])
-        if plotDict["labelsize"] is not None:
-            cb.ax.tick_params(labelsize=plotDict["labelsize"])
+        cb = plt.colorbar(tcf, format=plot_dict["cbarFormat"])
+        cb.set_label(plot_dict["xlabel"])
+        if plot_dict["labelsize"] is not None:
+            cb.ax.tick_params(labelsize=plot_dict["labelsize"])
         # Pop in an extra line to raise the title a bit
-        ax.set_title(plotDict["title"] + "\n ")
+        ax.set_title(plot_dict["title"] + "\n ")
         # If outputing to PDF, this fixes the colorbar white stripes
-        if plotDict["cbar_edge"]:
+        if plot_dict["cbar_edge"]:
             cb.solids.set_edgecolor("face")
         return fig.number

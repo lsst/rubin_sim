@@ -9,21 +9,21 @@ import warnings
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-STERADIAN2SQDEG = 180.0**2 / np.pi**2
+steradian2_sqdeg = 180.0**2 / np.pi**2
 # Mpc^3 -> Mpc^3/sr
 norm = 1.0 / (4.0 * np.pi)
 
 __all__ = [
-    "LCfast_new",
-    "Load_Reference",
+    "LcfastNew",
+    "LoadReference",
     "GetReference",
-    "SN_Rate",
+    "SnRate",
     "CovColor",
     "load_sne_cached",
 ]
 
 
-class LCfast_new:
+class LcfastNew:
     """
     class to simulate supernovae light curves in a fast way
     The method relies on templates and broadcasting to increase speed
@@ -38,19 +38,19 @@ class LCfast_new:
         SN color
     telescope: Telescope()
         telescope for the study
-    mjdCol: str, opt
+    mjd_col: str, opt
         name of the MJD col in data to simulate (default: observationStartMJD)
-    filterCol: str, opt
+    filter_col: str, opt
         name of the filter col in data to simulate (default: filter)
-    exptimeCol: str, opt
+    exptime_col: str, opt
         name of the exposure time  col in data to simulate (default: visitExposureTime)
-    m5Col: str, opt
+    m5_col: str, opt
         name of the fiveSigmaDepth col in data to simulate (default: fiveSigmaDepth)
-    seasonCol: str, opt
+    season_col: str, opt
         name of the season col in data to simulate (default: season)
     snr_min: float, opt
         minimal Signal-to-Noise Ratio to apply on LC points (default: 5)
-    lightOutput: bool, opt
+    light_output: bool, opt
         to get a lighter output (ie lower number of cols) (default: True)
     bluecutoff: float,opt
         blue cutoff for SN (default: 380.0 nm)
@@ -63,33 +63,33 @@ class LCfast_new:
         reference_lc,
         x1,
         color,
-        mjdCol="observationStartMJD",
-        filterCol="filter",
-        exptimeCol="visitExposureTime",
-        m5Col="fiveSigmaDepth",
-        seasonCol="season",
-        nexpCol="numExposures",
-        seeingCol="seeingFwhmEff",
+        mjd_col="observationStartMJD",
+        filter_col="filter",
+        exptime_col="visitExposureTime",
+        m5_col="fiveSigmaDepth",
+        season_col="season",
+        nexp_col="numExposures",
+        seeing_col="seeingFwhmEff",
         snr_min=5.0,
-        lightOutput=True,
-        ebvofMW=-1.0,
+        light_output=True,
+        ebvof_mw=-1.0,
         bluecutoff=380.0,
         redcutoff=800.0,
     ):
 
         # grab all vals
-        self.filterCol = filterCol
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.exptimeCol = exptimeCol
-        self.seasonCol = seasonCol
-        self.nexpCol = nexpCol
-        self.seeingCol = seeingCol
+        self.filter_col = filter_col
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        self.exptime_col = exptime_col
+        self.season_col = season_col
+        self.nexp_col = nexp_col
+        self.seeing_col = seeing_col
 
         self.x1 = x1
         self.color = color
-        self.lightOutput = lightOutput
-        self.ebvofMW = ebvofMW
+        self.light_output = light_output
+        self.ebvof_mw = ebvof_mw
 
         # Loading reference file
         self.reference_lc = reference_lc
@@ -103,11 +103,11 @@ class LCfast_new:
         self.red_cutoff = redcutoff
 
         # SN parameters for Fisher matrix estimation
-        self.param_Fisher = ["x0", "x1", "daymax", "color"]
+        self.param__fisher = ["x0", "x1", "daymax", "color"]
 
         self.snr_min = snr_min
 
-    def __call__(self, obs, ebvofMW, gen_par=None, bands="grizy"):
+    def __call__(self, obs, ebvof_mw, gen_par=None, bands="grizy"):
         """Simulation of the light curve
 
 
@@ -115,7 +115,7 @@ class LCfast_new:
         ----------------
         obs: array
             array of observations
-        ebvofMW: float
+        ebvof_mw: float
             E(B-V) for MW
         gen_par: array, opt
             simulation parameters (default: None)
@@ -138,17 +138,17 @@ class LCfast_new:
 
         # loop on the bands
         for band in bands:
-            idx = obs[self.filterCol] == band
+            idx = obs[self.filter_col] == band
             if len(obs[idx]) > 0:
                 tab_tot = pd.concat(
-                    [tab_tot, self.processBand(obs[idx], ebvofMW, band, gen_par)],
+                    [tab_tot, self.process_band(obs[idx], ebvof_mw, band, gen_par)],
                     ignore_index=True,
                 )
 
         # return produced LC
         return tab_tot
 
-    def processBand(self, sel_obs, ebvofMW, band, gen_par):
+    def process_band(self, sel_obs, ebvof_mw, band, gen_par):
         """LC simulation of a set of obs corresponding to a band
         The idea is to use python broadcasting so as to estimate
         all the requested values (flux, flux error, Fisher components, ...)
@@ -175,7 +175,7 @@ class LCfast_new:
         # Get the fluxes (from griddata reference)
 
         # xi = MJD-T0
-        xi = sel_obs[self.mjdCol] - gen_par["daymax"][:, np.newaxis]
+        xi = sel_obs[self.mjd_col] - gen_par["daymax"][:, np.newaxis]
 
         # yi = redshift simulated values
         # requested to avoid interpolation problems near boundaries
@@ -192,22 +192,22 @@ class LCfast_new:
 
         # Fisher components estimation
 
-        dFlux = {}
+        d_flux = {}
 
         # loop on Fisher parameters
-        for val in self.param_Fisher:
-            dFlux[val] = self.reference_lc.param[band][val](pts)
+        for val in self.param__fisher:
+            d_flux[val] = self.reference_lc.param[band][val](pts)
 
         # Fisher matrix components estimation
         # loop on SN parameters (x0,x1,color)
         # estimate: dF/dxi*dF/dxj
-        Derivative_for_Fisher = {}
-        for ia, vala in enumerate(self.param_Fisher):
-            for jb, valb in enumerate(self.param_Fisher):
+        derivative_for__fisher = {}
+        for ia, vala in enumerate(self.param__fisher):
+            for jb, valb in enumerate(self.param__fisher):
                 if jb >= ia:
-                    Derivative_for_Fisher[vala + valb] = dFlux[vala] * dFlux[valb]
+                    derivative_for__fisher[vala + valb] = d_flux[vala] * d_flux[valb]
 
-        flag = self.getFlag(sel_obs, gen_par, fluxes_obs, band, p)
+        flag = self.get_flag(sel_obs, gen_par, fluxes_obs, band, p)
         flag_idx = np.argwhere(flag)
 
         # now apply the flag to select LC points - masked arrays
@@ -215,9 +215,9 @@ class LCfast_new:
         phases = self.marray(p, flag)
         z_vals = gen_par["z"][flag_idx[:, 0]]
         daymax_vals = gen_par["daymax"][flag_idx[:, 0]]
-        Fisher_Mat = {}
-        for key, vals in Derivative_for_Fisher.items():
-            Fisher_Mat[key] = self.marray(vals, flag)
+        fisher__mat = {}
+        for key, vals in derivative_for__fisher.items():
+            fisher__mat[key] = self.marray(vals, flag)
 
         ndata = len(fluxes[~fluxes.mask])
 
@@ -228,12 +228,12 @@ class LCfast_new:
         # masked - tile arrays
 
         cols = [
-            self.mjdCol,
-            self.seasonCol,
-            self.m5Col,
-            self.exptimeCol,
-            self.nexpCol,
-            self.seeingCol,
+            self.mjd_col,
+            self.season_col,
+            self.m5_col,
+            self.exptime_col,
+            self.nexp_col,
+            self.seeing_col,
             "night",
         ]
 
@@ -262,24 +262,24 @@ class LCfast_new:
         for key, vals in masked_tile.items():
             lc[key] = vals[~vals.mask]
 
-        lc["time"] = lc[self.mjdCol]
+        lc["time"] = lc[self.mjd_col]
         lc.loc[:, "x1"] = self.x1
         lc.loc[:, "color"] = self.color
 
         # estimate errors
         lc["flux_e_sec"] = self.reference_lc.mag_to_flux[band](
-            (lc["mag"], lc[self.exptimeCol] / lc[self.nexpCol], lc[self.nexpCol])
+            (lc["mag"], lc[self.exptime_col] / lc[self.nexp_col], lc[self.nexp_col])
         )
-        lc["flux_5"] = 10 ** (-0.4 * (lc[self.m5Col] - self.reference_lc.zp[band]))
+        lc["flux_5"] = 10 ** (-0.4 * (lc[self.m5_col] - self.reference_lc.zp[band]))
         lc["snr_m5"] = lc["flux_e_sec"] / np.sqrt(
-            (lc["flux_5"] / 5.0) ** 2 + lc["flux_e_sec"] / lc[self.exptimeCol]
+            (lc["flux_5"] / 5.0) ** 2 + lc["flux_e_sec"] / lc[self.exptime_col]
         )
         lc["fluxerr_photo"] = lc["flux"] / lc["snr_m5"]
         lc["magerr"] = (2.5 / np.log(10.0)) / lc["snr_m5"]
         lc["fluxerr"] = lc["fluxerr_photo"]
 
         # Fisher matrix components
-        for key, vals in Fisher_Mat.items():
+        for key, vals in fisher__mat.items():
             lc.loc[:, "F_{}".format(key)] = vals[~vals.mask] / (
                 lc["fluxerr_photo"].values ** 2
             )
@@ -295,7 +295,7 @@ class LCfast_new:
         lc.loc[:, "n_phmax"] = lc["phase"] >= 20
 
         # if len(lc) > 0.:
-        #    lc = self.dust_corrections(lc, ebvofMW)
+        #    lc = self.dust_corrections(lc, ebvof_mw)
 
         # remove lc points with no flux
         idx = lc["flux_e_sec"] > 0.0
@@ -303,7 +303,7 @@ class LCfast_new:
 
         return lc_flux
 
-    def getFlag(self, sel_obs, gen_par, fluxes_obs, band, p):
+    def get_flag(self, sel_obs, gen_par, fluxes_obs, band, p):
         """
         Method to flag events corresponding to selection criteria
 
@@ -380,22 +380,22 @@ class LCfast_new:
         return vv
 
 
-def load_sne_cached(gammaName="gamma_WFD.hdf5"):
+def load_sne_cached(gamma_name="gamma_WFD.hdf5"):
     """Load up the SNe lightcurve files with a simple function that caches the result so each metric
     doesn't need to load it on it's own
     """
     need_data = True
     if hasattr(load_sne_cached, "data"):
         # Only return data if the current gamma file matches the loaded gamma file
-        if load_sne_cached.gammaName == gammaName:
+        if load_sne_cached.gammaName == gamma_name:
             need_data = False
     if need_data:
-        load_sne_cached.data = Load_Reference(gammaName=gammaName).ref
-        load_sne_cached.gammaName = gammaName
+        load_sne_cached.data = LoadReference(gamma_name=gamma_name).ref
+        load_sne_cached.gammaName = gamma_name
     return load_sne_cached.data
 
 
-class Load_Reference:
+class LoadReference:
     """
     class to load template files requested for LCFast
     These files should be stored in a reference_files
@@ -414,19 +414,19 @@ class Load_Reference:
 
     def __init__(
         self,
-        templateDir=None,
-        gammaName="gamma_WFD.hdf5",
+        template_dir=None,
+        gamma_name="gamma_WFD.hdf5",
     ):
 
-        if templateDir is None:
+        if template_dir is None:
             sims_maf_contrib_dir = get_data_dir()
-            templateDir = os.path.join(sims_maf_contrib_dir, "maf/SNe_data")
+            template_dir = os.path.join(sims_maf_contrib_dir, "maf/SNe_data")
 
         x1_colors = [(-2.0, 0.2), (0.0, 0.0)]
 
         lc_reference = {}
 
-        list_files = [gammaName]
+        list_files = [gamma_name]
         for j in range(len(x1_colors)):
             x1 = x1_colors[j][0]
             color = x1_colors[j][1]
@@ -434,7 +434,7 @@ class Load_Reference:
             list_files += [fname]
 
         # gamma_reference
-        self.gamma_reference = os.path.join(templateDir, gammaName)
+        self.gamma_reference = os.path.join(template_dir, gamma_name)
 
         # print('Loading reference files')
 
@@ -444,7 +444,7 @@ class Load_Reference:
             x1 = x1_colors[j][0]
             color = x1_colors[j][1]
             fname = "{}/LC_{}_{}_380.0_800.0_ebvofMW_0.0_vstack.hdf5".format(
-                templateDir, x1, color
+                template_dir, x1, color
             )
             resultdict[j] = GetReference(fname, self.gamma_reference)
 
@@ -483,19 +483,19 @@ class GetReference:
     gamma : dict of RegularGridInterpolator of gamma values (key: filters)
     """
 
-    def __init__(self, lcName, gammaName, param_Fisher=["x0", "x1", "color", "daymax"]):
+    def __init__(self, lc_name, gamma_name, param__fisher=["x0", "x1", "color", "daymax"]):
 
         # Load the file - lc reference
-        if not os.path.exists(lcName):
-            raise FileExistsError(f"{lcName} does not exist - NSN metric cannot run")
+        if not os.path.exists(lc_name):
+            raise FileExistsError(f"{lc_name} does not exist - NSN metric cannot run")
 
         # Load the file - gamma values
-        if not os.path.exists(gammaName):
+        if not os.path.exists(gamma_name):
             raise FileExistsError(
                 "gamma file {} does not exist - NSN metric cannot run"
             )
 
-        lc_ref_tot = Table.from_pandas(pd.read_hdf(lcName))
+        lc_ref_tot = Table.from_pandas(pd.read_hdf(lc_name))
         idx = lc_ref_tot["z"] > 0.005
         lc_ref_tot = np.copy(lc_ref_tot[idx])
 
@@ -540,13 +540,13 @@ class GetReference:
             # Another interpolator, faster than griddata: regulargridinterpolator
 
             # Fluxes and errors
-            zmin, zmax, zstep, nz = self.limVals(lc_sel, "z")
-            phamin, phamax, phastep, npha = self.limVals(lc_sel, "phase")
+            zmin, zmax, zstep, nz = self.lim_vals(lc_sel, "z")
+            phamin, phamax, phastep, npha = self.lim_vals(lc_sel, "phase")
 
             zv = np.linspace(zmin, zmax, nz)
             phav = np.linspace(phamin, phamax, npha)
 
-            print("Loading ", lcName, band, len(lc_sel), npha, nz)
+            print("Loading ", lc_name, band, len(lc_sel), npha, nz)
             index = np.lexsort((lc_sel["z"], lc_sel["phase"]))
             flux = np.reshape(lc_sel[index]["flux"], (npha, nz))
             fluxerr = np.reshape(lc_sel[index]["fluxerr"], (npha, nz))
@@ -560,7 +560,7 @@ class GetReference:
 
             # Flux derivatives
             self.param[band] = {}
-            for par in param_Fisher:
+            for par in param__fisher:
                 valpar = np.reshape(lc_sel[index]["d{}".format(par)], (npha, nz))
                 self.param[band][par] = RegularGridInterpolator(
                     (phav, zv),
@@ -572,16 +572,16 @@ class GetReference:
 
             # gamma estimator
 
-            rec = Table.read(gammaName, path="gamma_{}".format(band))
+            rec = Table.read(gamma_name, path="gamma_{}".format(band))
             self.zp = rec.meta["zp"]
             self.mean_wavelength = rec.meta["mean_wavelength"]
 
             rec["mag"] = rec["mag"].data.round(decimals=4)
             rec["single_exptime"] = rec["single_exptime"].data.round(decimals=4)
 
-            magmin, magmax, magstep, nmag = self.limVals(rec, "mag")
-            expmin, expmax, expstep, nexpo = self.limVals(rec, "single_exptime")
-            nexpmin, nexpmax, nexpstep, nnexp = self.limVals(rec, "nexp")
+            magmin, magmax, magstep, nmag = self.lim_vals(rec, "mag")
+            expmin, expmax, expstep, nexpo = self.lim_vals(rec, "single_exptime")
+            nexpmin, nexpmax, nexpstep, nnexp = self.lim_vals(rec, "nexp")
             mag = np.linspace(magmin, magmax, nmag)
             exp = np.linspace(expmin, expmax, nexpo)
             nexp = np.linspace(nexpmin, nexpmax, nnexp)
@@ -607,7 +607,7 @@ class GetReference:
                 fill_value=0.0,
             )
 
-    def limVals(self, lc, field):
+    def lim_vals(self, lc, field):
         """Get unique values of a field in  a table
 
         Parameters
@@ -639,7 +639,7 @@ class GetReference:
         return vmin, vmax, vstep, len(vals)
 
 
-class SN_Rate:
+class SnRate:
     """
     Estimate production rates of typeIa SN
     Available rates: Ripoche, Perrett, Dilday
@@ -659,10 +659,10 @@ class SN_Rate:
     """
 
     def __init__(
-        self, rate="Perrett", H0=70, Om0=0.25, min_rf_phase=-15.0, max_rf_phase=30.0
+        self, rate="Perrett", h0=70, om0=0.25, min_rf_phase=-15.0, max_rf_phase=30.0
     ):
 
-        self.astropy_cosmo = FlatLambdaCDM(H0=H0, Om0=Om0)
+        self.astropy_cosmo = FlatLambdaCDM(h0=h0, om0=om0)
         self.rate = rate
         self.min_rf_phase = min_rf_phase
         self.max_rf_phase = max_rf_phase
@@ -722,9 +722,9 @@ class SN_Rate:
             zz = bins
             thebins = bins
 
-        rate, err_rate = self.SNRate(zz)
+        rate, err_rate = self.sn_rate(zz)
 
-        area = survey_area / STERADIAN2SQDEG
+        area = survey_area / steradian2_sqdeg
         # or area= self.survey_area/41253.
 
         dvol = norm * self.astropy_cosmo.comoving_volume(thebins).value
@@ -747,7 +747,7 @@ class SN_Rate:
 
         return zz, rate, err_rate, nsn, err_nsn
 
-    def RipocheRate(self, z):
+    def ripoche_rate(self, z):
         """The SNLS SNIa rate according to the (unpublished) Ripoche et al study.
 
         Parameters
@@ -767,7 +767,7 @@ class SN_Rate:
         rate_sn = rate * np.power((1 + my_z) / 1.5, expn)
         return rate_sn, 0.2 * rate_sn
 
-    def PerrettRate(self, z):
+    def perrett_rate(self, z):
         """The SNLS SNIa rate according to (Perrett et al, 201?)
 
         Parameters
@@ -791,7 +791,7 @@ class SN_Rate:
 
         return rate_sn, np.power(err_rate_sn, 0.5)
 
-    def DildayRate(self, z):
+    def dilday_rate(self, z):
         """The Dilday rate according to
 
         Parameters
@@ -815,7 +815,7 @@ class SN_Rate:
         err_rate_sn = rate_sn * np.log(1 + my_z) * err_expn
         return rate_sn, err_rate_sn
 
-    def SNRate(self, z):
+    def sn_rate(self, z):
         """SN rate estimation
 
         Parameters
@@ -829,11 +829,11 @@ class SN_Rate:
         error_rate : `float`
         """
         if self.rate == "Ripoche":
-            return self.RipocheRate(z)
+            return self.ripoche_rate(z)
         if self.rate == "Perrett":
-            return self.PerrettRate(z)
+            return self.perrett_rate(z)
         if self.rate == "Dilday":
-            return self.DildayRate(z)
+            return self.dilday_rate(z)
 
 
 class CovColor:
@@ -849,9 +849,9 @@ class CovColor:
 
     def __init__(self, lc):
 
-        self.Cov_colorcolor = self.varColor(lc)
+        self.cov_colorcolor = self.var_color(lc)
 
-    def varColor(self, lc):
+    def var_color(self, lc):
         """
         Method to estimate the variance color from matrix element
 
@@ -884,10 +884,10 @@ class CovColor:
         d3 = c4
         d4 = lc["F_colorcolor"]
 
-        detM = a1 * self.det(b2, b3, b4, c2, c3, c4, d2, d3, d4)
-        detM -= b1 * self.det(a2, a3, a4, c2, c3, c4, d2, d3, d4)
-        detM += c1 * self.det(a2, a3, a4, b2, b3, b4, d2, d3, d4)
-        detM -= d1 * self.det(a2, a3, a4, b2, b3, b4, c2, c3, c4)
+        det_m = a1 * self.det(b2, b3, b4, c2, c3, c4, d2, d3, d4)
+        det_m -= b1 * self.det(a2, a3, a4, c2, c3, c4, d2, d3, d4)
+        det_m += c1 * self.det(a2, a3, a4, b2, b3, b4, d2, d3, d4)
+        det_m -= d1 * self.det(a2, a3, a4, b2, b3, b4, c2, c3, c4)
 
         res = (
             -a3 * b2 * c1
@@ -898,7 +898,7 @@ class CovColor:
             + a1 * b2 * c3
         )
 
-        return res / detM
+        return res / det_m
 
     def det(self, a1, a2, a3, b1, b2, b3, c1, c2, c3):
         """

@@ -27,7 +27,7 @@ class Lims:
 
     def __init__(
         self,
-        Li_files,
+        li_files,
         mag_to_flux_files,
         band,
         SNR,
@@ -42,7 +42,7 @@ class Lims:
         self.mag_range = mag_range
         self.dt_range = dt_range
 
-        for val in Li_files:
+        for val in li_files:
             self.lims.append(self.get_lims(self.band, np.load(val), SNR))
         for val in mag_to_flux_files:
             self.mag_to_flux.append(np.load(val))
@@ -96,7 +96,7 @@ class Lims:
         -----------
         m5 values
         time difference dt (cadence)
-        metric=sqrt(dt)*F5 where F5 is the 5-sigma flux
+        metric=sqrt(dt)*f5 where f5 is the 5-sigma flux
 
         """
         dt = np.linspace(self.dt_range[0], self.dt_range[1], 100)
@@ -104,23 +104,23 @@ class Lims:
         ida = mag_to_flux["band"] == self.band
         fa = interpolate.interp1d(mag_to_flux[ida]["m5"], mag_to_flux[ida]["flux_e"])
         f5 = fa(m5)
-        F5, DT = np.meshgrid(f5, dt)
-        M5, DT = np.meshgrid(m5, dt)
-        metric = np.sqrt(DT) * F5
+        f5, DT = np.meshgrid(f5, dt)
+        m5, DT = np.meshgrid(m5, dt)
+        metric = np.sqrt(DT) * f5
 
-        return M5, DT, metric
+        return m5, DT, metric
 
     def interp(self):
         """Estimate a grid of interpolated values in the plane (m5, cadence, metric)"""
 
-        M5_all = []
-        DT_all = []
+        m5_all = []
+        dt_all = []
         metric_all = []
 
         for val in self.mag_to_flux:
-            M5, DT, metric = self.mesh(val)
-            M5_all.append(M5)
-            DT_all.append(DT)
+            m5, DT, metric = self.mesh(val)
+            m5_all.append(m5)
+            dt_all.append(DT)
             metric_all.append(metric)
 
         sorted_keys = []
@@ -131,7 +131,7 @@ class Lims:
         for kk, lim in enumerate(self.lims):
             fmt = {}
             ll = [lim[zz][self.band] for zz in sorted_keys[kk]]
-            cs = axa.contour(M5_all[kk], DT_all[kk], metric_all[kk], ll)
+            cs = axa.contour(m5_all[kk], dt_all[kk], metric_all[kk], ll)
 
             points_values = None
             for io, col in enumerate(cs.collections):
@@ -202,24 +202,24 @@ class GenerateFakeObservations:
     def __init__(
         self,
         config,
-        mjdCol="observationStartMJD",
-        RaCol="fieldRA",
-        DecCol="fieldDec",
-        filterCol="filter",
-        m5Col="fiveSigmaDepth",
-        exptimeCol="visitExposureTime",
-        nexpCol="numExposures",
-        seasonCol="season",
+        mjd_col="observationStartMJD",
+        ra_col="fieldRA",
+        dec_col="fieldDec",
+        filter_col="filter",
+        m5_col="fiveSigmaDepth",
+        exptime_col="visitExposureTime",
+        nexp_col="numExposures",
+        season_col="season",
     ):
 
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
-        self.RaCol = RaCol
-        self.DecCol = DecCol
-        self.exptimeCol = exptimeCol
-        self.seasonCol = seasonCol
-        self.nexpCol = nexpCol
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        self.filter_col = filter_col
+        self.ra_col = ra_col
+        self.dec_col = dec_col
+        self.exptime_col = exptime_col
+        self.season_col = season_col
+        self.nexp_col = nexp_col
 
         # now make fake obs
         self.make_fake(config)
@@ -238,11 +238,11 @@ class GenerateFakeObservations:
             zip(bands, [config["shift_days"] * io for io in range(len(bands))])
         )
         m5 = dict(zip(bands, config["m5"]))
-        Nvisits = dict(zip(bands, config["Nvisits"]))
-        Exposure_Time = dict(zip(bands, config["Exposure_Time"]))
+        nvisits = dict(zip(bands, config["nvisits"]))
+        exposure__time = dict(zip(bands, config["exposure__time"]))
 
-        Ra = config["Ra"]
-        Dec = config["Dec"]
+        ra = config["ra"]
+        dec = config["dec"]
         rtot = []
         # for season in range(1, config['nseasons']+1):
         for il, season in enumerate(config["seasons"]):
@@ -253,40 +253,40 @@ class GenerateFakeObservations:
             for i, band in enumerate(bands):
                 mjd = np.arange(mjd_min, mjd_max + cadence[band], cadence[band])
                 mjd += shift_days[band]
-                m5_coadded = self.m5_coadd(m5[band], Nvisits[band], Exposure_Time[band])
-                myarr = np.array(mjd, dtype=[(self.mjdCol, "f8")])
+                m5_coadded = self.m5_coadd(m5[band], nvisits[band], exposure__time[band])
+                myarr = np.array(mjd, dtype=[(self.mjd_col, "f8")])
                 myarr = rf.append_fields(
                     myarr,
-                    [self.RaCol, self.DecCol, self.filterCol],
-                    [[Ra] * len(myarr), [Dec] * len(myarr), [band] * len(myarr)],
+                    [self.ra_col, self.dec_col, self.filter_col],
+                    [[ra] * len(myarr), [dec] * len(myarr), [band] * len(myarr)],
                 )
                 myarr = rf.append_fields(
                     myarr,
-                    [self.m5Col, self.nexpCol, self.exptimeCol, self.seasonCol],
+                    [self.m5_col, self.nexp_col, self.exptime_col, self.season_col],
                     [
                         [m5_coadded] * len(myarr),
-                        [Nvisits[band]] * len(myarr),
-                        [Nvisits[band] * Exposure_Time[band]] * len(myarr),
+                        [nvisits[band]] * len(myarr),
+                        [nvisits[band] * exposure__time[band]] * len(myarr),
                         [season] * len(myarr),
                     ],
                 )
                 rtot.append(myarr)
 
         res = np.copy(np.concatenate(rtot))
-        res.sort(order=self.mjdCol)
+        res.sort(order=self.mjd_col)
 
-        self.Observations = res
+        self.observations = res
 
-    def m5_coadd(self, m5, Nvisits, Tvisit):
+    def m5_coadd(self, m5, nvisits, tvisit):
         """Coadded m5 estimation
 
         Parameters
         ----------
         m5 : `list` [`float`]
            list of five-sigma depth values
-        Nvisits : `list` [`float`]
+        nvisits : `list` [`float`]
             list of the number of visits
-        Tvisit : `list` [`float`]
+        tvisit : `list` [`float`]
            list of the visit times
 
         Returns
@@ -294,7 +294,7 @@ class GenerateFakeObservations:
         m5_coadd : `list` [`float`]
             list of m5 coadded values
         """
-        m5_coadd = m5 + 1.25 * np.log10(float(Nvisits) * Tvisit / 30.0)
+        m5_coadd = m5 + 1.25 * np.log10(float(nvisits) * tvisit / 30.0)
         return m5_coadd
 
 
@@ -314,14 +314,14 @@ class ReferenceData:
         redshift considered
     """
 
-    def __init__(self, Li_files, mag_to_flux_files, band, z):
+    def __init__(self, li_files, mag_to_flux_files, band, z):
 
         self.band = band
         self.z = z
         self.fluxes = []
         self.mag_to_flux = []
 
-        for val in Li_files:
+        for val in li_files:
             self.fluxes.append(self.interp_fluxes(self.band, np.load(val), self.z))
         for val in mag_to_flux_files:
             self.mag_to_flux.append(self.interp_mag(self.band, np.load(val)))

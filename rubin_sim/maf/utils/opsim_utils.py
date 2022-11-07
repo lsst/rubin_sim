@@ -8,18 +8,18 @@ from sqlalchemy import create_engine, inspect
 from sqlalchemy.engine import make_url
 
 __all__ = [
-    "getSimData",
-    "scaleBenchmarks",
-    "calcCoaddedDepth",
+    "get_sim_data",
+    "scale_benchmarks",
+    "calc_coadded_depth",
 ]
 
 
-def getSimData(
+def get_sim_data(
     db_con,
     sqlconstraint,
     dbcols,
     stackers=None,
-    tableName=None,
+    table_name=None,
     full_sql_query=None,
 ):
     """Query an opsim database for the needed data columns and run any required stackers.
@@ -34,7 +34,7 @@ def getSimData(
         Columns required from the database. Ignored if full_sql_query is set.
     stackers : `list` [`rubin_sim.maf.stackers`], optional
         Stackers to be used to generate additional columns. Default None.
-    tableName : `str` (None)
+    table_name : `str` (None)
         Name of the table to query. Default None will try "observations" and "SummaryAllProps".
         Ignored if full_sql_query is set.
     full_sql_query : `str`
@@ -42,7 +42,7 @@ def getSimData(
 
     Returns
     -------
-    simData: `np.ndarray`
+    sim_data: `np.ndarray`
         A numpy structured array with columns resulting from dbcols + stackers, for observations matching
         the SQLconstraint.
     """
@@ -55,7 +55,7 @@ def getSimData(
             raise FileNotFoundError("No file %s" % db_con)
 
     # Check if table is "observations" or "SummaryAllProps"
-    if (tableName is None) & (full_sql_query is None) & (type(db_con) == str):
+    if (table_name is None) & (full_sql_query is None) & (type(db_con) == str):
         url = make_url("sqlite:///" + db_con)
         eng = create_engine(url)
         inspector = inspect(eng)
@@ -64,19 +64,19 @@ def getSimData(
             for schema in inspector.get_schema_names()
         ]
         if "observations" in tables[0]:
-            tableName = "observations"
+            table_name = "observations"
         elif "SummaryAllProps" in tables[0]:
-            tableName = "SummaryAllProps"
+            table_name = "SummaryAllProps"
         elif "summary" in tables[0]:
-            tableName = "summary"
+            table_name = "summary"
         else:
             ValueError(
-                "Could not guess tableName, set with tableName or full_sql_query kwargs"
+                "Could not guess table_name, set with table_name or full_sql_query kwargs"
             )
-    elif (tableName is None) & (full_sql_query is None):
-        # If someone passes in a connection object with an old tableName things will fail
+    elif (table_name is None) & (full_sql_query is None):
+        # If someone passes in a connection object with an old table_name things will fail
         # that's probably fine, keep people from getting fancy with old sims
-        tableName = "observations"
+        table_name = "observations"
 
     if type(db_con) == str:
         con = sqlite3.connect(db_con)
@@ -91,26 +91,26 @@ def getSimData(
 
         # Need to guess "observations" and "SummaryAllProps" for the table name
         # to be backwards compatible I guess
-        query = "SELECT %s FROM %s" % (col_str, tableName)
+        query = "SELECT %s FROM %s" % (col_str, table_name)
         if len(sqlconstraint) > 0:
             query += " WHERE %s" % (sqlconstraint)
         query += ";"
-        simData = pd.read_sql(query, con).to_records(index=False)
+        sim_data = pd.read_sql(query, con).to_records(index=False)
 
     else:
         query = full_sql_query
-        simData = pd.read_sql(query, con).to_records(index=False)
+        sim_data = pd.read_sql(query, con).to_records(index=False)
 
-    if len(simData) == 0:
+    if len(sim_data) == 0:
         raise UserWarning("No data found matching sqlconstraint %s" % (sqlconstraint))
     # Now add the stacker columns.
     if stackers is not None:
         for s in stackers:
-            simData = s.run(simData)
-    return simData
+            sim_data = s.run(sim_data)
+    return sim_data
 
 
-def scaleBenchmarks(runLength, benchmark="design"):
+def scale_benchmarks(run_length, benchmark="design"):
     """
     Set the design and stretch values of the number of visits, area of the footprint,
     seeing values, FWHMeff values, skybrightness, and single visit depth (based on SRD values).
@@ -118,7 +118,7 @@ def scaleBenchmarks(runLength, benchmark="design"):
 
     Parameters
     ----------
-    runLength : float
+    run_length : float
         The length (in years) of the run.
     benchmark : str
         design or stretch - which version of the SRD values to return.
@@ -210,8 +210,8 @@ def scaleBenchmarks(runLength, benchmark="design"):
     }
 
     # Scale the number of visits.
-    if runLength != baseline:
-        scalefactor = float(runLength) / float(baseline)
+    if run_length != baseline:
+        scalefactor = float(run_length) / float(baseline)
         # Calculate scaled value for design and stretch values of nvisits, per filter.
         for f in design["nvisits"]:
             design["nvisits"][f] = int(np.floor(design["nvisits"][f] * scalefactor))
@@ -227,7 +227,7 @@ def scaleBenchmarks(runLength, benchmark="design"):
         )
 
 
-def calcCoaddedDepth(nvisits, singleVisitDepth):
+def calc_coadded_depth(nvisits, single_visit_depth):
     """
     Calculate the coadded depth expected for a given number of visits and single visit depth.
 
@@ -235,7 +235,7 @@ def calcCoaddedDepth(nvisits, singleVisitDepth):
     ----------
     nvisits : dict of ints or floats
         Dictionary (per filter) of number of visits
-    singleVisitDepth : dict of floats
+    single_visit_depth : dict of floats
         Dictionary (per filter) of the single visit depth
 
     Returns
@@ -243,13 +243,13 @@ def calcCoaddedDepth(nvisits, singleVisitDepth):
     dict of floats
         Dictionary of coadded depths per filter.
     """
-    coaddedDepth = {}
+    coadded_depth = {}
     for f in nvisits:
-        if f not in singleVisitDepth:
-            raise ValueError("Filter keys in nvisits and singleVisitDepth must match")
-        coaddedDepth[f] = float(
-            1.25 * np.log10(nvisits[f] * 10 ** (0.8 * singleVisitDepth[f]))
+        if f not in single_visit_depth:
+            raise ValueError("Filter keys in nvisits and single_visit_depth must match")
+        coadded_depth[f] = float(
+            1.25 * np.log10(nvisits[f] * 10 ** (0.8 * single_visit_depth[f]))
         )
-        if not np.isfinite(coaddedDepth[f]):
-            coaddedDepth[f] = singleVisitDepth[f]
-    return coaddedDepth
+        if not np.isfinite(coadded_depth[f]):
+            coadded_depth[f] = single_visit_depth[f]
+    return coadded_depth

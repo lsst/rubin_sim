@@ -4,7 +4,7 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import healpy as hp
 import os
-from .kne_metrics import KN_lc
+from .kne_metrics import KnLc
 from itertools import combinations
 import pickle
 import warnings
@@ -13,7 +13,7 @@ from rubin_sim.phot_utils import DustValues
 from rubin_sim.data import get_data_dir
 
 
-__all__ = ["PrestoColorKNePopMetric", "generatePrestoPopSlicer"]
+__all__ = ["PrestoColorKNePopMetric", "generate_presto_pop_slicer"]
 
 
 def radec2gal(ra, dec):
@@ -29,8 +29,8 @@ def radec2gal(ra, dec):
 
 
 def _load_hash(
-    fileGalactic="TotalCubeNorm_1000Obj.pkl",
-    fileExtragalactic="TotalCubeNorm_1000Obj.pkl",
+    file_galactic="TotalCubeNorm_1000Obj.pkl",
+    file_extragalactic="TotalCubeNorm_1000Obj.pkl",
     skyregion="extragalactic",
 ):
     """Helper function to load large hash table without being a metric attribute.
@@ -54,18 +54,18 @@ def _load_hash(
 
     data_dir = get_data_dir()
     if skyregion == "galactic":
-        filePath = os.path.join(data_dir, "maf", fileGalactic)
+        file_path = os.path.join(data_dir, "maf", file_galactic)
     elif skyregion == "extragalactic":
-        filePath = os.path.join(data_dir, "maf", fileExtragalactic)
+        file_path = os.path.join(data_dir, "maf", file_extragalactic)
 
-    with open(filePath, "rb") as f:
+    with open(file_path, "rb") as f:
         _load_hash.InfoDict = pickle.load(f)
         _load_hash.HashTable = pickle.load(f)
     _load_hash.skyregion = skyregion
     return _load_hash.InfoDict, _load_hash.HashTable
 
 
-def generatePrestoPopSlicer(
+def generate_presto_pop_slicer(
     skyregion="galactic",
     t_start=1,
     t_end=3652,
@@ -142,14 +142,14 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
     def __init__(
         self,
         metric_name="KNePopMetric",
-        mjdCol="observationStartMJD",
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
-        nightCol="night",
-        ptsNeeded=2,
+        mjd_col="observationStartMJD",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        night_col="night",
+        pts_needed=2,
         file_list=None,
         mjd0=None,
-        outputLc=False,
+        output_lc=False,
         skyregion="galactic",
         thr=0.003,
         **kwargs
@@ -161,23 +161,23 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
             The skyregion of interst. Only two options: 'galactic' and 'extragalaxtic'
         """
         maps = ["DustMap"]
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
-        self.nightCol = nightCol
-        self.ptsNeeded = ptsNeeded  # detection points threshold
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        self.filter_col = filter_col
+        self.night_col = night_col
+        self.pts_needed = pts_needed  # detection points threshold
         # Boolean variable, if True the light curve will be exported
-        self.outputLc = outputLc
+        self.output_lc = output_lc
         self.thr = thr
         self.skyregion = skyregion
         # read in file as light curve object;
-        self.lightcurves = KN_lc(file_list=file_list)
+        self.lightcurves = KnLc(file_list=file_list)
         self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
 
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.ax1
+        self.ax1 = dust_properties.ax1
 
-        cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]
+        cols = [self.mjd_col, self.m5_col, self.filter_col, self.night_col]
         super(PrestoColorKNePopMetric, self).__init__(
             col=cols,
             units="Detected, 0 or 1",
@@ -192,7 +192,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         """
         result = 1
         # Detected data points
-        if np.size(around_peak) < self.ptsNeeded:
+        if np.size(around_peak) < self.pts_needed:
             return 0
 
         return result
@@ -225,62 +225,62 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
 
         return result
 
-    def _enquiry(self, HashTable, InfoDict, Band1, Band2, dT1, dT2, dMag, Color):
+    def _enquiry(self, hash_table, info_dict, band1, band2, d_t1, d_t2, d_mag, color):
         """
         Return the value in the probability cube provided the coordinates
-        in the Presto-Color phase space of an observation triplet.
+        in the Presto-color phase space of an observation triplet.
 
         Parameters
         ----------
-        HashTable : array
-            Contains the values of the 6-D Presto-Color phase space
-        InfoDict : dictionary
-            Contains the essential information of the HashTable abobe.
+        hash_table : array
+            Contains the values of the 6-D Presto-color phase space
+        info_dict : dictionary
+            Contains the essential information of the hash_table abobe.
 
-        HashTable and InfoDict have to be loaded from premade data Presto-Color data file.
+        hash_table and info_dict have to be loaded from premade data Presto-color data file.
 
-        Band1, Band2 : string
-            The two filters that comprise the Presto-Color observation triplet. The filters are
-            the 6 bands of LSST: u, g, r, i, z, y. Band1 and Band2 should be different.
+        band1, band2 : string
+            The two filters that comprise the Presto-color observation triplet. The filters are
+            the 6 bands of LSST: u, g, r, i, z, y. Band1 and band2 should be different.
 
-        dT1, dT2 : float
-            The time gaps of the Presto-Color observation triplet.
+        d_t1, d_t2 : float
+            The time gaps of the Presto-color observation triplet.
 
-        dMag : float
+        d_mag : float
             The magnitude change calculated from the observations of the same band
 
-        Color : float
+        color : float
             The difference in magnitude of observations in different bands.
 
         """
 
-        #         if abs(dT1) > abs(dT1-dT2):
-        #             dT1, dT2 = dT1-dT2, -dT2
+        #         if abs(d_t1) > abs(d_t1-d_t2):
+        #             d_t1, d_t2 = d_t1-d_t2, -d_t2
 
         if not (
-            InfoDict["BinMag"][0] <= dMag < InfoDict["BinMag"][-1]
-            and InfoDict["BinColor"][0] <= Color < InfoDict["BinColor"][-1]
+            info_dict["BinMag"][0] <= d_mag < info_dict["BinMag"][-1]
+            and info_dict["BinColor"][0] <= color < info_dict["BinColor"][-1]
         ):
             return 0
 
-        Ind1 = InfoDict["BandPairs"].index(Band1 + Band2)
+        ind1 = info_dict["BandPairs"].index(band1 + band2)
 
-        dT1grid = InfoDict["dT1s"][abs(dT1 - InfoDict["dT1s"]).argmin()]
-        dT2grid = InfoDict["dT2s"][abs(dT2 - InfoDict["dT2s"]).argmin()]
-        TimePairGrid = [
-            InfoDict["dT1s"][abs(dT1 - InfoDict["dT1s"]).argmin()],
-            InfoDict["dT2s"][abs(dT2 - InfoDict["dT2s"]).argmin()],
+        d_t1grid = info_dict["dT1s"][abs(d_t1 - info_dict["dT1s"]).argmin()]
+        d_t2grid = info_dict["dT2s"][abs(d_t2 - info_dict["dT2s"]).argmin()]
+        time_pair_grid = [
+            info_dict["dT1s"][abs(d_t1 - info_dict["dT1s"]).argmin()],
+            info_dict["dT2s"][abs(d_t2 - info_dict["dT2s"]).argmin()],
         ]
 
-        Ind2 = np.where((InfoDict["TimePairs"] == TimePairGrid).all(axis=1))[0][0]
-        Ind3 = np.where(dMag >= InfoDict["BinMag"])[0][-1]
-        Ind4 = np.where(Color >= InfoDict["BinColor"])[0][-1]
+        ind2 = np.where((info_dict["TimePairs"] == time_pair_grid).all(axis=1))[0][0]
+        ind3 = np.where(d_mag >= info_dict["BinMag"])[0][-1]
+        ind4 = np.where(color >= info_dict["BinColor"])[0][-1]
 
-        return HashTable[Ind1, Ind2, Ind3, Ind4]
+        return hash_table[ind1, ind2, ind3, ind4]
 
-    def _getScore(self, result, HashTable, InfoDict, thr):
+    def _get_score(self, result, hash_table, info_dict, thr):
         """
-        Get the score of a strategy from the Presto-Color perspective.
+        Get the score of a strategy from the Presto-color perspective.
 
         Parameters
         ----------
@@ -291,12 +291,12 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
             maglim: the limit of magnitude that can be detected by LSST, fiveSigmaDepth
             filter: the filter used for the observation
 
-        HashTable : array
-            Contains the values of the 6-D Presto-Color phase space
-        InfoDict : dictionary
-            Contains the essential information of the HashTable abobe.
+        hash_table : array
+            Contains the values of the 6-D Presto-color phase space
+        info_dict : dictionary
+            Contains the essential information of the hash_table abobe.
 
-        HashTable and InfoDict have to be loaded from premade data Presto-Color data file.
+        hash_table and info_dict have to be loaded from premade data Presto-color data file.
 
         scoreType : string
             Two types of scores were designed:
@@ -308,90 +308,90 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
 
         """
 
-        TimeLim1 = 8.125 / 24  # 8 h 7.5 min
-        TimeLim2 = 32.25 / 24  # 32 h 15 min
+        time_lim1 = 8.125 / 24  # 8 h 7.5 min
+        time_lim2 = 32.25 / 24  # 32 h 15 min
 
-        Detects = result[result.mag < result.maglim]
+        detects = result[result.mag < result.maglim]
 
         # reset index
-        Detects = Detects.reset_index(drop=True)
+        detects = detects.reset_index(drop=True)
 
-        Ts = Detects.t.values  # Times for valid detections
-        dTs = Ts.reshape(1, len(Ts)) - Ts.reshape(
-            len(Ts), 1
+        ts = detects.t.values  # Times for valid detections
+        d_ts = ts.reshape(1, len(ts)) - ts.reshape(
+            len(ts), 1
         )  # Find out the differences between each pair
 
-        dTindex0, dTindex1 = np.where(
-            abs(dTs) < TimeLim2
+        d_tindex0, d_tindex1 = np.where(
+            abs(d_ts) < time_lim2
         )  # The time differences should be within 32 hours (2 nights)
 
-        phaseSpaceCoords = []
+        phase_space_coords = []
 
         # loop through the rows of the matrix of valid time differences
-        for ii in range(dTs.shape[0]):
+        for ii in range(d_ts.shape[0]):
 
-            groupsOfThree = np.array(
+            groups_of_three = np.array(
                 [
                     [ii] + list(jj)
                     for jj in list(
-                        combinations(dTindex1[(dTindex0 == ii) * (dTindex1 > ii)], 2)
+                        combinations(d_tindex1[(d_tindex0 == ii) * (d_tindex1 > ii)], 2)
                     )
                 ]
             )
 
-            for indices in groupsOfThree:
+            for indices in groups_of_three:
 
-                Bands = Detects["filter"][indices].values
+                bands = detects["filter"][indices].values
 
-                # print('Bands: ', Bands)
-                if len(np.unique(Bands)) != 2:
+                # print('bands: ', bands)
+                if len(np.unique(bands)) != 2:
                     continue
 
-                # The band appears once will be Band2
-                occurence = np.array([np.count_nonzero(ii == Bands) for ii in Bands])
+                # The band appears once will be band2
+                occurence = np.array([np.count_nonzero(ii == bands) for ii in bands])
 
-                index2 = indices[occurence == 1][0]  # The index of observation in Band2
+                index2 = indices[occurence == 1][0]  # The index of observation in band2
                 index11 = indices[occurence == 2][
                     0
-                ]  # The index of the first observation in Band1
+                ]  # The index of the first observation in band1
                 index12 = indices[occurence == 2][
                     1
-                ]  # The index of the second observation in Band1
+                ]  # The index of the second observation in band1
 
                 if (
-                    abs(dTs[index12, index2]) < abs(dTs[index11, index2])
-                    and abs(dTs[index12, index2]) < TimeLim1
+                    abs(d_ts[index12, index2]) < abs(d_ts[index11, index2])
+                    and abs(d_ts[index12, index2]) < time_lim1
                 ):
                     index11, index12 = index12, index11
-                elif abs(dTs[index11, index2]) > TimeLim1:
+                elif abs(d_ts[index11, index2]) > time_lim1:
                     continue
 
-                dT1 = dTs[index11, index2]
-                dT2 = dTs[index11, index12]
+                d_t1 = d_ts[index11, index2]
+                d_t2 = d_ts[index11, index12]
 
-                Band1 = Bands[occurence == 2][0]
-                Band2 = Bands[occurence == 1][0]
+                band1 = bands[occurence == 2][0]
+                band2 = bands[occurence == 1][0]
 
-                if Band1 + Band2 == "uy" or Band1 + Band2 == "yu":
+                if band1 + band2 == "uy" or band1 + band2 == "yu":
                     continue
 
-                dMag = (Detects.mag[index11] - Detects.mag[index12]) * np.sign(dT2)
-                Color = Detects.mag[index11] - Detects.mag[index2]
+                d_mag = (detects.mag[index11] - detects.mag[index12]) * np.sign(d_t2)
+                color = detects.mag[index11] - detects.mag[index2]
 
-                phaseSpaceCoords.append([Band1, Band2, dT1, dT2, dMag, Color])
+                phase_space_coords.append([band1, band2, d_t1, d_t2, d_mag, color])
 
-        scoreS = 0
-        scoreP = [0]
+        score_s = 0
+        score_p = [0]
 
-        for phaseSpaceCoord in phaseSpaceCoords:
-            rate = self._enquiry(HashTable, InfoDict, *phaseSpaceCoord)
+        for phase_space_coord in phase_space_coords:
+            rate = self._enquiry(hash_table, info_dict, *phase_space_coord)
 
-            if scoreS == 0 and rate < thr:
-                scoreS = 1
+            if score_s == 0 and rate < thr:
+                score_s = 1
 
-            scoreP.append((1 - rate))
+            score_p.append((1 - rate))
 
-        return scoreS, max(scoreP)
+        return score_s, max(score_p)
 
     def _ztfrest_simple(
         self,
@@ -402,7 +402,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         min_dt=0.125,
         min_fade=0.3,
         max_rise=-1.0,
-        selectRed=False,
+        select_red=False,
     ):
         """
         Selection criteria based on rise or decay rate; simplified version of
@@ -424,7 +424,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
             fade rate threshold (positive, mag/day)
         max_rise : float
             rise rate threshold (negative, mag/day)
-        selectRed : bool
+        select_red : bool
             if True, only red 'izy' filters will be considered
         Examples
         ----------
@@ -437,7 +437,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         result = 1
 
         # Quick check on the number of detected points
-        if np.size(around_peak) < self.ptsNeeded:
+        if np.size(around_peak) < self.pts_needed:
             return 0
         # Quick check on the time gap between first and last detection
         elif np.max(t[around_peak]) - np.min(t[around_peak]) < min_dt:
@@ -447,7 +447,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
             fil = []
             # Check time gaps and rise or fade rate for each band
             for f in set(filters):
-                if selectRed is True and not (f in "izy"):
+                if select_red is True and not (f in "izy"):
                     continue
                 times_f = t[around_peak][np.where(filters == f)[0]]
                 mags_f = mags[around_peak][np.where(filters == f)[0]]
@@ -528,28 +528,28 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
 
         return result
 
-    def run(self, dataSlice, slicePoint=None):
-        dataSlice.sort(order=self.mjdCol)
+    def run(self, data_slice, slice_point=None):
+        data_slice.sort(order=self.mjd_col)
         result = {}
-        t = dataSlice[self.mjdCol] - self.mjd0 - slicePoint["peak_time"]
+        t = data_slice[self.mjd_col] - self.mjd0 - slice_point["peak_time"]
         mags = np.zeros(t.size, dtype=float)
 
-        for filtername in np.unique(dataSlice[self.filterCol]):
-            infilt = np.where(dataSlice[self.filterCol] == filtername)
+        for filtername in np.unique(data_slice[self.filter_col]):
+            infilt = np.where(data_slice[self.filter_col] == filtername)
             mags[infilt] = self.lightcurves.interp(
-                t[infilt], filtername, lc_indx=slicePoint["file_indx"]
+                t[infilt], filtername, lc_indx=slice_point["file_indx"]
             )
             # Apply dust extinction on the light curve
-            A_x = self.Ax1[filtername] * slicePoint["ebv"]
-            mags[infilt] += A_x
+            a_x = self.ax1[filtername] * slice_point["ebv"]
+            mags[infilt] += a_x
 
-            distmod = 5 * np.log10(slicePoint["distance"] * 1e6) - 5.0
+            distmod = 5 * np.log10(slice_point["distance"] * 1e6) - 5.0
             mags[infilt] += distmod
 
         # Find the detected points
-        around_peak = np.where((t > 0) & (t < 30) & (mags < dataSlice[self.m5Col]))[0]
+        around_peak = np.where((t > 0) & (t < 30) & (mags < data_slice[self.m5_col]))[0]
         # Filters in which the detections happened
-        filters = dataSlice[self.filterCol][around_peak]
+        filters = data_slice[self.filter_col][around_peak]
 
         # presto color
         result["presto_color_detect"] = self._presto_color_detect(around_peak, filters)
@@ -557,22 +557,22 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         # Export the light curve
         idx = np.where(mags < 100)[0]
         lc = {
-            "t": dataSlice[self.mjdCol][idx],
+            "t": data_slice[self.mjd_col][idx],
             "mag": mags[idx],
-            "maglim": dataSlice[self.m5Col][idx],
-            "filter": dataSlice[self.filterCol][idx],
+            "maglim": data_slice[self.m5_col][idx],
+            "filter": data_slice[self.filter_col][idx],
         }
 
-        if self.outputLc is True:
+        if self.output_lc is True:
             result["lc"] = lc
-            result["slicePoint"] = slicePoint
+            result["slice_point"] = slice_point
 
         if result["presto_color_detect"] == 1:
-            InfoDict, HashTable = _load_hash(skyregion=self.skyregion)
-            result["scoreS"], result["scoreP"] = self._getScore(
+            info_dict, hash_table = _load_hash(skyregion=self.skyregion)
+            result["scoreS"], result["scoreP"] = self._get_score(
                 pd.DataFrame(lc),
-                HashTable=HashTable,
-                InfoDict=InfoDict,
+                hash_table=hash_table,
+                info_dict=info_dict,
                 thr=self.thr,
             )
         else:
@@ -583,8 +583,8 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
     def reduce_presto_color_detect(self, metric):
         return metric["presto_color_detect"]
 
-    def reduce_scoreS(self, metric):
+    def reduce_score_s(self, metric):
         return metric["scoreS"]
 
-    def reduce_scoreP(self, metric):
+    def reduce_score_p(self, metric):
         return metric["scoreP"]

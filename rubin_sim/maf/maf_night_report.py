@@ -158,10 +158,10 @@ def maf_night_report():
         description="Python script to generate a report on a single night."
     )
     parser.add_argument(
-        "dbFile", type=str, default=None, help="full file path to the opsim sqlite file"
+        "db_file", type=str, default=None, help="full file path to the opsim sqlite file"
     )
     parser.add_argument(
-        "--outDir",
+        "--out_dir",
         type=str,
         default="./Out",
         help="Output directory for MAF outputs." + ' Default "Out"',

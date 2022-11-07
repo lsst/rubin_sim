@@ -15,8 +15,8 @@ twopi = 2.0 * np.pi
 class RelRmsMetric(BaseMetric):
     """Relative scatter metric (RMS over median)."""
 
-    def run(self, dataSlice, slicePoint=None):
-        return np.std(dataSlice[self.colname]) / np.median(dataSlice[self.colname])
+    def run(self, data_slice, slice_point=None):
+        return np.std(data_slice[self.colname]) / np.median(data_slice[self.colname])
 
 
 class SNMetric(BaseMetric):
@@ -27,29 +27,29 @@ class SNMetric(BaseMetric):
 
     def __init__(
         self,
-        m5Col="fiveSigmaDepth",
-        seeingCol="finSeeing",
-        skyBCol="filtSkyBrightness",
-        expTCol="visitExpTime",
-        filterCol="filter",
+        m5_col="fiveSigmaDepth",
+        seeing_col="finSeeing",
+        sky_b_col="filtSkyBrightness",
+        exp_t_col="visitExpTime",
+        filter_col="filter",
         metric_name="SNMetric",
         filter=None,
         mag=None,
         **kwargs
     ):
         super(SNMetric, self).__init__(
-            col=[m5Col, seeingCol, skyBCol, expTCol, filterCol],
+            col=[m5_col, seeing_col, sky_b_col, exp_t_col, filter_col],
             metric_name=metric_name,
             **kwargs
         )
         self.filter = filter
         self.mag = mag
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # print 'x'
-        npoints = len(dataSlice[self.seeingCol])
-        seeing = dataSlice[self.seeingCol]
-        depth5 = dataSlice[self.m5Col]
+        npoints = len(data_slice[self.seeingCol])
+        seeing = data_slice[self.seeingCol]
+        depth5 = data_slice[self.m5Col]
         # mag = depth5
         mag = self.mag
 
@@ -59,24 +59,24 @@ class SNMetric(BaseMetric):
 
         gain = 4.5
 
-        zptArr = np.zeros(npoints)
+        zpt_arr = np.zeros(npoints)
         for filt in "ugrizy":
-            zptArr[dataSlice[self.filterCol] == filt] = zpts[filt]
-        sky_mag_arcsec = dataSlice[self.skyBCol]
-        exptime = dataSlice[self.expTCol]
-        sky_adu = 10 ** (-(sky_mag_arcsec - zptArr) / 2.5) * exptime
+            zpt_arr[data_slice[self.filterCol] == filt] = zpts[filt]
+        sky_mag_arcsec = data_slice[self.skyBCol]
+        exptime = data_slice[self.expTCol]
+        sky_adu = 10 ** (-(sky_mag_arcsec - zpt_arr) / 2.5) * exptime
         sky_adu = sky_adu * np.pi * seeing**2  # adu per seeing circle
 
         source_fluxes = 10 ** (-mag / 2.5)
-        source_adu = 10 ** (-(mag - zptArr) / 2.5) * exptime
+        source_adu = 10 ** (-(mag - zpt_arr) / 2.5) * exptime
         err_adu = np.sqrt(source_adu + sky_adu) / np.sqrt(gain)
         err_fluxes = err_adu * (source_fluxes / source_adu)
 
-        ind = dataSlice[self.filterCol] == curfilt
+        ind = data_slice[self.filterCol] == curfilt
         flux0 = source_fluxes
         stack_flux_err = 1.0 / np.sqrt((1 / err_fluxes[ind] ** 2).sum())
-        errMag = 2.5 / np.log(10) * stack_flux_err / flux0
-        # return errMag
+        err_mag = 2.5 / np.log(10) * stack_flux_err / flux0
+        # return err_mag
         return flux0 / stack_flux_err
         # return (source_fluxes/err_fluxes).mean()
         # 1/0
@@ -89,18 +89,18 @@ class SEDSNMetric(BaseMetric):
 
     def __init__(
         self,
-        m5Col="fiveSigmaDepth",
-        seeingCol="finSeeing",
-        skyBCol="filtSkyBrightness",
-        expTCol="visitExpTime",
-        filterCol="filter",
+        m5_col="fiveSigmaDepth",
+        seeing_col="finSeeing",
+        sky_b_col="filtSkyBrightness",
+        exp_t_col="visitExpTime",
+        filter_col="filter",
         metric_name="SEDSNMetric",
         # filter=None,
         mags=None,
         **kwargs
     ):
         super(SEDSNMetric, self).__init__(
-            col=[m5Col, seeingCol, skyBCol, expTCol, filterCol],
+            col=[m5_col, seeing_col, sky_b_col, exp_t_col, filter_col],
             metric_name=metric_name,
             **kwargs
         )
@@ -111,23 +111,23 @@ class SEDSNMetric(BaseMetric):
         # self.filter = filter
         # self.mag = mag
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         res = {}
         for curf, curm in self.metrics.items():
-            curr = curm.run(dataSlice, slice_point=slicePoint)
+            curr = curm.run(data_slice, slice_point=slice_point)
             res["sn_" + curf] = curr
         return res
 
-    def reduceSn_g(self, metricValue):
-        # print 'x',metricValue['sn_g']
-        return metricValue["sn_g"]
+    def reduce_sn_g(self, metric_value):
+        # print 'x',metric_value['sn_g']
+        return metric_value["sn_g"]
 
-    def reduceSn_r(self, metricValue):
-        # print 'x',metricValue['sn_r']
-        return metricValue["sn_r"]
+    def reduce_sn_r(self, metric_value):
+        # print 'x',metric_value['sn_r']
+        return metric_value["sn_r"]
 
-    def reduceSn_i(self, metricValue):
-        return metricValue["sn_i"]
+    def reduce_sn_i(self, metric_value):
+        return metric_value["sn_i"]
 
 
 class ThreshSEDSNMetric(BaseMetric):
@@ -135,11 +135,11 @@ class ThreshSEDSNMetric(BaseMetric):
 
     def __init__(
         self,
-        m5Col="fiveSigmaDepth",
-        seeingCol="finSeeing",
-        skyBCol="filtSkyBrightness",
-        expTCol="visitExpTime",
-        filterCol="filter",
+        m5_col="fiveSigmaDepth",
+        seeing_col="finSeeing",
+        sky_b_col="filtSkyBrightness",
+        exp_t_col="visitExpTime",
+        filter_col="filter",
         metric_name="ThreshSEDSNMetric",
         snlim=20,
         # filter=None,
@@ -148,7 +148,7 @@ class ThreshSEDSNMetric(BaseMetric):
     ):
         """Instantiate metric."""
         super(ThreshSEDSNMetric, self).__init__(
-            col=[m5Col, seeingCol, skyBCol, expTCol, filterCol],
+            col=[m5_col, seeing_col, sky_b_col, exp_t_col, filter_col],
             metric_name=metric_name,
             **kwargs
         )
@@ -157,8 +157,8 @@ class ThreshSEDSNMetric(BaseMetric):
         # self.filter = filter
         # self.mag = mag
 
-    def run(self, dataSlice, slicePoint=None):
-        res = self.xmet.run(dataSlice, slicePoint=slicePoint)
+    def run(self, data_slice, slice_point=None):
+        res = self.xmet.run(data_slice, slice_point=slice_point)
         cnt = 0
         for k, v in res.items():
             if v > self.snlim:

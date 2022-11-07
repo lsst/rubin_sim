@@ -8,7 +8,7 @@ from subprocess import CalledProcessError
 import numpy as np
 from functools import wraps
 
-from rubin_sim.maf.utils import percentileClipping, optimalBins
+from rubin_sim.maf.utils import percentile_clipping, optimal_bins
 from rubin_sim.maf.stackers import ColInfo
 from .base_slicer import BaseSlicer
 
@@ -22,12 +22,12 @@ class MovieSlicer(BaseSlicer):
         slice_col_units=None,
         bins=None,
         bin_min=None,
-        binMax=None,
+        bin_max=None,
         binsize=None,
         verbose=True,
         badval=0,
         cumulative=True,
-        forceNoFfmpeg=False,
+        force_no_ffmpeg=False,
     ):
         """
         The 'movieSlicer' acts similarly to the OneDSlicer (slices on one data column).
@@ -48,24 +48,24 @@ class MovieSlicer(BaseSlicer):
 
         The movieSlicer stitches individual frames together into a movie using ffmpeg. Thus, on
         instantiation it checks that ffmpeg is available and will raise and exception if not.
-        This behavior can be overriden using forceNoFfmpeg = True (in order to create a movie later perhaps).
+        This behavior can be overriden using force_no_ffmpeg = True (in order to create a movie later perhaps).
         """
         # Check for ffmpeg.
-        if not forceNoFfmpeg:
+        if not force_no_ffmpeg:
             try:
                 fnull = open(os.devnull, "w")
                 subprocess.check_call(["which", "ffmpeg"], stdout=fnull)
             except CalledProcessError:
                 raise Exception(
                     "Could not find ffmpeg on the system, so will not be able to create movie."
-                    " Use forceNoFfmpeg=True to override this error and create individual images."
+                    " Use force_no_ffmpeg=True to override this error and create individual images."
                 )
         super().__init__(verbose=verbose, badval=badval)
         self.slice_col_name = slice_col_name
         self.columns_needed = [slice_col_name]
         self.bins = bins
         self.bin_min = bin_min
-        self.binMax = binMax
+        self.bin_max = bin_max
         self.binsize = binsize
         self.cumulative = cumulative
         if slice_col_units is None:
@@ -87,18 +87,18 @@ class MovieSlicer(BaseSlicer):
         # Set bin min/max values.
         if self.bin_min is None:
             self.bin_min = sliceCol.min()
-        if self.binMax is None:
-            self.binMax = sliceCol.max()
-        # Give warning if bin_min = binMax, and do something at least slightly reasonable.
-        if self.bin_min == self.binMax:
+        if self.bin_max is None:
+            self.bin_max = sliceCol.max()
+        # Give warning if bin_min = bin_max, and do something at least slightly reasonable.
+        if self.bin_min == self.bin_max:
             warnings.warn(
-                "bin_min = binMax (maybe your data is single-valued?). "
-                "Increasing binMax by 1 (or 2*binsize, if binsize set)."
+                "bin_min = bin_max (maybe your data is single-valued?). "
+                "Increasing bin_max by 1 (or 2*binsize, if binsize set)."
             )
             if self.binsize is not None:
-                self.binMax = self.binMax + 2 * self.binsize
+                self.bin_max = self.bin_max + 2 * self.binsize
             else:
-                self.binMax = self.binMax + 1
+                self.bin_max = self.bin_max + 1
         # Set bins.
         # Using binsize.
         if self.binsize is not None:
@@ -109,7 +109,7 @@ class MovieSlicer(BaseSlicer):
                 )
             self.bins = np.arange(
                 self.bin_min,
-                self.binMax + self.binsize / 2.0,
+                self.bin_max + self.binsize / 2.0,
                 float(self.binsize),
                 "float",
             )
@@ -121,11 +121,11 @@ class MovieSlicer(BaseSlicer):
             # Or bins was a single value.
             else:
                 if self.bins is None:
-                    self.bins = optimalBins(sliceCol, self.bin_min, self.binMax)
+                    self.bins = optimal_bins(sliceCol, self.bin_min, self.bin_max)
                 nbins = int(self.bins)
-                self.binsize = (self.binMax - self.bin_min) / float(nbins)
+                self.binsize = (self.bin_max - self.bin_min) / float(nbins)
                 self.bins = np.arange(
-                    self.bin_min, self.binMax + self.binsize / 2.0, self.binsize, "float"
+                    self.bin_min, self.bin_max + self.binsize / 2.0, self.binsize, "float"
                 )
         # Set nbins to be one less than # of bins because last binvalue is RH edge only
         self.nslice = len(self.bins) - 1
@@ -201,22 +201,22 @@ class MovieSlicer(BaseSlicer):
         else:
             return False
 
-    def makeMovie(
+    def make_movie(
         self,
         outfileroot,
         sliceformat,
-        plotType,
+        plot_type,
         figformat,
-        outDir="Output",
+        out_dir="Output",
         ips=10.0,
         fps=10.0,
     ):
         """
         Takes in metric and slicer metadata and calls ffmpeg to stitch together output files.
         """
-        if not os.path.isdir(outDir):
+        if not os.path.isdir(out_dir):
             raise Exception(
-                "Cannot find output directory %s with movie input files." % (outDir)
+                "Cannot find output directory %s with movie input files." % (out_dir)
             )
         # make video
         # ffmpeg -r 30 -i [image names - FilterColors_%03d_SkyMap.png] -r 30
@@ -227,7 +227,7 @@ class MovieSlicer(BaseSlicer):
             str(ips),
             "-i",
             os.path.join(
-                outDir, "%s_%s_%s.%s" % (outfileroot, sliceformat, plotType, figformat)
+                out_dir, "%s_%s_%s.%s" % (outfileroot, sliceformat, plot_type, figformat)
             ),
             "-vf",
             "pad=ceil(iw/2)*2:ceil(ih/2)*2",
@@ -240,7 +240,7 @@ class MovieSlicer(BaseSlicer):
             "-preset",
             "slower",
             os.path.join(
-                outDir, "%s_%s_%s_%s.mp4" % (outfileroot, plotType, str(ips), str(fps))
+                out_dir, "%s_%s_%s_%s.mp4" % (outfileroot, plot_type, str(ips), str(fps))
             ),
         ]
         print("Attempting to call ffmpeg with:")
@@ -251,7 +251,7 @@ class MovieSlicer(BaseSlicer):
             "ffmpeg",
             "-i",
             os.path.join(
-                outDir, "%s_%s_%s_%s.mp4" % (outfileroot, plotType, str(ips), str(fps))
+                out_dir, "%s_%s_%s_%s.mp4" % (outfileroot, plot_type, str(ips), str(fps))
             ),
             "-vf",
             "pad=ceil(iw/2)*2:ceil(ih/2)*2",
@@ -260,7 +260,7 @@ class MovieSlicer(BaseSlicer):
             "-r",
             str(10),
             os.path.join(
-                outDir, "%s_%s_%s_%s.gif" % (outfileroot, plotType, str(ips), str(fps))
+                out_dir, "%s_%s_%s_%s.gif" % (outfileroot, plot_type, str(ips), str(fps))
             ),
         ]
         print("converting to animated gif with:")

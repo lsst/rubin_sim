@@ -21,46 +21,46 @@ __all__ = ["IntervalsBetweenObsMetric"]
 class IntervalsBetweenObsMetric(BaseMetric):
     def __init__(
         self,
-        SurveyIntervals,
-        Stat,
+        survey_intervals,
+        stat,
         metric_name="IntervalsBetweenObsMetric",
-        TimeCol="observationStartMJD",
+        time_col="observationStartMJD",
         **kwargs
     ):
 
-        self.TimeCol = TimeCol
+        self.time_col = time_col
         self.metric_name = metric_name
-        self.SurveyIntervals = SurveyIntervals
-        self.Stat = Stat
+        self.survey_intervals = survey_intervals
+        self.stat = stat
         super(IntervalsBetweenObsMetric, self).__init__(
-            col=TimeCol, metric_name=metric_name, **kwargs
+            col=time_col, metric_name=metric_name, **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
 
-        dataSlice.sort(order=self.TimeCol)
+        data_slice.sort(order=self.time_col)
         obs_diff = []
 
-        for interval in self.SurveyIntervals:
+        for interval in self.survey_intervals:
 
             start_interval = Time(interval[0] + " 00:00:00")
             end_interval = Time(interval[1] + " 00:00:00")
-            index = dataSlice[self.TimeCol][
+            index = data_slice[self.time_col][
                 np.where(
-                    (dataSlice[self.TimeCol] > start_interval.mjd)
-                    & (dataSlice[self.TimeCol] < end_interval.mjd)
+                    (data_slice[self.time_col] > start_interval.mjd)
+                    & (data_slice[self.time_col] < end_interval.mjd)
                 )[0]
             ]
             obs_diff_per_interval = np.diff(index)
             obs_diff = obs_diff + obs_diff_per_interval.tolist()
 
-        if self.Stat == "mean":
+        if self.stat == "mean":
             result = np.mean(obs_diff)
 
-        elif self.Stat == "median":
+        elif self.stat == "median":
             result = np.median(obs_diff)
 
-        elif self.Stat == "std":
+        elif self.stat == "std":
             result = np.std(obs_diff)
 
         return result

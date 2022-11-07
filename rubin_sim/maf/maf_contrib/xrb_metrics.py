@@ -7,16 +7,16 @@ from rubin_sim.phot_utils import DustValues
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import m52snr
 
-__all__ = ["xrb_lc", "XRBPopMetric", "generateXRBPopSlicer"]
+__all__ = ["XrbLc", "XRBPopMetric", "generate_xrb_pop_slicer"]
 
 
-class xrb_lc(object):
+class XrbLc(object):
     """Synthesize XRB outburst lightcurves."""
 
     def __init__(self, seed=42):
 
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.ax1
+        self.ax1 = dust_properties.ax1
 
         self.rng = np.random.default_rng(seed)
 
@@ -42,7 +42,7 @@ class xrb_lc(object):
         # Derive random orbital periods from the sample in Casares 18 Table 4
         # Since there are significant outliers from a single Gaussian sample,
         # take random choices with replacement and then perturb them fractionally
-        catalog_Porb = np.array(
+        catalog__porb = np.array(
             [
                 33.85,
                 6.4713,
@@ -64,12 +64,12 @@ class xrb_lc(object):
             ]
         )
 
-        sample_Porbs = self.rng.choice(catalog_Porb, size=size)
-        sample_Porbs *= self.rng.uniform(low=0.5, high=1.5, size=size)
+        sample__porbs = self.rng.choice(catalog__porb, size=size)
+        sample__porbs *= self.rng.uniform(low=0.5, high=1.5, size=size)
 
         # lmxb_abs_mag_r = 4.6 # johnson+18
         # Casares 18
-        lmxb_abs_mags_r = 4.64 - 3.69 * np.log10(sample_Porbs)
+        lmxb_abs_mags_r = 4.64 - 3.69 * np.log10(sample__porbs)
 
         return [
             {
@@ -81,7 +81,7 @@ class xrb_lc(object):
                 "y": lmxb_abs_mag_r + 2.36,
             }
             for lmxb_abs_mag_r in lmxb_abs_mags_r
-        ], sample_Porbs
+        ], sample__porbs
 
     def outburst_params(self, size=1):
         """Return a parameters at random characterizing the outburst.
@@ -115,7 +115,7 @@ class xrb_lc(object):
 
         duration = (tau_rise + tau_decay) + np.log(amplitude)
 
-        abs_mags, Porbs = self.lmxb_abs_mags(size=size)
+        abs_mags, porbs = self.lmxb_abs_mags(size=size)
 
         return [
             {
@@ -127,7 +127,7 @@ class xrb_lc(object):
                 "orbital_period": Porb,
             }
             for (tr, td, amp, dur, abs_mag, Porb) in zip(
-                tau_rise, tau_decay, amplitude, duration, abs_mags, Porbs
+                tau_rise, tau_decay, amplitude, duration, abs_mags, porbs
             )
         ]
 
@@ -204,7 +204,7 @@ class xrb_lc(object):
         Parameters
         ----------
         params : `dict`
-            lightcurve parameters for xrb_lc
+            lightcurve parameters for XrbLc
         ebv : `float`
             E(B-V)
         distance : `float`
@@ -237,8 +237,8 @@ class xrb_lc(object):
             mags = self.lightcurve(t, filtername, params)
 
             # Apply dust extinction on the light curve
-            A_x = self.Ax1[filtername] * ebv
-            mags += A_x
+            a_x = self.ax1[filtername] * ebv
+            mags += a_x
             distmod = 5 * np.log10(distance * 1.0e3) - 5.0
             mags += distmod
 
@@ -262,32 +262,32 @@ class XRBPopMetric(BaseMetric):
     def __init__(
         self,
         metric_name="XRBPopMetric",
-        mjdCol="observationStartMJD",
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
-        nightCol="night",
-        ptsNeeded=2,
+        mjd_col="observationStartMJD",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        night_col="night",
+        pts_needed=2,
         mjd0=None,
-        outputLc=False,
+        output_lc=False,
         badval=-666,
         **kwargs,
     ):
         # maps = ["DustMap"]
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
-        self.nightCol = nightCol
-        self.ptsNeeded = ptsNeeded
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        self.filter_col = filter_col
+        self.night_col = night_col
+        self.pts_needed = pts_needed
         # `bool` variable, if True the light curve will be exported
-        self.outputLc = outputLc
+        self.output_lc = output_lc
 
-        self.lightcurves = xrb_lc()
+        self.lightcurves = XrbLc()
         self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
 
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.ax1
+        self.ax1 = dust_properties.ax1
 
-        cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]
+        cols = [self.mjd_col, self.m5_col, self.filter_col, self.night_col]
         super(XRBPopMetric, self).__init__(
             col=cols,
             units="Detected, 0 or 1",
@@ -301,7 +301,7 @@ class XRBPopMetric(BaseMetric):
     def _ever_detect(self, where_detected):
         """Simple detection criteria: detect at least a certain number of times"""
         # Detected data points
-        return np.size(where_detected) >= self.ptsNeeded
+        return np.size(where_detected) >= self.pts_needed
 
     def _number_of_detections(self, where_detected):
         """Count total number of detections."""
@@ -361,31 +361,31 @@ class XRBPopMetric(BaseMetric):
 
         return ~np.isnan(visible_duration)
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         result = {}
-        t = dataSlice[self.mjdCol] - self.mjd0 - slicePoint["start_time"]
+        t = data_slice[self.mjd_col] - self.mjd0 - slice_point["start_time"]
         mags = np.zeros(t.size, dtype=float)
 
-        for filtername in np.unique(dataSlice[self.filterCol]):
-            infilt = np.where(dataSlice[self.filterCol] == filtername)
+        for filtername in np.unique(data_slice[self.filter_col]):
+            infilt = np.where(data_slice[self.filter_col] == filtername)
             mags[infilt] = self.lightcurves.lightcurve(
-                t[infilt], filtername, slicePoint["outburst_params"]
+                t[infilt], filtername, slice_point["outburst_params"]
             )
             # Apply dust extinction on the light curve
-            A_x = self.Ax1[filtername] * slicePoint["ebv"]
-            mags[infilt] += A_x
+            a_x = self.ax1[filtername] * slice_point["ebv"]
+            mags[infilt] += a_x
 
-            distmod = 5 * np.log10(slicePoint["distance"] * 1.0e3) - 5.0
+            distmod = 5 * np.log10(slice_point["distance"] * 1.0e3) - 5.0
             mags[infilt] += distmod
 
         # Find the detected points
-        where_detected = np.where((mags < dataSlice[self.m5Col]))[0]
+        where_detected = np.where((mags < data_slice[self.m5_col]))[0]
         # Magnitude uncertainties with Gaussian approximation
-        snr = m52snr(mags, dataSlice[self.m5Col])
+        snr = m52snr(mags, data_slice[self.m5_col])
         mags_unc = 2.5 * np.log10(1.0 + 1.0 / snr)
 
         result["possible_to_detect"] = self._possible_to_detect(
-            slicePoint["visible_duration"]
+            slice_point["visible_duration"]
         )
         result["ever_detect"] = self._ever_detect(where_detected)
         result["early_detect"] = self._early_detect(where_detected, t)
@@ -394,24 +394,24 @@ class XRBPopMetric(BaseMetric):
         if result["number_of_detections"] > 1:
             result["mean_time_between_detections"] = self._mean_time_between_detections(
                 [
-                    slicePoint["visible_start_time"],
+                    slice_point["visible_start_time"],
                     *t[where_detected].tolist(),
-                    slicePoint["visible_end_time"],
+                    slice_point["visible_end_time"],
                 ]
             )
         else:
             result["mean_time_between_detections"] = -999
 
         # Export the light curve
-        if self.outputLc is True:
-            wdet = mags < dataSlice[self.m5Col]
+        if self.output_lc is True:
+            wdet = mags < data_slice[self.m5_col]
             mags[~wdet] = 99.0
             result["lc"] = [
-                dataSlice[self.mjdCol],
+                data_slice[self.mjd_col],
                 mags,
                 mags_unc,
-                dataSlice[self.m5Col],
-                dataSlice[self.filterCol],
+                data_slice[self.m5_col],
+                data_slice[self.filter_col],
             ]
             result["lc_colnames"] = ("t", "mag", "mag_unc", "maglim", "filter")
 
@@ -437,7 +437,7 @@ class XRBPopMetric(BaseMetric):
             return tt
 
 
-def generateXRBPopSlicer(t_start=1, t_end=3652, n_events=10000, seed=42):
+def generate_xrb_pop_slicer(t_start=1, t_end=3652, n_events=10000, seed=42):
     """Generate a population of XRB events, and put the info about them
     into a UserPointSlicer object
 
@@ -462,7 +462,7 @@ def generateXRBPopSlicer(t_start=1, t_end=3652, n_events=10000, seed=42):
 
     nsamples, nfields = xrb_sample.shape
 
-    xrb_lc_gen = xrb_lc()
+    xrb_lc_gen = XrbLc()
 
     # select a random subsample
     event_idxs = rng.choice(np.arange(nsamples), size=n_events, replace=True)

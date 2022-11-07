@@ -41,6 +41,6 @@ def glance_dir():
         )
         group.run_all(clear_memory=True, plot_now=True)
         results_db.close()
-        db.addRunToDatabase(
+        db.add_run_to_database(
             name + "_glance", "trackingDb_sqlite.db", None, name, "", "", name + ".db"
         )

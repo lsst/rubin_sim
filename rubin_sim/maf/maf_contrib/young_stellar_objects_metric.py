@@ -14,7 +14,7 @@ from rubin_sim.maf.maps import DustMap3D
 __all__ = ["NYoungStarsMetric"]
 
 
-class star_density(object):
+class StarDensity(object):
     """integrate from zero to some max distance, then multiply by angular area
     Parameters
     ----------
@@ -27,7 +27,7 @@ class star_density(object):
     def __init__(self, gall, galb):
         """Calculate the expected number of stars along a line of site"""
         self.r_thin = 2.6  # scale length of the thin disk, kpc
-        self.D_gc = 8.178  # Distance to the galactic center, kpc
+        self.d_gc = 8.178  # Distance to the galactic center, kpc
         self.h_thin = 0.300  # scale height of the thin disk, kpc
 
         self.gall = gall
@@ -42,12 +42,12 @@ class star_density(object):
         r : float
             Distance in kpc
         """
-        R_galac = (
-            (self.D_gc - r * np.cos(self.gall)) ** 2 + (r * np.sin(self.gall)) ** 2
+        r_galac = (
+            (self.d_gc - r * np.cos(self.gall)) ** 2 + (r * np.sin(self.gall)) ** 2
         ) ** 0.5
 
         exponent = (
-            -1.0 * r * np.abs(np.sin(self.galb)) / self.h_thin - R_galac / self.r_thin
+            -1.0 * r * np.abs(np.sin(self.galb)) / self.h_thin - r_galac / self.r_thin
         )
 
         result = self.A * r**2 * np.exp(exponent)
@@ -60,9 +60,9 @@ class NYoungStarsMetric(BaseMetric):
     ----------
     metric_name : str, opt
         Default 'young_stars'.
-    m5Col : str, opt
+    m5_col : str, opt
         The default column name for m5 information in the input data. Default fiveSigmaDepth.
-    filterCol : str, opt
+    filter_col : str, opt
         The column name for the filter information. Default filter.
     mags : dict
         The absolute magnitude of the object in question. Keys of filter name, values in mags.
@@ -83,8 +83,8 @@ class NYoungStarsMetric(BaseMetric):
     def __init__(
         self,
         metric_name="young_stars",
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
         badval=0,
         mags={"g": 10.32, "r": 9.28, "i": 7.97},
         galb_limit=90.0,
@@ -92,8 +92,8 @@ class NYoungStarsMetric(BaseMetric):
         nside=64,
         **kwargs
     ):
-        Cols = [m5Col, filterCol, "seeingFwhmGeom"]
-        maps = ["DustMap3D", "StellarDensityMap"]
+        cols = [m5_col, filter_col]
+        maps = ["DustMap3D"]
         # This will give us access to the dust map get_distance_at_dmag routine
         # but does not require loading another copy of the map
         self.ebvmap = DustMap3D()
@@ -103,10 +103,10 @@ class NYoungStarsMetric(BaseMetric):
             Cols, metric_name=metric_name, maps=maps, units=units, badval=badval, **kwargs
         )
         # Save R_x values for on-the-fly calculation of dust extinction with map
-        self.R_x = DustValues().r_x.copy()
+        self.r_x = DustValues().r_x.copy()
         # set return type
-        self.m5Col = m5Col
-        self.filterCol = filterCol
+        self.m5_col = m5_col
+        self.filter_col = filter_col
         self.galb_limit = np.radians(galb_limit)
         self.mags = mags
         self.filters = list(self.mags.keys())
@@ -115,15 +115,15 @@ class NYoungStarsMetric(BaseMetric):
             f: CrowdingM5Metric(crowding_error=0.25, filtername=f) for f in self.filters
         }
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
 
         # Is there another way to calculate sky_area, for non-healpix slicers?
-        sky_area = hp.nside2pixarea(slicePoint["nside"], degrees=False)
+        sky_area = hp.nside2pixarea(slice_point["nside"], degrees=False)
 
         # if we are outside the galb_limit, return nothing
         # Note we could make this a more comlicated function that returns an expected density of
         # star forming regions
-        if np.abs(slicePoint["galb"]) > self.galb_limit:
+        if np.abs(slice_point["galb"]) > self.galb_limit:
             return self.badval
 
         # Compute depth for each filter
@@ -131,7 +131,7 @@ class NYoungStarsMetric(BaseMetric):
         # ignore the divide by zero warnings
         with np.errstate(divide="ignore"):
             for filtername in self.filters:
-                in_filt = np.where(dataSlice[self.filterCol] == filtername)[0]
+                in_filt = np.where(data_slice[self.filter_col] == filtername)[0]
                 # Calculate coadded depth per filter
                 depth_m5 = 1.25 * np.log10(
                     np.sum(10.0 ** (0.8 * dataSlice[self.m5Col][in_filt]))
@@ -147,8 +147,8 @@ class NYoungStarsMetric(BaseMetric):
             m_app += depths[filtername]
             dist_dmag = self.ebvmap.distance_at_dmag(
                 dmag=m_app - self.mags[filtername],
-                dists=slicePoint["ebv3d_dists"],
-                ebvs=slicePoint["ebv3d_ebvs"],
+                dists=slice_point["ebv3d_dists"],
+                ebvs=slice_point["ebv3d_ebvs"],
                 filtername=filtername,
             )
             distances.append(dist_dmag)
@@ -157,7 +157,7 @@ class NYoungStarsMetric(BaseMetric):
         # print(final_distance)
 
         # Resorting to numerical integration of ugly function
-        sd = star_density(slicePoint["gall"], slicePoint["galb"])
+        sd = StarDensity(slice_point["gall"], slice_point["galb"])
         stars_per_sterr, _err = integrate.quad(sd, 0, final_distance)
         stars_tot = stars_per_sterr * sky_area
 

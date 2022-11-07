@@ -7,15 +7,15 @@ __all__ = ["NightPointingPlotter"]
 
 
 class NightPointingPlotter(BasePlotter):
-    def __init__(self, mjdCol="observationStartMJD", altCol="alt", azCol="az"):
+    def __init__(self, mjd_col="observationStartMJD", alt_col="alt", az_col="az"):
 
         # Just call it Hourglass so it gets treated the same way
-        self.plotType = "Hourglass"
-        self.mjdCol = mjdCol
-        self.altCol = altCol
-        self.azCol = azCol
-        self.objectPlotter = True
-        self.defaultPlotDict = {
+        self.plot_type = "Hourglass"
+        self.mjd_col = mjd_col
+        self.alt_col = alt_col
+        self.az_col = az_col
+        self.object_plotter = True
+        self.default_plot_dict = {
             "title": None,
             "xlabel": "MJD",
             "ylabels": ["Alt", "Az"],
@@ -29,25 +29,25 @@ class NightPointingPlotter(BasePlotter):
             "y": "red",
         }
 
-    def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
 
         fig, (ax1, ax2) = plt.subplots(2, sharex=True)
-        mv = metricValue[0]
+        mv = metric_value[0]
 
         u_filters = np.unique(mv["dataSlice"]["filter"])
         for filt in u_filters:
             good = np.where(mv["dataSlice"]["filter"] == filt)
             ax1.plot(
-                mv["dataSlice"][self.mjdCol][good],
-                mv["dataSlice"][self.altCol][good],
+                mv["dataSlice"][self.mjd_col][good],
+                mv["dataSlice"][self.alt_col][good],
                 "o",
                 color=self.filter2color[filt],
                 markersize=5,
                 alpha=0.5,
             )
             ax2.plot(
-                mv["dataSlice"][self.mjdCol][good],
-                mv["dataSlice"][self.azCol][good],
+                mv["dataSlice"][self.mjd_col][good],
+                mv["dataSlice"][self.az_col][good],
                 "o",
                 color=self.filter2color[filt],
                 markersize=5,

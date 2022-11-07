@@ -73,9 +73,9 @@ class GeneralHourglassPlot(BasePlotter):
         solar_time=True,
         marked_ra=None,
     ):
-        self.plotType = "GeneralizedHourglass"
-        self.objectPlotter = False  # pylint: disable=invalid-name
-        self.defaultPlotDict = {
+        self.plot_type = "GeneralizedHourglass"
+        self.object_plotter = False  # pylint: disable=invalid-name
+        self.default_plot_dict = {
             "title": None,
             "xlabel": "Hours after midnight",
             "ylabel": "MJD",
@@ -89,7 +89,7 @@ class GeneralHourglassPlot(BasePlotter):
             "legend_bbox_to_anchor": (0.9, 0.0),
             "legend_loc": "lower right",
         }
-        self.plotDict = copy.copy(self.defaultPlotDict)  # pylint: disable=invalid-name
+        self.plot_dict = copy.copy(self.default_plot_dict)  # pylint: disable=invalid-name
         self.tz = tz  # pylint: disable=invalid-name
         if isinstance(site, str):
             self.site = astropy.coordinates.EarthLocation.of_site(site)
@@ -112,9 +112,9 @@ class GeneralHourglassPlot(BasePlotter):
         # to be able to call it independently of the actually plotting,
         # so that when we plot grids of axes on the same figure
         # we don't have overlaps and repeats.
-        ax.set_title(self.plotDict["title"])
-        ax.set_xlabel(self.plotDict["xlabel"])
-        ax.set_ylabel(self.plotDict["ylabel"])
+        ax.set_title(self.plot_dict["title"])
+        ax.set_xlabel(self.plot_dict["xlabel"])
+        ax.set_ylabel(self.plot_dict["ylabel"])
 
     def _plot(self, fig, intervals):
         """Create axes for the data and add the data itself.
@@ -156,7 +156,7 @@ class GeneralHourglassPlot(BasePlotter):
 
         ax = fig.add_axes([0, 0, 1, 1])  # pylint: disable=invalid-name
         color_mappable = self._plot_one_axis(intervals, ax)
-        self._add_axis_labels(ax, self.plotDict)
+        self._add_axis_labels(ax, self.plot_dict)
         return [color_mappable, np.array([ax])]
 
     def _plot_one_axis(
@@ -212,10 +212,10 @@ class GeneralHourglassPlot(BasePlotter):
             color_mappable = None
 
         try:
-            ax.set_ylim(self.plotDict["yMax"], self.plotDict["yMin"])
+            ax.set_ylim(self.plot_dict["yMax"], self.plot_dict["yMin"])
         except KeyError:
             ax.set_ylim(ax.get_ylim()[-1] + 1, -0.5)
-        ax.set_xlim(self.plotDict["xMin"], self.plotDict["xMax"])
+        ax.set_xlim(self.plot_dict["xMin"], self.plot_dict["xMax"])
 
         start_mjd = ax.get_ylim()[1] + epoch_mjd
         end_mjd = ax.get_ylim()[0] + epoch_mjd
@@ -302,12 +302,12 @@ class GeneralHourglassPlot(BasePlotter):
 
         # Manages the mapping of metric values to colors in the
         # horizonatal lines in the hourglass plot.
-        cmap = self.plotDict["cmap"]
+        cmap = self.plot_dict["cmap"]
         if values.max() == values.min():
             colors = cmap(0.5)
         else:
             try:
-                color_limits = self.plotDict["color_limits"]
+                color_limits = self.plot_dict["color_limits"]
             except KeyError:
                 color_limits = (values.min(), values.max())
             colors = cmap(
@@ -320,17 +320,17 @@ class GeneralHourglassPlot(BasePlotter):
 
         return colors, color_mappable
 
-    def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
         """Restructure the metric data to use, and build the figure.
 
         Parameters
         ----------
-        metricValue : `numpy.ndarray`
+        metric_value : `numpy.ndarray`
            Metric values
         slicer : `rubin_sim.maf.slicers.baseSlicer.BaseSlicer`
            must have "mjd" and "duration" slice points, in units
            of days and seconds, respectively.
-        userPlotDict : `dict`
+        user_plot_dict : `dict`
            Plotting parameters
         fignum : `int`
            matplotlib figure number
@@ -350,26 +350,26 @@ class GeneralHourglassPlot(BasePlotter):
                 "duration": (slicer.slicePoints["duration"] * u.s).to_value(
                     u.hour  # pylint: disable=no-member
                 ),
-                "value": metricValue,
+                "value": metric_value,
             }
         )
         # Set up a copy of the plot dict to contain entries relevant
         # for this plot
-        self.plotDict = copy.copy(self.defaultPlotDict)  # pylint: disable=invalid-name
-        self.plotDict.update(userPlotDict)
+        self.plot_dict = copy.copy(self.default_plot_dict)  # pylint: disable=invalid-name
+        self.plot_dict.update(user_plot_dict)
 
         # Generate the figure
-        fig = plt.figure(fignum, figsize=self.plotDict["figsize"])
+        fig = plt.figure(fignum, figsize=self.plot_dict["figsize"])
 
         # Add the plots
         color_mappable, axes = self._plot(fig, intervals)
 
         # add the colorbar, if requested
-        if self.plotDict["colorbar"] and color_mappable is not None:
+        if self.plot_dict["colorbar"] and color_mappable is not None:
             self._add_colorbar(fig, color_mappable, axes)
 
         # add the legend, if requested
-        if self.plotDict["legend"] and len(self.color_map) > 0:
+        if self.plot_dict["legend"] and len(self.color_map) > 0:
             self._add_figure_legend(fig, axes)
 
     def _add_figure_legend(self, fig, axes):
@@ -406,8 +406,8 @@ class GeneralHourglassPlot(BasePlotter):
 
         # Label everything we have assigned a color
         for label in self.color_map:
-            if "legend_elements" in self.plotDict:
-                if label not in self.plotDict["legend_elements"]:
+            if "legend_elements" in self.plot_dict:
+                if label not in self.plot_dict["legend_elements"]:
                     continue
 
             handle_dict[label] = mpl.patches.Patch(
@@ -424,8 +424,8 @@ class GeneralHourglassPlot(BasePlotter):
         # If the user specified which elements they wanted labels,
         # include only them (if present).
         # Otherwise, unclude all defined labels
-        if "legend_elements" in self.plotDict:
-            desired_labels = self.plotDict["legend_elements"]
+        if "legend_elements" in self.plot_dict:
+            desired_labels = self.plot_dict["legend_elements"]
         else:
             desired_labels = handle_dict.keys()
 
@@ -435,9 +435,9 @@ class GeneralHourglassPlot(BasePlotter):
         fig.legend(
             handles,
             labels,
-            loc=self.plotDict["legend_loc"],
-            ncol=self.plotDict["legend_ncols"],
-            bbox_to_anchor=self.plotDict["legend_bbox_to_anchor"],
+            loc=self.plot_dict["legend_loc"],
+            ncol=self.plot_dict["legend_ncols"],
+            bbox_to_anchor=self.plot_dict["legend_bbox_to_anchor"],
         )
 
         return fig.number
@@ -458,8 +458,8 @@ class GeneralHourglassPlot(BasePlotter):
         """
 
         colorbar_kwargs = {"fraction": 0.05}
-        if "colorbar_ticks" in self.plotDict:
-            colorbar_kwargs["ticks"] = self.plotDict["colorbar_ticks"]
+        if "colorbar_ticks" in self.plot_dict:
+            colorbar_kwargs["ticks"] = self.plot_dict["colorbar_ticks"]
         fig.colorbar(color_mappable, ax=axes, **colorbar_kwargs)
 
     def _plot_dates(  # pylint: disable=invalid-name
@@ -492,8 +492,8 @@ class GeneralHourglassPlot(BasePlotter):
         color_mappable : `matplotlib.cm.ScalarMappable`
            map of data to colors
         """
-        if self.plotDict is None:
-            self.plotDict = {}
+        if self.plot_dict is None:
+            self.plot_dict = {}
 
         start_mjd = start_tstamp.to_julian_date() - 2400000.5
         end_mjd = end_tstamp.to_julian_date() - 2400000.5
@@ -524,8 +524,8 @@ class GeneralHourglassPlot(BasePlotter):
            map of data to colors
         """
 
-        if self.plotDict is None:
-            self.plotDict = {}
+        if self.plot_dict is None:
+            self.plot_dict = {}
 
         start_tstamp = pd.Timestamp(year=year, month=month, day=1, hour=12, tz=self.tz)
         end_tstamp = start_tstamp + pd.DateOffset(months=1)
@@ -608,7 +608,7 @@ class RangeHourglassPlot(GeneralHourglassPlot):
 
     def __init__(self, start_date, end_date, **kwargs):
         super().__init__(**kwargs)
-        self.plotType = "RangeHourglass"
+        self.plot_type = "RangeHourglass"
         self.start_date = pd.Timestamp(start_date)
         self.end_date = pd.Timestamp(end_date)
 
@@ -631,7 +631,7 @@ class RangeHourglassPlot(GeneralHourglassPlot):
         """
         ax = fig.add_axes([0, 0, 1, 1])  # pylint: disable=invalid-name
         color_mappable = self._plot_dates(intervals, self.start_date, self.end_date, ax)
-        self._add_axis_labels(ax, self.plotDict)
+        self._add_axis_labels(ax, self.plot_dict)
         return color_mappable, np.array([ax])
 
 
@@ -658,10 +658,10 @@ class MonthHourglassPlot(GeneralHourglassPlot):
 
     def __init__(self, month, year, **kwargs):
         super().__init__(**kwargs)
-        self.plotType = "MonthHourglass"
-        self.defaultPlotDict["ylabel"] = "day of month"
-        self.defaultPlotDict["yMax"] = calendar.monthrange(year, month)[1] + 0.5
-        self.defaultPlotDict["yMin"] = 0.5
+        self.plot_type = "MonthHourglass"
+        self.default_plot_dict["ylabel"] = "day of month"
+        self.default_plot_dict["yMax"] = calendar.monthrange(year, month)[1] + 0.5
+        self.default_plot_dict["yMin"] = 0.5
         self.month = month
         self.year = year
 
@@ -711,10 +711,10 @@ class YearHourglassPlot(GeneralHourglassPlot):
     def __init__(self, year, **kwargs):
         super().__init__(**kwargs)
         self.year = year
-        self.plotType = "YearHourglass"
-        self.defaultPlotDict["ylabel"] = "day of month"
-        self.defaultPlotDict["yMax"] = 31.5
-        self.defaultPlotDict["yMin"] = 0.5
+        self.plot_type = "YearHourglass"
+        self.default_plot_dict["ylabel"] = "day of month"
+        self.default_plot_dict["yMax"] = 31.5
+        self.default_plot_dict["yMin"] = 0.5
 
     def _plot(self, fig, intervals):
         """Make a series of month plots, arranged for the entire year.
@@ -746,7 +746,7 @@ class YearHourglassPlot(GeneralHourglassPlot):
             np.arange(1, 13), axes.T.flatten()
         ):
             logging.info("Working on %s, %d", calendar.month_name[month], self.year)
-            self.plotDict["yMax"] = calendar.monthrange(self.year, month)[1] + 0.5
+            self.plot_dict["yMax"] = calendar.monthrange(self.year, month)[1] + 0.5
             color_mappable = self._plot_month(intervals, month, self.year, ax)
             ax.set_title("")
             ax.set_title(calendar.month_abbr[month], y=1, x=0.005, pad=-15, loc="left")
@@ -766,9 +766,9 @@ class YearHourglassPlot(GeneralHourglassPlot):
         ax : `matplotlib.axes.Axes`
            The axis to which to add labels
         """
-        axes[1, 0].set_ylabel(self.plotDict["ylabel"])
-        fig.suptitle(self.plotDict["title"], y=0.9)
-        fig.text(0.5, 0.05, self.plotDict["xlabel"], ha="center")
+        axes[1, 0].set_ylabel(self.plot_dict["ylabel"])
+        fig.suptitle(self.plot_dict["title"], y=0.9)
+        fig.text(0.5, 0.05, self.plot_dict["xlabel"], ha="center")
 
 
 #
@@ -792,9 +792,9 @@ class CategoricalHourglassPlotMixin:
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.objectPlotter = True  # pylint: disable=invalid-name
-        self.plotType = (  # pylint: disable=invalid-name
-            "Categorical" + self.plotType
+        self.object_plotter = True  # pylint: disable=invalid-name
+        self.plot_type = (  # pylint: disable=invalid-name
+            "Categorical" + self.plot_type
         )  # pylint: disable=invalid-name
         self.defaultPlotDict["cmap"] = plt.get_cmap("tab10")
         self.defaultPlotDict["assigned_colors"] = OrderedDict()
@@ -839,7 +839,7 @@ class TimeUseHourglassPlotMixin(CategoricalHourglassPlotMixin):
     def __init__(self, *args, **kwargs):
         """Customize hourglass plotter for time use"""
         super().__init__(*args, **kwargs)
-        self.plotType = "Use" + self.plotType  # pylint: disable=invalid-name
+        self.plot_type = "Use" + self.plot_type  # pylint: disable=invalid-name
         self.defaultPlotDict["cmap"] = plt.get_cmap("tab10")
         self.defaultPlotDict["colorbar"] = False
         self.defaultPlotDict["assigned_colors"] = OrderedDict(

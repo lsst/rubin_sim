@@ -93,12 +93,12 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
             col=columns, metric_name=metric_name
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
 
         t = np.empty(
-            dataSlice.size, dtype=list(zip(["time", "filter"], [float, "|S1"]))
+            data_slice.size, dtype=list(zip(["time", "filter"], [float, "|S1"]))
         )
-        t["time"] = dataSlice[self.obstime_col]
+        t["time"] = data_slice[self.obstime_col]
 
         t_start = Time(self.start_date + " 00:00:00")
         t_end = Time(self.end_date + " 00:00:00")
@@ -123,7 +123,7 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
                 )
 
             # Returns a list of the number of visits per night for each pointing
-            pointing = [(dataSlice[self.ra_col][0], dataSlice[self.dec_col][0])]
+            pointing = [(data_slice[self.ra_col][0], data_slice[self.dec_col][0])]
 
             visit = CalcExpectedVisitsMetric(
                 pointing,
@@ -136,15 +136,15 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
                 verbose=self.verbose,
             )
 
-            (n_visits_desired, hrs_visibility) = visit.run(dataSlice)
+            (n_visits_desired, hrs_visibility) = visit.run(data_slice)
 
             n_visits_actual = []
 
             for j, d in enumerate(dates):
 
-                idx = np.where(dataSlice[self.filter_col] == f)
+                idx = np.where(data_slice[self.filter_col] == f)
 
-                actual_visits_per_filter = dataSlice[idx]
+                actual_visits_per_filter = data_slice[idx]
 
                 tdx = np.where(
                     actual_visits_per_filter[self.obstime_col].astype(int)
@@ -201,11 +201,11 @@ def compute_metric(params):
     the commandline"""
 
     obsdb = db.OpsimDatabase("/home/docmaf/my_repoes/data/baseline2018a.db")
-    outputDir = "/home/docmaf/"
-    resultsDb = db.ResultsDb(out_dir=outputDir)
+    output_dir = "/home/docmaf/"
+    results_db = db.ResultsDb(out_dir=output_dir)
 
     (propids, proptags) = obsdb.fetchPropInfo()
-    surveyWhere = obsdb.createSQLWhere(params["survey"], proptags)
+    survey_where = obsdb.createSQLWhere(params["survey"], proptags)
 
     obs_params = {"verbose": params["verbose"]}
 
@@ -218,11 +218,11 @@ def compute_metric(params):
     )
 
     slicer = slicers.HealpixSlicer(nside=64)
-    sqlconstraint = surveyWhere
+    sqlconstraint = survey_where
     bundle = metricBundles.MetricBundle(metric, slicer, sqlconstraint)
 
     bgroup = metricBundles.MetricBundleGroup(
-        {0: bundle}, obsdb, outDir="newmetric_test", resultsDb=resultsDb
+        {0: bundle}, obsdb, outDir="newmetric_test", results_db=results_db
     )
     bgroup.run_all()
 

@@ -5,7 +5,7 @@ Adapted from code written by Michael Kelley - mkelley @ github
 [the HalleyMarcus phase curve is entirely from Michael Kelley's code]
 """
 
-__all__ = ["phase_HalleyMarcus", "phase_LogLinear", "phase_HG"]
+__all__ = ["phase__halley_marcus", "phase__log_linear", "phase_hg"]
 
 import numpy as np
 from scipy.interpolate import splrep, splev
@@ -200,7 +200,7 @@ _halley_marcus_phase_curve = splrep(
 )
 
 
-def phase_HalleyMarcus(phase):
+def phase__halley_marcus(phase):
     """Halley-Marcus composite dust phase function.
     This is appropriate for use when calculating the brightness of cometary coma.
 
@@ -218,7 +218,7 @@ def phase_HalleyMarcus(phase):
     return splev(phase, _halley_marcus_phase_curve)
 
 
-def phase_LogLinear(phase, slope=0.04):
+def phase__log_linear(phase, slope=0.04):
     """A logLinear phase function, roughly appropriate for cometary nuclei.
     An H-G phase function is likely a better approximation.
 
@@ -237,7 +237,7 @@ def phase_LogLinear(phase, slope=0.04):
     return 10 ** (-0.4 * slope * phase)
 
 
-def phase_HG(phase, G=0.15):
+def phase_hg(phase, G=0.15):
     """The Bowell et al 1989 (Asteroids II) HG phase curve.
     https://ui.adsabs.harvard.edu/abs/1989aste.conf..524B/abstract
 
@@ -259,5 +259,5 @@ def phase_HG(phase, G=0.15):
     return (1 - G) * phi1 + G * phi2
 
 
-def phase_HG12(phase, G12=0.1):
+def phase_hg12(phase, g12=0.1):
     pass

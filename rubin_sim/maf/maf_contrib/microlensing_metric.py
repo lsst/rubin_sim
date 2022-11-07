@@ -8,7 +8,7 @@ from rubin_sim.data import get_data_dir
 from copy import deepcopy
 
 __all__ = [
-    "generateMicrolensingSlicer",
+    "generate_microlensing_slicer",
     "MicrolensingMetric",
     "microlensing_amplification",
     "microlensing_amplification_fsfb",
@@ -216,7 +216,7 @@ def fisher_matrix(t, t0, te, u0, fs, fb, snr, filters="ugriz", filter_name="i"):
     # 3:fs_i, 4:fb_i, 5:fs_i+1, 6: fb_i+1, etc. for ugrizy
     filters = filters
     npars = 2 * len(filters) + 3
-    FisMat = np.zeros((npars, npars))
+    fis_mat = np.zeros((npars, npars))
     filter_index = np.where(filters == filter_name)[0]
     # initialize result matrix
     for i in range(len(t)):
@@ -241,8 +241,8 @@ def fisher_matrix(t, t0, te, u0, fs, fb, snr, filters="ugriz", filter_name="i"):
         flux_err = (fs * mu + fb) / snr[i]  # may need to check shape of snr and t
 
         matrix = matrix / (flux_err**2)
-        FisMat = FisMat + matrix
-    return FisMat
+        fis_mat = fis_mat + matrix
+    return fis_mat
 
 
 class MicrolensingMetric(metrics.BaseMetric):
@@ -252,13 +252,13 @@ class MicrolensingMetric(metrics.BaseMetric):
 
     Parameters
     ----------
-    metricCalc: str
-        Type of metric. If metricCalc == 'detect', returns the number of microlensing events
-        detected within certain parameters. If metricCalc == 'Npts', returns the number of points
+    metric_calc: str
+        Type of metric. If metric_calc == 'detect', returns the number of microlensing events
+        detected within certain parameters. If metric_calc == 'Npts', returns the number of points
         within two crossing times of the peak of the vent.
         Default is 'detect'
 
-    ptsNeeded : int
+    pts_needed : int
         Number of an object's lightcurve points required to be above the 5-sigma limiting depth
         before it is considered detected.
 
@@ -286,27 +286,27 @@ class MicrolensingMetric(metrics.BaseMetric):
     def __init__(
         self,
         metric_name="MicrolensingMetric",
-        metricCalc="detect",
-        mjdCol="observationStartMJD",
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
-        nightCol="night",
-        ptsNeeded=2,
+        metric_calc="detect",
+        mjd_col="observationStartMJD",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        night_col="night",
+        pts_needed=2,
         mag_dict=None,
         detect_sigma=3.0,
         time_before_peak=0,
         detect=False,
         **kwargs
     ):
-        self.metricCalc = metricCalc
-        if metricCalc == "detect":
+        self.metric_calc = metric_calc
+        if metric_calc == "detect":
             self.units = "Detected, 0 or 1"
-        elif metricCalc == "Npts":
+        elif metric_calc == "Npts":
             self.units = "Npts within 2tE"
-        elif metricCalc == "Fisher":
+        elif metric_calc == "Fisher":
             self.units = "Characterized, 0 or 1"
         else:
-            raise Exception('metricCalc must be "detect", "Npts" or "Fisher".')
+            raise Exception('metric_calc must be "detect", "Npts" or "Fisher".')
         if mag_dict is None:
             # Mean mag of stars in each filter from TRIstarDensity map
             mag_dict = {
@@ -317,80 +317,80 @@ class MicrolensingMetric(metrics.BaseMetric):
                 "z": 22.8,
                 "y": 22.5,
             }
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
-        self.nightCol = nightCol
-        self.ptsNeeded = ptsNeeded
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        self.filter_col = filter_col
+        self.night_col = night_col
+        self.pts_needed = pts_needed
         self.detect_sigma = detect_sigma
         self.time_before_peak = time_before_peak
         self.detect = detect
         self.mags = mag_dict
 
-        cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]
+        cols = [self.mjd_col, self.m5_col, self.filter_col, self.night_col]
         super(MicrolensingMetric, self).__init__(
             col=cols,
             units=self.units,
-            metric_name=metric_name + "_" + self.metricCalc,
+            metric_name=metric_name + "_" + self.metric_calc,
             **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         if self.detect == True and self.time_before_peak > 0:
             raise Exception("When detect = True, time_before_peak must be zero")
 
         # Generate the lightcurve for this object
         # make t a kind of simple way
-        t = dataSlice[self.mjdCol] - np.min(dataSlice[self.nightCol])
+        t = data_slice[self.mjd_col] - np.min(data_slice[self.night_col])
         t = t - t.min()
 
         # Try for if a blending factor slice was added if not default to no blending factor
         try:
             try:
-                test = slicePoint["apparent_m_no_blend_u"]
+                test = slice_point["apparent_m_no_blend_u"]
                 amplitudes = np.zeros(len(t))
                 individual_mags = True
             except KeyError:
                 amplitudes = microlensing_amplification(
                     t,
-                    impact_parameter=slicePoint["impact_parameter"],
-                    crossing_time=slicePoint["crossing_time"],
-                    peak_time=slicePoint["peak_time"],
-                    blending_factor=slicePoint["blending_factor"],
+                    impact_parameter=slice_point["impact_parameter"],
+                    crossing_time=slice_point["crossing_time"],
+                    peak_time=slice_point["peak_time"],
+                    blending_factor=slice_point["blending_factor"],
                 )
                 individual_mags = False
 
         except KeyError:
             amplitudes = microlensing_amplification(
                 t,
-                impact_parameter=slicePoint["impact_parameter"],
-                crossing_time=slicePoint["crossing_time"],
-                peak_time=slicePoint["peak_time"],
+                impact_parameter=slice_point["impact_parameter"],
+                crossing_time=slice_point["crossing_time"],
+                peak_time=slice_point["peak_time"],
             )
             individual_mags = False
 
-        filters = np.unique(dataSlice[self.filterCol])
+        filters = np.unique(data_slice[self.filter_col])
         amplified_mags = amplitudes * 0
 
         npars = 2 * len(filters) + 3
-        FisMat = np.zeros((npars, npars))
-        FisMat_wzeros = deepcopy(FisMat)
+        fis_mat = np.zeros((npars, npars))
+        fis_mat_wzeros = deepcopy(fis_mat)
 
         for filtername in filters:
-            infilt = np.where(dataSlice[self.filterCol] == filtername)[0]
+            infilt = np.where(data_slice[self.filter_col] == filtername)[0]
 
             if individual_mags == True:
-                fs = slicePoint["apparent_m_no_blend_{}".format(filtername)]
-                fb = slicePoint["apparent_m_{}".format(filtername)] - fs
+                fs = slice_point["apparent_m_no_blend_{}".format(filtername)]
+                fb = slice_point["apparent_m_{}".format(filtername)] - fs
                 amplitudes = microlensing_amplification_fsfb(
                     t,
-                    impact_parameter=slicePoint["impact_parameter"],
-                    crossing_time=slicePoint["crossing_time"],
-                    peak_time=slicePoint["peak_time"],
+                    impact_parameter=slice_point["impact_parameter"],
+                    crossing_time=slice_point["crossing_time"],
+                    peak_time=slice_point["peak_time"],
                     fs=fs,
                     fb=fb,
                 )
-                self.mags[filtername] = slicePoint["apparent_m_{}".format(filtername)]
+                self.mags[filtername] = slice_point["apparent_m_{}".format(filtername)]
                 amplified_mags[infilt] = self.mags[filtername] - 2.5 * np.log10(
                     amplitudes[infilt]
                 )
@@ -401,36 +401,36 @@ class MicrolensingMetric(metrics.BaseMetric):
                 )
 
         # The SNR of each point in the light curve
-        snr = m52snr(amplified_mags, dataSlice[self.m5Col])
+        snr = m52snr(amplified_mags, data_slice[self.m5_col])
         # The magnitude uncertainties that go with amplified mags
         mag_uncert = 2.5 * np.log10(1 + 1.0 / snr)
 
         n_pre = []
         n_post = []
         for filtername in filters:
-            if self.metricCalc == "detect":
+            if self.metric_calc == "detect":
 
                 if self.time_before_peak == "optimal":
                     time_before_peak_optimal = info_peak_before_t0(
-                        slicePoint["impact_parameter"], slicePoint["crossing_time"]
+                        slice_point["impact_parameter"], slice_point["crossing_time"]
                     )
                     # observations pre-peak and in the given filter
                     infilt = np.where(
-                        (dataSlice[self.filterCol] == filtername)
-                        & (t < (slicePoint["peak_time"] - time_before_peak_optimal))
+                        (data_slice[self.filter_col] == filtername)
+                        & (t < (slice_point["peak_time"] - time_before_peak_optimal))
                     )[0]
 
                 else:
                     # observations pre-peak and in the given filter
                     infilt = np.where(
-                        (dataSlice[self.filterCol] == filtername)
-                        & (t < (slicePoint["peak_time"] - self.time_before_peak))
+                        (data_slice[self.filter_col] == filtername)
+                        & (t < (slice_point["peak_time"] - self.time_before_peak))
                     )[0]
 
                 # observations post-peak and in the given filter
                 outfilt = np.where(
-                    (dataSlice[self.filterCol] == filtername)
-                    & (t > slicePoint["peak_time"])
+                    (data_slice[self.filter_col] == filtername)
+                    & (t > slice_point["peak_time"])
                 )[0]
                 # Broadcast to calc the mag_i - mag_j
                 diffs = amplified_mags[infilt] - amplified_mags[infilt][:, np.newaxis]
@@ -458,37 +458,37 @@ class MicrolensingMetric(metrics.BaseMetric):
                 )
                 n_post.append(n_above_post)
 
-            elif self.metricCalc == "Npts":
+            elif self.metric_calc == "Npts":
                 # observations pre-peak and in the given filter within 2tE
                 infilt = np.where(
-                    (dataSlice[self.filterCol] == filtername)
-                    & (t < (slicePoint["peak_time"]))
-                    & (t > (slicePoint["peak_time"] - slicePoint["crossing_time"]))
+                    (data_slice[self.filter_col] == filtername)
+                    & (t < (slice_point["peak_time"]))
+                    & (t > (slice_point["peak_time"] - slice_point["crossing_time"]))
                     & (snr > self.detect_sigma)
                 )[0]
                 # observations post-peak and in the given filter within 2tE
                 outfilt = np.where(
-                    (dataSlice[self.filterCol] == filtername)
-                    & (t > (slicePoint["peak_time"]))
-                    & (t < (slicePoint["peak_time"] + slicePoint["crossing_time"]))
+                    (data_slice[self.filter_col] == filtername)
+                    & (t > (slice_point["peak_time"]))
+                    & (t < (slice_point["peak_time"] + slice_point["crossing_time"]))
                     & (snr > self.detect_sigma)
                 )[0]
                 n_pre.append(len(infilt))
                 n_post.append(len(outfilt))
 
-            elif self.metricCalc == "Fisher":
+            elif self.metric_calc == "Fisher":
                 if individual_mags == True:
-                    fs = slicePoint["apparent_m_no_blend_{}".format(filtername)]
-                    fb = slicePoint["apparent_m_{}".format(filtername)] - fs
+                    fs = slice_point["apparent_m_no_blend_{}".format(filtername)]
+                    fb = slice_point["apparent_m_{}".format(filtername)] - fs
                 else:
                     fs = self.mags[filtername]
                     fb = fs  # assuming that in populated areas of the galaxy the blend fraction is 0.5
 
-                FisMat = FisMat_wzeros + fisher_matrix(
+                fis_mat = fis_mat_wzeros + fisher_matrix(
                     t[infilt],
-                    t0=slicePoint["peak_time"],
-                    te=slicePoint["crossing_time"],
-                    u0=slicePoint["impact_parameter"],
+                    t0=slice_point["peak_time"],
+                    te=slice_point["crossing_time"],
+                    u0=slice_point["impact_parameter"],
                     fs=fs,
                     fb=fb,
                     snr=snr[infilt],
@@ -499,45 +499,45 @@ class MicrolensingMetric(metrics.BaseMetric):
                 # We remove entries if there's no data in a filter
                 # which would keep it from being inverted
                 # detectable information in dimensions:
-                FisMat_wzeros = deepcopy(FisMat)
-                mask_idx = np.where(np.diag(FisMat) == 0)
-                FisMat = np.delete(FisMat, mask_idx[0], 0)
-                FisMat = np.delete(FisMat, mask_idx[0], 1)
+                fis_mat_wzeros = deepcopy(fis_mat)
+                mask_idx = np.where(np.diag(fis_mat) == 0)
+                fis_mat = np.delete(fis_mat, mask_idx[0], 0)
+                fis_mat = np.delete(fis_mat, mask_idx[0], 1)
                 try:
-                    cov = np.linalg.inv(FisMat)
-                    sigmatE_tE = cov[0, 0] ** 0.5 / slicePoint["crossing_time"]
-                    sigmau0_u0 = cov[1, 1] ** 0.5 / slicePoint["impact_parameter"]
-                    corr_btwn_tEu0 = cov[0, 1] / (
-                        slicePoint["crossing_time"] * slicePoint["impact_parameter"]
+                    cov = np.linalg.inv(fis_mat)
+                    sigmat_e_t_e = cov[0, 0] ** 0.5 / slice_point["crossing_time"]
+                    sigmau0_u0 = cov[1, 1] ** 0.5 / slice_point["impact_parameter"]
+                    corr_btwn_t_eu0 = cov[0, 1] / (
+                        slice_point["crossing_time"] * slice_point["impact_parameter"]
                     )
                 except:
-                    sigmatE_tE = np.inf
+                    sigmat_e_t_e = np.inf
                     sigmau0_u0 = np.inf
-                    corr_btwn_tEu0 = np.inf
+                    corr_btwn_t_eu0 = np.inf
 
         npts = np.sum(n_pre)
         npts_post = np.sum(n_post)
-        if self.metricCalc == "detect":
+        if self.metric_calc == "detect":
             if self.detect == True:
-                if npts >= self.ptsNeeded and npts_post >= self.ptsNeeded:
+                if npts >= self.pts_needed and npts_post >= self.pts_needed:
                     return 1
                 else:
                     return 0
             else:
-                if npts >= self.ptsNeeded:
+                if npts >= self.pts_needed:
                     return 1
                 else:
                     return 0
-        elif self.metricCalc == "Npts":
+        elif self.metric_calc == "Npts":
             return npts + npts_post
-        elif self.metricCalc == "Fisher":
-            # cutoff of sigmatE_tE < 0.1 for
+        elif self.metric_calc == "Fisher":
+            # cutoff of sigmat_e_t_e < 0.1 for
             # values determined by the 3sigma of
             # pubished planet candidates
-            return sigmatE_tE
+            return sigmat_e_t_e
 
 
-def generateMicrolensingSlicer(
+def generate_microlensing_slicer(
     min_crossing_time=1,
     max_crossing_time=10,
     t_start=1,
@@ -578,18 +578,18 @@ def generateMicrolensingSlicer(
     peak_times = np.random.uniform(low=t_start, high=t_end, size=n_events)
     impact_paramters = np.random.uniform(low=0, high=1, size=n_events)
 
-    mapDir = os.path.join(get_data_dir(), "maps", "TriMaps")
+    map_dir = os.path.join(get_data_dir(), "maps", "TriMaps")
     data = np.load(
-        os.path.join(mapDir, "TRIstarDensity_%s_nside_%i.npz" % (filtername, nside))
+        os.path.join(map_dir, "TRIstarDensity_%s_nside_%i.npz" % (filtername, nside))
     )
-    starDensity = data["starDensity"].copy()
+    star_density = data["star_density"].copy()
     # magnitude bins
     bins = data["bins"].copy()
     data.close()
 
     star_mag = 22
     bin_indx = np.where(bins[1:] >= star_mag)[0].min()
-    density_used = starDensity[:, bin_indx].ravel()
+    density_used = star_density[:, bin_indx].ravel()
     order = np.argsort(density_used)
     # I think the model might have a few outliers at the extreme, let's truncate it a bit
     density_used[order[-10:]] = density_used[order[-11]]

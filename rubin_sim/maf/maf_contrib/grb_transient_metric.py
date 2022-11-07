@@ -33,35 +33,35 @@ class GRBTransientMetric(metrics.BaseMetric):
     apparent_mag_1min_sigma : float,
         std of magnitudes at 1 minute after burst
         Default = 1.59
-    transDuration : float, optional
+    trans_duration : float, optional
         How long the transient lasts (days). Default 10.
-    surveyDuration : float, optional
+    survey_duration : float, optional
         Length of survey (years).
         Default 10.
-    surveyStart : float, optional
+    survey_start : float, optional
         MJD for the survey start date.
         Default None (uses the time of the first observation).
-    detectM5Plus : float, optional
-        An observation will be used if the light curve magnitude is brighter than m5+detectM5Plus.
+    detect_m5_plus : float, optional
+        An observation will be used if the light curve magnitude is brighter than m5+detect_m5_plus.
         Default 0.
-    nPerFilter : int, optional
+    n_per_filter : int, optional
         Number of separate detections of the light curve above the
-        detectM5Plus theshold (in a single filter) for the light curve
+        detect_m5_plus theshold (in a single filter) for the light curve
         to be counted.
         Default 1.
-    nFilters : int, optional
-        Number of filters that need to be observed nPerFilter times,
-        with differences minDeltaMag,
+    n_filters : int, optional
+        Number of filters that need to be observed n_per_filter times,
+        with differences min_delta_mag,
         for an object to be counted as detected.
         Default 1.
-    minDeltaMag : float, optional
+    min_delta_mag : float, optional
        magnitude difference between detections in the same filter required
        for second+ detection to be counted.
-       For example, if minDeltaMag = 0.1 mag and two consecutive observations
+       For example, if min_delta_mag = 0.1 mag and two consecutive observations
        differ only by 0.05 mag, those two detections will only count as one.
        (Better would be a SNR-based discrimination of lightcurve change.)
        Default 0.
-    nPhaseCheck : int, optional
+    n_phase_check : int, optional
         Sets the number of phases that should be checked.
         One can imagine pathological cadences where many objects pass the detection criteria,
         but would not if the observations were offset by a phase-shift.
@@ -74,24 +74,24 @@ class GRBTransientMetric(metrics.BaseMetric):
         apparent_mag_1min_mean=15.35,
         apparent_mag_1min_sigma=1.59,
         metric_name="GRBTransientMetric",
-        mjdCol="expMJD",
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
-        transDuration=10.0,
-        surveyDuration=10.0,
-        surveyStart=None,
-        detectM5Plus=0.0,
-        nPerFilter=1,
-        nFilters=1,
-        minDeltaMag=0.0,
-        nPhaseCheck=1,
+        mjd_col="expMJD",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        trans_duration=10.0,
+        survey_duration=10.0,
+        survey_start=None,
+        detect_m5_plus=0.0,
+        n_per_filter=1,
+        n_filters=1,
+        min_delta_mag=0.0,
+        n_phase_check=1,
         **kwargs
     ):
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        self.filter_col = filter_col
         super(GRBTransientMetric, self).__init__(
-            col=[self.mjdCol, self.m5Col, self.filterCol],
+            col=[self.mjd_col, self.m5_col, self.filter_col],
             units="Fraction Detected",
             metric_name=metric_name,
             **kwargs
@@ -99,16 +99,16 @@ class GRBTransientMetric(metrics.BaseMetric):
         self.alpha = alpha
         self.apparent_mag_1min_mean = apparent_mag_1min_mean
         self.apparent_mag_1min_sigma = apparent_mag_1min_sigma
-        self.transDuration = transDuration
-        self.surveyDuration = surveyDuration
-        self.surveyStart = surveyStart
-        self.detectM5Plus = detectM5Plus
-        self.nPerFilter = nPerFilter
-        self.nFilters = nFilters
-        self.minDeltaMag = minDeltaMag
-        self.nPhaseCheck = nPhaseCheck
-        self.peakTime = 0.0
-        self.reduceOrder = {
+        self.trans_duration = trans_duration
+        self.survey_duration = survey_duration
+        self.survey_start = survey_start
+        self.detect_m5_plus = detect_m5_plus
+        self.n_per_filter = n_per_filter
+        self.n_filters = n_filters
+        self.min_delta_mag = min_delta_mag
+        self.n_phase_check = n_phase_check
+        self.peak_time = 0.0
+        self.reduce_order = {
             "Bandu": 0,
             "Bandg": 1,
             "Bandr": 2,
@@ -119,37 +119,37 @@ class GRBTransientMetric(metrics.BaseMetric):
             "BandanyNfilters": 7,
         }
 
-    def lightCurve(self, time, filters):
+    def light_curve(self, time, filters):
         """
         given the times and filters of an observation, return the magnitudes.
         """
 
-        lcMags = np.zeros(time.size, dtype=float)
+        lc_mags = np.zeros(time.size, dtype=float)
 
-        decline = np.where(time > self.peakTime)
+        decline = np.where(time > self.peak_time)
         apparent_mag_1min = (
             np.random.randn() * self.apparent_mag_1min_sigma
             + self.apparent_mag_1min_mean
         )
-        lcMags[decline] += apparent_mag_1min + self.alpha * 2.5 * np.log10(
-            (time[decline] - self.peakTime) * 24.0 * 60.0
+        lc_mags[decline] += apparent_mag_1min + self.alpha * 2.5 * np.log10(
+            (time[decline] - self.peak_time) * 24.0 * 60.0
         )
 
         # for key in self.peaks.keys():
         #    fMatch = np.where(filters == key)
-        #    lcMags[fMatch] += self.peaks[key]
+        #    lc_mags[fMatch] += self.peaks[key]
 
-        return lcMags
+        return lc_mags
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         """ "
         Calculate the detectability of a transient with the specified lightcurve.
 
         Parameters
         ----------
-        dataSlice : numpy.array
+        data_slice : numpy.array
             Numpy structured array containing the data related to the visits provided by the slicer.
-        slicePoint : dict, optional
+        slice_point : dict, optional
             Dictionary containing information about the slicepoint currently active in the slicer.
 
         Returns
@@ -158,35 +158,35 @@ class GRBTransientMetric(metrics.BaseMetric):
             The total number of transients that could be detected.
         """
         # Total number of transients that could go off back-to-back
-        nTransMax = np.floor(self.surveyDuration / (self.transDuration / 365.25))
+        n_trans_max = np.floor(self.survey_duration / (self.trans_duration / 365.25))
         tshifts = (
-            np.arange(self.nPhaseCheck) * self.transDuration / float(self.nPhaseCheck)
+            np.arange(self.n_phase_check) * self.trans_duration / float(self.n_phase_check)
         )
-        nDetected = 0
-        nTransMax = 0
+        n_detected = 0
+        n_trans_max = 0
         for tshift in tshifts:
             # Compute the total number of back-to-back transients are possible to detect
             # given the survey duration and the transient duration.
-            nTransMax += np.floor(self.surveyDuration / (self.transDuration / 365.25))
+            n_trans_max += np.floor(self.survey_duration / (self.trans_duration / 365.25))
             if tshift != 0:
-                nTransMax -= 1
-            if self.surveyStart is None:
-                surveyStart = dataSlice[self.mjdCol].min()
-            time = (dataSlice[self.mjdCol] - surveyStart + tshift) % self.transDuration
+                n_trans_max -= 1
+            if self.survey_start is None:
+                survey_start = data_slice[self.mjd_col].min()
+            time = (data_slice[self.mjd_col] - survey_start + tshift) % self.trans_duration
 
             # Which lightcurve does each point belong to
-            lcNumber = np.floor(
-                (dataSlice[self.mjdCol] - surveyStart) / self.transDuration
+            lc_number = np.floor(
+                (data_slice[self.mjd_col] - survey_start) / self.trans_duration
             )
 
-            lcMags = self.lightCurve(time, dataSlice[self.filterCol])
+            lc_mags = self.light_curve(time, data_slice[self.filter_col])
 
             # How many criteria needs to be passed
-            detectThresh = 0
+            detect_thresh = 0
 
             # Flag points that are above the SNR limit
-            detected = np.zeros(dataSlice.size, dtype=int)
-            detected[np.where(lcMags < dataSlice[self.m5Col] + self.detectM5Plus)] += 1
+            detected = np.zeros(data_slice.size, dtype=int)
+            detected[np.where(lc_mags < data_slice[self.m5_col] + self.detect_m5_plus)] += 1
 
             bandcounter = {
                 "u": 0,
@@ -199,67 +199,67 @@ class GRBTransientMetric(metrics.BaseMetric):
             }  # define zeroed out counter
 
             # make sure things are sorted by time
-            ord = np.argsort(dataSlice[self.mjdCol])
-            dataSlice = dataSlice[ord]
+            ord = np.argsort(data_slice[self.mjd_col])
+            data_slice = data_slice[ord]
             detected = detected[ord]
-            lcNumber = lcNumber[ord]
-            lcMags = lcMags[ord]
-            ulcNumber = np.unique(lcNumber)
-            left = np.searchsorted(lcNumber, ulcNumber)
-            right = np.searchsorted(lcNumber, ulcNumber, side="right")
-            detectThresh += self.nFilters
+            lc_number = lc_number[ord]
+            lc_mags = lc_mags[ord]
+            ulc_number = np.unique(lc_number)
+            left = np.searchsorted(lc_number, ulc_number)
+            right = np.searchsorted(lc_number, ulc_number, side="right")
+            detect_thresh += self.n_filters
 
             # iterate over the lightcurves
             for le, ri in zip(left, right):
                 wdet = np.where(detected[le:ri] > 0)
-                ufilters = np.unique(dataSlice[self.filterCol][le:ri][wdet])
+                ufilters = np.unique(data_slice[self.filter_col][le:ri][wdet])
                 nfilts_lci = 0
-                for filtName in ufilters:
+                for filt_name in ufilters:
                     wdetfilt = np.where(
-                        (dataSlice[self.filterCol][le:ri] == filtName) & detected[le:ri]
+                        (data_slice[self.filter_col][le:ri] == filt_name) & detected[le:ri]
                     )
 
-                    lcPoints = lcMags[le:ri][wdetfilt]
-                    dlc = np.abs(np.diff(lcPoints))
+                    lc_points = lc_mags[le:ri][wdetfilt]
+                    dlc = np.abs(np.diff(lc_points))
 
                     # number of detections in band, requring that for
                     # nPerFilter > 1 that points have more than minDeltaMag
                     # change
-                    nbanddet = np.sum(dlc > self.minDeltaMag) + 1
-                    if nbanddet >= self.nPerFilter:
-                        bandcounter[filtName] += 1
+                    nbanddet = np.sum(dlc > self.min_delta_mag) + 1
+                    if nbanddet >= self.n_per_filter:
+                        bandcounter[filt_name] += 1
                         nfilts_lci += 1
-                if nfilts_lci >= self.nFilters:
+                if nfilts_lci >= self.n_filters:
                     bandcounter["any"] += 1
 
         bandfraction = {}
         for band in bandcounter.keys():
-            bandfraction[band] = float(bandcounter[band]) / nTransMax
+            bandfraction[band] = float(bandcounter[band]) / n_trans_max
 
         return bandfraction
 
-    def reduceBand1FiltAvg(self, bandfraction):
+    def reduce_band1_filt_avg(self, bandfraction):
         "Average fraction detected in single filter"
         return np.mean(list(bandfraction.values()))
 
-    def reduceBandanyNfilters(self, bandfraction):
+    def reduce_bandany_nfilters(self, bandfraction):
         "Fraction of events detected in Nfilters or more"
         return bandfraction["any"]
 
-    def reduceBandu(self, bandfraction):
+    def reduce_bandu(self, bandfraction):
         return bandfraction["u"]
 
-    def reduceBandg(self, bandfraction):
+    def reduce_bandg(self, bandfraction):
         return bandfraction["g"]
 
-    def reduceBandr(self, bandfraction):
+    def reduce_bandr(self, bandfraction):
         return bandfraction["r"]
 
-    def reduceBandi(self, bandfraction):
+    def reduce_bandi(self, bandfraction):
         return bandfraction["i"]
 
-    def reduceBandz(self, bandfraction):
+    def reduce_bandz(self, bandfraction):
         return bandfraction["z"]
 
-    def reduceBandy(self, bandfraction):
+    def reduce_bandy(self, bandfraction):
         return bandfraction["y"]
