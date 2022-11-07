@@ -34,36 +34,36 @@ class SaturationStacker(BaseStacker):
         If None, will use Rubin-like zeropoints.
     """
 
-    colsAdded = ["saturation_mag"]
+    cols_added = ["saturation_mag"]
 
     def __init__(
         self,
-        seeingCol="seeingFwhmEff",
-        skybrightnessCol="skyBrightness",
-        exptimeCol="visitExposureTime",
-        nexpCol="numExposures",
-        filterCol="filter",
-        airmassCol="airmass",
+        seeing_col="seeingFwhmEff",
+        skybrightness_col="skyBrightness",
+        exptime_col="visitExposureTime",
+        nexp_col="numExposures",
+        filter_col="filter",
+        airmass_col="airmass",
         saturation_e=150e3,
         zeropoints=None,
         km=None,
         pixscale=0.2,
     ):
         self.units = ["mag"]
-        self.colsReq = [
-            seeingCol,
-            skybrightnessCol,
-            exptimeCol,
-            nexpCol,
-            filterCol,
-            airmassCol,
+        self.cols_req = [
+            seeing_col,
+            skybrightness_col,
+            exptime_col,
+            nexp_col,
+            filter_col,
+            airmass_col,
         ]
-        self.seeingCol = seeingCol
-        self.skybrightnessCol = skybrightnessCol
-        self.exptimeCol = exptimeCol
-        self.nexpCol = nexpCol
-        self.filterCol = filterCol
-        self.airmassCol = airmassCol
+        self.seeing_col = seeing_col
+        self.skybrightness_col = skybrightness_col
+        self.exptime_col = exptime_col
+        self.nexp_col = nexp_col
+        self.filter_col = filter_col
+        self.airmass_col = airmass_col
         self.saturation_e = saturation_e
         self.pixscale = pixscale
         if zeropoints is None:
@@ -74,11 +74,11 @@ class SaturationStacker(BaseStacker):
             self.zeropoints = zeropoints
             self.km = km
 
-    def _run(self, simData, cols_present=False):
-        for filtername in np.unique(simData[self.filterCol]):
-            in_filt = np.where(simData[self.filterCol] == filtername)[0]
+    def _run(self, sim_data, cols_present=False):
+        for filtername in np.unique(sim_data[self.filter_col]):
+            in_filt = np.where(sim_data[self.filter_col] == filtername)[0]
             # Calculate the length of the on-sky time per EXPOSURE
-            exptime = simData[self.exptimeCol][in_filt] / simData[self.nexpCol][in_filt]
+            exptime = sim_data[self.exptime_col][in_filt] / sim_data[self.nexp_col][in_filt]
             # Calculate sky counts per pixel per second from skybrightness + zeropoint (e/1s)
             sky_counts = (
                 10.0
@@ -86,7 +86,7 @@ class SaturationStacker(BaseStacker):
                     0.4
                     * (
                         self.zeropoints[filtername]
-                        - simData[self.skybrightnessCol][in_filt]
+                        - sim_data[self.skybrightness_col][in_filt]
                     )
                 )
                 * self.pixscale**2
@@ -97,24 +97,24 @@ class SaturationStacker(BaseStacker):
             # difference between saturation and sky
             remaining_counts_peak = self.saturation_e - sky_counts
             # Now to figure out how many counts there would be total, if there are that many in the peak
-            sigma = simData[self.seeingCol][in_filt] / 2.354
+            sigma = sim_data[self.seeing_col][in_filt] / 2.354
             source_counts = (
                 remaining_counts_peak * 2.0 * np.pi * (sigma / self.pixscale) ** 2
             )
             # source counts = counts per exposure (expTimeCol / nexp)
             # Translate to counts per second, to apply zeropoint
             count_rate = source_counts / exptime
-            simData["saturation_mag"][in_filt] = (
+            sim_data["saturation_mag"][in_filt] = (
                 -2.5 * np.log10(count_rate) + self.zeropoints[filtername]
             )
             # Airmass correction
-            simData["saturation_mag"][in_filt] -= self.km[filtername] * (
-                simData[self.airmassCol][in_filt] - 1.0
+            sim_data["saturation_mag"][in_filt] -= self.km[filtername] * (
+                sim_data[self.airmass_col][in_filt] - 1.0
             )
             # Explicitly make sure if sky has saturated we return NaN
-            simData["saturation_mag"][np.where(remaining_counts_peak < 0)] = np.nan
+            sim_data["saturation_mag"][np.where(remaining_counts_peak < 0)] = np.nan
 
-        return simData
+        return sim_data
 
 
 class FiveSigmaStacker(BaseStacker):
@@ -125,158 +125,158 @@ class FiveSigmaStacker(BaseStacker):
     or m5 was not previously calculated.
     """
 
-    colsAdded = ["m5_simsUtils"]
+    cols_added = ["m5_simsUtils"]
 
     def __init__(
         self,
-        airmassCol="airmass",
-        seeingCol="seeingFwhmEff",
-        skybrightnessCol="skyBrightness",
-        filterCol="filter",
-        exptimeCol="visitExposureTime",
+        airmass_col="airmass",
+        seeing_col="seeingFwhmEff",
+        skybrightness_col="skyBrightness",
+        filter_col="filter",
+        exptime_col="visitExposureTime",
     ):
         self.units = ["mag"]
-        self.colsReq = [airmassCol, seeingCol, skybrightnessCol, filterCol, exptimeCol]
-        self.airmassCol = airmassCol
-        self.seeingCol = seeingCol
-        self.skybrightnessCol = skybrightnessCol
-        self.filterCol = filterCol
-        self.exptimeCol = exptimeCol
+        self.cols_req = [airmass_col, seeing_col, skybrightness_col, filter_col, exptime_col]
+        self.airmass_col = airmass_col
+        self.seeing_col = seeing_col
+        self.skybrightness_col = skybrightness_col
+        self.filter_col = filter_col
+        self.exptime_col = exptime_col
 
-    def _run(self, simData, cols_present=False):
+    def _run(self, sim_data, cols_present=False):
         if cols_present:
             # Column already present in data; assume it needs updating and recalculate.
-            return simData
-        filts = np.unique(simData[self.filterCol])
+            return sim_data
+        filts = np.unique(sim_data[self.filter_col])
         for filtername in filts:
-            infilt = np.where(simData[self.filterCol] == filtername)
-            simData["m5_simsUtils"][infilt] = m5_flat_sed(
+            infilt = np.where(sim_data[self.filter_col] == filtername)
+            sim_data["m5_simsUtils"][infilt] = m5_flat_sed(
                 filtername,
-                simData[infilt][self.skybrightnessCol],
-                simData[infilt][self.seeingCol],
-                simData[infilt][self.exptimeCol],
-                simData[infilt][self.airmassCol],
+                sim_data[infilt][self.skybrightness_col],
+                sim_data[infilt][self.seeing_col],
+                sim_data[infilt][self.exptime_col],
+                sim_data[infilt][self.airmass_col],
             )
-        return simData
+        return sim_data
 
 
 class NormAirmassStacker(BaseStacker):
     """Calculate the normalized airmass for each opsim pointing."""
 
-    colsAdded = ["normairmass"]
+    cols_added = ["normairmass"]
 
     def __init__(
         self,
-        airmassCol="airmass",
-        decCol="fieldDec",
+        airmass_col="airmass",
+        dec_col="fieldDec",
         degrees=True,
         telescope_lat=-30.2446388,
     ):
         self.units = ["X / Xmin"]
-        self.colsReq = [airmassCol, decCol]
-        self.airmassCol = airmassCol
-        self.decCol = decCol
+        self.cols_req = [airmass_col, dec_col]
+        self.airmass_col = airmass_col
+        self.dec_col = dec_col
         self.telescope_lat = telescope_lat
         self.degrees = degrees
 
-    def _run(self, simData, cols_present=False):
+    def _run(self, sim_data, cols_present=False):
         """Calculate new column for normalized airmass."""
         # Run method is required to calculate column.
         # Driver runs getColInfo to know what columns are needed from db & which are calculated,
         #  then gets data from db and then calculates additional columns (via run methods here).
         if cols_present:
             # Column already present in data; assume it is correct and does not need recalculating.
-            return simData
-        dec = simData[self.decCol]
+            return sim_data
+        dec = sim_data[self.dec_col]
         if self.degrees:
             dec = np.radians(dec)
         min_z_possible = np.abs(dec - np.radians(self.telescope_lat))
         min_airmass_possible = 1.0 / np.cos(min_z_possible)
-        simData["normairmass"] = simData[self.airmassCol] / min_airmass_possible
-        return simData
+        sim_data["normairmass"] = sim_data[self.airmass_col] / min_airmass_possible
+        return sim_data
 
 
 class ZenithDistStacker(BaseStacker):
     """Calculate the zenith distance for each pointing.
-    If 'degrees' is True, then assumes altCol is in degrees and returns degrees.
-    If 'degrees' is False, assumes altCol is in radians and returns radians.
+    If 'degrees' is True, then assumes alt_col is in degrees and returns degrees.
+    If 'degrees' is False, assumes alt_col is in radians and returns radians.
     """
 
-    colsAdded = ["zenithDistance"]
+    cols_added = ["zenithDistance"]
 
-    def __init__(self, altCol="altitude", degrees=True):
-        self.altCol = altCol
+    def __init__(self, alt_col="altitude", degrees=True):
+        self.alt_col = alt_col
         self.degrees = degrees
         if self.degrees:
             self.units = ["degrees"]
         else:
             self.unit = ["radians"]
-        self.colsReq = [self.altCol]
+        self.cols_req = [self.alt_col]
 
-    def _run(self, simData, cols_present=False):
+    def _run(self, sim_data, cols_present=False):
         """Calculate new column for zenith distance."""
         if cols_present:
             # Column already present in data; assume it is correct and does not need recalculating.
-            return simData
+            return sim_data
         if self.degrees:
-            simData["zenithDistance"] = 90.0 - simData[self.altCol]
+            sim_data["zenithDistance"] = 90.0 - sim_data[self.alt_col]
         else:
-            simData["zenithDistance"] = np.pi / 2.0 - simData[self.altCol]
-        return simData
+            sim_data["zenithDistance"] = np.pi / 2.0 - sim_data[self.alt_col]
+        return sim_data
 
 
 class ParallaxFactorStacker(BaseStacker):
     """Calculate the parallax factors for each opsim pointing.  Output parallax factor in arcseconds."""
 
-    colsAdded = ["ra_pi_amp", "dec_pi_amp"]
+    cols_added = ["ra_pi_amp", "dec_pi_amp"]
 
     def __init__(
         self,
-        raCol="fieldRA",
-        decCol="fieldDec",
-        dateCol="observationStartMJD",
+        ra_col="fieldRA",
+        dec_col="fieldDec",
+        date_col="observationStartMJD",
         degrees=True,
     ):
-        self.raCol = raCol
-        self.decCol = decCol
-        self.dateCol = dateCol
+        self.ra_col = ra_col
+        self.dec_col = dec_col
+        self.date_col = date_col
         self.units = ["arcsec", "arcsec"]
-        self.colsReq = [raCol, decCol, dateCol]
+        self.cols_req = [ra_col, dec_col, date_col]
         self.degrees = degrees
 
-    def _gnomonic_project_toxy(self, RA1, Dec1, RAcen, Deccen):
-        """Calculate x/y projection of RA1/Dec1 in system with center at RAcen, Deccenp.
+    def _gnomonic_project_toxy(self, ra1, dec1, r_acen, deccen):
+        """Calculate x/y projection of ra1/dec1 in system with center at r_acen, Deccenp.
         Input radians.
         """
         # also used in Global Telescope Network website
-        cosc = np.sin(Deccen) * np.sin(Dec1) + np.cos(Deccen) * np.cos(Dec1) * np.cos(
-            RA1 - RAcen
+        cosc = np.sin(deccen) * np.sin(dec1) + np.cos(deccen) * np.cos(dec1) * np.cos(
+            ra1 - r_acen
         )
-        x = np.cos(Dec1) * np.sin(RA1 - RAcen) / cosc
+        x = np.cos(dec1) * np.sin(ra1 - r_acen) / cosc
         y = (
-            np.cos(Deccen) * np.sin(Dec1)
-            - np.sin(Deccen) * np.cos(Dec1) * np.cos(RA1 - RAcen)
+            np.cos(deccen) * np.sin(dec1)
+            - np.sin(deccen) * np.cos(dec1) * np.cos(ra1 - r_acen)
         ) / cosc
         return x, y
 
-    def _run(self, simData, cols_present=False):
+    def _run(self, sim_data, cols_present=False):
         if cols_present:
             # Column already present in data; assume it is correct and does not need recalculating.
-            return simData
-        ra_pi_amp = np.zeros(np.size(simData), dtype=[("ra_pi_amp", "float")])
-        dec_pi_amp = np.zeros(np.size(simData), dtype=[("dec_pi_amp", "float")])
-        ra_geo1 = np.zeros(np.size(simData), dtype="float")
-        dec_geo1 = np.zeros(np.size(simData), dtype="float")
-        ra_geo = np.zeros(np.size(simData), dtype="float")
-        dec_geo = np.zeros(np.size(simData), dtype="float")
-        ra = simData[self.raCol]
-        dec = simData[self.decCol]
+            return sim_data
+        ra_pi_amp = np.zeros(np.size(sim_data), dtype=[("ra_pi_amp", "float")])
+        dec_pi_amp = np.zeros(np.size(sim_data), dtype=[("dec_pi_amp", "float")])
+        ra_geo1 = np.zeros(np.size(sim_data), dtype="float")
+        dec_geo1 = np.zeros(np.size(sim_data), dtype="float")
+        ra_geo = np.zeros(np.size(sim_data), dtype="float")
+        dec_geo = np.zeros(np.size(sim_data), dtype="float")
+        ra = sim_data[self.ra_col]
+        dec = sim_data[self.dec_col]
         if self.degrees:
             ra = np.radians(ra)
             dec = np.radians(dec)
 
-        for i, ack in enumerate(simData):
-            mtoa_params = palpy.mappa(2000.0, simData[self.dateCol][i])
+        for i, ack in enumerate(sim_data):
+            mtoa_params = palpy.mappa(2000.0, sim_data[self.date_col][i])
             # Object with a 1 arcsec parallax
             ra_geo1[i], dec_geo1[i] = palpy.mapqk(
                 ra[i], dec[i], 0.0, 0.0, 1.0, 0.0, mtoa_params
@@ -290,9 +290,9 @@ class ParallaxFactorStacker(BaseStacker):
         # Return ra_pi_amp and dec_pi_amp in arcseconds.
         ra_pi_amp[:] = np.degrees(x_geo1 - x_geo) * 3600.0
         dec_pi_amp[:] = np.degrees(y_geo1 - y_geo) * 3600.0
-        simData["ra_pi_amp"] = ra_pi_amp
-        simData["dec_pi_amp"] = dec_pi_amp
-        return simData
+        sim_data["ra_pi_amp"] = ra_pi_amp
+        sim_data["dec_pi_amp"] = dec_pi_amp
+        return sim_data
 
 
 class DcrStacker(BaseStacker):
@@ -304,13 +304,13 @@ class DcrStacker(BaseStacker):
 
     Parameters
     ----------
-    filterCol : str
+    filter_col : str
         The name of the column with filter names. Default 'fitler'.
     altCol : str
         Name of the column with altitude info. Default 'altitude'.
-    raCol : str
+    ra_col : str
         Name of the column with RA. Default 'fieldRA'.
-    decCol : str
+    dec_col : str
         Name of the column with Dec. Default 'fieldDec'.
     lstCol : str
         Name of the column with local sidereal time. Default 'observationStartLST'.
@@ -329,18 +329,18 @@ class DcrStacker(BaseStacker):
         for each observation.  Also runs ZenithDistStacker and ParallacticAngleStacker.
     """
 
-    colsAdded = ["ra_dcr_amp", "dec_dcr_amp"]  # zenithDist, HA, PA
+    cols_added = ["ra_dcr_amp", "dec_dcr_amp"]  # zenithDist, HA, PA
 
     def __init__(
         self,
-        filterCol="filter",
-        altCol="altitude",
+        filter_col="filter",
+        alt_col="altitude",
         degrees=True,
-        raCol="fieldRA",
-        decCol="fieldDec",
-        lstCol="observationStartLST",
+        ra_col="fieldRA",
+        dec_col="fieldDec",
+        lst_col="observationStartLST",
         site="LSST",
-        mjdCol="observationStartMJD",
+        mjd_col="observationStartMJD",
         dcr_magnitudes=None,
     ):
         self.units = ["arcsec", "arcsec"]
@@ -356,50 +356,50 @@ class DcrStacker(BaseStacker):
             }
         else:
             self.dcr_magnitudes = dcr_magnitudes
-        self.zdCol = "zenithDistance"
-        self.paCol = "PA"
-        self.filterCol = filterCol
-        self.raCol = raCol
-        self.decCol = decCol
+        self.zd_col = "zenithDistance"
+        self.pa_col = "PA"
+        self.filter_col = filter_col
+        self.ra_col = ra_col
+        self.dec_col = dec_col
         self.degrees = degrees
-        self.colsReq = [filterCol, raCol, decCol, altCol, lstCol]
+        self.cols_req = [filter_col, ra_col, dec_col, alt_col, lst_col]
         #  'zenithDist', 'PA', 'HA' are additional columns required, coming from other stackers which must
         #  also be configured -- so we handle this explicitly here.
-        self.zstacker = ZenithDistStacker(altCol=altCol, degrees=self.degrees)
+        self.zstacker = ZenithDistStacker(alt_col=alt_col, degrees=self.degrees)
         self.pastacker = ParallacticAngleStacker(
-            raCol=raCol,
-            decCol=decCol,
-            mjdCol=mjdCol,
+            ra_col=ra_col,
+            dec_col=dec_col,
+            mjd_col=mjd_col,
             degrees=self.degrees,
-            lstCol=lstCol,
+            lst_col=lst_col,
             site=site,
         )
         # Note that RA/Dec could be coming from a dither stacker!
         # But we will assume that coord stackers will be handled separately.
 
-    def _run(self, simData, cols_present=False):
+    def _run(self, sim_data, cols_present=False):
         if cols_present:
             # Column already present in data; assume it is correct and does not need recalculating.
-            return simData
+            return sim_data
         # Need to make sure the Zenith stacker gets run first
         # Call _run method because already added these columns due to 'colsAdded' line.
-        simData = self.zstacker.run(simData)
-        simData = self.pastacker.run(simData)
+        sim_data = self.zstacker.run(sim_data)
+        sim_data = self.pastacker.run(sim_data)
         if self.degrees:
-            zenithTan = np.tan(np.radians(simData[self.zdCol]))
-            parallacticAngle = np.radians(simData[self.paCol])
+            zenith_tan = np.tan(np.radians(sim_data[self.zd_col]))
+            parallactic_angle = np.radians(sim_data[self.pa_col])
         else:
-            zenithTan = np.tan(simData[self.zdCol])
-            parallacticAngle = simData[self.paCol]
-        dcr_in_ra = zenithTan * np.sin(parallacticAngle)
-        dcr_in_dec = zenithTan * np.cos(parallacticAngle)
-        for filtername in np.unique(simData[self.filterCol]):
-            fmatch = np.where(simData[self.filterCol] == filtername)
+            zenith_tan = np.tan(sim_data[self.zd_col])
+            parallactic_angle = sim_data[self.pa_col]
+        dcr_in_ra = zenith_tan * np.sin(parallactic_angle)
+        dcr_in_dec = zenith_tan * np.cos(parallactic_angle)
+        for filtername in np.unique(sim_data[self.filter_col]):
+            fmatch = np.where(sim_data[self.filter_col] == filtername)
             dcr_in_ra[fmatch] = self.dcr_magnitudes[filtername] * dcr_in_ra[fmatch]
             dcr_in_dec[fmatch] = self.dcr_magnitudes[filtername] * dcr_in_dec[fmatch]
-        simData["ra_dcr_amp"] = dcr_in_ra
-        simData["dec_dcr_amp"] = dcr_in_dec
-        return simData
+        sim_data["ra_dcr_amp"] = dcr_in_ra
+        sim_data["dec_dcr_amp"] = dcr_in_dec
+        return sim_data
 
 
 class HourAngleStacker(BaseStacker):
@@ -407,28 +407,28 @@ class HourAngleStacker(BaseStacker):
     Always in HOURS.
     """
 
-    colsAdded = ["HA"]
+    cols_added = ["HA"]
 
-    def __init__(self, lstCol="observationStartLST", raCol="fieldRA", degrees=True):
+    def __init__(self, lst_col="observationStartLST", ra_col="fieldRA", degrees=True):
         self.units = ["Hours"]
-        self.colsReq = [lstCol, raCol]
-        self.lstCol = lstCol
-        self.raCol = raCol
+        self.cols_req = [lst_col, ra_col]
+        self.lst_col = lst_col
+        self.ra_col = ra_col
         self.degrees = degrees
 
-    def _run(self, simData, cols_present=False):
+    def _run(self, sim_data, cols_present=False):
         """HA = LST - RA"""
         if cols_present:
             # Column already present in data; assume it is correct and does not need recalculating.
-            return simData
-        if len(simData) == 0:
-            return simData
+            return sim_data
+        if len(sim_data) == 0:
+            return sim_data
         if self.degrees:
-            ra = np.radians(simData[self.raCol])
-            lst = np.radians(simData[self.lstCol])
+            ra = np.radians(sim_data[self.ra_col])
+            lst = np.radians(sim_data[self.lst_col])
         else:
-            ra = simData[self.raCol]
-            lst = simData[self.lstCol]
+            ra = sim_data[self.ra_col]
+            lst = sim_data[self.lst_col]
         # Check that LST is reasonable
         if (np.min(lst) < 0) | (np.max(lst) > 2.0 * np.pi):
             warnings.warn("LST values are not between 0 and 2 pi")
@@ -440,8 +440,8 @@ class HourAngleStacker(BaseStacker):
         ha = np.where(ha < -np.pi, ha + 2.0 * np.pi, ha)
         ha = np.where(ha > np.pi, ha - 2.0 * np.pi, ha)
         # Convert radians to hours
-        simData["HA"] = ha * 12 / np.pi
-        return simData
+        sim_data["HA"] = ha * 12 / np.pi
+        return sim_data
 
 
 class ParallacticAngleStacker(BaseStacker):
@@ -449,51 +449,51 @@ class ParallacticAngleStacker(BaseStacker):
     If 'degrees' is True, this will be in degrees (as are all other angles). If False, then in radians.
     """
 
-    colsAdded = ["PA"]
+    cols_added = ["PA"]
 
     def __init__(
         self,
-        raCol="fieldRA",
-        decCol="fieldDec",
+        ra_col="fieldRA",
+        dec_col="fieldDec",
         degrees=True,
-        mjdCol="observationStartMJD",
-        lstCol="observationStartLST",
+        mjd_col="observationStartMJD",
+        lst_col="observationStartLST",
         site="LSST",
     ):
 
-        self.lstCol = lstCol
-        self.raCol = raCol
-        self.decCol = decCol
+        self.lst_col = lst_col
+        self.ra_col = ra_col
+        self.dec_col = dec_col
         self.degrees = degrees
-        self.mjdCol = mjdCol
+        self.mjd_col = mjd_col
         self.site = Site(name=site)
         self.units = ["radians"]
-        self.colsReq = [self.raCol, self.decCol, self.mjdCol, self.lstCol]
-        self.haStacker = HourAngleStacker(
-            lstCol=lstCol, raCol=raCol, degrees=self.degrees
+        self.cols_req = [self.ra_col, self.dec_col, self.mjd_col, self.lst_col]
+        self.ha_stacker = HourAngleStacker(
+            lst_col=lst_col, ra_col=ra_col, degrees=self.degrees
         )
 
-    def _run(self, simData, cols_present=False):
+    def _run(self, sim_data, cols_present=False):
         # Equation from:
         # http://www.gb.nrao.edu/~rcreager/GBTMetrology/140ft/l0058/gbtmemo52/memo52.html
         # or
         # http://www.gb.nrao.edu/GBT/DA/gbtidl/release2pt9/contrib/contrib/parangle.pro
         if cols_present:
             # Column already present in data; assume it is correct and does not need recalculating.
-            return simData
+            return sim_data
         # Using the run method (not _run) means that if HA is present, it will not be recalculated.
-        simData = self.haStacker.run(simData)
+        sim_data = self.ha_stacker.run(sim_data)
         if self.degrees:
-            dec = np.radians(simData[self.decCol])
+            dec = np.radians(sim_data[self.dec_col])
         else:
-            dec = simData[self.decCol]
-        simData["PA"] = np.arctan2(
-            np.sin(simData["HA"] * np.pi / 12.0),
+            dec = sim_data[self.dec_col]
+        sim_data["PA"] = np.arctan2(
+            np.sin(sim_data["HA"] * np.pi / 12.0),
             (
                 np.cos(dec) * np.tan(self.site.latitude_rad)
-                - np.sin(dec) * np.cos(simData["HA"] * np.pi / 12.0)
+                - np.sin(dec) * np.cos(sim_data["HA"] * np.pi / 12.0)
             ),
         )
         if self.degrees:
-            simData["PA"] = np.degrees(simData["PA"])
-        return simData
+            sim_data["PA"] = np.degrees(sim_data["PA"])
+        return sim_data

@@ -4,11 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 from .plot_handler import BasePlotter
-from .perceptual_rainbow import makePRCmap
+from .perceptual_rainbow import make_pr_cmap
 
 __all__ = ["TwoDSubsetData", "OneDSubsetData"]
 
-perceptual_rainbow = makePRCmap()
+perceptual_rainbow = make_pr_cmap()
 
 
 class TwoDSubsetData(BasePlotter):
@@ -19,9 +19,9 @@ class TwoDSubsetData(BasePlotter):
     """
 
     def __init__(self):
-        self.plotType = "2DBinnedData"
-        self.objectPlotter = False
-        self.defaultPlotDict = {
+        self.plot_type = "2DBinnedData"
+        self.object_plotter = False
+        self.default_plot_dict = {
             "title": None,
             "xlabel": None,
             "ylable": None,
@@ -32,13 +32,13 @@ class TwoDSubsetData(BasePlotter):
             "cbarFormat": None,
         }
 
-    def __call__(self, metricValues, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_values, slicer, user_plot_dict, fignum=None):
         """
         Parameters
         ----------
         metricValue : numpy.ma.MaskedArray
         slicer : rubin_sim.maf.slicers.NDSlicer
-        userPlotDict: dict
+        user_plot_dict: dict
             Dictionary of plot parameters set by user (overrides default values).
             'xaxis' and 'yaxis' values define which axes of the nd data to plot along the x/y axes.
         fignum : int
@@ -52,20 +52,20 @@ class TwoDSubsetData(BasePlotter):
         if slicer.slicerName != "NDSlicer":
             raise ValueError("TwoDSubsetData plots ndSlicer metric values")
         fig = plt.figure(fignum)
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
-        if "xaxis" not in plotDict or "yaxis" not in plotDict:
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
+        if "xaxis" not in plot_dict or "yaxis" not in plot_dict:
             raise ValueError("xaxis and yaxis must be specified in plot_dict")
-        xaxis = plotDict["xaxis"]
-        yaxis = plotDict["yaxis"]
+        xaxis = plot_dict["xaxis"]
+        yaxis = plot_dict["yaxis"]
         # Reshape the metric data so we can isolate the values to plot
         # (just new view of data, not copy).
         newshape = []
         for b in slicer.bins:
             newshape.append(len(b) - 1)
         newshape.reverse()
-        md = metricValues.reshape(newshape)
+        md = metric_values.reshape(newshape)
         # Sum over other dimensions. Note that masked values are not included in sum.
         sumaxes = list(range(slicer.nD))
         sumaxes.remove(xaxis)
@@ -75,13 +75,13 @@ class TwoDSubsetData(BasePlotter):
         # Plot the histogrammed data.
         # Plot data.
         x, y = np.meshgrid(slicer.bins[xaxis][:-1], slicer.bins[yaxis][:-1])
-        if plotDict["logScale"]:
+        if plot_dict["logScale"]:
             norm = colors.LogNorm()
         else:
             norm = None
-        if plotDict["clims"] is None:
+        if plot_dict["clims"] is None:
             im = plt.contourf(
-                x, y, md, 250, norm=norm, extend="both", cmap=plotDict["cmap"]
+                x, y, md, 250, norm=norm, extend="both", cmap=plot_dict["cmap"]
             )
         else:
             im = plt.contourf(
@@ -91,15 +91,15 @@ class TwoDSubsetData(BasePlotter):
                 250,
                 norm=norm,
                 extend="both",
-                cmap=plotDict["cmap"],
-                vmin=plotDict["clims"][0],
-                vmax=plotDict["clims"][1],
+                cmap=plot_dict["cmap"],
+                vmin=plot_dict["clims"][0],
+                vmax=plot_dict["clims"][1],
             )
-        xlabel = plotDict["xlabel"]
+        xlabel = plot_dict["xlabel"]
         if xlabel is None:
             xlabel = slicer.sliceColList[xaxis]
         plt.xlabel(xlabel)
-        ylabel = plotDict["ylabel"]
+        ylabel = plot_dict["ylabel"]
         if ylabel is None:
             ylabel = slicer.sliceColList[yaxis]
         plt.ylabel(ylabel)
@@ -108,10 +108,10 @@ class TwoDSubsetData(BasePlotter):
             aspect=25,
             extend="both",
             orientation="horizontal",
-            format=plotDict["cbarFormat"],
+            format=plot_dict["cbarFormat"],
         )
-        cb.set_label(plotDict["units"])
-        plt.title(plotDict["title"])
+        cb.set_label(plot_dict["units"])
+        plt.title(plot_dict["title"])
         return fig.number
 
 
@@ -122,9 +122,9 @@ class OneDSubsetData(BasePlotter):
     """
 
     def __init__(self):
-        self.plotType = "1DBinnedData"
-        self.objectPlotter = False
-        self.defaultPlotDict = {
+        self.plot_type = "1DBinnedData"
+        self.object_plotter = False
+        self.default_plot_dict = {
             "title": None,
             "xlabel": None,
             "ylabel": None,
@@ -138,13 +138,13 @@ class OneDSubsetData(BasePlotter):
             "cbarFormat": None,
         }
 
-    def plotBinnedData1D(self, metricValues, slicer, userPlotDict, fignum=None):
+    def plot_binned_data1_d(self, metric_values, slicer, user_plot_dict, fignum=None):
         """
         Parameters
         ----------
         metricValue : numpy.ma.MaskedArray
         slicer : rubin_sim.maf.slicers.NDSlicer
-        userPlotDict: dict
+        user_plot_dict: dict
             Dictionary of plot parameters set by user (overrides default values).
             'axis' keyword identifies which axis to show in the plot (along xaxis of plot).
         fignum : int
@@ -158,19 +158,19 @@ class OneDSubsetData(BasePlotter):
         if slicer.slicerName != "NDSlicer":
             raise ValueError("TwoDSubsetData plots ndSlicer metric values")
         fig = plt.figure(fignum)
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
-        if "axis" not in plotDict:
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
+        if "axis" not in plot_dict:
             raise ValueError("axis for 1-d plot must be specified in plot_dict")
         # Reshape the metric data so we can isolate the values to plot
         # (just new view of data, not copy).
-        axis = plotDict["axis"]
+        axis = plot_dict["axis"]
         newshape = []
         for b in slicer.bins:
             newshape.append(len(b) - 1)
         newshape.reverse()
-        md = metricValues.reshape(newshape)
+        md = metric_values.reshape(newshape)
         # Sum over other dimensions. Note that masked values are not included in sum.
         sumaxes = list(range(slicer.nD))
         sumaxes.remove(axis)
@@ -179,31 +179,31 @@ class OneDSubsetData(BasePlotter):
         # Plot the histogrammed data.
         leftedge = slicer.bins[axis][:-1]
         width = np.diff(slicer.bins[axis])
-        if plotDict["filled"]:
+        if plot_dict["filled"]:
             plt.bar(
                 leftedge,
                 md,
                 width,
-                label=plotDict["label"],
+                label=plot_dict["label"],
                 linewidth=0,
-                alpha=plotDict["alpha"],
-                log=plotDict["logScale"],
+                alpha=plot_dict["alpha"],
+                log=plot_dict["logScale"],
             )
         else:
             x = np.ravel(list(zip(leftedge, leftedge + width)))
             y = np.ravel(list(zip(md, md)))
-            if plotDict["logScale"]:
-                plt.semilogy(x, y, label=plotDict["label"])
+            if plot_dict["logScale"]:
+                plt.semilogy(x, y, label=plot_dict["label"])
             else:
-                plt.plot(x, y, label=plotDict["label"])
-        plt.ylabel(plotDict["ylabel"])
-        xlabel = plotDict["xlabel"]
+                plt.plot(x, y, label=plot_dict["label"])
+        plt.ylabel(plot_dict["ylabel"])
+        xlabel = plot_dict["xlabel"]
         if xlabel is None:
             xlabel = slicer.sliceColName[axis]
-            if plotDict["units"] != None:
-                xlabel += " (" + plotDict["units"] + ")"
+            if plot_dict["units"] != None:
+                xlabel += " (" + plot_dict["units"] + ")"
         plt.xlabel(xlabel)
-        if plotDict["histRange"] != None:
-            plt.xlim(plotDict["histRange"])
-        plt.title(plotDict["title"])
+        if plot_dict["histRange"] != None:
+            plt.xlim(plot_dict["histRange"])
+        plt.title(plot_dict["title"])
         return fig.number

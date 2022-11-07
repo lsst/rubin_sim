@@ -16,17 +16,17 @@ __all__ = ["StarCountMassMetric"]
 
 
 class StarCountMassMetric(BaseMetric):
-    """Find the number of stars in a given field in the mass range fainter than magnitude 16 and bright enough to have noise less than 0.03 in a given band. M1 and M2 are the upper and lower limits of the mass range. 'band' is the band to be observed."""
+    """Find the number of stars in a given field in the mass range fainter than magnitude 16 and bright enough to have noise less than 0.03 in a given band. M1 and m2 are the upper and lower limits of the mass range. 'band' is the band to be observed."""
 
     def __init__(self, **kwargs):
-        self.M1 = kwargs.pop("M1", 0.9)
-        self.M2 = kwargs.pop("M2", 1.0)
+        self.m1 = kwargs.pop("M1", 0.9)
+        self.m2 = kwargs.pop("M2", 1.0)
         self.band = kwargs.pop("band", "i")
         super(StarCountMassMetric, self).__init__(col=[], **kwargs)
 
-    def run(self, dataSlice, slicePoint=None):
-        self.DECCol = np.degrees(dataSlice[0][3])
-        self.RACol = np.degrees(dataSlice[0][2])
+    def run(self, data_slice, slice_point=None):
+        self.dec_col = np.degrees(data_slice[0][3])
+        self.ra_col = np.degrees(data_slice[0][2])
         return starcount_bymass.starcount_bymass(
-            self.RACol, self.DECCol, self.M1, self.M2, self.band
+            self.ra_col, self.dec_col, self.m1, self.m2, self.band
         )

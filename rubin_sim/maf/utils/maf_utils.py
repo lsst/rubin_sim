@@ -9,8 +9,8 @@ import os
 
 
 __all__ = [
-    "optimalBins",
-    "percentileClipping",
+    "optimal_bins",
+    "percentile_clipping",
     "radec2pix",
     "collapse_night",
     "load_inst_zeropoints",
@@ -38,52 +38,52 @@ def load_inst_zeropoints():
     return zp_inst, k_atm
 
 
-def coaddM5(mags):
+def coadd_m5(mags):
     """Coadded depth, assuming Gaussian noise"""
     return 1.25 * np.log10(np.sum(10.0 ** (0.8 * np.array(mags))))
 
 
 def collapse_night(
-    dataSlice,
-    nightCol="night",
-    filterCol="filter",
-    m5Col="fiveSigmaDepth",
-    mjdCol="observationStartMJD",
+    data_slice,
+    night_col="night",
+    filter_col="filter",
+    m5_col="fiveSigmaDepth",
+    mjd_col="observationStartMJD",
 ):
-    """Collapse a dataSlice into per-filter, per-night values for
+    """Collapse a data_slice into per-filter, per-night values for
     the 'night', 'filter', 'median observationStartMJD', and 'fiveSigmaDepth'.
     """
-    filters = np.unique(dataSlice[filterCol])
+    filters = np.unique(data_slice[filter_col])
     # Find the per-night, per-filter values
-    nightSlice = {}
+    night_slice = {}
     for filtername in filters:
-        infilt = np.where(dataSlice[filterCol] == filtername)[0]
-        unight = np.unique(dataSlice[nightCol][infilt])
+        infilt = np.where(data_slice[filter_col] == filtername)[0]
+        unight = np.unique(data_slice[night_col][infilt])
         right = unight + 0.5
         bins = [unight[0] - 0.5] + right.tolist()
         coadds, be, bn = binned_statistic(
-            dataSlice[nightCol][infilt],
-            dataSlice[m5Col][infilt],
+            data_slice[night_col][infilt],
+            data_slice[m5_col][infilt],
             bins=bins,
-            statistic=coaddM5,
+            statistic=coadd_m5,
         )
 
         unights, median_mjd_per_night = int_binned_stat(
-            dataSlice[nightCol][infilt], dataSlice[mjdCol][infilt], statistic=np.median
+            data_slice[night_col][infilt], data_slice[mjd_col][infilt], statistic=np.median
         )
 
-        nightSlice[filtername] = np.array(
+        night_slice[filtername] = np.array(
             list(zip(unight, median_mjd_per_night, coadds, filtername * len(unight))),
-            dtype=[(nightCol, int), (mjdCol, float), (m5Col, float), (filterCol, "U1")],
+            dtype=[(night_col, int), (mjd_col, float), (m5_col, float), (filter_col, "U1")],
         )
 
-    nightSlice = np.concatenate([nightSlice[f] for f in nightSlice])
-    nightSlice.sort(order=["observationStartMJD"])
+    night_slice = np.concatenate([night_slice[f] for f in night_slice])
+    night_slice.sort(order=["observationStartMJD"])
 
-    return nightSlice
+    return night_slice
 
 
-def optimalBins(datain, binmin=None, binmax=None, nbinMax=200, nbinMin=1):
+def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1):
     """
     Set an 'optimal' number of bins using the Freedman-Diaconis rule.
 
@@ -95,10 +95,10 @@ def optimalBins(datain, binmin=None, binmax=None, nbinMax=200, nbinMin=1):
         The minimum bin value to consider (if None, uses minimum data value).
     binmax : float
         The maximum bin value to consider (if None, uses maximum data value).
-    nbinMax : int
+    nbin_max : int
         The maximum number of bins to create. Sometimes the 'optimal binsize' implies
         an unreasonably large number of bins, if the data distribution is unusual.
-    nbinMin : int
+    nbin_min : int
         The minimum number of bins to create. Default is 1.
 
     Returns
@@ -113,7 +113,7 @@ def optimalBins(datain, binmin=None, binmax=None, nbinMax=200, nbinMin=1):
         data = datain
     # Check that any good data values remain.
     if data.size == 0:
-        nbins = nbinMax
+        nbins = nbin_max
         warnings.warn(
             "No unmasked data available for calculating optimal bin size: returning %i bins"
             % (nbins)
@@ -127,7 +127,7 @@ def optimalBins(datain, binmin=None, binmax=None, nbinMax=200, nbinMin=1):
         cond = np.where((data >= binmin) & (data <= binmax))[0]
         # Check if any data points remain within binmin/binmax.
         if np.size(data[cond]) == 0:
-            nbins = nbinMax
+            nbins = nbin_max
             warnings.warn(
                 "No data available for calculating optimal bin size within range of %f, %f"
                 % (binmin, binmax)
@@ -137,27 +137,27 @@ def optimalBins(datain, binmin=None, binmax=None, nbinMax=200, nbinMin=1):
             iqr = np.percentile(data[cond], 75) - np.percentile(data[cond], 25)
             binwidth = 2 * iqr * (np.size(data[cond]) ** (-1.0 / 3.0))
             nbins = (binmax - binmin) / binwidth
-            if nbins > nbinMax:
+            if nbins > nbin_max:
                 warnings.warn(
                     "Optimal bin calculation tried to make %.0f bins, returning %i"
-                    % (nbins, nbinMax)
+                    % (nbins, nbin_max)
                 )
-                nbins = nbinMax
-            if nbins < nbinMin:
+                nbins = nbin_max
+            if nbins < nbin_min:
                 warnings.warn(
                     "Optimal bin calculation tried to make %.0f bins, returning %i"
-                    % (nbins, nbinMin)
+                    % (nbins, nbin_min)
                 )
-                nbins = nbinMin
+                nbins = nbin_min
     if np.isnan(nbins):
         warnings.warn(
-            "Optimal bin calculation calculated NaN: returning %i" % (nbinMax)
+            "Optimal bin calculation calculated NaN: returning %i" % (nbin_max)
         )
-        nbins = nbinMax
+        nbins = nbin_max
     return int(nbins)
 
 
-def percentileClipping(data, percentile=95.0):
+def percentile_clipping(data, percentile=95.0):
     """
     Calculate the minimum and maximum values of a distribution of points, after
     discarding data more than 'percentile' from the median.

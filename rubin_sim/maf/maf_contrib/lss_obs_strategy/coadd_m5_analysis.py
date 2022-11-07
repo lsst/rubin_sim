@@ -23,48 +23,48 @@ import rubin_sim.maf.maps as maps
 import rubin_sim.maf.stackers as mafStackers  # stackers in sims_maf
 
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.masking_algorithm_generalized import (
-    maskingAlgorithmGeneralized,
+    masking_algorithm_generalized,
 )
-from rubin_sim.maf.maf_contrib.lss_obs_strategy.alm_plots import almPlots
+from rubin_sim.maf.maf_contrib.lss_obs_strategy.alm_plots import alm_plots
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.save_bundle_data_npz_format import (
-    saveBundleData_npzFormat,
+    save_bundle_data_npz_format,
 )
 
-from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import plotColor
+from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import plot_color
 
-__all__ = ["coaddM5Analysis"]
+__all__ = ["coadd_m5_analysis"]
 
 
-def coaddM5Analysis(
+def coadd_m5_analysis(
     path,
     dbfile,
-    runName,
+    run_name,
     slair=False,
-    WFDandDDFs=False,
-    noDithOnly=False,
-    bestDithOnly=False,
-    someDithOnly=False,
-    specifiedDith=None,
+    wf_dand_dd_fs=False,
+    no_dith_only=False,
+    best_dith_only=False,
+    some_dith_only=False,
+    specified_dith=None,
     nside=128,
-    filterBand="r",
-    includeDustExtinction=False,
-    saveunMaskedCoaddData=False,
-    pixelRadiusForMasking=5,
-    cutOffYear=None,
-    plotSkymap=True,
-    plotCartview=True,
-    unmaskedColorMin=None,
-    unmaskedColorMax=None,
-    maskedColorMin=None,
-    maskedColorMax=None,
-    nTicks=5,
-    plotPowerSpectrum=True,
-    showPlots=True,
-    saveFigs=True,
-    almAnalysis=True,
-    raRange=[-50, 50],
-    decRange=[-65, 5],
-    saveMaskedCoaddData=True,
+    filter_band="r",
+    include_dust_extinction=False,
+    saveun_masked_coadd_data=False,
+    pixel_radius_for_masking=5,
+    cut_off_year=None,
+    plot_skymap=True,
+    plot_cartview=True,
+    unmasked_color_min=None,
+    unmasked_color_max=None,
+    masked_color_min=None,
+    masked_color_max=None,
+    n_ticks=5,
+    plot_power_spectrum=True,
+    show_plots=True,
+    save_figs=True,
+    alm_analysis=True,
+    ra_range=[-50, 50],
+    dec_range=[-65, 5],
+    save_masked_coadd_data=True,
 ):
 
     """
@@ -80,68 +80,68 @@ def coaddM5Analysis(
         path to the main directory where output directory is to be saved.
     dbfile: str
         path to the OpSim output file, e.g. to a copy of enigma_1189
-    runName: str
+    run_name: str
         run name tag to identify the output of specified OpSim output, e.g. 'enigma1189'
     slair: `bool`
         set to True if analysis on a SLAIR output.
         Default: False
-    WFDandDDFs: `bool`
+    wf_dand_dd_fs: `bool`
         set to True if want to consider both WFD survet and DDFs. Otherwise will only work
         with WFD. Default: False
-    noDithOnly: `bool`
+    no_dith_only: `bool`
         set to True if only want to consider the undithered survey. Default: False
-    bestDithOnly: `bool`
+    best_dith_only: `bool`
         set to True if only want to consider RandomDitherFieldPerVisit.
         Default: False
-    someDithOnly: `bool`
+    some_dith_only: `bool`
         set to True if only want to consider undithered and a few dithered surveys.
         Default: False
-    specifiedDith: str
+    specified_dith: str
         specific dither strategy to run.
         Default: None
     nside: int
         HEALpix resolution parameter. Default: 128
-    filterBand: str
+    filter_band: str
         any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'r'
-    includeDustExtinction: `bool`
+    include_dust_extinction: `bool`
         set to include dust extinction. Default: False
-    saveunMaskedCoaddData: `bool`
+    saveun_masked_coadd_data: `bool`
         set to True to save data before border masking. Default: False
-    pixelRadiusForMasking: int
+    pixel_radius_for_masking: int
         number of pixels to mask along the shallow border. Default: 5
-    cutOffYear: int
+    cut_off_year: int
         year cut to restrict analysis to only a subset of the survey.
         Must range from 1 to 9, or None for the full survey analysis (10 yrs).
         Default: None
-    plotSkymap: `bool`
+    plot_skymap: `bool`
         set to True if want to plot skymaps. Default: True
-    plotCartview: `bool`
+    plot_cartview: `bool`
         set to True if want to plot cartview plots. Default: False
-    unmaskedColorMin: float
+    unmasked_color_min: float
         lower limit on the colorscale for unmasked skymaps. Default: None
-    unmaskedColorMax: float
+    unmasked_color_max: float
         upper limit on the colorscale for unmasked skymaps. Default: None
-    maskedColorMin: float
+    masked_color_min: float
         lower limit on the colorscale for border-masked skymaps. Default: None
-    maskedColorMax: float
+    masked_color_max: float
         upper limit on the colorscale for border-masked skymaps. Default: None
-    nTicks: int
+    n_ticks: int
         (number of ticks - 1) on the skymap colorbar. Default: 5
-    plotPowerSpectrum: `bool`
+    plot_power_spectrum: `bool`
         set to True if want to plot powerspectra. Default: True
-    showPlots: `bool`
+    show_plots: `bool`
         set to True if want to show figures. Default: True
-    saveFigs: `bool`
+    save_figs: `bool`
         set to True if want to save figures. Default: True
-    almAnalysis: `bool`
+    alm_analysis: `bool`
         set to True to perform the alm analysis. Default: True
-    raRange: float array
+    ra_range: float array
         range of right ascention (in degrees) to consider in alm  cartview plot;
-        applicable when almAnalysis=True. Default: [-50,50]
-    decRange: float array
+        applicable when alm_analysis=True. Default: [-50,50]
+    dec_range: float array
         range of declination (in degrees) to consider in alm cartview plot;
-        applicable when almAnalysis=True. Default: [-65,5]
-    saveMaskedCoaddData: `bool`
+        applicable when alm_analysis=True. Default: [-65,5]
+    save_masked_coadd_data: `bool`
         set to True to save the coadded depth data after the border
         masking. Default: True
     """
@@ -155,410 +155,410 @@ def coaddM5Analysis(
         opsdb = db.OpsimDatabase(dbfile)
 
     # ------------------------------------------------------------------------
-    # set up the outDir
+    # set up the out_dir
     zeropt_tag = ""
-    if cutOffYear is not None:
-        zeropt_tag = "%syearCut" % cutOffYear
+    if cut_off_year is not None:
+        zeropt_tag = "%syearCut" % cut_off_year
     else:
         zeropt_tag = "fullSurveyPeriod"
 
-    if includeDustExtinction:
+    if include_dust_extinction:
         dust_tag = "withDustExtinction"
     else:
         dust_tag = "noDustExtinction"
 
-    regionType = ""
-    if WFDandDDFs:
-        regionType = "WFDandDDFs_"
+    region_type = ""
+    if wf_dand_dd_fs:
+        region_type = "WFDandDDFs_"
 
-    outDir = (
+    out_dir = (
         "coaddM5Analysis_%snside%s_%s_%spixelRadiusForMasking_%sBand_%s_%s_directory"
         % (
-            regionType,
+            region_type,
             nside,
             dust_tag,
-            pixelRadiusForMasking,
-            filterBand,
-            runName,
+            pixel_radius_for_masking,
+            filter_band,
+            run_name,
             zeropt_tag,
         )
     )
-    print("# outDir: %s" % outDir)
-    resultsDb = db.ResultsDb(out_dir=outDir)
+    print("# out_dir: %s" % out_dir)
+    results_db = db.ResultsDb(out_dir=out_dir)
 
     # ------------------------------------------------------------------------
     # set up the sql constraint
-    if WFDandDDFs:
-        if cutOffYear is not None:
-            nightCutOff = (cutOffYear) * 365.25
-            sqlconstraint = 'night<=%s and filter=="%s"' % (nightCutOff, filterBand)
+    if wf_dand_dd_fs:
+        if cut_off_year is not None:
+            night_cut_off = (cut_off_year) * 365.25
+            sqlconstraint = 'night<=%s and filter=="%s"' % (night_cut_off, filter_band)
         else:
-            sqlconstraint = 'filter=="%s"' % filterBand
+            sqlconstraint = 'filter=="%s"' % filter_band
     else:
         # set up the propID and units on the ra, dec
         if slair:  # no prop ID; only WFD is simulated.
-            wfdWhere = ""
-            raDecInDeg = True
+            wfd_where = ""
+            ra_dec_in_deg = True
         else:
-            propIds, propTags = opsdb.fetchPropInfo()
-            wfdWhere = "%s and " % opsdb.createSQLWhere("WFD", propTags)
-            raDecInDeg = opsdb.raDecInDeg
+            prop_ids, prop_tags = opsdb.fetchPropInfo()
+            wfd_where = "%s and " % opsdb.createSQLWhere("WFD", prop_tags)
+            ra_dec_in_deg = opsdb.raDecInDeg
         # set up the year cutoff
-        if cutOffYear is not None:
-            nightCutOff = (cutOffYear) * 365.25
+        if cut_off_year is not None:
+            night_cut_off = (cut_off_year) * 365.25
             sqlconstraint = '%snight<=%s and filter=="%s"' % (
-                wfdWhere,
-                nightCutOff,
-                filterBand,
+                wfd_where,
+                night_cut_off,
+                filter_band,
             )
         else:
-            sqlconstraint = '%sfilter=="%s"' % (wfdWhere, filterBand)
+            sqlconstraint = '%sfilter=="%s"' % (wfd_where, filter_band)
     print("# sqlconstraint: %s" % sqlconstraint)
 
     # ------------------------------------------------------------------------
     # setup all the slicers
     slicer = {}
-    stackerList = {}
+    stacker_list = {}
 
     if (
-        specifiedDith is not None
+        specified_dith is not None
     ):  # would like to add all the stackers first and then keep only the one that is specified
-        bestDithOnly, noDithOnly = False, False
+        best_dith_only, no_dith_only = False, False
 
-    if bestDithOnly:
-        stackerList["RandomDitherFieldPerVisit"] = [
+    if best_dith_only:
+        stacker_list["RandomDitherFieldPerVisit"] = [
             mafStackers.RandomDitherFieldPerVisitStacker(
-                degrees=raDecInDeg, randomSeed=1000
+                degrees=ra_dec_in_deg, random_seed=1000
             )
         ]
         slicer["RandomDitherFieldPerVisit"] = slicers.HealpixSlicer(
             lon_col="randomDitherFieldPerVisitRa",
             lat_col="randomDitherFieldPerVisitDec",
-            lat_lon_deg=raDecInDeg,
+            lat_lon_deg=ra_dec_in_deg,
             nside=nside,
-            useCache=False,
+            use_cache=False,
         )
     else:
         if slair:
             slicer["NoDither"] = slicers.HealpixSlicer(
                 lon_col="RA",
                 lat_col="dec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
         else:
             slicer["NoDither"] = slicers.HealpixSlicer(
                 lon_col="fieldRA",
                 lat_col="fieldDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
-        if someDithOnly and not noDithOnly:
-            # stackerList['RepulsiveRandomDitherFieldPerVisit'] = [myStackers.RepulsiveRandomDitherFieldPerVisitStacker(degrees=raDecInDeg,
-            #                                                                                                          randomSeed=1000)]
+        if some_dith_only and not no_dith_only:
+            # stacker_list['RepulsiveRandomDitherFieldPerVisit'] = [myStackers.RepulsiveRandomDitherFieldPerVisitStacker(degrees=ra_dec_in_deg,
+            #                                                                                                          random_seed=1000)]
             # slicer['RepulsiveRandomDitherFieldPerVisit'] = slicers.HealpixSlicer(lonCol='repulsiveRandomDitherFieldPerVisitRa',
             #                                                                    latCol='repulsiveRandomDitherFieldPerVisitDec',
-            #                                                                    latLonDeg=raDecInDeg, nside=nside,
-            #                                                                    useCache=False)
+            #                                                                    latLonDeg=ra_dec_in_deg, nside=nside,
+            #                                                                    use_cache=False)
             slicer["SequentialHexDitherFieldPerNight"] = slicers.HealpixSlicer(
                 lon_col="hexDitherFieldPerNightRa",
                 lat_col="hexDitherFieldPerNightDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["PentagonDitherPerSeason"] = slicers.HealpixSlicer(
                 lon_col="pentagonDitherPerSeasonRa",
                 lat_col="pentagonDitherPerSeasonDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
-        elif not noDithOnly:
+        elif not no_dith_only:
             # random dithers on different timescales
-            stackerList["RandomDitherPerNight"] = [
+            stacker_list["RandomDitherPerNight"] = [
                 mafStackers.RandomDitherPerNightStacker(
-                    degrees=raDecInDeg, randomSeed=1000
+                    degrees=ra_dec_in_deg, random_seed=1000
                 )
             ]
-            stackerList["RandomDitherFieldPerNight"] = [
+            stacker_list["RandomDitherFieldPerNight"] = [
                 mafStackers.RandomDitherFieldPerNightStacker(
-                    degrees=raDecInDeg, randomSeed=1000
+                    degrees=ra_dec_in_deg, random_seed=1000
                 )
             ]
-            stackerList["RandomDitherFieldPerVisit"] = [
+            stacker_list["RandomDitherFieldPerVisit"] = [
                 mafStackers.RandomDitherFieldPerVisitStacker(
-                    degrees=raDecInDeg, randomSeed=1000
+                    degrees=ra_dec_in_deg, random_seed=1000
                 )
             ]
 
             # rep random dithers on different timescales
-            # stackerList['RepulsiveRandomDitherPerNight'] = [myStackers.RepulsiveRandomDitherPerNightStacker(degrees=raDecInDeg,
-            #                                                                                                randomSeed=1000)]
-            # stackerList['RepulsiveRandomDitherFieldPerNight'] = [myStackers.RepulsiveRandomDitherFieldPerNightStacker(degrees=raDecInDeg,
-            #                                                                                                          randomSeed=1000)]
-            # stackerList['RepulsiveRandomDitherFieldPerVisit'] = [myStackers.RepulsiveRandomDitherFieldPerVisitStacker(degrees=raDecInDeg,
-            #                                                                                                          randomSeed=1000)]
+            # stacker_list['RepulsiveRandomDitherPerNight'] = [myStackers.RepulsiveRandomDitherPerNightStacker(degrees=ra_dec_in_deg,
+            #                                                                                                random_seed=1000)]
+            # stacker_list['RepulsiveRandomDitherFieldPerNight'] = [myStackers.RepulsiveRandomDitherFieldPerNightStacker(degrees=ra_dec_in_deg,
+            #                                                                                                          random_seed=1000)]
+            # stacker_list['RepulsiveRandomDitherFieldPerVisit'] = [myStackers.RepulsiveRandomDitherFieldPerVisitStacker(degrees=ra_dec_in_deg,
+            #                                                                                                          random_seed=1000)]
             # set up slicers for different dithers
             # random dithers on different timescales
             slicer["RandomDitherPerNight"] = slicers.HealpixSlicer(
                 lon_col="randomDitherPerNightRa",
                 lat_col="randomDitherPerNightDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["RandomDitherFieldPerNight"] = slicers.HealpixSlicer(
                 lon_col="randomDitherFieldPerNightRa",
                 lat_col="randomDitherFieldPerNightDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["RandomDitherFieldPerVisit"] = slicers.HealpixSlicer(
                 lon_col="randomDitherFieldPerVisitRa",
                 lat_col="randomDitherFieldPerVisitDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             # rep random dithers on different timescales
             # slicer['RepulsiveRandomDitherPerNight'] = slicers.HealpixSlicer(lonCol='repulsiveRandomDitherPerNightRa',
             #                                                               latCol='repulsiveRandomDitherPerNightDec',
-            #                                                               latLonDeg=raDecInDeg, nside=nside, useCache=False)
+            #                                                               latLonDeg=ra_dec_in_deg, nside=nside, use_cache=False)
             # slicer['RepulsiveRandomDitherFieldPerNight'] = slicers.HealpixSlicer(lonCol='repulsiveRandomDitherFieldPerNightRa',
             #                                                                    latCol='repulsiveRandomDitherFieldPerNightDec',
-            #                                                                    latLonDeg=raDecInDeg, nside=nside,
-            #                                                                    useCache=False)
+            #                                                                    latLonDeg=ra_dec_in_deg, nside=nside,
+            #                                                                    use_cache=False)
             # slicer['RepulsiveRandomDitherFieldPerVisit'] = slicers.HealpixSlicer(lonCol='repulsiveRandomDitherFieldPerVisitRa',
             #                                                                    latCol='repulsiveRandomDitherFieldPerVisitDec',
-            #                                                                    latLonDeg=raDecInDeg, nside=nside,
-            #                                                                    useCache=False)
+            #                                                                    latLonDeg=ra_dec_in_deg, nside=nside,
+            #                                                                    use_cache=False)
             # spiral dithers on different timescales
             slicer["FermatSpiralDitherPerNight"] = slicers.HealpixSlicer(
                 lon_col="fermatSpiralDitherPerNightRa",
                 lat_col="fermatSpiralDitherPerNightDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["FermatSpiralDitherFieldPerNight"] = slicers.HealpixSlicer(
                 lon_col="fermatSpiralDitherFieldPerNightRa",
                 lat_col="fermatSpiralDitherFieldPerNightDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["FermatSpiralDitherFieldPerVisit"] = slicers.HealpixSlicer(
                 lon_col="fermatSpiralDitherFieldPerVisitRa",
                 lat_col="fermatSpiralDitherFieldPerVisitDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             # hex dithers on different timescales
             slicer["SequentialHexDitherPerNight"] = slicers.HealpixSlicer(
                 lon_col="hexDitherPerNightRa",
                 lat_col="hexDitherPerNightDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["SequentialHexDitherFieldPerNight"] = slicers.HealpixSlicer(
                 lon_col="hexDitherFieldPerNightRa",
                 lat_col="hexDitherFieldPerNightDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["SequentialHexDitherFieldPerVisit"] = slicers.HealpixSlicer(
                 lon_col="hexDitherFieldPerVisitRa",
                 lat_col="hexDitherFieldPerVisitDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             # per season dithers
             slicer["PentagonDitherPerSeason"] = slicers.HealpixSlicer(
                 lon_col="pentagonDitherPerSeasonRa",
                 lat_col="pentagonDitherPerSeasonDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["PentagonDiamondDitherPerSeason"] = slicers.HealpixSlicer(
                 lon_col="pentagonDiamondDitherPerSeasonRa",
                 lat_col="pentagonDiamondDitherPerSeasonDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["SpiralDitherPerSeason"] = slicers.HealpixSlicer(
                 lon_col="spiralDitherPerSeasonRa",
                 lat_col="spiralDitherPerSeasonDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
-    if specifiedDith is not None:
-        stackerList_, slicer_ = {}, {}
-        if specifiedDith in slicer.keys():
-            if specifiedDith.__contains__(
+    if specified_dith is not None:
+        stacker_list_, slicer_ = {}, {}
+        if specified_dith in slicer.keys():
+            if specified_dith.__contains__(
                 "Random"
             ):  # only Random dithers have a stacker object for rand seed specification
-                stackerList_[specifiedDith] = stackerList[specifiedDith]
-            slicer_[specifiedDith] = slicer[specifiedDith]
+                stacker_list_[specified_dith] = stacker_list[specified_dith]
+            slicer_[specified_dith] = slicer[specified_dith]
         else:
             raise ValueError(
-                "Invalid value for specifiedDith: %s. Allowed values include one of the following:\n%s"
-                % (specifiedDith, slicer.keys())
+                "Invalid value for specified_dith: %s. Allowed values include one of the following:\n%s"
+                % (specified_dith, slicer.keys())
             )
-        stackerList, slicer = stackerList_, slicer_
+        stacker_list, slicer = stacker_list_, slicer_
 
     # ------------------------------------------------------------------------
     if slair:
-        m5Col = "fivesigmadepth"
+        m5_col = "fivesigmadepth"
     else:
-        m5Col = "fiveSigmaDepth"
+        m5_col = "fiveSigmaDepth"
     # set up the metric
-    if includeDustExtinction:
+    if include_dust_extinction:
         # include dust extinction when calculating the co-added depth
-        coaddMetric = metrics.ExgalM5(m5Col=m5Col, lsstFilter=filterBand)
+        coadd_metric = metrics.ExgalM5(m5_col=m5_col, lsstFilter=filter_band)
     else:
-        coaddMetric = metrics.Coaddm5Metric(m5col=m5col)
-    dustMap = maps.DustMap(
+        coadd_metric = metrics.Coaddm5Metric(m5col=m5col)
+    dust_map = maps.DustMap(
         interp=False, nside=nside
-    )  # include dustMap; actual in/exclusion of dust is handled by the galaxyCountMetric
+    )  # include dust_map; actual in/exclusion of dust is handled by the galaxyCountMetric
 
     # ------------------------------------------------------------------------
     # set up the bundle
-    coaddBundle = {}
+    coadd_bundle = {}
     for dither in slicer:
-        if dither in stackerList:
-            coaddBundle[dither] = metricBundles.MetricBundle(
-                coaddMetric,
+        if dither in stacker_list:
+            coadd_bundle[dither] = metricBundles.MetricBundle(
+                coadd_metric,
                 slicer[dither],
                 sqlconstraint,
-                stacker_list=stackerList[dither],
-                run_name=runName,
+                stacker_list=stacker_list[dither],
+                run_name=run_name,
                 metadata=dither,
-                maps_list=[dustMap],
+                maps_list=[dust_map],
             )
         else:
-            coaddBundle[dither] = metricBundles.MetricBundle(
-                coaddMetric,
+            coadd_bundle[dither] = metricBundles.MetricBundle(
+                coadd_metric,
                 slicer[dither],
                 sqlconstraint,
-                run_name=runName,
+                run_name=run_name,
                 metadata=dither,
-                maps_list=[dustMap],
+                maps_list=[dust_map],
             )
 
     # ------------------------------------------------------------------------
     # run the analysis
-    if includeDustExtinction:
-        print("\n# Running coaddBundle with dust extinction ...")
+    if include_dust_extinction:
+        print("\n# Running coadd_bundle with dust extinction ...")
     else:
-        print("\n# Running coaddBundle without dust extinction ...")
-    cGroup = metricBundles.MetricBundleGroup(
-        coaddBundle, opsdb, out_dir=outDir, results_db=resultsDb, save_early=False
+        print("\n# Running coadd_bundle without dust extinction ...")
+    c_group = metricBundles.MetricBundleGroup(
+        coadd_bundle, opsdb, out_dir=out_dir, results_db=results_db, save_early=False
     )
-    cGroup.run_all()
+    c_group.run_all()
 
     # ------------------------------------------------------------------------
-    plotHandler = plots.PlotHandler(
-        outDir=outDir, resultsDb=resultsDb, thumbnail=False, savefig=False
+    plot_handler = plots.PlotHandler(
+        out_dir=out_dir, results_db=results_db, thumbnail=False, savefig=False
     )
 
     print("# Number of pixels in the survey region (before masking the border):")
-    for dither in coaddBundle:
+    for dither in coadd_bundle:
         print(
             "  %s: %s"
-            % (dither, len(np.where(coaddBundle[dither].metricValues.mask == False)[0]))
+            % (dither, len(np.where(coadd_bundle[dither].metricValues.mask == False)[0]))
         )
 
     # ------------------------------------------------------------------------
     # save the unmasked data?
-    if saveunMaskedCoaddData:
-        outDir_new = "unmaskedCoaddData"
-        if not os.path.exists("%s%s/%s" % (path, outDir, outDir_new)):
-            os.makedirs("%s%s/%s" % (path, outDir, outDir_new))
-        saveBundleData_npzFormat(
-            "%s%s/%s" % (path, outDir, outDir_new),
-            coaddBundle,
+    if saveun_masked_coadd_data:
+        out_dir_new = "unmaskedCoaddData"
+        if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
+            os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
+        save_bundle_data_npz_format(
+            "%s%s/%s" % (path, out_dir, out_dir_new),
+            coadd_bundle,
             "coaddM5Data_unmasked",
-            filterBand,
+            filter_band,
         )
 
     # ------------------------------------------------------------------------
     # mask the edges
     print("\n# Masking the edges for coadd ...")
-    coaddBundle = maskingAlgorithmGeneralized(
-        coaddBundle,
-        plotHandler,
-        dataLabel="$%s$-band Coadded Depth" % filterBand,
+    coadd_bundle = masking_algorithm_generalized(
+        coadd_bundle,
+        plot_handler,
+        data_label="$%s$-band Coadded Depth" % filter_band,
         nside=nside,
-        pixelRadius=pixelRadiusForMasking,
-        plotIntermediatePlots=False,
-        plotFinalPlots=False,
-        printFinalInfo=True,
+        pixel_radius=pixel_radius_for_masking,
+        plot_intermediate_plots=False,
+        plot_final_plots=False,
+        print_final_info=True,
     )
     # ------------------------------------------------------------------------
     # Calculate total power
     summarymetric = metrics.TotalPowerMetric()
-    for dither in coaddBundle:
-        coaddBundle[dither].set_summary_metrics(summarymetric)
-        coaddBundle[dither].compute_summary_stats()
+    for dither in coadd_bundle:
+        coadd_bundle[dither].set_summary_metrics(summarymetric)
+        coadd_bundle[dither].compute_summary_stats()
         print(
             "# Total power for %s case is %f."
-            % (dither, coaddBundle[dither].summary_values["TotalPower"])
+            % (dither, coadd_bundle[dither].summary_values["TotalPower"])
         )
     print("")
 
     # ------------------------------------------------------------------------
     # run the alm analysis
-    if almAnalysis:
-        almPlots(
+    if alm_analysis:
+        alm_plots(
             path,
-            outDir,
-            copy.deepcopy(coaddBundle),
+            out_dir,
+            copy.deepcopy(coadd_bundle),
             nside=nside,
-            filterband=filterBand,
-            raRange=raRange,
-            decRange=decRange,
-            showPlots=showPlots,
+            filterband=filter_band,
+            ra_range=ra_range,
+            dec_range=dec_range,
+            show_plots=show_plots,
         )
     # ------------------------------------------------------------------------
     # save the masked data?
-    if saveMaskedCoaddData and (pixelRadiusForMasking > 0):
-        outDir_new = "maskedCoaddData"
-        if not os.path.exists("%s%s/%s" % (path, outDir, outDir_new)):
-            os.makedirs("%s%s/%s" % (path, outDir, outDir_new))
-        saveBundleData_npzFormat(
-            "%s%s/%s" % (path, outDir, outDir_new),
-            coaddBundle,
+    if save_masked_coadd_data and (pixel_radius_for_masking > 0):
+        out_dir_new = "maskedCoaddData"
+        if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
+            os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
+        save_bundle_data_npz_format(
+            "%s%s/%s" % (path, out_dir, out_dir_new),
+            coadd_bundle,
             "coaddM5Data_masked",
-            filterBand,
+            filter_band,
         )
 
     # ------------------------------------------------------------------------
     # plot comparison plots
-    if len(coaddBundle.keys()) > 1:  # more than one key
+    if len(coadd_bundle.keys()) > 1:  # more than one key
         # set up the directory
-        outDir_comp = "coaddM5ComparisonPlots"
-        if not os.path.exists("%s%s/%s" % (path, outDir, outDir_comp)):
-            os.makedirs("%s%s/%s" % (path, outDir, outDir_comp))
+        out_dir_comp = "coaddM5ComparisonPlots"
+        if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_comp)):
+            os.makedirs("%s%s/%s" % (path, out_dir, out_dir_comp))
         # ------------------------------------------------------------------------
         # plot for the power spectra
         cl = {}
-        for dither in plotColor:
-            if dither in coaddBundle:
+        for dither in plot_color:
+            if dither in coadd_bundle:
                 cl[dither] = hp.anafast(
                     hp.remove_dipole(
-                        coaddBundle[dither].metricValues.filled(
-                            coaddBundle[dither].slicer.badval
+                        coadd_bundle[dither].metricValues.filled(
+                            coadd_bundle[dither].slicer.badval
                         )
                     ),
                     lmax=500,
@@ -567,7 +567,7 @@ def coaddM5Analysis(
                 plt.plot(
                     ell,
                     (cl[dither] * ell * (ell + 1)) / 2.0 / np.pi,
-                    color=plotColor[dither],
+                    color=plot_color[dither],
                     linestyle="-",
                     label=dither,
                 )
@@ -581,7 +581,7 @@ def coaddM5Analysis(
             legobj.set_linewidth(4.0)
         filename = "powerspectrum_comparison_all.png"
         plt.savefig(
-            "%s%s/%s/%s" % (path, outDir, outDir_comp, filename),
+            "%s%s/%s/%s" % (path, out_dir, out_dir_comp, filename),
             bbox_inches="tight",
             format="png",
         )
@@ -590,37 +590,37 @@ def coaddM5Analysis(
         # create the histogram
         scale = hp.nside2pixarea(nside, degrees=True)
 
-        def tickFormatter(y, pos):
+        def tick_formatter(y, pos):
             return "%d" % (y * scale)  # convert pixel count to area
 
         binsize = 0.01
-        for dither in plotColor:
-            if dither in coaddBundle:
-                ind = np.where(coaddBundle[dither].metricValues.mask == False)[0]
-                binAll = int(
+        for dither in plot_color:
+            if dither in coadd_bundle:
+                ind = np.where(coadd_bundle[dither].metricValues.mask == False)[0]
+                bin_all = int(
                     (
-                        max(coaddBundle[dither].metricValues.data[ind])
-                        - min(coaddBundle[dither].metricValues.data[ind])
+                        max(coadd_bundle[dither].metricValues.data[ind])
+                        - min(coadd_bundle[dither].metricValues.data[ind])
                     )
                     / binsize
                 )
                 plt.hist(
-                    coaddBundle[dither].metricValues.data[ind],
-                    bins=binAll,
+                    coadd_bundle[dither].metricValues.data[ind],
+                    bins=bin_all,
                     label=dither,
                     histtype="step",
-                    color=plotColor[dither],
+                    color=plot_color[dither],
                 )
         ax = plt.gca()
         ymin, ymax = ax.get_ylim()
-        nYticks = 10.0
-        wantedYMax = ymax * scale
-        wantedYMax = 10.0 * np.ceil(float(wantedYMax) / 10.0)
-        increment = 5.0 * np.ceil(float(wantedYMax / nYticks) / 5.0)
-        wantedArray = np.arange(0, wantedYMax, increment)
-        ax.yaxis.set_ticks(wantedArray / scale)
-        ax.yaxis.set_major_formatter(FuncFormatter(tickFormatter))
-        plt.xlabel("$%s$-band Coadded Depth" % filterBand)
+        n_yticks = 10.0
+        wanted_y_max = ymax * scale
+        wanted_y_max = 10.0 * np.ceil(float(wanted_y_max) / 10.0)
+        increment = 5.0 * np.ceil(float(wanted_y_max / n_yticks) / 5.0)
+        wanted_array = np.arange(0, wanted_y_max, increment)
+        ax.yaxis.set_ticks(wanted_array / scale)
+        ax.yaxis.set_major_formatter(FuncFormatter(tick_formatter))
+        plt.xlabel("$%s$-band Coadded Depth" % filter_band)
         plt.ylabel("Area (deg$^2$)")
         fig = plt.gcf()
         fig.set_size_inches(12.5, 10.5)
@@ -629,47 +629,47 @@ def coaddM5Analysis(
             legobj.set_linewidth(2.0)
         filename = "histogram_comparison.png"
         plt.savefig(
-            "%s%s/%s/%s" % (path, outDir, outDir_comp, filename),
+            "%s%s/%s/%s" % (path, out_dir, out_dir_comp, filename),
             bbox_inches="tight",
             format="png",
         )
         plt.show()
         # ------------------------------------------------------------------------
         # plot power spectra for the separte panel
-        totKeys = len(list(coaddBundle.keys()))
-        if totKeys > 1:
+        tot_keys = len(list(coadd_bundle.keys()))
+        if tot_keys > 1:
             plt.clf()
-            nCols = 2
-            nRows = int(np.ceil(float(totKeys) / nCols))
-            fig, ax = plt.subplots(nRows, nCols)
-            plotRow = 0
-            plotCol = 0
-            for dither in list(plotColor.keys()):
-                if dither in list(coaddBundle.keys()):
+            n_cols = 2
+            n_rows = int(np.ceil(float(tot_keys) / n_cols))
+            fig, ax = plt.subplots(n_rows, n_cols)
+            plot_row = 0
+            plot_col = 0
+            for dither in list(plot_color.keys()):
+                if dither in list(coadd_bundle.keys()):
                     ell = np.arange(np.size(cl[dither]))
-                    ax[plotRow, plotCol].plot(
+                    ax[plot_row, plot_col].plot(
                         ell,
                         (cl[dither] * ell * (ell + 1)) / 2.0 / np.pi,
-                        color=plotColor[dither],
+                        color=plot_color[dither],
                         label=dither,
                     )
-                    if plotRow == nRows - 1:
-                        ax[plotRow, plotCol].set_xlabel(r"$\ell$")
-                    ax[plotRow, plotCol].set_ylabel(r"$\ell(\ell+1)C_\ell/(2\pi)$")
-                    ax[plotRow, plotCol].yaxis.set_major_locator(MaxNLocator(3))
+                    if plot_row == n_rows - 1:
+                        ax[plot_row, plot_col].set_xlabel(r"$\ell$")
+                    ax[plot_row, plot_col].set_ylabel(r"$\ell(\ell+1)C_\ell/(2\pi)$")
+                    ax[plot_row, plot_col].yaxis.set_major_locator(MaxNLocator(3))
                     if dither != "NoDither":
-                        ax[plotRow, plotCol].set_ylim(0, 0.0035)
-                    ax[plotRow, plotCol].set_xlim(0, 500)
-                    plotRow += 1
-                    if plotRow > nRows - 1:
-                        plotRow = 0
-                        plotCol += 1
-            fig.set_size_inches(20, int(nRows * 30 / 7.0))
+                        ax[plot_row, plot_col].set_ylim(0, 0.0035)
+                    ax[plot_row, plot_col].set_xlim(0, 500)
+                    plot_row += 1
+                    if plot_row > n_rows - 1:
+                        plot_row = 0
+                        plot_col += 1
+            fig.set_size_inches(20, int(n_rows * 30 / 7.0))
             filename = "powerspectrum_sepPanels.png"
             plt.savefig(
-                "%s%s/%s/%s" % (path, outDir, outDir_comp, filename),
+                "%s%s/%s/%s" % (path, out_dir, out_dir_comp, filename),
                 bbox_inches="tight",
                 format="png",
             )
             plt.show()
-    return coaddBundle, outDir
+    return coadd_bundle, out_dir

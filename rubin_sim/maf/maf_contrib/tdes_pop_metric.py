@@ -7,10 +7,10 @@ import glob
 from rubin_sim.phot_utils import DustValues
 from rubin_sim.data import get_data_dir
 
-__all__ = ["Tde_lc", "TdePopMetric", "TdePopMetricQuality", "generateTdePopSlicer"]
+__all__ = ["TdeLc", "TdePopMetric", "TdePopMetricQuality", "generate_tde_pop_slicer"]
 
 
-class Tde_lc(object):
+class TdeLc(object):
     """
     Read in some TDE lightcurves
 
@@ -68,29 +68,29 @@ class TdePopMetric(metrics.BaseMetric):
     def __init__(
         self,
         metric_name="TDEsPopMetric",
-        mjdCol="observationStartMJD",
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
-        nightCol="night",
-        ptsNeeded=2,
+        mjd_col="observationStartMJD",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        night_col="night",
+        pts_needed=2,
         file_list=None,
         mjd0=None,
         **kwargs
     ):
         maps = ["DustMap"]
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
-        self.nightCol = nightCol
-        self.ptsNeeded = ptsNeeded
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        self.filter_col = filter_col
+        self.night_col = night_col
+        self.pts_needed = pts_needed
 
-        self.lightcurves = Tde_lc(file_list=file_list)
+        self.lightcurves = TdeLc(file_list=file_list)
         self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
 
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.ax1
+        self.ax1 = dust_properties.ax1
 
-        cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]
+        cols = [self.mjd_col, self.m5_col, self.filter_col, self.night_col]
         super(TdePopMetric, self).__init__(
             col=cols,
             units="Detected, 0 or 1",
@@ -99,55 +99,55 @@ class TdePopMetric(metrics.BaseMetric):
             **kwargs
         )
 
-    def _pre_peak_detect(self, dataSlice, slicePoint, mags, t):
+    def _pre_peak_detect(self, data_slice, slice_point, mags, t):
         """
         Simple detection criteria
         """
         result = 0
         # Simple alert criteria. Could make more in depth, or use reduce functions
         # to have multiple criteria checked.
-        pre_peak_detected = np.where((t < 0) & (mags < dataSlice[self.m5Col]))[0]
+        pre_peak_detected = np.where((t < 0) & (mags < data_slice[self.m5_col]))[0]
 
-        if pre_peak_detected.size > self.ptsNeeded:
+        if pre_peak_detected.size > self.pts_needed:
             result = 1
         return result
 
-    def _some_color_detect(self, dataSlice, slicePoint, mags, t):
+    def _some_color_detect(self, data_slice, slice_point, mags, t):
         result = 1
         # 1 detection pre peak
-        pre_peak_detected = np.where((t < -10) & (mags < dataSlice[self.m5Col]))[0]
+        pre_peak_detected = np.where((t < -10) & (mags < data_slice[self.m5_col]))[0]
         if np.size(pre_peak_detected) < 1:
             return 0
 
         # At least 3 filters within 10 days of peak
-        around_peak = np.where((np.abs(t) < 5) & (mags < dataSlice[self.m5Col]))[0]
-        if np.size(np.unique(dataSlice[self.filterCol][around_peak])) < 3:
+        around_peak = np.where((np.abs(t) < 5) & (mags < data_slice[self.m5_col]))[0]
+        if np.size(np.unique(data_slice[self.filter_col][around_peak])) < 3:
             return 0
 
         # At least 2 bands after peak
-        post_peak = np.where((t > 10) & (t < 30) & (mags < dataSlice[self.m5Col]))[0]
-        if np.size(np.unique(dataSlice[self.filterCol][post_peak])) < 2:
+        post_peak = np.where((t > 10) & (t < 30) & (mags < data_slice[self.m5_col]))[0]
+        if np.size(np.unique(data_slice[self.filter_col][post_peak])) < 2:
             return 0
 
         return result
 
-    def _some_color_pu_detect(self, dataSlice, slicePoint, mags, t):
+    def _some_color_pu_detect(self, data_slice, slice_point, mags, t):
         result = 1
         # 1 detection pre peak
-        pre_peak_detected = np.where((t < -10) & (mags < dataSlice[self.m5Col]))[0]
+        pre_peak_detected = np.where((t < -10) & (mags < data_slice[self.m5_col]))[0]
         if np.size(pre_peak_detected) < 1:
             return 0
 
         # 1 detection in u and any other band near peak
-        around_peak = np.where((np.abs(t) < 5) & (mags < dataSlice[self.m5Col]))[0]
-        filters = np.unique(dataSlice[self.filterCol][around_peak])
+        around_peak = np.where((np.abs(t) < 5) & (mags < data_slice[self.m5_col]))[0]
+        filters = np.unique(data_slice[self.filter_col][around_peak])
         if np.size(filters) < 2:
             return 0
         if "u" not in filters:
             return 0
 
-        post_peak = np.where((t > 10) & (t < 30) & (mags < dataSlice[self.m5Col]))[0]
-        filters = np.unique(dataSlice[self.filterCol][post_peak])
+        post_peak = np.where((t > 10) & (t < 30) & (mags < data_slice[self.m5_col]))[0]
+        filters = np.unique(data_slice[self.filter_col][post_peak])
         if np.size(filters) < 2:
             return 0
         if "u" not in filters:
@@ -155,23 +155,23 @@ class TdePopMetric(metrics.BaseMetric):
 
         return result
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         result = {}
-        t = dataSlice[self.mjdCol] - self.mjd0 - slicePoint["peak_time"]
+        t = data_slice[self.mjd_col] - self.mjd0 - slice_point["peak_time"]
         mags = np.zeros(t.size, dtype=float)
 
-        for filtername in np.unique(dataSlice[self.filterCol]):
-            infilt = np.where(dataSlice[self.filterCol] == filtername)
+        for filtername in np.unique(data_slice[self.filter_col]):
+            infilt = np.where(data_slice[self.filter_col] == filtername)
             mags[infilt] = self.lightcurves.interp(
-                t[infilt], filtername, lc_indx=slicePoint["file_indx"]
+                t[infilt], filtername, lc_indx=slice_point["file_indx"]
             )
             # Apply dust extinction on the light curve
-            mags[infilt] += self.Ax1[filtername] * slicePoint["ebv"]
+            mags[infilt] += self.ax1[filtername] * slice_point["ebv"]
 
-        result["pre_peak"] = self._pre_peak_detect(dataSlice, slicePoint, mags, t)
-        result["some_color"] = self._some_color_detect(dataSlice, slicePoint, mags, t)
+        result["pre_peak"] = self._pre_peak_detect(data_slice, slice_point, mags, t)
+        result["some_color"] = self._some_color_detect(data_slice, slice_point, mags, t)
         result["some_color_pu"] = self._some_color_pu_detect(
-            dataSlice, slicePoint, mags, t
+            data_slice, slice_point, mags, t
         )
 
         return result
@@ -201,20 +201,20 @@ class TdePopMetricQuality(metrics.BaseMetric):
         **kwargs
     ):
         maps = ["DustMap"]
-        self.mjdCol = mjd_col
-        self.m5Col = m5_col
-        self.filterCol = filter_col
-        self.nightCol = night_col
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        self.filter_col = filter_col
+        self.night_col = night_col
         self.tmin = tmin
         self.tmax = tmax
 
-        self.lightcurves = Tde_lc(file_list=file_list)
+        self.lightcurves = TdeLc(file_list=file_list)
         self.mjd0 = mjd0
 
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.ax1
+        self.ax1 = dust_properties.ax1
 
-        cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]
+        cols = [self.mjd_col, self.m5_col, self.filter_col, self.night_col]
         super(TdePopMetricQuality, self).__init__(
             col=cols,
             units="Bad: 0, Good (obs every 2 night): 1",
@@ -223,54 +223,54 @@ class TdePopMetricQuality(metrics.BaseMetric):
             **kwargs
         )
 
-    def _some_color_pnum_detect(self, dataSlice, slicePoint, mags, t):
+    def _some_color_pnum_detect(self, data_slice, slice_point, mags, t):
         # 1 detection pre peak
-        pre_peak_detected = np.where((t < -10) & (mags < dataSlice[self.m5Col]))[0]
+        pre_peak_detected = np.where((t < -10) & (mags < data_slice[self.m5_col]))[0]
         if np.size(pre_peak_detected) < 1:
             return 0
 
         # At least 3 filters within 10 days of peak
-        around_peak = np.where((np.abs(t) < 5) & (mags < dataSlice[self.m5Col]))[0]
-        if np.size(np.unique(dataSlice[self.filterCol][around_peak])) < 3:
+        around_peak = np.where((np.abs(t) < 5) & (mags < data_slice[self.m5_col]))[0]
+        if np.size(np.unique(data_slice[self.filter_col][around_peak])) < 3:
             return 0
 
         # At least 2 bands after peak
-        post_peak = np.where((t > 10) & (t < 30) & (mags < dataSlice[self.m5Col]))[0]
-        if np.size(np.unique(dataSlice[self.filterCol][post_peak])) < 2:
+        post_peak = np.where((t > 10) & (t < 30) & (mags < data_slice[self.m5_col]))[0]
+        if np.size(np.unique(data_slice[self.filter_col][post_peak])) < 2:
             return 0
 
         # count number of data points in the light curve
         obs_points = np.where(
-            (t > self.tmin) & (t < self.tmax) & (mags < dataSlice[self.m5Col])
+            (t > self.tmin) & (t < self.tmax) & (mags < data_slice[self.m5_col])
         )[0]
 
         # define the time range around peak in which the number of data points is measured
-        tRange = self.tmax - self.tmin
+        t_range = self.tmax - self.tmin
 
         # number of data points / time range gives a "score" for light curve quality
         # 0: did not pass some_color requirements;
         # 1: passed some_color requirements and has 1 data point every other night
-        nresult = np.size(obs_points) / tRange
+        nresult = np.size(obs_points) / t_range
 
         return nresult
 
-    def _some_color_pu_pnum_detect(self, dataSlice, slicePoint, mags, t):
+    def _some_color_pu_pnum_detect(self, data_slice, slice_point, mags, t):
         # 1 detection pre peak
-        pre_peak_detected = np.where((t < -10) & (mags < dataSlice[self.m5Col]))[0]
+        pre_peak_detected = np.where((t < -10) & (mags < data_slice[self.m5_col]))[0]
         if np.size(pre_peak_detected) < 1:
             return 0
 
         # 1 detection in u and any other band near peak
-        around_peak = np.where((np.abs(t) < 5) & (mags < dataSlice[self.m5Col]))[0]
-        filters = np.unique(dataSlice[self.filterCol][around_peak])
+        around_peak = np.where((np.abs(t) < 5) & (mags < data_slice[self.m5_col]))[0]
+        filters = np.unique(data_slice[self.filter_col][around_peak])
         if np.size(filters) < 2:
             return 0
         if "u" not in filters:
             return 0
 
         # 1 detecion in u and any other band post peak
-        post_peak = np.where((t > 10) & (t < 30) & (mags < dataSlice[self.m5Col]))[0]
-        filters = np.unique(dataSlice[self.filterCol][post_peak])
+        post_peak = np.where((t > 10) & (t < 30) & (mags < data_slice[self.m5_col]))[0]
+        filters = np.unique(data_slice[self.filter_col][post_peak])
         if np.size(filters) < 2:
             return 0
         if "u" not in filters:
@@ -278,37 +278,37 @@ class TdePopMetricQuality(metrics.BaseMetric):
 
         # count number of data points in the light curve
         obs_points = np.where(
-            (t > self.tmin) & (t < self.tmax) & (mags < dataSlice[self.m5Col])
+            (t > self.tmin) & (t < self.tmax) & (mags < data_slice[self.m5_col])
         )[0]
 
         # define the time range around peak in which the number of data points is measured
-        tRange = self.tmax - self.tmin
+        t_range = self.tmax - self.tmin
 
         # number of data points / time range gives a "score" for light curve quality
         # 0: did not pass some_color_pu requirements;
         # 1: passed some_color_pu requirements and has 1 data point every other night
-        nresult = np.size(obs_points) / tRange
+        nresult = np.size(obs_points) / t_range
 
         return nresult
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         result = {}
-        t = dataSlice[self.mjdCol] - self.mjd0 - slicePoint["peak_time"]
+        t = data_slice[self.mjd_col] - self.mjd0 - slice_point["peak_time"]
         mags = np.zeros(t.size, dtype=float)
 
-        for filtername in np.unique(dataSlice[self.filterCol]):
-            infilt = np.where(dataSlice[self.filterCol] == filtername)
+        for filtername in np.unique(data_slice[self.filter_col]):
+            infilt = np.where(data_slice[self.filter_col] == filtername)
             mags[infilt] = self.lightcurves.interp(
-                t[infilt], filtername, lc_indx=slicePoint["file_indx"]
+                t[infilt], filtername, lc_indx=slice_point["file_indx"]
             )
             # Apply dust extinction on the light curve
-            mags[infilt] += self.Ax1[filtername] * slicePoint["ebv"]
+            mags[infilt] += self.ax1[filtername] * slice_point["ebv"]
 
         result["some_color_pnum"] = self._some_color_pnum_detect(
-            dataSlice, slicePoint, mags, t
+            data_slice, slice_point, mags, t
         )
         result["some_color_pu_pnum"] = self._some_color_pu_pnum_detect(
-            dataSlice, slicePoint, mags, t
+            data_slice, slice_point, mags, t
         )
 
         return result
@@ -320,7 +320,7 @@ class TdePopMetricQuality(metrics.BaseMetric):
         return metric["some_color_pu_pnum"]
 
 
-def generateTdePopSlicer(t_start=1, t_end=3652, n_events=10000, seed=42, n_files=7):
+def generate_tde_pop_slicer(t_start=1, t_end=3652, n_events=10000, seed=42, n_files=7):
     """Generate a population of TDE events, and put the info about them into a UserPointSlicer object
 
     Parameters

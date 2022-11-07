@@ -19,8 +19,8 @@ skyarea = 41253.0
 distancebins = 51
 
 
-def star_vols(D1, D2, area):
-    distance_edges = (np.linspace((D1**3.0), (D2**3.0), num=distancebins)) ** (
+def star_vols(d1, d2, area):
+    distance_edges = (np.linspace((d1**3.0), (d2**3.0), num=distancebins)) ** (
         1.0 / 3
     )
     volumeshell = (
@@ -34,11 +34,11 @@ def star_vols(D1, D2, area):
     return volumeshell, distances
 
 
-def starcount(eqRA, eqDEC, D1, D2):
-    volumes, distances = star_vols(D1, D2, 9.62)
-    # b_deg, l_deg=coords.eq_gal2(eqRA, eqDEC)
-    # b_deg, l_deg=AstrometryBase.equatorialToGalactic(eqRA, eqDEC)
-    b_deg, l_deg = coords.eq_gal3(eqRA, eqDEC)
+def starcount(eq_ra, eq_dec, d1, d2):
+    volumes, distances = star_vols(d1, d2, 9.62)
+    # b_deg, l_deg=coords.eq_gal2(eq_ra, eq_dec)
+    # b_deg, l_deg=AstrometryBase.equatorialToGalactic(eq_ra, eq_dec)
+    b_deg, l_deg = coords.eq_gal3(eq_ra, eq_dec)
     positions = [coords.gal_cyn(b_deg, l_deg, x) for x in distances]
     densities = [stellardensity.stellardensity(x[0], x[2]) for x in positions]
     totalcount = np.sum(np.asarray(volumes) * np.asarray(densities))

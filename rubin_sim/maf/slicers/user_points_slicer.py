@@ -34,7 +34,7 @@ class UserPointsSlicer(BaseSpatialSlicer):
     radius : `float`, optional
         Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
         Default 2.45.
-    useCamera : `bool`, optional
+    use_camera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
         Default True.
     camera_footprint_file : `str`, optional

@@ -1,7 +1,7 @@
 import os
 import logging
 import numpy as np
-from rubin_sim.maf.utils import getSimData
+from rubin_sim.maf.utils import get_sim_data
 from .orbits import Orbits
 from .direct_obs import DirectObs
 
@@ -59,7 +59,7 @@ def read_opsim(opsimfile, colmap, constraint=None, footprint="camera", dbcols=No
     logging.info("Querying for columns:\n %s" % (cols))
 
     # Go ahead and query for all of the observations.
-    simdata = getSimData(opsimfile, constraint, cols)
+    simdata = get_sim_data(opsimfile, constraint, cols)
     logging.info(
         "Queried data from opsim %s, fetched %d visits." % (opsimfile, len(simdata))
     )

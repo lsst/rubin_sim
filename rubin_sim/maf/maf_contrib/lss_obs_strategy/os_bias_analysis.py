@@ -11,7 +11,7 @@ import healpy as hp
 import datetime
 from collections import OrderedDict
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import (
-    powerLawConst_a,
+    power_law_const_a,
 )
 
 __all__ = [
@@ -83,7 +83,7 @@ def get_theory_spectra(mock_data_path, mag_cut=25.6, plot_spectra=True, nside=25
     -------
     ell : `np.ndarray`
         array containing the ells
-    wBAO_cls : `dict`
+    w_bao_cls : `dict`
         keys = zbin_tags; data = spectra (pixelized for specified nside)
     surf_num_density : `float`
         surface number density in 1/Sr
@@ -101,25 +101,25 @@ def get_theory_spectra(mock_data_path, mag_cut=25.6, plot_spectra=True, nside=25
 
     # set up to read the data
     ell = []
-    wBAO_cls = OrderedDict()
-    wBAO_cls["0.15<z<0.37"] = []
-    wBAO_cls["0.37<z<0.66"] = []
-    wBAO_cls["0.66<z<1.0"] = []
-    wBAO_cls["1.0<z<1.5"] = []
-    wBAO_cls["1.5<z<2.0"] = []
+    w_bao_cls = OrderedDict()
+    w_bao_cls["0.15<z<0.37"] = []
+    w_bao_cls["0.37<z<0.66"] = []
+    w_bao_cls["0.66<z<1.0"] = []
+    w_bao_cls["1.0<z<1.5"] = []
+    w_bao_cls["1.5<z<2.0"] = []
     surf_num_density = OrderedDict()
 
     # read in the cls
     for i in range(len(all_data)):
         ell.append(all_data[i][0])
-        wBAO_cls["0.15<z<0.37"].append(all_data[i][1])
-        wBAO_cls["0.37<z<0.66"].append(all_data[i][3])
-        wBAO_cls["0.66<z<1.0"].append(all_data[i][5])
-        wBAO_cls["1.0<z<1.5"].append(all_data[i][7])
-        wBAO_cls["1.5<z<2.0"].append(all_data[i][9])
+        w_bao_cls["0.15<z<0.37"].append(all_data[i][1])
+        w_bao_cls["0.37<z<0.66"].append(all_data[i][3])
+        w_bao_cls["0.66<z<1.0"].append(all_data[i][5])
+        w_bao_cls["1.0<z<1.5"].append(all_data[i][7])
+        w_bao_cls["1.5<z<2.0"].append(all_data[i][9])
 
     # read in the surface number density and convert
-    for j, key in enumerate(wBAO_cls.keys()):
+    for j, key in enumerate(w_bao_cls.keys()):
         surf_num_density[key] = np.array(
             shot_noise_data[j][5] * 1.18 * 10**7
         )  # 1/arcmin^2 to 1/Sr
@@ -132,15 +132,15 @@ def get_theory_spectra(mock_data_path, mag_cut=25.6, plot_spectra=True, nside=25
     lmax = len(wl_nside)
     ell = np.array(ell[0:lmax])
     # pixelize the spectra
-    for key in wBAO_cls:
-        wBAO_cls[key] = np.array(wBAO_cls[key][0:lmax]) * (wl_nside**2)
+    for key in w_bao_cls:
+        w_bao_cls[key] = np.array(w_bao_cls[key][0:lmax]) * (wl_nside**2)
 
     if plot_spectra:
         plt.clf()
-        for key in wBAO_cls:
+        for key in w_bao_cls:
             plt.plot(
                 ell,
-                wBAO_cls[key] * ell * (ell + 1) / (2 * np.pi),
+                w_bao_cls[key] * ell * (ell + 1) / (2 * np.pi),
                 linewidth=1.5,
                 label=key,
             )
@@ -150,7 +150,7 @@ def get_theory_spectra(mock_data_path, mag_cut=25.6, plot_spectra=True, nside=25
         plt.ticklabel_format(axis="y", style="sci", scilimits=(-2, 2))
         plt.show()
 
-    return ell, wBAO_cls, surf_num_density
+    return ell, w_bao_cls, surf_num_density
 
 
 ###############################################################################################################################
@@ -195,7 +195,7 @@ def get_outdir_name(
 
     """
     # check to make sure redshift bin is ok.
-    allowed_zbins = powerLawConst_a.keys()
+    allowed_zbins = power_law_const_a.keys()
     if zbin not in allowed_zbins:
         raise ValueError(
             "ERROR: Invalid redshift bin. Input bin can only be among %s\n"
@@ -317,19 +317,19 @@ def calc_os_bias_err(c_ells):
     bias, bias_err = {}, {}
     band_keys = list(c_ells.keys())
     for dith in c_ells[band_keys[0]]:  # loop over each dith strategy
-        tempAvg, tempErr = [], []
-        for dataIndex in range(
+        temp_avg, temp_err = [], []
+        for data_index in range(
             len(c_ells[band_keys[0]][dith])
         ):  # loop over each C_ell-value
             row = []
             for band in band_keys:
                 row.append(
-                    c_ells[band][dith][dataIndex]
+                    c_ells[band][dith][data_index]
                 )  # compiles the C_ell value for each band
-            tempAvg.append(np.mean(row))
-            tempErr.append(np.std(row))
-        bias[dith] = tempAvg
-        bias_err[dith] = tempErr
+            temp_avg.append(np.mean(row))
+            temp_err.append(np.std(row))
+        bias[dith] = temp_avg
+        bias_err[dith] = temp_err
     return [bias, bias_err]
 
 
@@ -337,7 +337,7 @@ def calc_os_bias_err(c_ells):
 def get_stat_floor(
     ell_arr,
     zbin,
-    wBAO_cls_zbin,
+    w_bao_cls_zbin,
     surf_num_density_zbin,
     dither_strategy,
     fsky,
@@ -346,9 +346,9 @@ def get_stat_floor(
     # returns the sqrt of cosmic variance = statistical floor
     prefactor = np.sqrt(2.0 / ((2 * ell_arr + 1) * fsky))
     if with_shot_noise:
-        return prefactor * (wBAO_cls_zbin + (1.0 / surf_num_density_zbin))
+        return prefactor * (w_bao_cls_zbin + (1.0 / surf_num_density_zbin))
     else:
-        return prefactor * (wBAO_cls_zbin)
+        return prefactor * (w_bao_cls_zbin)
 
 
 ###############################################################################################################################
@@ -387,7 +387,7 @@ def get_fom(
         int(ell_min - ell_stat_floor[0]) : int(ell_max - ell_stat_floor[0] + 1)
     ]
 
-    lGood = np.arange(ell_min, ell_max + 1)
+    l_good = np.arange(ell_min, ell_max + 1)
     num_sq = np.sum(floor_wo_shot_noise**2)
     denom_sq = np.sum(floor_with_shot_noise**2 + osbias**2)
 
@@ -486,7 +486,7 @@ def os_bias_overplots(
 
     """
     # check to make sure redshift bin is ok.
-    allowed_zbins = list(powerLawConst_a.keys()) + ["all"]
+    allowed_zbins = list(power_law_const_a.keys()) + ["all"]
     if zbin not in allowed_zbins:
         raise ValueError(
             "Invalid redshift bin. Input bin can only be among %s\n" % (allowed_zbins)
@@ -500,11 +500,11 @@ def os_bias_overplots(
         )
 
     # all is ok. proceed.
-    totCases = len(data_paths)
+    tot_cases = len(data_paths)
 
     # get the outdir address for each 'case' and each band
     outdir_all = {}
-    for i in range(totCases):
+    for i in range(tot_cases):
         outdir = {}
         for band in filters:
             out, yr_tag, zbin_tag, poisson_tag, zero_pt_tag = get_outdir_name(
@@ -523,7 +523,7 @@ def os_bias_overplots(
 
     # get the cls and calculate the OS bias and error.
     osbias_all, osbias_err_all = {}, {}
-    for i in range(totCases):
+    for i in range(tot_cases):
         outdir = outdir_all[legend_labels[i]]
 
         c_ells = {}
@@ -536,7 +536,7 @@ def os_bias_overplots(
         osbias_err_all[legend_labels[i]] = osbias_err
 
     # get the data to calculate the statistical floor.
-    ell, wBAO_cls, surf_num_density = get_theory_spectra(
+    ell, w_bao_cls, surf_num_density = get_theory_spectra(
         mock_data_path=mock_data_path,
         mag_cut=theory_lim_mag,
         plot_spectra=plot_interms,
@@ -548,18 +548,18 @@ def os_bias_overplots(
     if not os.path.exists("%s/%s" % (out_dir, outdir)):
         os.makedirs("%s/%s" % (out_dir, outdir))
 
-    inBuiltColors = {}
-    inBuiltColors["r<24.0"] = "r"
-    inBuiltColors["r<25.7"] = "b"
-    inBuiltColors["r<27.5"] = "g"
-    inBuiltColors["r<22.0"] = "m"
-    inBuiltColors["i<24.0"] = "r"
-    inBuiltColors["i<25.3"] = "b"
-    inBuiltColors["i<27.5"] = "g"
-    inBuiltColors["i<22.0"] = "m"
+    in_built_colors = {}
+    in_built_colors["r<24.0"] = "r"
+    in_built_colors["r<25.7"] = "b"
+    in_built_colors["r<27.5"] = "g"
+    in_built_colors["r<22.0"] = "m"
+    in_built_colors["i<24.0"] = "r"
+    in_built_colors["i<25.3"] = "b"
+    in_built_colors["i<27.5"] = "g"
+    in_built_colors["i<22.0"] = "m"
 
     if color_dict is None:
-        colors = inBuiltColors
+        colors = in_built_colors
     else:
         colors = color_dict
 
@@ -587,7 +587,7 @@ def os_bias_overplots(
     # run over the keys
     for dith in diths_to_consider:
         # ----------------------------------------------------------------------------------------
-        for i in range(totCases):
+        for i in range(tot_cases):
             # ----------------------------------------------------------------------------------------
             osbias_err = osbias_err_all[legend_labels[i]]
             if dith in osbias_err.keys():
@@ -602,14 +602,14 @@ def os_bias_overplots(
 
                 # ----------------------------------------------------------------------------------------
                 # calcuate the floors with and without shot noise
-                if zbin not in wBAO_cls:
+                if zbin not in w_bao_cls:
                     raise ValueError("Invalid redshift bin: %s" % zbin)
                 else:
                     # get the floor with shot noise
                     floor_with_eta = get_stat_floor(
                         ell_arr=ell,
                         zbin=zbin,
-                        wBAO_cls_zbin=wBAO_cls[zbin],
+                        w_bao_cls_zbin=w_bao_cls[zbin],
                         surf_num_density_zbin=surf_num_density[zbin],
                         dither_strategy=dith,
                         fsky=fsky_dith_dict[dith],
@@ -619,15 +619,15 @@ def os_bias_overplots(
                     floor_no_eta = get_stat_floor(
                         ell_arr=ell,
                         zbin=zbin,
-                        wBAO_cls_zbin=wBAO_cls[zbin],
+                        w_bao_cls_zbin=w_bao_cls[zbin],
                         surf_num_density_zbin=surf_num_density[zbin],
                         dither_strategy=dith,
                         fsky=fsky_best,
                         with_shot_noise=False,
                     )
-                # calculate the FoM
+                # calculate the fo_m
                 l = np.arange(np.size(osbias_err[dith]))
-                FoM = get_fom(
+                fo_m = get_fom(
                     ell_min,
                     ell_max,
                     l,
@@ -660,8 +660,8 @@ def os_bias_overplots(
                     l,
                     osbias_err[dith],
                     color=colors[legend_labels[i]],
-                    label=r"%s$%s<%s$ ; FoM: %.6f"
-                    % (add_leg, splits[0], splits[1], FoM),
+                    label=r"%s$%s<%s$ ; fo_m: %.6f"
+                    % (add_leg, splits[0], splits[1], fo_m),
                 )
                 # ----------------------------------------------------------------------------------------
                 # set up the details of the plot
@@ -672,7 +672,7 @@ def os_bias_overplots(
                 axis.set_title(dith)
                 axis.set_xlabel(r"$\ell$")
                 axis.set_xlim(0, lmax)
-                if totCases > 4:
+                if tot_cases > 4:
                     leg = axis.legend(
                         labelspacing=0.001,
                     )
@@ -713,10 +713,10 @@ def os_bias_overplots(
         run_name_filetag,
         dith_tag,
     )
-    if totCases == 1:
+    if tot_cases == 1:
         filename += "%s_" % (legend_labels[0])
     else:
-        filename += "%s-magcuts_" % (totCases)
+        filename += "%s-magcuts_" % (tot_cases)
     filename += "th-r<%s_%s_%s_%s_%s%s%s.png" % (
         theory_lim_mag,
         zbin_tag,
@@ -828,7 +828,7 @@ def os_bias_overplots_diff_dbs(
 
     """
     # check to make sure redshift bin is ok.
-    allowed_zbins = list(powerLawConst_a.keys()) + ["all"]
+    allowed_zbins = list(power_law_const_a.keys()) + ["all"]
     if zbin not in allowed_zbins:
         raise ValueError(
             "Invalid redshift bin. Input bin can only be among %s\n" % (allowed_zbins)
@@ -842,11 +842,11 @@ def os_bias_overplots_diff_dbs(
         )
 
     # all is ok. proceed.
-    totCases = len(run_names)
+    tot_cases = len(run_names)
 
     # get the outdir address for each 'case' and each band
     outdir_all = {}
-    for i in range(totCases):
+    for i in range(tot_cases):
         outdir = {}
         for band in filters:
             out, yr_tag, zbin_tag, poisson_tag, zero_pt_tag = get_outdir_name(
@@ -865,7 +865,7 @@ def os_bias_overplots_diff_dbs(
 
     # get the cls and calculate the OS bias and error.
     osbias_all, osbias_err_all = {}, {}
-    for i in range(totCases):
+    for i in range(tot_cases):
         outdir = outdir_all[run_names[i]]
         c_ells = {}
         for band in filters:
@@ -883,7 +883,7 @@ def os_bias_overplots_diff_dbs(
     )
 
     # get the data to calculate the statistical floor.
-    ell, wBAO_cls, surf_num_density = get_theory_spectra(
+    ell, w_bao_cls, surf_num_density = get_theory_spectra(
         mock_data_path=mock_data_path,
         mag_cut=theory_lim_mag,
         plot_spectra=plot_interms,
@@ -896,13 +896,13 @@ def os_bias_overplots_diff_dbs(
     if not os.path.exists("%s/%s" % (out_dir, outdir)):
         os.makedirs("%s/%s" % (out_dir, outdir))
 
-    inBuiltColors = {}
-    inBuiltColors["minion1016"] = "r"
-    inBuiltColors["minion1020"] = "b"
-    inBuiltColors["kraken1043"] = "g"
+    in_built_colors = {}
+    in_built_colors["minion1016"] = "r"
+    in_built_colors["minion1020"] = "b"
+    in_built_colors["kraken1043"] = "g"
 
     if color_dict is None:
-        colors = inBuiltColors
+        colors = in_built_colors
     else:
         colors = color_dict
 
@@ -930,7 +930,7 @@ def os_bias_overplots_diff_dbs(
     else:
         diths_to_consider = colors.keys()
 
-    for i in range(totCases):
+    for i in range(tot_cases):
         # ----------------------------------------------------------------------------------------
         fsky = fsky_dict[run_names[i]]
         osbias_err = osbias_err_all[run_names[i]]
@@ -949,14 +949,14 @@ def os_bias_overplots_diff_dbs(
                     axis = ax[row, col]
                 # ----------------------------------------------------------------------------------------
                 # calcuate the floors with and without shot noise
-                if zbin not in wBAO_cls:
+                if zbin not in w_bao_cls:
                     raise ValueError("Invalid redshift bin: %s" % zbin)
                 else:
                     # get the floor with shot noise
                     floor_with_eta = get_stat_floor(
                         ell_arr=ell,
                         zbin=zbin,
-                        wBAO_cls_zbin=wBAO_cls[zbin],
+                        w_bao_cls_zbin=w_bao_cls[zbin],
                         surf_num_density_zbin=surf_num_density[zbin],
                         dither_strategy=dith,
                         fsky=fsky[dith],
@@ -966,15 +966,15 @@ def os_bias_overplots_diff_dbs(
                     floor_no_eta = get_stat_floor(
                         ell_arr=ell,
                         zbin=zbin,
-                        wBAO_cls_zbin=wBAO_cls[zbin],
+                        w_bao_cls_zbin=w_bao_cls[zbin],
                         surf_num_density_zbin=surf_num_density[zbin],
                         dither_strategy=dith,
                         fsky=fsky_best,
                         with_shot_noise=False,
                     )
-                # calculate the FoM
+                # calculate the fo_m
                 l = np.arange(np.size(osbias_err[dith]))
-                FoM = get_fom(
+                fo_m = get_fom(
                     ell_min,
                     ell_max,
                     l,
@@ -1006,7 +1006,7 @@ def os_bias_overplots_diff_dbs(
                     l,
                     osbias_err[dith],
                     color=colors[run_names[i]],
-                    label=r"%s%s ; FoM: %.6f" % (add_leg, legend_labels[i], FoM),
+                    label=r"%s%s ; fo_m: %.6f" % (add_leg, legend_labels[i], fo_m),
                 )
                 # ----------------------------------------------------------------------------------------
 
@@ -1018,7 +1018,7 @@ def os_bias_overplots_diff_dbs(
                 axis.set_title("%s: $i<%s$" % (dith, lim_mag_i))
                 axis.set_xlabel(r"$\ell$")
                 axis.set_xlim(0, lmax)
-                if totCases > 4:
+                if tot_cases > 4:
                     leg = axis.legend(
                         labelspacing=0.001,
                     )
@@ -1050,10 +1050,10 @@ def os_bias_overplots_diff_dbs(
         file_append = ""
 
     filename = "%s_OSbiaserr_%s_%s_" % (date_tag, bias_type_tag, dith_tag)
-    if totCases == 1:
+    if tot_cases == 1:
         filename += "%s_" % (run_names[0])
     else:
-        filename += "%scadences_" % (totCases)
+        filename += "%scadences_" % (tot_cases)
     filename += "th-r<%s_%s_%s_%s_%s%s%s.png" % (
         theory_lim_mag,
         zbin_tag,

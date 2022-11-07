@@ -39,7 +39,6 @@ def scimaf_dir():
         if not args.no_clobber:
             if os.path.isdir(out_dir):
                 shutil.rmtree(out_dir)
-        opsdb = db.OpsimDatabase(filename)
         colmap = batches.ColMapDict()
         results_db = db.ResultsDb(out_dir=out_dir)
         # Set up the metricBundles
@@ -48,16 +47,16 @@ def scimaf_dir():
         )
         # Run them, including generating plots
         group = mb.MetricBundleGroup(
-            bdict, opsdb, out_dir=out_dir, results_db=results_db, save_early=False
+            bdict, filename, out_dir=out_dir, results_db=results_db, save_early=False
         )
         group.run_all(clear_memory=True, plot_now=True)
         results_db.close()
-        db.addRunToDatabase(
+        db.add_run_to_database(
             out_dir,
             "trackingDb_sqlite.db",
-            opsimGroup=None,
-            opsimRun=name,
-            opsimComment=None,
-            mafComment="ScienceRadar",
-            dbFile=name + ".db",
+            run_group=None,
+            opsim_run=name,
+            opsim_comment=None,
+            maf_comment="ScienceRadar",
+            db_file=name + ".db",
         )

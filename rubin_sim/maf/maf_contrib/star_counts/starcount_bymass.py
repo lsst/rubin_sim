@@ -87,7 +87,7 @@ def dist_calc(mass, band):
     # abs mag to apparent mag ranges, > 16, noise dependent upper limit
 
 
-def starcount_bymass(eqRA, eqDEC, m1, m2, band):
+def starcount_bymass(eq_ra, eq_dec, m1, m2, band):
     masses = np.linspace(m1, m2, num=20)
     totmass = IMF(m1, m2)
     totmass = IMF(0.2, 1.04)
@@ -95,7 +95,7 @@ def starcount_bymass(eqRA, eqDEC, m1, m2, band):
     massfractions = massbins / totmass
     distances = [dist_calc(x, band) for x in masses[:-1]]
     starcounts = [
-        y * starcount(eqRA, eqDEC, x[0], x[1]) for x, y in zip(distances, massfractions)
+        y * starcount(eq_ra, eq_dec, x[0], x[1]) for x, y in zip(distances, massfractions)
     ]
     return sum(starcounts)
 

@@ -11,17 +11,17 @@ import sys
 from scipy.optimize import fsolve
 import math
 
-Zsun = 25.0
-Rsun = 8000.0
-densityRsun = 0.0364
+zsun = 25.0
+rsun = 8000.0
+density_rsun = 0.0364
 f = 0.1
 
 
 def diskprofile(R, Z, L, H):
-    part1 = (-R / L) - (abs(Z + Zsun) / H)
+    part1 = (-R / L) - (abs(Z + zsun) / H)
     part2 = np.exp(part1)
-    part3 = np.exp(Rsun / L)
-    tot = densityRsun * part2 * part3
+    part3 = np.exp(rsun / L)
+    tot = density_rsun * part2 * part3
     return tot
 
 
@@ -41,13 +41,13 @@ def bulge(R, Z):
 
 
 def halo(R, Z):
-    qH = 0.64
-    nH = 2.77
-    fH = 0.001
-    part1 = R**2.0 + (Z / qH) ** 2.0
-    part2 = Rsun / np.power(part1, 0.5)
-    part3 = np.power(part2, nH)
-    tot = densityRsun * fH * part3
+    q_h = 0.64
+    n_h = 2.77
+    f_h = 0.001
+    part1 = R**2.0 + (Z / q_h) ** 2.0
+    part2 = rsun / np.power(part1, 0.5)
+    part3 = np.power(part2, n_h)
+    tot = density_rsun * f_h * part3
     return tot
 
 

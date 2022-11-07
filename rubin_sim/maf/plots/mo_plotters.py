@@ -23,9 +23,9 @@ class MetricVsH(BasePlotter):
     """
 
     def __init__(self):
-        self.plotType = "MetricVsH"
-        self.objectPlotter = False
-        self.defaultPlotDict = {
+        self.plot_type = "MetricVsH"
+        self.object_plotter = False
+        self.default_plot_dict = {
             "title": None,
             "xlabel": "H (mag)",
             "ylabel": None,
@@ -37,78 +37,78 @@ class MetricVsH(BasePlotter):
             "HmarkLinestyle": ":",
             "figsize": None,
         }
-        self.minHrange = 1.0
+        self.min_hrange = 1.0
 
-    def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
-        if "linestyle" not in userPlotDict:
-            userPlotDict["linestyle"] = "-"
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
-        Hvals = slicer.slicePoints["H"]
-        reduceFunc = plotDict["npReduce"]
-        if reduceFunc is None:
-            reduceFunc = np.mean
-        if Hvals.shape[0] == 1:
+    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+        if "linestyle" not in user_plot_dict:
+            user_plot_dict["linestyle"] = "-"
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
+        hvals = slicer.slicePoints["H"]
+        reduce_func = plot_dict["npReduce"]
+        if reduce_func is None:
+            reduce_func = np.mean
+        if hvals.shape[0] == 1:
             # We have a simple set of values to plot against H.
             # This may be due to running a summary metric, such as completeness.
-            mVals = metricValue[0].filled()
-        elif len(Hvals) == slicer.shape[1]:
+            m_vals = metric_value[0].filled()
+        elif len(hvals) == slicer.shape[1]:
             # Using cloned H distribution.
             # Apply 'npReduce' method directly to metric values, and plot at matching H values.
-            mVals = reduceFunc(metricValue.filled(), axis=0)
+            m_vals = reduce_func(metric_value.filled(), axis=0)
         else:
             # Probably each object has its own H value.
-            hrange = Hvals.max() - Hvals.min()
-            minH = Hvals.min()
-            if hrange < self.minHrange:
-                hrange = self.minHrange
-                minH = Hvals.min() - hrange / 2.0
-            nbins = plotDict["nbins"]
+            hrange = hvals.max() - hvals.min()
+            min_h = hvals.min()
+            if hrange < self.min_hrange:
+                hrange = self.min_hrange
+                min_h = hvals.min() - hrange / 2.0
+            nbins = plot_dict["nbins"]
             if nbins is None:
                 nbins = 30
             stepsize = hrange / float(nbins)
-            bins = np.arange(minH, minH + hrange + stepsize / 2.0, stepsize)
+            bins = np.arange(min_h, min_h + hrange + stepsize / 2.0, stepsize)
             # In each bin of H, calculate the 'npReduce' value of the corresponding metric_values.
-            inds = np.digitize(Hvals, bins)
+            inds = np.digitize(hvals, bins)
             inds = inds - 1
-            mVals = np.zeros(len(bins), float)
+            m_vals = np.zeros(len(bins), float)
             for i in range(len(bins)):
-                match = metricValue[inds == i]
+                match = metric_value[inds == i]
                 if len(match) == 0:
-                    mVals[i] = slicer.badval
+                    m_vals[i] = slicer.badval
                 else:
-                    mVals[i] = reduceFunc(match.filled())
-            Hvals = bins
+                    m_vals[i] = reduce_func(match.filled())
+            hvals = bins
         # Plot the values.
-        fig = plt.figure(fignum, figsize=plotDict["figsize"])
+        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
         ax = plt.gca()
         ax.plot(
-            Hvals,
-            mVals,
-            color=plotDict["color"],
-            linestyle=plotDict["linestyle"],
-            label=plotDict["label"],
+            hvals,
+            m_vals,
+            color=plot_dict["color"],
+            linestyle=plot_dict["linestyle"],
+            label=plot_dict["label"],
         )
-        if "xMin" in plotDict:
-            ax.set_xlim(left=plotDict["xMin"])
-        if "xMax" in plotDict:
-            ax.set_xlim(right=plotDict["xMax"])
-        if "yMin" in plotDict:
-            ax.set_ylim(bottom=plotDict["yMin"])
-        if "yMax" in plotDict:
-            ax.set_ylim(top=plotDict["yMax"])
-        # Convert Hvals to diameter, using 'albedo' - add these upper xticks
-        albedo = plotDict["albedo"]
+        if "xMin" in plot_dict:
+            ax.set_xlim(left=plot_dict["xMin"])
+        if "xMax" in plot_dict:
+            ax.set_xlim(right=plot_dict["xMax"])
+        if "yMin" in plot_dict:
+            ax.set_ylim(bottom=plot_dict["yMin"])
+        if "yMax" in plot_dict:
+            ax.set_ylim(top=plot_dict["yMax"])
+        # Convert hvals to diameter, using 'albedo' - add these upper xticks
+        albedo = plot_dict["albedo"]
         y = 1.0
         if albedo is not None:
             ax2 = ax.twiny()
-            Hmin, Hmax = ax.get_xlim()
+            hmin, hmax = ax.get_xlim()
             dmax = 2.0 * np.sqrt(
-                10 ** ((mag_sun - Hmin - 2.5 * np.log10(albedo)) / 2.5)
+                10 ** ((mag_sun - hmin - 2.5 * np.log10(albedo)) / 2.5)
             )
             dmin = 2.0 * np.sqrt(
-                10 ** ((mag_sun - Hmax - 2.5 * np.log10(albedo)) / 2.5)
+                10 ** ((mag_sun - hmax - 2.5 * np.log10(albedo)) / 2.5)
             )
             dmax = dmax * km_per_au * m_per_km
             dmin = dmin * km_per_au * m_per_km
@@ -125,16 +125,16 @@ class MetricVsH(BasePlotter):
             plt.sca(ax)
             y = 1.1
         plt.grid(True)
-        if plotDict["Hmark"] is not None:
+        if plot_dict["Hmark"] is not None:
             plt.axvline(
-                x=plotDict["Hmark"],
+                x=plot_dict["Hmark"],
                 color="r",
-                linestyle=plotDict["HmarkLinestyle"],
+                linestyle=plot_dict["HmarkLinestyle"],
                 alpha=0.3,
             )
-        plt.title(plotDict["title"], y=y)
-        plt.xlabel(plotDict["xlabel"])
-        plt.ylabel(plotDict["ylabel"])
+        plt.title(plot_dict["title"], y=y)
+        plt.xlabel(plot_dict["xlabel"])
+        plt.ylabel(plot_dict["ylabel"])
         plt.tight_layout()
         return fig.number
 
@@ -146,9 +146,9 @@ class MetricVsOrbit(BasePlotter):
     """
 
     def __init__(self, xaxis="q", yaxis="e"):
-        self.plotType = "MetricVsOrbit_%s%s" % (xaxis, yaxis)
-        self.objectPlotter = False
-        self.defaultPlotDict = {
+        self.plot_type = "MetricVsOrbit_%s%s" % (xaxis, yaxis)
+        self.object_plotter = False
+        self.default_plot_dict = {
             "title": None,
             "xlabel": xaxis,
             "ylabel": yaxis,
@@ -165,98 +165,98 @@ class MetricVsOrbit(BasePlotter):
             "figsize": None,
         }
 
-    def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
-        fig = plt.figure(fignum, figsize=plotDict["figsize"])
-        xvals = slicer.slicePoints["orbits"][plotDict["xaxis"]]
-        yvals = slicer.slicePoints["orbits"][plotDict["yaxis"]]
+    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
+        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        xvals = slicer.slicePoints["orbits"][plot_dict["xaxis"]]
+        yvals = slicer.slicePoints["orbits"][plot_dict["yaxis"]]
         # Set x/y bins.
-        nxbins = plotDict["nxbins"]
-        nybins = plotDict["nybins"]
+        nxbins = plot_dict["nxbins"]
+        nybins = plot_dict["nybins"]
         if nxbins is None:
             nxbins = 100
         if nybins is None:
             nybins = 100
-        if "xbins" in plotDict:
-            xbins = plotDict["xbins"]
+        if "xbins" in plot_dict:
+            xbins = plot_dict["xbins"]
         else:
             xbinsize = (xvals.max() - xvals.min()) / float(nxbins)
             xbins = np.arange(xvals.min(), xvals.max() + xbinsize / 2.0, xbinsize)
-        if "ybins" in plotDict:
-            ybins = plotDict["ybins"]
+        if "ybins" in plot_dict:
+            ybins = plot_dict["ybins"]
         else:
             ybinsize = (yvals.max() - yvals.min()) / float(nybins)
             ybins = np.arange(yvals.min(), yvals.max() + ybinsize / 2.0, ybinsize)
         nxbins = len(xbins)
         nybins = len(ybins)
         # Identify the relevant metric_values for the Hvalue we want to plot.
-        Hvals = slicer.slicePoints["H"]
-        Hwidth = plotDict["Hwidth"]
-        if Hwidth is None:
-            Hwidth = 1.0
-        if len(Hvals) == slicer.shape[1]:
-            if plotDict["Hval"] is None:
-                Hidx = int(len(Hvals) / 2)
-                Hval = Hvals[Hidx]
+        hvals = slicer.slicePoints["H"]
+        hwidth = plot_dict["hwidth"]
+        if hwidth is None:
+            hwidth = 1.0
+        if len(hvals) == slicer.shape[1]:
+            if plot_dict["hval"] is None:
+                hidx = int(len(hvals) / 2)
+                hval = hvals[hidx]
             else:
-                Hval = plotDict["Hval"]
-                Hidx = np.where(np.abs(Hvals - Hval) == np.abs(Hvals - Hval).min())[0]
-                Hidx = Hidx[0]
+                hval = plot_dict["hval"]
+                hidx = np.where(np.abs(hvals - hval) == np.abs(hvals - hval).min())[0]
+                hidx = hidx[0]
         else:
-            if plotDict["Hval"] is None:
-                Hval = np.median(Hvals)
-                Hidx = np.where(np.abs(Hvals - Hval) <= Hwidth / 2.0)[0]
+            if plot_dict["hval"] is None:
+                hval = np.median(hvals)
+                hidx = np.where(np.abs(hvals - hval) <= hwidth / 2.0)[0]
             else:
-                Hval = plotDict["Hvals"]
-                Hidx = np.where(np.abs(Hvals - Hval) <= Hwidth / 2.0)[0]
-        if len(Hvals) == slicer.shape[1]:
-            mVals = np.swapaxes(metricValue, 1, 0)[Hidx].filled()
+                hval = plot_dict["hvals"]
+                hidx = np.where(np.abs(hvals - hval) <= hwidth / 2.0)[0]
+        if len(hvals) == slicer.shape[1]:
+            m_vals = np.swapaxes(metric_value, 1, 0)[hidx].filled()
         else:
-            mVals = metricValue[Hidx].filled()
+            m_vals = metric_value[hidx].filled()
         # Calculate the npReduce'd metric values at each x/y bin.
-        if "colorMin" in plotDict:
-            badval = plotDict["colorMin"] - 1
+        if "colorMin" in plot_dict:
+            badval = plot_dict["colorMin"] - 1
         else:
             badval = slicer.badval
         binvals = np.zeros((nybins, nxbins), dtype="float") + badval
         xidxs = np.digitize(xvals, xbins) - 1
         yidxs = np.digitize(yvals, ybins) - 1
-        reduceFunc = plotDict["npReduce"]
-        if reduceFunc is None:
-            reduceFunc = np.mean
+        reduce_func = plot_dict["npReduce"]
+        if reduce_func is None:
+            reduce_func = np.mean
         for iy in range(nybins):
             ymatch = np.where(yidxs == iy)[0]
             for ix in range(nxbins):
                 xmatch = np.where(xidxs[ymatch] == ix)[0]
-                matchVals = mVals[ymatch][xmatch]
-                if len(matchVals) > 0:
-                    binvals[iy][ix] = reduceFunc(matchVals)
+                match_vals = m_vals[ymatch][xmatch]
+                if len(match_vals) > 0:
+                    binvals[iy][ix] = reduce_func(match_vals)
         xi, yi = np.meshgrid(xbins, ybins)
-        if "colorMin" in plotDict:
-            vMin = plotDict["colorMin"]
+        if "colorMin" in plot_dict:
+            v_min = plot_dict["colorMin"]
         else:
-            vMin = binvals.min()
-        if "colorMax" in plotDict:
-            vMax = plotDict["colorMax"]
+            v_min = binvals.min()
+        if "colorMax" in plot_dict:
+            v_max = plot_dict["colorMax"]
         else:
-            vMax = binvals.max()
-        nlevels = plotDict["levels"]
+            v_max = binvals.max()
+        nlevels = plot_dict["levels"]
         if nlevels is None:
             nlevels = 200
-        levels = np.arange(vMin, vMax, (vMax - vMin) / float(nlevels))
+        levels = np.arange(v_min, v_max, (v_max - v_min) / float(nlevels))
         plt.contourf(
-            xi, yi, binvals, levels, extend="max", zorder=0, cmap=plotDict["cmap"]
+            xi, yi, binvals, levels, extend="max", zorder=0, cmap=plot_dict["cmap"]
         )
         cbar = plt.colorbar()
-        label = plotDict["label"]
+        label = plot_dict["label"]
         if label is None:
             label = ""
-        cbar.set_label(label + " @ H=%.1f" % (Hval))
-        plt.title(plotDict["title"])
-        plt.xlabel(plotDict["xlabel"])
-        plt.ylabel(plotDict["ylabel"])
+        cbar.set_label(label + " @ H=%.1f" % (hval))
+        plt.title(plot_dict["title"])
+        plt.xlabel(plot_dict["xlabel"])
+        plt.ylabel(plot_dict["ylabel"])
         return fig.number
 
 
@@ -267,9 +267,9 @@ class MetricVsOrbitPoints(BasePlotter):
     """
 
     def __init__(self, xaxis="q", yaxis="e"):
-        self.plotType = "MetricVsOrbit"
-        self.objectPlotter = False
-        self.defaultPlotDict = {
+        self.plot_type = "MetricVsOrbit"
+        self.object_plotter = False
+        self.default_plot_dict = {
             "title": None,
             "xlabel": xaxis,
             "ylabel": yaxis,
@@ -284,48 +284,48 @@ class MetricVsOrbitPoints(BasePlotter):
             "figsize": None,
         }
 
-    def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
-        fig = plt.figure(fignum, figsize=plotDict["figsize"])
-        xvals = slicer.slicePoints["orbits"][plotDict["xaxis"]]
-        yvals = slicer.slicePoints["orbits"][plotDict["yaxis"]]
+    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
+        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        xvals = slicer.slicePoints["orbits"][plot_dict["xaxis"]]
+        yvals = slicer.slicePoints["orbits"][plot_dict["yaxis"]]
         # Identify the relevant metric_values for the Hvalue we want to plot.
-        Hvals = slicer.slicePoints["H"]
-        Hwidth = plotDict["Hwidth"]
-        if Hwidth is None:
-            Hwidth = 1.0
-        if len(Hvals) == slicer.shape[1]:
-            if plotDict["Hval"] is None:
-                Hidx = int(len(Hvals) / 2)
-                Hval = Hvals[Hidx]
+        hvals = slicer.slicePoints["H"]
+        hwidth = plot_dict["hwidth"]
+        if hwidth is None:
+            hwidth = 1.0
+        if len(hvals) == slicer.shape[1]:
+            if plot_dict["hval"] is None:
+                hidx = int(len(hvals) / 2)
+                hval = hvals[hidx]
             else:
-                Hval = plotDict["Hval"]
-                Hidx = np.where(np.abs(Hvals - Hval) == np.abs(Hvals - Hval).min())[0]
-                Hidx = Hidx[0]
+                hval = plot_dict["hval"]
+                hidx = np.where(np.abs(hvals - hval) == np.abs(hvals - hval).min())[0]
+                hidx = hidx[0]
         else:
-            if plotDict["Hval"] is None:
-                Hval = np.median(Hvals)
-                Hidx = np.where(np.abs(Hvals - Hval) <= Hwidth / 2.0)[0]
+            if plot_dict["hval"] is None:
+                hval = np.median(hvals)
+                hidx = np.where(np.abs(hvals - hval) <= hwidth / 2.0)[0]
             else:
-                Hval = plotDict["Hvals"]
-                Hidx = np.where(np.abs(Hvals - Hval) <= Hwidth / 2.0)[0]
-        if len(Hvals) == slicer.shape[1]:
-            mVals = np.swapaxes(metricValue, 1, 0)[Hidx]
+                hval = plot_dict["hvals"]
+                hidx = np.where(np.abs(hvals - hval) <= hwidth / 2.0)[0]
+        if len(hvals) == slicer.shape[1]:
+            m_vals = np.swapaxes(metric_value, 1, 0)[hidx]
         else:
-            mVals = metricValue[Hidx]
-        if "colorMin" in plotDict:
-            vMin = plotDict["colorMin"]
+            m_vals = metric_value[hidx]
+        if "colorMin" in plot_dict:
+            v_min = plot_dict["colorMin"]
         else:
-            vMin = mVals.min()
-        if "colorMax" in plotDict:
-            vMax = plotDict["colorMax"]
+            v_min = m_vals.min()
+        if "colorMax" in plot_dict:
+            v_max = plot_dict["colorMax"]
         else:
-            vMax = mVals.max()
-        if plotDict["backgroundPoints"]:
+            v_max = m_vals.max()
+        if plot_dict["backgroundPoints"]:
             # This isn't quite right for the condition .. but will do for now.
-            condition = np.where(mVals == 0)
+            condition = np.where(m_vals == 0)
             plt.plot(
                 xvals[condition],
                 yvals[condition],
@@ -334,24 +334,24 @@ class MetricVsOrbitPoints(BasePlotter):
                 alpha=0.5,
                 zorder=3,
             )
-        if plotDict["foregroundPoints"]:
+        if plot_dict["foregroundPoints"]:
             plt.scatter(
                 xvals,
                 yvals,
-                c=mVals,
-                vmin=vMin,
-                vmax=vMax,
-                cmap=plotDict["cmap"],
+                c=m_vals,
+                vmin=v_min,
+                vmax=v_max,
+                cmap=plot_dict["cmap"],
                 s=15,
                 alpha=0.8,
                 zorder=0,
             )
             cbar = plt.colorbar()
-            label = plotDict["label"]
+            label = plot_dict["label"]
             if label is None:
                 label = ""
-        cbar.set_label(label + " @ H=%.1f" % (Hval))
-        plt.title(plotDict["title"])
-        plt.xlabel(plotDict["xlabel"])
-        plt.ylabel(plotDict["ylabel"])
+        cbar.set_label(label + " @ H=%.1f" % (hval))
+        plt.title(plot_dict["title"])
+        plt.xlabel(plot_dict["xlabel"])
+        plt.ylabel(plot_dict["ylabel"])
         return fig.number

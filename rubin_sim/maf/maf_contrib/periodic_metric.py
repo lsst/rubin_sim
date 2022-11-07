@@ -21,28 +21,28 @@ class PeriodicMetric(BaseMetric):
     the spectral window function.
     """
 
-    def __init__(self, TimeCol="expMJD", **kwargs):
-        self.TimeCol = TimeCol
-        super(PeriodicMetric, self).__init__(col=[self.TimeCol], **kwargs)
+    def __init__(self, time_col="expMJD", **kwargs):
+        self.time_col = time_col
+        super(PeriodicMetric, self).__init__(col=[self.time_col], **kwargs)
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         frq_pts = 30000.0
         max_frq = 25.0
-        times = dataSlice[self.TimeCol]
+        times = data_slice[self.time_col]
         times = times - times[0]  # change times to smaller numbers
-        useJD = np.array(times)
+        use_jd = np.array(times)
         window_frq = np.arange(frq_pts) * max_frq / frq_pts
         window_val = np.zeros_like(window_frq, dtype="float")
         for x, frq in enumerate(window_frq):
-            window_val[x] = np.sum(np.cos(-2.0 * np.pi * frq * useJD))
-        window_val /= np.float(useJD.size)
+            window_val[x] = np.sum(np.cos(-2.0 * np.pi * frq * use_jd))
+        window_val /= np.float(use_jd.size)
         secondpeak = np.sort(window_val)[-2]
         totalsum = (np.sum(window_val) - np.sort(window_val)[-1]) / (frq_pts - 1)
         data = np.asarray([secondpeak, totalsum])
         return data
 
-    def reducePeak(self, data):
+    def reduce_peak(self, data):
         return 1.0 - data[0]
 
-    def reduceSum(self, data):
+    def reduce_sum(self, data):
         return data[1]

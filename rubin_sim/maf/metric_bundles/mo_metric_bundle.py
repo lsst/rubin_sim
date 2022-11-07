@@ -60,11 +60,11 @@ def make_completeness_bundle(bundle, completeness_metric, h_mark=None, results_d
     # This step adds summary values at each point to the original metric - we use this to populate
     # the completeness values in the next step. However, we may not want them to go into the resultsDb.
     bundle.compute_summary_stats(results_db)
-    summaryName = completeness_metric.name
+    summary_name = completeness_metric.name
     # Make up the bundle, including the metric values.
     completeness = ma.MaskedArray(
-        data=bundle.summary_values[summaryName]["value"],
-        mask=np.zeros(len(bundle.summary_values[summaryName]["value"])),
+        data=bundle.summary_values[summary_name]["value"],
+        mask=np.zeros(len(bundle.summary_values[summary_name]["value"])),
         fill_value=0,
     )
     mb = MoMetricBundle(
@@ -75,24 +75,24 @@ def make_completeness_bundle(bundle, completeness_metric, h_mark=None, results_d
         info_label=bundle.info_label,
         display_dict=bundle.displayDict,
     )
-    plotDict = {}
-    plotDict.update(bundle.plotDict)
-    plotDict["label"] = bundle.info_label
-    if "Completeness" not in summaryName:
-        plotDict["label"] += " " + summaryName.replace("FractionPop_", "")
-    mb.metricValues = completeness.reshape(1, len(completeness))
+    plot_dict = {}
+    plot_dict.update(bundle.plotDict)
+    plot_dict["label"] = bundle.info_label
+    if "Completeness" not in summary_name:
+        plot_dict["label"] += " " + summary_name.replace("FractionPop_", "")
+    mb.metric_values = completeness.reshape(1, len(completeness))
     if h_mark is not None:
         metric = ValueAtHMetric(Hmark=h_mark)
         mb.set_summary_metrics(metric)
         mb.compute_summary_stats(results_db)
-        val = mb.summaryValues["Value At H=%.1f" % h_mark]
+        val = mb.summary_values["Value At H=%.1f" % h_mark]
         if val is None:
             val = 0
-        if summaryName.startswith("Cumulative"):
-            plotDict["label"] += ": @ H(<=%.1f) = %.1f%s" % (h_mark, val * 100, "%")
+        if summary_name.startswith("Cumulative"):
+            plot_dict["label"] += ": @ H(<=%.1f) = %.1f%s" % (h_mark, val * 100, "%")
         else:
-            plotDict["label"] += ": @ H(=%.1f) = %.1f%s" % (h_mark, val * 100, "%")
-    mb.set_plot_dict(plotDict)
+            plot_dict["label"] += ": @ H(=%.1f) = %.1f%s" % (h_mark, val * 100, "%")
+    mb.set_plot_dict(plot_dict)
     return mb
 
 
@@ -123,30 +123,30 @@ class MoMetricBundle(MetricBundle):
         # Set the stackerlist.
         if stacker_list is not None:
             if isinstance(stacker_list, BaseMoStacker):
-                self.stackerList = [
+                self.stacker_list = [
                     stacker_list,
                 ]
             else:
-                self.stackerList = []
+                self.stacker_list = []
                 for s in stacker_list:
                     if not isinstance(s, BaseMoStacker):
                         raise ValueError(
                             "stackerList must only contain "
                             "rubin_sim.maf.stackers.BaseMoStacker type objs"
                         )
-                    self.stackerList.append(s)
+                    self.stacker_list.append(s)
         else:
-            self.stackerList = []
+            self.stacker_list = []
         # Add the basic 'visibility/mag' stacker if not present.
         mag_stacker_found = False
-        for s in self.stackerList:
+        for s in self.stacker_list:
             if s.__class__.__name__ == "MoMagStacker":
                 mag_stacker_found = True
                 break
         if not mag_stacker_found:
-            self.stackerList.append(MoMagStacker())
+            self.stacker_list.append(MoMagStacker())
         # Set a mapsList just for compatibility with generic MetricBundle.
-        self.mapsList = []
+        self.maps_list = []
         # Add the summary stats, if applicable.
         self.set_summary_metrics(summary_metrics)
         # Set the provenance/info_label.
@@ -154,41 +154,41 @@ class MoMetricBundle(MetricBundle):
         self._build_metadata(info_label)
         # Build the output filename root if not provided.
         if file_root is not None:
-            self.fileRoot = file_root
+            self.file_root = file_root
         else:
             self._build_file_root()
         # Set the plotting classes/functions.
         self.set_plot_funcs(plot_funcs)
         # Set the plot_dict and displayDicts.
-        self.plotDict = {"units": "@H"}
+        self.plot_dict = {"units": "@H"}
         self.set_plot_dict(plot_dict)
-        # Update/set displayDict.
-        self.displayDict = {}
+        # Update/set display_dict.
+        self.display_dict = {}
         self.set_display_dict(display_dict)
         # Set the list of child metrics.
         self.set_child_bundles(child_metrics)
         # This is where we store the metric values and summary stats.
-        self.metricValues = None
-        self.summaryValues = None
+        self.metric_values = None
+        self.summary_values = None
 
     def _reset_metric_bundle(self):
         """Reset all properties of MetricBundle."""
         self.metric = None
         self.slicer = None
         self.constraint = None
-        self.stackerList = [MoMagStacker()]
-        self.mapsList = []
+        self.stacker_list = [MoMagStacker()]
+        self.maps_list = []
         self.summary_metrics = []
-        self.plotFuncs = []
+        self.plot_funcs = []
         self.run_name = "opsim"
         self.info_label = ""
-        self.dbCols = None
-        self.fileRoot = None
-        self.plotDict = {}
-        self.displayDict = {}
-        self.childMetrics = None
-        self.metricValues = None
-        self.summaryValues = None
+        self.db_cols = None
+        self.file_root = None
+        self.plot_dict = {}
+        self.display_dict = {}
+        self.child_metrics = None
+        self.metric_values = None
+        self.summary_values = None
 
     def _build_metadata(self, info_label):
         """If no info_label is provided, auto-generate it from the obs_file + constraint."""
@@ -221,20 +221,20 @@ class MoMetricBundle(MetricBundle):
         self.child_bundles = {}
         if child_metrics is None:
             child_metrics = self.metric.child_metrics
-        for cName, cMetric in child_metrics.items():
+        for c_name, cMetric in child_metrics.items():
             c_bundle = MoMetricBundle(
                 metric=cMetric,
                 slicer=self.slicer,
                 constraint=self.constraint,
-                stacker_list=self.stackerList,
+                stacker_list=self.stacker_list,
                 run_name=self.run_name,
                 info_label=self.info_label,
-                plot_dict=self.plotDict,
+                plot_dict=self.plot_dict,
                 plot_funcs=self.plot_funcs,
-                display_dict=self.displayDict,
+                display_dict=self.display_dict,
                 summary_metrics=self.summary_metrics,
             )
-            self.child_bundles[cName] = c_bundle
+            self.child_bundles[c_name] = c_bundle
         if len(child_metrics) > 0:
             self.summary_metrics = []
 
@@ -242,14 +242,14 @@ class MoMetricBundle(MetricBundle):
         """
         Compute summary statistics on metric_values, using summaryMetrics, for self and child bundles.
         """
-        if self.summaryValues is None:
-            self.summaryValues = {}
+        if self.summary_values is None:
+            self.summary_values = {}
         if self.summary_metrics is not None:
             # Build array of metric values, to use for (most) summary statistics.
             for m in self.summary_metrics:
                 summary_name = m.name
-                summary_val = m.run(self.metricValues, self.slicer.slicePoints["H"])
-                self.summaryValues[summary_name] = summary_val
+                summary_val = m.run(self.metric_values, self.slicer.slicePoints["H"])
+                self.summary_values[summary_name] = summary_val
                 # Add summary metric info to results database, if applicable.
                 if results_db:
                     metric_id = results_db.update_metric(
@@ -269,16 +269,16 @@ class MoMetricBundle(MetricBundle):
 
 
 class MoMetricBundleGroup(object):
-    def __init__(self, bundle_dict, out_dir=".", resultsDb=None, verbose=True):
+    def __init__(self, bundle_dict, out_dir=".", results_db=None, verbose=True):
         self.verbose = verbose
-        self.bundleDict = bundle_dict
-        self.outDir = out_dir
-        if not os.path.isdir(self.outDir):
-            os.makedirs(self.outDir)
-        self.resultsDb = resultsDb
+        self.bundle_dict = bundle_dict
+        self.out_dir = out_dir
+        if not os.path.isdir(self.out_dir):
+            os.makedirs(self.out_dir)
+        self.results_db = results_db
 
-        self.slicer = list(self.bundleDict.values())[0].slicer
-        for b in self.bundleDict.values():
+        self.slicer = list(self.bundle_dict.values())[0].slicer
+        for b in self.bundle_dict.values():
             if b.slicer != self.slicer:
                 raise ValueError(
                     "Currently, the slicers for the MoMetricBundleGroup must be equal,"
@@ -286,7 +286,7 @@ class MoMetricBundleGroup(object):
                 )
         self.constraints = list(set([b.constraint for b in bundle_dict.values()]))
 
-    def _check_compatible(self, metricBundle1, metricBundle2):
+    def _check_compatible(self, metric_bundle1, metric_bundle2):
         """Check if two MetricBundles are "compatible".
         Compatible indicates that the constraints, the slicers, and the maps are the same, and
         that the stackers do not interfere with each other
@@ -295,21 +295,21 @@ class MoMetricBundleGroup(object):
 
         Parameters
         ----------
-        metricBundle1 : MetricBundle
-        metricBundle2 : MetricBundle
+        metric_bundle1 : MetricBundle
+        metric_bundle2 : MetricBundle
 
         Returns
         -------
         bool
         """
-        if metricBundle1.constraint != metricBundle2.constraint:
+        if metric_bundle1.constraint != metric_bundle2.constraint:
             return False
-        if metricBundle1.slicer != metricBundle2.slicer:
+        if metric_bundle1.slicer != metric_bundle2.slicer:
             return False
-        if metricBundle1.maps_list.sort() != metricBundle2.maps_list.sort():
+        if metric_bundle1.maps_list.sort() != metric_bundle2.maps_list.sort():
             return False
-        for stacker in metricBundle1.stacker_list:
-            for stacker2 in metricBundle2.stacker_list:
+        for stacker in metric_bundle1.stacker_list:
+            for stacker2 in metric_bundle2.stacker_list:
                 # If the stackers have different names, that's OK, and if they are identical, that's ok.
                 if (stacker.__class__.__name__ == stacker2.__class__.__name__) & (
                     stacker != stacker2
@@ -318,56 +318,56 @@ class MoMetricBundleGroup(object):
         # But if we got this far, everything matches.
         return True
 
-    def _find_compatible(self, testKeys):
-        """ "Private utility to find which metricBundles with keys in the list 'testKeys' can be calculated
+    def _find_compatible(self, test_keys):
+        """ "Private utility to find which metricBundles with keys in the list 'test_keys' can be calculated
         at the same time -- having the same slicer, constraint, maps, and compatible stackers.
 
         Parameters
         -----------
-        testKeys : list
-            List of the dictionary keys (of self.bundleDict) to test for compatibilility.
+        test_keys : list
+            List of the dictionary keys (of self.bundle_dict) to test for compatibilility.
         Returns
         --------
         list of lists
-            Returns testKeys, split into separate lists of compatible metricBundles.
+            Returns test_keys, split into separate lists of compatible metricBundles.
         """
-        compatibleLists = []
-        for k in testKeys:
+        compatible_lists = []
+        for k in test_keys:
             try:
-                b = self.bundleDict[k]
+                b = self.bundle_dict[k]
             except KeyError:
                 warnings.warn(
-                    "Received %s in testkeys, but this is not present in self.bundleDict."
+                    "Received %s in testkeys, but this is not present in self.bundle_dict."
                     "Will continue, but this is not expected."
                 )
                 continue
-            foundCompatible = False
-            checkedAll = False
-            while not (foundCompatible) and not (checkedAll):
-                # Go through the existing lists in compatibleLists, to see if this metricBundle matches.
-                for compatibleList in compatibleLists:
+            found_compatible = False
+            checked_all = False
+            while not (found_compatible) and not (checked_all):
+                # Go through the existing lists in compatible_lists, to see if this metricBundle matches.
+                for compatible_list in compatible_lists:
                     # Compare to all the metricBundles in this subset, to check all stackers are compatible.
-                    foundCompatible = True
-                    for comparisonKey in compatibleList:
+                    found_compatible = True
+                    for comparison_key in compatible_list:
                         compatible = self._check_compatible(
-                            self.bundleDict[comparisonKey], b
+                            self.bundle_dict[comparison_key], b
                         )
                         if not compatible:
                             # Found a metricBundle which is not compatible, so stop and go onto the next subset.
-                            foundCompatible = False
+                            found_compatible = False
                             break
-                checkedAll = True
-            if foundCompatible:
-                compatibleList.append(k)
+                checked_all = True
+            if found_compatible:
+                compatible_list.append(k)
             else:
-                compatibleLists.append(
+                compatible_lists.append(
                     [
                         k,
                     ]
                 )
-        return compatibleLists
+        return compatible_lists
 
-    def runConstraint(self, constraint):
+    def run_constraint(self, constraint):
         """Calculate the metric values for all the metricBundles which match this constraint in the
         metricBundleGroup. Also calculates child metrics and summary statistics, and writes all to disk.
         (work is actually done in _runCompatible, so that only completely compatible sets of metricBundles
@@ -379,126 +379,126 @@ class MoMetricBundleGroup(object):
             SQL-where or pandas constraint for the metricBundles.
         """
         # Find the dict keys of the bundles which match this constraint.
-        keysMatchingConstraint = []
-        for k, b in self.bundleDict.items():
+        keys_matching_constraint = []
+        for k, b in self.bundle_dict.items():
             if b.constraint == constraint:
-                keysMatchingConstraint.append(k)
-        if len(keysMatchingConstraint) == 0:
+                keys_matching_constraint.append(k)
+        if len(keys_matching_constraint) == 0:
             return
         # Identify the observations which are relevant for this constraint.
         # This sets slicer.obs (valid for all H values).
         self.slicer.subsetObs(constraint)
         # Identify the sets of these metricBundles can be run at the same time (also have the same stackers).
-        compatibleLists = self._find_compatible(keysMatchingConstraint)
+        compatible_lists = self._find_compatible(keys_matching_constraint)
 
         # And now run each of those subsets of compatible metricBundles.
-        for compatibleList in compatibleLists:
-            self._runCompatible(compatibleList)
+        for compatible_list in compatible_lists:
+            self._run_compatible(compatible_list)
 
-    def _runCompatible(self, compatibleList):
+    def _run_compatible(self, compatible_list):
         """Calculate the metric values for set of (parent and child) bundles, as well as the summary stats,
         and write to disk.
 
         Parameters
         -----------
-        compatibleList : list
+        compatible_list : list
             List of dictionary keys, of the metricBundles which can be calculated together.
             This means they are 'compatible' and have the same slicer, constraint, and non-conflicting
             mappers and stackers.
         """
         if self.verbose:
-            print("Running metrics %s" % compatibleList)
+            print("Running metrics %s" % compatible_list)
 
-        bDict = (
-            self.bundleDict
-        )  #  {key: self.bundleDict.get(key) for key in compatibleList}
+        b_dict = (
+            self.bundle_dict
+        )  #  {key: self.bundle_dict.get(key) for key in compatible_list}
 
-        # Find the unique stackers and maps. These are already "compatible" (as id'd by compatibleList).
-        uniqStackers = []
-        allStackers = []
-        uniqMaps = []
-        allMaps = []
-        for b in bDict.values():
-            allStackers += b.stacker_list
-            allMaps += b.maps_list
-        for s in allStackers:
-            if s not in uniqStackers:
-                uniqStackers.append(s)
-        for m in allMaps:
-            if m not in uniqMaps:
-                uniqMaps.append(m)
+        # Find the unique stackers and maps. These are already "compatible" (as id'd by compatible_list).
+        uniq_stackers = []
+        all_stackers = []
+        uniq_maps = []
+        all_maps = []
+        for b in b_dict.values():
+            all_stackers += b.stacker_list
+            all_maps += b.maps_list
+        for s in all_stackers:
+            if s not in uniq_stackers:
+                uniq_stackers.append(s)
+        for m in all_maps:
+            if m not in uniq_maps:
+                uniq_maps.append(m)
 
-        if len(uniqMaps) > 0:
+        if len(uniq_maps) > 0:
             print(
                 "Got some maps .. that was unexpected at the moment. Can't use them here yet."
             )
 
         # Set up all of the metric values, including for the child bundles.
-        for k in compatibleList:
-            b = self.bundleDict[k]
+        for k in compatible_list:
+            b = self.bundle_dict[k]
             b._setup_metric_values()
             for cb in b.child_bundles.values():
                 cb._setup_metric_values()
         # Calculate the metric values.
         for i, slicePoint in enumerate(self.slicer):
-            ssoObs = slicePoint["obs"]
+            sso_obs = slicePoint["obs"]
             for j, Hval in enumerate(slicePoint["Hvals"]):
                 # Run stackers to add extra columns (that depend on Hval)
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
-                    for s in uniqStackers:
-                        ssoObs = s.run(ssoObs, slicePoint["orbit"]["H"], Hval)
+                    for s in uniq_stackers:
+                        sso_obs = s.run(sso_obs, slicePoint["orbit"]["H"], Hval)
                 # Run all the parent metrics.
-                for k in compatibleList:
-                    b = self.bundleDict[k]
+                for k in compatible_list:
+                    b = self.bundle_dict[k]
                     # Mask the parent metric (and then child metrics) if there was no data.
-                    if len(ssoObs) == 0:
+                    if len(sso_obs) == 0:
                         b.metricValues.mask[i][j] = True
                         for cb in list(b.child_bundles.values()):
                             cb.metricValues.mask[i][j] = True
                     # Otherwise, calculate the metric value for the parent, and then child.
                     else:
                         # Calculate for the parent.
-                        mVal = b.metric.run(ssoObs, slicePoint["orbit"], Hval)
+                        m_val = b.metric.run(sso_obs, slicePoint["orbit"], Hval)
                         # Mask if the parent metric returned a bad value.
-                        if mVal == b.metric.badval:
+                        if m_val == b.metric.badval:
                             b.metricValues.mask[i][j] = True
                             for cb in b.child_bundles.values():
                                 cb.metricValues.mask[i][j] = True
                         # Otherwise, set the parent value and calculate the child metric values as well.
                         else:
-                            b.metricValues.data[i][j] = mVal
+                            b.metricValues.data[i][j] = m_val
                             for cb in b.child_bundles.values():
-                                childVal = cb.metric.run(
-                                    ssoObs, slicePoint["orbit"], Hval, mVal
+                                child_val = cb.metric.run(
+                                    sso_obs, slicePoint["orbit"], Hval, m_val
                                 )
-                                if childVal == cb.metric.badval:
+                                if child_val == cb.metric.badval:
                                     cb.metricValues.mask[i][j] = True
                                 else:
-                                    cb.metricValues.data[i][j] = childVal
-        for k in compatibleList:
-            b = self.bundleDict[k]
-            b.compute_summary_stats(self.resultsDb)
-            for cB in b.child_bundles.values():
-                cB.compute_summary_stats(self.resultsDb)
+                                    cb.metricValues.data[i][j] = child_val
+        for k in compatible_list:
+            b = self.bundle_dict[k]
+            b.compute_summary_stats(self.results_db)
+            for c_b in b.child_bundles.values():
+                c_b.compute_summary_stats(self.results_db)
                 # Write to disk.
-                cB.write(out_dir=self.outDir, results_db=self.resultsDb)
+                c_b.write(out_dir=self.out_dir, results_db=self.results_db)
             # Write to disk.
-            b.write(out_dir=self.outDir, results_db=self.resultsDb)
+            b.write(out_dir=self.out_dir, results_db=self.results_db)
 
-    def runAll(self):
+    def run_all(self):
         """
         Run all constraints and metrics for these moMetricBundles.
         """
         for constraint in self.constraints:
-            self.runConstraint(constraint)
+            self.run_constraint(constraint)
         if self.verbose:
             print("Calculated and saved all metrics.")
 
-    def plotAll(
+    def plot_all(
         self,
         savefig=True,
-        outfileSuffix=None,
+        outfile_suffix=None,
         figformat="pdf",
         dpi=600,
         thumbnail=True,
@@ -507,19 +507,19 @@ class MoMetricBundleGroup(object):
         """
         Make a few generically desired plots. This needs more flexibility in the future.
         """
-        plotHandler = PlotHandler(
-            outDir=self.outDir,
-            resultsDb=self.resultsDb,
+        plot_handler = PlotHandler(
+            outDir=self.out_dir,
+            resultsDb=self.results_db,
             savefig=savefig,
             figformat=figformat,
             dpi=dpi,
             thumbnail=thumbnail,
         )
-        for b in self.bundleDict.values():
+        for b in self.bundle_dict.values():
             try:
                 b.plot(
-                    plotHandler=plotHandler,
-                    outfileSuffix=outfileSuffix,
+                    plot_handler=plot_handler,
+                    outfile_suffix=outfile_suffix,
                     savefig=savefig,
                 )
             except ValueError as ve:

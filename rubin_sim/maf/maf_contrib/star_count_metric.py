@@ -16,14 +16,14 @@ __all__ = ["StarCountMetric"]
 
 
 class StarCountMetric(BaseMetric):
-    """Find the number of stars in a given field between D1 and D2 in parsecs."""
+    """Find the number of stars in a given field between d1 and d2 in parsecs."""
 
     def __init__(self, **kwargs):
-        self.D1 = kwargs.pop("D1", 100)
-        self.D2 = kwargs.pop("D2", 1000)
+        self.d1 = kwargs.pop("D1", 100)
+        self.d2 = kwargs.pop("D2", 1000)
         super(StarCountMetric, self).__init__(col=[], **kwargs)
 
-    def run(self, dataSlice, slicePoint=None):
-        self.DECCol = np.degrees(dataSlice[0][3])
-        self.RACol = np.degrees(dataSlice[0][2])
-        return starcount.starcount(self.RACol, self.DECCol, self.D1, self.D2)
+    def run(self, data_slice, slice_point=None):
+        self.dec_col = np.degrees(data_slice[0][3])
+        self.ra_col = np.degrees(data_slice[0][2])
+        return starcount.starcount(self.ra_col, self.dec_col, self.d1, self.d2)

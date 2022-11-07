@@ -331,28 +331,28 @@ class StaticProbesFoMEmulatorMetric(BaseMetric):
             ),
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         import george
         from george import kernels
 
         # Chop off any outliers
-        good_pix = np.where(dataSlice[self.col] > 0)[0]
+        good_pix = np.where(data_slice[self.col] > 0)[0]
 
         # Calculate area and med depth from
         area = hp.nside2pixarea(self.nside, degrees=True) * np.size(good_pix)
-        median_depth = np.median(dataSlice[self.col][good_pix])
+        median_depth = np.median(data_slice[self.col][good_pix])
 
         # Standardizing data
         df_unscaled = pd.DataFrame(self.parameters)
-        X_params = ["area", "depth", "shear_m", "sigma_z", "sig_delta_z", "sig_sigma_z"]
-        scalerX = StandardScaler()
-        scalerY = StandardScaler()
+        x_params = ["area", "depth", "shear_m", "sigma_z", "sig_delta_z", "sig_sigma_z"]
+        scaler_x = StandardScaler()
+        scaler_y = StandardScaler()
         X = df_unscaled.drop("FOM", axis=1)
         X = pd.DataFrame(
-            scalerX.fit_transform(df_unscaled.drop("FOM", axis=1)), columns=X_params
+            scaler_x.fit_transform(df_unscaled.drop("FOM", axis=1)), columns=x_params
         )
         Y = pd.DataFrame(
-            scalerY.fit_transform(np.array(df_unscaled["FOM"]).reshape(-1, 1)),
+            scaler_y.fit_transform(np.array(df_unscaled["FOM"]).reshape(-1, 1)),
             columns=["FOM"],
         )
 
@@ -386,9 +386,9 @@ class StaticProbesFoMEmulatorMetric(BaseMetric):
                 ]
             ]
         )
-        to_pred = scalerX.transform(to_pred)
+        to_pred = scaler_x.transform(to_pred)
 
-        predSFOM = gp.predict(Y["FOM"], to_pred, return_cov=False)
-        predFOM = scalerY.inverse_transform(predSFOM.reshape(1, -1))
+        pred_sfom = gp.predict(Y["FOM"], to_pred, return_cov=False)
+        pred_fom = scaler_y.inverse_transform(pred_sfom.reshape(1, -1))
 
-        return np.max(predFOM)
+        return np.max(pred_fom)

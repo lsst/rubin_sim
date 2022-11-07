@@ -136,9 +136,9 @@ def obs2sqlite(
                 observations["skybrightness"][i] = sm.return_mags(
                     obs["mjd"], indx=[indx]
                 )[obs["filter"]]
-                sunMoon = sm.returnSunMoon(obs["mjd"])
-                observations["sunAlt"][i] = sunMoon["sunAlt"]
-                observations["moonAlt"][i] = sunMoon["moonAlt"]
+                sun_moon = sm.returnSunMoon(obs["mjd"])
+                observations["sunAlt"][i] = sun_moon["sunAlt"]
+                observations["moonAlt"][i] = sun_moon["moonAlt"]
                 progress = i / imax * 100
                 text = "\rprogress = %.2f%%" % progress
                 sys.stdout.write(text)

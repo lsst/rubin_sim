@@ -8,8 +8,8 @@ class GalCoordsMap(BaseMap):
     def __init__(self):
         self.keynames = ["gall", "galb"]
 
-    def run(self, slicePoints):
-        gall, galb = _galactic_from_equatorial(slicePoints["ra"], slicePoints["dec"])
-        slicePoints["gall"] = gall
-        slicePoints["galb"] = galb
-        return slicePoints
+    def run(self, slice_points):
+        gall, galb = _galactic_from_equatorial(slice_points["ra"], slice_points["dec"])
+        slice_points["gall"] = gall
+        slice_points["galb"] = galb
+        return slice_points

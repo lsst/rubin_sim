@@ -24,10 +24,10 @@ def generate_sky_slopes():
     mags = sm.return_mags()
     filters = mags.dtype.names
     filter_slopes = {}
-    for filterName in filters:
-        good = np.where((~np.isnan(mags[filterName])) & (sm.airmass < airmass_limit))
-        pf = np.polyfit(sm.airmass[good], mags[filterName][good], 1)
-        filter_slopes[filterName] = pf[0]
+    for filter_name in filters:
+        good = np.where((~np.isnan(mags[filter_name])) & (sm.airmass < airmass_limit))
+        pf = np.polyfit(sm.airmass[good], mags[filter_name][good], 1)
+        filter_slopes[filter_name] = pf[0]
     print(filter_slopes)
 
 
@@ -40,19 +40,19 @@ class M5OptimalStacker(BaseStacker):
 
     Parameters
     ----------
-    airmassCol : str ('airmass')
+    airmass_col : str ('airmass')
         Column name for the airmass per pointing.
-    decCol : str ('dec_rad')
+    dec_col : str ('dec_rad')
         Column name for the pointing declination.
-    skyBrightCol: str ('filtSkyBrightness')
+    sky_bright_col: str ('filtSkyBrightness')
         Column name for the sky brighntess per pointing.
-    filterCol : str ('filter')
+    filter_col : str ('filter')
         Column name for the filter name.
-    m5Col : str ('fiveSigmaDepth')
+    m5_col : str ('fiveSigmaDepth')
         Colum name for the five sigma limiting depth per pointing.
-    moonAltCol : str ('moonAlt')
+    moon_alt_col : str ('moonAlt')
         Column name for the moon altitude per pointing.
-    sunAltCol : str ('sunAltCol')
+    sun_alt_col : str ('sun_alt_col')
         Column name for the sun altitude column.
     site : str ('LSST')
         Name of the site.
@@ -64,51 +64,51 @@ class M5OptimalStacker(BaseStacker):
         been if the observation had been taken on the meridian.
     """
 
-    colsAdded = ["m5Optimal"]
+    cols_added = ["m5Optimal"]
 
     def __init__(
         self,
-        airmassCol="airmass",
-        decCol="fieldDec",
-        skyBrightCol="skyBrightness",
-        seeingCol="seeingFwhmEff",
-        filterCol="filter",
-        moonAltCol="moonAlt",
-        sunAltCol="sunAlt",
+        airmass_col="airmass",
+        dec_col="fieldDec",
+        sky_bright_col="skyBrightness",
+        seeing_col="seeingFwhmEff",
+        filter_col="filter",
+        moon_alt_col="moonAlt",
+        sun_alt_col="sunAlt",
         site="LSST",
     ):
 
         self.site = Site(site)
         self.units = ["mags"]
-        self.airmassCol = airmassCol
-        self.decCol = decCol
-        self.skyBrightCol = skyBrightCol
-        self.seeingCol = seeingCol
-        self.filterCol = filterCol
-        self.moonAltCol = moonAltCol
-        self.sunAltCol = sunAltCol
+        self.airmass_col = airmass_col
+        self.dec_col = dec_col
+        self.sky_bright_col = sky_bright_col
+        self.seeing_col = seeing_col
+        self.filter_col = filter_col
+        self.moon_alt_col = moon_alt_col
+        self.sun_alt_col = sun_alt_col
         self.m5_stacker = FiveSigmaStacker()
-        self.m5Col = self.m5_stacker.colsAdded[0]
-        self.colsReq = [
-            airmassCol,
-            decCol,
-            skyBrightCol,
-            seeingCol,
-            filterCol,
-            moonAltCol,
-            sunAltCol,
+        self.m5_col = self.m5_stacker.cols_added[0]
+        self.cols_req = [
+            airmass_col,
+            dec_col,
+            sky_bright_col,
+            seeing_col,
+            filter_col,
+            moon_alt_col,
+            sun_alt_col,
         ]
-        self.colsReq.extend(self.m5_stacker.colsReq)
-        self.colsReq = list(set(self.colsReq))
+        self.cols_req.extend(self.m5_stacker.cols_req)
+        self.cols_req = list(set(self.cols_req))
 
-    def _run(self, simData, cols_present=False):
-        simData, m5col_present = self.m5_stacker._addStackerCols(simData)
-        simData = self.m5_stacker._run(simData, m5col_present)
+    def _run(self, sim_data, cols_present=False):
+        sim_data, m5col_present = self.m5_stacker._add_stacker_cols(sim_data)
+        sim_data = self.m5_stacker._run(sim_data, m5col_present)
         # k_atm values from rubin_sim.operations gen_output.py
         k_atm = {"u": 0.50, "g": 0.21, "r": 0.13, "i": 0.10, "z": 0.07, "y": 0.18}
         # Linear fits to sky brightness change, no moon, twilight, or zodiacal components
         # Use generate_sky_slopes to regenerate if needed.
-        skySlopes = {
+        sky_slopes = {
             "g": -0.52611780327408397,
             "i": -0.67898669252082422,
             "r": -0.61378749766766827,
@@ -117,27 +117,27 @@ class M5OptimalStacker(BaseStacker):
             "z": -0.69652846002009128,
         }
         min_z_possible = np.abs(
-            np.radians(simData[self.decCol]) - self.site.latitude_rad
+            np.radians(sim_data[self.dec_col]) - self.site.latitude_rad
         )
         min_airmass_possible = 1.0 / np.cos(min_z_possible)
-        for filterName in np.unique(simData[self.filterCol]):
-            deltaSky = skySlopes[filterName] * (
-                simData[self.airmassCol] - min_airmass_possible
+        for filter_name in np.unique(sim_data[self.filter_col]):
+            delta_sky = sky_slopes[filter_name] * (
+                sim_data[self.airmass_col] - min_airmass_possible
             )
-            deltaSky[
+            delta_sky[
                 np.where(
-                    (simData[self.moonAltCol] > 0)
-                    | (simData[self.sunAltCol] > np.radians(-18.0))
+                    (sim_data[self.moon_alt_col] > 0)
+                    | (sim_data[self.sun_alt_col] > np.radians(-18.0))
                 )
             ] = 0
             # Using Approximation that FWHM~X^0.6. So seeing term in m5 of: 0.25 * log (7.0/FWHMeff )
             # Goes to 0.15 log(FWHM_min / FWHM_eff) in the difference
-            m5Optimal = (
-                simData[self.m5Col]
-                - 0.5 * deltaSky
-                - 0.15 * np.log10(min_airmass_possible / simData[self.airmassCol])
-                - k_atm[filterName] * (min_airmass_possible - simData[self.airmassCol])
+            m5_optimal = (
+                sim_data[self.m5_col]
+                - 0.5 * delta_sky
+                - 0.15 * np.log10(min_airmass_possible / sim_data[self.airmass_col])
+                - k_atm[filter_name] * (min_airmass_possible - sim_data[self.airmass_col])
             )
-            good = np.where(simData[self.filterCol] == filterName)
-            simData["m5Optimal"][good] = m5Optimal[good]
-        return simData
+            good = np.where(sim_data[self.filter_col] == filter_name)
+            sim_data["m5_optimal"][good] = m5_optimal[good]
+        return sim_data

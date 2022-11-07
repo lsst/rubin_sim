@@ -30,7 +30,7 @@ class MapsRegistry(type):
         if mapsname != "BaseMaps":
             cls.registry[mapsname] = cls
 
-    def getClass(cls, mapsname):
+    def get_class(cls, mapsname):
         return cls.registry[mapsname]
 
     def help(cls, doc=False):
@@ -68,9 +68,9 @@ class BaseMap(with_metaclass(MapsRegistry, object)):
     def __ge__(self, othermap):
         return self.keynames >= othermap.keynames
 
-    def run(self, slicePoints):
+    def run(self, slice_points):
         """
-        Given slicePoints (dict containing metadata about each slicePoint, including ra/dec),
+        Given slice_points (dict containing metadata about each slicePoint, including ra/dec),
          adds additional metadata at each slicepoint and returns updated dict.
         """
         raise NotImplementedError("This must be defined in subclass")

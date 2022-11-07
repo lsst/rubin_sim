@@ -367,7 +367,7 @@ def nvisitsPerNight(
     extraInfoLabel : `str` or None, optional
         Additional info_label to add before any below (i.e. "WFD").  Default is None.
     subgroup : `str` or None, optional
-        Use this for the 'subgroup' in the displayDict, instead of info_label. Default is None.
+        Use this for the 'subgroup' in the display_dict, instead of info_label. Default is None.
 
     Returns
     -------

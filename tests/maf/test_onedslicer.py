@@ -56,7 +56,7 @@ class TestOneDSlicerSetup(unittest.TestCase):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             self.testslicer.setup_slicer(dv)
-            self.assertIn("creasing binMax", str(w[-1].message))
+            self.assertIn("creasing bin_max", str(w[-1].message))
         self.assertEqual(self.testslicer.nslice, 2)
 
     def testSetupSlicerLimits(self):

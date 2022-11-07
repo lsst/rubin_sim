@@ -53,7 +53,7 @@ def setup_args(parser=None):
         type=str,
         default=None,
         help="Output file name for moving object observations."
-        " Default will build outDir/simulation_db_orbitFile_obs.txt.",
+        " Default will build out_dir/simulation_db_orbitFile_obs.txt.",
     )
     parser.add_argument(
         "--sql_constraint",

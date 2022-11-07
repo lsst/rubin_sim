@@ -3,7 +3,7 @@
 import numpy as np
 from functools import wraps
 import warnings
-from rubin_sim.maf.utils import optimalBins
+from rubin_sim.maf.utils import optimal_bins
 from rubin_sim.maf.stackers import ColInfo
 from rubin_sim.maf.plots.oned_plotters import OneDBinnedData
 
@@ -26,9 +26,9 @@ class OneDSlicer(BaseSlicer):
     bin_min : `float`, optional
     bin_max : `float`, optional
     binsize : `float`, optional
-        If bins is not defined, then bin_min/binMax/binsize can be chosen to anchor the slice points.
+        If bins is not defined, then bin_min/bin_max/binsize can be chosen to anchor the slice points.
         Default None.
-        Priority goes: bins >> bin_min/binMax/binsize >> data values (if none of the above are chosen).
+        Priority goes: bins >> bin_min/bin_max/binsize >> data values (if none of the above are chosen).
 
     The bins act like numpy histogram bins: the last bin value is the end value of the last bin.
     All bins except for the last bin are half-open ([a, b)) while the last bin is ([a, b]).
@@ -57,7 +57,7 @@ class OneDSlicer(BaseSlicer):
         if self.bins is not None:
             if bin_min is not None or bin_max is not None or binsize is not None:
                 warnings.warning(
-                    f"Both bins and one of the bin_min/binMax/binsize was specified. "
+                    f"Both bins and one of the bin_min/bin_max/binsize was specified. "
                     f"Using bins ({self.bins} values only."
                 )
             self.bin_min = self.bins.min()
@@ -82,7 +82,7 @@ class OneDSlicer(BaseSlicer):
             "slice_col_units": slice_col_units,
             "badval": badval,
             "bin_min": self.bin_min,
-            "binMax": self.binMax,
+            "bin_max": self.binMax,
             "binsize": self.binsize,
         }
         self.plot_funcs = [
@@ -114,18 +114,18 @@ class OneDSlicer(BaseSlicer):
                 self.bin_min = np.nanmin(sliceCol)
             if self.binMax is None:
                 self.binMax = np.nanmax(sliceCol)
-            # Give warning if bin_min = binMax, and do something at least slightly reasonable.
+            # Give warning if bin_min = bin_max, and do something at least slightly reasonable.
             if self.bin_min == self.binMax:
                 warnings.warn(
-                    "bin_min = binMax (maybe your data is single-valued?). "
-                    "Increasing binMax by 1 (or 2*binsize, if binsize was set)."
+                    "bin_min = bin_max (maybe your data is single-valued?). "
+                    "Increasing bin_max by 1 (or 2*binsize, if binsize was set)."
                 )
                 if self.binsize is not None:
                     self.binMax = self.binMax + 2 * self.binsize
                 else:
                     self.binMax = self.binMax + 1
             if self.binsize is None:
-                bins = optimalBins(sliceCol, self.bin_min, self.binMax)
+                bins = optimal_bins(sliceCol, self.bin_min, self.binMax)
                 nbins = np.round(bins)
                 self.binsize = (self.binMax - self.bin_min) / float(nbins)
             # Set bins

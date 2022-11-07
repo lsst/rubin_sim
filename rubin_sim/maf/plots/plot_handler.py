@@ -4,17 +4,17 @@ import warnings
 import matplotlib.pyplot as plt
 import rubin_sim.maf.utils as utils
 
-__all__ = ["applyZPNorm", "PlotHandler", "BasePlotter"]
+__all__ = ["apply_zp_norm", "PlotHandler", "BasePlotter"]
 
 
-def applyZPNorm(metricValue, plotDict):
-    if "zp" in plotDict:
-        if plotDict["zp"] is not None:
-            metricValue = metricValue - plotDict["zp"]
-    if "normVal" in plotDict:
-        if plotDict["normVal"] is not None:
-            metricValue = metricValue / plotDict["normVal"]
-    return metricValue
+def apply_zp_norm(metric_value, plot_dict):
+    if "zp" in plot_dict:
+        if plot_dict["zp"] is not None:
+            metric_value = metric_value - plot_dict["zp"]
+    if "normVal" in plot_dict:
+        if plot_dict["normVal"] is not None:
+            metric_value = metric_value / plot_dict["normVal"]
+    return metric_value
 
 
 class BasePlotter(object):
@@ -23,9 +23,9 @@ class BasePlotter(object):
     """
 
     def __init__(self):
-        self.plotType = None
+        self.plot_type = None
         # This should be included in every subsequent defaultPlotDict (assumed to be present).
-        self.defaultPlotDict = {
+        self.default_plot_dict = {
             "title": None,
             "xlabel": None,
             "label": None,
@@ -34,27 +34,27 @@ class BasePlotter(object):
             "figsize": None,
         }
 
-    def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
         pass
 
 
 class PlotHandler(object):
     def __init__(
         self,
-        outDir=".",
-        resultsDb=None,
+        out_dir=".",
+        results_db=None,
         savefig=True,
         figformat="pdf",
         dpi=600,
         thumbnail=True,
-        trimWhitespace=True,
+        trim_whitespace=True,
     ):
-        self.outDir = outDir
-        self.resultsDb = resultsDb
+        self.out_dir = out_dir
+        self.results_db = results_db
         self.savefig = savefig
         self.figformat = figformat
         self.dpi = dpi
-        self.trimWhitespace = trimWhitespace
+        self.trim_whitespace = trim_whitespace
         self.thumbnail = thumbnail
         self.filtercolors = {
             "u": "cyan",
@@ -67,46 +67,46 @@ class PlotHandler(object):
         }
         self.filterorder = {" ": -1, "u": 0, "g": 1, "r": 2, "i": 3, "z": 4, "y": 5}
 
-    def setMetricBundles(self, mBundles):
+    def set_metric_bundles(self, m_bundles):
         """
         Set the metric bundle or bundles (list or dictionary).
         Reuse the PlotHandler by resetting this reference.
         The metric bundles have to have the same slicer.
         """
-        self.mBundles = []
+        self.m_bundles = []
         # Try to add the metricBundles in filter order.
-        if isinstance(mBundles, dict):
-            for mB in mBundles.values():
-                vals = mB.file_root.split("_")
+        if isinstance(m_bundles, dict):
+            for m_b in m_bundles.values():
+                vals = m_b.file_root.split("_")
                 forder = [self.filterorder.get(f, None) for f in vals if len(f) == 1]
                 forder = [o for o in forder if o is not None]
                 if len(forder) == 0:
-                    forder = len(self.mBundles)
+                    forder = len(self.m_bundles)
                 else:
                     forder = forder[-1]
-                self.mBundles.insert(forder, mB)
-            self.slicer = self.mBundles[0].slicer
+                self.m_bundles.insert(forder, m_b)
+            self.slicer = self.m_bundles[0].slicer
         else:
-            for mB in mBundles:
-                vals = mB.file_root.split("_")
+            for m_b in m_bundles:
+                vals = m_b.file_root.split("_")
                 forder = [self.filterorder.get(f, None) for f in vals if len(f) == 1]
                 forder = [o for o in forder if o is not None]
                 if len(forder) == 0:
-                    forder = len(self.mBundles)
+                    forder = len(self.m_bundles)
                 else:
                     forder = forder[-1]
-                self.mBundles.insert(forder, mB)
-            self.slicer = self.mBundles[0].slicer
-        for mB in self.mBundles:
-            if mB.slicer.slicerName != self.slicer.slicerName:
+                self.m_bundles.insert(forder, m_b)
+            self.slicer = self.m_bundles[0].slicer
+        for m_b in self.m_bundles:
+            if m_b.slicer.slicerName != self.slicer.slicerName:
                 raise ValueError("MetricBundle items must have the same type of slicer")
-        self._combineMetricNames()
-        self._combineRunNames()
-        self._combineMetadata()
-        self._combineConstraints()
-        self.setPlotDicts(reset=True)
+        self._combine_metric_names()
+        self._combine_run_names()
+        self._combine_metadata()
+        self._combine_constraints()
+        self.set_plot_dicts(reset=True)
 
-    def setPlotDicts(self, plotDicts=None, plotFunc=None, reset=False):
+    def set_plot_dicts(self, plot_dicts=None, plot_func=None, reset=False):
         """
         Set or update (or 'reset') the plot_dict for the (possibly joint) plots.
 
@@ -115,111 +115,111 @@ class PlotHandler(object):
         < anything previously set in the plot_handler
         < defaults set by the plotter
         < explicitly set items in the metricBundle plot_dict
-        < explicitly set items in the plotDicts list passed to this method.
+        < explicitly set items in the plot_dicts list passed to this method.
         """
         if reset:
             # Have to explicitly set each dictionary to a (separate) blank dictionary.
-            self.plotDicts = [{} for b in self.mBundles]
+            self.plot_dicts = [{} for b in self.m_bundles]
 
-        if isinstance(plotDicts, dict):
+        if isinstance(plot_dicts, dict):
             # We were passed a single dictionary, not a list.
-            plotDicts = [plotDicts] * len(self.mBundles)
+            plot_dicts = [plot_dicts] * len(self.m_bundles)
 
-        autoLabelList = self._buildLegendLabels()
-        autoColorList = self._buildColors()
-        autoCbar = self._buildCbarFormat()
-        autoTitle = self._buildTitle()
-        if plotFunc is not None:
-            autoXlabel, autoYlabel = self._buildXYlabels(plotFunc)
+        auto_label_list = self._build_legend_labels()
+        auto_color_list = self._build_colors()
+        auto_cbar = self._build_cbar_format()
+        auto_title = self._build_title()
+        if plot_func is not None:
+            auto_xlabel, auto_ylabel = self._build_x_ylabels(plot_func)
 
         # Loop through each bundle and generate a plot_dict for it.
-        for i, bundle in enumerate(self.mBundles):
+        for i, bundle in enumerate(self.m_bundles):
             # First use the auto-generated values.
-            tmpPlotDict = {}
-            tmpPlotDict["title"] = autoTitle
-            tmpPlotDict["label"] = autoLabelList[i]
-            tmpPlotDict["color"] = autoColorList[i]
-            tmpPlotDict["cbarFormat"] = autoCbar
+            tmp_plot_dict = {}
+            tmp_plot_dict["title"] = auto_title
+            tmp_plot_dict["label"] = auto_label_list[i]
+            tmp_plot_dict["color"] = auto_color_list[i]
+            tmp_plot_dict["cbarFormat"] = auto_cbar
             # Then update that with anything previously set in the plot_handler.
-            tmpPlotDict.update(self.plotDicts[i])
+            tmp_plot_dict.update(self.plot_dicts[i])
             # Then override with plot_dict items set explicitly based on the plot type.
-            if plotFunc is not None:
-                tmpPlotDict["xlabel"] = autoXlabel
-                tmpPlotDict["ylabel"] = autoYlabel
+            if plot_func is not None:
+                tmp_plot_dict["xlabel"] = auto_xlabel
+                tmp_plot_dict["ylabel"] = auto_ylabel
                 # Replace auto-generated plot dict items with things
-                #  set by the plotterDefaults, if they are not None.
-                plotterDefaults = plotFunc.defaultPlotDict
-                for k, v in plotterDefaults.items():
+                #  set by the plotter_defaults, if they are not None.
+                plotter_defaults = plot_func.defaultPlotDict
+                for k, v in plotter_defaults.items():
                     if v is not None:
-                        tmpPlotDict[k] = v
+                        tmp_plot_dict[k] = v
             # Then add/override based on the bundle plot_dict parameters if they are set.
-            tmpPlotDict.update(bundle.plotDict)
+            tmp_plot_dict.update(bundle.plotDict)
             # Finally, override with anything set explicitly by the user right now.
-            if plotDicts is not None:
-                tmpPlotDict.update(plotDicts[i])
+            if plot_dicts is not None:
+                tmp_plot_dict.update(plot_dicts[i])
             # And save this new dictionary back in the class.
-            self.plotDicts[i] = tmpPlotDict
+            self.plot_dicts[i] = tmp_plot_dict
 
-        # Check that the plotDicts do not conflict.
-        self._checkPlotDicts()
+        # Check that the plot_dicts do not conflict.
+        self._check_plot_dicts()
 
-    def _combineMetricNames(self):
+    def _combine_metric_names(self):
         """
         Combine metric names.
         """
         # Find the unique metric names.
-        self.metricNames = set()
-        for mB in self.mBundles:
-            self.metricNames.add(mB.metric.name)
+        self.metric_names = set()
+        for m_b in self.m_bundles:
+            self.metric_names.add(m_b.metric.name)
         # Find a pleasing combination of the metric names.
         order = ["u", "g", "r", "i", "z", "y"]
-        if len(self.metricNames) == 1:
-            jointName = " ".join(self.metricNames)
+        if len(self.metric_names) == 1:
+            joint_name = " ".join(self.metric_names)
         else:
             # Split each unique name into a list to see if we can merge the names.
-            nameLengths = [len(x.split()) for x in self.metricNames]
-            nameLists = [x.split() for x in self.metricNames]
+            name_lengths = [len(x.split()) for x in self.metric_names]
+            name_lists = [x.split() for x in self.metric_names]
             # If the metric names are all the same length, see if we can combine any parts.
-            if len(set(nameLengths)) == 1:
-                jointName = []
-                for i in range(nameLengths[0]):
-                    tmp = set([x[i] for x in nameLists])
+            if len(set(name_lengths)) == 1:
+                joint_name = []
+                for i in range(name_lengths[0]):
+                    tmp = set([x[i] for x in name_lists])
                     # Try to catch special case of filters and put them in order.
                     if tmp.intersection(order) == tmp:
                         filterlist = ""
                         for f in order:
                             if f in tmp:
                                 filterlist += f
-                        jointName.append(filterlist)
+                        joint_name.append(filterlist)
                     else:
-                        # Otherwise, just join and put into jointName.
-                        jointName.append("".join(tmp))
-                jointName = " ".join(jointName)
+                        # Otherwise, just join and put into joint_name.
+                        joint_name.append("".join(tmp))
+                joint_name = " ".join(joint_name)
             # If the metric names are not the same length, just join everything.
             else:
-                jointName = " ".join(self.metricNames)
-        self.jointMetricNames = jointName
+                joint_name = " ".join(self.metric_names)
+        self.joint_metric_names = joint_name
 
-    def _combineRunNames(self):
+    def _combine_run_names(self):
         """
         Combine runNames.
         """
-        self.runNames = set()
-        for mB in self.mBundles:
-            self.runNames.add(mB.run_name)
-        self.jointRunNames = " ".join(self.runNames)
+        self.run_names = set()
+        for m_b in self.m_bundles:
+            self.run_names.add(m_b.run_name)
+        self.joint_run_names = " ".join(self.run_names)
 
-    def _combineMetadata(self):
+    def _combine_metadata(self):
         """
         Combine info_label.
         """
         info_label = set()
-        for mB in self.mBundles:
-            info_label.add(mB.info_label)
+        for m_b in self.m_bundles:
+            info_label.add(m_b.info_label)
         self.info_label = info_label
         # Find a pleasing combination of the info_label.
         if len(info_label) == 1:
-            self.jointMetadata = " ".join(info_label)
+            self.joint_metadata = " ".join(info_label)
         else:
             order = ["u", "g", "r", "i", "z", "y"]
             # See if there are any subcomponents we can combine,
@@ -266,17 +266,17 @@ class PlotHandler(object):
             else:
                 # diffdiff is the part where we might expect our filter values to appear;
                 # try to put this in order.
-                diffdiffOrdered = []
-                diffdiffEnd = []
+                diffdiff_ordered = []
+                diffdiff_end = []
                 for f in order:
                     for d in diffdiff:
                         if len(d) == 1:
                             if list(d)[0] == f:
-                                diffdiffOrdered.append(d)
+                                diffdiff_ordered.append(d)
                 for d in diffdiff:
-                    if d not in diffdiffOrdered:
-                        diffdiffEnd.append(d)
-                diffdiff = diffdiffOrdered + diffdiffEnd
+                    if d not in diffdiff_ordered:
+                        diffdiff_end.append(d)
+                diffdiff = diffdiff_ordered + diffdiff_end
                 diffdiff = [" ".join(c) for c in diffdiff]
             # And put it all back together.
             combo = (
@@ -286,36 +286,36 @@ class PlotHandler(object):
                 + " "
                 + " ".join(["".join(e) for e in common])
             )
-            self.jointMetadata = combo
+            self.joint_metadata = combo
 
-    def _combineConstraints(self):
+    def _combine_constraints(self):
         """
         Combine the constraints.
         """
         constraints = set()
-        for mB in self.mBundles:
-            if mB.constraint is not None:
-                constraints.add(mB.constraint)
+        for m_b in self.m_bundles:
+            if m_b.constraint is not None:
+                constraints.add(m_b.constraint)
         self.constraints = "; ".join(constraints)
 
-    def _buildTitle(self):
+    def _build_title(self):
         """
         Build a plot title from the metric names, runNames and info_label.
         """
         # Create a plot title from the unique parts of the metric/runName/info_label.
-        plotTitle = ""
-        if len(self.runNames) == 1:
-            plotTitle += list(self.runNames)[0]
+        plot_title = ""
+        if len(self.run_names) == 1:
+            plot_title += list(self.run_names)[0]
         if len(self.info_label) == 1:
-            plotTitle += " " + list(self.info_label)[0]
-        if len(self.metricNames) == 1:
-            plotTitle += ": " + list(self.metricNames)[0]
-        if plotTitle == "":
+            plot_title += " " + list(self.info_label)[0]
+        if len(self.metric_names) == 1:
+            plot_title += ": " + list(self.metric_names)[0]
+        if plot_title == "":
             # If there were more than one of everything above, use joint info_label and metricNames.
-            plotTitle = self.jointMetadata + " " + self.jointMetricNames
-        return plotTitle
+            plot_title = self.joint_metadata + " " + self.joint_metric_names
+        return plot_title
 
-    def _buildXYlabels(self, plotFunc, len_max=25):
+    def _build_x_ylabels(self, plot_func, len_max=25):
         """
         Build a plot x and y label.
 
@@ -324,95 +324,95 @@ class PlotHandler(object):
         len_max : `int` (30)
             If the xlabel starts longer than this, add the units as a newline.
         """
-        if plotFunc.plotType == "BinnedData":
-            if len(self.mBundles) == 1:
-                mB = self.mBundles[0]
-                if len(mB.slicer.sliceColName) < len_max:
+        if plot_func.plotType == "BinnedData":
+            if len(self.m_bundles) == 1:
+                m_b = self.m_bundles[0]
+                if len(m_b.slicer.sliceColName) < len_max:
                     xlabel = (
-                        mB.slicer.sliceColName + " (" + mB.slicer.sliceColUnits + ")"
+                        m_b.slicer.sliceColName + " (" + m_b.slicer.sliceColUnits + ")"
                     )
                 else:
                     xlabel = (
-                        mB.slicer.sliceColName + " \n(" + mB.slicer.sliceColUnits + ")"
+                        m_b.slicer.sliceColName + " \n(" + m_b.slicer.sliceColUnits + ")"
                     )
-                ylabel = mB.metric.name + " (" + mB.metric.units + ")"
+                ylabel = m_b.metric.name + " (" + m_b.metric.units + ")"
             else:
                 xlabel = set()
-                for mB in self.mBundles:
-                    xlabel.add(mB.slicer.sliceColName)
+                for m_b in self.m_bundles:
+                    xlabel.add(m_b.slicer.sliceColName)
                 xlabel = ", ".join(xlabel)
-                ylabel = self.jointMetricNames
-        elif plotFunc.plotType == "MetricVsH":
-            if len(self.mBundles) == 1:
-                mB = self.mBundles[0]
-                ylabel = mB.metric.name + " (" + mB.metric.units + ")"
+                ylabel = self.joint_metric_names
+        elif plot_func.plotType == "MetricVsH":
+            if len(self.m_bundles) == 1:
+                m_b = self.m_bundles[0]
+                ylabel = m_b.metric.name + " (" + m_b.metric.units + ")"
             else:
-                ylabel = self.jointMetricNames
+                ylabel = self.joint_metric_names
             xlabel = "H (mag)"
         else:
-            if len(self.mBundles) == 1:
-                mB = self.mBundles[0]
-                xlabel = mB.metric.name
-                if mB.metric.units is not None:
-                    if len(mB.metric.units) > 0:
+            if len(self.m_bundles) == 1:
+                m_b = self.m_bundles[0]
+                xlabel = m_b.metric.name
+                if m_b.metric.units is not None:
+                    if len(m_b.metric.units) > 0:
                         if len(xlabel) < len_max:
-                            xlabel += " (" + mB.metric.units + ")"
+                            xlabel += " (" + m_b.metric.units + ")"
                         else:
-                            xlabel += "\n(" + mB.metric.units + ")"
+                            xlabel += "\n(" + m_b.metric.units + ")"
                 ylabel = None
             else:
-                xlabel = self.jointMetricNames
+                xlabel = self.joint_metric_names
                 ylabel = set()
-                for mB in self.mBundles:
-                    if "ylabel" in mB.plotDict:
-                        ylabel.add(mB.plotDict["ylabel"])
+                for m_b in self.m_bundles:
+                    if "ylabel" in m_b.plotDict:
+                        ylabel.add(m_b.plotDict["ylabel"])
                 if len(ylabel) == 1:
                     ylabel = list(ylabel)[0]
                 else:
                     ylabel = None
         return xlabel, ylabel
 
-    def _buildLegendLabels(self):
+    def _build_legend_labels(self):
         """
         Build a set of legend labels, using parts of the runName/info_label/metricNames that change.
         """
-        if len(self.mBundles) == 1:
+        if len(self.m_bundles) == 1:
             return [None]
         labels = []
-        for mB in self.mBundles:
-            if "label" in mB.plotDict:
-                label = mB.plotDict["label"]
+        for m_b in self.m_bundles:
+            if "label" in m_b.plotDict:
+                label = m_b.plotDict["label"]
             else:
                 label = ""
-                if len(self.runNames) > 1:
-                    label += mB.run_name
+                if len(self.run_names) > 1:
+                    label += m_b.run_name
                 if len(self.info_label) > 1:
-                    label += " " + mB.info_label
-                if len(self.metricNames) > 1:
-                    label += " " + mB.metric.name
+                    label += " " + m_b.info_label
+                if len(self.metric_names) > 1:
+                    label += " " + m_b.metric.name
             labels.append(label)
         return labels
 
-    def _buildColors(self):
+    def _build_colors(self):
         """
         Try to set an appropriate range of colors for the metric Bundles.
         """
-        if len(self.mBundles) == 1:
-            if "color" in self.mBundles[0].plotDict:
-                return [self.mBundles[0].plotDict["color"]]
+        if len(self.m_bundles) == 1:
+            if "color" in self.m_bundles[0].plotDict:
+                return [self.m_bundles[0].plotDict["color"]]
             else:
                 return ["b"]
         colors = []
-        for mB in self.mBundles:
+        for m_b in self.m_bundles:
             color = "b"
-            if "color" in mB.plotDict:
-                color = mB.plotDict["color"]
+            if "color" in m_b.plotDict:
+                color = m_b.plotDict["color"]
             else:
-                if mB.constraint is not None:
+                if m_b.constraint is not None:
                     # If the filter is part of the sql constraint, we'll
                     #  try to use that first.
-                    if "filter" in mB.constraint:
-                        vals = mB.constraint.split('"')
+                    if "filter" in m_b.constraint:
+                        vals = m_b.constraint.split('"')
                         for v in vals:
                             if len(v) == 1:
                                 # Guess that this is the filter value
@@ -422,129 +422,129 @@ class PlotHandler(object):
         # If we happened to end up with the same color throughout
         #  (say, the metrics were all in the same filter)
         #  then go ahead and generate random colors.
-        if (len(self.mBundles) > 1) and (len(np.unique(colors)) == 1):
+        if (len(self.m_bundles) > 1) and (len(np.unique(colors)) == 1):
             colors = [
                 np.random.rand(
                     3,
                 )
-                for mB in self.mBundles
+                for m_b in self.m_bundles
             ]
         return colors
 
-    def _buildCbarFormat(self):
+    def _build_cbar_format(self):
         """
         Set the color bar format.
         """
-        cbarFormat = None
-        if len(self.mBundles) == 1:
-            if self.mBundles[0].metric.metricDtype == "int":
-                cbarFormat = "%d"
+        cbar_format = None
+        if len(self.m_bundles) == 1:
+            if self.m_bundles[0].metric.metricDtype == "int":
+                cbar_format = "%d"
         else:
-            metricDtypes = set()
-            for mB in self.mBundles:
-                metricDtypes.add(mB.metric.metricDtype)
-            if len(metricDtypes) == 1:
-                if list(metricDtypes)[0] == "int":
-                    cbarFormat = "%d"
-        return cbarFormat
+            metric_dtypes = set()
+            for m_b in self.m_bundles:
+                metric_dtypes.add(m_b.metric.metricDtype)
+            if len(metric_dtypes) == 1:
+                if list(metric_dtypes)[0] == "int":
+                    cbar_format = "%d"
+        return cbar_format
 
-    def _buildFileRoot(self, outfileSuffix=None):
+    def _build_file_root(self, outfile_suffix=None):
         """
         Build a root filename for plot outputs.
-        If there is only one metricBundle, this is equal to the metricBundle fileRoot + outfileSuffix.
+        If there is only one metricBundle, this is equal to the metricBundle fileRoot + outfile_suffix.
         For multiple metricBundles, this is created from the runNames, info_label and metric names.
 
         If you do not wish to use the automatic filenames, then you could set 'savefig' to False and
           save the file manually to disk, using the plot figure numbers returned by 'plot'.
         """
-        if len(self.mBundles) == 1:
-            outfile = self.mBundles[0].file_root
+        if len(self.m_bundles) == 1:
+            outfile = self.m_bundles[0].file_root
         else:
             outfile = "_".join(
-                [self.jointRunNames, self.jointMetricNames, self.jointMetadata]
+                [self.joint_run_names, self.joint_metric_names, self.joint_metadata]
             )
-            outfile += "_" + self.mBundles[0].slicer.slicerName[:4].upper()
-        if outfileSuffix is not None:
-            outfile += "_" + outfileSuffix
+            outfile += "_" + self.m_bundles[0].slicer.slicerName[:4].upper()
+        if outfile_suffix is not None:
+            outfile += "_" + outfile_suffix
         outfile = utils.nameSanitize(outfile)
         return outfile
 
-    def _buildDisplayDict(self):
+    def _build_display_dict(self):
         """
         Generate a display dictionary.
         This is most useful for when there are many metricBundles being combined into a single plot.
         """
-        if len(self.mBundles) == 1:
-            return self.mBundles[0].displayDict
+        if len(self.m_bundles) == 1:
+            return self.m_bundles[0].displayDict
         else:
-            displayDict = {}
+            display_dict = {}
             group = set()
             subgroup = set()
             order = 0
-            for mB in self.mBundles:
-                group.add(mB.displayDict["group"])
-                subgroup.add(mB.displayDict["subgroup"])
-                if order < mB.displayDict["order"]:
-                    order = mB.displayDict["order"] + 1
-            displayDict["order"] = order
+            for m_b in self.m_bundles:
+                group.add(m_b.displayDict["group"])
+                subgroup.add(m_b.displayDict["subgroup"])
+                if order < m_b.displayDict["order"]:
+                    order = m_b.displayDict["order"] + 1
+            display_dict["order"] = order
             if len(group) > 1:
-                displayDict["group"] = "Comparisons"
+                display_dict["group"] = "Comparisons"
             else:
-                displayDict["group"] = list(group)[0]
+                display_dict["group"] = list(group)[0]
             if len(subgroup) > 1:
-                displayDict["subgroup"] = "Comparisons"
+                display_dict["subgroup"] = "Comparisons"
             else:
-                displayDict["subgroup"] = list(subgroup)[0]
+                display_dict["subgroup"] = list(subgroup)[0]
 
-            displayDict["caption"] = (
+            display_dict["caption"] = (
                 "%s metric(s) calculated on a %s grid, for opsim runs %s, for info_label values of %s."
                 % (
-                    self.jointMetricNames,
-                    self.mBundles[0].slicer.slicerName,
-                    self.jointRunNames,
-                    self.jointMetadata,
+                    self.joint_metric_names,
+                    self.m_bundles[0].slicer.slicerName,
+                    self.joint_run_names,
+                    self.joint_metadata,
                 )
             )
 
-            return displayDict
+            return display_dict
 
-    def _checkPlotDicts(self):
+    def _check_plot_dicts(self):
         """
         Check to make sure there are no conflicts in the plotDicts that are being used in the same subplot.
         """
         # Check that the length is OK
-        if len(self.plotDicts) != len(self.mBundles):
+        if len(self.plot_dicts) != len(self.m_bundles):
             raise ValueError(
                 "plotDicts (%i) must be same length as mBundles (%i)"
-                % (len(self.plotDicts), len(self.mBundles))
+                % (len(self.plot_dicts), len(self.m_bundles))
             )
 
         # These are the keys that need to match (or be None)
-        keys2Check = ["xlim", "ylim", "colorMin", "colorMax", "title"]
+        keys2_check = ["xlim", "ylim", "colorMin", "colorMax", "title"]
 
         # Identify how many subplots there are. If there are more than one, just don't change anything.
         # This assumes that if there are more than one, the plotDicts are actually all compatible.
         subplots = set()
-        for pd in self.plotDicts:
+        for pd in self.plot_dicts:
             if "subplot" in pd:
                 subplots.add(pd["subplot"])
 
         # Now check subplots are consistent.
         if len(subplots) <= 1:
             reset_keys = []
-            for key in keys2Check:
-                values = [pd[key] for pd in self.plotDicts if key in pd]
+            for key in keys2_check:
+                values = [pd[key] for pd in self.plot_dicts if key in pd]
                 if len(np.unique(values)) > 1:
                     # We will reset some of the keys to the default, but for some we should do better.
                     if key.endswith("Max"):
-                        for pd in self.plotDicts:
+                        for pd in self.plot_dicts:
                             pd[key] = np.max(values)
                     elif key.endswith("Min"):
-                        for pd in self.plotDicts:
+                        for pd in self.plot_dicts:
                             pd[key] = np.min(values)
                     elif key == "title":
-                        title = self._buildTitle()
-                        for pd in self.plotDicts:
+                        title = self._build_title()
+                        for pd in self.plot_dicts:
                             pd["title"] = title
                     else:
                         warnings.warn(
@@ -555,129 +555,129 @@ class PlotHandler(object):
                         reset_keys.append(key)
             # Reset the most of the keys to defaults; this can generally be done safely.
             for key in reset_keys:
-                for pd in self.plotDicts:
+                for pd in self.plot_dicts:
                     pd[key] = None
 
     def plot(
         self,
-        plotFunc,
-        plotDicts=None,
-        displayDict=None,
-        outfileRoot=None,
-        outfileSuffix=None,
+        plot_func,
+        plot_dicts=None,
+        display_dict=None,
+        outfile_root=None,
+        outfile_suffix=None,
     ):
         """
-        Create plot for mBundles, using plotFunc.
+        Create plot for mBundles, using plot_func.
 
-        plotDicts:  List of plotDicts if one wants to use a _new_ plot_dict per MetricBundle.
+        plot_dicts:  List of plot_dicts if one wants to use a _new_ plot_dict per MetricBundle.
         """
-        if not plotFunc.objectPlotter:
+        if not plot_func.objectPlotter:
             # Check that metric_values type and plotter are compatible (most are float/float, but
             #  some plotters expect object data .. and some only do sometimes).
-            for mB in self.mBundles:
-                if mB.metric.metricDtype == "object":
-                    metricIsColor = mB.plotDict.get("metricIsColor", False)
-                    if not metricIsColor:
+            for m_b in self.m_bundles:
+                if m_b.metric.metricDtype == "object":
+                    metric_is_color = m_b.plotDict.get("metric_is_color", False)
+                    if not metric_is_color:
                         warnings.warn(
                             "Cannot plot object metric values with this plotter."
                         )
                         return
 
-        # Update x/y labels using plotType.
-        self.setPlotDicts(plotDicts=plotDicts, plotFunc=plotFunc, reset=False)
+        # Update x/y labels using plot_type.
+        self.set_plot_dicts(plot_dicts=plot_dicts, plot_func=plot_func, reset=False)
         # Set outfile name.
-        if outfileRoot is None:
-            outfile = self._buildFileRoot(outfileSuffix)
+        if outfile_root is None:
+            outfile = self._build_file_root(outfile_suffix)
         else:
-            outfile = outfileRoot
-        plotType = plotFunc.plotType
-        if len(self.mBundles) > 1:
-            plotType = "Combo" + plotType
+            outfile = outfile_root
+        plot_type = plot_func.plotType
+        if len(self.m_bundles) > 1:
+            plot_type = "Combo" + plot_type
         # Make plot.
         fignum = None
-        for mB, plotDict in zip(self.mBundles, self.plotDicts):
-            if mB.metricValues is None:
+        for m_b, plotDict in zip(self.m_bundles, self.plot_dicts):
+            if m_b.metricValues is None:
                 # Skip this metricBundle.
                 msg = 'MetricBundle (%s) has no attribute "metric_values".' % (
-                    mB.file_root
+                    m_b.file_root
                 )
                 msg += " Either the values have not been calculated or they have been deleted."
                 warnings.warn(msg)
             else:
-                fignum = plotFunc(mB.metricValues, mB.slicer, plotDict, fignum=fignum)
+                fignum = plot_func(m_b.metricValues, m_b.slicer, plotDict, fignum=fignum)
         # Add a legend if more than one metricValue is being plotted or if legendloc is specified.
         legendloc = None
-        if "legendloc" in self.plotDicts[0]:
-            legendloc = self.plotDicts[0]["legendloc"]
-        if len(self.mBundles) > 1:
+        if "legendloc" in self.plot_dicts[0]:
+            legendloc = self.plot_dicts[0]["legendloc"]
+        if len(self.m_bundles) > 1:
             try:
-                legendloc = self.plotDicts[0]["legendloc"]
+                legendloc = self.plot_dicts[0]["legendloc"]
             except KeyError:
                 legendloc = "upper right"
         if legendloc is not None:
             plt.figure(fignum)
             plt.legend(loc=legendloc, fancybox=True, fontsize="smaller")
         # Add the super title if provided.
-        if "suptitle" in self.plotDicts[0]:
-            plt.suptitle(self.plotDicts[0]["suptitle"])
+        if "suptitle" in self.plot_dicts[0]:
+            plt.suptitle(self.plot_dicts[0]["suptitle"])
         # Save to disk and file info to resultsDb if desired.
         if self.savefig:
-            if displayDict is None:
-                displayDict = self._buildDisplayDict()
-            self.saveFig(
+            if display_dict is None:
+                display_dict = self._build_display_dict()
+            self.save_fig(
                 fignum,
                 outfile,
-                plotType,
-                self.jointMetricNames,
+                plot_type,
+                self.joint_metric_names,
                 self.slicer.slicerName,
-                self.jointRunNames,
+                self.joint_run_names,
                 self.constraints,
-                self.jointMetadata,
-                displayDict,
+                self.joint_metadata,
+                display_dict,
             )
         return fignum
 
-    def saveFig(
+    def save_fig(
         self,
         fignum,
-        outfileRoot,
-        plotType,
-        metricName,
-        slicerName,
-        runName,
+        outfile_root,
+        plot_type,
+        metric_name,
+        slicer_name,
+        run_name,
         constraint,
         info_label,
-        displayDict=None,
+        display_dict=None,
     ):
         fig = plt.figure(fignum)
-        plotFile = outfileRoot + "_" + plotType + "." + self.figformat
-        if self.trimWhitespace:
+        plot_file = outfile_root + "_" + plot_type + "." + self.figformat
+        if self.trim_whitespace:
             fig.savefig(
-                os.path.join(self.outDir, plotFile),
+                os.path.join(self.out_dir, plot_file),
                 dpi=self.dpi,
                 bbox_inches="tight",
                 format=self.figformat,
             )
         else:
             fig.savefig(
-                os.path.join(self.outDir, plotFile), dpi=self.dpi, format=self.figformat
+                os.path.join(self.out_dir, plot_file), dpi=self.dpi, format=self.figformat
             )
         # Generate a png thumbnail.
         if self.thumbnail:
-            thumbFile = "thumb." + outfileRoot + "_" + plotType + ".png"
+            thumb_file = "thumb." + outfile_root + "_" + plot_type + ".png"
             plt.savefig(
-                os.path.join(self.outDir, thumbFile), dpi=72, bbox_inches="tight"
+                os.path.join(self.out_dir, thumb_file), dpi=72, bbox_inches="tight"
             )
         # Save information about the file to resultsDb.
-        if self.resultsDb:
-            if displayDict is None:
-                displayDict = {}
-            metricId = self.resultsDb.update_metric(
-                metricName, slicerName, runName, constraint, info_label, None
+        if self.results_db:
+            if display_dict is None:
+                display_dict = {}
+            metric_id = self.results_db.update_metric(
+                metric_name, slicer_name, run_name, constraint, info_label, None
             )
-            self.resultsDb.update_display(
-                metricId=metricId, displayDict=displayDict, overwrite=False
+            self.results_db.update_display(
+                metric_id=metric_id, display_dict=display_dict, overwrite=False
             )
-            self.resultsDb.update_plot(
-                metricId=metricId, plotType=plotType, plotFile=plotFile
+            self.results_db.update_plot(
+                metric_id=metric_id, plot_type=plot_type, plot_file=plot_file
             )

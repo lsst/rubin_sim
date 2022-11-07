@@ -2,18 +2,18 @@ import numpy as np
 from matplotlib import colors
 import matplotlib.pyplot as plt
 from .plot_handler import BasePlotter
-from .perceptual_rainbow import makePRCmap
+from .perceptual_rainbow import make_pr_cmap
 
 __all__ = ["TwoDMap", "VisitPairsHist"]
 
-perceptual_rainbow = makePRCmap()
+perceptual_rainbow = make_pr_cmap()
 
 
 class TwoDMap(BasePlotter):
     def __init__(self):
-        self.plotType = "TwoD"
-        self.objectPlotter = False
-        self.defaultPlotDict = {
+        self.plot_type = "TwoD"
+        self.object_plotter = False
+        self.default_plot_dict = {
             "title": None,
             "xlabel": None,
             "ylabel": None,
@@ -34,14 +34,14 @@ class TwoDMap(BasePlotter):
             "origin": None,
         }
 
-    def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
         """
         Parameters
         ----------
-        metricValue : numpy.ma.MaskedArray
+        metric_value : numpy.ma.MaskedArray
         slicer : rubin_sim.maf.slicers.BaseSpatialSlicer
             (any spatial slicer)
-        userPlotDict: dict
+        user_plot_dict: dict
             Dictionary of plot parameters set by user (overrides default values).
         fignum : int
             Matplotlib figure number to use (default = None, starts new figure).
@@ -52,60 +52,60 @@ class TwoDMap(BasePlotter):
            Matplotlib figure number used to create the plot.
         """
         if "Healpix" in slicer.slicerName:
-            self.defaultPlotDict["ylabel"] = "Healpix ID"
+            self.default_plot_dict["ylabel"] = "Healpix ID"
         elif "Opsim" in slicer.slicerName:
-            self.defaultPlotDict["ylabel"] = "Field ID"
-            self.defaultPlotDict["origin"] = "lower"
+            self.default_plot_dict["ylabel"] = "Field ID"
+            self.default_plot_dict["origin"] = "lower"
         elif "User" in slicer.slicerName:
-            self.defaultPlotDict["ylabel"] = "User Field ID"
+            self.default_plot_dict["ylabel"] = "User Field ID"
 
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
         # Don't clobber with None
-        for key in userPlotDict:
-            if userPlotDict[key] is not None:
-                plotDict[key] = userPlotDict[key]
+        for key in user_plot_dict:
+            if user_plot_dict[key] is not None:
+                plot_dict[key] = user_plot_dict[key]
 
-        if plotDict["xextent"] is None:
-            plotDict["xextent"] = [0, metricValue[0, :].size]
+        if plot_dict["xextent"] is None:
+            plot_dict["xextent"] = [0, metric_value[0, :].size]
 
-        if plotDict["logScale"]:
+        if plot_dict["logScale"]:
             norm = colors.LogNorm()
         else:
             norm = None
 
         # Mask out values below the color minimum so they show up as white
-        if plotDict["colorMin"] is not None:
-            lowVals = np.where(metricValue.data < plotDict["colorMin"])
-            metricValue.mask[lowVals] = True
+        if plot_dict["colorMin"] is not None:
+            low_vals = np.where(metric_value.data < plot_dict["colorMin"])
+            metric_value.mask[low_vals] = True
 
         figure = plt.figure(fignum)
         ax = figure.add_subplot(111)
         yextent = slicer.spatialExtent
-        xextent = plotDict["xextent"]
+        xextent = plot_dict["xextent"]
         extent = []
         extent.extend(xextent)
         extent.extend(yextent)
         image = ax.imshow(
-            metricValue,
-            vmin=plotDict["colorMin"],
-            vmax=plotDict["colorMax"],
-            aspect=plotDict["aspect"],
-            cmap=plotDict["cmap"],
+            metric_value,
+            vmin=plot_dict["colorMin"],
+            vmax=plot_dict["colorMax"],
+            aspect=plot_dict["aspect"],
+            cmap=plot_dict["cmap"],
             norm=norm,
             extent=extent,
             interpolation="none",
-            origin=plotDict["origin"],
+            origin=plot_dict["origin"],
         )
         cb = plt.colorbar(image)
 
-        ax.set_xlabel(plotDict["xlabel"])
-        ax.set_ylabel(plotDict["ylabel"])
-        ax.set_title(plotDict["title"])
-        cb.set_label(plotDict["cbarTitle"])
+        ax.set_xlabel(plot_dict["xlabel"])
+        ax.set_ylabel(plot_dict["ylabel"])
+        ax.set_title(plot_dict["title"])
+        cb.set_label(plot_dict["cbarTitle"])
 
         # Fix white space on pdf's
-        if plotDict["cbar_edge"]:
+        if plot_dict["cbar_edge"]:
             cb.solids.set_edgecolor("face")
         return figure.number
 
@@ -116,9 +116,9 @@ class VisitPairsHist(BasePlotter):
     """
 
     def __init__(self):
-        self.plotType = "TwoD"
-        self.objectPlotter = False
-        self.defaultPlotDict = {
+        self.plot_type = "TwoD"
+        self.object_plotter = False
+        self.default_plot_dict = {
             "title": None,
             "xlabel": "N visits per night per field",
             "ylabel": "N Visits",
@@ -128,13 +128,13 @@ class VisitPairsHist(BasePlotter):
             "ylim": None,
         }
 
-    def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
         """
         Parameters
         ----------
-        metricValue : numpy.ma.MaskedArray
+        metric_value : numpy.ma.MaskedArray
         slicer : rubin_sim.maf.slicers.TwoDSlicer
-        userPlotDict: dict
+        user_plot_dict: dict
             Dictionary of plot parameters set by user (overrides default values).
         fignum : int
             Matplotlib figure number to use (default = None, starts new figure).
@@ -144,26 +144,26 @@ class VisitPairsHist(BasePlotter):
         int
            Matplotlib figure number used to create the plot.
         """
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
         # Don't clobber with None
-        for key in userPlotDict:
-            if userPlotDict[key] is not None:
-                plotDict[key] = userPlotDict[key]
+        for key in user_plot_dict:
+            if user_plot_dict[key] is not None:
+                plot_dict[key] = user_plot_dict[key]
 
-        maxVal = metricValue.max()
-        bins = np.arange(0.5, maxVal + 0.5, 1)
+        max_val = metric_value.max()
+        bins = np.arange(0.5, max_val + 0.5, 1)
 
-        vals, bins = np.histogram(metricValue, bins)
+        vals, bins = np.histogram(metric_value, bins)
         xvals = (bins[:-1] + bins[1:]) / 2.0
 
         figure = plt.figure(fignum)
         ax = figure.add_subplot(111)
-        ax.bar(xvals, vals * xvals, color=plotDict["color"], label=plotDict["label"])
-        ax.set_xlabel(plotDict["xlabel"])
-        ax.set_ylabel(plotDict["ylabel"])
-        ax.set_title(plotDict["title"])
-        ax.set_xlim(plotDict["xlim"])
-        ax.set_ylim(plotDict["ylim"])
+        ax.bar(xvals, vals * xvals, color=plot_dict["color"], label=plot_dict["label"])
+        ax.set_xlabel(plot_dict["xlabel"])
+        ax.set_ylabel(plot_dict["ylabel"])
+        ax.set_title(plot_dict["title"])
+        ax.set_xlim(plot_dict["xlim"])
+        ax.set_ylim(plot_dict["ylim"])
 
         return figure.number

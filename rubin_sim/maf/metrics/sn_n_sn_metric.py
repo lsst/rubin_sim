@@ -1,6 +1,6 @@
 import numpy as np
 from rubin_sim.maf.metrics import BaseMetric
-from rubin_sim.maf.utils.sn_n_sn_utils import SN_Rate, load_sne_cached, LCfast_new
+from rubin_sim.maf.utils.sn_n_sn_utils import SnRate, load_sne_cached, LcfastNew
 import pandas as pd
 from scipy.interpolate import interp1d
 import numpy.lib.recfunctions as nlr
@@ -165,7 +165,7 @@ class SNNSNMetric(BaseMetric):
 
         self.lc_fast = {}
         for key, vals in lc_reference.items():
-            self.lc_fast[key] = LCfast_new(
+            self.lc_fast[key] = LcfastNew(
                 vals,
                 key[0],
                 key[1],
@@ -177,7 +177,7 @@ class SNNSNMetric(BaseMetric):
                 self.nexp_col,
                 self.seeing_col,
                 self.snr_min,
-                lightOutput=False,
+                light_output=False,
             )
         # loading parameters
         self.zmin = zmin  # zmin for the study
@@ -198,9 +198,9 @@ class SNNSNMetric(BaseMetric):
         self.max_rf_phase_qual = 30.0  # max ref phase for bounds effects
 
         # snrate
-        self.rate_sn = SN_Rate(
-            H0=70.0,
-            Om0=0.3,
+        self.rate_sn = SnRate(
+            h0=70.0,
+            om0=0.3,
             min_rf_phase=self.min_rf_phase_qual,
             max_rf_phase=self.max_rf_phase_qual,
         )

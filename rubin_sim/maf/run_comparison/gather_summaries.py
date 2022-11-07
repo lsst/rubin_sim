@@ -49,9 +49,9 @@ def gather_summaries():
 
     # Identify a subset of MAF directories if suffix is set
     if args.suffix is None:
-        runDirs = None
+        run_dirs = None
     else:
-        runDirs = glob.glob(f"*{args.suffix}")
+        run_dirs = glob.glob(f"*{args.suffix}")
 
     # Create output file name if needed
     if args.outfile is None:
@@ -67,7 +67,7 @@ def gather_summaries():
         outfile = args.outfile
 
     # Connect to resultsDbs and pull summary stats into a nice Dataframe
-    rc = RunComparison(baseDir=args.baseDir, runDirs=runDirs)
+    rc = RunComparison(baseDir=args.baseDir, run_dirs=run_dirs)
     print(f"Found directories {rc.runDirs}")
     mdict = rc.buildMetricDict()
     print(f"And found {len(mdict)} metrics.")

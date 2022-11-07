@@ -78,7 +78,7 @@ class CalcExpectedVisitsMetric(BaseMetric):
             col=columns, metric_name=metric_name
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         n_visits = []
         hrs_visibility = []
 
@@ -88,8 +88,8 @@ class CalcExpectedVisitsMetric(BaseMetric):
         for i in range(0, len(self.pointings), 1):
 
             # (ra, dec) = pointings[i]
-            ra = dataSlice[self.ra_col][0]
-            dec = dataSlice[self.dec_col][0]
+            ra = data_slice[self.ra_col][0]
+            dec = data_slice[self.dec_col][0]
 
             if self.verbose:
                 print(" -> RA " + str(ra) + ", Dec " + str(dec))

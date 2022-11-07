@@ -1,13 +1,13 @@
 from builtins import zip
 import numpy as np
 from .base_stacker import BaseStacker
-from .coord_stackers import raDec2AltAz
+from .coord_stackers import ra_dec2_alt_az
 
-__all__ = ["findTelescopes", "NFollowStacker"]
+__all__ = ["find_telescopes", "NFollowStacker"]
 
 
-def findTelescopes(minSize=3.0):
-    """Finds telescopes larger than minSize, from list of large telescopes based on
+def find_telescopes(min_size=3.0):
+    """Finds telescopes larger than min_size, from list of large telescopes based on
     http://astro.nineplanets.org/bigeyes.html.
 
     Returns
@@ -103,7 +103,7 @@ def findTelescopes(minSize=3.0):
         scopes["name"][i] = telescope[1]
         scopes["lat"][i], scopes["lon"][i] = obs[telescope[2]]
 
-    scopes = scopes[np.where(scopes["aperture"] >= minSize)]
+    scopes = scopes[np.where(scopes["aperture"] >= min_size)]
     return scopes
 
 
@@ -115,71 +115,71 @@ class NFollowStacker(BaseStacker):
     ----------
     minSize: float, optional
         The minimum telescope aperture to use, in meters. Default 3.0.
-    airmassLimit: float, optional
+    airmass_limit: float, optional
         The maximum airmass allowable at the follow-up observatory. Default 2.5.
-    timeSteps: np.array or list of floats, optional
+    time_steps: np.array or list of floats, optional
         The timesteps to check for followup opportunities, in hours. Default is np.arange(0.5, 12., 3.0).
-    mjdCol: str, optional
+    mjd_col: str, optional
         The exposure MJD column name. Default 'observationStartMJD'.
-    raCol: str, optional
+    ra_col: str, optional
         The RA column name. Default 'fieldRA'.
-    decCol: str, optional
+    dec_col: str, optional
         The Dec column name. Default 'fieldDec'.
     raDecDeg: bool, optional
         Flag whether RA/Dec are in degrees (True) or radians (False).
     """
 
-    colsAdded = ["nObservatories"]
+    cols_added = ["nObservatories"]
 
     def __init__(
         self,
-        minSize=3.0,
-        airmassLimit=2.5,
-        timeSteps=np.arange(0.5, 12.0, 3.0),
-        mjdCol="observationStartMJD",
-        raCol="fieldRA",
-        decCol="fieldDec",
+        min_size=3.0,
+        airmass_limit=2.5,
+        time_steps=np.arange(0.5, 12.0, 3.0),
+        mjd_col="observationStartMJD",
+        ra_col="fieldRA",
+        dec_col="fieldDec",
         degrees=True,
     ):
-        self.mjdCol = mjdCol
-        self.raCol = raCol
-        self.decCol = decCol
+        self.mjd_col = mjd_col
+        self.ra_col = ra_col
+        self.dec_col = dec_col
         self.degrees = degrees
-        self.colsAddedDtypes = [int]
-        self.colsReq = [self.mjdCol, self.raCol, self.decCol]
+        self.cols_added_dtypes = [int]
+        self.cols_req = [self.mjd_col, self.ra_col, self.dec_col]
         self.units = ["#"]
-        self.airmassLimit = airmassLimit
-        self.timeSteps = timeSteps
-        self.telescopes = findTelescopes(minSize=minSize)
+        self.airmass_limit = airmass_limit
+        self.time_steps = time_steps
+        self.telescopes = find_telescopes(min_size=min_size)
 
-    def _run(self, simData, cols_present=False):
+    def _run(self, sim_data, cols_present=False):
         if cols_present:
-            return simData
-        simData["nObservatories"] = 0
+            return sim_data
+        sim_data["nObservatories"] = 0
         if self.degrees:
-            ra = np.radians(simData[self.raCol])
-            dec = np.radians(simData[self.decCol])
+            ra = np.radians(sim_data[self.ra_col])
+            dec = np.radians(sim_data[self.dec_col])
         else:
-            ra = simData[self.raCol]
-            dec = simData[self.decCol]
+            ra = sim_data[self.ra_col]
+            dec = sim_data[self.dec_col]
         for obs in self.telescopes:
-            obsGotIt = np.zeros(len(simData[self.raCol]), int)
-            obsLon = np.radians(obs["lon"])
-            obsLat = np.radians(obs["lat"])
-            for step in self.timeSteps:
-                alt, az = raDec2AltAz(
+            obs_got_it = np.zeros(len(sim_data[self.ra_col]), int)
+            obs_lon = np.radians(obs["lon"])
+            obs_lat = np.radians(obs["lat"])
+            for step in self.time_steps:
+                alt, az = ra_dec2_alt_az(
                     ra,
                     dec,
-                    obsLon,
-                    obsLat,
-                    simData[self.mjdCol] + step / 24.0,
+                    obs_lon,
+                    obs_lat,
+                    sim_data[self.mjd_col] + step / 24.0,
                     altonly=True,
                 )
                 airmass = 1.0 / (np.cos(np.pi / 2.0 - alt))
-                followed = np.where((airmass <= self.airmassLimit) & (airmass >= 1.0))
-                # If the observatory got an observation, save this into obsGotIt.
-                # obsGotIt will be 1 if ANY of the times got an observation.
-                obsGotIt[followed] = 1
+                followed = np.where((airmass <= self.airmass_limit) & (airmass >= 1.0))
+                # If the observatory got an observation, save this into obs_got_it.
+                # obs_got_it will be 1 if ANY of the times got an observation.
+                obs_got_it[followed] = 1
             # If an observatory got an observation, count it in nObservatories.
-            simData["nObservatories"] += obsGotIt
-        return simData
+            sim_data["nObservatories"] += obs_got_it
+        return sim_data

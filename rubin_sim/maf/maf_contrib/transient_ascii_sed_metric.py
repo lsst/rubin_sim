@@ -22,10 +22,10 @@ from astropy.cosmology import Planck15 as cosmo
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.utils import m52snr
 
-__all__ = ["transientAsciiSEDMetric"]
+__all__ = ["TransientAsciiSEDMetric"]
 
 
-class transientAsciiSEDMetric(BaseMetric):
+class TransientAsciiSEDMetric(BaseMetric):
     """
     Based on the transientMetric and transientAsciiMetric, uses an ascii
     input file and provides option to write out the light curves. Calculates
@@ -48,9 +48,9 @@ class transientAsciiSEDMetric(BaseMetric):
     survey_start : float, optional
         MJD for the survey start date.
         Default None (uses the time of the first observation at each pointing).
-    detect_SNR : dict, optional
+    detect_snr : dict, optional
         An observation will be counted toward the discovery criteria if the
-        light curve SNR is higher than detect_SNR (specified per bandpass).
+        light curve SNR is higher than detect_snr (specified per bandpass).
         Values must be provided for each filter which should be considered
         in the lightcurve.
         Default is {'u': 5, 'g': 5, 'r': 5, 'i': 5, 'z': 5, 'y': 5}
@@ -73,7 +73,7 @@ class transientAsciiSEDMetric(BaseMetric):
         required (in days). Default None (no time constraint).
     num_per_lightcurve : int, optional
         Number of sections of the light curve that must be sampled above
-        the detect_SNR theshold for the light curve to be counted.
+        the detect_snr theshold for the light curve to be counted.
         For example, num_per_lightcurve = 2 means a light curve is only
         considered detected if there is at least 1 observation in the first
         half of the LC, and at least one in the second half of the LC.
@@ -94,12 +94,12 @@ class transientAsciiSEDMetric(BaseMetric):
         self,
         ascii_file,
         metric_name="TransientAsciiSEDMetric",
-        mjdCol="expMJD",
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
+        mjd_col="expMJD",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
         survey_duration=10.0,
         survey_start=None,
-        detect_SNR={"u": 5, "g": 5, "r": 5, "i": 5, "z": 5, "y": 5},
+        detect_snr={"u": 5, "g": 5, "r": 5, "i": 5, "z": 5, "y": 5},
         z=0.075,
         num_pre_time=2,
         pre_time=25.0,
@@ -111,9 +111,9 @@ class transientAsciiSEDMetric(BaseMetric):
         **kwargs,
     ):
         # Set all initial attributes of the metric.
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        self.filter_col = filter_col
         self.output_data = output_data
         self.z = z
 
@@ -126,8 +126,8 @@ class transientAsciiSEDMetric(BaseMetric):
         else:
             super_dict = {"units": "Number Detected"}
 
-        super(transientAsciiSEDMetric, self).__init__(
-            col=[self.mjdCol, self.m5Col, self.filterCol],
+        super(TransientAsciiSEDMetric, self).__init__(
+            col=[self.mjd_col, self.m5_col, self.filter_col],
             metric_name=metric_name,
             **super_dict,
             **kwargs,
@@ -135,7 +135,7 @@ class transientAsciiSEDMetric(BaseMetric):
         # Continue setting the initial attributes.
         self.survey_duration = survey_duration
         self.survey_start = survey_start
-        self.detect_SNR = detect_SNR
+        self.detect_snr = detect_snr
         self.num_pre_time = num_pre_time
         self.pre_time = pre_time
         self.num_filters = num_filters
@@ -145,9 +145,9 @@ class transientAsciiSEDMetric(BaseMetric):
             self.num_filters = 0
         self.num_phases_to_run = num_phases_to_run
         # Read ascii lightcurve template here. It doesn't change per slicePoint.
-        self.read_SED(ascii_file)
+        self.read_sed(ascii_file)
 
-    def read_SED(self, ascii_file):
+    def read_sed(self, ascii_file):
         """
         Reads in an ascii file detailing the time evolution of an SED. Must be
         in the following format, 3 columns: phase, wavelength, flux.
@@ -259,14 +259,14 @@ class transientAsciiSEDMetric(BaseMetric):
             light_curve_mags[np.where(filters == flt)[0]] = np.array(filter_mag)
             self.light_curve_mags = light_curve_mags
 
-    def evaluate_all_detection_criteria(self, dataSlice):
+    def evaluate_all_detection_criteria(self, data_slice):
         """
         Wrapper function to setup loop for each transient light curve and
         evaluate all detection criteria.
 
         Parameters
         -----------
-        dataSlice : numpy.array
+        data_slice : numpy.array
             Numpy structured array containing the data related to the visits
             provided by the slicer.
 
@@ -297,7 +297,7 @@ class transientAsciiSEDMetric(BaseMetric):
 
             self.observation_epoch_above_thresh = self.observation_epoch[
                 start_ind:end_ind
-            ][np.where(self.obs_above_SNR_threshold[start_ind:end_ind])]
+            ][np.where(self.obs_above_snr_threshold[start_ind:end_ind])]
 
             self.evaluate_pre_time_detection_criteria(t_id)
             # Check if previous condition passed. If not, move to next transient.
@@ -310,7 +310,7 @@ class transientAsciiSEDMetric(BaseMetric):
                 continue
 
             self.evaluate_number_filters_detection_criteria(
-                dataSlice, start_ind, end_ind, t_id
+                data_slice, start_ind, end_ind, t_id
             )
             # Check if previous condition passed. If not, move to next transient.
             if not self.transient_detected[t_id]:
@@ -371,7 +371,7 @@ class transientAsciiSEDMetric(BaseMetric):
             self.transient_detected[t_id] = False
 
     def evaluate_number_filters_detection_criteria(
-        self, dataSlice, start_ind, end_ind, t_id
+        self, data_slice, start_ind, end_ind, t_id
     ):
         """
         Function to evaluate if the current transient passes the required number
@@ -379,7 +379,7 @@ class transientAsciiSEDMetric(BaseMetric):
 
         Parameters
         -----------
-        dataSlice : numpy.array
+        data_slice : numpy.array
             Numpy structured array containing the data related to the visits
             provided by the slicer.
         start_ind: int
@@ -393,9 +393,9 @@ class transientAsciiSEDMetric(BaseMetric):
         """
         # If we did not get detections in enough filters, set transient
         # detected to False.
-        self.detected_filters = dataSlice[start_ind:end_ind][
-            np.where(self.obs_above_SNR_threshold[start_ind:end_ind])
-        ][self.filterCol]
+        self.detected_filters = data_slice[start_ind:end_ind][
+            np.where(self.obs_above_snr_threshold[start_ind:end_ind])
+        ][self.filter_col]
         if len(np.unique(self.detected_filters)) < self.num_filters:
             self.transient_detected[t_id] = False
 
@@ -435,7 +435,7 @@ class transientAsciiSEDMetric(BaseMetric):
             if not is_detected:
                 self.transient_detected[t_id] = False
 
-    def setup_phase_shift_dependent_variables(self, time_shift, dataSlice):
+    def setup_phase_shift_dependent_variables(self, time_shift, data_slice):
         """
         Wrapper function to initilaize variables that will change for each
         phase shift that is considered.
@@ -445,7 +445,7 @@ class transientAsciiSEDMetric(BaseMetric):
         time_shift: float
             The offset given the currently considered phase shift by which
             to cyclically shift the SED evolution.
-        dataSlice : numpy.array
+        data_slice : numpy.array
             Numpy structured array containing the data related to the visits
             provided by the slicer.
 
@@ -475,12 +475,12 @@ class transientAsciiSEDMetric(BaseMetric):
         )
         # Calculate the observation epoch for each transient lightcurve.
         self.observation_epoch = (
-            dataSlice[self.mjdCol] - self.survey_start + time_shift
+            data_slice[self.mjd_col] - self.survey_start + time_shift
         ) % self.transient_duration
         # Identify the observations which belong to each distinct transient.
         self.transient_id = (
             np.floor(
-                (dataSlice[self.mjdCol] - self.survey_start) / self.transient_duration
+                (data_slice[self.mjd_col] - self.survey_start) / self.transient_duration
             )
             + self.transient_id_start
         )
@@ -497,20 +497,20 @@ class transientAsciiSEDMetric(BaseMetric):
             self.transient_id, unique_transient_id, side="right"
         )
 
-    def setup_run_metric_variables(self, dataSlice):
+    def setup_run_metric_variables(self, data_slice):
         """
         Wrapper function to handle basic initialization of variables used to run
         this metric.
 
         Parameters
         -----------
-        dataSlice : numpy.array
+        data_slice : numpy.array
             Numpy structured array containing the data related to the visits
             provided by the slicer.
 
         Returns
         ---------
-        dataSlice : numpy.array
+        data_slice : numpy.array
             Now sorted in time.
         survey_duration: float
             Defaults to the maximum between the chosen slicer and the user
@@ -519,32 +519,32 @@ class transientAsciiSEDMetric(BaseMetric):
             Defaults to user specified, or metric default, however if it is
             not defined sets to the earliest time in the given slicer.
         """
-        # Sort the entire dataSlice in order of time.
-        dataSlice.sort(order=self.mjdCol)
+        # Sort the entire data_slice in order of time.
+        data_slice.sort(order=self.mjd_col)
 
         # Check that survey_duration is not larger than the time of
         # observations we obtained. If it is, then the max_num_transients will
         # not be accurate.
-        dataSlice_time_span = (
-            dataSlice[self.mjdCol].max() - dataSlice[self.mjdCol].min()
+        data_slice_time_span = (
+            data_slice[self.mjd_col].max() - data_slice[self.mjd_col].min()
         ) / 365.25
         # Take the maximum time delta, either specified or from the slicer, to
         # be the survey duration.
-        self.survey_duration = np.max([dataSlice_time_span, self.survey_duration])
+        self.survey_duration = np.max([data_slice_time_span, self.survey_duration])
 
         # Set the survey start based on the slicer unless otherwise specified.
         if self.survey_start is None:
-            self.survey_start = dataSlice[self.mjdCol].min()
-        return dataSlice
+            self.survey_start = data_slice[self.mjd_col].min()
+        return data_slice
 
-    def initialize_phase_loop_variables(self, dataSlice):
+    def initialize_phase_loop_variables(self, data_slice):
         """
         Wrapper function to initialize variables needed for checking all
         transietnts and phase shifts for detected transients.
 
         Parameters
         -----------
-        dataSlice : numpy.array
+        data_slice : numpy.array
             Numpy structured array containing the data related to the visits
             provided by the slicer.
 
@@ -560,7 +560,7 @@ class transientAsciiSEDMetric(BaseMetric):
             counting the multiplicity due to phase shifts.
         transient_id_start: int
             The starting id for simulated transients that are observed. This
-            accounts for if the requested length of the dataSlice and the
+            accounts for if the requested length of the data_slice and the
             number of simulated transient observations mismatch the number
             of transients that fit in the specified survey duration given
             the user specified survey start.
@@ -581,18 +581,18 @@ class transientAsciiSEDMetric(BaseMetric):
         # Set this, in case survey_start was set to be much earlier than this
         # data (so we start counting at 0).
         self.transient_id_start = -1 * np.floor(
-            (dataSlice[self.mjdCol].min() - self.survey_start) / self.transient_duration
+            (data_slice[self.mjd_col].min() - self.survey_start) / self.transient_duration
         )
 
-    def evaluate_SNR_thresholds(self, dataSlice):
+    def evaluate_snr_thresholds(self, data_slice):
         """
-        Take the given dataSlice and the set SNR thresholds for observations to
+        Take the given data_slice and the set SNR thresholds for observations to
         be considered in further detections and compute which observations
         pass.
 
         Parameters
         -----------
-        dataSlice : numpy.array
+        data_slice : numpy.array
             Numpy structured array containing the data related to the visits
             provided by the slicer.
 
@@ -604,21 +604,21 @@ class transientAsciiSEDMetric(BaseMetric):
             thresholding cut.
         """
         # Initilize array for observations below or above SNR threshold
-        self.obs_above_SNR_threshold = np.zeros(len(self.light_curve_SNRs), dtype=bool)
+        self.obs_above_snr_threshold = np.zeros(len(self.light_curve_SNRs), dtype=bool)
         # Identify which detections rise above the required SNR threshhold
         # in each filter.
-        for filt in np.unique(dataSlice[self.filterCol]):
+        for filt in np.unique(data_slice[self.filter_col]):
             # Find the indices for observations in current filter.
-            filter_match = np.where(dataSlice[self.filterCol] == filt)[0]
+            filter_match = np.where(data_slice[self.filter_col] == filt)[0]
             # Find the subset of the above indices which are above SNR
             # threshold condition, otherwise set threshold bool to False.
-            self.obs_above_SNR_threshold[filter_match] = np.where(
-                self.light_curve_SNRs[filter_match] >= self.detect_SNR[filt],
+            self.obs_above_snr_threshold[filter_match] = np.where(
+                self.light_curve_SNRs[filter_match] >= self.detect_snr[filt],
                 True,
                 False,
             )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         """
         Calculate the detectability of a transient with the specified SED.
 
@@ -627,10 +627,10 @@ class transientAsciiSEDMetric(BaseMetric):
 
         Parameters
         ----------
-        dataSlice : numpy.array
+        data_slice : numpy.array
             Numpy structured array containing the data related to the visits
             provided by the slicer.
-        slicePoint : dict, optional
+        slice_point : dict, optional
             Dictionary containing information about the slicepoint currently
             active in the slicer.
 
@@ -643,22 +643,22 @@ class transientAsciiSEDMetric(BaseMetric):
             'SNR', 'filter', 'epoch'
         """
 
-        dataSlice = self.setup_run_metric_variables(dataSlice)
-        self.initialize_phase_loop_variables(dataSlice)
+        data_slice = self.setup_run_metric_variables(data_slice)
+        self.initialize_phase_loop_variables(data_slice)
 
         # Consider each different 'phase shift' separately.
         # We then just have a series of lightcurves, taking place back-to-back.
         for time_shift in self.time_phase_shifts:
-            self.setup_phase_shift_dependent_variables(time_shift, dataSlice)
+            self.setup_phase_shift_dependent_variables(time_shift, data_slice)
 
             # Generate the actual light curve magnitudes and SNR
-            self.make_lightcurve(self.observation_epoch, dataSlice[self.filterCol])
-            self.light_curve_SNRs = m52snr(self.light_curve_mags, dataSlice[self.m5Col])
+            self.make_lightcurve(self.observation_epoch, data_slice[self.filter_col])
+            self.light_curve_SNRs = m52snr(self.light_curve_mags, data_slice[self.m5_col])
 
             # Check observations above the defined threshold for detection.
-            self.evaluate_SNR_thresholds(dataSlice)
+            self.evaluate_snr_thresholds(data_slice)
             # With useable observations computed, evaluate all detection criteria
-            self.evaluate_all_detection_criteria(dataSlice)
+            self.evaluate_all_detection_criteria(data_slice)
 
         if self.output_data:
             # Output all the light curves, regardless of detection threshhold,
@@ -666,9 +666,9 @@ class transientAsciiSEDMetric(BaseMetric):
             # Only returns for one phase shift, not all.
             return {
                 "transient_id": self.transient_id,
-                "expMJD": dataSlice[self.mjdCol],
+                "expMJD": data_slice[self.mjd_col],
                 "epoch": self.observation_epoch,
-                "filter": dataSlice[self.filterCol],
+                "filter": data_slice[self.filter_col],
                 "lcMag": self.light_curve_mags,
                 "SNR": self.light_curve_SNRs,
                 "detected": self.transient_detected,

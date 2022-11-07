@@ -15,7 +15,7 @@ class VarDepth(BaseMetric):
 
     def __init__(
         self,
-        m5Col="fiveSigmaDepth",
+        m5_col="fiveSigmaDepth",
         metric_name="variability depth",
         completeness=0.95,
         contamination=0.05,
@@ -33,17 +33,17 @@ class VarDepth(BaseMetric):
         :numruns: number of simulated realizations of noise (most computationally espensive part).
         :signal: sqrt total pulsational power meant to be recovered.
         :magres: desired resolution of variability depth result."""
-        self.m5col = m5Col
+        self.m5col = m5_col
         self.completeness = completeness
         self.contamination = contamination
         self.numruns = numruns
         self.signal = signal
         self.magres = magres
-        super(VarDepth, self).__init__(col=m5Col, metric_name=metric_name, **kwargs)
+        super(VarDepth, self).__init__(col=m5_col, metric_name=metric_name, **kwargs)
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         # Get the visit information
-        m5 = dataSlice[self.m5col]
+        m5 = data_slice[self.m5col]
         # Number of visits
         N = len(m5)
 

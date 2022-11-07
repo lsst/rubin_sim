@@ -54,7 +54,7 @@ def metadataBasics(
         value = name as it is in the database (seeingFwhmGeom, etc).
         valueName = name to be recorded ('seeingGeom', etc.).  Default is None, which will match 'value'.
     groupName : str, optional
-        The group name for this quantity in the displayDict. Default is the same as 'valueName', capitalized.
+        The group name for this quantity in the display_dict. Default is the same as 'valueName', capitalized.
     extraSql : str, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
@@ -209,7 +209,7 @@ def metadataBasicsAngle(
         value = name as it is in the database (seeingFwhmGeom, etc).
         valueName = name to be recorded ('seeingGeom', etc.).  Default is None, which will match 'value'.
     groupName : `str`, optional
-        The group name for this quantity in the displayDict. Default is the same as 'valueName', capitalized.
+        The group name for this quantity in the display_dict. Default is the same as 'valueName', capitalized.
     extraSql : `str`, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.
@@ -412,7 +412,7 @@ def metadataMaps(
         value = name as it is in the database (seeingFwhmGeom, etc).
         valueName = name to be recorded ('seeingGeom', etc.).  Default is None, which will match 'value'.
     groupName : `str`, optional
-        The group name for this quantity in the displayDict. Default is the same as 'valueName', capitalized.
+        The group name for this quantity in the display_dict. Default is the same as 'valueName', capitalized.
     extraSql : `str`, optional
         Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
         Default None, for no additional constraints.

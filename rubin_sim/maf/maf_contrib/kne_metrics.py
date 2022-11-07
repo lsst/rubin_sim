@@ -8,10 +8,10 @@ from rubin_sim.phot_utils import DustValues
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import m52snr
 
-__all__ = ["get_KNe_filename", "KN_lc", "KNePopMetric", "generateKNPopSlicer"]
+__all__ = ["get_k_ne_filename", "KnLc", "KNePopMetric", "generate_kn_pop_slicer"]
 
 
-def get_KNe_filename(inj_params_list=None):
+def get_k_ne_filename(inj_params_list=None):
     """Given kilonova parameters, get the filename from the grid of models
     developed by M. Bulla
 
@@ -42,23 +42,23 @@ def get_KNe_filename(inj_params_list=None):
         key = filename.replace(".dat", "").split("/")[-1]
         params[key] = {}
         params[key]["filename"] = filename
-        keySplit = key.split("_")
+        key_split = key.split("_")
         # Binary neutron star merger models
-        if keySplit[0] == "nsns":
-            mejdyn = float(keySplit[2].replace("mejdyn", ""))
-            mejwind = float(keySplit[3].replace("mejwind", ""))
-            phi0 = float(keySplit[4].replace("phi", ""))
-            theta = float(keySplit[5])
+        if key_split[0] == "nsns":
+            mejdyn = float(key_split[2].replace("mejdyn", ""))
+            mejwind = float(key_split[3].replace("mejwind", ""))
+            phi0 = float(key_split[4].replace("phi", ""))
+            theta = float(key_split[5])
             params[key]["mej_dyn"] = mejdyn
             params[key]["mej_wind"] = mejwind
             params[key]["phi"] = phi0
             params[key]["theta"] = theta
         # Neutron star--black hole merger models
-        elif keySplit[0] == "nsbh":
-            mej_dyn = float(keySplit[2].replace("mejdyn", ""))
-            mej_wind = float(keySplit[3].replace("mejwind", ""))
-            phi = float(keySplit[4].replace("phi", ""))
-            theta = float(keySplit[5])
+        elif key_split[0] == "nsbh":
+            mej_dyn = float(key_split[2].replace("mejdyn", ""))
+            mej_wind = float(key_split[3].replace("mejwind", ""))
+            phi = float(key_split[4].replace("phi", ""))
+            theta = float(key_split[5])
             params[key]["mej_dyn"] = mej_dyn
             params[key]["mej_wind"] = mej_wind
             params[key]["phi"] = phi
@@ -82,7 +82,7 @@ def get_KNe_filename(inj_params_list=None):
     return matched_files
 
 
-class KN_lc(object):
+class KnLc(object):
     """Read in some KNe lightcurves
 
     Parameters
@@ -138,33 +138,33 @@ class KNePopMetric(BaseMetric):
     def __init__(
         self,
         metric_name="KNePopMetric",
-        mjdCol="observationStartMJD",
-        m5Col="fiveSigmaDepth",
-        filterCol="filter",
-        nightCol="night",
-        ptsNeeded=2,
+        mjd_col="observationStartMJD",
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        night_col="night",
+        pts_needed=2,
         file_list=None,
         mjd0=None,
-        outputLc=False,
+        output_lc=False,
         badval=-666,
         **kwargs,
     ):
         maps = ["DustMap"]
-        self.mjdCol = mjdCol
-        self.m5Col = m5Col
-        self.filterCol = filterCol
-        self.nightCol = nightCol
-        self.ptsNeeded = ptsNeeded
+        self.mjd_col = mjd_col
+        self.m5_col = m5_col
+        self.filter_col = filter_col
+        self.night_col = night_col
+        self.pts_needed = pts_needed
         # `bool` variable, if True the light curve will be exported
-        self.outputLc = outputLc
+        self.output_lc = output_lc
 
-        self.lightcurves = KN_lc(file_list=file_list)
+        self.lightcurves = KnLc(file_list=file_list)
         self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
 
         dust_properties = DustValues()
-        self.Ax1 = dust_properties.ax1
+        self.ax1 = dust_properties.ax1
 
-        cols = [self.mjdCol, self.m5Col, self.filterCol, self.nightCol]
+        cols = [self.mjd_col, self.m5_col, self.filter_col, self.night_col]
         super(KNePopMetric, self).__init__(
             col=cols,
             units="Detected, 0 or 1",
@@ -180,7 +180,7 @@ class KNePopMetric(BaseMetric):
         """
         result = 1
         # Detected data points
-        if np.size(around_peak) < self.ptsNeeded:
+        if np.size(around_peak) < self.pts_needed:
             return 0
 
         return result
@@ -195,8 +195,8 @@ class KNePopMetric(BaseMetric):
         min_dt=0.125,
         min_fade=0.3,
         max_rise=-1.0,
-        selectRed=False,
-        selectBlue=False,
+        select_red=False,
+        select_blue=False,
     ):
         """
         Selection criteria based on rise or decay rate; simplified version of
@@ -219,9 +219,9 @@ class KNePopMetric(BaseMetric):
             fade rate threshold (positive, mag/day)
         max_rise : float
             rise rate threshold (negative, mag/day)
-        selectRed : bool
+        select_red : bool
             if True, only red 'izy' filters will be considered
-        selectBlue : bool
+        select_blue : bool
             if True, only blue 'ugr' filters will be considered
 
         Examples
@@ -235,7 +235,7 @@ class KNePopMetric(BaseMetric):
         result = 1
 
         # Quick check on the number of detected points
-        if np.size(around_peak) < self.ptsNeeded:
+        if np.size(around_peak) < self.pts_needed:
             return 0
         # Quick check on the time gap between first and last detection
         elif np.max(t[around_peak]) - np.min(t[around_peak]) < min_dt:
@@ -245,9 +245,9 @@ class KNePopMetric(BaseMetric):
             fil = []
             # Check time gaps and rise or fade rate for each band
             for f in set(filters):
-                if selectRed is True and not (f in "izy"):
+                if select_red is True and not (f in "izy"):
                     continue
-                elif selectBlue is True and not (f in "ugr"):
+                elif select_blue is True and not (f in "ugr"):
                     continue
                 times_f = t[around_peak][np.where(filters == f)[0]]
                 mags_f = mags[around_peak][np.where(filters == f)[0]]
@@ -345,54 +345,54 @@ class KNePopMetric(BaseMetric):
 
         return result
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         result = {}
-        t = dataSlice[self.mjdCol] - self.mjd0 - slicePoint["peak_time"]
+        t = data_slice[self.mjd_col] - self.mjd0 - slice_point["peak_time"]
         mags = np.zeros(t.size, dtype=float)
 
-        for filtername in np.unique(dataSlice[self.filterCol]):
-            infilt = np.where(dataSlice[self.filterCol] == filtername)
+        for filtername in np.unique(data_slice[self.filter_col]):
+            infilt = np.where(data_slice[self.filter_col] == filtername)
             mags[infilt] = self.lightcurves.interp(
-                t[infilt], filtername, lc_indx=slicePoint["file_indx"]
+                t[infilt], filtername, lc_indx=slice_point["file_indx"]
             )
             # Apply dust extinction on the light curve
-            A_x = self.Ax1[filtername] * slicePoint["ebv"]
-            mags[infilt] += A_x
+            a_x = self.ax1[filtername] * slice_point["ebv"]
+            mags[infilt] += a_x
 
-            distmod = 5 * np.log10(slicePoint["distance"] * 1e6) - 5.0
+            distmod = 5 * np.log10(slice_point["distance"] * 1e6) - 5.0
             mags[infilt] += distmod
 
         # Find the detected points
-        around_peak = np.where((t > 0) & (t < 30) & (mags < dataSlice[self.m5Col]))[0]
+        around_peak = np.where((t > 0) & (t < 30) & (mags < data_slice[self.m5_col]))[0]
         # Filters in which the detections happened
-        filters = dataSlice[self.filterCol][around_peak]
+        filters = data_slice[self.filter_col][around_peak]
         # Magnitude uncertainties with Gaussian approximation
-        snr = m52snr(mags, dataSlice[self.m5Col])
+        snr = m52snr(mags, data_slice[self.m5_col])
         mags_unc = 2.5 * np.log10(1.0 + 1.0 / snr)
 
         result["multi_detect"] = self._multi_detect(around_peak)
         result["ztfrest_simple"] = self._ztfrest_simple(
-            around_peak, mags, mags_unc, t, filters, selectRed=False
+            around_peak, mags, mags_unc, t, filters, select_red=False
         )
         result["ztfrest_simple_red"] = self._ztfrest_simple(
-            around_peak, mags, mags_unc, t, filters, selectRed=True
+            around_peak, mags, mags_unc, t, filters, select_red=True
         )
         result["ztfrest_simple_blue"] = self._ztfrest_simple(
-            around_peak, mags, mags_unc, t, filters, selectBlue=True
+            around_peak, mags, mags_unc, t, filters, select_blue=True
         )
         result["multi_color_detect"] = self._multi_color_detect(filters)
         result["red_color_detect"] = self._red_color_detect(filters)
         result["blue_color_detect"] = self._blue_color_detect(filters)
 
         # Export the light curve
-        if self.outputLc is True:
+        if self.output_lc is True:
             mags[np.where(mags > 50)[0]] = 99.0
             result["lc"] = [
-                dataSlice[self.mjdCol],
+                data_slice[self.mjd_col],
                 mags,
                 mags_unc,
-                dataSlice[self.m5Col],
-                dataSlice[self.filterCol],
+                data_slice[self.m5_col],
+                data_slice[self.filter_col],
             ]
             result["lc_colnames"] = ("t", "mag", "mag_unc", "maglim", "filter")
 
@@ -420,7 +420,7 @@ class KNePopMetric(BaseMetric):
         return metric["blue_color_detect"]
 
 
-def generateKNPopSlicer(
+def generate_kn_pop_slicer(
     t_start=1, t_end=3652, n_events=10000, seed=42, n_files=308, d_min=10, d_max=300
 ):
     """Generate a population of KNe events, and put the info about them

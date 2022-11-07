@@ -6,30 +6,30 @@ import numpy as np
 # Need to put these in sims_utils and remove from MAF and scheduler.
 
 
-def gnomonic_project_toxy(RA1, Dec1, RAcen, Deccen):
-    """Calculate x/y projection of RA1/Dec1 in system with center at RAcen, Deccen.
+def gnomonic_project_toxy(ra1, dec1, r_acen, deccen):
+    """Calculate x/y projection of ra1/dec1 in system with center at r_acen, deccen.
     Input radians. Grabbed from sims_selfcal"""
     # also used in Global Telescope Network website
-    cosc = np.sin(Deccen) * np.sin(Dec1) + np.cos(Deccen) * np.cos(Dec1) * np.cos(
-        RA1 - RAcen
+    cosc = np.sin(deccen) * np.sin(dec1) + np.cos(deccen) * np.cos(dec1) * np.cos(
+        ra1 - r_acen
     )
-    x = np.cos(Dec1) * np.sin(RA1 - RAcen) / cosc
+    x = np.cos(dec1) * np.sin(ra1 - r_acen) / cosc
     y = (
-        np.cos(Deccen) * np.sin(Dec1)
-        - np.sin(Deccen) * np.cos(Dec1) * np.cos(RA1 - RAcen)
+        np.cos(deccen) * np.sin(dec1)
+        - np.sin(deccen) * np.cos(dec1) * np.cos(ra1 - r_acen)
     ) / cosc
     return x, y
 
 
-def gnomonic_project_tosky(x, y, RAcen, Deccen):
-    """Calculate RA/Dec on sky of object with x/y and RA/Cen of field of view.
-    Returns Ra/Dec in radians."""
-    denom = np.cos(Deccen) - y * np.sin(Deccen)
-    RA = RAcen + np.arctan2(x, denom)
-    Dec = np.arctan2(
-        np.sin(Deccen) + y * np.cos(Deccen), np.sqrt(x * x + denom * denom)
+def gnomonic_project_tosky(x, y, r_acen, deccen):
+    """Calculate RA/dec on sky of object with x/y and RA/Cen of field of view.
+    Returns Ra/dec in radians."""
+    denom = np.cos(deccen) - y * np.sin(deccen)
+    RA = r_acen + np.arctan2(x, denom)
+    dec = np.arctan2(
+        np.sin(deccen) + y * np.cos(deccen), np.sqrt(x * x + denom * denom)
     )
-    return RA, Dec
+    return RA, dec
 
 
 if __name__ == "__main__":
@@ -43,13 +43,13 @@ if __name__ == "__main__":
 
     ra = 0.0
     dec = 0.0
-    rotSkyPos = 0.0
+    rot_sky_pos = 0.0
     mjd = 5300.0
 
     obs_metadata = simsUtils.ObservationMetaData(
         pointing_ra=np.degrees(ra),
         pointing_dec=np.degrees(dec),
-        rotSkyPos=np.degrees(rotSkyPos),
+        rot_sky_pos=np.degrees(rot_sky_pos),
         mjd=mjd,
     )
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     ra_two, dec_two = gnomonic_project_tosky(
         np.radians(x_two), np.radians(y_two), ra, dec
     )
-    chipNames = _chipNameFromRaDec(
+    chip_names = _chipNameFromRaDec(
         ra_two.ravel(),
         dec_two.ravel(),
         epoch=epoch,
@@ -73,10 +73,10 @@ if __name__ == "__main__":
         obs_metadata=obs_metadata,
     )
 
-    chipNames = chipNames.reshape(nside, nside)
+    chip_names = chip_names.reshape(nside, nside)
     wavefront_names = [
         name
-        for name in np.unique(chipNames[np.where(chipNames != None)])
+        for name in np.unique(chip_names[np.where(chip_names != None)])
         if ("SW" in name)
         | ("R44" in name)
         | ("R00" in name)
@@ -85,8 +85,8 @@ if __name__ == "__main__":
     ]
     # If it's on a waverfront sensor, that's false
     for name in wavefront_names:
-        result[np.where(chipNames == name)] = False
+        result[np.where(chip_names == name)] = False
     # No chipname, that's a false
-    result[np.where(chipNames == None)] = False
+    result[np.where(chip_names == None)] = False
 
     np.savez("fov_map.npz", x=x_one, image=result)

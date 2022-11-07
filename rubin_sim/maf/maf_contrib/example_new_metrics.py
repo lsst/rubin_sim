@@ -10,25 +10,25 @@ __all__ = ["NightsWithNFiltersMetric"]
 class NightsWithNFiltersMetric(BaseMetric):
     """Count how many times more than NFilters are used within the same night, for this set of visits."""
 
-    def __init__(self, nightCol="night", filterCol="filter", nFilters=3, **kwargs):
+    def __init__(self, night_col="night", filter_col="filter", n_filters=3, **kwargs):
         """
-        nightCol = the name of the column defining the night
-        filterCol = the name of the column defining the filter
-        nFilters = the minimum desired set of filters used in these visits
+        night_col = the name of the column defining the night
+        filter_col = the name of the column defining the filter
+        n_filters = the minimum desired set of filters used in these visits
         """
-        self.nightCol = nightCol
-        self.filterCol = filterCol
-        self.nFilters = nFilters
+        self.night_col = night_col
+        self.filter_col = filter_col
+        self.n_filters = n_filters
         super(NightsWithNFiltersMetric, self).__init__(
-            col=[self.nightCol, self.filterCol], **kwargs
+            col=[self.night_col, self.filter_col], **kwargs
         )
 
-    def run(self, dataSlice, slicePoint=None):
+    def run(self, data_slice, slice_point=None):
         count = 0
-        uniqueNights = np.unique(dataSlice[self.nightCol])
-        for n in uniqueNights:
-            condition = dataSlice[self.nightCol] == n
-            uniqueFilters = np.unique(dataSlice[self.filterCol][condition])
-            if len(uniqueFilters) > self.nFilters:
+        unique_nights = np.unique(data_slice[self.night_col])
+        for n in unique_nights:
+            condition = data_slice[self.night_col] == n
+            unique_filters = np.unique(data_slice[self.filter_col][condition])
+            if len(unique_filters) > self.n_filters:
                 count += 1
         return count

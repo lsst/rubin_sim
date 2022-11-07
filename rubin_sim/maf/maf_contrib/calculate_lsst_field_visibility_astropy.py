@@ -21,8 +21,8 @@ __all__ = ["calculate_lsst_field_visibility", "plot_visibility"]
 
 
 def calculate_lsst_field_visibility(
-    fieldRA,
-    fieldDec,
+    field_ra,
+    field_dec,
     start_date,
     end_date,
     min_alt=30.0,
@@ -36,13 +36,13 @@ def calculate_lsst_field_visibility(
     Adapted from an example in the Astropy docs.
 
     Inputs:
-        :param float fieldRA: Field RA in decimal degrees
-        :param float fieldDec: Field Dec in decimal degrees
+        :param float field_ra: Field RA in decimal degrees
+        :param float field_dec: Field Dec in decimal degrees
         :param str start_date: Start date for calculations, UTC
         :param str end_date: End date for calculations, UTC
     """
 
-    field = SkyCoord(fieldRA, fieldDec, frame="icrs", unit=(u.hourangle, u.deg))
+    field = SkyCoord(field_ra, field_dec, frame="icrs", unit=(u.hourangle, u.deg))
 
     lsst = EarthLocation(
         lat=-30.239933333333333 * u.deg,
@@ -188,15 +188,15 @@ if __name__ == "__main__":
 
     if len(argv) > 1:
 
-        fieldRA = argv[1]
-        fieldDec = argv[2]
+        field_ra = argv[1]
+        field_dec = argv[2]
         start_date = argv[3]
         end_date = argv[4]
 
     else:
 
-        fieldRA = input("Please enter the RA in sexigesimal format, J2000.0: ")
-        fieldDec = input("Please enter the Dec in sexigesimal format, J2000.0: ")
+        field_ra = input("Please enter the RA in sexigesimal format, J2000.0: ")
+        field_dec = input("Please enter the Dec in sexigesimal format, J2000.0: ")
         start_date = input(
             "Please enter the start date of the observing window, YYYY-MM-DD: "
         )
@@ -205,5 +205,5 @@ if __name__ == "__main__":
         )
 
     (total_time_visible, hrs_per_night) = calculate_lsst_field_visibility(
-        fieldRA, fieldDec, start_date, end_date, diagnostics=True
+        field_ra, field_dec, start_date, end_date, diagnostics=True
     )

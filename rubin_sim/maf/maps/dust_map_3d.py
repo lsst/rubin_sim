@@ -14,22 +14,22 @@ class DustMap3D(BaseMap):
     Adds the following keys to the slicePoints:
     ebv3d_dists - the distances from the 3d dust map at each slicePoint (in pc)
     ebv3d_ebvs - the E(B-V) values corresponding to each distance at each slicePoint
-    ebv3d_ebv_at_<distPc> - the (single) ebv value at the nearest distance to distPc
-    ebv3d_dist_at_<dMag> - the (single) distance value corresponding to where extinction and
-    distance modulus combine to create a m-Mo value of dMag, for the filter specified in filtername (in pc).
-    Note that <distPc> and <dMag> will be formatted with a single decimal place.
+    ebv3d_ebv_at_<dist_pc> - the (single) ebv value at the nearest distance to dist_pc
+    ebv3d_dist_at_<d_mag> - the (single) distance value corresponding to where extinction and
+    distance modulus combine to create a m-Mo value of d_mag, for the filter specified in filtername (in pc).
+    Note that <dist_pc> and <d_mag> will be formatted with a single decimal place.
 
     The additional method 'distance_at_mag' can be called either with the distances and ebv values for the
     entire map or with the values from a single slicePoint, in order to calculate the distance at which
     extinction and distance modulus combine to create a m-Mo value closest to 'dmag' in any filter.
-    This is the same value as would be reported in ebv3d_dist_at_<dMag>, but can be calculated on the fly,
+    This is the same value as would be reported in ebv3d_dist_at_<d_mag>, but can be calculated on the fly,
     allowing variable filters and dmag values.
 
     Parameters
     ----------
     nside: `int`
         Healpixel resolution (2^x).
-    mapFile : `str`, opt
+    map_file : `str`, opt
         Path to dust map file.
     interp : `bool`, opt
         Should returned values be interpolated (True) or just nearest neighbor (False).
@@ -37,12 +37,12 @@ class DustMap3D(BaseMap):
     filtername : 'str', opt
         Name of the filter (to match the lsst filter names in rubin_sim.photUtils.DustValues)
         in which to calculate dust extinction magnitudes
-    distPc : `float`, opt
+    dist_pc : `float`, opt
         Distance at which to precalculate the nearest ebv value
-    dMag : `float`, opt
-        Calculate the maximum distance which matches this 'dMag'
-        dMag == m-mO (dust extinction + distance modulus)
-    R_x : `dict` {`str`: `float`}, opt
+    d_mag : `float`, opt
+        Calculate the maximum distance which matches this 'd_mag'
+        d_mag == m-mO (dust extinction + distance modulus)
+    r_x : `dict` {`str`: `float`}, opt
         Per-filter dust extinction curve coefficients.
         Calculated by rubin_sim.photUtils.DustValues if "None".
     """
@@ -50,68 +50,68 @@ class DustMap3D(BaseMap):
     def __init__(
         self,
         nside=64,
-        mapFile=None,
+        map_file=None,
         interp=True,
         filtername="r",
-        distPc=3000,
-        dMag=15.2,
-        R_x=None,
+        dist_pc=3000,
+        d_mag=15.2,
+        r_x=None,
     ):
         self.nside = nside
         self.interp = interp
-        self.mapFile = mapFile
+        self.map_file = map_file
         self.filtername = filtername
-        self.distPc = distPc
-        self.dMag = dMag
-        # R_x is the extinction coefficient (A_v = R_v * E(B-V) .. A_x = R_x * E(B-V)) per filter
+        self.dist_pc = dist_pc
+        self.d_mag = d_mag
+        # r_x is the extinction coefficient (A_v = R_v * E(B-V) .. A_x = r_x * E(B-V)) per filter
         # This is equivalent to calculating A_x (using rubin_sim.photUtils.Sed.addDust) in each
         # filter and setting E(B-V) to 1 [so similar to the values calculated in DustValues ..
-        # we probably should rename those (from Ax1 to R_x)
-        if R_x is None:
-            self.R_x = DustValues().r_x.copy()
+        # we probably should rename those (from Ax1 to r_x)
+        if r_x is None:
+            self.r_x = DustValues().r_x.copy()
         else:
-            self.R_x = R_x
+            self.r_x = r_x
         # The values that will be added to the slicepoints
         self.keynames = [
             "ebv3d_ebvs",
             "ebv3d_dists",
-            f"ebv3d_ebv_at_{self.distPc:.1f}",
-            f"ebv3d_dist_at_{self.dMag:.1f}",
+            f"ebv3d_ebv_at_{self.dist_pc:.1f}",
+            f"ebv3d_dist_at_{self.d_mag:.1f}",
         ]
 
-    def run(self, slicePoints):
+    def run(self, slice_points):
         # If the slicer has nside, it's a healpix slicer so we can read the map directly
-        if "nside" in slicePoints:
-            if slicePoints["nside"] != self.nside:
+        if "nside" in slice_points:
+            if slice_points["nside"] != self.nside:
                 warnings.warn(
-                    f"Slicer value of nside {slicePoints['nside']} different "
+                    f"Slicer value of nside {slice_points['nside']} different "
                     f"from map value {self.nside}, will use correct slicer value here."
                 )
             dists, ebvs = ebv_3d_hp(
-                slicePoints["nside"], pixels=slicePoints["sid"], mapFile=self.mapFile
+                slice_points["nside"], pixels=slice_points["sid"], map_file=self.map_file
             )
         # Not a healpix slicer, look up values based on RA,dec with possible interpolation
         else:
             dists, ebvs = ebv_3d_hp(
                 self.nside,
-                ra=slicePoints["ra"],
-                dec=slicePoints["dec"],
+                ra=slice_points["ra"],
+                dec=slice_points["dec"],
                 interp=self.interp,
-                mapFile=self.mapFile,
+                map_file=self.map_file,
             )
 
         # Calculate the map ebv and dist values at the initialized distance
-        dist_closest, ebv_at_dist = get_x_at_nearest_y(dists, ebvs, self.distPc)
+        dist_closest, ebv_at_dist = get_x_at_nearest_y(dists, ebvs, self.dist_pc)
 
         # Calculate the distances at which m_minus_Mo values of 'dmag' are reached
-        dist_dmag = self.distance_at_dmag(self.dMag, dists, ebvs, self.filtername)
+        dist_dmag = self.distance_at_dmag(self.d_mag, dists, ebvs, self.filtername)
 
-        slicePoints["ebv3d_dists"] = dists
-        slicePoints["ebv3d_ebvs"] = ebvs
-        slicePoints[f"ebv3d_ebv_at_{self.distPc:.1f}"] = ebv_at_dist
-        slicePoints[f"ebv3d_dist_at_{self.dMag:.1f}"] = dist_dmag
+        slice_points["ebv3d_dists"] = dists
+        slice_points["ebv3d_ebvs"] = ebvs
+        slice_points[f"ebv3d_ebv_at_{self.dist_pc:.1f}"] = ebv_at_dist
+        slice_points[f"ebv3d_dist_at_{self.d_mag:.1f}"] = dist_dmag
 
-        return slicePoints
+        return slice_points
 
     def distance_at_dmag(self, dmag, dists, ebvs, filtername=None):
         # Provide this as a method which could be used for a single slicePoint as well as for whole map
@@ -121,19 +121,19 @@ class DustMap3D(BaseMap):
         # calculate distance modulus for each distance
         dmods = 5.0 * np.log10(dists) - 5.0
         # calculate dust extinction at each distance, for the filtername
-        A_x = self.R_x[filtername] * ebvs
-        # calculate the (m-Mo) = distmod + A_x -- combination of extinction due to distance and dust
-        m_minus_Mo = dmods + A_x
+        a_x = self.r_x[filtername] * ebvs
+        # calculate the (m-Mo) = distmod + a_x -- combination of extinction due to distance and dust
+        m_minus__mo = dmods + a_x
 
         # Maximum distance for the given m-Mo (dmag) value
         # first do the 'within the map' closest distance
-        m_minus_Mo_at_mag, dist_closest = get_x_at_nearest_y(m_minus_Mo, dists, dmag)
+        m_minus__mo_at_mag, dist_closest = get_x_at_nearest_y(m_minus__mo, dists, dmag)
         # calculate distance modulus for an object with the maximum dust extinction (and then the distance)
-        if A_x.ndim == 2:
-            distModsFar = dmag - A_x[:, -1]
+        if a_x.ndim == 2:
+            dist_mods_far = dmag - a_x[:, -1]
         else:
-            distModsFar = dmag - A_x.max()
-        distsFar = 10.0 ** (0.2 * distModsFar + 1.0)
+            dist_mods_far = dmag - a_x.max()
+        dists_far = 10.0 ** (0.2 * dist_mods_far + 1.0)
         # Use furthest of the two
-        dist_dmag = np.where(distsFar > dist_closest, distsFar, dist_closest)
+        dist_dmag = np.where(dists_far > dist_closest, dists_far, dist_closest)
         return dist_dmag

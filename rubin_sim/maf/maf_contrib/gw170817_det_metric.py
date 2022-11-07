@@ -6,16 +6,16 @@
 # Contact for this code:
 # christian.setzer@fysik.su.se
 from pathlib import Path
-from .transient_ascii_sed_metric import transientAsciiSEDMetric
+from .transient_ascii_sed_metric import TransientAsciiSEDMetric
 
 __all__ = ["GW170817DetMetric"]
 base_path = Path(__file__).parent
 
 
-class GW170817DetMetric(transientAsciiSEDMetric):
+class GW170817DetMetric(TransientAsciiSEDMetric):
     """
     Wrapper metric class for GW170817-like kilonovae based on the
-    transientAsciiSEDMetric. Defaults are set to those corresponding to similar
+    TransientAsciiSEDMetric. Defaults are set to those corresponding to similar
     detection criteria used in Scolnic et al. 2018 and Setzer et al. 2019.
     However, due to the simplified nature of transient distribution for
     computing this metric, the criteria have been altered to only include

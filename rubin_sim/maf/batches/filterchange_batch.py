@@ -8,11 +8,11 @@ __all__ = ["filtersPerNight", "filtersWholeSurvey"]
 
 
 def setupMetrics(colmap, wholesurvey=False):
-    metricList = []
-    captionList = []
+    metric_list = []
+    caption_list = []
     # Number of filter changes (per slice - either whole survey or X nights)
     if wholesurvey:
-        metricList.append(
+        metric_list.append(
             metrics.NChangesMetric(
                 col=colmap["filter"],
                 order_by=colmap["mjd"],
@@ -20,48 +20,48 @@ def setupMetrics(colmap, wholesurvey=False):
             )
         )
     else:
-        metricList.append(
+        metric_list.append(
             metrics.NChangesMetric(
                 col=colmap["filter"], order_by=colmap["mjd"], metric_name="Filter Changes"
             )
         )
-    captionList.append("Total filter changes ")
+    caption_list.append("Total filter changes ")
     # Minimum time between filter changes
-    metricList.append(
+    metric_list.append(
         metrics.MinTimeBetweenStatesMetric(
             change_col=colmap["filter"], time_col=colmap["mjd"]
         )
     )
-    captionList.append("Minimum time between filter changes ")
+    caption_list.append("Minimum time between filter changes ")
     # Number of filter changes faster than 10 minutes
-    metricList.append(
+    metric_list.append(
         metrics.NStateChangesFasterThanMetric(
             change_col=colmap["filter"], time_col=colmap["mjd"], cutoff=10
         )
     )
-    captionList.append("Number of filter changes faster than 10 minutes ")
+    caption_list.append("Number of filter changes faster than 10 minutes ")
     # Number of filter changes faster than 20 minutes
-    metricList.append(
+    metric_list.append(
         metrics.NStateChangesFasterThanMetric(
             change_col=colmap["filter"], time_col=colmap["mjd"], cutoff=20
         )
     )
-    captionList.append("Number of filter changes faster than 20 minutes ")
+    caption_list.append("Number of filter changes faster than 20 minutes ")
     # Maximum number of filter changes faster than 10 minutes within slice
-    metricList.append(
+    metric_list.append(
         metrics.MaxStateChangesWithinMetric(
             change_col=colmap["filter"], time_col=colmap["mjd"], timespan=10
         )
     )
-    captionList.append("Max number of filter  changes within a window of 10 minutes ")
+    caption_list.append("Max number of filter  changes within a window of 10 minutes ")
     # Maximum number of filter changes faster than 20 minutes within slice
-    metricList.append(
+    metric_list.append(
         metrics.MaxStateChangesWithinMetric(
             change_col=colmap["filter"], time_col=colmap["mjd"], timespan=20
         )
     )
-    captionList.append("Max number of filter changes within a window of 20 minutes ")
-    return metricList, captionList
+    caption_list.append("Max number of filter changes within a window of 20 minutes ")
+    return metric_list, caption_list
 
 
 def filtersPerNight(

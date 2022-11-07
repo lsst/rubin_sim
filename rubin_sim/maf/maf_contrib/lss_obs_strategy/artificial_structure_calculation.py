@@ -2,7 +2,7 @@
 # Purpose: calculate artificial structure, i.e. fluctuations in galaxy counts, resulting from
 # imperfect observing strategy (OS). Includes the functionality to account for dust extinction,
 # photometric calibration errors (simple ansatz implemented here), individual redshift bins (see
-# GalaxyCountsMetric_extended for details), as well as poisson noise in the galaxy counts.
+# GalaxyCountsMetricExtended for details), as well as poisson noise in the galaxy counts.
 #
 # Basic workflow, assuming all the functionalities are used:
 #       1. HEALpix slicers are set up for survey strategies.
@@ -10,9 +10,9 @@
 #          based on redshift-bin-specific powerlaws, galaxy counts are found for each HEALpix pixel.
 #       3. The shallow borders are masked (based on user-specified 'pixel radius').
 #       4. Photometric calibration errors are calculated.
-#       5. The galaxy counts in each pixel are recalculated using GalaxyCounts_withPixelCalibration
+#       5. The galaxy counts in each pixel are recalculated using galaxy_counts_with_pixel_calibration
 #          since the calibration errors modify the upper limit on the integral used to calculate
-#          galaxy counts. GalaxyCounts_withPixelCalibration takes in each pixel's modified integration
+#          galaxy counts. galaxy_counts_with_pixel_calibration takes in each pixel's modified integration
 #          limit individually.
 #       6. Poisson noise is added to the galaxy counts.
 #       7. Fluctuations in the galaxy counts are calculated.
@@ -53,54 +53,54 @@ import rubin_sim.maf.metric_bundles as metricBundles
 import rubin_sim.maf.maps as maps
 
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.galaxy_counts_metric_extended import (
-    GalaxyCountsMetric_extended as GalaxyCountsMetric,
+    GalaxyCountsMetricExtended as GalaxyCountsMetric,
 )
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.galaxy_counts_with_pixel_calibration import (
-    GalaxyCounts_withPixelCalibration as GalaxyCounts_0ptErrors,
+    galaxy_counts_with_pixel_calibration as GalaxyCounts_0ptErrors,
 )
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.masking_algorithm_generalized import (
-    maskingAlgorithmGeneralized,
+    masking_algorithm_generalized,
 )
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.num_obs_metric import NumObsMetric
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.save_bundle_data_npz_format import (
-    saveBundleData_npzFormat,
+    save_bundle_data_npz_format,
 )
 
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import (
-    powerLawConst_a,
-    plotColor,
+    power_law_const_a,
+    plot_color,
 )
 
-__all__ = ["artificialStructureCalculation"]
+__all__ = ["artificial_structure_calculation"]
 
 
-def artificialStructureCalculation(
+def artificial_structure_calculation(
     path,
-    upperMagLimit,
+    upper_mag_limit,
     dbfile,
-    runName,
-    noDithOnly=False,
-    bestDithOnly=False,
-    specifiedDith=None,
+    run_name,
+    no_dith_only=False,
+    best_dith_only=False,
+    specified_dith=None,
     nside=128,
-    filterBand="i",
-    cutOffYear=None,
-    redshiftBin="all",
-    CFHTLSCounts=False,
-    normalizedMockCatalogCounts=True,
-    includeDustExtinction=True,
-    saveRawNumGalData=True,
-    pixelRadiusForMasking=5,
-    saveNumGalDataAfterMasking=False,
-    include0ptErrors=True,
-    print0ptInformation=True,
-    plot0ptPlots=True,
-    show0ptPlots=False,
-    save0ptPlots=True,
-    saveNumGalDataAfter0pt=False,
-    addPoissonNoise=True,
-    saveDeltaNByNData=True,
-    saveClsForDeltaNByN=True,
+    filter_band="i",
+    cut_off_year=None,
+    redshift_bin="all",
+    cfhtls_counts=False,
+    normalized_mock_catalog_counts=True,
+    include_dust_extinction=True,
+    save_raw_num_gal_data=True,
+    pixel_radius_for_masking=5,
+    save_num_gal_data_after_masking=False,
+    include0pt_errors=True,
+    print0pt_information=True,
+    plot0pt_plots=True,
+    show0pt_plots=False,
+    save0pt_plots=True,
+    save_num_gal_data_after0pt=False,
+    add_poisson_noise=True,
+    save_delta_n_by_n_data=True,
+    save_cls_for_delta_n_by_n=True,
     show_comp_plots=False,
     return_stuff=False,
 ):
@@ -111,76 +111,76 @@ def artificialStructureCalculation(
     - Creates an output directory for subdirectories containing the specified things to save.
     - Prints out execution time at key steps (after border-masking, incorporating calibration errors, etc.)
     - Returns the metricBundle object containing the calculated dN/N, the output directory name,
-    the resultsDb object, and (if include0ptErrors=True)  calibration errors for each survey strategy.
+    the results_db object, and (if include0pt_errors=True)  calibration errors for each survey strategy.
 
     Parameters
     -------------
     path: str
         path to the main directory where output directory is to be saved.
-    upperMagLimit: float
+    upper_mag_limit: float
         upper limit on magnitude when calculating the galaxy counts.
     dbfile: str
         path to the OpSim output file, e.g. to a copy of enigma_1189
-    runName: str
+    run_name: str
         run name tag to identify the output of specified OpSim output.
-        Since new OpSim outputs have different columns, the runName for enigma_1189 **must**
+        Since new OpSim outputs have different columns, the run_name for enigma_1189 **must**
         be 'enigma1189'; can be anything for other outputs, e.g. 'minion1016'
-    noDithOnly: `bool`
+    no_dith_only: `bool`
         set to True if only want to consider the undithered survey. Default: False
-    bestDithOnly: `bool`
+    best_dith_only: `bool`
         set to True if only want to consider RandomDitherFieldPerVisit.
         Default: False
-    specifiedDith: str
+    specified_dith: str
         specific dither strategy to run; could be a string or a list of strings.
         Default: None
     nside: int
         HEALpix resolution parameter. Default: 128
-    filterBand: str
+    filter_band: str
         any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
-    cutOffYear: int
+    cut_off_year: int
         year cut to restrict analysis to only a subset of the survey.
         Must range from 1 to 9, or None for the full survey analysis (10 yrs).
         Default: None
-    redshiftBin: str
+    redshift_bin: str
         options include '0.<z<0.15', '0.15<z<0.37', '0.37<z<0.66, '0.66<z<1.0',
         '1.0<z<1.5', '1.5<z<2.0', '2.0<z<2.5', '2.5<z<3.0','3.0<z<3.5', '3.5<z<4.0',
         'all' for no redshift restriction (i.e. 0.<z<4.0)
         Default: 'all'
-    CFHTLSCounts: `bool`
+    cfhtls_counts: `bool`
         set to True if want to calculate the total galaxy counts from CFHTLS
-        powerlaw from LSST Science Book. Must be run with redshiftBin='all'
+        powerlaw from LSST Science Book. Must be run with redshift_bin='all'
         Default: False
-    normalizedMockCatalogCounts: `bool`
+    normalized_mock_catalog_counts: `bool`
         set to False if  want the raw/un-normalized galaxy
         counts from mock catalogs. Default: True
-    includeDustExtinction: `bool`:
+    include_dust_extinction: `bool`:
         set to include dust extinction when calculating the coadded
         depth. Default: True
-    saveRawNumGalData: `bool`
-        set to True to save numGal data right away, i.e. before
+    save_raw_num_gal_data: `bool`
+        set to True to save num_gal data right away, i.e. before
         0pt error calibration, bordering masking, or poisson noise.
         Default: True
-    pixelRadiusForMasking: int
+    pixel_radius_for_masking: int
         number of pixels to mask along the shallow border. Default: 5
-    saveNumGalDataAfterMasking: `bool`
-        set to True to save numGal data after border masking.
+    save_num_gal_data_after_masking: `bool`
+        set to True to save num_gal data after border masking.
         Default: False
-    include0ptErrors: `bool`
+    include0pt_errors: `bool`
         set to True to include photometric calibration errors.
         Default: True
-    print0ptInformation: `bool`
+    print0pt_information: `bool`
         set to True to print out some statistics (variance, the k-value, etc.)
         of the calibration errors of every dither strategy.
         Default: True
-    plot0ptPlots : `bool`
+    plot0pt_plots : `bool`
         generate 0pt plots. Default True.
-    saveNumGalDataAfter0pt: `bool`
-        set to True to save numGal data after border masking and 0pt calibration. Default: False
-    addPoissonNoise: `bool`
+    save_num_gal_data_after0pt: `bool`
+        set to True to save num_gal data after border masking and 0pt calibration. Default: False
+    add_poisson_noise: `bool`
         set to True to add poisson noise to the galaxy counts after border masking
         and the incorporation of calibration errors. Default: True
     saveNumGalDataAfterPoisson:: `bool`
-        set to True to save numGal data right away, after border masking,
+        set to True to save num_gal data right away, after border masking,
         including the calibration errors, and the  poisson noise.
         Default: True
     showDeltaNByNPlots: `bool`
@@ -189,10 +189,10 @@ def artificialStructureCalculation(
     saveDeltaNByNPlots: `bool`
         set to True to save the plots related to the fluctuations in the galaxy
         counts. Will work only when plotDeltaNByN=True. Default: True
-    saveDeltaNByNData: `bool`
+    save_delta_n_by_n_data: `bool`
         set to True to save data for the the fluctuations in the galaxy counts.
         Default: True
-    saveClsForDeltaNByN: `bool`
+    save_cls_for_delta_n_by_n: `bool`
         set to True to save the power spectrum data for the the fluctuations in
         the galaxy counts. Default: True
     show_comp_plots: `bool`
@@ -200,95 +200,95 @@ def artificialStructureCalculation(
         han one dither strategy); otherwise, the plots will be saved and not displayed.
         Default: False
     return_stuff: `bool`
-        set to True to get the metricBundle object, the outDir, and resultsDb object.
+        set to True to get the metricBundle object, the out_dir, and results_db object.
         Default: False
     """
-    startTime = time.time()
+    start_time = time.time()
     # ------------------------------------------------------------------------
     # set up the metric
-    galCountMetric = GalaxyCountsMetric(
-        upperMagLimit=upperMagLimit,
-        includeDustExtinction=includeDustExtinction,
-        redshiftBin=redshiftBin,
-        filterBand=filterBand,
+    gal_count_metric = GalaxyCountsMetric(
+        upper_mag_limit=upper_mag_limit,
+        include_dust_extinction=include_dust_extinction,
+        redshift_bin=redshift_bin,
+        filter_band=filter_band,
         nside=nside,
-        CFHTLSCounts=CFHTLSCounts,
-        normalizedMockCatalogCounts=normalizedMockCatalogCounts,
+        cfhtls_counts=cfhtls_counts,
+        normalized_mock_catalog_counts=normalized_mock_catalog_counts,
     )
     # OpSim database
     opsdb = db.OpsimDatabase(dbfile)
 
     # ------------------------------------------------------------------------
-    # set up the outDir name
+    # set up the out_dir name
     zeropt_tag, dust_tag = "", ""
-    if include0ptErrors:
+    if include0pt_errors:
         zeropt_tag = "with0ptErrors"
     else:
         zeropt_tag = "no0ptErrors"
 
-    if includeDustExtinction:
+    if include_dust_extinction:
         dust_tag = "withDustExtinction"
     else:
         dust_tag = "noDustExtinction"
 
-    if cutOffYear is not None:
-        survey_tag = "%syearCut" % (cutOffYear)
+    if cut_off_year is not None:
+        survey_tag = "%syearCut" % (cut_off_year)
     else:
         survey_tag = "fullSurveyPeriod"
 
     # check to make sure redshift bin is ok.
-    allowedRedshiftBins = list(powerLawConst_a.keys()) + ["all"]
-    if redshiftBin not in allowedRedshiftBins:
+    allowed_redshift_bins = list(power_law_const_a.keys()) + ["all"]
+    if redshift_bin not in allowed_redshift_bins:
         print(
             "ERROR: Invalid redshift bin. Input bin can only be among %s.\n"
-            % (allowedRedshiftBins)
+            % (allowed_redshift_bins)
         )
         return
-    zbin_tag = redshiftBin
-    if redshiftBin == "all":
+    zbin_tag = redshift_bin
+    if redshift_bin == "all":
         zbin_tag = "allRedshiftData"
 
     poisson_tag = ""
-    if addPoissonNoise:
+    if add_poisson_noise:
         poisson_tag = "withPoissonNoise"
     else:
         poisson_tag = "noPoissonNoise"
 
     counts_tag = ""
-    if CFHTLSCounts:
+    if cfhtls_counts:
         counts_tag = "CFHTLSpowerLaw"
-    elif normalizedMockCatalogCounts:
+    elif normalized_mock_catalog_counts:
         counts_tag = "normalizedGalaxyCounts"
     else:
         counts_tag = "unnormalizedGalaxyCounts"
 
-    outDir = (
+    out_dir = (
         f"artificialStructure_{poisson_tag}_nside{nside}"
-        f"_pixelRadiusFormasking_{pixelRadiusForMasking}_{zeropt_tag}_{dust_tag}_{filterBand}"
-        f"_{upperMagLimit}_{runName}_{survey_tag}_{zbin_tag}_{counts_tag}_directory"
+        f"_pixelRadiusFormasking_{pixel_radius_for_masking}_{zeropt_tag}_{dust_tag}_{filter_band}"
+        f"_{upper_mag_limit}_{run_name}_{survey_tag}_{zbin_tag}_{counts_tag}_directory"
     )
 
-    print("# outDir: %s\n" % outDir)
-    if not os.path.exists("%s%s" % (path, outDir)):
-        os.makedirs("%s%s" % (path, outDir))
+    print("# out_dir: %s\n" % out_dir)
+    if not os.path.exists("%s%s" % (path, out_dir)):
+        os.makedirs("%s%s" % (path, out_dir))
 
     results_dbname = "resultsDb_%s.db" % np.random.randint(100)
-    resultsDb = db.ResultsDb(database=results_dbname, out_dir="%s%s" % (path, outDir))
+    results_db = db.ResultsDb(database=results_dbname, out_dir="%s%s" % (path, out_dir))
 
     # ------------------------------------------------------------------------
     # set up the sql constraint
-    propIds, propTags = opsdb.fetchPropInfo()
-    wfdWhere = opsdb.createSQLWhere("WFD", propTags)
-    raDecInDeg = opsdb.raDecInDeg
-    if cutOffYear is not None:
-        nightCutOff = (cutOffYear) * 365.25
+    prop_ids, prop_tags = opsdb.fetchPropInfo()
+    wfd_where = opsdb.createSQLWhere("WFD", prop_tags)
+    ra_dec_in_deg = opsdb.raDecInDeg
+    if cut_off_year is not None:
+        night_cut_off = (cut_off_year) * 365.25
         sqlconstraint = '%s and night<=%s and filter=="%s"' % (
-            wfdWhere,
-            nightCutOff,
-            filterBand,
+            wfd_where,
+            night_cut_off,
+            filter_band,
         )
     else:
-        sqlconstraint = '%s and filter=="%s"' % (wfdWhere, filterBand)
+        sqlconstraint = '%s and filter=="%s"' % (wfd_where, filter_band)
     print("# sqlconstraint: %s" % sqlconstraint)
 
     # ------------------------------------------------------------------------
@@ -302,354 +302,354 @@ def artificialStructureCalculation(
     update += "for %s for %s for %s<%s. " % (
         survey_tag,
         zbin_tag,
-        filterBand,
-        upperMagLimit,
+        filter_band,
+        upper_mag_limit,
     )
     update += "\nWith %s and PixelRadiusForMasking: %s.\n" % (
         counts_tag,
-        pixelRadiusForMasking,
+        pixel_radius_for_masking,
     )
     update += "\nsqlconstraint: %s" % sqlconstraint
-    update += "\nRunning with %s\n" % runName
-    update += "\noutDir: %s\n" % outDir
+    update += "\nRunning with %s\n" % run_name
+    update += "\nout_dir: %s\n" % out_dir
     update += "\nMAF version: %s\n" % rubin_sim.maf.__version__
 
     # figure out the readme name
     readme_name = "ReadMe"
     readmes = [
-        f for f in os.listdir("%s%s" % (path, outDir)) if any([f.endswith(".txt")])
+        f for f in os.listdir("%s%s" % (path, out_dir)) if any([f.endswith(".txt")])
     ]
-    numFile = 0
+    num_file = 0
     for f in readmes:
         if f.__contains__("%s_" % readme_name):
             temp = f.split(".txt")[0]
-            numFile = max(numFile, int(temp.split("%s_" % readme_name)[1]))
+            num_file = max(num_file, int(temp.split("%s_" % readme_name)[1]))
         else:
-            numFile = 1
-    readme_name = "ReadMe_%s.txt" % (numFile + 1)
-    readme = open("%s%s/%s" % (path, outDir, readme_name), "w")
+            num_file = 1
+    readme_name = "ReadMe_%s.txt" % (num_file + 1)
+    readme = open("%s%s/%s" % (path, out_dir, readme_name), "w")
     readme.write(update)
     readme.close()
 
     # ------------------------------------------------------------------------
-    # setup all the slicers. set up randomSeed for random/repRandom strategies through stackerList.
+    # setup all the slicers. set up random_seed for random/repRandom strategies through stacker_list.
     slicer = {}
-    stackerList = {}
+    stacker_list = {}
 
-    if specifiedDith is not None:
+    if specified_dith is not None:
         # would like to add all the stackers first and then keep only the one that is specified
-        bestDithOnly, noDithOnly = False, False
+        best_dith_only, no_dith_only = False, False
 
-    if bestDithOnly:
-        stackerList["RandomDitherFieldPerVisit"] = [
+    if best_dith_only:
+        stacker_list["RandomDitherFieldPerVisit"] = [
             mafStackers.RandomDitherFieldPerVisitStacker(
-                degrees=raDecInDeg, randomSeed=1000
+                degrees=ra_dec_in_deg, random_seed=1000
             )
         ]
         slicer["RandomDitherFieldPerVisit"] = slicers.HealpixSlicer(
             lon_col="randomDitherFieldPerVisitRa",
             lat_col="randomDitherFieldPerVisitDec",
-            lat_lon_deg=raDecInDeg,
+            lat_lon_deg=ra_dec_in_deg,
             nside=nside,
-            useCache=False,
+            use_cache=False,
         )
     else:
         slicer["NoDither"] = slicers.HealpixSlicer(
             lon_col="fieldRA",
             lat_col="fieldDec",
-            lat_lon_deg=raDecInDeg,
+            lat_lon_deg=ra_dec_in_deg,
             nside=nside,
-            useCache=False,
+            use_cache=False,
         )
-        if not noDithOnly:
+        if not no_dith_only:
             # random dithers on different timescales
-            stackerList["RandomDitherPerNight"] = [
+            stacker_list["RandomDitherPerNight"] = [
                 mafStackers.RandomDitherPerNightStacker(
-                    degrees=raDecInDeg, randomSeed=1000
+                    degrees=ra_dec_in_deg, random_seed=1000
                 )
             ]
-            stackerList["RandomDitherFieldPerNight"] = [
+            stacker_list["RandomDitherFieldPerNight"] = [
                 mafStackers.RandomDitherFieldPerNightStacker(
-                    degrees=raDecInDeg, randomSeed=1000
+                    degrees=ra_dec_in_deg, random_seed=1000
                 )
             ]
-            stackerList["RandomDitherFieldPerVisit"] = [
+            stacker_list["RandomDitherFieldPerVisit"] = [
                 mafStackers.RandomDitherFieldPerVisitStacker(
-                    degrees=raDecInDeg, randomSeed=1000
+                    degrees=ra_dec_in_deg, random_seed=1000
                 )
             ]
 
             # rep random dithers on different timescales
-            # stackerList['RepulsiveRandomDitherPerNight'] = [myStackers.RepulsiveRandomDitherPerNightStacker(degrees=raDecInDeg,
-            #                                                                                                randomSeed=1000)]
-            # stackerList['RepulsiveRandomDitherFieldPerNight'] = [myStackers.RepulsiveRandomDitherFieldPerNightStacker(degrees=raDecInDeg,
-            #                                                                                                          randomSeed=1000)]
-            # stackerList['RepulsiveRandomDitherFieldPerVisit'] = [myStackers.RepulsiveRandomDitherFieldPerVisitStacker(degrees=raDecInDeg,
-            #                                                                                                          randomSeed=1000)]
+            # stacker_list['RepulsiveRandomDitherPerNight'] = [myStackers.RepulsiveRandomDitherPerNightStacker(degrees=ra_dec_in_deg,
+            #                                                                                                random_seed=1000)]
+            # stacker_list['RepulsiveRandomDitherFieldPerNight'] = [myStackers.RepulsiveRandomDitherFieldPerNightStacker(degrees=ra_dec_in_deg,
+            #                                                                                                          random_seed=1000)]
+            # stacker_list['RepulsiveRandomDitherFieldPerVisit'] = [myStackers.RepulsiveRandomDitherFieldPerVisitStacker(degrees=ra_dec_in_deg,
+            #                                                                                                          random_seed=1000)]
             # set up slicers for different dithers
             # random dithers on different timescales
             slicer["RandomDitherPerNight"] = slicers.HealpixSlicer(
                 lon_col="randomDitherPerNightRa",
                 lat_col="randomDitherPerNightDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["RandomDitherFieldPerNight"] = slicers.HealpixSlicer(
                 lon_col="randomDitherFieldPerNightRa",
                 lat_col="randomDitherFieldPerNightDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["RandomDitherFieldPerVisit"] = slicers.HealpixSlicer(
                 lon_col="randomDitherFieldPerVisitRa",
                 lat_col="randomDitherFieldPerVisitDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             # rep random dithers on different timescales
             # slicer['RepulsiveRandomDitherPerNight'] = slicers.HealpixSlicer(lonCol='repulsiveRandomDitherPerNightRa',
             #                                                               latCol='repulsiveRandomDitherPerNightDec',
-            #                                                               latLonDeg=raDecInDeg, nside=nside, useCache=False)
+            #                                                               latLonDeg=ra_dec_in_deg, nside=nside, use_cache=False)
             # slicer['RepulsiveRandomDitherFieldPerNight'] = slicers.HealpixSlicer(lonCol='repulsiveRandomDitherFieldPerNightRa',
             #                                                                    latCol='repulsiveRandomDitherFieldPerNightDec',
-            #                                                                    latLonDeg=raDecInDeg, nside=nside,
-            #                                                                    useCache=False)
+            #                                                                    latLonDeg=ra_dec_in_deg, nside=nside,
+            #                                                                    use_cache=False)
             # slicer['RepulsiveRandomDitherFieldPerVisit'] = slicers.HealpixSlicer(lonCol='repulsiveRandomDitherFieldPerVisitRa',
             #                                                                    latCol='repulsiveRandomDitherFieldPerVisitDec',
-            #                                                                    latLonDeg=raDecInDeg, nside=nside,
-            #                                                                    useCache=False)
+            #                                                                    latLonDeg=ra_dec_in_deg, nside=nside,
+            #                                                                    use_cache=False)
             # spiral dithers on different timescales
             slicer["FermatSpiralDitherPerNight"] = slicers.HealpixSlicer(
                 lon_col="fermatSpiralDitherPerNightRa",
                 lat_col="fermatSpiralDitherPerNightDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["FermatSpiralDitherFieldPerNight"] = slicers.HealpixSlicer(
                 lon_col="fermatSpiralDitherFieldPerNightRa",
                 lat_col="fermatSpiralDitherFieldPerNightDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["FermatSpiralDitherFieldPerVisit"] = slicers.HealpixSlicer(
                 lon_col="fermatSpiralDitherFieldPerVisitRa",
                 lat_col="fermatSpiralDitherFieldPerVisitDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             # hex dithers on different timescales
             slicer["SequentialHexDitherPerNight"] = slicers.HealpixSlicer(
                 lon_col="hexDitherPerNightRa",
                 lat_col="hexDitherPerNightDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["SequentialHexDitherFieldPerNight"] = slicers.HealpixSlicer(
                 lon_col="hexDitherFieldPerNightRa",
                 lat_col="hexDitherFieldPerNightDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["SequentialHexDitherFieldPerVisit"] = slicers.HealpixSlicer(
                 lon_col="hexDitherFieldPerVisitRa",
                 lat_col="hexDitherFieldPerVisitDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             # per season dithers
             slicer["PentagonDitherPerSeason"] = slicers.HealpixSlicer(
                 lon_col="pentagonDitherPerSeasonRa",
                 lat_col="pentagonDitherPerSeasonDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["PentagonDiamondDitherPerSeason"] = slicers.HealpixSlicer(
                 lon_col="pentagonDiamondDitherPerSeasonRa",
                 lat_col="pentagonDiamondDitherPerSeasonDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
             slicer["SpiralDitherPerSeason"] = slicers.HealpixSlicer(
                 lon_col="spiralDitherPerSeasonRa",
                 lat_col="spiralDitherPerSeasonDec",
-                lat_lon_deg=raDecInDeg,
+                lat_lon_deg=ra_dec_in_deg,
                 nside=nside,
-                useCache=False,
+                use_cache=False,
             )
     # ------------------------------------------------------------------------
-    if specifiedDith is not None:
-        stackerList_, slicer_ = {}, {}
-        if isinstance(specifiedDith, str):
-            if specifiedDith in slicer.keys():
-                if specifiedDith.__contains__("Random"):
+    if specified_dith is not None:
+        stacker_list_, slicer_ = {}, {}
+        if isinstance(specified_dith, str):
+            if specified_dith in slicer.keys():
+                if specified_dith.__contains__("Random"):
                     # only Random dithers have a stacker object for rand seed specification
-                    stackerList_[specifiedDith] = stackerList[specifiedDith]
-                slicer_[specifiedDith] = slicer[specifiedDith]
-        elif isinstance(specifiedDith, list):
-            for specific in specifiedDith:
+                    stacker_list_[specified_dith] = stacker_list[specified_dith]
+                slicer_[specified_dith] = slicer[specified_dith]
+        elif isinstance(specified_dith, list):
+            for specific in specified_dith:
                 if specific in slicer.keys():
                     if specific.__contains__("Random"):
                         # only Random dithers have a stacker object for rand seed specification
-                        stackerList_[specific] = stackerList[specific]
+                        stacker_list_[specific] = stacker_list[specific]
                     slicer_[specific] = slicer[specific]
         else:
-            err = "Invalid value for specifiedDith: %s." % specifiedDith
+            err = "Invalid value for specified_dith: %s." % specified_dith
             err += "Allowed values include one of the following:\n%s" % (slicer.keys())
             raise ValueError(err)
-        stackerList, slicer = stackerList_, slicer_
+        stacker_list, slicer = stacker_list_, slicer_
 
     print("\nRunning the analysis for %s" % slicer.keys())
     # ------------------------------------------------------------------------
-    readme = open("%s%s/%s" % (path, outDir, readme_name), "a")
+    readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
     readme.write("\nObserving strategies considered: %s\n" % (list(slicer.keys())))
     readme.close()
     # ------------------------------------------------------------------------
-    # set up bundle for numGal (and later deltaN/N)
-    myBundles = {}
-    dustMap = maps.DustMap(
+    # set up bundle for num_gal (and later deltaN/N)
+    my_bundles = {}
+    dust_map = maps.DustMap(
         interp=False, nside=nside
-    )  # include dustMap; actual in/exclusion of dust is handled by the galaxyCountMetric
+    )  # include dust_map; actual in/exclusion of dust is handled by the galaxyCountMetric
     for dither in slicer:
-        if dither in stackerList:
-            myBundles[dither] = metricBundles.MetricBundle(
-                galCountMetric,
+        if dither in stacker_list:
+            my_bundles[dither] = metricBundles.MetricBundle(
+                gal_count_metric,
                 slicer[dither],
                 sqlconstraint,
-                stacker_list=stackerList[dither],
-                run_name=runName,
+                stacker_list=stacker_list[dither],
+                run_name=run_name,
                 metadata=dither,
-                maps_list=[dustMap],
+                maps_list=[dust_map],
             )
         else:
-            myBundles[dither] = metricBundles.MetricBundle(
-                galCountMetric,
+            my_bundles[dither] = metricBundles.MetricBundle(
+                gal_count_metric,
                 slicer[dither],
                 sqlconstraint,
-                run_name=runName,
+                run_name=run_name,
                 metadata=dither,
-                maps_list=[dustMap],
+                maps_list=[dust_map],
             )
     # ------------------------------------------------------------------------
-    # run the metric/slicer combination for galaxy counts (numGal)
-    print("\n# Running myBundles ...")
-    bGroup = metricBundles.MetricBundleGroup(
-        myBundles,
+    # run the metric/slicer combination for galaxy counts (num_gal)
+    print("\n# Running my_bundles ...")
+    b_group = metricBundles.MetricBundleGroup(
+        my_bundles,
         opsdb,
-        out_dir="%s%s" % (path, outDir),
-        results_db=resultsDb,
+        out_dir="%s%s" % (path, out_dir),
+        results_db=results_db,
         save_early=False,
     )
-    bGroup.run_all()
+    b_group.run_all()
     # ------------------------------------------------------------------------
 
-    # save the raw numGal data.
-    if saveRawNumGalData:
-        outDir_new = "numGalData_beforeMasking_before0pt"
-        if not os.path.exists("%s%s/%s" % (path, outDir, outDir_new)):
-            os.makedirs("%s%s/%s" % (path, outDir, outDir_new))
-        saveBundleData_npzFormat(
-            "%s%s/%s" % (path, outDir, outDir_new),
-            myBundles,
+    # save the raw num_gal data.
+    if save_raw_num_gal_data:
+        out_dir_new = "numGalData_beforeMasking_before0pt"
+        if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
+            os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
+        save_bundle_data_npz_format(
+            "%s%s/%s" % (path, out_dir, out_dir_new),
+            my_bundles,
             "numGalData_unmasked_no0pt",
-            filterBand,
+            filter_band,
         )
     # ------------------------------------------------------------------------
-    # print out tot(numGal) associated with each strategy
+    # print out tot(num_gal) associated with each strategy
     # write to the readme as well
     update = "\n# Before any border masking or photometric error calibration: "
     print(update)
-    for dither in myBundles:
-        ind = np.where(myBundles[dither].metricValues.mask[:] == False)[0]
-        printOut = "Total Galaxies for %s: %.9e" % (
+    for dither in my_bundles:
+        ind = np.where(my_bundles[dither].metricValues.mask[:] == False)[0]
+        print_out = "Total Galaxies for %s: %.9e" % (
             dither,
-            sum(myBundles[dither].metricValues.data[ind]),
+            sum(my_bundles[dither].metricValues.data[ind]),
         )
-        update += "\n %s" % printOut
-        print(printOut)
+        update += "\n %s" % print_out
+        print(print_out)
     update += "\n"
-    readme = open("%s%s/%s" % (path, outDir, readme_name), "a")
+    readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
     readme.write(update)
     readme.close()
     print(
         "\n## Time since the start of the calculation: %.2f hrs"
-        % ((time.time() - startTime) / 3600.0)
+        % ((time.time() - start_time) / 3600.0)
     )
 
     # ------------------------------------------------------------------------
     # mask the edges: the data in the masked pixels is not changed
-    plotHandler = plots.PlotHandler(
-        outDir="%s%s" % (path, outDir),
-        resultsDb=resultsDb,
+    plot_handler = plots.PlotHandler(
+        out_dir="%s%s" % (path, out_dir),
+        results_db=results_db,
         thumbnail=False,
         savefig=False,
     )
     print("\n# Masking the edges ...")
-    myBundles, borderPixelsMasked = maskingAlgorithmGeneralized(
-        myBundles,
-        plotHandler,
+    my_bundles, border_pixels_masked = masking_algorithm_generalized(
+        my_bundles,
+        plot_handler,
         "Number of Galaxies",
         nside=nside,
-        pixelRadius=pixelRadiusForMasking,
-        plotIntermediatePlots=False,
-        plotFinalPlots=False,
-        printFinalInfo=True,
-        returnBorderIndices=True,
+        pixel_radius=pixel_radius_for_masking,
+        plot_intermediate_plots=False,
+        plot_final_plots=False,
+        print_final_info=True,
+        return_border_indices=True,
     )
     # ------------------------------------------------------------------------
 
-    # save the numGal data.
-    if saveNumGalDataAfterMasking:
-        outDir_new = "numGalData_afterBorderMasking"
-        if not os.path.exists("%s%s/%s" % (path, outDir, outDir_new)):
-            os.makedirs("%s%s/%s" % (path, outDir, outDir_new))
-        saveBundleData_npzFormat(
-            "%s%s/%s" % (path, outDir, outDir_new),
-            myBundles,
+    # save the num_gal data.
+    if save_num_gal_data_after_masking:
+        out_dir_new = "numGalData_afterBorderMasking"
+        if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
+            os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
+        save_bundle_data_npz_format(
+            "%s%s/%s" % (path, out_dir, out_dir_new),
+            my_bundles,
             "numGalData_masked",
-            filterBand,
+            filter_band,
         )
     # ------------------------------------------------------------------------
-    # print out tot(numGal) associated with each strategy
+    # print out tot(num_gal) associated with each strategy
     # write to the readme as well
-    if pixelRadiusForMasking != 0:
+    if pixel_radius_for_masking != 0:
         update = "\n# After border masking: "
         print(update)
-        for dither in myBundles:
-            ind = np.where(myBundles[dither].metricValues.mask[:] == False)[0]
-            printOut = "Total Galaxies for %s: %.9e" % (
+        for dither in my_bundles:
+            ind = np.where(my_bundles[dither].metricValues.mask[:] == False)[0]
+            print_out = "Total Galaxies for %s: %.9e" % (
                 dither,
-                sum(myBundles[dither].metricValues.data[ind]),
+                sum(my_bundles[dither].metricValues.data[ind]),
             )
-            print(printOut)
-            update += "\n %s" % printOut
+            print(print_out)
+            update += "\n %s" % print_out
         update += "\n"
 
-        readme = open("%s%s/%s" % (path, outDir, readme_name), "a")
+        readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
         readme.write(update)
         readme.close()
     print(
         "\n## Time since the start of the calculation: %.2f hrs"
-        % ((time.time() - startTime) / 3600.0)
+        % ((time.time() - start_time) / 3600.0)
     )
 
     ################################################################################################################
     # If include 0pt errors
-    # Ansatz: for each pixel i, del_i= k*z_i/sqrt(nObs_i),
+    # Ansatz: for each pixel i, del_i= k*z_i/sqrt(n_obs_i),
     # where z_i is the average seeing the pixel minus avgSeeing across map, nObs is the number of observations,
     # and k is a constant such that var(del_i)= (0.01)^2. 0.01 for the 1% LSST goal.
-    # k-constraint equation becomes: k^2*var(z_i/sqrt(nObs_i))= (0.01)^2    --- equation 1
-    if include0ptErrors:
+    # k-constraint equation becomes: k^2*var(z_i/sqrt(n_obs_i))= (0.01)^2    --- equation 1
+    if include0pt_errors:
         tablename = "SummaryAllProps"
         if tablename in opsdb.tableNames:
             colname = "seeingFwhmEff"
@@ -663,261 +663,261 @@ def artificialStructureCalculation(
                 if colname not in opsdb.columnNames[tablename]:
                     raise ValueError("Unclear which seeing column to use.")
 
-        meanMetric = metrics.MeanMetric(col=colname)  # for avgSeeing per HEALpix pixel
+        mean_metric = metrics.MeanMetric(col=colname)  # for avgSeeing per HEALpix pixel
 
-        nObsMetric = NumObsMetric(nside=nside)  # for numObs per HEALpix pixel
-        if includeDustExtinction:
-            coaddMetric = metrics.ExgalM5(lsstFilter=filterBand)
+        n_obs_metric = NumObsMetric(nside=nside)  # for numObs per HEALpix pixel
+        if include_dust_extinction:
+            coadd_metric = metrics.ExgalM5(lsstFilter=filter_band)
         else:
-            coaddMetric = metrics.Coaddm5Metric()
+            coadd_metric = metrics.Coaddm5Metric()
 
-        avgSeeingBundle = {}
-        nObsBundle = {}
-        coaddBundle = {}
+        avg_seeing_bundle = {}
+        n_obs_bundle = {}
+        coadd_bundle = {}
 
-        # can pass dustMap to metricBundle regardless of whether to include dust extinction or not.
-        # the metric choice (coadd vs. exGal) takes care of whether to use the dustMap or not.
-        dustMap = maps.DustMap(interp=False, nside=nside)
+        # can pass dust_map to metricBundle regardless of whether to include dust extinction or not.
+        # the metric choice (coadd vs. exGal) takes care of whether to use the dust_map or not.
+        dust_map = maps.DustMap(interp=False, nside=nside)
         for dither in slicer:
-            if dither in stackerList:
-                avgSeeingBundle[dither] = metricBundles.MetricBundle(
-                    meanMetric,
+            if dither in stacker_list:
+                avg_seeing_bundle[dither] = metricBundles.MetricBundle(
+                    mean_metric,
                     slicer[dither],
                     sqlconstraint,
-                    stacker_list=stackerList[dither],
-                    run_name=runName,
+                    stacker_list=stacker_list[dither],
+                    run_name=run_name,
                     metadata=dither,
                 )
-                nObsBundle[dither] = metricBundles.MetricBundle(
-                    nObsMetric,
+                n_obs_bundle[dither] = metricBundles.MetricBundle(
+                    n_obs_metric,
                     slicer[dither],
                     sqlconstraint,
-                    stacker_list=stackerList[dither],
-                    run_name=runName,
+                    stacker_list=stacker_list[dither],
+                    run_name=run_name,
                     metadata=dither,
                 )
-                coaddBundle[dither] = metricBundles.MetricBundle(
-                    coaddMetric,
+                coadd_bundle[dither] = metricBundles.MetricBundle(
+                    coadd_metric,
                     slicer[dither],
                     sqlconstraint,
-                    stacker_list=stackerList[dither],
-                    run_name=runName,
+                    stacker_list=stacker_list[dither],
+                    run_name=run_name,
                     metadata=dither,
-                    maps_list=[dustMap],
+                    maps_list=[dust_map],
                 )
             else:
-                avgSeeingBundle[dither] = metricBundles.MetricBundle(
-                    meanMetric,
+                avg_seeing_bundle[dither] = metricBundles.MetricBundle(
+                    mean_metric,
                     slicer[dither],
                     sqlconstraint,
-                    run_name=runName,
+                    run_name=run_name,
                     metadata=dither,
                 )
-                nObsBundle[dither] = metricBundles.MetricBundle(
-                    nObsMetric,
+                n_obs_bundle[dither] = metricBundles.MetricBundle(
+                    n_obs_metric,
                     slicer[dither],
                     sqlconstraint,
-                    run_name=runName,
+                    run_name=run_name,
                     metadata=dither,
                 )
-                coaddBundle[dither] = metricBundles.MetricBundle(
-                    coaddMetric,
+                coadd_bundle[dither] = metricBundles.MetricBundle(
+                    coadd_metric,
                     slicer[dither],
                     sqlconstraint,
-                    run_name=runName,
+                    run_name=run_name,
                     metadata=dither,
-                    maps_list=[dustMap],
+                    maps_list=[dust_map],
                 )
-        print("\n# Running avgSeeingBundle ...")
-        aGroup = metricBundles.MetricBundleGroup(
-            avgSeeingBundle,
+        print("\n# Running avg_seeing_bundle ...")
+        a_group = metricBundles.MetricBundleGroup(
+            avg_seeing_bundle,
             opsdb,
-            out_dir="%s%s" % (path, outDir),
-            results_db=resultsDb,
+            out_dir="%s%s" % (path, out_dir),
+            results_db=results_db,
             save_early=False,
         )
-        aGroup.run_all()
+        a_group.run_all()
 
-        print("\n# Running nObsBundle ...")
-        nGroup = metricBundles.MetricBundleGroup(
-            nObsBundle,
+        print("\n# Running n_obs_bundle ...")
+        n_group = metricBundles.MetricBundleGroup(
+            n_obs_bundle,
             opsdb,
-            out_dir="%s%s" % (path, outDir),
-            results_db=resultsDb,
+            out_dir="%s%s" % (path, out_dir),
+            results_db=results_db,
             save_early=False,
         )
-        nGroup.run_all()
+        n_group.run_all()
 
-        print("\n# Running coaddBundle ...")
-        cGroup = metricBundles.MetricBundleGroup(
-            coaddBundle,
+        print("\n# Running coadd_bundle ...")
+        c_group = metricBundles.MetricBundleGroup(
+            coadd_bundle,
             opsdb,
-            out_dir="%s%s" % (path, outDir),
-            results_db=resultsDb,
+            out_dir="%s%s" % (path, out_dir),
+            results_db=results_db,
             save_early=False,
         )
-        cGroup.run_all()
+        c_group.run_all()
 
         # ------------------------------------------------------------------------
         # mask the border pixels
         for dither in slicer:
-            avgSeeingBundle[dither].metricValues.mask[borderPixelsMasked[dither]] = True
-            nObsBundle[dither].metricValues.mask[borderPixelsMasked[dither]] = True
-            coaddBundle[dither].metricValues.mask[borderPixelsMasked[dither]] = True
+            avg_seeing_bundle[dither].metricValues.mask[border_pixels_masked[dither]] = True
+            n_obs_bundle[dither].metricValues.mask[border_pixels_masked[dither]] = True
+            coadd_bundle[dither].metricValues.mask[border_pixels_masked[dither]] = True
 
         # ------------------------------------------------------------------------
         # calculate averageSeeing over the entrie map
         bundle = {}
-        bundle["avgSeeingAcrossMap"] = metricBundles.MetricBundle(
-            meanMetric,
+        bundle["avg_seeing_across_map"] = metricBundles.MetricBundle(
+            mean_metric,
             slicers.UniSlicer(),
             sqlconstraint,
-            run_name=runName,
-            metadata="avgSeeingAcrossMap",
+            run_name=run_name,
+            metadata="avg_seeing_across_map",
         )
-        bundleGroup = metricBundles.MetricBundleGroup(
+        bundle_group = metricBundles.MetricBundleGroup(
             bundle,
             opsdb,
-            out_dir="%s%s" % (path, outDir),
-            results_db=resultsDb,
+            out_dir="%s%s" % (path, out_dir),
+            results_db=results_db,
             save_early=False,
         )
-        bundleGroup.run_all()
-        avgSeeingAcrossMap = bundle["avgSeeingAcrossMap"].metricValues.data[0]
-        printOut = "\n# Average seeing across map: %s" % (avgSeeingAcrossMap)
-        print(printOut)
+        bundle_group.run_all()
+        avg_seeing_across_map = bundle["avg_seeing_across_map"].metricValues.data[0]
+        print_out = "\n# Average seeing across map: %s" % (avg_seeing_across_map)
+        print(print_out)
 
         # add to the readme
-        readme = open("%s%s/%s" % (path, outDir, readme_name), "a")
-        readme.write(printOut)
+        readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
+        readme.write(print_out)
         readme.close()
 
-        # find the zero point uncertainties: for each pixel i, del_i=k*z_i/sqrt(nObs_i),
+        # find the zero point uncertainties: for each pixel i, del_i=k*z_i/sqrt(n_obs_i),
         # where z_i is the average seeing the pixel minus avgSeeing across map, nObs is the number of observations,
         # and k is a constant such that var(del_i)=(0.01)^2.
-        # k-constraint equation becomes: k^2*var(z_i/sqrt(nObs_i))=(0.01)^2    --- equation 1
+        # k-constraint equation becomes: k^2*var(z_i/sqrt(n_obs_i))=(0.01)^2    --- equation 1
         k = Symbol("k")
-        zeroPtError = {}
-        kValue = {}
+        zero_pt_error = {}
+        k_value = {}
 
         print(
-            "\n# 0pt calculation ansatz: \delta_i=k*z_i/sqrt{nObs_i}, where k is s.t. var(\delta_i)=(0.01)^$"
+            "\n# 0pt calculation ansatz: \delta_i=k*z_i/sqrt{n_obs_i}, where k is s.t. var(\delta_i)=(0.01)^$"
         )
 
-        if save0ptPlots:
-            outDir_new = "0pt_plots"
-            if not os.path.exists("%s%s/%s" % (path, outDir, outDir_new)):
-                os.makedirs("%s%s/%s" % (path, outDir, outDir_new))
+        if save0pt_plots:
+            out_dir_new = "0pt_plots"
+            if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
+                os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
 
         # ------------------------------------------------------------------------
         # add to the readme
-        readme = open("%s%s/%s" % (path, outDir, readme_name), "a")
+        readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
         readme.write("\n\n0pt Information: ")
         readme.close()
 
-        for dither in avgSeeingBundle:
-            z_i = avgSeeingBundle[dither].metricValues.data[:] - avgSeeingAcrossMap
-            nObs_i = nObsBundle[dither].metricValues.data[:]
+        for dither in avg_seeing_bundle:
+            z_i = avg_seeing_bundle[dither].metricValues.data[:] - avg_seeing_across_map
+            n_obs_i = n_obs_bundle[dither].metricValues.data[:]
             ind = np.where(
-                (nObsBundle[dither].metricValues.mask == False) & (nObs_i != 0.0)
+                (n_obs_bundle[dither].metricValues.mask == False) & (n_obs_i != 0.0)
             )[
                 0
             ]  # make sure the uncertainty is valid; no division by 0
-            temp = np.var(z_i[ind] / np.sqrt(nObs_i[ind]))  # see equation 1
-            kValue[dither] = solve(k**2 * temp - 0.01**2, k)[1]
+            temp = np.var(z_i[ind] / np.sqrt(n_obs_i[ind]))  # see equation 1
+            k_value[dither] = solve(k**2 * temp - 0.01**2, k)[1]
 
             err = np.empty(len(z_i))
             err.fill(-500)  # initiate
-            err[ind] = (kValue[dither] * z_i[ind]) / np.sqrt(nObs_i[ind])
-            zeroPtError[dither] = err
+            err[ind] = (k_value[dither] * z_i[ind]) / np.sqrt(n_obs_i[ind])
+            zero_pt_error[dither] = err
 
             # add to the readme
-            readme = open("%s%s/%s" % (path, outDir, readme_name), "a")
+            readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
             readme.write("\nDith strategy: %s" % dither)
             readme.close()
 
             # ------------------------------------------------------------------------
-            if print0ptInformation:
+            if print0pt_information:
                 update = "\n# %s" % dither
-                ind = np.where(zeroPtError[dither] != -500)[0]
-                goodError = zeroPtError[dither][ind]
-                update += "var(0pt): %s" % np.var(goodError)
-                update += "\n0.01^2 - var(0pt) = %s" % ((0.01) ** 2 - np.var(goodError))
-                update += "\nk-value: %s\n" % kValue[dither]
+                ind = np.where(zero_pt_error[dither] != -500)[0]
+                good_error = zero_pt_error[dither][ind]
+                update += "var(0pt): %s" % np.var(good_error)
+                update += "\n0.01^2 - var(0pt) = %s" % ((0.01) ** 2 - np.var(good_error))
+                update += "\nk-value: %s\n" % k_value[dither]
                 print(update)
                 # add to the readme
-                readme = open("%s%s/%s" % (path, outDir, readme_name), "a")
+                readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
                 readme.write(update)
                 readme.close()
             # ------------------------------------------------------------------------
-            if plot0ptPlots:
+            if plot0pt_plots:
                 # since not saving the bundle for 0pt errors, must plot out stuff without the plotBundle routine.
-                ind = np.where(zeroPtError[dither] != -500)[0]
-                goodError = zeroPtError[dither][ind]
+                ind = np.where(zero_pt_error[dither] != -500)[0]
+                good_error = zero_pt_error[dither][ind]
 
-                for i in range(len(goodError)):
-                    goodError[i] = float(goodError[i])
+                for i in range(len(good_error)):
+                    good_error[i] = float(good_error[i])
 
                 update = "\n# %s" % dither
-                update += "\nMin error: %s" % min(goodError)
-                update += "\nMax error: %s" % max(goodError)
-                update += "\nMean error: %s" % np.mean(goodError)
-                update += "\nStd of error: %s\n" % np.std(goodError)
+                update += "\nMin error: %s" % min(good_error)
+                update += "\nMax error: %s" % max(good_error)
+                update += "\nMean error: %s" % np.mean(good_error)
+                update += "\nStd of error: %s\n" % np.std(good_error)
                 print(update)
 
                 # add to the readme
-                readme = open("%s%s/%s" % (path, outDir, readme_name), "a")
+                readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
                 readme.write(update)
                 readme.close()
 
                 # plot histogram
                 binsize = 0.005
                 bins = np.arange(
-                    min(goodError) - 5 * binsize, max(goodError) + 5 * binsize, binsize
+                    min(good_error) - 5 * binsize, max(good_error) + 5 * binsize, binsize
                 )
                 plt.clf()
-                plt.hist(goodError, bins=bins)
+                plt.hist(good_error, bins=bins)
                 plt.xlabel("Zeropoint Uncertainty")
                 plt.ylabel("Counts")
 
                 plt.title(
-                    "0pt error histogram; binSize = %s; upperMagLimit = %s"
-                    % (binsize, upperMagLimit)
+                    "0pt error histogram; binSize = %s; upper_mag_limit = %s"
+                    % (binsize, upper_mag_limit)
                 )
-                if save0ptPlots:
-                    filename = "0ptHistogram_%s_%s.png" % (filterBand, dither)
+                if save0pt_plots:
+                    filename = "0ptHistogram_%s_%s.png" % (filter_band, dither)
                     plt.savefig(
-                        "%s%s/%s/%s" % (path, outDir, outDir_new, filename),
+                        "%s%s/%s/%s" % (path, out_dir, out_dir_new, filename),
                         format="png",
                     )
-                if show0ptPlots:
+                if show0pt_plots:
                     plt.show()
                 else:
                     plt.close()
 
                 # plot skymap
-                temp = copy.deepcopy(coaddBundle[dither])
-                temp.metricValues.data[ind] = goodError
+                temp = copy.deepcopy(coadd_bundle[dither])
+                temp.metricValues.data[ind] = good_error
                 temp.metricValues.mask[:] = True
                 temp.metricValues.mask[ind] = False
 
-                inSurveyIndex = np.where(temp.metricValues.mask == False)[0]
-                median = np.median(temp.metricValues.data[inSurveyIndex])
-                stddev = np.std(temp.metricValues.data[inSurveyIndex])
+                in_survey_index = np.where(temp.metricValues.mask == False)[0]
+                median = np.median(temp.metricValues.data[in_survey_index])
+                stddev = np.std(temp.metricValues.data[in_survey_index])
 
-                colorMin = -0.010  # median-1.5*stddev
-                colorMax = 0.010  # median+1.5*stddev
-                nTicks = 5
-                increment = (colorMax - colorMin) / float(nTicks)
-                ticks = np.arange(colorMin + increment, colorMax, increment)
+                color_min = -0.010  # median-1.5*stddev
+                color_max = 0.010  # median+1.5*stddev
+                n_ticks = 5
+                increment = (color_max - color_min) / float(n_ticks)
+                ticks = np.arange(color_min + increment, color_max, increment)
 
                 plt.clf()
                 hp.mollview(
                     temp.metricValues.filled(temp.slicer.badval),
                     flip="astro",
                     rot=(0, 0, 0),
-                    min=colorMin,
-                    max=colorMax,
+                    min=color_min,
+                    max=color_max,
                     title="",
                     cbar=False,
                 )
@@ -934,15 +934,15 @@ def artificialStructureCalculation(
                 )
                 cb.set_label("Photometric Calibration Error")
 
-                if save0ptPlots:
+                if save0pt_plots:
                     filename = "0ptSkymap_%s.png" % (dither)
                     plt.savefig(
-                        "%s%s/%s/%s" % (path, outDir, outDir_new, filename),
+                        "%s%s/%s/%s" % (path, out_dir, out_dir_new, filename),
                         bbox_inches="tight",
                         format="png",
                     )
 
-                if show0ptPlots:
+                if show0pt_plots:
                     plt.show()
                 else:
                     plt.close()
@@ -960,236 +960,236 @@ def artificialStructureCalculation(
                 plt.ylabel(r"$\ell(\ell+1)C_\ell/(2\pi)$")
                 plt.xlim(0, 500)
 
-                if save0ptPlots:
+                if save0pt_plots:
                     # save power spectrum
                     filename = "0ptPowerSpectrum_%s.png" % (dither)
                     plt.savefig(
-                        "%s%s/%s/%s" % (path, outDir, outDir_new, filename),
+                        "%s%s/%s/%s" % (path, out_dir, out_dir_new, filename),
                         bbox_inches="tight",
                         format="png",
                     )
 
-                if show0ptPlots:
+                if show0pt_plots:
                     plt.show()
                 else:
                     plt.close()
 
         print(
             "\n## Time since the start of the calculation: %.2f hrs"
-            % ((time.time() - startTime) / 3600.0)
+            % ((time.time() - start_time) / 3600.0)
         )
 
         # ------------------------------------------------------------------------
-        # Now recalculate the numGal with the fluctuations in depth due to calibation uncertainties.
+        # Now recalculate the num_gal with the fluctuations in depth due to calibation uncertainties.
         print(
-            "\n# Recalculating numGal including 0pt errors on the upper mag limit .. "
+            "\n# Recalculating num_gal including 0pt errors on the upper mag limit .. "
         )
-        for dither in myBundles:
-            zeroPtErr = zeroPtError[dither].copy()
-            inSurvey = np.where(myBundles[dither].metricValues.mask == False)[
+        for dither in my_bundles:
+            zero_pt_err = zero_pt_error[dither].copy()
+            in_survey = np.where(my_bundles[dither].metricValues.mask == False)[
                 0
-            ]  # 04/27: only look at inSurvey region
-            for i in inSurvey:  # 4/27
-                if zeroPtErr[i] != -500:  # run only when zeroPt was calculated
-                    myBundles[dither].metricValues.data[i] = GalaxyCounts_0ptErrors(
-                        coaddBundle[dither].metricValues.data[i],
-                        upperMagLimit + zeroPtErr[i],
-                        redshiftBin=redshiftBin,
-                        filterBand=filterBand,
+            ]  # 04/27: only look at in_survey region
+            for i in in_survey:  # 4/27
+                if zero_pt_err[i] != -500:  # run only when zeroPt was calculated
+                    my_bundles[dither].metricValues.data[i] = GalaxyCounts_0ptErrors(
+                        coadd_bundle[dither].metricValues.data[i],
+                        upper_mag_limit + zero_pt_err[i],
+                        redshift_bin=redshift_bin,
+                        filter_band=filter_band,
                         nside=nside,
-                        CFHTLSCounts=CFHTLSCounts,
-                        normalizedMockCatalogCounts=normalizedMockCatalogCounts,
+                        cfhtls_counts=cfhtls_counts,
+                        normalized_mock_catalog_counts=normalized_mock_catalog_counts,
                     )
         # ------------------------------------------------------------------------
 
-        # save the raw numGal data.
-        if saveNumGalDataAfter0pt:
-            outDir_new = "numGalData_afterBorderMasking_after0pt"
-            if not os.path.exists("%s%s/%s" % (path, outDir, outDir_new)):
-                os.makedirs("%s%s/%s" % (path, outDir, outDir_new))
-            saveBundleData_npzFormat(
-                "%s%s/%s" % (path, outDir, outDir_new),
-                myBundles,
+        # save the raw num_gal data.
+        if save_num_gal_data_after0pt:
+            out_dir_new = "numGalData_afterBorderMasking_after0pt"
+            if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
+                os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
+            save_bundle_data_npz_format(
+                "%s%s/%s" % (path, out_dir, out_dir_new),
+                my_bundles,
                 "numGalData_masked_with0pt",
-                filterBand,
+                filter_band,
             )
         # ------------------------------------------------------------------------
-        # print out tot(numGal) associated with each strategy
+        # print out tot(num_gal) associated with each strategy
         # add to the read me as well
         update = "\n# After 0pt error calculation and border masking: "
         print(update)
-        for dither in myBundles:
-            ind = np.where(myBundles[dither].metricValues.mask[:] == False)[0]
-            printOut = "Total Galaxies for %s: %.9e" % (
+        for dither in my_bundles:
+            ind = np.where(my_bundles[dither].metricValues.mask[:] == False)[0]
+            print_out = "Total Galaxies for %s: %.9e" % (
                 dither,
-                sum(myBundles[dither].metricValues.data[ind]),
+                sum(my_bundles[dither].metricValues.data[ind]),
             )
-            update += "\n %s" % printOut
-            print(printOut)
+            update += "\n %s" % print_out
+            print(print_out)
         update += "\n"
-        readme = open("%s%s/%s" % (path, outDir, readme_name), "a")
+        readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
         readme.write(update)
         readme.close()
 
     print(
         "\n## Time since the start of the calculation: %.2f hrs"
-        % ((time.time() - startTime) / 3600.0)
+        % ((time.time() - start_time) / 3600.0)
     )
 
     #########################################################################################################
     # add poisson noise?
-    if addPoissonNoise:
-        print("\n# adding poisson noise to numGal ... ")
-        for dither in myBundles:
+    if add_poisson_noise:
+        print("\n# adding poisson noise to num_gal ... ")
+        for dither in my_bundles:
             # make sure the values are valid; sometimes metric leaves negative numbers or nan values.
-            outOfSurvey = np.where(myBundles[dither].metricValues.mask == True)[0]
-            myBundles[dither].metricValues.data[outOfSurvey] = 0.0
+            out_of_survey = np.where(my_bundles[dither].metricValues.mask == True)[0]
+            my_bundles[dither].metricValues.data[out_of_survey] = 0.0
 
-            inSurvey = np.where(myBundles[dither].metricValues.mask == False)[0]
-            j = np.where(myBundles[dither].metricValues.data[inSurvey] < 1.0)[0]
-            myBundles[dither].metricValues.data[inSurvey][j] = 0.0
+            in_survey = np.where(my_bundles[dither].metricValues.mask == False)[0]
+            j = np.where(my_bundles[dither].metricValues.data[in_survey] < 1.0)[0]
+            my_bundles[dither].metricValues.data[in_survey][j] = 0.0
 
-            noisyNumGal = np.random.poisson(
-                lam=myBundles[dither].metricValues.data, size=None
+            noisy_num_gal = np.random.poisson(
+                lam=my_bundles[dither].metricValues.data, size=None
             )
-            myBundles[dither].metricValues.data[:] = noisyNumGal
+            my_bundles[dither].metricValues.data[:] = noisy_num_gal
         # ------------------------------------------------------------------------
 
-        # save the numGal data.
+        # save the num_gal data.
         if saveNumGalDataAfterPoisson:
-            outDir_new = "numGalData_afterBorderMasking_after0pt_afterPoisson"
-            if not os.path.exists("%s%s/%s" % (path, outDir, outDir_new)):
-                os.makedirs("%s%s/%s" % (path, outDir, outDir_new))
-            saveBundleData_npzFormat(
-                "%s%s/%s" % (path, outDir, outDir_new),
-                myBundles,
+            out_dir_new = "numGalData_afterBorderMasking_after0pt_afterPoisson"
+            if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
+                os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
+            save_bundle_data_npz_format(
+                "%s%s/%s" % (path, out_dir, out_dir_new),
+                my_bundles,
                 "numGalData_masked_with0pt_withPoisson",
-                filterBand,
+                filter_band,
             )
         # ------------------------------------------------------------------------
-        # print out tot(numGal) associated with each strategy
+        # print out tot(num_gal) associated with each strategy
         # add to the read me as well
         update = "\n# After adding poisson noise: "
         print(update)
-        for dither in myBundles:
-            ind = np.where(myBundles[dither].metricValues.mask[:] == False)[0]
-            printOut = "Total Galaxies for %s: %.9e" % (
+        for dither in my_bundles:
+            ind = np.where(my_bundles[dither].metricValues.mask[:] == False)[0]
+            print_out = "Total Galaxies for %s: %.9e" % (
                 dither,
-                sum(myBundles[dither].metricValues.data[ind]),
+                sum(my_bundles[dither].metricValues.data[ind]),
             )
-            update += "\n %s" % printOut
-            print(printOut)
+            update += "\n %s" % print_out
+            print(print_out)
         update += "\n"
-        readme = open("%s%s/%s" % (path, outDir, readme_name), "a")
+        readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
         readme.write(update)
         readme.close()
 
     print(
         "\n## Time since the start of the calculation: %.2f hrs"
-        % ((time.time() - startTime) / 3600.0)
+        % ((time.time() - start_time) / 3600.0)
     )
     #########################################################################################################
-    plotHandler = plots.PlotHandler(
-        outDir="%s%s" % (path, outDir),
-        resultsDb=resultsDb,
+    plot_handler = plots.PlotHandler(
+        out_dir="%s%s" % (path, out_dir),
+        results_db=results_db,
         thumbnail=False,
         savefig=False,
     )
     print("\n# Calculating fluctuations in the galaxy counts ...")
-    # Change numGal metric data to deltaN/N
-    numGal = {}
+    # Change num_gal metric data to deltaN/N
+    num_gal = {}
     # add to readme too
     update = "\n"
-    for dither in myBundles:
+    for dither in my_bundles:
         # zero out small/nan entries --- problem: should really be zeroed out by the metric ***
-        j = np.where(np.isnan(myBundles[dither].metricValues.data) == True)[0]
-        myBundles[dither].metricValues.data[j] = 0.0
-        j = np.where(myBundles[dither].metricValues.data < 1.0)[0]
-        myBundles[dither].metricValues.data[j] = 0.0
+        j = np.where(np.isnan(my_bundles[dither].metricValues.data) == True)[0]
+        my_bundles[dither].metricValues.data[j] = 0.0
+        j = np.where(my_bundles[dither].metricValues.data < 1.0)[0]
+        my_bundles[dither].metricValues.data[j] = 0.0
         # calculate the fluctuations
-        numGal[dither] = myBundles[
+        num_gal[dither] = my_bundles[
             dither
-        ].metricValues.data.copy()  # keep track of numGal for plotting purposes
-        validPixel = np.where(myBundles[dither].metricValues.mask == False)[0]
-        galaxyAverage = sum(numGal[dither][validPixel]) / len(validPixel)
+        ].metricValues.data.copy()  # keep track of num_gal for plotting purposes
+        valid_pixel = np.where(my_bundles[dither].metricValues.mask == False)[0]
+        galaxy_average = sum(num_gal[dither][valid_pixel]) / len(valid_pixel)
 
         # in place calculation of the fluctuations
-        myBundles[dither].metricValues.data[:] = 0.0
-        myBundles[dither].metricValues.data[validPixel] = (
-            numGal[dither][validPixel] - galaxyAverage
-        ) / galaxyAverage
-        printOut = "# Galaxy Average for %s: %s" % (dither, galaxyAverage)
-        print(printOut)
-        update += "%s\n" % printOut
+        my_bundles[dither].metricValues.data[:] = 0.0
+        my_bundles[dither].metricValues.data[valid_pixel] = (
+            num_gal[dither][valid_pixel] - galaxy_average
+        ) / galaxy_average
+        print_out = "# Galaxy Average for %s: %s" % (dither, galaxy_average)
+        print(print_out)
+        update += "%s\n" % print_out
 
-    readme = open("%s%s/%s" % (path, outDir, readme_name), "a")
+    readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
     readme.write(update)
     readme.close()
 
     # ------------------------------------------------------------------------
     # save the deltaN/N data
-    if saveDeltaNByNData:
-        outDir_new = "deltaNByNData"
-        if not os.path.exists("%s%s/%s" % (path, outDir, outDir_new)):
-            os.makedirs("%s%s/%s" % (path, outDir, outDir_new))
-        saveBundleData_npzFormat(
-            "%s%s/%s" % (path, outDir, outDir_new),
-            myBundles,
+    if save_delta_n_by_n_data:
+        out_dir_new = "deltaNByNData"
+        if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
+            os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
+        save_bundle_data_npz_format(
+            "%s%s/%s" % (path, out_dir, out_dir_new),
+            my_bundles,
             "deltaNByNData_masked",
-            filterBand,
+            filter_band,
         )
     # ------------------------------------------------------------------------
     # Calculate total power
     # add to the read me as well
     summarymetric = metrics.TotalPowerMetric()
     update = ""
-    for dither in myBundles:
-        myBundles[dither].set_summary_metrics(summarymetric)
-        myBundles[dither].compute_summary_stats()
-        printOut = "# Total power for %s case is %f." % (
+    for dither in my_bundles:
+        my_bundles[dither].set_summary_metrics(summarymetric)
+        my_bundles[dither].compute_summary_stats()
+        print_out = "# Total power for %s case is %f." % (
             dither,
-            myBundles[dither].summary_values["TotalPower"],
+            my_bundles[dither].summary_values["TotalPower"],
         )
-        print(printOut)
-        update += "\n%s" % (printOut)
+        print(print_out)
+        update += "\n%s" % (print_out)
     update += "\n"
 
-    readme = open("%s%s/%s" % (path, outDir, readme_name), "a")
+    readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
     readme.write(update)
     readme.close()
     # ------------------------------------------------------------------------
     # calculate the power spectra
     cl = {}
-    for dither in myBundles:
+    for dither in my_bundles:
         cl[dither] = hp.anafast(
-            myBundles[dither].metricValues.filled(myBundles[dither].slicer.badval),
+            my_bundles[dither].metricValues.filled(my_bundles[dither].slicer.badval),
             lmax=500,
         )
     # save deltaN/N spectra?
-    if saveClsForDeltaNByN:
-        outDir_new = "cls_DeltaByN"
-        if not os.path.exists("%s%s/%s" % (path, outDir, outDir_new)):
-            os.makedirs("%s%s/%s" % (path, outDir, outDir_new))
+    if save_cls_for_delta_n_by_n:
+        out_dir_new = "cls_DeltaByN"
+        if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
+            os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
 
-        for dither in myBundles:
-            filename = "cls_deltaNByN_%s_%s" % (filterBand, dither)
-            np.save("%s%s/%s/%s" % (path, outDir, outDir_new, filename), cl[dither])
+        for dither in my_bundles:
+            filename = "cls_deltaNByN_%s_%s" % (filter_band, dither)
+            np.save("%s%s/%s/%s" % (path, out_dir, out_dir_new, filename), cl[dither])
 
     ##########################################################################################################
     # Plots for the fluctuations: power spectra, histogram
-    if len(list(myBundles.keys())) > 1:
-        outDir_new = "artificialFluctuationsComparisonPlots"
-        if not os.path.exists("%s%s/%s" % (path, outDir, outDir_new)):
-            os.makedirs("%s%s/%s" % (path, outDir, outDir_new))
+    if len(list(my_bundles.keys())) > 1:
+        out_dir_new = "artificialFluctuationsComparisonPlots"
+        if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
+            os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
         # ------------------------------------------------------------------------
         # power spectra
-        for dither in myBundles:
+        for dither in my_bundles:
             ell = np.arange(np.size(cl[dither]))
             condition = ell > 1
             plt.plot(
                 ell,
                 (cl[dither] * ell * (ell + 1)) / 2.0 / np.pi,
-                color=plotColor[dither],
+                color=plot_color[dither],
                 linestyle="-",
                 label=dither,
             )
@@ -1200,7 +1200,7 @@ def artificialStructureCalculation(
         for legobj in leg.legendHandles:
             legobj.set_linewidth(2.0)
         plt.savefig(
-            "%s%s/%s/powerspectrum_comparison.png" % (path, outDir, outDir_new),
+            "%s%s/%s/powerspectrum_comparison.png" % (path, out_dir, out_dir_new),
             format="png",
         )
         if show_comp_plots:
@@ -1211,43 +1211,43 @@ def artificialStructureCalculation(
         # create the histogram
         scale = hp.nside2pixarea(nside, degrees=True)
 
-        def tickFormatter(y, pos):
+        def tick_formatter(y, pos):
             return "%d" % (y * scale)  # convert pixel count to area
 
-        for dither in myBundles:
-            ind = np.where(myBundles[dither].metricValues.mask == False)[0]
+        for dither in my_bundles:
+            ind = np.where(my_bundles[dither].metricValues.mask == False)[0]
             binsize = 0.01
-            binAll = int(
+            bin_all = int(
                 (
-                    max(myBundles[dither].metricValues.data[ind])
-                    - min(myBundles[dither].metricValues.data[ind])
+                    max(my_bundles[dither].metricValues.data[ind])
+                    - min(my_bundles[dither].metricValues.data[ind])
                 )
                 / binsize
             )
             plt.hist(
-                myBundles[dither].metricValues.data[ind],
-                bins=binAll,
+                my_bundles[dither].metricValues.data[ind],
+                bins=bin_all,
                 label=dither,
                 histtype="step",
-                color=plotColor[dither],
+                color=plot_color[dither],
             )
         # plt.xlim(-0.6,1.2)
         ax = plt.gca()
         ymin, ymax = ax.get_ylim()
-        nYticks = 10.0
-        wantedYMax = ymax * scale
-        wantedYMax = 10.0 * np.ceil(float(wantedYMax) / 10.0)
-        increment = 5.0 * np.ceil(float(wantedYMax / nYticks) / 5.0)
-        wantedArray = np.arange(0, wantedYMax, increment)
-        ax.yaxis.set_ticks(wantedArray / scale)
-        ax.yaxis.set_major_formatter(FuncFormatter(tickFormatter))
+        n_yticks = 10.0
+        wanted_y_max = ymax * scale
+        wanted_y_max = 10.0 * np.ceil(float(wanted_y_max) / 10.0)
+        increment = 5.0 * np.ceil(float(wanted_y_max / n_yticks) / 5.0)
+        wanted_array = np.arange(0, wanted_y_max, increment)
+        ax.yaxis.set_ticks(wanted_array / scale)
+        ax.yaxis.set_major_formatter(FuncFormatter(tick_formatter))
         plt.xlabel(r"$\mathrm{\Delta N/\overline{N}}$")
         plt.ylabel("Area (deg$^2$)")
         leg = plt.legend(labelspacing=0.001, bbox_to_anchor=(1, 1))
         for legobj in leg.legendHandles:
             legobj.set_linewidth(2.0)
         plt.savefig(
-            "%s%s/%s/histogram_comparison.png" % (path, outDir, outDir_new),
+            "%s%s/%s/histogram_comparison.png" % (path, out_dir, out_dir_new),
             bbox_inches="tight",
             format="png",
         )
@@ -1257,20 +1257,20 @@ def artificialStructureCalculation(
             plt.close("all")
 
     # now remove the results db object -- useless
-    os.remove("%s%s/%s" % (path, outDir, results_dbname))
-    print("Removed %s from outDir" % (results_dbname))
+    os.remove("%s%s/%s" % (path, out_dir, results_dbname))
+    print("Removed %s from out_dir" % (results_dbname))
 
     # all done. final update.
     update = "\n## All done. Time since the start of the calculation: %.2f hrs" % (
-        (time.time() - startTime) / 3600.0
+        (time.time() - start_time) / 3600.0
     )
     print(update)
-    readme = open("%s%s/%s" % (path, outDir, readme_name), "a")
+    readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
     readme.write(update)
     readme.close()
 
     if return_stuff:
-        if include0ptErrors:
-            return myBundles, outDir, resultsDb, zeroPtError
+        if include0pt_errors:
+            return my_bundles, out_dir, results_db, zero_pt_error
         else:
-            return myBundles, outDir, resultsDb
+            return my_bundles, out_dir, results_db

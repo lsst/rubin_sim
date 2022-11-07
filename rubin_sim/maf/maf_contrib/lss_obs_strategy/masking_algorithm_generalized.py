@@ -12,167 +12,167 @@ import copy
 import rubin_sim.maf.plots as plots
 import matplotlib.cm as cm
 
-__all__ = ["maskingAlgorithmGeneralized"]
+__all__ = ["masking_algorithm_generalized"]
 
 
-def maskingAlgorithmGeneralized(
-    myBundles,
-    plotHandler,
-    dataLabel,
+def masking_algorithm_generalized(
+    my_bundles,
+    plot_handler,
+    data_label,
     nside=128,
-    findValue="unmasked",
+    find_value="unmasked",
     relation="=",
-    newValue="masked",
-    pixelRadius=6,
-    returnBorderIndices=False,
-    printIntermediateInfo=False,
-    plotIntermediatePlots=True,
-    printFinalInfo=True,
-    plotFinalPlots=True,
-    skyMapColorMin=None,
-    skyMapColorMax=None,
+    new_value="masked",
+    pixel_radius=6,
+    return_border_indices=False,
+    print_intermediate_info=False,
+    plot_intermediate_plots=True,
+    print_final_info=True,
+    plot_final_plots=True,
+    sky_map_color_min=None,
+    sky_map_color_max=None,
 ):
     """
-    Assign newValue to all pixels in a skymap within pixelRadius of pixels with value <, >, or = findValue.
+    Assign new_value to all pixels in a skymap within pixel_radius of pixels with value <, >, or = find_value.
 
     Parameters
     --------------------
-    myBundles   : `dict` {`rubin_sim.maf.MetricBundles`}
+    my_bundles   : `dict` {`rubin_sim.maf.MetricBundles`}
         a dictionary for metricBundles.
-    plotHandler :   `rubin_sim.maf.plots.plotHandler.PlotHandler`
-    dataLabel : `str`
+    plot_handler :   `rubin_sim.maf.plots.plotHandler.PlotHandler`
+    data_label : `str`
         description of the data, i.e. 'numGal'
     nside : `int`
         HEALpix resolution parameter. Default: 128
-    findValue : `str`
+    find_value : `str`
         if related to mask, must be either 'masked' or 'unmasked'. otherwise, must be a number.
         Default: 'unmasked'
     relation : `str`
         must be '>','=','<'. Default: '='
-    newValue : `str`
+    new_value : `str`
         if related to mask, must be either 'masked' or 'unmasked'; otherwise, must be a number.
         Default: 'masked'
-    pixelRadius : `int`
+    pixel_radius : `int`
         number of pixels to consider around a given pixel. Default: 6
-    returnBorderIndices : `bool`
+    return_border_indices : `bool`
         set to True to return the array of indices of the pixels whose values/mask are changed. Default: False
-    printIntermediateInfo : `bool`
+    print_intermediate_info : `bool`
         set to False if do not want to print intermediate info. Default: True
-    plotIntermediatePlots : `bool`
+    plot_intermediate_plots : `bool`
         set to False if do not want to plot intermediate plots. Default: True
-    printFinalInfo : `bool`
+    print_final_info : `bool`
         set to False if do not want to print final info, i.e. total pixels changed. Default: True
-    plotFinalPlots : `bool`
+    plot_final_plots : `bool`
         set to False if do not want to plot the final plots. Default: True
-    skyMapColorMin : float
+    sky_map_color_min : float
         colorMin label value for skymap plot_dict label. Default: None
-    skyMapColorMax : float
+    sky_map_color_max : float
         colorMax label value for skymap plot_dict label. Default: None
     """
-    # find pixels such that (pixelValue (relation) findValue) AND their neighbors dont have that (relation) findValue.
-    # then assign newValue to all these pixels.
+    # find pixels such that (pixelValue (relation) find_value) AND their neighbors dont have that (relation) find_value.
+    # then assign new_value to all these pixels.
     # relation must be '>','=','<'
     # data indices are the pixels numbers ..
     # ------------------------------------------------------------------------
     # check whether need to mask anything at all
-    if pixelRadius == 0:
+    if pixel_radius == 0:
         print("No masking/changing of the original data.")
-        if returnBorderIndices:
+        if return_border_indices:
             borders = {}
-            for dither in myBundles:
+            for dither in my_bundles:
                 borders[dither] = []
 
-            return [myBundles, borders]
+            return [my_bundles, borders]
         else:
-            return myBundles
+            return my_bundles
     # ------------------------------------------------------------------------
-    # make sure that relation is compatible with findValue
-    if (findValue == "masked") | (findValue == "unmasked"):
+    # make sure that relation is compatible with find_value
+    if (find_value == "masked") | (find_value == "unmasked"):
         if relation != "=":
-            print('ERROR: must have relation== "=" if findValue is related to mask.')
+            print('ERROR: must have relation== "=" if find_value is related to mask.')
             print('Setting:  relation= "="\n')
             relation = "="
     # ------------------------------------------------------------------------
-    # translate findValue into what has to be assigned
-    findValueToConsider = findValue
-    if findValue.__contains__("mask"):
-        if findValue == "masked":
-            findValueToConsider = True
-        if findValue == "unmasked":
-            findValueToConsider = False
+    # translate find_value into what has to be assigned
+    find_value_to_consider = find_value
+    if find_value.__contains__("mask"):
+        if find_value == "masked":
+            find_value_to_consider = True
+        if find_value == "unmasked":
+            find_value_to_consider = False
 
-    # translate newValue into what has to be assigned
-    newValueToAssign = newValue
-    if newValue.__contains__("mask"):
-        if newValue == "masked":
-            newValueToAssign = True
-        if newValue == "unmasked":
-            newValueToAssign = False
+    # translate new_value into what has to be assigned
+    new_value_to_assign = new_value
+    if new_value.__contains__("mask"):
+        if new_value == "masked":
+            new_value_to_assign = True
+        if new_value == "unmasked":
+            new_value_to_assign = False
 
     # ------------------------------------------------------------------------
     borders = {}
-    for dither in myBundles:
-        totalBorderPixel = []
-        if printIntermediateInfo:
+    for dither in my_bundles:
+        total_border_pixel = []
+        if print_intermediate_info:
             print("Survey strategy: %s" % dither)
 
         # find the array to look at.
-        if (findValue).__contains__("mask"):
-            origArray = myBundles[dither].metricValues.mask.copy()  # mask array
+        if (find_value).__contains__("mask"):
+            orig_array = my_bundles[dither].metricValues.mask.copy()  # mask array
         else:
-            origArray = myBundles[dither].metricValues.data.copy()  # data array
+            orig_array = my_bundles[dither].metricValues.data.copy()  # data array
 
-        for r in range(0, pixelRadius):
-            borderPixel = []
-            tempCopy = copy.deepcopy(myBundles)
+        for r in range(0, pixel_radius):
+            border_pixel = []
+            temp_copy = copy.deepcopy(my_bundles)
             # ignore the pixels whose neighbors formed the border in previous run
             if r != 0:
-                origArray[totalBorderPixel] = newValueToAssign
+                orig_array[total_border_pixel] = new_value_to_assign
 
-            # find the pixels that satisfy the relation with findValue and whose neighbors dont
-            for i in range(0, len(origArray)):
-                neighborsPixels = hp.get_all_neighbours(
+            # find the pixels that satisfy the relation with find_value and whose neighbors dont
+            for i in range(0, len(orig_array)):
+                neighbors_pixels = hp.get_all_neighbours(
                     nside, i
                 )  # i is the pixel number
-                for j in neighborsPixels:
+                for j in neighbors_pixels:
                     condition = None
                     if relation == "<":
-                        condition = (origArray[i] < findValueToConsider) & (
-                            origArray[j] >= findValueToConsider
+                        condition = (orig_array[i] < find_value_to_consider) & (
+                            orig_array[j] >= find_value_to_consider
                         )
                     if relation == "=":
-                        condition = (origArray[i] == findValueToConsider) & (
-                            origArray[j] != findValueToConsider
+                        condition = (orig_array[i] == find_value_to_consider) & (
+                            orig_array[j] != find_value_to_consider
                         )
                     if relation == ">":
-                        condition = (origArray[i] > findValueToConsider) & (
-                            origArray[j] <= findValueToConsider
+                        condition = (orig_array[i] > find_value_to_consider) & (
+                            orig_array[j] <= find_value_to_consider
                         )
                     if condition == None:
                         raise ValueError("ERROR: invalid relation: %s" % relation)
 
                     if condition:
                         if j != -1:  # -1 entries correspond to inexistent neighbors
-                            borderPixel.append(i)
+                            border_pixel.append(i)
 
-            borderPixel = np.unique(borderPixel)
-            totalBorderPixel.extend(borderPixel)
+            border_pixel = np.unique(border_pixel)
+            total_border_pixel.extend(border_pixel)
 
-            if printIntermediateInfo:
-                print("Border pixels from run %s: %s" % (r + 1, len(borderPixel)))
-                print("Total pixels so far: %s\n" % len(totalBorderPixel))
+            if print_intermediate_info:
+                print("Border pixels from run %s: %s" % (r + 1, len(border_pixel)))
+                print("Total pixels so far: %s\n" % len(total_border_pixel))
 
             # plot found pixels
-            if plotIntermediatePlots:
-                if newValue.__contains__("mask"):
-                    tempCopy[dither].metricValues.mask[:] = newValueToAssign
-                    tempCopy[dither].metricValues.mask[totalBorderPixel] = not (
-                        newValueToAssign
+            if plot_intermediate_plots:
+                if new_value.__contains__("mask"):
+                    temp_copy[dither].metricValues.mask[:] = new_value_to_assign
+                    temp_copy[dither].metricValues.mask[total_border_pixel] = not (
+                        new_value_to_assign
                     )
-                    tempCopy[dither].metricValues.data[totalBorderPixel] = -500
-                    plotDict = {
-                        "xlabel": dataLabel,
-                        "title": "%s: %s Round # %s" % (dither, dataLabel, r + 1),
+                    temp_copy[dither].metricValues.data[total_border_pixel] = -500
+                    plot_dict = {
+                        "xlabel": data_label,
+                        "title": "%s: %s Round # %s" % (dither, data_label, r + 1),
                         "logScale": False,
                         "labelsize": 9,
                         "colorMin": -550,
@@ -180,73 +180,73 @@ def maskingAlgorithmGeneralized(
                         "cmap": cm.jet,
                     }
                 else:
-                    tempCopy[dither].metricValues.mask[:] = True
-                    tempCopy[dither].metricValues.mask[totalBorderPixel] = False
-                    tempCopy[dither].metricValues.data[
-                        totalBorderPixel
-                    ] = newValueToAssign
-                    plotDict = {
-                        "xlabel": dataLabel,
-                        "title": "%s %s Round # %s" % (dither, dataLabel, r + 1),
+                    temp_copy[dither].metricValues.mask[:] = True
+                    temp_copy[dither].metricValues.mask[total_border_pixel] = False
+                    temp_copy[dither].metricValues.data[
+                        total_border_pixel
+                    ] = new_value_to_assign
+                    plot_dict = {
+                        "xlabel": data_label,
+                        "title": "%s %s Round # %s" % (dither, data_label, r + 1),
                         "logScale": False,
                         "labelsize": 9,
                         "maxl": 500,
                         "cmap": cm.jet,
                     }
-                tempCopy[dither].set_plot_dict(plotDict)
-                tempCopy[dither].set_plot_funcs(
+                temp_copy[dither].set_plot_dict(plot_dict)
+                temp_copy[dither].set_plot_funcs(
                     [plots.HealpixSkyMap(), plots.HealpixPowerSpectrum()]
                 )
-                tempCopy[dither].plot(plotHandler=plotHandler)
+                temp_copy[dither].plot(plot_handler=plot_handler)
                 plt.show()
             # save the found pixels with the appropriate key
-            borders[dither] = totalBorderPixel
+            borders[dither] = total_border_pixel
 
     # ------------------------------------------------------------------------
     # change the original map/array now.
-    for dither in myBundles:
-        totalBorderPixel = borders[dither]
+    for dither in my_bundles:
+        total_border_pixel = borders[dither]
 
-        if printFinalInfo:
+        if print_final_info:
             print("Survey strategy: %s" % dither)
-            print("Total pixels changed: %s\n" % len(totalBorderPixel))
+            print("Total pixels changed: %s\n" % len(total_border_pixel))
 
-        if newValue.__contains__("mask"):
-            myBundles[dither].metricValues.mask[totalBorderPixel] = newValueToAssign
+        if new_value.__contains__("mask"):
+            my_bundles[dither].metricValues.mask[total_border_pixel] = new_value_to_assign
         else:
-            myBundles[dither].metricValues.data[totalBorderPixel] = newValueToAssign
+            my_bundles[dither].metricValues.data[total_border_pixel] = new_value_to_assign
 
-        if plotFinalPlots:
+        if plot_final_plots:
             # skymap
-            plotDict = {
-                "xlabel": dataLabel,
-                "title": "%s: %s MaskedMap; pixelRadius: %s "
-                % (dither, dataLabel, pixelRadius),
+            plot_dict = {
+                "xlabel": data_label,
+                "title": "%s: %s MaskedMap; pixel_radius: %s "
+                % (dither, data_label, pixel_radius),
                 "logScale": False,
                 "labelsize": 8,
-                "colorMin": skyMapColorMin,
-                "colorMax": skyMapColorMax,
+                "colorMin": sky_map_color_min,
+                "colorMax": sky_map_color_max,
                 "cmap": cm.jet,
             }
-            myBundles[dither].set_plot_dict(plotDict)
-            myBundles[dither].set_plot_funcs([plots.HealpixSkyMap()])
-            myBundles[dither].plot(plotHandler=plotHandler)
+            my_bundles[dither].set_plot_dict(plot_dict)
+            my_bundles[dither].set_plot_funcs([plots.HealpixSkyMap()])
+            my_bundles[dither].plot(plot_handler=plot_handler)
             # power spectrum
-            plotDict = {
-                "xlabel": dataLabel,
-                "title": "%s: %s MaskedMap; pixelRadius: %s "
-                % (dither, dataLabel, pixelRadius),
+            plot_dict = {
+                "xlabel": data_label,
+                "title": "%s: %s MaskedMap; pixel_radius: %s "
+                % (dither, data_label, pixel_radius),
                 "logScale": False,
                 "labelsize": 12,
                 "maxl": 500,
                 "cmap": cm.jet,
             }
-            myBundles[dither].set_plot_dict(plotDict)
-            myBundles[dither].set_plot_funcs([plots.HealpixPowerSpectrum()])
-            myBundles[dither].plot(plotHandler=plotHandler)
+            my_bundles[dither].set_plot_dict(plot_dict)
+            my_bundles[dither].set_plot_funcs([plots.HealpixPowerSpectrum()])
+            my_bundles[dither].plot(plot_handler=plot_handler)
             plt.show()
 
-    if returnBorderIndices:
-        return [myBundles, borders]
+    if return_border_indices:
+        return [my_bundles, borders]
     else:
-        return myBundles
+        return my_bundles

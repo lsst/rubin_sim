@@ -14,14 +14,14 @@ class NeoDistancePlotter(BasePlotter):
     in any particular particular opsim observation.
     """
 
-    def __init__(self, step=0.01, eclipMax=10.0, eclipMin=-10.0):
+    def __init__(self, step=0.01, eclip_max=10.0, eclip_min=-10.0):
         """
-        eclipMin/Max:  only plot observations within X degrees of the ecliptic plane
+        eclip_min/Max:  only plot observations within X degrees of the ecliptic plane
         step: Step size to use for radial bins. Default is 0.01 AU.
         """
-        self.plotType = "neoxyPlotter"
-        self.objectPlotter = True
-        self.defaultPlotDict = {
+        self.plot_type = "neoxyPlotter"
+        self.object_plotter = True
+        self.default_plot_dict = {
             "title": None,
             "xlabel": "X (AU)",
             "ylabel": "Y (AU)",
@@ -39,19 +39,19 @@ class NeoDistancePlotter(BasePlotter):
             "z": "orange",
             "y": "red",
         }
-        self.filterColName = "filter"
+        self.filter_col_name = "filter"
         self.step = step
-        self.eclipMax = np.radians(eclipMax)
-        self.eclipMin = np.radians(eclipMin)
+        self.eclip_max = np.radians(eclip_max)
+        self.eclip_min = np.radians(eclip_min)
 
-    def __call__(self, metricValue, slicer, userPlotDict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
         """
         Parameters
         ----------
-        metricValue : numpy.ma.MaskedArray
+        metric_value : numpy.ma.MaskedArray
             Metric values calculated by rubin_sim.maf.metrics.PassMetric
         slicer : rubin_sim.maf.slicers.UniSlicer
-        userPlotDict: dict
+        user_plot_dict: dict
             Dictionary of plot parameters set by user (overrides default values).
         fignum : int
             Matplotlib figure number to use (default = None, starts new figure).
@@ -64,22 +64,22 @@ class NeoDistancePlotter(BasePlotter):
         fig = plt.figure(fignum)
         ax = fig.add_subplot(111)
 
-        inPlane = np.where(
-            (metricValue[0]["eclipLat"] >= self.eclipMin)
-            & (metricValue[0]["eclipLat"] <= self.eclipMax)
+        in_plane = np.where(
+            (metric_value[0]["eclipLat"] >= self.eclip_min)
+            & (metric_value[0]["eclipLat"] <= self.eclip_max)
         )
 
-        plotDict = {}
-        plotDict.update(self.defaultPlotDict)
-        plotDict.update(userPlotDict)
+        plot_dict = {}
+        plot_dict.update(self.default_plot_dict)
+        plot_dict.update(user_plot_dict)
 
-        planetProps = {"Earth": 1.0, "Venus": 0.72, "Mars": 1.52, "Mercury": 0.39}
+        planet_props = {"Earth": 1.0, "Venus": 0.72, "Mars": 1.52, "Mercury": 0.39}
 
         planets = []
-        for prop in planetProps:
+        for prop in planet_props:
             planets.append(
                 Ellipse(
-                    (0, 0), planetProps[prop] * 2, planetProps[prop] * 2, fill=False
+                    (0, 0), planet_props[prop] * 2, planet_props[prop] * 2, fill=False
                 )
             )
 
@@ -88,47 +88,47 @@ class NeoDistancePlotter(BasePlotter):
 
         # Let's make a 2-d histogram in polar coords, then convert and display in cartisian
 
-        rStep = self.step
-        Rvec = np.arange(0, plotDict["xMax"] + rStep, rStep)
-        thetaStep = np.radians(3.5)
-        thetavec = np.arange(0, 2 * np.pi + thetaStep, thetaStep) - np.pi
+        r_step = self.step
+        rvec = np.arange(0, plot_dict["xMax"] + r_step, r_step)
+        theta_step = np.radians(3.5)
+        thetavec = np.arange(0, 2 * np.pi + theta_step, theta_step) - np.pi
 
         # array to hold histogram values
-        H = np.zeros((thetavec.size, Rvec.size), dtype=float)
+        H = np.zeros((thetavec.size, rvec.size), dtype=float)
 
-        Rgrid, thetagrid = np.meshgrid(Rvec, thetavec)
+        rgrid, thetagrid = np.meshgrid(rvec, thetavec)
 
-        xgrid = Rgrid * np.cos(thetagrid)
-        ygrid = Rgrid * np.sin(thetagrid)
+        xgrid = rgrid * np.cos(thetagrid)
+        ygrid = rgrid * np.sin(thetagrid)
 
         for dist, x, y in zip(
-            metricValue[0]["MaxGeoDist"][inPlane],
-            metricValue[0]["NEOHelioX"][inPlane],
-            metricValue[0]["NEOHelioY"][inPlane],
+            metric_value[0]["MaxGeoDist"][in_plane],
+            metric_value[0]["NEOHelioX"][in_plane],
+            metric_value[0]["NEOHelioY"][in_plane],
         ):
 
             theta = np.arctan2(y - 1.0, x)
             diff = np.abs(thetavec - theta)
-            thetaToUse = thetavec[np.where(diff == diff.min())]
+            theta_to_use = thetavec[np.where(diff == diff.min())]
             # This is a slow where-clause, should be possible to speed it up using
             # np.searchsorted+clever slicing or hist2d to build up the map.
-            good = np.where((thetagrid == thetaToUse) & (Rgrid <= dist))
+            good = np.where((thetagrid == theta_to_use) & (rgrid <= dist))
             H[good] += 1
 
         # Set the under value to white
-        myCmap = copy.copy(plt.cm.get_cmap("jet"))
-        myCmap.set_under("w")
+        my_cmap = copy.copy(plt.cm.get_cmap("jet"))
+        my_cmap.set_under("w")
         blah = ax.pcolormesh(
-            xgrid, ygrid + 1, H, cmap=myCmap, vmin=0.001, shading="auto"
+            xgrid, ygrid + 1, H, cmap=my_cmap, vmin=0.001, shading="auto"
         )
         cb = plt.colorbar(blah, ax=ax)
-        cb.set_label(plotDict["units"])
+        cb.set_label(plot_dict["units"])
 
-        ax.set_xlabel(plotDict["xlabel"])
-        ax.set_ylabel(plotDict["ylabel"])
-        ax.set_title(plotDict["title"])
-        ax.set_ylim([plotDict["yMin"], plotDict["yMax"]])
-        ax.set_xlim([plotDict["xMin"], plotDict["xMax"]])
+        ax.set_xlabel(plot_dict["xlabel"])
+        ax.set_ylabel(plot_dict["ylabel"])
+        ax.set_title(plot_dict["title"])
+        ax.set_ylim([plot_dict["yMin"], plot_dict["yMax"]])
+        ax.set_xlim([plot_dict["xMin"], plot_dict["xMax"]])
 
         ax.plot([0], [1], marker="o", color="b")
         ax.plot([0], [0], marker="o", color="y")

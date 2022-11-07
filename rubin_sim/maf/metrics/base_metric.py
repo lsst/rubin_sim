@@ -94,8 +94,8 @@ class ColRegistry(object):
         for col in col_array:
             if col is not None:
                 self.col_set.add(col)
-                source = self.col_info.getDataSource(col)
-                if source == self.col_info.defaultDataSource:
+                source = self.col_info.get_data_source(col)
+                if source == self.col_info.default_data_source:
                     self.db_set.add(col)
                 else:
                     if col not in self.stacker_dict:
@@ -184,7 +184,7 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
         # Set physical units, for plotting purposes.
         if units is None:
             units = " ".join(
-                [self.col_info.getUnits(col_name) for col_name in self.col_name_arr]
+                [self.col_info.get_units(col_name) for col_name in self.col_name_arr]
             )
             if len(units.replace(" ", "")) == 0:
                 units = ""
