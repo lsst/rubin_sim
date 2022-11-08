@@ -7,7 +7,7 @@ import rubin_sim.maf.metrics as metrics
 
 
 class TestVisitGroupsMetric(unittest.TestCase):
-    def testPairFractionMetric(self):
+    def test_pair_fraction_metric(self):
         metric = metrics.PairFractionMetric(mjd_col="mjd")
         times = np.arange(0, 200, 30) / 60.0 / 24.0
         data = np.core.records.fromarrays([times], names="mjd")
@@ -31,7 +31,7 @@ class TestVisitGroupsMetric(unittest.TestCase):
         expected = np.size(t1) / float(np.size(t1) + np.size(t2))
         self.assertEqual(result, expected)
 
-    def testVisitGroups(self):
+    def test_visit_groups(self):
         """Test visit groups (solar system groups) metric."""
         # Set up some simple test data.
         tmin = 15.0 / 60.0 / 24.0

@@ -9,7 +9,7 @@ import unittest
 from rubin_sim.maf.slicers import NDSlicer, UniSlicer
 
 
-def makeDataValues(size=100, min=0.0, max=1.0, nd=3, random=-1):
+def make_data_values(size=100, min=0.0, max=1.0, nd=3, random=-1):
     """Generate a simple array of numbers, evenly arranged between min/max, in nd dimensions, but (optional)
     random order."""
     data = []
@@ -36,16 +36,16 @@ class TestNDSlicerSetup(unittest.TestCase):
         self.dvmax = 1
         nvalues = 1000
         self.nd = 3
-        self.dv = makeDataValues(nvalues, self.dvmin, self.dvmax, self.nd, random=608)
+        self.dv = make_data_values(nvalues, self.dvmin, self.dvmax, self.nd, random=608)
         self.dvlist = self.dv.dtype.names
 
-    def testSlicertype(self):
+    def test_slicertype(self):
         """Test instantiation of slicer sets slicer type as expected."""
         testslicer = NDSlicer(self.dvlist)
         self.assertEqual(testslicer.slicer_name, testslicer.__class__.__name__)
         self.assertEqual(testslicer.slicer_name, "NDSlicer")
 
-    def testSetupSlicerBins(self):
+    def test_setup_slicer_bins(self):
         """Test setting up slicer using defined bins."""
         # Used right bins?
         bins = np.arange(self.dvmin, self.dvmax, 0.1)
@@ -58,11 +58,13 @@ class TestNDSlicerSetup(unittest.TestCase):
             np.testing.assert_equal(testslicer.bins[d], bins)
         self.assertEqual(testslicer.nslice, (len(bins) - 1) ** self.nd)
 
-    def testSetupSlicerNbins(self):
+    def test_setup_slicer_nbins(self):
         """Test setting up slicer using nbins."""
         for nvalues in (100, 1000):
             for nbins in (5, 25, 74):
-                dv = makeDataValues(nvalues, self.dvmin, self.dvmax, self.nd, random=-1)
+                dv = make_data_values(
+                    nvalues, self.dvmin, self.dvmax, self.nd, random=-1
+                )
                 # Right number of bins?
                 # expect one more 'bin' to accomodate last right edge, but nbins accounts for this
                 testslicer = NDSlicer(self.dvlist, bins_list=nbins)
@@ -83,9 +85,9 @@ class TestNDSlicerSetup(unittest.TestCase):
                 testslicer.setup_slicer(dv)
                 self.assertEqual(testslicer.nslice, expectednbins)
 
-    def testSetupSlicerNbinsZeros(self):
+    def test_setup_slicer_nbins_zeros(self):
         """Test handling case of data being single values."""
-        dv = makeDataValues(100, 0, 0, self.nd, random=-1)
+        dv = make_data_values(100, 0, 0, self.nd, random=-1)
         nbins = 10
         testslicer = NDSlicer(self.dvlist, bins_list=nbins)
         with warnings.catch_warnings(record=True) as w:
@@ -95,16 +97,18 @@ class TestNDSlicerSetup(unittest.TestCase):
         expectednbins = nbins**self.nd
         self.assertEqual(testslicer.nslice, expectednbins)
 
-    def testSetupSlicerEquivalent(self):
+    def test_setup_slicer_equivalent(self):
         """Test setting up slicer using defined bins and nbins is equal where expected."""
         for nbins in (20, 105):
             testslicer = NDSlicer(self.dvlist, bins_list=nbins)
-            bins = makeDataValues(nbins + 1, self.dvmin, self.dvmax, self.nd, random=-1)
+            bins = make_data_values(
+                nbins + 1, self.dvmin, self.dvmax, self.nd, random=-1
+            )
             bins_list = []
             for i in bins.dtype.names:
                 bins_list.append(bins[i])
             for nvalues in (100, 10000):
-                dv = makeDataValues(
+                dv = make_data_values(
                     nvalues, self.dvmin, self.dvmax, self.nd, random=64432
                 )
                 testslicer.setup_slicer(dv)
@@ -118,7 +122,9 @@ class TestNDSlicerEqual(unittest.TestCase):
         self.dvmax = 1
         nvalues = 1000
         self.nd = 3
-        self.dv = makeDataValues(nvalues, self.dvmin, self.dvmax, self.nd, random=20367)
+        self.dv = make_data_values(
+            nvalues, self.dvmin, self.dvmax, self.nd, random=20367
+        )
         self.dvlist = self.dv.dtype.names
         self.testslicer = NDSlicer(self.dvlist, bins_list=100)
         self.testslicer.setup_slicer(self.dv)
@@ -127,31 +133,31 @@ class TestNDSlicerEqual(unittest.TestCase):
         del self.testslicer
         self.testslicer = None
 
-    def testEquivalence(self):
+    def test_equivalence(self):
         """Test equals method."""
         # Note that two ND slicers will be considered equal if they are both the same kind of
         # slicer AND have the same bins in all dimensions.
         # Set up another slicer to match (same bins, although not the same data).
-        dv2 = makeDataValues(100, self.dvmin, self.dvmax, self.nd, random=10029)
+        dv2 = make_data_values(100, self.dvmin, self.dvmax, self.nd, random=10029)
         dvlist = dv2.dtype.names
         testslicer2 = NDSlicer(slice_col_list=dvlist, bins_list=self.testslicer.bins)
         testslicer2.setup_slicer(dv2)
         self.assertEqual(self.testslicer, testslicer2)
         # Set up another slicer that should not match (different bins)
-        dv2 = makeDataValues(
+        dv2 = make_data_values(
             1000, self.dvmin + 1, self.dvmax + 1, self.nd, random=209837
         )
         testslicer2 = NDSlicer(slice_col_list=dvlist, bins_list=100)
         testslicer2.setup_slicer(dv2)
         self.assertNotEqual(self.testslicer, testslicer2)
         # Set up another slicer that should not match (different dimensions)
-        dv2 = makeDataValues(1000, self.dvmin, self.dvmax, self.nd - 1, random=50623)
+        dv2 = make_data_values(1000, self.dvmin, self.dvmax, self.nd - 1, random=50623)
         testslicer2 = NDSlicer(dv2.dtype.names, bins_list=100)
         testslicer2.setup_slicer(dv2)
         self.assertNotEqual(self.testslicer, testslicer2)
         # Set up a different kind of slicer that should not match.
         testslicer2 = UniSlicer()
-        dv2 = makeDataValues(100, 0, 1, random=22310098)
+        dv2 = make_data_values(100, 0, 1, random=22310098)
         testslicer2.setup_slicer(dv2)
         self.assertNotEqual(self.testslicer, testslicer2)
 
@@ -162,7 +168,9 @@ class TestNDSlicerIteration(unittest.TestCase):
         self.dvmax = 1
         nvalues = 1000
         self.nd = 3
-        self.dv = makeDataValues(nvalues, self.dvmin, self.dvmax, self.nd, random=11081)
+        self.dv = make_data_values(
+            nvalues, self.dvmin, self.dvmax, self.nd, random=11081
+        )
         self.dvlist = self.dv.dtype.names
         nvalues = 1000
         bins = np.arange(self.dvmin, self.dvmax, 0.1)
@@ -172,7 +180,7 @@ class TestNDSlicerIteration(unittest.TestCase):
             bins_list.append(bins)
             # (remember iteration doesn't use the very last bin in 'bins')
             self.iterlist.append(bins[:-1])
-        dv = makeDataValues(nvalues, self.dvmin, self.dvmax, self.nd, random=17)
+        dv = make_data_values(nvalues, self.dvmin, self.dvmax, self.nd, random=17)
         self.testslicer = NDSlicer(self.dvlist, bins_list=bins_list)
         self.testslicer.setup_slicer(dv)
 
@@ -180,12 +188,12 @@ class TestNDSlicerIteration(unittest.TestCase):
         del self.testslicer
         self.testslicer = None
 
-    def testIteration(self):
+    def test_iteration(self):
         """Test iteration."""
         for s, ib in zip(self.testslicer, itertools.product(*self.iterlist)):
             self.assertEqual(s["slice_point"]["binLeft"], ib)
 
-    def testGetItem(self):
+    def test_get_item(self):
         """Test getting indexed binpoint."""
         for i, s in enumerate(self.testslicer):
             self.assertEqual(
@@ -201,7 +209,7 @@ class TestNDSlicerSlicing(unittest.TestCase):
         self.dvmax = 1
         nvalues = 1000
         self.nd = 3
-        self.dv = makeDataValues(nvalues, self.dvmin, self.dvmax, self.nd, random=173)
+        self.dv = make_data_values(nvalues, self.dvmin, self.dvmax, self.nd, random=173)
         self.dvlist = self.dv.dtype.names
         self.testslicer = NDSlicer(self.dvlist)
 
@@ -209,7 +217,7 @@ class TestNDSlicerSlicing(unittest.TestCase):
         del self.testslicer
         self.testslicer = None
 
-    def testSlicing(self):
+    def test_slicing(self):
         """Test slicing."""
         # Test get error if try to slice before setup.
         self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
@@ -217,7 +225,7 @@ class TestNDSlicerSlicing(unittest.TestCase):
         binsize = (self.dvmax - self.dvmin) / (float(nbins))
         self.testslicer = NDSlicer(self.dvlist, bins_list=nbins)
         for nvalues in (1000, 10000):
-            dv = makeDataValues(nvalues, self.dvmin, self.dvmax, self.nd, random=1735)
+            dv = make_data_values(nvalues, self.dvmin, self.dvmax, self.nd, random=1735)
             self.testslicer.setup_slicer(dv)
             sum = 0
             for i, s in enumerate(self.testslicer):

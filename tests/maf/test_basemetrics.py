@@ -6,12 +6,12 @@ import rubin_sim.maf.metrics as metrics
 
 
 class TestBaseMetric(unittest.TestCase):
-    def testReduceDict(self):
+    def test_reduce_dict(self):
         """Test that reduce dictionary is created."""
         testmetric = metrics.BaseMetric("testcol")
         self.assertEqual(list(testmetric.reduce_funcs.keys()), [])
 
-    def testMetricName(self):
+    def test_metric_name(self):
         """Test that metric name is set appropriately automatically and explicitly"""
         # Test automatic setting of metric name
         testmetric = metrics.BaseMetric("testcol")
@@ -22,7 +22,7 @@ class TestBaseMetric(unittest.TestCase):
         testmetric = metrics.BaseMetric("testcol", metric_name="Test")
         self.assertEqual(testmetric.name, "Test")
 
-    def testColRegistry(self):
+    def test_col_registry(self):
         """Test column registry adds to colRegistry as expected"""
         # Clear the registry to make sure we start clear
         colreg = metrics.ColRegistry()
@@ -52,7 +52,7 @@ class TestBaseMetric(unittest.TestCase):
         assert len(colreg.db_set) == 0
         assert len(colreg.stacker_dict) == 0
 
-    def testMetricDtype(self):
+    def test_metric_dtype(self):
         """Test that base metric data value type set appropriately"""
         cols = "onecolumn"
         testmetric = metrics.BaseMetric(cols)
@@ -60,7 +60,7 @@ class TestBaseMetric(unittest.TestCase):
         testmetric = metrics.BaseMetric(cols, metric_dtype="object")
         self.assertEqual(testmetric.metric_dtype, "object")
 
-    def testUnits(self):
+    def test_units(self):
         """Test unit setting (including units set by utils.getColInfo)"""
         cols = "onecolumn"
         # Test for column not in colInfo, units not set by hand.

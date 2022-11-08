@@ -10,7 +10,7 @@ import sqlite3
 
 
 class TestOpsimUtils(unittest.TestCase):
-    def testScaleBenchmarks(self):
+    def test_scale_benchmarks(self):
         """Test scaling the design and stretch benchmarks for the length of the run."""
         # First test that method returns expected dictionaries.
         for i in ("design", "stretch"):
@@ -37,7 +37,7 @@ class TestOpsimUtils(unittest.TestCase):
                 for f in expectedfilters:
                     self.assertIn(f, benchmark[k])
 
-    def testCalcCoaddedDepth(self):
+    def test_calc_coadded_depth(self):
         """Test the expected coadded depth calculation."""
         benchmark = opsimUtils.scale_benchmarks(10, "design")
         coadd = opsimUtils.calc_coadded_depth(
@@ -52,7 +52,7 @@ class TestOpsimUtils(unittest.TestCase):
         for f in coadd:
             self.assertAlmostEqual(coadd[f], benchmark["singleVisitDepth"][f])
 
-    def testGetSimData(self):
+    def test_get_sim_data(self):
         """Test that we can get simulation data"""
         database_file = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
         dbcols = ["fieldRA", "fieldDec", "note"]

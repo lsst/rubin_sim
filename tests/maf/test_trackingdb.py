@@ -9,74 +9,74 @@ import pandas as pd
 
 class TestTrackingDb(unittest.TestCase):
     def setUp(self):
-        self.opsimRun = "testopsim"
-        self.opsimGroup = "test"
-        self.opsimComment = "opsimcomment"
-        self.mafComment = "mafcomment"
-        self.mafDir = "mafdir"
-        self.mafVersion = "1.0"
-        self.mafDate = "2017-01-01"
-        self.opsimVersion = "4.0"
-        self.opsimDate = "2017-02-01"
-        self.dbFile = None
+        self.opsim_run = "testopsim"
+        self.opsim_group = "test"
+        self.opsim_comment = "opsimcomment"
+        self.maf_comment = "mafcomment"
+        self.maf_dir = "mafdir"
+        self.maf_version = "1.0"
+        self.maf_date = "2017-01-01"
+        self.opsim_version = "4.0"
+        self.opsim_date = "2017-02-01"
+        self.db_file = None
 
-    def test_testTrackingDbCreation(self):
+    def test_test_tracking_db_creation(self):
         """Test tracking database creation."""
         tempdir = tempfile.mkdtemp(prefix="trackDb")
-        trackingDbFile = os.path.join(tempdir, "tracking.db")
-        trackingdb = db.TrackingDb(database=trackingDbFile)
-        self.assertTrue(os.path.isfile(trackingDbFile))
+        tracking_db_file = os.path.join(tempdir, "tracking.db")
+        trackingdb = db.TrackingDb(database=tracking_db_file)
+        self.assertTrue(os.path.isfile(tracking_db_file))
         trackingdb.close()
         shutil.rmtree(tempdir)
 
-    def test_testAddRun(self):
+    def test_test_add_run(self):
         """Test adding a run to the tracking database."""
         tempdir = tempfile.mkdtemp(prefix="trackDb")
-        trackingDbFile = os.path.join(tempdir, "tracking.db")
-        trackingdb = db.TrackingDb(database=trackingDbFile)
-        trackId = trackingdb.add_run(
-            run_group=self.opsimGroup,
-            run_name=self.opsimRun,
-            run_comment=self.opsimComment,
-            run_version=self.opsimVersion,
-            run_date=self.opsimDate,
-            maf_comment=self.mafComment,
-            maf_dir=self.mafDir,
-            maf_version=self.mafVersion,
-            maf_date=self.mafDate,
-            db_file=self.dbFile,
+        tracking_db_file = os.path.join(tempdir, "tracking.db")
+        trackingdb = db.TrackingDb(database=tracking_db_file)
+        track_id = trackingdb.add_run(
+            run_group=self.opsim_group,
+            run_name=self.opsim_run,
+            run_comment=self.opsim_comment,
+            run_version=self.opsim_version,
+            run_date=self.opsim_date,
+            maf_comment=self.maf_comment,
+            maf_dir=self.maf_dir,
+            maf_version=self.maf_version,
+            maf_date=self.maf_date,
+            db_file=self.db_file,
         )
-        con = sqlite3.connect(trackingDbFile)
+        con = sqlite3.connect(tracking_db_file)
         res = pd.read_sql("select * from runs", con).to_records()
-        self.assertEqual(res["mafRunId"][0], trackId)
-        # Try adding this run again. Should return previous trackId.
-        trackId2 = trackingdb.add_run(maf_dir=self.mafDir)
-        self.assertEqual(trackId, trackId2)
-        # Test will add additional run, with new trackId.
-        trackId3 = trackingdb.add_run(maf_dir="test2")
-        self.assertNotEqual(trackId, trackId3)
+        self.assertEqual(res["mafRunId"][0], track_id)
+        # Try adding this run again. Should return previous track_id.
+        track_id2 = trackingdb.add_run(maf_dir=self.maf_dir)
+        self.assertEqual(track_id, track_id2)
+        # Test will add additional run, with new track_id.
+        track_id3 = trackingdb.add_run(maf_dir="test2")
+        self.assertNotEqual(track_id, track_id3)
         trackingdb.close()
         con.close()
         shutil.rmtree(tempdir)
 
-    def test_testDelRun(self):
+    def test_test_del_run(self):
         """Test removing a run from the tracking database."""
         tempdir = tempfile.mkdtemp(prefix="trackDb")
-        trackingDbFile = os.path.join(tempdir, "tracking.db")
-        trackingdb = db.TrackingDb(database=trackingDbFile)
-        trackId = trackingdb.add_run(maf_dir=self.mafDir)
-        trackId2 = trackingdb.add_run(maf_dir=self.mafDir + "test2")
-        con = sqlite3.connect(trackingDbFile)
+        tracking_db_file = os.path.join(tempdir, "tracking.db")
+        trackingdb = db.TrackingDb(database=tracking_db_file)
+        track_id = trackingdb.add_run(maf_dir=self.maf_dir)
+        track_id2 = trackingdb.add_run(maf_dir=self.maf_dir + "test2")
+        con = sqlite3.connect(tracking_db_file)
         res = pd.read_sql("select * from runs", con).to_records(index=False)
-        self.assertEqual(res["mafRunId"][0], trackId)
+        self.assertEqual(res["mafRunId"][0], track_id)
         # Test removal works.
-        trackingdb.delRun(trackId)
+        trackingdb.delRun(track_id)
         res = pd.read_sql("select * from runs", con).to_records(index=False)
-        # The run returned here is trackId2
+        # The run returned here is track_id2
         self.assertEqual(len(res), 1)
-        self.assertEqual(res[0][0], trackId2)
+        self.assertEqual(res[0][0], track_id2)
         # Test cannot remove run which does not exist.
-        self.assertRaises(Exception, trackingdb.delRun, trackId)
+        self.assertRaises(Exception, trackingdb.delRun, track_id)
         trackingdb.close()
         con.close()
         shutil.rmtree(tempdir)

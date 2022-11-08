@@ -6,9 +6,9 @@ import rubin_sim.maf.metrics as metrics
 
 class TestMoMetrics1(unittest.TestCase):
     def setUp(self):
-        # Set up some ssoObs data to test the metrics on.
-        # Note that ssoObs is a numpy recarray.
-        # The expected set of columns in ssoObs is:
+        # Set up some sso_obs data to test the metrics on.
+        # Note that sso_obs is a numpy recarray.
+        # The expected set of columns in sso_obs is:
         # cols = ['observationStartMJD', 'night', 'fieldRA', 'fieldDec', 'rotSkyPos', 'filter',
         #        'visitExposureTime', 'seeingFwhmGeom', 'fiveSigmaDepth', 'solarElong',
         #        'delta', 'ra', 'dec', 'magV', 'time', 'dradt', 'ddecdt', 'phase', 'solarelon',
@@ -16,12 +16,12 @@ class TestMoMetrics1(unittest.TestCase):
         # And stackers will often add
         # addCols = ['appMag', 'magLimit', 'snr', 'vis']
 
-        # Test metrics using ssoObs for a particular object.
+        # Test metrics using sso_obs for a particular object.
         times = np.array(
             [0.1, 0.2, 0.3, 1.1, 1.3, 5.1, 7.1, 7.2, 7.3, 10.1, 10.2, 10.3, 13.1, 13.5],
             dtype="float",
         )
-        ssoObs = np.recarray(
+        sso_obs = np.recarray(
             [len(times)],
             dtype=(
                 [
@@ -38,61 +38,61 @@ class TestMoMetrics1(unittest.TestCase):
             ),
         )
 
-        ssoObs["time"] = times
-        ssoObs["observationStartMJD"] = times
-        ssoObs["night"] = np.floor(times)
-        ssoObs["ra"] = np.arange(len(times))
-        ssoObs["dec"] = np.arange(len(times))
-        ssoObs["appMag"] = np.zeros(len(times), dtype="float") + 24.0
-        ssoObs["magLimit"] = np.zeros(len(times), dtype="float") + 25.0
-        ssoObs["SNR"] = np.zeros(len(times), dtype="float") + 5.0
-        ssoObs["vis"] = np.zeros(len(times), dtype="float") + 1
-        ssoObs["vis"][0:5] = 0
-        self.ssoObs = ssoObs
+        sso_obs["time"] = times
+        sso_obs["observationStartMJD"] = times
+        sso_obs["night"] = np.floor(times)
+        sso_obs["ra"] = np.arange(len(times))
+        sso_obs["dec"] = np.arange(len(times))
+        sso_obs["appMag"] = np.zeros(len(times), dtype="float") + 24.0
+        sso_obs["magLimit"] = np.zeros(len(times), dtype="float") + 25.0
+        sso_obs["SNR"] = np.zeros(len(times), dtype="float") + 5.0
+        sso_obs["vis"] = np.zeros(len(times), dtype="float") + 1
+        sso_obs["vis"][0:5] = 0
+        self.sso_obs = sso_obs
         self.orb = None
-        self.Hval = 8.0
+        self.hval = 8.0
 
     def testn_obs_metric(self):
         n_obs_metric = metrics.NObsMetric(snr_limit=5)
-        n_obs = n_obs_metric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(n_obs, len(self.ssoObs["time"]))
+        n_obs = n_obs_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(n_obs, len(self.sso_obs["time"]))
         n_obs_metric = metrics.NObsMetric(snr_limit=10)
-        n_obs = n_obs_metric.run(self.ssoObs, self.orb, self.Hval)
+        n_obs = n_obs_metric.run(self.sso_obs, self.orb, self.hval)
         self.assertEqual(n_obs, 0)
         n_obs_metric = metrics.NObsMetric(snr_limit=None)
-        n_obs = n_obs_metric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(n_obs, len(self.ssoObs["time"]) - 5)
+        n_obs = n_obs_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(n_obs, len(self.sso_obs["time"]) - 5)
 
-    def testn_obsNoSinglesMetric(self):
-        n_obsNoSinglesMetric = metrics.NObsNoSinglesMetric(snr_limit=5)
-        n_obs = n_obsNoSinglesMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(n_obs, len(self.ssoObs["time"]) - 1)
+    def testn_obs_no_singles_metric(self):
+        n_obs_no_singles_metric = metrics.NObsNoSinglesMetric(snr_limit=5)
+        n_obs = n_obs_no_singles_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(n_obs, len(self.sso_obs["time"]) - 1)
 
-    def testNNightsMetric(self):
-        nNightsMetric = metrics.NNightsMetric(snr_limit=5)
-        nnights = nNightsMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(nnights, len(np.unique(self.ssoObs["night"])))
-        nNightsMetric = metrics.NNightsMetric(snr_limit=None)
-        nnights = nNightsMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(nnights, len(np.unique(self.ssoObs["night"])) - 2)
+    def test_n_nights_metric(self):
+        n_nights_metric = metrics.NNightsMetric(snr_limit=5)
+        nnights = n_nights_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(nnights, len(np.unique(self.sso_obs["night"])))
+        n_nights_metric = metrics.NNightsMetric(snr_limit=None)
+        nnights = n_nights_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(nnights, len(np.unique(self.sso_obs["night"])) - 2)
 
-    def testArcMetric(self):
-        arcMetric = metrics.ObsArcMetric(snr_limit=5)
-        arc = arcMetric.run(self.ssoObs, self.orb, self.Hval)
+    def test_arc_metric(self):
+        arc_metric = metrics.ObsArcMetric(snr_limit=5)
+        arc = arc_metric.run(self.sso_obs, self.orb, self.hval)
         self.assertEqual(
             arc,
-            self.ssoObs["observationStartMJD"][-1]
-            - self.ssoObs["observationStartMJD"][0],
+            self.sso_obs["observationStartMJD"][-1]
+            - self.sso_obs["observationStartMJD"][0],
         )
-        arcMetric = metrics.ObsArcMetric(snr_limit=None)
-        arc = arcMetric.run(self.ssoObs, self.orb, self.Hval)
+        arc_metric = metrics.ObsArcMetric(snr_limit=None)
+        arc = arc_metric.run(self.sso_obs, self.orb, self.hval)
         self.assertEqual(
             arc,
-            self.ssoObs["observationStartMJD"][-1]
-            - self.ssoObs["observationStartMJD"][5],
+            self.sso_obs["observationStartMJD"][-1]
+            - self.sso_obs["observationStartMJD"][5],
         )
 
-    def testActivityOverPeriodMetric(self):
+    def test_activity_over_period_metric(self):
         # cometary orbit format ok
         orb = np.recarray(
             1,
@@ -123,18 +123,20 @@ class TestMoMetrics1(unittest.TestCase):
         orb["H"] = 35.526041
         orb["g"] = 0.15
         o = pd.DataFrame(orb)
-        activityPeriodMetric = metrics.ActivityOverPeriodMetric(
+        activity_period_metric = metrics.ActivityOverPeriodMetric(
             binsize=360, snr_limit=5
         )
-        activity = activityPeriodMetric.run(self.ssoObs, o.iloc[0], self.Hval)
+        activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertEqual(activity, 1.0)
-        activityPeriodMetric = metrics.ActivityOverPeriodMetric(
+        activity_period_metric = metrics.ActivityOverPeriodMetric(
             binsize=720, snr_limit=5
         )
-        activity = activityPeriodMetric.run(self.ssoObs, o.iloc[0], self.Hval)
+        activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertEqual(activity, 1.0)
-        activityPeriodMetric = metrics.ActivityOverPeriodMetric(binsize=10, snr_limit=5)
-        activity = activityPeriodMetric.run(self.ssoObs, o.iloc[0], self.Hval)
+        activity_period_metric = metrics.ActivityOverPeriodMetric(
+            binsize=10, snr_limit=5
+        )
+        activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertLess(activity, 0.03)
         # different type of orbit - currently should fail quietly
         orb = np.recarray(
@@ -165,32 +167,32 @@ class TestMoMetrics1(unittest.TestCase):
         orb["H"] = 35.526041
         orb["g"] = 0.15
         o = pd.DataFrame(orb)
-        activityPeriodMetric = metrics.ActivityOverPeriodMetric(
+        activity_period_metric = metrics.ActivityOverPeriodMetric(
             binsize=360, snr_limit=5
         )
-        activity = activityPeriodMetric.run(self.ssoObs, o.iloc[0], self.Hval)
+        activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertEqual(activity, 1.0)
-        activityPeriodMetric = metrics.ActivityOverPeriodMetric(
+        activity_period_metric = metrics.ActivityOverPeriodMetric(
             binsize=180, snr_limit=5
         )
-        activity = activityPeriodMetric.run(self.ssoObs, o.iloc[0], self.Hval)
+        activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertEqual(activity, 0.5)
 
     def tearDown(self):
-        del self.ssoObs
+        del self.sso_obs
         del self.orb
-        del self.Hval
+        del self.hval
 
 
 class TestDiscoveryMetrics(unittest.TestCase):
     def setUp(self):
         rng = np.random.RandomState(61331)
-        # Test metrics using ssoObs for a particular object.
+        # Test metrics using sso_obs for a particular object.
         times = np.array(
             [0.1, 0.2, 0.9, 1.1, 1.3, 5.1, 7.1, 7.2, 7.5, 10.1, 10.2, 13.1, 13.5],
             dtype="float",
         )
-        ssoObs = np.recarray(
+        sso_obs = np.recarray(
             [len(times)],
             dtype=(
                 [
@@ -216,32 +218,32 @@ class TestDiscoveryMetrics(unittest.TestCase):
             ),
         )
 
-        ssoObs["time"] = times
-        ssoObs["observationStartMJD"] = times
-        ssoObs["night"] = np.floor(times)
-        ssoObs["ra"] = np.arange(len(times))
-        ssoObs["dec"] = np.arange(len(times)) + 5
-        ssoObs["ec_lon"] = ssoObs["ra"] + 10
-        ssoObs["ec_lat"] = ssoObs["dec"] + 20
-        ssoObs["solar_elong"] = ssoObs["ra"] + 30
-        ssoObs["appMag"] = np.zeros(len(times), dtype="float") + 24.0
-        ssoObs["magFilter"] = np.zeros(len(times), dtype="float") + 24.0
-        ssoObs["fiveSigmaDepth"] = np.zeros(len(times), dtype="float") + 25.0
-        ssoObs["dmagDetect"] = np.zeros(len(times), dtype="float")
-        ssoObs["magLimit"] = np.zeros(len(times), dtype="float") + 25.0
-        ssoObs["SNR"] = np.zeros(len(times), dtype="float") + 5.0
-        ssoObs["vis"] = np.zeros(len(times), dtype="float") + 1
-        ssoObs["vis"][0:5] = 0
-        ssoObs["velocity"] = rng.rand(len(times))
-        ssoObs["seeingFwhmGeom"] = np.ones(len(times), "float")
-        ssoObs["visitExposureTime"] = np.ones(len(times), "float") * 24.0
-        self.ssoObs = ssoObs
+        sso_obs["time"] = times
+        sso_obs["observationStartMJD"] = times
+        sso_obs["night"] = np.floor(times)
+        sso_obs["ra"] = np.arange(len(times))
+        sso_obs["dec"] = np.arange(len(times)) + 5
+        sso_obs["ec_lon"] = sso_obs["ra"] + 10
+        sso_obs["ec_lat"] = sso_obs["dec"] + 20
+        sso_obs["solar_elong"] = sso_obs["ra"] + 30
+        sso_obs["appMag"] = np.zeros(len(times), dtype="float") + 24.0
+        sso_obs["magFilter"] = np.zeros(len(times), dtype="float") + 24.0
+        sso_obs["fiveSigmaDepth"] = np.zeros(len(times), dtype="float") + 25.0
+        sso_obs["dmagDetect"] = np.zeros(len(times), dtype="float")
+        sso_obs["magLimit"] = np.zeros(len(times), dtype="float") + 25.0
+        sso_obs["SNR"] = np.zeros(len(times), dtype="float") + 5.0
+        sso_obs["vis"] = np.zeros(len(times), dtype="float") + 1
+        sso_obs["vis"][0:5] = 0
+        sso_obs["velocity"] = rng.rand(len(times))
+        sso_obs["seeingFwhmGeom"] = np.ones(len(times), "float")
+        sso_obs["visitExposureTime"] = np.ones(len(times), "float") * 24.0
+        self.sso_obs = sso_obs
         self.orb = np.recarray([len(times)], dtype=([("H", "<f8")]))
         self.orb["H"] = np.zeros(len(times), dtype="float") + 8
-        self.Hval = 8
+        self.hval = 8
 
-    def testDiscoveryMetric(self):
-        discMetric = metrics.DiscoveryMetric(
+    def test_discovery_metric(self):
+        disc_metric = metrics.DiscoveryMetric(
             n_obs_per_night=2,
             t_min=0.0,
             t_max=0.3,
@@ -249,64 +251,66 @@ class TestDiscoveryMetrics(unittest.TestCase):
             t_window=9,
             snr_limit=5,
         )
-        metricValue = discMetric.run(self.ssoObs, self.orb, self.Hval)
-        child = metrics.DiscoveryNObsMetric(discMetric, i=0)
-        n_obs = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
+        metric_value = disc_metric.run(self.sso_obs, self.orb, self.hval)
+        child = metrics.DiscoveryNObsMetric(disc_metric, i=0)
+        n_obs = child.run(self.sso_obs, self.orb, self.hval, metric_value)
         self.assertEqual(n_obs, 8)
-        child = metrics.DiscoveryNObsMetric(discMetric, i=1)
-        n_obs = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
+        child = metrics.DiscoveryNObsMetric(disc_metric, i=1)
+        n_obs = child.run(self.sso_obs, self.orb, self.hval, metric_value)
         self.assertEqual(n_obs, 7)
-        child = metrics.DiscoveryNChancesMetric(discMetric)
-        nchances = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
+        child = metrics.DiscoveryNChancesMetric(disc_metric)
+        nchances = child.run(self.sso_obs, self.orb, self.hval, metric_value)
         self.assertEqual(nchances, 2)
-        child = metrics.DiscoveryTimeMetric(discMetric, i=0)
-        time = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
-        self.assertEqual(time, self.ssoObs["observationStartMJD"][0])
-        child = metrics.DiscoveryTimeMetric(discMetric, i=1)
-        time = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
-        self.assertEqual(time, self.ssoObs["observationStartMJD"][3])
-        child = metrics.DiscoveryRadecMetric(discMetric, i=0)
-        ra, dec = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
+        child = metrics.DiscoveryTimeMetric(disc_metric, i=0)
+        time = child.run(self.sso_obs, self.orb, self.hval, metric_value)
+        self.assertEqual(time, self.sso_obs["observationStartMJD"][0])
+        child = metrics.DiscoveryTimeMetric(disc_metric, i=1)
+        time = child.run(self.sso_obs, self.orb, self.hval, metric_value)
+        self.assertEqual(time, self.sso_obs["observationStartMJD"][3])
+        child = metrics.DiscoveryRadecMetric(disc_metric, i=0)
+        ra, dec = child.run(self.sso_obs, self.orb, self.hval, metric_value)
         self.assertEqual(ra, 0)
         self.assertEqual(dec, 5)
-        child = metrics.DiscoveryEclonlatMetric(discMetric, i=0)
-        lon, lat, solarElong = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
+        child = metrics.DiscoveryEclonlatMetric(disc_metric, i=0)
+        lon, lat, solar_elong = child.run(
+            self.sso_obs, self.orb, self.hval, metric_value
+        )
         self.assertEqual(lon, 10)
         self.assertEqual(lat, 25)
 
-        discMetric3 = metrics.MagicDiscoveryMetric(n_obs=5, t_window=2, snr_limit=5)
-        magic = discMetric3.run(self.ssoObs, self.orb, self.Hval)
+        disc_metric3 = metrics.MagicDiscoveryMetric(n_obs=5, t_window=2, snr_limit=5)
+        magic = disc_metric3.run(self.sso_obs, self.orb, self.hval)
         self.assertEqual(magic, 1)
-        discMetric3 = metrics.MagicDiscoveryMetric(n_obs=3, t_window=1, snr_limit=5)
-        magic = discMetric3.run(self.ssoObs, self.orb, self.Hval)
+        disc_metric3 = metrics.MagicDiscoveryMetric(n_obs=3, t_window=1, snr_limit=5)
+        magic = disc_metric3.run(self.sso_obs, self.orb, self.hval)
         self.assertEqual(magic, 2)
-        discMetric3 = metrics.MagicDiscoveryMetric(n_obs=4, t_window=4, snr_limit=5)
-        magic = discMetric3.run(self.ssoObs, self.orb, self.Hval)
+        disc_metric3 = metrics.MagicDiscoveryMetric(n_obs=4, t_window=4, snr_limit=5)
+        magic = disc_metric3.run(self.sso_obs, self.orb, self.hval)
         self.assertEqual(magic, 4)
 
-    def testHighVelocityMetric(self):
+    def test_high_velocity_metric(self):
         rng = np.random.RandomState(8123)
-        velMetric = metrics.HighVelocityMetric(psf_factor=1.0, snr_limit=5)
-        metricValue = velMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(metricValue, 0)
-        self.ssoObs["velocity"][0:2] = 1.5
-        metricValue = velMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(metricValue, 2)
-        velMetric = metrics.HighVelocityMetric(psf_factor=2.0, snr_limit=5)
-        metricValue = velMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(metricValue, 0)
-        self.ssoObs["velocity"][0:2] = rng.rand(1)
+        vel_metric = metrics.HighVelocityMetric(psf_factor=1.0, snr_limit=5)
+        metric_value = vel_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(metric_value, 0)
+        self.sso_obs["velocity"][0:2] = 1.5
+        metric_value = vel_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(metric_value, 2)
+        vel_metric = metrics.HighVelocityMetric(psf_factor=2.0, snr_limit=5)
+        metric_value = vel_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(metric_value, 0)
+        self.sso_obs["velocity"][0:2] = rng.rand(1)
 
-    def testHighVelocityNightsMetric(self):
-        velMetric = metrics.HighVelocityNightsMetric(
+    def test_high_velocity_nights_metric(self):
+        vel_metric = metrics.HighVelocityNightsMetric(
             psf_factor=1.0, n_obs_per_night=1, snr_limit=5
         )
-        metricValue = velMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(metricValue, 0)
-        self.ssoObs["velocity"][0:2] = 1.5
-        metricValue = velMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(metricValue, self.ssoObs["observationStartMJD"][0])
-        self.ssoObs["velocity"][0:2] = np.random.rand(1)
+        metric_value = vel_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(metric_value, 0)
+        self.sso_obs["velocity"][0:2] = 1.5
+        metric_value = vel_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(metric_value, self.sso_obs["observationStartMJD"][0])
+        self.sso_obs["velocity"][0:2] = np.random.rand(1)
 
 
 class TestKnownObjectMetrics(unittest.TestCase):
@@ -319,20 +323,20 @@ class TestKnownObjectMetrics(unittest.TestCase):
         dtype = []
         for c in cols:
             dtype.append((c, "<f8"))
-        ssoObs = np.recarray([len(times)], dtype=dtype)
+        sso_obs = np.recarray([len(times)], dtype=dtype)
 
-        ssoObs["MJD(UTC)"] = times
-        ssoObs["RA"] = np.arange(len(times))
-        ssoObs["Dec"] = np.arange(len(times))
-        ssoObs["magV"] = np.zeros(len(times), dtype="float") + 20.0
-        ssoObs["Elongation"] = np.zeros(len(times), dtype=float) + 180.0
-        self.Hval = 0.0
-        ssoObs["appMagV"] = ssoObs["magV"] + self.Hval
+        sso_obs["MJD(UTC)"] = times
+        sso_obs["RA"] = np.arange(len(times))
+        sso_obs["Dec"] = np.arange(len(times))
+        sso_obs["magV"] = np.zeros(len(times), dtype="float") + 20.0
+        sso_obs["Elongation"] = np.zeros(len(times), dtype=float) + 180.0
+        self.hval = 0.0
+        sso_obs["appMagV"] = sso_obs["magV"] + self.hval
         self.orb = None
-        self.ssoObs = ssoObs
+        self.sso_obs = sso_obs
 
-    def testKnownObjectsMetric(self):
-        knownObjectMetric = metrics.KnownObjectsMetric(
+    def test_known_objects_metric(self):
+        known_object_metric = metrics.KnownObjectsMetric(
             t_switch1=self.t1,
             eff1=1.0,
             v_mag_thresh1=20.5,
@@ -345,9 +349,9 @@ class TestKnownObjectMetrics(unittest.TestCase):
             eff4=1.0,
             v_mag_thresh4=22,
         )
-        mVal = knownObjectMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(mVal, self.ssoObs["MJD(UTC)"].min())
-        knownObjectMetric = metrics.KnownObjectsMetric(
+        m_val = known_object_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(m_val, self.sso_obs["MJD(UTC)"].min())
+        known_object_metric = metrics.KnownObjectsMetric(
             t_switch1=self.t1,
             eff1=1.0,
             v_mag_thresh1=15.0,
@@ -360,9 +364,9 @@ class TestKnownObjectMetrics(unittest.TestCase):
             eff4=1.0,
             v_mag_thresh4=22,
         )
-        mVal = knownObjectMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(mVal, self.t1)
-        knownObjectMetric = metrics.KnownObjectsMetric(
+        m_val = known_object_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(m_val, self.t1)
+        known_object_metric = metrics.KnownObjectsMetric(
             t_switch1=self.t1,
             eff1=0.0,
             v_mag_thresh1=20.5,
@@ -375,9 +379,9 @@ class TestKnownObjectMetrics(unittest.TestCase):
             eff4=1.0,
             v_mag_thresh4=22,
         )
-        mVal = knownObjectMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(mVal, self.t1)
-        knownObjectMetric = metrics.KnownObjectsMetric(
+        m_val = known_object_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(m_val, self.t1)
+        known_object_metric = metrics.KnownObjectsMetric(
             t_switch1=self.t1,
             eff1=1.0,
             v_mag_thresh1=10,
@@ -390,9 +394,9 @@ class TestKnownObjectMetrics(unittest.TestCase):
             eff4=1.0,
             v_mag_thresh4=22,
         )
-        mVal = knownObjectMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(mVal, self.t2)
-        knownObjectMetric = metrics.KnownObjectsMetric(
+        m_val = known_object_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(m_val, self.t2)
+        known_object_metric = metrics.KnownObjectsMetric(
             t_switch1=self.t1,
             eff1=1.0,
             v_mag_thresh1=10,
@@ -405,9 +409,9 @@ class TestKnownObjectMetrics(unittest.TestCase):
             eff4=1.0,
             v_mag_thresh4=22,
         )
-        mVal = knownObjectMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(mVal, self.t3)
-        knownObjectMetric = metrics.KnownObjectsMetric(
+        m_val = known_object_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(m_val, self.t3)
+        known_object_metric = metrics.KnownObjectsMetric(
             t_switch1=self.t1,
             eff1=1.0,
             v_mag_thresh1=10,
@@ -420,8 +424,8 @@ class TestKnownObjectMetrics(unittest.TestCase):
             eff4=1.0,
             v_mag_thresh4=10.5,
         )
-        mVal = knownObjectMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(mVal, knownObjectMetric.badval)
+        m_val = known_object_metric.run(self.sso_obs, self.orb, self.hval)
+        self.assertEqual(m_val, known_object_metric.badval)
 
 
 if __name__ == "__main__":

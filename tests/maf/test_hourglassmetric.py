@@ -7,7 +7,7 @@ import rubin_sim.maf.metrics as metrics
 
 
 class TestHourglassmetric(unittest.TestCase):
-    def testHourglassMetric(self):
+    def test_hourglass_metric(self):
         """Test the hourglass metric"""
         names = ["observationStartMJD", "night", "filter"]
         types = [float, float, str]

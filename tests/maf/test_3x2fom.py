@@ -13,7 +13,7 @@ class Test3x2(unittest.TestCase):
         sims_clean_up()
 
     def setUp(self):
-        self.outDir = tempfile.mkdtemp(prefix="TMB")
+        self.out_dir = tempfile.mkdtemp(prefix="TMB")
 
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maps")),
@@ -22,7 +22,7 @@ class Test3x2(unittest.TestCase):
     def test_3x2(self):
         # Only testing that the metric successfully runs, not checking that the
         # output values are valid.
-        bundleList = []
+        bundle_list = []
         nside = 64
         colmap = maf.batches.col_map_dict("fbs")
         nfilters_needed = 6
@@ -38,29 +38,32 @@ class Test3x2(unittest.TestCase):
         )
         s = maf.slicers.HealpixSlicer(nside=nside, use_cache=False)
         sql = 'note not like "DD%" and night < 365'
-        ThreebyTwoSummary_simple = maf.metrics.StaticProbesFoMEmulatorMetricSimple(
+        threeby_two_summary_simple = maf.metrics.StaticProbesFoMEmulatorMetricSimple(
             nside=nside, metric_name="3x2ptFoM_simple"
         )
-        ThreebyTwoSummary = maf.maf_contrib.StaticProbesFoMEmulatorMetric(
+        threeby_two_summary = maf.maf_contrib.StaticProbesFoMEmulatorMetric(
             nside=nside, metric_name="3x2ptFoM"
         )
-        bundleList.append(
+        bundle_list.append(
             maf.metric_bundles.MetricBundle(
-                m, s, sql, summary_metrics=[ThreebyTwoSummary, ThreebyTwoSummary_simple]
+                m,
+                s,
+                sql,
+                summary_metrics=[threeby_two_summary, threeby_two_summary_simple],
             )
         )
 
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
-        resultsDb = maf.db.ResultsDb(out_dir=self.outDir)
-        bd = maf.metric_bundles.make_bundles_dict_from_list(bundleList)
+        results_db = maf.db.ResultsDb(out_dir=self.out_dir)
+        bd = maf.metric_bundles.make_bundles_dict_from_list(bundle_list)
         bg = maf.metric_bundles.MetricBundleGroup(
-            bd, database, out_dir=self.outDir, results_db=resultsDb
+            bd, database, out_dir=self.out_dir, results_db=results_db
         )
         bg.run_all()
 
     def tearDown(self):
-        if os.path.isdir(self.outDir):
-            shutil.rmtree(self.outDir)
+        if os.path.isdir(self.out_dir):
+            shutil.rmtree(self.out_dir)
 
 
 if __name__ == "__main__":

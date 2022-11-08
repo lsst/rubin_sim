@@ -27,7 +27,7 @@ class TestNeoDistancePlotter(unittest.TestCase):
         self.metric_values["NEOHelioY"] = rng.rand(npts) * 3 - 1.5 + 1
         self.metric_values["filter"] = "g"
 
-    def testPlotter(self):
+    def test_plotter(self):
         """
         Just test that it can make a figure without throwing an error.
         """

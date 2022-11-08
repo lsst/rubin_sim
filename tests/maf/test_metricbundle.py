@@ -19,16 +19,16 @@ from rubin_sim.data import get_data_dir
 
 class TestMetricBundle(unittest.TestCase):
     @classmethod
-    def tearDownClass(cls):
+    def tearDown_class(cls):
         sims_clean_up()
 
     def setUp(self):
-        self.outDir = tempfile.mkdtemp(prefix="TMB")
+        self.out_dir = tempfile.mkdtemp(prefix="TMB")
         self.camera_footprint_file = os.path.join(
             get_data_dir(), "tests", "fov_map.npz"
         )
 
-    def testOut(self):
+    def test_out(self):
         """
         Check that the metric bundle can generate the expected output
         """
@@ -42,32 +42,32 @@ class TestMetricBundle(unittest.TestCase):
         stacker2 = stackers.GalacticStacker()
         map = maps.GalCoordsMap()
 
-        metricB = metric_bundles.MetricBundle(
+        metric_b = metric_bundles.MetricBundle(
             metric, slicer, sql, stacker_list=[stacker1, stacker2], maps_list=[map]
         )
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
 
-        resultsDb = db.ResultsDb(out_dir=self.outDir)
+        results_db = db.ResultsDb(out_dir=self.out_dir)
 
         bgroup = metric_bundles.MetricBundleGroup(
-            {0: metricB}, database, out_dir=self.outDir, results_db=resultsDb
+            {0: metric_b}, database, out_dir=self.out_dir, results_db=results_db
         )
         bgroup.run_all()
         bgroup.plot_all()
         bgroup.write_all()
 
-        outThumbs = glob.glob(os.path.join(self.outDir, "thumb*"))
-        outNpz = glob.glob(os.path.join(self.outDir, "*.npz"))
-        outPdf = glob.glob(os.path.join(self.outDir, "*.pdf"))
+        out_thumbs = glob.glob(os.path.join(self.out_dir, "thumb*"))
+        out_npz = glob.glob(os.path.join(self.out_dir, "*.npz"))
+        out_pdf = glob.glob(os.path.join(self.out_dir, "*.pdf"))
 
         # By default, make 2 plots for healpix
-        assert len(outThumbs) == 2
-        assert len(outPdf) == 2
-        assert len(outNpz) == 1
+        assert len(out_thumbs) == 2
+        assert len(out_pdf) == 2
+        assert len(out_npz) == 1
 
     def tearDown(self):
-        if os.path.isdir(self.outDir):
-            shutil.rmtree(self.outDir)
+        if os.path.isdir(self.out_dir):
+            shutil.rmtree(self.out_dir)
 
 
 if __name__ == "__main__":
