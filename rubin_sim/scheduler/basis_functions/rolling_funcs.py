@@ -46,10 +46,10 @@ class FootprintBasisFunction(BaseBasisFunction):
 
         self.survey_features = {}
         # All the observations in all filters
-        self.survey_features["N_obs_all"] = features.N_observations(
+        self.survey_features["N_obs_all"] = features.NObservations(
             nside=nside, filtername=None
         )
-        self.survey_features["N_obs"] = features.N_observations(
+        self.survey_features["N_obs"] = features.NObservations(
             nside=nside, filtername=filtername
         )
 

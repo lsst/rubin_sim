@@ -193,7 +193,7 @@ class NGoodSeeingBasisFunction(BaseBasisFunction):
         self.m5_penalty_max = m5_penalty_max
         self.n_obs_desired = n_obs_desired
 
-        self.survey_features["N_good_seeing"] = features.n_observations_current_season(
+        self.survey_features["N_good_seeing"] = features.NObservationsCurrentSeason(
             filtername=filtername,
             mjd_start=mjd_start,
             seeing_fwhm_max=seeing_fwhm_max,
@@ -211,10 +211,10 @@ class NGoodSeeingBasisFunction(BaseBasisFunction):
         # Need to update the feature to the current season
         self.survey_features["N_good_seeing"].season_update(conditions=conditions)
 
-        m5_penalty = self.dark_map - conditions.M5Depth[self.filtername]
+        m5_penalty = self.dark_map - conditions.m5_depth[self.filtername]
         potential_pixels = np.where(
             (m5_penalty <= self.m5_penalty_max)
-            & (conditions.FWHMeff[self.filtername] <= self.seeing_fwhm_max)
+            & (conditions.fwhm_eff[self.filtername] <= self.seeing_fwhm_max)
             & (self.survey_features["N_good_seeing"].feature < self.n_obs_desired)
             & (self.footprint > 0)
         )[0]
@@ -511,7 +511,7 @@ class NObsPerYearBasisFunction(BaseBasisFunction):
         self.season_start_hour = (season_start_hour) * np.pi / 12.0  # To radians
         self.season_end_hour = season_end_hour * np.pi / 12.0  # To radians
 
-        self.survey_features["last_n_mjds"] = features.Last_n_obs_times(
+        self.survey_features["last_n_mjds"] = features.LastNObsTimes(
             nside=nside, filtername=filtername, n_obs=n_obs
         )
         self.result = np.zeros(hp.nside2npix(self.nside), dtype=float)
@@ -527,7 +527,7 @@ class NObsPerYearBasisFunction(BaseBasisFunction):
         result[behind_pix] = 1
 
         # let's ramp up the weight depending on how far into the observing season the healpix is
-        mid_season_ra = (conditions.sunRA + np.pi) % (2.0 * np.pi)
+        mid_season_ra = (conditions.sun_ra + np.pi) % (2.0 * np.pi)
         # relative RA
         relative_ra = (conditions.ra - mid_season_ra) % (2.0 * np.pi)
         relative_ra = (self.season_end_hour - relative_ra) % (2.0 * np.pi)

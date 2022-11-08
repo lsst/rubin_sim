@@ -12,7 +12,7 @@ __all__ = [
     "BaseDetailer",
     "ZeroRotDetailer",
     "Comcam90rotDetailer",
-    "Rottep2rotspDesiredDetailer",
+    "Rottep2RotspDesiredDetailer",
     "CloseAltDetailer",
     "TakeAsPairsDetailer",
     "TwilightTripleDetailer",
@@ -67,7 +67,7 @@ class BaseDetailer(object):
         return observation_list
 
 
-class Rottep2rotspDesiredDetailer(BaseDetailer):
+class Rottep2RotspDesiredDetailer(BaseDetailer):
     """Convert all the rotTelPos values to rotSkyPos_desired"""
 
     def __call__(self, observation_list, conditions):
@@ -88,7 +88,7 @@ class Rottep2rotspDesiredDetailer(BaseDetailer):
             obs["rotTelPos_backup"] = obs["rotTelPos"] + 0
             obs["rotTelPos"] = np.nan
             obs["rotSkyPos"] = np.nan
-            obs["rot_sky_pos_desired"] = rotsp_d
+            obs["rotSkyPos_desired"] = rotsp_d
 
         return observation_list
 
@@ -209,14 +209,14 @@ class CloseAltDetailer(BaseDetailer):
             conditions.site.longitude_rad,
             conditions.mjd,
         )
-        alt_diff = np.abs(alt - conditions.telAlt)
+        alt_diff = np.abs(alt - conditions.tel_alt)
         in_band = np.where(IntRounded(alt_diff) <= self.alt_band)[0]
         if in_band.size == 0:
             in_band = np.arange(alt.size)
 
         # Find the closest in angular distance of the points that are in band
         ang_dist = _angular_separation(
-            az[in_band], alt[in_band], conditions.telAz, conditions.telAlt
+            az[in_band], alt[in_band], conditions.tel_az, conditions.tel_alt
         )
         good = np.min(np.where(ang_dist == ang_dist.min())[0])
         indx = in_band[good]
