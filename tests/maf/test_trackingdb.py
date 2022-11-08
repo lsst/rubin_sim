@@ -48,7 +48,7 @@ class TestTrackingDb(unittest.TestCase):
         )
         con = sqlite3.connect(trackingDbFile)
         res = pd.read_sql("select * from runs", con).to_records()
-        self.assertEqual(res["maf_run_id"][0], trackId)
+        self.assertEqual(res["mafRunId"][0], trackId)
         # Try adding this run again. Should return previous trackId.
         trackId2 = trackingdb.add_run(maf_dir=self.mafDir)
         self.assertEqual(trackId, trackId2)
@@ -68,7 +68,7 @@ class TestTrackingDb(unittest.TestCase):
         trackId2 = trackingdb.add_run(maf_dir=self.mafDir + "test2")
         con = sqlite3.connect(trackingDbFile)
         res = pd.read_sql("select * from runs", con).to_records(index=False)
-        self.assertEqual(res["maf_run_id"][0], trackId)
+        self.assertEqual(res["mafRunId"][0], trackId)
         # Test removal works.
         trackingdb.delRun(trackId)
         res = pd.read_sql("select * from runs", con).to_records(index=False)

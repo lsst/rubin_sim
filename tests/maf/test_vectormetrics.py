@@ -51,7 +51,9 @@ class Test2D(unittest.TestCase):
         self.fieldData["fieldDec"] = np.radians([0.0, -20.0])
 
         self.simData["observationStartMJD"] = self.simData["night"]
-        self.cameraFootprintFile = os.path.join(get_data_dir(), "tests", "fov_map.npz")
+        self.camera_footprint_file = os.path.join(
+            get_data_dir(), "tests", "fov_map.npz"
+        )
 
     def testUserPoints2dSlicer(self):
         metric = metrics.AccumulateCountMetric(bins=[0.5, 1.5, 2.5])
@@ -59,7 +61,7 @@ class Test2D(unittest.TestCase):
             ra=np.degrees(self.fieldData["fieldRA"]),
             dec=np.degrees(self.fieldData["fieldDec"]),
             lat_lon_deg=True,
-            cameraFootprintFile=self.cameraFootprintFile,
+            camera_footprint_file=self.camera_footprint_file,
         )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -75,7 +77,7 @@ class Test2D(unittest.TestCase):
     def testHealpix2dSlicer(self):
         metric = metrics.AccumulateCountMetric(bins=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(
-            nside=16, camera_footprint_file=self.cameraFootprintFile
+            nside=16, camera_footprint_file=self.camera_footprint_file
         )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -92,7 +94,7 @@ class Test2D(unittest.TestCase):
     def testHistogramMetric(self):
         metric = metrics.HistogramMetric(bins=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(
-            nside=16, camera_footprint_file=self.cameraFootprintFile
+            nside=16, camera_footprint_file=self.camera_footprint_file
         )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -122,7 +124,7 @@ class Test2D(unittest.TestCase):
     def testAccumulateMetric(self):
         metric = metrics.AccumulateMetric(col="fiveSigmaDepth", bins=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(
-            nside=16, camera_footprint_file=self.cameraFootprintFile
+            nside=16, camera_footprint_file=self.camera_footprint_file
         )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -140,7 +142,7 @@ class Test2D(unittest.TestCase):
     def testHistogramM5Metric(self):
         metric = metrics.HistogramM5Metric(bins=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(
-            nside=16, camera_footprint_file=self.cameraFootprintFile
+            nside=16, camera_footprint_file=self.camera_footprint_file
         )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -168,7 +170,7 @@ class Test2D(unittest.TestCase):
     def testAccumulateM5Metric(self):
         metric = metrics.AccumulateM5Metric(bins=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(
-            nside=16, camera_footprint_file=self.cameraFootprintFile
+            nside=16, camera_footprint_file=self.camera_footprint_file
         )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -222,7 +224,7 @@ class Test2D(unittest.TestCase):
         bundleList = []
         metric = metrics.AccumulateM5Metric(bins=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(
-            nside=16, camera_footprint_file=self.cameraFootprintFile
+            nside=16, camera_footprint_file=self.camera_footprint_file
         )
         sql = ""
         bundleList.append(metricBundle.MetricBundle(metric, slicer, sql))

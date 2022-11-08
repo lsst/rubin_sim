@@ -124,21 +124,21 @@ class TestVisitGroupsMetric(unittest.TestCase):
         testmetric = metrics.VisitGroupsMetric(
             time_col="expmjd",
             nights_col="night",
-            deltaTmin=tmin,
-            deltaTmax=tmax,
-            minNVisits=2,
+            delta_t_min=tmin,
+            delta_t_max=tmax,
+            min_n_visits=2,
             window=5,
-            minNNights=3,
+            min_n_nights=3,
         )
         # and set up a copy, with a higher number of min visits per night
         testmetric2 = metrics.VisitGroupsMetric(
             time_col="expmjd",
             nights_col="night",
-            deltaTmin=tmin,
-            deltaTmax=tmax,
-            minNVisits=3,
+            delta_t_min=tmin,
+            delta_t_max=tmax,
+            min_n_visits=3,
             window=5,
-            minNNights=3,
+            min_n_nights=3,
         )
         # Run metric for expected results.
         metricval = testmetric.run(testdata)
@@ -149,15 +149,15 @@ class TestVisitGroupsMetric(unittest.TestCase):
         np.testing.assert_equal(metricval["nights"], expected_nights)
         # Test reduce methods.
         self.assertEqual(
-            testmetric.reduceMedian(metricval), np.median(expected_numvisits)
+            testmetric.reduce_median(metricval), np.median(expected_numvisits)
         )
         self.assertEqual(
-            testmetric.reduceNNightsWithNVisits(metricval), len(expected_nights)
+            testmetric.reduce_n_nights_with_n_visits(metricval), len(expected_nights)
         )
-        self.assertEqual(testmetric2.reduceNNightsWithNVisits(metricval), 3)
-        self.assertEqual(testmetric.reduceNVisitsInWindow(metricval), 11)
-        self.assertEqual(testmetric2.reduceNNightsInWindow(metricval), 2)
-        self.assertEqual(testmetric.reduceNLunations(metricval), 2)
+        self.assertEqual(testmetric2.reduce_n_nights_with_n_visits(metricval), 3)
+        self.assertEqual(testmetric.reduce_n_visits_in_window(metricval), 11)
+        self.assertEqual(testmetric2.reduce_n_nights_in_window(metricval), 2)
+        self.assertEqual(testmetric.reduce_n_lunations(metricval), 2)
         # Test with a longer (but simpler) date range.
         indnight = np.array(
             [0, 1, 2, 3, 4, 5, 31, 32, 33, 34, 61, 62, 63, 121, 122, 123], "int"
@@ -175,8 +175,8 @@ class TestVisitGroupsMetric(unittest.TestCase):
             [expmjd, night], names=["expmjd", "night"]
         )
         metricval = testmetric.run(testdata)
-        self.assertEqual(testmetric.reduceNLunations(metricval), 4)
-        self.assertEqual(testmetric.reduceMaxSeqLunations(metricval), 3)
+        self.assertEqual(testmetric.reduce_n_lunations(metricval), 4)
+        self.assertEqual(testmetric.reduce_max_seq_lunations(metricval), 3)
 
 
 if __name__ == "__main__":

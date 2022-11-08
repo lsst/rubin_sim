@@ -54,7 +54,7 @@ class TestResultsDb(unittest.TestCase):
         tempdir = tempfile.mkdtemp(prefix="resDb")
         resultsDb = db.ResultsDb(out_dir=tempdir)
         # Add metric.
-        metricId = resultsDb.update_metric(
+        metric_id = resultsDb.update_metric(
             self.metric_name,
             self.slicer_name,
             self.runName,
@@ -63,7 +63,7 @@ class TestResultsDb(unittest.TestCase):
             self.metricDataFile,
         )
         # Try to re-add metric (should get back same metric id as previous, with no add).
-        metricId2 = resultsDb.update_metric(
+        metric_id2 = resultsDb.update_metric(
             self.metric_name,
             self.slicer_name,
             self.runName,
@@ -71,33 +71,35 @@ class TestResultsDb(unittest.TestCase):
             self.info_label,
             self.metricDataFile,
         )
-        self.assertEqual(metricId, metricId2)
-        run1 = resultsDb.session.query(db.MetricRow).filter_by(metricId=metricId).all()
+        self.assertEqual(metric_id, metric_id2)
+        run1 = (
+            resultsDb.session.query(db.MetricRow).filter_by(metric_id=metric_id).all()
+        )
         self.assertEqual(len(run1), 1)
         # Add plot.
-        resultsDb.update_plot(metricId, self.plotType, self.plotName)
+        resultsDb.update_plot(metric_id, self.plotType, self.plotName)
         # Add normal summary statistics.
         resultsDb.update_summary_stat(
-            metricId, self.summaryStatName1, self.summaryStatValue1
+            metric_id, self.summaryStatName1, self.summaryStatValue1
         )
         resultsDb.update_summary_stat(
-            metricId, self.summaryStatName2, self.summaryStatValue2
+            metric_id, self.summaryStatName2, self.summaryStatValue2
         )
         # Add something like tableFrac summary statistic.
         resultsDb.update_summary_stat(
-            metricId, self.summaryStatName3, self.summaryStatValue3
+            metric_id, self.summaryStatName3, self.summaryStatValue3
         )
         # Test get warning when try to add a non-conforming summary stat (not 'name' & 'value' cols).
         teststat = np.empty(10, dtype=[("col", "|S12"), ("value", float)])
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            resultsDb.update_summary_stat(metricId, "testfail", teststat)
+            resultsDb.update_summary_stat(metric_id, "testfail", teststat)
             self.assertIn("not save", str(w[-1].message))
         # Test get warning when try to add a string (non-conforming) summary stat.
         teststat = "teststring"
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            resultsDb.update_summary_stat(metricId, "testfail", teststat)
+            resultsDb.update_summary_stat(metric_id, "testfail", teststat)
             self.assertIn("not save", str(w[-1].message))
         shutil.rmtree(tempdir)
 
@@ -119,7 +121,7 @@ class TestUseResultsDb(unittest.TestCase):
         self.summaryStatValue2 = 18
         self.tempdir = tempfile.mkdtemp(prefix="resDb")
         self.resultsDb = db.ResultsDb(self.tempdir)
-        self.metricId = self.resultsDb.update_metric(
+        self.metric_id = self.resultsDb.update_metric(
             self.metric_name,
             self.slicer_name,
             self.runName,
@@ -127,19 +129,19 @@ class TestUseResultsDb(unittest.TestCase):
             self.info_label,
             self.metricDataFile,
         )
-        self.resultsDb.update_plot(self.metricId, self.plotType, self.plotName)
+        self.resultsDb.update_plot(self.metric_id, self.plotType, self.plotName)
         self.resultsDb.update_summary_stat(
-            self.metricId, self.summaryStatName1, self.summaryStatValue1
+            self.metric_id, self.summaryStatName1, self.summaryStatValue1
         )
         self.resultsDb.update_summary_stat(
-            self.metricId, self.summaryStatName2, self.summaryStatValue2
+            self.metric_id, self.summaryStatName2, self.summaryStatValue2
         )
 
     def testgetIds(self):
         mids = self.resultsDb.getAllMetricIds()
-        self.assertEqual(mids[0], self.metricId)
+        self.assertEqual(mids[0], self.metric_id)
         mid = self.resultsDb.get_metric_id(self.metric_name)
-        self.assertEqual(mid[0], self.metricId)
+        self.assertEqual(mid[0], self.metric_id)
         mid = self.resultsDb.get_metric_id("notreal")
         self.assertEqual(len(mid), 0)
 

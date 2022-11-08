@@ -8,19 +8,6 @@ import rubin_sim.maf.metrics as metrics
 
 
 class TestSummaryMetrics(unittest.TestCase):
-    def testTableFractionMetric(self):
-        """Test the table summary metric"""
-        metricdata1 = np.arange(0, 1.5, 0.02)
-        metricdata = np.array(list(zip(metricdata1)), dtype=[("testdata", "float")])
-        for nbins in [10, 20, 5]:
-            metric = metrics.TableFractionMetric("testdata", nbins=nbins)
-            table = metric.run(metricdata)
-            self.assertEqual(len(table), nbins + 3)
-            self.assertEqual(table["value"][0], np.size(np.where(metricdata1 == 0)[0]))
-            self.assertEqual(table["value"][-1], np.size(np.where(metricdata1 > 1)[0]))
-            self.assertEqual(table["value"][-2], np.size(np.where(metricdata1 == 1)[0]))
-            self.assertEqual(table["value"].sum(), metricdata1.size)
-
     def testIdentityMetric(self):
         """Test identity metric."""
         dv = np.arange(0, 10, 0.5)
@@ -38,7 +25,7 @@ class TestSummaryMetrics(unittest.TestCase):
         types = [int]
         data = np.zeros(npix, dtype=list(zip(names, types)))
         data["metricdata"] += 826
-        metric = metrics.fONv(col="ack", nside=nside, Nvisit=825, Asky=18000.0)
+        metric = metrics.FONv(col="ack", nside=nside, n_visit=825, asky=18000.0)
         slice_point = {"sid": 0}
         result = metric.run(data, slice_point)
         # result is recarray with 'min' and 'median' number of visits
@@ -67,7 +54,7 @@ class TestSummaryMetrics(unittest.TestCase):
         types = [int]
         data = np.zeros(npix, dtype=list(zip(names, types)))
         data["metricdata"] += 826
-        metric = metrics.fOArea(col="ack", nside=nside, Nvisit=825, Asky=18000.0)
+        metric = metrics.FOArea(col="ack", nside=nside, n_visit=825, asky=18000.0)
         slice_point = {"sid": 0}
         result = metric.run(data, slice_point)
         # fOArea returns the area with at least Nvisits.

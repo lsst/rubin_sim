@@ -70,15 +70,15 @@ class PairFractionMetric(BaseMetric):
 
 
 class VisitGroupsMetric(BaseMetric):
-    """Count the number of visits per night within delta_tmin and delta_tmax."""
+    """Count the number of visits per night within delta_t_min and delta_t_max."""
 
     def __init__(
         self,
         time_col="observationStartMJD",
         nights_col="night",
         metric_name="VisitGroups",
-        delta_tmin=15.0 / 60.0 / 24.0,
-        delta_tmax=90.0 / 60.0 / 24.0,
+        delta_t_min=15.0 / 60.0 / 24.0,
+        delta_t_max=90.0 / 60.0 / 24.0,
         min_n_visits=2,
         window=30,
         min_n_nights=3,
@@ -89,9 +89,9 @@ class VisitGroupsMetric(BaseMetric):
 
         'time_col' = column with the time of the visit (default expmjd),
         'nights_col' = column with the night of the visit (default night),
-        'delta_tmin' = minimum time of window: units are days (default 15 min),
-        'delta_tmax' = maximum time of window: units are days (default 90 min),
-        'min_n_visits' = the minimum number of visits within a night (with spacing between delta_tmin/max
+        'delta_t_min' = minimum time of window: units are days (default 15 min),
+        'delta_t_max' = maximum time of window: units are days (default 90 min),
+        'min_n_visits' = the minimum number of visits within a night (with spacing between delta_t_min/max
         from any other visit) required,
         'window' = the number of nights to consider within a window (for reduce methods),
         'min_n_nights' = the minimum required number of nights within window to make a full 'group'.
@@ -99,8 +99,8 @@ class VisitGroupsMetric(BaseMetric):
         self.times = time_col
         self.nights = nights_col
         eps = 1e-10
-        self.delta_tmin = float(delta_tmin) - eps
-        self.delta_tmax = float(delta_tmax)
+        self.delta_tmin = float(delta_t_min) - eps
+        self.delta_tmax = float(delta_t_max)
         self.min_n_visits = int(min_n_visits)
         self.window = int(window)
         self.min_n_nights = int(min_n_nights)

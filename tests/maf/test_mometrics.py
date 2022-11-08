@@ -52,21 +52,21 @@ class TestMoMetrics1(unittest.TestCase):
         self.orb = None
         self.Hval = 8.0
 
-    def testNObsMetric(self):
-        nObsMetric = metrics.NObsMetric(snr_limit=5)
-        nObs = nObsMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(nObs, len(self.ssoObs["time"]))
-        nObsMetric = metrics.NObsMetric(snr_limit=10)
-        nObs = nObsMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(nObs, 0)
-        nObsMetric = metrics.NObsMetric(snr_limit=None)
-        nObs = nObsMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(nObs, len(self.ssoObs["time"]) - 5)
+    def testn_obs_metric(self):
+        n_obs_metric = metrics.NObsMetric(snr_limit=5)
+        n_obs = n_obs_metric.run(self.ssoObs, self.orb, self.Hval)
+        self.assertEqual(n_obs, len(self.ssoObs["time"]))
+        n_obs_metric = metrics.NObsMetric(snr_limit=10)
+        n_obs = n_obs_metric.run(self.ssoObs, self.orb, self.Hval)
+        self.assertEqual(n_obs, 0)
+        n_obs_metric = metrics.NObsMetric(snr_limit=None)
+        n_obs = n_obs_metric.run(self.ssoObs, self.orb, self.Hval)
+        self.assertEqual(n_obs, len(self.ssoObs["time"]) - 5)
 
-    def testNObsNoSinglesMetric(self):
-        nObsNoSinglesMetric = metrics.NObsNoSinglesMetric(snr_limit=5)
-        nObs = nObsNoSinglesMetric.run(self.ssoObs, self.orb, self.Hval)
-        self.assertEqual(nObs, len(self.ssoObs["time"]) - 1)
+    def testn_obsNoSinglesMetric(self):
+        n_obsNoSinglesMetric = metrics.NObsNoSinglesMetric(snr_limit=5)
+        n_obs = n_obsNoSinglesMetric.run(self.ssoObs, self.orb, self.Hval)
+        self.assertEqual(n_obs, len(self.ssoObs["time"]) - 1)
 
     def testNNightsMetric(self):
         nNightsMetric = metrics.NNightsMetric(snr_limit=5)
@@ -197,9 +197,9 @@ class TestDiscoveryMetrics(unittest.TestCase):
                     ("time", "<f8"),
                     ("ra", "<f8"),
                     ("dec", "<f8"),
-                    ("ecLon", "<f8"),
-                    ("ecLat", "<f8"),
-                    ("solarElong", "<f8"),
+                    ("ec_lon", "<f8"),
+                    ("ec_lat", "<f8"),
+                    ("solar_elong", "<f8"),
                     ("appMag", "<f8"),
                     ("observationStartMJD", "<f8"),
                     ("night", "<f8"),
@@ -221,9 +221,9 @@ class TestDiscoveryMetrics(unittest.TestCase):
         ssoObs["night"] = np.floor(times)
         ssoObs["ra"] = np.arange(len(times))
         ssoObs["dec"] = np.arange(len(times)) + 5
-        ssoObs["ecLon"] = ssoObs["ra"] + 10
-        ssoObs["ecLat"] = ssoObs["dec"] + 20
-        ssoObs["solarElong"] = ssoObs["ra"] + 30
+        ssoObs["ec_lon"] = ssoObs["ra"] + 10
+        ssoObs["ec_lat"] = ssoObs["dec"] + 20
+        ssoObs["solar_elong"] = ssoObs["ra"] + 30
         ssoObs["appMag"] = np.zeros(len(times), dtype="float") + 24.0
         ssoObs["magFilter"] = np.zeros(len(times), dtype="float") + 24.0
         ssoObs["fiveSigmaDepth"] = np.zeros(len(times), dtype="float") + 25.0
@@ -242,64 +242,64 @@ class TestDiscoveryMetrics(unittest.TestCase):
 
     def testDiscoveryMetric(self):
         discMetric = metrics.DiscoveryMetric(
-            nObsPerNight=2,
-            tMin=0.0,
-            tMax=0.3,
-            nNightsPerWindow=3,
-            tWindow=9,
+            n_obs_per_night=2,
+            t_min=0.0,
+            t_max=0.3,
+            n_nights_per_window=3,
+            t_window=9,
             snr_limit=5,
         )
         metricValue = discMetric.run(self.ssoObs, self.orb, self.Hval)
-        child = metrics.Discovery_N_ObsMetric(discMetric, i=0)
-        nobs = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
-        self.assertEqual(nobs, 8)
-        child = metrics.Discovery_N_ObsMetric(discMetric, i=1)
-        nobs = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
-        self.assertEqual(nobs, 7)
-        child = metrics.Discovery_N_ChancesMetric(discMetric)
+        child = metrics.DiscoveryNObsMetric(discMetric, i=0)
+        n_obs = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
+        self.assertEqual(n_obs, 8)
+        child = metrics.DiscoveryNObsMetric(discMetric, i=1)
+        n_obs = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
+        self.assertEqual(n_obs, 7)
+        child = metrics.DiscoveryNChancesMetric(discMetric)
         nchances = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
         self.assertEqual(nchances, 2)
-        child = metrics.Discovery_TimeMetric(discMetric, i=0)
+        child = metrics.DiscoveryTimeMetric(discMetric, i=0)
         time = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
         self.assertEqual(time, self.ssoObs["observationStartMJD"][0])
-        child = metrics.Discovery_TimeMetric(discMetric, i=1)
+        child = metrics.DiscoveryTimeMetric(discMetric, i=1)
         time = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
         self.assertEqual(time, self.ssoObs["observationStartMJD"][3])
-        child = metrics.Discovery_RADecMetric(discMetric, i=0)
+        child = metrics.DiscoveryRadecMetric(discMetric, i=0)
         ra, dec = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
         self.assertEqual(ra, 0)
         self.assertEqual(dec, 5)
-        child = metrics.Discovery_EcLonLatMetric(discMetric, i=0)
+        child = metrics.DiscoveryEclonlatMetric(discMetric, i=0)
         lon, lat, solarElong = child.run(self.ssoObs, self.orb, self.Hval, metricValue)
         self.assertEqual(lon, 10)
         self.assertEqual(lat, 25)
 
-        discMetric3 = metrics.MagicDiscoveryMetric(nObs=5, tWindow=2, snr_limit=5)
+        discMetric3 = metrics.MagicDiscoveryMetric(n_obs=5, t_window=2, snr_limit=5)
         magic = discMetric3.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(magic, 1)
-        discMetric3 = metrics.MagicDiscoveryMetric(nObs=3, tWindow=1, snr_limit=5)
+        discMetric3 = metrics.MagicDiscoveryMetric(n_obs=3, t_window=1, snr_limit=5)
         magic = discMetric3.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(magic, 2)
-        discMetric3 = metrics.MagicDiscoveryMetric(nObs=4, tWindow=4, snr_limit=5)
+        discMetric3 = metrics.MagicDiscoveryMetric(n_obs=4, t_window=4, snr_limit=5)
         magic = discMetric3.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(magic, 4)
 
     def testHighVelocityMetric(self):
         rng = np.random.RandomState(8123)
-        velMetric = metrics.HighVelocityMetric(psfFactor=1.0, snr_limit=5)
+        velMetric = metrics.HighVelocityMetric(psf_factor=1.0, snr_limit=5)
         metricValue = velMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(metricValue, 0)
         self.ssoObs["velocity"][0:2] = 1.5
         metricValue = velMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(metricValue, 2)
-        velMetric = metrics.HighVelocityMetric(psfFactor=2.0, snr_limit=5)
+        velMetric = metrics.HighVelocityMetric(psf_factor=2.0, snr_limit=5)
         metricValue = velMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(metricValue, 0)
         self.ssoObs["velocity"][0:2] = rng.rand(1)
 
     def testHighVelocityNightsMetric(self):
         velMetric = metrics.HighVelocityNightsMetric(
-            psfFactor=1.0, nObsPerNight=1, snr_limit=5
+            psf_factor=1.0, n_obs_per_night=1, snr_limit=5
         )
         metricValue = velMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(metricValue, 0)
@@ -333,92 +333,92 @@ class TestKnownObjectMetrics(unittest.TestCase):
 
     def testKnownObjectsMetric(self):
         knownObjectMetric = metrics.KnownObjectsMetric(
-            tSwitch1=self.t1,
+            t_switch1=self.t1,
             eff1=1.0,
-            vMagThresh1=20.5,
-            tSwitch2=self.t2,
+            v_mag_thresh1=20.5,
+            t_switch2=self.t2,
             eff2=1.0,
-            vMagThresh2=20.5,
-            tSwitch3=self.t3,
+            v_mag_thresh2=20.5,
+            t_switch3=self.t3,
             eff3=1.0,
-            vMagThresh3=20.5,
+            v_mag_thresh3=20.5,
             eff4=1.0,
-            vMagThresh4=22,
+            v_mag_thresh4=22,
         )
         mVal = knownObjectMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(mVal, self.ssoObs["MJD(UTC)"].min())
         knownObjectMetric = metrics.KnownObjectsMetric(
-            tSwitch1=self.t1,
+            t_switch1=self.t1,
             eff1=1.0,
-            vMagThresh1=15.0,
-            tSwitch2=self.t2,
+            v_mag_thresh1=15.0,
+            t_switch2=self.t2,
             eff2=1.0,
-            vMagThresh2=20.5,
-            tSwitch3=self.t3,
+            v_mag_thresh2=20.5,
+            t_switch3=self.t3,
             eff3=1.0,
-            vMagThresh3=20.5,
+            v_mag_thresh3=20.5,
             eff4=1.0,
-            vMagThresh4=22,
+            v_mag_thresh4=22,
         )
         mVal = knownObjectMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(mVal, self.t1)
         knownObjectMetric = metrics.KnownObjectsMetric(
-            tSwitch1=self.t1,
+            t_switch1=self.t1,
             eff1=0.0,
-            vMagThresh1=20.5,
-            tSwitch2=self.t2,
+            v_mag_thresh1=20.5,
+            t_switch2=self.t2,
             eff2=1.0,
-            vMagThresh2=20.5,
-            tSwitch3=self.t3,
+            v_mag_thresh2=20.5,
+            t_switch3=self.t3,
             eff3=1.0,
-            vMagThresh3=20.5,
+            v_mag_thresh3=20.5,
             eff4=1.0,
-            vMagThresh4=22,
+            v_mag_thresh4=22,
         )
         mVal = knownObjectMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(mVal, self.t1)
         knownObjectMetric = metrics.KnownObjectsMetric(
-            tSwitch1=self.t1,
+            t_switch1=self.t1,
             eff1=1.0,
-            vMagThresh1=10,
-            tSwitch2=self.t2,
+            v_mag_thresh1=10,
+            t_switch2=self.t2,
             eff2=1.0,
-            vMagThresh2=10.5,
-            tSwitch3=self.t3,
+            v_mag_thresh2=10.5,
+            t_switch3=self.t3,
             eff3=1.0,
-            vMagThresh3=20.5,
+            v_mag_thresh3=20.5,
             eff4=1.0,
-            vMagThresh4=22,
+            v_mag_thresh4=22,
         )
         mVal = knownObjectMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(mVal, self.t2)
         knownObjectMetric = metrics.KnownObjectsMetric(
-            tSwitch1=self.t1,
+            t_switch1=self.t1,
             eff1=1.0,
-            vMagThresh1=10,
-            tSwitch2=self.t2,
+            v_mag_thresh1=10,
+            t_switch2=self.t2,
             eff2=1.0,
-            vMagThresh2=10.5,
-            tSwitch3=self.t3,
+            v_mag_thresh2=10.5,
+            t_switch3=self.t3,
             eff3=1.0,
-            vMagThresh3=10.5,
+            v_mag_thresh3=10.5,
             eff4=1.0,
-            vMagThresh4=22,
+            v_mag_thresh4=22,
         )
         mVal = knownObjectMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(mVal, self.t3)
         knownObjectMetric = metrics.KnownObjectsMetric(
-            tSwitch1=self.t1,
+            t_switch1=self.t1,
             eff1=1.0,
-            vMagThresh1=10,
-            tSwitch2=self.t2,
+            v_mag_thresh1=10,
+            t_switch2=self.t2,
             eff2=1.0,
-            vMagThresh2=10.5,
-            tSwitch3=self.t3,
+            v_mag_thresh2=10.5,
+            t_switch3=self.t3,
             eff3=1.0,
-            vMagThresh3=10.5,
+            v_mag_thresh3=10.5,
             eff4=1.0,
-            vMagThresh4=10.5,
+            v_mag_thresh4=10.5,
         )
         mVal = knownObjectMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(mVal, knownObjectMetric.badval)

@@ -70,7 +70,7 @@ class MovieSlicer(BaseSlicer):
         self.cumulative = cumulative
         if slice_col_units is None:
             co = ColInfo()
-            self.slice_col_units = co.getUnits(self.slice_col_name)
+            self.slice_col_units = co.get_units(self.slice_col_name)
         self.slicer_init = {
             "slice_col_name": self.slice_col_name,
             "slice_col_units": slice_col_units,
