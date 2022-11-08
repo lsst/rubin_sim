@@ -30,8 +30,10 @@ class TestUniSlicerSetupAndSlice(unittest.TestCase):
 
     def testSlicertype(self):
         """Test instantiation of slicer sets slicer type as expected."""
-        self.assertEqual(self.testslicer.slicerName, self.testslicer.__class__.__name__)
-        self.assertEqual(self.testslicer.slicerName, "UniSlicer")
+        self.assertEqual(
+            self.testslicer.slicer_name, self.testslicer.__class__.__name__
+        )
+        self.assertEqual(self.testslicer.slicer_name, "UniSlicer")
 
     def testSlicerNbins(self):
         self.assertEqual(self.testslicer.nslice, 1)
@@ -74,7 +76,7 @@ class TestUniSlicerIteration(unittest.TestCase):
         nvalues = 1000
         dv = makeDataValues(nvalues, dvmin, dvmax, random=1192)
         self.testslicer.setup_slicer(dv)
-        self.assertEqual(self.testslicer[0]["slicePoint"]["sid"], 0)
+        self.assertEqual(self.testslicer[0]["slice_point"]["sid"], 0)
 
 
 class TestUniSlicerEqual(unittest.TestCase):

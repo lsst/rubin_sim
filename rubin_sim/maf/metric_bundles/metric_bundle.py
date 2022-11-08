@@ -33,7 +33,7 @@ class MetricBundle(object):
     constraint - together these define a unique combination of an opsim benchmark.
     An example would be: a CountMetric, a HealpixSlicer, and a constraint 'filter="r"'.
 
-    After the metric is evaluated over the slicePoints of the slicer, the resulting
+    After the metric is evaluated over the slice_points of the slicer, the resulting
     metric values are saved in the MetricBundle.
 
     The MetricBundle also saves the summary metrics to be used to generate summary
@@ -46,7 +46,7 @@ class MetricBundle(object):
     Parameters
     ----------
     metric : `~rubin_sim.maf.metric`
-        The Metric class to run per slicePoint
+        The Metric class to run per slice_point
     slicer : `~rubin_sim.maf.slicer`
         The Slicer to apply to the incoming visit data (the observations).
     constraint : `str` or None, opt
@@ -247,7 +247,7 @@ class MetricBundle(object):
                 self.run_name,
                 self.metric.name,
                 self.info_label,
-                self.slicer.slicerName[:4].upper(),
+                self.slicer.slicer_name[:4].upper(),
             ]
         )
         # Sanitize output name if needed.
@@ -328,7 +328,7 @@ class MetricBundle(object):
                     self.summary_metrics.append(s)
         else:
             # Add identity metric to unislicer metric values (to get them into resultsDB).
-            if self.slicer.slicerName == "UniSlicer":
+            if self.slicer.slicer_name == "UniSlicer":
                 self.summary_metrics = [metrics.IdentityMetric()]
             else:
                 self.summary_metrics = []
@@ -425,7 +425,7 @@ class MetricBundle(object):
         if self.display_dict["caption"] is None:
             if self.metric.comment is None:
                 caption = self.metric.name + " calculated on a %s basis" % (
-                    self.slicer.slicerName
+                    self.slicer.slicer_name
                 )
                 if self.constraint != "" and self.constraint is not None:
                     caption += " using a subset of data selected via %s." % (
@@ -448,7 +448,7 @@ class MetricBundle(object):
             # Update the display values in the results_db.
             metric_id = results_db.update_metric(
                 self.metric.name,
-                self.slicer.slicerName,
+                self.slicer.slicer_name,
                 self.run_name,
                 self.constraint,
                 self.info_label,
@@ -479,7 +479,7 @@ class MetricBundle(object):
         if results_db is not None:
             metric_id = results_db.update_metric(
                 self.metric.name,
-                self.slicer.slicerName,
+                self.slicer.slicer_name,
                 self.run_name,
                 self.constraint,
                 self.info_label,
@@ -639,7 +639,7 @@ class MetricBundle(object):
                 if results_db:
                     metric_id = results_db.update_metric(
                         self.metric.name,
-                        self.slicer.slicerName,
+                        self.slicer.slicer_name,
                         self.run_name,
                         self.constraint,
                         self.info_label,
@@ -773,8 +773,8 @@ class MetricBundle(object):
             else:
                 plot_func = plot_func()
 
-        plot_handler.setMetricBundles([self])
-        plot_handler.setPlotDicts(plotDicts=[self.plot_dict], reset=True)
+        plot_handler.set_metric_bundles([self])
+        plot_handler.set_plot_dicts(plot_dicts=[self.plot_dict], reset=True)
         made_plots = {}
         if plot_func is not None:
             fignum = plot_handler.plot(plot_func, outfile_suffix=outfile_suffix)
@@ -782,5 +782,5 @@ class MetricBundle(object):
         else:
             for plot_func in self.plot_funcs:
                 fignum = plot_handler.plot(plot_func, outfile_suffix=outfile_suffix)
-                made_plots[plot_func.plotType] = fignum
+                made_plots[plot_func.plot_type] = fignum
         return made_plots

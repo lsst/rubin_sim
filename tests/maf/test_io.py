@@ -18,18 +18,18 @@ class TestSlicers(unittest.TestCase):
         rng = np.random.RandomState(8121)
         nside = 32
         slicer = slicers.HealpixSlicer(nside=nside)
-        metricValues = rng.rand(hp.nside2npix(nside)).astype("object")
-        metricValues = ma.MaskedArray(
-            data=metricValues,
-            mask=np.where(metricValues < 0.1, True, False),
+        metric_values = rng.rand(hp.nside2npix(nside)).astype("object")
+        metric_values = ma.MaskedArray(
+            data=metric_values,
+            mask=np.where(metric_values < 0.1, True, False),
             fill_value=slicer.badval,
         )
         with TemporaryFile() as filename:
             info_label = "testdata"
-            slicer.write_data(filename, metricValues, info_label=info_label)
+            slicer.write_data(filename, metric_values, info_label=info_label)
             _ = filename.seek(0)
-            metricValuesBack, slicerBack, header = self.baseslicer.read_data(filename)
-            np.testing.assert_almost_equal(metricValuesBack, metricValues)
+            metric_valuesBack, slicerBack, header = self.baseslicer.read_data(filename)
+            np.testing.assert_almost_equal(metric_valuesBack, metric_values)
             assert slicer == slicerBack
             assert info_label == header["info_label"]
             attr2check = ["nside", "nslice", "columns_needed", "lon_col", "lat_col"]
@@ -40,12 +40,12 @@ class TestSlicers(unittest.TestCase):
         rng = np.random.RandomState(71231)
         nside = 32
         slicer = slicers.HealpixSlicer(nside=nside)
-        metricValues = rng.rand(hp.nside2npix(nside))
+        metric_values = rng.rand(hp.nside2npix(nside))
         with TemporaryFile() as filename:
-            slicer.write_data(filename, metricValues, info_label="testdata")
+            slicer.write_data(filename, metric_values, info_label="testdata")
             _ = filename.seek(0)
-            metricValuesBack, slicerBack, header = self.baseslicer.read_data(filename)
-            np.testing.assert_almost_equal(metricValuesBack, metricValues)
+            metric_valuesBack, slicerBack, header = self.baseslicer.read_data(filename)
+            np.testing.assert_almost_equal(metric_valuesBack, metric_values)
             assert slicer == slicerBack
             attr2check = ["nside", "nslice", "columns_needed", "lon_col", "lat_col"]
             for att in attr2check:
@@ -55,17 +55,17 @@ class TestSlicers(unittest.TestCase):
         rng = np.random.RandomState(712551)
         nside = 32
         slicer = slicers.HealpixSlicer(nside=nside)
-        metricValues = rng.rand(hp.nside2npix(nside))
-        metricValues = ma.MaskedArray(
-            data=metricValues,
-            mask=np.where(metricValues < 0.1, True, False),
+        metric_values = rng.rand(hp.nside2npix(nside))
+        metric_values = ma.MaskedArray(
+            data=metric_values,
+            mask=np.where(metric_values < 0.1, True, False),
             fill_value=slicer.badval,
         )
         with TemporaryFile() as filename:
-            slicer.write_data(filename, metricValues, info_label="testdata")
+            slicer.write_data(filename, metric_values, info_label="testdata")
             _ = filename.seek(0)
-            metricValuesBack, slicerBack, header = self.baseslicer.read_data(filename)
-            np.testing.assert_almost_equal(metricValuesBack, metricValues)
+            metric_valuesBack, slicerBack, header = self.baseslicer.read_data(filename)
+            np.testing.assert_almost_equal(metric_valuesBack, metric_values)
             assert slicer == slicerBack
             attr2check = ["nside", "nslice", "columns_needed", "lon_col", "lat_col"]
             for att in attr2check:
@@ -97,7 +97,7 @@ class TestSlicers(unittest.TestCase):
 
         names = ["fieldRA", "fieldDec", "fieldId"]
         dt = ["float", "float", "int"]
-        metricValues = rng.rand(100)
+        metric_values = rng.rand(100)
         fieldData = np.zeros(100, dtype=list(zip(names, dt)))
         fieldData["fieldRA"] = rng.rand(100)
         fieldData["fieldDec"] = rng.rand(100)
@@ -112,11 +112,11 @@ class TestSlicers(unittest.TestCase):
         simData["data1"] = rng.rand(100)
         simData["fieldId"] = np.arange(100)
         with TemporaryFile() as filename:
-            slicer.write_data(filename, metricValues)
+            slicer.write_data(filename, metric_values)
             _ = filename.seek(0)
             metricBack, slicerBack, header = self.baseslicer.read_data(filename)
             assert slicer == slicerBack
-            np.testing.assert_almost_equal(metricBack, metricValues)
+            np.testing.assert_almost_equal(metricBack, metric_values)
             attr2check = [
                 "nslice",
                 "columns_needed",

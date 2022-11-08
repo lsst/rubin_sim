@@ -42,8 +42,8 @@ class TestNDSlicerSetup(unittest.TestCase):
     def testSlicertype(self):
         """Test instantiation of slicer sets slicer type as expected."""
         testslicer = NDSlicer(self.dvlist)
-        self.assertEqual(testslicer.slicerName, testslicer.__class__.__name__)
-        self.assertEqual(testslicer.slicerName, "NDSlicer")
+        self.assertEqual(testslicer.slicer_name, testslicer.__class__.__name__)
+        self.assertEqual(testslicer.slicer_name, "NDSlicer")
 
     def testSetupSlicerBins(self):
         """Test setting up slicer using defined bins."""
@@ -183,15 +183,16 @@ class TestNDSlicerIteration(unittest.TestCase):
     def testIteration(self):
         """Test iteration."""
         for s, ib in zip(self.testslicer, itertools.product(*self.iterlist)):
-            self.assertEqual(s["slicePoint"]["binLeft"], ib)
+            self.assertEqual(s["slice_point"]["binLeft"], ib)
 
     def testGetItem(self):
         """Test getting indexed binpoint."""
         for i, s in enumerate(self.testslicer):
             self.assertEqual(
-                self.testslicer[i]["slicePoint"]["binLeft"], s["slicePoint"]["binLeft"]
+                self.testslicer[i]["slice_point"]["binLeft"],
+                s["slice_point"]["binLeft"],
             )
-        self.assertEqual(self.testslicer[0]["slicePoint"]["binLeft"], (0.0, 0.0, 0.0))
+        self.assertEqual(self.testslicer[0]["slice_point"]["binLeft"], (0.0, 0.0, 0.0))
 
 
 class TestNDSlicerSlicing(unittest.TestCase):
@@ -225,7 +226,7 @@ class TestNDSlicerSlicing(unittest.TestCase):
                 sum += len(idxs)
                 if len(dataslice) > 0:
                     for i, dvname, b in zip(
-                        list(range(self.nd)), self.dvlist, s["slicePoint"]["binLeft"]
+                        list(range(self.nd)), self.dvlist, s["slice_point"]["binLeft"]
                     ):
                         self.assertGreaterEqual((dataslice[dvname].min() - b), 0)
                     if i < self.testslicer.nslice - 1:

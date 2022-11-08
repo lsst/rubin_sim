@@ -8,7 +8,7 @@ import rubin_sim.maf.metrics as metrics
 
 class TestVisitGroupsMetric(unittest.TestCase):
     def testPairFractionMetric(self):
-        metric = metrics.PairFractionMetric(mjdCol="mjd")
+        metric = metrics.PairFractionMetric(mjd_col="mjd")
         times = np.arange(0, 200, 30) / 60.0 / 24.0
         data = np.core.records.fromarrays([times], names="mjd")
         # These should all have pairs
@@ -122,8 +122,8 @@ class TestVisitGroupsMetric(unittest.TestCase):
         )
         # Set up metric.
         testmetric = metrics.VisitGroupsMetric(
-            timeCol="expmjd",
-            nightsCol="night",
+            time_col="expmjd",
+            nights_col="night",
             deltaTmin=tmin,
             deltaTmax=tmax,
             minNVisits=2,
@@ -132,8 +132,8 @@ class TestVisitGroupsMetric(unittest.TestCase):
         )
         # and set up a copy, with a higher number of min visits per night
         testmetric2 = metrics.VisitGroupsMetric(
-            timeCol="expmjd",
-            nightsCol="night",
+            time_col="expmjd",
+            nights_col="night",
             deltaTmin=tmin,
             deltaTmax=tmax,
             minNVisits=3,

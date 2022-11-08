@@ -48,38 +48,38 @@ def makeFieldData(seed):
 class TestMaps(unittest.TestCase):
     def testDustMap(self):
 
-        mapPath = os.path.join(get_data_dir(), "tests")
+        map_path = os.path.join(get_data_dir(), "tests")
         nside = 8
-        if os.path.isfile(os.path.join(mapPath, f"dust_nside_{nside}.npz")):
+        if os.path.isfile(os.path.join(map_path, f"dust_nside_{nside}.npz")):
 
             data = makeDataValues(random=981)
-            dustmap = maps.DustMap(nside=nside, mapPath=mapPath)
+            dustmap = maps.DustMap(nside=nside, map_path=map_path)
 
             slicer1 = slicers.HealpixSlicer(
                 lat_lon_deg=False, nside=nside, use_camera=False
             )
             slicer1.setup_slicer(data)
-            result1 = dustmap.run(slicer1.slicePoints)
+            result1 = dustmap.run(slicer1.slice_points)
             assert "ebv" in list(result1.keys())
 
             fieldData = makeFieldData(2234)
 
             slicer2 = slicers.UserPointsSlicer(
-                fieldData["fieldRA"], fieldData["fieldDec"], latLonDeg=False
+                fieldData["fieldRA"], fieldData["fieldDec"], lat_lon_deg=False
             )
-            result2 = dustmap.run(slicer2.slicePoints)
+            result2 = dustmap.run(slicer2.slice_points)
             assert "ebv" in list(result2.keys())
 
             # Check interpolation works
-            dustmap = maps.DustMap(interp=True, nside=nside, mapPath=mapPath)
-            result3 = dustmap.run(slicer2.slicePoints)
+            dustmap = maps.DustMap(interp=True, nside=nside, map_path=map_path)
+            result3 = dustmap.run(slicer2.slice_points)
             assert "ebv" in list(result3.keys())
 
             # Check warning gets raised
-            dustmap = maps.DustMap(nside=4, mapPath=mapPath)
+            dustmap = maps.DustMap(nside=4, map_path=map_path)
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
-                dustmap.run(slicer1.slicePoints)
+                dustmap.run(slicer1.slice_points)
                 self.assertIn("nside", str(w[-1].message))
         else:
             warnings.warn("Did not find dustmaps, not running testMaps.py")
@@ -87,34 +87,36 @@ class TestMaps(unittest.TestCase):
     def testDustMap3D(self):
 
         nside = 8
-        mapFile = os.path.join(get_data_dir(), "tests", f"test_ebv3d_nside{nside}.fits")
-        if os.path.isfile(mapFile):
+        map_file = os.path.join(
+            get_data_dir(), "tests", f"test_ebv3d_nside{nside}.fits"
+        )
+        if os.path.isfile(map_file):
 
             data = makeDataValues(random=981)
-            dustmap = maps.DustMap3D(nside=nside, mapFile=mapFile, interp=False)
+            dustmap = maps.DustMap3D(nside=nside, map_file=map_file, interp=False)
 
             slicer1 = slicers.HealpixSlicer(
                 lat_lon_deg=False, nside=nside, use_camera=False
             )
             slicer1.setup_slicer(data)
-            result1 = dustmap.run(slicer1.slicePoints)
+            result1 = dustmap.run(slicer1.slice_points)
             assert "ebv3d_ebvs" in list(result1.keys())
             assert "ebv3d_dists" in list(result1.keys())
 
             fieldData = makeFieldData(2234)
 
             slicer2 = slicers.UserPointsSlicer(
-                fieldData["fieldRA"], fieldData["fieldDec"], latLonDeg=False
+                fieldData["fieldRA"], fieldData["fieldDec"], lat_lon_deg=False
             )
-            result2 = dustmap.run(slicer2.slicePoints)
+            result2 = dustmap.run(slicer2.slice_points)
             assert "ebv3d_ebvs" in list(result2.keys())
             assert "ebv3d_dists" in list(result2.keys())
 
             # Check interpolation works
             dustmap = maps.DustMap3D(
-                interp=True, nside=nside, mapFile=mapFile, distPc=2000, dMag=10
+                interp=True, nside=nside, map_file=map_file, dist_pc=2000, d_mag=10
             )
-            result3 = dustmap.run(slicer2.slicePoints)
+            result3 = dustmap.run(slicer2.slice_points)
             assert "ebv3d_ebvs" in list(result3.keys())
             assert "ebv3d_dists" in list(result3.keys())
             assert "ebv3d_ebv_at_2000.0" in list(result3.keys())
@@ -134,28 +136,28 @@ class TestMaps(unittest.TestCase):
             )
 
             # Check warning gets raised
-            dustmap = maps.DustMap3D(nside=4, mapFile=mapFile)
+            dustmap = maps.DustMap3D(nside=4, map_file=map_file)
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
-                dustmap.run(slicer1.slicePoints)
+                dustmap.run(slicer1.slice_points)
                 self.assertIn("nside", str(w[-1].message))
         else:
             warnings.warn("Did not find dustmaps, not running testMaps.py")
 
     def testStarMap(self):
-        mapPath = os.path.join(get_data_dir(), "tests")
+        map_path = os.path.join(get_data_dir(), "tests")
 
-        if os.path.isfile(os.path.join(mapPath, "starDensity_r_nside_64.npz")):
+        if os.path.isfile(os.path.join(map_path, "starDensity_r_nside_64.npz")):
             data = makeDataValues(random=887)
             # check that it works if nside does not match map nside of 64
             nsides = [32, 64, 128]
             for nside in nsides:
-                starmap = maps.StellarDensityMap(mapDir=mapPath)
+                starmap = maps.StellarDensityMap(map_dir=map_path)
                 slicer1 = slicers.HealpixSlicer(
                     nside=nside, lat_lon_deg=False, use_camera=False
                 )
                 slicer1.setup_slicer(data)
-                result1 = starmap.run(slicer1.slicePoints)
+                result1 = starmap.run(slicer1.slice_points)
                 assert "starMapBins_r" in list(result1.keys())
                 assert "starLumFunc_r" in list(result1.keys())
                 assert np.max(result1["starLumFunc_r"] > 0)
@@ -163,9 +165,9 @@ class TestMaps(unittest.TestCase):
             fieldData = makeFieldData(22)
 
             slicer2 = slicers.UserPointsSlicer(
-                fieldData["fieldRA"], fieldData["fieldDec"], latLonDeg=False
+                fieldData["fieldRA"], fieldData["fieldDec"], lat_lon_deg=False
             )
-            result2 = starmap.run(slicer2.slicePoints)
+            result2 = starmap.run(slicer2.slice_points)
             assert "starMapBins_r" in list(result2.keys())
             assert "starLumFunc_r" in list(result2.keys())
             assert np.max(result2["starLumFunc_r"] > 0)
@@ -179,40 +181,42 @@ class TestMaps(unittest.TestCase):
     )
     def testGalplanePriorityMaps(self):
 
-        mapPath = os.path.join(get_data_dir(), "maps")
+        map_path = os.path.join(get_data_dir(), "maps")
         nside = 64
         data = makeDataValues(random=981)
         galplane_map = maps.GalacticPlanePriorityMap(
-            nside=nside, mapPath=mapPath, interp=False
+            nside=nside, map_path=map_path, interp=False
         )
 
         # Set up basic case - healpix
-        slicer1 = slicers.HealpixSlicer(lat_lon_deg=False, nside=nside, use_camera=False)
+        slicer1 = slicers.HealpixSlicer(
+            lat_lon_deg=False, nside=nside, use_camera=False
+        )
         slicer1.setup_slicer(data)
-        result1 = galplane_map.run(slicer1.slicePoints)
+        result1 = galplane_map.run(slicer1.slice_points)
         key = maps.gp_priority_map_components_to_keys("sum", "combined_map")
         assert key in list(result1.keys())
 
         # Set up more advanced case - random ra/dec
         fieldData = makeFieldData(2234)
         slicer2 = slicers.UserPointsSlicer(
-            fieldData["fieldRA"], fieldData["fieldDec"], latLonDeg=False
+            fieldData["fieldRA"], fieldData["fieldDec"], lat_lon_deg=False
         )
-        result2 = galplane_map.run(slicer2.slicePoints)
+        result2 = galplane_map.run(slicer2.slice_points)
         assert key in list(result2.keys())
 
         # Check interpolation works
         galplane_map = maps.GalacticPlanePriorityMap(
-            interp=True, nside=nside, mapPath=mapPath
+            interp=True, nside=nside, map_path=map_path
         )
-        result3 = galplane_map.run(slicer2.slicePoints)
+        result3 = galplane_map.run(slicer2.slice_points)
         assert key in list(result3.keys())
 
         # Check warning gets raised
-        galplane_map = maps.GalacticPlanePriorityMap(nside=4, mapPath=mapPath)
+        galplane_map = maps.GalacticPlanePriorityMap(nside=4, map_path=map_path)
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            galplane_map.run(slicer1.slicePoints)
+            galplane_map.run(slicer1.slice_points)
             self.assertIn("nside", str(w[-1].message))
 
 

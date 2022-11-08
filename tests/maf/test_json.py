@@ -24,11 +24,11 @@ def makeDataValues(size=100, min=0.0, max=1.0, random=-1):
 
 def makeMetricData(slicer, dtype="float", seed=8800):
     rng = np.random.RandomState(seed)
-    metricValues = rng.rand(len(slicer)).astype(dtype)
-    metricValues = ma.MaskedArray(
-        data=metricValues, mask=np.zeros(len(slicer), "bool"), fill_value=slicer.badval
+    metric_values = rng.rand(len(slicer)).astype(dtype)
+    metric_values = ma.MaskedArray(
+        data=metric_values, mask=np.zeros(len(slicer), "bool"), fill_value=slicer.badval
     )
-    return metricValues
+    return metric_values
 
 
 def makeFieldData():
@@ -100,16 +100,16 @@ class TestJSONoutUniSlicer(unittest.TestCase):
         io = self.testslicer.output_json(
             metricVal,
             metric_name="testMetric",
-            simDataName="testSim",
+            sim_data_name="testSim",
             info_label="testmeta",
         )
         jsn = json.loads(io.getvalue())
         jsn_header = jsn[0]
         jsn_data = jsn[1]
         self.assertEqual(jsn_header["metric_name"], "testMetric")
-        self.assertEqual(jsn_header["simDataName"], "testSim")
+        self.assertEqual(jsn_header["sim_data_name"], "testSim")
         self.assertEqual(jsn_header["info_label"], "testmeta")
-        self.assertEqual(jsn_header["slicerName"], "UniSlicer")
+        self.assertEqual(jsn_header["slicer_name"], "UniSlicer")
         self.assertEqual(jsn_header["slicerLen"], 1)
         self.assertEqual(len(jsn_data), 1)
 
@@ -130,11 +130,11 @@ class TestJSONoutOneDSlicer2(unittest.TestCase):
         jsn = json.loads(io.getvalue())
         jsn_header = jsn[0]
         jsn_data = jsn[1]
-        self.assertEqual(jsn_header["slicerName"], "OneDSlicer")
+        self.assertEqual(jsn_header["slicer_name"], "OneDSlicer")
         self.assertEqual(jsn_header["slicerLen"], len(self.testslicer))
         self.assertEqual(len(jsn_data), len(metricVal) + 1)
         for jsndat, binleft, mval in zip(
-            jsn_data, self.testslicer.slicePoints["bins"], metricVal.data
+            jsn_data, self.testslicer.slice_points["bins"], metricVal.data
         ):
             self.assertEqual(jsndat[0], binleft)
             self.assertEqual(jsndat[1], mval)
@@ -154,13 +154,13 @@ class TestJSONoutHealpixSlicer(unittest.TestCase):
         jsn = json.loads(io.getvalue())
         jsn_header = jsn[0]
         jsn_data = jsn[1]
-        self.assertEqual(jsn_header["slicerName"], "HealpixSlicer")
+        self.assertEqual(jsn_header["slicer_name"], "HealpixSlicer")
         self.assertEqual(jsn_header["slicerLen"], len(self.testslicer))
         self.assertEqual(len(jsn_data), len(metricVal))
         for jsndat, ra, dec, mval in zip(
             jsn_data,
-            self.testslicer.slicePoints["ra"],
-            self.testslicer.slicePoints["dec"],
+            self.testslicer.slice_points["ra"],
+            self.testslicer.slice_points["dec"],
             metricVal.data,
         ):
             self.assertAlmostEqual(jsndat[0], ra / np.pi * 180.0)

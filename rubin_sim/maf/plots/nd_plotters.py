@@ -49,7 +49,7 @@ class TwoDSubsetData(BasePlotter):
         int
            Matplotlib figure number used to create the plot.
         """
-        if slicer.slicerName != "NDSlicer":
+        if slicer.slicer_name != "NDSlicer":
             raise ValueError("TwoDSubsetData plots ndSlicer metric values")
         fig = plt.figure(fignum)
         plot_dict = {}
@@ -155,7 +155,7 @@ class OneDSubsetData(BasePlotter):
         int
            Matplotlib figure number used to create the plot.
         """
-        if slicer.slicerName != "NDSlicer":
+        if slicer.slicer_name != "NDSlicer":
             raise ValueError("TwoDSubsetData plots ndSlicer metric values")
         fig = plt.figure(fignum)
         plot_dict = {}

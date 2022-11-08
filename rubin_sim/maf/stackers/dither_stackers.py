@@ -38,11 +38,11 @@ __all__ = [
 def setup_dither_stackers(ra_col, dec_col, degrees, **kwargs):
     b = BaseStacker()
     stacker_list = []
-    if ra_col in b.sourceDict:
-        stacker_list.append(b.sourceDict[ra_col](degrees=degrees, **kwargs))
-    if dec_col in b.sourceDict:
-        if b.sourceDict[ra_col] != b.sourceDict[dec_col]:
-            stacker_list.append(b.sourceDict[dec_col](degrees=degrees, **kwargs))
+    if ra_col in b.source_dict:
+        stacker_list.append(b.source_dict[ra_col](degrees=degrees, **kwargs))
+    if dec_col in b.source_dict:
+        if b.source_dict[ra_col] != b.source_dict[dec_col]:
+            stacker_list.append(b.source_dict[dec_col](degrees=degrees, **kwargs))
     return stacker_list
 
 

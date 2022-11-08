@@ -35,8 +35,8 @@ class MetricResultsPageHandler(web.RequestHandler):
     def get(self):
         resultsTempl = env.get_template("results.html")
         runId = int(self.request.arguments["runId"][0])
-        if "metricId" in self.request.arguments:
-            metricIdList = self.request.arguments["metricId"]
+        if "metric_id" in self.request.arguments:
+            metricIdList = self.request.arguments["metric_id"]
         else:
             metricIdList = []
         if "Group_subgroup" in self.request.arguments:
@@ -56,7 +56,7 @@ class MetricResultsPageHandler(web.RequestHandler):
 class DataHandler(web.RequestHandler):
     def get(self):
         runId = int(self.request.arguments["runId"][0])
-        metricId = int(self.request.arguments["metricId"][0])
+        metricId = int(self.request.arguments["metric_id"][0])
         if "datatype" in self.request.arguments:
             datatype = self.request.arguments["datatype"][0].lower()
             datatype = datatype.decode("utf-8")

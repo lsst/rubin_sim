@@ -23,8 +23,8 @@ class TwoDMap(BasePlotter):
             "cbarTitle": "Count",
             "cmap": perceptual_rainbow,
             "percentileClip": None,
-            "colorMin": None,
-            "colorMax": None,
+            "color_min": None,
+            "color_max": None,
             "zp": None,
             "normVal": None,
             "cbar_edge": True,
@@ -51,12 +51,12 @@ class TwoDMap(BasePlotter):
         int
            Matplotlib figure number used to create the plot.
         """
-        if "Healpix" in slicer.slicerName:
+        if "Healpix" in slicer.slicer_name:
             self.default_plot_dict["ylabel"] = "Healpix ID"
-        elif "Opsim" in slicer.slicerName:
+        elif "Opsim" in slicer.slicer_name:
             self.default_plot_dict["ylabel"] = "Field ID"
             self.default_plot_dict["origin"] = "lower"
-        elif "User" in slicer.slicerName:
+        elif "User" in slicer.slicer_name:
             self.default_plot_dict["ylabel"] = "User Field ID"
 
         plot_dict = {}
@@ -75,8 +75,8 @@ class TwoDMap(BasePlotter):
             norm = None
 
         # Mask out values below the color minimum so they show up as white
-        if plot_dict["colorMin"] is not None:
-            low_vals = np.where(metric_value.data < plot_dict["colorMin"])
+        if plot_dict["color_min"] is not None:
+            low_vals = np.where(metric_value.data < plot_dict["color_min"])
             metric_value.mask[low_vals] = True
 
         figure = plt.figure(fignum)
@@ -88,8 +88,8 @@ class TwoDMap(BasePlotter):
         extent.extend(yextent)
         image = ax.imshow(
             metric_value,
-            vmin=plot_dict["colorMin"],
-            vmax=plot_dict["colorMax"],
+            vmin=plot_dict["color_min"],
+            vmax=plot_dict["color_max"],
             aspect=plot_dict["aspect"],
             cmap=plot_dict["cmap"],
             norm=norm,

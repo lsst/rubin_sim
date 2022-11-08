@@ -124,8 +124,8 @@ class HealpixSubsetSlicer(HealpixSlicer):
             if other_slicer.nside == self.nside:
                 if np.array_equal(other_slicer.hpid, self.hpid):
                     if (
-                        other_slicer.lonCol == self.lonCol
-                        and other_slicer.latCol == self.latCol
+                        other_slicer.lon_col == self.lon_col
+                        and other_slicer.lat_col == self.lat_col
                     ):
                         if other_slicer.radius == self.radius:
                             if other_slicer.useCamera == self.useCamera:
@@ -147,7 +147,7 @@ class HealpixSubsetSlicer(HealpixSlicer):
 
         Results of self._slice_sim_data should be dictionary of
         {'idxs': the data indexes relevant for this slice of the slicer,
-        'slicePoint': the metadata for the slicePoint, which always includes 'sid' key for ID of slicePoint.}
+        'slice_point': the metadata for the slice_point, which always includes 'sid' key for ID of slice_point.}
         """
         if self.hpid_counter >= self.len_hpid:
             raise StopIteration
@@ -159,7 +159,7 @@ class HealpixSubsetSlicer(HealpixSlicer):
         return self._slice_sim_data(islice)
 
     def setup_slicer(self, sim_data, maps=None):
-        """Use sim_data[self.lonCol] and sim_data[self.latCol] (in radians) to set up KDTree.
+        """Use sim_data[self.lon_col] and sim_data[self.lat_col] (in radians) to set up KDTree.
 
         Parameters
         -----------
@@ -167,7 +167,7 @@ class HealpixSubsetSlicer(HealpixSlicer):
             The simulated data, including the location of each pointing.
         maps : list of rubin_sim.maf.maps objects, optional
             List of maps (such as dust extinction) that will run to build up additional metadata at each
-            slicePoint. This additional metadata is available to metrics via the slicePoint dictionary.
+            slice_point. This additional metadata is available to metrics via the slice_point dictionary.
             Default None.
         """
         super().setup_slicer(sim_data=sim_data, maps=maps)
@@ -175,41 +175,41 @@ class HealpixSubsetSlicer(HealpixSlicer):
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
             """Return indexes for relevant opsim data at slicepoint
-            (slicepoint=lonCol/latCol value .. usually ra/dec)."""
+            (slicepoint=lon_col/lat_col value .. usually ra/dec)."""
             # Subclass this method, just to make sure we return no data for points not in self.hpid
-            slicePoint = {"sid": islice, "nside": self.nside}
+            slice_point = {"sid": islice, "nside": self.nside}
             if islice not in self.hpid:
                 indices = []
             else:
                 sx, sy, sz = simsUtils._xyz_from_ra_dec(
-                    self.slicePoints["ra"][islice], self.slicePoints["dec"][islice]
+                    self.slice_points["ra"][islice], self.slice_points["dec"][islice]
                 )
                 # Query against tree.
                 indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
                 if (self.useCamera) & (len(indices) > 0):
                     # Find the indices *of those indices* which fall in the camera footprint
                     camera_idx = self.camera(
-                        self.slicePoints["ra"][islice],
-                        self.slicePoints["dec"][islice],
+                        self.slice_points["ra"][islice],
+                        self.slice_points["dec"][islice],
                         self.data_ra[indices],
                         self.data_dec[indices],
                         self.data_rot[indices],
                     )
                     indices = np.array(indices)[camera_idx]
-                # Loop through all the slicePoint keys. If the first dimension of slicepoint[key] has
+                # Loop through all the slice_point keys. If the first dimension of slicepoint[key] has
                 # the same shape as the slicer, assume it is information per slicepoint.
-                # Otherwise, pass the whole slicePoint[key] information. Useful for stellar LF maps
+                # Otherwise, pass the whole slice_point[key] information. Useful for stellar LF maps
                 # where we want to pass only the relevant LF and the bins that go with it.
-                for key in self.slicePoints:
-                    if len(np.shape(self.slicePoints[key])) == 0:
+                for key in self.slice_points:
+                    if len(np.shape(self.slice_points[key])) == 0:
                         keyShape = 0
                     else:
-                        keyShape = np.shape(self.slicePoints[key])[0]
+                        keyShape = np.shape(self.slice_points[key])[0]
                     if keyShape == self.nslice:
-                        slicePoint[key] = self.slicePoints[key][islice]
+                        slice_point[key] = self.slice_points[key][islice]
                     else:
-                        slicePoint[key] = self.slicePoints[key]
+                        slice_point[key] = self.slice_points[key]
 
-            return {"idxs": indices, "slicePoint": slicePoint}
+            return {"idxs": indices, "slice_point": slice_point}
 
         setattr(self, "_slice_sim_data", _slice_sim_data)

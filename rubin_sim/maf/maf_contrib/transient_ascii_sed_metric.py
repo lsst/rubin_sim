@@ -144,7 +144,7 @@ class TransientAsciiSEDMetric(BaseMetric):
         if self.num_per_lightcurve == 0:
             self.num_filters = 0
         self.num_phases_to_run = num_phases_to_run
-        # Read ascii lightcurve template here. It doesn't change per slicePoint.
+        # Read ascii lightcurve template here. It doesn't change per slice_point.
         self.read_sed(ascii_file)
 
     def read_sed(self, ascii_file):

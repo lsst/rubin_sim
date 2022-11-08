@@ -49,10 +49,10 @@ class TestCadenceMetrics(unittest.TestCase):
         data = np.zeros(10, dtype=list(zip(names, types)))
         data["finSeeing"] = [2.0, 2.0, 3.0, 1.0, 1.0, 1.0, 0.5, 1.0, 0.4, 1.0]
         data["observationStartMJD"] = np.arange(10)
-        slicePoint = {"sid": 0}
+        slice_point = {"sid": 0}
         # so here we have 4 images w/o good previous templates
         metric = metrics.TemplateExistsMetric(seeing_col="finSeeing")
-        result = metric.run(data, slicePoint)
+        result = metric.run(data, slice_point)
         self.assertEqual(result, 6.0 / 10.0)
 
     def testUniformityMetric(self):
@@ -64,18 +64,18 @@ class TestCadenceMetrics(unittest.TestCase):
         # If all the observations are on the 1st day, should be 1
         self.assertEqual(result1, 1)
         data["observationStartMJD"] = data["observationStartMJD"] + 365.25 * 10
-        slicePoint = {"sid": 0}
-        result2 = metric.run(data, slicePoint)
+        slice_point = {"sid": 0}
+        result2 = metric.run(data, slice_point)
         # All on last day should also be 1
         self.assertEqual(result2, 1)
         # Make a perfectly uniform dist
         data["observationStartMJD"] = np.arange(0.0, 365.25 * 10, 365.25 * 10 / 100)
-        result3 = metric.run(data, slicePoint)
+        result3 = metric.run(data, slice_point)
         # Result should be zero for uniform
         np.testing.assert_almost_equal(result3, 0.0)
         # A single obseravtion should give a result of 1
         data = np.zeros(1, dtype=list(zip(names, types)))
-        result4 = metric.run(data, slicePoint)
+        result4 = metric.run(data, slice_point)
         self.assertEqual(result4, 1)
 
     def testTGapMetric(self):
@@ -188,7 +188,9 @@ class TestCadenceMetrics(unittest.TestCase):
         dtimes = np.arange(100)
         data["observationStartMJD"] = dtimes.cumsum()
         # Set up "rapid revisit" metric to look for visits between 5 and 25
-        metric = metrics.RapidRevisitUniformityMetric(d_tmin=5, d_tmax=55, min_nvisits=50)
+        metric = metrics.RapidRevisitUniformityMetric(
+            d_tmin=5, d_tmax=55, min_nvisits=50
+        )
         result = metric.run(data)
         # This should be uniform.
         self.assertLess(result, 0.1)
@@ -321,8 +323,8 @@ class TestCadenceMetrics(unittest.TestCase):
         data["observationStartMJD"] = times
         data["visitExposureTime"] = 30.0
         metric = metrics.SeasonLengthMetric(reduce_func=np.median)
-        slicePoint = {"ra": 0}
-        result = metric.run(data, slicePoint)
+        slice_point = {"ra": 0}
+        result = metric.run(data, slice_point)
         self.assertEqual(result, 350)
         times = np.arange(0, 3650, 365)
         data = np.zeros(
@@ -336,8 +338,8 @@ class TestCadenceMetrics(unittest.TestCase):
         data["observationStartMJD"] = np.sort(data["observationStartMJD"])
         data["visitExposureTime"] = 30.0
         metric = metrics.SeasonLengthMetric(reduce_func=np.median)
-        slicePoint = {"ra": 0}
-        result = metric.run(data, slicePoint)
+        slice_point = {"ra": 0}
+        result = metric.run(data, slice_point)
         self.assertEqual(result, 10)
         times = np.arange(0, 3650 - 365, 365)
         data = np.zeros(
@@ -351,8 +353,8 @@ class TestCadenceMetrics(unittest.TestCase):
         data["observationStartMJD"] = np.sort(data["observationStartMJD"])
         data["visitExposureTime"] = 30.0
         metric = metrics.SeasonLengthMetric(reduce_func=np.size)
-        slicePoint = {"ra": 0}
-        result = metric.run(data, slicePoint)
+        slice_point = {"ra": 0}
+        result = metric.run(data, slice_point)
         self.assertEqual(result, 9)
 
 

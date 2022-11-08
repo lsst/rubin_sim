@@ -39,8 +39,8 @@ class TestSummaryMetrics(unittest.TestCase):
         data = np.zeros(npix, dtype=list(zip(names, types)))
         data["metricdata"] += 826
         metric = metrics.fONv(col="ack", nside=nside, Nvisit=825, Asky=18000.0)
-        slicePoint = {"sid": 0}
-        result = metric.run(data, slicePoint)
+        slice_point = {"sid": 0}
+        result = metric.run(data, slice_point)
         # result is recarray with 'min' and 'median' number of visits
         # over the Asky area.
         # All pixels had 826 visits, so that is min and median here.
@@ -53,7 +53,7 @@ class TestSummaryMetrics(unittest.TestCase):
         npix_nk = int(npix * (13000.0 / deginsph))
         data["metricdata"] = 0
         data["metricdata"][:npix_nk] = 826
-        result = metric.run(data, slicePoint)
+        result = metric.run(data, slice_point)
         min_nvis = result["value"][np.where(result["name"] == "MinNvis")]
         median_nvis = result["value"][np.where(result["name"] == "MedianNvis")]
         self.assertEqual(min_nvis, 0)
@@ -68,19 +68,19 @@ class TestSummaryMetrics(unittest.TestCase):
         data = np.zeros(npix, dtype=list(zip(names, types)))
         data["metricdata"] += 826
         metric = metrics.fOArea(col="ack", nside=nside, Nvisit=825, Asky=18000.0)
-        slicePoint = {"sid": 0}
-        result = metric.run(data, slicePoint)
+        slice_point = {"sid": 0}
+        result = metric.run(data, slice_point)
         # fOArea returns the area with at least Nvisits.
         deginsph = 129600.0 / np.pi
         np.testing.assert_almost_equal(result, deginsph)
         data["metricdata"][: data.size // 2] = 0
-        result = metric.run(data, slicePoint)
+        result = metric.run(data, slice_point)
         np.testing.assert_almost_equal(result, deginsph / 2.0)
 
     def testNormalizeMetric(self):
         """Test normalize metric."""
         data = np.ones(10, dtype=list(zip(["testcol"], ["float"])))
-        metric = metrics.NormalizeMetric(col="testcol", normVal=5.5)
+        metric = metrics.NormalizeMetric(col="testcol", norm_val=5.5)
         result = metric.run(data)
         np.testing.assert_equal(result, np.ones(10, float) / 5.5)
 

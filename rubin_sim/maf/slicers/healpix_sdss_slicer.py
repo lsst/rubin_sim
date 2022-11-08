@@ -39,20 +39,20 @@ class HealpixSDSSSlicer(HealpixSlicer):
 
     def setup_slicer(self, sim_data, maps=None):
         """
-        Use sim_data[self.lonCol] and sim_data[self.latCol]
+        Use sim_data[self.lon_col] and sim_data[self.lat_col]
         (in radians) to set up KDTree.
         """
         self._run_maps(maps)
-        self._build_tree(sim_data[self.lonCol], sim_data[self.latCol], self.leafsize)
+        self._build_tree(sim_data[self.lon_col], sim_data[self.lat_col], self.leafsize)
         self._setRad(self.radius)
         self.corners = sim_data[self.cornerLables]
 
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
             """Return indexes for relevant opsim data at slicepoint
-            (slicepoint=lonCol/latCol value .. usually ra/dec)."""
+            (slicepoint=lon_col/lat_col value .. usually ra/dec)."""
             sx, sy, sz = self._treexyz(
-                self.slicePoints["ra"][islice], self.slicePoints["dec"][islice]
+                self.slice_points["ra"][islice], self.slice_points["dec"][islice]
             )
             # Query against tree.
             initIndices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
@@ -67,26 +67,26 @@ class HealpixSDSSSlicer(HealpixSlicer):
             x1, y1 = gnomonic_project_toxy(
                 self.corners["RA1"][initIndices],
                 self.corners["Dec1"][initIndices],
-                self.slicePoints["ra"][islice],
-                self.slicePoints["dec"][islice],
+                self.slice_points["ra"][islice],
+                self.slice_points["dec"][islice],
             )
             x2, y2 = gnomonic_project_toxy(
                 self.corners["RA2"][initIndices],
                 self.corners["Dec2"][initIndices],
-                self.slicePoints["ra"][islice],
-                self.slicePoints["dec"][islice],
+                self.slice_points["ra"][islice],
+                self.slice_points["dec"][islice],
             )
             x3, y3 = gnomonic_project_toxy(
                 self.corners["RA3"][initIndices],
                 self.corners["Dec3"][initIndices],
-                self.slicePoints["ra"][islice],
-                self.slicePoints["dec"][islice],
+                self.slice_points["ra"][islice],
+                self.slice_points["dec"][islice],
             )
             x4, y4 = gnomonic_project_toxy(
                 self.corners["RA4"][initIndices],
                 self.corners["Dec4"][initIndices],
-                self.slicePoints["ra"][islice],
-                self.slicePoints["dec"][islice],
+                self.slice_points["ra"][islice],
+                self.slice_points["dec"][islice],
             )
 
             for i, ind in enumerate(initIndices):
@@ -108,10 +108,10 @@ class HealpixSDSSSlicer(HealpixSlicer):
 
             return {
                 "idxs": indices,
-                "slicePoint": {
-                    "sid": self.slicePoints["sid"][islice],
-                    "ra": self.slicePoints["ra"][islice],
-                    "dec": self.slicePoints["dec"][islice],
+                "slice_point": {
+                    "sid": self.slice_points["sid"][islice],
+                    "ra": self.slice_points["ra"][islice],
+                    "dec": self.slice_points["dec"][islice],
                 },
             }
 

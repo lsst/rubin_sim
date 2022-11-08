@@ -90,7 +90,7 @@ class HealpixComCamSlicer(HealpixSlicer):
         self.side_radius = simsUtils.xyz_angular_radius(side_length / 2.0)
 
     def setup_slicer(self, sim_data, maps=None):
-        """Use sim_data[self.lonCol] and sim_data[self.latCol] (in radians) to set up KDTree.
+        """Use sim_data[self.lon_col] and sim_data[self.lat_col] (in radians) to set up KDTree.
 
         Parameters
         -----------
@@ -98,7 +98,7 @@ class HealpixComCamSlicer(HealpixSlicer):
             The simulated data, including the location of each pointing.
         maps : list of rubin_sim.maf.maps objects, optional
             List of maps (such as dust extinction) that will run to build up additional metadata at each
-            slicePoint. This additional metadata is available to metrics via the slicePoint dictionary.
+            slice_point. This additional metadata is available to metrics via the slice_point dictionary.
             Default None.
         """
         if maps is not None:
@@ -115,28 +115,28 @@ class HealpixComCamSlicer(HealpixSlicer):
         else:
             if self.latLonDeg:
                 self._build_tree(
-                    np.radians(sim_data[self.lonCol]),
-                    np.radians(sim_data[self.latCol]),
+                    np.radians(sim_data[self.lon_col]),
+                    np.radians(sim_data[self.lat_col]),
                     self.leafsize,
                 )
             else:
                 self._build_tree(
-                    sim_data[self.lonCol], sim_data[self.latCol], self.leafsize
+                    sim_data[self.lon_col], sim_data[self.lat_col], self.leafsize
                 )
 
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
             """Return indexes for relevant opsim data at slicepoint
-            (slicepoint=lonCol/latCol value .. usually ra/dec)."""
+            (slicepoint=lon_col/lat_col value .. usually ra/dec)."""
 
-            # Build dict for slicePoint info
-            slicePoint = {"sid": islice}
+            # Build dict for slice_point info
+            slice_point = {"sid": islice}
             if self.useCamera:
                 indices = self.sliceLookup[islice]
-                slicePoint["chipNames"] = self.chipNames[islice]
+                slice_point["chipNames"] = self.chipNames[islice]
             else:
                 sx, sy, sz = simsUtils._xyz_from_ra_dec(
-                    self.slicePoints["ra"][islice], self.slicePoints["dec"][islice]
+                    self.slice_points["ra"][islice], self.slice_points["dec"][islice]
                 )
                 # Anything within half the side length is good no matter what rotation angle
                 # the camera is at
@@ -153,8 +153,8 @@ class HealpixComCamSlicer(HealpixSlicer):
                 ]
 
                 if self.latLonDeg:
-                    lat = np.radians(sim_data[self.latCol][initial_indices])
-                    lon = np.radians(sim_data[self.lonCol][initial_indices])
+                    lat = np.radians(sim_data[self.lat_col][initial_indices])
+                    lon = np.radians(sim_data[self.lon_col][initial_indices])
                     cos_rot = np.cos(
                         np.radians(sim_data[self.rotSkyPosColName][initial_indices])
                     )
@@ -162,8 +162,8 @@ class HealpixComCamSlicer(HealpixSlicer):
                         np.radians(sim_data[self.rotSkyPosColName][initial_indices])
                     )
                 else:
-                    lat = sim_data[self.latCol][initial_indices]
-                    lon = sim_data[self.lonCol][initial_indices]
+                    lat = sim_data[self.lat_col][initial_indices]
+                    lon = sim_data[self.lon_col][initial_indices]
                     cos_rot = np.cos(sim_data[self.rotSkyPosColName][initial_indices])
                     sin_rot = np.sin(sim_data[self.rotSkyPosColName][initial_indices])
                 # loop over the observations that might be overlapping the healpix, check each
@@ -179,8 +179,8 @@ class HealpixComCamSlicer(HealpixSlicer):
                     xshift, yshift = simsUtils.gnomonic_project_toxy(
                         lon[i],
                         lat[i],
-                        self.slicePoints["ra"][islice],
-                        self.slicePoints["dec"][islice],
+                        self.slice_points["ra"][islice],
+                        self.slice_points["dec"][islice],
                     )
 
                     x_rotated += xshift
@@ -201,21 +201,21 @@ class HealpixComCamSlicer(HealpixSlicer):
                     if bbPath.contains_point((0.0, 0.0)):
                         indices.append(ind)
 
-            # Loop through all the slicePoint keys. If the first dimension of slicepoint[key] has
+            # Loop through all the slice_point keys. If the first dimension of slicepoint[key] has
             # the same shape as the slicer, assume it is information per slicepoint.
-            # Otherwise, pass the whole slicePoint[key] information. Useful for stellar LF maps
+            # Otherwise, pass the whole slice_point[key] information. Useful for stellar LF maps
             # where we want to pass only the relevant LF and the bins that go with it.
 
-            for key in self.slicePoints:
-                if len(np.shape(self.slicePoints[key])) == 0:
+            for key in self.slice_points:
+                if len(np.shape(self.slice_points[key])) == 0:
                     keyShape = 0
                 else:
-                    keyShape = np.shape(self.slicePoints[key])[0]
+                    keyShape = np.shape(self.slice_points[key])[0]
                 if keyShape == self.nslice:
-                    slicePoint[key] = self.slicePoints[key][islice]
+                    slice_point[key] = self.slice_points[key][islice]
                 else:
-                    slicePoint[key] = self.slicePoints[key]
+                    slice_point[key] = self.slice_points[key]
 
-            return {"idxs": indices, "slicePoint": slicePoint}
+            return {"idxs": indices, "slice_point": slice_point}
 
         setattr(self, "_slice_sim_data", _slice_sim_data)

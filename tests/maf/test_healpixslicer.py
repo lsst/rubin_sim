@@ -87,8 +87,8 @@ class TestHealpixSlicerSetup(unittest.TestCase):
         testslicer = HealpixSlicer(
             nside=16, verbose=False, camera_footprint_file=self.cameraFootprintFile
         )
-        self.assertEqual(testslicer.slicerName, testslicer.__class__.__name__)
-        self.assertEqual(testslicer.slicerName, "HealpixSlicer")
+        self.assertEqual(testslicer.slicer_name, testslicer.__class__.__name__)
+        self.assertEqual(testslicer.slicer_name, "HealpixSlicer")
 
     def testNsidesNbins(self):
         """Test that number of sides passed to slicer produces expected number of bins."""
@@ -96,14 +96,18 @@ class TestHealpixSlicerSetup(unittest.TestCase):
         npixx = [12, 48, 192, 768, 3072, 12288, 49152, 196608, 786432, 3145728]
         for nside, npix in zip(nsides, npixx):
             testslicer = HealpixSlicer(
-                nside=nside, verbose=False, camera_footprint_file=self.cameraFootprintFile
+                nside=nside,
+                verbose=False,
+                camera_footprint_file=self.cameraFootprintFile,
             )
             self.assertEqual(testslicer.nslice, npix)
 
 
 class TestHealpixSlicerEqual(unittest.TestCase):
     def setUp(self):
-        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
+        self.camera_footprint_file = os.path.join(
+            get_data_dir(), "tests", "fov_map.npz"
+        )
         self.nside = 16
         self.testslicer = HealpixSlicer(
             nside=self.nside,
@@ -155,7 +159,9 @@ class TestHealpixSlicerEqual(unittest.TestCase):
 
 class TestHealpixSlicerIteration(unittest.TestCase):
     def setUp(self):
-        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
+        self.camera_footprint_file = os.path.join(
+            get_data_dir(), "tests", "fov_map.npz"
+        )
         self.nside = 8
         self.testslicer = HealpixSlicer(
             nside=self.nside,
@@ -185,9 +191,9 @@ class TestHealpixSlicerIteration(unittest.TestCase):
         """Test iteration goes through expected range and ra/dec are in expected range (radians)."""
         npix = hp.nside2npix(self.nside)
         for i, s in enumerate(self.testslicer):
-            self.assertEqual(i, s["slicePoint"]["sid"])
-            ra = s["slicePoint"]["ra"]
-            dec = s["slicePoint"]["dec"]
+            self.assertEqual(i, s["slice_point"]["sid"])
+            ra = s["slice_point"]["ra"]
+            dec = s["slice_point"]["dec"]
             self.assertGreaterEqual(ra, 0)
             self.assertLessEqual(ra, 2 * np.pi)
             self.assertGreaterEqual(dec, -np.pi)
@@ -206,7 +212,9 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
     # Note that this is really testing baseSpatialSlicer, as slicing is done there for healpix grid
 
     def setUp(self):
-        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
+        self.camera_footprint_file = os.path.join(
+            get_data_dir(), "tests", "fov_map.npz"
+        )
         self.nside = 8
         self.radius = 1.8
         self.testslicer = HealpixSlicer(
@@ -241,8 +249,8 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
         # Set up and test actual slicing.
         self.testslicer.setup_slicer(self.dv)
         for s in self.testslicer:
-            ra = s["slicePoint"]["ra"]
-            dec = s["slicePoint"]["dec"]
+            ra = s["slice_point"]["ra"]
+            dec = s["slice_point"]["dec"]
             distances = calcDist_vincenty(ra, dec, self.dv["ra"], self.dv["dec"])
             didxs = np.where(distances <= np.radians(self.radius))
             sidxs = s["idxs"]
@@ -295,8 +303,8 @@ class TestHealpixChipGap(unittest.TestCase):
         # Set up and test actual slicing.
         self.testslicer.setup_slicer(self.dv)
         for s in self.testslicer:
-            ra = s["slicePoint"]["ra"]
-            dec = s["slicePoint"]["dec"]
+            ra = s["slice_point"]["ra"]
+            dec = s["slice_point"]["dec"]
             # Find the points of 'dv' which are within self.radius of this slicepoint
             distances = calcDist_vincenty(ra, dec, self.dv["ra"], self.dv["dec"])
             didxs = np.where(distances <= np.radians(self.radius))

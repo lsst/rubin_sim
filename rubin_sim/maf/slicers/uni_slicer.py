@@ -17,7 +17,7 @@ class UniSlicer(BaseSlicer):
         super(UniSlicer, self).__init__(verbose=verbose, badval=badval)
         self.nslice = 1
         self.shape = self.nslice
-        self.slicePoints["sid"] = np.array(
+        self.slice_points["sid"] = np.array(
             [
                 0,
             ],
@@ -35,7 +35,7 @@ class UniSlicer(BaseSlicer):
         def _slice_sim_data(islice):
             """Return all indexes in sim_data."""
             idxs = self.indices
-            return {"idxs": idxs, "slicePoint": {"sid": islice}}
+            return {"idxs": idxs, "slice_point": {"sid": islice}}
 
         setattr(self, "_slice_sim_data", _slice_sim_data)
 

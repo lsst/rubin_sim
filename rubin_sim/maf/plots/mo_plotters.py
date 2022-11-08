@@ -45,7 +45,7 @@ class MetricVsH(BasePlotter):
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
-        hvals = slicer.slicePoints["H"]
+        hvals = slicer.slice_points["H"]
         reduce_func = plot_dict["np_reduce"]
         if reduce_func is None:
             reduce_func = np.mean
@@ -90,10 +90,10 @@ class MetricVsH(BasePlotter):
             linestyle=plot_dict["linestyle"],
             label=plot_dict["label"],
         )
-        if "xMin" in plot_dict:
-            ax.set_xlim(left=plot_dict["xMin"])
-        if "xMax" in plot_dict:
-            ax.set_xlim(right=plot_dict["xMax"])
+        if "x_min" in plot_dict:
+            ax.set_xlim(left=plot_dict["x_min"])
+        if "x_max" in plot_dict:
+            ax.set_xlim(right=plot_dict["x_max"])
         if "yMin" in plot_dict:
             ax.set_ylim(bottom=plot_dict["yMin"])
         if "yMax" in plot_dict:
@@ -170,8 +170,8 @@ class MetricVsOrbit(BasePlotter):
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
         fig = plt.figure(fignum, figsize=plot_dict["figsize"])
-        xvals = slicer.slicePoints["orbits"][plot_dict["xaxis"]]
-        yvals = slicer.slicePoints["orbits"][plot_dict["yaxis"]]
+        xvals = slicer.slice_points["orbits"][plot_dict["xaxis"]]
+        yvals = slicer.slice_points["orbits"][plot_dict["yaxis"]]
         # Set x/y bins.
         nxbins = plot_dict["nxbins"]
         nybins = plot_dict["nybins"]
@@ -192,7 +192,7 @@ class MetricVsOrbit(BasePlotter):
         nxbins = len(xbins)
         nybins = len(ybins)
         # Identify the relevant metric_values for the Hvalue we want to plot.
-        hvals = slicer.slicePoints["H"]
+        hvals = slicer.slice_points["H"]
         hwidth = plot_dict["hwidth"]
         if hwidth is None:
             hwidth = 1.0
@@ -216,8 +216,8 @@ class MetricVsOrbit(BasePlotter):
         else:
             m_vals = metric_value[hidx].filled()
         # Calculate the np_reduce'd metric values at each x/y bin.
-        if "colorMin" in plot_dict:
-            badval = plot_dict["colorMin"] - 1
+        if "color_min" in plot_dict:
+            badval = plot_dict["color_min"] - 1
         else:
             badval = slicer.badval
         binvals = np.zeros((nybins, nxbins), dtype="float") + badval
@@ -234,12 +234,12 @@ class MetricVsOrbit(BasePlotter):
                 if len(match_vals) > 0:
                     binvals[iy][ix] = reduce_func(match_vals)
         xi, yi = np.meshgrid(xbins, ybins)
-        if "colorMin" in plot_dict:
-            v_min = plot_dict["colorMin"]
+        if "color_min" in plot_dict:
+            v_min = plot_dict["color_min"]
         else:
             v_min = binvals.min()
-        if "colorMax" in plot_dict:
-            v_max = plot_dict["colorMax"]
+        if "color_max" in plot_dict:
+            v_max = plot_dict["color_max"]
         else:
             v_max = binvals.max()
         nlevels = plot_dict["levels"]
@@ -289,10 +289,10 @@ class MetricVsOrbitPoints(BasePlotter):
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
         fig = plt.figure(fignum, figsize=plot_dict["figsize"])
-        xvals = slicer.slicePoints["orbits"][plot_dict["xaxis"]]
-        yvals = slicer.slicePoints["orbits"][plot_dict["yaxis"]]
+        xvals = slicer.slice_points["orbits"][plot_dict["xaxis"]]
+        yvals = slicer.slice_points["orbits"][plot_dict["yaxis"]]
         # Identify the relevant metric_values for the Hvalue we want to plot.
-        hvals = slicer.slicePoints["H"]
+        hvals = slicer.slice_points["H"]
         hwidth = plot_dict["hwidth"]
         if hwidth is None:
             hwidth = 1.0
@@ -315,12 +315,12 @@ class MetricVsOrbitPoints(BasePlotter):
             m_vals = np.swapaxes(metric_value, 1, 0)[hidx]
         else:
             m_vals = metric_value[hidx]
-        if "colorMin" in plot_dict:
-            v_min = plot_dict["colorMin"]
+        if "color_min" in plot_dict:
+            v_min = plot_dict["color_min"]
         else:
             v_min = m_vals.min()
-        if "colorMax" in plot_dict:
-            v_max = plot_dict["colorMax"]
+        if "color_max" in plot_dict:
+            v_max = plot_dict["color_max"]
         else:
             v_max = m_vals.max()
         if plot_dict["backgroundPoints"]:

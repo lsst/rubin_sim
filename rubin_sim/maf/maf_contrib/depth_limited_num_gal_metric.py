@@ -35,7 +35,7 @@ class DepthLimitedNumGalMetric(metrics.BaseMetric):
 
     Returns
     -------
-    Number of galaxies in healpix if the slicePoint passes the extragalactic cuts; otherwise self.badval
+    Number of galaxies in healpix if the slice_point passes the extragalactic cuts; otherwise self.badval
     """
 
     def __init__(
@@ -92,7 +92,7 @@ class DepthLimitedNumGalMetric(metrics.BaseMetric):
         )
 
     def run(self, data_slice, slice_point=None):
-        # see if this slicePoint is in the extragalactic footprint
+        # see if this slice_point is in the extragalactic footprint
         pass_egcuts = self.eg_metric.run(data_slice, slice_point=slice_point)
 
         if pass_egcuts == self.badval:  # failed dust/depth cuts

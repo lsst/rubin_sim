@@ -22,7 +22,7 @@ class TestCalibrationMetrics(unittest.TestCase):
         ]
         types = [float, float, float, float, float, (np.str_, 1)]
         data = np.zeros(700, dtype=list(zip(names, types)))
-        slicePoint = {"sid": 0}
+        slice_point = {"sid": 0}
         data["observationStartMJD"] = np.arange(700) + 56762
         data["finSeeing"] = 0.7
         data["filter"][0:100] = str("r")
@@ -37,21 +37,21 @@ class TestCalibrationMetrics(unittest.TestCase):
             data["fiveSigmaDepth"] = 24.0
             baseline = metrics.ParallaxMetric(
                 normalize=flag, seeing_col="finSeeing"
-            ).run(data, slicePoint)
+            ).run(data, slice_point)
             data["finSeeing"] = data["finSeeing"] + 0.3
             worse1 = metrics.ParallaxMetric(normalize=flag, seeing_col="finSeeing").run(
-                data, slicePoint
+                data, slice_point
             )
             worse2 = metrics.ParallaxMetric(
                 normalize=flag, rmag=22.0, seeing_col="finSeeing"
-            ).run(data, slicePoint)
+            ).run(data, slice_point)
             worse3 = metrics.ParallaxMetric(
                 normalize=flag, rmag=22.0, seeing_col="finSeeing"
-            ).run(data[0:300], slicePoint)
+            ).run(data[0:300], slice_point)
             data["fiveSigmaDepth"] = data["fiveSigmaDepth"] - 1.0
             worse4 = metrics.ParallaxMetric(
                 normalize=flag, rmag=22.0, seeing_col="finSeeing"
-            ).run(data[0:300], slicePoint)
+            ).run(data[0:300], slice_point)
             # Make sure the RMS increases as seeing increases, the star gets fainter,
             #    the background gets brighter, or the baseline decreases.
             if flag:
@@ -76,7 +76,7 @@ class TestCalibrationMetrics(unittest.TestCase):
         ]
         types = [float, float, float, float, float, (np.str_, 1)]
         data = np.zeros(700, dtype=list(zip(names, types)))
-        slicePoint = [0]
+        slice_point = [0]
         stacker = stackers.ParallaxFactorStacker()
         normFlags = [False, True]
         data["observationStartMJD"] = np.arange(700) + 56762
@@ -91,21 +91,21 @@ class TestCalibrationMetrics(unittest.TestCase):
             data["fiveSigmaDepth"] = 24
             baseline = metrics.ProperMotionMetric(
                 normalize=flag, seeing_col="finSeeing"
-            ).run(data, slicePoint)
+            ).run(data, slice_point)
             data["finSeeing"] = data["finSeeing"] + 0.3
             worse1 = metrics.ProperMotionMetric(
                 normalize=flag, seeing_col="finSeeing"
-            ).run(data, slicePoint)
+            ).run(data, slice_point)
             worse2 = metrics.ProperMotionMetric(
                 normalize=flag, rmag=22.0, seeing_col="finSeeing"
-            ).run(data, slicePoint)
+            ).run(data, slice_point)
             worse3 = metrics.ProperMotionMetric(
                 normalize=flag, rmag=22.0, seeing_col="finSeeing"
-            ).run(data[0:300], slicePoint)
+            ).run(data[0:300], slice_point)
             data["fiveSigmaDepth"] = data["fiveSigmaDepth"] - 1.0
             worse4 = metrics.ProperMotionMetric(
                 normalize=flag, rmag=22.0, seeing_col="finSeeing"
-            ).run(data[0:300], slicePoint)
+            ).run(data[0:300], slice_point)
             # Make sure the RMS increases as seeing increases, the star gets fainter,
             # the background gets brighter, or the baseline decreases.
             if flag:
@@ -228,9 +228,9 @@ class TestCalibrationMetrics(unittest.TestCase):
         dt = ["float"] * 2
         data = np.zeros(3, dtype=list(zip(names, dt)))
         data["fieldDec"] = [-0.1, 0, 0.1]
-        slicePoint = {"ra": 0.0, "dec": 0.0}
+        slice_point = {"ra": 0.0, "dec": 0.0}
         metric = metrics.RadiusObsMetric()
-        result = metric.run(data, slicePoint)
+        result = metric.run(data, slice_point)
         for i, r in enumerate(result):
             np.testing.assert_almost_equal(r, abs(data["fieldDec"][i]))
         assert metric.reduce_mean(result) == np.mean(result)

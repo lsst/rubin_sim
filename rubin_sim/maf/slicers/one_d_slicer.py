@@ -95,7 +95,7 @@ class OneDSlicer(BaseSlicer):
         This happens AFTER sim_data is defined, thus typically in the MetricBundleGroup.
         This maps data into the bins; it's not a good idea to reuse a OneDSlicer as a result.
         """
-        if "bins" in self.slicePoints:
+        if "bins" in self.slice_points:
             warning_msg = "Warning: this OneDSlicer was already set up once. "
             warning_msg += (
                 "Re-setting up a OneDSlicer is unpredictable; at the very least, it "
@@ -135,9 +135,9 @@ class OneDSlicer(BaseSlicer):
         # Set nbins to be one less than # of bins because last binvalue is RH edge only
         self.nslice = len(self.bins) - 1
         self.shape = self.nslice
-        # Set slicePoint metadata.
-        self.slicePoints["sid"] = np.arange(self.nslice)
-        self.slicePoints["bins"] = self.bins
+        # Set slice_point metadata.
+        self.slice_points["sid"] = np.arange(self.nslice)
+        self.slice_points["bins"] = self.bins
         # Add metadata from map if needed.
         self._run_maps(maps)
         # Set up data slicing.
@@ -162,7 +162,7 @@ class OneDSlicer(BaseSlicer):
             idxs = self.sim_idxs[self.left[islice] : self.left[islice + 1]]
             return {
                 "idxs": idxs,
-                "slicePoint": {"sid": islice, "binLeft": self.bins[islice]},
+                "slice_point": {"sid": islice, "binLeft": self.bins[islice]},
             }
 
         setattr(self, "_slice_sim_data", _slice_sim_data)
@@ -172,11 +172,13 @@ class OneDSlicer(BaseSlicer):
         result = False
         if isinstance(other_slicer, OneDSlicer):
             if self.slice_col_name == other_slicer.slice_col_name:
-                # If slicer restored from disk or setup, then 'bins' in slicePoints dict.
+                # If slicer restored from disk or setup, then 'bins' in slice_points dict.
                 # This is preferred method to see if slicers are equal.
-                if ("bins" in self.slicePoints) & ("bins" in other_slicer.slicePoints):
+                if ("bins" in self.slice_points) & (
+                    "bins" in other_slicer.slice_points
+                ):
                     result = np.array_equal(
-                        other_slicer.slicePoints["bins"], self.slicePoints["bins"]
+                        other_slicer.slice_points["bins"], self.slice_points["bins"]
                     )
                 # However, before we 'setup' the slicer with data, the slicers could be equivalent.
                 else:

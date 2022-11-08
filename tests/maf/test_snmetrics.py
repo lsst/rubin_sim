@@ -218,9 +218,9 @@ class TestSNmetrics(unittest.TestCase):
             data["filter"] = band
 
             # Run the metric with these fake data
-            slicePoint = {"nside": 64, "ebv": 0}
+            slice_point = {"nside": 64, "ebv": 0}
             metric = SNCadenceMetric(lim_sn=lim_sn, coadd=False)
-            result = metric.run(data, slicePoint)
+            result = metric.run(data, slice_point)
 
             # And the result should be...
             result_ref = 0.3743514
@@ -297,12 +297,12 @@ class TestSNmetrics(unittest.TestCase):
             data["filter"] = band
 
             # Run the metric with these fake data
-            slicePoint = {"nside": 64, "ebv": 0.0}
+            slice_point = {"nside": 64, "ebv": 0.0}
             metric = SNSNRMetric(
                 lim_sn=lim_sn, coadd=coadd, names_ref=names_ref, season=season, z=z
             )
 
-            result = metric.run(data, slicePoint)
+            result = metric.run(data, slice_point)
 
             # And the result should be...
             result_ref = 0.4830508474576271
@@ -335,7 +335,7 @@ class TestSNmetrics(unittest.TestCase):
         )
 
         # run the metric
-        nSL = metric.run(data, slicePoint={"nside": 64, "ra": 0.0, "ebv": 0.0})
+        nSL = metric.run(data, slice_point={"nside": 64, "ra": 0.0, "ebv": 0.0})
 
         # and the result should be
         # Changing the reference value because we have new coadd and mag limits

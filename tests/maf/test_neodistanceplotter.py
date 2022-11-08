@@ -20,12 +20,12 @@ class TestNeoDistancePlotter(unittest.TestCase):
         types = [float] * 5
         types.append("|S1")
         npts = 100
-        self.metricValues = np.zeros(npts, list(zip(names, types)))
-        self.metricValues["MaxGeoDist"] = rng.rand(npts) * 2.0
-        self.metricValues["eclipLat"] = rng.rand(npts)
-        self.metricValues["NEOHelioX"] = rng.rand(npts) * 3 - 1.5
-        self.metricValues["NEOHelioY"] = rng.rand(npts) * 3 - 1.5 + 1
-        self.metricValues["filter"] = "g"
+        self.metric_values = np.zeros(npts, list(zip(names, types)))
+        self.metric_values["MaxGeoDist"] = rng.rand(npts) * 2.0
+        self.metric_values["eclipLat"] = rng.rand(npts)
+        self.metric_values["NEOHelioX"] = rng.rand(npts) * 3 - 1.5
+        self.metric_values["NEOHelioY"] = rng.rand(npts) * 3 - 1.5 + 1
+        self.metric_values["filter"] = "g"
 
     def testPlotter(self):
         """
@@ -34,7 +34,7 @@ class TestNeoDistancePlotter(unittest.TestCase):
         plotter = plots.NeoDistancePlotter()
         # Need to wrap in a list because it will usually go through the
         # UniSlicer, and will thus be an array inside a 1-element masked array
-        fig = plotter([self.metricValues], None, {})
+        fig = plotter([self.metric_values], None, {})
         self.assertNotEqual(fig, None)
 
 

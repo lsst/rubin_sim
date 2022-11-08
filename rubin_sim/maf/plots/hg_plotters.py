@@ -79,8 +79,8 @@ class GeneralHourglassPlot(BasePlotter):
             "title": None,
             "xlabel": "Hours after midnight",
             "ylabel": "MJD",
-            "xMin": -6,
-            "xMax": 6,
+            "x_min": -6,
+            "x_max": 6,
             "figsize": None,
             "cmap": plt.get_cmap("viridis"),
             "colorbar": True,
@@ -217,7 +217,7 @@ class GeneralHourglassPlot(BasePlotter):
             ax.set_ylim(self.plot_dict["yMax"], self.plot_dict["yMin"])
         except KeyError:
             ax.set_ylim(ax.get_ylim()[-1] + 1, -0.5)
-        ax.set_xlim(self.plot_dict["xMin"], self.plot_dict["xMax"])
+        ax.set_xlim(self.plot_dict["x_min"], self.plot_dict["x_max"])
 
         start_mjd = ax.get_ylim()[1] + epoch_mjd
         end_mjd = ax.get_ylim()[0] + epoch_mjd
@@ -348,8 +348,8 @@ class GeneralHourglassPlot(BasePlotter):
 
         intervals = pd.DataFrame(
             {
-                "mjd": slicer.slicePoints["mjd"],
-                "duration": (slicer.slicePoints["duration"] * u.s).to_value(
+                "mjd": slicer.slice_points["mjd"],
+                "duration": (slicer.slice_points["duration"] * u.s).to_value(
                     u.hour  # pylint: disable=no-member
                 ),
                 "value": metric_value,

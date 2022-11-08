@@ -25,8 +25,8 @@ class FOPlot(BasePlotter):
             "scale": None,
             "Asky": 18000.0,
             "Nvisits": 825,
-            "xMin": 0,
-            "xMax": None,
+            "x_min": 0,
+            "x_max": None,
             "yMin": 0,
             "yMax": None,
             "linewidth": 2,
@@ -148,8 +148,8 @@ class SummaryHistogram(BasePlotter):
             "ylabel": "Count",
             "label": None,
             "cumulative": False,
-            "xMin": None,
-            "xMax": None,
+            "x_min": None,
+            "x_max": None,
             "yMin": None,
             "yMax": None,
             "color": "b",
@@ -190,7 +190,7 @@ class SummaryHistogram(BasePlotter):
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
-        # Combine the metric values across all slicePoints.
+        # Combine the metric values across all slice_points.
         if not isinstance(plot_dict["metricReduce"], metrics.BaseMetric):
             raise ValueError(
                 "Expected plot_dict[metricReduce] to be a MAF metric object."
@@ -240,12 +240,12 @@ class SummaryHistogram(BasePlotter):
         plt.title(plot_dict["title"])
         plt.grid(plot_dict["grid"], alpha=0.3)
         # Set y and x limits, if provided.
-        if plot_dict["xMin"] is not None:
-            plt.xlim(left=plot_dict["xMin"])
+        if plot_dict["x_min"] is not None:
+            plt.xlim(left=plot_dict["x_min"])
         elif bins[0] == 0:
             plt.xlim(left=0)
-        if plot_dict["xMax"] is not None:
-            plt.xlim(right=plot_dict["xMax"])
+        if plot_dict["x_max"] is not None:
+            plt.xlim(right=plot_dict["x_max"])
         if plot_dict["yMin"] is not None:
             plt.ylim(bottom=plot_dict["yMin"])
         elif final_hist.min() == 0:

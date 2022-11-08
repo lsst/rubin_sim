@@ -35,7 +35,7 @@ __all__ = ["PeriodicStarModulationMetric"]
 class PeriodicStarModulationMetric(BaseMetric):
     """Evaluate how well a periodic source can be fit on a short baseline, using a Monte Carlo simulation.
 
-    At each slicePoint, run a Monte Carlo simulation to see how well a periodic source can be fit.
+    At each slice_point, run a Monte Carlo simulation to see how well a periodic source can be fit.
     Assumes a simple sin-wave light-curve, and generates Gaussain noise based in the 5-sigma limiting depth
     of each observation.
     Light curves are evaluated piecewise to test how well we can recover the period, phase and amplitude

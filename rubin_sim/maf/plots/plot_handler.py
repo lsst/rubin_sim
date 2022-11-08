@@ -24,7 +24,7 @@ class BasePlotter(object):
 
     def __init__(self):
         self.plot_type = None
-        # This should be included in every subsequent defaultPlotDict (assumed to be present).
+        # This should be included in every subsequent default_plot_dict (assumed to be present).
         self.default_plot_dict = {
             "title": None,
             "xlabel": None,
@@ -98,7 +98,7 @@ class PlotHandler(object):
                 self.m_bundles.insert(forder, m_b)
             self.slicer = self.m_bundles[0].slicer
         for m_b in self.m_bundles:
-            if m_b.slicer.slicerName != self.slicer.slicerName:
+            if m_b.slicer.slicer_name != self.slicer.slicer_name:
                 raise ValueError("MetricBundle items must have the same type of slicer")
         self._combine_metric_names()
         self._combine_run_names()
@@ -148,12 +148,12 @@ class PlotHandler(object):
                 tmp_plot_dict["ylabel"] = auto_ylabel
                 # Replace auto-generated plot dict items with things
                 #  set by the plotter_defaults, if they are not None.
-                plotter_defaults = plot_func.defaultPlotDict
+                plotter_defaults = plot_func.default_plot_dict
                 for k, v in plotter_defaults.items():
                     if v is not None:
                         tmp_plot_dict[k] = v
             # Then add/override based on the bundle plot_dict parameters if they are set.
-            tmp_plot_dict.update(bundle.plotDict)
+            tmp_plot_dict.update(bundle.plot_dict)
             # Finally, override with anything set explicitly by the user right now.
             if plot_dicts is not None:
                 tmp_plot_dict.update(plot_dicts[i])
@@ -324,7 +324,7 @@ class PlotHandler(object):
         len_max : `int` (30)
             If the xlabel starts longer than this, add the units as a newline.
         """
-        if plot_func.plotType == "BinnedData":
+        if plot_func.plot_type == "BinnedData":
             if len(self.m_bundles) == 1:
                 m_b = self.m_bundles[0]
                 if len(m_b.slicer.sliceColName) < len_max:
@@ -345,7 +345,7 @@ class PlotHandler(object):
                     xlabel.add(m_b.slicer.sliceColName)
                 xlabel = ", ".join(xlabel)
                 ylabel = self.joint_metric_names
-        elif plot_func.plotType == "MetricVsH":
+        elif plot_func.plot_type == "MetricVsH":
             if len(self.m_bundles) == 1:
                 m_b = self.m_bundles[0]
                 ylabel = m_b.metric.name + " (" + m_b.metric.units + ")"
@@ -401,15 +401,15 @@ class PlotHandler(object):
         Try to set an appropriate range of colors for the metric Bundles.
         """
         if len(self.m_bundles) == 1:
-            if "color" in self.m_bundles[0].plotDict:
-                return [self.m_bundles[0].plotDict["color"]]
+            if "color" in self.m_bundles[0].plot_dict:
+                return [self.m_bundles[0].plot_dict["color"]]
             else:
                 return ["b"]
         colors = []
         for m_b in self.m_bundles:
             color = "b"
-            if "color" in m_b.plotDict:
-                color = m_b.plotDict["color"]
+            if "color" in m_b.plot_dict:
+                color = m_b.plot_dict["color"]
             else:
                 if m_b.constraint is not None:
                     # If the filter is part of the sql constraint, we'll
@@ -440,12 +440,12 @@ class PlotHandler(object):
         """
         cbar_format = None
         if len(self.m_bundles) == 1:
-            if self.m_bundles[0].metric.metricDtype == "int":
+            if self.m_bundles[0].metric.metric_dtype == "int":
                 cbar_format = "%d"
         else:
             metric_dtypes = set()
             for m_b in self.m_bundles:
-                metric_dtypes.add(m_b.metric.metricDtype)
+                metric_dtypes.add(m_b.metric.metric_dtype)
             if len(metric_dtypes) == 1:
                 if list(metric_dtypes)[0] == "int":
                     cbar_format = "%d"
@@ -466,10 +466,10 @@ class PlotHandler(object):
             outfile = "_".join(
                 [self.joint_run_names, self.joint_metric_names, self.joint_metadata]
             )
-            outfile += "_" + self.m_bundles[0].slicer.slicerName[:4].upper()
+            outfile += "_" + self.m_bundles[0].slicer.slicer_name[:4].upper()
         if outfile_suffix is not None:
             outfile += "_" + outfile_suffix
-        outfile = utils.nameSanitize(outfile)
+        outfile = utils.name_sanitize(outfile)
         return outfile
 
     def _build_display_dict(self):
@@ -478,17 +478,17 @@ class PlotHandler(object):
         This is most useful for when there are many metricBundles being combined into a single plot.
         """
         if len(self.m_bundles) == 1:
-            return self.m_bundles[0].displayDict
+            return self.m_bundles[0].display_dict
         else:
             display_dict = {}
             group = set()
             subgroup = set()
             order = 0
             for m_b in self.m_bundles:
-                group.add(m_b.displayDict["group"])
-                subgroup.add(m_b.displayDict["subgroup"])
-                if order < m_b.displayDict["order"]:
-                    order = m_b.displayDict["order"] + 1
+                group.add(m_b.display_dict["group"])
+                subgroup.add(m_b.display_dict["subgroup"])
+                if order < m_b.display_dict["order"]:
+                    order = m_b.display_dict["order"] + 1
             display_dict["order"] = order
             if len(group) > 1:
                 display_dict["group"] = "Comparisons"
@@ -503,7 +503,7 @@ class PlotHandler(object):
                 "%s metric(s) calculated on a %s grid, for opsim runs %s, for info_label values of %s."
                 % (
                     self.joint_metric_names,
-                    self.m_bundles[0].slicer.slicerName,
+                    self.m_bundles[0].slicer.slicer_name,
                     self.joint_run_names,
                     self.joint_metadata,
                 )
@@ -523,7 +523,7 @@ class PlotHandler(object):
             )
 
         # These are the keys that need to match (or be None)
-        keys2_check = ["xlim", "ylim", "colorMin", "colorMax", "title"]
+        keys2_check = ["xlim", "ylim", "color_min", "color_max", "title"]
 
         # Identify how many subplots there are. If there are more than one, just don't change anything.
         # This assumes that if there are more than one, the plotDicts are actually all compatible.
@@ -574,12 +574,12 @@ class PlotHandler(object):
 
         plot_dicts:  List of plot_dicts if one wants to use a _new_ plot_dict per MetricBundle.
         """
-        if not plot_func.objectPlotter:
+        if not plot_func.object_plotter:
             # Check that metric_values type and plotter are compatible (most are float/float, but
             #  some plotters expect object data .. and some only do sometimes).
             for m_b in self.m_bundles:
-                if m_b.metric.metricDtype == "object":
-                    metric_is_color = m_b.plotDict.get("metric_is_color", False)
+                if m_b.metric.metric_dtype == "object":
+                    metric_is_color = m_b.plot_dict.get("metric_is_color", False)
                     if not metric_is_color:
                         warnings.warn(
                             "Cannot plot object metric values with this plotter."
@@ -593,13 +593,13 @@ class PlotHandler(object):
             outfile = self._build_file_root(outfile_suffix)
         else:
             outfile = outfile_root
-        plot_type = plot_func.plotType
+        plot_type = plot_func.plot_type
         if len(self.m_bundles) > 1:
             plot_type = "Combo" + plot_type
         # Make plot.
         fignum = None
         for m_b, plotDict in zip(self.m_bundles, self.plot_dicts):
-            if m_b.metricValues is None:
+            if m_b.metric_values is None:
                 # Skip this metricBundle.
                 msg = 'MetricBundle (%s) has no attribute "metric_values".' % (
                     m_b.file_root
@@ -608,7 +608,7 @@ class PlotHandler(object):
                 warnings.warn(msg)
             else:
                 fignum = plot_func(
-                    m_b.metricValues, m_b.slicer, plotDict, fignum=fignum
+                    m_b.metric_values, m_b.slicer, plotDict, fignum=fignum
                 )
         # Add a legend if more than one metricValue is being plotted or if legendloc is specified.
         legendloc = None
@@ -634,7 +634,7 @@ class PlotHandler(object):
                 outfile,
                 plot_type,
                 self.joint_metric_names,
-                self.slicer.slicerName,
+                self.slicer.slicer_name,
                 self.joint_run_names,
                 self.constraints,
                 self.joint_metadata,

@@ -174,7 +174,7 @@ class MafRunResults(object):
         Return the metric_ids within a given group/subgroup.
         """
         metrics = self.metrics_in_subgroup(group, subgroup)
-        metric_ids = list(metrics["metricId"])
+        metric_ids = list(metrics["metric_id"])
         return metric_ids
 
     def metric_ids_to_metrics(self, metric_ids, metrics=None):
@@ -183,15 +183,15 @@ class MafRunResults(object):
         """
         if metrics is None:
             metrics = self.metrics
-        # this should be faster with pandas (and self.metrics.query('metricId in @metric_ids'))
-        metrics = metrics[np.in1d(metrics["metricId"], metric_ids)]
+        # this should be faster with pandas (and self.metrics.query('metric_id in @metric_ids'))
+        metrics = metrics[np.in1d(metrics["metric_id"], metric_ids)]
         return metrics
 
     def metrics_to_metric_ids(self, metrics):
         """
         Return a list of the metric Ids corresponding to a subset of metrics.
         """
-        return list(metrics["metricId"])
+        return list(metrics["metric_id"])
 
     # Methods to deal with metrics in numpy recarray.
 
@@ -272,7 +272,7 @@ class MafRunResults(object):
         # Identify the plots with the right plot_type, get their IDs.
         plot_match = self.plots[np.in1d(self.plots["plot_type"], plot_types)]
         # Convert those potentially matching metricIds to metrics, using the subset info.
-        metrics = self.metric_ids_to_metrics(plot_match["metricId"], metrics)
+        metrics = self.metric_ids_to_metrics(plot_match["metric_id"], metrics)
         return metrics
 
     def unique_metric_names(self, metrics=None, baseonly=True):
@@ -297,7 +297,7 @@ class MafRunResults(object):
         # Identify the potentially matching stats.
         stats = self.stats[np.in1d(self.stats["summaryMetric"], summary_stat_name)]
         # Identify the subset of relevant metrics.
-        metrics = self.metric_ids_to_metrics(stats["metricId"], metrics)
+        metrics = self.metric_ids_to_metrics(stats["metric_id"], metrics)
         # Re-sort metrics because at this point, probably want displayOrder + info_label before metric name.
         metrics = self.sort_metrics(
             metrics,
@@ -319,7 +319,7 @@ class MafRunResults(object):
         if metrics is None:
             metrics = self.metrics
         # Identify metricIds which are also in stats.
-        metrics = metrics[np.in1d(metrics["metricId"], self.stats["metricId"])]
+        metrics = metrics[np.in1d(metrics["metric_id"], self.stats["metric_id"])]
         metrics = self.sort_metrics(
             metrics,
             order=[
@@ -440,15 +440,15 @@ class MafRunResults(object):
         """
         Return a numpy array of the plots which match a given metric.
         """
-        return self.plots[np.where(self.plots["metricId"] == metric["metricId"])]
+        return self.plots[np.where(self.plots["metric_id"] == metric["metric_id"])]
 
     def plot_dict(self, plots=None):
         """
         Given an array of plots (for a single metric usually).
         Returns an ordered dict with 'plot_type' for interfacing with jinja2 templates.
-        plot_dict == {'SkyMap': {'plotFile': [], 'thumbFile', []}, 'Histogram': {}..}
+        plot_dict == {'SkyMap': {'plot_file': [], 'thumbFile', []}, 'Histogram': {}..}
 
-        If no plot of a particular type, the plotFile and thumbFile are empty lists.
+        If no plot of a particular type, the plot_file and thumbFile are empty lists.
         Calling with plots=None returns a blank plot_dict.
         """
         plot_dict = OrderedDict()
@@ -456,7 +456,7 @@ class MafRunResults(object):
         if plots is None:
             for p in self.plot_order:
                 plot_dict[p] = {}
-                plot_dict[p]["plotFile"] = ""
+                plot_dict[p]["plot_file"] = ""
                 plot_dict[p]["thumbFile"] = ""
         else:
             plot_types = list(np.unique(plots["plot_type"]))
@@ -464,20 +464,20 @@ class MafRunResults(object):
                 if p in plot_types:
                     plot_dict[p] = {}
                     plotmatch = plots[np.where(plots["plot_type"] == p)]
-                    plot_dict[p]["plotFile"] = []
+                    plot_dict[p]["plot_file"] = []
                     plot_dict[p]["thumbFile"] = []
                     for pm in plotmatch:
-                        plot_dict[p]["plotFile"].append(self.get_plotfile(pm))
+                        plot_dict[p]["plot_file"].append(self.get_plotfile(pm))
                         plot_dict[p]["thumbFile"].append(self.get_thumbfile(pm))
                     plot_types.remove(p)
             # Round up remaining plots.
             for p in plot_types:
                 plot_dict[p] = {}
                 plotmatch = plots[np.where(plots["plot_type"] == p)]
-                plot_dict[p]["plotFile"] = []
+                plot_dict[p]["plot_file"] = []
                 plot_dict[p]["thumbFile"] = []
                 for pm in plotmatch:
-                    plot_dict[p]["plotFile"].append(self.get_plotfile(pm))
+                    plot_dict[p]["plot_file"].append(self.get_plotfile(pm))
                     plot_dict[p]["thumbFile"].append(self.get_thumbfile(pm))
         return plot_dict
 
@@ -518,10 +518,10 @@ class MafRunResults(object):
         for f in order_list:
             pattern = "_" + f + "_"
             matches = np.array(
-                [bool(re.search(pattern, x)) for x in sky_plots["plotFile"]]
+                [bool(re.search(pattern, x)) for x in sky_plots["plot_file"]]
             )
             match_sky_plot = sky_plots[matches]
-            # in pandas: match_sky_plot = sky_plots[sky_plots.plotFile.str.contains(pattern)]
+            # in pandas: match_sky_plot = sky_plots[sky_plots.plot_file.str.contains(pattern)]
             if len(match_sky_plot) == 1:
                 ordered_sky_plots.append(self.plot_dict(match_sky_plot))
             elif len(match_sky_plot) == 0:
@@ -536,7 +536,7 @@ class MafRunResults(object):
             #  that do NOT match original _*_ pattern.
             pattern = "_[ugrizy]_"
             nonmatches = np.array(
-                [bool(re.search(pattern, x)) for x in sky_plots["plotFile"]]
+                [bool(re.search(pattern, x)) for x in sky_plots["plot_file"]]
             )
             nonmatch_sky_plots = sky_plots[nonmatches == False]
             if len(nonmatch_sky_plots) > 0:
@@ -545,12 +545,12 @@ class MafRunResults(object):
 
         elif too_many_plots:
             metrics = self.metrics[
-                np.in1d(self.metrics["metricId"], sky_plots["metricId"])
+                np.in1d(self.metrics["metric_id"], sky_plots["metric_id"])
             ]
             metrics = self.sort_metrics(metrics, order=["displayOrder"])
             ordered_sky_plots = []
             for m in metrics:
-                sky_plot = sky_plots[np.where(sky_plots["metricId"] == m["metricId"])]
+                sky_plot = sky_plots[np.where(sky_plots["metric_id"] == m["metric_id"])]
                 ordered_sky_plots.append(self.plot_dict(sky_plot))
 
         # Pad out to make sure there are rows of 3
@@ -567,7 +567,7 @@ class MafRunResults(object):
             metrics = self.metrics
         # Match the plots to the metrics required.
         plot_metric_match = self.plots[
-            np.in1d(self.plots["metricId"], metrics["metricId"])
+            np.in1d(self.plots["metric_id"], metrics["metric_id"])
         ]
         # Match the plot type (which could be a list)
         plot_match = plot_metric_match[
@@ -583,7 +583,7 @@ class MafRunResults(object):
 
         Optionally specify a particular stat_name that you want to match.
         """
-        stats = self.stats[np.where(self.stats["metricId"] == metric["metricId"])]
+        stats = self.stats[np.where(self.stats["metric_id"] == metric["metric_id"])]
         if stat_name is not None:
             stats = stats[np.where(stats["summaryMetric"] == stat_name)]
         return stats
@@ -628,7 +628,7 @@ class MafRunResults(object):
         """
         names = np.unique(
             self.stats["summaryMetric"][
-                np.in1d(self.stats["metricId"], metrics["metricId"])
+                np.in1d(self.stats["metric_id"], metrics["metric_id"])
             ]
         )
         names = list(names)

@@ -49,7 +49,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
     """
     Base class for all slicers: sets required methods and implements common functionality.
 
-    After first construction, the slicer should be ready for setup_slicer to define slicePoints, which will
+    After first construction, the slicer should be ready for setup_slicer to define slice_points, which will
     let the slicer 'slice' data and generate plots.
     After init after a restore: everything necessary for using slicer for plotting or
     saving/restoring metric data should be present (although slicer does not need to be able to
@@ -76,8 +76,8 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         # Set length of Slicer.
         self.nslice = None
         self.shape = self.nslice
-        self.slicePoints = {}
-        self.slicerName = self.__class__.__name__
+        self.slice_points = {}
+        self.slicer_name = self.__class__.__name__
         self.columns_needed = []
         # Create a dict that saves how to re-init the slicer.
         #  This may not be the whole set of args/kwargs, but those which carry useful metadata or
@@ -92,10 +92,10 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
             self.spatialExtent = [0, self.nslice - 1]
 
     def _run_maps(self, maps):
-        """Add map metadata to slicePoints."""
+        """Add map metadata to slice_points."""
         if maps is not None:
             for m in maps:
-                self.slicePoints = m.run(self.slicePoints)
+                self.slice_points = m.run(self.slice_points)
 
     def setup_slicer(self, sim_data, maps=None):
         """Set up Slicer for data slicing.
@@ -108,17 +108,17 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         sim_data : np.recarray
             The simulated data to be sliced.
         maps : list of rubin_sim.maf.maps objects, optional.
-            Maps to apply at each slicePoint, to add to the slicePoint metadata. Default None.
+            Maps to apply at each slice_point, to add to the slice_point metadata. Default None.
         """
         # Typically args will be sim_data, but opsimFieldSlicer also uses fieldData.
         raise NotImplementedError()
 
     def get_slice_points(self):
-        """Return the slicePoint metadata, for all slice points."""
-        return self.slicePoints
+        """Return the slice_point metadata, for all slice points."""
+        return self.slice_points
 
     def __len__(self):
-        """Return nslice, the number of slicePoints in the slicer."""
+        """Return nslice, the number of slice_points in the slicer."""
         return self.nslice
 
     def __iter__(self):
@@ -131,7 +131,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
 
         Results of self._slice_sim_data should be dictionary of
         {'idxs': the data indexes relevant for this slice of the slicer,
-        'slicePoint': the metadata for the slicePoint, which always includes 'sid' key for ID of slicePoint.}
+        'slice_point': the metadata for the slice_point, which always includes 'sid' key for ID of slice_point.}
         """
         if self.islice >= self.nslice:
             raise StopIteration
@@ -157,13 +157,13 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         else:
             return True
 
-    def _slice_sim_data(self, slicePoint):
+    def _slice_sim_data(self, slice_point):
         """
         Slice the simulation data appropriately for the slicer.
 
-        Given the identifying slicePoint metadata
+        Given the identifying slice_point metadata
         The slice of data returned will be the indices of the numpy rec array (the sim_data)
-        which are appropriate for the metric to be working on, for that slicePoint.
+        which are appropriate for the metric to be working on, for that slice_point.
         """
         raise NotImplementedError(
             'This method is set up by "setup_slicer" - run that first.'
@@ -215,14 +215,14 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         np.savez(
             outfilename,
             header=header,  # header saved as dictionary
-            metricValues=data,  # metric data values
+            metric_values=data,  # metric data values
             mask=mask,  # metric mask values
             fill=fill,  # metric badval/fill val
             slicer_init=self.slicer_init,  # dictionary of instantiation parameters
-            slicerName=self.slicerName,  # class name
-            slicePoints=self.slicePoints,  # slicePoint metadata saved (is a dictionary)
-            slicerNSlice=self.nslice,
-            slicerShape=self.shape,
+            slicer_name=self.slicer_name,  # class name
+            slice_points=self.slice_points,  # slice_point metadata saved (is a dictionary)
+            slicer_n_slice=self.nslice,
+            slicer_shape=self.shape,
         )
 
     def output_json(
@@ -255,7 +255,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         Returns
         --------
         StringIO
-            StringIO object containing a header dictionary with metric_name/metadata/sim_data_name/slicerName,
+            StringIO object containing a header dictionary with metric_name/metadata/sim_data_name/slicer_name,
             and plot labels from plot_dict, and metric values/data for plot.
             if oneDSlicer, the data is [ [bin_left_edge, value], [bin_left_edge, value]..].
             if a spatial slicer, the data is [ [lon, lat, value], [lon, lat, value] ..].
@@ -275,7 +275,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         header["metric_name"] = metric_name
         header["info_label"] = info_label
         header["sim_data_name"] = sim_data_name
-        header["slicerName"] = self.slicerName
+        header["slicer_name"] = self.slicer_name
         header["slicerLen"] = int(self.nslice)
         # Set some default plot labels if appropriate.
         if "title" in plot_dict:
@@ -308,11 +308,11 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         metric = []
         # If metric values is a masked array.
         if hasattr(metric_values, "mask"):
-            if "ra" in self.slicePoints:
+            if "ra" in self.slice_points:
                 # Spatial slicer. Translate ra/dec to lon/lat in degrees and output with metric value.
                 for ra, dec, value, mask in zip(
-                    self.slicePoints["ra"],
-                    self.slicePoints["dec"],
+                    self.slice_points["ra"],
+                    self.slice_points["dec"],
                     metric_values.data,
                     metric_values.mask,
                 ):
@@ -320,35 +320,35 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
                         lon = ra * 180.0 / np.pi
                         lat = dec * 180.0 / np.pi
                         metric.append([lon, lat, value])
-            elif "bins" in self.slicePoints:
+            elif "bins" in self.slice_points:
                 # OneD slicer. Translate bins into bin/left and output with metric value.
                 for i in range(len(metric_values)):
-                    binleft = self.slicePoints["bins"][i]
+                    binleft = self.slice_points["bins"][i]
                     value = metric_values.data[i]
                     mask = metric_values.mask[i]
                     if not mask:
                         metric.append([binleft, value])
                     else:
                         metric.append([binleft, 0])
-                metric.append([self.slicePoints["bins"][i + 1], 0])
-            elif self.slicerName == "UniSlicer":
+                metric.append([self.slice_points["bins"][i + 1], 0])
+            elif self.slicer_name == "UniSlicer":
                 metric.append([metric_values[0]])
         # Else:
         else:
-            if "ra" in self.slicePoints:
+            if "ra" in self.slice_points:
                 for ra, dec, value in zip(
-                    self.slicePoints["ra"], self.slicePoints["dec"], metric_values
+                    self.slice_points["ra"], self.slice_points["dec"], metric_values
                 ):
                     lon = ra * 180.0 / np.pi
                     lat = dec * 180.0 / np.pi
                     metric.append([lon, lat, value])
-            elif "bins" in self.slicePoints:
+            elif "bins" in self.slice_points:
                 for i in range(len(metric_values)):
-                    binleft = self.slicePoints["bins"][i]
+                    binleft = self.slice_points["bins"][i]
                     value = metric_values[i]
                     metric.append([binleft, value])
-                metric.append(self.slicePoints["bins"][i + 1][0])
-            elif self.slicerName == "UniSlicer":
+                metric.append(self.slice_points["bins"][i + 1][0])
+            elif self.slicer_name == "UniSlicer":
                 metric.append([metric_values[0]])
         # Write out JSON output.
         io = StringIO()
@@ -377,26 +377,26 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         # Get metadata and other sim_data info.
         header = restored["header"][()]
         slicer_init = restored["slicer_init"][()]
-        slicerName = str(restored["slicerName"])
-        slicePoints = restored["slicePoints"][()]
-        # Backwards compatibility issue - map 'spatialkey1/spatialkey2' to 'lonCol/latCol'.
+        slicer_name = str(restored["slicer_name"])
+        slice_points = restored["slice_points"][()]
+        # Backwards compatibility issue - map 'spatialkey1/spatialkey2' to 'lon_col/lat_col'.
         if "spatialkey1" in slicer_init:
-            slicer_init["lonCol"] = slicer_init["spatialkey1"]
+            slicer_init["lon_col"] = slicer_init["spatialkey1"]
             del slicer_init["spatialkey1"]
         if "spatialkey2" in slicer_init:
-            slicer_init["latCol"] = slicer_init["spatialkey2"]
+            slicer_init["lat_col"] = slicer_init["spatialkey2"]
             del slicer_init["spatialkey2"]
         try:
-            slicer = getattr(slicers, slicerName)(**slicer_init)
+            slicer = getattr(slicers, slicer_name)(**slicer_init)
         except TypeError:
             warnings.warn(
                 "Cannot use saved slicer init values; falling back to defaults"
             )
-            slicer = getattr(slicers, slicerName)()
-        # Restore slicePoint metadata.
-        slicer.nslice = restored["slicerNSlice"]
-        slicer.slicePoints = slicePoints
-        slicer.shape = restored["slicerShape"]
+            slicer = getattr(slicers, slicer_name)()
+        # Restore slice_point metadata.
+        slicer.nslice = restored["slicer_n_slice"]
+        slicer.slice_points = slice_points
+        slicer.shape = restored["slicer_shape"]
         # Get metric data set
         if restored["mask"][()] is None:
             metricValues = ma.MaskedArray(data=restored["metric_values"])

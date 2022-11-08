@@ -25,8 +25,8 @@ class NeoDistancePlotter(BasePlotter):
             "title": None,
             "xlabel": "X (AU)",
             "ylabel": "Y (AU)",
-            "xMin": -1.5,
-            "xMax": 1.5,
+            "x_min": -1.5,
+            "x_max": 1.5,
             "yMin": -0.25,
             "yMax": 2.5,
             "units": "Count",
@@ -89,7 +89,7 @@ class NeoDistancePlotter(BasePlotter):
         # Let's make a 2-d histogram in polar coords, then convert and display in cartisian
 
         r_step = self.step
-        rvec = np.arange(0, plot_dict["xMax"] + r_step, r_step)
+        rvec = np.arange(0, plot_dict["x_max"] + r_step, r_step)
         theta_step = np.radians(3.5)
         thetavec = np.arange(0, 2 * np.pi + theta_step, theta_step) - np.pi
 
@@ -128,7 +128,7 @@ class NeoDistancePlotter(BasePlotter):
         ax.set_ylabel(plot_dict["ylabel"])
         ax.set_title(plot_dict["title"])
         ax.set_ylim([plot_dict["yMin"], plot_dict["yMax"]])
-        ax.set_xlim([plot_dict["xMin"], plot_dict["xMax"]])
+        ax.set_xlim([plot_dict["x_min"], plot_dict["x_max"]])
 
         ax.plot([0], [1], marker="o", color="b")
         ax.plot([0], [0], marker="o", color="y")
