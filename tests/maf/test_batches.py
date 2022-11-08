@@ -12,11 +12,11 @@ from rubin_sim.maf.slicers import MoObjSlicer
 
 class TestBatches(unittest.TestCase):
     @classmethod
-    def tearDownClass(cls):
+    def tearDown_class(cls):
         sims_clean_up()
 
     def setUp(self):
-        self.outDir = tempfile.mkdtemp(prefix="TMB")
+        self.out_dir = tempfile.mkdtemp(prefix="TMB")
 
     def testload_them_all(self):
         ack = batches.altazHealpix()
@@ -37,7 +37,7 @@ class TestBatches(unittest.TestCase):
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
         "Skip these batches unless MAF data present, required for setup",
     )
-    def test_movingObjectsBatches(self):
+    def test_moving_objects_batches(self):
         slicer = MoObjSlicer()
         ack = batches.quick_discovery_batch(slicer)
         ack = batches.discovery_batch(slicer)
@@ -48,7 +48,7 @@ class TestBatches(unittest.TestCase):
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
         "Skipping scienceRadarBatch test because operating without full MAF test data",
     )
-    def test_scienceRadar(self):
+    def test_science_radar(self):
         # Loading the science radar batch requires reading a significant set of input files
         # This test is skipped if running with the lighter set of test data.
         # batch requires reading a lot of input files for lightcurves
@@ -61,15 +61,15 @@ class TestBatches(unittest.TestCase):
     def test_glance(self):
         ack = batches.glanceBatch()
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
-        resultsDb = db.ResultsDb(out_dir=self.outDir)
+        results_db = db.ResultsDb(out_dir=self.out_dir)
         bgroup = metric_bundles.MetricBundleGroup(
-            ack, database, out_dir=self.outDir, results_db=resultsDb
+            ack, database, out_dir=self.out_dir, results_db=results_db
         )
         bgroup.run_all()
 
     def tearDown(self):
-        if os.path.isdir(self.outDir):
-            shutil.rmtree(self.outDir)
+        if os.path.isdir(self.out_dir):
+            shutil.rmtree(self.out_dir)
 
 
 if __name__ == "__main__":

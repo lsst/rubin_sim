@@ -7,7 +7,7 @@ import rubin_sim.maf.metrics as metrics
 
 
 class TestCadenceMetrics(unittest.TestCase):
-    def testPhaseGapMetric(self):
+    def test_phase_gap_metric(self):
         """
         Test the phase gap metric
         """
@@ -15,32 +15,32 @@ class TestCadenceMetrics(unittest.TestCase):
         data["observationStartMJD"] += np.arange(10) * 0.25
 
         pgm = metrics.PhaseGapMetric(n_periods=1, period_min=0.5, period_max=0.5)
-        metricVal = pgm.run(data)
+        metric_val = pgm.run(data)
 
-        meanGap = pgm.reduce_mean_gap(metricVal)
-        medianGap = pgm.reduce_median_gap(metricVal)
-        worstPeriod = pgm.reduce_worst_period(metricVal)
-        largestGap = pgm.reduce_largest_gap(metricVal)
+        mean_gap = pgm.reduce_mean_gap(metric_val)
+        median_gap = pgm.reduce_median_gap(metric_val)
+        worst_period = pgm.reduce_worst_period(metric_val)
+        largest_gap = pgm.reduce_largest_gap(metric_val)
 
-        self.assertEqual(meanGap, 0.5)
-        self.assertEqual(medianGap, 0.5)
-        self.assertEqual(worstPeriod, 0.5)
-        self.assertEqual(largestGap, 0.5)
+        self.assertEqual(mean_gap, 0.5)
+        self.assertEqual(median_gap, 0.5)
+        self.assertEqual(worst_period, 0.5)
+        self.assertEqual(largest_gap, 0.5)
 
         pgm = metrics.PhaseGapMetric(n_periods=2, period_min=0.25, period_max=0.5)
-        metricVal = pgm.run(data)
+        metric_val = pgm.run(data)
 
-        meanGap = pgm.reduce_mean_gap(metricVal)
-        medianGap = pgm.reduce_median_gap(metricVal)
-        worstPeriod = pgm.reduce_worst_period(metricVal)
-        largestGap = pgm.reduce_largest_gap(metricVal)
+        mean_gap = pgm.reduce_mean_gap(metric_val)
+        median_gap = pgm.reduce_median_gap(metric_val)
+        worst_period = pgm.reduce_worst_period(metric_val)
+        largest_gap = pgm.reduce_largest_gap(metric_val)
 
-        self.assertEqual(meanGap, 0.75)
-        self.assertEqual(medianGap, 0.75)
-        self.assertEqual(worstPeriod, 0.25)
-        self.assertEqual(largestGap, 1.0)
+        self.assertEqual(mean_gap, 0.75)
+        self.assertEqual(median_gap, 0.75)
+        self.assertEqual(worst_period, 0.25)
+        self.assertEqual(largest_gap, 1.0)
 
-    def testTemplateExists(self):
+    def test_template_exists(self):
         """
         Test the TemplateExistsMetric.
         """
@@ -55,7 +55,7 @@ class TestCadenceMetrics(unittest.TestCase):
         result = metric.run(data, slice_point)
         self.assertEqual(result, 6.0 / 10.0)
 
-    def testUniformityMetric(self):
+    def test_uniformity_metric(self):
         names = ["observationStartMJD"]
         types = [float]
         data = np.zeros(100, dtype=list(zip(names, types)))
@@ -78,7 +78,7 @@ class TestCadenceMetrics(unittest.TestCase):
         result4 = metric.run(data, slice_point)
         self.assertEqual(result4, 1)
 
-    def testTGapMetric(self):
+    def test_t_gap_metric(self):
         names = ["observationStartMJD"]
         types = [float]
         data = np.zeros(100, dtype=list(zip(names, types)))
@@ -100,10 +100,10 @@ class TestCadenceMetrics(unittest.TestCase):
         metric = metrics.TgapsMetric(all_gaps=True, bins=np.arange(1, 100, 10))
         result3 = metric.run(data)
         self.assertEqual(result3[1], 2)
-        Ngaps = np.math.factorial(data.size - 1)
-        self.assertEqual(np.sum(result3), Ngaps)
+        ngaps = np.math.factorial(data.size - 1)
+        self.assertEqual(np.sum(result3), ngaps)
 
-    def testTGapsPercentMetric(self):
+    def test_t_gaps_percent_metric(self):
         names = ["observationStartMJD"]
         types = [float]
         data = np.zeros(100, dtype=list(zip(names, types)))
@@ -128,7 +128,7 @@ class TestCadenceMetrics(unittest.TestCase):
         # This should be 50% -- 3 gaps of 1 day, 2 gaps of 2 days, 1 gap of 3 days
         self.assertEqual(result3, 50)
 
-    def testNightGapMetric(self):
+    def test_night_gap_metric(self):
         names = ["night"]
         types = [float]
         data = np.zeros(100, dtype=list(zip(names, types)))
@@ -150,8 +150,8 @@ class TestCadenceMetrics(unittest.TestCase):
         metric = metrics.NightgapsMetric(all_gaps=True, bins=np.arange(1, 100, 10))
         result3 = metric.run(data)
         self.assertEqual(result3[1], 2)
-        Ngaps = np.math.factorial(data.size - 1)
-        self.assertEqual(np.sum(result3), Ngaps)
+        ngaps = np.math.factorial(data.size - 1)
+        self.assertEqual(np.sum(result3), ngaps)
 
         data = np.zeros(6, dtype=list(zip(names, types)))
         data["night"] = [1, 1, 2, 3, 3, 5]
@@ -161,7 +161,7 @@ class TestCadenceMetrics(unittest.TestCase):
         self.assertEqual(result4[1], 2)
         self.assertEqual(result4[2], 1)
 
-    def testNVisitsPerNightMetric(self):
+    def test_n_visits_per_night_metric(self):
         names = ["night"]
         types = [float]
         data = np.zeros(100, dtype=list(zip(names, types)))
@@ -182,7 +182,7 @@ class TestCadenceMetrics(unittest.TestCase):
         expected_result[2] = len(data) / 2
         np.testing.assert_array_equal(result, expected_result)
 
-    def testRapidRevisitUniformityMetric(self):
+    def test_rapid_revisit_uniformity_metric(self):
         data = np.zeros(100, dtype=list(zip(["observationStartMJD"], [float])))
         # Uniformly distribute time _differences_ between 0 and 100
         dtimes = np.arange(100)
@@ -219,7 +219,7 @@ class TestCadenceMetrics(unittest.TestCase):
         print("RapidRevisitUniformity .. range", resmin, resmax)
         """
 
-    def testRapidRevisitMetric(self):
+    def test_rapid_revisit_metric(self):
         data = np.zeros(100, dtype=list(zip(["observationStartMJD"], [float])))
         dtimes = np.arange(100) / 24.0 / 60.0
         data["observationStartMJD"] = dtimes.cumsum()
@@ -248,7 +248,7 @@ class TestCadenceMetrics(unittest.TestCase):
         result = metric.run(data)
         self.assertEqual(result, 0)
 
-    def testNRevisitsMetric(self):
+    def test_n_revisits_metric(self):
         data = np.zeros(100, dtype=list(zip(["observationStartMJD"], [float])))
         dtimes = np.arange(100) / 24.0 / 60.0
         data["observationStartMJD"] = dtimes.cumsum()
@@ -259,60 +259,60 @@ class TestCadenceMetrics(unittest.TestCase):
         result = metric.run(data)
         self.assertEqual(result, 0.5)
 
-    def testTransientMetric(self):
+    def test_transient_metric(self):
         names = ["observationStartMJD", "fiveSigmaDepth", "filter"]
         types = [float, float, "<U1"]
 
         ndata = 100
-        dataSlice = np.zeros(ndata, dtype=list(zip(names, types)))
-        dataSlice["observationStartMJD"] = np.arange(ndata)
-        dataSlice["fiveSigmaDepth"] = 25
-        dataSlice["filter"] = "g"
+        data_slice = np.zeros(ndata, dtype=list(zip(names, types)))
+        data_slice["observationStartMJD"] = np.arange(ndata)
+        data_slice["fiveSigmaDepth"] = 25
+        data_slice["filter"] = "g"
 
         metric = metrics.TransientMetric(survey_duration=ndata / 365.25)
 
         # Should detect everything
-        self.assertEqual(metric.run(dataSlice), 1.0)
+        self.assertEqual(metric.run(data_slice), 1.0)
 
         # Double to survey duration, should now only detect half
         metric = metrics.TransientMetric(survey_duration=ndata / 365.25 * 2)
-        self.assertEqual(metric.run(dataSlice), 0.5)
+        self.assertEqual(metric.run(data_slice), 0.5)
 
         # Set half of the m5 of the observations very bright, so kill another half.
-        dataSlice["fiveSigmaDepth"][0:50] = 20
-        self.assertEqual(metric.run(dataSlice), 0.25)
+        data_slice["fiveSigmaDepth"][0:50] = 20
+        self.assertEqual(metric.run(data_slice), 0.25)
 
-        dataSlice["fiveSigmaDepth"] = 25
+        data_slice["fiveSigmaDepth"] = 25
         # Demand lots of early observations
         metric = metrics.TransientMetric(
             peak_time=0.5, n_pre_peak=3, survey_duration=ndata / 365.25
         )
-        self.assertEqual(metric.run(dataSlice), 0.0)
+        self.assertEqual(metric.run(data_slice), 0.0)
 
         # Demand a reasonable number of early observations
         metric = metrics.TransientMetric(
             peak_time=2, n_pre_peak=2, survey_duration=ndata / 365.25
         )
-        self.assertEqual(metric.run(dataSlice), 1.0)
+        self.assertEqual(metric.run(data_slice), 1.0)
 
         # Demand multiple filters
         metric = metrics.TransientMetric(n_filters=2, survey_duration=ndata / 365.25)
-        self.assertEqual(metric.run(dataSlice), 0.0)
+        self.assertEqual(metric.run(data_slice), 0.0)
 
-        dataSlice["filter"] = ["r", "g"] * 50
-        self.assertEqual(metric.run(dataSlice), 1.0)
+        data_slice["filter"] = ["r", "g"] * 50
+        self.assertEqual(metric.run(data_slice), 1.0)
 
         # Demad too many observation per light curve
         metric = metrics.TransientMetric(n_per_lc=20, survey_duration=ndata / 365.25)
-        self.assertEqual(metric.run(dataSlice), 0.0)
+        self.assertEqual(metric.run(data_slice), 0.0)
 
         # Test both filter and number of LC samples
         metric = metrics.TransientMetric(
             n_filters=2, n_per_lc=3, survey_duration=ndata / 365.25
         )
-        self.assertEqual(metric.run(dataSlice), 1.0)
+        self.assertEqual(metric.run(data_slice), 1.0)
 
-    def testSeasonLengthMetric(self):
+    def test_season_length_metric(self):
         times = np.arange(0, 3650, 10)
         data = np.zeros(
             len(times),

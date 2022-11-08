@@ -10,7 +10,7 @@ import rubin_sim.maf.maps as maps
 from rubin_sim.data import get_data_dir
 
 
-def makeDataValues(size=100, min=0.0, max=1.0, random=-1):
+def make_data_values(size=100, min=0.0, max=1.0, random=-1):
     """Generate a simple array of numbers, evenly arranged between min/max, but (optional) random order."""
     datavalues = np.arange(0, size, dtype="float")
     datavalues *= (float(max) - float(min)) / (datavalues.max() - datavalues.min())
@@ -34,25 +34,25 @@ def makeDataValues(size=100, min=0.0, max=1.0, random=-1):
     return datavalues
 
 
-def makeFieldData(seed):
+def make_field_data(seed):
     rng = np.random.RandomState(seed)
     names = ["fieldId", "fieldRA", "fieldDec"]
     types = [int, float, float]
-    fieldData = np.zeros(100, dtype=list(zip(names, types)))
-    fieldData["fieldId"] = np.arange(100)
-    fieldData["fieldRA"] = rng.rand(100)
-    fieldData["fieldDec"] = rng.rand(100)
-    return fieldData
+    field_data = np.zeros(100, dtype=list(zip(names, types)))
+    field_data["fieldId"] = np.arange(100)
+    field_data["fieldRA"] = rng.rand(100)
+    field_data["fieldDec"] = rng.rand(100)
+    return field_data
 
 
 class TestMaps(unittest.TestCase):
-    def testDustMap(self):
+    def test_dust_map(self):
 
         map_path = os.path.join(get_data_dir(), "tests")
         nside = 8
         if os.path.isfile(os.path.join(map_path, f"dust_nside_{nside}.npz")):
 
-            data = makeDataValues(random=981)
+            data = make_data_values(random=981)
             dustmap = maps.DustMap(nside=nside, map_path=map_path)
 
             slicer1 = slicers.HealpixSlicer(
@@ -62,10 +62,10 @@ class TestMaps(unittest.TestCase):
             result1 = dustmap.run(slicer1.slice_points)
             assert "ebv" in list(result1.keys())
 
-            fieldData = makeFieldData(2234)
+            field_data = make_field_data(2234)
 
             slicer2 = slicers.UserPointsSlicer(
-                fieldData["fieldRA"], fieldData["fieldDec"], lat_lon_deg=False
+                field_data["fieldRA"], field_data["fieldDec"], lat_lon_deg=False
             )
             result2 = dustmap.run(slicer2.slice_points)
             assert "ebv" in list(result2.keys())
@@ -84,7 +84,7 @@ class TestMaps(unittest.TestCase):
         else:
             warnings.warn("Did not find dustmaps, not running testMaps.py")
 
-    def testDustMap3D(self):
+    def test_dust_map3_d(self):
 
         nside = 8
         map_file = os.path.join(
@@ -92,7 +92,7 @@ class TestMaps(unittest.TestCase):
         )
         if os.path.isfile(map_file):
 
-            data = makeDataValues(random=981)
+            data = make_data_values(random=981)
             dustmap = maps.DustMap3D(nside=nside, map_file=map_file, interp=False)
 
             slicer1 = slicers.HealpixSlicer(
@@ -103,10 +103,10 @@ class TestMaps(unittest.TestCase):
             assert "ebv3d_ebvs" in list(result1.keys())
             assert "ebv3d_dists" in list(result1.keys())
 
-            fieldData = makeFieldData(2234)
+            field_data = make_field_data(2234)
 
             slicer2 = slicers.UserPointsSlicer(
-                fieldData["fieldRA"], fieldData["fieldDec"], lat_lon_deg=False
+                field_data["fieldRA"], field_data["fieldDec"], lat_lon_deg=False
             )
             result2 = dustmap.run(slicer2.slice_points)
             assert "ebv3d_ebvs" in list(result2.keys())
@@ -144,11 +144,11 @@ class TestMaps(unittest.TestCase):
         else:
             warnings.warn("Did not find dustmaps, not running testMaps.py")
 
-    def testStarMap(self):
+    def test_star_map(self):
         map_path = os.path.join(get_data_dir(), "tests")
 
         if os.path.isfile(os.path.join(map_path, "starDensity_r_nside_64.npz")):
-            data = makeDataValues(random=887)
+            data = make_data_values(random=887)
             # check that it works if nside does not match map nside of 64
             nsides = [32, 64, 128]
             for nside in nsides:
@@ -162,10 +162,10 @@ class TestMaps(unittest.TestCase):
                 assert "starLumFunc_r" in list(result1.keys())
                 assert np.max(result1["starLumFunc_r"] > 0)
 
-            fieldData = makeFieldData(22)
+            field_data = make_field_data(22)
 
             slicer2 = slicers.UserPointsSlicer(
-                fieldData["fieldRA"], fieldData["fieldDec"], lat_lon_deg=False
+                field_data["fieldRA"], field_data["fieldDec"], lat_lon_deg=False
             )
             result2 = starmap.run(slicer2.slice_points)
             assert "starMapBins_r" in list(result2.keys())
@@ -179,11 +179,11 @@ class TestMaps(unittest.TestCase):
         os.path.isdir(os.path.join(get_data_dir(), "maps")),
         "Skip the galplane priority map data unless maps data present, required for setup",
     )
-    def testGalplanePriorityMaps(self):
+    def test_galplane_priority_maps(self):
 
         map_path = os.path.join(get_data_dir(), "maps")
         nside = 64
-        data = makeDataValues(random=981)
+        data = make_data_values(random=981)
         galplane_map = maps.GalacticPlanePriorityMap(
             nside=nside, map_path=map_path, interp=False
         )
@@ -198,9 +198,9 @@ class TestMaps(unittest.TestCase):
         assert key in list(result1.keys())
 
         # Set up more advanced case - random ra/dec
-        fieldData = makeFieldData(2234)
+        field_data = make_field_data(2234)
         slicer2 = slicers.UserPointsSlicer(
-            fieldData["fieldRA"], fieldData["fieldDec"], lat_lon_deg=False
+            field_data["fieldRA"], field_data["fieldDec"], lat_lon_deg=False
         )
         result2 = galplane_map.run(slicer2.slice_points)
         assert key in list(result2.keys())

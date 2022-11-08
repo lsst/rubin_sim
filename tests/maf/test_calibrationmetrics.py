@@ -8,7 +8,7 @@ import rubin_sim.maf.stackers as stackers
 
 
 class TestCalibrationMetrics(unittest.TestCase):
-    def testParallaxMetric(self):
+    def test_parallax_metric(self):
         """
         Test the parallax metric.
         """
@@ -31,8 +31,8 @@ class TestCalibrationMetrics(unittest.TestCase):
         data["fiveSigmaDepth"] = 24.0
         stacker = stackers.ParallaxFactorStacker()
         data = stacker.run(data)
-        normFlags = [False, True]
-        for flag in normFlags:
+        norm_flags = [False, True]
+        for flag in norm_flags:
             data["finSeeing"] = 0.7
             data["fiveSigmaDepth"] = 24.0
             baseline = metrics.ParallaxMetric(
@@ -62,7 +62,7 @@ class TestCalibrationMetrics(unittest.TestCase):
                 assert worse3 > worse2
                 assert worse4 > worse3
 
-    def testProperMotionMetric(self):
+    def test_proper_motion_metric(self):
         """
         Test the ProperMotion metric.
         """
@@ -78,7 +78,7 @@ class TestCalibrationMetrics(unittest.TestCase):
         data = np.zeros(700, dtype=list(zip(names, types)))
         slice_point = [0]
         stacker = stackers.ParallaxFactorStacker()
-        normFlags = [False, True]
+        norm_flags = [False, True]
         data["observationStartMJD"] = np.arange(700) + 56762
         data["finSeeing"] = 0.7
         data["filter"][0:100] = str("r")
@@ -86,7 +86,7 @@ class TestCalibrationMetrics(unittest.TestCase):
         data["filter"][200:] = str("g")
         data["fiveSigmaDepth"] = 24.0
         data = stacker.run(data)
-        for flag in normFlags:
+        for flag in norm_flags:
             data["finSeeing"] = 0.7
             data["fiveSigmaDepth"] = 24
             baseline = metrics.ProperMotionMetric(
@@ -121,7 +121,7 @@ class TestCalibrationMetrics(unittest.TestCase):
                 assert worse3 > worse2
                 assert worse4 > worse3
 
-    def testParallaxCoverageMetric(self):
+    def test_parallax_coverage_metric(self):
         """
         Test the parallax coverage
         """
@@ -169,7 +169,7 @@ class TestCalibrationMetrics(unittest.TestCase):
         val = metric.run(data)
         assert val == 1
 
-    def testParallaxDcrDegenMetric(self):
+    def test_parallax_dcr_degen_metric(self):
         """
         Test the parallax-DCR degeneracy metric
         """
@@ -219,7 +219,7 @@ class TestCalibrationMetrics(unittest.TestCase):
         val = metric.run(data)
         assert np.abs(val) < 0.2
 
-    def testRadiusObsMetric(self):
+    def test_radius_obs_metric(self):
         """
         Test the RadiusObsMetric
         """

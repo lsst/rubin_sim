@@ -24,7 +24,7 @@ class TestSNmetrics(unittest.TestCase):
                 newkey = k.lstrip("/")
                 self.simdata[newkey] = f.get(k).to_records()
 
-    def testNSN(self):
+    def test_nsn(self):
         # Set up a mock slicerPoint
         nside = 64
         slice_point = {"nside": nside, "ebv": 0.0}

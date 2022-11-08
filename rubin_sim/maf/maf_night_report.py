@@ -15,7 +15,7 @@ from . import utils as utils
 from .batches import ColMapDict
 
 
-def makeBundleList(
+def make_bundle_list(
     dbFile,
     night=1,
     nside=64,
@@ -59,7 +59,7 @@ def makeBundleList(
         nside=nside, lon_col=lonCol, lat_col=latCol, lat_lon_deg=True
     )
     altaz_slicer = slicers.HealpixSlicer(
-        nside=nside, lat_col=altCol, lat_lon_deg=True, lon_col=azCol, useCache=False
+        nside=nside, lat_col=altCol, lat_lon_deg=True, lon_col=azCol, use_cache=False
     )
 
     unislicer = slicers.UniSlicer()
@@ -75,10 +75,10 @@ def makeBundleList(
         )
         bundleList.append(bundle)
 
-        metric = metrics.MeanMetric(mjdCol, metricName="Mean Visit Time")
+        metric = metrics.MeanMetric(mjdCol, metric_name="Mean Visit Time")
         bundle = metricBundles.MetricBundle(metric, reg_slicer, sql)
         bundleList.append(bundle)
-        metric = metrics.MeanMetric(mjdCol, metricName="Mean Visit Time alt az")
+        metric = metrics.MeanMetric(mjdCol, metric_name="Mean Visit Time alt az")
         bundle = metricBundles.MetricBundle(
             metric, altaz_slicer, sql, plot_funcs=plotFuncs_lam
         )
@@ -195,7 +195,7 @@ def maf_night_report():
     parser.set_defaults()
     args, extras = parser.parse_known_args()
 
-    bundleDict = makeBundleList(
+    bundleDict = make_bundle_list(
         args.dbFile,
         nside=args.nside,
         lonCol=args.lonCol,

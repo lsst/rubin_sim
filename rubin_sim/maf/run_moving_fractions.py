@@ -60,7 +60,7 @@ def run_moving_fractions():
     times += start_time
 
     # Create a results Db.
-    results_db = db.ResultsDb(out_dir=args.work_dir)
+    results_db = db.results_db(out_dir=args.work_dir)
 
     # Just read in all metrics in the (joint or single) directory, then run completeness and fraction
     # summaries, using the methods in the batches.
@@ -105,27 +105,27 @@ def run_moving_fractions():
     )
     # Plot the fractions for colors and lightcurves.
     batches.plot_fractions(
-        bdict_fractions, figroot=figroot, resultsDb=results_db, outDir=args.work_dir
+        bdict_fractions, figroot=figroot, results_db=results_db, out_dir=args.work_dir
     )
 
     # Plot nObs and arcLength.
     for k in bdict:
         if "NObs" in k:
-            batches.plot_single(bdict[k], resultsDb=results_db, outDir=args.work_dir)
+            batches.plot_single(bdict[k], results_db=results_db, out_dir=args.work_dir)
         if "ObsArc" in k:
-            batches.plot_single(bdict[k], resultsDb=results_db, outDir=args.work_dir)
+            batches.plot_single(bdict[k], results_db=results_db, out_dir=args.work_dir)
 
     # Plot the number of chances of discovery metric - this is different than completeness
     # As it plots the metric value directly
     for k in bdict:
         if "Discovery_N_Chances" in k and "3_pairs_in_15_nights_detection_loss" in k:
-            batches.plot_single(bdict[k], resultsDb=results_db, outDir=args.work_dir)
+            batches.plot_single(bdict[k], results_db=results_db, out_dir=args.work_dir)
         if "MagicDiscovery" in k:
-            batches.plot_single(bdict[k], resultsDb=results_db, outDir=args.work_dir)
+            batches.plot_single(bdict[k], results_db=results_db, out_dir=args.work_dir)
         if "HighVelocity" in k:
-            batches.plot_single(bdict[k], resultsDb=results_db, outDir=args.work_dir)
+            batches.plot_single(bdict[k], results_db=results_db, out_dir=args.work_dir)
 
     # Plot likelihood of detecting activity.
     batches.plot_activity(
-        bdict, figroot=figroot, resultsDb=results_db, outDir=args.work_dir
+        bdict, figroot=figroot, results_db=results_db, out_dir=args.work_dir
     )

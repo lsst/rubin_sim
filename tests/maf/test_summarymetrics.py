@@ -8,14 +8,14 @@ import rubin_sim.maf.metrics as metrics
 
 
 class TestSummaryMetrics(unittest.TestCase):
-    def testIdentityMetric(self):
+    def test_identity_metric(self):
         """Test identity metric."""
         dv = np.arange(0, 10, 0.5)
         dv = np.array(list(zip(dv)), dtype=[("testdata", "float")])
         testmetric = metrics.IdentityMetric("testdata")
         np.testing.assert_equal(testmetric.run(dv), dv["testdata"])
 
-    def testfONv(self):
+    def testf_o_nv(self):
         """
         Test the fONv metric.
         """
@@ -46,7 +46,7 @@ class TestSummaryMetrics(unittest.TestCase):
         self.assertEqual(min_nvis, 0)
         self.assertEqual(median_nvis, 826)
 
-    def testfOArea(self):
+    def testf_o_area(self):
         """Test fOArea metric."""
         nside = 128
         npix = hp.nside2npix(nside)
@@ -64,21 +64,21 @@ class TestSummaryMetrics(unittest.TestCase):
         result = metric.run(data, slice_point)
         np.testing.assert_almost_equal(result, deginsph / 2.0)
 
-    def testNormalizeMetric(self):
+    def test_normalize_metric(self):
         """Test normalize metric."""
         data = np.ones(10, dtype=list(zip(["testcol"], ["float"])))
         metric = metrics.NormalizeMetric(col="testcol", norm_val=5.5)
         result = metric.run(data)
         np.testing.assert_equal(result, np.ones(10, float) / 5.5)
 
-    def testZeropointMetric(self):
+    def test_zeropoint_metric(self):
         """Test zeropoint metric."""
         data = np.ones(10, dtype=list(zip(["testcol"], ["float"])))
         metric = metrics.ZeropointMetric(col="testcol", zp=5.5)
         result = metric.run(data)
         np.testing.assert_equal(result, np.ones(10, float) + 5.5)
 
-    def testTotalPowerMetric(self):
+    def test_total_power_metric(self):
         nside = 128
         data = np.ones(12 * nside**2, dtype=list(zip(["testcol"], ["float"])))
         metric = metrics.TotalPowerMetric(col="testcol")

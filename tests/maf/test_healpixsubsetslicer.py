@@ -10,7 +10,7 @@ from rubin_sim.data import get_data_dir
 from rubin_sim.maf.slicers import HealpixSubsetSlicer
 
 
-def makeDataValues(
+def make_data_values(
     size=100,
     minval=0.0,
     maxval=1.0,
@@ -64,16 +64,16 @@ def makeDataValues(
     return data
 
 
-def calcDist_vincenty(RA1, Dec1, RA2, Dec2):
+def calc_dist_vincenty(ra1, dec1, ra2, dec2):
     """Calculates distance on a sphere using the Vincenty formula.
     Give this function RA/Dec values in radians. Returns angular distance(s), in radians.
     Note that since this is all numpy, you could input arrays of RA/Decs."""
-    D1 = (np.cos(Dec2) * np.sin(RA2 - RA1)) ** 2 + (
-        np.cos(Dec1) * np.sin(Dec2) - np.sin(Dec1) * np.cos(Dec2) * np.cos(RA2 - RA1)
+    d1 = (np.cos(dec2) * np.sin(ra2 - ra1)) ** 2 + (
+        np.cos(dec1) * np.sin(dec2) - np.sin(dec1) * np.cos(dec2) * np.cos(ra2 - ra1)
     ) ** 2
-    D1 = np.sqrt(D1)
-    D2 = np.sin(Dec1) * np.sin(Dec2) + np.cos(Dec1) * np.cos(Dec2) * np.cos(RA2 - RA1)
-    D = np.arctan2(D1, D2)
+    d1 = np.sqrt(d1)
+    d2 = np.sin(dec1) * np.sin(dec2) + np.cos(dec1) * np.cos(dec2) * np.cos(ra2 - ra1)
+    D = np.arctan2(d1, d2)
     return D
 
 
@@ -86,7 +86,7 @@ class TestHealpixSubsetSlicerSetup(unittest.TestCase):
         idxs = np.arange(0, hp.nside2npix(self.nside))
         self.idxs = idxs[np.where(idxs < idxs.max() / 2)]
 
-    def testSlicertype(self):
+    def test_slicertype(self):
         """Test instantiation of slicer sets slicer type as expected."""
         testslicer = HealpixSubsetSlicer(
             nside=self.nside,
@@ -113,7 +113,7 @@ class TestHealpixSlicerEqual(unittest.TestCase):
             camera_footprint_file=self.camera_footprint_file,
         )
         nvalues = 10000
-        self.dv = makeDataValues(
+        self.dv = make_data_values(
             size=nvalues,
             minval=0.0,
             maxval=1.0,
@@ -130,7 +130,7 @@ class TestHealpixSlicerEqual(unittest.TestCase):
         del self.dv
         self.testslicer = None
 
-    def testSlicerEquivalence(self):
+    def test_slicer_equivalence(self):
         """Test that slicers are marked equal when appropriate, and unequal when appropriate."""
         # Note that they are judged equal based on nsides (not on data in ra/dec spatial tree).
         testslicer2 = HealpixSubsetSlicer(
@@ -171,7 +171,7 @@ class TestHealpixSlicerIteration(unittest.TestCase):
             camera_footprint_file=self.camera_footprint_file,
         )
         nvalues = 10000
-        self.dv = makeDataValues(
+        self.dv = make_data_values(
             size=nvalues,
             minval=0.0,
             maxval=1.0,
@@ -187,7 +187,7 @@ class TestHealpixSlicerIteration(unittest.TestCase):
         del self.testslicer
         self.testslicer = None
 
-    def testIteration(self):
+    def test_iteration(self):
         """Test iteration goes through expected range and ra/dec are in expected range (radians)."""
         npix = hp.nside2npix(self.nside)
         for i, s in enumerate(self.testslicer):
@@ -202,7 +202,7 @@ class TestHealpixSlicerIteration(unittest.TestCase):
             self.assertLessEqual(dec, np.pi)
         self.assertEqual(i + 1, len(self.hpid))
 
-    def testGetItem(self):
+    def test_get_item(self):
         """Test getting indexed value."""
         for i, s in enumerate(self.testslicer):
             np.testing.assert_equal(self.testslicer[self.hpid[i]], s)
@@ -228,7 +228,7 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
             use_camera=False,
         )
         nvalues = 10000
-        self.dv = makeDataValues(
+        self.dv = make_data_values(
             size=nvalues,
             minval=0.0,
             maxval=1.0,
@@ -243,7 +243,7 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
         del self.testslicer
         self.testslicer = None
 
-    def testSlicing(self):
+    def test_slicing(self):
         """Test slicing returns (all) data points which are within 'radius' of bin point."""
         # Test that slicing fails before setup_slicer
         self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
@@ -252,7 +252,7 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
         for s in self.testslicer:
             ra = s["slice_point"]["ra"]
             dec = s["slice_point"]["dec"]
-            distances = calcDist_vincenty(ra, dec, self.dv["ra"], self.dv["dec"])
+            distances = calc_dist_vincenty(ra, dec, self.dv["ra"], self.dv["dec"])
             didxs = np.where(distances <= np.radians(self.radius))
             sidxs = s["idxs"]
             self.assertEqual(len(sidxs), len(didxs[0]))
@@ -263,7 +263,7 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
                     self.dv["testdata"][didxs], self.dv["testdata"][sidxs]
                 )
 
-    def testSubsetSlice(self):
+    def test_subset_slice(self):
         testslicer = HealpixSubsetSlicer(
             nside=self.nside,
             hpid=np.arange(0, 2),

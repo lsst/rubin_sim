@@ -12,7 +12,7 @@ import warnings
 m5_ref = dict(zip("ugrizy", [23.60, 24.83, 24.38, 23.92, 23.35, 22.44]))
 
 
-def Observations_band(
+def observations_band(
     day0=59000, daymin=59000, cadence=3.0, season_length=140.0, band="r"
 ):
     # Define fake data
@@ -56,16 +56,16 @@ def Observations_band(
     return data
 
 
-def Observations_season(mjdmin=59000, cadence=3.0):
+def observations_season(mjdmin=59000, cadence=3.0):
     bands = "grizy"
-    Nvisits = dict(zip(bands, [10, 20, 20, 26, 20]))
+    nvisits = dict(zip(bands, [10, 20, 20, 26, 20]))
     rat = 34.0 / 3600.0 / 24.0
     shift_visits = {}
     shift_visits["g"] = 0
-    shift_visits["r"] = rat * Nvisits["g"]
-    shift_visits["i"] = rat * Nvisits["r"]
-    shift_visits["z"] = rat * Nvisits["i"]
-    shift_visits["y"] = rat * Nvisits["z"]
+    shift_visits["r"] = rat * nvisits["g"]
+    shift_visits["i"] = rat * nvisits["r"]
+    shift_visits["z"] = rat * nvisits["i"]
+    shift_visits["y"] = rat * nvisits["z"]
 
     # get data
     data = None
@@ -74,9 +74,9 @@ def Observations_season(mjdmin=59000, cadence=3.0):
     for band in bands:
 
         mjd = mjdmin + shift_visits[band]
-        for i in range(Nvisits[band]):
+        for i in range(nvisits[band]):
             mjd += shift
-            dat = Observations_band(
+            dat = observations_band(
                 daymin=mjd, season_length=season_length, cadence=cadence, band=band
             )
             if data is None:
@@ -87,7 +87,7 @@ def Observations_season(mjdmin=59000, cadence=3.0):
     return data
 
 
-def fakeData(band, season=1):
+def fake_data(band, season=1):
 
     # Define fake data
     names = [
@@ -163,7 +163,7 @@ class TestSNmetrics(unittest.TestCase):
             )
 
     @unittest.skip("The SNCadenceMetric is not used")
-    def testSNCadenceMetric(self):
+    def test_sn_cadence_metric(self):
         """Test the SN cadence metric"""
 
         # Load up the files from sims_maf_contrib if possible
@@ -174,12 +174,12 @@ class TestSNmetrics(unittest.TestCase):
             SNR = dict(zip("griz", [30.0, 40.0, 30.0, 20.0]))  # SNR for WFD
             mag_range = [21.0, 25.5]  # WFD mag range
             dt_range = [0.5, 30.0]  # WFD dt range
-            Li_files = [os.path.join(sims_maf_contrib_dir, "Li_SNCosmo_-2.0_0.2.npy")]
+            li_files = [os.path.join(sims_maf_contrib_dir, "Li_SNCosmo_-2.0_0.2.npy")]
             mag_to_flux_files = [
                 os.path.join(sims_maf_contrib_dir, "Mag_to_Flux_SNCosmo.npy")
             ]
             lim_sn = Lims(
-                Li_files,
+                li_files,
                 mag_to_flux_files,
                 band,
                 SNR[band],
@@ -231,7 +231,7 @@ class TestSNmetrics(unittest.TestCase):
             warnings.warn("skipping SN test because no rubin_sim_data set")
 
     @unittest.skip("This metric is not used")
-    def testSNSNRMetric(self):
+    def test_snsnr_metric(self):
         """Test the SN SNR metric"""
 
         sims_maf_contrib_dir = os.path.join(get_data_dir(), "maf")
@@ -240,7 +240,7 @@ class TestSNmetrics(unittest.TestCase):
             band = "r"
             z = 0.3
             season = 1.0
-            Li_files = [os.path.join(sims_maf_contrib_dir, "Li_SNCosmo_-2.0_0.2.npy")]
+            li_files = [os.path.join(sims_maf_contrib_dir, "Li_SNCosmo_-2.0_0.2.npy")]
             mag_to_flux_files = [
                 os.path.join(sims_maf_contrib_dir, "Mag_to_Flux_SNCosmo.npy")
             ]
@@ -248,7 +248,7 @@ class TestSNmetrics(unittest.TestCase):
             names_ref = ["SNCosmo"]
             coadd = False
 
-            lim_sn = ReferenceData(Li_files, mag_to_flux_files, band, z)
+            lim_sn = ReferenceData(li_files, mag_to_flux_files, band, z)
 
             # Define fake data
             names = [
@@ -311,7 +311,7 @@ class TestSNmetrics(unittest.TestCase):
         else:
             warnings.warn("skipping SN test because no rubin_sim_data set")
 
-    def testSNSLMetric(self):
+    def test_snsl_metric(self):
         """Test the SN SL metric"""
 
         # load some fake data
@@ -320,7 +320,7 @@ class TestSNmetrics(unittest.TestCase):
         cadence = dict(zip(bands, [2, 1, 2, 1]))
         for band in bands:
             for i in range(cadence[band]):
-                fakes = fakeData(band)
+                fakes = fake_data(band)
                 if data is None:
                     data = fakes
                 else:
@@ -335,14 +335,14 @@ class TestSNmetrics(unittest.TestCase):
         )
 
         # run the metric
-        nSL = metric.run(data, slice_point={"nside": 64, "ra": 0.0, "ebv": 0.0})
+        n_sl = metric.run(data, slice_point={"nside": 64, "ra": 0.0, "ebv": 0.0})
 
         # and the result should be
         # Changing the reference value because we have new coadd and mag limits
         # Change again to switch to per-season calc rather than average
         # Change again to reflect updated calculation (due to counting year = 365.25 days, not 360)
-        nSL_ref = 1.4569195613987307e-06  # 1.478166e-6  # 1.42168e-6  # 0.00012650940
-        assert np.abs(nSL - nSL_ref) < 1.0e-8
+        n_sl_ref = 1.4569195613987307e-06  # 1.478166e-6  # 1.42168e-6  # 0.00012650940
+        assert np.abs(n_sl - n_sl_ref) < 1.0e-8
 
 
 if __name__ == "__main__":

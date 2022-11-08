@@ -7,7 +7,7 @@ import rubin_sim.maf.metrics as metrics
 
 
 class TestTechnicalMetrics(unittest.TestCase):
-    def testNChangesMetric(self):
+    def test_n_changes_metric(self):
         """
         Test the NChanges metric.
         """
@@ -27,7 +27,7 @@ class TestTechnicalMetrics(unittest.TestCase):
         result = metric.run(data)
         self.assertEqual(result, 4)
 
-    def testMinTimeBetweenStatesMetric(self):
+    def test_min_time_between_states_metric(self):
         """
         Test the minTimeBetweenStates metric.
         """
@@ -43,59 +43,59 @@ class TestTechnicalMetrics(unittest.TestCase):
         result = metric.run(data)
         self.assertEqual(result, metric.badval)
 
-    def testNStateChangesFasterThanMetric(self):
+    def test_n_state_changes_faster_than_metric(self):
         """
         Test the NStateChangesFasterThan metric.
         """
         filters = np.array(["u", "g", "g", "r"])
-        visitTimes = np.array([0, 5, 6, 7])  # days
+        visit_times = np.array([0, 5, 6, 7])  # days
         data = np.core.records.fromarrays(
-            [visitTimes, filters], names=["observationStartMJD", "filter"]
+            [visit_times, filters], names=["observationStartMJD", "filter"]
         )
         metric = metrics.NStateChangesFasterThanMetric(cutoff=3 * 24 * 60)
         result = metric.run(data)  # minutes
         self.assertEqual(result, 1)
 
-    def testMaxStateChangesWithinMetric(self):
+    def test_max_state_changes_within_metric(self):
         """
         Test the MaxStateChangesWithin metric.
         """
         filters = np.array(["u", "g", "r", "u", "g", "r"])
-        visitTimes = np.array([0, 1, 1, 4, 6, 7])  # days
+        visit_times = np.array([0, 1, 1, 4, 6, 7])  # days
         data = np.core.records.fromarrays(
-            [visitTimes, filters], names=["observationStartMJD", "filter"]
+            [visit_times, filters], names=["observationStartMJD", "filter"]
         )
         metric = metrics.MaxStateChangesWithinMetric(timespan=1 * 24 * 60)
         result = metric.run(data)  # minutes
         self.assertEqual(result, 2)
         filters = np.array(["u", "g", "g", "u", "g", "r", "g", "r"])
-        visitTimes = np.array([0, 1, 1, 4, 4, 7, 8, 8])  # days
+        visit_times = np.array([0, 1, 1, 4, 4, 7, 8, 8])  # days
         data = np.core.records.fromarrays(
-            [visitTimes, filters], names=["observationStartMJD", "filter"]
+            [visit_times, filters], names=["observationStartMJD", "filter"]
         )
         metric = metrics.MaxStateChangesWithinMetric(timespan=1 * 24 * 60)
         result = metric.run(data)  # minutes
         self.assertEqual(result, 3)
 
         filters = np.array(["u", "g"])
-        visitTimes = np.array([0, 1])  # days
+        visit_times = np.array([0, 1])  # days
         data = np.core.records.fromarrays(
-            [visitTimes, filters], names=["observationStartMJD", "filter"]
+            [visit_times, filters], names=["observationStartMJD", "filter"]
         )
         metric = metrics.MaxStateChangesWithinMetric(timespan=1 * 24 * 60)
         result = metric.run(data)  # minutes
         self.assertEqual(result, 1)
 
         filters = np.array(["u", "u"])
-        visitTimes = np.array([0, 1])  # days
+        visit_times = np.array([0, 1])  # days
         data = np.core.records.fromarrays(
-            [visitTimes, filters], names=["observationStartMJD", "filter"]
+            [visit_times, filters], names=["observationStartMJD", "filter"]
         )
         metric = metrics.MaxStateChangesWithinMetric(timespan=1 * 24 * 60)
         result = metric.run(data)  # minutes
         self.assertEqual(result, 0)
 
-    def testTeffMetric(self):
+    def test_teff_metric(self):
         """
         Test the Teff (time_effective) metric.
         """
@@ -117,43 +117,48 @@ class TestTechnicalMetrics(unittest.TestCase):
         result = metric.run(data)
         self.assertEqual(result, 30.0 * m5.size)
 
-    def testOpenShutterFractionMetric(self):
+    def test_open_shutter_fraction_metric(self):
         """
         Test the open shutter fraction metric.
         """
         nvisit = 10
         exptime = 30.0
         slewtime = 30.0
-        visitExpTime = np.ones(nvisit, dtype="float") * exptime
-        visitTime = np.ones(nvisit, dtype="float") * (exptime + 0.0)
-        slewTime = np.ones(nvisit, dtype="float") * slewtime
+        visit_exp_time = np.ones(nvisit, dtype="float") * exptime
+        visit_time = np.ones(nvisit, dtype="float") * (exptime + 0.0)
+        slew_time = np.ones(nvisit, dtype="float") * slewtime
         data = np.core.records.fromarrays(
-            [visitExpTime, visitTime, slewTime],
+            [visit_exp_time, visit_time, slew_time],
             names=["visitExposureTime", "visitTime", "slewTime"],
         )
         metric = metrics.OpenShutterFractionMetric()
         result = metric.run(data)
         self.assertEqual(result, 0.5)
 
-    def testBruteOSFMetric(self):
+    def test_brute_osf_metric(self):
         """
         Test the open shutter fraction metric.
         """
         nvisit = 10
         exptime = 30.0
         slewtime = 30.0
-        visitExpTime = np.ones(nvisit, dtype="float") * exptime
-        visitTime = np.ones(nvisit, dtype="float") * (exptime + 0.0)
-        slewTime = np.ones(nvisit, dtype="float") * slewtime
+        visit_exp_time = np.ones(nvisit, dtype="float") * exptime
+        visit_time = np.ones(nvisit, dtype="float") * (exptime + 0.0)
+        slew_time = np.ones(nvisit, dtype="float") * slewtime
         mjd = (
             np.zeros(nvisit)
-            + np.add.accumulate(visitExpTime)
-            + np.add.accumulate(slewTime)
+            + np.add.accumulate(visit_exp_time)
+            + np.add.accumulate(slew_time)
         )
         mjd = mjd / 60.0 / 60.0 / 24.0
         data = np.core.records.fromarrays(
-            [visitExpTime, visitTime, slewTime, mjd],
-            names=["visitExposureTime", "visitTime", "slewTime", "observationStartMJD"],
+            [visit_exp_time, visit_time, slew_time, mjd],
+            names=[
+                "visitExposureTime",
+                "visit_time",
+                "slew_time",
+                "observationStartMJD",
+            ],
         )
         metric = metrics.BruteOSFMetric()
         result = metric.run(data)

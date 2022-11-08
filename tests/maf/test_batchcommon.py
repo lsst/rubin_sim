@@ -3,7 +3,7 @@ import rubin_sim.maf.batches as batches
 
 
 class TestCommon(unittest.TestCase):
-    def testColMap(self):
+    def test_col_map(self):
         colmap = batches.col_map_dict("opsimv4")
         self.assertEqual(colmap["raDecDeg"], True)
         self.assertEqual(colmap["ra"], "fieldRA")
@@ -11,7 +11,7 @@ class TestCommon(unittest.TestCase):
         self.assertEqual(colmap["raDecDeg"], True)
         self.assertEqual(colmap["ra"], "fieldRA")
 
-    def testFilterList(self):
+    def test_filter_list(self):
         filterlist, colors, orders, sqls, info_label = batches.common.filter_list(
             all=False, extra_sql=None
         )
