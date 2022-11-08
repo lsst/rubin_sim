@@ -33,10 +33,10 @@ class FONv(BaseMetric):
     nside : int, optional
         Nside parameter from healpix slicer, used to set the physical relationship between on-sky area
         and number of healpixels. Default 128.
-    nvisit : int, optional
-        Number of visits to use as the benchmark value, if choosing to return a normalized nvisit value.
+    n_visit : int, optional
+        Number of visits to use as the benchmark value, if choosing to return a normalized n_visit value.
     norm : `bool`, optional
-        Normalize the returned "nvisit" (min / median) values by nvisit, if true.
+        Normalize the returned "n_visit" (min / median) values by n_visit, if true.
         Default False.
     metricName : str, optional
         Name of the summary metric. Default FONv.
@@ -47,14 +47,14 @@ class FONv(BaseMetric):
         col="metricdata",
         asky=18000.0,
         nside=128,
-        nvisit=825,
+        n_visit=825,
         norm=False,
         metric_name="FONv",
         **kwargs
     ):
         """asky = square degrees"""
         super().__init__(col=col, metric_name=metric_name, **kwargs)
-        self.nvisit = nvisit
+        self.nvisit = n_visit
         self.nside = nside
         # Determine how many healpixels are included in asky sq deg.
         self.asky = asky
@@ -87,13 +87,13 @@ class FONv(BaseMetric):
 class FOArea(BaseMetric):
     """
     Metrics based on a specified number of visits, but returning AREA related to Nvisits:
-    given nvisit, what amount of sky is covered with at least that many visits?
+    given n_visit, what amount of sky is covered with at least that many visits?
 
     Parameters
     ----------
     col : str or list of strs, optional
         Name of the column in the numpy recarray passed to the summary metric.
-    nvisit : int, optional
+    n_visit : int, optional
         Number of visits to use as the minimum required -- metric calculated area that has this many visits.
         Default 825.
     asky : float, optional
@@ -103,7 +103,7 @@ class FOArea(BaseMetric):
         Nside parameter from healpix slicer, used to set the physical relationship between on-sky area
         and number of healpixels. Default 128.
     norm : `bool`, optional
-        Normalize the returned "area" (area with minimum nvisit visits) value by asky, if true.
+        Normalize the returned "area" (area with minimum n_visit visits) value by asky, if true.
         Default False.
     metricName : str, optional
         Name of the summary metric. Default FOArea.
@@ -112,7 +112,7 @@ class FOArea(BaseMetric):
     def __init__(
         self,
         col="metricdata",
-        nvisit=825,
+        n_visit=825,
         asky=18000.0,
         nside=128,
         norm=False,
@@ -121,7 +121,7 @@ class FOArea(BaseMetric):
     ):
         """asky = square degrees"""
         super().__init__(col=col, metric_name=metric_name, **kwargs)
-        self.nvisit = nvisit
+        self.nvisit = n_visit
         self.nside = nside
         self.asky = asky
         self.scale = hp.nside2pixarea(self.nside, degrees=True)

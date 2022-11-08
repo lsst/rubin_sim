@@ -69,7 +69,7 @@ def nvisitsM5Maps(
     benchmarkVals["coaddedDepth"] = mafUtils.calcCoaddedDepth(
         benchmarkVals["nvisits"], benchmarkVals["singleVisitDepth"]
     )
-    # Scale the nvisit ranges for the runLength.
+    # Scale the n_visit ranges for the runLength.
     nvisitsRange = {
         "u": [20, 80],
         "g": [50, 150],

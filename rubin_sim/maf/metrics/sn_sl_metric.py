@@ -155,10 +155,10 @@ class SNSLMetric(metrics.BaseMetric):
         # Crop it down so things are coadded per night per filter at the median MJD time
         night_slice = collapse_night(
             data_slice,
-            nightCol=self.night_col,
-            filterCol=self.filter_col,
-            m5Col=self.m5_col,
-            mjdCol=self.mjd_col,
+            night_col=self.night_col,
+            filter_col=self.filter_col,
+            m5_col=self.m5_col,
+            mjd_col=self.mjd_col,
         )
         # Calculate the dust extinction-corrected m5 values and cut visits which don't meet self.m5mins
         for f in np.unique(night_slice[self.filter_col]):

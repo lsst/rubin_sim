@@ -134,14 +134,14 @@ class TestNDSlicerEqual(unittest.TestCase):
         # Set up another slicer to match (same bins, although not the same data).
         dv2 = makeDataValues(100, self.dvmin, self.dvmax, self.nd, random=10029)
         dvlist = dv2.dtype.names
-        testslicer2 = NDSlicer(sliceColList=dvlist, bins_list=self.testslicer.bins)
+        testslicer2 = NDSlicer(slice_col_list=dvlist, bins_list=self.testslicer.bins)
         testslicer2.setup_slicer(dv2)
         self.assertEqual(self.testslicer, testslicer2)
         # Set up another slicer that should not match (different bins)
         dv2 = makeDataValues(
             1000, self.dvmin + 1, self.dvmax + 1, self.nd, random=209837
         )
-        testslicer2 = NDSlicer(sliceColList=dvlist, bins_list=100)
+        testslicer2 = NDSlicer(slice_col_list=dvlist, bins_list=100)
         testslicer2.setup_slicer(dv2)
         self.assertNotEqual(self.testslicer, testslicer2)
         # Set up another slicer that should not match (different dimensions)

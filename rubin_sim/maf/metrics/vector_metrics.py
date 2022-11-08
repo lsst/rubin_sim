@@ -138,7 +138,7 @@ class HistogramM5Metric(HistogramMetric):
             col=m5_col,
             bin_col=bin_col,
             bins=bins,
-            metricName=metric_name,
+            metric_name=metric_name,
             units=units,
             **kwargs
         )
@@ -167,7 +167,7 @@ class AccumulateM5Metric(AccumulateMetric):
     ):
         self.m5_col = m5_col
         super(AccumulateM5Metric, self).__init__(
-            bins=bins, bin_col=bin_col, col=m5_col, metricName=metric_name, **kwargs
+            bins=bins, bin_col=bin_col, col=m5_col, metric_name=metric_name, **kwargs
         )
 
     def run(self, data_slice, slice_point=None):
@@ -205,7 +205,7 @@ class AccumulateUniformityMetric(AccumulateMetric):
             bins=bins,
             bin_col=bin_col,
             col=exp_mjd_col,
-            metricName=metric_name,
+            metric_name=metric_name,
             units=units,
             **kwargs
         )

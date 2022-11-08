@@ -24,7 +24,9 @@ class TestMetricBundle(unittest.TestCase):
 
     def setUp(self):
         self.outDir = tempfile.mkdtemp(prefix="TMB")
-        self.cameraFootprintFile = os.path.join(get_data_dir(), "tests", "fov_map.npz")
+        self.camera_footprint_file = os.path.join(
+            get_data_dir(), "tests", "fov_map.npz"
+        )
 
     def testOut(self):
         """
@@ -32,7 +34,7 @@ class TestMetricBundle(unittest.TestCase):
         """
         nside = 8
         slicer = slicers.HealpixSlicer(
-            nside=nside, camera_footprint_file=self.cameraFootprintFile
+            nside=nside, camera_footprint_file=self.camera_footprint_file
         )
         metric = metrics.MeanMetric(col="airmass")
         sql = 'filter="r"'

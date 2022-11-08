@@ -610,8 +610,8 @@ class SNNSNMetric(BaseMetric):
         """
 
         if self.t0s == "all":
-            t0_max = grp["t0_max"].values
-            t0_min = grp["t0_min"].values
+            t0_max = grp["T0_max"].values
+            t0_min = grp["T0_min"].values
             num = (t0_max - t0_min) / daymax_step
             if t0_max - t0_min > 10:
                 df = pd.DataFrame(

@@ -20,7 +20,7 @@ class TestStringCount(unittest.TestCase):
 
         # Check that the reduce functions got made and return expected result
         for key in expected_results:
-            assert metric.reduceFuncs[key](result) == expected_results[key]
+            assert metric.reduce_funcs[key](result) == expected_results[key]
 
 
 if __name__ == "__main__":

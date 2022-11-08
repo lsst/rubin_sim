@@ -14,7 +14,7 @@ class TestOpsimUtils(unittest.TestCase):
         """Test scaling the design and stretch benchmarks for the length of the run."""
         # First test that method returns expected dictionaries.
         for i in ("design", "stretch"):
-            benchmark = opsimUtils.scaleBenchmarks(10.0, i)
+            benchmark = opsimUtils.scale_benchmarks(10.0, i)
             self.assertIsInstance(benchmark, dict)
             expectedkeys = (
                 "Area",
@@ -39,14 +39,16 @@ class TestOpsimUtils(unittest.TestCase):
 
     def testCalcCoaddedDepth(self):
         """Test the expected coadded depth calculation."""
-        benchmark = opsimUtils.scaleBenchmarks(10, "design")
-        coadd = opsimUtils.calcCoaddedDepth(
+        benchmark = opsimUtils.scale_benchmarks(10, "design")
+        coadd = opsimUtils.calc_coadded_depth(
             benchmark["nvisits"], benchmark["singleVisitDepth"]
         )
         for f in coadd:
             self.assertLess(coadd[f], 1000)
         singlevisits = {"u": 1, "g": 1, "r": 1, "i": 1, "z": 1, "y": 1}
-        coadd = opsimUtils.calcCoaddedDepth(singlevisits, benchmark["singleVisitDepth"])
+        coadd = opsimUtils.calc_coadded_depth(
+            singlevisits, benchmark["singleVisitDepth"]
+        )
         for f in coadd:
             self.assertAlmostEqual(coadd[f], benchmark["singleVisitDepth"][f])
 
@@ -57,24 +59,24 @@ class TestOpsimUtils(unittest.TestCase):
         sql = "night < 10"
         full_sql = "SELECT fieldRA, fieldDec, note FROM observations where night < 10;"
         # Check that we get data the usual way
-        data = opsimUtils.getSimData(database_file, sql, dbcols)
+        data = opsimUtils.get_sim_data(database_file, sql, dbcols)
         assert np.size(data) > 0
 
         # Check that we can pass a connection object
         con = sqlite3.connect(database_file)
-        data = opsimUtils.getSimData(con, sql, dbcols)
+        data = opsimUtils.get_sim_data(con, sql, dbcols)
         con.close()
         assert np.size(data) > 0
 
         # Check that kwarg overrides sqlconstraint and dbcols
-        data = opsimUtils.getSimData(
+        data = opsimUtils.get_sim_data(
             database_file, "blah blah", ["nocol"], full_sql_query=full_sql
         )
         assert np.size(data) > 0
 
         # Check that bad file raises an error
         with self.assertRaises(FileNotFoundError):
-            opsimUtils.getSimData("not_a_file.db", sql, ["nocol"])
+            opsimUtils.get_sim_data("not_a_file.db", sql, ["nocol"])
 
 
 if __name__ == "__main__":

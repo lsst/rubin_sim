@@ -596,8 +596,8 @@ def calc_mag_error_sed(
 def calc_astrometric_error(mag, m5, fwhm_geom=0.7, nvisit=1, systematic_floor=10):
     """
     Calculate an expected astrometric error.
-    Can be used to estimate this for general catalog purposes (use typical FWHM and nvisit=Number of visit).
-    Or can be used for a single visit, use actual FWHM and nvisit=1.
+    Can be used to estimate this for general catalog purposes (use typical FWHM and n_visit=Number of visit).
+    Or can be used for a single visit, use actual FWHM and n_visit=1.
 
     Parameters
     ----------
@@ -618,7 +618,7 @@ def calc_astrometric_error(mag, m5, fwhm_geom=0.7, nvisit=1, systematic_floor=10
     astrom_err : `float`
         Astrometric error for a given SNR, in mas.
     """
-    # The astrometric error can be applied to parallax or proper motion (for nvisit>1).
+    # The astrometric error can be applied to parallax or proper motion (for n_visit>1).
     # If applying to proper motion, should also divide by the # of years of the survey.
     # This is also referenced in the astroph/0805.2366 paper.
     # D. Monet suggests sqrt(Nvisit/2) for first 3 years, sqrt(N) for longer, in reduction of error
