@@ -39,11 +39,15 @@ class CumulativeMetric(BaseMetric):
         data_slice.sort(order=self.time_col)
         if self.interp_points is None:
             interp_points = np.arange(
-                data_slice[self.night_col].min(), data_slice[self.night_col].max() + 1, 1
+                data_slice[self.night_col].min(),
+                data_slice[self.night_col].max() + 1,
+                1,
             )
         else:
             interp_points = self.interp_points
         cumulative_number = np.arange(data_slice.size) + 1
-        yresult = np.interp(interp_points, data_slice[self.night_col], cumulative_number)
+        yresult = np.interp(
+            interp_points, data_slice[self.night_col], cumulative_number
+        )
         xresult = interp_points
         return {"x": xresult, "y": yresult, "plot_dict": self.plot_dict}

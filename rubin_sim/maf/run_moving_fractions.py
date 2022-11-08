@@ -93,7 +93,10 @@ def run_moving_fractions():
 
     # Plot some of the completeness results.
     batches.plot_completeness(
-        bdict_completeness, figroot=figroot, resultsDb=results_db, outDir=args.work_dir
+        bdict_completeness,
+        figroot=figroot,
+        results_db=results_db,
+        out_dir=args.work_dir,
     )
 
     # Calculate fractions of population for characterization. This utility writes these to disk.

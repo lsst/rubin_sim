@@ -8,7 +8,7 @@ import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.utils as mafUtils
 from .col_map_dict import col_map_dict, get_col_map
-from .common import standardSummary, filterList, radecCols, combineInfoLabels
+from .common import standard_summary, filter_list, radec_cols, combine_info_labels
 
 __all__ = ["nvisitsM5Maps", "tEffMetrics", "nvisitsPerNight", "nvisitsPerSubset"]
 
@@ -53,11 +53,11 @@ def nvisitsM5Maps(
     if subgroup is None:
         subgroup = "All visits"
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
-    extraInfoLabel = combineInfoLabels(extraInfoLabel, ditherMeta)
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
+    extraInfoLabel = combine_info_labels(extraInfoLabel, ditherMeta)
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, info_label = filterList(
-        all=True, extraSql=extraSql, extraInfoLabel=extraInfoLabel
+    filterlist, colors, orders, sqls, info_label = filter_list(
+        all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
     )
     # Set up some values to make nicer looking plots.
     benchmarkVals = mafUtils.scaleBenchmarks(runLength, benchmark="design")
@@ -123,13 +123,15 @@ def nvisitsM5Maps(
             stacker_list=ditherStacker,
             display_dict=displayDict,
             plot_dict=plotDict,
-            summary_metrics=standardSummary(),
+            summary_metrics=standard_summary(),
         )
         bundleList.append(bundle)
 
     # Generate Coadded depth maps per filter
     displayDict = {"group": "Coadded M5 Maps", "subgroup": subgroup}
-    metric = metrics.Coaddm5Metric(m5Col=colmap["fiveSigmaDepth"], metric_name="CoaddM5")
+    metric = metrics.Coaddm5Metric(
+        m5Col=colmap["fiveSigmaDepth"], metric_name="CoaddM5"
+    )
 
     for f in filterlist:
         # Skip "all" for coadded depth.
@@ -163,13 +165,15 @@ def nvisitsM5Maps(
             stacker_list=ditherStacker,
             display_dict=displayDict,
             plot_dict=plotDict,
-            summary_metrics=standardSummary(),
+            summary_metrics=standard_summary(),
         )
         bundleList.append(bundle)
 
     # Add Coadded depth maps per filter WITH extragalactic extinction added
     displayDict = {"group": "Extragalactic Coadded M5 Maps", "subgroup": subgroup}
-    metric = metrics.ExgalM5(m5Col=colmap["fiveSigmaDepth"], metric_name="Exgal_CoaddM5")
+    metric = metrics.ExgalM5(
+        m5Col=colmap["fiveSigmaDepth"], metric_name="Exgal_CoaddM5"
+    )
 
     for f in filterlist:
         # Skip "all" for coadded depth.
@@ -205,11 +209,11 @@ def nvisitsM5Maps(
             stacker_list=ditherStacker,
             display_dict=displayDict,
             plot_dict=plotDict,
-            summary_metrics=standardSummary(),
+            summary_metrics=standard_summary(),
         )
         bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)
@@ -250,8 +254,8 @@ def tEffMetrics(
     if subgroup is None:
         subgroup = "All visits"
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
-    extraInfoLabel = combineInfoLabels(extraInfoLabel, ditherMeta)
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
+    extraInfoLabel = combine_info_labels(extraInfoLabel, ditherMeta)
 
     if slicer is not None:
         skyslicer = slicer
@@ -261,8 +265,8 @@ def tEffMetrics(
         )
 
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, info_label = filterList(
-        all=True, extraSql=extraSql, extraInfoLabel=extraInfoLabel
+    filterlist, colors, orders, sqls, info_label = filter_list(
+        all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
     )
     if info_label["all"] is None:
         info_label["all"] = "All visits"
@@ -311,7 +315,7 @@ def tEffMetrics(
     displayDict = {"group": "T_eff Maps", "subgroup": subgroup}
     if ditherMeta is not None:
         for m in info_label:
-            info_label[m] = combineInfoLabels(info_label[m], ditherMeta)
+            info_label[m] = combine_info_labels(info_label[m], ditherMeta)
 
     metric = metrics.TeffMetric(
         m5Col=colmap["fiveSigmaDepth"],
@@ -333,11 +337,11 @@ def tEffMetrics(
             stacker_list=ditherStacker,
             display_dict=displayDict,
             plot_dict=plotDict,
-            summary_metrics=standardSummary(),
+            summary_metrics=standard_summary(),
         )
         bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)
@@ -402,11 +406,11 @@ def nvisitsPerNight(
         extraSql,
         info_label=infoCaption,
         display_dict=displayDict,
-        summary_metrics=standardSummary(),
+        summary_metrics=standard_summary(),
     )
     bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)

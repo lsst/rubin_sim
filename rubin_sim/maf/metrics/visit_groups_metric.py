@@ -173,7 +173,9 @@ class VisitGroupsMetric(BaseMetric):
             # Calculate difference between each visit and time of previous visit (tnext- tnow)
             timediff = np.diff(times)
             timegood = np.where(
-                (timediff <= self.delta_tmax) & (timediff >= self.delta_tmin), True, False
+                (timediff <= self.delta_tmax) & (timediff >= self.delta_tmin),
+                True,
+                False,
             )
             timetooclose = np.where(timediff < self.delta_tmin, True, False)
             if len(timegood) > 1:

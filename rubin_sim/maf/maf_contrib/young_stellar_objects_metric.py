@@ -100,7 +100,12 @@ class NYoungStarsMetric(BaseMetric):
         self.returnDistance = kwargs.pop("returnDistance", False)
         units = "kpc" if self.returnDistance else "N stars"
         super().__init__(
-            Cols, metric_name=metric_name, maps=maps, units=units, badval=badval, **kwargs
+            cols,
+            metric_name=metric_name,
+            maps=maps,
+            units=units,
+            badval=badval,
+            **kwargs
         )
         # Save R_x values for on-the-fly calculation of dust extinction with map
         self.r_x = DustValues().r_x.copy()

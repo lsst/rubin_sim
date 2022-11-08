@@ -27,7 +27,9 @@ class YearlyDitherStacker(BaseStacker):
 
     def _run(self, sim_data):
         # What 'year' is each visit in?
-        year = np.floor((sim_data[self.exp_mjd_col] - sim_data[self.exp_mjd_col][0]) / 365.25)
+        year = np.floor(
+            (sim_data[self.exp_mjd_col] - sim_data[self.exp_mjd_col][0]) / 365.25
+        )
         # Define dither based on year.
         dither_ra = np.zeros(len(sim_data[self.ra_col]))
         dither_dec = np.zeros(len(sim_data[self.dec_col]))

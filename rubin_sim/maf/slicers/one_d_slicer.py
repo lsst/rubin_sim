@@ -75,7 +75,7 @@ class OneDSlicer(BaseSlicer):
         # Try to determine the column units
         else:
             co = ColInfo()
-            self.slice_col_units = co.getUnits(self.slice_col_name)
+            self.slice_col_units = co.get_units(self.slice_col_name)
         # Set slicer re-initialize values and default plotFunction
         self.slicer_init = {
             "slice_col_name": self.slice_col_name,

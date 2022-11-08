@@ -264,7 +264,7 @@ class MetricBundle(object):
         known_cols = self.slicer.columns_needed + list(self.metric.col_name_arr)
         # For the stackers already set up, find their required columns.
         for s in self.stacker_list:
-            known_cols += s.colsReq
+            known_cols += s.cols_req
         known_cols = set(known_cols)
         # Track sources of all of these columns.
         self.db_cols = set()
@@ -285,12 +285,15 @@ class MetricBundle(object):
             new_cols = []
             for s in newstackers:
                 newstacker = s()
-                new_cols += newstacker.colsReq
+                new_cols += newstacker.cols_req
                 self.stacker_list.append(newstacker)
             new_cols = set(new_cols)
             newstackers = set()
             for col in new_cols:
-                if self.col_info.get_data_source(col) == self.col_info.default_data_source:
+                if (
+                    self.col_info.get_data_source(col)
+                    == self.col_info.default_data_source
+                ):
                     self.db_cols.add(col)
                 else:
                     newstackers.add(self.col_info.get_data_source(col))
@@ -405,7 +408,12 @@ class MetricBundle(object):
             A MAF results database, used to save the display parameters.
         """
         # Set up a temporary dictionary with the default values.
-        tmp_display_dict = {"group": None, "subgroup": None, "order": 0, "caption": None}
+        tmp_display_dict = {
+            "group": None,
+            "subgroup": None,
+            "order": 0,
+            "caption": None,
+        }
         # Update from self.display_dict (to use existing values, if present).
         tmp_display_dict.update(self.display_dict)
         # And then update from any values being passed now.
@@ -437,7 +445,7 @@ class MetricBundle(object):
                 )
             self.display_dict["caption"] = caption
         if results_db:
-            # Update the display values in the resultsDb.
+            # Update the display values in the results_db.
             metric_id = results_db.update_metric(
                 self.metric.name,
                 self.slicer.slicerName,
@@ -449,14 +457,14 @@ class MetricBundle(object):
             results_db.update_display(metric_id, self.display_dict)
 
     def set_run_name(self, run_name, update_file_root=True):
-        """Set (or reset) the runName. FileRoot will be updated accordingly if desired.
+        """Set (or reset) the run_name. FileRoot will be updated accordingly if desired.
 
         Parameters
         ----------
         run_name: str
             Run Name, which will become part of the fileRoot.
         fileRoot: bool, optional
-            Flag to update the fileRoot with the runName. Default True.
+            Flag to update the fileRoot with the run_name. Default True.
         """
         self.run_name = run_name
         if update_file_root:
@@ -731,14 +739,16 @@ class MetricBundle(object):
 
         return newmetric_bundle
 
-    def plot(self, plot_handler=None, plot_func=None, outfile_suffix=None, savefig=False):
+    def plot(
+        self, plot_handler=None, plot_func=None, outfile_suffix=None, savefig=False
+    ):
         """
         Create all plots available from the slicer. plotHandler holds the output directory info, etc.
 
         Parameters
         ----------
         plot_handler : Optional[PlotHandler]
-           The plot_handler saves the output location and resultsDb connection for a set of plots.
+           The plot_handler saves the output location and results_db connection for a set of plots.
         plot_func : Optional[BasePlotter]
            Any plotter function. If not specified, the plotters in self.plotFuncs will be used.
         outfile_suffix : Optional[str]

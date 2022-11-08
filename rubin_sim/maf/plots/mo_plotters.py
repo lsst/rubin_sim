@@ -19,7 +19,7 @@ __all__ = ["MetricVsH", "MetricVsOrbit", "MetricVsOrbitPoints"]
 class MetricVsH(BasePlotter):
     """
     Plot metric values versus H.
-    Marginalize over metric values in each H bin using 'npReduce'.
+    Marginalize over metric values in each H bin using 'np_reduce'.
     """
 
     def __init__(self):
@@ -30,7 +30,7 @@ class MetricVsH(BasePlotter):
             "xlabel": "H (mag)",
             "ylabel": None,
             "label": None,
-            "npReduce": None,
+            "np_reduce": None,
             "nbins": None,
             "albedo": None,
             "Hmark": None,
@@ -46,7 +46,7 @@ class MetricVsH(BasePlotter):
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
         hvals = slicer.slicePoints["H"]
-        reduce_func = plot_dict["npReduce"]
+        reduce_func = plot_dict["np_reduce"]
         if reduce_func is None:
             reduce_func = np.mean
         if hvals.shape[0] == 1:
@@ -55,7 +55,7 @@ class MetricVsH(BasePlotter):
             m_vals = metric_value[0].filled()
         elif len(hvals) == slicer.shape[1]:
             # Using cloned H distribution.
-            # Apply 'npReduce' method directly to metric values, and plot at matching H values.
+            # Apply 'np_reduce' method directly to metric values, and plot at matching H values.
             m_vals = reduce_func(metric_value.filled(), axis=0)
         else:
             # Probably each object has its own H value.
@@ -69,7 +69,7 @@ class MetricVsH(BasePlotter):
                 nbins = 30
             stepsize = hrange / float(nbins)
             bins = np.arange(min_h, min_h + hrange + stepsize / 2.0, stepsize)
-            # In each bin of H, calculate the 'npReduce' value of the corresponding metric_values.
+            # In each bin of H, calculate the 'np_reduce' value of the corresponding metric_values.
             inds = np.digitize(hvals, bins)
             inds = inds - 1
             m_vals = np.zeros(len(bins), float)
@@ -142,7 +142,7 @@ class MetricVsH(BasePlotter):
 class MetricVsOrbit(BasePlotter):
     """
     Plot metric values (at a particular H value) vs. orbital parameters.
-    Marginalize over metric values in each orbital bin using 'npReduce'.
+    Marginalize over metric values in each orbital bin using 'np_reduce'.
     """
 
     def __init__(self, xaxis="q", yaxis="e"):
@@ -156,11 +156,11 @@ class MetricVsOrbit(BasePlotter):
             "yaxis": yaxis,
             "label": None,
             "cmap": cm.viridis,
-            "npReduce": None,
+            "np_reduce": None,
             "nxbins": None,
             "nybins": None,
             "levels": None,
-            "Hval": None,
+            "h_val": None,
             "Hwidth": None,
             "figsize": None,
         }
@@ -215,7 +215,7 @@ class MetricVsOrbit(BasePlotter):
             m_vals = np.swapaxes(metric_value, 1, 0)[hidx].filled()
         else:
             m_vals = metric_value[hidx].filled()
-        # Calculate the npReduce'd metric values at each x/y bin.
+        # Calculate the np_reduce'd metric values at each x/y bin.
         if "colorMin" in plot_dict:
             badval = plot_dict["colorMin"] - 1
         else:
@@ -223,7 +223,7 @@ class MetricVsOrbit(BasePlotter):
         binvals = np.zeros((nybins, nxbins), dtype="float") + badval
         xidxs = np.digitize(xvals, xbins) - 1
         yidxs = np.digitize(yvals, ybins) - 1
-        reduce_func = plot_dict["npReduce"]
+        reduce_func = plot_dict["np_reduce"]
         if reduce_func is None:
             reduce_func = np.mean
         for iy in range(nybins):
@@ -277,7 +277,7 @@ class MetricVsOrbitPoints(BasePlotter):
             "cmap": cm.viridis,
             "xaxis": xaxis,
             "yaxis": yaxis,
-            "Hval": None,
+            "h_val": None,
             "Hwidth": None,
             "foregroundPoints": True,
             "backgroundPoints": False,

@@ -63,7 +63,9 @@ class SNCadenceMetric(metrics.BaseMetric):
         if coadd:
             cols += ["coadd"]
 
-        super(SNCadenceMetric, self).__init__(col=cols, metric_name=metric_name, **kwargs)
+        super(SNCadenceMetric, self).__init__(
+            col=cols, metric_name=metric_name, **kwargs
+        )
 
         self.filter_names = np.array(["u", "g", "r", "i", "z", "y"])
 

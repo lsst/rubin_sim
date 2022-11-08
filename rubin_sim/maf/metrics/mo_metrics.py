@@ -347,7 +347,8 @@ class DiscoveryMetric(BaseMoMetric):
         times_end = sso_obs[self.mjd_col][vis][vis_sort][n_idx_many_end]
         # Identify the nights with 'clearly good' observations.
         good = np.where(
-            (times_end - times_start >= self.t_min) & (times_end - times_start <= self.t_max),
+            (times_end - times_start >= self.t_min)
+            & (times_end - times_start <= self.t_max),
             1,
             0,
         )
@@ -374,7 +375,9 @@ class DiscoveryMetric(BaseMoMetric):
         if len(good_idx) < self.n_nights_per_window:
             return self.badval
         delta_nights = (
-            np.roll(sso_obs[self.night_col][vis][good_idx], 1 - self.n_nights_per_window)
+            np.roll(
+                sso_obs[self.night_col][vis][good_idx], 1 - self.n_nights_per_window
+            )
             - sso_obs[self.night_col][vis][good_idx]
         )
         # Identify the index in sso_obs[vis][good_idx] (sorted by mjd) where the discovery opportunity starts.
@@ -408,7 +411,12 @@ class DiscoveryNChancesMetric(BaseChildMetric):
     """
 
     def __init__(
-        self, parent_discovery_metric, night_start=None, night_end=None, badval=0, **kwargs
+        self,
+        parent_discovery_metric,
+        night_start=None,
+        night_end=None,
+        badval=0,
+        **kwargs
     ):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
         self.night_start = night_start
@@ -465,7 +473,9 @@ class DiscoveryNObsMetric(BaseChildMetric):
 class DiscoveryTimeMetric(BaseChildMetric):
     """Returns the time of the i-th discovery track of an SSobject."""
 
-    def __init__(self, parent_discovery_metric, i=0, t_start=None, badval=-999, **kwargs):
+    def __init__(
+        self, parent_discovery_metric, i=0, t_start=None, badval=-999, **kwargs
+    ):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
         self.i = i
         self.t_start = t_start
@@ -490,7 +500,12 @@ class DiscoveryDistanceMetric(BaseChildMetric):
     """Returns the distance of the i-th discovery track of an SSobject."""
 
     def __init__(
-        self, parent_discovery_metric, i=0, distance_col="geo_dist", badval=-999, **kwargs
+        self,
+        parent_discovery_metric,
+        i=0,
+        distance_col="geo_dist",
+        badval=-999,
+        **kwargs
     ):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
         self.i = i
@@ -584,7 +599,9 @@ class ActivityOverTimeMetric(BaseMoMetric):
     and reports what fraction of the total windows receive 'nObs' visits.
     """
 
-    def __init__(self, window, snr_limit=5, survey_years=10.0, metric_name=None, **kwargs):
+    def __init__(
+        self, window, snr_limit=5, survey_years=10.0, metric_name=None, **kwargs
+    ):
         if metric_name is None:
             metric_name = "Chance of detecting activity lasting %.0f days" % (window)
         super().__init__(metric_name=metric_name, **kwargs)
@@ -717,7 +734,9 @@ class HighVelocityMetric(BaseMoMetric):
     Simply counts the total number of observations with high velocity.
     """
 
-    def __init__(self, psf_factor=2.0, snr_limit=None, velocity_col="velocity", **kwargs):
+    def __init__(
+        self, psf_factor=2.0, snr_limit=None, velocity_col="velocity", **kwargs
+    ):
         """
         @ psf_factor = factor to multiply seeing/visitExpTime by
         (velocity(deg/day) >= 24*psf_factor*seeing(")/visitExptime(s))
@@ -902,7 +921,9 @@ class LightcurveInversionAsteroidMetric(BaseMoMetric):
             phase_angle = sso_obs["phase"][match][vis]
             # Calculate the absolute deviation and range of ecliptic longitude.
             ec_l_centred = (ec_l - np.median(ec_l)) % 360.0
-            a_dev = np.sum(np.abs(ec_l_centred - np.mean(ec_l_centred))) / len(ec_l_centred)
+            a_dev = np.sum(np.abs(ec_l_centred - np.mean(ec_l_centred))) / len(
+                ec_l_centred
+            )
             d_l = np.max(ec_l) - np.min(ec_l)
             # Calculate the range of the phase angle
             dp = np.max(phase_angle) - np.min(phase_angle)
@@ -1116,7 +1137,9 @@ class InstantaneousColorMetric(BaseMoMetric):
         0 (no color possible under these constraints) or 1 (color possible).
     """
 
-    def __init__(self, n_pairs=1, snr_limit=10, n_hours=0.5, b_one="g", b_two="r", **kwargs):
+    def __init__(
+        self, n_pairs=1, snr_limit=10, n_hours=0.5, b_one="g", b_two="r", **kwargs
+    ):
         super().__init__(**kwargs)
         self.n_pairs = n_pairs
         self.snr_limit = snr_limit
@@ -1269,7 +1292,9 @@ class KnownObjectsMetric(BaseMoMetric):
                 & (sso_obs[self.mjd_col] < self.t_switch2)
                 & visible
             )[0]
-            over_peak = np.where(sso_obs[self.app_mag_v_col][obs2] <= self.v_mag_thresh2)[0]
+            over_peak = np.where(
+                sso_obs[self.app_mag_v_col][obs2] <= self.v_mag_thresh2
+            )[0]
             if len(over_peak) > 0:
                 discovery_time = self._pick_obs(
                     sso_obs[self.mjd_col][obs2][over_peak], self.eff2
@@ -1281,7 +1306,9 @@ class KnownObjectsMetric(BaseMoMetric):
                 & (sso_obs[self.mjd_col] < self.t_switch3)
                 & visible
             )[0]
-            over_peak = np.where(sso_obs[self.app_mag_v_col][obs3] <= self.v_mag_thresh3)[0]
+            over_peak = np.where(
+                sso_obs[self.app_mag_v_col][obs3] <= self.v_mag_thresh3
+            )[0]
             if len(over_peak) > 0:
                 discovery_time = self._pick_obs(
                     sso_obs[self.mjd_col][obs3][over_peak], self.eff3
@@ -1289,7 +1316,9 @@ class KnownObjectsMetric(BaseMoMetric):
         # Fourth period.
         if discovery_time is None:
             obs4 = np.where((sso_obs[self.mjd_col] >= self.t_switch3) & visible)[0]
-            over_peak = np.where(sso_obs[self.app_mag_v_col][obs4] <= self.v_mag_thresh4)[0]
+            over_peak = np.where(
+                sso_obs[self.app_mag_v_col][obs4] <= self.v_mag_thresh4
+            )[0]
             if len(over_peak) > 0:
                 discovery_time = self._pick_obs(
                     sso_obs[self.mjd_col][obs4][over_peak], self.eff4

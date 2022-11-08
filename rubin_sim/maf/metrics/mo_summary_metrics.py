@@ -81,7 +81,7 @@ def pha_dndh_grav(hvalues, **kwargs):
 
 
 def integrate_over_h(metric_values, hvalues, dndh_func=power_law_dndh, **kwargs):
-    """Calculate a metric value integrated over an Hrange.
+    """Calculate a metric value integrated over an h_range.
     This is the metric value *weighted* by the size distribution.
 
     Parameters

@@ -126,7 +126,10 @@ class NEODistStacker(BaseStacker):
             halfval = np.pi
         flip = np.where(
             ((sim_data[self.sun_az_col] > halfval) & (sim_data[self.az_col] > halfval))
-            | ((sim_data[self.sun_az_col] < halfval) & (sim_data[self.az_col] > halfval))
+            | (
+                (sim_data[self.sun_az_col] < halfval)
+                & (sim_data[self.az_col] > halfval)
+            )
         )
 
         sim_data["NEOHelioX"][flip] *= -1.0

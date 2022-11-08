@@ -14,7 +14,7 @@ class MafRunResults(object):
     """
     Class to read MAF's resultsDb_sqlite.db and organize the output for display on web pages.
 
-    Deals with a single MAF run (one output directory, one resultsDb) only.
+    Deals with a single MAF run (one output directory, one results_db) only.
     """
 
     def __init__(self, out_dir, run_name=None, results_db=None):
@@ -570,7 +570,9 @@ class MafRunResults(object):
             np.in1d(self.plots["metricId"], metrics["metricId"])
         ]
         # Match the plot type (which could be a list)
-        plot_match = plot_metric_match[np.in1d(plot_metric_match["plot_type"], plot_type)]
+        plot_match = plot_metric_match[
+            np.in1d(plot_metric_match["plot_type"], plot_type)
+        ]
         return plot_match
 
     # Set of methods to deal with summary stats.

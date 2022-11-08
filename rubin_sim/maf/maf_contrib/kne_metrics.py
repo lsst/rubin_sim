@@ -8,10 +8,10 @@ from rubin_sim.phot_utils import DustValues
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import m52snr
 
-__all__ = ["get_k_ne_filename", "KnLc", "KNePopMetric", "generate_kn_pop_slicer"]
+__all__ = ["get_kne_filename", "KnLc", "KNePopMetric", "generate_kn_pop_slicer"]
 
 
-def get_k_ne_filename(inj_params_list=None):
+def get_kne_filename(inj_params_list=None):
     """Given kilonova parameters, get the filename from the grid of models
     developed by M. Bulla
 

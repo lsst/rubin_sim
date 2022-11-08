@@ -143,7 +143,9 @@ def get_results(df, run_type, fisher_sigmat_e_t_e_cutoff=0.1):
         )
     elif run_type == "Fisher":
         # Fraction of events with sigmatE/tE below the cutoff of 0.1
-        result = len(np.where(df["metric_values"] < fisher_sigmat_e_t_e_cutoff)[0]) / total
+        result = (
+            len(np.where(df["metric_values"] < fisher_sigmat_e_t_e_cutoff)[0]) / total
+        )
 
     return result
 
@@ -212,7 +214,9 @@ def plot_fom(
                 zip(
                     np.intersect1d(t_e_range_list[t_e_range], run_type_list[run_type]),
                     run_names[
-                        np.intersect1d(t_e_range_list[t_e_range], run_type_list[run_type])
+                        np.intersect1d(
+                            t_e_range_list[t_e_range], run_type_list[run_type]
+                        )
                     ],
                 )
             )
@@ -300,7 +304,9 @@ def plot_compare(
             detect_results = results[
                 np.intersect1d(t_e_run_name_interesct, detect_runs_idx)
             ]
-            npts_results = results[np.intersect1d(t_e_run_name_interesct, npts_runs_idx)]
+            npts_results = results[
+                np.intersect1d(t_e_run_name_interesct, npts_runs_idx)
+            ]
             fisher_results = results[
                 np.intersect1d(t_e_run_name_interesct, fisher_runs_idx)
             ]

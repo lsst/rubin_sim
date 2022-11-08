@@ -68,7 +68,7 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
         )
         bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)
@@ -145,7 +145,7 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=Non
     )
     bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)

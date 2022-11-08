@@ -131,9 +131,7 @@ class GalaxyCountsMetricExtended(BaseMetric):
         ):  # brighter than i: z-y= 0.4 => z= y+0.4 => i= y+0.4*2
             band_correction = 0.4 * 2.0
         else:
-            print(
-                "ERROR: Invalid band in GalaxyCountsMetricExtended. Assuming i-band."
-            )
+            print("ERROR: Invalid band in GalaxyCountsMetricExtended. Assuming i-band.")
             band_correction = 0
 
         # check to make sure that the z-bin assigned is valid.
@@ -168,7 +166,8 @@ class GalaxyCountsMetricExtended(BaseMetric):
         else:
             dn_gal = np.power(
                 10.0,
-                self.power_law_const_a[self.redshift_bin] * (apparent_mag + band_correction)
+                self.power_law_const_a[self.redshift_bin]
+                * (apparent_mag + band_correction)
                 + self.power_law_const_b[self.redshift_bin],
             )
 

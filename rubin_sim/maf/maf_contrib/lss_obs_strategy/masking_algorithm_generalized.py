@@ -212,9 +212,13 @@ def masking_algorithm_generalized(
             print("Total pixels changed: %s\n" % len(total_border_pixel))
 
         if new_value.__contains__("mask"):
-            my_bundles[dither].metricValues.mask[total_border_pixel] = new_value_to_assign
+            my_bundles[dither].metricValues.mask[
+                total_border_pixel
+            ] = new_value_to_assign
         else:
-            my_bundles[dither].metricValues.data[total_border_pixel] = new_value_to_assign
+            my_bundles[dither].metricValues.data[
+                total_border_pixel
+            ] = new_value_to_assign
 
         if plot_final_plots:
             # skymap

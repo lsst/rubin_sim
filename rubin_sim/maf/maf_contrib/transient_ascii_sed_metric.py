@@ -581,7 +581,8 @@ class TransientAsciiSEDMetric(BaseMetric):
         # Set this, in case survey_start was set to be much earlier than this
         # data (so we start counting at 0).
         self.transient_id_start = -1 * np.floor(
-            (data_slice[self.mjd_col].min() - self.survey_start) / self.transient_duration
+            (data_slice[self.mjd_col].min() - self.survey_start)
+            / self.transient_duration
         )
 
     def evaluate_snr_thresholds(self, data_slice):
@@ -653,7 +654,9 @@ class TransientAsciiSEDMetric(BaseMetric):
 
             # Generate the actual light curve magnitudes and SNR
             self.make_lightcurve(self.observation_epoch, data_slice[self.filter_col])
-            self.light_curve_SNRs = m52snr(self.light_curve_mags, data_slice[self.m5_col])
+            self.light_curve_SNRs = m52snr(
+                self.light_curve_mags, data_slice[self.m5_col]
+            )
 
             # Check observations above the defined threshold for detection.
             self.evaluate_snr_thresholds(data_slice)

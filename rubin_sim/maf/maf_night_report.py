@@ -158,7 +158,10 @@ def maf_night_report():
         description="Python script to generate a report on a single night."
     )
     parser.add_argument(
-        "db_file", type=str, default=None, help="full file path to the opsim sqlite file"
+        "db_file",
+        type=str,
+        default=None,
+        help="full file path to the opsim sqlite file",
     )
     parser.add_argument(
         "--out_dir",
@@ -187,7 +190,7 @@ def maf_night_report():
         + " Default=fieldDec.",
     )
     parser.add_argument("--night", type=int, default=1)
-    parser.add_argument("--runName", type=str, default="runName")
+    parser.add_argument("--run_name", type=str, default="run_name")
 
     parser.set_defaults()
     args, extras = parser.parse_known_args()
@@ -203,7 +206,7 @@ def maf_night_report():
     for key in bundleDict:
         bundleDict[key].set_run_name(args.run_name)
 
-    # Set up / connect to resultsDb.
+    # Set up / connect to results_db.
     resultsDb = db.ResultsDb(out_dir=args.outDir)
 
     # Set up metricBundleGroup.

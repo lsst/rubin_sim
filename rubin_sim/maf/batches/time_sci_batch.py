@@ -6,7 +6,7 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.metric_bundles as mb
 from .col_map_dict import col_map_dict
-from .common import standardSummary, filterList, combineInfoLabels, radecCols
+from .common import standard_summary, filter_list, combine_info_labels, radec_cols
 
 __all__ = ["phaseGap"]
 
@@ -52,13 +52,13 @@ def phaseGap(
         if info_label is None:
             info_label = extraSql
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(
         ditherStacker, colmap, ditherkwargs
     )
-    info_label = combineInfoLabels(info_label, ditherMeta)
+    info_label = combine_info_labels(info_label, ditherMeta)
 
     bundleList = []
-    standardStats = standardSummary()
+    standardStats = standard_summary()
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
     slicer = slicers.HealpixSlicer(
@@ -76,7 +76,7 @@ def phaseGap(
     filter_names = ["u", "r", "griz", "all"]
     info_labels = filter_names
     if info_label is not None:
-        info_labels = [combineInfoLabels(m, info_label) for m in info_labels]
+        info_labels = [combine_info_labels(m, info_label) for m in info_labels]
     if extraSql is not None and len(extraSql) > 0:
         for sql in sqls:
             sqls[sql] = "(%s) and (%s)" % (sqls[sql], extraSql)
@@ -108,7 +108,7 @@ def phaseGap(
             )
             bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)

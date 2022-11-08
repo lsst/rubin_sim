@@ -174,7 +174,9 @@ class GalacticPlanePriorityMap(BaseMap):
                     f"from map value {self.nside}, using slicer value"
                 )
             maps = galplane_priority_map(
-                slice_points["nside"], pixels=slice_points["sid"], map_path=self.map_path
+                slice_points["nside"],
+                pixels=slice_points["sid"],
+                map_path=self.map_path,
             )
             for key in self.keynames:
                 slice_points[key] = maps[key]

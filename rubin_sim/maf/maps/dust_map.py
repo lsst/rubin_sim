@@ -44,7 +44,9 @@ class DustMap(BaseMap):
                     f"from map value {self.nside}, using slicer value"
                 )
             slice_points["ebv"] = eb_vhp(
-                slice_points["nside"], pixels=slice_points["sid"], map_path=self.map_path
+                slice_points["nside"],
+                pixels=slice_points["sid"],
+                map_path=self.map_path,
             )
         # Not a healpix slicer, look up values based on RA,dec with possible interpolation
         else:

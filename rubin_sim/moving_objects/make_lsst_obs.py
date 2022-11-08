@@ -176,7 +176,9 @@ def setup_args(parser=None):
     # Add these useful pieces to args.
     args.orbitbase = ".".join(os.path.split(args.orbitFile)[-1].split(".")[:-1])
     args.simulation_db = (
-        os.path.split(args.simulation_db)[-1].replace("_sqlite.db", "").replace(".db", "")
+        os.path.split(args.simulation_db)[-1]
+        .replace("_sqlite.db", "")
+        .replace(".db", "")
     )
 
     # Set up obs_file if not specified.

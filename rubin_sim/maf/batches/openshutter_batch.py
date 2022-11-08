@@ -4,7 +4,7 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.metric_bundles as mb
 from .col_map_dict import col_map_dict
-from .common import standardSummary
+from .common import standard_summary
 
 __all__ = ["openshutterFractions"]
 
@@ -96,12 +96,12 @@ def openshutterFractions(
         slicer,
         extraSql,
         info_label=subgroup,
-        summary_metrics=standardSummary(),
+        summary_metrics=standard_summary(),
         display_dict=displayDict,
     )
     bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)

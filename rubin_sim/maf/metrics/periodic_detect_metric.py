@@ -94,7 +94,9 @@ class PeriodicDetectMetric(BaseMetric):
                     in_filt = np.where(data_slice[self.filter_col] == filtername)[0]
                     lc = (
                         amplitude
-                        * np.sin(data_slice[self.mjd_col][in_filt] * (np.pi * 2) / period)
+                        * np.sin(
+                            data_slice[self.mjd_col][in_filt] * (np.pi * 2) / period
+                        )
                         + mags[filtername]
                     )
                     snr = m52snr(lc, data_slice[self.m5_col][in_filt])

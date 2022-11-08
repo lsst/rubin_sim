@@ -476,7 +476,10 @@ def coadd_m5_analysis(
     for dither in coadd_bundle:
         print(
             "  %s: %s"
-            % (dither, len(np.where(coadd_bundle[dither].metricValues.mask == False)[0]))
+            % (
+                dither,
+                len(np.where(coadd_bundle[dither].metricValues.mask == False)[0]),
+            )
         )
 
     # ------------------------------------------------------------------------

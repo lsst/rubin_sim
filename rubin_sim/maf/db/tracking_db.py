@@ -190,11 +190,14 @@ class TrackingDb(object):
         else:
             if maf_run_id is not None:
                 # Check if maf_run_id exists already.
-                existing = self.session.query(RunRow).filter_by(mafRunId=maf_run_id).all()
+                existing = (
+                    self.session.query(RunRow).filter_by(mafRunId=maf_run_id).all()
+                )
                 if len(existing) > 0:
                     raise ValueError(
                         "MafRunId %d already exists in database, for %s. "
-                        "Record must be deleted first." % (maf_run_id, existing[0].mafDir)
+                        "Record must be deleted first."
+                        % (maf_run_id, existing[0].mafDir)
                     )
                 runinfo = RunRow(
                     mafRunId=maf_run_id,
@@ -262,7 +265,7 @@ def add_run_to_database(
     run_group: `str`, optional
         Name to use to group this run with other opsim runs. Default None.
     run_name : `str`, optional
-        Name of the opsim run. If not provided, will attempt to use runName from configSummary.txt.
+        Name of the opsim run. If not provided, will attempt to use run_name from configSummary.txt.
     run_comment : `str`, optional
         Comment about the opsim run. If not provided, will attempt to use runComment from configSummary.txt.
     run_version : `str`, optional

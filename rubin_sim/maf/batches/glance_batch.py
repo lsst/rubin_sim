@@ -6,7 +6,7 @@ import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.metric_bundles as metric_bundles
 from .col_map_dict import col_map_dict
-from .common import standardSummary
+from .common import standard_summary
 from .slew_batch import slewBasics
 from .hourglass_batch import hourglassPlots
 from rubin_sim.utils import ddf_locations
@@ -16,12 +16,12 @@ __all__ = ["glanceBatch"]
 
 def glanceBatch(
     colmap=None,
-    runName="opsim",
+    run_name="run_name",
     nside=64,
     filternames=("u", "g", "r", "i", "z", "y"),
     nyears=10,
     pairnside=32,
-    sqlConstraint=None,
+    sql_constraint=None,
     slicer_camera="LSST",
 ):
     """Generate a handy set of metrics that give a quick overview of how well a survey performed.
@@ -43,7 +43,7 @@ def glanceBatch(
         How many years to attempt to make hourglass plots for
     pairnside : int (32)
         nside to use for the pair fraction metric (it's slow, so nice to use lower resolution)
-    sqlConstraint : str or None, optional
+    sql_constraint : str or None, optional
         Additional SQL constraint to apply to all metrics.
     slicer_camera : str ('LSST')
         Sets which spatial slicer to use. options are 'LSST' and 'ComCam'
@@ -60,10 +60,10 @@ def glanceBatch(
 
     bundle_list = []
 
-    if sqlConstraint is None:
+    if sql_constraint is None:
         sqlC = ""
     else:
-        sqlC = "(%s) and" % sqlConstraint
+        sqlC = "(%s) and" % sql_constraint
 
     if slicer_camera == "LSST":
         spatial_slicer = slicers.HealpixSlicer
@@ -76,14 +76,14 @@ def glanceBatch(
         '%s %s="%s"' % (sqlC, colmap["filter"], filtername)
         for filtername in filternames
     ]
-    sql_per_and_all_filters = [sqlConstraint] + sql_per_filt
+    sql_per_and_all_filters = [sql_constraint] + sql_per_filt
 
-    standardStats = standardSummary()
+    standardStats = standard_summary()
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
     # Super basic things
     displayDict = {"group": "Basic Stats", "order": 1}
-    sql = sqlConstraint
+    sql = sql_constraint
     slicer = slicers.UniSlicer()
     # Length of Survey
     metric = metrics.FullRangeMetric(
@@ -158,7 +158,7 @@ def glanceBatch(
         exp_time_col=colmap["exptime"],
         visit_time_col=colmap["visittime"],
     )
-    sql = sqlConstraint
+    sql = sql_constraint
     bundle = metric_bundles.MetricBundle(
         metric, slicer, sql, summary_metrics=standardStats, display_dict=displayDict
     )
@@ -204,7 +204,11 @@ def glanceBatch(
     metric = metrics.Coaddm5Metric(m5_col=colmap["fiveSigmaDepth"])
     for sql in sql_per_and_all_filters:
         bundle = metric_bundles.MetricBundle(
-            metric, slicer, sql, summary_metrics=extended_stats, display_dict=displayDict
+            metric,
+            slicer,
+            sql,
+            summary_metrics=extended_stats,
+            display_dict=displayDict,
         )
         bundle_list.append(bundle)
 
@@ -238,10 +242,10 @@ def glanceBatch(
 
     stackerList = []
     stacker = stackers.ParallaxFactorStacker(
-        raCol=colmap["ra"],
-        decCol=colmap["dec"],
+        ra_col=colmap["ra"],
+        dec_col=colmap["dec"],
         degrees=colmap["raDecDeg"],
-        dateCol=colmap["mjd"],
+        date_col=colmap["mjd"],
     )
     stackerList.append(stacker)
 
@@ -256,7 +260,7 @@ def glanceBatch(
         filter_col=colmap["filter"],
         seeing_col=colmap["seeingGeom"],
     )
-    sql = sqlConstraint
+    sql = sql_constraint
     bundle = metric_bundles.MetricBundle(
         metric,
         slicer,
@@ -336,7 +340,7 @@ def glanceBatch(
             slicer,
             sql,
             plot_funcs=[plots.XyPlotter()],
-            run_name=runName,
+            run_name=run_name,
             display_dict=displayDict,
         )
         metricb.summary_metrics = []
@@ -431,19 +435,19 @@ def glanceBatch(
     bundle_list.append(bundle)
 
     for b in bundle_list:
-        b.set_run_name(runName)
+        b.set_run_name(run_name)
 
     bd = metric_bundles.make_bundles_dict_from_list(bundle_list)
 
     # Add hourglass plots.
     hrDict = hourglassPlots(
-        colmap=colmap, runName=runName, nyears=nyears, extraSql=sqlConstraint
+        colmap=colmap, runName=run_name, nyears=nyears, extraSql=sql_constraint
     )
     bd.update(hrDict)
 
     # Add basic slew stats.
     try:
-        slewDict = slewBasics(colmap=colmap, runName=runName)
+        slewDict = slewBasics(colmap=colmap, runName=run_name)
         bd.update(slewDict)
     except KeyError as e:
         warnings.warn(

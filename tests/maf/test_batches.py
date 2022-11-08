@@ -21,8 +21,8 @@ class TestBatches(unittest.TestCase):
     def testload_them_all(self):
         ack = batches.altazHealpix()
         ack = batches.altazLambert()
-        ack = batches.standardSummary()
-        ack = batches.standardMetrics("night")
+        ack = batches.standard_summary()
+        ack = batches.standard_metrics("night")
         ack = batches.filtersPerNight()
         ack = batches.filtersWholeSurvey()
         ack = batches.glanceBatch()
@@ -39,10 +39,10 @@ class TestBatches(unittest.TestCase):
     )
     def test_movingObjectsBatches(self):
         slicer = MoObjSlicer()
-        ack = batches.quickDiscoveryBatch(slicer)
-        ack = batches.discoveryBatch(slicer)
-        ack = batches.characterizationInnerBatch(slicer)
-        ack = batches.characterizationOuterBatch(slicer)
+        ack = batches.quick_discovery_batch(slicer)
+        ack = batches.discovery_batch(slicer)
+        ack = batches.characterization_inner_batch(slicer)
+        ack = batches.characterization_outer_batch(slicer)
 
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
@@ -61,10 +61,9 @@ class TestBatches(unittest.TestCase):
     def test_glance(self):
         ack = batches.glanceBatch()
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
-        opsdb = db.OpsimDatabase(database=database)
         resultsDb = db.ResultsDb(out_dir=self.outDir)
         bgroup = metric_bundles.MetricBundleGroup(
-            ack, opsdb, out_dir=self.outDir, results_db=resultsDb
+            ack, database, out_dir=self.outDir, results_db=resultsDb
         )
         bgroup.run_all()
 

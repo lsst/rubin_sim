@@ -761,7 +761,9 @@ def artificial_structure_calculation(
         # ------------------------------------------------------------------------
         # mask the border pixels
         for dither in slicer:
-            avg_seeing_bundle[dither].metricValues.mask[border_pixels_masked[dither]] = True
+            avg_seeing_bundle[dither].metricValues.mask[
+                border_pixels_masked[dither]
+            ] = True
             n_obs_bundle[dither].metricValues.mask[border_pixels_masked[dither]] = True
             coadd_bundle[dither].metricValues.mask[border_pixels_masked[dither]] = True
 
@@ -842,7 +844,9 @@ def artificial_structure_calculation(
                 ind = np.where(zero_pt_error[dither] != -500)[0]
                 good_error = zero_pt_error[dither][ind]
                 update += "var(0pt): %s" % np.var(good_error)
-                update += "\n0.01^2 - var(0pt) = %s" % ((0.01) ** 2 - np.var(good_error))
+                update += "\n0.01^2 - var(0pt) = %s" % (
+                    (0.01) ** 2 - np.var(good_error)
+                )
                 update += "\nk-value: %s\n" % k_value[dither]
                 print(update)
                 # add to the readme
@@ -873,7 +877,9 @@ def artificial_structure_calculation(
                 # plot histogram
                 binsize = 0.005
                 bins = np.arange(
-                    min(good_error) - 5 * binsize, max(good_error) + 5 * binsize, binsize
+                    min(good_error) - 5 * binsize,
+                    max(good_error) + 5 * binsize,
+                    binsize,
                 )
                 plt.clf()
                 plt.hist(good_error, bins=bins)

@@ -18,14 +18,14 @@ class MoObjSlicer(BaseSlicer):
 
     Parameters
     ----------
-    Hrange : numpy.ndarray or None
+    h_range : numpy.ndarray or None
         The H values to clone the orbital parameters over. If Hrange is None, will not clone orbits.
     """
 
-    def __init__(self, Hrange=None, verbose=True, badval=0):
+    def __init__(self, h_range=None, verbose=True, badval=0):
         super(MoObjSlicer, self).__init__(verbose=verbose, badval=badval)
-        self.Hrange = Hrange
-        self.slicer_init = {"Hrange": Hrange, "badval": badval}
+        self.Hrange = h_range
+        self.slicer_init = {"h_range": h_range, "badval": badval}
         # Set default plot_funcs.
         self.plot_funcs = [
             MetricVsH(),
@@ -33,37 +33,37 @@ class MoObjSlicer(BaseSlicer):
             MetricVsOrbit(xaxis="q", yaxis="inc"),
         ]
 
-    def setup_slicer(self, orbitFile, delim=None, skiprows=None, obsFile=None):
-        """Set up the slicer and read orbitFile and obs_file from disk.
+    def setup_slicer(self, orbit_file, delim=None, skiprows=None, obs_file=None):
+        """Set up the slicer and read orbit_file and obs_file from disk.
 
         Sets self.orbits (with orbit parameters), self.allObs, and self.obs
-        self.orbitFile and self.obs_file
+        self.orbit_file and self.obs_file
 
         Parameters
         ----------
-        orbitFile : str
+        orbit_file : str
             The file containing the orbit information.
             This is necessary, in order to be able to generate plots.
-        obsFile : str, optional
+        obs_file : str, optional
             The file containing the observations of each object, optional.
             If not provided (default, None), then the slicer will not be able to 'slice', but can still plot.
         """
-        self.readOrbits(orbitFile, delim=delim, skiprows=skiprows)
-        if obsFile is not None:
-            self.readObs(obsFile)
+        self.read_orbits(orbit_file, delim=delim, skiprows=skiprows)
+        if obs_file is not None:
+            self.read_obs(obs_file)
         else:
             self.obsFile = None
             self.allObs = None
             self.obs = None
         # Add these filenames to the slicer init values, to preserve in output files.
-        self.slicer_init["orbitFile"] = self.orbitFile
+        self.slicer_init["orbit_file"] = self.orbit_file
         self.slicer_init["obs_file"] = self.obsFile
 
-    def readOrbits(self, orbitFile, delim=None, skiprows=None):
+    def read_orbits(self, orbit_file, delim=None, skiprows=None):
         # Use sims_movingObjects to read orbit files.
         orb = Orbits()
-        orb.readOrbits(orbitFile, delim=delim, skiprows=skiprows)
-        self.orbitFile = orbitFile
+        orb.readOrbits(orbit_file, delim=delim, skiprows=skiprows)
+        self.orbit_file = orbit_file
         self.orbits = orb.orbits
         # Then go on as previously. Need to refactor this into 'setup_slicer' style.
         self.nSso = len(self.orbits)
@@ -79,7 +79,7 @@ class MoObjSlicer(BaseSlicer):
         # Set the rest of the slicePoint information once
         self.nslice = self.shape[0] * self.shape[1]
 
-    def readObs(self, obsFile):
+    def read_obs(self, obsFile):
         """Read observations of the solar system objects (such as created by sims_movingObjects).
 
         Parameters
@@ -107,18 +107,18 @@ class MoObjSlicer(BaseSlicer):
         #  column. Since this creates problems later, drop it here.
         if "index" in self.allObs.columns.values:
             self.allObs.drop("index", axis=1, inplace=True)
-        self.subsetObs()
+        self.subset_obs()
 
-    def subsetObs(self, pandasConstraint=None):
+    def subset_obs(self, pandas_constraint=None):
         """
         Choose a subset of all the observations, such as those in a particular time period.
         """
-        if pandasConstraint is None:
+        if pandas_constraint is None:
             self.obs = self.allObs
         else:
-            self.obs = self.allObs.query(pandasConstraint)
+            self.obs = self.allObs.query(pandas_constraint)
 
-    def _sliceObs(self, idx):
+    def _slice_obs(self, idx):
         """Return the observations of a given ssoId.
 
         For now this works for any ssoId; in the future, this might only work as ssoId is
@@ -160,11 +160,11 @@ class MoObjSlicer(BaseSlicer):
             raise StopIteration
         idx = self.idx
         self.idx += 1
-        return self._sliceObs(idx)
+        return self._slice_obs(idx)
 
     def __getitem__(self, idx):
         # This may not be guaranteed to work if/when we implement chunking of the obsfile.
-        return self._sliceObs(idx)
+        return self._slice_obs(idx)
 
     def __eq__(self, other_slicer):
         """
@@ -172,7 +172,7 @@ class MoObjSlicer(BaseSlicer):
         """
         result = False
         if isinstance(other_slicer, MoObjSlicer):
-            if other_slicer.orbitFile == self.orbitFile:
+            if other_slicer.orbit_file == self.orbit_file:
                 if other_slicer.obsFile == self.obsFile:
                     if np.array_equal(
                         other_slicer.slicePoints["H"], self.slicePoints["H"]

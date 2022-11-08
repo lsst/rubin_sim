@@ -250,7 +250,9 @@ class ProperMotionMetric(BaseMetric):
             if np.size(observations[0]) < 2:
                 precis[observations] = self.badval
             else:
-                snr = mafUtils.m52snr(self.mags[f], dataslice[self.m5_col][observations])
+                snr = mafUtils.m52snr(
+                    self.mags[f], dataslice[self.m5_col][observations]
+                )
                 precis[observations] = mafUtils.astrom_precision(
                     dataslice[self.seeing_col][observations], snr
                 )
@@ -414,7 +416,9 @@ class ParallaxCoverageMetric(BaseMetric):
             )
 
         weights = self._compute_weights(data_slice, snr)
-        ave_r = self._weighted_r(data_slice["ra_pi_amp"], data_slice["dec_pi_amp"], weights)
+        ave_r = self._weighted_r(
+            data_slice["ra_pi_amp"], data_slice["dec_pi_amp"], weights
+        )
         if self.theta_range > 0:
             theta_check = self._theta_check(
                 data_slice["ra_pi_amp"], data_slice["dec_pi_amp"], snr
@@ -529,7 +533,9 @@ class ParallaxDcrDegenMetric(BaseMetric):
         )
         # Construct the vectors of RA/Dec offsets. xdata is the "input data". ydata is the "output".
         xdata = np.empty((2, data_slice.size * 2), dtype=float)
-        xdata[0, :] = np.concatenate((data_slice["ra_pi_amp"], data_slice["dec_pi_amp"]))
+        xdata[0, :] = np.concatenate(
+            (data_slice["ra_pi_amp"], data_slice["dec_pi_amp"])
+        )
         xdata[1, :] = np.concatenate(
             (data_slice["ra_dcr_amp"], data_slice["dec_dcr_amp"])
         )
@@ -587,7 +593,10 @@ class RadiusObsMetric(BaseMetric):
         self.ra_col = ra_col
         self.dec_col = dec_col
         super(RadiusObsMetric, self).__init__(
-            col=[self.ra_col, self.dec_col], metric_name=metric_name, units=units, **kwargs
+            col=[self.ra_col, self.dec_col],
+            metric_name=metric_name,
+            units=units,
+            **kwargs
         )
 
     def run(self, data_slice, slice_point):

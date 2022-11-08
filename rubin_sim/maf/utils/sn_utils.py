@@ -253,7 +253,9 @@ class GenerateFakeObservations:
             for i, band in enumerate(bands):
                 mjd = np.arange(mjd_min, mjd_max + cadence[band], cadence[band])
                 mjd += shift_days[band]
-                m5_coadded = self.m5_coadd(m5[band], nvisits[band], exposure__time[band])
+                m5_coadded = self.m5_coadd(
+                    m5[band], nvisits[band], exposure__time[band]
+                )
                 myarr = np.array(mjd, dtype=[(self.mjd_col, "f8")])
                 myarr = rf.append_fields(
                     myarr,

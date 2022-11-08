@@ -1321,12 +1321,15 @@ class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
             # sets of visits that should have the same offset.
             for (c, cn) in zip(change_idxs, change_idxs[1:]):
                 random_offsets = (
-                    self._rng.rand(max_num + 1) * 2.0 * self.max_dither - self.max_dither
+                    self._rng.rand(max_num + 1) * 2.0 * self.max_dither
+                    - self.max_dither
                 )
                 i = 0
                 potential_offset = random_offsets[i]
                 # Calculate new rotTelPos values, if we used this offset.
-                new_rot_tel = sim_data[self.rot_tel_col][c + 1 : cn + 1] + potential_offset
+                new_rot_tel = (
+                    sim_data[self.rot_tel_col][c + 1 : cn + 1] + potential_offset
+                )
                 # Does it work? Do all values fall within minRotAngle / maxRotAngle?
                 good_to_go = (new_rot_tel >= self.min_rot_angle).all() and (
                     new_rot_tel <= self.max_rot_angle
