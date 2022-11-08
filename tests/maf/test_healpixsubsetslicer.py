@@ -92,8 +92,8 @@ class TestHealpixSubsetSlicerSetup(unittest.TestCase):
             verbose=False,
             camera_footprint_file=self.cameraFootprintFile,
         )
-        self.assertEqual(testslicer.slicerName, testslicer.__class__.__name__)
-        self.assertEqual(testslicer.slicerName, "HealpixSubsetSlicer")
+        self.assertEqual(testslicer.slicer_name, testslicer.__class__.__name__)
+        self.assertEqual(testslicer.slicer_name, "HealpixSubsetSlicer")
 
 
 class TestHealpixSlicerEqual(unittest.TestCase):
@@ -185,11 +185,11 @@ class TestHealpixSlicerIteration(unittest.TestCase):
         """Test iteration goes through expected range and ra/dec are in expected range (radians)."""
         npix = hp.nside2npix(self.nside)
         for i, s in enumerate(self.testslicer):
-            # We do not expect testslicer.slicePoint['sid'] to == i ..
+            # We do not expect testslicer.slice_point['sid'] to == i ..
             # The slicer will only iterate over the subset
-            self.assertEqual(self.hpid[i], s["slicePoint"]["sid"])
-            ra = s["slicePoint"]["ra"]
-            dec = s["slicePoint"]["dec"]
+            self.assertEqual(self.hpid[i], s["slice_point"]["sid"])
+            ra = s["slice_point"]["ra"]
+            dec = s["slice_point"]["dec"]
             self.assertGreaterEqual(ra, 0)
             self.assertLessEqual(ra, 2 * np.pi)
             self.assertGreaterEqual(dec, -np.pi)
@@ -242,8 +242,8 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
         # Set up and test actual slicing.
         self.testslicer.setup_slicer(self.dv)
         for s in self.testslicer:
-            ra = s["slicePoint"]["ra"]
-            dec = s["slicePoint"]["dec"]
+            ra = s["slice_point"]["ra"]
+            dec = s["slice_point"]["dec"]
             distances = calcDist_vincenty(ra, dec, self.dv["ra"], self.dv["dec"])
             didxs = np.where(distances <= np.radians(self.radius))
             sidxs = s["idxs"]
@@ -271,9 +271,9 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
         # For points which return values when used with the full set of points (self.testslicer)
         # there will be no data when used with the subset of points
         for s in self.testslicer:
-            if s["slicePoint"]["sid"] > 2:
+            if s["slice_point"]["sid"] > 2:
                 if len(s["idxs"]) > 0:
-                    islice = s["slicePoint"]["sid"]
+                    islice = s["slice_point"]["sid"]
                     self.assertTrue(len(testslicer[islice]["idxs"]) == 0)
 
 

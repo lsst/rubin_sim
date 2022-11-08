@@ -46,10 +46,10 @@ base_default_plot_dict = {
     "cmap": perceptual_rainbow,
     "cbar_edge": True,
     "nTicks": 10,
-    "colorMin": None,
-    "colorMax": None,
-    "xMin": None,
-    "xMax": None,
+    "color_min": None,
+    "color_max": None,
+    "x_min": None,
+    "x_max": None,
     "yMin": None,
     "yMax": None,
     "labelsize": None,
@@ -162,14 +162,14 @@ class HealpixSkyMap(BasePlotter):
         self.healpy_visufunc = plot_dict["visufunc"]
 
         # Check if we have a valid HEALpix slicer
-        if "Heal" in slicer.slicerName:
+        if "Heal" in slicer.slicer_name:
             # Update the metric data with zeropoint or normalization.
             metric_value = apply_zp_norm(metric_value_in, plot_dict)
         else:
             # Bin the values up on a healpix grid.
             metric_value = _healbin(
-                slicer.slicePoints["ra"],
-                slicer.slicePoints["dec"],
+                slicer.slice_points["ra"],
+                slicer.slice_points["dec"],
                 metric_value_in.filled(slicer.badval),
                 nside=plot_dict["nside"],
                 reduceFunc=plot_dict["reduceFunc"],
@@ -312,7 +312,7 @@ class HealpixPowerSpectrum(BasePlotter):
         """
         Generate and plot the power spectrum of metric_value (calculated on a healpix grid).
         """
-        if "Healpix" not in slicer.slicerName:
+        if "Healpix" not in slicer.slicer_name:
             raise ValueError("HealpixPowerSpectrum for use with healpix metricBundles.")
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
@@ -381,7 +381,7 @@ class HealpixHistogram(BasePlotter):
         """
         Histogram metric_value for all healpix points.
         """
-        if "Healpix" not in slicer.slicerName:
+        if "Healpix" not in slicer.slicer_name:
             raise ValueError("HealpixHistogram is for use with healpix slicer.")
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
@@ -626,12 +626,12 @@ class BaseSkyMap(BasePlotter):
         """
         Plot the sky map of metric_value for a generic spatial slicer.
         """
-        if "ra" not in slicer.slicePoints or "dec" not in slicer.slicePoints:
+        if "ra" not in slicer.slice_points or "dec" not in slicer.slice_points:
             err_message = (
-                'SpatialSlicer must contain "ra" and "dec" in slicePoints metadata.'
+                'SpatialSlicer must contain "ra" and "dec" in slice_points metadata.'
             )
             err_message += " SlicePoints only contains keys %s." % (
-                slicer.slicePoints.keys()
+                slicer.slice_points.keys()
             )
             raise ValueError(err_message)
         plot_dict = {}
@@ -653,12 +653,13 @@ class BaseSkyMap(BasePlotter):
 
         # Add ellipses at RA/Dec locations - but don't add colors yet.
         lon = (
-            -(slicer.slicePoints["ra"][good] - plot_dict["raCen"] - np.pi) % (np.pi * 2)
+            -(slicer.slice_points["ra"][good] - plot_dict["raCen"] - np.pi)
+            % (np.pi * 2)
             - np.pi
         )
         ellipses = self._plot_tissot_ellipse(
             lon,
-            slicer.slicePoints["dec"][good],
+            slicer.slice_points["dec"][good],
             plot_dict["radius"],
             rasterized=True,
             ax=ax,
@@ -944,12 +945,12 @@ class LambertSkyMap(BasePlotter):
 
     def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
 
-        if "ra" not in slicer.slicePoints or "dec" not in slicer.slicePoints:
+        if "ra" not in slicer.slice_points or "dec" not in slicer.slice_points:
             err_message = (
-                'SpatialSlicer must contain "ra" and "dec" in slicePoints metadata.'
+                'SpatialSlicer must contain "ra" and "dec" in slice_points metadata.'
             )
             err_message += " SlicePoints only contains keys %s." % (
-                slicer.slicePoints.keys()
+                slicer.slice_points.keys()
             )
             raise ValueError(err_message)
 
@@ -969,12 +970,12 @@ class LambertSkyMap(BasePlotter):
         fig = plt.figure(fignum, figsize=plot_dict["figsize"])
         ax = fig.add_subplot(plot_dict["subplot"])
 
-        x, y = project_lambert(slicer.slicePoints["ra"], slicer.slicePoints["dec"])
+        x, y = project_lambert(slicer.slice_points["ra"], slicer.slice_points["dec"])
         # Contour the plot first to remove any anti-aliasing artifacts.  Doesn't seem to work though. See:
         # http: //stackoverflow.com/questions/15822159/aliasing-when-saving-matplotlib\
         # -filled-contour-plot-to-pdf-or-eps
-        # tmpContour = m.contour(np.degrees(slicer.slicePoints['ra']),
-        #                        np.degrees(slicer.slicePoints['dec']),
+        # tmpContour = m.contour(np.degrees(slicer.slice_points['ra']),
+        #                        np.degrees(slicer.slice_points['dec']),
         #                        metric_value.filled(np.min(clims)-1), levels, tri=True,
         #                        cmap=plot_dict['cmap'], ax=ax, latlon=True,
         #                        lw=1)

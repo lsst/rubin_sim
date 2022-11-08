@@ -86,9 +86,9 @@ class TimeIntervalSlicer(BaseSlicer):
         )
 
         mjds = np.arange(start_mjd, end_mjd, interval_days)
-        self.slicePoints["sid"] = np.arange(len(mjds))
-        self.slicePoints["mjd"] = mjds
-        self.slicePoints["duration"] = np.full_like(mjds, self.interval_seconds)
+        self.slice_points["sid"] = np.arange(len(mjds))
+        self.slice_points["mjd"] = mjds
+        self.slice_points["duration"] = np.full_like(mjds, self.interval_seconds)
         self.nslice = len(mjds)
         self.shape = self.nslice
         self._run_maps(maps)
@@ -104,11 +104,11 @@ class TimeIntervalSlicer(BaseSlicer):
 
             slice_points = {
                 "sid": islice,
-                "mjd": self.slicePoints["mjd"][islice],
-                "duration": self.slicePoints["duration"][islice],
+                "mjd": self.slice_points["mjd"][islice],
+                "duration": self.slice_points["duration"][islice],
             }
 
-            return {"idxs": idxs, "slicePoint": slice_points}
+            return {"idxs": idxs, "slice_point": slice_points}
 
         setattr(self, "_slice_sim_data", _slice_sim_data)
 
@@ -118,7 +118,9 @@ class TimeIntervalSlicer(BaseSlicer):
             return False
 
         for key in ["sid", "mjd", "duration"]:
-            if not np.array_equal(other_slicer.slicePoints[key], self.slicePoints[key]):
+            if not np.array_equal(
+                other_slicer.slice_points[key], self.slice_points[key]
+            ):
                 return False
 
         return True
@@ -210,9 +212,9 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
             .to_dict()["visit_idx"]
         )
 
-        self.slicePoints["sid"] = blocks.reset_index().sid.values
-        self.slicePoints["mjd"] = blocks.mjd.values
-        self.slicePoints["duration"] = blocks.duration.values
+        self.slice_points["sid"] = blocks.reset_index().sid.values
+        self.slice_points["mjd"] = blocks.mjd.values
+        self.slice_points["duration"] = blocks.duration.values
         self._run_maps(maps)
 
         @wraps(self._slice_sim_data)
@@ -225,11 +227,11 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
                 idxs = [idxs]
 
             slice_points = {
-                "mjd": self.slicePoints["mjd"][islice],
-                "duration": self.slicePoints["duration"][islice],
+                "mjd": self.slice_points["mjd"][islice],
+                "duration": self.slice_points["duration"][islice],
             }
 
-            return {"idxs": idxs, "slicePoint": slice_points}
+            return {"idxs": idxs, "slice_point": slice_points}
 
         setattr(self, "_slice_sim_data", _slice_sim_data)
 
@@ -269,11 +271,11 @@ class VisitIntervalSlicer(TimeIntervalSlicer):
         self.shape = self.nslice
 
         self.sim_idxs = np.argsort(sim_data[self.mjd_column_name])
-        self.slicePoints["sid"] = np.arange(self.nslice)
-        self.slicePoints["mjd"] = sim_data[self.mjd_column_name]
-        self.slicePoints["duration"] = sim_data[self.duration_column_name]
+        self.slice_points["sid"] = np.arange(self.nslice)
+        self.slice_points["mjd"] = sim_data[self.mjd_column_name]
+        self.slice_points["duration"] = sim_data[self.duration_column_name]
         for column_name in self.extra_column_names:
-            self.slicePoints[column_name] = sim_data[column_name]
+            self.slice_points[column_name] = sim_data[column_name]
         self._run_maps(maps)
 
         @wraps(self._slice_sim_data)
@@ -281,13 +283,13 @@ class VisitIntervalSlicer(TimeIntervalSlicer):
             idxs = self.sim_idxs[islice]
             slice_points = {
                 "sid": [idxs],
-                "mjd": self.slicePoints["mjd"][islice],
-                "duration": self.slicePoints["duration"][islice],
+                "mjd": self.slice_points["mjd"][islice],
+                "duration": self.slice_points["duration"][islice],
             }
             for column_name in self.extra_column_names:
-                slice_points[column_name] = self.slicePoints[column_name]
+                slice_points[column_name] = self.slice_points[column_name]
 
-            return {"idxs": idxs, "slicePoint": slice_points}
+            return {"idxs": idxs, "slice_point": slice_points}
 
         setattr(self, "_slice_sim_data", _slice_sim_data)
 

@@ -36,7 +36,7 @@ class PeriodicStar(object):
 
 
 class PeriodicStarMetric(BaseMetric):
-    """At each slicePoint, run a Monte Carlo simulation to see how well a periodic source can be fit.
+    """At each slice_point, run a Monte Carlo simulation to see how well a periodic source can be fit.
     Assumes a simple sin-wave light-curve, and generates Gaussain noise based in the 5-sigma limiting depth
     of each observation.
     """

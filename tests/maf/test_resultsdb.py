@@ -14,7 +14,7 @@ class TestResultsDb(unittest.TestCase):
     def setUp(self):
         self.outDir = "Out"
         self.metric_name = "Count ExpMJD"
-        self.slicerName = "OneDSlicer"
+        self.slicer_name = "OneDSlicer"
         self.runName = "fakeopsim"
         self.constraint = ""
         self.info_label = "Dithered"
@@ -56,7 +56,7 @@ class TestResultsDb(unittest.TestCase):
         # Add metric.
         metricId = resultsDb.update_metric(
             self.metric_name,
-            self.slicerName,
+            self.slicer_name,
             self.runName,
             self.constraint,
             self.info_label,
@@ -65,7 +65,7 @@ class TestResultsDb(unittest.TestCase):
         # Try to re-add metric (should get back same metric id as previous, with no add).
         metricId2 = resultsDb.update_metric(
             self.metric_name,
-            self.slicerName,
+            self.slicer_name,
             self.runName,
             self.constraint,
             self.info_label,
@@ -106,7 +106,7 @@ class TestUseResultsDb(unittest.TestCase):
     def setUp(self):
         self.outDir = "Out"
         self.metric_name = "Count ExpMJD"
-        self.slicerName = "OneDSlicer"
+        self.slicer_name = "OneDSlicer"
         self.runName = "fakeopsim"
         self.constraint = ""
         self.info_label = "Dithered"
@@ -121,7 +121,7 @@ class TestUseResultsDb(unittest.TestCase):
         self.resultsDb = db.ResultsDb(self.tempdir)
         self.metricId = self.resultsDb.update_metric(
             self.metric_name,
-            self.slicerName,
+            self.slicer_name,
             self.runName,
             self.constraint,
             self.info_label,

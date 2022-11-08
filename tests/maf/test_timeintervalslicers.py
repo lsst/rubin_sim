@@ -53,7 +53,7 @@ class TestTimeIntervalSlicer(unittest.TestCase):
         self.assertEqual(self.slicer.nslice, 24 * 60)
         slice_points = self.slicer.get_slice_points()
         nonempty_slices = [
-            item[0] for item in self.slicer.simIdxs.items() if len(item[1]) > 0
+            item[0] for item in self.slicer.sim_idxs.items() if len(item[1]) > 0
         ]
         self.assertTrue(
             np.allclose(
@@ -73,7 +73,7 @@ class TestBlockIntervalSlicer(unittest.TestCase):
         self.slicer.setup_slicer(SIMDATA)
         self.assertEqual(self.slicer.nslice, 4)
         slice_points = self.slicer.get_slice_points()
-        sim_idxs = self.slicer.simIdxs
+        sim_idxs = self.slicer.sim_idxs
         visits = pd.DataFrame(SIMDATA)
         for sid in slice_points["sid"]:
             these_visits = visits.iloc[sim_idxs[sid]]

@@ -248,7 +248,7 @@ class MoMetricBundle(MetricBundle):
             # Build array of metric values, to use for (most) summary statistics.
             for m in self.summary_metrics:
                 summary_name = m.name
-                summary_val = m.run(self.metric_values, self.slicer.slicePoints["H"])
+                summary_val = m.run(self.metric_values, self.slicer.slice_points["H"])
                 self.summary_values[summary_name] = summary_val
                 # Add summary metric info to results database, if applicable.
                 if results_db:
@@ -442,14 +442,14 @@ class MoMetricBundleGroup(object):
             for cb in b.child_bundles.values():
                 cb._setup_metric_values()
         # Calculate the metric values.
-        for i, slicePoint in enumerate(self.slicer):
-            sso_obs = slicePoint["obs"]
-            for j, Hval in enumerate(slicePoint["Hvals"]):
+        for i, slice_point in enumerate(self.slicer):
+            sso_obs = slice_point["obs"]
+            for j, Hval in enumerate(slice_point["Hvals"]):
                 # Run stackers to add extra columns (that depend on h_val)
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
                     for s in uniq_stackers:
-                        sso_obs = s.run(sso_obs, slicePoint["orbit"]["H"], Hval)
+                        sso_obs = s.run(sso_obs, slice_point["orbit"]["H"], Hval)
                 # Run all the parent metrics.
                 for k in compatible_list:
                     b = self.bundle_dict[k]
@@ -461,7 +461,7 @@ class MoMetricBundleGroup(object):
                     # Otherwise, calculate the metric value for the parent, and then child.
                     else:
                         # Calculate for the parent.
-                        m_val = b.metric.run(sso_obs, slicePoint["orbit"], Hval)
+                        m_val = b.metric.run(sso_obs, slice_point["orbit"], Hval)
                         # Mask if the parent metric returned a bad value.
                         if m_val == b.metric.badval:
                             b.metricValues.mask[i][j] = True
@@ -472,7 +472,7 @@ class MoMetricBundleGroup(object):
                             b.metricValues.data[i][j] = m_val
                             for cb in b.child_bundles.values():
                                 child_val = cb.metric.run(
-                                    sso_obs, slicePoint["orbit"], Hval, m_val
+                                    sso_obs, slice_point["orbit"], Hval, m_val
                                 )
                                 if child_val == cb.metric.badval:
                                     cb.metricValues.mask[i][j] = True

@@ -476,25 +476,25 @@ def generate_xrb_pop_slicer(t_start=1, t_end=3652, n_events=10000, seed=42):
     # Set up the slicer to evaluate the catalog we just made
     slicer = UserPointsSlicer(ra, dec, lat_lon_deg=True, badval=0)
     # Add any additional information about each object to the slicer
-    slicer.slicePoints["start_time"] = start_times
-    slicer.slicePoints["distance"] = distance_kpc
+    slicer.slice_points["start_time"] = start_times
+    slicer.slice_points["distance"] = distance_kpc
     # use our own 3-d dust map extinctions
-    slicer.slicePoints["ebv"] = ebv
+    slicer.slice_points["ebv"] = ebv
     # generate random parameters for this event
-    slicer.slicePoints["outburst_params"] = xrb_lc_gen.outburst_params(size=n_events)
+    slicer.slice_points["outburst_params"] = xrb_lc_gen.outburst_params(size=n_events)
 
     # determine detectable durations
     visible_starts = []
     visible_ends = []
     visible_durations = []
-    for idx, param in enumerate(slicer.slicePoints["outburst_params"]):
+    for idx, param in enumerate(slicer.slice_points["outburst_params"]):
         start, end = xrb_lc_gen.detectable_duration(param, ebv[idx], distance_kpc[idx])
         visible_starts.append(start)
         visible_ends.append(end)
         visible_durations.append(end - start)
 
-    slicer.slicePoints["visible_start_time"] = visible_starts
-    slicer.slicePoints["visible_end_time"] = visible_ends
-    slicer.slicePoints["visible_duration"] = visible_durations
+    slicer.slice_points["visible_start_time"] = visible_starts
+    slicer.slice_points["visible_end_time"] = visible_ends
+    slicer.slice_points["visible_duration"] = visible_durations
 
     return slicer

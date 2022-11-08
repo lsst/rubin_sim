@@ -23,8 +23,8 @@ class OneDBinnedData(BasePlotter):
             "linewidth": 1,
             "logScale": False,
             "percentileClip": None,
-            "xMin": None,
-            "xMax": None,
+            "x_min": None,
+            "x_max": None,
             "yMin": None,
             "yMax": None,
             "fontsize": None,
@@ -36,12 +36,12 @@ class OneDBinnedData(BasePlotter):
         """
         Plot a set of oneD binned metric data.
         """
-        if slicer.slicerName != "OneDSlicer":
+        if slicer.slicer_name != "OneDSlicer":
             raise ValueError("OneDBinnedData plotter is for use with OneDSlicer")
-        if "bins" not in slicer.slicePoints:
-            err_message = 'OneDSlicer must contain "bins" in slicePoints metadata.'
+        if "bins" not in slicer.slice_points:
+            err_message = 'OneDSlicer must contain "bins" in slice_points metadata.'
             err_message += " SlicePoints only contains keys %s." % (
-                slicer.slicePoints.keys()
+                slicer.slice_points.keys()
             )
             raise ValueError(err_message)
         plot_dict = {}
@@ -49,8 +49,8 @@ class OneDBinnedData(BasePlotter):
         plot_dict.update(user_plot_dict)
         fig = plt.figure(fignum, figsize=plot_dict["figsize"])
         # Plot the histogrammed data.
-        leftedge = slicer.slicePoints["bins"][:-1]
-        width = np.diff(slicer.slicePoints["bins"])
+        leftedge = slicer.slice_points["bins"][:-1]
+        width = np.diff(slicer.slice_points["bins"])
         if plot_dict["filled"]:
             plt.bar(
                 leftedge,
@@ -111,9 +111,9 @@ class OneDBinnedData(BasePlotter):
             plt.ylim(bottom=plot_dict["y_min"])
         if plot_dict["y_max"] is not None:
             plt.ylim(top=plot_dict["y_max"])
-        if plot_dict["xMin"] is not None:
-            plt.xlim(left=plot_dict["xMin"])
-        if plot_dict["xMax"] is not None:
-            plt.xlim(right=plot_dict["xMax"])
+        if plot_dict["x_min"] is not None:
+            plt.xlim(left=plot_dict["x_min"])
+        if plot_dict["x_max"] is not None:
+            plt.xlim(right=plot_dict["x_max"])
         plt.title(plot_dict["title"])
         return fig.number

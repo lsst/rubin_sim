@@ -293,7 +293,7 @@ class MetricBundleGroup(object):
                 for b in self.current_bundle_dict.values():
                     metrics_skipped.append(
                         "%s : %s : %s"
-                        % (b.metric.name, b.info_label, b.slicer.slicerName)
+                        % (b.metric.name, b.info_label, b.slicer.slicer_name)
                     )
                 warnings.warn(" This means skipping metrics %s" % metrics_skipped)
                 return
@@ -306,7 +306,7 @@ class MetricBundleGroup(object):
                 for b in self.current_bundle_dict.values():
                     metrics_skipped.append(
                         "%s : %s : %s"
-                        % (b.metric.name, b.info_label, b.slicer.slicerName)
+                        % (b.metric.name, b.info_label, b.slicer.slicer_name)
                     )
                 warnings.warn(" This means skipping metrics %s" % metrics_skipped)
                 return
@@ -427,11 +427,11 @@ class MetricBundleGroup(object):
 
         # Pull out one of the slicers to use as our 'slicer'.
         # This will be forced back into all of the metricBundles at the end (so that they track
-        #  the same info_label such as the slicePoints, in case the same actual object wasn't used).
+        #  the same info_label such as the slice_points, in case the same actual object wasn't used).
         slicer = list(b_dict.values())[0].slicer
         slicer.setup_slicer(self.sim_data, maps=uniq_maps)
         # Copy the slicer (after setup) back into the individual metricBundles.
-        if slicer.slicerName != "HealpixSlicer" or slicer.slicerName != "UniSlicer":
+        if slicer.slicer_name != "HealpixSlicer" or slicer.slicer_name != "UniSlicer":
             for b in b_dict.values():
                 b.slicer = slicer
 
@@ -458,7 +458,7 @@ class MetricBundleGroup(object):
             slicer_iter = slicer
 
         for slice_i in slicer_iter:
-            i = slice_i["slicePoint"]["sid"]
+            i = slice_i["slice_point"]["sid"]
             slicedata = self.sim_data[slice_i["idxs"]]
             if len(slicedata) == 0:
                 # No data at this slicepoint. Mask data values.
@@ -486,7 +486,7 @@ class MetricBundleGroup(object):
                             ]
                         else:
                             b.metric_values.data[i] = b.metric.run(
-                                slicedata, slice_point=slice_i["slicePoint"]
+                                slicedata, slice_point=slice_i["slice_point"]
                             )
                     # If we are above the cache size, drop the oldest element from the cache dict.
                     if len(cache_dict) > slicer.cacheSize:
@@ -497,10 +497,10 @@ class MetricBundleGroup(object):
                     for b in b_dict.values():
                         try:
                             b.metric_values.data[i] = b.metric.run(
-                                slicedata, slice_point=slice_i["slicePoint"]
+                                slicedata, slice_point=slice_i["slice_point"]
                             )
                         except BaseException as e:
-                            print(f"Failed at slicePoint {slice_i}, sid {i}")
+                            print(f"Failed at slice_point {slice_i}, sid {i}")
                             raise e
         # Mask data where metrics could not be computed (according to metric bad value).
         for b in b_dict.values():
@@ -676,8 +676,8 @@ class MetricBundleGroup(object):
             generated, closing the figures saves significant memory. Default True.
         """
         plot_handler = PlotHandler(
-            outDir=self.out_dir,
-            resultsDb=self.results_db,
+            out_dir=self.out_dir,
+            results_db=self.results_db,
             savefig=savefig,
             figformat=figformat,
             dpi=dpi,
@@ -688,7 +688,7 @@ class MetricBundleGroup(object):
         for b in self.current_bundle_dict.values():
             try:
                 b.plot(
-                    plotHandler=plot_handler,
+                    plot_handler=plot_handler,
                     outfile_suffix=outfile_suffix,
                     savefig=savefig,
                 )
@@ -739,7 +739,7 @@ class MetricBundleGroup(object):
                 tmp_bundle.read(filename)
                 # Copy the tmp_bundle metric_values into bundle.
                 bundle.metric_values = tmp_bundle.metric_values
-                # And copy the slicer into b, to get slicePoints.
+                # And copy the slicer into b, to get slice_points.
                 bundle.slicer = tmp_bundle.slicer
                 if self.verbose:
                     print("Read %s from disk." % (bundle.file_root))

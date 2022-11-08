@@ -27,7 +27,7 @@ class TestSNmetrics(unittest.TestCase):
     def testNSN(self):
         # Set up a mock slicerPoint
         nside = 64
-        slicePoint = {"nside": nside, "ebv": 0.0}
+        slice_point = {"nside": nside, "ebv": 0.0}
 
         # Set up the metric
         metric = maf.SNNSNMetric(
@@ -80,7 +80,7 @@ class TestSNmetrics(unittest.TestCase):
         verbose = True
 
         for k in self.simdata:
-            res = metric.run(self.simdata[k], slicePoint=slicePoint)
+            res = metric.run(self.simdata[k], slice_point=slice_point)
             if verbose:
                 print("")
                 print(f"pointing test {k} with {len(self.simdata[k])} visits")
@@ -112,7 +112,7 @@ class TestSNmetrics(unittest.TestCase):
             verbose=False,
         )
         for k in ["one_season_wDD"]:
-            res = metric.run(self.simdata[k], slicePoint=slicePoint)
+            res = metric.run(self.simdata[k], slice_point=slice_point)
             if verbose:
                 print("")
                 print(f"pointing test {k} for {len(self.simdata[k])} DD-only visits")

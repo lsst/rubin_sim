@@ -31,8 +31,10 @@ class TestOneDSlicerSetup(unittest.TestCase):
 
     def testSlicertype(self):
         """Test instantiation of slicer sets slicer type as expected."""
-        self.assertEqual(self.testslicer.slicerName, self.testslicer.__class__.__name__)
-        self.assertEqual(self.testslicer.slicerName, "OneDSlicer")
+        self.assertEqual(
+            self.testslicer.slicer_name, self.testslicer.__class__.__name__
+        )
+        self.assertEqual(self.testslicer.slicer_name, "OneDSlicer")
 
     def testSetupSlicerBins(self):
         """Test setting up slicer using defined bins."""
@@ -60,19 +62,19 @@ class TestOneDSlicerSetup(unittest.TestCase):
         self.assertEqual(self.testslicer.nslice, 2)
 
     def testSetupSlicerLimits(self):
-        """Test setting up slicer using binMin/Max."""
-        binMin = 0
-        binMax = 1
+        """Test setting up slicer using bin_min/Max."""
+        bin_min = 0
+        bin_max = 1
         nbins = 10
         dvmin = -0.5
         dvmax = 1.5
         dv = makeDataValues(1000, dvmin, dvmax, random=342)
         self.testslicer = OneDSlicer(
-            slice_col_name="testdata", binMin=binMin, bin_max=binMax
+            slice_col_name="testdata", bin_min=bin_min, bin_max=bin_max
         )
         self.testslicer.setup_slicer(dv)
-        self.assertAlmostEqual(self.testslicer.bins.min(), binMin)
-        self.assertAlmostEqual(self.testslicer.bins.max(), binMax)
+        self.assertAlmostEqual(self.testslicer.bins.min(), bin_min)
+        self.assertAlmostEqual(self.testslicer.bins.max(), bin_max)
 
     def testSetupSlicerBinsize(self):
         """Test setting up slicer using binsize."""
@@ -93,9 +95,9 @@ class TestOneDSlicerSetup(unittest.TestCase):
         self.testslicer = OneDSlicer(slice_col_name="testdata", bins=None)
         self.testslicer.setup_slicer(dv)
         # How many bins do you expect from optimal binsize?
-        from rubin_sim.maf.utils import optimalBins
+        from rubin_sim.maf.utils import optimal_bins
 
-        bins = optimalBins(dv["testdata"])
+        bins = optimal_bins(dv["testdata"])
         np.testing.assert_equal(self.testslicer.nslice, bins)
 
 
@@ -117,14 +119,14 @@ class TestOneDSlicerIteration(unittest.TestCase):
     def testIteration(self):
         """Test iteration."""
         for i, (s, b) in enumerate(zip(self.testslicer, self.bins)):
-            self.assertEqual(s["slicePoint"]["sid"], i)
-            self.assertEqual(s["slicePoint"]["binLeft"], b)
+            self.assertEqual(s["slice_point"]["sid"], i)
+            self.assertEqual(s["slice_point"]["binLeft"], b)
 
     def testGetItem(self):
         """Test that can return an individual indexed values of the slicer."""
         for i in [0, 10, 20]:
-            self.assertEqual(self.testslicer[i]["slicePoint"]["sid"], i)
-            self.assertEqual(self.testslicer[i]["slicePoint"]["binLeft"], self.bins[i])
+            self.assertEqual(self.testslicer[i]["slice_point"]["sid"], i)
+            self.assertEqual(self.testslicer[i]["slice_point"]["binLeft"], self.bins[i])
 
 
 class TestOneDSlicerEqual(unittest.TestCase):
@@ -171,14 +173,14 @@ class TestOneDSlicerEqual(unittest.TestCase):
         self.assertTrue(self.testslicer != testslicer2)
         self.assertFalse(self.testslicer == testslicer2)
         testslicer2 = OneDSlicer(
-            slice_col_name="testdata", binMin=0, bin_max=1, binsize=0.5
+            slice_col_name="testdata", bin_min=0, bin_max=1, binsize=0.5
         )
         testslicer3 = OneDSlicer(
-            slice_col_name="testdata", binMin=0, bin_max=1, binsize=0.5
+            slice_col_name="testdata", bin_min=0, bin_max=1, binsize=0.5
         )
         self.assertTrue(testslicer2 == testslicer3)
         self.assertFalse(testslicer2 != testslicer3)
-        testslicer3 = OneDSlicer(slice_col_name="testdata", binMin=0, bin_max=1)
+        testslicer3 = OneDSlicer(slice_col_name="testdata", bin_min=0, bin_max=1)
         self.assertFalse(testslicer2 == testslicer3)
         self.assertTrue(testslicer2 != testslicer3)
         usebins = np.arange(0, 1, 0.1)

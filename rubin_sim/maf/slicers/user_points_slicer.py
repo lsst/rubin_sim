@@ -15,10 +15,10 @@ class UserPointsSlicer(BaseSpatialSlicer):
         User-selected RA points, in degrees. Stored internally in radians.
     dec : `list` or `numpy.ndarray`
         User-selected Dec points, in degrees. Stored internally in radians.
-    lonCol : `str`, optional
+    lon_col : `str`, optional
         Name of the longitude (RA equivalent) column to use from the input data.
         Default fieldRA
-    latCol : `str`, optional
+    lat_col : `str`, optional
         Name of the latitude (Dec equivalent) column to use from the input data.
         Default fieldDec
     latLonDeg : `bool`, optional
@@ -81,14 +81,14 @@ class UserPointsSlicer(BaseSpatialSlicer):
             raise ValueError("RA and Dec must be the same length")
         ra = np.radians(ra)
         dec = np.radians(dec)
-        self.slicePoints["sid"] = np.arange(np.size(ra))
-        self.slicePoints["ra"] = np.array(ra)
-        self.slicePoints["dec"] = np.array(dec)
+        self.slice_points["sid"] = np.arange(np.size(ra))
+        self.slice_points["ra"] = np.array(ra)
+        self.slice_points["dec"] = np.array(dec)
         gall, galb = _galactic_from_equatorial(
-            self.slicePoints["ra"], self.slicePoints["dec"]
+            self.slice_points["ra"], self.slice_points["dec"]
         )
-        self.slicePoints["gall"] = gall
-        self.slicePoints["galb"] = galb
+        self.slice_points["gall"] = gall
+        self.slice_points["galb"] = galb
 
         self.nslice = np.size(ra)
         self.shape = self.nslice
@@ -105,11 +105,11 @@ class UserPointsSlicer(BaseSpatialSlicer):
     def __eq__(self, other_slicer):
         """Evaluate if two slicers are equivalent."""
         result = False
-        # check the slicePoints
-        for key in other_slicer.slicePoints:
-            if key in self.slicePoints.keys():
+        # check the slice_points
+        for key in other_slicer.slice_points:
+            if key in self.slice_points.keys():
                 if not np.array_equal(
-                    other_slicer.slicePoints[key], self.slicePoints[key]
+                    other_slicer.slice_points[key], self.slice_points[key]
                 ):
                     return False
             else:
@@ -117,13 +117,13 @@ class UserPointsSlicer(BaseSpatialSlicer):
         if isinstance(other_slicer, UserPointsSlicer):
             if other_slicer.nslice == self.nslice:
                 if np.array_equal(
-                    other_slicer.slicePoints["ra"], self.slicePoints["ra"]
+                    other_slicer.slice_points["ra"], self.slice_points["ra"]
                 ) and np.array_equal(
-                    other_slicer.slicePoints["dec"], self.slicePoints["dec"]
+                    other_slicer.slice_points["dec"], self.slice_points["dec"]
                 ):
                     if (
-                        other_slicer.lonCol == self.lonCol
-                        and other_slicer.latCol == self.latCol
+                        other_slicer.lon_col == self.lon_col
+                        and other_slicer.lat_col == self.lat_col
                     ):
                         if other_slicer.radius == self.radius:
                             if other_slicer.useCamera == self.useCamera:

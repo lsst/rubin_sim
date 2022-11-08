@@ -41,7 +41,7 @@ def generate_known_lv_dwarf_slicer():
         lv_dat["ra"], lv_dat["dec"], lat_lon_deg=True, badval=-666
     )
     # Add any additional information about each object to the slicer
-    slicer.slicePoints["distance"] = lv_dat["dist_Mpc"]
+    slicer.slice_points["distance"] = lv_dat["dist_Mpc"]
 
     return slicer
 
@@ -362,7 +362,7 @@ class LVDwarfsMetric(BaseMetric):
         else:
             # Use discrete distances for known galaxies if a UserPointSlicer:
             distlim = slice_point["distance"] * u.Mpc
-            # sc_slice = SkyCoord(ra=slicePoint['ra']*u.rad, dec=slicePoint['dec']*u.rad)
+            # sc_slice = SkyCoord(ra=slice_point['ra']*u.rad, dec=slice_point['dec']*u.rad)
             # seps = sc_slice.separation(self.sc_dat)
             # distlim = self.sc_dat[seps.argmin()].distance
 

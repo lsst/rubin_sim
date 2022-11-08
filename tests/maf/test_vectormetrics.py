@@ -58,7 +58,7 @@ class Test2D(unittest.TestCase):
         slicer = slicers.UserPointsSlicer(
             ra=np.degrees(self.fieldData["fieldRA"]),
             dec=np.degrees(self.fieldData["fieldDec"]),
-            latLonDeg=True,
+            lat_lon_deg=True,
             cameraFootprintFile=self.cameraFootprintFile,
         )
         sql = ""
@@ -70,7 +70,7 @@ class Test2D(unittest.TestCase):
         mbg.fieldData = self.fieldData
         mbg.run_current("", sim_data=self.simData)
         expected = np.array([[self.n1, self.n1], [-666.0, self.n2]])
-        assert np.array_equal(mb.metricValues.data, expected)
+        assert np.array_equal(mb.metric_values.data, expected)
 
     def testHealpix2dSlicer(self):
         metric = metrics.AccumulateCountMetric(bins=[0.5, 1.5, 2.5])
@@ -85,9 +85,9 @@ class Test2D(unittest.TestCase):
         mbg.set_current("")
         mbg.run_current("", sim_data=self.simData)
 
-        good = np.where(mb.metricValues.mask[:, -1] == False)[0]
+        good = np.where(mb.metric_values.mask[:, -1] == False)[0]
         expected = np.array([[self.n1, self.n1], [-666.0, self.n2]])
-        assert np.array_equal(mb.metricValues.data[good, :], expected)
+        assert np.array_equal(mb.metric_values.data[good, :], expected)
 
     def testHistogramMetric(self):
         metric = metrics.HistogramMetric(bins=[0.5, 1.5, 2.5])
@@ -102,9 +102,9 @@ class Test2D(unittest.TestCase):
         mbg.set_current("")
         mbg.run_current("", sim_data=self.simData)
 
-        good = np.where(mb.metricValues.mask[:, -1] == False)[0]
+        good = np.where(mb.metric_values.mask[:, -1] == False)[0]
         expected = np.array([[self.n1, 0.0], [0.0, self.n2]])
-        assert np.array_equal(mb.metricValues.data[good, :], expected)
+        assert np.array_equal(mb.metric_values.data[good, :], expected)
 
         # Check that I can run a different statistic
         metric = metrics.HistogramMetric(
@@ -117,7 +117,7 @@ class Test2D(unittest.TestCase):
         mbg.set_current("")
         mbg.run_current("", sim_data=self.simData)
         expected = np.array([[self.m5_1 * self.n1, 0.0], [0.0, self.m5_2 * self.n2]])
-        assert np.array_equal(mb.metricValues.data[good, :], expected)
+        assert np.array_equal(mb.metric_values.data[good, :], expected)
 
     def testAccumulateMetric(self):
         metric = metrics.AccumulateMetric(col="fiveSigmaDepth", bins=[0.5, 1.5, 2.5])
@@ -131,11 +131,11 @@ class Test2D(unittest.TestCase):
         mbg = metricBundle.MetricBundleGroup({0: mb}, None, save_early=False)
         mbg.set_current("")
         mbg.run_current("", sim_data=self.simData)
-        good = np.where(mb.metricValues.mask[:, -1] == False)[0]
+        good = np.where(mb.metric_values.mask[:, -1] == False)[0]
         expected = np.array(
             [[self.n1 * self.m5_1, self.n1 * self.m5_1], [-666.0, self.n2 * self.m5_2]]
         )
-        assert np.array_equal(mb.metricValues.data[good, :], expected)
+        assert np.array_equal(mb.metric_values.data[good, :], expected)
 
     def testHistogramM5Metric(self):
         metric = metrics.HistogramM5Metric(bins=[0.5, 1.5, 2.5])
@@ -150,8 +150,8 @@ class Test2D(unittest.TestCase):
         mbg.set_current("")
         mbg.run_current("", sim_data=self.simData)
         good = np.where(
-            (mb.metricValues.mask[:, 0] == False)
-            | (mb.metricValues.mask[:, 1] == False)
+            (mb.metric_values.mask[:, 0] == False)
+            | (mb.metric_values.mask[:, 1] == False)
         )[0]
 
         checkMetric = metrics.Coaddm5Metric()
@@ -163,7 +163,7 @@ class Test2D(unittest.TestCase):
         val2 = checkMetric.run(tempSlice)
 
         expected = np.array([[val1, -666.0], [-666.0, val2]])
-        assert np.array_equal(mb.metricValues.data[good, :], expected)
+        assert np.array_equal(mb.metric_values.data[good, :], expected)
 
     def testAccumulateM5Metric(self):
         metric = metrics.AccumulateM5Metric(bins=[0.5, 1.5, 2.5])
@@ -177,7 +177,7 @@ class Test2D(unittest.TestCase):
         mbg = metricBundle.MetricBundleGroup({0: mb}, None, save_early=False)
         mbg.set_current("")
         mbg.run_current("", sim_data=self.simData)
-        good = np.where(mb.metricValues.mask[:, -1] == False)[0]
+        good = np.where(mb.metric_values.mask[:, -1] == False)[0]
 
         checkMetric = metrics.Coaddm5Metric()
         tempSlice = np.zeros(self.n1, dtype=list(zip(["fiveSigmaDepth"], [float])))
@@ -188,7 +188,7 @@ class Test2D(unittest.TestCase):
         val2 = checkMetric.run(tempSlice)
 
         expected = np.array([[val1, val1], [-666.0, val2]])
-        assert np.array_equal(mb.metricValues.data[good, :], expected)
+        assert np.array_equal(mb.metric_values.data[good, :], expected)
 
     def testAccumulateUniformityMetric(self):
         names = ["night"]
@@ -237,8 +237,8 @@ class Test2D(unittest.TestCase):
         mbg.run_current("", sim_data=self.simData)
 
         assert np.array_equal(
-            bundleList[0].metricValues[:, 1].compressed(),
-            bundleList[1].metricValues.compressed(),
+            bundleList[0].metric_values[:, 1].compressed(),
+            bundleList[1].metric_values.compressed(),
         )
 
 

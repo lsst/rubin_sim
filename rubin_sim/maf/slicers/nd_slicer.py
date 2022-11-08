@@ -69,23 +69,23 @@ class NDSlicer(BaseSlicer):
         # Count how many bins we have total (not counting last 'RHS' bin values, as in oneDSlicer).
         self.nslice = (np.array(list(map(len, self.bins))) - 1).prod()
         # Set up slice metadata.
-        self.slicePoints["sid"] = np.arange(self.nslice)
+        self.slice_points["sid"] = np.arange(self.nslice)
         # Including multi-D 'leftmost' bin values
         bins_for_iteration = []
         for b in self.bins:
             bins_for_iteration.append(b[:-1])
         biniterator = itertools.product(*bins_for_iteration)
-        self.slicePoints["bins"] = []
+        self.slice_points["bins"] = []
         for b in biniterator:
-            self.slicePoints["bins"].append(b)
+            self.slice_points["bins"].append(b)
         # and multi-D 'leftmost' bin indexes corresponding to each sid
-        self.slicePoints["binIdxs"] = []
+        self.slice_points["binIdxs"] = []
         bin_ids_for_iteration = []
         for b in self.bins:
             bin_ids_for_iteration.append(np.arange(len(b[:-1])))
         bin_id_iterator = itertools.product(*bin_ids_for_iteration)
         for bidx in bin_id_iterator:
-            self.slicePoints["binIdxs"].append(bidx)
+            self.slice_points["binIdxs"].append(bidx)
         # Add metadata from maps.
         self._run_maps(maps)
         # Set up indexing for data slicing.
@@ -116,7 +116,7 @@ class NDSlicer(BaseSlicer):
             # Identify relevant pointings in each dimension.
             sim_idxs_list = []
             # Translate islice into indexes in each bin dimension
-            bin_idxs = self.slicePoints["bin_idxs"][islice]
+            bin_idxs = self.slice_points["binIdxs"][islice]
             for d, i in zip(list(range(self.n_d)), bin_idxs):
                 sim_idxs_list.append(
                     set(self.sim_idxs[d][self.lefts[d][i] : self.lefts[d][i + 1]])
@@ -124,10 +124,10 @@ class NDSlicer(BaseSlicer):
             idxs = list(set.intersection(*sim_idxs_list))
             return {
                 "idxs": idxs,
-                "slicePoint": {
+                "slice_point": {
                     "sid": islice,
-                    "binLeft": self.slicePoints["bins"][islice],
-                    "binIdx": self.slicePoints["bin_idxs"][islice],
+                    "binLeft": self.slice_points["bins"][islice],
+                    "binIdx": self.slice_points["binIdxs"][islice],
                 },
             }
 
@@ -136,11 +136,11 @@ class NDSlicer(BaseSlicer):
     def __eq__(self, other_slicer):
         """Evaluate if grids are equivalent."""
         if isinstance(other_slicer, NDSlicer):
-            if other_slicer.nD != self.n_d:
+            if other_slicer.n_d != self.n_d:
                 return False
             for i in range(self.n_d):
                 if not np.array_equal(
-                    other_slicer.slicePoints["bins"][i], self.slicePoints["bins"][i]
+                    other_slicer.slice_points["bins"][i], self.slice_points["bins"][i]
                 ):
                     return False
             return True

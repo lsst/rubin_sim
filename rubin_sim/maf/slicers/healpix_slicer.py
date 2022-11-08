@@ -20,10 +20,10 @@ class HealpixSlicer(BaseSpatialSlicer):
     A spatial slicer that evaluates pointings on a healpix-based grid.
 
     Note that a healpix slicer is intended to evaluate the sky on a spatial grid.
-    Usually this grid will be something like RA as the lonCol and Dec as the latCol.
-    However, it could also be altitude and azimuth, in which case altitude as latCol,
-    and azimuth as lonCol.
-    An additional alternative is to use HA/Dec, with lonCol=HA, latCol=Dec.
+    Usually this grid will be something like RA as the lon_col and Dec as the lat_col.
+    However, it could also be altitude and azimuth, in which case altitude as lat_col,
+    and azimuth as lon_col.
+    An additional alternative is to use HA/Dec, with lon_col=HA, lat_col=Dec.
 
     When plotting with RA/Dec, the default HealpixSkyMap can be used, corresponding to
     {'rot': (0, 0, 0), 'flip': 'astro'}.
@@ -126,8 +126,8 @@ class HealpixSlicer(BaseSpatialSlicer):
         # Set variables so slicer can be re-constructed
         self.slicer_init = {
             "nside": nside,
-            "lonCol": lon_col,
-            "latCol": lat_col,
+            "lon_col": lon_col,
+            "lat_col": lat_col,
             "radius": radius,
         }
         self.use_cache = use_cache
@@ -136,17 +136,17 @@ class HealpixSlicer(BaseSpatialSlicer):
             binRes = hp.nside2resol(nside)  # Pixel size in radians
             # Set the cache size to be ~2x the circumference
             self.cacheSize = int(np.round(4.0 * np.pi / binRes))
-        # Set up slicePoint metadata.
-        self.slicePoints["nside"] = nside
-        self.slicePoints["sid"] = np.arange(self.nslice)
-        self.slicePoints["ra"], self.slicePoints["dec"] = self._pix2radec(
-            self.slicePoints["sid"]
+        # Set up slice_point metadata.
+        self.slice_points["nside"] = nside
+        self.slice_points["sid"] = np.arange(self.nslice)
+        self.slice_points["ra"], self.slice_points["dec"] = self._pix2radec(
+            self.slice_points["sid"]
         )
         gall, galb = _galactic_from_equatorial(
-            self.slicePoints["ra"], self.slicePoints["dec"]
+            self.slice_points["ra"], self.slice_points["dec"]
         )
-        self.slicePoints["gall"] = gall
-        self.slicePoints["galb"] = galb
+        self.slice_points["gall"] = gall
+        self.slice_points["galb"] = galb
 
         # Set the default plotting functions.
         self.plot_funcs = [HealpixSkyMap, HealpixHistogram]
@@ -158,8 +158,8 @@ class HealpixSlicer(BaseSpatialSlicer):
         if isinstance(other_slicer, HealpixSlicer):
             if other_slicer.nside == self.nside:
                 if (
-                    other_slicer.lonCol == self.lonCol
-                    and other_slicer.latCol == self.latCol
+                    other_slicer.lon_col == self.lon_col
+                    and other_slicer.lat_col == self.lat_col
                 ):
                     if other_slicer.radius == self.radius:
                         if other_slicer.useCamera == self.useCamera:

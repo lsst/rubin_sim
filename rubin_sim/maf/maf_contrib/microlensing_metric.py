@@ -275,7 +275,7 @@ class MicrolensingMetric(metrics.BaseMetric):
 
     Notes
     -----
-    Expects slicePoint to have keys of:
+    Expects slice_point to have keys of:
         peak_time : float (days)
         crossing_time : float (days)
         impact_parameter : float (positive)
@@ -607,8 +607,8 @@ def generate_microlensing_slicer(
     # Set up the slicer to evaluate the catalog we just made
     slicer = slicers.UserPointsSlicer(ra, dec, lat_lon_deg=True, badval=0)
     # Add any additional information about each object to the slicer
-    slicer.slicePoints["peak_time"] = peak_times
-    slicer.slicePoints["crossing_time"] = crossing_times
-    slicer.slicePoints["impact_parameter"] = impact_paramters
+    slicer.slice_points["peak_time"] = peak_times
+    slicer.slice_points["crossing_time"] = crossing_times
+    slicer.slice_points["impact_parameter"] = impact_paramters
 
     return slicer

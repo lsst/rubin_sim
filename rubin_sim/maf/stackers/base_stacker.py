@@ -15,7 +15,7 @@ class StackerRegistry(type):
         super(StackerRegistry, cls).__init__(name, bases, dict)
         if not hasattr(cls, "registry"):
             cls.registry = {}
-        if not hasattr(cls, "sourceDict"):
+        if not hasattr(cls, "source_dict"):
             cls.source_dict = {}
         modname = inspect.getmodule(cls).__name__
         if modname.startswith("rubin_sim.maf.stackers"):

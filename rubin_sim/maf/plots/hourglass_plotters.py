@@ -28,7 +28,7 @@ class HourglassPlot(BasePlotter):
         """
         Generate the hourglass plot
         """
-        if slicer.slicerName != "HourglassSlicer":
+        if slicer.slicer_name != "HourglassSlicer":
             raise ValueError("HourglassPlot is for use with hourglass slicers")
 
         fig = plt.figure(fignum)

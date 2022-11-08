@@ -22,16 +22,16 @@ class TestStackerClasses(unittest.TestCase):
         """Test that we can add columns as expected."""
         data = np.zeros(90, dtype=list(zip(["alt"], [float])))
         data["alt"] = np.arange(0, 90)
-        stacker = stackers.ZenithDistStacker(altCol="alt", degrees=True)
-        newcol = stacker.colsAdded[0]
+        stacker = stackers.ZenithDistStacker(alt_col="alt", degrees=True)
+        newcol = stacker.cols_added[0]
         # First - are the columns added if they are not there.
-        data, cols_present = stacker._addStackerCols(data)
+        data, cols_present = stacker._add_stacker_cols(data)
         self.assertEqual(cols_present, False)
         self.assertIn(newcol, data.dtype.names)
         # Next - if they are present, is that information passed back?
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            data, cols_present = stacker._addStackerCols(data)
+            data, cols_present = stacker._add_stacker_cols(data)
             self.assertEqual(cols_present, True)
 
     def testEQ(self):
@@ -55,7 +55,7 @@ class TestStackerClasses(unittest.TestCase):
         s1.ack += 1
         assert s1 != s2
 
-        s2 = stackers.RandomDitherFieldPerVisitStacker(decCol="blah")
+        s2 = stackers.RandomDitherFieldPerVisitStacker(dec_col="blah")
         assert s1 != s2
 
     def testNormAirmass(self):
@@ -98,11 +98,11 @@ class TestStackerClasses(unittest.TestCase):
         self.assertGreater(min(np.abs(data["ra_pi_amp"])), 0.0)
         self.assertGreater(min(np.abs(data["dec_pi_amp"])), 0.0)
 
-    def _tDitherRange(self, diffsra, diffsdec, ra, dec, maxDither):
-        self.assertLessEqual(np.abs(diffsra).max(), maxDither)
-        self.assertLessEqual(np.abs(diffsdec).max(), maxDither)
+    def _tDitherRange(self, diffsra, diffsdec, ra, dec, max_dither):
+        self.assertLessEqual(np.abs(diffsra).max(), max_dither)
+        self.assertLessEqual(np.abs(diffsdec).max(), max_dither)
         offsets = np.sqrt(diffsra**2 + diffsdec**2)
-        self.assertLessEqual(offsets.max(), maxDither)
+        self.assertLessEqual(offsets.max(), max_dither)
         self.assertGreater(diffsra.max(), 0)
         self.assertGreater(diffsdec.max(), 0)
         self.assertLess(diffsra.min(), 0)
@@ -126,22 +126,22 @@ class TestStackerClasses(unittest.TestCase):
 
     def testSetupDitherStackers(self):
         # Test that we get no stacker when using default columns.
-        raCol = "fieldRA"
-        decCol = "fieldDec"
+        ra_col = "fieldRA"
+        dec_col = "fieldDec"
         degrees = True
-        stackerlist = stackers.setupDitherStackers(raCol, decCol, degrees)
+        stackerlist = stackers.setup_dither_stackers(ra_col, dec_col, degrees)
         self.assertEqual(len(stackerlist), 0)
         # Test that we get one (and the right one) when using particular columns.
-        raCol = "hexDitherFieldPerNightRa"
-        decCol = "hexDitherFieldPerNightDec"
-        stackerlist = stackers.setupDitherStackers(raCol, decCol, degrees)
+        ra_col = "hexDitherFieldPerNightRa"
+        dec_col = "hexDitherFieldPerNightDec"
+        stackerlist = stackers.setup_dither_stackers(ra_col, dec_col, degrees)
         self.assertEqual(len(stackerlist), 1)
         self.assertEqual(stackerlist[0], stackers.HexDitherFieldPerNightStacker())
         # Test that kwargs are passed along.
-        stackerlist = stackers.setupDitherStackers(
-            raCol, decCol, degrees, maxDither=0.5
+        stackerlist = stackers.setup_dither_stackers(
+            ra_col, dec_col, degrees, max_dither=0.5
         )
-        self.assertEqual(stackerlist[0].maxDither, np.radians(0.5))
+        self.assertEqual(stackerlist[0].max_dither, np.radians(0.5))
 
     def testBaseDitherStacker(self):
         # Test that the base dither stacker matches the type of a stacker.
@@ -154,7 +154,7 @@ class TestStackerClasses(unittest.TestCase):
         """
         Test the random dither pattern.
         """
-        maxDither = 0.5
+        max_dither = 0.5
         data = np.zeros(600, dtype=list(zip(["fieldRA", "fieldDec"], [float, float])))
         # Set seed so the test is stable
         rng = np.random.RandomState(42)
@@ -164,7 +164,7 @@ class TestStackerClasses(unittest.TestCase):
         data["fieldDec"] = np.degrees(
             rng.random_sample(600) * np.pi / 2.0 - np.pi / 4.0
         )
-        stacker = stackers.RandomDitherFieldPerVisitStacker(maxDither=maxDither)
+        stacker = stackers.RandomDitherFieldPerVisitStacker(max_dither=max_dither)
         data = stacker.run(data)
         diffsra = (data["fieldRA"] - data["randomDitherFieldPerVisitRa"]) * np.cos(
             np.radians(data["fieldDec"])
@@ -172,14 +172,14 @@ class TestStackerClasses(unittest.TestCase):
         diffsdec = data["fieldDec"] - data["randomDitherFieldPerVisitDec"]
         # Check dithers within expected range.
         self._tDitherRange(
-            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], maxDither
+            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither
         )
 
     def testRandomDitherPerNight(self):
         """
         Test the per-night random dither pattern.
         """
-        maxDither = 0.5
+        max_dither = 0.5
         ndata = 600
         # Set seed so the test is stable
         rng = np.random.RandomState(42)
@@ -197,7 +197,7 @@ class TestStackerClasses(unittest.TestCase):
         data["fieldDec"] = rng.rand(ndata) * np.pi / 2.0 - np.pi / 4.0
         data["fieldId"] = np.floor(rng.rand(ndata) * ndata)
         data["night"] = np.floor(rng.rand(ndata) * 10).astype("int")
-        stacker = stackers.RandomDitherPerNightStacker(maxDither=maxDither)
+        stacker = stackers.RandomDitherPerNightStacker(max_dither=max_dither)
         data = stacker.run(data)
         diffsra = (
             np.radians(data["fieldRA"]) - np.radians(data["randomDitherPerNightRa"])
@@ -206,7 +206,7 @@ class TestStackerClasses(unittest.TestCase):
             data["randomDitherPerNightDec"]
         )
         self._tDitherRange(
-            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], maxDither
+            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither
         )
         # Check that dithers on the same night are the same.
         self._tDitherPerNight(
@@ -217,7 +217,7 @@ class TestStackerClasses(unittest.TestCase):
         """
         Test the per-night spiral dither pattern.
         """
-        maxDither = 0.5
+        max_dither = 0.5
         ndata = 2000
         # Set seed so the test is stable
         rng = np.random.RandomState(42)
@@ -237,14 +237,14 @@ class TestStackerClasses(unittest.TestCase):
         data["fieldDec"] = np.zeros(ndata)
         data["fieldId"] = np.floor(rng.rand(ndata) * ndata)
         data["night"] = np.floor(rng.rand(ndata) * 20).astype("int")
-        stacker = stackers.SpiralDitherPerNightStacker(maxDither=maxDither)
+        stacker = stackers.SpiralDitherPerNightStacker(max_dither=max_dither)
         data = stacker.run(data)
         diffsra = (data["fieldRA"] - data["spiralDitherPerNightRa"]) * np.cos(
             np.radians(data["fieldDec"])
         )
         diffsdec = data["fieldDec"] - data["spiralDitherPerNightDec"]
         self._tDitherRange(
-            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], maxDither
+            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither
         )
         # Check that dithers on the same night are the same.
         self._tDitherPerNight(
@@ -255,7 +255,7 @@ class TestStackerClasses(unittest.TestCase):
         """
         Test the per-night hex dither pattern.
         """
-        maxDither = 0.5
+        max_dither = 0.5
         ndata = 2000
         # Set seed so the test is stable
         rng = np.random.RandomState(42)
@@ -273,14 +273,14 @@ class TestStackerClasses(unittest.TestCase):
         data["fieldDec"] = rng.rand(ndata) * np.pi / 2.0 - np.pi / 4.0
         data["fieldId"] = np.floor(rng.rand(ndata) * ndata)
         data["night"] = np.floor(rng.rand(ndata) * 217).astype("int")
-        stacker = stackers.HexDitherPerNightStacker(maxDither=maxDither)
+        stacker = stackers.HexDitherPerNightStacker(max_dither=max_dither)
         data = stacker.run(data)
         diffsra = (data["fieldRA"] - data["hexDitherPerNightRa"]) * np.cos(
             np.radians(data["fieldDec"])
         )
         diffsdec = data["fieldDec"] - data["hexDitherPerNightDec"]
         self._tDitherRange(
-            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], maxDither
+            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither
         )
         # Check that dithers on the same night are the same.
         self._tDitherPerNight(
@@ -291,7 +291,7 @@ class TestStackerClasses(unittest.TestCase):
         """
         Test the rotational dither stacker.
         """
-        maxDither = 90
+        max_dither = 90
         filt = np.array(["r", "r", "r", "g", "g", "g", "r", "r"])
         rotTelPos = np.array([0, 0, 0, 0, 0, 0, 0, 0], float)
         # Test that have a dither in rot offset for every filter change.
@@ -301,7 +301,7 @@ class TestStackerClasses(unittest.TestCase):
         odata["filter"] = filt
         odata["rotTelPos"] = rotTelPos
         stacker = stackers.RandomRotDitherPerFilterChangeStacker(
-            maxDither=maxDither, degrees=True, randomSeed=99
+            max_dither=max_dither, degrees=True, random_seed=99
         )
         data = stacker.run(odata)  # run the stacker
         randomDithers = data["randomDitherPerFilterChangeRotTelPos"]
@@ -314,7 +314,7 @@ class TestStackerClasses(unittest.TestCase):
             offsetChanges, filtChanges
         )  # dither after every filter
 
-        # now test to ensure that user-defined maxRotAngle value works and that
+        # now test to ensure that user-defined max_rot_angle value works and that
         # visits in between filter changes for which no offset can be found are left undithered
         # (g band visits span rotator range, so can't be dithered)
         gvisits = np.where(filt == "g")
@@ -323,11 +323,11 @@ class TestStackerClasses(unittest.TestCase):
         rotTelPos[gvisits[0][-1]] = maxrot
         odata["rotTelPos"] = rotTelPos
         stacker = stackers.RandomRotDitherPerFilterChangeStacker(
-            maxDither=maxDither,
+            max_dither=max_dither,
             degrees=True,
-            minRotAngle=-maxrot,
-            maxRotAngle=maxrot,
-            randomSeed=19231,
+            min_rot_angle=-maxrot,
+            max_rot_angle=maxrot,
+            random_seed=19231,
         )
         data = stacker.run(odata)
         randomDithers = data["randomDitherPerFilterChangeRotTelPos"]
@@ -426,7 +426,7 @@ class TestStackerClasses(unittest.TestCase):
         data = np.zeros(ra.size, dtype=list(zip(["ra", "dec"], [float] * 2)))
         data["ra"] += ra
         data["dec"] += dec
-        s = stackers.GalacticStacker(raCol="ra", decCol="dec")
+        s = stackers.GalacticStacker(ra_col="ra", dec_col="dec")
         newData = s.run(data)
         expectedL, expectedB = _galactic_from_equatorial(
             np.radians(ra), np.radians(dec)
@@ -455,14 +455,14 @@ class TestStackerClasses(unittest.TestCase):
         data = np.zeros(ra.size, dtype=list(zip(["ra", "dec"], [float] * 2)))
         data["ra"] += ra
         data["dec"] += dec
-        s = stackers.EclipticStacker(raCol="ra", decCol="dec", degrees=True)
+        s = stackers.EclipticStacker(ra_col="ra", dec_col="dec", degrees=True)
         newData = s.run(data)
 
         data = np.zeros(ra.size, dtype=list(zip(["ra", "dec"], [float] * 2)))
         data["ra"] += ra
         data["dec"] += dec
         s = stackers.EclipticStacker(
-            raCol="ra", decCol="dec", degrees=True, subtractSunLon=False
+            ra_col="ra", dec_col="dec", degrees=True, subtract_sun_lon=False
         )
         newData = s.run(data)
 

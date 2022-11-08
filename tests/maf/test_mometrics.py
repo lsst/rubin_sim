@@ -53,38 +53,38 @@ class TestMoMetrics1(unittest.TestCase):
         self.Hval = 8.0
 
     def testNObsMetric(self):
-        nObsMetric = metrics.NObsMetric(snrLimit=5)
+        nObsMetric = metrics.NObsMetric(snr_limit=5)
         nObs = nObsMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(nObs, len(self.ssoObs["time"]))
-        nObsMetric = metrics.NObsMetric(snrLimit=10)
+        nObsMetric = metrics.NObsMetric(snr_limit=10)
         nObs = nObsMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(nObs, 0)
-        nObsMetric = metrics.NObsMetric(snrLimit=None)
+        nObsMetric = metrics.NObsMetric(snr_limit=None)
         nObs = nObsMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(nObs, len(self.ssoObs["time"]) - 5)
 
     def testNObsNoSinglesMetric(self):
-        nObsNoSinglesMetric = metrics.NObsNoSinglesMetric(snrLimit=5)
+        nObsNoSinglesMetric = metrics.NObsNoSinglesMetric(snr_limit=5)
         nObs = nObsNoSinglesMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(nObs, len(self.ssoObs["time"]) - 1)
 
     def testNNightsMetric(self):
-        nNightsMetric = metrics.NNightsMetric(snrLimit=5)
+        nNightsMetric = metrics.NNightsMetric(snr_limit=5)
         nnights = nNightsMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(nnights, len(np.unique(self.ssoObs["night"])))
-        nNightsMetric = metrics.NNightsMetric(snrLimit=None)
+        nNightsMetric = metrics.NNightsMetric(snr_limit=None)
         nnights = nNightsMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(nnights, len(np.unique(self.ssoObs["night"])) - 2)
 
     def testArcMetric(self):
-        arcMetric = metrics.ObsArcMetric(snrLimit=5)
+        arcMetric = metrics.ObsArcMetric(snr_limit=5)
         arc = arcMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(
             arc,
             self.ssoObs["observationStartMJD"][-1]
             - self.ssoObs["observationStartMJD"][0],
         )
-        arcMetric = metrics.ObsArcMetric(snrLimit=None)
+        arcMetric = metrics.ObsArcMetric(snr_limit=None)
         arc = arcMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(
             arc,
@@ -123,13 +123,17 @@ class TestMoMetrics1(unittest.TestCase):
         orb["H"] = 35.526041
         orb["g"] = 0.15
         o = pd.DataFrame(orb)
-        activityPeriodMetric = metrics.ActivityOverPeriodMetric(binsize=360, snrLimit=5)
+        activityPeriodMetric = metrics.ActivityOverPeriodMetric(
+            binsize=360, snr_limit=5
+        )
         activity = activityPeriodMetric.run(self.ssoObs, o.iloc[0], self.Hval)
         self.assertEqual(activity, 1.0)
-        activityPeriodMetric = metrics.ActivityOverPeriodMetric(binsize=720, snrLimit=5)
+        activityPeriodMetric = metrics.ActivityOverPeriodMetric(
+            binsize=720, snr_limit=5
+        )
         activity = activityPeriodMetric.run(self.ssoObs, o.iloc[0], self.Hval)
         self.assertEqual(activity, 1.0)
-        activityPeriodMetric = metrics.ActivityOverPeriodMetric(binsize=10, snrLimit=5)
+        activityPeriodMetric = metrics.ActivityOverPeriodMetric(binsize=10, snr_limit=5)
         activity = activityPeriodMetric.run(self.ssoObs, o.iloc[0], self.Hval)
         self.assertLess(activity, 0.03)
         # different type of orbit - currently should fail quietly
@@ -161,10 +165,14 @@ class TestMoMetrics1(unittest.TestCase):
         orb["H"] = 35.526041
         orb["g"] = 0.15
         o = pd.DataFrame(orb)
-        activityPeriodMetric = metrics.ActivityOverPeriodMetric(binsize=360, snrLimit=5)
+        activityPeriodMetric = metrics.ActivityOverPeriodMetric(
+            binsize=360, snr_limit=5
+        )
         activity = activityPeriodMetric.run(self.ssoObs, o.iloc[0], self.Hval)
         self.assertEqual(activity, 1.0)
-        activityPeriodMetric = metrics.ActivityOverPeriodMetric(binsize=180, snrLimit=5)
+        activityPeriodMetric = metrics.ActivityOverPeriodMetric(
+            binsize=180, snr_limit=5
+        )
         activity = activityPeriodMetric.run(self.ssoObs, o.iloc[0], self.Hval)
         self.assertEqual(activity, 0.5)
 
@@ -239,7 +247,7 @@ class TestDiscoveryMetrics(unittest.TestCase):
             tMax=0.3,
             nNightsPerWindow=3,
             tWindow=9,
-            snrLimit=5,
+            snr_limit=5,
         )
         metricValue = discMetric.run(self.ssoObs, self.orb, self.Hval)
         child = metrics.Discovery_N_ObsMetric(discMetric, i=0)
@@ -266,32 +274,32 @@ class TestDiscoveryMetrics(unittest.TestCase):
         self.assertEqual(lon, 10)
         self.assertEqual(lat, 25)
 
-        discMetric3 = metrics.MagicDiscoveryMetric(nObs=5, tWindow=2, snrLimit=5)
+        discMetric3 = metrics.MagicDiscoveryMetric(nObs=5, tWindow=2, snr_limit=5)
         magic = discMetric3.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(magic, 1)
-        discMetric3 = metrics.MagicDiscoveryMetric(nObs=3, tWindow=1, snrLimit=5)
+        discMetric3 = metrics.MagicDiscoveryMetric(nObs=3, tWindow=1, snr_limit=5)
         magic = discMetric3.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(magic, 2)
-        discMetric3 = metrics.MagicDiscoveryMetric(nObs=4, tWindow=4, snrLimit=5)
+        discMetric3 = metrics.MagicDiscoveryMetric(nObs=4, tWindow=4, snr_limit=5)
         magic = discMetric3.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(magic, 4)
 
     def testHighVelocityMetric(self):
         rng = np.random.RandomState(8123)
-        velMetric = metrics.HighVelocityMetric(psfFactor=1.0, snrLimit=5)
+        velMetric = metrics.HighVelocityMetric(psfFactor=1.0, snr_limit=5)
         metricValue = velMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(metricValue, 0)
         self.ssoObs["velocity"][0:2] = 1.5
         metricValue = velMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(metricValue, 2)
-        velMetric = metrics.HighVelocityMetric(psfFactor=2.0, snrLimit=5)
+        velMetric = metrics.HighVelocityMetric(psfFactor=2.0, snr_limit=5)
         metricValue = velMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(metricValue, 0)
         self.ssoObs["velocity"][0:2] = rng.rand(1)
 
     def testHighVelocityNightsMetric(self):
         velMetric = metrics.HighVelocityNightsMetric(
-            psfFactor=1.0, nObsPerNight=1, snrLimit=5
+            psfFactor=1.0, nObsPerNight=1, snr_limit=5
         )
         metricValue = velMetric.run(self.ssoObs, self.orb, self.Hval)
         self.assertEqual(metricValue, 0)

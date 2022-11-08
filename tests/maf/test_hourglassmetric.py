@@ -18,9 +18,9 @@ class TestHourglassmetric(unittest.TestCase):
         data["night"] = np.floor(data["observationStartMJD"] - day0)
         data["filter"] = "r"
         data["filter"][-1] = "g"
-        slicePoint = [0]
+        slice_point = [0]
         metric = metrics.HourglassMetric()
-        result = metric.run(data, slicePoint)
+        result = metric.run(data, slice_point)
         pernight = result["pernight"]
         perfilter = result["perfilter"]
 

@@ -67,16 +67,16 @@ class MoObjSlicer(BaseSlicer):
         self.orbits = orb.orbits
         # Then go on as previously. Need to refactor this into 'setup_slicer' style.
         self.nSso = len(self.orbits)
-        self.slicePoints = {}
-        self.slicePoints["orbits"] = self.orbits
+        self.slice_points = {}
+        self.slice_points["orbits"] = self.orbits
         # And set the slicer shape/size.
         if self.Hrange is not None:
             self.shape = [self.nSso, len(self.Hrange)]
-            self.slicePoints["H"] = self.Hrange
+            self.slice_points["H"] = self.Hrange
         else:
             self.shape = [self.nSso, 1]
-            self.slicePoints["H"] = self.orbits["H"]
-        # Set the rest of the slicePoint information once
+            self.slice_points["H"] = self.orbits["H"]
+        # Set the rest of the slice_point information once
         self.nslice = self.shape[0] * self.shape[1]
 
     def read_obs(self, obsFile):
@@ -175,7 +175,7 @@ class MoObjSlicer(BaseSlicer):
             if other_slicer.orbit_file == self.orbit_file:
                 if other_slicer.obsFile == self.obsFile:
                     if np.array_equal(
-                        other_slicer.slicePoints["H"], self.slicePoints["H"]
+                        other_slicer.slice_points["H"], self.slice_points["H"]
                     ):
                         result = True
         return result

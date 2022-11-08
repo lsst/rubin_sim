@@ -49,7 +49,7 @@ class TestSimpleMetrics(unittest.TestCase):
 
     def testCoaddm5Metric(self):
         """Test coaddm5 metric."""
-        testmetric = metrics.Coaddm5Metric(m5Col="testdata")
+        testmetric = metrics.Coaddm5Metric(m5_col="testdata")
         self.assertEqual(
             testmetric.run(self.dv),
             1.25 * np.log10(np.sum(10.0 ** (0.8 * self.dv["testdata"]))),
@@ -82,7 +82,7 @@ class TestSimpleMetrics(unittest.TestCase):
 
     def testCountRatioMetric(self):
         """Test countratio metric."""
-        testmetric = metrics.CountRatioMetric("testdata", normVal=2.0)
+        testmetric = metrics.CountRatioMetric("testdata", norm_val=2.0)
         self.assertEqual(testmetric.run(self.dv), np.size(self.dv["testdata"]) / 2.0)
 
     def testCountSubsetMetric(self):
@@ -143,11 +143,11 @@ class TestSimpleMetrics(unittest.TestCase):
 
     def testNoutliersNsigma(self):
         data = self.dv
-        testmetric = metrics.NoutliersNsigmaMetric("testdata", nSigma=1.0)
+        testmetric = metrics.NoutliersNsigmaMetric("testdata", n_sigma=1.0)
         med = np.mean(data["testdata"])
         shouldBe = np.size(np.where(data["testdata"] > med + data["testdata"].std())[0])
         self.assertEqual(shouldBe, testmetric.run(data))
-        testmetric = metrics.NoutliersNsigmaMetric("testdata", nSigma=-1.0)
+        testmetric = metrics.NoutliersNsigmaMetric("testdata", n_sigma=-1.0)
         shouldBe = np.size(np.where(data["testdata"] < med - data["testdata"].std())[0])
         self.assertEqual(shouldBe, testmetric.run(data))
 

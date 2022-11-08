@@ -132,9 +132,9 @@ def generate_presto_pop_slicer(
     # Set up the slicer to evaluate the catalog we just made
     slicer = slicers.UserPointsSlicer(ra, dec, lat_lon_deg=True, badval=0)
     # Add any additional information about each object to the slicer
-    slicer.slicePoints["peak_time"] = peak_times
-    slicer.slicePoints["file_indx"] = file_indx
-    slicer.slicePoints["distance"] = distance
+    slicer.slice_points["peak_time"] = peak_times
+    slicer.slice_points["file_indx"] = file_indx
+    slicer.slice_points["distance"] = distance
     return slicer
 
 

@@ -132,9 +132,9 @@ class MovieSlicer(BaseSlicer):
                 )
         # Set nbins to be one less than # of bins because last binvalue is RH edge only
         self.nslice = len(self.bins) - 1
-        # Set slicePoint metadata.
-        self.slicePoints["sid"] = np.arange(self.nslice)
-        self.slicePoints["bins"] = self.bins
+        # Set slice_point metadata.
+        self.slice_points["sid"] = np.arange(self.nslice)
+        self.slice_points["bins"] = self.bins
         # Add metadata from maps.
         self._run_maps(maps)
         # Set up data slicing.
@@ -166,7 +166,7 @@ class MovieSlicer(BaseSlicer):
                 idxs = self.sim_idxs[0 : self.left[islice + 1]]
                 return {
                     "idxs": idxs,
-                    "slicePoint": {
+                    "slice_point": {
                         "sid": islice,
                         "binLeft": self.bins[0],
                         "binRight": self.bins[islice + 1],
@@ -184,7 +184,7 @@ class MovieSlicer(BaseSlicer):
                 idxs = self.sim_idxs[self.left[islice] : self.left[islice + 1]]
                 return {
                     "idxs": idxs,
-                    "slicePoint": {
+                    "slice_point": {
                         "sid": islice,
                         "binLeft": self.bins[islice],
                         "binRight": self.bins[islice + 1],
@@ -199,7 +199,7 @@ class MovieSlicer(BaseSlicer):
         """
         if isinstance(other_slicer, MovieSlicer):
             return np.array_equal(
-                other_slicer.slicePoints["bins"], self.slicePoints["bins"]
+                other_slicer.slice_points["bins"], self.slice_points["bins"]
             )
         else:
             return False
