@@ -6,7 +6,7 @@ import healpy as hp
 __all__ = ["SatelliteAvoidBasisFunction"]
 
 
-class SatelliteAvoidBasisFunction(bf.Base_basis_function):
+class SatelliteAvoidBasisFunction(bf.BaseBasisFunction):
     """Class to take satellite position information from the conditions object and avoid streaks
 
     Parameters
