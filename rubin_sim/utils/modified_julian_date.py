@@ -5,7 +5,7 @@ import copy
 from astropy.time import Time
 from astropy.utils.iers.iers import IERSRangeError
 
-__all__ = ["ModifiedJulianDate", "MJDWarning", "utctout1Warning"]
+__all__ = ["ModifiedJulianDate", "MJDWarning", "Utctout1Warning"]
 
 
 # Filter out ERFA's complaints that we are simulating dates which
@@ -23,12 +23,12 @@ class MJDWarning(Warning):
     pass
 
 
-class utctout1Warning(MJDWarning):
+class Utctout1Warning(MJDWarning):
     """
     A sub-class of MJDWarning meant for use when astropy.Time cannot interpolate
     ut1-utc as a function of utc because utc is out of bounds of the data.
     This class exists so that users can filter these warnings out by creating
-    a simple filter targeted at category=utctout1Warning.
+    a simple filter targeted at category=Utctout1Warning.
     """
 
     pass
@@ -53,7 +53,7 @@ class ModifiedJulianDate(object):
                 "ModifiedJulianData.get_list() was given date values that are outside "
                 "astropy's range of interpolation for converting from utc to ut1. "
                 "We will treat ut1=utc for those dates, lacking a better alternative.",
-                category=utctout1Warning,
+                category=Utctout1Warning,
             )
             from astropy.utils.iers import (
                 TIME_BEFORE_IERS_RANGE,
@@ -208,7 +208,7 @@ class ModifiedJulianDate(object):
             "utc is outside of IERS table for ut1-utc.\n"
             "Returning ut1 = utc for lack of a better idea\n"
             "This warning was caused by calling ModifiedJulianDate.%s\n" % method_name,
-            category=utctout1Warning,
+            category=Utctout1Warning,
         )
 
     @property

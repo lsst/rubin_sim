@@ -5,7 +5,7 @@ import numpy as np
 import os
 import copy
 import inspect
-from rubin_sim.utils import ModifiedJulianDate, utctout1Warning
+from rubin_sim.utils import ModifiedJulianDate, Utctout1Warning
 from rubin_sim.data import get_data_dir
 import rubin_sim
 
@@ -214,7 +214,7 @@ class MjdTest(unittest.TestCase):
     def test_warnings(self):
         """
         Test that warnings raised when trying to interpolate ut1-utc
-        for utc too far in the future are of the type utctout1Warning
+        for utc too far in the future are of the type Utctout1Warning
         """
         with warnings.catch_warnings(record=True) as w_list:
             mjd = ModifiedJulianDate(1000000.0)
@@ -231,7 +231,7 @@ class MjdTest(unittest.TestCase):
         mjd_warnings = 0
         for w in w_list:
             # Count the number of warnings and test we can filter by category.
-            if w.category == utctout1Warning:
+            if w.category == Utctout1Warning:
                 mjd_warnings += 1
                 # Test that the string "ModifiedJulianDate.ut1" actually showed up in the message.
                 # This indicates what method the warning occured from (ut1 vs dut).
@@ -239,7 +239,7 @@ class MjdTest(unittest.TestCase):
         self.assertEqual(
             expected_mjd_warnings,
             mjd_warnings,
-            msg="ut1 did not emit a utctout1Warning",
+            msg="ut1 did not emit a Utctout1Warning",
         )
 
         expected_mjd_warnings = 1
@@ -249,13 +249,13 @@ class MjdTest(unittest.TestCase):
             mjd = ModifiedJulianDate(1000000.0)
             mjd.dut1
         for w in w_list:
-            if w.category == utctout1Warning:
+            if w.category == Utctout1Warning:
                 mjd_warnings += 1
                 self.assertIn("ModifiedJulianDate.dut1", str(w.message))
         self.assertEqual(
             expected_mjd_warnings,
             mjd_warnings,
-            msg="dut1 did not emit a utctout1Warning",
+            msg="dut1 did not emit a Utctout1Warning",
         )
 
     def test_force_values(self):

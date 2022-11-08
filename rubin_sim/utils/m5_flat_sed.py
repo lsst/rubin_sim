@@ -109,37 +109,37 @@ def m5_flat_sed(visit_filter, musky, fwhm_eff, exp_time, airmass, nexp=1, tau_cl
 
     # Only define the dicts once on initial call
     if not hasattr(m5_flat_sed, "Cm"):
-        # Using Cm / dCm_infinity values calculated for a 1x30s visit.
+        # Using Cm / d_cm_infinity values calculated for a 1x30s visit.
         # This results in an error of about 0.01 mag in u band for 2x15s visits (< in other bands)
         # See https://github.com/lsst-pst/survey_strategy/blob/master/fbs_1.3/m5FlatSed%20update.ipynb
         # for a more in-depth evaluation.
         sev = SysEngVals()
 
-        m5_flat_sed.baseExpTime = sev.exptime
-        m5_flat_sed.Cm = sev.cm
-        m5_flat_sed.dCm_infinity = sev.d_cm_infinity
-        m5_flat_sed.kAtm = sev.k_atm
+        m5_flat_sed.base_exp_time = sev.exptime
+        m5_flat_sed.cm = sev.cm
+        m5_flat_sed.d_cm_infinity = sev.d_cm_infinity
+        m5_flat_sed.k_atm = sev.k_atm
         m5_flat_sed.msky = sev.sky_mag
     # Calculate adjustment if readnoise is significant for exposure time
     # (see overview paper, equation 7)
     tscale = (
         exp_time
-        / m5_flat_sed.baseExpTime
+        / m5_flat_sed.base_exp_time
         * np.power(10.0, -0.4 * (musky - m5_flat_sed.msky[visit_filter]))
     )
     d_cm = 0.0
-    d_cm += m5_flat_sed.dCm_infinity[visit_filter]
+    d_cm += m5_flat_sed.d_cm_infinity[visit_filter]
     d_cm -= 1.25 * np.log10(
-        1 + (10 ** (0.8 * m5_flat_sed.dCm_infinity[visit_filter]) - 1) / tscale
+        1 + (10 ** (0.8 * m5_flat_sed.d_cm_infinity[visit_filter]) - 1) / tscale
     )
-    # Calculate m5 for 1 exp - 30s and other constants here come from definition of Cm/dCm_infinity
+    # Calculate m5 for 1 exp - 30s and other constants here come from definition of Cm/d_cm_infinity
     m5 = (
-        m5_flat_sed.Cm[visit_filter]
+        m5_flat_sed.cm[visit_filter]
         + d_cm
         + 0.50 * (musky - 21.0)
         + 2.5 * np.log10(0.7 / fwhm_eff)
         + 1.25 * np.log10(exp_time / 30.0)
-        - m5_flat_sed.kAtm[visit_filter] * (airmass - 1.0)
+        - m5_flat_sed.k_atm[visit_filter] * (airmass - 1.0)
         - 1.1 * tau_cloud
     )
     # Then combine with coadd if >1 exposure

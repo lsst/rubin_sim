@@ -606,7 +606,7 @@ class SkyModel(object):
         self.az_rel_moon = calc_az_rel_moon(self.azs, self.moon_az)
         self.points["moonAltitude"] += np.degrees(self.moon_alt)
         self.points["azRelMoon"] = self.az_rel_moon
-        self.moonSunSep = self.moon_phase / 100.0 * np.pi
+        self.moon_sun_sep = self.moon_phase / 100.0 * np.pi
         self.points["moonSunSep"] += self.moon_phase / 100.0 * 180.0
 
         self.eclip_lon = convert_func(eclip_lon)
