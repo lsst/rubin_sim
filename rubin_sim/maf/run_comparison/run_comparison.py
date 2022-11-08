@@ -236,7 +236,9 @@ class RunComparison:
         stats = pd.DataFrame(summary_values).T
         return stats
 
-    def add_summary_stats(self, metric_dict=None, summary_name_like=None, verbose=False):
+    def add_summary_stats(
+        self, metric_dict=None, summary_name_like=None, verbose=False
+    ):
         """
         Combine the summary statistics of a set of metrics into a pandas
         dataframe that is indexed by the opsim run name.
