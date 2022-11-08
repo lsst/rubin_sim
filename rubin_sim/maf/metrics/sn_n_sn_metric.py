@@ -146,7 +146,11 @@ class SNNSNMetric(BaseMetric):
         ]
 
         super(SNNSNMetric, self).__init__(
-            col=cols, metric_dtype="object", metric_name=metric_name, maps=maps, **kwargs
+            col=cols,
+            metric_dtype="object",
+            metric_name=metric_name,
+            maps=maps,
+            **kwargs,
         )
 
         self.season = season

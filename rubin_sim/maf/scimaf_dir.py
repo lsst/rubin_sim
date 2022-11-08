@@ -55,8 +55,8 @@ def scimaf_dir():
             out_dir,
             "trackingDb_sqlite.db",
             run_group=None,
-            opsim_run=name,
-            opsim_comment=None,
+            run_name=name,
+            run_comment=None,
             maf_comment="ScienceRadar",
             db_file=name + ".db",
         )

@@ -2,7 +2,7 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.metric_bundles as mb
 from .col_map_dict import col_map_dict
-from .common import standardSummary
+from .common import standard_summary
 
 __all__ = ["filtersPerNight", "filtersWholeSurvey"]
 
@@ -22,7 +22,9 @@ def setupMetrics(colmap, wholesurvey=False):
     else:
         metric_list.append(
             metrics.NChangesMetric(
-                col=colmap["filter"], order_by=colmap["mjd"], metric_name="Filter Changes"
+                col=colmap["filter"],
+                order_by=colmap["mjd"],
+                metric_name="Filter Changes",
             )
         )
     caption_list.append("Total filter changes ")
@@ -111,7 +113,7 @@ def filtersPerNight(
     metacaption += "."
 
     displayDict = {"group": "Filter Changes", "subgroup": info_label}
-    summaryStats = standardSummary()
+    summaryStats = standard_summary()
 
     slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], binsize=nights)
     metricList, captionList = setupMetrics(colmap)

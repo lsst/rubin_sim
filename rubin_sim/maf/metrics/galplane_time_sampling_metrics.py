@@ -95,7 +95,10 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
             newmethod = help_set_reduce_func(self, None, tau)
             setattr(self, tau_reduce_name, MethodType(newmethod, tau_reduce_name))
         super().__init__(
-            col=[self.mjd_col, self.m5_col], metric_name=metric_name, maps=maps, **kwargs
+            col=[self.mjd_col, self.m5_col],
+            metric_name=metric_name,
+            maps=maps,
+            **kwargs,
         )
         for i, tau in enumerate(self.tau_obs):
             self.reduce_order[
@@ -189,7 +192,9 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
             tau_reduce_name = f"reduceTau_{tau:.1f}".replace(".", "_")
             newmethod = help_set_reduce_func(self, None, tau)
             setattr(self, tau_reduce_name, MethodType(newmethod, tau_reduce_name))
-        super().__init__(col=[self.mjd_col, self.m5_col], metric_name=metric_name, **kwargs)
+        super().__init__(
+            col=[self.mjd_col, self.m5_col], metric_name=metric_name, **kwargs
+        )
         for i, tau in enumerate(self.tau_var):
             self.reduce_order[
                 f"reduceTau_{tau:.1f}".replace(".", "_").replace("reduce", "")

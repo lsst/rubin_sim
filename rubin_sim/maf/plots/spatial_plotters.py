@@ -421,7 +421,9 @@ class BaseHistogram(BasePlotter):
         metric_value = apply_zp_norm(metric_value_in, plot_dict)
         # Toss any NaNs or infs
         metric_value = metric_value[np.isfinite(metric_value)]
-        x_min, x_max = set_color_lims(metric_value, plot_dict, key_min="x_min", key_max="x_max")
+        x_min, x_max = set_color_lims(
+            metric_value, plot_dict, key_min="x_min", key_max="x_max"
+        )
         metric_value = metric_value.compressed()
         # Set up the bins for the histogram. User specified 'bins' overrides 'binsize'.
         # Note that 'bins' could be a single number or an array, simply passed to plt.histogram.
@@ -594,7 +596,11 @@ class BaseSkyMap(BasePlotter):
         ax.plot(lon, dec_ec, "r.", markersize=1.8, alpha=0.4)
 
     def _plot_mw_zone(
-        self, ra_cen=0, peak_width=np.radians(10.0), taper_length=np.radians(80.0), ax=None
+        self,
+        ra_cen=0,
+        peak_width=np.radians(10.0),
+        taper_length=np.radians(80.0),
+        ax=None,
     ):
         """
         Plot blue lines to mark the milky way galactic exclusion zone.
@@ -800,7 +806,9 @@ class HealpixSDSSSkyMap(BasePlotter):
             norm = "log"
         clims = set_color_lims(metric_value, plot_dict)
         cmap = set_color_map(plot_dict)
-        racenters = np.arange(plot_dict["raMin"], plot_dict["raMax"], plot_dict["raLen"])
+        racenters = np.arange(
+            plot_dict["raMin"], plot_dict["raMax"], plot_dict["raLen"]
+        )
         nframes = racenters.size
         fig = plt.figure(fignum)
         # Do not specify or use plot_dict['subplot'] because this is done in each call to hp.cartview.

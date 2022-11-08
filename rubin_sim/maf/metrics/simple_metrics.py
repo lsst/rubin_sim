@@ -68,7 +68,9 @@ class Coaddm5Metric(BaseMetric):
     """
 
     def __init__(self, m5_col="fiveSigmaDepth", metric_name="CoaddM5", **kwargs):
-        super(Coaddm5Metric, self).__init__(col=m5_col, metric_name=metric_name, **kwargs)
+        super(Coaddm5Metric, self).__init__(
+            col=m5_col, metric_name=metric_name, **kwargs
+        )
 
     def run(self, data_slice, slice_point=None):
         # Running this metric directly from the slicer, this should never come up.
@@ -214,7 +216,9 @@ class CountRatioMetric(BaseMetric):
         self.norm_val = float(norm_val)
         if metric_name is None:
             metric_name = "CountRatio %s div %.1f" % (col, norm_val)
-        super(CountRatioMetric, self).__init__(col=col, metric_name=metric_name, **kwargs)
+        super(CountRatioMetric, self).__init__(
+            col=col, metric_name=metric_name, **kwargs
+        )
 
     def run(self, data_slice, slice_point=None):
         return len(data_slice[self.colname]) / self.norm_val
@@ -346,7 +350,9 @@ class PercentileMetric(BaseMetric):
     def __init__(self, col=None, percentile=90, metric_name=None, **kwargs):
         if metric_name is None:
             metric_name = "%.0fth%sile %s" % (percentile, "%", col)
-        super(PercentileMetric, self).__init__(col=col, metric_name=metric_name, **kwargs)
+        super(PercentileMetric, self).__init__(
+            col=col, metric_name=metric_name, **kwargs
+        )
         self.percentile = percentile
 
     def run(self, data_slice, slice_point=None):

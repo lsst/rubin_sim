@@ -152,7 +152,9 @@ class VolumeSumMetric(BaseMetric):
     """Compute the total volume assuming a metric has values of distance"""
 
     def __init__(self, col=None, metric_name="VolumeSum", nside=None, **kwargs):
-        super(VolumeSumMetric, self).__init__(col=col, metric_name=metric_name, **kwargs)
+        super(VolumeSumMetric, self).__init__(
+            col=col, metric_name=metric_name, **kwargs
+        )
         self.pix_area = hp.nside2pixarea(nside)
 
     def run(self, data_slice, slice_point=None):

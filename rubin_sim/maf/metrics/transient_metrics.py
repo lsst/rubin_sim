@@ -170,11 +170,17 @@ class TransientMetric(BaseMetric):
         """
         # Total number of transients that could go off back-to-back
         if self.count_method == "partialLC":
-            _n_trans_max = np.ceil(self.survey_duration / (self.trans_duration / 365.25))
+            _n_trans_max = np.ceil(
+                self.survey_duration / (self.trans_duration / 365.25)
+            )
         else:
-            _n_trans_max = np.floor(self.survey_duration / (self.trans_duration / 365.25))
+            _n_trans_max = np.floor(
+                self.survey_duration / (self.trans_duration / 365.25)
+            )
         tshifts = (
-            np.arange(self.n_phase_check) * self.trans_duration / float(self.n_phase_check)
+            np.arange(self.n_phase_check)
+            * self.trans_duration
+            / float(self.n_phase_check)
         )
         n_detected = 0
         n_trans_max = 0
@@ -186,7 +192,9 @@ class TransientMetric(BaseMetric):
                 n_trans_max -= 1
             if self.survey_start is None:
                 survey_start = data_slice[self.mjd_col].min()
-            time = (data_slice[self.mjd_col] - survey_start + tshift) % self.trans_duration
+            time = (
+                data_slice[self.mjd_col] - survey_start + tshift
+            ) % self.trans_duration
 
             # Which lightcurve does each point belong to
             lc_number = np.floor(
@@ -200,7 +208,9 @@ class TransientMetric(BaseMetric):
 
             # Flag points that are above the SNR limit
             detected = np.zeros(data_slice.size, dtype=int)
-            detected[np.where(lc_mags < data_slice[self.m5_col] + self.detect_m5_plus)] += 1
+            detected[
+                np.where(lc_mags < data_slice[self.m5_col] + self.detect_m5_plus)
+            ] += 1
             detect_thresh += 1
 
             # If we demand points on the rise

@@ -125,7 +125,10 @@ class MovieSlicer(BaseSlicer):
                 nbins = int(self.bins)
                 self.binsize = (self.bin_max - self.bin_min) / float(nbins)
                 self.bins = np.arange(
-                    self.bin_min, self.bin_max + self.binsize / 2.0, self.binsize, "float"
+                    self.bin_min,
+                    self.bin_max + self.binsize / 2.0,
+                    self.binsize,
+                    "float",
                 )
         # Set nbins to be one less than # of bins because last binvalue is RH edge only
         self.nslice = len(self.bins) - 1
@@ -227,7 +230,8 @@ class MovieSlicer(BaseSlicer):
             str(ips),
             "-i",
             os.path.join(
-                out_dir, "%s_%s_%s.%s" % (outfileroot, sliceformat, plot_type, figformat)
+                out_dir,
+                "%s_%s_%s.%s" % (outfileroot, sliceformat, plot_type, figformat),
             ),
             "-vf",
             "pad=ceil(iw/2)*2:ceil(ih/2)*2",
@@ -240,7 +244,8 @@ class MovieSlicer(BaseSlicer):
             "-preset",
             "slower",
             os.path.join(
-                out_dir, "%s_%s_%s_%s.mp4" % (outfileroot, plot_type, str(ips), str(fps))
+                out_dir,
+                "%s_%s_%s_%s.mp4" % (outfileroot, plot_type, str(ips), str(fps)),
             ),
         ]
         print("Attempting to call ffmpeg with:")
@@ -251,7 +256,8 @@ class MovieSlicer(BaseSlicer):
             "ffmpeg",
             "-i",
             os.path.join(
-                out_dir, "%s_%s_%s_%s.mp4" % (outfileroot, plot_type, str(ips), str(fps))
+                out_dir,
+                "%s_%s_%s_%s.mp4" % (outfileroot, plot_type, str(ips), str(fps)),
             ),
             "-vf",
             "pad=ceil(iw/2)*2:ceil(ih/2)*2",
@@ -260,7 +266,8 @@ class MovieSlicer(BaseSlicer):
             "-r",
             str(10),
             os.path.join(
-                out_dir, "%s_%s_%s_%s.gif" % (outfileroot, plot_type, str(ips), str(fps))
+                out_dir,
+                "%s_%s_%s_%s.gif" % (outfileroot, plot_type, str(ips), str(fps)),
             ),
         ]
         print("converting to animated gif with:")

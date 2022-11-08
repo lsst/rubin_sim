@@ -111,7 +111,7 @@ def run_moving_calc():
     )
     args = parser.parse_args()
 
-    run_name = args.pointings_db.replace('.db', '')
+    run_name = args.pointings_db.replace(".db", "")
 
     if args.orbit_file is None or args.obs_file is None:
         print("Must specify an orbit_file and an obs_file to calculate the metrics.")
@@ -119,9 +119,9 @@ def run_moving_calc():
 
     # Get default H and other values:
     defaults = batches.ss_population_defaults(args.objtype)
-    h_min = defaults["Hrange"][0]
-    h_max = defaults["Hrange"][1]
-    h_step = defaults["Hrange"][2]
+    h_min = defaults["h_range"][0]
+    h_max = defaults["h_range"][1]
+    h_step = defaults["h_range"][2]
     h_mark = defaults["h_mark"]
     characterization = defaults["char"]
     magtype = defaults["magtype"]
@@ -148,7 +148,7 @@ def run_moving_calc():
     times = np.arange(0, args.n_years_max * 365 + stepsize / 2, stepsize)
     times += start_time
 
-    # Set up resultsDb.
+    # Set up results_db.
     if not (os.path.isdir(args.outDir)):
         try:
             os.makedirs(args.outDir)
@@ -161,7 +161,7 @@ def run_moving_calc():
     colmap = batches.ColMapDict()
     slicer = batches.setup_mo_slicer(args.orbit_file, Hrange, obs_file=args.obs_file)
     # Run discovery metrics using 'trailing' losses
-    bdictT = batches.quickDiscoveryBatch(
+    bdictT = batches.quick_discovery_batch(
         slicer,
         colmap=colmap,
         run_name=run_name,
@@ -178,7 +178,7 @@ def run_moving_calc():
     bg.runAll()
 
     # Run all discovery metrics using 'detection' losses
-    bdictD = batches.quickDiscoveryBatch(
+    bdictD = batches.quick_discovery_batch(
         slicer,
         colmap=colmap,
         run_name=run_name,
@@ -189,7 +189,7 @@ def run_moving_calc():
         albedo=args.albedo,
         h_mark=h_mark,
     )
-    bdict = batches.discoveryBatch(
+    bdict = batches.discovery_batch(
         slicer,
         colmap=colmap,
         run_name=run_name,
@@ -209,7 +209,7 @@ def run_moving_calc():
 
     # Run all characterization metrics
     if characterization.lower() == "inner":
-        bdictC = batches.characterizationInnerBatch(
+        bdictC = batches.characterization_inner_batch(
             slicer,
             colmap=colmap,
             run_name=run_name,
@@ -220,7 +220,7 @@ def run_moving_calc():
             h_mark=h_mark,
         )
     elif characterization.lower() == "outer":
-        bdictC = batches.characterizationOuterBatch(
+        bdictC = batches.characterization_outer_batch(
             slicer,
             colmap=colmap,
             run_name=run_name,

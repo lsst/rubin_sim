@@ -30,7 +30,7 @@ def ddfBatch(
     extraSql : `str` (None)
         Additional sql constraint (such as night<=365) to add to the necessary sql constraints below
     extra_info_label : `str` (None)
-        Additional description information to add (alongside the extraSql)
+        Additional description information to add (alongside the extra_sql)
     """
 
     bundle_list = []
@@ -85,8 +85,8 @@ def ddfBatch(
     # Now define metrics
 
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, info_labels = maf.filterList(
-        all=True, extraSql=extraSql, extraInfoLabel=extra_info_label
+    filterlist, colors, orders, sqls, info_labels = maf.filter_list(
+        all=True, extra_sql=extraSql, extra_info_label=extra_info_label
     )
 
     summary_stats = [maf.MeanMetric(), maf.MedianMetric(), maf.SumMetric()]

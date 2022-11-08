@@ -89,7 +89,9 @@ class GeneralHourglassPlot(BasePlotter):
             "legend_bbox_to_anchor": (0.9, 0.0),
             "legend_loc": "lower right",
         }
-        self.plot_dict = copy.copy(self.default_plot_dict)  # pylint: disable=invalid-name
+        self.plot_dict = copy.copy(
+            self.default_plot_dict
+        )  # pylint: disable=invalid-name
         self.tz = tz  # pylint: disable=invalid-name
         if isinstance(site, str):
             self.site = astropy.coordinates.EarthLocation.of_site(site)
@@ -355,7 +357,9 @@ class GeneralHourglassPlot(BasePlotter):
         )
         # Set up a copy of the plot dict to contain entries relevant
         # for this plot
-        self.plot_dict = copy.copy(self.default_plot_dict)  # pylint: disable=invalid-name
+        self.plot_dict = copy.copy(
+            self.default_plot_dict
+        )  # pylint: disable=invalid-name
         self.plot_dict.update(user_plot_dict)
 
         # Generate the figure

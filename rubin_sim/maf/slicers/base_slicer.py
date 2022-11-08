@@ -226,7 +226,12 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         )
 
     def output_json(
-        self, metric_values, metric_name="", sim_data_name="", info_label="", plot_dict=None
+        self,
+        metric_values,
+        metric_name="",
+        sim_data_name="",
+        info_label="",
+        plot_dict=None,
     ):
         """
         Send metric data to JSON streaming API, along with a little bit of metadata.
@@ -281,7 +286,10 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
             header["xlabel"] = plot_dict["xlabel"]
         else:
             if hasattr(self, "slice_col_name"):
-                header["xlabel"] = "%s (%s)" % (self.slice_col_name, self.slice_col_units)
+                header["xlabel"] = "%s (%s)" % (
+                    self.slice_col_name,
+                    self.slice_col_units,
+                )
             else:
                 header["xlabel"] = "%s" % metric_name
                 if "units" in plot_dict:
@@ -360,7 +368,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         -------
         np.ma.MaskedArray, rubin_sim.maf.slicer, dict
             MetricValues stored in data file, the slicer basis for those metric values, and a dictionary
-            containing header information (runName, metadata, etc.).
+            containing header information (run_name, metadata, etc.).
         """
         import rubin_sim.maf.slicers as slicers
 

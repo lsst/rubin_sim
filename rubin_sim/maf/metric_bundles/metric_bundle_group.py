@@ -121,10 +121,10 @@ class MetricBundleGroup(object):
         # Set the table we're going to be querying.
         self.db_table = db_table
 
-        # Check the resultsDb (optional).
+        # Check the results_db (optional).
         if results_db is not None:
             if not isinstance(results_db, db.ResultsDb):
-                raise ValueError("resultsDb should be an ResultsDb object")
+                raise ValueError("results_db should be an ResultsDb object")
         self.results_db = results_db
 
         # Dict to keep track of what's been run:
@@ -519,7 +519,7 @@ class MetricBundleGroup(object):
             for b in b_dict.values():
                 b.write(out_dir=self.out_dir, results_db=self.results_db)
         else:
-            # Just write the metric run information to the resultsDb
+            # Just write the metric run information to the results_db
             for b in b_dict.values():
                 b.write_db(results_db=self.results_db)
 
@@ -723,7 +723,7 @@ class MetricBundleGroup(object):
     def read_all(self):
         """Attempt to read all MetricBundles from disk.
 
-        You must set the metrics/slicer/constraint/runName for a metricBundle appropriately;
+        You must set the metrics/slicer/constraint/run_name for a metricBundle appropriately;
         then this method will search for files in the location self.out_dir/metricBundle.fileRoot.
         Reads all the files associated with all metricbundles in self.bundle_dict.
         """
@@ -755,7 +755,9 @@ class MetricBundleGroup(object):
                 orig_metric_name = bundle.metric.name
                 for reduce_func in bundle.metric.reduce_funcs.values():
                     reduce_name = (
-                        orig_metric_name + "_" + reduce_func.__name__.replace("reduce", "")
+                        orig_metric_name
+                        + "_"
+                        + reduce_func.__name__.replace("reduce", "")
                     )
                     # Borrow the fileRoot in b (we'll reset it appropriately afterwards).
                     bundle.metric.name = reduce_name
@@ -782,7 +784,9 @@ class MetricBundleGroup(object):
                             plot_funcs=bundle.plot_funcs,
                         )
                         newmetric_bundle.metric.name = reduce_name
-                        newmetric_bundle.metric_values = ma.copy(tmp_bundle.metric_values)
+                        newmetric_bundle.metric_values = ma.copy(
+                            tmp_bundle.metric_values
+                        )
                         # Add the new metricBundle to our metricBundleGroup dictionary.
                         name = newmetric_bundle.metric.name
                         if name in self.bundle_dict:

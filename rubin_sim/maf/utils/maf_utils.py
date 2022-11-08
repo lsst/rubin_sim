@@ -69,12 +69,19 @@ def collapse_night(
         )
 
         unights, median_mjd_per_night = int_binned_stat(
-            data_slice[night_col][infilt], data_slice[mjd_col][infilt], statistic=np.median
+            data_slice[night_col][infilt],
+            data_slice[mjd_col][infilt],
+            statistic=np.median,
         )
 
         night_slice[filtername] = np.array(
             list(zip(unight, median_mjd_per_night, coadds, filtername * len(unight))),
-            dtype=[(night_col, int), (mjd_col, float), (m5_col, float), (filter_col, "U1")],
+            dtype=[
+                (night_col, int),
+                (mjd_col, float),
+                (m5_col, float),
+                (filter_col, "U1"),
+            ],
         )
 
     night_slice = np.concatenate([night_slice[f] for f in night_slice])

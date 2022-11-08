@@ -6,7 +6,7 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.maps as maps
 import rubin_sim.maf.metric_bundles as mb
-from .common import standardSummary, extendedSummary, lightcurveSummary, filterList
+from .common import standard_summary, extended_summary, lightcurve_summary, filter_list
 import rubin_sim.maf as maf
 
 
@@ -35,7 +35,7 @@ def science_radar_batch(
 
     bundleList = []
     # Get some standard per-filter coloring and sql constraints
-    filterlist, colors, filterorders, filtersqls, filterinfo_label = filterList(
+    filterlist, colors, filterorders, filtersqls, filterinfo_label = filter_list(
         all=False
     )
     (
@@ -44,9 +44,9 @@ def science_radar_batch(
         allfilterorders,
         allfiltersqls,
         allfilterinfo_label,
-    ) = filterList(all=True)
+    ) = filter_list(all=True)
 
-    standardStats = standardSummary(withCount=False)
+    standardStats = standard_summary(withCount=False)
 
     # This is the default slicer for most purposes in this batch. Note that the cache is off -
     # if the metric requires a dust map, this is not the right slicer to use.
@@ -194,7 +194,7 @@ def science_radar_batch(
             percentile=95, metric_name="95th Percentile Parallax Uncert"
         )
     )
-    summary.extend(standardSummary())
+    summary.extend(standard_summary())
     for rmag, plotmax in zip(rmags_para, plotmaxVals):
         plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
         metric = metrics.ParallaxMetric(
@@ -229,7 +229,7 @@ def science_radar_batch(
             "",
             stacker_list=[parallaxStacker],
             display_dict=displayDict,
-            summary_metrics=standardSummary(),
+            summary_metrics=standard_summary(),
             plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
@@ -245,7 +245,7 @@ def science_radar_batch(
             "",
             stacker_list=[parallaxStacker],
             display_dict=displayDict,
-            summary_metrics=standardSummary(),
+            summary_metrics=standard_summary(),
             plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
@@ -266,7 +266,7 @@ def science_radar_batch(
             "",
             stacker_list=[dcrStacker, parallaxStacker],
             display_dict=displayDict,
-            summary_metrics=standardSummary(),
+            summary_metrics=standard_summary(),
             plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
@@ -288,7 +288,7 @@ def science_radar_batch(
     summary.append(
         metrics.PercentileMetric(metric_name="95th Percentile Proper Motion Uncert")
     )
-    summary.extend(standardSummary())
+    summary.extend(standard_summary())
     for rmag, plotmax in zip(rmags_pm, plotmaxVals):
         plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
         metric = metrics.ProperMotionMetric(
@@ -319,7 +319,7 @@ def science_radar_batch(
             healpixslicer,
             "",
             display_dict=displayDict,
-            summary_metrics=standardSummary(),
+            summary_metrics=standard_summary(),
             plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
@@ -337,7 +337,7 @@ def science_radar_batch(
         plot_dict=plotDict,
         plot_funcs=subsetPlots,
         display_dict=displayDict,
-        summary_metrics=standardSummary(withCount=False),
+        summary_metrics=standard_summary(withCount=False),
     )
     bundleList.append(bundle)
 
@@ -363,7 +363,7 @@ def science_radar_batch(
         plot_dict=plotDict,
         plot_funcs=subsetPlots,
         display_dict=displayDict,
-        summary_metrics=standardSummary(withCount=False),
+        summary_metrics=standard_summary(withCount=False),
     )
     bundleList.append(bundle)
     displayDict["order"] += 1
@@ -389,7 +389,9 @@ def science_radar_batch(
     plotDict = {"xMin": 0, "xMax": 1, "colorMin": 0, "colorMax": 1, "logScale": False}
     cutoff1 = 0.9
     summaryStats = [
-        metrics.FracAboveMetric(cutoff=cutoff1, scale=scale, metric_name="Area (sq deg)")
+        metrics.FracAboveMetric(
+            cutoff=cutoff1, scale=scale, metric_name="Area (sq deg)"
+        )
     ]
     caption = (
         "Rapid Revisit: area that receives at least %d visits between %.3f and %.1f minutes, "
@@ -476,7 +478,7 @@ def science_radar_batch(
     slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     for f in filterlist:
         plotDict = {"percentileClip": 95.0, "nTicks": 5, "color": colors[f]}
-        metric = maf.GalaxyCountsMetric_extended(
+        metric = maf.GalaxyCountsMetricExtended(
             filter_band=f, redshift_bin="all", nside=nside
         )
         displayDict[
@@ -594,7 +596,7 @@ def science_radar_batch(
             maps_list=[dustmap],
             info_label=info_label,
             summary_metrics=summaryMetrics
-                            + [ThreebyTwoSummary, ThreebyTwoSummary_simple],
+            + [ThreebyTwoSummary, ThreebyTwoSummary_simple],
             display_dict=displayDict,
         )
         displayDict["order"] += 1
@@ -613,8 +615,8 @@ def science_radar_batch(
     info_label = f"{bandpass} band galaxies non-DD"
     metric = maf.DepthLimitedNumGalMetric(
         nside=nside,
-        filterBand=bandpass,
-        redshiftBin="all",
+        filter_band=bandpass,
+        redshift_bin="all",
         nfilters_needed=nfilters_needed,
         lim_mag_i_ptsrc=mag_cuts[maxYr],
         lim_ebv=lim_ebv,
@@ -797,7 +799,7 @@ def science_radar_batch(
     # For v1.7.1 these values are:
     agn_m5 = {"u": 22.89, "g": 23.94, "r": 23.5, "i": 22.93, "z": 22.28, "y": 21.5}
     # And the expected medians SF error at those values is about 0.04
-    summaryMetrics = extendedSummary()
+    summaryMetrics = extended_summary()
     summaryMetrics += [
         metrics.AreaThresholdMetric(
             upper_threshold=0.03, metric_name="AreaThreshold_0.03"
@@ -838,7 +840,7 @@ def science_radar_batch(
     # Run the TimeLag for each filter *and* all filters
     nquist_threshold = 2.2
     lag = 100
-    summaryMetrics = extendedSummary()
+    summaryMetrics = extended_summary()
     summaryMetrics += [metrics.AreaThresholdMetric(lower_threshold=nquist_threshold)]
     m = metrics.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag)
     for f in allfilterlist:
@@ -871,7 +873,7 @@ def science_radar_batch(
     # Run the TimeLag for each filter *and* all filters but for 5 days
     nquist_threshold = 2.2
     lag = 5
-    summaryMetrics = extendedSummary()
+    summaryMetrics = extended_summary()
     summaryMetrics += [metrics.AreaThresholdMetric(lower_threshold=nquist_threshold)]
     m = metrics.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag)
     for f in allfilterlist:
@@ -1096,13 +1098,13 @@ def science_radar_batch(
     displayDict["caption"] = "TDE lightcurves that could be identified"
     displayDict["order"] = 0
     metric = maf.TdePopMetric()
-    tdeslicer = maf.generateTdePopSlicer()
+    tdeslicer = maf.generate_tde_pop_slicer()
     bundle = mb.MetricBundle(
         metric,
         tdeslicer,
         "",
         run_name=runName,
-        summary_metrics=lightcurveSummary(),
+        summary_metrics=lightcurve_summary(),
         display_dict=displayDict,
     )
     bundleList.append(bundle)
@@ -1114,7 +1116,7 @@ def science_radar_batch(
         tdeslicer,
         "",
         run_name=runName,
-        summary_metrics=lightcurveSummary(),
+        summary_metrics=lightcurve_summary(),
         display_dict=displayDict,
     )
     bundleList.append(bundle)
@@ -1138,7 +1140,7 @@ def science_radar_batch(
         [500, 1000],
     ]
     metric = maf.MicrolensingMetric()
-    summaryMetrics = maf.batches.lightcurveSummary()
+    summaryMetrics = maf.batches.lightcurve_summary()
     order = 0
     for crossing in crossing_times:
         displayDict[
@@ -1149,7 +1151,7 @@ def science_radar_batch(
         )
         displayDict["order"] = order
         order += 1
-        slicer = maf.generateMicrolensingSlicer(
+        slicer = maf.generate_microlensing_slicer(
             min_crossing_time=crossing[0],
             max_crossing_time=crossing[1],
             n_events=n_events,
@@ -1177,11 +1179,11 @@ def science_radar_batch(
             [30, 60],
             [200, 500],
         ]
-        metric_Npts = maf.MicrolensingMetric(metricCalc="Npts")
-        summaryMetrics = maf.batches.microlensingSummary(metricType="Npts")
+        metric_Npts = maf.MicrolensingMetric(metric_calc="Npts")
+        summaryMetrics = maf.batches.microlensing_summary(metric_type="Npts")
         order = 0
         for crossing in crossing_times:
-            slicer = maf.generateMicrolensingSlicer(
+            slicer = maf.generate_microlensing_slicer(
                 min_crossing_time=crossing[0],
                 max_crossing_time=crossing[1],
                 n_events=n_events,
@@ -1208,8 +1210,8 @@ def science_radar_batch(
                 )
             )
 
-        metric_Fisher = maf.MicrolensingMetric(metricCalc="Fisher")
-        summaryMetrics = maf.batches.microlensingSummary(metricType="Fisher")
+        metric_Fisher = maf.MicrolensingMetric(metric_calc="Fisher")
+        summaryMetrics = maf.batches.microlensing_summary(metric_type="Fisher")
         order = 0
         for crossing in crossing_times:
             displayDict[
@@ -1220,7 +1222,7 @@ def science_radar_batch(
             )
             displayDict["order"] = order
             order += 1
-            slicer = maf.generateMicrolensingSlicer(
+            slicer = maf.generate_microlensing_slicer(
                 min_crossing_time=crossing[0],
                 max_crossing_time=crossing[1],
                 n_events=n_events,
@@ -1252,12 +1254,12 @@ def science_radar_batch(
         {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 25.8},
         # {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 0.0}, # no longer preferred
     ]
-    filename = maf.get_KNe_filename(inj_params_list)
-    kneslicer = maf.generateKNPopSlicer(
+    filename = maf.get_kne_filename(inj_params_list)
+    kneslicer = maf.generate_kn_pop_slicer(
         n_events=n_events, n_files=len(filename), d_min=10, d_max=600
     )
     metric = maf.KNePopMetric(
-        outputLc=False, file_list=filename, metric_name="KNePopMetric_single"
+        output_lc=False, file_list=filename, metric_name="KNePopMetric_single"
     )
     bundle = mb.MetricBundle(
         metric,
@@ -1265,7 +1267,7 @@ def science_radar_batch(
         "",
         run_name=runName,
         info_label="single model",
-        summary_metrics=lightcurveSummary(),
+        summary_metrics=lightcurve_summary(),
         display_dict=displayDict,
     )
     bundleList.append(bundle)
@@ -1276,12 +1278,12 @@ def science_radar_batch(
     ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky, entire model population."
     displayDict["order"] = 1
     # Kilonova parameters
-    filename = maf.get_KNe_filename(None)
-    kneslicer_allkne = maf.generateKNPopSlicer(
+    filename = maf.get_kne_filename(None)
+    kneslicer_allkne = maf.generate_kn_pop_slicer(
         n_events=n_events, n_files=len(filename), d_min=10, d_max=600
     )
     metric_allkne = maf.KNePopMetric(
-        outputLc=False, file_list=filename, metric_name="KNePopMetric_all"
+        output_lc=False, file_list=filename, metric_name="KNePopMetric_all"
     )
     bundle = mb.MetricBundle(
         metric_allkne,
@@ -1289,7 +1291,7 @@ def science_radar_batch(
         "",
         run_name=runName,
         info_label="all models",
-        summary_metrics=lightcurveSummary(),
+        summary_metrics=lightcurve_summary(),
         display_dict=displayDict,
     )
     bundleList.append(bundle)
@@ -1345,7 +1347,7 @@ def science_radar_batch(
         )
         plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
         plotDict = {"colorMin": 0, "color": colors[f], "percentileClip": 95}
-        summaryMetrics = extendedSummary()
+        summaryMetrics = extended_summary()
         displayDict["caption"] = (
             f"Percent of the total time gaps which fall into the interval"
             f" between 2-14 hours, in {f} band(s)."
@@ -1419,7 +1421,7 @@ def science_radar_batch(
     displayDict["group"] = "Variables/Transients"
     displayDict["subgroup"] = "Presto KNe"
     displayDict["caption"] = "Probability of detecting and classifying a KNe"
-    prestoslicer = maf.generatePrestoPopSlicer(skyregion="extragalactic")
+    prestoslicer = maf.generate_presto_pop_slicer(skyregion="extragalactic")
     metric = maf.PrestoColorKNePopMetric(
         skyregion="extragalactic", metric_name="PrestoKNe"
     )
@@ -1440,8 +1442,8 @@ def science_radar_batch(
     displayDict["order"] = 0
     displayDict["caption"] = "Number or characterization of XRBs."
     n_events = 10000
-    xrbslicer = maf.generateXRBPopSlicer(n_events=n_events)
-    metric = maf.XRBPopMetric(outputLc=False)
+    xrbslicer = maf.generate_xrb_pop_slicer(n_events=n_events)
+    metric = maf.XRBPopMetric(output_lc=False)
     xrb_summaryMetrics = [
         maf.SumMetric(metric_name="Total detected"),
         maf.CountMetric(metric_name="Total lightcurves in footprint"),
@@ -1709,7 +1711,7 @@ def science_radar_batch(
         "star-galaxy separation) at the location of known LV dwarf galaxies. "
     )
     i_starMap = maf.maps.StellarDensityMap(filtername="i")
-    lv_slicer = maf.maf_contrib.generateKnownLVDwarfSlicer()
+    lv_slicer = maf.maf_contrib.generate_known_lv_dwarf_slicer()
     lv_metric = maf.maf_contrib.LVDwarfsMetric()
     sqlconstraint = '(filter = "i" OR filter = "g")'
     info_label = "gi"
@@ -1836,7 +1838,7 @@ def science_radar_batch(
     )
     bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     bundleDict = mb.make_bundles_dict_from_list(bundleList)

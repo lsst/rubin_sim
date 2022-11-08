@@ -55,7 +55,9 @@ class StellarDensityMap(BaseMap):
                 nside_match = True
         if not nside_match:
             # Compute the healpix for each slicepoint on the nside=64 grid
-            indx = radec2pix(self.starmap_nside, slice_points["ra"], slice_points["dec"])
+            indx = radec2pix(
+                self.starmap_nside, slice_points["ra"], slice_points["dec"]
+            )
             slice_points[f"starLumFunc_{self.filtername}"] = self.star_map[indx, :]
 
         slice_points[f"starMapBins_{self.filtername}"] = self.star_map_bins

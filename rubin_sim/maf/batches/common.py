@@ -5,23 +5,23 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.stackers as stackers
 
 __all__ = [
-    "combineInfoLabels",
-    "filterList",
-    "radecCols",
-    "standardSummary",
-    "extendedSummary",
-    "standardMetrics",
-    "extendedMetrics",
-    "lightcurveSummary",
-    "standardAngleMetrics",
-    "summaryCompletenessAtTime",
-    "summaryCompletenessOverH",
-    "fractionPopulationAtThreshold",
-    "microlensingSummary",
+    "combine_info_labels",
+    "filter_list",
+    "radec_cols",
+    "standard_summary",
+    "extended_summary",
+    "standard_metrics",
+    "extended_metrics",
+    "lightcurve_summary",
+    "standard_angle_metrics",
+    "summary_completeness_at_time",
+    "summary_completeness_over_h",
+    "fraction_population_at_threshold",
+    "microlensing_summary",
 ]
 
 
-def combineInfoLabels(info1, info2):
+def combine_info_labels(info1, info2):
     if info1 is not None and info2 is not None:
         info = info1 + " " + info2
     elif info1 is not None:
@@ -33,7 +33,7 @@ def combineInfoLabels(info1, info2):
     return info
 
 
-def filterList(all=True, extraSql=None, extraInfoLabel=None):
+def filter_list(all=True, extra_sql=None, extra_info_label=None):
     """Return a list of filters, plot colors and orders.
 
     Parameters
@@ -41,10 +41,10 @@ def filterList(all=True, extraSql=None, extraInfoLabel=None):
     all : `bool`, optional
         Include 'all' in the list of filters and as part of the colors/orders dictionaries.
         Default True.
-    extraSql : str, optional
+    extra_sql : str, optional
         Additional sql constraint to add to sqlconstraints returned per filter.
         Default None.
-    extraInfoLabel : str, optional
+    extra_info_label : str, optional
         Substitute info_label to add to info_label strings composed per band.
         Default None.
 
@@ -64,13 +64,13 @@ def filterList(all=True, extraSql=None, extraInfoLabel=None):
         orders["all"] = 0
     sqls = {}
     info_labels = {}
-    if extraInfoLabel is None:
-        if extraSql is None or len(extraSql) == 0:
+    if extra_info_label is None:
+        if extra_sql is None or len(extra_sql) == 0:
             md = ""
         else:
-            md = "%s " % extraSql
+            md = "%s " % extra_sql
     else:
-        md = "%s " % extraInfoLabel
+        md = "%s " % extra_info_label
     for f in filterlist:
         if f == "all":
             sqls[f] = ""
@@ -78,27 +78,27 @@ def filterList(all=True, extraSql=None, extraInfoLabel=None):
         else:
             sqls[f] = 'filter = "%s"' % f
             info_labels[f] = md + "%s band" % f
-    if extraSql is not None and len(extraSql) > 0:
+    if extra_sql is not None and len(extra_sql) > 0:
         for s in sqls:
             if s == "all":
-                sqls[s] = extraSql
+                sqls[s] = extra_sql
             else:
-                sqls[s] = "(%s) and (%s)" % (extraSql, sqls[s])
+                sqls[s] = "(%s) and (%s)" % (extra_sql, sqls[s])
     return filterlist, colors, orders, sqls, info_labels
 
 
-def radecCols(ditherStacker, colmap, ditherkwargs=None):
+def radec_cols(dither_stacker, colmap, ditherkwargs=None):
     degrees = colmap["raDecDeg"]
-    if ditherStacker is None:
+    if dither_stacker is None:
         raCol = colmap["ra"]
         decCol = colmap["dec"]
         stacker = None
         ditherInfoLabel = None
     else:
-        if isinstance(ditherStacker, stackers.BaseDitherStacker):
-            stacker = ditherStacker
+        if isinstance(dither_stacker, stackers.BaseDitherStacker):
+            stacker = dither_stacker
         else:
-            s = stackers.BaseStacker().registry[ditherStacker]
+            s = stackers.BaseStacker().registry[dither_stacker]
             args = [f for f in inspect.getfullargspec(s).args if f.endswith("Col")]
             # Set up default dither kwargs.
             kwargs = {}
@@ -120,7 +120,7 @@ def radecCols(ditherStacker, colmap, ditherkwargs=None):
     return raCol, decCol, degrees, stacker, ditherInfoLabel
 
 
-def standardSummary(withCount=True):
+def standard_summary(withCount=True):
     """A set of standard summary metrics, to calculate Mean, RMS, Median, #, Max/Min, and # 3-sigma outliers."""
     standardSummary = [
         metrics.MeanMetric(),
@@ -136,11 +136,11 @@ def standardSummary(withCount=True):
     return standardSummary
 
 
-def extendedSummary():
+def extended_summary():
     """An extended set of summary metrics, to calculate all that is in the standard summary stats,
     plus 25/75 percentiles."""
 
-    extendedStats = standardSummary()
+    extendedStats = standard_summary()
     extendedStats += [
         metrics.PercentileMetric(metric_name="25th%ile", percentile=25),
         metrics.PercentileMetric(metric_name="75th%ile", percentile=75),
@@ -148,7 +148,7 @@ def extendedSummary():
     return extendedStats
 
 
-def lightcurveSummary():
+def lightcurve_summary():
     lightcurveSummary = [
         metrics.SumMetric(metric_name="Total detected"),
         metrics.CountMetric(metric_name="Total lightcurves in footprint"),
@@ -159,7 +159,7 @@ def lightcurveSummary():
     return lightcurveSummary
 
 
-def standardMetrics(colname, replace_colname=None):
+def standard_metrics(colname, replace_colname=None):
     """A set of standard simple metrics for some quantity. Typically would be applied with unislicer.
 
     Parameters
@@ -191,7 +191,7 @@ def standardMetrics(colname, replace_colname=None):
     return standardMetrics
 
 
-def extendedMetrics(colname, replace_colname=None):
+def extended_metrics(colname, replace_colname=None):
     """An extended set of simple metrics for some quantity. Typically applied with unislicer.
 
     Parameters
@@ -208,7 +208,7 @@ def extendedMetrics(colname, replace_colname=None):
     -------
     List of configured metrics.
     """
-    extendedMetrics = standardMetrics(colname, replace_colname=None)
+    extendedMetrics = standard_metrics(colname, replace_colname=None)
     extendedMetrics += [
         metrics.RmsMetric(colname),
         metrics.NoutliersNsigmaMetric(
@@ -230,7 +230,7 @@ def extendedMetrics(colname, replace_colname=None):
     return extendedMetrics
 
 
-def standardAngleMetrics(colname, replace_colname=None):
+def standard_angle_metrics(colname, replace_colname=None):
     """A set of standard simple metrics for some quantity which is a wrap-around angle.
 
     Parameters
@@ -263,7 +263,7 @@ def standardAngleMetrics(colname, replace_colname=None):
     return standardAngleMetrics
 
 
-def summaryCompletenessAtTime(times, Hval, Hindex=0.33):
+def summary_completeness_at_time(times, h_val, h_index=0.33):
     """A simple list of summary metrics to be applied to the Discovery_Time or PreviouslyKnown metrics.
     (can be used with any moving object metric which returns the time of discovery).
 
@@ -271,9 +271,9 @@ def summaryCompletenessAtTime(times, Hval, Hindex=0.33):
     ----------
     times : np.ndarray or list
         The times at which to evaluate the completeness @ Hval.
-    Hval : float
+    h_val : float
         The H value at which to evaluate the completeness (cumulative and differential).
-    Hindex : float, optional
+    h_index : float, optional
         The index of the power law to integrate H over (for cumulative completeness).
         Default is 0.33.
 
@@ -283,16 +283,16 @@ def summaryCompletenessAtTime(times, Hval, Hindex=0.33):
     """
     summaryMetrics = [
         metrics.MoCompletenessAtTimeMetric(
-            times=times, Hval=Hval, Hindex=Hindex, cumulative=False
+            times=times, Hval=h_val, Hindex=h_index, cumulative=False
         ),
         metrics.MoCompletenessAtTimeMetric(
-            times=times, Hval=Hval, Hindex=Hindex, cumulative=True
+            times=times, Hval=h_val, Hindex=h_index, cumulative=True
         ),
     ]
     return summaryMetrics
 
 
-def summaryCompletenessOverH(requiredChances=1, Hindex=0.33):
+def summary_completeness_over_h(requiredChances=1, Hindex=0.33):
     """A simple list of summary metrics to be applied to the Discovery_N_Chances metric.
 
     Parameters
@@ -318,7 +318,7 @@ def summaryCompletenessOverH(requiredChances=1, Hindex=0.33):
     return summaryMetrics
 
 
-def fractionPopulationAtThreshold(thresholds, optnames=None):
+def fraction_population_at_threshold(thresholds, optnames=None):
     """Creates a list of summary metrics to be applied to any moving object metric
     which reports a float value, calculating the fraction of the population above X.
 
@@ -346,10 +346,10 @@ def fractionPopulationAtThreshold(thresholds, optnames=None):
     return fracMetrics
 
 
-def microlensingSummary(metricType, npts_required=10, Fisher_sigmatE_tE_cutoff=0.1):
-    if metricType != "Npts" and metricType != "Fisher":
-        raise Exception('metricType must be "Npts" or "Fisher"')
-    if metricType == "Npts":
+def microlensing_summary(metric_type, npts_required=10, Fisher_sigmatE_tE_cutoff=0.1):
+    if metric_type != "Npts" and metric_type != "Fisher":
+        raise Exception('metric_type must be "Npts" or "Fisher"')
+    if metric_type == "Npts":
         microlensingSummary = [
             metrics.FracAboveMetric(
                 cutoff=npts_required,
@@ -364,7 +364,7 @@ def microlensingSummary(metricType, npts_required=10, Fisher_sigmatE_tE_cutoff=0
                 mask_val=0, metric_name="Mean number of points per lightcurves in total"
             ),
         ]
-    elif metricType == "Fisher":
+    elif metric_type == "Fisher":
         microlensingSummary = [
             metrics.FracBelowMetric(
                 cutoff=Fisher_sigmatE_tE_cutoff,

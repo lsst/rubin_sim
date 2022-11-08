@@ -12,26 +12,26 @@ import rubin_sim.maf.metric_bundles as mb
 from rubin_sim.maf.metric_bundles import MoMetricBundle
 from .col_map_dict import col_map_dict
 from .common import (
-    summaryCompletenessAtTime,
-    summaryCompletenessOverH,
-    fractionPopulationAtThreshold,
+    summary_completeness_at_time,
+    summary_completeness_over_h,
+    fraction_population_at_threshold,
 )
 
 __all__ = [
     "ss_population_defaults",
     "setup_mo_slicer",
-    "quickDiscoveryBatch",
-    "discoveryBatch",
-    "runCompletenessSummary",
-    "plotCompleteness",
-    "characterizationInnerBatch",
-    "characterizationOuterBatch",
-    "runFractionSummary",
-    "plotFractions",
-    "plotSingle",
-    "plotActivity",
-    "readAndCombine",
-    "combineSubsets",
+    "quick_discovery_batch",
+    "discovery_batch",
+    "run_completeness_summary",
+    "plot_completeness",
+    "characterization_inner_batch",
+    "characterization_outer_batch",
+    "run_fraction_summary",
+    "plot_fractions",
+    "plot_single",
+    "plot_activity",
+    "read_and_combine",
+    "combine_subsets",
 ]
 
 
@@ -140,7 +140,7 @@ def setup_mo_slicer(orbit_file, h_range, obs_file=None):
     return slicer
 
 
-def quickDiscoveryBatch(
+def quick_discovery_batch(
     slicer,
     colmap=None,
     run_name="opsim",
@@ -148,7 +148,7 @@ def quickDiscoveryBatch(
     objtype="",
     albedo=None,
     h_mark=None,
-    npReduce=np.mean,
+    np_reduce=np.mean,
     constraint_info_label="",
     constraint=None,
     magtype="asteroid",
@@ -160,12 +160,12 @@ def quickDiscoveryBatch(
     basicPlotDict = {
         "albedo": albedo,
         "h_mark": h_mark,
-        "npReduce": npReduce,
+        "np_reduce": np_reduce,
         "nxbins": 200,
         "nybins": 200,
     }
-    plotFuncs = [plots.MetricVsH()]
-    displayDict = {"group": f"{objtype}", "subgroup": "Discovery"}
+    plot_funcs = [plots.MetricVsH()]
+    display_dict = {"group": f"{objtype}", "subgroup": "Discovery"}
 
     if constraint_info_label == "" and constraint is not None:
         constraint_info_label = (
@@ -179,10 +179,10 @@ def quickDiscoveryBatch(
             "Please choose detection or trailing as options for detection_losses."
         )
     if detection_losses == "trailing":
-        magStacker = stackers.MoMagStacker(lossCol="dmagTrail", magtype=magtype)
+        magStacker = stackers.MoMagStacker(loss_col="dmagTrail", magtype=magtype)
         detection_losses = " trailing loss"
     else:
-        magStacker = stackers.MoMagStacker(lossCol="dmagDetect", magtype=magtype)
+        magStacker = stackers.MoMagStacker(loss_col="dmagDetect", magtype=magtype)
         detection_losses = " detection loss"
 
     # Set up a dictionary to pass to each metric for the column names.
@@ -247,8 +247,8 @@ def quickDiscoveryBatch(
         info_label=md,
         child_metrics=childMetrics,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -275,8 +275,8 @@ def quickDiscoveryBatch(
         info_label=md,
         child_metrics=childMetrics,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -287,7 +287,7 @@ def quickDiscoveryBatch(
     return mb.make_bundles_dict_from_list(bundleList)
 
 
-def discoveryBatch(
+def discovery_batch(
     slicer,
     colmap=None,
     run_name="opsim",
@@ -295,7 +295,7 @@ def discoveryBatch(
     objtype="",
     albedo=None,
     h_mark=None,
-    npReduce=np.mean,
+    np_reduce=np.mean,
     constraint_info_label="",
     constraint=None,
     magtype="asteroid",
@@ -307,12 +307,12 @@ def discoveryBatch(
     basicPlotDict = {
         "albedo": albedo,
         "h_mark": h_mark,
-        "npReduce": npReduce,
+        "np_reduce": np_reduce,
         "nxbins": 200,
         "nybins": 200,
     }
-    plotFuncs = [plots.MetricVsH()]
-    displayDict = {"group": f"{objtype}", "subgroup": "Discovery"}
+    plot_funcs = [plots.MetricVsH()]
+    display_dict = {"group": f"{objtype}", "subgroup": "Discovery"}
 
     if constraint_info_label == "" and constraint is not None:
         constraint_info_label = (
@@ -327,11 +327,11 @@ def discoveryBatch(
         )
     if detection_losses == "trailing":
         # These are the SNR-losses only.
-        magStacker = stackers.MoMagStacker(lossCol="dmagTrail", magtype=magtype)
+        magStacker = stackers.MoMagStacker(loss_col="dmagTrail", magtype=magtype)
         detection_losses = " trailing loss"
     else:
         # This is SNR losses, plus additional loss due to detecting with stellar PSF.
-        magStacker = stackers.MoMagStacker(lossCol="dmagDetect", magtype=magtype)
+        magStacker = stackers.MoMagStacker(loss_col="dmagDetect", magtype=magtype)
         detection_losses = " detection loss"
 
     # Set up a dictionary to pass to each metric for the column names.
@@ -396,8 +396,8 @@ def discoveryBatch(
         info_label=md,
         child_metrics=childMetrics,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -424,8 +424,8 @@ def discoveryBatch(
         info_label=md,
         child_metrics=childMetrics,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -452,8 +452,8 @@ def discoveryBatch(
         info_label=md,
         child_metrics=childMetrics,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -484,8 +484,8 @@ def discoveryBatch(
         info_label=md,
         child_metrics=childMetrics,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -513,8 +513,8 @@ def discoveryBatch(
         info_label=md,
         child_metrics=childMetrics,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -542,8 +542,8 @@ def discoveryBatch(
         info_label=md,
         child_metrics=childMetrics,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -572,8 +572,8 @@ def discoveryBatch(
         info_label=md,
         child_metrics=childMetrics,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -601,8 +601,8 @@ def discoveryBatch(
         info_label=md,
         child_metrics=childMetrics,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -629,8 +629,8 @@ def discoveryBatch(
         info_label=md,
         child_metrics=childMetrics,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     _configure_child_bundles(bundle)
     bundleList.append(bundle)
@@ -650,8 +650,8 @@ def discoveryBatch(
         run_name=run_name,
         info_label=md,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     bundleList.append(bundle)
 
@@ -668,8 +668,8 @@ def discoveryBatch(
         run_name=run_name,
         info_label=md,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     bundleList.append(bundle)
 
@@ -679,10 +679,10 @@ def discoveryBatch(
     return mb.make_bundles_dict_from_list(bundleList)
 
 
-def runCompletenessSummary(bdict, h_mark, times, outDir, resultsDb):
+def run_completeness_summary(bdict, h_mark, times, out_dir, results_db):
     """
     Calculate completeness and create completeness bundles from all N_Chances and Time (child) metrics
-    of the (discovery) bundles in bdict, and write completeness at h_mark to resultsDb, save bundle to disk.
+    of the (discovery) bundles in bdict, and write completeness at h_mark to results_db, save bundle to disk.
 
     This should be done after combining any sub-sets of the metric results.
 
@@ -697,9 +697,9 @@ def runCompletenessSummary(bdict, h_mark, times, outDir, resultsDb):
         If None and h_mark not in plot_dict, then median of h_range value will be used.
     times : np.ndarray
         The times at which to calculate completeness (over time).
-    outDir : str
+    out_dir : str
         Output directory to save completeness bundles to disk.
-    resultsDb : ~rubin_sim.maf.db.ResultsDb
+    results_db : ~rubin_sim.maf.db.results_db
         Results database to save information about completeness bundle.
 
     Returns
@@ -709,72 +709,74 @@ def runCompletenessSummary(bdict, h_mark, times, outDir, resultsDb):
         with additions of "[Differential,Cumulative]Completeness@Time"
         and "[Differential,Cumulative]Completeness" to distinguish new entries.
     """
-    # Add completeness bundles and write completeness at h_mark to resultsDb.
+    # Add completeness bundles and write completeness at h_mark to results_db.
     completeness = {}
 
-    def _compbundles(b, bundle, h_mark, resultsDb):
+    def _compbundles(b, bundle, h_mark, results_db):
         # Find h_mark if not set (this may be different for different bundles).
         if h_mark is None and "h_mark" in bundle.plotDict:
             h_mark = bundle.plotDict["h_mark"]
         if h_mark is None:
             h_mark = np.median(bundle.slicer.slicePoints["H"])
         # Set up the summary metrics.
-        summaryTimeMetrics = summaryCompletenessAtTime(times, Hval=h_mark, Hindex=0.33)
-        summaryTimeMetrics2 = summaryCompletenessAtTime(
-            times, Hval=h_mark - 2, Hindex=0.33
+        summaryTimeMetrics = summary_completeness_at_time(
+            times, h_val=h_mark, h_index=0.33
         )
-        summaryHMetrics = summaryCompletenessOverH(requiredChances=1, Hindex=0.33)
+        summaryTimeMetrics2 = summary_completeness_at_time(
+            times, h_val=h_mark - 2, h_index=0.33
+        )
+        summaryHMetrics = summary_completeness_over_h(requiredChances=1, Hindex=0.33)
         comp = {}
         # Bundle = single metric bundle. Add differential and cumulative completeness.
         if "Time" in bundle.metric.name:
             for metric in summaryTimeMetrics:
                 newkey = b + " " + metric.name
                 comp[newkey] = mb.make_completeness_bundle(
-                    bundle, metric, h_mark=None, results_db=resultsDb
+                    bundle, metric, h_mark=None, results_db=results_db
                 )
                 comp[newkey].plotDict["times"] = times
-                comp[newkey].plotDict["Hval"] = metric.Hval
+                comp[newkey].plotDict["h_val"] = metric.Hval
             for metric in summaryTimeMetrics2:
                 newkey = b + " " + metric.name
                 comp[newkey] = mb.make_completeness_bundle(
-                    bundle, metric, h_mark=None, results_db=resultsDb
+                    bundle, metric, h_mark=None, results_db=results_db
                 )
                 comp[newkey].plotDict["times"] = times
-                comp[newkey].plotDict["Hval"] = metric.Hval
+                comp[newkey].plotDict["h_val"] = metric.Hval
         elif "N_Chances" in bundle.metric.name:
             for metric in summaryHMetrics:
                 newkey = b + " " + metric.name
                 comp[newkey] = mb.make_completeness_bundle(
-                    bundle, metric, h_mark=h_mark, results_db=resultsDb
+                    bundle, metric, h_mark=h_mark, results_db=results_db
                 )
         elif "MagicDiscovery" in bundle.metric.name:
             for metric in summaryHMetrics:
                 newkey = b + " " + metric.name
                 comp[newkey] = mb.make_completeness_bundle(
-                    bundle, metric, h_mark=h_mark, results_db=resultsDb
+                    bundle, metric, h_mark=h_mark, results_db=results_db
                 )
         elif "HighVelocity" in bundle.metric.name:
             for metric in summaryHMetrics:
                 newkey = b + " " + metric.name
                 comp[newkey] = mb.make_completeness_bundle(
-                    bundle, metric, h_mark=h_mark, results_db=resultsDb
+                    bundle, metric, h_mark=h_mark, results_db=results_db
                 )
         return comp
 
     # Generate the completeness bundles for the various discovery metrics.
     for b, bundle in bdict.items():
         if "Discovery" in bundle.metric.name:
-            completeness.update(_compbundles(b, bundle, h_mark, resultsDb))
+            completeness.update(_compbundles(b, bundle, h_mark, results_db))
         if "MagicDiscovery" in bundle.metric.name:
-            completeness.update(_compbundles(b, bundle, h_mark, resultsDb))
+            completeness.update(_compbundles(b, bundle, h_mark, results_db))
         if "HighVelocity" in bundle.metric.name:
-            completeness.update(_compbundles(b, bundle, h_mark, resultsDb))
+            completeness.update(_compbundles(b, bundle, h_mark, results_db))
 
     # Write the completeness bundles to disk, so we can re-read them later.
-    # (also set the display dict properties, for the resultsDb output).
+    # (also set the display dict properties, for the results_db output).
     for b, bundle in completeness.items():
-        bundle.displayDict["subgroup"] = f"Completeness"
-        bundle.write(out_dir=outDir, results_db=resultsDb)
+        bundle.display_dict["subgroup"] = f"Completeness"
+        bundle.write(out_dir=out_dir, results_db=results_db)
 
     # Calculate total number of objects - currently for NEOs and PHAs only
     for b, bundle in completeness.items():
@@ -789,22 +791,24 @@ def runCompletenessSummary(bdict, h_mark, times, outDir, resultsDb):
                     ),
                 ]
                 bundle.set_summary_metrics(nobj_metrics)
-                bundle.compute_summary_stats(resultsDb)
+                bundle.compute_summary_stats(results_db)
             if "PHA" in bundle.info_label:
                 nobj_metrics = [
-                    metrics.TotalNumberSSO(h_mark=22, dndh_func=metrics.pha_dndh_granvik)
+                    metrics.TotalNumberSSO(
+                        h_mark=22, dndh_func=metrics.pha_dndh_granvik
+                    )
                 ]
                 bundle.set_summary_metrics(nobj_metrics)
-                bundle.compute_summary_stats(resultsDb)
+                bundle.compute_summary_stats(results_db)
     return completeness
 
 
-def plotCompleteness(
+def plot_completeness(
     bdictCompleteness,
     figroot=None,
     run_name=None,
-    resultsDb=None,
-    outDir=".",
+    results_db=None,
+    out_dir=".",
     figformat="pdf",
 ):
     """Plot a minor subset of the completeness results."""
@@ -854,7 +858,7 @@ def plotCompleteness(
         run_name = first.run_name
     if figroot is None:
         figroot = run_name
-    displayDict = deepcopy(first.displayDict)
+    display_dict = deepcopy(first.display_dict)
 
     # Plot completeness as a function of time. Make custom plot, then save it with PlotHandler.
     fig = plt.figure(figsize=(8, 6))
@@ -863,16 +867,18 @@ def plotCompleteness(
             plotTimes[k].plotDict["times"],
             plotTimes[k].metricValues[0, :],
             label=plotTimes[k].plotDict["label"]
-            + " @H=%.2f" % plotTimes[k].plotDict["Hval"],
+            + " @H=%.2f" % plotTimes[k].plotDict["h_val"],
         )
     plt.legend()
     plt.xlabel("Time (MJD)")
     plt.ylabel("Completeness")
     plt.grid(True, alpha=0.3)
-    # Make a PlotHandler to deal with savings/resultsDb, etc.
-    ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
-    displayDict["subgroup"] = f"Completeness over time"
-    displayDict["caption"] = "Completeness over time, for H values indicated in legend."
+    # Make a PlotHandler to deal with savings/results_db, etc.
+    ph = plots.PlotHandler(figformat=figformat, results_db=results_db, out_dir=out_dir)
+    display_dict["subgroup"] = f"Completeness over time"
+    display_dict[
+        "caption"
+    ] = "Completeness over time, for H values indicated in legend."
     ph.saveFig(
         fig.number,
         f"{figroot}_CompletenessOverTime",
@@ -882,32 +888,32 @@ def plotCompleteness(
         figroot,
         None,
         None,
-        displayDict=displayDict,
+        display_dict=display_dict,
     )
 
     plt.savefig(
-        os.path.join(outDir, f"{figroot}_CompletenessOverTime.{figformat}"),
+        os.path.join(out_dir, f"{figroot}_CompletenessOverTime.{figformat}"),
         format=figformat,
     )
 
     # Plot cumulative completeness.
-    ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
+    ph = plots.PlotHandler(figformat=figformat, results_db=results_db, out_dir=out_dir)
     ph.setMetricBundles(plotComp)
     plotDict = {"ylabel": "Completeness", "figsize": (8, 6), "albedo": 0.14}
     ph.plot(
-        plotFunc=plots.MetricVsH(),
-        plotDicts=plotDict,
-        outfileRoot=figroot + "_CumulativeCompleteness",
+        plot_func=plots.MetricVsH(),
+        plot_dicts=plotDict,
+        outfile_root=figroot + "_CumulativeCompleteness",
     )
 
     # Plot differential completeness.
-    ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
+    ph = plots.PlotHandler(figformat=figformat, results_db=results_db, out_dir=out_dir)
     ph.setMetricBundles(plotDiff)
     plotDict = {"ylabel": "Completeness", "figsize": (8, 6)}
     ph.plot(
-        plotFunc=plots.MetricVsH(),
-        plotDicts=plotDict,
-        outfileRoot=figroot + "_DifferentialCompleteness",
+        plot_func=plots.MetricVsH(),
+        plot_dicts=plotDict,
+        outfile_root=figroot + "_DifferentialCompleteness",
     )
 
     # And add the rest of the completeness calculations.
@@ -919,7 +925,7 @@ def plotCompleteness(
         if "Magic" in k:
             if "Cumulative" in k:
                 allComp.append(bdictCompleteness[k])
-    ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
+    ph = plots.PlotHandler(figformat=figformat, results_db=results_db, out_dir=out_dir)
     ph.setMetricBundles(allComp)
     plotDict = {
         "ylabel": "Completeness",
@@ -927,19 +933,19 @@ def plotCompleteness(
         "legendloc": (1.01, 0.1),
         "color": None,
     }
-    displayDict["subgroup"] = f"Completeness all criteria"
-    displayDict[
+    display_dict["subgroup"] = f"Completeness all criteria"
+    display_dict[
         "caption"
     ] = "Plotting all of the cumulative completeness curves together."
     ph.plot(
-        plotFunc=plots.MetricVsH(),
-        plotDicts=plotDict,
-        displayDict=displayDict,
-        outfileRoot=figroot + "_Many_CumulativeCompleteness",
+        plot_func=plots.MetricVsH(),
+        plot_dicts=plotDict,
+        display_dict=display_dict,
+        outfile_root=figroot + "_Many_CumulativeCompleteness",
     )
 
 
-def characterizationInnerBatch(
+def characterization_inner_batch(
     slicer,
     colmap=None,
     run_name="opsim",
@@ -970,11 +976,11 @@ def characterizationInnerBatch(
     basicPlotDict = {
         "albedo": albedo,
         "h_mark": h_mark,
-        "npReduce": npReduce,
+        "np_reduce": npReduce,
         "nxbins": 200,
         "nybins": 200,
     }
-    plotFuncs = [plots.MetricVsH()]
+    plot_funcs = [plots.MetricVsH()]
 
     if constraint_info_label == "" and constraint is not None:
         constraint_info_label = (
@@ -983,10 +989,10 @@ def characterizationInnerBatch(
     info_label = objtype + " " + constraint_info_label
     info_label = info_label.rstrip(" ")
 
-    displayDict = {"group": f"{objtype}"}
+    display_dict = {"group": f"{objtype}"}
 
     # Stackers
-    magStacker = stackers.MoMagStacker(lossCol="dmagDetect")
+    magStacker = stackers.MoMagStacker(loss_col="dmagDetect")
     eclStacker = stackers.EclStacker()
     stackerList = [magStacker, eclStacker]
 
@@ -999,7 +1005,7 @@ def characterizationInnerBatch(
 
     # Number of observations.
     md = info_label
-    displayDict["subgroup"] = f"N Obs"
+    display_dict["subgroup"] = f"N Obs"
     plotDict = {
         "ylabel": "Number of observations (#)",
         "title": "%s: Number of observations %s" % (run_name, md),
@@ -1014,14 +1020,14 @@ def characterizationInnerBatch(
         run_name=run_name,
         info_label=md,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     bundleList.append(bundle)
 
     # Observational arc.
     md = info_label
-    displayDict["subgroup"] = f"Obs Arc"
+    display_dict["subgroup"] = f"Obs Arc"
     plotDict = {
         "ylabel": "Observational Arc (days)",
         "title": "%s: Observational Arc Length %s" % (run_name, md),
@@ -1036,13 +1042,13 @@ def characterizationInnerBatch(
         run_name=run_name,
         info_label=md,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     bundleList.append(bundle)
 
     # Activity detection.
-    displayDict["subgroup"] = f"Activity"
+    display_dict["subgroup"] = f"Activity"
     for w in windows:
         md = info_label + " activity lasting %.0f days" % w
         plotDict = {
@@ -1059,8 +1065,8 @@ def characterizationInnerBatch(
             run_name=run_name,
             info_label=info_label,
             plot_dict=plotDict,
-            plot_funcs=plotFuncs,
-            display_dict=displayDict,
+            plot_funcs=plot_funcs,
+            display_dict=display_dict,
         )
         bundleList.append(bundle)
 
@@ -1071,7 +1077,9 @@ def characterizationInnerBatch(
             "ylabel": "Probability of detection per %.0f deg window" % b,
         }
         metric_name = "Chances of detecting activity covering %.0f deg" % (b)
-        metric = metrics.ActivityOverPeriodMetric(b, metric_name=metric_name, **colkwargs)
+        metric = metrics.ActivityOverPeriodMetric(
+            b, metric_name=metric_name, **colkwargs
+        )
         bundle = MoMetricBundle(
             metric,
             slicer,
@@ -1080,14 +1088,14 @@ def characterizationInnerBatch(
             run_name=run_name,
             info_label=info_label,
             plot_dict=plotDict,
-            plot_funcs=plotFuncs,
-            display_dict=displayDict,
+            plot_funcs=plot_funcs,
+            display_dict=display_dict,
         )
         bundleList.append(bundle)
 
     # Lightcurve inversion.
     md = info_label
-    displayDict["subgroup"] = f"Color/Inversion"
+    display_dict["subgroup"] = f"Color/Inversion"
     plotDict = {
         "yMin": 0,
         "yMax": 1,
@@ -1104,8 +1112,8 @@ def characterizationInnerBatch(
         run_name=run_name,
         info_label=md,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     bundleList.append(bundle)
 
@@ -1128,8 +1136,8 @@ def characterizationInnerBatch(
         run_name=run_name,
         info_label=md,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     bundleList.append(bundle)
 
@@ -1139,7 +1147,7 @@ def characterizationInnerBatch(
     return mb.make_bundles_dict_from_list(bundleList)
 
 
-def characterizationOuterBatch(
+def characterization_outer_batch(
     slicer,
     colmap=None,
     run_name="opsim",
@@ -1170,11 +1178,11 @@ def characterizationOuterBatch(
     basicPlotDict = {
         "albedo": albedo,
         "h_mark": h_mark,
-        "npReduce": npReduce,
+        "np_reduce": npReduce,
         "nxbins": 200,
         "nybins": 200,
     }
-    plotFuncs = [plots.MetricVsH()]
+    plot_funcs = [plots.MetricVsH()]
 
     if constraint_info_label == "" and constraint is not None:
         constraint_info_label = (
@@ -1183,10 +1191,10 @@ def characterizationOuterBatch(
     info_label = objtype + " " + constraint_info_label
     info_label = info_label.rstrip(" ")
 
-    displayDict = {"group": f"{objtype}"}
+    display_dict = {"group": f"{objtype}"}
 
     # Stackers
-    magStacker = stackers.MoMagStacker(lossCol="dmagDetect")
+    magStacker = stackers.MoMagStacker(loss_col="dmagDetect")
     eclStacker = stackers.EclStacker()
     stackerList = [magStacker, eclStacker]
 
@@ -1199,7 +1207,7 @@ def characterizationOuterBatch(
 
     # Number of observations.
     md = info_label
-    displayDict["subgroup"] = f"N Obs"
+    display_dict["subgroup"] = f"N Obs"
     plotDict = {
         "ylabel": "Number of observations (#)",
         "title": "%s: Number of observations %s" % (run_name, md),
@@ -1214,14 +1222,14 @@ def characterizationOuterBatch(
         run_name=run_name,
         info_label=md,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     bundleList.append(bundle)
 
     # Observational arc.
     md = info_label
-    displayDict["subgroup"] = f"Obs Arc"
+    display_dict["subgroup"] = f"Obs Arc"
     plotDict = {
         "ylabel": "Observational Arc (days)",
         "title": "%s: Observational Arc Length %s" % (run_name, md),
@@ -1236,13 +1244,13 @@ def characterizationOuterBatch(
         run_name=run_name,
         info_label=md,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     bundleList.append(bundle)
 
     # Activity detection.
-    displayDict["subgroup"] = f"Activity"
+    display_dict["subgroup"] = f"Activity"
     for w in windows:
         md = info_label + " activity lasting %.0f days" % w
         plotDict = {
@@ -1259,8 +1267,8 @@ def characterizationOuterBatch(
             run_name=run_name,
             info_label=info_label,
             plot_dict=plotDict,
-            plot_funcs=plotFuncs,
-            display_dict=displayDict,
+            plot_funcs=plot_funcs,
+            display_dict=display_dict,
         )
         bundleList.append(bundle)
 
@@ -1271,7 +1279,9 @@ def characterizationOuterBatch(
             "ylabel": "Probability of detection per %.2f deg window" % b,
         }
         metric_name = "Chances of detecting activity covering %.0f deg" % (b)
-        metric = metrics.ActivityOverPeriodMetric(b, metric_name=metric_name, **colkwargs)
+        metric = metrics.ActivityOverPeriodMetric(
+            b, metric_name=metric_name, **colkwargs
+        )
         bundle = MoMetricBundle(
             metric,
             slicer,
@@ -1280,14 +1290,14 @@ def characterizationOuterBatch(
             run_name=run_name,
             info_label=info_label,
             plot_dict=plotDict,
-            plot_funcs=plotFuncs,
-            display_dict=displayDict,
+            plot_funcs=plot_funcs,
+            display_dict=display_dict,
         )
         bundleList.append(bundle)
 
     # Color determination.
     md = info_label
-    displayDict["subgroup"] = f"Color/Inversion"
+    display_dict["subgroup"] = f"Color/Inversion"
     plotDict = {
         "yMin": 0,
         "yMax": 1,
@@ -1305,8 +1315,8 @@ def characterizationOuterBatch(
         run_name=run_name,
         info_label=md,
         plot_dict=plotDict,
-        plot_funcs=plotFuncs,
-        display_dict=displayDict,
+        plot_funcs=plot_funcs,
+        display_dict=display_dict,
     )
     bundleList.append(bundle)
 
@@ -1316,7 +1326,7 @@ def characterizationOuterBatch(
     return mb.make_bundles_dict_from_list(bundleList)
 
 
-def runFractionSummary(bdict, h_mark, outDir, resultsDb):
+def run_fraction_summary(bdict, h_mark, out_dir, results_db):
     """
     Calculate fractional completeness of the population for color and lightcurve metrics.
 
@@ -1333,9 +1343,9 @@ def runFractionSummary(bdict, h_mark, outDir, resultsDb):
         used. If h_mark not in plotdict, then the median h_range value - 2 is used.
     times : np.ndarray
         The times at which to calculate completeness (over time).
-    outDir : str
+    out_dir : str
         Output directory to save completeness bundles to disk.
-    resultsDb : ~rubin_sim.maf.db.ResultsDb
+    results_db : ~rubin_sim.maf.db.results_db
         Results database to save information about completeness bundle.
 
     Returns
@@ -1346,8 +1356,8 @@ def runFractionSummary(bdict, h_mark, outDir, resultsDb):
     fractions = {}
 
     # Look for metrics from asteroid or outer solar system color/lightcurve metrics.
-    inversionSummary = fractionPopulationAtThreshold([1], ["Lightcurve Inversion"])
-    asteroidColorSummary = fractionPopulationAtThreshold(
+    inversionSummary = fraction_population_at_threshold([1], ["Lightcurve Inversion"])
+    asteroidColorSummary = fraction_population_at_threshold(
         [4, 3, 2, 1],
         ["6 of ugrizy", "5 of grizy", "4 of grizy", "2 of g, r or i, z or y"],
     )
@@ -1356,7 +1366,7 @@ def runFractionSummary(bdict, h_mark, outDir, resultsDb):
         "Color_Asteroid": asteroidColorSummary,
     }
 
-    outerColorSummary = fractionPopulationAtThreshold(
+    outerColorSummary = fraction_population_at_threshold(
         [6, 5, 4, 3, 2, 1],
         ["6 filters", "5 filters", "4 filters", "3 filters", "2 filters", "1 filters"],
     )
@@ -1376,27 +1386,27 @@ def runFractionSummary(bdict, h_mark, outDir, resultsDb):
                 for summary_metric in asteroidSummaryMetrics[k]:
                     newkey = b + " " + summary_metric.name
                     fractions[newkey] = mb.make_completeness_bundle(
-                        bundle, summary_metric, h_mark=h_mark, results_db=resultsDb
+                        bundle, summary_metric, h_mark=h_mark, results_db=results_db
                     )
         for k in outerSummaryMetrics:
             if k in b:
                 for summary_metric in outerSummaryMetrics[k]:
                     newkey = b + " " + summary_metric.name
                     fractions[newkey] = mb.make_completeness_bundle(
-                        bundle, summary_metric, h_mark=h_mark, results_db=resultsDb
+                        bundle, summary_metric, h_mark=h_mark, results_db=results_db
                     )
     # Write the fractional populations bundles to disk, so we can re-read them later.
     for b, bundle in fractions.items():
-        bundle.write(out_dir=outDir, results_db=resultsDb)
+        bundle.write(out_dir=out_dir, results_db=results_db)
     return fractions
 
 
-def plotFractions(
+def plot_fractions(
     bdictFractions,
     figroot=None,
     run_name=None,
-    resultsDb=None,
-    outDir=".",
+    results_db=None,
+    out_dir=".",
     figformat="pdf",
 ):
     # Set colors for the fractions.
@@ -1420,77 +1430,84 @@ def plotFractions(
     first = bdictFractions[list(bdictFractions.keys())[0]]
     if figroot is None:
         figroot = first.run_name
-    displayDict = deepcopy(first.displayDict)
-    displayDict["subgroup"] = f"Characterization Fraction"
+    display_dict = deepcopy(first.display_dict)
+    display_dict["subgroup"] = f"Characterization Fraction"
 
-    ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
+    ph = plots.PlotHandler(figformat=figformat, results_db=results_db, out_dir=out_dir)
     ph.setMetricBundles(bdictFractions)
     ph.jointMetricNames = "Fraction of population for colors or lightcurve inversion"
     plotDict = {"ylabel": "Fraction of population", "figsize": (8, 6)}
     ph.plot(
-        plotFunc=plots.MetricVsH(),
-        plotDicts=plotDict,
-        displayDict=displayDict,
-        outfileRoot=figroot + "_characterization",
+        plot_func=plots.MetricVsH(),
+        plot_dicts=plotDict,
+        display_dict=display_dict,
+        outfile_root=figroot + "_characterization",
     )
 
 
-def plotSingle(bundle, resultsDb=None, outDir=".", figformat="pdf"):
+def plot_single(bundle, results_db=None, out_dir=".", figformat="pdf"):
     """Plot 5%/25%/50%/75%/95% iles for a metric value."""
     pDict = {
         "95%ile": {
             "color": "k",
             "linestyle": "--",
             "label": "95th %ile",
-            "npReduce": lambda x, axis: np.percentile(x, 95, axis=axis),
+            "np_reduce": lambda x, axis: np.percentile(x, 95, axis=axis),
         },
         "75%ile": {
             "color": "magenta",
             "linestyle": ":",
             "label": "75th %ile",
-            "npReduce": lambda x, axis: np.percentile(x, 75, axis=axis),
+            "np_reduce": lambda x, axis: np.percentile(x, 75, axis=axis),
         },
         "Median": {
             "color": "b",
             "linestyle": "-",
             "label": "Median",
-            "npReduce": lambda x, axis: np.median(x, axis=axis),
+            "np_reduce": lambda x, axis: np.median(x, axis=axis),
         },
-        "Mean": {"color": "g", "linestyle": "--", "label": "Mean", "npReduce": np.mean},
+        "Mean": {
+            "color": "g",
+            "linestyle": "--",
+            "label": "Mean",
+            "np_reduce": np.mean,
+        },
         "25%ile": {
             "color": "magenta",
             "linestyle": ":",
             "label": "25th %ile",
-            "npReduce": lambda x, axis: np.percentile(x, 25, axis=axis),
+            "np_reduce": lambda x, axis: np.percentile(x, 25, axis=axis),
         },
         "5%ile": {
             "color": "k",
             "linestyle": "--",
             "label": "5th %ile",
-            "npReduce": lambda x, axis: np.percentile(x, 5, axis=axis),
+            "np_reduce": lambda x, axis: np.percentile(x, 5, axis=axis),
         },
     }
-    ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
+    ph = plots.PlotHandler(figformat=figformat, results_db=results_db, out_dir=out_dir)
     plotBundles = []
-    plotDicts = []
+    plot_dicts = []
     for percentile in pDict:
         plotBundles.append(bundle)
-        plotDicts.append(pDict[percentile])
-    plotDicts[0].update({"figsize": (8, 6), "legendloc": "upper right", "yMin": 0})
+        plot_dicts.append(pDict[percentile])
+    plot_dicts[0].update({"figsize": (8, 6), "legendloc": "upper right", "yMin": 0})
     # Remove the h_mark line because these plots get complicated already.
-    for r in plotDicts:
+    for r in plot_dicts:
         r["h_mark"] = None
     ph.setMetricBundles(plotBundles)
     ph.plot(
-        plotFunc=plots.MetricVsH(), plotDicts=plotDicts, displayDict=bundle.displayDict
+        plot_func=plots.MetricVsH(),
+        plot_dicts=plot_dicts,
+        display_dict=bundle.display_dict,
     )
 
 
-def plotNotFound(nChances, h_mark):
+def plot_not_found(nChances, h_mark):
     pass
 
 
-def plotActivity(bdict, figroot=None, resultsDb=None, outDir=".", figformat="pdf"):
+def plot_activity(bdict, figroot=None, results_db=None, out_dir=".", figformat="pdf"):
     activity_deg = {}
     activity_days = {}
     for k in bdict:
@@ -1503,35 +1520,39 @@ def plotActivity(bdict, figroot=None, resultsDb=None, outDir=".", figformat="pdf
     first = bdict[list(bdict.keys())[0]]
     if figroot is None:
         figroot = first.run_name
-    displayDict = deepcopy(first.displayDict)
+    display_dict = deepcopy(first.display_dict)
 
     if len(activity_days) > 0:
         # Plot (mean) likelihood of detection of activity over X days
-        ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
+        ph = plots.PlotHandler(
+            figformat=figformat, results_db=results_db, out_dir=out_dir
+        )
         ph.setMetricBundles(activity_days)
         ph.jointMetricNames = "Chances of detecting activity lasting X days"
         plotDict = {"ylabel": "Mean likelihood of detection", "figsize": (8, 6)}
         ph.plot(
-            plotFunc=plots.MetricVsH(),
-            plotDicts=plotDict,
-            displayDict=displayDict,
-            outfileRoot=figroot + "_activityDays",
+            plot_func=plots.MetricVsH(),
+            plot_dicts=plotDict,
+            display_dict=display_dict,
+            outfile_root=figroot + "_activityDays",
         )
     if len(activity_deg) > 0:
         # Plot (mean) likelihood of detection of activity over X amount of orbit
-        ph = plots.PlotHandler(figformat=figformat, resultsDb=resultsDb, outDir=outDir)
+        ph = plots.PlotHandler(
+            figformat=figformat, results_db=results_db, out_dir=out_dir
+        )
         ph.setMetricBundles(activity_deg)
         ph.jointMetricNames = "Chances of detecting activity covering X deg"
         plotDict = {"ylabel": "Mean likelihood of detection", "figsize": (8, 6)}
         ph.plot(
-            plotFunc=plots.MetricVsH(),
-            plotDicts=plotDict,
-            displayDict=displayDict,
-            outfileRoot=figroot + "_activityDeg",
+            plot_func=plots.MetricVsH(),
+            plot_dicts=plotDict,
+            display_dict=display_dict,
+            outfile_root=figroot + "_activityDeg",
         )
 
 
-def readAndCombine(orbitRoot, baseDir, splits, metricfile):
+def read_and_combine(orbitRoot, baseDir, splits, metricfile):
     """Read and combine the metric results from split locations, returning a single bundle.
 
     This will read the files from
@@ -1562,11 +1583,11 @@ def readAndCombine(orbitRoot, baseDir, splits, metricfile):
         subsets[i] = mb.create_empty_mo_metric_bundle()
         ddir = os.path.join(baseDir, f"{orbitRoot}_{i}")
         subsets[i].read(os.path.join(ddir, metricfile))
-    bundle = combineSubsets(subsets)
+    bundle = combine_subsets(subsets)
     return bundle
 
 
-def combineSubsets(mbSubsets):
+def combine_subsets(mbSubsets):
     # Combine the data from the subset metric bundles.
     # The first bundle will be used a template for the slicer.
     if isinstance(mbSubsets, dict):
@@ -1607,5 +1628,5 @@ def combineSubsets(mbSubsets):
     joint.run_name = first.run_name
     joint.file_root = first.file_root.replace(".npz", "")
     joint.plotDict = first.plotDict
-    joint.displayDict = first.displayDict
+    joint.display_dict = first.display_dict
     return joint

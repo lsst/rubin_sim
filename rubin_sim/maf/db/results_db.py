@@ -45,7 +45,7 @@ class MetricRow(Base):
     def __repr__(self):
         return (
             "<Metric(metricId='%d', metric_name='%s', slicerName='%s', "
-            "simDataName='%s', sqlConstraint='%s', metricInfoLabel='%s', metricDataFile='%s')>"
+            "simDataName='%s', sql_constraint='%s', metricInfoLabel='%s', metricDataFile='%s')>"
         ) % (
             self.metricId,
             self.metricName,
@@ -160,7 +160,7 @@ class ResultsDb(object):
         """
         Instantiate the results database, creating metrics, plots and summarystats tables.
         """
-        # We now require resultsDb to be a sqlite file (for simplicity). Leaving as attribute though.
+        # We now require results_db to be a sqlite file (for simplicity). Leaving as attribute though.
         self.driver = "sqlite"
         # Connect to database
         # for sqlite, connecting to non-existent database creates it automatically
@@ -221,9 +221,9 @@ class ResultsDb(object):
         self.close()
 
     def update_database(self):
-        """Update the resultsDb from 'metricMetaata' to 'metricInfoLabel'
+        """Update the results_db from 'metricMetaata' to 'metricInfoLabel'
 
-        This updates resultsDb to work with the current version of MAF, including RunComparison and showMaf.
+        This updates results_db to work with the current version of MAF, including RunComparison and showMaf.
         There is also a 'downgradeDatabase' to revert to the older style with 'metricMetadata.
         """
         warnings.warn(
@@ -236,13 +236,13 @@ class ResultsDb(object):
         self.close()
 
     def downgrade_database(self):
-        """Update the resultsDb from 'metricInfoLabel' to 'metricMetadata'
+        """Update the results_db from 'metricInfoLabel' to 'metricMetadata'
 
-        This updates resultsDb to work with older versions of MAF.
+        This updates results_db to work with older versions of MAF.
         There is also a 'upgradeDatabase' to update to the newer style with 'metricInfoLabel.
         """
         warnings.warn(
-            "Found a version of the resultsDb which is using metricMetadata not metricInfoLabel.\n"
+            "Found a version of the results_db which is using metricMetadata not metricInfoLabel.\n"
             " Running an automatic update!\n"
             " Note that this can be undone by running ResultsDb.downgradeDatabase"
         )
@@ -283,7 +283,7 @@ class ResultsDb(object):
         slicerName : `str`
             Name of the Slicer
         simDataName : `str`
-            Name of the simulation (runName, simName, simDataName..)
+            Name of the simulation (run_name, simName, simDataName..)
         sqlConstraint : `str`
             Constraint relevant for the metric bundle
         metricInfoLabel : `str`
@@ -297,7 +297,7 @@ class ResultsDb(object):
         metricId : `int`
             The Id number of this metric in the metrics table.
 
-        If same metric (same metric_name, slicerName, simDataName, sqlConstraint, infoLabel)
+        If same metric (same metric_name, slicerName, simDataName, sql_constraint, infoLabel)
         already exists, it does nothing.
         """
         self.open()
@@ -818,10 +818,10 @@ class ResultsDb(object):
                 The base metric names
             ``slicerName``
                 The name of the slicer used in the bundleGroup
-            ``sqlConstraint``
+            ``sql_constraint``
                 The full sql constraint used in the bundleGroup
             ``metricInfoLabel``
-                Metadata extracted from the `sqlConstraint` (usually the filter)
+                Metadata extracted from the `sql_constraint` (usually the filter)
             ``metricDataFile``
                 The file name of the file with the metric data itself.
             ``simDataName``
@@ -860,7 +860,7 @@ class ResultsDb(object):
             ("metric_name", str, self.slen),
             ("baseMetricNames", str, self.slen),
             ("slicerName", str, self.slen),
-            ("sqlConstraint", str, self.slen),
+            ("sql_constraint", str, self.slen),
             ("metricInfoLabel", str, self.slen),
             ("metricDataFile", str, self.slen),
         ]
@@ -919,7 +919,7 @@ class ResultsDb(object):
                 ("metric_name", np.str_, self.slen),
                 ("baseMetricNames", np.str_, self.slen),
                 ("slicerName", np.str_, self.slen),
-                ("sqlConstraint", np.str_, self.slen),
+                ("sql_constraint", np.str_, self.slen),
                 ("metricInfoLabel", np.str_, self.slen),
                 ("metricDataFile", np.str_, self.slen),
                 ("displayGroup", np.str_, self.slen),

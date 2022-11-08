@@ -96,7 +96,9 @@ class RepulsiveRandomDitherFieldPerVisitStacker(BaseStacker):
 
         # fill in x-coordinates
         k = 0
-        x_center[k] = -tile_side * ((np.sqrt(num_tiles) / 2.0) - 0.5)  # far left x-coord
+        x_center[k] = -tile_side * (
+            (np.sqrt(num_tiles) / 2.0) - 0.5
+        )  # far left x-coord
 
         temp_xarr = []
         temp_xarr.append(x_center[k])
@@ -174,7 +176,9 @@ class RepulsiveRandomDitherFieldPerVisitStacker(BaseStacker):
             if rand_index_for_squares > len(x_center):
                 while rand_index_for_squares > len(x_center):
                     rand_num = np.random.rand()
-                    rand_index_for_squares = int(np.floor(rand_num * num_points_inside_hex))
+                    rand_index_for_squares = int(
+                        np.floor(rand_num * num_points_inside_hex)
+                    )
             rand_nums = np.random.rand(2)
             rand_x_offset = (rand_nums[0] - 0.5) * (
                 tile_side / 2.0
@@ -510,9 +514,9 @@ class FermatSpiralDitherFieldPerVisitStacker(BaseStacker):
             # Apply sequential dithers, increasing with each visit.
             vertex_idxs = np.arange(0, len(match), 1)
             vertex_idxs = vertex_idxs % self.num_points
-            sim_data["fermatSpiralDitherFieldPerVisitRa"][match] = sim_data[self.ra_col][
-                match
-            ] + self.x_off[vertex_idxs] / np.cos(sim_data[self.dec_col][match])
+            sim_data["fermatSpiralDitherFieldPerVisitRa"][match] = sim_data[
+                self.ra_col
+            ][match] + self.x_off[vertex_idxs] / np.cos(sim_data[self.dec_col][match])
             sim_data["fermatSpiralDitherFieldPerVisitDec"][match] = (
                 sim_data[self.dec_col][match] + self.y_off[vertex_idxs]
             )
@@ -591,9 +595,9 @@ class FermatSpiralDitherFieldPerNightStacker(FermatSpiralDitherFieldPerVisitStac
             nights = sim_data[self.night_col][match]
             vertex_idxs = np.searchsorted(np.unique(nights), nights)
             vertex_idxs = vertex_idxs % self.num_points
-            sim_data["fermatSpiralDitherFieldPerNightRa"][match] = sim_data[self.ra_col][
-                match
-            ] + self.x_off[vertex_idxs] / np.cos(sim_data[self.dec_col][match])
+            sim_data["fermatSpiralDitherFieldPerNightRa"][match] = sim_data[
+                self.ra_col
+            ][match] + self.x_off[vertex_idxs] / np.cos(sim_data[self.dec_col][match])
             sim_data["fermatSpiralDitherFieldPerNightDec"][match] = (
                 sim_data[self.dec_col][match] + self.y_off[vertex_idxs]
             )
@@ -1005,7 +1009,8 @@ class PentagonDitherPerSeasonStacker(PentagonDitherFieldPerSeasonStacker):
             sim_data["pentagonDitherPerSeasonRa"],
             sim_data["pentagonDitherPerSeasonDec"],
         ) = wrap_ra_dec(
-            sim_data["pentagonDitherPerSeasonRa"], sim_data["pentagonDitherPerSeasonDec"]
+            sim_data["pentagonDitherPerSeasonRa"],
+            sim_data["pentagonDitherPerSeasonDec"],
         )
         return sim_data
 
@@ -1146,7 +1151,7 @@ class SpiralDitherPerSeasonStacker(SpiralDitherFieldPerVisitStacker):
         self.wrap_last_season = wrap_last_season
         # Values required for framework operation: this specifies the names of the new columns.
         self.cols_added = ["spiralDitherPerSeasonRa", "spiralDitherPerSeasonDec"]
-        self.colsReq.append(self.exp_mjd_col)
+        self.cols_req.append(self.exp_mjd_col)
 
     def _run(self, sim_data):
         # find the seasons associated with each visit.

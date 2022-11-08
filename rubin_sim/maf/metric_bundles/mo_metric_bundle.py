@@ -50,7 +50,7 @@ def make_completeness_bundle(bundle, completeness_metric, h_mark=None, results_d
     h_mark : float, optional
         The Hmark value to add to the plotting dictionary of the new mock bundle. Default None.
     results_db : ~rubin_sim.maf.db.ResultsDb, optional
-        The resultsDb in which to record the summary statistic value at Hmark. Default None.
+        The results_db in which to record the summary statistic value at Hmark. Default None.
 
     Returns
     -------
@@ -58,7 +58,7 @@ def make_completeness_bundle(bundle, completeness_metric, h_mark=None, results_d
     """
     bundle.set_summary_metrics(completeness_metric)
     # This step adds summary values at each point to the original metric - we use this to populate
-    # the completeness values in the next step. However, we may not want them to go into the resultsDb.
+    # the completeness values in the next step. However, we may not want them to go into the results_db.
     bundle.compute_summary_stats(results_db)
     summary_name = completeness_metric.name
     # Make up the bundle, including the metric values.
@@ -264,7 +264,9 @@ class MoMetricBundle(MetricBundle):
                         metric_id, summary_name=summary_name, summary_value=summary_val
                     )
 
-    def reduce_metric(self, reduce_func, reduce_plot_dict=None, reduce_display_dict=None):
+    def reduce_metric(
+        self, reduce_func, reduce_plot_dict=None, reduce_display_dict=None
+    ):
         raise NotImplementedError
 
 
@@ -387,7 +389,7 @@ class MoMetricBundleGroup(object):
             return
         # Identify the observations which are relevant for this constraint.
         # This sets slicer.obs (valid for all H values).
-        self.slicer.subsetObs(constraint)
+        self.slicer.subset_obs(constraint)
         # Identify the sets of these metricBundles can be run at the same time (also have the same stackers).
         compatible_lists = self._find_compatible(keys_matching_constraint)
 
@@ -443,7 +445,7 @@ class MoMetricBundleGroup(object):
         for i, slicePoint in enumerate(self.slicer):
             sso_obs = slicePoint["obs"]
             for j, Hval in enumerate(slicePoint["Hvals"]):
-                # Run stackers to add extra columns (that depend on Hval)
+                # Run stackers to add extra columns (that depend on h_val)
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
                     for s in uniq_stackers:

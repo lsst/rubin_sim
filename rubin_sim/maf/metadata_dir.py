@@ -50,7 +50,7 @@ def metadata_dir():
     if args.db is None:
         # Just look for any .db files in this directory
         db_files = glob.glob("*.db")
-        # But remove trackingDb and resultsDb if they're there
+        # But remove trackingDb and results_db if they're there
         try:
             db_files.remove("trackingDb_sqlite.db")
         except ValueError:
@@ -81,14 +81,18 @@ def metadata_dir():
         allsky_slicer = HealpixSlicer(nside=args.nside)
         constraint = 'note not like "%DD%"'
         bundle = MetricBundle(m, allsky_slicer, constraint, runName=sim_name)
-        g = MetricBundleGroup({f"{sim_name} footprint": bundle}, filename, outDir=out_dir)
+        g = MetricBundleGroup(
+            {f"{sim_name} footprint": bundle}, filename, outDir=out_dir
+        )
         g.run_all()
         wfd_footprint = bundle.metricValues.filled(0)
         wfd_footprint = np.where(wfd_footprint > args.wfd_threshold, 1, 0)
         wfd_hpix = np.where(wfd_footprint == 1)[0]
         wfd_slicer = HealpixSubsetSlicer(nside=args.nside, hpid=wfd_hpix)
 
-        bdict = batches.metadata_bundle_dicts(allsky_slicer, wfd_slicer, sim_name, colmap)
+        bdict = batches.metadata_bundle_dicts(
+            allsky_slicer, wfd_slicer, sim_name, colmap
+        )
 
         # Set up the resultsDB
         results_db = ResultsDb(out_dir=out_dir)

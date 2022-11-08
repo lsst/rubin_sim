@@ -7,12 +7,12 @@ import rubin_sim.maf.plots as plots
 import rubin_sim.maf.metric_bundles as mb
 from .col_map_dict import col_map_dict
 from .common import (
-    standardSummary,
-    extendedMetrics,
-    standardAngleMetrics,
-    filterList,
-    radecCols,
-    combineInfoLabels,
+    standard_summary,
+    extended_metrics,
+    standard_angle_metrics,
+    filter_list,
+    radec_cols,
+    combine_info_labels,
 )
 
 __all__ = [
@@ -49,7 +49,7 @@ def metadataBasics(
     runName : str, optional
         The name of the simulated survey. Default is "opsim".
     valueName : str, optional
-        The name of the value to be reported in the resultsDb and added to the metric.
+        The name of the value to be reported in the results_db and added to the metric.
         This is intended to help standardize metric comparison between sim versions.
         value = name as it is in the database (seeingFwhmGeom, etc).
         valueName = name to be recorded ('seeingGeom', etc.).  Default is None, which will match 'value'.
@@ -86,11 +86,11 @@ def metadataBasics(
 
     displayDict = {"group": groupName, "subgroup": subgroup}
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
-    extraInfoLabel = combineInfoLabels(extraInfoLabel, ditherMeta)
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
+    extraInfoLabel = combine_info_labels(extraInfoLabel, ditherMeta)
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, info_label = filterList(
-        all=True, extraSql=extraSql, extraInfoLabel=extraInfoLabel
+    filterlist, colors, orders, sqls, info_label = filter_list(
+        all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
     )
 
     if slicer is not None:
@@ -115,7 +115,7 @@ def metadataBasics(
     # Summarize values over all and per filter (min/mean/median/max/percentiles/outliers/rms).
     slicer = slicers.UniSlicer()
     for f in filterlist:
-        for m in extendedMetrics(value, replace_colname=valueName):
+        for m in extended_metrics(value, replace_colname=valueName):
             displayDict["caption"] = "%s for %s." % (m.name, info_label[f])
             displayDict["order"] = orders[f]
             bundle = mb.MetricBundle(
@@ -169,11 +169,11 @@ def metadataBasics(
                 info_label=info_label[f],
                 plot_dict=plotDict,
                 display_dict=displayDict,
-                summary_metrics=standardSummary(),
+                summary_metrics=standard_summary(),
             )
             bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)
@@ -204,7 +204,7 @@ def metadataBasicsAngle(
     runName : `str`, optional
         The name of the simulated survey. Default is "opsim".
     valueName : `str`, optional
-        The name of the value to be reported in the resultsDb and added to the metric.
+        The name of the value to be reported in the results_db and added to the metric.
         This is intended to help standardize metric comparison between sim versions.
         value = name as it is in the database (seeingFwhmGeom, etc).
         valueName = name to be recorded ('seeingGeom', etc.).  Default is None, which will match 'value'.
@@ -240,11 +240,11 @@ def metadataBasicsAngle(
 
     displayDict = {"group": groupName, "subgroup": subgroup}
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
-    extraInfoLabel = combineInfoLabels(extraInfoLabel, ditherMeta)
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
+    extraInfoLabel = combine_info_labels(extraInfoLabel, ditherMeta)
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, info_label = filterList(
-        all=True, extraSql=extraSql, extraInfoLabel=extraInfoLabel
+    filterlist, colors, orders, sqls, info_label = filter_list(
+        all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
     )
 
     if slicer is not None:
@@ -257,7 +257,7 @@ def metadataBasicsAngle(
     # Summarize values over all and per filter.
     slicer = slicers.UniSlicer()
     for f in filterlist:
-        for m in standardAngleMetrics(value, replace_colname=valueName):
+        for m in standard_angle_metrics(value, replace_colname=valueName):
             displayDict["caption"] = "%s for %s." % (m.name, info_label[f])
             displayDict["order"] = orders[f]
             bundle = mb.MetricBundle(
@@ -312,11 +312,11 @@ def metadataBasicsAngle(
                 info_label=info_label[f],
                 plot_dict=plotDict,
                 display_dict=displayDict,
-                summary_metrics=standardSummary(),
+                summary_metrics=standard_summary(),
             )
             bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)
@@ -407,7 +407,7 @@ def metadataMaps(
     runName : `str`, optional
         The name of the simulated survey. Default is "opsim".
     valueName : `str`, optional
-        The name of the value to be reported in the resultsDb and added to the metric.
+        The name of the value to be reported in the results_db and added to the metric.
         This is intended to help standardize metric comparison between sim versions.
         value = name as it is in the database (seeingFwhmGeom, etc).
         valueName = name to be recorded ('seeingGeom', etc.).  Default is None, which will match 'value'.
@@ -444,11 +444,11 @@ def metadataMaps(
 
     displayDict = {"group": groupName, "subgroup": subgroup}
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
-    extraInfoLabel = combineInfoLabels(extraInfoLabel, ditherMeta)
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
+    extraInfoLabel = combine_info_labels(extraInfoLabel, ditherMeta)
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, info_label = filterList(
-        all=True, extraSql=extraSql, extraInfoLabel=extraInfoLabel
+    filterlist, colors, orders, sqls, info_label = filter_list(
+        all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
     )
 
     # Hack to make HA work, but really I need to account for any stackers/colmaps.
@@ -495,11 +495,11 @@ def metadataMaps(
                 stacker_list=stackerList,
                 info_label=info_label[f],
                 display_dict=displayDict,
-                summary_metrics=standardSummary(),
+                summary_metrics=standard_summary(),
             )
             bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
 
@@ -540,7 +540,7 @@ def firstYearMetadata(
         extraSql = f"({firstYr}) and ({extraSql})"
     else:
         extraSql = firstYr
-    extraInfoLabel = combineInfoLabels("Yr 1", extraInfoLabel)
+    extraInfoLabel = combine_info_labels("Yr 1", extraInfoLabel)
 
     subset = ["airmass", "seeingEff", "seeingGeom", "skyBrightness", "fiveSigmaDepth"]
     for valueName in subset:

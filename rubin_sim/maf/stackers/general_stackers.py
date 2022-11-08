@@ -78,7 +78,9 @@ class SaturationStacker(BaseStacker):
         for filtername in np.unique(sim_data[self.filter_col]):
             in_filt = np.where(sim_data[self.filter_col] == filtername)[0]
             # Calculate the length of the on-sky time per EXPOSURE
-            exptime = sim_data[self.exptime_col][in_filt] / sim_data[self.nexp_col][in_filt]
+            exptime = (
+                sim_data[self.exptime_col][in_filt] / sim_data[self.nexp_col][in_filt]
+            )
             # Calculate sky counts per pixel per second from skybrightness + zeropoint (e/1s)
             sky_counts = (
                 10.0
@@ -136,7 +138,13 @@ class FiveSigmaStacker(BaseStacker):
         exptime_col="visitExposureTime",
     ):
         self.units = ["mag"]
-        self.cols_req = [airmass_col, seeing_col, skybrightness_col, filter_col, exptime_col]
+        self.cols_req = [
+            airmass_col,
+            seeing_col,
+            skybrightness_col,
+            filter_col,
+            exptime_col,
+        ]
         self.airmass_col = airmass_col
         self.seeing_col = seeing_col
         self.skybrightness_col = skybrightness_col

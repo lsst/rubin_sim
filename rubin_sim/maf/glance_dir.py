@@ -37,7 +37,11 @@ def glance_dir():
         bdict.update(batches.glanceBatch(colmap, name))
         results_db = db.ResultsDb(out_dir=name + "_glance")
         group = mb.MetricBundleGroup(
-            bdict, filename, outDir=name + "_glance", results_db=results_db, save_early=False
+            bdict,
+            filename,
+            outDir=name + "_glance",
+            results_db=results_db,
+            save_early=False,
         )
         group.run_all(clear_memory=True, plot_now=True)
         results_db.close()

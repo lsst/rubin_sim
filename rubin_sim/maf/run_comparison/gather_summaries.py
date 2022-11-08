@@ -9,7 +9,7 @@ from .runComparison import RunComparison
 def gather_summaries():
     """Find resultsDbs in a series of directories and gather up their summary
     stats into a single CSV or hdf5 file. Intended to run on a set of metrics
-    run on multiple simulations, so that each resultsDb has similar summary
+    run on multiple simulations, so that each results_db has similar summary
     statistics.
     """
 
@@ -17,7 +17,7 @@ def gather_summaries():
         description="Find resultsDbs in a series of directories and "
         "gather up their summary stats into a single CSV or hdf5 file. "
         "Intended to run on a set of metrics run on multiple "
-        "simulations, so that each resultsDb has similar summary"
+        "simulations, so that each results_db has similar summary"
         "statistics."
     )
     parser.add_argument(

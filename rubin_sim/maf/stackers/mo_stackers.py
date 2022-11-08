@@ -41,12 +41,12 @@ class BaseMoStacker(BaseStacker):
 
 class MoMagStacker(BaseMoStacker):
     """Add columns relevant to SSobject apparent magnitudes and visibility to the slicer ssoObs
-    dataframe, given a particular Href and current Hval.
+    dataframe, given a particular Href and current h_val.
 
     Specifically, this stacker adds magLimit, appMag, SNR, and vis.
     magLimit indicates the appropriate limiting magnitude to consider for a particular object in a particular
     observation, when combined with the losses due to detection (dmagDetect) or trailing (dmagTrail).
-    appMag adds the apparent magnitude in the filter of the current object, at the current Hval.
+    appMag adds the apparent magnitude in the filter of the current object, at the current h_val.
     SNR adds the SNR of this object, given the magLimit.
     vis adds a flag (0/1) indicating whether an object was visible (assuming a 5sigma threshhold including
     some probabilistic determination of visibility).
@@ -167,11 +167,11 @@ class AppMagNullStacker(BaseMoStacker):
 
 
 class AppMagStacker(BaseMoStacker):
-    """Add apparent magnitude of an object for the current Hval (compared to Href in the orbit file),
+    """Add apparent magnitude of an object for the current h_val (compared to Href in the orbit file),
     incorporating the magnitude losses due to trailing/detection, as well as the color of the object.
 
     This is calculated from the reported magV in the input observation file (calculated assuming Href) as:
-    ssoObs['appMag'] = ssoObs[self.vMagCol] + ssoObs[self.colorCol] + ssoObs[self.lossCol] + Hval - Href
+    ssoObs['appMag'] = ssoObs[self.vMagCol] + ssoObs[self.colorCol] + ssoObs[self.lossCol] + h_val - Href
 
     Using the vMag reported in the input observations implicitly uses the phase curve coded in at that point;
     for Oorb this is an H/G phase curve, with G=0.15 unless otherwise specified in the orbit file.
@@ -215,7 +215,7 @@ class AppMagStacker(BaseMoStacker):
 
 class CometAppMagStacker(BaseMoStacker):
     """Add a cometary apparent magnitude, including nucleus and coma, based on a calculation of
-    Afrho (using the current Hval) and a Halley-Marcus phase curve for the coma brightness.
+    Afrho (using the current h_val) and a Halley-Marcus phase curve for the coma brightness.
 
     Parameters
     ----------
@@ -331,7 +331,9 @@ class CometAppMagStacker(BaseMoStacker):
             - href
         )
         # add coma and nucleus then ready for calculation of SNR, etc.
-        sso_obs["appMag"] = -2.5 * np.log10(10 ** (-0.4 * coma) + 10 ** (-0.4 * nucleus))
+        sso_obs["appMag"] = -2.5 * np.log10(
+            10 ** (-0.4 * coma) + 10 ** (-0.4 * nucleus)
+        )
         return sso_obs
 
 

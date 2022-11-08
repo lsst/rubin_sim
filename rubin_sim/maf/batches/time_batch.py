@@ -7,11 +7,11 @@ import rubin_sim.maf.plots as plots
 import rubin_sim.maf.metric_bundles as mb
 from .col_map_dict import col_map_dict
 from .common import (
-    standardSummary,
-    extendedSummary,
-    filterList,
-    combineInfoLabels,
-    radecCols,
+    standard_summary,
+    extended_summary,
+    filter_list,
+    combine_info_labels,
+    radec_cols,
 )
 
 __all__ = ["intraNight", "interNight", "timeGaps", "seasons"]
@@ -57,11 +57,11 @@ def intraNight(
         if info_label is None:
             info_label = extraSql
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
-    info_label = combineInfoLabels(info_label, ditherMeta)
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
+    info_label = combine_info_labels(info_label, ditherMeta)
 
     bundleList = []
-    standardStats = standardSummary()
+    standardStats = standard_summary()
 
     if slicer is None:
         slicer = slicers.HealpixSlicer(
@@ -192,8 +192,8 @@ def intraNight(
         "caption"
     ] = "75th percentile value of the maximum intra-night timespan, on each night"
     # individual and all filters
-    filterlist, colors, orders, sqls, info_labels = filterList(
-        all=True, extraSql=extraSql, extraInfoLabel=info_label
+    filterlist, colors, orders, sqls, info_labels = filter_list(
+        all=True, extra_sql=extraSql, extra_info_label=info_label
     )
     for f in filterlist:
         if info_labels[f] is None or len(info_labels[f]) == 0:
@@ -313,7 +313,7 @@ def intraNight(
     )
     bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)
@@ -357,10 +357,10 @@ def interNight(
     bundleList = []
 
     # Set up basic all and per filter sql constraints.
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
-    info_label = combineInfoLabels(extraInfoLabel, ditherMeta)
-    filterlist, colors, orders, sqls, info_label = filterList(
-        all=True, extraSql=extraSql, extraInfoLabel=info_label
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
+    info_label = combine_info_labels(extraInfoLabel, ditherMeta)
+    filterlist, colors, orders, sqls, info_label = filter_list(
+        all=True, extra_sql=extraSql, extra_info_label=info_label
     )
 
     if slicer is None:
@@ -402,7 +402,7 @@ def interNight(
     )
     bundleList.append(bundle)
 
-    standardStats = standardSummary()
+    standardStats = standard_summary()
 
     # Look at the total number of unique nights with visits
     metric = metrics.CountUniqueMetric(
@@ -488,7 +488,7 @@ def interNight(
         )
         bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)
@@ -534,8 +534,8 @@ def timeGaps(
     raCol = colmap["ra"]
     decCol = colmap["dec"]
     degrees = colmap["raDecDeg"]
-    filterlist, colors, orders, sqls, info_label = filterList(
-        all=True, extraSql=extraSql, extraInfoLabel=extraInfoLabel
+    filterlist, colors, orders, sqls, info_label = filter_list(
+        all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
     )
 
     if slicer is None:
@@ -593,7 +593,7 @@ def timeGaps(
         )
         plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
         plotDict = {"colorMin": 0, "color": colors[f]}
-        summaryMetrics = extendedSummary()
+        summaryMetrics = extended_summary()
         displayDict["caption"] = (
             f"Percent of the total time gaps which fall into the interval"
             f" between 2-14 hours, in {f} band(s)."
@@ -676,10 +676,10 @@ def seasons(
     bundleList = []
 
     # Set up basic all and per filter sql constraints.
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
-    info_label = combineInfoLabels(extraInfoLabel, ditherMeta)
-    filterlist, colors, orders, sqls, info_label = filterList(
-        all=True, extraSql=extraSql, extraInfoLabel=info_label
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
+    info_label = combine_info_labels(extraInfoLabel, ditherMeta)
+    filterlist, colors, orders, sqls, info_label = filter_list(
+        all=True, extra_sql=extraSql, extra_info_label=info_label
     )
 
     if slicer is None:
@@ -694,7 +694,7 @@ def seasons(
         "order": 0,
     }
 
-    standardStats = standardSummary()
+    standardStats = standard_summary()
 
     metric = metrics.SeasonLengthMetric(
         metric_name="Median Season Length", mjdCol=colmap["mjd"], reduceFunc=np.median
@@ -781,7 +781,7 @@ def seasons(
     )
     bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)

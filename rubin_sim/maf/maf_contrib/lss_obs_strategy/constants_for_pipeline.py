@@ -120,7 +120,11 @@ plot_color["FermatSpiralDitherFieldPerVisit"] = [
     252 / 255.0,
     0.0,
 ]  # lawngreen
-plot_color["FermatSpiralDitherFieldPerNight"] = [0, 206 / 255.0, 209 / 255.0]  # turqoise
+plot_color["FermatSpiralDitherFieldPerNight"] = [
+    0,
+    206 / 255.0,
+    209 / 255.0,
+]  # turqoise
 plot_color["FermatSpiralDitherPerNight"] = [
     34 / 255.0,
     139 / 255.0,

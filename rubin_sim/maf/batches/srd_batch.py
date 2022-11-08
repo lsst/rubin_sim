@@ -10,7 +10,7 @@ import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.metric_bundles as mb
 from .col_map_dict import col_map_dict
-from .common import standardSummary, radecCols, combineInfoLabels
+from .common import standard_summary, radec_cols, combine_info_labels
 
 __all__ = ["fOBatch", "astrometryBatch", "rapidRevisitBatch"]
 
@@ -63,9 +63,9 @@ def fOBatch(
 
     subgroup = info_label
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radecCols(None, colmap, None)
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
     # Don't want dither info in subgroup (too long), but do want it in bundle name.
-    info_label = combineInfoLabels(info_label, ditherMeta)
+    info_label = combine_info_labels(info_label, ditherMeta)
 
     # Set up fO metric.
     if slicer is None:
@@ -156,7 +156,7 @@ def fOBatch(
         info_label=info_label,
     )
     bundleList.append(bundle)
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)
@@ -260,7 +260,7 @@ def astrometryBatch(
             percentile=95, metric_name="95th Percentile Parallax Uncert"
         )
     )
-    summary.extend(standardSummary())
+    summary.extend(standard_summary())
     for rmag, plotmax in zip(rmags_para, plotmaxVals):
         plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
         metric = metrics.ParallaxMetric(
@@ -303,7 +303,7 @@ def astrometryBatch(
             info_label=info_label,
             stacker_list=[parallaxStacker],
             display_dict=displayDict,
-            summary_metrics=standardSummary(),
+            summary_metrics=standard_summary(),
             plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
@@ -325,7 +325,7 @@ def astrometryBatch(
             info_label=info_label,
             stacker_list=[parallaxStacker],
             display_dict=displayDict,
-            summary_metrics=standardSummary(),
+            summary_metrics=standard_summary(),
             plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
@@ -351,7 +351,7 @@ def astrometryBatch(
             info_label=info_label,
             stacker_list=[dcrStacker, parallaxStacker],
             display_dict=displayDict,
-            summary_metrics=standardSummary(),
+            summary_metrics=standard_summary(),
             plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
@@ -377,7 +377,7 @@ def astrometryBatch(
     summary.append(
         metrics.PercentileMetric(metric_name="95th Percentile Proper Motion Uncert")
     )
-    summary.extend(standardSummary())
+    summary.extend(standard_summary())
     for rmag, plotmax in zip(rmags_pm, plotmaxVals):
         plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
         metric = metrics.ProperMotionMetric(
@@ -418,13 +418,13 @@ def astrometryBatch(
             sql,
             info_label=info_label,
             display_dict=displayDict,
-            summary_metrics=standardSummary(),
+            summary_metrics=standard_summary(),
             plot_funcs=subsetPlots,
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)
@@ -504,7 +504,10 @@ def rapidRevisitBatch(
     # Calculate the actual number of revisits within 30 minutes.
     dTmax = 30  # time in minutes
     m2 = metrics.NRevisitsMetric(
-        dT=dTmax, mjdCol=colmap["mjd"], normed=False, metric_name="NumberOfQuickRevisits"
+        dT=dTmax,
+        mjdCol=colmap["mjd"],
+        normed=False,
+        metric_name="NumberOfQuickRevisits",
     )
     plotDict = {"colorMin": 400, "colorMax": 2000, "xMin": 400, "xMax": 2000}
     caption = (
@@ -521,7 +524,7 @@ def rapidRevisitBatch(
         plot_funcs=subsetPlots,
         info_label=info_label,
         display_dict=displayDict,
-        summary_metrics=standardSummary(withCount=False),
+        summary_metrics=standard_summary(withCount=False),
     )
     bundleList.append(bundle)
     displayDict["order"] += 1
@@ -548,7 +551,9 @@ def rapidRevisitBatch(
     plotDict = {"xMin": 0, "xMax": 1, "colorMin": 0, "colorMax": 1, "logScale": False}
     cutoff1 = 0.9
     summaryStats = [
-        metrics.FracAboveMetric(cutoff=cutoff1, scale=scale, metric_name="Area (sq deg)")
+        metrics.FracAboveMetric(
+            cutoff=cutoff1, scale=scale, metric_name="Area (sq deg)"
+        )
     ]
     caption = (
         "Rapid Revisit: area that receives at least %d visits between %.3f and %.1f minutes, "
@@ -576,7 +581,7 @@ def rapidRevisitBatch(
     bundleList.append(bundle)
     displayDict["order"] += 1
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
         b.set_run_name(runName)
     return mb.make_bundles_dict_from_list(bundleList)

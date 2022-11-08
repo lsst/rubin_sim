@@ -582,7 +582,7 @@ def generate_microlensing_slicer(
     data = np.load(
         os.path.join(map_dir, "TRIstarDensity_%s_nside_%i.npz" % (filtername, nside))
     )
-    star_density = data["star_density"].copy()
+    star_density = data["starDensity"].copy()
     # magnitude bins
     bins = data["bins"].copy()
     data.close()

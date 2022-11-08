@@ -160,19 +160,25 @@ class GRBTransientMetric(metrics.BaseMetric):
         # Total number of transients that could go off back-to-back
         n_trans_max = np.floor(self.survey_duration / (self.trans_duration / 365.25))
         tshifts = (
-            np.arange(self.n_phase_check) * self.trans_duration / float(self.n_phase_check)
+            np.arange(self.n_phase_check)
+            * self.trans_duration
+            / float(self.n_phase_check)
         )
         n_detected = 0
         n_trans_max = 0
         for tshift in tshifts:
             # Compute the total number of back-to-back transients are possible to detect
             # given the survey duration and the transient duration.
-            n_trans_max += np.floor(self.survey_duration / (self.trans_duration / 365.25))
+            n_trans_max += np.floor(
+                self.survey_duration / (self.trans_duration / 365.25)
+            )
             if tshift != 0:
                 n_trans_max -= 1
             if self.survey_start is None:
                 survey_start = data_slice[self.mjd_col].min()
-            time = (data_slice[self.mjd_col] - survey_start + tshift) % self.trans_duration
+            time = (
+                data_slice[self.mjd_col] - survey_start + tshift
+            ) % self.trans_duration
 
             # Which lightcurve does each point belong to
             lc_number = np.floor(
@@ -186,7 +192,9 @@ class GRBTransientMetric(metrics.BaseMetric):
 
             # Flag points that are above the SNR limit
             detected = np.zeros(data_slice.size, dtype=int)
-            detected[np.where(lc_mags < data_slice[self.m5_col] + self.detect_m5_plus)] += 1
+            detected[
+                np.where(lc_mags < data_slice[self.m5_col] + self.detect_m5_plus)
+            ] += 1
 
             bandcounter = {
                 "u": 0,
@@ -216,7 +224,8 @@ class GRBTransientMetric(metrics.BaseMetric):
                 nfilts_lci = 0
                 for filt_name in ufilters:
                     wdetfilt = np.where(
-                        (data_slice[self.filter_col][le:ri] == filt_name) & detected[le:ri]
+                        (data_slice[self.filter_col][le:ri] == filt_name)
+                        & detected[le:ri]
                     )
 
                     lc_points = lc_mags[le:ri][wdetfilt]

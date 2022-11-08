@@ -3,7 +3,7 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.plots as plots
 from .col_map_dict import col_map_dict
-from .common import filterList
+from .common import filter_list
 
 __all__ = ["altazHealpix", "altazLambert"]
 
@@ -58,8 +58,8 @@ def altazHealpix(
     colmap, slicer, metric = basicSetup(metric_name=metric_name, colmap=colmap)
 
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, info_label = filterList(
-        all=True, extraSql=extraSql, extraInfoLabel=extraInfoLabel
+    filterlist, colors, orders, sqls, info_label = filter_list(
+        all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
     )
 
     bundleList = []
@@ -129,8 +129,8 @@ def altazLambert(
     colmap, slicer, metric = basicSetup(metric_name=metric_name, colmap=colmap)
 
     # Set up basic all and per filter sql constraints.
-    filterlist, colors, orders, sqls, info_label = filterList(
-        all=True, extraSql=extraSql, extraInfoLabel=extraInfoLabel
+    filterlist, colors, orders, sqls, info_label = filter_list(
+        all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
     )
 
     bundleList = []

@@ -214,7 +214,9 @@ class NVisitsPerNightMetric(BaseMetric):
         these histograms can be combined and plotted using the 'SummaryHistogram plotter'.
     """
 
-    def __init__(self, night_col="night", bins=np.arange(0, 10, 1), units="#", **kwargs):
+    def __init__(
+        self, night_col="night", bins=np.arange(0, 10, 1), units="#", **kwargs
+    ):
         # Pass the same bins to the plotter.
         self.bins = bins
         self.night_col = night_col
@@ -298,6 +300,8 @@ class NightTimespanMetric(BaseMetric):
         else:
             nstart = np.searchsorted(data[self.night_col], unights, side="left")
             nend = np.searchsorted(data[self.night_col], unights, side="right") - 1
-            tspans = (data[self.mjd_col][nend] - data[self.mjd_col][nstart]) * 24.0 * 60.0
+            tspans = (
+                (data[self.mjd_col][nend] - data[self.mjd_col][nstart]) * 24.0 * 60.0
+            )
             result = np.percentile(tspans, self.percentile)
         return result

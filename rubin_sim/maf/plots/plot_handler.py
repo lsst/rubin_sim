@@ -302,7 +302,7 @@ class PlotHandler(object):
         """
         Build a plot title from the metric names, runNames and info_label.
         """
-        # Create a plot title from the unique parts of the metric/runName/info_label.
+        # Create a plot title from the unique parts of the metric/run_name/info_label.
         plot_title = ""
         if len(self.run_names) == 1:
             plot_title += list(self.run_names)[0]
@@ -333,7 +333,10 @@ class PlotHandler(object):
                     )
                 else:
                     xlabel = (
-                        m_b.slicer.sliceColName + " \n(" + m_b.slicer.sliceColUnits + ")"
+                        m_b.slicer.sliceColName
+                        + " \n("
+                        + m_b.slicer.sliceColUnits
+                        + ")"
                     )
                 ylabel = m_b.metric.name + " (" + m_b.metric.units + ")"
             else:
@@ -374,7 +377,7 @@ class PlotHandler(object):
 
     def _build_legend_labels(self):
         """
-        Build a set of legend labels, using parts of the runName/info_label/metricNames that change.
+        Build a set of legend labels, using parts of the run_name/info_label/metricNames that change.
         """
         if len(self.m_bundles) == 1:
             return [None]
@@ -604,7 +607,9 @@ class PlotHandler(object):
                 msg += " Either the values have not been calculated or they have been deleted."
                 warnings.warn(msg)
             else:
-                fignum = plot_func(m_b.metricValues, m_b.slicer, plotDict, fignum=fignum)
+                fignum = plot_func(
+                    m_b.metricValues, m_b.slicer, plotDict, fignum=fignum
+                )
         # Add a legend if more than one metricValue is being plotted or if legendloc is specified.
         legendloc = None
         if "legendloc" in self.plot_dicts[0]:
@@ -620,7 +625,7 @@ class PlotHandler(object):
         # Add the super title if provided.
         if "suptitle" in self.plot_dicts[0]:
             plt.suptitle(self.plot_dicts[0]["suptitle"])
-        # Save to disk and file info to resultsDb if desired.
+        # Save to disk and file info to results_db if desired.
         if self.savefig:
             if display_dict is None:
                 display_dict = self._build_display_dict()
@@ -660,7 +665,9 @@ class PlotHandler(object):
             )
         else:
             fig.savefig(
-                os.path.join(self.out_dir, plot_file), dpi=self.dpi, format=self.figformat
+                os.path.join(self.out_dir, plot_file),
+                dpi=self.dpi,
+                format=self.figformat,
             )
         # Generate a png thumbnail.
         if self.thumbnail:
@@ -668,7 +675,7 @@ class PlotHandler(object):
             plt.savefig(
                 os.path.join(self.out_dir, thumb_file), dpi=72, bbox_inches="tight"
             )
-        # Save information about the file to resultsDb.
+        # Save information about the file to results_db.
         if self.results_db:
             if display_dict is None:
                 display_dict = {}

@@ -135,7 +135,8 @@ class PeriodicQualityMetric(BaseMetric):
         snr = m52snr(self.star_mag, data_slice[self.m5_col])
         amp_snrs = (
             np.sin(
-                data_slice[self.mjd_col] / self.period * 2 * np.pi + phases[:, np.newaxis]
+                data_slice[self.mjd_col] / self.period * 2 * np.pi
+                + phases[:, np.newaxis]
             )
             * snr
         )

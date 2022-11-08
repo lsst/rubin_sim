@@ -483,7 +483,9 @@ class GetReference:
     gamma : dict of RegularGridInterpolator of gamma values (key: filters)
     """
 
-    def __init__(self, lc_name, gamma_name, param__fisher=["x0", "x1", "color", "daymax"]):
+    def __init__(
+        self, lc_name, gamma_name, param__fisher=["x0", "x1", "color", "daymax"]
+    ):
 
         # Load the file - lc reference
         if not os.path.exists(lc_name):
@@ -662,7 +664,7 @@ class SnRate:
         self, rate="Perrett", h0=70, om0=0.25, min_rf_phase=-15.0, max_rf_phase=30.0
     ):
 
-        self.astropy_cosmo = FlatLambdaCDM(h0=h0, om0=om0)
+        self.astropy_cosmo = FlatLambdaCDM(H0=h0, Om0=om0)
         self.rate = rate
         self.min_rf_phase = min_rf_phase
         self.max_rf_phase = max_rf_phase

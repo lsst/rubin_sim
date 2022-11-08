@@ -183,7 +183,7 @@ def generate_ss():
     if args.db is None:
         # Just look for any .db files in this directory
         dbFiles = glob.glob("*.db")
-        # But remove trackingDb and resultsDb if they're there
+        # But remove trackingDb and results_db if they're there
         try:
             dbFiles.remove("trackingDb_sqlite.db")
         except ValueError:

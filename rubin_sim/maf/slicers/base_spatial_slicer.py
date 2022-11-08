@@ -137,7 +137,9 @@ class BaseSpatialSlicer(BaseSlicer):
                 self.leafsize,
             )
         else:
-            self._build_tree(sim_data[self.lonCol], sim_data[self.latCol], self.leafsize)
+            self._build_tree(
+                sim_data[self.lonCol], sim_data[self.latCol], self.leafsize
+            )
 
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):

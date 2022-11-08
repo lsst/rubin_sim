@@ -136,7 +136,8 @@ class M5OptimalStacker(BaseStacker):
                 sim_data[self.m5_col]
                 - 0.5 * delta_sky
                 - 0.15 * np.log10(min_airmass_possible / sim_data[self.airmass_col])
-                - k_atm[filter_name] * (min_airmass_possible - sim_data[self.airmass_col])
+                - k_atm[filter_name]
+                * (min_airmass_possible - sim_data[self.airmass_col])
             )
             good = np.where(sim_data[self.filter_col] == filter_name)
             sim_data["m5_optimal"][good] = m5_optimal[good]

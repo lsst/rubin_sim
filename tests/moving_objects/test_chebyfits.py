@@ -84,7 +84,7 @@ class TestChebyFits(unittest.TestCase):
                 cheb.calc_segment_length()
                 pos_resid, ratio = cheb._test_residuals(cheb.length)
                 self.assertTrue(pos_resid < sky_tolerance)
-                # print('final', orbitFile, sky_tolerance, pos_resid, cheb.length, ratio)
+                # print('final', orbit_file, sky_tolerance, pos_resid, cheb.length, ratio)
 
     def test_segments(self):
         # Test that we can create segments.

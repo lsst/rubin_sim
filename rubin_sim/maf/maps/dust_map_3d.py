@@ -88,7 +88,9 @@ class DustMap3D(BaseMap):
                     f"from map value {self.nside}, will use correct slicer value here."
                 )
             dists, ebvs = ebv_3d_hp(
-                slice_points["nside"], pixels=slice_points["sid"], map_file=self.map_file
+                slice_points["nside"],
+                pixels=slice_points["sid"],
+                map_file=self.map_file,
             )
         # Not a healpix slicer, look up values based on RA,dec with possible interpolation
         else:

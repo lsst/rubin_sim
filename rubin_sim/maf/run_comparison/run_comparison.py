@@ -18,7 +18,7 @@ class RunComparison:
     This class can operate either as:
     * define a single root directory, automatically (recursively) find all subdirectories that contain
     resultsDbs (in which case, leave run_dirs as None)
-    * define the directories in which to search for resultsDb (no search for further subdirectories, and
+    * define the directories in which to search for results_db (no search for further subdirectories, and
     limits the search to the directories listed). In this case, the root directory can be specified
     (and then further directory paths are relative to this root directory) or defined as None, in which case
     the full path names must be specified for each directory).
@@ -26,7 +26,7 @@ class RunComparison:
     The run_names (simulation names) are fetched from the resultsDB directly. This relies on the user
     specifying the simulation name when the metrics are run.
 
-    This class can also pull information from the resultsDb about where files for the metric data
+    This class can also pull information from the results_db about where files for the metric data
     are located; this is helpful to re-read data from disk and plot of multiple runs in the same image.
 
     Parameters
@@ -55,12 +55,12 @@ class RunComparison:
                 self.run_dirs = [os.path.join(self.base_dir, r) for r in run_dirs]
             else:
                 self.run_dirs = run_dirs
-            # Check if each of these specified run directories contain a resultsDb file
+            # Check if each of these specified run directories contain a results_db file
             run_dirs = []
             for r in self.run_dirs:
                 if not (os.path.isfile(os.path.join(r, self.default_results_db))):
                     warnings.warn(
-                        f"Could not find resultsDb file {self.default_results_db} in {r}"
+                        f"Could not find results_db file {self.default_results_db} in {r}"
                     )
                 else:
                     run_dirs.append(r)
@@ -69,10 +69,10 @@ class RunComparison:
             if self.base_dir is None:
                 raise Exception(
                     "Both base_dir and run_dirs cannot be None - please specify "
-                    "base_dir to search recursively for resultsDb files, or "
-                    "run_dirs to search specific directories for resultsDb files."
+                    "base_dir to search recursively for results_db files, or "
+                    "run_dirs to search specific directories for results_db files."
                 )
-            # Find subdirectories with resultsDb files
+            # Find subdirectories with results_db files
             self.run_dirs = [
                 r.replace(f"/{self.default_results_db}", "")
                 for r in glob.glob(
@@ -94,7 +94,7 @@ class RunComparison:
         """
         # Open access to all results database files in self.run_dirs
         self.runresults = {}
-        # Make a look-up table for simulation runName - runDir.
+        # Make a look-up table for simulation run_name - runDir.
         # This is really only used in case the user wants to double-check which runs are represented.
         self.run_names = {}
         for rdir in self.run_dirs:
@@ -206,13 +206,13 @@ class RunComparison:
         """
         summary_values = {}
         for r in self.run_dirs:
-            # Look for this metric/metadata/slicer/summary stat name combo in this resultsDb.
+            # Look for this metric/metadata/slicer/summary stat name combo in this results_db.
             m_id = self.runresults[r].get_metric_id(
                 metric_name=metric_name,
                 metric_info_label=metric_info_label,
                 slicer_name=slicer_name,
             )
-            # Note that we may have more than one matching summary metric value per resultsDb.
+            # Note that we may have more than one matching summary metric value per results_db.
             stats = self.runresults[r].getSummaryStats(
                 m_id, summary_name=summary_name, withSimName=True
             )
@@ -295,7 +295,7 @@ class RunComparison:
         Returns
         -------
         filepaths: `dict`
-            Keys: runName, Value: path to file
+            Keys: run_name, Value: path to file
         """
         filepaths = {}
         for r in self.run_dirs:

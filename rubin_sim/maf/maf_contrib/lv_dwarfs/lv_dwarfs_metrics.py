@@ -37,7 +37,9 @@ def generate_known_lv_dwarf_slicer():
     lv_dat = lv_dat0[lv_dat_cuts]
 
     # Set up the slicer to evaluate the catalog we just made
-    slicer = UserPointsSlicer(lv_dat["ra"], lv_dat["dec"], lat_lon_deg=True, badval=-666)
+    slicer = UserPointsSlicer(
+        lv_dat["ra"], lv_dat["dec"], lat_lon_deg=True, badval=-666
+    )
     # Add any additional information about each object to the slicer
     slicer.slicePoints["distance"] = lv_dat["dist_Mpc"]
 

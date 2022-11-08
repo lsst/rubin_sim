@@ -95,7 +95,8 @@ def starcount_bymass(eq_ra, eq_dec, m1, m2, band):
     massfractions = massbins / totmass
     distances = [dist_calc(x, band) for x in masses[:-1]]
     starcounts = [
-        y * starcount(eq_ra, eq_dec, x[0], x[1]) for x, y in zip(distances, massfractions)
+        y * starcount(eq_ra, eq_dec, x[0], x[1])
+        for x, y in zip(distances, massfractions)
     ]
     return sum(starcounts)
 
