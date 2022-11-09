@@ -45,7 +45,7 @@ class MoMagStacker(BaseMoStacker):
 
     Specifically, this stacker adds magLimit, appMag, SNR, and vis.
     magLimit indicates the appropriate limiting magnitude to consider for a particular object in a particular
-    observation, when combined with the losses due to detection (dmagDetect) or trailing (dmagTrail).
+    observation, when combined with the losses due to detection (dmag_detect) or trailing (dmagTrail).
     appMag adds the apparent magnitude in the filter of the current object, at the current h_val.
     SNR adds the SNR of this object, given the magLimit.
     vis adds a flag (0/1) indicating whether an object was visible (assuming a 5sigma threshhold including
@@ -57,7 +57,7 @@ class MoMagStacker(BaseMoStacker):
         Name of the column describing the 5 sigma depth of each visit. Default fiveSigmaDepth.
     lossCol : `str`, optional
         Name of the column describing the magnitude losses,
-        due to trailing (dmagTrail) or detection (dmagDetect). Default dmagDetect.
+        due to trailing (dmagTrail) or detection (dmag_detect). Default dmag_detect.
     gamma : `float`, optional
         The 'gamma' value for calculating SNR. Default 0.038.
         LSST range under normal conditions is about 0.037 to 0.039.
@@ -78,8 +78,8 @@ class MoMagStacker(BaseMoStacker):
         self,
         magtype="asteroid",
         v_mag_col="magV",
-        color_col="dmagColor",
-        loss_col="dmagDetect",
+        color_col="dmag_color",
+        loss_col="dmag_detect",
         m5_col="fiveSigmaDepth",
         seeing_col="seeingFwhmGeom",
         filter_col="filter",
@@ -170,7 +170,7 @@ class AppMagStacker(BaseMoStacker):
     """Add apparent magnitude of an object for the current h_val (compared to Href in the orbit file),
     incorporating the magnitude losses due to trailing/detection, as well as the color of the object.
 
-    This is calculated from the reported magV in the input observation file (calculated assuming Href) as:
+    This is calculated from the reported mag_v in the input observation file (calculated assuming Href) as:
     ssoObs['appMag'] = ssoObs[self.vMagCol] + ssoObs[self.colorCol] + ssoObs[self.lossCol] + h_val - Href
 
     Using the vMag reported in the input observations implicitly uses the phase curve coded in at that point;
@@ -183,15 +183,15 @@ class AppMagStacker(BaseMoStacker):
         Name of the column containing the base V magnitude for the object at H=Href.
     loss_col : `str`, optional
         Name of the column describing the magnitude losses,
-        due to trailing (dmagTrail) or detection (dmagDetect). Default dmagDetect.
+        due to trailing (dmagTrail) or detection (dmag_detect). Default dmag_detect.
     color_col : `str`, optional
         Name of the column describing the color correction (into the observation filter, from V).
-        Default dmagColor.
+        Default dmag_color.
     """
 
     cols_added = ["appMag"]
 
-    def __init__(self, v_mag_col="magV", color_col="dmagColor", loss_col="dmagDetect"):
+    def __init__(self, v_mag_col="magV", color_col="dmag_color", loss_col="dmag_detect"):
         self.v_mag_col = v_mag_col
         self.color_col = color_col
         self.loss_col = loss_col
@@ -251,8 +251,8 @@ class CometAppMagStacker(BaseMoStacker):
         ap_scale=1,
         filter_col="filter",
         v_mag_col="magV",
-        color_col="dmagColor",
-        loss_col="dmagDetect",
+        color_col="dmag_color",
+        loss_col="dmag_detect",
     ):
         self.units = ["mag"]  # new column units
         # Set up k and Afrho1 constant values.

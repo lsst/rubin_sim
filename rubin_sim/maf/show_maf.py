@@ -152,7 +152,7 @@ def show_maf():
         "--maf_dir",
         type=str,
         default=None,
-        help="Add this directory to the trackingDb and open immediately.",
+        help="Add this directory to the tracking_db and open immediately.",
     )
     parser.add_argument(
         "-c",
@@ -167,7 +167,7 @@ def show_maf():
     )
     parser.add_argument(
         "--no_browser",
-        dest="noBrowser",
+        dest="no_browser",
         default=False,
         action="store_true",
         help="Do not open a new browser tab",
@@ -176,32 +176,32 @@ def show_maf():
     args = parser.parse_args()
 
     # Check tracking DB is sqlite (and add as convenience if forgotten).
-    trackingDb = args.tracking_db
-    print("Using tracking database at %s" % (trackingDb))
+    tracking_db = args.tracking_db
+    print("Using tracking database at %s" % (tracking_db))
 
     global startRunId
     startRunId = -666
     # If given a directory argument:
-    if args.mafDir is not None:
-        mafDir = os.path.realpath(args.maf_dir)
-        if not os.path.isdir(mafDir):
-            print("There is no directory containing MAF outputs at %s." % (mafDir))
-            print("Just opening using tracking db at %s." % (trackingDb))
+    if args.maf_dir is not None:
+        maf_dir = os.path.realpath(args.maf_dir)
+        if not os.path.isdir(maf_dir):
+            print("There is no directory containing MAF outputs at %s." % (maf_dir))
+            print("Just opening using tracking db at %s." % (tracking_db))
         else:
-            add_run_to_database(mafDir, trackingDb, maf_comment=args.maf_comment)
+            add_run_to_database(maf_dir, tracking_db, maf_comment=args.maf_comment)
 
     # Open tracking database and start visualization.
     global runlist
-    runlist = MafTracking(trackingDb)
+    runlist = MafTracking(tracking_db)
     if startRunId < 0:
         startRunId = runlist.runs[0]["maf_run_id"]
     # Set up path to template and favicon paths, and load templates.
-    mafDir = os.path.join(rubin_sim.__path__[0], "maf")
-    templateDir = os.path.join(mafDir, "web/templates/")
+    maf_dir = os.path.join(rubin_sim.__path__[0], "maf")
+    templateDir = os.path.join(maf_dir, "web/templates/")
     global faviconPath
-    faviconPath = os.path.join(mafDir, "web/")
+    faviconPath = os.path.join(maf_dir, "web/")
     global jsPath
-    jsPath = os.path.join(mafDir, "web/")
+    jsPath = os.path.join(maf_dir, "web/")
     global env
     env = Environment(loader=FileSystemLoader(templateDir))
     # Add 'zip' to jinja templates.

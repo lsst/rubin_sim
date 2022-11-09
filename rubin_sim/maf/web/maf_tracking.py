@@ -43,7 +43,7 @@ class MafTracking(object):
             "maf_version",
             "maf_date",
         ]
-        self.runs = get_sim_data(database, "", cols, tableName="runs")
+        self.runs = get_sim_data(database, "", cols, table_name="runs")
         self.runs = self.sort_runs(
             self.runs, order=["maf_run_id", "run_name", "maf_comment"]
         )
@@ -64,24 +64,24 @@ class MafTracking(object):
         run_info : `OrderedDict`
             Ordered dict version of the numpy structured array.
         """
-        run_info = OrderedDict()
-        run_info["OpsimRun"] = run["run_name"]
-        run_info["OpsimGroup"] = run["run_group"]
-        run_info["MafComment"] = run["maf_comment"]
-        run_info["OpsimComment"] = run["run_comment"]
-        run_info["SQLite File"] = [
+        runInfo = OrderedDict()
+        runInfo["run_name"] = run["run_name"]
+        runInfo["run_group"] = run["run_group"]
+        runInfo["maf_comment"] = run["maf_comment"]
+        runInfo["run_comment"] = run["run_comment"]
+        runInfo["SQLite File"] = [
             os.path.relpath(run["db_file"]),
             os.path.split(run["db_file"])[1],
         ]
-        run_info["ResultsDb"] = os.path.relpath(
+        runInfo["ResultsDb"] = os.path.relpath(
             os.path.join(run["maf_dir"], "resultsDb_sqlite.db")
         )
-        run_info["MafDir"] = run["maf_dir"]
-        run_info["OpsimVersion"] = run["run_version"]
-        run_info["OpsimDate"] = run["run_date"]
-        run_info["MafVersion"] = run["maf_version"]
-        run_info["MafDate"] = run["maf_date"]
-        return run_info
+        runInfo["maf_dir"] = run["maf_dir"]
+        runInfo["run_version"] = run["run_version"]
+        runInfo["run_date"] = run["run_date"]
+        runInfo["maf_version"] = run["maf_version"]
+        runInfo["maf_date"] = run["maf_date"]
+        return runInfo
 
     def sort_runs(self, runs, order=["run_name", "maf_comment", "maf_run_id"]):
         """

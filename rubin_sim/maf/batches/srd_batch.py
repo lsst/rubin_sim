@@ -17,13 +17,13 @@ __all__ = ["fOBatch", "astrometryBatch", "rapidRevisitBatch"]
 
 def fOBatch(
     colmap=None,
-    runName="opsim",
+    runName="run_name",
     extraSql=None,
     extraInfoLabel=None,
     slicer=None,
     benchmarkArea=18000,
-    benchmarkNvisits=825,
-    minNvisits=750,
+    benchmarkn_visits=825,
+    minn_visits=750,
 ):
     """Metrics for calculating fO.
 
@@ -87,61 +87,61 @@ def fOBatch(
 
     # Configure the count metric which is what is used for f0 slicer.
     metric = metrics.CountExplimMetric(
-        col=colmap["mjd"], metric_name="fO", expCol=colmap["exptime"]
+        col=colmap["mjd"], metric_name="fO", exp_col=colmap["exptime"]
     )
     plotDict = {
         "xlabel": "Number of Visits",
-        "Asky": benchmarkArea,
-        "Nvisit": benchmarkNvisits,
+        "asky": benchmarkArea,
+        "n_visit": benchmarkn_visits,
         "xMin": 0,
         "xMax": 1500,
     }
     summaryMetrics = [
-        metrics.fOArea(
+        metrics.FOArea(
             nside=nside,
             norm=False,
             metric_name="fOArea",
-            Asky=benchmarkArea,
-            Nvisit=benchmarkNvisits,
+            asky=benchmarkArea,
+            n_visit=benchmarkn_visits,
         ),
-        metrics.fOArea(
+        metrics.FOArea(
             nside=nside,
             norm=True,
             metric_name="fOArea/benchmark",
-            Asky=benchmarkArea,
-            Nvisit=benchmarkNvisits,
+            asky=benchmarkArea,
+            n_visit=benchmarkn_visits,
         ),
-        metrics.fONv(
+        metrics.FONv(
             nside=nside,
             norm=False,
             metric_name="fONv",
-            Asky=benchmarkArea,
-            Nvisit=benchmarkNvisits,
+            asky=benchmarkArea,
+            n_visit=benchmarkn_visits,
         ),
-        metrics.fONv(
+        metrics.FONv(
             nside=nside,
             norm=True,
             metric_name="fONv/benchmark",
-            Asky=benchmarkArea,
-            Nvisit=benchmarkNvisits,
+            asky=benchmarkArea,
+            n_visit=benchmarkn_visits,
         ),
-        metrics.fOArea(
+        metrics.FOArea(
             nside=nside,
             norm=False,
-            metric_name=f"fOArea_{minNvisits}",
-            Asky=benchmarkArea,
-            Nvisit=minNvisits,
+            metric_name=f"fOArea_{minn_visits}",
+            asky=benchmarkArea,
+            n_visit=minn_visits,
         ),
     ]
     caption = "The FO metric evaluates the overall efficiency of observing. "
     caption += (
         "foNv: out of %.2f sq degrees, the area receives at least X and a median of Y visits "
-        "(out of %d, if compared to benchmark). " % (benchmarkArea, benchmarkNvisits)
+        "(out of %d, if compared to benchmark). " % (benchmarkArea, benchmarkn_visits)
     )
     caption += (
         "fOArea: this many sq deg (out of %.2f sq deg if compared "
         "to benchmark) receives at least %d visits. "
-        % (benchmarkArea, benchmarkNvisits)
+        % (benchmarkArea, benchmarkn_visits)
     )
     displayDict["caption"] = caption
     bundle = mb.MetricBundle(
@@ -214,17 +214,17 @@ def astrometryBatch(
 
     # Set up parallax/dcr stackers.
     parallaxStacker = stackers.ParallaxFactorStacker(
-        raCol=raCol, decCol=decCol, dateCol=colmap["mjd"], degrees=degrees
+        ra_col=raCol, dec_col=decCol, date_col=colmap["mjd"], degrees=degrees
     )
     dcrStacker = stackers.DcrStacker(
-        filterCol=colmap["filter"],
-        altCol=colmap["alt"],
+        filter_col=colmap["filter"],
+        alt_col=colmap["alt"],
         degrees=degrees,
-        raCol=raCol,
-        decCol=decCol,
-        lstCol=colmap["lst"],
+        ra_col=raCol,
+        dec_col=decCol,
+        lst_col=colmap["lst"],
         site="LSST",
-        mjdCol=colmap["mjd"],
+        mjd_col=colmap["mjd"],
     )
 
     # Set up parallax metrics.
@@ -266,9 +266,9 @@ def astrometryBatch(
         metric = metrics.ParallaxMetric(
             metric_name="Parallax Uncert @ %.1f" % (rmag),
             rmag=rmag,
-            seeingCol=colmap["seeingGeom"],
-            filterCol=colmap["filter"],
-            m5Col=colmap["fiveSigmaDepth"],
+            seeing_col=colmap["seeingGeom"],
+            filter_col=colmap["filter"],
+            m5_col=colmap["fiveSigmaDepth"],
             normalize=False,
         )
         bundle = mb.MetricBundle(
@@ -291,9 +291,9 @@ def astrometryBatch(
         metric = metrics.ParallaxMetric(
             metric_name="Normalized Parallax Uncert @ %.1f" % (rmag),
             rmag=rmag,
-            seeingCol=colmap["seeingGeom"],
-            filterCol=colmap["filter"],
-            m5Col=colmap["fiveSigmaDepth"],
+            seeing_col=colmap["seeingGeom"],
+            filter_col=colmap["filter"],
+            m5_col=colmap["fiveSigmaDepth"],
             normalize=True,
         )
         bundle = mb.MetricBundle(
@@ -313,10 +313,10 @@ def astrometryBatch(
         metric = metrics.ParallaxCoverageMetric(
             metric_name="Parallax Coverage @ %.1f" % (rmag),
             rmag=rmag,
-            m5Col=colmap["fiveSigmaDepth"],
-            mjdCol=colmap["mjd"],
-            filterCol=colmap["filter"],
-            seeingCol=colmap["seeingGeom"],
+            m5_col=colmap["fiveSigmaDepth"],
+            mjd_col=colmap["mjd"],
+            filter_col=colmap["filter"],
+            seeing_col=colmap["seeingGeom"],
         )
         bundle = mb.MetricBundle(
             metric,
@@ -335,9 +335,9 @@ def astrometryBatch(
         metric = metrics.ParallaxDcrDegenMetric(
             metric_name="Parallax-DCR degeneracy @ %.1f" % (rmag),
             rmag=rmag,
-            seeingCol=colmap["seeingEff"],
-            filterCol=colmap["filter"],
-            m5Col=colmap["fiveSigmaDepth"],
+            seeing_col=colmap["seeingEff"],
+            filter_col=colmap["filter"],
+            m5_col=colmap["fiveSigmaDepth"],
         )
         caption = (
             "Correlation between parallax offset magnitude and hour angle for a r=%.1f star."
@@ -383,10 +383,10 @@ def astrometryBatch(
         metric = metrics.ProperMotionMetric(
             metric_name="Proper Motion Uncert @ %.1f" % rmag,
             rmag=rmag,
-            m5Col=colmap["fiveSigmaDepth"],
-            mjdCol=colmap["mjd"],
-            filterCol=colmap["filter"],
-            seeingCol=colmap["seeingGeom"],
+            m5_col=colmap["fiveSigmaDepth"],
+            mjd_col=colmap["mjd"],
+            filter_col=colmap["filter"],
+            seeing_col=colmap["seeingGeom"],
             normalize=False,
         )
         bundle = mb.MetricBundle(
@@ -406,10 +406,10 @@ def astrometryBatch(
         metric = metrics.ProperMotionMetric(
             metric_name="Normalized Proper Motion Uncert @ %.1f" % rmag,
             rmag=rmag,
-            m5Col=colmap["fiveSigmaDepth"],
-            mjdCol=colmap["mjd"],
-            filterCol=colmap["filter"],
-            seeingCol=colmap["seeingGeom"],
+            m5_col=colmap["fiveSigmaDepth"],
+            mjd_col=colmap["mjd"],
+            filter_col=colmap["filter"],
+            seeing_col=colmap["seeingGeom"],
             normalize=True,
         )
         bundle = mb.MetricBundle(
@@ -504,8 +504,8 @@ def rapidRevisitBatch(
     # Calculate the actual number of revisits within 30 minutes.
     dTmax = 30  # time in minutes
     m2 = metrics.NRevisitsMetric(
-        dT=dTmax,
-        mjdCol=colmap["mjd"],
+        d_t=dTmax,
+        mjd_col=colmap["mjd"],
         normed=False,
         metric_name="NumberOfQuickRevisits",
     )
@@ -541,12 +541,12 @@ def rapidRevisitBatch(
     scale = pixArea * hp.nside2npix(nside)
     m1 = metrics.RapidRevisitMetric(
         metric_name="RapidRevisits",
-        mjdCol=colmap["mjd"],
-        dTmin=dTmin / 60.0 / 60.0 / 24.0,
-        dTpairs=dTpairs / 60.0 / 24.0,
-        dTmax=dTmax / 60.0 / 24.0,
-        minN1=nOne,
-        minN2=nTwo,
+        mjd_col=colmap["mjd"],
+        d_tmin=dTmin / 60.0 / 60.0 / 24.0,
+        d_tpairs=dTpairs / 60.0 / 24.0,
+        d_tmax=dTmax / 60.0 / 24.0,
+        min_n1=nOne,
+        min_n2=nTwo,
     )
     plotDict = {"xMin": 0, "xMax": 1, "colorMin": 0, "colorMax": 1, "logScale": False}
     cutoff1 = 0.9

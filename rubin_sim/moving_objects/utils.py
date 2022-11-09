@@ -5,15 +5,15 @@ from rubin_sim.maf.utils import get_sim_data
 from .orbits import Orbits
 from .direct_obs import DirectObs
 
-__all__ = ["read_opsim", "read_orbits", "setup_colors", "run_obs"]
+__all__ = ["read_observations", "read_orbits", "setup_colors", "run_obs"]
 
 
-def read_opsim(opsimfile, colmap, constraint=None, footprint="camera", dbcols=None):
+def read_observations(simfile, colmap, constraint=None, footprint="camera", dbcols=None):
     """Read the opsim database.
 
     Parameters
     ----------
-    opsimfile : `str`
+    simfile : `str`
         Name (& path) of the opsim database file.
     colmap : `dict`
         colmap dictionary (from rubin_sim.maf.batches.ColMapDict)
@@ -59,9 +59,9 @@ def read_opsim(opsimfile, colmap, constraint=None, footprint="camera", dbcols=No
     logging.info("Querying for columns:\n %s" % (cols))
 
     # Go ahead and query for all of the observations.
-    simdata = get_sim_data(opsimfile, constraint, cols)
+    simdata = get_sim_data(simfile, constraint, cols)
     logging.info(
-        "Queried data from opsim %s, fetched %d visits." % (opsimfile, len(simdata))
+        "Queried data from opsim %s, fetched %d visits." % (simfile, len(simdata))
     )
     return simdata
 
@@ -89,11 +89,11 @@ def read_orbits(orbitfile):
 
 def setup_colors(obs, filterlist, orbits):
     # Set up filters
-    obs.readFilters(filterlist=filterlist)
+    obs.read_filters(filterlist=filterlist)
     # Calculate all colors ahead of time.
     sednames = np.unique(orbits.orbits["sed_filename"])
     for sedname in sednames:
-        obs.calcColors(sedname)
+        obs.calc_colors(sedname)
     return obs
 
 

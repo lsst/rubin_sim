@@ -685,7 +685,7 @@ class ResultsDb(object):
         dtype_list = [
             ("metric_id", int),
             ("summaryName", str, self.slen),
-            ("metric_name", str, self.slen),
+            ("metricName", str, self.slen),
             ("slicerName", str, self.slen),
             ("metricInfoLabel", str, self.slen),
             ("summaryMetric", str, self.slen),
@@ -724,7 +724,7 @@ class ResultsDb(object):
                 The plot type
             ``plot_file``
                 The full plot file (pdf by default)
-            ``thumbFile``
+            ``thumb_file``
                 A plot thumbnail file name (png)
             ``simDataName``
                 The name of the run plotted (if `withSimName` was `True`)
@@ -746,14 +746,14 @@ class ResultsDb(object):
             )
             for m, p in query:
                 # The plot_file typically ends with .pdf (but the rest of name can have '.' or '_')
-                thumbfile = "thumb." + ".".join(p.plotFile.split(".")[:-1]) + ".png"
+                thumb_file = "thumb." + ".".join(p.plotFile.split(".")[:-1]) + ".png"
                 plot_file_fields = (
                     m.metric_id,
                     m.metricName,
                     m.metricInfoLabel,
                     p.plotType,
                     p.plotFile,
-                    thumbfile,
+                    thumb_file,
                 )
                 if withSimName:
                     plot_file_fields += (m.simDataName,)
@@ -766,7 +766,7 @@ class ResultsDb(object):
             ("metricInfoLabel", str, self.slen),
             ("plot_type", str, self.slen),
             ("plot_file", str, self.slen),
-            ("thumbFile", str, self.slen),
+            ("thumb_file", str, self.slen),
         ]
 
         if withSimName:

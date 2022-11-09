@@ -7,7 +7,7 @@
 {% set comboplotTypes = ['ComboHistogram', 'ComboMetricVsH', 'Combo'] %}
 {% set hourglassTypes = ['Hourglass'] %}
 
-{% set run = runlist.getRun(runId) %}
+{% set run = runlist.get_run(runId) %}
 
 {% set metrics = run.metrics %}
 
@@ -18,11 +18,11 @@
     <li>
         <a href="#{{g}}">{{g|escape}}</a>
   {% for sg in run.groups[g] %}
-   {% set subsetMetrics = run.metricsInSubgroup(g, sg) %}
-   {% set skysetMetrics = run.metricsWithPlotType(plotType=skymapTypes, metrics=subsetMetrics) %}
-   {% set combosetMetrics = run.metricsWithPlotType(plotType=comboplotTypes, metrics=subsetMetrics) %}
-   {% set hourglassMetrics = run.metricsWithPlotType(plotType=hourglassTypes, metrics=subsetMetrics) %}
-   {% set statNames = run.allStatNames(subsetMetrics) %}
+   {% set subsetMetrics = run.metrics_in_subgroup(g, sg) %}
+   {% set skysetMetrics = run.metrics_with_plot_type(plot_type=skymapTypes, metrics=subsetMetrics) %}
+   {% set combosetMetrics = run.metrics_with_plot_type(plot_type=comboplotTypes, metrics=subsetMetrics) %}
+   {% set hourglassMetrics = run.metrics_with_plot_type(plot_type=hourglassTypes, metrics=subsetMetrics) %}
+   {% set statNames = run.all_stat_names(subsetMetrics) %}
    {% set displaygroup = skysetMetrics|length + combosetMetrics|length
   + hourglassMetrics|length + statNames|length %}
    {% if displaygroup > 0 %}
@@ -36,18 +36,18 @@
 
 {% block content %}
 
-{% set metricInfo = run.metricInfo() %}
+{% set metricInfo = run.metric_info() %}
 {% set ninfo = metricInfo|length %}
 
 {% for g in run.groups.keys() %}
  {% set groupstart = True %}
  {% for sg in run.groups[g] %}
    {# Get the metrics, skymaps and combo histograms in this subgroup. #}
-   {% set subsetMetrics = run.metricsInSubgroup(g, sg) %}
-   {% set skysetMetrics = run.metricsWithPlotType(plotType=skymapTypes, metrics=subsetMetrics) %}
-   {% set combosetMetrics = run.metricsWithPlotType(plotType=comboplotTypes, metrics=subsetMetrics) %}
-   {% set hourglassMetrics = run.metricsWithPlotType(plotType=hourglassTypes, metrics=subsetMetrics) %}
-   {% set statNames = run.allStatNames(subsetMetrics) %}
+   {% set subsetMetrics = run.metrics_in_subgroup(g, sg) %}
+   {% set skysetMetrics = run.metrics_with_plot_type(plot_type=skymapTypes, metrics=subsetMetrics) %}
+   {% set combosetMetrics = run.metrics_with_plot_type(plot_type=comboplotTypes, metrics=subsetMetrics) %}
+   {% set hourglassMetrics = run.metrics_with_plot_type(plot_type=hourglassTypes, metrics=subsetMetrics) %}
+   {% set statNames = run.all_stat_names(subsetMetrics) %}
 
    {% set displaygroup = skysetMetrics|length + combosetMetrics|length + vectorMetrics|length
     + hourglassMetrics|length + statNames|length %}
@@ -65,17 +65,17 @@
    {# In each group, plot sky maps/TwoD maps, then combo hists, then hourglass, then summary
    stats #}
 
-   {% set metricNames = run.uniqueMetricNames(skysetMetrics, baseonly=True) %}
+   {% set metricNames = run.unique_metric_names(skysetMetrics, baseonly=True) %}
    {% for mname in metricNames %}
-     {% set mskyset = run.metricsWithMetricName(mname, skysetMetrics, baseonly=True) %}
-     {% set skymaps = run.getSkyMaps(mskyset, plotType=skymapTypes) %}
-     {% set skymaps = run.orderPlots(skymaps) %}
+     {% set mskyset = run.metrics_with_metric_name(mname, skysetMetrics, baseonly=True) %}
+     {% set skymaps = run.get_sky_maps(mskyset, plot_type=skymapTypes) %}
+     {% set skymaps = run.order_plots(skymaps) %}
      {% if skymaps|length > 0 %}
       <div id='metricset'>
        {% set metricLink = 'metricResults?runId=%s&metricId=' %(runId)
    %}
        {# add a link to click to the skymap group's details #}
-       {% set metricSelect = run.metricsToMetricIds(mskyset)|join('&metricId=') %}
+       {% set metricSelect = run.metrics_to_metric_ids(mskyset)|join('&metricId=') %}
        {% set metricLink = metricLink ~ metricSelect %}
 	<a href={{metricLink}}>{{mname}}</a> </br>
 	<table class='blank'>
@@ -83,12 +83,12 @@
        {# put in the sky map plots #}
         {% for skymap in skymaps %}
             {% set mapkey = 'SkyMap' %}
-            {% if skymap[mapkey]['plotFile']|length == 0 %}
+            {% if skymap[mapkey]['plot_file']|length == 0 %}
             <td class='blank'>
             </td>
             {% else %}
-              {% set plotfile = skymap[mapkey]['plotFile'][0] %}
-              {% set thumbfile = skymap[mapkey]['thumbFile'][0] %}
+              {% set plotfile = skymap[mapkey]['plot_file'][0] %}
+              {% set thumbfile = skymap[mapkey]['thumb_file'][0] %}
               <td class='blank' align='center'>
                   <a href="{{plotfile}}"> <img class="sm_thumbnail" src='{{thumbfile}}'></a>
               </td>
@@ -104,12 +104,12 @@
     {% endfor %}
 
    {% for m in combosetMetrics %}
-     {% set comboplots = run.plotsForMetric(m) %}
-     {% set combodict = run.plotDict(comboplots) %}
+     {% set comboplots = run.plots_for_metric(m) %}
+     {% set combodict = run.plot_dict(comboplots) %}
      {% set combohist = combodict['ComboHistogram'] %}
      {% if combohist|length > 0 %}
       <div id='metricset'>
-	{% set metricInfo = run.metricInfo(m) %}
+	{% set metricInfo = run.metric_info(m) %}
         {{ metricInfo['MetricName']|escape }} ({{metricInfo['Slicer']|escape}})
 	</br> <div id='indent'> {{metricInfo['InfoLabel']|escape}} </div> </br>
 	{% for plotfile, thumbfile in zip(combohist['plotFile'], combohist['thumbFile']) %}
@@ -122,10 +122,10 @@
    {% if hourglassMetrics|length > 0 %}
    <div id='metricset'>
    {% for h in hourglassMetrics %}
-      {% set metricInfo = run.metricInfo(h) %}
+      {% set metricInfo = run.metric_info(h) %}
       {# {{metricInfo['InfoLabel']|escape}} </br> #}
-      {% set hourglassplots = run.plotsForMetric(h) %}
-      {% set hourglassdict = run.plotDict(hourglassplots) %}
+      {% set hourglassplots = run.plots_for_metric(h) %}
+      {% set hourglassdict = run.plot_dict(hourglassplots) %}
       {% set hourglass = hourglassdict['Hourglass'] %}
       {% for plotfile, thumbfile in zip(hourglass['plotFile'], hourglass['thumbFile']) %}
          <a href="{{plotfile}}"> <img class="thumbnail" src='{{thumbfile}}'></a>

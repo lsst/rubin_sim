@@ -73,16 +73,16 @@ def make_completeness_bundle(bundle, completeness_metric, h_mark=None, results_d
         constraint=bundle.constraint,
         run_name=bundle.run_name,
         info_label=bundle.info_label,
-        display_dict=bundle.displayDict,
+        display_dict=bundle.display_dict,
     )
     plot_dict = {}
-    plot_dict.update(bundle.plotDict)
+    plot_dict.update(bundle.plot_dict)
     plot_dict["label"] = bundle.info_label
     if "Completeness" not in summary_name:
         plot_dict["label"] += " " + summary_name.replace("FractionPop_", "")
     mb.metric_values = completeness.reshape(1, len(completeness))
     if h_mark is not None:
-        metric = ValueAtHMetric(Hmark=h_mark)
+        metric = ValueAtHMetric(hmark=h_mark)
         mb.set_summary_metrics(metric)
         mb.compute_summary_stats(results_db)
         val = mb.summary_values["Value At H=%.1f" % h_mark]
@@ -254,7 +254,7 @@ class MoMetricBundle(MetricBundle):
                 if results_db:
                     metric_id = results_db.update_metric(
                         self.metric.name,
-                        self.slicer.slicerName,
+                        self.slicer.slicer_name,
                         self.run_name,
                         self.constraint,
                         self.info_label,
@@ -455,29 +455,29 @@ class MoMetricBundleGroup(object):
                     b = self.bundle_dict[k]
                     # Mask the parent metric (and then child metrics) if there was no data.
                     if len(sso_obs) == 0:
-                        b.metricValues.mask[i][j] = True
+                        b.metric_values.mask[i][j] = True
                         for cb in list(b.child_bundles.values()):
-                            cb.metricValues.mask[i][j] = True
+                            cb.metric_values.mask[i][j] = True
                     # Otherwise, calculate the metric value for the parent, and then child.
                     else:
                         # Calculate for the parent.
                         m_val = b.metric.run(sso_obs, slice_point["orbit"], Hval)
                         # Mask if the parent metric returned a bad value.
                         if m_val == b.metric.badval:
-                            b.metricValues.mask[i][j] = True
+                            b.metric_values.mask[i][j] = True
                             for cb in b.child_bundles.values():
-                                cb.metricValues.mask[i][j] = True
+                                cb.metric_values.mask[i][j] = True
                         # Otherwise, set the parent value and calculate the child metric values as well.
                         else:
-                            b.metricValues.data[i][j] = m_val
+                            b.metric_values.data[i][j] = m_val
                             for cb in b.child_bundles.values():
                                 child_val = cb.metric.run(
                                     sso_obs, slice_point["orbit"], Hval, m_val
                                 )
                                 if child_val == cb.metric.badval:
-                                    cb.metricValues.mask[i][j] = True
+                                    cb.metric_values.mask[i][j] = True
                                 else:
-                                    cb.metricValues.data[i][j] = child_val
+                                    cb.metric_values.data[i][j] = child_val
         for k in compatible_list:
             b = self.bundle_dict[k]
             b.compute_summary_stats(self.results_db)
@@ -510,8 +510,8 @@ class MoMetricBundleGroup(object):
         Make a few generically desired plots. This needs more flexibility in the future.
         """
         plot_handler = PlotHandler(
-            outDir=self.out_dir,
-            resultsDb=self.results_db,
+            out_dir=self.out_dir,
+            results_db=self.results_db,
             savefig=savefig,
             figformat=figformat,
             dpi=dpi,

@@ -42,7 +42,7 @@ def run_moving_calc():
         help="Output directory for moving object metrics. Default '.'.",
     )
     parser.add_argument(
-        "--pointings_db",
+        "--simulation_db",
         type=str,
         default=None,
         help="Path and filename of opsim db, to write config* files to output directory."
@@ -111,7 +111,7 @@ def run_moving_calc():
     )
     args = parser.parse_args()
 
-    run_name = args.pointings_db.replace(".db", "")
+    run_name = args.simulation_db.replace(".db", "")
 
     if args.orbit_file is None or args.obs_file is None:
         print("Must specify an orbit_file and an obs_file to calculate the metrics.")
@@ -149,16 +149,16 @@ def run_moving_calc():
     times += start_time
 
     # Set up results_db.
-    if not (os.path.isdir(args.outDir)):
+    if not (os.path.isdir(args.out_dir)):
         try:
-            os.makedirs(args.outDir)
+            os.makedirs(args.out_dir)
         except FileExistsError:
             # This can happen if you are running these in parallel and two scripts try to make
             # the same directory.
             pass
-    results_db = db.ResultsDb(out_dir=args.outDir)
+    results_db = db.ResultsDb(out_dir=args.out_dir)
 
-    colmap = batches.ColMapDict()
+    colmap = batches.col_map_dict()
     slicer = batches.setup_mo_slicer(args.orbit_file, Hrange, obs_file=args.obs_file)
     # Run discovery metrics using 'trailing' losses
     bdictT = batches.quick_discovery_batch(
@@ -174,8 +174,8 @@ def run_moving_calc():
     )
     # Run these discovery metrics
     print("Calculating quick discovery metrics with simple trailing losses.")
-    bg = mmb.MoMetricBundleGroup(bdictT, out_dir=args.outDir, results_db=results_db)
-    bg.runAll()
+    bg = mmb.MoMetricBundleGroup(bdictT, out_dir=args.out_dir, results_db=results_db)
+    bg.run_all()
 
     # Run all discovery metrics using 'detection' losses
     bdictD = batches.quick_discovery_batch(
@@ -204,8 +204,8 @@ def run_moving_calc():
 
     # Run these discovery metrics
     print("Calculating full discovery metrics with detection losses.")
-    bg = mmb.MoMetricBundleGroup(bdictD, out_dir=args.outDir, results_db=results_db)
-    bg.runAll()
+    bg = mmb.MoMetricBundleGroup(bdictD, out_dir=args.out_dir, results_db=results_db)
+    bg.run_all()
 
     # Run all characterization metrics
     if characterization.lower() == "inner":
@@ -232,5 +232,5 @@ def run_moving_calc():
         )
     # Run these characterization metrics
     print("Calculating characterization metrics.")
-    bg = mmb.MoMetricBundleGroup(bdictC, out_dir=args.outDir, results_db=results_db)
-    bg.runAll()
+    bg = mmb.MoMetricBundleGroup(bdictC, out_dir=args.out_dir, results_db=results_db)
+    bg.run_all()

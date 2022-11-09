@@ -7,11 +7,11 @@ __all__ = ["ddfBatch"]
 
 
 def ddfBatch(
-    runName="opsim",
+    run_name="run_name",
     nside=512,
     radius=2.5,
     nside_sne=128,
-    extraSql=None,
+    extra_sql=None,
     extra_info_label=None,
 ):
     """
@@ -27,7 +27,7 @@ def ddfBatch(
         field with large dithers.
     nside_sne : `int` (128)
         The HEALpix nside to use with the SNe metric.
-    extraSql : `str` (None)
+    extra_sql : `str` (None)
         Additional sql constraint (such as night<=365) to add to the necessary sql constraints below
     extra_info_label : `str` (None)
         Additional description information to add (alongside the extra_sql)
@@ -86,7 +86,7 @@ def ddfBatch(
 
     # Set up basic all and per filter sql constraints.
     filterlist, colors, orders, sqls, info_labels = maf.filter_list(
-        all=True, extra_sql=extraSql, extra_info_label=extra_info_label
+        all=True, extra_sql=extra_sql, extra_info_label=extra_info_label
     )
 
     summary_stats = [maf.MeanMetric(), maf.MedianMetric(), maf.SumMetric()]
@@ -121,10 +121,10 @@ def ddfBatch(
             n_aft=10,
             zmin=0.1,
             zmax=1.1,
-            zStep=0.03,
-            daymaxStep=3,
+            z_step=0.03,
+            daymax_step=3,
             coadd_night=True,
-            gammaName="gamma_DDF.hdf5",
+            gamma_name="gamma_DDF.hdf5",
             metric_name=f"SNNSNMetric {fieldname}",  # have to add here, as must be in reduceDict key
         )
         bundle_list.append(
@@ -173,7 +173,7 @@ def ddfBatch(
                 extinction_cut=extinction_cut,
                 qlf_module="Shen20",
                 qlf_model="A",
-                SED_model="Richards06",
+                sed_model="Richards06",
                 zmin=zmin,
                 zmax=None,
             )
@@ -196,7 +196,7 @@ def ddfBatch(
         nquist_threshold = 2.2
         lag = 100
         summaryMetrics = [maf.MeanMetric(), maf.MedianMetric(), maf.RmsMetric()]
-        m = maf.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
+        m = maf.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag)
         for f in filterlist:
             displayDict["order"] = orders[f]
             displayDict["caption"] = (
@@ -209,7 +209,7 @@ def ddfBatch(
                     ddf_slicers[ddf],
                     constraint=sqls[f],
                     info_label=" ".join([fieldname, info_labels[f]]),
-                    run_name=runName,
+                    run_name=run_name,
                     plot_dict=plotDict,
                     plot_funcs=plotFuncs,
                     summary_metrics=summaryMetrics,
@@ -223,7 +223,7 @@ def ddfBatch(
         nquist_threshold = 2.2
         lag = 5
         summaryMetrics = [maf.MeanMetric(), maf.MedianMetric(), maf.RmsMetric()]
-        m = maf.AGN_TimeLagMetric(threshold=nquist_threshold, lag=lag)
+        m = maf.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag)
         for f in filterlist:
             displayDict["order"] = orders[f]
             displayDict["caption"] = (
@@ -236,7 +236,7 @@ def ddfBatch(
                     ddf_slicers[ddf],
                     constraint=sqls[f],
                     info_label=" ".join([fieldname, info_labels[f]]),
-                    run_name=runName,
+                    run_name=run_name,
                     plot_dict=plotDict,
                     plot_funcs=plotFuncs,
                     summary_metrics=summaryMetrics,
@@ -285,7 +285,7 @@ def ddfBatch(
                     sqls[f],
                     info_label=info_labels[f],
                     plot_dict=plotDict,
-                    run_name=runName,
+                    run_name=run_name,
                     plot_funcs=plotFuncs,
                     summary_metrics=depth_stats,
                     display_dict=displayDict,
@@ -305,7 +305,7 @@ def ddfBatch(
                     sqls[f],
                     info_label=info_labels[f],
                     plot_dict=plotDict,
-                    run_name=runName,
+                    run_name=run_name,
                     plot_funcs=plotFuncs,
                     summary_metrics=depth_stats,
                     display_dict=displayDict,
@@ -327,7 +327,7 @@ def ddfBatch(
                 constraint=sqls["all"],
                 info_label=info_labels["all"],
                 plot_dict=plotDict,
-                run_name=runName,
+                run_name=run_name,
                 plot_funcs=plotFuncs,
                 summary_metrics=depth_stats,
                 display_dict=displayDict,
@@ -348,7 +348,7 @@ def ddfBatch(
                 constraint=sqls["all"],
                 info_label=info_labels["all"],
                 plot_dict=plotDict,
-                run_name=runName,
+                run_name=run_name,
                 plot_funcs=plotFuncs,
                 summary_metrics=depth_stats,
                 display_dict=displayDict,
@@ -383,7 +383,7 @@ def ddfBatch(
         # Histogram the number of visits per night at the center of the DDF
         countbins = np.arange(0, 200, 5)
         metric = maf.NVisitsPerNightMetric(
-            nightCol="night", bins=countbins, metric_name=f"{fieldname} NVisitsPerNight"
+            night_col="night", bins=countbins, metric_name=f"{fieldname} NVisitsPerNight"
         )
         plotDict = {"bins": countbins, "xlabel": "Number of visits per night"}
         displayDict[
@@ -408,7 +408,7 @@ def ddfBatch(
             metric = maf.CountMetric(
                 "observationStartMJD", metric_name=f"{fieldname} Nvisits Per Night"
             )
-            slicer = maf.OneDSlicer(sliceColName="night", binsize=1)
+            slicer = maf.OneDSlicer(slice_col_name="night", binsize=1)
             bundle = maf.MetricBundle(
                 metric,
                 slicer,
@@ -430,7 +430,7 @@ def ddfBatch(
         bins = np.arange(1, 40, 1)
         metric = maf.NightgapsMetric(
             bins=bins,
-            nightCol="night",
+            night_col="night",
             metric_name=f"{fieldname} Delta Nights Histogram",
         )
         displayDict[
@@ -452,7 +452,7 @@ def ddfBatch(
         # Median inter-night gap in each and all filters
         for f in filterlist:
             metric = maf.InterNightGapsMetric(
-                metric_name=f"{fieldname} Median Inter-Night Gap", reduceFunc=np.median
+                metric_name=f"{fieldname} Median Inter-Night Gap", reduce_func=np.median
             )
             displayDict["order"] = orders[f]
             displayDict[
@@ -464,7 +464,7 @@ def ddfBatch(
                     ptslicer,
                     fieldsqls[f],
                     info_label=info_labels[f],
-                    run_name=runName,
+                    run_name=run_name,
                     summary_metrics=[maf.MeanMetric()],
                     plot_funcs=[],
                     display_dict=displayDict,
@@ -480,7 +480,7 @@ def ddfBatch(
                 simdata = np.concatenate([simdata, np.array([0], float)])
             return simdata
 
-        metric = maf.SeasonLengthMetric(reduceFunc=rfunc, metricDtype="object")
+        metric = maf.SeasonLengthMetric(reduce_func=rfunc, metric_dtype="object")
         plotDict = {"bins": np.arange(0, 12), "xlabel": "Season length (days)"}
         plotFunc = maf.SummaryHistogram()
         displayDict[
@@ -500,7 +500,7 @@ def ddfBatch(
 
         # Median season Length
         metric = maf.SeasonLengthMetric(
-            metric_name=f"{fieldname} Median Season Length", reduceFunc=np.median
+            metric_name=f"{fieldname} Median Season Length", reduce_func=np.median
         )
         displayDict["caption"] = f"Median season length in the {fieldname} DDF."
         bundle_list.append(
@@ -509,7 +509,7 @@ def ddfBatch(
                 ptslicer,
                 fieldsqls[f],
                 info_label=info_labels["all"],
-                run_name=runName,
+                run_name=run_name,
                 summary_metrics=[maf.MeanMetric()],
                 plot_funcs=[],
                 display_dict=displayDict,
@@ -533,14 +533,14 @@ def ddfBatch(
                 fieldsqls["all"],
                 info_label=info_labels["all"],
                 plot_funcs=[maf.XyPlotter()],
-                run_name=runName,
+                run_name=run_name,
                 display_dict=displayDict,
             )
             metricb.summary_metrics = []
             bundle_list.append(metricb)
 
     for b in bundle_list:
-        b.set_run_name(runName)
+        b.set_run_name(run_name)
     bundleDict = maf.make_bundles_dict_from_list(bundle_list)
 
     return bundleDict

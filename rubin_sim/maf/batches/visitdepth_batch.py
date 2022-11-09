@@ -60,13 +60,13 @@ def nvisitsM5Maps(
         all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
     )
     # Set up some values to make nicer looking plots.
-    benchmarkVals = mafUtils.scaleBenchmarks(runLength, benchmark="design")
+    benchmarkVals = mafUtils.scale_benchmarks(runLength, benchmark="design")
     # Check that nvisits is not set to zero (for very short run length).
     for f in benchmarkVals["nvisits"]:
         if benchmarkVals["nvisits"][f] == 0:
             print("Updating benchmark nvisits value in %s to be nonzero" % (f))
             benchmarkVals["nvisits"][f] = 1
-    benchmarkVals["coaddedDepth"] = mafUtils.calcCoaddedDepth(
+    benchmarkVals["coaddedDepth"] = mafUtils.calc_coadded_depth(
         benchmarkVals["nvisits"], benchmarkVals["singleVisitDepth"]
     )
     # Scale the n_visit ranges for the runLength.
@@ -93,7 +93,7 @@ def nvisitsM5Maps(
             nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
         )
         slicerDust = slicers.HealpixSlicer(
-            nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees, usecache=False
+            nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees, use_cache=False
         )
     elif slicer.use_cache:
         # If there is already a slicer set up which *is* using caching
@@ -130,7 +130,7 @@ def nvisitsM5Maps(
     # Generate Coadded depth maps per filter
     displayDict = {"group": "Coadded M5 Maps", "subgroup": subgroup}
     metric = metrics.Coaddm5Metric(
-        m5Col=colmap["fiveSigmaDepth"], metric_name="CoaddM5"
+        m5_col=colmap["fiveSigmaDepth"], metric_name="CoaddM5"
     )
 
     for f in filterlist:
@@ -172,7 +172,7 @@ def nvisitsM5Maps(
     # Add Coadded depth maps per filter WITH extragalactic extinction added
     displayDict = {"group": "Extragalactic Coadded M5 Maps", "subgroup": subgroup}
     metric = metrics.ExgalM5(
-        m5Col=colmap["fiveSigmaDepth"], metric_name="Exgal_CoaddM5"
+        m5_col=colmap["fiveSigmaDepth"], metric_name="Exgal_CoaddM5"
     )
 
     for f in filterlist:
@@ -276,8 +276,8 @@ def tEffMetrics(
     displayDict["caption"] = "Total effective time of the survey (see Teff metric)."
     displayDict["order"] = 0
     metric = metrics.TeffMetric(
-        m5Col=colmap["fiveSigmaDepth"],
-        filterCol=colmap["filter"],
+        m5_col=colmap["fiveSigmaDepth"],
+        filter_col=colmap["filter"],
         normed=False,
         metric_name="Total Teff",
     )
@@ -296,8 +296,8 @@ def tEffMetrics(
     ] = "Normalized total effective time of the survey (see Teff metric)."
     displayDict["order"] = 1
     metric = metrics.TeffMetric(
-        m5Col=colmap["fiveSigmaDepth"],
-        filterCol=colmap["filter"],
+        m5_col=colmap["fiveSigmaDepth"],
+        filter_col=colmap["filter"],
         normed=True,
         metric_name="Normalized Teff",
     )
@@ -318,8 +318,8 @@ def tEffMetrics(
             info_label[m] = combine_info_labels(info_label[m], ditherMeta)
 
     metric = metrics.TeffMetric(
-        m5Col=colmap["fiveSigmaDepth"],
-        filterCol=colmap["filter"],
+        m5_col=colmap["fiveSigmaDepth"],
+        filter_col=colmap["filter"],
         normed=True,
         metric_name="Normalized Teff",
     )
@@ -399,7 +399,7 @@ def nvisitsPerNight(
     displayDict["caption"] = "Number of visits per night for %s." % (infoCaption)
     displayDict["order"] = 0
     metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits")
-    slicer = slicers.OneDSlicer(sliceColName=colmap["night"], binsize=binNights)
+    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], binsize=binNights)
     bundle = mb.MetricBundle(
         metric,
         slicer,
@@ -495,7 +495,7 @@ def nvisitsPerSubset(
             footprint=footprintConstraint,
             fp_threshold=0.4,
             area_id_name=extraInfoLabel,
-            excludeDD=True,
+            exclude_dd=True,
         )
         metric = metrics.CountSubsetMetric(
             col="areaId", subset=extraInfoLabel, units="#", metric_name="Nvisits"

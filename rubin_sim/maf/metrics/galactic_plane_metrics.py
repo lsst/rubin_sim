@@ -74,7 +74,7 @@ def galplane_priority_map_thresholds(science_map):
 # and dynamically set up reduce functions
 def help_set_reduce_func(obj, metricval, nvisits_thresh):
     def _nvisits_cut(obj, metricval):
-        if metricval["nObservations"] >= nvisits_thresh:
+        if metricval["n_observations"] >= nvisits_thresh:
             return metricval["map_priority"]
         else:
             return 0
@@ -154,7 +154,7 @@ class GalPlaneFootprintMetric(BaseMetric):
             metric_name = kwargs["metric_name"]
             del kwargs["metric_name"]
         for tau, nvisits in zip(self.tau_obs, self.nvisits_threshold):
-            tau_reduce_name = f"reduceTau_{tau:.1f}".replace(".", "_")
+            tau_reduce_name = f"reduce_Tau_{tau:.1f}".replace(".", "_")
             rfunc = help_set_reduce_func(self, None, nvisits)
             # MethodType(newmethod, self) is how this next line SHOULD go
             # but that doesn't work .. the scope isn't correct somehow.
@@ -166,7 +166,7 @@ class GalPlaneFootprintMetric(BaseMetric):
             maps=maps,
             **kwargs,
         )
-        self.reduce_order = {"NObs": 0, "NObsPriority": 1}
+        self.reduce_order = {"n_obs": 0, "n_obs_priority": 1}
         for i, tau in enumerate(self.tau_obs):
             r_name = f"Tau_{tau:.1f}".replace(".", "_")
             self.reduce_order[r_name] = i + 2
@@ -194,16 +194,16 @@ class GalPlaneFootprintMetric(BaseMetric):
             n_obs_priority += len(above_cut[0]) * slice_point[mapkey]
 
         return {
-            "nObservations": n_obs,
+            "n_observations": n_obs,
             "n_obs_priority": n_obs_priority,
             "map_priority": priority,
         }
 
     def reduce_n_obs(self, metricval):
-        return metricval["nObservations"]
+        return metricval["n_observations"]
 
     def reduce_n_obs_priority(self, metricval):
-        return metricval["nObsPriority"]
+        return metricval["n_obs_priority"]
 
 
 class GalPlaneTimePerFilterMetric(BaseMetric):
@@ -339,20 +339,20 @@ class GalPlaneTimePerFilterMetric(BaseMetric):
                     normalized_exp_time[f] = self.badval
         return normalized_exp_time
 
-    def reduceu(self, metricval):
+    def reduce_u(self, metricval):
         return metricval["u"]
 
-    def reduceg(self, metricval):
+    def reduce_g(self, metricval):
         return metricval["g"]
 
-    def reducer(self, metricval):
+    def reduce_r(self, metricval):
         return metricval["r"]
 
-    def reducei(self, metricval):
+    def reduce_i(self, metricval):
         return metricval["i"]
 
-    def reducez(self, metricval):
+    def reduce_z(self, metricval):
         return metricval["z"]
 
-    def reducey(self, metricval):
+    def reduce_y(self, metricval):
         return metricval["y"]

@@ -60,7 +60,7 @@ def run_moving_fractions():
     times += start_time
 
     # Create a results Db.
-    results_db = db.results_db(out_dir=args.work_dir)
+    results_db = db.ResultsDb(out_dir=args.work_dir)
 
     # Just read in all metrics in the (joint or single) directory, then run completeness and fraction
     # summaries, using the methods in the batches.

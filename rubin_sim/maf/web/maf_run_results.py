@@ -358,7 +358,7 @@ class MafRunResults(object):
             metrics = self.metrics
         metric_info_label = []
         for metric_name, info_label in zip(
-            metrics["metric_name"], metrics["metric_info_label"]
+            metrics["metric_name"], metrics["metricInfoLabel"]
         ):
             metricinfo = " ".join([metric_name, info_label])
             if metricinfo not in metric_info_label:
@@ -446,9 +446,9 @@ class MafRunResults(object):
         """
         Given an array of plots (for a single metric usually).
         Returns an ordered dict with 'plot_type' for interfacing with jinja2 templates.
-        plot_dict == {'SkyMap': {'plot_file': [], 'thumbFile', []}, 'Histogram': {}..}
+        plot_dict == {'SkyMap': {'plot_file': [], 'thumb_file', []}, 'Histogram': {}..}
 
-        If no plot of a particular type, the plot_file and thumbFile are empty lists.
+        If no plot of a particular type, the plot_file and thumb_file are empty lists.
         Calling with plots=None returns a blank plot_dict.
         """
         plot_dict = OrderedDict()
@@ -457,7 +457,7 @@ class MafRunResults(object):
             for p in self.plot_order:
                 plot_dict[p] = {}
                 plot_dict[p]["plot_file"] = ""
-                plot_dict[p]["thumbFile"] = ""
+                plot_dict[p]["thumb_file"] = ""
         else:
             plot_types = list(np.unique(plots["plot_type"]))
             for p in self.plot_order:
@@ -465,30 +465,30 @@ class MafRunResults(object):
                     plot_dict[p] = {}
                     plotmatch = plots[np.where(plots["plot_type"] == p)]
                     plot_dict[p]["plot_file"] = []
-                    plot_dict[p]["thumbFile"] = []
+                    plot_dict[p]["thumb_file"] = []
                     for pm in plotmatch:
-                        plot_dict[p]["plot_file"].append(self.get_plotfile(pm))
-                        plot_dict[p]["thumbFile"].append(self.get_thumbfile(pm))
+                        plot_dict[p]["plot_file"].append(self.get_plot_file(pm))
+                        plot_dict[p]["thumb_file"].append(self.get_thumb_file(pm))
                     plot_types.remove(p)
             # Round up remaining plots.
             for p in plot_types:
                 plot_dict[p] = {}
                 plotmatch = plots[np.where(plots["plot_type"] == p)]
                 plot_dict[p]["plot_file"] = []
-                plot_dict[p]["thumbFile"] = []
+                plot_dict[p]["thumb_file"] = []
                 for pm in plotmatch:
-                    plot_dict[p]["plot_file"].append(self.get_plotfile(pm))
-                    plot_dict[p]["thumbFile"].append(self.get_thumbfile(pm))
+                    plot_dict[p]["plot_file"].append(self.get_plot_file(pm))
+                    plot_dict[p]["thumb_file"].append(self.get_thumb_file(pm))
         return plot_dict
 
-    def get_thumbfile(self, plot):
+    def get_thumb_file(self, plot):
         """
         Return the thumbnail file name for a given plot.
         """
-        thumbfile = os.path.join(self.out_dir, plot["thumbFile"])
-        return thumbfile
+        thumb_file = os.path.join(self.out_dir, plot["thumb_file"])
+        return thumb_file
 
-    def get_plotfile(self, plot):
+    def get_plot_file(self, plot):
         """
         Return the filename for a given plot.
         """

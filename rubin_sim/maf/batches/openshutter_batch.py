@@ -43,9 +43,9 @@ def openshutterFractions(
     displayDict["caption"] = "Total open shutter fraction over %s. " % subgroup.lower()
     displayDict["caption"] += "Does not include downtime due to weather."
     metric = metrics.OpenShutterFractionMetric(
-        slewTimeCol=colmap["slewtime"],
-        expTimeCol=colmap["exptime"],
-        visitTimeCol=colmap["visittime"],
+        slew_time_col=colmap["slewtime"],
+        exp_time_col=colmap["exptime"],
+        visit_time_col=colmap["visittime"],
     )
     slicer = slicers.UniSlicer()
     bundle = mb.MetricBundle(
@@ -86,11 +86,11 @@ def openshutterFractions(
         "changes + readout, but does not include downtime due to weather."
     )
     metric = metrics.OpenShutterFractionMetric(
-        slewTimeCol=colmap["slewtime"],
-        expTimeCol=colmap["exptime"],
-        visitTimeCol=colmap["visittime"],
+        slew_time_col=colmap["slewtime"],
+        exp_time_col=colmap["exptime"],
+        visit_time_col=colmap["visittime"],
     )
-    slicer = slicers.OneDSlicer(sliceColName=colmap["night"], binsize=1)
+    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], binsize=1)
     bundle = mb.MetricBundle(
         metric,
         slicer,

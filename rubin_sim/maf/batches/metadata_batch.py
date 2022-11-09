@@ -104,7 +104,7 @@ def metadataBasics(
     if value == "HA":
         stackerList = [
             stackers.HourAngleStacker(
-                lstCol=colmap["lst"], raCol=raCol, degrees=degrees
+                lst_col=colmap["lst"], ra_col=raCol, degrees=degrees
             )
         ]
     elif value == "normairmass":
@@ -455,7 +455,7 @@ def metadataMaps(
     if value == "HA":
         stackerList = [
             stackers.HourAngleStacker(
-                lstCol=colmap["lst"], raCol=raCol, latLonDeg=degrees
+                lst_col=colmap["lst"], ra_col=ra_col, degrees=degrees
             )
         ]
     elif value == "normairmass":

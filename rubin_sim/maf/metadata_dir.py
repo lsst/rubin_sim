@@ -12,8 +12,8 @@ matplotlib.use("Agg")
 from . import batches as batches
 from .metrics import CountExplimMetric
 from .slicers import HealpixSlicer, HealpixSubsetSlicer
-from .metricBundles import MetricBundle, MetricBundleGroup
-from .utils import getDateVersion
+from .metric_bundles import MetricBundle, MetricBundleGroup
+from .utils import get_date_version
 from .db import TrackingDb, ResultsDb
 
 
@@ -68,7 +68,7 @@ def metadata_dir():
 
     for filename, sim_name in zip(db_files, sim_names):
         # Connect to the database
-        colmap = batches.ColMapDict()
+        colmap = batches.col_map_dict()
 
         # Set and create if needed the output directory
         out_dir = sim_name + "_meta"
@@ -80,12 +80,12 @@ def metadata_dir():
         m = CountExplimMetric(col="observationStartMJD")
         allsky_slicer = HealpixSlicer(nside=args.nside)
         constraint = 'note not like "%DD%"'
-        bundle = MetricBundle(m, allsky_slicer, constraint, runName=sim_name)
+        bundle = MetricBundle(m, allsky_slicer, constraint, run_name=sim_name)
         g = MetricBundleGroup(
-            {f"{sim_name} footprint": bundle}, filename, outDir=out_dir
+            {f"{sim_name} footprint": bundle}, filename, out_dir=out_dir
         )
         g.run_all()
-        wfd_footprint = bundle.metricValues.filled(0)
+        wfd_footprint = bundle.metric_values.filled(0)
         wfd_footprint = np.where(wfd_footprint > args.wfd_threshold, 1, 0)
         wfd_hpix = np.where(wfd_footprint == 1)[0]
         wfd_slicer = HealpixSubsetSlicer(nside=args.nside, hpid=wfd_hpix)
@@ -98,7 +98,7 @@ def metadata_dir():
         results_db = ResultsDb(out_dir=out_dir)
         # Go and run it
         group = MetricBundleGroup(
-            bdict, opsdb, outDir=out_dir, resultsDb=results_db, saveEarly=False
+            bdict, filename, out_dir=out_dir, results_db=results_db, save_early=False
         )
         group.run_all(clear_memory=True, plot_now=True)
         results_db.close()

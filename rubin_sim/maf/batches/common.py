@@ -283,10 +283,10 @@ def summary_completeness_at_time(times, h_val, h_index=0.33):
     """
     summaryMetrics = [
         metrics.MoCompletenessAtTimeMetric(
-            times=times, Hval=h_val, Hindex=h_index, cumulative=False
+            times=times, hval=h_val, hindex=h_index, cumulative=False
         ),
         metrics.MoCompletenessAtTimeMetric(
-            times=times, Hval=h_val, Hindex=h_index, cumulative=True
+            times=times, hval=h_val, hindex=h_index, cumulative=True
         ),
     ]
     return summaryMetrics
@@ -309,10 +309,10 @@ def summary_completeness_over_h(requiredChances=1, Hindex=0.33):
     """
     summaryMetrics = [
         metrics.MoCompletenessMetric(
-            threshold=requiredChances, cumulative=False, Hindex=Hindex
+            threshold=requiredChances, cumulative=False, hindex=Hindex
         ),
         metrics.MoCompletenessMetric(
-            threshold=requiredChances, cumulative=True, Hindex=Hindex
+            threshold=requiredChances, cumulative=True, hindex=Hindex
         ),
     ]
     return summaryMetrics

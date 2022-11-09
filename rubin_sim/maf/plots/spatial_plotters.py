@@ -172,8 +172,8 @@ class HealpixSkyMap(BasePlotter):
                 slicer.slice_points["dec"],
                 metric_value_in.filled(slicer.badval),
                 nside=plot_dict["nside"],
-                reduceFunc=plot_dict["reduceFunc"],
-                fillVal=slicer.badval,
+                reduce_func=plot_dict["reduceFunc"],
+                fill_val=slicer.badval,
             )
             mask = np.zeros(metric_value.size)
             mask[np.where(metric_value == slicer.badval)] = 1

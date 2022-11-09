@@ -91,7 +91,7 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
             metric_name = kwargs["metric_name"]
             del kwargs["metric_name"]
         for tau in self.tau_obs:
-            tau_reduce_name = f"reduceTau_{tau:.1f}".replace(".", "_")
+            tau_reduce_name = f"reduce_Tau_{tau:.1f}".replace(".", "_")
             newmethod = help_set_reduce_func(self, None, tau)
             setattr(self, tau_reduce_name, MethodType(newmethod, tau_reduce_name))
         super().__init__(
@@ -189,7 +189,7 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
             metric_name = kwargs["metric_name"]
             del kwargs["metric_name"]
         for tau in self.tau_var:
-            tau_reduce_name = f"reduceTau_{tau:.1f}".replace(".", "_")
+            tau_reduce_name = f"reduce_Tau_{tau:.1f}".replace(".", "_")
             newmethod = help_set_reduce_func(self, None, tau)
             setattr(self, tau_reduce_name, MethodType(newmethod, tau_reduce_name))
         super().__init__(
@@ -197,7 +197,7 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
         )
         for i, tau in enumerate(self.tau_var):
             self.reduce_order[
-                f"reduceTau_{tau:.1f}".replace(".", "_").replace("reduce", "")
+                f"reduce_Tau_{tau:.1f}".replace(".", "_").replace("reduce", "")
             ] = i
 
     def run(self, data_slice, slice_point):

@@ -23,12 +23,12 @@ class FOPlot(BasePlotter):
             "xlabel": "Number of visits",
             "ylabel": "Area (1000s of square degrees)",
             "scale": None,
-            "Asky": 18000.0,
-            "Nvisits": 825,
+            "asky": 18000.0,
+            "n_visits": 825,
             "x_min": 0,
             "x_max": None,
-            "yMin": 0,
-            "yMax": None,
+            "y_min": 0,
+            "y_max": None,
             "linewidth": 2,
             "reflinewidth": 2,
         }
@@ -42,7 +42,7 @@ class FOPlot(BasePlotter):
         slicer : rubin_sim.maf.slicers.HealpixSlicer
         user_plot_dict: dict
             Dictionary of plot parameters set by user (overrides default values).
-            Note that Asky and Nvisits values set here and in the slicer should be consistent,
+            Note that asky and n_visits values set here and in the slicer should be consistent,
             for plot labels and summary statistic values to be consistent.
         fignum : int
             Matplotlib figure number to use (default = None, starts new figure).
@@ -80,18 +80,18 @@ class FOPlot(BasePlotter):
         rarr = np.array(
             list(zip(metric_value.compressed())), dtype=[("fO", metric_value.dtype)]
         )
-        f_o_area = metrics.fOArea(
-            col="fO", Asky=plot_dict["Asky"], norm=False, nside=slicer.nside
+        f_o_area = metrics.FOArea(
+            col="fO", asky=plot_dict["asky"], norm=False, nside=slicer.nside
         ).run(rarr)
-        f_o_nv = metrics.fONv(
-            col="fO", Nvisit=plot_dict["Nvisits"], norm=False, nside=slicer.nside
+        f_o_nv = metrics.FONv(
+            col="fO", n_visit=plot_dict["n_visits"], norm=False, nside=slicer.nside
         ).run(rarr)
 
         plt.axvline(
-            x=plot_dict["Nvisits"], linewidth=plot_dict["reflinewidth"], color="b"
+            x=plot_dict["n_visits"], linewidth=plot_dict["reflinewidth"], color="b"
         )
         plt.axhline(
-            y=plot_dict["Asky"] / 1000.0, linewidth=plot_dict["reflinewidth"], color="r"
+            y=plot_dict["asky"] / 1000.0, linewidth=plot_dict["reflinewidth"], color="r"
         )
         # Add lines for nvis_median and f_o_area: note if these are -666 (badval),
         # the default x_min/y_min values will just leave them off the edges of the plot.
@@ -103,7 +103,7 @@ class FOPlot(BasePlotter):
             color="b",
             alpha=0.5,
             linestyle=":",
-            label=r"f$_0$ Median Nvisits=%.0f" % nvis_median,
+            label=r"f$_0$ Median n_visits=%.0f" % nvis_median,
         )
         plt.axhline(
             y=f_o_area / 1000.0,
@@ -150,8 +150,8 @@ class SummaryHistogram(BasePlotter):
             "cumulative": False,
             "x_min": None,
             "x_max": None,
-            "yMin": None,
-            "yMax": None,
+            "y_min": None,
+            "y_max": None,
             "color": "b",
             "linestyle": "-",
             "histStyle": True,
@@ -246,12 +246,12 @@ class SummaryHistogram(BasePlotter):
             plt.xlim(left=0)
         if plot_dict["x_max"] is not None:
             plt.xlim(right=plot_dict["x_max"])
-        if plot_dict["yMin"] is not None:
-            plt.ylim(bottom=plot_dict["yMin"])
+        if plot_dict["y_min"] is not None:
+            plt.ylim(bottom=plot_dict["y_min"])
         elif final_hist.min() == 0:
-            plot_dict["yMin"] = 0
-        if plot_dict["yMax"] is not None:
-            plt.ylim(top=plot_dict["yMax"])
+            plot_dict["y_min"] = 0
+        if plot_dict["y_max"] is not None:
+            plt.ylim(top=plot_dict["y_max"])
 
         if plot_dict["yscale"] is not None:
             plt.yscale(plot_dict["yscale"])

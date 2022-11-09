@@ -259,11 +259,11 @@ class BaseObs(object):
         self.lsst = {}
         for f in self.filterlist:
             self.lsst[f] = Bandpass()
-            self.lsst[f].readThroughput(
+            self.lsst[f].read_throughput(
                 os.path.join(filter_dir, bandpass_root + f + bandpass_suffix)
             )
         self.vband = Bandpass()
-        self.vband.readThroughput(os.path.join(v_dir, v_filter))
+        self.vband.read_throughput(os.path.join(v_dir, v_filter))
 
     def calc_colors(self, sedname="C.dat", sed_dir=None):
         """Calculate the colors for a given SED.
@@ -290,11 +290,11 @@ class BaseObs(object):
             if sed_dir is None:
                 sed_dir = os.path.join(get_data_dir(), "movingObjects")
             mo_sed = Sed()
-            mo_sed.readSED_flambda(os.path.join(sed_dir, sedname))
-            vmag = mo_sed.calcMag(self.vband)
+            mo_sed.read_sed_flambda(os.path.join(sed_dir, sedname))
+            vmag = mo_sed.calc_mag(self.vband)
             self.colors[sedname] = {}
             for f in self.filterlist:
-                self.colors[sedname][f] = mo_sed.calcMag(self.lsst[f]) - vmag
+                self.colors[sedname][f] = mo_sed.calc_mag(self.lsst[f]) - vmag
         return self.colors[sedname]
 
     def sso_in_circle_fov(self, ephems, obs_data):

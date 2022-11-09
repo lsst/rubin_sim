@@ -5,7 +5,7 @@ import argparse
 import logging
 
 import rubin_sim.moving_objects as mo
-from rubin_sim.maf.batches import ColMapDict
+from rubin_sim.maf.batches import col_map_dict
 
 __all__ = ["setup_args"]
 
@@ -173,21 +173,18 @@ def setup_args(parser=None):
             "Must choose linear or direct observation generation method (obsType)."
         )
 
+    run_name = args.simulation_db.replace(".db", "")
+
     # Add these useful pieces to args.
-    args.orbitbase = ".".join(os.path.split(args.orbitFile)[-1].split(".")[:-1])
-    args.simulation_db = (
-        os.path.split(args.simulation_db)[-1]
-        .replace("_sqlite.db", "")
-        .replace(".db", "")
-    )
+    args.orbitbase = ".".join(os.path.split(args.orbit_file)[-1].split(".")[:-1])
 
     # Set up obs_file if not specified.
     if args.obs_file is None:
         args.obs_file = os.path.join(
-            args.outDir, "%s__%s_obs.txt" % (args.simulation_db, args.orbitbase)
+            args.out_dir, "%s__%s_obs.txt" % (run_name, args.orbitbase)
         )
     else:
-        args.obs_file = os.path.join(args.outDir, args.obs_file)
+        args.obs_file = os.path.join(args.out_dir, args.obs_file)
 
     # Build some provenance metadata to add to output file.
     obs_metadata = args.simulation_db
@@ -207,17 +204,17 @@ def make_lsst_obs():
     args = setup_args()
 
     # Send info and above logging messages to the console or logfile.
-    if args.logFile is not None:
-        logging.basicConfig(filename=args.logFile, level=logging.INFO)
+    if args.log_file is not None:
+        logging.basicConfig(filename=args.log_file, level=logging.INFO)
     else:
         logging.basicConfig(level=logging.INFO)
 
     # Read orbits.
-    orbits = mo.read_orbits(args.orbitFile)
+    orbits = mo.read_orbits(args.orbit_file)
 
     # Read pointing data
-    colmap = ColMapDict("fbs")
-    pointing_data = mo.read_opsim(
+    colmap = col_map_dict("fbs")
+    pointing_data = mo.read_observations(
         args.simulation_db,
         colmap,
         constraint=args.sql_constraint,

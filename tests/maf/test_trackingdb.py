@@ -9,15 +9,15 @@ import pandas as pd
 
 class TestTrackingDb(unittest.TestCase):
     def setUp(self):
-        self.opsim_run = "testopsim"
-        self.opsim_group = "test"
-        self.opsim_comment = "opsimcomment"
+        self.run_name = "test)_run"
+        self.run_group = "test"
+        self.opsim_comment = "runcomment"
         self.maf_comment = "mafcomment"
         self.maf_dir = "mafdir"
         self.maf_version = "1.0"
         self.maf_date = "2017-01-01"
-        self.opsim_version = "4.0"
-        self.opsim_date = "2017-02-01"
+        self.run_version = "4.0"
+        self.run_date = "2017-02-01"
         self.db_file = None
 
     def test_test_tracking_db_creation(self):
@@ -35,11 +35,11 @@ class TestTrackingDb(unittest.TestCase):
         tracking_db_file = os.path.join(tempdir, "tracking.db")
         trackingdb = db.TrackingDb(database=tracking_db_file)
         track_id = trackingdb.add_run(
-            run_group=self.opsim_group,
-            run_name=self.opsim_run,
+            run_group=self.run_group,
+            run_name=self.run_name,
             run_comment=self.opsim_comment,
-            run_version=self.opsim_version,
-            run_date=self.opsim_date,
+            run_version=self.run_version,
+            run_date=self.run_date,
             maf_comment=self.maf_comment,
             maf_dir=self.maf_dir,
             maf_version=self.maf_version,
@@ -48,7 +48,7 @@ class TestTrackingDb(unittest.TestCase):
         )
         con = sqlite3.connect(tracking_db_file)
         res = pd.read_sql("select * from runs", con).to_records()
-        self.assertEqual(res["mafRunId"][0], track_id)
+        self.assertEqual(res["maf_run_id"][0], track_id)
         # Try adding this run again. Should return previous track_id.
         track_id2 = trackingdb.add_run(maf_dir=self.maf_dir)
         self.assertEqual(track_id, track_id2)
@@ -68,7 +68,7 @@ class TestTrackingDb(unittest.TestCase):
         track_id2 = trackingdb.add_run(maf_dir=self.maf_dir + "test2")
         con = sqlite3.connect(tracking_db_file)
         res = pd.read_sql("select * from runs", con).to_records(index=False)
-        self.assertEqual(res["mafRunId"][0], track_id)
+        self.assertEqual(res["maf_run_id"][0], track_id)
         # Test removal works.
         trackingdb.delRun(track_id)
         res = pd.read_sql("select * from runs", con).to_records(index=False)

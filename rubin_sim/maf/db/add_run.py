@@ -4,7 +4,7 @@ import argparse
 from . import add_run_to_database
 
 
-def addRun():
+def add_run():
 
     parser = argparse.ArgumentParser(
         description="Add a MAF run to the tracking database."

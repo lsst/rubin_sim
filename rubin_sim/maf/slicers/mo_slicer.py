@@ -62,7 +62,7 @@ class MoObjSlicer(BaseSlicer):
     def read_orbits(self, orbit_file, delim=None, skiprows=None):
         # Use sims_movingObjects to read orbit files.
         orb = Orbits()
-        orb.readOrbits(orbit_file, delim=delim, skiprows=skiprows)
+        orb.read_orbits(orbit_file, delim=delim, skiprows=skiprows)
         self.orbit_file = orbit_file
         self.orbits = orb.orbits
         # Then go on as previously. Need to refactor this into 'setup_slicer' style.
@@ -90,7 +90,7 @@ class MoObjSlicer(BaseSlicer):
         # For now, just read all the observations (should be able to chunk this though).
         self.allObs = pd.read_csv(obsFile, delim_whitespace=True, comment="#")
         self.obsFile = obsFile
-        # We may have to rename the first column from '#objId' to 'objId'.
+        # We may have to rename the first column from '#obj_id' to 'obj_id'.
         if self.allObs.columns.values[0].startswith("#"):
             newcols = self.allObs.columns.values
             newcols[0] = newcols[0].replace("#", "")
@@ -101,7 +101,7 @@ class MoObjSlicer(BaseSlicer):
             )
         if "visitExpTime" not in self.allObs.columns.values:
             self.allObs["visitExpTime"] = (
-                np.zeros(len(self.allObs["objId"]), float) + 30.0
+                np.zeros(len(self.allObs["obj_id"]), float) + 30.0
             )
         # If we created intermediate data products by pandas, we may have an inadvertent 'index'
         #  column. Since this creates problems later, drop it here.
@@ -132,10 +132,10 @@ class MoObjSlicer(BaseSlicer):
         # Find the matching orbit.
         orb = self.orbits.iloc[idx]
         # Find the matching observations.
-        if self.obs["objId"].dtype == "object":
-            obs = self.obs.query('objId == "%s"' % (orb["objId"]))
+        if self.obs["obj_id"].dtype == "object":
+            obs = self.obs.query('obj_id == "%s"' % (orb["obj_id"]))
         else:
-            obs = self.obs.query("objId == %d" % (orb["objId"]))
+            obs = self.obs.query("obj_id == %d" % (orb["obj_id"]))
         # Return the values for H to consider for metric.
         if self.Hrange is not None:
             Hvals = self.Hrange

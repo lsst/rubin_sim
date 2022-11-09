@@ -39,7 +39,6 @@ def scimaf_dir():
         if not args.no_clobber:
             if os.path.isdir(out_dir):
                 shutil.rmtree(out_dir)
-        colmap = batches.ColMapDict()
         results_db = db.ResultsDb(out_dir=out_dir)
         # Set up the metricBundles
         bdict = batches.science_radar_batch(

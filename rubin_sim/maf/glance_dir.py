@@ -8,7 +8,7 @@ import glob
 import shutil
 import rubin_sim.maf.batches as batches
 import rubin_sim.maf.db as db
-import rubin_sim.maf.metricBundles as mb
+import rubin_sim.maf.metric_bundles as mb
 import argparse
 
 
@@ -31,7 +31,7 @@ def glance_dir():
     for filename, name in zip(db_files, run_names):
         if os.path.isdir(name + "_glance"):
             shutil.rmtree(name + "_glance")
-        colmap = batches.ColMapDict()
+        colmap = batches.col_map_dict()
 
         bdict = {}
         bdict.update(batches.glanceBatch(colmap, name))
@@ -39,7 +39,7 @@ def glance_dir():
         group = mb.MetricBundleGroup(
             bdict,
             filename,
-            outDir=name + "_glance",
+            out_dir=name + "_glance",
             results_db=results_db,
             save_early=False,
         )

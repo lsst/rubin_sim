@@ -327,22 +327,25 @@ class PlotHandler(object):
         if plot_func.plot_type == "BinnedData":
             if len(self.m_bundles) == 1:
                 m_b = self.m_bundles[0]
-                if len(m_b.slicer.sliceColName) < len_max:
+                if len(m_b.slicer.slice_col_name) < len_max:
                     xlabel = (
-                        m_b.slicer.sliceColName + " (" + m_b.slicer.sliceColUnits + ")"
+                        m_b.slicer.slice_col_name
+                        + " ("
+                        + m_b.slicer.slice_col_units
+                        + ")"
                     )
                 else:
                     xlabel = (
-                        m_b.slicer.sliceColName
+                        m_b.slicer.slice_col_name
                         + " \n("
-                        + m_b.slicer.sliceColUnits
+                        + m_b.slicer.slice_col_units
                         + ")"
                     )
                 ylabel = m_b.metric.name + " (" + m_b.metric.units + ")"
             else:
                 xlabel = set()
                 for m_b in self.m_bundles:
-                    xlabel.add(m_b.slicer.sliceColName)
+                    xlabel.add(m_b.slicer.slice_col_name)
                 xlabel = ", ".join(xlabel)
                 ylabel = self.joint_metric_names
         elif plot_func.plot_type == "MetricVsH":

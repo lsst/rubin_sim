@@ -89,7 +89,7 @@ class PeriodicDetectMetric(BaseMetric):
                 self.periods, self.star_mags, self.amplitudes
             ):
                 chi_sq_1 = 0
-                mags = utils.stellarMags(self.sed_template, rmag=starMag)
+                mags = utils.stellar_mags(self.sed_template, rmag=starMag)
                 for filtername in u_filters:
                     in_filt = np.where(data_slice[self.filter_col] == filtername)[0]
                     lc = (

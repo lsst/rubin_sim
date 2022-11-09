@@ -566,7 +566,7 @@ class MetricBundle(object):
             if "plot_dict" in header:
                 if "units" in header["plot_dict"]:
                     self.metric.units = header["plot_dict"]["units"]
-            self.run_name = header["simDataName"]
+            self.run_name = header["sim_data_name"]
             try:
                 self.constraint = header["constraint"]
             except KeyError:
@@ -679,14 +679,14 @@ class MetricBundle(object):
         """
         # Generate a name for the metric values processed by the reduceFunc.
         if reduce_func_name is not None:
-            r_name = reduce_func_name.replace("reduce", "")
+            r_name = reduce_func_name.replace("reduce_", "")
         else:
-            r_name = reduce_func.__name__.replace("reduce", "")
+            r_name = reduce_func.__name__.replace("reduce_", "")
         reduce_name = self.metric.name + "_" + r_name
         # Set up metricBundle to store new metric values, and add plot_dict/display_dict.
         newmetric = deepcopy(self.metric)
         newmetric.name = reduce_name
-        newmetric.metricDtype = "float"
+        newmetric.metric_dtype = "float"
         if reduce_plot_dict is not None:
             if "units" in reduce_plot_dict:
                 newmetric.units = reduce_plot_dict["units"]
@@ -716,7 +716,7 @@ class MetricBundle(object):
         newmetric_bundle.set_display_dict(self.display_dict)
         # Set the reduce function display 'order' (this is set in the BaseMetric
         # by default, but can be overriden in a metric).
-        order = newmetric.reduceOrder[r_name]
+        order = newmetric.reduce_order[r_name]
         newmetric_bundle.display_dict["order"] = order
         # And then update the newmetric_bundle's display dictionary with any set
         # explicitly by reduceDisplayDict.
