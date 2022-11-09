@@ -743,7 +743,7 @@ def run_completeness_summary(bdict, h_mark, times, out_dir, results_db):
                 )
                 comp[newkey].plot_dict["times"] = times
                 comp[newkey].plot_dict["h_val"] = metric.hval
-        elif "N_Chances" in bundle.metric.name:
+        elif "NChances" in bundle.metric.name:
             for metric in summaryHMetrics:
                 newkey = b + " " + metric.name
                 comp[newkey] = mb.make_completeness_bundle(
@@ -771,7 +771,6 @@ def run_completeness_summary(bdict, h_mark, times, out_dir, results_db):
             completeness.update(_compbundles(b, bundle, h_mark, results_db))
         if "HighVelocity" in bundle.metric.name:
             completeness.update(_compbundles(b, bundle, h_mark, results_db))
-
     # Write the completeness bundles to disk, so we can re-read them later.
     # (also set the display dict properties, for the results_db output).
     for b, bundle in completeness.items():
@@ -919,7 +918,7 @@ def plot_completeness(
     # And add the rest of the completeness calculations.
     allComp = []
     for k in bdictCompleteness:
-        if "Discovery_N_Chances" in k:
+        if "DiscoveryNChances" in k:
             if "Cumulative" in k:
                 allComp.append(bdictCompleteness[k])
         if "Magic" in k:
@@ -1377,10 +1376,10 @@ def run_fraction_summary(bdict, h_mark, out_dir, results_db):
         if h_mark is None and "h_mark" in bundle.plot_dict:
             h_mark = bundle.plot_dict["h_mark"] - 2
         if h_mark is None:
-            h_mark = np.median(bundle.slicer.slicePoints["H"]) - 2
+            h_mark = np.median(bundle.slicer.slice_points["H"]) - 2
         # Make sure we didn't push h_mark outside the range of H values for metric
-        if h_mark < bundle.slicer.slicePoints["H"].min():
-            h_mark = bundle.slicer.slicePoints["H"].min()
+        if h_mark < bundle.slicer.slice_points["H"].min():
+            h_mark = bundle.slicer.slice_points["H"].min()
         for k in asteroidSummaryMetrics:
             if k in b:
                 for summary_metric in asteroidSummaryMetrics[k]:

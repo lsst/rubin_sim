@@ -386,8 +386,8 @@ class PlotHandler(object):
             return [None]
         labels = []
         for m_b in self.m_bundles:
-            if "label" in m_b.plotDict:
-                label = m_b.plotDict["label"]
+            if "label" in m_b.plot_dict:
+                label = m_b.plot_dict["label"]
             else:
                 label = ""
                 if len(self.run_names) > 1:

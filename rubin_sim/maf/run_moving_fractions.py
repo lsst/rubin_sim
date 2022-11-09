@@ -118,7 +118,7 @@ def run_moving_fractions():
     # Plot the number of chances of discovery metric - this is different than completeness
     # As it plots the metric value directly
     for k in bdict:
-        if "Discovery_N_Chances" in k and "3_pairs_in_15_nights_detection_loss" in k:
+        if "DiscoveryNChances" in k and "3_pairs_in_15_nights_detection_loss" in k:
             batches.plot_single(bdict[k], results_db=results_db, out_dir=args.work_dir)
         if "MagicDiscovery" in k:
             batches.plot_single(bdict[k], results_db=results_db, out_dir=args.work_dir)
