@@ -18,7 +18,7 @@ def run_moving_calc():
     """
 
     parser = argparse.ArgumentParser(
-        description="Run moving object metrics for a particular opsim run."
+        description="Run moving object metrics for a particular scheduler run."
     )
     parser.add_argument(
         "--orbit_file", type=str, help="File containing the moving object orbits."
