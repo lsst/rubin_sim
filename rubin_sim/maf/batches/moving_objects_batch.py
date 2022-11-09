@@ -1361,15 +1361,15 @@ def run_fraction_summary(bdict, h_mark, out_dir, results_db):
         ["6 of ugrizy", "5 of grizy", "4 of grizy", "2 of g, r or i, z or y"],
     )
     asteroidSummaryMetrics = {
-        "LightcurveInversion_Asteroid": inversionSummary,
-        "Color_Asteroid": asteroidColorSummary,
+        "LightcurveInversionAsteroid": inversionSummary,
+        "ColorAsteroid": asteroidColorSummary,
     }
 
     outerColorSummary = fraction_population_at_threshold(
         [6, 5, 4, 3, 2, 1],
         ["6 filters", "5 filters", "4 filters", "3 filters", "2 filters", "1 filters"],
     )
-    outerSummaryMetrics = {"LightcurveColor_Outer": outerColorSummary}
+    outerSummaryMetrics = {"LightcurveColorOuter": outerColorSummary}
 
     for b, bundle in bdict.items():
         # Find h_mark if not set (this may be different for different bundles).
@@ -1394,6 +1394,7 @@ def run_fraction_summary(bdict, h_mark, out_dir, results_db):
                     fractions[newkey] = mb.make_completeness_bundle(
                         bundle, summary_metric, h_mark=h_mark, results_db=results_db
                     )
+
     # Write the fractional populations bundles to disk, so we can re-read them later.
     for b, bundle in fractions.items():
         bundle.write(out_dir=out_dir, results_db=results_db)
@@ -1412,19 +1413,19 @@ def plot_fractions(
     for b in bdictFractions.values():
         k = b.metric.name
         if "6" in k:
-            b.plotDict["color"] = "b"
+            b.plot_dict["color"] = "b"
         if "5" in k:
-            b.plotDict["color"] = "cyan"
+            b.plot_dict["color"] = "cyan"
         if "4" in k:
-            b.plotDict["color"] = "orange"
+            b.plot_dict["color"] = "orange"
         if "2" in k:
-            b.plotDict["color"] = "r"
+            b.plot_dict["color"] = "r"
         if "1" in k:
-            b.plotDict["color"] = "magenta"
+            b.plot_dict["color"] = "magenta"
         if "Lightcurve Inversion" in k:
-            b.plotDict["color"] = "k"
-            b.plotDict["linestyle"] = ":"
-            b.plotDict["linewidth"] = 3
+            b.plot_dict["color"] = "k"
+            b.plot_dict["linestyle"] = ":"
+            b.plot_dict["linewidth"] = 3
 
     first = bdictFractions[list(bdictFractions.keys())[0]]
     if figroot is None:
@@ -1434,7 +1435,7 @@ def plot_fractions(
 
     ph = plots.PlotHandler(figformat=figformat, results_db=results_db, out_dir=out_dir)
     ph.set_metric_bundles(bdictFractions)
-    ph.jointMetricNames = "Fraction of population for colors or lightcurve inversion"
+    ph.joint_metric_names = "Fraction of population for colors or lightcurve inversion"
     plotDict = {"ylabel": "Fraction of population", "figsize": (8, 6)}
     ph.plot(
         plot_func=plots.MetricVsH(),
