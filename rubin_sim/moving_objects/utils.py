@@ -8,7 +8,9 @@ from .direct_obs import DirectObs
 __all__ = ["read_observations", "read_orbits", "setup_colors", "run_obs"]
 
 
-def read_observations(simfile, colmap, constraint=None, footprint="camera", dbcols=None):
+def read_observations(
+    simfile, colmap, constraint=None, footprint="camera", dbcols=None
+):
     """Read the opsim database.
 
     Parameters

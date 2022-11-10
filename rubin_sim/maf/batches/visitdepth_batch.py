@@ -93,7 +93,11 @@ def nvisitsM5Maps(
             nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
         )
         slicerDust = slicers.HealpixSlicer(
-            nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees, use_cache=False
+            nside=64,
+            lat_col=decCol,
+            lon_col=raCol,
+            lat_lon_deg=degrees,
+            use_cache=False,
         )
     elif slicer.use_cache:
         # If there is already a slicer set up which *is* using caching

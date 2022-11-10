@@ -383,7 +383,9 @@ def ddfBatch(
         # Histogram the number of visits per night at the center of the DDF
         countbins = np.arange(0, 200, 5)
         metric = maf.NVisitsPerNightMetric(
-            night_col="night", bins=countbins, metric_name=f"{fieldname} NVisitsPerNight"
+            night_col="night",
+            bins=countbins,
+            metric_name=f"{fieldname} NVisitsPerNight",
         )
         plotDict = {"bins": countbins, "xlabel": "Number of visits per night"}
         displayDict[

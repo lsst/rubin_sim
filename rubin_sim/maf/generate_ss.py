@@ -8,7 +8,10 @@ from rubin_sim.utils import survey_start_mjd
 
 
 def generate_ss_commands(
-    dbfiles=None, pops=None, start_mjd=None, split=False,
+    dbfiles=None,
+    pops=None,
+    start_mjd=None,
+    split=False,
 ):
 
     if start_mjd is None:

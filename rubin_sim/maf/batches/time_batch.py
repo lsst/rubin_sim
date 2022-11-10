@@ -160,7 +160,9 @@ def intraNight(
 
     # Intranight gap map, all filters. Returns value in hours.
     metric = metrics.IntraNightGapsMetric(
-        metric_name="Median Intra-Night Gap", mjd_col=colmap["mjd"], reduce_func=np.median
+        metric_name="Median Intra-Night Gap",
+        mjd_col=colmap["mjd"],
+        reduce_func=np.median,
     )
     displayDict[
         "caption"
@@ -422,7 +424,9 @@ def interNight(
 
     # Median inter-night gap (each and all filters)
     metric = metrics.InterNightGapsMetric(
-        metric_name="Median Inter-Night Gap", mjd_col=colmap["mjd"], reduce_func=np.median
+        metric_name="Median Inter-Night Gap",
+        mjd_col=colmap["mjd"],
+        reduce_func=np.median,
     )
     for f in filterlist:
         displayDict["caption"] = (

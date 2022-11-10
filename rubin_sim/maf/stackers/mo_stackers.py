@@ -191,7 +191,9 @@ class AppMagStacker(BaseMoStacker):
 
     cols_added = ["appMag"]
 
-    def __init__(self, v_mag_col="magV", color_col="dmag_color", loss_col="dmag_detect"):
+    def __init__(
+        self, v_mag_col="magV", color_col="dmag_color", loss_col="dmag_detect"
+    ):
         self.v_mag_col = v_mag_col
         self.color_col = color_col
         self.loss_col = loss_col
