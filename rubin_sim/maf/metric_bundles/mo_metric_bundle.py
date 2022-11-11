@@ -82,7 +82,7 @@ def make_completeness_bundle(bundle, completeness_metric, h_mark=None, results_d
         plot_dict["label"] += " " + summary_name.replace("FractionPop_", "")
     mb.metric_values = completeness.reshape(1, len(completeness))
     if h_mark is not None:
-        metric = ValueAtHMetric(hmark=h_mark)
+        metric = ValueAtHMetric(h_mark=h_mark)
         mb.set_summary_metrics(metric)
         mb.compute_summary_stats(results_db)
         val = mb.summary_values["Value At H=%.1f" % h_mark]

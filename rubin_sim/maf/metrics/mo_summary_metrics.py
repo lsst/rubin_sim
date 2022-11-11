@@ -176,7 +176,7 @@ class ValueAtHMetric(BaseMoMetric):
 
     Parameters
     ----------
-    hmark : `float`, optional
+    h_mark : `float`, optional
         The H value at which to look up the metric value. Default = 22.
 
     Returns
@@ -184,11 +184,11 @@ class ValueAtHMetric(BaseMoMetric):
     value: : `float`
     """
 
-    def __init__(self, hmark=22, **kwargs):
-        metric_name = "Value At H=%.1f" % (hmark)
-        units = "<= %.1f" % (hmark)
+    def __init__(self, h_mark=22, **kwargs):
+        metric_name = "Value At H=%.1f" % (h_mark)
+        units = "<= %.1f" % (h_mark)
         super().__init__(metric_name=metric_name, **kwargs)
-        self.hmark = hmark
+        self.hmark = h_mark
 
     def run(self, metric_vals, hvals):
         # Check if desired H value is within range of H values.
