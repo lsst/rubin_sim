@@ -1164,7 +1164,7 @@ class SNNSNMetric(BaseMetric):
 
         # At each slicepoint, return the sum nSN value.
 
-        return np.sum(metric_val["nSN"])
+        return np.sum(metric_val["n_sn"])
 
     def reducezlim(self, metric_val):
 
