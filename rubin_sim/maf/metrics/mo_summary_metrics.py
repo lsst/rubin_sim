@@ -145,7 +145,7 @@ class TotalNumberSSO(BaseMoMetric):
 
     Parameters
     ----------
-    hmark : `float`, optional
+    h_mark : `float`, optional
         The H value at which to calculate the expected total number of objects. Default = 22.
     dndh_func : `function`, optional
         The dN/dH distribution to use to calculate the expected population size.
@@ -156,16 +156,16 @@ class TotalNumberSSO(BaseMoMetric):
         The predicted number of objects in the population.
     """
 
-    def __init__(self, hmark=22, dndh_func=neo_dndh_granvik, **kwargs):
-        self.hmark = hmark
+    def __init__(self, h_mark=22, dndh_func=neo_dndh_granvik, **kwargs):
+        self.h_mark = h_mark
         self.dndh_func = dndh_func
-        metric_name = "Nobj <= %.1f" % (hmark)
+        metric_name = "Nobj <= %.1f" % (h_mark)
         self.kwargs = kwargs
         super().__init__(metric_name=metric_name, **kwargs)
 
-    def run(self, metric_vals, hvals):
-        totals = sum_over_h(metric_vals, hvals, self.dndh_func, **self.kwargs)
-        n_obj = np.interp(self.hmark, hvals, totals)
+    def run(self, metric_vals, h_vals):
+        totals = sum_over_h(metric_vals, h_vals, self.dndh_func, **self.kwargs)
+        n_obj = np.interp(self.h_mark, h_vals, totals)
         return n_obj
 
 
@@ -188,11 +188,11 @@ class ValueAtHMetric(BaseMoMetric):
         metric_name = "Value At H=%.1f" % (h_mark)
         units = "<= %.1f" % (h_mark)
         super().__init__(metric_name=metric_name, **kwargs)
-        self.hmark = h_mark
+        self.h_mark = h_mark
 
-    def run(self, metric_vals, hvals):
+    def run(self, metric_vals, h_vals):
         # Check if desired H value is within range of H values.
-        if (self.hmark < hvals.min()) or (self.hmark > hvals.max()):
+        if (self.h_mark < h_vals.min()) or (self.h_mark > h_vals.max()):
             warnings.warn(
                 "Desired H value of metric outside range of provided H values."
             )
@@ -202,7 +202,7 @@ class ValueAtHMetric(BaseMoMetric):
                 "This is not an appropriate summary statistic for this data - need 1d values."
             )
             return None
-        value = np.interp(self.hmark, hvals, metric_vals[0])
+        value = np.interp(self.h_mark, h_vals, metric_vals[0])
         return value
 
 
@@ -213,7 +213,7 @@ class MeanValueAtHMetric(BaseMoMetric):
 
     Parameters
     ----------
-    hmark : `float`, optional
+    h_mark : `float`, optional
         The H value at which to look up the metric value. Default = 22.
 
     Returns
@@ -221,22 +221,22 @@ class MeanValueAtHMetric(BaseMoMetric):
     value: : `float`
     """
 
-    def __init__(self, hmark=22, reduce_func=np.mean, metric_name=None, **kwargs):
+    def __init__(self, h_mark=22, reduce_func=np.mean, metric_name=None, **kwargs):
         if metric_name is None:
-            metric_name = "Mean Value At H=%.1f" % (hmark)
+            metric_name = "Mean Value At H=%.1f" % (h_mark)
         super().__init__(metric_name=metric_name, **kwargs)
-        self.hmark = hmark
+        self.h_mark = h_mark
         self.reduce_func = reduce_func
 
-    def run(self, metric_vals, hvals):
+    def run(self, metric_vals, h_vals):
         # Check if desired H value is within range of H values.
-        if (self.hmark < hvals.min()) or (self.hmark > hvals.max()):
+        if (self.h_mark < h_vals.min()) or (self.h_mark > h_vals.max()):
             warnings.warn(
                 "Desired H value of metric outside range of provided H values."
             )
             return None
         value = np.interp(
-            self.hmark, hvals, self.reduce_func(metric_vals.swapaxes(0, 1), axis=1)
+            self.h_mark, h_vals, self.reduce_func(metric_vals.swapaxes(0, 1), axis=1)
         )
         return value
 
@@ -314,28 +314,28 @@ class MoCompletenessMetric(BaseMoMetric):
         self.min_hrange = min_hrange
         self.hindex = hindex
 
-    def run(self, metric_values, hvals):
+    def run(self, metric_values, h_vals):
         n_ssos = metric_values.shape[0]
-        n_hval = len(hvals)
+        n_hval = len(h_vals)
         metric_val_h = metric_values.swapaxes(0, 1)
         if n_hval == metric_values.shape[1]:
-            # hvals array is probably the same as the cloned H array.
-            completeness = np.zeros(len(hvals), float)
-            for i, H in enumerate(hvals):
+            # h_vals array is probably the same as the cloned H array.
+            completeness = np.zeros(len(h_vals), float)
+            for i, H in enumerate(h_vals):
                 completeness[i] = np.where(metric_val_h[i].filled(0) >= self.threshold)[
                     0
                 ].size
             completeness = completeness / float(n_ssos)
         else:
-            # The hvals are spread more randomly among the objects (we probably used one per object).
-            hrange = hvals.max() - hvals.min()
-            min_h = hvals.min()
+            # The h_vals are spread more randomly among the objects (we probably used one per object).
+            hrange = h_vals.max() - h_vals.min()
+            min_h = h_vals.min()
             if hrange < self.min_hrange:
                 hrange = self.min_hrange
-                min_h = hvals.min() - hrange / 2.0
+                min_h = h_vals.min() - hrange / 2.0
             stepsize = hrange / float(self.nbins)
             bins = np.arange(min_h, min_h + hrange + stepsize / 2.0, stepsize)
-            hvals = bins[:-1]
+            h_vals = bins[:-1]
             n_all, b = np.histogram(metric_val_h[0], bins)
             condition = np.where(metric_val_h[0] >= self.threshold)[0]
             n_found, b = np.histogram(metric_val_h[0][condition], bins)
@@ -343,20 +343,20 @@ class MoCompletenessMetric(BaseMoMetric):
             completeness = np.where(n_all == 0, 0, completeness)
         if self.cumulative:
             completeness_int = integrate_over_h(
-                completeness, hvals, power_law_dndh, Hindex=self.hindex
+                completeness, h_vals, power_law_dndh, Hindex=self.hindex
             )
             summary_val = np.empty(
                 len(completeness_int), dtype=[("name", np.str_, 20), ("value", float)]
             )
             summary_val["value"] = completeness_int
-            for i, Hval in enumerate(hvals):
+            for i, Hval in enumerate(h_vals):
                 summary_val["name"][i] = "H <= %f" % (Hval)
         else:
             summary_val = np.empty(
                 len(completeness), dtype=[("name", np.str_, 20), ("value", float)]
             )
             summary_val["value"] = completeness
-            for i, Hval in enumerate(hvals):
+            for i, Hval in enumerate(h_vals):
                 summary_val["name"][i] = "H = %f" % (Hval)
         return summary_val
 
@@ -374,7 +374,7 @@ class MoCompletenessAtTimeMetric(BaseMoMetric):
         The bins to distribute the discovery times into. Same units as the discovery time (typically MJD).
     hval : `float`, optional
         The value of H to count completeness at (or cumulative completeness to).
-        Default None, in which case a value halfway through Hvals (the slicer H range) will be chosen.
+        Default None, in which case a value halfway through h_vals (the slicer H range) will be chosen.
     cumulative : `bool`, optional
         If True, calculate the cumulative completeness (completeness <= H).
         If False, calculate the differential completeness (completeness @ H).
@@ -424,16 +424,16 @@ class MoCompletenessAtTimeMetric(BaseMoMetric):
         else:
             self.units = "H"
 
-    def run(self, discovery_times, hvals):
-        if len(hvals) != discovery_times.shape[1]:
+    def run(self, discovery_times, h_vals):
+        if len(h_vals) != discovery_times.shape[1]:
             warnings.warn(
                 "This summary metric expects cloned H distribution. Cannot calculate summary."
             )
             return
         n_ssos = discovery_times.shape[0]
         timesin_h = discovery_times.swapaxes(0, 1)
-        completeness_h = np.empty([len(hvals), len(self.times)], float)
-        for i, H in enumerate(hvals):
+        completeness_h = np.empty([len(h_vals), len(self.times)], float)
+        for i, H in enumerate(h_vals):
             n, b = np.histogram(timesin_h[i].compressed(), bins=self.times)
             completeness_h[i][0] = 0
             completeness_h[i][1:] = n.cumsum()
@@ -441,17 +441,17 @@ class MoCompletenessAtTimeMetric(BaseMoMetric):
         completeness = completeness_h.swapaxes(0, 1)
         if self.cumulative:
             for i, t in enumerate(self.times):
-                completeness[i] = integrate_over_h(completeness[i], hvals)
+                completeness[i] = integrate_over_h(completeness[i], h_vals)
         # To save the summary statistic, we must pick out a given H value.
         if self.hval is None:
-            hidx = len(hvals) // 2
-            self.hval = hvals[hidx]
+            hidx = len(h_vals) // 2
+            self.hval = h_vals[hidx]
             self._set_labels()
         else:
             hidx = np.where(
-                np.abs(hvals - self.hval) == np.abs(hvals - self.hval).min()
+                np.abs(h_vals - self.hval) == np.abs(h_vals - self.hval).min()
             )[0][0]
-            self.hval = hvals[hidx]
+            self.hval = h_vals[hidx]
             self._set_labels()
         summary_val = np.empty(
             len(self.times), dtype=[("name", np.str_, 20), ("value", float)]

@@ -235,6 +235,21 @@ def glanceBatch(
         )
         bundle_list.append(bundle)
 
+    # Make a cumulative plot of a WFD spot
+    sql = "note not like '%NEO%'"
+    uslicer = slicers.UserPointsSlicer(ra=0, dec=-20)
+    metric = metrics.CumulativeMetric()
+    metricb = metric_bundles.MetricBundle(
+        metric,
+        uslicer,
+        sql,
+        plot_funcs=[plots.XyPlotter()],
+        run_name=run_name,
+        display_dict=displayDict,
+    )
+    metricb.summary_metrics = []
+    bundle_list.append(metricb)
+
     # Checking a few basic science things
     # Maybe check astrometry, observation pairs, SN
     plotDict = {"percentileClip": 95.0}
