@@ -34,20 +34,20 @@ class NightPointingPlotter(BasePlotter):
         fig, (ax1, ax2) = plt.subplots(2, sharex=True)
         mv = metric_value[0]
 
-        u_filters = np.unique(mv["dataSlice"]["filter"])
+        u_filters = np.unique(mv["data_slice"]["filter"])
         for filt in u_filters:
-            good = np.where(mv["dataSlice"]["filter"] == filt)
+            good = np.where(mv["data_slice"]["filter"] == filt)
             ax1.plot(
-                mv["dataSlice"][self.mjd_col][good],
-                mv["dataSlice"][self.alt_col][good],
+                mv["data_slice"][self.mjd_col][good],
+                mv["data_slice"][self.alt_col][good],
                 "o",
                 color=self.filter2color[filt],
                 markersize=5,
                 alpha=0.5,
             )
             ax2.plot(
-                mv["dataSlice"][self.mjd_col][good],
-                mv["dataSlice"][self.az_col][good],
+                mv["data_slice"][self.mjd_col][good],
+                mv["data_slice"][self.az_col][good],
                 "o",
                 color=self.filter2color[filt],
                 markersize=5,

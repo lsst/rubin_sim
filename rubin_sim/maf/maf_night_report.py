@@ -12,11 +12,11 @@ from . import metricBundles as metricBundles
 from . import plots as plots
 from . import utils as utils
 
-from .batches import ColMapDict
+from .batches import col_map_dict
 
 
 def make_bundle_list(
-    dbFile,
+    db_file,
     night=1,
     nside=64,
     latCol="fieldDec",
@@ -29,7 +29,7 @@ def make_bundle_list(
     """
 
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
 
     mjdCol = "observationStartMJD"
     altCol = "altitude"
@@ -44,14 +44,14 @@ def make_bundle_list(
 
     # Hourglass
     hourslicer = slicers.HourglassSlicer()
-    displayDict = {"group": "Hourglass"}
+    display_dict = {"group": "Hourglass"}
     md = ""
     sql = "night=%i" % night
     metric = metrics.HourglassMetric(
-        nightCol=colmap["night"], mjdCol=colmap["mjd"], metricName="Hourglass"
+        night_col=colmap["night"], mjd_col=colmap["mjd"], metric_name="Hourglass"
     )
     bundle = metricBundles.MetricBundle(
-        metric, hourslicer, constraint=sql, info_label=md, display_dict=displayDict
+        metric, hourslicer, constraint=sql, info_label=md, display_dict=display_dict
     )
     bundleList.append(bundle)
 
@@ -66,10 +66,10 @@ def make_bundle_list(
     for sql in sqls:
 
         # Number of exposures
-        metric = metrics.CountMetric(mjdCol, metricName="N visits")
+        metric = metrics.CountMetric(mjdCol, metric_name="N visits")
         bundle = metricBundles.MetricBundle(metric, reg_slicer, sql)
         bundleList.append(bundle)
-        metric = metrics.CountMetric(mjdCol, metricName="N visits alt az")
+        metric = metrics.CountMetric(mjdCol, metric_name="N visits alt az")
         bundle = metricBundles.MetricBundle(
             metric, altaz_slicer, sql, plot_funcs=plotFuncs_lam
         )
@@ -84,7 +84,7 @@ def make_bundle_list(
         )
         bundleList.append(bundle)
 
-        metric = metrics.CountMetric(mjdCol, metricName="N_visits")
+        metric = metrics.CountMetric(mjdCol, metric_name="N_visits")
         bundle = metricBundles.MetricBundle(metric, unislicer, sql)
         bundleList.append(bundle)
 
@@ -92,7 +92,7 @@ def make_bundle_list(
 
     # Moon phase.
 
-    metric = metrics.NChangesMetric(col="filter", metricName="Filter Changes")
+    metric = metrics.NChangesMetric(col="filter", metric_name="Filter Changes")
     bundle = metricBundles.MetricBundle(metric, unislicer, "night=%i" % night)
     bundleList.append(bundle)
 
@@ -113,38 +113,38 @@ def make_bundle_list(
     bundleList.append(bundle)
 
     # Make plots of the solar system pairs that were taken in the night
-    metric = metrics.PairMetric(mjdCol=mjdCol)
+    metric = metrics.PairMetric(mjd_col=mjdCol)
     sql = 'night=%i and (filter ="r" or filter="g" or filter="i")' % night
     bundle = metricBundles.MetricBundle(metric, reg_slicer, sql)
     bundleList.append(bundle)
 
-    metric = metrics.PairMetric(mjdCol=mjdCol, metricName="z Pairs")
+    metric = metrics.PairMetric(mjd_col=mjdCol, metric_name="z Pairs")
     sql = 'night=%i and filter="z"' % night
     bundle = metricBundles.MetricBundle(metric, reg_slicer, sql)
     bundleList.append(bundle)
 
     # Plot up each visit
-    metric = metrics.NightPointingMetric(mjdCol=mjdCol)
+    metric = metrics.NightPointingMetric(mjd_col=mjdCol)
     slicer = slicers.UniSlicer()
     sql = "night=%i" % night
-    plotFuncs = [plots.NightPointingPlotter()]
-    bundle = metricBundles.MetricBundle(metric, slicer, sql, plot_funcs=plotFuncs)
+    plot_funcs = [plots.NightPointingPlotter()]
+    bundle = metricBundles.MetricBundle(metric, slicer, sql, plot_funcs=plot_funcs)
     bundleList.append(bundle)
 
     # stats from the note column
     if notes:
-        displayDict = {"group": "Basic Stats", "subgroup": "Percent stats"}
+        display_dict = {"group": "Basic Stats", "subgroup": "Percent stats"}
         metric = metrics.StringCountMetric(
-            col="note", percent=True, metricName="Percents"
+            col="note", percent=True, metric_name="Percents"
         )
         bundle = metricBundles.MetricBundle(
-            metric, unislicer, sql, display_dict=displayDict
+            metric, unislicer, sql, display_dict=display_dict
         )
         bundleList.append(bundle)
-        displayDict["subgroup"] = "Count Stats"
-        metric = metrics.StringCountMetric(col="note", metricName="Counts")
+        display_dict["subgroup"] = "Count Stats"
+        metric = metrics.StringCountMetric(col="note", metric_name="Counts")
         bundle = metricBundles.MetricBundle(
-            metric, unislicer, sql, display_dict=displayDict
+            metric, unislicer, sql, display_dict=display_dict
         )
         bundleList.append(bundle)
 
@@ -161,12 +161,12 @@ def maf_night_report():
         "db_file",
         type=str,
         default=None,
-        help="full file path to the opsim sqlite file",
+        help="full file path to the simulation sqlite file",
     )
     parser.add_argument(
         "--out_dir",
         type=str,
-        default="./Out",
+        default="night_report",
         help="Output directory for MAF outputs." + ' Default "Out"',
     )
     parser.add_argument(
@@ -176,14 +176,14 @@ def maf_night_report():
         help="Resolution to run Healpix grid at (must be 2^x). Default 64.",
     )
     parser.add_argument(
-        "--lonCol",
+        "--lon_col",
         type=str,
         default="fieldRA",
         help="Column to use for RA values (can be a stacker dither column)."
         + " Default=fieldRA.",
     )
     parser.add_argument(
-        "--latCol",
+        "--lat_col",
         type=str,
         default="fieldDec",
         help="Column to use for Dec values (can be a stacker dither column)."
@@ -195,23 +195,23 @@ def maf_night_report():
     parser.set_defaults()
     args, extras = parser.parse_known_args()
 
-    bundleDict = make_bundle_list(
-        args.dbFile,
+    bundle_dict = make_bundle_list(
+        args.db_file,
         nside=args.nside,
-        lonCol=args.lonCol,
-        latCol=args.latCol,
+        lonCol=args.lon_col,
+        latCol=args.lat_col,
         night=args.night,
     )
 
-    for key in bundleDict:
-        bundleDict[key].set_run_name(args.run_name)
+    for key in bundle_dict:
+        bundle_dict[key].set_run_name(args.run_name)
 
     # Set up / connect to results_db.
-    resultsDb = db.ResultsDb(out_dir=args.outDir)
+    results_db = db.ResultsDb(out_dir=args.out_dir)
 
     # Set up metricBundleGroup.
     group = metricBundles.MetricBundleGroup(
-        bundleDict, args.dbFile, out_dir=args.outDir, results_db=resultsDb
+        bundle_dict, args.db_file, out_dir=args.out_dir, results_db=results_db
     )
     group.run_all()
-    group.plotAll()
+    group.plot_all()
