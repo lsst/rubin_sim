@@ -531,7 +531,7 @@ def empty_observation():
         float,
         float,
         float,
-        "U1",
+        "U40",
         float,
         float,
         int,
