@@ -1,6 +1,6 @@
-.. py:currentmodule:: rubin_sim.movingObjects
+.. py:currentmodule:: rubin_sim.moving_objects
 
-.. _rubin_sim.movingObjects:
+.. _rubin_sim.moving_objects:
 
 =======================
 rubin_sim MovingObjects
@@ -20,6 +20,6 @@ Further documentation on these orbital populations is available in the
 Python API
 ==========
 
-* :ref:`rubin_sim.movingObjects api`
+* :ref:`rubin_sim.moving_objects api`
 
 * :ref:`search`

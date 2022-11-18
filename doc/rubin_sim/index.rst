@@ -32,11 +32,11 @@ Python API
    :no-inheritance-diagram:
 
 
-.. _rubin_sim.photUtils api:
+.. _rubin_sim.phot_utils api:
 
-:doc:`rubin_sim.photUtils api <../rs_photUtils/index>`
+:doc:`rubin_sim.photUtils api <../rs_phot_utils/index>`
 ======================================================
-.. automodapi:: rubin_sim.photUtils
+.. automodapi:: rubin_sim.phot_utils
    :no-main-docstr:
    :no-inheritance-diagram:
 
@@ -93,7 +93,7 @@ Python API
    :no-main-docstr:
    :no-inheritance-diagram:
 
-.. automodapi:: rubin_sim.scheduler.modelObservatory
+.. automodapi:: rubin_sim.scheduler.model_observatory
    :no-main-docstr:
    :no-inheritance-diagram:
 
@@ -104,9 +104,9 @@ Python API
 
 .. _rubin_sim.movingObjects api:
 
-:doc:`rubin_sim.movingObjects api <../rs_movingObjects/index>`
+:doc:`rubin_sim.movingObjects api <../rs_moving_objects/index>`
 ==============================================================
-.. automodapi:: rubin_sim.movingObjects
+.. automodapi:: rubin_sim.moving_objects
    :no-main-docstr:
    :no-inheritance-diagram:
 
@@ -123,7 +123,7 @@ Python API
    :no-main-docstr:
    :no-inheritance-diagram:
 
-.. automodapi:: rubin_sim.maf.mafContrib
+.. automodapi:: rubin_sim.maf.maf_contrib
    :no-main-docstr:
    :no-inheritance-diagram:
 
@@ -147,11 +147,11 @@ Python API
    :no-main-docstr:
    :no-inheritance-diagram:
 
-.. automodapi:: rubin_sim.maf.metricBundles
+.. automodapi:: rubin_sim.maf.metric_bundles
    :no-main-docstr:
    :no-inheritance-diagram:
 
-.. automodapi:: rubin_sim.maf.runComparison
+.. automodapi:: rubin_sim.maf.run_comparison
    :no-main-docstr:
    :no-inheritance-diagram:
 

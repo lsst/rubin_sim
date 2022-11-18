@@ -1,6 +1,6 @@
-.. py:currentmodule:: rubin_sim.photUtils
+.. py:currentmodule:: rubin_sim.phot_utils
 
-.. _rubin_sim.photUtils:
+.. _rubin_sim.phot_utils:
 
 =======================
 rubin_sim photUtils
@@ -14,6 +14,6 @@ methods for Rubin Observatory. There are expected throughput curves available in
 Python API
 ==========
 
-* :ref:`rubin_sim.photUtils api`
+* :ref:`rubin_sim.phot_utils api`
 
 * :ref:`search`
