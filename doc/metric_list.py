@@ -1,18 +1,18 @@
 import inspect
 import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.mafContrib as mafContrib
+import rubin_sim.maf.maf_contrib as maf_contrib
 
-__all__ = ["makeMetricList"]
+__all__ = ["make_metric_list"]
 
 
-def makeMetricList(outfile):
+def make_metric_list(outfile):
 
     f = open(outfile, "w")
 
     # Print header
     print(".. py:currentmodule:: rubin_sim.maf", file=f)
     print("", file=f)
-    print(".. _rubin_sim.maf_metricList:", file=f)
+    print(".. _rubin_sim.maf_metricist:", file=f)
     print("", file=f)
     print("================================", file=f)
     print("rubin_sim MAF: Available metrics", file=f)
@@ -30,16 +30,16 @@ def makeMetricList(outfile):
                 print(f"- {link} \n \t {simpledoc}", file=f)
     print(" ", file=f)
 
-    print("Contributed mafContrib metrics", file=f)
+    print("Contributed maf_contrib metrics", file=f)
     print("==============================", file=f)
     print(" ", file=f)
     for name, obj in inspect.getmembers(mafContrib):
         if inspect.isclass(obj):
             modname = inspect.getmodule(obj).__name__
-            if modname.startswith("rubin_sim.maf.mafContrib") and name.endswith(
+            if modname.startswith("rubin_sim.maf.maf_contrib") and name.endswith(
                 "Metric"
             ):
-                link = f":py:class:`~rubin_sim.maf.mafContrib.{name}` "
+                link = f":py:class:`~rubin_sim.maf.maf_contrib.{name}` "
                 simpledoc = inspect.getdoc(obj).split("\n")[0]
                 print(f"- {link} \n \t {simpledoc}", file=f)
     print(" ", file=f)
@@ -47,4 +47,4 @@ def makeMetricList(outfile):
 
 if __name__ == "__main__":
 
-    makeMetricList("rs_maf/metricList.rst")
+    make_metric_list("rs_maf/metric_list.rst")

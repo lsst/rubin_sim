@@ -8,11 +8,11 @@ Table of contents
 
    rs_utils/*
    rs_data/*
-   rs_photUtils/*
+   rs_phot_utils/*
    rs_site_models/*
    rs_skybrightness/*
    rs_skybrightness_pre/*
    rs_scheduler/*
-   rs_movingObjects/*
+   rs_moving_objects/*
    rs_maf/*
    rubin_sim/*

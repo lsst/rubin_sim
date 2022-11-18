@@ -26,14 +26,14 @@ analysis -- statistical summaries over the observed sky, such as the mean,
 median, RMS, minimum or maximum values). In this case, you would only have
 to write a small piece of code (a *metric*) that makes the actual evaluation,
 assuming you have the relevant observations for a single piece of sky.
-A simple list of all :doc:`available metrics <metricList>` is available.
+A simple list of all :doc:`available metrics <metric_list>` is available.
 
 A concrete example of this can be found in the KNeMetric - which is illustrated
 in depth in a notebook in the github repo at `lsst/rubin_sim_notebooks
 <https://github.com/lsst/rubin_sim_notebooks/blob/main/maf/science/KNe%20Metric.ipynb>`_
 (see the maf/science directory).
 
-MAF also provides lots of ready to use :doc:`metrics <metricList>`, as well as
+MAF also provides lots of ready to use :doc:`metrics <metric_list>`, as well as
 a variety of ways to subdivide the pointing histories using :py:obj:`rubin_sim.maf.slicers`
 -- a typical use case is to evaluate a quantity at all points over the sky, which would use
 the :py:class:`rubin_sim.maf.slicers.HealpixSlicer` slicer, but there are
