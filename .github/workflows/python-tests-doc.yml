@@ -94,7 +94,7 @@ jobs:
         run: |
           export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
           cd doc
-          python metricList.py
+          python metric_list.py
           make html
       - name: Install LTD Conveyor
         shell: bash -l {0}
