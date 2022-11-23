@@ -515,12 +515,17 @@ class NoteLastObserved(BaseSurveyFeature):
         Substring to match an observation note field to keep track of.
     """
 
-    def __init__(self, note):
+    def __init__(self, note, filtername=None):
         self.note = note
+        self.filtername = filtername
         self.feature = None
 
     def add_observation(self, observation, indx=None):
-        if self.note in observation["note"]:
+        if self.note in observation["note"] and (
+            self.filtername == observation["filter"]
+            if self.filtername is not None
+            else True
+        ):
             self.feature = observation["mjd"]
 
 
