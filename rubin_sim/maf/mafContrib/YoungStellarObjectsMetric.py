@@ -72,7 +72,7 @@ class NYoungStarsMetric(BaseMetric):
         The galactic latitude above which to return zero (degrees).
     badval : float, opt
         The value to return when the metric value cannot be calculated. Default 0.
-    
+
     Keyword arguments
     -----------------
     returnDistance : bool, opt
@@ -91,12 +91,12 @@ class NYoungStarsMetric(BaseMetric):
         nside=64,
         **kwargs
     ):
-        Cols = [m5Col, filterCol, 'seeingFwhmGeom']
+        Cols = [m5Col, filterCol, "seeingFwhmGeom"]
         maps = ["DustMap3D", "StellarDensityMap"]
         # This will give us access to the dust map get_distance_at_dmag routine
         # but does not require loading another copy of the map
         self.ebvmap = DustMap3D()
-        self.returnDistance = kwargs.pop('returnDistance', False)
+        self.returnDistance = kwargs.pop("returnDistance", False)
         units = "kpc" if self.returnDistance else "N stars"
         super().__init__(
             Cols, metricName=metricName, maps=maps, units=units, badval=badval, **kwargs
@@ -110,7 +110,9 @@ class NYoungStarsMetric(BaseMetric):
         self.mags = mags
         self.filters = list(self.mags.keys())
         self.snrs = snrs
-        self.m5crowding = {f:CrowdingM5Metric(crowding_error=0.25, filtername=f) for f in self.filters}
+        self.m5crowding = {
+            f: CrowdingM5Metric(crowding_error=0.25, filtername=f) for f in self.filters
+        }
 
     def run(self, dataSlice, slicePoint=None):
 
@@ -132,7 +134,7 @@ class NYoungStarsMetric(BaseMetric):
                 # Calculate coadded depth per filter
                 depth_m5 = 1.25 * np.log10(
                     np.sum(10.0 ** (0.8 * dataSlice[self.m5Col][in_filt]))
-                )                
+                )
                 depth_crowding = self.m5crowding[filtername].run(dataSlice, slicePoint)
                 depths[filtername] = min(depth_m5, depth_crowding)
 
