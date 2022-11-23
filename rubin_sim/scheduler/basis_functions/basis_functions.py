@@ -1901,36 +1901,61 @@ class Observed_twice_basis_function(Base_basis_function):
 
 
 class VisitGap(Base_basis_function):
-    """Basis function to create a visit gap based on the survey note field.
+    """Basis function to create a visit gap based on the survey note field and,
+    optionaly, a list of filters.
 
     Parameters
     ----------
     note : str
         Value of the observation "note" field to be masked.
+    filter_names : list [str], optional
+        List of filter names that will be considered when evaluating if the gap
+        has passed.
     gap_min : float (optional)
         Time gap (default=25, in minutes).
     penalty_val : float or np.nan
         Value of the penalty to apply (default is np.nan).
+
+    Notes
+    -----
+    When a list of filters is provided, all filters must be observed before the
+    gap requirement will be activated, and once activated, only observations in
+    these filters will be evaluated in context of whether the last observation
+    was at least gap in the past.
     """
 
-    def __init__(self, note, gap_min=25.0, penalty_val=np.nan):
+    def __init__(self, note, filter_names=None, gap_min=25.0, penalty_val=np.nan):
         super().__init__()
         self.penalty_val = penalty_val
 
         self.gap = gap_min / 60.0 / 24.0
+        self.filter_names = filter_names
+
         self.survey_features = dict()
-        self.survey_features["NoteLastObserved"] = features.NoteLastObserved(note=note)
+        if self.filter_names is not None:
+            for filtername in self.filter_names:
+                self.survey_features[
+                    f"NoteLastObserved::{filtername}"
+                ] = features.NoteLastObserved(note=note, filtername=filtername)
+        else:
+            self.survey_features["NoteLastObserved"] = features.NoteLastObserved(
+                note=note
+            )
 
     def check_feasibility(self, conditions):
-        if self.survey_features["NoteLastObserved"].feature is None:
+        notes_last_observed = [
+            last_observed.feature for last_observed in self.survey_features.values()
+        ]
+
+        if any([last_observed is None for last_observed in notes_last_observed]):
             return True
 
-        diff = conditions.mjd - self.survey_features["NoteLastObserved"].feature
+        after_gap = [
+            conditions.mjd - last_observed > self.gap
+            for last_observed in notes_last_observed
+        ]
 
-        if diff <= self.gap:
-            return False
-        else:
-            return True
+        return all(after_gap)
 
     def _calc_value(self, conditions, indx=None):
         return 1.0 if self.check_feasibility(conditions) else self.penalty_val
