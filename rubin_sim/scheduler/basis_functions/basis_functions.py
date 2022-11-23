@@ -1907,30 +1907,46 @@ class VisitGap(Base_basis_function):
     ----------
     note : str
         Value of the observation "note" field to be masked.
+    filter_names : list [str], optional
+         List of filter names that need be observed before activating.
     gap_min : float (optional)
         Time gap (default=25, in minutes).
     penalty_val : float or np.nan
         Value of the penalty to apply (default is np.nan).
     """
 
-    def __init__(self, note, gap_min=25.0, penalty_val=np.nan):
+    def __init__(self, note, filter_names=None, gap_min=25.0, penalty_val=np.nan):
         super().__init__()
         self.penalty_val = penalty_val
 
         self.gap = gap_min / 60.0 / 24.0
+        self.filter_names = filter_names
+
         self.survey_features = dict()
-        self.survey_features["NoteLastObserved"] = features.NoteLastObserved(note=note)
+        if self.filter_names is not None:
+            for filtername in self.filter_names:
+                self.survey_features[
+                    f"NoteLastObserved::{filtername}"
+                ] = features.NoteLastObserved(note=note, filtername=filtername)
+        else:
+            self.survey_features["NoteLastObserved"] = features.NoteLastObserved(
+                note=note
+            )
 
     def check_feasibility(self, conditions):
-        if self.survey_features["NoteLastObserved"].feature is None:
+        notes_last_observed = [
+            last_observed.feature for last_observed in self.survey_features.values()
+        ]
+
+        if any([last_observed is None for last_observed in notes_last_observed]):
             return True
 
-        diff = conditions.mjd - self.survey_features["NoteLastObserved"].feature
+        after_gap = [
+            conditions.mjd - last_observed > self.gap
+            for last_observed in notes_last_observed
+        ]
 
-        if diff <= self.gap:
-            return False
-        else:
-            return True
+        return all(after_gap)
 
     def _calc_value(self, conditions, indx=None):
         return 1.0 if self.check_feasibility(conditions) else self.penalty_val
