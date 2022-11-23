@@ -40,6 +40,126 @@ class TestBasis(unittest.TestCase):
         bf = basis_functions.Slewtime_basis_function(nside=16)
         self.assertIsInstance(bf.label(), str)
 
+    def test_visit_gap(self):
+
+        visit_gap = basis_functions.VisitGap(note="test")
+
+        conditions = Conditions()
+        conditions.mjd = 59000.0
+
+        # default is feasible
+        assert visit_gap.check_feasibility(conditions=conditions)
+
+        observation = empty_observation()
+        observation["filter"] = "r"
+        observation["note"] = "foo"
+        observation["mjd"] = 59000.0
+
+        visit_gap.add_observation(observation=observation)
+
+        # observation with the wrong note
+        assert visit_gap.check_feasibility(conditions=conditions)
+
+        observation["note"] = "test"
+        visit_gap.add_observation(observation=observation)
+
+        # now observation with the correct note
+        assert not visit_gap.check_feasibility(conditions=conditions)
+
+        # check it becomes feasible again once enough time has passed
+        conditions.mjd += 2.0 * visit_gap.gap
+
+        assert visit_gap.check_feasibility(conditions=conditions)
+
+    def test_visit_gap_with_filter(self):
+
+        visit_gap = basis_functions.VisitGap(note="test", filter_names=["g"])
+
+        conditions = Conditions()
+        conditions.mjd = 59000.0
+
+        # default is feasible
+        assert visit_gap.check_feasibility(conditions=conditions)
+
+        observation = empty_observation()
+        observation["filter"] = "r"
+        observation["note"] = "foo"
+        observation["mjd"] = 59000.0
+
+        visit_gap.add_observation(observation=observation)
+
+        # observation with the wrong note
+        assert visit_gap.check_feasibility(conditions=conditions)
+
+        observation["note"] = "test"
+        visit_gap.add_observation(observation=observation)
+
+        # observation with the wrong filter
+        assert visit_gap.check_feasibility(conditions=conditions)
+
+        observation["filter"] = "g"
+        visit_gap.add_observation(observation=observation)
+
+        # observation with the correct note and filter
+        assert not visit_gap.check_feasibility(conditions=conditions)
+
+        # check it becomes feasible again once enough time has passed
+        conditions.mjd += 2.0 * visit_gap.gap
+
+        assert visit_gap.check_feasibility(conditions=conditions)
+
+    def test_visit_gap_with_multiple_filters(self):
+
+        visit_gap = basis_functions.VisitGap(note="test", filter_names=["g", "i"])
+
+        conditions = Conditions()
+        conditions.mjd = 59000.0
+
+        # default is feasible
+        assert visit_gap.check_feasibility(conditions=conditions)
+
+        observation = empty_observation()
+        observation["filter"] = "r"
+        observation["note"] = "foo"
+        observation["mjd"] = 59000.0
+
+        visit_gap.add_observation(observation=observation)
+
+        # observation with the wrong note
+        assert visit_gap.check_feasibility(conditions=conditions)
+
+        observation["note"] = "test"
+        visit_gap.add_observation(observation=observation)
+
+        # observation with the wrong filter
+        assert visit_gap.check_feasibility(conditions=conditions)
+
+        observation["filter"] = "g"
+        observation["mjd"] += 1e-3
+        visit_gap.add_observation(observation=observation)
+
+        # observation with the correct note but only one filter
+        assert visit_gap.check_feasibility(conditions=conditions)
+
+        observation["filter"] = "i"
+        observation["mjd"] += 1e-3
+        visit_gap.add_observation(observation=observation)
+
+        # observation with the correct note and both filters
+        assert not visit_gap.check_feasibility(conditions=conditions)
+
+        # make sure it is still not feasible after only the g observation gap
+        # has passed
+        conditions.mjd += visit_gap.gap + 1.1e-3
+
+        # observation with the correct note and both filters
+        assert not visit_gap.check_feasibility(conditions=conditions)
+
+        # make sure it is feasible after both gaps have passed
+        conditions.mjd += 1e-3
+
+        assert visit_gap.check_feasibility(conditions=conditions)
+
 
 if __name__ == "__main__":
     unittest.main()

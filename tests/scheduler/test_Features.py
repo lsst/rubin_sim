@@ -40,6 +40,58 @@ class TestFeatures(unittest.TestCase):
         self.assertIsInstance(repr(conditions), str)
         self.assertIsInstance(str(conditions), str)
 
+    def test_note_last_observed(self):
+
+        note_last_observed = features.NoteLastObserved(note="test")
+
+        observation = empty_observation()
+        observation["mjd"] = 59000.0
+
+        note_last_observed.add_observation(observation=observation)
+
+        assert note_last_observed.feature is None
+
+        observation["note"] = "foo"
+
+        note_last_observed.add_observation(observation=observation)
+        assert note_last_observed.feature is None
+
+        observation["note"] = "test"
+
+        note_last_observed.add_observation(observation=observation)
+        assert note_last_observed.feature == observation["mjd"]
+
+    def test_note_last_observed_with_filter(self):
+
+        note_last_observed = features.NoteLastObserved(
+            note="test",
+            filtername="r",
+        )
+
+        observation = empty_observation()
+        observation["mjd"] = 59000.0
+
+        note_last_observed.add_observation(observation=observation)
+
+        assert note_last_observed.feature is None
+
+        observation["note"] = "foo"
+
+        note_last_observed.add_observation(observation=observation)
+        assert note_last_observed.feature is None
+
+        observation["note"] = "test"
+        observation["filter"] = "g"
+
+        note_last_observed.add_observation(observation=observation)
+        assert note_last_observed.feature is None
+
+        observation["note"] = "test"
+        observation["filter"] = "r"
+
+        note_last_observed.add_observation(observation=observation)
+        assert note_last_observed.feature == observation["mjd"]
+
 
 if __name__ == "__main__":
     unittest.main()
