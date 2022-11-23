@@ -33,7 +33,7 @@ def make_metric_list(outfile):
     print("Contributed maf_contrib metrics", file=f)
     print("==============================", file=f)
     print(" ", file=f)
-    for name, obj in inspect.getmembers(mafContrib):
+    for name, obj in inspect.getmembers(maf_contrib):
         if inspect.isclass(obj):
             modname = inspect.getmodule(obj).__name__
             if modname.startswith("rubin_sim.maf.maf_contrib") and name.endswith(
