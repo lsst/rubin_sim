@@ -37,6 +37,7 @@ __all__ = [
     "CategoricalHourglassPlotMixin",
     "RangeHourglassCategoricalPlot",
     "MonthHourglassCategoricalPlot",
+    "MonthHourglassUsePlot",
     "TimeUseHourglassPlotMixin",
     "MonthHourglassPlot",
     "YearHourglassCategoricalPlot",
@@ -800,16 +801,16 @@ class CategoricalHourglassPlotMixin:
         self.plot_type = (  # pylint: disable=invalid-name
             "Categorical" + self.plot_type
         )  # pylint: disable=invalid-name
-        self.defaultPlotDict["cmap"] = plt.get_cmap("tab10")
-        self.defaultPlotDict["assigned_colors"] = OrderedDict()
-        self.defaultPlotDict["legend"] = True
-        self.defaultPlotDict["colorbar"] = False
+        self.default_plot_dict["cmap"] = plt.get_cmap("tab10")
+        self.default_plot_dict["assigned_colors"] = OrderedDict()
+        self.default_plot_dict["legend"] = True
+        self.default_plot_dict["colorbar"] = False
         if "marked_ra" not in kwargs:
             self.marked_ra = {}
 
     def _map_colors(self, values):
-        cmap = self.plotDict["cmap"]
-        assigned_colors = self.plotDict["assigned_colors"]
+        cmap = self.plot_dict["cmap"]
+        assigned_colors = self.plot_dict["assigned_colors"]
         self.color_map = {}
         if len(self.color_map.keys()) == 0:
             self.color_map = _assign_category_colors(
@@ -844,9 +845,9 @@ class TimeUseHourglassPlotMixin(CategoricalHourglassPlotMixin):
         """Customize hourglass plotter for time use"""
         super().__init__(*args, **kwargs)
         self.plot_type = "Use" + self.plot_type  # pylint: disable=invalid-name
-        self.defaultPlotDict["cmap"] = plt.get_cmap("tab10")
-        self.defaultPlotDict["colorbar"] = False
-        self.defaultPlotDict["assigned_colors"] = OrderedDict(
+        self.default_plot_dict["cmap"] = plt.get_cmap("tab10")
+        self.default_plot_dict["colorbar"] = False
+        self.default_plot_dict["assigned_colors"] = OrderedDict(
             (
                 ("wide with only IR", 3),
                 ("wide with u, g, or r", 0),
@@ -854,7 +855,7 @@ class TimeUseHourglassPlotMixin(CategoricalHourglassPlotMixin):
             )
         )
 
-        self.defaultPlotDict["legend"] = True
+        self.default_plot_dict["legend"] = True
         if "marked_ra" not in kwargs:
             self.marked_ra = {f: c[0] for f, c in ddf_locations().items()}
 

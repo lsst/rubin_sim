@@ -227,6 +227,7 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
                 idxs = [idxs]
 
             slice_points = {
+                "sid": islice,
                 "mjd": self.slice_points["mjd"][islice],
                 "duration": self.slice_points["duration"][islice],
             }
