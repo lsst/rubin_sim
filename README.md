@@ -169,4 +169,3 @@ To update the source contents of the data files:
 * Update `rubin_sim/data/rs_download_data.py` so the `data_dict` function uses your new filename
 * Push and merge the change to `bin/rs_download_data`
 * Add a new tag, with a message indicating how the data package was changed. 
-
