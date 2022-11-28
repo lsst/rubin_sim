@@ -8,7 +8,10 @@ from rubin_sim.utils import survey_start_mjd
 
 
 def generate_ss_commands(
-    dbfiles=None, pops=None, start_mjd=None, split=False, vatiras=False
+    dbfiles=None,
+    pops=None,
+    start_mjd=None,
+    split=False,
 ):
 
     if start_mjd is None:
@@ -50,11 +53,11 @@ def generate_ss_commands(
             "mba_5k",
             "granvik_5k",
             "granvik_pha_5k",
+            "vatiras_granvik_10k",
             "occ_rmax5_5k",
             "occ_rmax20_5k",
         ]
         # Vatiras will typically have 0 discoveries.
-        # They should be run for the baseline and neo twilight runs.
     elif pops is not None:
         pp = [p for p in orbit_files.keys() if p == pops]
         if len(pp) == 0:
@@ -63,48 +66,45 @@ def generate_ss_commands(
             )
         pops = [pops]
 
-    if vatiras:
-        pops = ["vatiras_granvik_10k"] + pops
     runs = [os.path.split(file)[-1].replace(".db", "") for file in dbfiles]
     runs = [run for run in runs if "tracking" not in run]
     if not split:
         output_file = open("ss_script.sh", "w")
         for run, filename in zip(runs, dbfiles):
-            outDir = f"{run}_ss"
+            out_dir = f"{run}_ss"
             try:
-                os.mkdir(outDir)
+                os.mkdir(out_dir)
             except FileExistsError:
                 pass
             # Create the results DB so multiple threads don't try to create it later
-            resultsDb = db.ResultsDb(outDir=outDir)
+            results_db = db.ResultsDb(out_dir=out_dir)
         for pop in pops:
             for run, filename in zip(runs, dbfiles):
                 objtype = objtypes[pop]
 
-                s1 = f"makeLSSTobs --opsimDb {filename} --orbitFile {orbit_files[pop]}"
+                s1 = f"make_lsst_obs --simulation_db {filename} --orbit_file {orbit_files[pop]}"
                 s2 = (
-                    f"run_moving_calc --obsFile {run}__{pop}_obs.txt"
-                    f" --opsimDb {filename} --orbitFile {orbit_files[pop]}"
-                    f" --outDir {run}_ss"
-                    f" --opsimRun {run}"
+                    f"run_moving_calc --obs_file {run}__{pop}_obs.txt"
+                    f" --simulation_db {filename} --orbit_file {orbit_files[pop]}"
+                    f" --out_dir {run}_ss"
                     f" --objtype {objtype}"
-                    f" --startTime {start_mjd}"
+                    f" --start_time {start_mjd}"
                 )
                 s3 = (
-                    f"run_moving_fractions --workDir {run}_ss"
+                    f"run_moving_fractions --work_dir {run}_ss"
                     f" --metadata {objtype}"
-                    f" --startTime {start_mjd}"
+                    f" --start_time {start_mjd}"
                 )
                 print(s1 + " ; " + s2 + " ; " + s3, file=output_file)
     else:
         for run, filename in zip(runs, dbfiles):
-            outDir = f"{run}_ss"
+            out_dir = f"{run}_ss"
             try:
-                os.mkdir(outDir)
+                os.mkdir(out_dir)
             except FileExistsError:
                 pass
             # Create the results DB so multiple threads don't try to create it later
-            resultsDb = db.ResultsDb(outDir=outDir)
+            results_db = db.ResultsDb(out_dir=out_dir)
             outfile = f"{run}_ss_script.sh"
             if split:
                 output_file = open(outfile, "w")
@@ -128,12 +128,12 @@ def generate_ss_commands(
                         with open(outfile_split, "a") as wi:
                             s1 = (
                                 f"makeLSSTobs --opsimDb {filename} --orbitFile {splitfile}"
-                                f" --outDir {outDir}"
+                                f" --out_dir {out_dir}"
                             )
                             s2 = (
-                                f"run_moving_calc --obsFile {outDir}/{run}__{split}_obs.txt"
+                                f"run_moving_calc --obsFile {out_dir}/{run}__{split}_obs.txt"
                                 f" --opsimDb {filename} --orbitFile {orbit_files[pop]}"
-                                f" --outDir {outDir}/{split}"
+                                f" --out_dir {out_dir}/{split}"
                                 f" --opsimRun {run}"
                                 f" --objtype {objtype}"
                                 f" --startTime {start_mjd}"
@@ -141,11 +141,11 @@ def generate_ss_commands(
                             print(s1 + " ; " + s2, file=wi)
                     s3 = (
                         f"run_moving_join --orbitFile {pop}"
-                        f" --baseDir {outDir}"
-                        f" --outDir {outDir}/sso"
+                        f" --baseDir {out_dir}"
+                        f" --out_dir {out_dir}/sso"
                     )
                     s4 = (
-                        f"run_moving_fractions --workDir {outDir}/sso"
+                        f"run_moving_fractions --workDir {out_dir}/sso"
                         f" --metadata {objtype}"
                         f" --startTime {start_mjd}"
                     )
@@ -163,7 +163,6 @@ def generate_ss():
         description="Generate solar system processing commands"
     )
     parser.add_argument("--db", type=str, default=None, help="database to process")
-    parser.add_argument("--vatiras", action="store_true", help="include vatiras pop")
     parser.set_defaults(vatiras=False)
     parser.add_argument(
         "--pop", type=str, default=None, help="identify one population to run"
@@ -182,25 +181,24 @@ def generate_ss():
 
     if args.db is None:
         # Just look for any .db files in this directory
-        dbFiles = glob.glob("*.db")
-        # But remove trackingDb and resultsDb if they're there
+        db_files = glob.glob("*.db")
+        # But remove trackingDb and results_db if they're there
         try:
-            dbFiles.remove("trackingDb_sqlite.db")
+            db_files.remove("trackingDb_sqlite.db")
         except ValueError:
             pass
         try:
-            dbFiles.remove("resultsDb_sqlite.db")
+            db_files.remove("resultsDb_sqlite.db")
         except ValueError:
             pass
     elif isinstance(args.db, str):
-        dbFiles = [args.db]
+        db_files = [args.db]
     else:
-        dbFiles = args.db
+        db_files = args.db
 
     generate_ss_commands(
         start_mjd=args.start_mjd,
         split=args.split,
-        dbfiles=dbFiles,
+        dbfiles=db_files,
         pops=args.pop,
-        vatiras=args.vatiras,
     )

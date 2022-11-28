@@ -1,7 +1,7 @@
 import numpy as np
-from rubin_sim.scheduler.detailers import Base_detailer
+from rubin_sim.scheduler.detailers import BaseDetailer
 from rubin_sim.utils import (
-    _approx_RaDec2AltAz,
+    _approx_ra_dec2_alt_az,
     _approx_altaz2pa,
     gnomonic_project_tosky,
     bearing,
@@ -9,10 +9,10 @@ from rubin_sim.utils import (
 )
 
 
-__all__ = ["Dither_detailer", "Camera_rot_detailer", "Euclid_dither_detailer"]
+__all__ = ["DitherDetailer", "CameraRotDetailer", "EuclidDitherDetailer"]
 
 
-class Dither_detailer(Base_detailer):
+class DitherDetailer(BaseDetailer):
     """
     make a uniform dither pattern. Offset by a maximum radius in a random direction.
     Mostly intended for DDF pointings, the BaseMarkovDF_survey class includes dithering
@@ -64,16 +64,16 @@ class Dither_detailer(Base_detailer):
         offsets = self._generate_offsets(len(observation_list), conditions.night)
 
         obs_array = np.concatenate(observation_list)
-        newRA, newDec = gnomonic_project_tosky(
+        new_ra, new_dec = gnomonic_project_tosky(
             offsets[0, :], offsets[1, :], obs_array["RA"], obs_array["dec"]
         )
         for i, obs in enumerate(observation_list):
-            observation_list[i]["RA"] = newRA[i]
-            observation_list[i]["dec"] = newDec[i]
+            observation_list[i]["RA"] = new_ra[i]
+            observation_list[i]["dec"] = new_dec[i]
         return observation_list
 
 
-class Euclid_dither_detailer(Base_detailer):
+class EuclidDitherDetailer(BaseDetailer):
     """Directional dithering for Euclid DDFs
 
     Parameters
@@ -197,7 +197,7 @@ class Euclid_dither_detailer(Base_detailer):
         return observation_list
 
 
-class Camera_rot_detailer(Base_detailer):
+class CameraRotDetailer(BaseDetailer):
     """
     Randomly set the camera rotation, either for each exposure, or per night.
 
@@ -245,7 +245,7 @@ class Camera_rot_detailer(Base_detailer):
         offsets = self._generate_offsets(len(observation_list), conditions.night)
 
         for i, obs in enumerate(observation_list):
-            alt, az = _approx_RaDec2AltAz(
+            alt, az = _approx_ra_dec2_alt_az(
                 obs["RA"],
                 obs["dec"],
                 conditions.site.latitude_rad,

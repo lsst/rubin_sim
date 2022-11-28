@@ -20,9 +20,9 @@ dynamic = [ "version" ]
 [project.scripts]
 rs_download_data = "rubin_sim.data.rs_download_data:rs_download_data"
 rs_download_sky = "rubin_sim.data.rs_download_sky:rs_download_sky"
-addRun = "rubin_sim.maf.db.add_run:addRun"
+add_run = "rubin_sim.maf.db.add_run:add_run"
 ddf_dir = "rubin_sim.maf.ddf_dir:ddf_dir"
-gather_summaries = "rubin_sim.maf.runComparison.gather_summaries:gather_summaries"
+gather_summaries = "rubin_sim.maf.run_comparison.gather_summaries:gather_summaries"
 generate_ss = "rubin_sim.maf.generate_ss:generate_ss"
 glance_dir = "rubin_sim.maf.glance_dir:glance_dir"
 maf_night_report = "rubin_sim.maf.maf_night_report:maf_night_report"
@@ -31,8 +31,8 @@ run_moving_calc = "rubin_sim.maf.run_moving_calc:run_moving_calc"
 run_moving_fractions = "rubin_sim.maf.run_moving_fractions:run_moving_fractions"
 run_moving_join = "rubin_sim.maf.run_moving_join:run_moving_join"
 scimaf_dir = "rubin_sim.maf.scimaf_dir:scimaf_dir"
-showMaf = "rubin_sim.maf.show_maf:showMaf"
-makeLSSTobs = "rubin_sim.movingObjects.make_lsst_obs:make_lsst_obs"
+show_maf = "rubin_sim.maf.show_maf:show_maf"
+make_lsst_obs = "rubin_sim.moving_objects.make_lsst_obs:make_lsst_obs"
 
 [project.optional-dependencies]
 dev = [

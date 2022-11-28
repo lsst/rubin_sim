@@ -1,18 +1,18 @@
 import numpy as np
-from rubin_sim.scheduler.modelObservatory import (
-    Model_observatory as orig_model_observatory,
+from rubin_sim.scheduler.model_observatory import (
+    ModelObservatory as OMO,
 )
 from rubin_sim.utils import survey_start_mjd, _healbin
 from rubin_sim.site_models import Almanac
 
 
-__all__ = ["Model_observatory"]
+__all__ = ["ModelObservatory"]
 
 
 # Take the model observatory from the scheduler and subclass and expand to include satellite constellations
 
 
-class Model_observatory(orig_model_observatory):
+class ModelObservatory(OMO):
     """A class to generate a realistic telemetry stream for the scheduler"""
 
     def __init__(
@@ -23,7 +23,7 @@ class Model_observatory(orig_model_observatory):
         alt_min=5.0,
         lax_dome=True,
         cloud_limit=0.3,
-        sim_ToO=None,
+        sim_to_o=None,
         seeing_db=None,
         park_after=10.0,
         init_load_length=10,
@@ -45,7 +45,7 @@ class Model_observatory(orig_model_observatory):
             Passed to observatory model. If true, allows dome creep.
         cloud_limit : float (0.3)
             The limit to stop taking observations if the cloud model returns something equal or higher
-        sim_ToO : sim_targetoO object (None)
+        sim_to_o : sim_targetoO object (None)
             If one would like to inject simulated ToOs into the telemetry stream.
         seeing_db : filename of the seeing data database (None)
             If one would like to use an alternate seeing database
@@ -81,7 +81,7 @@ class Model_observatory(orig_model_observatory):
             alt_min=5.0,
             lax_dome=True,
             cloud_limit=0.3,
-            sim_ToO=None,
+            sim_to_o=None,
             seeing_db=None,
             park_after=10.0,
             init_load_length=10,
@@ -145,9 +145,9 @@ class Model_observatory(orig_model_observatory):
                 decs[:, i][illums[:, i]],
                 weights[:, i][illums[:, i]],
                 self.sat_nside,
-                reduceFunc=np.sum,
+                reduce_func=np.sum,
                 dtype=int,
-                fillVal=0,
+                fill_val=0,
             )
 
             satellite_maps.append(spot_map)

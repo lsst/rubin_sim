@@ -1,7 +1,7 @@
 import numpy as np
-from .CoordinateTransformations import _angularSeparation
+from .coordinate_transformations import _angular_separation
 
-__all__ = ["bearing", "dest_latlon", "pointToLineDistance"]
+__all__ = ["bearing", "dest_latlon", "point_to_line_distance"]
 
 
 def bearing(lon1, lat1, lon2, lat2):
@@ -32,7 +32,7 @@ def dest_latlon(dist, bearing, lat1, lon1):
     return lat2, lon2
 
 
-def pointToLineDistance(lon1, lat1, lon2, lat2, lon3, lat3):
+def point_to_line_distance(lon1, lat1, lon2, lat2, lon3, lat3):
     """All radians
     points 1 and 2 define an arc segment,
     this finds the distance of point 3 to the arc segment.
@@ -43,7 +43,7 @@ def pointToLineDistance(lon1, lat1, lon2, lat2, lon3, lat3):
 
     bear12 = bearing(lon1, lat1, lon2, lat2)
     bear13 = bearing(lon1, lat1, lon3, lat3)
-    dis13 = _angularSeparation(lon1, lat1, lon3, lat3)
+    dis13 = _angular_separation(lon1, lat1, lon3, lat3)
 
     # Is relative bearing obtuse?
     diff = np.abs(bear13 - bear12)
@@ -63,14 +63,14 @@ def pointToLineDistance(lon1, lat1, lon2, lat2, lon3, lat3):
     dxt = np.arcsin(np.sin(dis13) * np.sin(bear13 - bear12))
 
     # Is p4 beyond the arc?
-    dis12 = _angularSeparation(lon1, lat1, lon2, lat2)
+    dis12 = _angular_separation(lon1, lat1, lon2, lat2)
     dis14 = np.arccos(np.cos(dis13) / np.cos(dxt))
     if np.size(dis14) == 1:
         if dis14 > dis12:
-            return _angularSeparation(lon2, lat2, lon3, lat3)
+            return _angular_separation(lon2, lat2, lon3, lat3)
     else:
         solved = np.where((dis14 > dis12) & needed)[0]
-        result[solved] = _angularSeparation(
+        result[solved] = _angular_separation(
             lon2[solved], lat2[solved], lon3[solved], lat3[solved]
         )
         needed[solved] = False

@@ -15,33 +15,33 @@ def run_moving_join():
     """Join split metric outputs into a single metric output file."""
     parser = argparse.ArgumentParser(
         description="Join moving object metrics (from splits) for a particular "
-        "opsim run.  Assumes split metric files are in "
-        "<orbitRoot_split> subdirectories of baseDir. "
+        "scheduler run.  Assumes split metric files are in "
+        "<orbitRoot_split> subdirectories of base_dir. "
     )
     parser.add_argument(
-        "--orbitFile", type=str, help="File containing the moving object orbits."
+        "--orbit_file", type=str, help="File containing the moving object orbits."
     )
     parser.add_argument(
-        "--baseDir",
+        "--base_dir",
         type=str,
         default=".",
         help="Root directory containing split (or single) metric outputs.",
     )
     parser.add_argument(
-        "--outDir",
+        "--out_dir",
         type=str,
         default=None,
         help="Output directory for moving object metrics. Default [orbitRoot]",
     )
     args = parser.parse_args()
 
-    if args.orbitFile is None:
-        print("Must specify an orbitFile")
+    if args.orbit_file is None:
+        print("Must specify an orbit_file")
         exit()
 
     # Outputs from the metrics are generally like so:
-    #  <baseDir>/<splitDir>/<metricFileName>
-    # - baseDir tends to be <opsimName_orbitRoot> (but is set by user when starting to generate obs.)
+    #  <base_dir>/<splitDir>/<metricFileName>
+    # - base_dir tends to be <opsimName_orbitRoot> (but is set by user when starting to generate obs.)
     # - splitDir tends to be <orbitRoot_split#> (and is set by observation generation script)
     # - metricFile is <opsimName_metricName_metadata(NEO/L7/etc + metadata from metric script)_MOOB.npz
     #  (the metricFileName is set by the metric generation script - run_moving_calc.py).
@@ -51,16 +51,16 @@ def run_moving_join():
     # Assume splits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     splits = np.arange(0, 10, 1)
     orbitRoot = (
-        args.orbitFile.replace(".txt", "").replace(".des", "").replace(".s3m", "")
+        args.orbit_file.replace(".txt", "").replace(".des", "").replace(".s3m", "")
     )
 
-    if args.outDir is not None:
-        outDir = args.outDir
+    if args.out_dir is not None:
+        out_dir = args.out_dir
     else:
-        outDir = f"{orbitRoot}"
+        out_dir = f"{orbitRoot}"
 
     # Scan first splitDir for all metric files.
-    tempdir = os.path.join(args.baseDir, f"{orbitRoot}_{splits[0]}")
+    tempdir = os.path.join(args.base_dir, f"{orbitRoot}_{splits[0]}")
     print(
         f"# Joining files from {orbitRoot}_[0-9]; will use {tempdir} to find metric names."
     )
@@ -89,10 +89,10 @@ def run_moving_join():
         exit()
 
     # Create the output directory.
-    if not (os.path.isdir(outDir)):
-        os.makedirs(outDir)
+    if not (os.path.isdir(out_dir)):
+        os.makedirs(out_dir)
 
     # Read and combine the metric files.
     for m in metricNames:
-        b = batches.readAndCombine(orbitRoot, args.baseDir, splits, m)
-        b.write(outDir=outDir)
+        b = batches.read_and_combine(orbitRoot, args.base_dir, splits, m)
+        b.write(out_dir=out_dir)

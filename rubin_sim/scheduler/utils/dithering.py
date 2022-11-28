@@ -2,14 +2,14 @@ import numpy as np
 import healpy as hp
 from scipy.optimize import minimize
 from .utils import hp_kd_tree, set_default_nside, read_fields
-from rubin_sim.utils import _hpid2RaDec, _xyz_angular_radius, _xyz_from_ra_dec
+from rubin_sim.utils import _hpid2_ra_dec, _xyz_angular_radius, _xyz_from_ra_dec
 
 default_nside = set_default_nside()
 
-__all__ = ["wrapRADec", "rotate_ra_dec", "pointings2hp", "hpmap_cross"]
+__all__ = ["wrap_ra_dec", "rotate_ra_dec", "Pointings2hp", "HpmapCross"]
 
 
-def wrapRADec(ra, dec):
+def wrap_ra_dec(ra, dec):
     # XXX--from MAF, should put in general utils
     """
     Wrap RA into 0-2pi and Dec into +/0 pi/2.
@@ -87,12 +87,12 @@ def rotate_ra_dec(ra, dec, ra_target, dec_target, init_rotate=0.0):
     # Rotate to the correct RA
     ra_p += ra_target
 
-    ra_p, dec_p = wrapRADec(ra_p, dec_p)
+    ra_p, dec_p = wrap_ra_dec(ra_p, dec_p)
 
     return ra_p, dec_p
 
 
-class pointings2hp(object):
+class Pointings2hp(object):
     """
     Convert a list of telescope pointings and convert them to a pointing map
     """
@@ -134,7 +134,7 @@ class pointings2hp(object):
         return result
 
 
-class hpmap_cross(object):
+class HpmapCross(object):
     """
     Find the cross-correlation of a healpix map and a bunch of rotated pointings
     """
@@ -144,8 +144,8 @@ class hpmap_cross(object):
         """"""
         self.nside = nside
         # XXX -- should I shrink the radius slightly to get rid of overlap? That would be clever!
-        self.p2hp_search = pointings2hp(nside=nside, radius=radius_search)
-        self.p2hp = pointings2hp(nside=nside, radius=radius)
+        self.p2hp_search = Pointings2hp(nside=nside, radius=radius_search)
+        self.p2hp = Pointings2hp(nside=nside, radius=radius)
         # Load up a list of pointings, chop them down to a small block
 
         # XXX--Should write code to generate a new tellelation so we know where it came from,
@@ -162,7 +162,7 @@ class hpmap_cross(object):
         self.dec = fields["dec"]
 
         # Healpixel ra and dec
-        self.hp_ra, self.hp_dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
+        self.hp_ra, self.hp_dec = _hpid2_ra_dec(nside, np.arange(hp.nside2npix(nside)))
 
     def set_map(self, inmap):
         """

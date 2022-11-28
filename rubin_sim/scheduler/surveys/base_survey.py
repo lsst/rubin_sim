@@ -4,16 +4,16 @@ import pandas as pd
 from rubin_sim.scheduler.utils import (
     empty_observation,
     set_default_nside,
-    hp_in_lsst_fov,
+    HpInLsstFov,
     read_fields,
-    hp_in_comcam_fov,
-    comcamTessellate,
+    HpInComcamFov,
+    comcam_tessellate,
 )
 import healpy as hp
 from rubin_sim.scheduler.thomson import xyz2thetaphi, thetaphi2xyz
-from rubin_sim.scheduler.detailers import Zero_rot_detailer
+from rubin_sim.scheduler.detailers import ZeroRotDetailer
 
-__all__ = ["BaseSurvey", "BaseMarkovDF_survey"]
+__all__ = ["BaseSurvey", "BaseMarkovSurvey"]
 
 
 class BaseSurvey(object):
@@ -83,7 +83,7 @@ class BaseSurvey(object):
 
         # If there's no detailers, add one to set rotation to near zero
         if detailers is None:
-            self.detailers = [Zero_rot_detailer(nside=nside)]
+            self.detailers = [ZeroRotDetailer(nside=nside)]
         else:
             self.detailers = detailers
 
@@ -254,7 +254,7 @@ def rotx(theta, x, y, z):
     return xp, yp, zp
 
 
-class BaseMarkovDF_survey(BaseSurvey):
+class BaseMarkovSurvey(BaseSurvey):
     """A Markov Decision Function survey object. Uses Basis functions to compute a
     final reward function and decide what to observe based on the reward. Includes
     methods for dithering and defaults to dithering nightly.
@@ -292,7 +292,7 @@ class BaseMarkovDF_survey(BaseSurvey):
         npositions=7305,
     ):
 
-        super(BaseMarkovDF_survey, self).__init__(
+        super(BaseMarkovSurvey, self).__init__(
             basis_functions=basis_functions,
             extra_features=extra_features,
             ignore_obs=ignore_obs,
@@ -311,7 +311,7 @@ class BaseMarkovDF_survey(BaseSurvey):
         if self.camera == "LSST":
             self.fields_init = read_fields()
         elif self.camera == "comcam":
-            self.fields_init = comcamTessellate()
+            self.fields_init = comcam_tessellate()
         else:
             ValueError('camera %s unknown, should be "LSST" or "comcam"' % camera)
         self.fields = self.fields_init.copy()
@@ -364,9 +364,9 @@ class BaseMarkovDF_survey(BaseSurvey):
         resolution is higher than field resolution.
         """
         if self.camera == "LSST":
-            pointing2hpindx = hp_in_lsst_fov(nside=self.nside)
+            pointing2hpindx = HpInLsstFov(nside=self.nside)
         elif self.camera == "comcam":
-            pointing2hpindx = hp_in_comcam_fov(nside=self.nside)
+            pointing2hpindx = HpInComcamFov(nside=self.nside)
 
         self.hp2fields = np.zeros(hp.nside2npix(self.nside), dtype=int)
         for i in range(len(ra)):

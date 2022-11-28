@@ -1,9 +1,9 @@
-from rubin_sim.scheduler.detailers import Base_detailer
-from rubin_sim.utils import _raDec2Hpid, m5_flat_sed
+from rubin_sim.scheduler.detailers import BaseDetailer
+from rubin_sim.utils import ra_dec2_hpid, m5_flat_sed
 import numpy as np
 import healpy as hp
 
-__all__ = ["Vary_expt_detailer", "calc_target_m5s"]
+__all__ = ["VaryExptDetailer", "calc_target_m5s"]
 
 
 def calc_target_m5s(alt=65.0, fiducial_seeing=0.9, exptime=20.0):
@@ -26,10 +26,10 @@ def calc_target_m5s(alt=65.0, fiducial_seeing=0.9, exptime=20.0):
     import rubin_sim.skybrightness as sb
 
     sm = sb.SkyModel(moon=False, twilight=False, mags=True)
-    sm.setRaDecMjd(
+    sm.set_ra_dec_mjd(
         np.array([0.0]), np.array([alt]), 49353.177645, degrees=True, azAlt=True
     )
-    sky_mags = sm.returnMags()
+    sky_mags = sm.return_mags()
     airmass = 1.0 / np.cos(np.pi / 2.0 - np.radians(alt))
 
     goal_m5 = {}
@@ -41,7 +41,7 @@ def calc_target_m5s(alt=65.0, fiducial_seeing=0.9, exptime=20.0):
     return goal_m5
 
 
-class Vary_expt_detailer(Base_detailer):
+class VaryExptDetailer(BaseDetailer):
     """Vary the exposure time on observations to try and keep each observation at uniform depth.
 
     Parameters
@@ -88,7 +88,7 @@ class Vary_expt_detailer(Base_detailer):
         List of observations.
         """
         obs_array = np.concatenate(observation_list)
-        hpids = _raDec2Hpid(self.nside, obs_array["RA"], obs_array["dec"])
+        hpids = ra_dec2_hpid(self.nside, obs_array["RA"], obs_array["dec"])
         new_expts = np.zeros(obs_array.size, dtype=float)
         for filtername in np.unique(obs_array["filter"]):
             in_filt = np.where(obs_array["filter"] == filtername)

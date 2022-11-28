@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize
-from rubin_sim.utils import _angularSeparation
+from rubin_sim.utils import _angular_separation
 from numba import jit
 
 
@@ -84,7 +84,7 @@ def potential_single(coord0, x, y, z):
     return U
 
 
-def xyz2U(x, y, z):
+def xyz2_u(x, y, z):
     """
     compute the potential
     """
@@ -111,7 +111,7 @@ def iterate_potential_smart(x0, stepfrac=0.1):
     theta = x0[0 : x0.size / 2]
     phi = x0[x0.size / 2 :]
     x, y, z = thetaphi2xyz(theta, phi)
-    U_input = xyz2U(x, y, z)
+    u_input = xyz2_u(x, y, z)
 
     # Now to loop over each point, and find where it's potenital minimum would be, and move it
     # half-way there.
@@ -132,9 +132,9 @@ def iterate_potential_smart(x0, stepfrac=0.1):
     xyz_out = xyz_input + stepfrac * diff
     # Project back onto sphere
     xyz_out = xyz_out.T / np.sqrt(np.sum(xyz_out**2, axis=1))
-    U_new = xyz2U(xyz_out[0, :], xyz_out[1, :], xyz_out[2, :])
+    u_new = xyz2_u(xyz_out[0, :], xyz_out[1, :], xyz_out[2, :])
     theta, phi = xyz2thetaphi(xyz_out[0, :], xyz_out[1, :], xyz_out[2, :])
-    return np.concatenate((theta, phi)), U_new
+    return np.concatenate((theta, phi)), u_new
 
 
 def iterate_potential_random(x0, stepsize=0.05):
@@ -159,7 +159,7 @@ def iterate_potential_random(x0, stepsize=0.05):
 
     d = np.sqrt(dsq)
 
-    U_input = 1.0 / d
+    u_input = 1.0 / d
 
     # offset everything by a random ammount
     x_new = x + np.random.random(theta.size) * stepsize
@@ -178,14 +178,14 @@ def iterate_potential_random(x0, stepsize=0.05):
         coord_j = coord_i_new.T
         d_new = (coord_i_new[indices] - coord_j[indices]) ** 2
         dsq_new += d_new
-    U_new = 1.0 / np.sqrt(dsq_new)
+    u_new = 1.0 / np.sqrt(dsq_new)
 
-    U_diff = np.sum(U_new) - np.sum(U_input)
-    if U_diff > 0:
+    u_diff = np.sum(u_new) - np.sum(u_input)
+    if u_diff > 0:
         return x0, 0.0
     else:
         theta, phi = xyz2thetaphi(x_new, y_new, z_new)
-        return np.concatenate((theta, phi)), U_diff
+        return np.concatenate((theta, phi)), u_diff
 
 
 def ang_potential(x0):
@@ -201,7 +201,7 @@ def ang_potential(x0):
     theta_j = theta_i.T
     phi_i = np.tile(phi, (phi.size, 1))
     phi_j = phi_i.T
-    d = _angularSeparation(
+    d = _angular_separation(
         theta_i[indices], phi_i[indices], theta_j[indices], phi_j[indices]
     )
     U = np.sum(1.0 / d)

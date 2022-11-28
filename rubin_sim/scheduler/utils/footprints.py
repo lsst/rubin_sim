@@ -13,8 +13,8 @@ import numpy as np
 import healpy as hp
 from astropy.coordinates import SkyCoord
 from astropy import units as u
-from .utils import set_default_nside, int_rounded
-from rubin_sim.utils import _hpid2RaDec, _angularSeparation, angularSeparation
+from .utils import set_default_nside, IntRounded
+from rubin_sim.utils import _hpid2_ra_dec, _angular_separation, angular_separation
 from rubin_sim.utils import Site
 from rubin_sim.data import get_data_dir
 
@@ -22,24 +22,24 @@ __all__ = [
     "ra_dec_hp_map",
     "generate_all_sky",
     "get_dustmap",
-    "WFD_healpixels",
-    "WFD_no_gp_healpixels",
-    "WFD_bigsky_healpixels",
-    "WFD_no_dust_healpixels",
-    "SCP_healpixels",
-    "NES_healpixels",
+    "wfd_healpixels",
+    "wfd_no_gp_healpixels",
+    "wfd_bigsky_healpixels",
+    "wfd_no_dust_healpixels",
+    "scp_healpixels",
+    "nes_healpixels",
     "galactic_plane_healpixels",
     "magellanic_clouds_healpixels",
-    "Constant_footprint",
+    "ConstantFootprint",
     "generate_goal_map",
     "standard_goals",
     "calc_norm_factor",
     "filter_count_ratios",
-    "Step_line",
+    "StepLine",
     "Footprints",
     "Footprint",
-    "Step_slopes",
-    "Base_pixel_evolution",
+    "StepSlopes",
+    "BasePixelEvolution",
     "combo_dust_fp",
     "slice_wfd_area_quad",
     "slice_wfd_indx",
@@ -51,7 +51,7 @@ __all__ = [
 def make_rolling_footprints(
     fp_hp=None,
     mjd_start=60218.0,
-    sun_RA_start=3.27717639,
+    sun_ra_start=3.27717639,
     nslice=2,
     scale=0.8,
     nside=32,
@@ -66,7 +66,7 @@ def make_rolling_footprints(
         A dict with filtername keys and HEALpix map values
     mjd_start : float
         The starting date of the survey.
-    sun_RA_start : float
+    sun_ra_start : float
         The RA of the sun at the start of the survey
     nslice : int (2)
         How much to slice the sky up. Can be 2 or 3. Value of 6 to be implemented.
@@ -94,13 +94,13 @@ def make_rolling_footprints(
         rolling = [up, down, down, down, down, down]
     all_slopes = [start + np.roll(rolling, i).tolist() + end for i in range(nslice)]
 
-    fp_non_wfd = Footprint(mjd_start, sun_RA_start=sun_RA_start, nside=nside)
+    fp_non_wfd = Footprint(mjd_start, sun_ra_start=sun_ra_start, nside=nside)
     rolling_footprints = []
     for i in range(nslice):
-        step_func = Step_slopes(rise=all_slopes[i])
+        step_func = StepSlopes(rise=all_slopes[i])
         rolling_footprints.append(
             Footprint(
-                mjd_start, sun_RA_start=sun_RA_start, step_func=step_func, nside=nside
+                mjd_start, sun_ra_start=sun_ra_start, step_func=step_func, nside=nside
             )
         )
 
@@ -226,7 +226,7 @@ def slice_wfd_area_quad(target_map, nslice=2, wfd_indx=None):
     return split_wfd_indices
 
 
-class Base_pixel_evolution(object):
+class BasePixelEvolution(object):
     """Helper class that can be used to describe the time evolution of a HEALpix in a footprint"""
 
     def __init__(self, period=365.25, rise=1.0, t_start=0.0):
@@ -238,7 +238,7 @@ class Base_pixel_evolution(object):
         pass
 
 
-class Step_line(Base_pixel_evolution):
+class StepLine(BasePixelEvolution):
     """
     Parameters
     ----------
@@ -261,7 +261,7 @@ class Step_line(Base_pixel_evolution):
         return result
 
 
-class Step_slopes(Base_pixel_evolution):
+class StepSlopes(BasePixelEvolution):
     """
     Parameters
     ----------
@@ -297,7 +297,7 @@ class Footprint(object):
     ----------
     mjd_start : float
         The MJD the survey starts on
-    sun_RA_start : float
+    sun_ra_start : float
         The RA of the sun at the start of the survey (radians)
 
     """
@@ -305,7 +305,7 @@ class Footprint(object):
     def __init__(
         self,
         mjd_start,
-        sun_RA_start=0,
+        sun_ra_start=0,
         nside=32,
         filters={"u": 0, "g": 1, "r": 2, "i": 3, "z": 4, "y": 5},
         period=365.25,
@@ -314,15 +314,15 @@ class Footprint(object):
         self.period = period
         self.nside = nside
         if step_func is None:
-            step_func = Step_line()
+            step_func = StepLine()
         self.step_func = step_func
         self.mjd_start = mjd_start
-        self.sun_RA_start = sun_RA_start
+        self.sun_ra_start = sun_ra_start
         self.npix = hp.nside2npix(nside)
         self.filters = filters
-        self.ra, self.dec = _hpid2RaDec(self.nside, np.arange(self.npix))
+        self.ra, self.dec = _hpid2_ra_dec(self.nside, np.arange(self.npix))
         # Set the phase of each healpixel. If RA to sun is zero, we are at phase np.pi/2.
-        self.phase = (-self.ra + self.sun_RA_start + np.pi / 2) % (2.0 * np.pi)
+        self.phase = (-self.ra + self.sun_ra_start + np.pi / 2) % (2.0 * np.pi)
         self.phase = self.phase * (self.period / 2.0 / np.pi)
         # Empty footprints to start
         self.out_dtype = list(zip(filters, [float] * len(filters)))
@@ -383,7 +383,7 @@ class Footprint(object):
         return self.arr2struc(self.current_footprints)
 
 
-class Constant_footprint(Footprint):
+class ConstantFootprint(Footprint):
     def __init__(
         self, nside=32, filters={"u": 0, "g": 1, "r": 2, "i": 3, "z": 4, "y": 5}
     ):
@@ -412,8 +412,8 @@ class Footprints(Footprint):
         self.nside = footprint_list[0].nside
 
         self.footprints = np.zeros((len(self.filters), self.npix), dtype=float)
-        for Fp in self.footprint_list:
-            self.footprints += Fp.footprints
+        for fp in self.footprint_list:
+            self.footprints += fp.footprints
 
     def set_footprint(self, filtername, values):
         pass
@@ -437,16 +437,16 @@ def ra_dec_hp_map(nside=None):
     """
     if nside is None:
         nside = set_default_nside()
-    ra, dec = _hpid2RaDec(nside, np.arange(hp.nside2npix(nside)))
+    ra, dec = _hpid2_ra_dec(nside, np.arange(hp.nside2npix(nside)))
     return ra, dec
 
 
 def get_dustmap(nside=None):
     if nside is None:
         nside = set_default_nside()
-    ebvDataDir = os.path.join(get_data_dir(), "maps")
+    ebv_data_dir = os.path.join(get_data_dir(), "maps")
     filename = "DustMaps/dust_nside_%i.npz" % nside
-    dustmap = np.load(os.path.join(ebvDataDir, filename))["ebvMap"]
+    dustmap = np.load(os.path.join(ebv_data_dir, filename))["ebvMap"]
     return dustmap
 
 
@@ -492,7 +492,7 @@ def generate_all_sky(nside=None, elevation_limit=20, mask=hp.UNSEEN):
     lsst_site = Site("LSST")
     elev_max = np.pi / 2.0 - np.abs(dec - lsst_site.latitude_rad)
     skymap = np.where(
-        int_rounded(elev_max) >= int_rounded(np.radians(elevation_limit), skymap, mask)
+        IntRounded(elev_max) >= IntRounded(np.radians(elevation_limit), skymap, mask)
     )
 
     return {
@@ -506,7 +506,7 @@ def generate_all_sky(nside=None, elevation_limit=20, mask=hp.UNSEEN):
     }
 
 
-def WFD_healpixels(nside=None, dec_min=-62.5, dec_max=3.6):
+def wfd_healpixels(nside=None, dec_min=-62.5, dec_max=3.6):
     """
     Define a region based on declination limits only.
 
@@ -530,16 +530,16 @@ def WFD_healpixels(nside=None, dec_min=-62.5, dec_max=3.6):
 
     ra, dec = ra_dec_hp_map(nside=nside)
     result = np.zeros(ra.size, float)
-    dec = int_rounded(dec)
+    dec = IntRounded(dec)
     good = np.where(
-        (dec >= int_rounded(np.radians(dec_min)))
-        & (dec <= int_rounded(np.radians(dec_max)))
+        (dec >= IntRounded(np.radians(dec_min)))
+        & (dec <= IntRounded(np.radians(dec_max)))
     )
     result[good] = 1
     return result
 
 
-def WFD_no_gp_healpixels(
+def wfd_no_gp_healpixels(
     nside,
     dec_min=-62.5,
     dec_max=3.6,
@@ -574,7 +574,7 @@ def WFD_no_gp_healpixels(
     np.ndarray
         Healpix map with regions in declination-limited 'wfd' region as 1.
     """
-    wfd_dec = WFD_healpixels(nside, dec_min=dec_min, dec_max=dec_max)
+    wfd_dec = wfd_healpixels(nside, dec_min=dec_min, dec_max=dec_max)
     gp = galactic_plane_healpixels(
         nside=nside,
         center_width=center_width,
@@ -586,8 +586,8 @@ def WFD_no_gp_healpixels(
     return sky
 
 
-def WFD_bigsky_healpixels(nside):
-    sky = WFD_no_gp_healpixels(
+def wfd_bigsky_healpixels(nside):
+    sky = wfd_no_gp_healpixels(
         nside,
         dec_min=-72.25,
         dec_max=12.4,
@@ -598,7 +598,7 @@ def WFD_bigsky_healpixels(nside):
     return sky
 
 
-def WFD_no_dust_healpixels(nside, dec_min=-72.25, dec_max=12.4, dust_limit=0.19):
+def wfd_no_dust_healpixels(nside, dec_min=-72.25, dec_max=12.4, dust_limit=0.19):
     """Define a WFD region with a dust extinction limit.
 
     Parameters
@@ -626,10 +626,10 @@ def WFD_no_dust_healpixels(nside, dec_min=-72.25, dec_max=12.4, dust_limit=0.19)
 
     result = np.zeros(ra.size, float)
     # First set based on dec range.
-    dec = int_rounded(dec)
+    dec = IntRounded(dec)
     good = np.where(
-        (dec >= int_rounded(np.radians(dec_min)))
-        & (dec <= int_rounded(np.radians(dec_max)))
+        (dec >= IntRounded(np.radians(dec_min)))
+        & (dec <= IntRounded(np.radians(dec_max)))
     )
     result[good] = 1
     # Now remove areas with dust extinction beyond the limit.
@@ -637,7 +637,7 @@ def WFD_no_dust_healpixels(nside, dec_min=-72.25, dec_max=12.4, dust_limit=0.19)
     return result
 
 
-def SCP_healpixels(nside=None, dec_max=-60.0):
+def scp_healpixels(nside=None, dec_max=-60.0):
     """
     Define the South Celestial Pole region. Return a healpix map with SCP pixels as 1.
     """
@@ -646,12 +646,12 @@ def SCP_healpixels(nside=None, dec_max=-60.0):
 
     ra, dec = ra_dec_hp_map(nside=nside)
     result = np.zeros(ra.size, float)
-    good = np.where(int_rounded(dec) < int_rounded(np.radians(dec_max)))
+    good = np.where(IntRounded(dec) < IntRounded(np.radians(dec_max)))
     result[good] = 1
     return result
 
 
-def NES_healpixels(nside=None, min_EB=-30.0, max_EB=10.0, dec_min=2.8):
+def nes_healpixels(nside=None, min_eb=-30.0, max_eb=10.0, dec_min=2.8):
     """
     Define the North Ecliptic Spur region. Return a healpix map with NES pixels as 1.
 
@@ -659,9 +659,9 @@ def NES_healpixels(nside=None, min_EB=-30.0, max_EB=10.0, dec_min=2.8):
     ----------
     nside : int
         A valid healpix nside
-    min_EB : float (-30.)
+    min_eb : float (-30.)
         Minimum barycentric true ecliptic latitude (deg)
-    max_EB : float (10.)
+    max_eb : float (10.)
         Maximum barycentric true ecliptic latitude (deg)
     dec_min : float (2.8)
         Minimum dec in degrees
@@ -677,12 +677,12 @@ def NES_healpixels(nside=None, min_EB=-30.0, max_EB=10.0, dec_min=2.8):
     result = np.zeros(ra.size, float)
     coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad)
     eclip_lat = coord.barycentrictrueecliptic.lat.radian
-    eclip_lat = int_rounded(eclip_lat)
-    dec = int_rounded(dec)
+    eclip_lat = IntRounded(eclip_lat)
+    dec = IntRounded(dec)
     good = np.where(
-        (eclip_lat > int_rounded(np.radians(min_EB)))
-        & (eclip_lat < int_rounded(np.radians(max_EB)))
-        & (dec > int_rounded(np.radians(dec_min)))
+        (eclip_lat > IntRounded(np.radians(min_eb)))
+        & (eclip_lat < IntRounded(np.radians(max_eb)))
+        & (dec > IntRounded(np.radians(dec_min)))
     )
     result[good] = 1
 
@@ -730,7 +730,7 @@ def galactic_plane_healpixels(
     if gp_length > 0:
         # First, remove anything outside the gal_long1/gal_long2 region.
         sky = np.where(
-            int_rounded((gal_lon - gal_long1) % 360) < int_rounded(gp_length), sky, 0
+            IntRounded((gal_lon - gal_long1) % 360) < IntRounded(gp_length), sky, 0
         )
         # Add the tapers.
         # These slope from the center (gp_center @ center_width)
@@ -741,11 +741,11 @@ def galactic_plane_healpixels(
         gp_dist = gal_lon - gp_center
         gp_dist = np.abs(
             np.where(
-                int_rounded(gp_dist) > int_rounded(180), (180 - gp_dist) % 180, gp_dist
+                IntRounded(gp_dist) > IntRounded(180), (180 - gp_dist) % 180, gp_dist
             )
         )
         lat_limit = np.abs(center_width - slope * gp_dist)
-        sky = np.where(int_rounded(np.abs(gal_lat)) < int_rounded(lat_limit), sky, 0)
+        sky = np.where(IntRounded(np.abs(gal_lat)) < IntRounded(lat_limit), sky, 0)
     return sky
 
 
@@ -766,26 +766,26 @@ def magellanic_clouds_healpixels(nside=None, lmc_radius=10, smc_radius=5):
     smc_dec = np.radians(-72.828599)
     smc_radius = np.radians(smc_radius)
 
-    dist_to_lmc = _angularSeparation(lmc_ra, lmc_dec, ra, dec)
-    lmc_pix = np.where(int_rounded(dist_to_lmc) < int_rounded(lmc_radius))
+    dist_to_lmc = _angular_separation(lmc_ra, lmc_dec, ra, dec)
+    lmc_pix = np.where(IntRounded(dist_to_lmc) < IntRounded(lmc_radius))
     result[lmc_pix] = 1
 
-    dist_to_smc = _angularSeparation(smc_ra, smc_dec, ra, dec)
-    smc_pix = np.where(int_rounded(dist_to_smc) < int_rounded(smc_radius))
+    dist_to_smc = _angular_separation(smc_ra, smc_dec, ra, dec)
+    smc_pix = np.where(IntRounded(dist_to_smc) < IntRounded(smc_radius))
     result[smc_pix] = 1
     return result
 
 
 def generate_goal_map(
     nside=None,
-    NES_fraction=0.3,
-    WFD_fraction=1.0,
-    SCP_fraction=0.4,
-    GP_fraction=0.2,
-    NES_min_EB=-30.0,
-    NES_max_EB=10,
-    NES_dec_min=3.6,
-    SCP_dec_max=-62.5,
+    nes_fraction=0.3,
+    wfd_fraction=1.0,
+    scp_fraction=0.4,
+    gp_fraction=0.2,
+    nes_min_eb=-30.0,
+    nes_max_eb=10,
+    nes_dec_min=3.6,
+    scp_dec_max=-62.5,
     gp_center_width=10.0,
     gp_end_width=4.0,
     gp_long1=290.0,
@@ -806,33 +806,33 @@ def generate_goal_map(
     pid = 1
     prop_name_dict = dict()
 
-    if NES_fraction > 0.0:
-        nes = NES_healpixels(
-            nside=nside, min_EB=NES_min_EB, max_EB=NES_max_EB, dec_min=NES_dec_min
+    if nes_fraction > 0.0:
+        nes = nes_healpixels(
+            nside=nside, min_eb=nes_min_eb, max_eb=nes_max_eb, dec_min=nes_dec_min
         )
         result[np.where(nes != 0)] = 0
-        result += NES_fraction * nes
+        result += nes_fraction * nes
         id_map[np.where(nes != 0)] = 1
         pid += 1
         prop_name_dict[1] = "NorthEclipticSpur"
 
-    if WFD_fraction > 0.0:
-        wfd = WFD_healpixels(nside=nside, dec_min=wfd_dec_min, dec_max=wfd_dec_max)
+    if wfd_fraction > 0.0:
+        wfd = wfd_healpixels(nside=nside, dec_min=wfd_dec_min, dec_max=wfd_dec_max)
         result[np.where(wfd != 0)] = 0
-        result += WFD_fraction * wfd
+        result += wfd_fraction * wfd
         id_map[np.where(wfd != 0)] = 3
         pid += 1
         prop_name_dict[3] = "WideFastDeep"
 
-    if SCP_fraction > 0.0:
-        scp = SCP_healpixels(nside=nside, dec_max=SCP_dec_max)
+    if scp_fraction > 0.0:
+        scp = scp_healpixels(nside=nside, dec_max=scp_dec_max)
         result[np.where(scp != 0)] = 0
-        result += SCP_fraction * scp
+        result += scp_fraction * scp
         id_map[np.where(scp != 0)] = 2
         pid += 1
         prop_name_dict[2] = "SouthCelestialPole"
 
-    if GP_fraction > 0.0:
+    if gp_fraction > 0.0:
         gp = galactic_plane_healpixels(
             nside=nside,
             center_width=gp_center_width,
@@ -841,7 +841,7 @@ def generate_goal_map(
             gal_long2=gp_long2,
         )
         result[np.where(gp != 0)] = 0
-        result += GP_fraction * gp
+        result += gp_fraction * gp
         id_map[np.where(gp != 0)] = 4
         pid += 1
         prop_name_dict[4] = "GalacticPlane"
@@ -862,55 +862,55 @@ def standard_goals(nside=None):
     result = {}
     result["u"] = generate_goal_map(
         nside=nside,
-        NES_fraction=0.0,
-        WFD_fraction=0.31,
-        SCP_fraction=0.15,
-        GP_fraction=0.15,
+        nes_fraction=0.0,
+        wfd_fraction=0.31,
+        scp_fraction=0.15,
+        gp_fraction=0.15,
         wfd_dec_min=-62.5,
         wfd_dec_max=3.6,
     )
     result["g"] = generate_goal_map(
         nside=nside,
-        NES_fraction=0.2,
-        WFD_fraction=0.44,
-        SCP_fraction=0.15,
-        GP_fraction=0.15,
+        nes_fraction=0.2,
+        wfd_fraction=0.44,
+        scp_fraction=0.15,
+        gp_fraction=0.15,
         wfd_dec_min=-62.5,
         wfd_dec_max=3.6,
     )
     result["r"] = generate_goal_map(
         nside=nside,
-        NES_fraction=0.46,
-        WFD_fraction=1.0,
-        SCP_fraction=0.15,
-        GP_fraction=0.15,
+        nes_fraction=0.46,
+        wfd_fraction=1.0,
+        scp_fraction=0.15,
+        gp_fraction=0.15,
         wfd_dec_min=-62.5,
         wfd_dec_max=3.6,
     )
     result["i"] = generate_goal_map(
         nside=nside,
-        NES_fraction=0.46,
-        WFD_fraction=1.0,
-        SCP_fraction=0.15,
-        GP_fraction=0.15,
+        nes_fraction=0.46,
+        wfd_fraction=1.0,
+        scp_fraction=0.15,
+        gp_fraction=0.15,
         wfd_dec_min=-62.5,
         wfd_dec_max=3.6,
     )
     result["z"] = generate_goal_map(
         nside=nside,
-        NES_fraction=0.4,
-        WFD_fraction=0.9,
-        SCP_fraction=0.15,
-        GP_fraction=0.15,
+        nes_fraction=0.4,
+        wfd_fraction=0.9,
+        scp_fraction=0.15,
+        gp_fraction=0.15,
         wfd_dec_min=-62.5,
         wfd_dec_max=3.6,
     )
     result["y"] = generate_goal_map(
         nside=nside,
-        NES_fraction=0.0,
-        WFD_fraction=0.9,
-        SCP_fraction=0.15,
-        GP_fraction=0.15,
+        nes_fraction=0.0,
+        wfd_fraction=0.9,
+        scp_fraction=0.15,
+        gp_fraction=0.15,
         wfd_dec_min=-62.5,
         wfd_dec_max=3.6,
     )
@@ -989,9 +989,9 @@ def combo_dust_fp(
     XXX---need to refactor and get rid of all the magic numbers everywhere.
     """
 
-    ebvDataDir = get_data_dir()
+    ebv_data_dir = get_data_dir()
     filename = "maps/DustMaps/dust_nside_%i.npz" % nside
-    dustmap = np.load(os.path.join(ebvDataDir, filename))["ebvMap"]
+    dustmap = np.load(os.path.join(ebv_data_dir, filename))["ebvMap"]
 
     if smooth:
         dustmap = hp.smoothing(dustmap, fwhm=np.radians(fwhm))
@@ -1001,28 +1001,28 @@ def combo_dust_fp(
     wfd_south = wfd_south_dec
 
     ra, dec = np.degrees(ra_dec_hp_map(nside=nside))
-    WFD_no_dust = np.zeros(ra.size)
-    WFD_dust = np.zeros(ra.size)
+    wfd_no_dust = np.zeros(ra.size)
+    wfd_dust = np.zeros(ra.size)
 
     coord = SkyCoord(ra=ra * u.deg, dec=dec * u.deg)
     gal_lon, gal_lat = coord.galactic.l.deg, coord.galactic.b.deg
 
     # let's make a first pass here
-    WFD_no_dust[
+    wfd_no_dust[
         np.where((dec > wfd_south) & (dec < wfd_north) & (dustmap < dust_limit))
     ] = 1.0
 
-    WFD_dust[
+    wfd_dust[
         np.where((dec > wfd_south) & (dec < wfd_north) & (dustmap > dust_limit))
     ] = 1.0
-    WFD_dust[np.where(dec < wfd_south)] = 1.0
+    wfd_dust[np.where(dec < wfd_south)] = 1.0
 
     # Fill in values for WFD and WFD_dusty
     result = {}
     for key in wfd_weights:
-        result[key] = WFD_no_dust + 0.0
+        result[key] = wfd_no_dust + 0.0
         result[key][np.where(result[key] == 1)] = wfd_weights[key]
-        result[key][np.where(WFD_dust == 1)] = wfd_dust_weights[key]
+        result[key][np.where(wfd_dust == 1)] = wfd_dust_weights[key]
 
     coord = SkyCoord(ra=ra * u.deg, dec=dec * u.deg)
     eclip_lat = coord.barycentrictrueecliptic.lat.deg
@@ -1057,7 +1057,7 @@ def combo_dust_fp(
         result[key][outer_disk] = wfd_weights[key]
 
     # Make a bulge go WFD
-    dist_to_bulge = angularSeparation(gal_lon, gal_lat, 0.0, 0.0)
+    dist_to_bulge = angular_separation(gal_lon, gal_lat, 0.0, 0.0)
     bulge_pix = np.where(dist_to_bulge <= bulge_radius)
     for key in result:
         result[key][bulge_pix] = wfd_weights[key]

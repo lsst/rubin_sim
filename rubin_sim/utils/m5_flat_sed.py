@@ -1,48 +1,48 @@
 import numpy as np
-from .sysEngVals import SysEngVals
+from .sys_eng_vals import SysEngVals
 
 __all__ = ["m5_flat_sed", "m5_scale"]
 
 
 def m5_scale(
-    expTime,
+    exp_time,
     nexp,
     airmass,
-    FWHMeff,
+    fwhm_eff,
     musky,
-    darkSkyMag,
-    Cm,
-    dCm_infinity,
-    kAtm,
-    tauCloud=0,
-    baseExpTime=15,
+    dark_sky_mag,
+    cm,
+    d_cm_infinity,
+    k_atm,
+    tau_cloud=0,
+    base_exp_time=15,
 ):
     """Return m5 (scaled) value for all filters.
 
     Parameters
     ----------
-    expTime : float
+    exp_time : float
         Exposure time (in seconds) for each exposure
     nexp : int
         Number of exposures
     airmass : float
         Airmass of the observation
-    FWHMeff : np.ndarray or pd.DataFrame
+    fwhm_eff : np.ndarray or pd.DataFrame
         FWHM (in arcseconds) per filter
     musky : np.ndarray or pd.DataFrame
         Sky background (in magnitudes/sq arcsecond) per filter of the observation
-    darkSkyMag : np.ndarray or pd.DataFrame
+    dark_sky_mag : np.ndarray or pd.DataFrame
         Dark Sky, zenith magnitude/sq arcsecond - to scale musky. per filter
-    Cm : np.ndarray or pd.DataFrame
-        Cm value for the throughputs per filter
-    dCm_infinity : np.ndarray or pd.DataFrame
-        dCm_infinity values for the throughputs, per filter
-    kAtm : np.ndarray or pd.DataFrame
+    cm : np.ndarray or pd.DataFrame
+        cm value for the throughputs per filter
+    d_cm_infinity : np.ndarray or pd.DataFrame
+        d_cm_infinity values for the throughputs, per filter
+    k_atm : np.ndarray or pd.DataFrame
         Atmospheric extinction values, per filter
-    tauCloud : float, optional
+    tau_cloud : float, optional
         Extinction due to clouds
-    baseExpTime : float, optional
-        The exposure time used to calculate Cm / dCm_infinity. Used to scale expTime.
+    base_exp_time : float, optional
+        The exposure time used to calculate cm / d_cm_infinity. Used to scale exp_time.
         This is the individual exposure exposure time.
 
     Returns
@@ -55,43 +55,43 @@ def m5_scale(
     """
     # Calculate adjustment if readnoise is significant for exposure time
     # (see overview paper, equation 7)
-    Tscale = expTime / baseExpTime * np.power(10.0, -0.4 * (musky - darkSkyMag))
-    dCm = 0.0
-    dCm += dCm_infinity
-    dCm -= 1.25 * np.log10(1 + (10 ** (0.8 * dCm_infinity) - 1) / Tscale)
-    # Calculate m5 for 1 exp - constants here come from definition of Cm/dCm_infinity
+    tscale = exp_time / base_exp_time * np.power(10.0, -0.4 * (musky - dark_sky_mag))
+    d_cm = 0.0
+    d_cm += d_cm_infinity
+    d_cm -= 1.25 * np.log10(1 + (10 ** (0.8 * d_cm_infinity) - 1) / tscale)
+    # Calculate m5 for 1 exp - constants here come from definition of cm/d_cm_infinity
     m5 = (
-        Cm
-        + dCm
+        cm
+        + d_cm
         + 0.50 * (musky - 21.0)
-        + 2.5 * np.log10(0.7 / FWHMeff)
-        + 1.25 * np.log10(expTime / 30.0)
-        - kAtm * (airmass - 1.0)
-        - 1.1 * tauCloud
+        + 2.5 * np.log10(0.7 / fwhm_eff)
+        + 1.25 * np.log10(exp_time / 30.0)
+        - k_atm * (airmass - 1.0)
+        - 1.1 * tau_cloud
     )
     if nexp > 1:
         m5 = 1.25 * np.log10(nexp * 10 ** (0.8 * m5))
     return m5
 
 
-def m5_flat_sed(visitFilter, musky, FWHMeff, expTime, airmass, nexp=1, tauCloud=0):
+def m5_flat_sed(visit_filter, musky, fwhm_eff, exp_time, airmass, nexp=1, tau_cloud=0):
     """Calculate the m5 value, using photometric scaling.  Note, does not include shape of the object SED.
 
     Parameters
     ----------
-    visitFilter : str
+    visit_filter : str
          One of u,g,r,i,z,y
     musky : float
         Surface brightness of the sky in mag/sq arcsec
-    FWHMeff : float
+    fwhm_eff : float
         The seeing effective FWHM (arcsec)
-    expTime : float
+    exp_time : float
         Exposure time for each exposure in the visit.
     airmass : float
         Airmass of the observation (unitless)
     nexp : int, optional
-        The number of exposures. Default 1.  (total on-sky time = expTime * nexp)
-    tauCloud : float (0.)
+        The number of exposures. Default 1.  (total on-sky time = exp_time * nexp)
+    tau_cloud : float (0.)
         Any extinction from clouds in magnitudes (positive values = more extinction)
 
     Returns
@@ -109,38 +109,38 @@ def m5_flat_sed(visitFilter, musky, FWHMeff, expTime, airmass, nexp=1, tauCloud=
 
     # Only define the dicts once on initial call
     if not hasattr(m5_flat_sed, "Cm"):
-        # Using Cm / dCm_infinity values calculated for a 1x30s visit.
+        # Using Cm / d_cm_infinity values calculated for a 1x30s visit.
         # This results in an error of about 0.01 mag in u band for 2x15s visits (< in other bands)
         # See https://github.com/lsst-pst/survey_strategy/blob/master/fbs_1.3/m5FlatSed%20update.ipynb
         # for a more in-depth evaluation.
         sev = SysEngVals()
 
-        m5_flat_sed.baseExpTime = sev.exptime
-        m5_flat_sed.Cm = sev.Cm
-        m5_flat_sed.dCm_infinity = sev.dCm_infinity
-        m5_flat_sed.kAtm = sev.kAtm
-        m5_flat_sed.msky = sev.skyMag
+        m5_flat_sed.base_exp_time = sev.exptime
+        m5_flat_sed.cm = sev.cm
+        m5_flat_sed.d_cm_infinity = sev.d_cm_infinity
+        m5_flat_sed.k_atm = sev.k_atm
+        m5_flat_sed.msky = sev.sky_mag
     # Calculate adjustment if readnoise is significant for exposure time
     # (see overview paper, equation 7)
-    Tscale = (
-        expTime
-        / m5_flat_sed.baseExpTime
-        * np.power(10.0, -0.4 * (musky - m5_flat_sed.msky[visitFilter]))
+    tscale = (
+        exp_time
+        / m5_flat_sed.base_exp_time
+        * np.power(10.0, -0.4 * (musky - m5_flat_sed.msky[visit_filter]))
     )
-    dCm = 0.0
-    dCm += m5_flat_sed.dCm_infinity[visitFilter]
-    dCm -= 1.25 * np.log10(
-        1 + (10 ** (0.8 * m5_flat_sed.dCm_infinity[visitFilter]) - 1) / Tscale
+    d_cm = 0.0
+    d_cm += m5_flat_sed.d_cm_infinity[visit_filter]
+    d_cm -= 1.25 * np.log10(
+        1 + (10 ** (0.8 * m5_flat_sed.d_cm_infinity[visit_filter]) - 1) / tscale
     )
-    # Calculate m5 for 1 exp - 30s and other constants here come from definition of Cm/dCm_infinity
+    # Calculate m5 for 1 exp - 30s and other constants here come from definition of Cm/d_cm_infinity
     m5 = (
-        m5_flat_sed.Cm[visitFilter]
-        + dCm
+        m5_flat_sed.cm[visit_filter]
+        + d_cm
         + 0.50 * (musky - 21.0)
-        + 2.5 * np.log10(0.7 / FWHMeff)
-        + 1.25 * np.log10(expTime / 30.0)
-        - m5_flat_sed.kAtm[visitFilter] * (airmass - 1.0)
-        - 1.1 * tauCloud
+        + 2.5 * np.log10(0.7 / fwhm_eff)
+        + 1.25 * np.log10(exp_time / 30.0)
+        - m5_flat_sed.k_atm[visit_filter] * (airmass - 1.0)
+        - 1.1 * tau_cloud
     )
     # Then combine with coadd if >1 exposure
     if nexp > 1:

@@ -1,4 +1,4 @@
-from rubin_sim.scheduler.surveys import Blob_survey
+from rubin_sim.scheduler.surveys import BlobSurvey
 from rubin_sim.scheduler import features
 import rubin_sim.scheduler.basis_functions as bfs
 import numpy as np
@@ -7,10 +7,10 @@ import healpy as hp
 import matplotlib.pylab as plt
 
 
-__all__ = ["Plan_ahead_survey"]
+__all__ = ["PlanAheadSurvey"]
 
 
-class Plan_ahead_survey(Blob_survey):
+class PlanAheadSurvey(BlobSurvey):
     """Have a survey object that can plan ahead if it will want to observer a blob later in the night
 
     Parameters
@@ -38,9 +38,7 @@ class Plan_ahead_survey(Blob_survey):
         cadence=9,
         **kwargs
     ):
-        super(Plan_ahead_survey, self).__init__(
-            basis_functions, basis_weights, **kwargs
-        )
+        super(PlanAheadSurvey, self).__init__(basis_functions, basis_weights, **kwargs)
         # note that self.night is already being used for tracking tesselation.
         # So here's an attribute for seeing if the night has changed for cadence tracking
         self.night_cad = -100
@@ -65,7 +63,7 @@ class Plan_ahead_survey(Blob_survey):
     #        if self.scheduled_obs is not None:
     #            # this will force a run of self.check_night on the next calc_reward_function
     #            self.night = observation['night'] - 1
-    #    super(Plan_ahead_survey, self).add_observation(observation, **kwargs)
+    #    super(PlanAheadSurvey, self).add_observation(observation, **kwargs)
 
     def check_night(self, conditions):
         """"""
@@ -84,14 +82,14 @@ class Plan_ahead_survey(Blob_survey):
         if area > self.minimum_sky_area:
             # Maybe just calculate the mean (with angles)
             # Via https://en.wikipedia.org/wiki/Mean_of_circular_quantities
-            mean_RA = np.arctan2(
+            mean_ra = np.arctan2(
                 np.mean(np.sin(conditions.ra[pix_to_obs])),
                 np.mean(np.cos(conditions.ra[pix_to_obs])),
             )
-            if mean_RA < 0:
-                mean_RA += 2.0 * np.pi
+            if mean_ra < 0:
+                mean_ra += 2.0 * np.pi
 
-            hour_angle = conditions.lmst - mean_RA * 12.0 / np.pi
+            hour_angle = conditions.lmst - mean_ra * 12.0 / np.pi
             # This should be running -12 hours to +12 hours
 
             hour_angle[np.where(hour_angle < -12)] += 24
@@ -120,14 +118,14 @@ class Plan_ahead_survey(Blob_survey):
                 ):
                     # So, we think there's a region that has had a long gap and can be observed
                     # call the standard reward function
-                    self.reward = super(Plan_ahead_survey, self).calc_reward_function(
+                    self.reward = super(PlanAheadSurvey, self).calc_reward_function(
                         conditions
                     )
 
         return self.reward
 
     def generate_observations(self, conditions):
-        observations = super(Plan_ahead_survey, self).generate_observations(conditions)
+        observations = super(PlanAheadSurvey, self).generate_observations(conditions)
         # We are providing observations, so clear the scheduled obs and reset the night so
         # self.check_night will get called again in case there's another blob that should be done
         # after this one completes

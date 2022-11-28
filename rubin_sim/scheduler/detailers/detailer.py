@@ -1,29 +1,29 @@
 from rubin_sim.utils import (
-    _raDec2Hpid,
-    _approx_RaDec2AltAz,
-    _angularSeparation,
+    ra_dec2_hpid,
+    _approx_ra_dec2_alt_az,
+    _angular_separation,
     _approx_altaz2pa,
 )
 import numpy as np
-from rubin_sim.scheduler.utils import int_rounded
+from rubin_sim.scheduler.utils import IntRounded
 import copy
 
 __all__ = [
-    "Base_detailer",
-    "Zero_rot_detailer",
-    "Comcam_90rot_detailer",
-    "Rottep2Rotsp_desired_detailer",
-    "Close_alt_detailer",
-    "Take_as_pairs_detailer",
-    "Twilight_triple_detailer",
-    "Spider_rot_detailer",
-    "Flush_for_sched_detailer",
-    "Filter_nexp",
+    "BaseDetailer",
+    "ZeroRotDetailer",
+    "Comcam90rotDetailer",
+    "Rottep2RotspDesiredDetailer",
+    "CloseAltDetailer",
+    "TakeAsPairsDetailer",
+    "TwilightTripleDetailer",
+    "SpiderRotDetailer",
+    "FlushForSchedDetailer",
+    "FilterNexp",
     "FixedSkyAngleDetailer",
 ]
 
 
-class Base_detailer(object):
+class BaseDetailer(object):
     """
     A Detailer is an object that takes a list of proposed observations and adds "details" to them. The
     primary purpose is that the Markov Decision Process does an excelent job selecting RA,Dec,filter
@@ -67,13 +67,13 @@ class Base_detailer(object):
         return observation_list
 
 
-class Rottep2Rotsp_desired_detailer(Base_detailer):
+class Rottep2RotspDesiredDetailer(BaseDetailer):
     """Convert all the rotTelPos values to rotSkyPos_desired"""
 
     def __call__(self, observation_list, conditions):
         obs_array = np.concatenate(observation_list)
 
-        alt, az = _approx_RaDec2AltAz(
+        alt, az = _approx_ra_dec2_alt_az(
             obs_array["RA"],
             obs_array["dec"],
             conditions.site.latitude_rad,
@@ -82,9 +82,9 @@ class Rottep2Rotsp_desired_detailer(Base_detailer):
         )
         obs_pa = _approx_altaz2pa(alt, az, conditions.site.latitude_rad)
 
-        rotSkyPos_desired = (obs_array["rotTelPos"] - obs_pa) % (2.0 * np.pi)
+        rot_sky_pos_desired = (obs_array["rotTelPos"] - obs_pa) % (2.0 * np.pi)
 
-        for obs, rotsp_d in zip(observation_list, rotSkyPos_desired):
+        for obs, rotsp_d in zip(observation_list, rot_sky_pos_desired):
             obs["rotTelPos_backup"] = obs["rotTelPos"] + 0
             obs["rotTelPos"] = np.nan
             obs["rotSkyPos"] = np.nan
@@ -93,7 +93,7 @@ class Rottep2Rotsp_desired_detailer(Base_detailer):
         return observation_list
 
 
-class Zero_rot_detailer(Base_detailer):
+class ZeroRotDetailer(BaseDetailer):
     """
     Detailer to set the camera rotation to be apporximately zero in rotTelPos.
     Because it can never be written too many times:
@@ -105,7 +105,7 @@ class Zero_rot_detailer(Base_detailer):
 
         # XXX--should I convert the list into an array and get rid of this loop?
         for obs in observation_list:
-            alt, az = _approx_RaDec2AltAz(
+            alt, az = _approx_ra_dec2_alt_az(
                 obs["RA"],
                 obs["dec"],
                 conditions.site.latitude_rad,
@@ -118,7 +118,7 @@ class Zero_rot_detailer(Base_detailer):
         return observation_list
 
 
-class Spider_rot_detailer(Base_detailer):
+class SpiderRotDetailer(BaseDetailer):
     """
     Set the camera rotation to +/- 45 degrees so diffraction spikes align along chip rows
     and columns
@@ -126,25 +126,25 @@ class Spider_rot_detailer(Base_detailer):
 
     def __call__(self, observation_list, conditions):
         indx = int(conditions.night % 2)
-        rotTelPos = np.radians([45.0, 315.0][indx])
+        rot_tel_pos = np.radians([45.0, 315.0][indx])
 
         for obs in observation_list:
             obs["rotSkyPos"] = np.nan
-            obs["rotTelPos"] = rotTelPos
+            obs["rot_tel_pos"] = rot_tel_pos
 
         return observation_list
 
 
-class Comcam_90rot_detailer(Base_detailer):
+class Comcam90rotDetailer(BaseDetailer):
     """
     Detailer to set the camera rotation so rotSkyPos is 0, 90, 180, or 270 degrees. Whatever
     is closest to rotTelPos of zero.
     """
 
     def __call__(self, observation_list, conditions):
-        favored_rotSkyPos = np.radians([0.0, 90.0, 180.0, 270.0, 360.0]).reshape(5, 1)
+        favored_rot_sky_pos = np.radians([0.0, 90.0, 180.0, 270.0, 360.0]).reshape(5, 1)
         obs_array = np.concatenate(observation_list)
-        alt, az = _approx_RaDec2AltAz(
+        alt, az = _approx_ra_dec2_alt_az(
             obs_array["RA"],
             obs_array["dec"],
             conditions.site.latitude_rad,
@@ -154,18 +154,18 @@ class Comcam_90rot_detailer(Base_detailer):
         parallactic_angle = _approx_altaz2pa(alt, az, conditions.site.latitude_rad)
         # If we set rotSkyPos to parallactic angle, rotTelPos will be zero. So, find the
         # favored rotSkyPos that is closest to PA to keep rotTelPos as close as possible to zero.
-        ang_diff = np.abs(parallactic_angle - favored_rotSkyPos)
+        ang_diff = np.abs(parallactic_angle - favored_rot_sky_pos)
         min_indxs = np.argmin(ang_diff, axis=0)
         # can swap 360 and zero if needed?
-        final_rotSkyPos = favored_rotSkyPos[min_indxs]
+        final_rot_sky_pos = favored_rot_sky_pos[min_indxs]
         # Set all the observations to the proper rotSkyPos
-        for rsp, obs in zip(final_rotSkyPos, observation_list):
+        for rsp, obs in zip(final_rot_sky_pos, observation_list):
             obs["rotSkyPos"] = rsp
 
         return observation_list
 
 
-class FixedSkyAngleDetailer(Base_detailer):
+class FixedSkyAngleDetailer(BaseDetailer):
     """Detailer to force a specific sky angle.
 
     Parameters
@@ -186,7 +186,7 @@ class FixedSkyAngleDetailer(Base_detailer):
         return observation_list
 
 
-class Close_alt_detailer(Base_detailer):
+class CloseAltDetailer(BaseDetailer):
     """
     re-order a list of observations so that the closest in altitude to the current pointing is first.
 
@@ -197,26 +197,26 @@ class Close_alt_detailer(Base_detailer):
     """
 
     def __init__(self, alt_band=10.0):
-        super(Close_alt_detailer, self).__init__()
-        self.alt_band = int_rounded(np.radians(alt_band))
+        super(CloseAltDetailer, self).__init__()
+        self.alt_band = IntRounded(np.radians(alt_band))
 
     def __call__(self, observation_list, conditions):
         obs_array = np.concatenate(observation_list)
-        alt, az = _approx_RaDec2AltAz(
+        alt, az = _approx_ra_dec2_alt_az(
             obs_array["RA"],
             obs_array["dec"],
             conditions.site.latitude_rad,
             conditions.site.longitude_rad,
             conditions.mjd,
         )
-        alt_diff = np.abs(alt - conditions.telAlt)
-        in_band = np.where(int_rounded(alt_diff) <= self.alt_band)[0]
+        alt_diff = np.abs(alt - conditions.tel_alt)
+        in_band = np.where(IntRounded(alt_diff) <= self.alt_band)[0]
         if in_band.size == 0:
             in_band = np.arange(alt.size)
 
         # Find the closest in angular distance of the points that are in band
-        ang_dist = _angularSeparation(
-            az[in_band], alt[in_band], conditions.telAz, conditions.telAlt
+        ang_dist = _angular_separation(
+            az[in_band], alt[in_band], conditions.tel_az, conditions.tel_alt
         )
         good = np.min(np.where(ang_dist == ang_dist.min())[0])
         indx = in_band[good]
@@ -224,7 +224,7 @@ class Close_alt_detailer(Base_detailer):
         return result
 
 
-class Flush_for_sched_detailer(Base_detailer):
+class FlushForSchedDetailer(BaseDetailer):
     """Update the flush-by MJD to be before any scheduled observations
 
     Parameters
@@ -234,7 +234,7 @@ class Flush_for_sched_detailer(Base_detailer):
     """
 
     def __init__(self, tol=2.5):
-        super(Flush_for_sched_detailer, self).__init__()
+        super(FlushForSchedDetailer, self).__init__()
         self.tol = tol / 24.0 / 60.0  # To days
 
     def __call__(self, observation_list, conditions):
@@ -246,11 +246,11 @@ class Flush_for_sched_detailer(Base_detailer):
         return observation_list
 
 
-class Filter_nexp(Base_detailer):
+class FilterNexp(BaseDetailer):
     """Demand one filter always be taken as a certain number of exposures"""
 
     def __init__(self, filtername="u", nexp=1, exptime=None):
-        super(Filter_nexp, self).__init__()
+        super(FilterNexp, self).__init__()
         self.filtername = filtername
         self.nexp = nexp
         self.exptime = exptime
@@ -264,10 +264,10 @@ class Filter_nexp(Base_detailer):
         return observation_list
 
 
-class Take_as_pairs_detailer(Base_detailer):
+class TakeAsPairsDetailer(BaseDetailer):
     def __init__(self, filtername="r", exptime=None, nexp_dict=None):
         """"""
-        super(Take_as_pairs_detailer, self).__init__()
+        super(TakeAsPairsDetailer, self).__init__()
         self.filtername = filtername
         self.exptime = exptime
         self.nexp_dict = nexp_dict
@@ -299,9 +299,9 @@ class Take_as_pairs_detailer(Base_detailer):
         return result
 
 
-class Twilight_triple_detailer(Base_detailer):
+class TwilightTripleDetailer(BaseDetailer):
     def __init__(self, slew_estimate=5.0, n_repeat=3):
-        super(Twilight_triple_detailer, self).__init__()
+        super(TwilightTripleDetailer, self).__init__()
         self.slew_estimate = slew_estimate
         self.n_repeat = n_repeat
 

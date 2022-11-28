@@ -3,10 +3,10 @@ import rubin_sim.scheduler.basis_functions as bf
 import healpy as hp
 
 
-__all__ = ["Satellite_avoid_basis_function"]
+__all__ = ["SatelliteAvoidBasisFunction"]
 
 
-class Satellite_avoid_basis_function(bf.Base_basis_function):
+class SatelliteAvoidBasisFunction(bf.BaseBasisFunction):
     """Class to take satellite position information from the conditions object and avoid streaks
 
     Parameters

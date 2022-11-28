@@ -2,26 +2,26 @@ import numpy as np
 from rubin_sim.scheduler.utils import empty_observation, set_default_nside
 import healpy as hp
 import matplotlib.pylab as plt
-from rubin_sim.scheduler.surveys import BaseMarkovDF_survey
+from rubin_sim.scheduler.surveys import BaseMarkovSurvey
 from rubin_sim.scheduler.utils import (
     int_binned_stat,
-    int_rounded,
+    IntRounded,
     gnomonic_project_toxy,
     tsp_convex,
 )
 import copy
 from rubin_sim.utils import (
-    _angularSeparation,
-    _hpid2RaDec,
-    _approx_RaDec2AltAz,
+    _angular_separation,
+    _hpid2_ra_dec,
+    _approx_ra_dec2_alt_az,
     hp_grow_argsort,
 )
 import warnings
 
-__all__ = ["Greedy_survey", "Blob_survey"]
+__all__ = ["GreedySurvey", "BlobSurvey"]
 
 
-class Greedy_survey(BaseMarkovDF_survey):
+class GreedySurvey(BaseMarkovSurvey):
     """
     Select pointings in a greedy way using a Markov Decision Process.
     """
@@ -47,7 +47,7 @@ class Greedy_survey(BaseMarkovDF_survey):
 
         extra_features = {}
 
-        super(Greedy_survey, self).__init__(
+        super(GreedySurvey, self).__init__(
             basis_functions=basis_functions,
             basis_weights=basis_weights,
             extra_features=extra_features,
@@ -105,7 +105,7 @@ class Greedy_survey(BaseMarkovDF_survey):
         return observations
 
 
-class Blob_survey(Greedy_survey):
+class BlobSurvey(GreedySurvey):
     """Select observations in large, mostly contiguous, blobs.
 
     Parameters
@@ -185,10 +185,7 @@ class Blob_survey(Greedy_survey):
         area_required=None,
     ):
 
-        if nside is None:
-            nside = set_default_nside()
-
-        super(Blob_survey, self).__init__(
+        super(BlobSurvey, self).__init__(
             basis_functions=basis_functions,
             basis_weights=basis_weights,
             filtername=None,
@@ -245,7 +242,7 @@ class Blob_survey(Greedy_survey):
         else:
             self.filter2_set = set(filtername2)
 
-        self.ra, self.dec = _hpid2RaDec(self.nside, self.hpids)
+        self.ra, self.dec = _hpid2_ra_dec(self.nside, self.hpids)
 
         self.survey_note = survey_note
         self.counter = 1  # start at 1, because 0 is default in empty observation
@@ -364,12 +361,11 @@ class Blob_survey(Greedy_survey):
             for bf, weight in zip(self.basis_functions, self.basis_weights):
                 basis_value = bf(conditions, indx=indx)
                 self.reward += basis_value * weight
-                # might be faster to pull this out into the feasabiliity check?
             if self.smoothing_kernel is not None:
                 self.smooth_reward()
 
             # Apply max altitude cut
-            too_high = np.where(int_rounded(conditions.alt) > int_rounded(self.alt_max))
+            too_high = np.where(IntRounded(conditions.alt) > IntRounded(self.alt_max))
             self.reward[too_high] = np.nan
 
             # Select healpixels within some radius of the max
@@ -383,10 +379,10 @@ class Blob_survey(Greedy_survey):
                 return -np.inf
 
             # Apply radius selection
-            dists = _angularSeparation(
+            dists = _angular_separation(
                 self.ra[peak_reward], self.dec[peak_reward], self.ra, self.dec
             )
-            out_hp = np.where(int_rounded(dists) > int_rounded(self.search_radius))
+            out_hp = np.where(IntRounded(dists) > IntRounded(self.search_radius))
             self.reward[out_hp] = np.nan
 
             # Apply az cut
@@ -394,10 +390,10 @@ class Blob_survey(Greedy_survey):
             az_centered[np.where(az_centered < 0)] += 2.0 * np.pi
 
             az_out = np.where(
-                (int_rounded(az_centered) > int_rounded(self.az_range / 2.0))
+                (IntRounded(az_centered) > IntRounded(self.az_range / 2.0))
                 & (
-                    int_rounded(az_centered)
-                    < int_rounded(2.0 * np.pi - self.az_range / 2.0)
+                    IntRounded(az_centered)
+                    < IntRounded(2.0 * np.pi - self.az_range / 2.0)
                 )
             )
             self.reward[az_out] = np.nan
@@ -474,7 +470,7 @@ class Blob_survey(Greedy_survey):
             return []
 
         # Let's find the alt, az coords of the points (right now, hopefully doesn't change much in time block)
-        pointing_alt, pointing_az = _approx_RaDec2AltAz(
+        pointing_alt, pointing_az = _approx_ra_dec2_alt_az(
             self.fields["RA"][self.best_fields],
             self.fields["dec"][self.best_fields],
             conditions.site.latitude_rad,

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from rubin_sim.skybrightness import SkyModel
 import rubin_sim.skybrightness_pre as sb
-from rubin_sim.utils import raDec2Hpid, m5_flat_sed, Site, _approx_RaDec2AltAz
+from rubin_sim.utils import raDec2Hpid, m5_flat_sed, Site, _approx_ra_dec2_alt_az
 import healpy as hp
 import sqlite3
 import sys
@@ -97,7 +97,7 @@ def obs2sqlite(
 
     # Let's just use the stupid-fast to get alt-az
     if "alt" not in in_cols:
-        alt, az = _approx_RaDec2AltAz(
+        alt, az = _approx_ra_dec2_alt_az(
             np.radians(observations["ra"]),
             np.radians(observations["dec"]),
             telescope.latitude_rad,
@@ -123,22 +123,22 @@ def obs2sqlite(
         if full_sky:
             sm = SkyModel(mags=True)
             for i, obs in enumerate(observations):
-                sm.setRaDecMjd(obs["ra"], obs["dec"], obs["mjd"], degrees=True)
-                observations["skybrightness"][i] = sm.returnMags()[obs["filter"]]
+                sm.set_ra_dec_mjd(obs["ra"], obs["dec"], obs["mjd"], degrees=True)
+                observations["skybrightness"][i] = sm.return_mags()[obs["filter"]]
         else:
             # Let's try using the pre-computed sky brighntesses
             sm = sb.SkyModelPre(preload=False)
-            full = sm.returnMags(observations["mjd"][0])
+            full = sm.return_mags(observations["mjd"][0])
             nside = hp.npix2nside(full["r"].size)
             imax = float(np.size(observations))
             for i, obs in enumerate(observations):
                 indx = raDec2Hpid(nside, obs["ra"], obs["dec"])
-                observations["skybrightness"][i] = sm.returnMags(
+                observations["skybrightness"][i] = sm.return_mags(
                     obs["mjd"], indx=[indx]
                 )[obs["filter"]]
-                sunMoon = sm.returnSunMoon(obs["mjd"])
-                observations["sunAlt"][i] = sunMoon["sunAlt"]
-                observations["moonAlt"][i] = sunMoon["moonAlt"]
+                sun_moon = sm.returnSunMoon(obs["mjd"])
+                observations["sunAlt"][i] = sun_moon["sunAlt"]
+                observations["moonAlt"][i] = sun_moon["moonAlt"]
                 progress = i / imax * 100
                 text = "\rprogress = %.2f%%" % progress
                 sys.stdout.write(text)

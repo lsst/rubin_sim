@@ -2,12 +2,12 @@ from io import StringIO
 import numpy as np
 import pandas as pd
 from rubin_sim.utils import (
-    _approx_RaDec2AltAz,
+    _approx_ra_dec2_alt_az,
     Site,
-    _hpid2RaDec,
+    _hpid2_ra_dec,
     m5_flat_sed,
     _approx_altaz2pa,
-    _angularSeparation,
+    _angular_separation,
 )
 import healpy as hp
 from rubin_sim.scheduler.utils import (
@@ -38,7 +38,7 @@ class Conditions(object):
         exptime=30.0,
         mjd_start=59853.5,
         season_offset=None,
-        sun_RA_start=None,
+        sun_ra_start=None,
     ):
         """
         Parameters
@@ -54,7 +54,7 @@ class Conditions(object):
             The starting MJD of the survey.
         season_offset : np.array
             A HEALpix array that specifies the day offset when computing the season for each HEALpix.
-        sun_RA_start : float (None)
+        sun_ra_start : float (None)
 
         Attributes (Set on init)
         -----------
@@ -87,34 +87,34 @@ class Conditions(object):
         skybrightness : dict of np.array
             Dictionary keyed by filtername. Values are healpix arrays with the sky brightness at each
             healpix center (mag/acsec^2)
-        FWHMeff : dict of np.array
+        fwhm_eff : dict of np.array
             Dictionary keyed by filtername. Values are the effective seeing FWHM at each healpix
             center (arcseconds)
-        moonAlt : float
+        moon_alt : float
             The altitude of the Moon (radians)
-        moonAz : float
+        moon_az : float
             The Azimuth of the moon (radians)
-        moonRA : float
+        moon_ra : float
             RA of the moon (radians)
-        moonDec : float
+        moon_dec : float
             Declination of the moon (radians)
-        moonPhase : float
+        moon_phase : float
             The Phase of the moon. (percent, 0=new moon, 100=full moon)
-        sunAlt : float
+        sun_alt : float
             The altitude of the sun (radians).
-        sunAz : float
+        sun_az : float
             The Azimuth of the sun (radians).
-        sunRA : float
+        sun_ra : float
             The RA of the sun (radians).
-        sunDec : float
+        sun_dec : float
             The Dec of the sun (radians).
-        telRA : float
+        tel_ra : float
             The current telescope RA pointing (radians).
-        telDec : float
+        tel_dec : float
             The current telescope Declination (radians).
-        telAlt : float
+        tel_alt : float
             The current telescope altitude (radians).
-        telAz : float
+        tel_az : float
             The current telescope azimuth (radians).
         cumulative_azimuth_rad : float
             The cummulative telescope azimuth (radians). For tracking cable wrap
@@ -172,7 +172,7 @@ class Conditions(object):
             Based on the fast approximate alt,az values.
         lmst : float
             The local mean sidearal time (hours). Updates is mjd is changed.
-        M5Depth : dict of np.array
+        m5_depth : dict of np.array
             the 5-sigma limiting depth healpix maps, keyed by filtername (mags). Will be recalculated
             if the skybrightness, seeing, or airmass are updated.
         HA : np.array
@@ -198,13 +198,13 @@ class Conditions(object):
         self.mjd_start = mjd_start
         hpids = np.arange(hp.nside2npix(nside))
         self.season_offset = season_offset
-        self.sun_RA_start = sun_RA_start
+        self.sun_ra_start = sun_ra_start
         # Generate an empty map so we can copy when we need a new map
         self.zeros_map = np.zeros(hp.nside2npix(nside), dtype=float)
         self.nan_map = np.zeros(hp.nside2npix(nside), dtype=float)
         self.nan_map.fill(np.nan)
         # The RA, Dec grid we are using
-        self.ra, self.dec = _hpid2RaDec(nside, hpids)
+        self.ra, self.dec = _hpid2_ra_dec(nside, hpids)
 
         # Modified Julian Date (day)
         self._mjd = None
@@ -221,8 +221,8 @@ class Conditions(object):
         self._lmst = None
         # Should be a dict with filtername keys
         self._skybrightness = {}
-        self._FWHMeff = {}
-        self._M5Depth = None
+        self._fwhm_eff = {}
+        self._m5_depth = None
         self._airmass = None
 
         self.wind_speed = None
@@ -235,17 +235,17 @@ class Conditions(object):
         self.queue = None
 
         # Moon
-        self.moonAlt = None
-        self.moonAz = None
-        self.moonRA = None
-        self.moonDec = None
-        self.moonPhase = None
+        self.moon_alt = None
+        self.moon_az = None
+        self.moon_ra = None
+        self.moon_dec = None
+        self.moon_phase = None
 
         # Sun
-        self.sunAlt = None
-        self.sunAz = None
-        self.sunRA = None
-        self.sunDec = None
+        self.sun_alt = None
+        self.sun_az = None
+        self.sun_ra = None
+        self.sun_dec = None
 
         # Almanac information
         self.sunset = None
@@ -260,10 +260,10 @@ class Conditions(object):
         self.planet_positions = None
 
         # Current telescope pointing
-        self.telRA = None
-        self.telDec = None
-        self.telAlt = None
-        self.telAz = None
+        self.tel_ra = None
+        self.tel_dec = None
+        self.tel_alt = None
+        self.tel_az = None
 
         # Full sky cloud map
         self._cloud_map = None
@@ -272,7 +272,7 @@ class Conditions(object):
         # XXX--document
         self.bulk_cloud = None
 
-        self.rotTelPos = None
+        self.rot_tel_pos = None
 
         self.targets_of_opportunity = None
 
@@ -295,10 +295,10 @@ class Conditions(object):
     @property
     def HA(self):
         if self._HA is None:
-            self.calc_HA()
+            self.calc_ha()
         return self._HA
 
-    def calc_HA(self):
+    def calc_ha(self):
         self._HA = np.radians(self._lmst * 360.0 / 24.0) - self.ra
         self._HA[np.where(self._HA < 0)] += 2.0 * np.pi
 
@@ -329,7 +329,7 @@ class Conditions(object):
     @airmass.setter
     def airmass(self, value):
         self._airmass = match_hp_resolution(value, nside_out=self.nside)
-        self._M5Depth = None
+        self._m5_depth = None
 
     @property
     def pa(self):
@@ -343,17 +343,17 @@ class Conditions(object):
     @property
     def alt(self):
         if self._alt is None:
-            self.calc_altAz()
+            self.calc_alt_az()
         return self._alt
 
     @property
     def az(self):
         if self._az is None:
-            self.calc_altAz()
+            self.calc_alt_az()
         return self._az
 
-    def calc_altAz(self):
-        self._alt, self._az = _approx_RaDec2AltAz(
+    def calc_alt_az(self):
+        self._alt, self._az = _approx_ra_dec2_alt_az(
             self.ra,
             self.dec,
             self.site.latitude_rad,
@@ -391,40 +391,40 @@ class Conditions(object):
                 indict[key], nside_out=self.nside
             )
         # If sky brightness changes, need to recalc M5 depth.
-        self._M5Depth = None
+        self._m5_depth = None
 
     @property
-    def FWHMeff(self):
-        return self._FWHMeff
+    def fwhm_eff(self):
+        return self._fwhm_eff
 
-    @FWHMeff.setter
-    def FWHMeff(self, indict):
+    @fwhm_eff.setter
+    def fwhm_eff(self, indict):
         for key in indict:
-            self._FWHMeff[key] = match_hp_resolution(indict[key], nside_out=self.nside)
-        self._M5Depth = None
+            self._fwhm_eff[key] = match_hp_resolution(indict[key], nside_out=self.nside)
+        self._m5_depth = None
 
     @property
-    def M5Depth(self):
-        if self._M5Depth is None:
-            self.calc_M5Depth()
-        return self._M5Depth
+    def m5_depth(self):
+        if self._m5_depth is None:
+            self.calc_m5_depth()
+        return self._m5_depth
 
-    def calc_M5Depth(self):
-        self._M5Depth = {}
+    def calc_m5_depth(self):
+        self._m5_depth = {}
         for filtername in self._skybrightness:
             good = ~np.isnan(self._skybrightness[filtername])
-            self._M5Depth[filtername] = self.nan_map.copy()
-            self._M5Depth[filtername][good] = m5_flat_sed(
+            self._m5_depth[filtername] = self.nan_map.copy()
+            self._m5_depth[filtername][good] = m5_flat_sed(
                 filtername,
                 self._skybrightness[filtername][good],
-                self._FWHMeff[filtername][good],
+                self._fwhm_eff[filtername][good],
                 self.exptime,
                 self._airmass[good],
             )
 
     def calc_solar_elongation(self):
-        self._solar_elongation = _angularSeparation(
-            self.ra, self.dec, self.sunRA, self.sunDec
+        self._solar_elongation = _angular_separation(
+            self.ra, self.dec, self.sun_ra, self.sun_dec
         )
 
     @property
@@ -434,10 +434,10 @@ class Conditions(object):
         return self._solar_elongation
 
     def calc_az_to_sun(self):
-        self._az_to_sun = smallest_signed_angle(self.ra, self.sunRA)
+        self._az_to_sun = smallest_signed_angle(self.ra, self.sun_ra)
 
     def calc_az_to_antisun(self):
-        self._az_to_antisun = smallest_signed_angle(self.ra + np.pi, self.sunRA)
+        self._az_to_antisun = smallest_signed_angle(self.ra + np.pi, self.sun_ra)
 
     @property
     def az_to_sun(self):
@@ -497,7 +497,7 @@ class Conditions(object):
         print("exptime: ", self.exptime, "  ", file=output)
         print("lmst: ", self.lmst, "  ", file=output)
         print("season_offset: ", self.season_offset, "  ", file=output)
-        print("sun_RA_start: ", self.sun_RA_start, "  ", file=output)
+        print("sun_RA_start: ", self.sun_ra_start, "  ", file=output)
         print("clouds: ", self.clouds, "  ", file=output)
         print("current_filter: ", self.current_filter, "  ", file=output)
         print("mounted_filters: ", self.mounted_filters, "  ", file=output)
@@ -516,7 +516,7 @@ class Conditions(object):
             "  ",
             file=output,
         )
-        print("moonPhase: ", self.moonPhase, "  ", file=output)
+        print("moonPhase: ", self.moon_phase, "  ", file=output)
         print("bulk_cloud: ", self.bulk_cloud, "  ", file=output)
         print(
             "targets_of_opportunity: ", self.targets_of_opportunity, "  ", file=output
@@ -532,19 +532,19 @@ class Conditions(object):
         positions = [
             {
                 "name": "sun",
-                "alt": self.sunAlt,
-                "az": self.sunAz,
-                "RA": self.sunRA,
-                "decl": self.sunDec,
+                "alt": self.sun_alt,
+                "az": self.sun_az,
+                "RA": self.sun_ra,
+                "decl": self.sun_dec,
             }
         ]
         positions.append(
             {
                 "name": "moon",
-                "alt": self.moonAlt,
-                "az": self.moonAz,
-                "RA": self.moonRA,
-                "decl": self.moonDec,
+                "alt": self.moon_alt,
+                "az": self.moon_az,
+                "RA": self.moon_ra,
+                "decl": self.moon_dec,
             }
         )
         for planet_name in ("venus", "mars", "jupiter", "saturn"):
@@ -558,11 +558,11 @@ class Conditions(object):
         positions.append(
             {
                 "name": "telescope",
-                "alt": self.telAlt,
-                "az": self.telAz,
-                "RA": self.telRA,
-                "decl": self.telDec,
-                "rot": self.rotTelPos,
+                "alt": self.tel_alt,
+                "az": self.tel_az,
+                "RA": self.tel_ra,
+                "decl": self.tel_dec,
+                "rot": self.rot_tel_pos,
             }
         )
         positions = pd.DataFrame(positions).set_index("name")

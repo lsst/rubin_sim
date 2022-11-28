@@ -9,7 +9,7 @@ from jinja2 import FileSystemLoader
 import webbrowser
 
 from rubin_sim.maf.web import MafTracking
-from rubin_sim.maf.db import addRunToDatabase
+from rubin_sim.maf.db import add_run_to_database
 import rubin_sim
 
 
@@ -35,8 +35,8 @@ class MetricResultsPageHandler(web.RequestHandler):
     def get(self):
         resultsTempl = env.get_template("results.html")
         runId = int(self.request.arguments["runId"][0])
-        if "metricId" in self.request.arguments:
-            metricIdList = self.request.arguments["metricId"]
+        if "metric_id" in self.request.arguments:
+            metricIdList = self.request.arguments["metric_id"]
         else:
             metricIdList = []
         if "Group_subgroup" in self.request.arguments:
@@ -56,7 +56,7 @@ class MetricResultsPageHandler(web.RequestHandler):
 class DataHandler(web.RequestHandler):
     def get(self):
         runId = int(self.request.arguments["runId"][0])
-        metricId = int(self.request.arguments["metricId"][0])
+        metricId = int(self.request.arguments["metric_id"][0])
         if "datatype" in self.request.arguments:
             datatype = self.request.arguments["datatype"][0].lower()
             datatype = datatype.decode("utf-8")
@@ -130,7 +130,7 @@ def make_app():
     return application
 
 
-def showMaf():
+def show_maf():
     """Display MAF output in a web browser. After launching, point your browser
     to 'http://localhost:8888/'.
     """
@@ -142,32 +142,32 @@ def showMaf():
     defaultdb = os.path.join(os.getcwd(), "trackingDb_sqlite.db")
     parser.add_argument(
         "-t",
-        "--trackingDb",
+        "--tracking_db",
         type=str,
         default=defaultdb,
         help="Tracking database filename.",
     )
     parser.add_argument(
         "-d",
-        "--mafDir",
+        "--maf_dir",
         type=str,
         default=None,
-        help="Add this directory to the trackingDb and open immediately.",
+        help="Add this directory to the tracking_db and open immediately.",
     )
     parser.add_argument(
         "-c",
-        "--mafComment",
+        "--maf_comment",
         type=str,
         default=None,
         help="Add a comment to the trackingDB describing the "
-        + " MAF analysis of this directory (paired with mafDir argument).",
+        + " MAF analysis of this directory (paired with maf_dir argument).",
     )
     parser.add_argument(
         "-p", "--port", type=int, default=8888, help="Port for connecting to showMaf."
     )
     parser.add_argument(
-        "--noBrowser",
-        dest="noBrowser",
+        "--no_browser",
+        dest="no_browser",
         default=False,
         action="store_true",
         help="Do not open a new browser tab",
@@ -176,32 +176,32 @@ def showMaf():
     args = parser.parse_args()
 
     # Check tracking DB is sqlite (and add as convenience if forgotten).
-    trackingDb = args.trackingDb
-    print("Using tracking database at %s" % (trackingDb))
+    tracking_db = args.tracking_db
+    print("Using tracking database at %s" % (tracking_db))
 
     global startRunId
     startRunId = -666
     # If given a directory argument:
-    if args.mafDir is not None:
-        mafDir = os.path.realpath(args.mafDir)
-        if not os.path.isdir(mafDir):
-            print("There is no directory containing MAF outputs at %s." % (mafDir))
-            print("Just opening using tracking db at %s." % (trackingDb))
+    if args.maf_dir is not None:
+        maf_dir = os.path.realpath(args.maf_dir)
+        if not os.path.isdir(maf_dir):
+            print("There is no directory containing MAF outputs at %s." % (maf_dir))
+            print("Just opening using tracking db at %s." % (tracking_db))
         else:
-            addRunToDatabase(mafDir, trackingDb, mafComment=args.mafComment)
+            add_run_to_database(maf_dir, tracking_db, maf_comment=args.maf_comment)
 
     # Open tracking database and start visualization.
     global runlist
-    runlist = MafTracking(trackingDb)
+    runlist = MafTracking(tracking_db)
     if startRunId < 0:
-        startRunId = runlist.runs[0]["mafRunId"]
+        startRunId = runlist.runs[0]["maf_run_id"]
     # Set up path to template and favicon paths, and load templates.
-    mafDir = os.path.join(rubin_sim.__path__[0], "maf")
-    templateDir = os.path.join(mafDir, "web/templates/")
+    maf_dir = os.path.join(rubin_sim.__path__[0], "maf")
+    templateDir = os.path.join(maf_dir, "web/templates/")
     global faviconPath
-    faviconPath = os.path.join(mafDir, "web/")
+    faviconPath = os.path.join(maf_dir, "web/")
     global jsPath
-    jsPath = os.path.join(mafDir, "web/")
+    jsPath = os.path.join(maf_dir, "web/")
     global env
     env = Environment(loader=FileSystemLoader(templateDir))
     # Add 'zip' to jinja templates.
@@ -217,6 +217,6 @@ def showMaf():
         "Tornado Starting: \nPoint your web browser to http://localhost:%d/ \nCtrl-C to stop"
         % (args.port)
     )
-    if not args.noBrowser:
+    if not args.no_browser:
         webbrowser.open_new_tab("http://localhost:%d" % (args.port))
     ioloop.IOLoop.instance().start()

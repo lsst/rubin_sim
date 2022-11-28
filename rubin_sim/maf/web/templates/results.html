@@ -3,10 +3,10 @@
 
 {% set active_page = "listMetrics" %}
 
-{% set run = runlist.getRun(runId) %}
-{% set selectMetrics = run.convertSelectToMetrics(groupList,
+{% set run = runlist.get_run(runId) %}
+{% set selectMetrics = run.convert_select_to_metrics(groupList,
 metricIdList) %}
-{% set selectGroups = run.metricsToSubgroups(selectMetrics) %}
+{% set selectGroups = run.metrics_to_subgroups(selectMetrics) %}
 
 
 {% block moresidebar %}
@@ -37,26 +37,26 @@ metricIdList) %}
       {% set groupstart = False %}
    {% endif %}
    <a name = "{{g|escape}}_{{sg|escape}}"> </a>
-  {% set subsetMetrics = run.metricsInSubgroup(g, sg, metrics=selectMetrics) %}
+  {% set subsetMetrics = run.metrics_in_subgroup(g, sg, metrics=selectMetrics) %}
   {% for metric in subsetMetrics %}
-    {% set metricInfo = run.metricInfo(metric) %}
+    {% set metricInfo = run.metric_info(metric) %}
     <div id="metricset">
 
     {# Print the metric info #}
     {{ mcr.PrintMetricInfo(runId, metric, metricInfo) }}
 
     {# Add the plots for this metric #}
-    {% set metricPlots = run.plotsForMetric(metric) %}
+    {% set metricPlots = run.plots_for_metric(metric) %}
     {{ mcr.MakePlotTable(metricPlots, run) }}
 
     <p>
-    {% set caption = run.captionForMetric(metric) %}
+    {% set caption = run.caption_for_metric(metric) %}
     {{ caption|escape }}
     </p>
 
     {# Add the summary stats for this metric #} 
-    {% set stats = run.statsForMetric(metric) %}
-    {% set statdict = run.statDict(stats) %}
+    {% set stats = run.stats_for_metric(metric) %}
+    {% set statdict = run.stat_dict(stats) %}
     <table class="blank">
     {% for name in statdict.keys() %}
      <tr>

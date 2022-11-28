@@ -7,25 +7,25 @@ import healpy as hp
 import pandas as pd
 import matplotlib.path as mplPath
 from rubin_sim.utils import (
-    _hpid2RaDec,
+    _hpid2_ra_dec,
     xyz_angular_radius,
-    _buildTree,
+    _build_tree,
     _xyz_from_ra_dec,
 )
 from rubin_sim.site_models import FieldsDatabase
 import rubin_sim.version as rsVersion
 
 __all__ = [
-    "int_rounded",
+    "IntRounded",
     "int_binned_stat",
     "smallest_signed_angle",
-    "schema_converter",
-    "hp_in_comcam_fov",
-    "hp_in_lsst_fov",
+    "SchemaConverter",
+    "HpInComcamFov",
+    "HpInLsstFov",
     "hp_kd_tree",
     "match_hp_resolution",
     "TargetoO",
-    "Sim_targetoO_server",
+    "SimTargetooServer",
     "set_default_nside",
     "restore_scheduler",
     "warm_start",
@@ -45,18 +45,18 @@ __all__ = [
 def smallest_signed_angle(a1, a2):
     """
     via https://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles"""
-    TwoPi = 2.0 * np.pi
-    x = a1 % TwoPi
-    y = a2 % TwoPi
-    a = (x - y) % TwoPi
-    b = (y - x) % TwoPi
+    two_pi = 2.0 * np.pi
+    x = a1 % two_pi
+    y = a2 % two_pi
+    a = (x - y) % two_pi
+    b = (y - x) % two_pi
     result = b + 0
     alb = np.where(a < b)[0]
     result[alb] = -1.0 * a[alb]
     return result
 
 
-class int_rounded(object):
+class IntRounded(object):
     """
     Class to help force comparisons be made on scaled up integers,
     preventing machine precision issues cross-platforms
@@ -97,22 +97,22 @@ class int_rounded(object):
 
     def __add__(self, other):
         out_scale = np.min([self.scale, other.scale])
-        result = int_rounded(self.initial + other.initial, scale=out_scale)
+        result = IntRounded(self.initial + other.initial, scale=out_scale)
         return result
 
     def __sub__(self, other):
         out_scale = np.min([self.scale, other.scale])
-        result = int_rounded(self.initial - other.initial, scale=out_scale)
+        result = IntRounded(self.initial - other.initial, scale=out_scale)
         return result
 
     def __mul__(self, other):
         out_scale = np.min([self.scale, other.scale])
-        result = int_rounded(self.initial * other.initial, scale=out_scale)
+        result = IntRounded(self.initial * other.initial, scale=out_scale)
         return result
 
     def __div__(self, other):
         out_scale = np.min([self.scale, other.scale])
-        result = int_rounded(self.initial / other.initial, scale=out_scale)
+        result = IntRounded(self.initial / other.initial, scale=out_scale)
         return result
 
 
@@ -137,13 +137,13 @@ def set_default_nside(nside=None):
 
 
 def restore_scheduler(
-    observationId, scheduler, observatory, filename, filter_sched=None
+    observation_id, scheduler, observatory, filename, filter_sched=None
 ):
     """Put the scheduler and observatory in the state they were in. Handy for checking reward fucnction
 
     Parameters
     ----------
-    observationId : int
+    observation_id : int
         The ID of the last observation that should be completed
     scheduler : rubin_sim.scheduler.scheduler object
         Scheduler object.
@@ -155,10 +155,10 @@ def restore_scheduler(
         The filter scheduler. Note that we don't look up the official end of the previous night,
         so there is potential for the loaded filters to not match.
     """
-    sc = schema_converter()
+    sc = SchemaConverter()
     # load up the observations
     observations = sc.opsim2obs(filename)
-    good_obs = np.where(observations["ID"] <= observationId)[0]
+    good_obs = np.where(observations["ID"] <= observation_id)[0]
     observations = observations[good_obs]
 
     # replay the observations back into the scheduler
@@ -215,33 +215,33 @@ def int_binned_stat(ids, values, statistic=np.mean):
     return uids, np.array(stat_results)
 
 
-def gnomonic_project_toxy(RA1, Dec1, RAcen, Deccen):
-    """Calculate x/y projection of RA1/Dec1 in system with center at RAcen, Deccen.
+def gnomonic_project_toxy(ra1, dec1, r_acen, deccen):
+    """Calculate x/y projection of ra1/dec1 in system with center at r_acen, deccen.
     Input radians. Grabbed from sims_selfcal"""
     # also used in Global Telescope Network website
-    cosc = np.sin(Deccen) * np.sin(Dec1) + np.cos(Deccen) * np.cos(Dec1) * np.cos(
-        RA1 - RAcen
+    cosc = np.sin(deccen) * np.sin(dec1) + np.cos(deccen) * np.cos(dec1) * np.cos(
+        ra1 - r_acen
     )
-    x = np.cos(Dec1) * np.sin(RA1 - RAcen) / cosc
+    x = np.cos(dec1) * np.sin(ra1 - r_acen) / cosc
     y = (
-        np.cos(Deccen) * np.sin(Dec1)
-        - np.sin(Deccen) * np.cos(Dec1) * np.cos(RA1 - RAcen)
+        np.cos(deccen) * np.sin(dec1)
+        - np.sin(deccen) * np.cos(dec1) * np.cos(ra1 - r_acen)
     ) / cosc
     return x, y
 
 
-def gnomonic_project_tosky(x, y, RAcen, Deccen):
-    """Calculate RA/Dec on sky of object with x/y and RA/Cen of field of view.
-    Returns Ra/Dec in radians."""
-    denom = np.cos(Deccen) - y * np.sin(Deccen)
-    RA = RAcen + np.arctan2(x, denom)
-    Dec = np.arctan2(
-        np.sin(Deccen) + y * np.cos(Deccen), np.sqrt(x * x + denom * denom)
+def gnomonic_project_tosky(x, y, r_acen, deccen):
+    """Calculate RA/dec on sky of object with x/y and RA/Cen of field of view.
+    Returns Ra/dec in radians."""
+    denom = np.cos(deccen) - y * np.sin(deccen)
+    RA = r_acen + np.arctan2(x, denom)
+    dec = np.arctan2(
+        np.sin(deccen) + y * np.cos(deccen), np.sqrt(x * x + denom * denom)
     )
-    return RA, Dec
+    return RA, dec
 
 
-def match_hp_resolution(in_map, nside_out, UNSEEN2nan=True):
+def match_hp_resolution(in_map, nside_out, unseen2nan=True):
     """Utility to convert healpix map resolution if needed and change hp.UNSEEN values to
     np.nan.
 
@@ -251,7 +251,7 @@ def match_hp_resolution(in_map, nside_out, UNSEEN2nan=True):
         A valie healpix map
     nside_out : int
         The desired resolution to convert in_map to
-    UNSEEN2nan : bool (True)
+    unseen2nan : bool (True)
         If True, convert any hp.UNSEEN values to np.nan
     """
     current_nside = hp.npix2nside(np.size(in_map))
@@ -259,7 +259,7 @@ def match_hp_resolution(in_map, nside_out, UNSEEN2nan=True):
         out_map = hp.ud_grade(in_map, nside_out=nside_out)
     else:
         out_map = in_map
-    if UNSEEN2nan:
+    if unseen2nan:
         out_map[np.where(out_map == hp.UNSEEN)] = np.nan
     return out_map
 
@@ -317,7 +317,7 @@ def raster_sort(x0, order=["x", "y"], xbin=1.0):
         return order1
 
 
-class schema_converter:
+class SchemaConverter:
     """
     Record how to convert an observation array to the standard opsim schema
     """
@@ -531,7 +531,7 @@ def empty_observation():
         float,
         float,
         float,
-        "U1",
+        "U40",
         float,
         float,
         int,
@@ -695,11 +695,11 @@ def hp_kd_tree(nside=None, leafsize=100, scale=1e5):
         nside = set_default_nside()
 
     hpid = np.arange(hp.nside2npix(nside))
-    ra, dec = _hpid2RaDec(nside, hpid)
-    return _buildTree(ra, dec, leafsize, scale=scale)
+    ra, dec = _hpid2_ra_dec(nside, hpid)
+    return _build_tree(ra, dec, leafsize, scale=scale)
 
 
-class hp_in_lsst_fov(object):
+class HpInLsstFov(object):
     """
     Return the healpixels within a pointing. A very simple LSST camera model with
     no chip/raft gaps.
@@ -743,7 +743,7 @@ class hp_in_lsst_fov(object):
         return np.array(indices)
 
 
-class hp_in_comcam_fov(object):
+class HpInComcamFov(object):
     """
     Return the healpixels within a ComCam pointing. Simple camera model
     with no chip gaps.
@@ -781,7 +781,7 @@ class hp_in_comcam_fov(object):
             ]
         )
 
-    def __call__(self, ra, dec, rotSkyPos=0.0):
+    def __call__(self, ra, dec, rot_sky_pos=0.0):
         """
         Parameters
         ----------
@@ -789,7 +789,7 @@ class hp_in_comcam_fov(object):
             RA in radians
         dec : float
             Dec in radians
-        rotSkyPos : float
+        rot_sky_pos : float
             The rotation angle of the camera in radians
         Returns
         -------
@@ -805,13 +805,13 @@ class hp_in_comcam_fov(object):
         )
         indices_to_check = indices_all[np.in1d(indices_all, indices, invert=True)]
 
-        cos_rot = np.cos(rotSkyPos)
-        sin_rot = np.sin(rotSkyPos)
+        cos_rot = np.cos(rot_sky_pos)
+        sin_rot = np.sin(rot_sky_pos)
         x_rotated = self.corners_x * cos_rot - self.corners_y * sin_rot
         y_rotated = self.corners_x * sin_rot + self.corners_y * cos_rot
 
         # Draw the square that we want to check if points are in.
-        bbPath = mplPath.Path(
+        bb_path = mplPath.Path(
             np.array(
                 [
                     [x_rotated[0], y_rotated[0]],
@@ -823,13 +823,13 @@ class hp_in_comcam_fov(object):
             )
         )
 
-        ra_to_check, dec_to_check = _hpid2RaDec(self.nside, indices_to_check)
+        ra_to_check, dec_to_check = _hpid2_ra_dec(self.nside, indices_to_check)
 
         # Project the indices to check to the tangent plane, see if they fall inside the polygon
         x, y = gnomonic_project_toxy(ra_to_check, dec_to_check, ra, dec)
         for i, xcheck in enumerate(x):
             # I wonder if I can do this all at once rather than a loop?
-            if bbPath.contains_point((x[i], y[i])):
+            if bb_path.contains_point((x[i], y[i])):
                 indices.append(indices_to_check[i])
 
         return np.array(indices)
@@ -931,10 +931,10 @@ def season_calc(
     if floor:
         result = np.floor(result)
     if max_season is not None:
-        over_indx = np.where(int_rounded(result) >= int_rounded(max_season))
+        over_indx = np.where(IntRounded(result) >= IntRounded(max_season))
 
     if modulo is not None:
-        neg = np.where(int_rounded(result) < int_rounded(0))
+        neg = np.where(IntRounded(result) < IntRounded(0))
         result = result % modulo
         result[neg] = -1
     if max_season is not None:
@@ -944,13 +944,13 @@ def season_calc(
     return result
 
 
-def create_season_offset(nside, sun_RA_rad):
+def create_season_offset(nside, sun_ra_rad):
     """
     Make an offset map so seasons roll properly
     """
     hpindx = np.arange(hp.nside2npix(nside))
-    ra, dec = _hpid2RaDec(nside, hpindx)
-    offset = ra - sun_RA_rad + 2.0 * np.pi
+    ra, dec = _hpid2_ra_dec(nside, hpindx)
+    offset = ra - sun_ra_rad + 2.0 * np.pi
     offset = offset % (np.pi * 2)
     offset = offset * 365.25 / (np.pi * 2)
     offset = -offset - 365.25
@@ -993,18 +993,18 @@ class TargetoO(object):
         self.dec_rad_center = dec_rad_center
 
 
-class Sim_targetoO_server(object):
+class SimTargetooServer(object):
     """Wrapper to deliver a targetoO object at the right time"""
 
-    def __init__(self, targetoO_list):
-        self.targetoO_list = targetoO_list
-        self.mjd_starts = np.array([too.mjd_start for too in self.targetoO_list])
-        durations = np.array([too.duration for too in self.targetoO_list])
+    def __init__(self, targeto_o_list):
+        self.targeto_o_list = targeto_o_list
+        self.mjd_starts = np.array([too.mjd_start for too in self.targeto_o_list])
+        durations = np.array([too.duration for too in self.targeto_o_list])
         self.mjd_ends = self.mjd_starts + durations
 
     def __call__(self, mjd):
         in_range = np.where((mjd > self.mjd_starts) & (mjd < self.mjd_ends))[0]
         result = None
         if in_range.size > 0:
-            result = [self.targetoO_list[i] for i in in_range]
+            result = [self.targeto_o_list[i] for i in in_range]
         return result

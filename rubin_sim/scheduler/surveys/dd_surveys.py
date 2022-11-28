@@ -9,12 +9,12 @@ import random
 from rubin_sim.utils import ddf_locations
 
 
-__all__ = ["Deep_drilling_survey", "generate_dd_surveys", "dd_bfs"]
+__all__ = ["DeepDrillingSurvey", "generate_dd_surveys", "dd_bfs"]
 
 log = logging.getLogger(__name__)
 
 
-class Deep_drilling_survey(BaseSurvey):
+class DeepDrillingSurvey(BaseSurvey):
     """A survey class for running deep drilling fields.
 
     Parameters
@@ -59,7 +59,7 @@ class Deep_drilling_survey(BaseSurvey):
         seed=42,
         detailers=None,
     ):
-        super(Deep_drilling_survey, self).__init__(
+        super(DeepDrillingSurvey, self).__init__(
             nside=nside,
             basis_functions=basis_functions,
             detailers=detailers,
@@ -189,19 +189,17 @@ def dd_bfs(
     sun_alt_limit = -18.0
     fractions = [0.00, aggressive_frac, frac_total]
     bfs = []
-    bfs.append(basis_functions.Not_twilight_basis_function(sun_alt_limit=sun_alt_limit))
-    bfs.append(basis_functions.Time_to_twilight_basis_function(time_needed=time_needed))
+    bfs.append(basis_functions.NotTwilightBasisFunction(sun_alt_limit=sun_alt_limit))
+    bfs.append(basis_functions.TimeToTwilightBasisFunction(time_needed=time_needed))
+    bfs.append(basis_functions.HourAngleLimitBasisFunction(RA=RA, ha_limits=ha_limits))
+    bfs.append(basis_functions.MoonDownBasisFunction())
     bfs.append(
-        basis_functions.Hour_Angle_limit_basis_function(RA=RA, ha_limits=ha_limits)
-    )
-    bfs.append(basis_functions.Moon_down_basis_function())
-    bfs.append(
-        basis_functions.Fraction_of_obs_basis_function(
+        basis_functions.FractionOfObsBasisFunction(
             frac_total=frac_total, survey_name=survey_name
         )
     )
     bfs.append(
-        basis_functions.Look_ahead_ddf_basis_function(
+        basis_functions.LookAheadDdfBasisFunction(
             frac_total,
             aggressive_frac,
             sun_alt_limit=sun_alt_limit,
@@ -212,13 +210,11 @@ def dd_bfs(
         )
     )
     bfs.append(
-        basis_functions.Soft_delay_basis_function(
+        basis_functions.SoftDelayBasisFunction(
             fractions=fractions, delays=delays, survey_name=survey_name
         )
     )
-    bfs.append(
-        basis_functions.Time_to_scheduled_basis_function(time_needed=time_needed)
-    )
+    bfs.append(basis_functions.TimeToScheduledBasisFunction(time_needed=time_needed))
 
     return bfs
 
@@ -264,7 +260,7 @@ def generate_dd_surveys(
         delays=delays,
     )
     surveys.append(
-        Deep_drilling_survey(
+        DeepDrillingSurvey(
             bfs,
             RA,
             dec,
@@ -296,7 +292,7 @@ def generate_dd_surveys(
     )
 
     surveys.append(
-        Deep_drilling_survey(
+        DeepDrillingSurvey(
             bfs,
             RA,
             dec,
@@ -327,7 +323,7 @@ def generate_dd_surveys(
         delays=delays,
     )
     surveys.append(
-        Deep_drilling_survey(
+        DeepDrillingSurvey(
             bfs,
             RA,
             dec,
@@ -358,7 +354,7 @@ def generate_dd_surveys(
         delays=delays,
     )
     surveys.append(
-        Deep_drilling_survey(
+        DeepDrillingSurvey(
             bfs,
             RA,
             dec,
@@ -381,13 +377,13 @@ def generate_dd_surveys(
     survey_name = "DD:EDFS"
     # Note the sequences need to be in radians since they are using observation objects directly
     # Coords from jc.cuillandre@cea.fr Oct 15, 2020
-    RAs = np.radians([locations["EDFS_a"][0], locations["EDFS_b"][0]])
+    r_as = np.radians([locations["EDFS_a"][0], locations["EDFS_b"][0]])
     decs = np.radians([locations["EDFS_a"][1], locations["EDFS_b"][1]])
     suffixes = [", a", ", b"]
     sequence = []
 
     for filtername, nvis in zip(filters, nviss):
-        for ra, dec, suffix in zip(RAs, decs, suffixes):
+        for ra, dec, suffix in zip(r_as, decs, suffixes):
             for num in range(nvis):
                 obs = empty_observation()
                 obs["filter"] = filtername
@@ -404,7 +400,7 @@ def generate_dd_surveys(
     ha_limits = ([0.0, 1.5], [22.5, 24.0])
     # And back to degrees for the basis function. Need to bump up the time needed since it's a double field.
     bfs = dd_bfs(
-        np.degrees(RAs[0]),
+        np.degrees(r_as[0]),
         np.degrees(decs[0]),
         survey_name,
         ha_limits,
@@ -414,9 +410,9 @@ def generate_dd_surveys(
         time_needed=120.0,
     )
     surveys.append(
-        Deep_drilling_survey(
+        DeepDrillingSurvey(
             bfs,
-            np.degrees(RAs),
+            np.degrees(r_as),
             np.degrees(decs),
             sequence=sequence,
             survey_name=survey_name,

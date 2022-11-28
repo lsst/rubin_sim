@@ -3,7 +3,7 @@
 
 {% set active_page = "stats" %}
 
-{% set run = runlist.getRun(runId) %}
+{% set run = runlist.get_run(runId) %}
 
 {% block moresidebar %}
 <ul>
@@ -11,8 +11,8 @@
     <li>
     <a href="#{{group}}">{{group}}</a>
   {% for subgroup in run.groups[group] %}
-    {% set metrics = run.metricsInSubgroup(group, subgroup) %}
-    {% set statNames = run.allStatNames(metrics) %}
+    {% set metrics = run.metrics_in_subgroup(group, subgroup) %}
+    {% set statNames = run.all_stat_names(metrics) %}
     {% if statNames|length > 0 %}
         <div id='smallindent'><a href="#{{group}}_{{subgroup}}">{{subgroup}}</a></div>
     {% endif %}
@@ -26,7 +26,7 @@
 {% block content %}
 
 <p>
-{% set resultsDb = run.getResultsDb() %}
+{% set resultsDb = run.get_results_db() %}
 Download <a href="{{resultsDb}}" download>summary results sqlite file</a>
 </p>
 
@@ -34,7 +34,7 @@ Download <a href="{{resultsDb}}" download>summary results sqlite file</a>
    {% set groupstart = True %}
    {% for subgroup in run.groups[group] %}
        {# Identify the metrics to put into table #}
-       {% set metrics = run.metricsInSubgroup(group, subgroup) %}
+       {% set metrics = run.metrics_in_subgroup(group, subgroup) %}
 
        {# add an anchor if it's the start of a group #}
        {% if groupstart %}

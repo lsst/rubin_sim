@@ -5,7 +5,7 @@
 {% extends "master.html" %}
 
 {% if runId < 0 %}
-  {% set runId = runlist.runs['mafRunId'][0] %}
+  {% set runId = runlist.runs['maf_run_id'][0] %}
 {% endif %}
 
 {% block pagetitle %}
@@ -27,7 +27,7 @@ List of all Opsim Runs
 <table class="sortable">
 <tr>
 {# Get basic run info to include into table (for table header) #}
-{% set runInfo = runlist.runInfo(runlist.runs[0]) %}
+{% set runInfo = runlist.run_info(runlist.runs[0]) %}
 {% for key in runInfo %}
   <th> {{ key|escape }} </th>
 {% endfor %}
@@ -36,11 +36,11 @@ List of all Opsim Runs
 
 {# Show run info for each run #}
 {% for run in runlist.runs %}
-  {% set runInfo = runlist.runInfo(run) %}
+  {% set runInfo = runlist.run_info(run) %}
   <tr>
   {% for key in runInfo %}
     {% if loop.index == 1 %}
-       <td><a href="allMetricResults?runId={{run['mafRunId']}}">{{runInfo[key]|escape }} </a> </td>
+       <td><a href="allMetricResults?runId={{run['maf_run_id']}}">{{runInfo[key]|escape }} </a> </td>
     {% elif key == 'SQLite File' %}
        <td><a href="{{runInfo[key][0]}}" download>{{runInfo[key][1]|escape}}</a> </td>
     {% elif key == 'ResultsDb' %}

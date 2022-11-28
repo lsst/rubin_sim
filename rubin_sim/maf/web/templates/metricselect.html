@@ -1,7 +1,7 @@
 {% extends "master.html" %}
 
 {% set active_page = "listMetrics" %}
-{% set run = runlist.getRun(runId) %}
+{% set run = runlist.get_run(runId) %}
 
 
 {% block moresidebar %}
@@ -30,7 +30,7 @@
 
 <table>
 
-{% set metricInfo = run.metricInfo(withDataLink=False) %}
+{% set metricInfo = run.metric_info(with_data_link=False) %}
 {% set mInfoLen = metricInfo|length  %}
 
 <tr>
@@ -58,18 +58,18 @@
     }}</em>;   Subgroup: <em>{{ subgroup|escape }}</em></a>
 	 </td>
         </tr>
-       {% set metrics = run.metricsInSubgroup(group, subgroup) %}
+       {% set metrics = run.metrics_in_subgroup(group, subgroup) %}
         {% for metric in metrics %}
-          {% set metricInfo = run.metricInfo(metric, withDataLink=False) %}
+          {% set metricInfo = run.metric_info(metric, with_data_link=False) %}
           <tr>
 	  <td>
-          <input type='checkbox' name="metricId" value="{{metric['metricId']}}">
+          <input type='checkbox' name="metric_id" value="{{metric['metric_id']}}">
 	  </td>
 	  {% for key in metricInfo %}
            <td>
 	   {% if key == 'Data' %}
-	       <a href="getData?datatype=npz&runId={{runId}}&metricId={{metric['metricId']}}">npz</a>
-	       <a href="getData?datatype=json&runId={{runId}}&metricId={{metric['metricId']}}">JSON</a>
+	       <a href="getData?datatype=npz&runId={{runId}}&metricId={{metric['metric_id']}}">npz</a>
+	       <a href="getData?datatype=json&runId={{runId}}&metricId={{metric['metric_id']}}">JSON</a>
 	   {% else %}
             {{ metricInfo[key]|escape }}
            {% endif %}

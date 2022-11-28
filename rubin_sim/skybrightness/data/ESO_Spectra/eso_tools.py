@@ -3,7 +3,7 @@ from astropy.io import fits
 import os, subprocess
 from lsst.sims.photUtils import Sed, Bandpass
 import healpy as hp
-from lsst.sims.utils import angularSeparation
+from lsst.sims.utils import angular_separation
 
 ## Tools for calling and reading things from the ESO sky model.
 # Downloaded and installed from XXX.
@@ -143,7 +143,7 @@ def generate_airglow(outDir=None):
 
     alts = 90.0 - np.degrees(np.arccos(1.0 / ams))
     airmasses = []
-    solarFlux = []
+    solar_flux = []
 
     for alt, am in zip(alts, ams):
         write_config(alt=alt, inc_glow="Y")
@@ -152,7 +152,7 @@ def generate_airglow(outDir=None):
         specs.append(spec)
         airmasses.append(am)
         # Not doing a range of these this time. I suppose I could.
-        solarFlux.append(130)
+        solar_flux.append(130)
 
     mags, filterwave = spec2mags(specs, wave)
     nwave = wave.size
@@ -160,17 +160,17 @@ def generate_airglow(outDir=None):
 
     dtype = [
         ("airmass", "float"),
-        ("solarFlux", "float"),
+        ("solar_flux", "float"),
         ("spectra", "float", (nwave)),
         ("mags", "float", (6)),
     ]
     spectra = np.zeros(nspec, dtype=dtype)
     spectra["airmass"] = airmasses
-    spectra["solarFlux"] = solarFlux
+    spectra["solar_flux"] = solar_flux
     spectra["spectra"] = specs
     spectra["mags"] = mags["mags"]
 
-    spectra.sort(order=["airmass", "solarFlux"])
+    spectra.sort(order=["airmass", "solar_flux"])
 
     np.savez(
         os.path.join(outDir, "airglowSpectra.npz"),
@@ -255,7 +255,7 @@ def merged_spec():
     spec["mags"] = -2.5 * np.log10(spec["mags"]) + np.log10(3631.0)
 
     np.savez(
-        os.path.join(outDir, "mergedSpec.npz"),
+        os.path.join(outDir, "merged_spec.npz"),
         spec=spec,
         wave=wave,
         filterWave=temp["filterWave"],
@@ -292,7 +292,7 @@ def generate_moon(outDir=None):
 
     for moonSunSep in moonSunSeps:
         for moonAlt in moonAlts:
-            angDists = angularSeparation(0.0, moonAlt, az, alt)
+            angDists = angular_separation(0.0, moonAlt, az, alt)
             for salt, saz, am, angDist, hpid in zip(alt, az, airmass, angDists, hpids):
                 write_config(
                     alpha=moonSunSep,

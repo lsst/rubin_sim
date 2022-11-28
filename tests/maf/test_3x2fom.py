@@ -3,7 +3,7 @@ import os
 import tempfile
 import shutil
 from rubin_sim.data import get_data_dir
-from rubin_sim.utils.CodeUtilities import sims_clean_up
+from rubin_sim.utils.code_utilities import sims_clean_up
 import rubin_sim.maf as maf
 
 
@@ -13,7 +13,7 @@ class Test3x2(unittest.TestCase):
         sims_clean_up()
 
     def setUp(self):
-        self.outDir = tempfile.mkdtemp(prefix="TMB")
+        self.out_dir = tempfile.mkdtemp(prefix="TMB")
 
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maps")),
@@ -22,46 +22,48 @@ class Test3x2(unittest.TestCase):
     def test_3x2(self):
         # Only testing that the metric successfully runs, not checking that the
         # output values are valid.
-        bundleList = []
+        bundle_list = []
         nside = 64
-        colmap = maf.batches.colMapDict.ColMapDict("fbs")
+        colmap = maf.batches.col_map_dict("fbs")
         nfilters_needed = 6
         lim_ebv = 0.2
         ptsrc_lim_mag_i_band = 25.9
-        m = maf.metrics.ExgalM5_with_cuts(
-            m5Col=colmap["fiveSigmaDepth"],
-            filterCol=colmap["filter"],
-            lsstFilter="i",
-            nFilters=nfilters_needed,
+        m = maf.metrics.ExgalM5WithCuts(
+            m5_col=colmap["fiveSigmaDepth"],
+            filter_col=colmap["filter"],
+            lsst_filter="i",
+            n_filters=nfilters_needed,
             extinction_cut=lim_ebv,
             depth_cut=ptsrc_lim_mag_i_band,
         )
-        s = maf.slicers.HealpixSlicer(nside=nside, useCache=False)
+        s = maf.slicers.HealpixSlicer(nside=nside, use_cache=False)
         sql = 'note not like "DD%" and night < 365'
-        ThreebyTwoSummary_simple = maf.metrics.StaticProbesFoMEmulatorMetricSimple(
-            nside=nside, metricName="3x2ptFoM_simple"
+        threeby_two_summary_simple = maf.metrics.StaticProbesFoMEmulatorMetricSimple(
+            nside=nside, metric_name="3x2ptFoM_simple"
         )
-        ThreebyTwoSummary = maf.mafContrib.StaticProbesFoMEmulatorMetric(
-            nside=nside, metricName="3x2ptFoM"
+        threeby_two_summary = maf.maf_contrib.StaticProbesFoMEmulatorMetric(
+            nside=nside, metric_name="3x2ptFoM"
         )
-        bundleList.append(
-            maf.metricBundles.MetricBundle(
-                m, s, sql, summaryMetrics=[ThreebyTwoSummary, ThreebyTwoSummary_simple]
+        bundle_list.append(
+            maf.metric_bundles.MetricBundle(
+                m,
+                s,
+                sql,
+                summary_metrics=[threeby_two_summary, threeby_two_summary_simple],
             )
         )
 
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
-        conn = maf.db.OpsimDatabase(database=database)
-        resultsDb = maf.db.ResultsDb(outDir=self.outDir)
-        bd = maf.metricBundles.makeBundlesDictFromList(bundleList)
-        bg = maf.metricBundles.MetricBundleGroup(
-            bd, conn, outDir=self.outDir, resultsDb=resultsDb
+        results_db = maf.db.ResultsDb(out_dir=self.out_dir)
+        bd = maf.metric_bundles.make_bundles_dict_from_list(bundle_list)
+        bg = maf.metric_bundles.MetricBundleGroup(
+            bd, database, out_dir=self.out_dir, results_db=results_db
         )
-        bg.runAll()
+        bg.run_all()
 
     def tearDown(self):
-        if os.path.isdir(self.outDir):
-            shutil.rmtree(self.outDir)
+        if os.path.isdir(self.out_dir):
+            shutil.rmtree(self.out_dir)
 
 
 if __name__ == "__main__":

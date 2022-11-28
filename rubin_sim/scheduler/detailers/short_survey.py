@@ -1,15 +1,15 @@
-from rubin_sim.scheduler.detailers import Base_detailer
+from rubin_sim.scheduler.detailers import BaseDetailer
 from rubin_sim.utils import survey_start_mjd
 import rubin_sim.scheduler.features as features
-from rubin_sim.scheduler.utils import hp_in_lsst_fov
+from rubin_sim.scheduler.utils import HpInLsstFov
 import numpy as np
 import healpy as hp
 import matplotlib.pylab as plt
 
-__all__ = ["Short_expt_detailer"]
+__all__ = ["ShortExptDetailer"]
 
 
-class Short_expt_detailer(Base_detailer):
+class ShortExptDetailer(BaseDetailer):
     """Check if the area has been observed with a short exposure time this year. If not, add some short exposures.
 
     Parameters
@@ -59,7 +59,7 @@ class Short_expt_detailer(Base_detailer):
             filtername=filtername, nside=nside, survey_name=self.survey_name
         )
         # Need to be able to look up hpids for each observation
-        self.obs2hpid = hp_in_lsst_fov(nside=nside)
+        self.obs2hpid = HpInLsstFov(nside=nside)
 
     def __call__(self, observation_list, conditions):
 

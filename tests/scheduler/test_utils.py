@@ -2,12 +2,12 @@ import unittest
 import os
 from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler.utils import season_calc
-from rubin_sim.scheduler.modelObservatory import Model_observatory
+from rubin_sim.scheduler.model_observatory import ModelObservatory
 from rubin_sim.scheduler.utils import run_info_table
 
 
 class TestFeatures(unittest.TestCase):
-    def testSeason(self):
+    def test_season(self):
         """
         Test that the season utils work as intended
         """
@@ -35,12 +35,12 @@ class TestFeatures(unittest.TestCase):
 
     def test_run_info_table(self):
         """Test run_info_table gets information"""
-        observatory = Model_observatory(
+        observatory = ModelObservatory(
             nside=8,
             mjd_start=59853.5,
             seeing_db=os.path.join(get_data_dir(), "tests", "seeing.db"),
         )
-        versionInfo = run_info_table(observatory)
+        version_info = run_info_table(observatory)
         # Make a minimal set of keys that probably ought to be in the info table
         # Update these if the value they're stored as changes (either from run_info_table or observatory.info)
         need_keys = [
@@ -50,7 +50,7 @@ class TestFeatures(unittest.TestCase):
             "site_models",
             "skybrightness_pre",
         ]
-        have_keys = list(versionInfo["Parameter"])
+        have_keys = list(version_info["Parameter"])
         for k in need_keys:
             self.assertTrue(k in have_keys)
 

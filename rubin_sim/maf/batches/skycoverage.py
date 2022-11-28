@@ -3,8 +3,8 @@
 import numpy as np
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metricBundles as mb
-from .colMapDict import ColMapDict
+import rubin_sim.maf.metric_bundles as mb
+from .col_map_dict import col_map_dict
 
 __all__ = ["meanRADec", "eastWestBias"]
 
@@ -25,7 +25,7 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
         Additional info_label to add before any below (i.e. "WFD").  Default is None.
     """
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     group = "RA Dec coverage"
@@ -46,7 +46,7 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
         metrics.MaxMetric(colmap["dec"]),
     ]
     for m in ra_metrics:
-        slicer = slicers.OneDSlicer(sliceColName=colmap["night"], binsize=1)
+        slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], binsize=1)
         if not colmap["raDecDeg"]:
             plotDict = {"yMin": np.radians(-5), "yMax": np.radians(365)}
         else:
@@ -56,22 +56,22 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
             slicer,
             extraSql,
             info_label=extraInfoLabel,
-            displayDict=displayDict,
-            plotDict=plotDict,
+            display_dict=displayDict,
+            plot_dict=plotDict,
         )
         bundleList.append(bundle)
 
     for m in dec_metrics:
-        slicer = slicers.OneDSlicer(sliceColName=colmap["night"], binsize=1)
+        slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], binsize=1)
         bundle = mb.MetricBundle(
-            m, slicer, extraSql, info_label=extraInfoLabel, displayDict=displayDict
+            m, slicer, extraSql, info_label=extraInfoLabel, display_dict=displayDict
         )
         bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)
 
 
 def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
@@ -90,7 +90,7 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=Non
         Additional info_label to add before any below (i.e. "WFD").  Default is None.
     """
     if colmap is None:
-        colmap = ColMapDict("opsimV4")
+        colmap = col_map_dict("opsimV4")
     bundleList = []
 
     group = "East vs West"
@@ -110,8 +110,8 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=Non
     ] = "Number of visits per night that occur with azimuth <= 180."
     if extraSql is not None:
         displayDict["caption"] += " With additional sql constraint %s." % extraSql
-    metric = metrics.CountMetric(colmap["night"], metricName="Nvisits East")
-    slicer = slicers.OneDSlicer(sliceColName=colmap["night"], binsize=1)
+    metric = metrics.CountMetric(colmap["night"], metric_name="Nvisits East")
+    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], binsize=1)
     sql = "%s <= %f" % (colmap["az"], eastvswest)
     if extraSql is not None:
         sql = "(%s) and (%s)" % (sql, extraSql)
@@ -121,16 +121,16 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=Non
         slicer,
         sql,
         info_label=extraInfoLabel,
-        displayDict=displayDict,
-        plotDict=plotDict,
+        display_dict=displayDict,
+        plot_dict=plotDict,
     )
     bundleList.append(bundle)
 
     displayDict["caption"] = "Number of visits per night that occur with azimuth > 180."
     if extraSql is not None:
         displayDict["caption"] += " With additional sql constraint %s." % extraSql
-    metric = metrics.CountMetric(colmap["night"], metricName="Nvisits West")
-    slicer = slicers.OneDSlicer(sliceColName=colmap["night"], binsize=1)
+    metric = metrics.CountMetric(colmap["night"], metric_name="Nvisits West")
+    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], binsize=1)
     sql = "%s > %f" % (colmap["az"], eastvswest)
     if extraSql is not None:
         sql = "(%s) and (%s)" % (sql, extraSql)
@@ -140,12 +140,12 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=Non
         slicer,
         sql,
         info_label=extraInfoLabel,
-        displayDict=displayDict,
-        plotDict=plotDict,
+        display_dict=displayDict,
+        plot_dict=plotDict,
     )
     bundleList.append(bundle)
 
-    # Set the runName for all bundles and return the bundleDict.
+    # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
-        b.setRunName(runName)
-    return mb.makeBundlesDictFromList(bundleList)
+        b.set_run_name(runName)
+    return mb.make_bundles_dict_from_list(bundleList)

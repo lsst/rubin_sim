@@ -1,3 +1,2 @@
-from .opsimDatabase import *
-from .resultsDb import *
-from .trackingDb import *
+from .results_db import *
+from .tracking_db import *

@@ -1,15 +1,15 @@
 import numpy as np
 from rubin_sim.scheduler.utils import scheduled_observation
 from rubin_sim.scheduler.surveys import BaseSurvey
-from rubin_sim.utils import _approx_RaDec2AltAz
+from rubin_sim.utils import _approx_ra_dec2_alt_az
 import logging
 
 log = logging.getLogger(__name__)
 
-__all__ = ["Long_gap_survey"]
+__all__ = ["LongGapSurvey"]
 
 
-class Long_gap_survey(BaseSurvey):
+class LongGapSurvey(BaseSurvey):
     """
     Parameters
     ----------
@@ -29,7 +29,7 @@ class Long_gap_survey(BaseSurvey):
     hour_step : float (0.5)
         The amount of time to step scheduled observations forward if they could try to execute in the
         zenith avoidance area (hours). Only used if `avoid_zenith` is True.
-    HA_min(_max) : float (0,24)
+    ha_min(_max) : float (0,24)
         Trying to set so they don't acctually get used.
 
     """
@@ -43,8 +43,8 @@ class Long_gap_survey(BaseSurvey):
         scripted_tol=2.0,
         alt_min=20,
         alt_max=80.0,
-        HA_min=24,
-        HA_max=0.0,
+        ha_min=24,
+        ha_max=0.0,
         flush_time=2.0,
         dist_tol=1.0,
         block_length=33.0,
@@ -65,8 +65,8 @@ class Long_gap_survey(BaseSurvey):
         self.scripted_tol = scripted_tol / 24.0  # To days
         self.alt_min = np.radians(alt_min)
         self.alt_max = np.radians(alt_max)
-        self.HA_min = HA_min
-        self.HA_max = HA_max
+        self.ha_min = ha_min
+        self.ha_max = ha_max
         self.flush_time = flush_time / 24.0
         self.dist_tol = np.radians(dist_tol)
         self.block_length = block_length / 60 / 24.0
@@ -143,8 +143,8 @@ class Long_gap_survey(BaseSurvey):
                 sched_array["mjd_tol"] = self.scripted_tol
                 sched_array["alt_min"] = self.alt_min
                 sched_array["alt_max"] = self.alt_max
-                sched_array["HA_min"] = self.HA_min
-                sched_array["HA_max"] = self.HA_max
+                sched_array["HA_min"] = self.ha_min
+                sched_array["HA_max"] = self.ha_max
                 sched_array["flush_by_mjd"] = obs_array["mjd"] + self.flush_time
                 sched_array["dist_tol"] = self.dist_tol
                 if self.avoid_zenith:
@@ -158,7 +158,7 @@ class Long_gap_survey(BaseSurvey):
                     )
                     # Let's compute the alt of everything at earliest and scheduled
                     for mjd in mjds:
-                        alt, az = _approx_RaDec2AltAz(
+                        alt, az = _approx_ra_dec2_alt_az(
                             sched_array["RA"],
                             sched_array["dec"],
                             conditions.site.latitude_rad,
@@ -180,7 +180,7 @@ class Long_gap_survey(BaseSurvey):
                         )
                         # Let's compute the alt of everything at earliest and scheduled
                         for mjd in mjds:
-                            alt, az = _approx_RaDec2AltAz(
+                            alt, az = _approx_ra_dec2_alt_az(
                                 sched_array["RA"],
                                 sched_array["dec"],
                                 conditions.site.latitude_rad,
