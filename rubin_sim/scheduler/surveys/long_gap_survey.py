@@ -2,6 +2,7 @@ import numpy as np
 from rubin_sim.scheduler.utils import scheduled_observation
 from rubin_sim.scheduler.surveys import BaseSurvey
 from rubin_sim.utils import _approx_ra_dec2_alt_az
+from copy import copy
 import logging
 
 log = logging.getLogger(__name__)
@@ -93,7 +94,7 @@ class LongGapSurvey(BaseSurvey):
         if conditions.night != self.night:
             # Clear out the scheduled observations
             self.scripted_survey.clear_script()
-            self.night = conditions.night + 0
+            self.night = copy(conditions.night)
             self.gap = self.gaps[conditions.night]
             time_remaining = conditions.sun_n18_rising - conditions.mjd
             if self.gap > time_remaining:

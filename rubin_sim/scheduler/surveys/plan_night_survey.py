@@ -4,6 +4,7 @@ import rubin_sim.scheduler.basis_functions as bfs
 import numpy as np
 from rubin_sim.scheduler.utils import empty_observation, set_default_nside
 import healpy as hp
+from copy import copy
 import matplotlib.pylab as plt
 
 
@@ -108,7 +109,7 @@ class PlanAheadSurvey(BlobSurvey):
         if self._check_feasibility(conditions):
             if self.night_cad != conditions.night:
                 self.check_night(conditions)
-                self.night_cad = conditions.night + 0
+                self.night_cad = copy(conditions.night)
 
             if self.scheduled_obs is not None:
                 # If there are scheduled observations, and we are in the correct time window

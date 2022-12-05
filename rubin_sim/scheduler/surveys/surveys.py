@@ -9,7 +9,7 @@ from rubin_sim.scheduler.utils import (
     gnomonic_project_toxy,
     tsp_convex,
 )
-import copy
+from copy import copy
 from rubin_sim.utils import (
     _angular_separation,
     _hpid2_ra_dec,
@@ -74,7 +74,7 @@ class GreedySurvey(BaseMarkovSurvey):
         # Check if we need to spin the tesselation
         if self.dither & (conditions.night != self.night):
             self._spin_fields(conditions)
-            self.night = conditions.night + 0
+            self.night = copy(conditions.night)
 
         # Let's find the best N from the fields
         order = np.argsort(self.reward)[::-1]
@@ -445,7 +445,7 @@ class BlobSurvey(GreedySurvey):
         # Check if we need to spin the tesselation
         if self.dither & (conditions.night != self.night):
             self._spin_fields(conditions)
-            self.night = conditions.night + 0
+            self.night = copy(conditions.night)
 
         if self.grow_blob:
             # Note, returns highest first
