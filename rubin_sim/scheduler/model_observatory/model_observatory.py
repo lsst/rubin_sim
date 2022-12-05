@@ -238,7 +238,7 @@ class ModelObservatory(object):
 
         self.conditions.mjd = self.mjd
 
-        self.conditions.night = self.night
+        self.conditions.night = int(self.night)
         # Current time as astropy time
         current_time = Time(self.mjd, format="mjd")
 
@@ -319,7 +319,6 @@ class ModelObservatory(object):
         self.conditions.cumulative_azimuth_rad = self.observatory.cumulative_azimuth_rad
 
         # Add in the almanac information
-        self.conditions.night = self.night
         self.conditions.sunset = self.almanac.sunsets["sunset"][self.almanac_indx]
         self.conditions.sun_n12_setting = self.almanac.sunsets["sun_n12_setting"][
             self.almanac_indx

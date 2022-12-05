@@ -74,7 +74,7 @@ class GreedySurvey(BaseMarkovSurvey):
         # Check if we need to spin the tesselation
         if self.dither & (conditions.night != self.night):
             self._spin_fields(conditions)
-            self.night = conditions.night.copy()
+            self.night = conditions.night + 0
 
         # Let's find the best N from the fields
         order = np.argsort(self.reward)[::-1]
@@ -445,7 +445,7 @@ class BlobSurvey(GreedySurvey):
         # Check if we need to spin the tesselation
         if self.dither & (conditions.night != self.night):
             self._spin_fields(conditions)
-            self.night = conditions.night.copy()
+            self.night = conditions.night + 0
 
         if self.grow_blob:
             # Note, returns highest first

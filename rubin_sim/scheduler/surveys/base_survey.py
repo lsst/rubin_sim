@@ -466,7 +466,7 @@ class BaseMarkovSurvey(BaseSurvey):
         # Check if we need to spin the tesselation
         if self.dither & (conditions.night != self.night):
             self._spin_fields(conditions)
-            self.night = conditions.night.copy()
+            self.night = conditions.night + 0
 
         # XXX Use self.reward to decide what to observe.
         return None
