@@ -21,7 +21,7 @@ class UseMetric(BaseMetric):  # pylint: disable=too-few-public-methods
 
     def __init__(self, note_col="note", **kwargs):
         self.note_col = note_col
-        super().__init__(col=[note_col], metricDtype="object", **kwargs)
+        super().__init__(col=[note_col], metric_dtype="object", **kwargs)
 
     def run(self, data_slice, slice_point=None):  # pylint: disable=invalid-name
         """Run the metric.
@@ -50,11 +50,12 @@ class UseMetric(BaseMetric):  # pylint: disable=too-few-public-methods
             assert np.all(notes == note)
 
         note_elems = note.replace(":", ", ").split(", ")
+        # XXX--survey note strings should not be hard-coded here.
         if note_elems[0] == "greedy":
             use_name = note_elems[0]
         if note_elems[0] == "DD":
             use_name = note_elems[1]
-        if note_elems[0] == "blob":
+        if (note_elems[0] == "blob") | (note_elems[0] == "blob_twi"):
             use_name = "wide with only IR"
             for band in visible_bands:
                 if band in note_elems[1]:

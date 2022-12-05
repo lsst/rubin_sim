@@ -1,5 +1,5 @@
 import numpy as np
-from copy import deepcopy
+from copy import deepcopy, copy
 import pandas as pd
 from rubin_sim.scheduler.utils import (
     empty_observation,
@@ -398,7 +398,7 @@ class BaseMarkovSurvey(BaseSurvey):
 
         # rotate longitude
         ra = (self.fields_init["RA"] + lon) % (2.0 * np.pi)
-        dec = self.fields_init["dec"] + 0
+        dec = copy(self.fields_init["dec"])
 
         # Now to rotate ra and dec about the x-axis
         x, y, z = thetaphi2xyz(ra, dec + np.pi / 2.0)
@@ -420,7 +420,7 @@ class BaseMarkovSurvey(BaseSurvey):
         """If we want to smooth the reward function."""
         if hp.isnpixok(self.reward.size):
             # Need to swap NaNs to hp.UNSEEN so smoothing doesn't spread mask
-            reward_temp = self.reward + 0
+            reward_temp = copy(self.reward)
             mask = np.isnan(reward_temp)
             reward_temp[mask] = hp.UNSEEN
             self.reward_smooth = hp.sphtfunc.smoothing(
@@ -466,7 +466,7 @@ class BaseMarkovSurvey(BaseSurvey):
         # Check if we need to spin the tesselation
         if self.dither & (conditions.night != self.night):
             self._spin_fields(conditions)
-            self.night = conditions.night.copy()
+            self.night = copy(conditions.night)
 
         # XXX Use self.reward to decide what to observe.
         return None

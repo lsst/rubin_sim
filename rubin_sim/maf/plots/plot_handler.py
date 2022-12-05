@@ -370,8 +370,8 @@ class PlotHandler(object):
                 xlabel = self.joint_metric_names
                 ylabel = set()
                 for m_b in self.m_bundles:
-                    if "ylabel" in m_b.plotDict:
-                        ylabel.add(m_b.plotDict["ylabel"])
+                    if "ylabel" in m_b.plot_dict:
+                        ylabel.add(m_b.plot_dict["ylabel"])
                 if len(ylabel) == 1:
                     ylabel = list(ylabel)[0]
                 else:
@@ -516,12 +516,12 @@ class PlotHandler(object):
 
     def _check_plot_dicts(self):
         """
-        Check to make sure there are no conflicts in the plotDicts that are being used in the same subplot.
+        Check to make sure there are no conflicts in the plot_dicts that are being used in the same subplot.
         """
         # Check that the length is OK
         if len(self.plot_dicts) != len(self.m_bundles):
             raise ValueError(
-                "plotDicts (%i) must be same length as mBundles (%i)"
+                "plot_dicts (%i) must be same length as mBundles (%i)"
                 % (len(self.plot_dicts), len(self.m_bundles))
             )
 
@@ -529,7 +529,7 @@ class PlotHandler(object):
         keys2_check = ["xlim", "ylim", "color_min", "color_max", "title"]
 
         # Identify how many subplots there are. If there are more than one, just don't change anything.
-        # This assumes that if there are more than one, the plotDicts are actually all compatible.
+        # This assumes that if there are more than one, the plot_dicts are actually all compatible.
         subplots = set()
         for pd in self.plot_dicts:
             if "subplot" in pd:
@@ -554,7 +554,7 @@ class PlotHandler(object):
                             pd["title"] = title
                     else:
                         warnings.warn(
-                            'Found more than one value to be set for "%s" in the plotDicts.'
+                            'Found more than one value to be set for "%s" in the plot_dicts.'
                             % (key)
                             + " Will reset to default value. (found values %s)" % values
                         )
@@ -601,7 +601,7 @@ class PlotHandler(object):
             plot_type = "Combo" + plot_type
         # Make plot.
         fignum = None
-        for m_b, plotDict in zip(self.m_bundles, self.plot_dicts):
+        for m_b, plot_dict in zip(self.m_bundles, self.plot_dicts):
             if m_b.metric_values is None:
                 # Skip this metricBundle.
                 msg = 'MetricBundle (%s) has no attribute "metric_values".' % (
@@ -611,7 +611,7 @@ class PlotHandler(object):
                 warnings.warn(msg)
             else:
                 fignum = plot_func(
-                    m_b.metric_values, m_b.slicer, plotDict, fignum=fignum
+                    m_b.metric_values, m_b.slicer, plot_dict, fignum=fignum
                 )
         # Add a legend if more than one metricValue is being plotted or if legendloc is specified.
         legendloc = None
