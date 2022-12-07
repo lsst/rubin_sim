@@ -32,7 +32,7 @@ class Conditions(object):
     """
 
     global_maps = set(["ra", "dec", "slewtime", "airmass", "zeros_map", "nan_map"])
-    by_band_maps =  set(["skybrightness", "fwhm_eff", "m5_depth"])
+    by_band_maps = set(["skybrightness", "fwhm_eff", "m5_depth"])
 
     def __init__(
         self,
@@ -610,7 +610,7 @@ class Conditions(object):
         print(event_df.to_markdown(), file=output)
 
         map_stats = []
-        for map_name in self.global_maps - set(['zeros_map', 'nan_map']):
+        for map_name in self.global_maps - set(["zeros_map", "nan_map"]):
             try:
                 values = getattr(self, map_name)
                 map_stats.append(
