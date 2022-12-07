@@ -551,8 +551,8 @@ class Conditions(object):
             positions.append(
                 {
                     "name": planet_name,
-                    "RA": np.asscalar(self.planet_positions[planet_name + "_RA"]),
-                    "decl": np.asscalar(self.planet_positions[planet_name + "_dec"]),
+                    "RA": float(self.planet_positions[planet_name + "_RA"]),
+                    "decl": float(self.planet_positions[planet_name + "_dec"]),
                 }
             )
         positions.append(
