@@ -16,6 +16,7 @@ from rubin_sim.scheduler.utils import (
     season_calc,
     smallest_signed_angle,
 )
+from rubin_sim.utils import calc_lmst_last
 
 __all__ = ["Conditions"]
 
@@ -288,6 +289,9 @@ class Conditions(object):
 
     @property
     def lmst(self):
+        if self._lmst is None:
+            self._lmst = calc_lmst_last(self.mjd, self.site.longitude_rad)[0]
+
         return self._lmst
 
     @lmst.setter
@@ -302,7 +306,7 @@ class Conditions(object):
         return self._HA
 
     def calc_ha(self):
-        self._HA = np.radians(self._lmst * 360.0 / 24.0) - self.ra
+        self._HA = np.radians(self.lmst * 360.0 / 24.0) - self.ra
         self._HA[np.where(self._HA < 0)] += 2.0 * np.pi
 
     @property
