@@ -31,6 +31,9 @@ class Conditions(object):
     given by self.mjd
     """
 
+    global_maps = set(["ra", "dec", "slewtime", "airmass", "zeros_map", "nan_map"])
+    by_band_maps = set(["skybrightness", "fwhm_eff", "m5_depth"])
+
     def __init__(
         self,
         nside=None,
@@ -595,7 +598,7 @@ class Conditions(object):
         for event in events:
             try:
                 mjd = getattr(self, event)
-                time = pd.to_datetime(mjd + 2400000.5, unit="D", origin="julian")
+                time = pd.to_datetime(float(mjd) + 2400000.5, unit="D", origin="julian")
                 event_rows.append({"event": event, "MJD": mjd, "date": time})
             except AttributeError:
                 pass
@@ -607,22 +610,9 @@ class Conditions(object):
         print(event_df.to_markdown(), file=output)
 
         map_stats = []
-        for map_name in ("ra", "dec", "slewtime", "airmass"):
-            values = getattr(self, map_name)
-            map_stats.append(
-                {
-                    "map": map_name,
-                    "nside": hp.npix2nside(len(values)),
-                    "min": np.nanmin(values),
-                    "max": np.nanmax(values),
-                    "median": np.nanmedian(values),
-                }
-            )
-
-        for base_map_name in ("skybrightness", "FWHMeff"):
-            for band in "ugrizy":
-                values = getattr(self, base_map_name)[band]
-                map_name = f"{base_map_name}_{band}"
+        for map_name in self.global_maps - set(["zeros_map", "nan_map"]):
+            try:
+                values = getattr(self, map_name)
                 map_stats.append(
                     {
                         "map": map_name,
@@ -632,6 +622,26 @@ class Conditions(object):
                         "median": np.nanmedian(values),
                     }
                 )
+            except AttributeError:
+                pass
+
+        for base_map_name in self.by_band_maps:
+            for band in "ugrizy":
+                try:
+                    values = getattr(self, base_map_name)[band]
+                    map_name = f"{base_map_name}_{band}"
+                    map_stats.append(
+                        {
+                            "map": map_name,
+                            "nside": hp.npix2nside(len(values)),
+                            "min": np.nanmin(values),
+                            "max": np.nanmax(values),
+                            "median": np.nanmedian(values),
+                        }
+                    )
+                except AttributeError:
+                    pass
+
         maps_df = pd.DataFrame(map_stats).set_index("map")
         print("", file=output)
         print("Maps", file=output)
