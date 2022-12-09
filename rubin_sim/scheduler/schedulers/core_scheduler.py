@@ -402,14 +402,17 @@ class CoreScheduler(object):
 
         print("", file=output)
         print("## Queue", file=output)
-        print(
-            pd.concat(pd.DataFrame(q) for q in self.queue)[
-                ["ID", "flush_by_mjd", "RA", "dec", "filter", "exptime", "note"]
-            ]
-            .set_index("ID")
-            .to_markdown(),
-            file=output,
-        )
+        if len(self.queue) > 0:
+            print(
+                pd.concat(pd.DataFrame(q) for q in self.queue)[
+                    ["ID", "flush_by_mjd", "RA", "dec", "filter", "exptime", "note"]
+                ]
+                .set_index("ID")
+                .to_markdown(),
+                file=output,
+            )
+        else:
+            print("Queue is empty.")
 
         result = output.getvalue()
         return result
@@ -437,10 +440,17 @@ class CoreScheduler(object):
         surveys = []
         survey_list = self.survey_lists[tier]
         for survey_list_elem, survey in enumerate(survey_list):
-            reward = np.max(survey.reward) if tier <= self.survey_index[0] else None
-            chosen = (tier == self.survey_index[0]) and (
-                survey_list_elem == self.survey_index[1]
-            )
+            try:
+                reward = np.max(survey.reward) if tier <= self.survey_index[0] else None
+            except TypeError:
+                reward = None
+
+            try:
+                chosen = (tier == self.survey_index[0]) and (
+                    survey_list_elem == self.survey_index[1]
+                )
+            except:
+                chosen = False
             surveys.append({"survey": str(survey), "reward": reward, "chosen": chosen})
 
         df = pd.DataFrame(surveys).set_index("survey")

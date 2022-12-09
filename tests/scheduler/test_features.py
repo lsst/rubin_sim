@@ -40,6 +40,18 @@ class TestFeatures(unittest.TestCase):
         self.assertIsInstance(repr(conditions), str)
         self.assertIsInstance(str(conditions), str)
 
+        step_days = 1.0
+
+        # Number of sidereal days in a standard day
+        sidereal_hours_per_day = 24 * (24.0 / 23.9344696)
+        initial_lmst = float(conditions.lmst)
+        conditions.mjd = conditions.mjd + step_days
+        new_lmst = float(conditions.lmst)
+        self.assertAlmostEqual(
+            new_lmst,
+            (initial_lmst + step_days * sidereal_hours_per_day) % 24,
+        )
+
     def test_note_last_observed(self):
 
         note_last_observed = features.NoteLastObserved(note="test")

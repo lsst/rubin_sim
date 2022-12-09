@@ -133,3 +133,6 @@ version.py
 
 # pycharm files
 .idea/
+
+# vscode files
+.vscode/
