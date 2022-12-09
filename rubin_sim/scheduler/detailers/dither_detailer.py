@@ -65,7 +65,7 @@ class DitherDetailer(BaseDetailer):
 
         obs_array = np.concatenate(observation_list)
         new_ra, new_dec = gnomonic_project_tosky(
-            offsets[0, :], offsets[1, :], obs_array["RA"], obs_array["dec"]
+            offsets[:, 0], offsets[:, 1], obs_array["RA"], obs_array["dec"]
         )
         for i, obs in enumerate(observation_list):
             observation_list[i]["RA"] = new_ra[i]
