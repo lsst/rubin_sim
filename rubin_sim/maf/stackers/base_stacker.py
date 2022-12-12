@@ -120,7 +120,7 @@ class BaseStacker(with_metaclass(StackerRegistry, object)):
         If columns already present in sim_data, just allows 'run' method to overwrite.
         Returns sim_data array with these columns added (so 'run' method can set their values).
         """
-        if not hasattr(self, "colsAddedDtypes") or self.cols_added_dtypes is None:
+        if not hasattr(self, "cols_added_dtypes") or self.cols_added_dtypes is None:
             self.cols_added_dtypes = [float for col in self.cols_added]
         # Create description of new recarray.
         newdtype = sim_data.dtype.descr

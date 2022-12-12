@@ -75,12 +75,12 @@ class NYoungStarsMetric(BaseMetric):
         Whether the metric will return the maximum distance that can be reached for each slice_point.
         Default is False.
     crowding_error: float (0.25)
-        Crowding error that gets passed to CrowdingM5Metric. 
+        Crowding error that gets passed to CrowdingM5Metric.
 
     Keyword arguments
     -----------------
     return_distance : bool, opt
-        
+
     """
 
     def __init__(
@@ -122,7 +122,8 @@ class NYoungStarsMetric(BaseMetric):
         self.filters = list(self.mags.keys())
         self.snrs = snrs
         self.m5crowding = {
-            f: CrowdingM5Metric(crowding_error=crowding_error, filtername=f) for f in self.filters
+            f: CrowdingM5Metric(crowding_error=crowding_error, filtername=f)
+            for f in self.filters
         }
 
     def run(self, data_slice, slice_point=None):
@@ -144,9 +145,11 @@ class NYoungStarsMetric(BaseMetric):
                 in_filt = np.where(data_slice[self.filter_col] == filtername)[0]
                 # Calculate coadded depth per filter
                 depth_m5 = 1.25 * np.log10(
-                    np.sum(10.0 ** (0.8 * data_slice[self.m5Col][in_filt]))
+                    np.sum(10.0 ** (0.8 * data_slice[self.m5_col][in_filt]))
                 )
-                depth_crowding = self.m5crowding[filtername].run(data_slice, slice_point)
+                depth_crowding = self.m5crowding[filtername].run(
+                    data_slice, slice_point
+                )
                 depths[filtername] = min(depth_m5, depth_crowding)
 
         # solve for the distances in each filter where we hit the required SNR
