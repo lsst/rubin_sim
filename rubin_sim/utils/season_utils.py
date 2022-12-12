@@ -9,7 +9,7 @@ def calc_season(ra, time):
     passes through this RA (this marks the start of a 'season').
 
     Note that seasons should be calculated using the RA of a fixed point on the sky, such as
-    the slicePoint['ra'] if calculating season values for a series of opsim pointings on the sky.
+    the slice_point['ra'] if calculating season values for a series of opsim pointings on the sky.
     To convert to integer seasons, use np.floor(seasons)
 
     Parameters

@@ -10,7 +10,7 @@ __all__ = ["SNSLMetric"]
 
 
 class SNSLMetric(metrics.BaseMetric):
-    """Calculate  the number of expected well-measured strongly lensed SN (per dataslice).
+    """Calculate  the number of expected well-measured strongly lensed SN (per data_slice).
 
     The number of expected strongly lensed SN detections with a well-measured time delay is given by:
 
@@ -112,7 +112,7 @@ class SNSLMetric(metrics.BaseMetric):
         Parameters
         -----------
         area : float
-            Area in square degrees related to this dataslice (sq deg)
+            Area in square degrees related to this data_slice (sq deg)
         gap_median : float
             median gap between nights with visits (days) - any filter
         cumul_season : float

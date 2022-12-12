@@ -7,7 +7,7 @@ __all__ = ["YearCoverageMetric"]
 class YearCoverageMetric(BaseMetric):
     """Count the number of bins covered by night_col -- default bins are 'years'.
     Handy for checking that a point on the sky gets observed every year, as the default settings
-    result in the metric returning the number years in the dataslice (when used with a HealpixSlicer).
+    result in the metric returning the number years in the data_slice (when used with a HealpixSlicer).
 
     Parameters
     ----------

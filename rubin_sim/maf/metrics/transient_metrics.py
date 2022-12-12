@@ -161,7 +161,7 @@ class TransientMetric(BaseMetric):
         data_slice : numpy.array
             Numpy structured array containing the data related to the visits provided by the slicer.
         slice_point : dict, optional
-            Dictionary containing information about the slicepoint currently active in the slicer.
+            Dictionary containing information about the slice_point currently active in the slicer.
 
         Returns
         -------

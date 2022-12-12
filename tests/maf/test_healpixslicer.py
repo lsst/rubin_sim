@@ -309,7 +309,7 @@ class TestHealpixChipGap(unittest.TestCase):
         for s in self.testslicer:
             ra = s["slice_point"]["ra"]
             dec = s["slice_point"]["dec"]
-            # Find the points of 'dv' which are within self.radius of this slicepoint
+            # Find the points of 'dv' which are within self.radius of this slice_point
             distances = calc_dist_vincenty(ra, dec, self.dv["ra"], self.dv["dec"])
             didxs = np.where(distances <= np.radians(self.radius))
             # find the indexes of dv which the slicer says are in the camera footprint

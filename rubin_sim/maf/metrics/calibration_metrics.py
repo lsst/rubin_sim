@@ -116,31 +116,31 @@ class ParallaxMetric(BaseMetric):
             sigma = np.sqrt(1.0 / (1.0 / sigma_ra**2 + 1.0 / sigma_dec**2)) * 1e3
         return sigma
 
-    def run(self, dataslice, slice_point=None):
-        filters = np.unique(dataslice[self.filter_col])
+    def run(self, data_slice, slice_point=None):
+        filters = np.unique(data_slice[self.filter_col])
         if hasattr(filters[0], "decode"):
             filters = [str(f.decode("utf-8")) for f in filters]
-        snr = np.zeros(len(dataslice), dtype="float")
+        snr = np.zeros(len(data_slice), dtype="float")
         # compute SNR for all observations
         for filt in filters:
-            good = np.where(dataslice[self.filter_col] == filt)
+            good = np.where(data_slice[self.filter_col] == filt)
             snr[good] = mafUtils.m52snr(
-                self.mags[str(filt)], dataslice[self.m5_col][good]
+                self.mags[str(filt)], data_slice[self.m5_col][good]
             )
         position_errors = np.sqrt(
-            mafUtils.astrom_precision(dataslice[self.seeing_col], snr) ** 2
+            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2
             + self.atm_err**2
         )
         sigma = self._final_sigma(
-            position_errors, dataslice["ra_pi_amp"], dataslice["dec_pi_amp"]
+            position_errors, data_slice["ra_pi_amp"], data_slice["dec_pi_amp"]
         )
         if self.normalize:
             # Leave the dec parallax as zero since one can't have ra and dec maximized at the same time.
             sigma = (
                 self._final_sigma(
                     position_errors,
-                    dataslice["ra_pi_amp"] * 0 + 1.0,
-                    dataslice["dec_pi_amp"] * 0,
+                    data_slice["ra_pi_amp"] * 0 + 1.0,
+                    data_slice["dec_pi_amp"] * 0,
                 )
                 / sigma
             )
@@ -241,29 +241,29 @@ class ProperMotionMetric(BaseMetric):
             self.comment += "obtained on the first and last days of the survey). "
             self.comment += "Values closer to 1 indicate more optimal scheduling."
 
-    def run(self, dataslice, slice_point=None):
-        filters = np.unique(dataslice["filter"])
+    def run(self, data_slice, slice_point=None):
+        filters = np.unique(data_slice["filter"])
         filters = [str(f) for f in filters]
-        precis = np.zeros(dataslice.size, dtype="float")
+        precis = np.zeros(data_slice.size, dtype="float")
         for f in filters:
-            observations = np.where(dataslice["filter"] == f)
+            observations = np.where(data_slice["filter"] == f)
             if np.size(observations[0]) < 2:
                 precis[observations] = self.badval
             else:
                 snr = mafUtils.m52snr(
-                    self.mags[f], dataslice[self.m5_col][observations]
+                    self.mags[f], data_slice[self.m5_col][observations]
                 )
                 precis[observations] = mafUtils.astrom_precision(
-                    dataslice[self.seeing_col][observations], snr
+                    data_slice[self.seeing_col][observations], snr
                 )
                 precis[observations] = np.sqrt(
                     precis[observations] ** 2 + self.atm_err**2
                 )
         good = np.where(precis != self.badval)
-        result = mafUtils.sigma_slope(dataslice[self.mjd_col][good], precis[good])
+        result = mafUtils.sigma_slope(data_slice[self.mjd_col][good], precis[good])
         result = result * 365.25 * 1e3  # Convert to mas/yr
         if (self.normalize) & (good[0].size > 0):
-            new_dates = dataslice[self.mjd_col][good] * 0
+            new_dates = data_slice[self.mjd_col][good] * 0
             n_dates = new_dates.size
             new_dates[n_dates // 2 :] = self.baseline * 365.25
             result = (
