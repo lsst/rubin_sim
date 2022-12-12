@@ -197,12 +197,12 @@ class HealpixComCamSlicer(HealpixSlicer):
                             ]
                         )
                     )
-                    # Check if the slicepoint is inside the image corners and append to list
+                    # Check if the slice_point is inside the image corners and append to list
                     if bbPath.contains_point((0.0, 0.0)):
                         indices.append(ind)
 
-            # Loop through all the slice_point keys. If the first dimension of slicepoint[key] has
-            # the same shape as the slicer, assume it is information per slicepoint.
+            # Loop through all the slice_point keys. If the first dimension of slice_point[key] has
+            # the same shape as the slicer, assume it is information per slice_point.
             # Otherwise, pass the whole slice_point[key] information. Useful for stellar LF maps
             # where we want to pass only the relevant LF and the bins that go with it.
 

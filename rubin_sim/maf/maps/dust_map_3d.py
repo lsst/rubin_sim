@@ -12,15 +12,15 @@ class DustMap3D(BaseMap):
     """The DustMap3D provides a `~rubin_sim.maf.map` to hold 3d EBV data.
 
     Adds the following keys to the slicePoints:
-    ebv3d_dists - the distances from the 3d dust map at each slicePoint (in pc)
-    ebv3d_ebvs - the E(B-V) values corresponding to each distance at each slicePoint
+    ebv3d_dists - the distances from the 3d dust map at each slice_point (in pc)
+    ebv3d_ebvs - the E(B-V) values corresponding to each distance at each slice_point
     ebv3d_ebv_at_<dist_pc> - the (single) ebv value at the nearest distance to dist_pc
     ebv3d_dist_at_<d_mag> - the (single) distance value corresponding to where extinction and
     distance modulus combine to create a m-Mo value of d_mag, for the filter specified in filtername (in pc).
     Note that <dist_pc> and <d_mag> will be formatted with a single decimal place.
 
     The additional method 'distance_at_mag' can be called either with the distances and ebv values for the
-    entire map or with the values from a single slicePoint, in order to calculate the distance at which
+    entire map or with the values from a single slice_point, in order to calculate the distance at which
     extinction and distance modulus combine to create a m-Mo value closest to 'dmag' in any filter.
     This is the same value as would be reported in ebv3d_dist_at_<d_mag>, but can be calculated on the fly,
     allowing variable filters and dmag values.
@@ -116,8 +116,8 @@ class DustMap3D(BaseMap):
         return slice_points
 
     def distance_at_dmag(self, dmag, dists, ebvs, filtername=None):
-        # Provide this as a method which could be used for a single slicePoint as well as for whole map
-        # (single slicePoint means you could calculate this for any arbitrary magnitude or filter if needed)
+        # Provide this as a method which could be used for a single slice_point as well as for whole map
+        # (single slice_point means you could calculate this for any arbitrary magnitude or filter if needed)
         if filtername is None:
             filtername = self.filtername
         # calculate distance modulus for each distance

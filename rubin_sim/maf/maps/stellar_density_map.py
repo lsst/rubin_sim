@@ -10,7 +10,7 @@ __all__ = ["StellarDensityMap"]
 
 class StellarDensityMap(BaseMap):
     """
-    Return the cumulative stellar luminosity function for each slicepoint. Units of stars per sq degree.
+    Return the cumulative stellar luminosity function for each slice_point. Units of stars per sq degree.
     Uses a healpix map of nside=64. Uses the nearest healpix point for other ra,dec values.
 
     Parameters
@@ -54,7 +54,7 @@ class StellarDensityMap(BaseMap):
                 slice_points[f"starLumFunc_{self.filtername}"] = self.star_map
                 nside_match = True
         if not nside_match:
-            # Compute the healpix for each slicepoint on the nside=64 grid
+            # Compute the healpix for each slice_point on the nside=64 grid
             indx = radec2pix(
                 self.starmap_nside, slice_points["ra"], slice_points["dec"]
             )

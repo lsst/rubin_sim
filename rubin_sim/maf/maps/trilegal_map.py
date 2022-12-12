@@ -15,7 +15,7 @@ __all__ = ["TrilegalDensityMap"]
 
 class TrilegalDensityMap(BaseMap):
     """
-    Return the cumulative stellar luminosity function for each slicepoint. Units of stars per sq degree.
+    Return the cumulative stellar luminosity function for each slice_point. Units of stars per sq degree.
 
     Parameters
     ----------

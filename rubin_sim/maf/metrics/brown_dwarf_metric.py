@@ -117,25 +117,25 @@ class BDParallaxMetric(BaseMetric):
         sigma = np.sqrt(1.0 / (1.0 / sigma_ra**2 + 1.0 / sigma_dec**2)) * 1e3
         return sigma
 
-    def run(self, dataslice, slice_point=None):
+    def run(self, data_slice, slice_point=None):
         snr = np.zeros(
-            (np.size(self.mags[self.filters[0]]), len(dataslice)), dtype="float"
+            (np.size(self.mags[self.filters[0]]), len(data_slice)), dtype="float"
         )
         # compute SNR for all observations
         for filt in self.filters:
-            good = np.where(dataslice[self.filter_col] == filt)[0]
+            good = np.where(data_slice[self.filter_col] == filt)[0]
             if np.size(good) > 0:
                 snr[:, good] = mafUtils.m52snr(
-                    self.mags[str(filt)][:, np.newaxis], dataslice[self.m5_col][good]
+                    self.mags[str(filt)][:, np.newaxis], data_slice[self.m5_col][good]
                 )
 
         position_errors = np.sqrt(
-            mafUtils.astrom_precision(dataslice[self.seeing_col], snr) ** 2
+            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2
             + self.atm_err**2
         )
         # uncertainty in the parallax in mas
         sigma = self._final_sigma(
-            position_errors, dataslice["ra_pi_amp"], dataslice["dec_pi_amp"]
+            position_errors, data_slice["ra_pi_amp"], data_slice["dec_pi_amp"]
         )
         fitted_parallax_snr = self.parallaxes / sigma
         result = self.badval

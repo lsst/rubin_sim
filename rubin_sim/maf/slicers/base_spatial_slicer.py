@@ -143,8 +143,8 @@ class BaseSpatialSlicer(BaseSlicer):
 
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
-            """Return indexes for relevant opsim data at slicepoint
-            (slicepoint=lon_col/lat_col value .. usually ra/dec)."""
+            """Return indexes for relevant opsim data at slice_point
+            (slice_point=lon_col/lat_col value .. usually ra/dec)."""
 
             # Build dict for slice_point info
             slice_point = {"sid": islice}
@@ -165,8 +165,8 @@ class BaseSpatialSlicer(BaseSlicer):
                 )
                 indices = np.array(indices)[camera_idx]
 
-            # Loop through all the slice_point keys. If the first dimension of slicepoint[key] has
-            # the same shape as the slicer, assume it is information per slicepoint.
+            # Loop through all the slice_point keys. If the first dimension of slice_point[key] has
+            # the same shape as the slicer, assume it is information per slice_point.
             # Otherwise, pass the whole slice_point[key] information. Useful for stellar LF maps
             # where we want to pass only the relevant LF and the bins that go with it.
             for key in self.slice_points:

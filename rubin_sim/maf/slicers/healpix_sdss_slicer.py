@@ -102,7 +102,7 @@ class HealpixSDSSSlicer(HealpixSlicer):
                         ]
                     )
                 )
-                # Check if the slicepoint is inside the image corners and append to list if it is
+                # Check if the slice_point is inside the image corners and append to list if it is
                 if bbPath.contains_point((0.0, 0.0)) == 1:
                     indices.append(ind)
 

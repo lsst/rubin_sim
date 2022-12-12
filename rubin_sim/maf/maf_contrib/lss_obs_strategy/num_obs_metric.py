@@ -1,5 +1,5 @@
 #####################################################################################################
-# Purpose: Calculate the number of observations in a given dataslice.
+# Purpose: Calculate the number of observations in a given data_slice.
 
 # Humna Awan: humna.awan@rutgers.edu
 # Last updated: 06/10/16

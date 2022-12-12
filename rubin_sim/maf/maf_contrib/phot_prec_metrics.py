@@ -81,7 +81,7 @@ class SNMetric(BaseMetric):
         # return (source_fluxes/err_fluxes).mean()
         # 1/0
         # return errMag
-        # return 1.25 * np.log10(np.sum(10.**(.8*dataSlice['fiveSigmaDepth'])))
+        # return 1.25 * np.log10(np.sum(10.**(.8*data_slice['fiveSigmaDepth'])))
 
 
 class SEDSNMetric(BaseMetric):

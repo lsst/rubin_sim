@@ -121,7 +121,7 @@ class PeriodDeviationMetric(BaseMetric):
 
     def reduce_p_dev(self, metric_val):
         """
-        At a particular slicepoint, return the period deviation for self.period_check.
+        At a particular slice_point, return the period deviation for self.period_check.
         If self.period_check is None, just return a random period in the range.
         """
         result = metric_val["periodsdev"][0]
@@ -129,7 +129,7 @@ class PeriodDeviationMetric(BaseMetric):
 
     def reduce_worst_period(self, metric_val):
         """
-        At each slicepoint, return the period with the worst period deviation.
+        At each slice_point, return the period with the worst period deviation.
         """
         worst_p = np.array(metric_val["periods"])[
             np.where(metric_val["periodsdev"] == metric_val["periodsdev"].max())[0]
@@ -138,7 +138,7 @@ class PeriodDeviationMetric(BaseMetric):
 
     def reduce_worst_p_dev(self, metric_val):
         """
-        At each slicepoint, return the largest period deviation.
+        At each slice_point, return the largest period deviation.
         """
         worst_p_dev = np.array(metric_val["periodsdev"])[
             np.where(metric_val["periodsdev"] == metric_val["periodsdev"].max())[0]
