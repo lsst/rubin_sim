@@ -34,7 +34,7 @@ class ChipVendorMetric(BaseMetric):
 
         if "chipNames" not in list(slice_point.keys()):
             raise ValueError(
-                "No chipname info, need to set useCamera=True with a spatial slicer."
+                "No chipname info, need to set use_camera=True with a spatial slicer."
             )
 
         uvendor_i_ds = np.unique(self._chip_names2vendor_id(slice_point["chipNames"]))

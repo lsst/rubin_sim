@@ -40,7 +40,7 @@ class UserPointsSlicer(BaseSpatialSlicer):
     camera_footprint_file : `str`, optional
         Name of the camera footprint map to use. Can be None, which will use the default.
     rotSkyPosColName : `str`, optional
-        Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
+        Name of the rotSkyPos column in the input  data. Only used if use_camera is True.
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
     """
@@ -126,7 +126,7 @@ class UserPointsSlicer(BaseSpatialSlicer):
                         and other_slicer.lat_col == self.lat_col
                     ):
                         if other_slicer.radius == self.radius:
-                            if other_slicer.useCamera == self.useCamera:
+                            if other_slicer.use_camera == self.use_camera:
                                 if (
                                     other_slicer.rotSkyPosColName
                                     == self.rotSkyPosColName

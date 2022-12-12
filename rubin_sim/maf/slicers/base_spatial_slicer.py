@@ -7,10 +7,9 @@
 import warnings
 import numpy as np
 from functools import wraps
-from rubin_sim.maf.plots.spatial_plotters import BaseHistogram, BaseSkyMap
 import rubin_sim.utils as simsUtils
+from rubin_sim.maf.plots.spatial_plotters import BaseHistogram, BaseSkyMap
 from .base_slicer import BaseSlicer
-from rubin_sim.utils import LsstCameraFootprint
 
 __all__ = ["BaseSpatialSlicer"]
 
@@ -36,6 +35,10 @@ class BaseSpatialSlicer(BaseSlicer):
     lat_col : `str`, optional
         Name of the latitude (Dec equivalent) column to use from the input data.
         Default fieldDec
+    rot_sky_pos_col_name : `str`, optional
+        Name of the rotSkyPos column in the input  data. Only used if use_camera is True.
+        Describes the orientation of the camera orientation compared to the sky.
+        Default rotSkyPos.
     lat_lon_deg : `bool`, optional
         Flag indicating whether lat and lon values from input data are in degrees (True) or radians (False).
         Default True.
@@ -54,16 +57,13 @@ class BaseSpatialSlicer(BaseSlicer):
         Default True.
     camera_footprint_file : `str`, optional
         Name of the camera footprint map to use. Can be None, which will use the default.
-    rot_sky_pos_col_name : `str`, optional
-        Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
-        Describes the orientation of the camera orientation compared to the sky.
-        Default rotSkyPos.
     """
 
     def __init__(
         self,
         lon_col="fieldRA",
         lat_col="fieldDec",
+        rot_sky_pos_col_name="rotSkyPos",
         lat_lon_deg=True,
         verbose=True,
         badval=-666,
@@ -71,7 +71,6 @@ class BaseSpatialSlicer(BaseSlicer):
         radius=2.45,
         use_camera=True,
         camera_footprint_file=None,
-        rot_sky_pos_col_name="rotSkyPos",
     ):
         super().__init__(verbose=verbose, badval=badval)
         self.lon_col = lon_col
@@ -79,21 +78,20 @@ class BaseSpatialSlicer(BaseSlicer):
         self.latLonDeg = lat_lon_deg
         self.rotSkyPosColName = rot_sky_pos_col_name
         self.columns_needed = [lon_col, lat_col]
-        self.useCamera = use_camera
-        self.cameraFootprintFile = camera_footprint_file
+        self.use_camera = use_camera
+        self.camera_footprint_file = camera_footprint_file
         if use_camera:
             self.columns_needed.append(rot_sky_pos_col_name)
-        self.slicer_init = {
-            "lon_col": lon_col,
-            "lat_col": lat_col,
-            "radius": radius,
-            "badval": badval,
-            "useCamera": use_camera,
-        }
         self.radius = radius
         self.leafsize = leafsize
-        self.useCamera = use_camera
-        # RA and Dec are required slice_point info for any spatial slicer. Slicepoint RA/Dec are in radians.
+        self.slicer_init = {
+            "lon_col": self.lon_col,
+            "lat_col": self.lat_col,
+            "radius": self.radius,
+            "badval": self.badval,
+            "use_camera": self.use_camera,
+        }
+        # RA and Dec are required slice_point info for any spatial slicer. slice_point RA/Dec are in radians.
         self.slice_points["sid"] = None
         self.slice_points["ra"] = None
         self.slice_points["dec"] = None
@@ -114,14 +112,14 @@ class BaseSpatialSlicer(BaseSlicer):
             Default None.
         """
         if maps is not None:
-            if self.cacheSize != 0 and len(maps) > 0:
+            if self.cache_size != 0 and len(maps) > 0:
                 warnings.warn(
                     "Warning:  Loading maps but cache on."
                     "Should probably set use_cache=False in slicer."
                 )
             self._run_maps(maps)
-        self._setRad(self.radius)
-        if self.useCamera:
+        self._set_rad(self.radius)
+        if self.use_camera:
             self.data_ra = sim_data[self.lon_col]
             self.data_dec = sim_data[self.lat_col]
             self.data_rot = sim_data[self.rotSkyPosColName]
@@ -154,7 +152,7 @@ class BaseSpatialSlicer(BaseSlicer):
             # Query against tree.
             indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
 
-            if (self.useCamera) & (len(indices) > 0):
+            if (self.use_camera) & (len(indices) > 0):
                 # Find the indices *of those indices* which fall in the camera footprint
                 camera_idx = self.camera(
                     self.slice_points["ra"][islice],
@@ -184,8 +182,8 @@ class BaseSpatialSlicer(BaseSlicer):
 
     def _setupLSSTCamera(self):
         """If we want to include the camera chip gaps, etc"""
-        self.camera = LsstCameraFootprint(
-            units="radians", footprint_file=self.cameraFootprintFile
+        self.camera = simsUtils.LsstCameraFootprint(
+            units="radians", footprint_file=self.camera_footprint_file
         )
 
     def _build_tree(self, sim_dataRa, sim_dataDec, leafsize=100):
@@ -195,6 +193,6 @@ class BaseSpatialSlicer(BaseSlicer):
         leafsize = the number of Ra/Dec pointings in each leaf node."""
         self.opsimtree = simsUtils._build_tree(sim_dataRa, sim_dataDec, leafsize)
 
-    def _setRad(self, radius=1.75):
+    def _set_rad(self, radius=1.75):
         """Set radius (in degrees) for kdtree search using utility function from mafUtils."""
         self.rad = simsUtils.xyz_angular_radius(radius)

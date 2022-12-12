@@ -72,7 +72,7 @@ class HealpixSlicer(BaseSpatialSlicer):
     camera_footprint_file : `str`, optional
         Name of the camera footprint map to use. Can be None, which will use the default.
     rot_sky_pos_col_name : `str`, optional
-        Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
+        Name of the rotSkyPos column in the input  data. Only used if use_camera is True.
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
     """
@@ -113,9 +113,8 @@ class HealpixSlicer(BaseSpatialSlicer):
         if not (hp.isnsideok(nside)):
             raise ValueError("Valid values of nside are powers of 2.")
         self.nside = int(nside)
-        self.pixArea = hp.nside2pixarea(self.nside)
+        self.pix_area = hp.nside2pixarea(self.nside)
         self.nslice = hp.nside2npix(self.nside)
-        self.spatialExtent = [0, self.nslice - 1]
         self.shape = self.nslice
         if self.verbose:
             print(
@@ -133,9 +132,9 @@ class HealpixSlicer(BaseSpatialSlicer):
         self.use_cache = use_cache
         if use_cache:
             # use_cache set the size of the cache for the memoize function in sliceMetric.
-            binRes = hp.nside2resol(nside)  # Pixel size in radians
+            bin_res = hp.nside2resol(nside)  # Pixel size in radians
             # Set the cache size to be ~2x the circumference
-            self.cacheSize = int(np.round(4.0 * np.pi / binRes))
+            self.cache_size = int(np.round(4.0 * np.pi / bin_res))
         # Set up slice_point metadata.
         self.slice_points["nside"] = nside
         self.slice_points["sid"] = np.arange(self.nslice)
@@ -162,7 +161,7 @@ class HealpixSlicer(BaseSpatialSlicer):
                     and other_slicer.lat_col == self.lat_col
                 ):
                     if other_slicer.radius == self.radius:
-                        if other_slicer.useCamera == self.useCamera:
+                        if other_slicer.use_camera == self.use_camera:
                             if other_slicer.rotSkyPosColName == self.rotSkyPosColName:
                                 if np.all(other_slicer.shape == self.shape):
                                     if other_slicer.use_cache == self.use_cache:
