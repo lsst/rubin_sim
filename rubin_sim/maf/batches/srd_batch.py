@@ -537,8 +537,8 @@ def rapidRevisitBatch(
     dTmax = 30.0  # 30 minute maximum for rapid revisit range
     nOne = 82  # Number of revisits between 40s-30m required
     nTwo = 28  # Number of revisits between 40s - tPairs required.
-    pixArea = float(hp.nside2pixarea(nside, degrees=True))
-    scale = pixArea * hp.nside2npix(nside)
+    pix_area = float(hp.nside2pixarea(nside, degrees=True))
+    scale = pix_area * hp.nside2npix(nside)
     m1 = metrics.RapidRevisitMetric(
         metric_name="RapidRevisits",
         mjd_col=colmap["mjd"],
