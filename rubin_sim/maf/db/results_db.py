@@ -7,8 +7,10 @@ from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.exc import DatabaseError
+import sqlite3
 import rubin_sim.version as rsVersion
 import datetime
+import time
 
 
 import numpy as np
@@ -420,7 +422,9 @@ class ResultsDb(object):
         self.session.commit()
         self.close()
 
-    def update_summary_stat(self, metric_id, summary_name, summary_value):
+    def update_summary_stat(
+        self, metric_id, summary_name, summary_value, ntry=3, pause_time=100
+    ):
         """
         Add a row to or update a row in the summary statistic table.
 
@@ -440,10 +444,13 @@ class ResultsDb(object):
             The value for this summary statistic.
             If this is a numpy recarray, then it should also have 'name' and 'value' columns to save
             each value to rows in the summary statistic table.
+        ntry : int (3)
+            The number of times to retry if database is locked
         """
         # Allow for special summary statistics which return data in a np structured array with
         #   'name' and 'value' columns.  (specificially needed for TableFraction summary statistic).
         self.open()
+        tries = 0
         if isinstance(summary_value, np.ndarray):
             if ("name" in summary_value.dtype.names) and (
                 "value" in summary_value.dtype.names
@@ -459,8 +466,18 @@ class ResultsDb(object):
                         summaryName=summary_name + " " + sSuffix,
                         summaryValue=value["value"],
                     )
-                    self.session.add(summarystat)
-                    self.session.commit()
+                    success = False
+                    # This can hit a locked database if running jobs in parallel
+                    # have it try a few times before actually failing since nothing should
+                    # be writing for a long time.
+                    while (not success) & (tries < ntry):
+                        try:
+                            self.session.add(summarystat)
+                            self.session.commit()
+                            success = True
+                        except sqlite3.OperationalError:
+                            tries += 1
+                            time.sleep(pause_time)
             else:
                 warnings.warn("Warning! Cannot save non-conforming summary statistic.")
         # Most summary statistics will be simple floats.
