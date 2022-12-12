@@ -634,7 +634,7 @@ class ActivityOverPeriodMetric(BaseMoMetric):
 
     def __init__(
         self,
-        binsize,
+        bin_size,
         snr_limit=5,
         q_col="q",
         e_col="e",
@@ -645,11 +645,11 @@ class ActivityOverPeriodMetric(BaseMoMetric):
         **kwargs
     ):
         """
-        @ binsize : size of orbit slice, in degrees.
+        @ bin_size : size of orbit slice, in degrees.
         """
         if metric_name is None:
             metric_name = "Chance of detecting activity covering %.1f of the orbit" % (
-                binsize
+                bin_size
             )
         super().__init__(metric_name=metric_name, **kwargs)
         self.q_col = q_col
@@ -658,11 +658,11 @@ class ActivityOverPeriodMetric(BaseMoMetric):
         self.t_peri_col = t_peri_col
         self.anomaly_col = anomaly_col
         self.snr_limit = snr_limit
-        self.binsize = np.radians(binsize)
-        self.anomaly_bins = np.arange(0, 2 * np.pi, self.binsize)
+        self.bin_size = np.radians(bin_size)
+        self.anomaly_bins = np.arange(0, 2 * np.pi, self.bin_size)
         self.anomaly_bins = np.concatenate([self.anomaly_bins, np.array([2 * np.pi])])
         self.n_bins = len(self.anomaly_bins) - 1
-        self.units = "%.1f deg" % (np.degrees(self.binsize))
+        self.units = "%.1f deg" % (np.degrees(self.bin_size))
 
     def run(self, sso_obs, orb, hval):
         # For cometary activity, expect activity at the same point in its orbit at the same time, mostly

@@ -25,10 +25,10 @@ class OneDSlicer(BaseSlicer):
         The data will be sliced into 'bins': this can be defined as an array here. Default None.
     bin_min : `float`, optional
     bin_max : `float`, optional
-    binsize : `float`, optional
-        If bins is not defined, then bin_min/bin_max/binsize can be chosen to anchor the slice points.
+    bin_size : `float`, optional
+        If bins is not defined, then bin_min/bin_max/bin_size can be chosen to anchor the slice points.
         Default None.
-        Priority goes: bins >> bin_min/bin_max/binsize >> data values (if none of the above are chosen).
+        Priority goes: bins >> bin_min/bin_max/bin_size >> data values (if none of the above are chosen).
 
     The bins act like numpy histogram bins: the last bin value is the end value of the last bin.
     All bins except for the last bin are half-open ([a, b)) while the last bin is ([a, b]).
@@ -41,7 +41,7 @@ class OneDSlicer(BaseSlicer):
         bins=None,
         bin_min=None,
         bin_max=None,
-        binsize=None,
+        bin_size=None,
         verbose=True,
         badval=0,
     ):
@@ -52,23 +52,22 @@ class OneDSlicer(BaseSlicer):
             )
         self.slice_col_name = slice_col_name
         self.columns_needed = [slice_col_name]
+        # We could try to set up the self.bins here -- but it's also possible that
+        # these bin_min/max/size values have not been set and should just be set from the data.
         self.bins = bins
+        self.bin_min = bin_min
+        self.bin_max = bin_max
+        self.bin_size = bin_size
         # Forget binmin/max/stepsize if bins was set
         if self.bins is not None:
-            if bin_min is not None or bin_max is not None or binsize is not None:
+            if bin_min is not None or bin_max is not None or bin_size is not None:
                 warnings.warning(
-                    f"Both bins and one of the bin_min/bin_max/binsize was specified. "
+                    f"Both bins and one of the bin_min/bin_max/bin_size was specified. "
                     f"Using bins ({self.bins} values only."
                 )
-            self.bin_min = self.bins.min()
-            self.binMax = self.bins.max()
-            self.binsize = np.diff(self.bins)
-            if len(np.unique(self.binsize)) == 1:
-                self.binsize = np.unique(self.binsize)
-        else:
-            self.bin_min = bin_min
-            self.binMax = bin_max
-            self.binsize = binsize
+                self.bin_min = None
+                self.bin_max = None
+                self.bin_size = None
         # Set the column units
         if slice_col_units is not None:
             self.slice_col_units = slice_col_units
@@ -82,8 +81,9 @@ class OneDSlicer(BaseSlicer):
             "slice_col_units": slice_col_units,
             "badval": badval,
             "bin_min": self.bin_min,
-            "bin_max": self.binMax,
-            "binsize": self.binsize,
+            "bin_max": self.bin_max,
+            "bin_size": self.bin_size,
+            "bins": self.bins,
         }
         self.plot_funcs = [
             OneDBinnedData,
@@ -99,10 +99,7 @@ class OneDSlicer(BaseSlicer):
             warning_msg = "Warning: this OneDSlicer was already set up once. "
             warning_msg += (
                 "Re-setting up a OneDSlicer is unpredictable; at the very least, it "
-                "will change the mapping of the simulated data into the data slices, "
-                "and may result in poor binsize choices (although these may potentially be ok). "
-            )
-            warning_msg += (
+                "will change the mapping of the simulated data into the data slices. "
                 "A safer choice is to use a separate OneDSlicer for each MetricBundle."
             )
             warnings.warn(warning_msg)
@@ -112,29 +109,31 @@ class OneDSlicer(BaseSlicer):
             # Set bin min/max values (could have been set in __init__)
             if self.bin_min is None:
                 self.bin_min = np.nanmin(sliceCol)
-            if self.binMax is None:
-                self.binMax = np.nanmax(sliceCol)
+            if self.bin_max is None:
+                self.bin_max = np.nanmax(sliceCol)
             # Give warning if bin_min = bin_max, and do something at least slightly reasonable.
-            if self.bin_min == self.binMax:
+            if self.bin_min == self.bin_max:
                 warnings.warn(
                     "bin_min = bin_max (maybe your data is single-valued?). "
-                    "Increasing bin_max by 1 (or 2*binsize, if binsize was set)."
+                    "Increasing bin_max by 1 (or 2*bin_size, if bin_size was set)."
                 )
-                if self.binsize is not None:
-                    self.binMax = self.binMax + 2 * self.binsize
+                if self.bin_size is not None:
+                    self.bin_max = self.bin_max + 2 * self.bin_size
                 else:
-                    self.binMax = self.binMax + 1
-            if self.binsize is None:
-                bins = optimal_bins(sliceCol, self.bin_min, self.binMax)
+                    self.bin_max = self.bin_max + 1
+            if self.bin_size is None:
+                bins = optimal_bins(sliceCol, self.bin_min, self.bin_max)
                 nbins = np.round(bins)
-                self.binsize = (self.binMax - self.bin_min) / float(nbins)
+                self.bin_size = (self.bin_max - self.bin_min) / float(nbins)
             # Set bins
             self.bins = np.arange(
-                self.bin_min, self.binMax + self.binsize / 2.0, self.binsize, "float"
+                self.bin_min, self.bin_max + self.bin_size / 2.0, self.bin_size, "float"
             )
-        # Set nbins to be one less than # of bins because last binvalue is RH edge only
-        self.nslice = len(self.bins) - 1
-        self.shape = self.nslice
+        # nslice is used to stop iteration and should reflect the length of the bins
+        self.nslice = len(self.bins)
+        # But "shape" refers to the length of the datavalues,
+        # and should be one less than # of bins because last binvalue is RH edge only
+        self.shape = self.nslice - 1
         # Set slice_point metadata.
         self.slice_points["sid"] = np.arange(self.nslice)
         self.slice_points["bins"] = self.bins
@@ -158,11 +157,13 @@ class OneDSlicer(BaseSlicer):
         # Set up _slice_sim_data method for this class.
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
-            """Slice sim_data on oneD sliceCol, to return relevant indexes for slicepoint."""
+            """Slice sim_data on oneD sliceCol, to return relevant indexes for slice_point."""
             idxs = self.sim_idxs[self.left[islice] : self.left[islice + 1]]
+            left = self.bins[islice]
+            right = self.bins[islice + 1]
             return {
                 "idxs": idxs,
-                "slice_point": {"sid": islice, "binLeft": self.bins[islice]},
+                "slice_point": {"sid": islice, "bin_left": left, "bin_right": right},
             }
 
         setattr(self, "_slice_sim_data", _slice_sim_data)
@@ -185,16 +186,16 @@ class OneDSlicer(BaseSlicer):
                     if (self.bins is not None) and (other_slicer.bins is not None):
                         result = np.array_equal(self.bins, other_slicer.bins)
                     elif (
-                        (self.binsize is not None)
-                        and (self.bin_min is not None) & (self.binMax is not None)
-                        and (other_slicer.binsize is not None)
+                        (self.bin_size is not None)
+                        and (self.bin_min is not None) & (self.bin_max is not None)
+                        and (other_slicer.bin_size is not None)
                         and (other_slicer.bin_min is not None)
-                        and (other_slicer.binMax is not None)
+                        and (other_slicer.bin_max is not None)
                     ):
                         if (
-                            (self.binsize == other_slicer.binsize)
+                            (self.bin_size == other_slicer.bin_size)
                             and (self.bin_min == other_slicer.bin_min)
-                            and (self.binMax == other_slicer.binMax)
+                            and (self.bin_max == other_slicer.bin_max)
                         ):
                             result = True
         return result

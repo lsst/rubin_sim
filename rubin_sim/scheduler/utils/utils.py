@@ -275,7 +275,7 @@ def raster_sort(x0, order=["x", "y"], xbin=1.0):
     order : list
         Keys for the order x0 should be sorted in.
     xbin : float (1.)
-        The binsize to round off the first coordinate into
+        The bin_size to round off the first coordinate into
 
     returns
     -------

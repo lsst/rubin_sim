@@ -97,13 +97,13 @@ def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1):
     Parameters
     ----------
     datain : numpy.ndarray or numpy.ma.MaskedArray
-        The data for which we want to set the binsize.
+        The data for which we want to set the bin_size.
     binmin : float
         The minimum bin value to consider (if None, uses minimum data value).
     binmax : float
         The maximum bin value to consider (if None, uses maximum data value).
     nbin_max : int
-        The maximum number of bins to create. Sometimes the 'optimal binsize' implies
+        The maximum number of bins to create. Sometimes the 'optimal bin_size' implies
         an unreasonably large number of bins, if the data distribution is unusual.
     nbin_min : int
         The minimum number of bins to create. Default is 1.

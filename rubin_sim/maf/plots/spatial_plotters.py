@@ -369,7 +369,7 @@ class HealpixHistogram(BasePlotter):
             {
                 "ylabel": "Area (1000s of square degrees)",
                 "bins": None,
-                "binsize": None,
+                "bin_size": None,
                 "cumulative": False,
                 "scale": None,
                 "linestyle": "-",
@@ -402,7 +402,7 @@ class BaseHistogram(BasePlotter):
             {
                 "ylabel": "Count",
                 "bins": None,
-                "binsize": None,
+                "bin_size": None,
                 "cumulative": False,
                 "scale": 1.0,
                 "yaxisformat": "%.3f",
@@ -425,12 +425,12 @@ class BaseHistogram(BasePlotter):
             metric_value, plot_dict, key_min="x_min", key_max="x_max"
         )
         metric_value = metric_value.compressed()
-        # Set up the bins for the histogram. User specified 'bins' overrides 'binsize'.
+        # Set up the bins for the histogram. User specified 'bins' overrides 'bin_size'.
         # Note that 'bins' could be a single number or an array, simply passed to plt.histogram.
         if plot_dict["bins"] is not None:
             bins = plot_dict["bins"]
-        elif plot_dict["binsize"] is not None:
-            #  If generating a cumulative histogram, want to use full range of data (but with given binsize).
+        elif plot_dict["bin_size"] is not None:
+            #  If generating a cumulative histogram, want to use full range of data (but with given bin_size).
             #    .. but if user set histRange to be wider than full range of data, then
             #       extend bins to cover this range, so we can make prettier plots.
             if plot_dict["cumulative"]:
@@ -438,24 +438,24 @@ class BaseHistogram(BasePlotter):
                 bmin = np.min([metric_value.min(), x_min])
                 bmax = np.max([metric_value.max(), x_max])
                 bins = np.arange(
-                    bmin, bmax + plot_dict["binsize"] / 2.0, plot_dict["binsize"]
+                    bmin, bmax + plot_dict["bin_size"] / 2.0, plot_dict["bin_size"]
                 )
             #  Otherwise, not cumulative so just use metric values, without potential expansion.
             else:
                 bins = np.arange(
                     x_min,
-                    x_max + plot_dict["binsize"] / 2.0,
-                    plot_dict["binsize"],
+                    x_max + plot_dict["bin_size"] / 2.0,
+                    plot_dict["bin_size"],
                 )
             # Catch edge-case where there is only 1 bin value
             if bins.size < 2:
                 bins = np.arange(
-                    bins.min() - plot_dict["binsize"] * 2.0,
-                    bins.max() + plot_dict["binsize"] * 2.0,
-                    plot_dict["binsize"],
+                    bins.min() - plot_dict["bin_size"] * 2.0,
+                    bins.max() + plot_dict["bin_size"] * 2.0,
+                    plot_dict["bin_size"],
                 )
         else:
-            # If user did not specify bins or binsize, then we try to figure out a good number of bins.
+            # If user did not specify bins or bin_size, then we try to figure out a good number of bins.
             bins = optimal_bins(metric_value)
         # Generate plots.
         fig = plt.figure(fignum, figsize=plot_dict["figsize"])

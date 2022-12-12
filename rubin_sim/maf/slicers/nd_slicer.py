@@ -6,8 +6,6 @@ from builtins import range
 
 import warnings
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import colors
 import itertools
 from functools import wraps
 
@@ -38,7 +36,7 @@ class NDSlicer(BaseSlicer):
         if not (isinstance(bins_list, float) or isinstance(bins_list, int)):
             if len(self.bins_list) != self.n_d:
                 raise Exception(
-                    "BinsList must be same length as slice_col_names, unless it is a single value"
+                    "bins_list must be same length as slice_col_names, unless it is a single value"
                 )
         self.slicer_init = {"slice_col_list": slice_col_list}
         self.plot_funcs = [TwoDSubsetData, OneDSubsetData]
@@ -58,16 +56,18 @@ class NDSlicer(BaseSlicer):
                 bin_max = slice_col.max()
                 if bin_min == bin_max:
                     warnings.warn(
-                        "BinMin=BinMax for column %s: increasing bin_max by 1." % (col)
+                        "bin_min=bin_max for column %s: increasing bin_max by 1."
+                        % (col)
                     )
                     bin_max = bin_max + 1
-                binsize = (bin_max - bin_min) / float(bl)
-                bins = np.arange(bin_min, bin_max + binsize / 2.0, binsize, "float")
+                bin_size = (bin_max - bin_min) / float(bl)
+                bins = np.arange(bin_min, bin_max + bin_size / 2.0, bin_size, "float")
                 self.bins.append(bins)
             else:
                 self.bins.append(np.sort(bl))
+        self.nslice = (np.array(list(map(len, self.bins)))).prod()
         # Count how many bins we have total (not counting last 'RHS' bin values, as in oneDSlicer).
-        self.nslice = (np.array(list(map(len, self.bins))) - 1).prod()
+        self.shape = (np.array(list(map(len, self.bins))) - 1).prod()
         # Set up slice metadata.
         self.slice_points["sid"] = np.arange(self.nslice)
         # Including multi-D 'leftmost' bin values
@@ -85,7 +85,7 @@ class NDSlicer(BaseSlicer):
             bin_ids_for_iteration.append(np.arange(len(b[:-1])))
         bin_id_iterator = itertools.product(*bin_ids_for_iteration)
         for bidx in bin_id_iterator:
-            self.slice_points["binIdxs"].append(bidx)
+            self.slice_points["bin_idxs"].append(bidx)
         # Add metadata from maps.
         self._run_maps(maps)
         # Set up indexing for data slicing.
@@ -112,11 +112,11 @@ class NDSlicer(BaseSlicer):
 
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
-            """Slice sim_data to return relevant indexes for slicepoint."""
+            """Slice sim_data to return relevant indexes for slice_point."""
             # Identify relevant pointings in each dimension.
             sim_idxs_list = []
             # Translate islice into indexes in each bin dimension
-            bin_idxs = self.slice_points["binIdxs"][islice]
+            bin_idxs = self.slice_points["bin_idxs"][islice]
             for d, i in zip(list(range(self.n_d)), bin_idxs):
                 sim_idxs_list.append(
                     set(self.sim_idxs[d][self.lefts[d][i] : self.lefts[d][i + 1]])
@@ -126,8 +126,8 @@ class NDSlicer(BaseSlicer):
                 "idxs": idxs,
                 "slice_point": {
                     "sid": islice,
-                    "binLeft": self.slice_points["bins"][islice],
-                    "binIdx": self.slice_points["binIdxs"][islice],
+                    "bin_left": self.slice_points["bins"][islice],
+                    "bin_idx": self.slice_points["bin_idxs"][islice],
                 },
             }
 

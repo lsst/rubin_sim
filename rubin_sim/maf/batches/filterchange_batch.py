@@ -115,7 +115,7 @@ def filtersPerNight(
     displayDict = {"group": "Filter Changes", "subgroup": info_label}
     summaryStats = standard_summary()
 
-    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], binsize=nights)
+    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], bin_size=nights)
     metricList, captionList = setupMetrics(colmap)
     for m, caption in zip(metricList, captionList):
         displayDict["caption"] = caption + metacaption

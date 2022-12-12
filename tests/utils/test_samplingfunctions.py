@@ -104,9 +104,9 @@ class SamplingTests(unittest.TestCase):
 
         area = A(tvals, tvals_shifted)
 
-        binsize = np.unique(np.diff(tvals))
-        self.assertEqual(binsize.size, 1)
-        normval = np.sum(area) * binsize[0]
+        bin_size = np.unique(np.diff(tvals))
+        self.assertEqual(bin_size.size, 1)
+        normval = np.sum(area) * bin_size[0]
 
         theta_samps = np.radians(self.dense_samples[1])
         binnedvals = np.histogram(theta_samps, bins=tvals[:-1], density=True)[0]
