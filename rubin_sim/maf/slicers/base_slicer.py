@@ -68,14 +68,13 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
     def __init__(self, verbose=True, badval=-666):
         self.verbose = verbose
         self.badval = badval
-        # Set cacheSize : each slicer will be able to override if appropriate.
-        # Currently only the healpixSlice actually uses the cache: this is set in 'use_cache' flag.
-        #  If other slicers have the ability to use the cache, they should add this flag and set the
-        #  cacheSize in their __init__ methods.
-        self.cacheSize = 0
-        # Set length of Slicer.
+        # Set the cache_size. Currently only healpixSlicers (and their derivatives) use the cache.
+        # The size of the cache is set directly by those slicers.
+        self.cache_size = 0
+        # Set length of Slicer. This determines the endpoint for iteration.
         self.nslice = None
-        self.shape = self.nslice
+        # Set the length of the data (metric) values. This is often but not necessarily the same as nslice.
+        self.shape = None
         self.slice_points = {}
         self.slicer_name = self.__class__.__name__
         self.columns_needed = []

@@ -441,7 +441,7 @@ class MetricBundleGroup(object):
 
         # Set up an ordered dictionary to be the cache if needed:
         # (Currently using OrderedDict, it might be faster to use 2 regular Dicts instead)
-        if slicer.cacheSize > 0:
+        if slicer.cache_size > 0:
             cache_dict = OrderedDict()
             cache = True
         else:
@@ -461,7 +461,7 @@ class MetricBundleGroup(object):
             i = slice_i["slice_point"]["sid"]
             slicedata = self.sim_data[slice_i["idxs"]]
             if len(slicedata) == 0:
-                # No data at this slicepoint. Mask data values.
+                # No data at this slice_point. Mask data values.
                 for b in b_dict.values():
                     b.metric_values.mask[i] = True
             else:
@@ -489,7 +489,7 @@ class MetricBundleGroup(object):
                                 slicedata, slice_point=slice_i["slice_point"]
                             )
                     # If we are above the cache size, drop the oldest element from the cache dict.
-                    if len(cache_dict) > slicer.cacheSize:
+                    if len(cache_dict) > slicer.cache_size:
                         del cache_dict[list(cache_dict.keys())[0]]
 
                 # Not using memoize, just calculate things normally
