@@ -127,27 +127,27 @@ def generate_ss_commands(
                         )
                         with open(outfile_split, "a") as wi:
                             s1 = (
-                                f"makeLSSTobs --opsimDb {filename} --orbitFile {splitfile}"
+                                f"make_lsst_obs --simulation_db {filename} --orbit_file {splitfile}"
                                 f" --out_dir {out_dir}"
                             )
                             s2 = (
-                                f"run_moving_calc --obsFile {out_dir}/{run}__{split}_obs.txt"
-                                f" --opsimDb {filename} --orbitFile {orbit_files[pop]}"
+                                f"run_moving_calc --obs_file {out_dir}/{run}__{split}_obs.txt"
+                                f" --simulation_db {filename} --orbit_file {orbit_files[pop]}"
                                 f" --out_dir {out_dir}/{split}"
-                                f" --opsimRun {run}"
+                                f" --run_name {run}"
                                 f" --objtype {objtype}"
-                                f" --startTime {start_mjd}"
+                                f" --start_time {start_mjd}"
                             )
                             print(s1 + " ; " + s2, file=wi)
                     s3 = (
-                        f"run_moving_join --orbitFile {pop}"
-                        f" --baseDir {out_dir}"
+                        f"run_moving_join --orbit_file {pop}"
+                        f" --base_dir {out_dir}"
                         f" --out_dir {out_dir}/sso"
                     )
                     s4 = (
-                        f"run_moving_fractions --workDir {out_dir}/sso"
+                        f"run_moving_fractions --work_dir {out_dir}/sso"
                         f" --metadata {objtype}"
-                        f" --startTime {start_mjd}"
+                        f" --start_time {start_mjd}"
                     )
                     print(
                         f"cat {outfile_split} | parallel -j 10 ; {s3}  ; {s4}",
