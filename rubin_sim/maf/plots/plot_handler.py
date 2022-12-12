@@ -602,9 +602,9 @@ class PlotHandler(object):
         # Make plot.
         fignum = None
         for m_b, plot_dict in zip(self.m_bundles, self.plot_dicts):
-            if m_b.metric_values is None:
+            if (m_b.metric_values is None) | (np.size(np.where(~m_b.metric_values.mask)) == 0):
                 # Skip this metricBundle.
-                msg = 'MetricBundle (%s) has no attribute "metric_values".' % (
+                msg = 'MetricBundle (%s) has no "metric_values".' % (
                     m_b.file_root
                 )
                 msg += " Either the values have not been calculated or they have been deleted."
