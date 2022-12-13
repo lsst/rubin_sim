@@ -71,11 +71,16 @@ class NYoungStarsMetric(BaseMetric):
         The galactic latitude above which to return zero (degrees).
     badval : float, opt
         The value to return when the metric value cannot be calculated. Default 0.
+    return_distance: bool (False)
+        Whether the metric will return the maximum distance that can be reached for each slice_point.
+        Default is False.
+    crowding_error: float (0.25)
+        Crowding error that gets passed to CrowdingM5Metric.
 
     Keyword arguments
     -----------------
-    returnDistance : bool, opt
-        Whether the metric will return the maximum distance that can be reached for each slicePoint.
+    return_distance : bool, opt
+
     """
 
     def __init__(
@@ -88,6 +93,8 @@ class NYoungStarsMetric(BaseMetric):
         galb_limit=90.0,
         snrs={"g": 5.0, "r": 5.0, "i": 5.0},
         nside=64,
+        return_distance=False,
+        crowding_error=0.25,
         **kwargs
     ):
         cols = [m5_col, filter_col]
@@ -95,8 +102,8 @@ class NYoungStarsMetric(BaseMetric):
         # This will give us access to the dust map get_distance_at_dmag routine
         # but does not require loading another copy of the map
         self.ebvmap = DustMap3D()
-        self.returnDistance = kwargs.pop("returnDistance", False)
-        units = "kpc" if self.returnDistance else "N stars"
+        self.return_distance = return_distance
+        units = "kpc" if self.return_distance else "N stars"
         super().__init__(
             cols,
             metric_name=metric_name,
@@ -115,7 +122,8 @@ class NYoungStarsMetric(BaseMetric):
         self.filters = list(self.mags.keys())
         self.snrs = snrs
         self.m5crowding = {
-            f: CrowdingM5Metric(crowding_error=0.25, filtername=f) for f in self.filters
+            f: CrowdingM5Metric(crowding_error=crowding_error, filtername=f)
+            for f in self.filters
         }
 
     def run(self, data_slice, slice_point=None):
@@ -137,9 +145,11 @@ class NYoungStarsMetric(BaseMetric):
                 in_filt = np.where(data_slice[self.filter_col] == filtername)[0]
                 # Calculate coadded depth per filter
                 depth_m5 = 1.25 * np.log10(
-                    np.sum(10.0 ** (0.8 * dataSlice[self.m5Col][in_filt]))
+                    np.sum(10.0 ** (0.8 * data_slice[self.m5_col][in_filt]))
                 )
-                depth_crowding = self.m5crowding[filtername].run(dataSlice, slicePoint)
+                depth_crowding = self.m5crowding[filtername].run(
+                    data_slice, slice_point
+                )
                 depths[filtername] = min(depth_m5, depth_crowding)
 
         # solve for the distances in each filter where we hit the required SNR
@@ -157,13 +167,12 @@ class NYoungStarsMetric(BaseMetric):
             distances.append(dist_dmag)
         # compute the final distance, limited by whichever filter is most shallow
         final_distance = np.min(distances, axis=-1) / 1e3  # to kpc
-        # print(final_distance)
 
         # Resorting to numerical integration of ugly function
         sd = StarDensity(slice_point["gall"], slice_point["galb"])
         stars_per_sterr, _err = integrate.quad(sd, 0, final_distance)
         stars_tot = stars_per_sterr * sky_area
 
-        if self.returnDistance:
+        if self.return_distance:
             return final_distance
         return stars_tot

@@ -46,7 +46,7 @@ class WFDlabelStacker(BaseStacker):
     Any healpix footprint is valid.
     """
 
-    cols_added = ["areaId"]
+    cols_added = ["area_id"]
 
     def __init__(
         self,

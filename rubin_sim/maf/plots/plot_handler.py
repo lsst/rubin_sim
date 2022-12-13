@@ -604,10 +604,14 @@ class PlotHandler(object):
         for m_b, plot_dict in zip(self.m_bundles, self.plot_dicts):
             if m_b.metric_values is None:
                 # Skip this metricBundle.
-                msg = 'MetricBundle (%s) has no attribute "metric_values".' % (
-                    m_b.file_root
-                )
+                msg = 'MetricBundle (%s) has no "metric_values".' % (m_b.file_root)
                 msg += " Either the values have not been calculated or they have been deleted."
+                warnings.warn(msg)
+            elif np.size(np.where(~m_b.metric_values.mask)) == 0:
+                msg = (
+                    "MetricBundle (%s) has no unmasked metric_values, skipping plots."
+                    % (m_b.file_root)
+                )
                 warnings.warn(msg)
             else:
                 fignum = plot_func(
