@@ -16,16 +16,25 @@ __all__ = ["NDSlicer"]
 
 
 class NDSlicer(BaseSlicer):
-    """Nd slicer (N dimensions)"""
+    """Nd slicer (N dimensions)
 
-    def __init__(self, slice_col_list=None, verbose=True, bins_list=100):
+    Parameters
+    ==========
+    slice_col_list : `list` of `str`
+        Names of the data columns for slicing (e.g. 'airmass`, etc)
+    bins_list : `int` or `list` of `int` or `np.ndarray`, opt
+        Single integer (for same number of slices in each dimension) or a list of integers (matching
+        slice_col_list) or list of arrays. Default 100, in all dimensions.
+
+    All bins are half-open ([a, b)).
+    """
+
+    def __init__(self, slice_col_list=None, bins_list=100, verbose=True):
         """Instantiate object.
         bins_list can be a list of numpy arrays with the respective slicepoints for slice_col_list,
          or a list of integers (one per column in slice_col_list) or a single value
             (repeated for all columns, default=100)."""
-        super(NDSlicer, self).__init__(verbose=verbose)
-        self.bins = None
-        self.nslice = None
+        super().__init__(verbose=verbose)
         self.slice_col_list = slice_col_list
         self.columns_needed = self.slice_col_list
         if self.slice_col_list is not None:
@@ -38,7 +47,7 @@ class NDSlicer(BaseSlicer):
                 raise Exception(
                     "bins_list must be same length as slice_col_names, unless it is a single value"
                 )
-        self.slicer_init = {"slice_col_list": slice_col_list}
+        self.slicer_init = {"slice_col_list": slice_col_list, "bins_list": bins_list}
         self.plot_funcs = [TwoDSubsetData, OneDSubsetData]
 
     def setup_slicer(self, sim_data, maps=None):
@@ -65,9 +74,9 @@ class NDSlicer(BaseSlicer):
                 self.bins.append(bins)
             else:
                 self.bins.append(np.sort(bl))
-        self.nslice = (np.array(list(map(len, self.bins)))).prod()
+        self.nslice = (np.array(list(map(len, self.bins))) - 1).prod()
         # Count how many bins we have total (not counting last 'RHS' bin values, as in oneDSlicer).
-        self.shape = (np.array(list(map(len, self.bins))) - 1).prod()
+        self.shape = self.nslice
         # Set up slice metadata.
         self.slice_points["sid"] = np.arange(self.nslice)
         # Including multi-D 'leftmost' bin values
@@ -79,7 +88,7 @@ class NDSlicer(BaseSlicer):
         for b in biniterator:
             self.slice_points["bins"].append(b)
         # and multi-D 'leftmost' bin indexes corresponding to each sid
-        self.slice_points["binIdxs"] = []
+        self.slice_points["bin_idxs"] = []
         bin_ids_for_iteration = []
         for b in self.bins:
             bin_ids_for_iteration.append(np.arange(len(b[:-1])))
@@ -127,7 +136,7 @@ class NDSlicer(BaseSlicer):
                 "slice_point": {
                     "sid": islice,
                     "bin_left": self.slice_points["bins"][islice],
-                    "bin_idx": self.slice_points["bin_idxs"][islice],
+                    "bin_idxs": self.slice_points["bin_idxs"][islice],
                 },
             }
 

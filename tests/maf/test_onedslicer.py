@@ -41,7 +41,7 @@ class TestOneDSlicerSetup(unittest.TestCase):
         dvmin = 0
         dvmax = 1
         nvalues = 1000
-        bins = np.arange(dvmin, dvmax, 0.1)
+        bins = np.arange(dvmin, dvmax + 0.05, 0.1)
         dv = make_data_values(nvalues, dvmin, dvmax, random=4)
         # Used right bins?
         self.testslicer = OneDSlicer(slice_col_name="testdata", bins=bins)
@@ -62,7 +62,7 @@ class TestOneDSlicerSetup(unittest.TestCase):
         self.assertEqual(self.testslicer.nslice, 2)
 
     def test_setup_slicer_limits(self):
-        """Test setting up slicer using bin_min/Max."""
+        """Test setting up slicer using bin_min/max."""
         bin_min = 0
         bin_max = 1
         dvmin = -0.5
@@ -117,11 +117,13 @@ class TestOneDSlicerIteration(unittest.TestCase):
 
     def test_iteration(self):
         """Test iteration."""
-        for i, (s, b) in enumerate(zip(self.testslicer, self.bins)):
+        for i, s in enumerate(self.testslicer):
             self.assertEqual(s["slice_point"]["sid"], i)
-            self.assertEqual(s["slice_point"]["bin_left"], b)
-        print(i, len(self.bins), len(self.testslicer))
-        self.assertEqual(len(self.bins), i)
+            self.assertEqual(s["slice_point"]["bin_left"], self.bins[i])
+            self.assertEqual(s["slice_point"]["bin_right"], self.bins[i + 1])
+        # Iteration stops while i<= nslice ..
+        # nslice = len(bins)-1 (and bins[i+2] is out of range but bins[i+1] is last RH edge of bins
+        self.assertEqual(i, self.testslicer.nslice - 1)
 
     def test_get_item(self):
         """Test that can return an individual indexed values of the slicer."""
@@ -216,6 +218,7 @@ class TestOneDSlicerSlicing(unittest.TestCase):
         nbins = len(bins) - 1
         # Test that testbinner raises appropriate error before it's set up (first time)
         self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
+        # test that random values are split equally into all bins (when bins and data cover same range)
         for nvalues in (1000, 10000, 100000):
             dv = make_data_values(nvalues, dvmin, dvmax, random=560)
             self.testslicer = OneDSlicer(slice_col_name="testdata", bins=bins)
@@ -234,6 +237,15 @@ class TestOneDSlicerSlicing(unittest.TestCase):
                         msg="Data in test case expected to always be > 0 len after slicing",
                     )
             self.assertTrue(sum, nvalues)
+        # test that we're not dumping extra visits into the 'last bin' (that it's closed both sides)
+        nvalues = 1000
+        dv = make_data_values(nvalues, 0, 2, random=560)
+        bins = np.arange(0, 1.05, 0.1)
+        self.testslicer = OneDSlicer(slice_col_name="testdata", bins=bins)
+        nbins = len(bins) - 1
+        self.testslicer.setup_slicer(dv)
+        for i, s in enumerate(self.testslicer):
+            self.assertEqual(len(s["idxs"]), nvalues / float(nbins) / 2.0)
 
 
 if __name__ == "__main__":

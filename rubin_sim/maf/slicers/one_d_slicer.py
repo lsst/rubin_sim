@@ -30,7 +30,6 @@ class OneDSlicer(BaseSlicer):
         Default None.
         Priority goes: bins >> bin_min/bin_max/bin_size >> data values (if none of the above are chosen).
 
-    The bins act like numpy histogram bins: the last bin value is the end value of the last bin.
     All bins except for the last bin are half-open ([a, b)) while the last bin is ([a, b]).
     """
 
@@ -129,11 +128,11 @@ class OneDSlicer(BaseSlicer):
             self.bins = np.arange(
                 self.bin_min, self.bin_max + self.bin_size / 2.0, self.bin_size, "float"
             )
-        # nslice is used to stop iteration and should reflect the length of the bins
-        self.nslice = len(self.bins)
-        # But "shape" refers to the length of the datavalues,
+        # nslice is used to stop iteration and should reflect the usable length of the bins
+        self.nslice = len(self.bins) - 1
+        # and "shape" refers to the length of the datavalues,
         # and should be one less than # of bins because last binvalue is RH edge only
-        self.shape = self.nslice - 1
+        self.shape = self.nslice
         # Set slice_point metadata.
         self.slice_points["sid"] = np.arange(self.nslice)
         self.slice_points["bins"] = self.bins
@@ -142,28 +141,25 @@ class OneDSlicer(BaseSlicer):
         # Set up data slicing.
         self.sim_idxs = np.argsort(sim_data[self.slice_col_name])
         simFieldsSorted = np.sort(sim_data[self.slice_col_name])
-        # "left" values are location where simdata == bin value
-        self.left = np.searchsorted(simFieldsSorted, self.bins[:-1], "left")
-        self.left = np.concatenate(
-            (
-                self.left,
-                np.array(
-                    [
-                        len(self.sim_idxs),
-                    ]
-                ),
-            )
-        )
+        # "left" values are location where simdata[i-1] < bins <= simdata[i]
+        self.left = np.searchsorted(simFieldsSorted, self.bins, "left")
+        # "right" values are locations where simdata[i-1] <= bins < simdata[i]
+        # This lets us have a closed final bin
+        self.right = np.searchsorted(simFieldsSorted, self.bins, "right")
         # Set up _slice_sim_data method for this class.
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
             """Slice sim_data on oneD sliceCol, to return relevant indexes for slice_point."""
-            idxs = self.sim_idxs[self.left[islice] : self.left[islice + 1]]
-            left = self.bins[islice]
-            right = self.bins[islice + 1]
+            idxs = self.sim_idxs[self.left[islice] : self.right[islice + 1]]
+            bin_left = self.bins[islice]
+            bin_right = self.bins[islice + 1]
             return {
                 "idxs": idxs,
-                "slice_point": {"sid": islice, "bin_left": left, "bin_right": right},
+                "slice_point": {
+                    "sid": islice,
+                    "bin_left": bin_left,
+                    "bin_right": bin_right,
+                },
             }
 
         setattr(self, "_slice_sim_data", _slice_sim_data)
