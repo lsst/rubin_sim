@@ -84,11 +84,6 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         # Will often be overwritten by individual slicer slicer_init dictionaries.
         self.slicer_init = {"badval": badval}
         self.plot_funcs = []
-        # Note if the slicer needs OpSim field ID info
-        self.needsFields = False
-        # Set the y-axis range be on the two-d plot
-        if self.nslice is not None:
-            self.spatialExtent = [0, self.nslice - 1]
 
     def _run_maps(self, maps):
         """Add map metadata to slice_points."""

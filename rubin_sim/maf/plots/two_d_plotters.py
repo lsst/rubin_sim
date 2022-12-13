@@ -53,9 +53,6 @@ class TwoDMap(BasePlotter):
         """
         if "Healpix" in slicer.slicer_name:
             self.default_plot_dict["ylabel"] = "Healpix ID"
-        elif "Opsim" in slicer.slicer_name:
-            self.default_plot_dict["ylabel"] = "Field ID"
-            self.default_plot_dict["origin"] = "lower"
         elif "User" in slicer.slicer_name:
             self.default_plot_dict["ylabel"] = "User Field ID"
 
@@ -81,7 +78,7 @@ class TwoDMap(BasePlotter):
 
         figure = plt.figure(fignum)
         ax = figure.add_subplot(111)
-        yextent = slicer.spatialExtent
+        yextent = [0, slicer.nslice - 1]
         xextent = plot_dict["xextent"]
         extent = []
         extent.extend(xextent)
