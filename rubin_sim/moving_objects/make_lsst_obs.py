@@ -32,14 +32,14 @@ def setup_args(parser=None):
         "--simulation_db",
         type=str,
         default=None,
-        help="Simulation output db file (example: kraken_2026.db). Default None.",
+        help="Simulation output db file (example: baseline_v2.1_10yrs.db). Default None.",
     )
     parser.add_argument(
         "--orbit_file",
         type=str,
         default=None,
         help="File containing the moving object orbits. "
-        "See https://github.com/lsst/oorb/blob/lsst-dev/python/README.rst for "
+        "See https://github.com/oorb/oorb/tree/master/python#defining-orbits for "
         "additional documentation on the orbit file format. Default None.",
     )
     parser.add_argument(
@@ -173,7 +173,7 @@ def setup_args(parser=None):
             "Must choose linear or direct observation generation method (obsType)."
         )
 
-    run_name = args.simulation_db.replace(".db", "")
+    run_name = os.path.split(args.simulation_db)[-1].replace(".db", "")
 
     # Add these useful pieces to args.
     args.orbitbase = ".".join(os.path.split(args.orbit_file)[-1].split(".")[:-1])
@@ -190,7 +190,7 @@ def setup_args(parser=None):
     obs_metadata = args.simulation_db
     if len(args.sql_constraint) > 0:
         obs_metadata += " selected with sqlconstraint %s" % args.sql_constraint
-    obs_metadata += " + Orbitfile %s" % args.orbitbase
+    obs_metadata += " + orbit_file %s" % args.orbitbase
     if args.obs_metadata is not None:
         obs_metadata += "\n# %s" % args.obs_metadata
     args.obs_metadata = obs_metadata
