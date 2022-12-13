@@ -135,8 +135,8 @@ class MovieSlicer(BaseSlicer):
                     "float",
                 )
         # Set shape / nbins to be one less than # of bins because last binvalue is RH edge only
-        self.nslice = len(self.bins)
-        self.shape = self.nslice - 1
+        self.nslice = len(self.bins) - 1
+        self.shape = self.nslice
         # Set slice_point metadata.
         self.slice_points["sid"] = np.arange(self.nslice)
         self.slice_points["bins"] = self.bins
@@ -146,6 +146,7 @@ class MovieSlicer(BaseSlicer):
         self.sim_idxs = np.argsort(sim_data[self.slice_col_name])
         simFieldsSorted = np.sort(sim_data[self.slice_col_name])
         # "left" values are location where simdata == bin value
+        # Note that this setup will place any the visits beyond the last bin into the last bin.
         self.left = np.searchsorted(simFieldsSorted, self.bins[:-1], "left")
         self.left = np.concatenate(
             (
