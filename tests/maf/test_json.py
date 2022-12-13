@@ -133,10 +133,10 @@ class TestJSONoutOneDSlicer2(unittest.TestCase):
         self.assertEqual(jsn_header["slicer_name"], "OneDSlicer")
         self.assertEqual(jsn_header["slicerLen"], len(self.testslicer))
         self.assertEqual(len(jsn_data), len(metric_val) + 1)
-        for jsndat, binleft, mval in zip(
+        for jsndat, bin_left, mval in zip(
             jsn_data, self.testslicer.slice_points["bins"], metric_val.data
         ):
-            self.assertEqual(jsndat[0], binleft)
+            self.assertEqual(jsndat[0], bin_left)
             self.assertEqual(jsndat[1], mval)
 
 

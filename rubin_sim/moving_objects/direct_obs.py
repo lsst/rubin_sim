@@ -17,7 +17,7 @@ class DirectObs(BaseObs):
 
     Parameters
     ----------
-    footPrint: `str`, optional
+    footprint: `str`, optional
         Specify the footprint for the FOV. Options include "camera", "circle", "rectangle".
         'Camera' means use the actual LSST camera footprint (following a rough cut with a circular FOV).
         Default is circular FOV.

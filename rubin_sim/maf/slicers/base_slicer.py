@@ -317,13 +317,13 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
             elif "bins" in self.slice_points:
                 # OneD slicer. Translate bins into bin/left and output with metric value.
                 for i in range(len(metric_values)):
-                    binleft = self.slice_points["bins"][i]
+                    bin_left = self.slice_points["bins"][i]
                     value = metric_values.data[i]
                     mask = metric_values.mask[i]
                     if not mask:
-                        metric.append([binleft, value])
+                        metric.append([bin_left, value])
                     else:
-                        metric.append([binleft, 0])
+                        metric.append([bin_left, 0])
                 metric.append([self.slice_points["bins"][i + 1], 0])
             elif self.slicer_name == "UniSlicer":
                 metric.append([metric_values[0]])
@@ -338,9 +338,9 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
                     metric.append([lon, lat, value])
             elif "bins" in self.slice_points:
                 for i in range(len(metric_values)):
-                    binleft = self.slice_points["bins"][i]
+                    bin_left = self.slice_points["bins"][i]
                     value = metric_values[i]
-                    metric.append([binleft, value])
+                    metric.append([bin_left, value])
                 metric.append(self.slice_points["bins"][i + 1][0])
             elif self.slicer_name == "UniSlicer":
                 metric.append([metric_values[0]])
