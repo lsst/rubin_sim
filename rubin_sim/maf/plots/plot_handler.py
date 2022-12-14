@@ -11,9 +11,9 @@ def apply_zp_norm(metric_value, plot_dict):
     if "zp" in plot_dict:
         if plot_dict["zp"] is not None:
             metric_value = metric_value - plot_dict["zp"]
-    if "normVal" in plot_dict:
-        if plot_dict["normVal"] is not None:
-            metric_value = metric_value / plot_dict["normVal"]
+    if "norm_val" in plot_dict:
+        if plot_dict["norm_val"] is not None:
+            metric_value = metric_value / plot_dict["norm_val"]
     return metric_value
 
 
@@ -139,7 +139,7 @@ class PlotHandler(object):
             tmp_plot_dict["title"] = auto_title
             tmp_plot_dict["label"] = auto_label_list[i]
             tmp_plot_dict["color"] = auto_color_list[i]
-            tmp_plot_dict["cbarFormat"] = auto_cbar
+            tmp_plot_dict["cbar_format"] = auto_cbar
             # Then update that with anything previously set in the plot_handler.
             tmp_plot_dict.update(self.plot_dicts[i])
             # Then override with plot_dict items set explicitly based on the plot type.

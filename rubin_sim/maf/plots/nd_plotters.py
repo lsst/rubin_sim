@@ -26,10 +26,10 @@ class TwoDSubsetData(BasePlotter):
             "xlabel": None,
             "ylable": None,
             "units": None,
-            "logScale": False,
+            "log_scale": False,
             "clims": None,
             "cmap": perceptual_rainbow,
-            "cbarFormat": None,
+            "cbar_format": None,
         }
 
     def __call__(self, metric_values, slicer, user_plot_dict, fignum=None):
@@ -75,7 +75,7 @@ class TwoDSubsetData(BasePlotter):
         # Plot the histogrammed data.
         # Plot data.
         x, y = np.meshgrid(slicer.bins[xaxis][:-1], slicer.bins[yaxis][:-1])
-        if plot_dict["logScale"]:
+        if plot_dict["log_scale"]:
             norm = colors.LogNorm()
         else:
             norm = None
@@ -108,7 +108,7 @@ class TwoDSubsetData(BasePlotter):
             aspect=25,
             extend="both",
             orientation="horizontal",
-            format=plot_dict["cbarFormat"],
+            format=plot_dict["cbar_format"],
         )
         cb.set_label(plot_dict["units"])
         plt.title(plot_dict["title"])
@@ -130,12 +130,12 @@ class OneDSubsetData(BasePlotter):
             "ylabel": None,
             "label": None,
             "units": None,
-            "logScale": False,
+            "log_scale": False,
             "histRange": None,
             "filled": False,
             "alpha": 0.5,
             "cmap": perceptual_rainbow,
-            "cbarFormat": None,
+            "cbar_format": None,
         }
 
     def plot_binned_data1_d(self, metric_values, slicer, user_plot_dict, fignum=None):
@@ -187,12 +187,12 @@ class OneDSubsetData(BasePlotter):
                 label=plot_dict["label"],
                 linewidth=0,
                 alpha=plot_dict["alpha"],
-                log=plot_dict["logScale"],
+                log=plot_dict["log_scale"],
             )
         else:
             x = np.ravel(list(zip(leftedge, leftedge + width)))
             y = np.ravel(list(zip(md, md)))
-            if plot_dict["logScale"]:
+            if plot_dict["log_scale"]:
                 plt.semilogy(x, y, label=plot_dict["label"])
             else:
                 plt.plot(x, y, label=plot_dict["label"])

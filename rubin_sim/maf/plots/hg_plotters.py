@@ -215,7 +215,7 @@ class GeneralHourglassPlot(BasePlotter):
             color_mappable = None
 
         try:
-            ax.set_ylim(self.plot_dict["yMax"], self.plot_dict["yMin"])
+            ax.set_ylim(self.plot_dict["y_max"], self.plot_dict["y_min"])
         except KeyError:
             ax.set_ylim(ax.get_ylim()[-1] + 1, -0.5)
         ax.set_xlim(self.plot_dict["x_min"], self.plot_dict["x_max"])
@@ -665,8 +665,8 @@ class MonthHourglassPlot(GeneralHourglassPlot):
         super().__init__(**kwargs)
         self.plot_type = "MonthHourglass"
         self.default_plot_dict["ylabel"] = "day of month"
-        self.default_plot_dict["yMax"] = calendar.monthrange(year, month)[1] + 0.5
-        self.default_plot_dict["yMin"] = 0.5
+        self.default_plot_dict["y_max"] = calendar.monthrange(year, month)[1] + 0.5
+        self.default_plot_dict["y_min"] = 0.5
         self.month = month
         self.year = year
 
@@ -718,8 +718,8 @@ class YearHourglassPlot(GeneralHourglassPlot):
         self.year = year
         self.plot_type = "YearHourglass"
         self.default_plot_dict["ylabel"] = "day of month"
-        self.default_plot_dict["yMax"] = 31.5
-        self.default_plot_dict["yMin"] = 0.5
+        self.default_plot_dict["y_max"] = 31.5
+        self.default_plot_dict["y_min"] = 0.5
 
     def _plot(self, fig, intervals):
         """Make a series of month plots, arranged for the entire year.
@@ -751,7 +751,7 @@ class YearHourglassPlot(GeneralHourglassPlot):
             np.arange(1, 13), axes.T.flatten()
         ):
             logging.info("Working on %s, %d", calendar.month_name[month], self.year)
-            self.plot_dict["yMax"] = calendar.monthrange(self.year, month)[1] + 0.5
+            self.plot_dict["y_max"] = calendar.monthrange(self.year, month)[1] + 0.5
             color_mappable = self._plot_month(intervals, month, self.year, ax)
             ax.set_title("")
             ax.set_title(calendar.month_abbr[month], y=1, x=0.005, pad=-15, loc="left")

@@ -152,7 +152,7 @@ def glanceBatch(
     # Things to check per night
     # Open Shutter per night
     displayDict = {"group": "Pointing Efficency", "order": 2}
-    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], binsize=1)
+    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], bin_size=1)
     metric = metrics.OpenShutterFractionMetric(
         slew_time_col=colmap["slewtime"],
         exp_time_col=colmap["exptime"],
@@ -165,7 +165,7 @@ def glanceBatch(
     bundle_list.append(bundle)
 
     # Number of filter changes per night
-    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], binsize=1)
+    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], bin_size=1)
     metric = metrics.NChangesMetric(
         col=colmap["filter"], order_by=colmap["mjd"], metric_name="Filter Changes"
     )
@@ -189,7 +189,7 @@ def glanceBatch(
         lat_lon_deg=colmap["raDecDeg"],
     )
     metric = metrics.CountMetric(col=colmap["mjd"])
-    plotDict = {"percentileClip": 95.0}
+    plotDict = {"percentile_clip": 95.0}
     for sql in sql_per_and_all_filters:
         bundle = metric_bundles.MetricBundle(
             metric,
@@ -252,7 +252,7 @@ def glanceBatch(
 
     # Checking a few basic science things
     # Maybe check astrometry, observation pairs, SN
-    plotDict = {"percentileClip": 95.0}
+    plotDict = {"percentile_clip": 95.0}
     displayDict = {"group": "Science", "subgroup": "Astrometry", "order": 4}
 
     stackerList = []
@@ -386,8 +386,8 @@ def glanceBatch(
         "xlabel": "Number of Visits",
         "Asky": benchmarkArea,
         "Nvisit": benchmarkNvisits,
-        "xMin": 0,
-        "xMax": 1500,
+        "x_min": 0,
+        "x_max": 1500,
     }
     summaryMetrics = [
         metrics.FOArea(

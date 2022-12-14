@@ -27,8 +27,8 @@ class NeoDistancePlotter(BasePlotter):
             "ylabel": "Y (AU)",
             "x_min": -1.5,
             "x_max": 1.5,
-            "yMin": -0.25,
-            "yMax": 2.5,
+            "y_min": -0.25,
+            "y_max": 2.5,
             "units": "Count",
         }
         self.filter2color = {
@@ -127,7 +127,7 @@ class NeoDistancePlotter(BasePlotter):
         ax.set_xlabel(plot_dict["xlabel"])
         ax.set_ylabel(plot_dict["ylabel"])
         ax.set_title(plot_dict["title"])
-        ax.set_ylim([plot_dict["yMin"], plot_dict["yMax"]])
+        ax.set_ylim([plot_dict["y_min"], plot_dict["y_max"]])
         ax.set_xlim([plot_dict["x_min"], plot_dict["x_max"]])
 
         ax.plot([0], [1], marker="o", color="b")

@@ -65,9 +65,9 @@ def masking_algorithm_generalized(
     plot_final_plots : `bool`
         set to False if do not want to plot the final plots. Default: True
     sky_map_color_min : float
-        colorMin label value for skymap plot_dict label. Default: None
+        color_min label value for skymap plot_dict label. Default: None
     sky_map_color_max : float
-        colorMax label value for skymap plot_dict label. Default: None
+        color_max label value for skymap plot_dict label. Default: None
     """
     # find pixels such that (pixelValue (relation) find_value) AND their neighbors dont have that (relation) find_value.
     # then assign new_value to all these pixels.
@@ -173,10 +173,10 @@ def masking_algorithm_generalized(
                     plot_dict = {
                         "xlabel": data_label,
                         "title": "%s: %s Round # %s" % (dither, data_label, r + 1),
-                        "logScale": False,
+                        "log_scale": False,
                         "labelsize": 9,
-                        "colorMin": -550,
-                        "colorMax": 550,
+                        "color_min": -550,
+                        "color_max": 550,
                         "cmap": cm.jet,
                     }
                 else:
@@ -188,7 +188,7 @@ def masking_algorithm_generalized(
                     plot_dict = {
                         "xlabel": data_label,
                         "title": "%s %s Round # %s" % (dither, data_label, r + 1),
-                        "logScale": False,
+                        "log_scale": False,
                         "labelsize": 9,
                         "maxl": 500,
                         "cmap": cm.jet,
@@ -226,10 +226,10 @@ def masking_algorithm_generalized(
                 "xlabel": data_label,
                 "title": "%s: %s MaskedMap; pixel_radius: %s "
                 % (dither, data_label, pixel_radius),
-                "logScale": False,
+                "log_scale": False,
                 "labelsize": 8,
-                "colorMin": sky_map_color_min,
-                "colorMax": sky_map_color_max,
+                "color_min": sky_map_color_min,
+                "color_max": sky_map_color_max,
                 "cmap": cm.jet,
             }
             my_bundles[dither].set_plot_dict(plot_dict)
@@ -240,7 +240,7 @@ def masking_algorithm_generalized(
                 "xlabel": data_label,
                 "title": "%s: %s MaskedMap; pixel_radius: %s "
                 % (dither, data_label, pixel_radius),
-                "logScale": False,
+                "log_scale": False,
                 "labelsize": 12,
                 "maxl": 500,
                 "cmap": cm.jet,

@@ -94,10 +94,10 @@ class MetricVsH(BasePlotter):
             ax.set_xlim(left=plot_dict["x_min"])
         if "x_max" in plot_dict:
             ax.set_xlim(right=plot_dict["x_max"])
-        if "yMin" in plot_dict:
-            ax.set_ylim(bottom=plot_dict["yMin"])
-        if "yMax" in plot_dict:
-            ax.set_ylim(top=plot_dict["yMax"])
+        if "y_min" in plot_dict:
+            ax.set_ylim(bottom=plot_dict["y_min"])
+        if "y_max" in plot_dict:
+            ax.set_ylim(top=plot_dict["y_max"])
         # Convert hvals to diameter, using 'albedo' - add these upper xticks
         albedo = plot_dict["albedo"]
         y = 1.0

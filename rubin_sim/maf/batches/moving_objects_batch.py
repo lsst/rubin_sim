@@ -1096,8 +1096,8 @@ def characterization_inner_batch(
     md = info_label
     display_dict["subgroup"] = f"Color/Inversion"
     plotDict = {
-        "yMin": 0,
-        "yMax": 1,
+        "y_min": 0,
+        "y_max": 1,
         "ylabel": "Fraction of objects",
         "title": "%s: Fraction with potential lightcurve inversion %s" % (run_name, md),
     }
@@ -1119,8 +1119,8 @@ def characterization_inner_batch(
     # Color determination.
     md = info_label
     plotDict = {
-        "yMin": 0,
-        "yMax": 1,
+        "y_min": 0,
+        "y_max": 1,
         "ylabel": "Fraction of objects",
         "title": "%s: Fraction of population with colors in X filters %s"
         % (run_name, md),
@@ -1298,8 +1298,8 @@ def characterization_outer_batch(
     md = info_label
     display_dict["subgroup"] = f"Color/Inversion"
     plotDict = {
-        "yMin": 0,
-        "yMax": 1,
+        "y_min": 0,
+        "y_max": 1,
         "ylabel": "Fraction of objects",
         "title": "%s: Fraction of population with colors in X filters %s"
         % (run_name, md),
@@ -1491,7 +1491,7 @@ def plot_single(bundle, results_db=None, out_dir=".", figformat="pdf"):
     for percentile in pDict:
         plotBundles.append(bundle)
         plot_dicts.append(pDict[percentile])
-    plot_dicts[0].update({"figsize": (8, 6), "legendloc": "upper right", "yMin": 0})
+    plot_dicts[0].update({"figsize": (8, 6), "legendloc": "upper right", "y_min": 0})
     # Remove the h_mark line because these plots get complicated already.
     for r in plot_dicts:
         r["h_mark"] = None

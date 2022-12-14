@@ -376,7 +376,7 @@ class MetricBundle(object):
         # Don't auto-generate anything here - the plotHandler does it.
         if plot_dict is not None:
             self.plot_dict.update(plot_dict)
-        # Check for bad zp or normVal values.
+        # Check for bad zp or norm_val values.
         if "zp" in self.plot_dict:
             if self.plot_dict["zp"] is not None:
                 if not np.isfinite(self.plot_dict["zp"]):
@@ -385,13 +385,13 @@ class MetricBundle(object):
                         % (self.file_root)
                     )
                     del self.plot_dict["zp"]
-        if "normVal" in self.plot_dict:
-            if self.plot_dict["normVal"] == 0:
+        if "norm_val" in self.plot_dict:
+            if self.plot_dict["norm_val"] == 0:
                 warnings.warn(
-                    "Warning! Plot normalization value for %s was 0: removing normVal from plot_dict"
+                    "Warning! Plot normalization value for %s was 0: removing norm_val from plot_dict"
                     % (self.file_root)
                 )
-                del self.plot_dict["normVal"]
+                del self.plot_dict["norm_val"]
 
     def set_display_dict(self, display_dict=None, results_db=None):
         """Set or update any property of display_dict.
@@ -439,9 +439,9 @@ class MetricBundle(object):
                 caption += " Values plotted with a zeropoint of %.2f." % (
                     self.plot_dict["zp"]
                 )
-            if "normVal" in self.plot_dict:
+            if "norm_val" in self.plot_dict:
                 caption += " Values plotted with a normalization value of %.2f." % (
-                    self.plot_dict["normVal"]
+                    self.plot_dict["norm_val"]
                 )
             self.display_dict["caption"] = caption
         if results_db:

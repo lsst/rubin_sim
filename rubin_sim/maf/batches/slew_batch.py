@@ -72,7 +72,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
         col=colmap["slewtime"], metric_name="Slew Time Histogram"
     )
     info_label = "All visits"
-    plotDict = {"logScale": True, "ylabel": "Count"}
+    plotDict = {"log_scale": True, "ylabel": "Count"}
     displayDict["caption"] = "Histogram of slew times (seconds) for all visits."
     displayDict["order"] += 1
     bundle = mb.MetricBundle(
@@ -92,7 +92,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
         col=colmap["slewtime"], metric_name="Zoom Slew Time Histogram"
     )
     info_label = "All visits"
-    plotDict = {"logScale": True, "ylabel": "Count"}
+    plotDict = {"log_scale": True, "ylabel": "Count"}
     displayDict["caption"] = "Histogram of slew times (seconds) for all visits (zoom)."
     displayDict["order"] += 1
     bundle = mb.MetricBundle(
@@ -116,7 +116,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
         metric = metrics.CountMetric(
             col=colmap["slewdist"], metric_name="Slew Distance Histogram"
         )
-        plotDict = {"logScale": True, "ylabel": "Count"}
+        plotDict = {"log_scale": True, "ylabel": "Count"}
         displayDict["caption"] = "Histogram of slew distances (angle) for all visits."
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
@@ -141,7 +141,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
         metric = metrics.CountMetric(
             col=colmap["slewdist"], metric_name="Zoom Slew Distance Histogram"
         )
-        plotDict = {"logScale": True, "ylabel": "Count"}
+        plotDict = {"log_scale": True, "ylabel": "Count"}
         displayDict["caption"] = "Histogram of slew distances (angle) for all visits."
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
@@ -367,7 +367,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
 
         # Percent of slews which include this activity.
         metric = metrics.CountRatioMetric(
-            col="activityDelay", normVal=totalSlewN / 100.0, metric_name="ActivePerc"
+            col="activityDelay", norm_val=totalSlewN / 100.0, metric_name="ActivePerc"
         )
         displayDict["caption"] = (
             "Percent of total slews which include %s movement." % slewType
@@ -408,7 +408,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
         # Percent of slews which include this activity in the critical path.
         metric = metrics.CountRatioMetric(
             col="activityDelay",
-            normVal=totalSlewN / 100.0,
+            norm_val=totalSlewN / 100.0,
             metric_name="ActivePerc in crit",
         )
         displayDict["caption"] = (

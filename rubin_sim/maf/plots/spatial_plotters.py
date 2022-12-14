@@ -37,26 +37,26 @@ base_default_plot_dict = {
     "title": None,
     "xlabel": None,
     "label": None,
-    "logScale": False,
-    "percentileClip": None,
-    "normVal": None,
+    "log_scale": False,
+    "percentile_clip": None,
+    "norm_val": None,
     "zp": None,
-    "cbarOrientation": "horizontal",
-    "cbarFormat": None,
+    "cbar_orientation": "horizontal",
+    "cbar_format": None,
     "cmap": perceptual_rainbow,
     "cbar_edge": True,
-    "nTicks": 10,
+    "n_ticks": 10,
     "color_min": None,
     "color_max": None,
     "x_min": None,
     "x_max": None,
-    "yMin": None,
-    "yMax": None,
+    "y_min": None,
+    "y_max": None,
     "labelsize": None,
     "fontsize": None,
     "figsize": None,
     "subplot": 111,
-    "maskBelow": None,
+    "mask_below": None,
 }
 
 
@@ -69,9 +69,9 @@ def set_color_lims(metric_value, plot_dict, key_min="color_min", key_max="color_
     if color_min is None or color_max is None:
         if np.size(metric_value.compressed()) > 0:
             # is percentile clipping set?
-            if plot_dict["percentileClip"] is not None:
+            if plot_dict["percentile_clip"] is not None:
                 pc_min, pc_max = percentile_clipping(
-                    metric_value.compressed(), percentile=plot_dict["percentileClip"]
+                    metric_value.compressed(), percentile=plot_dict["percentile_clip"]
                 )
                 tempcolor_min = pc_min
                 tempcolor_max = pc_max
@@ -128,7 +128,7 @@ class HealpixSkyMap(BasePlotter):
                 "flip": "astro",
                 "coord": "C",
                 "nside": 8,
-                "reduceFunc": np.mean,
+                "reduce_func": np.mean,
                 "visufunc": hp.mollview,
             }
         )
@@ -172,7 +172,7 @@ class HealpixSkyMap(BasePlotter):
                 slicer.slice_points["dec"],
                 metric_value_in.filled(slicer.badval),
                 nside=plot_dict["nside"],
-                reduce_func=plot_dict["reduceFunc"],
+                reduce_func=plot_dict["reduce_func"],
                 fill_val=slicer.badval,
             )
             mask = np.zeros(metric_value.size)
@@ -180,8 +180,8 @@ class HealpixSkyMap(BasePlotter):
             metric_value = ma.array(metric_value, mask=mask)
             metric_value = apply_zp_norm(metric_value, plot_dict)
 
-        if plot_dict["maskBelow"] is not None:
-            to_mask = np.where(metric_value <= plot_dict["maskBelow"])[0]
+        if plot_dict["mask_below"] is not None:
+            to_mask = np.where(metric_value <= plot_dict["mask_below"])[0]
             metric_value.mask[to_mask] = True
             badval = hp.UNSEEN
         else:
@@ -194,7 +194,7 @@ class HealpixSkyMap(BasePlotter):
         cmap = set_color_map(plot_dict)
         # Set log scale?
         norm = None
-        if plot_dict["logScale"]:
+        if plot_dict["log_scale"]:
             norm = "log"
         # Avoid trying to log scale when zero is in the range.
         if (norm == "log") & (
@@ -262,13 +262,13 @@ class HealpixSkyMap(BasePlotter):
             warnings.simplefilter("ignore")
             # The vertical colorbar is primarily aimed at the movie
             # but may be useful for other purposes
-            if plot_dict["cbarOrientation"].lower() == "vertical":
+            if plot_dict["cbar_orientation"].lower() == "vertical":
                 cb = plt.colorbar(
                     im,
                     shrink=0.5,
                     extendrect=True,
                     location="right",
-                    format=plot_dict["cbarFormat"],
+                    format=plot_dict["cbar_format"],
                 )
             else:
                 # Most of the time we just want a standard horizontal colorbar
@@ -278,18 +278,18 @@ class HealpixSkyMap(BasePlotter):
                     aspect=25,
                     pad=0.1,
                     orientation="horizontal",
-                    format=plot_dict["cbarFormat"],
+                    format=plot_dict["cbar_format"],
                     extendrect=True,
                 )
             cb.set_label(plot_dict["xlabel"], fontsize=plot_dict["fontsize"])
             if plot_dict["labelsize"] is not None:
                 cb.ax.tick_params(labelsize=plot_dict["labelsize"])
             if norm == "log":
-                tick_locator = ticker.LogLocator(numticks=plot_dict["nTicks"])
+                tick_locator = ticker.LogLocator(numticks=plot_dict["n_ticks"])
                 cb.locator = tick_locator
                 cb.update_ticks()
-            if (plot_dict["nTicks"] is not None) & (norm != "log"):
-                tick_locator = ticker.MaxNLocator(nbins=plot_dict["nTicks"])
+            if (plot_dict["n_ticks"] is not None) & (norm != "log"):
+                tick_locator = ticker.MaxNLocator(nbins=plot_dict["n_ticks"])
                 cb.locator = tick_locator
                 cb.update_ticks()
         # If outputing to PDF, this fixes the colorbar white stripes
@@ -346,7 +346,7 @@ class HealpixPowerSpectrum(BasePlotter):
             linestyle=plot_dict["linestyle"],
             label=plot_dict["label"],
         )
-        if cl.max() > 0 and plot_dict["logScale"]:
+        if cl.max() > 0 and plot_dict["log_scale"]:
             plt.yscale("log")
         plt.xlabel(r"$l$", fontsize=plot_dict["fontsize"])
         plt.ylabel(r"$l(l+1)C_l/(2\pi)$", fontsize=plot_dict["fontsize"])
@@ -414,7 +414,7 @@ class BaseHistogram(BasePlotter):
         """
         Plot a histogram of metric_values (such as would come from a spatial slicer).
         """
-        # Adjust metric values by zeropoint or normVal, and use 'compressed' version of masked array.
+        # Adjust metric values by zeropoint or norm_val, and use 'compressed' version of masked array.
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
@@ -480,7 +480,7 @@ class BaseHistogram(BasePlotter):
                 bins=50,
                 histtype="step",
                 cumulative=plot_dict["cumulative"],
-                log=plot_dict["logScale"],
+                log=plot_dict["log_scale"],
                 label=plot_dict["label"],
                 color=plot_dict["color"],
             )
@@ -491,7 +491,7 @@ class BaseHistogram(BasePlotter):
                 bins=bins,
                 range=[x_min, x_max],
                 histtype="step",
-                log=plot_dict["logScale"],
+                log=plot_dict["log_scale"],
                 cumulative=plot_dict["cumulative"],
                 label=plot_dict["label"],
                 color=plot_dict["color"],
@@ -499,7 +499,7 @@ class BaseHistogram(BasePlotter):
         hist_ylims = plt.ylim()
         if n.max() > hist_ylims[1]:
             plt.ylim(top=n.max())
-        if n.min() < hist_ylims[0] and not plot_dict["logScale"]:
+        if n.min() < hist_ylims[0] and not plot_dict["log_scale"]:
             plt.ylim(bottom=n.min())
         # Fill in axes labels and limits.
         # Option to use 'scale' to turn y axis into area or other value.
@@ -517,10 +517,10 @@ class BaseHistogram(BasePlotter):
             plt.xlim(left=plot_dict["x_min"])
         if "x_max" in plot_dict:
             plt.xlim(right=plot_dict["x_max"])
-        if "yMin" in plot_dict:
-            plt.ylim(bottom=plot_dict["yMin"])
-        if "yMax" in plot_dict:
-            plt.ylim(top=plot_dict["yMax"])
+        if "y_min" in plot_dict:
+            plt.ylim(bottom=plot_dict["y_min"])
+        if "y_max" in plot_dict:
+            plt.ylim(top=plot_dict["y_max"])
         # Set/Add various labels.
         plt.xlabel(plot_dict["xlabel"], fontsize=plot_dict["fontsize"])
         plt.ylabel(plot_dict["ylabel"], fontsize=plot_dict["fontsize"])
@@ -643,7 +643,7 @@ class BaseSkyMap(BasePlotter):
         # other projections available include
         # ['aitoff', 'hammer', 'lambert', 'mollweide', 'polar', 'rectilinear']
         ax = fig.add_subplot(plot_dict["subplot"], projection=plot_dict["projection"])
-        # Set up valid datapoints and colormin/max values.
+        # Set up valid datapoints and color_min/max values.
         if plot_dict["plotMask"]:
             # Plot all data points.
             mask = np.ones(len(metric_value), dtype="bool")
@@ -682,15 +682,15 @@ class BaseSkyMap(BasePlotter):
             # Determine color min/max values. metricValue.compressed = non-masked points.
             clims = set_color_lims(metric_value, plot_dict)
             # Determine whether or not to use auto-log scale.
-            if plot_dict["logScale"] == "auto":
+            if plot_dict["log_scale"] == "auto":
                 if clims[0] > 0:
                     if np.log10(clims[1]) - np.log10(clims[0]) > 3:
-                        plot_dict["logScale"] = True
+                        plot_dict["log_scale"] = True
                     else:
-                        plot_dict["logScale"] = False
+                        plot_dict["log_scale"] = False
                 else:
-                    plot_dict["logScale"] = False
-            if plot_dict["logScale"]:
+                    plot_dict["log_scale"] = False
+            if plot_dict["log_scale"]:
                 # Move min/max values to things that can be marked on the colorbar.
                 # clims[0] = 10 ** (int(np.log10(clims[0])))
                 # clims[1] = 10 ** (int(np.log10(clims[1])))
@@ -718,13 +718,13 @@ class BaseSkyMap(BasePlotter):
             ax.add_collection(p)
             # Add color bar (with optional setting of limits)
             if plot_dict["cbar"]:
-                if plot_dict["cbarOrientation"].lower() == "vertical":
+                if plot_dict["cbar_orientation"].lower() == "vertical":
                     cb = plt.colorbar(
                         p,
                         shrink=0.5,
                         extendrect=True,
                         location="right",
-                        format=plot_dict["cbarFormat"],
+                        format=plot_dict["cbar_format"],
                     )
                 else:
                     # Most of the time we just want a standard horizontal colorbar
@@ -734,7 +734,7 @@ class BaseSkyMap(BasePlotter):
                         aspect=25,
                         pad=0.1,
                         orientation="horizontal",
-                        format=plot_dict["cbarFormat"],
+                        format=plot_dict["cbar_format"],
                         extendrect=True,
                     )
                 # If outputing to PDF, this fixes the colorbar white stripes
@@ -742,7 +742,7 @@ class BaseSkyMap(BasePlotter):
                     cb.solids.set_edgecolor("face")
                 cb.set_label(plot_dict["xlabel"], fontsize=plot_dict["fontsize"])
                 cb.ax.tick_params(labelsize=plot_dict["labelsize"])
-                tick_locator = ticker.MaxNLocator(nbins=plot_dict["nTicks"])
+                tick_locator = ticker.MaxNLocator(nbins=plot_dict["n_ticks"])
                 cb.locator = tick_locator
                 cb.update_ticks()
         # Add ecliptic
@@ -778,7 +778,7 @@ class HealpixSDSSSkyMap(BasePlotter):
         self.default_plot_dict.update(base_default_plot_dict)
         self.default_plot_dict.update(
             {
-                "cbarFormat": "%.2f",
+                "cbar_format": "%.2f",
                 "raMin": -90,
                 "raMax": 90,
                 "raLen": 45,
@@ -803,7 +803,7 @@ class HealpixSDSSSkyMap(BasePlotter):
         plot_dict.update(user_plot_dict)
         metric_value = apply_zp_norm(metric_value_in, plot_dict)
         norm = None
-        if plot_dict["logScale"]:
+        if plot_dict["log_scale"]:
             norm = "log"
         clims = set_color_lims(metric_value, plot_dict)
         cmap = set_color_map(plot_dict)
@@ -858,16 +858,16 @@ class HealpixSDSSSkyMap(BasePlotter):
                 cmap=cmap,
                 norm=cnorm,
                 orientation="horizontal",
-                format=plot_dict["cbarFormat"],
+                format=plot_dict["cbar_format"],
             )
             cb.set_label(plot_dict["xlabel"])
             cb.ax.tick_params(labelsize=plot_dict["labelsize"])
             if norm == "log":
-                tick_locator = ticker.LogLocator(numticks=plot_dict["nTicks"])
+                tick_locator = ticker.LogLocator(numticks=plot_dict["n_ticks"])
                 cb.locator = tick_locator
                 cb.update_ticks()
-            if (plot_dict["nTicks"] is not None) & (norm != "log"):
-                tick_locator = ticker.MaxNLocator(nbins=plot_dict["nTicks"])
+            if (plot_dict["n_ticks"] is not None) & (norm != "log"):
+                tick_locator = ticker.MaxNLocator(nbins=plot_dict["n_ticks"])
                 cb.locator = tick_locator
                 cb.update_ticks()
         # If outputing to PDF, this fixes the colorbar white stripes
@@ -938,7 +938,7 @@ class LambertSkyMap(BasePlotter):
                     "round": False,
                 },
                 "levels": 200,
-                "cbarFormat": "%i",
+                "cbar_format": "%i",
                 "norm": None,
             }
         )
@@ -1009,7 +1009,7 @@ class LambertSkyMap(BasePlotter):
         for c in tcf.collections:
             c.set_edgecolor("face")
 
-        cb = plt.colorbar(tcf, format=plot_dict["cbarFormat"])
+        cb = plt.colorbar(tcf, format=plot_dict["cbar_format"])
         cb.set_label(plot_dict["xlabel"])
         if plot_dict["labelsize"] is not None:
             cb.ax.tick_params(labelsize=plot_dict["labelsize"])

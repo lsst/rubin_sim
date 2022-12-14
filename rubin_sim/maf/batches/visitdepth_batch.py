@@ -112,10 +112,10 @@ def nvisitsM5Maps(
         if f == "all":
             binsize = 5
         plotDict = {
-            "xMin": nvisitsRange[f][0],
-            "xMax": nvisitsRange[f][1],
-            "colorMin": nvisitsRange[f][0],
-            "colorMax": nvisitsRange[f][1],
+            "x_min": nvisitsRange[f][0],
+            "x_max": nvisitsRange[f][1],
+            "color_min": nvisitsRange[f][0],
+            "color_max": nvisitsRange[f][1],
             "binsize": binsize,
             "color": colors[f],
         }
@@ -153,12 +153,12 @@ def nvisitsM5Maps(
         displayDict["order"] = orders[f]
         plotDict = {
             # "zp": mag_zp,
-            # "xMin": -0.6,
-            # "xMax": 0.6,
+            # "x_min": -0.6,
+            # "x_max": 0.6,
             # "xlabel": "coadded m5 - %.1f" % mag_zp,
-            # "colorMin": -0.6,
-            # "colorMax": 0.6,
-            "percentileClip": 98,
+            # "color_min": -0.6,
+            # "color_max": 0.6,
+            "percentile_clip": 98,
             "color": colors[f],
         }
         bundle = mb.MetricBundle(
@@ -197,12 +197,12 @@ def nvisitsM5Maps(
         displayDict["order"] = orders[f]
         plotDict = {
             # "zp": mag_zp,
-            # "xMin": -0.6,
-            # "xMax": 0.6,
+            # "x_min": -0.6,
+            # "x_max": 0.6,
             # "xlabel": "coadded m5 - %.1f" % mag_zp,
-            # "colorMin": -0.6,
-            # "colorMax": 0.6,
-            "percentileClip": 98,
+            # "color_min": -0.6,
+            # "color_max": 0.6,
+            "percentile_clip": 98,
             "color": colors[f],
         }
         bundle = mb.MetricBundle(

@@ -48,9 +48,9 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
     for m in ra_metrics:
         slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], bin_size=1)
         if not colmap["raDecDeg"]:
-            plotDict = {"yMin": np.radians(-5), "yMax": np.radians(365)}
+            plotDict = {"y_min": np.radians(-5), "y_max": np.radians(365)}
         else:
-            plotDict = {"yMin": -5, "yMax": 365}
+            plotDict = {"y_min": -5, "y_max": 365}
         bundle = mb.MetricBundle(
             m,
             slicer,
