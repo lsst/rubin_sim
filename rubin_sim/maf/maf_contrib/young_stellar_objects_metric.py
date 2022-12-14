@@ -124,11 +124,12 @@ class NYoungStarsMetric(BaseMetric):
 
     def run(self, data_slice, slice_point=None):
 
+        # Evaluate area on sky for this slice_point, in radians
         if "nside" in slice_point:
             # Best area /pixel calculation, appropriate for healpix slicers
             sky_area = hp.nside2pixarea(slice_point["nside"], degrees=False)
         else:
-            # Assume single circular FOV
+            # Assume single, approximate, circular FOV
             sky_area = np.pi * (np.radians(1.75)) ** 2
 
         # if we are outside the galb_limit, return nothing

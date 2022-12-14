@@ -92,7 +92,6 @@ class UserPointsSlicer(BaseSpatialSlicer):
 
         self.nslice = np.size(ra)
         self.shape = self.nslice
-        self.spatial_extent = [0, self.nslice - 1]
         self.slicer_init = {
             "ra": ra,
             "dec": dec,
