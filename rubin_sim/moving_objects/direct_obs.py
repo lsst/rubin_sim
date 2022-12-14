@@ -149,7 +149,7 @@ class DirectObs(BaseObs):
 
         Parameters
         ----------
-        orbits : `rubin_sim.movingObjects.Orbits`
+        orbits : `rubin_sim.moving_objects.Orbits`
             The orbits to generate ephemerides for.
         obs_data : `np.ndarray`
             The simulated pointing history data.

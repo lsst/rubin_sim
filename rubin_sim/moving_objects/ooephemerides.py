@@ -77,7 +77,7 @@ class PyOrbEphemerides(object):
 
         Parameters
         ----------
-        orbit_obj : `rubin_sim.movingObjects.Orbits`
+        orbit_obj : `rubin_sim.moving_objects.Orbits`
            The orbits to use to generate ephemerides.
         """
         if len(orbit_obj) == 0:

@@ -78,7 +78,7 @@ def read_orbits(orbit_file):
 
     Returns
     -------
-    rubin_sim.movingObjects.Orbits
+    rubin_sim.moving_objects.Orbits
         The orbit object.
     """
     if not os.path.isfile(orbit_file):
@@ -120,7 +120,7 @@ def run_obs(
 
     Parameters
     ----------
-    orbits : `rubin_sim.movingObjects.Orbit`
+    orbits : `rubin_sim.moving_objects.Orbit`
         Orbits for which to calculate observations
     simdata : `np.ndarray`
         The simulated pointing history data from OpSim
