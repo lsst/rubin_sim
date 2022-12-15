@@ -1,1 +1,1 @@
-Directory to eventually hold documentation.
+Directory to hold documentation (in progress).
