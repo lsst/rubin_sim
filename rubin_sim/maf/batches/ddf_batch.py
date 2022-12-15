@@ -410,7 +410,7 @@ def ddfBatch(
             metric = maf.CountMetric(
                 "observationStartMJD", metric_name=f"{fieldname} Nvisits Per Night"
             )
-            slicer = maf.OneDSlicer(slice_col_name="night", binsize=1)
+            slicer = maf.OneDSlicer(slice_col_name="night", bin_size=1)
             bundle = maf.MetricBundle(
                 metric,
                 slicer,

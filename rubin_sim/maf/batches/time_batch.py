@@ -284,9 +284,9 @@ def intraNight(
     # Histogram of the time between revisits (all filters) within two hours.
     binMin = 0
     binMax = 120.0
-    binsize = 5.0
+    bin_size = 5.0
     bins_metric = np.arange(
-        binMin / 60.0 / 24.0, (binMax + binsize) / 60.0 / 24.0, binsize / 60.0 / 24.0
+        binMin / 60.0 / 24.0, (binMax + bin_size) / 60.0 / 24.0, bin_size / 60.0 / 24.0
     )
     bins_plot = bins_metric * 24.0 * 60.0
     metric = metrics.TgapsMetric(
@@ -480,7 +480,7 @@ def interNight(
             "Maximum gap between nights with observations, %s." % info_label[f]
         )
         displayDict["order"] = orders[f]
-        plotDict = {"color": colors[f], "percentile_clip": 95.0, "binsize": 5}
+        plotDict = {"color": colors[f], "percentile_clip": 95.0, "bin_size": 5}
         bundle = mb.MetricBundle(
             metric,
             slicer,

@@ -90,7 +90,7 @@ def openshutterFractions(
         exp_time_col=colmap["exptime"],
         visit_time_col=colmap["visittime"],
     )
-    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], binsize=1)
+    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], bin_size=1)
     bundle = mb.MetricBundle(
         metric,
         slicer,
