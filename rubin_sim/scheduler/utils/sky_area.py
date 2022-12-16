@@ -4,12 +4,15 @@ import healpy as hp
 import warnings
 from astropy.coordinates import SkyCoord
 import astropy.units as u
+from rubin_sim.utils import angular_separation
 from rubin_sim import data as rs_data
 import rubin_sim.utils as rs_utils
 from numpy.lib import recfunctions as rfn
 
 
-__all__ = ["SkyAreaGenerator"]
+__all__ = [
+    "SkyAreaGenerator", "SkyAreaGeneratorGalplane"
+]
 
 
 class SkyAreaGenerator:
@@ -488,3 +491,74 @@ class SkyAreaGenerator:
         for key in ulabels:
             result[key] = label_sums[key] / norm * nvis_total
         return result
+
+
+class SkyAreaGeneratorGalplane(SkyAreaGenerator):
+    def add_bulgy(self, filter_ratios, label="bulgy"):
+        """Properly set the self.healmaps and self.pix_labels for the bulgy area."""
+        # Some RA, dec, radius points that
+        # seem to cover the areas that are desired
+        points = [
+            [100.90, 9.55, 3],
+            [84.92, -5.71, 3],
+            [288.84, 9.18, 3.8],
+            [266.3, -29, 14.5],
+            [279, -13, 10],
+            [256, -45, 5],
+            [155, -56.5, 6.5],
+            [172, -62, 5],
+            [190, -65, 5],
+            [210, -64, 5],
+            [242, -58, 5],
+            [225, -60, 6.5],
+        ]
+        for point in points:
+            dist = angular_separation(self.ra, self.dec, point[0], point[1])
+            # Only change pixels where the label isn't already set.
+            indx = np.where((dist < point[2]) & (self.pix_labels == ""))
+            self.pix_labels[indx] = label
+            for filtername in filter_ratios:
+                self.healmaps[filtername][indx] = filter_ratios[filtername]
+
+    def return_maps(
+        self,
+        lmc_ra=89.0,
+        lmc_dec=-70,
+        magellenic_clouds_ratios={
+            "u": 0.32,
+            "g": 0.4,
+            "r": 1.0,
+            "i": 1.0,
+            "z": 0.9,
+            "y": 0.9,
+        },
+        low_dust_ratios={"u": 0.32, "g": 0.4, "r": 1.0, "i": 1.0, "z": 0.9, "y": 0.9},
+        virgo_ratios={"u": 0.32, "g": 0.4, "r": 1.0, "i": 1.0, "z": 0.9, "y": 0.9},
+        scp_ratios={"u": 0.08, "g": 0.15, "r": 0.08, "i": 0.15, "z": 0.08, "y": 0.06},
+        nes_ratios={"g": 0.23, "r": 0.33, "i": 0.33, "z": 0.23},
+        bulge_ratios={"u": 0.19, "g": 0.57, "r": 1.15, "i": 1.05, "z": 0.78, "y": 0.57},
+        dusty_plane_ratios={
+            "u": 0.07,
+            "g": 0.13,
+            "r": 0.28,
+            "i": 0.28,
+            "z": 0.25,
+            "y": 0.18,
+        },
+    ):
+
+        self.pix_labels = np.zeros(hp.nside2npix(self.nside), dtype="U20")
+        dt = list(zip(["u", "g", "r", "i", "z", "y"], [float] * 7))
+        self.healmaps = np.zeros(hp.nside2npix(self.nside), dtype=dt)
+
+        self.add_magellanic_clouds(
+            magellenic_clouds_ratios, lmc_ra=lmc_ra, lmc_dec=lmc_dec
+        )
+        self.add_lowdust_wfd(low_dust_ratios)
+        self.add_virgo_cluster(virgo_ratios)
+        self.add_bulgy(bulge_ratios)
+        self.add_nes(nes_ratios)
+        self.add_dusty_plane(dusty_plane_ratios)
+        self.add_scp(scp_ratios)
+
+        return self.healmaps, self.pix_labels

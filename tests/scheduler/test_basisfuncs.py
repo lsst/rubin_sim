@@ -160,6 +160,15 @@ class TestBasis(unittest.TestCase):
 
         assert visit_gap.check_feasibility(conditions=conditions)
 
+    def test_sun_alt(self):
+
+        sunaltbf = basis_functions.SunAltHighLimitBasisFunction(alt_limit=-15)
+        conditions = Conditions()
+        conditions.sun_alt = np.radians(-20)
+        assert ~sunaltbf.check_feasibility(conditions)
+        conditions.sun_alt = np.radians(-10)
+        assert sunaltbf.check_feasibility(conditions)
+
 
 if __name__ == "__main__":
     unittest.main()

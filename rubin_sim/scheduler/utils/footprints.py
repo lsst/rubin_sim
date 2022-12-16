@@ -56,6 +56,8 @@ def make_rolling_footprints(
     scale=0.8,
     nside=32,
     wfd_indx=None,
+    order_roll=0,
+    n_cycles=None,
 ):
     """
     Generate rolling footprints
@@ -74,24 +76,32 @@ def make_rolling_footprints(
         The strength of the rolling, value of 1 is full power rolling, zero is no rolling.
     wfd_indx : array of ints (none)
         The indices of the HEALpix map that are to be included in the rolling.
+    order_roll : int (0)
+        Change the order of when bands roll. Default 0.
 
     Returns
     -------
     Footprints object
     """
 
+    nc_defualt = {2: 3, 3: 2, 4: 2, 6: 1}
+    if n_cycles is None:
+        n_cycles = nc_defualt[nslice]
+
     hp_footprints = fp_hp
 
     down = 1.0 - scale
     up = nslice - down * (nslice - 1)
+
     start = [1.0, 1.0, 1.0]
+    # After n_cycles, just go to no-rolling for 6 years.
     end = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-    if nslice == 2:
-        rolling = [up, down, up, down, up, down]
-    elif nslice == 3:
-        rolling = [up, down, down, up, down, down]
-    elif nslice == 6:
-        rolling = [up, down, down, down, down, down]
+
+    rolling = [up] + [down] * (nslice - 1)
+    rolling = rolling * n_cycles
+
+    rolling = np.roll(rolling, order_roll).tolist()
+
     all_slopes = [start + np.roll(rolling, i).tolist() + end for i in range(nslice)]
 
     fp_non_wfd = Footprint(mjd_start, sun_ra_start=sun_ra_start, nside=nside)
