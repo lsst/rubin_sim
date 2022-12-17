@@ -14,6 +14,7 @@ from astropy import units as u
 __all__ = [
     "BaseBasisFunction",
     "ConstantBasisFunction",
+    "DelayStartBasisFunction",
     "TargetMapBasisFunction",
     "AvoidLongGapsBasisFunction",
     "AvoidFastRevists",
@@ -159,6 +160,20 @@ class ConstantBasisFunction(BaseBasisFunction):
 
     def __call__(self, conditions, **kwargs):
         return 1
+
+
+class DelayStartBasisFunction(BaseBasisFunction):
+    """Force things to not run before a given night"""
+
+    def __init__(self, nights_delay=365.25 * 5):
+        super().__init__()
+        self.nights_delay = nights_delay
+
+    def check_feasibility(self, conditions):
+        result = True
+        if conditions.night < self.nights_delay:
+            result = False
+        return result
 
 
 class NGoodSeeingBasisFunction(BaseBasisFunction):
