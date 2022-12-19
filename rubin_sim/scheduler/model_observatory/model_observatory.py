@@ -1,7 +1,7 @@
 import numpy as np
 from rubin_sim.utils import (
     _hpid2_ra_dec,
-    ra_dec2_hpid,
+    _ra_dec2_hpid,
     Site,
     calc_lmst_last,
     m5_flat_sed,
@@ -381,7 +381,9 @@ class ModelObservatory(object):
         observation["night"] = self.night
         observation["mjd"] = self.mjd
 
-        hpid = ra_dec2_hpid(self.sky_model.nside, observation["RA"], observation["dec"])
+        hpid = _ra_dec2_hpid(
+            self.sky_model.nside, observation["RA"], observation["dec"]
+        )
         observation["skybrightness"] = self.sky_model.return_mags(
             self.mjd, indx=[hpid], extrapolate=True
         )[observation["filter"][0]]

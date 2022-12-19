@@ -10,9 +10,7 @@ import rubin_sim.utils as rs_utils
 from numpy.lib import recfunctions as rfn
 
 
-__all__ = [
-    "SkyAreaGenerator", "SkyAreaGeneratorGalplane"
-]
+__all__ = ["SkyAreaGenerator", "SkyAreaGeneratorGalplane"]
 
 
 class SkyAreaGenerator:
