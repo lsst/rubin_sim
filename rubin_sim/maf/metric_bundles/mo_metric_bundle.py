@@ -501,7 +501,7 @@ class MoMetricBundleGroup(object):
         self,
         savefig=True,
         outfile_suffix=None,
-        figformat="pdf",
+        fig_format="pdf",
         dpi=600,
         thumbnail=True,
         closefigs=True,
@@ -513,7 +513,7 @@ class MoMetricBundleGroup(object):
             out_dir=self.out_dir,
             results_db=self.results_db,
             savefig=savefig,
-            figformat=figformat,
+            fig_format=fig_format,
             dpi=dpi,
             thumbnail=thumbnail,
         )

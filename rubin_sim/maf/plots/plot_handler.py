@@ -44,7 +44,7 @@ class PlotHandler(object):
         out_dir=".",
         results_db=None,
         savefig=True,
-        figformat="pdf",
+        fig_format="pdf",
         dpi=600,
         thumbnail=True,
         trim_whitespace=True,
@@ -52,7 +52,7 @@ class PlotHandler(object):
         self.out_dir = out_dir
         self.results_db = results_db
         self.savefig = savefig
-        self.figformat = figformat
+        self.fig_format = fig_format
         self.dpi = dpi
         self.trim_whitespace = trim_whitespace
         self.thumbnail = thumbnail
@@ -618,17 +618,17 @@ class PlotHandler(object):
                     m_b.metric_values, m_b.slicer, plot_dict, fignum=fignum
                 )
         # Add a legend if more than one metricValue is being plotted or if legendloc is specified.
-        legendloc = None
-        if "legendloc" in self.plot_dicts[0]:
-            legendloc = self.plot_dicts[0]["legendloc"]
+        legend_loc = None
+        if "legend_loc" in self.plot_dicts[0]:
+            legend_loc = self.plot_dicts[0]["legend_loc"]
         if len(self.m_bundles) > 1:
             try:
-                legendloc = self.plot_dicts[0]["legendloc"]
+                legend_loc = self.plot_dicts[0]["legend_loc"]
             except KeyError:
-                legendloc = "upper right"
-        if legendloc is not None:
+                legend_loc = "upper right"
+        if legend_loc is not None:
             plt.figure(fignum)
-            plt.legend(loc=legendloc, fancybox=True, fontsize="smaller")
+            plt.legend(loc=legend_loc, fancybox=True, fontsize="smaller")
         # Add the super title if provided.
         if "suptitle" in self.plot_dicts[0]:
             plt.suptitle(self.plot_dicts[0]["suptitle"])
@@ -662,19 +662,19 @@ class PlotHandler(object):
         display_dict=None,
     ):
         fig = plt.figure(fignum)
-        plot_file = outfile_root + "_" + plot_type + "." + self.figformat
+        plot_file = outfile_root + "_" + plot_type + "." + self.fig_format
         if self.trim_whitespace:
             fig.savefig(
                 os.path.join(self.out_dir, plot_file),
                 dpi=self.dpi,
                 bbox_inches="tight",
-                format=self.figformat,
+                format=self.fig_format,
             )
         else:
             fig.savefig(
                 os.path.join(self.out_dir, plot_file),
                 dpi=self.dpi,
-                format=self.figformat,
+                format=self.fig_format,
             )
         # Generate a png thumbnail.
         if self.thumbnail:

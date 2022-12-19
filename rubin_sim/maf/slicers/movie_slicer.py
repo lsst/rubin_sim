@@ -215,7 +215,7 @@ class MovieSlicer(BaseSlicer):
         outfileroot,
         sliceformat,
         plot_type,
-        figformat,
+        fig_format,
         out_dir="Output",
         ips=10.0,
         fps=10.0,
@@ -237,7 +237,7 @@ class MovieSlicer(BaseSlicer):
             "-i",
             os.path.join(
                 out_dir,
-                "%s_%s_%s.%s" % (outfileroot, sliceformat, plot_type, figformat),
+                "%s_%s_%s.%s" % (outfileroot, sliceformat, plot_type, fig_format),
             ),
             "-vf",
             "pad=ceil(iw/2)*2:ceil(ih/2)*2",

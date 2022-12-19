@@ -75,11 +75,11 @@ class PlotBundle(object):
                     )
                     self.plot_dicts[i]["label"] = newstr + self.plot_dicts[i]["label"]
 
-    def plot(self, out_dir="Out", results_db=None, close_figs=True):
+    def plot(self, out_dir="Out", results_db=None, closefigs=True):
         ph = PlotHandler(out_dir=out_dir, results_db=results_db)
         ph.set_metric_bundles(self.bundle_list)
         # Auto-generate labels and things
         ph.set_plot_dicts(plot_dicts=self.plot_dicts, plot_func=self.plot_func)
         ph.plot(self.plot_func, plot_dicts=self.plot_dicts)
-        if close_figs:
+        if closefigs:
             plt.close("all")

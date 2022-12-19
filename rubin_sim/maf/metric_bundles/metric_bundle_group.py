@@ -595,9 +595,9 @@ class MetricBundleGroup(object):
 
     def plot_all(
         self,
-        savefig=True,
+        save_figs=True,
         outfile_suffix=None,
-        figformat="pdf",
+        fig_format="pdf",
         dpi=600,
         trim_whitespace=True,
         thumbnail=True,
@@ -610,12 +610,12 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        savefig : `bool`, optional
+        save_figs : `bool`, optional
             If True, save figures to disk, to self.out_dir directory.
         outfile_suffix : `bool`, optional
             Append outfile_suffix to the end of every plot file generated. Useful for generating
             sequential series of images for movies.
-        figformat : `str`, optional
+        fig_format : `str`, optional
             Matplotlib figure format to use to save to disk. Default pdf.
         dpi : `int`, optional
             DPI for matplotlib figure. Default 600.
@@ -634,9 +634,9 @@ class MetricBundleGroup(object):
 
             self.set_current(constraint)
             self.plot_current(
-                savefig=savefig,
+                savefig=save_figs,
                 outfile_suffix=outfile_suffix,
-                figformat=figformat,
+                fig_format=fig_format,
                 dpi=dpi,
                 trim_whitespace=trim_whitespace,
                 thumbnail=thumbnail,
@@ -647,7 +647,7 @@ class MetricBundleGroup(object):
         self,
         savefig=True,
         outfile_suffix=None,
-        figformat="pdf",
+        fig_format="pdf",
         dpi=600,
         trim_whitespace=True,
         thumbnail=True,
@@ -662,7 +662,7 @@ class MetricBundleGroup(object):
         outfile_suffix : `str`, optional
             Append outfile_suffix to the end of every plot file generated. Useful for generating
             sequential series of images for movies.
-        figformat : `str`, optional
+        fig_format : `str`, optional
             Matplotlib figure format to use to save to disk. Default pdf.
         dpi : `int`, optional
             DPI for matplotlib figure. Default 600.
@@ -679,7 +679,7 @@ class MetricBundleGroup(object):
             out_dir=self.out_dir,
             results_db=self.results_db,
             savefig=savefig,
-            figformat=figformat,
+            fig_format=fig_format,
             dpi=dpi,
             trim_whitespace=trim_whitespace,
             thumbnail=thumbnail,

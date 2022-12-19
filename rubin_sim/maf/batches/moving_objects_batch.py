@@ -808,7 +808,7 @@ def plot_completeness(
     run_name=None,
     results_db=None,
     out_dir=".",
-    figformat="pdf",
+    fig_format="pdf",
 ):
     """Plot a minor subset of the completeness results."""
     # Separate some subsets to plot together - first just the simple 15 and 30 night detection loss metrics.
@@ -873,12 +873,14 @@ def plot_completeness(
     plt.ylabel("Completeness")
     plt.grid(True, alpha=0.3)
     # Make a PlotHandler to deal with savings/results_db, etc.
-    ph = plots.PlotHandler(figformat=figformat, results_db=results_db, out_dir=out_dir)
+    ph = plots.PlotHandler(
+        fig_format=fig_format, results_db=results_db, out_dir=out_dir
+    )
     display_dict["subgroup"] = f"Completeness over time"
     display_dict[
         "caption"
     ] = "Completeness over time, for H values indicated in legend."
-    ph.save_fig(
+    ph.savefig(
         fig.number,
         f"{figroot}_CompletenessOverTime",
         "Combo",
@@ -891,12 +893,14 @@ def plot_completeness(
     )
 
     plt.savefig(
-        os.path.join(out_dir, f"{figroot}_CompletenessOverTime.{figformat}"),
-        format=figformat,
+        os.path.join(out_dir, f"{figroot}_CompletenessOverTime.{fig_format}"),
+        format=fig_format,
     )
 
     # Plot cumulative completeness.
-    ph = plots.PlotHandler(figformat=figformat, results_db=results_db, out_dir=out_dir)
+    ph = plots.PlotHandler(
+        fig_format=fig_format, results_db=results_db, out_dir=out_dir
+    )
     ph.set_metric_bundles(plotComp)
     plotDict = {"ylabel": "Completeness", "figsize": (8, 6), "albedo": 0.14}
     ph.plot(
@@ -906,7 +910,9 @@ def plot_completeness(
     )
 
     # Plot differential completeness.
-    ph = plots.PlotHandler(figformat=figformat, results_db=results_db, out_dir=out_dir)
+    ph = plots.PlotHandler(
+        fig_format=fig_format, results_db=results_db, out_dir=out_dir
+    )
     ph.set_metric_bundles(plotDiff)
     plotDict = {"ylabel": "Completeness", "figsize": (8, 6)}
     ph.plot(
@@ -924,7 +930,9 @@ def plot_completeness(
         if "Magic" in k:
             if "Cumulative" in k:
                 allComp.append(bdictCompleteness[k])
-    ph = plots.PlotHandler(figformat=figformat, results_db=results_db, out_dir=out_dir)
+    ph = plots.PlotHandler(
+        fig_format=fig_format, results_db=results_db, out_dir=out_dir
+    )
     ph.set_metric_bundles(allComp)
     plotDict = {
         "ylabel": "Completeness",
@@ -1407,7 +1415,7 @@ def plot_fractions(
     run_name=None,
     results_db=None,
     out_dir=".",
-    figformat="pdf",
+    fig_format="pdf",
 ):
     # Set colors for the fractions.
     for b in bdictFractions.values():
@@ -1433,7 +1441,9 @@ def plot_fractions(
     display_dict = deepcopy(first.display_dict)
     display_dict["subgroup"] = f"Characterization Fraction"
 
-    ph = plots.PlotHandler(figformat=figformat, results_db=results_db, out_dir=out_dir)
+    ph = plots.PlotHandler(
+        fig_format=fig_format, results_db=results_db, out_dir=out_dir
+    )
     ph.set_metric_bundles(bdictFractions)
     ph.joint_metric_names = "Fraction of population for colors or lightcurve inversion"
     plotDict = {"ylabel": "Fraction of population", "figsize": (8, 6)}
@@ -1445,7 +1455,7 @@ def plot_fractions(
     )
 
 
-def plot_single(bundle, results_db=None, out_dir=".", figformat="pdf"):
+def plot_single(bundle, results_db=None, out_dir=".", fig_format="pdf"):
     """Plot 5%/25%/50%/75%/95% iles for a metric value."""
     pDict = {
         "95%ile": {
@@ -1485,7 +1495,9 @@ def plot_single(bundle, results_db=None, out_dir=".", figformat="pdf"):
             "np_reduce": lambda x, axis: np.percentile(x, 5, axis=axis),
         },
     }
-    ph = plots.PlotHandler(figformat=figformat, results_db=results_db, out_dir=out_dir)
+    ph = plots.PlotHandler(
+        fig_format=fig_format, results_db=results_db, out_dir=out_dir
+    )
     plotBundles = []
     plot_dicts = []
     for percentile in pDict:
@@ -1507,7 +1519,7 @@ def plot_not_found(nChances, h_mark):
     pass
 
 
-def plot_activity(bdict, figroot=None, results_db=None, out_dir=".", figformat="pdf"):
+def plot_activity(bdict, figroot=None, results_db=None, out_dir=".", fig_format="pdf"):
     activity_deg = {}
     activity_days = {}
     for k in bdict:
@@ -1525,7 +1537,7 @@ def plot_activity(bdict, figroot=None, results_db=None, out_dir=".", figformat="
     if len(activity_days) > 0:
         # Plot (mean) likelihood of detection of activity over X days
         ph = plots.PlotHandler(
-            figformat=figformat, results_db=results_db, out_dir=out_dir
+            fig_format=fig_format, results_db=results_db, out_dir=out_dir
         )
         ph.set_metric_bundles(activity_days)
         ph.jointMetricNames = "Chances of detecting activity lasting X days"
@@ -1539,7 +1551,7 @@ def plot_activity(bdict, figroot=None, results_db=None, out_dir=".", figformat="
     if len(activity_deg) > 0:
         # Plot (mean) likelihood of detection of activity over X amount of orbit
         ph = plots.PlotHandler(
-            figformat=figformat, results_db=results_db, out_dir=out_dir
+            fig_format=fig_format, results_db=results_db, out_dir=out_dir
         )
         ph.set_metric_bundles(activity_deg)
         ph.jointMetricNames = "Chances of detecting activity covering X deg"
