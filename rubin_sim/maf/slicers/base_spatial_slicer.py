@@ -119,25 +119,19 @@ class BaseSpatialSlicer(BaseSlicer):
                 )
             self._run_maps(maps)
         self._set_rad(self.radius)
-        if self.use_camera:
+
+        if self.latLonDeg:
+            self.data_ra = np.radians(sim_data[self.lon_col])
+            self.data_dec = np.radians(sim_data[self.lat_col])
+            self.data_rot = np.radians(sim_data[self.rotSkyPosColName])
+        else:
             self.data_ra = sim_data[self.lon_col]
             self.data_dec = sim_data[self.lat_col]
             self.data_rot = sim_data[self.rotSkyPosColName]
-            if self.latLonDeg:
-                self.data_ra = np.radians(self.data_ra)
-                self.data_dec = np.radians(self.data_dec)
-                self.data_rot = np.radians(self.data_rot)
+        if self.use_camera:
             self._setupLSSTCamera()
-        if self.latLonDeg:
-            self._build_tree(
-                np.radians(sim_data[self.lon_col]),
-                np.radians(sim_data[self.lat_col]),
-                self.leafsize,
-            )
-        else:
-            self._build_tree(
-                sim_data[self.lon_col], sim_data[self.lat_col], self.leafsize
-            )
+
+        self._build_tree(self.data_ra, self.data_dec, self.leafsize)
 
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
