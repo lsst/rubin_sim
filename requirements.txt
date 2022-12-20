@@ -1,6 +1,6 @@
 setuptools_scm
 setuptools_scm_git_archive
-numpy
+numpy<1.24.0
 matplotlib
 healpy
 pandas
@@ -14,7 +14,7 @@ astropy
 pytables
 h5py
 openorb
-openorb-data-de405
+openorb-data-de430
 astroplan
 colorcet
 cycler
