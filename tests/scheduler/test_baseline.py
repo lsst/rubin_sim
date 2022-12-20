@@ -1,14 +1,11 @@
-import os
 import numpy as np
 import unittest
-from rubin_sim.data import get_data_dir
 import rubin_sim.scheduler.basis_functions as bf
 from rubin_sim.scheduler.utils import standard_goals, calc_norm_factor
 from rubin_sim.scheduler.surveys import (
     generate_dd_surveys,
     GreedySurvey,
     BlobSurvey,
-    PairsSurveyScripted,
 )
 from rubin_sim.scheduler.schedulers import CoreScheduler
 from rubin_sim.scheduler import sim_runner
@@ -70,8 +67,6 @@ def gen_blob_surveys(nside):
     target_map = standard_goals(nside=nside)
     norm_factor = calc_norm_factor(target_map)
 
-    filter1s = ["u", "g"]  # , 'r', 'i', 'z', 'y']
-    filter2s = [None, "g"]  # , 'r', 'i', None, None]
     filter1s = ["g"]  # , 'r', 'i', 'z', 'y']
     filter2s = ["g"]  # , 'r', 'i', None, None]
 
