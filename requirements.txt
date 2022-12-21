@@ -14,7 +14,7 @@ astropy
 pytables
 h5py
 openorb
-openorb-data-de430
+openorb-data-de405
 astroplan
 colorcet
 cycler
