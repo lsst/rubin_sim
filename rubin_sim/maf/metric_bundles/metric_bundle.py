@@ -124,7 +124,7 @@ class MetricBundle(object):
                     else:
                         if not isinstance(s, stackers.BaseStacker):
                             raise ValueError(
-                                "stackerList must only contain rubin_sim.maf.stackers objs"
+                                "stacker_list must only contain rubin_sim.maf.stackers objs"
                             )
                         self.stacker_list.append(s)
         else:
@@ -140,7 +140,7 @@ class MetricBundle(object):
                 for m in maps_list:
                     if not isinstance(m, maps.BaseMap):
                         raise ValueError(
-                            "mapsList must only contain rubin_sim.maf.maps objects"
+                            "maps_list must only contain rubin_sim.maf.maps objects"
                         )
                     self.maps_list.append(m)
         else:
@@ -268,27 +268,27 @@ class MetricBundle(object):
         known_cols = set(known_cols)
         # Track sources of all of these columns.
         self.db_cols = set()
-        newstackers = set()
+        new_stackers = set()
         for col in known_cols:
             if self.col_info.get_data_source(col) == self.col_info.default_data_source:
                 self.db_cols.add(col)
             else:
                 # New default stackers could come from metric/slicer or stackers.
-                newstackers.add(self.col_info.get_data_source(col))
+                new_stackers.add(self.col_info.get_data_source(col))
         # Remove already-specified stackers from default list.
         for s in self.stacker_list:
-            if s.__class__ in newstackers:
-                newstackers.remove(s.__class__)
+            if s.__class__ in new_stackers:
+                new_stackers.remove(s.__class__)
         # Loop and check if stackers are introducing new columns or stackers.
-        while len(newstackers) > 0:
+        while len(new_stackers) > 0:
             # Check for the sources of the columns in any of the new stackers.
             new_cols = []
-            for s in newstackers:
-                newstacker = s()
-                new_cols += newstacker.cols_req
-                self.stacker_list.append(newstacker)
+            for s in new_stackers:
+                new_stacker = s()
+                new_cols += new_stacker.cols_req
+                self.stacker_list.append(new_stacker)
             new_cols = set(new_cols)
-            newstackers = set()
+            new_stackers = set()
             for col in new_cols:
                 if (
                     self.col_info.get_data_source(col)
@@ -296,10 +296,10 @@ class MetricBundle(object):
                 ):
                     self.db_cols.add(col)
                 else:
-                    newstackers.add(self.col_info.get_data_source(col))
+                    new_stackers.add(self.col_info.get_data_source(col))
             for s in self.stacker_list:
-                if s.__class__ in newstackers:
-                    newstackers.remove(s.__class__)
+                if s.__class__ in new_stackers:
+                    new_stackers.remove(s.__class__)
         # A Bit of cleanup.
         # Remove 'metricdata' from dbcols if it ended here by default.
         if "metricdata" in self.db_cols:
@@ -376,7 +376,7 @@ class MetricBundle(object):
         # Don't auto-generate anything here - the plotHandler does it.
         if plot_dict is not None:
             self.plot_dict.update(plot_dict)
-        # Check for bad zp or normVal values.
+        # Check for bad zp or norm_val values.
         if "zp" in self.plot_dict:
             if self.plot_dict["zp"] is not None:
                 if not np.isfinite(self.plot_dict["zp"]):
@@ -385,13 +385,13 @@ class MetricBundle(object):
                         % (self.file_root)
                     )
                     del self.plot_dict["zp"]
-        if "normVal" in self.plot_dict:
-            if self.plot_dict["normVal"] == 0:
+        if "norm_val" in self.plot_dict:
+            if self.plot_dict["norm_val"] == 0:
                 warnings.warn(
-                    "Warning! Plot normalization value for %s was 0: removing normVal from plot_dict"
+                    "Warning! Plot normalization value for %s was 0: removing norm_val from plot_dict"
                     % (self.file_root)
                 )
-                del self.plot_dict["normVal"]
+                del self.plot_dict["norm_val"]
 
     def set_display_dict(self, display_dict=None, results_db=None):
         """Set or update any property of display_dict.
@@ -439,9 +439,9 @@ class MetricBundle(object):
                 caption += " Values plotted with a zeropoint of %.2f." % (
                     self.plot_dict["zp"]
                 )
-            if "normVal" in self.plot_dict:
+            if "norm_val" in self.plot_dict:
                 caption += " Values plotted with a normalization value of %.2f." % (
-                    self.plot_dict["normVal"]
+                    self.plot_dict["norm_val"]
                 )
             self.display_dict["caption"] = caption
         if results_db:

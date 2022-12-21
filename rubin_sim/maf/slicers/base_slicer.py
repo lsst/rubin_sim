@@ -68,14 +68,13 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
     def __init__(self, verbose=True, badval=-666):
         self.verbose = verbose
         self.badval = badval
-        # Set cacheSize : each slicer will be able to override if appropriate.
-        # Currently only the healpixSlice actually uses the cache: this is set in 'use_cache' flag.
-        #  If other slicers have the ability to use the cache, they should add this flag and set the
-        #  cacheSize in their __init__ methods.
-        self.cacheSize = 0
-        # Set length of Slicer.
+        # Set the cache_size. Currently only healpixSlicers (and their derivatives) use the cache.
+        # The size of the cache is set directly by those slicers.
+        self.cache_size = 0
+        # Set length of Slicer. This determines the endpoint for iteration.
         self.nslice = None
-        self.shape = self.nslice
+        # Set the length of the data (metric) values. This is often but not necessarily the same as nslice.
+        self.shape = None
         self.slice_points = {}
         self.slicer_name = self.__class__.__name__
         self.columns_needed = []
@@ -85,11 +84,6 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         # Will often be overwritten by individual slicer slicer_init dictionaries.
         self.slicer_init = {"badval": badval}
         self.plot_funcs = []
-        # Note if the slicer needs OpSim field ID info
-        self.needsFields = False
-        # Set the y-axis range be on the two-d plot
-        if self.nslice is not None:
-            self.spatialExtent = [0, self.nslice - 1]
 
     def _run_maps(self, maps):
         """Add map metadata to slice_points."""
@@ -323,13 +317,13 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
             elif "bins" in self.slice_points:
                 # OneD slicer. Translate bins into bin/left and output with metric value.
                 for i in range(len(metric_values)):
-                    binleft = self.slice_points["bins"][i]
+                    bin_left = self.slice_points["bins"][i]
                     value = metric_values.data[i]
                     mask = metric_values.mask[i]
                     if not mask:
-                        metric.append([binleft, value])
+                        metric.append([bin_left, value])
                     else:
-                        metric.append([binleft, 0])
+                        metric.append([bin_left, 0])
                 metric.append([self.slice_points["bins"][i + 1], 0])
             elif self.slicer_name == "UniSlicer":
                 metric.append([metric_values[0]])
@@ -344,9 +338,9 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
                     metric.append([lon, lat, value])
             elif "bins" in self.slice_points:
                 for i in range(len(metric_values)):
-                    binleft = self.slice_points["bins"][i]
+                    bin_left = self.slice_points["bins"][i]
                     value = metric_values[i]
-                    metric.append([binleft, value])
+                    metric.append([bin_left, value])
                 metric.append(self.slice_points["bins"][i + 1][0])
             elif self.slicer_name == "UniSlicer":
                 metric.append([metric_values[0]])

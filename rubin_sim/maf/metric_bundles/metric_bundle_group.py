@@ -441,7 +441,7 @@ class MetricBundleGroup(object):
 
         # Set up an ordered dictionary to be the cache if needed:
         # (Currently using OrderedDict, it might be faster to use 2 regular Dicts instead)
-        if slicer.cacheSize > 0:
+        if slicer.cache_size > 0:
             cache_dict = OrderedDict()
             cache = True
         else:
@@ -461,7 +461,7 @@ class MetricBundleGroup(object):
             i = slice_i["slice_point"]["sid"]
             slicedata = self.sim_data[slice_i["idxs"]]
             if len(slicedata) == 0:
-                # No data at this slicepoint. Mask data values.
+                # No data at this slice_point. Mask data values.
                 for b in b_dict.values():
                     b.metric_values.mask[i] = True
             else:
@@ -489,7 +489,7 @@ class MetricBundleGroup(object):
                                 slicedata, slice_point=slice_i["slice_point"]
                             )
                     # If we are above the cache size, drop the oldest element from the cache dict.
-                    if len(cache_dict) > slicer.cacheSize:
+                    if len(cache_dict) > slicer.cache_size:
                         del cache_dict[list(cache_dict.keys())[0]]
 
                 # Not using memoize, just calculate things normally
@@ -595,9 +595,9 @@ class MetricBundleGroup(object):
 
     def plot_all(
         self,
-        savefig=True,
+        save_figs=True,
         outfile_suffix=None,
-        figformat="pdf",
+        fig_format="pdf",
         dpi=600,
         trim_whitespace=True,
         thumbnail=True,
@@ -610,12 +610,12 @@ class MetricBundleGroup(object):
 
         Parameters
         ----------
-        savefig : `bool`, optional
+        save_figs : `bool`, optional
             If True, save figures to disk, to self.out_dir directory.
         outfile_suffix : `bool`, optional
             Append outfile_suffix to the end of every plot file generated. Useful for generating
             sequential series of images for movies.
-        figformat : `str`, optional
+        fig_format : `str`, optional
             Matplotlib figure format to use to save to disk. Default pdf.
         dpi : `int`, optional
             DPI for matplotlib figure. Default 600.
@@ -634,9 +634,9 @@ class MetricBundleGroup(object):
 
             self.set_current(constraint)
             self.plot_current(
-                savefig=savefig,
+                savefig=save_figs,
                 outfile_suffix=outfile_suffix,
-                figformat=figformat,
+                fig_format=fig_format,
                 dpi=dpi,
                 trim_whitespace=trim_whitespace,
                 thumbnail=thumbnail,
@@ -647,7 +647,7 @@ class MetricBundleGroup(object):
         self,
         savefig=True,
         outfile_suffix=None,
-        figformat="pdf",
+        fig_format="pdf",
         dpi=600,
         trim_whitespace=True,
         thumbnail=True,
@@ -662,7 +662,7 @@ class MetricBundleGroup(object):
         outfile_suffix : `str`, optional
             Append outfile_suffix to the end of every plot file generated. Useful for generating
             sequential series of images for movies.
-        figformat : `str`, optional
+        fig_format : `str`, optional
             Matplotlib figure format to use to save to disk. Default pdf.
         dpi : `int`, optional
             DPI for matplotlib figure. Default 600.
@@ -679,7 +679,7 @@ class MetricBundleGroup(object):
             out_dir=self.out_dir,
             results_db=self.results_db,
             savefig=savefig,
-            figformat=figformat,
+            fig_format=fig_format,
             dpi=dpi,
             trim_whitespace=trim_whitespace,
             thumbnail=thumbnail,

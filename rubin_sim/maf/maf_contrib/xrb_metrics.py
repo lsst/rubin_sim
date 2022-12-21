@@ -317,7 +317,7 @@ class XRBPopMetric(BaseMetric):
         where_detected : `array`
             indexes corresponding to 5 sigma detections
         mags : `array`
-            magnitudes obtained interpolating models on the dataSlice
+            magnitudes obtained interpolating models on the data_slice
         time : `array`
             relative times
         early_window_days : `float`

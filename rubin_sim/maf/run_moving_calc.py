@@ -45,8 +45,8 @@ def run_moving_calc():
         "--simulation_db",
         type=str,
         default=None,
-        help="Path and filename of opsim db, to write config* files to output directory."
-        " Optional: if not provided, config* files won't be created but analysis will run.",
+        help="Path and filename of opsim output sqlite file, to write config* files to output directory."
+        " Optional: if not provided, files won't have useful names.",
     )
     parser.add_argument(
         "--h_min",
@@ -111,7 +111,7 @@ def run_moving_calc():
     )
     args = parser.parse_args()
 
-    run_name = args.simulation_db.replace(".db", "")
+    run_name = os.path.split(args.simulation_db)[-1].replace(".db", "")
 
     if args.orbit_file is None or args.obs_file is None:
         print("Must specify an orbit_file and an obs_file to calculate the metrics.")

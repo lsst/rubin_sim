@@ -67,12 +67,12 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
         bundleList.append(bundle)
 
     # Slew Time histogram.
-    slicer = slicers.OneDSlicer(slice_col_name=colmap["slewtime"], binsize=2)
+    slicer = slicers.OneDSlicer(slice_col_name=colmap["slewtime"], bin_size=2)
     metric = metrics.CountMetric(
         col=colmap["slewtime"], metric_name="Slew Time Histogram"
     )
     info_label = "All visits"
-    plotDict = {"logScale": True, "ylabel": "Count"}
+    plotDict = {"log_scale": True, "ylabel": "Count"}
     displayDict["caption"] = "Histogram of slew times (seconds) for all visits."
     displayDict["order"] += 1
     bundle = mb.MetricBundle(
@@ -86,13 +86,13 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
     bundleList.append(bundle)
     # Zoom in on slew time histogram near 0.
     slicer = slicers.OneDSlicer(
-        slice_col_name=colmap["slewtime"], binsize=0.2, bin_min=0, bin_max=20
+        slice_col_name=colmap["slewtime"], bin_size=0.2, bin_min=0, bin_max=20
     )
     metric = metrics.CountMetric(
         col=colmap["slewtime"], metric_name="Zoom Slew Time Histogram"
     )
     info_label = "All visits"
-    plotDict = {"logScale": True, "ylabel": "Count"}
+    plotDict = {"log_scale": True, "ylabel": "Count"}
     displayDict["caption"] = "Histogram of slew times (seconds) for all visits (zoom)."
     displayDict["order"] += 1
     bundle = mb.MetricBundle(
@@ -107,14 +107,16 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
 
     # Slew distance histogram, if available.
     if colmap["slewdist"] is not None:
-        binsize = 2.0
+        bin_size = 2.0
         if not colmap["raDecDeg"]:
-            binsize = np.radians(binsize)
-        slicer = slicers.OneDSlicer(slice_col_name=colmap["slewdist"], binsize=binsize)
+            bin_size = np.radians(bin_size)
+        slicer = slicers.OneDSlicer(
+            slice_col_name=colmap["slewdist"], bin_size=bin_size
+        )
         metric = metrics.CountMetric(
             col=colmap["slewdist"], metric_name="Slew Distance Histogram"
         )
-        plotDict = {"logScale": True, "ylabel": "Count"}
+        plotDict = {"log_scale": True, "ylabel": "Count"}
         displayDict["caption"] = "Histogram of slew distances (angle) for all visits."
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
@@ -132,14 +134,14 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
             bin_max = np.radians(bin_max)
         slicer = slicers.OneDSlicer(
             slice_col_name=colmap["slewdist"],
-            binsize=binsize / 10.0,
+            bin_size=bin_size / 10.0,
             bin_min=0,
             bin_max=bin_max,
         )
         metric = metrics.CountMetric(
             col=colmap["slewdist"], metric_name="Zoom Slew Distance Histogram"
         )
-        plotDict = {"logScale": True, "ylabel": "Count"}
+        plotDict = {"log_scale": True, "ylabel": "Count"}
         displayDict["caption"] = "Histogram of slew distances (angle) for all visits."
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
@@ -365,7 +367,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
 
         # Percent of slews which include this activity.
         metric = metrics.CountRatioMetric(
-            col="activityDelay", normVal=totalSlewN / 100.0, metric_name="ActivePerc"
+            col="activityDelay", norm_val=totalSlewN / 100.0, metric_name="ActivePerc"
         )
         displayDict["caption"] = (
             "Percent of total slews which include %s movement." % slewType
@@ -406,7 +408,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
         # Percent of slews which include this activity in the critical path.
         metric = metrics.CountRatioMetric(
             col="activityDelay",
-            normVal=totalSlewN / 100.0,
+            norm_val=totalSlewN / 100.0,
             metric_name="ActivePerc in crit",
         )
         displayDict["caption"] = (

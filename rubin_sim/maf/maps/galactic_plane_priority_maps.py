@@ -63,7 +63,7 @@ def galplane_priority_map(
         priority_galPlane_footprint_map_data_{ugrizysum}.fits files.  Default False.
     """
     # This is a function that will read the galactic plane priority map data and hold onto it indefinitely
-    # this also lets us use a range of slicers, as it will set the slicePoint data appropriately.
+    # this also lets us use a range of slicers, as it will set the slice_point data appropriately.
 
     # This function's primary goal is to return this information to the map, to use for the slicer.
     # So you MUST specify ra/dec or pixels -- or only retireve the keys
@@ -136,16 +136,16 @@ def galplane_priority_map(
 
 class GalacticPlanePriorityMap(BaseMap):
     """
-    Read and return the galactic plane priority map data at each slicePoint.
+    Read and return the galactic plane priority map data at each slice_point.
 
     Primarily, this calls galactic_plane_priority_map to read the map data, and then assigns
-    the appropriate values to each slicePoint. If the slicer is an nside=64 healpix slicer, this is trivial.
+    the appropriate values to each slice_point. If the slicer is an nside=64 healpix slicer, this is trivial.
     (other use-cases currently experimental and not supported).
 
     Parameters
     ----------
     interp : `bool`, opt
-        Interpolate the dust map at each slicePoint (True) or just use the nearest value (False).
+        Interpolate the dust map at each slice_point (True) or just use the nearest value (False).
         Default is False.
     nside : `int`, opt
         Default nside value to read the dust map from disk. Primarily useful if the slicer is not

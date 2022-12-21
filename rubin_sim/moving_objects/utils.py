@@ -68,24 +68,24 @@ def read_observations(
     return simdata
 
 
-def read_orbits(orbitfile):
-    """Read the orbits from the orbitfile.
+def read_orbits(orbit_file):
+    """Read the orbits from the orbit_file.
 
     Parameters
     ----------
-    orbitfile: str
+    orbit_file: str
         Name (and path) of the orbit file.
 
     Returns
     -------
-    rubin_sim.movingObjects.Orbits
+    rubin_sim.moving_objects.Orbits
         The orbit object.
     """
-    if not os.path.isfile(orbitfile):
-        logging.critical("Could not find orbit file %s" % (orbitfile))
+    if not os.path.isfile(orbit_file):
+        logging.critical("Could not find orbit file %s" % (orbit_file))
     orbits = Orbits()
-    orbits.read_orbits(orbitfile)
-    logging.info("Read orbit information from %s" % (orbitfile))
+    orbits.read_orbits(orbit_file)
+    logging.info("Read orbit information from %s" % (orbit_file))
     return orbits
 
 
@@ -120,7 +120,7 @@ def run_obs(
 
     Parameters
     ----------
-    orbits : `rubin_sim.movingObjects.Orbit`
+    orbits : `rubin_sim.moving_objects.Orbit`
         Orbits for which to calculate observations
     simdata : `np.ndarray`
         The simulated pointing history data from OpSim

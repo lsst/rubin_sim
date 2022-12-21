@@ -875,11 +875,11 @@ def artificial_structure_calculation(
                 readme.close()
 
                 # plot histogram
-                binsize = 0.005
+                bin_size = 0.005
                 bins = np.arange(
-                    min(good_error) - 5 * binsize,
-                    max(good_error) + 5 * binsize,
-                    binsize,
+                    min(good_error) - 5 * bin_size,
+                    max(good_error) + 5 * bin_size,
+                    bin_size,
                 )
                 plt.clf()
                 plt.hist(good_error, bins=bins)
@@ -887,8 +887,8 @@ def artificial_structure_calculation(
                 plt.ylabel("Counts")
 
                 plt.title(
-                    "0pt error histogram; binSize = %s; upper_mag_limit = %s"
-                    % (binsize, upper_mag_limit)
+                    "0pt error histogram; bin_size = %s; upper_mag_limit = %s"
+                    % (bin_size, upper_mag_limit)
                 )
                 if save0pt_plots:
                     filename = "0ptHistogram_%s_%s.png" % (filter_band, dither)
@@ -1222,13 +1222,13 @@ def artificial_structure_calculation(
 
         for dither in my_bundles:
             ind = np.where(my_bundles[dither].metricValues.mask == False)[0]
-            binsize = 0.01
+            bin_size = 0.01
             bin_all = int(
                 (
                     max(my_bundles[dither].metricValues.data[ind])
                     - min(my_bundles[dither].metricValues.data[ind])
                 )
-                / binsize
+                / bin_size
             )
             plt.hist(
                 my_bundles[dither].metricValues.data[ind],

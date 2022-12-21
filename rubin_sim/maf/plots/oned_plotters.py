@@ -21,8 +21,8 @@ class OneDBinnedData(BasePlotter):
             "alpha": 0.5,
             "linestyle": "-",
             "linewidth": 1,
-            "logScale": False,
-            "percentileClip": None,
+            "log_scale": False,
+            "percentile_clip": None,
             "x_min": None,
             "x_max": None,
             "y_min": None,
@@ -59,14 +59,14 @@ class OneDBinnedData(BasePlotter):
                 label=plot_dict["label"],
                 linewidth=0,
                 alpha=plot_dict["alpha"],
-                log=plot_dict["logScale"],
+                log=plot_dict["log_scale"],
                 color=plot_dict["color"],
             )
         else:
             good = np.where(metric_values.mask == False)
             x = np.ravel(list(zip(leftedge[good], leftedge[good] + width[good])))
             y = np.ravel(list(zip(metric_values[good], metric_values[good])))
-            if plot_dict["logScale"]:
+            if plot_dict["log_scale"]:
                 plt.semilogy(
                     x,
                     y,
@@ -91,9 +91,9 @@ class OneDBinnedData(BasePlotter):
         if "xlabel" in plot_dict:
             plt.xlabel(plot_dict["xlabel"], fontsize=plot_dict["fontsize"])
         # Set y limits (either from values in args, percentile_clipping or compressed data values).
-        if plot_dict["percentileClip"] is not None:
+        if plot_dict["percentile_clip"] is not None:
             y_min, y_max = percentile_clipping(
-                metric_values.compressed(), percentile=plot_dict["percentileClip"]
+                metric_values.compressed(), percentile=plot_dict["percentile_clip"]
             )
             if plot_dict["y_min"] is None:
                 plot_dict["y_min"] = y_min

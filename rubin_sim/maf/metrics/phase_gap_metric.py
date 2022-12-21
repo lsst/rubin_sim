@@ -70,19 +70,19 @@ class PhaseGapMetric(BaseMetric):
 
     def reduce_mean_gap(self, metric_val):
         """
-        At each slicepoint, return the mean gap value.
+        At each slice_point, return the mean gap value.
         """
         return np.mean(metric_val["maxGaps"])
 
     def reduce_median_gap(self, metric_val):
         """
-        At each slicepoint, return the median gap value.
+        At each slice_point, return the median gap value.
         """
         return np.median(metric_val["maxGaps"])
 
     def reduce_worst_period(self, metric_val):
         """
-        At each slicepoint, return the period with the largest phase gap.
+        At each slice_point, return the period with the largest phase gap.
         """
         worst_p = metric_val["periods"][
             np.where(metric_val["maxGaps"] == metric_val["maxGaps"].max())
@@ -91,7 +91,7 @@ class PhaseGapMetric(BaseMetric):
 
     def reduce_largest_gap(self, metric_val):
         """
-        At each slicepoint, return the largest phase gap value.
+        At each slice_point, return the largest phase gap value.
         """
         return np.max(metric_val["maxGaps"])
 

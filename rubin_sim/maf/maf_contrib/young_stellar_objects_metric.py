@@ -14,6 +14,7 @@ __all__ = ["NYoungStarsMetric"]
 
 class StarDensity(object):
     """integrate from zero to some max distance, then multiply by angular area
+
     Parameters
     ----------
     l : float
@@ -53,7 +54,8 @@ class StarDensity(object):
 
 
 class NYoungStarsMetric(BaseMetric):
-    """Calculate the distance to which one could reach color uncertainties
+    """Calculate the distance or number of stars with color uncertainty defined by mags/snrs.
+
     Parameters
     ----------
     metric_name : str, opt
@@ -67,20 +69,15 @@ class NYoungStarsMetric(BaseMetric):
         Default is for a 0.3 solar mass star at age = 100 Myr.
     snrs : dict
         The SNR to demand for each filter.
-    galb_limit : float (25.)
-        The galactic latitude above which to return zero (degrees).
+    galb_limit : float, opt
+        The galactic latitude above which to return zero (degrees). Default 90.
     badval : float, opt
         The value to return when the metric value cannot be calculated. Default 0.
-    return_distance: bool (False)
-        Whether the metric will return the maximum distance that can be reached for each slice_point.
-        Default is False.
-    crowding_error: float (0.25)
-        Crowding error that gets passed to CrowdingM5Metric.
-
-    Keyword arguments
-    -----------------
     return_distance : bool, opt
-
+        Whether the metric will return the maximum distance that can be reached for each slice_point,
+        or the total number of stars down to mags/snrs.
+    crowding_error: float, opt
+        Crowding error that gets passed to CrowdingM5Metric. Default 0.25
     """
 
     def __init__(
@@ -88,11 +85,10 @@ class NYoungStarsMetric(BaseMetric):
         metric_name="young_stars",
         m5_col="fiveSigmaDepth",
         filter_col="filter",
-        badval=0,
         mags={"g": 10.32, "r": 9.28, "i": 7.97},
-        galb_limit=90.0,
         snrs={"g": 5.0, "r": 5.0, "i": 5.0},
-        nside=64,
+        galb_limit=90.0,
+        badval=0,
         return_distance=False,
         crowding_error=0.25,
         **kwargs
@@ -128,8 +124,13 @@ class NYoungStarsMetric(BaseMetric):
 
     def run(self, data_slice, slice_point=None):
 
-        # Is there another way to calculate sky_area, for non-healpix slicers?
-        sky_area = hp.nside2pixarea(slice_point["nside"], degrees=False)
+        # Evaluate area on sky for this slice_point, in radians
+        if "nside" in slice_point:
+            # Best area /pixel calculation, appropriate for healpix slicers
+            sky_area = hp.nside2pixarea(slice_point["nside"], degrees=False)
+        else:
+            # Assume single, approximate, circular FOV
+            sky_area = np.pi * (np.radians(1.75)) ** 2
 
         # if we are outside the galb_limit, return nothing
         # Note we could make this a more comlicated function that returns an expected density of
@@ -167,12 +168,11 @@ class NYoungStarsMetric(BaseMetric):
             distances.append(dist_dmag)
         # compute the final distance, limited by whichever filter is most shallow
         final_distance = np.min(distances, axis=-1) / 1e3  # to kpc
-
-        # Resorting to numerical integration of ugly function
-        sd = StarDensity(slice_point["gall"], slice_point["galb"])
-        stars_per_sterr, _err = integrate.quad(sd, 0, final_distance)
-        stars_tot = stars_per_sterr * sky_area
-
         if self.return_distance:
             return final_distance
-        return stars_tot
+        else:
+            # Resorting to numerical integration of ugly function
+            sd = StarDensity(slice_point["gall"], slice_point["galb"])
+            stars_per_sterr, _err = integrate.quad(sd, 0, final_distance)
+            stars_tot = stars_per_sterr * sky_area
+            return stars_tot

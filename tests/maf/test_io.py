@@ -129,7 +129,6 @@ class TestSlicers(unittest.TestCase):
                 "lon_col",
                 "lat_col",
                 "shape",
-                "spatial_extent",
             ]
             for att in attr2check:
                 if type(getattr(slicer, att)).__name__ == "dict":

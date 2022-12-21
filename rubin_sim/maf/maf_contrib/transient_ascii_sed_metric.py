@@ -632,7 +632,7 @@ class TransientAsciiSEDMetric(BaseMetric):
             Numpy structured array containing the data related to the visits
             provided by the slicer.
         slice_point : dict, optional
-            Dictionary containing information about the slicepoint currently
+            Dictionary containing information about the slice_point currently
             active in the slicer.
 
         Returns

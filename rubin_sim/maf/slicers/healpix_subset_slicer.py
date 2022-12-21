@@ -72,7 +72,7 @@ class HealpixSubsetSlicer(HealpixSlicer):
     camera_footprint_file : `str`, optional
         Name of the camera footprint map to use. Can be None, which will use the default.
     rot_sky_pos_col_name : `str`, optional
-        Name of the rotSkyPos column in the input  data. Only used if useCamera is True.
+        Name of the rotSkyPos column in the input  data. Only used if use_camera is True.
         Describes the orientation of the camera orientation compared to the sky.
         Default rotSkyPos.
     """
@@ -128,7 +128,7 @@ class HealpixSubsetSlicer(HealpixSlicer):
                         and other_slicer.lat_col == self.lat_col
                     ):
                         if other_slicer.radius == self.radius:
-                            if other_slicer.useCamera == self.useCamera:
+                            if other_slicer.use_camera == self.use_camera:
                                 if (
                                     other_slicer.rotSkyPosColName
                                     == self.rotSkyPosColName
@@ -174,8 +174,8 @@ class HealpixSubsetSlicer(HealpixSlicer):
 
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
-            """Return indexes for relevant opsim data at slicepoint
-            (slicepoint=lon_col/lat_col value .. usually ra/dec)."""
+            """Return indexes for relevant opsim data at slice_point
+            (slice_point=lon_col/lat_col value .. usually ra/dec)."""
             # Subclass this method, just to make sure we return no data for points not in self.hpid
             slice_point = {"sid": islice, "nside": self.nside}
             if islice not in self.hpid:
@@ -186,7 +186,7 @@ class HealpixSubsetSlicer(HealpixSlicer):
                 )
                 # Query against tree.
                 indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
-                if (self.useCamera) & (len(indices) > 0):
+                if (self.use_camera) & (len(indices) > 0):
                     # Find the indices *of those indices* which fall in the camera footprint
                     camera_idx = self.camera(
                         self.slice_points["ra"][islice],
@@ -196,8 +196,8 @@ class HealpixSubsetSlicer(HealpixSlicer):
                         self.data_rot[indices],
                     )
                     indices = np.array(indices)[camera_idx]
-                # Loop through all the slice_point keys. If the first dimension of slicepoint[key] has
-                # the same shape as the slicer, assume it is information per slicepoint.
+                # Loop through all the slice_point keys. If the first dimension of slice_point[key] has
+                # the same shape as the slicer, assume it is information per slice_point.
                 # Otherwise, pass the whole slice_point[key] information. Useful for stellar LF maps
                 # where we want to pass only the relevant LF and the bins that go with it.
                 for key in self.slice_points:

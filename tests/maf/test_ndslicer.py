@@ -1,6 +1,3 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import warnings
 import numpy as np
 import numpy.lib.recfunctions as rfn
@@ -191,16 +188,16 @@ class TestNDSlicerIteration(unittest.TestCase):
     def test_iteration(self):
         """Test iteration."""
         for s, ib in zip(self.testslicer, itertools.product(*self.iterlist)):
-            self.assertEqual(s["slice_point"]["binLeft"], ib)
+            self.assertEqual(s["slice_point"]["bin_left"], ib)
 
     def test_get_item(self):
         """Test getting indexed binpoint."""
         for i, s in enumerate(self.testslicer):
             self.assertEqual(
-                self.testslicer[i]["slice_point"]["binLeft"],
-                s["slice_point"]["binLeft"],
+                self.testslicer[i]["slice_point"]["bin_left"],
+                s["slice_point"]["bin_left"],
             )
-        self.assertEqual(self.testslicer[0]["slice_point"]["binLeft"], (0.0, 0.0, 0.0))
+        self.assertEqual(self.testslicer[0]["slice_point"]["bin_left"], (0.0, 0.0, 0.0))
 
 
 class TestNDSlicerSlicing(unittest.TestCase):
@@ -222,7 +219,7 @@ class TestNDSlicerSlicing(unittest.TestCase):
         # Test get error if try to slice before setup.
         self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
         nbins = 10
-        binsize = (self.dvmax - self.dvmin) / (float(nbins))
+        bin_size = (self.dvmax - self.dvmin) / (float(nbins))
         self.testslicer = NDSlicer(self.dvlist, bins_list=nbins)
         for nvalues in (1000, 10000):
             dv = make_data_values(nvalues, self.dvmin, self.dvmax, self.nd, random=1735)
@@ -230,18 +227,18 @@ class TestNDSlicerSlicing(unittest.TestCase):
             sum = 0
             for i, s in enumerate(self.testslicer):
                 idxs = s["idxs"]
-                dataslice = dv[idxs]
+                data_slice = dv[idxs]
                 sum += len(idxs)
-                if len(dataslice) > 0:
+                if len(data_slice) > 0:
                     for i, dvname, b in zip(
-                        list(range(self.nd)), self.dvlist, s["slice_point"]["binLeft"]
+                        list(range(self.nd)), self.dvlist, s["slice_point"]["bin_left"]
                     ):
-                        self.assertGreaterEqual((dataslice[dvname].min() - b), 0)
+                        self.assertGreaterEqual((data_slice[dvname].min() - b), 0)
                     if i < self.testslicer.nslice - 1:
-                        self.assertLessEqual((dataslice[dvname].max() - b), binsize)
+                        self.assertLessEqual((data_slice[dvname].max() - b), bin_size)
                     else:
-                        self.assertAlmostEqual((dataslice[dvname].max() - b), binsize)
-                    self.assertEqual(len(dataslice), nvalues / float(nbins))
+                        self.assertAlmostEqual((data_slice[dvname].max() - b), bin_size)
+                    self.assertEqual(len(data_slice), nvalues / float(nbins))
             # and check that every data value was assigned somewhere.
             self.assertEqual(sum, nvalues)
 

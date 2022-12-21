@@ -18,17 +18,17 @@ class TwoDMap(BasePlotter):
             "xlabel": None,
             "ylabel": None,
             "label": None,
-            "logScale": False,
-            "cbarFormat": None,
+            "log_scale": False,
+            "cbar_format": None,
             "cbarTitle": "Count",
             "cmap": perceptual_rainbow,
-            "percentileClip": None,
+            "percentile_clip": None,
             "color_min": None,
             "color_max": None,
             "zp": None,
-            "normVal": None,
+            "norm_val": None,
             "cbar_edge": True,
-            "nTicks": None,
+            "n_ticks": None,
             "aspect": "auto",
             "xextent": None,
             "origin": None,
@@ -53,9 +53,6 @@ class TwoDMap(BasePlotter):
         """
         if "Healpix" in slicer.slicer_name:
             self.default_plot_dict["ylabel"] = "Healpix ID"
-        elif "Opsim" in slicer.slicer_name:
-            self.default_plot_dict["ylabel"] = "Field ID"
-            self.default_plot_dict["origin"] = "lower"
         elif "User" in slicer.slicer_name:
             self.default_plot_dict["ylabel"] = "User Field ID"
 
@@ -69,7 +66,7 @@ class TwoDMap(BasePlotter):
         if plot_dict["xextent"] is None:
             plot_dict["xextent"] = [0, metric_value[0, :].size]
 
-        if plot_dict["logScale"]:
+        if plot_dict["log_scale"]:
             norm = colors.LogNorm()
         else:
             norm = None
@@ -81,7 +78,7 @@ class TwoDMap(BasePlotter):
 
         figure = plt.figure(fignum)
         ax = figure.add_subplot(111)
-        yextent = slicer.spatialExtent
+        yextent = [0, slicer.nslice - 1]
         xextent = plot_dict["xextent"]
         extent = []
         extent.extend(xextent)

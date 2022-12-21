@@ -26,8 +26,8 @@ class LongGapAGNMetric(BaseMetric):
         self.xgaps = xgaps
         self.units = units
 
-    def run(self, dataslice, slice_point=None):
-        metricval = np.diff(dataslice[self.mjdcol])
+    def run(self, data_slice, slice_point=None):
+        metricval = np.diff(data_slice[self.mjdcol])
         return metricval
 
     def reduce_max_gap(self, metricval):

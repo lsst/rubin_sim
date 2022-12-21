@@ -55,7 +55,7 @@ WAVELEN_MAX = 1200  # maximum wavelength for transmission/source (nm)
 WAVELEN_STEP = 0.1  # step size in wavelength grid (nm)
 
 # figure format to save output figures, if desired. (can choose 'png' or 'eps' or 'pdf' or a few others).
-figformat = "png"
+fig_format = "png"
 
 
 class BandpassSet(object):
@@ -488,8 +488,8 @@ class BandpassSet(object):
                 plt.ylim(1e-6, 1)
                 plt.xlim(xmin=300, xmax=1200)
                 if savefig:
-                    figname = figroot + "_" + f + "_fleak." + figformat
-                    plt.savefig(figname, format=figformat)
+                    figname = figroot + "_" + f + "_fleak." + fig_format
+                    plt.savefig(figname, format=fig_format)
         # end of loop through filters
         return
 
@@ -649,8 +649,8 @@ class BandpassSet(object):
             if title != None:
                 plt.title(title)
             if savefig:
-                figname = figroot + "_thruputs." + figformat
-                plt.savefig(figname, format=figformat)
+                figname = figroot + "_thruputs." + fig_format
+                plt.savefig(figname, format=fig_format)
         if phi:
             if newfig:
                 plt.figure()
@@ -729,6 +729,6 @@ class BandpassSet(object):
             if title != None:
                 plt.title(title)
             if savefig:
-                figname = figroot + "_phi." + figformat
-                plt.savefig(figname, format=figformat)
+                figname = figroot + "_phi." + fig_format
+                plt.savefig(figname, format=fig_format)
         return

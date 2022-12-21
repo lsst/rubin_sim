@@ -41,7 +41,7 @@ class MapsRegistry(type):
                 print("---- ", mapsname, " ----")
                 print(cls.registry[mapsname].__doc__)
                 maps = cls.registry[mapsname]()
-                print(" added to SlicePoint: ", ",".join(maps.keynames))
+                print(" added to slice_point: ", ",".join(maps.keynames))
 
 
 class BaseMap(with_metaclass(MapsRegistry, object)):
@@ -70,7 +70,7 @@ class BaseMap(with_metaclass(MapsRegistry, object)):
 
     def run(self, slice_points):
         """
-        Given slice_points (dict containing metadata about each slicePoint, including ra/dec),
-         adds additional metadata at each slicepoint and returns updated dict.
+        Given slice_points (dict containing metadata about each slice_point, including ra/dec),
+         adds additional metadata at each slice_point and returns updated dict.
         """
         raise NotImplementedError("This must be defined in subclass")

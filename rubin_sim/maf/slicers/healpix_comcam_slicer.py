@@ -102,14 +102,14 @@ class HealpixComCamSlicer(HealpixSlicer):
             Default None.
         """
         if maps is not None:
-            if self.cacheSize != 0 and len(maps) > 0:
+            if self.cache_size != 0 and len(maps) > 0:
                 warnings.warn(
                     "Warning:  Loading maps but cache on."
                     "Should probably set use_cache=False in slicer."
                 )
             self._run_maps(maps)
         self._setRad(self.radius)
-        if self.useCamera:
+        if self.use_camera:
             self._setupLSSTCamera()
             self._presliceFootprint(sim_data)
         else:
@@ -126,12 +126,12 @@ class HealpixComCamSlicer(HealpixSlicer):
 
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
-            """Return indexes for relevant opsim data at slicepoint
-            (slicepoint=lon_col/lat_col value .. usually ra/dec)."""
+            """Return indexes for relevant opsim data at slice_point
+            (slice_point=lon_col/lat_col value .. usually ra/dec)."""
 
             # Build dict for slice_point info
             slice_point = {"sid": islice}
-            if self.useCamera:
+            if self.use_camera:
                 indices = self.sliceLookup[islice]
                 slice_point["chipNames"] = self.chipNames[islice]
             else:
@@ -197,12 +197,12 @@ class HealpixComCamSlicer(HealpixSlicer):
                             ]
                         )
                     )
-                    # Check if the slicepoint is inside the image corners and append to list
+                    # Check if the slice_point is inside the image corners and append to list
                     if bbPath.contains_point((0.0, 0.0)):
                         indices.append(ind)
 
-            # Loop through all the slice_point keys. If the first dimension of slicepoint[key] has
-            # the same shape as the slicer, assume it is information per slicepoint.
+            # Loop through all the slice_point keys. If the first dimension of slice_point[key] has
+            # the same shape as the slicer, assume it is information per slice_point.
             # Otherwise, pass the whole slice_point[key] information. Useful for stellar LF maps
             # where we want to pass only the relevant LF and the bins that go with it.
 

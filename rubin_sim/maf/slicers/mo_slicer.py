@@ -36,7 +36,7 @@ class MoObjSlicer(BaseSlicer):
     def setup_slicer(self, orbit_file, delim=None, skiprows=None, obs_file=None):
         """Set up the slicer and read orbit_file and obs_file from disk.
 
-        Sets self.orbits (with orbit parameters), self.allObs, and self.obs
+        Sets self.orbits (with orbit parameters), self.all_obs, and self.obs
         self.orbit_file and self.obs_file
 
         Parameters
@@ -52,12 +52,12 @@ class MoObjSlicer(BaseSlicer):
         if obs_file is not None:
             self.read_obs(obs_file)
         else:
-            self.obsFile = None
-            self.allObs = None
+            self.obs_file = None
+            self.all_obs = None
             self.obs = None
         # Add these filenames to the slicer init values, to preserve in output files.
         self.slicer_init["orbit_file"] = self.orbit_file
-        self.slicer_init["obs_file"] = self.obsFile
+        self.slicer_init["obs_file"] = self.obs_file
 
     def read_orbits(self, orbit_file, delim=None, skiprows=None):
         # Use sims_movingObjects to read orbit files.
@@ -79,34 +79,34 @@ class MoObjSlicer(BaseSlicer):
         # Set the rest of the slice_point information once
         self.nslice = self.shape[0] * self.shape[1]
 
-    def read_obs(self, obsFile):
+    def read_obs(self, obs_file):
         """Read observations of the solar system objects (such as created by sims_movingObjects).
 
         Parameters
         ----------
-        obsFile: str
+        obs_file: str
             The file containing the observation information.
         """
         # For now, just read all the observations (should be able to chunk this though).
-        self.allObs = pd.read_csv(obsFile, delim_whitespace=True, comment="#")
-        self.obsFile = obsFile
+        self.all_obs = pd.read_csv(obs_file, delim_whitespace=True, comment="#")
+        self.obs_file = obs_file
         # We may have to rename the first column from '#obj_id' to 'obj_id'.
-        if self.allObs.columns.values[0].startswith("#"):
-            newcols = self.allObs.columns.values
+        if self.all_obs.columns.values[0].startswith("#"):
+            newcols = self.all_obs.columns.values
             newcols[0] = newcols[0].replace("#", "")
-            self.allObs.columns = newcols
-        if "velocity" not in self.allObs.columns.values:
-            self.allObs["velocity"] = np.sqrt(
-                self.allObs["dradt"] ** 2 + self.allObs["ddecdt"] ** 2
+            self.all_obs.columns = newcols
+        if "velocity" not in self.all_obs.columns.values:
+            self.all_obs["velocity"] = np.sqrt(
+                self.all_obs["dradt"] ** 2 + self.all_obs["ddecdt"] ** 2
             )
-        if "visitExpTime" not in self.allObs.columns.values:
-            self.allObs["visitExpTime"] = (
-                np.zeros(len(self.allObs["obj_id"]), float) + 30.0
+        if "visitExpTime" not in self.all_obs.columns.values:
+            self.all_obs["visitExpTime"] = (
+                np.zeros(len(self.all_obs["obj_id"]), float) + 30.0
             )
         # If we created intermediate data products by pandas, we may have an inadvertent 'index'
         #  column. Since this creates problems later, drop it here.
-        if "index" in self.allObs.columns.values:
-            self.allObs.drop("index", axis=1, inplace=True)
+        if "index" in self.all_obs.columns.values:
+            self.all_obs.drop("index", axis=1, inplace=True)
         self.subset_obs()
 
     def subset_obs(self, pandas_constraint=None):
@@ -114,9 +114,9 @@ class MoObjSlicer(BaseSlicer):
         Choose a subset of all the observations, such as those in a particular time period.
         """
         if pandas_constraint is None:
-            self.obs = self.allObs
+            self.obs = self.all_obs
         else:
-            self.obs = self.allObs.query(pandas_constraint)
+            self.obs = self.all_obs.query(pandas_constraint)
 
     def _slice_obs(self, idx):
         """Return the observations of a given ssoId.
@@ -163,7 +163,7 @@ class MoObjSlicer(BaseSlicer):
         return self._slice_obs(idx)
 
     def __getitem__(self, idx):
-        # This may not be guaranteed to work if/when we implement chunking of the obsfile.
+        # This may not be guaranteed to work if/when we implement chunking of the obs_file.
         return self._slice_obs(idx)
 
     def __eq__(self, other_slicer):
@@ -173,7 +173,7 @@ class MoObjSlicer(BaseSlicer):
         result = False
         if isinstance(other_slicer, MoObjSlicer):
             if other_slicer.orbit_file == self.orbit_file:
-                if other_slicer.obsFile == self.obsFile:
+                if other_slicer.obs_file == self.obs_file:
                     if np.array_equal(
                         other_slicer.slice_points["H"], self.slice_points["H"]
                     ):

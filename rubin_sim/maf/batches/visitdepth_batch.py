@@ -108,15 +108,15 @@ def nvisitsM5Maps(
         sql = sqls[f]
         displayDict["caption"] = "Number of visits per healpix in %s." % info_label[f]
         displayDict["order"] = orders[f]
-        binsize = 2
+        bin_size = 2
         if f == "all":
-            binsize = 5
+            bin_size = 5
         plotDict = {
-            "xMin": nvisitsRange[f][0],
-            "xMax": nvisitsRange[f][1],
-            "colorMin": nvisitsRange[f][0],
-            "colorMax": nvisitsRange[f][1],
-            "binsize": binsize,
+            "x_min": nvisitsRange[f][0],
+            "x_max": nvisitsRange[f][1],
+            "color_min": nvisitsRange[f][0],
+            "color_max": nvisitsRange[f][1],
+            "bin_size": bin_size,
             "color": colors[f],
         }
         bundle = mb.MetricBundle(
@@ -153,12 +153,12 @@ def nvisitsM5Maps(
         displayDict["order"] = orders[f]
         plotDict = {
             # "zp": mag_zp,
-            # "xMin": -0.6,
-            # "xMax": 0.6,
+            # "x_min": -0.6,
+            # "x_max": 0.6,
             # "xlabel": "coadded m5 - %.1f" % mag_zp,
-            # "colorMin": -0.6,
-            # "colorMax": 0.6,
-            "percentileClip": 98,
+            # "color_min": -0.6,
+            # "color_max": 0.6,
+            "percentile_clip": 98,
             "color": colors[f],
         }
         bundle = mb.MetricBundle(
@@ -197,12 +197,12 @@ def nvisitsM5Maps(
         displayDict["order"] = orders[f]
         plotDict = {
             # "zp": mag_zp,
-            # "xMin": -0.6,
-            # "xMax": 0.6,
+            # "x_min": -0.6,
+            # "x_max": 0.6,
             # "xlabel": "coadded m5 - %.1f" % mag_zp,
-            # "colorMin": -0.6,
-            # "colorMax": 0.6,
-            "percentileClip": 98,
+            # "color_min": -0.6,
+            # "color_max": 0.6,
+            "percentile_clip": 98,
             "color": colors[f],
         }
         bundle = mb.MetricBundle(
@@ -403,7 +403,7 @@ def nvisitsPerNight(
     displayDict["caption"] = "Number of visits per night for %s." % (infoCaption)
     displayDict["order"] = 0
     metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits")
-    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], binsize=binNights)
+    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], bin_size=binNights)
     bundle = mb.MetricBundle(
         metric,
         slicer,

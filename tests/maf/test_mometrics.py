@@ -124,17 +124,17 @@ class TestMoMetrics1(unittest.TestCase):
         orb["g"] = 0.15
         o = pd.DataFrame(orb)
         activity_period_metric = metrics.ActivityOverPeriodMetric(
-            binsize=360, snr_limit=5
+            bin_size=360, snr_limit=5
         )
         activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertEqual(activity, 1.0)
         activity_period_metric = metrics.ActivityOverPeriodMetric(
-            binsize=720, snr_limit=5
+            bin_size=720, snr_limit=5
         )
         activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertEqual(activity, 1.0)
         activity_period_metric = metrics.ActivityOverPeriodMetric(
-            binsize=10, snr_limit=5
+            bin_size=10, snr_limit=5
         )
         activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertLess(activity, 0.03)
@@ -168,12 +168,12 @@ class TestMoMetrics1(unittest.TestCase):
         orb["g"] = 0.15
         o = pd.DataFrame(orb)
         activity_period_metric = metrics.ActivityOverPeriodMetric(
-            binsize=360, snr_limit=5
+            bin_size=360, snr_limit=5
         )
         activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertEqual(activity, 1.0)
         activity_period_metric = metrics.ActivityOverPeriodMetric(
-            binsize=180, snr_limit=5
+            bin_size=180, snr_limit=5
         )
         activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertEqual(activity, 0.5)

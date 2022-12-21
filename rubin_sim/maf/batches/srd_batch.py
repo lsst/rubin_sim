@@ -93,8 +93,8 @@ def fOBatch(
         "xlabel": "Number of Visits",
         "asky": benchmarkArea,
         "n_visit": benchmarkn_visits,
-        "xMin": 0,
-        "xMax": 1500,
+        "x_min": 0,
+        "x_max": 1500,
     }
     summaryMetrics = [
         metrics.FOArea(
@@ -262,7 +262,7 @@ def astrometryBatch(
     )
     summary.extend(standard_summary())
     for rmag, plotmax in zip(rmags_para, plotmaxVals):
-        plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
+        plotDict = {"x_min": 0, "x_max": plotmax, "color_min": 0, "color_max": plotmax}
         metric = metrics.ParallaxMetric(
             metric_name="Parallax Uncert @ %.1f" % (rmag),
             rmag=rmag,
@@ -379,7 +379,7 @@ def astrometryBatch(
     )
     summary.extend(standard_summary())
     for rmag, plotmax in zip(rmags_pm, plotmaxVals):
-        plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
+        plotDict = {"x_min": 0, "x_max": plotmax, "color_min": 0, "color_max": plotmax}
         metric = metrics.ProperMotionMetric(
             metric_name="Proper Motion Uncert @ %.1f" % rmag,
             rmag=rmag,
@@ -509,7 +509,7 @@ def rapidRevisitBatch(
         normed=False,
         metric_name="NumberOfQuickRevisits",
     )
-    plotDict = {"colorMin": 400, "colorMax": 2000, "xMin": 400, "xMax": 2000}
+    plotDict = {"color_min": 400, "color_max": 2000, "x_min": 400, "x_max": 2000}
     caption = (
         "Number of consecutive visits with return times faster than %.1f minutes, "
         % (dTmax)
@@ -537,8 +537,8 @@ def rapidRevisitBatch(
     dTmax = 30.0  # 30 minute maximum for rapid revisit range
     nOne = 82  # Number of revisits between 40s-30m required
     nTwo = 28  # Number of revisits between 40s - tPairs required.
-    pixArea = float(hp.nside2pixarea(nside, degrees=True))
-    scale = pixArea * hp.nside2npix(nside)
+    pix_area = float(hp.nside2pixarea(nside, degrees=True))
+    scale = pix_area * hp.nside2npix(nside)
     m1 = metrics.RapidRevisitMetric(
         metric_name="RapidRevisits",
         mjd_col=colmap["mjd"],
@@ -548,7 +548,13 @@ def rapidRevisitBatch(
         min_n1=nOne,
         min_n2=nTwo,
     )
-    plotDict = {"xMin": 0, "xMax": 1, "colorMin": 0, "colorMax": 1, "logScale": False}
+    plotDict = {
+        "x_min": 0,
+        "x_max": 1,
+        "color_min": 0,
+        "color_max": 1,
+        "log_scale": False,
+    }
     cutoff1 = 0.9
     summaryStats = [
         metrics.FracAboveMetric(

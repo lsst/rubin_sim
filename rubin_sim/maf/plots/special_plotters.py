@@ -132,8 +132,8 @@ class FOPlot(BasePlotter):
 
 class SummaryHistogram(BasePlotter):
     """
-    Special plotter to summarize metrics which return a set of values at each slicepoint,
-    such as if a histogram was calculated at each slicepoint
+    Special plotter to summarize metrics which return a set of values at each slice_point,
+    such as if a histogram was calculated at each slice_point
     (e.g. with the rubin_sim.maf.metrics.TgapsMetric).
     Effectively marginalizes the calculated values over the sky, and plots the a summarized
     version (reduced to a single according to the plot_dict['metricReduce'] metric).

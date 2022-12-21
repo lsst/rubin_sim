@@ -67,8 +67,8 @@ def science_radar_batch(
         "xlabel": "Number of Visits",
         "Asky": benchmarkArea,
         "Nvisit": benchmarkNvisits,
-        "xMin": 0,
-        "xMax": 1500,
+        "x_min": 0,
+        "x_max": 1500,
     }
     summaryMetrics = [
         metrics.FOArea(
@@ -196,7 +196,7 @@ def science_radar_batch(
     )
     summary.extend(standard_summary())
     for rmag, plotmax in zip(rmags_para, plotmaxVals):
-        plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
+        plotDict = {"x_min": 0, "x_max": plotmax, "color_min": 0, "color_max": plotmax}
         metric = metrics.ParallaxMetric(
             metric_name="Parallax Uncert @ %.1f" % (rmag),
             rmag=rmag,
@@ -290,7 +290,7 @@ def science_radar_batch(
     )
     summary.extend(standard_summary())
     for rmag, plotmax in zip(rmags_pm, plotmaxVals):
-        plotDict = {"xMin": 0, "xMax": plotmax, "colorMin": 0, "colorMax": plotmax}
+        plotDict = {"x_min": 0, "x_max": plotmax, "color_min": 0, "color_max": plotmax}
         metric = metrics.ProperMotionMetric(
             metric_name="Proper Motion Uncert @ %.1f" % rmag,
             rmag=rmag,
@@ -328,7 +328,7 @@ def science_radar_batch(
     # DCR precision metric
     displayDict["subgroup"] = "DCR"
     displayDict["order"] = 0
-    plotDict = {"caption": "Precision of DCR slope.", "percentileClip": 95}
+    plotDict = {"caption": "Precision of DCR slope.", "percentile_clip": 95}
     metric = metrics.DcrPrecisionMetric()
     bundle = mb.MetricBundle(
         metric,
@@ -349,7 +349,7 @@ def science_radar_batch(
     m2 = metrics.NRevisitsMetric(
         d_t=dTmax, normed=False, metric_name="NumberOfQuickRevisits"
     )
-    plotDict = {"colorMin": 400, "colorMax": 2000, "xMin": 400, "xMax": 2000}
+    plotDict = {"color_min": 400, "color_max": 2000, "x_min": 400, "x_max": 2000}
     caption = (
         "Number of consecutive visits with return times faster than %.1f minutes, "
         % (dTmax)
@@ -376,8 +376,8 @@ def science_radar_batch(
     dTmax = 30.0  # 30 minute maximum for rapid revisit range
     nOne = 82  # Number of revisits between 40s-30m required
     nTwo = 28  # Number of revisits between 40s - tPairs required.
-    pixArea = float(hp.nside2pixarea(nside, degrees=True))
-    scale = pixArea * hp.nside2npix(nside)
+    pix_area = float(hp.nside2pixarea(nside, degrees=True))
+    scale = pix_area * hp.nside2npix(nside)
     m1 = metrics.RapidRevisitMetric(
         metric_name="RapidRevisits",
         d_tmin=dTmin / 60.0 / 60.0 / 24.0,
@@ -386,7 +386,13 @@ def science_radar_batch(
         min_n1=nOne,
         min_n2=nTwo,
     )
-    plotDict = {"xMin": 0, "xMax": 1, "colorMin": 0, "colorMax": 1, "logScale": False}
+    plotDict = {
+        "x_min": 0,
+        "x_max": 1,
+        "color_min": 0,
+        "color_max": 1,
+        "log_scale": False,
+    }
     cutoff1 = 0.9
     summaryStats = [
         metrics.FracAboveMetric(
@@ -430,7 +436,7 @@ def science_radar_batch(
     displayDict["subgroup"] = "Year Coverage"
     metric = metrics.YearCoverageMetric()
     for f in filterlist:
-        plotDict = {"colorMin": 7, "colorMax": 10, "color": colors[f]}
+        plotDict = {"color_min": 7, "color_max": 10, "color": colors[f]}
         displayDict["caption"] = f"Number of years of coverage in {f} band."
         displayDict["order"] = filterorders[f]
         summary = [
@@ -477,7 +483,7 @@ def science_radar_batch(
     # make sure slicer has cache off
     slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     for f in filterlist:
-        plotDict = {"percentileClip": 95.0, "nTicks": 5, "color": colors[f]}
+        plotDict = {"percentile_clip": 95.0, "n_ticks": 5, "color": colors[f]}
         metric = maf.GalaxyCountsMetricExtended(
             filter_band=f, redshift_bin="all", nside=nside
         )
@@ -608,7 +614,7 @@ def science_radar_batch(
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: LSS"
     displayDict["order"] = 0
-    plotDict = {"nTicks": 5}
+    plotDict = {"n_ticks": 5}
     # Have to include all filters in query, so that we check for all-band coverage.
     # Galaxy numbers calculated using 'bandpass' images only though.
     sqlconstraint = f'note not like "DD%"'
@@ -733,7 +739,7 @@ def science_radar_batch(
         gamma_name="gamma_WFD.hdf5",
         verbose=False,
     )
-    plotDict = {"percentileClip": 95, "nTicks": 5}
+    plotDict = {"percentile_clip": 95, "n_ticks": 5}
     # Run without DDF observations
     bundle = mb.MetricBundle(
         metric,
@@ -816,7 +822,7 @@ def science_radar_batch(
             bins=np.logspace(0, np.log10(3650), 16),
             metric_name="AGN SF_uncert",
         )
-        plotDict = {"color": colors[f], "colorMin": 0, "colorMax": 0.2}
+        plotDict = {"color": colors[f], "color_min": 0, "color_max": 0.2}
         displayDict["order"] = filterorders[f]
         displayDict["subgroup"] = "SFUncert"
         displayDict["caption"] = (
@@ -846,9 +852,9 @@ def science_radar_batch(
     for f in allfilterlist:
         plotDict = {
             "color": allcolors[f],
-            "colorMin": 0,
-            "colorMax": 5,
-            "percentileClip": 95,
+            "color_min": 0,
+            "color_max": 5,
+            "percentile_clip": 95,
         }
         displayDict["order"] = allfilterorders[f]
         displayDict["subgroup"] = "Time Lags"
@@ -879,9 +885,9 @@ def science_radar_batch(
     for f in allfilterlist:
         plotDict = {
             "color": allcolors[f],
-            "colorMin": 0,
-            "colorMax": 5,
-            "percentileClip": 95,
+            "color_min": 0,
+            "color_max": 5,
+            "percentile_clip": 95,
         }
         displayDict["order"] = allfilterorders[f]
         displayDict["subgroup"] = "Time Lags"
@@ -919,7 +925,7 @@ def science_radar_batch(
     displayDict["subgroup"] = "Lens Time Delay"
 
     tdc_plots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
-    plotDict = {"xMin": 0.01, "colorMin": 0.01, "percentileClip": 70, "nTicks": 5}
+    plotDict = {"x_min": 0.01, "color_min": 0.01, "percentile_clip": 70, "n_ticks": 5}
     tdc_summary = [metrics.MeanMetric(), metrics.MedianMetric(), metrics.RmsMetric()]
     # Ideally need a way to do better on calculating the summary metrics for the high accuracy area.
     slicer = slicers.HealpixSlicer(nside=nside_tdc, use_cache=False)
@@ -1028,7 +1034,13 @@ def science_radar_batch(
             periods = [period] * len(amplitudes)
             starMags = [magnitude] * len(amplitudes)
 
-            plotDict = {"nTicks": 3, "colorMin": 0, "colorMax": 3, "xMin": 0, "xMax": 3}
+            plotDict = {
+                "n_ticks": 3,
+                "color_min": 0,
+                "color_max": 3,
+                "x_min": 0,
+                "x_max": 3,
+            }
             info_label = "P_%.1f_Mag_%.0f_Amp_0.05-0.1-1" % (period, magnitude)
             sql = ""
             displayDict["caption"] = (
@@ -1064,7 +1076,13 @@ def science_radar_batch(
             periods = [period] * len(amplitudes)
             starMags = [magnitude] * len(amplitudes)
 
-            plotDict = {"nTicks": 3, "colorMin": 0, "colorMax": 3, "xMin": 0, "xMax": 3}
+            plotDict = {
+                "n_ticks": 3,
+                "color_min": 0,
+                "color_max": 3,
+                "x_min": 0,
+                "x_max": 3,
+            }
             info_label = "P_%.1f_Mag_%.0f_Amp_0.05-0.1-1 Yr 2" % (period, magnitude)
             sql = "night < 365.5*2"
             displayDict["caption"] = (
@@ -1314,7 +1332,7 @@ def science_radar_batch(
         plotDict = {
             "bins": tgaps,
             "xscale": "log",
-            "yMin": 0,
+            "y_min": 0,
             "figsize": (8, 6),
             "ylabel": "Number of observation pairs",
             "xlabel": "Time gap between pairs of visits (days)",
@@ -1346,7 +1364,7 @@ def science_radar_batch(
             metric_name="TgapsPercent_2-14hrs",
         )
         plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
-        plotDict = {"colorMin": 0, "color": colors[f], "percentileClip": 95}
+        plotDict = {"color_min": 0, "color": colors[f], "percentile_clip": 95}
         summaryMetrics = extended_summary()
         displayDict["caption"] = (
             f"Percent of the total time gaps which fall into the interval"
@@ -1394,7 +1412,7 @@ def science_radar_batch(
 
     # FilterPairTgaps Metric (for TVS)
     m1 = maf.FilterPairTGapsMetric()
-    plotDict = {"colorMin": 0, "colorMax": 1500, "xMin": 0, "xMax": 2000}
+    plotDict = {"color_min": 0, "color_max": 1500, "x_min": 0, "x_max": 2000}
     displayDict["order"] = 0
     displayDict["caption"] = (
         f"Evaluate the distribution of filter pairs and time gaps at each point in "
@@ -1474,20 +1492,20 @@ def science_radar_batch(
     displayDict = {"group": "Galactic Plane", "subgroup": ""}
 
     footprint_summaries = [metrics.SumMetric()]
-    footprint_plotDicts = {"percentileClip": 95}
+    footprint_plotDicts = {"percentile_clip": 95}
     filter_summaries = [
         metrics.MeanMetric(),
         metrics.MedianMetric(),
         metrics.RmsMetric(),
         metrics.AreaThresholdMetric(lower_threshold=0.8),
     ]
-    filter_plotdicts = {"colorMin": 0, "colorMax": 2, "xMin": 0, "xMax": 5}
+    filter_plotdicts = {"color_min": 0, "color_max": 2, "x_min": 0, "x_max": 5}
     timescale_summaries = [
         metrics.SumMetric(),
         metrics.MedianMetric(),
         metrics.AreaThresholdMetric(lower_threshold=0.5),
     ]
-    timescale_plotdicts = {"colorMin": 0, "colorMax": 1, "xMin": 0, "xMax": 1}
+    timescale_plotdicts = {"color_min": 0, "color_max": 1, "x_min": 0, "x_max": 1}
 
     galactic_plane_map_keys = maps.galplane_priority_map(nside=64, get_keys=True)
     science_maps = [
@@ -1585,7 +1603,7 @@ def science_radar_batch(
             ignore_crowding=False,
             maps=[],
         )
-        plotDict = {"nTicks": 5, "logScale": True, "colorMin": 100}
+        plotDict = {"n_ticks": 5, "log_scale": True, "color_min": 100}
         bundle = mb.MetricBundle(
             metric,
             slicer,
@@ -1616,7 +1634,7 @@ def science_radar_batch(
             metric_name="Nstars_no_crowding",
             maps=[],
         )
-        plotDict = {"nTicks": 5, "logScale": True, "colorMin": 100}
+        plotDict = {"n_ticks": 5, "log_scale": True, "color_min": 100}
         bundle = mb.MetricBundle(
             metric,
             slicer,
@@ -1684,10 +1702,10 @@ def science_radar_batch(
     dustmap3d = maps.DustMap3D(nside=nside_yso)
     sql = ""
     # Let's plug in the magnitudes for one type
-    metric = maf.maf_contrib.NYoungStarsMetric(nside=nside_yso)
+    metric = maf.maf_contrib.NYoungStarsMetric()
     slicer = maf.slicers.HealpixSlicer(nside=nside_yso, use_cache=False)
     summaryStats = [maf.metrics.SumMetric()]
-    plotDict = {"logScale": True, "colorMin": 1}
+    plotDict = {"log_scale": True, "color_min": 1}
     bundleList.append(
         maf.metric_bundles.MetricBundle(
             metric,
@@ -1724,7 +1742,7 @@ def science_radar_batch(
             lower_threshold=-7.0, metric_name="Total detected -7.0"
         ),
     ]
-    plotDict = {"nTicks": 7}
+    plotDict = {"n_ticks": 7}
     bundle = maf.MetricBundle(
         lv_metric,
         lv_slicer,

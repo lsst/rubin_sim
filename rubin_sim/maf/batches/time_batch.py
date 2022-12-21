@@ -172,7 +172,7 @@ def intraNight(
     else:
         displayDict["caption"] += ", %s." % info_label
     displayDict["order"] += 1
-    plotDict = {"percentileClip": 95}
+    plotDict = {"percentile_clip": 95}
     bundle = mb.MetricBundle(
         metric,
         slicer,
@@ -203,7 +203,7 @@ def intraNight(
         else:
             displayDict["caption"] += ", %s." % info_labels[f]
         displayDict["order"] = orders[f]
-        plotDict = {"percentileClip": 98}
+        plotDict = {"percentile_clip": 98}
         bundle = mb.MetricBundle(
             metric,
             slicer,
@@ -243,7 +243,7 @@ def intraNight(
         else:
             displayDict["caption"] += ", %s." % info_label
         displayDict["order"] += 1
-        plotDict = {"percentileClip": 98}
+        plotDict = {"percentile_clip": 98}
         bundle = mb.MetricBundle(
             metric,
             slicer,
@@ -284,9 +284,9 @@ def intraNight(
     # Histogram of the time between revisits (all filters) within two hours.
     binMin = 0
     binMax = 120.0
-    binsize = 5.0
+    bin_size = 5.0
     bins_metric = np.arange(
-        binMin / 60.0 / 24.0, (binMax + binsize) / 60.0 / 24.0, binsize / 60.0 / 24.0
+        binMin / 60.0 / 24.0, (binMax + bin_size) / 60.0 / 24.0, bin_size / 60.0 / 24.0
     )
     bins_plot = bins_metric * 24.0 * 60.0
     metric = metrics.TgapsMetric(
@@ -417,7 +417,7 @@ def interNight(
         sqls["all"],
         info_label=info_label["all"],
         display_dict=displayDict,
-        plot_dict={"colorMin": 0, "colorMax": 500},
+        plot_dict={"color_min": 0, "color_max": 500},
         summary_metrics=standardStats,
     )
     bundleList.append(bundle)
@@ -433,7 +433,7 @@ def interNight(
             "Median gap between nights with observations, %s." % info_label[f]
         )
         displayDict["order"] = orders[f]
-        plotDict = {"color": colors[f], "percentileClip": 95.0}
+        plotDict = {"color": colors[f], "percentile_clip": 95.0}
         bundle = mb.MetricBundle(
             metric,
             slicer,
@@ -459,7 +459,7 @@ def interNight(
             "20th percentile gap between nights with observations, %s." % info_label[f]
         )
         displayDict["order"] = orders[f]
-        plotDict = {"color": colors[f], "percentileClip": 95.0}
+        plotDict = {"color": colors[f], "percentile_clip": 95.0}
         bundle = mb.MetricBundle(
             metric,
             slicer,
@@ -480,7 +480,7 @@ def interNight(
             "Maximum gap between nights with observations, %s." % info_label[f]
         )
         displayDict["order"] = orders[f]
-        plotDict = {"color": colors[f], "percentileClip": 95.0, "binsize": 5}
+        plotDict = {"color": colors[f], "percentile_clip": 95.0, "bin_size": 5}
         bundle = mb.MetricBundle(
             metric,
             slicer,
@@ -564,7 +564,7 @@ def timeGaps(
         plotDict = {
             "bins": tgaps,
             "xscale": "log",
-            "yMin": 0,
+            "y_min": 0,
             "figsize": (8, 6),
             "ylabel": "Number of observation pairs",
             "xlabel": "Time gap between pairs of visits (days)",
@@ -596,7 +596,7 @@ def timeGaps(
             metric_name="TgapsPercent_2-14hrs",
         )
         plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
-        plotDict = {"colorMin": 0, "color": colors[f]}
+        plotDict = {"color_min": 0, "color": colors[f]}
         summaryMetrics = extended_summary()
         displayDict["caption"] = (
             f"Percent of the total time gaps which fall into the interval"
@@ -713,10 +713,10 @@ def seasons(
             minS = 30
         plotDict = {
             "color": colors[f],
-            "colorMin": minS,
-            "colorMax": maxS,
-            "xMin": minS,
-            "xMax": maxS,
+            "color_min": minS,
+            "color_max": maxS,
+            "x_min": minS,
+            "x_max": maxS,
         }
         bundle = mb.MetricBundle(
             metric,
@@ -748,10 +748,10 @@ def seasons(
             minS = 30
         plotDict = {
             "color": colors[f],
-            "colorMin": minS,
-            "colorMax": maxS,
-            "xMin": minS,
-            "xMax": maxS,
+            "color_min": minS,
+            "color_max": maxS,
+            "x_min": minS,
+            "x_max": maxS,
         }
         bundle = mb.MetricBundle(
             metric,
@@ -773,7 +773,7 @@ def seasons(
     )
     displayDict["caption"] = "Number of seasons, any filter."
     displayDict["order"] = 0
-    plotDict = {"color": "k", "colorMin": 0, "colorMax": 11, "xMin": 0, "xMax": 11}
+    plotDict = {"color": "k", "color_min": 0, "color_max": 11, "x_min": 0, "x_max": 11}
     bundle = mb.MetricBundle(
         metric,
         slicer,

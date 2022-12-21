@@ -260,7 +260,7 @@ class Orbits(object):
         sedvals = np.where(chance <= prob_c, "C.dat", "S.dat")
         return sedvals
 
-    def read_orbits(self, orbitfile, delim=None, skiprows=None):
+    def read_orbits(self, orbit_file, delim=None, skiprows=None):
         """Read orbits from a file, generating a pandas dataframe containing columns matching dataCols,
         for the appropriate orbital parameter format (currently accepts COM, KEP or CAR formats).
 
@@ -274,7 +274,7 @@ class Orbits(object):
 
         Parameters
         ----------
-        orbitfile : `str`
+        orbit_file : `str`
             The name of the input file containing orbital parameter information.
         delim : `str`, optional
             The delimiter for the input orbit file. Default is None, will use delim_whitespace=True.
@@ -292,7 +292,7 @@ class Orbits(object):
             skiprows = -1
             # Figure out whether the header is in the first line, or if there are rows to skip.
             # We need to do a bit of juggling to do this before pandas reads the whole orbit file though.
-            with open(orbitfile, "r") as fp:
+            with open(orbit_file, "r") as fp:
                 headervalues = None
                 for line in fp:
                     values = line.split()
@@ -373,7 +373,7 @@ class Orbits(object):
             )
             # First use names_com, and then change if required.
             orbits = pd.read_csv(
-                orbitfile, delim_whitespace=True, header=None, names=names_com
+                orbit_file, delim_whitespace=True, header=None, names=names_com
             )
 
             if orbits["FORMAT"][0] == "KEP":
@@ -384,11 +384,11 @@ class Orbits(object):
         else:
             if delim is None:
                 orbits = pd.read_csv(
-                    orbitfile, delim_whitespace=True, skiprows=skiprows, names=names
+                    orbit_file, delim_whitespace=True, skiprows=skiprows, names=names
                 )
             else:
                 orbits = pd.read_csv(
-                    orbitfile, sep=delim, skiprows=skiprows, names=names
+                    orbit_file, sep=delim, skiprows=skiprows, names=names
                 )
 
         # Drop some columns that are typically present in DES files but that we don't need.
@@ -459,7 +459,7 @@ class Orbits(object):
             if len(intersection) > 1:
                 raise ValueError(
                     "Received too many possible matches to %s in orbit file %s"
-                    % (name, orbitfile)
+                    % (name, orbit_file)
                 )
             if len(intersection) == 1:
                 idx = sso_cols.index(intersection[0])

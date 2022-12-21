@@ -596,7 +596,7 @@ def coadd_m5_analysis(
         def tick_formatter(y, pos):
             return "%d" % (y * scale)  # convert pixel count to area
 
-        binsize = 0.01
+        bin_size = 0.01
         for dither in plot_color:
             if dither in coadd_bundle:
                 ind = np.where(coadd_bundle[dither].metricValues.mask == False)[0]
@@ -605,7 +605,7 @@ def coadd_m5_analysis(
                         max(coadd_bundle[dither].metricValues.data[ind])
                         - min(coadd_bundle[dither].metricValues.data[ind])
                     )
-                    / binsize
+                    / bin_size
                 )
                 plt.hist(
                     coadd_bundle[dither].metricValues.data[ind],

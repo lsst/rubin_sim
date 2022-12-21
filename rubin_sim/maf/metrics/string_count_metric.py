@@ -46,8 +46,8 @@ class StringCountMetric(BaseMetric):
         )
         self.col = col
 
-    def run(self, dataslice, slice_point=None):
-        counter = Counter(dataslice[self.col])
+    def run(self, data_slice, slice_point=None):
+        counter = Counter(data_slice[self.col])
         # convert to a numpy array
         lables = list(counter.keys())
         # Numpy can't handle empty string as a dtype

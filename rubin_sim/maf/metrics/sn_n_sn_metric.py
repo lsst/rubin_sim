@@ -1162,13 +1162,13 @@ class SNNSNMetric(BaseMetric):
 
     def reducen_sn(self, metric_val):
 
-        # At each slicepoint, return the sum nSN value.
+        # At each slice_point, return the sum nSN value.
 
         return np.sum(metric_val["n_sn"])
 
     def reducezlim(self, metric_val):
 
-        # At each slicepoint, return the median zlim
+        # At each slice_point, return the median zlim
         result = np.median(metric_val["zlim"])
         if result < 0:
             result = self.badval

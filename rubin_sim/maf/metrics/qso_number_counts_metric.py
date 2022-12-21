@@ -106,7 +106,7 @@ class QSONumberCountsMetric(BaseMetric):
         if slice_point["ebv"] > self.extinction_cut:
             return self.badval
 
-        # For the dataslice, get the 5 sigma limiting magnitude.
+        # For the data_slice, get the 5 sigma limiting magnitude.
         d_s = data_slice[data_slice[self.filter_col] == self.lsst_filter]
         mlim5 = self.exgal_m5.run(d_s, slice_point)
 

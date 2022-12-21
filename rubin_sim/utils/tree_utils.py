@@ -12,7 +12,7 @@ __all__ = ["_build_tree"]
 
 def _build_tree(ra, dec, leafsize=100, scale=None):
     """
-    Build KD tree on simDataRA/Dec and set radius (via setRad) for matching.
+    Build KD tree on simDataRA/Dec and set radius (via set_rad) for matching.
 
     Parameters
     ----------

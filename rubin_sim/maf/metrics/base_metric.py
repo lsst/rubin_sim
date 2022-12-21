@@ -171,6 +171,8 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
         self.reduce_order = {}
         for i, r in enumerate(inspect.getmembers(self, predicate=inspect.ismethod)):
             if r[0].startswith("reduce"):
+                # Automatically named reduce functions have "reduce_" at the start of their name,
+                # which is undesirable to read in the output.
                 reducename = r[0].replace("reduce_", "", 1)
                 self.reduce_funcs[reducename] = r[1]
                 self.reduce_order[reducename] = i

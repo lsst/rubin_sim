@@ -208,7 +208,7 @@ class KNePopMetric(BaseMetric):
         around_peak : array
             indexes corresponding to 5sigma detections
         mags : array
-            magnitudes obtained interpolating models on the dataSlice
+            magnitudes obtained interpolating models on the data_slice
         t : array
             relative times
         filters : array

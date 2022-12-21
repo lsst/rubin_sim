@@ -15,7 +15,7 @@ class PairMetric(BaseMetric):
         metric_name="Pairs",
         match_min=20.0,
         match_max=40.0,
-        binsize=5.0,
+        bin_size=5.0,
         **kwargs
     ):
         """
@@ -25,11 +25,11 @@ class PairMetric(BaseMetric):
             Minutes after first observation to count something as a match
         match_max : float (40.)
             Minutes after first observation to count something as a match
-        binsize : float (5.)
-            Binsize to use (minutes)
+        bin_size : float (5.)
+            bin_size to use (minutes)
         """
         self.mjd_col = mjd_col
-        self.binsize = binsize / 60.0 / 24.0
+        self.bin_size = bin_size / 60.0 / 24.0
         self.match_min = match_min / 60.0 / 24.0
         self.match_max = match_max / 60.0 / 24.0
         super(PairMetric, self).__init__(
@@ -39,13 +39,13 @@ class PairMetric(BaseMetric):
     def run(self, data_slice, slice_point=None):
         bins = np.arange(
             data_slice[self.mjd_col].min(),
-            data_slice[self.mjd_col].max() + self.binsize,
-            self.binsize,
+            data_slice[self.mjd_col].max() + self.bin_size,
+            self.bin_size,
         )
 
         hist, bin_edges = np.histogram(data_slice[self.mjd_col], bins=bins)
-        nbin_min = np.round(self.match_min / self.binsize)
-        nbin_max = np.round(self.match_max / self.binsize)
+        nbin_min = np.round(self.match_min / self.bin_size)
+        nbin_max = np.round(self.match_max / self.bin_size)
         bins_to_check = np.arange(nbin_min, nbin_max + 1, 1)
         bins_w_obs = np.where(hist > 0)[0]
         # now, for each bin with an observation, need to check if there is a bin

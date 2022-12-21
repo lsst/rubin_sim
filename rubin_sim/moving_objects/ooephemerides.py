@@ -3,7 +3,7 @@ from itertools import repeat
 import numpy as np
 import pandas as pd
 import pyoorb as oo
-
+import warnings
 import time
 
 __all__ = ["get_oorb_data_dir", "PyOrbEphemerides"]
@@ -77,7 +77,7 @@ class PyOrbEphemerides(object):
 
         Parameters
         ----------
-        orbit_obj : `rubin_sim.movingObjects.Orbits`
+        orbit_obj : `rubin_sim.moving_objects.Orbits`
            The orbits to use to generate ephemerides.
         """
         if len(orbit_obj) == 0:
