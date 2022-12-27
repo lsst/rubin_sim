@@ -49,7 +49,7 @@ class FilterSchedUzy(FilterSwapScheduler):
         self.dark_times = [["u", "g", "r", "i", "y"], ["u", "g", "r", "i", "z"]]
 
     def __call__(self, conditions):
-        if IntRounded(conditions.moonPhase) > self.illum_limit_ir:
+        if IntRounded(conditions.moon_phase) > self.illum_limit_ir:
             result = self.bright_time
         else:
             indx = self.last_swap % 2
