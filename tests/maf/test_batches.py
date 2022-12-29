@@ -44,6 +44,13 @@ class TestBatches(unittest.TestCase):
         ack = batches.characterization_inner_batch(slicer)
         ack = batches.characterization_outer_batch(slicer)
 
+    def test_moving_fractions(self):
+        ack = batches.run_completeness_summary({}, 0., [10, 20], None, None)
+        ack = batches.run_fraction_summary({}, 0., None, None)
+        ack = batches.plot_fractions({})
+        ack = batches.plot_single()
+        ack = batches.plot_activity()
+
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
         "Skipping scienceRadarBatch test because operating without full MAF test data",
