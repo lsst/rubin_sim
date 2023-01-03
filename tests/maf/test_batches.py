@@ -2,6 +2,7 @@ import unittest
 import os
 import tempfile
 import shutil
+import numpy as np
 from rubin_sim.data import get_data_dir
 import rubin_sim.maf.batches as batches
 from rubin_sim.utils.code_utilities import sims_clean_up
@@ -45,11 +46,20 @@ class TestBatches(unittest.TestCase):
         ack = batches.characterization_outer_batch(slicer)
 
     def test_moving_fractions(self):
-        ack = batches.run_completeness_summary({}, 0., [10, 20], None, None)
-        ack = batches.run_fraction_summary({}, 0., None, None)
-        ack = batches.plot_fractions({})
-        ack = batches.plot_single()
-        ack = batches.plot_activity()
+        bdict = {}
+        bundle = metric_bundles.create_empty_mo_metric_bundle()
+        bundle.run_name = "dummy_name"
+        bdict["days"] = bundle
+        bdict["days"].slicer = MoObjSlicer()
+        bdict["days"].slicer.slice_points["H"] = np.arange(50)
+        # Should probably fill in some data as well to make sure
+        # more parts of the code get exercised, but this is a start.
+        ack = batches.run_completeness_summary(bdict, 0.0, [10, 20], None, None)
+        ack = batches.run_fraction_summary(bdict, 0.0, None, None)
+        ack = batches.plot_fractions(bdict, out_dir=self.out_dir)
+        # A mystery why this batch takes a bundle while the rest take dicts.
+        ack = batches.plot_single(bundle, out_dir=self.out_dir)
+        ack = batches.plot_activity(bdict)
 
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
