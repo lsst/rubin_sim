@@ -56,6 +56,10 @@ def make_rolling_footprints(
     scale=0.8,
     nside=32,
     wfd_indx=None,
+    order_roll=0,
+    n_cycles=None,
+    n_constant_start=3,
+    n_constant_end=6,
 ):
     """
     Generate rolling footprints
@@ -69,29 +73,46 @@ def make_rolling_footprints(
     sun_ra_start : float
         The RA of the sun at the start of the survey
     nslice : int (2)
-        How much to slice the sky up. Can be 2 or 3. Value of 6 to be implemented.
+        How much to slice the sky up. Can be 2, 3, 4, or 6.
     scale : float (0.8)
         The strength of the rolling, value of 1 is full power rolling, zero is no rolling.
     wfd_indx : array of ints (none)
         The indices of the HEALpix map that are to be included in the rolling.
+    order_roll : int (0)
+        Change the order of when bands roll. Default 0.
+    n_cycles : int (None)
+        Number of complete rolling cycles to attempt. If None, defaults to 3
+        full cycles for nslice=2, 2 cycles for nslice=3 or 4, and 1 cycle for
+        nslice=6.
+    n_constant_start : int (3)
+        The number of constant non-rolling seasons to start with. Anything less
+        than 3 results in rolling starting before the entire sky has had a constant year.
+    n_constant_end : int (6)
+        The number of constant seasons to end the survey with. Defaults to 6.
 
     Returns
     -------
     Footprints object
     """
 
+    nc_default = {2: 3, 3: 2, 4: 2, 6: 1}
+    if n_cycles is None:
+        n_cycles = nc_default[nslice]
+
     hp_footprints = fp_hp
 
     down = 1.0 - scale
     up = nslice - down * (nslice - 1)
-    start = [1.0, 1.0, 1.0]
-    end = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-    if nslice == 2:
-        rolling = [up, down, up, down, up, down]
-    elif nslice == 3:
-        rolling = [up, down, down, up, down, down]
-    elif nslice == 6:
-        rolling = [up, down, down, down, down, down]
+
+    start = [1.0] * n_constant_start
+    # After n_cycles, just go to no-rolling for 6 years.
+    end = [1.0] * n_constant_end
+
+    rolling = [up] + [down] * (nslice - 1)
+    rolling = rolling * n_cycles
+
+    rolling = np.roll(rolling, order_roll).tolist()
+
     all_slopes = [start + np.roll(rolling, i).tolist() + end for i in range(nslice)]
 
     fp_non_wfd = Footprint(mjd_start, sun_ra_start=sun_ra_start, nside=nside)

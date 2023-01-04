@@ -216,12 +216,16 @@ def glanceBatch(
     displayDict = {"group": "Roll Check", "order": 1}
     rolling_metrics = []
     rolling_metrics.append(
+        metrics.CountMetric(col=colmap["mjd"], metric_name="Year1.0Count")
+    )
+    rolling_metrics.append(
         metrics.CountMetric(col=colmap["mjd"], metric_name="Year2.5Count")
     )
     rolling_metrics.append(
         metrics.CountMetric(col=colmap["mjd"], metric_name="Year3.5Count")
     )
     rolling_sqls = []
+    rolling_sqls.append("night < 365.25")
     rolling_sqls.append("night > %f and night < %f" % (365.25 * 2.5, 365.25 * 3.5))
     rolling_sqls.append("night > %f and night < %f" % (365.25 * 3.5, 365.25 * 4.5))
     for metric, sql in zip(rolling_metrics, rolling_sqls):

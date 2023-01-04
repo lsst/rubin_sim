@@ -7,6 +7,7 @@ from rubin_sim.scheduler.utils import IntRounded
 
 __all__ = [
     "FilterLoadedBasisFunction",
+    "SunAltHighLimitBasisFunction",
     "TimeToTwilightBasisFunction",
     "NotTwilightBasisFunction",
     "AfterEveningTwiBasisFunction",
@@ -48,6 +49,26 @@ class FilterLoadedBasisFunction(BaseBasisFunction):
             result = filtername in conditions.mounted_filters
             if result is False:
                 return result
+        return result
+
+
+class SunAltHighLimitBasisFunction(BaseBasisFunction):
+    """Don't observe unless the sun is above some limit
+
+    Parameters
+    ----------
+    alt_limit : float (-15)
+        Sun must be above alt_limit (degrees). Default -15.
+    """
+
+    def __init__(self, alt_limit=-15.0):
+        super(SunAltHighLimitBasisFunction, self).__init__()
+        self.alt_limit = np.radians(alt_limit)
+
+    def check_feasibility(self, conditions):
+        result = True
+        if conditions.sun_alt < self.alt_limit:
+            result = False
         return result
 
 
