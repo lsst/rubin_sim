@@ -77,11 +77,9 @@ class BaseSpatialSlicer(BaseSlicer):
         self.lat_col = lat_col
         self.latLonDeg = lat_lon_deg
         self.rotSkyPosColName = rot_sky_pos_col_name
-        self.columns_needed = [lon_col, lat_col]
+        self.columns_needed = [lon_col, lat_col, rot_sky_pos_col_name]
         self.use_camera = use_camera
         self.camera_footprint_file = camera_footprint_file
-        if use_camera:
-            self.columns_needed.append(rot_sky_pos_col_name)
         self.radius = radius
         self.leafsize = leafsize
         self.slicer_init = {
