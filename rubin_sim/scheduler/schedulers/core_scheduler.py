@@ -398,7 +398,10 @@ class CoreScheduler(object):
             print(self.surveys_df(tier_index).to_markdown(), file=output)
 
         print("", file=output)
-        print(str(self.conditions), file=output)
+        if hasattr(self, "conditions"):
+            print(str(self.conditions), file=output)
+        else:
+            print("No conditions set", file=output)
 
         print("", file=output)
         print("## Queue", file=output)
@@ -412,7 +415,7 @@ class CoreScheduler(object):
                 file=output,
             )
         else:
-            print("Queue is empty.")
+            print("Queue is empty", file=output)
 
         result = output.getvalue()
         return result
@@ -440,17 +443,26 @@ class CoreScheduler(object):
         surveys = []
         survey_list = self.survey_lists[tier]
         for survey_list_elem, survey in enumerate(survey_list):
-            try:
-                reward = np.max(survey.reward) if tier <= self.survey_index[0] else None
-            except TypeError:
+            if (self.survey_index[0] is None) or (tier > self.survey_index[0]):
+                # This survey reward was not been evaluated
                 reward = None
+            elif survey.reward is None:
+                reward = None
+            elif np.isscalar(survey.reward):
+                reward = survey.reward
+            elif np.count_nonzero(survey.reward > -np.inf) == 0:
+                # The entire survey is masked
+                reward = -np.inf
+            else:
+                reward = np.nanmax(survey.reward)
 
             try:
                 chosen = (tier == self.survey_index[0]) and (
                     survey_list_elem == self.survey_index[1]
                 )
-            except:
+            except TypeError:
                 chosen = False
+
             surveys.append({"survey": str(survey), "reward": reward, "chosen": chosen})
 
         df = pd.DataFrame(surveys).set_index("survey")

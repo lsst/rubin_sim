@@ -183,30 +183,60 @@ class BaseSurvey(object):
         """
 
         feasibility = []
-        accum_reward = []
-        bf_reward = []
+        max_rewards = []
+        basis_areas = []
+        accum_rewards = []
+        accum_areas = []
         bf_label = []
         basis_functions = []
+
+        pix_area = hp.nside2pixarea(self.nside, degrees=True)
+
+        def reward_to_scalars(reward):
+            if np.isscalar(reward):
+                unmasked_area = pix_area * hp.nside2npix(self.nside)
+            else:
+                unmasked_area = pix_area * np.count_nonzero(reward > -np.inf)
+
+            if np.isscalar(reward):
+                scalar_reward = reward
+            elif unmasked_area == 0:
+                scalar_reward = -np.inf
+            else:
+                scalar_reward = np.nanmax(reward)
+
+            return scalar_reward, unmasked_area
+
         for basis_function in self.basis_functions:
             basis_functions.append(basis_function)
             test_survey = deepcopy(self)
             test_survey.basis_functions = basis_functions
+
             bf_label.append(basis_function.label())
-            bf_reward.append(np.nanmax(basis_function(conditions)))
-            feasibility.append(basis_function.check_feasibility(conditions))
-            try:
-                accum_reward.append(
-                    np.nanmax(test_survey.calc_reward_function(conditions))
-                )
-            except IndexError:
-                accum_reward.append(None)
+
+            bf_reward = basis_function(conditions)
+            max_reward, basis_area = reward_to_scalars(bf_reward)
+            max_rewards.append(max_reward)
+            basis_areas.append(basis_area)
+
+            this_feasibility = np.array(
+                basis_function.check_feasibility(conditions)
+            ).any()
+            feasibility.append(this_feasibility)
+
+            this_accum_reward = test_survey.calc_reward_function(conditions)
+            accum_reward, accum_area = reward_to_scalars(this_accum_reward)
+            accum_rewards.append(accum_reward)
+            accum_areas.append(accum_area)
 
         reward_df = pd.DataFrame(
             {
                 "basis_function": bf_label,
                 "feasible": feasibility,
-                "basis_reward": bf_reward,
-                "accum_reward": accum_reward,
+                "max_basis_reward": max_rewards,
+                "basis_area": basis_areas,
+                "max_accum_reward": accum_rewards,
+                "accum_area": accum_areas,
             }
         )
         return reward_df
@@ -486,33 +516,63 @@ class BaseMarkovSurvey(BaseSurvey):
         """
 
         feasibility = []
-        accum_reward = []
-        bf_reward = []
+        max_rewards = []
+        basis_areas = []
+        accum_rewards = []
+        accum_areas = []
         bf_label = []
         basis_functions = []
         basis_weights = []
+
+        pix_area = hp.nside2pixarea(self.nside, degrees=True)
+
+        def reward_to_scalars(reward):
+            if np.isscalar(reward):
+                unmasked_area = pix_area * hp.nside2npix(self.nside)
+            else:
+                unmasked_area = pix_area * np.count_nonzero(reward > -np.inf)
+
+            if np.isscalar(reward):
+                scalar_reward = reward
+            elif unmasked_area == 0:
+                scalar_reward = -np.inf
+            else:
+                scalar_reward = np.nanmax(reward)
+
+            return scalar_reward, unmasked_area
+
         for (weight, basis_function) in zip(self.basis_weights, self.basis_functions):
             basis_functions.append(basis_function)
             basis_weights.append(weight)
             test_survey = deepcopy(self)
             test_survey.basis_functions = basis_functions
             test_survey.basis_weights = basis_weights
+
             bf_label.append(basis_function.label())
-            bf_reward.append(np.nanmax(basis_function(conditions)))
-            feasibility.append(basis_function.check_feasibility(conditions))
-            try:
-                accum_reward.append(
-                    np.nanmax(test_survey.calc_reward_function(conditions))
-                )
-            except IndexError:
-                accum_reward.append(None)
+
+            bf_reward = basis_function(conditions)
+            max_reward, basis_area = reward_to_scalars(bf_reward)
+            max_rewards.append(max_reward)
+            basis_areas.append(basis_area)
+
+            this_feasibility = np.array(
+                basis_function.check_feasibility(conditions)
+            ).any()
+            feasibility.append(this_feasibility)
+
+            this_accum_reward = test_survey.calc_reward_function(conditions)
+            accum_reward, accum_area = reward_to_scalars(this_accum_reward)
+            accum_rewards.append(accum_reward)
+            accum_areas.append(accum_area)
 
         reward_df = pd.DataFrame(
             {
                 "basis_function": bf_label,
                 "feasible": feasibility,
-                "basis_reward": bf_reward,
-                "accum_reward": accum_reward,
+                "max_basis_reward": max_rewards,
+                "basis_area": basis_areas,
+                "max_accum_reward": accum_rewards,
+                "accum_area": accum_areas,
             }
         )
         return reward_df
