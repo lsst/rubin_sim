@@ -166,7 +166,12 @@ class BaseSurvey(object):
         pass
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} survey_name='{self.survey_name}' at {hex(id(self))}>"
+        try:
+            repr = f"<{self.__class__.__name__} survey_name='{self.survey_name}' at {hex(id(self))}>"
+        except AttributeError:
+            repr = f"<{self.__class__.__name__} at {hex(id(self))}>"
+
+        return repr
 
     def make_reward_df(self, conditions):
         """Create a pandas.DataFrame describing the reward from the survey.
@@ -190,7 +195,10 @@ class BaseSurvey(object):
         bf_label = []
         basis_functions = []
 
-        pix_area = hp.nside2pixarea(self.nside, degrees=True)
+        try:
+            pix_area = hp.nside2pixarea(self.nside, degrees=True)
+        except AttributeError:
+            pix_area = None
 
         def reward_to_scalars(reward):
             if np.isscalar(reward):

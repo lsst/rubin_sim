@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+from copy import deepcopy
 from rubin_sim.scheduler.utils import scheduled_observation
 from rubin_sim.scheduler.surveys import BaseSurvey
 from rubin_sim.utils import _approx_ra_dec2_alt_az
@@ -200,3 +202,35 @@ class LongGapSurvey(BaseSurvey):
                 observations = o1
 
         return observations
+
+    def make_reward_df(self, conditions):
+        """Create a pandas.DataFrame describing the reward from the survey.
+
+        Parameters
+        ----------
+        conditions : `rubin_sim.scheduler.features.Conditions`
+            Conditions for which rewards are to be returned
+
+        Returns
+        -------
+        reward_df : `pandas.DataFrame`
+            A table of surveys listing the rewards.
+        """
+
+        test_survey = deepcopy(self)
+        reward = test_survey.calc_reward_function(conditions)
+        feasible = (
+            test_survey._check_feasibility(conditions) and reward > np.finfo(reward).min
+        )
+
+        reward_df = pd.DataFrame(
+            {
+                "basis_function": ["None"],
+                "feasible": [feasible],
+                "max_basis_reward": [reward],
+                "basis_area": [0],
+                "max_accum_reward": [reward],
+                "accum_area": [0],
+            }
+        )
+        return reward_df
