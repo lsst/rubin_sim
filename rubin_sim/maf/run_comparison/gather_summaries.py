@@ -3,7 +3,7 @@
 import glob
 import argparse
 
-from .runComparison import RunComparison
+from .run_comparison import RunComparison
 
 
 def gather_summaries():
@@ -21,7 +21,7 @@ def gather_summaries():
         "statistics."
     )
     parser.add_argument(
-        "--baseDir",
+        "--base_dir",
         type=str,
         default=".",
         help="Root directory from where to search for MAF (sub)directories.",
@@ -67,15 +67,15 @@ def gather_summaries():
         outfile = args.outfile
 
     # Connect to resultsDbs and pull summary stats into a nice Dataframe
-    rc = RunComparison(baseDir=args.baseDir, run_dirs=run_dirs)
-    print(f"Found directories {rc.runDirs}")
-    mdict = rc.buildMetricDict()
+    rc = RunComparison(base_dir=args.base_dir, run_dirs=run_dirs)
+    print(f"Found directories {rc.run_dirs}")
+    mdict = rc.build_metric_dict()
     print(f"And found {len(mdict)} metrics.")
-    rc.addSummaryStats(mdict)
+    rc.add_summary_stats(mdict)
 
     # Save summary statistics
     if args.to_hdf:
-        rc.summaryStats.to_hdf(outfile, key="stats")
+        rc.summary_stats.to_hdf(outfile, key="stats")
     else:
         # Create a CSV file
-        rc.summaryStats.to_csv(outfile)
+        rc.summary_stats.to_csv(outfile)

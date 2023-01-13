@@ -1,11 +1,8 @@
 import os
 import warnings
 import glob
-import numpy as np
 import pandas as pd
 from rubin_sim.maf.db import ResultsDb
-import rubin_sim.maf.metric_bundles as mb
-import rubin_sim.maf.plots as plots
 
 __all__ = ["RunComparison"]
 
@@ -101,7 +98,7 @@ class RunComparison:
             # Connect to resultsDB
             self.runresults[rdir] = ResultsDb(out_dir=rdir)
             # Get simulation names
-            self.run_names[rdir] = self.runresults[rdir].getSimDataName()
+            self.run_names[rdir] = self.runresults[rdir].get_run_name()
 
     def close(self):
         """
@@ -123,8 +120,8 @@ class RunComparison:
         ----------
         metric_name_like: `str`, optional
             Metric name like this -- i.e. will look for metrics which match metric_name like "value".
-        metricMetadataLike: `str`, optional
-            Metric Metadata like this.
+        metric_info_label_like: `str`, optional
+            Metric info label like this.
         slicer_name_like: `str`, optional
             Slicer name like this.
 
@@ -147,26 +144,26 @@ class RunComparison:
         # Go through each results database and gather up all of the available metric bundles
         for r in self.run_dirs:
             if get_all:
-                m_ids = self.runresults[r].getAllMetricIds()
+                m_ids = self.runresults[r].get_all_metric_ids()
             else:
-                m_ids = self.runresults[r].getMetricIdLike(
+                m_ids = self.runresults[r].get_metric_id_like(
                     metric_name_like=metric_name_like,
                     metric_info_label_like=metric_info_label_like,
                     slicer_name_like=slicer_name_like,
                 )
             for m_id in m_ids:
-                info = self.runresults[r].getMetricInfo(m_id)
+                info = self.runresults[r].get_metric_info(m_id)
                 metric_name = info["metric_name"][0]
-                metric_metadata = info["metricInfoLabel"][0]
+                metric_info_label = info["metric_info_label"][0]
                 slicer_name = info["slicer_name"][0]
                 # Build a hash from the metric Name, metadata, slicer --
                 # this will automatically remove duplicates
-                hash = ResultsDb.buildSummaryName(
-                    metric_name, metric_metadata, slicer_name, None
+                hash = ResultsDb.build_summary_name(
+                    metric_name, metric_info_label, slicer_name, None
                 )
                 m_dict[hash] = {
                     "metric_name": metric_name,
-                    "metricInfoLabel": metric_metadata,
+                    "metric_info_label": metric_info_label,
                     "slicer_name": slicer_name,
                 }
         return m_dict
@@ -176,6 +173,7 @@ class RunComparison:
         metric_name,
         metric_info_label=None,
         slicer_name=None,
+        summary_name=None,
         summary_name_like=None,
         verbose=False,
     ):
@@ -188,13 +186,13 @@ class RunComparison:
         ----------
         metric_name : `str`
             The name of the original metric.
-        metricMetadata : `str`, optional
+        metric_info_label : `str`, optional
             The metric metadata specifying the metric desired (optional).
         slicer_name : `str`, optional
             The slicer name specifying the metric desired (optional).
         summary_name : `str`, optional
             The name of the summary statistic desired (optional).
-        summaryName_like : `str`, optional
+        summary_name_like : `str`, optional
             Wildcard matching name of the summary statistic desired (optional).
         verbose : `bool`, optional
             Issue warnings resulting from not finding the summary stat information
@@ -215,18 +213,18 @@ class RunComparison:
                 slicer_name=slicer_name,
             )
             # Note that we may have more than one matching summary metric value per results_db.
-            stats = self.runresults[r].getSummaryStats(
+            stats = self.runresults[r].get_summary_stats(
                 m_id,
                 summary_name=summary_name,
                 summary_name_like=summary_name_like,
-                withSimName=True,
+                with_sim_name=True,
             )
             for i in range(len(stats["summary_name"])):
                 name = stats["summary_name"][i]
-                run_name = stats["simDataName"][i]
+                run_name = stats["run_name"][i]
                 if run_name not in summary_values:
                     summary_values[run_name] = {}
-                summary_values[run_name][name] = stats["summaryValue"][i]
+                summary_values[run_name][name] = stats["summary_value"][i]
             if len(stats) == 0 and verbose:
                 warnings.warn(
                     "Warning: Found no metric results for %s %s %s %s in run %s"
@@ -251,6 +249,8 @@ class RunComparison:
             by a metric_dict value could be unique but don't have to be.
             If None (default), then fetches all metric results.
             (This can be slow if there are a lot of metrics.)
+        summary_name_like : `str`, optional
+            Optionally restrict summary stats to names like this.
         verbose : `bool`, optional
             Issue warnings resulting from not finding the summary stat information
             (such as if it was never calculated) will not be issued.   Default False.
@@ -263,12 +263,12 @@ class RunComparison:
         for m_name, metric in metric_dict.items():
             # In general this will not be present (if only auto-built metric dictionary)
             # But the summaryMetric could be specified (if only 'Medians' were desired, etc.)
-            if "summaryMetric" not in metric:
-                metric["summaryMetric"] = None
+            if "summary_metric" not in metric:
+                metric["summary_metric"] = None
             temp_stats = self._find_summary_stats(
                 metric_name=metric["metric_name"],
-                metric_info_label=metric["metricInfoLabel"],
-                slicer_name=metric["slicerName"],
+                metric_info_label=metric["metric_info_label"],
+                slicer_name=metric["slicer_name"],
                 summary_name_like=summary_name_like,
                 verbose=verbose,
             )
@@ -294,8 +294,8 @@ class RunComparison:
         ----------
         metric_name : `str`
             The name of the original metric.
-        metricMetadata : `str`, optional
-            The metric metadata specifying the metric desired (optional).
+        metric_info_label : `str`, optional
+            The metric info label specifying the metric desired (optional).
         slicer_name : `str`, optional
             The slicer name specifying the metric desired (optional).
 
@@ -320,134 +320,6 @@ class RunComparison:
                         + " Skipping this combination."
                     )
                 else:
-                    filename = self.runresults[r].getMetricDataFiles(metricId=m_id)
+                    filename = self.runresults[r].get_metric_datafiles(metricId=m_id)
                     filepaths[r] = os.path.join(r, filename[0])
         return filepaths
-
-    # Plot actual metric values (skymaps or histograms or power spectra) (values not stored in class).
-    def read_metric_data(self, metric_name, metric_info_label, slicer_name):
-        # Get the names of the individual files for all runs.
-        # Dictionary, keyed by run name.
-        filenames = self.get_file_names(metric_name, metric_info_label, slicer_name)
-        mname = ResultsDb.buildSummaryName(
-            metric_name, metric_info_label, slicer_name, None
-        )
-        bundle_dict = {}
-        for r in filenames:
-            b = mb.create_empty_metric_bundle()
-            b.read(filenames[r])
-            hash = b.run_name + " " + mname
-            bundle_dict[hash] = b
-        return bundle_dict, mname
-
-    def plot_metric_data(
-        self,
-        bundle_dict,
-        plot_func,
-        user_plot_dict=None,
-        layout=None,
-        out_dir=None,
-        savefig=False,
-    ):
-        if user_plot_dict is None:
-            user_plot_dict = {}
-
-        ph = plots.PlotHandler(out_dir=out_dir, savefig=savefig)
-        ph.setMetricBundles(bundle_dict)
-
-        plot_dicts = [{} for b in bundle_dict]
-        # Depending on plot_func, overplot or make many subplots.
-        if plot_func.plotType == "SkyMap":
-            # Note that we can only handle 9 subplots currently due
-            # to how subplot identification (with string) is handled.
-            if len(bundle_dict) > 9:
-                raise ValueError("Please try again with < 9 subplots for skymap.")
-            # Many subplots.
-            if "color_min" not in user_plot_dict:
-                color_min = 100000000
-                for b in bundle_dict:
-                    if "zp" not in bundle_dict[b].plotDict:
-                        tmp = bundle_dict[b].metricValues.compressed().min()
-                        color_min = min(tmp, color_min)
-                    else:
-                        color_min = bundle_dict[b].plotDict["color_min"]
-                user_plot_dict["color_min"] = color_min
-            if "color_max" not in user_plot_dict:
-                color_max = -100000000
-                for b in bundle_dict:
-                    if "zp" not in bundle_dict[b].plotDict:
-                        tmp = bundle_dict[b].metricValues.compressed().max()
-                        color_max = max(tmp, color_max)
-                    else:
-                        color_max = bundle_dict[b].plotDict["color_max"]
-                user_plot_dict["color_max"] = color_max
-            for i, (pdict, bundle) in enumerate(zip(plot_dicts, bundle_dict.values())):
-                # Add user provided dictionary.
-                pdict.update(user_plot_dict)
-                # Set subplot information.
-                if layout is None:
-                    ncols = int(np.ceil(np.sqrt(len(bundle_dict))))
-                    nrows = int(np.ceil(len(bundle_dict) / float(ncols)))
-                else:
-                    ncols = layout[0]
-                    nrows = layout[1]
-                pdict["subplot"] = int(str(nrows) + str(ncols) + str(i + 1))
-                pdict["title"] = bundle.run_name
-                # For the subplots we do not need the label
-                pdict["label"] = ""
-                pdict["legendloc"] = None
-                if "suptitle" not in user_plot_dict:
-                    pdict["suptitle"] = ph._buildTitle()
-        elif plot_func.plotType == "Histogram":
-            # Put everything on one plot.
-            if "x_min" not in user_plot_dict:
-                x_min = 100000000
-                for b in bundle_dict:
-                    if "zp" not in bundle_dict[b].plotDict:
-                        tmp = bundle_dict[b].metricValues.compressed().min()
-                        x_min = min(tmp, x_min)
-                    else:
-                        x_min = bundle_dict[b].plotDict["x_min"]
-                user_plot_dict["x_min"] = x_min
-            if "x_max" not in user_plot_dict:
-                x_max = -100000000
-                for b in bundle_dict:
-                    if "zp" not in bundle_dict[b].plotDict:
-                        tmp = bundle_dict[b].metricValues.compressed().max()
-                        x_max = max(tmp, x_max)
-                    else:
-                        x_max = bundle_dict[b].plotDict["x_max"]
-                user_plot_dict["x_max"] = x_max
-            for i, pdict in enumerate(plot_dicts):
-                pdict.update(user_plot_dict)
-                # Legend and title will automatically be ok, I think.
-        elif plot_func.plotType == "BinnedData":
-            # Put everything on one plot.
-            if "y_min" not in user_plot_dict:
-                y_min = 100000000
-                for b in bundle_dict:
-                    tmp = bundle_dict[b].metricValues.compressed().min()
-                    y_min = min(tmp, y_min)
-                user_plot_dict["y_min"] = y_min
-            if "y_max" not in user_plot_dict:
-                y_max = -100000000
-                for b in bundle_dict:
-                    tmp = bundle_dict[b].metricValues.compressed().max()
-                    y_max = max(tmp, y_max)
-                user_plot_dict["y_max"] = y_max
-            if "x_min" not in user_plot_dict:
-                x_min = 100000000
-                for b in bundle_dict:
-                    tmp = bundle_dict[b].slicer.slicePoints["bins"].min()
-                    x_min = min(tmp, x_min)
-                user_plot_dict["x_min"] = x_min
-            if "x_max" not in user_plot_dict:
-                x_max = -100000000
-                for b in bundle_dict:
-                    tmp = bundle_dict[b].slicer.slicePoints["bins"].max()
-                    x_max = max(tmp, x_max)
-                user_plot_dict["x_max"] = x_max
-            for i, pdict in enumerate(plot_dicts):
-                pdict.update(user_plot_dict)
-                # Legend and title will automatically be ok, I think.
-        ph.plot(plot_func, plot_dicts=plot_dicts)
