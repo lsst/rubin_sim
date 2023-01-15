@@ -63,7 +63,7 @@ class VersionRow(Base):
     """"""
 
     __tablename__ = "version"
-    verId = Column(Integer, primary_key=True)
+    version_id = Column(Integer, primary_key=True)
     version = Column(String)
     run_date = Column(String)
 
@@ -220,7 +220,7 @@ class ResultsDb(object):
         if "sql_constraint" not in cols:
             self.update_database()
 
-        # record the version we are on
+        # record the version and date MAF was run with/on
         if needs_version:
             vers = rsVersion.__version__
             run_date = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -302,6 +302,14 @@ class ResultsDb(object):
                 query = f"alter table displays rename column {old} to {new}"
                 self.session.execute(query)
             self.session.commit()
+            updates = {
+                "verId": "version_id",
+                "rundate": "run_date",
+            }
+            for old, new in updates.items():
+                query = f"alter table version rename column {old} to {new}"
+                self.session.execute(query)
+            self.session.commit()
 
     def downgrade_database(self):
         """
@@ -356,6 +364,14 @@ class ResultsDb(object):
         }
         for old, new in updates.items():
             query = f"alter table displays rename column {new} to {old}"
+            self.session.execute(query)
+        self.session.commit()
+        updates = {
+            "verId": "version_id",
+            "rundate": "run_date",
+        }
+        for old, new in updates.items():
+            query = f"alter table version rename column {new} to {old}"
             self.session.execute(query)
         self.session.commit()
         self.close()
@@ -878,7 +894,7 @@ class ResultsDb(object):
             )
             for m, p in query:
                 # The plot_file typically ends with .pdf (but the rest of name can have '.' or '_')
-                thumb_file = "thumb." + ".".join(p.plotFile.split(".")[:-1]) + ".png"
+                thumb_file = "thumb." + ".".join(p.plot_file.split(".")[:-1]) + ".png"
                 plot_file_fields = (
                     m.metric_id,
                     m.metric_name,
