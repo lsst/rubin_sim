@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+from . import ResultsDb
 from . import add_run_to_database
 
 
@@ -33,11 +34,11 @@ def add_run():
     args = parser.parse_args()
 
     add_run_to_database(
-        args.maf_dir,
-        args.tracking_db,
-        args.group,
-        args.run_name,
-        args.run_comment,
-        args.maf_comment,
-        args.db_file,
+        maf_dir=args.maf_dir,
+        tracking_db_file=args.tracking_db,
+        run_group=args.group,
+        run_name=args.run_name,
+        run_comment=args.run_comment,
+        maf_comment=args.maf_comment,
+        db_file=args.db_file,
     )

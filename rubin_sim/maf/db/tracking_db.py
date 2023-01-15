@@ -5,8 +5,8 @@ from sqlalchemy.orm import sessionmaker
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import DatabaseError
-import pandas as pd
-import sqlite3
+import warnings
+from . import ResultsDb, VersionRow
 
 Base = declarative_base()
 
@@ -57,7 +57,7 @@ class RunRow(Base):
 
 
 class TrackingDb(object):
-    """Sqlite database to track MAF output runs and their locations, for showMaf.py"""
+    """Sqlite database to track MAF output runs and their locations, for show_maf"""
 
     def __init__(self, database=None, trackingDbverbose=False):
         """
@@ -250,9 +250,13 @@ def add_run_to_database(
     run_group=None,
     run_name=None,
     run_comment=None,
-    run_version=None,
     maf_comment=None,
     db_file=None,
+    maf_version=None,
+    maf_date=None,
+    sched_version=None,
+    sched_date=None,
+    skip_extras=False,
 ):
     """Adds information about a MAF analysis run to a MAF tracking database.
 
@@ -283,68 +287,30 @@ def add_run_to_database(
         )
 
     trackingDb = TrackingDb(database=tracking_db_file)
-    autorun_name = None
-    automaf_comment = None
-    automaf_version = None
-    run_date = None
-    maf_version = None
-    maf_date = None
 
-    if os.path.isfile(os.path.join(maf_dir, "configSummary.txt")):
-        file = open(os.path.join(maf_dir, "configSummary.txt"))
-        for line in file:
-            tmp = line.split()
-            if tmp[0].startswith("RunName"):
-                autorun_name = " ".join(tmp[1:])
-            if tmp[0].startswith("RunComment"):
-                automaf_comment = " ".join(tmp[1:])
-            # MAF Date may be in a line with "maf_date" (new configs)
-            #  or at the end of "maf_version" (old configs).
-            if tmp[0].startswith("maf_date"):
-                maf_date = tmp[-1]
-            if tmp[0].startswith("maf_version"):
-                maf_version = tmp[1]
-                if len(tmp) > 2:
-                    maf_date = tmp[-1]
-            if tmp[0].startswith("run_date"):
-                run_date = tmp[-1]
-                if len(tmp) > 2:
-                    run_date = tmp[-2]
-            if tmp[0].startswith("rubin_sim.__version__"):
-                automaf_version = tmp[1]
-                if len(tmp) > 2:
-                    automaf_version = tmp[-2]
-    # And convert formats to '-' (again, multiple versions of configs).
-    if maf_date is not None:
-        if len(maf_date.split("/")) > 1:
-            t = maf_date.split("/")
-            if len(t[2]) == 2:
-                t[2] = "20" + t[2]
-            maf_date = "-".join([t[2], t[1], t[0]])
-    if run_date is not None:
-        if len(run_date.split("/")) > 1:
-            t = run_date.split("/")
-            if len(t[2]) == 2:
-                t[2] = "20" + t[2]
-            run_date = "-".join([t[2], t[1], t[0]])
-
-    if run_name is None:
-        run_name = autorun_name
-    if run_comment is None:
-        run_comment = automaf_comment
-    if run_version is None:
-        run_version = automaf_version
-
-    # Check if version and date are in the database.
-    if maf_version is None:
+    # Connect to resultsDb for additional information if available
+    if os.path.isfile(os.path.join(maf_dir, "resultsDb_sqlite.db")) and not skip_extras:
         try:
-            conn = sqlite3.connect(os.path.join(maf_dir, "resultsDb_sqlite.db"))
-            versDF = pd.read_sql("SELECT version,rundate FROM version;", conn)
-            maf_version = versDF["version"].values[-1]
-            maf_date = versDF["rundate"].values[-1]
-            conn.close()
+            resdb = ResultsDb(maf_dir)
+            if run_name is None:
+                run_name = resdb.get_run_name()
+                if len(run_name) > 1:
+                    run_name = 0
+                else:
+                    run_name = run_name[0]
+            if maf_version is None or maf_date is None:
+                resdb.open()
+                query = resdb.session.query(VersionRow).all()
+                for v in query:
+                    if maf_version is None:
+                        maf_version = v.version
+                    if maf_date is None:
+                        maf_date = v.run_date
+                resdb.close()
         except:
-            pass
+            warnings.warn(
+                f"Could not pull run information from resultsDb file for {maf_dir}"
+            )
 
     print("Adding to tracking database at %s:" % (tracking_db_file))
     print(" Maf_dir = %s" % (maf_dir))
@@ -352,8 +318,8 @@ def add_run_to_database(
     print(" run_group = %s" % (run_group))
     print(" run_name = %s" % (run_name))
     print(" run_comment = %s" % (run_comment))
-    print(" run_version = %s" % (run_version))
-    print(" run_date = %s" % (run_date))
+    print(" run_version = %s" % (sched_version))
+    print(" run_date = %s" % (sched_date))
     print(" maf_version = %s" % (maf_version))
     print(" maf_date = %s" % (maf_date))
     print(" db_file = %s" % (db_file))
@@ -361,8 +327,8 @@ def add_run_to_database(
         run_group=run_group,
         run_name=run_name,
         run_comment=run_comment,
-        run_version=run_version,
-        run_date=run_date,
+        run_version=sched_version,
+        run_date=sched_date,
         maf_comment=maf_comment,
         maf_version=maf_version,
         maf_date=maf_date,
