@@ -3,8 +3,6 @@ import os
 from collections import OrderedDict
 import numpy as np
 from .maf_run_results import MafRunResults
-import sqlite3
-import pandas as pd
 from rubin_sim.maf.utils import get_sim_data
 
 __all__ = ["MafTracking"]
@@ -65,10 +63,10 @@ class MafTracking(object):
             Ordered dict version of the numpy structured array.
         """
         runInfo = OrderedDict()
-        runInfo["run_name"] = run["run_name"]
-        runInfo["run_group"] = run["run_group"]
-        runInfo["maf_comment"] = run["maf_comment"]
-        runInfo["run_comment"] = run["run_comment"]
+        runInfo["Run Name"] = run["run_name"]
+        runInfo["Group"] = run["run_group"]
+        runInfo["Maf Comment"] = run["maf_comment"]
+        runInfo["Run Comment"] = run["run_comment"]
         runInfo["SQLite File"] = [
             os.path.relpath(run["db_file"]),
             os.path.split(run["db_file"])[1],
@@ -77,8 +75,8 @@ class MafTracking(object):
             os.path.join(run["maf_dir"], "resultsDb_sqlite.db")
         )
         runInfo["maf_dir"] = run["maf_dir"]
-        runInfo["run_version"] = run["run_version"]
-        runInfo["run_date"] = run["run_date"]
+        runInfo["sched_version"] = run["run_version"]
+        runInfo["sched_date"] = run["run_date"]
         runInfo["maf_version"] = run["maf_version"]
         runInfo["maf_date"] = run["maf_date"]
         return runInfo
@@ -120,7 +118,7 @@ class MafTracking(object):
         """
         if not isinstance(maf_run_id, int):
             if isinstance(maf_run_id, dict):
-                maf_run_id = int(maf_run_id["runId"][0][0])
+                maf_run_id = int(maf_run_id["run_id"][0][0])
             if isinstance(maf_run_id, list):
                 maf_run_id = int(maf_run_id[0])
         if maf_run_id in self.runs_page:
