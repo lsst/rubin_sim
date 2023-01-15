@@ -252,8 +252,9 @@ class ResultsDb(object):
             self.session.commit()
         # Check for metricId vs. metric_id separately, as this change happened independently.
         if "metricId" in cols:
-            query = "alter table metrics rename column metricId to metric_id"
-            self.session.execute(query)
+            for table in ["metrics", "summarystats", "plots", "displays"]:
+                query = f"alter table {table} rename column metricId to metric_id"
+                self.session.execute(query)
             self.session.commit()
         # Update to newest schema.
         if "run_name" not in cols:
@@ -272,7 +273,6 @@ class ResultsDb(object):
             # update summarystat table
             updates = {
                 "statId": "stat_id",
-                "metricId": "metric_id",
                 "summaryName": "summary_name",
                 "summaryValue": "summary_value",
             }
@@ -283,7 +283,6 @@ class ResultsDb(object):
             # update plot table
             updates = {
                 "plotId": "plot_id",
-                "metricId": "metric_id",
                 "plotType": "plot_type",
                 "plotFile": "plot_file",
             }
@@ -294,7 +293,6 @@ class ResultsDb(object):
             # update display table
             updates = {
                 "displayId": "display_id",
-                "metricId": "metric_id",
                 "displayGroup": "display_group",
                 "displaySubgroup": "display_subgroup",
                 "displayOrder": "display_order",
