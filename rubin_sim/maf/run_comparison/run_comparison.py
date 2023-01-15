@@ -91,7 +91,7 @@ class RunComparison:
         """
         # Open access to all results database files in self.run_dirs
         self.runresults = {}
-        # Make a look-up table for simulation run_name - runDir.
+        # Make a look-up table for simulation run_name - run_dir.
         # This is really only used in case the user wants to double-check which runs are represented.
         self.run_names = {}
         for rdir in self.run_dirs:
@@ -110,11 +110,13 @@ class RunComparison:
         for r in self.runresults:
             self.runresults[r].close()
 
-    def build_metric_dict(
+    def get_metric_ids(
         self, metric_name_like=None, metric_info_label_like=None, slicer_name_like=None
     ):
         """Return a metric dictionary based on finding all metrics which match 'like' the various kwargs.
         Note that metrics may not be present in all runDirs, and may not all have summary statistics.
+        This method is probably not very useful at this time, given the typical use will be to grab
+        all of the summary stats - then this is not necessary or desirable (just call 'add_summary_stats').
 
         Parameters
         ----------
@@ -127,7 +129,8 @@ class RunComparison:
 
         Returns
         -------
-        m_dict : `dict`
+        metric_ids, metric_dict :  `dict` of `list` of `int`, `dict`
+            Returns a dictionary of the metric Ids for the metrics (keyed per run).
             Dictionary of union of metric bundle information across all directories.
             Key = self-created metric 'name', value = Dict{metric_name, metric_metadata, slicer_name}
         """
@@ -139,9 +142,10 @@ class RunComparison:
             get_all = True
         else:
             get_all = False
-        m_dict = {}
+        metric_dict = {}
 
         # Go through each results database and gather up all of the available metric bundles
+        metric_ids = {}
         for r in self.run_dirs:
             if get_all:
                 m_ids = self.runresults[r].get_all_metric_ids()
@@ -151,6 +155,7 @@ class RunComparison:
                     metric_info_label_like=metric_info_label_like,
                     slicer_name_like=slicer_name_like,
                 )
+            metric_ids[r] = m_ids
             for m_id in m_ids:
                 info = self.runresults[r].get_metric_info(m_id)
                 metric_name = info["metric_name"][0]
@@ -161,94 +166,23 @@ class RunComparison:
                 hash = ResultsDb.build_summary_name(
                     metric_name, metric_info_label, slicer_name, None
                 )
-                m_dict[hash] = {
+                metric_dict[hash] = {
                     "metric_name": metric_name,
                     "metric_info_label": metric_info_label,
                     "slicer_name": slicer_name,
                 }
-        return m_dict
+        return metric_ids, metric_dict
 
-    def _find_summary_stats(
-        self,
-        metric_name,
-        metric_info_label=None,
-        slicer_name=None,
-        summary_name=None,
-        summary_name_like=None,
-        verbose=False,
-    ):
-        """
-        Look for summary metric values matching metric_name (and optionally metricMetadata, slicer_name
-        and summary_name) among the results databases.
-        Note that some metrics may not be present in some runDirs.
-
-        Parameters
-        ----------
-        metric_name : `str`
-            The name of the original metric.
-        metric_info_label : `str`, optional
-            The metric metadata specifying the metric desired (optional).
-        slicer_name : `str`, optional
-            The slicer name specifying the metric desired (optional).
-        summary_name : `str`, optional
-            The name of the summary statistic desired (optional).
-        summary_name_like : `str`, optional
-            Wildcard matching name of the summary statistic desired (optional).
-        verbose : `bool`, optional
-            Issue warnings resulting from not finding the summary stat information
-            (such as if it was never calculated) will not be issued.   Default False.
-
-        Returns
-        -------
-        summaryStats: `pd.DataFrame`
-            <index>   <metric_name>  (possibly additional metricNames - multiple summary stats or metadata..)
-             run_name    value
-        """
-        summary_values = {}
-        for r in self.run_dirs:
-            # Look for this metric/metadata/slicer/summary stat name combo in this results_db.
-            m_id = self.runresults[r].get_metric_id(
-                metric_name=metric_name,
-                metric_info_label=metric_info_label,
-                slicer_name=slicer_name,
-            )
-            # Note that we may have more than one matching summary metric value per results_db.
-            stats = self.runresults[r].get_summary_stats(
-                m_id,
-                summary_name=summary_name,
-                summary_name_like=summary_name_like,
-                with_sim_name=True,
-            )
-            for i in range(len(stats["summary_name"])):
-                name = stats["summary_name"][i]
-                run_name = stats["run_name"][i]
-                if run_name not in summary_values:
-                    summary_values[run_name] = {}
-                summary_values[run_name][name] = stats["summary_value"][i]
-            if len(stats) == 0 and verbose:
-                warnings.warn(
-                    "Warning: Found no metric results for %s %s %s %s in run %s"
-                    % (metric_name, metric_info_label, slicer_name, summary_name, r)
-                )
-        # Make DataFrame for stat values
-        stats = pd.DataFrame(summary_values).T
-        return stats
-
-    def add_summary_stats(
-        self, metric_dict=None, summary_name_like=None, verbose=False
-    ):
+    def add_summary_stats(self, metric_ids=None, summary_name_like=None, verbose=False):
         """
         Combine the summary statistics of a set of metrics into a pandas
         dataframe that is indexed by the opsim run name.
 
         Parameters
         ----------
-        metric_dict: `dict`, optional
-            A dictionary of metrics with all of the information needed to query
-            a results database.  The metric/metadata/slicer/summary values referred to
-            by a metric_dict value could be unique but don't have to be.
+        metric_ids: `dict` of `list` of `ints, optional
+            A dictionary of metric_ids for each run directory.
             If None (default), then fetches all metric results.
-            (This can be slow if there are a lot of metrics.)
         summary_name_like : `str`, optional
             Optionally restrict summary stats to names like this.
         verbose : `bool`, optional
@@ -258,33 +192,52 @@ class RunComparison:
 
         Sets self.summary_stats
         """
-        if metric_dict is None:
-            metric_dict = self.build_metric_dict()
-        for m_name, metric in metric_dict.items():
-            # In general this will not be present (if only auto-built metric dictionary)
-            # But the summaryMetric could be specified (if only 'Medians' were desired, etc.)
-            if "summary_metric" not in metric:
-                metric["summary_metric"] = None
-            temp_stats = self._find_summary_stats(
-                metric_name=metric["metric_name"],
-                metric_info_label=metric["metric_info_label"],
-                slicer_name=metric["slicer_name"],
-                summary_name_like=summary_name_like,
-                verbose=verbose,
-            )
-            if self.summary_stats is None:
-                self.summary_stats = temp_stats
+        all_stats = self.summary_stats
+        if all_stats is None:
+            all_stats = {}
+        for r in self.runresults:
+            run_name = self.run_names[r][0]
+            if metric_ids is not None:
+                m_ids = metric_ids[r]
             else:
-                self.summary_stats = self.summary_stats.join(
-                    temp_stats, how="outer", lsuffix="_x"
-                )
+                m_ids = None
+            x = self.runresults[r].get_summary_stats(
+                metric_id=m_ids,
+                summary_name_like=summary_name_like,
+                summary_name_notlike=None,
+            )
+            if len(x) == 0 and verbose:
+                warnings.warn(f"Found no metric information in {r}")
 
+            this_df = pd.DataFrame(
+                x["summary_value"], index=x["summary_name"], columns=[run_name]
+            ).T
+            if run_name not in all_stats:
+                all_stats[run_name] = this_df
+            else:
+                # JOIN results from the same run but different metrics
+                all_stats[run_name] = all_stats[run_name].join(
+                    this_df, how="outer", lsuffix="_x"
+                )
+        # Make sure that we have not included duplicate columns
+        # (such as would happen with re-running metrics)
+        for r in all_stats:
+            if len(all_stats[r].columns) != len(set(all_stats[r].columns)):
+                temp = (
+                    all_stats[r]
+                    .T.reset_index(names=["metric"])
+                    .drop_duplicates(subset="metric", keep="last")
+                )
+                temp.set_index(["metric"], inplace=True)
+                all_stats[r] = temp.T
+        # CONCAT results from different runs with the same metrics
+        self.summary_stats = pd.concat(all_stats.values(), join="outer")
         self.summary_stats.index.name = "run_name"
         self.summary_stats.columns.name = "metric"
 
-    def __call__(self, **kwargs):
-        """Convenience method to wrap up returning all summary stats only."""
-        self.add_summary_stats(**kwargs)
+    def __call__(self):
+        """Convenience method get (all) summary stats from all runs."""
+        self.add_summary_stats(None, None)
         return self.summary_stats
 
     def get_file_names(self, metric_name, metric_info_label=None, slicer_name=None):

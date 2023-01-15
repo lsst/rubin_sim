@@ -69,9 +69,7 @@ def gather_summaries():
     # Connect to resultsDbs and pull summary stats into a nice Dataframe
     rc = RunComparison(base_dir=args.base_dir, run_dirs=run_dirs)
     print(f"Found directories {rc.run_dirs}")
-    mdict = rc.build_metric_dict()
-    print(f"And found {len(mdict)} metrics.")
-    rc.add_summary_stats(mdict)
+    rc.add_summary_stats()
 
     # Save summary statistics
     if args.to_hdf:

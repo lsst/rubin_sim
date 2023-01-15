@@ -768,55 +768,51 @@ class ResultsDb(object):
         summarystats : `np.recarray`
             Numpy recarray containing the selected summary statistic information.
         """
-        if metric_id is None:
-            metric_id = self.get_all_metric_ids()
-        if not hasattr(metric_id, "__iter__"):
-            metric_id = [
-                metric_id,
-            ]
+        if metric_id is not None:
+            if not hasattr(metric_id, "__iter__"):
+                metric_id = [
+                    metric_id,
+                ]
         summarystats = []
         self.open()
-        for mid in metric_id:
-            # Join the metric table and the summarystat table, based on the metricID (the second filter)
-            query = (
-                self.session.query(MetricRow, SummaryStatRow)
-                .filter(MetricRow.metric_id == mid)
-                .filter(MetricRow.metric_id == SummaryStatRow.metric_id)
+        # Join the metric table and the summarystat table, based on the metricID (the second filter)
+        query = self.session.query(MetricRow, SummaryStatRow).filter(
+            MetricRow.metric_id == SummaryStatRow.metric_id
+        )
+        if metric_id is not None:
+            query = query.filter(MetricRow.metric_id.in_(metric_id))
+        if summary_name is not None:
+            query = query.filter(SummaryStatRow.summary_name == str(summary_name))
+        if summary_name_like is not None:
+            query = query.filter(
+                SummaryStatRow.summary_name.like(f"%{str(summary_name_like)}%")
             )
-            if summary_name is not None:
-                query = query.filter(SummaryStatRow.summary_name == str(summary_name))
-            if summary_name_like is not None:
-                query = query.filter(
-                    SummaryStatRow.summary_name.like(f"%{str(summary_name_like)}%")
-                )
-            if summary_name_notlike is not None:
-                if isinstance(summary_name_notlike, list):
-                    for s in summary_name_notlike:
-                        query = query.filter(
-                            ~SummaryStatRow.summary_name.like(f"%{str(s)}%")
-                        )
-                else:
+        if summary_name_notlike is not None:
+            if isinstance(summary_name_notlike, list):
+                for s in summary_name_notlike:
                     query = query.filter(
-                        ~SummaryStatRow.summary_name.like(
-                            f"%{str(summary_name_notlike)}%"
-                        )
+                        ~SummaryStatRow.summary_name.like(f"%{str(s)}%")
                     )
-            for m, s in query:
-                long_name = self.build_summary_name(
-                    m.metric_name, m.metric_info_label, m.slicer_name, s.summary_name
+            else:
+                query = query.filter(
+                    ~SummaryStatRow.summary_name.like(f"%{str(summary_name_notlike)}%")
                 )
-                vals = (
-                    m.metric_id,
-                    long_name,
-                    m.metric_name,
-                    m.slicer_name,
-                    m.metric_info_label,
-                    s.summary_name,
-                    s.summary_value,
-                )
-                if with_sim_name:
-                    vals += (m.run_name,)
-                summarystats.append(vals)
+        for m, s in query:
+            long_name = self.build_summary_name(
+                m.metric_name, m.metric_info_label, m.slicer_name, s.summary_name
+            )
+            vals = (
+                m.metric_id,
+                long_name,
+                m.metric_name,
+                m.slicer_name,
+                m.metric_info_label,
+                s.summary_name,
+                s.summary_value,
+            )
+            if with_sim_name:
+                vals += (m.run_name,)
+            summarystats.append(vals)
         # Convert to numpy array.
         dtype_list = [
             ("metric_id", int),
@@ -833,21 +829,6 @@ class ResultsDb(object):
         summarystats = np.array(summarystats, dtype)
         self.close()
         return summarystats
-
-    def get_all_summary_stats(self, with_sim_name=False):
-        """Get every single summary stat from the file.
-
-        Parameters
-        ----------
-        with_sim_name : `bool`, opt
-            If True, add the run_name to the returned numpy recarray.
-
-        Returns
-        -------
-        summarystats : `np.recarray`
-            Numpy recarray containing the selected summary statistic information.
-        """
-        pass
 
     def get_plot_files(self, metric_id=None, with_sim_name=False):
         """
