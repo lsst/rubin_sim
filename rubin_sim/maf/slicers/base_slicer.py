@@ -190,7 +190,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         header["info_label"] = info_label
         header["sim_data_name"] = sim_data_name
         date, version_info = get_date_version()
-        header["dateRan"] = date
+        header["date_ran"] = date
         if display_dict is None:
             display_dict = {"group": "Ungrouped"}
         header["display_dict"] = display_dict
@@ -270,7 +270,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         header["info_label"] = info_label
         header["sim_data_name"] = sim_data_name
         header["slicer_name"] = self.slicer_name
-        header["slicerLen"] = int(self.nslice)
+        header["slicer_len"] = int(self.nslice)
         # Set some default plot labels if appropriate.
         if "title" in plot_dict:
             header["title"] = plot_dict["title"]
@@ -368,12 +368,86 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
 
         # Allowing pickles here is required, because otherwise we cannot restore data saved as objects.
         restored = np.load(infilename, allow_pickle=True)
+        if "slicer_name" not in restored:
+            metric_values, slicer, header = self.read_backwards_compatible(
+                restored, infilename
+            )
+            return metric_values, slicer, header
+        # This is the standard behavior and will be the sole behavior at a future release point.
         # Get metadata and other sim_data info.
         header = restored["header"][()]
+        if "dateRan" in header:
+            header["date_ran"] = header["dateRan"]
+        # Get slicer information.
         slicer_init = restored["slicer_init"][()]
         slicer_name = str(restored["slicer_name"])
         slice_points = restored["slice_points"][()]
-        # Backwards compatibility issue - map 'spatialkey1/spatialkey2' to 'lon_col/lat_col'.
+        slicer_nslice = restored["slicer_n_slice"]
+        slicer_shape = restored["slicer_shape"]
+        try:
+            slicer = getattr(slicers, slicer_name)(**slicer_init)
+        except TypeError:
+            warnings.warn(
+                f"Cannot use saved slicer init values; falling back to defaults for {infilename}"
+            )
+            slicer = getattr(slicers, slicer_name)()
+        # Restore slice_point information.
+        slicer.nslice = slicer_nslice
+        slicer.slice_points = slice_points
+        slicer.shape = slicer_shape
+        # Get metric data set
+        if restored["mask"][()] is None:
+            metric_values = ma.MaskedArray(data=restored["metric_values"])
+        else:
+            metric_values = ma.MaskedArray(
+                data=restored["metric_values"],
+                mask=restored["mask"],
+                fill_value=restored["fill"],
+            )
+        return metric_values, slicer, header
+
+    def read_backwards_compatible(self, restored, infilename):
+        """Read pre v1.0 metric files."""
+        # Backwards compatibility for pre-v1.0 metric outputs. To be deprecated at a future release.
+        warnings.warn(
+            "Reading pre-v1.0 metric data. To be deprecated in a future release.",
+            FutureWarning,
+        )
+        import rubin_sim.maf.slicers as slicers
+
+        header = restored["header"][()]
+        header["metric_name"] = header["metricName"]
+        header["sim_data_name"] = header["simDataName"]
+        if "metadata" in header:
+            header["info_label"] = header["metadata"]
+        if "plotDict" in header:
+            header["plot_dict"] = header["plotDict"]
+        if "displayDict" in header:
+            header["display_dict"] = header["displayDict"]
+        if "dateRan" in header:
+            header["date_ran"] = header["dateRan"]
+        slicer_init = restored["slicer_init"][()]
+        slicer_name = str(restored["slicerName"])
+        slice_points = restored["slicePoints"][()]
+        slicer_nslice = restored["slicerNSlice"]
+        slicer_shape = restored["slicerShape"]
+        # Slicer init update
+        new = ["lat_col", "lon_col", "use_camera"]
+        old = ["latCol", "lonCol", "useCamera"]
+        for n, o in zip(new, old):
+            if o in slicer_init:
+                slicer_init[n] = slicer_init[o]
+                del slicer_init[o]
+        if "Hrange" in slicer_init:
+            slicer_init["h_range"] = slicer_init["Hrange"]
+            del slicer_init["Hrange"]
+        new = ["bin_min", "bin_max", "bin_size", "slice_col_name", "slice_col_units"]
+        old = ["binMin", "binMax", "binsize", "sliceColName", "sliceColUnits"]
+        for n, o in zip(new, old):
+            if o in slicer_init:
+                slicer_init[n] = slicer_init[o]
+                del slicer_init[o]
+        # An earlier backwards compatibility issue - map 'spatialkey1/spatialkey2' to 'lon_col/lat_col'.
         if "spatialkey1" in slicer_init:
             slicer_init["lon_col"] = slicer_init["spatialkey1"]
             del slicer_init["spatialkey1"]
@@ -384,20 +458,20 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
             slicer = getattr(slicers, slicer_name)(**slicer_init)
         except TypeError:
             warnings.warn(
-                "Cannot use saved slicer init values; falling back to defaults"
+                f"Cannot use saved slicer init values; falling back to defaults for {infilename}"
             )
             slicer = getattr(slicers, slicer_name)()
-        # Restore slice_point metadata.
-        slicer.nslice = restored["slicer_n_slice"]
+        # Restore slice_point information.
+        slicer.nslice = slicer_nslice
         slicer.slice_points = slice_points
-        slicer.shape = restored["slicer_shape"]
+        slicer.shape = slicer_shape
         # Get metric data set
         if restored["mask"][()] is None:
-            metricValues = ma.MaskedArray(data=restored["metric_values"])
+            metric_values = ma.MaskedArray(data=restored["metricValues"])
         else:
-            metricValues = ma.MaskedArray(
-                data=restored["metric_values"],
+            metric_values = ma.MaskedArray(
+                data=restored["metricValues"],
                 mask=restored["mask"],
                 fill_value=restored["fill"],
             )
-        return metricValues, slicer, header
+        return metric_values, slicer, header

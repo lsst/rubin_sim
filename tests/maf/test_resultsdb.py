@@ -16,7 +16,7 @@ class TestResultsDb(unittest.TestCase):
         self.metric_name = "Count ExpMJD"
         self.slicer_name = "OneDSlicer"
         self.run_name = "fakeopsim"
-        self.constraint = ""
+        self.sql_constraint = ""
         self.info_label = "Dithered"
         self.metric_data_file = "testmetricdatafile.npz"
         self.plot_type = "BinnedData"
@@ -58,7 +58,7 @@ class TestResultsDb(unittest.TestCase):
             self.metric_name,
             self.slicer_name,
             self.run_name,
-            self.constraint,
+            self.sql_constraint,
             self.info_label,
             self.metric_data_file,
         )
@@ -67,7 +67,7 @@ class TestResultsDb(unittest.TestCase):
             self.metric_name,
             self.slicer_name,
             self.run_name,
-            self.constraint,
+            self.sql_constraint,
             self.info_label,
             self.metric_data_file,
         )
@@ -138,7 +138,7 @@ class TestUseResultsDb(unittest.TestCase):
         )
 
     def testget_ids(self):
-        mids = self.results_db.getAllMetricIds()
+        mids = self.results_db.get_all_metric_ids()
         self.assertEqual(mids[0], self.metric_id)
         mid = self.results_db.get_metric_id(self.metric_name)
         self.assertEqual(mid[0], self.metric_id)
@@ -146,7 +146,7 @@ class TestUseResultsDb(unittest.TestCase):
         self.assertEqual(len(mid), 0)
 
     def testshow_summary(self):
-        self.results_db.getSummaryStats()
+        self.results_db.get_summary_stats()
 
     def tearDown(self):
         self.results_db.close()

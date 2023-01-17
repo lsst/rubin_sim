@@ -110,7 +110,7 @@ class TestJSONoutUniSlicer(unittest.TestCase):
         self.assertEqual(jsn_header["sim_data_name"], "testSim")
         self.assertEqual(jsn_header["info_label"], "testmeta")
         self.assertEqual(jsn_header["slicer_name"], "UniSlicer")
-        self.assertEqual(jsn_header["slicerLen"], 1)
+        self.assertEqual(jsn_header["slicer_len"], 1)
         self.assertEqual(len(jsn_data), 1)
 
 
@@ -131,7 +131,7 @@ class TestJSONoutOneDSlicer2(unittest.TestCase):
         jsn_header = jsn[0]
         jsn_data = jsn[1]
         self.assertEqual(jsn_header["slicer_name"], "OneDSlicer")
-        self.assertEqual(jsn_header["slicerLen"], len(self.testslicer))
+        self.assertEqual(jsn_header["slicer_len"], len(self.testslicer))
         self.assertEqual(len(jsn_data), len(metric_val) + 1)
         for jsndat, bin_left, mval in zip(
             jsn_data, self.testslicer.slice_points["bins"], metric_val.data
@@ -155,7 +155,7 @@ class TestJSONoutHealpixSlicer(unittest.TestCase):
         jsn_header = jsn[0]
         jsn_data = jsn[1]
         self.assertEqual(jsn_header["slicer_name"], "HealpixSlicer")
-        self.assertEqual(jsn_header["slicerLen"], len(self.testslicer))
+        self.assertEqual(jsn_header["slicer_len"], len(self.testslicer))
         self.assertEqual(len(jsn_data), len(metric_val))
         for jsndat, ra, dec, mval in zip(
             jsn_data,

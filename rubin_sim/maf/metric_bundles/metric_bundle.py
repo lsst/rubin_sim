@@ -571,10 +571,6 @@ class MetricBundle(object):
                 self.constraint = header["constraint"]
             except KeyError:
                 self.constraint = header["sqlconstraint"]
-            # Handle potential old datafile, where 'metadata' may be used instead of info_label
-            # use metadata if it's there
-            if "metadata" in header:
-                self.info_label = header["metadata"]
             # and then use info_label if it's there instead
             if "info_label" in header:
                 self.info_label = header["info_label"]

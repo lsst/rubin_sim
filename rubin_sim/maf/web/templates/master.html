@@ -231,7 +231,7 @@ text-indent:5px;
 
 <title>
 {% block pagetitle %}
-{{run.runName }}
+{{run.run_name }}
 {% endblock %}
 </title>
 </head>
@@ -244,7 +244,7 @@ text-indent:5px;
 {% block header %}
 <div id="header">
 {%block title %}
-  OpSim Run: {{ run.runName }}
+  OpSim Run: {{ run.run_name }}
 {% endblock %}
 </div>
 {% endblock %}
@@ -253,7 +253,6 @@ text-indent:5px;
 <div id="navbar">
   {% set navigation_bar = [
     ('/', 'listRuns', 'Run List'),
-    ('configParams', 'configs', 'Opsim Configuration'),
     ('metricSelect', 'listMetrics', 'Metrics List'),
     ('allMetricResults', 'allMetricResults', 'All Results'),
     ('multiColor', 'multicolor', 'Multi Color'),
@@ -288,7 +287,7 @@ text-indent:5px;
 
 <div id="footer">
 <a
-  href="http://sims-maf.lsst.io"
+  href="http://rubin-sim.lsst.io"
   target="_blank">
   LSST Metrics Analysis Framework (MAF)</a>
 </div>

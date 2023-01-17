@@ -26,26 +26,6 @@ class MafRunResults(object):
         """
         self.out_dir = os.path.relpath(out_dir, ".")
         self.run_name = run_name
-        # Set the config summary filename, if available.
-        self.config_summary = os.path.join(self.out_dir, "configSummary.txt")
-        if not os.path.isfile(self.config_summary):
-            self.config_summary = "Config Summary Not Available"
-        # if the config summary existed and we don't know the run_name, find it.
-        elif self.run_name is None:
-            # Read the config file to get the run_name.
-            with open(self.config_summary, "r") as myfile:
-                config = myfile.read()
-            spot = config.find("RunName")
-            # If we found the run_name, use that.
-            if spot != -1:
-                self.run_name = config[spot:].split("\n")[0][8:]
-            # Otherwise, set it to be not available.
-            else:
-                self.run_name = "RunName not available"
-
-        self.config_details = os.path.join(self.out_dir, "configDetails.txt")
-        if not os.path.isfile(self.config_details):
-            self.config_details = "Config Details Not Available."
 
         # Read in the results database.
         if results_db is None:
@@ -53,20 +33,20 @@ class MafRunResults(object):
         database = db.ResultsDb(database=results_db)
 
         # Get the metric and display info (1-1 match)
-        self.metrics = database.getMetricDisplayInfo()
+        self.metrics = database.get_metric_display_info()
         self.metrics = self.sort_metrics(self.metrics)
 
         # Get the plot and stats info (many-1 metric match)
         skip_stats = ["Completeness@Time", "Completeness H", "FractionPop "]
-        self.stats = database.getSummaryStats(summaryNameNotLike=skip_stats)
-        self.plots = database.getPlotFiles()
+        self.stats = database.get_summary_stats(summary_name_notlike=skip_stats)
+        self.plots = database.get_plot_files()
 
         # Pull up the names of the groups and subgroups.
-        groups = sorted(np.unique(self.metrics["displayGroup"]))
+        groups = sorted(np.unique(self.metrics["display_group"]))
         self.groups = OrderedDict()
         for g in groups:
-            group_metrics = self.metrics[np.where(self.metrics["displayGroup"] == g)]
-            self.groups[g] = sorted(np.unique(group_metrics["displaySubgroup"]))
+            group_metrics = self.metrics[np.where(self.metrics["display_group"] == g)]
+            self.groups[g] = sorted(np.unique(group_metrics["display_subgroup"]))
 
         self.summary_stat_order = [
             "Id",
@@ -86,7 +66,7 @@ class MafRunResults(object):
         # Add in the table fraction sorting to summary stat ordering.
         table_fractions = [
             x
-            for x in list(np.unique(self.stats["summaryMetric"]))
+            for x in list(np.unique(self.stats["summary_metric"]))
             if x.startswith("TableFraction")
         ]
         if len(table_fractions) > 0:
@@ -135,7 +115,7 @@ class MafRunResults(object):
         if len(metric) > 1:
             return None
         metric = metric[0]
-        filename = metric["metricDataFile"]
+        filename = metric["metric_datafile"]
         if filename.upper() == "NULL":
             return None
         datafile = os.path.join(self.out_dir, filename)
@@ -145,7 +125,7 @@ class MafRunResults(object):
         io = m_b.output_json()
         if io is None:
             return None
-        return io.getvalue()
+        return io.get_value()
 
     def get_npz(self, metric):
         """
@@ -154,7 +134,7 @@ class MafRunResults(object):
         if len(metric) > 1:
             return None
         metric = metric[0]
-        filename = metric["metricDataFile"]
+        filename = metric["metric_datafile"]
         if filename.upper() == "NULL":
             return None
         else:
@@ -199,12 +179,12 @@ class MafRunResults(object):
         self,
         metrics,
         order=(
-            "displayGroup",
-            "displaySubgroup",
-            "baseMetricNames",
-            "slicerName",
-            "displayOrder",
-            "metricInfoLabel",
+            "display_group",
+            "display_subgroup",
+            "base_metric_name",
+            "slicer_name",
+            "display_order",
+            "metric_info_label",
         ),
     ):
         """
@@ -223,7 +203,7 @@ class MafRunResults(object):
         """
         if metrics is None:
             metrics = self.metrics
-        metrics = metrics[np.where(metrics["displayGroup"] == group)]
+        metrics = metrics[np.where(metrics["display_group"] == group)]
         if sort:
             metrics = self.sort_metrics(metrics)
         return metrics
@@ -237,7 +217,7 @@ class MafRunResults(object):
         """
         metrics = self.metrics_in_group(group, metrics, sort=False)
         if len(metrics) > 0:
-            metrics = metrics[np.where(metrics["displaySubgroup"] == subgroup)]
+            metrics = metrics[np.where(metrics["display_subgroup"] == subgroup)]
             metrics = self.sort_metrics(metrics)
         return metrics
 
@@ -245,11 +225,11 @@ class MafRunResults(object):
         """
         Given an array of metrics, return an ordered dict of their group/subgroups.
         """
-        group_list = sorted(np.unique(metrics["displayGroup"]))
+        group_list = sorted(np.unique(metrics["display_group"]))
         groups = OrderedDict()
         for group in group_list:
             groupmetrics = self.metrics_in_group(group, metrics, sort=False)
-            groups[group] = sorted(np.unique(groupmetrics["displaySubgroup"]))
+            groups[group] = sorted(np.unique(groupmetrics["display_subgroup"]))
         return groups
 
     def metrics_with_plot_type(self, plot_type="SkyMap", metrics=None):
@@ -282,7 +262,7 @@ class MafRunResults(object):
         if metrics is None:
             metrics = self.metrics
         if baseonly:
-            sort_name = "baseMetricNames"
+            sort_name = "base_metric_name"
         else:
             sort_name = "metric_name"
         metric_names = list(np.unique(metrics[sort_name]))
@@ -295,19 +275,19 @@ class MafRunResults(object):
         if metrics is None:
             metrics = self.metrics
         # Identify the potentially matching stats.
-        stats = self.stats[np.in1d(self.stats["summaryMetric"], summary_stat_name)]
+        stats = self.stats[np.in1d(self.stats["summary_metric"], summary_stat_name)]
         # Identify the subset of relevant metrics.
         metrics = self.metric_ids_to_metrics(stats["metric_id"], metrics)
         # Re-sort metrics because at this point, probably want displayOrder + info_label before metric name.
         metrics = self.sort_metrics(
             metrics,
             order=[
-                "displayGroup",
-                "displaySubgroup",
-                "slicerName",
-                "displayOrder",
-                "metricInfoLabel",
-                "baseMetricNames",
+                "display_group",
+                "display_subgroup",
+                "slicer_name",
+                "display_order",
+                "metric_info_label",
+                "base_metric_name",
             ],
         )
         return metrics
@@ -323,12 +303,12 @@ class MafRunResults(object):
         metrics = self.sort_metrics(
             metrics,
             order=[
-                "displayGroup",
-                "displaySubgroup",
-                "slicerName",
-                "displayOrder",
-                "metricInfoLabel",
-                "baseMetricNames",
+                "display_group",
+                "display_subgroup",
+                "slicer_name",
+                "display_order",
+                "metric_info_label",
+                "base_metric_name",
             ],
         )
         return metrics
@@ -339,7 +319,7 @@ class MafRunResults(object):
         """
         if metrics is None:
             metrics = self.metrics
-        return list(np.unique(metrics["slicerName"]))
+        return list(np.unique(metrics["slicer_name"]))
 
     def metrics_with_slicer(self, slicer, metrics=None):
         """
@@ -347,7 +327,7 @@ class MafRunResults(object):
         """
         if metrics is None:
             metrics = self.metrics
-        metrics = metrics[np.where(metrics["slicerName"] == slicer)]
+        metrics = metrics[np.where(metrics["slicer_name"] == slicer)]
         return metrics
 
     def unique_metric_name_and_info_label(self, metrics=None):
@@ -358,7 +338,7 @@ class MafRunResults(object):
             metrics = self.metrics
         metric_info_label = []
         for metric_name, info_label in zip(
-            metrics["metric_name"], metrics["metricInfoLabel"]
+            metrics["metric_name"], metrics["metric_info_label"]
         ):
             metricinfo = " ".join([metric_name, info_label])
             if metricinfo not in metric_info_label:
@@ -371,7 +351,7 @@ class MafRunResults(object):
         """
         if metrics is None:
             metrics = self.metrics
-        return list(np.unique(metrics["metricInfoLabel"]))
+        return list(np.unique(metrics["metric_info_label"]))
 
     def metrics_with_info_label(self, info_label, metrics=None):
         """
@@ -379,7 +359,7 @@ class MafRunResults(object):
         """
         if metrics is None:
             metrics = self.metrics
-        metrics = metrics[np.where(metrics["metricInfoLabel"] == info_label)]
+        metrics = metrics[np.where(metrics["metric_info_label"] == info_label)]
         return metrics
 
     def metrics_with_metric_name(self, metric_name, metrics=None, baseonly=True):
@@ -389,7 +369,7 @@ class MafRunResults(object):
         if metrics is None:
             metrics = self.metrics
         if baseonly:
-            metrics = metrics[np.where(metrics["baseMetricNames"] == metric_name)]
+            metrics = metrics[np.where(metrics["base_metric_name"] == metric_name)]
         else:
             metrics = metrics[np.where(metrics["metric_name"] == metric_name)]
         return metrics
@@ -403,24 +383,24 @@ class MafRunResults(object):
         """
         metric_info = OrderedDict()
         if metric is None:
-            metric_info["MetricName"] = ""
+            metric_info["Metric Name"] = ""
             if with_slicer_name:
                 metric_info["Slicer"] = ""
-            metric_info["InfoLabel"] = ""
+            metric_info["Info Label"] = ""
             if with_data_link:
                 metric_info["Data"] = []
                 metric_info["Data"].append([None, None])
             return metric_info
         # Otherwise, do this for real (not a blank).
-        metric_info["MetricName"] = metric["metric_name"]
+        metric_info["Metric Name"] = metric["metric_name"]
         if with_slicer_name:
-            metric_info["Slicer"] = metric["slicerName"]
-        metric_info["InfoLabel"] = metric["metricInfoLabel"]
+            metric_info["Slicer"] = metric["slicer_name"]
+        metric_info["InfoL abel"] = metric["metric_info_label"]
         if with_data_link:
             metric_info["Data"] = []
-            metric_info["Data"].append(metric["metricDataFile"])
+            metric_info["Data"].append(metric["metric_datafile"])
             metric_info["Data"].append(
-                os.path.join(self.out_dir, metric["metricDataFile"])
+                os.path.join(self.out_dir, metric["metric_datafile"])
             )
         return metric_info
 
@@ -428,7 +408,7 @@ class MafRunResults(object):
         """
         Return the caption for a given metric.
         """
-        caption = metric["displayCaption"]
+        caption = metric["display_caption"]
         if caption == "NULL":
             return ""
         else:
@@ -547,7 +527,7 @@ class MafRunResults(object):
             metrics = self.metrics[
                 np.in1d(self.metrics["metric_id"], sky_plots["metric_id"])
             ]
-            metrics = self.sort_metrics(metrics, order=["displayOrder"])
+            metrics = self.sort_metrics(metrics, order=["display_order"])
             ordered_sky_plots = []
             for m in metrics:
                 sky_plot = sky_plots[np.where(sky_plots["metric_id"] == m["metric_id"])]
@@ -585,7 +565,7 @@ class MafRunResults(object):
         """
         stats = self.stats[np.where(self.stats["metric_id"] == metric["metric_id"])]
         if stat_name is not None:
-            stats = stats[np.where(stats["summaryMetric"] == stat_name)]
+            stats = stats[np.where(stats["summary_metric"] == stat_name)]
         return stats
 
     def stat_dict(self, stats):
@@ -594,23 +574,23 @@ class MafRunResults(object):
 
         Note that if you pass 'stats' from multiple metrics with the same summary names, they
         will be overwritten in the resulting dictionary!
-        So just use stats from one metric, with unique summaryMetric names.
+        So just use stats from one metric, with unique summary_metric names.
         """
         # Result = dict with key == summary stat name, value = summary stat value.
         sdict = OrderedDict()
         statnames = self.order_stat_names(stats)
         for n in statnames:
-            match = stats[np.where(stats["summaryMetric"] == n)]
+            match = stats[np.where(stats["summary_metric"] == n)]
             # We're only going to look at the first value; and this should be a float.
-            sdict[n] = match["summaryValue"][0]
+            sdict[n] = match["summary_value"][0]
         return sdict
 
     def order_stat_names(self, stats):
         """
-        Given an array of stats, return a list containing all the unique 'summaryMetric' names
+        Given an array of stats, return a list containing all the unique 'summary_metric' names
         in a default ordering (identity-count-mean-median-rms..).
         """
-        names = list(np.unique(stats["summaryMetric"]))
+        names = list(np.unique(stats["summary_metric"]))
         # Add some default sorting:
         namelist = []
         for nord in self.summary_stat_order:
@@ -623,11 +603,11 @@ class MafRunResults(object):
 
     def all_stat_names(self, metrics):
         """
-        Given an array of metrics, return a list containing all the unique 'summaryMetric' names
+        Given an array of metrics, return a list containing all the unique 'summary_metric' names
         in a default ordering.
         """
         names = np.unique(
-            self.stats["summaryMetric"][
+            self.stats["summary_metric"][
                 np.in1d(self.stats["metric_id"], metrics["metric_id"])
             ]
         )
