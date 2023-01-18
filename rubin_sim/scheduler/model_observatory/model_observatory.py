@@ -55,7 +55,6 @@ class ModelObservatory(object):
         self,
         nside=None,
         mjd_start=None,
-        seed=42,
         alt_min=5.0,
         lax_dome=True,
         cloud_limit=0.3,
