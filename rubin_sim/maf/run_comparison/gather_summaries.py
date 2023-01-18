@@ -1,16 +1,76 @@
 #!/usr/bin/env python
 
 import glob
+import os
 import argparse
+import numpy as np
+import pandas as pd
+import sqlite3
 
-from .run_comparison import RunComparison
+
+def construct_runname(inpath, replaces=["_glance", "_sci", "_meta", "_ss", "_ddf"]):
+    """Given a directory path, construct a runname"""
+    result = os.path.basename(os.path.normpath(inpath))
+    for rstring in replaces:
+        result = result.replace(rstring, "")
+    return result
+
+
+def gs(run_dirs, dbfilename="resultsDb_sqlite.db"):
+    """Helper function for gather_summaries"""
+    db_files = []
+    run_names = []
+    for dname in run_dirs:
+        fname = os.path.join(dname, dbfilename)
+        if os.path.isfile(fname):
+            db_files.append(fname)
+            run_names.append(construct_runname(dname))
+
+    # querry to grab all the summary stats
+    sql_q = "select metrics.metric_name, metrics.metric_info_label, summarystats.summary_name, summarystats.summary_value "
+    sql_q += "FROM summarystats INNER JOIN metrics ON metrics.metric_id=summarystats.metric_id"
+
+    rows = []
+
+    for row_name, fname in zip(run_names, db_files):
+        con = sqlite3.connect(fname)
+        temp_df = pd.read_sql(sql_q, con)
+        con.close()
+
+        spaces = np.char.array([" "] * np.size(temp_df["metric_name"].values))
+        s1 = np.char.array(temp_df["metric_name"].values.tolist())
+        s2 = np.char.array(temp_df["metric_info_label"].values.tolist())
+        s3 = np.char.array(temp_df["summary_name"].values.tolist())
+        col_names = s1 + spaces + s2 + spaces + s3
+
+        # Make a DataFrame row
+        row = pd.DataFrame(
+            temp_df["summary_value"].values.reshape(
+                [1, temp_df["summary_value"].values.size]
+            ),
+            columns=col_names,
+            index=[row_name],
+        )
+        rows.append(row)
+
+    # Create final large DataFrame to hold everything
+    all_cols = np.unique(np.concatenate([r.columns.values for r in rows]))
+    u_names = np.unique(run_names)
+    result_df = pd.DataFrame(
+        np.zeros([u_names.size, all_cols.size]) + np.nan,
+        columns=all_cols,
+        index=u_names,
+    )
+
+    # Put each row into the final DataFrame
+    for row_name, row in zip(run_names, rows):
+        result_df.loc[row_name][row.columns] = np.ravel(row.values)
+    return result_df
 
 
 def gather_summaries():
     """Find resultsDbs in a series of directories and gather up their summary
-    stats into a single CSV or hdf5 file. Intended to run on a set of metrics
-    run on multiple simulations, so that each results_db has similar summary
-    statistics.
+    stats into a single CSV or hdf5 file. Outputs one row per unique run name.
     """
 
     parser = argparse.ArgumentParser(
@@ -29,15 +89,8 @@ def gather_summaries():
     parser.add_argument(
         "--outfile",
         type=str,
-        default=None,
-        help="Output file name. Default (None) will create a file = [suffix_]summary.csv)",
-    )
-    parser.add_argument(
-        "--suffix",
-        type=str,
-        default=None,
-        help="Suffix for directories within which to find resultsDbs. "
-        "Default is None, which searches for all potential MAF directories.",
+        default='summary',
+        help="Output file name. Default (summary)",
     )
     parser.add_argument(
         "--to_hdf",
@@ -47,33 +100,19 @@ def gather_summaries():
     )
     args = parser.parse_args()
 
-    # Identify a subset of MAF directories if suffix is set
-    if args.suffix is None:
-        run_dirs = None
-    else:
-        run_dirs = glob.glob(f"*{args.suffix}")
+    run_dirs = glob.glob(args.base_dir + "/*/")
 
     # Create output file name if needed
-    if args.outfile is None:
-        if args.suffix is None:
-            outfile = "summary"
-        else:
-            outfile = f"{args.suffix.replace('_', '')}_summary"
-        if args.to_hdf:
-            outfile = outfile + ".h5"
-        else:
-            outfile = outfile + ".csv"
+    if args.to_hdf:
+        outfile = args.outfile + ".h5"
     else:
-        outfile = args.outfile
+        outfile = args.outfile + ".csv"
 
-    # Connect to resultsDbs and pull summary stats into a nice Dataframe
-    rc = RunComparison(base_dir=args.base_dir, run_dirs=run_dirs)
-    print(f"Found directories {rc.run_dirs}")
-    rc.add_summary_stats()
+    result_df = gs(run_dirs)
 
     # Save summary statistics
     if args.to_hdf:
-        rc.summary_stats.to_hdf(outfile, key="stats")
+        result_df.to_hdf(outfile, key="stats")
     else:
         # Create a CSV file
-        rc.summary_stats.to_csv(outfile)
+        result_df.to_csv(outfile)
