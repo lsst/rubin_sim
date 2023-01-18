@@ -20,7 +20,7 @@ def data_dict():
         "maps": "maps_2022_2_28.tgz",
         "movingObjects": "movingObjects_oct_2021.tgz",
         "orbits": "orbits_2022_3_1.tgz",
-        "sim_baseline": "sim_baseline_2022_6_21.tgz",
+        "sim_baseline": "sim_baseline_2023_01_18.tgz",
         "site_models": "site_models_may_2021.tgz",
         "skybrightness": "skybrightness_may_2021.tgz",
         "skybrightness_pre": "skybrightness_pre_2022_5_18.tgz",
