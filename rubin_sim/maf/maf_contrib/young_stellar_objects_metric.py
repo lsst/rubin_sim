@@ -7,7 +7,7 @@ import numpy as np
 import scipy.integrate as integrate
 from rubin_sim.maf.metrics import BaseMetric, CrowdingM5Metric
 from rubin_sim.phot_utils import DustValues
-from rubin_sim.maf.maps import DustMap3D
+from rubin_sim.maf.maps import DustMap3D, StellarDensityMap
 
 __all__ = ["NYoungStarsMetric"]
 
@@ -85,6 +85,7 @@ class NYoungStarsMetric(BaseMetric):
         metric_name="young_stars",
         m5_col="fiveSigmaDepth",
         filter_col="filter",
+        seeing_col="seeingFwhmGeom",
         mags={"g": 10.32, "r": 9.28, "i": 7.97},
         snrs={"g": 5.0, "r": 5.0, "i": 5.0},
         galb_limit=90.0,
@@ -93,8 +94,13 @@ class NYoungStarsMetric(BaseMetric):
         crowding_error=0.25,
         **kwargs
     ):
-        cols = [m5_col, filter_col]
-        maps = ["DustMap3D"]
+        cols = [m5_col, filter_col, seeing_col]
+        maps = [
+            DustMap3D(),
+            StellarDensityMap(filtername="g"),
+            StellarDensityMap(filtername="r"),
+            StellarDensityMap(filtername="i"),
+        ]
         # This will give us access to the dust map get_distance_at_dmag routine
         # but does not require loading another copy of the map
         self.ebvmap = DustMap3D()
@@ -118,7 +124,12 @@ class NYoungStarsMetric(BaseMetric):
         self.filters = list(self.mags.keys())
         self.snrs = snrs
         self.m5crowding = {
-            f: CrowdingM5Metric(crowding_error=crowding_error, filtername=f)
+            f: CrowdingM5Metric(
+                crowding_error=crowding_error,
+                filtername=f,
+                seeing_col=seeing_col,
+                maps=maps,
+            )
             for f in self.filters
         }
 

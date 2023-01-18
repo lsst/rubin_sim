@@ -148,14 +148,16 @@ class MetricBundle(object):
         # If the metric knows it needs a particular map, add it to the list.
         map_names = [map_name.__class__.__name__ for map_name in self.maps_list]
         if hasattr(self.metric, "maps"):
-            for map_name in self.metric.maps:
-                if map_name not in map_names:
-                    if type(map_name) == str:
-                        temp_map = getattr(maps, map_name)()
+            for map_needed in self.metric.maps:
+                if type(map_needed) == str:
+                    if map_needed not in map_names:
+                        temp_map = getattr(maps, map_needed)()
                         self.maps_list.append(temp_map)
-                        map_names.append(map_name)
-                    else:
-                        self.maps_list.append(map_name)
+                        map_names.append(map_needed)
+                else:
+                    if map_needed not in self.maps_list:
+                        self.maps_list.append(map_needed)
+                        map_names.append(map_needed.__class__.__name__)
 
         # Add the summary stats, if applicable.
         self.set_summary_metrics(summary_metrics)
