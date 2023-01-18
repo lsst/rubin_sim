@@ -89,7 +89,7 @@ def gather_summaries():
     parser.add_argument(
         "--outfile",
         type=str,
-        default='summary',
+        default="summary",
         help="Output file name. Default (summary)",
     )
     parser.add_argument(
