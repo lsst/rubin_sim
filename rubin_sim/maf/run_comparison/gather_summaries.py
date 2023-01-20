@@ -9,7 +9,7 @@ import sqlite3
 from rubin_sim.maf.db import ResultsDb
 
 
-__all__ = ['gs', 'gather_summaries']
+__all__ = ["gs", "gather_summaries"]
 
 
 def dirname_to_runname(inpath, replaces=["_glance", "_sci", "_meta", "_ss", "_ddf"]):
