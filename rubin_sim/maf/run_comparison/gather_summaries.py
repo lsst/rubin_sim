@@ -9,6 +9,9 @@ import sqlite3
 from rubin_sim.maf.db import ResultsDb
 
 
+__all__ = ['gs', 'gather_summaries']
+
+
 def dirname_to_runname(inpath, replaces=["_glance", "_sci", "_meta", "_ss", "_ddf"]):
     """Given a directory path, construct a plausible runname"""
     result = os.path.basename(os.path.normpath(inpath))
