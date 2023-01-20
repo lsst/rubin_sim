@@ -6,10 +6,11 @@ import argparse
 import numpy as np
 import pandas as pd
 import sqlite3
+from rubin_sim.maf.db import ResultsDb
 
 
-def construct_runname(inpath, replaces=["_glance", "_sci", "_meta", "_ss", "_ddf"]):
-    """Given a directory path, construct a runname"""
+def dirname_to_runname(inpath, replaces=["_glance", "_sci", "_meta", "_ss", "_ddf"]):
+    """Given a directory path, construct a plausible runname"""
     result = os.path.basename(os.path.normpath(inpath))
     for rstring in replaces:
         result = result.replace(rstring, "")
@@ -17,31 +18,51 @@ def construct_runname(inpath, replaces=["_glance", "_sci", "_meta", "_ss", "_ddf
 
 
 def gs(run_dirs, dbfilename="resultsDb_sqlite.db"):
-    """Helper function for gather_summaries"""
+    """Helper function for gather_summaries
+
+    Parameters
+    ----------
+    run_dirs : list of str
+        A list of directories to search for MAF result databases.
+    dbfilename : str (resultsDb_sqlite.db)
+        The database filename to look for (default: resultsDb_sqlite.db)."""
+
     db_files = []
     run_names = []
     for dname in run_dirs:
         fname = os.path.join(dname, dbfilename)
         if os.path.isfile(fname):
             db_files.append(fname)
-            run_names.append(construct_runname(dname))
+            run_names.append(dirname_to_runname(dname))
 
     # querry to grab all the summary stats
-    sql_q = "select metrics.metric_name, metrics.metric_info_label, summarystats.summary_name, summarystats.summary_value "
+    sql_q = "SELECT metrics.metric_name, metrics.metric_info_label, "
+    sql_q += "metrics.slicer_name, summarystats.summary_name, "
+    sql_q += "summarystats.summary_value "
     sql_q += "FROM summarystats INNER JOIN metrics ON metrics.metric_id=summarystats.metric_id"
 
     rows = []
-
     for row_name, fname in zip(run_names, db_files):
         con = sqlite3.connect(fname)
         temp_df = pd.read_sql(sql_q, con)
         con.close()
 
-        spaces = np.char.array([" "] * np.size(temp_df["metric_name"].values))
-        s1 = np.char.array(temp_df["metric_name"].values.tolist())
-        s2 = np.char.array(temp_df["metric_info_label"].values.tolist())
-        s3 = np.char.array(temp_df["summary_name"].values.tolist())
-        col_names = s1 + spaces + s2 + spaces + s3
+        # Use maf.db.ResultDb.build_summary_name so it matches show_maf labels
+        col_names = []
+        for summary_name, metric_name, metric_info_label, slicer_name in zip(
+            temp_df["summary_name"].values.tolist(),
+            temp_df["metric_name"].values.tolist(),
+            temp_df["metric_info_label"].values.tolist(),
+            temp_df["slicer_name"].values.tolist(),
+        ):
+            col_names.append(
+                ResultsDb.build_summary_name(
+                    metric_name,
+                    metric_info_label,
+                    slicer_name,
+                    summary_stat_name=summary_name,
+                )
+            )
 
         # Make a DataFrame row
         row = pd.DataFrame(
@@ -52,7 +73,6 @@ def gs(run_dirs, dbfilename="resultsDb_sqlite.db"):
             index=[row_name],
         )
         rows.append(row)
-
     # Create final large DataFrame to hold everything
     all_cols = np.unique(np.concatenate([r.columns.values for r in rows]))
     u_names = np.unique(run_names)
