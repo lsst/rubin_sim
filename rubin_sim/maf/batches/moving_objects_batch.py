@@ -717,7 +717,7 @@ def run_completeness_summary(bdict, h_mark, times, out_dir, results_db):
         if h_mark is None and "h_mark" in bundle.plot_dict:
             h_mark = bundle.plot_dict["h_mark"]
         if h_mark is None:
-            h_mark = np.median(bundle.slicer.slicePoints["H"])
+            h_mark = np.median(bundle.slicer.slice_points["H"])
         # Set up the summary metrics.
         summaryTimeMetrics = summary_completeness_at_time(
             times, h_val=h_mark, h_index=0.33
@@ -743,7 +743,7 @@ def run_completeness_summary(bdict, h_mark, times, out_dir, results_db):
                 )
                 comp[newkey].plot_dict["times"] = times
                 comp[newkey].plot_dict["h_val"] = metric.hval
-        elif "NChances" in bundle.metric.name:
+        elif "NChances" in bundle.metric.name or "N_Chances" in bundle.metric.name:
             for metric in summaryHMetrics:
                 newkey = b + " " + metric.name
                 comp[newkey] = mb.make_completeness_bundle(
@@ -822,10 +822,10 @@ def plot_completeness(
     for k in bdictCompleteness:
         for key in keys:
             if key in k:
-                if "DiscoveryTime" in k:
+                if "Time" in k:
                     if "Cumulative" in k:
                         plotTimes[k] = bdictCompleteness[k]
-                elif "DiscoveryNChances" in k:
+                elif "Chances" in k:
                     if "Differential" in k:
                         plotDiff[k] = bdictCompleteness[k]
                     elif "Cumulative" in k:
@@ -1370,14 +1370,19 @@ def run_fraction_summary(bdict, h_mark, out_dir, results_db):
     )
     asteroidSummaryMetrics = {
         "LightcurveInversionAsteroid": inversionSummary,
+        "LightcurveInversion_Asteroid": inversionSummary,
         "ColorAsteroid": asteroidColorSummary,
+        "Color_Asteroid": asteroidColorSummary,
     }
 
     outerColorSummary = fraction_population_at_threshold(
         [6, 5, 4, 3, 2, 1],
         ["6 filters", "5 filters", "4 filters", "3 filters", "2 filters", "1 filters"],
     )
-    outerSummaryMetrics = {"LightcurveColorOuter": outerColorSummary}
+    outerSummaryMetrics = {
+        "LightcurveColorOuter": outerColorSummary,
+        "lightcurveColor_Outer": outerColorSummary,
+    }
 
     for b, bundle in bdict.items():
         # Find h_mark if not set (this may be different for different bundles).
@@ -1436,8 +1441,10 @@ def plot_fractions(
             b.plot_dict["linewidth"] = 3
 
     first = bdictFractions[list(bdictFractions.keys())[0]]
+    if run_name is None:
+        run_name = first.run_name
     if figroot is None:
-        figroot = first.run_name
+        figroot = run_name
     display_dict = deepcopy(first.display_dict)
     display_dict["subgroup"] = f"Characterization Fraction"
 
@@ -1498,16 +1505,16 @@ def plot_single(bundle, results_db=None, out_dir=".", fig_format="pdf"):
     ph = plots.PlotHandler(
         fig_format=fig_format, results_db=results_db, out_dir=out_dir
     )
-    plotBundles = []
+    plot_bundles = []
     plot_dicts = []
     for percentile in pDict:
-        plotBundles.append(bundle)
+        plot_bundles.append(bundle)
         plot_dicts.append(pDict[percentile])
     plot_dicts[0].update({"figsize": (8, 6), "legendloc": "upper right", "y_min": 0})
     # Remove the h_mark line because these plots get complicated already.
     for r in plot_dicts:
         r["h_mark"] = None
-    ph.set_metric_bundles(plotBundles)
+    ph.set_metric_bundles(plot_bundles)
     ph.plot(
         plot_func=plots.MetricVsH(),
         plot_dicts=plot_dicts,
@@ -1540,11 +1547,11 @@ def plot_activity(bdict, figroot=None, results_db=None, out_dir=".", fig_format=
             fig_format=fig_format, results_db=results_db, out_dir=out_dir
         )
         ph.set_metric_bundles(activity_days)
-        ph.jointMetricNames = "Chances of detecting activity lasting X days"
-        plotDict = {"ylabel": "Mean likelihood of detection", "figsize": (8, 6)}
+        ph.joint_metric_names = "Chances of detecting activity lasting X days"
+        plot_dict = {"ylabel": "Mean likelihood of detection", "figsize": (8, 6)}
         ph.plot(
             plot_func=plots.MetricVsH(),
-            plot_dicts=plotDict,
+            plot_dicts=plot_dict,
             display_dict=display_dict,
             outfile_root=figroot + "_activityDays",
         )
@@ -1554,11 +1561,11 @@ def plot_activity(bdict, figroot=None, results_db=None, out_dir=".", fig_format=
             fig_format=fig_format, results_db=results_db, out_dir=out_dir
         )
         ph.set_metric_bundles(activity_deg)
-        ph.jointMetricNames = "Chances of detecting activity covering X deg"
-        plotDict = {"ylabel": "Mean likelihood of detection", "figsize": (8, 6)}
+        ph.joint_metric_names = "Chances of detecting activity covering X deg"
+        plot_dict = {"ylabel": "Mean likelihood of detection", "figsize": (8, 6)}
         ph.plot(
             plot_func=plots.MetricVsH(),
-            plot_dicts=plotDict,
+            plot_dicts=plot_dict,
             display_dict=display_dict,
             outfile_root=figroot + "_activityDeg",
         )
@@ -1614,10 +1621,10 @@ def combine_subsets(mbSubsets):
     # Check if they're the same slicer.
     slicer = deepcopy(first.slicer)
     for i in mbSubsets:
-        if np.any(slicer.slicePoints["H"] != mbSubsets[i].slicer.slicePoints["H"]):
+        if np.any(slicer.slice_points["H"] != mbSubsets[i].slicer.slice_points["H"]):
             if np.any(
-                slicer.slicePoints["orbits"]
-                != mbSubsets[i].slicer.slicePoints["orbits"]
+                slicer.slice_points["orbits"]
+                != mbSubsets[i].slicer.slice_points["orbits"]
             ):
                 raise ValueError(
                     "Bundle %s has a different slicer than the first bundle" % (i)
@@ -1626,15 +1633,15 @@ def combine_subsets(mbSubsets):
     joint.slicer = slicer
     joint.metric = first.metric
     # Don't just use the slicer shape to define the metric_values, because of CompletenessBundles.
-    metricValues = np.zeros(first.metricValues.shape, float)
-    metricValuesMask = np.zeros(first.metricValues.shape, bool)
+    metric_values = np.zeros(first.metric_values.shape, float)
+    metric_values_mask = np.zeros(first.metric_values.shape, bool)
     for i in mbSubsets:
-        metricValues += mbSubsets[i].metricValues.filled(0)
-        metricValuesMask = np.where(
-            metricValuesMask & mbSubsets[i].metricValues.mask, True, False
+        metric_values += mbSubsets[i].metric_values.filled(0)
+        metric_values_mask = np.where(
+            metric_values_mask & mbSubsets[i].metric_values.mask, True, False
         )
     joint.metricValues = ma.MaskedArray(
-        data=metricValues, mask=metricValuesMask, fill_value=0
+        data=metric_values, mask=metric_values_mask, fill_value=0
     )
     joint.info_label = first.info_label
     joint.run_name = first.run_name
