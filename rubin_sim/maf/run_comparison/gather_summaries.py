@@ -6,10 +6,9 @@ import argparse
 import numpy as np
 import pandas as pd
 import sqlite3
-from rubin_sim.maf.db import ResultsDb
 
 
-__all__ = ["gs", "gather_summaries"]
+__all__ = ["combine_result_dbs", "gather_summaries"]
 
 
 def dirname_to_runname(inpath, replaces=["_glance", "_sci", "_meta", "_ss", "_ddf"]):
@@ -20,7 +19,7 @@ def dirname_to_runname(inpath, replaces=["_glance", "_sci", "_meta", "_ss", "_dd
     return result
 
 
-def gs(run_dirs, dbfilename="resultsDb_sqlite.db"):
+def combine_result_dbs(run_dirs, dbfilename="resultsDb_sqlite.db"):
     """Helper function for gather_summaries
 
     Parameters
@@ -50,7 +49,7 @@ def gs(run_dirs, dbfilename="resultsDb_sqlite.db"):
         temp_df = pd.read_sql(sql_q, con)
         con.close()
 
-        # Use maf.db.ResultDb.build_summary_name so it matches show_maf labels
+        # Make column names
         col_names = []
         for summary_name, metric_name, metric_info_label, slicer_name in zip(
             temp_df["summary_name"].values.tolist(),
@@ -58,14 +57,15 @@ def gs(run_dirs, dbfilename="resultsDb_sqlite.db"):
             temp_df["metric_info_label"].values.tolist(),
             temp_df["slicer_name"].values.tolist(),
         ):
-            col_names.append(
-                ResultsDb.build_summary_name(
-                    metric_name,
-                    metric_info_label,
-                    slicer_name,
-                    summary_stat_name=summary_name,
-                )
+            col_name = " ".join(
+                [
+                    summary_name.strip(),
+                    metric_name.strip(),
+                    metric_info_label.strip(),
+                    slicer_name.strip(),
+                ]
             )
+            col_names.append(col_name.replace("  ", " "))
 
         # Make a DataFrame row
         row = pd.DataFrame(
@@ -121,9 +121,18 @@ def gather_summaries():
         action="store_true",
         help="Create a .hdf5 file, instead of the default csv file.",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--dirs",
+        type=str,
+        default=None,
+        help="comma seperated list of directories to use, default None",
+    )
 
-    run_dirs = glob.glob(args.base_dir + "/*/")
+    args = parser.parse_args()
+    if args.dirs is None:
+        run_dirs = glob.glob(args.base_dir + "/*/")
+    else:
+        run_dirs = args.dirs.split(",")
 
     # Create output file name if needed
     if args.to_hdf:
@@ -131,7 +140,7 @@ def gather_summaries():
     else:
         outfile = args.outfile + ".csv"
 
-    result_df = gs(run_dirs)
+    result_df = combine_result_dbs(run_dirs)
 
     # Save summary statistics
     if args.to_hdf:

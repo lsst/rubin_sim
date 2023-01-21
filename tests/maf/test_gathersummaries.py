@@ -1,7 +1,7 @@
 import unittest
 import shutil
 from rubin_sim.maf.db import ResultsDb
-from rubin_sim.maf.run_comparison import gs
+from rubin_sim.maf.run_comparison import combine_result_dbs
 
 
 class TestGather(unittest.TestCase):
@@ -37,7 +37,7 @@ class TestGather(unittest.TestCase):
 
     def test_gather_summaries(self):
         # Gather the results into a single db
-        df = gs(run_dirs=["temp1", "temp2"])
+        df = combine_result_dbs(run_dirs=["temp1", "temp2"])
         # Check that values are correct
         assert df.loc["temp1"].max() == 100.0
         assert df.loc["temp2"].max() == 200.0
