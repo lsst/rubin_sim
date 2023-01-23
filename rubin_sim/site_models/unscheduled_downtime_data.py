@@ -39,10 +39,9 @@ class UnscheduledDowntimeData(object):
         self.seed = seed
         self.survey_length = survey_length
         year_start = start_time.datetime.year
-        self.night0 = (
-            Time("%d-01-01" % year_start, format="isot", scale="tai")
-            + start_of_night_offset
-        )
+        self.night0 = Time(
+            "%d-01-01" % year_start, format="isot", scale="tai"
+        ) + TimeDelta(start_of_night_offset, format="jd")
 
         # Scheduled downtime data is a np.ndarray of start / end / activity for each scheduled downtime.
         self.downtime = None

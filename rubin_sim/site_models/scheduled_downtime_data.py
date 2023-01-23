@@ -38,10 +38,9 @@ class ScheduledDowntimeData(object):
 
         # downtime database starts in Jan 01 of the year of the start of the simulation.
         year_start = start_time.datetime.year
-        self.night0 = (
-            Time("%d-01-01" % year_start, format="isot", scale="tai")
-            + start_of_night_offset
-        )
+        self.night0 = Time(
+            "%d-01-01" % year_start, format="isot", scale="tai"
+        ) + TimeDelta(start_of_night_offset, format="jd")
 
         # Scheduled downtime data is a np.ndarray of start / end / activity for each scheduled downtime.
         self.downtime = None
@@ -82,12 +81,12 @@ class ScheduledDowntimeData(object):
         database. However, an alternate database file can be provided. The alternate
         database file needs to have a table called *Downtime* with the following columns:
 
-        night
-            int : The night (from start of simulation) the downtime occurs.
-        duration
-            int : The duration (units=days) of the downtime.
-        activity
-            str : A description of the activity involved.
+        night: `int`
+            The night (from start of simulation) the downtime occurs.
+        duration : `int`
+            The duration (units=days) of the downtime.
+        activity: `str`
+            A description of the activity involved.
         """
         # Read from database.
         starts = []
@@ -100,7 +99,7 @@ class ScheduledDowntimeData(object):
                 start_night = int(row[0])
                 start_night = self.night0 + TimeDelta(start_night, format="jd")
                 n_down = int(row[1])
-                end_night = start_night + TimeDelta(n_down)
+                end_night = start_night + TimeDelta(n_down, format="jd")
                 activity = row[2]
                 starts.append(start_night)
                 ends.append(end_night)
