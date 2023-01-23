@@ -118,7 +118,7 @@ class MafTracking(object):
         """
         if not isinstance(maf_run_id, int):
             if isinstance(maf_run_id, dict):
-                maf_run_id = int(maf_run_id["run_id"][0][0])
+                maf_run_id = int(maf_run_id["maf_run_id"][0][0])
             if isinstance(maf_run_id, list):
                 maf_run_id = int(maf_run_id[0])
         if maf_run_id in self.runs_page:
