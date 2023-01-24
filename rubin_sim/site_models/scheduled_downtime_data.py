@@ -16,13 +16,13 @@ class ScheduledDowntimeData(object):
 
     Parameters
     ----------
-    start_time : astropy.time.Time
+    start_time : `astropy.time.Time`
         The time of the start of the simulation.
         The cloud database will be assumed to start on Jan 01 of the same year.
-    cloud_db : str, optional
+    cloud_db : `str`, optional
         The full path name for the cloud database. Default None,
         which will use the database stored in the module ($SIMS_CLOUDMODEL_DIR/data/cloud.db).
-    start_of_night_offset : float, optional
+    start_of_night_offset : `float`, optional
         The fraction of a day to offset from MJD.0 to reach the defined start of a night ('noon' works).
         Default 0.16 (UTC midnight in Chile) - 0.5 (minus half a day) = -0.34
     """
@@ -51,12 +51,12 @@ class ScheduledDowntimeData(object):
 
         Parameters
         ----------
-        time : astropy.time.Time
+        time : `astropy.time.Time`
             Time in the simulation for which to find the current downtime.
 
         Returns
         -------
-        np.ndarray
+        downtime : `np.ndarray`
             The array of all unscheduled downtimes, with keys for 'start', 'end', 'activity',
             corresponding to astropy.time.Time, astropy.time.Time, and str.
         """
@@ -81,11 +81,11 @@ class ScheduledDowntimeData(object):
         database. However, an alternate database file can be provided. The alternate
         database file needs to have a table called *Downtime* with the following columns:
 
-        night: `int`
+        night : `int`
             The night (from start of simulation) the downtime occurs.
         duration : `int`
             The duration (units=days) of the downtime.
-        activity: `str`
+        activity : `str`
             A description of the activity involved.
         """
         # Read from database.
@@ -110,15 +110,12 @@ class ScheduledDowntimeData(object):
             dtype=[("start", "O"), ("end", "O"), ("activity", "O")],
         )
 
-    def config_info(self):
-        warnings.warn("The configure method is deprecated.")
-
     def total_downtime(self):
         """Return total downtime (in days).
 
         Returns
         -------
-        int
+        total : `int`
             Total number of downtime days.
         """
         total = 0
