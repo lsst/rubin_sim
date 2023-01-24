@@ -48,13 +48,13 @@ class FieldSurvey(DeepDrillingSurvey):
             detailers=detailers,
         )
         self.basis_weights = np.ones(len(basis_functions)) / len(basis_functions)
+        self.ra_deg, self.dec_deg = RA, dec
 
     def calc_reward_function(self, conditions):
         self.reward_checked = True
-        indx = ra_dec2_hpid(self.nside, self.ra, self.dec)
+        indx = ra_dec2_hpid(self.nside, self.ra_deg, self.dec_deg)
         if self._check_feasibility(conditions):
             self.reward = 0
-            indx = ra_dec2_hpid(self.nside, self.ra, self.dec)
             for bf, weight in zip(self.basis_functions, self.basis_weights):
                 basis_value = bf(conditions, indx=indx)
                 self.reward += basis_value * weight
