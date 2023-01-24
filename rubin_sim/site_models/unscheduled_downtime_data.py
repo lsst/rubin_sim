@@ -12,15 +12,15 @@ class UnscheduledDowntimeData(object):
 
     Parameters
     ----------
-    start_time : astropy.time.Time
+    start_time : `astropy.time.Time`
         The time of the start of the simulation.
         The cloud database will be assumed to start on Jan 01 of the same year.
-    seed : int, optional
+    seed : `int`, optional
         The random seed for creating the random nights of unscheduled downtime. Default 1516231120.
-    start_of_night_offset : float, optional
+    start_of_night_offset : `float`, optional
         The fraction of a day to offset from MJD.0 to reach the defined start of a night ('noon' works).
         Default 0.16 (UTC midnight in Chile) - 0.5 (minus half a day) = -0.34
-    survey_length : int, optional
+    survey_length : `int`, optional
         The number of nights in the total survey. Default 3650*2.
     """
 
@@ -39,10 +39,9 @@ class UnscheduledDowntimeData(object):
         self.seed = seed
         self.survey_length = survey_length
         year_start = start_time.datetime.year
-        self.night0 = (
-            Time("%d-01-01" % year_start, format="isot", scale="tai")
-            + start_of_night_offset
-        )
+        self.night0 = Time(
+            "%d-01-01" % year_start, format="isot", scale="tai"
+        ) + TimeDelta(start_of_night_offset, format="jd")
 
         # Scheduled downtime data is a np.ndarray of start / end / activity for each scheduled downtime.
         self.downtime = None
@@ -53,14 +52,14 @@ class UnscheduledDowntimeData(object):
 
         Parameters
         ----------
-        time : astropy.time.Time
+        time : `astropy.time.Time`
             Time in the simulation for which to find the current downtime.
 
         Returns
         -------
-        np.ndarray
+        downtime : `np.ndarray`
             The array of all unscheduled downtimes, with keys for 'start', 'end', 'activity',
-            corresponding to astropy.time.Time, astropy.time.Time, and str.
+            corresponding to `astropy.time.Time`, `astropy.time.Time`, and `str`.
         """
         return self.downtime
 
@@ -83,14 +82,10 @@ class UnscheduledDowntimeData(object):
 
         The random downtime is calculated using the following probabilities:
 
-        minor event
-            remainder of night and next day = 5/365 days e.g. power supply failure
-        intermediate
-            3 nights = 2/365 days e.g. repair filter mechanism, rotator, hexapod, or shutter
-        major event
-            7 nights = 1/2*365 days
-        catastrophic event
-            14 nights = 1/3650 days e.g. replace a raft
+        minor event : remainder of night and next day = 5/365 days e.g. power supply failure
+        intermediate : 3 nights = 2/365 days e.g. repair filter mechanism, rotator, hexapod, or shutter
+        major event : 7 nights = 1/2*365 days
+        catastrophic event : 14 nights = 1/3650 days e.g. replace a raft
         """
         random.seed(self.seed)
 
@@ -151,15 +146,12 @@ class UnscheduledDowntimeData(object):
             dtype=[("start", "O"), ("end", "O"), ("activity", "O")],
         )
 
-    def config_info(self):
-        warnings.warn("The configure method is deprecated.")
-
     def total_downtime(self):
         """Return total downtime (in days).
 
         Returns
         -------
-        int
+        total : `int`
             Total number of downtime days.
         """
         total = 0
