@@ -268,6 +268,7 @@ class Conditions(object):
         self.tel_dec = None
         self.tel_alt = None
         self.tel_az = None
+        self.cumulative_azimuth_rad = None
 
         # Full sky cloud map
         self._cloud_map = None
