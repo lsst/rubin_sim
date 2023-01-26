@@ -52,7 +52,7 @@ class HealpixSlicer(BaseSpatialSlicer):
         Flag to indicate whether or not to write additional information to stdout during runtime.
         Default True.
     badval : `float`, optional
-        Bad value flag, relevant for plotting. Default the hp.UNSEEN value (in order to properly flag
+        Bad value flag, relevant for plotting. Default the np.nan value (in order to properly flag
         bad data points for plotting with the healpix plotting routines). This should not be changed.
     use_cache : `bool`, optional
         Flag allowing the user to indicate whether or not to cache (and reuse) metric results
@@ -84,7 +84,7 @@ class HealpixSlicer(BaseSpatialSlicer):
         lat_col="fieldDec",
         lat_lon_deg=True,
         verbose=True,
-        badval=hp.UNSEEN,
+        badval=np.nan,
         use_cache=True,
         leafsize=100,
         radius=2.45,

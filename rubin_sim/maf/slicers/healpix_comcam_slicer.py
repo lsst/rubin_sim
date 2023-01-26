@@ -34,7 +34,7 @@ class HealpixComCamSlicer(HealpixSlicer):
         lat_col="fieldDec",
         lat_lon_deg=True,
         verbose=True,
-        badval=hp.UNSEEN,
+        badval=np.nan,
         use_cache=True,
         leafsize=100,
         use_camera=False,
