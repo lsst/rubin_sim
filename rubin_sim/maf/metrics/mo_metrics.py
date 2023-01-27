@@ -394,43 +394,44 @@ class DiscoveryMetric(BaseMoMetric):
         # Convert back to index based on sso_obs[vis] (sorted by expMJD).
         start_idxs = good_idx[start_idxs]
         end_idxs = good_idx_ends[end_idxs]
-        # print 'start', start_idxs,  nights[start_idxs]#, orb['objId'], hval
-        # print 'end', end_idxs, nights[end_idxs]#, orb['objId'], hval
         return {
-            "start": start_idxs,
-            "end": end_idxs,
-            "trackletNights": sso_obs[self.night_col][vis][good_idx],
+            "start": start_idxs[0:1],
+            "end": end_idxs[0:1],
+            "n_chances": len(start_idxs),
+            # "trackletNights": sso_obs[self.night_col][vis][good_idx][0],
         }
 
 
 class DiscoveryNChancesMetric(BaseChildMetric):
     """Calculate total number of discovery opportunities for an SSobject.
 
-    Calculates total number of discovery opportunities between night_start / night_end.
+    Retirms total number of discovery opportunities.
     Child metric to be used with the Discovery Metric.
     """
 
     def __init__(
         self,
         parent_discovery_metric,
-        night_start=None,
-        night_end=None,
+        # night_start=None,
+        # night_end=None,
         badval=0,
         **kwargs
     ):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
-        self.night_start = night_start
-        self.night_end = night_end
+        self.night_start = None  # night_start
+        self.night_end = None  # night_end
         self.snr_limit = parent_discovery_metric.snr_limit
         # Update the metric name to use the night_start/night_end values, if an overriding name is not given.
         if "metric_name" not in kwargs:
-            if night_start is not None:
-                self.name = self.name + "_n%d" % (night_start)
-            if night_end is not None:
-                self.name = self.name + "_n%d" % (night_end)
+            if self.night_start is not None:
+                self.name = self.name + "_n%d" % (self.night_start)
+            if self.night_end is not None:
+                self.name = self.name + "_n%d" % (self.night_end)
 
     def run(self, sso_obs, orb, hval, metric_values):
         """Return the number of different discovery chances we had for each object/H combination."""
+        return metric_values["n_chances"]
+        """
         vis = _set_vis(sso_obs, self.snr_limit, self.snr_col, self.vis_col)
         if len(vis) == 0:
             return self.badval
@@ -451,15 +452,16 @@ class DiscoveryNChancesMetric(BaseChildMetric):
                 (start_nights >= self.night_start) & (end_nights <= self.night_end)
             )[0]
         return len(valid)
+        """
 
 
 class DiscoveryNObsMetric(BaseChildMetric):
-    """Calculates the number of observations in the i-th discovery track of an SSobject."""
+    """Calculates the number of observations in the first discovery track of an SSobject."""
 
-    def __init__(self, parent_discovery_metric, i=0, badval=0, **kwargs):
+    def __init__(self, parent_discovery_metric, badval=0, **kwargs):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
         # The number of the discovery chance to use.
-        self.i = i
+        self.i = 0
 
     def run(self, sso_obs, orb, hval, metric_values):
         if self.i >= len(metric_values["start"]):
@@ -471,13 +473,11 @@ class DiscoveryNObsMetric(BaseChildMetric):
 
 
 class DiscoveryTimeMetric(BaseChildMetric):
-    """Returns the time of the i-th discovery track of an SSobject."""
+    """Returns the time of the first discovery track of an SSobject."""
 
-    def __init__(
-        self, parent_discovery_metric, i=0, t_start=None, badval=-999, **kwargs
-    ):
+    def __init__(self, parent_discovery_metric, t_start=None, badval=-999, **kwargs):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
-        self.i = i
+        self.i = 0
         self.t_start = t_start
         self.snr_limit = parent_discovery_metric.snr_limit
 
@@ -497,18 +497,13 @@ class DiscoveryTimeMetric(BaseChildMetric):
 
 
 class DiscoveryDistanceMetric(BaseChildMetric):
-    """Returns the distance of the i-th discovery track of an SSobject."""
+    """Returns the distance of the first discovery track of an SSobject."""
 
     def __init__(
-        self,
-        parent_discovery_metric,
-        i=0,
-        distance_col="geo_dist",
-        badval=-999,
-        **kwargs
+        self, parent_discovery_metric, distance_col="geo_dist", badval=-999, **kwargs
     ):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
-        self.i = i
+        self.i = 0
         self.distance_col = distance_col
         self.snr_limit = parent_discovery_metric.snr_limit
 
@@ -526,11 +521,11 @@ class DiscoveryDistanceMetric(BaseChildMetric):
 
 
 class DiscoveryRadecMetric(BaseChildMetric):
-    """Returns the RA/Dec of the i-th discovery track of an SSobject."""
+    """Returns the RA/Dec of the first discovery track of an SSobject."""
 
-    def __init__(self, parent_discovery_metric, i=0, badval=None, **kwargs):
+    def __init__(self, parent_discovery_metric, badval=None, **kwargs):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
-        self.i = i
+        self.i = 0
         self.snr_limit = parent_discovery_metric.snr_limit
         self.metric_dtype = "object"
 
@@ -548,11 +543,11 @@ class DiscoveryRadecMetric(BaseChildMetric):
 
 
 class DiscoveryEclonlatMetric(BaseChildMetric):
-    """Returns the ecliptic lon/lat and solar elong of the i-th discovery track of an SSobject."""
+    """Returns the ecliptic lon/lat and solar elong of the first discovery track of an SSobject."""
 
-    def __init__(self, parent_discovery_metric, i=0, badval=None, **kwargs):
+    def __init__(self, parent_discovery_metric, badval=None, **kwargs):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
-        self.i = i
+        self.i = 0
         self.snr_limit = parent_discovery_metric.snr_limit
         self.metric_dtype = "object"
 
@@ -571,11 +566,11 @@ class DiscoveryEclonlatMetric(BaseChildMetric):
 
 
 class DiscoveryVelocityMetric(BaseChildMetric):
-    """Returns the sky velocity of the i-th discovery track of an SSobject."""
+    """Returns the sky velocity of the first discovery track of an SSobject."""
 
-    def __init__(self, parent_discovery_metric, i=0, badval=-999, **kwargs):
+    def __init__(self, parent_discovery_metric, badval=-999, **kwargs):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
-        self.i = i
+        self.i = 0
         self.snr_limit = parent_discovery_metric.snrLimit
 
     def run(self, sso_obs, orb, hval, metric_values):

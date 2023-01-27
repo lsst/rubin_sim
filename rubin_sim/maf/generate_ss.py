@@ -77,6 +77,7 @@ def generate_ss_commands(
             except FileExistsError:
                 pass
             # Create the results DB so multiple threads don't try to create it later
+            # This isn't used in this script, but needs to exist on-disk.
             results_db = db.ResultsDb(out_dir=out_dir)
         for pop in pops:
             for run, filename in zip(runs, dbfiles):

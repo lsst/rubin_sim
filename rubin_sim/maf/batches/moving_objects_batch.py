@@ -62,6 +62,12 @@ def ss_population_defaults(objtype):
         "magtype": "asteroid",
         "char": "inner",
     }
+    defaults["MBC"] = {
+        "h_range": [16, 26, 0.2],
+        "h_mark": 20,
+        "magtype": "asteroid",
+        "char": "inner",
+    }
     defaults["Trojan"] = {
         "h_range": [14, 22, 0.2],
         "h_mark": 18,
