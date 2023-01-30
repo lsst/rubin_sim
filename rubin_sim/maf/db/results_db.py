@@ -5,6 +5,7 @@ from sqlalchemy.engine import url
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy import ForeignKey
+from sqlalchemy.sql import text
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.exc import DatabaseError
 from sqlite3 import OperationalError
@@ -215,7 +216,7 @@ class ResultsDb(object):
                 )
         self.slen = 1024
         # Check if we have a database matching this schema (with metric_info_label)
-        query = "select * from metrics limit 1"
+        query = text("select * from metrics limit 1")
         cols = self.session.execute(query)._metadata.keys
         if "sql_constraint" not in cols:
             self.update_database()
@@ -241,11 +242,11 @@ class ResultsDb(object):
             "Updating database to match new schema."
             "Undo with self.downgrade_database if necessary (for older maf versions)."
         )
-        query = "select * from metrics limit 1"
+        query = text("select * from metrics limit 1")
         cols = self.session.execute(query)._metadata.keys
         if "metricMetadata" in cols:
             # if it's very old
-            query = (
+            query = text(
                 "alter table metrics rename column metricMetadata to metric_info_label"
             )
             self.session.execute(query)
@@ -253,7 +254,7 @@ class ResultsDb(object):
         # Check for metricId vs. metric_id separately, as this change happened independently.
         if "metricId" in cols:
             for table in ["metrics", "summarystats", "plots", "displays"]:
-                query = f"alter table {table} rename column metricId to metric_id"
+                query = text(f"alter table {table} rename column metricId to metric_id")
                 self.session.execute(query)
             self.session.commit()
         # Update to newest schema.
@@ -267,7 +268,7 @@ class ResultsDb(object):
                 "metricDataFile": "metric_datafile",
             }
             for old, new in updates.items():
-                query = f"alter table metrics rename column {old} to {new}"
+                query = text(f"alter table metrics rename column {old} to {new}")
                 self.session.execute(query)
             self.session.commit()
             # update summarystat table
@@ -277,7 +278,7 @@ class ResultsDb(object):
                 "summaryValue": "summary_value",
             }
             for old, new in updates.items():
-                query = f"alter table summarystats rename column {old} to {new}"
+                query = text(f"alter table summarystats rename column {old} to {new}")
                 self.session.execute(query)
             self.session.commit()
             # update plot table
@@ -287,7 +288,7 @@ class ResultsDb(object):
                 "plotFile": "plot_file",
             }
             for old, new in updates.items():
-                query = f"alter table plots rename column {old} to {new}"
+                query = text(f"alter table plots rename column {old} to {new}")
                 self.session.execute(query)
             self.session.commit()
             # update display table
@@ -299,7 +300,7 @@ class ResultsDb(object):
                 "displayCaption": "display_caption",
             }
             for old, new in updates.items():
-                query = f"alter table displays rename column {old} to {new}"
+                query = text(f"alter table displays rename column {old} to {new}")
                 self.session.execute(query)
             self.session.commit()
             updates = {
@@ -307,7 +308,7 @@ class ResultsDb(object):
                 "rundate": "run_date",
             }
             for old, new in updates.items():
-                query = f"alter table version rename column {old} to {new}"
+                query = text(f"alter table version rename column {old} to {new}")
                 self.session.execute(query)
             self.session.commit()
 
@@ -328,7 +329,7 @@ class ResultsDb(object):
             "metricDataFile": "metric_datafile",
         }
         for old, new in updates.items():
-            query = f"alter table metrics rename column {new} to {old}"
+            query = text(f"alter table metrics rename column {new} to {old}")
             self.session.execute(query)
         self.session.commit()
         # update summarystat table
@@ -339,7 +340,7 @@ class ResultsDb(object):
             "summaryValue": "summary_value",
         }
         for old, new in updates.items():
-            query = f"alter table summarystats rename column {new} to {old}"
+            query = text(f"alter table summarystats rename column {new} to {old}")
             self.session.execute(query)
         self.session.commit()
         # update plot table
@@ -350,7 +351,7 @@ class ResultsDb(object):
             "plotFile": "plot_file",
         }
         for old, new in updates.items():
-            query = f"alter table plots rename column {new} to {old}"
+            query = text(f"alter table plots rename column {new} to {old}")
             self.session.execute(query)
         self.session.commit()
         # update display table
@@ -363,7 +364,7 @@ class ResultsDb(object):
             "displayCaption": "display_caption",
         }
         for old, new in updates.items():
-            query = f"alter table displays rename column {new} to {old}"
+            query = text(f"alter table displays rename column {new} to {old}")
             self.session.execute(query)
         self.session.commit()
         updates = {
@@ -371,7 +372,7 @@ class ResultsDb(object):
             "rundate": "run_date",
         }
         for old, new in updates.items():
-            query = f"alter table version rename column {new} to {old}"
+            query = text(f"alter table version rename column {new} to {old}")
             self.session.execute(query)
         self.session.commit()
         self.close()
