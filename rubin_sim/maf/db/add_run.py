@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import argparse
-from . import ResultsDb
 from . import add_run_to_database
 
 
