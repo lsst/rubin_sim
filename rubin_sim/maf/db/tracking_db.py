@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.engine import url
 from sqlalchemy.orm import sessionmaker
 
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.exc import DatabaseError
 import warnings
 from . import ResultsDb, VersionRow
