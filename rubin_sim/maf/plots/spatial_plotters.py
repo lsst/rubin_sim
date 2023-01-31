@@ -326,11 +326,11 @@ class HealpixPowerSpectrum(BasePlotter):
             return None
         if plot_dict["removeDipole"]:
             cl = hp.anafast(
-                hp.remove_dipole(metric_value.filled(slicer.badval)),
+                hp.remove_dipole(metric_value.filled(hp.UNSEEN)),
                 lmax=plot_dict["maxl"],
             )
         else:
-            cl = hp.anafast(metric_value.filled(slicer.badval), lmax=plot_dict["maxl"])
+            cl = hp.anafast(metric_value.filled(hp.UNSEEN), lmax=plot_dict["maxl"])
         ell = np.arange(np.size(cl))
         if plot_dict["removeDipole"]:
             condition = ell > 1

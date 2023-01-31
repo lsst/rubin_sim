@@ -199,7 +199,7 @@ class TotalPowerMetric(BaseMetric):
         lmin=100.0,
         lmax=300.0,
         remove_dipole=True,
-        mask_val=hp.UNSEEN,
+        mask_val=np.nan,
         **kwargs
     ):
         self.lmin = lmin
