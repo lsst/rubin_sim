@@ -1,6 +1,6 @@
 setuptools_scm
 setuptools_scm_git_archive
-numpy<1.24.0
+numpy
 matplotlib
 healpy
 pandas

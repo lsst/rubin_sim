@@ -2,8 +2,6 @@ import os
 import sys
 from typing import List
 
-import numpy as np
-import rubin_sim
 import lsst_sphinx_bootstrap_theme
 
 from documenteer.sphinxconfig.utils import form_ltd_edition_name
@@ -46,7 +44,7 @@ master_doc = "rubin_sim/index"
 # General information about the project.
 project = "rubin_sim"
 copyright = (
-    "2015-2021 " "Association of Universities for Research in Astronomy, Inc. (AURA)"
+    "2015-2022 " "Association of Universities for Research in Astronomy, Inc. (AURA)"
 )
 author = "LSST Survey Strategy Team"
 
