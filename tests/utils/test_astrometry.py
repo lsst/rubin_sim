@@ -179,7 +179,6 @@ class AstrometryUnitTest(unittest.TestCase):
         ]
 
         for ra_s, decS, tai in zip(sun_ra_list, sun_dec_list, mjd_list):
-
             mjd = ModifiedJulianDate(TAI=tai)
 
             # first, verify that the Sun is where we think it is to within 5
@@ -194,7 +193,6 @@ class AstrometryUnitTest(unittest.TestCase):
             # now choose positions that are a set distance away from the Sun, and make sure
             # that _distance_to_sun returns the expected result
             for theta in (np.pi / 2.0, np.pi / 4.0, -np.pi / 3.0):
-
                 # displace by rotating about z axis
                 new_x = sun_x * np.cos(theta) + sun_y * np.sin(theta)
                 new_y = -sun_x * np.sin(theta) + sun_y * np.cos(theta)
@@ -646,7 +644,6 @@ class AstrometryUnitTest(unittest.TestCase):
             self.assertAlmostEqual(dec_f, dec_arr[ix], 12)
 
     def test_apply_precession(self):
-
         ra = np.zeros((3), dtype=float)
         dec = np.zeros((3), dtype=float)
 
@@ -688,7 +685,6 @@ class AstrometryUnitTest(unittest.TestCase):
         mjd_list = rng.random_sample(20) * 20000.0 + 45000.0
 
         for mjd in mjd_list:
-
             ra_list_icrs = rng.random_sample(n_samples) * 2.0 * np.pi
             dec_list_icrs = (rng.random_sample(n_samples) - 0.5) * np.pi
 
@@ -816,7 +812,6 @@ class AstrometryUnitTest(unittest.TestCase):
         for ix, (rr, dd, mura, mudec, xx, vv) in enumerate(
             zip(ra_icrs, dec_icrs, pm_ra, pm_dec, px, v_rad)
         ):
-
             ra_f, dec_f = _apply_proper_motion(rr, dd, mura, mudec, xx, vv, mjd=mjd)
             self.assertIsInstance(ra_f, float)
             self.assertIsInstance(dec_f, float)
@@ -1221,7 +1216,6 @@ class AstrometryUnitTest(unittest.TestCase):
         n_samples = 100
 
         for tai in (53000.0, 53241.6, 58504.6):
-
             mjd = ModifiedJulianDate(TAI=tai)
 
             ra_in = rng.random_sample(n_samples) * 2.0 * np.pi
@@ -1284,7 +1278,6 @@ class AstrometryUnitTest(unittest.TestCase):
             for include_refraction in (True, False):
                 for ra_pointing in (23.5, 256.9, 100.0):
                     for dec_pointing in (-12.0, 45.0, 66.8):
-
                         obs = ObservationMetaData(mjd=tai, site=site)
 
                         ra_zenith, dec_zenith = _ra_dec_from_alt_az(

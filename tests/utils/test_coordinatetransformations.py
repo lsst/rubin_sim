@@ -709,7 +709,6 @@ class TestCoordinateTransformations(unittest.TestCase):
             self.assertAlmostEqual(control_last, test_last[ix], 10)
 
     def test_galactic_from_equatorial(self):
-
         ra = np.zeros((3), dtype=float)
         dec = np.zeros((3), dtype=float)
 
@@ -743,7 +742,6 @@ class TestCoordinateTransformations(unittest.TestCase):
             self.assertAlmostEqual(gb, glat[ix], 10)
 
     def test_equatorial_from_galactic(self):
-
         lon = np.zeros((3), dtype=float)
         lat = np.zeros((3), dtype=float)
 

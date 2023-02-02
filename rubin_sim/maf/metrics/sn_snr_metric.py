@@ -55,7 +55,6 @@ class SNSNRMetric(metrics.BaseMetric):
         z=0.01,
         **kwargs
     ):
-
         self.mjd_col = mjd_col
         self.m5_col = m5_col
         self.filter_col = filter_col
@@ -585,7 +584,6 @@ class SNSNRMetric(metrics.BaseMetric):
         max_flux = []
 
         for j in range(jmax):
-
             for ib, name in enumerate(fluxes_ma.keys()):
                 tot_label.append(
                     ax[0].errorbar(

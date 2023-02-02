@@ -22,7 +22,6 @@ def get_col_map(opsdb):
 
 
 def col_map_dict(dict_name=None):
-
     if dict_name is None:
         dict_name = "FBS"
     dict_name = dict_name.lower()

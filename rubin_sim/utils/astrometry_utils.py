@@ -369,7 +369,6 @@ def _apply_proper_motion(
         or isinstance(parallax, list)
         or isinstance(v_rad, list)
     ):
-
         raise RuntimeError(
             "You tried to pass lists to applyPm. "
             + "The method does not know how to handle lists. "
@@ -402,7 +401,6 @@ def _apply_proper_motion(
             or len(ra) != len(pm_dec)
             or len(ra) != len(parallax_arcsec)
         ) or len(ra) != len(v_rad):
-
             raise RuntimeError(
                 "You passed: "
                 + "%d RAs, " % len(ra)
@@ -548,7 +546,6 @@ def _app_geo_from_icrs(
         or v_rad is not None
         or parallax is not None
     ):
-
         include_px = True
 
         if isinstance(ra, np.ndarray):

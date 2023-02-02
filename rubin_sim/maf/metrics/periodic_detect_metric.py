@@ -47,7 +47,6 @@ class PeriodicDetectMetric(BaseMetric):
         sed_template="F",
         **kwargs
     ):
-
         self.mjd_col = mjd_col
         self.m5_col = m5_col
         self.filter_col = filter_col

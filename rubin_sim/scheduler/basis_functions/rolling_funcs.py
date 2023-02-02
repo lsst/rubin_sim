@@ -40,7 +40,6 @@ class FootprintBasisFunction(BaseBasisFunction):
         out_of_bounds_val=-10.0,
         window_size=6.0,
     ):
-
         super(FootprintBasisFunction, self).__init__(nside=nside, filtername=filtername)
         self.footprint = footprint
 
@@ -60,7 +59,6 @@ class FootprintBasisFunction(BaseBasisFunction):
         self.out_of_bounds_val = out_of_bounds_val
 
     def _calc_value(self, conditions, indx=None):
-
         # Find out what the footprint object thinks we should have been observed
         desired_footprint_normed = self.footprint(conditions.mjd)[self.filtername]
 
@@ -294,7 +292,6 @@ class TargetMapModuloBasisFunction(BaseBasisFunction):
         max_season=None,
         season_length=365.25,
     ):
-
         super(TargetMapModuloBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )

@@ -8,7 +8,6 @@ __all__ = ["NightPointingPlotter"]
 
 class NightPointingPlotter(BasePlotter):
     def __init__(self, mjd_col="observationStartMJD", alt_col="alt", az_col="az"):
-
         # Just call it Hourglass so it gets treated the same way
         self.plot_type = "Hourglass"
         self.mjd_col = mjd_col
@@ -30,7 +29,6 @@ class NightPointingPlotter(BasePlotter):
         }
 
     def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
-
         fig, (ax1, ax2) = plt.subplots(2, sharex=True)
         mv = metric_value[0]
 

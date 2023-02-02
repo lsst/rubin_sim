@@ -20,7 +20,6 @@ class NumObsInSurveyTimeOverlapMetric(BaseMetric):
         metric_name="NumObsInSurveyTimeOverlapMetric",
         **kwargs
     ):
-
         self.time_col = time_col
         self.metric_name = metric_name
         self.survey_obs_win = survey_obs_win

@@ -11,7 +11,6 @@ from rubin_sim.data import get_data_dir
 
 class TestSNRmethods(unittest.TestCase):
     def setUp(self):
-
         star_name = os.path.join(
             get_data_dir(), "tests", "cartoonSedTestData", "starSed"
         )
@@ -87,7 +86,6 @@ class TestSNRmethods(unittest.TestCase):
             for total, hardware, filterName, mm in zip(
                 self.bp_list, self.hardware_list, self.filter_name_list, mag_list
             ):
-
                 fwhm_eff = defaults.fwhm_eff(filterName)
 
                 m5 = snr.calc_m5(
@@ -204,7 +202,6 @@ class TestSNRmethods(unittest.TestCase):
             magnitude_list,
             m5_list,
         ):
-
             sky_dummy = Sed()
             sky_dummy.read_sed_flambda(
                 os.path.join(get_data_dir(), "throughputs", "baseline", "darksky.dat")
@@ -275,7 +272,6 @@ class TestSNRmethods(unittest.TestCase):
             magnitude_list,
             m5_list,
         ):
-
             sky_dummy = Sed()
             sky_dummy.read_sed_flambda(
                 os.path.join(get_data_dir(), "throughputs", "baseline", "darksky.dat")

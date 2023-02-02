@@ -23,7 +23,6 @@ class SatelliteAvoidBasisFunction(bf.BaseBasisFunction):
         self.smooth_fwhm = np.radians(smooth_fwhm)
 
     def _calc_value(self, conditions, indx=None):
-
         result = 0
         # find the indices that are relevant
         indx_min = np.min(np.searchsorted(conditions.satellite_mjds, conditions.mjd))

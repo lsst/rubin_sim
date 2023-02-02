@@ -153,7 +153,6 @@ def trixel_intersects_half_space(trix, hspace):
 
 
 class HalfSpaceTest(unittest.TestCase):
-
     long_message = True
 
     def test_half_space_contains_pt(self):
@@ -259,7 +258,6 @@ class HalfSpaceTest(unittest.TestCase):
         self.assertGreater(ct_outside, 0)
 
     def test_halfspace_contains_trixel(self):
-
         # test half space that is on the equator wher N3 and S0 meet
         hs = HalfSpace(np.array([1.0, 1.0, 0.0]), 0.8)
         for tx in basic_trixels:
@@ -346,7 +344,6 @@ class HalfSpaceTest(unittest.TestCase):
         # inside the HalfSpace
         good_htmid_list = []
         for i_limit, limits in enumerate(trixel_list):
-
             # verify that the tuples have been sorted by
             # htmid_min
             if i_limit > 0:
@@ -451,7 +448,6 @@ class HalfSpaceTest(unittest.TestCase):
             self.assertAlmostEqual(np.dot(vv2, hs.vector), 0.0, 10)
 
     def test__half_space_intersection(self):
-
         # Test that the two roots of an intersection are the
         # correct angular distance from the centers of the
         # half spaces
@@ -544,7 +540,6 @@ class HalfSpaceTest(unittest.TestCase):
 
 
 class TrixelFinderTest(unittest.TestCase):
-
     long_message = True
 
     def check_pt(self, pt, answer):

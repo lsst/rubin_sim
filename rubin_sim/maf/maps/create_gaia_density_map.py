@@ -14,7 +14,6 @@ import glob
 # If non-astro user, use simsuser@gateway.astro.washington.edu
 
 if __name__ == "__main__":
-
     # Hide imports here so documentation builds
     from rubin_sim.catalogs.db import DBObject
     from rubin_sim.utils import halfSpaceFromRaDec

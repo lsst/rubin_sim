@@ -19,7 +19,6 @@ from rubin_sim.utils import observed_from_pupil_coords
 
 
 class PupilCoordinateUnitTest(unittest.TestCase):
-
     long_message = True
 
     def test_exceptions(self):
@@ -586,7 +585,6 @@ class PupilCoordinateUnitTest(unittest.TestCase):
         v_rad_list = rng.random_sample(n_obj) * 600.0 - 300.0
 
         for include_refraction in (True, False):
-
             ra_obs, dec_obs = observed_from_icrs(
                 ra_list,
                 dec_list,

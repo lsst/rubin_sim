@@ -468,7 +468,6 @@ class ParallacticAngleStacker(BaseStacker):
         lst_col="observationStartLST",
         site="LSST",
     ):
-
         self.lst_col = lst_col
         self.ra_col = ra_col
         self.dec_col = dec_col

@@ -40,7 +40,6 @@ def get_imsim_flux_norm(sed, magmatch):
         get_imsim_flux_norm.imsim_wavelen < sed.wavelen.min()
         or get_imsim_flux_norm.imsim_wavelen > sed.wavelen.max()
     ):
-
         raise RuntimeError(
             "Cannot normalize sed "
             "at wavelength of %e nm\n" % get_imsim_flux_norm.imsim_wavelen

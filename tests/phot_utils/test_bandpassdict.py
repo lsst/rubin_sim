@@ -158,7 +158,6 @@ class BandpassDictTest(unittest.TestCase):
         spectrum = Sed(wavelen=wavelen, flambda=flux)
 
         for n_bp in range(3, 10, 1):
-
             name_list, bp_list = self.get_list_of_bandpasses(n_bp)
             test_dict = BandpassDict(bp_list, name_list)
             self.assertNotEqual(
@@ -180,7 +179,6 @@ class BandpassDictTest(unittest.TestCase):
         spectrum = Sed(wavelen=wavelen, flambda=flux)
 
         for n_bp in range(3, 10, 1):
-
             name_list, bp_list = self.get_list_of_bandpasses(n_bp)
             test_dict = BandpassDict(bp_list, name_list)
             self.assertNotEqual(
@@ -442,7 +440,6 @@ class BandpassDictTest(unittest.TestCase):
         spectrum = Sed(wavelen=wavelen, flambda=flux)
 
         for n_bp in range(3, 10, 1):
-
             name_list, bp_list = self.get_list_of_bandpasses(n_bp)
             test_dict = BandpassDict(bp_list, name_list)
             self.assertNotEqual(
@@ -466,7 +463,6 @@ class BandpassDictTest(unittest.TestCase):
         spectrum = Sed(wavelen=wavelen, flambda=flux)
 
         for n_bp in range(3, 10, 1):
-
             name_list, bp_list = self.get_list_of_bandpasses(n_bp)
             test_dict = BandpassDict(bp_list, name_list)
             self.assertNotEqual(

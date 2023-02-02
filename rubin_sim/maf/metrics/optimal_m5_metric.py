@@ -52,7 +52,6 @@ class OptimalM5Metric(BaseMetric):
         normalize=False,
         **kwargs
     ):
-
         if normalize:
             self.units = "% behind"
         else:
@@ -71,7 +70,6 @@ class OptimalM5Metric(BaseMetric):
         self.coadd_optimal = Coaddm5Metric(m5_col=opt_m5_col)
 
     def run(self, data_slice, slice_point=None):
-
         filters = np.unique(data_slice[self.filter_col])
         if np.size(filters) > 1:
             warnings.warn(

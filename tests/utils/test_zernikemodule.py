@@ -26,7 +26,6 @@ class FactorialTestCase(unittest.TestCase):
 
 
 class ZernikeTestCase(unittest.TestCase):
-
     long_message = True
 
     @classmethod
@@ -120,7 +119,6 @@ class ZernikeTestCase(unittest.TestCase):
         val_arr = z_gen.evaluate(self.r_grid_small, self.phi_grid_small, n, m)
         self.assertEqual(len(val_arr), len(self.r_grid_small))
         for ii, (rr, pp) in enumerate(zip(self.r_grid_small, self.phi_grid_small)):
-
             vv = z_gen.evaluate(rr, pp, n, m)
             self.assertAlmostEqual(vv, val_arr[ii], 14)
 

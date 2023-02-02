@@ -86,7 +86,6 @@ class CalcExpectedVisitsMetric(BaseMetric):
             print("Calculating visbility for " + str(len(self.pointings)) + " fields")
 
         for i in range(0, len(self.pointings), 1):
-
             # (ra, dec) = pointings[i]
             ra = data_slice[self.ra_col][0]
             dec = data_slice[self.dec_col][0]

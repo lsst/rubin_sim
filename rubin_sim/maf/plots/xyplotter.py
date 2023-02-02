@@ -15,7 +15,6 @@ class XyPlotter(BasePlotter):
         self.default_plot_dict = {"title": None, "xlabel": "", "ylabel": ""}
 
     def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
-
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)

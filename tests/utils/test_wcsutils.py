@@ -34,7 +34,6 @@ class NativeLonLatTest(unittest.TestCase):
             lon_control_list,
             lat_control_list,
         ):
-
             obs_temp = ObservationMetaData(mjd=mjd)
 
             rr, dd = icrs_from_observed(
@@ -66,7 +65,6 @@ class NativeLonLatTest(unittest.TestCase):
         for ra_pointing_icrs, decPointing_icrs, mjd in zip(
             ra_pointing_list_icrs, dec_pointing_list_icrs, mjd_list
         ):
-
             obs = ObservationMetaData(
                 pointing_ra=ra_pointing_icrs, pointing_dec=decPointing_icrs, mjd=mjd
             )
@@ -92,7 +90,6 @@ class NativeLonLatTest(unittest.TestCase):
             for ra_obs, dec_obs, ra_icrs, dec_icrs in zip(
                 ra_list_obs, dec_list_obs, ra_list_icrs, dec_list_icrs
             ):
-
                 ra_rad = np.radians(ra_obs)
                 dec_rad = np.radians(dec_obs)
                 sin_ra = np.sin(ra_rad)
@@ -193,7 +190,6 @@ class NativeLonLatTest(unittest.TestCase):
         mjd_list = rng.random_sample(n_samples) * 10000.0 + 43000.0
 
         for rrp, thetap, mjd in zip(rr_pointing_list, theta_pointing_list, mjd_list):
-
             site = Site(name="LSST")
             ra_zenith, dec_zenith = ra_dec_from_alt_az(
                 180.0, 0.0, ObservationMetaData(mjd=mjd, site=site)

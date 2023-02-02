@@ -94,7 +94,6 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
         )
 
     def run(self, data_slice, slice_point=None):
-
         t = np.empty(
             data_slice.size, dtype=list(zip(["time", "filter"], [float, "|S1"]))
         )
@@ -113,7 +112,6 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
         result = 0.0
 
         for i, f in enumerate(self.filters):
-
             if self.verbose:
                 print(
                     "Calculating the expected visits in filter "
@@ -141,7 +139,6 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
             n_visits_actual = []
 
             for j, d in enumerate(dates):
-
                 idx = np.where(data_slice[self.filter_col] == f)
 
                 actual_visits_per_filter = data_slice[idx]
@@ -157,9 +154,7 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
             #         anticipate more than 1 observation per night
             if self.cadence[i] <= 24.0:
                 for j, d in enumerate(dates):
-
                     if n_visits_desired[0][j] > 0:
-
                         night_efficiency = n_visits_actual[j] / float(
                             n_visits_desired[0][j]
                         )
@@ -175,7 +170,6 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
                 n_nights = int(self.cadence[i] / 24.0)
 
                 for j in range(0, len(dates), n_nights):
-
                     hrs_available = (
                         np.array(hrs_visibility[0][j : j + n_nights])
                     ).sum()
@@ -183,7 +177,6 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
                     n_actual = (np.array(n_visits_actual[j : j + n_nights])).sum()
 
                     if hrs_available >= 1.0 and n_actual > 1:
-
                         result += 1.0
 
                 result = result / float(len(dates) / n_nights)
@@ -228,7 +221,6 @@ def compute_metric(params):
 
 
 if __name__ == "__main__":
-
     if len(argv) == 1:
         print("Metric requires the following commandline sequence, e.g.:")
         print(
@@ -250,33 +242,27 @@ if __name__ == "__main__":
         params = {"verbose": False}
 
         for arg in argv:
-
             try:
                 (key, value) = arg.split("=")
 
                 if key == "filters":
-
                     params[key] = value.split(",")
 
                 if key == "cadence":
-
                     cadence_list = []
 
                     for val in value.split(","):
-
                         cadence_list.append(float(val))
 
                     params[key] = cadence_list
 
                 if key in ["start_date", "end_date", "survey"]:
-
                     params[key] = value
 
             except ValueError:
                 pass
 
             if "verbose" in arg:
-
                 params["verbose"] = True
 
         compute_metric(params)

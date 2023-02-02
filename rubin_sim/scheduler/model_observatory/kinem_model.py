@@ -65,7 +65,6 @@ class KinemModel(object):
     def __init__(
         self, location=None, park_alt=86.5, park_az=0.0, start_filter="r", mjd0=0
     ):
-
         self.park_alt_rad = np.radians(park_alt)
         self.park_az_rad = np.radians(park_az)
         self.current_filter = start_filter

@@ -163,7 +163,6 @@ class SedListTest(unittest.TestCase):
         for name, norm, av, zz, sedTest in zip(
             sed_name_list, mag_norm_list, internal_av_list, redshift_list, test_list
         ):
-
             sed_control = Sed()
             sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
             fnorm = sed_control.calc_flux_norm(norm, imsim_band)
@@ -203,7 +202,6 @@ class SedListTest(unittest.TestCase):
         for name, norm, av, zz, sedTest in zip(
             sed_name_list, mag_norm_list, internal_av_list, redshift_list, test_list
         ):
-
             sed_control = Sed()
             sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
             fnorm = sed_control.calc_flux_norm(norm, imsim_band)
@@ -251,7 +249,6 @@ class SedListTest(unittest.TestCase):
             galactic_av_list,
             test_list,
         ):
-
             sed_control = Sed()
             sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
             fnorm = sed_control.calc_flux_norm(norm, imsim_band)
@@ -306,7 +303,6 @@ class SedListTest(unittest.TestCase):
             galactic_av_list,
             test_list,
         ):
-
             sed_control = Sed()
             sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
@@ -354,7 +350,6 @@ class SedListTest(unittest.TestCase):
         for add_iav in [True, False]:
             for add_redshift in [True, False]:
                 for add_gav in [True, False]:
-
                     test_list = SedList(
                         sed_name_list_0,
                         mag_norm_list_0,
@@ -444,7 +439,6 @@ class SedListTest(unittest.TestCase):
                             redshift_list_0,
                         )
                     ):
-
                         sed_control = Sed()
                         sed_control.read_sed_flambda(
                             os.path.join(self.sed_dir, name + ".gz")
@@ -490,7 +484,6 @@ class SedListTest(unittest.TestCase):
                             redshift_list_1,
                         )
                     ):
-
                         sed_control = Sed()
                         sed_control.read_sed_flambda(
                             os.path.join(self.sed_dir, name + ".gz")
@@ -609,7 +602,6 @@ class SedListTest(unittest.TestCase):
                 redshift_list_0,
             )
         ):
-
             sed_control = Sed()
             sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
@@ -640,7 +632,6 @@ class SedListTest(unittest.TestCase):
                 redshift_list_1,
             )
         ):
-
             sed_control = Sed()
             sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
@@ -742,7 +733,6 @@ class SedListTest(unittest.TestCase):
                 redshift_list_0,
             )
         ):
-
             sed_control = Sed()
             sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
@@ -773,7 +763,6 @@ class SedListTest(unittest.TestCase):
                 redshift_list_1,
             )
         ):
-
             sed_control = Sed()
             sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
@@ -840,7 +829,6 @@ class SedListTest(unittest.TestCase):
                 redshift_list_0,
             )
         ):
-
             sed_control = Sed()
             sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
@@ -902,7 +890,6 @@ class SedListTest(unittest.TestCase):
                 redshift_list_1,
             )
         ):
-
             sed_control = Sed()
             sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 

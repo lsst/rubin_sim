@@ -6,6 +6,7 @@ from html.parser import HTMLParser
 
 from . import get_data_dir
 
+
 # Hack it up to find the filenames ending with .h5
 class MyHTMLParser(HTMLParser):
     def handle_starttag(self, tag, attrs):

@@ -44,7 +44,8 @@ __all__ = [
 
 def smallest_signed_angle(a1, a2):
     """
-    via https://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles"""
+    via https://stackoverflow.com/questions/1878907/the-smallest-difference-between-2-angles
+    """
     two_pi = 2.0 * np.pi
     x = a1 % two_pi
     y = a2 % two_pi

@@ -72,7 +72,6 @@ def observations_season(mjdmin=59000, cadence=3.0):
     season_length = 180
     shift = 30.0 / (3600.0 * 24)
     for band in bands:
-
         mjd = mjdmin + shift_visits[band]
         for i in range(nvisits[band]):
             mjd += shift
@@ -88,7 +87,6 @@ def observations_season(mjdmin=59000, cadence=3.0):
 
 
 def fake_data(band, season=1):
-
     # Define fake data
     names = [
         "observationStartMJD",

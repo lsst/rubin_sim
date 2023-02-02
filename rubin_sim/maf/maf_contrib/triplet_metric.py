@@ -34,7 +34,7 @@ class TripletMetric(BaseMetric):
         ratiomin = self.ratiomin
         total = 0
         # iterate over every exposure time
-        for (counter, time) in enumerate(times):
+        for counter, time in enumerate(times):
             # calculate the window to look for all possible second points in
             minmax = [time + delmin, time + delmax]
             index2 = np.where((minmax[0] < times) & (times < minmax[1]))[0]
@@ -101,7 +101,7 @@ class TripletBandMetric(BaseMetric):
             # create a data set of all exposures for a single band
             timeband = timedict[band]
             # iterate over every exposure time
-            for (counter, time) in enumerate(timeband):
+            for counter, time in enumerate(timeband):
                 # calculate the window to look for all possible second points in
                 minmax = [time + delmin, time + delmax]
                 index2 = np.where((minmax[0] < timeband) & (timeband < minmax[1]))[0]

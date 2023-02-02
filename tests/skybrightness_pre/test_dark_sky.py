@@ -8,27 +8,23 @@ import warnings
 
 class TestDarkSky(unittest.TestCase):
     def test_default(self):
-
         dark_sky = sbp.dark_sky()
 
         self.assert_dark_sky(32, dark_sky)
 
     def test_upgrade(self):
-
         nside = 64
         dark_sky = sbp.dark_sky(nside=nside)
 
         self.assert_dark_sky(nside, dark_sky)
 
     def test_downgrade(self):
-
         nside = 16
         dark_sky = sbp.dark_sky(nside=nside)
 
         self.assert_dark_sky(nside, dark_sky)
 
     def test_downgrade_default(self):
-
         default_map_before_downgrade = sbp.dark_sky()
 
         nside = 16

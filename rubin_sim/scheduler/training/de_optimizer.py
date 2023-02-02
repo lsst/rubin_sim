@@ -19,7 +19,6 @@ class DeOptimizer(object):
         gray_training=False,
         load_candidate_solution=False,
     ):
-
         self.show_progress = show_progress
         self.evaluator = evaluator
         self.population_size = population_size

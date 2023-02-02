@@ -394,7 +394,6 @@ class Conditions(object):
     @skybrightness.setter
     def skybrightness(self, indict):
         for key in indict:
-
             self._skybrightness[key] = match_hp_resolution(
                 indict[key], nside_out=self.nside
             )

@@ -51,7 +51,6 @@ class StarDensityMetric(BaseMetric):
         maps=["StellarDensityMap"],
         **kwargs
     ):
-
         super(StarDensityMetric, self).__init__(
             col=[], maps=maps, units=units, **kwargs
         )

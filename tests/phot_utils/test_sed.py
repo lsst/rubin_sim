@@ -130,7 +130,6 @@ class TestSedName(unittest.TestCase):
 
 
 class SedBasicFunctionsTestCase(unittest.TestCase):
-
     long_message = True
 
     def test_read_sed_flambda(self):

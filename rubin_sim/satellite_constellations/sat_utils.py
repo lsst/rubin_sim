@@ -107,7 +107,6 @@ def create_constellation(
     my_sat_tles = []
     sat_nr = 8000
     for alt, inc, n, s in zip(altitudes, inclinations, nplanes, sats_per_plane):
-
         if s == 1:
             # random placement for lower orbits
             mas = rng.uniform(0, 360, n) * u.deg

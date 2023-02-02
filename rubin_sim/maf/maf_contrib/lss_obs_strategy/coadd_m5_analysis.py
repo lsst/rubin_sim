@@ -66,7 +66,6 @@ def coadd_m5_analysis(
     dec_range=[-65, 5],
     save_masked_coadd_data=True,
 ):
-
     """
 
     Analyze the artifacts induced in the coadded 5sigma depth due to imperfect observing strategy.

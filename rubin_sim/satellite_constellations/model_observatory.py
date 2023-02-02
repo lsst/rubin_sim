@@ -139,7 +139,6 @@ class ModelObservatory(OMO):
 
         satellite_maps = []
         for i, mjd in enumerate(self.sat_mjds):
-
             spot_map = _healbin(
                 ras[:, i][illums[:, i]],
                 decs[:, i][illums[:, i]],

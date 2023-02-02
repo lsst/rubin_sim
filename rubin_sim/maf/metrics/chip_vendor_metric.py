@@ -31,7 +31,6 @@ class ChipVendorMetric(BaseMetric):
         return vendors
 
     def run(self, data_slice, slice_point=None):
-
         if "chipNames" not in list(slice_point.keys()):
             raise ValueError(
                 "No chipname info, need to set use_camera=True with a spatial slicer."

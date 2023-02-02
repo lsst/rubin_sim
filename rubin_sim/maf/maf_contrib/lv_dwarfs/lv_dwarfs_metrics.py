@@ -309,7 +309,6 @@ class LVDwarfsMetric(BaseMetric):
         self.rng = np.random.default_rng(seed)
 
     def run(self, data_slice, slice_point=None):
-
         # Identify observations in g and i bandpasses
         gband = data_slice[self.filter_col] == "g"
         iband = data_slice[self.filter_col] == "i"

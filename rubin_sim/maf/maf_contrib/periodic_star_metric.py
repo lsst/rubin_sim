@@ -92,7 +92,6 @@ class PeriodicStarMetric(BaseMetric):
         self.filter2index = {"u": 3, "g": 4, "r": 5, "i": 6, "z": 7, "y": 8}
 
     def run(self, data_slice, slice_point=None):
-
         # Bail if we don't have enough points
         # (need to fit mean magnitudes in each of the available bands - self.means
         # and for a period, amplitude, and phase)

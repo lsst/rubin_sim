@@ -10,7 +10,6 @@ class Almanac(object):
     """Class to load and return pre-computed information about the LSST site."""
 
     def __init__(self, mjd_start=None, kind="quadratic"):
-
         # Load up the sunrise/sunset times
         data_dir = os.path.join(get_data_dir(), "site_models")
 

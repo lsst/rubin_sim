@@ -5,7 +5,6 @@ __all__ = ["SpecMap", "default_spec_map"]
 
 
 class SpecMap(object):
-
     subdir_map = {
         "(^km)|(^kp)": "starSED/kurucz",
         "(^bergeron)": "starSED/wDs",
@@ -50,7 +49,6 @@ class SpecMap(object):
         self.file_dict[key] = val
 
     def __getitem__(self, item):
-
         item = item.strip()
 
         if item in self.file_dict:

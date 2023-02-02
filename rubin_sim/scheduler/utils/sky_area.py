@@ -89,7 +89,6 @@ class SkyAreaGenerator:
         virgo_dec=12.717,
         virgo_radius=8.75,
     ):
-
         self.nside = nside
         self.hpid = np.arange(0, hp.nside2npix(nside))
         self.read_dustmap()
@@ -304,7 +303,6 @@ class SkyAreaGenerator:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
     def add_lowdust_wfd(self, filter_ratios, label="lowdust"):
-
         dustfree = np.where(
             (self.dec > self.low_dust_dec_min)
             & (self.dec < self.low_dust_dec_max)
@@ -329,7 +327,6 @@ class SkyAreaGenerator:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
     def add_dusty_plane(self, filter_ratios, label="dusty_plane"):
-
         dusty = np.where(
             (
                 (self.dec > self.dusty_dec_min)
@@ -544,7 +541,6 @@ class SkyAreaGeneratorGalplane(SkyAreaGenerator):
             "y": 0.18,
         },
     ):
-
         self.pix_labels = np.zeros(hp.nside2npix(self.nside), dtype="U20")
         dt = list(zip(["u", "g", "r", "i", "z", "y"], [float] * 7))
         self.healmaps = np.zeros(hp.nside2npix(self.nside), dtype=dt)

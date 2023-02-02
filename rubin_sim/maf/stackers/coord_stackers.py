@@ -125,7 +125,6 @@ class EclipticStacker(BaseStacker):
         degrees=True,
         subtract_sun_lon=False,
     ):
-
         self.cols_req = [mjd_col, ra_col, dec_col]
         self.subtract_sun_lon = subtract_sun_lon
         self.degrees = degrees

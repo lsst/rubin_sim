@@ -41,7 +41,6 @@ class TestBasis(unittest.TestCase):
         self.assertIsInstance(bf.label(), str)
 
     def test_visit_gap(self):
-
         visit_gap = basis_functions.VisitGap(note="test")
 
         conditions = Conditions()
@@ -72,7 +71,6 @@ class TestBasis(unittest.TestCase):
         assert visit_gap.check_feasibility(conditions=conditions)
 
     def test_visit_gap_with_filter(self):
-
         visit_gap = basis_functions.VisitGap(note="test", filter_names=["g"])
 
         conditions = Conditions()
@@ -109,7 +107,6 @@ class TestBasis(unittest.TestCase):
         assert visit_gap.check_feasibility(conditions=conditions)
 
     def test_visit_gap_with_multiple_filters(self):
-
         visit_gap = basis_functions.VisitGap(note="test", filter_names=["g", "i"])
 
         conditions = Conditions()
@@ -161,7 +158,6 @@ class TestBasis(unittest.TestCase):
         assert visit_gap.check_feasibility(conditions=conditions)
 
     def test_sun_alt(self):
-
         sunaltbf = basis_functions.SunAltHighLimitBasisFunction(alt_limit=-15)
         conditions = Conditions()
         conditions.sun_alt = np.radians(-20)

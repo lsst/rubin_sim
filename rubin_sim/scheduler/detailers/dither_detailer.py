@@ -59,7 +59,6 @@ class DitherDetailer(BaseDetailer):
         return offsets
 
     def __call__(self, observation_list, conditions):
-
         # Generate offsets in RA and Dec
         offsets = self._generate_offsets(len(observation_list), conditions.night)
 
@@ -240,7 +239,6 @@ class CameraRotDetailer(BaseDetailer):
         return offsets
 
     def __call__(self, observation_list, conditions):
-
         # Generate offsets in camamera rotator
         offsets = self._generate_offsets(len(observation_list), conditions.night)
 

@@ -113,7 +113,6 @@ class LongGapSurvey(BaseSurvey):
         pass
 
     def generate_observations(self, conditions):
-
         if not self.reward_checked:
             self.reward = self.calc_reward_function(conditions)
 

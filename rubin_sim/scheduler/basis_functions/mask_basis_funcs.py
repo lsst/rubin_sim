@@ -130,7 +130,6 @@ class ZenithMaskBasisFunction(BaseBasisFunction):
         )
 
     def _calc_value(self, conditions, indx=None):
-
         result = self.result.copy()
         alt_limit = np.where(
             (IntRounded(conditions.alt) > IntRounded(self.min_alt))
@@ -224,7 +223,6 @@ class ZenithShadowMaskBasisFunction(BaseBasisFunction):
         self.result.fill(self.penalty)
 
     def _calc_value(self, conditions, indx=None):
-
         result = self.result.copy()
         alt_limit = np.where(
             (IntRounded(conditions.alt) > IntRounded(self.min_alt))

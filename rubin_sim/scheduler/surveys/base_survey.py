@@ -329,7 +329,6 @@ class BaseMarkovSurvey(BaseSurvey):
         area_required=None,
         npositions=7305,
     ):
-
         super(BaseMarkovSurvey, self).__init__(
             basis_functions=basis_functions,
             extra_features=extra_features,
@@ -498,7 +497,6 @@ class BaseMarkovSurvey(BaseSurvey):
         return self.reward
 
     def generate_observations_rough(self, conditions):
-
         self.reward = self.calc_reward_function(conditions)
 
         # Check if we need to spin the tesselation
@@ -549,7 +547,7 @@ class BaseMarkovSurvey(BaseSurvey):
 
             return scalar_reward, unmasked_area
 
-        for (weight, basis_function) in zip(self.basis_weights, self.basis_functions):
+        for weight, basis_function in zip(self.basis_weights, self.basis_functions):
             basis_functions.append(basis_function)
             basis_weights.append(weight)
             test_survey = deepcopy(self)
@@ -604,7 +602,7 @@ class BaseMarkovSurvey(BaseSurvey):
         reward_values = []
         basis_functions = []
         basis_weights = []
-        for (weight, basis_function) in zip(self.basis_weights, self.basis_functions):
+        for weight, basis_function in zip(self.basis_weights, self.basis_functions):
             test_survey = deepcopy(self)
             basis_functions.append(basis_function)
             test_survey.basis_functions = basis_functions

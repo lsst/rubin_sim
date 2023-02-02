@@ -24,7 +24,6 @@ class NightPointingMetric(BaseMetric):
         telescope="LSST",
         **kwargs
     ):
-
         cols = [alt_col, az_col, filter_col, mjd_col]
         super(NightPointingMetric, self).__init__(
             col=cols, metric_name=metric_name, metric_dtype="object", **kwargs
@@ -42,7 +41,6 @@ class NightPointingMetric(BaseMetric):
         )
 
     def run(self, data_slice, slice_point=None):
-
         pad = 30.0 / 60.0 / 24.0
         mjd_min = data_slice[self.mjd_col].min() - pad
         mjd_max = data_slice[self.mjd_col].max() + pad

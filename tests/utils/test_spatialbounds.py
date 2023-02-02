@@ -85,7 +85,6 @@ class SpatialBoundsTest(unittest.TestCase):
         )
 
     def test_rectangle(self):
-
         length = [1.0, 2.0]
         my_fov2 = SpatialBounds.get_spatial_bounds("box", 1.0, 2.0, length)
         self.assertEqual(my_fov2.RA, 1.0)

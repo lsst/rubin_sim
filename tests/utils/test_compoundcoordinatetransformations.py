@@ -195,7 +195,6 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
             ra_app_list,
             dec_app_list,
         ):
-
             obs = utils.ObservationMetaData(
                 site=utils.Site(
                     longitude=np.degrees(longitude),
@@ -236,7 +235,6 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
         for lon in (0.0, 90.0, 135.0):
             for lat in (60.0, 30.0, -60.0, -30.0):
-
                 obs = utils.ObservationMetaData(
                     mjd=mjd, site=utils.Site(longitude=lon, latitude=lat, name="LSST")
                 )
@@ -377,7 +375,6 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
             for ra, dec, obs, alt_ref, az_ref in zip(
                 ra_sane, dec_sane, obs_sane, alt_sane, az_sane
             ):
-
                 alt, az, pa = utils.alt_az_pa_from_ra_dec(
                     ra, dec, obs, include_refraction=False
                 )
@@ -424,7 +421,6 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
             while (
                 d_sun < 45.0
             ):  # because ICRS->Observed transformation breaks down close to the sun
-
                 alt_in = rng.random_sample(n_samples) * 50.0 + 20.0
                 az_in = rng.random_sample(n_samples) * 360.0
                 obs = utils.ObservationMetaData(mjd=43000.0)

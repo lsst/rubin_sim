@@ -64,7 +64,6 @@ def make_bundle_list(
 
     unislicer = slicers.UniSlicer()
     for sql in sqls:
-
         # Number of exposures
         metric = metrics.CountMetric(mjdCol, metric_name="N visits")
         bundle = metricBundles.MetricBundle(metric, reg_slicer, sql)

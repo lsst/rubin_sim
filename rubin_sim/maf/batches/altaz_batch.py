@@ -9,7 +9,6 @@ __all__ = ["altazHealpix", "altazLambert"]
 
 
 def basicSetup(metric_name, colmap=None, nside=64):
-
     if colmap is None:
         colmap = col_map_dict("opsimV4")
 
@@ -32,7 +31,6 @@ def altazHealpix(
     extraInfoLabel=None,
     metric_name="NVisits Alt/Az",
 ):
-
     """Generate a set of metrics measuring the number visits as a function of alt/az
     plotted on a HealpixSkyMap.
 
@@ -103,7 +101,6 @@ def altazLambert(
     extraInfoLabel=None,
     metric_name="Nvisits as function of Alt/Az",
 ):
-
     """Generate a set of metrics measuring the number visits as a function of alt/az
     plotted on a LambertSkyMap.
 
