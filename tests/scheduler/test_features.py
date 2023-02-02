@@ -52,6 +52,13 @@ class TestFeatures(unittest.TestCase):
             (initial_lmst + step_days * sidereal_hours_per_day) % 24,
         )
 
+        # Test that the string representation works
+        print_string = conditions.__str__()
+
+        # Check that naked conditions work
+        conditions_naked = features.Conditions()
+        print_string = conditions_naked.__str__()
+
     def test_note_last_observed(self):
 
         note_last_observed = features.NoteLastObserved(note="test")
