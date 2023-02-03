@@ -1442,7 +1442,9 @@ def science_radar_batch(
     displayDict["caption"] = "Probability of detecting and classifying a KNe"
     prestoslicer = maf.generate_presto_pop_slicer(skyregion="extragalactic")
     metric = maf.PrestoColorKNePopMetric(
-        skyregion="extragalactic", metric_name="PrestoKNe", mjd0=mjd0,
+        skyregion="extragalactic",
+        metric_name="PrestoKNe",
+        mjd0=mjd0,
     )
     summaryMetrics_kne = [maf.MedianMetric(), maf.SumMetric()]
     bundleList.append(

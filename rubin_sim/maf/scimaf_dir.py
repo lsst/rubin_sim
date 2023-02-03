@@ -42,12 +42,16 @@ def scimaf_dir():
         # Grab the starting date for the Presto KNe metric
         try:
             con = sqlite3.connect(filename)
-            mjd0_df = pd.read_sql('select min(observationStartMJD) from observations;', con)
+            mjd0_df = pd.read_sql(
+                "select min(observationStartMJD) from observations;", con
+            )
             con.close()
             mjd0 = mjd0_df.values.min()
         # If this fails for any reason (aka schema change)
         except:
-            warnings.warn("Could not find survey start date for Presto KNe, setting mjd0=None.")
+            warnings.warn(
+                "Could not find survey start date for Presto KNe, setting mjd0=None."
+            )
             mjd0 = None
         # Clobber output directory if it exists
         if not args.no_clobber:
@@ -56,7 +60,8 @@ def scimaf_dir():
         results_db = db.ResultsDb(out_dir=out_dir)
         # Set up the metricBundles
         bdict = batches.science_radar_batch(
-            runName=name, mjd0=mjd0,
+            runName=name,
+            mjd0=mjd0,
         )
         # Run them, including generating plots
         group = mb.MetricBundleGroup(

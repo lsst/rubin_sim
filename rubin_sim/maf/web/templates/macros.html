@@ -44,7 +44,7 @@
   {% else %}
   {# convert statvalue from series to single value #}
   {% if 'Count' in statname or '-3Sigma' in statname or '+3Sigma' in statname or 'TableFraction' in statname %}
-   {{ '%d'|format(statvalue) }}
+   {{ '%.0f'|format(statvalue) }}
   {% else %}
    {% if statvalue|abs < 0.03 %} 
       {{ '%.4f'|format(statvalue) }}
