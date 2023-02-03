@@ -42,7 +42,6 @@ class BandpassDict(object):
         self._bandpass_dict = OrderedDict()
         self._wavelen_match = None
         for bandpass_name, bandpass in zip(bandpass_name_list, bandpass_list):
-
             if bandpass_name in self._bandpass_dict:
                 raise RuntimeError(
                     "The bandpass %s occurs twice in your input " % bandpass_name
@@ -208,7 +207,6 @@ class BandpassDict(object):
         if sedobj.wavelen is None:
             return [numpy.NaN] * len(self._bandpass_dict)
         else:
-
             # for some reason, moving this call to flambda_tofnu()
             # to a point earlier in the
             # process results in some SEDs having 'None' for fnu.
@@ -249,7 +247,6 @@ class BandpassDict(object):
         """
 
         if sedobj.wavelen is not None:
-
             # If the Sed's wavelength grid agrees with self._wavelen_match to one part in
             # 10^6, just use the Sed as-is.  Otherwise, copy it and resample it onto
             # self._wavelen_match
@@ -392,7 +389,6 @@ class BandpassDict(object):
         if sedobj.wavelen is None:
             return [numpy.NaN] * len(self._bandpass_dict)
         else:
-
             # for some reason, moving this call to flambda_tofnu()
             # to a point earlier in the
             # process results in some SEDs having 'None' for fnu.
@@ -438,7 +434,6 @@ class BandpassDict(object):
         """
 
         if sedobj.wavelen is not None:
-
             # If the Sed's wavelength grid agrees with self._wavelen_match to one part in
             # 10^6, just use the Sed as-is.  Otherwise, copy it and resample it onto
             # self._wavelen_match

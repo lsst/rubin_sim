@@ -788,7 +788,6 @@ class HealpixSDSSSkyMap(BasePlotter):
         )
 
     def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
-
         """
         Plot the sky map of metric_value using healpy cartview plots in thin strips.
         raMin: Minimum RA to plot (deg)
@@ -944,7 +943,6 @@ class LambertSkyMap(BasePlotter):
         )
 
     def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
-
         if "ra" not in slicer.slice_points or "dec" not in slicer.slice_points:
             err_message = (
                 'SpatialSlicer must contain "ra" and "dec" in slice_points metadata.'

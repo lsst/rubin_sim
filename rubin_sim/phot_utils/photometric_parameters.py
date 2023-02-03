@@ -142,7 +142,6 @@ class PhotometricParameters(object):
         sigma_sys=None,
         bandpass=None,
     ):
-
         """
         @param [in] exptime exposure time in seconds (defaults to LSST value)
 

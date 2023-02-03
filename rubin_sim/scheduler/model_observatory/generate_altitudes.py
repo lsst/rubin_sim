@@ -40,7 +40,6 @@ def alt_passing_interp(times, altitudes, goal_alt=0.0, rising=True):
 
 
 def alt_sun_sum(in_mjds, location, offset):
-
     times = Time(in_mjds, format="mjd")
     sun = get_sun(times)
     aa = AltAz(location=location, obstime=times)
@@ -50,7 +49,6 @@ def alt_sun_sum(in_mjds, location, offset):
 
 
 def alt_moon_sum(in_mjds, location, offset):
-
     times = Time(in_mjds, format="mjd")
     moon = get_moon(times)
     aa = AltAz(location=location, obstime=times)
@@ -233,7 +231,6 @@ def generate_nights(mjd_start, duration=3653.0, rough_step=2, verbose=False):
 
 
 if __name__ == "__main__":
-
     # Let's use astropy to pre-compute the sunrise/sunset/twilight/moonrise/moonset times we're interested in.
     mjd_start = 59853.5
     #

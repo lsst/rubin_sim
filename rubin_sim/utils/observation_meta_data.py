@@ -84,7 +84,6 @@ class ObservationMetaData(object):
         sky_brightness=None,
         seeing=None,
     ):
-
         self._bounds = None
         self._bound_type = bound_type
         self._bandpass = bandpass_name
@@ -160,7 +159,6 @@ class ObservationMetaData(object):
         return not self.__eq__(other)
 
     def __eq__(self, other):
-
         if self.bounds != other.bounds:
             return False
 

@@ -6,7 +6,6 @@ from rubin_sim.speedObservatory import Speed_observatory
 
 class BlackTraining(object):
     def __init__(self, preferences=[1], gray_train=False, custom_period=1):
-
         self.pref = preferences
 
         self.survey_length = 0.2  # days

@@ -199,7 +199,6 @@ class TestOneDSlicerEqual(unittest.TestCase):
 
 
 class TestOneDSlicerSlicing(unittest.TestCase):
-
     long_message = True
 
     def setUp(self):

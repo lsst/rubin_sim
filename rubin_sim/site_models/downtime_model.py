@@ -28,7 +28,6 @@ class DowntimeModel(object):
         unsched_down_col="unscheduled_downtimes",
         time_col="time",
     ):
-
         self.sched_down = sched_down_col
         self.unsched_down = unsched_down_col
         self.target_requirements = time_col

@@ -199,7 +199,6 @@ def setup_args(parser=None):
 
 
 def make_lsst_obs():
-
     # Parser command
     args = setup_args()
 

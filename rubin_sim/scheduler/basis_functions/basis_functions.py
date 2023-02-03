@@ -57,7 +57,6 @@ class BaseBasisFunction(object):
     """Class that takes features and computes a reward function when called."""
 
     def __init__(self, nside=None, filtername=None, **kwargs):
-
         # Set if basis function needs to be recalculated if there is a new
         # observation
         self.update_on_newobs = True
@@ -221,7 +220,6 @@ class NGoodSeeingBasisFunction(BaseBasisFunction):
         self.footprint = footprint
 
     def _calc_value(self, conditions, indx=None):
-
         result = 0
         # Need to update the feature to the current season
         self.survey_features["N_good_seeing"].season_update(conditions=conditions)
@@ -320,7 +318,6 @@ class TargetMapBasisFunction(BaseBasisFunction):
         norm_factor=None,
         out_of_bounds_val=-10.0,
     ):
-
         super(TargetMapBasisFunction, self).__init__(nside=nside, filtername=filtername)
 
         if norm_factor is None:
@@ -533,7 +530,6 @@ class NObsPerYearBasisFunction(BaseBasisFunction):
         self.out_footprint = np.where((footprint == 0) | np.isnan(footprint))
 
     def _calc_value(self, conditions, indx=None):
-
         result = self.result.copy()
         behind_pix = np.where(
             (conditions.mjd - self.survey_features["last_n_mjds"].feature[0])
@@ -849,7 +845,6 @@ class VisitRepeatBasisFunction(BaseBasisFunction):
     def __init__(
         self, gap_min=25.0, gap_max=45.0, filtername="r", nside=None, npairs=1
     ):
-
         super(VisitRepeatBasisFunction, self).__init__(
             nside=nside, filtername=filtername
         )
@@ -892,7 +887,6 @@ class M5DiffBasisFunction(BaseBasisFunction):
     """
 
     def __init__(self, filtername="r", nside=None):
-
         super(M5DiffBasisFunction, self).__init__(nside=nside, filtername=filtername)
         # Need to look up the deepest m5 values for all the healpixels
 
@@ -923,7 +917,6 @@ class StrictFilterBasisFunction(BaseBasisFunction):
     """
 
     def __init__(self, time_lag=10.0, filtername="r", twi_change=-18.0, note_free="DD"):
-
         super(StrictFilterBasisFunction, self).__init__(filtername=filtername)
 
         self.time_lag = time_lag / 60.0 / 24.0  # Convert to days
@@ -1021,7 +1014,6 @@ class GoalStrictFilterBasisFunction(BaseBasisFunction):
         proportion=1.0,
         aways_available=False,
     ):
-
         super(GoalStrictFilterBasisFunction, self).__init__(filtername=filtername)
 
         self.time_lag_min = time_lag_min / 60.0 / 24.0  # Convert to days
@@ -1043,7 +1035,6 @@ class GoalStrictFilterBasisFunction(BaseBasisFunction):
         )
 
     def filter_change_bonus(self, time):
-
         lag_min = self.time_lag_min
         lag_max = self.time_lag_max
 
@@ -1131,7 +1122,6 @@ class GoalStrictFilterBasisFunction(BaseBasisFunction):
             return False
 
     def _calc_value(self, conditions, **kwargs):
-
         if conditions.current_filter is None:
             return 0.0  # no bonus if no filter is mounted
         # elif self.condition_features['Current_filter'].feature == self.filtername:
@@ -1178,7 +1168,6 @@ class FilterChangeBasisFunction(BaseBasisFunction):
         super(FilterChangeBasisFunction, self).__init__(filtername=filtername)
 
     def _calc_value(self, conditions, **kwargs):
-
         if (conditions.current_filter == self.filtername) | (
             conditions.current_filter is None
         ):
@@ -1356,7 +1345,6 @@ class CablewrapUnwrapBasisFunction(BaseBasisFunction):
         self.result = np.zeros(hp.nside2npix(self.nside), dtype=float)
 
     def _calc_value(self, conditions, indx=None):
-
         result = self.result.copy()
 
         current_abs_rad = np.radians(conditions.az)
@@ -1984,7 +1972,6 @@ class AvoidDirectWind(BaseBasisFunction):
         self.wind_speed_maximum = wind_speed_maximum
 
     def _calc_value(self, conditions, indx=None):
-
         reward_map = np.zeros(hp.nside2npix(self.nside))
 
         if conditions.wind_speed is None or conditions.wind_direction is None:
@@ -2043,7 +2030,6 @@ class BalanceVisits(BaseBasisFunction):
         )
 
     def _calc_value(self, conditions, indx=None):
-
         return (
             1
             + np.floor(

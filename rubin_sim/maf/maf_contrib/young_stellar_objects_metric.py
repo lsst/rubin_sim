@@ -134,7 +134,6 @@ class NYoungStarsMetric(BaseMetric):
         }
 
     def run(self, data_slice, slice_point=None):
-
         # Evaluate area on sky for this slice_point, in radians
         if "nside" in slice_point:
             # Best area /pixel calculation, appropriate for healpix slicers

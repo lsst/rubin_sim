@@ -224,7 +224,6 @@ def generate_sky(
 
 
 if __name__ == "__main__":
-
     # Make a quick small one for speed loading
     # generate_sky(mjd0=59579, mjd_max=59579+10., outpath='healpix', outfile='small_example.npz_small')
     # generate_sky(mjd0=59579, mjd_max=59579+10., outpath='opsimFields', fieldID=True)

@@ -102,7 +102,6 @@ class ZeroRotDetailer(BaseDetailer):
     """
 
     def __call__(self, observation_list, conditions):
-
         # XXX--should I convert the list into an array and get rid of this loop?
         for obs in observation_list:
             alt, az = _approx_ra_dec2_alt_az(
@@ -306,7 +305,6 @@ class TwilightTripleDetailer(BaseDetailer):
         self.n_repeat = n_repeat
 
     def __call__(self, observation_list, conditions):
-
         obs_array = np.concatenate(observation_list)
 
         # Estimate how much time is left in the twilgiht block

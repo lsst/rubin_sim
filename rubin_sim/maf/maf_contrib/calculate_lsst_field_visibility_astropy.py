@@ -67,7 +67,6 @@ def calculate_lsst_field_visibility(
     jds = []
 
     for d in dates:
-
         jds.append(d.jd)
 
         t = copy.copy(d)
@@ -101,7 +100,6 @@ def calculate_lsst_field_visibility(
         target_alts.append(alts[jdx].max())
 
         if len(idx) > 0:
-
             ts_vis = ts[idx]
 
             tvis = cadence * len(ts_vis)
@@ -121,7 +119,6 @@ def calculate_lsst_field_visibility(
             hrs_visible_per_night.append((tvis * 24.0))
 
         else:
-
             # target_alts.append(-1e5)
 
             hrs_visible_per_night.append(0.0)
@@ -130,7 +127,6 @@ def calculate_lsst_field_visibility(
                 print("Target not visible from LSST on " + tstr)
 
     if diagnostics:
-
         plot_visibility(jds, target_alts, sun_alts, hrs_visible_per_night, min_alt)
 
     return total_time_visible, hrs_visible_per_night
@@ -185,16 +181,13 @@ def plot_visibility(ts, target_alts, sun_alts, hrs_visible_per_night, min_alt):
 
 
 if __name__ == "__main__":
-
     if len(argv) > 1:
-
         field_ra = argv[1]
         field_dec = argv[2]
         start_date = argv[3]
         end_date = argv[4]
 
     else:
-
         field_ra = input("Please enter the RA in sexigesimal format, J2000.0: ")
         field_dec = input("Please enter the Dec in sexigesimal format, J2000.0: ")
         start_date = input(

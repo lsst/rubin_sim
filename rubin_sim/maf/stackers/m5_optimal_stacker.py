@@ -77,7 +77,6 @@ class M5OptimalStacker(BaseStacker):
         sun_alt_col="sunAlt",
         site="LSST",
     ):
-
         self.site = Site(site)
         self.units = ["mags"]
         self.airmass_col = airmass_col

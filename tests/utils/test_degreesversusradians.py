@@ -190,7 +190,6 @@ class TestDegrees(unittest.TestCase):
         np.testing.assert_array_almost_equal(rot_sky_rad, np.radians(rot_sky_deg), 10)
 
         for ra, dec, rotTel in zip(self.ra_list, self.dec_list, rot_tel_list):
-
             rot_sky_rad = utils._get_rot_sky_pos(ra, dec, obs_temp, rotTel)
 
             rot_sky_deg = utils.get_rot_sky_pos(
@@ -233,7 +232,6 @@ class TestDegrees(unittest.TestCase):
         np.testing.assert_array_almost_equal(rot_tel_rad, np.radians(rot_tel_deg), 10)
 
         for ra, dec, rotSky in zip(self.ra_list, self.dec_list, rot_sky_list):
-
             obs_temp = ObservationMetaData(
                 mjd=mjd, site=Site(longitude=self.lon, latitude=self.lat, name="LSST")
             )
@@ -319,7 +317,6 @@ class AstrometryDegreesTest(unittest.TestCase):
             self.px_list,
             self.v_rad_list,
         ):
-
             ra_rad, dec_rad = utils._apply_proper_motion(
                 ra,
                 dec,
@@ -450,7 +447,6 @@ class AstrometryDegreesTest(unittest.TestCase):
 
         for include_refraction in (True, False):
             for wavelength in (0.5, 0.2, 0.3):
-
                 ra_rad, dec_rad = utils._app_geo_from_observed(
                     self.ra_list,
                     self.dec_list,
@@ -474,10 +470,8 @@ class AstrometryDegreesTest(unittest.TestCase):
                 np.testing.assert_array_almost_equal(d_dec, np.zeros(len(d_dec)), 9)
 
     def test_icrs_from_app_geo(self):
-
         for mjd in (53525.0, 54316.3, 58463.7):
             for epoch in (2000.0, 1950.0, 2010.0):
-
                 ra_rad, dec_rad = utils._icrs_from_app_geo(
                     self.ra_list,
                     self.dec_list,
@@ -505,7 +499,6 @@ class AstrometryDegreesTest(unittest.TestCase):
                 for px_list in [self.px_list, None]:
                     for v_rad_list in [self.v_rad_list, None]:
                         for include_refraction in [True, False]:
-
                             ra_rad, dec_rad = utils._observed_from_icrs(
                                 self.ra_list,
                                 self.dec_list,
@@ -548,7 +541,6 @@ class AstrometryDegreesTest(unittest.TestCase):
         obs = ObservationMetaData(pointing_ra=35.0, pointing_dec=-45.0, mjd=43572.0)
 
         for include_refraction in [True, False]:
-
             ra_rad, dec_rad = utils._icrs_from_observed(
                 self.ra_list,
                 self.dec_list,

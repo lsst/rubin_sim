@@ -106,7 +106,6 @@ class NeoDistancePlotter(BasePlotter):
             metric_value[0]["NEOHelioX"][in_plane],
             metric_value[0]["NEOHelioY"][in_plane],
         ):
-
             theta = np.arctan2(y - 1.0, x)
             diff = np.abs(thetavec - theta)
             theta_to_use = thetavec[np.where(diff == diff.min())]

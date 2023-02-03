@@ -474,6 +474,7 @@ def ddfBatch(
             )
 
         displayDict["subgroup"] = "Season length"
+
         # Histogram of the season lengths, all filters
         def rfunc(simdata):
             # Sometimes number of seasons is 10, sometimes 11 (depending on where survey starts/end)

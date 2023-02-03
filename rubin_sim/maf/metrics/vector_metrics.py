@@ -133,7 +133,6 @@ class HistogramM5Metric(HistogramMetric):
         metric_name="HistogramM5Metric",
         **kwargs
     ):
-
         super(HistogramM5Metric, self).__init__(
             col=m5_col,
             bin_col=bin_col,

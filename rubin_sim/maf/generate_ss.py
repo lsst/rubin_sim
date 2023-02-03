@@ -13,7 +13,6 @@ def generate_ss_commands(
     start_mjd=None,
     split=False,
 ):
-
     if start_mjd is None:
         start_mjd = survey_start_mjd()
 

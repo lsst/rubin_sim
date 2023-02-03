@@ -108,7 +108,6 @@ class SpatialBounds(with_metaclass(SpatialBoundsMetaClass, object)):
 
 
 class CircleBounds(SpatialBounds):
-
     bound_type = "circle"
 
     def __init__(self, ra, dec, radius):
@@ -168,7 +167,6 @@ class CircleBounds(SpatialBounds):
         )
 
     def to_sql(self, r_aname, de_cname):
-
         cos_dec = np.cos(self.DEC)
         adjusted_radius = np.abs(np.degrees(np.arcsin(np.sin(self.radius) / cos_dec)))
 
@@ -186,7 +184,6 @@ class CircleBounds(SpatialBounds):
             or r_amin < adjusted_radius
             or r_amax > 360.0 - adjusted_radius
         ):
-
             r_amax = 361.0
             r_amin = -361.0
 
@@ -227,7 +224,6 @@ class CircleBounds(SpatialBounds):
 
 
 class BoxBounds(SpatialBounds):
-
     bound_type = "box"
 
     def __init__(self, ra, dec, length):

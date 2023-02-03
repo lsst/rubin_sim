@@ -22,7 +22,8 @@ KM_PER_AU = 149597870.7
 class BaseMoStacker(BaseStacker):
     """Base class for moving object (SSobject)  stackers. Relevant for MoSlicer ssObs (pd.dataframe).
 
-    Provided to add moving-object specific API for 'run' method of moving object stackers."""
+    Provided to add moving-object specific API for 'run' method of moving object stackers.
+    """
 
     def run(self, sso_obs, href, hval=None):
         # Redefine this here, as the API does not match BaseStacker.

@@ -315,7 +315,6 @@ class Airglow(BaseSingleInterp):
         self.n_solar_flux = np.size(self.dim_dict["solarFlux"])
 
     def _weighting(self, interp_points, values):
-
         results = np.zeros((interp_points.size, np.size(values[0])), dtype=float)
         # Only interpolate point that lie in the model grid
         in_range = np.where(

@@ -409,7 +409,6 @@ class MicrolensingMetric(metrics.BaseMetric):
         n_post = []
         for filtername in filters:
             if self.metric_calc == "detect":
-
                 if self.time_before_peak == "optimal":
                     time_before_peak_optimal = info_peak_before_t0(
                         slice_point["impact_parameter"], slice_point["crossing_time"]

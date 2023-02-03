@@ -34,7 +34,6 @@ class Lims:
         mag_range=(23.0, 27.5),
         dt_range=(0.5, 25.0),
     ):
-
         self.band = band
         self.SNR = SNR
         self.lims = []
@@ -70,7 +69,6 @@ class Lims:
         lims = {}
 
         for z in np.unique(tab["z"]):
-
             idx = (tab["z"] == z) & (tab["band"] == "LSST::" + band)
             idx &= tab["flux_e"] > 0.0
             sel = tab[idx]
@@ -211,7 +209,6 @@ class GenerateFakeObservations:
         nexp_col="numExposures",
         season_col="season",
     ):
-
         self.mjd_col = mjd_col
         self.m5_col = m5_col
         self.filter_col = filter_col
@@ -317,7 +314,6 @@ class ReferenceData:
     """
 
     def __init__(self, li_files, mag_to_flux_files, band, z):
-
         self.band = band
         self.z = z
         self.fluxes = []

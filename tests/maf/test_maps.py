@@ -47,11 +47,9 @@ def make_field_data(seed):
 
 class TestMaps(unittest.TestCase):
     def test_dust_map(self):
-
         map_path = os.path.join(get_data_dir(), "tests")
         nside = 8
         if os.path.isfile(os.path.join(map_path, f"dust_nside_{nside}.npz")):
-
             data = make_data_values(random=981)
             dustmap = maps.DustMap(nside=nside, map_path=map_path)
 
@@ -85,13 +83,11 @@ class TestMaps(unittest.TestCase):
             warnings.warn("Did not find dustmaps, not running testMaps.py")
 
     def test_dust_map3_d(self):
-
         nside = 8
         map_file = os.path.join(
             get_data_dir(), "tests", f"test_ebv3d_nside{nside}.fits"
         )
         if os.path.isfile(map_file):
-
             data = make_data_values(random=981)
             dustmap = maps.DustMap3D(nside=nside, map_file=map_file, interp=False)
 
@@ -180,7 +176,6 @@ class TestMaps(unittest.TestCase):
         "Skip the galplane priority map data unless maps data present, required for setup",
     )
     def test_galplane_priority_maps(self):
-
         map_path = os.path.join(get_data_dir(), "maps")
         nside = 64
         data = make_data_values(random=981)

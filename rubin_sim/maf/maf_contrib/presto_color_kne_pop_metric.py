@@ -329,7 +329,6 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
 
         # loop through the rows of the matrix of valid time differences
         for ii in range(d_ts.shape[0]):
-
             groups_of_three = np.array(
                 [
                     [ii] + list(jj)
@@ -340,7 +339,6 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
             )
 
             for indices in groups_of_three:
-
                 bands = detects["filter"][indices].values
 
                 # print('bands: ', bands)

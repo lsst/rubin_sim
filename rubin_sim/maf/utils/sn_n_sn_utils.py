@@ -76,7 +76,6 @@ class LcfastNew:
         bluecutoff=380.0,
         redcutoff=800.0,
     ):
-
         # grab all vals
         self.filter_col = filter_col
         self.mjd_col = mjd_col
@@ -417,7 +416,6 @@ class LoadReference:
         template_dir=None,
         gamma_name="gamma_WFD.hdf5",
     ):
-
         if template_dir is None:
             sims_maf_contrib_dir = get_data_dir()
             template_dir = os.path.join(sims_maf_contrib_dir, "maf/SNe_data")
@@ -486,7 +484,6 @@ class GetReference:
     def __init__(
         self, lc_name, gamma_name, param__fisher=["x0", "x1", "color", "daymax"]
     ):
-
         # Load the file - lc reference
         if not os.path.exists(lc_name):
             raise FileExistsError(f"{lc_name} does not exist - NSN metric cannot run")
@@ -663,7 +660,6 @@ class SnRate:
     def __init__(
         self, rate="Perrett", h0=70, om0=0.25, min_rf_phase=-15.0, max_rf_phase=30.0
     ):
-
         self.astropy_cosmo = FlatLambdaCDM(H0=h0, Om0=om0)
         self.rate = rate
         self.min_rf_phase = min_rf_phase
@@ -850,7 +846,6 @@ class CovColor:
     """
 
     def __init__(self, lc):
-
         self.cov_colorcolor = self.var_color(lc)
 
     def var_color(self, lc):

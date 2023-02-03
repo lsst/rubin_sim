@@ -84,7 +84,6 @@ class FilterPairTGapsMetric(BaseMetric):
         allgaps=True,
         **kwargs
     ):
-
         self.mjd_col = mjd_col
         self.filter_col = filter_col
         self.m5_col = m5_col
@@ -101,7 +100,6 @@ class FilterPairTGapsMetric(BaseMetric):
         super().__init__(col=[self.mjd_col, self.filter_col, self.m5_col], **kwargs)
 
     def _get_d_t(self, data_slice, f0, f1):
-
         # select
         idx0 = (data_slice[self.filter_col] == f0) & (
             data_slice[self.m5_col] > self.mag_lim[f0]

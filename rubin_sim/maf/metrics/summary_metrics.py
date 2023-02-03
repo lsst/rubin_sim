@@ -236,7 +236,6 @@ class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
     """
 
     def __init__(self, nside=128, year=10, col=None, **kwargs):
-
         """
         Args:
             nside (int): healpix resolution

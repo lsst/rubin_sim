@@ -515,7 +515,6 @@ def run_sched(
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--verbose", dest="verbose", action="store_true")
     parser.set_defaults(verbose=False)

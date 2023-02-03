@@ -387,7 +387,6 @@ class PairsSurveyScripted(ScriptedSurvey):
         self.reward = result
         log.debug("Pair - calc_reward_func")
         for indx in range(len(self.observing_queue)):
-
             check = self._check_observation(self.observing_queue[indx], conditions)
             log.debug("%s: %s", check, self.observing_queue[indx])
             if check[0]:
@@ -401,7 +400,6 @@ class PairsSurveyScripted(ScriptedSurvey):
         return result
 
     def _check_observation(self, observation, conditions):
-
         delta_t = observation["mjd"] - conditions.mjd
         log.debug(
             "Check_observation: obs_mjd=%.4f (current_mjd=%.4f, delta=%.4f, tol=%.4f)",
@@ -438,7 +436,6 @@ class PairsSurveyScripted(ScriptedSurvey):
         # if len(self.observing_queue) > 0:
         log.debug("Pair - call")
         for indx in range(len(self.observing_queue)):
-
             check = self._check_observation(self.observing_queue[indx], conditions)
 
             if check[0]:

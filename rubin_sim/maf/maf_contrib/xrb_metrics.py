@@ -14,7 +14,6 @@ class XrbLc(object):
     """Synthesize XRB outburst lightcurves."""
 
     def __init__(self, seed=42):
-
         dust_properties = DustValues()
         self.ax1 = dust_properties.ax1
 

@@ -112,7 +112,6 @@ class SedCacheError(Exception):
 
 
 class SedUnpickler(pickle.Unpickler):
-
     _allowed_obj = (
         ("numpy", "ndarray"),
         ("numpy", "dtype"),

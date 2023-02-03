@@ -36,7 +36,6 @@ class SNCadenceMetric(metrics.BaseMetric):
         lim_sn=None,
         **kwargs
     ):
-
         self.mjd_col = mjd_col
         self.m5_col = m5_col
         self.filter_col = filter_col
@@ -72,7 +71,6 @@ class SNCadenceMetric(metrics.BaseMetric):
         self.lim_sn = lim_sn
 
     def run(self, data_slice, slice_point=None):
-
         # Cut down to only include filters in correct wave range.
 
         good_filters = np.in1d(data_slice["filter"], self.filter_names)

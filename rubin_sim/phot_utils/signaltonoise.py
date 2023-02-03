@@ -313,7 +313,6 @@ def mag_error_from_snr(snr):
 
 
 def calc_gamma(bandpass, m5, phot_params):
-
     """
     Calculate the gamma parameter used for determining photometric
     signal to noise in equation 5 of the LSST overview paper

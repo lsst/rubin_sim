@@ -72,7 +72,6 @@ class Trixel(object):
         self._bounding_circle = None
 
     def __eq__(self, other):
-
         tol = 1.0e-20
 
         if self._htmid == other._htmid:
@@ -193,7 +192,6 @@ class Trixel(object):
         return self._contains_many_pts(pt)
 
     def _create_w(self):
-
         w0 = self._corners[1] + self._corners[2]
         w0 = w0 / np.sqrt(np.power(w0, 2).sum())
         w1 = self._corners[0] + self._corners[2]
@@ -606,7 +604,6 @@ def get_all_trixels(level):
             parent_id = htmid >> 2  # the immediate parent of htmid
 
             while parent_id not in trixel_dict:
-
                 # find the highest-level ancestor trixel
                 # of htmid that has already
                 # been generated and added to trixel_dict
@@ -753,7 +750,6 @@ def _find_htmid_fast(ra, dec, max_level):
         not hasattr(_find_htmid_fast, "_trixel_dict")
         or _find_htmid_fast._level < max_level
     ):
-
         _find_htmid_fast._trixel_dict = get_all_trixels(max_level)
         _find_htmid_fast._level = max_level
 
@@ -1101,7 +1097,6 @@ class HalfSpace(object):
             (tx.corners[1], tx.corners[2]),
             (tx.corners[2], tx.corners[0]),
         ):
-
             if self.intersects_edge(edge[0], edge[1]):
                 return "partial"
 

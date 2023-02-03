@@ -35,7 +35,6 @@ class SedList(object):
         internal_av_list=None,
         cosmological_dimming=True,
     ):
-
         """
         @param [in] sed_name_list is a list of SED file names.
 

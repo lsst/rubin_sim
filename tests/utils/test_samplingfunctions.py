@@ -64,7 +64,6 @@ class SamplingTests(unittest.TestCase):
             )
 
     def test_check_within_bounds(self):
-
         delta = self.obs_meta_datafor_cat.bound_length
         # delta = np.radians(delta)
         min_phi = 0.13 - delta

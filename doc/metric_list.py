@@ -6,7 +6,6 @@ __all__ = ["make_metric_list"]
 
 
 def make_metric_list(outfile):
-
     f = open(outfile, "w")
 
     # Print header
@@ -46,5 +45,4 @@ def make_metric_list(outfile):
 
 
 if __name__ == "__main__":
-
     make_metric_list("rs_maf/metric_list.rst")

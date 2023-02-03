@@ -62,7 +62,6 @@ class ShortExptDetailer(BaseDetailer):
         self.obs2hpid = HpInLsstFov(nside=nside)
 
     def __call__(self, observation_list, conditions):
-
         # XXX--this logic would probably make more sense as a feasability basis function.
         # Might consider expanding the detailer base class to include basis functions.
         if self.night_max is not None:

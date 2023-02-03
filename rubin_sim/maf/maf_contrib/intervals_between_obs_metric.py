@@ -27,7 +27,6 @@ class IntervalsBetweenObsMetric(BaseMetric):
         time_col="observationStartMJD",
         **kwargs
     ):
-
         self.time_col = time_col
         self.metric_name = metric_name
         self.survey_intervals = survey_intervals
@@ -37,12 +36,10 @@ class IntervalsBetweenObsMetric(BaseMetric):
         )
 
     def run(self, data_slice, slice_point=None):
-
         data_slice.sort(order=self.time_col)
         obs_diff = []
 
         for interval in self.survey_intervals:
-
             start_interval = Time(interval[0] + " 00:00:00")
             end_interval = Time(interval[1] + " 00:00:00")
             index = data_slice[self.time_col][

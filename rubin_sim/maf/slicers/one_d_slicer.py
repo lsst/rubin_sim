@@ -146,6 +146,7 @@ class OneDSlicer(BaseSlicer):
         # "right" values are locations where simdata[i-1] <= bins < simdata[i]
         # This lets us have a closed final bin
         self.right = np.searchsorted(simFieldsSorted, self.bins, "right")
+
         # Set up _slice_sim_data method for this class.
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):

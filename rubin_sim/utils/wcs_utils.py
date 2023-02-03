@@ -95,7 +95,6 @@ def _native_lon_lat_from_pointing(lon, lat, lon_pointing, lat_pointing):
         elif (np.abs(_x) > 1.0e-9 and np.sign(_x) != np.sign(v2[0])) or (
             np.abs(_y) > 1.0e-9 and np.sign(_y) != np.sign(v2[1])
         ):
-
             lon_out = 2.0 * np.pi - _ra
         else:
             lon_out = _ra
@@ -169,7 +168,6 @@ def _lon_lat_from_native_lon_lat(native_lon, native_lat, lon_pointing, lat_point
         elif (np.abs(_x) > 1.0e-9 and np.sign(_x) != np.sign(v2[0])) or (
             np.abs(_y) > 1.0e-9 and np.sign(_y) != np.sign(v2[1])
         ):
-
             lon_out = 2.0 * np.pi - _lon_out
         else:
             lon_out = _lon_out

@@ -93,7 +93,6 @@ class NObsCount(BaseSurveyFeature):
         self.tag = tag
 
     def add_observation(self, observation, indx=None):
-
         if (self.filtername is None) and (self.tag is None):
             # Track all observations
             self.feature += 1
@@ -155,7 +154,6 @@ class NObsCountSeason(BaseSurveyFeature):
         self.season_length = season_length
 
     def add_observation(self, observation, indx=None):
-
         season = utils.season_calc(
             observation["night"],
             modulo=self.season_modulo,
@@ -385,7 +383,6 @@ class LastNObsTimes(BaseSurveyFeature):
         self.feature = np.zeros((n_obs, hp.nside2npix(nside)), dtype=float)
 
     def add_observation(self, observation, indx=None):
-
         if self.filtername is None or observation["filter"][0] in self.filtername:
             self.feature[0:-1, indx] = self.feature[1:, indx]
             self.feature[-1, indx] = observation["mjd"]
@@ -469,7 +466,6 @@ class CoaddedDepth(BaseSurveyFeature):
         self.feature = np.zeros(hp.nside2npix(nside), dtype=float)
 
     def add_observation(self, observation, indx=None):
-
         if observation["filter"] == self.filtername:
             if IntRounded(observation["FWHMeff"]) <= self.fwh_meff_limit:
                 m5 = m5_flat_sed(

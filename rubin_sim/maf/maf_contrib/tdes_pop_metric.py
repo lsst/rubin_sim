@@ -21,7 +21,6 @@ class TdeLc(object):
     """
 
     def __init__(self, file_list=None):
-
         if file_list is None:
             sims_maf_contrib_dir = get_data_dir()
             file_list = glob.glob(os.path.join(sims_maf_contrib_dir, "maf/tde/*.dat"))

@@ -1014,7 +1014,6 @@ class SNNSNMetric(BaseMetric):
         return zseason
 
     def z_season_allz(self, zseason):
-
         zseason_allz = (
             zseason.groupby(["season"])
             .apply(
@@ -1161,13 +1160,11 @@ class SNNSNMetric(BaseMetric):
         return obs
 
     def reducen_sn(self, metric_val):
-
         # At each slice_point, return the sum nSN value.
 
         return np.sum(metric_val["n_sn"])
 
     def reducezlim(self, metric_val):
-
         # At each slice_point, return the median zlim
         result = np.median(metric_val["zlim"])
         if result < 0:

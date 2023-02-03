@@ -53,7 +53,6 @@ class NgalScaleMetric(BaseMetric):
         self.ax1 = dust_properties.ax1
 
     def run(self, data_slice, slice_point):
-
         # I'm a little confused why there's a dust cut and an M5 cut, but whatever
         a_x = self.ax1[data_slice[self.filter_col][0]] * slice_point["ebv"]
         if a_x > self.a_max:

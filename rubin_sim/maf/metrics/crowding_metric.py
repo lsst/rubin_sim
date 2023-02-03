@@ -161,7 +161,6 @@ class NstarsMetric(BaseMetric):
         )
 
     def run(self, data_slice, slice_point=None):
-
         pix_area = hp.nside2pixarea(slice_point["nside"], degrees=True)
         # Set mag_vector to the same length as starLumFunc (lower edge of mag bins)
         mag_vector = slice_point[f"starMapBins_{self.filtername}"][1:]

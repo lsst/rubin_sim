@@ -60,7 +60,6 @@ class TestFeatures(unittest.TestCase):
         print_string = conditions_naked.__str__()
 
     def test_note_last_observed(self):
-
         note_last_observed = features.NoteLastObserved(note="test")
 
         observation = empty_observation()
@@ -81,7 +80,6 @@ class TestFeatures(unittest.TestCase):
         assert note_last_observed.feature == observation["mjd"]
 
     def test_note_last_observed_with_filter(self):
-
         note_last_observed = features.NoteLastObserved(
             note="test",
             filtername="r",

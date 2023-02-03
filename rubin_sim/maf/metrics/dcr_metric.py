@@ -29,7 +29,6 @@ class DcrPrecisionMetric(BaseMetric):
         rmag=20.0,
         **kwargs
     ):
-
         self.m5_col = m5_col
         self.filter_col = filter_col
         self.pa_col = pa_col
@@ -57,7 +56,6 @@ class DcrPrecisionMetric(BaseMetric):
         )
 
     def run(self, data_slice, slice_point=None):
-
         snr = np.zeros(len(data_slice), dtype="float")
         for filt in self.filters:
             in_filt = np.where(data_slice[self.filter_col] == filt)

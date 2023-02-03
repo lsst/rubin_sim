@@ -1319,7 +1319,7 @@ class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
 
             # Loop over the filter change indexes (current filter change, next filter change) to identify
             # sets of visits that should have the same offset.
-            for (c, cn) in zip(change_idxs, change_idxs[1:]):
+            for c, cn in zip(change_idxs, change_idxs[1:]):
                 random_offsets = (
                     self._rng.rand(max_num + 1) * 2.0 * self.max_dither
                     - self.max_dither

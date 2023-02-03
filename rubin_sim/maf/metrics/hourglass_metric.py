@@ -42,7 +42,6 @@ class HourglassMetric(BaseMetric):
         self.observer = Observer(location=self.location)
 
     def run(self, data_slice, slice_point=None):
-
         data_slice.sort(order=self.mjd_col)
         unights, uindx = np.unique(data_slice[self.night_col], return_index=True)
 

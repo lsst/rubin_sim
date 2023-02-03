@@ -44,7 +44,6 @@ class GreedySurvey(BaseMarkovSurvey):
         camera="LSST",
         area_required=None,
     ):
-
         extra_features = {}
 
         super(GreedySurvey, self).__init__(
@@ -184,7 +183,6 @@ class BlobSurvey(GreedySurvey):
         grow_blob=True,
         area_required=None,
     ):
-
         super(BlobSurvey, self).__init__(
             basis_functions=basis_functions,
             basis_weights=basis_weights,

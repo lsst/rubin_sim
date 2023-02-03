@@ -76,7 +76,6 @@ class SNSLMetric(metrics.BaseMetric):
         maps=["DustMap"],
         **kwargs
     ):
-
         self.mjd_col = mjd_col
         self.filter_col = filter_col
         self.night_col = night_col

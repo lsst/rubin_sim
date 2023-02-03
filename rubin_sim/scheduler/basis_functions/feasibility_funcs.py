@@ -44,7 +44,6 @@ class FilterLoadedBasisFunction(BaseBasisFunction):
         self.filternames = filternames
 
     def check_feasibility(self, conditions):
-
         for filtername in self.filternames:
             result = filtername in conditions.mounted_filters
             if result is False:

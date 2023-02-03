@@ -6,7 +6,6 @@ from rubin_sim.data import get_data_dir
 import glob
 
 if __name__ == "__main__":
-
     # Gererate an sky map for each filters that is an estimate of how faint that part of sky
     # can get
 

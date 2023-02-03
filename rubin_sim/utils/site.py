@@ -69,7 +69,6 @@ class Site(object):
         humidity=None,
         lapse_rate=None,
     ):
-
         default_params = None
         self._name = name
         if self._name == "LSST":
@@ -177,7 +176,6 @@ class Site(object):
             warnings.warn(msg)
 
     def __eq__(self, other):
-
         for param in self.__dict__:
             if param not in other.__dict__:
                 return False
