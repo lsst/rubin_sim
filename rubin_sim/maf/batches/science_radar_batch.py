@@ -21,6 +21,7 @@ def science_radar_batch(
     minNvisits=750,
     long_microlensing=True,
     srd_only=False,
+    mjd0=None,
 ):
     """A batch of metrics for looking at survey performance relative to the SRD and the main
     science drivers of LSST.
@@ -1441,7 +1442,7 @@ def science_radar_batch(
     displayDict["caption"] = "Probability of detecting and classifying a KNe"
     prestoslicer = maf.generate_presto_pop_slicer(skyregion="extragalactic")
     metric = maf.PrestoColorKNePopMetric(
-        skyregion="extragalactic", metric_name="PrestoKNe"
+        skyregion="extragalactic", metric_name="PrestoKNe", mjd0=mjd0,
     )
     summaryMetrics_kne = [maf.MedianMetric(), maf.SumMetric()]
     bundleList.append(
