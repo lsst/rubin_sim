@@ -21,6 +21,7 @@ def science_radar_batch(
     minNvisits=750,
     long_microlensing=True,
     srd_only=False,
+    mjd0=None,
 ):
     """A batch of metrics for looking at survey performance relative to the SRD and the main
     science drivers of LSST.
@@ -1115,7 +1116,7 @@ def science_radar_batch(
     displayDict["subgroup"] = "TDE"
     displayDict["caption"] = "TDE lightcurves that could be identified"
     displayDict["order"] = 0
-    metric = maf.TdePopMetric()
+    metric = maf.TdePopMetric(mjd0=mjd0)
     tdeslicer = maf.generate_tde_pop_slicer()
     bundle = mb.MetricBundle(
         metric,
@@ -1277,7 +1278,10 @@ def science_radar_batch(
         n_events=n_events, n_files=len(filename), d_min=10, d_max=600
     )
     metric = maf.KNePopMetric(
-        output_lc=False, file_list=filename, metric_name="KNePopMetric_single"
+        output_lc=False,
+        file_list=filename,
+        metric_name="KNePopMetric_single",
+        mjd0=mjd0,
     )
     bundle = mb.MetricBundle(
         metric,
@@ -1441,7 +1445,9 @@ def science_radar_batch(
     displayDict["caption"] = "Probability of detecting and classifying a KNe"
     prestoslicer = maf.generate_presto_pop_slicer(skyregion="extragalactic")
     metric = maf.PrestoColorKNePopMetric(
-        skyregion="extragalactic", metric_name="PrestoKNe"
+        skyregion="extragalactic",
+        metric_name="PrestoKNe",
+        mjd0=mjd0,
     )
     summaryMetrics_kne = [maf.MedianMetric(), maf.SumMetric()]
     bundleList.append(
@@ -1461,7 +1467,7 @@ def science_radar_batch(
     displayDict["caption"] = "Number or characterization of XRBs."
     n_events = 10000
     xrbslicer = maf.generate_xrb_pop_slicer(n_events=n_events)
-    metric = maf.XRBPopMetric(output_lc=False)
+    metric = maf.XRBPopMetric(output_lc=False, mjd0=mjd0)
     xrb_summaryMetrics = [
         maf.SumMetric(metric_name="Total detected"),
         maf.CountMetric(metric_name="Total lightcurves in footprint"),
