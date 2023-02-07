@@ -34,7 +34,7 @@ class TestFeatures(unittest.TestCase):
 
     def test_conditions(self):
         observatory = ModelObservatory(
-            seeing_db=os.path.join(get_data_dir(), "tests", "seeing.db"),
+            seeing_db=os.path.join(get_data_dir(), "tests", "seeing.db")
         )
         conditions = observatory.return_conditions()
         self.assertIsInstance(repr(conditions), str)

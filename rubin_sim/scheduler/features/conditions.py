@@ -496,6 +496,11 @@ class Conditions(object):
         except ImportError:
             return repr(self)
 
+        if self.mjd is None:
+            # Many elements of the pretty str representation rely on
+            # the time beging set. If it is not, just return the ugly form.
+            return repr(self)
+
         output = StringIO()
         print(f"{self.__class__.__qualname__} at {hex(id(self))}", file=output)
         print("============================", file=output)
