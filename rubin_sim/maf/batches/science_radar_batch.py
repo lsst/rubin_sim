@@ -1116,7 +1116,7 @@ def science_radar_batch(
     displayDict["subgroup"] = "TDE"
     displayDict["caption"] = "TDE lightcurves that could be identified"
     displayDict["order"] = 0
-    metric = maf.TdePopMetric()
+    metric = maf.TdePopMetric(mjd0=mjd0)
     tdeslicer = maf.generate_tde_pop_slicer()
     bundle = mb.MetricBundle(
         metric,
@@ -1278,7 +1278,10 @@ def science_radar_batch(
         n_events=n_events, n_files=len(filename), d_min=10, d_max=600
     )
     metric = maf.KNePopMetric(
-        output_lc=False, file_list=filename, metric_name="KNePopMetric_single"
+        output_lc=False,
+        file_list=filename,
+        metric_name="KNePopMetric_single",
+        mjd0=mjd0,
     )
     bundle = mb.MetricBundle(
         metric,
