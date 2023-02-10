@@ -244,7 +244,7 @@ class CrowdingMagUncertMetric(BaseMetric):
         lum_func = slice_point[f"starLumFunc_{self.filtername}"]
         # Magnitude uncertainty given crowding
         dmag_crowd = _comp_crowd_error(
-            mag_vector, lum_func, data_slice[self.seeing_col], single_mag=self.rmag
+            mag_vector, lum_func, min(data_slice[self.seeing_col]), single_mag=self.rmag
         )
         result = np.mean(dmag_crowd)
         return result
