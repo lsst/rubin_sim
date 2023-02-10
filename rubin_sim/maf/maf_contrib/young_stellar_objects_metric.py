@@ -7,7 +7,7 @@ import numpy as np
 import scipy.integrate as integrate
 from rubin_sim.maf.metrics import BaseMetric, CrowdingM5Metric
 from rubin_sim.phot_utils import DustValues
-from rubin_sim.maf.maps import DustMap3D, StellarDensityMap
+from rubin_sim.maf.maps import DustMap3D, StellarDensityMap, DustMap
 
 __all__ = ["NYoungStarsMetric"]
 
@@ -77,7 +77,8 @@ class NYoungStarsMetric(BaseMetric):
         Whether the metric will return the maximum distance that can be reached for each slice_point,
         or the total number of stars down to mags/snrs.
     crowding_error: float, opt
-        Crowding error that gets passed to CrowdingM5Metric. Default 0.25
+        Crowding error that gets passed to CrowdingM5Metric. Default 0.25.
+    use_2D_extinction: Uses the 2D extinction map instead of the 3D one. Default False.
     """
 
     def __init__(
@@ -92,6 +93,7 @@ class NYoungStarsMetric(BaseMetric):
         badval=0,
         return_distance=False,
         crowding_error=0.25,
+        use_2D_extinction=False,
         **kwargs
     ):
         cols = [m5_col, filter_col, seeing_col]
@@ -101,6 +103,9 @@ class NYoungStarsMetric(BaseMetric):
             StellarDensityMap(filtername="r"),
             StellarDensityMap(filtername="i"),
         ]
+        self.use_2D_extinction = use_2D_extinction
+        if self.use_2D_extinction:
+            maps[0] = DustMap()
         # This will give us access to the dust map get_distance_at_dmag routine
         # but does not require loading another copy of the map
         self.ebvmap = DustMap3D()
@@ -123,6 +128,7 @@ class NYoungStarsMetric(BaseMetric):
         self.mags = mags
         self.filters = list(self.mags.keys())
         self.snrs = snrs
+        self.crowding_error = crowding_error
         self.m5crowding = {
             f: CrowdingM5Metric(
                 crowding_error=crowding_error,
@@ -132,6 +138,8 @@ class NYoungStarsMetric(BaseMetric):
             )
             for f in self.filters
         }
+        dust_properties = DustValues()
+        self.ax1 = dust_properties.ax1
 
     def run(self, data_slice, slice_point=None):
         # Evaluate area on sky for this slice_point, in radians
@@ -143,7 +151,7 @@ class NYoungStarsMetric(BaseMetric):
             sky_area = np.pi * (np.radians(1.75)) ** 2
 
         # if we are outside the galb_limit, return nothing
-        # Note we could make this a more comlicated function that returns an expected density of
+        # Note we could make this a more complicated function that returns an expected density of
         # star forming regions
         if np.abs(slice_point["galb"]) > self.galb_limit:
             return self.badval
@@ -158,10 +166,13 @@ class NYoungStarsMetric(BaseMetric):
                 depth_m5 = 1.25 * np.log10(
                     np.sum(10.0 ** (0.8 * data_slice[self.m5_col][in_filt]))
                 )
-                depth_crowding = self.m5crowding[filtername].run(
-                    data_slice, slice_point
-                )
-                depths[filtername] = min(depth_m5, depth_crowding)
+                if self.crowding_error > 0:
+                    depth_crowding = self.m5crowding[filtername].run(
+                        data_slice, slice_point
+                    )
+                    depths[filtername] = min(depth_m5, depth_crowding)
+                else:
+                    depths[filtername] = depth_m5
 
         # solve for the distances in each filter where we hit the required SNR
         distances = []
@@ -169,13 +180,19 @@ class NYoungStarsMetric(BaseMetric):
             # Apparent magnitude at the SNR requirement
             m_app = -2.5 * np.log10(self.snrs[filtername] / 5.0)
             m_app += depths[filtername]
-            dist_dmag = self.ebvmap.distance_at_dmag(
-                dmag=m_app - self.mags[filtername],
-                dists=slice_point["ebv3d_dists"],
-                ebvs=slice_point["ebv3d_ebvs"],
-                filtername=filtername,
-            )
-            distances.append(dist_dmag)
+            if self.use_2D_extinction:
+                A_x = self.ax1[filtername] * slice_point['ebv']
+                # Assuming all the dust along the line of sight matters. 
+                m_app = m_app - A_x
+                dist = 10.*(100**((m_app - self.mags[filtername])/5.))**0.5
+            else:
+                dist = self.ebvmap.distance_at_dmag(
+                    dmag=m_app - self.mags[filtername],
+                    dists=slice_point["ebv3d_dists"],
+                    ebvs=slice_point["ebv3d_ebvs"],
+                    filtername=filtername,
+                )
+            distances.append(dist)
         # compute the final distance, limited by whichever filter is most shallow
         final_distance = np.min(distances, axis=-1) / 1e3  # to kpc
         if self.return_distance:
