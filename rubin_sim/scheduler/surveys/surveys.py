@@ -43,6 +43,7 @@ class GreedySurvey(BaseMarkovSurvey):
         detailers=None,
         camera="LSST",
         area_required=None,
+        fields=None,
     ):
         extra_features = {}
 
@@ -58,6 +59,7 @@ class GreedySurvey(BaseMarkovSurvey):
             detailers=detailers,
             camera=camera,
             area_required=area_required,
+            fields=fields,
         )
         self.filtername = filtername
         self.block_size = block_size
@@ -182,6 +184,7 @@ class BlobSurvey(GreedySurvey):
         min_area=None,
         grow_blob=True,
         area_required=None,
+        fields=None,
     ):
         super(BlobSurvey, self).__init__(
             basis_functions=basis_functions,
@@ -196,6 +199,7 @@ class BlobSurvey(GreedySurvey):
             detailers=detailers,
             camera=camera,
             area_required=area_required,
+            fields=fields,
         )
         self.flush_time = flush_time / 60.0 / 24.0  # convert to days
         self.nexp = nexp

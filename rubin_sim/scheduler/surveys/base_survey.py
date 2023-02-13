@@ -307,6 +307,10 @@ class BaseMarkovSurvey(BaseSurvey):
         Random number seed, used for randomly orienting sky tessellation.
     camera : str ('LSST')
         Should be 'LSST' or 'comcam'
+    fields : np.array (None)
+        An array of field positions. Should be numpy array with columns of "RA" and
+        "dec" in radians. If none, utils.read_fields or utils.comcam_tessellate is
+        used to read field positions.
     area_required : float (None)
         The valid area that should be present in the reward function (square degrees).
     npositions : int (7305)
@@ -326,6 +330,7 @@ class BaseMarkovSurvey(BaseSurvey):
         dither=True,
         detailers=None,
         camera="LSST",
+        fields=None,
         area_required=None,
         npositions=7305,
     ):
@@ -345,12 +350,15 @@ class BaseMarkovSurvey(BaseSurvey):
 
         self.camera = camera
         # Load the OpSim field tesselation and map healpix to fields
-        if self.camera == "LSST":
-            self.fields_init = read_fields()
-        elif self.camera == "comcam":
-            self.fields_init = comcam_tessellate()
+        if fields is None:
+            if self.camera == "LSST":
+                self.fields_init = read_fields()
+            elif self.camera == "comcam":
+                self.fields_init = comcam_tessellate()
+            else:
+                ValueError('camera %s unknown, should be "LSST" or "comcam"' % camera)
         else:
-            ValueError('camera %s unknown, should be "LSST" or "comcam"' % camera)
+            self.fields_init = fields
         self.fields = self.fields_init.copy()
         self.hp2fields = np.array([])
         self._hp2fieldsetup(self.fields["RA"], self.fields["dec"])
