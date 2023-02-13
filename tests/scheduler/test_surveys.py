@@ -26,6 +26,8 @@ class TestSurveys(unittest.TestCase):
 
         # Check survey access methods
         conditions = observatory.return_conditions()
+        reward = survey.calc_reward_function(conditions)
+        self.assertIsInstance(reward, float)
         reward_df = survey.reward_changes(conditions)
         reward_df = survey.make_reward_df(conditions)
         self.assertIsInstance(reward_df, pd.DataFrame)

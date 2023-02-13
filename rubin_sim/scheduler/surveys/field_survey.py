@@ -59,10 +59,11 @@ class FieldSurvey(DeepDrillingSurvey):
                 basis_value = bf(conditions, indx=indx)
                 self.reward += basis_value * weight
 
-            self.reward = np.sum(self.reward[indx])
+            if not np.isscalar(self.reward):
+                self.reward = np.sum(self.reward[indx])
 
-            if np.any(np.isinf(self.reward)):
-                self.reward = np.inf
+                if np.any(np.isinf(self.reward)):
+                    self.reward = np.inf
         else:
             # If not feasable, negative infinity reward
             self.reward = -np.inf
