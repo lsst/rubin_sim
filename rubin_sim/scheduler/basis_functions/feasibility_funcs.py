@@ -444,14 +444,14 @@ class LookAheadDdfBasisFunction(BaseBasisFunction):
             ):
                 result = False
                 # If we paused for better conditions, but the moon will rise, turn things back on.
-                if IntRounded(conditions.moonAlt) < IntRounded(0):
+                if IntRounded(conditions.moon_alt) < IntRounded(0):
                     if IntRounded(conditions.moonrise) > IntRounded(conditions.mjd):
                         if IntRounded(
                             conditions.moonrise - conditions.mjd
                         ) > IntRounded(self.time_jump):
                             result = True
         # If the moon is up and will set soon, pause
-        if IntRounded(conditions.moonAlt) > IntRounded(0):
+        if IntRounded(conditions.moon_alt) > IntRounded(0):
             time_after_moonset = (
                 getattr(conditions, "sun_" + self.sun_alt_limit + "_rising")
                 - conditions.moonset
