@@ -326,7 +326,12 @@ def gen_long_gaps_survey(
     Paramterers
     -----------
     HA_min(_max) : float
-        The hour angle limits passed to the initial blob scheduler.
+        The hour angle limits passed to the initial blob scheduler (hours).
+    gap_range : list of float ([2, 7])
+        The limits of the target time gaps (hours)
+    time_after_twi : float (120)
+        The amount of time that should have passed after twilight to start
+        trying to observe long gaps (minutes).
     """
 
     surveys = []
@@ -1366,10 +1371,26 @@ def example_scheduler(
         Fraction of sky to divide for rolling (default 2).
     rolling_scale : float (0.9)
         The strength of rolling (between 0-1). Default 0.9.
-    nights_delayed : int (-1)
-
+    gsw : float (3)
+        The good seeing weight (unitless). Default 3.
+    nights_off : int (6)
+        How many nights to take off between nights with long-gap observations (days).
+    neo_night_pattern : list of bool ([True, False, False, False])
+        The pattern of observations to use for twilight NEO observations,
+        default [True, False, False, False].
+    neo_filters : str ('riz')
+        Which filters to use for twilight NEO observations ('riz').
+    neo_repeat : int (4)
+        How many times a pointing should be repeated when taking NEO observations.
+        Default 4.
+    ddf_season_frac : (0.2)
+        XXX--should be updating to a more intuitive name soon
+    mjd_start : float (60676.0)
+        The MJD to start the survey on (60676.0)
+    nside : int (32)
+        The HEALpix nside to use. Default 32.
     per_night : bool (True)
-        Dither the DDFs on a per-night basis.
+        Dither the DDFs on a per-night basis. Default True.
     camera_ddf_rot_limit : float (75)
         Limit for how far to rotationally dither DDF fields (degrees)
 
