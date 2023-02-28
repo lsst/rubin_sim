@@ -305,10 +305,14 @@ class SkyModel(object):
         self.good_pix = np.where(
             (self.airmass <= self.airmass_limit) & (self.airmass >= 1.0)
         )[0]
-        if self.good_pix.size > 0:
-            self._interp_sky()
+
+        if self.good_pix.size <= 0:
+            raise ValueError(
+                "No valid points. Airmass limit=%.1f, min airmass of requested points=%.1f"
+                % (self.airmass_limit, np.min(self.airmass))
+            )
         else:
-            warnings.warn("No valid points to interpolate")
+            self._interp_sky()
 
     def set_ra_dec_alt_az_mjd(
         self,
@@ -369,10 +373,13 @@ class SkyModel(object):
         self.good_pix = np.where(
             (self.airmass <= self.airmass_limit) & (self.airmass >= 1.0)
         )[0]
-        if self.good_pix.size > 0:
-            self._interp_sky()
+        if self.good_pix.size <= 0:
+            raise ValueError(
+                "No valid points. Airmass limit=%.1f, min airmass of requested points=%.1f"
+                % (self.airmass_limit, np.min(self.airmass))
+            )
         else:
-            warnings.warn("No valid points to interpolate")
+            self._interp_sky()
 
     def get_computed_vals(self):
         """
