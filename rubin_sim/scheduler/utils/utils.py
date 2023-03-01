@@ -431,9 +431,8 @@ class SchemaConverter:
         blank = empty_observation()
         final_result = np.empty(df.shape[0], dtype=blank.dtype)
         # XXX-ugh, there has to be a better way.
-        for i, key in enumerate(df.columns):
-            if key in self.inv_map.keys():
-                final_result[key] = df[key].values
+        for key in df.columns:
+            final_result[key] = df[key].values
 
         return final_result
 

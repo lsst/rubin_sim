@@ -358,7 +358,7 @@ def gen_long_gaps_survey(
     return surveys
 
 
-def gen_GreedySurveys(
+def gen_greedy_surveys(
     nside=32,
     nexp=2,
     exptime=30.0,
@@ -1466,7 +1466,7 @@ def example_scheduler(
         nside=nside, nexp=nexp, detailers=details, euclid_detailers=euclid_detailers
     )
 
-    greedy = gen_GreedySurveys(nside, nexp=nexp, footprints=footprints)
+    greedy = gen_greedy_surveys(nside, nexp=nexp, footprints=footprints)
     neo = generate_twilight_neo(
         nside,
         night_pattern=neo_night_pattern,
