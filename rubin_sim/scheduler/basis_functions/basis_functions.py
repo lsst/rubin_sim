@@ -1092,7 +1092,7 @@ class GoalStrictFilterBasisFunction(BaseBasisFunction):
 
         # Did the moon set or rise since last observation?
         moon_changed = (
-            conditions.moonAlt
+            conditions.moon_alt
             * self.survey_features["Last_observation"].feature["moonAlt"]
             < 0
         )
@@ -1129,7 +1129,7 @@ class GoalStrictFilterBasisFunction(BaseBasisFunction):
 
         # Did the moon set or rise since last observation?
         moon_changed = (
-            conditions.moonAlt
+            conditions.moon_alt
             * self.survey_features["Last_observation"].feature["moonAlt"]
             < 0
         )

@@ -11,6 +11,7 @@ from rubin_sim.scheduler.schedulers import CoreScheduler
 from rubin_sim.scheduler import sim_runner
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 import rubin_sim.scheduler.detailers as detailers
+from rubin_sim.scheduler.example import example_scheduler
 
 
 def gen_greedy_surveys(nside):
@@ -138,6 +139,24 @@ def gen_blob_surveys(nside):
             )
         )
     return pair_surveys
+
+
+class TestExample(unittest.TestCase):
+    def test_example(self):
+        """Try out the example scheduler."""
+        nside = 32
+        survey_length = 2.0  # days
+        scheduler = example_scheduler(nside=nside)
+        observatory = ModelObservatory(nside=nside)
+        observatory, scheduler, observations = sim_runner(
+            observatory, scheduler, survey_length=survey_length, filename=None
+        )
+        # Check that greedy observed some
+        assert "greedy" in observations["note"]
+        # Make sure lots of observations executed
+        assert observations.size > 1000
+        # Make sure nothing tried to look through the earth
+        assert np.min(observations["alt"]) > 0
 
 
 class TestFeatures(unittest.TestCase):
