@@ -493,11 +493,30 @@ def plot_run_metric_mesh(
     if metric_label_map is None:
         metric_labels = metrics
     else:
-        metric_labels = [metric_label_map[m] for m in metrics]
-    # Update the plot label if we inverted the column during normalization
-    if baseline_run is not None and metric_set is not None:
-        for i in np.where(metric_set["invert"])[0]:
-            metric_labels[i] = f"1/{metric_labels[i]}"
+        try:
+            # When there are multiple metric families specified,
+            # there might be duplicate elements in the
+            # metric_label_map. Remove the duplicates.
+            metric_label_map = metric_label_map[
+                ~metric_label_map.index.duplicated(keep="first")
+            ]
+        except AttributeError:
+            # if metric_label_map is a dict, it won't have
+            # an index attrubute, but there isn't any danger
+            # if duplicates either
+            pass
+
+        # Figure out which metrics get inverted
+        if baseline_run is not None and metric_set is not None:
+            inverted_metrics = set(metric_set.query("invert").metric.values)
+        else:
+            inverted_metrics = set()
+
+        metric_labels = [
+            f"1/{metric_label_map[m]}" if m in inverted_metrics else metric_label_map[m]
+            for m in metrics
+        ]
+
     ax.set_yticklabels(metric_labels)
 
     ax.set_xticks(np.arange(0.5, norm_summary.shape[0] + 0.5))

@@ -1,5 +1,7 @@
 import numpy as np
+import os
 import unittest
+from rubin_sim.data import get_data_dir
 import rubin_sim.scheduler.basis_functions as bf
 from rubin_sim.scheduler.utils import standard_goals, calc_norm_factor
 from rubin_sim.scheduler.surveys import (
@@ -12,6 +14,8 @@ from rubin_sim.scheduler import sim_runner
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 import rubin_sim.scheduler.detailers as detailers
 from rubin_sim.scheduler.example import example_scheduler
+
+SAMPLE_BIG_DATA_FILE = os.path.join(get_data_dir(), "maps/DustMaps/dust_nside_32.npz")
 
 
 def gen_greedy_surveys(nside):
@@ -142,6 +146,9 @@ def gen_blob_surveys(nside):
 
 
 class TestExample(unittest.TestCase):
+    @unittest.skipUnless(
+        os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available."
+    )
     def test_example(self):
         """Try out the example scheduler."""
         nside = 32
@@ -160,6 +167,9 @@ class TestExample(unittest.TestCase):
 
 
 class TestFeatures(unittest.TestCase):
+    @unittest.skipUnless(
+        os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available."
+    )
     def test_greedy(self):
         """
         Set up a greedy survey and run for a few days. A crude way to touch lots of code.
@@ -188,6 +198,9 @@ class TestFeatures(unittest.TestCase):
         # Make sure nothing tried to look through the earth
         assert np.min(observations["alt"]) > 0
 
+    @unittest.skipUnless(
+        os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available."
+    )
     def test_blobs(self):
         """
         Set up a blob selection survey
@@ -219,6 +232,9 @@ class TestFeatures(unittest.TestCase):
         # Make sure nothing tried to look through the earth
         assert np.min(observations["alt"]) > 0
 
+    @unittest.skipUnless(
+        os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available."
+    )
     def test_nside(self):
         """
         test running at higher nside
