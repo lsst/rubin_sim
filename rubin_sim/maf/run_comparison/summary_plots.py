@@ -5,6 +5,7 @@ __all__ = [
     "normalize_metric_summaries",
     "plot_run_metric",
     "plot_run_metric_mesh",
+    "bokeh_plot_run_metric_mesh",
     "find_family_lines",
 ]
 
@@ -15,6 +16,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import colorcet
 import cycler
+import bokeh
 
 # constants
 
@@ -408,6 +410,90 @@ def plot_run_metric_mesh(
     run_label_map=None,
     metric_label_map=None,
     ax=None,
+    palette_name="CET_D1A_r",
+    backend="matplotlib",
+    cmap=None,
+):
+    """Plot normalized metric values as colored points on a cartesian plane.
+
+    Parameters
+    ----------
+    summary : `pandas.DataFrame`
+        Values to be plotted. Should only include runs and metrics that
+        should actually appear on the plot.
+    baseline_run : `str`
+        Name of the run to use as the baseline for normalization (see
+        (archive.normalize_metric_summaries).
+    color_range : `float`
+        The color range of the plot, in normalized metrics summary
+        units. (The color range will be 1-color_range/2 and
+        1+color_range/2).
+    run_label_map : mapping
+        A python `mapping` between canonical run names and run labels as they
+        should appear on plot labels.
+    metric_label_map : mapping
+        A python `mapping` between canonical metric names and metric labels
+        as they should appear on plot labels.
+    ax : `matplotlib.axes.Axes`
+        The axes on which to plot the data.
+    palette_name: `str`
+        The name of the color palette.
+        A red/blue diverging color map - CET_D1A_r or CET_D1_r
+        A rainbow diverging color map - CET_R3_r
+    backend: `str`
+        The plotting module to use to build the plot ('matplotlib' or 'bokeh')
+
+    Returns
+    -------
+    result : `tuple` (`matplotlib.figure.Figure`, `matplotilb.axes.Axes`) or `bokeh.plotting.figure.Figure`
+        The figure
+    """
+    match backend:
+        case "bokeh":
+            assert ax == None
+
+            if palette_name[-2:] == "_r":
+                palette = colorcet.palette[palette_name[:-2]][::-1]
+            else:
+                palette = colorcet.palette[palette_name]
+
+            result = bokeh_plot_run_metric_mesh(
+                summary=summary,
+                metric_set=metric_set,
+                baseline_run=baseline_run,
+                color_range=color_range,
+                run_label_map=run_label_map,
+                metric_label_map=metric_label_map,
+                palette=palette,
+            )
+        case "matplotlib":
+            if cmap is None:
+                cmap = colorcet.cm[palette_name]
+
+            result = matplotlib_plot_run_metric_mesh(
+                summary=summary,
+                metric_set=metric_set,
+                baseline_run=baseline_run,
+                color_range=color_range,
+                run_label_map=run_label_map,
+                metric_label_map=metric_label_map,
+                ax=ax,
+                cmap=cmap,
+            )
+        case _:
+            raise NotImplementedError(f"Backend {backend} is not implemented.")
+
+    return result
+
+
+def matplotlib_plot_run_metric_mesh(
+    summary,
+    metric_set=None,
+    baseline_run=None,
+    color_range=1,
+    run_label_map=None,
+    metric_label_map=None,
+    ax=None,
     cmap=colorcet.cm["CET_D1A_r"],
 ):
     """Plot normalized metric values as colored points on a cartesian plane.
@@ -445,6 +531,7 @@ def plot_run_metric_mesh(
         The plot axes.
 
     """
+
     cols_are_runs = summary.columns.name in RUN_COL_NAMES
     rows_are_metrics = summary.index.name in METRIC_COL_NAMES
     if cols_are_runs or rows_are_metrics:
@@ -541,6 +628,233 @@ def find_family_lines(families, family_list):
         lines += [len(families.loc[f]["run"])]
     lines = np.array(lines).cumsum()
     return lines
+
+
+def meshplot(
+    df,
+    palette,
+    high_value,
+    low_value,
+    x_col="row_title",
+    y_col="col_title",
+    value_col="this_value",
+):
+    unique_x = df.loc[:, x_col].unique()
+    unique_y = df.loc[:, y_col].unique()
+
+    num_x = len(unique_x)
+    num_y = len(unique_y)
+
+    x_index = pd.Series({x: xi for xi, x in enumerate(unique_x)}, name="x_index")
+    x_index.name = "x_label"
+
+    y_index = pd.Series({y: yi for yi, y in enumerate(unique_y)}, name="y_index")
+    y_index.name = "y_label"
+
+    df["x_idx"] = df.loc[:, x_col].map(x_index)
+    df["y_idx"] = df.loc[:, y_col].map(y_index)
+
+    # subtract 1 from num_x and num_y, because the
+    # bottom box starts at -0.5*patch_d[xy] and the top
+    # box extends to 0.5*patch_d[xy], such that only
+    # num_x-1 patch widths are contained beteen 0 and 1.
+    patch_dx = 1.0 / (num_x - 1)
+    patch_dy = 1.0 / (num_y - 1)
+    corners_0 = {
+        "x": np.array([-1, 1, 1, -1]) * patch_dx / 2,
+        "y": np.array([1, 1, -1, -1]) * patch_dy / 2,
+    }
+    df["corners_x"] = [i * patch_dx + corners_0["x"] for i in df["x_idx"]]
+    df["corners_y"] = [i * patch_dy + corners_0["y"] for i in df["y_idx"]]
+
+    p = bokeh.plotting.figure(title="patches")
+    p.xaxis.axis_label = x_col
+    p.yaxis.axis_label = y_col
+
+    color_mapper = bokeh.models.LinearColorMapper(
+        palette=palette, low=low_value, high=high_value
+    )
+
+    p.patches(
+        xs="corners_x",
+        ys="corners_y",
+        color={"field": value_col, "transform": color_mapper},
+        source=df,
+    )
+
+    x_tick_values = x_index.values / (num_x - 1)
+    # If a tick values are integers, the label override fails, so shift the smallest amount
+    int_ticks = x_tick_values == np.round(x_tick_values)
+    x_tick_values[int_ticks] = x_tick_values[int_ticks] + np.finfo(float).eps
+    x_pos = pd.DataFrame(
+        {"name": x_index.index, "x_index": x_index.values}, index=x_tick_values
+    )
+    p.xaxis.ticker = x_pos.index
+    p.xaxis.major_label_overrides = x_pos["name"].to_dict()
+    p.xaxis.major_label_orientation = "vertical"
+    p.x_range = bokeh.models.Range1d(-1 * patch_dx / 2, 1 + patch_dx / 2)
+
+    y_tick_values = y_index.values / (num_y - 1)
+    # If a tick values are integers, the label override fails, so shift the smallest ammount
+    int_ticks = y_tick_values == np.round(y_tick_values)
+    y_tick_values[int_ticks] = y_tick_values[int_ticks] + np.finfo(float).eps
+    y_pos = pd.DataFrame(
+        {"name": y_index.index, "y_index": y_index.values}, index=y_tick_values
+    )
+    p.yaxis.ticker = y_pos.index
+    p.yaxis.major_label_overrides = y_pos["name"].to_dict()
+    p.y_range = bokeh.models.Range1d(-1 * patch_dy / 2, 1 + patch_dy / 2)
+
+    color_bar = bokeh.models.ColorBar(color_mapper=color_mapper)
+    p.add_layout(color_bar, "right")
+
+    return p
+
+
+def bokeh_plot_run_metric_mesh(
+    summary,
+    metric_set=None,
+    baseline_run=None,
+    color_range=1,
+    run_label_map=None,
+    metric_label_map=None,
+    palette=colorcet.palette["CET_D1A"][::-1],
+):
+    """Plot normalized metric values as colored points on a cartesian plane.
+
+    Parameters
+    ----------
+    summary : `pandas.DataFrame`
+        Values to be plotted. Should only include runs and metrics that
+        should actually appear on the plot.
+    baseline_run : `str`
+        Name of the run to use as the baseline for normalization (see
+        (archive.normalize_metric_summaries).
+    color_range : `float`
+        The color range of the plot, in normalized metrics summary
+        units. (The color range will be 1-color_range/2 and
+        1+color_range/2).
+    run_label_map : mapping
+        A python `mapping` between canonical run names and run labels as they
+        should appear on plot labels.
+    metric_label_map : mapping
+        A python `mapping` between canonical metric names and metric labels
+        as they should appear on plot labels.
+    palette : `list` [`str`]
+        The color map to use for point colors.
+        A red/blue diverging color map - CET_D1A_r or CET_D1_r
+        A rainbow diverging color map - CET_R3_r
+
+    Returns
+    -------
+    fig : `bokeh.plotting.figure.Figure`
+        The figure.
+
+    """
+    cols_are_runs = summary.columns.name in RUN_COL_NAMES
+    rows_are_metrics = summary.index.name in METRIC_COL_NAMES
+    if cols_are_runs or rows_are_metrics:
+        summary = summary.T
+
+    # Normalize the summary values, if a baseline was specified
+    df = (
+        summary.rename_axis(index="run", columns="metric")
+        .copy()
+        .melt(ignore_index=False)
+        .reset_index()
+        .set_index(["run", "metric"])
+    )
+    if baseline_run is not None:
+        norm_values = (
+            normalize_metric_summaries(baseline_run, summary, metric_set)
+            .rename_axis(index="run", columns="metric")
+            .melt(ignore_index=False)
+            .reset_index()
+            .set_index(["run", "metric"])
+        )["value"]
+        df["norm_value"] = norm_values
+        value_col = "norm_value"
+    else:
+        value_col = "value"
+
+    df.reset_index(inplace=True)
+
+    if color_range is not None and (
+        isinstance(color_range, float) or isinstance(color_range, int)
+    ):
+        vmin = 1 - color_range / 2
+        vmax = vmin + color_range
+    elif isinstance(color_range, list):
+        vmin = color_range[0]
+        vmax = color_range[1]
+    else:
+        vmin = df[value_col].min()
+        vmax = df[value_col].max()
+
+    p = meshplot(
+        df,
+        palette=palette,
+        low_value=vmin,
+        high_value=vmax,
+        x_col="run",
+        y_col="metric",
+        value_col=value_col,
+    )
+
+    if value_col == "norm_value":
+        p.title = "Normalized metric values"
+    else:
+        p.title = "Metric values"
+
+    metrics = df["metric"].unique()
+    if metric_label_map is None:
+        metric_labels = metrics
+    else:
+        # Remove any duplicates from the metric_label_map
+        metric_label_map = metric_label_map[
+            ~metric_label_map.index.duplicated(keep="first")
+        ]
+
+        # Figure out which metrics get inverted
+        if baseline_run is not None and metric_set is not None:
+            inverted_metrics = set(metric_set.query("invert").metric.values)
+        else:
+            inverted_metrics = set()
+
+        metric_labels = [
+            f"1/{metric_label_map[m]}" if m in inverted_metrics else metric_label_map[m]
+            for m in metrics
+        ]
+
+    metric_label_dict = (
+        pd.Series(p.yaxis.major_label_overrides)
+        .map(dict(zip(metrics, metric_labels)))
+        .to_dict()
+    )
+    p.yaxis.major_label_overrides = metric_label_dict
+
+    runs = df["run"].unique()
+    if run_label_map is None:
+        run_labels = runs
+    else:
+        run_label_map = run_label_map[~run_label_map.index.duplicated(keep="first")]
+        run_labels = [run_label_map[r] for r in runs]
+
+    p.xaxis.major_label_overrides = (
+        pd.Series(p.xaxis.major_label_overrides)
+        .map(dict(zip(runs, run_labels)))
+        .to_dict()
+    )
+
+    return p
+
+    tooltips = [("run", "@run"), ("metric", "@metric"), ("metric value", "@value")]
+    if "norm_value" in df:
+        tooltips.append(("norm. metric value", "@norm_value"))
+
+    p.add_tools(bokeh.models.HoverTool(tooltips=tooltips))
+
+    return p
 
 
 # classes

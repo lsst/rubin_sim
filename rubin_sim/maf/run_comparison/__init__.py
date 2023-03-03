@@ -3,3 +3,4 @@ from .summary_plots import *
 from .archive import *
 from .microlensing_compare import *
 from .gather_summaries import *
+from .run_dashboard import *
