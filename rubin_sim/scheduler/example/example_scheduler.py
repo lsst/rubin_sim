@@ -13,7 +13,7 @@ from rubin_sim.scheduler.surveys import (
     BlobSurvey,
     ScriptedSurvey,
     LongGapSurvey,
-    generate_dd_surveys,
+    generate_ddf_scheduled_obs,
 )
 import rubin_sim.scheduler.detailers as detailers
 from astropy.coordinates import SkyCoord, get_sun
@@ -1343,6 +1343,21 @@ def generate_twilight_neo(
     return surveys
 
 
+def ddf_surveys(detailers=None, season_frac=0.2, euclid_detailers=None):
+    obs_array = generate_ddf_scheduled_obs(season_frac=season_frac)
+
+    euclid_obs = np.where((obs_array['note'] == 'DD:EDFS_b') | (obs_array['note'] == 'DD:EDFS_a'))[0]
+    all_other = np.where((obs_array['note'] != 'DD:EDFS_b') & (obs_array['note'] != 'DD:EDFS_a'))[0]
+
+    survey1 = ScriptedSurvey([], detailers=detailers)
+    survey1.set_script(obs_array[all_other])
+
+    survey2 = ScriptedSurvey([], detailers=euclid_detailers)
+    survey2.set_script(obs_array[euclid_obs])
+
+    return [survey1, survey2]
+
+
 def example_scheduler(
     max_dither=0.7,
     nexp=2,
@@ -1460,10 +1475,10 @@ def example_scheduler(
         detailers.Rottep2RotspDesiredDetailer(),
     ]
 
-    # Note, using old simple DDF rather than the pre-scheduled ones for simplicity.
-    # We could put the ddf_grid.npz in rubin_sim_data if we wanted to.
-    ddfs = generate_dd_surveys(
-        nside=nside, nexp=nexp, detailers=details, euclid_detailers=euclid_detailers
+    ddfs = ddf_surveys(
+        detailers=details,
+        season_frac=ddf_season_frac,
+        euclid_detailers=euclid_detailers,
     )
 
     greedy = gen_greedy_surveys(nside, nexp=nexp, footprints=footprints)
