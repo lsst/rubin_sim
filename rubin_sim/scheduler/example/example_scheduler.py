@@ -1343,8 +1343,8 @@ def generate_twilight_neo(
     return surveys
 
 
-def ddf_surveys(detailers=None, season_frac=0.2, euclid_detailers=None):
-    obs_array = generate_ddf_scheduled_obs(season_frac=season_frac)
+def ddf_surveys(detailers=None, season_unobs_frac=0.2, euclid_detailers=None):
+    obs_array = generate_ddf_scheduled_obs(season_unobs_frac=season_unobs_frac)
 
     euclid_obs = np.where((obs_array['note'] == 'DD:EDFS_b') | (obs_array['note'] == 'DD:EDFS_a'))[0]
     all_other = np.where((obs_array['note'] != 'DD:EDFS_b') & (obs_array['note'] != 'DD:EDFS_a'))[0]
@@ -1368,7 +1368,7 @@ def example_scheduler(
     neo_night_pattern=[True, False, False, False],
     neo_filters="riz",
     neo_repeat=4,
-    ddf_season_frac=0.2,
+    ddf_season_unobs_frac=0.2,
     mjd_start=60676.0,
     nside=32,
     per_night=True,
@@ -1398,7 +1398,7 @@ def example_scheduler(
     neo_repeat : int (4)
         How many times a pointing should be repeated when taking NEO observations.
         Default 4.
-    ddf_season_frac : (0.2)
+    ddf_season_unobs_frac : (0.2)
         XXX--should be updating to a more intuitive name soon
     mjd_start : float (60676.0)
         The MJD to start the survey on (60676.0)
@@ -1477,7 +1477,7 @@ def example_scheduler(
 
     ddfs = ddf_surveys(
         detailers=details,
-        season_frac=ddf_season_frac,
+        season_unobs_frac=ddf_season_unobs_frac,
         euclid_detailers=euclid_detailers,
     )
 
