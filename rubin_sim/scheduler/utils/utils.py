@@ -421,6 +421,8 @@ class SchemaConverter:
             if info is not None:
                 df = pd.DataFrame(info)
                 df.to_sql("info", con)
+        else:
+            return df
 
     def opsim2obs(self, filename):
         """convert an opsim schema dataframe into an observation array."""
