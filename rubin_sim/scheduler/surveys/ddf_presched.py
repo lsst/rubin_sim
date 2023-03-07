@@ -1,10 +1,8 @@
 import numpy as np
-import matplotlib.pylab as plt
 from rubin_sim.utils import calc_season, ddf_locations
 from rubin_sim.scheduler.utils import scheduled_observation
 from rubin_sim.data import get_data_dir
 import os
-import argparse
 
 __all__ = ["generate_ddf_scheduled_obs"]
 
@@ -295,7 +293,7 @@ def generate_ddf_scheduled_obs(
     season_unobs_frac : float (0.1)
         What fraction of the season should the DDF be considered unobservable. Taken off both the
         start and end of the year, so a season frac of 0.1 means 20% of the time the DDF is considered
-        unobservable, so it will be in-season for 9.6 months. 
+        unobservable, so it will be in-season for 9.6 months.
     nvis_master : list of ints ([8, 10, 20, 20, 24, 18])
         The number of visits to make per filter
     filters : str (ugrizy)

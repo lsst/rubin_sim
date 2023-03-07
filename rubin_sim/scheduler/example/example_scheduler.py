@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pylab as plt
 import healpy as hp
 from rubin_sim.scheduler.schedulers import CoreScheduler
 from rubin_sim.scheduler.utils import (
@@ -1346,8 +1345,12 @@ def generate_twilight_neo(
 def ddf_surveys(detailers=None, season_unobs_frac=0.2, euclid_detailers=None):
     obs_array = generate_ddf_scheduled_obs(season_unobs_frac=season_unobs_frac)
 
-    euclid_obs = np.where((obs_array['note'] == 'DD:EDFS_b') | (obs_array['note'] == 'DD:EDFS_a'))[0]
-    all_other = np.where((obs_array['note'] != 'DD:EDFS_b') & (obs_array['note'] != 'DD:EDFS_a'))[0]
+    euclid_obs = np.where(
+        (obs_array["note"] == "DD:EDFS_b") | (obs_array["note"] == "DD:EDFS_a")
+    )[0]
+    all_other = np.where(
+        (obs_array["note"] != "DD:EDFS_b") & (obs_array["note"] != "DD:EDFS_a")
+    )[0]
 
     survey1 = ScriptedSurvey([], detailers=detailers)
     survey1.set_script(obs_array[all_other])
