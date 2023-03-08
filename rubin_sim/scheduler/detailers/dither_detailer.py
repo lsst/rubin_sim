@@ -54,7 +54,7 @@ class DitherDetailer(BaseDetailer):
         else:
             angle = self.rng.random(n_offsets) * 2 * np.pi
             radius = self.max_dither * np.sqrt(self.rng.random(n_offsets))
-            offsets = np.array([radius * np.cos(angle), radius * np.sin(angle)])
+            offsets = np.array([radius * np.cos(angle), radius * np.sin(angle)]).T
 
         return offsets
 
