@@ -611,7 +611,7 @@ class PairInNight(BaseSurveyFeature):
             # match the healpixels of the observation.
             matches = np.in1d(indx, self.hpid_log[int(left) : int(right)])
             # XXX--should think if this is the correct (fastest) order to check things in.
-            self.feature[indx[matches]] += 1
+            self.feature[np.array(indx)[matches]] += 1
 
 
 class RotatorAngle(BaseSurveyFeature):

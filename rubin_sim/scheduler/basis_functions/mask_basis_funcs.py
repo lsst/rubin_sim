@@ -166,8 +166,8 @@ class PlanetMaskBasisFunction(BaseBasisFunction):
         result = self.result.copy()
         for pn in self.planets:
             indices = self.in_fov(
-                conditions.planet_positions[pn + "_RA"],
-                conditions.planet_positions[pn + "_dec"],
+                np.max(conditions.planet_positions[pn + "_RA"]),
+                np.max(conditions.planet_positions[pn + "_dec"]),
             )
             result[indices] = np.nan
 
