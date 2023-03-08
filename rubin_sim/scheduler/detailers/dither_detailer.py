@@ -52,9 +52,10 @@ class DitherDetailer(BaseDetailer):
                 self.offset = np.array([radius * np.cos(angle), radius * np.sin(angle)])
             offsets = np.tile(self.offset, (n_offsets, 1))
         else:
+            self.rng = np.random.default_rng()
             angle = self.rng.random(n_offsets) * 2 * np.pi
             radius = self.max_dither * np.sqrt(self.rng.random(n_offsets))
-            offsets = np.array([radius * np.cos(angle), radius * np.sin(angle)])
+            offsets = np.array([radius * np.cos(angle), radius * np.sin(angle)]).T
 
         return offsets
 
@@ -232,6 +233,7 @@ class CameraRotDetailer(BaseDetailer):
                 self.offset = self.offsets[night] * self.range + self.min_rot
             offsets = np.ones(n_offsets) * self.offset
         else:
+            self.rng = np.random.default_rng()
             offsets = self.rng.random(n_offsets) * self.range + self.min_rot
 
         offsets = offsets % (2.0 * np.pi)
