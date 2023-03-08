@@ -711,6 +711,9 @@ class HpInLsstFov(object):
         ----------
         fov_radius : float (1.75)
             Radius of the filed of view in degrees
+        scale : float (1e5)
+            How many sig figs to round off to. Useful for ensuring identical results
+            cross-ploatform where float precision can vary.
         """
         if nside is None:
             nside = set_default_nside()
@@ -723,9 +726,9 @@ class HpInLsstFov(object):
         """
         Parameters
         ----------
-        ra : float
+        ra : float, array
             RA in radians
-        dec : float
+        dec : float, array
             Dec in radians
 
         Returns
@@ -734,13 +737,18 @@ class HpInLsstFov(object):
             The healpixels that are within the FoV
         """
 
-        x, y, z = _xyz_from_ra_dec(np.max(ra), np.max(dec))
+        x, y, z = _xyz_from_ra_dec(ra, dec)
         x = np.round(x * self.scale).astype(int)
         y = np.round(y * self.scale).astype(int)
         z = np.round(z * self.scale).astype(int)
 
-        indices = self.tree.query_ball_point((x, y, z), self.radius)
-        return np.array(indices)
+        if np.size(x) == 1:
+            indices = self.tree.query_ball_point(
+                (np.max(x), np.max(y), np.max(z)), self.radius
+            )
+        else:
+            indices = self.tree.query_ball_point(np.vstack([x, y, z]).T, self.radius)
+        return indices
 
 
 class HpInComcamFov(object):
