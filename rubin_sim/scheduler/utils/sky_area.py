@@ -8,9 +8,11 @@ from rubin_sim.utils import angular_separation
 from rubin_sim import data as rs_data
 import rubin_sim.utils as rs_utils
 from numpy.lib import recfunctions as rfn
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
 
 
-__all__ = ["SkyAreaGenerator", "SkyAreaGeneratorGalplane"]
+__all__ = ["SkyAreaGenerator", "SkyAreaGeneratorGalplane", "EuclidOverlapFootprint"]
 
 
 class SkyAreaGenerator:
@@ -553,6 +555,100 @@ class SkyAreaGeneratorGalplane(SkyAreaGenerator):
         self.add_bulgy(bulge_ratios)
         self.add_nes(nes_ratios)
         self.add_dusty_plane(dusty_plane_ratios)
+        self.add_scp(scp_ratios)
+
+        return self.healmaps, self.pix_labels
+
+
+class EuclidOverlapFootprint(SkyAreaGeneratorGalplane):
+    def add_euclid_overlap(
+        self,
+        filter_ratios,
+        label="euclid_overlap",
+        contour_file=None,
+        south_limit=-50.0,
+    ):
+        names = ["RA", "dec"]
+        types = [float, float]
+        if contour_file is None:
+            contour_file = os.path.join(
+                rs_data.get_data_dir(), "scheduler/EWS.SGC.Mainland.ROI.2022.RADEC.txt"
+            )
+        euclid_contours = np.genfromtxt(contour_file, dtype=list(zip(names, types)))
+
+        wrap_ra = self.ra + 0
+        wrap_ra[np.where(wrap_ra > 180)] -= 360
+
+        polygon = Polygon(zip(euclid_contours["RA"], euclid_contours["dec"]))
+        in_poly = [polygon.contains(Point(x, y)) for x, y in zip(wrap_ra, self.dec)]
+
+        # find which map points are inside the contour
+        indx = np.where((np.array(in_poly) == True) & (self.pix_labels == ""))[0]
+        self.pix_labels[indx] = label
+        for filtername in filter_ratios:
+            self.healmaps[filtername][indx] = filter_ratios[filtername]
+
+    def return_maps(
+        self,
+        lmc_ra=89.0,
+        lmc_dec=-70,
+        magellenic_clouds_ratios={
+            "u": 0.32,
+            "g": 0.4,
+            "r": 1.0,
+            "i": 1.0,
+            "z": 0.9,
+            "y": 0.9,
+        },
+        low_dust_ratios={"u": 0.32, "g": 0.4, "r": 1.0, "i": 1.0, "z": 0.9, "y": 0.9},
+        virgo_ratios={"u": 0.32, "g": 0.4, "r": 1.0, "i": 1.0, "z": 0.9, "y": 0.9},
+        scp_ratios={"u": 0.08, "g": 0.15, "r": 0.08, "i": 0.15, "z": 0.08, "y": 0.06},
+        nes_ratios={"g": 0.23, "r": 0.33, "i": 0.33, "z": 0.23},
+        bulge_ratios={"u": 0.19, "g": 0.57, "r": 1.15, "i": 1.05, "z": 0.78, "y": 0.57},
+        dusty_plane_ratios={
+            "u": 0.07,
+            "g": 0.13,
+            "r": 0.28,
+            "i": 0.28,
+            "z": 0.25,
+            "y": 0.18,
+        },
+        euclid_ratios={"u": 0.32, "g": 0.4, "r": 1.0, "i": 1.0, "z": 0.9, "y": 0.9},
+    ):
+        """
+        Parameters:
+        various_ratios : `dict`
+            Dict with filternames for keys and floats for values that are the desired ratio
+            of observations in each filter. By conventions, I usually set the low_dust_ratios['r']=1,
+            then all the other values can be interpreted relative to that. E.g., if scp_ratios['u']=0.1, then
+            when the low_dust r has 10 visits (per pixel) the scp should have 1 vist (per pixel).
+
+        Returns
+        --------
+        self.healmaps : `np.ndarray`
+            HEALPix maps for ugrizy
+        self.pix_labels : `np.ndarray`
+            Array string labels for each HEALpix
+        """
+
+        # Array to hold the labels for each pixel
+        self.pix_labels = np.zeros(hp.nside2npix(self.nside), dtype="U20")
+        self.healmaps = np.zeros(
+            hp.nside2npix(self.nside),
+            dtype=list(zip(["u", "g", "r", "i", "z", "y"], [float] * 7)),
+        )
+
+        # Note, order here matters. Once a HEALpix is set and labled, subsequent add_ methods
+        # will not override that pixel.
+        self.add_magellanic_clouds(
+            magellenic_clouds_ratios, lmc_ra=lmc_ra, lmc_dec=lmc_dec
+        )
+        self.add_lowdust_wfd(low_dust_ratios)
+        self.add_virgo_cluster(virgo_ratios)
+        self.add_bulgy(bulge_ratios)
+        self.add_nes(nes_ratios)
+        self.add_dusty_plane(dusty_plane_ratios)
+        self.add_euclid_overlap(euclid_ratios)
         self.add_scp(scp_ratios)
 
         return self.healmaps, self.pix_labels
