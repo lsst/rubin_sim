@@ -14,6 +14,8 @@ from rubin_sim.scheduler import sim_runner
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 import rubin_sim.scheduler.detailers as detailers
 from rubin_sim.scheduler.example import example_scheduler
+from rubin_sim.data import get_data_dir
+import os
 
 SAMPLE_BIG_DATA_FILE = os.path.join(get_data_dir(), "maps/DustMaps/dust_nside_32.npz")
 

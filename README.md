@@ -85,7 +85,7 @@ Optional dependencies used by some of the more esoteric MAF functions:
 conda install -c conda-forge sncosmo sympy george
 ```
 
-Optional download all the (100 Gb) of pre-computed sky data. Only needed if you are planning to run full 10 year scheduler simulations. Not needed for MAF, etc.:
+Optional download all the (43 Gb) of pre-computed sky data. Only needed if you are planning to run full 10 year scheduler simulations. Not needed for MAF, etc.:
 ```
 rs_download_sky
 ```

@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pylab as plt
 import healpy as hp
 from rubin_sim.scheduler.schedulers import CoreScheduler
 from rubin_sim.scheduler.utils import (
@@ -13,7 +12,7 @@ from rubin_sim.scheduler.surveys import (
     BlobSurvey,
     ScriptedSurvey,
     LongGapSurvey,
-    generate_dd_surveys,
+    generate_ddf_scheduled_obs,
 )
 import rubin_sim.scheduler.detailers as detailers
 from astropy.coordinates import SkyCoord, get_sun
@@ -1205,6 +1204,7 @@ def generate_twilight_neo(
     filters="riz",
     n_repeat=4,
     sun_alt_limit=-14.8,
+    slew_estimate=4.5,
 ):
     """Generate a survey for observing NEO objects in twilight
 
@@ -1241,9 +1241,16 @@ def generate_twilight_neo(
         The number of times a blob should be repeated, default 4.
     sun_alt_limit : float (-14.8)
         Do not start unless sun is higher than this limit (degrees)
+    slew_estimate : float (4.5)
+        An estimate of how long it takes to slew between neighboring fields (seconds).
     """
     # XXX finish eliminating magic numbers and document this one
-    slew_estimate = 4.5
+    moon_distance = 30.0
+    shadow_minutes = 60.0
+    max_alt = 76.0
+    max_elong = 60.0
+    az_range = 180.0
+
     survey_name = "twilight_neo"
     footprint = ecliptic_target(nside=nside, mask=footprint_mask)
     constant_fp = ConstantFootprint()
@@ -1295,18 +1302,20 @@ def generate_twilight_neo(
         bfs.append(
             (
                 bf.ZenithShadowMaskBasisFunction(
-                    nside=nside, shadow_minutes=60.0, max_alt=76.0
+                    nside=nside, shadow_minutes=shadow_minutes, max_alt=max_alt
                 ),
                 0,
             )
         )
-        bfs.append((bf.MoonAvoidanceBasisFunction(nside=nside, moon_distance=30.0), 0))
+        bfs.append(
+            (bf.MoonAvoidanceBasisFunction(nside=nside, moon_distance=moon_distance), 0)
+        )
         bfs.append((bf.FilterLoadedBasisFunction(filternames=filtername), 0))
         bfs.append((bf.PlanetMaskBasisFunction(nside=nside), 0))
         bfs.append(
             (
                 bf.SolarElongationMaskBasisFunction(
-                    min_elong=0.0, max_elong=60.0, nside=nside
+                    min_elong=0.0, max_elong=max_elong, nside=nside
                 ),
                 0,
             )
@@ -1335,12 +1344,31 @@ def generate_twilight_neo(
                 dither=True,
                 nexp=nexp,
                 detailers=detailer_list,
-                az_range=180.0,
+                az_range=az_range,
                 twilight_scale=False,
                 area_required=area_required,
             )
         )
     return surveys
+
+
+def ddf_surveys(detailers=None, season_unobs_frac=0.2, euclid_detailers=None):
+    obs_array = generate_ddf_scheduled_obs(season_unobs_frac=season_unobs_frac)
+
+    euclid_obs = np.where(
+        (obs_array["note"] == "DD:EDFS_b") | (obs_array["note"] == "DD:EDFS_a")
+    )[0]
+    all_other = np.where(
+        (obs_array["note"] != "DD:EDFS_b") & (obs_array["note"] != "DD:EDFS_a")
+    )[0]
+
+    survey1 = ScriptedSurvey([], detailers=detailers)
+    survey1.set_script(obs_array[all_other])
+
+    survey2 = ScriptedSurvey([], detailers=euclid_detailers)
+    survey2.set_script(obs_array[euclid_obs])
+
+    return [survey1, survey2]
 
 
 def example_scheduler(
@@ -1353,7 +1381,7 @@ def example_scheduler(
     neo_night_pattern=[True, False, False, False],
     neo_filters="riz",
     neo_repeat=4,
-    ddf_season_frac=0.2,
+    ddf_season_unobs_frac=0.2,
     mjd_start=60676.0,
     nside=32,
     per_night=True,
@@ -1383,8 +1411,9 @@ def example_scheduler(
     neo_repeat : int (4)
         How many times a pointing should be repeated when taking NEO observations.
         Default 4.
-    ddf_season_frac : (0.2)
-        XXX--should be updating to a more intuitive name soon
+    ddf_season_unobs_frac : (0.2)
+        Fraction of the season where the DDF should be considered unobservable. Applied to start
+        and end of season.
     mjd_start : float (60676.0)
         The MJD to start the survey on (60676.0)
     nside : int (32)
@@ -1460,10 +1489,10 @@ def example_scheduler(
         detailers.Rottep2RotspDesiredDetailer(),
     ]
 
-    # Note, using old simple DDF rather than the pre-scheduled ones for simplicity.
-    # We could put the ddf_grid.npz in rubin_sim_data if we wanted to.
-    ddfs = generate_dd_surveys(
-        nside=nside, nexp=nexp, detailers=details, euclid_detailers=euclid_detailers
+    ddfs = ddf_surveys(
+        detailers=details,
+        season_unobs_frac=ddf_season_unobs_frac,
+        euclid_detailers=euclid_detailers,
     )
 
     greedy = gen_greedy_surveys(nside, nexp=nexp, footprints=footprints)
