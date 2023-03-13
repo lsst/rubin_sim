@@ -148,9 +148,6 @@ class HpmapCross(object):
         self.p2hp_search = Pointings2hp(nside=nside, radius=radius_search)
         self.p2hp = Pointings2hp(nside=nside, radius=radius)
         # Load up a list of pointings, chop them down to a small block
-
-        # XXX--Should write code to generate a new tellelation so we know where it came from,
-        # not just a random .dat file that's been floating around!
         ra, dec = _read_fields()
         fields = np.empty(ra.size, dtype=list(zip(["RA", "dec"], [float, float])))
         fields["RA"] = ra

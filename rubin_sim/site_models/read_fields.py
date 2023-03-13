@@ -17,7 +17,7 @@ def _read_fields(filename=None):
 
     Returns
     -------
-    ra_dec : np.array of RA,dec values in radians
+    ra, dec : np.arrays of RA,dec values in radians
     """
     if filename is None:
         filename = os.path.join(get_data_dir(), "site_models/icover.3.5292.23.0.txt")
@@ -41,7 +41,7 @@ def read_fields(filename=None):
 
     Returns
     -------
-    ra_dec : np.array of RA,dec values in degrees
+    ra, dec : np.arrays of RA,dec values in degrees
     """
     ra, dec = _read_fields(filename=filename)
     return np.degrees(ra), np.degrees(dec)
