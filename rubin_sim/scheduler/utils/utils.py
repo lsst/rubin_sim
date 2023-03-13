@@ -12,7 +12,6 @@ from rubin_sim.utils import (
     _build_tree,
     _xyz_from_ra_dec,
 )
-from rubin_sim.site_models import FieldsDatabase
 import rubin_sim.version as rsVersion
 
 __all__ = [
@@ -34,7 +33,6 @@ __all__ = [
     "gnomonic_project_toxy",
     "gnomonic_project_tosky",
     "raster_sort",
-    "read_fields",
     "run_info_table",
     "inrange",
     "season_calc",
@@ -650,29 +648,6 @@ def scheduled_observation(n=1):
     ]
     types += [float, float, float, float, float, float, bool, int]
     result = np.zeros(n, dtype=list(zip(names, types)))
-    return result
-
-
-def read_fields():
-    """Read in the Field coordinates
-
-    Returns
-    -------
-    fields : `numpy.array`
-        With RA and dec in radians.
-    """
-    query = "select fieldId, fieldRA, fieldDEC from Field;"
-    fd = FieldsDatabase()
-    fields = np.array(list(fd.get_field_set(query)))
-    # order by field ID
-    fields = fields[fields[:, 0].argsort()]
-
-    names = ["RA", "dec"]
-    types = [float, float]
-    result = np.zeros(np.size(fields[:, 1]), dtype=list(zip(names, types)))
-    result["RA"] = np.radians(fields[:, 1])
-    result["dec"] = np.radians(fields[:, 2])
-
     return result
 
 

@@ -5,10 +5,10 @@ from rubin_sim.scheduler.utils import (
     empty_observation,
     set_default_nside,
     HpInLsstFov,
-    read_fields,
     HpInComcamFov,
     comcam_tessellate,
 )
+from rubin_sim.site_models import _read_fields
 import healpy as hp
 from rubin_sim.scheduler.thomson import xyz2thetaphi, thetaphi2xyz
 from rubin_sim.scheduler.detailers import ZeroRotDetailer
@@ -309,7 +309,7 @@ class BaseMarkovSurvey(BaseSurvey):
         Should be 'LSST' or 'comcam'
     fields : np.array (None)
         An array of field positions. Should be numpy array with columns of "RA" and
-        "dec" in radians. If none, utils.read_fields or utils.comcam_tessellate is
+        "dec" in radians. If none, site_models.read_fields or utils.comcam_tessellate is
         used to read field positions.
     area_required : float (None)
         The valid area that should be present in the reward function (square degrees).
@@ -352,7 +352,12 @@ class BaseMarkovSurvey(BaseSurvey):
         # Load the OpSim field tesselation and map healpix to fields
         if fields is None:
             if self.camera == "LSST":
-                self.fields_init = read_fields()
+                ra, dec = _read_fields()
+                self.fields_init = np.empty(
+                    ra.size, dtype=list(zip(["RA", "dec"], [float, float]))
+                )
+                self.fields_init["RA"] = ra
+                self.fields_init["dec"] = dec
             elif self.camera == "comcam":
                 self.fields_init = comcam_tessellate()
             else:
