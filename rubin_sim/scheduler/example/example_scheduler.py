@@ -2,7 +2,7 @@ import numpy as np
 import healpy as hp
 from rubin_sim.scheduler.schedulers import CoreScheduler
 from rubin_sim.scheduler.utils import (
-    SkyAreaGeneratorGalplane,
+    EuclidOverlapFootprint,
     ConstantFootprint,
     make_rolling_footprints,
 )
@@ -1428,7 +1428,7 @@ def example_scheduler(
     reverse_neo_night_pattern = [not val for val in neo_night_pattern]
 
     # Create survey footprint
-    sky = SkyAreaGeneratorGalplane(nside=nside, smc_radius=4, lmc_radius=6)
+    sky = EuclidOverlapFootprint(nside=nside, smc_radius=4, lmc_radius=6)
     footprints_hp_array, labels = sky.return_maps()
 
     wfd_indx = np.where(
