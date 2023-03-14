@@ -6,34 +6,54 @@ from rubin_sim.scheduler.model_observatory import ModelObservatory
 from rubin_sim.scheduler.utils import run_info_table, restore_scheduler
 from rubin_sim.scheduler.example import example_scheduler
 from rubin_sim.scheduler import sim_runner
+import numpy as np
 
 
 class TestFeatures(unittest.TestCase):
-
     def test_restore(self):
         """Test we can restore a scheduler properly"""
         mjd_start = 60676.0
-
-        n_visit_limit = 5000
+        n_visit_limit = 3000
 
         scheduler = example_scheduler(mjd_start=mjd_start)
 
         mo = ModelObservatory(mjd_start=mjd_start)
-        mo, scheduler, observations = sim_runner(mo, scheduler, survey_length=20.0,
-                                                 verbose=True, filename=None, n_visit_limit=n_visit_limit)
+        mo, scheduler, observations = sim_runner(
+            mo,
+            scheduler,
+            survey_length=30.0,
+            verbose=True,
+            filename=None,
+            n_visit_limit=n_visit_limit,
+        )
+
+        # Won't be exact if we restart in the middle of a blob sequence, so need to restart on a new night
+        nd = np.zeros(observations.size)
+        nd[1:] = np.diff(observations["night"])
+
+        break_indx = np.min(
+            np.where((observations["ID"] >= n_visit_limit / 2.0) & (nd != 0))[0]
+        )
+        new_n_limit = n_visit_limit - break_indx
 
         new_mo = ModelObservatory(mjd_start=mjd_start)
         new_sched = example_scheduler(mjd_start=mjd_start)
 
-        # restore half the observations
-        new_sched, new_mo = restore_scheduler(n_visit_limit/2, new_sched, new_mo, observations)
-        # now simulate ahead and confirm that it behaves the same as running straight through
-        new_mo, new_sched, new_obs = sim_runner(new_mo, new_sched, survey_length=20.0,
-                                                verbose=True, filename=None, n_visit_limit=n_visit_limit/2)
-
-        import pdb ; pdb.set_trace()
-
-
+        # Restore some of the observations
+        new_sched, new_mo = restore_scheduler(
+            break_indx - 1, new_sched, new_mo, observations
+        )
+        # Simulate ahead and confirm that it behaves the same as running straight through
+        new_mo, new_sched, new_obs = sim_runner(
+            new_mo,
+            new_sched,
+            survey_length=20.0,
+            verbose=True,
+            filename=None,
+            n_visit_limit=new_n_limit,
+        )
+        # Check that observations taken after restart match those from before
+        assert np.all(new_obs == observations[break_indx:])
 
     def test_season(self):
         """

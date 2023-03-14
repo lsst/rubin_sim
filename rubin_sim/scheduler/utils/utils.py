@@ -164,7 +164,7 @@ def restore_scheduler(
     observations = observations[good_obs]
 
     # replay the observations back into the scheduler
-    # In the future, may be able to replace this with a 
+    # In the future, may be able to replace this with a
     # faster .add_observations_array method.
     for obs in observations:
         scheduler.add_observation(obs)
@@ -187,6 +187,7 @@ def restore_scheduler(
     observatory.mjd = (
         obs["mjd"] + observatory.observatory.visit_time(obs) / 3600.0 / 24.0
     )
+    observatory.obs_id_counter = obs["ID"] + 1
     observatory.observatory.parked = False
     observatory.observatory.current_ra_rad = obs["RA"]
     observatory.observatory.current_dec_rad = obs["dec"]
