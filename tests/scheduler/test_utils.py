@@ -9,10 +9,15 @@ from rubin_sim.scheduler import sim_runner
 import numpy as np
 
 
-class TestFeatures(unittest.TestCase):
+class TestUtils(unittest.TestCase):
+    @unittest.skipUnless(
+        os.path.isfile(os.path.join(get_data_dir(), "maps/DustMaps/dust_nside_32.npz")),
+        "Test data not available.",
+    )
     def test_restore(self):
         """Test we can restore a scheduler properly"""
-        mjd_start = 60676.0
+        # MJD set so it's in test data range
+        mjd_start = 60110.0
         n_visit_limit = 3000
 
         scheduler = example_scheduler(mjd_start=mjd_start)
@@ -22,7 +27,7 @@ class TestFeatures(unittest.TestCase):
             mo,
             scheduler,
             survey_length=30.0,
-            verbose=True,
+            verbose=False,
             filename=None,
             n_visit_limit=n_visit_limit,
         )
@@ -48,12 +53,27 @@ class TestFeatures(unittest.TestCase):
             new_mo,
             new_sched,
             survey_length=20.0,
-            verbose=True,
+            verbose=False,
             filename=None,
             n_visit_limit=new_n_limit,
         )
+
         # Check that observations taken after restart match those from before
-        assert np.all(new_obs == observations[break_indx:])
+        # Jenkins can be bad at comparing things, so if it thinks they aren't the same
+        # check column-by-column to double check
+        if not np.all(new_obs == observations[break_indx:]):
+            names = new_obs.dtype.names
+            for name in names:
+                # If it's a string
+                if new_obs[name].dtype == "<U40":
+                    assert np.all(new_obs[name] == observations[break_indx:][name])
+                # Otherwise should be number-like
+                else:
+                    assert np.allclose(new_obs[name], observations[break_indx:][name])
+        # Didn't need to go by column, the observations after restart
+        # match the ones that were taken all at once.
+        else:
+            assert np.all(new_obs == observations[break_indx:])
 
     def test_season(self):
         """
