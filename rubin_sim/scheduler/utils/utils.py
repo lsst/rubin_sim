@@ -136,7 +136,7 @@ def set_default_nside(nside=None):
 
 
 def restore_scheduler(
-    observation_id, scheduler, observatory, filename, filter_sched=None
+    observation_id, scheduler, observatory, in_obs, filter_sched=None
 ):
     """Put the scheduler and observatory in the state they were in. Handy for checking reward fucnction
 
@@ -148,19 +148,24 @@ def restore_scheduler(
         Scheduler object.
     observatory : rubin_sim.scheduler.observatory.Model_observatory
         The observaotry object
-    filename : str
-        The output sqlite dayabase to use
+    in_obs : np.array or str
+        Array of observation, or path to sqlite database to restore from
     filter_sched : rubin_sim.scheduler.scheduler object
         The filter scheduler. Note that we don't look up the official end of the previous night,
         so there is potential for the loaded filters to not match.
     """
-    sc = SchemaConverter()
-    # load up the observations
-    observations = sc.opsim2obs(filename)
+    if type(in_obs) == str:
+        sc = SchemaConverter()
+        # load up the observations
+        observations = sc.opsim2obs(in_obs)
+    else:
+        observations = in_obs
     good_obs = np.where(observations["ID"] <= observation_id)[0]
     observations = observations[good_obs]
 
     # replay the observations back into the scheduler
+    # In the future, may be able to replace this with a 
+    # faster .add_observations_array method.
     for obs in observations:
         scheduler.add_observation(obs)
         if filter_sched is not None:
@@ -183,9 +188,9 @@ def restore_scheduler(
         obs["mjd"] + observatory.observatory.visit_time(obs) / 3600.0 / 24.0
     )
     observatory.observatory.parked = False
-    observatory.observatory.current_RA_rad = obs["RA"]
+    observatory.observatory.current_ra_rad = obs["RA"]
     observatory.observatory.current_dec_rad = obs["dec"]
-    observatory.observatory.current_rotSkyPos_rad = obs["rotSkyPos"]
+    observatory.observatory.current_rot_sky_pos_rad = obs["rotSkyPos"]
     observatory.observatory.cumulative_azimuth_rad = obs["cummTelAz"]
     observatory.observatory.mounted_filters = filters_needed
     # Note that we haven't updated last_az_rad, etc, but those values should be ignored.
