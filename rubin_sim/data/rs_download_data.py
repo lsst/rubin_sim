@@ -22,7 +22,7 @@ def data_dict():
         "orbits": "orbits_2022_3_1.tgz",
         "scheduler": "scheduler_2023_03_09.tgz",
         "sim_baseline": "sim_baseline_2023_01_18.tgz",
-        "site_models": "site_models_may_2021.tgz",
+        "site_models": "site_models_2023_03_13.tgz",
         "skybrightness": "skybrightness_may_2021.tgz",
         "skybrightness_pre": "skybrightness_pre_2022_5_18.tgz",
         "throughputs": "throughputs_aug_2021.tgz",

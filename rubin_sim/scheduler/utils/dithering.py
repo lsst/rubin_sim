@@ -1,7 +1,8 @@
 import numpy as np
 import healpy as hp
 from scipy.optimize import minimize
-from .utils import hp_kd_tree, set_default_nside, read_fields
+from .utils import hp_kd_tree, set_default_nside
+from rubin_sim.site_models import _read_fields
 from rubin_sim.utils import _hpid2_ra_dec, _xyz_angular_radius, _xyz_from_ra_dec
 
 default_nside = set_default_nside()
@@ -147,10 +148,10 @@ class HpmapCross(object):
         self.p2hp_search = Pointings2hp(nside=nside, radius=radius_search)
         self.p2hp = Pointings2hp(nside=nside, radius=radius)
         # Load up a list of pointings, chop them down to a small block
-
-        # XXX--Should write code to generate a new tellelation so we know where it came from,
-        # not just a random .dat file that's been floating around!
-        fields = read_fields()
+        ra, dec = _read_fields()
+        fields = np.empty(ra.size, dtype=list(zip(["RA", "dec"], [float, float])))
+        fields["RA"] = ra
+        fields["dec"] = dec
         good = np.where(
             (fields["RA"] > np.radians(360.0 - 15.0))
             | (fields["RA"] < np.radians(15.0))

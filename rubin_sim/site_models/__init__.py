@@ -6,4 +6,4 @@ from .cloud_model import *
 from .downtime_model import *
 from .scheduled_downtime_data import *
 from .unscheduled_downtime_data import *
-from .fields_database import *
+from .read_fields import *

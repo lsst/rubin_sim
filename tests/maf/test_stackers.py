@@ -1,4 +1,3 @@
-import os
 import numpy as np
 import matplotlib
 import warnings
@@ -11,8 +10,6 @@ from rubin_sim.utils import (
     _alt_az_pa_from_ra_dec,
     ObservationMetaData,
 )
-from rubin_sim.site_models import FieldsDatabase
-from rubin_sim.data import get_data_dir
 
 matplotlib.use("Agg")
 
