@@ -149,7 +149,8 @@ def restore_scheduler(
     observatory : rubin_sim.scheduler.observatory.Model_observatory
         The observaotry object
     in_obs : np.array or str
-        Array of observation, or path to sqlite database to restore from
+        Array of observations (formated like rubin_sim.scheduler.empty_observation). If a string,
+        assumed to be a file and SchemaConverter is used to load it.
     filter_sched : rubin_sim.scheduler.scheduler object
         The filter scheduler. Note that we don't look up the official end of the previous night,
         so there is potential for the loaded filters to not match.
@@ -193,6 +194,7 @@ def restore_scheduler(
     observatory.observatory.current_dec_rad = obs["dec"]
     observatory.observatory.current_rot_sky_pos_rad = obs["rotSkyPos"]
     observatory.observatory.cumulative_azimuth_rad = obs["cummTelAz"]
+    observatory.observatory.current_filter = obs["filter"]
     observatory.observatory.mounted_filters = filters_needed
     # Note that we haven't updated last_az_rad, etc, but those values should be ignored.
 

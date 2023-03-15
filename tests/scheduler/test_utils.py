@@ -32,7 +32,11 @@ class TestUtils(unittest.TestCase):
             n_visit_limit=n_visit_limit,
         )
 
-        # Won't be exact if we restart in the middle of a blob sequence, so need to restart on a new night
+        # Won't be exact if we restart in the middle of a blob sequence since the
+        # queue isn't reconstructed. Also, any scripted observations that get generated
+        # during the night (e.g., long gaps observations) will get lost,
+        # so need to restart on a new night to ensure identical results.
+
         nd = np.zeros(observations.size)
         nd[1:] = np.diff(observations["night"])
 
