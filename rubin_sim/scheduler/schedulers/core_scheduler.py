@@ -284,11 +284,12 @@ class CoreScheduler(object):
 
         survey = self.survey_lists[survey_index[0]][survey_index[1]]
         basis_funcs = OrderedDict()
-        for basis_func in survey.basis_functions:
-            sample_values = basis_func(conditions)
-            if hasattr(sample_values, "__len__"):
-                key = f"{basis_func.__class__.__name__} @{id(basis_func)}"
-                basis_funcs[key] = basis_func
+        if hasattr(survey, "basis_functions"):
+            for basis_func in survey.basis_functions:
+                sample_values = basis_func(conditions)
+                if hasattr(sample_values, "__len__"):
+                    key = f"{basis_func.__class__.__name__} @{id(basis_func)}"
+                    basis_funcs[key] = basis_func
         return basis_funcs
 
     def get_healpix_maps(self, survey_index=None, conditions=None):
@@ -445,6 +446,8 @@ class CoreScheduler(object):
         for survey_list_elem, survey in enumerate(survey_list):
             if (self.survey_index[0] is None) or (tier > self.survey_index[0]):
                 # This survey reward was not been evaluated
+                reward = None
+            elif not hasattr(survey, "reward"):
                 reward = None
             elif survey.reward is None:
                 reward = None
