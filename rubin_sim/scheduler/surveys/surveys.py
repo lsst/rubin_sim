@@ -269,9 +269,9 @@ class BlobSurvey(GreedySurvey):
         if survey_name == "":
             self.survey_name = f"Blob survey {filtername1}"
             if filtername2 is None:
-                self.survey_name = f"{survey_name}_{filtername1}"
+                self.survey_name = f"{self.survey_name}_{filtername1}"
             else:
-                self.survey_name = f"{survey_name}_{filtername2}"
+                self.survey_name = f"{self.survey_name}_{filtername2}"
         else:
             self.survey_name = survey_name
 
