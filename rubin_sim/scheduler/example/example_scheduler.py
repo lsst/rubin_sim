@@ -19,6 +19,7 @@ from astropy.coordinates import SkyCoord, get_sun
 from astropy.time import Time
 from astropy import units as u
 from rubin_sim.utils import _hpid2_ra_dec
+import warnings
 
 
 __all__ = ["example_scheduler"]
@@ -277,7 +278,9 @@ def blob_for_long(
         bfs.append((bf.PlanetMaskBasisFunction(nside=nside), 0.0))
         bfs.append((bf.AfterEveningTwiBasisFunction(time_after=time_after_twi), 0.0))
         # XXX--move kwargs up
-        bfs.append((bf.HaMaskBasisFunction(ha_min=HA_min, ha_max=HA_max), 0.0))
+        bfs.append(
+            (bf.HaMaskBasisFunction(ha_min=HA_min, ha_max=HA_max, nside=nside), 0.0)
+        )
         # don't execute every night
         bfs.append((bf.NightModuloBasisFunction(night_pattern), 0.0))
 
@@ -1253,7 +1256,7 @@ def generate_twilight_neo(
 
     survey_name = "twilight_neo"
     footprint = ecliptic_target(nside=nside, mask=footprint_mask)
-    constant_fp = ConstantFootprint()
+    constant_fp = ConstantFootprint(nside=nside)
     for filtername in filters:
         constant_fp.set_footprint(filtername, footprint)
 
@@ -1424,6 +1427,11 @@ def example_scheduler(
         Limit for how far to rotationally dither DDF fields (degrees)
 
     """
+
+    if nside < 32:
+        warnings.warn(
+            "nside < 32 is lower resolution than the field of view, scheduler may perform poorly."
+        )
 
     reverse_neo_night_pattern = [not val for val in neo_night_pattern]
 
