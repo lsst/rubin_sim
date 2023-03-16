@@ -27,7 +27,7 @@ from astropy.time import Time
 from rubin_sim.scheduler.model_observatory import KinemModel
 from rubin_sim.data import data_versions
 
-__all__ = ["ModelObservatory"]
+__all__ = ["ModelObservatory", "NoClouds", "NominalSeeing"]
 
 
 class NoClouds(object):
