@@ -254,7 +254,7 @@ class CoreScheduler(object):
             self.queue = result
 
         if len(self.queue) == 0:
-            self.log.warning("Failed to fill queue")
+            self.log.warning(f"Failed to fill queue at time {self.conditions.mjd}")
 
     def get_basis_functions(self, survey_index=None, conditions=None):
         """Get the basis functions for a specific survey, in provided conditions.
