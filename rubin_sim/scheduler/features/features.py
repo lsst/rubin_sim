@@ -6,6 +6,7 @@ from rubin_sim.scheduler import utils
 from rubin_sim.utils import m5_flat_sed, ra_dec2_hpid, calc_season, _hpid2_ra_dec
 from rubin_sim.skybrightness_pre import dark_sky
 from rubin_sim.scheduler.utils import IntRounded
+from scipy.stats import binned_statistic
 
 
 __all__ = [
@@ -49,6 +50,11 @@ class BaseSurveyFeature(BaseFeature):
     Feature that tracks progreess of the survey. Takes observations and updates self.feature
     """
 
+    def add_observations_array(self, observations_array, observations_hpid):
+        """ """
+        print(self)
+        raise NotImplementedError
+
     def add_observation(self, observation, indx=None, **kwargs):
         """
         Parameters
@@ -90,7 +96,15 @@ class NObsCount(BaseSurveyFeature):
     def __init__(self, filtername=None, tag=None):
         self.feature = 0
         self.filtername = filtername
+        # XXX--is "tag" actually used anywhere? Maybe should remove that.
         self.tag = tag
+
+    def add_observations_array(self, observations_array, observations_hpid):
+        if self.filtername is None:
+            self.feature += np.size(observations_array)
+        else:
+            in_filt = np.where(observations_array["filter"] == self.filter)[0]
+            self.feature += np.size(in_filt)
 
     def add_observation(self, observation, indx=None):
         if (self.filtername is None) and (self.tag is None):
@@ -227,6 +241,14 @@ class LastObservation(BaseSurveyFeature):
         # Start out with an empty observation
         self.feature = utils.empty_observation()
 
+    def add_observations_array(self, observations_array, observations_hpid):
+        if self.survey_name is not None:
+            good = np.where(observations_array["note"] == self.survey_name)[0]
+            if np.size(good) < 0:
+                self.feature = observations_array[good[-1]]
+        else:
+            self.feature = observations_array[-1]
+
     def add_observation(self, observation, indx=None):
         if self.survey_name is not None:
             if self.survey_name in observation["note"]:
@@ -275,19 +297,32 @@ class NObservations(BaseSurveyFeature):
         String or list that has all the filters that can count.
     nside : int (32)
         The nside of the healpixel map to use
-    mask_indx : list of ints (None)
-        List of healpixel indices to mask and interpolate over
 
     """
 
-    def __init__(self, filtername=None, nside=None, mask_indx=None, survey_name=None):
+    def __init__(self, filtername=None, nside=None, survey_name=None):
         if nside is None:
             nside = utils.set_default_nside()
 
         self.feature = np.zeros(hp.nside2npix(nside), dtype=float)
         self.filtername = filtername
-        self.mask_indx = mask_indx
         self.survey_name = survey_name
+        self.bins = np.arange(hp.nside2npix(nside) + 1) - 0.5
+
+    def add_observations_array(self, observations_array, observations_hpid):
+        valid_indx = np.ones(observations_hpid.size, dtype=bool)
+        if self.filtername is not None:
+            valid_indx[
+                np.where(observations_hpid["filter"] != self.filtername)[0]
+            ] = False
+        if self.survey_name is not None:
+            tmp = [name in self.survey_name for name in observations_hpid["note"]]
+            valid_indx = valid_indx * np.array(tmp)
+        data = observations_hpid[valid_indx]
+        result, _be, _bn = binned_statistic(
+            data["hpid"], np.ones(data.size), statistic="sum", bins=self.bins
+        )
+        self.feature += result
 
     def add_observation(self, observation, indx=None):
         """
@@ -300,14 +335,6 @@ class NObservations(BaseSurveyFeature):
         if self.filtername is None or observation["filter"][0] in self.filtername:
             if self.survey_name is None or observation["note"] in self.survey_name:
                 self.feature[indx] += 1
-
-        if self.mask_indx is not None:
-            overlap = np.intersect1d(indx, self.mask_indx)
-            if overlap.size > 0:
-                # interpolate over those pixels that are DD fields.
-                # XXX.  Do I need to kdtree this? Maybe make a dict on init
-                # to lookup the N closest non-masked pixels, then do weighted average.
-                pass
 
 
 class NObservationsSeason(BaseSurveyFeature):
@@ -372,6 +399,17 @@ class NObservationsSeason(BaseSurveyFeature):
                 self.feature[indx] += 1
 
 
+class LargestN:
+    def __init__(self, n):
+        self.n = n
+
+    def __call__(self, in_arr):
+        if np.size(in_arr) < self.n:
+            return -1
+        result = in_arr[-self.n]
+        return result
+
+
 class LastNObsTimes(BaseSurveyFeature):
     """Record the last three observations for each healpixel"""
 
@@ -381,6 +419,24 @@ class LastNObsTimes(BaseSurveyFeature):
         if nside is None:
             nside = utils.set_default_nside()
         self.feature = np.zeros((n_obs, hp.nside2npix(nside)), dtype=float)
+        self.bins = np.arange(hp.nside2npix(nside) + 1) - 0.5
+
+    def add_observations_array(self, observations_array, observations_hpid):
+        # Assumes we're already sorted on mjd
+        valid_indx = np.ones(observations_hpid.size, dtype=bool)
+        if self.filtername is not None:
+            valid_indx[
+                np.where(observations_hpid["filter"] != self.filtername)[0]
+            ] = False
+        data = observations_hpid[valid_indx]
+
+        for i in range(1, self.n_obs + 1):
+            func = LargestN(i)
+            result, _be, _bn = binned_statistic(
+                data["hpid"], data["mjd"], statistic=func, bins=self.bins
+            )
+            # some_vals = np.where(np.sum(result, axis=1) > 0)[0]
+            self.feature[-i, :] = result
 
     def add_observation(self, observation, indx=None):
         if self.filtername is None or observation["filter"][0] in self.filtername:
@@ -413,6 +469,7 @@ class NObservationsCurrentSeason(BaseSurveyFeature):
         self.ones = np.ones(hp.nside2npix(self.nside))
         self.ra, self.dec = _hpid2_ra_dec(nside, np.arange(hp.nside2npix(nside)))
         self.season_map = calc_season(np.degrees(self.ra), mjd_start)
+        self.bins = np.arange(hp.nside2npix(nside) + 1) - 0.5
 
     def season_update(self, observation=None, conditions=None):
         """clear the map anywhere the season has rolled over"""
@@ -425,6 +482,45 @@ class NObservationsCurrentSeason(BaseSurveyFeature):
         new_season = np.where((self.season_map - current_season) != 0)
         self.feature[new_season] = 0
         self.season_map = current_season
+
+    def add_observations_array(self, observations_array, observations_hpid):
+        self.season_update(observation=observations_array[-1])
+
+        check1 = np.zeros(observations_array.size, dtype=bool)
+        if self.seeing_fwhm_max is not None:
+            check1[
+                np.where(observations_array["FWHMeff"] <= self.seeing_fwhm_max)
+            ] = True
+        else:
+            check1[:] = True
+
+        check2 = np.zeros(observations_array.size, dtype=bool)
+        if self.m5_penalty_max is not None:
+            hpid = ra_dec2_hpid(
+                self.nside, observations_array["RA"], observations_array["dec"]
+            )
+            penalty = self.dark_map[hpid] - observations_array["fivesigmadepth"]
+            check2[np.where(penalty <= self.m5_penalty_max)] = True
+        else:
+            check2[:] = True
+
+        if self.filtername is None:
+            check3 = np.zeros(observations_array.size, dtype=bool)
+            check3[np.where(observations_array["filter"] == self.filter)] = True
+        else:
+            check3 = np.ones(observations_array.size, dtype=bool)
+
+        good_ids = observations_array[check1 & check2 % check3]["ID"]
+
+        indx = np.in1d(observations_hpid["ID"], observations_array["ID"][good_ids])
+
+        result, _be, _bn = binned_statistic(
+            observations_hpid["hpid"][indx],
+            observations_hpid["hpid"][indx],
+            bins=self.bins,
+            statistic=np.size,
+        )
+        self.feature += result
 
     def add_observation(self, observation, indx=None):
         self.season_update(observation=observation)
@@ -493,6 +589,22 @@ class LastObserved(BaseSurveyFeature):
 
         self.filtername = filtername
         self.feature = np.zeros(hp.nside2npix(nside), dtype=float) + fill
+        self.bins = np.arange(hp.nside2npix(nside) + 1) - 0.5
+
+    def add_observations_array(self, observations_array, observations_hpid):
+        # Assumes we're already sorted on mjd
+        valid_indx = np.ones(observations_hpid.size, dtype=bool)
+        if self.filtername is not None:
+            valid_indx[
+                np.where(observations_hpid["filter"] != self.filtername)[0]
+            ] = False
+        data = observations_hpid[valid_indx]
+
+        result, _be, _bn = binned_statistic(
+            data["hpid"], data["mjd"], statistic=np.max, bins=self.bins
+        )
+        good = np.where(result > 0)
+        self.feature[good] = result[good]
 
     def add_observation(self, observation, indx=None):
         if self.filtername is None:
@@ -581,6 +693,20 @@ class PairInNight(BaseSurveyFeature):
         # Need to keep a full record of times and healpixels observed in a night.
         self.mjd_log = []
         self.hpid_log = []
+
+    def add_observations_array(self, observations_array, observations_hpid):
+        # ok, let's just find the largest night and toss all those in one at a time
+        most_recent_night = np.where(
+            observations_hpid["night"] == np.max(observations_hpid["night"])
+        )[0]
+        obs_hpid = observations_hpid[most_recent_night]
+        uid = np.unique(obs_hpid["ID"])
+        for ind_id in uid:
+            # maybe a faster searchsorted way to do this, but it'll work for now
+            good = np.where(obs_hpid["ID"] == ind_id)[0]
+            self.add_observation(
+                observations_hpid[good][0], observations_hpid[good]["hpid"]
+            )
 
     def add_observation(self, observation, indx=None):
         if self.filtername is None:

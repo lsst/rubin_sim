@@ -97,6 +97,30 @@ class CoreScheduler(object):
         self.queue = []
         self.survey_index = [None, None]
 
+    def add_observations_array(self, obs):
+        lol_hpids = self.pointing2hpindx(obs['RA'], obs['dec'])
+        hpids = []
+        big_array_indx = []
+        for i, indxs in enumerate(lol_hpids):
+            for indx in indxs:
+                hpids.append(indx)
+                big_array_indx.append(i)
+        hpids = np.array(hpids, dtype=[("hpid", int)])
+        names = list(obs.dtype.names)
+        types = [obs[name].dtype for name in names]
+
+        names.append(hpids.dtype.names[0])
+        types.append(hpids['hpid'].dtype)
+        ndt = list(zip(names, types))
+
+        obs_array_hpid = np.empty(hpids.size, dtype=ndt)
+        obs_array_hpid[list(obs.dtype.names)] = obs[big_array_indx]
+        obs_array_hpid[hpids.dtype.names[0]] = hpids
+
+        for surveys in self.survey_lists:
+            for survey in surveys:
+                survey.add_observations_array(obs, obs_array_hpid)
+
     def add_observation(self, observation):
         """
         Record a completed observation and update features accordingly.

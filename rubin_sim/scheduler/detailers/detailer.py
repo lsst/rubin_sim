@@ -38,6 +38,14 @@ class BaseDetailer(object):
         self.survey_features = {}
         self.nside = nside
 
+    def add_observations_array(self, observations_array, observations_hpid):
+        """Like add_observation, but for loading a whole array of observations at a time"""
+
+        for feature in self.survey_features:
+            self.survey_features[feature].add_observations_array(
+                observations_array, observations_hpid
+            )
+
     def add_observation(self, observation, indx=None):
         """
         Parameters

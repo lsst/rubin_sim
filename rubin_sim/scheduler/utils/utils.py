@@ -136,7 +136,7 @@ def set_default_nside(nside=None):
 
 
 def restore_scheduler(
-    observation_id, scheduler, observatory, in_obs, filter_sched=None
+    observation_id, scheduler, observatory, in_obs, filter_sched=None, fast=True
 ):
     """Put the scheduler and observatory in the state they were in. Handy for checking reward fucnction
 
@@ -167,12 +167,19 @@ def restore_scheduler(
     # replay the observations back into the scheduler
     # In the future, may be able to replace this with a
     # faster .add_observations_array method.
-    for obs in observations:
-        scheduler.add_observation(obs)
-        if filter_sched is not None:
-            filter_sched.add_observation(obs)
+
+    if fast:
+        scheduler.add_observations_array(observations)
+        obs = in_obs[-1]
+    else:
+        for obs in observations:
+            scheduler.add_observation(obs)
 
     if filter_sched is not None:
+        # We've assumed the filter scheduler doesn't have any filters
+        # May need to call the add_observation method on it if that
+        # changes.
+
         # Make sure we have mounted the right filters for the night
         # XXX--note, this might not be exact, but should work most of the time.
         mjd_start_night = np.min(
