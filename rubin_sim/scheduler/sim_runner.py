@@ -116,7 +116,8 @@ def sim_runner(
     print("Completed %i observations" % len(observations))
     print("ran in %i min = %.1f hours" % (runtime / 60.0, runtime / 3600.0))
     if len(observations) > 0:
-        print("Writing results to ", filename)
+        if filename is not None:
+            print("Writing results to ", filename)
         observations = np.array(observations)[:, 0]
         if filename is not None:
             info = run_info_table(observatory, extra_info=extra_info)
