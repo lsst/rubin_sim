@@ -62,6 +62,7 @@ def gen_greedy_surveys(nside):
                 filtername=filtername,
                 dither=True,
                 nside=nside,
+                survey_name="greedy",
             )
         )
     return surveys
@@ -194,7 +195,7 @@ class TestFeatures(unittest.TestCase):
         )
 
         # Check that greedy observed some
-        assert "" in observations["note"]
+        assert "greedy" in observations["note"]
         # Make sure lots of observations executed
         assert observations.size > 1000
         # Make sure nothing tried to look through the earth
@@ -223,12 +224,12 @@ class TestFeatures(unittest.TestCase):
         observatory, scheduler, observations = sim_runner(
             observatory, scheduler, survey_length=survey_length, filename=None
         )
-
+        print(np.unique(observations["note"]))
         # Make sure some blobs executed
         assert "blob, gg, b" in observations["note"]
         assert "blob, gg, a" in observations["note"]
         # Make sure some greedy executed
-        assert "" in observations["note"]
+        assert "greedy" in observations["note"]
         # Make sure lots of observations executed
         assert observations.size > 1000
         # Make sure nothing tried to look through the earth
@@ -262,7 +263,7 @@ class TestFeatures(unittest.TestCase):
         assert "blob, gg, b" in observations["note"]
         assert "blob, gg, a" in observations["note"]
         # Make sure some greedy executed
-        assert "" in observations["note"]
+        assert "greedy" in observations["note"]
         # Make sure lots of observations executed
         assert observations.size > 1000
         # Make sure nothing tried to look through the earth

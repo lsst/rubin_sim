@@ -1,6 +1,5 @@
 import numpy as np
 from rubin_sim.utils import (
-    _hpid2_ra_dec,
     _ra_dec2_hpid,
     Site,
     calc_lmst_last,
@@ -24,13 +23,11 @@ from rubin_sim.scheduler.features import Conditions
 from rubin_sim.scheduler.utils import set_default_nside, create_season_offset
 from astropy.coordinates import EarthLocation
 from astropy.time import Time
-import warnings
-import matplotlib.pylab as plt
-from importlib import import_module
+
 from rubin_sim.scheduler.model_observatory import KinemModel
 from rubin_sim.data import data_versions
 
-__all__ = ["ModelObservatory"]
+__all__ = ["ModelObservatory", "NoClouds", "NominalSeeing"]
 
 
 class NoClouds(object):

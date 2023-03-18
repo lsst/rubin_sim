@@ -47,6 +47,9 @@ class GreedySurvey(BaseMarkovSurvey):
     ):
         extra_features = {}
 
+        if survey_name == "":
+            survey_name = f"Greedy {filtername}"
+
         super(GreedySurvey, self).__init__(
             basis_functions=basis_functions,
             basis_weights=basis_weights,
@@ -185,6 +188,7 @@ class BlobSurvey(GreedySurvey):
         grow_blob=True,
         area_required=None,
         fields=None,
+        survey_name="",
     ):
         super(BlobSurvey, self).__init__(
             basis_functions=basis_functions,
@@ -261,6 +265,15 @@ class BlobSurvey(GreedySurvey):
         # If we are only using one filter, this could be useful
         if (self.filtername2 is None) | (self.filtername1 == self.filtername2):
             self.filtername = self.filtername1
+
+        if survey_name == "":
+            self.survey_name = f"Blob survey {filtername1}"
+            if filtername2 is None:
+                self.survey_name = f"{self.survey_name}_{filtername1}"
+            else:
+                self.survey_name = f"{self.survey_name}_{filtername2}"
+        else:
+            self.survey_name = survey_name
 
     def _check_feasibility(self, conditions):
         """

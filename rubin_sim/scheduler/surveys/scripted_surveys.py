@@ -32,6 +32,7 @@ class ScriptedSurvey(BaseSurvey):
         detailers=None,
         id_start=1,
         return_n_limit=100,
+        survey_name="",
     ):
         """"""
         if nside is None:
@@ -48,6 +49,7 @@ class ScriptedSurvey(BaseSurvey):
             ignore_obs=ignore_obs,
             nside=nside,
             detailers=detailers,
+            survey_name=survey_name,
         )
         self.clear_script()
 
@@ -232,6 +234,7 @@ class PairsSurveyScripted(ScriptedSurvey):
         moon_distance=30.0,
         max_slew_to_pair=15.0,
         nside=None,
+        survey_name="",
     ):
         """
         Parameters
@@ -252,6 +255,7 @@ class PairsSurveyScripted(ScriptedSurvey):
             min_alt=min_alt,
             max_alt=max_alt,
             nside=nside,
+            survey_name=survey_name,
         )
 
         self.lat = np.radians(lat)

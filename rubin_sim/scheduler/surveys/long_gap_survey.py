@@ -56,6 +56,7 @@ class LongGapSurvey(BaseSurvey):
         night_max=50000,
         avoid_zenith=True,
         hour_step=0.5,
+        survey_name="",
     ):
         self.blob_survey = blob_survey
         self.scripted_survey = scripted_survey
@@ -65,6 +66,13 @@ class LongGapSurvey(BaseSurvey):
         self.gaps = rng.uniform(self.gap_range.min(), self.gap_range.max(), night_max)
         self.gap = 0.0
         self.long_name = long_name
+        if survey_name == "":
+            self.survey_name = (
+                f"Long Gap ({self.blob_survey.survey_name} +"
+                f" {self.scripted_survey.survey_name})"
+            )
+        else:
+            self.survey_name = survey_name
         self.scripted_tol = scripted_tol / 24.0  # To days
         self.alt_min = np.radians(alt_min)
         self.alt_max = np.radians(alt_max)

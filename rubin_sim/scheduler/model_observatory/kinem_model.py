@@ -659,6 +659,6 @@ class KinemModel(object):
         visit_time = self.visit_time(observation)
         # Compute any overhead that is left over from this
         if ~np.isnan(slewtime):
-            self.overhead = np.max([self.readtime, self.shutter_stall(observation)])
+            self.overhead = np.maximum(self.readtime, self.shutter_stall(observation))
 
         return slewtime, visit_time
