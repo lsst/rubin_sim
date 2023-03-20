@@ -53,6 +53,39 @@ class ScriptedSurvey(BaseSurvey):
         )
         self.clear_script()
 
+    def add_observations_array(self, observations_array_in, observations_hpid_in):
+        if self.obs_wanted is not None:
+            # toss out things that should be ignored
+            to_ignore = np.in1d(observations_array_in["note"], self.ignore_obs)
+            observations_array = observations_array_in[~to_ignore]
+
+            good = np.in1d(observations_hpid_in["ID"], observations_array["ID"])
+            observations_hpid = observations_hpid_in[good]
+
+            for feature in self.extra_features:
+                self.extra_features[feature].add_observations_array(
+                    observations_array, observations_hpid
+                )
+            for bf in self.extra_basis_functions:
+                self.extra_basis_functions[bf].add_observations_array(
+                    observations_array, observations_hpid
+                )
+            for bf in self.basis_functions:
+                bf.add_observations_array(observations_array, observations_hpid)
+            for detailer in self.detailers:
+                detailer.add_observations_array(observations_array, observations_hpid)
+
+            # If scripted_id, note, and filter match, then consider the observation completed.
+            completed = np.char.add(observations_array["scripted_id"].astype(str), observations_array["note"])
+            completed = np.char.add(completed, observations_array["filter"])
+
+            wanted = np.char.add(self.obs_wanted["scripted_id"].astype(str), self.obs_wanted["note"])
+            wanted = np.char.add(wanted, self.obs_wanted["filter"])
+
+            indx = np.in1d(wanted, completed)
+            self.obs_wanted["observed"][indx] = True
+            self.scheduled_obs = self.obs_wanted["mjd"][~self.obs_wanted["observed"]]
+
     def add_observation(self, observation, indx=None, **kwargs):
         """Check if observation matches a scripted observation"""
         if self.obs_wanted is not None:

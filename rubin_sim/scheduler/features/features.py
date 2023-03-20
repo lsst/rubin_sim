@@ -319,10 +319,11 @@ class NObservations(BaseSurveyFeature):
             tmp = [name in self.survey_name for name in observations_hpid["note"]]
             valid_indx = valid_indx * np.array(tmp)
         data = observations_hpid[valid_indx]
-        result, _be, _bn = binned_statistic(
-            data["hpid"], np.ones(data.size), statistic="sum", bins=self.bins
-        )
-        self.feature += result
+        if np.size(data) > 0:
+            result, _be, _bn = binned_statistic(
+                data["hpid"], np.ones(data.size), statistic=np.sum, bins=self.bins
+            )
+            self.feature += result
 
     def add_observation(self, observation, indx=None):
         """
@@ -430,13 +431,14 @@ class LastNObsTimes(BaseSurveyFeature):
             ] = False
         data = observations_hpid[valid_indx]
 
-        for i in range(1, self.n_obs + 1):
-            func = LargestN(i)
-            result, _be, _bn = binned_statistic(
-                data["hpid"], data["mjd"], statistic=func, bins=self.bins
-            )
-            # some_vals = np.where(np.sum(result, axis=1) > 0)[0]
-            self.feature[-i, :] = result
+        if np.size(data) > 0:
+            for i in range(1, self.n_obs + 1):
+                func = LargestN(i)
+                result, _be, _bn = binned_statistic(
+                    data["hpid"], data["mjd"], statistic=func, bins=self.bins
+                )
+                # some_vals = np.where(np.sum(result, axis=1) > 0)[0]
+                self.feature[-i, :] = result
 
     def add_observation(self, observation, indx=None):
         if self.filtername is None or observation["filter"][0] in self.filtername:
@@ -600,11 +602,12 @@ class LastObserved(BaseSurveyFeature):
             ] = False
         data = observations_hpid[valid_indx]
 
-        result, _be, _bn = binned_statistic(
-            data["hpid"], data["mjd"], statistic=np.max, bins=self.bins
-        )
-        good = np.where(result > 0)
-        self.feature[good] = result[good]
+        if np.size(data) > 0:
+            result, _be, _bn = binned_statistic(
+                data["hpid"], data["mjd"], statistic=np.max, bins=self.bins
+            )
+            good = np.where(result > 0)
+            self.feature[good] = result[good]
 
     def add_observation(self, observation, indx=None):
         if self.filtername is None:

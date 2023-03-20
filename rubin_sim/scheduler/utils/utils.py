@@ -170,7 +170,7 @@ def restore_scheduler(
 
     if fast:
         scheduler.add_observations_array(observations)
-        obs = in_obs[-1]
+        obs = observations[-1]
     else:
         for obs in observations:
             scheduler.add_observation(obs)

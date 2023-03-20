@@ -50,7 +50,7 @@ class TestUtils(unittest.TestCase):
 
         # Restore some of the observations
         new_sched, new_mo = restore_scheduler(
-            break_indx - 1, new_sched, new_mo, observations
+            break_indx - 1, new_sched, new_mo, observations, fast=False
         )
         # Simulate ahead and confirm that it behaves the same as running straight through
         new_mo, new_sched, new_obs = sim_runner(
@@ -78,6 +78,41 @@ class TestUtils(unittest.TestCase):
         # match the ones that were taken all at once.
         else:
             assert np.all(new_obs == observations[break_indx:])
+
+        # And again, but this time using the fast array restore
+        new_mo = ModelObservatory(mjd_start=mjd_start)
+        new_sched = example_scheduler(mjd_start=mjd_start)
+        new_sched, new_mo = restore_scheduler(
+            break_indx - 1, new_sched, new_mo, observations, fast=True
+        )
+        # Simulate ahead and confirm that it behaves the same as running straight through
+        new_mo, new_sched, new_obs_fast = sim_runner(
+            new_mo,
+            new_sched,
+            survey_length=20.0,
+            verbose=False,
+            filename=None,
+            n_visit_limit=new_n_limit,
+        )
+
+        # Check that observations taken after restart match those from before
+        # Jenkins can be bad at comparing things, so if it thinks they aren't the same
+        # check column-by-column to double check
+        if not np.all(new_obs_fast == observations[break_indx:]):
+            names = new_obs_fast.dtype.names
+            for name in names:
+                # If it's a string
+                if new_obs_fast[name].dtype == "<U40":
+                    assert np.all(new_obs_fast[name] == observations[break_indx:][name])
+                # Otherwise should be number-like
+                else:
+                    assert np.allclose(
+                        new_obs_fast[name], observations[break_indx:][name]
+                    )
+        # Didn't need to go by column, the observations after restart
+        # match the ones that were taken all at once.
+        else:
+            assert np.all(new_obs_fast == observations[break_indx:])
 
     def test_season(self):
         """
