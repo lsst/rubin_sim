@@ -154,6 +154,9 @@ def restore_scheduler(
     filter_sched : rubin_sim.scheduler.scheduler object
         The filter scheduler. Note that we don't look up the official end of the previous night,
         so there is potential for the loaded filters to not match.
+    fast : bool (True)
+        If True, loads observations and passes them as an array to the `add_observations_array`
+        method. If False, passes observations individually with `add_observation` method.
     """
     if type(in_obs) == str:
         sc = SchemaConverter()

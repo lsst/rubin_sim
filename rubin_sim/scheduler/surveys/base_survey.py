@@ -94,13 +94,25 @@ class BaseSurvey(object):
         return self.scheduled_obs
 
     def add_observations_array(self, observations_array_in, observations_hpid_in):
-        """Add an array of observations rather than one at a time"""
+        """Add an array of observations rather than one at a time
+
+        Parameters
+        ----------
+        observations_array_in : np.array
+            An array of completed observations (with columns like rubin_sim.scheduler.utils.empty_observation).
+        observations_hpid_in : np.array
+            Same as observations_array_in, but larger and with an additional column for HEALpix id. Each
+            observation is listed mulitple times, once for every HEALpix it overlaps."""
+
+        # Just to be sure things are sorted
+        observations_array_in.sort(order="mjd")
+        observations_hpid_in.sort(order="mjd")
 
         to_ignore = np.in1d(observations_array_in["note"], self.ignore_obs)
         observations_array = observations_array_in[~to_ignore]
 
-        good = np.in1d(observations_hpid_in["ID"], observations_array["ID"])
-        observations_hpid = observations_hpid_in[good]
+        to_ignore = np.in1d(observations_hpid_in["note"], self.ignore_obs)
+        observations_hpid = observations_hpid_in[~to_ignore]
 
         for feature in self.extra_features:
             self.extra_features[feature].add_observations_array(

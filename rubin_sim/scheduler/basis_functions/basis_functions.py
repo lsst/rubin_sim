@@ -82,7 +82,17 @@ class BaseBasisFunction(object):
         self.filtername = filtername
 
     def add_observations_array(self, observations_array, observations_hpid):
-        """Like add_observation, but for loading a whole array of observations at a time"""
+        """Like add_observation, but for loading a whole array of observations at a time
+
+        Parameters
+        ----------
+        observations_array_in : np.array
+            An array of completed observations (with columns like rubin_sim.scheduler.utils.empty_observation).
+            Should be sorted by MJD.
+        observations_hpid_in : np.array
+            Same as observations_array_in, but larger and with an additional column for HEALpix id. Each
+            observation is listed mulitple times, once for every HEALpix it overlaps.
+        """
 
         for feature in self.survey_features:
             self.survey_features[feature].add_observations_array(

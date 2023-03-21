@@ -91,16 +91,22 @@ class CoreScheduler(object):
         self.rotator_limits = np.sort(np.radians(rotator_limits))
 
     def flush_queue(self):
-        """ "
-        Like it sounds, clear any currently queued desired observations.
-        """
+        """Like it sounds, clear any currently queued desired observations."""
         self.queue = []
         self.survey_index = [None, None]
 
     def add_observations_array(self, obs):
-        lol_hpids = self.pointing2hpindx(obs['RA'], obs['dec'])
+        """Like add_observation, but for passing many observations at once.
+
+        Assigns overlapping HEALpix IDs to each observation, then passes
+        the observation array and constructed observations + healpix id to each survey.
+        """
+        obs.sort(order="mjd")
+        # Generate list-of-lists for HEALPix IDs for each pointing
+        lol_hpids = self.pointing2hpindx(obs["RA"], obs["dec"])
         hpids = []
         big_array_indx = []
+        # Unravel the list-of-lists
         for i, indxs in enumerate(lol_hpids):
             for indx in indxs:
                 hpids.append(indx)
@@ -110,7 +116,7 @@ class CoreScheduler(object):
         types = [obs[name].dtype for name in names]
 
         names.append(hpids.dtype.names[0])
-        types.append(hpids['hpid'].dtype)
+        types.append(hpids["hpid"].dtype)
         ndt = list(zip(names, types))
 
         obs_array_hpid = np.empty(hpids.size, dtype=ndt)

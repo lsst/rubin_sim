@@ -76,10 +76,15 @@ class ScriptedSurvey(BaseSurvey):
                 detailer.add_observations_array(observations_array, observations_hpid)
 
             # If scripted_id, note, and filter match, then consider the observation completed.
-            completed = np.char.add(observations_array["scripted_id"].astype(str), observations_array["note"])
+            completed = np.char.add(
+                observations_array["scripted_id"].astype(str),
+                observations_array["note"],
+            )
             completed = np.char.add(completed, observations_array["filter"])
 
-            wanted = np.char.add(self.obs_wanted["scripted_id"].astype(str), self.obs_wanted["note"])
+            wanted = np.char.add(
+                self.obs_wanted["scripted_id"].astype(str), self.obs_wanted["note"]
+            )
             wanted = np.char.add(wanted, self.obs_wanted["filter"])
 
             indx = np.in1d(wanted, completed)
