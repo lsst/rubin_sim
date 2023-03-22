@@ -3,7 +3,7 @@ import unittest
 from numpy.random import default_rng
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import numpy as np
 from rubin_sim import maf
 
 # constants
@@ -59,7 +59,7 @@ class TestSummaryPlots(unittest.TestCase):
             mag_cols=self.mag_metrics,
         )
 
-        self.assertTrue(norm_values.equals(ref_norm_values))
+        np.testing.assert_allclose(norm_values.values, ref_norm_values.values)
 
     def test_plot_run_metric(self):
         fig, ax = maf.plot_run_metric(self.metric_values)
