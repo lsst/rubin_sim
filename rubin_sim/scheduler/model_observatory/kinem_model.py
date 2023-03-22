@@ -36,8 +36,9 @@ def _get_rot_sky_pos(pa_rad, rot_tel_rad):
 
 
 def _get_rot_tel_pos(pa_rad, rot_sky_rad):
-    """Make it run from -180 to 180"""
+    """return between -pi and pi"""
     result = (rot_sky_rad + pa_rad) % two_pi
+    result[np.where(result > np.pi)] -= two_pi
     return result
 
 
@@ -119,9 +120,9 @@ class KinemModel(object):
         fov : `float` (3.5)
             The camera field of view (degrees)
         rotator_min : `float` (-90)
-            The minimum angle the camera rotator can move to (degrees)
+            The minimum angle the camera rotator (rotTelPos) can move to (degrees)
         rotator_max : `float` (90)
-            The maximum angle the camera rotator can move to (degrees)
+            The maximum angle the camera rotator (rotTelPos) can move to (degrees)
         maxspeed : `float` (3.5)
             The maximum speed of the rotator (degrees/s)
         accel : `float` (1.0)
@@ -440,8 +441,6 @@ class KinemModel(object):
         delta_az_long = delta_az_short - two_pi
         daslz = np.where(delta_az_short < 0)[0]
         delta_az_long[daslz] = two_pi + delta_az_short[daslz]
-        azlz = np.where(delta_az_short < 0)[0]
-        delta_az_long[azlz] = two_pi + delta_az_short[azlz]
         # So, for every position, we can get there by slewing long or short way
         cummulative_az_short = delta_az_short + self.cumulative_azimuth_rad
         oob = np.where(
@@ -564,15 +563,14 @@ class KinemModel(object):
         # If we want to include the camera rotation time
         if (rot_sky_pos is not None) | (rot_tel_pos is not None):
             if rot_tel_pos is None:
+                # This is now between -pi and pi
                 rot_tel_pos = _get_rot_tel_pos(pa, rot_sky_pos)
             if rot_sky_pos is None:
                 rot_sky_pos = _get_rot_sky_pos(pa, rot_tel_pos)
-            # If the new rotation angle would move us out of the limits, return nan
-            rot_tel_pos_ranged = rot_tel_pos + 0
-            over = np.where(rot_tel_pos > np.pi)[0]
-            rot_tel_pos_ranged[over] -= two_pi
-            if (rot_tel_pos_ranged < self.telrot_minpos_rad) | (
-                rot_tel_pos_ranged > self.telrot_maxpos_rad
+
+            # Is the new rot_tel_pos reachable? If not return NaN
+            if (rot_tel_pos < self.telrot_minpos_rad) | (
+                rot_tel_pos > self.telrot_maxpos_rad
             ):
                 return np.nan
             # If there was no kwarg for starting rotator position
