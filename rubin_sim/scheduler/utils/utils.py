@@ -136,7 +136,7 @@ def set_default_nside(nside=None):
 
 
 def restore_scheduler(
-    observation_id, scheduler, observatory, in_obs, filter_sched=None
+    observation_id, scheduler, observatory, in_obs, filter_sched=None, fast=True
 ):
     """Put the scheduler and observatory in the state they were in. Handy for checking reward fucnction
 
@@ -154,6 +154,9 @@ def restore_scheduler(
     filter_sched : rubin_sim.scheduler.scheduler object
         The filter scheduler. Note that we don't look up the official end of the previous night,
         so there is potential for the loaded filters to not match.
+    fast : bool (True)
+        If True, loads observations and passes them as an array to the `add_observations_array`
+        method. If False, passes observations individually with `add_observation` method.
     """
     if type(in_obs) == str:
         sc = SchemaConverter()
@@ -167,12 +170,19 @@ def restore_scheduler(
     # replay the observations back into the scheduler
     # In the future, may be able to replace this with a
     # faster .add_observations_array method.
-    for obs in observations:
-        scheduler.add_observation(obs)
-        if filter_sched is not None:
-            filter_sched.add_observation(obs)
+
+    if fast:
+        scheduler.add_observations_array(observations)
+        obs = observations[-1]
+    else:
+        for obs in observations:
+            scheduler.add_observation(obs)
 
     if filter_sched is not None:
+        # We've assumed the filter scheduler doesn't have any filters
+        # May need to call the add_observation method on it if that
+        # changes.
+
         # Make sure we have mounted the right filters for the night
         # XXX--note, this might not be exact, but should work most of the time.
         mjd_start_night = np.min(

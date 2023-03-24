@@ -93,6 +93,41 @@ class BaseSurvey(object):
     def get_scheduled_obs(self):
         return self.scheduled_obs
 
+    def add_observations_array(self, observations_array_in, observations_hpid_in):
+        """Add an array of observations rather than one at a time
+
+        Parameters
+        ----------
+        observations_array_in : np.array
+            An array of completed observations (with columns like rubin_sim.scheduler.utils.empty_observation).
+        observations_hpid_in : np.array
+            Same as observations_array_in, but larger and with an additional column for HEALpix id. Each
+            observation is listed mulitple times, once for every HEALpix it overlaps."""
+
+        # Just to be sure things are sorted
+        observations_array_in.sort(order="mjd")
+        observations_hpid_in.sort(order="mjd")
+
+        to_ignore = np.in1d(observations_array_in["note"], self.ignore_obs)
+        observations_array = observations_array_in[~to_ignore]
+
+        to_ignore = np.in1d(observations_hpid_in["note"], self.ignore_obs)
+        observations_hpid = observations_hpid_in[~to_ignore]
+
+        for feature in self.extra_features:
+            self.extra_features[feature].add_observations_array(
+                observations_array, observations_hpid
+            )
+        for bf in self.extra_basis_functions:
+            self.extra_basis_functions[bf].add_observations_array(
+                observations_array, observations_hpid
+            )
+        for bf in self.basis_functions:
+            bf.add_observations_array(observations_array, observations_hpid)
+        for detailer in self.detailers:
+            detailer.add_observations_array(observations_array, observations_hpid)
+        self.reward_checked = False
+
     def add_observation(self, observation, **kwargs):
         # Check each posible ignore string
         checks = [io not in str(observation["note"]) for io in self.ignore_obs]

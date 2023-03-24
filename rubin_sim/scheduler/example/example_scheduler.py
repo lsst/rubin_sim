@@ -1,6 +1,6 @@
 import numpy as np
 import healpy as hp
-from rubin_sim.scheduler.schedulers import CoreScheduler
+from rubin_sim.scheduler.schedulers import CoreScheduler, FilterSchedUzy
 from rubin_sim.scheduler.utils import (
     EuclidOverlapFootprint,
     ConstantFootprint,
@@ -15,11 +15,18 @@ from rubin_sim.scheduler.surveys import (
     generate_ddf_scheduled_obs,
 )
 import rubin_sim.scheduler.detailers as detailers
+from rubin_sim.scheduler import sim_runner
 from astropy.coordinates import SkyCoord, get_sun
 from astropy.time import Time
 from astropy import units as u
 from rubin_sim.utils import _hpid2_ra_dec
 import warnings
+import sys
+import subprocess
+import rubin_sim
+import os
+import argparse
+from rubin_sim.scheduler.model_observatory import ModelObservatory
 
 
 __all__ = ["example_scheduler"]
@@ -1531,3 +1538,234 @@ def example_scheduler(
     scheduler = CoreScheduler(surveys, nside=nside)
 
     return scheduler
+
+
+def run_sched(
+    surveys,
+    survey_length=365.25,
+    nside=32,
+    fileroot="baseline_",
+    verbose=False,
+    extra_info=None,
+    illum_limit=40.0,
+    mjd_start=60676.0,
+):
+    years = np.round(survey_length / 365.25)
+    scheduler = CoreScheduler(surveys, nside=nside)
+    n_visit_limit = None
+    fs = FilterSchedUzy(illum_limit=illum_limit)
+    observatory = ModelObservatory(nside=nside, mjd_start=mjd_start)
+    observatory, scheduler, observations = sim_runner(
+        observatory,
+        scheduler,
+        survey_length=survey_length,
+        filename=fileroot + "%iyrs.db" % years,
+        delete_past=True,
+        n_visit_limit=n_visit_limit,
+        verbose=verbose,
+        extra_info=extra_info,
+        filter_scheduler=fs,
+    )
+
+    return observatory, scheduler, observations
+
+
+def main(args):
+    survey_length = args.survey_length  # Days
+    outDir = args.outDir
+    verbose = args.verbose
+    max_dither = args.maxDither
+    illum_limit = args.moon_illum_limit
+    nexp = args.nexp
+    nslice = args.rolling_nslice
+    rolling_scale = args.rolling_strength
+    dbroot = args.dbroot
+    gsw = args.gsw
+    nights_off = args.nights_off
+    neo_night_pattern = args.neo_night_pattern
+    neo_filters = args.neo_filters
+    neo_repeat = args.neo_repeat
+    ddf_season_frac = args.ddf_season_frac
+
+    # Be sure to also update and regenerate DDF grid save file if changing mjd_start
+    mjd_start = 60676.0
+    nside = 32
+    per_night = True  # Dither DDF per night
+
+    camera_ddf_rot_limit = 75.0  # degrees
+
+    extra_info = {}
+    exec_command = ""
+    for arg in sys.argv:
+        exec_command += " " + arg
+    extra_info["exec command"] = exec_command
+    try:
+        extra_info["git hash"] = subprocess.check_output(["git", "rev-parse", "HEAD"])
+    except subprocess.CalledProcessError:
+        extra_info["git hash"] = "Not in git repo"
+
+    extra_info["file executed"] = os.path.realpath(__file__)
+    try:
+        rs_path = rubin_sim.__path__[0]
+        hash_file = os.path.join(rs_path, "../", ".git/refs/heads/main")
+        extra_info["rubin_sim git hash"] = subprocess.check_output(["cat", hash_file])
+    except subprocess.CalledProcessError:
+        pass
+
+    # Use the filename of the script to name the output database
+    if dbroot is None:
+        fileroot = os.path.basename(sys.argv[0]).replace(".py", "") + "_"
+    else:
+        fileroot = dbroot + "_"
+    file_end = "v3.1_"
+
+    pattern_dict = {
+        1: [True],
+        2: [True, False],
+        3: [True, False, False],
+        4: [True, False, False, False],
+        # 4 on, 4 off
+        5: [True, True, True, True, False, False, False, False],
+        # 3 on 4 off
+        6: [True, True, True, False, False, False, False],
+        7: [True, True, False, False, False, False],
+    }
+    neo_night_pattern = pattern_dict[neo_night_pattern]
+    reverse_neo_night_pattern = [not val for val in neo_night_pattern]
+
+    # Modify the footprint
+    sky = EuclidOverlapFootprint(nside=nside, smc_radius=4, lmc_radius=6)
+    footprints_hp_array, labels = sky.return_maps()
+
+    wfd_indx = np.where(
+        (labels == "lowdust") | (labels == "LMC_SMC") | (labels == "virgo")
+    )[0]
+    wfd_footprint = footprints_hp_array["r"] * 0
+    wfd_footprint[wfd_indx] = 1
+
+    footprints_hp = {}
+    for key in footprints_hp_array.dtype.names:
+        footprints_hp[key] = footprints_hp_array[key]
+
+    footprint_mask = footprints_hp["r"] * 0
+    footprint_mask[np.where(footprints_hp["r"] > 0)] = 1
+
+    repeat_night_weight = None
+
+    observatory = ModelObservatory(nside=nside, mjd_start=mjd_start)
+    conditions = observatory.return_conditions()
+
+    footprints = make_rolling_footprints(
+        fp_hp=footprints_hp,
+        mjd_start=conditions.mjd_start,
+        sun_ra_start=conditions.sun_ra_start,
+        nslice=nslice,
+        scale=rolling_scale,
+        nside=nside,
+        wfd_indx=wfd_indx,
+        order_roll=1,
+        n_cycles=4,
+    )
+
+    gaps_night_pattern = [True] + [False] * nights_off
+
+    long_gaps = gen_long_gaps_survey(
+        nside=nside,
+        footprints=footprints,
+        night_pattern=gaps_night_pattern,
+    )
+
+    # Set up the DDF surveys to dither
+    u_detailer = detailers.FilterNexp(filtername="u", nexp=1)
+    dither_detailer = detailers.DitherDetailer(
+        per_night=per_night, max_dither=max_dither
+    )
+    details = [
+        detailers.CameraRotDetailer(
+            min_rot=-camera_ddf_rot_limit, max_rot=camera_ddf_rot_limit
+        ),
+        dither_detailer,
+        u_detailer,
+        detailers.Rottep2RotspDesiredDetailer(),
+    ]
+    euclid_detailers = [
+        detailers.CameraRotDetailer(
+            min_rot=-camera_ddf_rot_limit, max_rot=camera_ddf_rot_limit
+        ),
+        detailers.EuclidDitherDetailer(),
+        u_detailer,
+        detailers.Rottep2RotspDesiredDetailer(),
+    ]
+    ddfs = ddf_surveys(
+        detailers=details,
+        season_unobs_frac=ddf_season_frac,
+        euclid_detailers=euclid_detailers,
+    )
+
+    greedy = gen_greedy_surveys(nside, nexp=nexp, footprints=footprints)
+    neo = generate_twilight_neo(
+        nside,
+        night_pattern=neo_night_pattern,
+        filters=neo_filters,
+        n_repeat=neo_repeat,
+        footprint_mask=footprint_mask,
+    )
+    blobs = generate_blobs(
+        nside,
+        nexp=nexp,
+        footprints=footprints,
+        mjd_start=conditions.mjd_start,
+        good_seeing_weight=gsw,
+    )
+    twi_blobs = generate_twi_blobs(
+        nside,
+        nexp=nexp,
+        footprints=footprints,
+        wfd_footprint=wfd_footprint,
+        repeat_night_weight=repeat_night_weight,
+        night_pattern=reverse_neo_night_pattern,
+    )
+    surveys = [ddfs, long_gaps, blobs, twi_blobs, neo, greedy]
+    observatory, scheduler, observations = run_sched(
+        surveys,
+        survey_length=survey_length,
+        verbose=verbose,
+        fileroot=os.path.join(outDir, fileroot + file_end),
+        extra_info=extra_info,
+        nside=nside,
+        illum_limit=illum_limit,
+        mjd_start=mjd_start,
+    )
+
+    return observatory, scheduler, observations
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--verbose", dest="verbose", action="store_true")
+    parser.set_defaults(verbose=False)
+    parser.add_argument("--survey_length", type=float, default=365.25 * 10)
+    parser.add_argument("--outDir", type=str, default="")
+    parser.add_argument(
+        "--maxDither", type=float, default=0.7, help="Dither size for DDFs (deg)"
+    )
+    parser.add_argument(
+        "--moon_illum_limit",
+        type=float,
+        default=40.0,
+        help="illumination limit to remove u-band",
+    )
+    parser.add_argument("--nexp", type=int, default=2)
+    parser.add_argument("--rolling_nslice", type=int, default=2)
+    parser.add_argument("--rolling_strength", type=float, default=0.9)
+    parser.add_argument("--dbroot", type=str)
+    parser.add_argument("--gsw", type=float, default=3.0, help="good seeing weight")
+    parser.add_argument("--ddf_season_frac", type=float, default=0.2)
+
+    parser.add_argument("--nights_off", type=int, default=6)
+    parser.add_argument("--neo_night_pattern", type=int, default=4)
+    parser.add_argument("--neo_filters", type=str, default="riz")
+    parser.add_argument("--neo_repeat", type=int, default=4)
+
+    args = parser.parse_args()
+    main(args)

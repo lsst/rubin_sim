@@ -85,6 +85,14 @@ class LongGapSurvey(BaseSurvey):
         self.avoid_zenith = avoid_zenith
         self.mjd_step = hour_step / 24.0
 
+    def add_observations_array(self, observations_array_in, observations_hpid_in):
+        self.blob_survey.add_observations_array(
+            observations_array_in, observations_hpid_in
+        )
+        self.scripted_survey.add_observations_array(
+            observations_array_in, observations_hpid_in
+        )
+
     def add_observation(self, observation, **kwargs):
         self.blob_survey.add_observation(observation, **kwargs)
         self.scripted_survey.add_observation(observation, **kwargs)
