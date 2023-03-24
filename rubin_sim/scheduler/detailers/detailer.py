@@ -1,5 +1,4 @@
 from rubin_sim.utils import (
-    ra_dec2_hpid,
     _approx_ra_dec2_alt_az,
     _angular_separation,
     _approx_altaz2pa,

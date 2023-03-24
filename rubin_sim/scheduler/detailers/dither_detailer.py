@@ -236,8 +236,6 @@ class CameraRotDetailer(BaseDetailer):
             self.rng = np.random.default_rng()
             offsets = self.rng.random(n_offsets) * self.range + self.min_rot
 
-        offsets = offsets % (2.0 * np.pi)
-
         return offsets
 
     def __call__(self, observation_list, conditions):
