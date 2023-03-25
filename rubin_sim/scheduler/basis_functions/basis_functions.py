@@ -1213,7 +1213,6 @@ class SlewtimeBasisFunction(BaseBasisFunction):
         self.maxtime = max_time
         self.nside = nside
         self.filtername = filtername
-        self.result = np.zeros(hp.nside2npix(nside), dtype=float)
 
     def add_observation(self, observation, indx=None):
         # No tracking of observations in this basis function. Purely based on conditions.
@@ -1226,9 +1225,12 @@ class SlewtimeBasisFunction(BaseBasisFunction):
         else:
             # Need to make sure smaller slewtime is larger reward.
             if np.size(conditions.slewtime) > 1:
-                result = self.result.copy()
-                good = ~np.isnan(conditions.slewtime)
-                result[good] = -conditions.slewtime[good] / self.maxtime
+                # Slewtime map can contain nans and/or infs - mask these with nans
+                result = np.where(
+                    np.isfinite(conditions.slewtime),
+                    -conditions.slewtime / self.maxtime,
+                    np.nan,
+                )
             else:
                 result = -conditions.slewtime / self.maxtime
         return result

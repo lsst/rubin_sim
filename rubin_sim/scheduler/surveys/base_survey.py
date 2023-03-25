@@ -444,7 +444,7 @@ class BaseMarkovSurvey(BaseSurvey):
                 return False
         return result
 
-    def _hp2fieldsetup(self, ra, dec, leafsize=100):
+    def _hp2fieldsetup(self, ra, dec):
         """Map each healpixel to nearest field. This will only work if healpix
         resolution is higher than field resolution.
         """
@@ -525,9 +525,6 @@ class BaseMarkovSurvey(BaseSurvey):
             for bf, weight in zip(self.basis_functions, self.basis_weights):
                 basis_value = bf(conditions, indx=indx)
                 self.reward += basis_value * weight
-
-            if np.any(np.isinf(self.reward)):
-                self.reward = np.inf
         else:
             # If not feasable, negative infinity reward
             self.reward = -np.inf
