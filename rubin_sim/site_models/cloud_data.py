@@ -20,7 +20,7 @@ class CloudData(object):
         The cloud database will be assumed to start on Jan 01 of the same year.
     cloud_db : str, optional
         The full path name for the cloud database. Default None,
-        which will use the database stored in the module ($SIMS_CLOUDMODEL_DIR/data/cloud.db).
+        which will use the database stored in the module (site_models/clouds_ctio_1975_2022.db).
     offset_year : float, optional
         Offset into the cloud database by 'offset_year' years. Default 0.
     scale : float (1e6)
