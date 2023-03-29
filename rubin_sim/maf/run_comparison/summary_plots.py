@@ -35,8 +35,9 @@ def normalize_metric_summaries(
 
     Parameters
     ----------
-    baseline_run : `str`
+    baseline_run : `str` or `list` of `str
         The name of the run that defines a normalized value of 1.
+        If a list is provided, the median value of each metric across that list is used as the reference.
     summary : `pandas.DataFrame`
         The summary metrics to normalize (as returned by `get_metric_summaries`)
     metric_sets : `pandas.DataFrame`
@@ -83,6 +84,15 @@ def normalize_metric_summaries(
     # Get rid of duplicate metrics and runs
     summary = summary.T.groupby("metric").first().T.groupby("run").first()
 
+    # And now create a line just for "baseline" --
+    # if baseline_run is >1, this is created from the median values per metric of those runs
+    if isinstance(baseline_run, list):
+        summary.loc["baseline"] = summary.loc[baseline_run].median(axis="rows")
+    else:
+        summary.loc["baseline"] = summary.loc[baseline_run]
+
+    baseline_run = "baseline"
+
     if metric_sets is None:
         # If no invert/mag - just do simple normalization (1 + (x-0)/x0)
         norm_summary = 1 + (
@@ -112,13 +122,19 @@ def normalize_metric_summaries(
         norm_summary.loc[:, metric_sets["invert"]] = (
             1.0 / summary.loc[:, metric_sets["invert"]]
         )
+        if baseline_run is not None:
+            norm_summary.loc[:, metric_sets["mag"]] = 1.0 + summary.loc[
+                :,
+                metric_sets["mag"],
+            ].subtract(summary.loc[baseline_run, metric_sets["mag"]], axis="columns")
+        else:
+            norm_vals = np.median(summary.loc[:, metric_sets["mag"]], axis=0)
+            norm_summary.loc[:, metric_sets["mag"]] = 1.0 + summary.loc[
+                :,
+                metric_sets["mag"],
+            ].subtract(norm_vals)
 
-        norm_summary.loc[:, metric_sets["mag"]] = 1.0 + summary.loc[
-            :,
-            metric_sets["mag"],
-        ].subtract(summary.loc[baseline_run, metric_sets["mag"]], axis="columns")
-
-        # Some metrics can be both inverted and magnitudes (eg rms mag values)
+        # Some metrics can be both inverted and magnitudes (eg rms mag values) - update
         both = np.logical_and(metric_sets["invert"], metric_sets["mag"])
         norm_summary.loc[:, both] = 1.0 - summary.loc[:, both].subtract(
             summary.loc[baseline_run, both], axis="columns"
