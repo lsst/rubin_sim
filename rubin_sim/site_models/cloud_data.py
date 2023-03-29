@@ -20,7 +20,7 @@ class CloudData(object):
         The cloud database will be assumed to start on Jan 01 of the same year.
     cloud_db : str, optional
         The full path name for the cloud database. Default None,
-        which will use the database stored in the module ($SIMS_CLOUDMODEL_DIR/data/cloud.db).
+        which will use the database stored in the module (site_models/clouds_ctio_1975_2022.db).
     offset_year : float, optional
         Offset into the cloud database by 'offset_year' years. Default 0.
     scale : float (1e6)
@@ -30,7 +30,9 @@ class CloudData(object):
     def __init__(self, start_time, cloud_db=None, offset_year=0, scale=1e6):
         self.cloud_db = cloud_db
         if self.cloud_db is None:
-            self.cloud_db = os.path.join(get_data_dir(), "site_models", "cloud.db")
+            self.cloud_db = os.path.join(
+                get_data_dir(), "site_models", "clouds_ctio_1975_2022.db"
+            )
 
         # Cloud database starts in Jan 01 of the year of the start of the simulation.
         year_start = start_time.datetime.year + offset_year
