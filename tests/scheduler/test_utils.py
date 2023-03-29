@@ -18,8 +18,7 @@ class TestUtils(unittest.TestCase):
         """Test we can restore a scheduler properly"""
         # MJD set so it's in test data range
         mjd_start = 60110.0
-        # XXX--fails at 3000, not clear why that should be.
-        n_visit_limit = 3500
+        n_visit_limit = 3000
 
         scheduler = example_scheduler(mjd_start=mjd_start)
 
@@ -53,6 +52,7 @@ class TestUtils(unittest.TestCase):
         new_sched, new_mo = restore_scheduler(
             break_indx - 1, new_sched, new_mo, observations, fast=False
         )
+
         # Simulate ahead and confirm that it behaves the same as running straight through
         new_mo, new_sched, new_obs = sim_runner(
             new_mo,
