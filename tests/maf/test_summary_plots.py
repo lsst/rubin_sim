@@ -29,8 +29,8 @@ class TestSummaryPlots(unittest.TestCase):
         self.baseline = self.runs[0]
 
         self.metrics = [f"metric{i}" for i in range(self.num_metrics)]
-        self.inverted_metrics = ["metric3", "metric5"]
-        self.mag_metrics = ["metric1", "metric2"]
+        self.inverted_metrics = ["metric3", "metric5", "metric6"]
+        self.mag_metrics = ["metric1", "metric2", "metric6"]
 
         self.metric_values = pd.DataFrame(
             self.rng.normal(loc=3, scale=5, size=(self.num_runs, self.num_metrics)),
@@ -48,6 +48,7 @@ class TestSummaryPlots(unittest.TestCase):
         self.metric_set.loc["metric3", "style"] = "b--"
 
     def test_normalize_metric_summaries(self):
+        # Test standard normalization with one run
         norm_values = maf.normalize_metric_summaries(
             self.baseline, self.metric_values, self.metric_set
         )
@@ -58,8 +59,24 @@ class TestSummaryPlots(unittest.TestCase):
             invert_cols=self.inverted_metrics,
             mag_cols=self.mag_metrics,
         )
-
         np.testing.assert_allclose(norm_values.values, ref_norm_values.values)
+
+        # test normalizing against one run, as a list
+        norm_values = maf.normalize_metric_summaries(
+            [self.baseline], self.metric_values, self.metric_set
+        )
+        np.testing.assert_allclose(norm_values.values, ref_norm_values.values)
+
+        # test similar but pretend that self.baseline is two runs
+        norm_values = maf.normalize_metric_summaries(
+            [self.baseline, self.baseline], self.metric_values, self.metric_set
+        )
+        np.testing.assert_allclose(norm_values.values, ref_norm_values.values)
+
+        # test similar but different runs
+        norm_values = maf.normalize_metric_summaries(
+            [self.runs[0], self.runs[1]], self.metric_values, self.metric_set
+        )
 
     def test_plot_run_metric(self):
         fig, ax = maf.plot_run_metric(self.metric_values)
@@ -138,9 +155,7 @@ class TestSummaryPlots(unittest.TestCase):
 # internal functions & classes
 
 
-def _run_infos_norm_df(
-    df, norm_run, invert_cols=None, reverse_cols=None, mag_cols=None
-):
+def _run_infos_norm_df(df, norm_run, invert_cols=None, mag_cols=None):
     """
     Normalize values in a DataFrame, based on the values in a given run.
     Can normalize some columns (metric values) differently (invert_cols, reverse_cols, mag_cols)
@@ -155,28 +170,27 @@ def _run_infos_norm_df(
         The name of the simulation to normalize to (typically family_baseline)
     invert_cols: list
         Columns (metric values) to convert to 1 / value
-    reverse_cols: list
-        Columns (metric values) to invert (-1 * value)
     mag_cols: list
         Columns (metrics values) to treat as magnitudes (1 + (difference from norm_run))
+
     Returns
     -------
     pd.DataFrame
         Normalized data frame
     """
 
-    # This proc copied from https://github.com/lsst-pst/survey_strategy/blob/c559dcd895b3fe39f0e083832a07d89ecdfbe251/fbs_2.0/run_infos.py
-
     # Copy the dataframe but drop the columns containing only strings
     out_df = df.copy()
-    if reverse_cols is not None:
-        out_df[reverse_cols] = -out_df[reverse_cols]
-    if invert_cols is not None:
-        out_df[invert_cols] = 1 / out_df[invert_cols]
-    if mag_cols is not None:
-        out_df[mag_cols] = 1 + out_df[mag_cols] - out_df[mag_cols].loc[norm_run]
-    else:
+    if invert_cols is None:
+        invert_cols = []
+    if mag_cols is None:
         mag_cols = []
+    both_cols = [c for c in invert_cols if c in mag_cols]
+    invert_cols = [c for c in invert_cols if c not in both_cols]
+    mag_cols = [c for c in mag_cols if c not in both_cols]
+    out_df[mag_cols] = 1 + out_df[mag_cols] - out_df[mag_cols].loc[norm_run]
+    out_df[invert_cols] = 1 / out_df[invert_cols]
+    out_df[both_cols] = 1 - out_df[both_cols] + out_df[both_cols].loc[norm_run]
     # which columns are strings?
     string_cols = [c for c, t in zip(df.columns, df.dtypes) if t == "object"]
     cols = [c for c in out_df.columns.values if not (c in mag_cols or c in string_cols)]
