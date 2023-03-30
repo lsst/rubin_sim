@@ -86,18 +86,21 @@ def normalize_metric_summaries(
 
     # And now create a line just for "baseline" --
     # if baseline_run is >1, this is created from the median values per metric of those runs
-    if isinstance(baseline_run, list):
-        summary.loc["baseline"] = summary.loc[baseline_run].median(axis="rows")
-    else:
-        summary.loc["baseline"] = summary.loc[baseline_run]
+    # Make up a nonsense name for the reference, that is not currently in the summary dataframe
+    baseline_comparison = "bbb"
+    while baseline_comparison in summary.index:
+        baseline_comparison += "b"
 
-    baseline_run = "baseline"
+    if not isinstance(baseline_run, str):
+        summary.loc[baseline_comparison] = summary.loc[baseline_run].median(axis="rows")
+    else:
+        summary.loc[baseline_comparison] = summary.loc[baseline_run]
 
     if metric_sets is None:
         # If no invert/mag - just do simple normalization (1 + (x-0)/x0)
         norm_summary = 1 + (
-            summary.loc[:, :].sub(summary.loc[baseline_run, :], axis="columns")
-        ).div(summary.loc[baseline_run, :], axis="columns")
+            summary.loc[:, :].sub(summary.loc[baseline_comparison, :], axis="columns")
+        ).div(summary.loc[baseline_comparison, :], axis="columns")
     else:
         # Reindex metric set and remove duplicates or non-available metrics
         metric_names = [n for n in metric_sets.index.names if not n == "metric"]
@@ -116,36 +119,34 @@ def normalize_metric_summaries(
         )
 
         # Direct metrics are those that are neither inverted, nor compared as magnitudes
+        # direct = 1 + (value - norm) / norm == value / norm
         direct = ~np.logical_or(metric_sets["invert"], metric_sets["mag"])
         norm_summary.loc[:, direct] = summary.loc[:, direct]
 
+        # invert = 1 + (1/value - 1/norm) / (1/norm) == norm / value
         norm_summary.loc[:, metric_sets["invert"]] = (
             1.0 / summary.loc[:, metric_sets["invert"]]
         )
-        if baseline_run is not None:
-            norm_summary.loc[:, metric_sets["mag"]] = 1.0 + summary.loc[
-                :,
-                metric_sets["mag"],
-            ].subtract(summary.loc[baseline_run, metric_sets["mag"]], axis="columns")
-        else:
-            norm_vals = np.median(summary.loc[:, metric_sets["mag"]], axis=0)
-            norm_summary.loc[:, metric_sets["mag"]] = 1.0 + summary.loc[
-                :,
-                metric_sets["mag"],
-            ].subtract(norm_vals)
 
-        # Some metrics can be both inverted and magnitudes (eg rms mag values) - update
+        # mag = 1 + (1+value-norm - (1+norm-norm)) / (1+norm-norm) == 1 + (value - norm)
+        norm_summary.loc[:, metric_sets["mag"]] = 1.0 + summary.loc[
+            :,
+            metric_sets["mag"],
+        ].subtract(summary.loc[baseline_comparison, metric_sets["mag"]], axis="columns")
+
+        # Some metrics can be both inverted and magnitudes (eg rms mag values)
         both = np.logical_and(metric_sets["invert"], metric_sets["mag"])
+        # both = 1 + (1-(value-norm) - (1-(norm-norm))) / (1-(norm-norm)) == norm - value
         norm_summary.loc[:, both] = 1.0 - summary.loc[:, both].subtract(
-            summary.loc[baseline_run, both], axis="columns"
+            summary.loc[baseline_comparison, both], axis="columns"
         )
 
-        # Look a the fractional difference compared with the baseline
+        # Turn the values above into the fractional difference compared with the baseline
         norm_summary.loc[:, :] = 1 + (
             norm_summary.loc[:, :].sub(
-                norm_summary.loc[baseline_run, :], axis="columns"
+                norm_summary.loc[baseline_comparison, :], axis="columns"
             )
-        ).div(norm_summary.loc[baseline_run, :], axis="columns")
+        ).div(norm_summary.loc[baseline_comparison, :], axis="columns")
 
     # Set the index name
     norm_summary.columns.name = "metric"
