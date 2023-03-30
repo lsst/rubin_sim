@@ -91,7 +91,7 @@ def normalize_metric_summaries(
     while baseline_comparison in summary.index:
         baseline_comparison += "b"
 
-    if not isinstance(baseline_run, str):
+    if isinstance(summary.loc[baseline_run], pd.DataFrame):
         summary.loc[baseline_comparison] = summary.loc[baseline_run].median(axis="rows")
     else:
         summary.loc[baseline_comparison] = summary.loc[baseline_run]
