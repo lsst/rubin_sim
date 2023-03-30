@@ -68,7 +68,8 @@ class KinemModel(object):
     ):
         self.park_alt_rad = np.radians(park_alt)
         self.park_az_rad = np.radians(park_az)
-        self.current_filter = start_filter
+        self.start_filter = start_filter
+        self.current_filter = self.start_filter
         if location is None:
             self.location = Site("LSST")
             self.location.lat_rad = np.radians(self.location.latitude)
@@ -286,6 +287,9 @@ class KinemModel(object):
         # Any overhead that must happen before next exposure can start. Slew
         # motions are allowed during the overhead time
         self.overhead = 0.0
+
+        # Don't leave random filter in overnight
+        self.current_filter = self.start_filter
 
     def current_alt_az(self, mjd):
         """return the current alt az position that we have tracked to."""
@@ -542,11 +546,13 @@ class KinemModel(object):
             tot_dom_time = np.maximum(dom_alt_slew_time, dom_az_slew_time)
         # Find the max of the above for slew time.
         slew_time = np.maximum(tot_tel_time, tot_dom_time)
-        # include filter change time if necessary
-        filter_change = np.where(filtername != self.current_filter)
-        slew_time[filter_change] = np.maximum(
-            slew_time[filter_change], self.filter_changetime
-        )
+        # include filter change time if necessary. Assume no filter change time
+        # needed if we are starting parked
+        if not self.parked:
+            filter_change = np.where(filtername != self.current_filter)
+            slew_time[filter_change] = np.maximum(
+                slew_time[filter_change], self.filter_changetime
+            )
         # Add closed loop optics correction
         # Find the limit where we must add the delay
         cl_limit = self.optics_cl_altlimit[1]
