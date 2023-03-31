@@ -1263,7 +1263,7 @@ def science_radar_batch(
     # Kilonovae metric
     displayDict["group"] = "Variables/Transients"
     displayDict["subgroup"] = "KNe"
-    n_events = 50000
+    n_events = 500000
     displayDict[
         "caption"
     ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky, GW170817-like only."
@@ -1294,7 +1294,7 @@ def science_radar_batch(
     )
     bundleList.append(bundle)
 
-    n_events = 50000
+    n_events = 500000
     displayDict[
         "caption"
     ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky, entire model population."
