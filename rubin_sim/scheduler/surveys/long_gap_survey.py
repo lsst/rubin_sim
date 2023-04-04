@@ -218,13 +218,15 @@ class LongGapSurvey(BaseSurvey):
 
         return observations
 
-    def make_reward_df(self, conditions):
+    def make_reward_df(self, conditions, accum=True):
         """Create a pandas.DataFrame describing the reward from the survey.
 
         Parameters
         ----------
         conditions : `rubin_sim.scheduler.features.Conditions`
             Conditions for which rewards are to be returned
+        accum : `bool`
+            Include accumulated rewards
 
         Returns
         -------
@@ -238,14 +240,27 @@ class LongGapSurvey(BaseSurvey):
             test_survey._check_feasibility(conditions) and reward > np.finfo(reward).min
         )
 
-        reward_df = pd.DataFrame(
-            {
-                "basis_function": ["None"],
-                "feasible": [feasible],
-                "max_basis_reward": [reward],
-                "basis_area": [0],
-                "max_accum_reward": [reward],
-                "accum_area": [0],
-            }
-        )
+        if accum:
+            reward_df = pd.DataFrame(
+                {
+                    "basis_function": ["None"],
+                    "feasible": [feasible],
+                    "max_basis_reward": [reward],
+                    "basis_area": [0],
+                    "basis_weight": [1],
+                    "max_accum_reward": [reward],
+                    "accum_area": [0],
+                }
+            )
+        else:
+            reward_df = pd.DataFrame(
+                {
+                    "basis_function": ["None"],
+                    "feasible": [feasible],
+                    "max_basis_reward": [reward],
+                    "basis_area": [0],
+                    "basis_weight": [1],
+                }
+            )
+
         return reward_df

@@ -208,13 +208,36 @@ class BaseSurvey(object):
 
         return repr
 
-    def make_reward_df(self, conditions):
+    def _reward_to_scalars(self, reward):
+        try:
+            pix_area = hp.nside2pixarea(self.nside, degrees=True)
+        except AttributeError:
+            pix_area = None
+
+        if np.isscalar(reward):
+            unmasked_area = pix_area * hp.nside2npix(self.nside)
+        else:
+            unmasked_area = pix_area * np.count_nonzero(reward > -np.inf)
+
+        if np.isscalar(reward):
+            scalar_reward = reward
+        elif unmasked_area == 0:
+            scalar_reward = -np.inf
+        else:
+            scalar_reward = np.nanmax(reward)
+
+        return scalar_reward, unmasked_area
+
+    def make_reward_df(self, conditions, accum=True):
         """Create a pandas.DataFrame describing the reward from the survey.
 
         Parameters
         ----------
         conditions : `rubin_sim.scheduler.features.Conditions`
             Conditions for which rewards are to be returned
+        accum : `bool`
+            Include accumulated reward (more compute intensive)
+            Defaults to True
 
         Returns
         -------
@@ -229,36 +252,17 @@ class BaseSurvey(object):
         accum_areas = []
         bf_label = []
         basis_functions = []
+        basis_weights = []
 
         try:
-            pix_area = hp.nside2pixarea(self.nside, degrees=True)
+            full_basis_weights = self.basis_weights
         except AttributeError:
-            pix_area = None
+            full_basis_weights = [1.0 for df in self.basis_functions]
 
-        def reward_to_scalars(reward):
-            if np.isscalar(reward):
-                unmasked_area = pix_area * hp.nside2npix(self.nside)
-            else:
-                unmasked_area = pix_area * np.count_nonzero(reward > -np.inf)
-
-            if np.isscalar(reward):
-                scalar_reward = reward
-            elif unmasked_area == 0:
-                scalar_reward = -np.inf
-            else:
-                scalar_reward = np.nanmax(reward)
-
-            return scalar_reward, unmasked_area
-
-        for basis_function in self.basis_functions:
-            basis_functions.append(basis_function)
-            test_survey = deepcopy(self)
-            test_survey.basis_functions = basis_functions
-
+        for weight, basis_function in zip(full_basis_weights, self.basis_functions):
             bf_label.append(basis_function.label())
-
             bf_reward = basis_function(conditions)
-            max_reward, basis_area = reward_to_scalars(bf_reward)
+            max_reward, basis_area = self._reward_to_scalars(bf_reward)
             max_rewards.append(max_reward)
             basis_areas.append(basis_area)
 
@@ -267,21 +271,30 @@ class BaseSurvey(object):
             ).any()
             feasibility.append(this_feasibility)
 
-            this_accum_reward = test_survey.calc_reward_function(conditions)
-            accum_reward, accum_area = reward_to_scalars(this_accum_reward)
-            accum_rewards.append(accum_reward)
-            accum_areas.append(accum_area)
+            if accum:
+                basis_functions.append(basis_function)
+                basis_weights.append(weight)
+                test_survey = deepcopy(self)
+                test_survey.basis_functions = basis_functions
+                test_survey.basis_weights = basis_weights
+                this_accum_reward = test_survey.calc_reward_function(conditions)
+                accum_reward, accum_area = self._reward_to_scalars(this_accum_reward)
+                accum_rewards.append(accum_reward)
+                accum_areas.append(accum_area)
 
-        reward_df = pd.DataFrame(
-            {
-                "basis_function": bf_label,
-                "feasible": feasibility,
-                "max_basis_reward": max_rewards,
-                "basis_area": basis_areas,
-                "max_accum_reward": accum_rewards,
-                "accum_area": accum_areas,
-            }
-        )
+        reward_data = {
+            "basis_function": bf_label,
+            "feasible": feasibility,
+            "max_basis_reward": max_rewards,
+            "basis_area": basis_areas,
+            "basis_weight": full_basis_weights,
+        }
+        if accum:
+            reward_data["max_accum_reward"] = accum_rewards
+            reward_data["accum_area"] = accum_areas
+
+        reward_df = pd.DataFrame(reward_data)
+
         return reward_df
 
     def reward_changes(self, conditions):
@@ -302,10 +315,19 @@ class BaseSurvey(object):
 
         reward_values = []
         basis_functions = []
-        for basis_function in self.basis_functions:
+        basis_weights = []
+
+        try:
+            full_basis_weights = self.basis_weights
+        except AttributeError:
+            full_basis_weights = [1 for bf in self.basis_functions]
+
+        for weight, basis_function in zip(full_basis_weights, self.basis_functions):
             test_survey = deepcopy(self)
             basis_functions.append(basis_function)
             test_survey.basis_functions = basis_functions
+            basis_weights.append(weight)
+            test_survey.basis_weights = basis_weights
             try:
                 reward_values.append(
                     np.nanmax(test_survey.calc_reward_function(conditions))
@@ -313,7 +335,7 @@ class BaseSurvey(object):
             except IndexError:
                 reward_values.append(None)
 
-        bf_names = [bf.__class__.__name__ for bf in self.basis_functions]
+        bf_names = [bf.label() for bf in self.basis_functions]
         return list(zip(bf_names, reward_values))
 
 
@@ -551,114 +573,3 @@ class BaseMarkovSurvey(BaseSurvey):
 
         # XXX Use self.reward to decide what to observe.
         return None
-
-    def make_reward_df(self, conditions):
-        """Create a pandas.DataFrame describing the reward from the survey.
-
-        Parameters
-        ----------
-        conditions : `rubin_sim.scheduler.features.Conditions`
-            Conditions for which rewards are to be returned
-
-        Returns
-        -------
-        reward_df : `pandas.DataFrame`
-            A table of surveys listing the rewards.
-        """
-
-        feasibility = []
-        max_rewards = []
-        basis_areas = []
-        accum_rewards = []
-        accum_areas = []
-        bf_label = []
-        basis_functions = []
-        basis_weights = []
-
-        pix_area = hp.nside2pixarea(self.nside, degrees=True)
-
-        def reward_to_scalars(reward):
-            if np.isscalar(reward):
-                unmasked_area = pix_area * hp.nside2npix(self.nside)
-            else:
-                unmasked_area = pix_area * np.count_nonzero(reward > -np.inf)
-
-            if np.isscalar(reward):
-                scalar_reward = reward
-            elif unmasked_area == 0:
-                scalar_reward = -np.inf
-            else:
-                scalar_reward = np.nanmax(reward)
-
-            return scalar_reward, unmasked_area
-
-        for weight, basis_function in zip(self.basis_weights, self.basis_functions):
-            basis_functions.append(basis_function)
-            basis_weights.append(weight)
-            test_survey = deepcopy(self)
-            test_survey.basis_functions = basis_functions
-            test_survey.basis_weights = basis_weights
-
-            bf_label.append(basis_function.label())
-
-            bf_reward = basis_function(conditions)
-            max_reward, basis_area = reward_to_scalars(bf_reward)
-            max_rewards.append(max_reward)
-            basis_areas.append(basis_area)
-
-            this_feasibility = np.array(
-                basis_function.check_feasibility(conditions)
-            ).any()
-            feasibility.append(this_feasibility)
-
-            this_accum_reward = test_survey.calc_reward_function(conditions)
-            accum_reward, accum_area = reward_to_scalars(this_accum_reward)
-            accum_rewards.append(accum_reward)
-            accum_areas.append(accum_area)
-
-        reward_df = pd.DataFrame(
-            {
-                "basis_function": bf_label,
-                "feasible": feasibility,
-                "max_basis_reward": max_rewards,
-                "basis_area": basis_areas,
-                "max_accum_reward": accum_rewards,
-                "accum_area": accum_areas,
-            }
-        )
-        return reward_df
-
-    def reward_changes(self, conditions):
-        """List the rewards for each basis function used by the survey.
-
-        Parameters
-        ----------
-        conditions : `rubin_sim.scheduler.features.Conditions`
-            Conditions for which rewards are to be returned
-
-        Returns
-        -------
-        rewards : `list`
-            A list of tuples, each with a basis function name and the
-            maximum reward returned by that basis function for the
-            provided conditions.
-        """
-
-        reward_values = []
-        basis_functions = []
-        basis_weights = []
-        for weight, basis_function in zip(self.basis_weights, self.basis_functions):
-            test_survey = deepcopy(self)
-            basis_functions.append(basis_function)
-            test_survey.basis_functions = basis_functions
-            basis_weights.append(weight)
-            test_survey.basis_weights = basis_weights
-            try:
-                reward_values.append(
-                    np.nanmax(test_survey.calc_reward_function(conditions))
-                )
-            except IndexError:
-                reward_values.append(None)
-
-        bf_names = [bf.label() for bf in self.basis_functions]
-        return list(zip(bf_names, reward_values))

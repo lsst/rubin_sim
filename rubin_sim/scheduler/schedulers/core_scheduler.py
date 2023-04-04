@@ -2,11 +2,13 @@ from __future__ import absolute_import
 import reprlib
 from collections import OrderedDict
 from io import StringIO
+import time
 from copy import deepcopy
 from builtins import object
 import numpy as np
 import healpy as hp
 import pandas as pd
+from astropy.time import Time
 from rubin_sim.utils import _hpid2_ra_dec
 from rubin_sim.scheduler.utils import (
     HpInLsstFov,
@@ -41,7 +43,13 @@ class CoreScheduler(object):
     """
 
     def __init__(
-        self, surveys, nside=None, camera="LSST", rotator_limits=[85.0, 275.0], log=None
+        self,
+        surveys,
+        nside=None,
+        camera="LSST",
+        rotator_limits=[85.0, 275.0],
+        log=None,
+        keep_rewards=False,
     ):
         """
         Parameters
@@ -56,7 +64,15 @@ class CoreScheduler(object):
             Which camera to use for computing overlapping HEALpixels for an observation.
             Can be 'LSST' or 'comcam'
         rotator_limits : sequence of floats
+        keep_rewards : `bool`
+            Keep records of rewards and basis funciton values
         """
+        self.keep_rewards = keep_rewards
+        # Use integer ns just to be sure there are no rounding issues.
+        self.mjd_perf_counter_offset = (
+            np.int64(Time.now().mjd * 86400000000000) - time.perf_counter_ns()
+        )
+
         if nside is None:
             nside = set_default_nside()
 
@@ -258,6 +274,26 @@ class CoreScheduler(object):
         Compute reward function for each survey and fill the observing queue with the
         observations from the highest reward survey.
         """
+
+        # If we loaded the scheduler from a pickle, self.keep_rewards
+        # might not have been initialized, but we want it to succeed
+        # anyway. So, assign it to false if it isn't present.
+        try:
+            keep_rewards = self.keep_rewards
+        except AttributeError:
+            keep_rewards = False
+
+        if keep_rewards:
+            # Use perf_counter_ns to get the best time resolution to guarantee
+            # successive calls do occur within the same resolution element.
+            self.queue_fill_mjd_ns = np.int64(
+                self.mjd_perf_counter_offset + time.perf_counter_ns()
+            )
+            self.queue_reward_df = self.make_reward_df(accum=False)
+            self.queue_reward_df = self.queue_reward_df.assign(
+                queue_start_mjd=float(self.conditions.mjd),
+                queue_fill_mjd_ns=np.int64(self.queue_fill_mjd_ns),
+            )
 
         rewards = None
         for ns, surveys in enumerate(self.survey_lists):
@@ -501,26 +537,36 @@ class CoreScheduler(object):
         df = pd.DataFrame(surveys).set_index("survey")
         return df
 
-    def make_reward_df(self, conditions):
+    def make_reward_df(self, conditions=None, accum=True):
         """Create a pandas.DataFrame describing rewards from contained surveys.
 
         Parameters
         ----------
         conditions : `rubin_sim.scheduler.features.Conditions`
             Conditions for which rewards are to be returned
+        accum : `bool`
+            Include accumulated rewards (defaults to True)
 
         Returns
         -------
         reward_df : `pandas.DataFrame`
             A table of surveys listing the rewards.
         """
+        if conditions is None:
+            conditions = self.conditions
 
         survey_dfs = []
         for index0, survey_list in enumerate(self.survey_lists):
             for index1, survey in enumerate(survey_list):
-                survey_df = survey.make_reward_df(conditions)
+                survey_df = survey.make_reward_df(conditions, accum=accum)
+                if len(survey_df) == 0:
+                    continue
+
                 survey_df["list_index"] = index0
                 survey_df["survey_index"] = index1
+                survey_df["survey_reward"] = np.nanmax(
+                    survey.calc_reward_function(conditions)
+                )
                 survey_dfs.append(survey_df)
 
         reward_df = pd.concat(survey_dfs).set_index(["list_index", "survey_index"])

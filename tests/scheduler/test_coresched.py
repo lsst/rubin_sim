@@ -51,10 +51,20 @@ class TestCoreSched(unittest.TestCase):
         # Check survey access methods
         reward_df = scheduler.make_reward_df(observatory.return_conditions())
         self.assertIsInstance(reward_df, pd.DataFrame)
+        reward_df = scheduler.make_reward_df(
+            observatory.return_conditions(), accum=False
+        )
+        self.assertIsInstance(reward_df, pd.DataFrame)
 
         obs = scheduler.request_observation()
         surveys_df = scheduler.surveys_df(0)
         self.assertIsInstance(surveys_df, pd.DataFrame)
+
+        # Test we can record basis function values when requested
+        recording_scheduler = CoreScheduler([survey], keep_rewards=True)
+        recording_scheduler.update_conditions(observatory.return_conditions())
+        obs = recording_scheduler.request_observation()
+        self.assertIsInstance(recording_scheduler.queue_reward_df, pd.DataFrame)
 
 
 if __name__ == "__main__":
