@@ -1266,7 +1266,7 @@ def science_radar_batch(
     n_events = 500000
     displayDict[
         "caption"
-    ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky, GW170817-like only."
+    ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky, GW170817-like only. Ignoring DDF observations."
     displayDict["order"] = 0
     # Kilonova parameters
     inj_params_list = [
@@ -1286,7 +1286,7 @@ def science_radar_batch(
     bundle = mb.MetricBundle(
         metric,
         kneslicer,
-        "",
+        "note not like 'DD%'",
         run_name=runName,
         info_label="single model",
         summary_metrics=lightcurve_summary(),
@@ -1297,7 +1297,7 @@ def science_radar_batch(
     n_events = 500000
     displayDict[
         "caption"
-    ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky, entire model population."
+    ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky, entire model population. Ignoring DDF observations."
     displayDict["order"] = 1
     # Kilonova parameters
     filename = maf.get_kne_filename(None)
@@ -1310,7 +1310,7 @@ def science_radar_batch(
     bundle = mb.MetricBundle(
         metric_allkne,
         kneslicer_allkne,
-        "",
+        "note not like 'DD%'",
         run_name=runName,
         info_label="all models",
         summary_metrics=lightcurve_summary(),
