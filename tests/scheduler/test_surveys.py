@@ -31,6 +31,7 @@ class TestSurveys(unittest.TestCase):
         reward_df = survey.reward_changes(conditions)
         reward_df = survey.make_reward_df(conditions)
         self.assertIsInstance(reward_df, pd.DataFrame)
+        reward_df = survey.make_reward_df(conditions, accum=False)
 
 
 if __name__ == "__main__":

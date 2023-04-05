@@ -23,6 +23,7 @@ def sim_runner(
     verbose=True,
     extra_info=None,
     event_table=None,
+    record_rewards=False,
 ):
     """
     run a simulation
@@ -37,6 +38,8 @@ def sim_runner(
         If present, dict gets added onto the information from the observatory model.
     event_table : np.array (None)
         Any ToO events that were included in the simulation
+    record_rewards : bool (False)
+        Save computed rewards
     """
 
     if extra_info is None:
@@ -65,10 +68,19 @@ def sim_runner(
 
     mjd_last_flush = -1
 
+    last_obs_queue_fill_mjd_ns = None
+    obs_rewards = {}
+    reward_dfs = []
+
     while mjd < end_mjd:
         if not scheduler._check_queue_mjd_only(observatory.mjd):
             scheduler.update_conditions(observatory.return_conditions())
         desired_obs = scheduler.request_observation(mjd=observatory.mjd)
+        if record_rewards:
+            if last_obs_queue_fill_mjd_ns != scheduler.queue_fill_mjd_ns:
+                reward_dfs.append(scheduler.queue_reward_df)
+                last_obs_queue_fill_mjd_ns = scheduler.queue_fill_mjd_ns
+
         if desired_obs is None:
             # No observation. Just step into the future and try again.
             warnings.warn("No observation. Step into the future and trying again.")
@@ -81,6 +93,8 @@ def sim_runner(
             scheduler.add_observation(completed_obs[0])
             observations.append(completed_obs)
             filter_scheduler.add_observation(completed_obs[0])
+            if record_rewards:
+                obs_rewards[completed_obs[0]["mjd"]] = last_obs_queue_fill_mjd_ns
         else:
             # An observation failed to execute, usually it was outside the altitude limits.
             if observatory.mjd == mjd_last_flush:
@@ -130,4 +144,25 @@ def sim_runner(
             con = sqlite3.connect(filename)
             df.to_sql("events", con)
             con.close()
-    return observatory, scheduler, observations
+
+        if record_rewards:
+            reward_df = pd.concat(reward_dfs)
+            obs_rewards_series = pd.Series(obs_rewards)
+            obs_rewards_series.index.name = "mjd"
+            obs_rewards_series.name = "queue_fill_mjd_ns"
+
+            if filename is not None:
+                with sqlite3.connect(filename) as con:
+                    reward_df.to_sql("rewards", con)
+                    obs_rewards_series.to_sql("obs_rewards", con)
+    else:
+        # Make sure there is something to return if there are no observations
+        reward_df = None
+        obs_rewards_series = None
+
+    if record_rewards:
+        result = observatory, scheduler, observations, reward_df, obs_rewards_series
+    else:
+        result = observatory, scheduler, observations
+
+    return result
