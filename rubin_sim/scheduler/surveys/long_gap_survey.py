@@ -16,10 +16,10 @@ class LongGapSurvey(BaseSurvey):
     """
     Parameters
     ----------
-    blob_survey : xxx
+    blob_survey : rubin_sim.scheduler.surveys.BlobSurvey
         A survey object that we will want to take repeat measurments of sometime later in the evening
-    scripted_survey : xxx
-        A scripted survey object that will hold the
+    scripted_survey : rubin_sim.scheduler.surveys.ScriptedSurvey
+        A scripted survey object that will have a queue updated with objects to observe later.
     gap range : list of 2 floats
         The desired gap range (hours)
     long_name : str
@@ -89,19 +89,20 @@ class LongGapSurvey(BaseSurvey):
         self.mjd_step = hour_step / 24.0
 
     def _schedule_obs(self, observations):
-        """Take incoming observations and decide if they should be added to the 
+        """Take incoming observations and decide if they should be added to the
         scripted survey to try and be observered again later
         """
 
-        # Only match if we have completed the second of a pair.
-        need_to_observe = np.where(observations["note"] == self.blob_survey.survey_note + ', b')[0]
+        # Only match if we have completed the second of a pair and are in most recent night.
+        need_to_observe = np.where(
+            (observations["note"] == self.blob_survey.survey_note + ", b")
+            & (observations["night"] == np.max(observations["night"]))
+        )[0]
 
         # If the incoming observation needs to have something scheduled later
         if np.size(need_to_observe) > 0:
             sched_array = scheduled_observation(n=need_to_observe.size)
-            for dt in np.intersect1d(
-                observations.dtype.names, sched_array.dtype.names
-            ):
+            for dt in np.intersect1d(observations.dtype.names, sched_array.dtype.names):
                 if np.size(observations) == 1:
                     sched_array[dt] = observations[dt]
                 else:
@@ -114,7 +115,9 @@ class LongGapSurvey(BaseSurvey):
             if np.size(observations) == 1:
                 sched_array["flush_by_mjd"] = observations["mjd"] + self.flush_time
             else:
-                sched_array["flush_by_mjd"] = observations[need_to_observe]["mjd"] + self.flush_time
+                sched_array["flush_by_mjd"] = (
+                    observations[need_to_observe]["mjd"] + self.flush_time
+                )
             sched_array["dist_tol"] = self.dist_tol
             if self.avoid_zenith:
                 # when is the earliest we expect things could execute
@@ -158,7 +161,7 @@ class LongGapSurvey(BaseSurvey):
                         )
                         alts.append(np.max(alt))
             # Make sure these have the note filled in
-            sched_array['note'] = self.long_name
+            sched_array["note"] = self.long_name
 
             # See if we need to append things to the scripted survey object
             if self.scripted_survey.obs_wanted is not None:
@@ -169,7 +172,6 @@ class LongGapSurvey(BaseSurvey):
             self.scripted_survey.set_script(sched_array)
 
     def add_observations_array(self, observations_array_in, observations_hpid_in):
-
         self._schedule_obs(observations_array_in)
 
         self.blob_survey.add_observations_array(
@@ -180,7 +182,6 @@ class LongGapSurvey(BaseSurvey):
         )
 
     def add_observation(self, observation, **kwargs):
-
         self._schedule_obs(observation)
 
         self.blob_survey.add_observation(observation, **kwargs)
