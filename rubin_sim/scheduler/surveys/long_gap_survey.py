@@ -3,7 +3,7 @@ import pandas as pd
 from copy import deepcopy
 from rubin_sim.scheduler.utils import scheduled_observation
 from rubin_sim.scheduler.surveys import BaseSurvey
-from rubin_sim.utils import _approx_ra_dec2_alt_az
+from rubin_sim.utils import _approx_ra_dec2_alt_az, Site
 from copy import copy
 import logging
 
@@ -16,10 +16,10 @@ class LongGapSurvey(BaseSurvey):
     """
     Parameters
     ----------
-    blob_survey : xxx
+    blob_survey : rubin_sim.scheduler.surveys.BlobSurvey
         A survey object that we will want to take repeat measurments of sometime later in the evening
-    scripted_survey : xxx
-        A scripted survey object that will hold the
+    scripted_survey : rubin_sim.scheduler.surveys.ScriptedSurvey
+        A scripted survey object that will have a queue updated with objects to observe later.
     gap range : list of 2 floats
         The desired gap range (hours)
     long_name : str
@@ -55,6 +55,7 @@ class LongGapSurvey(BaseSurvey):
         seed=42,
         night_max=50000,
         avoid_zenith=True,
+        site=None,
         hour_step=0.5,
         survey_name="",
     ):
@@ -65,6 +66,8 @@ class LongGapSurvey(BaseSurvey):
         rng = np.random.default_rng(seed)
         self.gaps = rng.uniform(self.gap_range.min(), self.gap_range.max(), night_max)
         self.gap = 0.0
+        if site is None:
+            self.site = Site("LSST")
         self.long_name = long_name
         if survey_name == "":
             self.survey_name = (
@@ -85,7 +88,92 @@ class LongGapSurvey(BaseSurvey):
         self.avoid_zenith = avoid_zenith
         self.mjd_step = hour_step / 24.0
 
+    def _schedule_obs(self, observations):
+        """Take incoming observations and decide if they should be added to the
+        scripted survey to try and be observered again later
+        """
+
+        # Only match if we have completed the second of a pair and are in most recent night.
+        need_to_observe = np.where(
+            (observations["note"] == self.blob_survey.survey_note + ", b")
+            & (observations["night"] == np.max(observations["night"]))
+        )[0]
+
+        # If the incoming observation needs to have something scheduled later
+        if np.size(need_to_observe) > 0:
+            sched_array = scheduled_observation(n=need_to_observe.size)
+            for dt in np.intersect1d(observations.dtype.names, sched_array.dtype.names):
+                if np.size(observations) == 1:
+                    sched_array[dt] = observations[dt]
+                else:
+                    sched_array[dt] = observations[need_to_observe][dt]
+            sched_array["mjd_tol"] = self.scripted_tol
+            sched_array["alt_min"] = self.alt_min
+            sched_array["alt_max"] = self.alt_max
+            sched_array["HA_min"] = self.ha_min
+            sched_array["HA_max"] = self.ha_max
+            if np.size(observations) == 1:
+                sched_array["flush_by_mjd"] = observations["mjd"] + self.flush_time
+            else:
+                sched_array["flush_by_mjd"] = (
+                    observations[need_to_observe]["mjd"] + self.flush_time
+                )
+            sched_array["dist_tol"] = self.dist_tol
+            if self.avoid_zenith:
+                # when is the earliest we expect things could execute
+                earliest_mjd = sched_array["mjd"] - sched_array["mjd_tol"]
+                alts = []
+                mjds = np.arange(
+                    np.min(earliest_mjd),
+                    np.max(sched_array["mjd"]) + self.mjd_step,
+                    self.mjd_step,
+                )
+                # Let's compute the alt of everything at earliest and scheduled
+                for mjd in mjds:
+                    alt, az = _approx_ra_dec2_alt_az(
+                        sched_array["RA"],
+                        sched_array["dec"],
+                        self.site.latitude_rad,
+                        self.site.longitude_rad,
+                        mjd,
+                    )
+                    alts.append(np.max(alt))
+
+                while np.max(alts) > self.alt_max:
+                    alts = []
+                    sched_array["mjd"] += self.mjd_step
+                    sched_array["flush_by_mjd"] += self.mjd_step
+                    earliest_mjd = sched_array["mjd"] - sched_array["mjd_tol"]
+                    # Let's compute the alt of everything then
+                    mjds = np.arange(
+                        np.min(earliest_mjd),
+                        np.max(sched_array["mjd"]) + self.mjd_step,
+                        self.mjd_step,
+                    )
+                    # Let's compute the alt of everything at earliest and scheduled
+                    for mjd in mjds:
+                        alt, az = _approx_ra_dec2_alt_az(
+                            sched_array["RA"],
+                            sched_array["dec"],
+                            self.site.latitude_rad,
+                            self.site.longitude_rad,
+                            mjd,
+                        )
+                        alts.append(np.max(alt))
+            # Make sure these have the note filled in
+            sched_array["note"] = self.long_name
+
+            # See if we need to append things to the scripted survey object
+            if self.scripted_survey.obs_wanted is not None:
+                sched_array = np.concatenate(
+                    [self.scripted_survey.obs_wanted, sched_array]
+                )
+
+            self.scripted_survey.set_script(sched_array)
+
     def add_observations_array(self, observations_array_in, observations_hpid_in):
+        self._schedule_obs(observations_array_in)
+
         self.blob_survey.add_observations_array(
             observations_array_in, observations_hpid_in
         )
@@ -94,6 +182,8 @@ class LongGapSurvey(BaseSurvey):
         )
 
     def add_observation(self, observation, **kwargs):
+        self._schedule_obs(observation)
+
         self.blob_survey.add_observation(observation, **kwargs)
         self.scripted_survey.add_observation(observation, **kwargs)
 
@@ -140,81 +230,7 @@ class LongGapSurvey(BaseSurvey):
 
         # Check if it's a good time for a blob
         if observations is None:
-            o1 = self.blob_survey.generate_observations(conditions)
-            if np.size(o1) > 0:
-                # Set the script to have things
-                obs_array = np.concatenate(o1)
-                # Reverse the order to try and get even more spread out gap times
-                if self.reverse:
-                    obs_array = obs_array[::-1]
-                obs_array = obs_array[
-                    np.where(obs_array["filter"] == obs_array["filter"][0])[0]
-                ]
-
-                obs_array["mjd"] = conditions.mjd + self.gap
-                obs_array["note"] = self.long_name
-                sched_array = scheduled_observation(n=obs_array.size)
-                for dt in np.intersect1d(
-                    obs_array.dtype.names, sched_array.dtype.names
-                ):
-                    sched_array[dt] = obs_array[dt]
-                sched_array["mjd_tol"] = self.scripted_tol
-                sched_array["alt_min"] = self.alt_min
-                sched_array["alt_max"] = self.alt_max
-                sched_array["HA_min"] = self.ha_min
-                sched_array["HA_max"] = self.ha_max
-                sched_array["flush_by_mjd"] = obs_array["mjd"] + self.flush_time
-                sched_array["dist_tol"] = self.dist_tol
-                if self.avoid_zenith:
-                    # when is the earliest we expect things could execute
-                    earliest_mjd = sched_array["mjd"] - sched_array["mjd_tol"]
-                    alts = []
-                    mjds = np.arange(
-                        np.min(earliest_mjd),
-                        np.max(sched_array["mjd"]) + self.mjd_step,
-                        self.mjd_step,
-                    )
-                    # Let's compute the alt of everything at earliest and scheduled
-                    for mjd in mjds:
-                        alt, az = _approx_ra_dec2_alt_az(
-                            sched_array["RA"],
-                            sched_array["dec"],
-                            conditions.site.latitude_rad,
-                            conditions.site.longitude_rad,
-                            mjd,
-                        )
-                        alts.append(np.max(alt))
-
-                    while np.max(alts) > self.alt_max:
-                        alts = []
-                        sched_array["mjd"] += self.mjd_step
-                        sched_array["flush_by_mjd"] += self.mjd_step
-                        earliest_mjd = sched_array["mjd"] - sched_array["mjd_tol"]
-                        # Let's compute the alt of everything then
-                        mjds = np.arange(
-                            np.min(earliest_mjd),
-                            np.max(sched_array["mjd"]) + self.mjd_step,
-                            self.mjd_step,
-                        )
-                        # Let's compute the alt of everything at earliest and scheduled
-                        for mjd in mjds:
-                            alt, az = _approx_ra_dec2_alt_az(
-                                sched_array["RA"],
-                                sched_array["dec"],
-                                conditions.site.latitude_rad,
-                                conditions.site.longitude_rad,
-                                mjd,
-                            )
-                            alts.append(np.max(alt))
-
-                # See if we need to append things to the scripted survey object
-                if self.scripted_survey.obs_wanted is not None:
-                    sched_array = np.concatenate(
-                        [self.scripted_survey.obs_wanted, sched_array]
-                    )
-
-                self.scripted_survey.set_script(sched_array)
-                observations = o1
+            observations = self.blob_survey.generate_observations(conditions)
 
         return observations
 
