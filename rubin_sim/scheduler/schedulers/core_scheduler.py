@@ -556,6 +556,7 @@ class CoreScheduler(object):
             conditions = self.conditions
 
         survey_dfs = []
+        survey_labels = self.survey_labels
         for index0, survey_list in enumerate(self.survey_lists):
             for index1, survey in enumerate(survey_list):
                 survey_df = survey.make_reward_df(conditions, accum=accum)
@@ -564,6 +565,9 @@ class CoreScheduler(object):
 
                 survey_df["list_index"] = index0
                 survey_df["survey_index"] = index1
+                survey_df["tier_label"] = f"tier {index0}"
+                survey_df["survey_label"] = survey_labels[index0][index1]
+                survey_df["survey_class"] = survey.__class__.__name__
                 survey_df["survey_reward"] = np.nanmax(
                     survey.calc_reward_function(conditions)
                 )
@@ -571,3 +575,80 @@ class CoreScheduler(object):
 
         reward_df = pd.concat(survey_dfs).set_index(["list_index", "survey_index"])
         return reward_df
+
+    @property
+    def survey_labels(self):
+        """Provide a list of labels for surveys
+
+        Returns
+        -------
+        label_lists : `list`
+            A list, or list of lists, of labels corresponding to
+            self.survey_lists
+        """
+        label_lists = []
+
+        encountered_labels = set()
+        duplicated_labels = set()
+
+        def process_survey(survey):
+            try:
+                basic_label = survey.survey_name
+            except AttributeError:
+                basic_label = ""
+
+            if len(basic_label) == 0:
+                basic_label = survey.__class__.__name__
+
+            if basic_label in encountered_labels:
+                duplicated_labels.add(basic_label)
+            else:
+                encountered_labels.add(basic_label)
+
+            return basic_label
+
+        for item in self.survey_lists:
+            if hasattr(item, "generate_observations"):
+                basic_label = process_survey(item)
+                label_lists.append()
+            else:
+                labels = []
+                for survey in item:
+                    basic_label = process_survey(survey)
+                    labels.append(basic_label)
+                label_lists.append(labels)
+
+        label_count = {}
+
+        def unique_label(survey):
+            try:
+                basic_label = survey.survey_name
+            except AttributeError:
+                basic_label = ""
+
+            if len(basic_label) == 0:
+                basic_label = survey.__class__.__name__
+
+            if basic_label not in duplicated_labels:
+                return basic_label
+
+            if basic_label not in label_count:
+                label_count[basic_label] = 0
+
+            label_count[basic_label] += 1
+            label = f"{basic_label} {label_count[basic_label]}"
+            return label
+
+        label_lists = []
+        for item in self.survey_lists:
+            if hasattr(item, "generate_observations"):
+                label = unique_label(item)
+                label_lists.append(label)
+            else:
+                labels = []
+                for survey in item:
+                    label = unique_label(survey)
+                    labels.append(label)
+                label_lists.append(labels)
+
+        return label_lists
