@@ -164,7 +164,7 @@ class BaseBasisFunction(object):
         label : `str`
             A string suitable for labeling the basis function in a plot or table.
         """
-        label = self.__class__.__name__.replace("_basis_function", "")
+        label = self.__class__.__name__.replace("BasisFunction", "")
 
         if self.filtername is not None:
             label += f" {self.filtername}"

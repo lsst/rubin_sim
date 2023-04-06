@@ -251,6 +251,7 @@ class BaseSurvey(object):
         accum_rewards = []
         accum_areas = []
         bf_label = []
+        bf_class = []
         basis_functions = []
         basis_weights = []
 
@@ -259,8 +260,10 @@ class BaseSurvey(object):
         except AttributeError:
             full_basis_weights = [1.0 for df in self.basis_functions]
 
+        short_labels = self.bf_short_labels
         for weight, basis_function in zip(full_basis_weights, self.basis_functions):
-            bf_label.append(basis_function.label())
+            bf_label.append(short_labels[basis_function.label()])
+            bf_class.append(basis_function.__class__.__name__)
             bf_reward = basis_function(conditions)
             max_reward, basis_area = self._reward_to_scalars(bf_reward)
             max_rewards.append(max_reward)
@@ -284,6 +287,7 @@ class BaseSurvey(object):
 
         reward_data = {
             "basis_function": bf_label,
+            "basis_function_class": bf_class,
             "feasible": feasibility,
             "max_basis_reward": max_rewards,
             "basis_area": basis_areas,
@@ -337,6 +341,30 @@ class BaseSurvey(object):
 
         bf_names = [bf.label() for bf in self.basis_functions]
         return list(zip(bf_names, reward_values))
+
+    @property
+    def bf_short_labels(self):
+        try:
+            long_labels = [bf.label() for bf in self.basis_functions]
+        except AttributeError:
+            return []
+
+        label_bases = [label.split(" @")[0] for label in long_labels]
+        duplicated_labels = set(
+            [label for label in label_bases if label_bases.count(label) > 1]
+        )
+        short_labels = []
+        label_count = {k: 0 for k in duplicated_labels}
+        for label_base in label_bases:
+            if label_base in duplicated_labels:
+                label_count[label_base] += 1
+                short_labels.append(f"{label_base} {label_count[label_base]}")
+            else:
+                short_labels.append(label_base)
+
+        label_map = dict(zip(long_labels, short_labels))
+
+        return label_map
 
 
 def rotx(theta, x, y, z):
