@@ -133,12 +133,6 @@ class BlobSurvey(GreedySurvey):
         The ideal time gap wanted between observations to the same pointing (minutes)
     min_pair_time : float (15.)
         The minimum acceptable pair time (minutes)
-    search_radius : float (30.)
-        The radius around the reward peak to look for additional potential pointings (degrees)
-    alt_max : float (85.)
-        The maximum altitude to include (degrees).
-    az_range : float (90.)
-        The range of azimuths to consider around the peak reward value (degrees).
     flush_time : float (30.)
         The time past the final expected exposure to flush the queue. Keeps observations
         from lingering past when they should be executed. (minutes)
@@ -169,9 +163,6 @@ class BlobSurvey(GreedySurvey):
         nexp_dict=None,
         ideal_pair_time=22.0,
         min_pair_time=15.0,
-        search_radius=30.0,
-        alt_max=85.0,
-        az_range=90.0,
         flush_time=30.0,
         smoothing_kernel=None,
         nside=None,
@@ -189,6 +180,7 @@ class BlobSurvey(GreedySurvey):
         area_required=None,
         fields=None,
         survey_name="",
+        **kwargs,
     ):
         super(BlobSurvey, self).__init__(
             basis_functions=basis_functions,
@@ -254,9 +246,6 @@ class BlobSurvey(GreedySurvey):
         self.counter = 1  # start at 1, because 0 is default in empty observation
         self.filtername1 = filtername1
         self.filtername2 = filtername2
-        self.search_radius = np.radians(search_radius)
-        self.az_range = np.radians(az_range)
-        self.alt_max = np.radians(alt_max)
         self.min_pair_time = min_pair_time
         self.ideal_pair_time = ideal_pair_time
 
@@ -378,40 +367,6 @@ class BlobSurvey(GreedySurvey):
                 self.reward += basis_value * weight
             if self.smoothing_kernel is not None:
                 self.smooth_reward()
-
-            # Apply max altitude cut
-            too_high = np.where(IntRounded(conditions.alt) > IntRounded(self.alt_max))
-            self.reward[too_high] = np.nan
-
-            # Select healpixels within some radius of the max
-            # This is probably faster with a kd-tree.
-
-            max_hp = np.where(self.reward == np.nanmax(self.reward))[0]
-            if np.size(max_hp) > 0:
-                peak_reward = np.min(max_hp)
-            else:
-                # Everything is masked, so get out
-                return -np.inf
-
-            # Apply radius selection
-            dists = _angular_separation(
-                self.ra[peak_reward], self.dec[peak_reward], self.ra, self.dec
-            )
-            out_hp = np.where(IntRounded(dists) > IntRounded(self.search_radius))
-            self.reward[out_hp] = np.nan
-
-            # Apply az cut
-            az_centered = conditions.az - conditions.az[peak_reward]
-            az_centered[np.where(az_centered < 0)] += 2.0 * np.pi
-
-            az_out = np.where(
-                (IntRounded(az_centered) > IntRounded(self.az_range / 2.0))
-                & (
-                    IntRounded(az_centered)
-                    < IntRounded(2.0 * np.pi - self.az_range / 2.0)
-                )
-            )
-            self.reward[az_out] = np.nan
         else:
             self.reward = -np.inf
 
@@ -421,9 +376,6 @@ class BlobSurvey(GreedySurvey):
             )
             if good_area < self.area_required:
                 self.reward = -np.inf
-
-        # if ('twi' in self.survey_note) & (np.any(np.isfinite(self.reward))):
-        #    import pdb ; pdb.set_trace()
 
         self.reward_checked = True
         return self.reward
