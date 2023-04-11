@@ -1,7 +1,14 @@
 import numpy as np
 import healpy as hp
-from rubin_sim.utils import hpid2_ra_dec, angular_separation, ddf_locations
+from rubin_sim.utils import (
+    hpid2_ra_dec,
+    angular_separation,
+    ddf_locations,
+    sample_patch_on_sphere,
+)
 import rubin_sim.maf as maf
+from .common import lightcurve_summary
+
 
 __all__ = ["ddfBatch"]
 
@@ -154,6 +161,34 @@ def ddfBatch(
                 plot_dict=plotDict,
                 plot_funcs=plotFuncs,
                 summary_metrics=summary_stats,
+                display_dict=displayDict,
+            )
+        )
+
+        # KNe
+
+        delta = 5.0  # degrees
+        n_kne = 5000
+        displayDict["group"] = "KNe"
+        displayDict["subgroup"] = ""
+        displayDict["caption"] = (
+            f"Number of KNe in the {fieldname} DDF from %i injected." % n_kne
+        )
+
+        ra, dec = sample_patch_on_sphere(
+            np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]), delta, n_kne, seed=1
+        )
+
+        metric = maf.KNePopMetric(metric_name="KNePopMetric_%s" % fieldname)
+        slicer = maf.generate_kn_pop_slicer(n_events=n_kne, ra=ra, dec=dec)
+
+        bundle_list.append(
+            maf.MetricBundle(
+                metric,
+                slicer,
+                "",
+                info_label=" ".join([fieldname]),
+                summary_metrics=lightcurve_summary(),
                 display_dict=displayDict,
             )
         )

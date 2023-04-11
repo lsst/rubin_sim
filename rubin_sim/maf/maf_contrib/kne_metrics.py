@@ -421,7 +421,15 @@ class KNePopMetric(BaseMetric):
 
 
 def generate_kn_pop_slicer(
-    t_start=1, t_end=3652, n_events=10000, seed=42, n_files=308, d_min=10, d_max=300
+    t_start=1,
+    t_end=3652,
+    n_events=10000,
+    seed=42,
+    n_files=308,
+    d_min=10,
+    d_max=300,
+    ra=None,
+    dec=None,
 ):
     """Generate a population of KNe events, and put the info about them
     into a UserPointSlicer object
@@ -443,6 +451,8 @@ def generate_kn_pop_slicer(
         Minimum luminosity distance (Mpc)
     d_max : float or int (300)
         Maximum luminosity distance (Mpc)
+    ra, dec : np.array (None)
+        The ra and dec to use for event positions. Generates uniformly on the spehere if None. (degrees)
     """
 
     def rndm(a, b, g, size=1):
@@ -451,7 +461,9 @@ def generate_kn_pop_slicer(
         ag, bg = a**g, b**g
         return (ag + (bg - ag) * r) ** (1.0 / g)
 
-    ra, dec = uniform_sphere(n_events, seed=seed)
+    if ra is None:
+        ra, dec = uniform_sphere(n_events, seed=seed)
+
     peak_times = np.random.uniform(low=t_start, high=t_end, size=n_events)
     file_indx = np.floor(np.random.uniform(low=0, high=n_files, size=n_events)).astype(
         int
