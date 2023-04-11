@@ -1815,6 +1815,52 @@ def science_radar_batch(
 
     #########################
     #########################
+    # Per year things
+    #########################
+    #########################
+
+    displayDict = {"group": "Per year", "subgroup": ""}
+    plotDict = {}
+    night_cuttoffs = np.arange(1, 11, 1) * 365.25
+    slicer = slicers.HealpixSlicer(nside=nside)
+    for i, cuttoff in enumerate(night_cuttoffs):
+        for filtername in "ugrizy":
+            sql = "night<%i and filter='%s'" % (cuttoff, filtername)
+            metric = metrics.Coaddm5Metric(
+                metric_name="coadd %s, year<%i" % (filtername, i + 1)
+            )
+
+            bundle = mb.MetricBundle(
+                metric,
+                slicer,
+                sql,
+                run_name=runName,
+                summary_metrics=standardStats,
+                plot_funcs=subsetPlots,
+                plot_dict=plotDict,
+                display_dict=displayDict,
+            )
+            bundleList.append(bundle)
+
+            metric = metrics.SnrWeightedMetric(
+                col="seeingFwhmEff",
+                metric_name="SNR-weighted FWHMeff %s, year<%i" % (filtername, i + 1),
+            )
+
+            bundle = mb.MetricBundle(
+                metric,
+                slicer,
+                sql,
+                run_name=runName,
+                summary_metrics=standardStats,
+                plot_funcs=subsetPlots,
+                plot_dict=plotDict,
+                display_dict=displayDict,
+            )
+            bundleList.append(bundle)
+
+    #########################
+    #########################
     # Scaling numbers
     #########################
     #########################
