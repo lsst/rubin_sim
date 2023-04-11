@@ -92,7 +92,7 @@ class OffsetSNR(BaseOffset):
         self.newkey = "dmag_snr"
         # self.gamma = SysEngVals().gamma[lsst_filter]
 
-    def calcMagErrors(self, magnitudes, m5, errOnly=False):
+    def calc_mag_errors(self, magnitudes, m5, errOnly=False):
         """ """
         snr = m52snr(magnitudes, m5)
         # via good old https://www.eso.org/~ohainaut/ccd/sn.html
@@ -111,5 +111,5 @@ class OffsetSNR(BaseOffset):
         # AFTER things like cloud extinction and vingetting.
         for key in list(dmags.keys()):
             temp_mag = temp_mag + dmags[key]
-        dmag = self.calcMagErrors(temp_mag, visit["fiveSigmaDepth"])
+        dmag = self.calc_mag_errors(temp_mag, visit["fiveSigmaDepth"])
         return dmag

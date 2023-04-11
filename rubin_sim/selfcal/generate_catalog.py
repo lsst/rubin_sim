@@ -89,12 +89,12 @@ def generate_catalog(
     x1, y1, z1 = treexyz(np.radians(radius_fov), 0)
     treeRadius = np.sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2 + (z1 - z0) ** 2)
 
-    newcols = ["x", "y", "radius", "patchID", "subPatch", "observed_mag", "mag_uncert"]
+    newcols = ["x", "y", "radius", "patch_id", "sub_patch", "observed_mag", "mag_uncert"]
     newtypes = [float, float, float, int, int, float, float]
     stars_new = np.zeros(stars_array.size, dtype=list(zip(newcols, newtypes)))
 
     # only need to output these columns (saving rmag+ for now for convienence)
-    output_cols = ["id", "patchID", "observed_mag", "mag_uncert", "%smag" % lsst_filter, "ra", "decl"]
+    output_cols = ["id", "patch_id", "observed_mag", "mag_uncert", "%smag" % lsst_filter, "ra", "decl"]
     output_dtypes = [int, int, float, float, float, float, float]
 
     stars = rfn.merge_arrays([stars_array, stars_new], flatten=True)
@@ -133,7 +133,7 @@ def generate_catalog(
 
         # Calculate the uncertainty in the observed mag:
         mag_err = (
-            mag_uncert.calcMagErrors(obs_mag, errOnly=True, m5=visit["fiveSigmaDepth"])
+            mag_uncert.calc_mag_errors(obs_mag, errOnly=True, m5=visit["fiveSigmaDepth"])
             ** 2
             + uncert_floor**2
         ) ** 0.5
