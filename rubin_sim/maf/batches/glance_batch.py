@@ -149,6 +149,43 @@ def glanceBatch(
         )
         bundle_list.append(bundle)
 
+    # alt az of long gaps
+    sql = "note = 'long'"
+    metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits long")
+    bundle = metric_bundles.MetricBundle(
+        metric,
+        slicer,
+        sql,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
+        plot_dict=plotDict,
+    )
+    bundle_list.append(bundle)
+
+    sql = "note like 'blob_long%'"
+    metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits blob long")
+    bundle = metric_bundles.MetricBundle(
+        metric,
+        slicer,
+        sql,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
+        plot_dict=plotDict,
+    )
+    bundle_list.append(bundle)
+
+    sql = "note like '%neo%'"
+    metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits twilight neo")
+    bundle = metric_bundles.MetricBundle(
+        metric,
+        slicer,
+        sql,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
+        plot_dict=plotDict,
+    )
+    bundle_list.append(bundle)
+
     # Things to check per night
     # Open Shutter per night
     displayDict = {"group": "Pointing Efficency", "order": 2}

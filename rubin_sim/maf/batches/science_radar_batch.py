@@ -687,7 +687,11 @@ def science_radar_batch(
 
     # Do the weak lensing per year
     for year in np.arange(1, 10):
-        sqlconstraint = 'note not like "DD%"' + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year*365.25)
+        sqlconstraint = (
+            'note not like "DD%"'
+            + ' and (filter="g" or filter="r" or filter="i") and night < %i'
+            % (year * 365.25)
+        )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,
             depth_cut=mag_cuts[year],
@@ -706,7 +710,11 @@ def science_radar_batch(
         )
         bundleList.append(bundle)
 
-        sqlconstraint = 'note not like "DD%"' + ' and (filter="r" or filter="i" or filter="z") and night < %i' % (year*365.25)
+        sqlconstraint = (
+            'note not like "DD%"'
+            + ' and (filter="r" or filter="i" or filter="z") and night < %i'
+            % (year * 365.25)
+        )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,
             depth_cut=mag_cuts[year],
@@ -750,9 +758,17 @@ def science_radar_batch(
             )
     # Kuiper per year in gri and riz
     for year in np.arange(1, 10):
-        sqlconstraint = 'note not like "DD%"' + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year*365.25)
-        metric1 = metrics.KuiperMetric("rotSkyPos", metric_name='Kuiper_rotSkyPos_gri_year%i' % year)
-        metric2 = metrics.KuiperMetric("rotTelPos", metric_name='Kuiper_rotTelPos_gri_year%i' % year)
+        sqlconstraint = (
+            'note not like "DD%"'
+            + ' and (filter="g" or filter="r" or filter="i") and night < %i'
+            % (year * 365.25)
+        )
+        metric1 = metrics.KuiperMetric(
+            "rotSkyPos", metric_name="Kuiper_rotSkyPos_gri_year%i" % year
+        )
+        metric2 = metrics.KuiperMetric(
+            "rotTelPos", metric_name="Kuiper_rotTelPos_gri_year%i" % year
+        )
         for metric in [metric1, metric2]:
             bundleList.append(
                 mb.MetricBundle(

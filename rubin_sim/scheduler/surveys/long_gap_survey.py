@@ -99,6 +99,9 @@ class LongGapSurvey(BaseSurvey):
             & (observations["night"] == np.max(observations["night"]))
         )[0]
 
+        # Set to the proper gap
+        self.gap = self.gaps[np.max(observations["night"])]
+
         # If the incoming observation needs to have something scheduled later
         if np.size(need_to_observe) > 0:
             sched_array = scheduled_observation(n=need_to_observe.size)
@@ -113,11 +116,15 @@ class LongGapSurvey(BaseSurvey):
             sched_array["HA_min"] = self.ha_min
             sched_array["HA_max"] = self.ha_max
             if np.size(observations) == 1:
-                sched_array["flush_by_mjd"] = observations["mjd"] + self.flush_time
+                sched_array["flush_by_mjd"] = (
+                    observations["mjd"] + self.flush_time + self.gap
+                )
+                sched_array["mjd"] = observations["mjd"] + self.gap
             else:
                 sched_array["flush_by_mjd"] = (
-                    observations[need_to_observe]["mjd"] + self.flush_time
+                    observations[need_to_observe]["mjd"] + self.flush_time + self.gap
                 )
+                sched_array["mjd"] = observations["mjd"] + self.gap
             sched_array["dist_tol"] = self.dist_tol
             if self.avoid_zenith:
                 # when is the earliest we expect things could execute
