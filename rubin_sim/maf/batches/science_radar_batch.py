@@ -685,6 +685,46 @@ def science_radar_batch(
     )
     bundleList.append(bundle)
 
+    # Do the weak lensing per year
+    for year in np.arange(1, 10):
+        sqlconstraint = 'note not like "DD%"' + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year*365.25)
+        m = metrics.WeakLensingNvisits(
+            lsst_filter=bandpass,
+            depth_cut=mag_cuts[year],
+            ebvlim=lim_ebv,
+            min_exp_time=minExpTime,
+            metric_name="WeakLensingNvisits_gri_year%i" % year,
+        )
+        bundle = mb.MetricBundle(
+            m,
+            slicer,
+            sqlconstraint,
+            maps_list=[dustmap],
+            info_label=info_label,
+            summary_metrics=standardStats,
+            display_dict=displayDict,
+        )
+        bundleList.append(bundle)
+
+        sqlconstraint = 'note not like "DD%"' + ' and (filter="r" or filter="i" or filter="z") and night < %i' % (year*365.25)
+        m = metrics.WeakLensingNvisits(
+            lsst_filter=bandpass,
+            depth_cut=mag_cuts[year],
+            ebvlim=lim_ebv,
+            min_exp_time=minExpTime,
+            metric_name="WeakLensingNvisits_riz_year%i" % year,
+        )
+        bundle = mb.MetricBundle(
+            m,
+            slicer,
+            sqlconstraint,
+            maps_list=[dustmap],
+            info_label=info_label,
+            summary_metrics=standardStats,
+            display_dict=displayDict,
+        )
+        bundleList.append(bundle)
+
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: Camera Rotator"
     metric1 = metrics.KuiperMetric("rotSkyPos")
@@ -703,6 +743,23 @@ def science_radar_batch(
                     healpixslicer,
                     filtersqls[f],
                     plot_dict=plotDict,
+                    display_dict=displayDict,
+                    summary_metrics=standardStats,
+                    plot_funcs=subsetPlots,
+                )
+            )
+    # Kuiper per year in gri and riz
+    for year in np.arange(1, 10):
+        sqlconstraint = 'note not like "DD%"' + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year*365.25)
+        metric1 = metrics.KuiperMetric("rotSkyPos", metric_name='Kuiper_rotSkyPos_gri_year%i' % year)
+        metric2 = metrics.KuiperMetric("rotTelPos", metric_name='Kuiper_rotTelPos_gri_year%i' % year)
+        for metric in [metric1, metric2]:
+            bundleList.append(
+                mb.MetricBundle(
+                    metric,
+                    healpixslicer,
+                    sqlconstraint,
+                    plot_dict={},
                     display_dict=displayDict,
                     summary_metrics=standardStats,
                     plot_funcs=subsetPlots,
