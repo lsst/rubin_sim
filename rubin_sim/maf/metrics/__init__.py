@@ -45,3 +45,4 @@ from .cumulative_metric import *
 from .sky_sat_metric import *
 from .galactic_plane_metrics import *
 from .galplane_time_sampling_metrics import *
+from .snr_weight import *
