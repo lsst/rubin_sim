@@ -13,31 +13,32 @@ class LsqrSolver(object):
     Might want to expand this so it can be used to fit an arbitrary number of terms?
     """
 
-    def __init__(self, patchOut='solved_patches.npz', starOut='solved_stars.npz', atol=1e-8, btol=1e-8, iter_lim=None):
+    def __init__(
+        self,
+        observations,
+        patch_out="solved_patches.npz",
+        star_out="solved_stars.npz",
+        atol=1e-8,
+        btol=1e-8,
+        iter_lim=None,
+    ):
         """
-        patchOut: filename for saving the patch zeropoints
-        starOut: filename for saving the star solutions
+        patch_out: filename for saving the patch zeropoints
+        star_out: filename for saving the star solutions
         atol: tolerance for the solver
         btol: tolerance for the solver
         """
-        self.patchOut = patchOut
-        self.starOut = starOut
+        self.patch_out = patch_out
+        self.star_out = star_out
         self.atol = atol
         self.btol = btol
         self.iter_lim = iter_lim
+        self.observations = observations
 
     def run(self):
-        self.read_data()
         self.clean_data()
         self.solve_matrix()
         self.write_soln()
-
-    def read_data(self, filename="test_generate.npz"):
-        loaded = np.load(filename)
-        self.observations = loaded["observed_stars"].copy()
-        loaded.close()
-
-        # ["id", "patch_id", "observed_mag", "mag_uncert"
 
     def clean_data(self):
         """
@@ -122,19 +123,28 @@ class LsqrSolver(object):
         A = coo_matrix((data, (row, col)), shape=(nObs, self.nPatches + self.nStars))
         A = A.tocsr()
         # solve Ax = b
-        self.solution = lsqr(A, b, show=True, atol=self.atol, btol=self.btol, iter_lim=self.iter_lim)
+        self.solution = lsqr(
+            A, b, show=True, atol=self.atol, btol=self.btol, iter_lim=self.iter_lim
+        )
 
-    def write_soln(self):
-        result = np.empty(
+    def return_solution(self):
+        patches = np.empty(
             self.Patches.size, dtype=list(zip(["patch_id", "zp"], [int, float]))
         )
-        result["patch_id"] = self.Patches
-        result["zp"] = self.solution[0][0 : self.nPatches]
-        np.savez(self.patchOut, result=result)
+        patches["patch_id"] = self.Patches
+        patches["zp"] = self.solution[0][0 : self.nPatches]
 
-        result = np.empty(
+        stars = np.empty(
             self.Stars.size, dtype=list(zip(["id", "fit_mag"], [int, float]))
         )
-        result["id"] = self.Stars
-        result["fit_mag"] = self.solution[0][self.nPatches :]
-        np.savez(self.starOut, result=result)
+        stars["id"] = self.Stars
+        stars["fit_mag"] = self.solution[0][self.nPatches :]
+
+        return patches, stars
+
+    def write_soln(self):
+        patches, stars = self.return_solution()
+        if self.patch_out is not None:
+            np.savez(self.patch_out, result=patches)
+        if self.star_out is not None:
+            np.savez(self.star_out, result=stars)

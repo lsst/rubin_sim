@@ -9,8 +9,10 @@ def stars_project(stars, visit):
     Project the stars to x,y plane for a given visit.
     """
     xtemp, ytemp = gnomonic_project_toxy(
-        np.radians(stars["ra"]), np.radians(stars["decl"]),
-        np.radians(visit["ra"]), np.radians(visit["dec"])
+        np.radians(stars["ra"]),
+        np.radians(stars["decl"]),
+        np.radians(visit["ra"]),
+        np.radians(visit["dec"]),
     )
     # Rotate the field using the visit rotSkyPos.  Hope I got that sign right...
     sin_rot = np.sin(np.radians(visit["rotSkyPos"]))
