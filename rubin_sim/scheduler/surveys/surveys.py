@@ -147,6 +147,10 @@ class BlobSurvey(GreedySurvey):
     grow_blob : bool (True)
         If True, try to grow the blob from the global maximum. Otherwise, just use a simple sort.
         Simple sort will not constrain the blob to be contiguous.
+    max_radius_peak : float (40)
+        The maximum radius to demand things be within the maximum of the reward function. (degrees)
+        Note that traveling salesman solver can have rare failures if this is set too large
+        (probably issue with projection effects or something).
     """
 
     def __init__(
@@ -178,6 +182,7 @@ class BlobSurvey(GreedySurvey):
         min_area=None,
         grow_blob=True,
         area_required=None,
+        max_radius_peak=40.0,
         fields=None,
         survey_name="",
         **kwargs,
@@ -207,6 +212,7 @@ class BlobSurvey(GreedySurvey):
         self.twilight_scale = twilight_scale
         self.in_twilight = in_twilight
         self.grow_blob = grow_blob
+        self.max_radius_peak = np.radians(max_radius_peak)
 
         if self.twilight_scale & self.in_twilight:
             warnings.warn(
@@ -279,7 +285,13 @@ class BlobSurvey(GreedySurvey):
             for bf, weight in zip(self.basis_functions, self.basis_weights):
                 basis_value = bf(conditions)
                 reward += basis_value * weight
-            valid_pix = np.where(np.isnan(reward) == False)[0]
+            max_reward_indx = np.min(np.where(reward == np.nanmax(reward)))
+            distances = _angular_separation(
+                self.ra, self.dec, self.ra[max_reward_indx], self.dec[max_reward_indx]
+            )
+            valid_pix = np.where(
+                (np.isnan(reward) == False) & (distances < self.max_radius_peak)
+            )[0]
             if np.size(valid_pix) * self.pixarea < self.min_area:
                 result = False
         return result
@@ -371,9 +383,13 @@ class BlobSurvey(GreedySurvey):
             self.reward = -np.inf
 
         if self.area_required is not None:
-            good_area = np.where(np.abs(self.reward) >= 0)[0].size * hp.nside2pixarea(
-                self.nside
+            max_reward_indx = np.min(np.where(self.reward == np.nanmax(self.reward)))
+            distances = _angular_separation(
+                self.ra, self.dec, self.ra[max_reward_indx], self.dec[max_reward_indx]
             )
+            good_area = np.where(
+                (np.abs(self.reward) >= 0) & (distances < self.max_radius_peak)
+            )[0].size * hp.nside2pixarea(self.nside)
             if good_area < self.area_required:
                 self.reward = -np.inf
 
@@ -409,6 +425,13 @@ class BlobSurvey(GreedySurvey):
 
         self.reward = self.calc_reward_function(conditions)
 
+        # Mask off pixels that are far away from the maximum.
+        max_reward_indx = np.min(np.where(self.reward == np.nanmax(self.reward)))
+        distances = _angular_separation(
+            self.ra, self.dec, self.ra[max_reward_indx], self.dec[max_reward_indx]
+        )
+
+        self.reward[np.where(distances > self.max_radius_peak)] = np.nan
         # Check if we need to spin the tesselation
         if self.dither & (conditions.night != self.night):
             self._spin_fields(conditions)

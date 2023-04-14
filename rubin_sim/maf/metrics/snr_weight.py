@@ -17,7 +17,7 @@ class SnrWeightedMetric(BaseMetric):
         )
         self.m5_col = m5_col
         self.col = col
-        self.star_mag = 20.0  # I think this is arbitrary and shouldn't matter
+        self.star_mag = 20.0  # Arbitrary reference, value doesn't matter
 
     def run(self, data_slice, slice_point=None):
         snr = m52snr(self.star_mag, data_slice[self.m5_col])
