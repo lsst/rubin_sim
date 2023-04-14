@@ -38,6 +38,8 @@ class OffsetSys(BaseOffset):
 
 
 class OffsetClouds(BaseOffset):
+    """Offset based on cloud structure. XXX--not fully implamented."""
+
     def __init__(self, sampling=256, fov=3.5):
         self.fov = fov
         self.newkey = "dmag_cloud"
@@ -80,17 +82,13 @@ class OffsetClouds(BaseOffset):
 
 
 class OffsetSNR(BaseOffset):
-    """ """
+    """Generate offsets based on the 5-sigma limiting depth of an observation and the brightness of the star.
+    Note that this takes into account previous offsets that have been applied
+    (so run this after things like vingetting)."""
 
     def __init__(self, lsst_filter="r"):
-        """
-        Generate offsets based on the 5-sigma limiting depth of an observation and the brightness of the star.
-        Note that this takes into account previous offsets that have been applied
-        (so run this after things like vingetting).
-        """
         self.lsst_filter = lsst_filter
         self.newkey = "dmag_snr"
-        # self.gamma = SysEngVals().gamma[lsst_filter]
 
     def calc_mag_errors(self, magnitudes, m5, errOnly=False):
         """ """

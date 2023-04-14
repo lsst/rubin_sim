@@ -8,9 +8,24 @@ from scipy.sparse.linalg import lsqr
 
 class LsqrSolver(object):
     """
-    Class to read in the output from genCatalog.py and run the self-calibration solver and write the output.
+    Class to solve self-calibration
 
-    Might want to expand this so it can be used to fit an arbitrary number of terms?
+    Parameters
+    ----------
+    observaitons : np.array
+        A numpy array of the observations. Should have columns id, patch_id, observed_mag, mag_uncert
+    patch_out : str ("solved_patches.npz")
+        Output file for patch solutions, can be set to None
+    star_out : str ("solved_stars.npz")
+        Output file for star solutions, can be set to None
+    atol : float (1e-8)
+        Tolerance passed to lsqr
+    btol : float (1e-8)
+        Tolerance passed to lsqr
+    iter_lim : int (None)
+        Iteration limit passed to lsqr
+    show : bool (False)
+        Should the lsqr solver print some iteration logs (False).
     """
 
     def __init__(
@@ -21,21 +36,18 @@ class LsqrSolver(object):
         atol=1e-8,
         btol=1e-8,
         iter_lim=None,
+        show=False,
     ):
-        """
-        patch_out: filename for saving the patch zeropoints
-        star_out: filename for saving the star solutions
-        atol: tolerance for the solver
-        btol: tolerance for the solver
-        """
         self.patch_out = patch_out
         self.star_out = star_out
         self.atol = atol
         self.btol = btol
         self.iter_lim = iter_lim
         self.observations = observations
+        self.show = show
 
     def run(self):
+        """clean data, solve matrix, write solution out."""
         self.clean_data()
         self.solve_matrix()
         self.write_soln()
@@ -91,9 +103,10 @@ class LsqrSolver(object):
 
         # Convert id to continuous running index to keep matrix as small as possible
         self.observations.sort(order="id")
+
         self.Stars = np.unique(self.observations["id"])
         nStars = np.size(self.Stars)
-        self.nStars = nStars
+        self.nStars = np.size(self.Stars)
         Stars_index = np.arange(1, nStars + 1)
         left = np.searchsorted(self.observations["id"], self.Stars)
         right = np.searchsorted(self.observations["id"], self.Stars, side="right")
@@ -124,10 +137,15 @@ class LsqrSolver(object):
         A = A.tocsr()
         # solve Ax = b
         self.solution = lsqr(
-            A, b, show=True, atol=self.atol, btol=self.btol, iter_lim=self.iter_lim
+            A, b, show=self.show, atol=self.atol, btol=self.btol, iter_lim=self.iter_lim
         )
 
     def return_solution(self):
+        """
+        Returns
+        -------
+        np.array with patch zeropoints and star best-fit mags.
+        """
         patches = np.empty(
             self.Patches.size, dtype=list(zip(["patch_id", "zp"], [int, float]))
         )
@@ -137,12 +155,13 @@ class LsqrSolver(object):
         stars = np.empty(
             self.Stars.size, dtype=list(zip(["id", "fit_mag"], [int, float]))
         )
-        stars["id"] = self.Stars
+        stars["id"] = self.Stars  # should match the input ID.
         stars["fit_mag"] = self.solution[0][self.nPatches :]
 
         return patches, stars
 
     def write_soln(self):
+        """Write solution to npz files."""
         patches, stars = self.return_solution()
         if self.patch_out is not None:
             np.savez(self.patch_out, result=patches)

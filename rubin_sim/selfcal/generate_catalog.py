@@ -64,16 +64,25 @@ def generate_catalog(
     """
     Generate a catalog of observed stellar magnitudes.
 
-    visits:  A numpy array with the properties of the visits.  Expected to have Opsim-like values
-    starsDbAddress:  a sqlAlchemy address pointing to a database that contains properties of stars used as input.
-    offsets:  A list of instatiated classes that will apply offsets to the stars
-    lsst_filter:  Which filter to use for the observed stars
-    obs_file:  File to write the observed stellar magnitudes to
-    truthFile:  File to write the true stellar magnitudes to
-    n_patches:  Number of patches to divide the FoV into.  Must be an integer squared
-    radius_fov: Radius of the telescope field of view in degrees
-    seed: random number seed
-    uncert_floor: value to add in quadrature to magnitude uncertainties
+    Parameters
+    ----------
+    visits : np.array
+        A numpy array with the properties of the visits.
+        Expected columns of fiveSigmaDepth, ra, dec, rotSkyPos (all degrees)
+    offsets : list of rubin_sim.selfcal.Offset classes
+        A list of instatiated classes that will apply offsets to the stars
+    lsst_filter :  str ("r")
+        Which filter to use for the observed stars.
+    n_patches : int (16)
+        Number of patches to divide the FoV into.  Must be an integer squared
+    radius_fov : float (1.8)
+        Radius of the telescope field of view in degrees
+    seed : float (42)
+        Random number seed
+    uncert_floor : float (0.005)
+        Value to add in quadrature to magnitude uncertainties (mags)
+    verbose : bool (True)
+        Should we be verbose
     """
 
     if offsets is None:
