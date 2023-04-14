@@ -149,6 +149,8 @@ class BlobSurvey(GreedySurvey):
         Simple sort will not constrain the blob to be contiguous.
     max_radius_peak : float (40)
         The maximum radius to demand things be within the maximum of the reward function. (degrees)
+        Note that traveling salesman solver can have rare failures if this is set too large
+        (probably issue with projection effects or something).
     """
 
     def __init__(
