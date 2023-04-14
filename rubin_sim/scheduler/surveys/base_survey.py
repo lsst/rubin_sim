@@ -8,6 +8,9 @@ from rubin_sim.scheduler.utils import (
     HpInComcamFov,
     comcam_tessellate,
 )
+from rubin_sim.scheduler.basis_functions.mask_basis_funcs import (
+    ZenithShadowMaskBasisFunction,
+)
 from rubin_sim.site_models import _read_fields
 import healpy as hp
 from rubin_sim.scheduler.thomson import xyz2thetaphi, thetaphi2xyz
@@ -261,11 +264,22 @@ class BaseSurvey(object):
             full_basis_weights = [1.0 for df in self.basis_functions]
 
         short_labels = self.bf_short_labels
+
+        # Only count the part of the sky high enough to observe.
+        horizon_mask = np.where(conditions.alt > np.radians(20), 1, np.nan)
+        _, scalar_area = self._reward_to_scalars(horizon_mask)
+
         for weight, basis_function in zip(full_basis_weights, self.basis_functions):
             bf_label.append(short_labels[basis_function.label()])
             bf_class.append(basis_function.__class__.__name__)
             bf_reward = basis_function(conditions)
-            max_reward, basis_area = self._reward_to_scalars(bf_reward)
+            if np.isscalar(bf_reward):
+                max_reward = bf_reward
+                basis_area = scalar_area
+            else:
+                bf_reward = bf_reward * horizon_mask
+                max_reward, basis_area = self._reward_to_scalars(bf_reward)
+
             max_rewards.append(max_reward)
             basis_areas.append(basis_area)
 
