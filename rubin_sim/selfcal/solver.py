@@ -31,15 +31,11 @@ class LsqrSolver(object):
     def __init__(
         self,
         observations,
-        patch_out="solved_patches.npz",
-        star_out="solved_stars.npz",
         atol=1e-8,
         btol=1e-8,
         iter_lim=None,
         show=False,
     ):
-        self.patch_out = patch_out
-        self.star_out = star_out
         self.atol = atol
         self.btol = btol
         self.iter_lim = iter_lim
@@ -50,7 +46,6 @@ class LsqrSolver(object):
         """clean data, solve matrix, write solution out."""
         self.clean_data()
         self.solve_matrix()
-        self.write_soln()
 
     def clean_data(self):
         """
@@ -159,11 +154,3 @@ class LsqrSolver(object):
         stars["fit_mag"] = self.solution[0][self.nPatches :]
 
         return patches, stars
-
-    def write_soln(self):
-        """Write solution to npz files."""
-        patches, stars = self.return_solution()
-        if self.patch_out is not None:
-            np.savez(self.patch_out, result=patches)
-        if self.star_out is not None:
-            np.savez(self.star_out, result=stars)
