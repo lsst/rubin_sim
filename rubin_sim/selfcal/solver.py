@@ -52,10 +52,10 @@ class LsqrSolver(object):
         Remove observations that can't contribute to a solution.
         Index remaining stars and patches so they are continuous.
         """
-        nStart = 1.0
-        nEnd = 0.0
-        while nStart != nEnd:
-            nStart = self.observations.size
+        n_start = 1.0
+        n_end = 0.0
+        while n_start != n_end:
+            n_start = self.observations.size
             self.observations.sort(order="id")
             # Remove observations if the star was only observed once
             good = np.where(
@@ -80,39 +80,39 @@ class LsqrSolver(object):
                 == 0
             )
             self.observations = self.observations[good]
-            nEnd = self.observations.size
+            n_end = self.observations.size
 
         self.observations.sort(order="patch_id")
 
-        self.Patches = np.unique(self.observations["patch_id"])
-        nPatches = np.size(self.Patches)
-        self.nPatches = nPatches
-        self.nPatches = nPatches
-        Patches_index = np.arange(nPatches)
-        left = np.searchsorted(self.observations["patch_id"], self.Patches)
+        self.patches = np.unique(self.observations["patch_id"])
+        n_patches = np.size(self.patches)
+        self.n_patches = n_patches
+        self.n_patches = n_patches
+        patches_index = np.arange(n_patches)
+        left = np.searchsorted(self.observations["patch_id"], self.patches)
         right = np.searchsorted(
-            self.observations["patch_id"], self.Patches, side="right"
+            self.observations["patch_id"], self.patches, side="right"
         )
         for i in range(np.size(left)):
-            self.observations["patch_id"][left[i] : right[i]] = Patches_index[i]
+            self.observations["patch_id"][left[i] : right[i]] = patches_index[i]
 
         # Convert id to continuous running index to keep matrix as small as possible
         self.observations.sort(order="id")
 
-        self.Stars = np.unique(self.observations["id"])
-        nStars = np.size(self.Stars)
-        self.nStars = np.size(self.Stars)
-        Stars_index = np.arange(1, nStars + 1)
-        left = np.searchsorted(self.observations["id"], self.Stars)
-        right = np.searchsorted(self.observations["id"], self.Stars, side="right")
+        self.stars = np.unique(self.observations["id"])
+        n_stars = np.size(self.stars)
+        self.n_stars = np.size(self.stars)
+        stars_index = np.arange(1, n_stars + 1)
+        left = np.searchsorted(self.observations["id"], self.stars)
+        right = np.searchsorted(self.observations["id"], self.stars, side="right")
         for i in range(np.size(left)):
-            self.observations["id"][left[i] : right[i]] = Stars_index[i]
+            self.observations["id"][left[i] : right[i]] = stars_index[i]
 
     def solve_matrix(self):
-        nObs = np.size(self.observations)
+        n_obs = np.size(self.observations)
         # construct sparse matrix
         # A = lil_matrix((nPatches+nStars,np.size(observations['patch_id'])))
-        row = np.arange(nObs)
+        row = np.arange(n_obs)
         row = np.append(row, row)
         col = np.append(
             self.observations["patch_id"],
@@ -128,7 +128,7 @@ class LsqrSolver(object):
         # blast away data now that we have the matrix constructed
         del self.observations
 
-        A = coo_matrix((data, (row, col)), shape=(nObs, self.nPatches + self.nStars))
+        A = coo_matrix((data, (row, col)), shape=(n_obs, self.n_patches + self.n_stars))
         A = A.tocsr()
         # solve Ax = b
         self.solution = lsqr(
@@ -142,15 +142,15 @@ class LsqrSolver(object):
         np.array with patch zeropoints and star best-fit mags.
         """
         patches = np.empty(
-            self.Patches.size, dtype=list(zip(["patch_id", "zp"], [int, float]))
+            self.patches.size, dtype=list(zip(["patch_id", "zp"], [int, float]))
         )
-        patches["patch_id"] = self.Patches
-        patches["zp"] = self.solution[0][0 : self.nPatches]
+        patches["patch_id"] = self.patches
+        patches["zp"] = self.solution[0][0 : self.n_patches]
 
         stars = np.empty(
-            self.Stars.size, dtype=list(zip(["id", "fit_mag"], [int, float]))
+            self.stars.size, dtype=list(zip(["id", "fit_mag"], [int, float]))
         )
-        stars["id"] = self.Stars  # should match the input ID.
-        stars["fit_mag"] = self.solution[0][self.nPatches :]
+        stars["id"] = self.stars  # should match the input ID.
+        stars["fit_mag"] = self.solution[0][self.n_patches :]
 
         return patches, stars

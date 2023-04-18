@@ -10,13 +10,13 @@ import sys
 __all__ = ["generate_catalog"]
 
 
-def wrapRA(ra):
+def wrap_ra(ra):
     """Wraps RA into 0-360 degrees."""
     ra = ra % 360.0
     return ra
 
 
-def capDec(dec):
+def cap_dec(dec):
     """Terminates declination at +/- 90 degrees."""
     dec = np.where(dec > 90, 90, dec)
     dec = np.where(dec < -90, -90, dec)
@@ -32,22 +32,20 @@ def treexyz(ra, dec):
     return x, y, z
 
 
-def buildTree(simDataRa, simDataDec, leafsize=100):
-    """Build KD tree on simDataRA/Dec and set radius (via setRad) for matching.
+def build_tree(ra, dec, leafsize=100):
+    """Build KD tree on RA/dec and set radius (via setRad) for matching.
 
-    simDataRA, simDataDec = RA and Dec values (in radians).
+    ra, dec = RA and Dec values (in radians).
     leafsize = the number of Ra/Dec pointings in each leaf node."""
-    if np.any(np.abs(simDataRa) > np.pi * 2.0) or np.any(
-        np.abs(simDataDec) > np.pi * 2.0
-    ):
+    if np.any(np.abs(ra) > np.pi * 2.0) or np.any(np.abs(dec) > np.pi * 2.0):
         raise ValueError("Expecting RA and Dec values to be in radians.")
-    x, y, z = treexyz(simDataRa, simDataDec)
+    x, y, z = treexyz(ra, dec)
     data = list(zip(x, y, z))
     if np.size(data) > 0:
-        starTree = kdtree(data, leafsize=leafsize)
+        star_tree = kdtree(data, leafsize=leafsize)
     else:
-        raise ValueError("SimDataRA and Dec should have length greater than 0.")
-    return starTree
+        raise ValueError("ra and dec should have length greater than 0.")
+    return star_tree
 
 
 def generate_catalog(
@@ -96,7 +94,7 @@ def generate_catalog(
     # set the radius for the kdtree
     x0, y0, z0 = (1, 0, 0)
     x1, y1, z1 = treexyz(np.radians(radius_fov), 0)
-    treeRadius = np.sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2 + (z1 - z0) ** 2)
+    tree_radius = np.sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2 + (z1 - z0) ** 2)
 
     newcols = [
         "x",
@@ -125,7 +123,7 @@ def generate_catalog(
     stars = rfn.merge_arrays([stars_array, stars_new], flatten=True)
 
     # Build a KDTree for the stars
-    starTree = buildTree(np.radians(stars["ra"]), np.radians(stars["decl"]))
+    star_tree = build_tree(np.radians(stars["ra"]), np.radians(stars["decl"]))
 
     # XXX--maybe update the way seeding is going on
     np.random.seed(seed)
@@ -139,7 +137,7 @@ def generate_catalog(
         # Calc x,y, radius for each star, crop off stars outside the FoV
         # XXX - plan to replace with code to see where each star falls and get chipID.
         vx, vy, vz = treexyz(np.radians(visit["ra"]), np.radians(visit["dec"]))
-        indices = starTree.query_ball_point((vx, vy, vz), treeRadius)
+        indices = star_tree.query_ball_point((vx, vy, vz), tree_radius)
         stars_in = stars[indices]
         stars_in = stars_project(stars_in, visit)
 
@@ -159,7 +157,7 @@ def generate_catalog(
         # Calculate the uncertainty in the observed mag:
         mag_err = (
             mag_uncert.calc_mag_errors(
-                obs_mag, errOnly=True, m5=visit["fiveSigmaDepth"]
+                obs_mag, err_only=True, m5=visit["fiveSigmaDepth"]
             )
             ** 2
             + uncert_floor**2

@@ -52,9 +52,9 @@ class OffsetClouds(BaseOffset):
         if extinc_mags != 0.0:
             # need to decide on how to get extinc_mags from Opsim
             # Maybe push some of these params up to be setable?
-            SFtheta, SFsf = self.SF.CloudSf(500.0, 300.0, 5.0, extinc_mags, 0.55)
+            sf_theta, sf_sf = self.SF.CloudSf(500.0, 300.0, 5.0, extinc_mags, 0.55)
             # Call the Clouds
-            self.cloud.makeCloudImage(SFtheta, SFsf, extinc_mags, fov=self.fov)
+            self.cloud.makeCloudImage(sf_theta, sf_sf, extinc_mags, fov=self.fov)
             # Interpolate clouds to correct position.  Nearest neighbor for speed?
             nim = self.cloud.cloudimage[0, :].size
             # calc position in cloud image of each star
@@ -90,12 +90,12 @@ class OffsetSNR(BaseOffset):
         self.lsst_filter = lsst_filter
         self.newkey = "dmag_snr"
 
-    def calc_mag_errors(self, magnitudes, m5, errOnly=False):
+    def calc_mag_errors(self, magnitudes, m5, err_only=False):
         """ """
         snr = m52snr(magnitudes, m5)
         # via good old https://www.eso.org/~ohainaut/ccd/sn.html
         magnitude_errors = 2.5 * np.log10(1.0 + 1.0 / snr)
-        if errOnly:
+        if err_only:
             dmag = magnitude_errors
         else:
             dmag = np.random.randn(len(magnitudes)) * magnitude_errors
