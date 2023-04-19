@@ -206,10 +206,14 @@ def ddfBatch(
         for sql in sqls_gri:
             metrics = [
                 maf.KuiperMetric(
-                    "rotSkyPos", metric_name=f"Kuiper statistic (0 is uniform, 1 is delta function),rotSkyPos,{fieldname}," + sql
+                    "rotSkyPos",
+                    metric_name=f"Kuiper statistic (0 is uniform, 1 is delta function),rotSkyPos,{fieldname},"
+                    + sql,
                 ),
                 maf.KuiperMetric(
-                    "rotTelPos", metric_name=f"Kuiper statistic (0 is uniform, 1 is delta function),rotTelPos,{fieldname}," + sql
+                    "rotTelPos",
+                    metric_name=f"Kuiper statistic (0 is uniform, 1 is delta function),rotTelPos,{fieldname},"
+                    + sql,
                 ),
             ]
             for metric in metrics:

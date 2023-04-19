@@ -710,7 +710,9 @@ def science_radar_batch(
         )
         bundleList.append(bundle)
 
-        m = metrics.RIZDetectionCoaddExposureTime(det_bands=['g', 'r', 'i'], metric_name='gri_exposure_time_year%i' % year)
+        m = metrics.RIZDetectionCoaddExposureTime(
+            det_bands=["g", "r", "i"], metric_name="gri_exposure_time_year%i" % year
+        )
         bundle = mb.MetricBundle(
             m,
             slicer,
@@ -745,7 +747,9 @@ def science_radar_batch(
         )
         bundleList.append(bundle)
 
-        m = metrics.RIZDetectionCoaddExposureTime(det_bands=['g', 'r', 'i'], metric_name='riz_exposure_time_year%i' % year)
+        m = metrics.RIZDetectionCoaddExposureTime(
+            det_bands=["g", "r", "i"], metric_name="riz_exposure_time_year%i" % year
+        )
         bundle = mb.MetricBundle(
             m,
             slicer,
@@ -1916,7 +1920,6 @@ def science_radar_batch(
     #########################
     #########################
 
-    
     plotDict = {}
     night_cuttoffs = np.arange(1, 11, 1) * 365.25
     slicer = slicers.HealpixSlicer(nside=nside)

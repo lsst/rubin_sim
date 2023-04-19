@@ -503,7 +503,8 @@ def glanceBatch(
         sql = "filter='%s' and night < 365" % filtername
         metric = metrics.CountMetric(col="night", metric_name="N year 1")
         summary_stat = metrics.FootprintFraction(
-            footprint=footprints_hp_array[filtername]
+            footprint=footprints_hp_array[filtername],
+            n_min=3,
         )
         bundle = metric_bundles.MetricBundle(
             metric,
