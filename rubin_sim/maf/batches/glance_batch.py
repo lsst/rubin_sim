@@ -5,6 +5,7 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.metric_bundles as metric_bundles
+from rubin_sim.scheduler.utils import EuclidOverlapFootprint
 from .col_map_dict import col_map_dict
 from .common import standard_summary
 from .slew_batch import slewBasics
@@ -489,6 +490,31 @@ def glanceBatch(
         plot_funcs=[plots.FOPlot()],
     )
     bundle_list.append(bundle)
+
+    # check that we have coverage for the first year
+    displayDict = {}
+    displayDict["group"] = "Year 1"
+    displayDict["subgroup"] = "Coverage"
+    nside_foot = 32
+    slicer = slicers.HealpixSlicer(nside=nside_foot, badval=0)
+    sky = EuclidOverlapFootprint(nside=nside_foot, smc_radius=4, lmc_radius=6)
+    footprints_hp_array, labels = sky.return_maps()
+    for filtername in filternames:
+        sql = "filter='%s' and night < 365" % filtername
+        metric = metrics.CountMetric(col="night", metric_name="N year 1")
+        summary_stat = metrics.FootprintFraction(
+            footprint=footprints_hp_array[filtername]
+        )
+        bundle = metric_bundles.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            display_dict=displayDict,
+            summary_metrics=summary_stat,
+            plot_funcs=subsetPlots,
+            plot_dict={"color_max": 10},
+        )
+        bundle_list.append(bundle)
 
     for b in bundle_list:
         b.set_run_name(run_name)
