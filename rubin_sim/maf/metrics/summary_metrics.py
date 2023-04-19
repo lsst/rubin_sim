@@ -19,7 +19,16 @@ __all__ = [
 
 
 class FootprintFraction(BaseMetric):
-    """Find what fraction of a desired footprint got covered. Helpful to check if everything was covered in first year"""
+    """Find what fraction of a desired footprint got covered. Helpful to check if everything was covered in first year
+
+    Parameters
+    ----------
+    n_min : int (1)
+        The number of visits to require to consider an area covered
+    footprint : np.array (None)
+        The HEALpix footprint to compare to. The nside of the footprint should match
+        the nside of the slicer.
+    """
 
     def __init__(
         self, footprint=None, metric_name="FootprintFraction", n_min=1, **kwargs
