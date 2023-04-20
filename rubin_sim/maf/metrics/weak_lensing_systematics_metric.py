@@ -119,7 +119,7 @@ class WeakLensingNvisits(BaseMetric):
         return nvisits
 
 
-class RIZDetectionCoaddExposureTime(VectorMetric):
+class RIZDetectionCoaddExposureTime(BaseMetric):
     """A metric computing the total exposure time of an riz coadd.
 
     This metric is intended to be used as a proxy for depth fluctuations in
@@ -168,70 +168,41 @@ class RIZDetectionCoaddExposureTime(VectorMetric):
 
     def __init__(
         self,
-        *,
-        bins,
-        binCol="night",
-        expTimeCol="visitExposureTime",
-        filterCol="filter",
+        exp_time_col="visitExposureTime",
+        filter_col="filter",
         ebvlim=0.2,
         min_expTime=15,
         det_bands=None,
         min_bands=None,
+        metric_name="riz_detcoadd_exptime",
         **kwargs
     ):
         # Set up the coadd metric (using ExgalM5 adds galactic dust extinction)
-        self.filter_col = filterCol
-        self.exp_time_col = expTimeCol
+        self.filter_col = filter_col
+        self.exp_time_col = exp_time_col
         self.ebvlim = ebvlim
         self.min_exp_time = min_expTime
         self.det_bands = det_bands or ["r", "i", "z"]
         self.min_bands = set(min_bands or ["u", "g", "r", "i", "z", "y"])
         super().__init__(
-            bins=bins,
-            binCol=binCol,
             col=[self.exp_time_col, self.filter_col],
-            metricName="riz_detcoadd_exptime",
+            metric_name=metric_name,
             units="seconds",
             maps=["DustMap"],
             **kwargs
         )
 
     def run(self, data_slice, slice_point):
-        res = np.zeros(self.shape, dtype=self.metric_dtype)
-
         # If the sky is too dusty here, stop.
         if slice_point["ebv"] > self.ebvlim:
-            res[:] = self.badval
+            res = self.badval
             return res
-
-        data_slice.sort(order=self.bin_col)
-        cutinds = np.searchsorted(data_slice[self.bin_col], self.bins[1:], side="right")
-        maxcutind = data_slice.shape[0]
-        cutinds = np.clip(cutinds, 0, maxcutind)
-
         # find all entries where exposure time is long enough and
         # in the detection bands
         exptime_msk = data_slice[self.exp_time_col] > self.min_exp_time
         filter_msk = np.in1d(data_slice[self.filter_col], self.det_bands)
         tot_msk = exptime_msk & filter_msk
 
-        for i, cutind in enumerate(cutinds):
-            if cutind == 0:
-                res[i] = self.badval
-                continue
-
-            # check to make sure there is at least some
-            # coverage in the required bands
-            filters = set(data_slice[self.filter_col][:cutind])
-            if filters != self.min_bands:
-                res[i] = self.badval
-                continue
-
-            # if nothing passes for detection, we exclude this region
-            if not np.any(tot_msk[:cutind]):
-                res[i] = self.badval
-                continue
-
-            res[i] = np.sum(data_slice[self.exp_time_col][:cutind][tot_msk[:cutind]])
+        res = np.sum(data_slice[self.exp_time_col][tot_msk])
 
         return res

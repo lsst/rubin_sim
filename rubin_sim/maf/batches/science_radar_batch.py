@@ -669,7 +669,7 @@ def science_radar_batch(
     )
     slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     displayDict["caption"] = (
-        f"The number of visits per pointing, over a similarly  reduced footprint as "
+        f"The number of visits per pointing, over a similarly reduced footprint as "
         f"described above for the 3x2pt FOM, but allowing areas of sky with "
         f"fewer than {nfilters_needed} filters. "
         f"A cutoff of {minExpTime} removes very short visits."
@@ -710,6 +710,20 @@ def science_radar_batch(
         )
         bundleList.append(bundle)
 
+        m = metrics.RIZDetectionCoaddExposureTime(
+            det_bands=["g", "r", "i"], metric_name="gri_exposure_time_year%i" % year
+        )
+        bundle = mb.MetricBundle(
+            m,
+            slicer,
+            sqlconstraint,
+            maps_list=[dustmap],
+            info_label=info_label,
+            summary_metrics=standardStats,
+            display_dict=displayDict,
+        )
+        bundleList.append(bundle)
+
         sqlconstraint = (
             'note not like "DD%"'
             + ' and (filter="r" or filter="i" or filter="z") and night < %i'
@@ -721,6 +735,20 @@ def science_radar_batch(
             ebvlim=lim_ebv,
             min_exp_time=minExpTime,
             metric_name="WeakLensingNvisits_riz_year%i" % year,
+        )
+        bundle = mb.MetricBundle(
+            m,
+            slicer,
+            sqlconstraint,
+            maps_list=[dustmap],
+            info_label=info_label,
+            summary_metrics=standardStats,
+            display_dict=displayDict,
+        )
+        bundleList.append(bundle)
+
+        m = metrics.RIZDetectionCoaddExposureTime(
+            det_bands=["g", "r", "i"], metric_name="riz_exposure_time_year%i" % year
         )
         bundle = mb.MetricBundle(
             m,
@@ -1892,7 +1920,6 @@ def science_radar_batch(
     #########################
     #########################
 
-    displayDict = {"group": "Per year", "subgroup": ""}
     plotDict = {}
     night_cuttoffs = np.arange(1, 11, 1) * 365.25
     slicer = slicers.HealpixSlicer(nside=nside)
@@ -1902,7 +1929,7 @@ def science_radar_batch(
             metric = metrics.Coaddm5Metric(
                 metric_name="coadd %s, year<%i" % (filtername, i + 1)
             )
-
+            displayDict = {"group": "Per year", "subgroup": "Coadds"}
             bundle = mb.MetricBundle(
                 metric,
                 slicer,
@@ -1919,7 +1946,7 @@ def science_radar_batch(
                 col="seeingFwhmEff",
                 metric_name="SNR-weighted FWHMeff %s, year<%i" % (filtername, i + 1),
             )
-
+            displayDict = {"group": "Per year", "subgroup": "Seeing"}
             bundle = mb.MetricBundle(
                 metric,
                 slicer,

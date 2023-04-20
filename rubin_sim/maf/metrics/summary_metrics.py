@@ -7,6 +7,7 @@ from .base_metric import BaseMetric
 # A collection of metrics which are primarily intended to be used as summary statistics.
 
 __all__ = [
+    "FootprintFraction",
     "FOArea",
     "FONv",
     "IdentityMetric",
@@ -15,6 +16,37 @@ __all__ = [
     "TotalPowerMetric",
     "StaticProbesFoMEmulatorMetricSimple",
 ]
+
+
+class FootprintFraction(BaseMetric):
+    """Find what fraction of a desired footprint got covered. Helpful to check if everything was covered in first year
+
+    Parameters
+    ----------
+    n_min : int (1)
+        The number of visits to require to consider an area covered
+    footprint : np.array (None)
+        The HEALpix footprint to compare to. The nside of the footprint should match
+        the nside of the slicer.
+    """
+
+    def __init__(
+        self, footprint=None, metric_name="FootprintFraction", n_min=1, **kwargs
+    ):
+        super().__init__(metric_name=metric_name, **kwargs)
+        self.footprint = footprint
+        self.nside = hp.npix2nside(footprint.size)
+        self.npix = np.where(self.footprint > 0)[0].size
+        # get whole array passed
+        self.mask_val = 0
+        self.n_min = n_min
+
+    def run(self, data_slice, slice_point=None):
+        overlap = np.where(
+            (self.footprint > 0) & (data_slice["metricdata"] >= self.n_min)
+        )[0]
+        result = overlap.size / self.npix
+        return result
 
 
 class FONv(BaseMetric):

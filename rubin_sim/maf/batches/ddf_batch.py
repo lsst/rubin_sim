@@ -193,6 +193,89 @@ def ddfBatch(
             )
         )
 
+        # kuiper metric
+        displayDict["group"] = "Kuiper"
+        displayDict["subgroup"] = ""
+        displayDict["caption"] = f"Kuiper metric in the {fieldname} DDF."
+
+        sqls_gri = {
+            "gri": "filter='g' or filter='r' or filter='i'",
+            "riz": "filter='r' or filter='i' or filter='z'",
+        }
+
+        for sql in sqls_gri:
+            metrics = [
+                maf.KuiperMetric(
+                    "rotSkyPos",
+                    metric_name=f"Kuiper statistic (0 is uniform, 1 is delta function),rotSkyPos,{fieldname},"
+                    + sql,
+                ),
+                maf.KuiperMetric(
+                    "rotTelPos",
+                    metric_name=f"Kuiper statistic (0 is uniform, 1 is delta function),rotTelPos,{fieldname},"
+                    + sql,
+                ),
+            ]
+            for metric in metrics:
+                bundle_list.append(
+                    maf.MetricBundle(
+                        metric,
+                        ddf_slicers[ddf],
+                        sqls_gri[sql],
+                        info_label=" ".join([fieldname]),
+                        plot_dict=plotDict,
+                        plot_funcs=plotFuncs,
+                        summary_metrics=summary_stats,
+                        display_dict=displayDict,
+                    )
+                )
+
+        # Weak lensing visits
+        # XXX-bad magic numbers everywhere
+        lim_ebv = 0.2
+        offset = 0.1
+        mag_cuts = {
+            1: 24.75 - offset,
+            2: 25.12 - offset,
+            3: 25.35 - offset,
+            4: 25.5 - offset,
+            5: 25.62 - offset,
+            6: 25.72 - offset,
+            7: 25.8 - offset,
+            8: 25.87 - offset,
+            9: 25.94 - offset,
+            10: 26.0 - offset,
+        }
+        displayDict["group"] = "Weak Lensing"
+        displayDict["subgroup"] = ""
+        displayDict["caption"] = f"Weak lensing metric in the {fieldname} DDF."
+
+        sqls_gri = {
+            "gri": "filter='g' or filter='r' or filter='i'",
+            "riz": "filter='r' or filter='i' or filter='z'",
+        }
+
+        for sql in sqls_gri:
+            metric = maf.WeakLensingNvisits(
+                lsst_filter="i",
+                depth_cut=mag_cuts[10],
+                ebvlim=lim_ebv,
+                min_exp_time=20.0,
+                metric_name="WeakLensingNvisits_" + sql,
+            )
+            bundle_list.append(
+                maf.MetricBundle(
+                    metric,
+                    ddf_slicers[ddf],
+                    sqls_gri[sql],
+                    info_label=" ".join([fieldname, sql]),
+                    plot_dict=plotDict,
+                    plot_funcs=plotFuncs,
+                    summary_metrics=summary_stats,
+                    display_dict=displayDict,
+                )
+            )
+
         # Number of QSOs in each band
         displayDict["group"] = "QSO"
         displayDict["subgroup"] = "Number"
