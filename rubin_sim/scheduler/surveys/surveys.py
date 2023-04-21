@@ -470,7 +470,9 @@ class BlobSurvey(GreedySurvey):
         )
 
         # Let's find a good spot to project the points to a plane
-        mid_alt = (np.max(pointing_alt) - np.min(pointing_alt)) / 2.0
+        mid_alt = (np.max(pointing_alt) - np.min(pointing_alt)) / 2.0 + np.min(
+            pointing_alt
+        )
 
         # Code snippet from MAF for computing mean of angle accounting for wrap around
         # XXX-TODO: Maybe move this to sims_utils as a generally useful snippet.
