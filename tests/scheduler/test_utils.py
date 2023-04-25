@@ -23,6 +23,8 @@ class TestUtils(unittest.TestCase):
         scheduler = example_scheduler(mjd_start=mjd_start)
 
         mo = ModelObservatory(mjd_start=mjd_start)
+        # Never load too many nights of sky
+        mo.sky_model.load_length = 10.0
         mo, scheduler, observations = sim_runner(
             mo,
             scheduler,
@@ -46,6 +48,8 @@ class TestUtils(unittest.TestCase):
         new_n_limit = n_visit_limit - break_indx
 
         new_mo = ModelObservatory(mjd_start=mjd_start)
+        # Never load too much sky
+        new_mo.sky_model.load_length = 10.0
         new_sched = example_scheduler(mjd_start=mjd_start)
 
         # Restore some of the observations
@@ -82,6 +86,7 @@ class TestUtils(unittest.TestCase):
 
         # And again, but this time using the fast array restore
         new_mo = ModelObservatory(mjd_start=mjd_start)
+        new_mo.sky_model.load_length = 10.0
         new_sched = example_scheduler(mjd_start=mjd_start)
         new_sched, new_mo = restore_scheduler(
             break_indx - 1, new_sched, new_mo, observations, fast=True

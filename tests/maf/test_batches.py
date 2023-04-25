@@ -19,6 +19,10 @@ class TestBatches(unittest.TestCase):
     def setUp(self):
         self.out_dir = tempfile.mkdtemp(prefix="TMB")
 
+    @unittest.skipUnless(
+        os.path.isdir(os.path.join(get_data_dir(), "maf")),
+        "Skip these batches unless MAF data present, required for setup",
+    )
     def testload_them_all(self):
         ack = batches.altazHealpix()
         ack = batches.altazLambert()
