@@ -620,6 +620,8 @@ def scheduled_observation(n=1):
         Hour angle limit. Constraint is such that for hour angle running from 0 to 24 hours,
         the target RA,Dec must be greather than HA_max and less than HA_min. Set HA_min to 24 for
         no limit. (hours)
+    sun_alt_max : float
+        The sun must be below sun_alt_max to execute. (radians)
     observed : `bool`
         If set to True, scheduler will probably consider this a completed observation an never attempt it.
 
@@ -663,10 +665,11 @@ def scheduled_observation(n=1):
         "alt_max",
         "HA_max",
         "HA_min",
+        "sun_alt_max",
         "observed",
         "scripted_id",
     ]
-    types += [float, float, float, float, float, float, bool, int]
+    types += [float, float, float, float, float, float, float, bool, int]
     result = np.zeros(n, dtype=list(zip(names, types)))
     return result
 
