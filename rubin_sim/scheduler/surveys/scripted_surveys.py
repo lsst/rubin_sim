@@ -19,8 +19,9 @@ class ScriptedSurvey(BaseSurvey):
     id_start : `int` (1)
         The integer to start the "scripted id" field with. Bad things could happen
         if you have multiple scripted survey objects with the same scripted IDs.
-    return_n_limit : `int` (100)
-        The maximum number of observations to return.
+    return_n_limit : `int` (10)
+        The maximum number of observations to return. Set to high and your block
+        of scheduled observations can run into twilight time.
     """
 
     def __init__(
