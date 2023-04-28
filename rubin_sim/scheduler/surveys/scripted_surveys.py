@@ -31,7 +31,7 @@ class ScriptedSurvey(BaseSurvey):
         nside=None,
         detailers=None,
         id_start=1,
-        return_n_limit=100,
+        return_n_limit=10,
         survey_name="",
     ):
         """"""
@@ -175,6 +175,7 @@ class ScriptedSurvey(BaseSurvey):
             (alt < observation["alt_max"])
             & (alt > observation["alt_min"])
             & ((HA > observation["HA_max"]) | (HA < observation["HA_min"]))
+            & (conditions.sun_alt < observation["sun_alt_max"])
         )[0]
         return in_range
 
