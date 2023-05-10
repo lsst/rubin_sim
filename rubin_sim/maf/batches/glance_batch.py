@@ -190,7 +190,9 @@ def glanceBatch(
     # Things to check per night
     # Open Shutter per night
     displayDict = {"group": "Pointing Efficency", "order": 2}
-    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], bin_size=1)
+    slicer = slicers.OneDSlicer(
+        slice_col_name=colmap["night"], bin_size=1, bin_min=-0.5
+    )
     metric = metrics.OpenShutterFractionMetric(
         slew_time_col=colmap["slewtime"],
         exp_time_col=colmap["exptime"],
@@ -203,7 +205,9 @@ def glanceBatch(
     bundle_list.append(bundle)
 
     # Number of filter changes per night
-    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], bin_size=1)
+    slicer = slicers.OneDSlicer(
+        slice_col_name=colmap["night"], bin_size=1, bin_min=-0.5
+    )
     metric = metrics.NChangesMetric(
         col=colmap["filter"], order_by=colmap["mjd"], metric_name="Filter Changes"
     )
