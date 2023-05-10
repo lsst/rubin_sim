@@ -251,27 +251,6 @@ class PhysicalParametersUnitTest(unittest.TestCase):
         msg = ""
 
         try:
-            pp.minwavelen = 2.0
-            success += 1
-            msg += "was able to assign minwavelen; "
-        except:
-            self.assertEqual(pp.minwavelen, control.minwavelen)
-
-        try:
-            pp.maxwavelen = 2.0
-            success += 1
-            msg += "was able to assign maxwavelen; "
-        except:
-            self.assertEqual(pp.maxwavelen, control.maxwavelen)
-
-        try:
-            pp.wavelenstep = 2.0
-            success += 1
-            msg += "was able to assign wavelenstep; "
-        except:
-            self.assertEqual(pp.wavelenstep, control.wavelenstep)
-
-        try:
             pp.lightspeed = 2.0
             success += 1
             msg += "was able to assign lightspeed; "

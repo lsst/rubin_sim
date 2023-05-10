@@ -75,9 +75,6 @@ class Bandpass(object):
         self,
         wavelen=None,
         sb=None,
-        wavelen_min=None,
-        wavelen_max=None,
-        wavelen_step=None,
     ):
         """
         Initialize bandpass object, with option to pass wavelen/sb arrays in directly.
@@ -91,66 +88,21 @@ class Bandpass(object):
 
         self._phys_params = PhysicalParameters()
 
-        if wavelen_min is None:
-            if wavelen is None:
-                wavelen_min = self._phys_params.minwavelen
-            else:
-                wavelen_min = wavelen.min()
-        if wavelen_max is None:
-            if wavelen is None:
-                wavelen_max = self._phys_params.maxwavelen
-            else:
-                wavelen_max = wavelen.max()
-        if wavelen_step is None:
-            if wavelen is None:
-                wavelen_step = self._phys_params.wavelenstep
-            else:
-                wavelen_step = numpy.diff(wavelen).min()
-        self.set_wavelen_limits(wavelen_min, wavelen_max, wavelen_step)
         self.wavelen = None
         self.sb = None
         self.phi = None
         self.bandpassname = None
         if (wavelen is not None) and (sb is not None):
-            self.set_bandpass(wavelen, sb, wavelen_min, wavelen_max, wavelen_step)
+            self.set_bandpass(wavelen, sb)
 
         return
 
-    ## getters and setters
-    def set_wavelen_limits(self, wavelen_min, wavelen_max, wavelen_step):
-        """
-        Set internal records of wavelen limits, _min, _max, _step.
-        """
-        # If we've been given values for wavelen_min, _max, _step, set them here.
-        if wavelen_min is not None:
-            self.wavelen_min = wavelen_min
-        if wavelen_max is not None:
-            self.wavelen_max = wavelen_max
-        if wavelen_step is not None:
-            self.wavelen_step = wavelen_step
-        return
-
-    def get_wavelen_limits(self, wavelen_min, wavelen_max, wavelen_step):
-        """
-        Return appropriate wavelen limits (_min, _max, _step) if passed None values.
-        """
-        if wavelen_min is None:
-            wavelen_min = self.wavelen_min
-        if wavelen_max is None:
-            wavelen_max = self.wavelen_max
-        if wavelen_step is None:
-            wavelen_step = self.wavelen_step
-        return wavelen_min, wavelen_max, wavelen_step
-
-    def set_bandpass(
-        self, wavelen, sb, wavelen_min=None, wavelen_max=None, wavelen_step=None
-    ):
+    def set_bandpass(self, wavelen, sb):
         """
         Populate bandpass data with wavelen/sb arrays.
 
         Sets self.wavelen/sb on a grid of wavelen_min/max/step. Phi set to None.
         """
-        self.set_wavelen_limits(wavelen_min, wavelen_max, wavelen_step)
         # Check data type.
         if (isinstance(wavelen, numpy.ndarray) == False) or (
             isinstance(sb, numpy.ndarray) == False
@@ -159,49 +111,41 @@ class Bandpass(object):
         # Check data matches in length.
         if len(wavelen) != len(sb):
             raise ValueError("Wavelen and sb arrays must have the same length.")
-        # Data seems ok then, make a new copy of this data for self.
+
         self.wavelen = numpy.copy(wavelen)
         self.phi = None
         self.sb = numpy.copy(sb)
-        # Resample wavelen/sb onto grid.
-        self.resample_bandpass(
-            wavelen_min=wavelen_min, wavelen_max=wavelen_max, wavelen_step=wavelen_step
-        )
         self.bandpassname = "FromArrays"
         return
 
     def imsim_bandpass(
-        self, imsimwavelen=500.0, wavelen_min=None, wavelen_max=None, wavelen_step=None
+        self, imsimwavelen=500.0, wavelen_min=300, wavelen_max=1150, wavelen_step=0.1
     ):
         """
         Populate bandpass data with sb=0 everywhere except sb=1 at imsimwavelen.
 
         Sets wavelen/sb, with grid min/max/step as Parameters. Does NOT set phi.
         """
-        self.set_wavelen_limits(wavelen_min, wavelen_max, wavelen_step)
         # Set up arrays.
         self.wavelen = numpy.arange(
-            self.wavelen_min,
-            self.wavelen_max + self.wavelen_step,
-            self.wavelen_step,
+            wavelen_min,
+            wavelen_max + wavelen_step,
+            wavelen_step,
             dtype="float",
         )
         self.phi = None
         # Set sb.
         self.sb = numpy.zeros(len(self.wavelen), dtype="float")
-        self.sb[abs(self.wavelen - imsimwavelen) < self.wavelen_step / 2.0] = 1.0
+        self.sb[abs(self.wavelen - imsimwavelen) < wavelen_step / 2.0] = 1.0
         self.bandpassname = "IMSIM"
         return
 
-    def read_throughput(
-        self, filename, wavelen_min=None, wavelen_max=None, wavelen_step=None
-    ):
+    def read_throughput(self, filename):
         """
         Populate bandpass data with data (wavelen/sb) read from file, resample onto grid.
 
         Sets wavelen/sb, with grid min/max/step as Parameters. Does NOT set phi.
         """
-        self.set_wavelen_limits(wavelen_min, wavelen_max, wavelen_step)
         # Set self values to None in case of file read error.
         self.wavelen = None
         self.phi = None
@@ -212,12 +156,7 @@ class Bandpass(object):
             warnings.warn(
                 "Was given list of files, instead of a single file. Using read_throughputList instead"
             )
-            self.read_throughput_list(
-                component_list=filename,
-                wavelen_min=self.wavelen_min,
-                wavelen_max=self.wavelen_max,
-                wavelen_step=self.wavelen_step,
-            )
+            self.read_throughput_list(component_list=filename)
         # Filename is single file, now try to open file and read data.
         try:
             if filename.endswith(".gz"):
@@ -259,14 +198,6 @@ class Bandpass(object):
         p = self.wavelen.argsort()
         self.wavelen = self.wavelen[p]
         self.sb = self.sb[p]
-        # Resample throughput onto grid.
-        if self.need_resample():
-            self.resample_bandpass()
-        if self.sb.sum() < 1e-300:
-            raise Exception(
-                "Bandpass data from %s has no throughput in "
-                "desired grid range %f, %f" % (filename, wavelen_min, wavelen_max)
-            )
         return
 
     def read_throughput_list(
@@ -282,9 +213,9 @@ class Bandpass(object):
             "atmos_std.dat",
         ],
         root_dir=".",
-        wavelen_min=None,
-        wavelen_max=None,
-        wavelen_step=None,
+        wavelen_min=300,
+        wavelen_max=1150,
+        wavelen_step=0.1,
     ):
         """
         Populate bandpass data by reading from a series of files with wavelen/Sb data.
@@ -297,23 +228,17 @@ class Bandpass(object):
         #   component_list=['detector.dat', 'lens1.dat', 'lens2.dat', 'lens3.dat',
         #                 'm1.dat', 'm2.dat', 'm3.dat', 'atmos_std.dat', 'ideal_g.dat']
         #
-        # Set wavelen limits for this object, if any updates have been given.
-        self.set_wavelen_limits(wavelen_min, wavelen_max, wavelen_step)
         # Set up wavelen/sb on grid.
         self.wavelen = numpy.arange(
-            self.wavelen_min,
-            self.wavelen_max + self.wavelen_step / 2.0,
-            self.wavelen_step,
+            wavelen_min,
+            wavelen_max + wavelen_step / 2.0,
+            wavelen_step,
             dtype="float",
         )
         self.phi = None
         self.sb = numpy.ones(len(self.wavelen), dtype="float")
         # Set up a temporary bandpass object to hold data from each file.
-        tempbandpass = Bandpass(
-            wavelen_min=self.wavelen_min,
-            wavelen_max=self.wavelen_max,
-            wavelen_step=self.wavelen_step,
-        )
+        tempbandpass = Bandpass()
         for component in component_list:
             # Read data from file.
             tempbandpass.read_throughput(os.path.join(root_dir, component))
@@ -356,47 +281,13 @@ class Bandpass(object):
                 raise ValueError("Must pass equal length wavelen/sb arrays")
         return update_self
 
-    def need_resample(
-        self, wavelen=None, wavelen_min=None, wavelen_max=None, wavelen_step=None
-    ):
-        """
-        Return true/false of whether wavelen need to be resampled onto a grid.
-
-        Given wavelen OR defaults to self.wavelen/sb - return True/False check on whether
-        the arrays need to be resampled to match wavelen_min/max/step grid.
-        """
-        # Thought about adding wavelen_match option here (to give this an array to match to, rather than
-        # the grid parameters .. but then thought bandpass always needs to be on a regular grid (because
-        # of magnitude calculations). So, this will stay match to the grid parameters only.
-        # Check wavelength limits.
-        wavelen_min, wavelen_max, wavelen_step = self.get_wavelen_limits(
-            wavelen_min, wavelen_max, wavelen_step
-        )
-        # Check if method acting on self or other data (here, using data type checks primarily).
-        update_self = self.check_use_self(wavelen, wavelen)
-        if update_self:
-            wavelen = self.wavelen
-        wavelen_max_in = wavelen[len(wavelen) - 1]
-        wavelen_min_in = wavelen[0]
-        wavelen_step_in = wavelen[1] - wavelen[0]
-        # Start check if data is already gridded.
-        need_regrid = True
-        # First check minimum/maximum and first step in array.
-        if (wavelen_min_in == wavelen_min) and (wavelen_max_in == wavelen_max):
-            # Then check on step size.
-            stepsize = numpy.unique(numpy.diff(wavelen))
-            if (len(stepsize) == 1) and (stepsize[0] == wavelen_step):
-                need_regrid = False
-        # At this point, need_grid=True unless it's proven to be False, so return value.
-        return need_regrid
-
     def resample_bandpass(
         self,
         wavelen=None,
         sb=None,
-        wavelen_min=None,
-        wavelen_max=None,
-        wavelen_step=None,
+        wavelen_min=300,
+        wavelen_max=1150,
+        wavelen_step=0.1,
     ):
         """
         Resamples wavelen/sb (or self.wavelen/sb) onto grid defined by min/max/step.
@@ -405,11 +296,11 @@ class Bandpass(object):
         If updating self, resets phi to None.
         """
         # Check wavelength limits.
-        wavelen_min, wavelen_max, wavelen_step = self.get_wavelen_limits(
-            wavelen_min, wavelen_max, wavelen_step
-        )
+        wavelen_min = wavelen_min
+        wavelen_max = wavelen_max
+        wavelen_step = wavelen_step
         # Is method acting on self.wavelen/sb or passed in wavelen/sb? Sort it out.
-        update_self = self.check_use_self(wavelen, sb)
+        update_self = (wavelen is None) & (sb is None)
         if update_self:
             wavelen = self.wavelen
             sb = self.sb
@@ -430,7 +321,6 @@ class Bandpass(object):
             self.phi = None
             self.wavelen = wavelen_grid
             self.sb = sb_grid
-            self.set_wavelen_limits(wavelen_min, wavelen_max, wavelen_step)
             return
         return wavelen_grid, sb_grid
 
@@ -491,11 +381,7 @@ class Bandpass(object):
         # Set up flat source of arbitrary brightness,
         #   but where the units of fnu are Jansky (for AB mag zeropoint = -8.9).
         flatsource = Sed()
-        flatsource.set_flat_sed(
-            wavelen_min=self.wavelen_min,
-            wavelen_max=self.wavelen_max,
-            wavelen_step=self.wavelen_step,
-        )
+        flatsource.set_flat_sed()
         adu = flatsource.calc_adu(self, phot_params=photometric_parameters)
         # Scale fnu so that adu is 1 count/expTime.
         flatsource.fnu = flatsource.fnu * (1 / adu)

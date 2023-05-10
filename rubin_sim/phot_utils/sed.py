@@ -537,19 +537,11 @@ class Sed(object):
         return
 
     def set_flat_sed(
-        self, wavelen_min=None, wavelen_max=None, wavelen_step=None, name="Flat"
+        self, wavelen_min=300.0, wavelen_max=1150.0, wavelen_step=0.1, name="Flat"
     ):
         """
         Populate the wavelength/flambda/fnu fields in sed according to a flat fnu source.
         """
-        if wavelen_min is None:
-            wavelen_min = self._phys_params.minwavelen
-
-        if wavelen_max is None:
-            wavelen_max = self._phys_params.maxwavelen
-
-        if wavelen_step is None:
-            wavelen_step = self._phys_params.wavelenstep
 
         self.wavelen = numpy.arange(
             wavelen_min, wavelen_max + wavelen_step, wavelen_step, dtype="float"
@@ -1703,11 +1695,17 @@ class Sed(object):
         """
         # Calculate dlambda for phi array.
         wavelen_step = bandpasslist[0].wavelen[1] - bandpasslist[0].wavelen[0]
-        wavelen_min = bandpasslist[0].wavelen[0]
-        wavelen_max = bandpasslist[0].wavelen[len(bandpasslist[0].wavelen) - 1]
+        wavelen_min = numpy.min([bandpass.wavelen[0] for bandpass in bandpasslist])
+        wavelen_max = numpy.max([bandpass.wavelen[-1] for bandpass in bandpasslist])
         # Set up
         phiarray = numpy.empty(
-            (len(bandpasslist), len(bandpasslist[0].wavelen)), dtype="float"
+            (
+                len(bandpasslist),
+                numpy.size(
+                    numpy.arange(wavelen_min, wavelen_max + wavelen_step, wavelen_step)
+                ),
+            ),
+            dtype="float",
         )
         # Check phis calculated and on same wavelength grid.
         i = 0
