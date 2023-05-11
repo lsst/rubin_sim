@@ -48,6 +48,7 @@ class LongGapSurvey(BaseSurvey):
         alt_max=80.0,
         ha_min=24,
         ha_max=0.0,
+        sun_alt_max=-18.0,
         flush_time=2.0,
         dist_tol=1.0,
         block_length=33.0,
@@ -79,6 +80,7 @@ class LongGapSurvey(BaseSurvey):
         self.scripted_tol = scripted_tol / 24.0  # To days
         self.alt_min = np.radians(alt_min)
         self.alt_max = np.radians(alt_max)
+        self.sun_alt_max = np.radians(sun_alt_max)
         self.ha_min = ha_min
         self.ha_max = ha_max
         self.flush_time = flush_time / 24.0
@@ -115,6 +117,7 @@ class LongGapSurvey(BaseSurvey):
             sched_array["alt_max"] = self.alt_max
             sched_array["HA_min"] = self.ha_min
             sched_array["HA_max"] = self.ha_max
+            sched_array["sun_alt_max"] = self.sun_alt_max
             if np.size(observations) == 1:
                 sched_array["flush_by_mjd"] = (
                     observations["mjd"] + self.flush_time + self.gap

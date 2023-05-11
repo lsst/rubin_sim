@@ -7,6 +7,7 @@ from rubin_sim.scheduler.utils import IntRounded
 
 __all__ = [
     "FilterLoadedBasisFunction",
+    "OnceInNightBasisFunction",
     "SunAltHighLimitBasisFunction",
     "TimeToTwilightBasisFunction",
     "NotTwilightBasisFunction",
@@ -48,6 +49,26 @@ class FilterLoadedBasisFunction(BaseBasisFunction):
             result = filtername in conditions.mounted_filters
             if result is False:
                 return result
+        return result
+
+
+class OnceInNightBasisFunction(BaseBasisFunction):
+    """Stop observing if something has been executed already in the night
+
+    Parameters
+    ----------
+    notes : list of str
+        A list of str to check if any observations with a matching note exist.
+    """
+
+    def __init__(self, notes=[]):
+        super(OnceInNightBasisFunction, self).__init__()
+        self.survey_features["note_in_night"] = features.NoteInNight(notes=notes)
+
+    def check_feasibility(self, conditions):
+        result = True
+        if self.survey_features["note_in_night"].feature > 0:
+            result = False
         return result
 
 

@@ -28,6 +28,7 @@ __all__ = [
     "NObservationsCurrentSeason",
     "LastNObsTimes",
     "SurveyInNight",
+    "NoteInNight",
     "NoteLastObserved",
 ]
 
@@ -81,6 +82,33 @@ class SurveyInNight(BaseSurveyFeature):
             self.feature = 0
 
         if self.survey_str in observation["note"]:
+            self.feature += 1
+
+
+class NoteInNight(BaseSurveyFeature):
+    """How many times a matching note has executed in the current night"""
+
+    def __init__(self, notes=[]):
+        self.feature = 0
+        self.notes = notes
+        self.current_night = -100
+
+    def add_observations_array(self, observations_array, observations_hpid):
+        if self.current_night != observations_array["night"][-1]:
+            self.current_night = observations_array["night"][-1].copy()
+            self.feature = 0
+        indx = np.where(observations_array["night"] == observations_array["night"][-1])[
+            0
+        ]
+        for ind in indx:
+            if observations_array["note"][ind] in self.notes:
+                self.feature += 1
+
+    def add_observation(self, observation, indx=None):
+        if self.current_night != observation["night"]:
+            self.current_night = observation["night"].copy()
+            self.feature = 0
+        if observation["note"] in self.notes:
             self.feature += 1
 
 
