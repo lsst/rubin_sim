@@ -1428,8 +1428,7 @@ class Sed(object):
         if bandpass.phi is None:
             bandpass.sb_tophi()
         # Calculate flux in bandpass and return this value.
-        dlambda = wavelen[1] - wavelen[0]
-        flux = (fnu * bandpass.phi).sum() * dlambda
+        flux = numpy.trapz(fnu * bandpass.phi, x=wavelen)
         return flux
 
     def calc_mag(self, bandpass, wavelen=None, fnu=None):
