@@ -71,31 +71,42 @@ class Bandpass(object):
     Hold and use telescope throughput curves.
     """
 
-    def __init__(
-        self,
-        wavelen=None,
-        sb=None,
-    ):
+    def __init__(self, wavelen=None, sb=None, sampling_warning=0.2):
         """
         Initialize bandpass object, with option to pass wavelen/sb arrays in directly.
 
-        Also can specify wavelength grid min/max/step or use default - sb and wavelen will
-        be resampled to this grid. If wavelen/sb are given, these will be set, but phi
-        will be set to None.
-        Otherwise all set to None and user should call read_throughput, read_throughputList,
-        or imsim_bandpass to populate bandpass data.
+        Parameters
+        ----------
+        wavelen : np.array (None)
+            Wavelength array in nm
+        sb : np.array (None)
+            Throughput array (fraction, 0-1)
+        sampling_warning : float (0.2)
+            If wavelength sampling lower than this, throw a warning because it might not
+            work well with Sed (nm).
         """
 
         self._phys_params = PhysicalParameters()
-
+        self.sampling_warning = sampling_warning
         self.wavelen = None
         self.sb = None
         self.phi = None
         self.bandpassname = None
         if (wavelen is not None) and (sb is not None):
             self.set_bandpass(wavelen, sb)
-
         return
+
+    def _check_wavelength_sampling(self):
+        """Check that the wavelength sampling is above some threshold"""
+        if self.wavelen is not None:
+            dif = numpy.diff(self.wavelen)
+            if numpy.max(dif) > self.sampling_warning:
+                warnings.warn(
+                    "Wavelength sampling of %.1f nm is > %.1f nm"
+                    % (numpy.max(dif), self.sampling_warning)
+                    + ", this may not work well"
+                    " with a Sed object. Consider resampling with resample_bandpass method."
+                )
 
     def set_bandpass(self, wavelen, sb):
         """
@@ -116,6 +127,7 @@ class Bandpass(object):
         self.phi = None
         self.sb = numpy.copy(sb)
         self.bandpassname = "FromArrays"
+        self._check_wavelength_sampling()
         return
 
     def imsim_bandpass(
@@ -138,6 +150,7 @@ class Bandpass(object):
         self.sb = numpy.zeros(len(self.wavelen), dtype="float")
         self.sb[abs(self.wavelen - imsimwavelen) < wavelen_step / 2.0] = 1.0
         self.bandpassname = "IMSIM"
+        self._check_wavelength_sampling()
         return
 
     def read_throughput(self, filename):
@@ -198,6 +211,7 @@ class Bandpass(object):
         p = self.wavelen.argsort()
         self.wavelen = self.wavelen[p]
         self.sb = self.sb[p]
+        self._check_wavelength_sampling()
         return
 
     def read_throughput_list(
@@ -245,6 +259,7 @@ class Bandpass(object):
             # Multiply self by new sb values.
             self.sb = self.sb * tempbandpass.sb
         self.bandpassname = "".join(component_list)
+        self._check_wavelength_sampling()
         return
 
     def get_bandpass(self):
@@ -322,6 +337,7 @@ class Bandpass(object):
             self.wavelen = wavelen_grid
             self.sb = sb_grid
             return
+        self._check_wavelength_sampling()
         return wavelen_grid, sb_grid
 
     ## more complicated bandpass functions
