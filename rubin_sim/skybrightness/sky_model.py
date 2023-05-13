@@ -710,7 +710,7 @@ class SkyModel(object):
             )
         # Mask out high airmass points
         # self.spec[self.mask] *= 0
-        return self.wave, self.spec
+        return self.wave.copy(), self.spec.copy()
 
     def return_mags(self, bandpasses=None):
         """
