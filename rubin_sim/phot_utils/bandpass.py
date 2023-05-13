@@ -256,6 +256,11 @@ class Bandpass(object):
         for component in component_list:
             # Read data from file.
             tempbandpass.read_throughput(os.path.join(root_dir, component))
+            tempbandpass.resample_bandpass(
+                wavelen_min=wavelen_min,
+                wavelen_max=wavelen_max,
+                wavelen_step=wavelen_step,
+            )
             # Multiply self by new sb values.
             self.sb = self.sb * tempbandpass.sb
         self.bandpassname = "".join(component_list)
@@ -368,9 +373,13 @@ class Bandpass(object):
         This method does not affect self.
         """
         # Resample wavelen_other/sb_other to match this bandpass.
-        if self.need_resample(wavelen=wavelen_other):
+        if not numpy.all(self.wavelen == wavelen_other):
             wavelen_other, sb_other = self.resample_bandpass(
-                wavelen=wavelen_other, sb=sb_other
+                wavelen=wavelen_other,
+                sb=sb_other,
+                wavelen_min=self.wavelen.min(),
+                wavelen_max=self.wavelen.max(),
+                wavelen_step=self.wavelen[1] - self.wavelen[0],
             )
         # Make new memory copy of wavelen.
         wavelen_new = numpy.copy(self.wavelen)
