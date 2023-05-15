@@ -27,16 +27,12 @@ Class data:
 wavelen (nm)
 sb  (Transmission, 0-1)
 phi (Normalized system response)
-wavelen/sb are guaranteed gridded.
 phi will be None until specifically needed; any updates to wavelen/sb within class will reset phi to None.
 the name of the bandpass file
 
-Note that Bandpass objects are required to maintain a uniform grid in wavelength, rather than
-being allowed to have variable wavelength bins. This is because of the method used in 'Sed' to
-calculate magnitudes, but is simpler to enforce here.
 
 Methods:
-* __init__ : pass wavelen/sb arrays and set values (on grid) OR set data to None's
+* __init__ : pass wavelen/sb arrays and set values  OR set data to None's
 * setWavelenLimits / getWavelenLimits: set or get the wavelength limits of bandpass
 * setBandpass: set bandpass using wavelen/sb input values
 * getBandpass: return copies of wavelen/sb values
@@ -49,7 +45,7 @@ the individual throughputs
 (grid is specified by min/max/step size)
 * sb_tophi : calculate phi from sb - needed for calculating magnitudes
 * multiply_throughputs : multiply self.wavelen/sb by given wavelen/sb and return
-new wavelen/sb arrays (gridded like self)
+new wavelen/sb arrays (wavelength sampled like self)
 * calc_zp_t : calculate instrumental zeropoint for this bandpass
 * calc_eff_wavelen: calculate the effective wavelength (using both Sb and Phi) for this bandpass
 * writeThroughput : utility to write bandpass information to file
@@ -112,7 +108,7 @@ class Bandpass(object):
         """
         Populate bandpass data with wavelen/sb arrays.
 
-        Sets self.wavelen/sb on a grid of wavelen_min/max/step. Phi set to None.
+        Phi set to None.
         """
         # Check data type.
         if (isinstance(wavelen, numpy.ndarray) == False) or (
@@ -155,9 +151,9 @@ class Bandpass(object):
 
     def read_throughput(self, filename):
         """
-        Populate bandpass data with data (wavelen/sb) read from file, resample onto grid.
+        Populate bandpass data with data (wavelen/sb) read from file.
 
-        Sets wavelen/sb, with grid min/max/step as Parameters. Does NOT set phi.
+        Sets wavelen/sb. Does NOT set phi.
         """
         # Set self values to None in case of file read error.
         self.wavelen = None
@@ -354,7 +350,7 @@ class Bandpass(object):
         This function only pdates self.phi.
         """
         # The definition of phi = (Sb/wavelength)/\int(Sb/wavelength)dlambda.
-        # Due to definition of class, self.sb and self.wavelen are guaranteed equal-gridded.
+        # XXX--might want to test here what happens if un-equal grid
         dlambda = self.wavelen[1] - self.wavelen[0]
         self.phi = self.sb / self.wavelen
         # Normalize phi so that the integral of phi is 1.
