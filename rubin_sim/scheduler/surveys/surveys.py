@@ -383,15 +383,23 @@ class BlobSurvey(GreedySurvey):
             self.reward = -np.inf
 
         if self.area_required is not None:
-            max_reward_indx = np.min(np.where(self.reward == np.nanmax(self.reward)))
-            distances = _angular_separation(
-                self.ra, self.dec, self.ra[max_reward_indx], self.dec[max_reward_indx]
-            )
-            good_area = np.where(
-                (np.abs(self.reward) >= 0) & (distances < self.max_radius_peak)
-            )[0].size * hp.nside2pixarea(self.nside)
-            if good_area < self.area_required:
+            max_indices = np.where(self.reward == np.nanmax(self.reward))[0]
+            if np.size(max_indices) == 0:
+                # This is the case if everything is masked
                 self.reward = -np.inf
+            else:
+                max_reward_indx = np.min(max_indices)
+                distances = _angular_separation(
+                    self.ra,
+                    self.dec,
+                    self.ra[max_reward_indx],
+                    self.dec[max_reward_indx],
+                )
+                good_area = np.where(
+                    (np.abs(self.reward) >= 0) & (distances < self.max_radius_peak)
+                )[0].size * hp.nside2pixarea(self.nside)
+                if good_area < self.area_required:
+                    self.reward = -np.inf
 
         self.reward_checked = True
         return self.reward
