@@ -306,10 +306,11 @@ class TakeAsPairsDetailer(BaseDetailer):
 
 
 class TwilightTripleDetailer(BaseDetailer):
-    def __init__(self, slew_estimate=5.0, n_repeat=3):
+    def __init__(self, slew_estimate=5.0, n_repeat=3, update_note=True):
         super(TwilightTripleDetailer, self).__init__()
         self.slew_estimate = slew_estimate
         self.n_repeat = n_repeat
+        self.update_note = update_note
 
     def __call__(self, observation_list, conditions):
         obs_array = np.concatenate(observation_list)
@@ -345,6 +346,9 @@ class TwilightTripleDetailer(BaseDetailer):
         # Repeat the observations n times
         out_obs = []
         for i in range(self.n_repeat):
-            out_obs.extend(copy.deepcopy(observation_list))
-
+            sub_list = copy.deepcopy(observation_list)
+            if self.update_note:
+                for obs in sub_list:
+                    obs["note"][0] += ", %i" % i
+            out_obs.extend(sub_list)
         return out_obs
