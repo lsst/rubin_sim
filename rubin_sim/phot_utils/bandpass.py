@@ -347,17 +347,12 @@ class Bandpass(object):
         """
         Calculate and set phi - the normalized system response.
 
-        This function only pdates self.phi.
+        This function only updates self.phi.
         """
         # The definition of phi = (Sb/wavelength)/\int(Sb/wavelength)dlambda.
-        # XXX--might want to test here what happens if un-equal grid
-        dlambda = self.wavelen[1] - self.wavelen[0]
         self.phi = self.sb / self.wavelen
         # Normalize phi so that the integral of phi is 1.
-        phisum = self.phi.sum()
-        if phisum < 1e-300:
-            raise Exception("Phi is poorly defined (nearly 0) over bandpass range.")
-        norm = phisum * dlambda
+        norm = numpy.trapz(self.phi, x=self.wavelen)
         self.phi = self.phi / norm
         return
 
