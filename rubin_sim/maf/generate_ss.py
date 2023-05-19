@@ -56,7 +56,7 @@ def generate_ss_commands(
             "occ_rmax5_5k",
             "occ_rmax20_5k",
         ]
-        # Vatiras will typically have 0 discoveries.
+
     elif pops is not None:
         pp = [p for p in orbit_files.keys() if p == pops]
         if len(pp) == 0:
@@ -84,7 +84,7 @@ def generate_ss_commands(
 
                 s1 = f"make_lsst_obs --simulation_db {filename} --orbit_file {orbit_files[pop]}"
                 s2 = (
-                    f"run_moving_calc --obs_file {run}__{pop}_obs.txt"
+                    f"run_moving_calc --obs_file {run}__{pop}_obs.npz"
                     f" --simulation_db {filename} --orbit_file {orbit_files[pop]}"
                     f" --out_dir {run}_ss"
                     f" --objtype {objtype}"
