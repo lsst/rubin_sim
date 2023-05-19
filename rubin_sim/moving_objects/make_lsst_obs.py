@@ -3,6 +3,7 @@
 import os
 import argparse
 import logging
+import numpy as np
 
 import rubin_sim.moving_objects as mo
 from rubin_sim.maf.batches import col_map_dict
@@ -181,7 +182,7 @@ def setup_args(parser=None):
     # Set up obs_file if not specified.
     if args.obs_file is None:
         args.obs_file = os.path.join(
-            args.out_dir, "%s__%s_obs.txt" % (run_name, args.orbitbase)
+            args.out_dir, "%s__%s_obs.npz" % (run_name, args.orbitbase)
         )
     else:
         args.obs_file = os.path.join(args.out_dir, args.obs_file)
@@ -209,7 +210,8 @@ def make_lsst_obs():
         logging.basicConfig(level=logging.INFO)
 
     # Read orbits.
-    orbits = mo.read_orbits(args.orbit_file)
+    orbits = mo.Orbits()
+    orbits.read_orbits(args.orbit_file)
 
     # Read pointing data
     colmap = col_map_dict("fbs")
@@ -220,23 +222,44 @@ def make_lsst_obs():
         footprint=args.footprint,
         dbcols=None,
     )
-    # Generate ephemerides.
-    mo.run_obs(
-        orbits,
-        pointing_data,
-        colmap,
-        args.obs_file,
-        args.footprint,
-        args.r_fov,
-        args.x_tol,
-        args.y_tol,
-        args.eph_mode,
-        args.prelim_eph_mode,
-        args.obs_code,
-        args.eph_type,
-        args.t_step,
-        args.rough_tol,
-        args.obs_metadata,
+
+    d_obs = mo.DirectObs(
+        footprint=args.footprint,
+        r_fov=args.r_fov,
+        x_tol=args.x_tol,
+        y_tol=args.y_tol,
+        eph_mode=args.eph_mode,
+        prelim_eph_mode=args.prelim_eph_mode,
+        obs_code=args.obs_code,
+        eph_file=None,
+        eph_type=args.eph_type,
+        obs_time_col=colmap["mjd"],
+        obs_time_scale="TAI",
+        seeing_col=colmap["seeingGeom"],
+        visit_exp_time_col=colmap["exptime"],
+        obs_ra=colmap["ra"],
+        obs_dec=colmap["dec"],
+        obs_rot_sky_pos=colmap["rotSkyPos"],
+        obs_degrees=colmap["raDecDeg"],
+        outfile_name=None,
+        tstep=args.t_step,
+        rough_tol=args.rough_tol,
+        obs_metadata=args.obs_metadata,
+    )
+    filterlist = np.unique(pointing_data["filter"])
+    d_obs.read_filters(filterlist=filterlist)
+    # Calculate all colors ahead of time.
+    sednames = np.unique(orbits.orbits["sed_filename"])
+    for sedname in sednames:
+        d_obs.calc_colors(sedname)
+
+    # Generate object observations.
+    object_observations = d_obs.run(orbits, pointing_data)
+
+    # XXX--maybe add a metadata dict or something in here
+    np.savez(
+        os.path.join(args.out_dir, args.obs_file),
+        object_observations=object_observations,
     )
 
-    logging.info("Completed successfully.")
+    # logging.info("Completed successfully.")
