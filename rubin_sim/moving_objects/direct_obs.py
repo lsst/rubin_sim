@@ -164,7 +164,23 @@ class DirectObs(BaseObs):
             "dmag_trail",
             "dmag_detect",
         ]
-        types = [int, int, "<U40"] + [float] * (len(names) - 2)
+        types = [int, int, "<U40"] + [float] * (len(names) - 3)
+
+        # XXX--for now, copy over some observation info. In the future,
+        # just index it to the observations and only transfer observationId
+        transfer_cols = [
+            "visitExposureTime",
+            "fiveSigmaDepth",
+            "seeingFwhmGeom",
+            "observationStartMJD",
+            "night",
+            "filter",
+        ]
+        transfer_types = [float] * (len(transfer_cols) - 2)
+        transfer_types += [int, "<U40"]
+        names += transfer_cols
+        types += transfer_types
+
         output_dtype = list(zip(names, types))
 
         # Set the times for the rough ephemeris grid.
@@ -191,7 +207,9 @@ class DirectObs(BaseObs):
             if self.verbose:
                 logging.debug(
                     ("%d/%d   id=%s : " % (i, len(orbits), objid))
-                    + datetime.datetime.now().strftime("Prelim start: %Y-%m-%d %H:%M:%S")
+                    + datetime.datetime.now().strftime(
+                        "Prelim start: %Y-%m-%d %H:%M:%S"
+                    )
                     + " nRoughTimes: %s" % len(rough_times)
                 )
             ephs = self.generate_ephemerides(
@@ -217,7 +235,9 @@ class DirectObs(BaseObs):
                 if self.verbose:
                     logging.debug(
                         ("%d/%d   id=%s : " % (i, len(orbits), objid))
-                        + datetime.datetime.now().strftime("Exact start: %Y-%m-%d %H:%M:%S")
+                        + datetime.datetime.now().strftime(
+                            "Exact start: %Y-%m-%d %H:%M:%S"
+                        )
                         + " nExactTimes: %s" % len(times)
                     )
                 ephs = self.generate_ephemerides(
@@ -271,5 +291,9 @@ class DirectObs(BaseObs):
                 obs_data[self.seeing_col][indx_map_visit_to_object],
                 obs_data[self.visit_exp_time_col][indx_map_visit_to_object],
             )
+
+            # Transfer over info from pointing info array to result array
+            for key in transfer_cols:
+                result[key] = obs_data[key][indx_map_visit_to_object]
 
         return result

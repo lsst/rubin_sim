@@ -219,7 +219,6 @@ def make_lsst_obs():
         args.simulation_db,
         colmap,
         constraint=args.sql_constraint,
-        footprint=args.footprint,
         dbcols=None,
     )
 
@@ -256,7 +255,8 @@ def make_lsst_obs():
     # Generate object observations.
     object_observations = d_obs.run(orbits, pointing_data)
 
-    # XXX--maybe add a metadata dict or something in here
+    # XXX--maybe add an information dict or something in here
+    # to track the provinence.
     np.savez(
         os.path.join(args.out_dir, args.obs_file),
         object_observations=object_observations,

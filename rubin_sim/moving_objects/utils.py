@@ -6,9 +6,7 @@ from .orbits import Orbits
 __all__ = ["read_observations"]
 
 
-def read_observations(
-    simfile, colmap, constraint=None, footprint="camera", dbcols=None
-):
+def read_observations(simfile, colmap, constraint=None, dbcols=None):
     """Read the opsim database.
 
     Parameters
@@ -20,10 +18,6 @@ def read_observations(
     constraint : `str`, optional
         Optional SQL constraint (minus 'where') on the opsim data to read from db.
         Default is None.
-    footprint : `str`, optional
-        Footprint option for the final matching of object against OpSim FOV.
-        Default 'camera' means that 'rotSkyPos' must be fetched from the db.
-        Any other value will not require rotSkyPos.
     dbcols : `list` of `str`, optional
         List of additional columns to query from the db and add to the output observations.
         Default None.
@@ -47,8 +41,6 @@ def read_observations(
         colmap["seeingGeom"],
         colmap["fiveSigmaDepth"],
     ]
-    if footprint == "camera":
-        min_cols.append(colmap["rotSkyPos"])
     if dbcols is not None:
         min_cols += dbcols
 
