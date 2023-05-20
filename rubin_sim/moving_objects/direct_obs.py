@@ -101,6 +101,10 @@ class DirectObs(BaseObs):
         tstep=1.0,
         rough_tol=10.0,
         verbose=False,
+        night_col="night",
+        filter_col="filter",
+        m5_col="fiveSigmaDepth",
+        obs_id_col="observationId",
     ):
         super().__init__(
             footprint=footprint,
@@ -123,6 +127,10 @@ class DirectObs(BaseObs):
             obs_metadata=obs_metadata,
         )
         self.verbose = verbose
+        self.filter_col = filter_col
+        self.night_col = night_col
+        self.m5_col = m5_col
+        self.obs_id_col = obs_id_col
         self.tstep = tstep
         self.rough_tol = rough_tol
         if prelim_eph_mode not in ("2body", "nbody"):
@@ -146,7 +154,7 @@ class DirectObs(BaseObs):
         # output dtype
         names = [
             "obj_id",
-            "observationId",
+            self.obs_id_col,
             "sedname",
             "time",
             "ra",
@@ -169,12 +177,12 @@ class DirectObs(BaseObs):
         # XXX--for now, copy over some observation info. In the future,
         # just index it to the observations and only transfer observationId
         transfer_cols = [
-            "visitExposureTime",
-            "fiveSigmaDepth",
-            "seeingFwhmGeom",
-            "observationStartMJD",
-            "night",
-            "filter",
+            self.visit_exp_time_col,
+            self.m5_col,
+            self.seeing_col,
+            self.obs_time_col,
+            self.night_col,
+            self.filter_col,
         ]
         transfer_types = [float] * (len(transfer_cols) - 2)
         transfer_types += [int, "<U40"]
@@ -261,8 +269,8 @@ class DirectObs(BaseObs):
                     )
                 object_observations = np.zeros(idx_obs.size, dtype=output_dtype)
                 object_observations["obj_id"] = objid
-                object_observations["observationId"] = obs_data[rough_idx_obs][idx_obs][
-                    "observationId"
+                object_observations[self.obs_id_col] = obs_data[rough_idx_obs][idx_obs][
+                    self.obs_id_col
                 ]
                 object_observations["sedname"] = sedname
 
@@ -275,12 +283,12 @@ class DirectObs(BaseObs):
             result = np.concatenate(result)
             indx_map_visit_to_object = np.concatenate(indx_map_visit_to_object)
             # add on any additional info we want here, dmags, etc
-            filterlist = np.unique(obs_data["filter"][indx_map_visit_to_object])
+            filterlist = np.unique(obs_data[self.filter_col][indx_map_visit_to_object])
             for sname in np.unique(result["sedname"]):
                 dmag_color_dict = self.calc_colors(sname)
                 for f in filterlist:
                     match = np.where(
-                        (obs_data["filter"][indx_map_visit_to_object] == f)
+                        (obs_data[self.filter_col][indx_map_visit_to_object] == f)
                         & (result["sedname"] == sname)
                     )[0]
                     if np.size(match) > 0:
