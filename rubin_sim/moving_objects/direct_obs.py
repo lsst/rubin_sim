@@ -75,6 +75,9 @@ class DirectObs(BaseObs):
         The initial rough tolerance value for positions, used as a first cut to identify potential
         observations (in degrees).
         Default 10 degrees.
+    pre_comp_tol : float (2.08)
+        The radial tolerance to add when using pre-computed orbits. Should be
+        larger than the full field of view extent.
     """
 
     def __init__(
@@ -100,11 +103,12 @@ class DirectObs(BaseObs):
         obs_metadata="",
         tstep=1.0,
         rough_tol=10.0,
-        verbose=False,
+        verbose=True,
         night_col="night",
         filter_col="filter",
         m5_col="fiveSigmaDepth",
         obs_id_col="observationId",
+        pre_comp_tol=2.08,
     ):
         super().__init__(
             footprint=footprint,
@@ -127,6 +131,7 @@ class DirectObs(BaseObs):
             obs_metadata=obs_metadata,
         )
         self.verbose = verbose
+        self.pre_comp_tol = pre_comp_tol
         self.filter_col = filter_col
         self.night_col = night_col
         self.m5_col = m5_col
@@ -177,21 +182,15 @@ class DirectObs(BaseObs):
                 object_positions["ra"][:, 1:],
                 object_positions["dec"][:, 1:],
             )
-            # how much motion going to previous timestep
-            move2 = angular_separation(
-                object_positions["ra"][:, 1:],
-                object_positions["dec"][:, 1:],
-                object_positions["ra"][:, 0:-1],
-                object_positions["dec"][:, 0:-1],
-            )
             # Need to take care of ends
             d1 = object_positions["ra"] * 0
             d1[:, 0:-1] = move1
             d2 = object_positions["ra"] * 0
-            d2[:, 1:] = move2
+            d2[:, 1:] = move1
             # Now we can use a small tolerance for objects when they are moving
             # slowly across the sky.
-            object_tol = np.maximum(d1, d2)
+            # XXX--let's pump it up a bit to see if this gets everything
+            object_tol = np.maximum(d1, d2) + self.pre_comp_tol
 
         # output dtype
         names = [
@@ -262,6 +261,7 @@ class DirectObs(BaseObs):
                     )
                     + " nRoughTimes: %s" % len(rough_times)
                 )
+            # Not using pre-computed positions
             if object_mjds is None:
                 ephs = self.generate_ephemerides(
                     sso,
@@ -286,17 +286,15 @@ class DirectObs(BaseObs):
                     ephs[ephs_idxs], obs_data, self.rough_tol
                 )
             else:
-                # Nearest neighbor search
-                pos_left = np.searchsorted(
+                # Nearest neighbor search for the object_mjd closest to obs_data mjd
+                pos = np.searchsorted(
                     object_mjds, obs_data[self.obs_time_col], side="left"
                 )
-                pos_right = np.searchsorted(
-                    object_mjds, obs_data[self.obs_time_col], side="right"
-                )
-                object_indx = pos_left + 0
-                d_left = obs_data[self.obs_time_col] - object_mjds[pos_left]
+                pos_right = pos - 1
+                object_indx = pos + 0
+                d_left = obs_data[self.obs_time_col] - object_mjds[pos]
                 d_right = obs_data[self.obs_time_col] - object_mjds[pos_right]
-                r_better = np.where(np.abs(d_right) < np.abs(d_left))
+                r_better = np.where(np.abs(d_right) < np.abs(d_left))[0]
                 object_indx[r_better] = pos_right[r_better]
 
                 rough_idx_obs = self._sso_in_circle_fov(
@@ -304,7 +302,6 @@ class DirectObs(BaseObs):
                     obs_data,
                     self.r_fov + object_tol[i][object_indx],
                 )
-
             if len(rough_idx_obs) > 0:
                 # Generate exact ephemerides for these times.
                 times = obs_data[self.obs_time_col][rough_idx_obs]

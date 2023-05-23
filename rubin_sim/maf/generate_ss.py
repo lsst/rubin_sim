@@ -32,6 +32,18 @@ def generate_ss_commands(
         "trojan_5k": os.path.join(data_dir, "trojan_5k.txt"),
     }
 
+    pos_dir = os.path.join(get_data_dir(), "orbits_precompute")
+    position_files = {
+        "granvik_5k": os.path.join(pos_dir, "granvik_5k.npz"),
+        "granvik_pha_5k": os.path.join(pos_dir, "granvik_pha_5k.npz"),
+        "vatiras_granvik_10k": os.path.join(pos_dir, "vatiras_granvik_10k.npz"),
+        "l7_5k": os.path.join(pos_dir, "l7_5k.npz"),
+        "mba_5k": os.path.join(pos_dir, "mba_5k.npz"),
+        "occ_rmax5_5k": os.path.join(pos_dir, "occ_rmax5_5k.npz"),
+        "occ_rmax20_5k": os.path.join(pos_dir, "occ_rmax20_5k.npz"),
+        "trojan_5k": os.path.join(pos_dir, "trojan_5k.npz"),
+    }
+
     objtypes = {
         "granvik_5k": "NEO",
         "granvik_pha_5k": "PHA",
@@ -82,7 +94,10 @@ def generate_ss_commands(
             for run, filename in zip(runs, dbfiles):
                 objtype = objtypes[pop]
 
-                s1 = f"make_lsst_obs --simulation_db {filename} --orbit_file {orbit_files[pop]}"
+                s1 = (
+                    f"make_lsst_obs --simulation_db {filename} --orbit_file {orbit_files[pop]}"
+                    f" --positions_file {position_files[pop]}"
+                )
                 s2 = (
                     f"run_moving_calc --obs_file {run}__{pop}_obs.npz"
                     f" --simulation_db {filename} --orbit_file {orbit_files[pop]}"

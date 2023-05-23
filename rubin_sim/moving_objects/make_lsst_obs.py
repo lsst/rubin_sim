@@ -89,7 +89,7 @@ def setup_args(parser=None):
         type=float,
         default=1.75,
         help="If using a circular footprint, this is the radius of the FOV (in degrees). "
-        "Default 1.75 deg.",
+        "Default 2.08 deg.",
     )
     parser.add_argument(
         "--x_tol",
