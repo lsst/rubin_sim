@@ -44,6 +44,12 @@ def setup_args(parser=None):
         "additional documentation on the orbit file format. Default None.",
     )
     parser.add_argument(
+        "--positions_file",
+        type=str,
+        default=None,
+        help="file with pre-computed positions for the objects in the orbit file",
+    )
+    parser.add_argument(
         "--out_dir",
         type=str,
         default=".",
@@ -213,6 +219,14 @@ def make_lsst_obs():
     orbits = mo.Orbits()
     orbits.read_orbits(args.orbit_file)
 
+    if args.positions_file is not None:
+        position_data = np.load(args.positions_file)
+        object_positions = position_data["positions"].copy()
+        object_mjds = position_data["mjds"].copy()
+        position_data.close()
+    else:
+        object_positions = None
+        object_mjds = None
     # Read pointing data
     colmap = col_map_dict("fbs")
     pointing_data = mo.read_observations(
@@ -253,7 +267,12 @@ def make_lsst_obs():
         d_obs.calc_colors(sedname)
 
     # Generate object observations.
-    object_observations = d_obs.run(orbits, pointing_data)
+    object_observations = d_obs.run(
+        orbits,
+        pointing_data,
+        object_positions=object_positions,
+        object_mjds=object_mjds,
+    )
 
     # XXX--maybe add an information dict or something in here
     # to track the provinence.

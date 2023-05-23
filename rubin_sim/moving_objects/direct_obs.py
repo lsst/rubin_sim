@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 import datetime
-
+from rubin_sim.utils import angular_separation
 from .base_obs import BaseObs
 
 __all__ = ["DirectObs"]
@@ -137,7 +137,7 @@ class DirectObs(BaseObs):
             raise ValueError("Ephemeris generation must be 2body or nbody.")
         self.prelim_eph_mode = prelim_eph_mode
 
-    def run(self, orbits, obs_data):
+    def run(self, orbits, obs_data, object_positions=None, object_mjds=None):
         """Find and write the observations of each object to disk.
 
         For each object, generate a very rough grid of ephemeris points (typically using 2body integration).
@@ -149,7 +149,49 @@ class DirectObs(BaseObs):
             The orbits to generate ephemerides for.
         obs_data : `np.ndarray`
             The simulated pointing history data.
+        object_positions : `np.ndarray`
+            Pre-computed RA,dec positions for each object in orbits (degrees)
+        object_mjds : `np.ndarray`
+            MJD values for each pre-computed position
         """
+
+        # If we are trying to use pre-computed positions, check that the MJDs span enough
+        if object_mjds is not None:
+            if (obs_data[self.obs_time_col].min() < object_mjds.min()) | (
+                obs_data[self.obs_time_col].max() > object_mjds.max()
+            ):
+                raise ValueError(
+                    "Pre-computed position times do not cover MJD range of %i-%i."
+                    % (
+                        obs_data[self.obs_time_col]
+                        .min()
+                        .obs_data[self.obs_time_col]
+                        .max()
+                    )
+                )
+            # calculate angular motion for each object at each timestep
+            # how much does it move going to time step forward
+            move1 = angular_separation(
+                object_positions["ra"][:, 0:-1],
+                object_positions["dec"][:, 0:-1],
+                object_positions["ra"][:, 1:],
+                object_positions["dec"][:, 1:],
+            )
+            # how much motion going to previous timestep
+            move2 = angular_separation(
+                object_positions["ra"][:, 1:],
+                object_positions["dec"][:, 1:],
+                object_positions["ra"][:, 0:-1],
+                object_positions["dec"][:, 0:-1],
+            )
+            # Need to take care of ends
+            d1 = object_positions["ra"] * 0
+            d1[:, 0:-1] = move1
+            d2 = object_positions["ra"] * 0
+            d2[:, 1:] = move2
+            # Now we can use a small tolerance for objects when they are moving
+            # slowly across the sky.
+            object_tol = np.maximum(d1, d2)
 
         # output dtype
         names = [
@@ -220,23 +262,49 @@ class DirectObs(BaseObs):
                     )
                     + " nRoughTimes: %s" % len(rough_times)
                 )
-            ephs = self.generate_ephemerides(
-                sso, rough_times, eph_mode=self.prelim_eph_mode, eph_type=self.eph_type
-            )[0]
-            mu = ephs["velocity"]
-            if self.verbose:
-                logging.debug(
-                    ("%d/%d   id=%s : " % (i, len(orbits), objid))
-                    + datetime.datetime.now().strftime("Prelim end: %Y-%m-%d %H:%M:%S")
-                    + " π(median, max), min(geo_dist): %.2f, %.2f deg/day  %.2f AU"
-                    % (np.median(mu), np.max(mu), np.min(ephs["geo_dist"]))
+            if object_mjds is None:
+                ephs = self.generate_ephemerides(
+                    sso,
+                    rough_times,
+                    eph_mode=self.prelim_eph_mode,
+                    eph_type=self.eph_type,
+                )[0]
+                mu = ephs["velocity"]
+                if self.verbose:
+                    logging.debug(
+                        ("%d/%d   id=%s : " % (i, len(orbits), objid))
+                        + datetime.datetime.now().strftime(
+                            "Prelim end: %Y-%m-%d %H:%M:%S"
+                        )
+                        + " π(median, max), min(geo_dist): %.2f, %.2f deg/day  %.2f AU"
+                        % (np.median(mu), np.max(mu), np.min(ephs["geo_dist"]))
+                    )
+
+                # Find observations which come within roughTol of the fov.
+                ephs_idxs = np.searchsorted(ephs["time"], obs_data[self.obs_time_col])
+                rough_idx_obs = self._sso_in_circle_fov(
+                    ephs[ephs_idxs], obs_data, self.rough_tol
+                )
+            else:
+                # Nearest neighbor search
+                pos_left = np.searchsorted(
+                    object_mjds, obs_data[self.obs_time_col], side="left"
+                )
+                pos_right = np.searchsorted(
+                    object_mjds, obs_data[self.obs_time_col], side="right"
+                )
+                object_indx = pos_left + 0
+                d_left = obs_data[self.obs_time_col] - object_mjds[pos_left]
+                d_right = obs_data[self.obs_time_col] - object_mjds[pos_right]
+                r_better = np.where(np.abs(d_right) < np.abs(d_left))
+                object_indx[r_better] = pos_right[r_better]
+
+                rough_idx_obs = self._sso_in_circle_fov(
+                    object_positions[i][object_indx],
+                    obs_data,
+                    self.r_fov + object_tol[i][object_indx],
                 )
 
-            # Find observations which come within roughTol of the fov.
-            ephs_idxs = np.searchsorted(ephs["time"], obs_data[self.obs_time_col])
-            rough_idx_obs = self._sso_in_circle_fov(
-                ephs[ephs_idxs], obs_data, self.rough_tol
-            )
             if len(rough_idx_obs) > 0:
                 # Generate exact ephemerides for these times.
                 times = obs_data[self.obs_time_col][rough_idx_obs]
