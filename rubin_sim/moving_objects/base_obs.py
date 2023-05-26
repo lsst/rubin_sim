@@ -174,7 +174,8 @@ class BaseObs(object):
         Returns
         -------
         ephs : `pd.Dataframe`
-            Ephemerides of the sso. XXX--list the colums here since it's a mystery
+            Results from propigating the orbit(s) to the specified times. Columns like:
+            obj_id, sedname, time, ra, dec, dradt, ddecdt, phase, solarelon, etc
         """
         if not hasattr(self, "ephems"):
             self.setup_ephemerides()
