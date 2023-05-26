@@ -189,7 +189,6 @@ class DirectObs(BaseObs):
             d2[:, 1:] = move1
             # Now we can use a small tolerance for objects when they are moving
             # slowly across the sky.
-            # XXX--let's pump it up a bit to see if this gets everything
             object_tol = np.maximum(d1, d2) + self.pre_comp_tol
 
         # output dtype

@@ -47,7 +47,8 @@ def setup_args(parser=None):
         "--positions_file",
         type=str,
         default=None,
-        help="file with pre-computed positions for the objects in the orbit file",
+        help="File with pre-computed 'rough' ephemerides for the objects in the orbit file."
+        " Default None, which will trigger computation of these rough ephemerides on-the-fly.",
     )
     parser.add_argument(
         "--out_dir",
@@ -56,11 +57,11 @@ def setup_args(parser=None):
         help="Output directory for moving object detections. Default '.'",
     )
     parser.add_argument(
-        "--obs_file",
+        "--output_file",
         type=str,
         default=None,
         help="Output file name for moving object observations."
-        " Default will build out_dir/simulation_db_orbitFile_obs.txt.",
+        " Default will build out_dir/simulation_db_orbitFile_obs.npz.",
     )
     parser.add_argument(
         "--sql_constraint",
@@ -114,16 +115,6 @@ def setup_args(parser=None):
         "Default 10 degrees.",
     )
     parser.add_argument(
-        "--obs_type",
-        type=str,
-        default="direct",
-        help="Method for generating observations: 'direct' or 'linear'. "
-        "Linear will use linear interpolation between a grid of ephemeris points. "
-        "Direct will first generate rough ephemerides, look for observations within "
-        "roughTol of these points, and then generate exact ephemerides at those times. "
-        "Default 'direct'.",
-    )
-    parser.add_argument(
         "--obs_code",
         type=str,
         default="I11",
@@ -174,24 +165,18 @@ def setup_args(parser=None):
     if args.orbit_file is None:
         raise ValueError("Must specify an orbit file.")
 
-    # Check interpolation type.
-    if args.obs_type not in ("linear", "direct"):
-        raise ValueError(
-            "Must choose linear or direct observation generation method (obsType)."
-        )
-
     run_name = os.path.split(args.simulation_db)[-1].replace(".db", "")
 
     # Add these useful pieces to args.
     args.orbitbase = ".".join(os.path.split(args.orbit_file)[-1].split(".")[:-1])
 
     # Set up obs_file if not specified.
-    if args.obs_file is None:
-        args.obs_file = os.path.join(
+    if args.output_file is None:
+        args.output_file = os.path.join(
             args.out_dir, "%s__%s_obs.npz" % (run_name, args.orbitbase)
         )
     else:
-        args.obs_file = os.path.join(args.out_dir, args.obs_file)
+        args.output_file = os.path.join(args.out_dir, args.output_file)
 
     # Build some provenance to add to output file.
     obs_info = args.simulation_db
@@ -275,7 +260,7 @@ def make_lsst_obs():
     )
 
     np.savez(
-        os.path.join(args.out_dir, args.obs_file),
+        os.path.join(args.out_dir, args.output_file),
         object_observations=object_observations,
         info=d_obs.info,
     )

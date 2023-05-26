@@ -143,10 +143,11 @@ def generate_ss_commands(
                         with open(outfile_split, "a") as wi:
                             s1 = (
                                 f"make_lsst_obs --simulation_db {filename} --orbit_file {splitfile}"
+                                f" --positions_file {position_files[pop]}"
                                 f" --out_dir {out_dir}"
                             )
                             s2 = (
-                                f"run_moving_calc --obs_file {out_dir}/{run}__{split}_obs.txt"
+                                f"run_moving_calc --obs_file {out_dir}/{run}__{split}_obs.npz"
                                 f" --simulation_db {filename} --orbit_file {orbit_files[pop]}"
                                 f" --out_dir {out_dir}/{split}"
                                 f" --run_name {run}"
