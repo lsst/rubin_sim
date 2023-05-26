@@ -64,7 +64,7 @@ class DirectObs(BaseObs):
     outfile_name : `str`, optional
         The output file name.
         Default is 'lsst_obs.dat'.
-    obs_metadata : `str`, optional
+    obs_info : `str`, optional
         A string that captures provenance information about the observations.
         For example: 'baseline_v2.0_10yrs, MJD 59853-61677' or 'baseline2018a minus NES'
         Default ''.
@@ -100,7 +100,7 @@ class DirectObs(BaseObs):
         obs_rot_sky_pos="rotSkyPos",
         obs_degrees=True,
         outfile_name="lsst_obs.dat",
-        obs_metadata="",
+        obs_info="",
         tstep=1.0,
         rough_tol=10.0,
         verbose=True,
@@ -128,7 +128,7 @@ class DirectObs(BaseObs):
             obs_rot_sky_pos=obs_rot_sky_pos,
             obs_degrees=obs_degrees,
             outfile_name=outfile_name,
-            obs_metadata=obs_metadata,
+            obs_info=obs_info,
         )
         self.verbose = verbose
         self.pre_comp_tol = pre_comp_tol

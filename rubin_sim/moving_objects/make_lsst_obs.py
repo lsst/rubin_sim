@@ -69,12 +69,12 @@ def setup_args(parser=None):
         help="SQL constraint to use to select data from simulation_db. Default no constraint.",
     )
     parser.add_argument(
-        "--obs_metadata",
+        "--obs_info",
         type=str,
         default=None,
-        help="Additional metadata to write into output file. "
-        "The default metadata will combine the simulation_db name, the sqlconstraint, and "
-        "the name of the orbit file; obs_metadata is an optional addition.",
+        help="Additional info to write into output file. "
+        "The default info will combine the simulation_db name, the sqlconstraint, and "
+        "the name of the orbit file; obs_info is an optional addition.",
     )
     parser.add_argument(
         "--footprint",
@@ -193,14 +193,14 @@ def setup_args(parser=None):
     else:
         args.obs_file = os.path.join(args.out_dir, args.obs_file)
 
-    # Build some provenance metadata to add to output file.
-    obs_metadata = args.simulation_db
+    # Build some provenance to add to output file.
+    obs_info = args.simulation_db
     if len(args.sql_constraint) > 0:
-        obs_metadata += " selected with sqlconstraint %s" % args.sql_constraint
-    obs_metadata += " + orbit_file %s" % args.orbitbase
-    if args.obs_metadata is not None:
-        obs_metadata += "\n# %s" % args.obs_metadata
-    args.obs_metadata = obs_metadata
+        obs_info += " selected with sqlconstraint %s" % args.sql_constraint
+    obs_info += " + orbit_file %s" % args.orbitbase
+    if args.obs_info is not None:
+        obs_info += "\n# %s" % args.obs_info
+    args.obs_info = obs_info
 
     return args
 
@@ -257,7 +257,7 @@ def make_lsst_obs():
         outfile_name=None,
         tstep=args.t_step,
         rough_tol=args.rough_tol,
-        obs_metadata=args.obs_metadata,
+        obs_info=args.obs_info,
     )
     filterlist = np.unique(pointing_data["filter"])
     d_obs.read_filters(filterlist=filterlist)
@@ -274,11 +274,10 @@ def make_lsst_obs():
         object_mjds=object_mjds,
     )
 
-    # XXX--maybe add an information dict or something in here
-    # to track the provinence.
     np.savez(
         os.path.join(args.out_dir, args.obs_file),
         object_observations=object_observations,
+        info=d_obs.info,
     )
 
     # logging.info("Completed successfully.")

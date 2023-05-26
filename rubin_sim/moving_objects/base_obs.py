@@ -1,8 +1,6 @@
 import os
 import numpy as np
-import pandas as pd
 import warnings
-import datetime
 
 from rubin_sim.phot_utils import Bandpass
 from rubin_sim.phot_utils import Sed
@@ -66,7 +64,7 @@ class BaseObs(object):
     outfile_name : `str`, optional
         The output file name.
         Default is 'lsst_obs.dat'.
-    obs_metadata : `str`, optional
+    obs_info : `str`, optional
         A string that captures provenance information about the observations.
         For example: 'baseline_v2.0_10yrs, years 0-5' or 'baseline2018a minus NES'
         Default ''.
@@ -91,7 +89,7 @@ class BaseObs(object):
         obs_rot_sky_pos="rotSkyPos",
         obs_degrees=True,
         outfile_name="lsst_obs.dat",
-        obs_metadata="",
+        obs_info="",
         camera_footprint_file=None,
     ):
         # Strings relating to the names of columns in the observation metadata.
@@ -107,10 +105,6 @@ class BaseObs(object):
         # Save a space for the standard object colors.
         self.colors = {}
         self.outfile_name = outfile_name
-        if obs_metadata == "":
-            self.obs_metadata = "unknown simdata source"
-        else:
-            self.obs_metadata = obs_metadata
         # Values for identifying observations.
         self.footprint = footprint.lower()
         if self.footprint == "camera":
@@ -124,6 +118,29 @@ class BaseObs(object):
         self.eph_mode = eph_mode
         self.eph_type = eph_type
         self.eph_file = eph_file
+
+        self._setup_info(obs_info=obs_info)
+
+    def _setup_info(self, obs_info=""):
+        """Generate a dict to record relevant settings"""
+        info = {
+            "obs_info": obs_info,
+            "footprint": self.footprint,
+            "eph_mode": self.eph_mode,
+            "eph_type": self.eph_type,
+        }
+        if self.footprint == "circle":
+            info["r_fov"] = self.r_fov
+        if self.footprint == "rectangle":
+            info["xtol"] = self.x_tol
+            info["ytol"] = self.y_tol
+
+        # convert to numpy array in anticipation of saving
+        names = list(info.keys())
+        types = [np.array(info[key]).dtype for key in names]
+        self.info = np.zeros(1, dtype=list(zip(names, types)))
+        for key in names:
+            self.info[key] = info[key]
 
     def _setup_camera(self, camera_footprint_file=None):
         self.camera = LsstCameraFootprint(
@@ -422,47 +439,3 @@ class BaseObs(object):
             warnings.warn("Using circular fov; could not match specified footprint.")
             self.footprint = "circle"
             return self.sso_in_circle_fov(ephems, obs_data)
-
-    # Put together the output.
-    def deprecate__open_output(self):
-        # Make sure the directory exists to write the output file into.
-        out_dir = os.path.split(self.outfile_name)[0]
-        if len(out_dir) > 0:
-            if not os.path.isdir(out_dir):
-                os.makedirs(out_dir)
-        # Open the output file for writing.
-        self.outfile = open(self.outfile_name, "w")
-        self.outfile.write("# Started at %s" % (datetime.datetime.now()))
-        # Write metadata into the header, using # to identify as comment lines.
-        self.outfile.write("# %s\n" % self.obs_metadata)
-        self.outfile.write("# %s\n" % self.outfile_name)
-        # Write some generic ephemeris generation information.
-        self.outfile.write(
-            "# ephemeris generation via %s\n" % self.ephems.__class__.__name__
-        )
-        self.outfile.write("# planetary ephemeris file %s \n" % self.ephems.ephfile)
-        self.outfile.write("# obscode %s\n" % self.obs_code)
-        # Write some class-specific metadata about observation generation.
-        self._header_meta()
-        # Write the footprint information.
-        self.outfile.write("# pointing footprint %s\n" % (self.footprint))
-        if self.footprint == "circle":
-            self.outfile.write("# rfov %f\n" % self.r_fov)
-        if self.footprint == "rectangle":
-            self.outfile.write("# xTol %f yTol %f\n" % (self.x_tol, self.y_tol))
-        # Record columns used from simulation data
-        self.outfile.write(
-            "# obsRA %s obsDec %s obsRotSkyPos %s obsDeg %s\n"
-            % (self.obs_ra, self.obs_dec, self.obs_rot_sky_pos, self.obs_degrees)
-        )
-        self.outfile.write(
-            "# obsMJD %s obsTimeScale %s seeing %s expTime %s\n"
-            % (
-                self.obs_time_col,
-                self.obs_time_scale,
-                self.seeing_col,
-                self.visit_exp_time_col,
-            )
-        )
-
-        self.wrote_header = False
