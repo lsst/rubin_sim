@@ -58,7 +58,7 @@ class LongGapSurvey(BaseSurvey):
         avoid_zenith=True,
         site=None,
         hour_step=0.5,
-        survey_name="",
+        survey_name=None,
     ):
         self.blob_survey = blob_survey
         self.scripted_survey = scripted_survey
@@ -70,11 +70,8 @@ class LongGapSurvey(BaseSurvey):
         if site is None:
             self.site = Site("LSST")
         self.long_name = long_name
-        if survey_name == "":
-            self.survey_name = (
-                f"Long Gap ({self.blob_survey.survey_name} +"
-                f" {self.scripted_survey.survey_name})"
-            )
+        if survey_name is None:
+            self._generate_survey_name()
         else:
             self.survey_name = survey_name
         self.scripted_tol = scripted_tol / 24.0  # To days
@@ -89,6 +86,12 @@ class LongGapSurvey(BaseSurvey):
         self.reverse = reverse
         self.avoid_zenith = avoid_zenith
         self.mjd_step = hour_step / 24.0
+
+    def _generate_survey_name(self):
+        self.survey_name = (
+            f"Long Gap ({self.blob_survey.survey_name} +"
+            f" {self.scripted_survey.survey_name})"
+        )
 
     def _schedule_obs(self, observations):
         """Take incoming observations and decide if they should be added to the
