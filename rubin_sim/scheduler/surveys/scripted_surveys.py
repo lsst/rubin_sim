@@ -144,6 +144,7 @@ class ScriptedSurvey(BaseSurvey):
             "exptime",
             "nexp",
             "note",
+            "target",
             "rotSkyPos",
             "rotTelPos",
             "flush_by_mjd",
