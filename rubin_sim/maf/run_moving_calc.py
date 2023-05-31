@@ -8,6 +8,7 @@ from . import db as db
 from . import metricBundles as mmb
 from . import batches as batches
 from rubin_sim.utils import survey_start_mjd
+from rubin_sim.maf.slicers import MoObjSlicer
 
 
 def run_moving_calc():
@@ -159,7 +160,8 @@ def run_moving_calc():
     results_db = db.ResultsDb(out_dir=args.out_dir)
 
     colmap = batches.col_map_dict()
-    slicer = batches.setup_mo_slicer(args.orbit_file, Hrange, obs_file=args.obs_file)
+    slicer = MoObjSlicer(h_range=Hrange)
+    slicer.setup_slicer(orbit_file=args.orbit_file, obs_file=args.obs_file)
     # Run discovery metrics using 'trailing' losses
     bdictT = batches.quick_discovery_batch(
         slicer,

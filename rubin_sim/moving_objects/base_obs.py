@@ -1,8 +1,6 @@
 import os
 import numpy as np
-import pandas as pd
 import warnings
-import datetime
 
 from rubin_sim.phot_utils import Bandpass
 from rubin_sim.phot_utils import Sed
@@ -66,7 +64,7 @@ class BaseObs(object):
     outfile_name : `str`, optional
         The output file name.
         Default is 'lsst_obs.dat'.
-    obs_metadata : `str`, optional
+    obs_info : `str`, optional
         A string that captures provenance information about the observations.
         For example: 'baseline_v2.0_10yrs, years 0-5' or 'baseline2018a minus NES'
         Default ''.
@@ -91,7 +89,7 @@ class BaseObs(object):
         obs_rot_sky_pos="rotSkyPos",
         obs_degrees=True,
         outfile_name="lsst_obs.dat",
-        obs_metadata="",
+        obs_info="",
         camera_footprint_file=None,
     ):
         # Strings relating to the names of columns in the observation metadata.
@@ -107,10 +105,6 @@ class BaseObs(object):
         # Save a space for the standard object colors.
         self.colors = {}
         self.outfile_name = outfile_name
-        if obs_metadata == "":
-            self.obs_metadata = "unknown simdata source"
-        else:
-            self.obs_metadata = obs_metadata
         # Values for identifying observations.
         self.footprint = footprint.lower()
         if self.footprint == "camera":
@@ -124,6 +118,29 @@ class BaseObs(object):
         self.eph_mode = eph_mode
         self.eph_type = eph_type
         self.eph_file = eph_file
+
+        self._setup_info(obs_info=obs_info)
+
+    def _setup_info(self, obs_info=""):
+        """Generate a dict to record relevant settings"""
+        info = {
+            "obs_info": obs_info,
+            "footprint": self.footprint,
+            "eph_mode": self.eph_mode,
+            "eph_type": self.eph_type,
+        }
+        if self.footprint == "circle":
+            info["r_fov"] = self.r_fov
+        if self.footprint == "rectangle":
+            info["xtol"] = self.x_tol
+            info["ytol"] = self.y_tol
+
+        # convert to numpy array in anticipation of saving
+        names = list(info.keys())
+        types = [np.array(info[key]).dtype for key in names]
+        self.info = np.zeros(1, dtype=list(zip(names, types)))
+        for key in names:
+            self.info[key] = info[key]
 
     def _setup_camera(self, camera_footprint_file=None):
         self.camera = LsstCameraFootprint(
@@ -157,7 +174,8 @@ class BaseObs(object):
         Returns
         -------
         ephs : `pd.Dataframe`
-            Ephemerides of the sso.
+            Results from propigating the orbit(s) to the specified times. Columns like:
+            obj_id, sedname, time, ra, dec, dradt, ddecdt, phase, solarelon, etc
         """
         if not hasattr(self, "ephems"):
             self.setup_ephemerides()
@@ -422,148 +440,3 @@ class BaseObs(object):
             warnings.warn("Using circular fov; could not match specified footprint.")
             self.footprint = "circle"
             return self.sso_in_circle_fov(ephems, obs_data)
-
-    # Put together the output.
-    def _open_output(self):
-        # Make sure the directory exists to write the output file into.
-        out_dir = os.path.split(self.outfile_name)[0]
-        if len(out_dir) > 0:
-            if not os.path.isdir(out_dir):
-                os.makedirs(out_dir)
-        # Open the output file for writing.
-        self.outfile = open(self.outfile_name, "w")
-        self.outfile.write("# Started at %s" % (datetime.datetime.now()))
-        # Write metadata into the header, using # to identify as comment lines.
-        self.outfile.write("# %s\n" % self.obs_metadata)
-        self.outfile.write("# %s\n" % self.outfile_name)
-        # Write some generic ephemeris generation information.
-        self.outfile.write(
-            "# ephemeris generation via %s\n" % self.ephems.__class__.__name__
-        )
-        self.outfile.write("# planetary ephemeris file %s \n" % self.ephems.ephfile)
-        self.outfile.write("# obscode %s\n" % self.obs_code)
-        # Write some class-specific metadata about observation generation.
-        self._header_meta()
-        # Write the footprint information.
-        self.outfile.write("# pointing footprint %s\n" % (self.footprint))
-        if self.footprint == "circle":
-            self.outfile.write("# rfov %f\n" % self.r_fov)
-        if self.footprint == "rectangle":
-            self.outfile.write("# xTol %f yTol %f\n" % (self.x_tol, self.y_tol))
-        # Record columns used from simulation data
-        self.outfile.write(
-            "# obsRA %s obsDec %s obsRotSkyPos %s obsDeg %s\n"
-            % (self.obs_ra, self.obs_dec, self.obs_rot_sky_pos, self.obs_degrees)
-        )
-        self.outfile.write(
-            "# obsMJD %s obsTimeScale %s seeing %s expTime %s\n"
-            % (
-                self.obs_time_col,
-                self.obs_time_scale,
-                self.seeing_col,
-                self.visit_exp_time_col,
-            )
-        )
-
-        self.wrote_header = False
-
-    def _header_meta(self):
-        # Generic class header metadata, should be overriden with class specific version.
-        self.outfile.write("# generic header metadata\n")
-        self.outfile.write("# ephMode %s\n" % (self.eph_mode))
-
-    def write_obs(self, obj_id, obj_ephs, obs_data, sedname="C.dat"):
-        """
-        Call for each object; write out the observations of each object.
-
-        This method is called once all of the ephemeris values for each observation are calculated;
-        the calling method should have already done the matching between ephemeris & simulated observations
-        to find the observations where the object is within the specified fov.
-        Inside this method, the trailing losses and color terms are calculated and added to the output
-        observation file.
-
-        The first time this method is called, a header will be added to the output file.
-
-        Parameters
-        ----------
-        obj_id : `str` or `int` or `float`
-            The identifier for the object (from the orbital parameters)
-        obj_ephs : `np.ndarray`
-            The ephemeris values of the object at each observation.
-            Note that the names of the columns are encoded in the numpy structured array,
-            and any columns included in the returned ephemeris array will also be propagated to the output.
-        obs_data : `np.ndarray`
-            The observation details from the simulated pointing history, for all observations of
-            the object. All columns automatically propagated to the output file.
-        sedname : `str`, out
-            The sed_filename for the object (from the orbital parameters).
-            Used to calculate the appropriate color terms for the output file.
-            Default "C.dat".
-        """
-        # Return if there's nothing to write out.
-        if len(obj_ephs) == 0:
-            return
-        # Open file if needed.
-        if not hasattr(self, "outfile"):
-            self._open_output()
-        # Calculate the extra columns we want to write out
-        # (dmag due to color, trailing loss, and detection loss)
-        # First calculate and match the color dmag term.
-        dmag_color = np.zeros(len(obs_data), float)
-        dmag_color_dict = self.calc_colors(sedname)
-        filterlist = np.unique(obs_data["filter"])
-        for f in filterlist:
-            if f not in dmag_color_dict:
-                raise UserWarning(
-                    "Could not find filter %s in calculated colors!" % (f)
-                )
-            match = np.where(obs_data["filter"] == f)[0]
-            dmag_color[match] = dmag_color_dict[f]
-        # Calculate trailing and detection loses.
-        dmag_trail, dmag_detect = self.calc_trailing_losses(
-            obj_ephs["velocity"],
-            obs_data[self.seeing_col],
-            obs_data[self.visit_exp_time_col],
-        )
-        # Turn into a recarray so it's easier below.
-        dmags = np.rec.fromarrays(
-            [dmag_color, dmag_trail, dmag_detect],
-            names=["dmag_color", "dmag_trail", "dmag_detect"],
-        )
-
-        obs_data_names = list(obs_data.dtype.names)
-        obs_data_names.sort()
-
-        out_cols = (
-            [
-                "obj_id",
-            ]
-            + list(obj_ephs.dtype.names)
-            + obs_data_names
-            + list(dmags.dtype.names)
-        )
-
-        if not self.wrote_header:
-            writestring = ""
-            for col in out_cols:
-                writestring += "%s " % (col)
-            self.outfile.write("%s\n" % (writestring))
-            self.wrote_header = True
-
-        # Write results.
-        # XXX--should remove nested for-loops. Looks like there is a hodgepodge
-        # of arrays, structured arrays, and record arrays. Probably a good idea to
-        # refactor to eliminate the rec arrays, then it should be easy to stack things
-        # and use np.savetxt to eliminate all the loops.
-        for eph, simdat, dm in zip(obj_ephs, obs_data, dmags):
-            writestring = "%s " % (obj_id)
-            for col in eph.dtype.names:
-                writestring += "%s " % (eph[col])
-            for col in obs_data_names:
-                writestring += "%s " % (simdat[col])
-            for col in dm.dtype.names:
-                writestring += "%s " % (dm[col])
-            self.outfile.write("%s\n" % (writestring))
-
-    def _close_output(self):
-        self.outfile.write("# Finished at %s" % (datetime.datetime.now()))

@@ -5,7 +5,6 @@ import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
 import rubin_sim.maf.metrics as metrics
-from rubin_sim.maf.slicers import MoObjSlicer
 import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.metric_bundles as mb
@@ -19,7 +18,6 @@ from .common import (
 
 __all__ = [
     "ss_population_defaults",
-    "setup_mo_slicer",
     "quick_discovery_batch",
     "discovery_batch",
     "run_completeness_summary",
@@ -120,30 +118,6 @@ def ss_population_defaults(objtype):
         objtype = "generic"
 
     return defaults[objtype]
-
-
-def setup_mo_slicer(orbit_file, h_range, obs_file=None):
-    """
-    Set up the slicer and read orbit_file and obs_file from disk.
-
-    Parameters
-    ----------
-    orbit_file : str
-        The file containing the orbit information.
-    h_range : numpy.ndarray or None
-        The h_range parameter to pass to slicer.readOrbits
-    obs_file : str, optional
-        The file containing the observations of each object, optional.
-        If not provided (default, None), then the slicer will not be able to 'slice', but can still plot.
-
-    Returns
-    -------
-    ~rubin_sim.maf.slicer.MoObjSlicer
-    """
-    # Read the orbit file and set the H values for the slicer.
-    slicer = MoObjSlicer(h_range=h_range)
-    slicer.setup_slicer(orbit_file=orbit_file, obs_file=obs_file)
-    return slicer
 
 
 def quick_discovery_batch(

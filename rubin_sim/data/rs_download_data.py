@@ -20,6 +20,7 @@ def data_dict():
         "maps": "maps_2022_2_28.tgz",
         "movingObjects": "movingObjects_oct_2021.tgz",
         "orbits": "orbits_2022_3_1.tgz",
+        "orbits_precompute": "orbits_precompute_2023_05_23.tgz",
         "scheduler": "scheduler_2023_03_09.tgz",
         "sim_baseline": "sim_baseline_2023_01_18.tgz",
         "site_models": "site_models_2023_03_28.tgz",
@@ -66,6 +67,13 @@ def rs_download_data():
         default="https://s3df.slac.stanford.edu/data/rubin/sim-data/rubin_sim_data/",
         help="Root URL of download location",
     )
+    parser.add_argument(
+        "--orbits_pre",
+        dest="orbits",
+        default=False,
+        action="store_true",
+        help="Include pre-computed orbit files.",
+    )
     args = parser.parse_args()
 
     dirs = args.dirs
@@ -95,6 +103,9 @@ def rs_download_data():
         else:
             print("Versions do not match")
             return 1
+
+    if not args.orbits:
+        dirs = [key for key in dirs if "orbits_precompute" not in key]
 
     for key in dirs:
         filename = files[key]

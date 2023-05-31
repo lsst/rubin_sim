@@ -1,7 +1,7 @@
 import logging
 import numpy as np
 import datetime
-
+from rubin_sim.utils import angular_separation
 from .base_obs import BaseObs
 
 __all__ = ["DirectObs"]
@@ -64,7 +64,7 @@ class DirectObs(BaseObs):
     outfile_name : `str`, optional
         The output file name.
         Default is 'lsst_obs.dat'.
-    obs_metadata : `str`, optional
+    obs_info : `str`, optional
         A string that captures provenance information about the observations.
         For example: 'baseline_v2.0_10yrs, MJD 59853-61677' or 'baseline2018a minus NES'
         Default ''.
@@ -75,6 +75,9 @@ class DirectObs(BaseObs):
         The initial rough tolerance value for positions, used as a first cut to identify potential
         observations (in degrees).
         Default 10 degrees.
+    pre_comp_tol : float (2.08)
+        The radial tolerance to add when using pre-computed orbits. Should be
+        larger than the full field of view extent.
     """
 
     def __init__(
@@ -97,9 +100,15 @@ class DirectObs(BaseObs):
         obs_rot_sky_pos="rotSkyPos",
         obs_degrees=True,
         outfile_name="lsst_obs.dat",
-        obs_metadata="",
+        obs_info="",
         tstep=1.0,
         rough_tol=10.0,
+        verbose=True,
+        night_col="night",
+        filter_col="filter",
+        m5_col="fiveSigmaDepth",
+        obs_id_col="observationId",
+        pre_comp_tol=2.08,
     ):
         super().__init__(
             footprint=footprint,
@@ -119,29 +128,21 @@ class DirectObs(BaseObs):
             obs_rot_sky_pos=obs_rot_sky_pos,
             obs_degrees=obs_degrees,
             outfile_name=outfile_name,
-            obs_metadata=obs_metadata,
+            obs_info=obs_info,
         )
+        self.verbose = verbose
+        self.pre_comp_tol = pre_comp_tol
+        self.filter_col = filter_col
+        self.night_col = night_col
+        self.m5_col = m5_col
+        self.obs_id_col = obs_id_col
         self.tstep = tstep
         self.rough_tol = rough_tol
         if prelim_eph_mode not in ("2body", "nbody"):
             raise ValueError("Ephemeris generation must be 2body or nbody.")
         self.prelim_eph_mode = prelim_eph_mode
 
-    def _header_meta(self):
-        # Specific header information for direct obs.
-        self.outfile.write("# direct obs header metadata\n")
-        self.outfile.write(
-            "# observation generation via %s\n" % self.__class__.__name__
-        )
-        self.outfile.write(
-            "# ephMode %s prelimEphMode %s\n" % (self.eph_mode, self.prelim_eph_mode)
-        )
-        self.outfile.write(
-            "# rough tolerance for preliminary match %f\n" % self.rough_tol
-        )
-        self.outfile.write("# time step for preliminary match %f\n" % self.tstep)
-
-    def run(self, orbits, obs_data):
+    def run(self, orbits, obs_data, object_positions=None, object_mjds=None):
         """Find and write the observations of each object to disk.
 
         For each object, generate a very rough grid of ephemeris points (typically using 2body integration).
@@ -153,7 +154,83 @@ class DirectObs(BaseObs):
             The orbits to generate ephemerides for.
         obs_data : `np.ndarray`
             The simulated pointing history data.
+        object_positions : `np.ndarray`
+            Pre-computed RA,dec positions for each object in orbits (degrees)
+        object_mjds : `np.ndarray`
+            MJD values for each pre-computed position
         """
+
+        # If we are trying to use pre-computed positions, check that the MJDs span enough
+        if object_mjds is not None:
+            if (obs_data[self.obs_time_col].min() < object_mjds.min()) | (
+                obs_data[self.obs_time_col].max() > object_mjds.max()
+            ):
+                raise ValueError(
+                    "Pre-computed position times do not cover MJD range of %i-%i."
+                    % (
+                        obs_data[self.obs_time_col]
+                        .min()
+                        .obs_data[self.obs_time_col]
+                        .max()
+                    )
+                )
+            # calculate angular motion for each object at each timestep
+            # how much does it move going to time step forward
+            move1 = angular_separation(
+                object_positions["ra"][:, 0:-1],
+                object_positions["dec"][:, 0:-1],
+                object_positions["ra"][:, 1:],
+                object_positions["dec"][:, 1:],
+            )
+            # Need to take care of ends
+            d1 = object_positions["ra"] * 0
+            d1[:, 0:-1] = move1
+            d2 = object_positions["ra"] * 0
+            d2[:, 1:] = move1
+            # Now we can use a small tolerance for objects when they are moving
+            # slowly across the sky.
+            object_tol = np.maximum(d1, d2) + self.pre_comp_tol
+
+        # output dtype
+        names = [
+            "obj_id",
+            self.obs_id_col,
+            "sedname",
+            "time",
+            "ra",
+            "dec",
+            "dradt",
+            "ddecdt",
+            "phase",
+            "solarelon",
+            "helio_dist",
+            "geo_dist",
+            "magV",
+            "trueAnomaly",
+            "velocity",
+            "dmag_color",
+            "dmag_trail",
+            "dmag_detect",
+        ]
+        types = [int, int, "<U40"] + [float] * (len(names) - 3)
+
+        # XXX--for now, copy over some observation info. In the future,
+        # just index it to the observations and only transfer observationId
+        transfer_cols = [
+            self.visit_exp_time_col,
+            self.m5_col,
+            self.seeing_col,
+            self.obs_time_col,
+            self.night_col,
+            self.filter_col,
+        ]
+        transfer_types = [float] * (len(transfer_cols) - 2)
+        transfer_types += [int, "<U40"]
+        names += transfer_cols
+        types += transfer_types
+
+        output_dtype = list(zip(names, types))
+
         # Set the times for the rough ephemeris grid.
         time_step = float(self.tstep)
         time_start = (
@@ -161,44 +238,80 @@ class DirectObs(BaseObs):
         )
         time_end = np.ceil(obs_data[self.obs_time_col].max() + 0.16 + 0.5) + time_step
         rough_times = np.arange(time_start, time_end + time_step / 2.0, time_step)
-        logging.info(
-            "Generating preliminary ephemerides on a grid of %f day timesteps."
-            % (time_step)
-        )
+        if self.verbose:
+            logging.info(
+                "Generating preliminary ephemerides on a grid of %f day timesteps."
+                % (time_step)
+            )
+        # list to hold results for each object
+        result = []
+        # save indx to match observation indx to object indx
+        indx_map_visit_to_object = []
         # For each object, identify observations where the object is within the FOV (or camera footprint).
         for i, sso in enumerate(orbits):
             objid = sso.orbits["obj_id"].iloc[0]
             sedname = sso.orbits["sed_filename"].iloc[0]
             # Generate ephemerides on the rough grid.
-            logging.debug(
-                ("%d/%d   id=%s : " % (i, len(orbits), objid))
-                + datetime.datetime.now().strftime("Prelim start: %Y-%m-%d %H:%M:%S")
-                + " nRoughTimes: %s" % len(rough_times)
-            )
-            ephs = self.generate_ephemerides(
-                sso, rough_times, eph_mode=self.prelim_eph_mode, eph_type=self.eph_type
-            )[0]
-            mu = ephs["velocity"]
-            logging.debug(
-                ("%d/%d   id=%s : " % (i, len(orbits), objid))
-                + datetime.datetime.now().strftime("Prelim end: %Y-%m-%d %H:%M:%S")
-                + " π(median, max), min(geo_dist): %.2f, %.2f deg/day  %.2f AU"
-                % (np.median(mu), np.max(mu), np.min(ephs["geo_dist"]))
-            )
+            if self.verbose:
+                logging.debug(
+                    ("%d/%d   id=%s : " % (i, len(orbits), objid))
+                    + datetime.datetime.now().strftime(
+                        "Prelim start: %Y-%m-%d %H:%M:%S"
+                    )
+                    + " nRoughTimes: %s" % len(rough_times)
+                )
+            # Not using pre-computed positions
+            if object_mjds is None:
+                ephs = self.generate_ephemerides(
+                    sso,
+                    rough_times,
+                    eph_mode=self.prelim_eph_mode,
+                    eph_type=self.eph_type,
+                )[0]
+                mu = ephs["velocity"]
+                if self.verbose:
+                    logging.debug(
+                        ("%d/%d   id=%s : " % (i, len(orbits), objid))
+                        + datetime.datetime.now().strftime(
+                            "Prelim end: %Y-%m-%d %H:%M:%S"
+                        )
+                        + " π(median, max), min(geo_dist): %.2f, %.2f deg/day  %.2f AU"
+                        % (np.median(mu), np.max(mu), np.min(ephs["geo_dist"]))
+                    )
 
-            # Find observations which come within roughTol of the fov.
-            ephs_idxs = np.searchsorted(ephs["time"], obs_data[self.obs_time_col])
-            rough_idx_obs = self._sso_in_circle_fov(
-                ephs[ephs_idxs], obs_data, self.rough_tol
-            )
+                # Find observations which come within roughTol of the fov.
+                ephs_idxs = np.searchsorted(ephs["time"], obs_data[self.obs_time_col])
+                rough_idx_obs = self._sso_in_circle_fov(
+                    ephs[ephs_idxs], obs_data, self.rough_tol
+                )
+            else:
+                # Nearest neighbor search for the object_mjd closest to obs_data mjd
+                pos = np.searchsorted(
+                    object_mjds, obs_data[self.obs_time_col], side="left"
+                )
+                pos_right = pos - 1
+                object_indx = pos + 0
+                d_left = obs_data[self.obs_time_col] - object_mjds[pos]
+                d_right = obs_data[self.obs_time_col] - object_mjds[pos_right]
+                r_better = np.where(np.abs(d_right) < np.abs(d_left))[0]
+                object_indx[r_better] = pos_right[r_better]
+
+                rough_idx_obs = self._sso_in_circle_fov(
+                    object_positions[i][object_indx],
+                    obs_data,
+                    self.r_fov + object_tol[i][object_indx],
+                )
             if len(rough_idx_obs) > 0:
                 # Generate exact ephemerides for these times.
                 times = obs_data[self.obs_time_col][rough_idx_obs]
-                logging.debug(
-                    ("%d/%d   id=%s : " % (i, len(orbits), objid))
-                    + datetime.datetime.now().strftime("Exact start: %Y-%m-%d %H:%M:%S")
-                    + " nExactTimes: %s" % len(times)
-                )
+                if self.verbose:
+                    logging.debug(
+                        ("%d/%d   id=%s : " % (i, len(orbits), objid))
+                        + datetime.datetime.now().strftime(
+                            "Exact start: %Y-%m-%d %H:%M:%S"
+                        )
+                        + " nExactTimes: %s" % len(times)
+                    )
                 ephs = self.generate_ephemerides(
                     sso, times, eph_mode=self.eph_mode, eph_type=self.eph_type
                 )[0]
@@ -208,19 +321,51 @@ class DirectObs(BaseObs):
                 )
                 # Identify the objects which fell within the specific footprint.
                 idx_obs = self.sso_in_fov(ephs, obs_data[rough_idx_obs])
-                logging.info(
-                    ("%d/%d   id=%s : " % (i, len(orbits), objid))
-                    + "Object in %d out of %d potential fields (%.2f%% success rate)"
-                    % (
-                        len(idx_obs),
-                        len(times),
-                        100.0 * float(len(idx_obs)) / len(times),
+                if self.verbose:
+                    logging.info(
+                        ("%d/%d   id=%s : " % (i, len(orbits), objid))
+                        + "Object in %d out of %d potential fields (%.2f%% success rate)"
+                        % (
+                            len(idx_obs),
+                            len(times),
+                            100.0 * float(len(idx_obs)) / len(times),
+                        )
                     )
-                )
-                # Write these observations to disk.
-                self.write_obs(
-                    objid,
-                    ephs[idx_obs],
-                    obs_data[rough_idx_obs][idx_obs],
-                    sedname=sedname,
-                )
+                object_observations = np.zeros(idx_obs.size, dtype=output_dtype)
+                object_observations["obj_id"] = objid
+                object_observations[self.obs_id_col] = obs_data[rough_idx_obs][idx_obs][
+                    self.obs_id_col
+                ]
+                object_observations["sedname"] = sedname
+
+                for key in ephs.dtype.names:
+                    object_observations[key] = ephs[key][idx_obs].copy()
+                result.append(object_observations)
+                indx_map_visit_to_object.append(rough_idx_obs[idx_obs])
+
+        if len(result) > 0:
+            result = np.concatenate(result)
+            indx_map_visit_to_object = np.concatenate(indx_map_visit_to_object)
+            # add on any additional info we want here, dmags, etc
+            filterlist = np.unique(obs_data[self.filter_col][indx_map_visit_to_object])
+            for sname in np.unique(result["sedname"]):
+                dmag_color_dict = self.calc_colors(sname)
+                for f in filterlist:
+                    match = np.where(
+                        (obs_data[self.filter_col][indx_map_visit_to_object] == f)
+                        & (result["sedname"] == sname)
+                    )[0]
+                    if np.size(match) > 0:
+                        result["dmag_color"][match] = dmag_color_dict[f]
+            # Calculate trailing and detection loses.
+            result["dmag_trail"], result["dmag_detect"] = self.calc_trailing_losses(
+                result["velocity"],
+                obs_data[self.seeing_col][indx_map_visit_to_object],
+                obs_data[self.visit_exp_time_col][indx_map_visit_to_object],
+            )
+
+            # Transfer over info from pointing info array to result array
+            for key in transfer_cols:
+                result[key] = obs_data[key][indx_map_visit_to_object]
+
+        return result

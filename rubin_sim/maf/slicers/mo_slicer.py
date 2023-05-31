@@ -88,26 +88,16 @@ class MoObjSlicer(BaseSlicer):
             The file containing the observation information.
         """
         # For now, just read all the observations (should be able to chunk this though).
-        self.all_obs = pd.read_csv(obs_file, delim_whitespace=True, comment="#")
+        restore_file = np.load(obs_file)
+        self.all_obs = restore_file["object_observations"].copy()
+        restore_file.close()
         self.obs_file = obs_file
-        # We may have to rename the first column from '#obj_id' to 'obj_id'.
-        if self.all_obs.columns.values[0].startswith("#"):
-            newcols = self.all_obs.columns.values
-            newcols[0] = newcols[0].replace("#", "")
-            self.all_obs.columns = newcols
-        if "velocity" not in self.all_obs.columns.values:
+        self.all_obs = pd.DataFrame(self.all_obs)
+
+        if "velocity" not in self.all_obs.columns:
             self.all_obs["velocity"] = np.sqrt(
                 self.all_obs["dradt"] ** 2 + self.all_obs["ddecdt"] ** 2
             )
-        if "visitExpTime" not in self.all_obs.columns.values:
-            self.all_obs["visitExpTime"] = (
-                np.zeros(len(self.all_obs["obj_id"]), float) + 30.0
-            )
-        # If we created intermediate data products by pandas, we may have an inadvertent 'index'
-        #  column. Since this creates problems later, drop it here.
-        if "index" in self.all_obs.columns.values:
-            self.all_obs.drop("index", axis=1, inplace=True)
-        self.subset_obs()
 
     def subset_obs(self, pandas_constraint=None):
         """

@@ -3,6 +3,7 @@
 import os
 import argparse
 import logging
+import numpy as np
 
 import rubin_sim.moving_objects as mo
 from rubin_sim.maf.batches import col_map_dict
@@ -43,17 +44,24 @@ def setup_args(parser=None):
         "additional documentation on the orbit file format. Default None.",
     )
     parser.add_argument(
+        "--positions_file",
+        type=str,
+        default=None,
+        help="File with pre-computed 'rough' ephemerides for the objects in the orbit file."
+        " Default None, which will trigger computation of these rough ephemerides on-the-fly.",
+    )
+    parser.add_argument(
         "--out_dir",
         type=str,
         default=".",
         help="Output directory for moving object detections. Default '.'",
     )
     parser.add_argument(
-        "--obs_file",
+        "--output_file",
         type=str,
         default=None,
         help="Output file name for moving object observations."
-        " Default will build out_dir/simulation_db_orbitFile_obs.txt.",
+        " Default will build out_dir/simulation_db_orbitFile_obs.npz.",
     )
     parser.add_argument(
         "--sql_constraint",
@@ -62,12 +70,12 @@ def setup_args(parser=None):
         help="SQL constraint to use to select data from simulation_db. Default no constraint.",
     )
     parser.add_argument(
-        "--obs_metadata",
+        "--obs_info",
         type=str,
         default=None,
-        help="Additional metadata to write into output file. "
-        "The default metadata will combine the simulation_db name, the sqlconstraint, and "
-        "the name of the orbit file; obs_metadata is an optional addition.",
+        help="Additional info to write into output file. "
+        "The default info will combine the simulation_db name, the sqlconstraint, and "
+        "the name of the orbit file; obs_info is an optional addition.",
     )
     parser.add_argument(
         "--footprint",
@@ -105,16 +113,6 @@ def setup_args(parser=None):
         help="If using direct/exact ephemeris generation, this is the tolerance for the "
         "preliminary matches between ephemerides and pointings (in degrees). "
         "Default 10 degrees.",
-    )
-    parser.add_argument(
-        "--obs_type",
-        type=str,
-        default="direct",
-        help="Method for generating observations: 'direct' or 'linear'. "
-        "Linear will use linear interpolation between a grid of ephemeris points. "
-        "Direct will first generate rough ephemerides, look for observations within "
-        "roughTol of these points, and then generate exact ephemerides at those times. "
-        "Default 'direct'.",
     )
     parser.add_argument(
         "--obs_code",
@@ -167,33 +165,27 @@ def setup_args(parser=None):
     if args.orbit_file is None:
         raise ValueError("Must specify an orbit file.")
 
-    # Check interpolation type.
-    if args.obs_type not in ("linear", "direct"):
-        raise ValueError(
-            "Must choose linear or direct observation generation method (obsType)."
-        )
-
     run_name = os.path.split(args.simulation_db)[-1].replace(".db", "")
 
     # Add these useful pieces to args.
     args.orbitbase = ".".join(os.path.split(args.orbit_file)[-1].split(".")[:-1])
 
     # Set up obs_file if not specified.
-    if args.obs_file is None:
-        args.obs_file = os.path.join(
-            args.out_dir, "%s__%s_obs.txt" % (run_name, args.orbitbase)
+    if args.output_file is None:
+        args.output_file = os.path.join(
+            args.out_dir, "%s__%s_obs.npz" % (run_name, args.orbitbase)
         )
     else:
-        args.obs_file = os.path.join(args.out_dir, args.obs_file)
+        args.output_file = os.path.join(args.out_dir, args.output_file)
 
-    # Build some provenance metadata to add to output file.
-    obs_metadata = args.simulation_db
+    # Build some provenance to add to output file.
+    obs_info = args.simulation_db
     if len(args.sql_constraint) > 0:
-        obs_metadata += " selected with sqlconstraint %s" % args.sql_constraint
-    obs_metadata += " + orbit_file %s" % args.orbitbase
-    if args.obs_metadata is not None:
-        obs_metadata += "\n# %s" % args.obs_metadata
-    args.obs_metadata = obs_metadata
+        obs_info += " selected with sqlconstraint %s" % args.sql_constraint
+    obs_info += " + orbit_file %s" % args.orbitbase
+    if args.obs_info is not None:
+        obs_info += "\n# %s" % args.obs_info
+    args.obs_info = obs_info
 
     return args
 
@@ -209,34 +201,68 @@ def make_lsst_obs():
         logging.basicConfig(level=logging.INFO)
 
     # Read orbits.
-    orbits = mo.read_orbits(args.orbit_file)
+    orbits = mo.Orbits()
+    orbits.read_orbits(args.orbit_file)
 
+    if args.positions_file is not None:
+        position_data = np.load(args.positions_file)
+        object_positions = position_data["positions"].copy()
+        object_mjds = position_data["mjds"].copy()
+        position_data.close()
+    else:
+        object_positions = None
+        object_mjds = None
     # Read pointing data
     colmap = col_map_dict("fbs")
     pointing_data = mo.read_observations(
         args.simulation_db,
         colmap,
         constraint=args.sql_constraint,
-        footprint=args.footprint,
         dbcols=None,
     )
-    # Generate ephemerides.
-    mo.run_obs(
+
+    d_obs = mo.DirectObs(
+        footprint=args.footprint,
+        r_fov=args.r_fov,
+        x_tol=args.x_tol,
+        y_tol=args.y_tol,
+        eph_mode=args.eph_mode,
+        prelim_eph_mode=args.prelim_eph_mode,
+        obs_code=args.obs_code,
+        eph_file=None,
+        eph_type=args.eph_type,
+        obs_time_col=colmap["mjd"],
+        obs_time_scale="TAI",
+        seeing_col=colmap["seeingGeom"],
+        visit_exp_time_col=colmap["exptime"],
+        obs_ra=colmap["ra"],
+        obs_dec=colmap["dec"],
+        obs_rot_sky_pos=colmap["rotSkyPos"],
+        obs_degrees=colmap["raDecDeg"],
+        outfile_name=None,
+        tstep=args.t_step,
+        rough_tol=args.rough_tol,
+        obs_info=args.obs_info,
+    )
+    filterlist = np.unique(pointing_data["filter"])
+    d_obs.read_filters(filterlist=filterlist)
+    # Calculate all colors ahead of time.
+    sednames = np.unique(orbits.orbits["sed_filename"])
+    for sedname in sednames:
+        d_obs.calc_colors(sedname)
+
+    # Generate object observations.
+    object_observations = d_obs.run(
         orbits,
         pointing_data,
-        colmap,
-        args.obs_file,
-        args.footprint,
-        args.r_fov,
-        args.x_tol,
-        args.y_tol,
-        args.eph_mode,
-        args.prelim_eph_mode,
-        args.obs_code,
-        args.eph_type,
-        args.t_step,
-        args.rough_tol,
-        args.obs_metadata,
+        object_positions=object_positions,
+        object_mjds=object_mjds,
     )
 
-    logging.info("Completed successfully.")
+    np.savez(
+        os.path.join(args.out_dir, args.output_file),
+        object_observations=object_observations,
+        info=d_obs.info,
+    )
+
+    # logging.info("Completed successfully.")
