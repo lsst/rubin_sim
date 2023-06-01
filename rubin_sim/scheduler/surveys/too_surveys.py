@@ -120,6 +120,7 @@ class TooSurvey(BlobSurvey):
         detailers=None,
         camera="LSST",
         too_id=None,
+        survey_name=None,
     ):
         super(TooSurvey, self).__init__(
             basis_functions=basis_functions,
@@ -145,6 +146,7 @@ class TooSurvey(BlobSurvey):
             survey_note=survey_note,
             detailers=detailers,
             camera=camera,
+            survey_name=survey_name,
         )
         # Include the ToO id in the note
         self.survey_note_base = self.survey_note

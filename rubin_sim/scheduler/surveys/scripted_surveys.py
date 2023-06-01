@@ -33,7 +33,7 @@ class ScriptedSurvey(BaseSurvey):
         detailers=None,
         id_start=1,
         return_n_limit=10,
-        survey_name="",
+        survey_name=None,
     ):
         """"""
         if nside is None:
@@ -144,6 +144,7 @@ class ScriptedSurvey(BaseSurvey):
             "exptime",
             "nexp",
             "note",
+            "target",
             "rotSkyPos",
             "rotTelPos",
             "flush_by_mjd",
@@ -274,7 +275,7 @@ class PairsSurveyScripted(ScriptedSurvey):
         moon_distance=30.0,
         max_slew_to_pair=15.0,
         nside=None,
-        survey_name="",
+        survey_name=None,
     ):
         """
         Parameters

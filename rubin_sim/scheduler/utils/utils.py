@@ -380,6 +380,7 @@ class SchemaConverter:
             "sunAz": "sunAz",
             "solarElong": "solarElong",
             "note": "note",
+            "target": "target",
         }
         # Column(s) not bothering to remap:  'observationStartTime': None,
         self.inv_map = {v: k for k, v in self.convert_dict.items()}
@@ -487,6 +488,8 @@ def empty_observation():
         If we hit this MJD, we should flush the queue and refill it.
     note : `str` (optional)
         Usually good to set the note field so one knows which survey object generated the observation.
+    target : `str` (optional)
+        A note about what target is being observed.
 
     Additional Fields
     -----------------
@@ -523,6 +526,7 @@ def empty_observation():
         "moonAlt",
         "sunAlt",
         "note",
+        "target",
         "field_id",
         "survey_id",
         "block_id",
@@ -569,6 +573,7 @@ def empty_observation():
         float,
         float,
         float,
+        "U40",
         "U40",
         int,
         int,
@@ -642,6 +647,7 @@ def scheduled_observation(n=1):
         "rotSkyPos_desired",
         "nexp",
         "note",
+        "target",
     ]
     types = [
         int,
@@ -656,6 +662,7 @@ def scheduled_observation(n=1):
         float,
         float,
         int,
+        "U40",
         "U40",
     ]
     names += [

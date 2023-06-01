@@ -224,7 +224,7 @@ class TestFeatures(unittest.TestCase):
         observatory, scheduler, observations = sim_runner(
             observatory, scheduler, survey_length=survey_length, filename=None
         )
-        print(np.unique(observations["note"]))
+
         # Make sure some blobs executed
         assert "blob, gg, b" in observations["note"]
         assert "blob, gg, a" in observations["note"]

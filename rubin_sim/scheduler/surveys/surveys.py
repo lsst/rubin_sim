@@ -37,7 +37,7 @@ class GreedySurvey(BaseMarkovSurvey):
         dither=True,
         seed=42,
         ignore_obs=None,
-        survey_name="",
+        survey_name=None,
         nexp=2,
         exptime=30.0,
         detailers=None,
@@ -187,6 +187,9 @@ class BlobSurvey(GreedySurvey):
         survey_name="",
         **kwargs,
     ):
+        self.filtername1 = filtername1
+        self.filtername2 = filtername2
+
         super(BlobSurvey, self).__init__(
             basis_functions=basis_functions,
             basis_weights=basis_weights,
@@ -250,8 +253,6 @@ class BlobSurvey(GreedySurvey):
 
         self.survey_note = survey_note
         self.counter = 1  # start at 1, because 0 is default in empty observation
-        self.filtername1 = filtername1
-        self.filtername2 = filtername2
         self.min_pair_time = min_pair_time
         self.ideal_pair_time = ideal_pair_time
 
@@ -261,14 +262,12 @@ class BlobSurvey(GreedySurvey):
         if (self.filtername2 is None) | (self.filtername1 == self.filtername2):
             self.filtername = self.filtername1
 
-        if survey_name == "":
-            self.survey_name = f"Blob survey {filtername1}"
-            if filtername2 is None:
-                self.survey_name = f"{self.survey_name}_{filtername1}"
-            else:
-                self.survey_name = f"{self.survey_name}_{filtername2}"
+    def _generate_survey_name(self):
+        self.survey_name = f"Blob survey {self.filtername1}"
+        if self.filtername2 is None:
+            self.survey_name += f"_{self.filtername1}"
         else:
-            self.survey_name = survey_name
+            self.survey_name += f"_{self.filtername2}"
 
     def _check_feasibility(self, conditions):
         """

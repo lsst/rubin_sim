@@ -48,7 +48,7 @@ class BaseSurvey(object):
         extra_features=None,
         extra_basis_functions=None,
         ignore_obs=None,
-        survey_name="",
+        survey_name=None,
         nside=None,
         detailers=None,
         scheduled_obs=None,
@@ -62,7 +62,10 @@ class BaseSurvey(object):
             ignore_obs = [ignore_obs]
 
         self.nside = nside
-        self.survey_name = survey_name
+        if survey_name is None:
+            self._generate_survey_name()
+        else:
+            self.survey_name = survey_name
         self.ignore_obs = ignore_obs
 
         self.reward = None
@@ -92,6 +95,9 @@ class BaseSurvey(object):
 
         # Scheduled observations
         self.scheduled_obs = scheduled_obs
+
+    def _generate_survey_name(self):
+        self.survey_name = ""
 
     def get_scheduled_obs(self):
         return self.scheduled_obs
@@ -423,7 +429,7 @@ class BaseMarkovSurvey(BaseSurvey):
         extra_features=None,
         smoothing_kernel=None,
         ignore_obs=None,
-        survey_name="",
+        survey_name=None,
         nside=None,
         seed=42,
         dither=True,
