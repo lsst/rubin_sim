@@ -78,6 +78,48 @@ class TestCadenceMetrics(unittest.TestCase):
         result4 = metric.run(data, slice_point)
         self.assertEqual(result4, 1)
 
+    def test_general_uniformity_metric(self):
+        names = ["observationStartMJD"]
+        types = [float]
+        data = np.zeros(100, dtype=list(zip(names, types)))
+        metric = metrics.GeneralUniformityMetric(
+            col="observationStartMJD", min_value=0, max_value=1
+        )
+        result1 = metric.run(data)
+        # If all the observations are at the minimum value, should be 1
+        self.assertEqual(result1, 1)
+        data["observationStartMJD"] = data["observationStartMJD"] + 1
+        slice_point = {"sid": 0}
+        result2 = metric.run(data, slice_point)
+        # All on max value should also be 1
+        self.assertEqual(result2, 1)
+        # Make a perfectly uniform dist
+        step = 1 / 99
+        data["observationStartMJD"] = np.arange(0.0, 1 + step / 2, step)
+        result3 = metric.run(data, slice_point)
+        # Result should be zero for uniform
+        np.testing.assert_almost_equal(result3, 0.0)
+        # Test setup with max_value > 1
+        metric = metrics.GeneralUniformityMetric(
+            col="observationStartMJD", min_value=0, max_value=10
+        )
+        # Make a perfectly uniform dist covering limited range (0-1 out of 0-10 range)
+        data["observationStartMJD"] = np.arange(0.0, 1 + step / 2, step)
+        result5 = metric.run(data, slice_point)
+        self.assertEqual(result5, 0.9)
+        # Test setup with max_value None
+        metric = metrics.GeneralUniformityMetric(
+            col="observationStartMJD", min_value=None, max_value=None
+        )
+        # Make a perfectly uniform dist
+        data["observationStartMJD"] = np.arange(0.0, 1 + step / 2, step)
+        result5 = metric.run(data, slice_point)
+        self.assertAlmostEqual(result5, 0)
+        # A single observation should give a result of 1
+        data = np.zeros(1, dtype=list(zip(names, types)))
+        result4 = metric.run(data, slice_point)
+        self.assertEqual(result4, 1)
+
     def test_t_gap_metric(self):
         names = ["observationStartMJD"]
         types = [float]
