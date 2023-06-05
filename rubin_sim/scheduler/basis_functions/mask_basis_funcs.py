@@ -1,12 +1,13 @@
 import numpy as np
 import healpy as hp
-from rubin_sim.utils import _hpid2_ra_dec, Site, _angular_separation, _xyz_from_ra_dec
+from rubin_sim.utils import _hpid2_ra_dec, Site, _angular_separation
 import matplotlib.pylab as plt
 from rubin_sim.scheduler.basis_functions import BaseBasisFunction
 from rubin_sim.scheduler.utils import HpInLsstFov, IntRounded
 
 
 __all__ = [
+    "SolarElongMaskBasisFunction",
     "ZenithMaskBasisFunction",
     "ZenithShadowMaskBasisFunction",
     "HaMaskBasisFunction",
@@ -17,6 +18,29 @@ __all__ = [
     "SolarElongationMaskBasisFunction",
     "AreaCheckMaskBasisFunction",
 ]
+
+
+class SolarElongMaskBasisFunction(BaseBasisFunction):
+    """Mask regions larger than some solar elongation limit
+
+    Parameters
+    ----------
+    elong_limit : float (45)
+        The limit beyond which to mask (degrees)
+    """
+
+    def __init__(self, elong_limit=45.0, nside=32):
+        super(SolarElongMaskBasisFunction, self).__init__(nside=nside)
+        self.elong_limit = IntRounded(np.radians(elong_limit))
+        self.result = np.zeros(hp.nside2npix(self.nside), dtype=float)
+
+    def _calc_value(self, conditions, indx=None):
+        result = self.result.copy()
+        to_mask = np.where(IntRounded(conditions.solar_elongation) > self.elong_limit)[
+            0
+        ]
+        result[to_mask] = np.nan
+        return result
 
 
 class HaMaskBasisFunction(BaseBasisFunction):
