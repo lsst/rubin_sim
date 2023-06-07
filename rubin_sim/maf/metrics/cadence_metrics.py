@@ -4,6 +4,7 @@ from .base_metric import BaseMetric
 __all__ = [
     "TemplateExistsMetric",
     "UniformityMetric",
+    "GeneralUniformityMetric",
     "RapidRevisitUniformityMetric",
     "RapidRevisitMetric",
     "NRevisitsMetric",
@@ -67,6 +68,8 @@ class UniformityMetric(BaseMetric):
 
     Parameters
     ----------
+    mjd_col : `str`, optional
+        The column containing time for each observation. Default "observationStartMJD".
     survey_length : `float`, optional
         The overall duration of the survey. Default 10.
     """
@@ -90,6 +93,63 @@ class UniformityMetric(BaseMetric):
         dates.sort()  # Just to be sure
         n_cum = np.arange(1, dates.size + 1) / float(dates.size)
         d_max = np.max(np.abs(n_cum - dates - dates[1]))
+        return d_max
+
+
+class GeneralUniformityMetric(BaseMetric):
+    """Calculate how uniformly any values are distributed.
+
+    This is based on how a KS-test works: look at the cumulative distribution of data,
+    and compare to a perfectly uniform cumulative distribution.
+    Perfectly uniform observations = 0, perfectly non-uniform = 1.
+    To be "perfectly uniform" here, the endpoints need to be included.
+
+    Parameters
+    ----------
+    col : `str`, optional
+        The column of data to use for the metric.
+        The default is "observationStartMJD" as this is most typically used with time.
+    min_value : `float`, optional
+        The minimum value expected for the data.
+        Default None will calculate use the minimum value in this dataslice
+        (which may not cover the full range).
+    max_value : `float`, optional
+        The maximum value expected for the data.
+        Default None will calculate use the maximum value in this dataslice
+        (which may not cover the full range).
+    """
+
+    def __init__(
+        self,
+        col="observationStartMJD",
+        units="",
+        min_value=None,
+        max_value=None,
+        **kwargs
+    ):
+        """survey_length = time span of survey (years)"""
+        self.col = col
+        super().__init__(col=self.col, units=units, **kwargs)
+        self.min_value = min_value
+        self.max_value = max_value
+
+    def run(self, data_slice, slice_point=None):
+        # If only one observation, there is no uniformity
+        if data_slice[self.col].size == 1:
+            return 1
+        # Scale values to lie between 0 and 1, where 0 is the min_value and 1 is max_value
+        if self.min_value is None:
+            min_value = data_slice[self.col].min()
+        else:
+            min_value = self.min_value
+        if self.max_value is None:
+            max_value = data_slice[self.col].max()
+        else:
+            max_value = self.max_value
+        scaled_values = (data_slice[self.col] - min_value) / max_value
+        scaled_values.sort()  # Just to be sure
+        n_cum = np.arange(0, scaled_values.size) / float(scaled_values.size - 1)
+        d_max = np.max(np.abs(n_cum - scaled_values))
         return d_max
 
 
