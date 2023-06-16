@@ -3,7 +3,7 @@ from .base_metric import BaseMetric
 
 __all__ = ["TemplateTime"]
 
-class TemplateTime(maf.BaseMetric):
+class TemplateTime(BaseMetric):
     """Find the time at which we expect to hit incremental template availability.
     
     Note that there are some complications to real template generation that make this an 
