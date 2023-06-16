@@ -175,8 +175,8 @@ def glanceBatch(
     )
     bundle_list.append(bundle)
 
-    sql = "note like '%neo%'"
-    metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits twilight neo")
+    sql = "note like '%neo%' or note like '%near_sun%'"
+    metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits twilight near sun")
     bundle = metric_bundles.MetricBundle(
         metric,
         slicer,
@@ -282,7 +282,7 @@ def glanceBatch(
         bundle_list.append(bundle)
 
     # Make a cumulative plot of a WFD spot
-    sql = "note not like '%NEO%'"
+    sql = "note not like '%NEO%' and note not like '%near_sun%'"
     uslicer = slicers.UserPointsSlicer(ra=0, dec=-20)
     metric = metrics.CumulativeMetric()
     metricb = metric_bundles.MetricBundle(
