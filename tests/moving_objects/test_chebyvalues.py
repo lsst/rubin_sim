@@ -5,6 +5,7 @@ import pandas as pd
 from astropy.time import Time
 import tempfile
 import shutil
+import warnings
 
 from rubin_sim.moving_objects import Orbits
 from rubin_sim.moving_objects import PyOrbEphemerides
@@ -190,9 +191,7 @@ class TestJPLValues(unittest.TestCase):
         )
         self.cheby_fits.calc_segment_length()
         self.cheby_fits.calc_segments()
-        self.cheby_fits.write(
-            self.coeff_file, self.resid_file, self.failed_file, append=False
-        )
+
         self.coeff_keys = [
             "obj_id",
             "t_start",
@@ -204,7 +203,7 @@ class TestJPLValues(unittest.TestCase):
             "elongation",
         ]
         self.cheby_values = ChebyValues()
-        self.cheby_values.read_coefficients(self.coeff_file)
+        self.cheby_values.set_coefficients(self.cheby_fits)
 
     def tearDown(self):
         del self.orbits
@@ -237,17 +236,11 @@ class TestJPLValues(unittest.TestCase):
             )
             delta_ra[i] = d_ra.max()
             delta_dec[i] = d_dec.max()
-            if delta_ra[i] > 20:
-                print(j["obj_id"], ephs["obj_id"])
-                print(j["ra_deg"])
-                print(ephs["ra"])
-                print(j["dec_deg"])
-                print(ephs["dec"])
         # Should be (given OOrb direct prediction):
         # Much of the time we're closer than 1mas, but there are a few which hit higher values.
         # This is consistent with the errors/values reported by oorb directly in testEphemerides.
 
-        # XXX--units?
+        #    # XXX--units?
         print("max JPL errors", delta_ra.max(), delta_dec.max())
         print("std of JPL errors", np.std(delta_ra), np.std(delta_dec))
         self.assertLess(np.max(delta_ra), 25)
