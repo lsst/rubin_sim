@@ -63,6 +63,9 @@ class ModelObservatory(object):
         kinem_model=None,
         cloud_db=None,
         cloud_offset_year=0,
+        cloud_data=None,
+        seeing_data=None,
+        downtimes=None,
     ):
         """
         Parameters
@@ -95,6 +98,15 @@ class ModelObservatory(object):
             The file to use for clouds. Default of None uses the database in rubin_sim_data.
         cloud_offset_year : 0
             The year offset to be passed to CloudData.
+        cloud_data : None
+            If one wants to replace the default cloud data. Should be an object with a
+            __call__ method that takes MJD and returns cloudy level.
+        seeing_data : None
+            If one wants to replace the default seeing_data object. Should be an object with a
+            __call__ method that takes MJD and returns zenith fwhm_500 in arcsec.
+        downtimes : None
+            If one wants to replace the default downtimes. Should be a np.array with columns
+            of "start" and "end" with MJD values and should include both scheduled and unscheduled downtime
         """
 
         if nside is None:
@@ -121,47 +133,52 @@ class ModelObservatory(object):
 
         mjd_start_time = Time(self.mjd_start, format="mjd")
         # Downtime
-        self.down_nights = []
-        self.sched_downtime_data = ScheduledDowntimeData(mjd_start_time)
-        self.unsched_downtime_data = UnscheduledDowntimeData(mjd_start_time)
+        if downtimes is None:
+            self.down_nights = []
+            self.sched_downtime_data = ScheduledDowntimeData(mjd_start_time)
+            self.unsched_downtime_data = UnscheduledDowntimeData(mjd_start_time)
 
-        sched_downtimes = self.sched_downtime_data()
-        unsched_downtimes = self.unsched_downtime_data()
+            sched_downtimes = self.sched_downtime_data()
+            unsched_downtimes = self.unsched_downtime_data()
 
-        down_starts = []
-        down_ends = []
-        for dt in sched_downtimes:
-            down_starts.append(dt["start"].mjd)
-            down_ends.append(dt["end"].mjd)
-        if not ideal_conditions:
-            for dt in unsched_downtimes:
+            down_starts = []
+            down_ends = []
+            for dt in sched_downtimes:
                 down_starts.append(dt["start"].mjd)
                 down_ends.append(dt["end"].mjd)
+            if not ideal_conditions:
+                for dt in unsched_downtimes:
+                    down_starts.append(dt["start"].mjd)
+                    down_ends.append(dt["end"].mjd)
 
-        self.downtimes = np.array(
-            list(zip(down_starts, down_ends)),
-            dtype=list(zip(["start", "end"], [float, float])),
-        )
-        self.downtimes.sort(order="start")
-
-        # Make sure there aren't any overlapping downtimes
-        diff = self.downtimes["start"][1:] - self.downtimes["end"][0:-1]
-        while np.min(diff) < 0:
-            # Should be able to do this wihtout a loop, but this works
-            for i, dt in enumerate(self.downtimes[0:-1]):
-                if self.downtimes["start"][i + 1] < dt["end"]:
-                    new_end = np.max([dt["end"], self.downtimes["end"][i + 1]])
-                    self.downtimes[i]["end"] = new_end
-                    self.downtimes[i + 1]["end"] = new_end
-
-            good = np.where(
-                self.downtimes["end"] - np.roll(self.downtimes["end"], 1) != 0
+            self.downtimes = np.array(
+                list(zip(down_starts, down_ends)),
+                dtype=list(zip(["start", "end"], [float, float])),
             )
-            self.downtimes = self.downtimes[good]
+            self.downtimes.sort(order="start")
+
+            # Make sure there aren't any overlapping downtimes
             diff = self.downtimes["start"][1:] - self.downtimes["end"][0:-1]
+            while np.min(diff) < 0:
+                # Should be able to do this wihtout a loop, but this works
+                for i, dt in enumerate(self.downtimes[0:-1]):
+                    if self.downtimes["start"][i + 1] < dt["end"]:
+                        new_end = np.max([dt["end"], self.downtimes["end"][i + 1]])
+                        self.downtimes[i]["end"] = new_end
+                        self.downtimes[i + 1]["end"] = new_end
+
+                good = np.where(
+                    self.downtimes["end"] - np.roll(self.downtimes["end"], 1) != 0
+                )
+                self.downtimes = self.downtimes[good]
+                diff = self.downtimes["start"][1:] - self.downtimes["end"][0:-1]
+        else:
+            self.downtimes = downtimes
 
         if ideal_conditions:
             self.seeing_data = NominalSeeing()
+        elif seeing_data is not None:
+            self.seeing_data = seeing_data
         else:
             self.seeing_data = SeeingData(mjd_start_time, seeing_db=seeing_db)
         self.seeing_model = SeeingModel()
@@ -171,6 +188,8 @@ class ModelObservatory(object):
 
         if ideal_conditions:
             self.cloud_data = NoClouds()
+        elif cloud_data is not None:
+            self.cloud_data = cloud_data
         else:
             self.cloud_data = CloudData(
                 mjd_start_time, cloud_db=cloud_db, offset_year=cloud_offset_year
