@@ -44,7 +44,7 @@ class TestModelObservatory(unittest.TestCase):
         cond_new = mo_new.return_conditions()
 
         # Make sure the internal downtimes are different
-        assert np.all(mo_default.downtimes != mo_new.downtimes)
+        assert ~np.array_equal(mo_default.downtimes, mo_new.downtimes)
 
         # Make sure seeing is not the same
         diff = cond_default.fwhm_eff["r"] - cond_new.fwhm_eff["r"]

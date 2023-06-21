@@ -164,7 +164,7 @@ class TestExample(unittest.TestCase):
         # Check that greedy observed some
         assert "greedy" in observations["note"]
         # check some long pairs got observed
-        assert np.any(['pair_33' in obs for obs in observations['note']])
+        assert np.any(["pair_33" in obs for obs in observations["note"]])
         # Make sure lots of observations executed
         assert observations.size > 1000
         # Make sure nothing tried to look through the earth
