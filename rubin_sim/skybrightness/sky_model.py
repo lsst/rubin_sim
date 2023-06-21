@@ -717,11 +717,18 @@ class SkyModel(object):
         Convert the computed spectra to a magnitude using the supplied bandpass,
         or, if self.mags=True, return the mags in the LSST filters
 
+        Parameters
+        ----------
+        bandpasses : dict (None)
+            Dictionary with bandpass name as keys and rubin_su=im.phot_utils.Bandpass objects as values.
+
         If mags=True when initialized, return mags returns an structured array with
         dtype names u,g,r,i,z,y.
 
-        bandpasses: optional dictionary with bandpass name keys and bandpass object values.
-
+        Returns
+        -------
+        mags : np.array
+            Sky brightness in AB mags/sq arcsec
         """
         if self.azs is None:
             raise ValueError(

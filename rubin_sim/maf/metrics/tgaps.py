@@ -2,6 +2,7 @@ import numpy as np
 from .base_metric import BaseMetric
 
 __all__ = [
+    "GapsMetric",
     "TgapsMetric",
     "TgapsPercentMetric",
     "NightgapsMetric",
@@ -9,6 +10,47 @@ __all__ = [
     "MaxGapMetric",
     "NightTimespanMetric",
 ]
+
+
+class GapsMetric(BaseMetric):
+    """Compute the number of times a gaps of a specified timescale (+/- 1/2 timescale) is sampled.
+
+    Parameters
+    ----------
+    times_col : `str` (observationStartMJD)
+        The column name for the exposure times.  Values assumed to be in days.
+    time_scale : `float` (2)
+        Time scale to see how well it is sampled (hours).
+    """
+
+    def __init__(
+        self,
+        times_col="observationStartMJD",
+        time_scale=2.0,
+        units="N",
+        **kwargs,
+    ):
+        self.times_col = times_col
+        # Convert to days and divide by two so we bin at the Nyquist frequency
+        self.bin_size = (time_scale / 24.0) / 2.0
+        super().__init__(
+            col=[self.times_col], metric_dtype="float", units=units, **kwargs
+        )
+
+    def run(self, data_slice, slice_point=None):
+        if data_slice.size < 2:
+            return self.badval
+        times = np.sort(data_slice[self.times_col])
+        bins = np.arange(
+            times.min() - self.bin_size, times.max() + self.bin_size, self.bin_size
+        )
+        vals, _be = np.histogram(times, bins)
+        # Bins are at 1/2 desired timescale, so compare bin 0 to bin 2 to see
+        # if the timescale has been sampled.
+        mult = vals[2:] * vals[0:-2]
+        result = np.size(np.where(mult > 0)[0])
+
+        return result
 
 
 class TgapsMetric(BaseMetric):

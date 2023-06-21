@@ -1462,18 +1462,15 @@ def science_radar_batch(
             )
         )
 
-        m2 = metrics.TgapsPercentMetric(
-            min_time=2 / 24.0,
-            max_time=14 / 24.0,
-            all_gaps=False,
-            metric_name="TgapsPercent_2-14hrs",
+        m2 = metrics.GapsMetric(
+            time_scale=7.0,
+            metric_name="Gaps_7hr",
         )
         plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
         plotDict = {"color_min": 0, "color": colors[f], "percentile_clip": 95}
         summaryMetrics = extended_summary()
         displayDict["caption"] = (
-            f"Percent of the total time gaps which fall into the interval"
-            f" between 2-14 hours, in {f} band(s)."
+            f"Number of times the timescale of ~7 hours is sampled" f" in {f} band(s)."
         )
         displayDict["order"] = filterorders[f]
         bundleList.append(
@@ -1490,15 +1487,12 @@ def science_radar_batch(
             )
         )
 
-        m3 = metrics.TgapsPercentMetric(
-            min_time=14.0 / 24.0,
-            max_time=(14.0 / 24 + 1.0),
-            all_gaps=False,
-            metric_name="TgapsPercent_1day",
+        m3 = metrics.GapsMetric(
+            time_scale=24.0,
+            metric_name="Gaps_1day",
         )
         displayDict["caption"] = (
-            f"Percent of the total time gaps which fall into the interval around 1 day,"
-            f" in {f} band(s)."
+            f"Number of times the timescale of 24 hours is sampled," f" in {f} band(s)."
         )
         displayDict["order"] = filterorders[f]
         bundleList.append(
