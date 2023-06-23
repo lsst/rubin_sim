@@ -59,8 +59,8 @@ class TemplateTime(BaseMetric):
         if len(dataSlice) < self.n_visits:
             return self.badval
         
-        # Check that the visits are sorted in night
-        dataSlice.sort(order=self.nightCol)
+        # Check that the visits are sorted in time
+        dataSlice.sort(order=self.mjd_col)
         
         # Find the best seeing in the first few images
         bench_seeing = np.percentile(dataSlice[self.seeingCol],25)
@@ -74,52 +74,53 @@ class TemplateTime(BaseMetric):
         m5_ok = np.where(bench_m5 - dataSlice[self.m5Col] < self.m5_range,
                         True, False)
 
-        both = np.where(seeing_ok & m5_ok)[0]
-        if len(both) < self.n_visits: # If seeing_ok and/or m5_ok are "false", returned as bad value
+        ok_template_input = np.where(seeing_ok & m5_ok)[0]
+        if len(ok_template_input) < self.n_visits: # If seeing_ok and/or m5_ok are "false", returned as bad value
             return self.badval
             
-        idx_template = both[self.n_visits - 1] # Nights visited
+        idx_template_created = ok_template_input[self.n_visits - 1] # Last image needed for template
+        idx_template_inputs = ok_template_input[:self.n_visits] # Images included in template
         
-        n_template = dataSlice[self.nightCol][idx_template] # Night of template creation
-        d_n = n_template - dataSlice[self.nightCol][0] # Number of nights for a template
+        Night_template_created = dataSlice[self.nightCol][idx_template_created]
+        N_nights_without_template = Night_template_created - dataSlice[self.nightCol][0]
         
-        where_template = dataSlice[self.nightCol] > n_template # of later images where we have a template
-        images_with_template = np.sum(where_template)
+        where_template = dataSlice[self.nightCol] > Night_template_created # of later images where we have a template
+        N_images_with_template = np.sum(where_template)
         
-        template_m5 = 1.25 * np.log10(np.sum(10.0 ** (0.8 * dataSlice[self.m5Col][idx_template])))
+        template_m5 = 1.25 * np.log10(np.sum(10.0 ** (0.8 * dataSlice[self.m5Col][idx_template_inputs])))
         
         delta_m5 = -2.5 * np.log10(np.sqrt(1.0 + 10 ** (-0.8 * (template_m5 - dataSlice[self.m5Col]))))
         diff_m5s = dataSlice[self.m5Col] + delta_m5
         
-        n_alerts = 1e4 * 10**(0.6 * (diff_m5s - 24.7))
+        n_alerts_per_diffim = 1e4 * 10**(0.6 * (diff_m5s - 24.7))
         
-        result["Night_template_created"] = n_template
-        result["N_nights_before_template"] = d_n
-        result["N_images_for_template"] = idx_template + 1
-        result["N_images_with_template"] = images_with_template
+        result["Night_template_created"] = Night_template_created
+        result["N_nights_without_template"] = N_nights_without_template
+        result["N_images_until_template"] = idx_template_created + 1
+        result["N_images_with_template"] = N_images_with_template
         result["Template_m5"] = template_m5
-        result["Total_alerts"] = np.sum(n_alerts[where_template])
+        result["Total_alerts"] = np.sum(n_alerts_per_diffim[where_template])
         result["Diffim_lc"] = {
             "mjd":dataSlice[self.mjd_col][where_template],
             "diff_m5":diff_m5s[where_template],
             "band":dataSlice[self.filter_col][where_template],
             "science_m5":dataSlice[self.m5Col][where_template],
-            "n_alerts":n_alerts[where_template]
+            "n_alerts":n_alerts_per_diffim[where_template]
         }
         
         return result
     
         
-    def reduceNight(self, metricVal): # returns night of template creation
+    def reduceNight_template_created(self, metricVal): # returns night of template creation
         return metricVal["Night_template_created"]
     
-    def reduceDeltaNight(self, metricVal): # returns number of nights needed to complete template
-        return metricVal["N_nights_before_template"]
+    def reduceN_nights_without_template(self, metricVal): # returns number of nights needed to complete template
+        return metricVal["N_nights_without_template"]
     
-    def reduceNVis(self, metricVal): # returns number of images needed to complete template
-        return metricVal["N_images_for_template"]
+    def reduceN_images_until_template(self, metricVal): # returns number of images needed to complete template
+        return metricVal["N_images_until_template"]
     
-    def reduceImage(self, metricVal): # returns number of images with a template
+    def reduceN_images_with_template(self, metricVal): # returns number of images with a template
         return metricVal["N_images_with_template"]
     
     def reduceTemplate_m5(self, metricVal): # calculated coadded m5 of resulting template
