@@ -58,13 +58,50 @@ def standard_bf(
 
     Parameters
     ----------
-    XXX
-
+    nside : int (32)
+        The HEALpix nside to use
+    nexp : int (1)
+        The number of exposures to use in a visit.
+    exptime : float (30.)
+        The exposure time to use per visit (seconds)
+    filtername : list of str
+        The filternames for the first set
+    filtername2 : list of str
+        The filter names for the second in the pair (None if unpaired)
+    n_obs_template : int (5)
+        The number of observations to take every season in each filter
+    season : float (300)
+        The length of season (i.e., how long before templates expire) (days)
+    season_start_hour : float (-4.)
+        For weighting how strongly a template image needs to be observed (hours)
+    sesason_end_hour : float (2.)
+        For weighting how strongly a template image needs to be observed (hours)
+    moon_distance : float (30.)
+        The mask radius to apply around the moon (degrees)
+    m5_weight : float (3.)
+        The weight for the 5-sigma depth difference basis function
+    footprint_weight : float (0.3)
+        The weight on the survey footprint basis function.
+    slewtime_weight : float (3.)
+        The weight on the slewtime basis function
+    stayfilter_weight : float (3.)
+        The weight on basis function that tries to stay avoid filter changes.
+    template_weight : float (12.)
+        The weight to place on getting image templates every season
+    u_template_weight : float (24.)
+        The weight to place on getting image templates in u-band. Since there
+        are so few u-visits, it can be helpful to turn this up a little higher than
+        the standard template_weight kwarg.
+    g_template_weight : float (24.)
+        The weight to place on getting image templates in g-band. Since there
+        are so few g-visits, it can be helpful to turn this up a little higher than
+        the standard template_weight kwarg.
 
     Returns
     -------
-    list of tuples pairs (basis function, weight) that is
-    (rubin_sim.scheduler.BasisFunction object, float)
+    basis_functions_weights : `list` 
+        list of tuple pairs (basis function, weight) that is 
+        (rubin_sim.scheduler.BasisFunction object, float)
 
     """
     template_weights = {
@@ -444,7 +481,7 @@ def gen_long_gaps_survey(
     return surveys
 
 
-def gen_GreedySurveys(
+def gen_greedy_surveys(
     nside=32,
     nexp=2,
     exptime=30.0,
@@ -1050,7 +1087,19 @@ def ddf_surveys(detailers=None, season_unobs_frac=0.2, euclid_detailers=None):
 
 
 def ecliptic_target(nside=32, dist_to_eclip=40.0, dec_max=30.0, mask=None):
-    """Generate a target_map for the area around the ecliptic"""
+    """Generate a target_map for the area around the ecliptic
+
+    Parameters
+    ----------
+    nside : int (32)
+        The HEALpix nside to use
+    dist_to_eclip : float (40)
+        The distance to the ecliptic to constrain to (degrees).
+    dec_max : float (30)
+        The max declination to alow (degrees).
+    mask : np.array (None)
+        Any additional mask to apply, should be a HEALpix mask with matching nside.
+    """
 
     ra, dec = _hpid2_ra_dec(nside, np.arange(hp.nside2npix(nside)))
     result = np.zeros(ra.size)
@@ -1388,7 +1437,7 @@ def example_scheduler(
         euclid_detailers=euclid_detailers,
     )
 
-    greedy = gen_GreedySurveys(nside, nexp=nexp, footprints=footprints)
+    greedy = gen_greedy_surveys(nside, nexp=nexp, footprints=footprints)
     neo = generate_twilight_near_sun(
         nside,
         night_pattern=neo_night_pattern,
@@ -1554,7 +1603,7 @@ def main(args):
         euclid_detailers=euclid_detailers,
     )
 
-    greedy = gen_GreedySurveys(nside, nexp=nexp, footprints=footprints)
+    greedy = gen_greedy_surveys(nside, nexp=nexp, footprints=footprints)
     neo = generate_twilight_near_sun(
         nside,
         night_pattern=neo_night_pattern,
