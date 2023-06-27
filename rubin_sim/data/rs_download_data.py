@@ -152,10 +152,13 @@ def rs_download_data():
             # stream and write in chunks (avoid large memory usage)
             r = requests.get(url, stream=True)
             file_size = int(r.headers.get("Content-Length", 0))
+            if file_size < 245:
+                warnings.warn(f"{url} file size unexpectedly small.")
             block_size = (
                 1024 * 1024
             )  # download this size chunk at a time; reasonable guess
             progress_bar = tqdm(total=file_size, unit="iB", unit_scale=True)
+            print(f"Writing to {os.path.join(data_dir, filename)}")
             with open(os.path.join(data_dir, filename), "wb") as f:
                 for chunk in r.iter_content(chunk_size=block_size):
                     progress_bar.update(len(chunk))
