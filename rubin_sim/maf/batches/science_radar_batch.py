@@ -1462,58 +1462,33 @@ def science_radar_batch(
             )
         )
 
-        m2 = metrics.TgapsPercentMetric(
-            min_time=2 / 24.0,
-            max_time=14 / 24.0,
-            all_gaps=False,
-            metric_name="TgapsPercent_2-14hrs",
-        )
-        plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
-        plotDict = {"color_min": 0, "color": colors[f], "percentile_clip": 95}
-        summaryMetrics = extended_summary()
-        displayDict["caption"] = (
-            f"Percent of the total time gaps which fall into the interval"
-            f" between 2-14 hours, in {f} band(s)."
-        )
-        displayDict["order"] = filterorders[f]
-        bundleList.append(
-            mb.MetricBundle(
-                m2,
-                healpixslicer,
-                constraint=filtersqls[f],
-                info_label=filterinfo_label[f],
-                run_name=runName,
-                summary_metrics=summaryMetrics,
-                plot_dict=plotDict,
-                plot_funcs=plotFuncs,
-                display_dict=displayDict,
+        gaps = [3.0, 7.0, 24.0]
+        for gap in gaps:
+            m2 = metrics.GapsMetric(
+                time_scale=gap,
+                metric_name="Gaps_%ihr" % gap,
             )
-        )
-
-        m3 = metrics.TgapsPercentMetric(
-            min_time=14.0 / 24.0,
-            max_time=(14.0 / 24 + 1.0),
-            all_gaps=False,
-            metric_name="TgapsPercent_1day",
-        )
-        displayDict["caption"] = (
-            f"Percent of the total time gaps which fall into the interval around 1 day,"
-            f" in {f} band(s)."
-        )
-        displayDict["order"] = filterorders[f]
-        bundleList.append(
-            mb.MetricBundle(
-                m3,
-                healpixslicer,
-                constraint=filtersqls[f],
-                info_label=filterinfo_label[f],
-                run_name=runName,
-                summary_metrics=summaryMetrics,
-                plot_dict=plotDict,
-                plot_funcs=plotFuncs,
-                display_dict=displayDict,
+            plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
+            plotDict = {"color_min": 0, "color": colors[f], "percentile_clip": 95}
+            summaryMetrics = extended_summary()
+            displayDict["caption"] = (
+                "Number of times the timescale of ~%i hours is sampled in %s band(s)."
+                % (gap, f)
             )
-        )
+            displayDict["order"] = filterorders[f]
+            bundleList.append(
+                mb.MetricBundle(
+                    m2,
+                    healpixslicer,
+                    constraint=filtersqls[f],
+                    info_label=filterinfo_label[f],
+                    run_name=runName,
+                    summary_metrics=summaryMetrics,
+                    plot_dict=plotDict,
+                    plot_funcs=plotFuncs,
+                    display_dict=displayDict,
+                )
+            )
 
     # FilterPairTgaps Metric (for TVS)
     m1 = maf.FilterPairTGapsMetric()
