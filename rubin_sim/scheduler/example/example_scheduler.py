@@ -1,5 +1,7 @@
 import numpy as np
+import matplotlib.pylab as plt
 import healpy as hp
+from rubin_sim.scheduler.model_observatory import ModelObservatory
 from rubin_sim.scheduler.schedulers import CoreScheduler, FilterSchedUzy
 from rubin_sim.scheduler.utils import (
     EuclidOverlapFootprint,
@@ -14,22 +16,226 @@ from rubin_sim.scheduler.surveys import (
     LongGapSurvey,
     generate_ddf_scheduled_obs,
 )
-import rubin_sim.scheduler.detailers as detailers
 from rubin_sim.scheduler import sim_runner
-from astropy.coordinates import SkyCoord, get_sun
-from astropy.time import Time
-from astropy import units as u
-from rubin_sim.utils import _hpid2_ra_dec
-import warnings
+import rubin_sim.scheduler.detailers as detailers
 import sys
 import subprocess
-import rubin_sim
 import os
 import argparse
-from rubin_sim.scheduler.model_observatory import ModelObservatory
+from astropy.coordinates import SkyCoord
+from astropy import units as u
+from rubin_sim.utils import _hpid2_ra_dec
+import rubin_sim
+import warnings
 
+# So things don't fail on hyak
+from astropy.utils import iers
+
+iers.conf.auto_download = False
 
 __all__ = ["example_scheduler"]
+
+
+def standard_bf(
+    nside,
+    filtername="g",
+    filtername2="i",
+    m5_weight=6.0,
+    footprint_weight=1.5,
+    slewtime_weight=3.0,
+    stayfilter_weight=3.0,
+    template_weight=12.0,
+    u_template_weight=50.0,
+    g_template_weight=50.0,
+    footprints=None,
+    n_obs_template=None,
+    season=300.0,
+    season_start_hour=-4.0,
+    season_end_hour=2.0,
+    moon_distance=30.0,
+):
+    """Generate the standard basis functions that are shared by blob surveys
+
+    Parameters
+    ----------
+    nside : int (32)
+        The HEALpix nside to use
+    nexp : int (1)
+        The number of exposures to use in a visit.
+    exptime : float (30.)
+        The exposure time to use per visit (seconds)
+    filtername : list of str
+        The filternames for the first set
+    filtername2 : list of str
+        The filter names for the second in the pair (None if unpaired)
+    n_obs_template : int (5)
+        The number of observations to take every season in each filter
+    season : float (300)
+        The length of season (i.e., how long before templates expire) (days)
+    season_start_hour : float (-4.)
+        For weighting how strongly a template image needs to be observed (hours)
+    sesason_end_hour : float (2.)
+        For weighting how strongly a template image needs to be observed (hours)
+    moon_distance : float (30.)
+        The mask radius to apply around the moon (degrees)
+    m5_weight : float (3.)
+        The weight for the 5-sigma depth difference basis function
+    footprint_weight : float (0.3)
+        The weight on the survey footprint basis function.
+    slewtime_weight : float (3.)
+        The weight on the slewtime basis function
+    stayfilter_weight : float (3.)
+        The weight on basis function that tries to stay avoid filter changes.
+    template_weight : float (12.)
+        The weight to place on getting image templates every season
+    u_template_weight : float (24.)
+        The weight to place on getting image templates in u-band. Since there
+        are so few u-visits, it can be helpful to turn this up a little higher than
+        the standard template_weight kwarg.
+    g_template_weight : float (24.)
+        The weight to place on getting image templates in g-band. Since there
+        are so few g-visits, it can be helpful to turn this up a little higher than
+        the standard template_weight kwarg.
+
+    Returns
+    -------
+    basis_functions_weights : `list` 
+        list of tuple pairs (basis function, weight) that is 
+        (rubin_sim.scheduler.BasisFunction object, float)
+
+    """
+    template_weights = {
+        "u": u_template_weight,
+        "g": g_template_weight,
+        "r": template_weight,
+        "i": template_weight,
+        "z": template_weight,
+        "y": template_weight,
+    }
+
+    bfs = []
+
+    if filtername2 is not None:
+        bfs.append(
+            (
+                bf.M5DiffBasisFunction(filtername=filtername, nside=nside),
+                m5_weight / 2.0,
+            )
+        )
+        bfs.append(
+            (
+                bf.M5DiffBasisFunction(filtername=filtername2, nside=nside),
+                m5_weight / 2.0,
+            )
+        )
+
+    else:
+        bfs.append(
+            (bf.M5DiffBasisFunction(filtername=filtername, nside=nside), m5_weight)
+        )
+
+    if filtername2 is not None:
+        bfs.append(
+            (
+                bf.FootprintBasisFunction(
+                    filtername=filtername,
+                    footprint=footprints,
+                    out_of_bounds_val=np.nan,
+                    nside=nside,
+                ),
+                footprint_weight / 2.0,
+            )
+        )
+        bfs.append(
+            (
+                bf.FootprintBasisFunction(
+                    filtername=filtername2,
+                    footprint=footprints,
+                    out_of_bounds_val=np.nan,
+                    nside=nside,
+                ),
+                footprint_weight / 2.0,
+            )
+        )
+    else:
+        bfs.append(
+            (
+                bf.FootprintBasisFunction(
+                    filtername=filtername,
+                    footprint=footprints,
+                    out_of_bounds_val=np.nan,
+                    nside=nside,
+                ),
+                footprint_weight,
+            )
+        )
+
+    bfs.append(
+        (
+            bf.SlewtimeBasisFunction(filtername=filtername, nside=nside),
+            slewtime_weight,
+        )
+    )
+    bfs.append((bf.StrictFilterBasisFunction(filtername=filtername), stayfilter_weight))
+
+    if n_obs_template is not None:
+        if filtername2 is not None:
+            bfs.append(
+                (
+                    bf.NObsPerYearBasisFunction(
+                        filtername=filtername,
+                        nside=nside,
+                        footprint=footprints.get_footprint(filtername),
+                        n_obs=n_obs_template[filtername],
+                        season=season,
+                        season_start_hour=season_start_hour,
+                        season_end_hour=season_end_hour,
+                    ),
+                    template_weights[filtername] / 2.0,
+                )
+            )
+            bfs.append(
+                (
+                    bf.NObsPerYearBasisFunction(
+                        filtername=filtername2,
+                        nside=nside,
+                        footprint=footprints.get_footprint(filtername2),
+                        n_obs=n_obs_template[filtername2],
+                        season=season,
+                        season_start_hour=season_start_hour,
+                        season_end_hour=season_end_hour,
+                    ),
+                    template_weights[filtername2] / 2.0,
+                )
+            )
+        else:
+            bfs.append(
+                (
+                    bf.NObsPerYearBasisFunction(
+                        filtername=filtername,
+                        nside=nside,
+                        footprint=footprints.get_footprint(filtername),
+                        n_obs=n_obs_template[filtername],
+                        season=season,
+                        season_start_hour=season_start_hour,
+                        season_end_hour=season_end_hour,
+                    ),
+                    template_weights[filtername],
+                )
+            )
+
+    # The shared masks
+    bfs.append(
+        (
+            bf.MoonAvoidanceBasisFunction(nside=nside, moon_distance=moon_distance),
+            0.0,
+        )
+    )
+    filternames = [fn for fn in [filtername, filtername2] if fn is not None]
+    bfs.append((bf.FilterLoadedBasisFunction(filternames=filternames), 0))
+    bfs.append((bf.PlanetMaskBasisFunction(nside=nside), 0.0))
+
+    return bfs
 
 
 def blob_for_long(
@@ -47,19 +253,21 @@ def blob_for_long(
     shadow_minutes=60.0,
     max_alt=76.0,
     moon_distance=30.0,
-    ignore_obs=["DD", "twilight_neo"],
+    ignore_obs=["DD", "twilight_near_sun"],
     m5_weight=6.0,
     footprint_weight=1.5,
     slewtime_weight=3.0,
     stayfilter_weight=3.0,
     template_weight=12.0,
-    u_template_weight=24.0,
+    u_template_weight=50.0,
+    g_template_weight=50.0,
     footprints=None,
     u_nexp1=True,
     night_pattern=[True, True],
     time_after_twi=30.0,
     HA_min=12,
     HA_max=24 - 3.5,
+    blob_names=[],
 ):
     """
     Generate surveys that take observations in blobs.
@@ -121,7 +329,7 @@ def blob_for_long(
         "min_pair_time": 15.0,
         "search_radius": 30.0,
         "alt_max": 85.0,
-        "az_range": 90.0,
+        "az_range": None,
         "flush_time": 30.0,
         "smoothing_kernel": None,
         "nside": nside,
@@ -132,7 +340,7 @@ def blob_for_long(
 
     surveys = []
     if n_obs_template is None:
-        n_obs_template = {"u": 3, "g": 5, "r": 5, "i": 5, "z": 5, "y": 5}
+        n_obs_template = {"u": 3, "g": 3, "r": 3, "i": 3, "z": 3, "y": 3}
 
     times_needed = [pair_time, pair_time * 2]
     for filtername, filtername2 in zip(filter1s, filter2s):
@@ -146,115 +354,26 @@ def blob_for_long(
         # List to hold tuples of (basis_function_object, weight)
         bfs = []
 
-        if filtername2 is not None:
-            bfs.append(
-                (
-                    bf.M5DiffBasisFunction(filtername=filtername, nside=nside),
-                    m5_weight / 2.0,
-                )
-            )
-            bfs.append(
-                (
-                    bf.M5DiffBasisFunction(filtername=filtername2, nside=nside),
-                    m5_weight / 2.0,
-                )
-            )
-
-        else:
-            bfs.append(
-                (bf.M5DiffBasisFunction(filtername=filtername, nside=nside), m5_weight)
-            )
-
-        if filtername2 is not None:
-            bfs.append(
-                (
-                    bf.FootprintBasisFunction(
-                        filtername=filtername,
-                        footprint=footprints,
-                        out_of_bounds_val=np.nan,
-                        nside=nside,
-                    ),
-                    footprint_weight / 2.0,
-                )
-            )
-            bfs.append(
-                (
-                    bf.FootprintBasisFunction(
-                        filtername=filtername2,
-                        footprint=footprints,
-                        out_of_bounds_val=np.nan,
-                        nside=nside,
-                    ),
-                    footprint_weight / 2.0,
-                )
-            )
-        else:
-            bfs.append(
-                (
-                    bf.FootprintBasisFunction(
-                        filtername=filtername,
-                        footprint=footprints,
-                        out_of_bounds_val=np.nan,
-                        nside=nside,
-                    ),
-                    footprint_weight,
-                )
-            )
-
-        bfs.append(
-            (
-                bf.SlewtimeBasisFunction(filtername=filtername, nside=nside),
-                slewtime_weight,
+        bfs.extend(
+            standard_bf(
+                nside,
+                filtername=filtername,
+                filtername2=filtername2,
+                m5_weight=m5_weight,
+                footprint_weight=footprint_weight,
+                slewtime_weight=slewtime_weight,
+                stayfilter_weight=stayfilter_weight,
+                template_weight=template_weight,
+                u_template_weight=u_template_weight,
+                g_template_weight=g_template_weight,
+                footprints=footprints,
+                n_obs_template=n_obs_template,
+                season=season,
+                season_start_hour=season_start_hour,
+                season_end_hour=season_end_hour,
             )
         )
-        bfs.append(
-            (bf.StrictFilterBasisFunction(filtername=filtername), stayfilter_weight)
-        )
 
-        if filtername2 is not None:
-            bfs.append(
-                (
-                    bf.NObsPerYearBasisFunction(
-                        filtername=filtername,
-                        nside=nside,
-                        footprint=footprints.get_footprint(filtername),
-                        n_obs=n_obs_template[filtername],
-                        season=season,
-                        season_start_hour=season_start_hour,
-                        season_end_hour=season_end_hour,
-                    ),
-                    template_weight / 2.0,
-                )
-            )
-            bfs.append(
-                (
-                    bf.NObsPerYearBasisFunction(
-                        filtername=filtername2,
-                        nside=nside,
-                        footprint=footprints.get_footprint(filtername2),
-                        n_obs=n_obs_template[filtername2],
-                        season=season,
-                        season_start_hour=season_start_hour,
-                        season_end_hour=season_end_hour,
-                    ),
-                    template_weight / 2.0,
-                )
-            )
-        else:
-            bfs.append(
-                (
-                    bf.NObsPerYearBasisFunction(
-                        filtername=filtername,
-                        nside=nside,
-                        footprint=footprints.get_footprint(filtername),
-                        n_obs=n_obs_template[filtername],
-                        season=season,
-                        season_start_hour=season_start_hour,
-                        season_end_hour=season_end_hour,
-                    ),
-                    template_weight,
-                )
-            )
         # Masks, give these 0 weight
         bfs.append(
             (
@@ -268,28 +387,18 @@ def blob_for_long(
                 0.0,
             )
         )
-        bfs.append(
-            (
-                bf.MoonAvoidanceBasisFunction(nside=nside, moon_distance=moon_distance),
-                0.0,
-            )
-        )
-        filternames = [fn for fn in [filtername, filtername2] if fn is not None]
-        bfs.append((bf.FilterLoadedBasisFunction(filternames=filternames), 0))
         if filtername2 is None:
             time_needed = times_needed[0]
         else:
             time_needed = times_needed[1]
         bfs.append((bf.TimeToTwilightBasisFunction(time_needed=time_needed), 0.0))
         bfs.append((bf.NotTwilightBasisFunction(), 0.0))
-        bfs.append((bf.PlanetMaskBasisFunction(nside=nside), 0.0))
         bfs.append((bf.AfterEveningTwiBasisFunction(time_after=time_after_twi), 0.0))
-        # XXX--move kwargs up
-        bfs.append(
-            (bf.HaMaskBasisFunction(ha_min=HA_min, ha_max=HA_max, nside=nside), 0.0)
-        )
+        bfs.append((bf.HaMaskBasisFunction(ha_min=HA_min, ha_max=HA_max), 0.0))
         # don't execute every night
         bfs.append((bf.NightModuloBasisFunction(night_pattern), 0.0))
+        # only execute one blob per night
+        bfs.append((bf.OnceInNightBasisFunction(notes=blob_names), 0))
 
         # unpack the basis functions and weights
         weights = [val[1] for val in bfs]
@@ -330,24 +439,24 @@ def gen_long_gaps_survey(
     HA_min=12,
     HA_max=24 - 3.5,
     time_after_twi=120,
+    u_template_weight=50.0,
+    g_template_weight=50.0,
 ):
     """
     Paramterers
     -----------
     HA_min(_max) : float
-        The hour angle limits passed to the initial blob scheduler (hours).
-    gap_range : list of float ([2, 7])
-        The limits of the target time gaps (hours)
-    time_after_twi : float (120)
-        The amount of time that should have passed after twilight to start
-        trying to observe long gaps (minutes).
+        The hour angle limits passed to the initial blob scheduler.
     """
 
     surveys = []
     f1 = ["g", "r", "i"]
     f2 = ["r", "i", "z"]
     # Maybe force scripted to not go in twilight?
-
+    blob_names = []
+    for fn1, fn2 in zip(f1, f2):
+        for ab in ["a", "b"]:
+            blob_names.append("blob_long, %s%s, %s" % (fn1, fn2, ab))
     for filtername1, filtername2 in zip(f1, f2):
         blob = blob_for_long(
             footprints=footprints,
@@ -358,8 +467,13 @@ def gen_long_gaps_survey(
             time_after_twi=time_after_twi,
             HA_min=HA_min,
             HA_max=HA_max,
+            u_template_weight=u_template_weight,
+            g_template_weight=g_template_weight,
+            blob_names=blob_names,
         )
-        scripted = ScriptedSurvey([], nside=nside, ignore_obs=["blob", "DDF", "twi"])
+        scripted = ScriptedSurvey(
+            [], nside=nside, ignore_obs=["blob", "DDF", "twi", "pair"]
+        )
         surveys.append(
             LongGapSurvey(blob[0], scripted, gap_range=gap_range, avoid_zenith=True)
         )
@@ -376,7 +490,7 @@ def gen_greedy_surveys(
     shadow_minutes=60.0,
     max_alt=76.0,
     moon_distance=30.0,
-    ignore_obs=["DD", "twilight_neo"],
+    ignore_obs=["DD", "twilight_near_sun"],
     m5_weight=3.0,
     footprint_weight=0.75,
     slewtime_weight=3.0,
@@ -442,29 +556,23 @@ def gen_greedy_surveys(
 
     for filtername in filters:
         bfs = []
-        bfs.append(
-            (bf.M5DiffBasisFunction(filtername=filtername, nside=nside), m5_weight)
-        )
-        bfs.append(
-            (
-                bf.FootprintBasisFunction(
-                    filtername=filtername,
-                    footprint=footprints,
-                    out_of_bounds_val=np.nan,
-                    nside=nside,
-                ),
-                footprint_weight,
+        bfs.extend(
+            standard_bf(
+                nside,
+                filtername=filtername,
+                filtername2=None,
+                m5_weight=m5_weight,
+                footprint_weight=footprint_weight,
+                slewtime_weight=slewtime_weight,
+                stayfilter_weight=stayfilter_weight,
+                template_weight=0,
+                u_template_weight=0,
+                g_template_weight=0,
+                footprints=footprints,
+                n_obs_template=None,
             )
         )
-        bfs.append(
-            (
-                bf.SlewtimeBasisFunction(filtername=filtername, nside=nside),
-                slewtime_weight,
-            )
-        )
-        bfs.append(
-            (bf.StrictFilterBasisFunction(filtername=filtername), stayfilter_weight)
-        )
+
         bfs.append(
             (
                 bf.VisitRepeatBasisFunction(
@@ -482,13 +590,6 @@ def gen_greedy_surveys(
                 0,
             )
         )
-        bfs.append(
-            (bf.MoonAvoidanceBasisFunction(nside=nside, moon_distance=moon_distance), 0)
-        )
-
-        bfs.append((bf.FilterLoadedBasisFunction(filternames=filtername), 0))
-        bfs.append((bf.PlanetMaskBasisFunction(nside=nside), 0))
-
         weights = [val[1] for val in bfs]
         basis_functions = [val[0] for val in bfs]
         surveys.append(
@@ -523,13 +624,14 @@ def generate_blobs(
     shadow_minutes=60.0,
     max_alt=76.0,
     moon_distance=30.0,
-    ignore_obs=["DD", "twilight_neo"],
+    ignore_obs=["DD", "twilight_near_sun"],
     m5_weight=6.0,
     footprint_weight=1.5,
     slewtime_weight=3.0,
     stayfilter_weight=3.0,
     template_weight=12.0,
-    u_template_weight=24.0,
+    u_template_weight=50.0,
+    g_template_weight=50.0,
     footprints=None,
     u_nexp1=True,
     scheduled_respect=45.0,
@@ -593,15 +695,6 @@ def generate_blobs(
         How much time to require there be before a pre-scheduled observation (minutes)
     """
 
-    template_weights = {
-        "u": u_template_weight,
-        "g": template_weight,
-        "r": template_weight,
-        "i": template_weight,
-        "z": template_weight,
-        "y": template_weight,
-    }
-
     BlobSurvey_params = {
         "slew_approx": 7.5,
         "filter_change_approx": 140.0,
@@ -609,7 +702,7 @@ def generate_blobs(
         "min_pair_time": 15.0,
         "search_radius": 30.0,
         "alt_max": 85.0,
-        "az_range": 90.0,
+        "az_range": None,
         "flush_time": 30.0,
         "smoothing_kernel": None,
         "nside": nside,
@@ -619,7 +712,7 @@ def generate_blobs(
     }
 
     if n_obs_template is None:
-        n_obs_template = {"u": 3, "g": 5, "r": 5, "i": 5, "z": 5, "y": 5}
+        n_obs_template = {"u": 3, "g": 3, "r": 3, "i": 3, "z": 3, "y": 3}
 
     surveys = []
 
@@ -637,70 +730,26 @@ def generate_blobs(
         # List to hold tuples of (basis_function_object, weight)
         bfs = []
 
-        if filtername2 is not None:
-            bfs.append(
-                (
-                    bf.M5DiffBasisFunction(filtername=filtername, nside=nside),
-                    m5_weight / 2.0,
-                )
-            )
-            bfs.append(
-                (
-                    bf.M5DiffBasisFunction(filtername=filtername2, nside=nside),
-                    m5_weight / 2.0,
-                )
-            )
-
-        else:
-            bfs.append(
-                (bf.M5DiffBasisFunction(filtername=filtername, nside=nside), m5_weight)
-            )
-
-        if filtername2 is not None:
-            bfs.append(
-                (
-                    bf.FootprintBasisFunction(
-                        filtername=filtername,
-                        footprint=footprints,
-                        out_of_bounds_val=np.nan,
-                        nside=nside,
-                    ),
-                    footprint_weight / 2.0,
-                )
-            )
-            bfs.append(
-                (
-                    bf.FootprintBasisFunction(
-                        filtername=filtername2,
-                        footprint=footprints,
-                        out_of_bounds_val=np.nan,
-                        nside=nside,
-                    ),
-                    footprint_weight / 2.0,
-                )
-            )
-        else:
-            bfs.append(
-                (
-                    bf.FootprintBasisFunction(
-                        filtername=filtername,
-                        footprint=footprints,
-                        out_of_bounds_val=np.nan,
-                        nside=nside,
-                    ),
-                    footprint_weight,
-                )
-            )
-
-        bfs.append(
-            (
-                bf.SlewtimeBasisFunction(filtername=filtername, nside=nside),
-                slewtime_weight,
+        bfs.extend(
+            standard_bf(
+                nside,
+                filtername=filtername,
+                filtername2=filtername2,
+                m5_weight=m5_weight,
+                footprint_weight=footprint_weight,
+                slewtime_weight=slewtime_weight,
+                stayfilter_weight=stayfilter_weight,
+                template_weight=template_weight,
+                u_template_weight=u_template_weight,
+                g_template_weight=g_template_weight,
+                footprints=footprints,
+                n_obs_template=n_obs_template,
+                season=season,
+                season_start_hour=season_start_hour,
+                season_end_hour=season_end_hour,
             )
         )
-        bfs.append(
-            (bf.StrictFilterBasisFunction(filtername=filtername), stayfilter_weight)
-        )
+
         bfs.append(
             (
                 bf.VisitRepeatBasisFunction(
@@ -709,51 +758,6 @@ def generate_blobs(
                 repeat_weight,
             )
         )
-
-        if filtername2 is not None:
-            bfs.append(
-                (
-                    bf.NObsPerYearBasisFunction(
-                        filtername=filtername,
-                        nside=nside,
-                        footprint=footprints.get_footprint(filtername),
-                        n_obs=n_obs_template[filtername],
-                        season=season,
-                        season_start_hour=season_start_hour,
-                        season_end_hour=season_end_hour,
-                    ),
-                    template_weights[filtername] / 2.0,
-                )
-            )
-            bfs.append(
-                (
-                    bf.NObsPerYearBasisFunction(
-                        filtername=filtername2,
-                        nside=nside,
-                        footprint=footprints.get_footprint(filtername2),
-                        n_obs=n_obs_template[filtername2],
-                        season=season,
-                        season_start_hour=season_start_hour,
-                        season_end_hour=season_end_hour,
-                    ),
-                    template_weights[filtername2] / 2.0,
-                )
-            )
-        else:
-            bfs.append(
-                (
-                    bf.NObsPerYearBasisFunction(
-                        filtername=filtername,
-                        nside=nside,
-                        footprint=footprints.get_footprint(filtername),
-                        n_obs=n_obs_template[filtername],
-                        season=season,
-                        season_start_hour=season_start_hour,
-                        season_end_hour=season_end_hour,
-                    ),
-                    template_weight,
-                )
-            )
 
         # Insert things for getting good seeing templates
         if filtername2 is not None:
@@ -812,29 +816,20 @@ def generate_blobs(
                 0.0,
             )
         )
-        bfs.append(
-            (
-                bf.MoonAvoidanceBasisFunction(nside=nside, moon_distance=moon_distance),
-                0.0,
-            )
-        )
-        filternames = [fn for fn in [filtername, filtername2] if fn is not None]
-        bfs.append((bf.FilterLoadedBasisFunction(filternames=filternames), 0))
         if filtername2 is None:
             time_needed = times_needed[0]
         else:
             time_needed = times_needed[1]
         bfs.append((bf.TimeToTwilightBasisFunction(time_needed=time_needed), 0.0))
         bfs.append((bf.NotTwilightBasisFunction(), 0.0))
-        bfs.append((bf.PlanetMaskBasisFunction(nside=nside), 0.0))
 
         # unpack the basis functions and weights
         weights = [val[1] for val in bfs]
         basis_functions = [val[0] for val in bfs]
         if filtername2 is None:
-            survey_name = "blob, %s" % filtername
+            survey_name = "pair_%i, %s" % (pair_time, filtername)
         else:
-            survey_name = "blob, %s%s" % (filtername, filtername2)
+            survey_name = "pair_%i, %s%s" % (pair_time, filtername, filtername2)
         if filtername2 is not None:
             detailer_list.append(detailers.TakeAsPairsDetailer(filtername=filtername2))
 
@@ -874,7 +869,7 @@ def generate_twi_blobs(
     shadow_minutes=60.0,
     max_alt=76.0,
     moon_distance=30.0,
-    ignore_obs=["DD", "twilight_neo"],
+    ignore_obs=["DD", "twilight_near_sun"],
     m5_weight=6.0,
     footprint_weight=1.5,
     slewtime_weight=3.0,
@@ -945,7 +940,7 @@ def generate_twi_blobs(
         "min_pair_time": 10.0,
         "search_radius": 30.0,
         "alt_max": 85.0,
-        "az_range": 90.0,
+        "az_range": None,
         "flush_time": 30.0,
         "smoothing_kernel": None,
         "nside": nside,
@@ -958,7 +953,7 @@ def generate_twi_blobs(
     surveys = []
 
     if n_obs_template is None:
-        n_obs_template = {"u": 3, "g": 5, "r": 5, "i": 5, "z": 5, "y": 5}
+        n_obs_template = {"u": 3, "g": 3, "r": 3, "i": 3, "z": 3, "y": 3}
 
     times_needed = [pair_time, pair_time * 2]
     for filtername, filtername2 in zip(filter1s, filter2s):
@@ -974,70 +969,26 @@ def generate_twi_blobs(
         # List to hold tuples of (basis_function_object, weight)
         bfs = []
 
-        if filtername2 is not None:
-            bfs.append(
-                (
-                    bf.M5DiffBasisFunction(filtername=filtername, nside=nside),
-                    m5_weight / 2.0,
-                )
-            )
-            bfs.append(
-                (
-                    bf.M5DiffBasisFunction(filtername=filtername2, nside=nside),
-                    m5_weight / 2.0,
-                )
-            )
-
-        else:
-            bfs.append(
-                (bf.M5DiffBasisFunction(filtername=filtername, nside=nside), m5_weight)
-            )
-
-        if filtername2 is not None:
-            bfs.append(
-                (
-                    bf.FootprintBasisFunction(
-                        filtername=filtername,
-                        footprint=footprints,
-                        out_of_bounds_val=np.nan,
-                        nside=nside,
-                    ),
-                    footprint_weight / 2.0,
-                )
-            )
-            bfs.append(
-                (
-                    bf.FootprintBasisFunction(
-                        filtername=filtername2,
-                        footprint=footprints,
-                        out_of_bounds_val=np.nan,
-                        nside=nside,
-                    ),
-                    footprint_weight / 2.0,
-                )
-            )
-        else:
-            bfs.append(
-                (
-                    bf.FootprintBasisFunction(
-                        filtername=filtername,
-                        footprint=footprints,
-                        out_of_bounds_val=np.nan,
-                        nside=nside,
-                    ),
-                    footprint_weight,
-                )
-            )
-
-        bfs.append(
-            (
-                bf.SlewtimeBasisFunction(filtername=filtername, nside=nside),
-                slewtime_weight,
+        bfs.extend(
+            standard_bf(
+                nside,
+                filtername=filtername,
+                filtername2=filtername2,
+                m5_weight=m5_weight,
+                footprint_weight=footprint_weight,
+                slewtime_weight=slewtime_weight,
+                stayfilter_weight=stayfilter_weight,
+                template_weight=template_weight,
+                u_template_weight=0,
+                g_template_weight=0,
+                footprints=footprints,
+                n_obs_template=n_obs_template,
+                season=season,
+                season_start_hour=season_start_hour,
+                season_end_hour=season_end_hour,
             )
         )
-        bfs.append(
-            (bf.StrictFilterBasisFunction(filtername=filtername), stayfilter_weight)
-        )
+
         bfs.append(
             (
                 bf.VisitRepeatBasisFunction(
@@ -1047,50 +998,6 @@ def generate_twi_blobs(
             )
         )
 
-        if filtername2 is not None:
-            bfs.append(
-                (
-                    bf.NObsPerYearBasisFunction(
-                        filtername=filtername,
-                        nside=nside,
-                        footprint=footprints.get_footprint(filtername),
-                        n_obs=n_obs_template[filtername],
-                        season=season,
-                        season_start_hour=season_start_hour,
-                        season_end_hour=season_end_hour,
-                    ),
-                    template_weight / 2.0,
-                )
-            )
-            bfs.append(
-                (
-                    bf.NObsPerYearBasisFunction(
-                        filtername=filtername2,
-                        nside=nside,
-                        footprint=footprints.get_footprint(filtername2),
-                        n_obs=n_obs_template[filtername2],
-                        season=season,
-                        season_start_hour=season_start_hour,
-                        season_end_hour=season_end_hour,
-                    ),
-                    template_weight / 2.0,
-                )
-            )
-        else:
-            bfs.append(
-                (
-                    bf.NObsPerYearBasisFunction(
-                        filtername=filtername,
-                        nside=nside,
-                        footprint=footprints.get_footprint(filtername),
-                        n_obs=n_obs_template[filtername],
-                        season=season,
-                        season_start_hour=season_start_hour,
-                        season_end_hour=season_end_hour,
-                    ),
-                    template_weight,
-                )
-            )
         if repeat_night_weight is not None:
             bfs.append(
                 (
@@ -1120,14 +1027,6 @@ def generate_twi_blobs(
                 0.0,
             )
         )
-        bfs.append(
-            (
-                bf.MoonAvoidanceBasisFunction(nside=nside, moon_distance=moon_distance),
-                0.0,
-            )
-        )
-        filternames = [fn for fn in [filtername, filtername2] if fn is not None]
-        bfs.append((bf.FilterLoadedBasisFunction(filternames=filternames), 0))
         if filtername2 is None:
             time_needed = times_needed[0]
         else:
@@ -1135,7 +1034,6 @@ def generate_twi_blobs(
         bfs.append(
             (bf.TimeToTwilightBasisFunction(time_needed=time_needed, alt_limit=12), 0.0)
         )
-        bfs.append((bf.PlanetMaskBasisFunction(nside=nside), 0.0))
 
         # Let's turn off twilight blobs on nights where we are
         # doing NEO hunts
@@ -1145,9 +1043,9 @@ def generate_twi_blobs(
         weights = [val[1] for val in bfs]
         basis_functions = [val[0] for val in bfs]
         if filtername2 is None:
-            survey_name = "blob_twi, %s" % filtername
+            survey_name = "pair_%i, %s" % (pair_time, filtername)
         else:
-            survey_name = "blob_twi, %s%s" % (filtername, filtername2)
+            survey_name = "pair_%i, %s%s" % (pair_time, filtername, filtername2)
         if filtername2 is not None:
             detailer_list.append(detailers.TakeAsPairsDetailer(filtername=filtername2))
         surveys.append(
@@ -1169,17 +1067,38 @@ def generate_twi_blobs(
     return surveys
 
 
-def ecliptic_target(nside=32, dist_to_eclip=40.0, dec_max=30.0, mask=None):
-    """Generate a target map for the area around the ecliptic
+def ddf_surveys(detailers=None, season_unobs_frac=0.2, euclid_detailers=None):
+    obs_array = generate_ddf_scheduled_obs(season_unobs_frac=season_unobs_frac)
 
-    Paramters
-    ---------
+    euclid_obs = np.where(
+        (obs_array["note"] == "DD:EDFS_b") | (obs_array["note"] == "DD:EDFS_a")
+    )[0]
+    all_other = np.where(
+        (obs_array["note"] != "DD:EDFS_b") & (obs_array["note"] != "DD:EDFS_a")
+    )[0]
+
+    survey1 = ScriptedSurvey([], detailers=detailers)
+    survey1.set_script(obs_array[all_other])
+
+    survey2 = ScriptedSurvey([], detailers=euclid_detailers)
+    survey2.set_script(obs_array[euclid_obs])
+
+    return [survey1, survey2]
+
+
+def ecliptic_target(nside=32, dist_to_eclip=40.0, dec_max=30.0, mask=None):
+    """Generate a target_map for the area around the ecliptic
+
+    Parameters
+    ----------
+    nside : int (32)
+        The HEALpix nside to use
     dist_to_eclip : float (40)
-        How far to extend from the ecliptic (degrees). default 40.
+        The distance to the ecliptic to constrain to (degrees).
     dec_max : float (30)
-        The maximum declination to extend to (degrees). default 30.
+        The max declination to alow (degrees).
     mask : np.array (None)
-        A HEALpix map that the result is multiplied by (default None)
+        Any additional mask to apply, should be a HEALpix mask with matching nside.
     """
 
     ra, dec = _hpid2_ra_dec(nside, np.arange(hp.nside2npix(nside)))
@@ -1197,7 +1116,7 @@ def ecliptic_target(nside=32, dist_to_eclip=40.0, dec_max=30.0, mask=None):
     return result
 
 
-def generate_twilight_neo(
+def generate_twilight_near_sun(
     nside,
     night_pattern=None,
     nexp=1,
@@ -1215,6 +1134,11 @@ def generate_twilight_neo(
     n_repeat=4,
     sun_alt_limit=-14.8,
     slew_estimate=4.5,
+    moon_distance=30.0,
+    shadow_minutes=60.0,
+    max_alt=76.0,
+    max_elong=60.0,
+    az_range=180.0,
 ):
     """Generate a survey for observing NEO objects in twilight
 
@@ -1254,16 +1178,9 @@ def generate_twilight_neo(
     slew_estimate : float (4.5)
         An estimate of how long it takes to slew between neighboring fields (seconds).
     """
-    # XXX finish eliminating magic numbers and document this one
-    moon_distance = 30.0
-    shadow_minutes = 60.0
-    max_alt = 76.0
-    max_elong = 60.0
-    az_range = 180.0
-
-    survey_name = "twilight_neo"
+    survey_name = "twilight_near_sun"
     footprint = ecliptic_target(nside=nside, mask=footprint_mask)
-    constant_fp = ConstantFootprint(nside=nside)
+    constant_fp = ConstantFootprint()
     for filtername in filters:
         constant_fp.set_footprint(filtername, footprint)
 
@@ -1350,7 +1267,7 @@ def generate_twilight_neo(
                 nside=nside,
                 exptime=exptime,
                 survey_note=survey_name,
-                ignore_obs=["DD", "greedy", "blob"],
+                ignore_obs=["DD", "greedy", "blob", "pair"],
                 dither=True,
                 nexp=nexp,
                 detailers=detailer_list,
@@ -1362,40 +1279,53 @@ def generate_twilight_neo(
     return surveys
 
 
-def ddf_surveys(detailers=None, season_unobs_frac=0.2, euclid_detailers=None):
-    obs_array = generate_ddf_scheduled_obs(season_unobs_frac=season_unobs_frac)
+def run_sched(
+    surveys,
+    survey_length=365.25,
+    nside=32,
+    fileroot="baseline_",
+    verbose=False,
+    extra_info=None,
+    illum_limit=40.0,
+    mjd_start=60796.0,
+):
+    years = np.round(survey_length / 365.25)
+    scheduler = CoreScheduler(surveys, nside=nside)
+    n_visit_limit = None
+    fs = FilterSchedUzy(illum_limit=illum_limit)
+    observatory = ModelObservatory(nside=nside, mjd_start=mjd_start)
+    observatory, scheduler, observations = sim_runner(
+        observatory,
+        scheduler,
+        survey_length=survey_length,
+        filename=fileroot + "%iyrs.db" % years,
+        delete_past=True,
+        n_visit_limit=n_visit_limit,
+        verbose=verbose,
+        extra_info=extra_info,
+        filter_scheduler=fs,
+    )
 
-    euclid_obs = np.where(
-        (obs_array["note"] == "DD:EDFS_b") | (obs_array["note"] == "DD:EDFS_a")
-    )[0]
-    all_other = np.where(
-        (obs_array["note"] != "DD:EDFS_b") & (obs_array["note"] != "DD:EDFS_a")
-    )[0]
-
-    survey1 = ScriptedSurvey([], detailers=detailers)
-    survey1.set_script(obs_array[all_other])
-
-    survey2 = ScriptedSurvey([], detailers=euclid_detailers)
-    survey2.set_script(obs_array[euclid_obs])
-
-    return [survey1, survey2]
+    return observatory, scheduler, observations
 
 
 def example_scheduler(
-    max_dither=0.7,
-    nexp=2,
-    nslice=2,
-    rolling_scale=0.9,
-    gsw=3,
-    nights_off=6,
-    neo_night_pattern=[True, False, False, False],
-    neo_filters="riz",
-    neo_repeat=4,
-    ddf_season_unobs_frac=0.2,
-    mjd_start=60676.0,
     nside=32,
+    nexp=2,
+    mjd_start=60796.0,
     per_night=True,
     camera_ddf_rot_limit=75.0,
+    neo_night_pattern=[True, False, False, False],
+    nslice=2,
+    rolling_scale=0.9,
+    nights_off=3,
+    max_dither=0.7,
+    ddf_season_frac=0.2,
+    neo_filters="riz",
+    neo_repeat=4,
+    neo_am=2.5,
+    neo_elong_req=45.0,
+    neo_area_req=0.0,
 ):
     """Make an example scheduler
 
@@ -1409,9 +1339,7 @@ def example_scheduler(
         Fraction of sky to divide for rolling (default 2).
     rolling_scale : float (0.9)
         The strength of rolling (between 0-1). Default 0.9.
-    gsw : float (3)
-        The good seeing weight (unitless). Default 3.
-    nights_off : int (6)
+    nights_off : int (3)
         How many nights to take off between nights with long-gap observations (days).
     neo_night_pattern : list of bool ([True, False, False, False])
         The pattern of observations to use for twilight NEO observations,
@@ -1421,7 +1349,7 @@ def example_scheduler(
     neo_repeat : int (4)
         How many times a pointing should be repeated when taking NEO observations.
         Default 4.
-    ddf_season_unobs_frac : (0.2)
+    ddf_season_frac : (0.2)
         Fraction of the season where the DDF should be considered unobservable. Applied to start
         and end of season.
     mjd_start : float (60676.0)
@@ -1432,9 +1360,7 @@ def example_scheduler(
         Dither the DDFs on a per-night basis. Default True.
     camera_ddf_rot_limit : float (75)
         Limit for how far to rotationally dither DDF fields (degrees)
-
     """
-
     if nside < 32:
         warnings.warn(
             "nside < 32 is lower resolution than the field of view, scheduler may perform poorly."
@@ -1442,7 +1368,7 @@ def example_scheduler(
 
     reverse_neo_night_pattern = [not val for val in neo_night_pattern]
 
-    # Create survey footprint
+    # Modify the footprint
     sky = EuclidOverlapFootprint(nside=nside, smc_radius=4, lmc_radius=6)
     footprints_hp_array, labels = sky.return_maps()
 
@@ -1461,13 +1387,13 @@ def example_scheduler(
 
     repeat_night_weight = None
 
-    # Need to find the sun RA at the start of the survey
-    sun = get_sun(Time(mjd_start, format="mjd"))
+    observatory = ModelObservatory(nside=nside, mjd_start=mjd_start)
+    conditions = observatory.return_conditions()
 
     footprints = make_rolling_footprints(
         fp_hp=footprints_hp,
-        mjd_start=mjd_start,
-        sun_ra_start=sun.ra.rad,
+        mjd_start=conditions.mjd_start,
+        sun_ra_start=conditions.sun_ra_start,
         nslice=nslice,
         scale=rolling_scale,
         nside=nside,
@@ -1479,7 +1405,9 @@ def example_scheduler(
     gaps_night_pattern = [True] + [False] * nights_off
 
     long_gaps = gen_long_gaps_survey(
-        nside=nside, footprints=footprints, night_pattern=gaps_night_pattern
+        nside=nside,
+        footprints=footprints,
+        night_pattern=gaps_night_pattern,
     )
 
     # Set up the DDF surveys to dither
@@ -1503,27 +1431,28 @@ def example_scheduler(
         u_detailer,
         detailers.Rottep2RotspDesiredDetailer(),
     ]
-
     ddfs = ddf_surveys(
         detailers=details,
-        season_unobs_frac=ddf_season_unobs_frac,
+        season_unobs_frac=ddf_season_frac,
         euclid_detailers=euclid_detailers,
     )
 
     greedy = gen_greedy_surveys(nside, nexp=nexp, footprints=footprints)
-    neo = generate_twilight_neo(
+    neo = generate_twilight_near_sun(
         nside,
         night_pattern=neo_night_pattern,
         filters=neo_filters,
         n_repeat=neo_repeat,
         footprint_mask=footprint_mask,
+        max_airmass=neo_am,
+        max_elong=neo_elong_req,
+        area_required=neo_area_req,
     )
     blobs = generate_blobs(
         nside,
         nexp=nexp,
         footprints=footprints,
-        mjd_start=mjd_start,
-        good_seeing_weight=gsw,
+        mjd_start=conditions.mjd_start,
     )
     twi_blobs = generate_twi_blobs(
         nside,
@@ -1540,36 +1469,6 @@ def example_scheduler(
     return scheduler
 
 
-def run_sched(
-    surveys,
-    survey_length=365.25,
-    nside=32,
-    fileroot="baseline_",
-    verbose=False,
-    extra_info=None,
-    illum_limit=40.0,
-    mjd_start=60676.0,
-):
-    years = np.round(survey_length / 365.25)
-    scheduler = CoreScheduler(surveys, nside=nside)
-    n_visit_limit = None
-    fs = FilterSchedUzy(illum_limit=illum_limit)
-    observatory = ModelObservatory(nside=nside, mjd_start=mjd_start)
-    observatory, scheduler, observations = sim_runner(
-        observatory,
-        scheduler,
-        survey_length=survey_length,
-        filename=fileroot + "%iyrs.db" % years,
-        delete_past=True,
-        n_visit_limit=n_visit_limit,
-        verbose=verbose,
-        extra_info=extra_info,
-        filter_scheduler=fs,
-    )
-
-    return observatory, scheduler, observations
-
-
 def main(args):
     survey_length = args.survey_length  # Days
     outDir = args.outDir
@@ -1580,15 +1479,17 @@ def main(args):
     nslice = args.rolling_nslice
     rolling_scale = args.rolling_strength
     dbroot = args.dbroot
-    gsw = args.gsw
     nights_off = args.nights_off
     neo_night_pattern = args.neo_night_pattern
     neo_filters = args.neo_filters
     neo_repeat = args.neo_repeat
     ddf_season_frac = args.ddf_season_frac
+    neo_am = args.neo_am
+    neo_elong_req = args.neo_elong_req
+    neo_area_req = args.neo_area_req
 
     # Be sure to also update and regenerate DDF grid save file if changing mjd_start
-    mjd_start = 60676.0
+    mjd_start = 60796.0
     nside = 32
     per_night = True  # Dither DDF per night
 
@@ -1617,7 +1518,7 @@ def main(args):
         fileroot = os.path.basename(sys.argv[0]).replace(".py", "") + "_"
     else:
         fileroot = dbroot + "_"
-    file_end = "v3.1_"
+    file_end = "v3.2_"
 
     pattern_dict = {
         1: [True],
@@ -1703,19 +1604,21 @@ def main(args):
     )
 
     greedy = gen_greedy_surveys(nside, nexp=nexp, footprints=footprints)
-    neo = generate_twilight_neo(
+    neo = generate_twilight_near_sun(
         nside,
         night_pattern=neo_night_pattern,
         filters=neo_filters,
         n_repeat=neo_repeat,
         footprint_mask=footprint_mask,
+        max_airmass=neo_am,
+        max_elong=neo_elong_req,
+        area_required=neo_area_req,
     )
     blobs = generate_blobs(
         nside,
         nexp=nexp,
         footprints=footprints,
         mjd_start=conditions.mjd_start,
-        good_seeing_weight=gsw,
     )
     twi_blobs = generate_twi_blobs(
         nside,
@@ -1759,13 +1662,14 @@ if __name__ == "__main__":
     parser.add_argument("--rolling_nslice", type=int, default=2)
     parser.add_argument("--rolling_strength", type=float, default=0.9)
     parser.add_argument("--dbroot", type=str)
-    parser.add_argument("--gsw", type=float, default=3.0, help="good seeing weight")
     parser.add_argument("--ddf_season_frac", type=float, default=0.2)
-
-    parser.add_argument("--nights_off", type=int, default=6)
+    parser.add_argument("--nights_off", type=int, default=3, help="For long gaps")
     parser.add_argument("--neo_night_pattern", type=int, default=4)
     parser.add_argument("--neo_filters", type=str, default="riz")
     parser.add_argument("--neo_repeat", type=int, default=4)
+    parser.add_argument("--neo_am", type=float, default=2.5)
+    parser.add_argument("--neo_elong_req", type=float, default=45.0)
+    parser.add_argument("--neo_area_req", type=float, default=0.0)
 
     args = parser.parse_args()
     main(args)
