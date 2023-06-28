@@ -80,6 +80,13 @@ def rs_download_data():
         action="store_true",
         help="Include pre-computed orbit files.",
     )
+    parser.add_argument(
+        "--tdqm_disable",
+        dest="tdqm_disable",
+        default=False,
+        action="store_true",
+        help="Turn off tdqm progress bar",
+    )
     args = parser.parse_args()
 
     dirs = args.dirs
@@ -157,7 +164,9 @@ def rs_download_data():
             block_size = (
                 1024 * 1024
             )  # download this size chunk at a time; reasonable guess
-            progress_bar = tqdm(total=file_size, unit="iB", unit_scale=True)
+            progress_bar = tqdm(
+                total=file_size, unit="iB", unit_scale=True, disable=args.tdqm_disable
+            )
             print(f"Writing to {os.path.join(data_dir, filename)}")
             with open(os.path.join(data_dir, filename), "wb") as f:
                 for chunk in r.iter_content(chunk_size=block_size):
