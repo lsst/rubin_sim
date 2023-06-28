@@ -41,7 +41,7 @@ jobs:
         shell: bash -l {0}
         run: |
           export RUBIN_SIM_DATA_DIR=${{ github.workspace }}/data_dir
-          rs_download_data --force
+          rs_download_data --force --tdqm_disable
       - name: conda list
         shell: bash -l {0}
         run: conda list
