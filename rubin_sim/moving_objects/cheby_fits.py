@@ -575,6 +575,11 @@ class ChebyFits(object):
         append : bool, optional
             Flag to append (or overwrite) the output files.
         """
+
+        warnings.warn(
+            "Writing cheby fit values may have cross-platform issues. Consider passing values directly"
+        )
+
         if append:
             open_mode = "aw"
         else:
