@@ -17,8 +17,8 @@ Prerequisites:  A working [conda installation ](https://www.anaconda.com/product
 
 If you are only running `rubin_sim` code and not making changes. If you will be editing the code or need the very latest verison, use the pip instructions below.
 ```
-conda create -n rubin -c conda-forge rubin_sim # Create a new environment
-conda activate rubin
+conda create -n rubin-sim -c conda-forge rubin_sim # Create a new environment
+conda activate rubin-sim
 rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
 conda install -c conda-forge jupyter # Optional install of jupyter
 ```
@@ -26,28 +26,15 @@ Note that this is not the best option for developers working on their own metric
 
 ### Pip Installation ###
 
-To install `rubin_sim` from source using pip:
+To install `rubin_sim` from source using pip, with all required dependencies:
 ```
 git clone https://github.com/lsst/rubin_sim.git ; cd rubin_sim # clone and cd into repo
-conda create -n rubin ; conda activate rubin  # optional (but recommended) new conda env
-conda install -c conda-forge --file=all_req.txt
+conda create -n rubin-sim ; conda activate rubin-sim  # optional (but recommended) new conda env
+mamba install -c conda-forge --file=all_req.txt
 pip install -e .
 rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
 ```
-Note that external collaborators will likely want to follow similar directions, except create a fork of our rubin_sim github repo first (and then clone from there).
-
-
-### Install into an LSST Stack Environment ###
-
-We expect some users to want to install rubin_sim into an LSST stack environment, using only some of the basic options within rubin_sim such as photUtils.
-This can be done without impacting the LSST environment by 
-```
-source loadLSST.sh (or your equivalent)
-git clone https://github.com/lsst/rubin_sim.git
-cd rubin_sim
-pip install -e .
-rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
-```
+Note that external collaborators will likely want to follow similar directions, using a fork of our rubin_sim github repo first (and then clone from there).
 
 ### Data download for rubin_sim ###
 
