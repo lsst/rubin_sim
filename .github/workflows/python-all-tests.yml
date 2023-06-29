@@ -1,9 +1,11 @@
 name: Run All Tests
 
 on:
-  release:
-    types:
-      - created
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
   workflow_dispatch:
 
 jobs:
@@ -13,8 +15,8 @@ jobs:
     strategy:
       fail-fast: True
       matrix:
-        os: ["ubuntu-latest", "macos-latest"]
-        python-version: ["3.10", "3.9"]
+        os: ["ubuntu-latest-8-cores"]
+        python-version: ["3.10"]
     steps:
       - uses: actions/checkout@v3
 
@@ -41,7 +43,7 @@ jobs:
         shell: bash -l {0}
         run: |
           export RUBIN_SIM_DATA_DIR=${{ github.workspace }}/data_dir
-          rs_download_data --force
+          rs_download_data --force --tdqm_disable
       - name: conda list
         shell: bash -l {0}
         run: conda list

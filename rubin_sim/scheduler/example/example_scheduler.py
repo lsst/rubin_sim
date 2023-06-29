@@ -99,8 +99,8 @@ def standard_bf(
 
     Returns
     -------
-    basis_functions_weights : `list` 
-        list of tuple pairs (basis function, weight) that is 
+    basis_functions_weights : `list`
+        list of tuple pairs (basis function, weight) that is
         (rubin_sim.scheduler.BasisFunction object, float)
 
     """

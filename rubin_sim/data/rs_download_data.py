@@ -2,11 +2,17 @@
 import os
 import warnings
 import requests
+from requests.exceptions import ConnectionError
 import argparse
-
+from tqdm.auto import tqdm
 from shutil import unpack_archive, rmtree
 
 from .data_sets import get_data_dir, data_versions
+
+DEFAULT_DATA_URL = "https://s3df.slac.stanford.edu/data/rubin/sim-data/rubin_sim_data/"
+BACKUP_DATA_URL = (
+    "https://epyc.astro.washington.edu/~lynnej/opsim_downloads/rubin_sim_data/"
+)
 
 
 def data_dict():
@@ -64,7 +70,7 @@ def rs_download_data():
     parser.add_argument(
         "--url_base",
         type=str,
-        default="https://s3df.slac.stanford.edu/data/rubin/sim-data/rubin_sim_data/",
+        default=DEFAULT_DATA_URL,
         help="Root URL of download location",
     )
     parser.add_argument(
@@ -74,6 +80,13 @@ def rs_download_data():
         action="store_true",
         help="Include pre-computed orbit files.",
     )
+    parser.add_argument(
+        "--tdqm_disable",
+        dest="tdqm_disable",
+        default=False,
+        action="store_true",
+        help="Turn off tdqm progress bar",
+    )
     args = parser.parse_args()
 
     dirs = args.dirs
@@ -81,7 +94,7 @@ def rs_download_data():
         dirs = files.keys()
     else:
         dirs = dirs.split(",")
-    url_base = args.url_base
+
     data_dir = get_data_dir()
     if not os.path.isdir(data_dir):
         os.mkdir(data_dir)
@@ -107,6 +120,28 @@ def rs_download_data():
     if not args.orbits:
         dirs = [key for key in dirs if "orbits_precompute" not in key]
 
+    # See if base URL is alive
+    s = requests.Session()
+    url_base = args.url_base
+    try:
+        r = requests.get(url_base)
+        if r.status_code != requests.codes.ok:
+            url_base = BACKUP_DATA_URL
+    except ConnectionError:
+        url_base = BACKUP_DATA_URL
+    print(f"Could not connect to {args.url_base}; trying {url_base}")
+    try:
+        r = requests.get(url_base)
+        fail_message = (
+            f"Could not connect to {args.url_base} or {url_base}. Check sites are up?"
+        )
+    except ConnectionError:
+        print(fail_message)
+        exit()
+    if r.status_code != requests.codes.ok:
+        print(fail_message)
+        exit()
+
     for key in dirs:
         filename = files[key]
         path = os.path.join(data_dir, key)
@@ -121,15 +156,29 @@ def rs_download_data():
             # Download file
             url = url_base + filename
             print("Downloading file: %s" % url)
-            r = requests.get(url)
+            # stream and write in chunks (avoid large memory usage)
+            r = requests.get(url, stream=True)
+            file_size = int(r.headers.get("Content-Length", 0))
+            if file_size < 245:
+                warnings.warn(f"{url} file size unexpectedly small.")
+            block_size = (
+                1024 * 1024
+            )  # download this size chunk at a time; reasonable guess
+            progress_bar = tqdm(
+                total=file_size, unit="iB", unit_scale=True, disable=args.tdqm_disable
+            )
+            print(f"Writing to {os.path.join(data_dir, filename)}")
             with open(os.path.join(data_dir, filename), "wb") as f:
-                f.write(r.content)
+                for chunk in r.iter_content(chunk_size=block_size):
+                    progress_bar.update(len(chunk))
+                    f.write(chunk)
+            progress_bar.close()
             # untar in place
             unpack_archive(os.path.join(data_dir, filename), data_dir)
             os.remove(os.path.join(data_dir, filename))
             versions[key] = files[key]
 
-    # Write out the new version info
+    # Write out the new version info to the data directory
     with open(version_file, "w") as f:
         for key in versions:
             print(key + "," + versions[key], file=f)

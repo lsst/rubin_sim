@@ -45,8 +45,8 @@ jobs:
         shell: bash -l {0}
         run: |
           export RUBIN_SIM_DATA_DIR=${{ github.workspace }}/data_dir
-          rs_download_data -d 'site_models,throughputs,skybrightness,skybrightness_pre'
-          rs_download_data -d tests --force
+          rs_download_data --tdqm_disable -d 'site_models,throughputs,skybrightness,skybrightness_pre'
+          rs_download_data --tdqm_disable -d tests --force
       - name: conda list
         shell: bash -l {0}
         run: conda list
@@ -59,7 +59,7 @@ jobs:
   Docs:
     name: Build and push documentation
     needs: Tests
-    runs-on: "ubuntu-latest"
+    runs-on: "macos-latest"
     steps:
       - uses: actions/checkout@v3
       - uses: conda-incubator/setup-miniconda@v2
@@ -85,7 +85,7 @@ jobs:
         shell: bash -l {0}
         run: |
           export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
-          rs_download_data -d 'maf,throughputs'
+          rs_download_data --tdqm_disable -d 'maf,throughputs'
       - name: conda list
         shell: bash -l {0}
         run: conda list

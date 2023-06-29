@@ -25,6 +25,8 @@ class TestModelObservatory(unittest.TestCase):
 
         mjd_start = 60111.0
         mo_default = ModelObservatory(mjd_start=mjd_start)
+        # Never load too many nights of sky
+        mo_default.sky_model.load_length = 10.0
         cond_default = mo_default.return_conditions()
 
         # Define new downtimes
@@ -41,6 +43,8 @@ class TestModelObservatory(unittest.TestCase):
             cloud_data=cloud_data,
             downtimes=downtimes,
         )
+        # Never load too many nights of sky
+        mo_new.sky_model.load_length = 10.0
         cond_new = mo_new.return_conditions()
 
         # Make sure the internal downtimes are different
