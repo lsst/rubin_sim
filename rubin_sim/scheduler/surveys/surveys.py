@@ -114,40 +114,40 @@ class BlobSurvey(GreedySurvey):
 
     Parameters
     ----------
-    filtername1 : str ('r')
+    filtername1 : `str`
         The filter to observe in.
-    filtername2 : str ('g')
+    filtername2 : `str`
         The filter to pair with the first observation. If set to None, no pair
         will be observed.
-    slew_approx : float (7.5)
+    slew_approx : `float`
         The approximate slewtime between neerby fields (seconds). Used to calculate
         how many observations can be taken in the desired time block.
-    nexp : int (2)
+    nexp : `int`
         The number of exposures to take in a visit.
-    exp_dict : dict (None)
+    exp_dict : `dict`
         If set, should have keys of filtername and values of ints that are the nuber of exposures to take
         per visit. For estimating block time, nexp is still used.
-    filter_change_approx : float (140.)
+    filter_change_approx : `float`
          The approximate time it takes to change filters (seconds).
-    ideal_pair_time : float (22.)
+    ideal_pair_time : `float`
         The ideal time gap wanted between observations to the same pointing (minutes)
-    min_pair_time : float (15.)
+    min_pair_time : `float`
         The minimum acceptable pair time (minutes)
-    flush_time : float (30.)
+    flush_time : `float`
         The time past the final expected exposure to flush the queue. Keeps observations
         from lingering past when they should be executed. (minutes)
-    twilight_scale : bool (True)
+    twilight_scale : `bool`
         Scale the block size to fill up to twilight. Set to False if running in twilight
-    in_twilight : bool (False)
+    in_twilight : `bool`
         Scale the block size to stay within twilight time.
-    check_scheduled : bool (True)
+    check_scheduled : `bool`
         Check if there are scheduled observations and scale blob size to match
-    min_area : float (None)
+    min_area : `float`
         If set, demand the reward function have an area of so many square degrees before executing
-    grow_blob : bool (True)
+    grow_blob : `bool`
         If True, try to grow the blob from the global maximum. Otherwise, just use a simple sort.
         Simple sort will not constrain the blob to be contiguous.
-    max_radius_peak : float (40)
+    max_radius_peak : `float`
         The maximum radius to demand things be within the maximum of the reward function. (degrees)
         Note that traveling salesman solver can have rare failures if this is set too large
         (probably issue with projection effects or something).
@@ -366,7 +366,6 @@ class BlobSurvey(GreedySurvey):
             self.nvisit_block = 1
 
     def calc_reward_function(self, conditions):
-        """"""
         # Set the number of observations we are going to try and take
         self._set_block_size(conditions)
         #  Computing reward like usual with basis functions and weights
