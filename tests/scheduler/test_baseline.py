@@ -154,10 +154,11 @@ class TestExample(unittest.TestCase):
     )
     def test_example(self):
         """Try out the example scheduler."""
+        mjd_start = 60115.0
         nside = 32
         survey_length = 2.0  # days
-        scheduler = example_scheduler(nside=nside)
-        observatory = ModelObservatory(nside=nside)
+        scheduler = example_scheduler(nside=nside, mjd_start=mjd_start)
+        observatory = ModelObservatory(nside=nside, mjd_start=mjd_start)
         observatory, scheduler, observations = sim_runner(
             observatory, scheduler, survey_length=survey_length, filename=None
         )
@@ -179,6 +180,7 @@ class TestFeatures(unittest.TestCase):
         """
         Set up a greedy survey and run for a few days. A crude way to touch lots of code.
         """
+        mjd_start = 60110.0
         nside = 32
         survey_length = 2.0  # days
 
@@ -191,7 +193,7 @@ class TestFeatures(unittest.TestCase):
         surveys.extend(dd_surveys)
 
         scheduler = CoreScheduler(surveys, nside=nside)
-        observatory = ModelObservatory(nside=nside)
+        observatory = ModelObservatory(nside=nside, mjd_start=mjd_start)
         observatory, scheduler, observations = sim_runner(
             observatory, scheduler, survey_length=survey_length, filename=None
         )
@@ -210,6 +212,7 @@ class TestFeatures(unittest.TestCase):
         """
         Set up a blob selection survey
         """
+        mjd_start = 60110.0
         nside = 32
         survey_length = 2.0  # days
 
@@ -222,7 +225,7 @@ class TestFeatures(unittest.TestCase):
         surveys.append(gen_greedy_surveys(nside))
 
         scheduler = CoreScheduler(surveys, nside=nside)
-        observatory = ModelObservatory(nside=nside)
+        observatory = ModelObservatory(nside=nside, mjd_start=mjd_start)
         observatory, scheduler, observations = sim_runner(
             observatory, scheduler, survey_length=survey_length, filename=None
         )
@@ -244,6 +247,7 @@ class TestFeatures(unittest.TestCase):
         """
         test running at higher nside
         """
+        mjd_start = 60110.0
         nside = 64
         survey_length = 2.0  # days
 
@@ -256,7 +260,7 @@ class TestFeatures(unittest.TestCase):
         surveys.append(gen_greedy_surveys(nside))
 
         scheduler = CoreScheduler(surveys, nside=nside)
-        observatory = ModelObservatory(nside=nside)
+        observatory = ModelObservatory(nside=nside, mjd_start=mjd_start)
         observatory, scheduler, observations = sim_runner(
             observatory, scheduler, survey_length=survey_length, filename=None
         )
