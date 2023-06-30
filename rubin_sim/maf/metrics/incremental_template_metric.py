@@ -13,7 +13,7 @@ class TemplateTime(BaseMetric):
     
     Parameters
     ----------
-    n_visits : `int`, opt
+    n_images_in_template : `int`, opt
         Number of qualified visits required for incremental template generation. 
         Default 3. 
     seeing_range : `float`, opt
@@ -32,10 +32,10 @@ class TemplateTime(BaseMetric):
         Name of column describing filter
     """
     
-    def __init__(self, n_visits=3, seeing_ratio=2.0, m5_range=0.5, 
+    def __init__(self, n_images_in_template=3, seeing_ratio=2.0, m5_range=0.5, 
                  seeingCol='seeingFwhmEff', m5Col='fiveSigmaDepth',
                  nightCol = 'night', mjd_col = 'observationStartMJD', filter_col = 'filter', **kwargs):
-        self.n_visits = n_visits
+        self.n_images_in_template = n_images_in_template
         self.seeing_ratio = seeing_ratio
         self.m5_range = m5_range
         self.seeingCol = seeingCol
@@ -56,7 +56,7 @@ class TemplateTime(BaseMetric):
         result = {}
         
         # Bail if not enough visits at all
-        if len(dataSlice) < self.n_visits:
+        if len(dataSlice) < self.n_images_in_template:
             return self.badval
         
         # Check that the visits are sorted in time
@@ -75,11 +75,11 @@ class TemplateTime(BaseMetric):
                         True, False)
 
         ok_template_input = np.where(seeing_ok & m5_ok)[0]
-        if len(ok_template_input) < self.n_visits: # If seeing_ok and/or m5_ok are "false", returned as bad value
+        if len(ok_template_input) < self.n_images_in_template: # If seeing_ok and/or m5_ok are "false", returned as bad value
             return self.badval
             
-        idx_template_created = ok_template_input[self.n_visits - 1] # Last image needed for template
-        idx_template_inputs = ok_template_input[:self.n_visits] # Images included in template
+        idx_template_created = ok_template_input[self.n_images_in_template - 1] # Last image needed for template
+        idx_template_inputs = ok_template_input[:self.n_images_in_template] # Images included in template
         
         Night_template_created = dataSlice[self.nightCol][idx_template_created]
         N_nights_without_template = Night_template_created - dataSlice[self.nightCol][0]
@@ -100,6 +100,7 @@ class TemplateTime(BaseMetric):
         result["N_images_with_template"] = N_images_with_template
         result["Template_m5"] = template_m5
         result["Total_alerts"] = np.sum(n_alerts_per_diffim[where_template])
+        result["Template_input_m5s"] = dataSlice[self.m5Col][idx_template_inputs]
         result["Diffim_lc"] = {
             "mjd":dataSlice[self.mjd_col][where_template],
             "diff_m5":diff_m5s[where_template],
