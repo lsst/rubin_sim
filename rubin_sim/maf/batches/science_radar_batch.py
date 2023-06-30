@@ -1405,16 +1405,41 @@ def science_radar_batch(
 
         gaps = [3.0, 7.0, 24.0]
         for gap in gaps:
+            summary_stats = []
+            summary_stats.append(
+                metrics.AreaSummaryMetric(
+                    area=18000,
+                    reduce_func=np.median,
+                    decreasing=False,
+                    metric_name="Median N gaps in %s at %ihr in top 18k"
+                    % (filtername, gap),
+                )
+            )
+
+            summary_stats.append(
+                metrics.AreaSummaryMetric(
+                    area=18000,
+                    reduce_func=np.mean,
+                    decreasing=False,
+                    metric_name="Mean N gaps in %s at %ihr in top 18k"
+                    % (filtername, gap),
+                )
+            )
+
+            summary_stats.append(metrics.MeanMetric())
+            summary_stats.append(metrics.MedianMetric())
+
             m2 = metrics.GapsMetric(
                 time_scale=gap,
                 metric_name="Gaps_%ihr" % gap,
             )
             plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
             plotDict = {"color_min": 0, "color": colors[f], "percentile_clip": 95}
-            summaryMetrics = extended_summary()
-            displayDict[
-                "caption"
-            ] = "Number of times the timescale of ~%i hours is sampled in %s band(s)." % (gap, f)
+
+            displayDict["caption"] = (
+                "Number of times the timescale of ~%i hours is sampled in %s band(s)."
+                % (gap, f)
+            )
             displayDict["order"] = filterorders[f]
             bundleList.append(
                 mb.MetricBundle(
@@ -1423,7 +1448,7 @@ def science_radar_batch(
                     constraint=filtersqls[f],
                     info_label=filterinfo_label[f],
                     run_name=runName,
-                    summary_metrics=summaryMetrics,
+                    summary_metrics=summary_stats,
                     plot_dict=plotDict,
                     plot_funcs=plotFuncs,
                     display_dict=displayDict,
