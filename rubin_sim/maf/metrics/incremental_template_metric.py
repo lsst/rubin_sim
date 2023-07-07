@@ -16,10 +16,10 @@ class TemplateTime(BaseMetric):
     n_images_in_template : `int`, opt
         Number of qualified visits required for incremental template generation. 
         Default 3. 
-    seeing_range : `float`, opt
-        Range of seeing to allow in the qualified images. 
-    m5_range : `float`, opt
-        Range of m5 values to allow in the qualified images. Stand in for `weight` in template.
+    seeing_percentile : `float`, opt
+        Maximum percentile seeing to allow in the qualified images (0 - 100). 
+    m5_percentile : `float`, opt
+        Maximum percentile m5 to allow in the qualified images (0 - 100). Stand in for `weight` in template.
     seeingCol : `str`, opt
         Name of the seeing column to use.
     m5Col : `str`, opt
@@ -32,12 +32,12 @@ class TemplateTime(BaseMetric):
         Name of column describing filter
     """
     
-    def __init__(self, n_images_in_template=3, seeing_ratio=2.0, m5_range=0.5, 
+    def __init__(self, n_images_in_template=3, seeing_percentile=25, m5_percentile=25, 
                  seeingCol='seeingFwhmEff', m5Col='fiveSigmaDepth',
                  nightCol = 'night', mjd_col = 'observationStartMJD', filter_col = 'filter', **kwargs):
         self.n_images_in_template = n_images_in_template
-        self.seeing_ratio = seeing_ratio
-        self.m5_range = m5_range
+        self.seeing_percentile = seeing_percentile
+        self.m5_percentile = m5_percentile
         self.seeingCol = seeingCol
         self.m5Col = m5Col
         self.nightCol = nightCol
@@ -62,16 +62,17 @@ class TemplateTime(BaseMetric):
         # Check that the visits are sorted in time
         dataSlice.sort(order=self.mjd_col)
         
-        # Find the best seeing in the first few images
-        bench_seeing = np.percentile(dataSlice[self.seeingCol],25)
-        bench_m5 = np.percentile(dataSlice[self.m5Col],25)
+        # Find the threshold seeing and m5
+       
+        bench_seeing = np.percentile(dataSlice[self.seeingCol], self.seeing_percentile)
+        bench_m5 = np.percentile(dataSlice[self.m5Col], 100 - self.m5_percentile)
         
         #Checks whether data was collected on night where seeing conditions were preferable
-        seeing_ok = np.where(dataSlice[self.seeingCol]/bench_seeing < self.seeing_ratio, 
+        seeing_ok = np.where(dataSlice[self.seeingCol] < bench_seeing, 
                             True, False)
         
         #Checks whether data was collected where seeing range was preferable
-        m5_ok = np.where(bench_m5 - dataSlice[self.m5Col] < self.m5_range,
+        m5_ok = np.where(dataSlice[self.m5Col] > bench_m5,
                         True, False)
 
         ok_template_input = np.where(seeing_ok & m5_ok)[0]
