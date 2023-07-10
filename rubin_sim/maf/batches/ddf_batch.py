@@ -128,7 +128,7 @@ def ddfBatch(
             maf.MetricBundle(
                 metric,
                 ddf_slicers_sne[ddf],
-                constraint="note like '%DD%'",
+                constraint="",
                 info_label=" ".join([fieldname, "all bands, only DDF observations"]),
                 plot_dict=plotDict,
                 plot_funcs=plotFuncs,

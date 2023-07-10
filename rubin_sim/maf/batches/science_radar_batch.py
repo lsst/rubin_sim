@@ -1410,9 +1410,9 @@ def science_radar_batch(
                 metrics.AreaSummaryMetric(
                     area=18000,
                     reduce_func=np.median,
-                    decreasing=False,
+                    decreasing=True,
                     metric_name="Median N gaps in %s at %ihr in top 18k"
-                    % (filtername, gap),
+                    % (f, gap),
                 )
             )
 
@@ -1420,9 +1420,9 @@ def science_radar_batch(
                 metrics.AreaSummaryMetric(
                     area=18000,
                     reduce_func=np.mean,
-                    decreasing=False,
+                    decreasing=True,
                     metric_name="Mean N gaps in %s at %ihr in top 18k"
-                    % (filtername, gap),
+                    % (f, gap),
                 )
             )
 
