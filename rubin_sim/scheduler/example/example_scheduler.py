@@ -1180,7 +1180,7 @@ def generate_twilight_near_sun(
     """
     survey_name = "twilight_near_sun"
     footprint = ecliptic_target(nside=nside, mask=footprint_mask)
-    constant_fp = ConstantFootprint()
+    constant_fp = ConstantFootprint(nside=nside)
     for filtername in filters:
         constant_fp.set_footprint(filtername, footprint)
 

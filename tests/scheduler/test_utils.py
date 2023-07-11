@@ -14,6 +14,16 @@ class TestUtils(unittest.TestCase):
         os.path.isfile(os.path.join(get_data_dir(), "maps/DustMaps/dust_nside_32.npz")),
         "Test data not available.",
     )
+    def test_nside(self):
+        """Test the example scheduler can be set to different nsides."""
+        mjd_start = 60110.0
+        scheduler = example_scheduler(mjd_start=mjd_start, nside=512)
+        scheduler = example_scheduler(mjd_start=mjd_start, nside=8)
+
+    @unittest.skipUnless(
+        os.path.isfile(os.path.join(get_data_dir(), "maps/DustMaps/dust_nside_32.npz")),
+        "Test data not available.",
+    )
     def test_restore(self):
         """Test we can restore a scheduler properly"""
         # MJD set so it's in test data range
