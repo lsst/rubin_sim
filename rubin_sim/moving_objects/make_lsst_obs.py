@@ -9,6 +9,12 @@ import numpy as np
 import rubin_sim.moving_objects as mo
 from rubin_sim.maf.batches import col_map_dict
 
+# So things don't fail on hyak
+from astropy.utils import iers
+
+iers.conf.auto_download = False
+
+
 __all__ = ["setup_args"]
 
 
