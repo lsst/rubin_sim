@@ -22,7 +22,7 @@ class GapsMetric(BaseMetric):
         The column name for the exposure times.  Values assumed to be in days.
     time_scale : `float` (2)
         Time scale to see how well it is sampled (hours). For example, the default of 2 hours means
-        observations spaced anywhere between 1 and 3 hours will count as a sample. 
+        observations spaced anywhere between 1 and 3 hours will count as a sample.
     """
 
     def __init__(
