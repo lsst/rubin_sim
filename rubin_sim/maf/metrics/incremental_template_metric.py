@@ -104,6 +104,7 @@ class TemplateTime(BaseMetric):
         result["Template_input_m5s"] = dataSlice[self.m5Col][idx_template_inputs]
         result["Diffim_lc"] = {
             "mjd":dataSlice[self.mjd_col][where_template],
+            "night":dataSlice[self.nightCol][where_template],
             "diff_m5":diff_m5s[where_template],
             "band":dataSlice[self.filter_col][where_template],
             "science_m5":dataSlice[self.m5Col][where_template],
