@@ -2,12 +2,12 @@
 import argparse
 import glob
 import os
+import sqlite3
+
+import numpy as np
+import pandas as pd
 
 import rubin_sim.maf.db as db
-import argparse
-import pandas as pd
-import sqlite3
-import numpy as np
 
 
 def generate_ss_commands(

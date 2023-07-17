@@ -4,7 +4,7 @@ import logging
 import numpy as np
 
 from rubin_sim.utils import angular_separation
-import warnings
+
 from .base_obs import BaseObs
 
 __all__ = ["DirectObs"]

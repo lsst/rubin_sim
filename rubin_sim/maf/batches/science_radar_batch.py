@@ -1433,11 +1433,9 @@ def science_radar_batch(
             )
             plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
             plotDict = {"color_min": 0, "color": colors[f], "percentile_clip": 95}
-
-            displayDict["caption"] = (
-                "Number of times the timescale of ~%i hours is sampled in %s band(s)."
-                % (gap, f)
-            )
+            displayDict[
+                "caption"
+            ] = "Number of times the timescale of ~%i hours is sampled in %s band(s)." % (gap, f)
             displayDict["order"] = filterorders[f]
             bundleList.append(
                 mb.MetricBundle(
