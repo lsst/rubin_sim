@@ -7,7 +7,7 @@ from .sed_utils import get_imsim_flux_norm
 __all__ = ["SedList"]
 
 
-class SedList(object):
+class SedList:
     """
     This class will read in a list of Seds from disk and store them.
 

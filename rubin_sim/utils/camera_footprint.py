@@ -18,7 +18,7 @@ def rotate(x, y, rotation_angle_rad):
     return qx, qy
 
 
-class LsstCameraFootprint(object):
+class LsstCameraFootprint:
     """
     Identify point on the sky within an LSST camera footprint.
 

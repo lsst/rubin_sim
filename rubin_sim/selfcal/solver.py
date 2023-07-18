@@ -6,7 +6,7 @@ from scipy.sparse.linalg import lsqr
 # and then from https://github.com/lsst-sims/legacy_sims_selfcal
 
 
-class LsqrSolver(object):
+class LsqrSolver:
     """
     Class to solve self-calibration
 

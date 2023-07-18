@@ -166,7 +166,7 @@ def oneweb_tles():
     return my_sat_tles
 
 
-class Constellation(object):
+class Constellation:
     """
     Have a class to hold satellite constellation
     Parameters

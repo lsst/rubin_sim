@@ -34,7 +34,7 @@ class Utctout1Warning(MJDWarning):
     pass
 
 
-class ModifiedJulianDate(object):
+class ModifiedJulianDate:
     @classmethod
     def _get_ut1_from_utc(cls, utc):
         """

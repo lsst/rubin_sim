@@ -3,7 +3,7 @@ import numpy
 __all__ = ["LSSTdefaults"]
 
 
-class LSSTdefaults(object):
+class LSSTdefaults:
     """
     This class exists to store default values of seeing, m5, and gamma taken from the over
     view paper (arXiv 0805.2366, Table 2, 29 August 2014 version)

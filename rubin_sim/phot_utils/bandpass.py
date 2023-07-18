@@ -64,7 +64,7 @@ from .sed import Sed  # For ZP_t and M5 calculations. And for 'fast mags' calcul
 __all__ = ["Bandpass"]
 
 
-class Bandpass(object):
+class Bandpass:
     """
     Hold and use telescope throughput curves.
     """

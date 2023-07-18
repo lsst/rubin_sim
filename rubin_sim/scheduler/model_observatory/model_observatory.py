@@ -30,14 +30,14 @@ from rubin_sim.utils import (
 __all__ = ["ModelObservatory", "NoClouds", "NominalSeeing"]
 
 
-class NoClouds(object):
+class NoClouds:
     """Dummy class that will always say there are no clouds"""
 
     def __call__(self, mjd):
         return 0
 
 
-class NominalSeeing(object):
+class NominalSeeing:
     """Dummy class to always return nominal seeing"""
 
     def __call__(self, mjd):
@@ -45,7 +45,7 @@ class NominalSeeing(object):
         return fwhm_500
 
 
-class ModelObservatory(object):
+class ModelObservatory:
     """A class to generate a realistic telemetry stream for the scheduler"""
 
     def __init__(

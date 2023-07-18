@@ -60,7 +60,7 @@ WAVELEN_STEP = 0.1  # step size in wavelength grid (nm)
 fig_format = "png"
 
 
-class BandpassSet(object):
+class BandpassSet:
     """Set up a dictionary of a set of bandpasses (multi-filters).
     Run various engineering tests or visualizations."""
 

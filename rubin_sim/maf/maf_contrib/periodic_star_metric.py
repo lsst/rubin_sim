@@ -9,7 +9,7 @@ from rubin_sim.maf.utils import m52snr
 __all__ = ["PeriodicStar", "PeriodicStarMetric"]
 
 
-class PeriodicStar(object):
+class PeriodicStar:
     def __init__(self, filternames):
         self.filternames = filternames
 

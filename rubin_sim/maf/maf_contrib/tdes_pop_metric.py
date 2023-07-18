@@ -12,7 +12,7 @@ from rubin_sim.utils import survey_start_mjd, uniform_sphere
 __all__ = ["TdeLc", "TdePopMetric", "TdePopMetricQuality", "generate_tde_pop_slicer"]
 
 
-class TdeLc(object):
+class TdeLc:
     """
     Read in some TDE lightcurves
 

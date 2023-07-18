@@ -3,7 +3,7 @@
 __all__ = ["SysEngVals"]
 
 
-class SysEngVals(object):
+class SysEngVals:
     """Object to store values calculated in sys-eng
 
     generated from notebook in:  https://github.com/lsst-pst/syseng_throughputs/tree/master/notebooks

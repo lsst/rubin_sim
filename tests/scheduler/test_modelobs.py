@@ -5,14 +5,14 @@ import numpy as np
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 
 
-class KindaClouds(object):
+class KindaClouds:
     """Dummy class that always sets the clouds level to a unique float"""
 
     def __call__(self, mjd):
         return 0.23659
 
 
-class ArbSeeing(object):
+class ArbSeeing:
     """Dummy class to always return a specific seeing value"""
 
     def __call__(self, mjd):

@@ -52,7 +52,7 @@ def smallest_signed_angle(a1, a2):
     return result
 
 
-class IntRounded(object):
+class IntRounded:
     """
     Class to help force comparisons be made on scaled up integers,
     preventing machine precision issues cross-platforms
@@ -684,7 +684,7 @@ def hp_kd_tree(nside=None, leafsize=100, scale=1e5):
     return _build_tree(ra, dec, leafsize, scale=scale)
 
 
-class HpInLsstFov(object):
+class HpInLsstFov:
     """
     Return the healpixels within a pointing. A very simple LSST camera model with
     no chip/raft gaps.
@@ -733,7 +733,7 @@ class HpInLsstFov(object):
         return indices
 
 
-class HpInComcamFov(object):
+class HpInComcamFov:
     """
     Return the healpixels within a ComCam pointing. Simple camera model
     with no chip gaps.
@@ -941,7 +941,7 @@ def create_season_offset(nside, sun_ra_rad):
     return offset
 
 
-class TargetoO(object):
+class TargetoO:
     """Class to hold information about a target of opportunity object
 
     Parameters
@@ -977,7 +977,7 @@ class TargetoO(object):
         self.dec_rad_center = dec_rad_center
 
 
-class SimTargetooServer(object):
+class SimTargetooServer:
     """Wrapper to deliver a targetoO object at the right time"""
 
     def __init__(self, targeto_o_list):

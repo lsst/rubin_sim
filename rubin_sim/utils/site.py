@@ -5,7 +5,7 @@ import numpy as np
 __all__ = ["Site"]
 
 
-class LsstSiteParameters(object):
+class LsstSiteParameters:
     """
     This is a struct containing the LSST site parameters as defined in
 
@@ -30,7 +30,7 @@ class LsstSiteParameters(object):
         # see, for example http://mnras.oxfordjournals.org/content/365/4/1235.full
 
 
-class Site(object):
+class Site:
     """
     This class will store site information for use in Catalog objects.
 

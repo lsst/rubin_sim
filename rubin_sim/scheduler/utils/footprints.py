@@ -241,7 +241,7 @@ def slice_wfd_area_quad(target_map, nslice=2, wfd_indx=None):
     return split_wfd_indices
 
 
-class BasePixelEvolution(object):
+class BasePixelEvolution:
     """Helper class that can be used to describe the time evolution of a HEALpix in a footprint"""
 
     def __init__(self, period=365.25, rise=1.0, t_start=0.0):
@@ -301,7 +301,7 @@ class StepSlopes(BasePixelEvolution):
         return result
 
 
-class Footprint(object):
+class Footprint:
     """An object to compute the desired survey footprint at a given time
 
     Parameters

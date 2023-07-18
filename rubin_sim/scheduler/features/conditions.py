@@ -23,7 +23,7 @@ from rubin_sim.utils import (
 __all__ = ["Conditions"]
 
 
-class Conditions(object):
+class Conditions:
     """
     Class to hold telemetry information
 

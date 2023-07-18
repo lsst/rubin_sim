@@ -53,7 +53,7 @@ __all__ = [
 ]
 
 
-class BaseBasisFunction(object):
+class BaseBasisFunction:
     """Class that takes features and computes a reward function when called."""
 
     def __init__(self, nside=None, filtername=None, **kwargs):

@@ -59,7 +59,7 @@ class MetricRegistry(type):
         print(k)
 
 
-class ColRegistry(object):
+class ColRegistry:
     """
     ColRegistry tracks the columns needed for all metric objects (kept internally in a set).
 

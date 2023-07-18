@@ -6,7 +6,7 @@ import pandas as pd
 __all__ = ["Orbits"]
 
 
-class Orbits(object):
+class Orbits:
     """Orbits reads, checks for required values, and stores orbit parameters for moving objects.
 
     Instantiate the class and then use read_orbits or set_orbits to set the orbit values.

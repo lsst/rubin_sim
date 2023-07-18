@@ -12,7 +12,7 @@ from .ooephemerides import PyOrbEphemerides
 __all__ = ["BaseObs"]
 
 
-class BaseObs(object):
+class BaseObs:
     """
     Base class to generate observations of a set of moving objects.
 

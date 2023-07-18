@@ -154,7 +154,7 @@ class SummaryStatRow(Base):
         )
 
 
-class ResultsDb(object):
+class ResultsDb:
     """The ResultsDb is a sqlite database containing information on the metrics run via MAF,
     the plots created, the display information (such as captions), and any summary statistics output.
     """

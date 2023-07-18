@@ -9,7 +9,7 @@ __all__ = ["KinemModel"]
 two_pi = 2.0 * np.pi
 
 
-class Radec2altazpa(object):
+class Radec2altazpa:
     """Class to make it easy to swap in different alt/az conversion if wanted"""
 
     def __init__(self, location):
@@ -39,7 +39,7 @@ def _get_rot_tel_pos(pa_rad, rot_sky_rad):
     return result
 
 
-class KinemModel(object):
+class KinemModel:
     """
     A Kinematic model of the telescope.
 

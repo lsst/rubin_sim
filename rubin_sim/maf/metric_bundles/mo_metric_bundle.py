@@ -263,7 +263,7 @@ class MoMetricBundle(MetricBundle):
         raise NotImplementedError
 
 
-class MoMetricBundleGroup(object):
+class MoMetricBundleGroup:
     def __init__(self, bundle_dict, out_dir=".", results_db=None, verbose=True):
         self.verbose = verbose
         self.bundle_dict = bundle_dict

@@ -5,7 +5,7 @@ from rubin_sim.phot_utils import BandpassDict, Sed
 __all__ = ["PhotometricParameters", "DustValues"]
 
 
-class DustValues(object):
+class DustValues:
     """Calculate extinction values
 
     Parameters
@@ -47,7 +47,7 @@ class DustValues(object):
         self.r_x = self.ax1.copy()
 
 
-class DefaultPhotometricParameters(object):
+class DefaultPhotometricParameters:
     """
     This class will just contain a bunch of dict which store
     the default PhotometricParameters for LSST Bandpasses
@@ -125,7 +125,7 @@ class DefaultPhotometricParameters(object):
     }
 
 
-class PhotometricParameters(object):
+class PhotometricParameters:
     def __init__(
         self,
         exptime=None,

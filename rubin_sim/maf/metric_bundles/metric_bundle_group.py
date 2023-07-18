@@ -37,7 +37,7 @@ def make_bundles_dict_from_list(bundle_list):
     return b_dict
 
 
-class MetricBundleGroup(object):
+class MetricBundleGroup:
     """The MetricBundleGroup exists to calculate the metric values for a group of
     MetricBundles.
 

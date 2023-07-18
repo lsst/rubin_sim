@@ -10,7 +10,7 @@ from rubin_sim.data import get_data_dir
 __all__ = ["ScheduledDowntimeData"]
 
 
-class ScheduledDowntimeData(object):
+class ScheduledDowntimeData:
     """Read the scheduled downtime data.
 
     This class deals with the scheduled downtime information that was previously produced for

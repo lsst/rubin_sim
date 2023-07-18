@@ -3,7 +3,7 @@ from rubin_sim.scheduler.utils import IntRounded
 __all__ = ["FilterSwapScheduler", "SimpleFilterSched", "FilterSchedUzy"]
 
 
-class FilterSwapScheduler(object):
+class FilterSwapScheduler:
     """A simple way to schedule what filter to load"""
 
     def __init__(self):

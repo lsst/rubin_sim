@@ -401,7 +401,7 @@ def cache_lsst_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
     return
 
 
-class Sed(object):
+class Sed:
     """ "Hold and use spectral energy distributions (SEDs)"""
 
     def __init__(self, wavelen=None, flambda=None, fnu=None, badval=numpy.NaN, name=None):

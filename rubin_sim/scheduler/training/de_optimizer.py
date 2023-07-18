@@ -3,7 +3,7 @@ __author__ = "Elahe"
 import numpy as np
 
 
-class DeOptimizer(object):
+class DeOptimizer:
     def __init__(
         self,
         evaluator,

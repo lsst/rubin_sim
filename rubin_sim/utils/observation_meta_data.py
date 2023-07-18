@@ -9,7 +9,7 @@ from .spatial_bounds import SpatialBounds
 __all__ = ["ObservationMetaData"]
 
 
-class ObservationMetaData(object):
+class ObservationMetaData:
     """Track metadata for a given telescope pointing.
 
     This class contains any metadata for a query which is associated with

@@ -12,7 +12,7 @@ from ..slicers import UserPointsSlicer
 __all__ = ["XrbLc", "XRBPopMetric", "generate_xrb_pop_slicer"]
 
 
-class XrbLc(object):
+class XrbLc:
     """Synthesize XRB outburst lightcurves."""
 
     def __init__(self, seed=42):

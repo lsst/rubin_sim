@@ -9,7 +9,7 @@ from rubin_sim.data import get_data_dir
 __all__ = ["CloudData"]
 
 
-class CloudData(object):
+class CloudData:
     """Handle the cloud information.
 
     This class deals with the cloud information that was previously produced for

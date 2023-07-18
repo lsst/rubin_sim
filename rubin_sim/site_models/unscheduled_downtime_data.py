@@ -7,7 +7,7 @@ from astropy.time import Time, TimeDelta
 __all__ = ["UnscheduledDowntimeData"]
 
 
-class UnscheduledDowntimeData(object):
+class UnscheduledDowntimeData:
     """Handle (and create) the unscheduled downtime information.
 
     Parameters

@@ -8,7 +8,7 @@ from rubin_sim.data import get_data_dir
 __all__ = ["Almanac"]
 
 
-class Almanac(object):
+class Almanac:
     """Class to load and return pre-computed information about the LSST site."""
 
     def __init__(self, mjd_start=None, kind="quadratic"):

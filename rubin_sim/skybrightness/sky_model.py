@@ -70,7 +70,7 @@ def calc_az_rel_moon(azs, moon_az):
     return az_rel_moon
 
 
-class SkyModel(object):
+class SkyModel:
     def __init__(
         self,
         observatory=None,

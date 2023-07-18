@@ -63,7 +63,7 @@ def interp_angle(x_out, xp, anglep, degrees=False):
     return result
 
 
-class SkyModelPre(object):
+class SkyModelPre:
     """
     Load pre-computed sky brighntess maps for the LSST site and use them to interpolate to
     arbitrary dates.

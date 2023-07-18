@@ -12,7 +12,7 @@ from .sed import Sed
 __all__ = ["BandpassDict"]
 
 
-class BandpassDict(object):
+class BandpassDict:
     """
     This class will wrap an OrderedDict of Bandpass instantiations.
 

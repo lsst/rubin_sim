@@ -11,7 +11,7 @@ from .maf_run_results import MafRunResults
 __all__ = ["MafTracking"]
 
 
-class MafTracking(object):
+class MafTracking:
     """
     Class to read MAF's tracking SQLite database (tracking a set of MAF runs)
     and handle the output for web display.
