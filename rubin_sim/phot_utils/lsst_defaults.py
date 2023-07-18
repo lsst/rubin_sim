@@ -52,16 +52,6 @@ class LSSTdefaults:
         exposure time of 2 x 15 seconds and observing conditions as listed.
         Calculated using $SYSENG_THROUGHPUT curves as of 11/25/2015, using
         $SYSENG_THROUGHPUT/python/calcM5.py
-
-        Parameters
-        ----------
-        the : `Unknown`
-            name of a filter i.e. 'u', 'g', 'r', 'i', 'z', or 'y'
-
-        Parameters
-        ----------
-        the : `Unknown`
-            corresponding m5 value
         """
         return self._m5[tag]
 
@@ -74,16 +64,6 @@ class LSSTdefaults:
         This is the value to use for calculating Neffective, when Neffective assumes a single gaussian.
         It can be converted to a geometric FWHM (equivalent to the approximate value which would
         be measured across a van Karmen PSF profile) using SignalToNoise.fwhm_eff2FWHMgeom.
-
-        Parameters
-        ----------
-        the : `Unknown`
-            name of a filter i.e. 'u', 'g', 'r', 'i', 'z', or 'y'
-
-        Parameters
-        ----------
-        the : `Unknown`
-            corresponding fwhm_eff
         """
 
         return self._fwhm_eff[tag]
@@ -99,17 +79,6 @@ class LSSTdefaults:
     def gamma(self, tag):
         """
         See Table 2 and Equaiton 5 of arXiv 0805.2366 29 August 2014 version.
-
-        Parameters
-        ----------
-        the : `Unknown`
-            name of a filter i.e. 'u', 'g', 'r', 'i', 'z', or 'y'
-
-        Parameters
-        ----------
-        the : `Unknown`
-            corresponding value of gamma as defined in the
-            reference above
         """
 
         return self._gamma[tag]
