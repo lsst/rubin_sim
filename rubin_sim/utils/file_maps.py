@@ -15,14 +15,20 @@ class SpecMap:
 
     def __init__(self, file_dict=None, dir_dict=None):
         """
-        @param [in] file_dict is a dict mapping the names of files to their
-        relative paths, one-to-one, e.g.
+        Parameters
+        ----------
+        file_dict : `Unknown`
+            is a dict mapping the names of files to their
+            relative paths, one-to-one, e.g.
 
             file_dict = {'A.dat':'ssmSED/A.dat.gz',
                         'Sa.dat':'ssmSED/Sa.dat.gz'}
 
-        @param [in] dir_dict is a dict mapping forms of names of file to their
-        sub directories using regular expressions, e.g.
+        Parameters
+        ----------
+        dir_dict : `Unknown`
+            is a dict mapping forms of names of file to their
+            sub directories using regular expressions, e.g.
 
             dir_dict = {'(^km)|(^kp)':'starSED/kurucz',
                        '(^bergeron)':'starSED/wDs'}

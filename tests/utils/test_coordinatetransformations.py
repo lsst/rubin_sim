@@ -9,9 +9,15 @@ def control_equation_of_equinoxes(mjd):
     """
     Taken from http://aa.usno.navy.mil/faq/docs/GAST.php
 
-    @param [in] mjd is Terrestrial Time as a Modified Julian Date
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is Terrestrial Time as a Modified Julian Date
 
-    @param [out] the equation of equinoxes in radians
+    Parameters
+    ----------
+    the : `Unknown`
+        equation of equinoxes in radians
     """
 
     JD = mjd + 2400000.5

@@ -43,16 +43,28 @@ def calc_lmst_last(mjd, long_rad):
     """
     calculates local mean sidereal time and local apparent sidereal time
 
-    @param [in] mjd is the universal time (ut1) expressed as an MJD.
-    This can be a numpy array or a single value.
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is the universal time (ut1) expressed as an MJD.
+        This can be a numpy array or a single value.
 
-    @param [in] long_rad is the longitude in radians (positive east of the prime meridian)
-    This can be numpy array or a single value.  If a numpy array, should have the same length as mjd.  In that
-    case, each long_rad will be applied only to the corresponding mjd.
+    Parameters
+    ----------
+    long_rad : `Unknown`
+        is the longitude in radians (positive east of the prime meridian)
+        This can be numpy array or a single value.  If a numpy array, should have the same length as mjd.  In that
+        case, each long_rad will be applied only to the corresponding mjd.
 
-    @param [out] lmst is the local mean sidereal time in hours
+    Parameters
+    ----------
+    lmst : `Unknown`
+        is the local mean sidereal time in hours
 
-    @param [out] last is the local apparent sideral time in hours
+    Parameters
+    ----------
+    last : `Unknown`
+        is the local apparent sideral time in hours
     """
     mjd_is_array = False
     long_rad_is_array = False
@@ -108,13 +120,25 @@ def calc_lmst_last(mjd, long_rad):
 def galactic_from_equatorial(ra, dec):
     """Convert RA,Dec (J2000) to Galactic Coordinates
 
-    @param [in] ra is right ascension in degrees, either a number or a numpy array
+    Parameters
+    ----------
+    ra : `Unknown`
+        is right ascension in degrees, either a number or a numpy array
 
-    @param [in] dec is declination in degrees, either a number or a numpy array
+    Parameters
+    ----------
+    dec : `Unknown`
+        is declination in degrees, either a number or a numpy array
 
-    @param [out] g_long is galactic longitude in degrees
+    Parameters
+    ----------
+    g_long : `Unknown`
+        is galactic longitude in degrees
 
-    @param [out] g_lat is galactic latitude in degrees
+    Parameters
+    ----------
+    g_lat : `Unknown`
+        is galactic latitude in degrees
     """
 
     g_long, g_lat = _galactic_from_equatorial(np.radians(ra), np.radians(dec))
@@ -126,13 +150,25 @@ def _galactic_from_equatorial(ra, dec):
 
     All angles are in radians
 
-    @param [in] ra is right ascension in radians, either a number or a numpy array
+    Parameters
+    ----------
+    ra : `Unknown`
+        is right ascension in radians, either a number or a numpy array
 
-    @param [in] dec is declination in radians, either a number or a numpy array
+    Parameters
+    ----------
+    dec : `Unknown`
+        is declination in radians, either a number or a numpy array
 
-    @param [out] g_long is galactic longitude in radians
+    Parameters
+    ----------
+    g_long : `Unknown`
+        is galactic longitude in radians
 
-    @param [out] g_lat is galactic latitude in radians
+    Parameters
+    ----------
+    g_lat : `Unknown`
+        is galactic latitude in radians
     """
 
     if isinstance(ra, np.ndarray):
@@ -146,15 +182,27 @@ def _galactic_from_equatorial(ra, dec):
 def equatorial_from_galactic(g_long, g_lat):
     """Convert Galactic Coordinates to RA, dec (J2000)
 
-    @param [in] g_long is galactic longitude in degrees, either a number or a numpy array
-    (0 <= g_long <= 360.)
+    Parameters
+    ----------
+    g_long : `Unknown`
+        is galactic longitude in degrees, either a number or a numpy array
+        (0 <= g_long <= 360.)
 
-    @param [in] g_lat is galactic latitude in degrees, either a number or a numpy array
-    (-90. <= g_lat <= 90.)
+    Parameters
+    ----------
+    g_lat : `Unknown`
+        is galactic latitude in degrees, either a number or a numpy array
+        (-90. <= g_lat <= 90.)
 
-    @param [out] ra is right ascension in degrees
+    Parameters
+    ----------
+    ra : `Unknown`
+        is right ascension in degrees
 
-    @param [out] dec is declination in degrees
+    Parameters
+    ----------
+    dec : `Unknown`
+        is declination in degrees
     """
 
     ra, dec = _equatorial_from_galactic(np.radians(g_long), np.radians(g_lat))
@@ -164,15 +212,27 @@ def equatorial_from_galactic(g_long, g_lat):
 def _equatorial_from_galactic(g_long, g_lat):
     """Convert Galactic Coordinates to RA, dec (J2000)
 
-    @param [in] g_long is galactic longitude in radians, either a number or a numpy array
-    (0 <= g_long <= 2*pi)
+    Parameters
+    ----------
+    g_long : `Unknown`
+        is galactic longitude in radians, either a number or a numpy array
+        (0 <= g_long <= 2*pi)
 
-    @param [in] g_lat is galactic latitude in radians, either a number or a numpy array
-    (-pi/2 <= g_lat <= pi/2)
+    Parameters
+    ----------
+    g_lat : `Unknown`
+        is galactic latitude in radians, either a number or a numpy array
+        (-pi/2 <= g_lat <= pi/2)
 
-    @param [out] ra is right ascension in radians (J2000)
+    Parameters
+    ----------
+    ra : `Unknown`
+        is right ascension in radians (J2000)
 
-    @param [out] dec is declination in radians (J2000)
+    Parameters
+    ----------
+    dec : `Unknown`
+        is declination in radians (J2000)
     """
 
     if isinstance(g_long, np.ndarray):
@@ -187,11 +247,20 @@ def cartesian_from_spherical(longitude, latitude):
     """
     Transforms between spherical and Cartesian coordinates.
 
-    @param [in] longitude is a numpy array or a number in radians
+    Parameters
+    ----------
+    longitude : `Unknown`
+        is a numpy array or a number in radians
 
-    @param [in] latitude is a numpy array or number in radians
+    Parameters
+    ----------
+    latitude : `Unknown`
+        is a numpy array or number in radians
 
-    @param [out] a numpy array of the (three-dimensional) cartesian coordinates on a unit sphere.
+    Parameters
+    ----------
+    a : `Unknown`
+        numpy array of the (three-dimensional) cartesian coordinates on a unit sphere.
 
     if inputs are numpy arrays:
     output[i][0] will be the x-coordinate of the ith point
@@ -209,10 +278,16 @@ def spherical_from_cartesian(xyz):
     """
     Transforms between Cartesian and spherical coordinates
 
-    @param [in] xyz is a numpy array of points in 3-D space.
-    Each row is a different point.
+    Parameters
+    ----------
+    xyz : `Unknown`
+        is a numpy array of points in 3-D space.
+        Each row is a different point.
 
-    @param [out] returns longitude and latitude
+    Parameters
+    ----------
+    returns : `Unknown`
+        longitude and latitude
 
     All angles are in radians
 
@@ -400,10 +475,12 @@ def rotation_matrix_from_vectors(v1, v2):
     """
     Given two vectors v1,v2 calculate the rotation matrix for v1->v2 using the axis-angle approach
 
-    @param [in] v1, v2 are two Cartesian unit vectors (in three dimensions)
-
-    @param [out] rot is the rotation matrix that rotates from one to the other
-
+    Parameters
+    ----------
+    v1,v2 : `Unknown`
+        Cartesian unit vectors (in three dimensions).
+    rot : `Unknown`
+        is the rotation matrix that rotates from one to the other
     """
 
     if np.abs(np.sqrt(np.dot(v1, v1)) - 1.0) > 0.01:
@@ -448,10 +525,16 @@ def equation_of_equinoxes(d):
     """
     The equation of equinoxes. See http://aa.usno.navy.mil/faq/docs/GAST.php
 
-    @param [in] d is either a numpy array or a number that is Terrestrial Time
-    expressed as an MJD
+    Parameters
+    ----------
+    d : `Unknown`
+        is either a numpy array or a number that is Terrestrial Time
+        expressed as an MJD
 
-    @param [out] the equation of equinoxes in radians.
+    Parameters
+    ----------
+    the : `Unknown`
+        equation of equinoxes in radians.
     """
 
     if isinstance(d, np.ndarray):
@@ -465,11 +548,20 @@ def calc_gmst_gast(mjd):
     Compute Greenwich mean sidereal time and Greenwich apparent sidereal time
     see: From http://aa.usno.navy.mil/faq/docs/GAST.php
 
-    @param [in] mjd is the universal time (ut1) expressed as an MJD
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is the universal time (ut1) expressed as an MJD
 
-    @param [out] gmst Greenwich mean sidereal time in hours
+    Parameters
+    ----------
+    gmst : `Unknown`
+        Greenwich mean sidereal time in hours
 
-    @param [out] gast Greenwich apparent sidereal time in hours
+    Parameters
+    ----------
+    gast : `Unknown`
+        Greenwich apparent sidereal time in hours
     """
 
     date = np.floor(mjd)
@@ -577,15 +669,30 @@ def haversine(long1, lat1, long2, lat2):
 
     Return the angular distance between two points in radians
 
-    @param [in] long1 is the longitude of point 1 in radians
+    Parameters
+    ----------
+    long1 : `Unknown`
+        is the longitude of point 1 in radians
 
-    @param [in] lat1 is the latitude of point 1 in radians
+    Parameters
+    ----------
+    lat1 : `Unknown`
+        is the latitude of point 1 in radians
 
-    @param [in] long2 is the longitude of point 2 in radians
+    Parameters
+    ----------
+    long2 : `Unknown`
+        is the longitude of point 2 in radians
 
-    @param [in] lat2 is the latitude of point 2 in radians
+    Parameters
+    ----------
+    lat2 : `Unknown`
+        is the latitude of point 2 in radians
 
-    @param [out] the angular separation between points 1 and 2 in radians
+    Parameters
+    ----------
+    the : `Unknown`
+        angular separation between points 1 and 2 in radians
     """
     return _angular_separation(long1, lat1, long2, lat2)
 

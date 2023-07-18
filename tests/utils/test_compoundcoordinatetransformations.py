@@ -9,23 +9,40 @@ def control_alt_az_from_ra_dec(ra_rad_in, dec_rad_in, long_rad, lat_rad, mjd):
     """
     Converts RA and Dec to altitude and azimuth
 
-    @param [in] ra_rad is the RA in radians
-    (observed geocentric)
+    Parameters
+    ----------
+    ra_rad : `Unknown`
+        is the RA in radians
+        (observed geocentric)
 
-    @param [in] dec_rad is the Dec in radians
-    (observed geocentric)
+    Parameters
+    ----------
+    dec_rad : `Unknown`
+        is the Dec in radians
+        (observed geocentric)
 
-    @param [in] long_rad is the longitude of the observer in radians
-    (positive east of the prime meridian)
+    Parameters
+    ----------
+    long_rad : `Unknown`
+        is the longitude of the observer in radians
+        (positive east of the prime meridian)
+    lat_rad : `Unknown`
+        Latitude of the observer in radians (positive north of the equator)
 
-    @param [in[ lat_rad is the latitude of the observer in radians
-    (positive north of the equator)
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is the universal time expressed as an MJD
 
-    @param [in] mjd is the universal time expressed as an MJD
+    Parameters
+    ----------
+    altitude : `Unknown`
+        in radians
 
-    @param [out] altitude in radians
-
-    @param [out[ azimuth in radians
+    Returns
+    -------
+    azimuth : `Unknown`
+        Azimuth in radians.
 
     see: http://www.stargazing.net/kepler/altaz.html#twig04
     """

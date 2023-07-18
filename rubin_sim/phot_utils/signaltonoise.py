@@ -250,24 +250,42 @@ def calc_m5(skysed, total_bandpass, hardware, phot_params, fwhm_eff=None):
     method (calc_m5) calculates the expected m5 value for an observation given
     a sky background Sed and hardware parameters.
 
-    @param [in] skysed is an instantiation of the Sed class representing
-    sky emission, normalized so that skysed.calc_mag gives the sky brightness
-    in magnitudes per square arcsecond.
+    Parameters
+    ----------
+    skysed : `Unknown`
+        is an instantiation of the Sed class representing
+        sky emission, normalized so that skysed.calc_mag gives the sky brightness
+        in magnitudes per square arcsecond.
 
-    @param [in] total_bandpass is an instantiation of the Bandpass class
-    representing the total throughput of the telescope (instrumentation
-    plus atmosphere)
+    Parameters
+    ----------
+    total_bandpass : `Unknown`
+        is an instantiation of the Bandpass class
+        representing the total throughput of the telescope (instrumentation
+        plus atmosphere)
 
-    @param [in] hardware is an instantiation of the Bandpass class representing
-    the throughput due solely to instrumentation.
+    Parameters
+    ----------
+    hardware : `Unknown`
+        is an instantiation of the Bandpass class representing
+        the throughput due solely to instrumentation.
 
-    @param [in] phot_params is an instantiation of the
-    PhotometricParameters class that carries details about the
-    photometric response of the telescope.
+    Parameters
+    ----------
+    phot_params : `Unknown`
+        is an instantiation of the
+        PhotometricParameters class that carries details about the
+        photometric response of the telescope.
 
-    @param [in] fwhm_eff in arcseconds
+    Parameters
+    ----------
+    fwhm_eff : `Unknown`
+        in arcseconds
 
-    @param [out] returns the value of m5 for the given bandpass and sky SED
+    Parameters
+    ----------
+    returns : `Unknown`
+        the value of m5 for the given bandpass and sky SED
     """
     # This comes from equation 45 of the SNR document (v1.2, May 2010)
     # https://docushare.lsstcorp.org/docushare/dsweb/ImageStoreViewer/LSE-40
@@ -299,9 +317,15 @@ def mag_error_from_snr(snr):
     """
     convert flux signal to noise ratio to an error in magnitude
 
-    @param [in] snr is the signal to noise ratio in flux
+    Parameters
+    ----------
+    snr : `Unknown`
+        is the signal to noise ratio in flux
 
-    @param [out] the resulting error in magnitude
+    Parameters
+    ----------
+    the : `Unknown`
+        resulting error in magnitude
     """
 
     # see www.ucolick.org/~bolte/AY257/s_n.pdf section 3.1
@@ -314,18 +338,30 @@ def calc_gamma(bandpass, m5, phot_params):
     signal to noise in equation 5 of the LSST overview paper
     (arXiv:0805.2366)
 
-    @param [in] bandpass is an instantiation of the Bandpass class
-    representing the bandpass for which you desire to calculate the
-    gamma parameter
+    Parameters
+    ----------
+    bandpass : `Unknown`
+        is an instantiation of the Bandpass class
+        representing the bandpass for which you desire to calculate the
+        gamma parameter
 
-    @param [in] m5 is the magnitude at which a 5-sigma detection occurs
-    in this Bandpass
+    Parameters
+    ----------
+    m5 : `Unknown`
+        is the magnitude at which a 5-sigma detection occurs
+        in this Bandpass
 
-    @param [in] phot_params is an instantiation of the
-    PhotometricParameters class that carries details about the
-    photometric response of the telescope.
+    Parameters
+    ----------
+    phot_params : `Unknown`
+        is an instantiation of the
+        PhotometricParameters class that carries details about the
+        photometric response of the telescope.
 
-    @param [out] gamma
+    Parameters
+    ----------
+    gamma : `Unknown`
+        something
     """
     # This is based on the LSST SNR document (v1.2, May 2010)
     # https://docushare.lsstcorp.org/docushare/dsweb/ImageStoreViewer/LSE-40
@@ -370,26 +406,47 @@ def calc_snr_m5(magnitude, bandpass, m5, phot_params, gamma=None):
     """
     Calculate signal to noise in flux using the model from equation (5) of arXiv:0805.2366
 
-    @param [in] magnitude of the sources whose signal to noise you are calculating
-    (can be a numpy array)
+    Parameters
+    ----------
+    magnitude : `Unknown`
+        of the sources whose signal to noise you are calculating
+        (can be a numpy array)
 
-    @param [in] bandpass (an instantiation of the class Bandpass) in which the magnitude
-    was calculated
+    Parameters
+    ----------
+    bandpass : `Unknown`
+        (an instantiation of the class Bandpass) in which the magnitude
+        was calculated
 
-    @param [in] m5 is the 5-sigma limiting magnitude for the bandpass
+    Parameters
+    ----------
+    m5 : `Unknown`
+        is the 5-sigma limiting magnitude for the bandpass
 
-    @param [in] phot_params is an instantiation of the
-    PhotometricParameters class that carries details about the
-    photometric response of the telescope.
+    Parameters
+    ----------
+    phot_params : `Unknown`
+        is an instantiation of the
+        PhotometricParameters class that carries details about the
+        photometric response of the telescope.
 
-    @param [in] gamma (optional) is the gamma parameter from equation(5) of
-    arXiv:0805.2366.  If not provided, this method will calculate it.
+    Parameters
+    ----------
+    gamma : `Unknown`
+        (optional) is the gamma parameter from equation(5) of
+        arXiv:0805.2366.  If not provided, this method will calculate it.
 
-    @param [out] snr is the signal to noise ratio corresponding to
-    the input magnitude.
+    Parameters
+    ----------
+    snr : `Unknown`
+        is the signal to noise ratio corresponding to
+        the input magnitude.
 
-    @param [out] gamma is  the calculated gamma parameter for the
-    bandpass used here (in case the user wants to call this method again).
+    Parameters
+    ----------
+    gamma : `Unknown`
+        is  the calculated gamma parameter for the
+        bandpass used here (in case the user wants to call this method again).
 
     Note: You can also pass in a numpy array of magnitudes calculated
     in the same bandpass with the same m5 and get a numpy array of SNR out.
@@ -413,24 +470,45 @@ def calc_mag_error_m5(magnitude, bandpass, m5, phot_params, gamma=None):
     """
     Calculate magnitude error using the model from equation (5) of arXiv:0805.2366
 
-    @param [in] magnitude of the source whose error you want
-    to calculate (can be a numpy array)
+    Parameters
+    ----------
+    magnitude : `Unknown`
+        of the source whose error you want
+        to calculate (can be a numpy array)
 
-    @param [in] bandpass (an instantiation of the Bandpass class) in question
+    Parameters
+    ----------
+    bandpass : `Unknown`
+        (an instantiation of the Bandpass class) in question
 
-    @param [in] m5 is the 5-sigma limiting magnitude in that bandpass
+    Parameters
+    ----------
+    m5 : `Unknown`
+        is the 5-sigma limiting magnitude in that bandpass
 
-    @param [in] phot_params is an instantiation of the
-    PhotometricParameters class that carries details about the
-    photometric response of the telescope.
+    Parameters
+    ----------
+    phot_params : `Unknown`
+        is an instantiation of the
+        PhotometricParameters class that carries details about the
+        photometric response of the telescope.
 
-    @param [in] gamma (optional) is the gamma parameter from equation(5) of
-    arXiv:0805.2366.  If not provided, this method will calculate it.
+    Parameters
+    ----------
+    gamma : `Unknown`
+        (optional) is the gamma parameter from equation(5) of
+        arXiv:0805.2366.  If not provided, this method will calculate it.
 
-    @param [out] the error associated with the magnitude
+    Parameters
+    ----------
+    the : `Unknown`
+        error associated with the magnitude
 
-    @param [out] gamma is  the calculated gamma parameter for the
-    bandpass used here (in case the user wants to call this method again).
+    Parameters
+    ----------
+    gamma : `Unknown`
+        is  the calculated gamma parameter for the
+        bandpass used here (in case the user wants to call this method again).
 
     Note: you can also pass in a numpy of array of magnitudes calculated in
     the same Bandpass with the same m5 and get a numpy array of errors out.
@@ -463,27 +541,51 @@ def calc_snr_sed(
     fwhm_eff / exptime, calculates the SNR with optimal PSF extraction
     assuming a double-gaussian PSF.
 
-    @param [in] source_sed is an instantiation of the Sed class containing the SED of
-    the object whose signal to noise ratio is being calculated
+    Parameters
+    ----------
+    source_sed : `Unknown`
+        is an instantiation of the Sed class containing the SED of
+        the object whose signal to noise ratio is being calculated
 
-    @param [in] totalbandpass is an instantiation of the Bandpass class
-    representing the total throughput (system + atmosphere)
+    Parameters
+    ----------
+    totalbandpass : `Unknown`
+        is an instantiation of the Bandpass class
+        representing the total throughput (system + atmosphere)
 
-    @param [in] skysed is an instantiation of the Sed class representing
-    the sky emission per square arcsecond.
+    Parameters
+    ----------
+    skysed : `Unknown`
+        is an instantiation of the Sed class representing
+        the sky emission per square arcsecond.
 
-    @param [in] hardwarebandpass is an instantiation of the Bandpass class
-    representing just the throughput of the system hardware.
+    Parameters
+    ----------
+    hardwarebandpass : `Unknown`
+        is an instantiation of the Bandpass class
+        representing just the throughput of the system hardware.
 
-    @param [in] phot_params is an instantiation of the
-    PhotometricParameters class that carries details about the
-    photometric response of the telescope.
+    Parameters
+    ----------
+    phot_params : `Unknown`
+        is an instantiation of the
+        PhotometricParameters class that carries details about the
+        photometric response of the telescope.
 
-    @param [in] fwhm_eff in arcseconds
+    Parameters
+    ----------
+    fwhm_eff : `Unknown`
+        in arcseconds
 
-    @param [in] verbose is a `bool`
+    Parameters
+    ----------
+    verbose : `Unknown`
+        is a `bool`
 
-    @param [out] signal to noise ratio
+    Parameters
+    ----------
+    signal : `Unknown`
+        to noise ratio
     """
 
     # Calculate the counts from the source.
@@ -533,27 +635,51 @@ def calc_mag_error_sed(
     fwhm_eff / exptime, calculates the SNR with optimal PSF extraction
     assuming a double-gaussian PSF.
 
-    @param [in] source_sed is an instantiation of the Sed class containing the SED of
-    the object whose signal to noise ratio is being calculated
+    Parameters
+    ----------
+    source_sed : `Unknown`
+        is an instantiation of the Sed class containing the SED of
+        the object whose signal to noise ratio is being calculated
 
-    @param [in] totalbandpass is an instantiation of the Bandpass class
-    representing the total throughput (system + atmosphere)
+    Parameters
+    ----------
+    totalbandpass : `Unknown`
+        is an instantiation of the Bandpass class
+        representing the total throughput (system + atmosphere)
 
-    @param [in] skysed is an instantiation of the Sed class representing
-    the sky emission per square arcsecond.
+    Parameters
+    ----------
+    skysed : `Unknown`
+        is an instantiation of the Sed class representing
+        the sky emission per square arcsecond.
 
-    @param [in] hardwarebandpass is an instantiation of the Bandpass class
-    representing just the throughput of the system hardware.
+    Parameters
+    ----------
+    hardwarebandpass : `Unknown`
+        is an instantiation of the Bandpass class
+        representing just the throughput of the system hardware.
 
-    @param [in] phot_params is an instantiation of the
-    PhotometricParameters class that carries details about the
-    photometric response of the telescope.
+    Parameters
+    ----------
+    phot_params : `Unknown`
+        is an instantiation of the
+        PhotometricParameters class that carries details about the
+        photometric response of the telescope.
 
-    @param [in] fwhm_eff in arcseconds
+    Parameters
+    ----------
+    fwhm_eff : `Unknown`
+        in arcseconds
 
-    @param [in] verbose is a `bool`
+    Parameters
+    ----------
+    verbose : `Unknown`
+        is a `bool`
 
-    @param [out] magnitude error
+    Parameters
+    ----------
+    magnitude : `Unknown`
+        error
     """
 
     snr = calc_snr_sed(

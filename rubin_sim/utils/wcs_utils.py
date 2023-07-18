@@ -32,17 +32,35 @@ def _native_lon_lat_from_pointing(lon, lat, lon_pointing, lat_pointing):
     and a longitude-like coordinate of the pointing and a latitude-like coordinate
     of the pointing and transforms them using spherical geometry.
 
-    @param [in] a longitude-like coordinate in radians
+    Parameters
+    ----------
+    a : `Unknown`
+        longitude-like coordinate in radians
 
-    @param [in] a latitude-like coordinate in radians
+    Parameters
+    ----------
+    a : `Unknown`
+        latitude-like coordinate in radians
 
-    @param [in] a longitude-like coordinate of the telescope pointing in radians
+    Parameters
+    ----------
+    a : `Unknown`
+        longitude-like coordinate of the telescope pointing in radians
 
-    @param [in] a latitude-like coordinate of the telescope pointing in radians
+    Parameters
+    ----------
+    a : `Unknown`
+        latitude-like coordinate of the telescope pointing in radians
 
-    @param [out] the native longitude of the transformed point(s) in radians
+    Parameters
+    ----------
+    the : `Unknown`
+        native longitude of the transformed point(s) in radians
 
-    @param [out] the native latitude of the transformed point(s) in radians
+    Parameters
+    ----------
+    the : `Unknown`
+        native latitude of the transformed point(s) in radians
     """
 
     x = -1.0 * np.cos(lat) * np.sin(lon)
@@ -118,21 +136,39 @@ def _lon_lat_from_native_lon_lat(native_lon, native_lat, lon_pointing, lat_point
     is defined.  See the doc string for _native_lon_lat_from_pointing for definitions
     of native longitude and latitude.
 
-    @param [in] native_lon is the native longitude in radians
+    Parameters
+    ----------
+    native_lon : `Unknown`
+        is the native longitude in radians
 
-    @param [in] native_lat is the native latitude in radians
+    Parameters
+    ----------
+    native_lat : `Unknown`
+        is the native latitude in radians
 
-    @param [in] lon_pointing is the longitude-like coordinate of the telescope
-    pointing in radians
+    Parameters
+    ----------
+    lon_pointing : `Unknown`
+        is the longitude-like coordinate of the telescope
+        pointing in radians
 
-    @param [in] lat_pointing is the latitude-like coordinate of the telescope
-    pointing in radians
+    Parameters
+    ----------
+    lat_pointing : `Unknown`
+        is the latitude-like coordinate of the telescope
+        pointing in radians
 
-    @param [out] lat_out is the latitude of the transformed point(s)
-    in the same coordinate system as the telescope pointing in radians
+    Parameters
+    ----------
+    lat_out : `Unknown`
+        is the latitude of the transformed point(s)
+        in the same coordinate system as the telescope pointing in radians
 
-    @param [in] lat_out is the latitude of the transformed point(s)
-    in the same coordinate system as the telescope pointing in radians
+    Parameters
+    ----------
+    lat_out : `Unknown`
+        is the latitude of the transformed point(s)
+        in the same coordinate system as the telescope pointing in radians
     """
     x = -1.0 * np.cos(native_lat) * np.sin(native_lon)
     y = np.cos(native_lat) * np.cos(native_lon)
@@ -204,18 +240,33 @@ def _native_lon_lat_from_ra_dec(ra_in, dec_in, obs_metadata):
     This method is only useful for mapping positions on a theoretical
     celestial sphere.
 
-    @param [in] ra is the RA of the star being transformed in radians
-    (in the International Celestial Reference System)
+    Parameters
+    ----------
+    ra : `Unknown`
+        is the RA of the star being transformed in radians
+        (in the International Celestial Reference System)
 
-    @param [in] dec is the Dec of the star being transformed in radians
-    (in the International Celestial Reference System)
+    Parameters
+    ----------
+    dec : `Unknown`
+        is the Dec of the star being transformed in radians
+        (in the International Celestial Reference System)
 
-    @param [in] obs_metadata is an ObservationMetaData characterizing the pointing of
-    the telescope.
+    Parameters
+    ----------
+    obs_metadata : `Unknown`
+        is an ObservationMetaData characterizing the pointing of
+        the telescope.
 
-    @param [out] lonOut is the native longitude in radians
+    Parameters
+    ----------
+    lonOut : `Unknown`
+        is the native longitude in radians
 
-    @param [out] latOut is the native latitude in radians
+    Parameters
+    ----------
+    latOut : `Unknown`
+        is the native latitude in radians
     """
 
     ra, dec = _observed_from_icrs(
@@ -255,18 +306,33 @@ def native_lon_lat_from_ra_dec(ra, dec, obs_metadata):
     This method is only useful for mapping positions on a theoretical
     celestial sphere.
 
-    @param [in] ra is the RA of the star being transformed in degrees
-    (in the International Celestial Reference System)
+    Parameters
+    ----------
+    ra : `Unknown`
+        is the RA of the star being transformed in degrees
+        (in the International Celestial Reference System)
 
-    @param [in] dec is the Dec of the star being transformed in degrees
-    (in the International Celestial Reference System)
+    Parameters
+    ----------
+    dec : `Unknown`
+        is the Dec of the star being transformed in degrees
+        (in the International Celestial Reference System)
 
-    @param [in] obs_metadata is an ObservationMetaData characterizing the pointing of
-    the telescope.
+    Parameters
+    ----------
+    obs_metadata : `Unknown`
+        is an ObservationMetaData characterizing the pointing of
+        the telescope.
 
-    @param [out] lonOut is the native longitude in degrees
+    Parameters
+    ----------
+    lonOut : `Unknown`
+        is the native longitude in degrees
 
-    @param [out] latOut is the native latitude in degrees
+    Parameters
+    ----------
+    latOut : `Unknown`
+        is the native latitude in degrees
     """
 
     lon, lat = _native_lon_lat_from_ra_dec(np.radians(ra), np.radians(dec), obs_metadata)
@@ -280,18 +346,33 @@ def _ra_dec_from_native_lon_lat(lon, lat, obs_metadata):
     RA and Dec.  See the doc string for _native_lon_lat_from_ra_dec for definitions
     of native longitude and latitude.
 
-    @param [in] lon is the native longitude in radians
+    Parameters
+    ----------
+    lon : `Unknown`
+        is the native longitude in radians
 
-    @param [in] lat is the native latitude in radians
+    Parameters
+    ----------
+    lat : `Unknown`
+        is the native latitude in radians
 
-    @param [in] obs_metadata is an ObservationMetaData characterizing the pointing
-    of the telescope
+    Parameters
+    ----------
+    obs_metadata : `Unknown`
+        is an ObservationMetaData characterizing the pointing
+        of the telescope
 
-    @param [out] ra_out is the RA of the star in radians
-    (in the International Celestial Reference System)
+    Parameters
+    ----------
+    ra_out : `Unknown`
+        is the RA of the star in radians
+        (in the International Celestial Reference System)
 
-    @param [in] dec_out is the Dec of the star in radians
-    (in the International Celestial Reference System)
+    Parameters
+    ----------
+    dec_out : `Unknown`
+        is the Dec of the star in radians
+        (in the International Celestial Reference System)
 
     Note: Because of its reliance on icrs_from_observed, this
     method is only accurate at angular distances from the sun of greater
@@ -328,18 +409,33 @@ def ra_dec_from_native_lon_lat(lon, lat, obs_metadata):
     RA and Dec.  See the doc string for native_lon_lat_from_ra_dec for definitions
     of native longitude and latitude.
 
-    @param [in] lon is the native longitude in degrees
+    Parameters
+    ----------
+    lon : `Unknown`
+        is the native longitude in degrees
 
-    @param [in] lat is the native latitude in degrees
+    Parameters
+    ----------
+    lat : `Unknown`
+        is the native latitude in degrees
 
-    @param [in] obs_metadata is an ObservationMetaData characterizing the
-    pointing of the telescope
+    Parameters
+    ----------
+    obs_metadata : `Unknown`
+        is an ObservationMetaData characterizing the
+        pointing of the telescope
 
-    @param [out] raOut is the RA of the star in degrees
-    (in the International Celestial Reference System)
+    Parameters
+    ----------
+    raOut : `Unknown`
+        is the RA of the star in degrees
+        (in the International Celestial Reference System)
 
-    @param [in] decOut is the Dec of the star in degrees
-    (in the International Celestial Reference System)
+    Parameters
+    ----------
+    decOut : `Unknown`
+        is the Dec of the star in degrees
+        (in the International Celestial Reference System)
 
     Note: Because of its reliance on icrs_from_observed, this
     method is only accurate at angular distances from the sun of greater

@@ -205,13 +205,22 @@ class ObservationMetaData:
         Note: this method assumes that self._bandpass has already been set.
         It will raise an exception of self._bandpass is None.
 
-        @param [in] input_value is a single value or list of m5/seeing/etc. corresponding to
-        the bandpasses stored in self._bandpass
+        Parameters
+        ----------
+        input_value : `Unknown`
+            is a single value or list of m5/seeing/etc. corresponding to
+            the bandpasses stored in self._bandpass
 
-        @param [in] input_name is the name of the Parameter stored in input_value
-        (for constructing helpful error message)
+        Parameters
+        ----------
+        input_name : `Unknown`
+            is the name of the Parameter stored in input_value
+            (for constructing helpful error message)
 
-        @param [out] returns a dict of input_value values keed to self._bandpass
+        Parameters
+        ----------
+        returns : `Unknown`
+            a dict of input_value values keed to self._bandpass
         """
 
         if input_value is None:
@@ -449,14 +458,23 @@ class ObservationMetaData:
         Set the bandpasses and associated 5-sigma limiting magnitudes
         and seeing values for this ObservationMetaData.
 
-        @param [in] bandpass_name is either a char or a list of chars denoting
-        the name of the bandpass associated with this ObservationMetaData.
+        Parameters
+        ----------
+        bandpass_name : `Unknown`
+            is either a char or a list of chars denoting
+            the name of the bandpass associated with this ObservationMetaData.
 
-        @param [in] m5 is the 5-sigma-limiting magnitude(s) associated
-        with bandpass_name
+        Parameters
+        ----------
+        m5 : `Unknown`
+            is the 5-sigma-limiting magnitude(s) associated
+            with bandpass_name
 
-        @param [in] seeing is the seeing(s) in arcseconds associated
-        with bandpass_name
+        Parameters
+        ----------
+        seeing : `Unknown`
+            is the seeing(s) in arcseconds associated
+            with bandpass_name
 
         Nothing is returned.  This method just sets member variables of
         this ObservationMetaData.
