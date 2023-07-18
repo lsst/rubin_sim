@@ -1,7 +1,7 @@
 __all__ = ["PhysicalParameters"]
 
 
-class PhysicalParameters(object):
+class PhysicalParameters:
     """
     A class to store physical constants and other immutable parameters
     used by the sims_phot_utils code

@@ -7,7 +7,7 @@ from .plot_handler import PlotHandler
 __all__ = ["PlotBundle"]
 
 
-class PlotBundle(object):
+class PlotBundle:
     """
     Object designed to help organize multiple MetricBundles that will be plotted
     together using the PlotHandler.

@@ -56,7 +56,7 @@ class RunRow(Base):
         return rstr
 
 
-class TrackingDb(object):
+class TrackingDb:
     """Sqlite database to track MAF output runs and their locations, for show_maf"""
 
     def __init__(self, database=None, trackingDbverbose=False):

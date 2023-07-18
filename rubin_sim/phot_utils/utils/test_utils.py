@@ -25,26 +25,47 @@ def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwhm_eff=Non
     provided hardware parameters. Using the resulting Sed in the
     'calcM5' method will return this target value for m5.
 
-    @param [in] the desired value of m5
+    Parameters
+    ----------
+    the : `Unknown`
+        desired value of m5
 
-    @param [in] skysed is an instantiation of the Sed class representing
-    sky emission
+    Parameters
+    ----------
+    skysed : `Unknown`
+        is an instantiation of the Sed class representing
+        sky emission
 
-    @param [in] total_bandpass is an instantiation of the Bandpass class
-    representing the total throughput of the telescope (instrumentation
-    plus atmosphere)
+    Parameters
+    ----------
+    total_bandpass : `Unknown`
+        is an instantiation of the Bandpass class
+        representing the total throughput of the telescope (instrumentation
+        plus atmosphere)
 
-    @param [in] hardware is an instantiation of the Bandpass class representing
-    the throughput due solely to instrumentation.
+    Parameters
+    ----------
+    hardware : `Unknown`
+        is an instantiation of the Bandpass class representing
+        the throughput due solely to instrumentation.
 
-    @param [in] phot_params is an instantiation of the
-    PhotometricParameters class that carries details about the
-    photometric response of the telescope.
+    Parameters
+    ----------
+    phot_params : `Unknown`
+        is an instantiation of the
+        PhotometricParameters class that carries details about the
+        photometric response of the telescope.
 
-    @param [in] fwhm_eff in arcseconds
+    Parameters
+    ----------
+    fwhm_eff : `Unknown`
+        in arcseconds
 
-    @param [out] returns an instantiation of the Sed class that is the skysed renormalized
-    so that m5 has the desired value.
+    Parameters
+    ----------
+    returns : `Unknown`
+        an instantiation of the Sed class that is the skysed renormalized
+        so that m5 has the desired value.
 
     Note that the returned SED will be renormalized such that calling the method
     self.calcADU(hardwareBandpass) on it will yield the number of counts per square
@@ -78,38 +99,80 @@ def cosmological_omega(redshift, h0, om0, ode0=None, og0=0.0, onu0=0.0, w0=-1.0,
     A method to compute the evolution of the Hubble and density parameters
     with redshift (as a baseline against which to test the cosmology unittest)
 
-    @param [in] redshift is the redshift at which the output is desired
+    Parameters
+    ----------
+    redshift : `Unknown`
+        is the redshift at which the output is desired
 
-    @param [in] h0 is the Hubble parameter at the present epoch in km/s/Mpc
+    Parameters
+    ----------
+    h0 : `Unknown`
+        is the Hubble parameter at the present epoch in km/s/Mpc
 
-    @param [in] om0 is the density parameter (fraction of critical) for matter at the
-    present epoch
+    Parameters
+    ----------
+    om0 : `Unknown`
+        is the density parameter (fraction of critical) for matter at the
+        present epoch
 
-    @param [in] ode0 is the density parameter for Dark Energy at the present epoch.
-    If left as None, will be set to 1.0-om0-og0-onu0 (i.e. a flat universe)
+    Parameters
+    ----------
+    ode0 : `Unknown`
+        is the density parameter for Dark Energy at the present epoch.
+        If left as None, will be set to 1.0-om0-og0-onu0 (i.e. a flat universe)
 
-    @param [in] og0 is the density parameter for photons at the present epoch
+    Parameters
+    ----------
+    og0 : `Unknown`
+        is the density parameter for photons at the present epoch
 
-    @param [in] onu0 is the density parameter for neutrinos at the present epoch
-    (assume massless neutrinos)
+    Parameters
+    ----------
+    onu0 : `Unknown`
+        is the density parameter for neutrinos at the present epoch
+        (assume massless neutrinos)
 
-    @param [in] w0 is a parameter for calculating the equation of state for Dark Energy
-    w = w0 + wa * z/(1 + z)
+    Parameters
+    ----------
+    w0 : `Unknown`
+        is a parameter for calculating the equation of state for Dark Energy
+        w = w0 + wa * z/(1 + z)
 
-    @param [in] wa is the other parameter for calculating the equation of state for Dark
-    Energy
+    Parameters
+    ----------
+    wa : `Unknown`
+        is the other parameter for calculating the equation of state for Dark
+        Energy
 
-    @returns Hubble parameter at desired redshift (in km/s/Mpc)
+    Returns
+    -------
+    Unknown: `Unknown`
+        Hubble parameter at desired redshift (in km/s/Mpc)
 
-    @returns matter density Parameter at desired redshift
+    Returns
+    -------
+    Unknown: `Unknown`
+        matter density Parameter at desired redshift
 
-    @returns Dark Energy density parameter at desired redshift
+    Returns
+    -------
+    Unknown: `Unknown`
+        Dark Energy density parameter at desired redshift
 
-    @returns photon density parameter at desired redshift
+    Returns
+    -------
+    Unknown: `Unknown`
+        photon density parameter at desired redshift
 
-    @returns neutrino density parameter at desired redshift
+    Returns
+    -------
+    Unknown: `Unknown`
+        neutrino density parameter at desired redshift
 
-    @returns curvature density parameter at desired redshift
+    Returns
+    -------
+    Unknown: `Unknown`
+        curvature density parameter at desired redshift
     """
 
     if ode0 is None:
@@ -140,27 +203,54 @@ def comoving_distance_integrand(redshift, h0, om0, ode0, og0, onu0, w0, wa):
     """
     The integrand of comoving distance (as a baseline for cosmology unittest)
 
-    @param [in] redshift is the redshift at which to evaluate the integrand
+    Parameters
+    ----------
+    redshift : `Unknown`
+        is the redshift at which to evaluate the integrand
 
-    @param [in] h0 is the Hubble parameter at the present epoch in km/s/Mpc
+    Parameters
+    ----------
+    h0 : `Unknown`
+        is the Hubble parameter at the present epoch in km/s/Mpc
 
-    @param [in] om0 is the density parameter (fraction of critical) for matter at the
-    present epoch
+    Parameters
+    ----------
+    om0 : `Unknown`
+        is the density parameter (fraction of critical) for matter at the
+        present epoch
 
-    @param [in] ode0 is the density parameter for Dark Energy at the present epoch.
+    Parameters
+    ----------
+    ode0 : `Unknown`
+        is the density parameter for Dark Energy at the present epoch.
 
-    @param [in] og0 is the density parameter for photons at the present epoch
+    Parameters
+    ----------
+    og0 : `Unknown`
+        is the density parameter for photons at the present epoch
 
-    @param [in] onu0 is the density parameter for neutrinos at the present epoch
-    (assume massless neutrinos)
+    Parameters
+    ----------
+    onu0 : `Unknown`
+        is the density parameter for neutrinos at the present epoch
+        (assume massless neutrinos)
 
-    @param [in] w0 is a parameter for calculating the equation of state for Dark Energy
-    w = w0 + wa * z/(1 + z)
+    Parameters
+    ----------
+    w0 : `Unknown`
+        is a parameter for calculating the equation of state for Dark Energy
+        w = w0 + wa * z/(1 + z)
 
-    @param [in] wa is the other parameter for calculating the equation of state for Dark
-    Energy
+    Parameters
+    ----------
+    wa : `Unknown`
+        is the other parameter for calculating the equation of state for Dark
+        Energy
 
-    @returns 1/(Hubble parameter at desired redshift in km/s/Mpc)
+    Returns
+    -------
+    Unknown: `Unknown`
+        1/(Hubble parameter at desired redshift in km/s/Mpc)
 
     """
     hh, mm, de, gg, nn, kk = cosmological_omega(

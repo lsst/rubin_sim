@@ -95,7 +95,7 @@ def rotate_ra_dec(ra, dec, ra_target, dec_target, init_rotate=0.0):
     return ra_p, dec_p
 
 
-class Pointings2hp(object):
+class Pointings2hp:
     """
     Convert a list of telescope pointings and convert them to a pointing map
     """
@@ -137,7 +137,7 @@ class Pointings2hp(object):
         return result
 
 
-class HpmapCross(object):
+class HpmapCross:
     """
     Find the cross-correlation of a healpix map and a bunch of rotated pointings
     """

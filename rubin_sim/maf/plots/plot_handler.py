@@ -19,7 +19,7 @@ def apply_zp_norm(metric_value, plot_dict):
     return metric_value
 
 
-class BasePlotter(object):
+class BasePlotter:
     """
     Serve as the base type for MAF plotters and example of API.
     """
@@ -40,7 +40,7 @@ class BasePlotter(object):
         pass
 
 
-class PlotHandler(object):
+class PlotHandler:
     def __init__(
         self,
         out_dir=".",

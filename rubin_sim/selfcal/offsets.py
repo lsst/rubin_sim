@@ -5,7 +5,7 @@ from rubin_sim.maf import m52snr
 # from lsst.sims.selfcal.clouds.Arma import ArmaSf, Clouds
 
 
-class BaseOffset(object):
+class BaseOffset:
     """Base class for how to make offset classes"""
 
     def __init__(self, **kwargs):

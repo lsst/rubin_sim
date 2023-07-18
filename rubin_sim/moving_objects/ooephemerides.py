@@ -32,7 +32,7 @@ def get_oorb_data_dir():
     return data_path
 
 
-class PyOrbEphemerides(object):
+class PyOrbEphemerides:
     """Generate ephemerides and propagate orbits using the python interface to Oorb.
 
     Typical usage:

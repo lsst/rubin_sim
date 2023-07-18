@@ -79,7 +79,7 @@ def get_kne_filename(inj_params_list=None):
     return matched_files
 
 
-class KnLc(object):
+class KnLc:
     """Read in some KNe lightcurves
 
     Parameters

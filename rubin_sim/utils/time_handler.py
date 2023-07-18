@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 __all__ = ["TimeHandler"]
 
 
-class TimeHandler(object):
+class TimeHandler:
     """Keep track of simulation time information.
 
     This is a class tied to SOCS/Scheduler (OpSim).

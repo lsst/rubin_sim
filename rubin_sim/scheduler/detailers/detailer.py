@@ -20,7 +20,7 @@ __all__ = [
 ]
 
 
-class BaseDetailer(object):
+class BaseDetailer:
     """
     A Detailer is an object that takes a list of proposed observations and adds "details" to them. The
     primary purpose is that the Markov Decision Process does an excelent job selecting RA,Dec,filter

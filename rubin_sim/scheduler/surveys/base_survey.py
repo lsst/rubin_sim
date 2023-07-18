@@ -19,7 +19,7 @@ from rubin_sim.site_models import _read_fields
 __all__ = ["BaseSurvey", "BaseMarkovSurvey"]
 
 
-class BaseSurvey(object):
+class BaseSurvey:
     """A baseclass for survey objects.
 
     Parameters

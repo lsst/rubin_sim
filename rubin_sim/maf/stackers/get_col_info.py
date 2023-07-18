@@ -5,7 +5,7 @@ from .base_stacker import BaseStacker
 __all__ = ["ColInfo"]
 
 
-class ColInfo(object):
+class ColInfo:
     """Class to hold the unit and source locations for columns.
 
     The stacker classes which will generate stacker columns are tracked here, as well as

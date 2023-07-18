@@ -28,7 +28,7 @@ def create_empty_metric_bundle():
     return MetricBundle(metrics.BaseMetric(), slicers.BaseSlicer(), "")
 
 
-class MetricBundle(object):
+class MetricBundle:
     """The MetricBundle is defined by a combination of a (single) metric, slicer and
     constraint - together these define a unique combination of an opsim benchmark.
     An example would be: a CountMetric, a HealpixSlicer, and a constraint 'filter="r"'.

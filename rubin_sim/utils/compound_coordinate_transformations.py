@@ -28,23 +28,44 @@ def alt_az_pa_from_ra_dec(ra, dec, obs, include_refraction=True):
     Convert RA, Dec, longitude, latitude and MJD into altitude, azimuth
     and parallactic angle using PALPY
 
-    @param [in] ra is RA in degrees.  Can be a numpy array or a single value.
-    Assumed to be in the International Celestial Reference System.
+    Parameters
+    ----------
+    ra : `Unknown`
+        is RA in degrees.  Can be a numpy array or a single value.
+        Assumed to be in the International Celestial Reference System.
 
-    @param [in] dec is Dec in degrees.  Can be a numpy array or a single value.
-    Assumed to be in the International Celestial Reference System.
+    Parameters
+    ----------
+    dec : `Unknown`
+        is Dec in degrees.  Can be a numpy array or a single value.
+        Assumed to be in the International Celestial Reference System.
 
-    @param [in] obs is an ObservationMetaData characterizing
-    the site of the telescope and the MJD of the observation
+    Parameters
+    ----------
+    obs : `Unknown`
+        is an ObservationMetaData characterizing
+        the site of the telescope and the MJD of the observation
 
-    @param [in] include_refraction is a `bool` that turns refraction on and off
-    (default True)
+    Parameters
+    ----------
+    include_refraction : `Unknown`
+        is a `bool` that turns refraction on and off
+        (default True)
 
-    @param [out] altitude in degrees
+    Parameters
+    ----------
+    altitude : `Unknown`
+        in degrees
 
-    @param [out] azimuth in degrees
+    Parameters
+    ----------
+    azimuth : `Unknown`
+        in degrees
 
-    @param [out] parallactic angle in degrees
+    Parameters
+    ----------
+    parallactic : `Unknown`
+        angle in degrees
 
     WARNING: This method does not account for apparent motion due to parallax.
     This method is only useful for mapping positions on a theoretical celestial
@@ -63,23 +84,44 @@ def _alt_az_pa_from_ra_dec(ra_rad, dec_rad, obs, include_refraction=True):
     Convert RA, Dec, longitude, latitude and MJD into altitude, azimuth
     and parallactic angle using PALPY
 
-    @param [in] ra_rad is RA in radians.  Can be a numpy array or a single value.
-    Assumed to be in the International Celestial Reference System.
+    Parameters
+    ----------
+    ra_rad : `Unknown`
+        is RA in radians.  Can be a numpy array or a single value.
+        Assumed to be in the International Celestial Reference System.
 
-    @param [in] dec_rad is Dec in radians.  Can be a numpy array or a single value.
-    Assumed to be in the International Celestial Reference System.
+    Parameters
+    ----------
+    dec_rad : `Unknown`
+        is Dec in radians.  Can be a numpy array or a single value.
+        Assumed to be in the International Celestial Reference System.
 
-    @param [in] obs is an ObservationMetaData characterizing
-    the site of the telescope and the MJD of the observation
+    Parameters
+    ----------
+    obs : `Unknown`
+        is an ObservationMetaData characterizing
+        the site of the telescope and the MJD of the observation
 
-    @param [in] include_refraction is a `bool` that turns refraction on and off
-    (default True)
+    Parameters
+    ----------
+    include_refraction : `Unknown`
+        is a `bool` that turns refraction on and off
+        (default True)
 
-    @param [out] altitude in radians
+    Parameters
+    ----------
+    altitude : `Unknown`
+        in radians
 
-    @param [out] azimuth in radians
+    Parameters
+    ----------
+    azimuth : `Unknown`
+        in radians
 
-    @param [out] parallactic angle in radians
+    Parameters
+    ----------
+    parallactic : `Unknown`
+        angle in radians
 
     WARNING: This method does not account for apparent motion due to parallax.
     This method is only useful for mapping positions on a theoretical focal plan
@@ -114,19 +156,37 @@ def ra_dec_from_alt_az(alt, az, obs, include_refraction=True):
     """
     Convert altitude and azimuth to RA and Dec
 
-    @param [in] alt is the altitude in degrees.  Can be a numpy array or a single value.
+    Parameters
+    ----------
+    alt : `Unknown`
+        is the altitude in degrees.  Can be a numpy array or a single value.
 
-    @param [in] az is the azimuth in degrees.  Cant be a numpy array or a single value.
+    Parameters
+    ----------
+    az : `Unknown`
+        is the azimuth in degrees.  Cant be a numpy array or a single value.
 
-    @param [in] obs is an ObservationMetaData characterizing
-    the site of the telescope and the MJD of the observation
+    Parameters
+    ----------
+    obs : `Unknown`
+        is an ObservationMetaData characterizing
+        the site of the telescope and the MJD of the observation
 
-    @param [in] include_refraction is a `bool` that turns refraction on and off
-    (default True)
+    Parameters
+    ----------
+    include_refraction : `Unknown`
+        is a `bool` that turns refraction on and off
+        (default True)
 
-    @param [out] RA in degrees (in the International Celestial Reference System)
+    Parameters
+    ----------
+    RA : `Unknown`
+        in degrees (in the International Celestial Reference System)
 
-    @param [out] Dec in degrees (in the International Celestial Reference System)
+    Parameters
+    ----------
+    Dec : `Unknown`
+        in degrees (in the International Celestial Reference System)
 
     Note: This method is only accurate to within 0.01 arcsec near azimuth = 0 or pi
     """
@@ -140,19 +200,37 @@ def _ra_dec_from_alt_az(alt_rad, az_rad, obs, include_refraction=True):
     """
     Convert altitude and azimuth to RA and Dec
 
-    @param [in] alt_rad is the altitude in radians.  Can be a numpy array or a single value.
+    Parameters
+    ----------
+    alt_rad : `Unknown`
+        is the altitude in radians.  Can be a numpy array or a single value.
 
-    @param [in] az_rad is the azimuth in radians.  Cant be a numpy array or a single value.
+    Parameters
+    ----------
+    az_rad : `Unknown`
+        is the azimuth in radians.  Cant be a numpy array or a single value.
 
-    @param [in] obs is an ObservationMetaData characterizing
-    the site of the telescope and the MJD of the observation
+    Parameters
+    ----------
+    obs : `Unknown`
+        is an ObservationMetaData characterizing
+        the site of the telescope and the MJD of the observation
 
-    @param [in] include_refraction is a `bool` that turns refraction on and off
-    (default True)
+    Parameters
+    ----------
+    include_refraction : `Unknown`
+        is a `bool` that turns refraction on and off
+        (default True)
 
-    @param [out] RA in radians (in the International Celestial Reference System)
+    Parameters
+    ----------
+    RA : `Unknown`
+        in radians (in the International Celestial Reference System)
 
-    @param [out] Dec in radians (in the International Celestial Reference System)
+    Parameters
+    ----------
+    Dec : `Unknown`
+        in radians (in the International Celestial Reference System)
 
     Note: This method is only accurate to within 0.01 arcsec near azimuth = 0 or pi
     """
@@ -197,21 +275,36 @@ def _ra_dec_from_alt_az(alt_rad, az_rad, obs, include_refraction=True):
 
 def get_rot_sky_pos(ra, dec, obs, rot_tel):
     """
-    @param [in] ra is the RA in degrees.  Can be a numpy array or a single value.
-    (In the International Celestial Reference System)
+    Parameters
+    ----------
+    ra : `Unknown`
+        is the RA in degrees.  Can be a numpy array or a single value.
+        (In the International Celestial Reference System)
 
-    @param [in] dec is Dec in degrees.  Can be a numpy array or a single value.
-    (In the International Celestial Reference System)
+    Parameters
+    ----------
+    dec : `Unknown`
+        is Dec in degrees.  Can be a numpy array or a single value.
+        (In the International Celestial Reference System)
 
-    @param [in] obs is an ObservationMetaData characterizing the telescope pointing
-    and site.
+    Parameters
+    ----------
+    obs : `Unknown`
+        is an ObservationMetaData characterizing the telescope pointing
+        and site.
 
-    @param [in] rot_tel is rotTelPos in degrees
-    (the angle of the camera rotator).  Can be a numpy array or a single value.
-    If a numpy array, should have the same length as ra and dec.  In this case,
-    each rot_tel will be associated with the corresponding ra, dec pair.
+    Parameters
+    ----------
+    rot_tel : `Unknown`
+        is rotTelPos in degrees
+        (the angle of the camera rotator).  Can be a numpy array or a single value.
+        If a numpy array, should have the same length as ra and dec.  In this case,
+        each rot_tel will be associated with the corresponding ra, dec pair.
 
-    @param [out] rot_sky_pos in degrees
+    Parameters
+    ----------
+    rot_sky_pos : `Unknown`
+        in degrees
 
     WARNING: As of 13 April 2015, this method does not agree with OpSim on
     the relationship between rot_sky_pos and rotTelPos.  This is due to a
@@ -228,21 +321,36 @@ def get_rot_sky_pos(ra, dec, obs, rot_tel):
 
 def _get_rot_sky_pos(ra_rad, dec_rad, obs, rot_tel_rad):
     """
-    @param [in] ra_rad is the RA in radians.  Can be a numpy array or a single value.
-    (In the International Celestial Reference System)
+    Parameters
+    ----------
+    ra_rad : `Unknown`
+        is the RA in radians.  Can be a numpy array or a single value.
+        (In the International Celestial Reference System)
 
-    @param [in] dec_rad is Dec in radians.  Can be a numpy array or a single value.
-    (In the International Celestial Reference System)
+    Parameters
+    ----------
+    dec_rad : `Unknown`
+        is Dec in radians.  Can be a numpy array or a single value.
+        (In the International Celestial Reference System)
 
-    @param [in] obs is an ObservationMetaData characterizing the telescope pointing
-    and site.
+    Parameters
+    ----------
+    obs : `Unknown`
+        is an ObservationMetaData characterizing the telescope pointing
+        and site.
 
-    @param [in] rot_tel_rad is rotTelPos in radians
-    (the angle of the camera rotator).  Can be a numpy array or a single value.
-    If a numpy array, should have the same length as ra_rad and dec_rad.  In this case,
-    each rot_tel_rad will be associated with the corresponding ra_rad, dec_rad pair.
+    Parameters
+    ----------
+    rot_tel_rad : `Unknown`
+        is rotTelPos in radians
+        (the angle of the camera rotator).  Can be a numpy array or a single value.
+        If a numpy array, should have the same length as ra_rad and dec_rad.  In this case,
+        each rot_tel_rad will be associated with the corresponding ra_rad, dec_rad pair.
 
-    @param [out] rot_sky_pos in radians
+    Parameters
+    ----------
+    rot_sky_pos : `Unknown`
+        in radians
 
     WARNING: As of 13 April 2015, this method does not agree with OpSim on
     the relationship between rot_sky_pos and rotTelPos.  This is due to a
@@ -258,22 +366,37 @@ def _get_rot_sky_pos(ra_rad, dec_rad, obs, rot_tel_rad):
 
 def get_rot_tel_pos(ra, dec, obs, rot_sky):
     """
-    @param [in] ra is RA in degrees.  Can be a numpy array or a single value.
-    (In the International Celestial Reference System)
+    Parameters
+    ----------
+    ra : `Unknown`
+        is RA in degrees.  Can be a numpy array or a single value.
+        (In the International Celestial Reference System)
 
-    @param [in] dec is Dec in degrees.  Can be a numpy array or a single value.
-    (In the International Celestial Reference System)
+    Parameters
+    ----------
+    dec : `Unknown`
+        is Dec in degrees.  Can be a numpy array or a single value.
+        (In the International Celestial Reference System)
 
-    @param [in] obs is an ObservationMetaData characterizing the telescope pointing
-    and site.
+    Parameters
+    ----------
+    obs : `Unknown`
+        is an ObservationMetaData characterizing the telescope pointing
+        and site.
 
-    @param [in] rot_sky is rot_sky_pos in degrees
-    (the angle of the field of view relative to the South pole given a
-    rotator angle).  Can be a numpy array or a single value.  If a numpy array, should
-    have the same length as ra and dec.  In this case, each rot_sky_pos
-    will be associated with the corresponding ra, dec pair.
+    Parameters
+    ----------
+    rot_sky : `Unknown`
+        is rot_sky_pos in degrees
+        (the angle of the field of view relative to the South pole given a
+        rotator angle).  Can be a numpy array or a single value.  If a numpy array, should
+        have the same length as ra and dec.  In this case, each rot_sky_pos
+        will be associated with the corresponding ra, dec pair.
 
-    @param [out] rotTelPos in degrees.
+    Parameters
+    ----------
+    rotTelPos : `Unknown`
+        in degrees.
 
     WARNING: As of 13 April 2015, this method does not agree with OpSim on
     the relationship between rot_sky_pos and rotTelPos.  This is due to a
@@ -289,22 +412,37 @@ def get_rot_tel_pos(ra, dec, obs, rot_sky):
 
 def _get_rot_tel_pos(ra_rad, dec_rad, obs, rot_sky_rad):
     """
-    @param [in] ra_rad is RA in radians.  Can be a numpy array or a single value.
-    (In the International Celestial Reference System)
+    Parameters
+    ----------
+    ra_rad : `Unknown`
+        is RA in radians.  Can be a numpy array or a single value.
+        (In the International Celestial Reference System)
 
-    @param [in] dec_rad is Dec in radians.  Can be a numpy array or a single value.
-    (In the International Celestial Reference System)
+    Parameters
+    ----------
+    dec_rad : `Unknown`
+        is Dec in radians.  Can be a numpy array or a single value.
+        (In the International Celestial Reference System)
 
-    @param [in] obs is an ObservationMetaData characterizing the telescope pointing
-    and site.
+    Parameters
+    ----------
+    obs : `Unknown`
+        is an ObservationMetaData characterizing the telescope pointing
+        and site.
 
-    @param [in] rot_sky_rad is rot_sky_pos in radians
-    (the angle of the field of view relative to the South pole given a
-    rotator angle).  Can be a numpy array or a single value.  If a numpy array, should
-    have the same length as ra_rad and dec_rad.  In this case, each rot_sky_pos
-    will be associated with the corresponding ra_rad, dec_rad pair.
+    Parameters
+    ----------
+    rot_sky_rad : `Unknown`
+        is rot_sky_pos in radians
+        (the angle of the field of view relative to the South pole given a
+        rotator angle).  Can be a numpy array or a single value.  If a numpy array, should
+        have the same length as ra_rad and dec_rad.  In this case, each rot_sky_pos
+        will be associated with the corresponding ra_rad, dec_rad pair.
 
-    @param [out] rotTelPos in radians.
+    Parameters
+    ----------
+    rotTelPos : `Unknown`
+        in radians.
 
     WARNING: As of 13 April 2015, this method does not agree with OpSim on
     the relationship between rot_sky_pos and rotTelPos.  This is due to a

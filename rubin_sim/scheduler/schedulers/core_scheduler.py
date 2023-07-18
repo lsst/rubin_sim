@@ -19,7 +19,7 @@ from rubin_sim.utils import _approx_altaz2pa, _approx_ra_dec2_alt_az, _hpid2_ra_
 __all__ = ["CoreScheduler"]
 
 
-class CoreScheduler(object):
+class CoreScheduler:
     """Core scheduler that takes completed observations and observatory status and requests observations
 
     Parameters

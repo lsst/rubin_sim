@@ -34,7 +34,7 @@ class Utctout1Warning(MJDWarning):
     pass
 
 
-class ModifiedJulianDate(object):
+class ModifiedJulianDate:
     @classmethod
     def _get_ut1_from_utc(cls, utc):
         """
@@ -78,13 +78,22 @@ class ModifiedJulianDate(object):
         Instantiate a list of ModifiedJulianDates from a numpy array of either TAI
         or utc values.
 
-        @param[in] TAI (optional) a numpy array of MJD' in TAI
+        Parameters
+        ----------
+        TAI : `Unknown`
+            (optional) a numpy array of MJD' in TAI
 
-        @param[in] utc (optional) a numpy array of MJDs in utc
+        Parameters
+        ----------
+        utc : `Unknown`
+            (optional) a numpy array of MJDs in utc
 
-        @param[out] a list of ModifiedJulianDate instantiations with all of their
-        properties already set (so the code does not waste time converting from TAI
-        to TT, TDB, etc. when those time scales are called for).
+        Parameters
+        ----------
+        a : `Unknown`
+            list of ModifiedJulianDate instantiations with all of their
+            properties already set (so the code does not waste time converting from TAI
+            to TT, TDB, etc. when those time scales are called for).
         """
 
         if TAI is None and utc is None:
@@ -121,11 +130,17 @@ class ModifiedJulianDate(object):
         """
         Must specify either:
 
-        @param [in] TAI = the International Atomic Time as an MJD
+        Parameters
+        ----------
+        TAI : `Unknown`
+            = the International Atomic Time as an MJD
 
         or
 
-        @param [in] utc = Universal Coordinate Time as an MJD
+        Parameters
+        ----------
+        utc : `Unknown`
+            = Universal Coordinate Time as an MJD
         """
 
         if TAI is None and utc is None:

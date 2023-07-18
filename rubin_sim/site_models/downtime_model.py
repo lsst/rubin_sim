@@ -3,7 +3,7 @@ import warnings
 __all__ = ["DowntimeModel"]
 
 
-class DowntimeModel(object):
+class DowntimeModel:
     """Downtime estimates, both scheduled and unscheduled.
 
     Parameters

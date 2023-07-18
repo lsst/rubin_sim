@@ -5,7 +5,7 @@ import numpy as np
 __all__ = ["_FactorialGenerator", "ZernikePolynomialGenerator"]
 
 
-class _FactorialGenerator(object):
+class _FactorialGenerator:
     """
     A class that generates factorials
     and stores them in a dict to be referenced
@@ -36,7 +36,7 @@ class _FactorialGenerator(object):
         return self._values[num]
 
 
-class ZernikePolynomialGenerator(object):
+class ZernikePolynomialGenerator:
     """
     A class to generate and evaluate the Zernike
     polynomials.  Definitions of Zernike polynomials

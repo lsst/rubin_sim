@@ -5,7 +5,7 @@ import rubin_sim.scheduler.Training as optional
 from rubin_sim.speedObservatory import Speed_observatory
 
 
-class BlackTraining(object):
+class BlackTraining:
     def __init__(self, preferences=[1], gray_train=False, custom_period=1):
         self.pref = preferences
 

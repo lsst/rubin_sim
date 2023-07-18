@@ -57,12 +57,21 @@ class SpatialBounds(with_metaclass(SpatialBoundsMetaClass, object)):
         Accepts a center point and a characteristic length defining the extent of
         the bounds
 
-        @param[in] ra is the center RA in radians
+        Parameters
+        ----------
+        ra : `Unknown`
+            is the center RA in radians
 
-        @param[in] dec is the center Dec in radians
+        Parameters
+        ----------
+        dec : `Unknown`
+            is the center Dec in radians
 
-        @param[in] length is either a single characteristic length (in radians)
-        or a list of characteristic lengths defining the shape of the bound
+        Parameters
+        ----------
+        length : `Unknown`
+            is either a single characteristic length (in radians)
+            or a list of characteristic lengths defining the shape of the bound
         """
 
         raise NotImplementedError()
@@ -73,11 +82,20 @@ class SpatialBounds(with_metaclass(SpatialBoundsMetaClass, object)):
         Uses the stored RA, Dec, and length for this object to return an SQL
         query that only selects the region of RA and Dec desired
 
-        @param[in] RAname a string; the name of the RA column in the database
+        Parameters
+        ----------
+        RAname : `Unknown`
+            a string; the name of the RA column in the database
 
-        @param[in] DECname a string; the name of the Dec column in the database
+        Parameters
+        ----------
+        DECname : `Unknown`
+            a string; the name of the Dec column in the database
 
-        @returns a string; an SQL query that only selects the desired region in RA, Dec
+        Returns
+        -------
+        Unknown: `Unknown`
+            a string; an SQL query that only selects the desired region in RA, Dec
         """
 
         raise NotImplementedError()
@@ -115,11 +133,20 @@ class CircleBounds(SpatialBounds):
         Accepts a center point and a characteristic length defining the extent of
         the bounds
 
-        @param[in] ra is the center RA in radians
+        Parameters
+        ----------
+        ra : `Unknown`
+            is the center RA in radians
 
-        @param[in] dec is the center Dec in radians
+        Parameters
+        ----------
+        dec : `Unknown`
+            is the center Dec in radians
 
-        @param[in] length is the radius of the field of view in radians
+        Parameters
+        ----------
+        length : `Unknown`
+            is the radius of the field of view in radians
         """
 
         if not (isinstance(ra, float) or isinstance(ra, np.float64)):
@@ -218,15 +245,24 @@ class BoxBounds(SpatialBounds):
         Accepts a center point and a characteristic length defining the extent of
         the bounds
 
-        @param[in] ra is the center RA in radians
+        Parameters
+        ----------
+        ra : `Unknown`
+            is the center RA in radians
 
-        @param[in] dec is the center Dec in radians
+        Parameters
+        ----------
+        dec : `Unknown`
+            is the center Dec in radians
 
-        @param[in] length is either a single characteristic length (in radians)
-        or a list of characteristic lengths defining the shape of the bound.
-        If a single value, the field of view will be a square with side of 2 x length.
-        If it is a list/tuple/array, the field of view will be a rectangle with side lengths
-        RA = 2 x length[0] and Dec = 2 x length[1]
+        Parameters
+        ----------
+        length : `Unknown`
+            is either a single characteristic length (in radians)
+            or a list of characteristic lengths defining the shape of the bound.
+            If a single value, the field of view will be a square with side of 2 x length.
+            If it is a list/tuple/array, the field of view will be a rectangle with side lengths
+            RA = 2 x length[0] and Dec = 2 x length[1]
         """
 
         if not (isinstance(ra, float) or isinstance(ra, np.float64)):

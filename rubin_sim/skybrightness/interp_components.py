@@ -146,7 +146,7 @@ def load_spec_files(filenames, mags=False):
     return spec, wave, filter_wave
 
 
-class BaseSingleInterp(object):
+class BaseSingleInterp:
     """
     Base class for sky components that only need to be interpolated on airmass
     """
@@ -330,7 +330,7 @@ class Airglow(BaseSingleInterp):
         return results
 
 
-class TwilightInterp(object):
+class TwilightInterp:
     def __init__(self, mags=False, dark_sky_mags=None, fit_results=None):
         """
         Read the Solar spectrum into a handy object and compute mags in different filters

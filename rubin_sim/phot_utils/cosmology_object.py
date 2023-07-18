@@ -57,7 +57,7 @@ flatnessthresh = 1.0e-12
 __all__ = ["CosmologyObject"]
 
 
-class CosmologyObject(object):
+class CosmologyObject:
     def __init__(self, h0=73.0, om0=0.25, ok0=None, w0=None, wa=None):
         """
         Initialize the cosmology wrapper with the parameters specified

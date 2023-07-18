@@ -5,7 +5,7 @@ from rubin_sim.phot_utils import BandpassDict, Sed
 __all__ = ["PhotometricParameters", "DustValues"]
 
 
-class DustValues(object):
+class DustValues:
     """Calculate extinction values
 
     Parameters
@@ -47,7 +47,7 @@ class DustValues(object):
         self.r_x = self.ax1.copy()
 
 
-class DefaultPhotometricParameters(object):
+class DefaultPhotometricParameters:
     """
     This class will just contain a bunch of dict which store
     the default PhotometricParameters for LSST Bandpasses
@@ -125,7 +125,7 @@ class DefaultPhotometricParameters(object):
     }
 
 
-class PhotometricParameters(object):
+class PhotometricParameters:
     def __init__(
         self,
         exptime=None,
@@ -140,29 +140,59 @@ class PhotometricParameters(object):
         bandpass=None,
     ):
         """
-        @param [in] exptime exposure time in seconds (defaults to LSST value)
+        Parameters
+        ----------
+        exptime : `Unknown`
+            exposure time in seconds (defaults to LSST value)
 
-        @param [in] nexp number of exposures (defaults to LSST value)
+        Parameters
+        ----------
+        nexp : `Unknown`
+            number of exposures (defaults to LSST value)
 
-        @param [in] effarea effective area in cm^2 (defaults to LSST value)
+        Parameters
+        ----------
+        effarea : `Unknown`
+            effective area in cm^2 (defaults to LSST value)
 
-        @param [in] gain electrons per ADU (defaults to LSST value)
+        Parameters
+        ----------
+        gain : `Unknown`
+            electrons per ADU (defaults to LSST value)
 
-        @param [in] readnoise electrons per pixel per exposure (defaults to LSST value)
+        Parameters
+        ----------
+        readnoise : `Unknown`
+            electrons per pixel per exposure (defaults to LSST value)
 
-        @param [in] darkcurrent electons per pixel per second (defaults to LSST value)
+        Parameters
+        ----------
+        darkcurrent : `Unknown`
+            electons per pixel per second (defaults to LSST value)
 
-        @param [in] othernoise electrons per pixel per exposure (defaults to LSST value)
+        Parameters
+        ----------
+        othernoise : `Unknown`
+            electrons per pixel per exposure (defaults to LSST value)
 
-        @param [in] platescale arcseconds per pixel (defaults to LSST value)
+        Parameters
+        ----------
+        platescale : `Unknown`
+            arcseconds per pixel (defaults to LSST value)
 
-        @param [in] sigma_sys systematic error in magnitudes
-        (defaults to LSST value)
+        Parameters
+        ----------
+        sigma_sys : `Unknown`
+            systematic error in magnitudes
+            (defaults to LSST value)
 
-        @param [in] bandpass is the name of the bandpass to which these parameters
-        correspond.  If set to an LSST bandpass, the constructor will initialize
-        PhotometricParameters to LSST default values for that bandpass, excepting
-        any parameters that have been set by hand, i.e
+        Parameters
+        ----------
+        bandpass : `Unknown`
+            is the name of the bandpass to which these parameters
+            correspond.  If set to an LSST bandpass, the constructor will initialize
+            PhotometricParameters to LSST default values for that bandpass, excepting
+            any parameters that have been set by hand, i.e
 
         myPhotParams = PhotometricParameters(nexp=3, bandpass='u')
 

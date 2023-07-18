@@ -5,7 +5,7 @@ import numpy as np
 __all__ = ["CloudModel"]
 
 
-class CloudModel(object):
+class CloudModel:
     """LSST cloud calculations for cloud extinction.
     Currently this actually only returns the cloud coverage of the sky, exactly as reported in the
     cloud database (thus the sky coverage, in fractions of 8ths).

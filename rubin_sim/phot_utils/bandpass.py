@@ -49,13 +49,12 @@ new wavelen/sb arrays (wavelength sampled like self)
 * calc_zp_t : calculate instrumental zeropoint for this bandpass
 * calc_eff_wavelen: calculate the effective wavelength (using both Sb and Phi) for this bandpass
 * writeThroughput : utility to write bandpass information to file
-
 """
 import gzip
 import os
 import warnings
 
-import numpy
+import numpy as np
 import scipy.interpolate as interpolate
 
 from .physical_parameters import PhysicalParameters
@@ -64,26 +63,22 @@ from .sed import Sed  # For ZP_t and M5 calculations. And for 'fast mags' calcul
 __all__ = ["Bandpass"]
 
 
-class Bandpass(object):
+class Bandpass:
     """
     Hold and use telescope throughput curves.
+
+    Parameters
+    ----------
+    wavelen : `np.ndarray`, (N,)
+        Wavelength array in nm.
+    sb : `np.ndarray`, (N,)
+        Throughput array (fraction, 0-1).
+    sampling_warning : `float`
+        If wavelength sampling lower than this, throw a warning because it might not
+        work well with Sed (nm).
     """
 
     def __init__(self, wavelen=None, sb=None, sampling_warning=0.2):
-        """
-        Initialize bandpass object, with option to pass wavelen/sb arrays in directly.
-
-        Parameters
-        ----------
-        wavelen : np.array (None)
-            Wavelength array in nm
-        sb : np.array (None)
-            Throughput array (fraction, 0-1)
-        sampling_warning : float (0.2)
-            If wavelength sampling lower than this, throw a warning because it might not
-            work well with Sed (nm).
-        """
-
         self._phys_params = PhysicalParameters()
         self.sampling_warning = sampling_warning
         self.wavelen = None
@@ -97,10 +92,10 @@ class Bandpass(object):
     def _check_wavelength_sampling(self):
         """Check that the wavelength sampling is above some threshold"""
         if self.wavelen is not None:
-            dif = numpy.diff(self.wavelen)
-            if numpy.max(dif) > self.sampling_warning:
+            dif = np.diff(self.wavelen)
+            if np.max(dif) > self.sampling_warning:
                 warnings.warn(
-                    "Wavelength sampling of %.1f nm is > %.1f nm" % (numpy.max(dif), self.sampling_warning)
+                    "Wavelength sampling of %.1f nm is > %.1f nm" % (np.max(dif), self.sampling_warning)
                     + ", this may not work well"
                     " with a Sed object. Consider resampling with resample_bandpass method."
                 )
@@ -110,20 +105,31 @@ class Bandpass(object):
         Populate bandpass data with wavelen/sb arrays.
 
         Phi set to None.
+
+        Parameters
+        ----------
+        wavelen : `np.ndarray`, (N,)
+            Wavelength array in nm.
+        sb : `np.ndarray`, (N,)
+            Throughput array (fraction, 0-1).
+
+        Raises
+        ------
+        ValueError
+            Raised if ``wavelen`` and ``sb`` have different length.
         """
         # Check data type.
-        if (isinstance(wavelen, numpy.ndarray) == False) or (isinstance(sb, numpy.ndarray) == False):
+        if (isinstance(wavelen, np.ndarray) == False) or (isinstance(sb, np.ndarray) == False):
             raise ValueError("Wavelen and sb arrays must be numpy arrays.")
         # Check data matches in length.
         if len(wavelen) != len(sb):
             raise ValueError("Wavelen and sb arrays must have the same length.")
 
-        self.wavelen = numpy.copy(wavelen)
+        self.wavelen = np.copy(wavelen)
         self.phi = None
-        self.sb = numpy.copy(sb)
+        self.sb = np.copy(sb)
         self.bandpassname = "FromArrays"
         self._check_wavelength_sampling()
-        return
 
     def imsim_bandpass(self, imsimwavelen=500.0, wavelen_min=300, wavelen_max=1150, wavelen_step=0.1):
         """
@@ -132,7 +138,7 @@ class Bandpass(object):
         Sets wavelen/sb, with grid min/max/step as Parameters. Does NOT set phi.
         """
         # Set up arrays.
-        self.wavelen = numpy.arange(
+        self.wavelen = np.arange(
             wavelen_min,
             wavelen_max + wavelen_step,
             wavelen_step,
@@ -140,11 +146,10 @@ class Bandpass(object):
         )
         self.phi = None
         # Set sb.
-        self.sb = numpy.zeros(len(self.wavelen), dtype="float")
+        self.sb = np.zeros(len(self.wavelen), dtype="float")
         self.sb[abs(self.wavelen - imsimwavelen) < wavelen_step / 2.0] = 1.0
         self.bandpassname = "IMSIM"
         self._check_wavelength_sampling()
-        return
 
     def read_throughput(self, filename):
         """
@@ -193,17 +198,16 @@ class Bandpass(object):
         f.close()
         self.bandpassname = filename
         # Set up wavelen/sb.
-        self.wavelen = numpy.array(wavelen, dtype="float")
-        self.sb = numpy.array(sb, dtype="float")
+        self.wavelen = np.array(wavelen, dtype="float")
+        self.sb = np.array(sb, dtype="float")
         # Check that wavelength is monotonic increasing and non-repeating in wavelength. (Sort on wavelength).
-        if len(self.wavelen) != len(numpy.unique(self.wavelen)):
+        if len(self.wavelen) != len(np.unique(self.wavelen)):
             raise ValueError("The wavelength values in file %s are non-unique." % (filename))
         # Sort values.
         p = self.wavelen.argsort()
         self.wavelen = self.wavelen[p]
         self.sb = self.sb[p]
         self._check_wavelength_sampling()
-        return
 
     def read_throughput_list(
         self,
@@ -234,14 +238,14 @@ class Bandpass(object):
         #                 'm1.dat', 'm2.dat', 'm3.dat', 'atmos_std.dat', 'ideal_g.dat']
         #
         # Set up wavelen/sb on grid.
-        self.wavelen = numpy.arange(
+        self.wavelen = np.arange(
             wavelen_min,
             wavelen_max + wavelen_step / 2.0,
             wavelen_step,
             dtype="float",
         )
         self.phi = None
-        self.sb = numpy.ones(len(self.wavelen), dtype="float")
+        self.sb = np.ones(len(self.wavelen), dtype="float")
         # Set up a temporary bandpass object to hold data from each file.
         tempbandpass = Bandpass()
         for component in component_list:
@@ -256,14 +260,13 @@ class Bandpass(object):
             self.sb = self.sb * tempbandpass.sb
         self.bandpassname = "".join(component_list)
         self._check_wavelength_sampling()
-        return
 
     def get_bandpass(self):
-        wavelen = numpy.copy(self.wavelen)
-        sb = numpy.copy(self.sb)
+        wavelen = np.copy(self.wavelen)
+        sb = np.copy(self.sb)
         return wavelen, sb
 
-    ## utilities
+    # utilities
 
     def check_use_self(self, wavelen, sb):
         """
@@ -282,7 +285,7 @@ class Bandpass(object):
             update_self = True
         else:
             # Both of the arrays were passed in - check their validity.
-            if (isinstance(wavelen, numpy.ndarray) == False) or (isinstance(sb, numpy.ndarray) == False):
+            if (isinstance(wavelen, np.ndarray) == False) or (isinstance(sb, np.ndarray) == False):
                 raise ValueError("Must pass wavelen/sb as numpy arrays")
             if len(wavelen) != len(sb):
                 raise ValueError("Must pass equal length wavelen/sb arrays")
@@ -315,7 +318,7 @@ class Bandpass(object):
         if (wavelen.min() > wavelen_max) or (wavelen.max() < wavelen_min):
             raise Exception("No overlap between known wavelength range and desired wavelength range.")
         # Set up gridded wavelength.
-        wavelen_grid = numpy.arange(
+        wavelen_grid = np.arange(
             wavelen_min, wavelen_max + wavelen_step / 2.0, wavelen_step, dtype="float"
         )
         # Do the interpolation of wavelen/sb onto the grid. (note wavelen/sb type failures will die here).
@@ -330,7 +333,7 @@ class Bandpass(object):
         self._check_wavelength_sampling()
         return wavelen_grid, sb_grid
 
-    ## more complicated bandpass functions
+    # more complicated bandpass functions
 
     def sb_tophi(self):
         """
@@ -341,7 +344,7 @@ class Bandpass(object):
         # The definition of phi = (Sb/wavelength)/\int(Sb/wavelength)dlambda.
         self.phi = self.sb / self.wavelen
         # Normalize phi so that the integral of phi is 1.
-        norm = numpy.trapz(self.phi, x=self.wavelen)
+        norm = np.trapz(self.phi, x=self.wavelen)
         self.phi = self.phi / norm
         return
 
@@ -353,7 +356,7 @@ class Bandpass(object):
         This method does not affect self.
         """
         # Resample wavelen_other/sb_other to match this bandpass.
-        if not numpy.all(self.wavelen == wavelen_other):
+        if not np.all(self.wavelen == wavelen_other):
             wavelen_other, sb_other = self.resample_bandpass(
                 wavelen=wavelen_other,
                 sb=sb_other,
@@ -362,7 +365,7 @@ class Bandpass(object):
                 wavelen_step=self.wavelen[1] - self.wavelen[0],
             )
         # Make new memory copy of wavelen.
-        wavelen_new = numpy.copy(self.wavelen)
+        wavelen_new = np.copy(self.wavelen)
         # Calculate new transmission - this is also new memory.
         sb_new = self.sb * sb_other
         return wavelen_new, sb_new
@@ -371,9 +374,11 @@ class Bandpass(object):
         """
         Calculate the instrumental zeropoint for a bandpass.
 
-        @param [in] photometric_parameters is an instantiation of the
-        PhotometricParameters class that carries details about the
-        photometric response of the telescope.  Defaults to LSST values.
+        Parameters
+        ----------
+        photometric_parameters : `PhotometricParameters`
+            Details about the photometric response of the telescope.
+            Defaults to LSST values.
         """
         # ZP_t is the magnitude of a (F_nu flat) source which produced 1 count per second.
         # This is often also known as the 'instrumental zeropoint'.
@@ -432,4 +437,3 @@ class Bandpass(object):
             else:
                 print(self.wavelen[i], self.sb[i], file=f)
         f.close()
-        return

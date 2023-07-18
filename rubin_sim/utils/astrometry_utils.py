@@ -40,15 +40,27 @@ def _solar_ra_dec(mjd, epoch=2000.0):
     """
     Return the RA and Dec of the Sun in radians
 
-    @param [in] mjd is the date represented as a
-    ModifiedJulianDate object.
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is the date represented as a
+        ModifiedJulianDate object.
 
-    @param [in] epoch is the mean epoch of the coordinate system
-    (default is 2000.0)
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the mean epoch of the coordinate system
+        (default is 2000.0)
 
-    @param [out] RA of Sun in radians
+    Parameters
+    ----------
+    RA : `Unknown`
+        of Sun in radians
 
-    @param [out] Dec of Sun in radians
+    Parameters
+    ----------
+    Dec : `Unknown`
+        of Sun in radians
     """
 
     params = palpy.mappa(epoch, mjd.TDB)
@@ -62,15 +74,27 @@ def solar_ra_dec(mjd, epoch=2000.0):
     """
     Return the RA and Dec of the Sun in degrees
 
-    @param [in] mjd is the date represented as a
-    ModifiedJulianDate object.
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is the date represented as a
+        ModifiedJulianDate object.
 
-    @param [in] epoch is the mean epoch of the coordinate system
-    (default is 2000.0)
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the mean epoch of the coordinate system
+        (default is 2000.0)
 
-    @param [out] RA of Sun in degrees
+    Parameters
+    ----------
+    RA : `Unknown`
+        of Sun in degrees
 
-    @param [out] Dec of Sun in degress
+    Parameters
+    ----------
+    Dec : `Unknown`
+        of Sun in degress
     """
 
     solar_ra, solar_dec = _solar_ra_dec(mjd, epoch=epoch)
@@ -81,17 +105,32 @@ def _distance_to_sun(ra, dec, mjd, epoch=2000.0):
     """
     Calculate the distance from an (ra, dec) point to the Sun (in radians).
 
-    @param [in] ra in radians
+    Parameters
+    ----------
+    ra : `Unknown`
+        in radians
 
-    @param [in] dec in radians
+    Parameters
+    ----------
+    dec : `Unknown`
+        in radians
 
-    @param [in] mjd is the date represented as a
-    ModifiedJulianDate object.
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is the date represented as a
+        ModifiedJulianDate object.
 
-    @param [in] epoch is the epoch of the coordinate system
-    (default is 2000.0)
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the epoch of the coordinate system
+        (default is 2000.0)
 
-    @param [out] distance on the sky to the Sun in radians
+    Parameters
+    ----------
+    distance : `Unknown`
+        on the sky to the Sun in radians
     """
 
     sun_ra, sun_dec = _solar_ra_dec(mjd, epoch=epoch)
@@ -103,17 +142,32 @@ def distance_to_sun(ra, dec, mjd, epoch=2000.0):
     """
     Calculate the distance from an (ra, dec) point to the Sun (in degrees).
 
-    @param [in] ra in degrees
+    Parameters
+    ----------
+    ra : `Unknown`
+        in degrees
 
-    @param [in] dec in degrees
+    Parameters
+    ----------
+    dec : `Unknown`
+        in degrees
 
-    @param [in] mjd is the date represented as a
-    ModifiedJulianDate object.
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is the date represented as a
+        ModifiedJulianDate object.
 
-    @param [in] epoch is the epoch of the coordinate system
-    (default is 2000.0)
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the epoch of the coordinate system
+        (default is 2000.0)
 
-    @param [out] distance on the sky to the Sun in degrees
+    Parameters
+    ----------
+    distance : `Unknown`
+        on the sky to the Sun in degrees
     """
 
     return np.degrees(_distance_to_sun(np.radians(ra), np.radians(dec), mjd, epoch=epoch))
@@ -125,10 +179,16 @@ def refraction_coefficients(wavelength=0.5, site=None):
     This calculates the refraction at 2 angles and derives a tanz and tan^3z
     coefficient for subsequent quick calculations. Good for zenith distances < 76 degrees
 
-    @param [in] wavelength is effective wavelength in microns (default 0.5)
+    Parameters
+    ----------
+    wavelength : `Unknown`
+        is effective wavelength in microns (default 0.5)
 
-    @param [in] site is an instantiation of the Site class defined in
-    sims_utils/../Site.py
+    Parameters
+    ----------
+    site : `Unknown`
+        is an instantiation of the Site class defined in
+        sims_utils/../Site.py
 
     One should call PAL refz to apply the coefficients calculated here
 
@@ -159,14 +219,26 @@ def apply_refraction(zenith_distance, tanz_coeff, tan3z_coeff):
 
     uses the quick PAL refco routine which approximates the refractin calculation
 
-    @param [in] zenith_distance is unrefracted zenith distance of the source in radians.
-    Can either be a number or a numpy array (not a list).
+    Parameters
+    ----------
+    zenith_distance : `Unknown`
+        is unrefracted zenith distance of the source in radians.
+        Can either be a number or a numpy array (not a list).
 
-    @param [in] tanz_coeff is the first output from refraction_coefficients (above)
+    Parameters
+    ----------
+    tanz_coeff : `Unknown`
+        is the first output from refraction_coefficients (above)
 
-    @param [in] tan3z_coeff is the second output from refraction_coefficients (above)
+    Parameters
+    ----------
+    tan3z_coeff : `Unknown`
+        is the second output from refraction_coefficients (above)
 
-    @param [out] refracted_zenith is the refracted zenith distance in radians
+    Parameters
+    ----------
+    refracted_zenith : `Unknown`
+        is the refracted zenith distance in radians
 
     """
 
@@ -196,18 +268,33 @@ def apply_precession(ra, dec, epoch=2000.0, mjd=None):
     The precession-nutation matrix is calculated by the palpy.prenut method
     which uses the IAU 2006/2000A model
 
-    @param [in] ra in degrees
+    Parameters
+    ----------
+    ra : `Unknown`
+        in degrees
 
-    @param [in] dec in degrees
+    Parameters
+    ----------
+    dec : `Unknown`
+        in degrees
 
-    @param [in] epoch is the epoch of the mean equinox (in years; default 2000)
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the epoch of the mean equinox (in years; default 2000)
 
-    @param [in] mjd is an instantiation of the ModifiedJulianDate class
-    representing the date of the observation
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is an instantiation of the ModifiedJulianDate class
+        representing the date of the observation
 
-    @param [out] a 2-D numpy array in which the first row is the RA
-    corrected for precession and nutation and the second row is the
-    Dec corrected for precession and nutation (both in degrees)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the RA
+        corrected for precession and nutation and the second row is the
+        Dec corrected for precession and nutation (both in degrees)
 
     """
 
@@ -227,18 +314,33 @@ def _apply_precession(ra, dec, epoch=2000.0, mjd=None):
     The precession-nutation matrix is calculated by the palpy.prenut method
     which uses the IAU 2006/2000A model
 
-    @param [in] ra in radians
+    Parameters
+    ----------
+    ra : `Unknown`
+        in radians
 
-    @param [in] dec in radians
+    Parameters
+    ----------
+    dec : `Unknown`
+        in radians
 
-    @param [in] epoch is the epoch of the mean equinox (in years; default 2000)
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the epoch of the mean equinox (in years; default 2000)
 
-    @param [in] mjd is an instantiation of the ModifiedJulianDate class
-    representing the date of the observation
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is an instantiation of the ModifiedJulianDate class
+        representing the date of the observation
 
-    @param [out] a 2-D numpy array in which the first row is the RA
-    corrected for precession and nutation and the second row is the
-    Dec corrected for precession and nutation (both in radians)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the RA
+        corrected for precession and nutation and the second row is the
+        Dec corrected for precession and nutation (both in radians)
     """
 
     if hasattr(ra, "__len__"):
@@ -276,29 +378,56 @@ def apply_proper_motion(ra, dec, pm_ra, pm_dec, parallax, v_rad, epoch=2000.0, m
     The function palpy.pm does not work properly if the parallax is below
     0.00045 arcseconds
 
-    @param [in] ra in degrees.  Can be a number or a numpy array (not a list).
+    Parameters
+    ----------
+    ra : `Unknown`
+        in degrees.  Can be a number or a numpy array (not a list).
 
-    @param [in] dec in degrees.  Can be a number or a numpy array (not a list).
+    Parameters
+    ----------
+    dec : `Unknown`
+        in degrees.  Can be a number or a numpy array (not a list).
 
-    @param [in] pm_ra is ra proper motion multiplied by cos(Dec) in arcsec/year.
-    Can be a number or a numpy array (not a list).
+    Parameters
+    ----------
+    pm_ra : `Unknown`
+        is ra proper motion multiplied by cos(Dec) in arcsec/year.
+        Can be a number or a numpy array (not a list).
 
-    @param [in] pm_dec is dec proper motion in arcsec/year.
-    Can be a number or a numpy array (not a list).
+    Parameters
+    ----------
+    pm_dec : `Unknown`
+        is dec proper motion in arcsec/year.
+        Can be a number or a numpy array (not a list).
 
-    @param [in] parallax in arcsec. Can be a number or a numpy array (not a list).
+    Parameters
+    ----------
+    parallax : `Unknown`
+        in arcsec. Can be a number or a numpy array (not a list).
 
-    @param [in] v_rad is radial velocity in km/sec (positive if the object is receding).
-    Can be a number or a numpy array (not a list).
+    Parameters
+    ----------
+    v_rad : `Unknown`
+        is radial velocity in km/sec (positive if the object is receding).
+        Can be a number or a numpy array (not a list).
 
-    @param [in] epoch is epoch in Julian years (default: 2000.0)
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is epoch in Julian years (default: 2000.0)
 
-    @param [in] mjd is an instantiation of the ModifiedJulianDate class
-    representing the date of the observation
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is an instantiation of the ModifiedJulianDate class
+        representing the date of the observation
 
-    @param [out] a 2-D numpy array in which the first row is the RA corrected
-    for proper motion and the second row is the Dec corrected for proper motion
-    (both in degrees)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the RA corrected
+        for proper motion and the second row is the Dec corrected for proper motion
+        (both in degrees)
     """
 
     output = _apply_proper_motion(
@@ -327,29 +456,56 @@ def _apply_proper_motion(ra, dec, pm_ra, pm_dec, parallax, v_rad, epoch=2000.0, 
     The function palpy.pm does not work properly if the parallax is below
     0.00045 arcseconds
 
-    @param [in] ra in radians.  Can be a number or a numpy array (not a list).
+    Parameters
+    ----------
+    ra : `Unknown`
+        in radians.  Can be a number or a numpy array (not a list).
 
-    @param [in] dec in radians.  Can be a number or a numpy array (not a list).
+    Parameters
+    ----------
+    dec : `Unknown`
+        in radians.  Can be a number or a numpy array (not a list).
 
-    @param [in] pm_ra is ra proper motion multiplied by cos(Dec) in radians/year.
-    Can be a number or a numpy array (not a list).
+    Parameters
+    ----------
+    pm_ra : `Unknown`
+        is ra proper motion multiplied by cos(Dec) in radians/year.
+        Can be a number or a numpy array (not a list).
 
-    @param [in] pm_dec is dec proper motion in radians/year.
-    Can be a number or a numpy array (not a list).
+    Parameters
+    ----------
+    pm_dec : `Unknown`
+        is dec proper motion in radians/year.
+        Can be a number or a numpy array (not a list).
 
-    @param [in] parallax in radians. Can be a number or a numpy array (not a list).
+    Parameters
+    ----------
+    parallax : `Unknown`
+        in radians. Can be a number or a numpy array (not a list).
 
-    @param [in] v_rad is radial velocity in km/sec (positive if the object is receding).
-    Can be a number or a numpy array (not a list).
+    Parameters
+    ----------
+    v_rad : `Unknown`
+        is radial velocity in km/sec (positive if the object is receding).
+        Can be a number or a numpy array (not a list).
 
-    @param [in] epoch is epoch in Julian years (default: 2000.0)
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is epoch in Julian years (default: 2000.0)
 
-    @param [in] mjd is an instantiation of the ModifiedJulianDate class
-    representing the date of the observation
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is an instantiation of the ModifiedJulianDate class
+        representing the date of the observation
 
-    @param [out] a 2-D numpy array in which the first row is the RA corrected
-    for proper motion and the second row is the Dec corrected for proper motion
-    (both in radians)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the RA corrected
+        for proper motion and the second row is the Dec corrected for proper motion
+        (both in radians)
 
     """
 
@@ -438,26 +594,53 @@ def app_geo_from_icrs(ra, dec, pm_ra=None, pm_dec=None, parallax=None, v_rad=Non
     (arcsec/year), parallax (arcsec), v_rad (km/sec; positive if receding),
     epoch (Julian years)
 
-    @param [in] ra in degrees (ICRS).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    ra : `Unknown`
+        in degrees (ICRS).  Can be a numpy array or a number.
 
-    @param [in] dec in degrees (ICRS).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    dec : `Unknown`
+        in degrees (ICRS).  Can be a numpy array or a number.
 
-    @param [in] pm_ra is ra proper motion multiplied by cos(Dec) in arcsec/year
+    Parameters
+    ----------
+    pm_ra : `Unknown`
+        is ra proper motion multiplied by cos(Dec) in arcsec/year
 
-    @param [in] pm_dec is dec proper motion in arcsec/year
+    Parameters
+    ----------
+    pm_dec : `Unknown`
+        is dec proper motion in arcsec/year
 
-    @param [in] parallax in arcsec
+    Parameters
+    ----------
+    parallax : `Unknown`
+        in arcsec
 
-    @param [in] v_rad is radial velocity in km/sec (positive if the object is receding)
+    Parameters
+    ----------
+    v_rad : `Unknown`
+        is radial velocity in km/sec (positive if the object is receding)
 
-    @param [in] epoch is the julian epoch (in years) of the equinox against which to
-    measure RA (default: 2000.0)
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the julian epoch (in years) of the equinox against which to
+        measure RA (default: 2000.0)
 
-    @param [in] mjd is an instantiation of the ModifiedJulianDate class
-    representing the date of the observation
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is an instantiation of the ModifiedJulianDate class
+        representing the date of the observation
 
-    @param [out] a 2-D numpy array in which the first row is the apparent
-    geocentric RA and the second row is the apparent geocentric Dec (both in degrees)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the apparent
+        geocentric RA and the second row is the apparent geocentric Dec (both in degrees)
     """
 
     if pm_ra is not None:
@@ -498,29 +681,56 @@ def _app_geo_from_icrs(ra, dec, pm_ra=None, pm_dec=None, parallax=None, v_rad=No
     (radians/year), parallax (radians), v_rad (km/sec; positive if receding),
     epoch (Julian years)
 
-    @param [in] ra in radians (ICRS).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    ra : `Unknown`
+        in radians (ICRS).  Can be a numpy array or a number.
 
-    @param [in] dec in radians (ICRS).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    dec : `Unknown`
+        in radians (ICRS).  Can be a numpy array or a number.
 
-    @param [in] pm_ra is ra proper motion multiplied by cos(Dec) in radians/year.
-    Can be a numpy array or a number or None.
+    Parameters
+    ----------
+    pm_ra : `Unknown`
+        is ra proper motion multiplied by cos(Dec) in radians/year.
+        Can be a numpy array or a number or None.
 
-    @param [in] pm_dec is dec proper motion in radians/year.
-    Can be a numpy array or a number or None.
+    Parameters
+    ----------
+    pm_dec : `Unknown`
+        is dec proper motion in radians/year.
+        Can be a numpy array or a number or None.
 
-    @param [in] parallax in radians.  Can be a numpy array or a number or None.
+    Parameters
+    ----------
+    parallax : `Unknown`
+        in radians.  Can be a numpy array or a number or None.
 
-    @param [in] v_rad is radial velocity in km/sec (positive if the object is receding).
-    Can be a numpy array or a number or None.
+    Parameters
+    ----------
+    v_rad : `Unknown`
+        is radial velocity in km/sec (positive if the object is receding).
+        Can be a numpy array or a number or None.
 
-    @param [in] epoch is the julian epoch (in years) of the equinox against which to
-    measure RA (default: 2000.0)
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the julian epoch (in years) of the equinox against which to
+        measure RA (default: 2000.0)
 
-    @param [in] mjd is an instantiation of the ModifiedJulianDate class
-    representing the date of the observation
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is an instantiation of the ModifiedJulianDate class
+        representing the date of the observation
 
-    @param [out] a 2-D numpy array in which the first row is the apparent
-    geocentric RAand the second row is the apparent geocentric Dec (both in radians)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the apparent
+        geocentric RAand the second row is the apparent geocentric Dec (both in radians)
     """
 
     if mjd is None:
@@ -629,18 +839,33 @@ def _icrs_from_app_geo(ra, dec, epoch=2000.0, mjd=None):
 
     This method works in radians.
 
-    @param [in] ra in radians (apparent geocentric).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    ra : `Unknown`
+        in radians (apparent geocentric).  Can be a numpy array or a number.
 
-    @param [in] dec in radians (apparent geocentric).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    dec : `Unknown`
+        in radians (apparent geocentric).  Can be a numpy array or a number.
 
-    @param [in] epoch is the julian epoch (in years) of the equinox against which to
-    measure RA (default: 2000.0)
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the julian epoch (in years) of the equinox against which to
+        measure RA (default: 2000.0)
 
-    @param [in] mjd is an instantiation of the ModifiedJulianDate class
-    representing the date of the observation
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is an instantiation of the ModifiedJulianDate class
+        representing the date of the observation
 
-    @param [out] a 2-D numpy array in which the first row is the mean ICRS RA and
-    the second row is the mean ICRS Dec (both in radians)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the mean ICRS RA and
+        the second row is the mean ICRS Dec (both in radians)
     """
 
     are_arrays = _validate_inputs([ra, dec], ["ra", "dec"], "icrs_from_app_geo")
@@ -684,18 +909,33 @@ def icrs_from_app_geo(ra, dec, epoch=2000.0, mjd=None):
 
     This method works in degrees.
 
-    @param [in] ra in degrees (apparent geocentric).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    ra : `Unknown`
+        in degrees (apparent geocentric).  Can be a numpy array or a number.
 
-    @param [in] dec in degrees (apparent geocentric).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    dec : `Unknown`
+        in degrees (apparent geocentric).  Can be a numpy array or a number.
 
-    @param [in] epoch is the julian epoch (in years) of the equinox against which to
-    measure RA (default: 2000.0)
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the julian epoch (in years) of the equinox against which to
+        measure RA (default: 2000.0)
 
-    @param [in] mjd is an instantiation of the ModifiedJulianDate class
-    representing the date of the observation
+    Parameters
+    ----------
+    mjd : `Unknown`
+        is an instantiation of the ModifiedJulianDate class
+        representing the date of the observation
 
-    @param [out] a 2-D numpy array in which the first row is the mean ICRS RA and
-    the second row is the mean ICRS Dec (both in degrees)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the mean ICRS RA and
+        the second row is the mean ICRS Dec (both in degrees)
     """
 
     ra_out, dec_out = _icrs_from_app_geo(np.radians(ra), np.radians(dec), epoch=epoch, mjd=mjd)
@@ -712,26 +952,50 @@ def observed_from_app_geo(
 
     This method works in degrees.
 
-    @param [in] ra is geocentric apparent RA (degrees).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    ra : `Unknown`
+        is geocentric apparent RA (degrees).  Can be a numpy array or a number.
 
-    @param [in] dec is geocentric apparent Dec (degrees).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    dec : `Unknown`
+        is geocentric apparent Dec (degrees).  Can be a numpy array or a number.
 
-    @param [in] include_refraction is a `bool` to turn refraction on and off
+    Parameters
+    ----------
+    include_refraction : `Unknown`
+        is a `bool` to turn refraction on and off
 
-    @param [in] alt_az_hr is a `bool` indicating whether or not to return altitude
-    and azimuth
+    Parameters
+    ----------
+    alt_az_hr : `Unknown`
+        is a `bool` indicating whether or not to return altitude
+        and azimuth
 
-    @param [in] wavelength is effective wavelength in microns (default: 0.5)
+    Parameters
+    ----------
+    wavelength : `Unknown`
+        is effective wavelength in microns (default: 0.5)
 
-    @param [in] obs_metadata is an ObservationMetaData characterizing the
-    observation.
+    Parameters
+    ----------
+    obs_metadata : `Unknown`
+        is an ObservationMetaData characterizing the
+        observation.
 
-    @param [out] a 2-D numpy array in which the first row is the observed RA
-    and the second row is the observed Dec (both in degrees)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the observed RA
+        and the second row is the observed Dec (both in degrees)
 
-    @param [out] a 2-D numpy array in which the first row is the altitude
-    and the second row is the azimuth (both in degrees).  Only returned
-    if alt_az_hr == True.
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the altitude
+        and the second row is the azimuth (both in degrees).  Only returned
+        if alt_az_hr == True.
     """
 
     if alt_az_hr:
@@ -763,16 +1027,28 @@ def _calculate_observatory_parameters(obs_metadata, wavelength, include_refracti
     """
     Computer observatory-based parameters using palpy.aoppa
 
-    @param [in] obs_metadata is an ObservationMetaData characterizing
-    the specific telescope site and pointing
+    Parameters
+    ----------
+    obs_metadata : `Unknown`
+        is an ObservationMetaData characterizing
+        the specific telescope site and pointing
 
-    @param [in] wavelength is the effective wavelength in microns
+    Parameters
+    ----------
+    wavelength : `Unknown`
+        is the effective wavelength in microns
 
-    @param [in] include_refraction is a `bool` indicating whether or not
-    to include the effects of refraction
+    Parameters
+    ----------
+    include_refraction : `Unknown`
+        is a `bool` indicating whether or not
+        to include the effects of refraction
 
-    @param [out] the numpy array of observatory Parameters calculated by
-    palpy.aoppa
+    Parameters
+    ----------
+    the : `Unknown`
+        numpy array of observatory Parameters calculated by
+        palpy.aoppa
     """
 
     # Correct site longitude for polar motion slaPolmo
@@ -837,26 +1113,50 @@ def _observed_from_app_geo(
 
     This method works in radians.
 
-    @param [in] ra is geocentric apparent RA (radians).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    ra : `Unknown`
+        is geocentric apparent RA (radians).  Can be a numpy array or a number.
 
-    @param [in] dec is geocentric apparent Dec (radians).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    dec : `Unknown`
+        is geocentric apparent Dec (radians).  Can be a numpy array or a number.
 
-    @param [in] include_refraction is a `bool` to turn refraction on and off
+    Parameters
+    ----------
+    include_refraction : `Unknown`
+        is a `bool` to turn refraction on and off
 
-    @param [in] alt_az_hr is a `bool` indicating whether or not to return altitude
-    and azimuth
+    Parameters
+    ----------
+    alt_az_hr : `Unknown`
+        is a `bool` indicating whether or not to return altitude
+        and azimuth
 
-    @param [in] wavelength is effective wavelength in microns (default: 0.5)
+    Parameters
+    ----------
+    wavelength : `Unknown`
+        is effective wavelength in microns (default: 0.5)
 
-    @param [in] obs_metadata is an ObservationMetaData characterizing the
-    observation.
+    Parameters
+    ----------
+    obs_metadata : `Unknown`
+        is an ObservationMetaData characterizing the
+        observation.
 
-    @param [out] a 2-D numpy array in which the first row is the observed RA
-    and the second row is the observed Dec (both in radians)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the observed RA
+        and the second row is the observed Dec (both in radians)
 
-    @param [out] a 2-D numpy array in which the first row is the altitude
-    and the second row is the azimuth (both in radians).  Only returned
-    if alt_az_hr == True.
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the altitude
+        and the second row is the azimuth (both in radians).  Only returned
+        if alt_az_hr == True.
 
     """
 
@@ -916,20 +1216,38 @@ def app_geo_from_observed(ra, dec, include_refraction=True, wavelength=0.5, obs_
 
     This method works in degrees.
 
-    @param [in] ra is observed RA (degrees).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    ra : `Unknown`
+        is observed RA (degrees).  Can be a numpy array or a number.
 
-    @param [in] dec is observed Dec (degrees).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    dec : `Unknown`
+        is observed Dec (degrees).  Can be a numpy array or a number.
 
-    @param [in] include_refraction is a `bool` to turn refraction on and off
+    Parameters
+    ----------
+    include_refraction : `Unknown`
+        is a `bool` to turn refraction on and off
 
-    @param [in] wavelength is effective wavelength in microns (default: 0.5)
+    Parameters
+    ----------
+    wavelength : `Unknown`
+        is effective wavelength in microns (default: 0.5)
 
-    @param [in] obs_metadata is an ObservationMetaData characterizing the
-    observation.
+    Parameters
+    ----------
+    obs_metadata : `Unknown`
+        is an ObservationMetaData characterizing the
+        observation.
 
-    @param [out] a 2-D numpy array in which the first row is the apparent
-    geocentric RA and the second row is the apparentGeocentric Dec (both
-    in degrees)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the apparent
+        geocentric RA and the second row is the apparentGeocentric Dec (both
+        in degrees)
     """
 
     ra_out, dec_out = _app_geo_from_observed(
@@ -952,20 +1270,38 @@ def _app_geo_from_observed(ra, dec, include_refraction=True, wavelength=0.5, obs
 
     This method works in radians.
 
-    @param [in] ra is observed RA (radians).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    ra : `Unknown`
+        is observed RA (radians).  Can be a numpy array or a number.
 
-    @param [in] dec is observed Dec (radians).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    dec : `Unknown`
+        is observed Dec (radians).  Can be a numpy array or a number.
 
-    @param [in] include_refraction is a `bool` to turn refraction on and off
+    Parameters
+    ----------
+    include_refraction : `Unknown`
+        is a `bool` to turn refraction on and off
 
-    @param [in] wavelength is effective wavelength in microns (default: 0.5)
+    Parameters
+    ----------
+    wavelength : `Unknown`
+        is effective wavelength in microns (default: 0.5)
 
-    @param [in] obs_metadata is an ObservationMetaData characterizing the
-    observation.
+    Parameters
+    ----------
+    obs_metadata : `Unknown`
+        is an ObservationMetaData characterizing the
+        observation.
 
-    @param [out] a 2-D numpy array in which the first row is the apparent
-    geocentric RA and the second row is the apparentGeocentric Dec (both
-    in radians)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the apparent
+        geocentric RA and the second row is the apparentGeocentric Dec (both
+        in radians)
     """
 
     are_arrays = _validate_inputs([ra, dec], ["ra", "dec"], "app_geo_from_observed")
@@ -1009,32 +1345,62 @@ def observed_from_icrs(
 
     This method works in degrees.
 
-    @param [in] ra is the unrefracted RA in degrees (ICRS).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    ra : `Unknown`
+        is the unrefracted RA in degrees (ICRS).  Can be a numpy array or a number.
 
-    @param [in] dec is the unrefracted Dec in degrees (ICRS).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    dec : `Unknown`
+        is the unrefracted Dec in degrees (ICRS).  Can be a numpy array or a number.
 
-    @param [in] pm_ra is proper motion in RA multiplied by cos(Dec) (arcsec/yr)
-    Can be a numpy array or a number or None (default=None).
+    Parameters
+    ----------
+    pm_ra : `Unknown`
+        is proper motion in RA multiplied by cos(Dec) (arcsec/yr)
+        Can be a numpy array or a number or None (default=None).
 
-    @param [in] pm_dec is proper motion in dec (arcsec/yr)
-    Can be a numpy array or a number or None (default=None).
+    Parameters
+    ----------
+    pm_dec : `Unknown`
+        is proper motion in dec (arcsec/yr)
+        Can be a numpy array or a number or None (default=None).
 
-    @param [in] parallax is parallax in arcsec
-    Can be a numpy array or a number or None (default=None).
+    Parameters
+    ----------
+    parallax : `Unknown`
+        is parallax in arcsec
+        Can be a numpy array or a number or None (default=None).
 
-    @param [in] v_rad is radial velocity (km/s)
-    Can be a numpy array or a number or None (default=None).
+    Parameters
+    ----------
+    v_rad : `Unknown`
+        is radial velocity (km/s)
+        Can be a numpy array or a number or None (default=None).
 
-    @param [in] obs_metadata is an ObservationMetaData object describing the
-    telescope pointing.
+    Parameters
+    ----------
+    obs_metadata : `Unknown`
+        is an ObservationMetaData object describing the
+        telescope pointing.
 
-    @param [in] epoch is the julian epoch (in years) against which the mean
-    equinoxes are measured.
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the julian epoch (in years) against which the mean
+        equinoxes are measured.
 
-    @param [in] include_refraction toggles whether or not to correct for refraction
+    Parameters
+    ----------
+    include_refraction : `Unknown`
+        toggles whether or not to correct for refraction
 
-    @param [out] a 2-D numpy array in which the first row is the observed
-    RA and the second row is the observed Dec (both in degrees)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the observed
+        RA and the second row is the observed Dec (both in degrees)
     """
 
     if pm_ra is not None:
@@ -1087,32 +1453,62 @@ def _observed_from_icrs(
 
     This method works in radians.
 
-    @param [in] ra is the unrefracted RA in radians (ICRS).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    ra : `Unknown`
+        is the unrefracted RA in radians (ICRS).  Can be a numpy array or a number.
 
-    @param [in] dec is the unrefracted Dec in radians (ICRS).  Can be a numpy array or a number.
+    Parameters
+    ----------
+    dec : `Unknown`
+        is the unrefracted Dec in radians (ICRS).  Can be a numpy array or a number.
 
-    @param [in] pm_ra is proper motion in RA multiplied by cos(Dec) (radians/yr)
-    Can be a numpy array or a number or None (default=None).
+    Parameters
+    ----------
+    pm_ra : `Unknown`
+        is proper motion in RA multiplied by cos(Dec) (radians/yr)
+        Can be a numpy array or a number or None (default=None).
 
-    @param [in] pm_dec is proper motion in dec (radians/yr)
-    Can be a numpy array or a number or None (default=None).
+    Parameters
+    ----------
+    pm_dec : `Unknown`
+        is proper motion in dec (radians/yr)
+        Can be a numpy array or a number or None (default=None).
 
-    @param [in] parallax is parallax in radians
-    Can be a numpy array or a number or None (default=None).
+    Parameters
+    ----------
+    parallax : `Unknown`
+        is parallax in radians
+        Can be a numpy array or a number or None (default=None).
 
-    @param [in] v_rad is radial velocity (km/s)
-    Can be a numpy array or a number or None (default=None).
+    Parameters
+    ----------
+    v_rad : `Unknown`
+        is radial velocity (km/s)
+        Can be a numpy array or a number or None (default=None).
 
-    @param [in] obs_metadata is an ObservationMetaData object describing the
-    telescope pointing.
+    Parameters
+    ----------
+    obs_metadata : `Unknown`
+        is an ObservationMetaData object describing the
+        telescope pointing.
 
-    @param [in] epoch is the julian epoch (in years) against which the mean
-    equinoxes are measured.
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the julian epoch (in years) against which the mean
+        equinoxes are measured.
 
-    @param [in] include_refraction toggles whether or not to correct for refraction
+    Parameters
+    ----------
+    include_refraction : `Unknown`
+        toggles whether or not to correct for refraction
 
-    @param [out] a 2-D numpy array in which the first row is the observed
-    RA and the second row is the observed Dec (both in radians)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the observed
+        RA and the second row is the observed Dec (both in radians)
 
     """
 
@@ -1165,20 +1561,38 @@ def icrs_from_observed(ra, dec, obs_metadata=None, epoch=None, include_refractio
 
     This method works in degrees.
 
-    @param [in] ra is the observed RA in degrees.  Can be a numpy array or a number.
+    Parameters
+    ----------
+    ra : `Unknown`
+        is the observed RA in degrees.  Can be a numpy array or a number.
 
-    @param [in] dec is the observed Dec in degrees.  Can be a numpy array or a number.
+    Parameters
+    ----------
+    dec : `Unknown`
+        is the observed Dec in degrees.  Can be a numpy array or a number.
 
-    @param [in] obs_metadata is an ObservationMetaData object describing the
-    telescope pointing.
+    Parameters
+    ----------
+    obs_metadata : `Unknown`
+        is an ObservationMetaData object describing the
+        telescope pointing.
 
-    @param [in] epoch is the julian epoch (in years) against which the mean
-    equinoxes are measured.
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the julian epoch (in years) against which the mean
+        equinoxes are measured.
 
-    @param [in] include_refraction toggles whether or not to correct for refraction
+    Parameters
+    ----------
+    include_refraction : `Unknown`
+        toggles whether or not to correct for refraction
 
-    @param [out] a 2-D numpy array in which the first row is the mean ICRS
-    RA and the second row is the mean ICRS Dec (both in degrees)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the mean ICRS
+        RA and the second row is the mean ICRS Dec (both in degrees)
     """
 
     ra_out, dec_out = _icrs_from_observed(
@@ -1211,20 +1625,38 @@ def _icrs_from_observed(ra, dec, obs_metadata=None, epoch=None, include_refracti
 
     This method works in radians.
 
-    @param [in] ra is the observed RA in radians.  Can be a numpy array or a number.
+    Parameters
+    ----------
+    ra : `Unknown`
+        is the observed RA in radians.  Can be a numpy array or a number.
 
-    @param [in] dec is the observed Dec in radians.  Can be a numpy array or a number.
+    Parameters
+    ----------
+    dec : `Unknown`
+        is the observed Dec in radians.  Can be a numpy array or a number.
 
-    @param [in] obs_metadata is an ObservationMetaData object describing the
-    telescope pointing.
+    Parameters
+    ----------
+    obs_metadata : `Unknown`
+        is an ObservationMetaData object describing the
+        telescope pointing.
 
-    @param [in] epoch is the julian epoch (in years) against which the mean
-    equinoxes are measured.
+    Parameters
+    ----------
+    epoch : `Unknown`
+        is the julian epoch (in years) against which the mean
+        equinoxes are measured.
 
-    @param [in] include_refraction toggles whether or not to correct for refraction
+    Parameters
+    ----------
+    include_refraction : `Unknown`
+        toggles whether or not to correct for refraction
 
-    @param [out] a 2-D numpy array in which the first row is the mean ICRS
-    RA and the second row is the mean ICRS Dec (both in radians)
+    Parameters
+    ----------
+    a : `Unknown`
+        2-D numpy array in which the first row is the mean ICRS
+        RA and the second row is the mean ICRS Dec (both in radians)
     """
 
     _validate_inputs([ra, dec], ["ra", "dec"], "icrs_from_observed")

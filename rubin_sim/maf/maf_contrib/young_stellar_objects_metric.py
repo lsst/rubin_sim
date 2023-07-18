@@ -13,7 +13,7 @@ from rubin_sim.phot_utils import DustValues
 __all__ = ["NYoungStarsMetric"]
 
 
-class StarDensity(object):
+class StarDensity:
     """integrate from zero to some max distance, then multiply by angular area
 
     Parameters

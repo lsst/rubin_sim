@@ -9,7 +9,7 @@ from rubin_sim.data import get_data_dir
 __all__ = ["SeeingData"]
 
 
-class SeeingData(object):
+class SeeingData:
     """Read the seeing data from disk and return appropriate FWHM_500 value at a given time.
     This is for use in simulations only. Otherwise data would come from the EFD.
 

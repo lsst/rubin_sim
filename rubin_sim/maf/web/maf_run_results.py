@@ -11,7 +11,7 @@ import rubin_sim.maf.metric_bundles as metricBundles
 __all__ = ["MafRunResults"]
 
 
-class MafRunResults(object):
+class MafRunResults:
     """
     Class to read MAF's resultsDb_sqlite.db and organize the output for display on web pages.
 

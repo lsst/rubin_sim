@@ -7,7 +7,7 @@ from .sed_utils import get_imsim_flux_norm
 __all__ = ["SedList"]
 
 
-class SedList(object):
+class SedList:
     """
     This class will read in a list of Seds from disk and store them.
 
@@ -37,38 +37,68 @@ class SedList(object):
         cosmological_dimming=True,
     ):
         """
-        @param [in] sed_name_list is a list of SED file names.
+        Parameters
+        ----------
+        sed_name_list : `Unknown`
+            is a list of SED file names.
 
-        @param [in] mag_norm_list is a list of magnitude normalizations
-        (in the normalizing_bandpass) for each of the Seds.
+        Parameters
+        ----------
+        mag_norm_list : `Unknown`
+            is a list of magnitude normalizations
+            (in the normalizing_bandpass) for each of the Seds.
 
-        @param[in] normalizing_bandpass is an instantiation of the Bandpass
-        class defining the bandpass in which the magNorms from mag_norm_list
-        are calculated.  This defaults to the Bandpass().imsim_bandpass(),
-        which is essentially a delta function at 500 nm.
+        Parameters
+        ----------
+        normalizing_bandpass : `Unknown`
+            is an instantiation of the Bandpass
+            class defining the bandpass in which the magNorms from mag_norm_list
+            are calculated.  This defaults to the Bandpass().imsim_bandpass(),
+            which is essentially a delta function at 500 nm.
 
-        @param [in] file_dir is the base directory where the Sed files are stored
-        (defaults to current working directory).
+        Parameters
+        ----------
+        file_dir : `Unknown`
+            is the base directory where the Sed files are stored
+            (defaults to current working directory).
 
-        @param [in] spec_map is a spec_map (defined in sims_utils/../fileMaps.py)
-        that maps the names in sed_name_list to paths of the files relative to
-        file_dir (defaults to None; a defaultSpecMap targeted at
-        sims_sed_library is defined in sims_utils)
+        Parameters
+        ----------
+        spec_map : `Unknown`
+            is a spec_map (defined in sims_utils/../fileMaps.py)
+            that maps the names in sed_name_list to paths of the files relative to
+            file_dir (defaults to None; a defaultSpecMap targeted at
+            sims_sed_library is defined in sims_utils)
 
-        @param [in] wavelen_match is an optional numpy array representing
-        the wavelength grid to which all Seds will be re-mapped.
+        Parameters
+        ----------
+        wavelen_match : `Unknown`
+            is an optional numpy array representing
+            the wavelength grid to which all Seds will be re-mapped.
 
-        @param [in] redshift_list is an optional list of redshifts for the Sed
+        Parameters
+        ----------
+        redshift_list : `Unknown`
+            is an optional list of redshifts for the Sed
 
-        @param [in] internal_av_list is an optional list of A(V) due to internal
-        dust (for spectra of galaxies).
+        Parameters
+        ----------
+        internal_av_list : `Unknown`
+            is an optional list of A(V) due to internal
+            dust (for spectra of galaxies).
 
-        @param [in] galactic_av_list is an optional list of A(V) due to
-        Milky Way Dust.
+        Parameters
+        ----------
+        galactic_av_list : `Unknown`
+            is an optional list of A(V) due to
+            Milky Way Dust.
 
-        @param [in] cosmological_dimming is a `bool` indicating whether cosmological
-        dimming (the extray (1+z)^-1 factor in flux) should be applied to spectra
-        when they are redshifted (defaults to True)
+        Parameters
+        ----------
+        cosmological_dimming : `Unknown`
+            is a `bool` indicating whether cosmological
+            dimming (the extray (1+z)^-1 factor in flux) should be applied to spectra
+            when they are redshifted (defaults to True)
 
         Note: once wavelen_match and cosmological_dimming have been set in
         the constructor, they cannot be un-set.
@@ -130,18 +160,33 @@ class SedList(object):
         Load the Seds specified by sed_name_list, applying the specified normalization,
         extinction, and redshift.
 
-        @param [in] sedList is a list of file names containing Seds
+        Parameters
+        ----------
+        sedList : `Unknown`
+            is a list of file names containing Seds
 
-        @param [in] magNorm is the magnitude normalization
+        Parameters
+        ----------
+        magNorm : `Unknown`
+            is the magnitude normalization
 
-        @param [in] internal_av_list is an optional list of A(V) due to internal
-        dust
+        Parameters
+        ----------
+        internal_av_list : `Unknown`
+            is an optional list of A(V) due to internal
+            dust
 
-        @param [in] galactic_av_list is an optional list of A(V) due to
-        Milky Way dust
+        Parameters
+        ----------
+        galactic_av_list : `Unknown`
+            is an optional list of A(V) due to
+            Milky Way dust
 
-        @param [in] redshift_list is an optional list of redshifts for the
-        input Sed
+        Parameters
+        ----------
+        redshift_list : `Unknown`
+            is an optional list of redshifts for the
+            input Sed
 
         Seds are read in and stored to this object's internal list of Seds.
 
@@ -248,25 +293,49 @@ class SedList(object):
         It returns the wavelength grid and corresponding dust coefficients so that
         they an be reused on Seds with identical wavelength grids.
 
-        @param [in] sed_list is a list of Sed objects
+        Parameters
+        ----------
+        sed_list : `Unknown`
+            is a list of Sed objects
 
-        @param [in] av_list is a list of Av extinction values internal to each object
+        Parameters
+        ----------
+        av_list : `Unknown`
+            is a list of Av extinction values internal to each object
 
-        @param [in] dust_wavelen is the wavelength grid corresponding to the
-        dust model coefficients.  If this differs from the wavelength grid
-        of any of the Seds in sed_list, the dust model coefficients will be
-        re-generated.
+        Parameters
+        ----------
+        dust_wavelen : `Unknown`
+            is the wavelength grid corresponding to the
+            dust model coefficients.  If this differs from the wavelength grid
+            of any of the Seds in sed_list, the dust model coefficients will be
+            re-generated.
 
-        @param [in] a_coeffs are the 'a' dust model coefficients (see O'Donnell 1994
-        ApJ 422 158)
+        Parameters
+        ----------
+        a_coeffs : `Unknown`
+            are the 'a' dust model coefficients (see O'Donnell 1994
+            ApJ 422 158)
 
-        @param [in] b_coeffs are the 'b' dust model coefficients from O'Donnell.
+        Parameters
+        ----------
+        b_coeffs : `Unknown`
+            are the 'b' dust model coefficients from O'Donnell.
 
-        @param [out] dust_wavelen as generated/used by this method
+        Parameters
+        ----------
+        dust_wavelen : `Unknown`
+            as generated/used by this method
 
-        @param [out] a_coeffs as generated/used by this method
+        Parameters
+        ----------
+        a_coeffs : `Unknown`
+            as generated/used by this method
 
-        @param [out] b_coeffs as generated/used by this method
+        Parameters
+        ----------
+        b_coeffs : `Unknown`
+            as generated/used by this method
 
         a_coeffs and b_coeffs are re-generated as needed
         """
@@ -298,9 +367,15 @@ class SedList(object):
         This method does not return anything.  It makes the necessary changes
         to the Seds in SedList in situ.
 
-        @param [in] sed_list is a list of Sed objects
+        Parameters
+        ----------
+        sed_list : `Unknown`
+            is a list of Sed objects
 
-        @param [in] redshift_list is a list of redshift values
+        Parameters
+        ----------
+        redshift_list : `Unknown`
+            is a list of redshift values
 
         This method will redshift each Sed object in sed_list
         """

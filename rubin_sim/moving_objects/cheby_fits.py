@@ -17,7 +17,7 @@ def three_sixty_to_neg(ra):
     return ra
 
 
-class ChebyFits(object):
+class ChebyFits:
     """Generates chebyshev coefficients for a provided set of orbits.
 
     Calculates true ephemerides using PyEphemerides, then fits these positions with a constrained

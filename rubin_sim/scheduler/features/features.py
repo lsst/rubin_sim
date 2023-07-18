@@ -35,7 +35,7 @@ __all__ = [
 ]
 
 
-class BaseFeature(object):
+class BaseFeature:
     """
     Base class for features.
     """

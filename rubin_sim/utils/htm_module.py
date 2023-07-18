@@ -33,7 +33,7 @@ __all__ = [
 ]
 
 
-class Trixel(object):
+class Trixel:
     """
     A trixel is a single triangle in the Hierarchical Triangular Mesh (HTM)
     tiling scheme.  It is defined by its three corners on the unit sphere.
@@ -849,7 +849,7 @@ def find_htmid(ra, dec, max_level):
     return _find_htmid_slow(ra, dec, max_level)
 
 
-class HalfSpace(object):
+class HalfSpace:
     """
     HalfSpaces are circles on the unit sphere defined by intersecting
     a plane with the unit sphere.  They are specified by the unit vector

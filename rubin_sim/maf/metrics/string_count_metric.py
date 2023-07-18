@@ -7,7 +7,7 @@ from .base_metric import BaseMetric
 __all__ = ["StringCountMetric"]
 
 
-class Keylookerupper(object):
+class Keylookerupper:
     """Helper object to unpack dictionary values as reduceFunction results."""
 
     def __init__(self, key="blank", name=None):
