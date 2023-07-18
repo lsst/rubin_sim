@@ -1,6 +1,7 @@
-import numpy as np
-import numbers
 import gc
+import numbers
+
+import numpy as np
 
 
 def sims_clean_up():
@@ -110,10 +111,7 @@ def _validate_inputs(input_list, input_names, method_name):
             if len(ii) != len(input_list[0]):
                 same_length = False
         if not same_length:
-            raise RuntimeError(
-                "The arrays input to %s " % method_name
-                + "all need to have the same length"
-            )
+            raise RuntimeError("The arrays input to %s " % method_name + "all need to have the same length")
 
     if desired_type is np.ndarray:
         return True

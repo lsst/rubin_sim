@@ -1,14 +1,15 @@
-import numpy as np
-import warnings
-import unittest
 import gzip
 import os
-import tempfile
 import shutil
+import tempfile
+import unittest
+import warnings
 
-from rubin_sim.phot_utils import Sed, Bandpass, PhotometricParameters
-from rubin_sim.data import get_data_dir
+import numpy as np
+
 import rubin_sim
+from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import Bandpass, PhotometricParameters, Sed
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -87,9 +88,7 @@ class TestSedWavelenLimits(unittest.TestCase):
         np.testing.assert_equal(mag, np.NaN)
         # Test handling in calc_adu
         with warnings.catch_warnings(record=True) as w:
-            adu = testsed.calc_adu(
-                self.testbandpass, phot_params=PhotometricParameters()
-            )
+            adu = testsed.calc_adu(self.testbandpass, phot_params=PhotometricParameters())
             self.assertEqual(len(w), 1)
             self.assertIn("non-overlap", str(w[-1].message))
         np.testing.assert_equal(adu, np.NaN)
@@ -119,9 +118,7 @@ class TestSedName(unittest.TestCase):
         self.assertEqual(self.testsed.name, self.name)
 
     def test_redshift_name(self):
-        testsed = Sed(
-            self.testsed.wavelen, self.testsed.flambda, name=self.testsed.name
-        )
+        testsed = Sed(self.testsed.wavelen, self.testsed.flambda, name=self.testsed.name)
         redshift = 0.2
         testsed.redshift_sed(redshift=redshift)
         newname = testsed.name + "_Z" + "%.2f" % (redshift)
@@ -175,9 +172,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         """
         Test that __eq__ in Sed works correctly
         """
-        sed_dir = os.path.join(
-            get_data_dir(), "tests", "cartoonSedTestData", "starSed", "kurucz"
-        )
+        sed_dir = os.path.join(get_data_dir(), "tests", "cartoonSedTestData", "starSed", "kurucz")
         list_of_seds = os.listdir(sed_dir)
         sedname1 = os.path.join(sed_dir, list_of_seds[0])
         sedname2 = os.path.join(sed_dir, list_of_seds[1])
@@ -206,15 +201,10 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         with read_sed_flambda, it should get stored in the
         _global_misc_sed_cache)
         """
-        sed_dir = os.path.join(
-            get_data_dir(), "tests", "cartoonSedTestData", "starSed", "kurucz"
-        )
+        sed_dir = os.path.join(get_data_dir(), "tests", "cartoonSedTestData", "starSed", "kurucz")
 
         sed_name_list = os.listdir(sed_dir)
-        msg = (
-            "An SED loaded from the cache is not "
-            "identical to the same SED loaded from disk"
-        )
+        msg = "An SED loaded from the cache is not " "identical to the same SED loaded from disk"
         for ix in range(5):
             full_name = os.path.join(sed_dir, sed_name_list[ix])
             ss_uncache = Sed()
@@ -273,9 +263,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
             # section of
             # https://en.wikipedia.org/wiki/Planck%27s_law#Stefan.E2.80.93Boltzmann_law
             #
-            bb_flambda = np.pi * np.power(
-                10.0, log10_bb_factor + log10_bose_factor - 7.0
-            )
+            bb_flambda = np.pi * np.power(10.0, log10_bb_factor + log10_bose_factor - 7.0)
 
             sed = Sed(wavelen=wavelen_arr, flambda=bb_flambda)
             ergs = sed.calc_ergs(bp)
@@ -313,9 +301,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
             # section of
             # https://en.wikipedia.org/wiki/Planck%27s_law#Stefan.E2.80.93Boltzmann_law
             #
-            bb_flambda = np.pi * np.power(
-                10.0, log10_bb_factor + log10_bose_factor - 7.0
-            )
+            bb_flambda = np.pi * np.power(10.0, log10_bb_factor + log10_bose_factor - 7.0)
 
             sed = Sed(wavelen=wavelen_arr, flambda=bb_flambda)
             ergs = sed.calc_ergs(bp)

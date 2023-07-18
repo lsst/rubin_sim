@@ -1,7 +1,9 @@
 import os
-import numpy as np
 import warnings
+
 import matplotlib.pyplot as plt
+import numpy as np
+
 import rubin_sim.maf.utils as utils
 
 __all__ = ["apply_zp_norm", "PlotHandler", "BasePlotter"]
@@ -328,19 +330,9 @@ class PlotHandler(object):
             if len(self.m_bundles) == 1:
                 m_b = self.m_bundles[0]
                 if len(m_b.slicer.slice_col_name) < len_max:
-                    xlabel = (
-                        m_b.slicer.slice_col_name
-                        + " ("
-                        + m_b.slicer.slice_col_units
-                        + ")"
-                    )
+                    xlabel = m_b.slicer.slice_col_name + " (" + m_b.slicer.slice_col_units + ")"
                 else:
-                    xlabel = (
-                        m_b.slicer.slice_col_name
-                        + " \n("
-                        + m_b.slicer.slice_col_units
-                        + ")"
-                    )
+                    xlabel = m_b.slicer.slice_col_name + " \n(" + m_b.slicer.slice_col_units + ")"
                 ylabel = m_b.metric.name + " (" + m_b.metric.units + ")"
             else:
                 xlabel = set()
@@ -466,9 +458,7 @@ class PlotHandler(object):
         if len(self.m_bundles) == 1:
             outfile = self.m_bundles[0].file_root
         else:
-            outfile = "_".join(
-                [self.joint_run_names, self.joint_metric_names, self.joint_metadata]
-            )
+            outfile = "_".join([self.joint_run_names, self.joint_metric_names, self.joint_metadata])
             outfile += "_" + self.m_bundles[0].slicer.slicer_name[:4].upper()
         if outfile_suffix is not None:
             outfile += "_" + outfile_suffix
@@ -502,14 +492,13 @@ class PlotHandler(object):
             else:
                 display_dict["subgroup"] = list(subgroup)[0]
 
-            display_dict["caption"] = (
-                "%s metric(s) calculated on a %s grid, for opsim runs %s, for info_label values of %s."
-                % (
-                    self.joint_metric_names,
-                    self.m_bundles[0].slicer.slicer_name,
-                    self.joint_run_names,
-                    self.joint_metadata,
-                )
+            display_dict[
+                "caption"
+            ] = "%s metric(s) calculated on a %s grid, for opsim runs %s, for info_label values of %s." % (
+                self.joint_metric_names,
+                self.m_bundles[0].slicer.slicer_name,
+                self.joint_run_names,
+                self.joint_metadata,
             )
 
             return display_dict
@@ -554,8 +543,7 @@ class PlotHandler(object):
                             pd["title"] = title
                     else:
                         warnings.warn(
-                            'Found more than one value to be set for "%s" in the plot_dicts.'
-                            % (key)
+                            'Found more than one value to be set for "%s" in the plot_dicts.' % (key)
                             + " Will reset to default value. (found values %s)" % values
                         )
                         reset_keys.append(key)
@@ -584,9 +572,7 @@ class PlotHandler(object):
                 if m_b.metric.metric_dtype == "object":
                     metric_is_color = m_b.plot_dict.get("metric_is_color", False)
                     if not metric_is_color:
-                        warnings.warn(
-                            "Cannot plot object metric values with this plotter."
-                        )
+                        warnings.warn("Cannot plot object metric values with this plotter.")
                         return
 
         # Update x/y labels using plot_type.
@@ -608,15 +594,10 @@ class PlotHandler(object):
                 msg += " Either the values have not been calculated or they have been deleted."
                 warnings.warn(msg)
             elif np.size(np.where(~m_b.metric_values.mask)) == 0:
-                msg = (
-                    "MetricBundle (%s) has no unmasked metric_values, skipping plots."
-                    % (m_b.file_root)
-                )
+                msg = "MetricBundle (%s) has no unmasked metric_values, skipping plots." % (m_b.file_root)
                 warnings.warn(msg)
             else:
-                fignum = plot_func(
-                    m_b.metric_values, m_b.slicer, plot_dict, fignum=fignum
-                )
+                fignum = plot_func(m_b.metric_values, m_b.slicer, plot_dict, fignum=fignum)
         # Add a legend if more than one metricValue is being plotted or if legendloc is specified.
         legend_loc = None
         if "legend_loc" in self.plot_dicts[0]:
@@ -679,9 +660,7 @@ class PlotHandler(object):
         # Generate a png thumbnail.
         if self.thumbnail:
             thumb_file = "thumb." + outfile_root + "_" + plot_type + ".png"
-            plt.savefig(
-                os.path.join(self.out_dir, thumb_file), dpi=72, bbox_inches="tight"
-            )
+            plt.savefig(os.path.join(self.out_dir, thumb_file), dpi=72, bbox_inches="tight")
         # Save information about the file to results_db.
         if self.results_db:
             if display_dict is None:
@@ -689,9 +668,5 @@ class PlotHandler(object):
             metric_id = self.results_db.update_metric(
                 metric_name, slicer_name, run_name, constraint, info_label, None
             )
-            self.results_db.update_display(
-                metric_id=metric_id, display_dict=display_dict, overwrite=False
-            )
-            self.results_db.update_plot(
-                metric_id=metric_id, plot_type=plot_type, plot_file=plot_file
-            )
+            self.results_db.update_display(metric_id=metric_id, display_dict=display_dict, overwrite=False)
+            self.results_db.update_plot(metric_id=metric_id, plot_type=plot_type, plot_file=plot_file)

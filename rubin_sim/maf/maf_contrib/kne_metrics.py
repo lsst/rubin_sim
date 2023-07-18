@@ -1,12 +1,14 @@
 import glob
 import os
+
 import numpy as np
+
+from rubin_sim.data import get_data_dir
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.slicers import UserPointsSlicer
-from rubin_sim.utils import uniform_sphere, survey_start_mjd
-from rubin_sim.phot_utils import DustValues
-from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import m52snr
+from rubin_sim.phot_utils import DustValues
+from rubin_sim.utils import survey_start_mjd, uniform_sphere
 
 __all__ = ["get_kne_filename", "KnLc", "KNePopMetric", "generate_kn_pop_slicer"]
 
@@ -65,12 +67,7 @@ def get_kne_filename(inj_params_list=None):
             params[key]["theta"] = theta
     for key in params.keys():
         for inj_params in inj_params_list:
-            match = all(
-                [
-                    np.isclose(params[key][var], inj_params[var])
-                    for var in inj_params.keys()
-                ]
-            )
+            match = all([np.isclose(params[key][var], inj_params[var]) for var in inj_params.keys()])
             if match:
                 matched_files.append(params[key]["filename"])
                 print(f"Found match for {inj_params}")
@@ -256,10 +253,7 @@ class KNePopMetric(BaseMetric):
                 # Check if the evolution is significant enough
                 idx_max = np.argmax(mags_f)
                 idx_min = np.argmin(mags_f)
-                if (
-                    mags_f[idx_min] + mags_unc_f[idx_min]
-                    < mags_f[idx_max] - mags_unc_f[idx_max]
-                ):
+                if mags_f[idx_min] + mags_unc_f[idx_min] < mags_f[idx_max] - mags_unc_f[idx_max]:
                     signif = True
                 else:
                     signif = False
@@ -270,9 +264,7 @@ class KNePopMetric(BaseMetric):
                 # Get the evolution rate, if the time gap condition is met
                 if dt_f > min_dt and signif is True:
                     # Calculate evolution rate
-                    evol_rate_f = (np.max(mags_f) - np.min(mags_f)) / (
-                        times_f[idx_max] - times_f[idx_min]
-                    )
+                    evol_rate_f = (np.max(mags_f) - np.min(mags_f)) / (times_f[idx_max] - times_f[idx_min])
                     evol_rate.append(evol_rate_f)
                 else:
                     evol_rate.append(0)
@@ -352,9 +344,7 @@ class KNePopMetric(BaseMetric):
 
         for filtername in np.unique(data_slice[self.filter_col]):
             infilt = np.where(data_slice[self.filter_col] == filtername)
-            mags[infilt] = self.lightcurves.interp(
-                t[infilt], filtername, lc_indx=slice_point["file_indx"]
-            )
+            mags[infilt] = self.lightcurves.interp(t[infilt], filtername, lc_indx=slice_point["file_indx"])
             # Apply dust extinction on the light curve
             a_x = self.ax1[filtername] * slice_point["ebv"]
             mags[infilt] += a_x
@@ -465,9 +455,7 @@ def generate_kn_pop_slicer(
         ra, dec = uniform_sphere(n_events, seed=seed)
 
     peak_times = np.random.uniform(low=t_start, high=t_end, size=n_events)
-    file_indx = np.floor(np.random.uniform(low=0, high=n_files, size=n_events)).astype(
-        int
-    )
+    file_indx = np.floor(np.random.uniform(low=0, high=n_files, size=n_events)).astype(int)
 
     # Define the distance
     distance = rndm(d_min, d_max, 4, size=n_events)

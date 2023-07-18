@@ -6,8 +6,8 @@
 # imports
 import unittest
 
-import numpy as np
 import astropy
+import numpy as np
 
 from rubin_sim.utils import riseset
 
@@ -38,9 +38,7 @@ class TestRiseset(unittest.TestCase):
                 tolerance=self.tolerance,
             )
             self.assertTrue(np.allclose(mjds, self.request_mjds, atol=0.5))
-            self.assertTrue(
-                np.allclose(_body_alts(mjds, body), self.alt_deg, atol=self.tolerance)
-            )
+            self.assertTrue(np.allclose(_body_alts(mjds, body), self.alt_deg, atol=self.tolerance))
             self.assertTrue(np.all(~_body_rising(mjds, body)))
 
     def test_riseset_times_up(self):
@@ -55,9 +53,7 @@ class TestRiseset(unittest.TestCase):
                 tolerance=self.tolerance,
             )
             self.assertTrue(np.allclose(mjds, self.request_mjds, atol=0.5))
-            self.assertTrue(
-                np.allclose(_body_alts(mjds, body), self.alt_deg, atol=self.tolerance)
-            )
+            self.assertTrue(np.allclose(_body_alts(mjds, body), self.alt_deg, atol=self.tolerance))
             self.assertTrue(np.all(_body_rising(mjds, body)))
 
     def test_riseset_times_next_up(self):
@@ -71,9 +67,7 @@ class TestRiseset(unittest.TestCase):
             tolerance=self.tolerance,
         )
         self.assertTrue(np.all(mjds >= self.request_mjds))
-        self.assertTrue(
-            np.allclose(_body_alts(mjds, "sun"), self.alt_deg, atol=self.tolerance)
-        )
+        self.assertTrue(np.allclose(_body_alts(mjds, "sun"), self.alt_deg, atol=self.tolerance))
         self.assertTrue(np.all(_body_rising(mjds, "sun")))
 
     def test_riseset_times_previous_up(self):
@@ -87,9 +81,7 @@ class TestRiseset(unittest.TestCase):
             tolerance=self.tolerance,
         )
         self.assertTrue(np.all(mjds <= self.request_mjds))
-        self.assertTrue(
-            np.allclose(_body_alts(mjds, "sun"), self.alt_deg, atol=self.tolerance)
-        )
+        self.assertTrue(np.allclose(_body_alts(mjds, "sun"), self.alt_deg, atol=self.tolerance))
         self.assertTrue(np.all(_body_rising(mjds, "sun")))
 
     def test_riseset_times_next_down(self):
@@ -103,9 +95,7 @@ class TestRiseset(unittest.TestCase):
             tolerance=self.tolerance,
         )
         self.assertTrue(np.all(mjds >= self.request_mjds))
-        self.assertTrue(
-            np.allclose(_body_alts(mjds, "sun"), self.alt_deg, atol=self.tolerance)
-        )
+        self.assertTrue(np.allclose(_body_alts(mjds, "sun"), self.alt_deg, atol=self.tolerance))
         self.assertTrue(np.all(~_body_rising(mjds, "sun")))
 
     def test_riseset_times_previous_down(self):
@@ -119,18 +109,14 @@ class TestRiseset(unittest.TestCase):
             tolerance=self.tolerance,
         )
         self.assertTrue(np.all(mjds <= self.request_mjds))
-        self.assertTrue(
-            np.allclose(_body_alts(mjds, "sun"), self.alt_deg, atol=self.tolerance)
-        )
+        self.assertTrue(np.allclose(_body_alts(mjds, "sun"), self.alt_deg, atol=self.tolerance))
         self.assertTrue(np.all(~_body_rising(mjds, "sun")))
 
 
 def _body_alts(mjds, body):
     times = astropy.time.Time(mjds, scale="utc", format="mjd", location=LOCATION)
     crds = astropy.coordinates.get_body(body, times, location=LOCATION)
-    alt = crds.transform_to(
-        astropy.coordinates.AltAz(obstime=times, location=LOCATION)
-    ).alt.deg
+    alt = crds.transform_to(astropy.coordinates.AltAz(obstime=times, location=LOCATION)).alt.deg
     return alt
 
 

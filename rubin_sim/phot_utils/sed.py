@@ -86,17 +86,19 @@ order as the bandpasses) of this SED in each of those bandpasses.
 
 """
 
-import warnings
-import numpy
+import gzip
+import os
+import pickle
 import sys
 import time
+import warnings
+
+import numpy
 import scipy.interpolate as interpolate
-import gzip
-import pickle
-import os
-from .physical_parameters import PhysicalParameters
+
 from rubin_sim.data import get_data_dir
 
+from .physical_parameters import PhysicalParameters
 
 __all__ = ["Sed", "cache_lsst_seds", "read_close__kurucz"]
 
@@ -163,10 +165,7 @@ def _validate_sed_cache():
     if _global_lsst_sed_cache is None:
         raise SedCacheError("_global_lsst_sed_cache does not exist")
     if not isinstance(_global_lsst_sed_cache, dict):
-        raise SedCacheError(
-            "_global_lsst_sed_cache is a %s; not a dict"
-            % str(type(_global_lsst_sed_cache))
-        )
+        raise SedCacheError("_global_lsst_sed_cache is a %s; not a dict" % str(type(_global_lsst_sed_cache)))
     sed_dir = os.path.join(get_data_dir(), "sims_sed_library")
     sub_dir_list = ["galaxySED", "starSED"]
     file_ct = 0
@@ -179,9 +178,7 @@ def _validate_sed_cache():
                 if file_name.endswith(".gz"):
                     full_name = os.path.join(sed_dir, sub_dir, local_dir, file_name)
                     if full_name not in _global_lsst_sed_cache:
-                        raise SedCacheError(
-                            "%s is not in _global_lsst_sed_cache" % full_name
-                        )
+                        raise SedCacheError("%s is not in _global_lsst_sed_cache" % full_name)
                     file_ct += 1
     if file_ct == 0:
         raise SedCacheError("There were not files in _global_lsst_sed_cache")
@@ -212,9 +209,7 @@ def _compare_cached_versus_uncached():
         from_np = numpy.genfromtxt(full_name, dtype=dtype)
         ss_cache = Sed()
         ss_cache.read_sed_flambda(full_name)
-        ss_uncache = Sed(
-            wavelen=from_np["wavelen"], flambda=from_np["flambda"], name=full_name
-        )
+        ss_uncache = Sed(wavelen=from_np["wavelen"], flambda=from_np["flambda"], name=full_name)
 
         if not ss_cache == ss_uncache:
             raise SedCacheError(msg)
@@ -286,9 +281,7 @@ def _generate_sed_cache(cache_dir, cache_name):
 
     # record the specific sims_sed_library directory being cached so that
     # a new cache will be generated if sims_sed_library gets updated
-    with open(
-        os.path.join(cache_dir, "cache_version_%d.txt" % sys.version_info.major), "w"
-    ) as file_handle:
+    with open(os.path.join(cache_dir, "cache_version_%d.txt" % sys.version_info.major), "w") as file_handle:
         file_handle.write("%s %s" % (sed_root, cache_name))
 
     return cache
@@ -331,9 +324,7 @@ def cache_lsst_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
         sed_cache_name = os.path.join("lsst_sed_cache_%d.p" % sys.version_info.major)
         sed_dir = os.path.join(get_data_dir(), "sims_sed_library")
         if cache_dir is None:
-            cache_dir = os.path.join(
-                get_data_dir(), "sims_sed_library", "lsst_sed_cache_dir"
-            )
+            cache_dir = os.path.join(get_data_dir(), "sims_sed_library", "lsst_sed_cache_dir")
 
     except:
         print(
@@ -351,9 +342,7 @@ def cache_lsst_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
     must_generate = False
     if not os.path.exists(os.path.join(cache_dir, sed_cache_name)):
         must_generate = True
-    if not os.path.exists(
-        os.path.join(cache_dir, "cache_version_%d.txt" % sys.version_info.major)
-    ):
+    if not os.path.exists(os.path.join(cache_dir, "cache_version_%d.txt" % sys.version_info.major)):
         must_generate = True
     else:
         with open(
@@ -373,17 +362,11 @@ def cache_lsst_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
                     must_generate = True
 
     if must_generate:
-        print(
-            "\nCreating cache of LSST SEDs in:\n%s"
-            % os.path.join(cache_dir, sed_cache_name)
-        )
+        print("\nCreating cache of LSST SEDs in:\n%s" % os.path.join(cache_dir, sed_cache_name))
         cache = _generate_sed_cache(cache_dir, sed_cache_name)
         _global_lsst_sed_cache = cache
     else:
-        print(
-            "\nOpening cache of LSST SEDs in:\n%s"
-            % os.path.join(cache_dir, sed_cache_name)
-        )
+        print("\nOpening cache of LSST SEDs in:\n%s" % os.path.join(cache_dir, sed_cache_name))
         with open(os.path.join(cache_dir, sed_cache_name), "rb") as input_file:
             _global_lsst_sed_cache = SedUnpickler(input_file).load()
 
@@ -410,9 +393,7 @@ def cache_lsst_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
         list_of_sed_names = list(_global_lsst_sed_cache.keys())
         for file_name in list_of_sed_names:
             wav, fl = _global_lsst_sed_cache.pop(file_name)
-            valid_dexes = numpy.where(
-                numpy.logical_and(wav >= wavelen_min, wav <= wavelen_max)
-            )
+            valid_dexes = numpy.where(numpy.logical_and(wav >= wavelen_min, wav <= wavelen_max))
             new_cache[file_name] = (wav[valid_dexes], fl[valid_dexes])
 
         _global_lsst_sed_cache = new_cache
@@ -423,9 +404,7 @@ def cache_lsst_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
 class Sed(object):
     """ "Hold and use spectral energy distributions (SEDs)"""
 
-    def __init__(
-        self, wavelen=None, flambda=None, fnu=None, badval=numpy.NaN, name=None
-    ):
+    def __init__(self, wavelen=None, flambda=None, fnu=None, badval=numpy.NaN, name=None):
         """
         Initialize sed object by giving filename or lambda/flambda array.
 
@@ -513,39 +492,27 @@ class Sed(object):
         # Check if given flambda or fnu.
         if flambda is not None:
             # Check flambda data type and length.
-            if (isinstance(flambda, numpy.ndarray) is False) or (
-                len(flambda) != len(self.wavelen)
-            ):
-                raise ValueError(
-                    "Flambda must be a numpy array of same length as Wavelen."
-                )
+            if (isinstance(flambda, numpy.ndarray) is False) or (len(flambda) != len(self.wavelen)):
+                raise ValueError("Flambda must be a numpy array of same length as Wavelen.")
             # Flambda ok, make a new copy of data for self.
             self.flambda = numpy.copy(flambda)
         else:
             # Were passed fnu instead : check fnu data type and length.
             if fnu is None:
                 raise ValueError("Both fnu and flambda are 'None', cannot set the SED.")
-            elif (isinstance(fnu, numpy.ndarray) is False) or (
-                len(fnu) != len(self.wavelen)
-            ):
-                raise ValueError(
-                    "(No Flambda) - Fnu must be numpy array of same length as Wavelen."
-                )
+            elif (isinstance(fnu, numpy.ndarray) is False) or (len(fnu) != len(self.wavelen)):
+                raise ValueError("(No Flambda) - Fnu must be numpy array of same length as Wavelen.")
             # Convert fnu to flambda.
             self.wavelen, self.flambda = self.fnu_toflambda(wavelen, fnu)
         self.name = name
         return
 
-    def set_flat_sed(
-        self, wavelen_min=300.0, wavelen_max=1150.0, wavelen_step=0.1, name="Flat"
-    ):
+    def set_flat_sed(self, wavelen_min=300.0, wavelen_max=1150.0, wavelen_step=0.1, name="Flat"):
         """
         Populate the wavelength/flambda/fnu fields in sed according to a flat fnu source.
         """
 
-        self.wavelen = numpy.arange(
-            wavelen_min, wavelen_max + wavelen_step, wavelen_step, dtype="float"
-        )
+        self.wavelen = numpy.arange(wavelen_min, wavelen_max + wavelen_step, wavelen_step, dtype="float")
         self.fnu = numpy.ones(len(self.wavelen), dtype="float") * 3631  # jansky
         self.fnu_toflambda()
         self.name = name
@@ -600,9 +567,7 @@ class Sed(object):
                     # http://stackoverflow.com/questions/
                     # 9157210/how-do-i-raise-the-same-exception-with-a-custom-message-in-python
                     new_args = [
-                        err.args[0]
-                        + "\n\nError reading sed file %s; " % filename
-                        + "it may not exist."
+                        err.args[0] + "\n\nError reading sed file %s; " % filename + "it may not exist."
                     ]
                     for aa in err.args[1:]:
                         new_args.append(aa)
@@ -717,11 +682,7 @@ class Sed(object):
         wavelength/flambda/fnu onto an even grid with these values.
         """
         # Grid wavelength/flambda/fnu if desired.
-        if (
-            (wavelen_min is not None)
-            and (wavelen_max is not None)
-            and (wavelen_step is not None)
-        ):
+        if (wavelen_min is not None) and (wavelen_max is not None) and (wavelen_step is not None):
             self.resample_sed(
                 wavelen_min=wavelen_min,
                 wavelen_max=wavelen_max,
@@ -744,15 +705,11 @@ class Sed(object):
             # Then one of the arrays was not passed - check if this is true for both arrays.
             if (wavelen is not None) or (flux is not None):
                 # Then one of the arrays was passed - raise exception.
-                raise ValueError(
-                    "Must either pass *both* wavelen/flux pair, or use defaults."
-                )
+                raise ValueError("Must either pass *both* wavelen/flux pair, or use defaults.")
             update_self = True
         else:
             # Both of the arrays were passed in - check their validity.
-            if (isinstance(wavelen, numpy.ndarray) is False) or (
-                isinstance(flux, numpy.ndarray) is False
-            ):
+            if (isinstance(wavelen, numpy.ndarray) is False) or (isinstance(flux, numpy.ndarray) is False):
                 raise ValueError("Must pass wavelen/flux as numpy arrays.")
             if len(wavelen) != len(flux):
                 raise ValueError("Must pass equal length wavelen/flux arrays.")
@@ -783,11 +740,7 @@ class Sed(object):
             need_regrid = True
             # Check if wavelen_min/max/step are set - if ==None, then return (no regridding).
             # It's possible (writeSED) to call this routine, even with no final grid in mind.
-            if (
-                (wavelen_min is None)
-                and (wavelen_max is None)
-                and (wavelen_step is None)
-            ):
+            if (wavelen_min is None) and (wavelen_max is None) and (wavelen_step is None):
                 need_regrid = False
             else:
                 # Okay, now look at comparison of wavelen to the grid.
@@ -839,14 +792,8 @@ class Sed(object):
             # Now, on with the resampling.
             # Set up gridded wavelength or copy of wavelen array to match.
             if wavelen_match is None:
-                if (
-                    (wavelen_min is None)
-                    and (wavelen_max is None)
-                    and (wavelen_step is None)
-                ):
-                    raise ValueError(
-                        "Must set either wavelen_match or wavelen_min/max/step."
-                    )
+                if (wavelen_min is None) and (wavelen_max is None) and (wavelen_step is None):
+                    raise ValueError("Must set either wavelen_match or wavelen_min/max/step.")
                 wavelen_grid = numpy.arange(
                     wavelen_min, wavelen_max + wavelen_step, wavelen_step, dtype="float"
                 )
@@ -854,20 +801,15 @@ class Sed(object):
                 wavelen_grid = numpy.copy(wavelen_match)
             # Check if the wavelength range desired and the wavelength range of the object overlap.
             # If there is any non-overlap, raise warning.
-            if (wavelen.max() < wavelen_grid.max()) or (
-                wavelen.min() > wavelen_grid.min()
-            ):
+            if (wavelen.max() < wavelen_grid.max()) or (wavelen.min() > wavelen_grid.min()):
                 warnings.warn(
                     "There is an area of non-overlap between desired wavelength range "
                     + " (%.2f to %.2f)" % (wavelen_grid.min(), wavelen_grid.max())
-                    + "and sed %s (%.2f to %.2f)"
-                    % (self.name, wavelen.min(), wavelen.max())
+                    + "and sed %s (%.2f to %.2f)" % (self.name, wavelen.min(), wavelen.max())
                 )
             # Do the interpolation of wavelen/flux onto grid. (type/len failures will die here).
             if wavelen[0] > wavelen_grid[0] or wavelen[-1] < wavelen_grid[-1]:
-                f = interpolate.interp1d(
-                    wavelen, flux, bounds_error=False, fill_value=numpy.NaN
-                )
+                f = interpolate.interp1d(wavelen, flux, bounds_error=False, fill_value=numpy.NaN)
                 flux_grid = f(wavelen_grid)
             else:
                 flux_grid = numpy.interp(wavelen_grid, wavelen, flux)
@@ -901,13 +843,7 @@ class Sed(object):
             self.fnu = None
         # Now on with the calculation.
         # Calculate fnu.
-        fnu = (
-            flambda
-            * wavelen
-            * wavelen
-            * self._phys_params.nm2m
-            / self._phys_params.lightspeed
-        )
+        fnu = flambda * wavelen * wavelen * self._phys_params.nm2m / self._phys_params.lightspeed
         fnu = fnu * self._phys_params.ergsetc2jansky
         # If are using/updating self, then *all* wavelen/flambda/fnu will be gridded.
         # This is so wavelen/fnu AND wavelen/flambda can be kept in sync.
@@ -934,13 +870,7 @@ class Sed(object):
             fnu = self.fnu
         # On with the calculation.
         # Calculate flambda.
-        flambda = (
-            fnu
-            / wavelen
-            / wavelen
-            * self._phys_params.lightspeed
-            / self._phys_params.nm2m
-        )
+        flambda = fnu / wavelen / wavelen * self._phys_params.lightspeed / self._phys_params.nm2m
         flambda = flambda / self._phys_params.ergsetc2jansky
         # If updating self, then *all of wavelen/fnu/flambda will be updated.
         # This is so wavelen/fnu AND wavelen/flambda can be kept in sync.
@@ -1040,18 +970,10 @@ class Sed(object):
         condition = (x >= 1.1) & (x <= 3.3)
         if len(a_x[condition]) > 0:
             y = x[condition] - 1.82
-            a_x[condition] = (
-                1 + 0.17699 * y - 0.50447 * y**2 - 0.02427 * y**3 + 0.72085 * y**4
-            )
-            a_x[condition] = (
-                a_x[condition] + 0.01979 * y**5 - 0.77530 * y**6 + 0.32999 * y**7
-            )
-            b_x[condition] = (
-                1.41338 * y + 2.28305 * y**2 + 1.07233 * y**3 - 5.38434 * y**4
-            )
-            b_x[condition] = (
-                b_x[condition] - 0.62251 * y**5 + 5.30260 * y**6 - 2.09002 * y**7
-            )
+            a_x[condition] = 1 + 0.17699 * y - 0.50447 * y**2 - 0.02427 * y**3 + 0.72085 * y**4
+            a_x[condition] = a_x[condition] + 0.01979 * y**5 - 0.77530 * y**6 + 0.32999 * y**7
+            b_x[condition] = 1.41338 * y + 2.28305 * y**2 + 1.07233 * y**3 - 5.38434 * y**4
+            b_x[condition] = b_x[condition] - 0.62251 * y**5 + 5.30260 * y**6 - 2.09002 * y**7
         # Dust in ultraviolet and UV (if needed for high-z) 3.3 /mu< x< 8 /mu.
         condition = (x >= 3.3) & (x < 5.9)
         if len(a_x[condition]) > 0:
@@ -1065,12 +987,8 @@ class Sed(object):
             fb_x = numpy.empty(len(a_x[condition]), dtype=float)
             fa_x = -0.04473 * (y - 5.9) ** 2 - 0.009779 * (y - 5.9) ** 3
             fb_x = 0.2130 * (y - 5.9) ** 2 + 0.1207 * (y - 5.9) ** 3
-            a_x[condition] = (
-                1.752 - 0.316 * y - 0.104 / ((y - 4.67) ** 2 + 0.341) + fa_x
-            )
-            b_x[condition] = (
-                -3.090 + 1.825 * y + 1.206 / ((y - 4.62) ** 2 + 0.263) + fb_x
-            )
+            a_x[condition] = 1.752 - 0.316 * y - 0.104 / ((y - 4.67) ** 2 + 0.341) + fa_x
+            b_x[condition] = -3.090 + 1.825 * y + 1.206 / ((y - 4.62) ** 2 + 0.263) + fb_x
         # Dust in far UV (if needed for high-z) 8 /mu < x < 10 /mu region.
         condition = (x >= 8) & (x <= 11.0)
         if len(a_x[condition]) > 0:
@@ -1111,25 +1029,13 @@ class Sed(object):
         condition = (x >= 1.1) & (x <= 3.3)
         if len(a_x[condition]) > 0:
             y = x[condition] - 1.82
+            a_x[condition] = 1 + 0.104 * y - 0.609 * y**2 + 0.701 * y**3 + 1.137 * y**4
             a_x[condition] = (
-                1 + 0.104 * y - 0.609 * y**2 + 0.701 * y**3 + 1.137 * y**4
+                a_x[condition] - 1.718 * y**5 - 0.827 * y**6 + 1.647 * y**7 - 0.505 * y**8
             )
-            a_x[condition] = (
-                a_x[condition]
-                - 1.718 * y**5
-                - 0.827 * y**6
-                + 1.647 * y**7
-                - 0.505 * y**8
-            )
+            b_x[condition] = 1.952 * y + 2.908 * y**2 - 3.989 * y**3 - 7.985 * y**4
             b_x[condition] = (
-                1.952 * y + 2.908 * y**2 - 3.989 * y**3 - 7.985 * y**4
-            )
-            b_x[condition] = (
-                b_x[condition]
-                + 11.102 * y**5
-                + 5.491 * y**6
-                - 10.805 * y**7
-                + 3.347 * y**8
+                b_x[condition] + 11.102 * y**5 + 5.491 * y**6 - 10.805 * y**7 + 3.347 * y**8
             )
         # Dust in ultraviolet and UV (if needed for high-z) 3.3 /mu< x< 8 /mu.
         condition = (x >= 3.3) & (x < 5.9)
@@ -1144,12 +1050,8 @@ class Sed(object):
             fb_x = numpy.empty(len(a_x[condition]), dtype=float)
             fa_x = -0.04473 * (y - 5.9) ** 2 - 0.009779 * (y - 5.9) ** 3
             fb_x = 0.2130 * (y - 5.9) ** 2 + 0.1207 * (y - 5.9) ** 3
-            a_x[condition] = (
-                1.752 - 0.316 * y - 0.104 / ((y - 4.67) ** 2 + 0.341) + fa_x
-            )
-            b_x[condition] = (
-                -3.090 + 1.825 * y + 1.206 / ((y - 4.62) ** 2 + 0.263) + fb_x
-            )
+            a_x[condition] = 1.752 - 0.316 * y - 0.104 / ((y - 4.67) ** 2 + 0.341) + fa_x
+            b_x[condition] = -3.090 + 1.825 * y + 1.206 / ((y - 4.62) ** 2 + 0.263) + fb_x
         # Dust in far UV (if needed for high-z) 8 /mu < x < 10 /mu region.
         condition = (x >= 8) & (x <= 11.0)
         if len(a_x[condition]) > 0:
@@ -1158,9 +1060,7 @@ class Sed(object):
             b_x[condition] = 13.670 + 4.257 * (y) - 0.420 * (y) ** 2 + 0.374 * (y) ** 3
         return a_x, b_x
 
-    def add_ccm_dust(
-        self, a_x, b_x, a_v=None, ebv=None, r_v=3.1, wavelen=None, flambda=None
-    ):
+    def add_ccm_dust(self, a_x, b_x, a_v=None, ebv=None, r_v=3.1, wavelen=None, flambda=None):
         """
         Add dust model extinction to the SED, modifying flambda and fnu.
 
@@ -1172,13 +1072,9 @@ class Sed(object):
             "Sed.add_ccm_dust is now deprecated in favor of Sed.add_dust",
             DeprecationWarning,
         )
-        return self.add_dust(
-            a_x, b_x, a_v=a_v, ebv=ebv, r_v=r_v, wavelen=wavelen, flambda=flambda
-        )
+        return self.add_dust(a_x, b_x, a_v=a_v, ebv=ebv, r_v=r_v, wavelen=wavelen, flambda=flambda)
 
-    def add_dust(
-        self, a_x, b_x, a_v=None, ebv=None, r_v=3.1, wavelen=None, flambda=None
-    ):
+    def add_dust(self, a_x, b_x, a_v=None, ebv=None, r_v=3.1, wavelen=None, flambda=None):
         """
         Add dust model extinction to the SED, modifying flambda and fnu.
 
@@ -1317,12 +1213,7 @@ class Sed(object):
         nphoton = (fnu / wavelen * bandpass.sb).sum()
         adu = (
             nphoton
-            * (
-                phot_params.exptime
-                * phot_params.nexp
-                * phot_params.effarea
-                / phot_params.gain
-            )
+            * (phot_params.exptime * phot_params.nexp * phot_params.effarea / phot_params.gain)
             * (1 / self._phys_params.ergsetc2jansky)
             * (1 / self._phys_params.planck)
             * dlambda
@@ -1378,11 +1269,7 @@ class Sed(object):
         dlambda = wavelen[1] - wavelen[0]
 
         # use the trapezoid rule
-        energy = (
-            0.5
-            * (flambda[1:] * bandpass.sb[1:] + flambda[:-1] * bandpass.sb[:-1])
-            * dlambda
-        ).sum()
+        energy = (0.5 * (flambda[1:] * bandpass.sb[1:] + flambda[:-1] * bandpass.sb[:-1]) * dlambda).sum()
         return energy
 
     def calc_flux(self, bandpass, wavelen=None, fnu=None):
@@ -1540,9 +1427,7 @@ class Sed(object):
                 # Look for either flambda or fnu in input data.
                 if flambda is None:
                     if fnu is None:
-                        raise Exception(
-                            "If passing wavelength, must also pass fnu or flambda."
-                        )
+                        raise Exception("If passing wavelength, must also pass fnu or flambda.")
                     # If not given flambda, must calculate from the given values of fnu.
                     wavelen, flambda = self.fnu_toflambda(wavelen, fnu)
                 # Make a copy of the input data.
@@ -1557,24 +1442,17 @@ class Sed(object):
                 )
             # "standard" schema have flambda = 1 at 500 nm.
             if gap == 0:
-                flambda_atpt = numpy.interp(
-                    lambdanorm, wavelen, flambda, left=None, right=None
-                )
+                flambda_atpt = numpy.interp(lambdanorm, wavelen, flambda, left=None, right=None)
                 gapval = flambda_atpt
             else:
-                lambdapt = numpy.arange(
-                    lambdanorm - gap, lambdanorm + gap, wavelen_step, dtype=float
-                )
+                lambdapt = numpy.arange(lambdanorm - gap, lambdanorm + gap, wavelen_step, dtype=float)
                 flambda_atpt = numpy.zeros(len(lambdapt), dtype="float")
-                flambda_atpt = numpy.interp(
-                    lambdapt, wavelen, flambda, left=None, right=None
-                )
+                flambda_atpt = numpy.interp(lambdapt, wavelen, flambda, left=None, right=None)
                 gapval = flambda_atpt.sum() / len(lambdapt)
             # Now renormalize fnu and flambda in the case of normalizing flambda.
             if gapval == 0:
                 raise Exception(
-                    "Original flambda is 0 at the desired point of normalization. "
-                    "Cannot renormalize."
+                    "Original flambda is 0 at the desired point of normalization. " "Cannot renormalize."
                 )
             konst = normvalue / gapval
             flambda = flambda * konst
@@ -1592,9 +1470,7 @@ class Sed(object):
                 # Look for either flambda or fnu in input data.
                 if fnu is None:
                     if flambda is None:
-                        raise Exception(
-                            "If passing wavelength, must also pass fnu or flambda."
-                        )
+                        raise Exception("If passing wavelength, must also pass fnu or flambda.")
                     wavelen, fnu = self.flambda_tofnu(wavelen, fnu)
                 # Make a copy of the input data.
                 else:
@@ -1607,22 +1483,17 @@ class Sed(object):
                     + "is outside defined wavelength range."
                 )
             if gap == 0:
-                fnu_atpt = numpy.interp(
-                    lambdanorm, wavelen, flambda, left=None, right=None
-                )
+                fnu_atpt = numpy.interp(lambdanorm, wavelen, flambda, left=None, right=None)
                 gapval = fnu_atpt
             else:
-                lambdapt = numpy.arange(
-                    lambdanorm - gap, lambdanorm + gap, wavelen_step, dtype=float
-                )
+                lambdapt = numpy.arange(lambdanorm - gap, lambdanorm + gap, wavelen_step, dtype=float)
                 fnu_atpt = numpy.zeros(len(lambdapt), dtype="float")
                 fnu_atpt = numpy.interp(lambdapt, wavelen, fnu, left=None, right=None)
                 gapval = fnu_atpt.sum() / len(lambdapt)
             # Now renormalize fnu and flambda in the case of normalizing fnu.
             if gapval == 0:
                 raise Exception(
-                    "Original fnu is 0 at the desired point of normalization. "
-                    "Cannot renormalize."
+                    "Original fnu is 0 at the desired point of normalization. " "Cannot renormalize."
                 )
             konst = normvalue / gapval
             fnu = fnu * konst
@@ -1700,9 +1571,7 @@ class Sed(object):
         phiarray = numpy.empty(
             (
                 len(bandpasslist),
-                numpy.size(
-                    numpy.arange(wavelen_min, wavelen_max + wavelen_step, wavelen_step)
-                ),
+                numpy.size(numpy.arange(wavelen_min, wavelen_max + wavelen_step, wavelen_step)),
             ),
             dtype="float",
         )

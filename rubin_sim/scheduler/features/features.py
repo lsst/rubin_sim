@@ -1,13 +1,15 @@
 from __future__ import absolute_import
+
 from builtins import object
-import numpy as np
+
 import healpy as hp
-from rubin_sim.scheduler import utils
-from rubin_sim.utils import m5_flat_sed, ra_dec2_hpid, calc_season, _hpid2_ra_dec
-from rubin_sim.skybrightness_pre import dark_sky
-from rubin_sim.scheduler.utils import IntRounded
+import numpy as np
 from scipy.stats import binned_statistic
 
+from rubin_sim.scheduler import utils
+from rubin_sim.scheduler.utils import IntRounded
+from rubin_sim.skybrightness_pre import dark_sky
+from rubin_sim.utils import _hpid2_ra_dec, calc_season, m5_flat_sed, ra_dec2_hpid
 
 __all__ = [
     "BaseFeature",
@@ -97,9 +99,7 @@ class NoteInNight(BaseSurveyFeature):
         if self.current_night != observations_array["night"][-1]:
             self.current_night = observations_array["night"][-1].copy()
             self.feature = 0
-        indx = np.where(observations_array["night"] == observations_array["night"][-1])[
-            0
-        ]
+        indx = np.where(observations_array["night"] == observations_array["night"][-1])[0]
         for ind in indx:
             if observations_array["note"][ind] in self.notes:
                 self.feature += 1
@@ -145,11 +145,7 @@ class NObsCount(BaseSurveyFeature):
         ):
             # Track all observations on a specified filter
             self.feature += 1
-        elif (
-            (self.filtername is None)
-            and (self.tag is not None)
-            and (observation["tag"][0] in self.tag)
-        ):
+        elif (self.filtername is None) and (self.tag is not None) and (observation["tag"][0] in self.tag):
             # Track all observations on a specified tag
             self.feature += 1
         elif (
@@ -214,11 +210,7 @@ class NObsCountSeason(BaseSurveyFeature):
             ):
                 # Track all observations on a specified filter
                 self.feature += 1
-            elif (
-                (self.filtername is None)
-                and (self.tag is not None)
-                and (observation["tag"][0] in self.tag)
-            ):
+            elif (self.filtername is None) and (self.tag is not None) and (observation["tag"][0] in self.tag):
                 # Track all observations on a specified tag
                 self.feature += 1
             elif (
@@ -340,9 +332,7 @@ class NObservations(BaseSurveyFeature):
     def add_observations_array(self, observations_array, observations_hpid):
         valid_indx = np.ones(observations_hpid.size, dtype=bool)
         if self.filtername is not None:
-            valid_indx[
-                np.where(observations_hpid["filter"] != self.filtername)[0]
-            ] = False
+            valid_indx[np.where(observations_hpid["filter"] != self.filtername)[0]] = False
         if self.survey_name is not None:
             tmp = [name in self.survey_name for name in observations_hpid["note"]]
             valid_indx = valid_indx * np.array(tmp)
@@ -454,17 +444,13 @@ class LastNObsTimes(BaseSurveyFeature):
         # Assumes we're already sorted on mjd
         valid_indx = np.ones(observations_hpid.size, dtype=bool)
         if self.filtername is not None:
-            valid_indx[
-                np.where(observations_hpid["filter"] != self.filtername)[0]
-            ] = False
+            valid_indx[np.where(observations_hpid["filter"] != self.filtername)[0]] = False
         data = observations_hpid[valid_indx]
 
         if np.size(data) > 0:
             for i in range(1, self.n_obs + 1):
                 func = LargestN(i)
-                result, _be, _bn = binned_statistic(
-                    data["hpid"], data["mjd"], statistic=func, bins=self.bins
-                )
+                result, _be, _bn = binned_statistic(data["hpid"], data["mjd"], statistic=func, bins=self.bins)
                 # some_vals = np.where(np.sum(result, axis=1) > 0)[0]
                 self.feature[-i, :] = result
 
@@ -518,17 +504,13 @@ class NObservationsCurrentSeason(BaseSurveyFeature):
 
         check1 = np.zeros(observations_array.size, dtype=bool)
         if self.seeing_fwhm_max is not None:
-            check1[
-                np.where(observations_array["FWHMeff"] <= self.seeing_fwhm_max)
-            ] = True
+            check1[np.where(observations_array["FWHMeff"] <= self.seeing_fwhm_max)] = True
         else:
             check1[:] = True
 
         check2 = np.zeros(observations_array.size, dtype=bool)
         if self.m5_penalty_max is not None:
-            hpid = ra_dec2_hpid(
-                self.nside, observations_array["RA"], observations_array["dec"]
-            )
+            hpid = ra_dec2_hpid(self.nside, observations_array["RA"], observations_array["dec"])
             penalty = self.dark_map[hpid] - observations_array["fivesigmadepth"]
             check2[np.where(penalty <= self.m5_penalty_max)] = True
         else:
@@ -602,9 +584,7 @@ class CoaddedDepth(BaseSurveyFeature):
                     observation["airmass"],
                 )
 
-                self.feature[indx] = 1.25 * np.log10(
-                    10.0 ** (0.8 * self.feature[indx]) + 10.0 ** (0.8 * m5)
-                )
+                self.feature[indx] = 1.25 * np.log10(10.0 ** (0.8 * self.feature[indx]) + 10.0 ** (0.8 * m5))
 
 
 class LastObserved(BaseSurveyFeature):
@@ -625,15 +605,11 @@ class LastObserved(BaseSurveyFeature):
         # Assumes we're already sorted on mjd
         valid_indx = np.ones(observations_hpid.size, dtype=bool)
         if self.filtername is not None:
-            valid_indx[
-                np.where(observations_hpid["filter"] != self.filtername)[0]
-            ] = False
+            valid_indx[np.where(observations_hpid["filter"] != self.filtername)[0]] = False
         data = observations_hpid[valid_indx]
 
         if np.size(data) > 0:
-            result, _be, _bn = binned_statistic(
-                data["hpid"], data["mjd"], statistic=np.max, bins=self.bins
-            )
+            result, _be, _bn = binned_statistic(data["hpid"], data["mjd"], statistic=np.max, bins=self.bins)
             good = np.where(result > 0)
             self.feature[good] = result[good]
 
@@ -727,17 +703,13 @@ class PairInNight(BaseSurveyFeature):
 
     def add_observations_array(self, observations_array, observations_hpid):
         # ok, let's just find the largest night and toss all those in one at a time
-        most_recent_night = np.where(
-            observations_hpid["night"] == np.max(observations_hpid["night"])
-        )[0]
+        most_recent_night = np.where(observations_hpid["night"] == np.max(observations_hpid["night"]))[0]
         obs_hpid = observations_hpid[most_recent_night]
         uid = np.unique(obs_hpid["ID"])
         for ind_id in uid:
             # maybe a faster searchsorted way to do this, but it'll work for now
             good = np.where(obs_hpid["ID"] == ind_id)[0]
-            self.add_observation(
-                observations_hpid[good][0], observations_hpid[good]["hpid"]
-            )
+            self.add_observation(observations_hpid[good][0], observations_hpid[good]["hpid"])
 
     def add_observation(self, observation, indx=None):
         if self.filtername is None:
@@ -790,6 +762,4 @@ class RotatorAngle(BaseSurveyFeature):
     def add_observation(self, observation, indx=None):
         if observation["filter"][0] == self.filtername:
             # I think this is how to broadcast things properly.
-            self.feature[indx, :] += np.histogram(
-                observation.rotSkyPos, bins=self.bins
-            )[0]
+            self.feature[indx, :] += np.histogram(observation.rotSkyPos, bins=self.bins)[0]

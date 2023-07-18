@@ -1,16 +1,15 @@
 """Run the hourglass metric.
 """
+import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metric_bundles as mb
+
 from .col_map_dict import col_map_dict
 
 __all__ = ["hourglassPlots"]
 
 
-def hourglassPlots(
-    colmap=None, runName="opsim", nyears=10, extraSql=None, extraInfoLabel=None
-):
+def hourglassPlots(colmap=None, runName="opsim", nyears=10, extraSql=None, extraInfoLabel=None):
     """Run the hourglass metric, for each individual year.
 
     Parameters

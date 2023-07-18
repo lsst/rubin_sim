@@ -1,6 +1,8 @@
-import unittest
 import os
+import unittest
+
 import numpy as np
+
 from rubin_sim.data import get_data_dir
 from rubin_sim.utils import LsstCameraFootprint
 
@@ -18,9 +20,7 @@ class TestLsstcamerafootprint(unittest.TestCase):
             units="degrees",
             footprint_file=os.path.join(get_data_dir(), "tests", "fov_map.npz"),
         )
-        idx_obs = camera(
-            self.obj_ra, self.obj_dec, self.obs_ra, self.obs_dec, self.obs_rot_sky_pos
-        )
+        idx_obs = camera(self.obj_ra, self.obj_dec, self.obs_ra, self.obs_dec, self.obs_rot_sky_pos)
         # The first of these objects should be in the middle of the FOV, while the second is outside
         self.assertEqual(idx_obs, [0])
 

@@ -1,14 +1,16 @@
-import numpy as np
-import matplotlib
-import warnings
 import unittest
+import warnings
+
+import matplotlib
+import numpy as np
+
 import rubin_sim.maf.stackers as stackers
 from rubin_sim.utils import (
-    _galactic_from_equatorial,
-    calc_lmst_last,
+    ObservationMetaData,
     Site,
     _alt_az_pa_from_ra_dec,
-    ObservationMetaData,
+    _galactic_from_equatorial,
+    calc_lmst_last,
 )
 
 matplotlib.use("Agg")
@@ -135,9 +137,7 @@ class TestStackerClasses(unittest.TestCase):
         self.assertEqual(len(stackerlist), 1)
         self.assertEqual(stackerlist[0], stackers.HexDitherFieldPerNightStacker())
         # Test that kwargs are passed along.
-        stackerlist = stackers.setup_dither_stackers(
-            ra_col, dec_col, degrees, max_dither=0.5
-        )
+        stackerlist = stackers.setup_dither_stackers(ra_col, dec_col, degrees, max_dither=0.5)
         self.assertEqual(stackerlist[0].max_dither, np.radians(0.5))
 
     def test_base_dither_stacker(self):
@@ -158,9 +158,7 @@ class TestStackerClasses(unittest.TestCase):
         # Restrict dithers to area where wraparound is not a problem for
         # comparisons.
         data["fieldRA"] = np.degrees(rng.random_sample(600) * (np.pi) + np.pi / 2.0)
-        data["fieldDec"] = np.degrees(
-            rng.random_sample(600) * np.pi / 2.0 - np.pi / 4.0
-        )
+        data["fieldDec"] = np.degrees(rng.random_sample(600) * np.pi / 2.0 - np.pi / 4.0)
         stacker = stackers.RandomDitherFieldPerVisitStacker(max_dither=max_dither)
         data = stacker.run(data)
         diffsra = (data["fieldRA"] - data["randomDitherFieldPerVisitRa"]) * np.cos(
@@ -168,9 +166,7 @@ class TestStackerClasses(unittest.TestCase):
         )
         diffsdec = data["fieldDec"] - data["randomDitherFieldPerVisitDec"]
         # Check dithers within expected range.
-        self._t_dither_range(
-            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither
-        )
+        self._t_dither_range(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither)
 
     def test_random_dither_per_night(self):
         """
@@ -196,19 +192,13 @@ class TestStackerClasses(unittest.TestCase):
         data["night"] = np.floor(rng.rand(ndata) * 10).astype("int")
         stacker = stackers.RandomDitherPerNightStacker(max_dither=max_dither)
         data = stacker.run(data)
-        diffsra = (
-            np.radians(data["fieldRA"]) - np.radians(data["randomDitherPerNightRa"])
-        ) * np.cos(np.radians(data["fieldDec"]))
-        diffsdec = np.radians(data["fieldDec"]) - np.radians(
-            data["randomDitherPerNightDec"]
+        diffsra = (np.radians(data["fieldRA"]) - np.radians(data["randomDitherPerNightRa"])) * np.cos(
+            np.radians(data["fieldDec"])
         )
-        self._t_dither_range(
-            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither
-        )
+        diffsdec = np.radians(data["fieldDec"]) - np.radians(data["randomDitherPerNightDec"])
+        self._t_dither_range(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither)
         # Check that dithers on the same night are the same.
-        self._t_dither_per_night(
-            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], data["night"]
-        )
+        self._t_dither_per_night(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], data["night"])
 
     def test_spiral_dither_per_night(self):
         """
@@ -236,17 +226,11 @@ class TestStackerClasses(unittest.TestCase):
         data["night"] = np.floor(rng.rand(ndata) * 20).astype("int")
         stacker = stackers.SpiralDitherPerNightStacker(max_dither=max_dither)
         data = stacker.run(data)
-        diffsra = (data["fieldRA"] - data["spiralDitherPerNightRa"]) * np.cos(
-            np.radians(data["fieldDec"])
-        )
+        diffsra = (data["fieldRA"] - data["spiralDitherPerNightRa"]) * np.cos(np.radians(data["fieldDec"]))
         diffsdec = data["fieldDec"] - data["spiralDitherPerNightDec"]
-        self._t_dither_range(
-            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither
-        )
+        self._t_dither_range(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither)
         # Check that dithers on the same night are the same.
-        self._t_dither_per_night(
-            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], data["night"]
-        )
+        self._t_dither_per_night(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], data["night"])
 
     def test_hex_dither_per_night(self):
         """
@@ -272,17 +256,11 @@ class TestStackerClasses(unittest.TestCase):
         data["night"] = np.floor(rng.rand(ndata) * 217).astype("int")
         stacker = stackers.HexDitherPerNightStacker(max_dither=max_dither)
         data = stacker.run(data)
-        diffsra = (data["fieldRA"] - data["hexDitherPerNightRa"]) * np.cos(
-            np.radians(data["fieldDec"])
-        )
+        diffsra = (data["fieldRA"] - data["hexDitherPerNightRa"]) * np.cos(np.radians(data["fieldDec"]))
         diffsdec = data["fieldDec"] - data["hexDitherPerNightDec"]
-        self._t_dither_range(
-            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither
-        )
+        self._t_dither_range(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither)
         # Check that dithers on the same night are the same.
-        self._t_dither_per_night(
-            diffsra, diffsdec, data["fieldRA"], data["fieldDec"], data["night"]
-        )
+        self._t_dither_per_night(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], data["night"])
 
     def test_random_rot_dither_per_filter_change_stacker(self):
         """
@@ -292,9 +270,7 @@ class TestStackerClasses(unittest.TestCase):
         filt = np.array(["r", "r", "r", "g", "g", "g", "r", "r"])
         rot_tel_pos = np.array([0, 0, 0, 0, 0, 0, 0, 0], float)
         # Test that have a dither in rot offset for every filter change.
-        odata = np.zeros(
-            len(filt), dtype=list(zip(["filter", "rotTelPos"], [(np.str_, 1), float]))
-        )
+        odata = np.zeros(len(filt), dtype=list(zip(["filter", "rotTelPos"], [(np.str_, 1), float])))
         odata["filter"] = filt
         odata["rotTelPos"] = rot_tel_pos
         stacker = stackers.RandomRotDitherPerFilterChangeStacker(
@@ -307,9 +283,7 @@ class TestStackerClasses(unittest.TestCase):
         self.assertEqual(rot_offsets[0], 0)  # no dither w/o a filter change
         offset_changes = np.where(rot_offsets[1:] != rot_offsets[:-1])[0]
         filt_changes = np.where(filt[1:] != filt[:-1])[0]
-        np.testing.assert_array_equal(
-            offset_changes, filt_changes
-        )  # dither after every filter
+        np.testing.assert_array_equal(offset_changes, filt_changes)  # dither after every filter
 
         # now test to ensure that user-defined max_rot_angle value works and that
         # visits in between filter changes for which no offset can be found are left undithered
@@ -337,9 +311,7 @@ class TestStackerClasses(unittest.TestCase):
 
     def test_ha_stacker(self):
         """Test the Hour Angle stacker"""
-        data = np.zeros(
-            100, dtype=list(zip(["observationStartLST", "fieldRA"], [float, float]))
-        )
+        data = np.zeros(100, dtype=list(zip(["observationStartLST", "fieldRA"], [float, float])))
         data["observationStartLST"] = np.arange(100) / 99.0 * np.pi * 2
         stacker = stackers.HourAngleStacker(degrees=True)
         data = stacker.run(data)
@@ -347,22 +319,16 @@ class TestStackerClasses(unittest.TestCase):
         self.assertLess(np.max(data["HA"]), 12.0)
         self.assertGreater(np.min(data["HA"]), -12.0)
         # Check that HA is zero if lst == RA
-        data = np.zeros(
-            1, dtype=list(zip(["observationStartLST", "fieldRA"], [float, float]))
-        )
+        data = np.zeros(1, dtype=list(zip(["observationStartLST", "fieldRA"], [float, float])))
         data = stacker.run(data)
         self.assertEqual(data["HA"], 0.0)
-        data = np.zeros(
-            1, dtype=list(zip(["observationStartLST", "fieldRA"], [float, float]))
-        )
+        data = np.zeros(1, dtype=list(zip(["observationStartLST", "fieldRA"], [float, float])))
         data["observationStartLST"] = 20.0
         data["fieldRA"] = 20.0
         data = stacker.run(data)
         self.assertEqual(data["HA"], 0.0)
         # Check a value
-        data = np.zeros(
-            1, dtype=list(zip(["observationStartLST", "fieldRA"], [float, float]))
-        )
+        data = np.zeros(1, dtype=list(zip(["observationStartLST", "fieldRA"], [float, float])))
         data["observationStartLST"] = 0.0
         data["fieldRA"] = np.degrees(np.pi / 2.0)
         data = stacker.run(data)
@@ -386,9 +352,7 @@ class TestStackerClasses(unittest.TestCase):
         )
         data["observationStartMJD"] = np.arange(100) * 0.2 + 50000
         site = Site(name="LSST")
-        data["observationStartLST"], last = calc_lmst_last(
-            data["observationStartMJD"], site.longitude_rad
-        )
+        data["observationStartLST"], last = calc_lmst_last(data["observationStartMJD"], site.longitude_rad)
         data["observationStartLST"] = data["observationStartLST"] * 180.0 / 12.0
         stacker = stackers.ParallacticAngleStacker(degrees=True)
         data = stacker.run(data)
@@ -401,9 +365,7 @@ class TestStackerClasses(unittest.TestCase):
         ras = np.radians(data["fieldRA"])
         decs = np.radians(data["fieldDec"])
         for ra, dec, mjd in zip(ras, decs, data["observationStartMJD"]):
-            alt, az, pa = _alt_az_pa_from_ra_dec(
-                ra, dec, ObservationMetaData(mjd=mjd, site=site)
-            )
+            alt, az, pa = _alt_az_pa_from_ra_dec(ra, dec, ObservationMetaData(mjd=mjd, site=site))
 
             check_pa.append(pa)
         check_pa = np.degrees(check_pa)
@@ -414,9 +376,7 @@ class TestStackerClasses(unittest.TestCase):
         Test the galactic coordinate stacker
         """
         ra, dec = np.degrees(
-            np.meshgrid(
-                np.arange(0, 2.0 * np.pi, 0.1), np.arange(-np.pi / 2, np.pi / 2, 0.1)
-            )
+            np.meshgrid(np.arange(0, 2.0 * np.pi, 0.1), np.arange(-np.pi / 2, np.pi / 2, 0.1))
         )
         ra = np.ravel(ra)
         dec = np.ravel(dec)
@@ -425,9 +385,7 @@ class TestStackerClasses(unittest.TestCase):
         data["dec"] += dec
         s = stackers.GalacticStacker(ra_col="ra", dec_col="dec")
         new_data = s.run(data)
-        expected_l, expected_b = _galactic_from_equatorial(
-            np.radians(ra), np.radians(dec)
-        )
+        expected_l, expected_b = _galactic_from_equatorial(np.radians(ra), np.radians(dec))
         np.testing.assert_array_equal(new_data["gall"], expected_l)
         np.testing.assert_array_equal(new_data["galb"], expected_b)
 
@@ -443,9 +401,7 @@ class TestStackerClasses(unittest.TestCase):
 
     def test_ecliptic_stacker(self):
         ra, dec = np.degrees(
-            np.meshgrid(
-                np.arange(0, 2.0 * np.pi, 0.1), np.arange(-np.pi / 2, np.pi / 2, 0.1)
-            )
+            np.meshgrid(np.arange(0, 2.0 * np.pi, 0.1), np.arange(-np.pi / 2, np.pi / 2, 0.1))
         )
         ra = np.ravel(ra)
         dec = np.ravel(dec)
@@ -458,9 +414,7 @@ class TestStackerClasses(unittest.TestCase):
         data = np.zeros(ra.size, dtype=list(zip(["ra", "dec"], [float] * 2)))
         data["ra"] += ra
         data["dec"] += dec
-        s = stackers.EclipticStacker(
-            ra_col="ra", dec_col="dec", degrees=True, subtract_sun_lon=False
-        )
+        s = stackers.EclipticStacker(ra_col="ra", dec_col="dec", degrees=True, subtract_sun_lon=False)
         new_data = s.run(data)
 
 

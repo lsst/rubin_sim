@@ -1,7 +1,7 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from scipy import interpolate
+import numpy as np
 import numpy.lib.recfunctions as rf
+from scipy import interpolate
 
 
 class Lims:
@@ -231,9 +231,7 @@ class GenerateFakeObservations:
         """
         bands = config["bands"]
         cadence = dict(zip(bands, config["Cadence"]))
-        shift_days = dict(
-            zip(bands, [config["shift_days"] * io for io in range(len(bands))])
-        )
+        shift_days = dict(zip(bands, [config["shift_days"] * io for io in range(len(bands))]))
         m5 = dict(zip(bands, config["m5"]))
         nvisits = dict(zip(bands, config["nvisits"]))
         exposure__time = dict(zip(bands, config["exposure__time"]))
@@ -250,9 +248,7 @@ class GenerateFakeObservations:
             for i, band in enumerate(bands):
                 mjd = np.arange(mjd_min, mjd_max + cadence[band], cadence[band])
                 mjd += shift_days[band]
-                m5_coadded = self.m5_coadd(
-                    m5[band], nvisits[band], exposure__time[band]
-                )
+                m5_coadded = self.m5_coadd(m5[band], nvisits[band], exposure__time[band])
                 myarr = np.array(mjd, dtype=[(self.mjd_col, "f8")])
                 myarr = rf.append_fields(
                     myarr,
@@ -347,9 +343,7 @@ class ReferenceData:
         selc = np.copy(sel)
         difftime = sel["time"] - sel["DayMax"]
         selc = rf.append_fields(selc, "deltaT", difftime)
-        return interpolate.interp1d(
-            selc["deltaT"], selc["flux_e"], bounds_error=False, fill_value=0.0
-        )
+        return interpolate.interp1d(selc["deltaT"], selc["flux_e"], bounds_error=False, fill_value=0.0)
 
     def interp_mag(self, band, tab):
         """
@@ -370,6 +364,4 @@ class ReferenceData:
         """
         idx = tab["band"] == band
         sel = tab[idx]
-        return interpolate.interp1d(
-            sel["m5"], sel["flux_e"], bounds_error=False, fill_value=0.0
-        )
+        return interpolate.interp1d(sel["m5"], sel["flux_e"], bounds_error=False, fill_value=0.0)

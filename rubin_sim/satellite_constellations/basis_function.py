@@ -1,7 +1,7 @@
-import numpy as np
-import rubin_sim.scheduler.basis_functions as bf
 import healpy as hp
+import numpy as np
 
+import rubin_sim.scheduler.basis_functions as bf
 
 __all__ = ["SatelliteAvoidBasisFunction"]
 
@@ -26,11 +26,7 @@ class SatelliteAvoidBasisFunction(bf.BaseBasisFunction):
         result = 0
         # find the indices that are relevant
         indx_min = np.min(np.searchsorted(conditions.satellite_mjds, conditions.mjd))
-        indx_max = np.max(
-            np.searchsorted(
-                conditions.satellite_mjds, conditions.mjd + self.forecast_time
-            )
-        )
+        indx_max = np.max(np.searchsorted(conditions.satellite_mjds, conditions.mjd + self.forecast_time))
 
         if indx_max > indx_min:
             result = np.sum(conditions.satellite_maps[indx_min:indx_max], axis=0)

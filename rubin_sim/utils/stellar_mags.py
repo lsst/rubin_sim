@@ -10,8 +10,10 @@ def calc_wd_colors():
     """
 
     try:
-        from lsst.utils import getPackageDir
         import os
+
+        from lsst.utils import getPackageDir
+
         from rubin_sim.photUtils import Bandpass, Sed
     except:
         "Need to setup sims_photUtils to generate WD magnitudes."

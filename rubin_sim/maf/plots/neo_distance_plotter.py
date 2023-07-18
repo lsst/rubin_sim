@@ -1,9 +1,11 @@
-from builtins import zip
-import numpy as np
 import copy
+from builtins import zip
+
 import matplotlib.pyplot as plt
-from .plot_handler import BasePlotter
+import numpy as np
 from matplotlib.patches import Ellipse
+
+from .plot_handler import BasePlotter
 
 __all__ = ["NeoDistancePlotter"]
 
@@ -65,8 +67,7 @@ class NeoDistancePlotter(BasePlotter):
         ax = fig.add_subplot(111)
 
         in_plane = np.where(
-            (metric_value[0]["eclipLat"] >= self.eclip_min)
-            & (metric_value[0]["eclipLat"] <= self.eclip_max)
+            (metric_value[0]["eclipLat"] >= self.eclip_min) & (metric_value[0]["eclipLat"] <= self.eclip_max)
         )
 
         plot_dict = {}
@@ -77,11 +78,7 @@ class NeoDistancePlotter(BasePlotter):
 
         planets = []
         for prop in planet_props:
-            planets.append(
-                Ellipse(
-                    (0, 0), planet_props[prop] * 2, planet_props[prop] * 2, fill=False
-                )
-            )
+            planets.append(Ellipse((0, 0), planet_props[prop] * 2, planet_props[prop] * 2, fill=False))
 
         for planet in planets:
             ax.add_artist(planet)
@@ -117,9 +114,7 @@ class NeoDistancePlotter(BasePlotter):
         # Set the under value to white
         my_cmap = copy.copy(plt.cm.get_cmap("jet"))
         my_cmap.set_under("w")
-        blah = ax.pcolormesh(
-            xgrid, ygrid + 1, H, cmap=my_cmap, vmin=0.001, shading="auto"
-        )
+        blah = ax.pcolormesh(xgrid, ygrid + 1, H, cmap=my_cmap, vmin=0.001, shading="auto")
         cb = plt.colorbar(blah, ax=ax)
         cb.set_label(plot_dict["units"])
 

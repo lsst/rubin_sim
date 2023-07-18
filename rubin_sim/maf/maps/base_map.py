@@ -1,4 +1,5 @@
 import inspect
+
 from six import with_metaclass
 
 __all__ = ["MapsRegistry", "BaseMap"]
@@ -23,10 +24,7 @@ class MapsRegistry(type):
                 modname = modname + "."
         mapsname = modname + name
         if mapsname in cls.registry:
-            raise Exception(
-                "Redefining maps %s! (there are >1 maps with the same name)"
-                % (mapsname)
-            )
+            raise Exception("Redefining maps %s! (there are >1 maps with the same name)" % (mapsname))
         if mapsname != "BaseMaps":
             cls.registry[mapsname] = cls
 

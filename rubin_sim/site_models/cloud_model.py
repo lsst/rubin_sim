@@ -1,5 +1,6 @@
-import numpy as np
 import warnings
+
+import numpy as np
 
 __all__ = ["CloudModel"]
 
@@ -22,9 +23,7 @@ class CloudModel(object):
     processed telemetry values.
     """
 
-    def __init__(
-        self, cloud_column="cloud", altitude_column="altitude", azimuth_column="azimuth"
-    ):
+    def __init__(self, cloud_column="cloud", altitude_column="altitude", azimuth_column="azimuth"):
         self.altcol = altitude_column
         self.azcol = azimuth_column
         self.cloudcol = cloud_column

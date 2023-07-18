@@ -11,13 +11,15 @@
 #
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
+import warnings
+
 import numpy as np
 import scipy
-import warnings
+
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import (
+    normalization_constant,
     power_law_const_a,
     power_law_const_b,
-    normalization_constant,
 )
 
 __all__ = ["galaxy_counts_with_pixel_calibration"]
@@ -83,9 +85,7 @@ def galaxy_counts_with_pixel_calibration(
     elif filter_band == "y":  # brighter than i: z-y= 0.4 => z= y+0.4 => i= y+0.4*2
         band_correction = 0.4 * 2.0
     else:
-        print(
-            "ERROR: Invalid band in GalaxyCountsMetric_withPixelCalibErrors. Assuming i-band."
-        )
+        print("ERROR: Invalid band in GalaxyCountsMetric_withPixelCalibErrors. Assuming i-band.")
         band_correction = 0
 
     # ------------------------------------------------------------------------
@@ -113,11 +113,7 @@ def galaxy_counts_with_pixel_calibration(
         if cfhtls_counts:
             # LSST power law: eq. 3.7 from LSST Science Book converted to per sq degree:
             # (46*3600)*10^(0.31(i-25))
-            dn_gal = (
-                46.0
-                * 3600.0
-                * np.power(10.0, 0.31 * (apparent_mag + band_correction - 25.0))
-            )
+            dn_gal = 46.0 * 3600.0 * np.power(10.0, 0.31 * (apparent_mag + band_correction - 25.0))
         else:
             # full z-range considered here: 0.<z<4.0
             # sum the galaxy counts from each individual z-bin
@@ -125,8 +121,7 @@ def galaxy_counts_with_pixel_calibration(
             for key in list(power_law_const_a.keys()):
                 dn_gal += np.power(
                     10.0,
-                    power_law_const_a[key] * (apparent_mag + band_correction)
-                    + power_law_const_b[key],
+                    power_law_const_a[key] * (apparent_mag + band_correction) + power_law_const_b[key],
                 )
         completeness = 0.5 * scipy.special.erfc(apparent_mag - coaddm5)
         return dn_gal * completeness
@@ -141,13 +136,9 @@ def galaxy_counts_with_pixel_calibration(
         warnings.simplefilter("ignore")
         # set up parameters to consider individual redshift range
         if redshift_bin == "all":
-            num_gal, int_err = scipy.integrate.quad(
-                gal_count_all, -np.inf, upper_mag_limit, args=coaddm5
-            )
+            num_gal, int_err = scipy.integrate.quad(gal_count_all, -np.inf, upper_mag_limit, args=coaddm5)
         else:
-            num_gal, int_err = scipy.integrate.quad(
-                gal_count_bin, -np.inf, upper_mag_limit, args=coaddm5
-            )
+            num_gal, int_err = scipy.integrate.quad(gal_count_bin, -np.inf, upper_mag_limit, args=coaddm5)
 
     if normalized_mock_catalog_counts and not cfhtls_counts:
         # Normalize the counts from mock catalogs to match up to CFHTLS counts fori<25.5 galaxy catalog

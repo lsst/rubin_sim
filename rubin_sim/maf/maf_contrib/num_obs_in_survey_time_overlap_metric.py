@@ -7,6 +7,7 @@
 
 import numpy as np
 from astropy.time import Time
+
 from rubin_sim.maf.metrics import BaseMetric
 
 __all__ = ["NumObsInSurveyTimeOverlapMetric"]
@@ -18,14 +19,12 @@ class NumObsInSurveyTimeOverlapMetric(BaseMetric):
         survey_obs_win,
         time_col="observationStartMJD",
         metric_name="NumObsInSurveyTimeOverlapMetric",
-        **kwargs
+        **kwargs,
     ):
         self.time_col = time_col
         self.metric_name = metric_name
         self.survey_obs_win = survey_obs_win
-        super(NumObsInSurveyTimeOverlapMetric, self).__init__(
-            col=time_col, metric_name=metric_name, **kwargs
-        )
+        super(NumObsInSurveyTimeOverlapMetric, self).__init__(col=time_col, metric_name=metric_name, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         n__obs = 0

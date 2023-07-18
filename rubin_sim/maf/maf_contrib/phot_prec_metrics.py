@@ -4,6 +4,7 @@ Authors: Sergey Koposov, Thomas Collett
 """
 
 import numpy as np
+
 from rubin_sim.maf.metrics import BaseMetric
 
 __all__ = ["SNMetric", "ThreshSEDSNMetric", "SEDSNMetric"]
@@ -35,12 +36,10 @@ class SNMetric(BaseMetric):
         metric_name="SNMetric",
         filter=None,
         mag=None,
-        **kwargs
+        **kwargs,
     ):
         super(SNMetric, self).__init__(
-            col=[m5_col, seeing_col, sky_b_col, exp_t_col, filter_col],
-            metric_name=metric_name,
-            **kwargs
+            col=[m5_col, seeing_col, sky_b_col, exp_t_col, filter_col], metric_name=metric_name, **kwargs
         )
         self.filter = filter
         self.mag = mag
@@ -97,12 +96,10 @@ class SEDSNMetric(BaseMetric):
         metric_name="SEDSNMetric",
         # filter=None,
         mags=None,
-        **kwargs
+        **kwargs,
     ):
         super(SEDSNMetric, self).__init__(
-            col=[m5_col, seeing_col, sky_b_col, exp_t_col, filter_col],
-            metric_name=metric_name,
-            **kwargs
+            col=[m5_col, seeing_col, sky_b_col, exp_t_col, filter_col], metric_name=metric_name, **kwargs
         )
         self.mags = mags
         self.metrics = {}
@@ -144,13 +141,11 @@ class ThreshSEDSNMetric(BaseMetric):
         snlim=20,
         # filter=None,
         mags=None,
-        **kwargs
+        **kwargs,
     ):
         """Instantiate metric."""
         super(ThreshSEDSNMetric, self).__init__(
-            col=[m5_col, seeing_col, sky_b_col, exp_t_col, filter_col],
-            metric_name=metric_name,
-            **kwargs
+            col=[m5_col, seeing_col, sky_b_col, exp_t_col, filter_col], metric_name=metric_name, **kwargs
         )
         self.xmet = SEDSNMetric(mags=mags)
         self.snlim = snlim

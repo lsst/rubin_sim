@@ -9,11 +9,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from rubin_sim.maf.slicers import (
-    TimeIntervalSlicer,
-    BlockIntervalSlicer,
-    VisitIntervalSlicer,
-)
+from rubin_sim.maf.slicers import BlockIntervalSlicer, TimeIntervalSlicer, VisitIntervalSlicer
 
 # constants
 
@@ -52,9 +48,7 @@ class TestTimeIntervalSlicer(unittest.TestCase):
         self.slicer.setup_slicer(SIMDATA)
         self.assertEqual(self.slicer.nslice, 24 * 60)
         slice_points = self.slicer.get_slice_points()
-        nonempty_slices = [
-            item[0] for item in self.slicer.sim_idxs.items() if len(item[1]) > 0
-        ]
+        nonempty_slices = [item[0] for item in self.slicer.sim_idxs.items() if len(item[1]) > 0]
         self.assertTrue(
             np.allclose(
                 np.array(SIMDATA["observationStartMJD"]),
@@ -77,9 +71,7 @@ class TestBlockIntervalSlicer(unittest.TestCase):
         visits = pd.DataFrame(SIMDATA)
         for sid in slice_points["sid"]:
             these_visits = visits.iloc[sim_idxs[sid]]
-            self.assertTrue(
-                np.all(these_visits["note"] == these_visits["note"].values[0])
-            )
+            self.assertTrue(np.all(these_visits["note"] == these_visits["note"].values[0]))
 
 
 class TestVisitIntervalSlicer(unittest.TestCase):

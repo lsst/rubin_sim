@@ -1,18 +1,14 @@
 """Sets of metrics to look at time between visits/pairs, etc.
 """
 import numpy as np
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.plots as plots
+
 import rubin_sim.maf.metric_bundles as mb
+import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.plots as plots
+import rubin_sim.maf.slicers as slicers
+
 from .col_map_dict import col_map_dict
-from .common import (
-    standard_summary,
-    extended_summary,
-    filter_list,
-    combine_info_labels,
-    radec_cols,
-)
+from .common import combine_info_labels, extended_summary, filter_list, radec_cols, standard_summary
 
 __all__ = ["intraNight", "interNight", "timeGaps", "seasons"]
 
@@ -64,9 +60,7 @@ def intraNight(
     standardStats = standard_summary()
 
     if slicer is None:
-        slicer = slicers.HealpixSlicer(
-            nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
-        )
+        slicer = slicers.HealpixSlicer(nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees)
 
     # Look for the fraction of visits in gri where there are pairs within dtMin/dtMax.
     displayDict = {
@@ -90,9 +84,12 @@ def intraNight(
         max_gap=dtMax,
         metric_name="Fraction of visits in pairs (%.0f-%.0f min)" % (dtMin, dtMax),
     )
-    displayDict["caption"] = (
-        "Fraction of %s visits that have a paired visit"
-        "between %.1f and %.1f minutes away. " % (md, dtMin, dtMax)
+    displayDict[
+        "caption"
+    ] = "Fraction of %s visits that have a paired visit" "between %.1f and %.1f minutes away. " % (
+        md,
+        dtMin,
+        dtMax,
     )
     displayDict["caption"] += "If all visits were in pairs, this fraction would be 1."
     displayDict["order"] += 1
@@ -114,9 +111,12 @@ def intraNight(
         max_gap=dtMax,
         metric_name="Fraction of visits in pairs (%.0f-%.0f min)" % (dtMin, dtMax),
     )
-    displayDict["caption"] = (
-        "Fraction of %s visits that have a paired visit"
-        "between %.1f and %.1f minutes away. " % (md, dtMin, dtMax)
+    displayDict[
+        "caption"
+    ] = "Fraction of %s visits that have a paired visit" "between %.1f and %.1f minutes away. " % (
+        md,
+        dtMin,
+        dtMax,
     )
     displayDict["caption"] += "If all visits were in pairs, this fraction would be 1."
     displayDict["order"] += 1
@@ -138,15 +138,11 @@ def intraNight(
         normed=True,
         metric_name="Fraction of visits with a revisit < %.0f min" % dtMax,
     )
-    displayDict[
-        "caption"
-    ] = "Fraction of %s visits that have another visit " "within %.1f min. " % (
+    displayDict["caption"] = "Fraction of %s visits that have another visit " "within %.1f min. " % (
         md,
         dtMax,
     )
-    displayDict[
-        "caption"
-    ] += "If all visits were in pairs (only), this fraction would be 0.5."
+    displayDict["caption"] += "If all visits were in pairs (only), this fraction would be 0.5."
     displayDict["order"] += 1
     bundle = mb.MetricBundle(
         metric,
@@ -164,9 +160,7 @@ def intraNight(
         mjd_col=colmap["mjd"],
         reduce_func=np.median,
     )
-    displayDict[
-        "caption"
-    ] = "Median gap between consecutive visits within a night, all bands"
+    displayDict["caption"] = "Median gap between consecutive visits within a night, all bands"
     if info_label is None or len(info_label) == 0:
         displayDict["caption"] += ", all visits."
     else:
@@ -187,12 +181,8 @@ def intraNight(
     # Max Timespans (in each night)
     # Run in all filters, u+g, g+r, r+i, i+z and z+y filters, and individual filters
 
-    metric = metrics.NightTimespanMetric(
-        percentile=75, night_col=colmap["night"], mjd_col=colmap["mjd"]
-    )
-    displayDict[
-        "caption"
-    ] = "75th percentile value of the maximum intra-night timespan, on each night"
+    metric = metrics.NightTimespanMetric(percentile=75, night_col=colmap["night"], mjd_col=colmap["mjd"])
+    displayDict["caption"] = "75th percentile value of the maximum intra-night timespan, on each night"
     # individual and all filters
     filterlist, colors, orders, sqls, info_labels = filter_list(
         all=True, extra_sql=extraSql, extra_info_label=info_label
@@ -261,9 +251,7 @@ def intraNight(
         night_col=colmap["night"], bins=countbins, metric_name="NVisitsPerNight"
     )
     plotDict = {"bins": countbins, "xlabel": "Number of visits each night"}
-    displayDict[
-        "caption"
-    ] = "Histogram of the number of visits in each night, per point on the sky"
+    displayDict["caption"] = "Histogram of the number of visits in each night, per point on the sky"
     if info_label is None or len(info_label) == 0:
         displayDict["caption"] += ", all proposals."
     else:
@@ -285,18 +273,13 @@ def intraNight(
     binMin = 0
     binMax = 120.0
     bin_size = 5.0
-    bins_metric = np.arange(
-        binMin / 60.0 / 24.0, (binMax + bin_size) / 60.0 / 24.0, bin_size / 60.0 / 24.0
-    )
+    bins_metric = np.arange(binMin / 60.0 / 24.0, (binMax + bin_size) / 60.0 / 24.0, bin_size / 60.0 / 24.0)
     bins_plot = bins_metric * 24.0 * 60.0
-    metric = metrics.TgapsMetric(
-        bins=bins_metric, times_col=colmap["mjd"], metric_name="DeltaT Histogram"
-    )
+    metric = metrics.TgapsMetric(bins=bins_metric, times_col=colmap["mjd"], metric_name="DeltaT Histogram")
     plotDict = {"bins": bins_plot, "xlabel": "dT (minutes)"}
     displayDict["caption"] = (
         "Histogram of the time between consecutive visits to a given point "
-        "on the sky, considering visits between %.1f and %.1f minutes"
-        % (binMin, binMax)
+        "on the sky, considering visits between %.1f and %.1f minutes" % (binMin, binMax)
     )
     if info_label is None or len(info_label) == 0:
         displayDict["caption"] += ", all proposals."
@@ -366,9 +349,7 @@ def interNight(
     )
 
     if slicer is None:
-        slicer = slicers.HealpixSlicer(
-            nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
-        )
+        slicer = slicers.HealpixSlicer(nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees)
 
     displayDict = {
         "group": display_group,
@@ -379,14 +360,11 @@ def interNight(
 
     # Histogram of the number of nights between visits.
     bins = np.arange(1, 20.5, 1)
-    metric = metrics.NightgapsMetric(
-        bins=bins, night_col=colmap["night"], metric_name="DeltaNight Histogram"
-    )
+    metric = metrics.NightgapsMetric(bins=bins, night_col=colmap["night"], metric_name="DeltaNight Histogram")
     plotDict = {"bins": bins, "xlabel": "dT (nights)"}
     displayDict["caption"] = (
         "Histogram of the number of nights between consecutive visits to a "
-        "given point on the sky, considering separations between %d and %d"
-        % (bins.min(), bins.max())
+        "given point on the sky, considering separations between %d and %d" % (bins.min(), bins.max())
     )
     if info_label["all"] is None or len(info_label["all"]) == 0:
         displayDict["caption"] += ", all proposals."
@@ -407,9 +385,7 @@ def interNight(
     standardStats = standard_summary()
 
     # Look at the total number of unique nights with visits
-    metric = metrics.CountUniqueMetric(
-        col=colmap["night"], metric_name="N Unique Nights"
-    )
+    metric = metrics.CountUniqueMetric(col=colmap["night"], metric_name="N Unique Nights")
     displayDict["caption"] = "Number of unique nights with visits"
     bundle = mb.MetricBundle(
         metric,
@@ -429,9 +405,7 @@ def interNight(
         reduce_func=np.median,
     )
     for f in filterlist:
-        displayDict["caption"] = (
-            "Median gap between nights with observations, %s." % info_label[f]
-        )
+        displayDict["caption"] = "Median gap between nights with observations, %s." % info_label[f]
         displayDict["order"] = orders[f]
         plotDict = {"color": colors[f], "percentile_clip": 95.0}
         bundle = mb.MetricBundle(
@@ -455,9 +429,7 @@ def interNight(
         reduce_func=rfunc,
     )
     for f in filterlist:
-        displayDict["caption"] = (
-            "20th percentile gap between nights with observations, %s." % info_label[f]
-        )
+        displayDict["caption"] = "20th percentile gap between nights with observations, %s." % info_label[f]
         displayDict["order"] = orders[f]
         plotDict = {"color": colors[f], "percentile_clip": 95.0}
         bundle = mb.MetricBundle(
@@ -476,9 +448,7 @@ def interNight(
         metric_name="Max Inter-Night Gap", mjd_col=colmap["mjd"], reduce_func=np.max
     )
     for f in filterlist:
-        displayDict["caption"] = (
-            "Maximum gap between nights with observations, %s." % info_label[f]
-        )
+        displayDict["caption"] = "Maximum gap between nights with observations, %s." % info_label[f]
         displayDict["order"] = orders[f]
         plotDict = {"color": colors[f], "percentile_clip": 95.0, "bin_size": 5}
         bundle = mb.MetricBundle(
@@ -543,9 +513,7 @@ def timeGaps(
     )
 
     if slicer is None:
-        slicer = slicers.HealpixSlicer(
-            nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
-        )
+        slicer = slicers.HealpixSlicer(nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees)
 
     displayDict = {
         "group": display_group,
@@ -572,8 +540,7 @@ def timeGaps(
         }
         plotFuncs = [plots.SummaryHistogram()]
         displayDict["caption"] = (
-            f"Summed Histogram of time between visits at each point in the sky, "
-            f"in {f} band(s)."
+            f"Summed Histogram of time between visits at each point in the sky, " f"in {f} band(s)."
         )
         displayDict["order"] = orders[f]
         bundleList.append(
@@ -624,8 +591,7 @@ def timeGaps(
             metric_name="TgapsPercent_1day",
         )
         displayDict["caption"] = (
-            f"Percent of the total time gaps which fall into the interval around 1 day,"
-            f" in {f} band(s)."
+            f"Percent of the total time gaps which fall into the interval around 1 day," f" in {f} band(s)."
         )
         displayDict["order"] = orders[f]
         bundleList.append(
@@ -687,9 +653,7 @@ def seasons(
     )
 
     if slicer is None:
-        slicer = slicers.HealpixSlicer(
-            nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
-        )
+        slicer = slicers.HealpixSlicer(nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees)
 
     displayDict = {
         "group": "IntraSeason",

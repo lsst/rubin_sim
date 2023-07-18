@@ -1,4 +1,5 @@
 import numpy as np
+
 from .base_stacker import BaseStacker
 from .general_stackers import FiveSigmaStacker
 
@@ -82,9 +83,7 @@ class NEODistStacker(BaseStacker):
             # Heliocentric Radius of the object
             R = np.sqrt(1.0 + self.deltas**2 - 2.0 * self.deltas * np.cos(elong))
             # Angle between sun and earth as seen by NEO
-            alphas = np.arccos(
-                (1.0 - R**2 - self.deltas**2) / (-2.0 * self.deltas * R)
-            )
+            alphas = np.arccos((1.0 - R**2 - self.deltas**2) / (-2.0 * self.deltas * R))
             ta2 = np.tan(alphas / 2.0)
             phi1 = np.exp(-self.a1 * ta2**self.b1)
             phi2 = np.exp(-self.a2 * ta2**self.b2)
@@ -105,19 +104,13 @@ class NEODistStacker(BaseStacker):
         # Make coords in heliocentric
         interior = np.where(elong_rad <= np.pi / 2.0)
         outer = np.where(elong_rad > np.pi / 2.0)
-        sim_data["NEOHelioX"][interior] = sim_data["MaxGeoDist"][interior] * np.sin(
-            elong_rad[interior]
-        )
+        sim_data["NEOHelioX"][interior] = sim_data["MaxGeoDist"][interior] * np.sin(elong_rad[interior])
         sim_data["NEOHelioY"][interior] = (
             -sim_data["MaxGeoDist"][interior] * np.cos(elong_rad[interior]) + 1.0
         )
 
-        sim_data["NEOHelioX"][outer] = sim_data["MaxGeoDist"][outer] * np.sin(
-            np.pi - elong_rad[outer]
-        )
-        sim_data["NEOHelioY"][outer] = (
-            sim_data["MaxGeoDist"][outer] * np.cos(np.pi - elong_rad[outer]) + 1.0
-        )
+        sim_data["NEOHelioX"][outer] = sim_data["MaxGeoDist"][outer] * np.sin(np.pi - elong_rad[outer])
+        sim_data["NEOHelioY"][outer] = sim_data["MaxGeoDist"][outer] * np.cos(np.pi - elong_rad[outer]) + 1.0
 
         # Flip the X coord if sun az is negative?
         if sim_data[self.az_col].min() < -np.pi / 2.0:
@@ -126,10 +119,7 @@ class NEODistStacker(BaseStacker):
             halfval = np.pi
         flip = np.where(
             ((sim_data[self.sun_az_col] > halfval) & (sim_data[self.az_col] > halfval))
-            | (
-                (sim_data[self.sun_az_col] < halfval)
-                & (sim_data[self.az_col] > halfval)
-            )
+            | ((sim_data[self.sun_az_col] < halfval) & (sim_data[self.az_col] > halfval))
         )
 
         sim_data["NEOHelioX"][flip] *= -1.0

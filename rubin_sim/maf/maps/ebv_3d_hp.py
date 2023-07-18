@@ -1,7 +1,8 @@
-import warnings
 import os
-import numpy as np
+import warnings
+
 import healpy as hp
+import numpy as np
 from astropy.io import fits
 
 from rubin_sim.data import get_data_dir
@@ -67,11 +68,7 @@ def ebv_3d_hp(
         ebv_3d_hp.nside = nside
 
     # Do we need to re-read from disk?
-    if (
-        (not hasattr(ebv_3d_hp, "ebvs"))
-        | (not hasattr(ebv_3d_hp, "dists"))
-        | (map_file != ebv_3d_hp.mapFile)
-    ):
+    if (not hasattr(ebv_3d_hp, "ebvs")) | (not hasattr(ebv_3d_hp, "dists")) | (map_file != ebv_3d_hp.mapFile):
         ebv_3d_hp.mapFile = map_file
         ebv_3d_hp.nside = nside
         # Read map from disk
@@ -120,12 +117,8 @@ def ebv_3d_hp(
             dists = np.zeros([len(ra), distlen], float)
             ebvs = np.zeros([len(ra), distlen], float)
             for i in np.arange(0, distlen):
-                dists[:, i] = hp.get_interp_val(
-                    ebv_3d_hp.dists[:, i], np.pi / 2.0 - dec, ra
-                )
-                ebvs[:, i] = hp.get_interp_val(
-                    ebv_3d_hp.ebvs[:, i], np.pi / 2.0 - dec, ra
-                )
+                dists[:, i] = hp.get_interp_val(ebv_3d_hp.dists[:, i], np.pi / 2.0 - dec, ra)
+                ebvs[:, i] = hp.get_interp_val(ebv_3d_hp.ebvs[:, i], np.pi / 2.0 - dec, ra)
         else:  # just fine nearest neighbor pixel value and return those
             pixels = radec2pix(nside, ra, dec)
             dists = ebv_3d_hp.dists[pixels]

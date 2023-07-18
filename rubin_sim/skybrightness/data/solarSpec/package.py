@@ -1,7 +1,8 @@
-from builtins import zip
-import numpy as np
-import lsst.sims.photUtils.Sed as Sed
 import os
+from builtins import zip
+
+import lsst.sims.photUtils.Sed as Sed
+import numpy as np
 
 dataDir = os.getenv("SIMS_SKYBRIGHTNESS_DATA_DIR")
 
@@ -18,6 +19,4 @@ sun.setSED(data["microns"] * 1e3, flambda=data["Irr"])
 airglowSpec = np.load(os.path.join(dataDir, "ESO_Spectra/Airglow/airglowSpectra.npz"))
 sun.resampleSED(wavelen_match=airglowSpec["wave"])
 
-np.savez(
-    os.path.join(dataDir, "solarSpec/solarSpec.npz"), wave=sun.wavelen, spec=sun.flambda
-)
+np.savez(os.path.join(dataDir, "solarSpec/solarSpec.npz"), wave=sun.wavelen, spec=sun.flambda)

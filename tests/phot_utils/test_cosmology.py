@@ -1,6 +1,8 @@
 import unittest
+
 import numpy as np
 import scipy
+
 from rubin_sim.phot_utils import CosmologyObject
 from rubin_sim.phot_utils.utils import comoving_distance_integrand, cosmological_omega
 
@@ -25,9 +27,7 @@ class CosmologyUnitTest(unittest.TestCase):
             onu0 = universe.omega_neutrinos(redshift=0.0)
 
             self.assertAlmostEqual(universe.omega_matter(redshift=0.0), om0, 10)
-            self.assertAlmostEqual(
-                1.0 - om0 - universe.omega_dark_energy(redshift=0.0), og0 + onu0, 6
-            )
+            self.assertAlmostEqual(1.0 - om0 - universe.omega_dark_energy(redshift=0.0), og0 + onu0, 6)
             self.assertAlmostEqual(universe.H(redshift=0.0), h0, 10)
             self.assertEqual(universe.omega_curvature(), 0.0)
 
@@ -43,18 +43,10 @@ class CosmologyUnitTest(unittest.TestCase):
                     ok_control,
                 ) = cosmological_omega(zz, h0, om0, og0=og0, onu0=onu0)
 
-                self.assertAlmostEqual(
-                    om_control, universe.omega_matter(redshift=zz), 6
-                )
-                self.assertAlmostEqual(
-                    ode_control, universe.omega_dark_energy(redshift=zz), 6
-                )
-                self.assertAlmostEqual(
-                    og_control, universe.omega_photons(redshift=zz), 6
-                )
-                self.assertAlmostEqual(
-                    onu_control, universe.omega_neutrinos(redshift=zz), 6
-                )
+                self.assertAlmostEqual(om_control, universe.omega_matter(redshift=zz), 6)
+                self.assertAlmostEqual(ode_control, universe.omega_dark_energy(redshift=zz), 6)
+                self.assertAlmostEqual(og_control, universe.omega_photons(redshift=zz), 6)
+                self.assertAlmostEqual(onu_control, universe.omega_neutrinos(redshift=zz), 6)
                 self.assertAlmostEqual(hcontrol, universe.H(redshift=zz), 6)
 
             del universe
@@ -96,22 +88,12 @@ class CosmologyUnitTest(unittest.TestCase):
                             og_control,
                             onu_control,
                             ok_control,
-                        ) = cosmological_omega(
-                            zz, h0, om0, og0=og0, onu0=onu0, w0=w0, wa=wa
-                        )
+                        ) = cosmological_omega(zz, h0, om0, og0=og0, onu0=onu0, w0=w0, wa=wa)
 
-                        self.assertAlmostEqual(
-                            om_control, universe.omega_matter(redshift=zz), 6
-                        )
-                        self.assertAlmostEqual(
-                            ode_control, universe.omega_dark_energy(redshift=zz), 6
-                        )
-                        self.assertAlmostEqual(
-                            og_control, universe.omega_photons(redshift=zz), 6
-                        )
-                        self.assertAlmostEqual(
-                            onu_control, universe.omega_neutrinos(redshift=zz), 6
-                        )
+                        self.assertAlmostEqual(om_control, universe.omega_matter(redshift=zz), 6)
+                        self.assertAlmostEqual(ode_control, universe.omega_dark_energy(redshift=zz), 6)
+                        self.assertAlmostEqual(og_control, universe.omega_photons(redshift=zz), 6)
+                        self.assertAlmostEqual(onu_control, universe.omega_neutrinos(redshift=zz), 6)
                         self.assertAlmostEqual(hcontrol, universe.H(redshift=zz), 6)
 
                     del universe
@@ -131,9 +113,7 @@ class CosmologyUnitTest(unittest.TestCase):
                 onu0 = universe.omega_neutrinos(redshift=0.0)
 
                 self.assertAlmostEqual(universe.omega_matter(redshift=0.0), om0, 10)
-                self.assertAlmostEqual(
-                    1.0 - om0 - universe.omega_dark_energy(redshift=0.0), og0 + onu0, 6
-                )
+                self.assertAlmostEqual(1.0 - om0 - universe.omega_dark_energy(redshift=0.0), og0 + onu0, 6)
                 self.assertAlmostEqual(universe.H(redshift=0.0), h0, 10)
                 self.assertEqual(universe.omega_curvature(), 0.0)
 
@@ -149,22 +129,12 @@ class CosmologyUnitTest(unittest.TestCase):
                         og_control,
                         onu_control,
                         ok_control,
-                    ) = cosmological_omega(
-                        zz, h0, om0, og0=og0, onu0=onu0, w0=w0, wa=0.0
-                    )
+                    ) = cosmological_omega(zz, h0, om0, og0=og0, onu0=onu0, w0=w0, wa=0.0)
 
-                    self.assertAlmostEqual(
-                        om_control, universe.omega_matter(redshift=zz), 6
-                    )
-                    self.assertAlmostEqual(
-                        ode_control, universe.omega_dark_energy(redshift=zz), 6
-                    )
-                    self.assertAlmostEqual(
-                        og_control, universe.omega_photons(redshift=zz), 6
-                    )
-                    self.assertAlmostEqual(
-                        onu_control, universe.omega_neutrinos(redshift=zz), 6
-                    )
+                    self.assertAlmostEqual(om_control, universe.omega_matter(redshift=zz), 6)
+                    self.assertAlmostEqual(ode_control, universe.omega_dark_energy(redshift=zz), 6)
+                    self.assertAlmostEqual(og_control, universe.omega_photons(redshift=zz), 6)
+                    self.assertAlmostEqual(onu_control, universe.omega_neutrinos(redshift=zz), 6)
                     self.assertAlmostEqual(hcontrol, universe.H(redshift=zz), 6)
 
                 del universe
@@ -208,21 +178,11 @@ class CosmologyUnitTest(unittest.TestCase):
                         ok_control,
                     ) = cosmological_omega(zz, h0, om0, og0=og0, onu0=onu0, ode0=ode0)
 
-                    self.assertAlmostEqual(
-                        om_control, universe.omega_matter(redshift=zz), 6
-                    )
-                    self.assertAlmostEqual(
-                        ode_control, universe.omega_dark_energy(redshift=zz), 6
-                    )
-                    self.assertAlmostEqual(
-                        og_control, universe.omega_photons(redshift=zz), 6
-                    )
-                    self.assertAlmostEqual(
-                        onu_control, universe.omega_neutrinos(redshift=zz), 6
-                    )
-                    self.assertAlmostEqual(
-                        ok_control, universe.omega_curvature(redshift=zz), 6
-                    )
+                    self.assertAlmostEqual(om_control, universe.omega_matter(redshift=zz), 6)
+                    self.assertAlmostEqual(ode_control, universe.omega_dark_energy(redshift=zz), 6)
+                    self.assertAlmostEqual(og_control, universe.omega_photons(redshift=zz), 6)
+                    self.assertAlmostEqual(onu_control, universe.omega_neutrinos(redshift=zz), 6)
+                    self.assertAlmostEqual(ok_control, universe.omega_curvature(redshift=zz), 6)
                     self.assertAlmostEqual(hcontrol, universe.H(redshift=zz), 6)
 
                 del universe
@@ -239,19 +199,13 @@ class CosmologyUnitTest(unittest.TestCase):
             for ok0 in np.arange(start=-0.1, stop=0.11, step=0.2):
                 for w0 in np.arange(start=-1.1, stop=-0.89, step=0.2):
                     for wa in np.arange(start=-0.1, stop=0.15, step=0.2):
-                        universe = CosmologyObject(
-                            h0=h0, om0=om0, ok0=ok0, w0=w0, wa=wa
-                        )
+                        universe = CosmologyObject(h0=h0, om0=om0, ok0=ok0, w0=w0, wa=wa)
 
                         og0 = universe.omega_photons(redshift=0.0)
                         onu0 = universe.omega_neutrinos(redshift=0.0)
 
-                        self.assertAlmostEqual(
-                            universe.omega_matter(redshift=0.0), om0, 10
-                        )
-                        self.assertAlmostEqual(
-                            ok0, universe.omega_curvature(redshift=0.0), 10
-                        )
+                        self.assertAlmostEqual(universe.omega_matter(redshift=0.0), om0, 10)
+                        self.assertAlmostEqual(ok0, universe.omega_curvature(redshift=0.0), 10)
                         self.assertAlmostEqual(
                             1.0 - om0 - ok0 - universe.omega_dark_energy(redshift=0.0),
                             og0 + onu0,
@@ -264,9 +218,7 @@ class CosmologyUnitTest(unittest.TestCase):
 
                         for zz in np.arange(start=0.0, stop=4.0, step=2.0):
                             w_control = w0 + wa * (1.0 - 1.0 / (1.0 + zz))
-                            self.assertAlmostEqual(
-                                w_control, universe.w(redshift=zz), 6
-                            )
+                            self.assertAlmostEqual(w_control, universe.w(redshift=zz), 6)
 
                             (
                                 hcontrol,
@@ -275,25 +227,13 @@ class CosmologyUnitTest(unittest.TestCase):
                                 og_control,
                                 onu_control,
                                 ok_control,
-                            ) = cosmological_omega(
-                                zz, h0, om0, og0=og0, onu0=onu0, w0=w0, wa=wa, ode0=ode0
-                            )
+                            ) = cosmological_omega(zz, h0, om0, og0=og0, onu0=onu0, w0=w0, wa=wa, ode0=ode0)
 
-                            self.assertAlmostEqual(
-                                om_control, universe.omega_matter(redshift=zz), 6
-                            )
-                            self.assertAlmostEqual(
-                                ode_control, universe.omega_dark_energy(redshift=zz), 6
-                            )
-                            self.assertAlmostEqual(
-                                og_control, universe.omega_photons(redshift=zz), 6
-                            )
-                            self.assertAlmostEqual(
-                                onu_control, universe.omega_neutrinos(redshift=zz), 6
-                            )
-                            self.assertAlmostEqual(
-                                ok_control, universe.omega_curvature(redshift=zz), 6
-                            )
+                            self.assertAlmostEqual(om_control, universe.omega_matter(redshift=zz), 6)
+                            self.assertAlmostEqual(ode_control, universe.omega_dark_energy(redshift=zz), 6)
+                            self.assertAlmostEqual(og_control, universe.omega_photons(redshift=zz), 6)
+                            self.assertAlmostEqual(onu_control, universe.omega_neutrinos(redshift=zz), 6)
+                            self.assertAlmostEqual(ok_control, universe.omega_curvature(redshift=zz), 6)
                             self.assertAlmostEqual(hcontrol, universe.H(redshift=zz), 6)
 
                         del universe
@@ -315,9 +255,7 @@ class CosmologyUnitTest(unittest.TestCase):
                     onu0 = universe.omega_neutrinos(redshift=0.0)
 
                     self.assertAlmostEqual(universe.omega_matter(redshift=0.0), om0, 10)
-                    self.assertAlmostEqual(
-                        ok0, universe.omega_curvature(redshift=0.0), 10
-                    )
+                    self.assertAlmostEqual(ok0, universe.omega_curvature(redshift=0.0), 10)
                     self.assertAlmostEqual(
                         1.0 - om0 - ok0 - universe.omega_dark_energy(redshift=0.0),
                         og0 + onu0,
@@ -339,25 +277,13 @@ class CosmologyUnitTest(unittest.TestCase):
                             og_control,
                             onu_control,
                             ok_control,
-                        ) = cosmological_omega(
-                            zz, h0, om0, og0=og0, onu0=onu0, w0=w0, wa=0.0, ode0=ode0
-                        )
+                        ) = cosmological_omega(zz, h0, om0, og0=og0, onu0=onu0, w0=w0, wa=0.0, ode0=ode0)
 
-                        self.assertAlmostEqual(
-                            om_control, universe.omega_matter(redshift=zz), 6
-                        )
-                        self.assertAlmostEqual(
-                            ode_control, universe.omega_dark_energy(redshift=zz), 6
-                        )
-                        self.assertAlmostEqual(
-                            og_control, universe.omega_photons(redshift=zz), 6
-                        )
-                        self.assertAlmostEqual(
-                            onu_control, universe.omega_neutrinos(redshift=zz), 6
-                        )
-                        self.assertAlmostEqual(
-                            ok_control, universe.omega_curvature(redshift=zz), 6
-                        )
+                        self.assertAlmostEqual(om_control, universe.omega_matter(redshift=zz), 6)
+                        self.assertAlmostEqual(ode_control, universe.omega_dark_energy(redshift=zz), 6)
+                        self.assertAlmostEqual(og_control, universe.omega_photons(redshift=zz), 6)
+                        self.assertAlmostEqual(onu_control, universe.omega_neutrinos(redshift=zz), 6)
+                        self.assertAlmostEqual(ok_control, universe.omega_curvature(redshift=zz), 6)
                         self.assertAlmostEqual(hcontrol, universe.H(redshift=zz), 6)
 
                     del universe
@@ -378,9 +304,7 @@ class CosmologyUnitTest(unittest.TestCase):
             for ok0 in np.arange(start=-0.1, stop=0.11, step=0.2):
                 for w0 in np.arange(start=-1.1, stop=-0.85, step=0.2):
                     for wa in np.arange(start=-0.1, stop=0.115, step=0.02):
-                        universe = CosmologyObject(
-                            h0=h0, om0=om0, ok0=ok0, w0=w0, wa=wa
-                        )
+                        universe = CosmologyObject(h0=h0, om0=om0, ok0=ok0, w0=w0, wa=wa)
                         og0 = universe.omega_photons()
                         onu0 = universe.omega_neutrinos()
                         ode0 = universe.omega_dark_energy()
@@ -406,9 +330,7 @@ class CosmologyUnitTest(unittest.TestCase):
                                 )[0]
                             )
 
-                            self.assertAlmostEqual(
-                                comoving_control / comoving_test, 1.0, 4
-                            )
+                            self.assertAlmostEqual(comoving_control / comoving_test, 1.0, 4)
 
     def test_luminosity_distance(self):
         """
@@ -421,14 +343,10 @@ class CosmologyUnitTest(unittest.TestCase):
             for ok0 in np.arange(start=-0.1, stop=0.11, step=0.2):
                 for w0 in np.arange(start=-1.1, stop=-0.85, step=0.2):
                     for wa in np.arange(start=-0.1, stop=0.11, step=0.2):
-                        universe = CosmologyObject(
-                            h0=h0, om0=om0, ok0=ok0, w0=w0, wa=wa
-                        )
+                        universe = CosmologyObject(h0=h0, om0=om0, ok0=ok0, w0=w0, wa=wa)
 
                         sqrtk_curvature = (
-                            np.sqrt(np.abs(universe.omega_curvature()))
-                            * universe.H()
-                            / self.speed_of_light
+                            np.sqrt(np.abs(universe.omega_curvature())) * universe.H() / self.speed_of_light
                         )
 
                         og0 = universe.omega_photons()
@@ -436,9 +354,7 @@ class CosmologyUnitTest(unittest.TestCase):
                         ode0 = universe.omega_dark_energy()
 
                         for zz in np.arange(start=0.1, stop=4.2, step=2.0):
-                            luminosity_control = universe.luminosity_distance(
-                                redshift=zz
-                            )
+                            luminosity_control = universe.luminosity_distance(redshift=zz)
 
                             comoving_distance = (
                                 self.speed_of_light
@@ -468,9 +384,7 @@ class CosmologyUnitTest(unittest.TestCase):
                                 luminosity_test = (1.0 + zz) * nn / sqrtk_curvature
                             else:
                                 luminosity_test = (1.0 + zz) * comoving_distance
-                            self.assertAlmostEqual(
-                                luminosity_control / luminosity_test, 1.0, 4
-                            )
+                            self.assertAlmostEqual(luminosity_control / luminosity_test, 1.0, 4)
 
     def test_angular_diameter_distance(self):
         """
@@ -483,14 +397,10 @@ class CosmologyUnitTest(unittest.TestCase):
             for ok0 in np.arange(start=-0.1, stop=0.11, step=0.2):
                 for w0 in np.arange(start=-1.1, stop=-0.85, step=0.2):
                     for wa in np.arange(start=-0.1, stop=0.11, step=0.2):
-                        universe = CosmologyObject(
-                            h0=h0, om0=om0, ok0=ok0, w0=w0, wa=wa
-                        )
+                        universe = CosmologyObject(h0=h0, om0=om0, ok0=ok0, w0=w0, wa=wa)
 
                         sqrtk_curvature = (
-                            np.sqrt(np.abs(universe.omega_curvature()))
-                            * universe.H()
-                            / self.speed_of_light
+                            np.sqrt(np.abs(universe.omega_curvature())) * universe.H() / self.speed_of_light
                         )
 
                         og0 = universe.omega_photons()
@@ -498,9 +408,7 @@ class CosmologyUnitTest(unittest.TestCase):
                         ode0 = universe.omega_dark_energy()
 
                         for zz in np.arange(start=0.1, stop=4.2, step=2.0):
-                            angular_control = universe.angular_diameter_distance(
-                                redshift=zz
-                            )
+                            angular_control = universe.angular_diameter_distance(redshift=zz)
 
                             comoving_distance = (
                                 self.speed_of_light
@@ -531,9 +439,7 @@ class CosmologyUnitTest(unittest.TestCase):
                             else:
                                 angular_test = comoving_distance
                             angular_test /= 1.0 + zz
-                            self.assertAlmostEqual(
-                                angular_control / angular_test, 1.0, 4
-                            )
+                            self.assertAlmostEqual(angular_control / angular_test, 1.0, 4)
 
     def test_distance_modulus(self):
         """
@@ -546,14 +452,10 @@ class CosmologyUnitTest(unittest.TestCase):
             for ok0 in np.arange(start=-0.1, stop=0.11, step=0.2):
                 for w0 in np.arange(start=-1.1, stop=-0.85, step=0.2):
                     for wa in np.arange(start=-0.1, stop=0.11, step=0.2):
-                        universe = CosmologyObject(
-                            h0=h0, om0=om0, ok0=ok0, w0=w0, wa=wa
-                        )
+                        universe = CosmologyObject(h0=h0, om0=om0, ok0=ok0, w0=w0, wa=wa)
 
                         sqrtk_curvature = (
-                            np.sqrt(np.abs(universe.omega_curvature()))
-                            * universe.H()
-                            / self.speed_of_light
+                            np.sqrt(np.abs(universe.omega_curvature())) * universe.H() / self.speed_of_light
                         )
 
                         og0 = universe.omega_photons()
@@ -593,9 +495,7 @@ class CosmologyUnitTest(unittest.TestCase):
                                 luminosity_distance = (1.0 + zz) * comoving_distance
 
                             modulus_test = 5.0 * np.log10(luminosity_distance) + 25.0
-                            self.assertAlmostEqual(
-                                modulus_control / modulus_test, 1.0, 4
-                            )
+                            self.assertAlmostEqual(modulus_control / modulus_test, 1.0, 4)
 
     def test_distance_modulus_at_zero(self):
         """
@@ -607,15 +507,9 @@ class CosmologyUnitTest(unittest.TestCase):
         mm = universe.distance_modulus(redshift=ztest)
         self.assertEqual(mm[0], 0.0)
         self.assertEqual(mm[3], 0.0)
-        self.assertEqual(
-            mm[1], 5.0 * np.log10(universe.luminosity_distance(ztest[1])) + 25.0
-        )
-        self.assertEqual(
-            mm[2], 5.0 * np.log10(universe.luminosity_distance(ztest[2])) + 25.0
-        )
-        self.assertEqual(
-            mm[4], 5.0 * np.log10(universe.luminosity_distance(ztest[4])) + 25.0
-        )
+        self.assertEqual(mm[1], 5.0 * np.log10(universe.luminosity_distance(ztest[1])) + 25.0)
+        self.assertEqual(mm[2], 5.0 * np.log10(universe.luminosity_distance(ztest[2])) + 25.0)
+        self.assertEqual(mm[4], 5.0 * np.log10(universe.luminosity_distance(ztest[4])) + 25.0)
 
     def test_get_current(self):
         """
@@ -630,9 +524,7 @@ class CosmologyUnitTest(unittest.TestCase):
                         test_universe = universe.get_current()
 
                         for zz in np.arange(start=1.0, stop=2.1, step=1.0):
-                            self.assertEqual(
-                                universe.omega_matter(redshift=zz), test_universe.Om(zz)
-                            )
+                            self.assertEqual(universe.omega_matter(redshift=zz), test_universe.Om(zz))
                             self.assertEqual(
                                 universe.omega_dark_energy(redshift=zz),
                                 test_universe.Ode(zz),

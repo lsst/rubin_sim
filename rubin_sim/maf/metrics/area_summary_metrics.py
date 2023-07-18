@@ -1,6 +1,7 @@
-import numpy as np
-from .base_metric import BaseMetric
 import healpy as hp
+import numpy as np
+
+from .base_metric import BaseMetric
 
 __all__ = ["AreaSummaryMetric", "AreaThresholdMetric"]
 
@@ -31,7 +32,7 @@ class AreaSummaryMetric(BaseMetric):
         area=18000.0,
         decreasing=True,
         reduce_func=None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(col=col, metric_name=metric_name, **kwargs)
         self.area = area
@@ -85,7 +86,7 @@ class AreaThresholdMetric(BaseMetric):
         metric_name="AreaThreshold",
         upper_threshold=None,
         lower_threshold=None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(col=col, metric_name=metric_name, **kwargs)
         self.upper_threshold = upper_threshold

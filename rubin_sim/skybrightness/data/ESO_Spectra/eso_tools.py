@@ -1,8 +1,10 @@
+import os
+import subprocess
+
+import healpy as hp
 import numpy as np
 from astropy.io import fits
-import os, subprocess
-from lsst.sims.photUtils import Sed, Bandpass
-import healpy as hp
+from lsst.sims.photUtils import Bandpass, Sed
 from lsst.sims.utils import angular_separation
 
 ## Tools for calling and reading things from the ESO sky model.
@@ -280,9 +282,7 @@ def generate_moon(outDir=None):
     az = np.degrees(az[good])
     hpids = hpids[good]
 
-    moonSunSeps = np.array(
-        [0.0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180], dtype=float
-    )
+    moonSunSeps = np.array([0.0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180], dtype=float)
     moonAlts = np.array([-1.0, 0, 15, 30, 45, 60, 75, 90], dtype=float)
 
     specs = []

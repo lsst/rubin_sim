@@ -1,4 +1,5 @@
 import numpy as np
+
 from .base_metric import BaseMetric
 
 __all__ = [
@@ -33,17 +34,13 @@ class GapsMetric(BaseMetric):
         self.times_col = times_col
         # Convert to days and divide by two so we bin at the Nyquist frequency
         self.bin_size = (time_scale / 24.0) / 2.0
-        super().__init__(
-            col=[self.times_col], metric_dtype="float", units=units, **kwargs
-        )
+        super().__init__(col=[self.times_col], metric_dtype="float", units=units, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         if data_slice.size < 2:
             return self.badval
         times = np.sort(data_slice[self.times_col])
-        bins = np.arange(
-            times.min() - self.bin_size, times.max() + self.bin_size, self.bin_size
-        )
+        bins = np.arange(times.min() - self.bin_size, times.max() + self.bin_size, self.bin_size)
         vals, _be = np.histogram(times, bins)
         # Bins are at 1/2 desired timescale, so compare bin 0 to bin 2 to see
         # if the timescale has been sampled.
@@ -92,9 +89,7 @@ class TgapsMetric(BaseMetric):
         # Pass the same bins to the plotter.
         self.bins = bins
         self.times_col = times_col
-        super().__init__(
-            col=[self.times_col], metric_dtype="object", units=units, **kwargs
-        )
+        super().__init__(col=[self.times_col], metric_dtype="object", units=units, **kwargs)
         self.all_gaps = all_gaps
 
     def run(self, data_slice, slice_point=None):
@@ -156,9 +151,7 @@ class TgapsPercentMetric(BaseMetric):
         assert min_time <= max_time
         self.min_time = min_time
         self.max_time = max_time
-        super().__init__(
-            col=[self.times_col], metric_dtype="float", units=units, **kwargs
-        )
+        super().__init__(col=[self.times_col], metric_dtype="float", units=units, **kwargs)
         self.all_gaps = all_gaps
 
     def run(self, data_slice, slice_point=None):
@@ -215,9 +208,7 @@ class NightgapsMetric(BaseMetric):
         # Pass the same bins to the plotter.
         self.bins = bins
         self.night_col = night_col
-        super().__init__(
-            col=[self.night_col], metric_dtype="object", units=units, **kwargs
-        )
+        super().__init__(col=[self.night_col], metric_dtype="object", units=units, **kwargs)
         self.all_gaps = all_gaps
 
     def run(self, data_slice, slice_point=None):
@@ -256,15 +247,11 @@ class NVisitsPerNightMetric(BaseMetric):
         these histograms can be combined and plotted using the 'SummaryHistogram plotter'.
     """
 
-    def __init__(
-        self, night_col="night", bins=np.arange(0, 10, 1), units="#", **kwargs
-    ):
+    def __init__(self, night_col="night", bins=np.arange(0, 10, 1), units="#", **kwargs):
         # Pass the same bins to the plotter.
         self.bins = bins
         self.night_col = night_col
-        super().__init__(
-            col=[self.night_col], metric_dtype="object", units=units, **kwargs
-        )
+        super().__init__(col=[self.night_col], metric_dtype="object", units=units, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         n, counts = np.unique(data_slice[self.night_col], return_counts=True)
@@ -315,9 +302,7 @@ class NightTimespanMetric(BaseMetric):
         Name of the MJD visit column. Default 'observationStartMJD'.
     """
 
-    def __init__(
-        self, percentile=75, night_col="night", mjd_col="observationStartMJD", **kwargs
-    ):
+    def __init__(self, percentile=75, night_col="night", mjd_col="observationStartMJD", **kwargs):
         self.percentile = percentile
         self.night_col = night_col
         self.mjd_col = mjd_col
@@ -342,8 +327,6 @@ class NightTimespanMetric(BaseMetric):
         else:
             nstart = np.searchsorted(data[self.night_col], unights, side="left")
             nend = np.searchsorted(data[self.night_col], unights, side="right") - 1
-            tspans = (
-                (data[self.mjd_col][nend] - data[self.mjd_col][nstart]) * 24.0 * 60.0
-            )
+            tspans = (data[self.mjd_col][nend] - data[self.mjd_col][nstart]) * 24.0 * 60.0
             result = np.percentile(tspans, self.percentile)
         return result

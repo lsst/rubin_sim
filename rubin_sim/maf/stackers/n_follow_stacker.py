@@ -1,5 +1,7 @@
 from builtins import zip
+
 import numpy as np
+
 from .base_stacker import BaseStacker
 from .coord_stackers import ra_dec2_alt_az
 
@@ -58,11 +60,7 @@ def find_telescopes(min_size=3.0):
 
     scopes = np.zeros(
         len(telescopes),
-        dtype=list(
-            zip(
-                ["aperture", "name", "lat", "lon"], [float, (np.str_, 38), float, float]
-            )
-        ),
+        dtype=list(zip(["aperture", "name", "lat", "lon"], [float, (np.str_, 38), float, float])),
     )
 
     # name, lat (S negative), lon (W negative)

@@ -1,5 +1,4 @@
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 __all__ = ["TimeHandler"]
 
@@ -68,17 +67,13 @@ class TimeHandler(object):
     @property
     def current_midnight_timestamp(self):
         """float: Return the UNIX timestamp of midnight for the current date."""
-        midnight_dt = datetime(
-            self.current_dt.year, self.current_dt.month, self.current_dt.day
-        )
+        midnight_dt = datetime(self.current_dt.year, self.current_dt.month, self.current_dt.day)
         return self._time_difference(midnight_dt)
 
     @property
     def next_midnight_timestamp(self):
         """float: Return the UNIX timestamp of midnight for the next day after current date."""
-        midnight_dt = datetime(
-            self.current_dt.year, self.current_dt.month, self.current_dt.day
-        )
+        midnight_dt = datetime(self.current_dt.year, self.current_dt.month, self.current_dt.day)
         midnight_dt += timedelta(**{"days": 1})
         return self._time_difference(midnight_dt)
 
@@ -175,9 +170,7 @@ class TimeHandler(object):
         float
             The future UNIX timestamp.
         """
-        return self._time_difference(
-            self.future_datetime(time_increment, time_units, timestamp=timestamp)
-        )
+        return self._time_difference(self.future_datetime(time_increment, time_units, timestamp=timestamp))
 
     def future_timestring(self, time_increment, time_units, timestamp=None):
         """Return the ISO-8601 representation of the future date/time.
@@ -200,9 +193,7 @@ class TimeHandler(object):
         str
             The future date/time in ISO-8601.
         """
-        return self.future_datetime(
-            time_increment, time_units, timestamp=timestamp
-        ).isoformat()
+        return self.future_datetime(time_increment, time_units, timestamp=timestamp).isoformat()
 
     def time_since_given(self, timestamp):
         """Return the elapsed time (seconds).

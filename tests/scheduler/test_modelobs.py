@@ -1,5 +1,6 @@
-import numpy as np
 import unittest
+
+import numpy as np
 
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 

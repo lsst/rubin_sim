@@ -1,9 +1,10 @@
-import numpy as np
 import healpy as hp
-from .base_metric import BaseMetric
-import rubin_sim.maf.utils as mafUtils
+import numpy as np
 from scipy import interpolate
 
+import rubin_sim.maf.utils as mafUtils
+
+from .base_metric import BaseMetric
 
 __all__ = ["BDParallaxMetric", "VolumeSumMetric"]
 
@@ -82,14 +83,12 @@ class BDParallaxMetric(BaseMetric):
         distances=np.arange(10, 200, 10),
         atm_err=0.01,
         normalize=False,
-        **kwargs
+        **kwargs,
     ):
         cols = [m5_col, filter_col, seeing_col, "ra_pi_amp", "dec_pi_amp"]
 
         units = "pc"
-        super().__init__(
-            cols, metric_name=metric_name, units=units, badval=badval, **kwargs
-        )
+        super().__init__(cols, metric_name=metric_name, units=units, badval=badval, **kwargs)
         # set return types
         self.m5_col = m5_col
         self.seeing_col = seeing_col
@@ -118,9 +117,7 @@ class BDParallaxMetric(BaseMetric):
         return sigma
 
     def run(self, data_slice, slice_point=None):
-        snr = np.zeros(
-            (np.size(self.mags[self.filters[0]]), len(data_slice)), dtype="float"
-        )
+        snr = np.zeros((np.size(self.mags[self.filters[0]]), len(data_slice)), dtype="float")
         # compute SNR for all observations
         for filt in self.filters:
             good = np.where(data_slice[self.filter_col] == filt)[0]
@@ -130,20 +127,15 @@ class BDParallaxMetric(BaseMetric):
                 )
 
         position_errors = np.sqrt(
-            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2
-            + self.atm_err**2
+            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2 + self.atm_err**2
         )
         # uncertainty in the parallax in mas
-        sigma = self._final_sigma(
-            position_errors, data_slice["ra_pi_amp"], data_slice["dec_pi_amp"]
-        )
+        sigma = self._final_sigma(position_errors, data_slice["ra_pi_amp"], data_slice["dec_pi_amp"])
         fitted_parallax_snr = self.parallaxes / sigma
         result = self.badval
         # Let's interpolate to the distance where we would get our target SNR
         if np.max(fitted_parallax_snr) >= self.parallax_snr_goal:
-            f = interpolate.interp1d(
-                fitted_parallax_snr, self.distances, fill_value="extrapolate"
-            )
+            f = interpolate.interp1d(fitted_parallax_snr, self.distances, fill_value="extrapolate")
             result = f(self.parallax_snr_goal)
         return result
 
@@ -152,9 +144,7 @@ class VolumeSumMetric(BaseMetric):
     """Compute the total volume assuming a metric has values of distance"""
 
     def __init__(self, col=None, metric_name="VolumeSum", nside=None, **kwargs):
-        super(VolumeSumMetric, self).__init__(
-            col=col, metric_name=metric_name, **kwargs
-        )
+        super(VolumeSumMetric, self).__init__(col=col, metric_name=metric_name, **kwargs)
         self.pix_area = hp.nside2pixarea(nside)
 
     def run(self, data_slice, slice_point=None):

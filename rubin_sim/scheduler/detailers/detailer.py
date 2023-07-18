@@ -1,11 +1,9 @@
-from rubin_sim.utils import (
-    _approx_ra_dec2_alt_az,
-    _angular_separation,
-    _approx_altaz2pa,
-)
-import numpy as np
-from rubin_sim.scheduler.utils import IntRounded
 import copy
+
+import numpy as np
+
+from rubin_sim.scheduler.utils import IntRounded
+from rubin_sim.utils import _angular_separation, _approx_altaz2pa, _approx_ra_dec2_alt_az
 
 __all__ = [
     "BaseDetailer",
@@ -42,9 +40,7 @@ class BaseDetailer(object):
         """Like add_observation, but for loading a whole array of observations at a time"""
 
         for feature in self.survey_features:
-            self.survey_features[feature].add_observations_array(
-                observations_array, observations_hpid
-            )
+            self.survey_features[feature].add_observations_array(observations_array, observations_hpid)
 
     def add_observation(self, observation, indx=None):
         """
@@ -221,9 +217,7 @@ class CloseAltDetailer(BaseDetailer):
             in_band = np.arange(alt.size)
 
         # Find the closest in angular distance of the points that are in band
-        ang_dist = _angular_separation(
-            az[in_band], alt[in_band], conditions.tel_az, conditions.tel_alt
-        )
+        ang_dist = _angular_separation(az[in_band], alt[in_band], conditions.tel_az, conditions.tel_alt)
         good = np.min(np.where(ang_dist == ang_dist.min())[0])
         indx = in_band[good]
         result = observation_list[indx:] + observation_list[:indx]
@@ -323,9 +317,7 @@ class TwilightTripleDetailer(BaseDetailer):
             ]
         )
 
-        potential_times = (
-            np.min(potential_times[np.where(potential_times > 0)]) * 24.0 * 3600.0
-        )
+        potential_times = np.min(potential_times[np.where(potential_times > 0)]) * 24.0 * 3600.0
 
         # How long will observations take?
         cumulative_slew = np.arange(obs_array.size) * self.slew_estimate

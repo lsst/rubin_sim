@@ -1,12 +1,14 @@
 """Sets of metrics to look at impact of cadence on science
 """
 import numpy as np
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.plots as plots
+
 import rubin_sim.maf.metric_bundles as mb
+import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.plots as plots
+import rubin_sim.maf.slicers as slicers
+
 from .col_map_dict import col_map_dict
-from .common import standard_summary, filter_list, combine_info_labels, radec_cols
+from .common import combine_info_labels, filter_list, radec_cols, standard_summary
 
 __all__ = ["phaseGap"]
 
@@ -52,18 +54,14 @@ def phaseGap(
         if info_label is None:
             info_label = extraSql
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(
-        ditherStacker, colmap, ditherkwargs
-    )
+    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(ditherStacker, colmap, ditherkwargs)
     info_label = combine_info_labels(info_label, ditherMeta)
 
     bundleList = []
     standardStats = standard_summary()
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
-    slicer = slicers.HealpixSlicer(
-        nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
-    )
+    slicer = slicers.HealpixSlicer(nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees)
 
     # largest phase gap for periods
     periods = [0.1, 1.0, 10.0, 100.0]

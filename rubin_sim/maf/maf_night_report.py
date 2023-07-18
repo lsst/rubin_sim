@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
 import argparse
+
 import matplotlib
 
 # Set matplotlib backend (to create plots where DISPLAY is not set).
 matplotlib.use("Agg")
 from . import db as db
-from . import metrics as metrics
-from . import slicers as slicers
 from . import metricBundles as metricBundles
+from . import metrics as metrics
 from . import plots as plots
+from . import slicers as slicers
 from . import utils as utils
-
 from .batches import col_map_dict
 
 
@@ -55,9 +55,7 @@ def make_bundle_list(
     )
     bundleList.append(bundle)
 
-    reg_slicer = slicers.HealpixSlicer(
-        nside=nside, lon_col=lonCol, lat_col=latCol, lat_lon_deg=True
-    )
+    reg_slicer = slicers.HealpixSlicer(nside=nside, lon_col=lonCol, lat_col=latCol, lat_lon_deg=True)
     altaz_slicer = slicers.HealpixSlicer(
         nside=nside, lat_col=altCol, lat_lon_deg=True, lon_col=azCol, use_cache=False
     )
@@ -69,18 +67,14 @@ def make_bundle_list(
         bundle = metricBundles.MetricBundle(metric, reg_slicer, sql)
         bundleList.append(bundle)
         metric = metrics.CountMetric(mjdCol, metric_name="N visits alt az")
-        bundle = metricBundles.MetricBundle(
-            metric, altaz_slicer, sql, plot_funcs=plotFuncs_lam
-        )
+        bundle = metricBundles.MetricBundle(metric, altaz_slicer, sql, plot_funcs=plotFuncs_lam)
         bundleList.append(bundle)
 
         metric = metrics.MeanMetric(mjdCol, metric_name="Mean Visit Time")
         bundle = metricBundles.MetricBundle(metric, reg_slicer, sql)
         bundleList.append(bundle)
         metric = metrics.MeanMetric(mjdCol, metric_name="Mean Visit Time alt az")
-        bundle = metricBundles.MetricBundle(
-            metric, altaz_slicer, sql, plot_funcs=plotFuncs_lam
-        )
+        bundle = metricBundles.MetricBundle(metric, altaz_slicer, sql, plot_funcs=plotFuncs_lam)
         bundleList.append(bundle)
 
         metric = metrics.CountMetric(mjdCol, metric_name="N_visits")
@@ -133,18 +127,12 @@ def make_bundle_list(
     # stats from the note column
     if notes:
         display_dict = {"group": "Basic Stats", "subgroup": "Percent stats"}
-        metric = metrics.StringCountMetric(
-            col="note", percent=True, metric_name="Percents"
-        )
-        bundle = metricBundles.MetricBundle(
-            metric, unislicer, sql, display_dict=display_dict
-        )
+        metric = metrics.StringCountMetric(col="note", percent=True, metric_name="Percents")
+        bundle = metricBundles.MetricBundle(metric, unislicer, sql, display_dict=display_dict)
         bundleList.append(bundle)
         display_dict["subgroup"] = "Count Stats"
         metric = metrics.StringCountMetric(col="note", metric_name="Counts")
-        bundle = metricBundles.MetricBundle(
-            metric, unislicer, sql, display_dict=display_dict
-        )
+        bundle = metricBundles.MetricBundle(metric, unislicer, sql, display_dict=display_dict)
         bundleList.append(bundle)
 
     return metricBundles.make_bundles_dict_from_list(bundleList)
@@ -153,9 +141,7 @@ def make_bundle_list(
 def maf_night_report():
     """Generate a report on a single night."""
 
-    parser = argparse.ArgumentParser(
-        description="Python script to generate a report on a single night."
-    )
+    parser = argparse.ArgumentParser(description="Python script to generate a report on a single night.")
     parser.add_argument(
         "db_file",
         type=str,
@@ -178,15 +164,13 @@ def maf_night_report():
         "--lon_col",
         type=str,
         default="fieldRA",
-        help="Column to use for RA values (can be a stacker dither column)."
-        + " Default=fieldRA.",
+        help="Column to use for RA values (can be a stacker dither column)." + " Default=fieldRA.",
     )
     parser.add_argument(
         "--lat_col",
         type=str,
         default="fieldDec",
-        help="Column to use for Dec values (can be a stacker dither column)."
-        + " Default=fieldDec.",
+        help="Column to use for Dec values (can be a stacker dither column)." + " Default=fieldDec.",
     )
     parser.add_argument("--night", type=int, default=1)
     parser.add_argument("--run_name", type=str, default="run_name")

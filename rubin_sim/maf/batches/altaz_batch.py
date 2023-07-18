@@ -1,7 +1,8 @@
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.metric_bundles as mb
+import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.plots as plots
+import rubin_sim.maf.slicers as slicers
+
 from .col_map_dict import col_map_dict
 from .common import filter_list
 
@@ -74,8 +75,7 @@ def altazHealpix(
             "group": "Alt/Az",
             "order": orders[f],
             "subgroup": subgroup,
-            "caption": "Pointing History on the alt-az sky (zenith center) for filter %s"
-            % f,
+            "caption": "Pointing History on the alt-az sky (zenith center) for filter %s" % f,
         }
         bundle = mb.MetricBundle(
             metric,

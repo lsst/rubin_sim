@@ -5,12 +5,14 @@
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
 
+import copy
+
+import healpy as hp
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import numpy as np
-import healpy as hp
-import copy
+
 import rubin_sim.maf.plots as plots
-import matplotlib.cm as cm
 
 __all__ = ["masking_algorithm_generalized"]
 
@@ -131,9 +133,7 @@ def masking_algorithm_generalized(
 
             # find the pixels that satisfy the relation with find_value and whose neighbors dont
             for i in range(0, len(orig_array)):
-                neighbors_pixels = hp.get_all_neighbours(
-                    nside, i
-                )  # i is the pixel number
+                neighbors_pixels = hp.get_all_neighbours(nside, i)  # i is the pixel number
                 for j in neighbors_pixels:
                     condition = None
                     if relation == "<":
@@ -166,9 +166,7 @@ def masking_algorithm_generalized(
             if plot_intermediate_plots:
                 if new_value.__contains__("mask"):
                     temp_copy[dither].metricValues.mask[:] = new_value_to_assign
-                    temp_copy[dither].metricValues.mask[total_border_pixel] = not (
-                        new_value_to_assign
-                    )
+                    temp_copy[dither].metricValues.mask[total_border_pixel] = not (new_value_to_assign)
                     temp_copy[dither].metricValues.data[total_border_pixel] = -500
                     plot_dict = {
                         "xlabel": data_label,
@@ -182,9 +180,7 @@ def masking_algorithm_generalized(
                 else:
                     temp_copy[dither].metricValues.mask[:] = True
                     temp_copy[dither].metricValues.mask[total_border_pixel] = False
-                    temp_copy[dither].metricValues.data[
-                        total_border_pixel
-                    ] = new_value_to_assign
+                    temp_copy[dither].metricValues.data[total_border_pixel] = new_value_to_assign
                     plot_dict = {
                         "xlabel": data_label,
                         "title": "%s %s Round # %s" % (dither, data_label, r + 1),
@@ -194,9 +190,7 @@ def masking_algorithm_generalized(
                         "cmap": cm.jet,
                     }
                 temp_copy[dither].set_plot_dict(plot_dict)
-                temp_copy[dither].set_plot_funcs(
-                    [plots.HealpixSkyMap(), plots.HealpixPowerSpectrum()]
-                )
+                temp_copy[dither].set_plot_funcs([plots.HealpixSkyMap(), plots.HealpixPowerSpectrum()])
                 temp_copy[dither].plot(plot_handler=plot_handler)
                 plt.show()
             # save the found pixels with the appropriate key
@@ -212,20 +206,15 @@ def masking_algorithm_generalized(
             print("Total pixels changed: %s\n" % len(total_border_pixel))
 
         if new_value.__contains__("mask"):
-            my_bundles[dither].metricValues.mask[
-                total_border_pixel
-            ] = new_value_to_assign
+            my_bundles[dither].metricValues.mask[total_border_pixel] = new_value_to_assign
         else:
-            my_bundles[dither].metricValues.data[
-                total_border_pixel
-            ] = new_value_to_assign
+            my_bundles[dither].metricValues.data[total_border_pixel] = new_value_to_assign
 
         if plot_final_plots:
             # skymap
             plot_dict = {
                 "xlabel": data_label,
-                "title": "%s: %s MaskedMap; pixel_radius: %s "
-                % (dither, data_label, pixel_radius),
+                "title": "%s: %s MaskedMap; pixel_radius: %s " % (dither, data_label, pixel_radius),
                 "log_scale": False,
                 "labelsize": 8,
                 "color_min": sky_map_color_min,
@@ -238,8 +227,7 @@ def masking_algorithm_generalized(
             # power spectrum
             plot_dict = {
                 "xlabel": data_label,
-                "title": "%s: %s MaskedMap; pixel_radius: %s "
-                % (dither, data_label, pixel_radius),
+                "title": "%s: %s MaskedMap; pixel_radius: %s " % (dither, data_label, pixel_radius),
                 "log_scale": False,
                 "labelsize": 12,
                 "maxl": 500,

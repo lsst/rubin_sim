@@ -1,18 +1,19 @@
 """Some basic physical quantity metrics.
 """
+import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.plots as plots
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
-import rubin_sim.maf.plots as plots
-import rubin_sim.maf.metric_bundles as mb
+
 from .col_map_dict import col_map_dict
 from .common import (
-    standard_summary,
+    combine_info_labels,
     extended_metrics,
-    standard_angle_metrics,
     filter_list,
     radec_cols,
-    combine_info_labels,
+    standard_angle_metrics,
+    standard_summary,
 )
 
 __all__ = [
@@ -96,17 +97,11 @@ def metadataBasics(
     if slicer is not None:
         skyslicer = slicer
     else:
-        skyslicer = slicers.HealpixSlicer(
-            nside=64, lon_col=raCol, lat_col=decCol, lat_lon_deg=degrees
-        )
+        skyslicer = slicers.HealpixSlicer(nside=64, lon_col=raCol, lat_col=decCol, lat_lon_deg=degrees)
 
     # Hack to make HA work, but really I need to account for any stackers/colmaps.
     if value == "HA":
-        stackerList = [
-            stackers.HourAngleStacker(
-                lst_col=colmap["lst"], ra_col=raCol, degrees=degrees
-            )
-        ]
+        stackerList = [stackers.HourAngleStacker(lst_col=colmap["lst"], ra_col=raCol, degrees=degrees)]
     elif value == "normairmass":
         stackerList = [stackers.NormAirmassStacker(degrees=degrees)]
     else:
@@ -250,9 +245,7 @@ def metadataBasicsAngle(
     if slicer is not None:
         skyslicer = slicer
     else:
-        skyslicer = slicers.HealpixSlicer(
-            nside=64, lon_col=raCol, lat_col=decCol, lat_lon_deg=degrees
-        )
+        skyslicer = slicers.HealpixSlicer(nside=64, lon_col=raCol, lat_col=decCol, lat_lon_deg=degrees)
 
     # Summarize values over all and per filter.
     slicer = slicers.UniSlicer()
@@ -289,12 +282,8 @@ def metadataBasicsAngle(
 
     # Make maps of min/median/max for all and per filter, per RA/Dec, with standard summary stats.
     mList = []
-    mList.append(
-        metrics.MeanAngleMetric(value, metric_name="AngleMean %s" % (valueName))
-    )
-    mList.append(
-        metrics.FullRangeAngleMetric(value, metric_name="AngleRange %s" % (valueName))
-    )
+    mList.append(metrics.MeanAngleMetric(value, metric_name="AngleMean %s" % (valueName)))
+    mList.append(metrics.FullRangeAngleMetric(value, metric_name="AngleRange %s" % (valueName)))
     mList.append(metrics.RmsAngleMetric(value, metric_name="AngleRms %s" % (valueName)))
     plotDict = {"percentile_clip": 98}
     slicer = skyslicer
@@ -322,9 +311,7 @@ def metadataBasicsAngle(
     return mb.make_bundles_dict_from_list(bundleList)
 
 
-def allMetadata(
-    colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None, slicer=None
-):
+def allMetadata(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None, slicer=None):
     """Generate a large set of metrics about the metadata of each visit -
     distributions of airmass, normalized airmass, seeing, sky brightness, single visit depth,
     hour angle, distance to the moon, and solar elongation.
@@ -453,11 +440,7 @@ def metadataMaps(
 
     # Hack to make HA work, but really I need to account for any stackers/colmaps.
     if value == "HA":
-        stackerList = [
-            stackers.HourAngleStacker(
-                lst_col=colmap["lst"], ra_col=ra_col, degrees=degrees
-            )
-        ]
+        stackerList = [stackers.HourAngleStacker(lst_col=colmap["lst"], ra_col=ra_col, degrees=degrees)]
     elif value == "normairmass":
         stackerList = [stackers.NormAirmassStacker(degrees=degrees)]
     else:
@@ -466,20 +449,14 @@ def metadataMaps(
     # Make maps of 25/median/75 for all and per filter, per RA/Dec, with standard summary stats.
     mList = []
     mList.append(
-        metrics.PercentileMetric(
-            value, percentile=25, metric_name="25thPercentile %s" % (valueName)
-        )
+        metrics.PercentileMetric(value, percentile=25, metric_name="25thPercentile %s" % (valueName))
     )
     mList.append(metrics.MedianMetric(value, metric_name="Median %s" % (valueName)))
     mList.append(
-        metrics.PercentileMetric(
-            value, percentile=75, metric_name="75thPercentile %s" % (valueName)
-        )
+        metrics.PercentileMetric(value, percentile=75, metric_name="75thPercentile %s" % (valueName))
     )
     if slicer is None:
-        slicer = slicers.HealpixSlicer(
-            nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
-        )
+        slicer = slicers.HealpixSlicer(nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees)
 
     for f in filterlist:
         for m in mList:
@@ -506,9 +483,7 @@ def metadataMaps(
     return mb.make_bundles_dict_from_list(bundleList)
 
 
-def firstYearMetadata(
-    colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None, slicer=None
-):
+def firstYearMetadata(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None, slicer=None):
     """Measure the distribution of some basic metadata in the first year of operations -
     distributions of airmass, seeing, sky brightness, single visit depth.
 

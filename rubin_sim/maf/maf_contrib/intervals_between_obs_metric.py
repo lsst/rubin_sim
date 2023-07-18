@@ -11,8 +11,10 @@
 
 
 from __future__ import print_function
+
 import numpy as np
 from astropy.time import Time
+
 from rubin_sim.maf.metrics import BaseMetric
 
 __all__ = ["IntervalsBetweenObsMetric"]
@@ -25,15 +27,13 @@ class IntervalsBetweenObsMetric(BaseMetric):
         stat,
         metric_name="IntervalsBetweenObsMetric",
         time_col="observationStartMJD",
-        **kwargs
+        **kwargs,
     ):
         self.time_col = time_col
         self.metric_name = metric_name
         self.survey_intervals = survey_intervals
         self.stat = stat
-        super(IntervalsBetweenObsMetric, self).__init__(
-            col=time_col, metric_name=metric_name, **kwargs
-        )
+        super(IntervalsBetweenObsMetric, self).__init__(col=time_col, metric_name=metric_name, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         data_slice.sort(order=self.time_col)

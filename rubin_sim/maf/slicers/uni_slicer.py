@@ -1,8 +1,9 @@
 # UniSlicer class.
 # This slicer simply returns the indexes of all data points. No slicing done at all.
 
-import numpy as np
 from functools import wraps
+
+import numpy as np
 
 from .base_slicer import BaseSlicer
 

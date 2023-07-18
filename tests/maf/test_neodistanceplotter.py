@@ -1,8 +1,10 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import numpy as np
 import unittest
+
+import numpy as np
+
 import rubin_sim.maf.plots as plots
 
 

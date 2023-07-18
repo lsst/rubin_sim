@@ -1,24 +1,20 @@
 from __future__ import absolute_import
+
+import logging
 import reprlib
-from collections import OrderedDict
-from io import StringIO
 import time
-from copy import deepcopy
 from builtins import object
-import numpy as np
+from collections import OrderedDict
+from copy import deepcopy
+from io import StringIO
+
 import healpy as hp
+import numpy as np
 import pandas as pd
 from astropy.time import Time
-from rubin_sim.utils import _hpid2_ra_dec
-from rubin_sim.scheduler.utils import (
-    HpInLsstFov,
-    set_default_nside,
-    HpInComcamFov,
-    IntRounded,
-)
-from rubin_sim.utils import _approx_ra_dec2_alt_az, _approx_altaz2pa
-import logging
 
+from rubin_sim.scheduler.utils import HpInComcamFov, HpInLsstFov, IntRounded, set_default_nside
+from rubin_sim.utils import _approx_altaz2pa, _approx_ra_dec2_alt_az, _hpid2_ra_dec
 
 __all__ = ["CoreScheduler"]
 
@@ -69,9 +65,7 @@ class CoreScheduler(object):
         """
         self.keep_rewards = keep_rewards
         # Use integer ns just to be sure there are no rounding issues.
-        self.mjd_perf_counter_offset = (
-            np.int64(Time.now().mjd * 86400000000000) - time.perf_counter_ns()
-        )
+        self.mjd_perf_counter_offset = np.int64(Time.now().mjd * 86400000000000) - time.perf_counter_ns()
 
         if nside is None:
             nside = set_default_nside()
@@ -155,9 +149,7 @@ class CoreScheduler(object):
         """
 
         # Find the healpixel centers that are included in an observation
-        indx = self.pointing2hpindx(
-            observation["RA"], observation["dec"], rotSkyPos=observation["rotSkyPos"]
-        )
+        indx = self.pointing2hpindx(observation["RA"], observation["dec"], rotSkyPos=observation["rotSkyPos"])
         for surveys in self.survey_lists:
             for survey in surveys:
                 survey.add_observation(observation, indx=indx)
@@ -190,9 +182,7 @@ class CoreScheduler(object):
         else:
             all_scheduled = np.sort(np.concatenate(all_scheduled).ravel())
             # In case the surveys have not been removing executed observations
-            all_scheduled = all_scheduled[
-                np.where(all_scheduled >= self.conditions.mjd)
-            ]
+            all_scheduled = all_scheduled[np.where(all_scheduled >= self.conditions.mjd)]
             self.conditions.scheduled_observations = all_scheduled
 
     def _check_queue_mjd_only(self, mjd):
@@ -252,21 +242,13 @@ class CoreScheduler(object):
                     mjd,
                 )
                 obs_pa = _approx_altaz2pa(alt, az, self.conditions.site.latitude_rad)
-                rot_tel_pos_expected = (obs_pa - observation["rotSkyPos"]) % (
-                    2.0 * np.pi
-                )
-                if (
-                    IntRounded(rot_tel_pos_expected)
-                    > IntRounded(self.rotator_limits[0])
-                ) & (
-                    IntRounded(rot_tel_pos_expected)
-                    < IntRounded(self.rotator_limits[1])
+                rot_tel_pos_expected = (obs_pa - observation["rotSkyPos"]) % (2.0 * np.pi)
+                if (IntRounded(rot_tel_pos_expected) > IntRounded(self.rotator_limits[0])) & (
+                    IntRounded(rot_tel_pos_expected) < IntRounded(self.rotator_limits[1])
                 ):
                     diff = np.abs(self.rotator_limits - rot_tel_pos_expected)
                     limit_indx = np.min(np.where(diff == np.min(diff))[0])
-                    observation["rotSkyPos"] = (
-                        obs_pa - self.rotator_limits[limit_indx]
-                    ) % (2.0 * np.pi)
+                    observation["rotSkyPos"] = (obs_pa - self.rotator_limits[limit_indx]) % (2.0 * np.pi)
             return observation
 
     def _fill_queue(self):
@@ -286,9 +268,7 @@ class CoreScheduler(object):
         if keep_rewards:
             # Use perf_counter_ns to get the best time resolution to guarantee
             # successive calls do occur within the same resolution element.
-            self.queue_fill_mjd_ns = np.int64(
-                self.mjd_perf_counter_offset + time.perf_counter_ns()
-            )
+            self.queue_fill_mjd_ns = np.int64(self.mjd_perf_counter_offset + time.perf_counter_ns())
             self.queue_reward_df = self.make_reward_df(accum=False)
             self.queue_reward_df = self.queue_reward_df.assign(
                 queue_start_mjd=float(self.conditions.mjd),
@@ -313,9 +293,9 @@ class CoreScheduler(object):
             # entered if there is a tie.
             self.survey_index[1] = np.min(np.where(rewards == np.nanmax(rewards)))
             # Survey return list of observations
-            result = self.survey_lists[self.survey_index[0]][
-                self.survey_index[1]
-            ].generate_observations(self.conditions)
+            result = self.survey_lists[self.survey_index[0]][self.survey_index[1]].generate_observations(
+                self.conditions
+            )
 
             self.queue = result
 
@@ -435,9 +415,7 @@ class CoreScheduler(object):
         print(f"# {self.__class__.__name__} at {hex(id(self))}", file=output)
 
         try:
-            last_chosen = str(
-                self.survey_lists[self.survey_index[0]][self.survey_index[1]]
-            )
+            last_chosen = str(self.survey_lists[self.survey_index[0]][self.survey_index[1]])
         except TypeError:
             last_chosen = "None"
 
@@ -526,9 +504,7 @@ class CoreScheduler(object):
                 reward = np.nanmax(survey.reward)
 
             try:
-                chosen = (tier == self.survey_index[0]) and (
-                    survey_list_elem == self.survey_index[1]
-                )
+                chosen = (tier == self.survey_index[0]) and (survey_list_elem == self.survey_index[1])
             except TypeError:
                 chosen = False
 
@@ -568,9 +544,7 @@ class CoreScheduler(object):
                 survey_df["tier_label"] = f"tier {index0}"
                 survey_df["survey_label"] = survey_labels[index0][index1]
                 survey_df["survey_class"] = survey.__class__.__name__
-                survey_df["survey_reward"] = np.nanmax(
-                    survey.calc_reward_function(conditions)
-                )
+                survey_df["survey_reward"] = np.nanmax(survey.calc_reward_function(conditions))
                 survey_dfs.append(survey_df)
 
         reward_df = pd.concat(survey_dfs).set_index(["list_index", "survey_index"])

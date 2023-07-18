@@ -1,9 +1,12 @@
+from builtins import str
+
 import numpy as np
-from .base_metric import BaseMetric
+from scipy.optimize import curve_fit
+
 import rubin_sim.maf.utils as mafUtils
 import rubin_sim.utils as utils
-from scipy.optimize import curve_fit
-from builtins import str
+
+from .base_metric import BaseMetric
 
 __all__ = [
     "ParallaxMetric",
@@ -56,7 +59,7 @@ class ParallaxMetric(BaseMetric):
         badval=-666,
         atm_err=0.01,
         normalize=False,
-        **kwargs
+        **kwargs,
     ):
         cols = [m5_col, filter_col, seeing_col, "ra_pi_amp", "dec_pi_amp"]
         if normalize:
@@ -95,10 +98,7 @@ class ParallaxMetric(BaseMetric):
                 "This normalized version of the metric displays the "
                 "estimated uncertainty in the parallax measurement, "
             )
-            self.comment += (
-                "divided by the minimum parallax uncertainty possible "
-                "(if all visits were six "
-            )
+            self.comment += "divided by the minimum parallax uncertainty possible " "(if all visits were six "
             self.comment += (
                 "months apart). Values closer to 1 indicate more optimal "
                 "scheduling for parallax measurement."
@@ -124,16 +124,11 @@ class ParallaxMetric(BaseMetric):
         # compute SNR for all observations
         for filt in filters:
             good = np.where(data_slice[self.filter_col] == filt)
-            snr[good] = mafUtils.m52snr(
-                self.mags[str(filt)], data_slice[self.m5_col][good]
-            )
+            snr[good] = mafUtils.m52snr(self.mags[str(filt)], data_slice[self.m5_col][good])
         position_errors = np.sqrt(
-            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2
-            + self.atm_err**2
+            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2 + self.atm_err**2
         )
-        sigma = self._final_sigma(
-            position_errors, data_slice["ra_pi_amp"], data_slice["dec_pi_amp"]
-        )
+        sigma = self._final_sigma(position_errors, data_slice["ra_pi_amp"], data_slice["dec_pi_amp"])
         if self.normalize:
             # Leave the dec parallax as zero since one can't have ra and dec maximized at the same time.
             sigma = (
@@ -195,7 +190,7 @@ class ProperMotionMetric(BaseMetric):
         atm_err=0.01,
         normalize=False,
         baseline=10.0,
-        **kwargs
+        **kwargs,
     ):
         cols = [m5_col, mjd_col, filter_col, seeing_col]
         if normalize:
@@ -231,13 +226,9 @@ class ProperMotionMetric(BaseMetric):
             self.comment += "Assumes a flat SED. "
         if self.normalize:
             self.comment += (
-                "This normalized version of the metric represents "
-                "the estimated uncertainty in the proper "
+                "This normalized version of the metric represents " "the estimated uncertainty in the proper "
             )
-            self.comment += (
-                "motion divided by the minimum uncertainty possible "
-                "(if all visits were "
-            )
+            self.comment += "motion divided by the minimum uncertainty possible " "(if all visits were "
             self.comment += "obtained on the first and last days of the survey). "
             self.comment += "Values closer to 1 indicate more optimal scheduling."
 
@@ -250,15 +241,11 @@ class ProperMotionMetric(BaseMetric):
             if np.size(observations[0]) < 2:
                 precis[observations] = self.badval
             else:
-                snr = mafUtils.m52snr(
-                    self.mags[f], data_slice[self.m5_col][observations]
-                )
+                snr = mafUtils.m52snr(self.mags[f], data_slice[self.m5_col][observations])
                 precis[observations] = mafUtils.astrom_precision(
                     data_slice[self.seeing_col][observations], snr
                 )
-                precis[observations] = np.sqrt(
-                    precis[observations] ** 2 + self.atm_err**2
-                )
+                precis[observations] = np.sqrt(precis[observations] ** 2 + self.atm_err**2)
         good = np.where(precis != self.badval)
         result = mafUtils.sigma_slope(data_slice[self.mjd_col][good], precis[good])
         result = result * 365.25 * 1e3  # Convert to mas/yr
@@ -266,9 +253,7 @@ class ProperMotionMetric(BaseMetric):
             new_dates = data_slice[self.mjd_col][good] * 0
             n_dates = new_dates.size
             new_dates[n_dates // 2 :] = self.baseline * 365.25
-            result = (
-                mafUtils.sigma_slope(new_dates, precis[good]) * 365.25 * 1e3
-            ) / result
+            result = (mafUtils.sigma_slope(new_dates, precis[good]) * 365.25 * 1e3) / result
         # Observations that are very close together can still fail
         if np.isnan(result):
             result = self.badval
@@ -338,13 +323,11 @@ class ParallaxCoverageMetric(BaseMetric):
         atm_err=0.01,
         theta_range=0.0,
         snr_limit=5,
-        **kwargs
+        **kwargs,
     ):
         cols = ["ra_pi_amp", "dec_pi_amp", m5_col, mjd_col, filter_col, seeing_col]
         units = "ratio"
-        super(ParallaxCoverageMetric, self).__init__(
-            cols, metric_name=metric_name, units=units, **kwargs
-        )
+        super(ParallaxCoverageMetric, self).__init__(cols, metric_name=metric_name, units=units, **kwargs)
         self.m5_col = m5_col
         self.seeing_col = seeing_col
         self.filter_col = filter_col
@@ -362,10 +345,7 @@ class ParallaxCoverageMetric(BaseMetric):
         else:
             self.mags = utils.stellarMags(sed_template, rmag=rmag)
         self.atm_err = atm_err
-        caption = (
-            "Parallax factor coverage for an r=%.2f star (0 is bad, 0.5-1 is good). "
-            % (rmag)
-        )
+        caption = "Parallax factor coverage for an r=%.2f star (0 is bad, 0.5-1 is good). " % (rmag)
         caption += "One expects the parallax factor coverage to vary because stars on the ecliptic "
         caption += "can be observed when they have no parallax offset while stars at the pole are always "
         caption += "offset by the full parallax offset." ""
@@ -388,8 +368,7 @@ class ParallaxCoverageMetric(BaseMetric):
     def _compute_weights(self, data_slice, snr):
         # Compute centroid uncertainty in each visit
         position_errors = np.sqrt(
-            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2
-            + self.atm_err**2
+            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2 + self.atm_err**2
         )
         weights = 1.0 / position_errors**2
         return weights
@@ -411,18 +390,12 @@ class ParallaxCoverageMetric(BaseMetric):
         # compute SNR for all observations
         for filt in filters:
             in_filt = np.where(data_slice[self.filter_col] == filt)
-            snr[in_filt] = mafUtils.m52snr(
-                self.mags[str(filt)], data_slice[self.m5_col][in_filt]
-            )
+            snr[in_filt] = mafUtils.m52snr(self.mags[str(filt)], data_slice[self.m5_col][in_filt])
 
         weights = self._compute_weights(data_slice, snr)
-        ave_r = self._weighted_r(
-            data_slice["ra_pi_amp"], data_slice["dec_pi_amp"], weights
-        )
+        ave_r = self._weighted_r(data_slice["ra_pi_amp"], data_slice["dec_pi_amp"], weights)
         if self.theta_range > 0:
-            theta_check = self._theta_check(
-                data_slice["ra_pi_amp"], data_slice["dec_pi_amp"], snr
-            )
+            theta_check = self._theta_check(data_slice["ra_pi_amp"], data_slice["dec_pi_amp"], snr)
         else:
             theta_check = 1.0
         result = ave_r * theta_check
@@ -472,7 +445,7 @@ class ParallaxDcrDegenMetric(BaseMetric):
         sed_template="flat",
         filter_col="filter",
         tol=0.05,
-        **kwargs
+        **kwargs,
     ):
         self.m5_col = m5_col
         self.seeing_col = seeing_col
@@ -488,9 +461,7 @@ class ParallaxDcrDegenMetric(BaseMetric):
             seeing_col,
             m5_col,
         ]
-        super(ParallaxDcrDegenMetric, self).__init__(
-            cols, metric_name=metric_name, units=units, **kwargs
-        )
+        super(ParallaxDcrDegenMetric, self).__init__(cols, metric_name=metric_name, units=units, **kwargs)
         self.mags = {}
         if sed_template == "flat":
             for f in ["u", "g", "r", "i", "z", "y"]:
@@ -521,24 +492,17 @@ class ParallaxDcrDegenMetric(BaseMetric):
         snr = np.zeros(len(data_slice), dtype="float")
         for filt in np.unique(data_slice[self.filter_col]):
             in_filt = np.where(data_slice[self.filter_col] == filt)
-            snr[in_filt] = mafUtils.m52snr(
-                self.mags[filt], data_slice[self.m5_col][in_filt]
-            )
+            snr[in_filt] = mafUtils.m52snr(self.mags[filt], data_slice[self.m5_col][in_filt])
         # Compute the centroiding uncertainties
         # Note that these centroiding uncertainties depend on the physical size of the PSF, thus
         # we are using seeingFwhmGeom for these metrics, not seeingFwhmEff.
         position_errors = np.sqrt(
-            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2
-            + self.atm_err**2
+            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2 + self.atm_err**2
         )
         # Construct the vectors of RA/Dec offsets. xdata is the "input data". ydata is the "output".
         xdata = np.empty((2, data_slice.size * 2), dtype=float)
-        xdata[0, :] = np.concatenate(
-            (data_slice["ra_pi_amp"], data_slice["dec_pi_amp"])
-        )
-        xdata[1, :] = np.concatenate(
-            (data_slice["ra_dcr_amp"], data_slice["dec_dcr_amp"])
-        )
+        xdata[0, :] = np.concatenate((data_slice["ra_pi_amp"], data_slice["dec_pi_amp"]))
+        xdata[1, :] = np.concatenate((data_slice["ra_dcr_amp"], data_slice["dec_dcr_amp"]))
         ydata = np.sum(xdata, axis=0)
         # Use curve_fit to compute covariance between parallax and dcr amplitudes
         # Set the initial guess slightly off from the correct [1,1] to make sure it iterates.
@@ -583,20 +547,12 @@ class RadiusObsMetric(BaseMetric):
     """find the radius in the focal plane. returns things in degrees."""
 
     def __init__(
-        self,
-        metric_name="radiusObs",
-        ra_col="fieldRA",
-        dec_col="fieldDec",
-        units="radians",
-        **kwargs
+        self, metric_name="radiusObs", ra_col="fieldRA", dec_col="fieldDec", units="radians", **kwargs
     ):
         self.ra_col = ra_col
         self.dec_col = dec_col
         super(RadiusObsMetric, self).__init__(
-            col=[self.ra_col, self.dec_col],
-            metric_name=metric_name,
-            units=units,
-            **kwargs
+            col=[self.ra_col, self.dec_col], metric_name=metric_name, units=units, **kwargs
         )
 
     def run(self, data_slice, slice_point):

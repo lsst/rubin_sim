@@ -1,12 +1,13 @@
-import unittest
 import os
-import warnings
-import tempfile
 import shutil
-import numpy as np
-from rubin_sim.moving_objects import Orbits, ChebyFits
-from rubin_sim.data import get_data_dir
+import tempfile
+import unittest
+import warnings
 
+import numpy as np
+
+from rubin_sim.data import get_data_dir
+from rubin_sim.moving_objects import ChebyFits, Orbits
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -141,9 +142,7 @@ class TestRun(unittest.TestCase):
         # Set up chebyshev fitter.
         t_start = self.orbits.orbits.epoch.iloc[0]
         interval = 30
-        cheb = ChebyFits(
-            self.orbits, t_start, interval, ngran=64, sky_tolerance=2.5, n_decimal=10
-        )
+        cheb = ChebyFits(self.orbits, t_start, interval, ngran=64, sky_tolerance=2.5, n_decimal=10)
         # Set granularity. Use an value that will be too long, to trigger recursion below.
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -162,9 +161,7 @@ class TestRun(unittest.TestCase):
         for obj_id in np.unique(cheb.coeffs["obj_id"]):
             condition = cheb.coeffs["obj_id"] == obj_id
             te_prev = t_start
-            for ts, te in zip(
-                cheb.coeffs["t_start"][condition], cheb.coeffs["t_end"][condition]
-            ):
+            for ts, te in zip(cheb.coeffs["t_start"][condition], cheb.coeffs["t_end"][condition]):
                 # Test that the start of the current interval = the end of the previous interval.
                 self.assertEqual(te_prev, ts)
                 te_prev = te

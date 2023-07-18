@@ -1,7 +1,8 @@
+import astropy.units as u
 import numpy as np
 from astroplan import Observer
-import astropy.units as u
 from astropy.time import Time
+
 from rubin_sim.utils import Site
 
 if __name__ == "__main__":
@@ -12,9 +13,7 @@ if __name__ == "__main__":
     pad_around = 40
     t_step = 0.7
 
-    mjds = np.arange(
-        mjd_start - pad_around, duration + mjd_start + pad_around + t_step, t_step
-    )
+    mjds = np.arange(mjd_start - pad_around, duration + mjd_start + pad_around + t_step, t_step)
 
     site = Site("LSST")
     observer = Observer(

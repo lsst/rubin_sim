@@ -1,4 +1,5 @@
 import unittest
+
 import rubin_sim.maf.batches as batches
 
 
@@ -12,15 +13,11 @@ class TestCommon(unittest.TestCase):
         self.assertEqual(colmap["ra"], "fieldRA")
 
     def test_filter_list(self):
-        filterlist, colors, orders, sqls, info_label = batches.common.filter_list(
-            all=False, extra_sql=None
-        )
+        filterlist, colors, orders, sqls, info_label = batches.common.filter_list(all=False, extra_sql=None)
         self.assertEqual(len(filterlist), 6)
         self.assertEqual(len(colors), 6)
         self.assertEqual(sqls["u"], 'filter = "u"')
-        filterlist, colors, orders, sqls, info_label = batches.common.filter_list(
-            all=True, extra_sql=None
-        )
+        filterlist, colors, orders, sqls, info_label = batches.common.filter_list(all=True, extra_sql=None)
         self.assertIn("all", filterlist)
         self.assertEqual(sqls["all"], "")
         filterlist, colors, orders, sqls, info_label = batches.common.filter_list(

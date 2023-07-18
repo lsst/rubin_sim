@@ -1,9 +1,11 @@
 """Evaluate some bulk properties of the sky coverage
 """
 import numpy as np
+
+import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metric_bundles as mb
+
 from .col_map_dict import col_map_dict
 
 __all__ = ["meanRADec", "eastWestBias"]
@@ -63,9 +65,7 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
 
     for m in dec_metrics:
         slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], bin_size=1)
-        bundle = mb.MetricBundle(
-            m, slicer, extraSql, info_label=extraInfoLabel, display_dict=displayDict
-        )
+        bundle = mb.MetricBundle(m, slicer, extraSql, info_label=extraInfoLabel, display_dict=displayDict)
         bundleList.append(bundle)
 
     # Set the run_name for all bundles and return the bundleDict.
@@ -105,9 +105,7 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=Non
     if not colmap["raDecDeg"]:
         eastvswest = np.radians(eastvswest)
 
-    displayDict[
-        "caption"
-    ] = "Number of visits per night that occur with azimuth <= 180."
+    displayDict["caption"] = "Number of visits per night that occur with azimuth <= 180."
     if extraSql is not None:
         displayDict["caption"] += " With additional sql constraint %s." % extraSql
     metric = metrics.CountMetric(colmap["night"], metric_name="Nvisits East")

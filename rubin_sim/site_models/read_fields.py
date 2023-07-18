@@ -1,7 +1,9 @@
 import os
-from rubin_sim.utils import _ra_dec_from_xyz
-from rubin_sim.data import get_data_dir
+
 import numpy as np
+
+from rubin_sim.data import get_data_dir
+from rubin_sim.utils import _ra_dec_from_xyz
 
 __all__ = ["read_fields", "_read_fields"]
 

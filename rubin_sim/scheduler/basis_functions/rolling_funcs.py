@@ -1,11 +1,11 @@
-import numpy as np
-from rubin_sim.scheduler import features
-from rubin_sim.scheduler import utils
+import warnings
+
 import healpy as hp
 import matplotlib.pylab as plt
-import warnings
-from rubin_sim.scheduler.basis_functions import BaseBasisFunction
+import numpy as np
 
+from rubin_sim.scheduler import features, utils
+from rubin_sim.scheduler.basis_functions import BaseBasisFunction
 
 __all__ = [
     "TargetMapModuloBasisFunction",
@@ -45,17 +45,11 @@ class FootprintBasisFunction(BaseBasisFunction):
 
         self.survey_features = {}
         # All the observations in all filters
-        self.survey_features["N_obs_all"] = features.NObservations(
-            nside=nside, filtername=None
-        )
-        self.survey_features["N_obs"] = features.NObservations(
-            nside=nside, filtername=filtername
-        )
+        self.survey_features["N_obs_all"] = features.NObservations(nside=nside, filtername=None)
+        self.survey_features["N_obs"] = features.NObservations(nside=nside, filtername=filtername)
 
         # should probably actually loop over all the target maps?
-        self.out_of_bounds_area = np.where(
-            footprint.get_footprint(self.filtername) <= 0
-        )[0]
+        self.out_of_bounds_area = np.where(footprint.get_footprint(self.filtername) <= 0)[0]
         self.out_of_bounds_val = out_of_bounds_val
 
     def _calc_value(self, conditions, indx=None):
@@ -63,9 +57,7 @@ class FootprintBasisFunction(BaseBasisFunction):
         desired_footprint_normed = self.footprint(conditions.mjd)[self.filtername]
 
         # Compute how many observations we should have on the sky
-        desired = desired_footprint_normed * np.sum(
-            self.survey_features["N_obs_all"].feature
-        )
+        desired = desired_footprint_normed * np.sum(self.survey_features["N_obs_all"].feature)
         result = desired - self.survey_features["N_obs"].feature
         result[self.out_of_bounds_area] = self.out_of_bounds_val
         return result
@@ -107,9 +99,7 @@ class FootprintRollingBasisFunction(BaseBasisFunction):
         day_offset=None,
         window_size=6.0,
     ):
-        super(FootprintRollingBasisFunction, self).__init__(
-            nside=nside, filtername=filtername
-        )
+        super(FootprintRollingBasisFunction, self).__init__(nside=nside, filtername=filtername)
 
         # OK, going to find the parts of the map that are the same everywhere, and compute the
         # basis function the same as usual for those.
@@ -120,12 +110,8 @@ class FootprintRollingBasisFunction(BaseBasisFunction):
         sum_footprints = footprints[0] * 0
         for footprint in footprints:
             sum_footprints += footprint
-        self.constant_footprint_indx = np.where(
-            (same_footprint == True) & (sum_footprints > 0)
-        )[0]
-        self.rolling_footprint_indx = np.where(
-            (same_footprint == False) & (sum_footprints > 0)
-        )[0]
+        self.constant_footprint_indx = np.where((same_footprint == True) & (sum_footprints > 0))[0]
+        self.rolling_footprint_indx = np.where((same_footprint == False) & (sum_footprints > 0))[0]
 
         self.season_modulo = season_modulo
         self.season_length = season_length
@@ -141,13 +127,9 @@ class FootprintRollingBasisFunction(BaseBasisFunction):
         self.survey_features = {}
         # Set a season for -1 (for before rolling or after max_season)
         # All the observations in the given filter
-        self.survey_features["N_obs_%i" % -1] = features.N_observations(
-            nside=nside, filtername=filtername
-        )
+        self.survey_features["N_obs_%i" % -1] = features.N_observations(nside=nside, filtername=filtername)
         # All the observations in all filters
-        self.survey_features["N_obs_all_%i" % -1] = features.N_observations(
-            nside=nside, filtername=None
-        )
+        self.survey_features["N_obs_all_%i" % -1] = features.N_observations(nside=nside, filtername=None)
 
         for i, temp in enumerate(footprints[0:-1]):
             # Observation in a season, in filtername
@@ -189,12 +171,8 @@ class FootprintRollingBasisFunction(BaseBasisFunction):
 
         # Update the coverage of the sky so far
         # If RA to sun is zero, we are at phase np.pi/2.
-        coverage_map_phase = (conditions.ra - conditions.sun_RA_start + np.pi / 2.0) % (
-            2.0 * np.pi
-        )
-        zero = utils.step_line(
-            0.0, 1.0, 365.25, phase=coverage_map_phase * 365.25 / 2 / np.pi
-        )
+        coverage_map_phase = (conditions.ra - conditions.sun_RA_start + np.pi / 2.0) % (2.0 * np.pi)
+        zero = utils.step_line(0.0, 1.0, 365.25, phase=coverage_map_phase * 365.25 / 2 / np.pi)
         t_elapsed = conditions.mjd - conditions.mjd_start
         norm_coverage_raw = utils.step_line(
             t_elapsed, 1.0, 365.25, phase=coverage_map_phase * 365.25 / 2 / np.pi
@@ -206,9 +184,7 @@ class FootprintRollingBasisFunction(BaseBasisFunction):
 
         # Compute the constant parts of the footprint like before
         desired = (
-            norm_footprint
-            / self.all_footprints_sum
-            * np.sum(self.survey_features["N_obs_all_-1"].feature)
+            norm_footprint / self.all_footprints_sum * np.sum(self.survey_features["N_obs_all_-1"].feature)
         )
         result[self.constant_footprint_indx] = (
             desired[self.constant_footprint_indx]
@@ -233,17 +209,11 @@ class FootprintRollingBasisFunction(BaseBasisFunction):
             desired = (
                 nf[self.rolling_footprint_indx[season_indx]]
                 / self.all_rolling_sum
-                * np.sum(
-                    self.survey_features["N_obs_all_%i" % season].feature[
-                        self.rolling_footprint_indx
-                    ]
-                )
+                * np.sum(self.survey_features["N_obs_all_%i" % season].feature[self.rolling_footprint_indx])
             )
             result[self.rolling_footprint_indx[season_indx]] = (
                 desired
-                - self.survey_features["N_obs_%i" % season].feature[
-                    self.rolling_footprint_indx
-                ][season_indx]
+                - self.survey_features["N_obs_%i" % season].feature[self.rolling_footprint_indx][season_indx]
             )
 
         result[self.out_of_bounds_area] = self.out_of_bounds_val
@@ -292,14 +262,10 @@ class TargetMapModuloBasisFunction(BaseBasisFunction):
         max_season=None,
         season_length=365.25,
     ):
-        super(TargetMapModuloBasisFunction, self).__init__(
-            nside=nside, filtername=filtername
-        )
+        super(TargetMapModuloBasisFunction, self).__init__(nside=nside, filtername=filtername)
 
         if norm_factor is None:
-            warnings.warn(
-                "No norm_factor set, use utils.calc_norm_factor if using multiple filters."
-            )
+            warnings.warn("No norm_factor set, use utils.calc_norm_factor if using multiple filters.")
             self.norm_factor = 0.00010519
         else:
             self.norm_factor = norm_factor
@@ -318,9 +284,7 @@ class TargetMapModuloBasisFunction(BaseBasisFunction):
                 season_length=season_length,
             )
             # Count of all the observations taken in a season
-            self.survey_features[
-                "N_obs_count_all_%i" % i
-            ] = features.N_obs_count_season(
+            self.survey_features["N_obs_count_all_%i" % i] = features.N_obs_count_season(
                 i,
                 filtername=None,
                 season_modulo=season_modulo,
@@ -349,9 +313,7 @@ class TargetMapModuloBasisFunction(BaseBasisFunction):
             season_length=season_length,
         )
         if target_maps is None:
-            self.target_maps = utils.generate_goal_map(
-                filtername=filtername, nside=self.nside
-            )
+            self.target_maps = utils.generate_goal_map(filtername=filtername, nside=self.nside)
         else:
             self.target_maps = target_maps
         # should probably actually loop over all the target maps?
@@ -402,9 +364,7 @@ class TargetMapModuloBasisFunction(BaseBasisFunction):
         for season in np.unique(seasons):
             season_indx = np.where(seasons == season)[0]
             composite_target[season_indx] = self.target_maps[season][season_indx]
-            composite_nobs[season_indx] = self.survey_features[
-                "N_obs_%i" % season
-            ].feature[season_indx]
+            composite_nobs[season_indx] = self.survey_features["N_obs_%i" % season].feature[season_indx]
             composite_goal_n[season_indx] = (
                 composite_target[season_indx]
                 * self.survey_features["N_obs_count_all_%i" % season].feature

@@ -1,6 +1,7 @@
-import numpy as np
 import unittest
 import warnings
+
+import numpy as np
 
 from rubin_sim.utils import Site
 

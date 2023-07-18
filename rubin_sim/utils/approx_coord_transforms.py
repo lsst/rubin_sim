@@ -1,5 +1,6 @@
 import numpy as np
-from rubin_sim.utils import calc_lmst_last
+
+from .coordinate_transformations import calc_lmst_last
 
 __all__ = [
     "_approx_alt_az2_ra_dec",
@@ -30,9 +31,7 @@ def _approx_altaz2pa(alt_rad, az_rad, latitude_rad):
     """
 
     y = np.sin(-az_rad) * np.cos(latitude_rad)
-    x = np.cos(alt_rad) * np.sin(latitude_rad) - np.sin(alt_rad) * np.cos(
-        latitude_rad
-    ) * np.cos(-az_rad)
+    x = np.cos(alt_rad) * np.sin(latitude_rad) - np.sin(alt_rad) * np.cos(latitude_rad) * np.cos(-az_rad)
     pa = np.arctan2(y, x)
     # Make it run from 0-360 deg instead of of -180 to 180
     pa = pa % (2.0 * np.pi)
@@ -56,9 +55,7 @@ def approx_altaz2pa(alt_deg, az_deg, latitude_deg):
     pa : `float`
         Parallactic angle (degrees)
     """
-    pa = _approx_altaz2pa(
-        np.radians(alt_deg), np.radians(az_deg), np.radians(latitude_deg)
-    )
+    pa = _approx_altaz2pa(np.radians(alt_deg), np.radians(az_deg), np.radians(latitude_deg))
     return np.degrees(pa)
 
 

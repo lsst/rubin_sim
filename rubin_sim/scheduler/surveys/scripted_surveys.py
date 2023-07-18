@@ -1,9 +1,11 @@
+import logging
+
 import numpy as np
-from rubin_sim.scheduler.utils import empty_observation, set_default_nside
+
 import rubin_sim.scheduler.features as features
 from rubin_sim.scheduler.surveys import BaseSurvey
+from rubin_sim.scheduler.utils import empty_observation, set_default_nside
 from rubin_sim.utils import _approx_ra_dec2_alt_az, ra_dec2_hpid
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -64,13 +66,9 @@ class ScriptedSurvey(BaseSurvey):
             observations_hpid = observations_hpid_in[good]
 
             for feature in self.extra_features:
-                self.extra_features[feature].add_observations_array(
-                    observations_array, observations_hpid
-                )
+                self.extra_features[feature].add_observations_array(observations_array, observations_hpid)
             for bf in self.extra_basis_functions:
-                self.extra_basis_functions[bf].add_observations_array(
-                    observations_array, observations_hpid
-                )
+                self.extra_basis_functions[bf].add_observations_array(observations_array, observations_hpid)
             for bf in self.basis_functions:
                 bf.add_observations_array(observations_array, observations_hpid)
             for detailer in self.detailers:
@@ -83,9 +81,7 @@ class ScriptedSurvey(BaseSurvey):
             )
             completed = np.char.add(completed, observations_array["filter"])
 
-            wanted = np.char.add(
-                self.obs_wanted["scripted_id"].astype(str), self.obs_wanted["note"]
-            )
+            wanted = np.char.add(self.obs_wanted["scripted_id"].astype(str), self.obs_wanted["note"])
             wanted = np.char.add(wanted, self.obs_wanted["filter"])
 
             indx = np.in1d(wanted, completed)
@@ -107,23 +103,16 @@ class ScriptedSurvey(BaseSurvey):
                 self.reward_checked = False
 
                 # find the index
-                indx = np.searchsorted(
-                    self.obs_wanted["scripted_id"], observation["scripted_id"]
-                )
+                indx = np.searchsorted(self.obs_wanted["scripted_id"], observation["scripted_id"])
                 # If it matches scripted_id, note, and filter, mark it as observed and update scheduled observation list.
                 if indx < self.obs_wanted["scripted_id"].size:
                     if (
-                        (
-                            self.obs_wanted["scripted_id"][indx]
-                            == observation["scripted_id"]
-                        )
+                        (self.obs_wanted["scripted_id"][indx] == observation["scripted_id"])
                         & (self.obs_wanted["note"][indx] == observation["note"])
                         & (self.obs_wanted["filter"][indx] == observation["filter"])
                     ):
                         self.obs_wanted["observed"][indx] = True
-                        self.scheduled_obs = self.obs_wanted["mjd"][
-                            ~self.obs_wanted["observed"]
-                        ]
+                        self.scheduled_obs = self.obs_wanted["mjd"][~self.obs_wanted["observed"]]
 
     def calc_reward_function(self, conditions):
         """If there is an observation ready to go, execute it, otherwise, -inf"""
@@ -193,15 +182,11 @@ class ScriptedSurvey(BaseSurvey):
             )[0]
 
             if np.size(in_time_window) > 0:
-                pass_checks = self._check_alts_ha(
-                    self.obs_wanted[in_time_window], conditions
-                )
+                pass_checks = self._check_alts_ha(self.obs_wanted[in_time_window], conditions)
                 matches = in_time_window[pass_checks]
 
                 # Also check that the filters are mounted
-                match2 = np.isin(
-                    self.obs_wanted["filter"][matches], conditions.mounted_filters
-                )
+                match2 = np.isin(self.obs_wanted["filter"][matches], conditions.mounted_filters)
                 matches = matches[match2]
 
             else:
@@ -239,9 +224,7 @@ class ScriptedSurvey(BaseSurvey):
         self.obs_wanted.sort(order=["mjd", "filter"])
         # Give each desired observation a unique "scripted ID". To be used for
         # matching and logging later.
-        self.obs_wanted["scripted_id"] = np.arange(
-            self.id_start, self.id_start + np.size(self.obs_wanted)
-        )
+        self.obs_wanted["scripted_id"] = np.arange(self.id_start, self.id_start + np.size(self.obs_wanted))
         # Update so if we set the script again the IDs will not be reused.
         self.id_start = np.max(self.obs_wanted["scripted_id"]) + 1
 
@@ -307,9 +290,7 @@ class PairsSurveyScripted(ScriptedSurvey):
         self._moon_distance = np.radians(moon_distance)
 
         self.extra_features = {}
-        self.extra_features["Pair_map"] = features.Pair_in_night(
-            filtername=filt_to_pair
-        )
+        self.extra_features["Pair_map"] = features.Pair_in_night(filtername=filt_to_pair)
 
         self.reward_val = reward_val
         self.filt_to_pair = filt_to_pair
@@ -322,9 +303,7 @@ class PairsSurveyScripted(ScriptedSurvey):
     def add_observation(self, observation, indx=None, **kwargs):
         """Add an observed observation"""
         # self.ignore_obs not in str(observation['note'])
-        to_ignore = np.any(
-            [ignore in str(observation["note"]) for ignore in self.ignore_obs]
-        )
+        to_ignore = np.any([ignore in str(observation["note"]) for ignore in self.ignore_obs])
         log.debug(
             "[Pairs.add_observation]: %s: %s: %s",
             to_ignore,
@@ -350,9 +329,7 @@ class PairsSurveyScripted(ScriptedSurvey):
                 for key in observation.dtype.names:
                     obs_to_queue[key] = observation[key]
                 # Fill in the ideal time we would like this observed
-                log.debug(
-                    "Observation MJD: %.4f (dt=%.4f)", obs_to_queue["mjd"], self.dt
-                )
+                log.debug("Observation MJD: %.4f (dt=%.4f)", obs_to_queue["mjd"], self.dt)
                 obs_to_queue["mjd"] += self.dt
                 self.observing_queue.append(obs_to_queue)
         log.debug("[Pairs.add_observation.queue.size]: %i", len(self.observing_queue))
@@ -364,9 +341,7 @@ class PairsSurveyScripted(ScriptedSurvey):
         # Assuming self.observing_queue is sorted by MJD.
         if len(self.observing_queue) > 0:
             stale = True
-            in_window = (
-                np.abs(self.observing_queue[0]["mjd"] - conditions.mjd) < self.ttol
-            )
+            in_window = np.abs(self.observing_queue[0]["mjd"] - conditions.mjd) < self.ttol
             log.debug("Purging queue")
             while stale:
                 # If the next observation in queue is past the window, drop it
@@ -378,15 +353,11 @@ class PairsSurveyScripted(ScriptedSurvey):
                     )
                     del self.observing_queue[0]
                 # If we are in the window, but masked, drop it
-                elif (in_window) & (
-                    ~self._check_mask(self.observing_queue[0], conditions)
-                ):
+                elif (in_window) & (~self._check_mask(self.observing_queue[0], conditions)):
                     log.debug("Masked")
                     del self.observing_queue[0]
                 # If in time window, but in alt exclusion zone
-                elif (in_window) & (
-                    ~self._check_alts(self.observing_queue[0], conditions)
-                ):
+                elif (in_window) & (~self._check_alts(self.observing_queue[0], conditions)):
                     log.debug("in alt exclusion zone")
                     del self.observing_queue[0]
                 else:

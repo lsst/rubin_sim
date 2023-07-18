@@ -1,4 +1,5 @@
 import numpy as np
+
 from rubin_sim.utils import gnomonic_project_toxy
 
 __all__ = ["stars_project", "assign_patches"]

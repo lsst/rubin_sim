@@ -1,4 +1,5 @@
 import unittest
+
 from rubin_sim.site_models import Almanac
 
 

@@ -2,12 +2,14 @@ import matplotlib
 
 matplotlib.use("Agg")
 import os
-import warnings
-import unittest
-import numpy as np
-import rubin_sim.maf.db as db
 import shutil
 import tempfile
+import unittest
+import warnings
+
+import numpy as np
+
+import rubin_sim.maf.db as db
 
 
 class TestResultsDb(unittest.TestCase):
@@ -26,9 +28,7 @@ class TestResultsDb(unittest.TestCase):
         self.summary_stat_name2 = "Median"
         self.summary_stat_value2 = 18
         self.summary_stat_name3 = "TableFrac"
-        self.summary_stat_value3 = np.empty(
-            10, dtype=[("name", "|S12"), ("value", float)]
-        )
+        self.summary_stat_value3 = np.empty(10, dtype=[("name", "|S12"), ("value", float)])
         for i in range(10):
             self.summary_stat_value3["name"] = "test%d" % (i)
             self.summary_stat_value3["value"] = i
@@ -72,23 +72,15 @@ class TestResultsDb(unittest.TestCase):
             self.metric_data_file,
         )
         self.assertEqual(metric_id, metric_id2)
-        run1 = (
-            results_db.session.query(db.MetricRow).filter_by(metric_id=metric_id).all()
-        )
+        run1 = results_db.session.query(db.MetricRow).filter_by(metric_id=metric_id).all()
         self.assertEqual(len(run1), 1)
         # Add plot.
         results_db.update_plot(metric_id, self.plot_type, self.plot_name)
         # Add normal summary statistics.
-        results_db.update_summary_stat(
-            metric_id, self.summary_stat_name1, self.summary_stat_value1
-        )
-        results_db.update_summary_stat(
-            metric_id, self.summary_stat_name2, self.summary_stat_value2
-        )
+        results_db.update_summary_stat(metric_id, self.summary_stat_name1, self.summary_stat_value1)
+        results_db.update_summary_stat(metric_id, self.summary_stat_name2, self.summary_stat_value2)
         # Add something like tableFrac summary statistic.
-        results_db.update_summary_stat(
-            metric_id, self.summary_stat_name3, self.summary_stat_value3
-        )
+        results_db.update_summary_stat(metric_id, self.summary_stat_name3, self.summary_stat_value3)
         # Test get warning when try to add a non-conforming summary stat (not 'name' & 'value' cols).
         teststat = np.empty(10, dtype=[("col", "|S12"), ("value", float)])
         with warnings.catch_warnings(record=True) as w:
@@ -130,12 +122,8 @@ class TestUseResultsDb(unittest.TestCase):
             self.metric_data_file,
         )
         self.results_db.update_plot(self.metric_id, self.plot_type, self.plot_name)
-        self.results_db.update_summary_stat(
-            self.metric_id, self.summary_stat_name1, self.summary_stat_value1
-        )
-        self.results_db.update_summary_stat(
-            self.metric_id, self.summary_stat_name2, self.summary_stat_value2
-        )
+        self.results_db.update_summary_stat(self.metric_id, self.summary_stat_name1, self.summary_stat_value1)
+        self.results_db.update_summary_stat(self.metric_id, self.summary_stat_name2, self.summary_stat_value2)
 
     def testget_ids(self):
         mids = self.results_db.get_all_metric_ids()

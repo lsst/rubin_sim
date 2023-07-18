@@ -1,8 +1,10 @@
 import warnings
+
 import numpy as np
 
 from rubin_sim.maf.maps import BaseMap
 from rubin_sim.phot_utils import DustValues
+
 from .ebv_3d_hp import ebv_3d_hp, get_x_at_nearest_y
 
 __all__ = ["DustMap3D"]

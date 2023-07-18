@@ -1,17 +1,15 @@
 import os
-import numpy as np
-from astropy.io import ascii, fits
-import healpy as hp
-from astropy.coordinates import SkyCoord
+
 import astropy.units as u
+import healpy as hp
+import numpy as np
+from astropy.coordinates import SkyCoord
+from astropy.io import ascii, fits
 
 from rubin_sim.data import get_data_dir
-from rubin_sim.maf.slicers import UserPointsSlicer
-from rubin_sim.maf.metrics import BaseMetric
-from rubin_sim.maf.metrics import ExgalM5
-from rubin_sim.maf.metrics import StarDensityMetric
 from rubin_sim.maf.maf_contrib.lss_obs_strategy import GalaxyCountsMetricExtended
-
+from rubin_sim.maf.metrics import BaseMetric, ExgalM5, StarDensityMetric
+from rubin_sim.maf.slicers import UserPointsSlicer
 
 __all__ = [
     "generate_known_lv_dwarf_slicer",
@@ -25,21 +23,15 @@ def generate_known_lv_dwarf_slicer():
     """Read the Karachentsev+ catalog of nearby galaxies, and put the info about them
     into a UserPointSlicer object.
     """
-    filename = os.path.join(
-        get_data_dir(), "maf/lvdwarfs", "lsst_galaxies_1p25to9Mpc_table.fits"
-    )
+    filename = os.path.join(get_data_dir(), "maf/lvdwarfs", "lsst_galaxies_1p25to9Mpc_table.fits")
     lv_dat0 = fits.getdata(filename)
 
     # Keep only galaxies at dec < 35 deg., and with stellar masses > 10^7 M_Sun (and <1e14).
-    lv_dat_cuts = (
-        (lv_dat0["dec"] < 35.0) & (lv_dat0["MStars"] > 1e7) & (lv_dat0["MStars"] < 1e14)
-    )
+    lv_dat_cuts = (lv_dat0["dec"] < 35.0) & (lv_dat0["MStars"] > 1e7) & (lv_dat0["MStars"] < 1e14)
     lv_dat = lv_dat0[lv_dat_cuts]
 
     # Set up the slicer to evaluate the catalog we just made
-    slicer = UserPointsSlicer(
-        lv_dat["ra"], lv_dat["dec"], lat_lon_deg=True, badval=-666
-    )
+    slicer = UserPointsSlicer(lv_dat["ra"], lv_dat["dec"], lat_lon_deg=True, badval=-666)
     # Add any additional information about each object to the slicer
     slicer.slice_points["distance"] = lv_dat["dist_Mpc"]
 
@@ -164,12 +156,8 @@ def _dwarf_sblimit(glim, ilim, nstars, lf_dict_g, lf_dict_i, distlim, rng):
             g_l_fmags0, g_l_fcounts0 = lf_dict_g[mbkey]
             i_l_fcounts = rng.poisson(i_l_fcounts0)
             g_l_fcounts = rng.poisson(g_l_fcounts0)
-            i_l_fmags = (
-                i_l_fmags0 + distmod_lim
-            )  # Add the distance modulus to make it apparent mags
-            g_l_fmags = (
-                g_l_fmags0 + distmod_lim
-            )  # Add the distance modulus to make it apparent mags
+            i_l_fmags = i_l_fmags0 + distmod_lim  # Add the distance modulus to make it apparent mags
+            g_l_fmags = g_l_fmags0 + distmod_lim  # Add the distance modulus to make it apparent mags
             # print(i_l_fcounts0-i_l_fcounts)
             gsel = g_l_fmags <= glim
             isel = i_l_fmags <= ilim
@@ -266,16 +254,10 @@ class LVDwarfsMetric(BaseMetric):
             # If no distance limit specified, assume the intention is to search
             #   around known Local Volume host galaxies.
             self.distlim = None
-            filename = os.path.join(
-                get_data_dir(), "maf/lvdwarfs", "lsst_galaxies_1p25to9Mpc_table.fits"
-            )
+            filename = os.path.join(get_data_dir(), "maf/lvdwarfs", "lsst_galaxies_1p25to9Mpc_table.fits")
             lv_dat0 = fits.getdata(filename)
             # Keep only galaxies at dec < 35 deg., and with stellar masses > 10^7 M_Sun.
-            lv_dat_cuts = (
-                (lv_dat0["dec"] < 35.0)
-                & (lv_dat0["MStars"] > 1e7)
-                & (lv_dat0["MStars"] < 1e14)
-            )
+            lv_dat_cuts = (lv_dat0["dec"] < 35.0) & (lv_dat0["MStars"] > 1e7) & (lv_dat0["MStars"] < 1e14)
             lv_dat = lv_dat0[lv_dat_cuts]
             sc_dat = SkyCoord(
                 ra=lv_dat["ra"] * u.deg,
@@ -301,9 +283,7 @@ class LVDwarfsMetric(BaseMetric):
         cols = [self.m5_col, self.filter_col]
         # GalaxyCountsMetric needs the DustMap, and StarDensityMetric needs StellarDensityMap:
         maps = ["DustMap", "StellarDensityMap"]
-        super().__init__(
-            col=cols, metric_name=metric_name, maps=maps, units="M_V limit", **kwargs
-        )
+        super().__init__(col=cols, metric_name=metric_name, maps=maps, units="M_V limit", **kwargs)
 
         # Set up a random number generator, so that metric results are repeatable
         self.rng = np.random.default_rng(seed)
@@ -351,8 +331,7 @@ class LVDwarfsMetric(BaseMetric):
         # The number of stars required to reach nsigma is nsigma times the Poisson
         #   fluctuations of the background (stars+galaxies contamination):
         nstars_required = self.nsigma * np.sqrt(
-            (ngal_sqarcmin * self.cmd_frac * self.stargal_contamination)
-            + (nstar_sqarcmin * self.cmd_frac)
+            (ngal_sqarcmin * self.cmd_frac * self.stargal_contamination) + (nstar_sqarcmin * self.cmd_frac)
         )
 
         if self.distlim is not None:

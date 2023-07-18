@@ -1,8 +1,8 @@
 from __future__ import print_function
-from builtins import map
-from builtins import str
-from builtins import range
+
 import sys
+from builtins import map, range, str
+
 import numpy as np
 
 __all__ = ["name_sanitize", "print_dict", "print_simple_dict"]
@@ -102,14 +102,8 @@ def print_dict(content, label, filehandle=None, delimiter=" ", _level=0):
         indent += "%s" % (baseindent)
     # Print data (this is also the termination of the recursion if given nested dictionaries).
     if not isinstance(content, dict):
-        if (
-            isinstance(content, str)
-            or isinstance(content, float)
-            or isinstance(content, int)
-        ):
-            print(
-                "%s%s%s%s" % (indent, label, delimiter, str(content)), file=filehandle
-            )
+        if isinstance(content, str) or isinstance(content, float) or isinstance(content, int):
+            print("%s%s%s%s" % (indent, label, delimiter, str(content)), file=filehandle)
         else:
             if isinstance(content, np.ndarray):
                 if content.dtype.names is not None:

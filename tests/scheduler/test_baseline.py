@@ -1,21 +1,17 @@
-import numpy as np
 import os
 import unittest
-from rubin_sim.data import get_data_dir
+
+import numpy as np
+
 import rubin_sim.scheduler.basis_functions as bf
-from rubin_sim.scheduler.utils import standard_goals, calc_norm_factor
-from rubin_sim.scheduler.surveys import (
-    generate_dd_surveys,
-    GreedySurvey,
-    BlobSurvey,
-)
-from rubin_sim.scheduler.schedulers import CoreScheduler
-from rubin_sim.scheduler import sim_runner
-from rubin_sim.scheduler.model_observatory import ModelObservatory
 import rubin_sim.scheduler.detailers as detailers
-from rubin_sim.scheduler.example import example_scheduler
 from rubin_sim.data import get_data_dir
-import os
+from rubin_sim.scheduler import sim_runner
+from rubin_sim.scheduler.example import example_scheduler
+from rubin_sim.scheduler.model_observatory import ModelObservatory
+from rubin_sim.scheduler.schedulers import CoreScheduler
+from rubin_sim.scheduler.surveys import BlobSurvey, GreedySurvey, generate_dd_surveys
+from rubin_sim.scheduler.utils import calc_norm_factor, standard_goals
 
 SAMPLE_BIG_DATA_FILE = os.path.join(get_data_dir(), "maps/DustMaps/dust_nside_32.npz")
 
@@ -42,11 +38,7 @@ def gen_greedy_surveys(nside):
         bfs.append(bf.SlewtimeBasisFunction(filtername=filtername, nside=nside))
         bfs.append(bf.StrictFilterBasisFunction(filtername=filtername))
         # Masks, give these 0 weight
-        bfs.append(
-            bf.ZenithShadowMaskBasisFunction(
-                nside=nside, shadow_minutes=60.0, max_alt=76.0
-            )
-        )
+        bfs.append(bf.ZenithShadowMaskBasisFunction(nside=nside, shadow_minutes=60.0, max_alt=76.0))
         bfs.append(bf.MoonAvoidanceBasisFunction(nside=nside, moon_distance=30.0))
         bfs.append(bf.CloudedOutBasisFunction())
 
@@ -107,11 +99,7 @@ def gen_blob_surveys(nside):
         bfs.append(bf.SlewtimeBasisFunction(filtername=filtername, nside=nside))
         bfs.append(bf.StrictFilterBasisFunction(filtername=filtername))
         # Masks, give these 0 weight
-        bfs.append(
-            bf.ZenithShadowMaskBasisFunction(
-                nside=nside, shadow_minutes=60.0, max_alt=76.0
-            )
-        )
+        bfs.append(bf.ZenithShadowMaskBasisFunction(nside=nside, shadow_minutes=60.0, max_alt=76.0))
         bfs.append(bf.MoonAvoidanceBasisFunction(nside=nside, moon_distance=30.0))
         bfs.append(bf.CloudedOutBasisFunction())
         # feasibility basis fucntions. Also give zero weight.
@@ -121,9 +109,7 @@ def gen_blob_surveys(nside):
         bfs.append(bf.NotTwilightBasisFunction())
         bfs.append(bf.PlanetMaskBasisFunction(nside=nside))
 
-        weights = np.array(
-            [3.0, 3.0, 0.3, 0.3, 3.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        )
+        weights = np.array([3.0, 3.0, 0.3, 0.3, 3.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         if filtername2 is None:
             # Need to scale weights up so filter balancing still works properly.
             weights = np.array([6.0, 0.6, 3.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
@@ -149,9 +135,7 @@ def gen_blob_surveys(nside):
 
 
 class TestExample(unittest.TestCase):
-    @unittest.skipUnless(
-        os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available."
-    )
+    @unittest.skipUnless(os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available.")
     def test_example(self):
         """Try out the example scheduler."""
         mjd_start = 60115.0
@@ -173,9 +157,7 @@ class TestExample(unittest.TestCase):
 
 
 class TestFeatures(unittest.TestCase):
-    @unittest.skipUnless(
-        os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available."
-    )
+    @unittest.skipUnless(os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available.")
     def test_greedy(self):
         """
         Set up a greedy survey and run for a few days. A crude way to touch lots of code.
@@ -205,9 +187,7 @@ class TestFeatures(unittest.TestCase):
         # Make sure nothing tried to look through the earth
         assert np.min(observations["alt"]) > 0
 
-    @unittest.skipUnless(
-        os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available."
-    )
+    @unittest.skipUnless(os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available.")
     def test_blobs(self):
         """
         Set up a blob selection survey
@@ -240,9 +220,7 @@ class TestFeatures(unittest.TestCase):
         # Make sure nothing tried to look through the earth
         assert np.min(observations["alt"]) > 0
 
-    @unittest.skipUnless(
-        os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available."
-    )
+    @unittest.skipUnless(os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available.")
     def test_nside(self):
         """
         test running at higher nside

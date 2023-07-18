@@ -3,34 +3,30 @@
 # to consider various survey strategies, mask shallow borders, create/save/show relevant plots, do
 # an alm analysis, and save data.
 
+import copy
+import os
+
+import healpy as hp
+import matplotlib.pyplot as plt
+
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
 import numpy as np
-import os
-import healpy as hp
-import copy
-from matplotlib.ticker import FuncFormatter
-from matplotlib.ticker import MaxNLocator
-
-import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter, MaxNLocator
 
 import rubin_sim.maf.db as db
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.plots as plots
-import rubin_sim.maf.metric_bundles as metricBundles
 import rubin_sim.maf.maps as maps
+import rubin_sim.maf.metric_bundles as metricBundles
+import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.plots as plots
+import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as mafStackers  # stackers in sims_maf
-
+from rubin_sim.maf.maf_contrib.lss_obs_strategy.alm_plots import alm_plots
+from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import plot_color
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.masking_algorithm_generalized import (
     masking_algorithm_generalized,
 )
-from rubin_sim.maf.maf_contrib.lss_obs_strategy.alm_plots import alm_plots
-from rubin_sim.maf.maf_contrib.lss_obs_strategy.save_bundle_data_npz_format import (
-    save_bundle_data_npz_format,
-)
-
-from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import plot_color
+from rubin_sim.maf.maf_contrib.lss_obs_strategy.save_bundle_data_npz_format import save_bundle_data_npz_format
 
 __all__ = ["coadd_m5_analysis"]
 
@@ -170,17 +166,14 @@ def coadd_m5_analysis(
     if wf_dand_dd_fs:
         region_type = "WFDandDDFs_"
 
-    out_dir = (
-        "coaddM5Analysis_%snside%s_%s_%spixelRadiusForMasking_%sBand_%s_%s_directory"
-        % (
-            region_type,
-            nside,
-            dust_tag,
-            pixel_radius_for_masking,
-            filter_band,
-            run_name,
-            zeropt_tag,
-        )
+    out_dir = "coaddM5Analysis_%snside%s_%s_%spixelRadiusForMasking_%sBand_%s_%s_directory" % (
+        region_type,
+        nside,
+        dust_tag,
+        pixel_radius_for_masking,
+        filter_band,
+        run_name,
+        zeropt_tag,
     )
     print("# out_dir: %s" % out_dir)
     results_db = db.ResultsDb(out_dir=out_dir)
@@ -226,9 +219,7 @@ def coadd_m5_analysis(
 
     if best_dith_only:
         stacker_list["RandomDitherFieldPerVisit"] = [
-            mafStackers.RandomDitherFieldPerVisitStacker(
-                degrees=ra_dec_in_deg, random_seed=1000
-            )
+            mafStackers.RandomDitherFieldPerVisitStacker(degrees=ra_dec_in_deg, random_seed=1000)
         ]
         slicer["RandomDitherFieldPerVisit"] = slicers.HealpixSlicer(
             lon_col="randomDitherFieldPerVisitRa",
@@ -278,19 +269,13 @@ def coadd_m5_analysis(
         elif not no_dith_only:
             # random dithers on different timescales
             stacker_list["RandomDitherPerNight"] = [
-                mafStackers.RandomDitherPerNightStacker(
-                    degrees=ra_dec_in_deg, random_seed=1000
-                )
+                mafStackers.RandomDitherPerNightStacker(degrees=ra_dec_in_deg, random_seed=1000)
             ]
             stacker_list["RandomDitherFieldPerNight"] = [
-                mafStackers.RandomDitherFieldPerNightStacker(
-                    degrees=ra_dec_in_deg, random_seed=1000
-                )
+                mafStackers.RandomDitherFieldPerNightStacker(degrees=ra_dec_in_deg, random_seed=1000)
             ]
             stacker_list["RandomDitherFieldPerVisit"] = [
-                mafStackers.RandomDitherFieldPerVisitStacker(
-                    degrees=ra_dec_in_deg, random_seed=1000
-                )
+                mafStackers.RandomDitherFieldPerVisitStacker(degrees=ra_dec_in_deg, random_seed=1000)
             ]
 
             # rep random dithers on different timescales
@@ -467,9 +452,7 @@ def coadd_m5_analysis(
     c_group.run_all()
 
     # ------------------------------------------------------------------------
-    plot_handler = plots.PlotHandler(
-        out_dir=out_dir, results_db=results_db, thumbnail=False, savefig=False
-    )
+    plot_handler = plots.PlotHandler(out_dir=out_dir, results_db=results_db, thumbnail=False, savefig=False)
 
     print("# Number of pixels in the survey region (before masking the border):")
     for dither in coadd_bundle:
@@ -514,8 +497,7 @@ def coadd_m5_analysis(
         coadd_bundle[dither].set_summary_metrics(summarymetric)
         coadd_bundle[dither].compute_summary_stats()
         print(
-            "# Total power for %s case is %f."
-            % (dither, coadd_bundle[dither].summary_values["TotalPower"])
+            "# Total power for %s case is %f." % (dither, coadd_bundle[dither].summary_values["TotalPower"])
         )
     print("")
 
@@ -559,9 +541,7 @@ def coadd_m5_analysis(
             if dither in coadd_bundle:
                 cl[dither] = hp.anafast(
                     hp.remove_dipole(
-                        coadd_bundle[dither].metricValues.filled(
-                            coadd_bundle[dither].slicer.badval
-                        )
+                        coadd_bundle[dither].metricValues.filled(coadd_bundle[dither].slicer.badval)
                     ),
                     lmax=500,
                 )

@@ -1,15 +1,15 @@
-import unittest
-import numpy as np
 import os
-import pandas as pd
+import unittest
 from tempfile import TemporaryDirectory
 
-import palpy
 import healpy
+import numpy as np
+import palpy
+import pandas as pd
 
 import rubin_sim.skybrightness_pre.zernike as zernike
-from rubin_sim.skybrightness_pre.zernike.zernike import TELESCOPE
 from rubin_sim.data import get_data_dir
+from rubin_sim.skybrightness_pre.zernike.zernike import TELESCOPE
 
 
 class TestZenikeFitDrivers(unittest.TestCase):
@@ -20,12 +20,8 @@ class TestZenikeFitDrivers(unittest.TestCase):
 
     #    @unittest.skip("skipping test_fit_pre")
     def test_fit_pre(self):
-        npy_fname = os.path.join(
-            self.cut_pre_data_dir, self.test_data_base_fname + ".npy"
-        )
-        npz_fname = os.path.join(
-            self.cut_pre_data_dir, self.test_data_base_fname + ".npz"
-        )
+        npy_fname = os.path.join(self.cut_pre_data_dir, self.test_data_base_fname + ".npy")
+        npz_fname = os.path.join(self.cut_pre_data_dir, self.test_data_base_fname + ".npz")
         zernike_coeffs = zernike.fit_pre(npy_fname, npz_fname)
         self.assertGreater(zernike_coeffs.shape[0], 5)
         self.assertGreater(zernike_coeffs.shape[1], 20)
@@ -73,9 +69,7 @@ class TestZernikeSky(unittest.TestCase):
         gmst_rad = palpy.gmst(mjd)
         lst_rad = gmst_rad + TELESCOPE.longitude_rad
         ha_rad = lst_rad - np.radians(ra)
-        az_rad, alt_rad = palpy.de2hVector(
-            ha_rad, np.radians(decl), TELESCOPE.latitude_rad
-        )
+        az_rad, alt_rad = palpy.de2hVector(ha_rad, np.radians(decl), TELESCOPE.latitude_rad)
         visible_ipix = sphere_ipix[np.degrees(alt_rad) > 30]
         sample_hpix = pd.Series(visible_ipix).sample(5)
         hp_brightnesses = zsky.compute_healpix(sample_hpix, mjd)

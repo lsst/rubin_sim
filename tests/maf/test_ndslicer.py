@@ -1,8 +1,10 @@
-import warnings
-import numpy as np
-import numpy.lib.recfunctions as rfn
 import itertools
 import unittest
+import warnings
+
+import numpy as np
+import numpy.lib.recfunctions as rfn
+
 from rubin_sim.maf.slicers import NDSlicer, UniSlicer
 
 
@@ -19,9 +21,7 @@ def make_data_values(size=100, min=0.0, max=1.0, nd=3, random=-1):
             randorder = rng.rand(size)
             randind = np.argsort(randorder)
             datavalues = datavalues[randind]
-        datavalues = np.array(
-            list(zip(datavalues)), dtype=[("testdata" + "%d" % (d), "float")]
-        )
+        datavalues = np.array(list(zip(datavalues)), dtype=[("testdata" + "%d" % (d), "float")])
         data.append(datavalues)
     data = rfn.merge_arrays(data, flatten=True, usemask=False)
     return data
@@ -59,9 +59,7 @@ class TestNDSlicerSetup(unittest.TestCase):
         """Test setting up slicer using nbins."""
         for nvalues in (100, 1000):
             for nbins in (5, 25, 74):
-                dv = make_data_values(
-                    nvalues, self.dvmin, self.dvmax, self.nd, random=-1
-                )
+                dv = make_data_values(nvalues, self.dvmin, self.dvmax, self.nd, random=-1)
                 # Right number of bins?
                 # expect one more 'bin' to accomodate last right edge, but nbins accounts for this
                 testslicer = NDSlicer(self.dvlist, bins_list=nbins)
@@ -98,16 +96,12 @@ class TestNDSlicerSetup(unittest.TestCase):
         """Test setting up slicer using defined bins and nbins is equal where expected."""
         for nbins in (20, 105):
             testslicer = NDSlicer(self.dvlist, bins_list=nbins)
-            bins = make_data_values(
-                nbins + 1, self.dvmin, self.dvmax, self.nd, random=-1
-            )
+            bins = make_data_values(nbins + 1, self.dvmin, self.dvmax, self.nd, random=-1)
             bins_list = []
             for i in bins.dtype.names:
                 bins_list.append(bins[i])
             for nvalues in (100, 10000):
-                dv = make_data_values(
-                    nvalues, self.dvmin, self.dvmax, self.nd, random=64432
-                )
+                dv = make_data_values(nvalues, self.dvmin, self.dvmax, self.nd, random=64432)
                 testslicer.setup_slicer(dv)
                 for i in range(self.nd):
                     np.testing.assert_allclose(testslicer.bins[i], bins_list[i])
@@ -119,9 +113,7 @@ class TestNDSlicerEqual(unittest.TestCase):
         self.dvmax = 1
         nvalues = 1000
         self.nd = 3
-        self.dv = make_data_values(
-            nvalues, self.dvmin, self.dvmax, self.nd, random=20367
-        )
+        self.dv = make_data_values(nvalues, self.dvmin, self.dvmax, self.nd, random=20367)
         self.dvlist = self.dv.dtype.names
         self.testslicer = NDSlicer(self.dvlist, bins_list=100)
         self.testslicer.setup_slicer(self.dv)
@@ -141,9 +133,7 @@ class TestNDSlicerEqual(unittest.TestCase):
         testslicer2.setup_slicer(dv2)
         self.assertEqual(self.testslicer, testslicer2)
         # Set up another slicer that should not match (different bins)
-        dv2 = make_data_values(
-            1000, self.dvmin + 1, self.dvmax + 1, self.nd, random=209837
-        )
+        dv2 = make_data_values(1000, self.dvmin + 1, self.dvmax + 1, self.nd, random=209837)
         testslicer2 = NDSlicer(slice_col_list=dvlist, bins_list=100)
         testslicer2.setup_slicer(dv2)
         self.assertNotEqual(self.testslicer, testslicer2)
@@ -165,9 +155,7 @@ class TestNDSlicerIteration(unittest.TestCase):
         self.dvmax = 1
         nvalues = 1000
         self.nd = 3
-        self.dv = make_data_values(
-            nvalues, self.dvmin, self.dvmax, self.nd, random=11081
-        )
+        self.dv = make_data_values(nvalues, self.dvmin, self.dvmax, self.nd, random=11081)
         self.dvlist = self.dv.dtype.names
         nvalues = 1000
         bins = np.arange(self.dvmin, self.dvmax, 0.1)
@@ -230,9 +218,7 @@ class TestNDSlicerSlicing(unittest.TestCase):
                 data_slice = dv[idxs]
                 sum += len(idxs)
                 if len(data_slice) > 0:
-                    for i, dvname, b in zip(
-                        list(range(self.nd)), self.dvlist, s["slice_point"]["bin_left"]
-                    ):
+                    for i, dvname, b in zip(list(range(self.nd)), self.dvlist, s["slice_point"]["bin_left"]):
                         self.assertGreaterEqual((data_slice[dvname].min() - b), 0)
                     if i < self.testslicer.nslice - 1:
                         self.assertLessEqual((data_slice[dvname].max() - b), bin_size)

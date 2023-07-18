@@ -1,18 +1,20 @@
 import os
 import sys
+import warnings
+from collections import OrderedDict
+
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.ma as ma
-import matplotlib.pyplot as plt
-from collections import OrderedDict
 import tqdm
 
+import rubin_sim.maf.db as db
+import rubin_sim.maf.maps as maps
 import rubin_sim.maf.utils as utils
 from rubin_sim.maf.plots import PlotHandler
-import rubin_sim.maf.maps as maps
-import rubin_sim.maf.db as db
 from rubin_sim.maf.stackers import BaseDitherStacker
+
 from .metric_bundle import MetricBundle, create_empty_metric_bundle
-import warnings
 
 __all__ = ["make_bundles_dict_from_list", "MetricBundleGroup"]
 
@@ -30,10 +32,7 @@ def make_bundles_dict_from_list(bundle_list):
     b_dict = {}
     for b in bundle_list:
         if b.file_root in b_dict:
-            raise NameError(
-                "More than one metricBundle is using the same fileroot, %s"
-                % (b.file_root)
-            )
+            raise NameError("More than one metricBundle is using the same fileroot, %s" % (b.file_root))
         b_dict[b.file_root] = b
     return b_dict
 
@@ -106,9 +105,7 @@ class MetricBundleGroup(object):
 
         # Do some type checking on the MetricBundle dictionary.
         if not isinstance(bundle_dict, dict):
-            raise ValueError(
-                "bundleDict should be a dictionary containing MetricBundle objects."
-            )
+            raise ValueError("bundleDict should be a dictionary containing MetricBundle objects.")
         for b in bundle_dict.values():
             if not isinstance(b, MetricBundle):
                 raise ValueError("bundleDict should contain only MetricBundle objects.")
@@ -157,9 +154,7 @@ class MetricBundleGroup(object):
         for stacker in metric_bundle1.stacker_list:
             for stacker2 in metric_bundle2.stacker_list:
                 # If the stackers have different names, that's OK, and if they are identical, that's ok.
-                if (stacker.__class__.__name__ == stacker2.__class__.__name__) & (
-                    stacker != stacker2
-                ):
+                if (stacker.__class__.__name__ == stacker2.__class__.__name__) & (stacker != stacker2):
                     return False
         # But if we got this far, everything matches.
         return True
@@ -174,17 +169,13 @@ class MetricBundleGroup(object):
             found_compatible = False
             for compatible_list in compatible_lists:
                 comparison_metric_bundle_key = compatible_list[0]
-                compatible = self._check_compatible(
-                    self.bundle_dict[comparison_metric_bundle_key], b
-                )
+                compatible = self._check_compatible(self.bundle_dict[comparison_metric_bundle_key], b)
                 if compatible:
                     # Must compare all metricBundles in each subset (if they are a potential match),
                     #  as the stackers could be different (and one could be incompatible,
                     #  not necessarily the first)
                     for comparison_metric_bundle_key in compatible_list[1:]:
-                        compatible = self._check_compatible(
-                            self.bundle_dict[comparison_metric_bundle_key], b
-                        )
+                        compatible = self._check_compatible(self.bundle_dict[comparison_metric_bundle_key], b)
                         if not compatible:
                             # If we find one which is not compatible, stop and go on to the
                             # next subset list.
@@ -292,8 +283,7 @@ class MetricBundleGroup(object):
                 metrics_skipped = []
                 for b in self.current_bundle_dict.values():
                     metrics_skipped.append(
-                        "%s : %s : %s"
-                        % (b.metric.name, b.info_label, b.slicer.slicer_name)
+                        "%s : %s : %s" % (b.metric.name, b.info_label, b.slicer.slicer_name)
                     )
                 warnings.warn(" This means skipping metrics %s" % metrics_skipped)
                 return
@@ -305,8 +295,7 @@ class MetricBundleGroup(object):
                 metrics_skipped = []
                 for b in self.current_bundle_dict.values():
                     metrics_skipped.append(
-                        "%s : %s : %s"
-                        % (b.metric.name, b.info_label, b.slicer.slicer_name)
+                        "%s : %s : %s" % (b.metric.name, b.info_label, b.slicer.slicer_name)
                     )
                 warnings.warn(" This means skipping metrics %s" % metrics_skipped)
                 return
@@ -357,10 +346,7 @@ class MetricBundleGroup(object):
         """
         if self.verbose:
             if constraint == "":
-                print(
-                    "Querying table %s with no constraint for columns %s."
-                    % (self.db_table, self.db_cols)
-                )
+                print("Querying table %s with no constraint for columns %s." % (self.db_table, self.db_cols))
             else:
                 print(
                     "Querying table %s with constraint %s for columns %s"
@@ -481,9 +467,7 @@ class MetricBundleGroup(object):
                         use_cache = False
                     for b in b_dict.values():
                         if use_cache:
-                            b.metric_values.data[i] = b.metric_values.data[
-                                cache_dict[cache_key]
-                            ]
+                            b.metric_values.data[i] = b.metric_values.data[cache_dict[cache_key]]
                         else:
                             b.metric_values.data[i] = b.metric.run(
                                 slicedata, slice_point=slice_i["slice_point"]
@@ -556,18 +540,14 @@ class MetricBundleGroup(object):
             if len(b.metric.reduce_funcs) > 0:
                 # Apply reduce functions, creating a new metricBundle in the process (new metric values).
                 for r in b.metric.reduce_funcs:
-                    newmetricbundle = b.reduce_metric(
-                        b.metric.reduce_funcs[r], reduce_func_name=r
-                    )
+                    newmetricbundle = b.reduce_metric(b.metric.reduce_funcs[r], reduce_func_name=r)
                     # Add the new metricBundle to our metricBundleGroup dictionary.
                     name = newmetricbundle.metric.name
                     if name in self.bundle_dict:
                         name = newmetricbundle.file_root
                     reduce_bundle_dict[name] = newmetricbundle
                     if self.save_early:
-                        newmetricbundle.write(
-                            out_dir=self.out_dir, results_db=self.results_db
-                        )
+                        newmetricbundle.write(out_dir=self.out_dir, results_db=self.results_db)
                     else:
                         newmetricbundle.write_db(results_db=self.results_db)
                 # Remove summaryMetrics from top level metricbundle if desired.
@@ -744,9 +724,7 @@ class MetricBundleGroup(object):
                 if self.verbose:
                     print("Read %s from disk." % (bundle.file_root))
             except IOError:
-                warnings.warn(
-                    "Warning: file %s not found, bundle not restored." % filename
-                )
+                warnings.warn("Warning: file %s not found, bundle not restored." % filename)
                 remove_bundles.append(b)
 
             # Look to see if this is a complex metric, with associated 'reduce' functions,
@@ -754,11 +732,7 @@ class MetricBundleGroup(object):
             if len(bundle.metric.reduce_funcs) > 0:
                 orig_metric_name = bundle.metric.name
                 for reduce_func in bundle.metric.reduce_funcs.values():
-                    reduce_name = (
-                        orig_metric_name
-                        + "_"
-                        + reduce_func.__name__.replace("reduce", "")
-                    )
+                    reduce_name = orig_metric_name + "_" + reduce_func.__name__.replace("reduce", "")
                     # Borrow the fileRoot in b (we'll reset it appropriately afterwards).
                     bundle.metric.name = reduce_name
                     bundle._build_file_root()
@@ -784,9 +758,7 @@ class MetricBundleGroup(object):
                             plot_funcs=bundle.plot_funcs,
                         )
                         newmetric_bundle.metric.name = reduce_name
-                        newmetric_bundle.metric_values = ma.copy(
-                            tmp_bundle.metric_values
-                        )
+                        newmetric_bundle.metric_values = ma.copy(tmp_bundle.metric_values)
                         # Add the new metricBundle to our metricBundleGroup dictionary.
                         name = newmetric_bundle.metric.name
                         if name in self.bundle_dict:
@@ -796,8 +768,7 @@ class MetricBundleGroup(object):
                             print("Read %s from disk." % (newmetric_bundle.file_root))
                     except IOError:
                         warnings.warn(
-                            'Warning: file %s not found, bundle not restored ("reduce" metric).'
-                            % filename
+                            'Warning: file %s not found, bundle not restored ("reduce" metric).' % filename
                         )
 
                     # Remove summaryMetrics from top level metricbundle.

@@ -1,5 +1,6 @@
-import numpy as np
 import warnings
+
+import numpy as np
 
 __all__ = ["spatially_sample_obsmetadata", "sample_patch_on_sphere", "uniform_sphere"]
 
@@ -34,9 +35,7 @@ def spatially_sample_obsmetadata(obsmetadata, size=1, seed=1):
             'bound_type="box", despite diff bound_type specified\n'
         )
     equalrange = obsmetadata.bound_length
-    ravals, thetavals = sample_patch_on_sphere(
-        phi=phi, theta=theta, delta=equalrange, size=size, seed=seed
-    )
+    ravals, thetavals = sample_patch_on_sphere(phi=phi, theta=theta, delta=equalrange, size=size, seed=seed)
     return ravals, thetavals
 
 

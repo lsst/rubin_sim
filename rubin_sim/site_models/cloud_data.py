@@ -1,7 +1,9 @@
 import os
 import sqlite3
+
 import numpy as np
 from astropy.time import Time
+
 from rubin_sim.data import get_data_dir
 
 __all__ = ["CloudData"]
@@ -30,9 +32,7 @@ class CloudData(object):
     def __init__(self, start_time, cloud_db=None, offset_year=0, scale=1e6):
         self.cloud_db = cloud_db
         if self.cloud_db is None:
-            self.cloud_db = os.path.join(
-                get_data_dir(), "site_models", "clouds_ctio_1975_2022.db"
-            )
+            self.cloud_db = os.path.join(get_data_dir(), "site_models", "clouds_ctio_1975_2022.db")
 
         # Cloud database starts in Jan 01 of the year of the start of the simulation.
         year_start = start_time.datetime.year + offset_year

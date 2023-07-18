@@ -1,13 +1,16 @@
 import os
+
 import matplotlib
 
 matplotlib.use("Agg")
-import numpy as np
 import unittest
-from rubin_sim.data import get_data_dir
+
+import numpy as np
+
+import rubin_sim.maf.metric_bundles as metricBundle
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metric_bundles as metricBundle
+from rubin_sim.data import get_data_dir
 
 
 class Test2D(unittest.TestCase):
@@ -51,9 +54,7 @@ class Test2D(unittest.TestCase):
         self.field_data["fieldDec"] = np.radians([0.0, -20.0])
 
         self.sim_data["observationStartMJD"] = self.sim_data["night"]
-        self.camera_footprint_file = os.path.join(
-            get_data_dir(), "tests", "fov_map.npz"
-        )
+        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
 
     def test_user_points2d_slicer(self):
         metric = metrics.AccumulateCountMetric(bins=[0.5, 1.5, 2.5])
@@ -76,9 +77,7 @@ class Test2D(unittest.TestCase):
 
     def test_healpix2d_slicer(self):
         metric = metrics.AccumulateCountMetric(bins=[0.5, 1.5, 2.5])
-        slicer = slicers.HealpixSlicer(
-            nside=16, camera_footprint_file=self.camera_footprint_file
-        )
+        slicer = slicers.HealpixSlicer(nside=16, camera_footprint_file=self.camera_footprint_file)
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
@@ -93,9 +92,7 @@ class Test2D(unittest.TestCase):
 
     def test_histogram_metric(self):
         metric = metrics.HistogramMetric(bins=[0.5, 1.5, 2.5])
-        slicer = slicers.HealpixSlicer(
-            nside=16, camera_footprint_file=self.camera_footprint_file
-        )
+        slicer = slicers.HealpixSlicer(nside=16, camera_footprint_file=self.camera_footprint_file)
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
@@ -109,9 +106,7 @@ class Test2D(unittest.TestCase):
         assert np.array_equal(mb.metric_values.data[good, :], expected)
 
         # Check that I can run a different statistic
-        metric = metrics.HistogramMetric(
-            col="fiveSigmaDepth", statistic="sum", bins=[0.5, 1.5, 2.5]
-        )
+        metric = metrics.HistogramMetric(col="fiveSigmaDepth", statistic="sum", bins=[0.5, 1.5, 2.5])
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
         mb.stacker_list = []
@@ -123,9 +118,7 @@ class Test2D(unittest.TestCase):
 
     def test_accumulate_metric(self):
         metric = metrics.AccumulateMetric(col="fiveSigmaDepth", bins=[0.5, 1.5, 2.5])
-        slicer = slicers.HealpixSlicer(
-            nside=16, camera_footprint_file=self.camera_footprint_file
-        )
+        slicer = slicers.HealpixSlicer(nside=16, camera_footprint_file=self.camera_footprint_file)
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
@@ -134,16 +127,12 @@ class Test2D(unittest.TestCase):
         mbg.set_current("")
         mbg.run_current("", sim_data=self.sim_data)
         good = np.where(mb.metric_values.mask[:, -1] == False)[0]
-        expected = np.array(
-            [[self.n1 * self.m5_1, self.n1 * self.m5_1], [-666.0, self.n2 * self.m5_2]]
-        )
+        expected = np.array([[self.n1 * self.m5_1, self.n1 * self.m5_1], [-666.0, self.n2 * self.m5_2]])
         assert np.array_equal(mb.metric_values.data[good, :], expected)
 
     def test_histogram_m5_metric(self):
         metric = metrics.HistogramM5Metric(bins=[0.5, 1.5, 2.5])
-        slicer = slicers.HealpixSlicer(
-            nside=16, camera_footprint_file=self.camera_footprint_file
-        )
+        slicer = slicers.HealpixSlicer(nside=16, camera_footprint_file=self.camera_footprint_file)
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
@@ -151,10 +140,7 @@ class Test2D(unittest.TestCase):
         mbg = metricBundle.MetricBundleGroup({0: mb}, None, save_early=False)
         mbg.set_current("")
         mbg.run_current("", sim_data=self.sim_data)
-        good = np.where(
-            (mb.metric_values.mask[:, 0] == False)
-            | (mb.metric_values.mask[:, 1] == False)
-        )[0]
+        good = np.where((mb.metric_values.mask[:, 0] == False) | (mb.metric_values.mask[:, 1] == False))[0]
 
         check_metric = metrics.Coaddm5Metric()
         temp_slice = np.zeros(self.n1, dtype=list(zip(["fiveSigmaDepth"], [float])))
@@ -169,9 +155,7 @@ class Test2D(unittest.TestCase):
 
     def test_accumulate_m5_metric(self):
         metric = metrics.AccumulateM5Metric(bins=[0.5, 1.5, 2.5])
-        slicer = slicers.HealpixSlicer(
-            nside=16, camera_footprint_file=self.camera_footprint_file
-        )
+        slicer = slicers.HealpixSlicer(nside=16, camera_footprint_file=self.camera_footprint_file)
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
@@ -223,9 +207,7 @@ class Test2D(unittest.TestCase):
         """
         bundle_list = []
         metric = metrics.AccumulateM5Metric(bins=[0.5, 1.5, 2.5])
-        slicer = slicers.HealpixSlicer(
-            nside=16, camera_footprint_file=self.camera_footprint_file
-        )
+        slicer = slicers.HealpixSlicer(nside=16, camera_footprint_file=self.camera_footprint_file)
         sql = ""
         bundle_list.append(metricBundle.MetricBundle(metric, slicer, sql))
         metric = metrics.Coaddm5Metric()

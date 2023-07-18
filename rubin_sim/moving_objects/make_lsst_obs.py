@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-import os
 import argparse
 import logging
+import os
+
 import numpy as np
 
 import rubin_sim.moving_objects as mo
@@ -26,9 +27,7 @@ def setup_args(parser=None):
     """
 
     if parser is None:
-        parser = argparse.ArgumentParser(
-            description="Generate moving object detections."
-        )
+        parser = argparse.ArgumentParser(description="Generate moving object detections.")
     parser.add_argument(
         "--simulation_db",
         type=str,
@@ -118,8 +117,7 @@ def setup_args(parser=None):
         "--obs_code",
         type=str,
         default="I11",
-        help="Observatory code for generating observations. "
-        "Default is I11 (Cerro Pachon).",
+        help="Observatory code for generating observations. " "Default is I11 (Cerro Pachon).",
     )
     parser.add_argument(
         "--t_step",
@@ -172,9 +170,7 @@ def setup_args(parser=None):
 
     # Set up obs_file if not specified.
     if args.output_file is None:
-        args.output_file = os.path.join(
-            args.out_dir, "%s__%s_obs.npz" % (run_name, args.orbitbase)
-        )
+        args.output_file = os.path.join(args.out_dir, "%s__%s_obs.npz" % (run_name, args.orbitbase))
     else:
         args.output_file = os.path.join(args.out_dir, args.output_file)
 

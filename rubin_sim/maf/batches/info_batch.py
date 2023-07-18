@@ -1,24 +1,19 @@
 import numpy as np
+
 import rubin_sim.maf.batches as batches
 
 __all__ = ["metadata_bundle_dicts"]
 
 
-def metadata_bundle_dicts(
-    allsky_slicer, wfd_slicer, opsim="opsim", colmap=batches.col_map_dict("FBS")
-):
+def metadata_bundle_dicts(allsky_slicer, wfd_slicer, opsim="opsim", colmap=batches.col_map_dict("FBS")):
     # Set up the bundle dicts
     # Some of these metrics are reproduced in other scripts - srd and cadence
     bdict = {}
 
     for tag, slicer in zip(["All sky", "WFD"], [allsky_slicer, wfd_slicer]):
-        fO = batches.fOBatch(
-            colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag
-        )
+        fO = batches.fOBatch(colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag)
         bdict.update(fO)
-        astrometry = batches.astrometryBatch(
-            colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag
-        )
+        astrometry = batches.astrometryBatch(colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag)
         bdict.update(astrometry)
         rapidrevisit = batches.rapidRevisitBatch(
             colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag
@@ -27,42 +22,30 @@ def metadata_bundle_dicts(
 
     # Intranight (pairs/time)
     for tag, slicer in zip(["All sky", "WFD"], [allsky_slicer, wfd_slicer]):
-        intranight = batches.intraNight(
-            colmap, opsim, slicer=slicer, extraInfoLabel=tag
-        )
+        intranight = batches.intraNight(colmap, opsim, slicer=slicer, extraInfoLabel=tag)
         bdict.update(intranight)
 
     # Internight (nights between visits)
     for tag, slicer in zip(["All sky", "WFD"], [allsky_slicer, wfd_slicer]):
-        internight = batches.interNight(
-            colmap, opsim, slicer=slicer, extraInfoLabel=tag
-        )
+        internight = batches.interNight(colmap, opsim, slicer=slicer, extraInfoLabel=tag)
         bdict.update(internight)
 
     # Intraseason (length of season)
     for tag, slicer in zip(["All sky", "WFD"], [allsky_slicer, wfd_slicer]):
-        season = batches.seasons(
-            colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag
-        )
+        season = batches.seasons(colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag)
         bdict.update(season)
 
     # Run all metadata metrics, All and just WFD.
     for tag, slicer in zip(["All sky", "WFD"], [allsky_slicer, wfd_slicer]):
-        bdict.update(
-            batches.allMetadata(colmap, opsim, slicer=slicer, extraInfoLabel=tag)
-        )
+        bdict.update(batches.allMetadata(colmap, opsim, slicer=slicer, extraInfoLabel=tag))
 
     # And run some metadata for the first year only - all sky
     bdict.update(batches.firstYearMetadata(colmap, opsim, slicer=allsky_slicer))
 
     # Nvisits + m5 maps + Teff maps, All and just WFD.
     for tag, slicer in zip(["All sky", "WFD"], [allsky_slicer, wfd_slicer]):
-        bdict.update(
-            batches.nvisitsM5Maps(colmap, opsim, slicer=slicer, extraInfoLabel=tag)
-        )
-        bdict.update(
-            batches.tEffMetrics(colmap, opsim, slicer=slicer, extraInfoLabel=tag)
-        )
+        bdict.update(batches.nvisitsM5Maps(colmap, opsim, slicer=slicer, extraInfoLabel=tag))
+        bdict.update(batches.tEffMetrics(colmap, opsim, slicer=slicer, extraInfoLabel=tag))
 
     # And number of visits for the first year and then halfway through the survey
     bdict.update(

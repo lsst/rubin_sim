@@ -1,9 +1,9 @@
-import unittest
-import numpy as np
 import numbers
+import unittest
 
-from rubin_sim.utils import _FactorialGenerator
-from rubin_sim.utils import ZernikePolynomialGenerator
+import numpy as np
+
+from rubin_sim.utils import ZernikePolynomialGenerator, _FactorialGenerator
 
 
 class FactorialTestCase(unittest.TestCase):
@@ -102,9 +102,7 @@ class ZernikeTestCase(unittest.TestCase):
         self.assertFalse(np.isnan(vv[1]))
         vv = z_gen.evaluate_xy(1.1, 1.2, 4, -2)
         self.assertTrue(np.isnan(vv))
-        vv = z_gen.evaluate_xy(
-            np.array([0.1, 0.2, 0.3]), np.array([0.1, 1.0, 0.1]), 4, 2
-        )
+        vv = z_gen.evaluate_xy(np.array([0.1, 0.2, 0.3]), np.array([0.1, 1.0, 0.1]), 4, 2)
         self.assertTrue(np.isnan(vv[1]))
         self.assertFalse(np.isnan(vv[0]))
         self.assertFalse(np.isnan(vv[2]))
@@ -170,9 +168,7 @@ class ZernikeTestCase(unittest.TestCase):
         np.testing.assert_array_equal(ans, np.zeros(2, dtype=float))
         ans = z_gen.evaluate_xy(0.0, 0.0, n, m)
         self.assertEqual(ans, 0.0)
-        ans = z_gen.evaluate_xy(
-            np.zeros(2, dtype=float), np.zeros(2, dtype=float), n, m
-        )
+        ans = z_gen.evaluate_xy(np.zeros(2, dtype=float), np.zeros(2, dtype=float), n, m)
         np.testing.assert_array_equal(ans, np.zeros(2, dtype=float))
 
         n = 0
@@ -184,9 +180,7 @@ class ZernikeTestCase(unittest.TestCase):
         np.testing.assert_array_equal(ans, np.ones(2, dtype=float))
         ans = z_gen.evaluate_xy(0.0, 0.0, n, m)
         self.assertEqual(ans, 1.0)
-        ans = z_gen.evaluate_xy(
-            np.zeros(2, dtype=float), np.zeros(2, dtype=float), n, m
-        )
+        ans = z_gen.evaluate_xy(np.zeros(2, dtype=float), np.zeros(2, dtype=float), n, m)
         np.testing.assert_array_equal(ans, np.ones(2, dtype=float))
 
 

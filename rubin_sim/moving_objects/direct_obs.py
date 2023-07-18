@@ -1,7 +1,10 @@
-import logging
-import numpy as np
 import datetime
+import logging
+
+import numpy as np
+
 from rubin_sim.utils import angular_separation
+
 from .base_obs import BaseObs
 
 __all__ = ["DirectObs"]
@@ -167,12 +170,7 @@ class DirectObs(BaseObs):
             ):
                 raise ValueError(
                     "Pre-computed position times do not cover MJD range of %i-%i."
-                    % (
-                        obs_data[self.obs_time_col]
-                        .min()
-                        .obs_data[self.obs_time_col]
-                        .max()
-                    )
+                    % (obs_data[self.obs_time_col].min().obs_data[self.obs_time_col].max())
                 )
             # calculate angular motion for each object at each timestep
             # how much does it move going to time step forward
@@ -233,16 +231,11 @@ class DirectObs(BaseObs):
 
         # Set the times for the rough ephemeris grid.
         time_step = float(self.tstep)
-        time_start = (
-            np.floor(obs_data[self.obs_time_col].min() + 0.16 - 0.5) - time_step
-        )
+        time_start = np.floor(obs_data[self.obs_time_col].min() + 0.16 - 0.5) - time_step
         time_end = np.ceil(obs_data[self.obs_time_col].max() + 0.16 + 0.5) + time_step
         rough_times = np.arange(time_start, time_end + time_step / 2.0, time_step)
         if self.verbose:
-            logging.info(
-                "Generating preliminary ephemerides on a grid of %f day timesteps."
-                % (time_step)
-            )
+            logging.info("Generating preliminary ephemerides on a grid of %f day timesteps." % (time_step))
         # list to hold results for each object
         result = []
         # save indx to match observation indx to object indx
@@ -255,9 +248,7 @@ class DirectObs(BaseObs):
             if self.verbose:
                 logging.debug(
                     ("%d/%d   id=%s : " % (i, len(orbits), objid))
-                    + datetime.datetime.now().strftime(
-                        "Prelim start: %Y-%m-%d %H:%M:%S"
-                    )
+                    + datetime.datetime.now().strftime("Prelim start: %Y-%m-%d %H:%M:%S")
                     + " nRoughTimes: %s" % len(rough_times)
                 )
             # Not using pre-computed positions
@@ -272,23 +263,17 @@ class DirectObs(BaseObs):
                 if self.verbose:
                     logging.debug(
                         ("%d/%d   id=%s : " % (i, len(orbits), objid))
-                        + datetime.datetime.now().strftime(
-                            "Prelim end: %Y-%m-%d %H:%M:%S"
-                        )
+                        + datetime.datetime.now().strftime("Prelim end: %Y-%m-%d %H:%M:%S")
                         + " π(median, max), min(geo_dist): %.2f, %.2f deg/day  %.2f AU"
                         % (np.median(mu), np.max(mu), np.min(ephs["geo_dist"]))
                     )
 
                 # Find observations which come within roughTol of the fov.
                 ephs_idxs = np.searchsorted(ephs["time"], obs_data[self.obs_time_col])
-                rough_idx_obs = self._sso_in_circle_fov(
-                    ephs[ephs_idxs], obs_data, self.rough_tol
-                )
+                rough_idx_obs = self._sso_in_circle_fov(ephs[ephs_idxs], obs_data, self.rough_tol)
             else:
                 # Nearest neighbor search for the object_mjd closest to obs_data mjd
-                pos = np.searchsorted(
-                    object_mjds, obs_data[self.obs_time_col], side="left"
-                )
+                pos = np.searchsorted(object_mjds, obs_data[self.obs_time_col], side="left")
                 pos_right = pos - 1
                 object_indx = pos + 0
                 d_left = obs_data[self.obs_time_col] - object_mjds[pos]
@@ -307,14 +292,12 @@ class DirectObs(BaseObs):
                 if self.verbose:
                     logging.debug(
                         ("%d/%d   id=%s : " % (i, len(orbits), objid))
-                        + datetime.datetime.now().strftime(
-                            "Exact start: %Y-%m-%d %H:%M:%S"
-                        )
+                        + datetime.datetime.now().strftime("Exact start: %Y-%m-%d %H:%M:%S")
                         + " nExactTimes: %s" % len(times)
                     )
-                ephs = self.generate_ephemerides(
-                    sso, times, eph_mode=self.eph_mode, eph_type=self.eph_type
-                )[0]
+                ephs = self.generate_ephemerides(sso, times, eph_mode=self.eph_mode, eph_type=self.eph_type)[
+                    0
+                ]
                 logging.debug(
                     ("%d/%d   id=%s : " % (i, len(orbits), objid))
                     + datetime.datetime.now().strftime("Exact end: %Y-%m-%d %H:%M:%S")
@@ -333,9 +316,7 @@ class DirectObs(BaseObs):
                     )
                 object_observations = np.zeros(idx_obs.size, dtype=output_dtype)
                 object_observations["obj_id"] = objid
-                object_observations[self.obs_id_col] = obs_data[rough_idx_obs][idx_obs][
-                    self.obs_id_col
-                ]
+                object_observations[self.obs_id_col] = obs_data[rough_idx_obs][idx_obs][self.obs_id_col]
                 object_observations["sedname"] = sedname
 
                 for key in ephs.dtype.names:

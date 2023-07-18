@@ -1,6 +1,8 @@
+import unittest
+
 import numpy as np
 import pandas as pd
-import unittest
+
 import rubin_sim.maf.metrics as metrics
 
 
@@ -81,15 +83,13 @@ class TestMoMetrics1(unittest.TestCase):
         arc = arc_metric.run(self.sso_obs, self.orb, self.hval)
         self.assertEqual(
             arc,
-            self.sso_obs["observationStartMJD"][-1]
-            - self.sso_obs["observationStartMJD"][0],
+            self.sso_obs["observationStartMJD"][-1] - self.sso_obs["observationStartMJD"][0],
         )
         arc_metric = metrics.ObsArcMetric(snr_limit=None)
         arc = arc_metric.run(self.sso_obs, self.orb, self.hval)
         self.assertEqual(
             arc,
-            self.sso_obs["observationStartMJD"][-1]
-            - self.sso_obs["observationStartMJD"][5],
+            self.sso_obs["observationStartMJD"][-1] - self.sso_obs["observationStartMJD"][5],
         )
 
     def test_activity_over_period_metric(self):
@@ -123,19 +123,13 @@ class TestMoMetrics1(unittest.TestCase):
         orb["H"] = 35.526041
         orb["g"] = 0.15
         o = pd.DataFrame(orb)
-        activity_period_metric = metrics.ActivityOverPeriodMetric(
-            bin_size=360, snr_limit=5
-        )
+        activity_period_metric = metrics.ActivityOverPeriodMetric(bin_size=360, snr_limit=5)
         activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertEqual(activity, 1.0)
-        activity_period_metric = metrics.ActivityOverPeriodMetric(
-            bin_size=720, snr_limit=5
-        )
+        activity_period_metric = metrics.ActivityOverPeriodMetric(bin_size=720, snr_limit=5)
         activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertEqual(activity, 1.0)
-        activity_period_metric = metrics.ActivityOverPeriodMetric(
-            bin_size=10, snr_limit=5
-        )
+        activity_period_metric = metrics.ActivityOverPeriodMetric(bin_size=10, snr_limit=5)
         activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertLess(activity, 0.03)
         # different type of orbit - currently should fail quietly
@@ -167,14 +161,10 @@ class TestMoMetrics1(unittest.TestCase):
         orb["H"] = 35.526041
         orb["g"] = 0.15
         o = pd.DataFrame(orb)
-        activity_period_metric = metrics.ActivityOverPeriodMetric(
-            bin_size=360, snr_limit=5
-        )
+        activity_period_metric = metrics.ActivityOverPeriodMetric(bin_size=360, snr_limit=5)
         activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertEqual(activity, 1.0)
-        activity_period_metric = metrics.ActivityOverPeriodMetric(
-            bin_size=180, snr_limit=5
-        )
+        activity_period_metric = metrics.ActivityOverPeriodMetric(bin_size=180, snr_limit=5)
         activity = activity_period_metric.run(self.sso_obs, o.iloc[0], self.hval)
         self.assertEqual(activity, 0.5)
 
@@ -272,9 +262,7 @@ class TestDiscoveryMetrics(unittest.TestCase):
         self.assertEqual(ra, 0)
         self.assertEqual(dec, 5)
         child = metrics.DiscoveryEclonlatMetric(disc_metric)
-        lon, lat, solar_elong = child.run(
-            self.sso_obs, self.orb, self.hval, metric_value
-        )
+        lon, lat, solar_elong = child.run(self.sso_obs, self.orb, self.hval, metric_value)
         self.assertEqual(lon, 10)
         self.assertEqual(lat, 25)
 
@@ -302,9 +290,7 @@ class TestDiscoveryMetrics(unittest.TestCase):
         self.sso_obs["velocity"][0:2] = rng.rand(1)
 
     def test_high_velocity_nights_metric(self):
-        vel_metric = metrics.HighVelocityNightsMetric(
-            psf_factor=1.0, n_obs_per_night=1, snr_limit=5
-        )
+        vel_metric = metrics.HighVelocityNightsMetric(psf_factor=1.0, n_obs_per_night=1, snr_limit=5)
         metric_value = vel_metric.run(self.sso_obs, self.orb, self.hval)
         self.assertEqual(metric_value, 0)
         self.sso_obs["velocity"][0:2] = 1.5

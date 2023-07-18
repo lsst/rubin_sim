@@ -1,11 +1,12 @@
+import logging
+from copy import copy, deepcopy
+
 import numpy as np
 import pandas as pd
-from copy import deepcopy
-from rubin_sim.scheduler.utils import scheduled_observation
+
 from rubin_sim.scheduler.surveys import BaseSurvey
-from rubin_sim.utils import _approx_ra_dec2_alt_az, Site
-from copy import copy
-import logging
+from rubin_sim.scheduler.utils import scheduled_observation
+from rubin_sim.utils import Site, _approx_ra_dec2_alt_az
 
 log = logging.getLogger(__name__)
 
@@ -89,8 +90,7 @@ class LongGapSurvey(BaseSurvey):
 
     def _generate_survey_name(self):
         self.survey_name = (
-            f"Long Gap ({self.blob_survey.survey_name} +"
-            f" {self.scripted_survey.survey_name})"
+            f"Long Gap ({self.blob_survey.survey_name} +" f" {self.scripted_survey.survey_name})"
         )
 
     def _schedule_obs(self, observations):
@@ -122,9 +122,7 @@ class LongGapSurvey(BaseSurvey):
             sched_array["HA_max"] = self.ha_max
             sched_array["sun_alt_max"] = self.sun_alt_max
             if np.size(observations) == 1:
-                sched_array["flush_by_mjd"] = (
-                    observations["mjd"] + self.flush_time + self.gap
-                )
+                sched_array["flush_by_mjd"] = observations["mjd"] + self.flush_time + self.gap
                 sched_array["mjd"] = observations["mjd"] + self.gap
             else:
                 sched_array["flush_by_mjd"] = (
@@ -178,21 +176,15 @@ class LongGapSurvey(BaseSurvey):
 
             # See if we need to append things to the scripted survey object
             if self.scripted_survey.obs_wanted is not None:
-                sched_array = np.concatenate(
-                    [self.scripted_survey.obs_wanted, sched_array]
-                )
+                sched_array = np.concatenate([self.scripted_survey.obs_wanted, sched_array])
 
             self.scripted_survey.set_script(sched_array)
 
     def add_observations_array(self, observations_array_in, observations_hpid_in):
         self._schedule_obs(observations_array_in)
 
-        self.blob_survey.add_observations_array(
-            observations_array_in, observations_hpid_in
-        )
-        self.scripted_survey.add_observations_array(
-            observations_array_in, observations_hpid_in
-        )
+        self.blob_survey.add_observations_array(observations_array_in, observations_hpid_in)
+        self.scripted_survey.add_observations_array(observations_array_in, observations_hpid_in)
 
     def add_observation(self, observation, **kwargs):
         self._schedule_obs(observation)
@@ -265,9 +257,7 @@ class LongGapSurvey(BaseSurvey):
 
         test_survey = deepcopy(self)
         reward = test_survey.calc_reward_function(conditions)
-        feasible = (
-            test_survey._check_feasibility(conditions) and reward > np.finfo(reward).min
-        )
+        feasible = test_survey._check_feasibility(conditions) and reward > np.finfo(reward).min
 
         if accum:
             reward_df = pd.DataFrame(

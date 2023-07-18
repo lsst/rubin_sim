@@ -1,9 +1,11 @@
-import numpy as np
 import healpy as hp
+import numpy as np
 from scipy.optimize import minimize
-from .utils import hp_kd_tree, set_default_nside
+
 from rubin_sim.site_models import _read_fields
 from rubin_sim.utils import _hpid2_ra_dec, _xyz_angular_radius, _xyz_from_ra_dec
+
+from .utils import hp_kd_tree, set_default_nside
 
 default_nside = set_default_nside()
 
@@ -152,10 +154,7 @@ class HpmapCross(object):
         fields = np.empty(ra.size, dtype=list(zip(["RA", "dec"], [float, float])))
         fields["RA"] = ra
         fields["dec"] = dec
-        good = np.where(
-            (fields["RA"] > np.radians(360.0 - 15.0))
-            | (fields["RA"] < np.radians(15.0))
-        )
+        good = np.where((fields["RA"] > np.radians(360.0 - 15.0)) | (fields["RA"] < np.radians(15.0)))
         fields = fields[good]
         good = np.where(np.abs(fields["dec"]) < np.radians(15.0))
         fields = fields[good]
@@ -198,9 +197,7 @@ class HpmapCross(object):
         im_rot = x[2]
 
         # Rotate pointings to desired position
-        final_ra, final_dec = rotate_ra_dec(
-            self.ra, self.dec, ra_rot, dec_rot, init_rotate=im_rot
-        )
+        final_ra, final_dec = rotate_ra_dec(self.ra, self.dec, ra_rot, dec_rot, init_rotate=im_rot)
         # Find the number of observations at each healpixel
         obs_map = self.p2hp_search(final_ra, final_dec)
         good = np.where(self.inmap != hp.UNSEEN)[0]
@@ -208,10 +205,7 @@ class HpmapCross(object):
         if return_pointings_map:
             obs_indx = self.p2hp_search(final_ra, final_dec, stack=False)
             good_pointings = np.array(
-                [
-                    True if np.intersect1d(indxes, good).size > 0 else False
-                    for indxes in obs_indx
-                ]
+                [True if np.intersect1d(indxes, good).size > 0 else False for indxes in obs_indx]
             )
             if True not in good_pointings:
                 raise ValueError("No pointings overlap requested pixels")

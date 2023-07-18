@@ -1,8 +1,10 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import numpy as np
 import unittest
+
+import numpy as np
+
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.stackers as stackers
 
@@ -35,23 +37,19 @@ class TestCalibrationMetrics(unittest.TestCase):
         for flag in norm_flags:
             data["finSeeing"] = 0.7
             data["fiveSigmaDepth"] = 24.0
-            baseline = metrics.ParallaxMetric(
-                normalize=flag, seeing_col="finSeeing"
-            ).run(data, slice_point)
+            baseline = metrics.ParallaxMetric(normalize=flag, seeing_col="finSeeing").run(data, slice_point)
             data["finSeeing"] = data["finSeeing"] + 0.3
-            worse1 = metrics.ParallaxMetric(normalize=flag, seeing_col="finSeeing").run(
+            worse1 = metrics.ParallaxMetric(normalize=flag, seeing_col="finSeeing").run(data, slice_point)
+            worse2 = metrics.ParallaxMetric(normalize=flag, rmag=22.0, seeing_col="finSeeing").run(
                 data, slice_point
             )
-            worse2 = metrics.ParallaxMetric(
-                normalize=flag, rmag=22.0, seeing_col="finSeeing"
-            ).run(data, slice_point)
-            worse3 = metrics.ParallaxMetric(
-                normalize=flag, rmag=22.0, seeing_col="finSeeing"
-            ).run(data[0:300], slice_point)
+            worse3 = metrics.ParallaxMetric(normalize=flag, rmag=22.0, seeing_col="finSeeing").run(
+                data[0:300], slice_point
+            )
             data["fiveSigmaDepth"] = data["fiveSigmaDepth"] - 1.0
-            worse4 = metrics.ParallaxMetric(
-                normalize=flag, rmag=22.0, seeing_col="finSeeing"
-            ).run(data[0:300], slice_point)
+            worse4 = metrics.ParallaxMetric(normalize=flag, rmag=22.0, seeing_col="finSeeing").run(
+                data[0:300], slice_point
+            )
             # Make sure the RMS increases as seeing increases, the star gets fainter,
             #    the background gets brighter, or the baseline decreases.
             if flag:
@@ -89,23 +87,21 @@ class TestCalibrationMetrics(unittest.TestCase):
         for flag in norm_flags:
             data["finSeeing"] = 0.7
             data["fiveSigmaDepth"] = 24
-            baseline = metrics.ProperMotionMetric(
-                normalize=flag, seeing_col="finSeeing"
-            ).run(data, slice_point)
+            baseline = metrics.ProperMotionMetric(normalize=flag, seeing_col="finSeeing").run(
+                data, slice_point
+            )
             data["finSeeing"] = data["finSeeing"] + 0.3
-            worse1 = metrics.ProperMotionMetric(
-                normalize=flag, seeing_col="finSeeing"
-            ).run(data, slice_point)
-            worse2 = metrics.ProperMotionMetric(
-                normalize=flag, rmag=22.0, seeing_col="finSeeing"
-            ).run(data, slice_point)
-            worse3 = metrics.ProperMotionMetric(
-                normalize=flag, rmag=22.0, seeing_col="finSeeing"
-            ).run(data[0:300], slice_point)
+            worse1 = metrics.ProperMotionMetric(normalize=flag, seeing_col="finSeeing").run(data, slice_point)
+            worse2 = metrics.ProperMotionMetric(normalize=flag, rmag=22.0, seeing_col="finSeeing").run(
+                data, slice_point
+            )
+            worse3 = metrics.ProperMotionMetric(normalize=flag, rmag=22.0, seeing_col="finSeeing").run(
+                data[0:300], slice_point
+            )
             data["fiveSigmaDepth"] = data["fiveSigmaDepth"] - 1.0
-            worse4 = metrics.ProperMotionMetric(
-                normalize=flag, rmag=22.0, seeing_col="finSeeing"
-            ).run(data[0:300], slice_point)
+            worse4 = metrics.ProperMotionMetric(normalize=flag, rmag=22.0, seeing_col="finSeeing").run(
+                data[0:300], slice_point
+            )
             # Make sure the RMS increases as seeing increases, the star gets fainter,
             # the background gets brighter, or the baseline decreases.
             if flag:

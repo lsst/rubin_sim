@@ -1,10 +1,11 @@
 import os
+import time
+import warnings
 from itertools import repeat
+
 import numpy as np
 import pandas as pd
 import pyoorb as oo
-import warnings
-import time
 
 __all__ = ["get_oorb_data_dir", "PyOrbEphemerides"]
 
@@ -103,9 +104,7 @@ class PyOrbEphemerides(object):
         # NOTE THAT THIS MEANS WE'VE LOST THE OBJID
         oorb_elem[:, 0] = np.arange(0, len(orbit_dataframe), dtype=int) + 1
         # Add the appropriate element and epoch types:
-        oorb_elem[:, 7] = (
-            np.zeros(len(orbit_dataframe), float) + self.elem_type[orb_format]
-        )
+        oorb_elem[:, 7] = np.zeros(len(orbit_dataframe), float) + self.elem_type[orb_format]
         oorb_elem[:, 9] = np.zeros(len(orbit_dataframe), float) + self.time_scales["TT"]
         # Convert other elements INCLUDING converting inclination, node, argperi to RADIANS
         if orb_format == "KEP":
@@ -130,9 +129,7 @@ class PyOrbEphemerides(object):
             oorb_elem[:, 5] = orbit_dataframe["ydot"]
             oorb_elem[:, 6] = orbit_dataframe["zdot"]
         else:
-            raise ValueError(
-                "Unknown orbit format %s: should be COM, KEP or CAR." % orb_format
-            )
+            raise ValueError("Unknown orbit format %s: should be COM, KEP or CAR." % orb_format)
         oorb_elem[:, 8] = orbit_dataframe["epoch"]
         oorb_elem[:, 10] = orbit_dataframe["H"]
         oorb_elem[:, 11] = orbit_dataframe["g"]
@@ -208,9 +205,7 @@ class PyOrbEphemerides(object):
                 ],
             )
         else:
-            raise ValueError(
-                "Unknown orbit format %s: should be COM, KEP or CAR." % self.orb_format
-            )
+            raise ValueError("Unknown orbit format %s: should be COM, KEP or CAR." % self.orb_format)
         # Convert from radians to degrees.
         if self.orb_format == "KEP" or self.orb_format == "COM":
             new_orbits["inc"] = np.degrees(new_orbits["inc"])
@@ -561,9 +556,7 @@ class PyOrbEphemerides(object):
             )
             ephs = self._convert_oorb_ephs_basic(oorb_ephs, by_object=by_object)
         elif eph_type.lower() == "full":
-            oorb_ephs = self._generate_oorb_ephs_full(
-                eph_times, obscode=obscode, eph_mode=eph_mode
-            )
+            oorb_ephs = self._generate_oorb_ephs_full(eph_times, obscode=obscode, eph_mode=eph_mode)
             ephs = self._convert_oorb_ephs_full(oorb_ephs, by_object=by_object)
         else:
             raise ValueError("eph_type must be full or basic")

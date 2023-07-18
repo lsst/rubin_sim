@@ -1,5 +1,7 @@
 from builtins import zip
+
 import numpy as np
+
 from .base_metric import BaseMetric
 
 __all__ = ["TransientMetric"]
@@ -94,7 +96,7 @@ class TransientMetric(BaseMetric):
         n_filters=1,
         n_phase_check=1,
         count_method="full",
-        **kwargs
+        **kwargs,
     ):
         self.mjd_col = mjd_col
         self.m5_col = m5_col
@@ -103,7 +105,7 @@ class TransientMetric(BaseMetric):
             col=[self.mjd_col, self.m5_col, self.filter_col],
             units="Fraction Detected",
             metric_name=metric_name,
-            **kwargs
+            **kwargs,
         )
         self.peaks = {
             "u": u_peak,
@@ -170,18 +172,10 @@ class TransientMetric(BaseMetric):
         """
         # Total number of transients that could go off back-to-back
         if self.count_method == "partialLC":
-            _n_trans_max = np.ceil(
-                self.survey_duration / (self.trans_duration / 365.25)
-            )
+            _n_trans_max = np.ceil(self.survey_duration / (self.trans_duration / 365.25))
         else:
-            _n_trans_max = np.floor(
-                self.survey_duration / (self.trans_duration / 365.25)
-            )
-        tshifts = (
-            np.arange(self.n_phase_check)
-            * self.trans_duration
-            / float(self.n_phase_check)
-        )
+            _n_trans_max = np.floor(self.survey_duration / (self.trans_duration / 365.25))
+        tshifts = np.arange(self.n_phase_check) * self.trans_duration / float(self.n_phase_check)
         n_detected = 0
         n_trans_max = 0
         for tshift in tshifts:
@@ -192,14 +186,10 @@ class TransientMetric(BaseMetric):
                 n_trans_max -= 1
             if self.survey_start is None:
                 survey_start = data_slice[self.mjd_col].min()
-            time = (
-                data_slice[self.mjd_col] - survey_start + tshift
-            ) % self.trans_duration
+            time = (data_slice[self.mjd_col] - survey_start + tshift) % self.trans_duration
 
             # Which lightcurve does each point belong to
-            lc_number = np.floor(
-                (data_slice[self.mjd_col] - survey_start) / self.trans_duration
-            )
+            lc_number = np.floor((data_slice[self.mjd_col] - survey_start) / self.trans_duration)
 
             lc_mags = self.light_curve(time, data_slice[self.filter_col])
 
@@ -208,9 +198,7 @@ class TransientMetric(BaseMetric):
 
             # Flag points that are above the SNR limit
             detected = np.zeros(data_slice.size, dtype=int)
-            detected[
-                np.where(lc_mags < data_slice[self.m5_col] + self.detect_m5_plus)
-            ] += 1
+            detected[np.where(lc_mags < data_slice[self.m5_col] + self.detect_m5_plus)] += 1
             detect_thresh += 1
 
             # If we demand points on the rise
@@ -250,20 +238,14 @@ class TransientMetric(BaseMetric):
                 for le, ri in zip(left, right):
                     points = np.where(detected[le:ri] > 0)
                     ufilters = np.unique(data_slice[self.filter_col][le:ri][points])
-                    phase_sections = np.floor(
-                        time[le:ri][points] / self.trans_duration * self.n_per_lc
-                    )
+                    phase_sections = np.floor(time[le:ri][points] / self.trans_duration * self.n_per_lc)
                     for filt_name in ufilters:
-                        good = np.where(
-                            data_slice[self.filter_col][le:ri][points] == filt_name
-                        )
+                        good = np.where(data_slice[self.filter_col][le:ri][points] == filt_name)
                         if np.size(np.unique(phase_sections[good])) >= self.n_per_lc:
                             detected[le:ri] += 1
 
             # Find the unique number of light curves that passed the required number of conditions
-            n_detected += np.size(
-                np.unique(lc_number[np.where(detected >= detect_thresh)])
-            )
+            n_detected += np.size(np.unique(lc_number[np.where(detected >= detect_thresh)]))
 
         # Rather than keeping a single "detected" variable, maybe make a mask for each criteria, then
         # reduce functions like: reduce_singleDetect, reduce_NDetect, reduce_PerLC, reduce_perFilter.

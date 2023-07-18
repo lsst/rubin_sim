@@ -292,19 +292,14 @@ def chebfit(t, x, dxdt=None, x_multiplier=None, dx_multiplier=None, n_poly=7):
     if dxdt is None:
         if n_poly > n_points:
             raise RuntimeError(
-                "Without velocity constraints, n_poly (%d) must be less than %s"
-                % (n_poly, n_points)
+                "Without velocity constraints, n_poly (%d) must be less than %s" % (n_poly, n_points)
             )
         if n_poly < 2:
-            raise RuntimeError(
-                "Without velocity constraints, n_poly (%d) must be greater than 2"
-                % n_poly
-            )
+            raise RuntimeError("Without velocity constraints, n_poly (%d) must be greater than 2" % n_poly)
     else:
         if n_poly > 2 * n_points:
             raise RuntimeError(
-                "n_poly (%d) must be less than %s (%d)"
-                % (n_poly, "2 * n_points", 2 * (n_points))
+                "n_poly (%d) must be less than %s (%d)" % (n_poly, "2 * n_points", 2 * (n_points))
             )
         if n_poly < 4:
             raise RuntimeError("n_poly (%d) must be greater than 4" % n_poly)
@@ -320,9 +315,7 @@ def chebfit(t, x, dxdt=None, x_multiplier=None, dx_multiplier=None, n_poly=7):
     if dx_multiplier is None:
         redo_v = True
     else:
-        redo_v = (dx_multiplier.shape[1] != n_points) | (
-            dx_multiplier.shape[0] != n_poly
-        )
+        redo_v = (dx_multiplier.shape[1] != n_points) | (dx_multiplier.shape[0] != n_poly)
 
     if (dxdt is None) & redo_x:
         x_multiplier = make_cheb_matrix_only_x(n_points, n_poly)

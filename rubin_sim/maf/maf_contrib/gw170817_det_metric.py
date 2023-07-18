@@ -6,6 +6,7 @@
 # Contact for this code:
 # christian.setzer@fysik.su.se
 from pathlib import Path
+
 from .transient_ascii_sed_metric import TransientAsciiSEDMetric
 
 __all__ = ["GW170817DetMetric"]
@@ -57,7 +58,7 @@ class GW170817DetMetric(TransientAsciiSEDMetric):
         num_filters=2,
         filter_time=25.0,
         num_phases_to_run=5,
-        **kwargs
+        **kwargs,
     ):
         """"""
         super(GW170817DetMetric, self).__init__(
@@ -67,5 +68,5 @@ class GW170817DetMetric(TransientAsciiSEDMetric):
             num_filters=num_filters,
             filter_time=filter_time,
             num_phases_to_run=num_phases_to_run,
-            **kwargs
+            **kwargs,
         )

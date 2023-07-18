@@ -1,6 +1,7 @@
+import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metric_bundles as mb
+
 from .col_map_dict import col_map_dict
 from .common import standard_summary
 
@@ -30,45 +31,33 @@ def setupMetrics(colmap, wholesurvey=False):
     caption_list.append("Total filter changes ")
     # Minimum time between filter changes
     metric_list.append(
-        metrics.MinTimeBetweenStatesMetric(
-            change_col=colmap["filter"], time_col=colmap["mjd"]
-        )
+        metrics.MinTimeBetweenStatesMetric(change_col=colmap["filter"], time_col=colmap["mjd"])
     )
     caption_list.append("Minimum time between filter changes ")
     # Number of filter changes faster than 10 minutes
     metric_list.append(
-        metrics.NStateChangesFasterThanMetric(
-            change_col=colmap["filter"], time_col=colmap["mjd"], cutoff=10
-        )
+        metrics.NStateChangesFasterThanMetric(change_col=colmap["filter"], time_col=colmap["mjd"], cutoff=10)
     )
     caption_list.append("Number of filter changes faster than 10 minutes ")
     # Number of filter changes faster than 20 minutes
     metric_list.append(
-        metrics.NStateChangesFasterThanMetric(
-            change_col=colmap["filter"], time_col=colmap["mjd"], cutoff=20
-        )
+        metrics.NStateChangesFasterThanMetric(change_col=colmap["filter"], time_col=colmap["mjd"], cutoff=20)
     )
     caption_list.append("Number of filter changes faster than 20 minutes ")
     # Maximum number of filter changes faster than 10 minutes within slice
     metric_list.append(
-        metrics.MaxStateChangesWithinMetric(
-            change_col=colmap["filter"], time_col=colmap["mjd"], timespan=10
-        )
+        metrics.MaxStateChangesWithinMetric(change_col=colmap["filter"], time_col=colmap["mjd"], timespan=10)
     )
     caption_list.append("Max number of filter  changes within a window of 10 minutes ")
     # Maximum number of filter changes faster than 20 minutes within slice
     metric_list.append(
-        metrics.MaxStateChangesWithinMetric(
-            change_col=colmap["filter"], time_col=colmap["mjd"], timespan=20
-        )
+        metrics.MaxStateChangesWithinMetric(change_col=colmap["filter"], time_col=colmap["mjd"], timespan=20)
     )
     caption_list.append("Max number of filter changes within a window of 20 minutes ")
     return metric_list, caption_list
 
 
-def filtersPerNight(
-    colmap=None, runName="opsim", nights=1, extraSql=None, extraInfoLabel=None
-):
+def filtersPerNight(colmap=None, runName="opsim", nights=1, extraSql=None, extraInfoLabel=None):
     """Generate a set of metrics measuring the number and rate of filter changes over a given span of nights.
 
     Parameters
@@ -135,9 +124,7 @@ def filtersPerNight(
     return mb.make_bundles_dict_from_list(bundleList)
 
 
-def filtersWholeSurvey(
-    colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None
-):
+def filtersWholeSurvey(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
     """Generate a set of metrics measuring the number and rate of filter changes over the entire survey.
 
     Parameters

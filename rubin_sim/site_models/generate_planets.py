@@ -1,8 +1,8 @@
 import numpy as np
+from astropy.coordinates import AltAz, EarthLocation, get_body, solar_system_ephemeris
 from astropy.time import Time
-from rubin_sim.utils import Site
-from astropy.coordinates import EarthLocation, AltAz, solar_system_ephemeris, get_body
 
+from rubin_sim.utils import Site
 
 if __name__ == "__main__":
     mjd_start = 59853.5 - 3.0 * 365.25
@@ -10,9 +10,7 @@ if __name__ == "__main__":
     pad_around = 40
     t_step = 1.0 / 24.0  # Start with 1-hour timesteps.
 
-    mjds = np.arange(
-        mjd_start - pad_around, duration + mjd_start + pad_around + t_step, t_step
-    )
+    mjds = np.arange(mjd_start - pad_around, duration + mjd_start + pad_around + t_step, t_step)
 
     planet_names = ["venus", "mars", "jupiter", "saturn"]
 
@@ -24,9 +22,7 @@ if __name__ == "__main__":
     types = [float] * len(names)
 
     planet_loc = np.zeros(mjds.size, dtype=list(zip(names, types)))
-    planet_loc["mjd"] = np.arange(
-        mjd_start - pad_around, duration + mjd_start + pad_around + t_step, t_step
-    )
+    planet_loc["mjd"] = np.arange(mjd_start - pad_around, duration + mjd_start + pad_around + t_step, t_step)
     site = Site("LSST")
     location = EarthLocation(lat=site.latitude, lon=site.longitude, height=site.height)
     t_sparse = Time(mjds, format="mjd", location=location)

@@ -1,16 +1,16 @@
-from builtins import zip
-from builtins import map
-from builtins import range
+import itertools
+import warnings
+from builtins import map, range, zip
+from functools import wraps
+
+import numpy as np
+
+from rubin_sim.maf.plots.nd_plotters import OneDSubsetData, TwoDSubsetData
+
+from .base_slicer import BaseSlicer
 
 # nd Slicer slices data on N columns in sim_data
 
-import warnings
-import numpy as np
-import itertools
-from functools import wraps
-
-from rubin_sim.maf.plots.nd_plotters import TwoDSubsetData, OneDSubsetData
-from .base_slicer import BaseSlicer
 
 __all__ = ["NDSlicer"]
 
@@ -64,10 +64,7 @@ class NDSlicer(BaseSlicer):
                 bin_min = slice_col.min()
                 bin_max = slice_col.max()
                 if bin_min == bin_max:
-                    warnings.warn(
-                        "bin_min=bin_max for column %s: increasing bin_max by 1."
-                        % (col)
-                    )
+                    warnings.warn("bin_min=bin_max for column %s: increasing bin_max by 1." % (col))
                     bin_max = bin_max + 1
                 bin_size = (bin_max - bin_min) / float(bl)
                 bins = np.arange(bin_min, bin_max + bin_size / 2.0, bin_size, "float")
@@ -127,9 +124,7 @@ class NDSlicer(BaseSlicer):
             # Translate islice into indexes in each bin dimension
             bin_idxs = self.slice_points["bin_idxs"][islice]
             for d, i in zip(list(range(self.n_d)), bin_idxs):
-                sim_idxs_list.append(
-                    set(self.sim_idxs[d][self.lefts[d][i] : self.lefts[d][i + 1]])
-                )
+                sim_idxs_list.append(set(self.sim_idxs[d][self.lefts[d][i] : self.lefts[d][i + 1]]))
             idxs = list(set.intersection(*sim_idxs_list))
             return {
                 "idxs": idxs,
@@ -148,9 +143,7 @@ class NDSlicer(BaseSlicer):
             if other_slicer.n_d != self.n_d:
                 return False
             for i in range(self.n_d):
-                if not np.array_equal(
-                    other_slicer.slice_points["bins"][i], self.slice_points["bins"][i]
-                ):
+                if not np.array_equal(other_slicer.slice_points["bins"][i], self.slice_points["bins"][i]):
                     return False
             return True
         else:

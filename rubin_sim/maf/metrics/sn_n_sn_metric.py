@@ -1,13 +1,15 @@
+import os
+
+import healpy as hp
 import numpy as np
-from rubin_sim.maf.metrics import BaseMetric
-from rubin_sim.maf.utils.sn_n_sn_utils import SnRate, load_sne_cached, LcfastNew
+import numpy.lib.recfunctions as nlr
 import pandas as pd
 from scipy.interpolate import interp1d
-import numpy.lib.recfunctions as nlr
-import healpy as hp
-from rubin_sim.phot_utils import DustValues
+
 from rubin_sim.data import get_data_dir
-import os
+from rubin_sim.maf.metrics import BaseMetric
+from rubin_sim.maf.utils.sn_n_sn_utils import LcfastNew, SnRate, load_sne_cached
+from rubin_sim.phot_utils import DustValues
 
 __all__ = ["SNNSNMetric"]
 
@@ -272,9 +274,7 @@ class SNNSNMetric(BaseMetric):
         zseason_allz = self.z_season_allz(zseason)
 
         # estimate redshift completeness
-        metric_values = self.metric(
-            data_slice, zseason_allz, x1=-2.0, color=0.2, zlim=-1, metric="zlim"
-        )
+        metric_values = self.metric(data_slice, zseason_allz, x1=-2.0, color=0.2, zlim=-1, metric="zlim")
 
         if metric_values is None:
             return self.badval
@@ -303,9 +303,7 @@ class SNNSNMetric(BaseMetric):
         # final results
         if nsn_zcomp is None:
             return self.badval
-        metric_values = metric_values.merge(
-            nsn_zcomp, left_on=["season"], right_on=["season"]
-        )
+        metric_values = metric_values.merge(nsn_zcomp, left_on=["season"], right_on=["season"])
 
         if self.verbose:
             print("metric_values", metric_values[["season", "zcomp", "nsn"]])
@@ -394,16 +392,10 @@ class SNNSNMetric(BaseMetric):
         # season_info.index = season_info.index.droplevel()
         season_info = season_info.drop(columns=["level_1"])
 
-        season_info = season_info.merge(
-            zseason, left_on=["season"], right_on=["season"]
-        )
+        season_info = season_info.merge(zseason, left_on=["season"], right_on=["season"])
 
-        season_info["T0_min"] = (
-            season_info["MJD_min"] - (1.0 + season_info["z"]) * self.min_rf_phase_qual
-        )
-        season_info["T0_max"] = (
-            season_info["MJD_max"] - (1.0 + season_info["z"]) * self.max_rf_phase_qual
-        )
+        season_info["T0_min"] = season_info["MJD_min"] - (1.0 + season_info["z"]) * self.min_rf_phase_qual
+        season_info["T0_max"] = season_info["MJD_max"] - (1.0 + season_info["z"]) * self.max_rf_phase_qual
         season_info["season_length"] = season_info["T0_max"] - season_info["T0_min"]
 
         idx = season_info["season_length"] >= min_duration
@@ -459,9 +451,7 @@ class SNNSNMetric(BaseMetric):
         # estimate efficiencies
         sn_effis["season"] = sn_effis["season"].astype(int)
         sn_effis["effi"] = sn_effis["nsel"] / sn_effis["ntot"]
-        sn_effis["effi_err"] = (
-            np.sqrt(sn_effis["nsel"] * (1.0 - sn_effis["effi"])) / sn_effis["ntot"]
-        )
+        sn_effis["effi_err"] = np.sqrt(sn_effis["nsel"] * (1.0 - sn_effis["effi"])) / sn_effis["ntot"]
 
         # prevent NaNs, set effi to 0 where there is 0 ntot
         zero = np.where(sn_effis["ntot"] == 0)
@@ -479,9 +469,7 @@ class SNNSNMetric(BaseMetric):
             for season in sn_effis["season"].unique():
                 idx = sn_effis["season"] == season
                 print("effis", sn_effis[idx])
-                plotNSN_effi(
-                    sn_effis[idx], "effi", "effi_err", "Observing Efficiencies", ls="-"
-                )
+                plotNSN_effi(sn_effis[idx], "effi", "effi_err", "Observing Efficiencies", ls="-")
 
         return sn_effis
 
@@ -502,9 +490,7 @@ class SNNSNMetric(BaseMetric):
 
         """
         # add season length here
-        sn_effis = sn_effis.merge(
-            dur_z, left_on=["season", "z"], right_on=["season", "z"]
-        )
+        sn_effis = sn_effis.merge(dur_z, left_on=["season", "z"], right_on=["season", "z"])
 
         # estimate the number of supernovae
         sn_effis["nsn"] = sn_effis["effi"] * sn_effis["nsn_expected"]
@@ -614,9 +600,7 @@ class SNNSNMetric(BaseMetric):
             t0_min = grp["T0_min"].values
             num = (t0_max - t0_min) / daymax_step
             if t0_max - t0_min > 10:
-                df = pd.DataFrame(
-                    np.linspace(t0_min, t0_max, int(num)), columns=["daymax"]
-                )
+                df = pd.DataFrame(np.linspace(t0_min, t0_max, int(num)), columns=["daymax"])
             else:
                 df = pd.DataFrame([-1], columns=["daymax"])
         else:
@@ -928,9 +912,7 @@ class SNNSNMetric(BaseMetric):
             )
         else:
             gen_par = (
-                dur_z.groupby(["z"])
-                .apply(lambda x: self.calc_daymax(x, self.daymax_step))
-                .reset_index()
+                dur_z.groupby(["z"]).apply(lambda x: self.calc_daymax(x, self.daymax_step)).reset_index()
             )
             gen_par["season"] = gen_par["level_1"] * 0 + np.unique(seasons)
 
@@ -977,15 +959,11 @@ class SNNSNMetric(BaseMetric):
 
         # estimate redshift completeness
         if metric == "zlim":
-            metric_values = (
-                sn.groupby(["season"]).apply(lambda x: self.zlim(x)).reset_index()
-            )
+            metric_values = sn.groupby(["season"]).apply(lambda x: self.zlim(x)).reset_index()
 
         if metric == "nsn":
             sn = sn.merge(zlim, left_on=["season"], right_on=["season"])
-            metric_values = (
-                sn.groupby(["season"]).apply(lambda x: self.nsn(x)).reset_index()
-            )
+            metric_values = sn.groupby(["season"]).apply(lambda x: self.nsn(x)).reset_index()
 
         return metric_values
 
@@ -1018,13 +996,7 @@ class SNNSNMetric(BaseMetric):
             zseason.groupby(["season"])
             .apply(
                 lambda x: pd.DataFrame(
-                    {
-                        "z": list(
-                            np.arange(
-                                x["zmin"].mean(), x["zmax"].mean(), x["zstep"].mean()
-                            )
-                        )
-                    }
+                    {"z": list(np.arange(x["zmin"].mean(), x["zmax"].mean(), x["zstep"].mean()))}
                 )
             )
             .reset_index()
@@ -1063,9 +1035,7 @@ class SNNSNMetric(BaseMetric):
             account_for_edges=False,
         )
 
-        nsn_expected = interp1d(
-            zz, nsn, kind="linear", bounds_error=False, fill_value=0
-        )
+        nsn_expected = interp1d(zz, nsn, kind="linear", bounds_error=False, fill_value=0)
         nsn_res = nsn_expected(grp["z"])
 
         return pd.DataFrame({"nsn_expected": nsn_res, "z": grp["z"].to_list()})
@@ -1117,9 +1087,7 @@ class SNNSNMetric(BaseMetric):
         ]
 
         coadd_df = coadd_df.sort_values(by=self.mjd_col)
-        coadd_df[self.m5_col] += 1.25 * np.log10(
-            coadd_df[self.exptime_col] / exptime_single
-        )
+        coadd_df[self.m5_col] += 1.25 * np.log10(coadd_df[self.exptime_col] / exptime_single)
 
         return coadd_df.to_records(index=False)
 

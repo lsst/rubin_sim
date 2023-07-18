@@ -1,11 +1,13 @@
-import numpy as np
-import rubin_sim.maf.metrics as metrics
-import os
-from rubin_sim.utils import uniform_sphere, survey_start_mjd
-import rubin_sim.maf.slicers as slicers
 import glob
-from rubin_sim.phot_utils import DustValues
+import os
+
+import numpy as np
+
+import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.slicers as slicers
 from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import DustValues
+from rubin_sim.utils import survey_start_mjd, uniform_sphere
 
 __all__ = ["TdeLc", "TdePopMetric", "TdePopMetricQuality", "generate_tde_pop_slicer"]
 
@@ -27,11 +29,7 @@ class TdeLc(object):
 
         lcs = []
         for filename in file_list:
-            lcs.append(
-                np.genfromtxt(
-                    filename, dtype=[("ph", "f8"), ("mag", "f8"), ("filter", "U1")]
-                )
-            )
+            lcs.append(np.genfromtxt(filename, dtype=[("ph", "f8"), ("mag", "f8"), ("filter", "U1")]))
 
         # Let's organize the data in to a list of dicts for easy lookup
         self.data = []
@@ -74,7 +72,7 @@ class TdePopMetric(metrics.BaseMetric):
         pts_needed=2,
         file_list=None,
         mjd0=None,
-        **kwargs
+        **kwargs,
     ):
         maps = ["DustMap"]
         self.mjd_col = mjd_col
@@ -91,11 +89,7 @@ class TdePopMetric(metrics.BaseMetric):
 
         cols = [self.mjd_col, self.m5_col, self.filter_col, self.night_col]
         super(TdePopMetric, self).__init__(
-            col=cols,
-            units="Detected, 0 or 1",
-            metric_name=metric_name,
-            maps=maps,
-            **kwargs
+            col=cols, units="Detected, 0 or 1", metric_name=metric_name, maps=maps, **kwargs
         )
 
     def _pre_peak_detect(self, data_slice, slice_point, mags, t):
@@ -161,17 +155,13 @@ class TdePopMetric(metrics.BaseMetric):
 
         for filtername in np.unique(data_slice[self.filter_col]):
             infilt = np.where(data_slice[self.filter_col] == filtername)
-            mags[infilt] = self.lightcurves.interp(
-                t[infilt], filtername, lc_indx=slice_point["file_indx"]
-            )
+            mags[infilt] = self.lightcurves.interp(t[infilt], filtername, lc_indx=slice_point["file_indx"])
             # Apply dust extinction on the light curve
             mags[infilt] += self.ax1[filtername] * slice_point["ebv"]
 
         result["pre_peak"] = self._pre_peak_detect(data_slice, slice_point, mags, t)
         result["some_color"] = self._some_color_detect(data_slice, slice_point, mags, t)
-        result["some_color_pu"] = self._some_color_pu_detect(
-            data_slice, slice_point, mags, t
-        )
+        result["some_color_pu"] = self._some_color_pu_detect(data_slice, slice_point, mags, t)
 
         return result
 
@@ -197,7 +187,7 @@ class TdePopMetricQuality(metrics.BaseMetric):
         tmax=100,
         file_list=None,
         mjd0=59853.5,
-        **kwargs
+        **kwargs,
     ):
         maps = ["DustMap"]
         self.mjd_col = mjd_col
@@ -219,7 +209,7 @@ class TdePopMetricQuality(metrics.BaseMetric):
             units="Bad: 0, Good (obs every 2 night): 1",
             metric_name=metric_name,
             maps=maps,
-            **kwargs
+            **kwargs,
         )
 
     def _some_color_pnum_detect(self, data_slice, slice_point, mags, t):
@@ -239,9 +229,7 @@ class TdePopMetricQuality(metrics.BaseMetric):
             return 0
 
         # count number of data points in the light curve
-        obs_points = np.where(
-            (t > self.tmin) & (t < self.tmax) & (mags < data_slice[self.m5_col])
-        )[0]
+        obs_points = np.where((t > self.tmin) & (t < self.tmax) & (mags < data_slice[self.m5_col]))[0]
 
         # define the time range around peak in which the number of data points is measured
         t_range = self.tmax - self.tmin
@@ -276,9 +264,7 @@ class TdePopMetricQuality(metrics.BaseMetric):
             return 0
 
         # count number of data points in the light curve
-        obs_points = np.where(
-            (t > self.tmin) & (t < self.tmax) & (mags < data_slice[self.m5_col])
-        )[0]
+        obs_points = np.where((t > self.tmin) & (t < self.tmax) & (mags < data_slice[self.m5_col]))[0]
 
         # define the time range around peak in which the number of data points is measured
         t_range = self.tmax - self.tmin
@@ -297,18 +283,12 @@ class TdePopMetricQuality(metrics.BaseMetric):
 
         for filtername in np.unique(data_slice[self.filter_col]):
             infilt = np.where(data_slice[self.filter_col] == filtername)
-            mags[infilt] = self.lightcurves.interp(
-                t[infilt], filtername, lc_indx=slice_point["file_indx"]
-            )
+            mags[infilt] = self.lightcurves.interp(t[infilt], filtername, lc_indx=slice_point["file_indx"])
             # Apply dust extinction on the light curve
             mags[infilt] += self.ax1[filtername] * slice_point["ebv"]
 
-        result["some_color_pnum"] = self._some_color_pnum_detect(
-            data_slice, slice_point, mags, t
-        )
-        result["some_color_pu_pnum"] = self._some_color_pu_pnum_detect(
-            data_slice, slice_point, mags, t
-        )
+        result["some_color_pnum"] = self._some_color_pnum_detect(data_slice, slice_point, mags, t)
+        result["some_color_pu_pnum"] = self._some_color_pu_pnum_detect(data_slice, slice_point, mags, t)
 
         return result
 
@@ -338,9 +318,7 @@ def generate_tde_pop_slicer(t_start=1, t_end=3652, n_events=10000, seed=42, n_fi
 
     ra, dec = uniform_sphere(n_events, seed=seed)
     peak_times = np.random.uniform(low=t_start, high=t_end, size=n_events)
-    file_indx = np.floor(np.random.uniform(low=0, high=n_files, size=n_events)).astype(
-        int
-    )
+    file_indx = np.floor(np.random.uniform(low=0, high=n_files, size=n_events)).astype(int)
 
     # Set up the slicer to evaluate the catalog we just made
     slicer = slicers.UserPointsSlicer(ra, dec, lat_lon_deg=True, badval=0)

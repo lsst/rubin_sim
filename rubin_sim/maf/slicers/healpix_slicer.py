@@ -4,13 +4,13 @@
 # See more documentation on healpy here http://healpy.readthedocs.org/en/latest/tutorial.html
 # Also requires numpy (for histogram and power spectrum plotting)
 
-import numpy as np
 import healpy as hp
-from rubin_sim.maf.plots.spatial_plotters import HealpixSkyMap, HealpixHistogram
+import numpy as np
+
+from rubin_sim.maf.plots.spatial_plotters import HealpixHistogram, HealpixSkyMap
 from rubin_sim.utils import _galactic_from_equatorial
 
 from .base_spatial_slicer import BaseSpatialSlicer
-
 
 __all__ = ["HealpixSlicer"]
 
@@ -119,8 +119,7 @@ class HealpixSlicer(BaseSpatialSlicer):
         if self.verbose:
             print(
                 "Healpix slicer using NSIDE=%d, " % (self.nside)
-                + "approximate resolution %f arcminutes"
-                % (hp.nside2resol(self.nside, arcmin=True))
+                + "approximate resolution %f arcminutes" % (hp.nside2resol(self.nside, arcmin=True))
             )
         # Set variables so slicer can be re-constructed
         self.slicer_init = {
@@ -138,12 +137,8 @@ class HealpixSlicer(BaseSpatialSlicer):
         # Set up slice_point metadata.
         self.slice_points["nside"] = nside
         self.slice_points["sid"] = np.arange(self.nslice)
-        self.slice_points["ra"], self.slice_points["dec"] = self._pix2radec(
-            self.slice_points["sid"]
-        )
-        gall, galb = _galactic_from_equatorial(
-            self.slice_points["ra"], self.slice_points["dec"]
-        )
+        self.slice_points["ra"], self.slice_points["dec"] = self._pix2radec(self.slice_points["sid"])
+        gall, galb = _galactic_from_equatorial(self.slice_points["ra"], self.slice_points["dec"])
         self.slice_points["gall"] = gall
         self.slice_points["galb"] = galb
 
@@ -156,10 +151,7 @@ class HealpixSlicer(BaseSpatialSlicer):
         result = False
         if isinstance(other_slicer, HealpixSlicer):
             if other_slicer.nside == self.nside:
-                if (
-                    other_slicer.lon_col == self.lon_col
-                    and other_slicer.lat_col == self.lat_col
-                ):
+                if other_slicer.lon_col == self.lon_col and other_slicer.lat_col == self.lat_col:
                     if other_slicer.radius == self.radius:
                         if other_slicer.use_camera == self.use_camera:
                             if other_slicer.rotSkyPosColName == self.rotSkyPosColName:

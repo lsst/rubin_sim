@@ -1,19 +1,23 @@
-from __future__ import print_function, division
-from copy import deepcopy
+from __future__ import division, print_function
+
 import os
+from copy import deepcopy
+
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.ma as ma
-import matplotlib.pyplot as plt
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.stackers as stackers
-import rubin_sim.maf.plots as plots
+
 import rubin_sim.maf.metric_bundles as mb
+import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.plots as plots
+import rubin_sim.maf.stackers as stackers
 from rubin_sim.maf.metric_bundles import MoMetricBundle
+
 from .col_map_dict import col_map_dict
 from .common import (
+    fraction_population_at_threshold,
     summary_completeness_at_time,
     summary_completeness_over_h,
-    fraction_population_at_threshold,
 )
 
 __all__ = [
@@ -148,16 +152,12 @@ def quick_discovery_batch(
     display_dict = {"group": f"{objtype}", "subgroup": "Discovery"}
 
     if constraint_info_label == "" and constraint is not None:
-        constraint_info_label = (
-            constraint.replace("filter", "").replace("==", "").replace("  ", " ")
-        )
+        constraint_info_label = constraint.replace("filter", "").replace("==", "").replace("  ", " ")
     info_label = objtype + " " + constraint_info_label
     info_label = info_label.rstrip(" ")
 
     if detection_losses not in ("detection", "trailing"):
-        raise ValueError(
-            "Please choose detection or trailing as options for detection_losses."
-        )
+        raise ValueError("Please choose detection or trailing as options for detection_losses.")
     if detection_losses == "trailing":
         magStacker = stackers.MoMagStacker(loss_col="dmag_trail", magtype=magtype)
         detection_losses = " trailing loss"
@@ -178,9 +178,7 @@ def quick_discovery_batch(
     def _setup_child_metrics(parentMetric):
         childMetrics = {}
         childMetrics["Time"] = metrics.DiscoveryTimeMetric(parentMetric, **colkwargs)
-        childMetrics["N_Chances"] = metrics.DiscoveryNChancesMetric(
-            parentMetric, **colkwargs
-        )
+        childMetrics["N_Chances"] = metrics.DiscoveryNChancesMetric(parentMetric, **colkwargs)
         # Could expand to add N_chances per year, but not really necessary.
         return childMetrics
 
@@ -295,16 +293,12 @@ def discovery_batch(
     display_dict = {"group": f"{objtype}", "subgroup": "Discovery"}
 
     if constraint_info_label == "" and constraint is not None:
-        constraint_info_label = (
-            constraint.replace("filter", "").replace("==", "").replace("  ", " ")
-        )
+        constraint_info_label = constraint.replace("filter", "").replace("==", "").replace("  ", " ")
     info_label = objtype + " " + constraint_info_label
     info_label = info_label.rstrip(" ")
 
     if detection_losses not in ("detection", "trailing"):
-        raise ValueError(
-            "Please choose detection or trailing as options for detection_losses."
-        )
+        raise ValueError("Please choose detection or trailing as options for detection_losses.")
     if detection_losses == "trailing":
         # These are the SNR-losses only.
         magStacker = stackers.MoMagStacker(loss_col="dmag_trail", magtype=magtype)
@@ -327,9 +321,7 @@ def discovery_batch(
     def _setup_child_metrics(parentMetric):
         childMetrics = {}
         childMetrics["Time"] = metrics.DiscoveryTimeMetric(parentMetric, **colkwargs)
-        childMetrics["N_Chances"] = metrics.DiscoveryNChancesMetric(
-            parentMetric, **colkwargs
-        )
+        childMetrics["N_Chances"] = metrics.DiscoveryNChancesMetric(parentMetric, **colkwargs)
         # Could expand to add N_chances per year, but not really necessary.
         return childMetrics
 
@@ -619,9 +611,7 @@ def discovery_batch(
     md = info_label + " High velocity pair" + detection_losses
     plotDict = {"title": "%s: %s" % (run_name, md)}
     plotDict.update(basicPlotDict)
-    metric = metrics.HighVelocityNightsMetric(
-        psf_factor=2.0, n_obs_per_night=2, **colkwargs
-    )
+    metric = metrics.HighVelocityNightsMetric(psf_factor=2.0, n_obs_per_night=2, **colkwargs)
     bundle = MoMetricBundle(
         metric,
         slicer,
@@ -699,28 +689,20 @@ def run_completeness_summary(bdict, h_mark, times, out_dir, results_db):
         if h_mark is None:
             h_mark = np.median(bundle.slicer.slice_points["H"])
         # Set up the summary metrics.
-        summaryTimeMetrics = summary_completeness_at_time(
-            times, h_val=h_mark, h_index=0.33
-        )
-        summaryTimeMetrics2 = summary_completeness_at_time(
-            times, h_val=h_mark - 2, h_index=0.33
-        )
+        summaryTimeMetrics = summary_completeness_at_time(times, h_val=h_mark, h_index=0.33)
+        summaryTimeMetrics2 = summary_completeness_at_time(times, h_val=h_mark - 2, h_index=0.33)
         summaryHMetrics = summary_completeness_over_h(requiredChances=1, Hindex=0.33)
         comp = {}
         # Bundle = single metric bundle. Add differential and cumulative completeness.
         if "Time" in bundle.metric.name:
             for metric in summaryTimeMetrics:
                 newkey = b + " " + metric.name
-                comp[newkey] = mb.make_completeness_bundle(
-                    bundle, metric, h_mark=None, results_db=results_db
-                )
+                comp[newkey] = mb.make_completeness_bundle(bundle, metric, h_mark=None, results_db=results_db)
                 comp[newkey].plot_dict["times"] = times
                 comp[newkey].plot_dict["h_val"] = metric.hval
             for metric in summaryTimeMetrics2:
                 newkey = b + " " + metric.name
-                comp[newkey] = mb.make_completeness_bundle(
-                    bundle, metric, h_mark=None, results_db=results_db
-                )
+                comp[newkey] = mb.make_completeness_bundle(bundle, metric, h_mark=None, results_db=results_db)
                 comp[newkey].plot_dict["times"] = times
                 comp[newkey].plot_dict["h_val"] = metric.hval
         elif "NChances" in bundle.metric.name or "N_Chances" in bundle.metric.name:
@@ -762,21 +744,13 @@ def run_completeness_summary(bdict, h_mark, times, out_dir, results_db):
         if "DifferentialCompleteness" in b and "@Time" not in b:
             if "NEO" in bundle.info_label:
                 nobj_metrics = [
-                    metrics.TotalNumberSSO(
-                        h_mark=22, dndh_func=metrics.neo_dndh_granvik
-                    ),
-                    metrics.TotalNumberSSO(
-                        h_mark=25, dndh_func=metrics.neo_dndh_granvik
-                    ),
+                    metrics.TotalNumberSSO(h_mark=22, dndh_func=metrics.neo_dndh_granvik),
+                    metrics.TotalNumberSSO(h_mark=25, dndh_func=metrics.neo_dndh_granvik),
                 ]
                 bundle.set_summary_metrics(nobj_metrics)
                 bundle.compute_summary_stats(results_db)
             if "PHA" in bundle.info_label:
-                nobj_metrics = [
-                    metrics.TotalNumberSSO(
-                        h_mark=22, dndh_func=metrics.pha_dndh_granvik
-                    )
-                ]
+                nobj_metrics = [metrics.TotalNumberSSO(h_mark=22, dndh_func=metrics.pha_dndh_granvik)]
                 bundle.set_summary_metrics(nobj_metrics)
                 bundle.compute_summary_stats(results_db)
     return completeness
@@ -845,21 +819,16 @@ def plot_completeness(
         plt.plot(
             plotTimes[k].plot_dict["times"],
             plotTimes[k].metric_values[0, :],
-            label=plotTimes[k].plot_dict["label"]
-            + " @H=%.2f" % plotTimes[k].plot_dict["h_val"],
+            label=plotTimes[k].plot_dict["label"] + " @H=%.2f" % plotTimes[k].plot_dict["h_val"],
         )
     plt.legend()
     plt.xlabel("Time (MJD)")
     plt.ylabel("Completeness")
     plt.grid(True, alpha=0.3)
     # Make a PlotHandler to deal with savings/results_db, etc.
-    ph = plots.PlotHandler(
-        fig_format=fig_format, results_db=results_db, out_dir=out_dir
-    )
+    ph = plots.PlotHandler(fig_format=fig_format, results_db=results_db, out_dir=out_dir)
     display_dict["subgroup"] = f"Completeness over time"
-    display_dict[
-        "caption"
-    ] = "Completeness over time, for H values indicated in legend."
+    display_dict["caption"] = "Completeness over time, for H values indicated in legend."
     ph.save_fig(
         fig.number,
         f"{figroot}_CompletenessOverTime",
@@ -878,9 +847,7 @@ def plot_completeness(
     )
 
     # Plot cumulative completeness.
-    ph = plots.PlotHandler(
-        fig_format=fig_format, results_db=results_db, out_dir=out_dir
-    )
+    ph = plots.PlotHandler(fig_format=fig_format, results_db=results_db, out_dir=out_dir)
     ph.set_metric_bundles(plotComp)
     plotDict = {"ylabel": "Completeness", "figsize": (8, 6), "albedo": 0.14}
     ph.plot(
@@ -890,9 +857,7 @@ def plot_completeness(
     )
 
     # Plot differential completeness.
-    ph = plots.PlotHandler(
-        fig_format=fig_format, results_db=results_db, out_dir=out_dir
-    )
+    ph = plots.PlotHandler(fig_format=fig_format, results_db=results_db, out_dir=out_dir)
     ph.set_metric_bundles(plotDiff)
     plotDict = {"ylabel": "Completeness", "figsize": (8, 6)}
     ph.plot(
@@ -910,9 +875,7 @@ def plot_completeness(
         if "Magic" in k:
             if "Cumulative" in k:
                 allComp.append(bdictCompleteness[k])
-    ph = plots.PlotHandler(
-        fig_format=fig_format, results_db=results_db, out_dir=out_dir
-    )
+    ph = plots.PlotHandler(fig_format=fig_format, results_db=results_db, out_dir=out_dir)
     ph.set_metric_bundles(allComp)
     plotDict = {
         "ylabel": "Completeness",
@@ -921,9 +884,7 @@ def plot_completeness(
         "color": None,
     }
     display_dict["subgroup"] = f"Completeness all criteria"
-    display_dict[
-        "caption"
-    ] = "Plotting all of the cumulative completeness curves together."
+    display_dict["caption"] = "Plotting all of the cumulative completeness curves together."
     ph.plot(
         plot_func=plots.MetricVsH(),
         plot_dicts=plotDict,
@@ -970,9 +931,7 @@ def characterization_inner_batch(
     plot_funcs = [plots.MetricVsH()]
 
     if constraint_info_label == "" and constraint is not None:
-        constraint_info_label = (
-            constraint.replace("filter", "").replace("==", "").replace("  ", " ")
-        )
+        constraint_info_label = constraint.replace("filter", "").replace("==", "").replace("  ", " ")
     info_label = objtype + " " + constraint_info_label
     info_label = info_label.rstrip(" ")
 
@@ -1064,9 +1023,7 @@ def characterization_inner_batch(
             "ylabel": "Probability of detection per %.0f deg window" % b,
         }
         metric_name = "Chances of detecting activity covering %.0f deg" % (b)
-        metric = metrics.ActivityOverPeriodMetric(
-            b, metric_name=metric_name, **colkwargs
-        )
+        metric = metrics.ActivityOverPeriodMetric(b, metric_name=metric_name, **colkwargs)
         bundle = MoMetricBundle(
             metric,
             slicer,
@@ -1110,8 +1067,7 @@ def characterization_inner_batch(
         "y_min": 0,
         "y_max": 1,
         "ylabel": "Fraction of objects",
-        "title": "%s: Fraction of population with colors in X filters %s"
-        % (run_name, md),
+        "title": "%s: Fraction of population with colors in X filters %s" % (run_name, md),
     }
     plotDict.update(basicPlotDict)
     metric = metrics.ColorAsteroidMetric(**colkwargs)
@@ -1172,9 +1128,7 @@ def characterization_outer_batch(
     plot_funcs = [plots.MetricVsH()]
 
     if constraint_info_label == "" and constraint is not None:
-        constraint_info_label = (
-            constraint.replace("filter", "").replace("==", "").replace("  ", " ")
-        )
+        constraint_info_label = constraint.replace("filter", "").replace("==", "").replace("  ", " ")
     info_label = objtype + " " + constraint_info_label
     info_label = info_label.rstrip(" ")
 
@@ -1266,9 +1220,7 @@ def characterization_outer_batch(
             "ylabel": "Probability of detection per %.2f deg window" % b,
         }
         metric_name = "Chances of detecting activity covering %.0f deg" % (b)
-        metric = metrics.ActivityOverPeriodMetric(
-            b, metric_name=metric_name, **colkwargs
-        )
+        metric = metrics.ActivityOverPeriodMetric(b, metric_name=metric_name, **colkwargs)
         bundle = MoMetricBundle(
             metric,
             slicer,
@@ -1289,8 +1241,7 @@ def characterization_outer_batch(
         "y_min": 0,
         "y_max": 1,
         "ylabel": "Fraction of objects",
-        "title": "%s: Fraction of population with colors in X filters %s"
-        % (run_name, md),
+        "title": "%s: Fraction of population with colors in X filters %s" % (run_name, md),
     }
     plotDict.update(basicPlotDict)
     metric = metrics.LightcurveColorOuterMetric(**colkwargs)
@@ -1428,9 +1379,7 @@ def plot_fractions(
     display_dict = deepcopy(first.display_dict)
     display_dict["subgroup"] = f"Characterization Fraction"
 
-    ph = plots.PlotHandler(
-        fig_format=fig_format, results_db=results_db, out_dir=out_dir
-    )
+    ph = plots.PlotHandler(fig_format=fig_format, results_db=results_db, out_dir=out_dir)
     ph.set_metric_bundles(bdictFractions)
     ph.joint_metric_names = "Fraction of population for colors or lightcurve inversion"
     plotDict = {"ylabel": "Fraction of population", "figsize": (8, 6)}
@@ -1482,9 +1431,7 @@ def plot_single(bundle, results_db=None, out_dir=".", fig_format="pdf"):
             "np_reduce": lambda x, axis: np.percentile(x, 5, axis=axis),
         },
     }
-    ph = plots.PlotHandler(
-        fig_format=fig_format, results_db=results_db, out_dir=out_dir
-    )
+    ph = plots.PlotHandler(fig_format=fig_format, results_db=results_db, out_dir=out_dir)
     plot_bundles = []
     plot_dicts = []
     for percentile in pDict:
@@ -1523,9 +1470,7 @@ def plot_activity(bdict, figroot=None, results_db=None, out_dir=".", fig_format=
 
     if len(activity_days) > 0:
         # Plot (mean) likelihood of detection of activity over X days
-        ph = plots.PlotHandler(
-            fig_format=fig_format, results_db=results_db, out_dir=out_dir
-        )
+        ph = plots.PlotHandler(fig_format=fig_format, results_db=results_db, out_dir=out_dir)
         ph.set_metric_bundles(activity_days)
         ph.joint_metric_names = "Chances of detecting activity lasting X days"
         plot_dict = {"ylabel": "Mean likelihood of detection", "figsize": (8, 6)}
@@ -1537,9 +1482,7 @@ def plot_activity(bdict, figroot=None, results_db=None, out_dir=".", fig_format=
         )
     if len(activity_deg) > 0:
         # Plot (mean) likelihood of detection of activity over X amount of orbit
-        ph = plots.PlotHandler(
-            fig_format=fig_format, results_db=results_db, out_dir=out_dir
-        )
+        ph = plots.PlotHandler(fig_format=fig_format, results_db=results_db, out_dir=out_dir)
         ph.set_metric_bundles(activity_deg)
         ph.joint_metric_names = "Chances of detecting activity covering X deg"
         plot_dict = {"ylabel": "Mean likelihood of detection", "figsize": (8, 6)}
@@ -1602,13 +1545,8 @@ def combine_subsets(mbSubsets):
     slicer = deepcopy(first.slicer)
     for i in mbSubsets:
         if np.any(slicer.slice_points["H"] != mbSubsets[i].slicer.slice_points["H"]):
-            if np.any(
-                slicer.slice_points["orbits"]
-                != mbSubsets[i].slicer.slice_points["orbits"]
-            ):
-                raise ValueError(
-                    "Bundle %s has a different slicer than the first bundle" % (i)
-                )
+            if np.any(slicer.slice_points["orbits"] != mbSubsets[i].slicer.slice_points["orbits"]):
+                raise ValueError("Bundle %s has a different slicer than the first bundle" % (i))
     # Join metric values.
     joint.slicer = slicer
     joint.metric = first.metric
@@ -1617,12 +1555,8 @@ def combine_subsets(mbSubsets):
     metric_values_mask = np.zeros(first.metric_values.shape, bool)
     for i in mbSubsets:
         metric_values += mbSubsets[i].metric_values.filled(0)
-        metric_values_mask = np.where(
-            metric_values_mask & mbSubsets[i].metric_values.mask, True, False
-        )
-    joint.metricValues = ma.MaskedArray(
-        data=metric_values, mask=metric_values_mask, fill_value=0
-    )
+        metric_values_mask = np.where(metric_values_mask & mbSubsets[i].metric_values.mask, True, False)
+    joint.metricValues = ma.MaskedArray(data=metric_values, mask=metric_values_mask, fill_value=0)
     joint.info_label = first.info_label
     joint.run_name = first.run_name
     joint.file_root = first.file_root.replace(".npz", "")

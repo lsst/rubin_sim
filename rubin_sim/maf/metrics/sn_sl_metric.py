@@ -1,9 +1,9 @@
-import numpy as np
 import healpy as hp
+import numpy as np
 
 import rubin_sim.maf.metrics as metrics
-from rubin_sim.phot_utils import DustValues
 from rubin_sim.maf.utils import collapse_night
+from rubin_sim.phot_utils import DustValues
 from rubin_sim.utils import calc_season
 
 __all__ = ["SNSLMetric"]
@@ -74,7 +74,7 @@ class SNSLMetric(metrics.BaseMetric):
         min_season_obs=5,
         m5mins=None,
         maps=["DustMap"],
-        **kwargs
+        **kwargs,
     ):
         self.mjd_col = mjd_col
         self.filter_col = filter_col
@@ -83,9 +83,7 @@ class SNSLMetric(metrics.BaseMetric):
         self.maps = maps
 
         cols = [self.night_col, self.filter_col, self.mjd_col, self.m5_col]
-        super().__init__(
-            col=cols, metric_name=metric_name, maps=self.maps, units="N SL", **kwargs
-        )
+        super().__init__(col=cols, metric_name=metric_name, maps=self.maps, units="N SL", **kwargs)
 
         self.bad_val = 0
         self.season = season
@@ -123,14 +121,7 @@ class SNSLMetric(metrics.BaseMetric):
             Number of strongly lensed SN expected in this area
         """
         # estimate the number of lensed supernovae
-        n_lensed_s_ne__ia = (
-            45.7
-            * area
-            / 20000.0
-            * season_length
-            / 2.5
-            / (2.15 * np.exp(0.37 * cadence))
-        )
+        n_lensed_s_ne__ia = 45.7 * area / 20000.0 * season_length / 2.5 / (2.15 * np.exp(0.37 * cadence))
         return n_lensed_s_ne__ia
 
     def run(self, data_slice, slice_point=None):
@@ -194,9 +185,7 @@ class SNSLMetric(metrics.BaseMetric):
         for s in season_loop:
             s_idx = np.where(season_ints == s)[0]
             u_filters = np.unique(night_slice[s_idx][self.filter_col])
-            if (len(s_idx) < self.min_season_obs) | (
-                np.size(u_filters) < self.nfilters_min
-            ):
+            if (len(s_idx) < self.min_season_obs) | (np.size(u_filters) < self.nfilters_min):
                 # Skip this season
                 n_lensed_s_ne__ia += 0
             else:

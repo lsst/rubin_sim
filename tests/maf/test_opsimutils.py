@@ -1,12 +1,14 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import unittest
-import rubin_sim.maf.utils.opsim_utils as opsimUtils
 import os
-from rubin_sim.data import get_data_dir
-import numpy as np
 import sqlite3
+import unittest
+
+import numpy as np
+
+import rubin_sim.maf.utils.opsim_utils as opsimUtils
+from rubin_sim.data import get_data_dir
 
 
 class TestOpsimUtils(unittest.TestCase):
@@ -40,15 +42,11 @@ class TestOpsimUtils(unittest.TestCase):
     def test_calc_coadded_depth(self):
         """Test the expected coadded depth calculation."""
         benchmark = opsimUtils.scale_benchmarks(10, "design")
-        coadd = opsimUtils.calc_coadded_depth(
-            benchmark["nvisits"], benchmark["singleVisitDepth"]
-        )
+        coadd = opsimUtils.calc_coadded_depth(benchmark["nvisits"], benchmark["singleVisitDepth"])
         for f in coadd:
             self.assertLess(coadd[f], 1000)
         singlevisits = {"u": 1, "g": 1, "r": 1, "i": 1, "z": 1, "y": 1}
-        coadd = opsimUtils.calc_coadded_depth(
-            singlevisits, benchmark["singleVisitDepth"]
-        )
+        coadd = opsimUtils.calc_coadded_depth(singlevisits, benchmark["singleVisitDepth"])
         for f in coadd:
             self.assertAlmostEqual(coadd[f], benchmark["singleVisitDepth"][f])
 
@@ -69,9 +67,7 @@ class TestOpsimUtils(unittest.TestCase):
         assert np.size(data) > 0
 
         # Check that kwarg overrides sqlconstraint and dbcols
-        data = opsimUtils.get_sim_data(
-            database_file, "blah blah", ["nocol"], full_sql_query=full_sql
-        )
+        data = opsimUtils.get_sim_data(database_file, "blah blah", ["nocol"], full_sql_query=full_sql)
         assert np.size(data) > 0
 
         # Check that bad file raises an error

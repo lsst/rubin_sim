@@ -1,6 +1,7 @@
 import inspect
-import rubin_sim.maf.metrics as metrics
+
 import rubin_sim.maf.maf_contrib as maf_contrib
+import rubin_sim.maf.metrics as metrics
 
 __all__ = ["make_metric_list"]
 
@@ -35,9 +36,7 @@ def make_metric_list(outfile):
     for name, obj in inspect.getmembers(maf_contrib):
         if inspect.isclass(obj):
             modname = inspect.getmodule(obj).__name__
-            if modname.startswith("rubin_sim.maf.maf_contrib") and name.endswith(
-                "Metric"
-            ):
+            if modname.startswith("rubin_sim.maf.maf_contrib") and name.endswith("Metric"):
                 link = f":py:class:`~rubin_sim.maf.maf_contrib.{name}` "
                 simpledoc = inspect.getdoc(obj).split("\n")[0]
                 print(f"- {link} \n \t {simpledoc}", file=f)

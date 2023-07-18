@@ -1,6 +1,7 @@
-from rubin_sim.maf.stackers import BaseStacker
 import numpy as np
 import numpy.lib.recfunctions as rf
+
+from rubin_sim.maf.stackers import BaseStacker
 
 __all__ = ["CoaddStacker"]
 
@@ -78,9 +79,7 @@ class CoaddStacker(BaseStacker):
             return sim_data
         self.dtype = sim_data.dtype
         r = []
-        for ra, dec, band in np.unique(
-            sim_data[[self.ra_col, self.dec_col, self.filter_col]]
-        ):
+        for ra, dec, band in np.unique(sim_data[[self.ra_col, self.dec_col, self.filter_col]]):
             idx = np.abs(sim_data[self.ra_col] - ra) < 1.0e-5
             idx &= np.abs(sim_data[self.dec_col] - dec) < 1.0e-5
             idx &= sim_data[self.filter_col] == band

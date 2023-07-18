@@ -1,10 +1,11 @@
-import unittest
 import os
-import tempfile
 import shutil
+import tempfile
+import unittest
+
+import rubin_sim.maf as maf
 from rubin_sim.data import get_data_dir
 from rubin_sim.utils.code_utilities import sims_clean_up
-import rubin_sim.maf as maf
 
 
 class Test3x2(unittest.TestCase):
@@ -56,9 +57,7 @@ class Test3x2(unittest.TestCase):
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
         results_db = maf.db.ResultsDb(out_dir=self.out_dir)
         bd = maf.metric_bundles.make_bundles_dict_from_list(bundle_list)
-        bg = maf.metric_bundles.MetricBundleGroup(
-            bd, database, out_dir=self.out_dir, results_db=results_db
-        )
+        bg = maf.metric_bundles.MetricBundleGroup(bd, database, out_dir=self.out_dir, results_db=results_db)
         bg.run_all()
 
     def tearDown(self):

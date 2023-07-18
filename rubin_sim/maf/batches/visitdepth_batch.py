@@ -1,14 +1,17 @@
 """Sets of metrics to look at general sky coverage - nvisits/coadded depth/Teff.
 """
-import numpy as np
 import copy
+
+import numpy as np
+
+import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
-import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.utils as mafUtils
+
 from .col_map_dict import col_map_dict, get_col_map
-from .common import standard_summary, filter_list, radec_cols, combine_info_labels
+from .common import combine_info_labels, filter_list, radec_cols, standard_summary
 
 __all__ = ["nvisitsM5Maps", "tEffMetrics", "nvisitsPerNight", "nvisitsPerSubset"]
 
@@ -89,9 +92,7 @@ def nvisitsM5Maps(
     metric = metrics.CountMetric(colmap["mjd"], metric_name="NVisits", units="")
 
     if slicer is None:
-        slicer = slicers.HealpixSlicer(
-            nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
-        )
+        slicer = slicers.HealpixSlicer(nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees)
         slicerDust = slicers.HealpixSlicer(
             nside=64,
             lat_col=decCol,
@@ -133,9 +134,7 @@ def nvisitsM5Maps(
 
     # Generate Coadded depth maps per filter
     displayDict = {"group": "Coadded M5 Maps", "subgroup": subgroup}
-    metric = metrics.Coaddm5Metric(
-        m5_col=colmap["fiveSigmaDepth"], metric_name="CoaddM5"
-    )
+    metric = metrics.Coaddm5Metric(m5_col=colmap["fiveSigmaDepth"], metric_name="CoaddM5")
 
     for f in filterlist:
         # Skip "all" for coadded depth.
@@ -143,13 +142,14 @@ def nvisitsM5Maps(
             continue
         mag_zp = benchmarkVals["coaddedDepth"][f]
         sql = sqls[f]
-        displayDict["caption"] = (
-            "Coadded depth per healpix, with %s benchmark value subtracted (%.1f) "
-            "in %s." % (f, mag_zp, info_label[f])
-        )
         displayDict[
             "caption"
-        ] += " More positive numbers indicate fainter limiting magnitudes."
+        ] = "Coadded depth per healpix, with %s benchmark value subtracted (%.1f) " "in %s." % (
+            f,
+            mag_zp,
+            info_label[f],
+        )
+        displayDict["caption"] += " More positive numbers indicate fainter limiting magnitudes."
         displayDict["order"] = orders[f]
         plotDict = {
             # "zp": mag_zp,
@@ -175,9 +175,7 @@ def nvisitsM5Maps(
 
     # Add Coadded depth maps per filter WITH extragalactic extinction added
     displayDict = {"group": "Extragalactic Coadded M5 Maps", "subgroup": subgroup}
-    metric = metrics.ExgalM5(
-        m5_col=colmap["fiveSigmaDepth"], metric_name="Exgal_CoaddM5"
-    )
+    metric = metrics.ExgalM5(m5_col=colmap["fiveSigmaDepth"], metric_name="Exgal_CoaddM5")
 
     for f in filterlist:
         # Skip "all" for coadded depth.
@@ -191,9 +189,7 @@ def nvisitsM5Maps(
             "with %s benchmark value subtracted (%.1f) "
             "in %s." % (f, mag_zp, info_label[f])
         )
-        displayDict[
-            "caption"
-        ] += " More positive numbers indicate fainter limiting magnitudes."
+        displayDict["caption"] += " More positive numbers indicate fainter limiting magnitudes."
         displayDict["order"] = orders[f]
         plotDict = {
             # "zp": mag_zp,
@@ -264,9 +260,7 @@ def tEffMetrics(
     if slicer is not None:
         skyslicer = slicer
     else:
-        skyslicer = slicers.HealpixSlicer(
-            nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
-        )
+        skyslicer = slicers.HealpixSlicer(nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees)
 
     # Set up basic all and per filter sql constraints.
     filterlist, colors, orders, sqls, info_label = filter_list(
@@ -295,9 +289,7 @@ def tEffMetrics(
     )
     bundleList.append(bundle)
 
-    displayDict[
-        "caption"
-    ] = "Normalized total effective time of the survey (see Teff metric)."
+    displayDict["caption"] = "Normalized total effective time of the survey (see Teff metric)."
     displayDict["order"] = 1
     metric = metrics.TeffMetric(
         m5_col=colmap["fiveSigmaDepth"],
@@ -328,9 +320,7 @@ def tEffMetrics(
         metric_name="Normalized Teff",
     )
     for f in filterlist:
-        displayDict["caption"] = (
-            "Normalized effective time of the survey, for %s" % info_label[f]
-        )
+        displayDict["caption"] = "Normalized effective time of the survey, for %s" % info_label[f]
         displayDict["order"] = orders[f]
         plotDict = {"color": colors[f]}
         bundle = mb.MetricBundle(

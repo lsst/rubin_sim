@@ -1,13 +1,14 @@
-import numpy as np
-from rubin_sim.scheduler.surveys import BaseSurvey
 import copy
-import rubin_sim.scheduler.basis_functions as basis_functions
-from rubin_sim.scheduler.utils import empty_observation
-from rubin_sim.scheduler import features
 import logging
 import random
-from rubin_sim.utils import ddf_locations
 
+import numpy as np
+
+import rubin_sim.scheduler.basis_functions as basis_functions
+from rubin_sim.scheduler import features
+from rubin_sim.scheduler.surveys import BaseSurvey
+from rubin_sim.scheduler.utils import empty_observation
+from rubin_sim.utils import ddf_locations
 
 __all__ = ["DeepDrillingSurvey", "generate_dd_surveys", "dd_bfs"]
 
@@ -102,17 +103,13 @@ class DeepDrillingSurvey(BaseSurvey):
         # Make an estimate of how long a seqeunce will take. Assumes no major rotational or spatial
         # dithering slowing things down.
         self.approx_time = (
-            np.sum(self.observations["exptime"] + readtime * self.observations["nexp"])
-            / 3600.0
-            / 24.0
+            np.sum(self.observations["exptime"] + readtime * self.observations["nexp"]) / 3600.0 / 24.0
             + filter_change_time * n_filter_change / 3600.0 / 24.0
         )  # to days
 
         if self.reward_value is None:
             self.extra_features["Ntot"] = features.N_obs_survey()
-            self.extra_features["N_survey"] = features.N_obs_survey(
-                note=self.survey_name
-            )
+            self.extra_features["N_survey"] = features.N_obs_survey(note=self.survey_name)
 
     def check_continue(self, observation, conditions):
         # feasibility basis functions?
@@ -137,9 +134,7 @@ class DeepDrillingSurvey(BaseSurvey):
                 # XXX This might backfire if we want to have DDFs with different fractions of the
                 # survey time. Then might need to define a goal fraction, and have the reward be the
                 # number of observations behind that target fraction.
-                result = self.extra_features["Ntot"].feature / (
-                    self.extra_features["N_survey"].feature + 1
-                )
+                result = self.extra_features["Ntot"].feature / (self.extra_features["N_survey"].feature + 1)
         return result
 
     def generate_observations_rough(self, conditions):
@@ -193,11 +188,7 @@ def dd_bfs(
     bfs.append(basis_functions.TimeToTwilightBasisFunction(time_needed=time_needed))
     bfs.append(basis_functions.HourAngleLimitBasisFunction(RA=RA, ha_limits=ha_limits))
     bfs.append(basis_functions.MoonDownBasisFunction())
-    bfs.append(
-        basis_functions.FractionOfObsBasisFunction(
-            frac_total=frac_total, survey_name=survey_name
-        )
-    )
+    bfs.append(basis_functions.FractionOfObsBasisFunction(frac_total=frac_total, survey_name=survey_name))
     bfs.append(
         basis_functions.LookAheadDdfBasisFunction(
             frac_total,
@@ -210,9 +201,7 @@ def dd_bfs(
         )
     )
     bfs.append(
-        basis_functions.SoftDelayBasisFunction(
-            fractions=fractions, delays=delays, survey_name=survey_name
-        )
+        basis_functions.SoftDelayBasisFunction(fractions=fractions, delays=delays, survey_name=survey_name)
     )
     bfs.append(basis_functions.TimeToScheduledBasisFunction(time_needed=time_needed))
 

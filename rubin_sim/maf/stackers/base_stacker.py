@@ -1,5 +1,6 @@
 import inspect
 import warnings
+
 import numpy as np
 from six import with_metaclass
 
@@ -28,8 +29,7 @@ class StackerRegistry(type):
         stackername = modname + name
         if stackername in cls.registry:
             raise Exception(
-                "Redefining stacker %s! (there are >1 stackers with the same name)"
-                % (stackername)
+                "Redefining stacker %s! (there are >1 stackers with the same name)" % (stackername)
             )
         if stackername != "BaseStacker":
             cls.registry[stackername] = cls
@@ -86,19 +86,12 @@ class BaseStacker(with_metaclass(StackerRegistry, object)):
         # We have to delve a little further, and compare the kwargs & attributes for each stacker.
         state_now = dir(self)
         for key in state_now:
-            if (
-                not key.startswith("_")
-                and key != "registry"
-                and key != "run"
-                and key != "next"
-            ):
+            if not key.startswith("_") and key != "registry" and key != "run" and key != "next":
                 if not hasattr(other_stacker, key):
                     return False
                 # If the attribute is from numpy, assume it's an array and test it
                 if type(getattr(self, key)).__module__ == np.__name__:
-                    if not np.array_equal(
-                        getattr(self, key), getattr(other_stacker, key)
-                    ):
+                    if not np.array_equal(getattr(self, key), getattr(other_stacker, key)):
                         return False
                 else:
                     if getattr(self, key) != getattr(other_stacker, key):
@@ -190,6 +183,5 @@ class BaseStacker(with_metaclass(StackerRegistry, object)):
         #  stackers with pandas dataframes. The _addStackerCols method won't work with dataframes, but the
         #  _run methods are quite likely to (depending on their details), as they are just populating columns.
         raise NotImplementedError(
-            "Not Implemented: "
-            "the child stackers should implement their own _run methods"
+            "Not Implemented: " "the child stackers should implement their own _run methods"
         )

@@ -1,10 +1,10 @@
-import numpy as np
 import healpy as hp
-from rubin_sim.utils import _hpid2_ra_dec, Site, _angular_separation
 import matplotlib.pylab as plt
+import numpy as np
+
 from rubin_sim.scheduler.basis_functions import BaseBasisFunction
 from rubin_sim.scheduler.utils import HpInLsstFov, IntRounded
-
+from rubin_sim.utils import Site, _angular_separation, _hpid2_ra_dec
 
 __all__ = [
     "SolarElongMaskBasisFunction",
@@ -36,9 +36,7 @@ class SolarElongMaskBasisFunction(BaseBasisFunction):
 
     def _calc_value(self, conditions, indx=None):
         result = self.result.copy()
-        to_mask = np.where(IntRounded(conditions.solar_elongation) > self.elong_limit)[
-            0
-        ]
+        to_mask = np.where(IntRounded(conditions.solar_elongation) > self.elong_limit)[0]
         result[to_mask] = np.nan
         return result
 
@@ -149,9 +147,7 @@ class ZenithMaskBasisFunction(BaseBasisFunction):
         self.update_on_newobs = False
         self.min_alt = np.radians(min_alt)
         self.max_alt = np.radians(max_alt)
-        self.result = np.empty(hp.nside2npix(self.nside), dtype=float).fill(
-            self.penalty
-        )
+        self.result = np.empty(hp.nside2npix(self.nside), dtype=float).fill(self.penalty)
 
     def _calc_value(self, conditions, indx=None):
         result = self.result.copy()
@@ -254,10 +250,7 @@ class ZenithShadowMaskBasisFunction(BaseBasisFunction):
         )[0]
         result[alt_limit] = 1
         to_mask = np.where(
-            (
-                IntRounded(conditions.HA)
-                > IntRounded(2.0 * np.pi - self.shadow_minutes - self.zenith_radius)
-            )
+            (IntRounded(conditions.HA) > IntRounded(2.0 * np.pi - self.shadow_minutes - self.zenith_radius))
             & (self.decband == 1)
         )
         result[to_mask] = np.nan
@@ -308,9 +301,7 @@ class BulkCloudBasisFunction(BaseBasisFunction):
         Point value to give regions where there are no observations requested
     """
 
-    def __init__(
-        self, nside=None, max_cloud_map=None, max_val=0.7, out_of_bounds_val=np.nan
-    ):
+    def __init__(self, nside=None, max_cloud_map=None, max_val=0.7, out_of_bounds_val=np.nan):
         super(BulkCloudBasisFunction, self).__init__(nside=nside)
         self.update_on_newobs = False
 
@@ -357,9 +348,7 @@ class MapCloudBasisFunction(BaseBasisFunction):
         Point value to give regions where there are no observations requested
     """
 
-    def __init__(
-        self, nside=None, max_cloud_map=None, max_val=0.7, out_of_bounds_val=np.nan
-    ):
+    def __init__(self, nside=None, max_cloud_map=None, max_val=0.7, out_of_bounds_val=np.nan):
         super(BulkCloudBasisFunction, self).__init__(nside=nside)
         self.update_on_newobs = False
 
@@ -403,8 +392,7 @@ class MaskAzimuthBasisFunction(BaseBasisFunction):
 
     def _calc_value(self, conditions, indx=None):
         to_mask = np.where(
-            (IntRounded(conditions.az) > self.az_min)
-            & (IntRounded(conditions.az) < self.az_max)
+            (IntRounded(conditions.az) > self.az_min) & (IntRounded(conditions.az) < self.az_max)
         )[0]
         result = self.result.copy()
         result[to_mask] = self.out_of_bounds_val

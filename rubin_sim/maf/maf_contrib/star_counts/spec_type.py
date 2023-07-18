@@ -6,9 +6,11 @@
 # Description: Calculates spectral types for stars on the main sequence as a function of stellar mass. For use with Field Star Count metric
 
 from __future__ import print_function
-from builtins import map
-import numpy as np
+
 import sys
+from builtins import map
+
+import numpy as np
 from scipy.interpolate import interp1d
 
 
@@ -82,9 +84,7 @@ def spec_type(mass):
         xnew = np.logspace(-2, 3, 100)
         import matplotlib.pyplot as plt
 
-        plt.plot(
-            mass_range, spec_range, "o", xnew, f2(xnew), "-"
-        )  # , xnew, f2(xnew),'--')
+        plt.plot(mass_range, spec_range, "o", xnew, f2(xnew), "-")  # , xnew, f2(xnew),'--')
         plt.xscale("log")
         plt.show()
     return f2([mass])

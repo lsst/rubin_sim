@@ -2,6 +2,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import unittest
+
 import rubin_sim.maf.metrics as metrics
 
 

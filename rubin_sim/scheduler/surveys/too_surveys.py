@@ -1,8 +1,9 @@
-import numpy as np
-from rubin_sim.scheduler.surveys import BlobSurvey, BaseSurvey
-import healpy as hp
 import copy
 
+import healpy as hp
+import numpy as np
+
+from rubin_sim.scheduler.surveys import BaseSurvey, BlobSurvey
 
 __all__ = ["TooMaster", "TooSurvey"]
 
@@ -49,9 +50,7 @@ class TooMaster(BaseSurvey):
         current_ids = [too.id for too in conditions.targets_of_opportunity]
 
         # delete any ToO surveys that are no longer relevant
-        self.surveys = [
-            survey for survey in self.surveys if survey.too_id in current_ids
-        ]
+        self.surveys = [survey for survey in self.surveys if survey.too_id in current_ids]
 
         # Spawn new surveys that are needed
         new_surveys = []
@@ -66,10 +65,7 @@ class TooMaster(BaseSurvey):
             self._check_survey_list(conditions)
 
         if len(self.surveys) > 0:
-            rewards = [
-                np.nanmax(survey.calc_reward_function(conditions))
-                for survey in self.surveys
-            ]
+            rewards = [np.nanmax(survey.calc_reward_function(conditions)) for survey in self.surveys]
             self.reward = np.nanmax(rewards)
             self.highest_reward = np.min(np.where(rewards == self.reward))
         else:

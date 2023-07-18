@@ -1,13 +1,15 @@
+import os
+import sys
+
+import astropy.units as u
+import h5py
+import healpy as hp
 import numpy as np
+from astropy.coordinates import AltAz, EarthLocation, get_moon, get_sun
+from astropy.time import Time
+
 import rubin_sim.skybrightness as sb
 import rubin_sim.utils as utils
-import healpy as hp
-import sys
-import os
-from astropy.coordinates import get_sun, get_moon, EarthLocation, AltAz
-import astropy.units as u
-from astropy.time import Time
-import h5py
 
 
 def generate_sky(
@@ -151,10 +153,7 @@ def generate_sky(
                 if dict_of_lists["mjds"][-2] not in required_mjds:
                     # Check if we can interpolate the second to last sky brightnesses
 
-                    if (
-                        dict_of_lists["mjds"][-1] - dict_of_lists["mjds"][-3]
-                        < timestep_max
-                    ):
+                    if dict_of_lists["mjds"][-1] - dict_of_lists["mjds"][-3] < timestep_max:
                         can_interp = True
                         for mjd2 in last_5_mjds:
                             mjd1 = dict_of_lists["mjds"][-3]
@@ -168,9 +167,7 @@ def generate_sky(
                                 for filter_name in filter_names:
                                     interp_sky = w1 * sky_brightness[filter_name][-3]
                                     interp_sky += w2 * sky_brightness[filter_name][-1]
-                                    diff = np.abs(
-                                        last_5_mags[int(indx)][filter_name] - interp_sky
-                                    )
+                                    diff = np.abs(last_5_mags[int(indx)][filter_name] - interp_sky)
                                     if np.size(diff[~np.isnan(diff)]) > 0:
                                         if np.max(diff[~np.isnan(diff)]) > dm:
                                             can_interp = False

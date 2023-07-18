@@ -1,4 +1,5 @@
 import unittest
+
 from rubin_sim.utils import m5_flat_sed
 
 

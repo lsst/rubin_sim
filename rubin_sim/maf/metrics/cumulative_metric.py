@@ -1,6 +1,6 @@
 import numpy as np
-from .base_metric import BaseMetric
 
+from .base_metric import BaseMetric
 
 __all__ = ["CumulativeMetric"]
 
@@ -22,14 +22,9 @@ class CumulativeMetric(BaseMetric):
         time_col="observationStartMJD",
         night_col="night",
         interp_points=None,
-        **kwargs
+        **kwargs,
     ):
-        super().__init__(
-            col=[time_col, night_col],
-            metric_name=metric_name,
-            metric_dtype="object",
-            **kwargs
-        )
+        super().__init__(col=[time_col, night_col], metric_name=metric_name, metric_dtype="object", **kwargs)
         self.time_col = time_col
         self.night_col = night_col
         self.interp_points = interp_points
@@ -46,8 +41,6 @@ class CumulativeMetric(BaseMetric):
         else:
             interp_points = self.interp_points
         cumulative_number = np.arange(data_slice.size) + 1
-        yresult = np.interp(
-            interp_points, data_slice[self.night_col], cumulative_number
-        )
+        yresult = np.interp(interp_points, data_slice[self.night_col], cumulative_number)
         xresult = interp_points
         return {"x": xresult, "y": yresult, "plot_dict": self.plot_dict}

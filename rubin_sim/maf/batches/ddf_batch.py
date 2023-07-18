@@ -1,14 +1,10 @@
-import numpy as np
 import healpy as hp
-from rubin_sim.utils import (
-    hpid2_ra_dec,
-    angular_separation,
-    ddf_locations,
-    sample_patch_on_sphere,
-)
-import rubin_sim.maf as maf
-from .common import lightcurve_summary
+import numpy as np
 
+import rubin_sim.maf as maf
+from rubin_sim.utils import angular_separation, ddf_locations, hpid2_ra_dec, sample_patch_on_sphere
+
+from .common import lightcurve_summary
 
 __all__ = ["ddfBatch"]
 
@@ -76,17 +72,11 @@ def ddfBatch(
             good = np.unique(np.concatenate(goods))
             good_sne = np.unique(np.concatenate(goods_sne))
         else:
-            dist = angular_separation(
-                ra, dec, np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"])
-            )
+            dist = angular_separation(ra, dec, np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]))
             good = np.where(dist <= radius)[0]
-            dist = angular_separation(
-                ra_sne, dec_sne, np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"])
-            )
+            dist = angular_separation(ra_sne, dec_sne, np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]))
             good_sne = np.where(dist <= radius)[0]
-        ddf_slicers_sne[ddf] = maf.HealpixSubsetSlicer(
-            nside_sne, good_sne, use_cache=False
-        )
+        ddf_slicers_sne[ddf] = maf.HealpixSubsetSlicer(nside_sne, good_sne, use_cache=False)
         ddf_slicers[ddf] = maf.HealpixSubsetSlicer(nside, good, use_cache=False)
 
     # Now define metrics
@@ -171,9 +161,7 @@ def ddfBatch(
         n_kne = 5000
         displayDict["group"] = "KNe"
         displayDict["subgroup"] = ""
-        displayDict["caption"] = (
-            f"Number of KNe in the {fieldname} DDF from %i injected." % n_kne
-        )
+        displayDict["caption"] = f"Number of KNe in the {fieldname} DDF from %i injected." % n_kne
 
         ra, dec = sample_patch_on_sphere(
             np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]), delta, n_kne, seed=1
@@ -368,9 +356,7 @@ def ddfBatch(
         agn_mags = {"u": 22.0, "g": 24, "r": 24, "i": 24, "z": 22, "y": 22}
         for f in "ugrizy":
             displayDict["order"] = orders[f]
-            displayDict[
-                "caption"
-            ] = f"AGN Structure Function Error in {f} band in the {fieldname} DDF."
+            displayDict["caption"] = f"AGN Structure Function Error in {f} band in the {fieldname} DDF."
             summaryMetrics = [maf.MedianMetric(), maf.RmsMetric()]
             metric = maf.SFUncertMetric(
                 mag=agn_mags[f],
@@ -410,12 +396,8 @@ def ddfBatch(
                 )
             )
             displayDict["subgroup"] = "N Visits"
-            displayDict[
-                "caption"
-            ] = f"Number of visits in the {f} band in the {fieldname} DDF."
-            metric = maf.CountMetric(
-                col="observationStartMJD", units="#", metric_name=f"{fieldname} NVisits"
-            )
+            displayDict["caption"] = f"Number of visits in the {f} band in the {fieldname} DDF."
+            metric = maf.CountMetric(col="observationStartMJD", units="#", metric_name=f"{fieldname} NVisits")
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
@@ -432,12 +414,8 @@ def ddfBatch(
         # Count over all filter
         displayDict["subgroup"] = "N Visits"
         displayDict["order"] = orders["all"]
-        displayDict[
-            "caption"
-        ] = f"Number of visits in all bands in the {fieldname} DDF."
-        metric = maf.CountMetric(
-            col="observationStartMJD", units="#", metric_name=f"{fieldname} NVisits"
-        )
+        displayDict["caption"] = f"Number of visits in all bands in the {fieldname} DDF."
+        metric = maf.CountMetric(col="observationStartMJD", units="#", metric_name=f"{fieldname} NVisits")
         bundle_list.append(
             maf.MetricBundle(
                 metric,
@@ -456,9 +434,7 @@ def ddfBatch(
         displayDict["subgroup"] = "N Nights"
         displayDict["order"] = orders["all"]
         displayDict["caption"] = f"Number of nights with visits in the {fieldname} DDF."
-        metric = maf.CountUniqueMetric(
-            col="night", units="#", metric_name=f"{fieldname} N Unique Nights"
-        )
+        metric = maf.CountUniqueMetric(col="night", units="#", metric_name=f"{fieldname} N Unique Nights")
         bundle_list.append(
             maf.MetricBundle(
                 metric,
@@ -476,9 +452,7 @@ def ddfBatch(
         # Now to compute some things at just the center of the DDF
         # For these metrics, add a requirement that the 'note' label match the DDF,
         # to avoid WFD visits skewing the results (we want to exclude these)
-        ptslicer = maf.UserPointsSlicer(
-            np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"])
-        )
+        ptslicer = maf.UserPointsSlicer(np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]))
 
         displayDict["group"] = "Cadence"
         displayDict["order"] = order
@@ -525,9 +499,7 @@ def ddfBatch(
             pass
         else:
             displayDict["caption"] = f"Number of visits per night for {fieldname}."
-            metric = maf.CountMetric(
-                "observationStartMJD", metric_name=f"{fieldname} Nvisits Per Night"
-            )
+            metric = maf.CountMetric("observationStartMJD", metric_name=f"{fieldname} Nvisits Per Night")
             slicer = maf.OneDSlicer(slice_col_name="night", bin_size=1)
             bundle = maf.MetricBundle(
                 metric,
@@ -553,9 +525,7 @@ def ddfBatch(
             night_col="night",
             metric_name=f"{fieldname} Delta Nights Histogram",
         )
-        displayDict[
-            "caption"
-        ] = f"Histogram of intervals between nights with visits, in the {fieldname} DDF."
+        displayDict["caption"] = f"Histogram of intervals between nights with visits, in the {fieldname} DDF."
         plotDict = {"bins": bins, "xlabel": "dT (nights)"}
         plotFunc = maf.SummaryHistogram()
         bundle = maf.MetricBundle(
@@ -575,9 +545,7 @@ def ddfBatch(
                 metric_name=f"{fieldname} Median Inter-Night Gap", reduce_func=np.median
             )
             displayDict["order"] = orders[f]
-            displayDict[
-                "caption"
-            ] = f"Median internight gap in {f} band in the {fieldname} DDF."
+            displayDict["caption"] = f"Median internight gap in {f} band in the {fieldname} DDF."
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
@@ -604,9 +572,7 @@ def ddfBatch(
         metric = maf.SeasonLengthMetric(reduce_func=rfunc, metric_dtype="object")
         plotDict = {"bins": np.arange(0, 12), "xlabel": "Season length (days)"}
         plotFunc = maf.SummaryHistogram()
-        displayDict[
-            "caption"
-        ] = f"Plot of the season length per season in the {fieldname} DDF."
+        displayDict["caption"] = f"Plot of the season length per season in the {fieldname} DDF."
         displayDict["order"] = order
         bundle = maf.MetricBundle(
             metric,

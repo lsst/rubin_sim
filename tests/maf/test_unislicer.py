@@ -1,9 +1,11 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import numpy as np
 import unittest
-from rubin_sim.maf.slicers import UniSlicer, OneDSlicer
+
+import numpy as np
+
+from rubin_sim.maf.slicers import OneDSlicer, UniSlicer
 
 
 def make_data_values(size=100, min=0.0, max=1.0, random=-1):
@@ -30,9 +32,7 @@ class TestUniSlicerSetupAndSlice(unittest.TestCase):
 
     def test_slicertype(self):
         """Test instantiation of slicer sets slicer type as expected."""
-        self.assertEqual(
-            self.testslicer.slicer_name, self.testslicer.__class__.__name__
-        )
+        self.assertEqual(self.testslicer.slicer_name, self.testslicer.__class__.__name__)
         self.assertEqual(self.testslicer.slicer_name, "UniSlicer")
 
     def test_slicer_nbins(self):

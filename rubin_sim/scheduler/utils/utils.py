@@ -1,18 +1,15 @@
-import os
-import sqlite3
 import datetime
+import os
 import socket
-import numpy as np
+import sqlite3
+
 import healpy as hp
-import pandas as pd
 import matplotlib.path as mplPath
-from rubin_sim.utils import (
-    _hpid2_ra_dec,
-    xyz_angular_radius,
-    _build_tree,
-    _xyz_from_ra_dec,
-)
+import numpy as np
+import pandas as pd
+
 import rubin_sim.version as rsVersion
+from rubin_sim.utils import _build_tree, _hpid2_ra_dec, _xyz_from_ra_dec, xyz_angular_radius
 
 __all__ = [
     "IntRounded",
@@ -135,9 +132,7 @@ def set_default_nside(nside=None):
     return set_default_nside.nside
 
 
-def restore_scheduler(
-    observation_id, scheduler, observatory, in_obs, filter_sched=None, fast=True
-):
+def restore_scheduler(observation_id, scheduler, observatory, in_obs, filter_sched=None, fast=True):
     """Put the scheduler and observatory in the state they were in. Handy for checking reward fucnction
 
     Parameters
@@ -185,9 +180,7 @@ def restore_scheduler(
 
         # Make sure we have mounted the right filters for the night
         # XXX--note, this might not be exact, but should work most of the time.
-        mjd_start_night = np.min(
-            observations["mjd"][np.where(observations["night"] == obs["night"])]
-        )
+        mjd_start_night = np.min(observations["mjd"][np.where(observations["night"] == obs["night"])])
         observatory.mjd = mjd_start_night
         conditions = observatory.return_conditions()
         filters_needed = filter_sched(conditions)
@@ -195,9 +188,7 @@ def restore_scheduler(
         filters_needed = ["u", "g", "r", "i", "y"]
 
     # update the observatory
-    observatory.mjd = (
-        obs["mjd"] + observatory.observatory.visit_time(obs) / 3600.0 / 24.0
-    )
+    observatory.mjd = obs["mjd"] + observatory.observatory.visit_time(obs) / 3600.0 / 24.0
     observatory.obs_id_counter = obs["ID"] + 1
     observatory.observatory.parked = False
     observatory.observatory.current_ra_rad = obs["RA"]
@@ -236,14 +227,9 @@ def gnomonic_project_toxy(ra1, dec1, r_acen, deccen):
     """Calculate x/y projection of ra1/dec1 in system with center at r_acen, deccen.
     Input radians. Grabbed from sims_selfcal"""
     # also used in Global Telescope Network website
-    cosc = np.sin(deccen) * np.sin(dec1) + np.cos(deccen) * np.cos(dec1) * np.cos(
-        ra1 - r_acen
-    )
+    cosc = np.sin(deccen) * np.sin(dec1) + np.cos(deccen) * np.cos(dec1) * np.cos(ra1 - r_acen)
     x = np.cos(dec1) * np.sin(ra1 - r_acen) / cosc
-    y = (
-        np.cos(deccen) * np.sin(dec1)
-        - np.sin(deccen) * np.cos(dec1) * np.cos(ra1 - r_acen)
-    ) / cosc
+    y = (np.cos(deccen) * np.sin(dec1) - np.sin(deccen) * np.cos(dec1) * np.cos(ra1 - r_acen)) / cosc
     return x, y
 
 
@@ -252,9 +238,7 @@ def gnomonic_project_tosky(x, y, r_acen, deccen):
     Returns Ra/dec in radians."""
     denom = np.cos(deccen) - y * np.sin(deccen)
     RA = r_acen + np.arctan2(x, denom)
-    dec = np.arctan2(
-        np.sin(deccen) + y * np.cos(deccen), np.sqrt(x * x + denom * denom)
-    )
+    dec = np.arctan2(np.sin(deccen) + y * np.cos(deccen), np.sqrt(x * x + denom * denom))
     return RA, dec
 
 
@@ -317,13 +301,9 @@ def raster_sort(x0, order=["x", "y"], xbin=1.0):
 
         for i, inv_pt in enumerate(places_to_invert[:-1]):
             if i % 2 == 0:
-                index_sorted[inv_pt : places_to_invert[i + 1]] = indx[
-                    inv_pt : places_to_invert[i + 1]
-                ][::-1]
+                index_sorted[inv_pt : places_to_invert[i + 1]] = indx[inv_pt : places_to_invert[i + 1]][::-1]
             else:
-                index_sorted[inv_pt : places_to_invert[i + 1]] = indx[
-                    inv_pt : places_to_invert[i + 1]
-                ]
+                index_sorted[inv_pt : places_to_invert[i + 1]] = indx[inv_pt : places_to_invert[i + 1]]
 
         if np.size(places_to_invert) % 2 != 0:
             index_sorted[places_to_invert[-1] :] = indx[places_to_invert[-1] :][::-1]
@@ -747,9 +727,7 @@ class HpInLsstFov(object):
         z = np.round(z * self.scale).astype(int)
 
         if np.size(x) == 1:
-            indices = self.tree.query_ball_point(
-                (np.max(x), np.max(y), np.max(z)), self.radius
-            )
+            indices = self.tree.query_ball_point((np.max(x), np.max(y), np.max(z)), self.radius)
         else:
             indices = self.tree.query_ball_point(np.vstack([x, y, z]).T, self.radius)
         return indices
@@ -812,9 +790,7 @@ class HpInComcamFov(object):
         # Healpixels within the inner circle
         indices = self.tree.query_ball_point((x, y, z), self.inner_radius)
         # Healpixels withing the outer circle
-        indices_all = np.array(
-            self.tree.query_ball_point((x, y, z), self.outter_radius)
-        )
+        indices_all = np.array(self.tree.query_ball_point((x, y, z), self.outter_radius))
         indices_to_check = indices_all[np.in1d(indices_all, indices, invert=True)]
 
         cos_rot = np.cos(rot_sky_pos)
@@ -862,9 +838,7 @@ def run_info_table(observatory, extra_info=None):
 
     names = ["Parameter", "Value"]
     dtypes = ["|U200", "|U200"]
-    result = np.zeros(
-        observatory_info[:, 0].size + n_feature_entries, dtype=list(zip(names, dtypes))
-    )
+    result = np.zeros(observatory_info[:, 0].size + n_feature_entries, dtype=list(zip(names, dtypes)))
 
     # Fill in info about the run
     result[0]["Parameter"] = "Date, ymd"
@@ -913,9 +887,7 @@ def warm_start(scheduler, observations, mjd_key="mjd"):
     return scheduler
 
 
-def season_calc(
-    night, offset=0, modulo=None, max_season=None, season_length=365.25, floor=True
-):
+def season_calc(night, offset=0, modulo=None, max_season=None, season_length=365.25, floor=True):
     """
     Compute what season a night is in with possible offset and modulo
     using convention that night -365 to 0 is season -1.

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+import argparse
 import glob
 import os
-from rubin_sim.data import get_data_dir
+
 import rubin_sim.maf.db as db
-import argparse
+from rubin_sim.data import get_data_dir
 from rubin_sim.utils import survey_start_mjd
 
 
@@ -72,9 +73,7 @@ def generate_ss_commands(
     elif pops is not None:
         pp = [p for p in orbit_files.keys() if p == pops]
         if len(pp) == 0:
-            print(
-                f"Did not find population {pops} in expected types ({list(orbit_files.keys())}"
-            )
+            print(f"Did not find population {pops} in expected types ({list(orbit_files.keys())}")
         pops = [pops]
 
     runs = [os.path.split(file)[-1].replace(".db", "") for file in dbfiles]
@@ -126,20 +125,14 @@ def generate_ss_commands(
             for pop in pops:
                 objtype = objtypes[pop]
                 if split:
-                    splitfiles = glob.glob(
-                        os.path.join(data_dir, "split") + f"/*{pop}*"
-                    )
+                    splitfiles = glob.glob(os.path.join(data_dir, "split") + f"/*{pop}*")
                     outfile_split = outfile.replace(".sh", f"_{pop}_split.sh")
                     # If the output split file already exists, remove it (as we append, not write)
                     if os.path.isfile(outfile_split):
                         os.remove(outfile_split)
                     for i, splitfile in enumerate(splitfiles):
                         split = os.path.split(splitfile)[-1]
-                        split = (
-                            split.replace(".des", "")
-                            .replace(".s3m", "")
-                            .replace(".txt", "")
-                        )
+                        split = split.replace(".des", "").replace(".s3m", "").replace(".txt", "")
                         with open(outfile_split, "a") as wi:
                             s1 = (
                                 f"make_lsst_obs --simulation_db {filename} --orbit_file {splitfile}"
@@ -175,17 +168,11 @@ def generate_ss_commands(
 def generate_ss():
     """Generate solar system processing commands."""
 
-    parser = argparse.ArgumentParser(
-        description="Generate solar system processing commands"
-    )
+    parser = argparse.ArgumentParser(description="Generate solar system processing commands")
     parser.add_argument("--db", type=str, default=None, help="database to process")
     parser.set_defaults(vatiras=False)
-    parser.add_argument(
-        "--pop", type=str, default=None, help="identify one population to run"
-    )
-    parser.add_argument(
-        "--start_mjd", type=float, default=None, help="start of the sim"
-    )
+    parser.add_argument("--pop", type=str, default=None, help="identify one population to run")
+    parser.add_argument("--start_mjd", type=float, default=None, help="start of the sim")
     parser.add_argument(
         "--split",
         dest="split",

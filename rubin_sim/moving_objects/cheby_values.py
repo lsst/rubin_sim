@@ -1,6 +1,8 @@
 import os
+
 import numpy as np
 import pandas as pd
+
 from .chebyshev_utils import chebeval
 
 __all__ = ["ChebyValues"]
@@ -49,10 +51,7 @@ class ChebyValues(object):
         # Check that expected values were received.
         missing_keys = set(self.coeff_keys) - set(self.coeffs)
         if len(missing_keys) > 0:
-            raise ValueError(
-                "Expected to find key(s) %s in coefficients."
-                % " ".join(list[missing_keys])
-            )
+            raise ValueError("Expected to find key(s) %s in coefficients." % " ".join(list[missing_keys]))
         self.coeffs["meanRA"] = self.coeffs["ra"].swapaxes(0, 1)[0]
         self.coeffs["meanDec"] = self.coeffs["dec"].swapaxes(0, 1)[0]
 
@@ -183,17 +182,14 @@ class ChebyValues(object):
             obj_match = np.in1d(self.coeffs["obj_id"], obj_ids)
             ephemerides["obj_id"] = obj_ids
         # Now find ephemeris values.
-        ephemerides["time"] = (
-            np.zeros((len(ephemerides["obj_id"]), ntimes), float) + times
-        )
+        ephemerides["time"] = np.zeros((len(ephemerides["obj_id"]), ntimes), float) + times
         for k in self.ephemeris_keys:
             ephemerides[k] = np.zeros((len(ephemerides["obj_id"]), ntimes), float)
         for it, t in enumerate(times):
             # Find subset of segments which contain the appropriate time.
             # Look for simplest subset first.
             segments = np.where(
-                (self.coeffs["t_start"][obj_match] <= t)
-                & (self.coeffs["t_end"][obj_match] > t)
+                (self.coeffs["t_start"][obj_match] <= t) & (self.coeffs["t_end"][obj_match] > t)
             )[0]
             if len(segments) == 0:
                 seg_start = self.coeffs["t_start"][obj_match].min()
@@ -205,13 +201,9 @@ class ChebyValues(object):
                     else:
                         # Find the segments to use to extrapolate the times.
                         if seg_start > t:
-                            segments = np.where(
-                                self.coeffs["t_start"][obj_match] == seg_start
-                            )[0]
+                            segments = np.where(self.coeffs["t_start"][obj_match] == seg_start)[0]
                         if seg_end < t:
-                            segments = np.where(
-                                self.coeffs["t_end"][obj_match] == seg_end
-                            )[0]
+                            segments = np.where(self.coeffs["t_end"][obj_match] == seg_end)[0]
                 elif seg_end == t:
                     # Not extrapolating, but outside the simple match case above.
                     segments = np.where(self.coeffs["t_end"][obj_match] == seg_end)[0]

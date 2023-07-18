@@ -1,9 +1,11 @@
-import numpy as np
-import rubin_sim.skybrightness as sb
-import unittest
-from rubin_sim.phot_utils import Bandpass
-from rubin_sim.data import get_data_dir
 import os
+import unittest
+
+import numpy as np
+
+import rubin_sim.skybrightness as sb
+from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import Bandpass
 
 
 class TestSkyModel(unittest.TestCase):
@@ -317,17 +319,13 @@ class TestSkyModel(unittest.TestCase):
 
         filter_names = ["u", "g", "r", "i", "z", "y"]
         for filter_name in filter_names:
-            sm.set_ra_dec_mjd(
-                0.0, 90.0, mjd, degrees=True, az_alt=True, filter_names=[filter_name]
-            )
+            sm.set_ra_dec_mjd(0.0, 90.0, mjd, degrees=True, az_alt=True, filter_names=[filter_name])
             one_mag = sm.return_mags()
             self.assertEqual(all_mags[filter_name], one_mag[filter_name])
 
         # Test that I can do subset of mags
         subset = ["u", "r", "y"]
-        sm.set_ra_dec_mjd(
-            0.0, 90.0, mjd, degrees=True, az_alt=True, filter_names=subset
-        )
+        sm.set_ra_dec_mjd(0.0, 90.0, mjd, degrees=True, az_alt=True, filter_names=subset)
         sub_mags = sm.return_mags()
         for filter_name in subset:
             self.assertEqual(all_mags[filter_name], sub_mags[filter_name])

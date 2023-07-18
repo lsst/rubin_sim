@@ -1,6 +1,5 @@
-import os
 import inspect
-
+import os
 
 __all__ = ["get_package_dir"]
 

@@ -8,11 +8,11 @@ prescribed by ObsMetaData
 3. test_sample_patch_on_sphere : Check functionality by showing that binning up in
     dec results in numbers in dec bins changing with area.
  """
-import numpy as np
 import unittest
-from rubin_sim.utils import ObservationMetaData
-from rubin_sim.utils import sample_patch_on_sphere
-from rubin_sim.utils import spatially_sample_obsmetadata
+
+import numpy as np
+
+from rubin_sim.utils import ObservationMetaData, sample_patch_on_sphere, spatially_sample_obsmetadata
 
 
 class SamplingTests(unittest.TestCase):

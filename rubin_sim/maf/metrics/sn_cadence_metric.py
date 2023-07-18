@@ -1,4 +1,5 @@
 import numpy as np
+
 import rubin_sim.maf.metrics as metrics
 
 __all__ = ["SNCadenceMetric"]
@@ -34,7 +35,7 @@ class SNCadenceMetric(metrics.BaseMetric):
         vistime_col="visitTime",
         coadd=True,
         lim_sn=None,
-        **kwargs
+        **kwargs,
     ):
         self.mjd_col = mjd_col
         self.m5_col = m5_col
@@ -62,9 +63,7 @@ class SNCadenceMetric(metrics.BaseMetric):
         if coadd:
             cols += ["coadd"]
 
-        super(SNCadenceMetric, self).__init__(
-            col=cols, metric_name=metric_name, **kwargs
-        )
+        super(SNCadenceMetric, self).__init__(col=cols, metric_name=metric_name, **kwargs)
 
         self.filter_names = np.array(["u", "g", "r", "i", "z", "y"])
 
@@ -85,9 +84,7 @@ class SNCadenceMetric(metrics.BaseMetric):
         band = np.unique(data_slice[self.filter_col])[0]
 
         sel = data_slice
-        bins = np.arange(
-            np.floor(sel[self.mjd_col].min()), np.ceil(sel[self.mjd_col].max()), 1.0
-        )
+        bins = np.arange(np.floor(sel[self.mjd_col].min()), np.ceil(sel[self.mjd_col].max()), 1.0)
         c, b = np.histogram(sel[self.mjd_col], bins=bins)
         if (c.mean() < 1.0e-8) | np.isnan(c).any() | np.isnan(c.mean()):
             cadence = 0.0
@@ -96,9 +93,7 @@ class SNCadenceMetric(metrics.BaseMetric):
         # time_diff = sel[self.mjd_col][1:]-sel[self.mjd_col][:-1]
         r.append((field_ra, field_dec, band, np.mean(sel[self.m5_col]), cadence))
 
-        res = np.rec.fromrecords(
-            r, names=["field_ra", "field_dec", "band", "m5_mean", "cadence_mean"]
-        )
+        res = np.rec.fromrecords(r, names=["field_ra", "field_dec", "band", "m5_mean", "cadence_mean"])
 
         zref = self.lim_sn.interp_griddata(res)
 

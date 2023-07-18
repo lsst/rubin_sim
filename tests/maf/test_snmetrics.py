@@ -1,20 +1,17 @@
-import numpy as np
-import unittest
-from rubin_sim.maf.utils.sn_utils import Lims, ReferenceData
-from rubin_sim.maf.metrics import SNCadenceMetric
-from rubin_sim.maf.metrics import SNSNRMetric
-from rubin_sim.maf.metrics import SNSLMetric
-from rubin_sim.maf.metrics import SNNSNMetric
-from rubin_sim.data import get_data_dir
 import os
+import unittest
 import warnings
+
+import numpy as np
+
+from rubin_sim.data import get_data_dir
+from rubin_sim.maf.metrics import SNCadenceMetric, SNNSNMetric, SNSLMetric, SNSNRMetric
+from rubin_sim.maf.utils.sn_utils import Lims, ReferenceData
 
 m5_ref = dict(zip("ugrizy", [23.60, 24.83, 24.38, 23.92, 23.35, 22.44]))
 
 
-def observations_band(
-    day0=59000, daymin=59000, cadence=3.0, season_length=140.0, band="r"
-):
+def observations_band(day0=59000, daymin=59000, cadence=3.0, season_length=140.0, band="r"):
     # Define fake data
     names = [
         "observationStartMJD",
@@ -75,9 +72,7 @@ def observations_season(mjdmin=59000, cadence=3.0):
         mjd = mjdmin + shift_visits[band]
         for i in range(nvisits[band]):
             mjd += shift
-            dat = observations_band(
-                daymin=mjd, season_length=season_length, cadence=cadence, band=band
-            )
+            dat = observations_band(daymin=mjd, season_length=season_length, cadence=cadence, band=band)
             if data is None:
                 data = dat
             else:
@@ -156,9 +151,7 @@ def fake_data(band, season=1):
 class TestSNmetrics(unittest.TestCase):
     def setUp(self):
         if not os.path.isdir(os.path.join(get_data_dir(), "maf")):
-            self.skipTest(
-                "Skipping SN tests because running unit tests without full rubin_sim_data."
-            )
+            self.skipTest("Skipping SN tests because running unit tests without full rubin_sim_data.")
 
     @unittest.skip("The SNCadenceMetric is not used")
     def test_sn_cadence_metric(self):
@@ -173,9 +166,7 @@ class TestSNmetrics(unittest.TestCase):
             mag_range = [21.0, 25.5]  # WFD mag range
             dt_range = [0.5, 30.0]  # WFD dt range
             li_files = [os.path.join(sims_maf_contrib_dir, "Li_SNCosmo_-2.0_0.2.npy")]
-            mag_to_flux_files = [
-                os.path.join(sims_maf_contrib_dir, "Mag_to_Flux_SNCosmo.npy")
-            ]
+            mag_to_flux_files = [os.path.join(sims_maf_contrib_dir, "Mag_to_Flux_SNCosmo.npy")]
             lim_sn = Lims(
                 li_files,
                 mag_to_flux_files,
@@ -239,9 +230,7 @@ class TestSNmetrics(unittest.TestCase):
             z = 0.3
             season = 1.0
             li_files = [os.path.join(sims_maf_contrib_dir, "Li_SNCosmo_-2.0_0.2.npy")]
-            mag_to_flux_files = [
-                os.path.join(sims_maf_contrib_dir, "Mag_to_Flux_SNCosmo.npy")
-            ]
+            mag_to_flux_files = [os.path.join(sims_maf_contrib_dir, "Mag_to_Flux_SNCosmo.npy")]
 
             names_ref = ["SNCosmo"]
             coadd = False
@@ -296,9 +285,7 @@ class TestSNmetrics(unittest.TestCase):
 
             # Run the metric with these fake data
             slice_point = {"nside": 64, "ebv": 0.0}
-            metric = SNSNRMetric(
-                lim_sn=lim_sn, coadd=coadd, names_ref=names_ref, season=season, z=z
-            )
+            metric = SNSNRMetric(lim_sn=lim_sn, coadd=coadd, names_ref=names_ref, season=season, z=z)
 
             result = metric.run(data, slice_point)
 

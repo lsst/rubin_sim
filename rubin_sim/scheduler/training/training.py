@@ -1,6 +1,7 @@
 import numpy as np
-import rubin_sim.scheduler.Training as optional
+
 import rubin_sim.scheduler as fs
+import rubin_sim.scheduler.Training as optional
 from rubin_sim.speedObservatory import Speed_observatory
 
 
@@ -14,24 +15,14 @@ class BlackTraining(object):
         for f in survey_filters:
             self.bfs = []
             self.bfs.append(fs.Slewtime_basis_function_cost(filtername=f))
-            self.bfs.append(
-                fs.Visit_repeat_basis_function_cost(
-                    filtername=f, survey_filters=survey_filters
-                )
-            )
-            self.bfs.append(
-                fs.Target_map_basis_function_cost(
-                    filtername=f, survey_filters=survey_filters
-                )
-            )
+            self.bfs.append(fs.Visit_repeat_basis_function_cost(filtername=f, survey_filters=survey_filters))
+            self.bfs.append(fs.Target_map_basis_function_cost(filtername=f, survey_filters=survey_filters))
             self.bfs.append(fs.Normalized_alt_basis_function_cost(filtername=f))
             self.bfs.append(fs.Hour_angle_basis_function_cost())
             self.bfs.append(fs.Depth_percentile_basis_function_cost())
             weights = np.array([5, 2, 1, 1, 2, 1])
             self.surveys.append(
-                fs.Simple_greedy_survey_fields_cost(
-                    self.bfs, weights, filtername=f, block_size=10
-                )
+                fs.Simple_greedy_survey_fields_cost(self.bfs, weights, filtername=f, block_size=10)
             )
 
     def de_opt(

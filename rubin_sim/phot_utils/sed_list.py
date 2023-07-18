@@ -1,7 +1,8 @@
-import os
 import copy
+import os
+
 from .sed import Sed
-from rubin_sim.phot_utils import get_imsim_flux_norm
+from .sed_utils import get_imsim_flux_norm
 
 __all__ = ["SedList"]
 
@@ -196,9 +197,7 @@ class SedList(object):
 
             if sed_name != "None":
                 if self._spec_map is not None:
-                    sed.read_sed_flambda(
-                        os.path.join(self._file_dir, self._spec_map[sed_name])
-                    )
+                    sed.read_sed_flambda(os.path.join(self._file_dir, self._spec_map[sed_name]))
                 else:
                     sed.read_sed_flambda(os.path.join(self._file_dir, sed_name))
 

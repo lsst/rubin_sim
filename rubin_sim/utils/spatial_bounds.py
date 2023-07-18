@@ -126,26 +126,19 @@ class CircleBounds(SpatialBounds):
             try:
                 ra = float(ra)
             except:
-                raise RuntimeError(
-                    "In CircleBounds, ra must be a float; you have %s" % type(ra)
-                )
+                raise RuntimeError("In CircleBounds, ra must be a float; you have %s" % type(ra))
 
         if not (isinstance(dec, float) or isinstance(dec, np.float64)):
             try:
                 dec = float(dec)
             except:
-                raise RuntimeError(
-                    "In CircleBounds, dec must be a float; you have %s" % type(dec)
-                )
+                raise RuntimeError("In CircleBounds, dec must be a float; you have %s" % type(dec))
 
         if not (isinstance(radius, float) or isinstance(radius, np.float64)):
             try:
                 radius = float(radius)
             except:
-                raise RuntimeError(
-                    "In CircleBounds, radius must be a float; you have %s"
-                    % type(radius)
-                )
+                raise RuntimeError("In CircleBounds, radius must be a float; you have %s" % type(radius))
 
         self.RA = ra
         self.DEC = dec
@@ -208,16 +201,10 @@ class CircleBounds(SpatialBounds):
         # the desired radius.  See
         # http://en.wikipedia.org/wiki/Haversine_formula
         bound = bound + (
-            "and 2 * ASIN(SQRT( POWER(SIN(0.5*(%s - %s) * PI() / 180.0),2)"
-            % (de_cname, self.dec_deg)
+            "and 2 * ASIN(SQRT( POWER(SIN(0.5*(%s - %s) * PI() / 180.0),2)" % (de_cname, self.dec_deg)
         )
-        bound = bound + (
-            "+ COS(%s * PI() / 180.0) * COS(%s * PI() / 180.0) "
-            % (de_cname, self.dec_deg)
-        )
-        bound = bound + (
-            "* POWER(SIN(0.5 * (%s - %s) * PI() / 180.0),2)))" % (r_aname, self.ra_deg)
-        )
+        bound = bound + ("+ COS(%s * PI() / 180.0) * COS(%s * PI() / 180.0) " % (de_cname, self.dec_deg))
+        bound = bound + ("* POWER(SIN(0.5 * (%s - %s) * PI() / 180.0),2)))" % (r_aname, self.ra_deg))
         bound = bound + (" < %s " % self.radius)
 
         return bound
@@ -246,17 +233,13 @@ class BoxBounds(SpatialBounds):
             try:
                 ra = float(ra)
             except:
-                raise RuntimeError(
-                    "In BoxBounds ra must be a float; you have %s" % type(ra)
-                )
+                raise RuntimeError("In BoxBounds ra must be a float; you have %s" % type(ra))
 
         if not (isinstance(dec, float) or isinstance(dec, np.float64)):
             try:
                 dec = float(dec)
             except:
-                raise RuntimeError(
-                    "In BoxBounds dec must be a float; you have %s" % type(dec)
-                )
+                raise RuntimeError("In BoxBounds dec must be a float; you have %s" % type(dec))
 
         self.RA = ra
         self.DEC = dec
@@ -279,8 +262,7 @@ class BoxBounds(SpatialBounds):
 
         except:
             raise RuntimeError(
-                "BoxBounds is unsure how to handle length %s type: %s"
-                % (str(length), type(length))
+                "BoxBounds is unsure how to handle length %s type: %s" % (str(length), type(length))
             )
 
         self.ra_min_deg = self.ra_deg - length_ra_deg

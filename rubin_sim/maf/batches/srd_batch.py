@@ -2,15 +2,18 @@
 Potentially could diverge from versions in scienceRadar.
 """
 import warnings
-import numpy as np
+
 import healpy as hp
+import numpy as np
+
+import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.plots as plots
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
-import rubin_sim.maf.plots as plots
-import rubin_sim.maf.metric_bundles as mb
+
 from .col_map_dict import col_map_dict
-from .common import standard_summary, radec_cols, combine_info_labels
+from .common import combine_info_labels, radec_cols, standard_summary
 
 __all__ = ["fOBatch", "astrometryBatch", "rapidRevisitBatch"]
 
@@ -70,25 +73,19 @@ def fOBatch(
     # Set up fO metric.
     if slicer is None:
         nside = 64
-        slicer = slicers.HealpixSlicer(
-            nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
-        )
+        slicer = slicers.HealpixSlicer(nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees)
     else:
         try:
             nside = slicer.nside
         except AttributeError:
             warnings.warn("Must use a healpix slicer. Swapping to the default.")
             nside = 64
-            slicer = slicers.HealpixSlicer(
-                nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
-            )
+            slicer = slicers.HealpixSlicer(nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees)
 
     displayDict = {"group": "SRD FO metrics", "subgroup": subgroup, "order": 0}
 
     # Configure the count metric which is what is used for f0 slicer.
-    metric = metrics.CountExplimMetric(
-        col=colmap["mjd"], metric_name="fO", exp_col=colmap["exptime"]
-    )
+    metric = metrics.CountExplimMetric(col=colmap["mjd"], metric_name="fO", exp_col=colmap["exptime"])
     plotDict = {
         "xlabel": "Number of Visits",
         "asky": benchmarkArea,
@@ -140,8 +137,7 @@ def fOBatch(
     )
     caption += (
         "fOArea: this many sq deg (out of %.2f sq deg if compared "
-        "to benchmark) receives at least %d visits. "
-        % (benchmarkArea, benchmarkn_visits)
+        "to benchmark) receives at least %d visits. " % (benchmarkArea, benchmarkn_visits)
     )
     displayDict["caption"] = caption
     bundle = mb.MetricBundle(
@@ -229,9 +225,7 @@ def astrometryBatch(
 
     # Set up parallax metrics.
     if slicer is None:
-        slicer = slicers.HealpixSlicer(
-            nside=64, lon_col=raCol, lat_col=decCol, lat_lon_deg=degrees
-        )
+        slicer = slicers.HealpixSlicer(nside=64, lon_col=raCol, lat_col=decCol, lat_lon_deg=degrees)
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
     displayDict = {
@@ -255,11 +249,7 @@ def astrometryBatch(
             metric_name="Area better than %.1f mas uncertainty" % good_parallax_limit,
         ),
     ]
-    summary.append(
-        metrics.PercentileMetric(
-            percentile=95, metric_name="95th Percentile Parallax Uncert"
-        )
-    )
+    summary.append(metrics.PercentileMetric(percentile=95, metric_name="95th Percentile Parallax Uncert"))
     summary.extend(standard_summary())
     for rmag, plotmax in zip(rmags_para, plotmaxVals):
         plotDict = {"x_min": 0, "x_max": plotmax, "color_min": 0, "color_max": plotmax}
@@ -339,10 +329,7 @@ def astrometryBatch(
             filter_col=colmap["filter"],
             m5_col=colmap["fiveSigmaDepth"],
         )
-        caption = (
-            "Correlation between parallax offset magnitude and hour angle for a r=%.1f star."
-            % (rmag)
-        )
+        caption = "Correlation between parallax offset magnitude and hour angle for a r=%.1f star." % (rmag)
         caption += " (0 is good, near -1 or 1 is bad)."
         bundle = mb.MetricBundle(
             metric,
@@ -374,9 +361,7 @@ def astrometryBatch(
             metric_name="Median Proper Motion Uncert (18k)",
         )
     ]
-    summary.append(
-        metrics.PercentileMetric(metric_name="95th Percentile Proper Motion Uncert")
-    )
+    summary.append(metrics.PercentileMetric(metric_name="95th Percentile Proper Motion Uncert"))
     summary.extend(standard_summary())
     for rmag, plotmax in zip(rmags_pm, plotmaxVals):
         plotDict = {"x_min": 0, "x_max": plotmax, "color_min": 0, "color_max": plotmax}
@@ -479,18 +464,14 @@ def rapidRevisitBatch(
 
     if slicer is None:
         nside = 64
-        slicer = slicers.HealpixSlicer(
-            nside=nside, lon_col=raCol, lat_col=decCol, lat_lon_deg=degrees
-        )
+        slicer = slicers.HealpixSlicer(nside=nside, lon_col=raCol, lat_col=decCol, lat_lon_deg=degrees)
     else:
         try:
             nside = slicer.nside
         except AttributeError:
             warnings.warn("Must use a healpix slicer. Swapping to the default.")
             nside = 64
-            slicer = slicers.HealpixSlicer(
-                nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees
-            )
+            slicer = slicers.HealpixSlicer(nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees)
 
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
@@ -510,10 +491,7 @@ def rapidRevisitBatch(
         metric_name="NumberOfQuickRevisits",
     )
     plotDict = {"color_min": 400, "color_max": 2000, "x_min": 400, "x_max": 2000}
-    caption = (
-        "Number of consecutive visits with return times faster than %.1f minutes, "
-        % (dTmax)
-    )
+    caption = "Number of consecutive visits with return times faster than %.1f minutes, " % (dTmax)
     caption += "in any filter, all proposals. "
     displayDict["caption"] = caption
     bundle = mb.MetricBundle(
@@ -556,18 +534,16 @@ def rapidRevisitBatch(
         "log_scale": False,
     }
     cutoff1 = 0.9
-    summaryStats = [
-        metrics.FracAboveMetric(
-            cutoff=cutoff1, scale=scale, metric_name="Area (sq deg)"
-        )
-    ]
-    caption = (
-        "Rapid Revisit: area that receives at least %d visits between %.3f and %.1f minutes, "
-        % (nOne, dTmin, dTmax)
+    summaryStats = [metrics.FracAboveMetric(cutoff=cutoff1, scale=scale, metric_name="Area (sq deg)")]
+    caption = "Rapid Revisit: area that receives at least %d visits between %.3f and %.1f minutes, " % (
+        nOne,
+        dTmin,
+        dTmax,
     )
-    caption += (
-        "with at least %d of those visits falling between %.3f and %.1f minutes. "
-        % (nTwo, dTmin, dTpairs)
+    caption += "with at least %d of those visits falling between %.3f and %.1f minutes. " % (
+        nTwo,
+        dTmin,
+        dTpairs,
     )
     caption += (
         'Summary statistic "Area" indicates the area on the sky which meets this requirement.'

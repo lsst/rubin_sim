@@ -1,10 +1,11 @@
-from rubin_sim.scheduler.detailers import BaseDetailer
-from rubin_sim.utils import survey_start_mjd
-import rubin_sim.scheduler.features as features
-from rubin_sim.scheduler.utils import HpInLsstFov
-import numpy as np
 import healpy as hp
 import matplotlib.pylab as plt
+import numpy as np
+
+import rubin_sim.scheduler.features as features
+from rubin_sim.scheduler.detailers import BaseDetailer
+from rubin_sim.scheduler.utils import HpInLsstFov
+from rubin_sim.utils import survey_start_mjd
 
 __all__ = ["ShortExptDetailer"]
 
@@ -82,9 +83,7 @@ class ShortExptDetailer(BaseDetailer):
                 # Crop off anything outside the target footprint
                 hpids = hpids[np.where(self.footprint[hpids] > 0)]
                 # Crop off things where we already have enough observation
-                hpids = hpids[
-                    np.where(self.survey_features["nobs"].feature[hpids] < n_goal)
-                ]
+                hpids = hpids[np.where(self.survey_features["nobs"].feature[hpids] < n_goal)]
                 if np.size(hpids) > 0:
                     for i in range(0, self.n_repeat):
                         new_obs = observation.copy()

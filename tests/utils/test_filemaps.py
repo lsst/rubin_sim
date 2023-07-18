@@ -1,5 +1,6 @@
 import os
 import unittest
+
 from rubin_sim.utils import SpecMap, default_spec_map
 
 
@@ -105,65 +106,33 @@ class SpecMapTest(unittest.TestCase):
         Test a user-defined SpecMap with a dir_dict
         """
         dir_dict_test_map = SpecMap(dir_dict={"(^lte)": "silly_sub_dir"})
-        self.verify_file(
-            "lte_11111.txt", "silly_sub_dir", test_spec_map=dir_dict_test_map
-        )
-        self.verify_file(
-            "Const.79E06.002Z.spec", "galaxySED", test_spec_map=dir_dict_test_map
-        )
-        self.verify_file(
-            "Inst.79E06.02Z.spec", "galaxySED", test_spec_map=dir_dict_test_map
-        )
-        self.verify_file(
-            "Exp.40E08.02Z.spec", "galaxySED", test_spec_map=dir_dict_test_map
-        )
-        self.verify_file(
-            "Burst.40E08.002Z.spec", "galaxySED", test_spec_map=dir_dict_test_map
-        )
-        self.verify_file(
-            "km30_5000.fits_g10_5040", "starSED/kurucz", test_spec_map=dir_dict_test_map
-        )
-        self.verify_file(
-            "kp10_9000.fits_g40_9100", "starSED/kurucz", test_spec_map=dir_dict_test_map
-        )
+        self.verify_file("lte_11111.txt", "silly_sub_dir", test_spec_map=dir_dict_test_map)
+        self.verify_file("Const.79E06.002Z.spec", "galaxySED", test_spec_map=dir_dict_test_map)
+        self.verify_file("Inst.79E06.02Z.spec", "galaxySED", test_spec_map=dir_dict_test_map)
+        self.verify_file("Exp.40E08.02Z.spec", "galaxySED", test_spec_map=dir_dict_test_map)
+        self.verify_file("Burst.40E08.002Z.spec", "galaxySED", test_spec_map=dir_dict_test_map)
+        self.verify_file("km30_5000.fits_g10_5040", "starSED/kurucz", test_spec_map=dir_dict_test_map)
+        self.verify_file("kp10_9000.fits_g40_9100", "starSED/kurucz", test_spec_map=dir_dict_test_map)
         self.verify_file(
             "burrows+2006c91.21_T1400_g5.5_cf_0.3X",
             "starSED/old_mlt",
             test_spec_map=dir_dict_test_map,
         )
-        self.verify_file(
-            "L2_0Full.dat", "starSED/old_mlt", test_spec_map=dir_dict_test_map
-        )
-        self.verify_file(
-            "m5.1Full.dat", "starSED/old_mlt", test_spec_map=dir_dict_test_map
-        )
+        self.verify_file("L2_0Full.dat", "starSED/old_mlt", test_spec_map=dir_dict_test_map)
+        self.verify_file("m5.1Full.dat", "starSED/old_mlt", test_spec_map=dir_dict_test_map)
 
     def test_file_dict(self):
         """
         Test a user-defined SpecMap with a file_dict
         """
-        file_dict_test_map = SpecMap(
-            file_dict={"abcd.txt": "file_dict_test_dir/abcd.txt.gz"}
-        )
+        file_dict_test_map = SpecMap(file_dict={"abcd.txt": "file_dict_test_dir/abcd.txt.gz"})
 
-        self.assertEqual(
-            file_dict_test_map["abcd.txt"], "file_dict_test_dir/abcd.txt.gz"
-        )
-        self.verify_file(
-            "lte_11111.txt", "starSED/mlt", test_spec_map=file_dict_test_map
-        )
-        self.verify_file(
-            "Const.79E06.002Z.spec", "galaxySED", test_spec_map=file_dict_test_map
-        )
-        self.verify_file(
-            "Inst.79E06.02Z.spec", "galaxySED", test_spec_map=file_dict_test_map
-        )
-        self.verify_file(
-            "Exp.40E08.02Z.spec", "galaxySED", test_spec_map=file_dict_test_map
-        )
-        self.verify_file(
-            "Burst.40E08.002Z.spec", "galaxySED", test_spec_map=file_dict_test_map
-        )
+        self.assertEqual(file_dict_test_map["abcd.txt"], "file_dict_test_dir/abcd.txt.gz")
+        self.verify_file("lte_11111.txt", "starSED/mlt", test_spec_map=file_dict_test_map)
+        self.verify_file("Const.79E06.002Z.spec", "galaxySED", test_spec_map=file_dict_test_map)
+        self.verify_file("Inst.79E06.02Z.spec", "galaxySED", test_spec_map=file_dict_test_map)
+        self.verify_file("Exp.40E08.02Z.spec", "galaxySED", test_spec_map=file_dict_test_map)
+        self.verify_file("Burst.40E08.002Z.spec", "galaxySED", test_spec_map=file_dict_test_map)
         self.verify_file(
             "km30_5000.fits_g10_5040",
             "starSED/kurucz",
@@ -179,12 +148,8 @@ class SpecMapTest(unittest.TestCase):
             "starSED/old_mlt",
             test_spec_map=file_dict_test_map,
         )
-        self.verify_file(
-            "L2_0Full.dat", "starSED/old_mlt", test_spec_map=file_dict_test_map
-        )
-        self.verify_file(
-            "m5.1Full.dat", "starSED/old_mlt", test_spec_map=file_dict_test_map
-        )
+        self.verify_file("L2_0Full.dat", "starSED/old_mlt", test_spec_map=file_dict_test_map)
+        self.verify_file("m5.1Full.dat", "starSED/old_mlt", test_spec_map=file_dict_test_map)
 
     def test_file_and_dir_dict(self):
         """
@@ -201,15 +166,9 @@ class SpecMapTest(unittest.TestCase):
         self.verify_file("Inst.79E06.02Z.spec", "galaxySED", test_spec_map=test_map)
         self.verify_file("Exp.40E08.02Z.spec", "galaxySED", test_spec_map=test_map)
         self.verify_file("Burst.40E08.002Z.spec", "galaxySED", test_spec_map=test_map)
-        self.verify_file(
-            "km30_5000.fits_g10_5040", "starSED/kurucz", test_spec_map=test_map
-        )
-        self.verify_file(
-            "kp10_9000.fits_g40_9100", "starSED/kurucz", test_spec_map=test_map
-        )
-        self.verify_file(
-            "burrows+2006c91.21_T1400_g5.5_cf_0.3X", "dir_dir", test_spec_map=test_map
-        )
+        self.verify_file("km30_5000.fits_g10_5040", "starSED/kurucz", test_spec_map=test_map)
+        self.verify_file("kp10_9000.fits_g40_9100", "starSED/kurucz", test_spec_map=test_map)
+        self.verify_file("burrows+2006c91.21_T1400_g5.5_cf_0.3X", "dir_dir", test_spec_map=test_map)
         self.verify_file("L2_0Full.dat", "starSED/old_mlt", test_spec_map=test_map)
         self.verify_file("m5.1Full.dat", "starSED/old_mlt", test_spec_map=test_map)
 

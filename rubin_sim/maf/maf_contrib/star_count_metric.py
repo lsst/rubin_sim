@@ -1,5 +1,11 @@
 from __future__ import absolute_import
 
+import numpy as np
+
+from rubin_sim.maf.metrics import BaseMetric
+
+from .star_counts import *
+
 # Example for CountMetric
 # Mike Lund - Vanderbilt University
 # mike.lund@gmail.com
@@ -8,9 +14,6 @@ from __future__ import absolute_import
 # This metric identifies the number of stars in a given field in a particular distance range. D1 and D2 are the close and far distances in parsecs.
 # Requires StarCounts.StarCounts
 
-from rubin_sim.maf.metrics import BaseMetric
-import numpy as np
-from .star_counts import *
 
 __all__ = ["StarCountMetric"]
 

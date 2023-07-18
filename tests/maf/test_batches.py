@@ -1,14 +1,16 @@
-import unittest
 import os
-import tempfile
 import shutil
+import tempfile
+import unittest
+
 import numpy as np
-from rubin_sim.data import get_data_dir
+
 import rubin_sim.maf.batches as batches
-from rubin_sim.utils.code_utilities import sims_clean_up
 import rubin_sim.maf.db as db
 import rubin_sim.maf.metric_bundles as metric_bundles
+from rubin_sim.data import get_data_dir
 from rubin_sim.maf.slicers import MoObjSlicer
+from rubin_sim.utils.code_utilities import sims_clean_up
 
 
 class TestBatches(unittest.TestCase):
@@ -83,9 +85,7 @@ class TestBatches(unittest.TestCase):
         ack = batches.glanceBatch()
         database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
         results_db = db.ResultsDb(out_dir=self.out_dir)
-        bgroup = metric_bundles.MetricBundleGroup(
-            ack, database, out_dir=self.out_dir, results_db=results_db
-        )
+        bgroup = metric_bundles.MetricBundleGroup(ack, database, out_dir=self.out_dir, results_db=results_db)
         bgroup.run_all()
 
     def tearDown(self):

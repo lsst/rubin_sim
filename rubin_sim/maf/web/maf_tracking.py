@@ -1,9 +1,12 @@
-from builtins import object
 import os
+from builtins import object
 from collections import OrderedDict
+
 import numpy as np
-from .maf_run_results import MafRunResults
+
 from rubin_sim.maf.utils import get_sim_data
+
+from .maf_run_results import MafRunResults
 
 __all__ = ["MafTracking"]
 
@@ -42,9 +45,7 @@ class MafTracking(object):
             "maf_date",
         ]
         self.runs = get_sim_data(database, "", cols, table_name="runs")
-        self.runs = self.sort_runs(
-            self.runs, order=["maf_run_id", "run_name", "maf_comment"]
-        )
+        self.runs = self.sort_runs(self.runs, order=["maf_run_id", "run_name", "maf_comment"])
         self.runs_page = {}
 
     def run_info(self, run):
@@ -71,9 +72,7 @@ class MafTracking(object):
             os.path.relpath(run["db_file"]),
             os.path.split(run["db_file"])[1],
         ]
-        runInfo["ResultsDb"] = os.path.relpath(
-            os.path.join(run["maf_dir"], "resultsDb_sqlite.db")
-        )
+        runInfo["ResultsDb"] = os.path.relpath(os.path.join(run["maf_dir"], "resultsDb_sqlite.db"))
         runInfo["maf_dir"] = run["maf_dir"]
         runInfo["sched_version"] = run["run_version"]
         runInfo["sched_date"] = run["run_date"]

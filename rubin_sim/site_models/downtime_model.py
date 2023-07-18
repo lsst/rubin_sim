@@ -72,9 +72,7 @@ class DowntimeModel(object):
         # This will be the next reported/expected downtime.
         next_sched = efd_data[self.sched_down][next_start]
         # Check for downtime in unscheduled downtimes.
-        next_start = efd_data[self.unsched_down]["start"].searchsorted(
-            time, side="right"
-        )
+        next_start = efd_data[self.unsched_down]["start"].searchsorted(time, side="right")
         next_end = efd_data[self.unsched_down]["end"].searchsorted(time, side="right")
         if next_start > next_end:
             # Currently in an unscheduled downtime.

@@ -1,9 +1,9 @@
 import numpy as np
-from rubin_sim.utils import Site
-from astropy.coordinates import get_sun, get_moon, EarthLocation, AltAz
+from astropy.coordinates import AltAz, EarthLocation, get_moon, get_sun
 from astropy.time import Time
-from scipy.optimize import minimize, Bounds
+from scipy.optimize import Bounds, minimize
 
+from rubin_sim.utils import Site
 
 __all__ = ["generate_nights"]
 
@@ -19,23 +19,17 @@ def lin_interp(x, x0, x1, y0, y1):
 def alt_passing_interp(times, altitudes, goal_alt=0.0, rising=True):
     """find time when a body passses some altitude"""
     if rising:
-        below = np.where((altitudes < goal_alt) & (np.roll(altitudes, -1) > goal_alt))[
-            0
-        ]
+        below = np.where((altitudes < goal_alt) & (np.roll(altitudes, -1) > goal_alt))[0]
         above = below + 1
     else:
-        above = np.where((altitudes > goal_alt) & (np.roll(altitudes, -1) < goal_alt))[
-            0
-        ]
+        above = np.where((altitudes > goal_alt) & (np.roll(altitudes, -1) < goal_alt))[0]
         below = above + 1
 
     if (below.max() >= np.size(below)) | (above.max() >= np.size(above)):
         below = below[:-1]
         above = above[:-1]
 
-    pass_times = lin_interp(
-        goal_alt, altitudes[above], altitudes[below], times[above], times[below]
-    )
+    pass_times = lin_interp(goal_alt, altitudes[above], altitudes[below], times[above], times[below])
     return pass_times
 
 
@@ -77,9 +71,7 @@ def generate_nights(mjd_start, duration=3653.0, rough_step=2, verbose=False):
     t_step = rough_step / 24.0
     pad_around = 30.0 / 24.0
     t_sparse = Time(
-        np.arange(
-            mjd_start - pad_around, duration + mjd_start + pad_around + t_step, t_step
-        ),
+        np.arange(mjd_start - pad_around, duration + mjd_start + pad_around + t_step, t_step),
         format="mjd",
         location=location,
     )
@@ -91,9 +83,7 @@ def generate_nights(mjd_start, duration=3653.0, rough_step=2, verbose=False):
     moon_aa_sparse = moon.transform_to(aa)
 
     # Indices right before sunset
-    mjd_sunset_rough = alt_passing_interp(
-        t_sparse.mjd, sun_aa_sparse.alt.deg, goal_alt=0.0, rising=False
-    )
+    mjd_sunset_rough = alt_passing_interp(t_sparse.mjd, sun_aa_sparse.alt.deg, goal_alt=0.0, rising=False)
 
     names = [
         "night",
@@ -116,59 +106,39 @@ def generate_nights(mjd_start, duration=3653.0, rough_step=2, verbose=False):
     alt_info_array["night"] += 1 - alt_info_array["night"][night_1_index]
 
     # OK, now I have sunset times
-    sunrises = alt_passing_interp(
-        t_sparse.mjd, sun_aa_sparse.alt.deg, goal_alt=0.0, rising=True
-    )
+    sunrises = alt_passing_interp(t_sparse.mjd, sun_aa_sparse.alt.deg, goal_alt=0.0, rising=True)
     # Make sure sunrise happens after sunset
-    insert_indices = (
-        np.searchsorted(alt_info_array["sunset"], sunrises, side="left") - 1
-    )
+    insert_indices = np.searchsorted(alt_info_array["sunset"], sunrises, side="left") - 1
     good_indices = np.where(insert_indices > 0)[0]
     alt_info_array["sunrise"][insert_indices[good_indices]] = sunrises[good_indices]
 
     # Should probably write the function to get rin of the copy-pasta
-    point = alt_passing_interp(
-        t_sparse.mjd, sun_aa_sparse.alt.deg, goal_alt=-12.0, rising=False
-    )
+    point = alt_passing_interp(t_sparse.mjd, sun_aa_sparse.alt.deg, goal_alt=-12.0, rising=False)
     insert_indices = np.searchsorted(alt_info_array["sunset"], point, side="left") - 1
     good_indices = np.where(insert_indices > 0)[0]
-    alt_info_array["sun_n12_setting"][insert_indices[good_indices]] = point[
-        good_indices
-    ]
+    alt_info_array["sun_n12_setting"][insert_indices[good_indices]] = point[good_indices]
 
-    point = alt_passing_interp(
-        t_sparse.mjd, sun_aa_sparse.alt.deg, goal_alt=-12.0, rising=True
-    )
+    point = alt_passing_interp(t_sparse.mjd, sun_aa_sparse.alt.deg, goal_alt=-12.0, rising=True)
     insert_indices = np.searchsorted(alt_info_array["sunset"], point, side="left") - 1
     good_indices = np.where(insert_indices > 0)[0]
     alt_info_array["sun_n12_rising"][insert_indices[good_indices]] = point[good_indices]
 
-    point = alt_passing_interp(
-        t_sparse.mjd, sun_aa_sparse.alt.deg, goal_alt=-18.0, rising=True
-    )
+    point = alt_passing_interp(t_sparse.mjd, sun_aa_sparse.alt.deg, goal_alt=-18.0, rising=True)
     insert_indices = np.searchsorted(alt_info_array["sunset"], point, side="left") - 1
     good_indices = np.where(insert_indices > 0)[0]
     alt_info_array["sun_n18_rising"][insert_indices[good_indices]] = point[good_indices]
 
-    point = alt_passing_interp(
-        t_sparse.mjd, sun_aa_sparse.alt.deg, goal_alt=-18.0, rising=False
-    )
+    point = alt_passing_interp(t_sparse.mjd, sun_aa_sparse.alt.deg, goal_alt=-18.0, rising=False)
     insert_indices = np.searchsorted(alt_info_array["sunset"], point, side="left") - 1
     good_indices = np.where(insert_indices > 0)[0]
-    alt_info_array["sun_n18_setting"][insert_indices[good_indices]] = point[
-        good_indices
-    ]
+    alt_info_array["sun_n18_setting"][insert_indices[good_indices]] = point[good_indices]
 
-    point = alt_passing_interp(
-        t_sparse.mjd, moon_aa_sparse.alt.deg, goal_alt=0.0, rising=True
-    )
+    point = alt_passing_interp(t_sparse.mjd, moon_aa_sparse.alt.deg, goal_alt=0.0, rising=True)
     insert_indices = np.searchsorted(alt_info_array["sunset"], point, side="left") - 1
     good_indices = np.where(insert_indices > 0)[0]
     alt_info_array["moonrise"][insert_indices[good_indices]] = point[good_indices]
 
-    point = alt_passing_interp(
-        t_sparse.mjd, moon_aa_sparse.alt.deg, goal_alt=0.0, rising=False
-    )
+    point = alt_passing_interp(t_sparse.mjd, moon_aa_sparse.alt.deg, goal_alt=0.0, rising=False)
     insert_indices = np.searchsorted(alt_info_array["sunset"], point, side="left") - 1
     good_indices = np.where(insert_indices > 0)[0]
     alt_info_array["moonset"][insert_indices[good_indices]] = point[good_indices]

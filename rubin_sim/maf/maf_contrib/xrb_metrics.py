@@ -1,11 +1,13 @@
 import numpy as np
 from scipy.stats import loguniform
-from ..metrics import BaseMetric
-from ..slicers import UserPointsSlicer
-from rubin_sim.utils import survey_start_mjd
-from rubin_sim.phot_utils import DustValues
+
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import m52snr
+from rubin_sim.phot_utils import DustValues
+from rubin_sim.utils import survey_start_mjd
+
+from ..metrics import BaseMetric
+from ..slicers import UserPointsSlicer
 
 __all__ = ["XrbLc", "XRBPopMetric", "generate_xrb_pop_slicer"]
 
@@ -148,11 +150,7 @@ class XrbLc(object):
         tau_decay : `float`
             E-folding time for the decay
         """
-        return (
-            amplitude
-            * np.exp(2 * np.sqrt(tau_rise / tau_decay))
-            * np.exp(-tau_rise / t - t / tau_decay)
-        )
+        return amplitude * np.exp(2 * np.sqrt(tau_rise / tau_decay)) * np.exp(-tau_rise / t - t / tau_decay)
 
     def lightcurve(self, t, filtername, params):
         """Generate an XRB outburst lightcurve for given times and a single filter.
@@ -306,9 +304,7 @@ class XRBPopMetric(BaseMetric):
         """Count total number of detections."""
         return len(where_detected)
 
-    def _early_detect(
-        self, where_detected, time, early_window_days=7.0, n_early_detections=2
-    ):
+    def _early_detect(self, where_detected, time, early_window_days=7.0, n_early_detections=2):
         """Detection near the start of the outburst.
 
         Parameters
@@ -367,9 +363,7 @@ class XRBPopMetric(BaseMetric):
 
         for filtername in np.unique(data_slice[self.filter_col]):
             infilt = np.where(data_slice[self.filter_col] == filtername)
-            mags[infilt] = self.lightcurves.lightcurve(
-                t[infilt], filtername, slice_point["outburst_params"]
-            )
+            mags[infilt] = self.lightcurves.lightcurve(t[infilt], filtername, slice_point["outburst_params"])
             # Apply dust extinction on the light curve
             a_x = self.ax1[filtername] * slice_point["ebv"]
             mags[infilt] += a_x
@@ -383,9 +377,7 @@ class XRBPopMetric(BaseMetric):
         snr = m52snr(mags, data_slice[self.m5_col])
         mags_unc = 2.5 * np.log10(1.0 + 1.0 / snr)
 
-        result["possible_to_detect"] = self._possible_to_detect(
-            slice_point["visible_duration"]
-        )
+        result["possible_to_detect"] = self._possible_to_detect(slice_point["visible_duration"])
         result["ever_detect"] = self._ever_detect(where_detected)
         result["early_detect"] = self._early_detect(where_detected, t)
         result["number_of_detections"] = self._number_of_detections(where_detected)
@@ -455,9 +447,7 @@ def generate_xrb_pop_slicer(t_start=1, t_end=3652, n_events=10000, seed=42):
     rng = np.random.default_rng(seed)
 
     datadir = get_data_dir()
-    xrb_sample = np.genfromtxt(
-        datadir + "/maf/xrb/sample_xrb_positions.csv.gz", delimiter=","
-    )
+    xrb_sample = np.genfromtxt(datadir + "/maf/xrb/sample_xrb_positions.csv.gz", delimiter=",")
 
     nsamples, nfields = xrb_sample.shape
 

@@ -1,5 +1,7 @@
-import numpy as np
 import unittest
+
+import numpy as np
+
 from rubin_sim.site_models import CloudModel
 
 

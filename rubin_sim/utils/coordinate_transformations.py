@@ -2,8 +2,9 @@
 This file contains coordinate transformation methods that are very thin wrappers
 of palpy methods, or that have no dependence on palpy at all
 """
-import numpy as np
 import numbers
+
+import numpy as np
 import palpy
 
 from rubin_sim.utils.code_utilities import _validate_inputs
@@ -63,9 +64,7 @@ def calc_lmst_last(mjd, long_rad):
 
     if long_rad_is_array and mjd_is_array:
         if len(long_rad) != len(mjd):
-            raise RuntimeError(
-                "In calc_lmst_last mjd and long_rad have different lengths"
-            )
+            raise RuntimeError("In calc_lmst_last mjd and long_rad have different lengths")
 
     valid_type = False
     if isinstance(mjd, np.ndarray) and isinstance(long_rad, np.ndarray):
@@ -513,13 +512,9 @@ def _angular_separation(long1, lat1, long2, lat2):
     Calculated based on the haversine formula
     From http://en.wikipedia.org/wiki/Haversine_formula
     """
-    are_arrays_1 = _validate_inputs(
-        [long1, lat1], ["long1", "lat1"], "angular_separation"
-    )
+    are_arrays_1 = _validate_inputs([long1, lat1], ["long1", "lat1"], "angular_separation")
 
-    are_arrays_2 = _validate_inputs(
-        [long2, lat2], ["long2", "lat2"], "angular_separation"
-    )
+    are_arrays_2 = _validate_inputs([long2, lat2], ["long2", "lat2"], "angular_separation")
 
     # The code below is necessary because the call to np.radians() in
     # angular_separation() will automatically convert floats
@@ -537,8 +532,7 @@ def _angular_separation(long1, lat1, long2, lat2):
     if are_arrays_1 and are_arrays_2:
         if len(long1) != len(long2):
             raise RuntimeError(
-                "You need to pass arrays of the same length "
-                "as arguments to angular_separation()"
+                "You need to pass arrays of the same length " "as arguments to angular_separation()"
             )
 
     t1 = np.sin(lat2 / 2.0 - lat1 / 2.0) ** 2
@@ -573,9 +567,7 @@ def angular_separation(long1, lat1, long2, lat2):
     The angular separation between the two points in degrees
     """
     return np.degrees(
-        _angular_separation(
-            np.radians(long1), np.radians(lat1), np.radians(long2), np.radians(lat2)
-        )
+        _angular_separation(np.radians(long1), np.radians(lat1), np.radians(long2), np.radians(lat2))
     )
 
 

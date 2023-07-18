@@ -1,11 +1,12 @@
-import numpy as np
-from rubin_sim.scheduler.surveys import BaseSurvey
 import copy
-import rubin_sim.scheduler.basis_functions as basis_functions
-from rubin_sim.scheduler.utils import empty_observation
-import healpy as hp
 import random
 
+import healpy as hp
+import numpy as np
+
+import rubin_sim.scheduler.basis_functions as basis_functions
+from rubin_sim.scheduler.surveys import BaseSurvey
+from rubin_sim.scheduler.utils import empty_observation
 
 __all__ = ["DescDdf", "generate_desc_dd_surveys"]
 
@@ -97,9 +98,7 @@ class DescDdf(BaseSurvey):
             return False
 
         # Advance the sequence index if we have skipped a day intentionally
-        if (self.sequences[self.sequence_index] is None) & (
-            conditions.night - self.last_night_observed > 1
-        ):
+        if (self.sequences[self.sequence_index] is None) & (conditions.night - self.last_night_observed > 1):
             self.sequence_index = (self.sequence_index + 1) % len(self.sequences)
 
         # If we want to skip this day
@@ -146,9 +145,7 @@ def desc_dd_bfs(RA, dec, survey_name, ha_limits, frac_total=0.0185):
     bfs = []
     bfs.append(basis_functions.Not_twilight_basis_function(sun_alt_limit=-18))
     bfs.append(basis_functions.Time_to_twilight_basis_function(time_needed=30.0))
-    bfs.append(
-        basis_functions.Hour_Angle_limit_basis_function(RA=RA, ha_limits=ha_limits)
-    )
+    bfs.append(basis_functions.Hour_Angle_limit_basis_function(RA=RA, ha_limits=ha_limits))
     bfs.append(basis_functions.Rising_more_basis_function(RA=RA))
     bfs.append(basis_functions.Clouded_out_basis_function())
 

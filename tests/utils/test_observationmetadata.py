@@ -1,7 +1,8 @@
-import numpy as np
 import unittest
-from rubin_sim.utils import ObservationMetaData, ModifiedJulianDate
-from rubin_sim.utils import Site, BoxBounds, CircleBounds
+
+import numpy as np
+
+from rubin_sim.utils import BoxBounds, CircleBounds, ModifiedJulianDate, ObservationMetaData, Site
 
 
 class ObservationMetaDataTest(unittest.TestCase):
@@ -17,12 +18,8 @@ class ObservationMetaDataTest(unittest.TestCase):
         Test behavior of ObservationMetaData's m5 member variable
         """
 
-        self.assertRaises(
-            RuntimeError, ObservationMetaData, bandpass_name="u", m5=[12.0, 13.0]
-        )
-        self.assertRaises(
-            RuntimeError, ObservationMetaData, bandpass_name=["u", "g"], m5=15.0
-        )
+        self.assertRaises(RuntimeError, ObservationMetaData, bandpass_name="u", m5=[12.0, 13.0])
+        self.assertRaises(RuntimeError, ObservationMetaData, bandpass_name=["u", "g"], m5=15.0)
         self.assertRaises(
             RuntimeError,
             ObservationMetaData,
@@ -46,12 +43,8 @@ class ObservationMetaDataTest(unittest.TestCase):
         Test behavior of ObservationMetaData's seeing member variable
         """
 
-        self.assertRaises(
-            RuntimeError, ObservationMetaData, bandpass_name="u", seeing=[0.7, 0.6]
-        )
-        self.assertRaises(
-            RuntimeError, ObservationMetaData, bandpass_name=["u", "g"], seeing=0.7
-        )
+        self.assertRaises(RuntimeError, ObservationMetaData, bandpass_name="u", seeing=[0.7, 0.6])
+        self.assertRaises(RuntimeError, ObservationMetaData, bandpass_name=["u", "g"], seeing=0.7)
         self.assertRaises(
             RuntimeError,
             ObservationMetaData,
@@ -65,9 +58,7 @@ class ObservationMetaDataTest(unittest.TestCase):
         obs_md = ObservationMetaData(bandpass_name="g", seeing=0.7)
         self.assertAlmostEqual(obs_md.seeing["g"], 0.7, 10)
 
-        obs_md = ObservationMetaData(
-            bandpass_name=["u", "g", "r"], seeing=[0.7, 0.6, 0.5]
-        )
+        obs_md = ObservationMetaData(bandpass_name=["u", "g", "r"], seeing=[0.7, 0.6, 0.5])
         self.assertEqual(obs_md.seeing["u"], 0.7)
         self.assertEqual(obs_md.seeing["g"], 0.6)
         self.assertEqual(obs_md.seeing["r"], 0.5)
@@ -76,17 +67,13 @@ class ObservationMetaDataTest(unittest.TestCase):
         """
         Test assignment of m5 and seeing seeing and bandpass in ObservationMetaData
         """
-        obs_md = ObservationMetaData(
-            bandpass_name=["u", "g"], m5=[15.0, 16.0], seeing=[0.7, 0.6]
-        )
+        obs_md = ObservationMetaData(bandpass_name=["u", "g"], m5=[15.0, 16.0], seeing=[0.7, 0.6])
         self.assertAlmostEqual(obs_md.m5["u"], 15.0, 10)
         self.assertAlmostEqual(obs_md.m5["g"], 16.0, 10)
         self.assertAlmostEqual(obs_md.seeing["u"], 0.7, 10)
         self.assertAlmostEqual(obs_md.seeing["g"], 0.6, 10)
 
-        obs_md.set_bandpass_m5and_seeing(
-            bandpass_name=["i", "z"], m5=[25.0, 22.0], seeing=[0.5, 0.4]
-        )
+        obs_md.set_bandpass_m5and_seeing(bandpass_name=["i", "z"], m5=[25.0, 22.0], seeing=[0.5, 0.4])
         self.assertAlmostEqual(obs_md.m5["i"], 25.0, 10)
         self.assertAlmostEqual(obs_md.m5["z"], 22.0, 10)
         self.assertAlmostEqual(obs_md.seeing["i"], 0.5, 10)
@@ -573,9 +560,7 @@ class ObservationMetaDataTest(unittest.TestCase):
         self.assertFalse(ref_obs == other_obs)
         self.assertTrue(ref_obs != other_obs)
 
-        other_obs.set_bandpass_m5and_seeing(
-            bandpass_name=["u", "z"], m5=[22.1, 24.2], seeing=[0.2, 0.8]
-        )
+        other_obs.set_bandpass_m5and_seeing(bandpass_name=["u", "z"], m5=[22.1, 24.2], seeing=[0.2, 0.8])
 
         self.assertNotEqual(ref_obs, other_obs)
         self.assertFalse(ref_obs == other_obs)

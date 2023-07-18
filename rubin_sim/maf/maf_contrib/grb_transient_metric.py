@@ -1,10 +1,12 @@
 from builtins import zip
 
+import numpy as np
+
+import rubin_sim.maf.metrics as metrics
+
 # Gamma-ray burst afterglow metric
 # ebellm@caltech.edu
 
-import rubin_sim.maf.metrics as metrics
-import numpy as np
 
 __all__ = ["GRBTransientMetric"]
 
@@ -85,7 +87,7 @@ class GRBTransientMetric(metrics.BaseMetric):
         n_filters=1,
         min_delta_mag=0.0,
         n_phase_check=1,
-        **kwargs
+        **kwargs,
     ):
         self.mjd_col = mjd_col
         self.m5_col = m5_col
@@ -94,7 +96,7 @@ class GRBTransientMetric(metrics.BaseMetric):
             col=[self.mjd_col, self.m5_col, self.filter_col],
             units="Fraction Detected",
             metric_name=metric_name,
-            **kwargs
+            **kwargs,
         )
         self.alpha = alpha
         self.apparent_mag_1min_mean = apparent_mag_1min_mean
@@ -127,10 +129,7 @@ class GRBTransientMetric(metrics.BaseMetric):
         lc_mags = np.zeros(time.size, dtype=float)
 
         decline = np.where(time > self.peak_time)
-        apparent_mag_1min = (
-            np.random.randn() * self.apparent_mag_1min_sigma
-            + self.apparent_mag_1min_mean
-        )
+        apparent_mag_1min = np.random.randn() * self.apparent_mag_1min_sigma + self.apparent_mag_1min_mean
         lc_mags[decline] += apparent_mag_1min + self.alpha * 2.5 * np.log10(
             (time[decline] - self.peak_time) * 24.0 * 60.0
         )
@@ -159,31 +158,21 @@ class GRBTransientMetric(metrics.BaseMetric):
         """
         # Total number of transients that could go off back-to-back
         n_trans_max = np.floor(self.survey_duration / (self.trans_duration / 365.25))
-        tshifts = (
-            np.arange(self.n_phase_check)
-            * self.trans_duration
-            / float(self.n_phase_check)
-        )
+        tshifts = np.arange(self.n_phase_check) * self.trans_duration / float(self.n_phase_check)
         n_detected = 0
         n_trans_max = 0
         for tshift in tshifts:
             # Compute the total number of back-to-back transients are possible to detect
             # given the survey duration and the transient duration.
-            n_trans_max += np.floor(
-                self.survey_duration / (self.trans_duration / 365.25)
-            )
+            n_trans_max += np.floor(self.survey_duration / (self.trans_duration / 365.25))
             if tshift != 0:
                 n_trans_max -= 1
             if self.survey_start is None:
                 survey_start = data_slice[self.mjd_col].min()
-            time = (
-                data_slice[self.mjd_col] - survey_start + tshift
-            ) % self.trans_duration
+            time = (data_slice[self.mjd_col] - survey_start + tshift) % self.trans_duration
 
             # Which lightcurve does each point belong to
-            lc_number = np.floor(
-                (data_slice[self.mjd_col] - survey_start) / self.trans_duration
-            )
+            lc_number = np.floor((data_slice[self.mjd_col] - survey_start) / self.trans_duration)
 
             lc_mags = self.light_curve(time, data_slice[self.filter_col])
 
@@ -192,9 +181,7 @@ class GRBTransientMetric(metrics.BaseMetric):
 
             # Flag points that are above the SNR limit
             detected = np.zeros(data_slice.size, dtype=int)
-            detected[
-                np.where(lc_mags < data_slice[self.m5_col] + self.detect_m5_plus)
-            ] += 1
+            detected[np.where(lc_mags < data_slice[self.m5_col] + self.detect_m5_plus)] += 1
 
             bandcounter = {
                 "u": 0,
@@ -223,10 +210,7 @@ class GRBTransientMetric(metrics.BaseMetric):
                 ufilters = np.unique(data_slice[self.filter_col][le:ri][wdet])
                 nfilts_lci = 0
                 for filt_name in ufilters:
-                    wdetfilt = np.where(
-                        (data_slice[self.filter_col][le:ri] == filt_name)
-                        & detected[le:ri]
-                    )
+                    wdetfilt = np.where((data_slice[self.filter_col][le:ri] == filt_name) & detected[le:ri])
 
                     lc_points = lc_mags[le:ri][wdetfilt]
                     dlc = np.abs(np.diff(lc_points))

@@ -2,11 +2,13 @@ import matplotlib
 
 matplotlib.use("Agg")
 import os
+import unittest
+
+import healpy as hp
 import numpy as np
 import numpy.lib.recfunctions as rfn
 import numpy.ma as ma
-import unittest
-import healpy as hp
+
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.slicers import HealpixSlicer
 
@@ -27,9 +29,7 @@ def make_data_values(
     data = []
     # Generate data values min - max.
     datavalues = np.arange(0, size, dtype="float")
-    datavalues *= (float(maxval) - float(minval)) / (
-        datavalues.max() - datavalues.min()
-    )
+    datavalues *= (float(maxval) - float(minval)) / (datavalues.max() - datavalues.min())
     datavalues += minval
     rng = np.random.RandomState(random)
     randorder = rng.rand(size)
@@ -46,9 +46,7 @@ def make_data_values(
     ra = np.array(list(zip(ra)), dtype=[("ra", "float")])
     data.append(ra)
     v = np.arange(0, size, dtype="float")
-    v *= (
-        (np.cos(decmax + np.pi) + 1.0) / 2.0 - (np.cos(decmin + np.pi) + 1.0) / 2.0
-    ) / (v.max() - v.min())
+    v *= ((np.cos(decmax + np.pi) + 1.0) / 2.0 - (np.cos(decmin + np.pi) + 1.0) / 2.0) / (v.max() - v.min())
     v += (np.cos(decmin + np.pi) + 1.0) / 2.0
     dec = np.arccos(2 * v - 1) - np.pi
     randorder = rng.rand(size)
@@ -80,15 +78,11 @@ def calc_dist_vincenty(ra1, dec1, ra2, dec2):
 
 class TestHealpixSlicerSetup(unittest.TestCase):
     def setUp(self):
-        self.camera_footprint_file = os.path.join(
-            get_data_dir(), "tests", "fov_map.npz"
-        )
+        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
 
     def test_slicertype(self):
         """Test instantiation of slicer sets slicer type as expected."""
-        testslicer = HealpixSlicer(
-            nside=16, verbose=False, camera_footprint_file=self.camera_footprint_file
-        )
+        testslicer = HealpixSlicer(nside=16, verbose=False, camera_footprint_file=self.camera_footprint_file)
         self.assertEqual(testslicer.slicer_name, testslicer.__class__.__name__)
         self.assertEqual(testslicer.slicer_name, "HealpixSlicer")
 
@@ -107,9 +101,7 @@ class TestHealpixSlicerSetup(unittest.TestCase):
 
 class TestHealpixSlicerEqual(unittest.TestCase):
     def setUp(self):
-        self.camera_footprint_file = os.path.join(
-            get_data_dir(), "tests", "fov_map.npz"
-        )
+        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
         self.nside = 16
         self.testslicer = HealpixSlicer(
             nside=self.nside,
@@ -161,9 +153,7 @@ class TestHealpixSlicerEqual(unittest.TestCase):
 
 class TestHealpixSlicerIteration(unittest.TestCase):
     def setUp(self):
-        self.camera_footprint_file = os.path.join(
-            get_data_dir(), "tests", "fov_map.npz"
-        )
+        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
         self.nside = 8
         self.testslicer = HealpixSlicer(
             nside=self.nside,
@@ -214,9 +204,7 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
     # Note that this is really testing baseSpatialSlicer, as slicing is done there for healpix grid
 
     def setUp(self):
-        self.camera_footprint_file = os.path.join(
-            get_data_dir(), "tests", "fov_map.npz"
-        )
+        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
         self.nside = 8
         self.radius = 1.8
         self.testslicer = HealpixSlicer(
@@ -260,18 +248,14 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
             if len(sidxs) > 0:
                 didxs = np.sort(didxs[0])
                 sidxs = np.sort(sidxs)
-                np.testing.assert_equal(
-                    self.dv["testdata"][didxs], self.dv["testdata"][sidxs]
-                )
+                np.testing.assert_equal(self.dv["testdata"][didxs], self.dv["testdata"][sidxs])
 
 
 class TestHealpixChipGap(unittest.TestCase):
     # Note that this is really testing baseSpatialSlicer, as slicing is done there for healpix grid
 
     def setUp(self):
-        self.camera_footprint_file = os.path.join(
-            get_data_dir(), "tests", "fov_map.npz"
-        )
+        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
         self.nside = 8
         self.radius = 2.041
         self.testslicer = HealpixSlicer(
@@ -322,9 +306,7 @@ class TestHealpixChipGap(unittest.TestCase):
 
 class TestHealpixSlicerPlotting(unittest.TestCase):
     def setUp(self):
-        self.camera_footprint_file = os.path.join(
-            get_data_dir(), "tests", "fov_map.npz"
-        )
+        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
         rng = np.random.RandomState(713244122)
         self.nside = 16
         self.radius = 1.8

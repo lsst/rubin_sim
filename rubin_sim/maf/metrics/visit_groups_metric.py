@@ -1,12 +1,14 @@
 from builtins import zip
 
+import numpy as np
+
+from .base_metric import BaseMetric
+
 # Example of more complex metric
 # Takes multiple columns of data (although 'night' could be calculable from 'expmjd')
 # Returns variable length array of data
 # Uses multiple reduce functions
 
-import numpy as np
-from .base_metric import BaseMetric
 
 __all__ = ["VisitGroupsMetric", "PairFractionMetric"]
 
@@ -28,12 +30,7 @@ class PairFractionMetric(BaseMetric):
     """
 
     def __init__(
-        self,
-        mjd_col="observationStartMJD",
-        metric_name="PairFraction",
-        min_gap=15.0,
-        max_gap=90.0,
-        **kwargs
+        self, mjd_col="observationStartMJD", metric_name="PairFraction", min_gap=15.0, max_gap=90.0, **kwargs
     ):
         self.mjd_col = mjd_col
         self.min_gap = min_gap / 60.0 / 24.0
@@ -82,7 +79,7 @@ class VisitGroupsMetric(BaseMetric):
         min_n_visits=2,
         window=30,
         min_n_nights=3,
-        **kwargs
+        **kwargs,
     ):
         """
         Instantiate metric.
@@ -120,9 +117,8 @@ class VisitGroupsMetric(BaseMetric):
             self.delta_tmin * 24.0 * 60.0,
             self.delta_tmax * 24.0 * 60.0,
         )
-        self.comment += (
-            "Groups of visits use a minimum number of visits per night of %d, "
-            % (self.min_n_visits)
+        self.comment += "Groups of visits use a minimum number of visits per night of %d, " % (
+            self.min_n_visits
         )
         self.comment += "and minimum number of nights of %d." % (self.min_n_nights)
         self.comment += "Two visits within this interval would count as 2. "
@@ -140,9 +136,9 @@ class VisitGroupsMetric(BaseMetric):
             self.window,
         )
         self.comment += "VisitGroups_NLunations calculates the number of lunations (30 days) that have "
-        self.comment += (
-            "at least one group of more than %d nights with more than %d visits, within "
-            % (self.min_n_nights, self.min_n_visits)
+        self.comment += "at least one group of more than %d nights with more than %d visits, within " % (
+            self.min_n_nights,
+            self.min_n_visits,
         )
         self.comment += "%d days. <br>" % (self.window)
         self.comment += "VisitGroups_MaxSeqLunations calculates the maximum sequential lunations that have "
@@ -258,9 +254,7 @@ class VisitGroupsMetric(BaseMetric):
         return maxnights
 
     def _in_lunation(self, visits, nights, lunation_start, lunation_length):
-        condition = (nights >= lunation_start) & (
-            nights < lunation_start + lunation_length
-        )
+        condition = (nights >= lunation_start) & (nights < lunation_start + lunation_length)
         return visits[condition], nights[condition]
 
     def reduce_n_lunations(self, metricval):
@@ -276,9 +270,7 @@ class VisitGroupsMetric(BaseMetric):
         n_lunations = 0
         for l in lunations:
             # Find visits within lunation.
-            vl, nl = self._in_lunation(
-                metricval["visits"], metricval["nights"], l, lunation_length
-            )
+            vl, nl = self._in_lunation(metricval["visits"], metricval["nights"], l, lunation_length)
             for n in nl:
                 # Find visits which are in groups within the lunation.
                 vw, nw = self._in_window(vl, nl, n, self.window, self.min_n_visits)
@@ -302,9 +294,7 @@ class VisitGroupsMetric(BaseMetric):
         in_seq = False
         for l in lunations:
             # Find visits within lunation.
-            vl, nl = self._in_lunation(
-                metricval["visits"], metricval["nights"], l, lunation_length
-            )
+            vl, nl = self._in_lunation(metricval["visits"], metricval["nights"], l, lunation_length)
             # If no visits this lunation:
             if len(vl) == 0:
                 in_seq = False

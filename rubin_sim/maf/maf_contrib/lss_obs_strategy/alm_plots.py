@@ -3,10 +3,11 @@
 #
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
+import os
+
+import healpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-import healpy as hp
 
 __all__ = ["alm_plots"]
 
@@ -81,9 +82,7 @@ def alm_plots(
         # assign data[outOfSurvey]= medianData[in_survey]
         bundle[dither].metricValues.data[out_survey] = survey_median
         # subtract median off
-        bundle[dither].metricValues.data[:] = (
-            bundle[dither].metricValues.data[:] - survey_median
-        )
+        bundle[dither].metricValues.data[:] = bundle[dither].metricValues.data[:] - survey_median
         # save median for later use
         survey_median_dict[dither] = survey_median
         survey_std_dict[dither] = survey_std
@@ -104,9 +103,7 @@ def alm_plots(
         color_array = ["y", "r", "g", "m", "c"]
         color = {}
         for case in range(len(subsets_to_consider)):
-            lsubsets[case] = (l > subsets_to_consider[case][0]) & (
-                l < subsets_to_consider[case][1]
-            )
+            lsubsets[case] = (l > subsets_to_consider[case][0]) & (l < subsets_to_consider[case][1])
             color[case] = color_array[case]
 
         # ------------------------------------------------------------------------
@@ -116,8 +113,7 @@ def alm_plots(
         for key in list(lsubsets.keys()):
             plt.plot(
                 l[lsubsets[key]],
-                (cl[lsubsets[key]] * l[lsubsets[key]] * (l[lsubsets[key]] + 1))
-                / (2.0 * np.pi),
+                (cl[lsubsets[key]] * l[lsubsets[key]] * (l[lsubsets[key]] + 1)) / (2.0 * np.pi),
                 color=color[key],
             )
         plt.title(dither)
@@ -164,9 +160,7 @@ def alm_plots(
 
         fig = plt.gcf()
         cbaxes = fig.add_axes([0.1, 0.015, 0.8, 0.04])  # [left, bottom, width, height]
-        cb = plt.colorbar(
-            im, orientation="horizontal", format="%.2f", ticks=ticks, cax=cbaxes
-        )
+        cb = plt.colorbar(im, orientation="horizontal", format="%.2f", ticks=ticks, cax=cbaxes)
         cb.set_label("$%s$-band Coadded Depth" % filterband)
         filename = "alm_FullMap_%s.png" % (dither)
         plt.savefig(
@@ -192,9 +186,7 @@ def alm_plots(
         im = ax.get_images()[0]
         fig = plt.gcf()
         cbaxes = fig.add_axes([0.1, -0.05, 0.8, 0.04])  # [left, bottom, width, height]
-        cb = plt.colorbar(
-            im, orientation="horizontal", format="%.2f", ticks=ticks, cax=cbaxes
-        )
+        cb = plt.colorbar(im, orientation="horizontal", format="%.2f", ticks=ticks, cax=cbaxes)
         cb.set_label("$%s$-band Coadded Depth" % filterband)
         filename = "alm_Cartview_FullMap_%s.png" % (dither)
         plt.savefig(
@@ -238,12 +230,8 @@ def alm_plots(
             ax = plt.gca()
             im = ax.get_images()[0]
             fig = plt.gcf()
-            cbaxes = fig.add_axes(
-                [0.1, 0.015, 0.8, 0.04]
-            )  # [left, bottom, width, height]
-            cb = plt.colorbar(
-                im, orientation="horizontal", format="%.3f", ticks=ticks, cax=cbaxes
-            )
+            cbaxes = fig.add_axes([0.1, 0.015, 0.8, 0.04])  # [left, bottom, width, height]
+            cb = plt.colorbar(im, orientation="horizontal", format="%.3f", ticks=ticks, cax=cbaxes)
             cb.set_label("$%s$-band Coadded Depth" % filterband)
             filename = "almSkymap_%s<l<%s_%s.png" % (low_lim, up_lim, dither)
             plt.savefig(
@@ -269,12 +257,8 @@ def alm_plots(
             ax = plt.gca()
             im = ax.get_images()[0]
             fig = plt.gcf()
-            cbaxes = fig.add_axes(
-                [0.1, -0.05, 0.8, 0.04]
-            )  # [left, bottom, width, height]
-            cb = plt.colorbar(
-                im, orientation="horizontal", format="%.3f", ticks=ticks, cax=cbaxes
-            )
+            cbaxes = fig.add_axes([0.1, -0.05, 0.8, 0.04])  # [left, bottom, width, height]
+            cb = plt.colorbar(im, orientation="horizontal", format="%.3f", ticks=ticks, cax=cbaxes)
             cb.set_label("$%s$-band Coadded Depth" % filterband)
             filename = "almCartview_%s<l<%s_%s.png" % (low_lim, up_lim, dither)
             plt.savefig(

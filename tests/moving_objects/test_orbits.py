@@ -1,10 +1,12 @@
-import unittest
 import os
+import unittest
+
 import numpy as np
 import pandas as pd
 from pandas.testing import assert_frame_equal
-from rubin_sim.moving_objects import Orbits
+
 from rubin_sim.data import get_data_dir
+from rubin_sim.moving_objects import Orbits
 
 
 class TestOrbits(unittest.TestCase):

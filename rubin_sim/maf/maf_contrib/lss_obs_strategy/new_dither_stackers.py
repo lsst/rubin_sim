@@ -11,8 +11,8 @@
 # Last updated: 06/11/16
 ###############################################################################################################
 import numpy as np
-from rubin_sim.maf.stackers import wrap_ra_dec, polygon_coords
-from rubin_sim.maf.stackers import BaseStacker, SpiralDitherFieldPerVisitStacker
+
+from rubin_sim.maf.stackers import BaseStacker, SpiralDitherFieldPerVisitStacker, polygon_coords, wrap_ra_dec
 from rubin_sim.utils import calc_season
 
 __all__ = [
@@ -96,9 +96,7 @@ class RepulsiveRandomDitherFieldPerVisitStacker(BaseStacker):
 
         # fill in x-coordinates
         k = 0
-        x_center[k] = -tile_side * (
-            (np.sqrt(num_tiles) / 2.0) - 0.5
-        )  # far left x-coord
+        x_center[k] = -tile_side * ((np.sqrt(num_tiles) / 2.0) - 0.5)  # far left x-coord
 
         temp_xarr = []
         temp_xarr.append(x_center[k])
@@ -157,12 +155,8 @@ class RepulsiveRandomDitherFieldPerVisitStacker(BaseStacker):
         temp_y = y_center.copy()
         x_center = list(temp_x[inside_hex])
         y_center = list(temp_y[inside_hex])
-        x_center_copy = list(
-            np.array(x_center).copy()
-        )  # in case need to reuse the squares
-        y_center_copy = list(
-            np.array(y_center).copy()
-        )  # in case need to reuse the squares
+        x_center_copy = list(np.array(x_center).copy())  # in case need to reuse the squares
+        y_center_copy = list(np.array(y_center).copy())  # in case need to reuse the squares
 
         # initiate the offsets' array
         x_off = np.zeros(noffsets)
@@ -176,13 +170,9 @@ class RepulsiveRandomDitherFieldPerVisitStacker(BaseStacker):
             if rand_index_for_squares > len(x_center):
                 while rand_index_for_squares > len(x_center):
                     rand_num = np.random.rand()
-                    rand_index_for_squares = int(
-                        np.floor(rand_num * num_points_inside_hex)
-                    )
+                    rand_index_for_squares = int(np.floor(rand_num * num_points_inside_hex))
             rand_nums = np.random.rand(2)
-            rand_x_offset = (rand_nums[0] - 0.5) * (
-                tile_side / 2.0
-            )  # subtract 0.5 to get +/- delta
+            rand_x_offset = (rand_nums[0] - 0.5) * (tile_side / 2.0)  # subtract 0.5 to get +/- delta
             rand_y_offset = (rand_nums[1] - 0.5) * (tile_side / 2.0)
 
             new_x = x_center[rand_index_for_squares] + rand_x_offset
@@ -200,9 +190,7 @@ class RepulsiveRandomDitherFieldPerVisitStacker(BaseStacker):
             if not (good_condition):
                 while not (good_condition):
                     rand_nums = np.random.rand(2)
-                    rand_x_offset = (rand_nums[0] - 0.5) * (
-                        tile_side / 2.0
-                    )  # subtract 0.5 to get +/- delta
+                    rand_x_offset = (rand_nums[0] - 0.5) * (tile_side / 2.0)  # subtract 0.5 to get +/- delta
                     rand_y_offset = (rand_nums[1] - 0.5) * (tile_side / 2.0)
 
                     new_x = x_center[rand_index_for_squares] + rand_x_offset
@@ -242,15 +230,13 @@ class RepulsiveRandomDitherFieldPerVisitStacker(BaseStacker):
             # Identify observations of this field.
             match = np.where(sim_data[self.field_id_col] == fieldid)[0]
             noffsets = len(match)
-            num_tiles = (
-                np.ceil(np.sqrt(noffsets) * 1.5) ** 2
-            )  # number of tiles must be a perfect square.
+            num_tiles = np.ceil(np.sqrt(noffsets) * 1.5) ** 2  # number of tiles must be a perfect square.
             # arbitarily chosen factor of 1.5 to have more than necessary tiles inside hexagon.
             self._generate_rep_random_offsets(noffsets, num_tiles)
             # Add to RA and dec values.
-            sim_data["repulsiveRandomDitherFieldPerVisitRa"][match] = sim_data[
-                self.ra_col
-            ][match] + self.x_off / np.cos(sim_data[self.dec_col][match])
+            sim_data["repulsiveRandomDitherFieldPerVisitRa"][match] = sim_data[self.ra_col][
+                match
+            ] + self.x_off / np.cos(sim_data[self.dec_col][match])
             sim_data["repulsiveRandomDitherFieldPerVisitDec"][match] = (
                 sim_data[self.dec_col][match] + self.y_off
             )
@@ -266,9 +252,7 @@ class RepulsiveRandomDitherFieldPerVisitStacker(BaseStacker):
         return sim_data
 
 
-class RepulsiveRandomDitherFieldPerNightStacker(
-    RepulsiveRandomDitherFieldPerVisitStacker
-):
+class RepulsiveRandomDitherFieldPerNightStacker(RepulsiveRandomDitherFieldPerVisitStacker):
     """
     Repulsive-randomly dither the RA and Dec pointings up to max_dither degrees from center, one dither offset
     per new night of observation of a field.
@@ -342,9 +326,9 @@ class RepulsiveRandomDitherFieldPerNightStacker(
             vertex_idxs = np.searchsorted(np.unique(nights), nights)
             vertex_idxs = vertex_idxs % len(self.x_off)
 
-            sim_data["repulsiveRandomDitherFieldPerNightRa"][match] = sim_data[
-                self.ra_col
-            ][match] + self.x_off[vertex_idxs] / np.cos(sim_data[self.dec_col][match])
+            sim_data["repulsiveRandomDitherFieldPerNightRa"][match] = sim_data[self.ra_col][
+                match
+            ] + self.x_off[vertex_idxs] / np.cos(sim_data[self.dec_col][match])
             sim_data["repulsiveRandomDitherFieldPerNightDec"][match] = (
                 sim_data[self.dec_col][match] + self.y_off[vertex_idxs]
             )
@@ -424,12 +408,10 @@ class RepulsiveRandomDitherPerNightStacker(RepulsiveRandomDitherFieldPerVisitSta
         # Add to RA and dec values.
         for n, x, y in zip(nights, self.x_off, self.y_off):
             match = np.where(sim_data[self.night_col] == n)[0]
-            sim_data["repulsiveRandomDitherPerNightRa"][match] = sim_data[self.ra_col][
-                match
-            ] + x / np.cos(sim_data[self.dec_col][match])
-            sim_data["repulsiveRandomDitherPerNightDec"][match] = (
-                sim_data[self.dec_col][match] + y
+            sim_data["repulsiveRandomDitherPerNightRa"][match] = sim_data[self.ra_col][match] + x / np.cos(
+                sim_data[self.dec_col][match]
             )
+            sim_data["repulsiveRandomDitherPerNightDec"][match] = sim_data[self.dec_col][match] + y
         # Wrap RA/Dec into expected range.
         (
             sim_data["repulsiveRandomDitherPerNightRa"],
@@ -514,9 +496,9 @@ class FermatSpiralDitherFieldPerVisitStacker(BaseStacker):
             # Apply sequential dithers, increasing with each visit.
             vertex_idxs = np.arange(0, len(match), 1)
             vertex_idxs = vertex_idxs % self.num_points
-            sim_data["fermatSpiralDitherFieldPerVisitRa"][match] = sim_data[
-                self.ra_col
-            ][match] + self.x_off[vertex_idxs] / np.cos(sim_data[self.dec_col][match])
+            sim_data["fermatSpiralDitherFieldPerVisitRa"][match] = sim_data[self.ra_col][match] + self.x_off[
+                vertex_idxs
+            ] / np.cos(sim_data[self.dec_col][match])
             sim_data["fermatSpiralDitherFieldPerVisitDec"][match] = (
                 sim_data[self.dec_col][match] + self.y_off[vertex_idxs]
             )
@@ -595,9 +577,9 @@ class FermatSpiralDitherFieldPerNightStacker(FermatSpiralDitherFieldPerVisitStac
             nights = sim_data[self.night_col][match]
             vertex_idxs = np.searchsorted(np.unique(nights), nights)
             vertex_idxs = vertex_idxs % self.num_points
-            sim_data["fermatSpiralDitherFieldPerNightRa"][match] = sim_data[
-                self.ra_col
-            ][match] + self.x_off[vertex_idxs] / np.cos(sim_data[self.dec_col][match])
+            sim_data["fermatSpiralDitherFieldPerNightRa"][match] = sim_data[self.ra_col][match] + self.x_off[
+                vertex_idxs
+            ] / np.cos(sim_data[self.dec_col][match])
             sim_data["fermatSpiralDitherFieldPerNightDec"][match] = (
                 sim_data[self.dec_col][match] + self.y_off[vertex_idxs]
             )
@@ -676,9 +658,9 @@ class FermatSpiralDitherPerNightStacker(FermatSpiralDitherFieldPerVisitStacker):
             match = np.where(sim_data[self.night_col] == n)[0]
             vertex_id = vertex_id % self.num_points
 
-            sim_data["fermatSpiralDitherPerNightRa"][match] = sim_data[self.ra_col][
-                match
-            ] + self.x_off[vertex_id] / np.cos(sim_data[self.dec_col][match])
+            sim_data["fermatSpiralDitherPerNightRa"][match] = sim_data[self.ra_col][match] + self.x_off[
+                vertex_id
+            ] / np.cos(sim_data[self.dec_col][match])
             sim_data["fermatSpiralDitherPerNightDec"][match] = (
                 sim_data[self.dec_col][match] + self.y_off[vertex_id]
             )
@@ -782,9 +764,9 @@ class PentagonDitherFieldPerSeasonStacker(BaseStacker):
             # Apply sequential dithers, increasing with each season.
             vertex_idxs = np.searchsorted(np.unique(seasons_visited), seasons_visited)
             vertex_idxs = vertex_idxs % len(self.x_off)
-            sim_data["pentagonDitherFieldPerSeasonRa"][match] = sim_data[self.ra_col][
-                match
-            ] + self.x_off[vertex_idxs] / np.cos(sim_data[self.dec_col][match])
+            sim_data["pentagonDitherFieldPerSeasonRa"][match] = sim_data[self.ra_col][match] + self.x_off[
+                vertex_idxs
+            ] / np.cos(sim_data[self.dec_col][match])
             sim_data["pentagonDitherFieldPerSeasonDec"][match] = (
                 sim_data[self.dec_col][match] + self.y_off[vertex_idxs]
             )
@@ -855,12 +837,8 @@ class PentagonDiamondDitherFieldPerSeasonStacker(BaseStacker):
         diamond_coord = polygon_coords(4, self.max_dither / 2.5, np.pi / 2)
 
         # join inner and outer coordiantes' array + a point in the middle (origin)
-        self.x_off = np.concatenate(
-            ([0], zip(*diamond_coord)[0], zip(*pent_coord)[0]), axis=0
-        )
-        self.y_off = np.concatenate(
-            ([0], zip(*diamond_coord)[1], zip(*pent_coord)[1]), axis=0
-        )
+        self.x_off = np.concatenate(([0], zip(*diamond_coord)[0], zip(*pent_coord)[0]), axis=0)
+        self.y_off = np.concatenate(([0], zip(*diamond_coord)[1], zip(*pent_coord)[1]), axis=0)
 
     def _run(self, sim_data):
         # find the seasons associated with each visit.
@@ -887,9 +865,9 @@ class PentagonDiamondDitherFieldPerSeasonStacker(BaseStacker):
             # Apply sequential dithers, increasing with each season.
             vertex_idxs = np.searchsorted(np.unique(seasons_visited), seasons_visited)
             vertex_idxs = vertex_idxs % len(self.x_off)
-            sim_data["pentagonDiamondDitherFieldPerSeasonRa"][match] = sim_data[
-                self.ra_col
-            ][match] + self.x_off[vertex_idxs] / np.cos(sim_data[self.dec_col][match])
+            sim_data["pentagonDiamondDitherFieldPerSeasonRa"][match] = sim_data[self.ra_col][
+                match
+            ] + self.x_off[vertex_idxs] / np.cos(sim_data[self.dec_col][match])
             sim_data["pentagonDiamondDitherFieldPerSeasonDec"][match] = (
                 sim_data[self.dec_col][match] + self.y_off[vertex_idxs]
             )
@@ -991,14 +969,12 @@ class PentagonDitherPerSeasonStacker(PentagonDitherFieldPerSeasonStacker):
             match_years = np.unique(years[match])
             print("Corresponding years: ", match_years)
             for i in match_years:
-                print(
-                    "     Entries in year", i, ": ", len(np.where(i == years[match])[0])
-                )
+                print("     Entries in year", i, ": ", len(np.where(i == years[match])[0]))
             print("")
             vertex_id = vertex_id % len(self.x_off)
-            sim_data["pentagonDitherPerSeasonRa"][match] = sim_data[self.ra_col][
-                match
-            ] + self.x_off[vertex_id] / np.cos(sim_data[self.dec_col][match])
+            sim_data["pentagonDitherPerSeasonRa"][match] = sim_data[self.ra_col][match] + self.x_off[
+                vertex_id
+            ] / np.cos(sim_data[self.dec_col][match])
             sim_data["pentagonDitherPerSeasonDec"][match] = (
                 sim_data[self.dec_col][match] + self.y_off[vertex_id]
             )
@@ -1085,9 +1061,9 @@ class PentagonDiamondDitherPerSeasonStacker(PentagonDiamondDitherFieldPerSeasonS
         for s in uniq_seasons:
             match = np.where(seasons == s)[0]
             vertex_id = vertex_id % len(self.x_off)
-            sim_data["pentagonDiamondDitherPerSeasonRa"][match] = sim_data[self.ra_col][
-                match
-            ] + self.x_off[vertex_id] / np.cos(sim_data[self.dec_col][match])
+            sim_data["pentagonDiamondDitherPerSeasonRa"][match] = sim_data[self.ra_col][match] + self.x_off[
+                vertex_id
+            ] / np.cos(sim_data[self.dec_col][match])
             sim_data["pentagonDiamondDitherPerSeasonDec"][match] = (
                 sim_data[self.dec_col][match] + self.y_off[vertex_id]
             )
@@ -1176,19 +1152,15 @@ class SpiralDitherPerSeasonStacker(SpiralDitherFieldPerVisitStacker):
         for s in np.unique(seasons):
             match = np.where(seasons == s)[0]
             vertex_id = vertex_id % self.numPoints
-            sim_data["spiralDitherPerSeasonRa"][match] = sim_data[self.raCol][
-                match
-            ] + self.xOff[vertex_id] / np.cos(sim_data[self.decCol][match])
-            sim_data["spiralDitherPerSeasonDec"][match] = (
-                sim_data[self.decCol][match] + self.yOff[vertex_id]
-            )
+            sim_data["spiralDitherPerSeasonRa"][match] = sim_data[self.raCol][match] + self.xOff[
+                vertex_id
+            ] / np.cos(sim_data[self.decCol][match])
+            sim_data["spiralDitherPerSeasonDec"][match] = sim_data[self.decCol][match] + self.yOff[vertex_id]
             vertex_id += 1
 
         # Wrap into expected range.
         (
             sim_data["spiralDitherPerSeasonRa"],
             sim_data["spiralDitherPerSeasonDec"],
-        ) = wrap_ra_dec(
-            sim_data["spiralDitherPerSeasonRa"], sim_data["spiralDitherPerSeasonDec"]
-        )
+        ) = wrap_ra_dec(sim_data["spiralDitherPerSeasonRa"], sim_data["spiralDitherPerSeasonDec"])
         return sim_data

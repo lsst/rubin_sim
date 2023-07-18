@@ -1,10 +1,12 @@
-import unittest
-import os
 import copy
+import os
+import unittest
+
 import numpy as np
-from rubin_sim.phot_utils import Bandpass, Sed, BandpassDict, SedList
-from rubin_sim.data import get_data_dir
+
 import rubin_sim
+from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import Bandpass, BandpassDict, Sed, SedList
 
 
 class BandpassDictTest(unittest.TestCase):
@@ -12,9 +14,7 @@ class BandpassDictTest(unittest.TestCase):
         self.rng = np.random.RandomState(32)
         self.bandpass_possibilities = ["u", "g", "r", "i", "z", "y"]
         self.bandpass_dir = os.path.join(get_data_dir(), "throughputs", "baseline")
-        self.sed_dir = os.path.join(
-            get_data_dir(), "tests", "cartoonSedTestData/galaxySed"
-        )
+        self.sed_dir = os.path.join(get_data_dir(), "tests", "cartoonSedTestData/galaxySed")
         self.sed_possibilities = os.listdir(self.sed_dir)
 
     def get_list_of_sed_names(self, n_names):
@@ -63,15 +63,11 @@ class BandpassDictTest(unittest.TestCase):
                 self.assertEqual(control_name, testName)
 
             for name, bp in zip(name_list, bp_list):
-                np.testing.assert_array_almost_equal(
-                    bp.wavelen, test_dict[name].wavelen, 10
-                )
+                np.testing.assert_array_almost_equal(bp.wavelen, test_dict[name].wavelen, 10)
                 np.testing.assert_array_almost_equal(bp.sb, test_dict[name].sb, 10)
 
             for bp_control, bpTest in zip(bp_list, test_dict.values()):
-                np.testing.assert_array_almost_equal(
-                    bp_control.wavelen, bpTest.wavelen, 10
-                )
+                np.testing.assert_array_almost_equal(bp_control.wavelen, bpTest.wavelen, 10)
                 np.testing.assert_array_almost_equal(bp_control.sb, bpTest.sb, 10)
 
     def test_wavelen_match(self):
@@ -101,13 +97,9 @@ class BandpassDictTest(unittest.TestCase):
         # Now make sure that the wavelength grids in the dict were resampled, but that
         # the original wavelength grids were not changed
         for ix in range(len(bp_list)):
-            np.testing.assert_array_almost_equal(
-                test_dict.values()[ix].wavelen, test_dict.wavelen_match, 19
-            )
+            np.testing.assert_array_almost_equal(test_dict.values()[ix].wavelen, test_dict.wavelen_match, 19)
             if ix != 0:
-                self.assertNotEqual(
-                    len(test_dict.wavelen_match), len(bp_list[ix].wavelen)
-                )
+                self.assertNotEqual(len(test_dict.wavelen_match), len(bp_list[ix].wavelen))
 
     def test_phi_array(self):
         """
@@ -160,9 +152,7 @@ class BandpassDictTest(unittest.TestCase):
         for n_bp in range(3, 10, 1):
             name_list, bp_list = self.get_list_of_bandpasses(n_bp)
             test_dict = BandpassDict(bp_list, name_list)
-            self.assertNotEqual(
-                len(test_dict.values()[0].wavelen), len(spectrum.wavelen)
-            )
+            self.assertNotEqual(len(test_dict.values()[0].wavelen), len(spectrum.wavelen))
 
             mag_list = test_dict.mag_list_for_sed(spectrum)
             for ix, (name, bp, magTest) in enumerate(zip(name_list, bp_list, mag_list)):
@@ -181,9 +171,7 @@ class BandpassDictTest(unittest.TestCase):
         for n_bp in range(3, 10, 1):
             name_list, bp_list = self.get_list_of_bandpasses(n_bp)
             test_dict = BandpassDict(bp_list, name_list)
-            self.assertNotEqual(
-                len(test_dict.values()[0].wavelen), len(spectrum.wavelen)
-            )
+            self.assertNotEqual(len(test_dict.values()[0].wavelen), len(spectrum.wavelen))
 
             mag_dict = test_dict.mag_dict_for_sed(spectrum)
             for ix, (name, bp) in enumerate(zip(name_list, bp_list)):
@@ -442,14 +430,10 @@ class BandpassDictTest(unittest.TestCase):
         for n_bp in range(3, 10, 1):
             name_list, bp_list = self.get_list_of_bandpasses(n_bp)
             test_dict = BandpassDict(bp_list, name_list)
-            self.assertNotEqual(
-                len(test_dict.values()[0].wavelen), len(spectrum.wavelen)
-            )
+            self.assertNotEqual(len(test_dict.values()[0].wavelen), len(spectrum.wavelen))
 
             flux_list = test_dict.flux_list_for_sed(spectrum)
-            for ix, (name, bp, fluxTest) in enumerate(
-                zip(name_list, bp_list, flux_list)
-            ):
+            for ix, (name, bp, fluxTest) in enumerate(zip(name_list, bp_list, flux_list)):
                 flux_control = spectrum.calc_flux(bp)
                 self.assertAlmostEqual(fluxTest / flux_control, 1.0, 2)
 
@@ -465,9 +449,7 @@ class BandpassDictTest(unittest.TestCase):
         for n_bp in range(3, 10, 1):
             name_list, bp_list = self.get_list_of_bandpasses(n_bp)
             test_dict = BandpassDict(bp_list, name_list)
-            self.assertNotEqual(
-                len(test_dict.values()[0].wavelen), len(spectrum.wavelen)
-            )
+            self.assertNotEqual(len(test_dict.values()[0].wavelen), len(spectrum.wavelen))
 
             flux_dict = test_dict.flux_dict_for_sed(spectrum)
             for ix, (name, bp) in enumerate(zip(name_list, bp_list)):
@@ -646,9 +628,7 @@ class BandpassDictTest(unittest.TestCase):
         )
 
         flux_list = test_bp_dict.flux_list_for_sed_list(test_sed_list, indices=indices)
-        flux_array = test_bp_dict.flux_array_for_sed_list(
-            test_sed_list, indices=indices
-        )
+        flux_array = test_bp_dict.flux_array_for_sed_list(test_sed_list, indices=indices)
         self.assertEqual(flux_list.shape[0], n_sed)
         self.assertEqual(flux_list.shape[1], n_bandpasses)
         self.assertEqual(flux_array.shape[0], n_sed)
@@ -688,9 +668,7 @@ class BandpassDictTest(unittest.TestCase):
         )
 
         flux_list = test_bp_dict.flux_list_for_sed_list(test_sed_list, indices=indices)
-        flux_array = test_bp_dict.flux_array_for_sed_list(
-            test_sed_list, indices=indices
-        )
+        flux_array = test_bp_dict.flux_array_for_sed_list(test_sed_list, indices=indices)
         self.assertEqual(flux_list.shape[0], n_sed)
         self.assertEqual(flux_list.shape[1], n_bandpasses)
         self.assertEqual(flux_array.shape[0], n_sed)
@@ -737,21 +715,15 @@ class BandpassDictTest(unittest.TestCase):
         control_bandpass_list = []
         for bpn in bandpass_names:
             dummy_bp = Bandpass()
-            dummy_bp.read_throughput(
-                os.path.join(bandpass_dir, bandpass_root + bpn + ".dat")
-            )
+            dummy_bp.read_throughput(os.path.join(bandpass_dir, bandpass_root + bpn + ".dat"))
             control_bandpass_list.append(dummy_bp)
 
         w_min = control_bandpass_list[0].wavelen[0]
         w_max = control_bandpass_list[0].wavelen[-1]
-        w_step = (
-            control_bandpass_list[0].wavelen[1] - control_bandpass_list[0].wavelen[0]
-        )
+        w_step = control_bandpass_list[0].wavelen[1] - control_bandpass_list[0].wavelen[0]
 
         for bp in control_bandpass_list:
-            bp.resample_bandpass(
-                wavelen_min=w_min, wavelen_max=w_max, wavelen_step=w_step
-            )
+            bp.resample_bandpass(wavelen_min=w_min, wavelen_max=w_max, wavelen_step=w_step)
 
         for test, control in zip(bandpass_dict.values(), control_bandpass_list):
             np.testing.assert_array_almost_equal(test.wavelen, control.wavelen, 19)
@@ -802,17 +774,11 @@ class BandpassDictTest(unittest.TestCase):
 
         w_min = control_bandpass_list[0].wavelen[0]
         w_max = control_bandpass_list[0].wavelen[-1]
-        w_step = (
-            control_bandpass_list[0].wavelen[1] - control_bandpass_list[0].wavelen[0]
-        )
+        w_step = control_bandpass_list[0].wavelen[1] - control_bandpass_list[0].wavelen[0]
 
         for bp, hh in zip(control_bandpass_list, control_hardware_list):
-            bp.resample_bandpass(
-                wavelen_min=w_min, wavelen_max=w_max, wavelen_step=w_step
-            )
-            hh.resample_bandpass(
-                wavelen_min=w_min, wavelen_max=w_max, wavelen_step=w_step
-            )
+            bp.resample_bandpass(wavelen_min=w_min, wavelen_max=w_max, wavelen_step=w_step)
+            hh.resample_bandpass(wavelen_min=w_min, wavelen_max=w_max, wavelen_step=w_step)
 
         for test, control in zip(bandpass_dict.values(), control_bandpass_list):
             np.testing.assert_array_almost_equal(test.wavelen, control.wavelen, 19)

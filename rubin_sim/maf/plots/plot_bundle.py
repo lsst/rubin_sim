@@ -1,6 +1,8 @@
 from builtins import object
-from .plot_handler import PlotHandler
+
 import matplotlib.pylab as plt
+
+from .plot_handler import PlotHandler
 
 __all__ = ["PlotBundle"]
 

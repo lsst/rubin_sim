@@ -1,7 +1,8 @@
 from builtins import zip
-import numpy as np
+
 import healpy as hp
 import matplotlib.pyplot as plt
+import numpy as np
 
 import rubin_sim.maf.metrics as metrics
 
@@ -53,9 +54,7 @@ class FOPlot(BasePlotter):
            Matplotlib figure number used to create the plot.
         """
         if not hasattr(slicer, "nside"):
-            raise ValueError(
-                "FOPlot to be used with healpix or healpix derived slicers."
-            )
+            raise ValueError("FOPlot to be used with healpix or healpix derived slicers.")
         fig = plt.figure(fignum)
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
@@ -65,9 +64,7 @@ class FOPlot(BasePlotter):
             plot_dict["scale"] = hp.nside2pixarea(slicer.nside, degrees=True) / 1000.0
 
         # Expect metric_value to be something like number of visits
-        cumulative_area = (
-            np.arange(1, metric_value.compressed().size + 1)[::-1] * plot_dict["scale"]
-        )
+        cumulative_area = np.arange(1, metric_value.compressed().size + 1)[::-1] * plot_dict["scale"]
         plt.plot(
             np.sort(metric_value.compressed()),
             cumulative_area,
@@ -77,22 +74,14 @@ class FOPlot(BasePlotter):
         )
         # This is breaking the rules and calculating the summary stats in two places.
         # Could just calculate summary stats and pass in labels.
-        rarr = np.array(
-            list(zip(metric_value.compressed())), dtype=[("fO", metric_value.dtype)]
+        rarr = np.array(list(zip(metric_value.compressed())), dtype=[("fO", metric_value.dtype)])
+        f_o_area = metrics.FOArea(col="fO", asky=plot_dict["asky"], norm=False, nside=slicer.nside).run(rarr)
+        f_o_nv = metrics.FONv(col="fO", n_visit=plot_dict["n_visits"], norm=False, nside=slicer.nside).run(
+            rarr
         )
-        f_o_area = metrics.FOArea(
-            col="fO", asky=plot_dict["asky"], norm=False, nside=slicer.nside
-        ).run(rarr)
-        f_o_nv = metrics.FONv(
-            col="fO", n_visit=plot_dict["n_visits"], norm=False, nside=slicer.nside
-        ).run(rarr)
 
-        plt.axvline(
-            x=plot_dict["n_visits"], linewidth=plot_dict["reflinewidth"], color="b"
-        )
-        plt.axhline(
-            y=plot_dict["asky"] / 1000.0, linewidth=plot_dict["reflinewidth"], color="r"
-        )
+        plt.axvline(x=plot_dict["n_visits"], linewidth=plot_dict["reflinewidth"], color="b")
+        plt.axhline(y=plot_dict["asky"] / 1000.0, linewidth=plot_dict["reflinewidth"], color="r")
         # Add lines for nvis_median and f_o_area: note if these are -666 (badval),
         # the default x_min/y_min values will just leave them off the edges of the plot.
         nvis_median = f_o_nv["value"][np.where(f_o_nv["name"] == "MedianNvis")]
@@ -192,9 +181,7 @@ class SummaryHistogram(BasePlotter):
         plot_dict.update(user_plot_dict)
         # Combine the metric values across all slice_points.
         if not isinstance(plot_dict["metricReduce"], metrics.BaseMetric):
-            raise ValueError(
-                "Expected plot_dict[metricReduce] to be a MAF metric object."
-            )
+            raise ValueError("Expected plot_dict[metricReduce] to be a MAF metric object.")
         # Check that there is data to plot
         if np.size(metric_value.compressed()) == 0:
             raise ValueError(f"Did not find any data to plot in {self.plot_type}.")

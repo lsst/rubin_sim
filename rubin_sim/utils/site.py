@@ -1,5 +1,6 @@
-import numpy as np
 import warnings
+
+import numpy as np
 
 __all__ = ["Site"]
 
@@ -128,13 +129,9 @@ class Site(object):
         list_of_nones = []
         if self.longitude is None or self.longitude_rad is None:
             if self.longitude_rad is not None:
-                raise RuntimeError(
-                    "in Site: longitude is None but longitude_rad is not"
-                )
+                raise RuntimeError("in Site: longitude is None but longitude_rad is not")
             if self.longitude is not None:
-                raise RuntimeError(
-                    "in Site: longitude_rad is None but longitude is not"
-                )
+                raise RuntimeError("in Site: longitude_rad is None but longitude is not")
             list_of_nones.append("longitude")
 
         if self.latitude is None or self.latitude_rad is None:
@@ -146,13 +143,9 @@ class Site(object):
 
         if self.temperature is None or self.temperature_kelvin is None:
             if self.temperature is not None:
-                raise RuntimeError(
-                    "in Site: temperature_kelvin is None but temperature is not"
-                )
+                raise RuntimeError("in Site: temperature_kelvin is None but temperature is not")
             if self.temperature_kelvin is not None:
-                raise RuntimeError(
-                    "in Site: temperature is None but temperature_kelvin is not"
-                )
+                raise RuntimeError("in Site: temperature is None but temperature_kelvin is not")
             list_of_nones.append("temperature")
 
         if self.height is None:

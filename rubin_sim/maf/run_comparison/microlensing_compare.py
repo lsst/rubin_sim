@@ -1,10 +1,11 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import warnings
-
 import glob
 import os
+import warnings
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+
 import rubin_sim.maf.db as db
 import rubin_sim.maf.metric_bundles as metricBundles
 
@@ -42,9 +43,7 @@ def microlensing_fom(
     bundle_dicts = {}
 
     for run_name in result_dbs:
-        bundle_dicts[run_name] = bundle_dict_from_disk(
-            result_dbs[run_name], run_name, metric_data_path
-        )
+        bundle_dicts[run_name] = bundle_dict_from_disk(result_dbs[run_name], run_name, metric_data_path)
 
     # generates results and metric info from default name of file
     results = np.zeros(len(list(bundle_dicts.keys())))
@@ -60,9 +59,7 @@ def microlensing_fom(
         )
         relevant_columns = ["metric_values", "mask"]
         df = pd.DataFrame.from_dict({item: npz[item] for item in relevant_columns})
-        run_name, metric_type, min_t_e, max_t_e = parse_t_e_run_types(
-            list(bundle_dicts.keys())[run]
-        )
+        run_name, metric_type, min_t_e, max_t_e = parse_t_e_run_types(list(bundle_dicts.keys())[run])
         run_names.append(run_name)
         metric_types.append(metric_type)
         min_t_es[run] = min_t_e
@@ -86,9 +83,7 @@ def microlensing_fom(
         figure_name,
         figsize=figsize,
     )
-    plot_compare(
-        results_compare, run_names, metric_types, min_t_es, max_t_es, save_folder
-    )
+    plot_compare(results_compare, run_names, metric_types, min_t_es, max_t_es, save_folder)
 
     return
 
@@ -135,24 +130,20 @@ def get_results(df, run_type, fisher_sigmat_e_t_e_cutoff=0.1):
         # Average number of points per lightcurve
         result = (
             sum(
-                df["metric_values"][~np.isnan(df["metric_values"])][
-                    df["metric_values"] >= 0
-                ][df["metric_values"] <= 10e10]
+                df["metric_values"][~np.isnan(df["metric_values"])][df["metric_values"] >= 0][
+                    df["metric_values"] <= 10e10
+                ]
             )
             / total
         )
     elif run_type == "Fisher":
         # Fraction of events with sigmatE/tE below the cutoff of 0.1
-        result = (
-            len(np.where(df["metric_values"] < fisher_sigmat_e_t_e_cutoff)[0]) / total
-        )
+        result = len(np.where(df["metric_values"] < fisher_sigmat_e_t_e_cutoff)[0]) / total
 
     return result
 
 
-def plot_fom(
-    results, run_names, run_types, min_t_e, max_t_e, save_folder, figure_name, figsize
-):
+def plot_fom(results, run_names, run_types, min_t_e, max_t_e, save_folder, figure_name, figsize):
     """
     Plots the results from the discovery/detect metric, Npts metric,
     and Fisher metric in three sub plots
@@ -213,11 +204,7 @@ def plot_fom(
             idx_list = list(
                 zip(
                     np.intersect1d(t_e_range_list[t_e_range], run_type_list[run_type]),
-                    run_names[
-                        np.intersect1d(
-                            t_e_range_list[t_e_range], run_type_list[run_type]
-                        )
-                    ],
+                    run_names[np.intersect1d(t_e_range_list[t_e_range], run_type_list[run_type])],
                 )
             )
             idx_list.sort(key=lambda x: x[1])
@@ -245,9 +232,7 @@ def plot_fom(
     return
 
 
-def plot_compare(
-    results, run_names, run_types, min_t_e, max_t_e, save_folder, npts_required=10
-):
+def plot_compare(results, run_names, run_types, min_t_e, max_t_e, save_folder, npts_required=10):
     """
     Plots confusion matrix type plots comparing fraction detected, characterized (via Fisher),
     and fraction of events with at least npts_required points within 2 tE
@@ -298,28 +283,14 @@ def plot_compare(
     for t_e_range in range(len(t_e_range_list)):
         for run_name in run_name_list:
             run_name_idxs = np.where(run_names == run_name)
-            t_e_run_name_interesct = np.intersect1d(
-                t_e_range_list[t_e_range], run_name_idxs
-            )
-            detect_results = results[
-                np.intersect1d(t_e_run_name_interesct, detect_runs_idx)
-            ]
-            npts_results = results[
-                np.intersect1d(t_e_run_name_interesct, npts_runs_idx)
-            ]
-            fisher_results = results[
-                np.intersect1d(t_e_run_name_interesct, fisher_runs_idx)
-            ]
+            t_e_run_name_interesct = np.intersect1d(t_e_range_list[t_e_range], run_name_idxs)
+            detect_results = results[np.intersect1d(t_e_run_name_interesct, detect_runs_idx)]
+            npts_results = results[np.intersect1d(t_e_run_name_interesct, npts_runs_idx)]
+            fisher_results = results[np.intersect1d(t_e_run_name_interesct, fisher_runs_idx)]
 
-            detected_fisher_comparison_matrix = detected_fisher_comparison(
-                fisher_results, detect_results
-            )
-            fisher_npts_comparison_matrix = fisher_npts_comparison(
-                fisher_results, npts_results
-            )
-            detected_npts_comparison_matrix = detected_npts_comparison(
-                detect_results, npts_results
-            )
+            detected_fisher_comparison_matrix = detected_fisher_comparison(fisher_results, detect_results)
+            fisher_npts_comparison_matrix = fisher_npts_comparison(fisher_results, npts_results)
+            detected_npts_comparison_matrix = detected_npts_comparison(detect_results, npts_results)
 
             confusion_matrix_plot(
                 detected_fisher_comparison_matrix,
@@ -349,9 +320,7 @@ def plot_compare(
     return
 
 
-def confusion_matrix_plot(
-    comparison_matrix, xlabel, ylabel, run_name, t_e_range, save_folder
-):
+def confusion_matrix_plot(comparison_matrix, xlabel, ylabel, run_name, t_e_range, save_folder):
     """
     Plots a confusion matrix type plot comparing two metric types.
 
@@ -392,17 +361,13 @@ def confusion_matrix_plot(
     ax.set_xticklabels([np.nan, "Yes", "No"])
     ax.set_yticklabels([np.nan, "Yes", "No"])
     plt.tight_layout()
-    plt.savefig(
-        save_folder + "/{}_{}_{}_{}.png".format(run_name, t_e_range, ylabel, xlabel)
-    )
+    plt.savefig(save_folder + "/{}_{}_{}_{}.png".format(run_name, t_e_range, ylabel, xlabel))
     plt.show()
     plt.close()
     return
 
 
-def detected_fisher_comparison(
-    fisher_results, detect_results, fisher_sigmat_e_t_e_cutoff=0.1
-):
+def detected_fisher_comparison(fisher_results, detect_results, fisher_sigmat_e_t_e_cutoff=0.1):
     """
     Returns an array of the following form where
     A = fisher criteria and B = detection criteria:
@@ -419,26 +384,14 @@ def detected_fisher_comparison(
         Maximum normalized uncertainty in tE (sigmatE/tE) as determined by
         3sigma values of pubished planet microlensing candidates
     """
-    char_detect = np.where(
-        (fisher_results < fisher_sigmat_e_t_e_cutoff) & (detect_results == 1)
-    )[0]
-    char_ndetect = np.where(
-        (fisher_results < fisher_sigmat_e_t_e_cutoff) & (detect_results == 0)
-    )[0]
-    nchar_detect = np.where(
-        (fisher_results > fisher_sigmat_e_t_e_cutoff) & (detect_results == 1)
-    )[0]
-    nchar_ndetect = np.where(
-        (fisher_results > fisher_sigmat_e_t_e_cutoff) & (detect_results == 0)
-    )[0]
-    return np.array(
-        [[len(char_detect), len(char_ndetect)], [len(nchar_detect), len(nchar_ndetect)]]
-    )
+    char_detect = np.where((fisher_results < fisher_sigmat_e_t_e_cutoff) & (detect_results == 1))[0]
+    char_ndetect = np.where((fisher_results < fisher_sigmat_e_t_e_cutoff) & (detect_results == 0))[0]
+    nchar_detect = np.where((fisher_results > fisher_sigmat_e_t_e_cutoff) & (detect_results == 1))[0]
+    nchar_ndetect = np.where((fisher_results > fisher_sigmat_e_t_e_cutoff) & (detect_results == 0))[0]
+    return np.array([[len(char_detect), len(char_ndetect)], [len(nchar_detect), len(nchar_ndetect)]])
 
 
-def fisher_npts_comparison(
-    fisher_results, npts_results, npts_required=10, fisher_sigmat_e_t_e_cutoff=0.1
-):
+def fisher_npts_comparison(fisher_results, npts_results, npts_required=10, fisher_sigmat_e_t_e_cutoff=0.1):
     """
     Returns an array of the following form where
     A = fisher criteria and B = npts criteria:
@@ -457,21 +410,11 @@ def fisher_npts_comparison(
         Maximum normalized uncertainty in tE (sigmatE/tE) as determined by
         3sigma values of pubished planet microlensing candidates
     """
-    char_npts = np.where(
-        (fisher_results < fisher_sigmat_e_t_e_cutoff) & (npts_results > npts_required)
-    )[0]
-    char_nnpts = np.where(
-        (fisher_results < fisher_sigmat_e_t_e_cutoff) & (npts_results < npts_required)
-    )[0]
-    nchar_npts = np.where(
-        (fisher_results > fisher_sigmat_e_t_e_cutoff) & (npts_results > npts_required)
-    )[0]
-    nchar_nnpts = np.where(
-        (fisher_results > fisher_sigmat_e_t_e_cutoff) & (npts_results < npts_required)
-    )[0]
-    return np.array(
-        [[len(char_npts), len(char_nnpts)], [len(nchar_npts), len(nchar_nnpts)]]
-    )
+    char_npts = np.where((fisher_results < fisher_sigmat_e_t_e_cutoff) & (npts_results > npts_required))[0]
+    char_nnpts = np.where((fisher_results < fisher_sigmat_e_t_e_cutoff) & (npts_results < npts_required))[0]
+    nchar_npts = np.where((fisher_results > fisher_sigmat_e_t_e_cutoff) & (npts_results > npts_required))[0]
+    nchar_nnpts = np.where((fisher_results > fisher_sigmat_e_t_e_cutoff) & (npts_results < npts_required))[0]
+    return np.array([[len(char_npts), len(char_nnpts)], [len(nchar_npts), len(nchar_nnpts)]])
 
 
 def detected_npts_comparison(detect_results, npts_results, npts_required=10):
@@ -494,9 +437,7 @@ def detected_npts_comparison(detect_results, npts_results, npts_required=10):
     detect_nnpts = np.where((detect_results == 1) & (npts_results < npts_required))[0]
     ndetect_npts = np.where((detect_results == 0) & (npts_results > npts_required))[0]
     ndetect_nnpts = np.where((detect_results == 0) & (npts_results < npts_required))[0]
-    return np.array(
-        [[len(detect_npts), len(detect_nnpts)], [len(ndetect_npts), len(ndetect_nnpts)]]
-    )
+    return np.array([[len(detect_npts), len(detect_nnpts)], [len(ndetect_npts), len(ndetect_nnpts)]])
 
 
 def get_results_dbs(result_db_path):

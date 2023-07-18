@@ -15,12 +15,13 @@
 #####################################################################################################
 import numpy as np
 import scipy
-from rubin_sim.maf.metrics import BaseMetric, Coaddm5Metric, ExgalM5
+
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import (
+    normalization_constant,
     power_law_const_a,
     power_law_const_b,
-    normalization_constant,
 )
+from rubin_sim.maf.metrics import BaseMetric, Coaddm5Metric, ExgalM5
 
 __all__ = ["GalaxyCountsMetricExtended"]
 
@@ -74,7 +75,7 @@ class GalaxyCountsMetricExtended(BaseMetric):
         redshift_bin="all",
         cfht_ls_counts=False,
         normalized_mock_catalog_counts=True,
-        **kwargs
+        **kwargs,
     ):
         self.m5_col = m5_col
         self.filter_col = filter_col
@@ -106,7 +107,7 @@ class GalaxyCountsMetricExtended(BaseMetric):
             metric_name=metric_name,
             maps=self.coaddmetric.maps,
             units=units,
-            **kwargs
+            **kwargs,
         )
 
     # ------------------------------------------------------------------------
@@ -116,9 +117,7 @@ class GalaxyCountsMetricExtended(BaseMetric):
         # colors assumed here: (u-g)=(g-r)=(r-i)=(i-z)= (z-y)=0.4
         if self.filter_band == "u":  # dimmer than i: u-g= 0.4 => g= u-0.4 => i= u-0.4*3
             band_correction = -0.4 * 3.0
-        elif (
-            self.filter_band == "g"
-        ):  # dimmer than i: g-r= 0.4 => r= g-0.4 => i= g-0.4*2
+        elif self.filter_band == "g":  # dimmer than i: g-r= 0.4 => r= g-0.4 => i= g-0.4*2
             band_correction = -0.4 * 2.0
         elif self.filter_band == "r":  # dimmer than i: i= r-0.4
             band_correction = -0.4
@@ -126,21 +125,15 @@ class GalaxyCountsMetricExtended(BaseMetric):
             band_correction = 0.0
         elif self.filter_band == "z":  # brighter than i: i-z= 0.4 => i= z+0.4
             band_correction = 0.4
-        elif (
-            self.filter_band == "y"
-        ):  # brighter than i: z-y= 0.4 => z= y+0.4 => i= y+0.4*2
+        elif self.filter_band == "y":  # brighter than i: z-y= 0.4 => z= y+0.4 => i= y+0.4*2
             band_correction = 0.4 * 2.0
         else:
             print("ERROR: Invalid band in GalaxyCountsMetricExtended. Assuming i-band.")
             band_correction = 0
 
         # check to make sure that the z-bin assigned is valid.
-        if (self.redshift_bin != "all") and (
-            self.redshift_bin not in list(self.power_law_const_a.keys())
-        ):
-            print(
-                "ERROR: Invalid redshift bin in GalaxyCountsMetricExtended. Defaulting to all redshifts."
-            )
+        if (self.redshift_bin != "all") and (self.redshift_bin not in list(self.power_law_const_a.keys())):
+            print("ERROR: Invalid redshift bin in GalaxyCountsMetricExtended. Defaulting to all redshifts.")
             self.redshift_bin = "all"
 
         # consider the power laws
@@ -148,11 +141,7 @@ class GalaxyCountsMetricExtended(BaseMetric):
             if self.cfhtls_counts:
                 # LSST power law: eq. 3.7 from LSST Science Book converted to per sq degree:
                 # (46*3600)*10^(0.31(i-25))
-                dn_gal = (
-                    46.0
-                    * 3600.0
-                    * np.power(10.0, 0.31 * (apparent_mag + band_correction - 25.0))
-                )
+                dn_gal = 46.0 * 3600.0 * np.power(10.0, 0.31 * (apparent_mag + band_correction - 25.0))
             else:
                 # full z-range considered here: 0.<z<4.0
                 # sum the galaxy counts from each individual z-bin
@@ -166,8 +155,7 @@ class GalaxyCountsMetricExtended(BaseMetric):
         else:
             dn_gal = np.power(
                 10.0,
-                self.power_law_const_a[self.redshift_bin]
-                * (apparent_mag + band_correction)
+                self.power_law_const_a[self.redshift_bin] * (apparent_mag + band_correction)
                 + self.power_law_const_b[self.redshift_bin],
             )
 

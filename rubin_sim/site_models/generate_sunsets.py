@@ -1,9 +1,11 @@
+import sys
+
+import astropy.units as u
 import numpy as np
 from astroplan import Observer
-import astropy.units as u
 from astropy.time import Time
+
 from rubin_sim.utils import Site
-import sys
 
 if __name__ == "__main__":
     # Trying out the astroplan sunrise/set code.
@@ -50,17 +52,11 @@ if __name__ == "__main__":
 
         almanac["moonset"] = observer.moon_set_time(times, which="next").mjd
         almanac["moonrise"] = observer.moon_rise_time(times, which="next").mjd
-        almanac["sun_n12_setting"] = observer.twilight_evening_nautical(
-            times, which="next"
-        ).mjd
+        almanac["sun_n12_setting"] = observer.twilight_evening_nautical(times, which="next").mjd
         times = observer.twilight_evening_astronomical(times, which="next")
         almanac["sun_n18_setting"] = times.mjd
-        almanac["sun_n18_rising"] = observer.twilight_morning_astronomical(
-            times, which="next"
-        ).mjd
-        almanac["sun_n12_rising"] = observer.twilight_morning_nautical(
-            times, which="next"
-        ).mjd
+        almanac["sun_n18_rising"] = observer.twilight_morning_astronomical(times, which="next").mjd
+        almanac["sun_n12_rising"] = observer.twilight_morning_nautical(times, which="next").mjd
         almanac["sunrise"] = observer.sun_rise_time(times, which="next").mjd
         results.append(almanac)
         mjd = almanac["sunrise"] + t_step

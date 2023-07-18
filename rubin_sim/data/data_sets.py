@@ -1,8 +1,7 @@
-import os
-import warnings
-import subprocess
 import glob
-
+import os
+import subprocess
+import warnings
 
 __all__ = ["get_data_dir", "data_versions", "get_baseline"]
 

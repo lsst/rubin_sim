@@ -1,20 +1,17 @@
-import os, warnings
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.engine import url
-from sqlalchemy.orm import declarative_base
-from sqlalchemy import Column, Integer, String, Float
-from sqlalchemy import ForeignKey
-from sqlalchemy.sql import text
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy.exc import DatabaseError
-from sqlite3 import OperationalError
-import rubin_sim.version as rsVersion
 import datetime
+import os
 import time
-
+import warnings
+from sqlite3 import OperationalError
 
 import numpy as np
+from sqlalchemy import Column, Float, ForeignKey, Integer, String, create_engine
+from sqlalchemy.engine import url
+from sqlalchemy.exc import DatabaseError
+from sqlalchemy.orm import backref, declarative_base, relationship, sessionmaker
+from sqlalchemy.sql import text
+
+import rubin_sim.version as rsVersion
 
 Base = declarative_base()
 
@@ -147,18 +144,13 @@ class SummaryStatRow(Base):
     metric_id = Column(Integer, ForeignKey("metrics.metric_id"))
     summary_name = Column(String)
     summary_value = Column(Float)
-    metric = relationship(
-        "MetricRow", backref=backref("summarystats", order_by=stat_id)
-    )
+    metric = relationship("MetricRow", backref=backref("summarystats", order_by=stat_id))
 
     def __repr__(self):
-        return (
-            "<SummaryStat(metric_id='%d', summary_name='%s', summary_value='%f')>"
-            % (
-                self.metric_id,
-                self.summary_name,
-                self.summary_value,
-            )
+        return "<SummaryStat(metric_id='%d', summary_name='%s', summary_value='%f')>" % (
+            self.metric_id,
+            self.summary_name,
+            self.summary_value,
         )
 
 
@@ -246,9 +238,7 @@ class ResultsDb(object):
         cols = self.session.execute(query)._metadata.keys
         if "metricMetadata" in cols:
             # if it's very old
-            query = text(
-                "alter table metrics rename column metricMetadata to metric_info_label"
-            )
+            query = text("alter table metrics rename column metricMetadata to metric_info_label")
             self.session.execute(query)
             self.session.commit()
         # Check for metricId vs. metric_id separately, as this change happened independently.
@@ -480,9 +470,7 @@ class ResultsDb(object):
         # Because we want to maintain 1-1 relationship between metric_id's and display_dict's:
         # First check if a display line is present with this metricID.
         self.open()
-        displayinfo = (
-            self.session.query(DisplayRow).filter_by(metric_id=metric_id).all()
-        )
+        displayinfo = self.session.query(DisplayRow).filter_by(metric_id=metric_id).all()
         if len(displayinfo) > 0:
             if overwrite:
                 for d in displayinfo:
@@ -533,24 +521,16 @@ class ResultsDb(object):
             Default False, in which case additional plot is added to output (e.g. with different range)
         """
         self.open()
-        plotinfo = (
-            self.session.query(PlotRow)
-            .filter_by(metric_id=metric_id, plot_type=plot_type)
-            .all()
-        )
+        plotinfo = self.session.query(PlotRow).filter_by(metric_id=metric_id, plot_type=plot_type).all()
         if len(plotinfo) > 0 and overwrite:
             for p in plotinfo:
                 self.session.delete(p)
-        plotinfo = PlotRow(
-            metric_id=metric_id, plot_type=plot_type, plot_file=plot_file
-        )
+        plotinfo = PlotRow(metric_id=metric_id, plot_type=plot_type, plot_file=plot_file)
         self.session.add(plotinfo)
         self.session.commit()
         self.close()
 
-    def update_summary_stat(
-        self, metric_id, summary_name, summary_value, ntry=3, pause_time=100
-    ):
+    def update_summary_stat(self, metric_id, summary_name, summary_value, ntry=3, pause_time=100):
         """
         Add a row to or update a row in the summary statistic table.
 
@@ -580,9 +560,7 @@ class ResultsDb(object):
         self.open()
         tries = 0
         if isinstance(summary_value, np.ndarray):
-            if ("name" in summary_value.dtype.names) and (
-                "value" in summary_value.dtype.names
-            ):
+            if ("name" in summary_value.dtype.names) and ("value" in summary_value.dtype.names):
                 for value in summary_value:
                     sSuffix = value["name"]
                     if isinstance(sSuffix, bytes):
@@ -619,14 +597,10 @@ class ResultsDb(object):
                 self.session.add(summarystat)
                 self.session.commit()
             else:
-                warnings.warn(
-                    "Warning! Cannot save summary statistic that is not a simple float or int"
-                )
+                warnings.warn("Warning! Cannot save summary statistic that is not a simple float or int")
         self.close()
 
-    def get_metric_id(
-        self, metric_name, slicer_name=None, metric_info_label=None, run_name=None
-    ):
+    def get_metric_id(self, metric_name, slicer_name=None, metric_info_label=None, run_name=None):
         """Find metric bundle Ids from the metric table.
 
         Parameters
@@ -702,17 +676,11 @@ class ResultsDb(object):
             MetricRow.run_name,
         )
         if metric_name_like is not None:
-            query = query.filter(
-                MetricRow.metric_name.like(f"%{str(metric_name_like)}%")
-            )
+            query = query.filter(MetricRow.metric_name.like(f"%{str(metric_name_like)}%"))
         if slicer_name_like is not None:
-            query = query.filter(
-                MetricRow.slicer_name.like(f"%{str(slicer_name_like)}%")
-            )
+            query = query.filter(MetricRow.slicer_name.like(f"%{str(slicer_name_like)}%"))
         if metric_info_label_like is not None:
-            query = query.filter(
-                MetricRow.metric_info_label.like(f"%{str(metric_info_label_like)}%")
-            )
+            query = query.filter(MetricRow.metric_info_label.like(f"%{str(metric_info_label_like)}%"))
         if run_name is not None:
             query = query.filter(MetricRow.run_name == run_name)
         for m in query:
@@ -732,9 +700,7 @@ class ResultsDb(object):
         return metric_ids
 
     @staticmethod
-    def build_summary_name(
-        metric_name, metric_info_label, slicer_name, summary_stat_name=None
-    ):
+    def build_summary_name(metric_name, metric_info_label, slicer_name, summary_stat_name=None):
         """Standardize a complete summary metric name, combining the metric + slicer + summary + info_label"""
         if metric_info_label is None:
             metric_info_label = ""
@@ -746,11 +712,7 @@ class ResultsDb(object):
         slName = slicer_name
         if slName == "UniSlicer":
             slName = ""
-        name = (
-            " ".join([sName, metric_name, metric_info_label, slName])
-            .rstrip(" ")
-            .lstrip(" ")
-        )
+        name = " ".join([sName, metric_name, metric_info_label, slName]).rstrip(" ").lstrip(" ")
         name.replace(",", "")
         return name
 
@@ -801,19 +763,13 @@ class ResultsDb(object):
         if summary_name is not None:
             query = query.filter(SummaryStatRow.summary_name == str(summary_name))
         if summary_name_like is not None:
-            query = query.filter(
-                SummaryStatRow.summary_name.like(f"%{str(summary_name_like)}%")
-            )
+            query = query.filter(SummaryStatRow.summary_name.like(f"%{str(summary_name_like)}%"))
         if summary_name_notlike is not None:
             if isinstance(summary_name_notlike, list):
                 for s in summary_name_notlike:
-                    query = query.filter(
-                        ~SummaryStatRow.summary_name.like(f"%{str(s)}%")
-                    )
+                    query = query.filter(~SummaryStatRow.summary_name.like(f"%{str(s)}%"))
             else:
-                query = query.filter(
-                    ~SummaryStatRow.summary_name.like(f"%{str(summary_name_notlike)}%")
-                )
+                query = query.filter(~SummaryStatRow.summary_name.like(f"%{str(summary_name_notlike)}%"))
         for m, s in query:
             long_name = self.build_summary_name(
                 m.metric_name, m.metric_info_label, m.slicer_name, s.summary_name
@@ -940,9 +896,7 @@ class ResultsDb(object):
             ]
         datafiles = []
         for mid in metric_id:
-            for m in (
-                self.session.query(MetricRow).filter(MetricRow.metric_id == mid).all()
-            ):
+            for m in self.session.query(MetricRow).filter(MetricRow.metric_id == mid).all():
                 datafiles.append(m.metric_datafile)
         self.close()
         return datafiles

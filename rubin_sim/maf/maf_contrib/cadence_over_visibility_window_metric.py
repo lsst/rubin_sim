@@ -1,19 +1,21 @@
 from __future__ import print_function
-import numpy as np
-import matplotlib.pylab as plt
-import rubin_sim.maf.db as db
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metricBundles as metricBundles
-from rubin_sim.maf.metrics import BaseMetric
-from .calc_expected_visits import CalcExpectedVisitsMetric
-import numpy as np
+
+from sys import argv
 
 # from astropy.visualization import astropy_mpl_style
 # plt.style.use(astropy_mpl_style)
 import astropy.units as u
+import matplotlib.pylab as plt
+import numpy as np
 from astropy.time import Time, TimeDelta
-from sys import argv
+
+import rubin_sim.maf.db as db
+import rubin_sim.maf.metricBundles as metricBundles
+import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.slicers as slicers
+from rubin_sim.maf.metrics import BaseMetric
+
+from .calc_expected_visits import CalcExpectedVisitsMetric
 
 
 class CadenceOverVisibilityWindowMetric(BaseMetric):
@@ -50,7 +52,7 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
         obstime_col="observationStartMJD",
         visittime_col="visitTime",
         verbose=False,
-        **kwargs
+        **kwargs,
     ):
         """Arguments:
         filters  list Filterset over which to compute the metric
@@ -89,25 +91,16 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
             self.filter_col,
         ]
 
-        super(CadenceOverVisibilityWindowMetric, self).__init__(
-            col=columns, metric_name=metric_name
-        )
+        super(CadenceOverVisibilityWindowMetric, self).__init__(col=columns, metric_name=metric_name)
 
     def run(self, data_slice, slice_point=None):
-        t = np.empty(
-            data_slice.size, dtype=list(zip(["time", "filter"], [float, "|S1"]))
-        )
+        t = np.empty(data_slice.size, dtype=list(zip(["time", "filter"], [float, "|S1"])))
         t["time"] = data_slice[self.obstime_col]
 
         t_start = Time(self.start_date + " 00:00:00")
         t_end = Time(self.end_date + " 00:00:00")
         n_days = int((t_end - t_start).value)
-        dates = np.array(
-            [
-                t_start + TimeDelta(i, format="jd", scale=None)
-                for i in range(0, n_days, 1)
-            ]
-        )
+        dates = np.array([t_start + TimeDelta(i, format="jd", scale=None) for i in range(0, n_days, 1)])
 
         result = 0.0
 
@@ -144,8 +137,7 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
                 actual_visits_per_filter = data_slice[idx]
 
                 tdx = np.where(
-                    actual_visits_per_filter[self.obstime_col].astype(int)
-                    == int(d.jd - 2400000.5)
+                    actual_visits_per_filter[self.obstime_col].astype(int) == int(d.jd - 2400000.5)
                 )
 
                 n_visits_actual.append(float(len(actual_visits_per_filter[tdx])))
@@ -155,9 +147,7 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
             if self.cadence[i] <= 24.0:
                 for j, d in enumerate(dates):
                     if n_visits_desired[0][j] > 0:
-                        night_efficiency = n_visits_actual[j] / float(
-                            n_visits_desired[0][j]
-                        )
+                        night_efficiency = n_visits_actual[j] / float(n_visits_desired[0][j])
 
                         result += night_efficiency
 
@@ -170,9 +160,7 @@ class CadenceOverVisibilityWindowMetric(BaseMetric):
                 n_nights = int(self.cadence[i] / 24.0)
 
                 for j in range(0, len(dates), n_nights):
-                    hrs_available = (
-                        np.array(hrs_visibility[0][j : j + n_nights])
-                    ).sum()
+                    hrs_available = (np.array(hrs_visibility[0][j : j + n_nights])).sum()
 
                     n_actual = (np.array(n_visits_actual[j : j + n_nights])).sum()
 
@@ -203,11 +191,7 @@ def compute_metric(params):
     obs_params = {"verbose": params["verbose"]}
 
     metric = CadenceOverVisibilityWindowMetric(
-        params["filters"],
-        params["cadence"],
-        params["start_date"],
-        params["end_date"],
-        **obs_params
+        params["filters"], params["cadence"], params["start_date"], params["end_date"], **obs_params
     )
 
     slicer = slicers.HealpixSlicer(nside=64)
@@ -231,12 +215,8 @@ if __name__ == "__main__":
         print(
             "  cadence is the cadence corresponding to each filter in hours, in a comma-separated list without spaces"
         )
-        print(
-            "  start_date, end_date are the UTC dates of the start and end of the observing window"
-        )
-        print(
-            "  survey indicates which survey to select data from.  Options are {WFD, DD, NES}"
-        )
+        print("  start_date, end_date are the UTC dates of the start and end of the observing window")
+        print("  survey indicates which survey to select data from.  Options are {WFD, DD, NES}")
 
     else:
         params = {"verbose": False}

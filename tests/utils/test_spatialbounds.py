@@ -1,6 +1,8 @@
-import numpy as np
 import unittest
-from rubin_sim.utils import SpatialBounds, CircleBounds, BoxBounds
+
+import numpy as np
+
+from rubin_sim.utils import BoxBounds, CircleBounds, SpatialBounds
 
 
 class SpatialBoundsTest(unittest.TestCase):

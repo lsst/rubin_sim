@@ -1,11 +1,10 @@
-import numpy as np
 import healpy as hp
-from scipy.optimize import minimize
-
+import numpy as np
 import pandas as pd
+from scipy.optimize import minimize
 from sklearn.preprocessing import StandardScaler
-from rubin_sim.maf.metrics.base_metric import BaseMetric
 
+from rubin_sim.maf.metrics.base_metric import BaseMetric
 
 __all__ = ["StaticProbesFoMEmulatorMetric"]
 
@@ -29,14 +28,7 @@ class StaticProbesFoMEmulatorMetric(BaseMetric):
     """
 
     def __init__(
-        self,
-        nside=128,
-        shear_m=0.003,
-        sigma_z=0.05,
-        sig_delta_z=0.001,
-        sig_sigma_z=0.003,
-        col=None,
-        **kwargs
+        self, nside=128, shear_m=0.003, sigma_z=0.05, sig_delta_z=0.001, sig_sigma_z=0.003, col=None, **kwargs
     ):
         self.nside = nside
         super().__init__(col=col, **kwargs)
@@ -348,9 +340,7 @@ class StaticProbesFoMEmulatorMetric(BaseMetric):
         scaler_x = StandardScaler()
         scaler_y = StandardScaler()
         X = df_unscaled.drop("FOM", axis=1)
-        X = pd.DataFrame(
-            scaler_x.fit_transform(df_unscaled.drop("FOM", axis=1)), columns=x_params
-        )
+        X = pd.DataFrame(scaler_x.fit_transform(df_unscaled.drop("FOM", axis=1)), columns=x_params)
         Y = pd.DataFrame(
             scaler_y.fit_transform(np.array(df_unscaled["FOM"]).reshape(-1, 1)),
             columns=["FOM"],

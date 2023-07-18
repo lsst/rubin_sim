@@ -1,9 +1,10 @@
-import numpy as np
-import healpy as hp
 import os
-from rubin_sim.maf.utils import radec2pix
-from rubin_sim.data import get_data_dir
 
+import healpy as hp
+import numpy as np
+
+from rubin_sim.data import get_data_dir
+from rubin_sim.maf.utils import radec2pix
 
 __all__ = ["eb_vhp"]
 

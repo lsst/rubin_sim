@@ -9,14 +9,16 @@ the healpix points across the sky, along with their corresponding RA/Dec/Galacti
 """
 
 import os
-import numpy as np
+
 import healpy as hp
-from astropy.coordinates import SkyCoord
+import numpy as np
 from astropy import units as u
-from .utils import set_default_nside, IntRounded
-from rubin_sim.utils import _hpid2_ra_dec, _angular_separation, angular_separation
-from rubin_sim.utils import Site
+from astropy.coordinates import SkyCoord
+
 from rubin_sim.data import get_data_dir
+from rubin_sim.utils import Site, _angular_separation, _hpid2_ra_dec, angular_separation
+
+from .utils import IntRounded, set_default_nside
 
 __all__ = [
     "ra_dec_hp_map",
@@ -120,9 +122,7 @@ def make_rolling_footprints(
     for i in range(nslice):
         step_func = StepSlopes(rise=all_slopes[i])
         rolling_footprints.append(
-            Footprint(
-                mjd_start, sun_ra_start=sun_ra_start, step_func=step_func, nside=nside
-            )
+            Footprint(mjd_start, sun_ra_start=sun_ra_start, step_func=step_func, nside=nside)
         )
 
     wfd = hp_footprints["r"] * 0
@@ -133,9 +133,7 @@ def make_rolling_footprints(
     wfd[wfd_indx] = 1
     non_wfd_indx = np.where(wfd == 0)[0]
 
-    split_wfd_indices = slice_quad_galactic_cut(
-        hp_footprints, nslice=nslice, wfd_indx=wfd_indx
-    )
+    split_wfd_indices = slice_quad_galactic_cut(hp_footprints, nslice=nslice, wfd_indx=wfd_indx)
 
     for key in hp_footprints:
         temp = hp_footprints[key] + 0
@@ -169,9 +167,7 @@ def slice_wfd_indx(target_map, nslice=2, wfd_indx=None):
         wfd_indx = np.where(target_map["r"] == 1)[0]
     wfd[wfd_indx] = 1
     wfd_accum = np.cumsum(wfd)
-    split_wfd_indices = np.floor(
-        np.max(wfd_accum) / nslice * (np.arange(nslice) + 1)
-    ).astype(int)
+    split_wfd_indices = np.floor(np.max(wfd_accum) / nslice * (np.arange(nslice) + 1)).astype(int)
     split_wfd_indices = split_wfd_indices.tolist()
     split_wfd_indices = [0] + split_wfd_indices
 
@@ -238,9 +234,7 @@ def slice_wfd_area_quad(target_map, nslice=2, wfd_indx=None):
         wfd_indices = wfd_indx
     wfd[wfd_indices] = 1
     wfd_accum = np.cumsum(wfd)
-    split_wfd_indices = np.floor(
-        np.max(wfd_accum) / nslice2 * (np.arange(nslice2) + 1)
-    ).astype(int)
+    split_wfd_indices = np.floor(np.max(wfd_accum) / nslice2 * (np.arange(nslice2) + 1)).astype(int)
     split_wfd_indices = split_wfd_indices.tolist()
     split_wfd_indices = [0] + split_wfd_indices
 
@@ -275,9 +269,7 @@ class StepLine(BasePixelEvolution):
         result = n_periods * self.rise
         tphased = t % self.period
         step_area = np.where(tphased > self.period / 2.0)[0]
-        result[step_area] += (
-            (tphased[step_area] - self.period / 2) * self.rise / (0.5 * self.period)
-        )
+        result[step_area] += (tphased[step_area] - self.period / 2) * self.rise / (0.5 * self.period)
         result[np.where(t < 0)] = 0
         return result
 
@@ -302,9 +294,7 @@ class StepSlopes(BasePixelEvolution):
         tphased = t % self.period
         step_area = np.where(tphased > self.period / 2.0)[0]
         result[step_area] += (
-            (tphased[step_area] - self.period / 2)
-            * steps[season + 1][step_area]
-            / (0.5 * self.period)
+            (tphased[step_area] - self.period / 2) * steps[season + 1][step_area] / (0.5 * self.period)
         )
         result[np.where(t < 0)] = 0
 
@@ -405,9 +395,7 @@ class Footprint(object):
 
 
 class ConstantFootprint(Footprint):
-    def __init__(
-        self, nside=32, filters={"u": 0, "g": 1, "r": 2, "i": 3, "z": 4, "y": 5}
-    ):
+    def __init__(self, nside=32, filters={"u": 0, "g": 1, "r": 2, "i": 3, "z": 4, "y": 5}):
         self.nside = nside
         self.filters = filters
         self.npix = hp.nside2npix(nside)
@@ -512,9 +500,7 @@ def generate_all_sky(nside=None, elevation_limit=20, mask=hp.UNSEEN):
     # Calculate max altitude (when on meridian).
     lsst_site = Site("LSST")
     elev_max = np.pi / 2.0 - np.abs(dec - lsst_site.latitude_rad)
-    skymap = np.where(
-        IntRounded(elev_max) >= IntRounded(np.radians(elevation_limit), skymap, mask)
-    )
+    skymap = np.where(IntRounded(elev_max) >= IntRounded(np.radians(elevation_limit), skymap, mask))
 
     return {
         "map": skymap,
@@ -552,10 +538,7 @@ def wfd_healpixels(nside=None, dec_min=-62.5, dec_max=3.6):
     ra, dec = ra_dec_hp_map(nside=nside)
     result = np.zeros(ra.size, float)
     dec = IntRounded(dec)
-    good = np.where(
-        (dec >= IntRounded(np.radians(dec_min)))
-        & (dec <= IntRounded(np.radians(dec_max)))
-    )
+    good = np.where((dec >= IntRounded(np.radians(dec_min))) & (dec <= IntRounded(np.radians(dec_max))))
     result[good] = 1
     return result
 
@@ -648,10 +631,7 @@ def wfd_no_dust_healpixels(nside, dec_min=-72.25, dec_max=12.4, dust_limit=0.19)
     result = np.zeros(ra.size, float)
     # First set based on dec range.
     dec = IntRounded(dec)
-    good = np.where(
-        (dec >= IntRounded(np.radians(dec_min)))
-        & (dec <= IntRounded(np.radians(dec_max)))
-    )
+    good = np.where((dec >= IntRounded(np.radians(dec_min))) & (dec <= IntRounded(np.radians(dec_max))))
     result[good] = 1
     # Now remove areas with dust extinction beyond the limit.
     result = np.where(dustmap >= dust_limit, 0, result)
@@ -710,9 +690,7 @@ def nes_healpixels(nside=None, min_eb=-30.0, max_eb=10.0, dec_min=2.8):
     return result
 
 
-def galactic_plane_healpixels(
-    nside=None, center_width=10.0, end_width=4.0, gal_long1=290.0, gal_long2=70.0
-):
+def galactic_plane_healpixels(nside=None, center_width=10.0, end_width=4.0, gal_long1=290.0, gal_long2=70.0):
     """
     Define a Galactic Plane region.
 
@@ -750,9 +728,7 @@ def galactic_plane_healpixels(
     # If the length is greater than 0 then we can add additional cuts.
     if gp_length > 0:
         # First, remove anything outside the gal_long1/gal_long2 region.
-        sky = np.where(
-            IntRounded((gal_lon - gal_long1) % 360) < IntRounded(gp_length), sky, 0
-        )
+        sky = np.where(IntRounded((gal_lon - gal_long1) % 360) < IntRounded(gp_length), sky, 0)
         # Add the tapers.
         # These slope from the center (gp_center @ center_width)
         # to the edge (gp_center + gp_length/2 @ end_width).
@@ -760,11 +736,7 @@ def galactic_plane_healpixels(
         slope = (center_width - end_width) / half_width
         gp_center = (gal_long1 + half_width) % 360
         gp_dist = gal_lon - gp_center
-        gp_dist = np.abs(
-            np.where(
-                IntRounded(gp_dist) > IntRounded(180), (180 - gp_dist) % 180, gp_dist
-            )
-        )
+        gp_dist = np.abs(np.where(IntRounded(gp_dist) > IntRounded(180), (180 - gp_dist) % 180, gp_dist))
         lat_limit = np.abs(center_width - slope * gp_dist)
         sky = np.where(IntRounded(np.abs(gal_lat)) < IntRounded(lat_limit), sky, 0)
     return sky
@@ -828,9 +800,7 @@ def generate_goal_map(
     prop_name_dict = dict()
 
     if nes_fraction > 0.0:
-        nes = nes_healpixels(
-            nside=nside, min_eb=nes_min_eb, max_eb=nes_max_eb, dec_min=nes_dec_min
-        )
+        nes = nes_healpixels(nside=nside, min_eb=nes_min_eb, max_eb=nes_max_eb, dec_min=nes_dec_min)
         result[np.where(nes != 0)] = 0
         result += nes_fraction * nes
         id_map[np.where(nes != 0)] = 1
@@ -1029,13 +999,9 @@ def combo_dust_fp(
     gal_lon, gal_lat = coord.galactic.l.deg, coord.galactic.b.deg
 
     # let's make a first pass here
-    wfd_no_dust[
-        np.where((dec > wfd_south) & (dec < wfd_north) & (dustmap < dust_limit))
-    ] = 1.0
+    wfd_no_dust[np.where((dec > wfd_south) & (dec < wfd_north) & (dustmap < dust_limit))] = 1.0
 
-    wfd_dust[
-        np.where((dec > wfd_south) & (dec < wfd_north) & (dustmap > dust_limit))
-    ] = 1.0
+    wfd_dust[np.where((dec > wfd_south) & (dec < wfd_north) & (dustmap > dust_limit))] = 1.0
     wfd_dust[np.where(dec < wfd_south)] = 1.0
 
     # Fill in values for WFD and WFD_dusty
@@ -1050,15 +1016,12 @@ def combo_dust_fp(
 
     # Any part of the NES that is too low gets pumped up
     nes_indx = np.where(
-        ((eclip_lat < nes_dist_eclip_n) & (eclip_lat > nes_dist_eclip_s))
-        & (dec > nes_south_limit)
+        ((eclip_lat < nes_dist_eclip_n) & (eclip_lat > nes_dist_eclip_s)) & (dec > nes_south_limit)
     )
     nes_hp_map = ra * 0
     nes_hp_map[nes_indx] = 1
     for key in result:
-        result[key][
-            np.where((nes_hp_map > 0) & (result[key] < nes_weights[key]))
-        ] = nes_weights[key]
+        result[key][np.where((nes_hp_map > 0) & (result[key] < nes_weights[key]))] = nes_weights[key]
 
     if mc_wfd:
         mag_clouds = magellanic_clouds_healpixels(nside)

@@ -1,5 +1,6 @@
-import numpy as np
 import numbers
+
+import numpy as np
 
 __all__ = ["_FactorialGenerator", "ZernikePolynomialGenerator"]
 

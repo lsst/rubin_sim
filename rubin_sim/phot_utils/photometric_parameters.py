@@ -1,5 +1,6 @@
 import numpy as np
-from rubin_sim.phot_utils import Sed, BandpassDict
+
+from rubin_sim.phot_utils import BandpassDict, Sed
 
 __all__ = ["PhotometricParameters", "DustValues"]
 
@@ -27,17 +28,13 @@ class DustValues(object):
         # Calculate dust extinction values
         self.ax1 = {}
         if bandpass_dict is None:
-            bandpass_dict = BandpassDict.load_total_bandpasses_from_files(
-                ["u", "g", "r", "i", "z", "y"]
-            )
+            bandpass_dict = BandpassDict.load_total_bandpasses_from_files(["u", "g", "r", "i", "z", "y"])
 
         for filtername in bandpass_dict:
             wavelen_min = bandpass_dict[filtername].wavelen.min()
             wavelen_max = bandpass_dict[filtername].wavelen.max()
             testsed = Sed()
-            testsed.set_flat_sed(
-                wavelen_min=wavelen_min, wavelen_max=wavelen_max, wavelen_step=1.0
-            )
+            testsed.set_flat_sed(wavelen_min=wavelen_min, wavelen_max=wavelen_max, wavelen_step=1.0)
             self.ref_ebv = ref_ebv
             # Calculate non-dust-extincted magnitude
             flatmag = testsed.calc_mag(bandpass_dict[filtername])

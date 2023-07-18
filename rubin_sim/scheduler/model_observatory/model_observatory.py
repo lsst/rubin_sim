@@ -1,31 +1,31 @@
-import numpy as np
-from rubin_sim.utils import (
-    _ra_dec2_hpid,
-    Site,
-    calc_lmst_last,
-    m5_flat_sed,
-    _approx_ra_dec2_alt_az,
-    _angular_separation,
-    _approx_altaz2pa,
-    survey_start_mjd,
-)
-import rubin_sim.skybrightness_pre as sb
 import healpy as hp
-from rubin_sim.site_models import (
-    ScheduledDowntimeData,
-    UnscheduledDowntimeData,
-    SeeingData,
-    SeeingModel,
-    CloudData,
-    Almanac,
-)
-from rubin_sim.scheduler.features import Conditions
-from rubin_sim.scheduler.utils import set_default_nside, create_season_offset
+import numpy as np
 from astropy.coordinates import EarthLocation
 from astropy.time import Time
 
-from rubin_sim.scheduler.model_observatory import KinemModel
+import rubin_sim.skybrightness_pre as sb
 from rubin_sim.data import data_versions
+from rubin_sim.scheduler.features import Conditions
+from rubin_sim.scheduler.model_observatory import KinemModel
+from rubin_sim.scheduler.utils import create_season_offset, set_default_nside
+from rubin_sim.site_models import (
+    Almanac,
+    CloudData,
+    ScheduledDowntimeData,
+    SeeingData,
+    SeeingModel,
+    UnscheduledDowntimeData,
+)
+from rubin_sim.utils import (
+    Site,
+    _angular_separation,
+    _approx_altaz2pa,
+    _approx_ra_dec2_alt_az,
+    _ra_dec2_hpid,
+    calc_lmst_last,
+    m5_flat_sed,
+    survey_start_mjd,
+)
 
 __all__ = ["ModelObservatory", "NoClouds", "NominalSeeing"]
 
@@ -167,9 +167,7 @@ class ModelObservatory(object):
                         self.downtimes[i]["end"] = new_end
                         self.downtimes[i + 1]["end"] = new_end
 
-                good = np.where(
-                    self.downtimes["end"] - np.roll(self.downtimes["end"], 1) != 0
-                )
+                good = np.where(self.downtimes["end"] - np.roll(self.downtimes["end"], 1) != 0)
                 self.downtimes = self.downtimes[good]
                 diff = self.downtimes["start"][1:] - self.downtimes["end"][0:-1]
         else:
@@ -191,9 +189,7 @@ class ModelObservatory(object):
         elif cloud_data is not None:
             self.cloud_data = cloud_data
         else:
-            self.cloud_data = CloudData(
-                mjd_start_time, cloud_db=cloud_db, offset_year=cloud_offset_year
-            )
+            self.cloud_data = CloudData(mjd_start_time, cloud_db=cloud_db, offset_year=cloud_offset_year)
 
         self.sky_model = sb.SkyModelPre(init_load_length=init_load_length)
 
@@ -335,18 +331,10 @@ class ModelObservatory(object):
 
         # Add in the almanac information
         self.conditions.sunset = self.almanac.sunsets["sunset"][self.almanac_indx]
-        self.conditions.sun_n12_setting = self.almanac.sunsets["sun_n12_setting"][
-            self.almanac_indx
-        ]
-        self.conditions.sun_n18_setting = self.almanac.sunsets["sun_n18_setting"][
-            self.almanac_indx
-        ]
-        self.conditions.sun_n18_rising = self.almanac.sunsets["sun_n18_rising"][
-            self.almanac_indx
-        ]
-        self.conditions.sun_n12_rising = self.almanac.sunsets["sun_n12_rising"][
-            self.almanac_indx
-        ]
+        self.conditions.sun_n12_setting = self.almanac.sunsets["sun_n12_setting"][self.almanac_indx]
+        self.conditions.sun_n18_setting = self.almanac.sunsets["sun_n18_setting"][self.almanac_indx]
+        self.conditions.sun_n18_rising = self.almanac.sunsets["sun_n18_rising"][self.almanac_indx]
+        self.conditions.sun_n12_rising = self.almanac.sunsets["sun_n12_rising"][self.almanac_indx]
         self.conditions.sunrise = self.almanac.sunsets["sunrise"][self.almanac_indx]
         self.conditions.moonrise = self.almanac.sunsets["moonrise"][self.almanac_indx]
         self.conditions.moonset = self.almanac.sunsets["moonset"][self.almanac_indx]
@@ -385,9 +373,7 @@ class ModelObservatory(object):
         # Seeing
         fwhm_500 = self.seeing_data(current_time)
         seeing_dict = self.seeing_model(fwhm_500, observation["airmass"])
-        observation["FWHMeff"] = seeing_dict["fwhmEff"][
-            self.seeing_indx_dict[observation["filter"][0]]
-        ]
+        observation["FWHMeff"] = seeing_dict["fwhmEff"][self.seeing_indx_dict[observation["filter"][0]]]
         observation["FWHM_geometric"] = seeing_dict["fwhmGeom"][
             self.seeing_indx_dict[observation["filter"][0]]
         ]
@@ -396,12 +382,10 @@ class ModelObservatory(object):
         observation["night"] = self.night
         observation["mjd"] = self.mjd
 
-        hpid = _ra_dec2_hpid(
-            self.sky_model.nside, observation["RA"], observation["dec"]
-        )
-        observation["skybrightness"] = self.sky_model.return_mags(
-            self.mjd, indx=[hpid], extrapolate=True
-        )[observation["filter"][0]]
+        hpid = _ra_dec2_hpid(self.sky_model.nside, observation["RA"], observation["dec"])
+        observation["skybrightness"] = self.sky_model.return_mags(self.mjd, indx=[hpid], extrapolate=True)[
+            observation["filter"][0]
+        ]
 
         observation["fivesigmadepth"] = m5_flat_sed(
             observation["filter"][0],
@@ -528,13 +512,9 @@ class ModelObservatory(object):
             observation["rotTelPos"] = np.nan
         else:
             # Fall back to rotSkyPos_desired
-            possible_rot_tel_pos = (observation["rotSkyPos_desired"] + obs_pa) % (
-                2.0 * np.pi
-            )
+            possible_rot_tel_pos = (observation["rotSkyPos_desired"] + obs_pa) % (2.0 * np.pi)
 
-            if (possible_rot_tel_pos > rot_limit[0]) | (
-                possible_rot_tel_pos < rot_limit[1]
-            ):
+            if (possible_rot_tel_pos > rot_limit[0]) | (possible_rot_tel_pos < rot_limit[1]):
                 observation["rotSkyPos"] = observation["rotSkyPos_desired"]
                 observation["rotTelPos"] = np.nan
             else:
@@ -566,9 +546,7 @@ class ModelObservatory(object):
             self.observatory.park()
 
         # Compute what alt,az we have tracked to (or are parked at)
-        start_alt, start_az, start_rot_tel_pos = self.observatory.current_alt_az(
-            self.mjd
-        )
+        start_alt, start_az, start_rot_tel_pos = self.observatory.current_alt_az(self.mjd)
         # Slew to new position and execute observation. Use the requested rotTelPos position,
         # obsevation['rotSkyPos'] will be ignored.
         slewtime, visittime = self.observatory.observe(
@@ -582,9 +560,7 @@ class ModelObservatory(object):
         if ~np.all(np.isfinite(slewtime)):
             return None, False
 
-        observation_worked, new_mjd = self.check_mjd(
-            self.mjd + (slewtime + visittime) / 24.0 / 3600.0
-        )
+        observation_worked, new_mjd = self.check_mjd(self.mjd + (slewtime + visittime) / 24.0 / 3600.0)
 
         if observation_worked:
             observation["visittime"] = visittime

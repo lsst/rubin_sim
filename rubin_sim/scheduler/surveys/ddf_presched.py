@@ -1,8 +1,10 @@
-import numpy as np
-from rubin_sim.utils import calc_season, ddf_locations
-from rubin_sim.scheduler.utils import scheduled_observation
-from rubin_sim.data import get_data_dir
 import os
+
+import numpy as np
+
+from rubin_sim.data import get_data_dir
+from rubin_sim.scheduler.utils import scheduled_observation
+from rubin_sim.utils import calc_season, ddf_locations
 
 __all__ = ["generate_ddf_scheduled_obs"]
 
@@ -223,9 +225,7 @@ def optimize_ddf_times(
     # take out the ones that are out of season
     season_mod = night_season % 1
 
-    out_season = np.where(
-        (season_mod < season_unobs_frac) | (season_mod > (1.0 - season_unobs_frac))
-    )
+    out_season = np.where((season_mod < season_unobs_frac) | (season_mod > (1.0 - season_unobs_frac)))
     raw_obs[out_season] = 0
 
     cumulative_desired = ddf_slopes(ddf_name, raw_obs, night_season)
@@ -242,9 +242,7 @@ def optimize_ddf_times(
     # XXX--probably need to expand this part to resolve the times when multiple things get scheduled
     mjds = []
     for night_check in nights_to_use:
-        in_night = np.where(
-            (night == night_check) & (np.isfinite(ddf_grid["%s_m5_g" % ddf_name]))
-        )[0]
+        in_night = np.where((night == night_check) & (np.isfinite(ddf_grid["%s_m5_g" % ddf_name])))[0]
         m5s = ddf_grid["%s_m5_g" % ddf_name][in_night]
         # we could intorpolate this to get even better than 15 min resolution on when to observe
         max_indx = np.where(m5s == m5s.max())[0].min()

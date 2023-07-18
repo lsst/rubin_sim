@@ -1,9 +1,10 @@
 # Collection of utilities for MAF that relate to Opsim specifically.
 
-import numpy as np
-import pandas as pd
 import os
 import sqlite3
+
+import numpy as np
+import pandas as pd
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.engine import make_url
 
@@ -59,10 +60,7 @@ def get_sim_data(
         url = make_url("sqlite:///" + db_con)
         eng = create_engine(url)
         inspector = inspect(eng)
-        tables = [
-            inspector.get_table_names(schema=schema)
-            for schema in inspector.get_schema_names()
-        ]
+        tables = [inspector.get_table_names(schema=schema) for schema in inspector.get_schema_names()]
         if "observations" in tables[0]:
             table_name = "observations"
         elif "SummaryAllProps" in tables[0]:
@@ -70,9 +68,7 @@ def get_sim_data(
         elif "summary" in tables[0]:
             table_name = "summary"
         else:
-            ValueError(
-                "Could not guess table_name, set with table_name or full_sql_query kwargs"
-            )
+            ValueError("Could not guess table_name, set with table_name or full_sql_query kwargs")
     elif (table_name is None) & (full_sql_query is None):
         # If someone passes in a connection object with an old table_name things will fail
         # that's probably fine, keep people from getting fancy with old sims
@@ -222,9 +218,7 @@ def scale_benchmarks(run_length, benchmark="design"):
     elif benchmark == "stretch":
         return stretch
     else:
-        raise ValueError(
-            "Benchmark value %s not understood: use 'design' or 'stretch'" % (benchmark)
-        )
+        raise ValueError("Benchmark value %s not understood: use 'design' or 'stretch'" % (benchmark))
 
 
 def calc_coadded_depth(nvisits, single_visit_depth):
@@ -247,9 +241,7 @@ def calc_coadded_depth(nvisits, single_visit_depth):
     for f in nvisits:
         if f not in single_visit_depth:
             raise ValueError("Filter keys in nvisits and single_visit_depth must match")
-        coadded_depth[f] = float(
-            1.25 * np.log10(nvisits[f] * 10 ** (0.8 * single_visit_depth[f]))
-        )
+        coadded_depth[f] = float(1.25 * np.log10(nvisits[f] * 10 ** (0.8 * single_visit_depth[f])))
         if not np.isfinite(coadded_depth[f]):
             coadded_depth[f] = single_visit_depth[f]
     return coadded_depth

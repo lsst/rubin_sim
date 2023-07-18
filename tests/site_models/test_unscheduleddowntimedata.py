@@ -1,4 +1,5 @@
 import unittest
+
 from astropy.time import Time, TimeDelta
 
 from rubin_sim.site_models import UnscheduledDowntimeData
@@ -20,9 +21,7 @@ class UnscheduledDowntimeDataTest(unittest.TestCase):
         )
         self.assertEqual(downtime_data.seed, self.seed)
         self.assertEqual(downtime_data.survey_length, self.survey_length)
-        self.assertEqual(
-            self.th + TimeDelta(self.startofnight, format="jd"), downtime_data.night0
-        )
+        self.assertEqual(self.th + TimeDelta(self.startofnight, format="jd"), downtime_data.night0)
         downtime_data = UnscheduledDowntimeData(
             self.th,
             start_of_night_offset=0,

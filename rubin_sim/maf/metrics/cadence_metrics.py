@@ -1,4 +1,5 @@
 import numpy as np
+
 from .base_metric import BaseMetric
 
 __all__ = [
@@ -37,7 +38,7 @@ class TemplateExistsMetric(BaseMetric):
         seeing_col="seeingFwhmGeom",
         observation_start_mjd_col="observationStartMJD",
         metric_name="TemplateExistsMetric",
-        **kwargs
+        **kwargs,
     ):
         cols = [seeing_col, observation_start_mjd_col]
         super(TemplateExistsMetric, self).__init__(
@@ -74,9 +75,7 @@ class UniformityMetric(BaseMetric):
         The overall duration of the survey. Default 10.
     """
 
-    def __init__(
-        self, mjd_col="observationStartMJD", units="", survey_length=10.0, **kwargs
-    ):
+    def __init__(self, mjd_col="observationStartMJD", units="", survey_length=10.0, **kwargs):
         """survey_length = time span of survey (years)"""
         self.mjd_col = mjd_col
         super(UniformityMetric, self).__init__(col=self.mjd_col, units=units, **kwargs)
@@ -87,9 +86,7 @@ class UniformityMetric(BaseMetric):
         if data_slice[self.mjd_col].size == 1:
             return 1
         # Scale dates to lie between 0 and 1, where 0 is the first observation date and 1 is surveyLength
-        dates = (data_slice[self.mjd_col] - data_slice[self.mjd_col].min()) / (
-            self.survey_length * 365.25
-        )
+        dates = (data_slice[self.mjd_col] - data_slice[self.mjd_col].min()) / (self.survey_length * 365.25)
         dates.sort()  # Just to be sure
         n_cum = np.arange(1, dates.size + 1) / float(dates.size)
         d_max = np.max(np.abs(n_cum - dates - dates[1]))
@@ -119,14 +116,7 @@ class GeneralUniformityMetric(BaseMetric):
         (which may not cover the full range).
     """
 
-    def __init__(
-        self,
-        col="observationStartMJD",
-        units="",
-        min_value=None,
-        max_value=None,
-        **kwargs
-    ):
+    def __init__(self, col="observationStartMJD", units="", min_value=None, max_value=None, **kwargs):
         """survey_length = time span of survey (years)"""
         self.col = col
         super().__init__(col=self.col, units=units, **kwargs)
@@ -179,7 +169,7 @@ class RapidRevisitUniformityMetric(BaseMetric):
         d_tmin=40.0 / 60.0 / 60.0 / 24.0,
         d_tmax=30.0 / 60.0 / 24.0,
         metric_name="RapidRevisitUniformity",
-        **kwargs
+        **kwargs,
     ):
         self.mjd_col = mjd_col
         self.min_nvisits = min_nvisits
@@ -218,7 +208,7 @@ class RapidRevisitMetric(BaseMetric):
         d_tmax=30.0 / 60.0 / 24.0,
         min_n1=28,
         min_n2=82,
-        **kwargs
+        **kwargs,
     ):
         self.mjd_col = mjd_col
         self.d_tmin = d_tmin
@@ -252,14 +242,7 @@ class NRevisitsMetric(BaseMetric):
         Note that we would expect (if all visits occur in pairs within d_t) this fraction would be 0.5!
     """
 
-    def __init__(
-        self,
-        mjd_col="observationStartMJD",
-        d_t=30.0,
-        normed=False,
-        metric_name=None,
-        **kwargs
-    ):
+    def __init__(self, mjd_col="observationStartMJD", d_t=30.0, normed=False, metric_name=None, **kwargs):
         units = ""
         if metric_name is None:
             if normed:
@@ -299,17 +282,14 @@ class IntraNightGapsMetric(BaseMetric):
         night_col="night",
         reduce_func=np.median,
         metric_name="Median Intra-Night Gap",
-        **kwargs
+        **kwargs,
     ):
         units = "hours"
         self.mjd_col = mjd_col
         self.night_col = night_col
         self.reduce_func = reduce_func
         super(IntraNightGapsMetric, self).__init__(
-            col=[self.mjd_col, self.night_col],
-            units=units,
-            metric_name=metric_name,
-            **kwargs
+            col=[self.mjd_col, self.night_col], units=units, metric_name=metric_name, **kwargs
         )
 
     def run(self, data_slice, slice_point=None):
@@ -341,18 +321,13 @@ class InterNightGapsMetric(BaseMetric):
         night_col="night",
         reduce_func=np.median,
         metric_name="Median Inter-Night Gap",
-        **kwargs
+        **kwargs,
     ):
         units = "days"
         self.mjd_col = mjd_col
         self.night_col = night_col
         self.reduce_func = reduce_func
-        super().__init__(
-            col=[self.mjd_col, self.night_col],
-            units=units,
-            metric_name=metric_name,
-            **kwargs
-        )
+        super().__init__(col=[self.mjd_col, self.night_col], units=units, metric_name=metric_name, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         data_slice.sort(order=self.mjd_col)
@@ -362,13 +337,8 @@ class InterNightGapsMetric(BaseMetric):
         else:
             # Find the first and last observation of each night
             first_of_night = np.searchsorted(data_slice[self.night_col], unights)
-            last_of_night = (
-                np.searchsorted(data_slice[self.night_col], unights, side="right") - 1
-            )
-            diff = (
-                data_slice[self.mjd_col][first_of_night[1:]]
-                - data_slice[self.mjd_col][last_of_night[:-1]]
-            )
+            last_of_night = np.searchsorted(data_slice[self.night_col], unights, side="right") - 1
+            diff = data_slice[self.mjd_col][first_of_night[1:]] - data_slice[self.mjd_col][last_of_night[:-1]]
             result = self.reduce_func(diff)
         return result
 
@@ -393,18 +363,13 @@ class VisitGapMetric(BaseMetric):
         night_col="night",
         reduce_func=np.median,
         metric_name="VisitGap",
-        **kwargs
+        **kwargs,
     ):
         units = "hours"
         self.mjd_col = mjd_col
         self.night_col = night_col
         self.reduce_func = reduce_func
-        super().__init__(
-            col=[self.mjd_col, self.night_col],
-            units=units,
-            metric_name=metric_name,
-            **kwargs
-        )
+        super().__init__(col=[self.mjd_col, self.night_col], units=units, metric_name=metric_name, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         data_slice.sort(order=self.mjd_col)

@@ -1,9 +1,10 @@
-from builtins import zip
-from builtins import object
 import os
 import re
+from builtins import object, zip
 from collections import OrderedDict
+
 import numpy as np
+
 import rubin_sim.maf.db as db
 import rubin_sim.maf.metric_bundles as metricBundles
 
@@ -65,9 +66,7 @@ class MafRunResults(object):
         ]
         # Add in the table fraction sorting to summary stat ordering.
         table_fractions = [
-            x
-            for x in list(np.unique(self.stats["summary_metric"]))
-            if x.startswith("TableFraction")
+            x for x in list(np.unique(self.stats["summary_metric"])) if x.startswith("TableFraction")
         ]
         if len(table_fractions) > 0:
             for x in (
@@ -337,9 +336,7 @@ class MafRunResults(object):
         if metrics is None:
             metrics = self.metrics
         metric_info_label = []
-        for metric_name, info_label in zip(
-            metrics["metric_name"], metrics["metric_info_label"]
-        ):
+        for metric_name, info_label in zip(metrics["metric_name"], metrics["metric_info_label"]):
             metricinfo = " ".join([metric_name, info_label])
             if metricinfo not in metric_info_label:
                 metric_info_label.append(metricinfo)
@@ -399,9 +396,7 @@ class MafRunResults(object):
         if with_data_link:
             metric_info["Data"] = []
             metric_info["Data"].append(metric["metric_datafile"])
-            metric_info["Data"].append(
-                os.path.join(self.out_dir, metric["metric_datafile"])
-            )
+            metric_info["Data"].append(os.path.join(self.out_dir, metric["metric_datafile"]))
         return metric_info
 
     def caption_for_metric(self, metric):
@@ -497,9 +492,7 @@ class MafRunResults(object):
         too_many_plots = False
         for f in order_list:
             pattern = "_" + f + "_"
-            matches = np.array(
-                [bool(re.search(pattern, x)) for x in sky_plots["plot_file"]]
-            )
+            matches = np.array([bool(re.search(pattern, x)) for x in sky_plots["plot_file"]])
             match_sky_plot = sky_plots[matches]
             # in pandas: match_sky_plot = sky_plots[sky_plots.plot_file.str.contains(pattern)]
             if len(match_sky_plot) == 1:
@@ -515,18 +508,14 @@ class MafRunResults(object):
             # Add on any additional non-filter plots (e.g. joint completeness)
             #  that do NOT match original _*_ pattern.
             pattern = "_[ugrizy]_"
-            nonmatches = np.array(
-                [bool(re.search(pattern, x)) for x in sky_plots["plot_file"]]
-            )
+            nonmatches = np.array([bool(re.search(pattern, x)) for x in sky_plots["plot_file"]])
             nonmatch_sky_plots = sky_plots[nonmatches == False]
             if len(nonmatch_sky_plots) > 0:
                 for sky_plot in nonmatch_sky_plots:
                     ordered_sky_plots.append(self.plot_dict(np.array([sky_plot])))
 
         elif too_many_plots:
-            metrics = self.metrics[
-                np.in1d(self.metrics["metric_id"], sky_plots["metric_id"])
-            ]
+            metrics = self.metrics[np.in1d(self.metrics["metric_id"], sky_plots["metric_id"])]
             metrics = self.sort_metrics(metrics, order=["display_order"])
             ordered_sky_plots = []
             for m in metrics:
@@ -546,13 +535,9 @@ class MafRunResults(object):
         if metrics is None:
             metrics = self.metrics
         # Match the plots to the metrics required.
-        plot_metric_match = self.plots[
-            np.in1d(self.plots["metric_id"], metrics["metric_id"])
-        ]
+        plot_metric_match = self.plots[np.in1d(self.plots["metric_id"], metrics["metric_id"])]
         # Match the plot type (which could be a list)
-        plot_match = plot_metric_match[
-            np.in1d(plot_metric_match["plot_type"], plot_type)
-        ]
+        plot_match = plot_metric_match[np.in1d(plot_metric_match["plot_type"], plot_type)]
         return plot_match
 
     # Set of methods to deal with summary stats.
@@ -607,9 +592,7 @@ class MafRunResults(object):
         in a default ordering.
         """
         names = np.unique(
-            self.stats["summary_metric"][
-                np.in1d(self.stats["metric_id"], metrics["metric_id"])
-            ]
+            self.stats["summary_metric"][np.in1d(self.stats["metric_id"], metrics["metric_id"])]
         )
         names = list(names)
         # Add some default sorting.

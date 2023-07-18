@@ -1,12 +1,8 @@
-import numpy as np
 import unittest
 
-from rubin_sim.moving_objects import (
-    chebfit,
-    make_cheb_matrix,
-    make_cheb_matrix_only_x,
-    chebeval,
-)
+import numpy as np
+
+from rubin_sim.moving_objects import chebeval, chebfit, make_cheb_matrix, make_cheb_matrix_only_x
 
 
 class TestChebgrid(unittest.TestCase):
@@ -30,8 +26,7 @@ class TestChebgrid(unittest.TestCase):
         yy_w_vel, vv = chebeval(np.linspace(-2, 1, 17), p, mask=True)
         self.assertTrue(
             np.isnan(yy_w_vel[0]),
-            msg="Expected NaN for masked/out of range value, but got %.2e"
-            % (yy_w_vel[0]),
+            msg="Expected NaN for masked/out of range value, but got %.2e" % (yy_w_vel[0]),
         )
 
     def test_ends_locked(self):

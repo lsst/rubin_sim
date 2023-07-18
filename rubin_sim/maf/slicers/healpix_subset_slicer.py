@@ -1,19 +1,15 @@
 """A HealpixSubsetSlicer - define the subset of healpixels to use to calculate metrics."""
 
-from functools import wraps
-import numpy as np
-import healpy as hp
 import warnings
-import rubin_sim.utils as simsUtils
+from functools import wraps
 
-from rubin_sim.maf.plots.spatial_plotters import (
-    HealpixSkyMap,
-    HealpixHistogram,
-    HealpixPowerSpectrum,
-)
+import healpy as hp
+import numpy as np
+
+import rubin_sim.utils as simsUtils
+from rubin_sim.maf.plots.spatial_plotters import HealpixHistogram, HealpixPowerSpectrum, HealpixSkyMap
 
 from .healpix_slicer import HealpixSlicer
-
 
 __all__ = ["HealpixSubsetSlicer"]
 
@@ -123,16 +119,10 @@ class HealpixSubsetSlicer(HealpixSlicer):
         if isinstance(other_slicer, HealpixSubsetSlicer):
             if other_slicer.nside == self.nside:
                 if np.array_equal(other_slicer.hpid, self.hpid):
-                    if (
-                        other_slicer.lon_col == self.lon_col
-                        and other_slicer.lat_col == self.lat_col
-                    ):
+                    if other_slicer.lon_col == self.lon_col and other_slicer.lat_col == self.lat_col:
                         if other_slicer.radius == self.radius:
                             if other_slicer.use_camera == self.use_camera:
-                                if (
-                                    other_slicer.rotSkyPosColName
-                                    == self.rotSkyPosColName
-                                ):
+                                if other_slicer.rotSkyPosColName == self.rotSkyPosColName:
                                     if np.all(other_slicer.shape == self.shape):
                                         result = True
         return result

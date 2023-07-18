@@ -3,13 +3,14 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import os
+import argparse
 import glob
+import os
 import shutil
+
 import rubin_sim.maf.batches as batches
 import rubin_sim.maf.db as db
 import rubin_sim.maf.metric_bundles as mb
-import argparse
 
 
 def ddf_dir():
@@ -46,6 +47,4 @@ def ddf_dir():
         )
         group.run_all(clear_memory=True, plot_now=True)
         results_db.close()
-        db.add_run_to_database(
-            name + "_ddf", "trackingDb_sqlite.db", None, name, "", "", name + ".db"
-        )
+        db.add_run_to_database(name + "_ddf", "trackingDb_sqlite.db", None, name, "", "", name + ".db")

@@ -1,11 +1,11 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.engine import url
-from sqlalchemy.orm import sessionmaker
-
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.exc import DatabaseError
 import warnings
+
+from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy.engine import url
+from sqlalchemy.exc import DatabaseError
+from sqlalchemy.orm import declarative_base, sessionmaker
+
 from . import ResultsDb, VersionRow
 
 Base = declarative_base()
@@ -76,10 +76,7 @@ class TrackingDb(object):
         dbAddress = url.URL.create(drivername=self.driver, database=self.database)
         engine = create_engine(dbAddress, echo=self.verbose)
         if self.verbose:
-            print(
-                "Created or connected to MAF tracking %s database at %s"
-                % (self.driver, self.database)
-            )
+            print("Created or connected to MAF tracking %s database at %s" % (self.driver, self.database))
         self.Session = sessionmaker(bind=engine)
         self.session = self.Session()
         # Create the tables, if they don't already exist.
@@ -87,8 +84,7 @@ class TrackingDb(object):
             Base.metadata.create_all(engine)
         except DatabaseError:
             raise DatabaseError(
-                "Cannot create a %s database at %s. Check directory exists."
-                % (self.driver, self.database)
+                "Cannot create a %s database at %s. Check directory exists." % (self.driver, self.database)
             )
 
     def close(self):
@@ -190,14 +186,11 @@ class TrackingDb(object):
         else:
             if maf_run_id is not None:
                 # Check if maf_run_id exists already.
-                existing = (
-                    self.session.query(RunRow).filter_by(maf_run_id=maf_run_id).all()
-                )
+                existing = self.session.query(RunRow).filter_by(maf_run_id=maf_run_id).all()
                 if len(existing) > 0:
                     raise ValueError(
                         "maf_run_id %d already exists in database, for %s. "
-                        "Record must be deleted first."
-                        % (maf_run_id, existing[0].maf_dir)
+                        "Record must be deleted first." % (maf_run_id, existing[0].maf_dir)
                     )
                 runinfo = RunRow(
                     maf_run_id=maf_run_id,
@@ -282,9 +275,7 @@ def add_run_to_database(
     """
     maf_dir = os.path.abspath(maf_dir)
     if not os.path.isdir(maf_dir):
-        raise ValueError(
-            "There is no directory containing MAF outputs at %s." % (maf_dir)
-        )
+        raise ValueError("There is no directory containing MAF outputs at %s." % (maf_dir))
 
     trackingDb = TrackingDb(database=tracking_db_file)
 
@@ -308,9 +299,7 @@ def add_run_to_database(
                         maf_date = v.run_date
                 resdb.close()
         except:
-            warnings.warn(
-                f"Could not pull run information from resultsDb file for {maf_dir}"
-            )
+            warnings.warn(f"Could not pull run information from resultsDb file for {maf_dir}")
 
     print("Adding to tracking database at %s:" % (tracking_db_file))
     print(" Maf_dir = %s" % (maf_dir))

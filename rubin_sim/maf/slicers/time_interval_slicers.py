@@ -5,9 +5,10 @@ Primarily intended for hourglass plots.
 
 # pylint: disable=too-many-arguments
 
+from collections import defaultdict
+
 # imports
 from functools import wraps
-from collections import defaultdict
 
 import numpy as np
 import pandas as pd
@@ -118,9 +119,7 @@ class TimeIntervalSlicer(BaseSlicer):
             return False
 
         for key in ["sid", "mjd", "duration"]:
-            if not np.array_equal(
-                other_slicer.slice_points[key], self.slice_points[key]
-            ):
+            if not np.array_equal(other_slicer.slice_points[key], self.slice_points[key]):
                 return False
 
         return True
@@ -171,9 +170,7 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
     def setup_slicer(self, sim_data, maps=None):
         visits = pd.DataFrame(
             sim_data,
-            index=pd.Index(
-                np.arange(len(sim_data[self.mjd_column_name])), name="visit_idx"
-            ),
+            index=pd.Index(np.arange(len(sim_data[self.mjd_column_name])), name="visit_idx"),
         )
         visits.rename(
             columns={
@@ -188,12 +185,8 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
         visits["end_mjd"] = visits.mjd + visits.duration / (60 * 60 * 24.0)
 
         same_note = visits.note == visits.note.shift(-1)
-        adjacent_times = visits.end_mjd + self.gap_tolerance / 24.0 > visits.mjd.shift(
-            -1
-        )
-        visits["sid"] = (
-            np.logical_not(np.logical_and(same_note, adjacent_times)).cumsum().shift()
-        )
+        adjacent_times = visits.end_mjd + self.gap_tolerance / 24.0 > visits.mjd.shift(-1)
+        visits["sid"] = np.logical_not(np.logical_and(same_note, adjacent_times)).cumsum().shift()
         visits["sid"].fillna(0, inplace=True)
         visits["sid"] = visits["sid"].astype(int)
 
@@ -206,10 +199,7 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
         self.nslice = len(blocks)
         self.shape = self.nslice
         self.sim_idxs.update(
-            visits.reset_index()[["sid", "visit_idx"]]
-            .groupby("sid")
-            .agg(list)
-            .to_dict()["visit_idx"]
+            visits.reset_index()[["sid", "visit_idx"]].groupby("sid").agg(list).to_dict()["visit_idx"]
         )
 
         self.slice_points["sid"] = blocks.reset_index().sid.values

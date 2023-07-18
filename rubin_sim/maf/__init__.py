@@ -21,15 +21,15 @@
 #
 """Python interface to the metrics analysis framework.
 """
+from .batches import *
 from .db import *
+from .maf_contrib import *
+from .maps import *
+from .metric_bundles import *
 from .metrics import *
+from .plots import *
+from .run_comparison import *
 from .slicers import *
 from .stackers import *
-from .metric_bundles import *
-from .maps import *
-from .plots import *
 from .utils import *
-from .batches import *
-from .run_comparison import *
 from .web import *
-from .maf_contrib import *

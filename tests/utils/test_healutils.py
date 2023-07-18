@@ -1,6 +1,8 @@
-import numpy as np
 import unittest
+
 import healpy as hp
+import numpy as np
+
 import rubin_sim.utils as utils
 
 

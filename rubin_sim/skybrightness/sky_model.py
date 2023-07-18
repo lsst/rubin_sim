@@ -1,30 +1,32 @@
-import numpy as np
-from rubin_sim.utils import (
-    haversine,
-    _ra_dec_from_alt_az,
-    _alt_az_pa_from_ra_dec,
-    Site,
-    ObservationMetaData,
-    _approx_alt_az2_ra_dec,
-    _approx_ra_dec2_alt_az,
-)
 import warnings
-from .utils import wrap_ra
-from .interp_components import (
-    ScatteredStar,
-    Airglow,
-    LowerAtm,
-    UpperAtm,
-    MergedSpec,
-    TwilightInterp,
-    MoonInterp,
-    ZodiacalInterp,
-)
-from rubin_sim.phot_utils import Sed
-from astropy.coordinates import SkyCoord, get_sun, get_moon, EarthLocation, AltAz
+
+import numpy as np
 from astropy import units as u
+from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_moon, get_sun
 from astropy.time import Time
 
+from rubin_sim.phot_utils import Sed
+from rubin_sim.utils import (
+    ObservationMetaData,
+    Site,
+    _alt_az_pa_from_ra_dec,
+    _approx_alt_az2_ra_dec,
+    _approx_ra_dec2_alt_az,
+    _ra_dec_from_alt_az,
+    haversine,
+)
+
+from .interp_components import (
+    Airglow,
+    LowerAtm,
+    MergedSpec,
+    MoonInterp,
+    ScatteredStar,
+    TwilightInterp,
+    UpperAtm,
+    ZodiacalInterp,
+)
+from .utils import wrap_ra
 
 __all__ = ["just_return", "SkyModel"]
 
@@ -160,9 +162,7 @@ class SkyModel(object):
         merged_comps = [self.lower_atm, self.upper_atm, self.scattered_star]
         for comp in merged_comps:
             if comp & self.merged_spec:
-                warnings.warn(
-                    "Adding component multiple times to the final output spectra."
-                )
+                warnings.warn("Adding component multiple times to the final output spectra.")
 
         interpolators = {
             "scattered_star": ScatteredStar,
@@ -302,9 +302,7 @@ class SkyModel(object):
         self.params_set = True
 
         # Interpolate the templates to the set Parameters
-        self.good_pix = np.where(
-            (self.airmass <= self.airmass_limit) & (self.airmass >= 1.0)
-        )[0]
+        self.good_pix = np.where((self.airmass <= self.airmass_limit) & (self.airmass >= 1.0))[0]
 
         if self.good_pix.size <= 0:
             raise ValueError(
@@ -370,9 +368,7 @@ class SkyModel(object):
         self.params_set = True
 
         # Interpolate the templates to the set Parameters
-        self.good_pix = np.where(
-            (self.airmass <= self.airmass_limit) & (self.airmass >= 1.0)
-        )[0]
+        self.good_pix = np.where((self.airmass <= self.airmass_limit) & (self.airmass >= 1.0))[0]
         if self.good_pix.size <= 0:
             raise ValueError(
                 "No valid points. Airmass limit=%.1f, min airmass of requested points=%.1f"
@@ -520,9 +516,7 @@ class SkyModel(object):
 
             # Calc azimuth relative to moon
             self.az_rel_moon = calc_az_rel_moon(self.azs, self.moon_az)
-            self.moon_targ_sep = haversine(
-                self.azs, self.alts, self.moon_az, self.moon_alt
-            )
+            self.moon_targ_sep = haversine(self.azs, self.alts, self.moon_az, self.moon_alt)
             # Oof, looks like some things were stored as degrees.
             self.points["moonAltitude"] += np.degrees(self.moon_alt)
             self.points["azRelMoon"] += self.az_rel_moon
@@ -545,12 +539,8 @@ class SkyModel(object):
             self.points["altEclip"] += self.eclip_lat
             self.points["azEclipRelSun"] += wrap_ra(self.eclip_lon - self.sun_eclip_lon)
 
-        self.mask = np.where(
-            (self.airmass > self.airmass_limit) | (self.airmass < 1.0)
-        )[0]
-        self.good_pix = np.where(
-            (self.airmass <= self.airmass_limit) & (self.airmass >= 1.0)
-        )[0]
+        self.mask = np.where((self.airmass > self.airmass_limit) | (self.airmass < 1.0))[0]
+        self.good_pix = np.where((self.airmass <= self.airmass_limit) & (self.airmass >= 1.0))[0]
 
     def set_params(
         self,
@@ -630,12 +620,8 @@ class SkyModel(object):
 
         self.params_set = True
 
-        self.mask = np.where(
-            (self.airmass > self.airmass_limit) | (self.airmass < 1.0)
-        )[0]
-        self.good_pix = np.where(
-            (self.airmass <= self.airmass_limit) & (self.airmass >= 1.0)
-        )[0]
+        self.mask = np.where((self.airmass > self.airmass_limit) | (self.airmass < 1.0))[0]
+        self.good_pix = np.where((self.airmass <= self.airmass_limit) & (self.airmass >= 1.0))[0]
         # Interpolate the templates to the set Parameters
         if self.good_pix.size > 0:
             self._interp_sky()
@@ -675,9 +661,7 @@ class SkyModel(object):
         mask = np.ones(self.npts)
         for key in self.components:
             if self.components[key]:
-                result = self.interp_objs[key](
-                    self.points[self.good_pix], filter_names=self.filter_names
-                )
+                result = self.interp_objs[key](self.points[self.good_pix], filter_names=self.filter_names)
                 # Make sure the component has something
                 if np.size(result["spec"]) == 0:
                     self.spec[self.mask, :] = np.nan
@@ -705,9 +689,7 @@ class SkyModel(object):
                 "No coordinates set. Use set_ra_dec_mjd, setRaDecAltAzMjd, or setParams methods before calling returnWaveSpec."
             )
         if self.mags:
-            raise ValueError(
-                "SkyModel set to interpolate magnitudes. Initialize object with mags=False"
-            )
+            raise ValueError("SkyModel set to interpolate magnitudes. Initialize object with mags=False")
         # Mask out high airmass points
         # self.spec[self.mask] *= 0
         return self.wave.copy(), self.spec.copy()

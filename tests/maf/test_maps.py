@@ -1,12 +1,14 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import numpy as np
+import os
 import unittest
 import warnings
-import os
-import rubin_sim.maf.slicers as slicers
+
+import numpy as np
+
 import rubin_sim.maf.maps as maps
+import rubin_sim.maf.slicers as slicers
 from rubin_sim.data import get_data_dir
 
 
@@ -53,9 +55,7 @@ class TestMaps(unittest.TestCase):
             data = make_data_values(random=981)
             dustmap = maps.DustMap(nside=nside, map_path=map_path)
 
-            slicer1 = slicers.HealpixSlicer(
-                lat_lon_deg=False, nside=nside, use_camera=False
-            )
+            slicer1 = slicers.HealpixSlicer(lat_lon_deg=False, nside=nside, use_camera=False)
             slicer1.setup_slicer(data)
             result1 = dustmap.run(slicer1.slice_points)
             assert "ebv" in list(result1.keys())
@@ -84,16 +84,12 @@ class TestMaps(unittest.TestCase):
 
     def test_dust_map3_d(self):
         nside = 8
-        map_file = os.path.join(
-            get_data_dir(), "tests", f"test_ebv3d_nside{nside}.fits"
-        )
+        map_file = os.path.join(get_data_dir(), "tests", f"test_ebv3d_nside{nside}.fits")
         if os.path.isfile(map_file):
             data = make_data_values(random=981)
             dustmap = maps.DustMap3D(nside=nside, map_file=map_file, interp=False)
 
-            slicer1 = slicers.HealpixSlicer(
-                lat_lon_deg=False, nside=nside, use_camera=False
-            )
+            slicer1 = slicers.HealpixSlicer(lat_lon_deg=False, nside=nside, use_camera=False)
             slicer1.setup_slicer(data)
             result1 = dustmap.run(slicer1.slice_points)
             assert "ebv3d_ebvs" in list(result1.keys())
@@ -109,9 +105,7 @@ class TestMaps(unittest.TestCase):
             assert "ebv3d_dists" in list(result2.keys())
 
             # Check interpolation works
-            dustmap = maps.DustMap3D(
-                interp=True, nside=nside, map_file=map_file, dist_pc=2000, d_mag=10
-            )
+            dustmap = maps.DustMap3D(interp=True, nside=nside, map_file=map_file, dist_pc=2000, d_mag=10)
             result3 = dustmap.run(slicer2.slice_points)
             assert "ebv3d_ebvs" in list(result3.keys())
             assert "ebv3d_dists" in list(result3.keys())
@@ -119,13 +113,9 @@ class TestMaps(unittest.TestCase):
             assert "ebv3d_dist_at_10.0" in list(result3.keys())
 
             # Check that we can call the distance at magnitude method
-            dists = dustmap.distance_at_dmag(
-                5, result3["ebv3d_dists"], result3["ebv3d_ebvs"], "r"
-            )
+            dists = dustmap.distance_at_dmag(5, result3["ebv3d_dists"], result3["ebv3d_ebvs"], "r")
             # And call it without running the map (and thus reading more info) first
-            dists = maps.DustMap3D().distance_at_dmag(
-                5, result3["ebv3d_dists"], result3["ebv3d_ebvs"], "r"
-            )
+            dists = maps.DustMap3D().distance_at_dmag(5, result3["ebv3d_dists"], result3["ebv3d_ebvs"], "r")
             # And call it as a static method at one point on the sky
             dists = maps.DustMap3D().distance_at_dmag(
                 5, result3["ebv3d_dists"][0, :], result3["ebv3d_ebvs"][0, :], "r"
@@ -149,9 +139,7 @@ class TestMaps(unittest.TestCase):
             nsides = [32, 64, 128]
             for nside in nsides:
                 starmap = maps.StellarDensityMap(map_dir=map_path)
-                slicer1 = slicers.HealpixSlicer(
-                    nside=nside, lat_lon_deg=False, use_camera=False
-                )
+                slicer1 = slicers.HealpixSlicer(nside=nside, lat_lon_deg=False, use_camera=False)
                 slicer1.setup_slicer(data)
                 result1 = starmap.run(slicer1.slice_points)
                 assert "starMapBins_r" in list(result1.keys())
@@ -179,14 +167,10 @@ class TestMaps(unittest.TestCase):
         map_path = os.path.join(get_data_dir(), "maps")
         nside = 64
         data = make_data_values(random=981)
-        galplane_map = maps.GalacticPlanePriorityMap(
-            nside=nside, map_path=map_path, interp=False
-        )
+        galplane_map = maps.GalacticPlanePriorityMap(nside=nside, map_path=map_path, interp=False)
 
         # Set up basic case - healpix
-        slicer1 = slicers.HealpixSlicer(
-            lat_lon_deg=False, nside=nside, use_camera=False
-        )
+        slicer1 = slicers.HealpixSlicer(lat_lon_deg=False, nside=nside, use_camera=False)
         slicer1.setup_slicer(data)
         result1 = galplane_map.run(slicer1.slice_points)
         key = maps.gp_priority_map_components_to_keys("sum", "combined_map")
@@ -194,16 +178,12 @@ class TestMaps(unittest.TestCase):
 
         # Set up more advanced case - random ra/dec
         field_data = make_field_data(2234)
-        slicer2 = slicers.UserPointsSlicer(
-            field_data["fieldRA"], field_data["fieldDec"], lat_lon_deg=False
-        )
+        slicer2 = slicers.UserPointsSlicer(field_data["fieldRA"], field_data["fieldDec"], lat_lon_deg=False)
         result2 = galplane_map.run(slicer2.slice_points)
         assert key in list(result2.keys())
 
         # Check interpolation works
-        galplane_map = maps.GalacticPlanePriorityMap(
-            interp=True, nside=nside, map_path=map_path
-        )
+        galplane_map = maps.GalacticPlanePriorityMap(interp=True, nside=nside, map_path=map_path)
         result3 = galplane_map.run(slicer2.slice_points)
         assert key in list(result3.keys())
 

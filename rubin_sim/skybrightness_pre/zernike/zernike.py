@@ -8,21 +8,23 @@ applications. Standards for reporting the optical aberrations of
 eyes. J Refract Surg 18, S652-660 (2002).
 """
 
-# imports
-from math import factorial
 import logging
 import os
 import warnings
-from glob import glob
 from functools import lru_cache
-import numpy as np
-import pandas as pd
-from numexpr import NumExpr
-from sklearn.linear_model import LinearRegression
-import scipy.optimize
-from scipy.interpolate import interp1d
-import palpy
+from glob import glob
+
+# imports
+from math import factorial
+
 import healpy
+import numpy as np
+import palpy
+import pandas as pd
+import scipy.optimize
+from numexpr import NumExpr
+from scipy.interpolate import interp1d
+from sklearn.linear_model import LinearRegression
 
 import rubin_sim.utils as utils
 from rubin_sim.data import get_data_dir
@@ -76,9 +78,7 @@ def fit_pre(npy_fname, npz_fname, *args, **kwargs):
         LOGGER.info("Starting %s band", band)
         zernike_coeff_arrays = []
         for mjd_idx, mjd in enumerate(mjds):
-            zernike_coeff_arrays.append(
-                zernike_sky.fit_coeffs(alt, az, pre_sky[band][mjd_idx], mjd)
-            )
+            zernike_coeff_arrays.append(zernike_sky.fit_coeffs(alt, az, pre_sky[band][mjd_idx], mjd))
             if mjd_idx % 1000 == 0:
                 msg = f"Finished {mjd_idx*100.0/float(len(mjds)):.2f}%"
                 LOGGER.debug(msg)
@@ -129,9 +129,7 @@ def bulk_zernike_fit(data_dir, out_fname, *args, **kwargs):
         zernike_coeffs.to_hdf(out_fname, "zernike_coeffs", complevel=6)
 
         zernike_sky = ZernikeSky(*args, **kwargs)
-        zernike_metadata = pd.Series(
-            {"order": zernike_sky.order, "max_zd": zernike_sky.max_zd}
-        )
+        zernike_metadata = pd.Series({"order": zernike_sky.order, "max_zd": zernike_sky.max_zd})
         zernike_metadata.to_hdf(out_fname, "zernike_metadata")
 
     return zernike_coeffs
@@ -217,9 +215,7 @@ class ZernikeSky:
         assert self.max_zd == zernike_metadata["max_zd"]
         all_zernike_coeffs = pd.read_hdf(fname, "zernike_coeffs")
         self._coeffs = all_zernike_coeffs.loc[band]
-        self._coeff_calc_func = interp1d(
-            self._coeffs.index.values, self._coeffs.values, axis=0
-        )
+        self._coeff_calc_func = interp1d(self._coeffs.index.values, self._coeffs.values, axis=0)
 
     def compute_sky(self, alt, az, mjd=None):
         """Estimate sky values
@@ -321,9 +317,7 @@ class ZernikeSky:
             mjd, 3, TELESCOPE.longitude_rad, TELESCOPE.latitude_rad
         )
         moon_ha_rad = lst_rad - moon_ra_rad
-        moon_az_rad, moon_el_rad = palpy.de2h(
-            moon_ha_rad, moon_decl_rad, TELESCOPE.latitude_rad
-        )
+        moon_az_rad, moon_el_rad = palpy.de2h(moon_ha_rad, moon_decl_rad, TELESCOPE.latitude_rad)
         moon_sep_rad = palpy.dsepVector(
             np.full_like(az_rad, moon_az_rad),
             np.full_like(alt_rad, moon_el_rad),
@@ -387,9 +381,7 @@ class ZernikeSky:
         for st_idx, gmst_rad in enumerate(SIDEREAL_TIME_SAMPLES_RAD):
             lst_rad = gmst_rad + TELESCOPE.longitude_rad
             ha_rad = lst_rad - np.radians(ra)
-            az_rad, alt_rad = palpy.de2hVector(
-                ha_rad, np.radians(decl), TELESCOPE.latitude_rad
-            )
+            az_rad, alt_rad = palpy.de2hVector(ha_rad, np.radians(decl), TELESCOPE.latitude_rad)
             sphere_az, sphere_alt = np.degrees(az_rad), np.degrees(alt_rad)
 
             # We only need the half sphere above the horizen
@@ -492,9 +484,7 @@ class ZernikeSky:
         for k in range(num_terms):
             # From eqn 2 of Thibos et al. (2002)
             coeff = (((-1) ** k) * factorial(n - k)) / (
-                factorial(k)
-                * factorial(int((n + m) / 2 - k))
-                * factorial(int((n - m) / 2 - k))
+                factorial(k) * factorial(int((n + m) / 2 - k)) * factorial(int((n - m) / 2 - k))
             )
             assert coeff == int(coeff)
             coeff = int(coeff)
@@ -652,11 +642,7 @@ class SkyBrightnessPreData:
         self.metadata = npz_hdr
 
         self.times = pd.DataFrame(
-            {
-                k: npz_data[k]
-                for k in npz_data.keys()
-                if npz_data[k].shape == npz_data["mjds"].shape
-            }
+            {k: npz_data[k] for k in npz_data.keys() if npz_data[k].shape == npz_data["mjds"].shape}
         )
 
         read_mjds = len(self.times)
@@ -676,9 +662,7 @@ class SkyBrightnessPreData:
             moon_ra_rad = npz_data["moonRAs"][mjd_idx]
             moon_decl_rad = npz_data["moonDecs"][mjd_idx]
             moon_ha_rad = lst_rad - moon_ra_rad
-            moon_az_rad, moon_el_rad = palpy.de2h(
-                moon_ha_rad, moon_decl_rad, TELESCOPE.latitude_rad
-            )
+            moon_az_rad, moon_el_rad = palpy.de2h(moon_ha_rad, moon_decl_rad, TELESCOPE.latitude_rad)
             moon_sep = palpy.dsepVector(
                 np.full_like(az_rad, moon_az_rad),
                 np.full_like(alt_rad, moon_el_rad),
@@ -878,9 +862,7 @@ def cut_pre_dataset(
 
 @lru_cache()
 def _calc_moon_az_rad(mjd):
-    ra_rad, decl_rad, diam = palpy.rdplan(
-        mjd, 3, TELESCOPE.longitude_rad, TELESCOPE.latitude_rad
-    )
+    ra_rad, decl_rad, diam = palpy.rdplan(mjd, 3, TELESCOPE.longitude_rad, TELESCOPE.latitude_rad)
     ha_rad = palpy.gmst(mjd) + TELESCOPE.longitude_rad - ra_rad
     az_rad, el_rad = palpy.de2h(ha_rad, decl_rad, TELESCOPE.latitude_rad)
     return az_rad
@@ -888,9 +870,7 @@ def _calc_moon_az_rad(mjd):
 
 @lru_cache()
 def _calc_sun_el(mjd):
-    ra_rad, decl_rad, diam = palpy.rdplan(
-        mjd, 0, TELESCOPE.longitude_rad, TELESCOPE.latitude_rad
-    )
+    ra_rad, decl_rad, diam = palpy.rdplan(mjd, 0, TELESCOPE.longitude_rad, TELESCOPE.latitude_rad)
     ha_rad = palpy.gmst(mjd) + TELESCOPE.longitude_rad - ra_rad
     az_rad, el_rad = palpy.de2h(ha_rad, decl_rad, TELESCOPE.latitude_rad)
     el = np.degrees(el_rad)

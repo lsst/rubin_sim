@@ -28,30 +28,32 @@
 #
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
+import os
+
+import healpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-import healpy as hp
 
 try:
-    from sympy.solvers import solve
     from sympy import Symbol
+    from sympy.solvers import solve
 except ImportError:
     pass
 import copy
-import time
-from matplotlib.ticker import FuncFormatter
 import datetime
+import time
+
+from matplotlib.ticker import FuncFormatter
 
 import rubin_sim.maf
 import rubin_sim.maf.db as db
+import rubin_sim.maf.maps as maps
+import rubin_sim.maf.metric_bundles as metricBundles
 import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.plots as plots
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as mafStackers  # stackers in sims_maf
-import rubin_sim.maf.plots as plots
-import rubin_sim.maf.metric_bundles as metricBundles
-import rubin_sim.maf.maps as maps
-
+from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import plot_color, power_law_const_a
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.galaxy_counts_metric_extended import (
     GalaxyCountsMetricExtended as GalaxyCountsMetric,
 )
@@ -62,14 +64,7 @@ from rubin_sim.maf.maf_contrib.lss_obs_strategy.masking_algorithm_generalized im
     masking_algorithm_generalized,
 )
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.num_obs_metric import NumObsMetric
-from rubin_sim.maf.maf_contrib.lss_obs_strategy.save_bundle_data_npz_format import (
-    save_bundle_data_npz_format,
-)
-
-from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import (
-    power_law_const_a,
-    plot_color,
-)
+from rubin_sim.maf.maf_contrib.lss_obs_strategy.save_bundle_data_npz_format import save_bundle_data_npz_format
 
 __all__ = ["artificial_structure_calculation"]
 
@@ -239,10 +234,7 @@ def artificial_structure_calculation(
     # check to make sure redshift bin is ok.
     allowed_redshift_bins = list(power_law_const_a.keys()) + ["all"]
     if redshift_bin not in allowed_redshift_bins:
-        print(
-            "ERROR: Invalid redshift bin. Input bin can only be among %s.\n"
-            % (allowed_redshift_bins)
-        )
+        print("ERROR: Invalid redshift bin. Input bin can only be among %s.\n" % (allowed_redshift_bins))
         return
     zbin_tag = redshift_bin
     if redshift_bin == "all":
@@ -316,9 +308,7 @@ def artificial_structure_calculation(
 
     # figure out the readme name
     readme_name = "ReadMe"
-    readmes = [
-        f for f in os.listdir("%s%s" % (path, out_dir)) if any([f.endswith(".txt")])
-    ]
+    readmes = [f for f in os.listdir("%s%s" % (path, out_dir)) if any([f.endswith(".txt")])]
     num_file = 0
     for f in readmes:
         if f.__contains__("%s_" % readme_name):
@@ -342,9 +332,7 @@ def artificial_structure_calculation(
 
     if best_dith_only:
         stacker_list["RandomDitherFieldPerVisit"] = [
-            mafStackers.RandomDitherFieldPerVisitStacker(
-                degrees=ra_dec_in_deg, random_seed=1000
-            )
+            mafStackers.RandomDitherFieldPerVisitStacker(degrees=ra_dec_in_deg, random_seed=1000)
         ]
         slicer["RandomDitherFieldPerVisit"] = slicers.HealpixSlicer(
             lon_col="randomDitherFieldPerVisitRa",
@@ -364,19 +352,13 @@ def artificial_structure_calculation(
         if not no_dith_only:
             # random dithers on different timescales
             stacker_list["RandomDitherPerNight"] = [
-                mafStackers.RandomDitherPerNightStacker(
-                    degrees=ra_dec_in_deg, random_seed=1000
-                )
+                mafStackers.RandomDitherPerNightStacker(degrees=ra_dec_in_deg, random_seed=1000)
             ]
             stacker_list["RandomDitherFieldPerNight"] = [
-                mafStackers.RandomDitherFieldPerNightStacker(
-                    degrees=ra_dec_in_deg, random_seed=1000
-                )
+                mafStackers.RandomDitherFieldPerNightStacker(degrees=ra_dec_in_deg, random_seed=1000)
             ]
             stacker_list["RandomDitherFieldPerVisit"] = [
-                mafStackers.RandomDitherFieldPerVisitStacker(
-                    degrees=ra_dec_in_deg, random_seed=1000
-                )
+                mafStackers.RandomDitherFieldPerVisitStacker(degrees=ra_dec_in_deg, random_seed=1000)
             ]
 
             # rep random dithers on different timescales
@@ -581,10 +563,7 @@ def artificial_structure_calculation(
     readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
     readme.write(update)
     readme.close()
-    print(
-        "\n## Time since the start of the calculation: %.2f hrs"
-        % ((time.time() - start_time) / 3600.0)
-    )
+    print("\n## Time since the start of the calculation: %.2f hrs" % ((time.time() - start_time) / 3600.0))
 
     # ------------------------------------------------------------------------
     # mask the edges: the data in the masked pixels is not changed
@@ -638,10 +617,7 @@ def artificial_structure_calculation(
         readme = open("%s%s/%s" % (path, out_dir, readme_name), "a")
         readme.write(update)
         readme.close()
-    print(
-        "\n## Time since the start of the calculation: %.2f hrs"
-        % ((time.time() - start_time) / 3600.0)
-    )
+    print("\n## Time since the start of the calculation: %.2f hrs" % ((time.time() - start_time) / 3600.0))
 
     ################################################################################################################
     # If include 0pt errors
@@ -761,9 +737,7 @@ def artificial_structure_calculation(
         # ------------------------------------------------------------------------
         # mask the border pixels
         for dither in slicer:
-            avg_seeing_bundle[dither].metricValues.mask[
-                border_pixels_masked[dither]
-            ] = True
+            avg_seeing_bundle[dither].metricValues.mask[border_pixels_masked[dither]] = True
             n_obs_bundle[dither].metricValues.mask[border_pixels_masked[dither]] = True
             coadd_bundle[dither].metricValues.mask[border_pixels_masked[dither]] = True
 
@@ -820,9 +794,7 @@ def artificial_structure_calculation(
         for dither in avg_seeing_bundle:
             z_i = avg_seeing_bundle[dither].metricValues.data[:] - avg_seeing_across_map
             n_obs_i = n_obs_bundle[dither].metricValues.data[:]
-            ind = np.where(
-                (n_obs_bundle[dither].metricValues.mask == False) & (n_obs_i != 0.0)
-            )[
+            ind = np.where((n_obs_bundle[dither].metricValues.mask == False) & (n_obs_i != 0.0))[
                 0
             ]  # make sure the uncertainty is valid; no division by 0
             temp = np.var(z_i[ind] / np.sqrt(n_obs_i[ind]))  # see equation 1
@@ -844,9 +816,7 @@ def artificial_structure_calculation(
                 ind = np.where(zero_pt_error[dither] != -500)[0]
                 good_error = zero_pt_error[dither][ind]
                 update += "var(0pt): %s" % np.var(good_error)
-                update += "\n0.01^2 - var(0pt) = %s" % (
-                    (0.01) ** 2 - np.var(good_error)
-                )
+                update += "\n0.01^2 - var(0pt) = %s" % ((0.01) ** 2 - np.var(good_error))
                 update += "\nk-value: %s\n" % k_value[dither]
                 print(update)
                 # add to the readme
@@ -887,8 +857,7 @@ def artificial_structure_calculation(
                 plt.ylabel("Counts")
 
                 plt.title(
-                    "0pt error histogram; bin_size = %s; upper_mag_limit = %s"
-                    % (bin_size, upper_mag_limit)
+                    "0pt error histogram; bin_size = %s; upper_mag_limit = %s" % (bin_size, upper_mag_limit)
                 )
                 if save0pt_plots:
                     filename = "0ptHistogram_%s_%s.png" % (filter_band, dither)
@@ -932,12 +901,8 @@ def artificial_structure_calculation(
                 ax = plt.gca()
                 im = ax.get_images()[0]
                 fig = plt.gcf()
-                cbaxes = fig.add_axes(
-                    [0.1, 0.03, 0.8, 0.04]
-                )  # [left, bottom, width, height]
-                cb = plt.colorbar(
-                    im, orientation="horizontal", ticks=ticks, format="%.3f", cax=cbaxes
-                )
+                cbaxes = fig.add_axes([0.1, 0.03, 0.8, 0.04])  # [left, bottom, width, height]
+                cb = plt.colorbar(im, orientation="horizontal", ticks=ticks, format="%.3f", cax=cbaxes)
                 cb.set_label("Photometric Calibration Error")
 
                 if save0pt_plots:
@@ -955,9 +920,7 @@ def artificial_structure_calculation(
 
                 # plot power spectrum
                 plt.clf()
-                spec = hp.anafast(
-                    temp.metricValues.filled(temp.slicer.badval), lmax=500
-                )
+                spec = hp.anafast(temp.metricValues.filled(temp.slicer.badval), lmax=500)
                 ell = np.arange(np.size(spec))
                 condition = ell > 1
                 plt.plot(ell, (spec * ell * (ell + 1)) / 2.0 / np.pi)
@@ -981,15 +944,12 @@ def artificial_structure_calculation(
                     plt.close()
 
         print(
-            "\n## Time since the start of the calculation: %.2f hrs"
-            % ((time.time() - start_time) / 3600.0)
+            "\n## Time since the start of the calculation: %.2f hrs" % ((time.time() - start_time) / 3600.0)
         )
 
         # ------------------------------------------------------------------------
         # Now recalculate the num_gal with the fluctuations in depth due to calibation uncertainties.
-        print(
-            "\n# Recalculating num_gal including 0pt errors on the upper mag limit .. "
-        )
+        print("\n# Recalculating num_gal including 0pt errors on the upper mag limit .. ")
         for dither in my_bundles:
             zero_pt_err = zero_pt_error[dither].copy()
             in_survey = np.where(my_bundles[dither].metricValues.mask == False)[
@@ -1037,10 +997,7 @@ def artificial_structure_calculation(
         readme.write(update)
         readme.close()
 
-    print(
-        "\n## Time since the start of the calculation: %.2f hrs"
-        % ((time.time() - start_time) / 3600.0)
-    )
+    print("\n## Time since the start of the calculation: %.2f hrs" % ((time.time() - start_time) / 3600.0))
 
     #########################################################################################################
     # add poisson noise?
@@ -1055,9 +1012,7 @@ def artificial_structure_calculation(
             j = np.where(my_bundles[dither].metricValues.data[in_survey] < 1.0)[0]
             my_bundles[dither].metricValues.data[in_survey][j] = 0.0
 
-            noisy_num_gal = np.random.poisson(
-                lam=my_bundles[dither].metricValues.data, size=None
-            )
+            noisy_num_gal = np.random.poisson(lam=my_bundles[dither].metricValues.data, size=None)
             my_bundles[dither].metricValues.data[:] = noisy_num_gal
         # ------------------------------------------------------------------------
 
@@ -1090,10 +1045,7 @@ def artificial_structure_calculation(
         readme.write(update)
         readme.close()
 
-    print(
-        "\n## Time since the start of the calculation: %.2f hrs"
-        % ((time.time() - start_time) / 3600.0)
-    )
+    print("\n## Time since the start of the calculation: %.2f hrs" % ((time.time() - start_time) / 3600.0))
     #########################################################################################################
     plot_handler = plots.PlotHandler(
         out_dir="%s%s" % (path, out_dir),

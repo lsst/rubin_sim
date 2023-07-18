@@ -1,9 +1,11 @@
 import os
+
+import healpy as hp
 import numpy as np
 from scipy import interpolate
-import healpy as hp
 
 from rubin_sim.data import get_data_dir
+
 from .base_metric import BaseMetric
 from .exgal_m5 import ExgalM5
 
@@ -34,7 +36,7 @@ class QSONumberCountsMetric(BaseMetric):
         sed_model="Richards06",
         zmin=0.3,
         zmax=None,
-        **kwargs
+        **kwargs,
     ):
         # Declare the effective wavelengths.
         self.effwavelen = {
@@ -89,16 +91,14 @@ class QSONumberCountsMetric(BaseMetric):
         c_mz_data = np.cumsum(c_mz_data, axis=1)
 
         # Create a 2D interpolation object for the long table.
-        self.nqso_cumulative = interpolate.interp2d(
-            zs[:-1], mags[:-1], c_mz_data[:-1, :-1], kind="cubic"
-        )
+        self.nqso_cumulative = interpolate.interp2d(zs[:-1], mags[:-1], c_mz_data[:-1, :-1], kind="cubic")
 
         super().__init__(
             col=[m5_col, filter_col, "saturation_mag"],
             metric_name=metric_name,
             maps=self.exgal_m5.maps,
             units=units,
-            **kwargs
+            **kwargs,
         )
 
     def run(self, data_slice, slice_point=None):

@@ -1,17 +1,16 @@
 """Evaluate the open shutter fraction.
 """
+import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metric_bundles as mb
+
 from .col_map_dict import col_map_dict
 from .common import standard_summary
 
 __all__ = ["openshutterFractions"]
 
 
-def openshutterFractions(
-    colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None
-):
+def openshutterFractions(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
     """Evaluate open shutter fraction over whole survey and per night.
 
     Parameters
@@ -48,29 +47,19 @@ def openshutterFractions(
         visit_time_col=colmap["visittime"],
     )
     slicer = slicers.UniSlicer()
-    bundle = mb.MetricBundle(
-        metric, slicer, extraSql, info_label=subgroup, display_dict=displayDict
-    )
+    bundle = mb.MetricBundle(metric, slicer, extraSql, info_label=subgroup, display_dict=displayDict)
     bundleList.append(bundle)
     # Count the number of nights on-sky in the survey.
-    displayDict["caption"] = (
-        "Number of nights on the sky during the survey, %s." % subgroup.lower()
-    )
+    displayDict["caption"] = "Number of nights on the sky during the survey, %s." % subgroup.lower()
     metric = metrics.CountUniqueMetric(colmap["night"])
     slicer = slicers.UniSlicer()
-    bundle = mb.MetricBundle(
-        metric, slicer, extraSql, info_label=subgroup, display_dict=displayDict
-    )
+    bundle = mb.MetricBundle(metric, slicer, extraSql, info_label=subgroup, display_dict=displayDict)
     bundleList.append(bundle)
     # Count the number of nights total in the survey (start to finish of observations).
-    displayDict["caption"] = (
-        "Number of nights from start to finish of survey, %s." % subgroup.lower()
-    )
+    displayDict["caption"] = "Number of nights from start to finish of survey, %s." % subgroup.lower()
     metric = metrics.FullRangeMetric(colmap["night"])
     slicer = slicers.UniSlicer()
-    bundle = mb.MetricBundle(
-        metric, slicer, extraSql, info_label=subgroup, display_dict=displayDict
-    )
+    bundle = mb.MetricBundle(metric, slicer, extraSql, info_label=subgroup, display_dict=displayDict)
     bundleList.append(bundle)
 
     # Open shutter fraction per night.

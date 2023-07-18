@@ -1,8 +1,10 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import numpy as np
 import unittest
+
+import numpy as np
+
 import rubin_sim.maf.metrics as metrics
 
 
@@ -35,9 +37,7 @@ class TestSimpleMetrics(unittest.TestCase):
 
     def test_abs_median_metric(self):
         testmetric = metrics.AbsMedianMetric("testdata")
-        self.assertEqual(
-            testmetric.run(self.dv), np.abs(np.median(self.dv["testdata"]))
-        )
+        self.assertEqual(testmetric.run(self.dv), np.abs(np.median(self.dv["testdata"])))
 
     def test_full_range_metric(self):
         """Test full range metric."""
@@ -68,9 +68,7 @@ class TestSimpleMetrics(unittest.TestCase):
     def test_count_unique_metric(self):
         """Test CountUniqueMetric"""
         testmetric = metrics.CountUniqueMetric("testdata")
-        self.assertEqual(
-            testmetric.run(self.dv), np.size(np.unique(self.dv["testdata"]))
-        )
+        self.assertEqual(testmetric.run(self.dv), np.size(np.unique(self.dv["testdata"])))
         d2 = self.dv.copy()
         d2["testdata"][1] = d2["testdata"][0]
         self.assertEqual(testmetric.run(d2), np.size(np.unique(d2)))
@@ -103,10 +101,7 @@ class TestSimpleMetrics(unittest.TestCase):
     def test_robust_rms_metric(self):
         """Test Robust RMS metric."""
         testmetric = metrics.RobustRmsMetric("testdata")
-        rms_approx = (
-            np.percentile(self.dv["testdata"], 75)
-            - np.percentile(self.dv["testdata"], 25)
-        ) / 1.349
+        rms_approx = (np.percentile(self.dv["testdata"], 75) - np.percentile(self.dv["testdata"], 25)) / 1.349
         self.assertEqual(testmetric.run(self.dv), rms_approx)
 
     def test_frac_above_metric(self):
@@ -114,15 +109,12 @@ class TestSimpleMetrics(unittest.TestCase):
         testmetric = metrics.FracAboveMetric("testdata", cutoff=cutoff)
         self.assertEqual(
             testmetric.run(self.dv),
-            np.size(np.where(self.dv["testdata"] >= cutoff)[0])
-            / float(np.size(self.dv)),
+            np.size(np.where(self.dv["testdata"] >= cutoff)[0]) / float(np.size(self.dv)),
         )
         testmetric = metrics.FracAboveMetric("testdata", cutoff=cutoff, scale=2)
         self.assertEqual(
             testmetric.run(self.dv),
-            2.0
-            * np.size(np.where(self.dv["testdata"] >= cutoff)[0])
-            / float(np.size(self.dv)),
+            2.0 * np.size(np.where(self.dv["testdata"] >= cutoff)[0]) / float(np.size(self.dv)),
         )
 
     def test_frac_below_metric(self):
@@ -130,29 +122,22 @@ class TestSimpleMetrics(unittest.TestCase):
         testmetric = metrics.FracBelowMetric("testdata", cutoff=cutoff)
         self.assertEqual(
             testmetric.run(self.dv),
-            np.size(np.where(self.dv["testdata"] <= cutoff)[0])
-            / float(np.size(self.dv)),
+            np.size(np.where(self.dv["testdata"] <= cutoff)[0]) / float(np.size(self.dv)),
         )
         testmetric = metrics.FracBelowMetric("testdata", cutoff=cutoff, scale=2)
         self.assertEqual(
             testmetric.run(self.dv),
-            2.0
-            * np.size(np.where(self.dv["testdata"] <= cutoff)[0])
-            / float(np.size(self.dv)),
+            2.0 * np.size(np.where(self.dv["testdata"] <= cutoff)[0]) / float(np.size(self.dv)),
         )
 
     def test_noutliers_nsigma(self):
         data = self.dv
         testmetric = metrics.NoutliersNsigmaMetric("testdata", n_sigma=1.0)
         med = np.mean(data["testdata"])
-        should_be = np.size(
-            np.where(data["testdata"] > med + data["testdata"].std())[0]
-        )
+        should_be = np.size(np.where(data["testdata"] > med + data["testdata"].std())[0])
         self.assertEqual(should_be, testmetric.run(data))
         testmetric = metrics.NoutliersNsigmaMetric("testdata", n_sigma=-1.0)
-        should_be = np.size(
-            np.where(data["testdata"] < med - data["testdata"].std())[0]
-        )
+        should_be = np.size(np.where(data["testdata"] < med - data["testdata"].std())[0])
         self.assertEqual(should_be, testmetric.run(data))
 
     def test_mean_angle_metric(self):

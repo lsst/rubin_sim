@@ -5,12 +5,12 @@
 
 # imports
 import warnings
-import numpy as np
 
-from astropy.utils import iers
-from astropy import units as u
 import astropy.coordinates
 import astropy.time
+import numpy as np
+from astropy import units as u
+from astropy.utils import iers
 
 # constants
 
@@ -93,18 +93,14 @@ def riseset_times(  # pylint: disable=too-many-locals
     event_hour_angles = astropy.coordinates.Angle(
         event_hour_angles, unit=u.radian  # pylint: disable=no-member
     )
-    ha_diff = (event_hour_angles - hour_angles).wrap_at(
-        night_wrap * u.deg  # pylint: disable=no-member
-    )
+    ha_diff = (event_hour_angles - hour_angles).wrap_at(night_wrap * u.deg)  # pylint: disable=no-member
     mjds = mjds + ha_diff.radian * (0.9972696 / (2 * np.pi))
 
     # Refine using Newton's method
     for iter_idx in range(max_iter):  # pylint: disable=unused-variable
         times = astropy.time.Time(mjds, scale="utc", format="mjd", location=location)
         crds = astropy.coordinates.get_body(body, times, location=location)
-        current_alt = crds.transform_to(
-            astropy.coordinates.AltAz(obstime=times, location=location)
-        ).alt
+        current_alt = crds.transform_to(astropy.coordinates.AltAz(obstime=times, location=location)).alt
         finished = np.max(np.abs(current_alt.deg - alt)) < tolerance
         if finished:
             break
@@ -119,9 +115,7 @@ def riseset_times(  # pylint: disable=too-many-locals
         mjds = mjds - (current_sinalt - target_sinalt) / dsinalt_dmjd
 
     if np.max(np.abs(mjds - night_mjds)) > 1:
-        warnings.warn(
-            "On some nights, found twilight more than a day away from the night mjd"
-        )
+        warnings.warn("On some nights, found twilight more than a day away from the night mjd")
 
     if not finished:
         unfinished = np.abs(current_alt.deg - alt) < tolerance
@@ -130,9 +124,7 @@ def riseset_times(  # pylint: disable=too-many-locals
                 first_unfinished_mjd = night_mjds[unfinished][0]
             except IndexError:
                 first_unfinished_mjd = night_mjds[unfinished]
-            warnings.warn(
-                f"twilight_times did not converge, starting with {first_unfinished_mjd}"
-            )
+            warnings.warn(f"twilight_times did not converge, starting with {first_unfinished_mjd}")
 
     return mjds
 

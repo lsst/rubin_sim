@@ -1,8 +1,10 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import numpy as np
 import unittest
+
+import numpy as np
+
 import rubin_sim.maf.metrics as metrics
 
 
@@ -13,16 +15,12 @@ class TestTechnicalMetrics(unittest.TestCase):
         """
         filters = np.array(["u", "u", "g", "g", "r"])
         visit_times = np.arange(0, filters.size, 1)
-        data = np.core.records.fromarrays(
-            [visit_times, filters], names=["observationStartMJD", "filter"]
-        )
+        data = np.core.records.fromarrays([visit_times, filters], names=["observationStartMJD", "filter"])
         metric = metrics.NChangesMetric()
         result = metric.run(data)
         self.assertEqual(result, 2)
         filters = np.array(["u", "g", "u", "g", "r"])
-        data = np.core.records.fromarrays(
-            [visit_times, filters], names=["observationStartMJD", "filter"]
-        )
+        data = np.core.records.fromarrays([visit_times, filters], names=["observationStartMJD", "filter"])
         metric = metrics.NChangesMetric()
         result = metric.run(data)
         self.assertEqual(result, 4)
@@ -33,9 +31,7 @@ class TestTechnicalMetrics(unittest.TestCase):
         """
         filters = np.array(["u", "g", "g", "r"])
         visit_times = np.array([0, 5, 6, 7])  # days
-        data = np.core.records.fromarrays(
-            [visit_times, filters], names=["observationStartMJD", "filter"]
-        )
+        data = np.core.records.fromarrays([visit_times, filters], names=["observationStartMJD", "filter"])
         metric = metrics.MinTimeBetweenStatesMetric()
         result = metric.run(data)  # minutes
         self.assertEqual(result, 2 * 24.0 * 60.0)
@@ -49,9 +45,7 @@ class TestTechnicalMetrics(unittest.TestCase):
         """
         filters = np.array(["u", "g", "g", "r"])
         visit_times = np.array([0, 5, 6, 7])  # days
-        data = np.core.records.fromarrays(
-            [visit_times, filters], names=["observationStartMJD", "filter"]
-        )
+        data = np.core.records.fromarrays([visit_times, filters], names=["observationStartMJD", "filter"])
         metric = metrics.NStateChangesFasterThanMetric(cutoff=3 * 24 * 60)
         result = metric.run(data)  # minutes
         self.assertEqual(result, 1)
@@ -62,35 +56,27 @@ class TestTechnicalMetrics(unittest.TestCase):
         """
         filters = np.array(["u", "g", "r", "u", "g", "r"])
         visit_times = np.array([0, 1, 1, 4, 6, 7])  # days
-        data = np.core.records.fromarrays(
-            [visit_times, filters], names=["observationStartMJD", "filter"]
-        )
+        data = np.core.records.fromarrays([visit_times, filters], names=["observationStartMJD", "filter"])
         metric = metrics.MaxStateChangesWithinMetric(timespan=1 * 24 * 60)
         result = metric.run(data)  # minutes
         self.assertEqual(result, 2)
         filters = np.array(["u", "g", "g", "u", "g", "r", "g", "r"])
         visit_times = np.array([0, 1, 1, 4, 4, 7, 8, 8])  # days
-        data = np.core.records.fromarrays(
-            [visit_times, filters], names=["observationStartMJD", "filter"]
-        )
+        data = np.core.records.fromarrays([visit_times, filters], names=["observationStartMJD", "filter"])
         metric = metrics.MaxStateChangesWithinMetric(timespan=1 * 24 * 60)
         result = metric.run(data)  # minutes
         self.assertEqual(result, 3)
 
         filters = np.array(["u", "g"])
         visit_times = np.array([0, 1])  # days
-        data = np.core.records.fromarrays(
-            [visit_times, filters], names=["observationStartMJD", "filter"]
-        )
+        data = np.core.records.fromarrays([visit_times, filters], names=["observationStartMJD", "filter"])
         metric = metrics.MaxStateChangesWithinMetric(timespan=1 * 24 * 60)
         result = metric.run(data)  # minutes
         self.assertEqual(result, 1)
 
         filters = np.array(["u", "u"])
         visit_times = np.array([0, 1])  # days
-        data = np.core.records.fromarrays(
-            [visit_times, filters], names=["observationStartMJD", "filter"]
-        )
+        data = np.core.records.fromarrays([visit_times, filters], names=["observationStartMJD", "filter"])
         metric = metrics.MaxStateChangesWithinMetric(timespan=1 * 24 * 60)
         result = metric.run(data)  # minutes
         self.assertEqual(result, 0)
@@ -101,18 +87,14 @@ class TestTechnicalMetrics(unittest.TestCase):
         """
         filters = np.array(["g", "g", "g", "g", "g"])
         m5 = np.zeros(len(filters), float) + 25.0
-        data = np.core.records.fromarrays(
-            [m5, filters], names=["fiveSigmaDepth", "filter"]
-        )
+        data = np.core.records.fromarrays([m5, filters], names=["fiveSigmaDepth", "filter"])
         metric = metrics.TeffMetric(fiducial_depth={"g": 25}, teff_base=30.0)
         result = metric.run(data)
         self.assertEqual(result, 30.0 * m5.size)
         filters = np.array(["g", "g", "g", "u", "u"])
         m5 = np.zeros(len(filters), float) + 25.0
         m5[3:5] = 20.0
-        data = np.core.records.fromarrays(
-            [m5, filters], names=["fiveSigmaDepth", "filter"]
-        )
+        data = np.core.records.fromarrays([m5, filters], names=["fiveSigmaDepth", "filter"])
         metric = metrics.TeffMetric(fiducial_depth={"u": 20, "g": 25}, teff_base=30.0)
         result = metric.run(data)
         self.assertEqual(result, 30.0 * m5.size)
@@ -145,11 +127,7 @@ class TestTechnicalMetrics(unittest.TestCase):
         visit_exp_time = np.ones(nvisit, dtype="float") * exptime
         visit_time = np.ones(nvisit, dtype="float") * (exptime + 0.0)
         slew_time = np.ones(nvisit, dtype="float") * slewtime
-        mjd = (
-            np.zeros(nvisit)
-            + np.add.accumulate(visit_exp_time)
-            + np.add.accumulate(slew_time)
-        )
+        mjd = np.zeros(nvisit) + np.add.accumulate(visit_exp_time) + np.add.accumulate(slew_time)
         mjd = mjd / 60.0 / 60.0 / 24.0
         data = np.core.records.fromarrays(
             [visit_exp_time, visit_time, slew_time, mjd],

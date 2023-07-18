@@ -1,8 +1,9 @@
+import json
+import unittest
+
+import matplotlib
 import numpy as np
 import numpy.ma as ma
-import unittest
-import json
-import matplotlib
 
 matplotlib.use("Agg")
 import rubin_sim.maf.slicers as slicers
@@ -82,9 +83,7 @@ def make_opsim_data_values(field_data, size=10000, min=0.0, max=1.0, random=88):
     idxs = rng.rand(size) * len(field_data["field_id"])
     for i, d in enumerate(datavalues):
         field_id[i] = field_data[int(idxs[i])][0]
-    sim_data = np.core.records.fromarrays(
-        [field_id, datavalues], names=["field_id", "testdata"]
-    )
+    sim_data = np.core.records.fromarrays([field_id, datavalues], names=["field_id", "testdata"])
     return sim_data
 
 
@@ -133,9 +132,7 @@ class TestJSONoutOneDSlicer2(unittest.TestCase):
         self.assertEqual(jsn_header["slicer_name"], "OneDSlicer")
         self.assertEqual(jsn_header["slicer_len"], len(self.testslicer))
         self.assertEqual(len(jsn_data), len(metric_val) + 1)
-        for jsndat, bin_left, mval in zip(
-            jsn_data, self.testslicer.slice_points["bins"], metric_val.data
-        ):
+        for jsndat, bin_left, mval in zip(jsn_data, self.testslicer.slice_points["bins"], metric_val.data):
             self.assertEqual(jsndat[0], bin_left)
             self.assertEqual(jsndat[1], mval)
 

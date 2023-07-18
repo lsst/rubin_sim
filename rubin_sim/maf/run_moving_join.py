@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-import os
-import glob
 import argparse
-import numpy as np
+import glob
+import os
+
 import matplotlib
+import numpy as np
 
 matplotlib.use("Agg")
 
@@ -18,9 +19,7 @@ def run_moving_join():
         "scheduler run.  Assumes split metric files are in "
         "<orbitRoot_split> subdirectories of base_dir. "
     )
-    parser.add_argument(
-        "--orbit_file", type=str, help="File containing the moving object orbits."
-    )
+    parser.add_argument("--orbit_file", type=str, help="File containing the moving object orbits.")
     parser.add_argument(
         "--base_dir",
         type=str,
@@ -50,9 +49,7 @@ def run_moving_join():
 
     # Assume splits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     splits = np.arange(0, 10, 1)
-    orbit_root = (
-        args.orbit_file.replace(".txt", "").replace(".des", "").replace(".s3m", "")
-    )
+    orbit_root = args.orbit_file.replace(".txt", "").replace(".des", "").replace(".s3m", "")
 
     if args.out_dir is not None:
         out_dir = args.out_dir
@@ -61,9 +58,7 @@ def run_moving_join():
 
     # Scan first splitDir for all metric files.
     tempdir = os.path.join(args.base_dir, f"{orbit_root}_{splits[0]}")
-    print(
-        f"# Joining files from {orbit_root}_[0-9]; will use {tempdir} to find metric names."
-    )
+    print(f"# Joining files from {orbit_root}_[0-9]; will use {tempdir} to find metric names.")
 
     metricfiles = glob.glob(os.path.join(tempdir, "*MOOB.npz"))
     # Identify metric names that we want to join.
