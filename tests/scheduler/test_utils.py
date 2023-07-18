@@ -17,7 +17,7 @@ class TestUtils(unittest.TestCase):
     def test_nside(self):
         """Test the example scheduler can be set to different nsides."""
         mjd_start = 60110.0
-        scheduler = example_scheduler(mjd_start=mjd_start, nside=512)
+        scheduler = example_scheduler(mjd_start=mjd_start, nside=64)
         scheduler = example_scheduler(mjd_start=mjd_start, nside=8)
 
     @unittest.skipUnless(
