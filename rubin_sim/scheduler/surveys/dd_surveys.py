@@ -10,7 +10,7 @@ from rubin_sim.scheduler.surveys import BaseSurvey
 from rubin_sim.scheduler.utils import empty_observation
 from rubin_sim.utils import ddf_locations
 
-__all__ = ["DeepDrillingSurvey", "generate_dd_surveys", "dd_bfs"]
+__all__ = ("DeepDrillingSurvey", "generate_dd_surveys", "dd_bfs")
 
 log = logging.getLogger(__name__)
 

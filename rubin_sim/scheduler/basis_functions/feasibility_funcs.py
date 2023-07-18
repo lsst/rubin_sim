@@ -5,7 +5,7 @@ from rubin_sim.scheduler import features
 from rubin_sim.scheduler.basis_functions import BaseBasisFunction
 from rubin_sim.scheduler.utils import IntRounded
 
-__all__ = [
+__all__ = (
     "FilterLoadedBasisFunction",
     "OnceInNightBasisFunction",
     "SunAltHighLimitBasisFunction",
@@ -26,7 +26,7 @@ __all__ = [
     "EndOfEveningBasisFunction",
     "TimeToScheduledBasisFunction",
     "LimitObsPnightBasisFunction",
-]
+)
 
 
 class FilterLoadedBasisFunction(BaseBasisFunction):

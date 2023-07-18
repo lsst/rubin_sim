@@ -5,7 +5,7 @@ import numpy as np
 
 from .base_stacker import BaseStacker
 
-__all__ = [
+__all__ = (
     "setup_dither_stackers",
     "wrap_ra_dec",
     "wrap_ra",
@@ -22,7 +22,7 @@ __all__ = [
     "HexDitherFieldPerNightStacker",
     "HexDitherPerNightStacker",
     "RandomRotDitherPerFilterChangeStacker",
-]
+)
 
 # Stacker naming scheme:
 # [Pattern]Dither[Field]Per[Timescale].

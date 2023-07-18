@@ -14,7 +14,7 @@ import numpy as np
 
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import power_law_const_a
 
-__all__ = [
+__all__ = (
     "get_fsky",
     "get_theory_spectra",
     "get_outdir_name",
@@ -23,7 +23,7 @@ __all__ = [
     "get_fom",
     "os_bias_overplots",
     "os_bias_overplots_diff_dbs",
-]
+)
 
 
 ###############################################################################################################################

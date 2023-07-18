@@ -12,14 +12,7 @@ Szalay A. et al. (2007)
 "Indexing the Sphere with the Hierarchical Triangular Mesh"
 arXiv:cs/0701164
 """
-
-import numbers
-
-import numpy as np
-
-from rubin_sim.utils import cartesian_from_spherical, spherical_from_cartesian
-
-__all__ = [
+__all__ = (
     "Trixel",
     "HalfSpace",
     "find_htmid",
@@ -30,7 +23,13 @@ __all__ = [
     "get_all_trixels",
     "half_space_from_points",
     "intersect_half_spaces",
-]
+)
+
+import numbers
+
+import numpy as np
+
+from rubin_sim.utils import cartesian_from_spherical, spherical_from_cartesian
 
 
 class Trixel:

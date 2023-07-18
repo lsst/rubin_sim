@@ -6,7 +6,7 @@ import numpy as np
 from rubin_sim.data import get_data_dir
 from rubin_sim.phot_utils import Bandpass
 
-__all__ = ["SeeingModel"]
+__all__ = ("SeeingModel", )
 
 
 class SeeingModel:

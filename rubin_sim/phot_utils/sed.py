@@ -86,6 +86,8 @@ order as the bandpasses) of this SED in each of those bandpasses.
 
 """
 
+__all__ = ("Sed", "cache_lsst_seds", "read_close__kurucz")
+
 import gzip
 import os
 import pickle
@@ -99,8 +101,6 @@ import scipy.interpolate as interpolate
 from rubin_sim.data import get_data_dir
 
 from .physical_parameters import PhysicalParameters
-
-__all__ = ["Sed", "cache_lsst_seds", "read_close__kurucz"]
 
 
 _global_lsst_sed_cache = None

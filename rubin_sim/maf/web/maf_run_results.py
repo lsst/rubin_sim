@@ -8,7 +8,7 @@ import numpy as np
 import rubin_sim.maf.db as db
 import rubin_sim.maf.metric_bundles as metricBundles
 
-__all__ = ["MafRunResults"]
+__all__ = ("MafRunResults", )
 
 
 class MafRunResults:

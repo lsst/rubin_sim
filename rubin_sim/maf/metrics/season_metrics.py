@@ -9,13 +9,13 @@ from rubin_sim.utils import calc_season
 
 from .base_metric import BaseMetric
 
-__all__ = [
+__all__ = (
     "find_season_edges",
     "SeasonLengthMetric",
     "CampaignLengthMetric",
     "MeanCampaignFrequencyMetric",
     "TdcMetric",
-]
+)
 
 
 def find_season_edges(seasons):

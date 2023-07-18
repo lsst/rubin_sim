@@ -1,3 +1,5 @@
+__all__ = ("ddfBatch", )
+
 import healpy as hp
 import numpy as np
 
@@ -5,8 +7,6 @@ import rubin_sim.maf as maf
 from rubin_sim.utils import angular_separation, ddf_locations, hpid2_ra_dec, sample_patch_on_sphere
 
 from .common import lightcurve_summary
-
-__all__ = ["ddfBatch"]
 
 
 def ddfBatch(

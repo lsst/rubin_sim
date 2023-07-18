@@ -3,7 +3,7 @@ import numpy as np
 
 from .plot_handler import BasePlotter
 
-__all__ = ["NightPointingPlotter"]
+__all__ = ("NightPointingPlotter", )
 
 
 class NightPointingPlotter(BasePlotter):

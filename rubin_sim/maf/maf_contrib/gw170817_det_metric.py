@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .transient_ascii_sed_metric import TransientAsciiSEDMetric
 
-__all__ = ["GW170817DetMetric"]
+__all__ = ("GW170817DetMetric")
 base_path = Path(__file__).parent
 
 

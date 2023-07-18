@@ -14,7 +14,7 @@ import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.utils as utils
 from rubin_sim.maf.stackers import ColInfo
 
-__all__ = ["MetricBundle", "create_empty_metric_bundle"]
+__all__ = ("MetricBundle", "create_empty_metric_bundle")
 
 
 def create_empty_metric_bundle():

@@ -9,7 +9,7 @@ from rubin_sim.data import get_data_dir
 from rubin_sim.phot_utils import DustValues
 from rubin_sim.utils import survey_start_mjd, uniform_sphere
 
-__all__ = ["TdeLc", "TdePopMetric", "TdePopMetricQuality", "generate_tde_pop_slicer"]
+__all__ = ("TdeLc", "TdePopMetric", "TdePopMetricQuality", "generate_tde_pop_slicer")
 
 
 class TdeLc:

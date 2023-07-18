@@ -1,9 +1,4 @@
-import warnings
-
-import healpy as hp
-import numpy as np
-
-__all__ = [
+__all__ = (
     "hpid2_ra_dec",
     "ra_dec2_hpid",
     "healbin",
@@ -12,7 +7,12 @@ __all__ = [
     "_healbin",
     "moc2array",
     "hp_grow_argsort",
-]
+)
+
+import warnings
+
+import healpy as hp
+import numpy as np
 
 
 def _hpid2_ra_dec(nside, hpids, **kwargs):

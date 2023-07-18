@@ -1,6 +1,6 @@
-import warnings
+__all__ = ("DowntimeModel", )
 
-__all__ = ["DowntimeModel"]
+import warnings
 
 
 class DowntimeModel:

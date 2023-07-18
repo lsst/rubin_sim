@@ -8,7 +8,7 @@ from astropy.io import fits
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import radec2pix
 
-__all__ = ["ebv_3d_hp", "get_x_at_nearest_y"]
+__all__ = ("ebv_3d_hp", "get_x_at_nearest_y")
 
 
 def ebv_3d_hp(

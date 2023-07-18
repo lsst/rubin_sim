@@ -11,7 +11,7 @@ from rubin_sim.scheduler.utils import IntRounded
 from rubin_sim.skybrightness_pre import dark_sky
 from rubin_sim.utils import _hpid2_ra_dec, calc_season, m5_flat_sed, ra_dec2_hpid
 
-__all__ = [
+__all__ = (
     "BaseFeature",
     "BaseSurveyFeature",
     "NObsCount",
@@ -32,7 +32,7 @@ __all__ = [
     "SurveyInNight",
     "NoteInNight",
     "NoteLastObserved",
-]
+)
 
 
 class BaseFeature:

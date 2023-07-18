@@ -7,7 +7,7 @@ from matplotlib import colors
 from .perceptual_rainbow import make_pr_cmap
 from .plot_handler import BasePlotter
 
-__all__ = ["TwoDSubsetData", "OneDSubsetData"]
+__all__ = ("TwoDSubsetData", "OneDSubsetData")
 
 perceptual_rainbow = make_pr_cmap()
 

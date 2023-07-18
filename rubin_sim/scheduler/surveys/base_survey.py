@@ -16,7 +16,7 @@ from rubin_sim.scheduler.utils import (
 )
 from rubin_sim.site_models import _read_fields
 
-__all__ = ["BaseSurvey", "BaseMarkovSurvey"]
+__all__ = ("BaseSurvey", "BaseMarkovSurvey")
 
 
 class BaseSurvey:

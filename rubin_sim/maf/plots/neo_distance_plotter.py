@@ -7,7 +7,7 @@ from matplotlib.patches import Ellipse
 
 from .plot_handler import BasePlotter
 
-__all__ = ["NeoDistancePlotter"]
+__all__ = ("NeoDistancePlotter", )
 
 
 class NeoDistancePlotter(BasePlotter):

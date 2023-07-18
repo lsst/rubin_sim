@@ -4,7 +4,7 @@ from rubin_sim.utils import ra_dec2_hpid
 
 from .dd_surveys import DeepDrillingSurvey
 
-__all__ = ["FieldSurvey"]
+__all__ = ("FieldSurvey", )
 
 
 class FieldSurvey(DeepDrillingSurvey):

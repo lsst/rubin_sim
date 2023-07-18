@@ -9,7 +9,7 @@ from rubin_sim.utils import LsstCameraFootprint, angular_separation
 
 from .ooephemerides import PyOrbEphemerides
 
-__all__ = ["BaseObs"]
+__all__ = ("BaseObs", )
 
 
 class BaseObs:

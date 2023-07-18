@@ -5,7 +5,7 @@ import numpy as np
 
 from rubin_sim.scheduler.surveys import BaseSurvey, BlobSurvey
 
-__all__ = ["TooMaster", "TooSurvey"]
+__all__ = ("TooMaster", "TooSurvey")
 
 
 class TooMaster(BaseSurvey):

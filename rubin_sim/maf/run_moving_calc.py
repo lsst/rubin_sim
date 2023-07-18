@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+__all__ = ("run_moving_calc", )
 
 import argparse
 import os

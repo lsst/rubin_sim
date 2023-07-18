@@ -6,7 +6,7 @@ from rubin_sim.maf.utils import collapse_night
 from rubin_sim.phot_utils import DustValues
 from rubin_sim.utils import calc_season
 
-__all__ = ["SNSLMetric"]
+__all__ = ("SNSLMetric", )
 
 
 class SNSLMetric(metrics.BaseMetric):

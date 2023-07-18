@@ -9,7 +9,7 @@ its field of view (i.e. is it a box in RA, Dec, is it a circle in RA, Dec....?)
 import numpy as np
 from six import with_metaclass
 
-__all__ = ["SpatialBounds", "CircleBounds", "BoxBounds"]
+__all__ = ("SpatialBounds", "CircleBounds", "BoxBounds")
 
 
 class SpatialBoundsMetaClass(type):

@@ -66,7 +66,7 @@ from rubin_sim.maf.maf_contrib.lss_obs_strategy.masking_algorithm_generalized im
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.num_obs_metric import NumObsMetric
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.save_bundle_data_npz_format import save_bundle_data_npz_format
 
-__all__ = ["artificial_structure_calculation"]
+__all__ = ("artificial_structure_calculation")
 
 
 def artificial_structure_calculation(

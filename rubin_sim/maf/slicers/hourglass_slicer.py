@@ -7,7 +7,7 @@ from rubin_sim.maf.plots import HourglassPlot
 
 from .uni_slicer import UniSlicer
 
-__all__ = ["HourglassSlicer"]
+__all__ = ("HourglassSlicer", )
 
 
 class HourglassSlicer(UniSlicer):

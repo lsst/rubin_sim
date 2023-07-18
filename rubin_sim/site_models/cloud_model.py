@@ -2,7 +2,7 @@ import warnings
 
 import numpy as np
 
-__all__ = ["CloudModel"]
+__all__ = ("CloudModel", )
 
 
 class CloudModel:

@@ -1,3 +1,5 @@
+__all__ = ("sims_clean_up", )
+
 import gc
 import numbers
 

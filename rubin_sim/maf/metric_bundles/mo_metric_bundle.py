@@ -15,12 +15,12 @@ from rubin_sim.maf.stackers import BaseMoStacker, MoMagStacker
 
 from .metric_bundle import MetricBundle
 
-__all__ = [
+__all__ = (
     "MoMetricBundle",
     "MoMetricBundleGroup",
     "create_empty_mo_metric_bundle",
     "make_completeness_bundle",
-]
+)
 
 
 def create_empty_mo_metric_bundle():

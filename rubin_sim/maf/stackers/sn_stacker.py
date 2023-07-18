@@ -3,7 +3,7 @@ import numpy.lib.recfunctions as rf
 
 from rubin_sim.maf.stackers import BaseStacker
 
-__all__ = ["CoaddStacker"]
+__all__ = ("CoaddStacker", )
 
 
 class CoaddStacker(BaseStacker):

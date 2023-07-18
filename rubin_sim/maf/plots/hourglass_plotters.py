@@ -3,7 +3,7 @@ import numpy as np
 
 from .plot_handler import BasePlotter
 
-__all__ = ["HourglassPlot"]
+__all__ = ("HourglassPlot", )
 
 
 class HourglassPlot(BasePlotter):

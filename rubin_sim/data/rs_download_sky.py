@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+__all__ = ("MyHTMLParser", "rs_download_sky")
+
 import argparse
 import os
 from html.parser import HTMLParser

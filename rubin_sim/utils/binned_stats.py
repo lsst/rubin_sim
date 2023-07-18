@@ -1,3 +1,5 @@
+__all__ = ("int_binned_stat", )
+
 import numpy as np
 
 

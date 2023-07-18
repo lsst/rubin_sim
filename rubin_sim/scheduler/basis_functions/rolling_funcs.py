@@ -7,11 +7,11 @@ import numpy as np
 from rubin_sim.scheduler import features, utils
 from rubin_sim.scheduler.basis_functions import BaseBasisFunction
 
-__all__ = [
+__all__ = (
     "TargetMapModuloBasisFunction",
     "FootprintBasisFunction",
     "FootprintRollingBasisFunction",
-]
+)
 
 
 class FootprintBasisFunction(BaseBasisFunction):

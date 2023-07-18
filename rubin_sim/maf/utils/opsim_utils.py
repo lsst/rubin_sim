@@ -8,11 +8,11 @@ import pandas as pd
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.engine import make_url
 
-__all__ = [
+__all__ = (
     "get_sim_data",
     "scale_benchmarks",
     "calc_coadded_depth",
-]
+)
 
 
 def get_sim_data(

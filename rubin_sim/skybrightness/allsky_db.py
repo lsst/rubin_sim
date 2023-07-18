@@ -7,7 +7,7 @@ from rubin_sim.data import get_data_dir
 
 # Tools for using an all-sky sqlite DB with cannon and photodiode data from the site.
 
-__all__ = ["all_sky_db", "diode_sky_db"]
+__all__ = ("all_sky_db", "diode_sky_db")
 
 
 def all_sky_db(date_id, sql_q=None, dtypes=None, db_address=None, filt="R"):

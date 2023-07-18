@@ -1,11 +1,4 @@
-from __future__ import print_function
-
-import inspect
-
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.stackers as stackers
-
-__all__ = [
+__all__ = (
     "combine_info_labels",
     "filter_list",
     "radec_cols",
@@ -19,7 +12,14 @@ __all__ = [
     "summary_completeness_over_h",
     "fraction_population_at_threshold",
     "microlensing_summary",
-]
+)
+
+from __future__ import print_function
+
+import inspect
+
+import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.stackers as stackers
 
 
 def combine_info_labels(info1, info2):

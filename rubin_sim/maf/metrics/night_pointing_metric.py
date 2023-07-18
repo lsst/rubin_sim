@@ -7,7 +7,7 @@ from rubin_sim.utils import Site
 
 from .base_metric import BaseMetric
 
-__all__ = ["NightPointingMetric"]
+__all__ = ("NightPointingMetric", )
 
 
 class NightPointingMetric(BaseMetric):

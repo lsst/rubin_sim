@@ -8,7 +8,7 @@ from rubin_sim.phot_utils import DustValues
 
 from .base_metric import BaseMetric
 
-__all__ = ["SFUncertMetric"]
+__all__ = ("SFUncertMetric", )
 
 
 class SFUncertMetric(BaseMetric):

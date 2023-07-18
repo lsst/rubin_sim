@@ -14,7 +14,7 @@ import numpy as np
 
 from rubin_sim.maf.metrics import BaseMetric
 
-__all__ = ["PeriodicMetric"]
+__all__ = ("PeriodicMetric", )
 
 
 class PeriodicMetric(BaseMetric):

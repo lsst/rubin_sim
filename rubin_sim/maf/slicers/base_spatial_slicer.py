@@ -14,7 +14,7 @@ from rubin_sim.maf.plots.spatial_plotters import BaseHistogram, BaseSkyMap
 
 from .base_slicer import BaseSlicer
 
-__all__ = ["BaseSpatialSlicer"]
+__all__ = ("BaseSpatialSlicer", )
 
 
 def rotate(x, y, rotation_angle_rad):

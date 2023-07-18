@@ -5,7 +5,7 @@ from builtins import map, range, str
 
 import numpy as np
 
-__all__ = ["name_sanitize", "print_dict", "print_simple_dict"]
+__all__ = ("name_sanitize", "print_dict", "print_simple_dict")
 
 
 def name_sanitize(in_string):

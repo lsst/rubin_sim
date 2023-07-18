@@ -6,7 +6,7 @@ from scipy.optimize import curve_fit
 from rubin_sim.maf.metrics.base_metric import BaseMetric
 from rubin_sim.maf.utils import m52snr
 
-__all__ = ["PeriodicStar", "PeriodicStarMetric"]
+__all__ = ("PeriodicStar", "PeriodicStarMetric")
 
 
 class PeriodicStar:

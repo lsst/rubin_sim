@@ -2,7 +2,7 @@ import numpy as np
 
 from .base_metric import BaseMetric
 
-__all__ = ["PairMetric"]
+__all__ = ("PairMetric", )
 
 
 class PairMetric(BaseMetric):

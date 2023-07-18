@@ -7,7 +7,7 @@ from scipy.stats import chi2
 
 from rubin_sim.maf.metrics import BaseMetric
 
-__all__ = ["VarDepth"]
+__all__ = ("VarDepth", )
 
 
 class VarDepth(BaseMetric):

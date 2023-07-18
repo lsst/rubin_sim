@@ -28,7 +28,7 @@ from .interp_components import (
 )
 from .utils import wrap_ra
 
-__all__ = ["just_return", "SkyModel"]
+__all__ = ("just_return", "SkyModel")
 
 
 def just_return(inval):

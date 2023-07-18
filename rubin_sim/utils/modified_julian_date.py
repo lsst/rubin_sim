@@ -1,11 +1,11 @@
+__all__ = ("ModifiedJulianDate", "MJDWarning", "Utctout1Warning")
+
 import copy
 import warnings
 
 import numpy as np
 from astropy.time import Time
 from astropy.utils.iers.iers import IERSRangeError
-
-__all__ = ["ModifiedJulianDate", "MJDWarning", "Utctout1Warning"]
 
 
 # Filter out ERFA's complaints that we are simulating dates which

@@ -1,6 +1,6 @@
 import numpy as np
 
-__all__ = ["stellar_mags"]
+__all__ = ("stellar_mags")
 
 
 def calc_wd_colors():

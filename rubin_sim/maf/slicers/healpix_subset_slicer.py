@@ -11,7 +11,7 @@ from rubin_sim.maf.plots.spatial_plotters import HealpixHistogram, HealpixPowerS
 
 from .healpix_slicer import HealpixSlicer
 
-__all__ = ["HealpixSubsetSlicer"]
+__all__ = ("HealpixSubsetSlicer", )
 
 
 class HealpixSubsetSlicer(HealpixSlicer):

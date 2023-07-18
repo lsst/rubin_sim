@@ -6,7 +6,7 @@ from astropy.time import Time
 
 from rubin_sim.data import get_data_dir
 
-__all__ = ["SeeingData"]
+__all__ = ("SeeingData", )
 
 
 class SeeingData:

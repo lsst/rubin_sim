@@ -7,7 +7,7 @@ from astropy.time import Time, TimeDelta
 
 from rubin_sim.data import get_data_dir
 
-__all__ = ["ScheduledDowntimeData"]
+__all__ = ("ScheduledDowntimeData", )
 
 
 class ScheduledDowntimeData:

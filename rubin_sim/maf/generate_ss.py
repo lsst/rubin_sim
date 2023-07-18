@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+__all__ = ("generate_ss_commands", "generate_ss")
+
 import argparse
 import glob
 import os

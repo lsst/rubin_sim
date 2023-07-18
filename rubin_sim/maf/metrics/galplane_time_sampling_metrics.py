@@ -14,11 +14,11 @@ from .base_metric import BaseMetric
 from .galactic_plane_metrics import galplane_priority_map_thresholds
 from .season_metrics import find_season_edges
 
-__all__ = [
+__all__ = (
     "calc_interval_decay",
     "GalPlaneVisitIntervalsTimescaleMetric",
     "GalPlaneSeasonGapsTimescaleMetric",
-]
+)
 
 TAU_OBS = np.array([2.0, 5.0, 11.0, 20.0, 46.5, 73.0])
 

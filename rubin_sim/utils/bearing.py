@@ -1,8 +1,8 @@
+__all__ = ("bearing", "dest_latlon", "point_to_line_distance")
+
 import numpy as np
 
 from .coordinate_transformations import _angular_separation
-
-__all__ = ["bearing", "dest_latlon", "point_to_line_distance"]
 
 
 def bearing(lon1, lat1, lon2, lat2):

@@ -13,7 +13,7 @@ import rubin_sim.utils as rs_utils
 from rubin_sim import data as rs_data
 from rubin_sim.utils import angular_separation
 
-__all__ = ["SkyAreaGenerator", "SkyAreaGeneratorGalplane", "EuclidOverlapFootprint"]
+__all__ = ("SkyAreaGenerator", "SkyAreaGeneratorGalplane", "EuclidOverlapFootprint")
 
 
 class SkyAreaGenerator:

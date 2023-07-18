@@ -4,7 +4,7 @@
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
 
-__all__ = ["save_bundle_data_npz_format"]
+__all__ = ("save_bundle_data_npz_format")
 
 
 def save_bundle_data_npz_format(path, bundle, base_filename, filter_band):

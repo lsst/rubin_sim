@@ -6,7 +6,7 @@ import numpy as np
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import radec2pix
 
-__all__ = ["eb_vhp"]
+__all__ = ("eb_vhp")
 
 
 def eb_vhp(nside, ra=None, dec=None, pixels=None, interp=False, map_path=None):

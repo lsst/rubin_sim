@@ -10,7 +10,7 @@ from rubin_sim.scheduler.utils import empty_observation, set_default_nside
 
 from .surveys import BlobSurvey
 
-__all__ = ["PlanAheadSurvey"]
+__all__ = ("PlanAheadSurvey", )
 
 
 class PlanAheadSurvey(BlobSurvey):

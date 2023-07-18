@@ -1,7 +1,7 @@
 import time
 from importlib import metadata
 
-__all__ = ["get_date_version"]
+__all__ = ("get_date_version")
 
 
 def get_date_version():

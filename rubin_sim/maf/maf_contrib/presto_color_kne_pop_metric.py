@@ -15,7 +15,7 @@ from rubin_sim.utils import survey_start_mjd, uniform_sphere
 
 from .kne_metrics import KnLc
 
-__all__ = ["PrestoColorKNePopMetric", "generate_presto_pop_slicer"]
+__all__ = ("PrestoColorKNePopMetric", "generate_presto_pop_slicer")
 
 
 def radec2gal(ra, dec):

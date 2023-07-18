@@ -4,7 +4,7 @@ from rubin_sim.phot_utils import DustValues
 
 from .base_metric import BaseMetric
 
-__all__ = ["AgnTimeLagMetric"]
+__all__ = ("AgnTimeLagMetric", )
 
 
 class AgnTimeLagMetric(BaseMetric):

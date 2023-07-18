@@ -15,7 +15,7 @@ import numpy as np
 from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_moon, get_sun
 from astropy.time import Time, TimeDelta
 
-__all__ = ["calculate_lsst_field_visibility", "plot_visibility"]
+__all__ = ("calculate_lsst_field_visibility", "plot_visibility")
 
 
 def calculate_lsst_field_visibility(

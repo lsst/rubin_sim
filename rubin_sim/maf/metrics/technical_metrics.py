@@ -4,7 +4,7 @@ import numpy as np
 
 from .base_metric import BaseMetric
 
-__all__ = [
+__all__ = (
     "NChangesMetric",
     "MinTimeBetweenStatesMetric",
     "NStateChangesFasterThanMetric",
@@ -12,7 +12,7 @@ __all__ = [
     "TeffMetric",
     "OpenShutterFractionMetric",
     "BruteOSFMetric",
-]
+)
 
 
 class NChangesMetric(BaseMetric):

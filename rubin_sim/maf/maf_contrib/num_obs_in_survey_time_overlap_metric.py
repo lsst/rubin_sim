@@ -10,7 +10,7 @@ from astropy.time import Time
 
 from rubin_sim.maf.metrics import BaseMetric
 
-__all__ = ["NumObsInSurveyTimeOverlapMetric"]
+__all__ = ("NumObsInSurveyTimeOverlapMetric", )
 
 
 class NumObsInSurveyTimeOverlapMetric(BaseMetric):

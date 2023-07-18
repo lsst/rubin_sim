@@ -16,7 +16,7 @@ from rubin_sim.maf.stackers import BaseDitherStacker
 
 from .metric_bundle import MetricBundle, create_empty_metric_bundle
 
-__all__ = ["make_bundles_dict_from_list", "MetricBundleGroup"]
+__all__ = ("make_bundles_dict_from_list", "MetricBundleGroup")
 
 
 def make_bundles_dict_from_list(bundle_list):

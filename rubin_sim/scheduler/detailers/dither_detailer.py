@@ -9,7 +9,7 @@ from rubin_sim.utils import (
     gnomonic_project_tosky,
 )
 
-__all__ = ["DitherDetailer", "CameraRotDetailer", "EuclidDitherDetailer"]
+__all__ = ("DitherDetailer", "CameraRotDetailer", "EuclidDitherDetailer")
 
 
 class DitherDetailer(BaseDetailer):

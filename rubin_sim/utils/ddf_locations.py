@@ -1,3 +1,5 @@
+__all__ = ("ddf_locations", )
+
 # Tuples of RA,dec in degrees
 ELAISS1 = (9.45, -44.0)
 XMM_LSS = (35.708333, -4 - 45 / 60.0)

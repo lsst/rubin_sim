@@ -4,7 +4,7 @@ import numpy as np
 
 from .base_metric import BaseMetric
 
-__all__ = [
+__all__ = (
     "BaseMoMetric",
     "NObsMetric",
     "NObsNoSinglesMetric",
@@ -29,7 +29,7 @@ __all__ = [
     "LightcurveColorOuterMetric",
     "PeakVMagMetric",
     "KnownObjectsMetric",
-]
+)
 
 
 def _set_vis(sso_obs, snr_limit, snr_col, vis_col):

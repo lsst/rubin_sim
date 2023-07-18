@@ -15,14 +15,14 @@ steradian2_sqdeg = 180.0**2 / np.pi**2
 # Mpc^3 -> Mpc^3/sr
 norm = 1.0 / (4.0 * np.pi)
 
-__all__ = [
+__all__ = (
     "LcfastNew",
     "LoadReference",
     "GetReference",
     "SnRate",
     "CovColor",
     "load_sne_cached",
-]
+)
 
 
 class LcfastNew:

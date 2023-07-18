@@ -8,14 +8,14 @@ import scipy.spatial as spatial
 # re-write of https://github.com/jameskrysiak/ConvexSalesman/blob/master/convex_salesman.py
 # This like a good explination too https://www.youtube.com/watch?v=syRSy1MFuho
 
-__all__ = [
+__all__ = (
     "generate_dist_matrix",
     "route_length",
     "generate_hulls",
     "merge_hulls",
     "three_opt",
     "tsp_convex",
-]
+)
 
 
 def generate_dist_matrix(towns):

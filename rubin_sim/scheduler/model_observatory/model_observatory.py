@@ -27,7 +27,7 @@ from rubin_sim.utils import (
     survey_start_mjd,
 )
 
-__all__ = ["ModelObservatory", "NoClouds", "NominalSeeing"]
+__all__ = ("ModelObservatory", "NoClouds", "NominalSeeing")
 
 
 class NoClouds:

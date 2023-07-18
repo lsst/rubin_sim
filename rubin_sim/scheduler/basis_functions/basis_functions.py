@@ -11,7 +11,7 @@ from rubin_sim.scheduler.utils import IntRounded
 from rubin_sim.skybrightness_pre import dark_sky
 from rubin_sim.utils import _hpid2_ra_dec
 
-__all__ = [
+__all__ = (
     "BaseBasisFunction",
     "ConstantBasisFunction",
     "DelayStartBasisFunction",
@@ -50,7 +50,7 @@ __all__ = [
     "AvoidDirectWind",
     "BalanceVisits",
     "RewardNObsSequence",
-]
+)
 
 
 class BaseBasisFunction:

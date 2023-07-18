@@ -21,7 +21,7 @@ from .plot_handler import BasePlotter, apply_zp_norm
 perceptual_rainbow = make_pr_cmap()
 import numpy.ma as ma
 
-__all__ = [
+__all__ = (
     "set_color_lims",
     "set_color_map",
     "HealpixSkyMap",
@@ -31,7 +31,7 @@ __all__ = [
     "BaseSkyMap",
     "HealpixSDSSSkyMap",
     "LambertSkyMap",
-]
+)
 
 base_default_plot_dict = {
     "title": None,

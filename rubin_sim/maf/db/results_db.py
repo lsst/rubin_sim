@@ -1,3 +1,12 @@
+__all__ = (
+    "MetricRow",
+    "DisplayRow",
+    "PlotRow",
+    "SummaryStatRow",
+    "VersionRow",
+    "ResultsDb",
+)
+
 import datetime
 import os
 import time
@@ -14,15 +23,6 @@ from sqlalchemy.sql import text
 import rubin_sim.version as rsVersion
 
 Base = declarative_base()
-
-__all__ = [
-    "MetricRow",
-    "DisplayRow",
-    "PlotRow",
-    "SummaryStatRow",
-    "VersionRow",
-    "ResultsDb",
-]
 
 
 class MetricRow(Base):

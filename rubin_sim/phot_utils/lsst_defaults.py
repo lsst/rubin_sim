@@ -1,6 +1,4 @@
-import numpy
-
-__all__ = ["LSSTdefaults"]
+__all__ = ("LSSTdefaults",)
 
 
 class LSSTdefaults:

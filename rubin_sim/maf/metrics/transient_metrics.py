@@ -4,7 +4,7 @@ import numpy as np
 
 from .base_metric import BaseMetric
 
-__all__ = ["TransientMetric"]
+__all__ = ("TransientMetric", )
 
 
 class TransientMetric(BaseMetric):

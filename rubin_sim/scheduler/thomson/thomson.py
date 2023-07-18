@@ -3,7 +3,7 @@ from scipy.optimize import minimize
 
 from rubin_sim.utils import _angular_separation
 
-__all__ = [
+__all__ = (
     "thetaphi2xyz",
     "even_points",
     "elec_potential",
@@ -14,7 +14,7 @@ __all__ = [
     "even_points_xyz",
     "elec_potential_xyz",
     "xyz2thetaphi",
-]
+)
 
 
 def thetaphi2xyz(theta, phi):

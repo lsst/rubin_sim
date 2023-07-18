@@ -1,4 +1,4 @@
-__all__ = ["get_col_map", "col_map_dict"]
+__all__ = ("get_col_map", "col_map_dict")
 
 
 def get_col_map(opsdb):

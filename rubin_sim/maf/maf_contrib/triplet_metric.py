@@ -9,7 +9,7 @@ import numpy as np
 
 from rubin_sim.maf.metrics import BaseMetric
 
-__all__ = ["TripletMetric", "TripletBandMetric"]
+__all__ = ("TripletMetric", "TripletBandMetric")
 
 
 class TripletMetric(BaseMetric):

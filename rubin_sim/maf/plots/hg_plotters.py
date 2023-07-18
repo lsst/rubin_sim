@@ -33,7 +33,7 @@ from .plot_handler import BasePlotter
 
 # classes
 
-__all__ = [
+__all__ = (
     "GeneralHourglassPlot",
     "CategoricalHourglassPlotMixin",
     "RangeHourglassCategoricalPlot",
@@ -44,7 +44,7 @@ __all__ = [
     "YearHourglassCategoricalPlot",
     "YearHourglassPlot",
     "YearHourglassUsePlot",
-]
+)
 
 
 class GeneralHourglassPlot(BasePlotter):

@@ -10,7 +10,7 @@ from rubin_sim.maf.utils import m52snr
 from rubin_sim.phot_utils import DustValues
 from rubin_sim.utils import survey_start_mjd, uniform_sphere
 
-__all__ = ["get_kne_filename", "KnLc", "KNePopMetric", "generate_kn_pop_slicer"]
+__all__ = ("get_kne_filename", "KnLc", "KNePopMetric", "generate_kn_pop_slicer")
 
 
 def get_kne_filename(inj_params_list=None):

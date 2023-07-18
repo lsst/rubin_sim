@@ -8,7 +8,7 @@ import sqlite3
 import numpy as np
 import pandas as pd
 
-__all__ = ["combine_result_dbs", "gather_summaries"]
+__all__ = ("combine_result_dbs", "gather_summaries")
 
 
 def dirname_to_runname(inpath, replaces=["_glance", "_sci", "_meta", "_ss", "_ddf"]):
