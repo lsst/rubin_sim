@@ -167,33 +167,6 @@ class BandpassDict:
         bandpass_dir=os.path.join(get_data_dir(), "throughputs", "baseline"),
         bandpass_root="total_",
     ):
-        """
-        This will take the list of band passes named by bandpass_names and load them into
-        a BandpassDict
-
-        The bandpasses loaded this way are total bandpasses: they account for instrumental
-        and atmospheric transmission.
-
-        Parameters
-        ----------
-        bandpass_names : `Unknown`
-            is a list of names identifying each filter.
-            Defaults to ['u', 'g', 'r', 'i', 'z', 'y']
-        bandpass_dir : `Unknown`
-            is the name of the directory where the bandpass files are stored
-        bandpass_root : `Unknown`
-            contains the first part of the bandpass file name, i.e., it is assumed
-            that the bandpasses are stored in files of the type
-                ``bandpass_dir/bandpassRoot_bandpass_names[i].dat``
-
-        if we want to load bandpasses for a telescope other than LSST, we would do so
-        by altering bandpass_dir and bandpass_root
-
-        Returns
-        -------
-        bandpassDict : `Unknown`
-            is a BandpassDict containing the loaded throughputs
-        """
 
         bandpass_list = []
 
