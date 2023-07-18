@@ -21,10 +21,14 @@ from . import lsst_defaults
 from .photometric_parameters import PhotometricParameters
 from .sed import Sed
 
+import numpy
+
+from .photometric_parameters import PhotometricParameters
+from .sed import Sed
 
 def fwhm_eff2_fwhm_geom(fwhm_eff):
-    """
-    Convert fwhm_eff to fwhm_geom.
+    """Convert fwhm_eff to fwhm_geom.
+
     This conversion was calculated by Bo Xin and Zeljko Ivezic
     (and will be in an update on the LSE-40 and overview papers).
 
@@ -43,8 +47,8 @@ def fwhm_eff2_fwhm_geom(fwhm_eff):
 
 
 def fwhm_geom2_fwhm_eff(fwhm_geom):
-    """
-    Convert fwhm_geom to fwhm_eff.
+    """Convert fwhm_geom to fwhm_eff.
+
     This conversion was calculated by Bo Xin and Zeljko Ivezic
     (and will be in an update on the LSE-40 and overview papers).
 
@@ -63,8 +67,8 @@ def fwhm_geom2_fwhm_eff(fwhm_geom):
 
 
 def calc_neff(fwhm_eff, platescale):
-    """
-    Calculate the effective number of pixels in a single gaussian PSF.
+    """Calculate the effective number of pixels in a single gaussian PSF.
+
     This equation comes from LSE-40, equation 27.
     https://docushare.lsstcorp.org/docushare/dsweb/ImageStoreViewer/LSE-40
 
@@ -80,6 +84,8 @@ def calc_neff(fwhm_eff, platescale):
     nEff : `float`
         The effective number of pixels contained in the PSF
 
+    Notes
+    -----
     The fwhm_eff is a way to represent the equivalent seeing value, if the
     atmosphere could be simply represented as a single gaussian (instead of a more
     complicated von Karman profile for the atmosphere, convolved properly with the
@@ -90,8 +96,7 @@ def calc_neff(fwhm_eff, platescale):
 
 
 def calc_instr_noise_sq(phot_params):
-    """
-    Combine all of the noise due to intrumentation into one value
+    """Combine all of the noise due to intrumentation into one value
 
     Parameters
     ----------
@@ -119,9 +124,7 @@ def calc_instr_noise_sq(phot_params):
 
 
 def calc_total_non_source_noise_sq(sky_sed, hardwarebandpass, phot_params, fwhm_eff):
-    """
-    Calculate the noise due to things that are not the source being observed
-    (i.e. intrumentation and sky background)
+    """Calculate the noise due to instrumentation and sky background.
 
     Parameters
     ----------
@@ -175,31 +178,34 @@ def calc_total_non_source_noise_sq(sky_sed, hardwarebandpass, phot_params, fwhm_
 
 
 def calc_sky_counts_per_pixel_for_m5(m5target, total_bandpass, phot_params, fwhm_eff=None):
-    """
+    """Calculate the skycounts per pixel.
+
     Calculate the number of sky counts per pixel expected for a given
     value of the 5-sigma limiting magnitude (m5)
-
-    The 5-sigma limiting magnitude (m5) for an observation is
-    determined by a combination of the telescope and camera parameters
-    (such as diameter of the mirrors and the readnoise) together with the
-    sky background.
 
     Parameters
     ----------
     m5target : `float`
-        the desired value of m5
+        The desired value of m5.
     total_bandpass : `Bandpass`
         A bandpass object representing the total throughput of the telescope
-        (instrumentation plus atmosphere)
+        (instrumentation plus atmosphere).
     phot_params : `PhotometricParameters`
-        A photometric parameters object containing the photometric response information for Rubin
+        A photometric parameters object containing the photometric response information for Rubin.
     fwhm_eff : `float`
-        fwhm_eff in arcseconds
+        fwhm_eff in arcseconds.
 
     Returns
     -------
     sky_counts_target : `float`
-        the expected number of sky counts per pixel
+        The expected number of sky counts per pixel (ADU/pixel).
+
+    Notes
+    -----
+    The 5-sigma limiting magnitude (m5) for an observation is
+    determined by a combination of the telescope and camera parameters
+    (such as diameter of the mirrors and the readnoise) together with the
+    sky background.
     """
 
     if fwhm_eff is None:
@@ -241,39 +247,39 @@ def calc_sky_counts_per_pixel_for_m5(m5target, total_bandpass, phot_params, fwhm
 
 
 def calc_m5(skysed, total_bandpass, hardware, phot_params, fwhm_eff=None):
-    """
-    Calculate the AB magnitude of a 5-sigma above sky background source.
+    """Calculate the AB magnitude of a 5-sigma source above sky background source.
 
+    Parameters
+    ----------
+    skysed : `Sed`
+        An SED representing the sky background emission, normalized such that skysed.calc_mag(Bandpass)
+        returns the expected sky brightness in magnitudes per sq arcsecond.
+    total_bandpass : `Bandpass`
+        The Bandpass representing the total throughput of the telescope (instrument plus atmosphere).
+    hardware : `Bandpass`
+        The Bandpass representing the throughput of the telescope instrument only (no atmosphere).
+    phot_params : `PhotometricParameters`
+        The PhotometricParameters class that carries details about the
+        photometric response of the telescope.
+    fwhm_eff : `float`
+        FWHM in arcseconds.
+
+    Returns
+    -------
+    mag_5sigma : `float`
+        The value of m5 for the given bandpass and sky SED
+
+    Notes
+    -----
     The 5-sigma limiting magnitude (m5) for an observation is determined by
     a combination of the telescope and camera parameters (such as diameter
     of the mirrors and the readnoise) together with the sky background. This
     method (calc_m5) calculates the expected m5 value for an observation given
     a sky background Sed and hardware parameters.
 
-    Parameters
-    ----------
-    skysed : `Unknown`
-        is an instantiation of the Sed class representing
-        sky emission, normalized so that skysed.calc_mag gives the sky brightness
-        in magnitudes per square arcsecond.
-    total_bandpass : `Unknown`
-        is an instantiation of the Bandpass class
-        representing the total throughput of the telescope (instrumentation
-        plus atmosphere)
-    hardware : `Unknown`
-        is an instantiation of the Bandpass class representing
-        the throughput due solely to instrumentation.
-    phot_params : `Unknown`
-        is an instantiation of the
-        PhotometricParameters class that carries details about the
-        photometric response of the telescope.
-    fwhm_eff : `Unknown`
-        in arcseconds
-    returns : `Unknown`
-        the value of m5 for the given bandpass and sky SED
+    This comes from equation 45 of the SNR document (v1.2, May 2010)
+    https://docushare.lsstcorp.org/docushare/dsweb/ImageStoreViewer/LSE-40
     """
-    # This comes from equation 45 of the SNR document (v1.2, May 2010)
-    # https://docushare.lsstcorp.org/docushare/dsweb/ImageStoreViewer/LSE-40
 
     if fwhm_eff is None:
         fwhm_eff = LSSTdefaults().fwhm_eff("r")
@@ -299,13 +305,17 @@ def calc_m5(skysed, total_bandpass, hardware, phot_params, fwhm_eff=None):
 
 
 def mag_error_from_snr(snr):
-    """
-    convert flux signal to noise ratio to an error in magnitude
+    """Convert flux signal to noise ratio to an error in magnitude.
 
     Parameters
     ----------
-    snr : `Unknown`
-        is the signal to noise ratio in flux the resulting error in magnitude
+    snr : `float`
+        The signal to noise ratio (a flux-related measurement).
+
+    Returns
+    -------
+    mag_error : `float`
+        Corresponding error in magnitude.
     """
 
     # see www.ucolick.org/~bolte/AY257/s_n.pdf section 3.1
@@ -313,26 +323,26 @@ def mag_error_from_snr(snr):
 
 
 def calc_gamma(bandpass, m5, phot_params):
-    """
+    """Calculate gamma parameter.
+
     Calculate the gamma parameter used for determining photometric
     signal to noise in equation 5 of the LSST overview paper
     (arXiv:0805.2366)
 
     Parameters
     ----------
-    bandpass : `Unknown`
-        is an instantiation of the Bandpass class
-        representing the bandpass for which you desire to calculate the
-        gamma parameter
-    m5 : `Unknown`
-        is the magnitude at which a 5-sigma detection occurs
-        in this Bandpass
-    phot_params : `Unknown`
-        is an instantiation of the
-        PhotometricParameters class that carries details about the
+    bandpass : `Bandpass`
+        Bandpass for which you desire to calculate the gamma parameter.
+    m5 : `float`
+        The magnitude of a 5-sigma point source detection.
+    phot_params : `PhotometricParameters`
+        The PhotometricParameters class that carries details about the
         photometric response of the telescope.
-    gamma : `Unknown`
-        something
+
+    Returns
+    -------
+    gamma : `float`
+        The gamma value for this bandpass.
     """
     # This is based on the LSST SNR document (v1.2, May 2010)
     # https://docushare.lsstcorp.org/docushare/dsweb/ImageStoreViewer/LSE-40
@@ -374,35 +384,31 @@ def calc_gamma(bandpass, m5, phot_params):
 
 
 def calc_snr_m5(magnitude, bandpass, m5, phot_params, gamma=None):
-    """
+    """Calculate the SNR of a source based on the 5-sigma limit for an observation.
+
     Calculate signal to noise in flux using the model from equation (5) of arXiv:0805.2366
 
     Parameters
     ----------
-    magnitude : `Unknown`
-        of the sources whose signal to noise you are calculating
-        (can be a numpy array)
-    bandpass : `Unknown`
-        (an instantiation of the class Bandpass) in which the magnitude
-        was calculated
-    m5 : `Unknown`
-        is the 5-sigma limiting magnitude for the bandpass
-    phot_params : `Unknown`
-        is an instantiation of the
-        PhotometricParameters class that carries details about the
+    magnitude : `float` or `np.ndarray`, (N,)
+        Magnitudes of the sources whose signal to noise you are calculating.
+    bandpass : `Bandpass`
+        The Bandpass in which the magnitude was calculated (total instrument + atmosphere).
+    m5 : `float`
+        The 5-sigma point source limiting magnitude of the exposure.
+    phot_params : `PhotometricParameters`
+        The PhotometricParameters class that carries details about the
         photometric response of the telescope.
-    gamma : `Unknown`
-        (optional) is the gamma parameter from equation(5) of
-        arXiv:0805.2366.  If not provided, this method will calculate it.
-    snr : `Unknown`
-        is the signal to noise ratio corresponding to
-        the input magnitude.
-    gamma : `Unknown`
-        is  the calculated gamma parameter for the
-        bandpass used here (in case the user wants to call this method again).
+    gamma : `float`, opt
+        The gamma parameter from equation(5) of arXiv:0805.2366.
+        If not provided, this method will calculate it.
 
-    Note: You can also pass in a numpy array of magnitudes calculated
-    in the same bandpass with the same m5 and get a numpy array of SNR out.
+    Returns
+    -------
+    snr : `float` or `np.ndarray`, (N,)
+        The SNR of the input magnitude.
+    gamma : `float`
+        The gamma parameter for the Bandpass.
     """
 
     if gamma is None:
@@ -420,33 +426,29 @@ def calc_snr_m5(magnitude, bandpass, m5, phot_params, gamma=None):
 
 
 def calc_mag_error_m5(magnitude, bandpass, m5, phot_params, gamma=None):
-    """
-    Calculate magnitude error using the model from equation (5) of arXiv:0805.2366
+    """Calculate magnitude error using the model from equation (5) of arXiv:0805.2366
 
     Parameters
     ----------
-    magnitude : `Unknown`
-        of the source whose error you want
-        to calculate (can be a numpy array)
-    bandpass : `Unknown`
-        (an instantiation of the Bandpass class) in question
-    m5 : `Unknown`
-        is the 5-sigma limiting magnitude in that bandpass
-    phot_params : `Unknown`
-        is an instantiation of the
-        PhotometricParameters class that carries details about the
+    magnitude : `float`
+        Magnitude of the source.
+    bandpass : `Bandpass`
+        The Bandpass in which to calculate the magnitude error (total instrument + atmosphere).
+    m5 : `float`
+        The 5-sigma point source limiting magnitude.
+    phot_params : `PhotometricParameters`
+        The PhotometricParameters class that carries details about the
         photometric response of the telescope.
-    gamma : `Unknown`
-        (optional) is the gamma parameter from equation(5) of
-        arXiv:0805.2366.  If not provided, this method will calculate it.
-    the : `Unknown`
-        error associated with the magnitude
-    gamma : `Unknown`
-        is  the calculated gamma parameter for the
-        bandpass used here (in case the user wants to call this method again).
+    gamma : `float`, optional
+        The gamma parameter from equation(5) of arXiv:0805.2366.
+        If not provided, this method will calculate it.
 
-    Note: you can also pass in a numpy of array of magnitudes calculated in
-    the same Bandpass with the same m5 and get a numpy array of errors out.
+    Returns
+    -------
+    mag_error : `float` or `np.ndarray`, (N,)
+        The magnitude error of the input magnitude.
+    gamma : `float`
+        The gamma parameter for the Bandpass.
     """
 
     snr, gamma = calc_snr_m5(magnitude, bandpass, m5, phot_params, gamma=gamma)
@@ -462,15 +464,14 @@ def calc_mag_error_m5(magnitude, bandpass, m5, phot_params, gamma=None):
 
 def calc_snr_sed(
     source_sed,
-    totalbandpass,
-    skysed,
+    total_bandpass,
+    sky_sed,
     hardwarebandpass,
     phot_params,
     fwhm_eff,
     verbose=False,
 ):
-    """
-    Calculate the signal to noise ratio for a source, given the bandpass(es) and sky SED.
+    """Calculate the signal to noise ratio for a source, based on the SED.
 
     For a given source, sky sed, total bandpass and hardware bandpass, as well as
     fwhm_eff / exptime, calculates the SNR with optimal PSF extraction
@@ -478,44 +479,44 @@ def calc_snr_sed(
 
     Parameters
     ----------
-    source_sed : `Unknown`
-        is an instantiation of the Sed class containing the SED of
-        the object whose signal to noise ratio is being calculated
-    totalbandpass : `Unknown`
-        is an instantiation of the Bandpass class
-        representing the total throughput (system + atmosphere)
-    skysed : `Unknown`
-        is an instantiation of the Sed class representing
-        the sky emission per square arcsecond.
-    hardwarebandpass : `Unknown`
-        is an instantiation of the Bandpass class
-        representing just the throughput of the system hardware.
-    phot_params : `Unknown`
-        is an instantiation of the
-        PhotometricParameters class that carries details about the
+    source_sed : `Sed`
+        A SED representing the source, normalized such that source_sed.calc_mag
+        gives the desired magnitude.
+    total_bandpass : `Bandpass`
+        The Bandpass representing the total throughput of the telescope (instrument plus atmosphere).
+    sky_sed : `Sed`
+        A SED representing the sky background emission, normalized such that skysed.calc_mag(Bandpass)
+        returns the expected sky brightness in magnitudes per sq arcsecond.
+    hardware : `Bandpass`
+        The Bandpass representing the throughput of the telescope instrument only (no atmosphere).
+    phot_params : `PhotometricParameters`
+        The PhotometricParameters class that carries details about the
         photometric response of the telescope.
-    fwhm_eff : `Unknown`
-        in arcseconds
-    verbose : `Unknown`
-        is a `bool`
-    signal : `Unknown`
-        to noise ratio
+    fwhm_eff : `float`
+        FWHM in arcseconds.
+    verbose : `bool`
+        Flag as to whether to print output about SNR.
+
+    Return
+    ------
+    snr : `float`
+        Calculated SNR.
     """
 
     # Calculate the counts from the source.
-    sourcecounts = source_sed.calc_adu(totalbandpass, phot_params=phot_params)
+    sourcecounts = source_sed.calc_adu(total_bandpass, phot_params=phot_params)
 
     # Calculate the (square of the) noise due to signal poisson noise.
     noise_source_sq = sourcecounts / phot_params.gain
 
-    non_source_noise_sq = calc_total_non_source_noise_sq(skysed, hardwarebandpass, phot_params, fwhm_eff)
+    non_source_noise_sq = calc_total_non_source_noise_sq(sky_sed, hardwarebandpass, phot_params, fwhm_eff)
 
     # Calculate total noise
     noise = numpy.sqrt(noise_source_sq + non_source_noise_sq)
     # Calculate the signal to noise ratio.
     snr = sourcecounts / noise
     if verbose:
-        skycounts = skysed.calc_adu(hardwarebandpass, phot_params) * (phot_params.platescale**2)
+        skycounts = sky_sed.calc_adu(hardwarebandpass, phot_params) * (phot_params.platescale**2)
         noise_sky_sq = skycounts / phot_params.gain
         neff = calc_neff(fwhm_eff, phot_params.platescale)
         noise_instr_sq = calc_instr_noise_sq(phot_params)
@@ -535,15 +536,14 @@ def calc_snr_sed(
 
 def calc_mag_error_sed(
     source_sed,
-    totalbandpass,
-    skysed,
-    hardwarebandpass,
+    total_bandpass,
+    sky_sed,
+    hardware_bandpass,
     phot_params,
     fwhm_eff,
     verbose=False,
 ):
-    """
-    Calculate the magnitudeError for a source, given the bandpass(es) and sky SED.
+    """Calculate the magnitudeError for a source, given the bandpass(es) and sky SED.
 
     For a given source, sky sed, total bandpass and hardware bandpass, as well as
     fwhm_eff / exptime, calculates the SNR with optimal PSF extraction
@@ -551,35 +551,35 @@ def calc_mag_error_sed(
 
     Parameters
     ----------
-    source_sed : `Unknown`
-        is an instantiation of the Sed class containing the SED of
-        the object whose signal to noise ratio is being calculated
-    totalbandpass : `Unknown`
-        is an instantiation of the Bandpass class
-        representing the total throughput (system + atmosphere)
-    skysed : `Unknown`
-        is an instantiation of the Sed class representing
-        the sky emission per square arcsecond.
-    hardwarebandpass : `Unknown`
-        is an instantiation of the Bandpass class
-        representing just the throughput of the system hardware.
-    phot_params : `Unknown`
-        is an instantiation of the
-        PhotometricParameters class that carries details about the
+    source_sed : `Sed`
+        A SED representing the source, normalized such that source_sed.calc_mag
+        gives the desired magnitude.
+    total_bandpass : `Bandpass`
+        The Bandpass representing the total throughput of the telescope (instrument plus atmosphere).
+    sky_sed : `Sed`
+        A SED representing the sky background emission, normalized such that skysed.calc_mag(Bandpass)
+        returns the expected sky brightness in magnitudes per sq arcsecond.
+    hardware_bandpass : `Bandpass`
+        The Bandpass representing the throughput of the telescope instrument only (no atmosphere).
+    phot_params : `PhotometricParameters`
+        The PhotometricParameters class that carries details about the
         photometric response of the telescope.
-    fwhm_eff : `Unknown`
-        in arcseconds
-    verbose : `Unknown`
-        is a `bool`
-    magnitude : `Unknown`
-        error
+    fwhm_eff : `float`
+        FWHM in arcseconds.
+    verbose : `bool`, optional
+        Flag as to whether to print output about SNR.
+
+    Returns
+    -------
+    mag_err : `float`
+        Magnitude error in expected magnitude.
     """
 
     snr = calc_snr_sed(
         source_sed,
-        totalbandpass,
-        skysed,
-        hardwarebandpass,
+        total_bandpass,
+        sky_sed,
+        hardware_bandpass,
         phot_params,
         fwhm_eff,
         verbose=verbose,
@@ -592,10 +592,12 @@ def calc_mag_error_sed(
 
 
 def calc_astrometric_error(mag, m5, fwhm_geom=0.7, nvisit=1, systematic_floor=10):
-    """
-    Calculate an expected astrometric error.
-    Can be used to estimate this for general catalog purposes (use typical FWHM and n_visit=Number of visit).
-    Or can be used for a single visit, use actual FWHM and n_visit=1.
+    """Calculate an expected astrometric error.
+
+    The astrometric error can be estimated for catalog purposes by using the
+    typical FWHM and n_visit = total number of visits, or can be used for a single
+    visit by using the actual FWHM and n_visit =1.
+
 
     Parameters
     ----------
