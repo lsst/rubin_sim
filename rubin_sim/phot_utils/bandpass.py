@@ -123,7 +123,6 @@ class Bandpass:
         self.sb = numpy.copy(sb)
         self.bandpassname = "FromArrays"
         self._check_wavelength_sampling()
-        return
 
     def imsim_bandpass(self, imsimwavelen=500.0, wavelen_min=300, wavelen_max=1150, wavelen_step=0.1):
         """
@@ -144,7 +143,6 @@ class Bandpass:
         self.sb[abs(self.wavelen - imsimwavelen) < wavelen_step / 2.0] = 1.0
         self.bandpassname = "IMSIM"
         self._check_wavelength_sampling()
-        return
 
     def read_throughput(self, filename):
         """
@@ -203,7 +201,6 @@ class Bandpass:
         self.wavelen = self.wavelen[p]
         self.sb = self.sb[p]
         self._check_wavelength_sampling()
-        return
 
     def read_throughput_list(
         self,
@@ -256,7 +253,6 @@ class Bandpass:
             self.sb = self.sb * tempbandpass.sb
         self.bandpassname = "".join(component_list)
         self._check_wavelength_sampling()
-        return
 
     def get_bandpass(self):
         wavelen = numpy.copy(self.wavelen)
@@ -432,4 +428,3 @@ class Bandpass:
             else:
                 print(self.wavelen[i], self.sb[i], file=f)
         f.close()
-        return
