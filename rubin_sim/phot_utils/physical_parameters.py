@@ -3,8 +3,8 @@ __all__ = ("PhysicalParameters",)
 
 class PhysicalParameters:
     """
-    A class to store physical constants and other immutable parameters
-    used by the sims_phot_utils code
+    A dataclass to store physical constants and other immutable parameters
+    used by the sims_phot_utils code.
     """
 
     def __init__(self):
@@ -15,9 +15,7 @@ class PhysicalParameters:
 
     @property
     def lightspeed(self):
-        """
-        speed of light in meters per second
-        """
+        """Speed of light in meters per second."""
         return self._lightspeed
 
     @lightspeed.setter
@@ -26,9 +24,7 @@ class PhysicalParameters:
 
     @property
     def nm2m(self):
-        """
-        conversion factor to go from nm to m
-        """
+        """Conversion factor to go from nm to m."""
         return self._nm2m
 
     @nm2m.setter
@@ -37,9 +33,7 @@ class PhysicalParameters:
 
     @property
     def ergsetc2jansky(self):
-        """
-        conversion factor to go from ergs/sec/cm^2 to Janskys
-        """
+        """Conversion factor to go from ergs/sec/cm^2 to Janskys."""
         return self._ergsetc2jansky
 
     @ergsetc2jansky.setter
@@ -48,9 +42,7 @@ class PhysicalParameters:
 
     @property
     def planck(self):
-        """
-        Planck's constant in ergs*seconds
-        """
+        """Planck's constant in ergs*seconds."""
         return self._planck
 
     @planck.setter

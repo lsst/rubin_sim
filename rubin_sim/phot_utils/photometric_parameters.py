@@ -2,8 +2,8 @@ __all__ = ("PhotometricParameters", "DustValues")
 
 import numpy as np
 
-from .bandpass_dict import BandpassDict
-from .sed import Sed
+from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import Bandpass, Sed
 
 
 class DustValues:
@@ -29,7 +29,11 @@ class DustValues:
         # Calculate dust extinction values
         self.ax1 = {}
         if bandpass_dict is None:
-            bandpass_dict = BandpassDict.load_total_bandpasses_from_files(["u", "g", "r", "i", "z", "y"])
+            for f in ["u", "g", "r", "i", "z", "y"]:
+                bandpass_dict[f] = Bandpass()
+                bandpass_dict[f].read_throughput(
+                    os.path.join(get_data_dir(), "throughputs", "baseline", f"total_{f}.dat")
+                )
 
         for filtername in bandpass_dict:
             wavelen_min = bandpass_dict[filtername].wavelen.min()
