@@ -11,7 +11,37 @@ from rubin_sim.utils import _healbin, survey_start_mjd
 
 
 class ModelObservatory(OMO):
-    """A class to generate a realistic telemetry stream for the scheduler"""
+    """A class to generate a realistic telemetry stream for the scheduler
+
+    Parameters
+    ----------
+    nside : `int`
+        The healpix nside resolution
+    mjd_start : `float`
+        The MJD to start the observatory up at. Uses util to lookup default if None.
+    alt_min : `float`
+        The minimum altitude to compute models at (degrees).
+    lax_dome : `bool`
+        Passed to observatory model. If true, allows dome creep.
+    cloud_limit : `float`
+        The limit to stop taking observations if the cloud model returns something equal or higher
+    sim_to_o : `sim_targetoO`
+        If one would like to inject simulated ToOs into the telemetry stream.
+    seeing_db : `str`
+        If one would like to use an alternate seeing database, filename of sqlite file
+    park_after : `float`
+        Park the telescope after a gap longer than park_after (minutes)
+    init_load_length : `int`
+        The length of pre-scheduled sky brighntess to load initially (days).
+    alt_limit : `float`
+        Altitude limit for considering satellite streaks (degrees).
+    satellite_dt : `float`
+        The time step to use for computing satellite positions (seconds).
+    sat_nside : `int`
+        The HEALpix nside to use for satellite streak maps.
+    constellation : `rubin_sim.satellite_constellations.Constellation`
+        The satellite constellation to use.
+    """
 
     def __init__(
         self,
@@ -30,36 +60,6 @@ class ModelObservatory(OMO):
         constellation=None,
         alt_limit=20.0,
     ):
-        """
-        Parameters
-        ----------
-        nside : int (None)
-            The healpix nside resolution
-        mjd_start : float (None)
-            The MJD to start the observatory up at. Uses util to lookup default if None.
-        alt_min : float (5.)
-            The minimum altitude to compute models at (degrees).
-        lax_dome : bool (True)
-            Passed to observatory model. If true, allows dome creep.
-        cloud_limit : float (0.3)
-            The limit to stop taking observations if the cloud model returns something equal or higher
-        sim_to_o : sim_targetoO object (None)
-            If one would like to inject simulated ToOs into the telemetry stream.
-        seeing_db : filename of the seeing data database (None)
-            If one would like to use an alternate seeing database
-        park_after : float (10)
-            Park the telescope after a gap longer than park_after (minutes)
-        init_load_length : int (10)
-            The length of pre-scheduled sky brighntess to load initially (days).
-        alt_limit : `float` (20)
-            Altitude limit for considering satellite streaks (degrees).
-        satellite_dt : `float` (10)
-            The time step to use for computing satellite positions (seconds).
-        sat_nside : `int` (64)
-            The HEALpix nside to use for satellite streak maps.
-        constellation : rubin_sim.satellite_constellations.Constellation object
-            The satellite constellation to use.
-        """
         # Add in the new satellite information
         self.alt_limit = np.radians(alt_limit)
         self.satelite_dt = satellite_dt / 3600.0 / 24.0  # Seconds to days
