@@ -49,7 +49,6 @@ new wavelen/sb arrays (wavelength sampled like self)
 * calc_zp_t : calculate instrumental zeropoint for this bandpass
 * calc_eff_wavelen: calculate the effective wavelength (using both Sb and Phi) for this bandpass
 * writeThroughput : utility to write bandpass information to file
-
 """
 import gzip
 import os
@@ -67,23 +66,19 @@ __all__ = ["Bandpass"]
 class Bandpass:
     """
     Hold and use telescope throughput curves.
+
+    Parameters
+    ----------
+    wavelen : `np.ndarray`, (N,)
+        Wavelength array in nm.
+    sb : `np.ndarray`, (N,)
+        Throughput array (fraction, 0-1).
+    sampling_warning : `float`
+        If wavelength sampling lower than this, throw a warning because it might not
+        work well with Sed (nm).
     """
 
     def __init__(self, wavelen=None, sb=None, sampling_warning=0.2):
-        """
-        Initialize bandpass object, with option to pass wavelen/sb arrays in directly.
-
-        Parameters
-        ----------
-        wavelen : np.array (None)
-            Wavelength array in nm
-        sb : np.array (None)
-            Throughput array (fraction, 0-1)
-        sampling_warning : float (0.2)
-            If wavelength sampling lower than this, throw a warning because it might not
-            work well with Sed (nm).
-        """
-
         self._phys_params = PhysicalParameters()
         self.sampling_warning = sampling_warning
         self.wavelen = None
@@ -110,6 +105,18 @@ class Bandpass:
         Populate bandpass data with wavelen/sb arrays.
 
         Phi set to None.
+
+        Parameters
+        ----------
+        wavelen : `np.ndarray`, (N,)
+            Wavelength array in nm.
+        sb : `np.ndarray`, (N,)
+            Throughput array (fraction, 0-1).
+
+        Raises
+        ------
+        ValueError
+            Raised if ``wavelen`` and ``sb`` have different length.
         """
         # Check data type.
         if (isinstance(wavelen, np.ndarray) == False) or (isinstance(sb, np.ndarray) == False):
@@ -259,7 +266,7 @@ class Bandpass:
         sb = np.copy(self.sb)
         return wavelen, sb
 
-    ## utilities
+    # utilities
 
     def check_use_self(self, wavelen, sb):
         """
@@ -326,7 +333,7 @@ class Bandpass:
         self._check_wavelength_sampling()
         return wavelen_grid, sb_grid
 
-    ## more complicated bandpass functions
+    # more complicated bandpass functions
 
     def sb_tophi(self):
         """
@@ -367,9 +374,11 @@ class Bandpass:
         """
         Calculate the instrumental zeropoint for a bandpass.
 
-        @param [in] photometric_parameters is an instantiation of the
-        PhotometricParameters class that carries details about the
-        photometric response of the telescope.  Defaults to LSST values.
+        Parameters
+        ----------
+        photometric_parameters : `PhotometricParameters`
+            Details about the photometric response of the telescope.
+            Defaults to LSST values.
         """
         # ZP_t is the magnitude of a (F_nu flat) source which produced 1 count per second.
         # This is often also known as the 'instrumental zeropoint'.
