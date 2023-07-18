@@ -1,11 +1,13 @@
 # oneDSlicer - slices based on values in one data column in sim_data.
 
-import numpy as np
-from functools import wraps
 import warnings
-from rubin_sim.maf.utils import optimal_bins
-from rubin_sim.maf.stackers import ColInfo
+from functools import wraps
+
+import numpy as np
+
 from rubin_sim.maf.plots.oned_plotters import OneDBinnedData
+from rubin_sim.maf.stackers import ColInfo
+from rubin_sim.maf.utils import optimal_bins
 
 from .base_slicer import BaseSlicer
 
@@ -46,9 +48,7 @@ class OneDSlicer(BaseSlicer):
     ):
         super().__init__(verbose=verbose, badval=badval)
         if slice_col_name is None:
-            raise ValueError(
-                "slice_col_name cannot be left None - choose a data column to group data by"
-            )
+            raise ValueError("slice_col_name cannot be left None - choose a data column to group data by")
         self.slice_col_name = slice_col_name
         self.columns_needed = [slice_col_name]
         # We could try to set up the self.bins here -- but it's also possible that
@@ -125,9 +125,7 @@ class OneDSlicer(BaseSlicer):
                 nbins = np.round(bins)
                 self.bin_size = (self.bin_max - self.bin_min) / float(nbins)
             # Set bins
-            self.bins = np.arange(
-                self.bin_min, self.bin_max + self.bin_size / 2.0, self.bin_size, "float"
-            )
+            self.bins = np.arange(self.bin_min, self.bin_max + self.bin_size / 2.0, self.bin_size, "float")
         # nslice is used to stop iteration and should reflect the usable length of the bins
         self.nslice = len(self.bins) - 1
         # and "shape" refers to the length of the datavalues,
@@ -172,12 +170,8 @@ class OneDSlicer(BaseSlicer):
             if self.slice_col_name == other_slicer.slice_col_name:
                 # If slicer restored from disk or setup, then 'bins' in slice_points dict.
                 # This is preferred method to see if slicers are equal.
-                if ("bins" in self.slice_points) & (
-                    "bins" in other_slicer.slice_points
-                ):
-                    result = np.array_equal(
-                        other_slicer.slice_points["bins"], self.slice_points["bins"]
-                    )
+                if ("bins" in self.slice_points) & ("bins" in other_slicer.slice_points):
+                    result = np.array_equal(other_slicer.slice_points["bins"], self.slice_points["bins"])
                 # However, before we 'setup' the slicer with data, the slicers could be equivalent.
                 else:
                     if (self.bins is not None) and (other_slicer.bins is not None):

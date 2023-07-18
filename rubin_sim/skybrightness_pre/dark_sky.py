@@ -5,7 +5,6 @@ import numpy as np
 
 from rubin_sim.data import get_data_dir
 
-
 __all__ = ["dark_sky"]
 
 
@@ -33,8 +32,6 @@ def dark_sky(nside=32):
     dark_sky_data = np.empty(hp.nside2npix(nside), dtype=dark_sky.data.dtype)
 
     for band in dark_sky_data.dtype.names:
-        dark_sky_data[band] = hp.pixelfunc.ud_grade(
-            dark_sky.data[band], nside_out=nside
-        )
+        dark_sky_data[band] = hp.pixelfunc.ud_grade(dark_sky.data[band], nside_out=nside)
 
     return dark_sky_data

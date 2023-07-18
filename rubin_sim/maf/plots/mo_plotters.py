@@ -1,15 +1,14 @@
 from builtins import range
-import numpy as np
-import matplotlib.pyplot as plt
+
 import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+import numpy as np
 
 from .plot_handler import BasePlotter
 
 # mag_sun = -27.1 # apparent r band magnitude of the sun. this sets the band for the magnitude limit.
 # see http://www.ucolick.org/~cnaw/sun.html for apparent magnitudes in other bands.
-mag_sun = (
-    -26.74
-)  # apparent V band magnitude of the Sun (our H mags translate to V band)
+mag_sun = -26.74  # apparent V band magnitude of the Sun (our H mags translate to V band)
 km_per_au = 1.496e8
 m_per_km = 1000
 
@@ -104,12 +103,8 @@ class MetricVsH(BasePlotter):
         if albedo is not None:
             ax2 = ax.twiny()
             hmin, hmax = ax.get_xlim()
-            dmax = 2.0 * np.sqrt(
-                10 ** ((mag_sun - hmin - 2.5 * np.log10(albedo)) / 2.5)
-            )
-            dmin = 2.0 * np.sqrt(
-                10 ** ((mag_sun - hmax - 2.5 * np.log10(albedo)) / 2.5)
-            )
+            dmax = 2.0 * np.sqrt(10 ** ((mag_sun - hmin - 2.5 * np.log10(albedo)) / 2.5))
+            dmin = 2.0 * np.sqrt(10 ** ((mag_sun - hmax - 2.5 * np.log10(albedo)) / 2.5))
             dmax = dmax * km_per_au * m_per_km
             dmin = dmin * km_per_au * m_per_km
             ax2.set_xlim(dmax, dmin)
@@ -246,9 +241,7 @@ class MetricVsOrbit(BasePlotter):
         if nlevels is None:
             nlevels = 200
         levels = np.arange(v_min, v_max, (v_max - v_min) / float(nlevels))
-        plt.contourf(
-            xi, yi, binvals, levels, extend="max", zorder=0, cmap=plot_dict["cmap"]
-        )
+        plt.contourf(xi, yi, binvals, levels, extend="max", zorder=0, cmap=plot_dict["cmap"])
         cbar = plt.colorbar()
         label = plot_dict["label"]
         if label is None:

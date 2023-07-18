@@ -1,9 +1,10 @@
-import numpy as np
-import warnings
 import os
-from rubin_sim.phot_utils import Bandpass
-from rubin_sim.data import get_data_dir
+import warnings
 
+import numpy as np
+
+from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import Bandpass
 
 __all__ = ["SeeingModel"]
 
@@ -84,9 +85,7 @@ class SeeingModel:
         combined in quadrature.
         """
         self.fwhm_system_zenith = np.sqrt(
-            self.telescope_seeing**2
-            + self.optical_design_seeing**2
-            + self.camera_seeing**2
+            self.telescope_seeing**2 + self.optical_design_seeing**2 + self.camera_seeing**2
         )
 
     def __call__(self, fwhm_z, airmass):
@@ -124,9 +123,7 @@ class SeeingModel:
         if isinstance(airmass, dict):
             airmass = airmass["airmass"]
         airmass_correction = np.power(airmass, 0.6)
-        wavelen_correction = np.power(
-            self.raw_seeing_wavelength / self.eff_wavelens, 0.3
-        )
+        wavelen_correction = np.power(self.raw_seeing_wavelength / self.eff_wavelens, 0.3)
         if isinstance(airmass, np.ndarray):
             fwhm_system = self.fwhm_system_zenith * np.outer(
                 np.ones(len(wavelen_correction)), airmass_correction

@@ -1,4 +1,5 @@
 import numpy as np
+
 from .sys_eng_vals import SysEngVals
 
 __all__ = ["m5_flat_sed", "m5_scale"]
@@ -123,15 +124,11 @@ def m5_flat_sed(visit_filter, musky, fwhm_eff, exp_time, airmass, nexp=1, tau_cl
     # Calculate adjustment if readnoise is significant for exposure time
     # (see overview paper, equation 7)
     tscale = (
-        exp_time
-        / m5_flat_sed.base_exp_time
-        * np.power(10.0, -0.4 * (musky - m5_flat_sed.msky[visit_filter]))
+        exp_time / m5_flat_sed.base_exp_time * np.power(10.0, -0.4 * (musky - m5_flat_sed.msky[visit_filter]))
     )
     d_cm = 0.0
     d_cm += m5_flat_sed.d_cm_infinity[visit_filter]
-    d_cm -= 1.25 * np.log10(
-        1 + (10 ** (0.8 * m5_flat_sed.d_cm_infinity[visit_filter]) - 1) / tscale
-    )
+    d_cm -= 1.25 * np.log10(1 + (10 ** (0.8 * m5_flat_sed.d_cm_infinity[visit_filter]) - 1) / tscale)
     # Calculate m5 for 1 exp - 30s and other constants here come from definition of Cm/d_cm_infinity
     m5 = (
         m5_flat_sed.cm[visit_filter]

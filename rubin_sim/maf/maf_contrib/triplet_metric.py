@@ -5,8 +5,9 @@
 # Motivation: The detection of nonperiodic transient events can be thought of as most simply being accomplished by a set of three observations, one before the event occurs, a second after the event has begun, and a third to confirm the event is real.
 # This metric identifies the number of triplets that will occur. DelMin and DelMax set the smallest and largest intervals that can occur between the first and second point and between the second and third point. This can be set to reflect the timescales for various events. RatioMax and RatioMin set constraints on how similar the two intervals must be. RatioMin can never be less than 1.
 
-from rubin_sim.maf.metrics import BaseMetric
 import numpy as np
+
+from rubin_sim.maf.metrics import BaseMetric
 
 __all__ = ["TripletMetric", "TripletBandMetric"]
 
@@ -45,9 +46,7 @@ class TripletMetric(BaseMetric):
                 minmax2 = [timeb + delmin, timeb + delmax]
                 index3 = np.where((times > minmax2[0]) & (times < minmax2[1]))[0]
                 newadd = np.size(index3)
-                total = (
-                    total + newadd
-                )  # add all triplets with same first two observations to total
+                total = total + newadd  # add all triplets with same first two observations to total
         return total
 
 
@@ -64,9 +63,7 @@ class TripletBandMetric(BaseMetric):
         self.delmax = kwargs.pop("DelMax", 12) / 24.0  # convert minutes to hours
         self.ratiomax = kwargs.pop("RatioMax", 1000)
         self.ratiomin = kwargs.pop("RatioMin", 1)
-        super(TripletBandMetric, self).__init__(
-            col=[self.time_col, self.filter_col], **kwargs
-        )
+        super(TripletBandMetric, self).__init__(col=[self.time_col, self.filter_col], **kwargs)
         self.reduce_order = {
             "Bandu": 0,
             "Bandg": 1,
@@ -110,9 +107,7 @@ class TripletBandMetric(BaseMetric):
                     timeb = timeband[middleindex]
                     # calculate the window to look for all possible third points in
                     minmax2 = [timeb + delmin, timeb + delmax]
-                    index3 = np.where(
-                        (timeband > minmax2[0]) & (timeband < minmax2[1])
-                    )[0]
+                    index3 = np.where((timeband > minmax2[0]) & (timeband < minmax2[1]))[0]
                     # iterate over last exposure of triplet
                     for lastindex in index3:
                         timec = timeband[lastindex]

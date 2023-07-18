@@ -5,9 +5,10 @@ Formatted with black."""
 import healpy as hp
 import numpy as np
 import scipy.integrate as integrate
+
+from rubin_sim.maf.maps import DustMap, DustMap3D, StellarDensityMap
 from rubin_sim.maf.metrics import BaseMetric, CrowdingM5Metric
 from rubin_sim.phot_utils import DustValues
-from rubin_sim.maf.maps import DustMap3D, StellarDensityMap, DustMap
 
 __all__ = ["NYoungStarsMetric"]
 
@@ -41,13 +42,9 @@ class StarDensity(object):
         r : float
             Distance in kpc
         """
-        r_galac = (
-            (self.d_gc - r * np.cos(self.gall)) ** 2 + (r * np.sin(self.gall)) ** 2
-        ) ** 0.5
+        r_galac = ((self.d_gc - r * np.cos(self.gall)) ** 2 + (r * np.sin(self.gall)) ** 2) ** 0.5
 
-        exponent = (
-            -1.0 * r * np.abs(np.sin(self.galb)) / self.h_thin - r_galac / self.r_thin
-        )
+        exponent = -1.0 * r * np.abs(np.sin(self.galb)) / self.h_thin - r_galac / self.r_thin
 
         result = self.A * r**2 * np.exp(exponent)
         return result
@@ -94,7 +91,7 @@ class NYoungStarsMetric(BaseMetric):
         return_distance=False,
         crowding_error=0.25,
         use_2D_extinction=False,
-        **kwargs
+        **kwargs,
     ):
         cols = [m5_col, filter_col, seeing_col]
         maps = [
@@ -111,14 +108,7 @@ class NYoungStarsMetric(BaseMetric):
         self.ebvmap = DustMap3D()
         self.return_distance = return_distance
         units = "kpc" if self.return_distance else "N stars"
-        super().__init__(
-            cols,
-            metric_name=metric_name,
-            maps=maps,
-            units=units,
-            badval=badval,
-            **kwargs
-        )
+        super().__init__(cols, metric_name=metric_name, maps=maps, units=units, badval=badval, **kwargs)
         # Save R_x values for on-the-fly calculation of dust extinction with map
         self.r_x = DustValues().r_x.copy()
         # set return type
@@ -163,13 +153,9 @@ class NYoungStarsMetric(BaseMetric):
             for filtername in self.filters:
                 in_filt = np.where(data_slice[self.filter_col] == filtername)[0]
                 # Calculate coadded depth per filter
-                depth_m5 = 1.25 * np.log10(
-                    np.sum(10.0 ** (0.8 * data_slice[self.m5_col][in_filt]))
-                )
+                depth_m5 = 1.25 * np.log10(np.sum(10.0 ** (0.8 * data_slice[self.m5_col][in_filt])))
                 if self.crowding_error > 0:
-                    depth_crowding = self.m5crowding[filtername].run(
-                        data_slice, slice_point
-                    )
+                    depth_crowding = self.m5crowding[filtername].run(data_slice, slice_point)
                     depths[filtername] = min(depth_m5, depth_crowding)
                 else:
                     depths[filtername] = depth_m5

@@ -7,8 +7,8 @@ class CleanUpTestCase(unittest.TestCase):
         Test that sims_clean_up behaves as it should by importing a test module
         with some dummy caches, adding things to them, and then deleting them.
         """
-        from test_modules.dummy_module import a_dict_cache
-        from test_modules.dummy_module import a_list_cache
+        from test_modules.dummy_module import a_dict_cache, a_list_cache
+
         from rubin_sim.utils.code_utilities import sims_clean_up
 
         self.assertEqual(len(sims_clean_up.targets), 2)

@@ -10,11 +10,12 @@ __all__ = [
 
 # imports
 import warnings
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+
 import colorcet
 import cycler
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 # constants
 
@@ -70,9 +71,7 @@ def normalize_metric_summaries(
         summary = summary.copy()
         used_metrics = summary.columns.values
     else:
-        used_metrics = [
-            s for s in summary.columns.values if s in metric_sets.metric.values
-        ]
+        used_metrics = [s for s in summary.columns.values if s in metric_sets.metric.values]
         summary = summary.loc[:, used_metrics].copy()
 
     if summary.columns.name is None:
@@ -98,18 +97,14 @@ def normalize_metric_summaries(
 
     if metric_sets is None:
         # If no invert/mag - just do simple normalization (1 + (x-0)/x0)
-        norm_summary = 1 + (
-            summary.loc[:, :].sub(summary.loc[baseline_comparison, :], axis="columns")
-        ).div(summary.loc[baseline_comparison, :], axis="columns")
+        norm_summary = 1 + (summary.loc[:, :].sub(summary.loc[baseline_comparison, :], axis="columns")).div(
+            summary.loc[baseline_comparison, :], axis="columns"
+        )
     else:
         # Reindex metric set and remove duplicates or non-available metrics
         metric_names = [n for n in metric_sets.index.names if not n == "metric"]
         metric_sets = (
-            metric_sets.reset_index(metric_names)
-            .groupby(level="metric")
-            .first()
-            .loc[used_metrics, :]
-            .copy()
+            metric_sets.reset_index(metric_names).groupby(level="metric").first().loc[used_metrics, :].copy()
         )
 
         norm_summary = pd.DataFrame(
@@ -124,9 +119,7 @@ def normalize_metric_summaries(
         norm_summary.loc[:, direct] = summary.loc[:, direct]
 
         # invert = 1 + (1/value - 1/norm) / (1/norm) == norm / value
-        norm_summary.loc[:, metric_sets["invert"]] = (
-            1.0 / summary.loc[:, metric_sets["invert"]]
-        )
+        norm_summary.loc[:, metric_sets["invert"]] = 1.0 / summary.loc[:, metric_sets["invert"]]
 
         # mag = 1 + (1+value-norm - (1+norm-norm)) / (1+norm-norm) == 1 + (value - norm)
         norm_summary.loc[:, metric_sets["mag"]] = 1.0 + summary.loc[
@@ -143,9 +136,7 @@ def normalize_metric_summaries(
 
         # Turn the values above into the fractional difference compared with the baseline
         norm_summary.loc[:, :] = 1 + (
-            norm_summary.loc[:, :].sub(
-                norm_summary.loc[baseline_comparison, :], axis="columns"
-            )
+            norm_summary.loc[:, :].sub(norm_summary.loc[baseline_comparison, :], axis="columns")
         ).div(norm_summary.loc[baseline_comparison, :], axis="columns")
 
     # Set the index name
@@ -249,9 +240,7 @@ def plot_run_metric(
         (
             summary.rename_axis(index="run", columns="metric").copy()
             if baseline_run is None
-            else normalize_metric_summaries(
-                baseline_run, summary, metric_sets=metric_set
-            )
+            else normalize_metric_summaries(baseline_run, summary, metric_sets=metric_set)
         )
         .stack(dropna=False)
         .rename("value")
@@ -320,9 +309,7 @@ def plot_run_metric(
     marker_grow = int(np.ceil(num_colors / len(markers)))
     markers = (list(markers) * marker_grow)[:num_colors]
     ax.set_prop_cycle(
-        cycler.cycler(color=colors)
-        + cycler.cycler(linestyle=linestyles)
-        + cycler.cycler(marker=markers)
+        cycler.cycler(color=colors) + cycler.cycler(linestyle=linestyles) + cycler.cycler(marker=markers)
     )
 
     plot_df.set_index("color", inplace=True)
@@ -384,9 +371,7 @@ def plot_run_metric(
             low_shade_top = 1 - shade_fraction
             low_shade_bottom = ax.get_ylim()[0]
             if low_shade_top > low_shade_bottom:
-                ax.fill_between(
-                    xlim, low_shade_bottom, low_shade_top, color="r", alpha=0.1
-                )
+                ax.fill_between(xlim, low_shade_bottom, low_shade_top, color="r", alpha=0.1)
 
         elif horizontal_quantity == "value":
             ylim = ax.get_ylim()
@@ -404,9 +389,7 @@ def plot_run_metric(
             low_shade_right = 1 - shade_fraction
             low_shade_left = ax.get_xlim()[0]
             if low_shade_right > low_shade_left:
-                ax.fill_betweenx(
-                    ylim, low_shade_left, low_shade_right, color="r", alpha=0.1
-                )
+                ax.fill_betweenx(ylim, low_shade_left, low_shade_right, color="r", alpha=0.1)
 
     if horizontal_quantity in ["run", "metric"]:
         ax.tick_params("x", labelrotation=90)
@@ -473,9 +456,7 @@ def plot_run_metric_mesh(
     else:
         norm_summary = summary.rename_axis(index="run", columns="metric").copy()
 
-    if color_range is not None and (
-        isinstance(color_range, float) or isinstance(color_range, int)
-    ):
+    if color_range is not None and (isinstance(color_range, float) or isinstance(color_range, int)):
         vmin = 1 - color_range / 2
         vmax = vmin + color_range
     elif isinstance(color_range, list):
@@ -514,9 +495,7 @@ def plot_run_metric_mesh(
             # When there are multiple metric families specified,
             # there might be duplicate elements in the
             # metric_label_map. Remove the duplicates.
-            metric_label_map = metric_label_map[
-                ~metric_label_map.index.duplicated(keep="first")
-            ]
+            metric_label_map = metric_label_map[~metric_label_map.index.duplicated(keep="first")]
         except AttributeError:
             # if metric_label_map is a dict, it won't have
             # an index attrubute, but there isn't any danger
@@ -530,8 +509,7 @@ def plot_run_metric_mesh(
             inverted_metrics = set()
 
         metric_labels = [
-            f"1/{metric_label_map[m]}" if m in inverted_metrics else metric_label_map[m]
-            for m in metrics
+            f"1/{metric_label_map[m]}" if m in inverted_metrics else metric_label_map[m] for m in metrics
         ]
 
     ax.set_yticklabels(metric_labels)

@@ -1,11 +1,12 @@
+import sys
+import warnings
+
 import numpy as np
 import numpy.lib.recfunctions as rfn
-from .offsets import OffsetSNR
 from scipy.spatial import cKDTree as kdtree
-import warnings
-from .star_tools import stars_project, assign_patches
-import sys
 
+from .offsets import OffsetSNR
+from .star_tools import assign_patches, stars_project
 
 __all__ = ["generate_catalog"]
 
@@ -156,10 +157,7 @@ def generate_catalog(
 
         # Calculate the uncertainty in the observed mag:
         mag_err = (
-            mag_uncert.calc_mag_errors(
-                obs_mag, err_only=True, m5=visit["fiveSigmaDepth"]
-            )
-            ** 2
+            mag_uncert.calc_mag_errors(obs_mag, err_only=True, m5=visit["fiveSigmaDepth"]) ** 2
             + uncert_floor**2
         ) ** 0.5
 

@@ -1,18 +1,15 @@
-import unittest
 import os
+import shutil
+import tempfile
+import unittest
+import warnings
+
 import numpy as np
 import pandas as pd
 from astropy.time import Time
-import tempfile
-import shutil
-import warnings
 
-from rubin_sim.moving_objects import Orbits
-from rubin_sim.moving_objects import PyOrbEphemerides
-from rubin_sim.moving_objects import ChebyFits
-from rubin_sim.moving_objects import ChebyValues
 from rubin_sim.data import get_data_dir
-
+from rubin_sim.moving_objects import ChebyFits, ChebyValues, Orbits, PyOrbEphemerides
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -25,9 +22,7 @@ class TestChebyValues(unittest.TestCase):
         self.resid_file = os.path.join(self.scratch_dir, "test_resids")
         self.failed_file = os.path.join(self.scratch_dir, "test_failed")
         self.orbits = Orbits()
-        self.orbits.read_orbits(
-            os.path.join(self.testdatadir, "test_orbitsNEO.s3m"), skiprows=1
-        )
+        self.orbits.read_orbits(os.path.join(self.testdatadir, "test_orbitsNEO.s3m"), skiprows=1)
         self.pyephems = PyOrbEphemerides()
         self.pyephems.set_orbits(self.orbits)
         self.t_start = self.orbits.orbits.epoch.iloc[0]
@@ -49,9 +44,7 @@ class TestChebyValues(unittest.TestCase):
         self.set_length = 0.5
         self.cheby_fits.calc_segment_length(length=self.set_length)
         self.cheby_fits.calc_segments()
-        self.cheby_fits.write(
-            self.coeff_file, self.resid_file, self.failed_file, append=False
-        )
+        self.cheby_fits.write(self.coeff_file, self.resid_file, self.failed_file, append=False)
         self.coeff_keys = [
             "obj_id",
             "t_start",
@@ -76,9 +69,7 @@ class TestChebyValues(unittest.TestCase):
         for k in self.coeff_keys:
             self.assertTrue(k in cheby_values.coeffs)
             self.assertTrue(isinstance(cheby_values.coeffs[k], np.ndarray))
-        self.assertEqual(
-            len(np.unique(cheby_values.coeffs["obj_id"])), len(self.orbits)
-        )
+        self.assertEqual(len(np.unique(cheby_values.coeffs["obj_id"])), len(self.orbits))
         # This will only be true for carefully selected length/orbit type, where subdivision did not occur.
         # For the test MBAs, a len=1day will work.
         # For the test NEOs, a len=0.25 day will work (with 2.5mas skyTol).
@@ -102,9 +93,7 @@ class TestChebyValues(unittest.TestCase):
                 # All of these will only be accurate to 2 less decimal places than they are
                 # print out with in chebyFits. Since vmag, delta and elongation only use 7
                 # decimal places, this means we can test to 5 decimal places for those.
-                np.testing.assert_allclose(
-                    cheby_values.coeffs[k], cheby_values2.coeffs[k], rtol=0, atol=1e-5
-                )
+                np.testing.assert_allclose(cheby_values.coeffs[k], cheby_values2.coeffs[k], rtol=0, atol=1e-5)
 
     def test_get_ephemerides(self):
         # Test that get_ephemerides works and is accurate.
@@ -125,17 +114,11 @@ class TestChebyValues(unittest.TestCase):
         # RA and Dec should agree to 2.5mas (sky_tolerance above)
         pos_residuals = np.sqrt(
             (ephemerides["ra"] - pyephemerides["ra"]) ** 2
-            + (
-                (ephemerides["dec"] - pyephemerides["dec"])
-                * np.cos(np.radians(ephemerides["dec"]))
-            )
-            ** 2
+            + ((ephemerides["dec"] - pyephemerides["dec"]) * np.cos(np.radians(ephemerides["dec"]))) ** 2
         )
         pos_residuals *= 3600.0 * 1000.0
         if not np.all(np.isfinite(ephemerides["ra"])):
-            warnings.warn(
-                "NaN values from ChebyValues.get_ephemerides, skipping some tests"
-            )
+            warnings.warn("NaN values from ChebyValues.get_ephemerides, skipping some tests")
         else:
             # Let's just look at the max residuals in all quantities.
             for k in ("ra", "dec", "dradt", "ddecdt", "geo_dist"):
@@ -159,8 +142,7 @@ class TestChebyValues(unittest.TestCase):
             )
             self.assertTrue(
                 np.isnan(ephemerides["ra"][0]),
-                msg="Expected Nan for out of range ephemeris, got %.2e"
-                % (ephemerides["ra"][0]),
+                msg="Expected Nan for out of range ephemeris, got %.2e" % (ephemerides["ra"][0]),
             )
 
 
@@ -174,9 +156,7 @@ class TestJPLValues(unittest.TestCase):
         self.jpl_dir = os.path.join(get_data_dir(), "tests", "jpl_testdata")
         self.orbits.read_orbits(os.path.join(self.jpl_dir, "S0_n747.des"), skiprows=1)
         # Read JPL ephems.
-        self.jpl = pd.read_table(
-            os.path.join(self.jpl_dir, "807_n747.txt"), delim_whitespace=True
-        )
+        self.jpl = pd.read_table(os.path.join(self.jpl_dir, "807_n747.txt"), delim_whitespace=True)
         self.jpl["obj_id"] = self.jpl["objId"]
         # Add times in TAI and UTC, because.
         t = Time(self.jpl["epoch_mjd"], format="mjd", scale="utc")
@@ -234,16 +214,8 @@ class TestJPLValues(unittest.TestCase):
             # Sometimes I've had to reorder both, sometimes just the ephs. ??
             jorder = np.argsort(j["obj_id"])
             jorder = np.arange(0, len(jorder))
-            d_ra = (
-                np.abs(ephs["ra"][ephorder][:, 0] - j["ra_deg"][jorder])
-                * 3600.0
-                * 1000.0
-            )
-            d_dec = (
-                np.abs(ephs["dec"][ephorder][:, 0] - j["dec_deg"][jorder])
-                * 3600.0
-                * 1000.0
-            )
+            d_ra = np.abs(ephs["ra"][ephorder][:, 0] - j["ra_deg"][jorder]) * 3600.0 * 1000.0
+            d_dec = np.abs(ephs["dec"][ephorder][:, 0] - j["dec_deg"][jorder]) * 3600.0 * 1000.0
             delta_ra[i] = d_ra.max()
             delta_dec[i] = d_dec.max()
         # Should be (given OOrb direct prediction):

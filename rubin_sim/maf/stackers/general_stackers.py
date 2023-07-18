@@ -1,9 +1,12 @@
 import warnings
+
 import numpy as np
 import palpy
-from rubin_sim.utils import Site, m5_flat_sed
-from .base_stacker import BaseStacker
+
 from rubin_sim.maf.utils import load_inst_zeropoints
+from rubin_sim.utils import Site, m5_flat_sed
+
+from .base_stacker import BaseStacker
 
 __all__ = [
     "NormAirmassStacker",
@@ -78,19 +81,10 @@ class SaturationStacker(BaseStacker):
         for filtername in np.unique(sim_data[self.filter_col]):
             in_filt = np.where(sim_data[self.filter_col] == filtername)[0]
             # Calculate the length of the on-sky time per EXPOSURE
-            exptime = (
-                sim_data[self.exptime_col][in_filt] / sim_data[self.nexp_col][in_filt]
-            )
+            exptime = sim_data[self.exptime_col][in_filt] / sim_data[self.nexp_col][in_filt]
             # Calculate sky counts per pixel per second from skybrightness + zeropoint (e/1s)
             sky_counts = (
-                10.0
-                ** (
-                    0.4
-                    * (
-                        self.zeropoints[filtername]
-                        - sim_data[self.skybrightness_col][in_filt]
-                    )
-                )
+                10.0 ** (0.4 * (self.zeropoints[filtername] - sim_data[self.skybrightness_col][in_filt]))
                 * self.pixscale**2
             )
             # Total sky counts in each exposure
@@ -100,15 +94,11 @@ class SaturationStacker(BaseStacker):
             remaining_counts_peak = self.saturation_e - sky_counts
             # Now to figure out how many counts there would be total, if there are that many in the peak
             sigma = sim_data[self.seeing_col][in_filt] / 2.354
-            source_counts = (
-                remaining_counts_peak * 2.0 * np.pi * (sigma / self.pixscale) ** 2
-            )
+            source_counts = remaining_counts_peak * 2.0 * np.pi * (sigma / self.pixscale) ** 2
             # source counts = counts per exposure (expTimeCol / nexp)
             # Translate to counts per second, to apply zeropoint
             count_rate = source_counts / exptime
-            sim_data["saturation_mag"][in_filt] = (
-                -2.5 * np.log10(count_rate) + self.zeropoints[filtername]
-            )
+            sim_data["saturation_mag"][in_filt] = -2.5 * np.log10(count_rate) + self.zeropoints[filtername]
             # Airmass correction
             sim_data["saturation_mag"][in_filt] -= self.km[filtername] * (
                 sim_data[self.airmass_col][in_filt] - 1.0
@@ -257,14 +247,9 @@ class ParallaxFactorStacker(BaseStacker):
         Input radians.
         """
         # also used in Global Telescope Network website
-        cosc = np.sin(deccen) * np.sin(dec1) + np.cos(deccen) * np.cos(dec1) * np.cos(
-            ra1 - r_acen
-        )
+        cosc = np.sin(deccen) * np.sin(dec1) + np.cos(deccen) * np.cos(dec1) * np.cos(ra1 - r_acen)
         x = np.cos(dec1) * np.sin(ra1 - r_acen) / cosc
-        y = (
-            np.cos(deccen) * np.sin(dec1)
-            - np.sin(deccen) * np.cos(dec1) * np.cos(ra1 - r_acen)
-        ) / cosc
+        y = (np.cos(deccen) * np.sin(dec1) - np.sin(deccen) * np.cos(dec1) * np.cos(ra1 - r_acen)) / cosc
         return x, y
 
     def _run(self, sim_data, cols_present=False):
@@ -286,13 +271,9 @@ class ParallaxFactorStacker(BaseStacker):
         for i, ack in enumerate(sim_data):
             mtoa_params = palpy.mappa(2000.0, sim_data[self.date_col][i])
             # Object with a 1 arcsec parallax
-            ra_geo1[i], dec_geo1[i] = palpy.mapqk(
-                ra[i], dec[i], 0.0, 0.0, 1.0, 0.0, mtoa_params
-            )
+            ra_geo1[i], dec_geo1[i] = palpy.mapqk(ra[i], dec[i], 0.0, 0.0, 1.0, 0.0, mtoa_params)
             # Object with no parallax
-            ra_geo[i], dec_geo[i] = palpy.mapqk(
-                ra[i], dec[i], 0.0, 0.0, 0.0, 0.0, mtoa_params
-            )
+            ra_geo[i], dec_geo[i] = palpy.mapqk(ra[i], dec[i], 0.0, 0.0, 0.0, 0.0, mtoa_params)
         x_geo1, y_geo1 = self._gnomonic_project_toxy(ra_geo1, dec_geo1, ra, dec)
         x_geo, y_geo = self._gnomonic_project_toxy(ra_geo, dec_geo, ra, dec)
         # Return ra_pi_amp and dec_pi_amp in arcseconds.
@@ -476,9 +457,7 @@ class ParallacticAngleStacker(BaseStacker):
         self.site = Site(name=site)
         self.units = ["radians"]
         self.cols_req = [self.ra_col, self.dec_col, self.mjd_col, self.lst_col]
-        self.ha_stacker = HourAngleStacker(
-            lst_col=lst_col, ra_col=ra_col, degrees=self.degrees
-        )
+        self.ha_stacker = HourAngleStacker(lst_col=lst_col, ra_col=ra_col, degrees=self.degrees)
 
     def _run(self, sim_data, cols_present=False):
         # Equation from:

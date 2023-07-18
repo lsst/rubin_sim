@@ -1,7 +1,9 @@
 import os
 import sqlite3
+
 import numpy as np
 from astropy.time import Time
+
 from rubin_sim.data import get_data_dir
 
 __all__ = ["SeeingData"]
@@ -32,9 +34,7 @@ class SeeingData(object):
     def __init__(self, start_time, seeing_db=None, offset_year=0):
         self.seeing_db = seeing_db
         if self.seeing_db is None:
-            self.seeing_db = os.path.join(
-                get_data_dir(), "site_models", "simsee_pachon_58777_13.db"
-            )
+            self.seeing_db = os.path.join(get_data_dir(), "site_models", "simsee_pachon_58777_13.db")
 
         # Seeing database starts in Jan 01 of the year of the start of the simulation
         year_start = start_time.datetime.year + offset_year

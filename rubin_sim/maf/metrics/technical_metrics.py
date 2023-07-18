@@ -1,5 +1,7 @@
 from builtins import zip
+
 import numpy as np
+
 from .base_metric import BaseMetric
 
 __all__ = [
@@ -59,10 +61,7 @@ class MinTimeBetweenStatesMetric(BaseMetric):
     def run(self, data_slice, slice_point=None):
         # Sort on time, to be sure we've got filter (or other col) changes in the right order.
         idxs = np.argsort(data_slice[self.time_col])
-        changes = (
-            data_slice[self.change_col][idxs][1:]
-            != data_slice[self.change_col][idxs][:-1]
-        )
+        changes = data_slice[self.change_col][idxs][1:] != data_slice[self.change_col][idxs][:-1]
         condition = np.where(changes == True)[0]
         changetimes = data_slice[self.time_col][idxs][1:][condition]
         prevchangetime = np.concatenate(
@@ -113,10 +112,7 @@ class NStateChangesFasterThanMetric(BaseMetric):
     def run(self, data_slice, slice_point=None):
         # Sort on time, to be sure we've got filter (or other col) changes in the right order.
         idxs = np.argsort(data_slice[self.time_col])
-        changes = (
-            data_slice[self.change_col][idxs][1:]
-            != data_slice[self.change_col][idxs][:-1]
-        )
+        changes = data_slice[self.change_col][idxs][1:] != data_slice[self.change_col][idxs][:-1]
         condition = np.where(changes == True)[0]
         changetimes = data_slice[self.time_col][idxs][1:][condition]
         prevchangetime = np.concatenate(
@@ -169,10 +165,7 @@ class MaxStateChangesWithinMetric(BaseMetric):
             return 0
         # Sort on time, to be sure we've got filter (or other col) changes in the right order.
         idxs = np.argsort(data_slice[self.time_col])
-        changes = (
-            data_slice[self.change_col][idxs][:-1]
-            != data_slice[self.change_col][idxs][1:]
-        )
+        changes = data_slice[self.change_col][idxs][:-1] != data_slice[self.change_col][idxs][1:]
         condition = np.where(changes == True)[0]
         changetimes = data_slice[self.time_col][idxs][1:][condition]
         # If there are 0 filter changes ...
@@ -240,12 +233,8 @@ class TeffMetric(BaseMetric):
             self.comment = "Normalized effective time"
         else:
             self.comment = "Effect time"
-        self.comment += (
-            " of a series of observations, evaluating the equivalent amount of time"
-        )
-        self.comment += (
-            " each observation would require if taken at a fiducial limiting magnitude."
-        )
+        self.comment += " of a series of observations, evaluating the equivalent amount of time"
+        self.comment += " each observation would require if taken at a fiducial limiting magnitude."
         self.comment += " Fiducial depths are : %s" % self.depth
         if self.normed:
             self.comment += " Normalized by the total amount of time actual on-sky."
@@ -255,9 +244,7 @@ class TeffMetric(BaseMetric):
         teff = 0.0
         for f in filters:
             match = np.where(data_slice[self.filter_col] == f)[0]
-            teff += (
-                10.0 ** (0.8 * (data_slice[self.m5_col][match] - self.depth[f]))
-            ).sum()
+            teff += (10.0 ** (0.8 * (data_slice[self.m5_col][match] - self.depth[f]))).sum()
         teff *= self.teff_base
         if self.normed:
             # Normalize by the t_eff if each observation was at the fiducial depth.
@@ -287,10 +274,10 @@ class OpenShutterFractionMetric(BaseMetric):
             units="OpenShutter/TotalTime",
             **kwargs,
         )
-        self.comment = (
-            "Open shutter time (%s total) divided by total visit time "
-            "(%s) + slewtime (%s)."
-            % (self.exp_time_col, self.visit_time_col, self.slew_time_col)
+        self.comment = "Open shutter time (%s total) divided by total visit time " "(%s) + slewtime (%s)." % (
+            self.exp_time_col,
+            self.visit_time_col,
+            self.slew_time_col,
         )
 
     def run(self, data_slice, slice_point=None):

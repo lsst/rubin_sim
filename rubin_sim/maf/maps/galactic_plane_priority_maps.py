@@ -1,12 +1,13 @@
 import os
 import warnings
-import numpy as np
-import healpy as hp
-from astropy.io import fits
-from rubin_sim.data import get_data_dir
-from rubin_sim.maf.utils import radec2pix
-from rubin_sim.maf.maps import BaseMap
 
+import healpy as hp
+import numpy as np
+from astropy.io import fits
+
+from rubin_sim.data import get_data_dir
+from rubin_sim.maf.maps import BaseMap
+from rubin_sim.maf.utils import radec2pix
 
 __all__ = [
     "gp_priority_map_components_to_keys",
@@ -122,9 +123,7 @@ def galplane_priority_map(
             maps = {}
             for k in galplane_priority_map.keys:
                 f, s = gp_priority_map_keys_to_components(k)
-                maps[k] = hp.get_interp_val(
-                    galplane_priority_map.maps[f][s], np.pi / 2.0 - dec, ra
-                )
+                maps[k] = hp.get_interp_val(galplane_priority_map.maps[f][s], np.pi / 2.0 - dec, ra)
         else:  # just find nearest neighbor pixel value and return those
             pixels = radec2pix(nside, ra, dec)
             maps = {}

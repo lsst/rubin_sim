@@ -1,6 +1,8 @@
+import os
+
 import numpy as np
 import sqlalchemy as sqla
-import os
+
 from rubin_sim.data import get_data_dir
 
 # Tools for using an all-sky sqlite DB with cannon and photodiode data from the site.
@@ -15,14 +17,11 @@ def all_sky_db(date_id, sql_q=None, dtypes=None, db_address=None, filt="R"):
     """
     if db_address is None:
         data_path = os.path.join(get_data_dir(), "skybrightness")
-        db_address = "sqlite:///" + os.path.join(
-            data_path, "photometry", "skydata.sqlite"
-        )
+        db_address = "sqlite:///" + os.path.join(data_path, "photometry", "skydata.sqlite")
     if sql_q is None:
         sql_q = (
             "select stars.ra, stars.dec,  obs.alt, obs.starMag, obs.sky, obs.filter from obs, "
-            'stars where obs.starID = stars.ID and obs.filter = "%s" and obs.dateID = %i;'
-            % (filt, date_id)
+            'stars where obs.starID = stars.ID and obs.filter = "%s" and obs.dateID = %i;' % (filt, date_id)
         )
     if dtypes is None:
         names = ["ra", "dec", "alt", "starMag", "sky", "filter"]
@@ -50,16 +49,11 @@ def all_sky_db(date_id, sql_q=None, dtypes=None, db_address=None, filt="R"):
 def diode_sky_db(mid_mjd, sql_q=None, dtypes=None, db_address=None, clean=True):
     if db_address is None:
         data_path = os.getenv("SIMS_SKYBRIGHTNESS_DATA_DIR")
-        db_address = "sqlite:///" + os.path.join(
-            data_path, "photometry", "skydata.sqlite"
-        )
+        db_address = "sqlite:///" + os.path.join(data_path, "photometry", "skydata.sqlite")
     if sql_q is None:
-        sql_q = (
-            "select mjd, R, Y, Z from photdiode where mjd > %f-1 and  mjd < %f+1"
-            % (
-                mid_mjd,
-                mid_mjd,
-            )
+        sql_q = "select mjd, R, Y, Z from photdiode where mjd > %f-1 and  mjd < %f+1" % (
+            mid_mjd,
+            mid_mjd,
         )
     if dtypes is None:
         names = ["mjd", "r", "y", "z"]

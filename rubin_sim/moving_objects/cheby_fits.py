@@ -1,9 +1,11 @@
 import os
 import warnings
+
 import numpy as np
+
 from .chebyshev_utils import chebfit, make_cheb_matrix, make_cheb_matrix_only_x
-from .orbits import Orbits
 from .ooephemerides import PyOrbEphemerides, get_oorb_data_dir
+from .orbits import Orbits
 
 __all__ = ["ChebyFits"]
 
@@ -164,18 +166,10 @@ class ChebyFits(object):
         # The nPoints are predetermined here, based on Yusra's earlier work.
         # The weight is based on Newhall, X. X. 1989, Celestial Mechanics, 45, p. 305-310
         self.multipliers = {}
-        self.multipliers["position"] = make_cheb_matrix(
-            self.ngran + 1, self.n_coeff["position"], weight=0.16
-        )
-        self.multipliers["vmag"] = make_cheb_matrix_only_x(
-            self.ngran + 1, self.n_coeff["vmag"]
-        )
-        self.multipliers["geo_dist"] = make_cheb_matrix_only_x(
-            self.ngran + 1, self.n_coeff["geo_dist"]
-        )
-        self.multipliers["elongation"] = make_cheb_matrix_only_x(
-            self.ngran + 1, self.n_coeff["elongation"]
-        )
+        self.multipliers["position"] = make_cheb_matrix(self.ngran + 1, self.n_coeff["position"], weight=0.16)
+        self.multipliers["vmag"] = make_cheb_matrix_only_x(self.ngran + 1, self.n_coeff["vmag"])
+        self.multipliers["geo_dist"] = make_cheb_matrix_only_x(self.ngran + 1, self.n_coeff["geo_dist"])
+        self.multipliers["elongation"] = make_cheb_matrix_only_x(self.ngran + 1, self.n_coeff["elongation"])
 
     def _length_to_timestep(self, length):
         """Convert chebyshev polynomial segment lengths to the corresponding timestep over the segment.
@@ -205,9 +199,7 @@ class ChebyFits(object):
         try:
             self.length
         except AttributeError:
-            raise AttributeError(
-                "Need to set self.timestep first, using calcSegmentLength."
-            )
+            raise AttributeError("Need to set self.timestep first, using calcSegmentLength.")
         timestep = self._length_to_timestep(self.length)
         times = np.arange(self.t_start, self.t_end + timestep / 2, timestep)
         return times
@@ -249,9 +241,7 @@ class ChebyFits(object):
         counter = 0
         prev_int_factor = 0
         num_tolerance = 10.0 ** (-1 * (self.n_decimal - 1))
-        while (
-            ((self.t_span % length) > num_tolerance) and (length > 0) and (counter < 20)
-        ):
+        while ((self.t_span % length) > num_tolerance) and (length > 0) and (counter < 20):
             int_factor = int(self.t_span / length) + 1  # round up / ceiling
             if int_factor == prev_int_factor:
                 int_factor = prev_int_factor + 1
@@ -309,8 +299,7 @@ class ChebyFits(object):
             if pos_resid > self.sky_tolerance:
                 warnings.warn(
                     "Will set length and timestep, but this value of length "
-                    "produces residuals (%f) > skyTolerance (%f)."
-                    % (pos_resid, self.sky_tolerance)
+                    "produces residuals (%f) > skyTolerance (%f)." % (pos_resid, self.sky_tolerance)
                 )
             self.length = length
             return
@@ -343,9 +332,7 @@ class ChebyFits(object):
         pos_resid, ratio = self._test_residuals(length)
         counter = 0
         # Now should be relatively close. Start to zero in using slope around the value.ngran
-        while (
-            pos_resid > self.sky_tolerance and counter <= max_iterations and length > 0
-        ):
+        while pos_resid > self.sky_tolerance and counter <= max_iterations and length > 0:
             length = length / 2
             length = self._round_length(length)
             pos_resid, ratio = self._test_residuals(length)
@@ -355,13 +342,10 @@ class ChebyFits(object):
             # Add this entire segment into the failed list.
             for obj_id in self.orbits_obj.orbits["obj_id"].as_matrix():
                 self.failed.append((obj_id, self.t_start, self.t_end))
-            error_message = (
-                "Could not find good segment length to meet skyTolerance %f"
-                % (self.sky_tolerance)
+            error_message = "Could not find good segment length to meet skyTolerance %f" % (
+                self.sky_tolerance
             )
-            error_message += " milliarcseconds within %d iterations. " % (
-                max_iterations
-            )
+            error_message += " milliarcseconds within %d iterations. " % (max_iterations)
             error_message += "Final residual was %f milli-arcseconds." % (pos_resid)
             raise ValueError(error_message)
         else:
@@ -403,9 +387,7 @@ class ChebyFits(object):
             dx_multiplier=self.multipliers["position"][1],
             n_poly=self.n_coeff["position"],
         )
-        max_pos_resid = np.max(
-            np.sqrt(resid_dec**2 + (resid_ra * np.cos(np.radians(ephs["dec"]))) ** 2)
-        )
+        max_pos_resid = np.max(np.sqrt(resid_dec**2 + (resid_ra * np.cos(np.radians(ephs["dec"]))) ** 2))
         # Convert position residuals to mas.
         max_pos_resid *= 3600.0 * 1000.0
         return coeff_ra, coeff_dec, max_pos_resid
@@ -427,9 +409,7 @@ class ChebyFits(object):
         """
         coeffs = {}
         max_resids = {}
-        for key, ephValue in zip(
-            ("geo_dist", "vmag", "elongation"), ("geo_dist", "magV", "solarelon")
-        ):
+        for key, ephValue in zip(("geo_dist", "vmag", "elongation"), ("geo_dist", "magV", "solarelon")):
             coeffs[key], resid, rms, max_resids[key] = chebfit(
                 ephs["time"],
                 ephs[ephValue],
@@ -455,9 +435,7 @@ class ChebyFits(object):
                 # Identify the subset of times and ephemerides which are relevant for this segment
                 # (at the default segment size).
                 t_segment_end = round(t_segment_start + self.length, self.n_decimal)
-                subset = np.where(
-                    (times >= t_segment_start) & (times < t_segment_end + eps)
-                )
+                subset = np.where((times >= t_segment_start) & (times < t_segment_end + eps))
                 self.calc_one_segment(orbit_obj, e[subset])
                 t_segment_start = t_segment_end
 
@@ -493,9 +471,7 @@ class ChebyFits(object):
                     "Fit failed for orbit_obj %s for times between %f and %f"
                     % (obj_id, t_segment_start, t_segment_end)
                 )
-                self.failed.append(
-                    (orbit_obj.orbits["obj_id"], t_segment_start, t_segment_end)
-                )
+                self.failed.append((orbit_obj.orbits["obj_id"], t_segment_start, t_segment_end))
             else:
                 # Consolidate items into the tracked coefficient values.
                 self.coeffs["obj_id"].append(obj_id)
@@ -587,22 +563,11 @@ class ChebyFits(object):
         # Write a header to the coefficients file, if writing to a new file:
         if (not append) or (not os.path.isfile(coeff_file)):
             header = "obj_id t_start t_end "
-            header += (
-                " ".join(["ra_%d" % x for x in range(self.n_coeff["position"])]) + " "
-            )
-            header += (
-                " ".join(["dec_%d" % x for x in range(self.n_coeff["position"])]) + " "
-            )
-            header += (
-                " ".join(["geo_dist_%d" % x for x in range(self.n_coeff["geo_dist"])])
-                + " "
-            )
-            header += (
-                " ".join(["vmag_%d" % x for x in range(self.n_coeff["vmag"])]) + " "
-            )
-            header += " ".join(
-                ["elongation_%d" % x for x in range(self.n_coeff["elongation"])]
-            )
+            header += " ".join(["ra_%d" % x for x in range(self.n_coeff["position"])]) + " "
+            header += " ".join(["dec_%d" % x for x in range(self.n_coeff["position"])]) + " "
+            header += " ".join(["geo_dist_%d" % x for x in range(self.n_coeff["geo_dist"])]) + " "
+            header += " ".join(["vmag_%d" % x for x in range(self.n_coeff["vmag"])]) + " "
+            header += " ".join(["elongation_%d" % x for x in range(self.n_coeff["elongation"])])
         else:
             header = None
         if (not append) or (not os.path.isfile(resid_file)):

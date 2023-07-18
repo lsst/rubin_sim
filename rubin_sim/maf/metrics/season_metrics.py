@@ -3,9 +3,11 @@ In addition, these supports the time delay metric calculation for strong lensing
 """
 
 import numpy as np
-from .base_metric import BaseMetric
+
 from rubin_sim.phot_utils import DustValues
 from rubin_sim.utils import calc_season
+
+from .base_metric import BaseMetric
 
 __all__ = [
     "find_season_edges",
@@ -60,7 +62,7 @@ class SeasonLengthMetric(BaseMetric):
         min_exp_time=16,
         reduce_func=np.median,
         metric_name="SeasonLength",
-        **kwargs
+        **kwargs,
     ):
         units = "days"
         self.mjd_col = mjd_col
@@ -68,10 +70,7 @@ class SeasonLengthMetric(BaseMetric):
         self.min_exp_time = min_exp_time
         self.reduce_func = reduce_func
         super().__init__(
-            col=[self.mjd_col, self.exp_time_col],
-            units=units,
-            metric_name=metric_name,
-            **kwargs
+            col=[self.mjd_col, self.exp_time_col], units=units, metric_name=metric_name, **kwargs
         )
 
     def run(self, data_slice, slice_point):
@@ -99,9 +98,7 @@ class SeasonLengthMetric(BaseMetric):
         # SlicePoints ra/dec are always in radians - convert to degrees to calculate season
         seasons = calc_season(np.degrees(slice_point["ra"]), data[self.mjd_col])
         first_of_season, last_of_season = find_season_edges(seasons)
-        seasonlengths = (
-            data[self.mjd_col][last_of_season] - data[self.mjd_col][first_of_season]
-        )
+        seasonlengths = data[self.mjd_col][last_of_season] - data[self.mjd_col][first_of_season]
         result = self.reduce_func(seasonlengths)
         return result
 
@@ -112,11 +109,7 @@ class CampaignLengthMetric(BaseMetric):
     """
 
     def __init__(
-        self,
-        mjd_col="observationStartMJD",
-        exp_time_col="visitExposureTime",
-        min_exp_time=20,
-        **kwargs
+        self, mjd_col="observationStartMJD", exp_time_col="visitExposureTime", min_exp_time=20, **kwargs
     ):
         units = ""
         self.exp_time_col = exp_time_col
@@ -147,16 +140,14 @@ class MeanCampaignFrequencyMetric(BaseMetric):
         exp_time_col="visitExposureTime",
         min_exp_time=20,
         night_col="night",
-        **kwargs
+        **kwargs,
     ):
         self.mjd_col = mjd_col
         self.exp_time_col = exp_time_col
         self.min_exp_time = min_exp_time
         self.night_col = night_col
         units = "nights"
-        super().__init__(
-            col=[self.mjd_col, self.exp_time_col, self.night_col], units=units, **kwargs
-        )
+        super().__init__(col=[self.mjd_col, self.exp_time_col, self.night_col], units=units, **kwargs)
 
     def run(self, data_slice, slice_point):
         # Order data Slice/times and exclude visits which are too short.
@@ -235,7 +226,7 @@ class TdcMetric(BaseMetric):
         sea_norm=4.0,
         camp_norm=5.0,
         badval=-999,
-        **kwargs
+        **kwargs,
     ):
         # Save the normalization values.
         self.cad_norm = cad_norm
@@ -269,7 +260,7 @@ class TdcMetric(BaseMetric):
             maps=maps,
             metric_name=metric_name,
             units="%s" % ("%"),
-            **kwargs
+            **kwargs,
         )
 
     def run(self, data_slice, slice_point):
@@ -280,9 +271,7 @@ class TdcMetric(BaseMetric):
             match = np.where(data_slice[self.filter_col] == f)
             a_x = self.ax1[f] * slice_point["ebv"]
             m5_dust[match] = data_slice[self.m5_col][match] - a_x
-            m5_dust[match] = np.where(
-                m5_dust[match] > self.mag_cuts[f], m5_dust[match], -999
-            )
+            m5_dust[match] = np.where(m5_dust[match] > self.mag_cuts[f], m5_dust[match], -999)
         idxs = np.where(m5_dust > -998)
         if len(idxs[0]) == 0:
             return self.badval
@@ -294,9 +283,7 @@ class TdcMetric(BaseMetric):
         # Campaign length
         camp = len(np.unique(int_seasons))
         # Season length
-        seasonlengths = (
-            data[self.mjd_col][last_of_season] - data[self.mjd_col][first_of_season]
-        )
+        seasonlengths = data[self.mjd_col][last_of_season] - data[self.mjd_col][first_of_season]
         sea = np.median(seasonlengths)
         # Convert to months
         sea = sea / 30.0

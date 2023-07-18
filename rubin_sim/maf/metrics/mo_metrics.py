@@ -1,4 +1,5 @@
 from builtins import zip
+
 import numpy as np
 
 from .base_metric import BaseMetric
@@ -100,9 +101,7 @@ class BaseMoMetric(BaseMetric):
         if child_metrics is None:
             try:
                 if not isinstance(self.child_metrics, dict):
-                    raise ValueError(
-                        "self.child_metrics must be a dictionary (possibly empty)"
-                    )
+                    raise ValueError("self.child_metrics must be a dictionary (possibly empty)")
             except AttributeError:
                 self.child_metrics = {}
                 self.metric_dtype = "float"
@@ -285,7 +284,7 @@ class DiscoveryMetric(BaseMoMetric):
         t_window=15,
         snr_limit=None,
         badval=None,
-        **kwargs
+        **kwargs,
     ):
         # Define anything needed by the child metrics first.
         self.snr_limit = snr_limit
@@ -307,12 +306,7 @@ class DiscoveryMetric(BaseMoMetric):
                 t_window,
             )
         # Set up for inheriting from __init__.
-        super().__init__(
-            metric_name=metric_name,
-            child_metrics=self.child_metrics,
-            badval=badval,
-            **kwargs
-        )
+        super().__init__(metric_name=metric_name, child_metrics=self.child_metrics, badval=badval, **kwargs)
         # Define anything needed for this metric.
         self.n_obs_per_night = n_obs_per_night
         self.t_min = t_min
@@ -347,8 +341,7 @@ class DiscoveryMetric(BaseMoMetric):
         times_end = sso_obs[self.mjd_col][vis][vis_sort][n_idx_many_end]
         # Identify the nights with 'clearly good' observations.
         good = np.where(
-            (times_end - times_start >= self.t_min)
-            & (times_end - times_start <= self.t_max),
+            (times_end - times_start >= self.t_min) & (times_end - times_start <= self.t_max),
             1,
             0,
         )
@@ -359,9 +352,7 @@ class DiscoveryMetric(BaseMoMetric):
             & (n_idx_many_end + 1 - n_idx_many > self.n_obs_per_night)
             & (times_end - times_start > self.t_max)
         )[0]
-        for i, j, c in zip(
-            vis_sort[n_idx_many][check], vis_sort[n_idx_many_end][check], check
-        ):
+        for i, j, c in zip(vis_sort[n_idx_many][check], vis_sort[n_idx_many_end][check], check):
             t = sso_obs[self.mjd_col][vis][vis_sort][i : j + 1]
             dtimes = (np.roll(t, 1 - self.n_obs_per_night) - t)[:-1]
             tidx = np.where((dtimes >= self.t_min) & (dtimes <= self.t_max))[0]
@@ -375,9 +366,7 @@ class DiscoveryMetric(BaseMoMetric):
         if len(good_idx) < self.n_nights_per_window:
             return self.badval
         delta_nights = (
-            np.roll(
-                sso_obs[self.night_col][vis][good_idx], 1 - self.n_nights_per_window
-            )
+            np.roll(sso_obs[self.night_col][vis][good_idx], 1 - self.n_nights_per_window)
             - sso_obs[self.night_col][vis][good_idx]
         )
         # Identify the index in sso_obs[vis][good_idx] (sorted by mjd) where the discovery opportunity starts.
@@ -386,8 +375,7 @@ class DiscoveryMetric(BaseMoMetric):
         end_idxs = np.zeros(len(start_idxs), dtype="int")
         for i, sIdx in enumerate(start_idxs):
             in_window = np.where(
-                sso_obs[self.night_col][vis][good_idx]
-                - sso_obs[self.night_col][vis][good_idx][sIdx]
+                sso_obs[self.night_col][vis][good_idx] - sso_obs[self.night_col][vis][good_idx][sIdx]
                 <= self.t_window
             )[0]
             end_idxs[i] = np.array([in_window.max()])
@@ -415,7 +403,7 @@ class DiscoveryNChancesMetric(BaseChildMetric):
         # night_start=None,
         # night_end=None,
         badval=0,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
         self.night_start = None  # night_start
@@ -499,9 +487,7 @@ class DiscoveryTimeMetric(BaseChildMetric):
 class DiscoveryDistanceMetric(BaseChildMetric):
     """Returns the distance of the first discovery track of an SSobject."""
 
-    def __init__(
-        self, parent_discovery_metric, distance_col="geo_dist", badval=-999, **kwargs
-    ):
+    def __init__(self, parent_discovery_metric, distance_col="geo_dist", badval=-999, **kwargs):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
         self.i = 0
         self.distance_col = distance_col
@@ -594,18 +580,14 @@ class ActivityOverTimeMetric(BaseMoMetric):
     and reports what fraction of the total windows receive 'nObs' visits.
     """
 
-    def __init__(
-        self, window, snr_limit=5, survey_years=10.0, metric_name=None, **kwargs
-    ):
+    def __init__(self, window, snr_limit=5, survey_years=10.0, metric_name=None, **kwargs):
         if metric_name is None:
             metric_name = "Chance of detecting activity lasting %.0f days" % (window)
         super().__init__(metric_name=metric_name, **kwargs)
         self.snr_limit = snr_limit
         self.window = window
         self.survey_years = survey_years
-        self.window_bins = np.arange(
-            0, self.survey_years * 365 + self.window / 2.0, self.window
-        )
+        self.window_bins = np.arange(0, self.survey_years * 365 + self.window / 2.0, self.window)
         self.n_windows = len(self.window_bins)
         self.units = "%.1f Day Windows" % (self.window)
 
@@ -637,15 +619,13 @@ class ActivityOverPeriodMetric(BaseMoMetric):
         t_peri_col="tPeri",
         anomaly_col="meanAnomaly",
         metric_name=None,
-        **kwargs
+        **kwargs,
     ):
         """
         @ bin_size : size of orbit slice, in degrees.
         """
         if metric_name is None:
-            metric_name = "Chance of detecting activity covering %.1f of the orbit" % (
-                bin_size
-            )
+            metric_name = "Chance of detecting activity covering %.1f of the orbit" % (bin_size)
         super().__init__(metric_name=metric_name, **kwargs)
         self.q_col = q_col
         self.e_col = e_col
@@ -673,13 +653,10 @@ class ActivityOverPeriodMetric(BaseMoMetric):
 
         if self.anomaly_col in orb.keys():
             curranomaly = np.radians(
-                orb[self.anomaly_col]
-                + (sso_obs[self.mjd_col] - orb["epoch"]) / period * 360.0
+                orb[self.anomaly_col] + (sso_obs[self.mjd_col] - orb["epoch"]) / period * 360.0
             ) % (2 * np.pi)
         elif self.t_peri_col in orb.keys():
-            curranomaly = ((sso_obs[self.mjd_col] - orb[self.t_peri_col]) / period) % (
-                2 * np.pi
-            )
+            curranomaly = ((sso_obs[self.mjd_col] - orb[self.t_peri_col]) / period) % (2 * np.pi)
         else:
             return self.badval
 
@@ -729,9 +706,7 @@ class HighVelocityMetric(BaseMoMetric):
     Simply counts the total number of observations with high velocity.
     """
 
-    def __init__(
-        self, psf_factor=2.0, snr_limit=None, velocity_col="velocity", **kwargs
-    ):
+    def __init__(self, psf_factor=2.0, snr_limit=None, velocity_col="velocity", **kwargs):
         """
         @ psf_factor = factor to multiply seeing/visitExpTime by
         (velocity(deg/day) >= 24*psf_factor*seeing(")/visitExptime(s))
@@ -748,12 +723,7 @@ class HighVelocityMetric(BaseMoMetric):
             return self.badval
         high_velocity_obs = np.where(
             sso_obs[self.velocity_col][vis]
-            >= (
-                24.0
-                * self.psf_factor
-                * sso_obs[self.seeing_col][vis]
-                / sso_obs[self.exp_time_col][vis]
-            )
+            >= (24.0 * self.psf_factor * sso_obs[self.seeing_col][vis] / sso_obs[self.exp_time_col][vis])
         )[0]
         return high_velocity_obs.size
 
@@ -784,14 +754,7 @@ class HighVelocityNightsMetric(BaseMoMetric):
         The time of the first detection where the conditions are satisifed.
     """
 
-    def __init__(
-        self,
-        psf_factor=2.0,
-        n_obs_per_night=2,
-        snr_limit=None,
-        velocity_col="velocity",
-        **kwargs
-    ):
+    def __init__(self, psf_factor=2.0, n_obs_per_night=2, snr_limit=None, velocity_col="velocity", **kwargs):
         super().__init__(**kwargs)
         self.velocity_col = velocity_col
         self.snr_limit = snr_limit
@@ -804,12 +767,7 @@ class HighVelocityNightsMetric(BaseMoMetric):
             return self.badval
         high_velocity_obs = np.where(
             sso_obs[self.velocity_col][vis]
-            >= (
-                24.0
-                * self.psf_factor
-                * sso_obs[self.seeing_col][vis]
-                / sso_obs[self.exp_time_col][vis]
-            )
+            >= (24.0 * self.psf_factor * sso_obs[self.seeing_col][vis] / sso_obs[self.exp_time_col][vis])
         )[0]
         if len(high_velocity_obs) == 0:
             return 0
@@ -825,9 +783,7 @@ class HighVelocityNightsMetric(BaseMoMetric):
         # (this is already looking at only high velocity observations).
         n_with_x_obs = n[np.where(obs_per_night >= self.n_obs_per_night)]
         if len(n_with_x_obs) > 0:
-            found = sso_obs[np.where(sso_obs[self.night_col] == n_with_x_obs[0])][
-                self.mjd_col
-            ][0]
+            found = sso_obs[np.where(sso_obs[self.night_col] == n_with_x_obs[0])][self.mjd_col][0]
         else:
             found = self.badval
         return found
@@ -877,12 +833,7 @@ class LightcurveInversionAsteroidMetric(BaseMoMetric):
     """
 
     def __init__(
-        self,
-        weight_det=50,
-        snr_limit=None,
-        snr_max=100,
-        filterlist=("u", "g", "r", "i", "z", "y"),
-        **kwargs
+        self, weight_det=50, snr_limit=None, snr_max=100, filterlist=("u", "g", "r", "i", "z", "y"), **kwargs
     ):
         super().__init__(**kwargs)
         self.snr_limit = snr_limit
@@ -916,9 +867,7 @@ class LightcurveInversionAsteroidMetric(BaseMoMetric):
             phase_angle = sso_obs["phase"][match][vis]
             # Calculate the absolute deviation and range of ecliptic longitude.
             ec_l_centred = (ec_l - np.median(ec_l)) % 360.0
-            a_dev = np.sum(np.abs(ec_l_centred - np.mean(ec_l_centred))) / len(
-                ec_l_centred
-            )
+            a_dev = np.sum(np.abs(ec_l_centred - np.mean(ec_l_centred))) / len(ec_l_centred)
             d_l = np.max(ec_l) - np.min(ec_l)
             # Calculate the range of the phase angle
             dp = np.max(phase_angle) - np.min(phase_angle)
@@ -1062,12 +1011,7 @@ class LightcurveColorOuterMetric(BaseMoMetric):
     """
 
     def __init__(
-        self,
-        snr_limit=None,
-        num_req=30,
-        num_sec_filt=20,
-        filterlist=("u", "g", "r", "i", "z", "y"),
-        **kwargs
+        self, snr_limit=None, num_req=30, num_sec_filt=20, filterlist=("u", "g", "r", "i", "z", "y"), **kwargs
     ):
         super().__init__(**kwargs)
         self.snr_limit = snr_limit
@@ -1132,9 +1076,7 @@ class InstantaneousColorMetric(BaseMoMetric):
         0 (no color possible under these constraints) or 1 (color possible).
     """
 
-    def __init__(
-        self, n_pairs=1, snr_limit=10, n_hours=0.5, b_one="g", b_two="r", **kwargs
-    ):
+    def __init__(self, n_pairs=1, snr_limit=10, n_hours=0.5, b_one="g", b_two="r", **kwargs):
         super().__init__(**kwargs)
         self.n_pairs = n_pairs
         self.snr_limit = snr_limit
@@ -1239,7 +1181,7 @@ class KnownObjectsMetric(BaseMoMetric):
         eff4=0.2,
         elong_col="Elongation",
         mjd_col="MJD(UTC)",
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.elong_thresh = elong_thresh
@@ -1277,47 +1219,29 @@ class KnownObjectsMetric(BaseMoMetric):
         obs1 = np.where((sso_obs[self.mjd_col] < self.t_switch1) & visible)[0]
         over_peak = np.where(sso_obs[self.app_mag_v_col][obs1] <= self.v_mag_thresh1)[0]
         if len(over_peak) > 0:
-            discovery_time = self._pick_obs(
-                sso_obs[self.mjd_col][obs1][over_peak], self.eff1
-            )
+            discovery_time = self._pick_obs(sso_obs[self.mjd_col][obs1][over_peak], self.eff1)
         # Second period.
         if discovery_time is None:
             obs2 = np.where(
-                (sso_obs[self.mjd_col] >= self.t_switch1)
-                & (sso_obs[self.mjd_col] < self.t_switch2)
-                & visible
+                (sso_obs[self.mjd_col] >= self.t_switch1) & (sso_obs[self.mjd_col] < self.t_switch2) & visible
             )[0]
-            over_peak = np.where(
-                sso_obs[self.app_mag_v_col][obs2] <= self.v_mag_thresh2
-            )[0]
+            over_peak = np.where(sso_obs[self.app_mag_v_col][obs2] <= self.v_mag_thresh2)[0]
             if len(over_peak) > 0:
-                discovery_time = self._pick_obs(
-                    sso_obs[self.mjd_col][obs2][over_peak], self.eff2
-                )
+                discovery_time = self._pick_obs(sso_obs[self.mjd_col][obs2][over_peak], self.eff2)
         # Third period.
         if discovery_time is None:
             obs3 = np.where(
-                (sso_obs[self.mjd_col] >= self.t_switch2)
-                & (sso_obs[self.mjd_col] < self.t_switch3)
-                & visible
+                (sso_obs[self.mjd_col] >= self.t_switch2) & (sso_obs[self.mjd_col] < self.t_switch3) & visible
             )[0]
-            over_peak = np.where(
-                sso_obs[self.app_mag_v_col][obs3] <= self.v_mag_thresh3
-            )[0]
+            over_peak = np.where(sso_obs[self.app_mag_v_col][obs3] <= self.v_mag_thresh3)[0]
             if len(over_peak) > 0:
-                discovery_time = self._pick_obs(
-                    sso_obs[self.mjd_col][obs3][over_peak], self.eff3
-                )
+                discovery_time = self._pick_obs(sso_obs[self.mjd_col][obs3][over_peak], self.eff3)
         # Fourth period.
         if discovery_time is None:
             obs4 = np.where((sso_obs[self.mjd_col] >= self.t_switch3) & visible)[0]
-            over_peak = np.where(
-                sso_obs[self.app_mag_v_col][obs4] <= self.v_mag_thresh4
-            )[0]
+            over_peak = np.where(sso_obs[self.app_mag_v_col][obs4] <= self.v_mag_thresh4)[0]
             if len(over_peak) > 0:
-                discovery_time = self._pick_obs(
-                    sso_obs[self.mjd_col][obs4][over_peak], self.eff4
-                )
+                discovery_time = self._pick_obs(sso_obs[self.mjd_col][obs4][over_peak], self.eff4)
         if discovery_time is None:
             discovery_time = self.badval
         return discovery_time

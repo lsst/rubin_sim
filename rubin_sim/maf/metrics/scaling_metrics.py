@@ -1,8 +1,10 @@
-import numpy as np
-from .base_metric import BaseMetric
-from rubin_sim.phot_utils import DustValues
 import healpy as hp
+import numpy as np
+
 from rubin_sim.maf.maps import TrilegalDensityMap
+from rubin_sim.phot_utils import DustValues
+
+from .base_metric import BaseMetric
 
 __all__ = ["NgalScaleMetric", "NlcPointsMetric"]
 
@@ -59,9 +61,7 @@ class NgalScaleMetric(BaseMetric):
             return 0
 
         in_filt = np.where(data_slice[self.filter_col] == self.filtername)
-        coadd_m5 = 1.25 * np.log10(
-            np.sum(10.0 ** (0.8 * data_slice[self.m5_col][in_filt]))
-        )
+        coadd_m5 = 1.25 * np.log10(np.sum(10.0 ** (0.8 * data_slice[self.m5_col][in_filt])))
         if coadd_m5 < self.m5min:
             return 0
 
@@ -128,8 +128,7 @@ class NlcPointsMetric(BaseMetric):
         # Let's do it per filter
         for filtername in np.unique(data_slice[self.filter_col]):
             in_filt = np.where(
-                (data_slice[self.filter_col] == filtername)
-                & (data_slice[self.m5_col] > self.mags)
+                (data_slice[self.filter_col] == filtername) & (data_slice[self.m5_col] > self.mags)
             )[0]
             n_obs = np.size(in_filt)
             if n_obs > self.ndpmin:

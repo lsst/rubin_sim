@@ -1,14 +1,15 @@
-import numpy as np
-import healpy as hp
 import astropy.units as u
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.plots as plots
+import healpy as hp
+import numpy as np
+
+import rubin_sim.maf as maf
 import rubin_sim.maf.maps as maps
 import rubin_sim.maf.metric_bundles as mb
-from .common import standard_summary, extended_summary, lightcurve_summary, filter_list
-import rubin_sim.maf as maf
+import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.plots as plots
+import rubin_sim.maf.slicers as slicers
 
+from .common import extended_summary, filter_list, lightcurve_summary, standard_summary
 
 __all__ = ["science_radar_batch"]
 
@@ -36,9 +37,7 @@ def science_radar_batch(
 
     bundleList = []
     # Get some standard per-filter coloring and sql constraints
-    filterlist, colors, filterorders, filtersqls, filterinfo_label = filter_list(
-        all=False
-    )
+    filterlist, colors, filterorders, filtersqls, filterinfo_label = filter_list(all=False)
     (
         allfilterlist,
         allcolors,
@@ -115,8 +114,7 @@ def science_radar_batch(
     )
     caption += (
         "fOArea: this many sq deg (out of %.2f sq deg if compared "
-        "to benchmark) receives at least %d visits. "
-        % (benchmarkArea, benchmarkNvisits)
+        "to benchmark) receives at least %d visits. " % (benchmarkArea, benchmarkNvisits)
     )
     displayDict["caption"] = caption
     bundle = mb.MetricBundle(
@@ -190,11 +188,7 @@ def science_radar_batch(
             metric_name="Area better than %.1f mas uncertainty" % good_parallax_limit,
         ),
     ]
-    summary.append(
-        metrics.PercentileMetric(
-            percentile=95, metric_name="95th Percentile Parallax Uncert"
-        )
-    )
+    summary.append(metrics.PercentileMetric(percentile=95, metric_name="95th Percentile Parallax Uncert"))
     summary.extend(standard_summary())
     for rmag, plotmax in zip(rmags_para, plotmaxVals):
         plotDict = {"x_min": 0, "x_max": plotmax, "color_min": 0, "color_max": plotmax}
@@ -237,9 +231,7 @@ def science_radar_batch(
         displayDict["order"] += 1
     # Parallax factor coverage.
     for rmag in rmags_para:
-        metric = metrics.ParallaxCoverageMetric(
-            metric_name="Parallax Coverage @ %.1f" % (rmag), rmag=rmag
-        )
+        metric = metrics.ParallaxCoverageMetric(metric_name="Parallax Coverage @ %.1f" % (rmag), rmag=rmag)
         bundle = mb.MetricBundle(
             metric,
             healpixslicer,
@@ -256,10 +248,7 @@ def science_radar_batch(
         metric = metrics.ParallaxDcrDegenMetric(
             metric_name="Parallax-DCR degeneracy @ %.1f" % (rmag), rmag=rmag
         )
-        caption = (
-            "Correlation between parallax offset magnitude and hour angle for a r=%.1f star."
-            % (rmag)
-        )
+        caption = "Correlation between parallax offset magnitude and hour angle for a r=%.1f star." % (rmag)
         caption += " (0 is good, near -1 or 1 is bad)."
         bundle = mb.MetricBundle(
             metric,
@@ -286,9 +275,7 @@ def science_radar_batch(
             metric_name="Median Proper Motion Uncert (18k)",
         )
     ]
-    summary.append(
-        metrics.PercentileMetric(metric_name="95th Percentile Proper Motion Uncert")
-    )
+    summary.append(metrics.PercentileMetric(metric_name="95th Percentile Proper Motion Uncert"))
     summary.extend(standard_summary())
     for rmag, plotmax in zip(rmags_pm, plotmaxVals):
         plotDict = {"x_min": 0, "x_max": plotmax, "color_min": 0, "color_max": plotmax}
@@ -347,14 +334,9 @@ def science_radar_batch(
     displayDict["order"] = 0
     # Calculate the actual number of revisits within 30 minutes.
     dTmax = 30  # time in minutes
-    m2 = metrics.NRevisitsMetric(
-        d_t=dTmax, normed=False, metric_name="NumberOfQuickRevisits"
-    )
+    m2 = metrics.NRevisitsMetric(d_t=dTmax, normed=False, metric_name="NumberOfQuickRevisits")
     plotDict = {"color_min": 400, "color_max": 2000, "x_min": 400, "x_max": 2000}
-    caption = (
-        "Number of consecutive visits with return times faster than %.1f minutes, "
-        % (dTmax)
-    )
+    caption = "Number of consecutive visits with return times faster than %.1f minutes, " % (dTmax)
     caption += "in any filter. "
     displayDict["caption"] = caption
     bundle = mb.MetricBundle(
@@ -395,18 +377,16 @@ def science_radar_batch(
         "log_scale": False,
     }
     cutoff1 = 0.9
-    summaryStats = [
-        metrics.FracAboveMetric(
-            cutoff=cutoff1, scale=scale, metric_name="Area (sq deg)"
-        )
-    ]
-    caption = (
-        "Rapid Revisit: area that receives at least %d visits between %.3f and %.1f minutes, "
-        % (nOne, dTmin, dTmax)
+    summaryStats = [metrics.FracAboveMetric(cutoff=cutoff1, scale=scale, metric_name="Area (sq deg)")]
+    caption = "Rapid Revisit: area that receives at least %d visits between %.3f and %.1f minutes, " % (
+        nOne,
+        dTmin,
+        dTmax,
     )
-    caption += (
-        "with at least %d of those visits falling between %.3f and %.1f minutes. "
-        % (nTwo, dTmin, dTpairs)
+    caption += "with at least %d of those visits falling between %.3f and %.1f minutes. " % (
+        nTwo,
+        dTmin,
+        dTpairs,
     )
     caption += (
         'Summary statistic "Area" indicates the area on the sky which meets this requirement.'
@@ -485,9 +465,7 @@ def science_radar_batch(
     slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     for f in filterlist:
         plotDict = {"percentile_clip": 95.0, "n_ticks": 5, "color": colors[f]}
-        metric = maf.GalaxyCountsMetricExtended(
-            filter_band=f, redshift_bin="all", nside=nside
-        )
+        metric = maf.GalaxyCountsMetricExtended(filter_band=f, redshift_bin="all", nside=nside)
         displayDict[
             "caption"
         ] = f"Number of galaxies across the sky, in {f} band. Generally, full survey footprint."
@@ -506,9 +484,7 @@ def science_radar_batch(
     displayDict["subgroup"] = "Surface Brightness"
     summary = [metrics.MedianMetric()]
     for filtername in "ugrizy":
-        displayDict["caption"] = (
-            "Surface brightness limit in %s, no extinction applied." % filtername
-        )
+        displayDict["caption"] = "Surface brightness limit in %s, no extinction applied." % filtername
         displayDict["order"] = filterorders[f]
         sql = 'filter="%s"' % filtername
         metric = metrics.SurfaceBrightLimitMetric()
@@ -561,9 +537,7 @@ def science_radar_batch(
         metrics.MeanMetric(),
         metrics.MedianMetric(),
         metrics.RmsMetric(),
-        metrics.CountRatioMetric(
-            norm_val=1 / pix_area, metric_name="Effective Area (deg)"
-        ),
+        metrics.CountRatioMetric(norm_val=1 / pix_area, metric_name="Effective Area (deg)"),
     ]
     displayDict["order"] = 0
     slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
@@ -575,9 +549,7 @@ def science_radar_batch(
         ThreebyTwoSummary_simple = metrics.StaticProbesFoMEmulatorMetricSimple(
             nside=nside, year=yr_cut, metric_name="3x2ptFoM_simple"
         )
-        ThreebyTwoSummary = maf.StaticProbesFoMEmulatorMetric(
-            nside=nside, metric_name="3x2ptFoM"
-        )
+        ThreebyTwoSummary = maf.StaticProbesFoMEmulatorMetric(nside=nside, metric_name="3x2ptFoM")
 
         m = metrics.ExgalM5WithCuts(
             lsst_filter=bandpass,
@@ -602,8 +574,7 @@ def science_radar_batch(
             sqlconstraint,
             maps_list=[dustmap],
             info_label=info_label,
-            summary_metrics=summaryMetrics
-            + [ThreebyTwoSummary, ThreebyTwoSummary_simple],
+            summary_metrics=summaryMetrics + [ThreebyTwoSummary, ThreebyTwoSummary_simple],
             display_dict=displayDict,
         )
         displayDict["order"] += 1
@@ -689,8 +660,7 @@ def science_radar_batch(
     for year in np.arange(1, 10):
         sqlconstraint = (
             'note not like "DD%"'
-            + ' and (filter="g" or filter="r" or filter="i") and night < %i'
-            % (year * 365.25)
+            + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,
@@ -726,8 +696,7 @@ def science_radar_batch(
 
         sqlconstraint = (
             'note not like "DD%"'
-            + ' and (filter="r" or filter="i" or filter="z") and night < %i'
-            % (year * 365.25)
+            + ' and (filter="r" or filter="i" or filter="z") and night < %i' % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,
@@ -770,9 +739,7 @@ def science_radar_batch(
         for m in [metric1, metric2]:
             plotDict = {"color": colors[f]}
             displayDict["order"] = filterorders[f]
-            displayDict["caption"] = (
-                caption_root + f"{m.colname} for visits in {f} band."
-            )
+            displayDict["caption"] = caption_root + f"{m.colname} for visits in {f} band."
             bundleList.append(
                 mb.MetricBundle(
                     m,
@@ -788,15 +755,10 @@ def science_radar_batch(
     for year in np.arange(1, 10):
         sqlconstraint = (
             'note not like "DD%"'
-            + ' and (filter="g" or filter="r" or filter="i") and night < %i'
-            % (year * 365.25)
+            + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year * 365.25)
         )
-        metric1 = metrics.KuiperMetric(
-            "rotSkyPos", metric_name="Kuiper_rotSkyPos_gri_year%i" % year
-        )
-        metric2 = metrics.KuiperMetric(
-            "rotTelPos", metric_name="Kuiper_rotTelPos_gri_year%i" % year
-        )
+        metric1 = metrics.KuiperMetric("rotSkyPos", metric_name="Kuiper_rotSkyPos_gri_year%i" % year)
+        metric2 = metrics.KuiperMetric("rotTelPos", metric_name="Kuiper_rotTelPos_gri_year%i" % year)
         for metric in [metric1, metric2]:
             bundleList.append(
                 mb.MetricBundle(
@@ -908,16 +870,8 @@ def science_radar_batch(
     agn_m5 = {"u": 22.89, "g": 23.94, "r": 23.5, "i": 22.93, "z": 22.28, "y": 21.5}
     # And the expected medians SF error at those values is about 0.04
     summaryMetrics = extended_summary()
-    summaryMetrics += [
-        metrics.AreaThresholdMetric(
-            upper_threshold=0.03, metric_name="AreaThreshold_0.03"
-        )
-    ]
-    summaryMetrics += [
-        metrics.AreaThresholdMetric(
-            upper_threshold=0.06, metric_name="AreaThreshold_0.06"
-        )
-    ]
+    summaryMetrics += [metrics.AreaThresholdMetric(upper_threshold=0.03, metric_name="AreaThreshold_0.03")]
+    summaryMetrics += [metrics.AreaThresholdMetric(upper_threshold=0.06, metric_name="AreaThreshold_0.06")]
     for f in filterlist:
         m = metrics.SFUncertMetric(
             mag=agn_m5[f],
@@ -1048,9 +1002,7 @@ def science_radar_batch(
     # Strongly lensed SNe
     displayDict["group"] = "Strong Lensing"
     displayDict["subgroup"] = "SLSN"
-    displayDict[
-        "caption"
-    ] = "Strongly Lensed SNe, evaluated with the addition of galactic dust extinction."
+    displayDict["caption"] = "Strongly Lensed SNe, evaluated with the addition of galactic dust extinction."
     metric = metrics.SNSLMetric()
     slicer = slicers.HealpixSlicer(nside=nside_tdc, use_cache=False)
     plotDict = {}
@@ -1263,9 +1215,7 @@ def science_radar_batch(
     summaryMetrics = maf.batches.lightcurve_summary()
     order = 0
     for crossing in crossing_times:
-        displayDict[
-            "caption"
-        ] = "Microlensing events with crossing times between %i to %i days." % (
+        displayDict["caption"] = "Microlensing events with crossing times between %i to %i days." % (
             crossing[0],
             crossing[1],
         )
@@ -1308,9 +1258,7 @@ def science_radar_batch(
                 max_crossing_time=crossing[1],
                 n_events=n_events,
             )
-            displayDict[
-                "caption"
-            ] = "Microlensing events with crossing times between %i to %i days." % (
+            displayDict["caption"] = "Microlensing events with crossing times between %i to %i days." % (
                 crossing[0],
                 crossing[1],
             )
@@ -1334,9 +1282,7 @@ def science_radar_batch(
         summaryMetrics = maf.batches.microlensing_summary(metric_type="Fisher")
         order = 0
         for crossing in crossing_times:
-            displayDict[
-                "caption"
-            ] = "Microlensing events with crossing times between %i to %i days." % (
+            displayDict["caption"] = "Microlensing events with crossing times between %i to %i days." % (
                 crossing[0],
                 crossing[1],
             )
@@ -1375,9 +1321,7 @@ def science_radar_batch(
         # {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 0.0}, # no longer preferred
     ]
     filename = maf.get_kne_filename(inj_params_list)
-    kneslicer = maf.generate_kn_pop_slicer(
-        n_events=n_events, n_files=len(filename), d_min=10, d_max=600
-    )
+    kneslicer = maf.generate_kn_pop_slicer(n_events=n_events, n_files=len(filename), d_min=10, d_max=600)
     metric = maf.KNePopMetric(
         output_lc=False,
         file_list=filename,
@@ -1405,9 +1349,7 @@ def science_radar_batch(
     kneslicer_allkne = maf.generate_kn_pop_slicer(
         n_events=n_events, n_files=len(filename), d_min=10, d_max=600
     )
-    metric_allkne = maf.KNePopMetric(
-        output_lc=False, file_list=filename, metric_name="KNePopMetric_all"
-    )
+    metric_allkne = maf.KNePopMetric(output_lc=False, file_list=filename, metric_name="KNePopMetric_all")
     bundle = mb.MetricBundle(
         metric_allkne,
         kneslicer_allkne,
@@ -1445,8 +1387,7 @@ def science_radar_batch(
         }
         plotFuncs = [plots.SummaryHistogram()]
         displayDict["caption"] = (
-            f"Summed Histogram of time between visits at each point in the sky, "
-            f"in {f} band(s)."
+            f"Summed Histogram of time between visits at each point in the sky, " f"in {f} band(s)."
         )
         displayDict["order"] = filterorders[f]
         bundleList.append(
@@ -1464,17 +1405,37 @@ def science_radar_batch(
 
         gaps = [3.0, 7.0, 24.0]
         for gap in gaps:
+            summary_stats = []
+            summary_stats.append(
+                metrics.AreaSummaryMetric(
+                    area=18000,
+                    reduce_func=np.median,
+                    decreasing=True,
+                    metric_name="Median N gaps in %s at %ihr in top 18k" % (f, gap),
+                )
+            )
+
+            summary_stats.append(
+                metrics.AreaSummaryMetric(
+                    area=18000,
+                    reduce_func=np.mean,
+                    decreasing=True,
+                    metric_name="Mean N gaps in %s at %ihr in top 18k" % (f, gap),
+                )
+            )
+
+            summary_stats.append(metrics.MeanMetric())
+            summary_stats.append(metrics.MedianMetric())
+
             m2 = metrics.GapsMetric(
                 time_scale=gap,
                 metric_name="Gaps_%ihr" % gap,
             )
             plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
             plotDict = {"color_min": 0, "color": colors[f], "percentile_clip": 95}
-            summaryMetrics = extended_summary()
-            displayDict["caption"] = (
-                "Number of times the timescale of ~%i hours is sampled in %s band(s)."
-                % (gap, f)
-            )
+            displayDict[
+                "caption"
+            ] = "Number of times the timescale of ~%i hours is sampled in %s band(s)." % (gap, f)
             displayDict["order"] = filterorders[f]
             bundleList.append(
                 mb.MetricBundle(
@@ -1483,7 +1444,7 @@ def science_radar_batch(
                     constraint=filtersqls[f],
                     info_label=filterinfo_label[f],
                     run_name=runName,
-                    summary_metrics=summaryMetrics,
+                    summary_metrics=summary_stats,
                     plot_dict=plotDict,
                     plot_funcs=plotFuncs,
                     display_dict=displayDict,
@@ -1591,9 +1552,7 @@ def science_radar_batch(
 
     galactic_plane_map_keys = maps.galplane_priority_map(nside=64, get_keys=True)
     science_maps = [
-        s.replace("galplane_priority_", "").split(":")[0]
-        for s in galactic_plane_map_keys
-        if "sum" in s
+        s.replace("galplane_priority_", "").split(":")[0] for s in galactic_plane_map_keys if "sum" in s
     ]
 
     slicer = slicers.HealpixSlicer(nside=64, use_cache=False)
@@ -1601,9 +1560,7 @@ def science_radar_batch(
     bundles = {}
     for m in science_maps:
         displayDict["subgroup"] = m
-        displayDict[
-            "caption"
-        ] = f"Footprint relevant for {m} galactic plane science case."
+        displayDict["caption"] = f"Footprint relevant for {m} galactic plane science case."
         footprintmetric = metrics.GalPlaneFootprintMetric(science_map=m)
         bundles[f"{m} footprint"] = mb.MetricBundle(
             footprintmetric,
@@ -1614,9 +1571,7 @@ def science_radar_batch(
             summary_metrics=footprint_summaries,
             display_dict=displayDict,
         )
-        displayDict[
-            "caption"
-        ] = f"Filter balance in region of {m}  galactic plane science case."
+        displayDict["caption"] = f"Filter balance in region of {m}  galactic plane science case."
         filtermetric = metrics.GalPlaneTimePerFilterMetric(science_map=m)
         bundles[f"{m} filter"] = mb.MetricBundle(
             filtermetric,
@@ -1627,12 +1582,8 @@ def science_radar_batch(
             summary_metrics=filter_summaries,
             display_dict=displayDict,
         )
-        displayDict[
-            "caption"
-        ] = f"Timescale intervals in region of {m} galactic plane science case."
-        visit_timescalesmetric = metrics.GalPlaneVisitIntervalsTimescaleMetric(
-            science_map=m
-        )
+        displayDict["caption"] = f"Timescale intervals in region of {m} galactic plane science case."
+        visit_timescalesmetric = metrics.GalPlaneVisitIntervalsTimescaleMetric(science_map=m)
         bundles[f"{m} visit intervals"] = mb.MetricBundle(
             visit_timescalesmetric,
             slicer,
@@ -1642,12 +1593,8 @@ def science_radar_batch(
             summary_metrics=timescale_summaries,
             display_dict=displayDict,
         )
-        displayDict[
-            "caption"
-        ] = f"Seasonal coverage in region of {m} galactic plane science case."
-        season_timescalemetric = metrics.GalPlaneSeasonGapsTimescaleMetric(
-            science_map=m
-        )
+        displayDict["caption"] = f"Seasonal coverage in region of {m} galactic plane science case."
+        season_timescalemetric = metrics.GalPlaneSeasonGapsTimescaleMetric(science_map=m)
         bundles[f"{m} season gaps"] = mb.MetricBundle(
             season_timescalemetric,
             slicer,
@@ -1817,12 +1764,8 @@ def science_radar_batch(
     info_label = "gi"
     cutoff = -6.4
     summary_metrics = [
-        maf.metrics.CountBeyondThreshold(
-            lower_threshold=cutoff, metric_name=f"Total detected {cutoff}"
-        ),
-        maf.metrics.CountBeyondThreshold(
-            lower_threshold=-7.0, metric_name="Total detected -7.0"
-        ),
+        maf.metrics.CountBeyondThreshold(lower_threshold=cutoff, metric_name=f"Total detected {cutoff}"),
+        maf.metrics.CountBeyondThreshold(lower_threshold=-7.0, metric_name="Total detected -7.0"),
     ]
     plotDict = {"n_ticks": 7}
     bundle = maf.MetricBundle(
@@ -1842,14 +1785,10 @@ def science_radar_batch(
         "Predicted magnitude detection limit (including stellar density and "
         "star-galaxy separation), over the whole sky to a distance of 4 Mpc."
     )
-    lv_metric2 = maf.maf_contrib.LVDwarfsMetric(
-        distlim=4.0 * u.Mpc
-    )  # for a distance limit, healpix map
+    lv_metric2 = maf.maf_contrib.LVDwarfsMetric(distlim=4.0 * u.Mpc)  # for a distance limit, healpix map
     dustmap = maf.maps.DustMap(nside=32)
     lv_healpix_slicer = maf.slicers.HealpixSlicer(nside=32, use_cache=False)
-    summary_area = maf.AreaThresholdMetric(
-        lower_threshold=cutoff, metric_name=f"Area M_v>{cutoff}"
-    )
+    summary_area = maf.AreaThresholdMetric(lower_threshold=cutoff, metric_name=f"Area M_v>{cutoff}")
     bundle = maf.MetricBundle(
         lv_metric2,
         lv_healpix_slicer,
@@ -1870,12 +1809,8 @@ def science_radar_batch(
     )
     sqlconstraint = '(filter = "i" OR filter = "g") and fieldDec < -60'
     info_label = "gi SCP"
-    lv_metric3 = maf.maf_contrib.LVDwarfsMetric(
-        distlim=0.1 * u.Mpc
-    )  # for a distance limit, healpix map
-    summary_area = maf.metrics.AreaThresholdMetric(
-        lower_threshold=0.0, metric_name="Area M_v>0.0"
-    )
+    lv_metric3 = maf.maf_contrib.LVDwarfsMetric(distlim=0.1 * u.Mpc)  # for a distance limit, healpix map
+    summary_area = maf.metrics.AreaThresholdMetric(lower_threshold=0.0, metric_name="Area M_v>0.0")
     summary_median = maf.metrics.MedianMetric()
     bundle = maf.MetricBundle(
         lv_metric3,
@@ -1901,9 +1836,7 @@ def science_radar_batch(
     for i, cuttoff in enumerate(night_cuttoffs):
         for filtername in "ugrizy":
             sql = "night<%i and filter='%s'" % (cuttoff, filtername)
-            metric = metrics.Coaddm5Metric(
-                metric_name="coadd %s, year<%i" % (filtername, i + 1)
-            )
+            metric = metrics.Coaddm5Metric(metric_name="coadd %s, year<%i" % (filtername, i + 1))
             displayDict = {"group": "Per year", "subgroup": "Coadds"}
             bundle = mb.MetricBundle(
                 metric,

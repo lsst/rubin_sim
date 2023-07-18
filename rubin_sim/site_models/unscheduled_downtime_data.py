@@ -1,8 +1,8 @@
-import numpy as np
-from astropy.time import Time, TimeDelta
 import random
 import warnings
 
+import numpy as np
+from astropy.time import Time, TimeDelta
 
 __all__ = ["UnscheduledDowntimeData"]
 
@@ -39,9 +39,9 @@ class UnscheduledDowntimeData(object):
         self.seed = seed
         self.survey_length = survey_length
         year_start = start_time.datetime.year
-        self.night0 = Time(
-            "%d-01-01" % year_start, format="isot", scale="tai"
-        ) + TimeDelta(start_of_night_offset, format="jd")
+        self.night0 = Time("%d-01-01" % year_start, format="isot", scale="tai") + TimeDelta(
+            start_of_night_offset, format="jd"
+        )
 
         # Scheduled downtime data is a np.ndarray of start / end / activity for each scheduled downtime.
         self.downtime = None
@@ -98,9 +98,7 @@ class UnscheduledDowntimeData(object):
             if prob < self.CATASTROPHIC_EVENT["P"]:
                 start_night = self.night0 + TimeDelta(night, format="jd")
                 starts.append(start_night)
-                end_night = start_night + TimeDelta(
-                    self.CATASTROPHIC_EVENT["length"], format="jd"
-                )
+                end_night = start_night + TimeDelta(self.CATASTROPHIC_EVENT["length"], format="jd")
                 ends.append(end_night)
                 acts.append(self.CATASTROPHIC_EVENT["level"])
                 night += self.CATASTROPHIC_EVENT["length"] + 1
@@ -110,9 +108,7 @@ class UnscheduledDowntimeData(object):
                 if prob < self.MAJOR_EVENT["P"]:
                     start_night = self.night0 + TimeDelta(night, format="jd")
                     starts.append(start_night)
-                    end_night = start_night + TimeDelta(
-                        self.MAJOR_EVENT["length"], format="jd"
-                    )
+                    end_night = start_night + TimeDelta(self.MAJOR_EVENT["length"], format="jd")
                     ends.append(end_night)
                     acts.append(self.MAJOR_EVENT["level"])
                     night += self.MAJOR_EVENT["length"] + 1
@@ -122,9 +118,7 @@ class UnscheduledDowntimeData(object):
                     if prob < self.INTERMEDIATE_EVENT["P"]:
                         start_night = self.night0 + TimeDelta(night, format="jd")
                         starts.append(start_night)
-                        end_night = start_night + TimeDelta(
-                            self.INTERMEDIATE_EVENT["length"], format="jd"
-                        )
+                        end_night = start_night + TimeDelta(self.INTERMEDIATE_EVENT["length"], format="jd")
                         ends.append(end_night)
                         acts.append(self.INTERMEDIATE_EVENT["level"])
                         night += self.INTERMEDIATE_EVENT["length"] + 1
@@ -134,9 +128,7 @@ class UnscheduledDowntimeData(object):
                         if prob < self.MINOR_EVENT["P"]:
                             start_night = self.night0 + TimeDelta(night, format="jd")
                             starts.append(start_night)
-                            end_night = start_night + TimeDelta(
-                                self.MINOR_EVENT["length"], format="jd"
-                            )
+                            end_night = start_night + TimeDelta(self.MINOR_EVENT["length"], format="jd")
                             ends.append(end_night)
                             acts.append(self.MINOR_EVENT["level"])
                             night += self.MINOR_EVENT["length"] + 1

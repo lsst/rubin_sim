@@ -1,16 +1,19 @@
 from __future__ import print_function
+
 import warnings
+
+import rubin_sim.maf.metric_bundles as metric_bundles
 import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.plots as plots
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
-import rubin_sim.maf.plots as plots
-import rubin_sim.maf.metric_bundles as metric_bundles
 from rubin_sim.scheduler.utils import EuclidOverlapFootprint
+from rubin_sim.utils import ddf_locations
+
 from .col_map_dict import col_map_dict
 from .common import standard_summary
-from .slew_batch import slewBasics
 from .hourglass_batch import hourglassPlots
-from rubin_sim.utils import ddf_locations
+from .slew_batch import slewBasics
 
 __all__ = ["glanceBatch"]
 
@@ -73,10 +76,7 @@ def glanceBatch(
     else:
         raise ValueError("Camera must be LSST or Comcam")
 
-    sql_per_filt = [
-        '%s %s="%s"' % (sqlC, colmap["filter"], filtername)
-        for filtername in filternames
-    ]
+    sql_per_filt = ['%s %s="%s"' % (sqlC, colmap["filter"], filtername) for filtername in filternames]
     sql_per_and_all_filters = [sql_constraint] + sql_per_filt
 
     standardStats = standard_summary()
@@ -87,9 +87,7 @@ def glanceBatch(
     sql = sql_constraint
     slicer = slicers.UniSlicer()
     # Length of Survey
-    metric = metrics.FullRangeMetric(
-        col=colmap["mjd"], metric_name="Length of Survey (days)"
-    )
+    metric = metrics.FullRangeMetric(col=colmap["mjd"], metric_name="Length of Survey (days)")
     bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
     bundle_list.append(bundle)
 
@@ -108,21 +106,15 @@ def glanceBatch(
     bundle_list.append(bundle)
 
     # Total effective exposure time
-    metric = metrics.TeffMetric(
-        m5_col=colmap["fiveSigmaDepth"], filter_col=colmap["filter"], normed=True
-    )
+    metric = metrics.TeffMetric(m5_col=colmap["fiveSigmaDepth"], filter_col=colmap["filter"], normed=True)
     for sql in sql_per_and_all_filters:
-        bundle = metric_bundles.MetricBundle(
-            metric, slicer, sql, display_dict=displayDict
-        )
+        bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
         bundle_list.append(bundle)
 
     # Number of observations, all and each filter
     metric = metrics.CountMetric(col=colmap["mjd"], metric_name="Number of Exposures")
     for sql in sql_per_and_all_filters:
-        bundle = metric_bundles.MetricBundle(
-            metric, slicer, sql, display_dict=displayDict
-        )
+        bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
         bundle_list.append(bundle)
 
     # The alt/az plots of all the pointings
@@ -133,9 +125,7 @@ def glanceBatch(
         lat_lon_deg=colmap["raDecDeg"],
         use_cache=False,
     )
-    metric = metrics.CountMetric(
-        colmap["mjd"], metric_name="Nvisits as function of Alt/Az"
-    )
+    metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits as function of Alt/Az")
     plotFuncs = [plots.LambertSkyMap()]
 
     plotDict = {"norm": "log"}
@@ -190,9 +180,7 @@ def glanceBatch(
     # Things to check per night
     # Open Shutter per night
     displayDict = {"group": "Pointing Efficency", "order": 2}
-    slicer = slicers.OneDSlicer(
-        slice_col_name=colmap["night"], bin_size=1, bin_min=-0.5
-    )
+    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], bin_size=1, bin_min=-0.5)
     metric = metrics.OpenShutterFractionMetric(
         slew_time_col=colmap["slewtime"],
         exp_time_col=colmap["exptime"],
@@ -205,9 +193,7 @@ def glanceBatch(
     bundle_list.append(bundle)
 
     # Number of filter changes per night
-    slicer = slicers.OneDSlicer(
-        slice_col_name=colmap["night"], bin_size=1, bin_min=-0.5
-    )
+    slicer = slicers.OneDSlicer(slice_col_name=colmap["night"], bin_size=1, bin_min=-0.5)
     metric = metrics.NChangesMetric(
         col=colmap["filter"], order_by=colmap["mjd"], metric_name="Filter Changes"
     )
@@ -219,9 +205,7 @@ def glanceBatch(
     # A few basic maps
     # Number of observations, coadded depths
     extended_stats = standardStats.copy()
-    extended_stats.append(
-        metrics.AreaSummaryMetric(decreasing=True, metric_name="top18k")
-    )
+    extended_stats.append(metrics.AreaSummaryMetric(decreasing=True, metric_name="top18k"))
     extended_stats.append(metrics.PercentileMetric(col="metricdata", percentile=10))
     displayDict = {"group": "Basic Maps", "order": 3}
     slicer = spatial_slicer(
@@ -257,15 +241,9 @@ def glanceBatch(
     # Let's look at two years
     displayDict = {"group": "Roll Check", "order": 1}
     rolling_metrics = []
-    rolling_metrics.append(
-        metrics.CountMetric(col=colmap["mjd"], metric_name="Year1.0Count")
-    )
-    rolling_metrics.append(
-        metrics.CountMetric(col=colmap["mjd"], metric_name="Year2.5Count")
-    )
-    rolling_metrics.append(
-        metrics.CountMetric(col=colmap["mjd"], metric_name="Year3.5Count")
-    )
+    rolling_metrics.append(metrics.CountMetric(col=colmap["mjd"], metric_name="Year1.0Count"))
+    rolling_metrics.append(metrics.CountMetric(col=colmap["mjd"], metric_name="Year2.5Count"))
+    rolling_metrics.append(metrics.CountMetric(col=colmap["mjd"], metric_name="Year3.5Count"))
     rolling_sqls = []
     rolling_sqls.append("night < 365.25")
     rolling_sqls.append("night > %f and night < %f" % (365.25 * 2.5, 365.25 * 3.5))
@@ -371,20 +349,14 @@ def glanceBatch(
     # stats from the note column
     if "note" in colmap.keys():
         displayDict = {"group": "Basic Stats", "subgroup": "Percent stats"}
-        metric = metrics.StringCountMetric(
-            col=colmap["note"], percent=True, metric_name="Percents"
-        )
+        metric = metrics.StringCountMetric(col=colmap["note"], percent=True, metric_name="Percents")
         sql = ""
         slicer = slicers.UniSlicer()
-        bundle = metric_bundles.MetricBundle(
-            metric, slicer, sql, display_dict=displayDict
-        )
+        bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
         bundle_list.append(bundle)
         displayDict["subgroup"] = "Count Stats"
         metric = metrics.StringCountMetric(col=colmap["note"], metric_name="Counts")
-        bundle = metric_bundles.MetricBundle(
-            metric, slicer, sql, display_dict=displayDict
-        )
+        bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
         bundle_list.append(bundle)
 
     # DDF progress
@@ -416,9 +388,7 @@ def glanceBatch(
     summary = metrics.SumMetric()
     slicer = slicers.UniSlicer()
     bundle_list.append(
-        metric_bundles.MetricBundle(
-            metric, slicer, sql, summary_metrics=summary, display_dict=displayDict
-        )
+        metric_bundles.MetricBundle(metric, slicer, sql, summary_metrics=summary, display_dict=displayDict)
     )
 
     benchmarkArea = 18000
@@ -479,8 +449,7 @@ def glanceBatch(
     )
     caption += (
         "fOArea: this many sq deg (out of %.2f sq deg if compared "
-        "to benchmark) receives at least %d visits. "
-        % (benchmarkArea, benchmarkNvisits)
+        "to benchmark) receives at least %d visits. " % (benchmarkArea, benchmarkNvisits)
     )
     displayDict["caption"] = caption
     slicer = slicers.HealpixSlicer(nside=nside)
@@ -527,9 +496,7 @@ def glanceBatch(
     bd = metric_bundles.make_bundles_dict_from_list(bundle_list)
 
     # Add hourglass plots.
-    hrDict = hourglassPlots(
-        colmap=colmap, runName=run_name, nyears=nyears, extraSql=sql_constraint
-    )
+    hrDict = hourglassPlots(colmap=colmap, runName=run_name, nyears=nyears, extraSql=sql_constraint)
     bd.update(hrDict)
 
     # Add basic slew stats.
@@ -537,8 +504,6 @@ def glanceBatch(
         slewDict = slewBasics(colmap=colmap, runName=run_name)
         bd.update(slewDict)
     except KeyError as e:
-        warnings.warn(
-            "Could not add slew stats: missing required key %s from colmap" % (e)
-        )
+        warnings.warn("Could not add slew stats: missing required key %s from colmap" % (e))
 
     return bd

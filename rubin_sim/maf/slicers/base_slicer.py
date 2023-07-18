@@ -1,13 +1,15 @@
 # Base class for all 'Slicer' objects.
 #
 import inspect
-from io import StringIO
 import json
 import warnings
+from io import StringIO
+
 import numpy as np
 import numpy.ma as ma
-from rubin_sim.maf.utils import get_date_version
 from six import with_metaclass
+
+from rubin_sim.maf.utils import get_date_version
 
 __all__ = ["SlicerRegistry", "BaseSlicer"]
 
@@ -26,10 +28,7 @@ class SlicerRegistry(type):
             modname = ""
         slicername = modname + name
         if slicername in cls.registry:
-            raise Exception(
-                "Redefining metric %s! (there are >1 slicers with the same name)"
-                % (slicername)
-            )
+            raise Exception("Redefining metric %s! (there are >1 slicers with the same name)" % (slicername))
         if slicername not in ["BaseSlicer", "BaseSpatialSlicer"]:
             cls.registry[slicername] = cls
 
@@ -159,9 +158,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         The slice of data returned will be the indices of the numpy rec array (the sim_data)
         which are appropriate for the metric to be working on, for that slice_point.
         """
-        raise NotImplementedError(
-            'This method is set up by "setup_slicer" - run that first.'
-        )
+        raise NotImplementedError('This method is set up by "setup_slicer" - run that first.')
 
     def write_data(
         self,
@@ -330,9 +327,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         # Else:
         else:
             if "ra" in self.slice_points:
-                for ra, dec, value in zip(
-                    self.slice_points["ra"], self.slice_points["dec"], metric_values
-                ):
+                for ra, dec, value in zip(self.slice_points["ra"], self.slice_points["dec"], metric_values):
                     lon = ra * 180.0 / np.pi
                     lat = dec * 180.0 / np.pi
                     metric.append([lon, lat, value])
@@ -369,9 +364,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         # Allowing pickles here is required, because otherwise we cannot restore data saved as objects.
         restored = np.load(infilename, allow_pickle=True)
         if "slicer_name" not in restored:
-            metric_values, slicer, header = self.read_backwards_compatible(
-                restored, infilename
-            )
+            metric_values, slicer, header = self.read_backwards_compatible(restored, infilename)
             return metric_values, slicer, header
         # This is the standard behavior and will be the sole behavior at a future release point.
         # Get metadata and other sim_data info.
@@ -387,9 +380,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         try:
             slicer = getattr(slicers, slicer_name)(**slicer_init)
         except TypeError:
-            warnings.warn(
-                f"Cannot use saved slicer init values; falling back to defaults for {infilename}"
-            )
+            warnings.warn(f"Cannot use saved slicer init values; falling back to defaults for {infilename}")
             slicer = getattr(slicers, slicer_name)()
         # Restore slice_point information.
         slicer.nslice = slicer_nslice
@@ -457,9 +448,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         try:
             slicer = getattr(slicers, slicer_name)(**slicer_init)
         except TypeError:
-            warnings.warn(
-                f"Cannot use saved slicer init values; falling back to defaults for {infilename}"
-            )
+            warnings.warn(f"Cannot use saved slicer init values; falling back to defaults for {infilename}")
             slicer = getattr(slicers, slicer_name)()
         # Restore slice_point information.
         slicer.nslice = slicer_nslice

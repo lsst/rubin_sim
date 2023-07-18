@@ -2,9 +2,9 @@
 import os
 import sys
 import unittest
-from unittest.mock import patch
-from tempfile import TemporaryDirectory
 from os import path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 import pandas as pd
 
@@ -148,16 +148,12 @@ class TestArchive(unittest.TestCase):
         summary = maf.get_metric_summaries(summary_source=SUMMARY_SOURCE)
 
         table_metric_set = all_metric_sets.loc["SRD"]
-        fig, ax = maf.describe_families(
-            disp_families, summary=summary, table_metric_set=table_metric_set
-        )
+        fig, ax = maf.describe_families(disp_families, summary=summary, table_metric_set=table_metric_set)
         self.assertIsNone(fig)
         self.assertIsNone(ax)
 
         plot_metric_set = all_metric_sets.loc["N Visits"]
-        fig, ax = maf.describe_families(
-            disp_families, summary=summary, plot_metric_set=plot_metric_set
-        )
+        fig, ax = maf.describe_families(disp_families, summary=summary, plot_metric_set=plot_metric_set)
 
     def test_create_metric_set_df(self):
         metrics = ["Urania", "Thalia", "Calliope", "Terpsichore"]

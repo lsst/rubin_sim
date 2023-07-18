@@ -1,17 +1,19 @@
-import numpy as np
-import matplotlib.pylab as plt
+import argparse
+import os
+import subprocess
+import sys
+
 import healpy as hp
+import matplotlib.pylab as plt
+import numpy as np
+
+import rubin_sim.scheduler.basis_functions as bf
+import rubin_sim.scheduler.detailers as detailers
+from rubin_sim.scheduler import sim_runner
 from rubin_sim.scheduler.modelObservatory import Model_observatory
 from rubin_sim.scheduler.schedulers import Core_scheduler, simple_filter_sched
-from rubin_sim.scheduler.utils import standard_goals, generate_goal_map, Footprint
-import rubin_sim.scheduler.basis_functions as bf
-from rubin_sim.scheduler.surveys import Greedy_survey, generate_dd_surveys, Blob_survey
-from rubin_sim.scheduler import sim_runner
-import rubin_sim.scheduler.detailers as detailers
-import sys
-import subprocess
-import os
-import argparse
+from rubin_sim.scheduler.surveys import Blob_survey, Greedy_survey, generate_dd_surveys
+from rubin_sim.scheduler.utils import Footprint, generate_goal_map, standard_goals
 
 
 def gen_greedy_surveys(
@@ -85,9 +87,7 @@ def gen_greedy_surveys(
 
     for filtername in filters:
         bfs = []
-        bfs.append(
-            (bf.M5_diff_basis_function(filtername=filtername, nside=nside), m5_weight)
-        )
+        bfs.append((bf.M5_diff_basis_function(filtername=filtername, nside=nside), m5_weight))
         bfs.append(
             (
                 bf.Footprint_basis_function(
@@ -105,9 +105,7 @@ def gen_greedy_surveys(
                 slewtime_weight,
             )
         )
-        bfs.append(
-            (bf.Strict_filter_basis_function(filtername=filtername), stayfilter_weight)
-        )
+        bfs.append((bf.Strict_filter_basis_function(filtername=filtername), stayfilter_weight))
         # Masks, give these 0 weight
         bfs.append(
             (
@@ -119,9 +117,7 @@ def gen_greedy_surveys(
         )
         bfs.append(
             (
-                bf.Moon_avoidance_basis_function(
-                    nside=nside, moon_distance=moon_distance
-                ),
+                bf.Moon_avoidance_basis_function(nside=nside, moon_distance=moon_distance),
                 0,
             )
         )
@@ -141,7 +137,7 @@ def gen_greedy_surveys(
                 ignore_obs=ignore_obs,
                 nexp=nexp,
                 detailers=[detailer],
-                **greed_survey_params
+                **greed_survey_params,
             )
         )
 
@@ -312,9 +308,7 @@ def generate_blobs(
                 slewtime_weight,
             )
         )
-        bfs.append(
-            (bf.Strict_filter_basis_function(filtername=filtername), stayfilter_weight)
-        )
+        bfs.append((bf.Strict_filter_basis_function(filtername=filtername), stayfilter_weight))
 
         if filtername2 is not None:
             bfs.append(
@@ -375,9 +369,7 @@ def generate_blobs(
         )
         bfs.append(
             (
-                bf.Moon_avoidance_basis_function(
-                    nside=nside, moon_distance=moon_distance
-                ),
+                bf.Moon_avoidance_basis_function(nside=nside, moon_distance=moon_distance),
                 0.0,
             )
         )
@@ -399,9 +391,7 @@ def generate_blobs(
         else:
             survey_name = "blob, %s%s" % (filtername, filtername2)
         if filtername2 is not None:
-            detailer_list.append(
-                detailers.Take_as_pairs_detailer(filtername=filtername2)
-            )
+            detailer_list.append(detailers.Take_as_pairs_detailer(filtername=filtername2))
         surveys.append(
             Blob_survey(
                 basis_functions,
@@ -414,7 +404,7 @@ def generate_blobs(
                 ignore_obs=ignore_obs,
                 nexp=nexp,
                 detailers=detailer_list,
-                **blob_survey_params
+                **blob_survey_params,
             )
         )
 
@@ -520,9 +510,7 @@ if __name__ == "__main__":
     parser.set_defaults(verbose=False)
     parser.add_argument("--survey_length", type=float, default=15)
     parser.add_argument("--out_dir", type=str, default="")
-    parser.add_argument(
-        "--maxDither", type=float, default=0.7, help="Dither size for DDFs (deg)"
-    )
+    parser.add_argument("--maxDither", type=float, default=0.7, help="Dither size for DDFs (deg)")
     parser.add_argument(
         "--moon_illum_limit",
         type=float,
@@ -570,31 +558,21 @@ if __name__ == "__main__":
 
     observatory = Model_observatory(nside=nside)
     conditions = observatory.return_conditions()
-    footprints = Footprint(
-        conditions.mjd_start, sun_ra_start=conditions.sun_RA_start, nside=nside
-    )
+    footprints = Footprint(conditions.mjd_start, sun_ra_start=conditions.sun_RA_start, nside=nside)
     for i, key in enumerate(footprints_hp):
         footprints.footprints[i, :] = footprints_hp[key]
 
     # Set up the DDF surveys to dither
-    dither_detailer = detailers.Dither_detailer(
-        per_night=per_night, max_dither=max_dither
-    )
+    dither_detailer = detailers.Dither_detailer(per_night=per_night, max_dither=max_dither)
     details = [
-        detailers.Camera_rot_detailer(
-            min_rot=-camera_ddf_rot_limit, max_rot=camera_ddf_rot_limit
-        ),
+        detailers.Camera_rot_detailer(min_rot=-camera_ddf_rot_limit, max_rot=camera_ddf_rot_limit),
         dither_detailer,
     ]
     euclid_detailers = [
-        detailers.Camera_rot_detailer(
-            min_rot=-camera_ddf_rot_limit, max_rot=camera_ddf_rot_limit
-        ),
+        detailers.Camera_rot_detailer(min_rot=-camera_ddf_rot_limit, max_rot=camera_ddf_rot_limit),
         detailers.Euclid_dither_detailer(),
     ]
-    ddfs = generate_dd_surveys(
-        nside=nside, nexp=nexp, detailers=details, euclid_detailers=euclid_detailers
-    )
+    ddfs = generate_dd_surveys(nside=nside, nexp=nexp, detailers=details, euclid_detailers=euclid_detailers)
 
     greedy = gen_greedy_surveys(nside, nexp=nexp, footprints=footprints)
     blobs = generate_blobs(nside, nexp=nexp, footprints=footprints)

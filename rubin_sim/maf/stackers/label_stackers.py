@@ -1,5 +1,6 @@
-import numpy as np
 import healpy as hp
+import numpy as np
+
 from .base_stacker import BaseStacker
 
 __all__ = ["WFDlabelStacker"]

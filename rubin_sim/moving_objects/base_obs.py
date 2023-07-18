@@ -1,14 +1,13 @@
 import os
-import numpy as np
 import warnings
 
-from rubin_sim.phot_utils import Bandpass
-from rubin_sim.phot_utils import Sed
-from rubin_sim.utils import angular_separation
+import numpy as np
+
 from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import Bandpass, Sed
+from rubin_sim.utils import LsstCameraFootprint, angular_separation
 
 from .ooephemerides import PyOrbEphemerides
-from rubin_sim.utils import LsstCameraFootprint
 
 __all__ = ["BaseObs"]
 
@@ -143,9 +142,7 @@ class BaseObs(object):
             self.info[key] = info[key]
 
     def _setup_camera(self, camera_footprint_file=None):
-        self.camera = LsstCameraFootprint(
-            units="degrees", footprint_file=camera_footprint_file
-        )
+        self.camera = LsstCameraFootprint(units="degrees", footprint_file=camera_footprint_file)
 
     def setup_ephemerides(self):
         """Initialize the ephemeris generator. Save the setup PyOrbEphemeris class.
@@ -277,9 +274,7 @@ class BaseObs(object):
         self.lsst = {}
         for f in self.filterlist:
             self.lsst[f] = Bandpass()
-            self.lsst[f].read_throughput(
-                os.path.join(filter_dir, bandpass_root + f + bandpass_suffix)
-            )
+            self.lsst[f].read_throughput(os.path.join(filter_dir, bandpass_root + f + bandpass_suffix))
         self.vband = Bandpass()
         self.vband.read_throughput(os.path.join(v_dir, v_filter))
 
@@ -371,10 +366,7 @@ class BaseObs(object):
 
     def _sso_in_rectangle_fov(self, ephems, obs_data, x_tol, y_tol):
         delta_dec = np.abs(ephems["dec"] - obs_data[self.obs_dec])
-        delta_ra = np.abs(
-            (ephems["ra"] - obs_data[self.obs_ra])
-            * np.cos(np.radians(obs_data[self.obs_dec]))
-        )
+        delta_ra = np.abs((ephems["ra"] - obs_data[self.obs_ra]) * np.cos(np.radians(obs_data[self.obs_dec])))
         idx_obs = np.where((delta_dec <= y_tol) & (delta_ra <= x_tol))[0]
         return idx_obs
 

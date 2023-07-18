@@ -6,10 +6,12 @@
 # Description: Calculates the stellar density based off of Juric et al 2008 and Jackson et al 2002. For use with Field Star Count metric
 
 from __future__ import print_function
-import numpy as np
-import sys
-from scipy.optimize import fsolve
+
 import math
+import sys
+
+import numpy as np
+from scipy.optimize import fsolve
 
 zsun = 25.0
 rsun = 8000.0

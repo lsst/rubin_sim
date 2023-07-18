@@ -1,9 +1,9 @@
-import numpy as np
-from rubin_sim.scheduler import features
 import matplotlib.pylab as plt
+import numpy as np
+
+from rubin_sim.scheduler import features
 from rubin_sim.scheduler.basis_functions import BaseBasisFunction
 from rubin_sim.scheduler.utils import IntRounded
-
 
 __all__ = [
     "FilterLoadedBasisFunction",
@@ -98,9 +98,7 @@ class LimitObsPnightBasisFunction(BaseBasisFunction):
     def __init__(self, survey_str="", nlimit=100.0):
         super(LimitObsPnightBasisFunction, self).__init__()
         self.nlimit = nlimit
-        self.survey_features["N_in_night"] = features.Survey_in_night(
-            survey_str=survey_str
-        )
+        self.survey_features["N_in_night"] = features.Survey_in_night(survey_str=survey_str)
 
     def check_feasibility(self, conditions):
         if self.survey_features["N_in_night"].feature >= self.nlimit:
@@ -161,9 +159,7 @@ class AfterEveningTwiBasisFunction(BaseBasisFunction):
         self.alt_limit = str(alt_limit)
 
     def check_feasibility(self, conditions):
-        available_time = conditions.mjd - getattr(
-            conditions, "sun_n" + self.alt_limit + "_setting"
-        )
+        available_time = conditions.mjd - getattr(conditions, "sun_n" + self.alt_limit + "_setting")
         result = IntRounded(available_time) < self.time_after
         return result
 
@@ -177,9 +173,7 @@ class EndOfEveningBasisFunction(BaseBasisFunction):
         self.alt_limit = str(alt_limit)
 
     def check_feasibility(self, conditions):
-        available_time = (
-            getattr(conditions, "sun_n" + self.alt_limit + "_rising") - conditions.mjd
-        )
+        available_time = getattr(conditions, "sun_n" + self.alt_limit + "_rising") - conditions.mjd
         result = IntRounded(available_time) < self.time_remaining
         return result
 
@@ -202,9 +196,7 @@ class TimeToTwilightBasisFunction(BaseBasisFunction):
         self.alt_limit = str(alt_limit)
 
     def check_feasibility(self, conditions):
-        available_time = (
-            getattr(conditions, "sun_n" + self.alt_limit + "_rising") - conditions.mjd
-        )
+        available_time = getattr(conditions, "sun_n" + self.alt_limit + "_rising") - conditions.mjd
         result = available_time > self.time_needed
         return result
 
@@ -242,13 +234,9 @@ class NotTwilightBasisFunction(BaseBasisFunction):
 
     def check_feasibility(self, conditions):
         result = True
-        if conditions.mjd < getattr(
-            conditions, "sun_" + self.sun_alt_limit + "_setting"
-        ):
+        if conditions.mjd < getattr(conditions, "sun_" + self.sun_alt_limit + "_setting"):
             result = False
-        if conditions.mjd > getattr(
-            conditions, "sun_" + self.sun_alt_limit + "_rising"
-        ):
+        if conditions.mjd > getattr(conditions, "sun_" + self.sun_alt_limit + "_rising"):
             result = False
         return result
 
@@ -266,16 +254,11 @@ class ForceDelayBasisFunction(BaseBasisFunction):
         super(ForceDelayBasisFunction, self).__init__()
         self.days_delay = days_delay
         self.survey_name = survey_name
-        self.survey_features["last_obs_self"] = features.Last_observation(
-            survey_name=self.survey_name
-        )
+        self.survey_features["last_obs_self"] = features.Last_observation(survey_name=self.survey_name)
 
     def check_feasibility(self, conditions):
         result = True
-        if (
-            conditions.mjd - self.survey_features["last_obs_self"].feature["mjd"]
-            < self.days_delay
-        ):
+        if conditions.mjd - self.survey_features["last_obs_self"].feature["mjd"] < self.days_delay:
             result = False
         return result
 
@@ -288,35 +271,25 @@ class SoftDelayBasisFunction(BaseBasisFunction):
 
     """
 
-    def __init__(
-        self, fractions=[0.000, 0.009, 0.017], delays=[0.0, 0.5, 1.5], survey_name=None
-    ):
+    def __init__(self, fractions=[0.000, 0.009, 0.017], delays=[0.0, 0.5, 1.5], survey_name=None):
         if len(fractions) != len(delays):
             raise ValueError("fractions and delays must be same length")
         super(SoftDelayBasisFunction, self).__init__()
         self.delays = delays
         self.survey_name = survey_name
-        self.survey_features["last_obs_self"] = features.LastObservation(
-            survey_name=self.survey_name
-        )
+        self.survey_features["last_obs_self"] = features.LastObservation(survey_name=self.survey_name)
         self.fractions = fractions
         self.survey_features["Ntot"] = features.NObsSurvey()
         self.survey_features["N_survey"] = features.NObsSurvey(note=self.survey_name)
 
     def check_feasibility(self, conditions):
         result = True
-        current_ratio = (
-            self.survey_features["N_survey"].feature
-            / self.survey_features["Ntot"].feature
-        )
+        current_ratio = self.survey_features["N_survey"].feature / self.survey_features["Ntot"].feature
         indx = np.searchsorted(self.fractions, current_ratio)
         if indx == len(self.fractions):
             indx -= 1
         delay = self.delays[indx]
-        if (
-            conditions.mjd - self.survey_features["last_obs_self"].feature["mjd"]
-            < delay
-        ):
+        if conditions.mjd - self.survey_features["last_obs_self"].feature["mjd"] < delay:
             result = False
         return result
 
@@ -385,10 +358,7 @@ class FractionOfObsBasisFunction(BaseBasisFunction):
         result = True
         if self.survey_features["Ntot"].feature == 0:
             return result
-        ratio = (
-            self.survey_features["N_survey"].feature
-            / self.survey_features["Ntot"].feature
-        )
+        ratio = self.survey_features["N_survey"].feature / self.survey_features["Ntot"].feature
         if ratio > self.frac_total:
             result = False
         return result
@@ -447,35 +417,24 @@ class LookAheadDdfBasisFunction(BaseBasisFunction):
     def check_feasibility(self, conditions):
         result = True
         target_ha = (conditions.lmst - self.ra_hours) % 24
-        ratio = (
-            self.survey_features["N_survey"].feature
-            / self.survey_features["Ntot"].feature
-        )
-        available_time = (
-            getattr(conditions, "sun_" + self.sun_alt_limit + "_rising")
-            - conditions.mjd
-        )
+        ratio = self.survey_features["N_survey"].feature / self.survey_features["Ntot"].feature
+        available_time = getattr(conditions, "sun_" + self.sun_alt_limit + "_rising") - conditions.mjd
         # If it's more that self.time_jump to hour angle zero
         # See if there will be enough time to twilight in the future
         if (IntRounded(target_ha) > IntRounded(12)) & (
             IntRounded(target_ha) < IntRounded(24.0 - self.time_jump)
         ):
-            if IntRounded(available_time) > IntRounded(
-                self.time_needed + self.time_jump
-            ):
+            if IntRounded(available_time) > IntRounded(self.time_needed + self.time_jump):
                 result = False
                 # If we paused for better conditions, but the moon will rise, turn things back on.
                 if IntRounded(conditions.moon_alt) < IntRounded(0):
                     if IntRounded(conditions.moonrise) > IntRounded(conditions.mjd):
-                        if IntRounded(
-                            conditions.moonrise - conditions.mjd
-                        ) > IntRounded(self.time_jump):
+                        if IntRounded(conditions.moonrise - conditions.mjd) > IntRounded(self.time_jump):
                             result = True
         # If the moon is up and will set soon, pause
         if IntRounded(conditions.moon_alt) > IntRounded(0):
             time_after_moonset = (
-                getattr(conditions, "sun_" + self.sun_alt_limit + "_rising")
-                - conditions.moonset
+                getattr(conditions, "sun_" + self.sun_alt_limit + "_rising") - conditions.moonset
             )
             if IntRounded(conditions.moonset) > IntRounded(self.time_jump):
                 if IntRounded(time_after_moonset) > IntRounded(self.time_needed):

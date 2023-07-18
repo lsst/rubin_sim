@@ -5,7 +5,8 @@ To date (30 October 2014) testPhotometry.py and testCosmology.py import from thi
 """
 
 import numpy
-from rubin_sim.phot_utils import calc_sky_counts_per_pixel_for_m5, Sed
+
+from rubin_sim.phot_utils import Sed, calc_sky_counts_per_pixel_for_m5
 
 __all__ = ["set_m5", "comoving_distance_integrand", "cosmological_omega"]
 
@@ -60,9 +61,7 @@ def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwhm_eff=Non
         m5target, total_bandpass, fwhm_eff=fwhm_eff, phot_params=phot_params
     )
 
-    sky_sed_out = Sed(
-        wavelen=numpy.copy(skysed.wavelen), flambda=numpy.copy(skysed.flambda)
-    )
+    sky_sed_out = Sed(wavelen=numpy.copy(skysed.wavelen), flambda=numpy.copy(skysed.flambda))
 
     sky_counts = (
         sky_sed_out.calc_adu(hardware, phot_params=phot_params)
@@ -74,9 +73,7 @@ def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwhm_eff=Non
     return sky_sed_out
 
 
-def cosmological_omega(
-    redshift, h0, om0, ode0=None, og0=0.0, onu0=0.0, w0=-1.0, wa=0.0
-):
+def cosmological_omega(redshift, h0, om0, ode0=None, og0=0.0, onu0=0.0, w0=-1.0, wa=0.0):
     """
     A method to compute the evolution of the Hubble and density parameters
     with redshift (as a baseline against which to test the cosmology unittest)

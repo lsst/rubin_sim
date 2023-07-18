@@ -6,9 +6,11 @@
 # Description: Calculates absolute magnitudes as a function of spectral type. For use with Field Star Count metric
 
 from __future__ import print_function
-from builtins import map
-import numpy as np
+
 import sys
+from builtins import map
+
+import numpy as np
 from scipy.interpolate import interp1d
 
 

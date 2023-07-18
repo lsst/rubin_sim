@@ -1,11 +1,13 @@
-import numpy as np
-from rubin_sim.maf.utils import m52snr
-import rubin_sim.maf.metrics as metrics
 import os
-from rubin_sim.utils import hpid2_ra_dec, equatorial_from_galactic
+from copy import deepcopy
+
+import numpy as np
+
+import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 from rubin_sim.data import get_data_dir
-from copy import deepcopy
+from rubin_sim.maf.utils import m52snr
+from rubin_sim.utils import equatorial_from_galactic, hpid2_ra_dec
 
 __all__ = [
     "generate_microlensing_slicer",
@@ -20,9 +22,7 @@ __all__ = [
 
 
 # Via Natasha Abrams nsabrams@college.harvard.edu
-def microlensing_amplification(
-    t, impact_parameter=1, crossing_time=1825.0, peak_time=100, blending_factor=1
-):
+def microlensing_amplification(t, impact_parameter=1, crossing_time=1825.0, peak_time=100, blending_factor=1):
     """The microlensing amplification
 
     Parameters
@@ -39,9 +39,7 @@ def microlensing_amplification(
         The blending factor where 1 is unblended
     """
 
-    lightcurve_u = np.sqrt(
-        impact_parameter**2 + ((t - peak_time) ** 2 / crossing_time**2)
-    )
+    lightcurve_u = np.sqrt(impact_parameter**2 + ((t - peak_time) ** 2 / crossing_time**2))
     amplified_mag = (lightcurve_u**2 + 2) / (
         lightcurve_u * np.sqrt(lightcurve_u**2 + 4)
     ) * blending_factor + (1 - blending_factor)
@@ -49,9 +47,7 @@ def microlensing_amplification(
     return amplified_mag
 
 
-def microlensing_amplification_fsfb(
-    t, impact_parameter=1, crossing_time=1825.0, peak_time=100, fs=20, fb=20
-):
+def microlensing_amplification_fsfb(t, impact_parameter=1, crossing_time=1825.0, peak_time=100, fs=20, fb=20):
     """The microlensing amplification
     in terms of source flux and blend flux
 
@@ -67,12 +63,8 @@ def microlensing_amplification_fsfb(
         The peak time (days)
     """
 
-    lightcurve_u = np.sqrt(
-        impact_parameter**2 + ((t - peak_time) ** 2 / crossing_time**2)
-    )
-    amplified_mag = (lightcurve_u**2 + 2) / (
-        lightcurve_u * np.sqrt(lightcurve_u**2 + 4)
-    ) * fs + fb
+    lightcurve_u = np.sqrt(impact_parameter**2 + ((t - peak_time) ** 2 / crossing_time**2))
+    amplified_mag = (lightcurve_u**2 + 2) / (lightcurve_u * np.sqrt(lightcurve_u**2 + 4)) * fs + fb
 
     return amplified_mag
 
@@ -97,9 +89,7 @@ def info_peak_before_t0(impact_parameter=1, crossing_time=100.0):
     optimal_time = (
         crossing_time
         * np.sqrt(
-            -(impact_parameter**2)
-            + np.sqrt(9 * impact_parameter**4 + 36 * impact_parameter**2 + 4)
-            - 2
+            -(impact_parameter**2) + np.sqrt(9 * impact_parameter**4 + 36 * impact_parameter**2 + 4) - 2
         )
         / 2
     )
@@ -296,7 +286,7 @@ class MicrolensingMetric(metrics.BaseMetric):
         detect_sigma=3.0,
         time_before_peak=0,
         detect=False,
-        **kwargs
+        **kwargs,
     ):
         self.metric_calc = metric_calc
         if metric_calc == "detect":
@@ -329,10 +319,7 @@ class MicrolensingMetric(metrics.BaseMetric):
 
         cols = [self.mjd_col, self.m5_col, self.filter_col, self.night_col]
         super(MicrolensingMetric, self).__init__(
-            col=cols,
-            units=self.units,
-            metric_name=metric_name + "_" + self.metric_calc,
-            **kwargs
+            col=cols, units=self.units, metric_name=metric_name + "_" + self.metric_calc, **kwargs
         )
 
     def run(self, data_slice, slice_point=None):
@@ -391,14 +378,10 @@ class MicrolensingMetric(metrics.BaseMetric):
                     fb=fb,
                 )
                 self.mags[filtername] = slice_point["apparent_m_{}".format(filtername)]
-                amplified_mags[infilt] = self.mags[filtername] - 2.5 * np.log10(
-                    amplitudes[infilt]
-                )
+                amplified_mags[infilt] = self.mags[filtername] - 2.5 * np.log10(amplitudes[infilt])
 
             else:
-                amplified_mags[infilt] = self.mags[filtername] - 2.5 * np.log10(
-                    amplitudes[infilt]
-                )
+                amplified_mags[infilt] = self.mags[filtername] - 2.5 * np.log10(amplitudes[infilt])
 
         # The SNR of each point in the light curve
         snr = m52snr(amplified_mags, data_slice[self.m5_col])
@@ -428,17 +411,12 @@ class MicrolensingMetric(metrics.BaseMetric):
 
                 # observations post-peak and in the given filter
                 outfilt = np.where(
-                    (data_slice[self.filter_col] == filtername)
-                    & (t > slice_point["peak_time"])
+                    (data_slice[self.filter_col] == filtername) & (t > slice_point["peak_time"])
                 )[0]
                 # Broadcast to calc the mag_i - mag_j
                 diffs = amplified_mags[infilt] - amplified_mags[infilt][:, np.newaxis]
-                diffs_uncert = np.sqrt(
-                    mag_uncert[infilt] ** 2 + mag_uncert[infilt][:, np.newaxis] ** 2
-                )
-                diffs_post = (
-                    amplified_mags[outfilt] - amplified_mags[outfilt][:, np.newaxis]
-                )
+                diffs_uncert = np.sqrt(mag_uncert[infilt] ** 2 + mag_uncert[infilt][:, np.newaxis] ** 2)
+                diffs_post = amplified_mags[outfilt] - amplified_mags[outfilt][:, np.newaxis]
                 diffs_post_uncert = np.sqrt(
                     mag_uncert[outfilt] ** 2 + mag_uncert[outfilt][:, np.newaxis] ** 2
                 )
@@ -452,9 +430,7 @@ class MicrolensingMetric(metrics.BaseMetric):
                 # divide by 2 because array has i,j and j,i
                 n_above = np.size(np.where(sigma_above > self.detect_sigma)[0]) / 2
                 n_pre.append(n_above)
-                n_above_post = (
-                    np.size(np.where(sigma_above_post > self.detect_sigma)[0]) / 2
-                )
+                n_above_post = np.size(np.where(sigma_above_post > self.detect_sigma)[0]) / 2
                 n_post.append(n_above_post)
 
             elif self.metric_calc == "Npts":
@@ -571,16 +547,12 @@ def generate_microlensing_slicer(
     """
     np.random.seed(seed)
 
-    crossing_times = np.random.uniform(
-        low=min_crossing_time, high=max_crossing_time, size=n_events
-    )
+    crossing_times = np.random.uniform(low=min_crossing_time, high=max_crossing_time, size=n_events)
     peak_times = np.random.uniform(low=t_start, high=t_end, size=n_events)
     impact_paramters = np.random.uniform(low=0, high=1, size=n_events)
 
     map_dir = os.path.join(get_data_dir(), "maps", "TriMaps")
-    data = np.load(
-        os.path.join(map_dir, "TRIstarDensity_%s_nside_%i.npz" % (filtername, nside))
-    )
+    data = np.load(os.path.join(map_dir, "TRIstarDensity_%s_nside_%i.npz" % (filtername, nside)))
     star_density = data["starDensity"].copy()
     # magnitude bins
     bins = data["bins"].copy()

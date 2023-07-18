@@ -1,6 +1,8 @@
 from builtins import zip
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+
 from rubin_sim.maf.utils import percentile_clipping
 
 from .plot_handler import BasePlotter
@@ -40,9 +42,7 @@ class OneDBinnedData(BasePlotter):
             raise ValueError("OneDBinnedData plotter is for use with OneDSlicer")
         if "bins" not in slicer.slice_points:
             err_message = 'OneDSlicer must contain "bins" in slice_points metadata.'
-            err_message += " SlicePoints only contains keys %s." % (
-                slicer.slice_points.keys()
-            )
+            err_message += " SlicePoints only contains keys %s." % (slicer.slice_points.keys())
             raise ValueError(err_message)
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)

@@ -1,4 +1,5 @@
 from scipy import fftpack
+
 from .base_metric import BaseMetric
 
 __all__ = ["FftMetric"]
@@ -13,9 +14,7 @@ class FftMetric(BaseMetric):
         'times_col' = column with the time of the visit (default expmjd),
         'n_coeffs' = number of coefficients of the (real) FFT to keep."""
         self.times = times_col
-        super(FftMetric, self).__init__(
-            col=[self.times], metric_name=metric_name, **kwargs
-        )
+        super(FftMetric, self).__init__(col=[self.times], metric_name=metric_name, **kwargs)
         # Set up length of return values.
         self.n_coeffs = n_coeffs
         return

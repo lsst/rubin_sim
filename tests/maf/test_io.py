@@ -1,12 +1,14 @@
+import matplotlib
 import numpy as np
 import numpy.ma as ma
-import matplotlib
 
 matplotlib.use("Agg")
-import healpy as hp
 import unittest
-import rubin_sim.maf.slicers as slicers
 from tempfile import TemporaryFile
+
+import healpy as hp
+
+import rubin_sim.maf.slicers as slicers
 
 
 class TestSlicers(unittest.TestCase):
@@ -28,9 +30,7 @@ class TestSlicers(unittest.TestCase):
             info_label = "testdata"
             slicer.write_data(filename, metric_values, info_label=info_label)
             _ = filename.seek(0)
-            metric_values_back, slicer_back, header = self.baseslicer.read_data(
-                filename
-            )
+            metric_values_back, slicer_back, header = self.baseslicer.read_data(filename)
             np.testing.assert_almost_equal(metric_values_back, metric_values)
             assert slicer == slicer_back
             assert info_label == header["info_label"]
@@ -46,9 +46,7 @@ class TestSlicers(unittest.TestCase):
         with TemporaryFile() as filename:
             slicer.write_data(filename, metric_values, info_label="testdata")
             _ = filename.seek(0)
-            metric_values_back, slicer_back, header = self.baseslicer.read_data(
-                filename
-            )
+            metric_values_back, slicer_back, header = self.baseslicer.read_data(filename)
             np.testing.assert_almost_equal(metric_values_back, metric_values)
             assert slicer == slicer_back
             attr2check = ["nside", "nslice", "columns_needed", "lon_col", "lat_col"]
@@ -68,9 +66,7 @@ class TestSlicers(unittest.TestCase):
         with TemporaryFile() as filename:
             slicer.write_data(filename, metric_values, info_label="testdata")
             _ = filename.seek(0)
-            metric_values_back, slicer_back, header = self.baseslicer.read_data(
-                filename
-            )
+            metric_values_back, slicer_back, header = self.baseslicer.read_data(filename)
             np.testing.assert_almost_equal(metric_values_back, metric_values)
             assert slicer == slicer_back
             attr2check = ["nside", "nslice", "columns_needed", "lon_col", "lat_col"]
@@ -92,9 +88,7 @@ class TestSlicers(unittest.TestCase):
             attr2check = ["nslice", "columns_needed"]
             for att in attr2check:
                 if type(getattr(slicer, att)).__module__ == "numpy":
-                    np.testing.assert_almost_equal(
-                        getattr(slicer, att), getattr(slicer_back, att)
-                    )
+                    np.testing.assert_almost_equal(getattr(slicer, att), getattr(slicer_back, att))
                 else:
                     assert getattr(slicer, att) == getattr(slicer_back, att)
 
@@ -109,9 +103,7 @@ class TestSlicers(unittest.TestCase):
         field_data["fieldDec"] = rng.rand(100)
         field_data["fieldId"] = np.arange(100)
 
-        slicer = slicers.UserPointsSlicer(
-            ra=field_data["fieldRA"], dec=field_data["fieldDec"]
-        )
+        slicer = slicers.UserPointsSlicer(ra=field_data["fieldRA"], dec=field_data["fieldDec"])
 
         names = ["data1", "data2", "fieldId"]
         sim_data = np.zeros(100, dtype=list(zip(names, dt)))

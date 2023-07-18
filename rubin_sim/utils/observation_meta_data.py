@@ -1,8 +1,10 @@
-import numpy as np
 import numbers
+
+import numpy as np
+
+from .modified_julian_date import ModifiedJulianDate
+from .site import Site
 from .spatial_bounds import SpatialBounds
-from rubin_sim.utils import ModifiedJulianDate
-from rubin_sim.utils import Site
 
 __all__ = ["ObservationMetaData"]
 
@@ -220,13 +222,10 @@ class ObservationMetaData(object):
 
             if self._bandpass is None:
                 raise RuntimeError(
-                    "You cannot set %s if you have not set " % input_name
-                    + "bandpass in ObservationMetaData"
+                    "You cannot set %s if you have not set " % input_name + "bandpass in ObservationMetaData"
                 )
 
-            if hasattr(self._bandpass, "__iter__") and not isinstance(
-                self._bandpass, str
-            ):
+            if hasattr(self._bandpass, "__iter__") and not isinstance(self._bandpass, str):
                 bandpass_is_list = True
 
             if hasattr(input_value, "__iter__") and not isinstance(input_value, str):
@@ -235,8 +234,7 @@ class ObservationMetaData(object):
             if bandpass_is_list and not input_is_list:
                 raise RuntimeError(
                     "You passed a list of bandpass names"
-                    + "but did not pass a list of %s to ObservationMetaData"
-                    % input_name
+                    + "but did not pass a list of %s to ObservationMetaData" % input_name
                 )
 
             if input_is_list and not bandpass_is_list:
@@ -436,9 +434,7 @@ class ObservationMetaData(object):
         elif isinstance(value, ModifiedJulianDate):
             self._mjd = value
         else:
-            raise RuntimeError(
-                "You can only set mjd to either a float or a ModifiedJulianDate"
-            )
+            raise RuntimeError("You can only set mjd to either a float or a ModifiedJulianDate")
 
     @property
     def bandpass(self):

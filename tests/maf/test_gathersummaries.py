@@ -1,5 +1,6 @@
-import unittest
 import shutil
+import unittest
+
 from rubin_sim.maf.db import ResultsDb
 from rubin_sim.maf.run_comparison import combine_result_dbs
 

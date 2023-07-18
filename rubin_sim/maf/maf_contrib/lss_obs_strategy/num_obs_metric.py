@@ -23,13 +23,9 @@ class NumObsMetric(BaseMetric):
         HEALpix resolution parameter. Default: 128
     """
 
-    def __init__(
-        self, night_col="night", nside=128, metric_name="NumObsMetric", **kwargs
-    ):
+    def __init__(self, night_col="night", nside=128, metric_name="NumObsMetric", **kwargs):
         self.night_col = night_col
-        super(NumObsMetric, self).__init__(
-            col=self.night_col, metric_name=metric_name, **kwargs
-        )
+        super(NumObsMetric, self).__init__(col=self.night_col, metric_name=metric_name, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         return len(data_slice)

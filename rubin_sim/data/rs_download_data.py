@@ -1,18 +1,17 @@
 #!/usr/bin/env python
+import argparse
 import os
 import warnings
+from shutil import rmtree, unpack_archive
+
 import requests
 from requests.exceptions import ConnectionError
-import argparse
 from tqdm.auto import tqdm
-from shutil import unpack_archive, rmtree
 
-from .data_sets import get_data_dir, data_versions
+from .data_sets import data_versions, get_data_dir
 
 DEFAULT_DATA_URL = "https://s3df.slac.stanford.edu/data/rubin/sim-data/rubin_sim_data/"
-BACKUP_DATA_URL = (
-    "https://epyc.astro.washington.edu/~lynnej/opsim_downloads/rubin_sim_data/"
-)
+BACKUP_DATA_URL = "https://epyc.astro.washington.edu/~lynnej/opsim_downloads/rubin_sim_data/"
 
 
 def data_dict():
@@ -42,9 +41,7 @@ def rs_download_data():
     """Download data."""
 
     files = data_dict()
-    parser = argparse.ArgumentParser(
-        description="Download data files for rubin_sim package"
-    )
+    parser = argparse.ArgumentParser(description="Download data files for rubin_sim package")
     parser.add_argument(
         "--versions",
         dest="versions",
@@ -132,9 +129,7 @@ def rs_download_data():
     print(f"Could not connect to {args.url_base}; trying {url_base}")
     try:
         r = requests.get(url_base)
-        fail_message = (
-            f"Could not connect to {args.url_base} or {url_base}. Check sites are up?"
-        )
+        fail_message = f"Could not connect to {args.url_base} or {url_base}. Check sites are up?"
     except ConnectionError:
         print(fail_message)
         exit()
@@ -150,9 +145,7 @@ def rs_download_data():
         else:
             if os.path.isdir(path) and args.force:
                 rmtree(path)
-                warnings.warn(
-                    "Removed existing directory %s, downloading new copy" % path
-                )
+                warnings.warn("Removed existing directory %s, downloading new copy" % path)
             # Download file
             url = url_base + filename
             print("Downloading file: %s" % url)
@@ -161,12 +154,8 @@ def rs_download_data():
             file_size = int(r.headers.get("Content-Length", 0))
             if file_size < 245:
                 warnings.warn(f"{url} file size unexpectedly small.")
-            block_size = (
-                1024 * 1024
-            )  # download this size chunk at a time; reasonable guess
-            progress_bar = tqdm(
-                total=file_size, unit="iB", unit_scale=True, disable=args.tdqm_disable
-            )
+            block_size = 1024 * 1024  # download this size chunk at a time; reasonable guess
+            progress_bar = tqdm(total=file_size, unit="iB", unit_scale=True, disable=args.tdqm_disable)
             print(f"Writing to {os.path.join(data_dir, filename)}")
             with open(os.path.join(data_dir, filename), "wb") as f:
                 for chunk in r.iter_content(chunk_size=block_size):

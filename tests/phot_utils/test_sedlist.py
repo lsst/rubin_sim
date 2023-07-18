@@ -1,18 +1,17 @@
-import unittest
 import os
+import unittest
+
 import numpy as np
 
-from rubin_sim.phot_utils import Bandpass, Sed, SedList
 import rubin_sim
 from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import Bandpass, Sed, SedList
 
 
 class SedListTest(unittest.TestCase):
     def setUp(self):
         self.rng = np.random.RandomState(18233)
-        self.sed_dir = os.path.join(
-            get_data_dir(), "tests", "cartoonSedTestData", "galaxySed"
-        )
+        self.sed_dir = os.path.join(get_data_dir(), "tests", "cartoonSedTestData", "galaxySed")
         self.sed_possibilities = os.listdir(self.sed_dir)
 
     def get_list_of_sed_names(self, n_names):
@@ -60,21 +59,15 @@ class SedListTest(unittest.TestCase):
         test_list = SedList(sed_name_list, mag_norm_list, file_dir=self.sed_dir)
 
         with self.assertRaises(RuntimeError) as context:
-            test_list.load_seds_from_list(
-                sed_name_list, mag_norm_list, internal_av_list=internal_av_list
-            )
+            test_list.load_seds_from_list(sed_name_list, mag_norm_list, internal_av_list=internal_av_list)
         self.assertIn("does not contain internal_av_list", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            test_list.load_seds_from_list(
-                sed_name_list, mag_norm_list, galactic_av_list=galactic_av_list
-            )
+            test_list.load_seds_from_list(sed_name_list, mag_norm_list, galactic_av_list=galactic_av_list)
         self.assertIn("does not contain galactic_av_list", context.exception.args[0])
 
         with self.assertRaises(RuntimeError) as context:
-            test_list.load_seds_from_list(
-                sed_name_list, mag_norm_list, redshift_list=redshift_list
-            )
+            test_list.load_seds_from_list(sed_name_list, mag_norm_list, redshift_list=redshift_list)
         self.assertIn("does not contain redshift_list", context.exception.args[0])
 
     def test_setUp(self):
@@ -124,9 +117,7 @@ class SedListTest(unittest.TestCase):
         for av_control, avTest in zip(internal_av_list, test_list.internal_av_list):
             self.assertAlmostEqual(av_control, avTest, 10)
 
-        for name, norm, av, sedTest in zip(
-            sed_name_list, mag_norm_list, internal_av_list, test_list
-        ):
+        for name, norm, av, sedTest in zip(sed_name_list, mag_norm_list, internal_av_list, test_list):
             sed_control = Sed()
             sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
             fnorm = sed_control.calc_flux_norm(norm, imsim_band)
@@ -387,20 +378,12 @@ class SedListTest(unittest.TestCase):
                     )
 
                     self.assertEqual(len(test_list), 2 * n_sed)
-                    np.testing.assert_array_equal(
-                        wavelen_match, test_list.wavelen_match
-                    )
+                    np.testing.assert_array_equal(wavelen_match, test_list.wavelen_match)
 
                     for ix in range(len(sed_name_list_0)):
-                        self.assertAlmostEqual(
-                            internal_av_list_0[ix], test_list.internal_av_list[ix], 10
-                        )
-                        self.assertAlmostEqual(
-                            galactic_av_list_0[ix], test_list.galactic_av_list[ix], 10
-                        )
-                        self.assertAlmostEqual(
-                            redshift_list_0[ix], test_list.redshift_list[ix], 10
-                        )
+                        self.assertAlmostEqual(internal_av_list_0[ix], test_list.internal_av_list[ix], 10)
+                        self.assertAlmostEqual(galactic_av_list_0[ix], test_list.galactic_av_list[ix], 10)
+                        self.assertAlmostEqual(redshift_list_0[ix], test_list.redshift_list[ix], 10)
 
                     for ix in range(len(sed_name_list_1)):
                         if add_iav:
@@ -440,9 +423,7 @@ class SedListTest(unittest.TestCase):
                         )
                     ):
                         sed_control = Sed()
-                        sed_control.read_sed_flambda(
-                            os.path.join(self.sed_dir, name + ".gz")
-                        )
+                        sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
                         fnorm = sed_control.calc_flux_norm(norm, imsim_band)
                         sed_control.multiply_flux_norm(fnorm)
@@ -458,12 +439,8 @@ class SedListTest(unittest.TestCase):
 
                         sed_test = test_list[ix]
 
-                        np.testing.assert_array_equal(
-                            sed_control.wavelen, sed_test.wavelen
-                        )
-                        np.testing.assert_array_equal(
-                            sed_control.flambda, sed_test.flambda
-                        )
+                        np.testing.assert_array_equal(sed_control.wavelen, sed_test.wavelen)
+                        np.testing.assert_array_equal(sed_control.flambda, sed_test.flambda)
                         np.testing.assert_array_equal(sed_control.fnu, sed_test.fnu)
 
                     if not add_iav:
@@ -485,9 +462,7 @@ class SedListTest(unittest.TestCase):
                         )
                     ):
                         sed_control = Sed()
-                        sed_control.read_sed_flambda(
-                            os.path.join(self.sed_dir, name + ".gz")
-                        )
+                        sed_control.read_sed_flambda(os.path.join(self.sed_dir, name + ".gz"))
 
                         fnorm = sed_control.calc_flux_norm(norm, imsim_band)
                         sed_control.multiply_flux_norm(fnorm)
@@ -507,12 +482,8 @@ class SedListTest(unittest.TestCase):
 
                         sed_test = test_list[ix + n_sed]
 
-                        np.testing.assert_array_equal(
-                            sed_control.wavelen, sed_test.wavelen
-                        )
-                        np.testing.assert_array_equal(
-                            sed_control.flambda, sed_test.flambda
-                        )
+                        np.testing.assert_array_equal(sed_control.wavelen, sed_test.wavelen)
+                        np.testing.assert_array_equal(sed_control.flambda, sed_test.flambda)
                         np.testing.assert_array_equal(sed_control.fnu, sed_test.fnu)
 
     def test_adding_nones_to_list(self):
@@ -574,24 +545,14 @@ class SedListTest(unittest.TestCase):
         np.testing.assert_array_equal(wavelen_match, test_list.wavelen_match)
 
         for ix in range(len(sed_name_list_0)):
-            self.assertAlmostEqual(
-                internal_av_list_0[ix], test_list.internal_av_list[ix], 10
-            )
-            self.assertAlmostEqual(
-                galactic_av_list_0[ix], test_list.galactic_av_list[ix], 10
-            )
+            self.assertAlmostEqual(internal_av_list_0[ix], test_list.internal_av_list[ix], 10)
+            self.assertAlmostEqual(galactic_av_list_0[ix], test_list.galactic_av_list[ix], 10)
             self.assertAlmostEqual(redshift_list_0[ix], test_list.redshift_list[ix], 10)
 
         for ix in range(len(sed_name_list_1)):
-            self.assertAlmostEqual(
-                internal_av_list_1[ix], test_list.internal_av_list[ix + n_sed], 10
-            )
-            self.assertAlmostEqual(
-                galactic_av_list_1[ix], test_list.galactic_av_list[ix + n_sed], 10
-            )
-            self.assertAlmostEqual(
-                redshift_list_1[ix], test_list.redshift_list[ix + n_sed], 10
-            )
+            self.assertAlmostEqual(internal_av_list_1[ix], test_list.internal_av_list[ix + n_sed], 10)
+            self.assertAlmostEqual(galactic_av_list_1[ix], test_list.galactic_av_list[ix + n_sed], 10)
+            self.assertAlmostEqual(redshift_list_1[ix], test_list.redshift_list[ix + n_sed], 10)
 
         for ix, (name, norm, iav, gav, zz) in enumerate(
             zip(
@@ -705,24 +666,14 @@ class SedListTest(unittest.TestCase):
         np.testing.assert_array_equal(wavelen_match, test_list.wavelen_match)
 
         for ix in range(len(sed_name_list_0)):
-            self.assertAlmostEqual(
-                internal_av_list_0[ix], test_list.internal_av_list[ix], 10
-            )
-            self.assertAlmostEqual(
-                galactic_av_list_0[ix], test_list.galactic_av_list[ix], 10
-            )
+            self.assertAlmostEqual(internal_av_list_0[ix], test_list.internal_av_list[ix], 10)
+            self.assertAlmostEqual(galactic_av_list_0[ix], test_list.galactic_av_list[ix], 10)
             self.assertAlmostEqual(redshift_list_0[ix], test_list.redshift_list[ix], 10)
 
         for ix in range(len(sed_name_list_1)):
-            self.assertAlmostEqual(
-                internal_av_list_1[ix], test_list.internal_av_list[ix + n_sed], 10
-            )
-            self.assertAlmostEqual(
-                galactic_av_list_1[ix], test_list.galactic_av_list[ix + n_sed], 10
-            )
-            self.assertAlmostEqual(
-                redshift_list_1[ix], test_list.redshift_list[ix + n_sed], 10
-            )
+            self.assertAlmostEqual(internal_av_list_1[ix], test_list.internal_av_list[ix + n_sed], 10)
+            self.assertAlmostEqual(galactic_av_list_1[ix], test_list.galactic_av_list[ix + n_sed], 10)
+            self.assertAlmostEqual(redshift_list_1[ix], test_list.redshift_list[ix + n_sed], 10)
 
         for ix, (name, norm, iav, gav, zz) in enumerate(
             zip(
@@ -812,12 +763,8 @@ class SedListTest(unittest.TestCase):
         np.testing.assert_array_equal(wavelen_match, test_list.wavelen_match)
 
         for ix in range(len(sed_name_list_0)):
-            self.assertAlmostEqual(
-                internal_av_list_0[ix], test_list.internal_av_list[ix], 10
-            )
-            self.assertAlmostEqual(
-                galactic_av_list_0[ix], test_list.galactic_av_list[ix], 10
-            )
+            self.assertAlmostEqual(internal_av_list_0[ix], test_list.internal_av_list[ix], 10)
+            self.assertAlmostEqual(galactic_av_list_0[ix], test_list.galactic_av_list[ix], 10)
             self.assertAlmostEqual(redshift_list_0[ix], test_list.redshift_list[ix], 10)
 
         for ix, (name, norm, iav, gav, zz) in enumerate(
@@ -873,12 +820,8 @@ class SedListTest(unittest.TestCase):
         np.testing.assert_array_equal(wavelen_match, test_list.wavelen_match)
 
         for ix in range(len(sed_name_list_1)):
-            self.assertAlmostEqual(
-                internal_av_list_1[ix], test_list.internal_av_list[ix], 10
-            )
-            self.assertAlmostEqual(
-                galactic_av_list_1[ix], test_list.galactic_av_list[ix], 10
-            )
+            self.assertAlmostEqual(internal_av_list_1[ix], test_list.internal_av_list[ix], 10)
+            self.assertAlmostEqual(galactic_av_list_1[ix], test_list.galactic_av_list[ix], 10)
             self.assertAlmostEqual(redshift_list_1[ix], test_list.redshift_list[ix], 10)
 
         for ix, (name, norm, iav, gav, zz) in enumerate(

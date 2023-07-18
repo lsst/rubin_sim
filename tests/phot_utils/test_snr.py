@@ -1,19 +1,19 @@
 import os
-import numpy as np
 import unittest
-from rubin_sim.utils import ObservationMetaData
-import rubin_sim.phot_utils.signaltonoise as snr
-from rubin_sim.phot_utils import Sed, Bandpass, PhotometricParameters, LSSTdefaults
-from rubin_sim.phot_utils.utils import set_m5
+
+import numpy as np
+
 import rubin_sim
+import rubin_sim.phot_utils.signaltonoise as snr
 from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import Bandpass, LSSTdefaults, PhotometricParameters, Sed
+from rubin_sim.phot_utils.utils import set_m5
+from rubin_sim.utils import ObservationMetaData
 
 
 class TestSNRmethods(unittest.TestCase):
     def setUp(self):
-        star_name = os.path.join(
-            get_data_dir(), "tests", "cartoonSedTestData", "starSed"
-        )
+        star_name = os.path.join(get_data_dir(), "tests", "cartoonSedTestData", "starSed")
         star_name = os.path.join(star_name, "kurucz", "km20_5750.fits_g40_5790.gz")
         self.star_sed = Sed()
         self.star_sed.read_sed_flambda(star_name)
@@ -88,9 +88,7 @@ class TestSNRmethods(unittest.TestCase):
             ):
                 fwhm_eff = defaults.fwhm_eff(filterName)
 
-                m5 = snr.calc_m5(
-                    self.sky_sed, total, hardware, phot_params, fwhm_eff=fwhm_eff
-                )
+                m5 = snr.calc_m5(self.sky_sed, total, hardware, phot_params, fwhm_eff=fwhm_eff)
 
                 sigma_sed = snr.calc_mag_error_sed(
                     spectrum,
@@ -171,9 +169,7 @@ class TestSNRmethods(unittest.TestCase):
 
                 mag = spectrum.calc_mag(self.bp_list[i])
 
-                test_snr, gamma = snr.calc_snr_m5(
-                    mag, self.bp_list[i], m5[i], phot_params
-                )
+                test_snr, gamma = snr.calc_snr_m5(mag, self.bp_list[i], m5[i], phot_params)
                 self.assertLess((test_snr - control_snr) / control_snr, 0.001)
 
     def test_systematic_uncertainty(self):
@@ -203,9 +199,7 @@ class TestSNRmethods(unittest.TestCase):
             m5_list,
         ):
             sky_dummy = Sed()
-            sky_dummy.read_sed_flambda(
-                os.path.join(get_data_dir(), "throughputs", "baseline", "darksky.dat")
-            )
+            sky_dummy.read_sed_flambda(os.path.join(get_data_dir(), "throughputs", "baseline", "darksky.dat"))
 
             normalized_sky_dummy = set_m5(
                 obs_metadata.m5[filterName],
@@ -227,9 +221,7 @@ class TestSNRmethods(unittest.TestCase):
                 phot_params=PhotometricParameters(),
             )
 
-            test_snr, gamma = snr.calc_snr_m5(
-                mm, bp, m5, phot_params=PhotometricParameters(sigma_sys=0.0)
-            )
+            test_snr, gamma = snr.calc_snr_m5(mm, bp, m5, phot_params=PhotometricParameters(sigma_sys=0.0))
 
             self.assertAlmostEqual(
                 snrat,
@@ -238,9 +230,7 @@ class TestSNRmethods(unittest.TestCase):
                 msg="failed on calc_snr_m5 test %e != %e " % (snrat, test_snr),
             )
 
-            control = np.sqrt(
-                np.power(snr.mag_error_from_snr(test_snr), 2) + np.power(sigma_sys, 2)
-            )
+            control = np.sqrt(np.power(snr.mag_error_from_snr(test_snr), 2) + np.power(sigma_sys, 2))
 
             msg = "%e is not %e; failed" % (sigma, control)
 
@@ -273,9 +263,7 @@ class TestSNRmethods(unittest.TestCase):
             m5_list,
         ):
             sky_dummy = Sed()
-            sky_dummy.read_sed_flambda(
-                os.path.join(get_data_dir(), "throughputs", "baseline", "darksky.dat")
-            )
+            sky_dummy.read_sed_flambda(os.path.join(get_data_dir(), "throughputs", "baseline", "darksky.dat"))
 
             normalized_sky_dummy = set_m5(
                 obs_metadata.m5[filterName],
@@ -297,9 +285,7 @@ class TestSNRmethods(unittest.TestCase):
                 phot_params=PhotometricParameters(),
             )
 
-            test_snr, gamma = snr.calc_snr_m5(
-                mm, bp, m5, phot_params=PhotometricParameters(sigma_sys=0.0)
-            )
+            test_snr, gamma = snr.calc_snr_m5(mm, bp, m5, phot_params=PhotometricParameters(sigma_sys=0.0))
 
             self.assertAlmostEqual(
                 snrat,
@@ -332,9 +318,7 @@ class TestSNRmethods(unittest.TestCase):
         )
         self.assertAlmostEqual(astrometric_err, 10, 3)
         # Even if you increase the number of visits, the systemic floor doesn't change
-        astrometric_err = snr.calc_astrometric_error(
-            mag, m5, fwhm_geom=fwhm_geom, nvisit=100
-        )
+        astrometric_err = snr.calc_astrometric_error(mag, m5, fwhm_geom=fwhm_geom, nvisit=100)
         self.assertAlmostEqual(astrometric_err, 10, 3)
         # For a single visit, fainter source, larger error and nvisits matters
         mag = 24.5

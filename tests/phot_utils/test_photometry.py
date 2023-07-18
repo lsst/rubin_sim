@@ -1,14 +1,15 @@
-import numpy as np
-
 import os
 import unittest
-from rubin_sim.utils import ObservationMetaData
-from rubin_sim.utils.code_utilities import sims_clean_up
+
+import numpy as np
+
+import rubin_sim
+from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import BandpassDict
 from rubin_sim.phot_utils.bandpass import Bandpass
 from rubin_sim.phot_utils.sed import Sed
-from rubin_sim.phot_utils import BandpassDict
-from rubin_sim.data import get_data_dir
-import rubin_sim
+from rubin_sim.utils import ObservationMetaData
+from rubin_sim.utils.code_utilities import sims_clean_up
 
 
 class PhotometryUnitTest(unittest.TestCase):
@@ -56,20 +57,14 @@ class PhotometryUnitTest(unittest.TestCase):
 
         for kk in keys:
             test_band_passes[kk] = Bandpass()
-            test_band_passes[kk].read_throughput(
-                os.path.join(bandpass_dir, "test_bandpass_%s.dat" % kk)
-            )
+            test_band_passes[kk].read_throughput(os.path.join(bandpass_dir, "test_bandpass_%s.dat" % kk))
             bplist.append(test_band_passes[kk])
 
         sed_obj = Sed()
         phi_array, wave_len_step = sed_obj.setup_phi_array(bplist)
 
-        sed_file_name = os.path.join(
-            get_data_dir(), "tests", "cartoonSedTestData/starSed/"
-        )
-        sed_file_name = os.path.join(
-            sed_file_name, "kurucz", "km20_5750.fits_g40_5790.gz"
-        )
+        sed_file_name = os.path.join(get_data_dir(), "tests", "cartoonSedTestData/starSed/")
+        sed_file_name = os.path.join(sed_file_name, "kurucz", "km20_5750.fits_g40_5790.gz")
         ss = Sed()
         ss.read_sed_flambda(sed_file_name)
 
@@ -82,9 +77,7 @@ class PhotometryUnitTest(unittest.TestCase):
 
         ss.resample_sed(wavelen_match=bplist[0].wavelen)
         ss.flambda_tofnu()
-        mags = (
-            -2.5 * np.log10(np.sum(phi_array * ss.fnu, axis=1) * wave_len_step) - ss.zp
-        )
+        mags = -2.5 * np.log10(np.sum(phi_array * ss.fnu, axis=1) * wave_len_step) - ss.zp
         self.assertEqual(len(mags), len(test_mags))
         self.assertGreater(len(mags), 0)
         for j in range(len(mags)):

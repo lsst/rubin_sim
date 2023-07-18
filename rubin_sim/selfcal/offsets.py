@@ -1,4 +1,5 @@
 import numpy as np
+
 from rubin_sim.maf import m52snr
 
 # from lsst.sims.selfcal.clouds.Arma import ArmaSf, Clouds
@@ -58,12 +59,8 @@ class OffsetClouds(BaseOffset):
             # Interpolate clouds to correct position.  Nearest neighbor for speed?
             nim = self.cloud.cloudimage[0, :].size
             # calc position in cloud image of each star
-            starx_interp = (
-                (np.degrees(stars["x"]) + self.fov / 2.0) * 3600.0 / self.cloud.pixscale
-            )
-            stary_interp = (
-                (np.degrees(stars["y"]) + self.fov / 2.0) * 3600.0 / self.cloud.pixscale
-            )
+            starx_interp = (np.degrees(stars["x"]) + self.fov / 2.0) * 3600.0 / self.cloud.pixscale
+            stary_interp = (np.degrees(stars["y"]) + self.fov / 2.0) * 3600.0 / self.cloud.pixscale
 
             # Round off position and make it an int
             starx_interp = np.round(starx_interp).astype(int)

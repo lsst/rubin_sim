@@ -1,15 +1,15 @@
 import os
+import sqlite3
 import unittest
 from tempfile import TemporaryDirectory
 
-import sqlite3
 import pandas as pd
 
-import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.metric_bundles as metric_bundles
 import rubin_sim.maf.db as db
+import rubin_sim.maf.metric_bundles as metric_bundles
+import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.plots as plots
+import rubin_sim.maf.slicers as slicers
 
 
 class TestScalarHourglassPlots(unittest.TestCase):
@@ -23,14 +23,10 @@ class TestScalarHourglassPlots(unittest.TestCase):
         self.slicer = slicers.TimeIntervalSlicer(interval_seconds=3600)
         self.metric = metrics.MedianMetric("seeingFwhmEff")
 
-    @unittest.skip(
-        "This is now throwing astropy.utils.iers.iers.IERSRangeError, but only sometimes?"
-    )
+    @unittest.skip("This is now throwing astropy.utils.iers.iers.IERSRangeError, but only sometimes?")
     def test_month_plot(self):
         sql_constraint = ""
-        metric_bundle = metric_bundles.MetricBundle(
-            self.metric, self.slicer, sql_constraint
-        )
+        metric_bundle = metric_bundles.MetricBundle(self.metric, self.slicer, sql_constraint)
         bundle_dict = {1: metric_bundle}
         bundle_group = metric_bundles.MetricBundleGroup(
             bundle_dict,
@@ -58,9 +54,7 @@ class TestTimeUseHourglassPlots(unittest.TestCase):
     @unittest.skip("XXX-seems like this was erroneously passing before?")
     def test_year_plot(self):
         sql_constraint = ""
-        metric_bundle = metric_bundles.MetricBundle(
-            self.metric, self.slicer, sql_constraint
-        )
+        metric_bundle = metric_bundles.MetricBundle(self.metric, self.slicer, sql_constraint)
         bundle_dict = {1: metric_bundle}
         bundle_group = metric_bundles.MetricBundleGroup(
             bundle_dict,

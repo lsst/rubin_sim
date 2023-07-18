@@ -1,6 +1,8 @@
-import numpy as np
-from .base_metric import BaseMetric
 from collections import Counter
+
+import numpy as np
+
+from .base_metric import BaseMetric
 
 __all__ = ["StringCountMetric"]
 
@@ -23,9 +25,7 @@ class StringCountMetric(BaseMetric):
     named the same as strings in the simData array without knowing the values of those trings ahead of time.
     """
 
-    def __init__(
-        self, metric_name="stringCountMetric", col="filter", percent=False, **kwargs
-    ):
+    def __init__(self, metric_name="stringCountMetric", col="filter", percent=False, **kwargs):
         """
         Parameters
         ----------
@@ -41,9 +41,7 @@ class StringCountMetric(BaseMetric):
             units = "count"
         self.percent = percent
         cols = [col]
-        super(StringCountMetric, self).__init__(
-            cols, metric_name, units=units, metric_dtype=object, **kwargs
-        )
+        super(StringCountMetric, self).__init__(cols, metric_name, units=units, metric_dtype=object, **kwargs)
         self.col = col
 
     def run(self, data_slice, slice_point=None):
@@ -52,9 +50,7 @@ class StringCountMetric(BaseMetric):
         lables = list(counter.keys())
         # Numpy can't handle empty string as a dtype
         lables = [x if x != "" else "blank" for x in lables]
-        metric_value = np.zeros(
-            1, dtype=list(zip(lables, [float] * len(counter.keys())))
-        )
+        metric_value = np.zeros(1, dtype=list(zip(lables, [float] * len(counter.keys()))))
         for key in counter:
             if key == "":
                 metric_value["blank"] = counter[key]

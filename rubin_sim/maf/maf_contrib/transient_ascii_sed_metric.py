@@ -12,13 +12,15 @@ import os
 import warnings
 from builtins import zip
 from copy import deepcopy
+
 import numpy as np
 
 try:
-    from sncosmo import read_griddata_ascii, TimeSeriesSource, Model
+    from sncosmo import Model, TimeSeriesSource, read_griddata_ascii
 except ImportError as error:
     pass
 from astropy.cosmology import Planck15 as cosmo
+
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.utils import m52snr
 
@@ -172,9 +174,7 @@ class TransientAsciiSEDMetric(BaseMetric):
         # light curve generation and observation.
         self.make_model()
         # Given the redshifted SED set the transient duration.
-        self.transient_duration = (
-            self.redshifted_model.maxtime() - self.redshifted_model.mintime()
-        )
+        self.transient_duration = self.redshifted_model.maxtime() - self.redshifted_model.mintime()
 
     def make_model(self):
         """
@@ -251,9 +251,7 @@ class TransientAsciiSEDMetric(BaseMetric):
             # in the scipy interpolation if attempting to vectorize according
             # to sncosmo documentation.
             for obs_time in flt_times:
-                filter_mag.append(
-                    redshifted_model.bandmag("lsst" + flt, "ab", obs_time)
-                )
+                filter_mag.append(redshifted_model.bandmag("lsst" + flt, "ab", obs_time))
             # Set light_curve_mags for array indices corresponding to observations of the
             # current filter.
             light_curve_mags[np.where(filters == flt)[0]] = np.array(filter_mag)
@@ -286,18 +284,16 @@ class TransientAsciiSEDMetric(BaseMetric):
         self.transient_detected = np.ones(len(np.unique(self.transient_id)), dtype=bool)
 
         # Loop through each lightcurve and check if it meets requirements.
-        for i, (start_ind, end_ind) in enumerate(
-            zip(self.transient_start_index, self.transient_end_index)
-        ):
+        for i, (start_ind, end_ind) in enumerate(zip(self.transient_start_index, self.transient_end_index)):
             t_id = i
             # If there were no observations at all for this lightcurve:
             if start_ind == end_ind:
                 self.transient_detected[t_id] = False
                 continue
 
-            self.observation_epoch_above_thresh = self.observation_epoch[
-                start_ind:end_ind
-            ][np.where(self.obs_above_snr_threshold[start_ind:end_ind])]
+            self.observation_epoch_above_thresh = self.observation_epoch[start_ind:end_ind][
+                np.where(self.obs_above_snr_threshold[start_ind:end_ind])
+            ]
 
             self.evaluate_pre_time_detection_criteria(t_id)
             # Check if previous condition passed. If not, move to next transient.
@@ -309,9 +305,7 @@ class TransientAsciiSEDMetric(BaseMetric):
             if not self.transient_detected[t_id]:
                 continue
 
-            self.evaluate_number_filters_detection_criteria(
-                data_slice, start_ind, end_ind, t_id
-            )
+            self.evaluate_number_filters_detection_criteria(data_slice, start_ind, end_ind, t_id)
             # Check if previous condition passed. If not, move to next transient.
             if not self.transient_detected[t_id]:
                 continue
@@ -342,9 +336,7 @@ class TransientAsciiSEDMetric(BaseMetric):
         """
         # If we did not get enough detections before pre_time, set
         # transient_detected to False.
-        indices_pre_time = np.where(
-            self.observation_epoch_above_thresh < self.pre_time
-        )[0]
+        indices_pre_time = np.where(self.observation_epoch_above_thresh < self.pre_time)[0]
         if len(indices_pre_time) < self.num_pre_time:
             self.transient_detected[t_id] = False
 
@@ -361,18 +353,12 @@ class TransientAsciiSEDMetric(BaseMetric):
         # If we did not get detections over enough sections of the
         # lightcurve, set tranisent_detected to False.
         detected_light_curve_sections = np.unique(
-            np.floor(
-                self.observation_epoch_above_thresh
-                / self.transient_duration
-                * self.num_per_lightcurve
-            )
+            np.floor(self.observation_epoch_above_thresh / self.transient_duration * self.num_per_lightcurve)
         )
         if len(detected_light_curve_sections) < self.num_per_lightcurve:
             self.transient_detected[t_id] = False
 
-    def evaluate_number_filters_detection_criteria(
-        self, data_slice, start_ind, end_ind, t_id
-    ):
+    def evaluate_number_filters_detection_criteria(self, data_slice, start_ind, end_ind, t_id):
         """
         Function to evaluate if the current transient passes the required number
         of detections in different filters.
@@ -419,17 +405,13 @@ class TransientAsciiSEDMetric(BaseMetric):
                 "right",
             )
             final_filter_detection_ind = np.where(
-                final_filter_detection_ind
-                < len(self.observation_epoch_above_thresh) - 1,
+                final_filter_detection_ind < len(self.observation_epoch_above_thresh) - 1,
                 final_filter_detection_ind,
                 len(self.observation_epoch_above_thresh) - 1,
             )
             is_detected = False
             for i, filt_end_ind in enumerate(final_filter_detection_ind):
-                if (
-                    len(np.unique(self.detected_filters[i:filt_end_ind]))
-                    >= self.num_filters
-                ):
+                if len(np.unique(self.detected_filters[i:filt_end_ind])) >= self.num_filters:
                     is_detected = True
                     break
             if not is_detected:
@@ -470,18 +452,14 @@ class TransientAsciiSEDMetric(BaseMetric):
         """
         # Update the maximum possible transients that could have been
         # observed during survey_duration.
-        self.max_num_transients += np.ceil(
-            self.survey_duration / (self.transient_duration / 365.25)
-        )
+        self.max_num_transients += np.ceil(self.survey_duration / (self.transient_duration / 365.25))
         # Calculate the observation epoch for each transient lightcurve.
         self.observation_epoch = (
             data_slice[self.mjd_col] - self.survey_start + time_shift
         ) % self.transient_duration
         # Identify the observations which belong to each distinct transient.
         self.transient_id = (
-            np.floor(
-                (data_slice[self.mjd_col] - self.survey_start) / self.transient_duration
-            )
+            np.floor((data_slice[self.mjd_col] - self.survey_start) / self.transient_duration)
             + self.transient_id_start
         )
         # Set the starting id number for the next phase shift
@@ -489,13 +467,9 @@ class TransientAsciiSEDMetric(BaseMetric):
         # Find the set of uniquely observed transients
         unique_transient_id = np.unique(self.transient_id)
         # Find the starting index for each transient_id.
-        self.transient_start_index = np.searchsorted(
-            self.transient_id, unique_transient_id, side="left"
-        )
+        self.transient_start_index = np.searchsorted(self.transient_id, unique_transient_id, side="left")
         # Find the ending index of each transient_id.
-        self.transient_end_index = np.searchsorted(
-            self.transient_id, unique_transient_id, side="right"
-        )
+        self.transient_end_index = np.searchsorted(self.transient_id, unique_transient_id, side="right")
 
     def setup_run_metric_variables(self, data_slice):
         """
@@ -525,9 +499,7 @@ class TransientAsciiSEDMetric(BaseMetric):
         # Check that survey_duration is not larger than the time of
         # observations we obtained. If it is, then the max_num_transients will
         # not be accurate.
-        data_slice_time_span = (
-            data_slice[self.mjd_col].max() - data_slice[self.mjd_col].min()
-        ) / 365.25
+        data_slice_time_span = (data_slice[self.mjd_col].max() - data_slice[self.mjd_col].min()) / 365.25
         # Take the maximum time delta, either specified or from the slicer, to
         # be the survey duration.
         self.survey_duration = np.max([data_slice_time_span, self.survey_duration])
@@ -569,9 +541,7 @@ class TransientAsciiSEDMetric(BaseMetric):
         # detectability, compute the necessary time shifts corresponding to
         # phase division of the lightcurves.
         self.time_phase_shifts = (
-            np.arange(self.num_phases_to_run)
-            * self.transient_duration
-            / float(self.num_phases_to_run)
+            np.arange(self.num_phases_to_run) * self.transient_duration / float(self.num_phases_to_run)
         )
         # Total number of transient which have reached detection threshholds.
         self.num_detected = 0
@@ -581,8 +551,7 @@ class TransientAsciiSEDMetric(BaseMetric):
         # Set this, in case survey_start was set to be much earlier than this
         # data (so we start counting at 0).
         self.transient_id_start = -1 * np.floor(
-            (data_slice[self.mjd_col].min() - self.survey_start)
-            / self.transient_duration
+            (data_slice[self.mjd_col].min() - self.survey_start) / self.transient_duration
         )
 
     def evaluate_snr_thresholds(self, data_slice):
@@ -654,9 +623,7 @@ class TransientAsciiSEDMetric(BaseMetric):
 
             # Generate the actual light curve magnitudes and SNR
             self.make_lightcurve(self.observation_epoch, data_slice[self.filter_col])
-            self.light_curve_SNRs = m52snr(
-                self.light_curve_mags, data_slice[self.m5_col]
-            )
+            self.light_curve_SNRs = m52snr(self.light_curve_mags, data_slice[self.m5_col])
 
             # Check observations above the defined threshold for detection.
             self.evaluate_snr_thresholds(data_slice)

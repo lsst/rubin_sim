@@ -1,14 +1,10 @@
 import numpy as np
-from rubin_sim.utils import (
-    gnomonic_project_toxy,
-    Site,
-    survey_start_mjd,
-    point_to_line_distance,
-)
-from skyfield.api import load, wgs84, EarthSatellite
-from astropy import units as u
 from astropy import constants as const
+from astropy import units as u
 from shapely.geometry import LineString, Point
+from skyfield.api import EarthSatellite, load, wgs84
+
+from rubin_sim.utils import Site, gnomonic_project_toxy, point_to_line_distance, survey_start_mjd
 
 __all__ = [
     "create_constellation",
@@ -47,9 +43,7 @@ def satellite_mean_motion(altitude, mu=const.GM_earth, r_earth=const.R_earth):
     return 1 / no
 
 
-def tle_from_orbital_parameters(
-    sat_name, sat_nr, epoch, inclination, raan, mean_anomaly, mean_motion
-):
+def tle_from_orbital_parameters(sat_name, sat_nr, epoch, inclination, raan, mean_anomaly, mean_motion):
     """
     Generate TLE strings from orbital parameters.
     Note: epoch has a very strange format: first two digits are the year, next three
@@ -72,8 +66,7 @@ def tle_from_orbital_parameters(
 
     tle0 = sat_name
     tle1 = checksum(
-        "1 {:05d}U 20001A   {:14.8f}  .00000000  00000-0  50000-4 "
-        "0    0X".format(sat_nr, epoch)
+        "1 {:05d}U 20001A   {:14.8f}  .00000000  00000-0  50000-4 " "0    0X".format(sat_nr, epoch)
     )
     tle2 = checksum(
         "2 {:05d} {:8.4f} {:8.4f} 0001000   0.0000 {:8.4f} "
@@ -121,9 +114,7 @@ def create_constellation(
         mm = satellite_mean_motion(alt)
         for ma, raan in zip(mas, raans):
             my_sat_tles.append(
-                tle_from_orbital_parameters(
-                    name + " {:d}".format(sat_nr), sat_nr, epoch, inc, raan, ma, mm
-                )
+                tle_from_orbital_parameters(name + " {:d}".format(sat_nr), sat_nr, epoch, inc, raan, ma, mm)
             )
             sat_nr += 1
 
@@ -140,9 +131,7 @@ def starlink_tles_v1():
     nplanes = np.array([72, 72, 36, 6, 4])
     sats_per_plane = np.array([22, 22, 20, 58, 43])
 
-    my_sat_tles = create_constellation(
-        altitudes, inclinations, nplanes, sats_per_plane, name="starV1"
-    )
+    my_sat_tles = create_constellation(altitudes, inclinations, nplanes, sats_per_plane, name="starV1")
 
     return my_sat_tles
 
@@ -157,9 +146,7 @@ def starlink_tles_v2():
     nplanes = np.array([48, 48, 48, 30, 28, 28, 28, 12, 18])
     sats_per_plane = np.array([110, 110, 110, 120, 120, 120, 120, 12, 18])
 
-    my_sat_tles = create_constellation(
-        altitudes, inclinations, nplanes, sats_per_plane, name="starV2"
-    )
+    my_sat_tles = create_constellation(altitudes, inclinations, nplanes, sats_per_plane, name="starV2")
 
     return my_sat_tles
 
@@ -174,9 +161,7 @@ def oneweb_tles():
     nplanes = np.array([49, 72, 72])
     sats_per_plane = np.array([36, 32, 32])
 
-    my_sat_tles = create_constellation(
-        altitudes, inclinations, nplanes, sats_per_plane, name="oneWe"
-    )
+    my_sat_tles = create_constellation(altitudes, inclinations, nplanes, sats_per_plane, name="oneWe")
 
     return my_sat_tles
 
@@ -212,9 +197,7 @@ class Constellation(object):
     def _make_location(self):
         telescope = Site(name="LSST")
 
-        self.observatory_site = wgs84.latlon(
-            telescope.latitude, telescope.longitude, telescope.height
-        )
+        self.observatory_site = wgs84.latlon(telescope.latitude, telescope.longitude, telescope.height)
 
     def update_mjd(self, mjd):
         """
@@ -243,9 +226,7 @@ class Constellation(object):
         self.azimuth_rad = np.array(self.azimuth_rad)
         self.illum = np.array(self.illum)
         # Keep track of the ones that are up and illuminated
-        self.visible = np.where(
-            (self.altitudes_rad >= self.alt_limit_rad) & (self.illum == True)
-        )[0]
+        self.visible = np.where((self.altitudes_rad >= self.alt_limit_rad) & (self.illum == True))[0]
 
     def paths_array(self, mjds):
         """For an array of MJD values, compute the resulting RA,Dec and illumination status of
@@ -358,9 +339,7 @@ class Constellation(object):
         sat_indx = np.broadcast_to(sat_indx.T, sat_ra_1.shape)
 
         mjd_broad = np.broadcast_to(mjds, sat_ra_1.shape)[above_illum_indx][close]
-        visit_broad = np.broadcast_to(visit_time, sat_ra_1.shape)[above_illum_indx][
-            close
-        ]
+        visit_broad = np.broadcast_to(visit_time, sat_ra_1.shape)[above_illum_indx][close]
 
         # ok, this is pretty ugly, but should get the job done
         # Loop over all the potential collisions we have found
@@ -380,9 +359,7 @@ class Constellation(object):
             topo = current_sat - self.observatory_site.at(t)
             sat_ra, sat_dec, _distance = topo.radec()
 
-            length = _streak_length(
-                sat_ra.radians, sat_dec.radians, p_ra, p_dec, fov_radius_rad
-            )
+            length = _streak_length(sat_ra.radians, sat_dec.radians, p_ra, p_dec, fov_radius_rad)
             if length > 0:
                 lengths_rad[ob_indx] += length
                 n_streaks[ob_indx] += 1

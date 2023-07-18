@@ -1,6 +1,7 @@
-import numpy as np
-import healpy as hp
 import warnings
+
+import healpy as hp
+import numpy as np
 
 __all__ = [
     "hpid2_ra_dec",
@@ -106,9 +107,7 @@ def ra_dec2_hpid(nside, ra, dec, **kwargs):
     return _ra_dec2_hpid(nside, np.radians(ra), np.radians(dec), **kwargs)
 
 
-def _healbin(
-    ra, dec, values, nside=128, reduce_func=np.mean, dtype=float, fill_val=hp.UNSEEN
-):
+def _healbin(ra, dec, values, nside=128, reduce_func=np.mean, dtype=float, fill_val=hp.UNSEEN):
     """
     Take arrays of ra's, dec's, and value and bin into healpixels. Like numpy.hexbin but for
     bins on a sphere.
@@ -159,9 +158,7 @@ def _healbin(
     return map_vals
 
 
-def healbin(
-    ra, dec, values, nside=128, reduce_func=np.mean, dtype=float, fill_val=hp.UNSEEN
-):
+def healbin(ra, dec, values, nside=128, reduce_func=np.mean, dtype=float, fill_val=hp.UNSEEN):
     """
     Take arrays of ra's, dec's, and value and bin into healpixels. Like numpy.hexbin but for
     bins on a sphere.
@@ -324,12 +321,8 @@ def hp_grow_argsort(in_map, ignore_nan=True):
     valid_neighbors_mask[(current_neighbors[sub_indx[0]], sub_indx[1])] = False
 
     for i in np.arange(1, npix):
-        current_neighbors = neighbors[ordered_hp[0:i]][
-            valid_neighbors_mask[ordered_hp[0:i]]
-        ]
-        indx = np.where(
-            in_map[current_neighbors] == np.nanmax(in_map[current_neighbors])
-        )[0]
+        current_neighbors = neighbors[ordered_hp[0:i]][valid_neighbors_mask[ordered_hp[0:i]]]
+        indx = np.where(in_map[current_neighbors] == np.nanmax(in_map[current_neighbors]))[0]
         if np.size(indx) == 0:
             # We can't connect to any more pixels
             warnings.warn("Can not connect to any more pixels.")

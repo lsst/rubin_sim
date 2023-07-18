@@ -1,7 +1,7 @@
-import warnings
-import numpy as np
 import copy
+import warnings
 
+import numpy as np
 from astropy.time import Time
 from astropy.utils.iers.iers import IERSRangeError
 
@@ -55,16 +55,11 @@ class ModifiedJulianDate(object):
                 "We will treat ut1=utc for those dates, lacking a better alternative.",
                 category=Utctout1Warning,
             )
-            from astropy.utils.iers import (
-                TIME_BEFORE_IERS_RANGE,
-                TIME_BEYOND_IERS_RANGE,
-            )
+            from astropy.utils.iers import TIME_BEFORE_IERS_RANGE, TIME_BEYOND_IERS_RANGE
 
             dut1_test, status = time_list.get_delta_ut1_utc(return_status=True)
             good_dexes = np.where(
-                np.logical_and(
-                    status != TIME_BEFORE_IERS_RANGE, status != TIME_BEYOND_IERS_RANGE
-                )
+                np.logical_and(status != TIME_BEFORE_IERS_RANGE, status != TIME_BEYOND_IERS_RANGE)
             )
 
             if len(good_dexes[0]) > 0:
@@ -96,9 +91,7 @@ class ModifiedJulianDate(object):
             return None
 
         if TAI is not None and utc is not None:
-            raise RuntimeError(
-                "You should not specify both TAI and utc in ModifiedJulianDate.get_list()"
-            )
+            raise RuntimeError("You should not specify both TAI and utc in ModifiedJulianDate.get_list()")
 
         if TAI is not None:
             time_list = Time(TAI, scale="tai", format="mjd")
@@ -114,9 +107,7 @@ class ModifiedJulianDate(object):
 
         ut1_list, dut1_list = cls._get_ut1_from_utc(utc_list)
 
-        values = np.array(
-            [tai_list, utc_list, tt_list, tdb_list, ut1_list, dut1_list]
-        ).transpose()
+        values = np.array([tai_list, utc_list, tt_list, tdb_list, ut1_list, dut1_list]).transpose()
 
         output = []
         for vv in values:
@@ -138,10 +129,7 @@ class ModifiedJulianDate(object):
         """
 
         if TAI is None and utc is None:
-            raise RuntimeError(
-                "You must specify either TAI or utc to "
-                "instantiate ModifiedJulianDate"
-            )
+            raise RuntimeError("You must specify either TAI or utc to " "instantiate ModifiedJulianDate")
 
         if TAI is not None:
             self._time = Time(TAI, scale="tai", format="mjd")

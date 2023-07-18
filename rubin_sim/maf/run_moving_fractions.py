@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 
-import os
-import glob
 import argparse
+import glob
+import os
+
 import numpy as np
 
+from rubin_sim.utils import survey_start_mjd
+
+from . import batches as batches
 from . import db as db
 from . import metricBundles as mmb
-from . import batches as batches
-from rubin_sim.utils import survey_start_mjd
 
 
 def run_moving_fractions():
     """Calculate completeness and fractions for moving object metrics."""
-    parser = argparse.ArgumentParser(
-        description="Run moving object metrics for a particular opsim run."
-    )
+    parser = argparse.ArgumentParser(description="Run moving object metrics for a particular opsim run.")
     parser.add_argument(
         "--work_dir",
         type=str,
@@ -39,8 +39,7 @@ def run_moving_fractions():
         "--n_years_max",
         type=int,
         default=10,
-        help="Maximum number of years out to which to evaluate completeness."
-        "Default 10.",
+        help="Maximum number of years out to which to evaluate completeness." "Default 10.",
     )
     parser.add_argument(
         "--start_time",
@@ -100,13 +99,9 @@ def run_moving_fractions():
     )
 
     # Calculate fractions of population for characterization. This utility writes these to disk.
-    bdict_fractions = batches.run_fraction_summary(
-        bdict, args.h_mark, args.work_dir, results_db
-    )
+    bdict_fractions = batches.run_fraction_summary(bdict, args.h_mark, args.work_dir, results_db)
     # Plot the fractions for colors and lightcurves.
-    batches.plot_fractions(
-        bdict_fractions, figroot=figroot, results_db=results_db, out_dir=args.work_dir
-    )
+    batches.plot_fractions(bdict_fractions, figroot=figroot, results_db=results_db, out_dir=args.work_dir)
 
     # Plot nObs and arcLength.
     for k in bdict:
@@ -126,6 +121,4 @@ def run_moving_fractions():
             batches.plot_single(bdict[k], results_db=results_db, out_dir=args.work_dir)
 
     # Plot likelihood of detecting activity.
-    batches.plot_activity(
-        bdict, figroot=figroot, results_db=results_db, out_dir=args.work_dir
-    )
+    batches.plot_activity(bdict, figroot=figroot, results_db=results_db, out_dir=args.work_dir)

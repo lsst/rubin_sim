@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
-from .plot_handler import BasePlotter
 
+from .plot_handler import BasePlotter
 
 __all__ = ["XyPlotter"]
 

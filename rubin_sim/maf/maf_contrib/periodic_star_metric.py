@@ -1,9 +1,10 @@
 import warnings
+
 import numpy as np
 from scipy.optimize import curve_fit
+
 from rubin_sim.maf.metrics.base_metric import BaseMetric
 from rubin_sim.maf.utils import m52snr
-
 
 __all__ = ["PeriodicStar", "PeriodicStarMetric"]
 
@@ -57,7 +58,7 @@ class PeriodicStarMetric(BaseMetric):
         mag_tol=0.10,
         n_bands=3,
         seed=42,
-        **kwargs
+        **kwargs,
     ):
         """
         period: days (default 10)
@@ -77,7 +78,7 @@ class PeriodicStarMetric(BaseMetric):
             col=[self.mjd_col, self.m5_col, self.filter_col],
             units="Fraction Detected",
             metric_name=metric_name,
-            **kwargs
+            **kwargs,
         )
         self.period = period
         self.amplitude = amplitude
@@ -99,9 +100,7 @@ class PeriodicStarMetric(BaseMetric):
             return self.badval
 
         # Generate input for true light curve
-        t = np.empty(
-            data_slice.size, dtype=list(zip(["time", "filter"], [float, "|U1"]))
-        )
+        t = np.empty(data_slice.size, dtype=list(zip(["time", "filter"], [float, "|U1"])))
         t["time"] = data_slice[self.mjd_col] - data_slice[self.mjd_col].min()
         t["filter"] = data_slice[self.filter_col]
 
@@ -110,9 +109,7 @@ class PeriodicStarMetric(BaseMetric):
             mags = self.means + slice_point["distMod"]
         else:
             mags = self.means
-        true_params = np.append(
-            np.array([self.period, self.phase, self.amplitude]), mags
-        )
+        true_params = np.append(np.array([self.period, self.phase, self.amplitude]), mags)
         true_obj = PeriodicStar(t["filter"])
         true_lc = true_obj(t["time"], *true_params)
 

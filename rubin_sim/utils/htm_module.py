@@ -13,8 +13,10 @@ Szalay A. et al. (2007)
 arXiv:cs/0701164
 """
 
-import numpy as np
 import numbers
+
+import numpy as np
+
 from rubin_sim.utils import cartesian_from_spherical, spherical_from_cartesian
 
 __all__ = [
@@ -228,9 +230,7 @@ class Trixel(object):
         arXiv:cs/0701164
         """
         if not hasattr(self, "_t0"):
-            self._t0 = Trixel(
-                self.htmid << 2, [self._corners[0], self.w_arr[2], self.w_arr[1]]
-            )
+            self._t0 = Trixel(self.htmid << 2, [self._corners[0], self.w_arr[2], self.w_arr[1]])
         return self._t0
 
     @property
@@ -245,9 +245,7 @@ class Trixel(object):
         arXiv:cs/0701164
         """
         if not hasattr(self, "_t1"):
-            self._t1 = Trixel(
-                (self.htmid << 2) + 1, [self._corners[1], self.w_arr[0], self.w_arr[2]]
-            )
+            self._t1 = Trixel((self.htmid << 2) + 1, [self._corners[1], self.w_arr[0], self.w_arr[2]])
         return self._t1
 
     @property
@@ -262,9 +260,7 @@ class Trixel(object):
         arXiv:cs/0701164
         """
         if not hasattr(self, "_t2"):
-            self._t2 = Trixel(
-                (self.htmid << 2) + 2, [self._corners[2], self.w_arr[1], self.w_arr[0]]
-            )
+            self._t2 = Trixel((self.htmid << 2) + 2, [self._corners[2], self.w_arr[1], self.w_arr[0]])
         return self._t2
 
     @property
@@ -279,9 +275,7 @@ class Trixel(object):
         arXiv:cs/0701164
         """
         if not hasattr(self, "_t3"):
-            self._t3 = Trixel(
-                (self.htmid << 2) + 3, [self.w_arr[0], self.w_arr[1], self.w_arr[2]]
-            )
+            self._t3 = Trixel((self.htmid << 2) + 3, [self.w_arr[0], self.w_arr[1], self.w_arr[2]])
         return self._t3
 
     def get_children(self):
@@ -399,9 +393,7 @@ class Trixel(object):
             dd = np.dot(self.corners, vb).max()
 
             if np.abs(dd) > 1.0:
-                raise RuntimeError(
-                    "Bounding circle has dd %e (should be between -1 and 1)" % dd
-                )
+                raise RuntimeError("Bounding circle has dd %e (should be between -1 and 1)" % dd)
 
             self._bounding_circle = (vb, dd, np.arccos(dd))
 
@@ -746,10 +738,7 @@ def _find_htmid_fast(ra, dec, max_level):
             "redirect to _find_htmid_slow for large max_level)."
         )
 
-    if (
-        not hasattr(_find_htmid_fast, "_trixel_dict")
-        or _find_htmid_fast._level < max_level
-    ):
+    if not hasattr(_find_htmid_fast, "_trixel_dict") or _find_htmid_fast._level < max_level:
         _find_htmid_fast._trixel_dict = get_all_trixels(max_level)
         _find_htmid_fast._level = max_level
 
@@ -844,10 +833,7 @@ def find_htmid(ra, dec, max_level):
             assert isinstance(dec, np.ndarray)
         except AssertionError:
             raise RuntimeError(
-                "\nfindHtmid can handle types\n"
-                + "RA: %s" % type(ra)
-                + "Dec: %s" % type(dec)
-                + "\n"
+                "\nfindHtmid can handle types\n" + "RA: %s" % type(ra) + "Dec: %s" % type(dec) + "\n"
             )
         are_arrays = True
 
@@ -990,9 +976,7 @@ class HalfSpace(object):
         arXiv:cs/0701164
         """
         costheta = np.dot(pt1, pt2)
-        usq = (1 - costheta) / (
-            1 + costheta
-        )  # u**2; using trig identity for tan(theta/2)
+        usq = (1 - costheta) / (1 + costheta)  # u**2; using trig identity for tan(theta/2)
         gamma1 = np.dot(self._v, pt1)
         gamma2 = np.dot(self._v, pt2)
         b = gamma1 * (usq - 1.0) + gamma2 * (usq + 1)
@@ -1152,12 +1136,8 @@ class HalfSpace(object):
         global_t_min = max(b1_sorted[0][0], b2_sorted[0][0])
         global_t_max = min(b1_sorted[-1][1], b2_sorted[-1][1])
 
-        b1_keep = [
-            r for r in b1_sorted if r[0] <= global_t_max and r[1] >= global_t_min
-        ]
-        b2_keep = [
-            r for r in b2_sorted if r[0] <= global_t_max and r[1] >= global_t_min
-        ]
+        b1_keep = [r for r in b1_sorted if r[0] <= global_t_max and r[1] >= global_t_min]
+        b2_keep = [r for r in b2_sorted if r[0] <= global_t_max and r[1] >= global_t_min]
 
         dex1 = 0
         dex2 = 0

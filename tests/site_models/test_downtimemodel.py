@@ -1,11 +1,9 @@
+import unittest
+
 import numpy as np
 from astropy.time import Time, TimeDelta
-import unittest
-from rubin_sim.site_models import (
-    DowntimeModel,
-    ScheduledDowntimeData,
-    UnscheduledDowntimeData,
-)
+
+from rubin_sim.site_models import DowntimeModel, ScheduledDowntimeData, UnscheduledDowntimeData
 
 
 class TestDowntimeModel(unittest.TestCase):

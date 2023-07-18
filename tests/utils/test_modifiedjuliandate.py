@@ -1,13 +1,15 @@
-import astropy
-import unittest
-import warnings
-import numpy as np
-import os
 import copy
 import inspect
-from rubin_sim.utils import ModifiedJulianDate, Utctout1Warning
-from rubin_sim.data import get_data_dir
+import os
+import unittest
+import warnings
+
+import astropy
+import numpy as np
+
 import rubin_sim
+from rubin_sim.data import get_data_dir
+from rubin_sim.utils import ModifiedJulianDate, Utctout1Warning
 
 
 class MjdTest(unittest.TestCase):
@@ -86,9 +88,7 @@ class MjdTest(unittest.TestCase):
         for tai in tai_list:
             mjd = ModifiedJulianDate(TAI=tai)
             g = np.radians(357.53 + 0.9856003 * (np.round(tai - 51544.5)))
-            tdb_test = (
-                mjd.TT + (0.001658 * np.sin(g) + 0.000014 * np.sin(2.0 * g)) / 86400.0
-            )
+            tdb_test = mjd.TT + (0.001658 * np.sin(g) + 0.000014 * np.sin(2.0 * g)) / 86400.0
             dt = np.abs(tdb_test - mjd.TDB) * 8.64 * 1.0e10  # convert to microseconds
             self.assertLess(dt, 50)
 
@@ -116,9 +116,7 @@ class MjdTest(unittest.TestCase):
             # this only works for days on which a leap second is not applied
             dt = (mjd.ut1 - mjd.utc) * 86400.0
 
-            self.assertLess(
-                np.abs(dt - mjd.dut1), 1.0e-5, msg="failed on utc: %.12f" % mjd.utc
-            )
+            self.assertLess(np.abs(dt - mjd.dut1), 1.0e-5, msg="failed on utc: %.12f" % mjd.utc)
 
             self.assertLess(np.abs(mjd.dut1), 0.9)
 
@@ -146,9 +144,7 @@ class MjdTest(unittest.TestCase):
             # this only works for days on which a leap second is not applied
             dt = (mjd.ut1 - mjd.utc) * 86400.0
 
-            self.assertLess(
-                np.abs(dt - mjd.dut1), 1.0e-5, msg="failed on utc %.12f" % mjd.utc
-            )
+            self.assertLess(np.abs(dt - mjd.dut1), 1.0e-5, msg="failed on utc %.12f" % mjd.utc)
 
             self.assertLess(np.abs(mjd.dut1), 0.9)
 

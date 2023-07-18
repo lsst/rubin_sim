@@ -10,9 +10,11 @@ This module is intended to test whether this is happening.
 """
 import os
 import unittest
+
 import numpy as np
-from rubin_sim.phot_utils import BandpassDict
+
 from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import BandpassDict
 
 
 class ApproximateBandPassTest(unittest.TestCase):
@@ -27,9 +29,7 @@ class ApproximateBandPassTest(unittest.TestCase):
         setup before tests
         """
         throughputs_dir = os.path.join(get_data_dir(), "throughputs")
-        self.approx_band_pass_dir = os.path.join(
-            throughputs_dir, "approximate_baseline"
-        )
+        self.approx_band_pass_dir = os.path.join(throughputs_dir, "approximate_baseline")
         self.ref_band_pass_dir = os.path.join(throughputs_dir, "baseline")
         self.ref_band_pass_dict = BandpassDict.load_total_bandpasses_from_files()
         self.approx_band_pass_dict = BandpassDict.load_total_bandpasses_from_files(
@@ -57,18 +57,11 @@ class ApproximateBandPassTest(unittest.TestCase):
             # Currently we have uniform sampling, but the end points have
             # very slightly different steps. This accounts for 3 possible values
             # If there are more, then the steps are non-unifor
-            msg = "The step sizes in {} seem to be unequal".format(
-                "Approximate Baseline"
-            )
+            msg = "The step sizes in {} seem to be unequal".format("Approximate Baseline")
             self.assertEqual(len(np.unique(approx_step)), 3, msg=msg)
             msg = "The step sizes in {} seem to be unequal".format("Baseline")
             self.assertEqual(len(np.unique(ref_step)), 3, msg=msg)
-            ratio = (
-                approx_step[1]
-                * approx_band_pass.sb.sum()
-                / ref_step[1]
-                / ref_band_pass.sb.sum()
-            )
+            ratio = approx_step[1] * approx_band_pass.sb.sum() / ref_step[1] / ref_band_pass.sb.sum()
             self.assertAlmostEqual(ratio, 1.0, delta=1.0e-4, msg=self.error_msg)
 
     def test_bandpasses_indiv(self):
@@ -87,9 +80,7 @@ class ApproximateBandPassTest(unittest.TestCase):
                 if wave in approxwavelen:
                     mask[i] = True
             # Assume that the wavelengths are in order
-            np.testing.assert_array_almost_equal(
-                ref_band_pass.sb[mask], approx_band_pass.sb, decimal=3
-            )
+            np.testing.assert_array_almost_equal(ref_band_pass.sb[mask], approx_band_pass.sb, decimal=3)
 
         def tearDown(self):
             pass

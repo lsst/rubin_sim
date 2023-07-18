@@ -1,11 +1,12 @@
-import unittest
 import os
+import unittest
+
 import numpy as np
 import pandas as pd
 from astropy.time import Time
-from rubin_sim.moving_objects import Orbits
-from rubin_sim.moving_objects import PyOrbEphemerides
+
 from rubin_sim.data import get_data_dir
+from rubin_sim.moving_objects import Orbits, PyOrbEphemerides
 
 
 class TestPyOrbEphemerides(unittest.TestCase):
@@ -44,9 +45,7 @@ class TestPyOrbEphemerides(unittest.TestCase):
         self.assertEqual(self.ephems.oorb_elem[0][9], 3)
         self.assertEqual(self.ephems.oorb_elem[0][1], self.orbits.orbits["q"][0])
         # Test that we can convert KEP orbital elements too.
-        self.ephems._convert_to_oorb_elem(
-            self.orbits_kep.orbits, self.orbits_kep.orb_format
-        )
+        self.ephems._convert_to_oorb_elem(self.orbits_kep.orbits, self.orbits_kep.orb_format)
         self.assertEqual(len(self.ephems.oorb_elem), len(self.orbits_kep))
         self.assertEqual(self.ephems.oorb_elem[0][7], 3)
         self.assertEqual(self.ephems.oorb_elem[0][1], self.orbits_kep.orbits["a"][0])
@@ -76,18 +75,14 @@ class TestPyOrbEphemerides(unittest.TestCase):
         times = np.arange(49353, 49353 + 3, 0.25)
         eph_times = self.ephems._convert_times(times)
         # Basic ephemerides.
-        oorb_ephs = self.ephems._generate_oorb_ephs_basic(
-            eph_times, obscode=807, eph_mode="N"
-        )
+        oorb_ephs = self.ephems._generate_oorb_ephs_basic(eph_times, obscode=807, eph_mode="N")
         # Check that it returned the right sort of array.
         self.assertEqual(
             oorb_ephs.shape,
             (len(self.ephems.oorb_elem), len(times), self.len_ephems_basic),
         )
         # Full ephemerides
-        oorb_ephs = self.ephems._generate_oorb_ephs_full(
-            eph_times, obscode=807, eph_mode="N"
-        )
+        oorb_ephs = self.ephems._generate_oorb_ephs_full(eph_times, obscode=807, eph_mode="N")
         # Check that it returned the right sort of array.
         self.assertEqual(
             oorb_ephs.shape,
@@ -120,14 +115,10 @@ class TestPyOrbEphemerides(unittest.TestCase):
         # np.testing.assert_equal(ephs_all, ephs)
         # Reset ephems to use KEP Orbits, and calculate new ephemerides.
         self.ephems.set_orbits(self.orbits_kep)
-        oorb_ephs = self.ephems._generate_oorb_ephs_basic(
-            eph_times, obscode=807, eph_mode="N"
-        )
+        oorb_ephs = self.ephems._generate_oorb_ephs_basic(eph_times, obscode=807, eph_mode="N")
         ephs_kep = self.ephems._convert_oorb_ephs_basic(oorb_ephs, by_object=True)
         self.assertEqual(len(ephs_kep), len(self.orbits_kep))
-        oorb_ephs = self.ephems._generate_oorb_ephs_basic(
-            eph_times, obscode=807, eph_mode="N"
-        )
+        oorb_ephs = self.ephems._generate_oorb_ephs_basic(eph_times, obscode=807, eph_mode="N")
         ephs_kep = self.ephems._convert_oorb_ephs_basic(oorb_ephs, by_object=False)
         self.assertEqual(len(ephs_kep), len(times))
         # And test all-wrapped-up method:
@@ -158,9 +149,7 @@ class TestJPLValues(unittest.TestCase):
         self.jpl_dir = os.path.join(get_data_dir(), "tests", "jpl_testdata")
         self.orbits.read_orbits(os.path.join(self.jpl_dir, "S0_n747.des"), skiprows=1)
         # Read JPL ephems.
-        self.jpl = pd.read_csv(
-            os.path.join(self.jpl_dir, "807_n747.txt"), delim_whitespace=True
-        )
+        self.jpl = pd.read_csv(os.path.join(self.jpl_dir, "807_n747.txt"), delim_whitespace=True)
         # Temp key fix
         self.jpl["obj_id"] = self.jpl["objId"]
         # Add times in TAI and UTC, because.
@@ -181,9 +170,7 @@ class TestJPLValues(unittest.TestCase):
             # Find the JPL obj_ids visible at this time.
             j = self.jpl.query("mjdUTC == @t").sort_values("obj_id")
             # Set the ephems, using the objects seen at this time.
-            suborbits = self.orbits.orbits.query("obj_id in @j.obj_id").sort_values(
-                "obj_id"
-            )
+            suborbits = self.orbits.orbits.query("obj_id in @j.obj_id").sort_values("obj_id")
             sub_orbits = Orbits()
             sub_orbits.set_orbits(suborbits)
             ephems = PyOrbEphemerides()

@@ -1,10 +1,12 @@
 import unittest
-import rubin_sim.skybrightness as sb
-import rubin_sim.skybrightness_pre as sbp
+import warnings
+
 import healpy as hp
 import numpy as np
+
+import rubin_sim.skybrightness as sb
+import rubin_sim.skybrightness_pre as sbp
 import rubin_sim.utils as utils
-import warnings
 
 
 class TestSkyPre(unittest.TestCase):
@@ -18,9 +20,7 @@ class TestSkyPre(unittest.TestCase):
             cls.data_present = True
         except:
             cls.data_present = False
-            warnings.warn(
-                "Data files not found, skipping tests. Check data/ for instructions to pull data."
-            )
+            warnings.warn("Data files not found, skipping tests. Check data/ for instructions to pull data.")
 
     def test_return_mags(self):
         """

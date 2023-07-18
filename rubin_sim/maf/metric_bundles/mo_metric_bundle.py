@@ -1,16 +1,17 @@
 from __future__ import print_function
-from builtins import object
+
 import os
 import warnings
+from builtins import object
+
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.ma as ma
-import matplotlib.pyplot as plt
 
-from rubin_sim.maf.metrics import BaseMoMetric
-from rubin_sim.maf.metrics import ValueAtHMetric
+from rubin_sim.maf.metrics import BaseMoMetric, ValueAtHMetric
+from rubin_sim.maf.plots import PlotHandler
 from rubin_sim.maf.slicers import MoObjSlicer
 from rubin_sim.maf.stackers import BaseMoStacker, MoMagStacker
-from rubin_sim.maf.plots import PlotHandler
 
 from .metric_bundle import MetricBundle
 
@@ -130,8 +131,7 @@ class MoMetricBundle(MetricBundle):
                 for s in stacker_list:
                     if not isinstance(s, BaseMoStacker):
                         raise ValueError(
-                            "stackerList must only contain "
-                            "rubin_sim.maf.stackers.BaseMoStacker type objs"
+                            "stackerList must only contain " "rubin_sim.maf.stackers.BaseMoStacker type objs"
                         )
                     self.stacker_list.append(s)
         else:
@@ -193,12 +193,8 @@ class MoMetricBundle(MetricBundle):
         """If no info_label is provided, auto-generate it from the obs_file + constraint."""
         if info_label is None:
             try:
-                self.info_label = self.slicer.obsfile.replace(".txt", "").replace(
-                    ".dat", ""
-                )
-                self.info_label = self.info_label.replace("_obs", "").replace(
-                    "_allObs", ""
-                )
+                self.info_label = self.slicer.obsfile.replace(".txt", "").replace(".dat", "")
+                self.info_label = self.info_label.replace("_obs", "").replace("_allObs", "")
             except AttributeError:
                 self.info_label = "noObs"
             # And modify by constraint.
@@ -263,9 +259,7 @@ class MoMetricBundle(MetricBundle):
                         metric_id, summary_name=summary_name, summary_value=summary_val
                     )
 
-    def reduce_metric(
-        self, reduce_func, reduce_plot_dict=None, reduce_display_dict=None
-    ):
+    def reduce_metric(self, reduce_func, reduce_plot_dict=None, reduce_display_dict=None):
         raise NotImplementedError
 
 
@@ -312,9 +306,7 @@ class MoMetricBundleGroup(object):
         for stacker in metric_bundle1.stacker_list:
             for stacker2 in metric_bundle2.stacker_list:
                 # If the stackers have different names, that's OK, and if they are identical, that's ok.
-                if (stacker.__class__.__name__ == stacker2.__class__.__name__) & (
-                    stacker != stacker2
-                ):
+                if (stacker.__class__.__name__ == stacker2.__class__.__name__) & (stacker != stacker2):
                     return False
         # But if we got this far, everything matches.
         return True
@@ -350,9 +342,7 @@ class MoMetricBundleGroup(object):
                     # Compare to all the metricBundles in this subset, to check all stackers are compatible.
                     found_compatible = True
                     for comparison_key in compatible_list:
-                        compatible = self._check_compatible(
-                            self.bundle_dict[comparison_key], b
-                        )
+                        compatible = self._check_compatible(self.bundle_dict[comparison_key], b)
                         if not compatible:
                             # Found a metricBundle which is not compatible, so stop and go onto the next subset.
                             found_compatible = False
@@ -410,9 +400,7 @@ class MoMetricBundleGroup(object):
         if self.verbose:
             print("Running metrics %s" % compatible_list)
 
-        b_dict = (
-            self.bundle_dict
-        )  #  {key: self.bundle_dict.get(key) for key in compatible_list}
+        b_dict = self.bundle_dict  #  {key: self.bundle_dict.get(key) for key in compatible_list}
 
         # Find the unique stackers and maps. These are already "compatible" (as id'd by compatible_list).
         uniq_stackers = []
@@ -430,9 +418,7 @@ class MoMetricBundleGroup(object):
                 uniq_maps.append(m)
 
         if len(uniq_maps) > 0:
-            print(
-                "Got some maps .. that was unexpected at the moment. Can't use them here yet."
-            )
+            print("Got some maps .. that was unexpected at the moment. Can't use them here yet.")
 
         # Set up all of the metric values, including for the child bundles.
         for k in compatible_list:
@@ -470,9 +456,7 @@ class MoMetricBundleGroup(object):
                         else:
                             b.metric_values.data[i][j] = m_val
                             for cb in b.child_bundles.values():
-                                child_val = cb.metric.run(
-                                    sso_obs, slice_point["orbit"], Hval, m_val
-                                )
+                                child_val = cb.metric.run(sso_obs, slice_point["orbit"], Hval, m_val)
                                 if child_val == cb.metric.badval:
                                     cb.metric_values.mask[i][j] = True
                                 else:

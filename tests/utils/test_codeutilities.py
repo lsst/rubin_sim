@@ -1,5 +1,7 @@
 import unittest
+
 import numpy as np
+
 from rubin_sim.utils.code_utilities import _validate_inputs
 
 
@@ -10,11 +12,7 @@ class CodeUtilsTest(unittest.TestCase):
         """
 
         # test that it correctly identifies numpy array inputs
-        self.assertTrue(
-            _validate_inputs(
-                [np.array([1, 2]), np.array([3, 4])], ["a", "b"], "dummy_method"
-            )
-        )
+        self.assertTrue(_validate_inputs([np.array([1, 2]), np.array([3, 4])], ["a", "b"], "dummy_method"))
 
         # test that it correctly identifies inputs that are numbers
         self.assertFalse(_validate_inputs([1, 2, 3], ["a", "b", "c"], "dummy"))
@@ -29,9 +27,7 @@ class CodeUtilsTest(unittest.TestCase):
         # test that the correct exception is raised when you pass in
         # numpy arrays of different length
         with self.assertRaises(RuntimeError) as ee:
-            _validate_inputs(
-                [np.array([1, 2]), np.array([1, 2, 3])], ["a", "b"], "dummy"
-            )
+            _validate_inputs([np.array([1, 2]), np.array([1, 2, 3])], ["a", "b"], "dummy")
 
         self.assertIn("same length", ee.exception.args[0])
 

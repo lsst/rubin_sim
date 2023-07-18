@@ -4,14 +4,15 @@
 # Author - Rachel Street: rstreet@lco.global
 ################################################################################################
 from types import MethodType
+
 import numpy as np
+
+from rubin_sim.maf.maps.galactic_plane_priority_maps import gp_priority_map_components_to_keys
 from rubin_sim.utils import calc_season
-from rubin_sim.maf.maps.galactic_plane_priority_maps import (
-    gp_priority_map_components_to_keys,
-)
+
+from .base_metric import BaseMetric
 from .galactic_plane_metrics import galplane_priority_map_thresholds
 from .season_metrics import find_season_edges
-from .base_metric import BaseMetric
 
 __all__ = [
     "calc_interval_decay",
@@ -101,9 +102,7 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
             **kwargs,
         )
         for i, tau in enumerate(self.tau_obs):
-            self.reduce_order[
-                f"reduceTau_{tau:.1f}".replace(".", "_").replace("reduce", "")
-            ] = i
+            self.reduce_order[f"reduceTau_{tau:.1f}".replace(".", "_").replace("reduce", "")] = i
 
     def run(self, data_slice, slice_point=None):
         # Check if we want to evaluate this part of the sky, or if the weight is below threshold.
@@ -126,9 +125,7 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
         metric_data = {}
         for tau in self.tau_obs:
             # Normalize
-            metric_data[tau] = calc_interval_decay(delta_tobs, tau).sum() / len(
-                delta_tobs
-            )
+            metric_data[tau] = calc_interval_decay(delta_tobs, tau).sum() / len(delta_tobs)
         return metric_data
 
 
@@ -192,13 +189,9 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
             tau_reduce_name = f"reduce_Tau_{tau:.1f}".replace(".", "_")
             newmethod = help_set_reduce_func(self, None, tau)
             setattr(self, tau_reduce_name, MethodType(newmethod, tau_reduce_name))
-        super().__init__(
-            col=[self.mjd_col, self.m5_col], metric_name=metric_name, **kwargs
-        )
+        super().__init__(col=[self.mjd_col, self.m5_col], metric_name=metric_name, **kwargs)
         for i, tau in enumerate(self.tau_var):
-            self.reduce_order[
-                f"reduce_Tau_{tau:.1f}".replace(".", "_").replace("reduce", "")
-            ] = i
+            self.reduce_order[f"reduce_Tau_{tau:.1f}".replace(".", "_").replace("reduce", "")] = i
 
     def run(self, data_slice, slice_point):
         # Check if we want to evaluate this part of the sky, or if the weight is below threshold.

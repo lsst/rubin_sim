@@ -1,6 +1,8 @@
-import numpy as np
-import unittest
 import os
+import unittest
+
+import numpy as np
+
 from rubin_sim.data import get_data_dir
 from rubin_sim.moving_objects import BaseObs
 
@@ -20,9 +22,7 @@ class TestCamera(unittest.TestCase):
         obs_rot_sky_pos = np.zeros(2)
         self.obs = np.array(
             list(zip(obs_ra, obs_dec, obs_rot_sky_pos, obs_mjd)),
-            dtype=(
-                [("ra", float), ("dec", float), ("rotSkyPos", float), ("mjd", float)]
-            ),
+            dtype=([("ra", float), ("dec", float), ("rotSkyPos", float), ("mjd", float)]),
         )
 
     def test_camera_fov(self):

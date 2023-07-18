@@ -1,13 +1,13 @@
-import numpy as np
 import matplotlib.pylab as plt
+import numpy as np
+from matplotlib.path import Path
+from matplotlib.projections import register_projection
+from matplotlib.projections.polar import PolarAxes
+from matplotlib.spines import Spine
 
 # Starting with example at
 # https://matplotlib.org/examples/api/radar_chart.html
 
-from matplotlib.path import Path
-from matplotlib.spines import Spine
-from matplotlib.projections.polar import PolarAxes
-from matplotlib.projections import register_projection
 
 __all__ = [
     "radar",
@@ -60,11 +60,7 @@ def normalize_for_radar(
                 if (col in mag_cols) | (mag_cols == "all"):
                     out_df[col] = 1.0 + (out_df[col] - out_df[col].iloc[indx])
                 else:
-                    out_df[col] = (
-                        1.0
-                        + (out_df[col] - out_df[col].iloc[indx])
-                        / out_df[col].iloc[indx]
-                    )
+                    out_df[col] = 1.0 + (out_df[col] - out_df[col].iloc[indx]) / out_df[col].iloc[indx]
     return out_df
 
 

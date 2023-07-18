@@ -1,8 +1,10 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import numpy as np
 import unittest
+
+import numpy as np
+
 import rubin_sim.maf.metrics as metrics
 
 
@@ -117,9 +119,7 @@ class TestVisitGroupsMetric(unittest.TestCase):
             "float",
         )
         expmjd = expmjd + night
-        testdata = np.core.records.fromarrays(
-            [expmjd, night], names=["expmjd", "night"]
-        )
+        testdata = np.core.records.fromarrays([expmjd, night], names=["expmjd", "night"])
         # Set up metric.
         testmetric = metrics.VisitGroupsMetric(
             time_col="expmjd",
@@ -148,20 +148,14 @@ class TestVisitGroupsMetric(unittest.TestCase):
         np.testing.assert_equal(metricval["visits"], expected_numvisits)
         np.testing.assert_equal(metricval["nights"], expected_nights)
         # Test reduce methods.
-        self.assertEqual(
-            testmetric.reduce_median(metricval), np.median(expected_numvisits)
-        )
-        self.assertEqual(
-            testmetric.reduce_n_nights_with_n_visits(metricval), len(expected_nights)
-        )
+        self.assertEqual(testmetric.reduce_median(metricval), np.median(expected_numvisits))
+        self.assertEqual(testmetric.reduce_n_nights_with_n_visits(metricval), len(expected_nights))
         self.assertEqual(testmetric2.reduce_n_nights_with_n_visits(metricval), 3)
         self.assertEqual(testmetric.reduce_n_visits_in_window(metricval), 11)
         self.assertEqual(testmetric2.reduce_n_nights_in_window(metricval), 2)
         self.assertEqual(testmetric.reduce_n_lunations(metricval), 2)
         # Test with a longer (but simpler) date range.
-        indnight = np.array(
-            [0, 1, 2, 3, 4, 5, 31, 32, 33, 34, 61, 62, 63, 121, 122, 123], "int"
-        )
+        indnight = np.array([0, 1, 2, 3, 4, 5, 31, 32, 33, 34, 61, 62, 63, 121, 122, 123], "int")
         indtimes = np.array([tstart, tstart + tmin, tstart + tmax], "float")
         expmjd = []
         night = []
@@ -171,9 +165,7 @@ class TestVisitGroupsMetric(unittest.TestCase):
                 night.append(n)
         expmjd = np.array(expmjd)
         night = np.array(night)
-        testdata = np.core.records.fromarrays(
-            [expmjd, night], names=["expmjd", "night"]
-        )
+        testdata = np.core.records.fromarrays([expmjd, night], names=["expmjd", "night"])
         metricval = testmetric.run(testdata)
         self.assertEqual(testmetric.reduce_n_lunations(metricval), 4)
         self.assertEqual(testmetric.reduce_max_seq_lunations(metricval), 3)

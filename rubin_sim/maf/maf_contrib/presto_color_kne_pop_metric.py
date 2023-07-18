@@ -1,25 +1,27 @@
-import numpy as np
-import pandas as pd
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.slicers as slicers
-import healpy as hp
 import os
-from .kne_metrics import KnLc
-from itertools import combinations
 import pickle
 import warnings
-from rubin_sim.utils import uniform_sphere, survey_start_mjd
-from rubin_sim.phot_utils import DustValues
-from rubin_sim.data import get_data_dir
+from itertools import combinations
 
+import healpy as hp
+import numpy as np
+import pandas as pd
+
+import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.slicers as slicers
+from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import DustValues
+from rubin_sim.utils import survey_start_mjd, uniform_sphere
+
+from .kne_metrics import KnLc
 
 __all__ = ["PrestoColorKNePopMetric", "generate_presto_pop_slicer"]
 
 
 def radec2gal(ra, dec):
     """convert from ra/dec to galactic l/b"""
-    from astropy.coordinates import SkyCoord
     from astropy import units as u
+    from astropy.coordinates import SkyCoord
 
     c = SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree))
 
@@ -122,9 +124,7 @@ def generate_presto_pop_slicer(
     n_events = len(ra)
 
     peak_times = np.random.uniform(low=t_start, high=t_end, size=n_events)
-    file_indx = np.floor(np.random.uniform(low=0, high=n_files, size=n_events)).astype(
-        int
-    )
+    file_indx = np.floor(np.random.uniform(low=0, high=n_files, size=n_events)).astype(int)
 
     # Define the distance
     distance = rndm(d_min, d_max, 4, size=n_events)
@@ -152,7 +152,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         output_lc=False,
         skyregion="galactic",
         thr=0.003,
-        **kwargs
+        **kwargs,
     ):
         """
         Parameters
@@ -179,11 +179,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
 
         cols = [self.mjd_col, self.m5_col, self.filter_col, self.night_col]
         super(PrestoColorKNePopMetric, self).__init__(
-            col=cols,
-            units="Detected, 0 or 1",
-            metric_name=metric_name,
-            maps=maps,
-            **kwargs
+            col=cols, units="Detected, 0 or 1", metric_name=metric_name, maps=maps, **kwargs
         )
 
     def _multi_detect(self, around_peak):
@@ -317,9 +313,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         detects = detects.reset_index(drop=True)
 
         ts = detects.t.values  # Times for valid detections
-        d_ts = ts.reshape(1, len(ts)) - ts.reshape(
-            len(ts), 1
-        )  # Find out the differences between each pair
+        d_ts = ts.reshape(1, len(ts)) - ts.reshape(len(ts), 1)  # Find out the differences between each pair
 
         d_tindex0, d_tindex1 = np.where(
             abs(d_ts) < time_lim2
@@ -332,9 +326,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
             groups_of_three = np.array(
                 [
                     [ii] + list(jj)
-                    for jj in list(
-                        combinations(d_tindex1[(d_tindex0 == ii) * (d_tindex1 > ii)], 2)
-                    )
+                    for jj in list(combinations(d_tindex1[(d_tindex0 == ii) * (d_tindex1 > ii)], 2))
                 ]
             )
 
@@ -349,12 +341,8 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
                 occurence = np.array([np.count_nonzero(ii == bands) for ii in bands])
 
                 index2 = indices[occurence == 1][0]  # The index of observation in band2
-                index11 = indices[occurence == 2][
-                    0
-                ]  # The index of the first observation in band1
-                index12 = indices[occurence == 2][
-                    1
-                ]  # The index of the second observation in band1
+                index11 = indices[occurence == 2][0]  # The index of the first observation in band1
+                index12 = indices[occurence == 2][1]  # The index of the second observation in band1
 
                 if (
                     abs(d_ts[index12, index2]) < abs(d_ts[index11, index2])
@@ -534,9 +522,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
 
         for filtername in np.unique(data_slice[self.filter_col]):
             infilt = np.where(data_slice[self.filter_col] == filtername)
-            mags[infilt] = self.lightcurves.interp(
-                t[infilt], filtername, lc_indx=slice_point["file_indx"]
-            )
+            mags[infilt] = self.lightcurves.interp(t[infilt], filtername, lc_indx=slice_point["file_indx"])
             # Apply dust extinction on the light curve
             a_x = self.ax1[filtername] * slice_point["ebv"]
             mags[infilt] += a_x

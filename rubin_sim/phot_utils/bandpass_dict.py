@@ -1,8 +1,11 @@
 import copy
-import numpy
 import os
-from rubin_sim.data import get_data_dir
 from collections import OrderedDict
+
+import numpy
+
+from rubin_sim.data import get_data_dir
+
 from .bandpass import Bandpass
 from .sed import Sed
 
@@ -44,8 +47,7 @@ class BandpassDict(object):
         for bandpass_name, bandpass in zip(bandpass_name_list, bandpass_list):
             if bandpass_name in self._bandpass_dict:
                 raise RuntimeError(
-                    "The bandpass %s occurs twice in your input " % bandpass_name
-                    + "to BandpassDict"
+                    "The bandpass %s occurs twice in your input " % bandpass_name + "to BandpassDict"
                 )
 
             self._bandpass_dict[bandpass_name] = copy.deepcopy(bandpass)
@@ -53,9 +55,7 @@ class BandpassDict(object):
                 self._wavelen_match = self._bandpass_dict[bandpass_name].wavelen
 
         dummy_sed = Sed()
-        self._phi_array, self._wavelen_step = dummy_sed.setup_phi_array(
-            list(self._bandpass_dict.values())
-        )
+        self._phi_array, self._wavelen_step = dummy_sed.setup_phi_array(list(self._bandpass_dict.values()))
 
     def __getitem__(self, bandpass):
         return self._bandpass_dict[bandpass]
@@ -94,9 +94,7 @@ class BandpassDict(object):
             "lens2.dat",
             "lens3.dat",
         ],
-        atmo_transmission=os.path.join(
-            get_data_dir(), "throughputs", "baseline", "atmos_std.dat"
-        ),
+        atmo_transmission=os.path.join(get_data_dir(), "throughputs", "baseline", "atmos_std.dat"),
     ):
         """
         Load bandpass information from files into BandpassDicts.
@@ -137,9 +135,7 @@ class BandpassDict(object):
         hardware_bandpass_list = []
 
         for w in bandpass_names:
-            components = common_components + [
-                os.path.join(filedir, "%s.dat" % (bandpass_root + w))
-            ]
+            components = common_components + [os.path.join(filedir, "%s.dat" % (bandpass_root + w))]
             bandpass_dummy = Bandpass()
             bandpass_dummy.read_throughput_list(components)
             hardware_bandpass_list.append(bandpass_dummy)
@@ -188,9 +184,7 @@ class BandpassDict(object):
 
         for w in bandpass_names:
             bandpass_dummy = Bandpass()
-            bandpass_dummy.read_throughput(
-                os.path.join(bandpass_dir, "%s.dat" % (bandpass_root + w))
-            )
+            bandpass_dummy.read_throughput(os.path.join(bandpass_dir, "%s.dat" % (bandpass_root + w)))
             bandpass_list.append(bandpass_dummy)
 
         return cls(bandpass_list, bandpass_names)

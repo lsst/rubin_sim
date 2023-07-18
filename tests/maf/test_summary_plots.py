@@ -1,9 +1,11 @@
 # imports
 import unittest
-from numpy.random import default_rng
-import pandas as pd
+
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+from numpy.random import default_rng
+
 from rubin_sim import maf
 
 # constants
@@ -40,18 +42,16 @@ class TestSummaryPlots(unittest.TestCase):
         self.metric_values.columns.name = "metric"
         self.metric_values.index.name = "run"
 
-        self.metric_set = pd.DataFrame(
-            {"mag": False, "invert": False, "metric": self.metrics}
-        ).set_index("metric", drop=False)
+        self.metric_set = pd.DataFrame({"mag": False, "invert": False, "metric": self.metrics}).set_index(
+            "metric", drop=False
+        )
         self.metric_set.loc[self.mag_metrics, "mag"] = True
         self.metric_set.loc[self.inverted_metrics, "invert"] = True
         self.metric_set.loc["metric3", "style"] = "b--"
 
     def test_normalize_metric_summaries(self):
         # Test standard normalization with one run
-        norm_values = maf.normalize_metric_summaries(
-            self.baseline, self.metric_values, self.metric_set
-        )
+        norm_values = maf.normalize_metric_summaries(self.baseline, self.metric_values, self.metric_set)
 
         ref_norm_values = _run_infos_norm_df(
             self.metric_values,
@@ -62,9 +62,7 @@ class TestSummaryPlots(unittest.TestCase):
         np.testing.assert_allclose(norm_values.values, ref_norm_values.values)
 
         # test normalizing against one run, as a list
-        norm_values = maf.normalize_metric_summaries(
-            [self.baseline], self.metric_values, self.metric_set
-        )
+        norm_values = maf.normalize_metric_summaries([self.baseline], self.metric_values, self.metric_set)
         np.testing.assert_allclose(norm_values.values, ref_norm_values.values)
 
         # test similar but pretend that self.baseline is two runs
@@ -103,17 +101,13 @@ class TestSummaryPlots(unittest.TestCase):
         fig, ax = maf.plot_run_metric(self.metric_values, run_label_map=run_label_map)
 
         metric_label_map = {r: r + "foo" for r in self.metrics}
-        fig, ax = maf.plot_run_metric(
-            self.metric_values, metric_label_map=metric_label_map
-        )
+        fig, ax = maf.plot_run_metric(self.metric_values, metric_label_map=metric_label_map)
 
         fig, ax = maf.plot_run_metric(self.metric_values, cmap=plt.get_cmap("Set2"))
 
         fig, ax = maf.plot_run_metric(self.metric_values, linestyles=["-", "--", ":"])
 
-        fig, ax = maf.plot_run_metric(
-            self.metric_values, markers=["o", "v", "^", "<", ">", "8", "s"]
-        )
+        fig, ax = maf.plot_run_metric(self.metric_values, markers=["o", "v", "^", "<", ">", "8", "s"])
 
         fig, ax = plt.subplots()
         maf.plot_run_metric(self.metric_values, ax=ax)
@@ -135,18 +129,12 @@ class TestSummaryPlots(unittest.TestCase):
         fig, ax = maf.plot_run_metric_mesh(self.metric_values, color_range=12)
 
         run_label_map = {r: r + "foo" for r in self.runs}
-        fig, ax = maf.plot_run_metric_mesh(
-            self.metric_values, run_label_map=run_label_map
-        )
+        fig, ax = maf.plot_run_metric_mesh(self.metric_values, run_label_map=run_label_map)
 
         metric_label_map = {r: r + "foo" for r in self.metrics}
-        fig, ax = maf.plot_run_metric_mesh(
-            self.metric_values, metric_label_map=metric_label_map
-        )
+        fig, ax = maf.plot_run_metric_mesh(self.metric_values, metric_label_map=metric_label_map)
 
-        fig, ax = maf.plot_run_metric_mesh(
-            self.metric_values, cmap=plt.get_cmap("Spectral")
-        )
+        fig, ax = maf.plot_run_metric_mesh(self.metric_values, cmap=plt.get_cmap("Spectral"))
 
         fig, ax = plt.subplots()
         maf.plot_run_metric_mesh(self.metric_values, ax=ax)
@@ -194,9 +182,7 @@ def _run_infos_norm_df(df, norm_run, invert_cols=None, mag_cols=None):
     # which columns are strings?
     string_cols = [c for c, t in zip(df.columns, df.dtypes) if t == "object"]
     cols = [c for c in out_df.columns.values if not (c in mag_cols or c in string_cols)]
-    out_df[cols] = (
-        1 + (out_df[cols] - out_df[cols].loc[norm_run]) / out_df[cols].loc[norm_run]
-    )
+    out_df[cols] = 1 + (out_df[cols] - out_df[cols].loc[norm_run]) / out_df[cols].loc[norm_run]
     return out_df
 
 

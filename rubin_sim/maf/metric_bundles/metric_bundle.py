@@ -1,18 +1,18 @@
-from builtins import zip
-from builtins import object
 import os
+import warnings
+from builtins import object, zip
 from copy import deepcopy
+
 import numpy as np
 import numpy.ma as ma
-import warnings
 
+import rubin_sim.maf.maps as maps
 import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.plots as plots
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
-import rubin_sim.maf.maps as maps
-import rubin_sim.maf.plots as plots
-from rubin_sim.maf.stackers import ColInfo
 import rubin_sim.maf.utils as utils
+from rubin_sim.maf.stackers import ColInfo
 
 __all__ = ["MetricBundle", "create_empty_metric_bundle"]
 
@@ -123,9 +123,7 @@ class MetricBundle(object):
                         pass
                     else:
                         if not isinstance(s, stackers.BaseStacker):
-                            raise ValueError(
-                                "stacker_list must only contain rubin_sim.maf.stackers objs"
-                            )
+                            raise ValueError("stacker_list must only contain rubin_sim.maf.stackers objs")
                         self.stacker_list.append(s)
         else:
             self.stacker_list = []
@@ -139,9 +137,7 @@ class MetricBundle(object):
                 self.maps_list = []
                 for m in maps_list:
                     if not isinstance(m, maps.BaseMap):
-                        raise ValueError(
-                            "maps_list must only contain rubin_sim.maf.maps objects"
-                        )
+                        raise ValueError("maps_list must only contain rubin_sim.maf.maps objects")
                     self.maps_list.append(m)
         else:
             self.maps_list = []
@@ -231,9 +227,7 @@ class MetricBundle(object):
             )
             info_label = metadata
         if info_label is None:
-            self.info_label = (
-                self.constraint.replace("=", "").replace("filter", "").replace("'", "")
-            )
+            self.info_label = self.constraint.replace("=", "").replace("filter", "").replace("'", "")
             self.info_label = self.info_label.replace('"', "").replace("  ", " ")
             self.info_label = self.info_label.strip(" ")
         else:
@@ -292,10 +286,7 @@ class MetricBundle(object):
             new_cols = set(new_cols)
             new_stackers = set()
             for col in new_cols:
-                if (
-                    self.col_info.get_data_source(col)
-                    == self.col_info.default_data_source
-                ):
+                if self.col_info.get_data_source(col) == self.col_info.default_data_source:
                     self.db_cols.add(col)
                 else:
                     new_stackers.add(self.col_info.get_data_source(col))
@@ -324,9 +315,7 @@ class MetricBundle(object):
                 self.summary_metrics = []
                 for s in summary_metrics:
                     if not isinstance(s, metrics.BaseMetric):
-                        raise ValueError(
-                            "SummaryStats must only contain rubin_sim.maf.metrics objects"
-                        )
+                        raise ValueError("SummaryStats must only contain rubin_sim.maf.metrics objects")
                     self.summary_metrics.append(s)
         else:
             # Add identity metric to unislicer metric values (to get them into resultsDB).
@@ -354,8 +343,7 @@ class MetricBundle(object):
                 for p_func in plot_funcs:
                     if not isinstance(p_func, plots.BasePlotter):
                         raise ValueError(
-                            "plotFuncs should contain instantiated "
-                            + "rubin_sim.maf.plotter objects."
+                            "plotFuncs should contain instantiated " + "rubin_sim.maf.plotter objects."
                         )
                     self.plot_funcs.append(p_func)
         else:
@@ -383,8 +371,7 @@ class MetricBundle(object):
             if self.plot_dict["zp"] is not None:
                 if not np.isfinite(self.plot_dict["zp"]):
                     warnings.warn(
-                        "Warning! Plot zp for %s was infinite: removing zp from plot_dict"
-                        % (self.file_root)
+                        "Warning! Plot zp for %s was infinite: removing zp from plot_dict" % (self.file_root)
                     )
                     del self.plot_dict["zp"]
         if "norm_val" in self.plot_dict:
@@ -426,21 +413,15 @@ class MetricBundle(object):
         # If we still need to auto-generate a caption, do it.
         if self.display_dict["caption"] is None:
             if self.metric.comment is None:
-                caption = self.metric.name + " calculated on a %s basis" % (
-                    self.slicer.slicer_name
-                )
+                caption = self.metric.name + " calculated on a %s basis" % (self.slicer.slicer_name)
                 if self.constraint != "" and self.constraint is not None:
-                    caption += " using a subset of data selected via %s." % (
-                        self.constraint
-                    )
+                    caption += " using a subset of data selected via %s." % (self.constraint)
                 else:
                     caption += "."
             else:
                 caption = self.metric.comment
             if "zp" in self.plot_dict:
-                caption += " Values plotted with a zeropoint of %.2f." % (
-                    self.plot_dict["zp"]
-                )
+                caption += " Values plotted with a zeropoint of %.2f." % (self.plot_dict["zp"])
             if "norm_val" in self.plot_dict:
                 caption += " Values plotted with a normalization value of %.2f." % (
                     self.plot_dict["norm_val"]
@@ -726,9 +707,7 @@ class MetricBundle(object):
             fill_value=self.slicer.badval,
         )
         # Fill the reduced metric data using the reduce function.
-        for i, (mVal, mMask) in enumerate(
-            zip(self.metric_values.data, self.metric_values.mask)
-        ):
+        for i, (mVal, mMask) in enumerate(zip(self.metric_values.data, self.metric_values.mask)):
             if not mMask:
                 val = reduce_func(mVal)
                 newmetric_bundle.metric_values.data[i] = val
@@ -737,9 +716,7 @@ class MetricBundle(object):
 
         return newmetric_bundle
 
-    def plot(
-        self, plot_handler=None, plot_func=None, outfile_suffix=None, savefig=False
-    ):
+    def plot(self, plot_handler=None, plot_func=None, outfile_suffix=None, savefig=False):
         """
         Create all plots available from the slicer. plotHandler holds the output directory info, etc.
 

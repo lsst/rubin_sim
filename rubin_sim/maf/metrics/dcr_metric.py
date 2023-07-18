@@ -1,8 +1,9 @@
 import numpy as np
-from .base_metric import BaseMetric
+
 import rubin_sim.maf.utils as mafUtils
 import rubin_sim.utils as utils
 
+from .base_metric import BaseMetric
 
 __all__ = ["DcrPrecisionMetric"]
 
@@ -27,7 +28,7 @@ class DcrPrecisionMetric(BaseMetric):
         atm_err=0.01,
         sed_template="flat",
         rmag=20.0,
-        **kwargs
+        **kwargs,
     ):
         self.m5_col = m5_col
         self.filter_col = filter_col
@@ -51,21 +52,16 @@ class DcrPrecisionMetric(BaseMetric):
         ]
         units = "arcseconds"
         self.atm_err = atm_err
-        super(DcrPrecisionMetric, self).__init__(
-            cols, metric_name=metric_name, units=units, **kwargs
-        )
+        super(DcrPrecisionMetric, self).__init__(cols, metric_name=metric_name, units=units, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         snr = np.zeros(len(data_slice), dtype="float")
         for filt in self.filters:
             in_filt = np.where(data_slice[self.filter_col] == filt)
-            snr[in_filt] = mafUtils.m52snr(
-                self.mags[filt], data_slice[self.m5_col][in_filt]
-            )
+            snr[in_filt] = mafUtils.m52snr(self.mags[filt], data_slice[self.m5_col][in_filt])
 
         position_errors = np.sqrt(
-            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2
-            + self.atm_err**2
+            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2 + self.atm_err**2
         )
 
         x_coord = np.tan(np.radians(data_slice["zenithDistance"])) * np.sin(

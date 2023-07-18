@@ -1,23 +1,31 @@
+import numbers
+import os
 import unittest
-from rubin_sim.utils import find_htmid, trixel_from_htmid
-from rubin_sim.utils import HalfSpace, basic_trixels
-from rubin_sim.utils import half_space_from_ra_dec, level_from_htmid
-from rubin_sim.utils import half_space_from_points
-from rubin_sim.utils import intersect_half_spaces
-from rubin_sim.utils import get_all_trixels
-from rubin_sim.utils import arcsec_from_radians
-from rubin_sim.utils.htm_module import _find_htmid_fast
-from rubin_sim.utils.htm_module import _find_htmid_slow
-from rubin_sim.data import get_data_dir
 
 import numpy as np
-import os
-import numbers
 
-from rubin_sim.utils import spherical_from_cartesian, cartesian_from_spherical
-from rubin_sim.utils import rot_about_y, rot_about_x, rot_about_z
-from rubin_sim.utils import angular_separation, _angular_separation
 import rubin_sim
+from rubin_sim.data import get_data_dir
+from rubin_sim.utils import (
+    HalfSpace,
+    _angular_separation,
+    angular_separation,
+    arcsec_from_radians,
+    basic_trixels,
+    cartesian_from_spherical,
+    find_htmid,
+    get_all_trixels,
+    half_space_from_points,
+    half_space_from_ra_dec,
+    intersect_half_spaces,
+    level_from_htmid,
+    rot_about_x,
+    rot_about_y,
+    rot_about_z,
+    spherical_from_cartesian,
+    trixel_from_htmid,
+)
+from rubin_sim.utils.htm_module import _find_htmid_fast, _find_htmid_slow
 
 
 def trixel_intersects_half_space(trix, hspace):
@@ -26,9 +34,7 @@ def trixel_intersects_half_space(trix, hspace):
     is inside, or at least intersects, a halfspace.
     """
     if hspace.phi > 0.25 * np.pi:
-        raise RuntimeError(
-            "trixel_intersects_half_space is not safe for " "large HalfSpaces"
-        )
+        raise RuntimeError("trixel_intersects_half_space is not safe for " "large HalfSpaces")
 
     # if any of the trixel's corners are within the
     # HalfSpace, return True
@@ -329,9 +335,7 @@ class HalfSpaceTest(unittest.TestCase):
         # 8*4**(level-1) trixels in the grid as per equation 2.5 of
         #
         # https://www.microsoft.com/en-us/research/wp-content/uploads/2005/09/tr-2005-123.pdf
-        angular_scale = np.sqrt(
-            4.0 * np.pi * (180.0 / np.pi) ** 2 / (8.0 * 4.0 ** (level - 1))
-        )
+        angular_scale = np.sqrt(4.0 * np.pi * (180.0 / np.pi) ** 2 / (8.0 * 4.0 ** (level - 1)))
 
         ra = 43.0
         dec = 22.0
@@ -374,9 +378,7 @@ class HalfSpaceTest(unittest.TestCase):
                     test_trixel = trixel_from_htmid(htmid)
                     self.assertEqual(half_space.contains_trixel(test_trixel), "outside")
                     ra_trix, dec_trix = test_trixel.get_center()
-                    self.assertGreater(
-                        angular_separation(ra, dec, ra_trix, dec_trix), radius
-                    )
+                    self.assertGreater(angular_separation(ra, dec, ra_trix, dec_trix), radius)
 
     def test_find_all_trixels_brute(self):
         """

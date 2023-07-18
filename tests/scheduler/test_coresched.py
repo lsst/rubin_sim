@@ -1,13 +1,15 @@
 import os
+import unittest
+
 import numpy as np
 import pandas as pd
-import unittest
-from rubin_sim.data import get_data_dir
-from rubin_sim.scheduler.schedulers import CoreScheduler
+
 import rubin_sim.scheduler.basis_functions as basis_functions
 import rubin_sim.scheduler.surveys as surveys
-from rubin_sim.scheduler.utils import standard_goals
+from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler.model_observatory import ModelObservatory
+from rubin_sim.scheduler.schedulers import CoreScheduler
+from rubin_sim.scheduler.utils import standard_goals
 
 
 class TestCoreSched(unittest.TestCase):
@@ -51,9 +53,7 @@ class TestCoreSched(unittest.TestCase):
         # Check survey access methods
         reward_df = scheduler.make_reward_df(observatory.return_conditions())
         self.assertIsInstance(reward_df, pd.DataFrame)
-        reward_df = scheduler.make_reward_df(
-            observatory.return_conditions(), accum=False
-        )
+        reward_df = scheduler.make_reward_df(observatory.return_conditions(), accum=False)
         self.assertIsInstance(reward_df, pd.DataFrame)
 
         obs = scheduler.request_observation()

@@ -1,4 +1,5 @@
 import numpy as np
+
 import rubin_sim.maf.metrics as metrics
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.galaxy_counts_metric_extended import (
     GalaxyCountsMetricExtended as GalaxyCountsMetric,
@@ -50,7 +51,7 @@ class DepthLimitedNumGalMetric(metrics.BaseMetric):
         lim_ebv=0.2,
         metric_name="DepthLimitedNumGalaxiesMetric",
         units="Galaxy Counts",
-        **kwargs
+        **kwargs,
     ):
         self.m5_col = m5_col
         self.filter_col = filter_col
@@ -84,11 +85,7 @@ class DepthLimitedNumGalMetric(metrics.BaseMetric):
         maps = self.eg_metric.maps + self.galmetric.maps
         maps = set(maps)
         super().__init__(
-            col=[self.m5_col, self.filter_col],
-            maps=maps,
-            metric_name=metric_name,
-            units=units,
-            **kwargs
+            col=[self.m5_col, self.filter_col], maps=maps, metric_name=metric_name, units=units, **kwargs
         )
 
     def run(self, data_slice, slice_point=None):

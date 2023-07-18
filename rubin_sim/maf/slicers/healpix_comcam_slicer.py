@@ -1,11 +1,13 @@
-import numpy as np
-import healpy as hp
-from .healpix_slicer import HealpixSlicer
 import warnings
 from functools import wraps
-import rubin_sim.utils as simsUtils
-import matplotlib.path as mplPath
 
+import healpy as hp
+import matplotlib.path as mplPath
+import numpy as np
+
+import rubin_sim.utils as simsUtils
+
+from .healpix_slicer import HealpixSlicer
 
 __all__ = ["HealpixComCamSlicer"]
 
@@ -104,8 +106,7 @@ class HealpixComCamSlicer(HealpixSlicer):
         if maps is not None:
             if self.cache_size != 0 and len(maps) > 0:
                 warnings.warn(
-                    "Warning:  Loading maps but cache on."
-                    "Should probably set use_cache=False in slicer."
+                    "Warning:  Loading maps but cache on." "Should probably set use_cache=False in slicer."
                 )
             self._run_maps(maps)
         self._setRad(self.radius)
@@ -120,9 +121,7 @@ class HealpixComCamSlicer(HealpixSlicer):
                     self.leafsize,
                 )
             else:
-                self._build_tree(
-                    sim_data[self.lon_col], sim_data[self.lat_col], self.leafsize
-                )
+                self._build_tree(sim_data[self.lon_col], sim_data[self.lat_col], self.leafsize)
 
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
@@ -140,27 +139,17 @@ class HealpixComCamSlicer(HealpixSlicer):
                 )
                 # Anything within half the side length is good no matter what rotation angle
                 # the camera is at
-                indices = self.opsimtree.query_ball_point(
-                    (sx, sy, sz), self.side_radius
-                )
+                indices = self.opsimtree.query_ball_point((sx, sy, sz), self.side_radius)
                 # Now the larger radius. Need to make it an array for easy subscripting
-                initial_indices = np.array(
-                    self.opsimtree.query_ball_point((sx, sy, sz), self.rad), dtype=int
-                )
+                initial_indices = np.array(self.opsimtree.query_ball_point((sx, sy, sz), self.rad), dtype=int)
                 # remove the indices we already know about
-                initial_indices = initial_indices[
-                    np.in1d(initial_indices, indices, invert=True)
-                ]
+                initial_indices = initial_indices[np.in1d(initial_indices, indices, invert=True)]
 
                 if self.latLonDeg:
                     lat = np.radians(sim_data[self.lat_col][initial_indices])
                     lon = np.radians(sim_data[self.lon_col][initial_indices])
-                    cos_rot = np.cos(
-                        np.radians(sim_data[self.rotSkyPosColName][initial_indices])
-                    )
-                    sin_rot = np.cos(
-                        np.radians(sim_data[self.rotSkyPosColName][initial_indices])
-                    )
+                    cos_rot = np.cos(np.radians(sim_data[self.rotSkyPosColName][initial_indices]))
+                    sin_rot = np.cos(np.radians(sim_data[self.rotSkyPosColName][initial_indices]))
                 else:
                     lat = sim_data[self.lat_col][initial_indices]
                     lon = sim_data[self.lon_col][initial_indices]
@@ -169,12 +158,8 @@ class HealpixComCamSlicer(HealpixSlicer):
                 # loop over the observations that might be overlapping the healpix, check each
                 for i, ind in enumerate(initial_indices):
                     # Rotate the camera
-                    x_rotated = (
-                        self.corners_x * cos_rot[i] - self.corners_y * sin_rot[i]
-                    )
-                    y_rotated = (
-                        self.corners_x * sin_rot[i] + self.corners_y * cos_rot[i]
-                    )
+                    x_rotated = self.corners_x * cos_rot[i] - self.corners_y * sin_rot[i]
+                    y_rotated = self.corners_x * sin_rot[i] + self.corners_y * cos_rot[i]
                     # How far is the pointing center from the healpix center
                     xshift, yshift = simsUtils.gnomonic_project_toxy(
                         lon[i],

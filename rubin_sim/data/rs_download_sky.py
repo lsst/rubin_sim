@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-import os
-import requests
 import argparse
+import os
 from html.parser import HTMLParser
+
+import requests
 
 from . import get_data_dir
 

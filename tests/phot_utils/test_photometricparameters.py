@@ -1,13 +1,10 @@
 import os
-import numpy as np
 import unittest
+
+import numpy as np
+
 from rubin_sim.data import get_data_dir
-from rubin_sim.phot_utils import (
-    Bandpass,
-    Sed,
-    PhotometricParameters,
-    PhysicalParameters,
-)
+from rubin_sim.phot_utils import Bandpass, PhotometricParameters, PhysicalParameters, Sed
 
 
 class PhotometricParametersUnitTest(unittest.TestCase):
@@ -36,13 +33,9 @@ class PhotometricParametersUnitTest(unittest.TestCase):
 
             for pp in params:
                 if pp != attribute:
-                    self.assertEqual(
-                        defaults.__getattribute__(pp), test_case.__getattribute__(pp)
-                    )
+                    self.assertEqual(defaults.__getattribute__(pp), test_case.__getattribute__(pp))
                 else:
-                    self.assertNotEqual(
-                        defaults.__getattribute__(pp), test_case.__getattribute__(pp)
-                    )
+                    self.assertNotEqual(defaults.__getattribute__(pp), test_case.__getattribute__(pp))
 
                     self.assertEqual(test_case.__getattribute__(pp), -100.0)
 
@@ -82,13 +75,9 @@ class PhotometricParametersUnitTest(unittest.TestCase):
 
                 for name3 in expected_message:
                     if name3 not in set_parameters:
-                        self.assertIn(
-                            expected_message[name3], context.exception.args[0]
-                        )
+                        self.assertIn(expected_message[name3], context.exception.args[0])
                     else:
-                        self.assertNotIn(
-                            expected_message[name3], context.exception.args[0]
-                        )
+                        self.assertNotIn(expected_message[name3], context.exception.args[0])
 
     def test_defaults(self):
         """
@@ -100,9 +89,7 @@ class PhotometricParametersUnitTest(unittest.TestCase):
             self.assertEqual(phot_params.bandpass, bp)
             self.assertAlmostEqual(phot_params.exptime, 15.0, 7)
             self.assertAlmostEqual(phot_params.nexp, 2, 7)
-            self.assertAlmostEqual(
-                phot_params.effarea / (np.pi * (6.423 * 100 / 2.0) ** 2), 1.0, 7
-            )
+            self.assertAlmostEqual(phot_params.effarea / (np.pi * (6.423 * 100 / 2.0) ** 2), 1.0, 7)
             self.assertAlmostEqual(phot_params.gain, 2.3, 7)
             self.assertAlmostEqual(phot_params.darkcurrent, 0.2, 7)
             self.assertAlmostEqual(phot_params.readnoise, 8.8, 7)
@@ -122,9 +109,7 @@ class PhotometricParametersUnitTest(unittest.TestCase):
         self.assertEqual(phot_params.bandpass, None)
         self.assertAlmostEqual(phot_params.exptime, 15.0, 7)
         self.assertAlmostEqual(phot_params.nexp, 2, 7)
-        self.assertAlmostEqual(
-            phot_params.effarea / (np.pi * (6.423 * 100 / 2.0) ** 2), 1.0, 7
-        )
+        self.assertAlmostEqual(phot_params.effarea / (np.pi * (6.423 * 100 / 2.0) ** 2), 1.0, 7)
         self.assertAlmostEqual(phot_params.gain, 2.3, 7)
         self.assertAlmostEqual(phot_params.darkcurrent, 0.2, 7)
         self.assertAlmostEqual(phot_params.readnoise, 8.8, 7)
@@ -224,9 +209,7 @@ class PhotometricParametersUnitTest(unittest.TestCase):
         test_sed.set_flat_sed()
 
         test_bandpass = Bandpass()
-        test_bandpass.read_throughput(
-            os.path.join(get_data_dir(), "throughputs", "baseline", "total_g.dat")
-        )
+        test_bandpass.read_throughput(os.path.join(get_data_dir(), "throughputs", "baseline", "total_g.dat"))
 
         control = test_sed.calc_adu(test_bandpass, phot_params=PhotometricParameters())
 

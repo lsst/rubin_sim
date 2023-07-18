@@ -1,8 +1,9 @@
-from builtins import zip
-from builtins import range
-import numpy as np
-from .base_stacker import BaseStacker
 import warnings
+from builtins import range, zip
+
+import numpy as np
+
+from .base_stacker import BaseStacker
 
 __all__ = [
     "setup_dither_stackers",
@@ -420,12 +421,10 @@ class RandomDitherFieldPerNightStacker(RandomDitherFieldPerVisitStacker):
             vertex_idxs = vertex_idxs % len(self.x_off)
             # ensure that the same xOff/yOff entries are not chosen
             delta = delta + len(vertex_idxs)
-            sim_data["randomDitherFieldPerNightRa"][match] = ra[match] + self.x_off[
-                vertex_idxs
-            ] / np.cos(dec[match])
-            sim_data["randomDitherFieldPerNightDec"][match] = (
-                dec[match] + self.y_off[vertex_idxs]
+            sim_data["randomDitherFieldPerNightRa"][match] = ra[match] + self.x_off[vertex_idxs] / np.cos(
+                dec[match]
             )
+            sim_data["randomDitherFieldPerNightDec"][match] = dec[match] + self.y_off[vertex_idxs]
         # Wrap into expected range.
         (
             sim_data["randomDitherFieldPerNightRa"],
@@ -522,17 +521,13 @@ class RandomDitherPerNightStacker(RandomDitherFieldPerVisitStacker):
         # Add to RA and dec values.
         for n, x, y in zip(nights, self.x_off, self.y_off):
             match = np.where(sim_data[self.night_col] == n)[0]
-            sim_data["randomDitherPerNightRa"][match] = ra[match] + x / np.cos(
-                dec[match]
-            )
+            sim_data["randomDitherPerNightRa"][match] = ra[match] + x / np.cos(dec[match])
             sim_data["randomDitherPerNightDec"][match] = dec[match] + y
         # Wrap RA/Dec into expected range.
         (
             sim_data["randomDitherPerNightRa"],
             sim_data["randomDitherPerNightDec"],
-        ) = wrap_ra_dec(
-            sim_data["randomDitherPerNightRa"], sim_data["randomDitherPerNightDec"]
-        )
+        ) = wrap_ra_dec(sim_data["randomDitherPerNightRa"], sim_data["randomDitherPerNightDec"])
         if self.degrees:
             for col in self.cols_added:
                 sim_data[col] = np.degrees(sim_data[col])
@@ -612,14 +607,7 @@ class SpiralDitherFieldPerVisitStacker(BaseDitherStacker):
             a = 0.85 * a
         r = theta * a
         # Then pick out equidistant points along the spiral.
-        arc = (
-            a
-            / 2.0
-            * (
-                theta * np.sqrt(1 + theta**2)
-                + np.log(theta + np.sqrt(1 + theta**2))
-            )
-        )
+        arc = a / 2.0 * (theta * np.sqrt(1 + theta**2) + np.log(theta + np.sqrt(1 + theta**2)))
         stepsize = arc.max() / float(self.num_points)
         arcpts = np.arange(0, arc.max(), stepsize)
         arcpts = arcpts[0 : self.num_points]
@@ -651,12 +639,10 @@ class SpiralDitherFieldPerVisitStacker(BaseDitherStacker):
             # Apply sequential dithers, increasing with each visit.
             vertex_idxs = np.arange(0, len(match), 1)
             vertex_idxs = vertex_idxs % self.num_points
-            sim_data["spiralDitherFieldPerVisitRa"][match] = ra[match] + self.x_off[
-                vertex_idxs
-            ] / np.cos(dec[match])
-            sim_data["spiralDitherFieldPerVisitDec"][match] = (
-                dec[match] + self.y_off[vertex_idxs]
+            sim_data["spiralDitherFieldPerVisitRa"][match] = ra[match] + self.x_off[vertex_idxs] / np.cos(
+                dec[match]
             )
+            sim_data["spiralDitherFieldPerVisitDec"][match] = dec[match] + self.y_off[vertex_idxs]
         # Wrap into expected range.
         (
             sim_data["spiralDitherFieldPerVisitRa"],
@@ -757,12 +743,10 @@ class SpiralDitherFieldPerNightStacker(SpiralDitherFieldPerVisitStacker):
             nights = sim_data[self.night_col][match]
             vertex_idxs = np.searchsorted(np.unique(nights), nights)
             vertex_idxs = vertex_idxs % self.num_points
-            sim_data["spiralDitherFieldPerNightRa"][match] = ra[match] + self.x_off[
-                vertex_idxs
-            ] / np.cos(dec[match])
-            sim_data["spiralDitherFieldPerNightDec"][match] = (
-                dec[match] + self.y_off[vertex_idxs]
+            sim_data["spiralDitherFieldPerNightRa"][match] = ra[match] + self.x_off[vertex_idxs] / np.cos(
+                dec[match]
             )
+            sim_data["spiralDitherFieldPerNightDec"][match] = dec[match] + self.y_off[vertex_idxs]
         # Wrap into expected range.
         (
             sim_data["spiralDitherFieldPerNightRa"],
@@ -866,9 +850,7 @@ class SpiralDitherPerNightStacker(SpiralDitherFieldPerVisitStacker):
         (
             sim_data["spiralDitherPerNightRa"],
             sim_data["spiralDitherPerNightDec"],
-        ) = wrap_ra_dec(
-            sim_data["spiralDitherPerNightRa"], sim_data["spiralDitherPerNightDec"]
-        )
+        ) = wrap_ra_dec(sim_data["spiralDitherPerNightRa"], sim_data["spiralDitherPerNightDec"])
         if self.degrees:
             for col in self.cols_added:
                 sim_data[col] = np.degrees(sim_data[col])
@@ -936,9 +918,7 @@ class HexDitherFieldPerVisitStacker(BaseDitherStacker):
         halfrows = int(nrows / 2.0)
         # Calculate size of each offset
         dith_size_x = self.max_dither * 2.0 / float(nrows)
-        dith_size_y = (
-            np.sqrt(3) * self.max_dither / float(nrows)
-        )  # sqrt 3 comes from hexagon
+        dith_size_y = np.sqrt(3) * self.max_dither / float(nrows)  # sqrt 3 comes from hexagon
         if self.in_hex:
             dith_size_x = 0.95 * dith_size_x
             dith_size_y = 0.95 * dith_size_y
@@ -978,19 +958,15 @@ class HexDitherFieldPerVisitStacker(BaseDitherStacker):
             # Apply sequential dithers, increasing with each visit.
             vertex_idxs = np.arange(0, len(match), 1)
             vertex_idxs = vertex_idxs % self.num_points
-            sim_data["hexDitherFieldPerVisitRa"][match] = ra[match] + self.x_off[
-                vertex_idxs
-            ] / np.cos(dec[match])
-            sim_data["hexDitherFieldPerVisitDec"][match] = (
-                dec[match] + self.y_off[vertex_idxs]
+            sim_data["hexDitherFieldPerVisitRa"][match] = ra[match] + self.x_off[vertex_idxs] / np.cos(
+                dec[match]
             )
+            sim_data["hexDitherFieldPerVisitDec"][match] = dec[match] + self.y_off[vertex_idxs]
         # Wrap into expected range.
         (
             sim_data["hexDitherFieldPerVisitRa"],
             sim_data["hexDitherFieldPerVisitDec"],
-        ) = wrap_ra_dec(
-            sim_data["hexDitherFieldPerVisitRa"], sim_data["hexDitherFieldPerVisitDec"]
-        )
+        ) = wrap_ra_dec(sim_data["hexDitherFieldPerVisitRa"], sim_data["hexDitherFieldPerVisitDec"])
         if self.degrees:
             for col in self.cols_added:
                 sim_data[col] = np.degrees(sim_data[col])
@@ -1074,19 +1050,15 @@ class HexDitherFieldPerNightStacker(HexDitherFieldPerVisitStacker):
             nights = sim_data[self.night_col][match]
             vertex_idxs = np.searchsorted(np.unique(nights), nights)
             vertex_idxs = vertex_idxs % self.num_points
-            sim_data["hexDitherFieldPerNightRa"][match] = ra[match] + self.x_off[
-                vertex_idxs
-            ] / np.cos(dec[match])
-            sim_data["hexDitherFieldPerNightDec"][match] = (
-                dec[match] + self.y_off[vertex_idxs]
+            sim_data["hexDitherFieldPerNightRa"][match] = ra[match] + self.x_off[vertex_idxs] / np.cos(
+                dec[match]
             )
+            sim_data["hexDitherFieldPerNightDec"][match] = dec[match] + self.y_off[vertex_idxs]
         # Wrap into expected range.
         (
             sim_data["hexDitherFieldPerNightRa"],
             sim_data["hexDitherFieldPerNightDec"],
-        ) = wrap_ra_dec(
-            sim_data["hexDitherFieldPerNightRa"], sim_data["hexDitherFieldPerNightDec"]
-        )
+        ) = wrap_ra_dec(sim_data["hexDitherFieldPerNightRa"], sim_data["hexDitherFieldPerNightDec"])
         if self.degrees:
             for col in self.cols_added:
                 sim_data[col] = np.degrees(sim_data[col])
@@ -1171,9 +1143,7 @@ class HexDitherPerNightStacker(HexDitherFieldPerVisitStacker):
         for n in nights:
             match = np.where(sim_data[self.night_col] == n)[0]
             vertex_id = vertex_id % self.num_points
-            sim_data[self.added_ra][match] = ra[match] + self.x_off[vertex_id] / np.cos(
-                dec[match]
-            )
+            sim_data[self.added_ra][match] = ra[match] + self.x_off[vertex_id] / np.cos(dec[match])
             sim_data[self.added_dec][match] = dec[match] + self.y_off[vertex_id]
             vertex_id += 1
         # Wrap RA/Dec into expected range.
@@ -1279,22 +1249,18 @@ class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
         if len(np.where(sim_data[self.rot_tel_col] > self.max_rot_angle)[0]) > 0:
             warnings.warn(
                 "Input data does not respect the specified maxRotAngle constraint: "
-                "(Re)Setting maxRotAngle to max value in the input data: %s"
-                % max(sim_data[self.rot_tel_col])
+                "(Re)Setting maxRotAngle to max value in the input data: %s" % max(sim_data[self.rot_tel_col])
             )
             self.max_rot_angle = max(sim_data[self.rot_tel_col])
         if len(np.where(sim_data[self.rot_tel_col] < self.min_rot_angle)[0]) > 0:
             warnings.warn(
                 "Input data does not respect the specified minRotAngle constraint: "
-                "(Re)Setting minRotAngle to min value in the input data: %s"
-                % min(sim_data[self.rot_tel_col])
+                "(Re)Setting minRotAngle to min value in the input data: %s" % min(sim_data[self.rot_tel_col])
             )
             self.min_rot_angle = min(sim_data[self.rot_tel_col])
 
         # Identify points where the filter changes.
-        change_idxs = np.where(
-            sim_data[self.filter_col][1:] != sim_data[self.filter_col][:-1]
-        )[0]
+        change_idxs = np.where(sim_data[self.filter_col][1:] != sim_data[self.filter_col][:-1])[0]
 
         # Add the random offsets to the RotTelPos values.
         rot_dither = self.cols_added[0]
@@ -1320,16 +1286,11 @@ class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
             # Loop over the filter change indexes (current filter change, next filter change) to identify
             # sets of visits that should have the same offset.
             for c, cn in zip(change_idxs, change_idxs[1:]):
-                random_offsets = (
-                    self._rng.rand(max_num + 1) * 2.0 * self.max_dither
-                    - self.max_dither
-                )
+                random_offsets = self._rng.rand(max_num + 1) * 2.0 * self.max_dither - self.max_dither
                 i = 0
                 potential_offset = random_offsets[i]
                 # Calculate new rotTelPos values, if we used this offset.
-                new_rot_tel = (
-                    sim_data[self.rot_tel_col][c + 1 : cn + 1] + potential_offset
-                )
+                new_rot_tel = sim_data[self.rot_tel_col][c + 1 : cn + 1] + potential_offset
                 # Does it work? Do all values fall within minRotAngle / maxRotAngle?
                 good_to_go = (new_rot_tel >= self.min_rot_angle).all() and (
                     new_rot_tel <= self.max_rot_angle
@@ -1338,9 +1299,7 @@ class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
                     # break if find a good offset or hit max_num tries.
                     i += 1
                     potential_offset = random_offsets[i]
-                    new_rot_tel = (
-                        sim_data[self.rot_tel_col][c + 1 : cn + 1] + potential_offset
-                    )
+                    new_rot_tel = sim_data[self.rot_tel_col][c + 1 : cn + 1] + potential_offset
                     good_to_go = (new_rot_tel >= self.min_rot_angle).all() and (
                         new_rot_tel <= self.max_rot_angle
                     ).all()
@@ -1349,19 +1308,13 @@ class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
                     n_problematic_ones += 1
                     rot_offset[c + 1 : cn + 1] = 0.0  # no dither
                 else:
-                    rot_offset[c + 1 : cn + 1] = random_offsets[
-                        i
-                    ]  # assign the chosen offset
+                    rot_offset[c + 1 : cn + 1] = random_offsets[i]  # assign the chosen offset
 
             # Handle the last set of observations (after the last filter change to the end of the survey).
-            random_offsets = (
-                self._rng.rand(max_num + 1) * 2.0 * self.max_dither - self.max_dither
-            )
+            random_offsets = self._rng.rand(max_num + 1) * 2.0 * self.max_dither - self.max_dither
             i = 0
             potential_offset = random_offsets[i]
-            new_rot_tel = (
-                sim_data[self.rot_tel_col][change_idxs[-1] + 1 :] + potential_offset
-            )
+            new_rot_tel = sim_data[self.rot_tel_col][change_idxs[-1] + 1 :] + potential_offset
             good_to_go = (new_rot_tel >= self.min_rot_angle).all() and (
                 new_rot_tel <= self.max_rot_angle
             ).all()
@@ -1369,9 +1322,7 @@ class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
                 # break if find a good offset or cant (after max_num tries)
                 i += 1
                 potential_offset = random_offsets[i]
-                new_rot_tel = (
-                    sim_data[self.rot_tel_col][change_idxs[-1] + 1 :] + potential_offset
-                )
+                new_rot_tel = sim_data[self.rot_tel_col][change_idxs[-1] + 1 :] + potential_offset
                 good_to_go = (new_rot_tel >= self.min_rot_angle).all() and (
                     new_rot_tel <= self.max_rot_angle
                 ).all()

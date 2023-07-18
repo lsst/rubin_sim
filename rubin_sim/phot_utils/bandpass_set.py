@@ -39,10 +39,12 @@
  or plotting the filters (i.e. plotFilters). 
 """
 
-import os
 import copy
-import numpy as np
+import os
+
 import matplotlib.pyplot as plt
+import numpy as np
+
 from .bandpass import Bandpass
 from .sed import Sed
 
@@ -66,9 +68,7 @@ class BandpassSet(object):
         """Initialize the class but don't do anything yet."""
         return
 
-    def set_bandpass_set(
-        self, bp_dict, bp_dictlist=("u", "g", "r", "i", "z", "y"), verbose=True
-    ):
+    def set_bandpass_set(self, bp_dict, bp_dictlist=("u", "g", "r", "i", "z", "y"), verbose=True):
         """Simply set throughputs from a pre-made dictionary."""
         if len(bp_dictlist) != len(list(bp_dict.keys())):
             bp_dict_list = list(bp_dict.keys())
@@ -219,15 +219,11 @@ class BandpassSet(object):
     def calc_zero_points(self, gain=1.0, verbose=True):
         """Calculate the theoretical zeropoints for the bandpass, in AB magnitudes."""
         exptime = 15  # Default exposure time.
-        effarea = (
-            np.pi * (6.5 * 100 / 2.0) ** 2
-        )  # Default effective area of primary mirror.
+        effarea = np.pi * (6.5 * 100 / 2.0) ** 2  # Default effective area of primary mirror.
         zpt = {}
         print("Filter Zeropoint")
         for f in self.filterlist:
-            zpt[f] = self.bandpass[f].calc_zp_t(
-                expTime=exptime, effarea=effarea, gain=gain
-            )
+            zpt[f] = self.bandpass[f].calc_zp_t(expTime=exptime, effarea=effarea, gain=gain)
             print(" %s     %.3f" % (f, zpt[f]))
         return
 
@@ -375,28 +371,18 @@ class BandpassSet(object):
             # calculate peak transmission
             peaktrans = bandpass[f].sb.max()
             # calculate total transmission withinin proper bandpass
-            condition = (bandpass[f].wavelen > drop_peak_blue[f]) & (
-                bandpass[f].wavelen < drop_peak_red[f]
-            )
+            condition = (bandpass[f].wavelen > drop_peak_blue[f]) & (bandpass[f].wavelen < drop_peak_red[f])
             temporary = bandpass[f].sb[condition]
             totaltrans = temporary.sum()
             # calculate total transmission outside drop_peak wavelengths of peak
-            condition = (bandpass[f].wavelen >= drop_peak_red[f]) | (
-                bandpass[f].wavelen <= drop_peak_blue[f]
-            )
+            condition = (bandpass[f].wavelen >= drop_peak_red[f]) | (bandpass[f].wavelen <= drop_peak_blue[f])
             temporary = bandpass[f].sb[condition]
             sumthruput_outside_bandpass = temporary.sum()
             print("Total transmission through filter: %s" % (totaltrans))
-            print(
-                "Transmission outside of filter edges (drop_peak): %f"
-                % (sumthruput_outside_bandpass)
-            )
+            print("Transmission outside of filter edges (drop_peak): %f" % (sumthruput_outside_bandpass))
             # Calculate percentage of out of band transmission to in-band transmission
             out_of_band_perc = sumthruput_outside_bandpass / totaltrans * 100.0
-            print(
-                "Ratio of total out-of-band to in-band transmission: %f%s"
-                % (out_of_band_perc, "%")
-            )
+            print("Ratio of total out-of-band to in-band transmission: %f%s" % (out_of_band_perc, "%"))
             infotext = "Out-of-band/in-band transmission %.3f%s" % (
                 out_of_band_perc,
                 "%",
@@ -425,23 +411,16 @@ class BandpassSet(object):
                 condition = (
                     (bandpass[f].wavelen >= wavelen - gapsize_10nm / 2.0)
                     & (bandpass[f].wavelen < wavelen + gapsize_10nm / 2.0)
-                    & (
-                        (bandpass[f].wavelen <= drop_peak_blue[f])
-                        | (bandpass[f].wavelen >= drop_peak_red[f])
-                    )
+                    & ((bandpass[f].wavelen <= drop_peak_blue[f]) | (bandpass[f].wavelen >= drop_peak_red[f]))
                 )
                 sb_10nm[i] = bandpass[f].sb[condition].mean()
-            condition = (bandpass[f].wavelen > drop_peak_blue[f]) & (
-                bandpass[f].wavelen < drop_peak_red[f]
-            )
+            condition = (bandpass[f].wavelen > drop_peak_blue[f]) & (bandpass[f].wavelen < drop_peak_red[f])
             sb_10nm[condition] = 0
             # now check for violation of SRD
             if sb_10nm.max() > ten_nm_limit_value:
                 meet_srd = False
                 maxsb_10nm = sb_10nm.max()
-                maxwavelen_10nm = bandpass[f].wavelen[
-                    np.where(sb_10nm == sb_10nm.max())
-                ]
+                maxwavelen_10nm = bandpass[f].wavelen[np.where(sb_10nm == sb_10nm.max())]
             if meet_srd == False:
                 print(
                     "Does not meet SRD - %s has at least one region not meeting the 10nm SRD filter leak requirement (max is %f%s of peak transmission at %.1f A)"
@@ -458,9 +437,7 @@ class BandpassSet(object):
                 if colorindex == len(colors):
                     colorindex = 0
                 # Make lines on the plot.
-                plt.plot(
-                    bandpass[f].wavelen, bandpass[f].sb, color=color, linestyle="-"
-                )
+                plt.plot(bandpass[f].wavelen, bandpass[f].sb, color=color, linestyle="-")
                 plt.plot(bandpass[f].wavelen, sb_10nm, "r-", linewidth=2)
                 plt.axvline(drop_peak_blue[f], color="b", linestyle=":")
                 plt.axvline(drop_peak_red[f], color="b", linestyle=":")
@@ -470,10 +447,9 @@ class BandpassSet(object):
                     peaktrans * 100.0,
                     "%",
                 )
-                legendstring = (
-                    legendstring
-                    + "  Total throughput (in band) is %.0f%s\n"
-                    % (totaltrans * 100.0, "%")
+                legendstring = legendstring + "  Total throughput (in band) is %.0f%s\n" % (
+                    totaltrans * 100.0,
+                    "%",
                 )
                 legendstring = legendstring + "  " + infotext
                 plt.figtext(0.25, 0.76, legendstring)
@@ -582,12 +558,8 @@ class BandpassSet(object):
                     colorindex = colorindex + 1
                     if colorindex == len(colors):
                         colorindex = 0
-                    plt.plot(
-                        drop_peak_red[f] * temp, vertline, color=color, linestyle="--"
-                    )
-                    plt.plot(
-                        drop_peak_blue[f] * temp, vertline, color=color, linestyle="--"
-                    )
+                    plt.plot(drop_peak_red[f] * temp, vertline, color=color, linestyle="--")
+                    plt.plot(drop_peak_blue[f] * temp, vertline, color=color, linestyle="--")
             # plot atmosphere (optional)
             if atmos:
                 plt.plot(atmosphere.wavelen, atmosphere.sb, "k:")
@@ -713,9 +685,7 @@ class BandpassSet(object):
             index = 0
             colorindex = 0
             for f in filterlist:
-                plt.figtext(
-                    xtags[index], ytags[index], f, color=colors[colorindex], va="top"
-                )
+                plt.figtext(xtags[index], ytags[index], f, color=colors[colorindex], va="top")
                 index = index + 1
                 colorindex = colorindex + 1
                 if colorindex == len(colors):

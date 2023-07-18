@@ -1,7 +1,10 @@
-import numpy as np
 import os
+
+import numpy as np
+
 from rubin_sim.data import get_data_dir
-from rubin_sim.utils import gnomonic_project_toxy
+
+from .projections import gnomonic_project_toxy
 
 __all__ = ["LsstCameraFootprint"]
 
@@ -43,9 +46,7 @@ class LsstCameraFootprint(object):
         self.plate_scale = self.x_camera[1] - self.x_camera[0]
         self.indx_max = len(self.x_camera)
 
-    def __call__(
-        self, obj_ra, obj_dec, boresight_ra, boresight_dec, boresight_rot_sky_pos
-    ):
+    def __call__(self, obj_ra, obj_dec, boresight_ra, boresight_dec, boresight_rot_sky_pos):
         """Determine which observations are within the actual camera footprint for a series of observations.
 
         Parameters
@@ -82,19 +83,14 @@ class LsstCameraFootprint(object):
             x_proj, y_proj = rotate(x_proj, y_proj, np.radians(boresight_rot_sky_pos))
 
         else:
-            x_proj, y_proj = gnomonic_project_toxy(
-                obj_ra, obj_dec, boresight_ra, boresight_dec
-            )
+            x_proj, y_proj = gnomonic_project_toxy(obj_ra, obj_dec, boresight_ra, boresight_dec)
             x_proj, y_proj = rotate(x_proj, y_proj, boresight_rot_sky_pos)
 
         # look up which points are good
         x_indx = np.round((x_proj - self.x_camera[0]) / self.plate_scale).astype(int)
         y_indx = np.round((y_proj - self.x_camera[0]) / self.plate_scale).astype(int)
         in_range = np.where(
-            (x_indx >= 0)
-            & (x_indx < self.indx_max)
-            & (y_indx >= 0)
-            & (y_indx < self.indx_max)
+            (x_indx >= 0) & (x_indx < self.indx_max) & (y_indx >= 0) & (y_indx < self.indx_max)
         )[0]
         x_indx = x_indx[in_range]
         y_indx = y_indx[in_range]

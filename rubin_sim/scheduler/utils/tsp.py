@@ -1,7 +1,8 @@
-import numpy as np
-import scipy.spatial as spatial
 import itertools
 from collections import deque
+
+import numpy as np
+import scipy.spatial as spatial
 
 # Solve Traveling Salesperson using convex hulls.
 # re-write of https://github.com/jameskrysiak/ConvexSalesman/blob/master/convex_salesman.py

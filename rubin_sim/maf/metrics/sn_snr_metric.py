@@ -1,11 +1,13 @@
-import numpy as np
+import time
+from collections.abc import Iterable
+
 import matplotlib.pylab as plt
+import numpy as np
 import numpy.lib.recfunctions as rf
 from scipy import interpolate
+
 import rubin_sim.maf.metrics as metrics
 from rubin_sim.maf.utils.sn_utils import GenerateFakeObservations
-from collections.abc import Iterable
-import time
 
 __all__ = ["SNSNRMetric"]
 
@@ -53,7 +55,7 @@ class SNSNRMetric(metrics.BaseMetric):
         names_ref=None,
         season=1,
         z=0.01,
-        **kwargs
+        **kwargs,
     ):
         self.mjd_col = mjd_col
         self.m5_col = m5_col
@@ -234,16 +236,12 @@ class SNSNRMetric(metrics.BaseMetric):
 
         for val in self.info_season:
             if dates is None:
-                dates = np.arange(
-                    val["MJD_min"] + self.shift, val["MJD_max"] + 1.0, 1.0
-                )
+                dates = np.arange(val["MJD_min"] + self.shift, val["MJD_max"] + 1.0, 1.0)
             else:
                 dates = np.concatenate(
                     (
                         dates,
-                        np.arange(
-                            val["MJD_min"] + self.shift, val["MJD_max"] + 1.0, 1.0
-                        ),
+                        np.arange(val["MJD_min"] + self.shift, val["MJD_max"] + 1.0, 1.0),
                     )
                 )
 
@@ -274,9 +272,7 @@ class SNSNRMetric(metrics.BaseMetric):
         snr = rf.append_fields(snr, vars_info, [infos[name] for name in vars_info])
         snr = rf.append_fields(snr, "DayMax", t0_lc)
         snr = rf.append_fields(snr, "MJD", dates)
-        snr = rf.append_fields(
-            snr, "m5_eff", np.mean(np.ma.array(m5_vals, mask=~flag), axis=1)
-        )
+        snr = rf.append_fields(snr, "m5_eff", np.mean(np.ma.array(m5_vals, mask=~flag), axis=1))
         global_info = [(field_ra, field_dec, band, m5, nvisits, exptime)] * len(snr)
         names = ["field_ra", "field_dec", "band", "m5", "nvisits", "ExposureTime"]
         global_info = np.rec.fromrecords(global_info, names=names)
@@ -316,9 +312,7 @@ class SNSNRMetric(metrics.BaseMetric):
         season_length = mjd_max - mjd_min
         nvisits = np.median(slice_sel[self.nexp_col])
         m5 = np.median(slice_sel[self.m5_col])
-        rv.append(
-            (float(season), cadence, season_length, mjd_min, mjd_max, nvisits, m5)
-        )
+        rv.append((float(season), cadence, season_length, mjd_min, mjd_max, nvisits, m5))
 
         info_season = np.rec.fromrecords(
             rv,
@@ -641,9 +635,7 @@ class SNSNRMetric(metrics.BaseMetric):
                 tot_label_snr = []
 
         labs = [l.get_label() for l in tot_label]
-        ax[0].legend(
-            tot_label, labs, ncol=1, loc="best", prop={"size": fontsize}, frameon=False
-        )
+        ax[0].legend(tot_label, labs, ncol=1, loc="best", prop={"size": fontsize}, frameon=False)
         ax[0].set_ylabel("Flux [e.sec$^{-1}$]", fontsize=fontsize)
 
         ax[1].set_xlabel("MJD", fontsize=fontsize)
@@ -739,8 +731,6 @@ class SNSNRMetric(metrics.BaseMetric):
             idb = np.argwhere(diff < 20.0)
             if len(idb) >= 1:
                 tab["MJD_min"][idb + 1] = tab["MJD_max"][idb] + 20.0
-                tab["season_length"][idb + 1] = (
-                    tab["MJD_max"][idb + 1] - tab["MJD_min"][idb + 1]
-                )
+                tab["season_length"][idb + 1] = tab["MJD_max"][idb + 1] - tab["MJD_min"][idb + 1]
 
             return tab[tab["season_length"] > 30.0]

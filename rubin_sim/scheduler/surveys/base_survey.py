@@ -1,20 +1,20 @@
+from copy import copy, deepcopy
+
+import healpy as hp
 import numpy as np
-from copy import deepcopy, copy
 import pandas as pd
+
+from rubin_sim.scheduler.basis_functions.mask_basis_funcs import ZenithShadowMaskBasisFunction
+from rubin_sim.scheduler.detailers import ZeroRotDetailer
+from rubin_sim.scheduler.thomson import thetaphi2xyz, xyz2thetaphi
 from rubin_sim.scheduler.utils import (
+    HpInComcamFov,
+    HpInLsstFov,
+    comcam_tessellate,
     empty_observation,
     set_default_nside,
-    HpInLsstFov,
-    HpInComcamFov,
-    comcam_tessellate,
-)
-from rubin_sim.scheduler.basis_functions.mask_basis_funcs import (
-    ZenithShadowMaskBasisFunction,
 )
 from rubin_sim.site_models import _read_fields
-import healpy as hp
-from rubin_sim.scheduler.thomson import xyz2thetaphi, thetaphi2xyz
-from rubin_sim.scheduler.detailers import ZeroRotDetailer
 
 __all__ = ["BaseSurvey", "BaseMarkovSurvey"]
 
@@ -124,13 +124,9 @@ class BaseSurvey(object):
         observations_hpid = observations_hpid_in[~to_ignore]
 
         for feature in self.extra_features:
-            self.extra_features[feature].add_observations_array(
-                observations_array, observations_hpid
-            )
+            self.extra_features[feature].add_observations_array(observations_array, observations_hpid)
         for bf in self.extra_basis_functions:
-            self.extra_basis_functions[bf].add_observations_array(
-                observations_array, observations_hpid
-            )
+            self.extra_basis_functions[bf].add_observations_array(observations_array, observations_hpid)
         for bf in self.basis_functions:
             bf.add_observations_array(observations_array, observations_hpid)
         for detailer in self.detailers:
@@ -289,9 +285,7 @@ class BaseSurvey(object):
             max_rewards.append(max_reward)
             basis_areas.append(basis_area)
 
-            this_feasibility = np.array(
-                basis_function.check_feasibility(conditions)
-            ).any()
+            this_feasibility = np.array(basis_function.check_feasibility(conditions)).any()
             feasibility.append(this_feasibility)
 
             if accum:
@@ -353,9 +347,7 @@ class BaseSurvey(object):
             basis_weights.append(weight)
             test_survey.basis_weights = basis_weights
             try:
-                reward_values.append(
-                    np.nanmax(test_survey.calc_reward_function(conditions))
-                )
+                reward_values.append(np.nanmax(test_survey.calc_reward_function(conditions)))
             except IndexError:
                 reward_values.append(None)
 
@@ -370,9 +362,7 @@ class BaseSurvey(object):
             return []
 
         label_bases = [label.split(" @")[0] for label in long_labels]
-        duplicated_labels = set(
-            [label for label in label_bases if label_bases.count(label) > 1]
-        )
+        duplicated_labels = set([label for label in label_bases if label_bases.count(label) > 1])
         short_labels = []
         label_count = {k: 0 for k in duplicated_labels}
         for label_base in label_bases:
@@ -458,9 +448,7 @@ class BaseMarkovSurvey(BaseSurvey):
         if fields is None:
             if self.camera == "LSST":
                 ra, dec = _read_fields()
-                self.fields_init = np.empty(
-                    ra.size, dtype=list(zip(["RA", "dec"], [float, float]))
-                )
+                self.fields_init = np.empty(ra.size, dtype=list(zip(["RA", "dec"], [float, float])))
                 self.fields_init["RA"] = ra
                 self.fields_init["dec"] = dec
             elif self.camera == "comcam":
@@ -578,9 +566,7 @@ class BaseMarkovSurvey(BaseSurvey):
             reward_temp = copy(self.reward)
             mask = np.isnan(reward_temp)
             reward_temp[mask] = hp.UNSEEN
-            self.reward_smooth = hp.sphtfunc.smoothing(
-                reward_temp, fwhm=self.smoothing_kernel, verbose=False
-            )
+            self.reward_smooth = hp.sphtfunc.smoothing(reward_temp, fwhm=self.smoothing_kernel, verbose=False)
             self.reward_smooth[mask] = np.nan
             self.reward = self.reward_smooth
             # good = ~np.isnan(self.reward_smooth)
@@ -603,9 +589,7 @@ class BaseMarkovSurvey(BaseSurvey):
             self.smooth_reward()
 
         if self.area_required is not None:
-            good_area = np.where(np.abs(self.reward) >= 0)[0].size * hp.nside2pixarea(
-                self.nside
-            )
+            good_area = np.where(np.abs(self.reward) >= 0)[0].size * hp.nside2pixarea(self.nside)
             if good_area < self.area_required:
                 self.reward = -np.inf
 

@@ -2,8 +2,8 @@
 # Keaton Bell (keatonb@astro.as.utexas.edu)
 
 import numpy as np
-from scipy.stats import chi2
 from scipy.interpolate import UnivariateSpline
+from scipy.stats import chi2
 
 from rubin_sim.maf.metrics import BaseMetric
 
@@ -22,7 +22,7 @@ class VarDepth(BaseMetric):
         numruns=10000,
         signal=0.01,
         magres=0.01,
-        **kwargs
+        **kwargs,
     ):
         """
         Instantiate metric.
@@ -104,15 +104,10 @@ class VarDepth(BaseMetric):
             scalefact = 10.0 ** (0.4 * (mref - m0))
 
             # Calculate the desired contamination threshold
-            contthresh = (
-                np.percentile(noiseonlyvar, 100.0 - 100.0 * self.contamination)
-                * scalefact
-            )
+            contthresh = np.percentile(noiseonlyvar, 100.0 - 100.0 * self.contamination) * scalefact
 
             # Realize the noise CDF at the required stepsize
-            xnoise = np.arange(
-                noisesorted[0] * scalefact, noisesorted[-1] * scalefact, pdfstepsize
-            )
+            xnoise = np.arange(noisesorted[0] * scalefact, noisesorted[-1] * scalefact, pdfstepsize)
 
             # Only do calculation if near the solution:
             if (len(xnoise) > numsignalsamples / 10) and (not solutionfound):
@@ -127,9 +122,7 @@ class VarDepth(BaseMetric):
                     convolution = np.convolve(noisepdf, signalpdf)
                 else:
                     convolution = np.convolve(signalpdf, noisepdf)
-                xconvolved = (
-                    xsig[0] + xnoise[0] + np.arange(len(convolution)) * pdfstepsize
-                )
+                xconvolved = xsig[0] + xnoise[0] + np.arange(len(convolution)) * pdfstepsize
 
                 # calculate the completeness threshold
                 combinedcdf = np.cumsum(convolution)
@@ -143,9 +136,7 @@ class VarDepth(BaseMetric):
         # interpolate for where the thresholds coincide
         # print res
         if np.sum(np.isfinite(res)) > 1:
-            f1 = UnivariateSpline(
-                mag[np.isfinite(res)], res[np.isfinite(res)], k=1, s=0
-            )
+            f1 = UnivariateSpline(mag[np.isfinite(res)], res[np.isfinite(res)], k=1, s=0)
             # sample the magnitude range at given resolution
             magsamples = np.arange(16, np.mean(m5), self.magres)
             vardepth = magsamples[np.argmin(np.abs(f1(magsamples)))]

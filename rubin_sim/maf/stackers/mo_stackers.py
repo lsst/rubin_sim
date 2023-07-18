@@ -1,7 +1,9 @@
+import warnings
+
 import numpy as np
+
 from .base_stacker import BaseStacker
 from .mo_phase import phase__halley_marcus
-import warnings
 
 __all__ = [
     "BaseMoStacker",
@@ -89,9 +91,7 @@ class MoMagStacker(BaseMoStacker):
         random_seed=None,
     ):
         if magtype == "asteroid":
-            self.mag_stacker = AppMagStacker(
-                v_mag_col=v_mag_col, color_col=color_col, loss_col=loss_col
-            )
+            self.mag_stacker = AppMagStacker(v_mag_col=v_mag_col, color_col=color_col, loss_col=loss_col)
             self.cols_req = [m5_col, v_mag_col, color_col, loss_col]
         elif magtype.startswith("comet"):
             # magtype should be = comet_oort comet_short or comet_mbc
@@ -192,9 +192,7 @@ class AppMagStacker(BaseMoStacker):
 
     cols_added = ["appMag"]
 
-    def __init__(
-        self, v_mag_col="magV", color_col="dmag_color", loss_col="dmag_detect"
-    ):
+    def __init__(self, v_mag_col="magV", color_col="dmag_color", loss_col="dmag_detect"):
         self.v_mag_col = v_mag_col
         self.color_col = color_col
         self.loss_col = loss_col
@@ -207,11 +205,7 @@ class AppMagStacker(BaseMoStacker):
         # hval = current H value (useful if cloning over H range), href = reference H value from orbit.
         # Without cloning, href = hval.
         sso_obs["appMag"] = (
-            sso_obs[self.v_mag_col]
-            + sso_obs[self.color_col]
-            + sso_obs[self.loss_col]
-            + hval
-            - href
+            sso_obs[self.v_mag_col] + sso_obs[self.color_col] + sso_obs[self.loss_col] + hval - href
         )
         return sso_obs
 
@@ -326,17 +320,9 @@ class CometAppMagStacker(BaseMoStacker):
             coma[match] = AB_SUN[f] + dm[match]
         # Calculate cometary nucleus magnitude -- we'll use the apparent V mag adapted from OOrb as well as
         # the object's color - these are generally assumed to be D type (which was used in sims_movingObjects)
-        nucleus = (
-            sso_obs[self.v_mag_col]
-            + sso_obs[self.color_col]
-            + sso_obs[self.loss_col]
-            + hval
-            - href
-        )
+        nucleus = sso_obs[self.v_mag_col] + sso_obs[self.color_col] + sso_obs[self.loss_col] + hval - href
         # add coma and nucleus then ready for calculation of SNR, etc.
-        sso_obs["appMag"] = -2.5 * np.log10(
-            10 ** (-0.4 * coma) + 10 ** (-0.4 * nucleus)
-        )
+        sso_obs["appMag"] = -2.5 * np.log10(10 ** (-0.4 * coma) + 10 ** (-0.4 * nucleus))
         return sso_obs
 
 
@@ -392,12 +378,8 @@ class SNRStacker(BaseMoStacker):
         # hval = current H value (useful if cloning over H range), href = reference H value from orbit.
         # Without cloning, href = hval.
         xval = np.power(10, 0.5 * (sso_obs[self.app_mag_col] - sso_obs[self.m5_col]))
-        sso_obs["SNR"] = 1.0 / np.sqrt(
-            (0.04 - self.gamma) * xval + self.gamma * xval * xval
-        )
-        completeness = 1.0 / (
-            1 + np.exp((sso_obs[self.app_mag_col] - sso_obs[self.m5_col]) / self.sigma)
-        )
+        sso_obs["SNR"] = 1.0 / np.sqrt((0.04 - self.gamma) * xval + self.gamma * xval * xval)
+        completeness = 1.0 / (1 + np.exp((sso_obs[self.app_mag_col] - sso_obs[self.m5_col]) / self.sigma))
         if not hasattr(self, "_rng"):
             if self.random_seed is not None:
                 self._rng = np.random.RandomState(self.random_seed)

@@ -1,8 +1,10 @@
+import warnings
 from builtins import str
+
+import numpy as np
+
 from .base_metric import BaseMetric
 from .simple_metrics import Coaddm5Metric
-import numpy as np
-import warnings
 
 __all__ = ["OptimalM5Metric"]
 
@@ -50,7 +52,7 @@ class OptimalM5Metric(BaseMetric):
         filter_col="filter",
         mag_diff=False,
         normalize=False,
-        **kwargs
+        **kwargs,
     ):
         if normalize:
             self.units = "% behind"
@@ -73,8 +75,7 @@ class OptimalM5Metric(BaseMetric):
         filters = np.unique(data_slice[self.filter_col])
         if np.size(filters) > 1:
             warnings.warn(
-                "OptimalM5Metric does not make sense mixing filters. Currently using filters "
-                + str(filters)
+                "OptimalM5Metric does not make sense mixing filters. Currently using filters " + str(filters)
             )
         regular_depth = self.coadd_regular.run(data_slice)
         optimal_depth = self.coadd_optimal.run(data_slice)

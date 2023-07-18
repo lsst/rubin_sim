@@ -1,12 +1,13 @@
 #!/usr/bin/env python
+import argparse
+import glob
 import os
 import shutil
-import glob
-import argparse
-import matplotlib
 import sqlite3
-import pandas as pd
 import warnings
+
+import matplotlib
+import pandas as pd
 
 matplotlib.use("Agg")
 
@@ -42,16 +43,12 @@ def scimaf_dir():
         # Grab the starting date for the Presto KNe metric
         try:
             con = sqlite3.connect(filename)
-            mjd0_df = pd.read_sql(
-                "select min(observationStartMJD) from observations;", con
-            )
+            mjd0_df = pd.read_sql("select min(observationStartMJD) from observations;", con)
             con.close()
             mjd0 = mjd0_df.values.min()
         # If this fails for any reason (aka schema change)
         except:
-            warnings.warn(
-                "Could not find survey start date for Presto KNe, setting mjd0=None."
-            )
+            warnings.warn("Could not find survey start date for Presto KNe, setting mjd0=None.")
             mjd0 = None
         # Clobber output directory if it exists
         if not args.no_clobber:

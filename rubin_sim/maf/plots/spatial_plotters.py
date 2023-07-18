@@ -1,22 +1,22 @@
-import numbers
 import copy
-import numpy as np
+import numbers
 import warnings
+
 import healpy as hp
-from matplotlib import colors
-from matplotlib import ticker
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-from matplotlib.ticker import FuncFormatter
 import matplotlib as mpl
-from matplotlib.patches import Ellipse
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import colors, ticker
 from matplotlib.collections import PatchCollection
+from matplotlib.patches import Ellipse
+from matplotlib.ticker import FuncFormatter
 
 from rubin_sim.maf.utils import optimal_bins, percentile_clipping
-from .plot_handler import BasePlotter, apply_zp_norm
-
 from rubin_sim.utils import _equatorial_from_galactic, _healbin
+
 from .perceptual_rainbow import make_pr_cmap
+from .plot_handler import BasePlotter, apply_zp_norm
 
 perceptual_rainbow = make_pr_cmap()
 import numpy.ma as ma
@@ -197,9 +197,7 @@ class HealpixSkyMap(BasePlotter):
         if plot_dict["log_scale"]:
             norm = "log"
         # Avoid trying to log scale when zero is in the range.
-        if (norm == "log") & (
-            (clims[0] <= 0 <= clims[1]) or (clims[0] >= 0 >= clims[1])
-        ):
+        if (norm == "log") & ((clims[0] <= 0 <= clims[1]) or (clims[0] >= 0 >= clims[1])):
             # Try something simple
             above = metric_value[np.where(metric_value > 0)]
             if len(above) > 0:
@@ -304,9 +302,7 @@ class HealpixPowerSpectrum(BasePlotter):
         self.object_plotter = False
         self.default_plot_dict = {}
         self.default_plot_dict.update(base_default_plot_dict)
-        self.default_plot_dict.update(
-            {"maxl": None, "removeDipole": True, "linestyle": "-"}
-        )
+        self.default_plot_dict.update({"maxl": None, "removeDipole": True, "linestyle": "-"})
 
     def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
         """
@@ -421,9 +417,7 @@ class BaseHistogram(BasePlotter):
         metric_value = apply_zp_norm(metric_value_in, plot_dict)
         # Toss any NaNs or infs
         metric_value = metric_value[np.isfinite(metric_value)]
-        x_min, x_max = set_color_lims(
-            metric_value, plot_dict, key_min="x_min", key_max="x_max"
-        )
+        x_min, x_max = set_color_lims(metric_value, plot_dict, key_min="x_min", key_max="x_max")
         metric_value = metric_value.compressed()
         # Set up the bins for the histogram. User specified 'bins' overrides 'bin_size'.
         # Note that 'bins' could be a single number or an array, simply passed to plt.histogram.
@@ -437,9 +431,7 @@ class BaseHistogram(BasePlotter):
                 # Potentially, expand the range for the cumulative histogram.
                 bmin = np.min([metric_value.min(), x_min])
                 bmax = np.max([metric_value.max(), x_max])
-                bins = np.arange(
-                    bmin, bmax + plot_dict["bin_size"] / 2.0, plot_dict["bin_size"]
-                )
+                bins = np.arange(bmin, bmax + plot_dict["bin_size"] / 2.0, plot_dict["bin_size"])
             #  Otherwise, not cumulative so just use metric values, without potential expansion.
             else:
                 bins = np.arange(
@@ -506,9 +498,7 @@ class BaseHistogram(BasePlotter):
 
         def mjr_formatter(y, pos):
             if not isinstance(plot_dict["scale"], numbers.Number):
-                raise ValueError(
-                    'plot_dict["scale"] must be a number to scale the y axis.'
-                )
+                raise ValueError('plot_dict["scale"] must be a number to scale the y axis.')
             return plot_dict["yaxisformat"] % (y * plot_dict["scale"])
 
         ax.yaxis.set_major_formatter(FuncFormatter(mjr_formatter))
@@ -627,12 +617,8 @@ class BaseSkyMap(BasePlotter):
         Plot the sky map of metric_value for a generic spatial slicer.
         """
         if "ra" not in slicer.slice_points or "dec" not in slicer.slice_points:
-            err_message = (
-                'SpatialSlicer must contain "ra" and "dec" in slice_points metadata.'
-            )
-            err_message += " SlicePoints only contains keys %s." % (
-                slicer.slice_points.keys()
-            )
+            err_message = 'SpatialSlicer must contain "ra" and "dec" in slice_points metadata.'
+            err_message += " SlicePoints only contains keys %s." % (slicer.slice_points.keys())
             raise ValueError(err_message)
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
@@ -652,11 +638,7 @@ class BaseSkyMap(BasePlotter):
             good = ~metric_value.mask
 
         # Add ellipses at RA/Dec locations - but don't add colors yet.
-        lon = (
-            -(slicer.slice_points["ra"][good] - plot_dict["raCen"] - np.pi)
-            % (np.pi * 2)
-            - np.pi
-        )
+        lon = -(slicer.slice_points["ra"][good] - plot_dict["raCen"] - np.pi) % (np.pi * 2) - np.pi
         ellipses = self._plot_tissot_ellipse(
             lon,
             slicer.slice_points["dec"][good],
@@ -755,9 +737,7 @@ class BaseSkyMap(BasePlotter):
             ax.set_facecolor(plot_dict["bgcolor"])
         # Add label.
         if plot_dict["label"] is not None:
-            plt.figtext(
-                0.75, 0.9, "%s" % plot_dict["label"], fontsize=plot_dict["fontsize"]
-            )
+            plt.figtext(0.75, 0.9, "%s" % plot_dict["label"], fontsize=plot_dict["fontsize"])
         if plot_dict["title"] is not None:
             plt.text(
                 0.5,
@@ -806,9 +786,7 @@ class HealpixSDSSSkyMap(BasePlotter):
             norm = "log"
         clims = set_color_lims(metric_value, plot_dict)
         cmap = set_color_map(plot_dict)
-        racenters = np.arange(
-            plot_dict["raMin"], plot_dict["raMax"], plot_dict["raLen"]
-        )
+        racenters = np.arange(plot_dict["raMin"], plot_dict["raMax"], plot_dict["raLen"])
         nframes = racenters.size
         fig = plt.figure(fignum)
         # Do not specify or use plot_dict['subplot'] because this is done in each call to hp.cartview.
@@ -817,8 +795,7 @@ class HealpixSDSSSkyMap(BasePlotter):
                 use_title = (
                     plot_dict["title"]
                     + " /n"
-                    + "%i < RA < %i"
-                    % (racenter - plot_dict["raLen"], racenter + plot_dict["raLen"])
+                    + "%i < RA < %i" % (racenter - plot_dict["raLen"], racenter + plot_dict["raLen"])
                 )
             else:
                 use_title = "%i < RA < %i" % (
@@ -944,12 +921,8 @@ class LambertSkyMap(BasePlotter):
 
     def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
         if "ra" not in slicer.slice_points or "dec" not in slicer.slice_points:
-            err_message = (
-                'SpatialSlicer must contain "ra" and "dec" in slice_points metadata.'
-            )
-            err_message += " SlicePoints only contains keys %s." % (
-                slicer.slice_points.keys()
-            )
+            err_message = 'SpatialSlicer must contain "ra" and "dec" in slice_points metadata.'
+            err_message += " SlicePoints only contains keys %s." % (slicer.slice_points.keys())
             raise ValueError(err_message)
 
         plot_dict = {}

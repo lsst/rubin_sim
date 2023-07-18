@@ -1,7 +1,8 @@
 import numpy as np
-from .vector_metrics import VectorMetric
+
 from .base_metric import BaseMetric
 from .exgal_m5 import ExgalM5
+from .vector_metrics import VectorMetric
 
 __all__ = ["ExgalM5WithCuts", "WeakLensingNvisits", "RIZDetectionCoaddExposureTime"]
 
@@ -30,7 +31,7 @@ class ExgalM5WithCuts(BaseMetric):
         extinction_cut=0.2,
         depth_cut=25.9,
         n_filters=6,
-        **kwargs
+        **kwargs,
     ):
         self.m5_col = m5_col
         self.filter_col = filter_col
@@ -45,7 +46,7 @@ class ExgalM5WithCuts(BaseMetric):
             metric_name=metric_name,
             units=units,
             maps=self.exgal_m5.maps,
-            **kwargs
+            **kwargs,
         )
 
     def run(self, data_slice, slice_point):
@@ -89,7 +90,7 @@ class WeakLensingNvisits(BaseMetric):
         depth_cut=24.5,
         ebvlim=0.2,
         min_exp_time=15,
-        **kwargs
+        **kwargs,
     ):
         # Set up the coadd metric (using ExgalM5 adds galactic dust extinction)
         self.exgal_m5 = ExgalM5(m5_col=m5_col, filter_col=filter_col)
@@ -100,11 +101,7 @@ class WeakLensingNvisits(BaseMetric):
         self.exp_time_col = exp_time_col
         self.ebvlim = ebvlim
         self.min_exp_time = min_exp_time
-        super().__init__(
-            col=[self.m5_col, self.exp_time_col, filter_col],
-            maps=self.exgal_m5.maps,
-            **kwargs
-        )
+        super().__init__(col=[self.m5_col, self.exp_time_col, filter_col], maps=self.exgal_m5.maps, **kwargs)
 
     def run(self, data_slice, slice_point):
         # If the sky is too dusty here, stop.
@@ -175,7 +172,7 @@ class RIZDetectionCoaddExposureTime(BaseMetric):
         det_bands=None,
         min_bands=None,
         metric_name="riz_detcoadd_exptime",
-        **kwargs
+        **kwargs,
     ):
         # Set up the coadd metric (using ExgalM5 adds galactic dust extinction)
         self.filter_col = filter_col
@@ -189,7 +186,7 @@ class RIZDetectionCoaddExposureTime(BaseMetric):
             metric_name=metric_name,
             units="seconds",
             maps=["DustMap"],
-            **kwargs
+            **kwargs,
         )
 
     def run(self, data_slice, slice_point):

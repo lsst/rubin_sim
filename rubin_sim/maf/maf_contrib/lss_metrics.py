@@ -1,5 +1,5 @@
-import numpy as np
 import healpy as hp
+import numpy as np
 import scipy
 
 from rubin_sim.maf.metrics import BaseMetric, Coaddm5Metric
@@ -10,13 +10,9 @@ __all__ = ["GalaxyCountsMetric"]
 class GalaxyCountsMetric(BaseMetric):
     """Estimate the number of galaxies expected at a particular coadded depth."""
 
-    def __init__(
-        self, m5_col="fiveSigmaDepth", nside=128, metric_name="GalaxyCounts", **kwargs
-    ):
+    def __init__(self, m5_col="fiveSigmaDepth", nside=128, metric_name="GalaxyCounts", **kwargs):
         self.m5_col = m5_col
-        super(GalaxyCountsMetric, self).__init__(
-            col=self.m5_col, metric_name=metric_name, **kwargs
-        )
+        super(GalaxyCountsMetric, self).__init__(col=self.m5_col, metric_name=metric_name, **kwargs)
         # Use the coadded depth metric to calculate the coadded depth at each point.
         self.coaddmetric = Coaddm5Metric(m5_col=self.m5_col)
         # Total of 41253.0 galaxies across the sky (at what magnitude?).
@@ -38,8 +34,6 @@ class GalaxyCountsMetric(BaseMetric):
         # From Carroll et al, 2014 SPIE (http://arxiv.org/abs/1501.04733)
         # I'm not entirely certain this gives a properly calibrated number of galaxy counts,
         # however it is proportional to the expected number at least (and should be within an order of magnitude)
-        num_gal, int_err = scipy.integrate.quad(
-            self._gal_count, -np.inf, 32, args=coaddm5
-        )
+        num_gal, int_err = scipy.integrate.quad(self._gal_count, -np.inf, 32, args=coaddm5)
         num_gal *= self.scale
         return num_gal

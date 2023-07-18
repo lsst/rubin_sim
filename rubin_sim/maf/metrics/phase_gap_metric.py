@@ -1,6 +1,8 @@
 import numpy as np
-from .base_metric import BaseMetric
+
 from rubin_sim.maf.utils import m52snr
+
+from .base_metric import BaseMetric
 
 __all__ = ["PhaseGapMetric", "PeriodicQualityMetric"]
 
@@ -31,15 +33,13 @@ class PhaseGapMetric(BaseMetric):
         period_max=35.0,
         n_visits_min=3,
         metric_name="Phase Gap",
-        **kwargs
+        **kwargs,
     ):
         self.period_min = period_min
         self.period_max = period_max
         self.n_periods = n_periods
         self.n_visits_min = n_visits_min
-        super(PhaseGapMetric, self).__init__(
-            col, metric_name=metric_name, units="Fraction, 0-1", **kwargs
-        )
+        super(PhaseGapMetric, self).__init__(col, metric_name=metric_name, units="Fraction, 0-1", **kwargs)
 
     def run(self, data_slice, slice_point=None):
         if len(data_slice) < self.n_visits_min:
@@ -50,10 +50,7 @@ class PhaseGapMetric(BaseMetric):
             periods = np.array([self.period_min])
         else:
             periods = np.arange(self.n_periods)
-            periods = (
-                periods / np.max(periods) * (self.period_max - self.period_min)
-                + self.period_min
-            )
+            periods = periods / np.max(periods) * (self.period_max - self.period_min) + self.period_min
         max_gap = np.zeros(self.n_periods, float)
 
         for i, period in enumerate(periods):
@@ -84,9 +81,7 @@ class PhaseGapMetric(BaseMetric):
         """
         At each slice_point, return the period with the largest phase gap.
         """
-        worst_p = metric_val["periods"][
-            np.where(metric_val["maxGaps"] == metric_val["maxGaps"].max())
-        ]
+        worst_p = metric_val["periods"][np.where(metric_val["maxGaps"] == metric_val["maxGaps"].max())]
         return worst_p
 
     def reduce_largest_gap(self, metric_val):
@@ -105,7 +100,7 @@ class PeriodicQualityMetric(BaseMetric):
         m5_col="fiveSigmaDepth",
         metric_name="PhaseCoverageMetric",
         star_mag=20,
-        **kwargs
+        **kwargs,
     ):
         self.mjd_col = mjd_col
         self.m5_col = m5_col
@@ -133,13 +128,7 @@ class PeriodicQualityMetric(BaseMetric):
         """Fractional SNR on the amplitude, testing for a variety of possible phases"""
         phases = np.arange(0, np.pi, np.pi / 8.0)
         snr = m52snr(self.star_mag, data_slice[self.m5_col])
-        amp_snrs = (
-            np.sin(
-                data_slice[self.mjd_col] / self.period * 2 * np.pi
-                + phases[:, np.newaxis]
-            )
-            * snr
-        )
+        amp_snrs = np.sin(data_slice[self.mjd_col] / self.period * 2 * np.pi + phases[:, np.newaxis]) * snr
         amp_snr = np.min(np.sqrt(np.sum(amp_snrs**2, axis=1)))
 
         max_snr = np.sqrt(np.sum(snr**2))

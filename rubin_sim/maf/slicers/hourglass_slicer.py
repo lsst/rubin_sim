@@ -1,7 +1,10 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import warnings
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 from rubin_sim.maf.plots import HourglassPlot
+
 from .uni_slicer import UniSlicer
 
 __all__ = ["HourglassSlicer"]

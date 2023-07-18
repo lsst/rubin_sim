@@ -1,11 +1,12 @@
 import numpy as np
-from .base_metric import BaseMetric
-from rubin_sim.utils import Site
-from astropy.coordinates import get_sun, get_moon, EarthLocation, AltAz
-from astropy import units as u
-from astropy.time import Time
 from astroplan import Observer
+from astropy import units as u
+from astropy.coordinates import AltAz, EarthLocation, get_moon, get_sun
+from astropy.time import Time
 
+from rubin_sim.utils import Site
+
+from .base_metric import BaseMetric
 
 __all__ = ["HourglassMetric"]
 
@@ -25,7 +26,7 @@ class HourglassMetric(BaseMetric):
         filter_col="filter",
         night_col="night",
         delta_t=60.0,
-        **kwargs
+        **kwargs,
     ):
         self.mjd_col = mjd_col
         self.filter_col = filter_col
@@ -45,9 +46,7 @@ class HourglassMetric(BaseMetric):
         data_slice.sort(order=self.mjd_col)
         unights, uindx = np.unique(data_slice[self.night_col], return_index=True)
 
-        mjds = np.arange(
-            np.min(data_slice[self.mjd_col]), np.max(data_slice[self.mjd_col]) + 1, 0.5
-        )
+        mjds = np.arange(np.min(data_slice[self.mjd_col]), np.max(data_slice[self.mjd_col]) + 1, 0.5)
 
         # Define the breakpoints as where either the filter changes OR
         # there's more than a 2 minute gap in observing
@@ -113,19 +112,11 @@ class HourglassMetric(BaseMetric):
             import pdb
 
             pdb.set_trace()
-        pernight["twi12_rise"] = self.observer.twilight_morning_nautical(
-            mtime, which="next"
-        ).mjd
-        pernight["twi12_set"] = self.observer.twilight_evening_nautical(
-            mtime, which="previous"
-        ).mjd
+        pernight["twi12_rise"] = self.observer.twilight_morning_nautical(mtime, which="next").mjd
+        pernight["twi12_set"] = self.observer.twilight_evening_nautical(mtime, which="previous").mjd
 
-        pernight["twi18_rise"] = self.observer.twilight_morning_astronomical(
-            mtime, which="next"
-        ).mjd
-        pernight["twi18_set"] = self.observer.twilight_evening_astronomical(
-            mtime, which="previous"
-        ).mjd
+        pernight["twi18_rise"] = self.observer.twilight_morning_astronomical(mtime, which="next").mjd
+        pernight["twi18_set"] = self.observer.twilight_evening_astronomical(mtime, which="previous").mjd
 
         aa = AltAz(location=self.location, obstime=mtime)
         moon_coords = get_moon(mtime).transform_to(aa)

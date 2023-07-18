@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
 
-from .base_slicer import BaseSlicer
 from rubin_sim.maf.plots.mo_plotters import MetricVsH, MetricVsOrbit
-
 from rubin_sim.moving_objects.orbits import Orbits
+
+from .base_slicer import BaseSlicer
 
 __all__ = ["MoObjSlicer"]
 
@@ -95,9 +95,7 @@ class MoObjSlicer(BaseSlicer):
         self.all_obs = pd.DataFrame(self.all_obs)
 
         if "velocity" not in self.all_obs.columns:
-            self.all_obs["velocity"] = np.sqrt(
-                self.all_obs["dradt"] ** 2 + self.all_obs["ddecdt"] ** 2
-            )
+            self.all_obs["velocity"] = np.sqrt(self.all_obs["dradt"] ** 2 + self.all_obs["ddecdt"] ** 2)
 
     def subset_obs(self, pandas_constraint=None):
         """
@@ -164,8 +162,6 @@ class MoObjSlicer(BaseSlicer):
         if isinstance(other_slicer, MoObjSlicer):
             if other_slicer.orbit_file == self.orbit_file:
                 if other_slicer.obs_file == self.obs_file:
-                    if np.array_equal(
-                        other_slicer.slice_points["H"], self.slice_points["H"]
-                    ):
+                    if np.array_equal(other_slicer.slice_points["H"], self.slice_points["H"]):
                         result = True
         return result

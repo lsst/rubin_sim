@@ -1,17 +1,16 @@
-import numpy as np
-import healpy as hp
-from rubin_sim.utils import ddf_locations
-import rubin_sim.skybrightness as sb
-from rubin_sim.utils import m5_flat_sed
-from rubin_sim.site_models.seeing_model import SeeingModel
-import sys
-from astroplan import Observer
-import astropy.units as u
-from astropy.time import Time
-from rubin_sim.utils import Site
-from rubin_sim.data import get_data_dir
 import os
+import sys
 
+import astropy.units as u
+import healpy as hp
+import numpy as np
+from astroplan import Observer
+from astropy.time import Time
+
+import rubin_sim.skybrightness as sb
+from rubin_sim.data import get_data_dir
+from rubin_sim.site_models.seeing_model import SeeingModel
+from rubin_sim.utils import Site, ddf_locations, m5_flat_sed
 
 if __name__ == "__main__":
     # Generate a grid of airmass skybrightness values
@@ -93,11 +92,7 @@ if __name__ == "__main__":
         result[survey_name + "_sky_g"] = mags[:, i]
 
         # now to compute the expected seeing if the zenith is nominal
-        FWHMeff = seeing_model(nominal_seeing, airmasses[:, i])["fwhmEff"][
-            seeing_indx, :
-        ]
-        result[survey_name + "_m5_g"] = m5_flat_sed(
-            "g", mags[:, i], FWHMeff, 30.0, airmasses[:, i], nexp=1
-        )
+        FWHMeff = seeing_model(nominal_seeing, airmasses[:, i])["fwhmEff"][seeing_indx, :]
+        result[survey_name + "_m5_g"] = m5_flat_sed("g", mags[:, i], FWHMeff, 30.0, airmasses[:, i], nexp=1)
 
     np.savez(os.path.join(get_data_dir(), "scheduler", "ddf_grid.npz"), ddf_grid=result)

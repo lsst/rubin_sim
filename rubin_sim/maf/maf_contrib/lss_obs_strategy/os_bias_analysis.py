@@ -4,15 +4,15 @@
 # Humna Awan: humna.awan@rutgers.edu
 #
 ###############################################################################################################################
+import datetime
+import os
+from collections import OrderedDict
+
+import healpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-import healpy as hp
-import datetime
-from collections import OrderedDict
-from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import (
-    power_law_const_a,
-)
+
+from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import power_law_const_a
 
 __all__ = [
     "get_fsky",
@@ -121,9 +121,7 @@ def get_theory_spectra(mock_data_path, mag_cut=25.6, plot_spectra=True, nside=25
 
     # read in the surface number density and convert
     for j, key in enumerate(w_bao_cls.keys()):
-        surf_num_density[key] = np.array(
-            shot_noise_data[j][5] * 1.18 * 10**7
-        )  # 1/arcmin^2 to 1/Sr
+        surf_num_density[key] = np.array(shot_noise_data[j][5] * 1.18 * 10**7)  # 1/arcmin^2 to 1/Sr
 
     # want Cl*W^2 where W is the pixel window function
     wl_nside = hp.sphtfunc.pixwin(nside=nside)
@@ -198,10 +196,7 @@ def get_outdir_name(
     # check to make sure redshift bin is ok.
     allowed_zbins = power_law_const_a.keys()
     if zbin not in allowed_zbins:
-        raise ValueError(
-            "ERROR: Invalid redshift bin. Input bin can only be among %s\n"
-            % (allowed_zbins)
-        )
+        raise ValueError("ERROR: Invalid redshift bin. Input bin can only be among %s\n" % (allowed_zbins))
 
     # set up the tags.
     dust_tag = "withDustExtinction"
@@ -277,9 +272,7 @@ def return_cls(path, outdir, band, specified_dith=None):
     else:
         consider_all_npy = False
     # get the filename
-    filenames = [
-        f for f in os.listdir("%s%s" % (path, outdir)) if any([f.endswith("npy")])
-    ]
+    filenames = [f for f in os.listdir("%s%s" % (path, outdir)) if any([f.endswith("npy")])]
     # read in the cls
     c_ells = {}
     for filename in filenames:
@@ -290,9 +283,7 @@ def return_cls(path, outdir, band, specified_dith=None):
             for dith in specified_dith:
                 if filename.__contains__(dith):
                     dither_strategy = filename.split("%s_" % band)[1].split(".npy")[0]
-                    c_ells[dither_strategy] = np.load(
-                        "%s%s/%s" % (path, outdir, filename)
-                    )
+                    c_ells[dither_strategy] = np.load("%s%s/%s" % (path, outdir, filename))
     if specified_dith is not None:
         for dith in specified_dith:
             if dith not in c_ells:
@@ -319,14 +310,10 @@ def calc_os_bias_err(c_ells):
     band_keys = list(c_ells.keys())
     for dith in c_ells[band_keys[0]]:  # loop over each dith strategy
         temp_avg, temp_err = [], []
-        for data_index in range(
-            len(c_ells[band_keys[0]][dith])
-        ):  # loop over each C_ell-value
+        for data_index in range(len(c_ells[band_keys[0]][dith])):  # loop over each C_ell-value
             row = []
             for band in band_keys:
-                row.append(
-                    c_ells[band][dith][data_index]
-                )  # compiles the C_ell value for each band
+                row.append(c_ells[band][dith][data_index])  # compiles the C_ell value for each band
             temp_avg.append(np.mean(row))
             temp_err.append(np.std(row))
         bias[dith] = temp_avg
@@ -378,9 +365,7 @@ def get_fom(
 
     """
     # need to adjust for the ell's not always starting with 0.
-    osbias = np.array(bias_err)[
-        ell_min - ell_for_bias_err[0] : ell_max - ell_for_bias_err[0] + 1
-    ]
+    osbias = np.array(bias_err)[ell_min - ell_for_bias_err[0] : ell_max - ell_for_bias_err[0] + 1]
     floor_with_shot_noise = floor_with_shot_noise[
         int(ell_min - ell_stat_floor[0]) : int(ell_max - ell_stat_floor[0] + 1)
     ]
@@ -489,15 +474,12 @@ def os_bias_overplots(
     # check to make sure redshift bin is ok.
     allowed_zbins = list(power_law_const_a.keys()) + ["all"]
     if zbin not in allowed_zbins:
-        raise ValueError(
-            "Invalid redshift bin. Input bin can only be among %s\n" % (allowed_zbins)
-        )
+        raise ValueError("Invalid redshift bin. Input bin can only be among %s\n" % (allowed_zbins))
 
     # check to make sure we have at least two bands to calculate the bias uncertainty.
     if len(filters) < 2:
         raise ValueError(
-            "Need at least two filters to calculate bias uncertainty. Currently given only: %s\n"
-            % filters
+            "Need at least two filters to calculate bias uncertainty. Currently given only: %s\n" % filters
         )
 
     # all is ok. proceed.
@@ -661,8 +643,7 @@ def os_bias_overplots(
                     l,
                     osbias_err[dith],
                     color=colors[legend_labels[i]],
-                    label=r"%s$%s<%s$ ; fo_m: %.6f"
-                    % (add_leg, splits[0], splits[1], fo_m),
+                    label=r"%s$%s<%s$ ; fo_m: %.6f" % (add_leg, splits[0], splits[1], fo_m),
                 )
                 # ----------------------------------------------------------------------------------------
                 # set up the details of the plot
@@ -728,9 +709,7 @@ def os_bias_overplots(
         file_append,
     )
     # save the plot
-    plt.savefig(
-        "%s/%s/%s" % (out_dir, outdir, filename), format="png", bbox_inches="tight"
-    )
+    plt.savefig("%s/%s/%s" % (out_dir, outdir, filename), format="png", bbox_inches="tight")
 
     print("\nSaved %s" % filename)
     if show_plot:
@@ -831,15 +810,12 @@ def os_bias_overplots_diff_dbs(
     # check to make sure redshift bin is ok.
     allowed_zbins = list(power_law_const_a.keys()) + ["all"]
     if zbin not in allowed_zbins:
-        raise ValueError(
-            "Invalid redshift bin. Input bin can only be among %s\n" % (allowed_zbins)
-        )
+        raise ValueError("Invalid redshift bin. Input bin can only be among %s\n" % (allowed_zbins))
 
     # check to make sure we have at least two bands to calculate the bias uncertainty.
     if len(filters) < 2:
         raise ValueError(
-            "Need at least two filters to calculate bias uncertainty. Currently given only: %s\n"
-            % filters
+            "Need at least two filters to calculate bias uncertainty. Currently given only: %s\n" % filters
         )
 
     # all is ok. proceed.
@@ -1065,9 +1041,7 @@ def os_bias_overplots_diff_dbs(
         file_append,
     )
     # save the plot
-    plt.savefig(
-        "%s/%s/%s" % (out_dir, outdir, filename), format="png", bbox_inches="tight"
-    )
+    plt.savefig("%s/%s/%s" % (out_dir, outdir, filename), format="png", bbox_inches="tight")
     print("\nSaved %s" % filename)
     if show_plot:
         plt.show()

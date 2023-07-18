@@ -1,11 +1,13 @@
-from rubin_sim.data import get_data_dir
-import numpy as np
 import os
-from astropy.table import Table
-import pandas as pd
-from scipy.interpolate import RegularGridInterpolator
-from astropy.cosmology import FlatLambdaCDM
 import warnings
+
+import numpy as np
+import pandas as pd
+from astropy.cosmology import FlatLambdaCDM
+from astropy.table import Table
+from scipy.interpolate import RegularGridInterpolator
+
+from rubin_sim.data import get_data_dir
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
@@ -279,16 +281,10 @@ class LcfastNew:
 
         # Fisher matrix components
         for key, vals in fisher__mat.items():
-            lc.loc[:, "F_{}".format(key)] = vals[~vals.mask] / (
-                lc["fluxerr_photo"].values ** 2
-            )
+            lc.loc[:, "F_{}".format(key)] = vals[~vals.mask] / (lc["fluxerr_photo"].values ** 2)
 
-        lc.loc[:, "n_aft"] = (np.sign(lc["phase"]) == 1) & (
-            lc["snr_m5"] >= self.snr_min
-        )
-        lc.loc[:, "n_bef"] = (np.sign(lc["phase"]) == -1) & (
-            lc["snr_m5"] >= self.snr_min
-        )
+        lc.loc[:, "n_aft"] = (np.sign(lc["phase"]) == 1) & (lc["snr_m5"] >= self.snr_min)
+        lc.loc[:, "n_bef"] = (np.sign(lc["phase"]) == -1) & (lc["snr_m5"] >= self.snr_min)
 
         lc.loc[:, "n_phmin"] = lc["phase"] <= -5.0
         lc.loc[:, "n_phmax"] = lc["phase"] >= 20
@@ -325,17 +321,13 @@ class LcfastNew:
         flag = (p >= min_rf_phase) & (p <= max_rf_phase)
 
         # remove LC points outside the (blue-red) range
-        mean_restframe_wavelength = np.array(
-            [self.reference_lc.mean_wavelength[band]] * len(sel_obs)
+        mean_restframe_wavelength = np.array([self.reference_lc.mean_wavelength[band]] * len(sel_obs))
+        mean_restframe_wavelength = np.tile(mean_restframe_wavelength, (len(gen_par), 1)) / (
+            1.0 + gen_par["z"][:, np.newaxis]
         )
-        mean_restframe_wavelength = np.tile(
-            mean_restframe_wavelength, (len(gen_par), 1)
-        ) / (1.0 + gen_par["z"][:, np.newaxis])
         # flag &= (mean_restframe_wavelength > 0.) & (
         #    mean_restframe_wavelength < 1000000.)
-        flag &= (mean_restframe_wavelength > self.blue_cutoff) & (
-            mean_restframe_wavelength < self.red_cutoff
-        )
+        flag &= (mean_restframe_wavelength > self.blue_cutoff) & (mean_restframe_wavelength < self.red_cutoff)
 
         # remove points with neg flux
         flag &= fluxes_obs > 1.0e-10
@@ -441,9 +433,7 @@ class LoadReference:
         for j in range(len(x1_colors)):
             x1 = x1_colors[j][0]
             color = x1_colors[j][1]
-            fname = "{}/LC_{}_{}_380.0_800.0_ebvofMW_0.0_vstack.hdf5".format(
-                template_dir, x1, color
-            )
+            fname = "{}/LC_{}_{}_380.0_800.0_ebvofMW_0.0_vstack.hdf5".format(template_dir, x1, color)
             resultdict[j] = GetReference(fname, self.gamma_reference)
 
         for j in range(len(x1_colors)):
@@ -481,18 +471,14 @@ class GetReference:
     gamma : dict of RegularGridInterpolator of gamma values (key: filters)
     """
 
-    def __init__(
-        self, lc_name, gamma_name, param__fisher=["x0", "x1", "color", "daymax"]
-    ):
+    def __init__(self, lc_name, gamma_name, param__fisher=["x0", "x1", "color", "daymax"]):
         # Load the file - lc reference
         if not os.path.exists(lc_name):
             raise FileExistsError(f"{lc_name} does not exist - NSN metric cannot run")
 
         # Load the file - gamma values
         if not os.path.exists(gamma_name):
-            raise FileExistsError(
-                "gamma file {} does not exist - NSN metric cannot run"
-            )
+            raise FileExistsError("gamma file {} does not exist - NSN metric cannot run")
 
         lc_ref_tot = Table.from_pandas(pd.read_hdf(lc_name))
         idx = lc_ref_tot["z"] > 0.005
@@ -585,9 +571,7 @@ class GetReference:
             exp = np.linspace(expmin, expmax, nexpo)
             nexp = np.linspace(nexpmin, nexpmax, nnexp)
 
-            index = np.lexsort(
-                (rec["nexp"], np.round(rec["single_exptime"], 4), rec["mag"])
-            )
+            index = np.lexsort((rec["nexp"], np.round(rec["single_exptime"], 4), rec["mag"]))
             gammab = np.reshape(rec[index]["gamma"], (nmag, nexpo, nnexp))
             fluxb = np.reshape(rec[index]["flux_e_sec"], (nmag, nexpo, nnexp))
             self.gamma[band] = RegularGridInterpolator(
@@ -657,9 +641,7 @@ class SnRate:
         max rest-frame phase (default : 30.)
     """
 
-    def __init__(
-        self, rate="Perrett", h0=70, om0=0.25, min_rf_phase=-15.0, max_rf_phase=30.0
-    ):
+    def __init__(self, rate="Perrett", h0=70, om0=0.25, min_rf_phase=-15.0, max_rf_phase=30.0):
         self.astropy_cosmo = FlatLambdaCDM(H0=h0, Om0=om0)
         self.rate = rate
         self.min_rf_phase = min_rf_phase
@@ -886,14 +868,7 @@ class CovColor:
         det_m += c1 * self.det(a2, a3, a4, b2, b3, b4, d2, d3, d4)
         det_m -= d1 * self.det(a2, a3, a4, b2, b3, b4, c2, c3, c4)
 
-        res = (
-            -a3 * b2 * c1
-            + a2 * b3 * c1
-            + a3 * b1 * c2
-            - a1 * b3 * c2
-            - a2 * b1 * c3
-            + a1 * b2 * c3
-        )
+        res = -a3 * b2 * c1 + a2 * b3 * c1 + a3 * b1 * c2 - a1 * b3 * c2 - a2 * b1 * c3 + a1 * b2 * c3
 
         return res / det_m
 

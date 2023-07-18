@@ -1,9 +1,9 @@
-import numpy as np
 import astropy.units as u
+import numpy as np
+from astropy.coordinates import AltAz, EarthLocation, get_moon, get_sun
 from astropy.time import Time
-from rubin_sim.utils import Site
-from astropy.coordinates import get_sun, get_moon, EarthLocation, AltAz
-from rubin_sim.utils import _angular_separation
+
+from rubin_sim.utils import Site, _angular_separation
 
 # want to generate moon and sun position information.
 
@@ -13,9 +13,7 @@ if __name__ == "__main__":
     pad_around = 40
     t_step = 1.0 / 24.0  # Start with 1-hour timesteps.
 
-    mjds = np.arange(
-        mjd_start - pad_around, duration + mjd_start + pad_around + t_step, t_step
-    )
+    mjds = np.arange(mjd_start - pad_around, duration + mjd_start + pad_around + t_step, t_step)
 
     names = [
         "mjd",
@@ -59,9 +57,7 @@ if __name__ == "__main__":
     sun_moon_info["moon_alt"] = moon_aa.alt.rad
     sun_moon_info["moon_az"] = moon_aa.az.rad
 
-    sun_moon_sep = _angular_separation(
-        sun.ra.rad, sun.dec.rad, moon.ra.rad, moon.dec.rad
-    )
+    sun_moon_sep = _angular_separation(sun.ra.rad, sun.dec.rad, moon.ra.rad, moon.dec.rad)
     sun_moon_info["moon_phase"] = sun_moon_sep / np.pi * 100.0
 
     # Let's cut down a bit, no need to save info when the sun is high in the sky

@@ -34,9 +34,7 @@ def _build_tree(ra, dec, leafsize=100, scale=None):
     data = list(zip(x, y, z))
     if np.size(data) > 0:
         try:
-            tree = kdTree(
-                data, leafsize=leafsize, balanced_tree=False, compact_nodes=False
-            )
+            tree = kdTree(data, leafsize=leafsize, balanced_tree=False, compact_nodes=False)
         except TypeError:
             tree = kdTree(data, leafsize=leafsize)
     else:

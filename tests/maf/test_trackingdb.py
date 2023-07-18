@@ -1,10 +1,12 @@
 import os
-import unittest
-import rubin_sim.maf.db as db
-import tempfile
 import shutil
 import sqlite3
+import tempfile
+import unittest
+
 import pandas as pd
+
+import rubin_sim.maf.db as db
 
 
 class TestTrackingDb(unittest.TestCase):

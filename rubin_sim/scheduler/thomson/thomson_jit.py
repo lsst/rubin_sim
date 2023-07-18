@@ -1,8 +1,8 @@
 import numpy as np
-from scipy.optimize import minimize
-from rubin_sim.utils import _angular_separation
 from numba import jit
+from scipy.optimize import minimize
 
+from rubin_sim.utils import _angular_separation
 
 __all__ = [
     "thetaphi2xyz",
@@ -119,9 +119,7 @@ def iterate_potential_smart(x0, stepfrac=0.1):
     mask = np.ones(x.size, dtype=bool)
     for i in np.arange(x.size):
         mask[i] = 0
-        fit = minimize(
-            potential_single, [x[i], y[i], z[i]], args=(x[mask], y[mask], z[mask])
-        )
+        fit = minimize(potential_single, [x[i], y[i], z[i]], args=(x[mask], y[mask], z[mask]))
         mask[i] = 1
         xyz_new[i] = fit.x / np.sqrt(np.sum(fit.x**2))
 
@@ -201,9 +199,7 @@ def ang_potential(x0):
     theta_j = theta_i.T
     phi_i = np.tile(phi, (phi.size, 1))
     phi_j = phi_i.T
-    d = _angular_separation(
-        theta_i[indices], phi_i[indices], theta_j[indices], phi_j[indices]
-    )
+    d = _angular_separation(theta_i[indices], phi_i[indices], theta_j[indices], phi_j[indices])
     U = np.sum(1.0 / d)
     return U
 
@@ -227,9 +223,7 @@ def fib_sphere_grid(npoints):
     return theta, phi
 
 
-def even_points(
-    npts, use_fib_init=True, method="CG", potential_func=elec_potential, maxiter=None
-):
+def even_points(npts, use_fib_init=True, method="CG", potential_func=elec_potential, maxiter=None):
     """
     Distribute npts over a sphere and minimize their potential, making them
     "evenly" distributed
@@ -344,9 +338,7 @@ def even_points_xyz(
     if verbose:
         print("initial potential=", elec_potential_xyz(x))
     # XXX--need to check if this is the best minimizer
-    min_fit = minimize(
-        potential_func, x, method="CG", options={"maxiter": maxiter}, callback=callback
-    )
+    min_fit = minimize(potential_func, x, method="CG", options={"maxiter": maxiter}, callback=callback)
 
     if verbose:
         print("final potential=", elec_potential_xyz(min_fit.x))

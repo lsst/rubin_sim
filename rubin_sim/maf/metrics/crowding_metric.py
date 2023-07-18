@@ -1,7 +1,8 @@
+import healpy as hp
 import numpy as np
 from scipy.interpolate import interp1d
+
 from rubin_sim.maf.metrics import BaseMetric
-import healpy as hp
 
 # Modifying from Knut Olson's fork at:
 # https://github.com/knutago/sims_maf_contrib/blob/master/tutorials/CrowdingMetric.ipynb
@@ -84,9 +85,7 @@ class CrowdingM5Metric(BaseMetric):
         self.seeing_col = seeing_col
         if metric_name is None:
             metric_name = "Crowding to Precision %.2f" % (crowding_error)
-        super().__init__(
-            col=cols, maps=maps, units=units, metric_name=metric_name, **kwargs
-        )
+        super().__init__(col=cols, maps=maps, units=units, metric_name=metric_name, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         # Set mag_vector to the same length as starLumFunc (lower edge of mag bins)
@@ -94,9 +93,7 @@ class CrowdingM5Metric(BaseMetric):
         # Pull up density of stars at this point in the sky
         lum_func = slice_point[f"starLumFunc_{self.filtername}"]
         # Calculate the crowding error using the best seeing value (in any filter?)
-        crowd_error = _comp_crowd_error(
-            mag_vector, lum_func, seeing=min(data_slice[self.seeing_col])
-        )
+        crowd_error = _comp_crowd_error(mag_vector, lum_func, seeing=min(data_slice[self.seeing_col]))
         # Locate at which point crowding error is greater than user-defined limit
         above_crowd = np.where(crowd_error >= self.crowding_error)[0]
 
@@ -156,9 +153,7 @@ class NstarsMetric(BaseMetric):
         self.ignore_crowding = ignore_crowding
         if metric_name is None:
             metric_name = "N stars to Precision %.2f" % (crowding_error)
-        super().__init__(
-            col=cols, maps=maps, units=units, metric_name=metric_name, **kwargs
-        )
+        super().__init__(col=cols, maps=maps, units=units, metric_name=metric_name, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         pix_area = hp.nside2pixarea(slice_point["nside"], degrees=True)
@@ -167,9 +162,7 @@ class NstarsMetric(BaseMetric):
         # Pull up density of stars at this point in the sky
         lum_func = slice_point[f"starLumFunc_{self.filtername}"]
         # Calculate the crowding error using the best seeing value (in any filter?)
-        crowd_error = _comp_crowd_error(
-            mag_vector, lum_func, seeing=min(data_slice[self.seeing_col])
-        )
+        crowd_error = _comp_crowd_error(mag_vector, lum_func, seeing=min(data_slice[self.seeing_col]))
         # Locate at which point crowding error is greater than user-defined limit
         above_crowd = np.where(crowd_error >= self.crowding_error)[0]
 
@@ -180,9 +173,7 @@ class NstarsMetric(BaseMetric):
 
         # Compute the coadded depth, and the mag where that depth hits the error specified
         coadded_depth = 1.25 * np.log10(np.sum(10.0 ** (0.8 * data_slice[self.m5_col])))
-        mag_limit = (
-            -2.5 * np.log10(1.0 / (self.crowding_error * (1.09 * 5))) + coadded_depth
-        )
+        mag_limit = -2.5 * np.log10(1.0 / (self.crowding_error * (1.09 * 5))) + coadded_depth
 
         # Use the shallower depth, crowding or coadded
         if self.ignore_crowding:
@@ -235,9 +226,7 @@ class CrowdingMagUncertMetric(BaseMetric):
         self.rmag = rmag
         if metric_name is None:
             metric_name = "CrowdingError at %.2f" % (rmag)
-        super().__init__(
-            col=[seeing_col], maps=maps, units=units, metric_name=metric_name, **kwargs
-        )
+        super().__init__(col=[seeing_col], maps=maps, units=units, metric_name=metric_name, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         mag_vector = slice_point[f"starMapBins_{self.filtername}"][1:]

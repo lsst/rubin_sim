@@ -1,8 +1,10 @@
 import os
 import unittest
+
 from astropy.time import Time, TimeDelta
-from rubin_sim.site_models import SeeingData
+
 from rubin_sim.data import get_data_dir
+from rubin_sim.site_models import SeeingData
 
 # Unit test here uses oldest/original opsim seeing database, "Seeing.db".
 # Could be updated to use a new DB, but that would require changing some of these hard-coded numbers.
@@ -39,9 +41,7 @@ class TestSeeingData(unittest.TestCase):
         # Hack seeing data to remove first date, thus db does not start at zero.
         seeing_data.seeing_dates = seeing_data.seeing_dates[:-1]
         seeing_data.seeing_values = seeing_data.seeing_values[:-1]
-        seeing_data.time_range = (
-            seeing_data.seeing_dates[-1] - seeing_data.seeing_dates[0]
-        )
+        seeing_data.time_range = seeing_data.seeing_dates[-1] - seeing_data.seeing_dates[0]
         seeing_data.min_time = seeing_data.seeing_dates[0]
         self.assertEqual(fwhm500, seeing_data(self.time + dt))
 

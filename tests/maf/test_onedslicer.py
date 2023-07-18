@@ -1,9 +1,11 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import numpy as np
-import warnings
 import unittest
+import warnings
+
+import numpy as np
+
 from rubin_sim.maf.slicers import OneDSlicer, UniSlicer
 
 
@@ -31,9 +33,7 @@ class TestOneDSlicerSetup(unittest.TestCase):
 
     def test_slicertype(self):
         """Test instantiation of slicer sets slicer type as expected."""
-        self.assertEqual(
-            self.testslicer.slicer_name, self.testslicer.__class__.__name__
-        )
+        self.assertEqual(self.testslicer.slicer_name, self.testslicer.__class__.__name__)
         self.assertEqual(self.testslicer.slicer_name, "OneDSlicer")
 
     def test_setup_slicer_bins(self):
@@ -68,9 +68,7 @@ class TestOneDSlicerSetup(unittest.TestCase):
         dvmin = -0.5
         dvmax = 1.5
         dv = make_data_values(1000, dvmin, dvmax, random=342)
-        self.testslicer = OneDSlicer(
-            slice_col_name="testdata", bin_min=bin_min, bin_max=bin_max
-        )
+        self.testslicer = OneDSlicer(slice_col_name="testdata", bin_min=bin_min, bin_max=bin_max)
         self.testslicer.setup_slicer(dv)
         self.assertAlmostEqual(self.testslicer.bins.min(), bin_min)
         self.assertAlmostEqual(self.testslicer.bins.max(), bin_max)
@@ -129,9 +127,7 @@ class TestOneDSlicerIteration(unittest.TestCase):
         """Test that can return an individual indexed values of the slicer."""
         for i in [0, 10, 20]:
             self.assertEqual(self.testslicer[i]["slice_point"]["sid"], i)
-            self.assertEqual(
-                self.testslicer[i]["slice_point"]["bin_left"], self.bins[i]
-            )
+            self.assertEqual(self.testslicer[i]["slice_point"]["bin_left"], self.bins[i])
 
 
 class TestOneDSlicerEqual(unittest.TestCase):
@@ -177,12 +173,8 @@ class TestOneDSlicerEqual(unittest.TestCase):
         testslicer2 = OneDSlicer(slice_col_name="testdata")
         self.assertTrue(self.testslicer != testslicer2)
         self.assertFalse(self.testslicer == testslicer2)
-        testslicer2 = OneDSlicer(
-            slice_col_name="testdata", bin_min=0, bin_max=1, bin_size=0.5
-        )
-        testslicer3 = OneDSlicer(
-            slice_col_name="testdata", bin_min=0, bin_max=1, bin_size=0.5
-        )
+        testslicer2 = OneDSlicer(slice_col_name="testdata", bin_min=0, bin_max=1, bin_size=0.5)
+        testslicer3 = OneDSlicer(slice_col_name="testdata", bin_min=0, bin_max=1, bin_size=0.5)
         self.assertTrue(testslicer2 == testslicer3)
         self.assertFalse(testslicer2 != testslicer3)
         testslicer3 = OneDSlicer(slice_col_name="testdata", bin_min=0, bin_max=1)

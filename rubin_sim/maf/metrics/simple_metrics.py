@@ -1,4 +1,5 @@
 import numpy as np
+
 from .base_metric import BaseMetric
 
 # A collection of commonly used simple metrics, operating on a single column and returning a float.
@@ -68,9 +69,7 @@ class Coaddm5Metric(BaseMetric):
     """
 
     def __init__(self, m5_col="fiveSigmaDepth", metric_name="CoaddM5", **kwargs):
-        super(Coaddm5Metric, self).__init__(
-            col=m5_col, metric_name=metric_name, **kwargs
-        )
+        super(Coaddm5Metric, self).__init__(col=m5_col, metric_name=metric_name, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         # Running this metric directly from the slicer, this should never come up.
@@ -188,14 +187,7 @@ class CountExplimMetric(BaseMetric):
     """Count the number of x second visits.  Useful for rejecting very short exposures
     and counting 60s exposures as 2 visits."""
 
-    def __init__(
-        self,
-        col=None,
-        min_exp=20.0,
-        expected_exp=30.0,
-        exp_col="visitExposureTime",
-        **kwargs
-    ):
+    def __init__(self, col=None, min_exp=20.0, expected_exp=30.0, exp_col="visitExposureTime", **kwargs):
         self.min_exp = min_exp
         self.expected_exp = expected_exp
         self.exp_col = exp_col
@@ -216,9 +208,7 @@ class CountRatioMetric(BaseMetric):
         self.norm_val = float(norm_val)
         if metric_name is None:
             metric_name = "CountRatio %s div %.1f" % (col, norm_val)
-        super(CountRatioMetric, self).__init__(
-            col=col, metric_name=metric_name, **kwargs
-        )
+        super(CountRatioMetric, self).__init__(col=col, metric_name=metric_name, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         return len(data_slice[self.colname]) / self.norm_val
@@ -270,9 +260,7 @@ class RobustRmsMetric(BaseMetric):
     """
 
     def run(self, data_slice, slice_point=None):
-        iqr = np.percentile(data_slice[self.colname], 75) - np.percentile(
-            data_slice[self.colname], 25
-        )
+        iqr = np.percentile(data_slice[self.colname], 75) - np.percentile(data_slice[self.colname], 25)
         rms = iqr / 1.349  # approximation
         return rms
 
@@ -281,9 +269,7 @@ class MaxPercentMetric(BaseMetric):
     """Return the percent of the data which has the maximum value."""
 
     def run(self, data_slice, slice_point=None):
-        n_max = np.size(
-            np.where(data_slice[self.colname] == np.max(data_slice[self.colname]))[0]
-        )
+        n_max = np.size(np.where(data_slice[self.colname] == np.max(data_slice[self.colname]))[0])
         percent = n_max / float(data_slice[self.colname].size) * 100.0
         return percent
 
@@ -350,9 +336,7 @@ class PercentileMetric(BaseMetric):
     def __init__(self, col=None, percentile=90, metric_name=None, **kwargs):
         if metric_name is None:
             metric_name = "%.0fth%sile %s" % (percentile, "%", col)
-        super(PercentileMetric, self).__init__(
-            col=col, metric_name=metric_name, **kwargs
-        )
+        super(PercentileMetric, self).__init__(col=col, metric_name=metric_name, **kwargs)
         self.percentile = percentile
 
     def run(self, data_slice, slice_point=None):
@@ -370,9 +354,7 @@ class NoutliersNsigmaMetric(BaseMetric):
         self.col = col
         if metric_name is None:
             metric_name = "Noutliers %.1f %s" % (self.n_sigma, self.col)
-        super(NoutliersNsigmaMetric, self).__init__(
-            col=col, metric_name=metric_name, **kwargs
-        )
+        super(NoutliersNsigmaMetric, self).__init__(col=col, metric_name=metric_name, **kwargs)
         self.metric_dtype = "int"
 
     def run(self, data_slice, slice_point=None):

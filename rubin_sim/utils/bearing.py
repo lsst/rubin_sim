@@ -1,4 +1,5 @@
 import numpy as np
+
 from .coordinate_transformations import _angular_separation
 
 __all__ = ["bearing", "dest_latlon", "point_to_line_distance"]
@@ -22,9 +23,7 @@ def dest_latlon(dist, bearing, lat1, lon1):
     all radians
     """
 
-    lat2 = np.arcsin(
-        np.sin(lat1) * np.cos(dist) + np.cos(lat1) * np.sin(dist) * np.cos(bearing)
-    )
+    lat2 = np.arcsin(np.sin(lat1) * np.cos(dist) + np.cos(lat1) * np.sin(dist) * np.cos(bearing))
     lon2 = lon1 + np.arctan2(
         np.sin(bearing) * np.sin(dist) * np.cos(lat1),
         np.cos(dist) - np.sin(lat1) * np.sin(lat2),
@@ -70,9 +69,7 @@ def point_to_line_distance(lon1, lat1, lon2, lat2, lon3, lat3):
             return _angular_separation(lon2, lat2, lon3, lat3)
     else:
         solved = np.where((dis14 > dis12) & needed)[0]
-        result[solved] = _angular_separation(
-            lon2[solved], lat2[solved], lon3[solved], lat3[solved]
-        )
+        result[solved] = _angular_separation(lon2[solved], lat2[solved], lon3[solved], lat3[solved])
         needed[solved] = False
 
     if np.size(lon1) == 1:

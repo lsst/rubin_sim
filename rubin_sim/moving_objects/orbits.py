@@ -1,4 +1,5 @@
 import warnings
+
 import numpy as np
 import pandas as pd
 
@@ -80,9 +81,7 @@ class Orbits(object):
             if self.orb_format != other_orbits.orb_format:
                 return False
             for col in self.data_cols[self.orb_format]:
-                if not np.all(
-                    self.orbits[col].values == other_orbits.orbits[col].values
-                ):
+                if not np.all(self.orbits[col].values == other_orbits.orbits[col].values):
                     return False
                 else:
                     return True
@@ -137,9 +136,7 @@ class Orbits(object):
         self.orb_format = None
         if "FORMAT" in orbits:
             if ~(orbits["FORMAT"] == orbits["FORMAT"].iloc[0]).all():
-                raise ValueError(
-                    "All orbital elements in the set should have the same FORMAT."
-                )
+                raise ValueError("All orbital elements in the set should have the same FORMAT.")
             self.orb_format = orbits["FORMAT"].iloc[0]
             # Backwards compatibility .. a bit. CART is deprecated, so swap it to CAR.
             if self.orb_format == "CART":
@@ -148,19 +145,13 @@ class Orbits(object):
             # Check that the orbit format is approximately right.
             if self.orb_format == "COM":
                 if "q" not in orbits:
-                    raise ValueError(
-                        'The stated format was COM, but "q" not present in orbital elements?'
-                    )
+                    raise ValueError('The stated format was COM, but "q" not present in orbital elements?')
             if self.orb_format == "KEP":
                 if "a" not in orbits:
-                    raise ValueError(
-                        'The stated format was KEP, but "a" not present in orbital elements?'
-                    )
+                    raise ValueError('The stated format was KEP, but "a" not present in orbital elements?')
             if self.orb_format == "CAR":
                 if "x" not in orbits:
-                    raise ValueError(
-                        'The stated format was CAR but "x" not present in orbital elements?'
-                    )
+                    raise ValueError('The stated format was CAR but "x" not present in orbital elements?')
         if self.orb_format is None:
             # Try to figure out the format, if it wasn't provided.
             if "q" in orbits:
@@ -203,15 +194,13 @@ class Orbits(object):
         for col in self.data_cols[self.orb_format]:
             if col not in orbits:
                 raise ValueError(
-                    "Missing required orbital element %s for orbital format type %s"
-                    % (col, self.orb_format)
+                    "Missing required orbital element %s for orbital format type %s" % (col, self.orb_format)
                 )
 
         # Check to see if we have duplicates.
         if len(orbits["obj_id"].unique()) != n_sso:
             warnings.warn(
-                "There are duplicates in the orbit obj_id values"
-                + " - was this intended? (continuing)."
+                "There are duplicates in the orbit obj_id values" + " - was this intended? (continuing)."
             )
         # All is good.
         self.orbits = orbits
@@ -372,9 +361,7 @@ class Orbits(object):
                 "COMPCODE",
             )
             # First use names_com, and then change if required.
-            orbits = pd.read_csv(
-                orbit_file, delim_whitespace=True, header=None, names=names_com
-            )
+            orbits = pd.read_csv(orbit_file, delim_whitespace=True, header=None, names=names_com)
 
             if orbits["FORMAT"][0] == "KEP":
                 orbits.columns = names_kep
@@ -383,13 +370,9 @@ class Orbits(object):
 
         else:
             if delim is None:
-                orbits = pd.read_csv(
-                    orbit_file, delim_whitespace=True, skiprows=skiprows, names=names
-                )
+                orbits = pd.read_csv(orbit_file, delim_whitespace=True, skiprows=skiprows, names=names)
             else:
-                orbits = pd.read_csv(
-                    orbit_file, sep=delim, skiprows=skiprows, names=names
-                )
+                orbits = pd.read_csv(orbit_file, sep=delim, skiprows=skiprows, names=names)
 
         # Drop some columns that are typically present in DES files but that we don't need.
         if "INDEX" in orbits:
@@ -458,8 +441,7 @@ class Orbits(object):
             intersection = list(set(alternatives) & set(sso_cols))
             if len(intersection) > 1:
                 raise ValueError(
-                    "Received too many possible matches to %s in orbit file %s"
-                    % (name, orbit_file)
+                    "Received too many possible matches to %s in orbit file %s" % (name, orbit_file)
                 )
             if len(intersection) == 1:
                 idx = sso_cols.index(intersection[0])
@@ -472,10 +454,7 @@ class Orbits(object):
             if np.min(orbits["inc"]) < 0:
                 negative_incs = np.where(orbits["inc"].values < 0)[0]
                 negative_ids = orbits["obj_id"].values[negative_incs]
-                ValueError(
-                    "Negative orbital inclinations not supported. Problem obj_ids=%s"
-                    % negative_ids
-                )
+                ValueError("Negative orbital inclinations not supported. Problem obj_ids=%s" % negative_ids)
 
         # Validate and assign orbits to self.
         self.set_orbits(orbits)

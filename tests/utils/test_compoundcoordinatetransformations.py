@@ -1,5 +1,7 @@
 import unittest
+
 import numpy as np
+
 import rubin_sim.utils as utils
 
 
@@ -29,9 +31,7 @@ def control_alt_az_from_ra_dec(ra_rad_in, dec_rad_in, long_rad, lat_rad, mjd):
     """
     obs = utils.ObservationMetaData(
         mjd=utils.ModifiedJulianDate(utc=mjd),
-        site=utils.Site(
-            longitude=np.degrees(long_rad), latitude=np.degrees(lat_rad), name="LSST"
-        ),
+        site=utils.Site(longitude=np.degrees(long_rad), latitude=np.degrees(lat_rad), name="LSST"),
     )
 
     if hasattr(ra_rad_in, "__len__"):
@@ -77,9 +77,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
         """
         Test to make sure that methods complain when incorrect data types are passed.
         """
-        obs = utils.ObservationMetaData(
-            pointing_ra=55.0, pointing_dec=-72.0, mjd=53467.8
-        )
+        obs = utils.ObservationMetaData(pointing_ra=55.0, pointing_dec=-72.0, mjd=53467.8)
 
         ra_float = 1.1
         ra_list = np.array([0.2, 0.3])
@@ -87,39 +85,23 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
         dec_float = 1.1
         dec_list = np.array([0.2, 0.3])
 
-        self.assertRaises(
-            RuntimeError, utils._alt_az_pa_from_ra_dec, ra_list, dec_float, obs
-        )
-        self.assertRaises(
-            RuntimeError, utils._alt_az_pa_from_ra_dec, ra_float, dec_list, obs
-        )
+        self.assertRaises(RuntimeError, utils._alt_az_pa_from_ra_dec, ra_list, dec_float, obs)
+        self.assertRaises(RuntimeError, utils._alt_az_pa_from_ra_dec, ra_float, dec_list, obs)
         utils._alt_az_pa_from_ra_dec(ra_float, dec_float, obs)
         utils._alt_az_pa_from_ra_dec(ra_list, dec_list, obs)
 
-        self.assertRaises(
-            RuntimeError, utils._ra_dec_from_alt_az, ra_list, dec_float, obs
-        )
-        self.assertRaises(
-            RuntimeError, utils._ra_dec_from_alt_az, ra_float, dec_list, obs
-        )
+        self.assertRaises(RuntimeError, utils._ra_dec_from_alt_az, ra_list, dec_float, obs)
+        self.assertRaises(RuntimeError, utils._ra_dec_from_alt_az, ra_float, dec_list, obs)
         utils._ra_dec_from_alt_az(ra_float, dec_float, obs)
         utils._ra_dec_from_alt_az(ra_list, dec_list, obs)
 
-        self.assertRaises(
-            RuntimeError, utils.alt_az_pa_from_ra_dec, ra_list, dec_float, obs
-        )
-        self.assertRaises(
-            RuntimeError, utils.alt_az_pa_from_ra_dec, ra_float, dec_list, obs
-        )
+        self.assertRaises(RuntimeError, utils.alt_az_pa_from_ra_dec, ra_list, dec_float, obs)
+        self.assertRaises(RuntimeError, utils.alt_az_pa_from_ra_dec, ra_float, dec_list, obs)
         utils.alt_az_pa_from_ra_dec(ra_float, dec_float, obs)
         utils.alt_az_pa_from_ra_dec(ra_list, dec_list, obs)
 
-        self.assertRaises(
-            RuntimeError, utils.ra_dec_from_alt_az, ra_list, dec_float, obs
-        )
-        self.assertRaises(
-            RuntimeError, utils.ra_dec_from_alt_az, ra_float, dec_list, obs
-        )
+        self.assertRaises(RuntimeError, utils.ra_dec_from_alt_az, ra_list, dec_float, obs)
+        self.assertRaises(RuntimeError, utils.ra_dec_from_alt_az, ra_float, dec_list, obs)
         utils.ra_dec_from_alt_az(ra_float, dec_float, obs)
         utils.ra_dec_from_alt_az(ra_list, dec_list, obs)
 
@@ -211,9 +193,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
             # this is all the precision we have in the alt,az data taken from the USNO
             self.assertLess(distance, 0.1)
 
-            correction = np.degrees(
-                utils.haversine(ra_test, dec_test, ra_icrs, dec_icrs)
-            )
+            correction = np.degrees(utils.haversine(ra_test, dec_test, ra_icrs, dec_icrs))
             self.assertLess(distance, correction)
 
     def test_alt_az_ra_dec_round_trip(self):
@@ -245,9 +225,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
                 self.assertIsInstance(dec_in, np.ndarray)
 
                 self.assertFalse(np.isnan(ra_in).any(), msg="there were NaNs in ra_in")
-                self.assertFalse(
-                    np.isnan(dec_in).any(), msg="there were NaNs in dec_in"
-                )
+                self.assertFalse(np.isnan(dec_in).any(), msg="there were NaNs in dec_in")
 
                 # test that passing them in one at a time gives the same answer
                 for ix in range(len(alt_in)):
@@ -257,13 +235,9 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
                     self.assertAlmostEqual(ra_f, ra_in[ix], 12)
                     self.assertAlmostEqual(dec_f, dec_in[ix], 12)
 
-                alt_out, az_out, pa_out = utils.alt_az_pa_from_ra_dec(
-                    ra_in, dec_in, obs
-                )
+                alt_out, az_out, pa_out = utils.alt_az_pa_from_ra_dec(ra_in, dec_in, obs)
 
-                self.assertFalse(
-                    np.isnan(pa_out).any(), msg="there were NaNs in pa_out"
-                )
+                self.assertFalse(np.isnan(pa_out).any(), msg="there were NaNs in pa_out")
 
                 for alt_c, az_c, alt_t, az_t in zip(
                     np.radians(alt_in),
@@ -271,9 +245,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
                     np.radians(alt_out),
                     np.radians(az_out),
                 ):
-                    distance = utils.arcsec_from_radians(
-                        utils.haversine(az_c, alt_c, az_t, alt_t)
-                    )
+                    distance = utils.arcsec_from_radians(utils.haversine(az_c, alt_c, az_t, alt_t))
                     self.assertLess(distance, 0.2)
                     # not sure why 0.2 arcsec is the limiting precision of this test
 
@@ -287,15 +259,11 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
         dec = (self.rng.random_sample(n_samples) - 0.5) * np.pi
         lon_rad = 1.467
         lat_rad = -0.234
-        control_alt, control_az = control_alt_az_from_ra_dec(
-            ra, dec, lon_rad, lat_rad, self.mjd
-        )
+        control_alt, control_az = control_alt_az_from_ra_dec(ra, dec, lon_rad, lat_rad, self.mjd)
 
         obs = utils.ObservationMetaData(
             mjd=utils.ModifiedJulianDate(utc=self.mjd),
-            site=utils.Site(
-                longitude=np.degrees(lon_rad), latitude=np.degrees(lat_rad), name="LSST"
-            ),
+            site=utils.Site(longitude=np.degrees(lon_rad), latitude=np.degrees(lat_rad), name="LSST"),
         )
 
         # verify parallactic angle against an expression from
@@ -311,17 +279,13 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
         test_alt, test_az, test_pa = utils._alt_az_pa_from_ra_dec(ra, dec, obs)
 
-        distance = utils.arcsec_from_radians(
-            utils.haversine(control_az, control_alt, test_az, test_alt)
-        )
+        distance = utils.arcsec_from_radians(utils.haversine(control_az, control_alt, test_az, test_alt))
         self.assertLess(distance.max(), 0.0001)
         self.assertLess(np.abs(np.sin(test_pa) - control_sin_pa).max(), self.tolerance)
 
         # test non-vectorized version
         for r, d in zip(ra, dec):
-            control_alt, control_az = control_alt_az_from_ra_dec(
-                r, d, lon_rad, lat_rad, self.mjd
-            )
+            control_alt, control_az = control_alt_az_from_ra_dec(r, d, lon_rad, lat_rad, self.mjd)
             test_alt, test_az, test_pa = utils._alt_az_pa_from_ra_dec(r, d, obs)
             lmst, last = utils.calc_lmst_last(obs.mjd.ut1, lon_rad)
             r_obs, dec_obs = utils._observed_from_icrs(
@@ -329,9 +293,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
             )
             hour_angle = np.radians(last * 15.0) - r_obs
             control_sin_pa = np.sin(hour_angle) * np.cos(lat_rad) / np.cos(control_alt)
-            distance = utils.arcsec_from_radians(
-                utils.haversine(control_az, control_alt, test_az, test_alt)
-            )
+            distance = utils.arcsec_from_radians(utils.haversine(control_az, control_alt, test_az, test_alt))
             self.assertLess(distance, 0.0001)
             self.assertLess(np.abs(np.sin(test_pa) - control_sin_pa), self.tolerance)
 
@@ -372,17 +334,11 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
             #
             #    2) closer to the zenith distance calculated above than to the
             #       unrefracted zenith distance
-            for ra, dec, obs, alt_ref, az_ref in zip(
-                ra_sane, dec_sane, obs_sane, alt_sane, az_sane
-            ):
-                alt, az, pa = utils.alt_az_pa_from_ra_dec(
-                    ra, dec, obs, include_refraction=False
-                )
+            for ra, dec, obs, alt_ref, az_ref in zip(ra_sane, dec_sane, obs_sane, alt_sane, az_sane):
+                alt, az, pa = utils.alt_az_pa_from_ra_dec(ra, dec, obs, include_refraction=False)
 
                 tanz, tanz3 = utils.refraction_coefficients(site=obs.site)
-                refracted_zd = utils.apply_refraction(
-                    np.radians(90.0 - alt), tanz, tanz3
-                )
+                refracted_zd = utils.apply_refraction(np.radians(90.0 - alt), tanz, tanz3)
 
                 # Check that the two independently refracted zenith distances agree
                 # to within 0.1 arcsec
@@ -418,15 +374,11 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
 
         for i_batch in range(n_batches):
             d_sun = 0.0
-            while (
-                d_sun < 45.0
-            ):  # because ICRS->Observed transformation breaks down close to the sun
+            while d_sun < 45.0:  # because ICRS->Observed transformation breaks down close to the sun
                 alt_in = rng.random_sample(n_samples) * 50.0 + 20.0
                 az_in = rng.random_sample(n_samples) * 360.0
                 obs = utils.ObservationMetaData(mjd=43000.0)
-                ra_in, dec_in = utils.ra_dec_from_alt_az(
-                    alt_in, az_in, obs=obs, include_refraction=False
-                )
+                ra_in, dec_in = utils.ra_dec_from_alt_az(alt_in, az_in, obs=obs, include_refraction=False)
 
                 d_sun = utils.distance_to_sun(ra_in, dec_in, obs.mjd).min()
 
@@ -454,9 +406,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
         dec_in = rng.random_sample(n_samples) * 180.0 - 90.0
         mjd = 43000.0
         obs = utils.ObservationMetaData(mjd=mjd)
-        alt, az, pa = utils.alt_az_pa_from_ra_dec(
-            ra_in, dec_in, obs, include_refraction=False
-        )
+        alt, az, pa = utils.alt_az_pa_from_ra_dec(ra_in, dec_in, obs, include_refraction=False)
         alt_rad, az_rad, pa_rad = utils._alt_az_pa_from_ra_dec(
             np.radians(ra_in), np.radians(dec_in), obs, include_refraction=False
         )
@@ -466,9 +416,7 @@ class CompoundCoordinateTransformationsTests(unittest.TestCase):
         np.testing.assert_array_almost_equal(pa, np.degrees(pa_rad), decimal=12)
 
         ra, dec = utils.ra_dec_from_alt_az(alt, az, obs, include_refraction=False)
-        ra_rad, dec_rad = utils._ra_dec_from_alt_az(
-            alt_rad, az_rad, obs, include_refraction=False
-        )
+        ra_rad, dec_rad = utils._ra_dec_from_alt_az(alt_rad, az_rad, obs, include_refraction=False)
         distance = utils.haversine(ra_rad, dec_rad, np.radians(ra), np.radians(dec))
         self.assertLess(utils.arcsec_from_radians(distance).min(), 0.001)
 

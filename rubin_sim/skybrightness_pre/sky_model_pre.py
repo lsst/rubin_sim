@@ -1,12 +1,13 @@
-import numpy as np
 import glob
 import os
-import healpy as hp
 import warnings
-from rubin_sim.utils import _angular_separation, _hpid2_ra_dec, survey_start_mjd
-from rubin_sim.data import get_data_dir
-import h5py
 
+import h5py
+import healpy as hp
+import numpy as np
+
+from rubin_sim.data import get_data_dir
+from rubin_sim.utils import _angular_separation, _hpid2_ra_dec, survey_start_mjd
 
 __all__ = ["SkyModelPre", "interp_angle"]
 
@@ -52,8 +53,7 @@ def interp_angle(x_out, xp, anglep, degrees=False):
     if degrees:
         result = (
             np.radians(anglep[left])
-            + short_angle_dist(np.radians(anglep[left]), np.radians(anglep[right]))
-            * wterm
+            + short_angle_dist(np.radians(anglep[left]), np.radians(anglep[right])) * wterm
         )
         result = result % (2.0 * np.pi)
         result = np.degrees(result)
@@ -107,16 +107,10 @@ class SkyModelPre(object):
         self.files = glob.glob(os.path.join(data_path, "*.h5"))
         if len(self.files) == 0:
             errmssg = "Failed to find pre-computed .h5 files. "
-            errmssg += (
-                "Copy data from NCSA with sims_skybrightness_pre/data/data_down.sh \n"
-            )
-            errmssg += (
-                "or build by running sims_skybrightness_pre/data/generate_hdf5.py"
-            )
+            errmssg += "Copy data from NCSA with sims_skybrightness_pre/data/data_down.sh \n"
+            errmssg += "or build by running sims_skybrightness_pre/data/generate_hdf5.py"
             warnings.warn(errmssg)
-        self.filesizes = np.array(
-            [os.path.getsize(filename) for filename in self.files]
-        )
+        self.filesizes = np.array([os.path.getsize(filename) for filename in self.files])
         mjd_left = []
         mjd_right = []
         # glob does not always order things I guess?
@@ -269,9 +263,7 @@ class SkyModelPre(object):
 
         # Check if we are between sunrise/set
         if baseline > self.timestep_max + 1e-6:
-            warnings.warn(
-                "Requested MJD between sunrise and sunset, returning closest maps"
-            )
+            warnings.warn("Requested MJD between sunrise and sunset, returning closest maps")
             diff = np.abs(self.mjds[left.max() : right.max() + 1] - mjd)
             closest_indx = np.array([left, right])[np.where(diff == np.min(diff))].min()
             sbs = {}
@@ -286,8 +278,7 @@ class SkyModelPre(object):
             sbs = {}
             for filter_name in filters:
                 sbs[filter_name] = (
-                    self.sb[filter_name][left, indx] * w1
-                    + self.sb[filter_name][right, indx] * w2
+                    self.sb[filter_name][left, indx] * w1 + self.sb[filter_name][right, indx] * w2
                 )
         # If requested a certain pixel(s), and want to extrapolate.
         if (not full_sky) & extrapolate:
@@ -301,18 +292,14 @@ class SkyModelPre(object):
                     mjd,
                     filters=filters,
                 )
-                good = np.where(
-                    (full_sky_sb[filters[0]] != badval)
-                    & ~np.isnan(full_sky_sb[filters[0]])
-                )[0]
+                good = np.where((full_sky_sb[filters[0]] != badval) & ~np.isnan(full_sky_sb[filters[0]]))[0]
                 ra_full = self.ra[good]  # np.radians(self.header["ra"][good])
                 dec_full = self.dec[good]  # np.radians(self.header["dec"][good])
                 for filtername in filters:
                     full_sky_sb[filtername] = full_sky_sb[filtername][good]
                 # Going to assume the masked pixels are the same in all filters
                 masked_indx = np.where(
-                    (sbs[filters[0]].ravel() == badval)
-                    | np.isnan(sbs[filters[0]].ravel())
+                    (sbs[filters[0]].ravel() == badval) | np.isnan(sbs[filters[0]].ravel())
                 )[0]
                 for i, mi in enumerate(masked_indx):
                     # Note, this is going to be really slow for many pixels, should use a kdtree
@@ -324,8 +311,6 @@ class SkyModelPre(object):
                     )
                     closest = np.where(dist == dist.min())[0]
                     for filtername in filters:
-                        sbs[filtername].ravel()[mi] = np.min(
-                            full_sky_sb[filtername][closest]
-                        )
+                        sbs[filtername].ravel()[mi] = np.min(full_sky_sb[filtername][closest])
 
         return sbs

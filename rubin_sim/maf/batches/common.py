@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 import inspect
 
 import rubin_sim.maf.metrics as metrics
@@ -211,12 +212,8 @@ def extended_metrics(colname, replace_colname=None):
     extendedMetrics = standard_metrics(colname, replace_colname=None)
     extendedMetrics += [
         metrics.RmsMetric(colname),
-        metrics.NoutliersNsigmaMetric(
-            colname, metric_name="N(+3Sigma) " + colname, n_sigma=3
-        ),
-        metrics.NoutliersNsigmaMetric(
-            colname, metric_name="N(-3Sigma) " + colname, n_sigma=-3
-        ),
+        metrics.NoutliersNsigmaMetric(colname, metric_name="N(+3Sigma) " + colname, n_sigma=3),
+        metrics.NoutliersNsigmaMetric(colname, metric_name="N(-3Sigma) " + colname, n_sigma=-3),
         metrics.PercentileMetric(colname, percentile=25),
         metrics.PercentileMetric(colname, percentile=75),
         metrics.CountMetric(colname),
@@ -282,12 +279,8 @@ def summary_completeness_at_time(times, h_val, h_index=0.33):
     List of moving object MoCompletenessAtTime metrics (cumulative and differential)
     """
     summaryMetrics = [
-        metrics.MoCompletenessAtTimeMetric(
-            times=times, hval=h_val, hindex=h_index, cumulative=False
-        ),
-        metrics.MoCompletenessAtTimeMetric(
-            times=times, hval=h_val, hindex=h_index, cumulative=True
-        ),
+        metrics.MoCompletenessAtTimeMetric(times=times, hval=h_val, hindex=h_index, cumulative=False),
+        metrics.MoCompletenessAtTimeMetric(times=times, hval=h_val, hindex=h_index, cumulative=True),
     ]
     return summaryMetrics
 
@@ -308,12 +301,8 @@ def summary_completeness_over_h(requiredChances=1, Hindex=0.33):
     List of moving object MoCompleteness metrics (cumulative and differential)
     """
     summaryMetrics = [
-        metrics.MoCompletenessMetric(
-            threshold=requiredChances, cumulative=False, hindex=Hindex
-        ),
-        metrics.MoCompletenessMetric(
-            threshold=requiredChances, cumulative=True, hindex=Hindex
-        ),
+        metrics.MoCompletenessMetric(threshold=requiredChances, cumulative=False, hindex=Hindex),
+        metrics.MoCompletenessMetric(threshold=requiredChances, cumulative=True, hindex=Hindex),
     ]
     return summaryMetrics
 
@@ -357,12 +346,8 @@ def microlensing_summary(metric_type, npts_required=10, Fisher_sigmatE_tE_cutoff
             ),
             metrics.CountMetric(metric_name="Total lightcurves in footprint"),
             metrics.CountMetric(metric_name="Total lightcurves on sky", mask_val=0),
-            metrics.MeanMetric(
-                metric_name="Mean number of points per lightcurves in footprint"
-            ),
-            metrics.MeanMetric(
-                mask_val=0, metric_name="Mean number of points per lightcurves in total"
-            ),
+            metrics.MeanMetric(metric_name="Mean number of points per lightcurves in footprint"),
+            metrics.MeanMetric(mask_val=0, metric_name="Mean number of points per lightcurves in total"),
         ]
     elif metric_type == "Fisher":
         microlensingSummary = [
@@ -373,8 +358,6 @@ def microlensing_summary(metric_type, npts_required=10, Fisher_sigmatE_tE_cutoff
             metrics.CountMetric(metric_name="Total lightcurves in footprint"),
             metrics.CountMetric(metric_name="Total lightcurves on sky", mask_val=0),
             metrics.RealMeanMetric(metric_name="Mean sigma_tE/tE in footprint (mean)"),
-            metrics.RealMeanMetric(
-                mask_val=0, metric_name="Mean sigma_tE/tE of total (mean)"
-            ),
+            metrics.RealMeanMetric(mask_val=0, metric_name="Mean sigma_tE/tE of total (mean)"),
         ]
     return microlensingSummary

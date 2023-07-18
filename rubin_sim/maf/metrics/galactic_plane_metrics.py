@@ -1,8 +1,9 @@
 from types import MethodType
+
 import numpy as np
-from rubin_sim.maf.maps.galactic_plane_priority_maps import (
-    gp_priority_map_components_to_keys,
-)
+
+from rubin_sim.maf.maps.galactic_plane_priority_maps import gp_priority_map_components_to_keys
+
 from .base_metric import BaseMetric
 
 __all__ = [
@@ -186,9 +187,7 @@ class GalPlaneFootprintMetric(BaseMetric):
         n_obs_priority = 0
         for f in self.filterlist:
             obs_in_filter = np.where(data_slice[self.filter_col] == f)
-            above_cut = np.where(
-                data_slice[obs_in_filter][self.m5_col] >= self.mag_cuts[f]
-            )
+            above_cut = np.where(data_slice[obs_in_filter][self.m5_col] >= self.mag_cuts[f])
             n_obs += len(above_cut[0])
             mapkey = gp_priority_map_components_to_keys(f, self.science_map)
             n_obs_priority += len(above_cut[0]) * slice_point[mapkey]
@@ -286,9 +285,7 @@ class GalPlaneTimePerFilterMetric(BaseMetric):
         compared to the ideal on-sky exposure time per filter at this point on the sky across all filters.
         """
         # Check if we want to evaluate this part of the sky, or if the weight is below threshold.
-        weight_all_filters = slice_point[
-            gp_priority_map_components_to_keys("sum", self.science_map)
-        ]
+        weight_all_filters = slice_point[gp_priority_map_components_to_keys("sum", self.science_map)]
         if weight_all_filters <= self.priority_map_threshold:
             return self.badval
 
@@ -331,9 +328,7 @@ class GalPlaneTimePerFilterMetric(BaseMetric):
                 # thais metric returns the mask val for this filter only.
                 if relative_filter_weight[f] > 0:
                     normalized_exp_time[f] = (
-                        exp_time_per_filter[f]
-                        / total_expt_mag_cut
-                        / relative_filter_weight[f]
+                        exp_time_per_filter[f] / total_expt_mag_cut / relative_filter_weight[f]
                     )
                 else:
                     normalized_exp_time[f] = self.badval

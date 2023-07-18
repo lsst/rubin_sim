@@ -6,10 +6,12 @@
 # Description: Provides the coordinate conversions between equatorial and galactic coordinates, as well as to galactic cylindrical coordinates. Two different functions are present that do the conversion, and a third that uses ephem package, for redundancy purposes. For use with Field Star Count metric
 
 from __future__ import print_function
-import numpy as np
-import sys
-from scipy.optimize import fsolve
+
 import math
+import sys
+
+import numpy as np
+from scipy.optimize import fsolve
 
 rad1 = np.radians(282.25)
 rad2 = np.radians(62.6)

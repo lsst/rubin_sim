@@ -1,9 +1,11 @@
-import numpy as np
-from .base_metric import BaseMetric
-from rubin_sim.maf.utils import load_inst_zeropoints
-
 import os
 import warnings
+
+import numpy as np
+
+from rubin_sim.maf.utils import load_inst_zeropoints
+
+from .base_metric import BaseMetric
 
 __all__ = ["SurfaceBrightLimitMetric"]
 
@@ -61,22 +63,15 @@ def surface_brightness_limit_approx(
 
     # Sky limited case
     mu_sky_lim = (
-        -1.25 * np.log10(nsigma**2 / (a_pix * t_exp * n_pix))
-        + 0.5 * mu_sky
-        + 0.5 * zp
-        - k * airmass
+        -1.25 * np.log10(nsigma**2 / (a_pix * t_exp * n_pix)) + 0.5 * mu_sky + 0.5 * zp - k * airmass
     )
 
     # Source limited case
     # XXX--double check this algerbra. Pretty sure it's right now.
-    mu_source_lim = (
-        -5 * np.log10(nsigma) + 2.5 * np.log10(n_pix * a_pix * t_exp) + zp - k * airmass
-    )
+    mu_source_lim = -5 * np.log10(nsigma) + 2.5 * np.log10(n_pix * a_pix * t_exp) + zp - k * airmass
 
     # Readnoise limited case
-    mu_rn_lim = (
-        -2.5 * np.log10(nsigma * rn / (t_exp * a_pix * n_pix**0.5)) + zp - k * airmass
-    )
+    mu_rn_lim = -2.5 * np.log10(nsigma * rn / (t_exp * a_pix * n_pix**0.5)) + zp - k * airmass
 
     d1 = np.min(np.abs(mu_sky_lim - mu_source_lim))
     d2 = np.min(np.abs(mu_sky_lim - mu_rn_lim))
@@ -128,13 +123,13 @@ class SurfaceBrightLimitMetric(BaseMetric):
         zpt=None,
         k_atm=None,
         readnoise=8.8,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
             col=[filter_col, airmass_col, exptime_col, skybrightness_col, nexp_col],
             units=units,
             metric_name=metric_name,
-            **kwargs
+            **kwargs,
         )
         self.filter_col = filter_col
         self.airmass_col = airmass_col
@@ -159,9 +154,7 @@ class SurfaceBrightLimitMetric(BaseMetric):
     def run(self, data_slice, slice_point):
         filtername = np.unique(data_slice[self.filter_col])
         if np.size(filtername) > 1:
-            ValueError(
-                "Can only coadd depth in single filter, got filters %s" % filtername
-            )
+            ValueError("Can only coadd depth in single filter, got filters %s" % filtername)
         filtername = filtername[0]
 
         # Scale up readnoise if the visit was split into multiple snaps

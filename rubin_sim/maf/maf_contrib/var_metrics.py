@@ -1,19 +1,18 @@
 from __future__ import print_function
 
-# Example of a *very* simple variabiilty metric
-# krughoff@uw.edu, ebellm, ljones
-
 import numpy as np
 from scipy.signal import lombscargle
 
 from rubin_sim.maf.metrics import BaseMetric
 
+# Example of a *very* simple variabiilty metric
+# krughoff@uw.edu, ebellm, ljones
+
+
 __all__ = ["PeriodDeviationMetric"]
 
 
-def find_period_ls(
-    times, mags, minperiod=2.0, maxperiod=35.0, nbinmax=10**5, verbose=False
-):
+def find_period_ls(times, mags, minperiod=2.0, maxperiod=35.0, nbinmax=10**5, verbose=False):
     """Find the period of a lightcurve using scipy's lombscargle method.
     The parameters used here imply magnitudes but there is no reason this would not work if fluxes are passed.
 
@@ -59,7 +58,7 @@ class PeriodDeviationMetric(BaseMetric):
         amplitude=1.0,
         metric_name="Period Deviation",
         period_check=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Construct an instance of a PeriodDeviationMetric class
@@ -79,9 +78,7 @@ class PeriodDeviationMetric(BaseMetric):
         self.n_periods = n_periods
         self.mean_mag = mean_mag
         self.amplitude = amplitude
-        super(PeriodDeviationMetric, self).__init__(
-            col, metric_name=metric_name, **kwargs
-        )
+        super(PeriodDeviationMetric, self).__init__(col, metric_name=metric_name, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         """
@@ -98,9 +95,7 @@ class PeriodDeviationMetric(BaseMetric):
         if self.period_check is not None:
             periods = [self.period_check]
         else:
-            periods = self.period_min + np.random.random(self.n_periods) * (
-                self.period_max - self.period_min
-            )
+            periods = self.period_min + np.random.random(self.n_periods) * (self.period_max - self.period_min)
         # Make sure the period we want to check is in there
         periodsdev = np.zeros(np.size(periods), dtype="float")
         for i, period in enumerate(periods):
@@ -112,9 +107,7 @@ class PeriodDeviationMetric(BaseMetric):
                 # Too few points to find a period
                 return self.badval
 
-            pguess = find_period_ls(
-                data, lc, minperiod=self.guess_p_min, maxperiod=self.guess_p_max
-            )
+            pguess = find_period_ls(data, lc, minperiod=self.guess_p_min, maxperiod=self.guess_p_max)
             periodsdev[i] = (pguess - period) / period
 
         return {"periods": periods, "periodsdev": periodsdev}

@@ -1,12 +1,14 @@
-from rubin_sim.scheduler.surveys import BlobSurvey
-from rubin_sim.scheduler import features
-import rubin_sim.scheduler.basis_functions as bfs
-import numpy as np
-from rubin_sim.scheduler.utils import empty_observation, set_default_nside
-import healpy as hp
 from copy import copy
-import matplotlib.pylab as plt
 
+import healpy as hp
+import matplotlib.pylab as plt
+import numpy as np
+
+import rubin_sim.scheduler.basis_functions as bfs
+from rubin_sim.scheduler import features
+from rubin_sim.scheduler.utils import empty_observation, set_default_nside
+
+from .surveys import BlobSurvey
 
 __all__ = ["PlanAheadSurvey"]
 
@@ -37,7 +39,7 @@ class PlanAheadSurvey(BlobSurvey):
         track_filters="g",
         in_season=2.5,
         cadence=9,
-        **kwargs
+        **kwargs,
     ):
         super(PlanAheadSurvey, self).__init__(basis_functions, basis_weights, **kwargs)
         # note that self.night is already being used for tracking tesselation.
@@ -47,9 +49,7 @@ class PlanAheadSurvey(BlobSurvey):
         self.delta_mjd_tol = delta_mjd_tol
         self.minimum_sky_area = minimum_sky_area  # sq degrees
         self.extra_features = {}
-        self.extra_features["last_observed"] = features.Last_observed(
-            filtername=track_filters
-        )
+        self.extra_features["last_observed"] = features.Last_observed(filtername=track_filters)
         self.extra_basis_functions = {}
         self.extra_basis_functions["moon_mask"] = bfs.Moon_avoidance_basis_function()
         self.track_filters = track_filters
@@ -114,14 +114,10 @@ class PlanAheadSurvey(BlobSurvey):
             if self.scheduled_obs is not None:
                 # If there are scheduled observations, and we are in the correct time window
                 delta_mjd = conditions.mjd - self.scheduled_obs
-                if (np.abs(delta_mjd) < self.delta_mjd_tol) & (
-                    self.scheduled_obs is not None
-                ):
+                if (np.abs(delta_mjd) < self.delta_mjd_tol) & (self.scheduled_obs is not None):
                     # So, we think there's a region that has had a long gap and can be observed
                     # call the standard reward function
-                    self.reward = super(PlanAheadSurvey, self).calc_reward_function(
-                        conditions
-                    )
+                    self.reward = super(PlanAheadSurvey, self).calc_reward_function(conditions)
 
         return self.reward
 

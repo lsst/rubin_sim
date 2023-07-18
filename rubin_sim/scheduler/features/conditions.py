@@ -1,22 +1,24 @@
 from io import StringIO
+
+import healpy as hp
 import numpy as np
 import pandas as pd
-from rubin_sim.utils import (
-    _approx_ra_dec2_alt_az,
-    Site,
-    _hpid2_ra_dec,
-    m5_flat_sed,
-    _approx_altaz2pa,
-    _angular_separation,
-)
-import healpy as hp
+
 from rubin_sim.scheduler.utils import (
-    set_default_nside,
     match_hp_resolution,
     season_calc,
+    set_default_nside,
     smallest_signed_angle,
 )
-from rubin_sim.utils import calc_lmst_last
+from rubin_sim.utils import (
+    Site,
+    _angular_separation,
+    _approx_altaz2pa,
+    _approx_ra_dec2_alt_az,
+    _hpid2_ra_dec,
+    calc_lmst_last,
+    m5_flat_sed,
+)
 
 __all__ = ["Conditions"]
 
@@ -394,9 +396,7 @@ class Conditions(object):
     @skybrightness.setter
     def skybrightness(self, indict):
         for key in indict:
-            self._skybrightness[key] = match_hp_resolution(
-                indict[key], nside_out=self.nside
-            )
+            self._skybrightness[key] = match_hp_resolution(indict[key], nside_out=self.nside)
         # If sky brightness changes, need to recalc M5 depth.
         self._m5_depth = None
 
@@ -430,9 +430,7 @@ class Conditions(object):
             )
 
     def calc_solar_elongation(self):
-        self._solar_elongation = _angular_separation(
-            self.ra, self.dec, self.sun_ra, self.sun_dec
-        )
+        self._solar_elongation = _angular_separation(self.ra, self.dec, self.sun_ra, self.sun_dec)
 
     @property
     def solar_elongation(self):
@@ -530,16 +528,12 @@ class Conditions(object):
         )
         print("moonPhase: ", self.moon_phase, "  ", file=output)
         print("bulk_cloud: ", self.bulk_cloud, "  ", file=output)
-        print(
-            "targets_of_opportunity: ", self.targets_of_opportunity, "  ", file=output
-        )
+        print("targets_of_opportunity: ", self.targets_of_opportunity, "  ", file=output)
         print("season_modulo: ", self.season_modulo, "  ", file=output)
         print("season_max_season: ", self.season_max_season, "  ", file=output)
         print("season_length: ", self.season_length, "  ", file=output)
         print("season_floor: ", self.season_floor, "  ", file=output)
-        print(
-            "cumulative_azimuth_rad: ", self.cumulative_azimuth_rad, "  ", file=output
-        )
+        print("cumulative_azimuth_rad: ", self.cumulative_azimuth_rad, "  ", file=output)
 
         positions = [
             {

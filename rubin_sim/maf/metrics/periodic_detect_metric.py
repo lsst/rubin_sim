@@ -1,8 +1,10 @@
 import numpy as np
-from .base_metric import BaseMetric
-from rubin_sim.maf.utils import m52snr
-import rubin_sim.utils as utils
 import scipy
+
+import rubin_sim.utils as utils
+from rubin_sim.maf.utils import m52snr
+
+from .base_metric import BaseMetric
 
 __all__ = ["PeriodicDetectMetric"]
 
@@ -45,7 +47,7 @@ class PeriodicDetectMetric(BaseMetric):
         star_mags=20,
         sig_level=0.05,
         sed_template="F",
-        **kwargs
+        **kwargs,
     ):
         self.mjd_col = mjd_col
         self.m5_col = m5_col
@@ -66,7 +68,7 @@ class PeriodicDetectMetric(BaseMetric):
             [mjd_col, m5_col, filter_col],
             metric_name=metric_name,
             units="N Detected (0, %i)" % np.size(periods),
-            **kwargs
+            **kwargs,
         )
 
     def run(self, data_slice, slice_point=None):
@@ -84,18 +86,13 @@ class PeriodicDetectMetric(BaseMetric):
         u_filters = np.unique(data_slice[self.filter_col])
 
         if n_pts > p2:
-            for period, starMag, amplitude in zip(
-                self.periods, self.star_mags, self.amplitudes
-            ):
+            for period, starMag, amplitude in zip(self.periods, self.star_mags, self.amplitudes):
                 chi_sq_1 = 0
                 mags = utils.stellar_mags(self.sed_template, rmag=starMag)
                 for filtername in u_filters:
                     in_filt = np.where(data_slice[self.filter_col] == filtername)[0]
                     lc = (
-                        amplitude
-                        * np.sin(
-                            data_slice[self.mjd_col][in_filt] * (np.pi * 2) / period
-                        )
+                        amplitude * np.sin(data_slice[self.mjd_col][in_filt] * (np.pi * 2) / period)
                         + mags[filtername]
                     )
                     snr = m52snr(lc, data_slice[self.m5_col][in_filt])

@@ -1,6 +1,6 @@
 import numpy as np
-from rubin_sim.phot_utils import Bandpass
 
+from rubin_sim.phot_utils import Bandpass
 
 __all__ = ["get_imsim_flux_norm"]
 
@@ -47,10 +47,6 @@ def get_imsim_flux_norm(sed, magmatch):
             + "(Covers %e < lambda %e)" % (sed.wavelen.min(), sed.wavelen.max())
         )
 
-    mag = (
-        -2.5
-        * np.log10(np.interp(get_imsim_flux_norm.imsim_wavelen, sed.wavelen, sed.fnu))
-        - sed.zp
-    )
+    mag = -2.5 * np.log10(np.interp(get_imsim_flux_norm.imsim_wavelen, sed.wavelen, sed.fnu)) - sed.zp
     dmag = magmatch - mag
     return np.power(10, (-0.4 * dmag))

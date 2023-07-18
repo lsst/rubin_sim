@@ -1,12 +1,15 @@
 """Sets of slew metrics.
 """
 import warnings
+
 import numpy as np
+
+import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metric_bundles as mb
+
 from .col_map_dict import col_map_dict
-from .common import standard_metrics, combine_info_labels
+from .common import combine_info_labels, standard_metrics
 
 __all__ = ["slewBasics", "slewAngles", "slewSpeeds", "slewActivities"]
 
@@ -50,9 +53,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
     metric = metrics.CountMetric(colmap["slewtime"], metric_name="Slew Count")
     displayDict["caption"] = "Total number of slews recorded in summary table."
     displayDict["order"] += 1
-    bundle = mb.MetricBundle(
-        metric, slicer, sqlConstraint, info_label=info_label, display_dict=displayDict
-    )
+    bundle = mb.MetricBundle(metric, slicer, sqlConstraint, info_label=info_label, display_dict=displayDict)
     bundleList.append(bundle)
     for metric in standard_metrics(colmap["slewtime"]):
         displayDict["caption"] = "%s in seconds." % (metric.name)
@@ -68,9 +69,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
 
     # Slew Time histogram.
     slicer = slicers.OneDSlicer(slice_col_name=colmap["slewtime"], bin_size=2)
-    metric = metrics.CountMetric(
-        col=colmap["slewtime"], metric_name="Slew Time Histogram"
-    )
+    metric = metrics.CountMetric(col=colmap["slewtime"], metric_name="Slew Time Histogram")
     info_label = "All visits"
     plotDict = {"log_scale": True, "ylabel": "Count"}
     displayDict["caption"] = "Histogram of slew times (seconds) for all visits."
@@ -85,12 +84,8 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
     )
     bundleList.append(bundle)
     # Zoom in on slew time histogram near 0.
-    slicer = slicers.OneDSlicer(
-        slice_col_name=colmap["slewtime"], bin_size=0.2, bin_min=0, bin_max=20
-    )
-    metric = metrics.CountMetric(
-        col=colmap["slewtime"], metric_name="Zoom Slew Time Histogram"
-    )
+    slicer = slicers.OneDSlicer(slice_col_name=colmap["slewtime"], bin_size=0.2, bin_min=0, bin_max=20)
+    metric = metrics.CountMetric(col=colmap["slewtime"], metric_name="Zoom Slew Time Histogram")
     info_label = "All visits"
     plotDict = {"log_scale": True, "ylabel": "Count"}
     displayDict["caption"] = "Histogram of slew times (seconds) for all visits (zoom)."
@@ -110,12 +105,8 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
         bin_size = 2.0
         if not colmap["raDecDeg"]:
             bin_size = np.radians(bin_size)
-        slicer = slicers.OneDSlicer(
-            slice_col_name=colmap["slewdist"], bin_size=bin_size
-        )
-        metric = metrics.CountMetric(
-            col=colmap["slewdist"], metric_name="Slew Distance Histogram"
-        )
+        slicer = slicers.OneDSlicer(slice_col_name=colmap["slewdist"], bin_size=bin_size)
+        metric = metrics.CountMetric(col=colmap["slewdist"], metric_name="Slew Distance Histogram")
         plotDict = {"log_scale": True, "ylabel": "Count"}
         displayDict["caption"] = "Histogram of slew distances (angle) for all visits."
         displayDict["order"] += 1
@@ -138,9 +129,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
             bin_min=0,
             bin_max=bin_max,
         )
-        metric = metrics.CountMetric(
-            col=colmap["slewdist"], metric_name="Zoom Slew Distance Histogram"
-        )
+        metric = metrics.CountMetric(col=colmap["slewdist"], metric_name="Zoom Slew Distance Histogram")
         plotDict = {"log_scale": True, "ylabel": "Count"}
         displayDict["caption"] = "Histogram of slew distances (angle) for all visits."
         displayDict["order"] += 1
@@ -286,9 +275,7 @@ def slewSpeeds(colmap=None, runName="opsim", sqlConstraint=None):
         bundleList.append(bundle)
 
         metric = metrics.AbsMaxPercentMetric(col=colmap[speed], metric_name="% @ Max")
-        displayDict["caption"] = (
-            "Percent of slews at the maximum %s (absolute value)." % speed
-        )
+        displayDict["caption"] = "Percent of slews at the maximum %s (absolute value)." % speed
         displayDict["order"] += 1
         bundle = mb.MetricBundle(
             metric,
@@ -331,9 +318,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
     metric_bundleDict
     """
     if totalSlewN == 1:
-        warnings.warn(
-            "TotalSlewN should be set (using 1). Percents from activities may be incorrect."
-        )
+        warnings.warn("TotalSlewN should be set (using 1). Percents from activities may be incorrect.")
 
     if colmap is None:
         colmap = col_map_dict("opsimV4")
@@ -343,9 +328,7 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
     slicer = slicers.UniSlicer()
 
     if "slewactivities" not in colmap:
-        raise ValueError(
-            "List of slewactivities not in colmap! Will not create slewActivities bundles."
-        )
+        raise ValueError("List of slewactivities not in colmap! Will not create slewActivities bundles.")
 
     slewTypeDict = colmap["slewactivities"]
 
@@ -369,35 +352,23 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
         metric = metrics.CountRatioMetric(
             col="activityDelay", norm_val=totalSlewN / 100.0, metric_name="ActivePerc"
         )
-        displayDict["caption"] = (
-            "Percent of total slews which include %s movement." % slewType
-        )
+        displayDict["caption"] = "Percent of total slews which include %s movement." % slewType
         displayDict["order"] += 1
-        bundle = mb.MetricBundle(
-            metric, slicer, sql, display_dict=displayDict, info_label=info_label
-        )
+        bundle = mb.MetricBundle(metric, slicer, sql, display_dict=displayDict, info_label=info_label)
         bundleList.append(bundle)
 
         # Mean time for this activity, in all slews.
         metric = metrics.MeanMetric(col="activityDelay", metric_name="Ave T(s)")
-        displayDict[
-            "caption"
-        ] = "Mean amount of time (in seconds) for %s movements." % (slewType)
+        displayDict["caption"] = "Mean amount of time (in seconds) for %s movements." % (slewType)
         displayDict["order"] += 1
-        bundle = mb.MetricBundle(
-            metric, slicer, sql, display_dict=displayDict, info_label=info_label
-        )
+        bundle = mb.MetricBundle(metric, slicer, sql, display_dict=displayDict, info_label=info_label)
         bundleList.append(bundle)
 
         # Maximum time for this activity, in all slews.
         metric = metrics.MaxMetric(col="activityDelay", metric_name="Max T(s)")
-        displayDict["caption"] = "Max amount of time (in seconds) for %s movement." % (
-            slewType
-        )
+        displayDict["caption"] = "Max amount of time (in seconds) for %s movement." % (slewType)
         displayDict["order"] += 1
-        bundle = mb.MetricBundle(
-            metric, slicer, sql, display_dict=displayDict, info_label=info_label
-        )
+        bundle = mb.MetricBundle(metric, slicer, sql, display_dict=displayDict, info_label=info_label)
         bundleList.append(bundle)
 
         # Metrics for activities of this type which are in the critical path.
@@ -411,42 +382,29 @@ def slewActivities(colmap=None, runName="opsim", totalSlewN=1, sqlConstraint=Non
             norm_val=totalSlewN / 100.0,
             metric_name="ActivePerc in crit",
         )
-        displayDict["caption"] = (
-            "Percent of total slew which include %s movement, "
-            "and are in critical path." % (slewType)
-        )
+        displayDict[
+            "caption"
+        ] = "Percent of total slew which include %s movement, " "and are in critical path." % (slewType)
         displayDict["order"] += 1
-        bundle = mb.MetricBundle(
-            metric, slicer, sql, display_dict=displayDict, info_label=info_label
-        )
+        bundle = mb.MetricBundle(metric, slicer, sql, display_dict=displayDict, info_label=info_label)
         bundleList.append(bundle)
 
         # Mean time for slews which include this activity, in the critical path.
         metric = metrics.MeanMetric(col="activityDelay", metric_name="Ave T(s) in crit")
-        displayDict[
-            "caption"
-        ] = "Mean time (in seconds) for %s movements, " "when in critical path." % (
+        displayDict["caption"] = "Mean time (in seconds) for %s movements, " "when in critical path." % (
             slewType
         )
         displayDict["order"] += 1
-        bundle = mb.MetricBundle(
-            metric, slicer, sql, display_dict=displayDict, info_label=info_label
-        )
+        bundle = mb.MetricBundle(metric, slicer, sql, display_dict=displayDict, info_label=info_label)
         bundleList.append(bundle)
 
         # Total time that this activity was in the critical path.
-        metric = metrics.SumMetric(
-            col="activityDelay", metric_name="Total T(s) in crit"
-        )
-        displayDict[
-            "caption"
-        ] = "Total time (in seconds) for %s movements, " "when in critical path." % (
+        metric = metrics.SumMetric(col="activityDelay", metric_name="Total T(s) in crit")
+        displayDict["caption"] = "Total time (in seconds) for %s movements, " "when in critical path." % (
             slewType
         )
         displayDict["order"] += 1
-        bundle = mb.MetricBundle(
-            metric, slicer, sql, display_dict=displayDict, info_label=info_label
-        )
+        bundle = mb.MetricBundle(metric, slicer, sql, display_dict=displayDict, info_label=info_label)
         bundleList.append(bundle)
 
     for b in bundleList:

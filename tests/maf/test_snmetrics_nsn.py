@@ -1,7 +1,9 @@
-import unittest
 import os
+import unittest
+
 import numpy as np
 import pandas as pd
+
 import rubin_sim.maf as maf
 from rubin_sim.data import get_data_dir
 
@@ -10,9 +12,7 @@ class TestSNmetrics(unittest.TestCase):
     def setUp(self):
         # Make sure we can read SN lightcurve and reference info
         if not os.path.isdir(os.path.join(get_data_dir(), "maf")):
-            self.skipTest(
-                "Skipping SN tests because running unit tests without full rubin_sim_data."
-            )
+            self.skipTest("Skipping SN tests because running unit tests without full rubin_sim_data.")
         # Read test point data
         testfile = os.path.join(get_data_dir(), "tests", "test_simData.hdf")
         if not os.path.isfile(testfile):
@@ -55,23 +55,15 @@ class TestSNmetrics(unittest.TestCase):
         # Very few visits
         expected["sparse_pointing"] = metric.badval
         # Very dense pointing
-        expected["dense_pointing"] = np.rec.fromrecords(
-            [(5.158324, 0.276509)], names=["nSN", "zlim"]
-        )
+        expected["dense_pointing"] = np.rec.fromrecords([(5.158324, 0.276509)], names=["nSN", "zlim"])
         # These are of the same point on the sky, with/without DD fields - they should be the same
         # as the metric rejects DD visits internally---XXX except now the metric does
         # not reject visits based on notes, so not sure why these still pass fine.
 
-        expected["one_season_noDD"] = np.rec.fromrecords(
-            [(0.870031, 0.289703)], names=["nSN", "zlim"]
-        )
-        expected["one_season_wDD"] = np.rec.fromrecords(
-            [(0.870031, 0.289703)], names=["nSN", "zlim"]
-        )
+        expected["one_season_noDD"] = np.rec.fromrecords([(0.870031, 0.289703)], names=["nSN", "zlim"])
+        expected["one_season_wDD"] = np.rec.fromrecords([(0.870031, 0.289703)], names=["nSN", "zlim"])
         # Here we muddle with the visit exposure time (without changing m5)
-        expected["one_season_singleExp_20"] = np.rec.fromrecords(
-            [(0.879159, 0.29006)], names=["nSN", "zlim"]
-        )
+        expected["one_season_singleExp_20"] = np.rec.fromrecords([(0.879159, 0.29006)], names=["nSN", "zlim"])
         # Here we muddle with the number of visits per exposure, without changing m5 or visitExpTime
         expected["one_season_singleExp_30"] = np.rec.fromrecords(
             [(0.870031, 0.289703)], names=["nSN", "zlim"]

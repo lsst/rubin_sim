@@ -1,5 +1,7 @@
 import numpy as np
+
 from rubin_sim.phot_utils import DustValues
+
 from .base_metric import BaseMetric
 
 __all__ = ["AgnTimeLagMetric"]

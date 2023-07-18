@@ -1,4 +1,5 @@
 import numpy as np
+
 from .base_metric import BaseMetric
 
 __all__ = ["PairMetric"]
@@ -16,7 +17,7 @@ class PairMetric(BaseMetric):
         match_min=20.0,
         match_max=40.0,
         bin_size=5.0,
-        **kwargs
+        **kwargs,
     ):
         """
         Parameters
@@ -32,9 +33,7 @@ class PairMetric(BaseMetric):
         self.bin_size = bin_size / 60.0 / 24.0
         self.match_min = match_min / 60.0 / 24.0
         self.match_max = match_max / 60.0 / 24.0
-        super(PairMetric, self).__init__(
-            col=mjd_col, metric_name=metric_name, units="N Pairs", **kwargs
-        )
+        super(PairMetric, self).__init__(col=mjd_col, metric_name=metric_name, units="N Pairs", **kwargs)
 
     def run(self, data_slice, slice_point=None):
         bins = np.arange(

@@ -1,16 +1,17 @@
 import os
-import numpy as np
-import healpy as hp
 import warnings
-from astropy.coordinates import SkyCoord
+
 import astropy.units as u
-from rubin_sim.utils import angular_separation
-from rubin_sim import data as rs_data
-import rubin_sim.utils as rs_utils
+import healpy as hp
+import numpy as np
+from astropy.coordinates import SkyCoord
 from numpy.lib import recfunctions as rfn
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
+import rubin_sim.utils as rs_utils
+from rubin_sim import data as rs_data
+from rubin_sim.utils import angular_separation
 
 __all__ = ["SkyAreaGenerator", "SkyAreaGeneratorGalplane", "EuclidOverlapFootprint"]
 
@@ -237,9 +238,7 @@ class SkyAreaGenerator:
 
     def add_virgo_cluster(self, filter_ratios, label="virgo"):
         temp_map = np.zeros(hp.nside2npix(self.nside))
-        temp_map += self._set_circular_region(
-            self.virgo_ra, self.virgo_dec, self.virgo_radius
-        )
+        temp_map += self._set_circular_region(self.virgo_ra, self.virgo_dec, self.virgo_radius)
         # Don't overide any pixels that have already been designated
         indx = np.where((temp_map > 0) & (self.pix_labels == ""))
         self.pix_labels[indx] = label
@@ -264,8 +263,7 @@ class SkyAreaGenerator:
         mc_dec_min = self.dec[np.where(temp_map > 0)].min()
         mc_dec_max = self.dec[np.where(temp_map > 0)].max()
         temp_map += np.where(
-            ((self.ra > smc_ra) & (self.ra < lmc_ra))
-            & ((self.dec > mc_dec_min) & (self.dec < mc_dec_max)),
+            ((self.ra > smc_ra) & (self.ra < lmc_ra)) & ((self.dec > mc_dec_min) & (self.dec < mc_dec_max)),
             1,
             0,
         )
@@ -291,9 +289,7 @@ class SkyAreaGenerator:
             gal_long1=self.gal_long1,
             gal_long2=self.gal_long2,
         )
-        b2 = self._set_bulge_rectangle(
-            self.gal_lat_width_max, self.gal_long1, self.gal_long2
-        )
+        b2 = self._set_bulge_rectangle(self.gal_lat_width_max, self.gal_long1, self.gal_long2)
         b2[np.where(self.gal_lat > 0)] = 0
 
         bulge = b1 + b2
@@ -306,9 +302,7 @@ class SkyAreaGenerator:
 
     def add_lowdust_wfd(self, filter_ratios, label="lowdust"):
         dustfree = np.where(
-            (self.dec > self.low_dust_dec_min)
-            & (self.dec < self.low_dust_dec_max)
-            & (self.low_dust == 1),
+            (self.dec > self.low_dust_dec_min) & (self.dec < self.low_dust_dec_max) & (self.low_dust == 1),
             1,
             0,
         )
@@ -317,8 +311,7 @@ class SkyAreaGenerator:
 
         if self.adjust_halves > 0:
             dustfree = np.where(
-                (self.gal_lat < 0)
-                & (self.dec > self.low_dust_dec_max - self.adjust_halves),
+                (self.gal_lat < 0) & (self.dec > self.low_dust_dec_max - self.adjust_halves),
                 0,
                 dustfree,
             )
@@ -330,11 +323,7 @@ class SkyAreaGenerator:
 
     def add_dusty_plane(self, filter_ratios, label="dusty_plane"):
         dusty = np.where(
-            (
-                (self.dec > self.dusty_dec_min)
-                & (self.dec < self.dusty_dec_max)
-                & (self.low_dust == 0)
-            ),
+            ((self.dec > self.dusty_dec_min) & (self.dec < self.dusty_dec_max) & (self.low_dust == 0)),
             1,
             0,
         )
@@ -547,9 +536,7 @@ class SkyAreaGeneratorGalplane(SkyAreaGenerator):
         dt = list(zip(["u", "g", "r", "i", "z", "y"], [float] * 7))
         self.healmaps = np.zeros(hp.nside2npix(self.nside), dtype=dt)
 
-        self.add_magellanic_clouds(
-            magellenic_clouds_ratios, lmc_ra=lmc_ra, lmc_dec=lmc_dec
-        )
+        self.add_magellanic_clouds(magellenic_clouds_ratios, lmc_ra=lmc_ra, lmc_dec=lmc_dec)
         self.add_lowdust_wfd(low_dust_ratios)
         self.add_virgo_cluster(virgo_ratios)
         self.add_bulgy(bulge_ratios)
@@ -640,9 +627,7 @@ class EuclidOverlapFootprint(SkyAreaGeneratorGalplane):
 
         # Note, order here matters. Once a HEALpix is set and labled, subsequent add_ methods
         # will not override that pixel.
-        self.add_magellanic_clouds(
-            magellenic_clouds_ratios, lmc_ra=lmc_ra, lmc_dec=lmc_dec
-        )
+        self.add_magellanic_clouds(magellenic_clouds_ratios, lmc_ra=lmc_ra, lmc_dec=lmc_dec)
         self.add_lowdust_wfd(low_dust_ratios)
         self.add_virgo_cluster(virgo_ratios)
         self.add_bulgy(bulge_ratios)

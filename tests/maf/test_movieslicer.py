@@ -1,9 +1,11 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import numpy as np
-import warnings
 import unittest
+import warnings
+
+import numpy as np
+
 from rubin_sim.maf.slicers import MovieSlicer, UniSlicer
 
 
@@ -23,9 +25,7 @@ def make_times(size=100, min=0.0, max=10.0, random=-1):
 
 class TestMovieSlicerSetup(unittest.TestCase):
     def setUp(self):
-        self.testslicer = MovieSlicer(
-            slice_col_name="times", cumulative=False, force_no_ffmpeg=True
-        )
+        self.testslicer = MovieSlicer(slice_col_name="times", cumulative=False, force_no_ffmpeg=True)
 
     def tearDown(self):
         del self.testslicer
@@ -33,9 +33,7 @@ class TestMovieSlicerSetup(unittest.TestCase):
 
     def test_slicertype(self):
         """Test instantiation of slicer sets slicer type as expected."""
-        self.assertEqual(
-            self.testslicer.slicer_name, self.testslicer.__class__.__name__
-        )
+        self.assertEqual(self.testslicer.slicer_name, self.testslicer.__class__.__name__)
         self.assertEqual(self.testslicer.slicer_name, "MovieSlicer")
 
     def test_setup_slicer_bins(self):
@@ -153,9 +151,7 @@ class TestMovieSlicerSetup(unittest.TestCase):
         self.testslicer.setup_slicer(dv)
         # Set up another slicer to match (same bins, although not the same data).
         dv2 = make_times(nvalues + 100, dvmin, dvmax, random=56221)
-        testslicer2 = MovieSlicer(
-            slice_col_name="times", bins=bins, cumulative=False, force_no_ffmpeg=True
-        )
+        testslicer2 = MovieSlicer(slice_col_name="times", bins=bins, cumulative=False, force_no_ffmpeg=True)
         testslicer2.setup_slicer(dv2)
         self.assertEqual(self.testslicer, testslicer2)
         # Set up another slicer that should not match (different bins)
@@ -199,9 +195,7 @@ class TestMovieSlicerSetup(unittest.TestCase):
                 if len(data_slice) > 0:
                     self.assertEqual(len(data_slice), nvalues / float(nbins))
                 else:
-                    raise ValueError(
-                        "Data in test case expected to always be > 0 len after slicing"
-                    )
+                    raise ValueError("Data in test case expected to always be > 0 len after slicing")
             self.assertEqual(sum, nvalues)
             # And cumulative case.
             self.testslicer = MovieSlicer(

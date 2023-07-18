@@ -1,9 +1,11 @@
 import os
 import sqlite3
+import warnings
+
 import numpy as np
 from astropy.time import Time, TimeDelta
+
 from rubin_sim.data import get_data_dir
-import warnings
 
 __all__ = ["ScheduledDowntimeData"]
 
@@ -27,20 +29,16 @@ class ScheduledDowntimeData(object):
         Default 0.16 (UTC midnight in Chile) - 0.5 (minus half a day) = -0.34
     """
 
-    def __init__(
-        self, start_time, scheduled_downtime_db=None, start_of_night_offset=-0.34
-    ):
+    def __init__(self, start_time, scheduled_downtime_db=None, start_of_night_offset=-0.34):
         self.scheduled_downtime_db = scheduled_downtime_db
         if self.scheduled_downtime_db is None:
-            self.scheduled_downtime_db = os.path.join(
-                get_data_dir(), "site_models", "scheduled_downtime.db"
-            )
+            self.scheduled_downtime_db = os.path.join(get_data_dir(), "site_models", "scheduled_downtime.db")
 
         # downtime database starts in Jan 01 of the year of the start of the simulation.
         year_start = start_time.datetime.year
-        self.night0 = Time(
-            "%d-01-01" % year_start, format="isot", scale="tai"
-        ) + TimeDelta(start_of_night_offset, format="jd")
+        self.night0 = Time("%d-01-01" % year_start, format="isot", scale="tai") + TimeDelta(
+            start_of_night_offset, format="jd"
+        )
 
         # Scheduled downtime data is a np.ndarray of start / end / activity for each scheduled downtime.
         self.downtime = None

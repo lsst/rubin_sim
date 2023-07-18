@@ -1,12 +1,13 @@
-import numpy as np
-import healpy as hp
-import warnings
-from scipy.stats import binned_statistic
-from rubin_sim.utils import int_binned_stat, SysEngVals
-from rubin_sim.phot_utils import Bandpass, PhotometricParameters
-from rubin_sim.data import get_data_dir
 import os
+import warnings
 
+import healpy as hp
+import numpy as np
+from scipy.stats import binned_statistic
+
+from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import Bandpass, PhotometricParameters
+from rubin_sim.utils import SysEngVals, int_binned_stat
 
 __all__ = [
     "optimal_bins",
@@ -23,13 +24,9 @@ def load_inst_zeropoints():
     datadir = get_data_dir()
     for filtername in "ugrizy":
         # set gain and exptime to 1 so the instrumental zeropoint will be in photoelectrons and per second
-        phot_params = PhotometricParameters(
-            nexp=1, gain=1, exptime=1, bandpass=filtername
-        )
+        phot_params = PhotometricParameters(nexp=1, gain=1, exptime=1, bandpass=filtername)
         bp = Bandpass()
-        bp.read_throughput(
-            os.path.join(datadir, "throughputs/baseline/", "total_%s.dat" % filtername)
-        )
+        bp.read_throughput(os.path.join(datadir, "throughputs/baseline/", "total_%s.dat" % filtername))
         zp_inst[filtername] = bp.calc_zp_t(phot_params)
 
     syseng = SysEngVals()
@@ -122,8 +119,7 @@ def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1):
     if data.size == 0:
         nbins = nbin_max
         warnings.warn(
-            "No unmasked data available for calculating optimal bin size: returning %i bins"
-            % (nbins)
+            "No unmasked data available for calculating optimal bin size: returning %i bins" % (nbins)
         )
     # Else proceed.
     else:
@@ -136,8 +132,7 @@ def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1):
         if np.size(data[cond]) == 0:
             nbins = nbin_max
             warnings.warn(
-                "No data available for calculating optimal bin size within range of %f, %f"
-                % (binmin, binmax)
+                "No data available for calculating optimal bin size within range of %f, %f" % (binmin, binmax)
                 + ": returning %i bins" % (nbins)
             )
         else:
@@ -146,20 +141,16 @@ def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1):
             nbins = (binmax - binmin) / binwidth
             if nbins > nbin_max:
                 warnings.warn(
-                    "Optimal bin calculation tried to make %.0f bins, returning %i"
-                    % (nbins, nbin_max)
+                    "Optimal bin calculation tried to make %.0f bins, returning %i" % (nbins, nbin_max)
                 )
                 nbins = nbin_max
             if nbins < nbin_min:
                 warnings.warn(
-                    "Optimal bin calculation tried to make %.0f bins, returning %i"
-                    % (nbins, nbin_min)
+                    "Optimal bin calculation tried to make %.0f bins, returning %i" % (nbins, nbin_min)
                 )
                 nbins = nbin_min
     if np.isnan(nbins):
-        warnings.warn(
-            "Optimal bin calculation calculated NaN: returning %i" % (nbin_max)
-        )
+        warnings.warn("Optimal bin calculation calculated NaN: returning %i" % (nbin_max))
         nbins = nbin_max
     return int(nbins)
 

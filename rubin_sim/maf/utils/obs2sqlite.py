@@ -1,11 +1,13 @@
-import numpy as np
-import pandas as pd
-from rubin_sim.skybrightness import SkyModel
-import rubin_sim.skybrightness_pre as sb
-from rubin_sim.utils import raDec2Hpid, m5_flat_sed, Site, _approx_ra_dec2_alt_az
-import healpy as hp
 import sqlite3
 import sys
+
+import healpy as hp
+import numpy as np
+import pandas as pd
+
+import rubin_sim.skybrightness_pre as sb
+from rubin_sim.skybrightness import SkyModel
+from rubin_sim.utils import Site, _approx_ra_dec2_alt_az, m5_flat_sed, raDec2Hpid
 
 __all__ = ["obs2sqlite"]
 
@@ -109,9 +111,7 @@ def obs2sqlite(
 
     # Fill in the airmass
     if "airmass" not in in_cols:
-        observations["airmass"] = 1.0 / np.cos(
-            np.pi / 2.0 - np.radians(observations["alt"])
-        )
+        observations["airmass"] = 1.0 / np.cos(np.pi / 2.0 - np.radians(observations["alt"]))
 
     # Fill in the seeing
     if "seeing" not in in_cols:
@@ -133,9 +133,7 @@ def obs2sqlite(
             imax = float(np.size(observations))
             for i, obs in enumerate(observations):
                 indx = raDec2Hpid(nside, obs["ra"], obs["dec"])
-                observations["skybrightness"][i] = sm.return_mags(
-                    obs["mjd"], indx=[indx]
-                )[obs["filter"]]
+                observations["skybrightness"][i] = sm.return_mags(obs["mjd"], indx=[indx])[obs["filter"]]
                 sun_moon = sm.returnSunMoon(obs["mjd"])
                 observations["sunAlt"][i] = sun_moon["sunAlt"]
                 observations["moonAlt"][i] = sun_moon["moonAlt"]

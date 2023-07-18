@@ -1,8 +1,9 @@
 # Example of a new metric added to the repo.
 # ljones@astro.washington.edu
 
-from rubin_sim.maf.metrics import BaseMetric
 import numpy as np
+
+from rubin_sim.maf.metrics import BaseMetric
 
 __all__ = ["NightsWithNFiltersMetric"]
 
@@ -19,9 +20,7 @@ class NightsWithNFiltersMetric(BaseMetric):
         self.night_col = night_col
         self.filter_col = filter_col
         self.n_filters = n_filters
-        super(NightsWithNFiltersMetric, self).__init__(
-            col=[self.night_col, self.filter_col], **kwargs
-        )
+        super(NightsWithNFiltersMetric, self).__init__(col=[self.night_col, self.filter_col], **kwargs)
 
     def run(self, data_slice, slice_point=None):
         count = 0

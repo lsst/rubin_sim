@@ -1,6 +1,8 @@
 import unittest
-import rubin_sim.utils as utils
+
 import numpy as np
+
+import rubin_sim.utils as utils
 
 
 class StellarMagsTest(unittest.TestCase):
@@ -29,8 +31,7 @@ class StellarMagsTest(unittest.TestCase):
             for fn in filter_names:
                 self.assertIn(fn, result)
                 self.assertTrue(
-                    (isinstance(result[fn], float))
-                    | (isinstance(result[fn], np.float64)),
+                    (isinstance(result[fn], float)) | (isinstance(result[fn], np.float64)),
                     msg="result is neither a float nor a numpy float64",
                 )
 

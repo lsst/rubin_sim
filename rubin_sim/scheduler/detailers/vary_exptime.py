@@ -1,7 +1,8 @@
-from rubin_sim.scheduler.detailers import BaseDetailer
-from rubin_sim.utils import ra_dec2_hpid, m5_flat_sed
-import numpy as np
 import healpy as hp
+import numpy as np
+
+from rubin_sim.scheduler.detailers import BaseDetailer
+from rubin_sim.utils import m5_flat_sed, ra_dec2_hpid
 
 __all__ = ["VaryExptDetailer", "calc_target_m5s"]
 
@@ -26,17 +27,13 @@ def calc_target_m5s(alt=65.0, fiducial_seeing=0.9, exptime=20.0):
     import rubin_sim.skybrightness as sb
 
     sm = sb.SkyModel(moon=False, twilight=False, mags=True)
-    sm.set_ra_dec_mjd(
-        np.array([0.0]), np.array([alt]), 49353.177645, degrees=True, azAlt=True
-    )
+    sm.set_ra_dec_mjd(np.array([0.0]), np.array([alt]), 49353.177645, degrees=True, azAlt=True)
     sky_mags = sm.return_mags()
     airmass = 1.0 / np.cos(np.pi / 2.0 - np.radians(alt))
 
     goal_m5 = {}
     for filtername in sky_mags:
-        goal_m5[filtername] = m5_flat_sed(
-            filtername, sky_mags[filtername], fiducial_seeing, exptime, airmass
-        )
+        goal_m5[filtername] = m5_flat_sed(filtername, sky_mags[filtername], fiducial_seeing, exptime, airmass)
 
     return goal_m5
 
@@ -92,10 +89,7 @@ class VaryExptDetailer(BaseDetailer):
         new_expts = np.zeros(obs_array.size, dtype=float)
         for filtername in np.unique(obs_array["filter"]):
             in_filt = np.where(obs_array["filter"] == filtername)
-            delta_m5 = (
-                self.target_m5[filtername]
-                - conditions.M5Depth[filtername][hpids[in_filt]]
-            )
+            delta_m5 = self.target_m5[filtername] - conditions.M5Depth[filtername][hpids[in_filt]]
             # We can get NaNs because dithering pushes the center of the pointing into masked regions.
             nan_indices = np.argwhere(np.isnan(delta_m5)).ravel()
             for indx in nan_indices:

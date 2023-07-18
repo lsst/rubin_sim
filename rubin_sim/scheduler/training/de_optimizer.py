@@ -283,30 +283,18 @@ class DeOptimizer(object):
                 print("Warm start: DE starts with a previously evolved population")
 
         except:
-            print(
-                "No previous generation is available, DE starts with a random initialization"
-            )
+            print("No previous generation is available, DE starts with a random initialization")
             self.load_candidate_solution = False
 
     def print_ind(self, ind_index, score, indiv, refined_indiv):
         # print("{}: Objective: {},\nCandidate: {},\nRefined candidate: {}".format(ind_index +1, score, indiv, refined_indiv))
-        print(
-            "{}: Objective: {},\nCandidate: {}".format(
-                ind_index + 1, -1.0 * score, indiv
-            )
-        )
+        print("{}: Objective: {},\nCandidate: {}".format(ind_index + 1, -1.0 * score, indiv))
         with open("Output/Output.txt", "a") as text_file:
-            text_file.write(
-                "{}: Objective: {},\nCandidate: {}\n".format(
-                    ind_index + 1, -1.0 * score, indiv
-                )
-            )
+            text_file.write("{}: Objective: {},\nCandidate: {}\n".format(ind_index + 1, -1.0 * score, indiv))
             text_file.close()
 
     def print_status(self):
-        print(
-            "********************************************************************************************"
-        )
+        print("********************************************************************************************")
         print(
             "iter {}:best performance: {}, best candidate no.: {}\nbest candidate: {}".format(
                 self.count, self.best_val * -1, self.best_index + 1, self.best_ind
@@ -343,9 +331,7 @@ class DeOptimizer(object):
         with open("Output/Output.txt", "a") as text_file:
             text_file.write("\n* Problem Specifications\n")
             text_file.close()
-            text_file.write(
-                "Date           : {}\n".format(self.evaluator.scheduler.Date)
-            )
+            text_file.write("Date           : {}\n".format(self.evaluator.scheduler.Date))
             text_file.close()
             text_file.write("Preferences    : {}\n".format(self.evaluator.pref))
             text_file.close()

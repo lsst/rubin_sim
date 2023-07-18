@@ -1,8 +1,10 @@
-import numpy as np
 import unittest
+
+import numpy as np
+
 import rubin_sim.scheduler.basis_functions as basis_functions
-from rubin_sim.scheduler.utils import empty_observation
 from rubin_sim.scheduler.features import Conditions
+from rubin_sim.scheduler.utils import empty_observation
 
 
 class TestBasis(unittest.TestCase):

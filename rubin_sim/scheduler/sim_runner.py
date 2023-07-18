@@ -1,11 +1,13 @@
-import warnings
-import sys
-import numpy as np
-from rubin_sim.scheduler.utils import run_info_table, SchemaConverter
-from rubin_sim.scheduler.schedulers import SimpleFilterSched
-import time
 import sqlite3
+import sys
+import time
+import warnings
+
+import numpy as np
 import pandas as pd
+
+from rubin_sim.scheduler.schedulers import SimpleFilterSched
+from rubin_sim.scheduler.utils import SchemaConverter, run_info_table
 
 __all__ = ["sim_runner"]
 
@@ -98,9 +100,7 @@ def sim_runner(
         else:
             # An observation failed to execute, usually it was outside the altitude limits.
             if observatory.mjd == mjd_last_flush:
-                raise RuntimeError(
-                    "Scheduler has failed to provide a valid observation multiple times."
-                )
+                raise RuntimeError("Scheduler has failed to provide a valid observation multiple times.")
             # if this is a first offence, might just be that targets set. Flush queue and get some new targets.
             scheduler.flush_queue()
             mjd_last_flush = observatory.mjd + 0
@@ -136,9 +136,7 @@ def sim_runner(
         if filename is not None:
             info = run_info_table(observatory, extra_info=extra_info)
             converter = SchemaConverter()
-            converter.obs2opsim(
-                observations, filename=filename, info=info, delete_past=delete_past
-            )
+            converter.obs2opsim(observations, filename=filename, info=info, delete_past=delete_past)
         if event_table is not None:
             df = pd.DataFrame(event_table)
             con = sqlite3.connect(filename)

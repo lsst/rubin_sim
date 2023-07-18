@@ -1,9 +1,11 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import numpy as np
-import healpy as hp
 import unittest
+
+import healpy as hp
+import numpy as np
+
 import rubin_sim.maf.metrics as metrics
 
 

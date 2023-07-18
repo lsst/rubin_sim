@@ -51,11 +51,13 @@ new wavelen/sb arrays (wavelength sampled like self)
 * writeThroughput : utility to write bandpass information to file
 
 """
+import gzip
 import os
 import warnings
+
 import numpy
 import scipy.interpolate as interpolate
-import gzip
+
 from .physical_parameters import PhysicalParameters
 from .sed import Sed  # For ZP_t and M5 calculations. And for 'fast mags' calculation.
 
@@ -98,8 +100,7 @@ class Bandpass(object):
             dif = numpy.diff(self.wavelen)
             if numpy.max(dif) > self.sampling_warning:
                 warnings.warn(
-                    "Wavelength sampling of %.1f nm is > %.1f nm"
-                    % (numpy.max(dif), self.sampling_warning)
+                    "Wavelength sampling of %.1f nm is > %.1f nm" % (numpy.max(dif), self.sampling_warning)
                     + ", this may not work well"
                     " with a Sed object. Consider resampling with resample_bandpass method."
                 )
@@ -111,9 +112,7 @@ class Bandpass(object):
         Phi set to None.
         """
         # Check data type.
-        if (isinstance(wavelen, numpy.ndarray) == False) or (
-            isinstance(sb, numpy.ndarray) == False
-        ):
+        if (isinstance(wavelen, numpy.ndarray) == False) or (isinstance(sb, numpy.ndarray) == False):
             raise ValueError("Wavelen and sb arrays must be numpy arrays.")
         # Check data matches in length.
         if len(wavelen) != len(sb):
@@ -126,9 +125,7 @@ class Bandpass(object):
         self._check_wavelength_sampling()
         return
 
-    def imsim_bandpass(
-        self, imsimwavelen=500.0, wavelen_min=300, wavelen_max=1150, wavelen_step=0.1
-    ):
+    def imsim_bandpass(self, imsimwavelen=500.0, wavelen_min=300, wavelen_max=1150, wavelen_step=0.1):
         """
         Populate bandpass data with sb=0 everywhere except sb=1 at imsimwavelen.
 
@@ -200,9 +197,7 @@ class Bandpass(object):
         self.sb = numpy.array(sb, dtype="float")
         # Check that wavelength is monotonic increasing and non-repeating in wavelength. (Sort on wavelength).
         if len(self.wavelen) != len(numpy.unique(self.wavelen)):
-            raise ValueError(
-                "The wavelength values in file %s are non-unique." % (filename)
-            )
+            raise ValueError("The wavelength values in file %s are non-unique." % (filename))
         # Sort values.
         p = self.wavelen.argsort()
         self.wavelen = self.wavelen[p]
@@ -282,16 +277,12 @@ class Bandpass(object):
             # Then one of the arrays was not passed - check if true for both.
             if (wavelen is not None) or (sb is not None):
                 # Then only one of the arrays was passed - raise exception.
-                raise ValueError(
-                    "Must either pass *both* wavelen/sb pair, or use self defaults"
-                )
+                raise ValueError("Must either pass *both* wavelen/sb pair, or use self defaults")
             # Okay, neither wavelen or sb was passed in - using self only.
             update_self = True
         else:
             # Both of the arrays were passed in - check their validity.
-            if (isinstance(wavelen, numpy.ndarray) == False) or (
-                isinstance(sb, numpy.ndarray) == False
-            ):
+            if (isinstance(wavelen, numpy.ndarray) == False) or (isinstance(sb, numpy.ndarray) == False):
                 raise ValueError("Must pass wavelen/sb as numpy arrays")
             if len(wavelen) != len(sb):
                 raise ValueError("Must pass equal length wavelen/sb arrays")
@@ -322,9 +313,7 @@ class Bandpass(object):
             sb = self.sb
         # Now, on with the resampling.
         if (wavelen.min() > wavelen_max) or (wavelen.max() < wavelen_min):
-            raise Exception(
-                "No overlap between known wavelength range and desired wavelength range."
-            )
+            raise Exception("No overlap between known wavelength range and desired wavelength range.")
         # Set up gridded wavelength.
         wavelen_grid = numpy.arange(
             wavelen_min, wavelen_max + wavelen_step / 2.0, wavelen_step, dtype="float"

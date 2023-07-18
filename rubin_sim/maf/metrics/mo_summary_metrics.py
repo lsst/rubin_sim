@@ -1,5 +1,6 @@
-import numpy as np
 import warnings
+
+import numpy as np
 
 from .mo_metrics import BaseMoMetric
 
@@ -193,14 +194,10 @@ class ValueAtHMetric(BaseMoMetric):
     def run(self, metric_vals, h_vals):
         # Check if desired H value is within range of H values.
         if (self.h_mark < h_vals.min()) or (self.h_mark > h_vals.max()):
-            warnings.warn(
-                "Desired H value of metric outside range of provided H values."
-            )
+            warnings.warn("Desired H value of metric outside range of provided H values.")
             return None
         if metric_vals.shape[0] != 1:
-            warnings.warn(
-                "This is not an appropriate summary statistic for this data - need 1d values."
-            )
+            warnings.warn("This is not an appropriate summary statistic for this data - need 1d values.")
             return None
         value = np.interp(self.h_mark, h_vals, metric_vals[0])
         return value
@@ -231,13 +228,9 @@ class MeanValueAtHMetric(BaseMoMetric):
     def run(self, metric_vals, h_vals):
         # Check if desired H value is within range of H values.
         if (self.h_mark < h_vals.min()) or (self.h_mark > h_vals.max()):
-            warnings.warn(
-                "Desired H value of metric outside range of provided H values."
-            )
+            warnings.warn("Desired H value of metric outside range of provided H values.")
             return None
-        value = np.interp(
-            self.h_mark, h_vals, self.reduce_func(metric_vals.swapaxes(0, 1), axis=1)
-        )
+        value = np.interp(self.h_mark, h_vals, self.reduce_func(metric_vals.swapaxes(0, 1), axis=1))
         return value
 
 
@@ -278,9 +271,7 @@ class MoCompletenessMetric(BaseMoMetric):
         hindex=0.33,
         **kwargs,
     ):
-        if (
-            cumulative is None
-        ):  # if metric_name does not start with 'differential', then cumulative->True
+        if cumulative is None:  # if metric_name does not start with 'differential', then cumulative->True
             if "metric_name" not in kwargs:
                 self.cumulative = True
                 metric_name = "CumulativeCompleteness"
@@ -295,9 +286,7 @@ class MoCompletenessMetric(BaseMoMetric):
             if "metric_name" in kwargs:
                 metric_name = kwargs.pop("metric_name")
                 if metric_name.lower().startswith("differential") and self.cumulative:
-                    warnings.warn(
-                        f"Completeness metric_name is {metric_name} but cumulative is True"
-                    )
+                    warnings.warn(f"Completeness metric_name is {metric_name} but cumulative is True")
             else:
                 if self.cumulative:
                     metric_name = "CumulativeCompleteness"
@@ -322,9 +311,7 @@ class MoCompletenessMetric(BaseMoMetric):
             # h_vals array is probably the same as the cloned H array.
             completeness = np.zeros(len(h_vals), float)
             for i, H in enumerate(h_vals):
-                completeness[i] = np.where(metric_val_h[i].filled(0) >= self.threshold)[
-                    0
-                ].size
+                completeness[i] = np.where(metric_val_h[i].filled(0) >= self.threshold)[0].size
             completeness = completeness / float(n_ssos)
         else:
             # The h_vals are spread more randomly among the objects (we probably used one per object).
@@ -342,19 +329,13 @@ class MoCompletenessMetric(BaseMoMetric):
             completeness = n_found.astype(float) / n_all.astype(float)
             completeness = np.where(n_all == 0, 0, completeness)
         if self.cumulative:
-            completeness_int = integrate_over_h(
-                completeness, h_vals, power_law_dndh, Hindex=self.hindex
-            )
-            summary_val = np.empty(
-                len(completeness_int), dtype=[("name", np.str_, 20), ("value", float)]
-            )
+            completeness_int = integrate_over_h(completeness, h_vals, power_law_dndh, Hindex=self.hindex)
+            summary_val = np.empty(len(completeness_int), dtype=[("name", np.str_, 20), ("value", float)])
             summary_val["value"] = completeness_int
             for i, Hval in enumerate(h_vals):
                 summary_val["name"][i] = "H <= %f" % (Hval)
         else:
-            summary_val = np.empty(
-                len(completeness), dtype=[("name", np.str_, 20), ("value", float)]
-            )
+            summary_val = np.empty(len(completeness), dtype=[("name", np.str_, 20), ("value", float)])
             summary_val["value"] = completeness
             for i, Hval in enumerate(h_vals):
                 summary_val["name"][i] = "H = %f" % (Hval)
@@ -387,9 +368,7 @@ class MoCompletenessAtTimeMetric(BaseMoMetric):
         self.hval = hval
         self.times = times
         self.hindex = hindex
-        if (
-            cumulative is None
-        ):  # if metric_name does not start with 'differential', then cumulative->True
+        if cumulative is None:  # if metric_name does not start with 'differential', then cumulative->True
             if "metric_name" not in kwargs:
                 self.cumulative = True
                 metric_name = "CumulativeCompleteness@Time@H=%.2f" % self.hval
@@ -404,9 +383,7 @@ class MoCompletenessAtTimeMetric(BaseMoMetric):
             if "metric_name" in kwargs:
                 metric_name = kwargs.pop("metric_name")
                 if metric_name.lower().startswith("differential") and self.cumulative:
-                    warnings.warn(
-                        f"Completeness metric_name is {metric_name} but cumulative is True"
-                    )
+                    warnings.warn(f"Completeness metric_name is {metric_name} but cumulative is True")
             else:
                 if self.cumulative:
                     metric_name = "CumulativeCompleteness@Time@H=%.2f" % self.hval
@@ -426,9 +403,7 @@ class MoCompletenessAtTimeMetric(BaseMoMetric):
 
     def run(self, discovery_times, h_vals):
         if len(h_vals) != discovery_times.shape[1]:
-            warnings.warn(
-                "This summary metric expects cloned H distribution. Cannot calculate summary."
-            )
+            warnings.warn("This summary metric expects cloned H distribution. Cannot calculate summary.")
             return
         n_ssos = discovery_times.shape[0]
         timesin_h = discovery_times.swapaxes(0, 1)
@@ -448,14 +423,10 @@ class MoCompletenessAtTimeMetric(BaseMoMetric):
             self.hval = h_vals[hidx]
             self._set_labels()
         else:
-            hidx = np.where(
-                np.abs(h_vals - self.hval) == np.abs(h_vals - self.hval).min()
-            )[0][0]
+            hidx = np.where(np.abs(h_vals - self.hval) == np.abs(h_vals - self.hval).min())[0][0]
             self.hval = h_vals[hidx]
             self._set_labels()
-        summary_val = np.empty(
-            len(self.times), dtype=[("name", np.str_, 20), ("value", float)]
-        )
+        summary_val = np.empty(len(self.times), dtype=[("name", np.str_, 20), ("value", float)])
         summary_val["value"] = completeness[:, hidx]
         for i, time in enumerate(self.times):
             summary_val["name"][i] = "%s @ %.2f" % (self.units, time)

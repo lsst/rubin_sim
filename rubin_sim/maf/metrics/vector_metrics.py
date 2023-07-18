@@ -1,6 +1,7 @@
 import numpy as np
-from .base_metric import BaseMetric
 from scipy import stats
+
+from .base_metric import BaseMetric
 
 __all__ = [
     "HistogramMetric",
@@ -17,23 +18,13 @@ class VectorMetric(BaseMetric):
     Base for metrics that return a vector
     """
 
-    def __init__(
-        self,
-        bins=None,
-        bin_col="night",
-        col="night",
-        units=None,
-        metric_dtype=float,
-        **kwargs
-    ):
+    def __init__(self, bins=None, bin_col="night", col="night", units=None, metric_dtype=float, **kwargs):
         if isinstance(col, str):
             cols = [col, bin_col]
         else:
             cols = list(col) + [bin_col]
 
-        super(VectorMetric, self).__init__(
-            col=cols, units=units, metric_dtype=metric_dtype, **kwargs
-        )
+        super(VectorMetric, self).__init__(col=cols, units=units, metric_dtype=metric_dtype, **kwargs)
         self.bins = bins
         self.bin_col = bin_col
         self.shape = np.size(bins) - 1
@@ -52,17 +43,12 @@ class HistogramMetric(VectorMetric):
         units="Count",
         statistic="count",
         metric_dtype=float,
-        **kwargs
+        **kwargs,
     ):
         self.statistic = statistic
         self.col = col
         super(HistogramMetric, self).__init__(
-            col=col,
-            bins=bins,
-            bin_col=bin_col,
-            units=units,
-            metric_dtype=metric_dtype,
-            **kwargs
+            col=col, bins=bins, bin_col=bin_col, units=units, metric_dtype=metric_dtype, **kwargs
         )
 
     def run(self, data_slice, slice_point=None):
@@ -82,13 +68,7 @@ class AccumulateMetric(VectorMetric):
     """
 
     def __init__(
-        self,
-        col="night",
-        bins=None,
-        bin_col="night",
-        function=np.add,
-        metric_dtype=float,
-        **kwargs
+        self, col="night", bins=None, bin_col="night", function=np.add, metric_dtype=float, **kwargs
     ):
         self.function = function
         super(AccumulateMetric, self).__init__(
@@ -131,15 +111,10 @@ class HistogramM5Metric(HistogramMetric):
         m5_col="fiveSigmaDepth",
         units="mag",
         metric_name="HistogramM5Metric",
-        **kwargs
+        **kwargs,
     ):
         super(HistogramM5Metric, self).__init__(
-            col=m5_col,
-            bin_col=bin_col,
-            bins=bins,
-            metric_name=metric_name,
-            units=units,
-            **kwargs
+            col=m5_col, bin_col=bin_col, bins=bins, metric_name=metric_name, units=units, **kwargs
         )
         self.m5_col = m5_col
 
@@ -157,12 +132,7 @@ class HistogramM5Metric(HistogramMetric):
 
 class AccumulateM5Metric(AccumulateMetric):
     def __init__(
-        self,
-        bins=None,
-        bin_col="night",
-        m5_col="fiveSigmaDepth",
-        metric_name="AccumulateM5Metric",
-        **kwargs
+        self, bins=None, bin_col="night", m5_col="fiveSigmaDepth", metric_name="AccumulateM5Metric", **kwargs
     ):
         self.m5_col = m5_col
         super(AccumulateM5Metric, self).__init__(
@@ -195,18 +165,13 @@ class AccumulateUniformityMetric(AccumulateMetric):
         metric_name="AccumulateUniformityMetric",
         survey_length=10.0,
         units="Fraction",
-        **kwargs
+        **kwargs,
     ):
         self.exp_mjd_col = exp_mjd_col
         if bins is None:
             bins = np.arange(0, np.ceil(survey_length * 365.25)) - 0.5
         super(AccumulateUniformityMetric, self).__init__(
-            bins=bins,
-            bin_col=bin_col,
-            col=exp_mjd_col,
-            metric_name=metric_name,
-            units=units,
-            **kwargs
+            bins=bins, bin_col=bin_col, col=exp_mjd_col, metric_name=metric_name, units=units, **kwargs
         )
         self.survey_length = survey_length
 
@@ -217,9 +182,7 @@ class AccumulateUniformityMetric(AccumulateMetric):
 
         visits_per_night, blah = np.histogram(data_slice[self.bin_col], bins=self.bins)
         visits_per_night = np.add.accumulate(visits_per_night)
-        expected_per_night = (
-            np.arange(0.0, self.bins.size - 1) / (self.bins.size - 2) * data_slice.size
-        )
+        expected_per_night = np.arange(0.0, self.bins.size - 1) / (self.bins.size - 2) * data_slice.size
 
         d_max = np.abs(visits_per_night - expected_per_night)
         d_max = np.maximum.accumulate(d_max)

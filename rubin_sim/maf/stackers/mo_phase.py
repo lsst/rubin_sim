@@ -8,7 +8,7 @@ Adapted from code written by Michael Kelley - mkelley @ github
 __all__ = ["phase__halley_marcus", "phase__log_linear", "phase_hg"]
 
 import numpy as np
-from scipy.interpolate import splrep, splev
+from scipy.interpolate import splev, splrep
 
 _halley_marcus_phase_curve = splrep(
     np.arange(181),

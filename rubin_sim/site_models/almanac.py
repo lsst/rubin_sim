@@ -1,6 +1,8 @@
+import os
+
 import numpy as np
 from scipy.interpolate import interp1d
-import os
+
 from rubin_sim.data import get_data_dir
 
 __all__ = ["Almanac"]
@@ -28,45 +30,19 @@ class Almanac(object):
         temp.close()
 
         self.interpolators = {
-            "sun_alt": interp1d(
-                self.sun_moon["mjd"], self.sun_moon["sun_alt"], kind=kind
-            ),
-            "sun_az_x": interp1d(
-                self.sun_moon["mjd"], np.cos(self.sun_moon["sun_az"]), kind=kind
-            ),
-            "sun_az_y": interp1d(
-                self.sun_moon["mjd"], np.sin(self.sun_moon["sun_az"]), kind=kind
-            ),
-            "sun_RA_x": interp1d(
-                self.sun_moon["mjd"], np.cos(self.sun_moon["sun_RA"]), kind=kind
-            ),
-            "sun_RA_y": interp1d(
-                self.sun_moon["mjd"], np.sin(self.sun_moon["sun_RA"]), kind=kind
-            ),
-            "sun_dec": interp1d(
-                self.sun_moon["mjd"], self.sun_moon["sun_dec"], kind=kind
-            ),
-            "moon_alt": interp1d(
-                self.sun_moon["mjd"], self.sun_moon["moon_alt"], kind=kind
-            ),
-            "moon_az_x": interp1d(
-                self.sun_moon["mjd"], np.cos(self.sun_moon["moon_az"]), kind=kind
-            ),
-            "moon_az_y": interp1d(
-                self.sun_moon["mjd"], np.sin(self.sun_moon["moon_az"]), kind=kind
-            ),
-            "moon_RA_x": interp1d(
-                self.sun_moon["mjd"], np.cos(self.sun_moon["moon_RA"]), kind=kind
-            ),
-            "moon_RA_y": interp1d(
-                self.sun_moon["mjd"], np.sin(self.sun_moon["moon_RA"]), kind=kind
-            ),
-            "moon_dec": interp1d(
-                self.sun_moon["mjd"], self.sun_moon["moon_dec"], kind=kind
-            ),
-            "moon_phase": interp1d(
-                self.sun_moon["mjd"], self.sun_moon["moon_phase"], kind=kind
-            ),
+            "sun_alt": interp1d(self.sun_moon["mjd"], self.sun_moon["sun_alt"], kind=kind),
+            "sun_az_x": interp1d(self.sun_moon["mjd"], np.cos(self.sun_moon["sun_az"]), kind=kind),
+            "sun_az_y": interp1d(self.sun_moon["mjd"], np.sin(self.sun_moon["sun_az"]), kind=kind),
+            "sun_RA_x": interp1d(self.sun_moon["mjd"], np.cos(self.sun_moon["sun_RA"]), kind=kind),
+            "sun_RA_y": interp1d(self.sun_moon["mjd"], np.sin(self.sun_moon["sun_RA"]), kind=kind),
+            "sun_dec": interp1d(self.sun_moon["mjd"], self.sun_moon["sun_dec"], kind=kind),
+            "moon_alt": interp1d(self.sun_moon["mjd"], self.sun_moon["moon_alt"], kind=kind),
+            "moon_az_x": interp1d(self.sun_moon["mjd"], np.cos(self.sun_moon["moon_az"]), kind=kind),
+            "moon_az_y": interp1d(self.sun_moon["mjd"], np.sin(self.sun_moon["moon_az"]), kind=kind),
+            "moon_RA_x": interp1d(self.sun_moon["mjd"], np.cos(self.sun_moon["moon_RA"]), kind=kind),
+            "moon_RA_y": interp1d(self.sun_moon["mjd"], np.sin(self.sun_moon["moon_RA"]), kind=kind),
+            "moon_dec": interp1d(self.sun_moon["mjd"], self.sun_moon["moon_dec"], kind=kind),
+            "moon_phase": interp1d(self.sun_moon["mjd"], self.sun_moon["moon_phase"], kind=kind),
         }
 
         temp = np.load(os.path.join(data_dir, "planet_locations.npz"))

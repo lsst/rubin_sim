@@ -14,11 +14,12 @@ __all__ = [
 ]
 
 
-import warnings
-import sys
-import os
-import urllib
 import copy
+import os
+import sys
+import urllib
+import warnings
+
 import numpy as np
 import pandas as pd
 
@@ -153,9 +154,7 @@ def get_runs(run_source=None):
     runs = (
         family_runs.reset_index()
         .groupby(BY_RUN_COLS)
-        .agg(
-            {c: list for c in family_runs.reset_index().columns if c not in BY_RUN_COLS}
-        )
+        .agg({c: list for c in family_runs.reset_index().columns if c not in BY_RUN_COLS})
         .reset_index()
         .set_index("run")
         .loc[:, ["family", "version", "brief", "filepath", "url"]]
@@ -208,9 +207,7 @@ def download_runs(runs, dest_dir=None, runs_source=None, clobber=False):
     if not os.path.exists(dest_dir):
         raise FileNotFoundError(dest_dir)
 
-    dest_fnames = pd.Series(
-        name="fname", index=pd.Index([], name="OpsimRun"), dtype=object
-    )
+    dest_fnames = pd.Series(name="fname", index=pd.Index([], name="OpsimRun"), dtype=object)
 
     for run_name, run in runs.iterrows():
         dest_fnames[run_name] = os.path.join(dest_dir, run.filepath)
@@ -255,9 +252,7 @@ def get_metric_sets(metric_set_source=METRIC_SET_SOURCE):
         ``mag``
             Is the value an (astronomical) magnitude? (`bool`)
     """
-    metric_set_source = (
-        METRIC_SET_SOURCE if metric_set_source is None else metric_set_source
-    )
+    metric_set_source = METRIC_SET_SOURCE if metric_set_source is None else metric_set_source
     if isinstance(metric_set_source, pd.DataFrame):
         metric_sets = metric_set_source
     else:
@@ -471,9 +466,7 @@ def describe_families(
         The plot axes.
     """
 
-    family_runs = families.explode(["run", "brief", "filepath"]).loc[
-        :, ["run", "brief", "filepath"]
-    ]
+    family_runs = families.explode(["run", "brief", "filepath"]).loc[:, ["run", "brief", "filepath"]]
 
     # If there is just one run in the family, we might
     # get a pd.Series back rather than a pd.DataFrame.
@@ -494,12 +487,8 @@ def describe_families(
         these_runs = family_runs.loc[[family_name], :]
         if summary is not None:
             if table_metric_set is not None:
-                table_metric_summary = summary.loc[
-                    these_runs["run"], table_metric_set["metric"]
-                ]
-                table_metric_summary.rename(
-                    table_metric_set["short_name"], axis=1, inplace=True
-                )
+                table_metric_summary = summary.loc[these_runs["run"], table_metric_set["metric"]]
+                table_metric_summary.rename(table_metric_set["short_name"], axis=1, inplace=True)
                 if round_table is not None:
                     table_metric_summary = table_metric_summary.round(round_table)
             else:
@@ -515,9 +504,7 @@ def describe_families(
             if "IPython" in sys.modules:
                 IPython.display.display_markdown(description, raw=True)
                 IPython.display.display(
-                    IPython.display.HTML(
-                        these_runs.set_index("run").to_html().replace("\\n", "<br>")
-                    )
+                    IPython.display.HTML(these_runs.set_index("run").to_html().replace("\\n", "<br>"))
                 )
             else:
                 print(description)

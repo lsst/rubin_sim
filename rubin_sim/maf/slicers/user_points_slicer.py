@@ -1,7 +1,9 @@
 import numpy as np
-from rubin_sim.maf.plots.spatial_plotters import BaseSkyMap, BaseHistogram
-from .base_spatial_slicer import BaseSpatialSlicer
+
+from rubin_sim.maf.plots.spatial_plotters import BaseHistogram, BaseSkyMap
 from rubin_sim.utils import _galactic_from_equatorial
+
+from .base_spatial_slicer import BaseSpatialSlicer
 
 __all__ = ["UserPointsSlicer"]
 
@@ -84,9 +86,7 @@ class UserPointsSlicer(BaseSpatialSlicer):
         self.slice_points["sid"] = np.arange(np.size(ra))
         self.slice_points["ra"] = np.array(ra)
         self.slice_points["dec"] = np.array(dec)
-        gall, galb = _galactic_from_equatorial(
-            self.slice_points["ra"], self.slice_points["dec"]
-        )
+        gall, galb = _galactic_from_equatorial(self.slice_points["ra"], self.slice_points["dec"])
         self.slice_points["gall"] = gall
         self.slice_points["galb"] = galb
 
@@ -107,9 +107,7 @@ class UserPointsSlicer(BaseSpatialSlicer):
         # check the slice_points
         for key in other_slicer.slice_points:
             if key in self.slice_points.keys():
-                if not np.array_equal(
-                    other_slicer.slice_points[key], self.slice_points[key]
-                ):
+                if not np.array_equal(other_slicer.slice_points[key], self.slice_points[key]):
                     return False
             else:
                 return False
@@ -117,19 +115,11 @@ class UserPointsSlicer(BaseSpatialSlicer):
             if other_slicer.nslice == self.nslice:
                 if np.array_equal(
                     other_slicer.slice_points["ra"], self.slice_points["ra"]
-                ) and np.array_equal(
-                    other_slicer.slice_points["dec"], self.slice_points["dec"]
-                ):
-                    if (
-                        other_slicer.lon_col == self.lon_col
-                        and other_slicer.lat_col == self.lat_col
-                    ):
+                ) and np.array_equal(other_slicer.slice_points["dec"], self.slice_points["dec"]):
+                    if other_slicer.lon_col == self.lon_col and other_slicer.lat_col == self.lat_col:
                         if other_slicer.radius == self.radius:
                             if other_slicer.use_camera == self.use_camera:
-                                if (
-                                    other_slicer.rotSkyPosColName
-                                    == self.rotSkyPosColName
-                                ):
+                                if other_slicer.rotSkyPosColName == self.rotSkyPosColName:
                                     if np.array_equal(other_slicer.shape, self.shape):
                                         result = True
         return result

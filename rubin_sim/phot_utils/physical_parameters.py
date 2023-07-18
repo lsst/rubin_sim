@@ -22,9 +22,7 @@ class PhysicalParameters(object):
 
     @lightspeed.setter
     def lightspeed(self, value):
-        raise RuntimeError(
-            "Cannot change the value of lightspeed " + "(Einstein does not approve)"
-        )
+        raise RuntimeError("Cannot change the value of lightspeed " + "(Einstein does not approve)")
 
     @property
     def nm2m(self):

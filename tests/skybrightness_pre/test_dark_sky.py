@@ -1,9 +1,11 @@
 import unittest
-import rubin_sim.skybrightness_pre as sbp
+import warnings
+
 import healpy as hp
 import numpy as np
+
+import rubin_sim.skybrightness_pre as sbp
 import rubin_sim.utils as utils
-import warnings
 
 
 class TestDarkSky(unittest.TestCase):
@@ -35,12 +37,8 @@ class TestDarkSky(unittest.TestCase):
         for band in self.expected_bands:
             assert np.all(
                 np.equal(
-                    default_map_before_downgrade[band][
-                        np.isfinite(default_map_before_downgrade[band])
-                    ],
-                    default_map_after_downgrade[band][
-                        np.isfinite(default_map_after_downgrade[band])
-                    ],
+                    default_map_before_downgrade[band][np.isfinite(default_map_before_downgrade[band])],
+                    default_map_after_downgrade[band][np.isfinite(default_map_after_downgrade[band])],
                 )
             )
 

@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from .plot_handler import BasePlotter
 
@@ -100,24 +100,18 @@ class HourglassPlot(BasePlotter):
                 color="blue",
                 label=r"6$^\circ$ twilight",
             )
-            ax.axhline(
-                (pernight["twi6_set"] - pernight["midnight"]) * 24.0, color="blue"
-            )
+            ax.axhline((pernight["twi6_set"] - pernight["midnight"]) * 24.0, color="blue")
             ax.axhline(
                 (pernight["twi12_rise"] - pernight["midnight"]) * 24.0,
                 color="yellow",
                 label=r"12$^\circ$ twilight",
             )
-            ax.axhline(
-                (pernight["twi12_set"] - pernight["midnight"]) * 24.0, color="yellow"
-            )
+            ax.axhline((pernight["twi12_set"] - pernight["midnight"]) * 24.0, color="yellow")
             ax.axhline(
                 (pernight["twi18_rise"] - pernight["midnight"]) * 24.0,
                 color="red",
                 label=r"18$^\circ$ twilight",
             )
-            ax.axhline(
-                (pernight["twi18_set"] - pernight["midnight"]) * 24.0, color="red"
-            )
+            ax.axhline((pernight["twi18_set"] - pernight["midnight"]) * 24.0, color="red")
 
         return fig.number

@@ -1,8 +1,8 @@
 import numpy
-from .sed import Sed
-from .photometric_parameters import PhotometricParameters
-from . import lsst_defaults
 
+from . import lsst_defaults
+from .photometric_parameters import PhotometricParameters
+from .sed import Sed
 
 __all__ = [
     "fwhm_eff2_fwhm_geom",
@@ -174,9 +174,7 @@ def calc_total_non_source_noise_sq(sky_sed, hardwarebandpass, phot_params, fwhm_
     return total_noise_sq
 
 
-def calc_sky_counts_per_pixel_for_m5(
-    m5target, total_bandpass, phot_params, fwhm_eff=None
-):
+def calc_sky_counts_per_pixel_for_m5(m5target, total_bandpass, phot_params, fwhm_eff=None):
     """
     Calculate the number of sky counts per pixel expected for a given
     value of the 5-sigma limiting magnitude (m5)
@@ -227,9 +225,7 @@ def calc_sky_counts_per_pixel_for_m5(
     # SNR document can be found at
     # https://docushare.lsstcorp.org/docushare/dsweb/ImageStoreViewer/LSE-40
 
-    n_sigma_sq = (
-        source_counts * source_counts
-    ) / 25.0 - source_counts / phot_params.gain
+    n_sigma_sq = (source_counts * source_counts) / 25.0 - source_counts / phot_params.gain
 
     sky_noise_target = n_sigma_sq / neff - noise_instr_sq
     sky_counts_target = sky_noise_target * phot_params.gain
@@ -444,10 +440,7 @@ def calc_mag_error_m5(magnitude, bandpass, m5, phot_params, gamma=None):
 
     if phot_params.sigma_sys is not None:
         return (
-            numpy.sqrt(
-                numpy.power(mag_error_from_snr(snr), 2)
-                + numpy.power(phot_params.sigma_sys, 2)
-            ),
+            numpy.sqrt(numpy.power(mag_error_from_snr(snr), 2) + numpy.power(phot_params.sigma_sys, 2)),
             gamma,
         )
     else:
@@ -499,37 +492,27 @@ def calc_snr_sed(
     # Calculate the (square of the) noise due to signal poisson noise.
     noise_source_sq = sourcecounts / phot_params.gain
 
-    non_source_noise_sq = calc_total_non_source_noise_sq(
-        skysed, hardwarebandpass, phot_params, fwhm_eff
-    )
+    non_source_noise_sq = calc_total_non_source_noise_sq(skysed, hardwarebandpass, phot_params, fwhm_eff)
 
     # Calculate total noise
     noise = numpy.sqrt(noise_source_sq + non_source_noise_sq)
     # Calculate the signal to noise ratio.
     snr = sourcecounts / noise
     if verbose:
-        skycounts = skysed.calc_adu(hardwarebandpass, phot_params) * (
-            phot_params.platescale**2
-        )
+        skycounts = skysed.calc_adu(hardwarebandpass, phot_params) * (phot_params.platescale**2)
         noise_sky_sq = skycounts / phot_params.gain
         neff = calc_neff(fwhm_eff, phot_params.platescale)
         noise_instr_sq = calc_instr_noise_sq(phot_params)
 
         print("For Nexp %.1f of time %.1f: " % (phot_params.nexp, phot_params.exptime))
-        print(
-            "Counts from source: %.2f  Counts from sky: %.2f"
-            % (sourcecounts, skycounts)
-        )
+        print("Counts from source: %.2f  Counts from sky: %.2f" % (sourcecounts, skycounts))
         print("fwhm_eff: %.2f('')  Neff pixels: %.3f(pix)" % (fwhm_eff, neff))
         print(
             "Noise from sky: %.2f Noise from instrument: %.2f"
             % (numpy.sqrt(noise_sky_sq), numpy.sqrt(noise_instr_sq))
         )
         print("Noise from source: %.2f" % (numpy.sqrt(noise_source_sq)))
-        print(
-            " Total Signal: %.2f   Total Noise: %.2f    SNR: %.2f"
-            % (sourcecounts, noise, snr)
-        )
+        print(" Total Signal: %.2f   Total Noise: %.2f    SNR: %.2f" % (sourcecounts, noise, snr))
         # Return the signal to noise value.
     return snr
 
@@ -584,10 +567,7 @@ def calc_mag_error_sed(
     )
 
     if phot_params.sigma_sys is not None:
-        return numpy.sqrt(
-            numpy.power(mag_error_from_snr(snr), 2)
-            + numpy.power(phot_params.sigma_sys, 2)
-        )
+        return numpy.sqrt(numpy.power(mag_error_from_snr(snr), 2) + numpy.power(phot_params.sigma_sys, 2))
     else:
         return mag_error_from_snr(snr)
 

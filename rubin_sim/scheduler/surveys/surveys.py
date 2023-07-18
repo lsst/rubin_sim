@@ -1,22 +1,20 @@
-import numpy as np
-from rubin_sim.scheduler.utils import empty_observation, set_default_nside
+import warnings
+from copy import copy
+
 import healpy as hp
 import matplotlib.pylab as plt
+import numpy as np
+
 from rubin_sim.scheduler.surveys import BaseMarkovSurvey
 from rubin_sim.scheduler.utils import (
-    int_binned_stat,
     IntRounded,
+    empty_observation,
     gnomonic_project_toxy,
+    int_binned_stat,
+    set_default_nside,
     tsp_convex,
 )
-from copy import copy
-from rubin_sim.utils import (
-    _angular_separation,
-    _hpid2_ra_dec,
-    _approx_ra_dec2_alt_az,
-    hp_grow_argsort,
-)
-import warnings
+from rubin_sim.utils import _angular_separation, _approx_ra_dec2_alt_az, _hpid2_ra_dec, hp_grow_argsort
 
 __all__ = ["GreedySurvey", "BlobSurvey"]
 
@@ -218,9 +216,7 @@ class BlobSurvey(GreedySurvey):
         self.max_radius_peak = np.radians(max_radius_peak)
 
         if self.twilight_scale & self.in_twilight:
-            warnings.warn(
-                "Both twilight_scale and in_twilight are set to True. That is probably wrong."
-            )
+            warnings.warn("Both twilight_scale and in_twilight are set to True. That is probably wrong.")
 
         self.min_area = min_area
         self.check_scheduled = check_scheduled
@@ -230,19 +226,10 @@ class BlobSurvey(GreedySurvey):
         # Compute the minimum time needed to observe a blob (or observe, then repeat.)
         if filtername2 is not None:
             self.time_needed = (
-                (
-                    min_pair_time * 60.0 * 2.0
-                    + exptime
-                    + read_approx
-                    + filter_change_approx
-                )
-                / 24.0
-                / 3600.0
+                (min_pair_time * 60.0 * 2.0 + exptime + read_approx + filter_change_approx) / 24.0 / 3600.0
             )  # Days
         else:
-            self.time_needed = (
-                (min_pair_time * 60.0 + exptime + read_approx) / 24.0 / 3600.0
-            )  # Days
+            self.time_needed = (min_pair_time * 60.0 + exptime + read_approx) / 24.0 / 3600.0  # Days
         self.filter_set = set(filtername1)
         if filtername2 is None:
             self.filter2_set = self.filter_set
@@ -288,9 +275,7 @@ class BlobSurvey(GreedySurvey):
             distances = _angular_separation(
                 self.ra, self.dec, self.ra[max_reward_indx], self.dec[max_reward_indx]
             )
-            valid_pix = np.where(
-                (np.isnan(reward) == False) & (distances < self.max_radius_peak)
-            )[0]
+            valid_pix = np.where((np.isnan(reward) == False) & (distances < self.max_radius_peak))[0]
             if np.size(valid_pix) * self.pixarea < self.min_area:
                 result = False
         return result
@@ -311,9 +296,7 @@ class BlobSurvey(GreedySurvey):
         # If we are trying to get things done before a scheduled simulation
         if self.check_scheduled:
             if len(conditions.scheduled_observations) > 0:
-                available_time = (
-                    np.min(conditions.scheduled_observations) - conditions.mjd
-                )
+                available_time = np.min(conditions.scheduled_observations) - conditions.mjd
                 available_time *= 24.0 * 60.0  # to minutes
                 n_blocks = available_time / self.ideal_pair_time
                 if n_blocks < n_ideal_blocks:
@@ -336,11 +319,7 @@ class BlobSurvey(GreedySurvey):
                 np.floor(
                     self.ideal_pair_time
                     * 60.0
-                    / (
-                        self.slew_approx
-                        + self.exptime
-                        + self.read_approx * (self.nexp - 1)
-                    )
+                    / (self.slew_approx + self.exptime + self.read_approx * (self.nexp - 1))
                 )
             )
         else:
@@ -353,11 +332,7 @@ class BlobSurvey(GreedySurvey):
                 np.floor(
                     best_block_time
                     * 60.0
-                    / (
-                        self.slew_approx
-                        + self.exptime
-                        + self.read_approx * (self.nexp - 1)
-                    )
+                    / (self.slew_approx + self.exptime + self.read_approx * (self.nexp - 1))
                 )
             )
 
@@ -393,9 +368,9 @@ class BlobSurvey(GreedySurvey):
                     self.ra[max_reward_indx],
                     self.dec[max_reward_indx],
                 )
-                good_area = np.where(
-                    (np.abs(self.reward) >= 0) & (distances < self.max_radius_peak)
-                )[0].size * hp.nside2pixarea(self.nside)
+                good_area = np.where((np.abs(self.reward) >= 0) & (distances < self.max_radius_peak))[
+                    0
+                ].size * hp.nside2pixarea(self.nside)
                 if good_area < self.area_required:
                     self.reward = -np.inf
 
@@ -476,9 +451,7 @@ class BlobSurvey(GreedySurvey):
         )
 
         # Let's find a good spot to project the points to a plane
-        mid_alt = (np.max(pointing_alt) - np.min(pointing_alt)) / 2.0 + np.min(
-            pointing_alt
-        )
+        mid_alt = (np.max(pointing_alt) - np.min(pointing_alt)) / 2.0 + np.min(pointing_alt)
 
         # Code snippet from MAF for computing mean of angle accounting for wrap around
         # XXX-TODO: Maybe move this to sims_utils as a generally useful snippet.
@@ -494,9 +467,7 @@ class BlobSurvey(GreedySurvey):
 
         # Project the alt,az coordinates to a plane. Could consider scaling things to represent
         # time between points rather than angular distance.
-        pointing_x, pointing_y = gnomonic_project_toxy(
-            pointing_az, pointing_alt, mid_az, mid_alt
-        )
+        pointing_x, pointing_y = gnomonic_project_toxy(pointing_az, pointing_alt, mid_az, mid_alt)
         # Round off positions so that we ensure identical cross-platform performance
         scale = 1e4
         pointing_x = np.round(pointing_x * scale).astype(int)

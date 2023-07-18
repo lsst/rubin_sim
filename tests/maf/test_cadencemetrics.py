@@ -1,8 +1,10 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import numpy as np
 import unittest
+
+import numpy as np
+
 import rubin_sim.maf.metrics as metrics
 
 
@@ -82,9 +84,7 @@ class TestCadenceMetrics(unittest.TestCase):
         names = ["observationStartMJD"]
         types = [float]
         data = np.zeros(100, dtype=list(zip(names, types)))
-        metric = metrics.GeneralUniformityMetric(
-            col="observationStartMJD", min_value=0, max_value=1
-        )
+        metric = metrics.GeneralUniformityMetric(col="observationStartMJD", min_value=0, max_value=1)
         result1 = metric.run(data)
         # If all the observations are at the minimum value, should be 1
         self.assertEqual(result1, 1)
@@ -100,17 +100,13 @@ class TestCadenceMetrics(unittest.TestCase):
         # Result should be zero for uniform
         np.testing.assert_almost_equal(result3, 0.0)
         # Test setup with max_value > 1
-        metric = metrics.GeneralUniformityMetric(
-            col="observationStartMJD", min_value=0, max_value=10
-        )
+        metric = metrics.GeneralUniformityMetric(col="observationStartMJD", min_value=0, max_value=10)
         # Make a perfectly uniform dist covering limited range (0-1 out of 0-10 range)
         data["observationStartMJD"] = np.arange(0.0, 1 + step / 2, step)
         result5 = metric.run(data, slice_point)
         self.assertEqual(result5, 0.9)
         # Test setup with max_value None
-        metric = metrics.GeneralUniformityMetric(
-            col="observationStartMJD", min_value=None, max_value=None
-        )
+        metric = metrics.GeneralUniformityMetric(col="observationStartMJD", min_value=None, max_value=None)
         # Make a perfectly uniform dist
         data["observationStartMJD"] = np.arange(0.0, 1 + step / 2, step)
         result5 = metric.run(data, slice_point)
@@ -230,9 +226,7 @@ class TestCadenceMetrics(unittest.TestCase):
         dtimes = np.arange(100)
         data["observationStartMJD"] = dtimes.cumsum()
         # Set up "rapid revisit" metric to look for visits between 5 and 25
-        metric = metrics.RapidRevisitUniformityMetric(
-            d_tmin=5, d_tmax=55, min_nvisits=50
-        )
+        metric = metrics.RapidRevisitUniformityMetric(d_tmin=5, d_tmax=55, min_nvisits=50)
         result = metric.run(data)
         # This should be uniform.
         self.assertLess(result, 0.1)
@@ -326,15 +320,11 @@ class TestCadenceMetrics(unittest.TestCase):
 
         data_slice["fiveSigmaDepth"] = 25
         # Demand lots of early observations
-        metric = metrics.TransientMetric(
-            peak_time=0.5, n_pre_peak=3, survey_duration=ndata / 365.25
-        )
+        metric = metrics.TransientMetric(peak_time=0.5, n_pre_peak=3, survey_duration=ndata / 365.25)
         self.assertEqual(metric.run(data_slice), 0.0)
 
         # Demand a reasonable number of early observations
-        metric = metrics.TransientMetric(
-            peak_time=2, n_pre_peak=2, survey_duration=ndata / 365.25
-        )
+        metric = metrics.TransientMetric(peak_time=2, n_pre_peak=2, survey_duration=ndata / 365.25)
         self.assertEqual(metric.run(data_slice), 1.0)
 
         # Demand multiple filters
@@ -349,18 +339,14 @@ class TestCadenceMetrics(unittest.TestCase):
         self.assertEqual(metric.run(data_slice), 0.0)
 
         # Test both filter and number of LC samples
-        metric = metrics.TransientMetric(
-            n_filters=2, n_per_lc=3, survey_duration=ndata / 365.25
-        )
+        metric = metrics.TransientMetric(n_filters=2, n_per_lc=3, survey_duration=ndata / 365.25)
         self.assertEqual(metric.run(data_slice), 1.0)
 
     def test_season_length_metric(self):
         times = np.arange(0, 3650, 10)
         data = np.zeros(
             len(times),
-            dtype=list(
-                zip(["observationStartMJD", "visitExposureTime"], [float, float])
-            ),
+            dtype=list(zip(["observationStartMJD", "visitExposureTime"], [float, float])),
         )
         data["observationStartMJD"] = times
         data["visitExposureTime"] = 30.0
@@ -371,9 +357,7 @@ class TestCadenceMetrics(unittest.TestCase):
         times = np.arange(0, 3650, 365)
         data = np.zeros(
             len(times) * 2,
-            dtype=list(
-                zip(["observationStartMJD", "visitExposureTime"], [float, float])
-            ),
+            dtype=list(zip(["observationStartMJD", "visitExposureTime"], [float, float])),
         )
         data["observationStartMJD"][0 : len(times)] = times
         data["observationStartMJD"][len(times) :] = times + 10
@@ -386,9 +370,7 @@ class TestCadenceMetrics(unittest.TestCase):
         times = np.arange(0, 3650 - 365, 365)
         data = np.zeros(
             len(times) * 2,
-            dtype=list(
-                zip(["observationStartMJD", "visitExposureTime"], [float, float])
-            ),
+            dtype=list(zip(["observationStartMJD", "visitExposureTime"], [float, float])),
         )
         data["observationStartMJD"][0 : len(times)] = times
         data["observationStartMJD"][len(times) :] = times + 10

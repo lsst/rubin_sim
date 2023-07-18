@@ -1,6 +1,8 @@
-import numpy as np
 import numbers
-from rubin_sim.utils import _observed_from_icrs, _icrs_from_observed
+
+import numpy as np
+
+from rubin_sim.utils import _icrs_from_observed, _observed_from_icrs
 
 __all__ = [
     "_native_lon_lat_from_pointing",
@@ -73,10 +75,7 @@ def _native_lon_lat_from_pointing(lon, lat, lon_pointing, lat_pointing):
     # the bounds of -1.0<=_y<=1.0 because of floating point error
     if hasattr(_ra_raw, "__len__"):
         _ra = np.array(
-            [
-                rr if not np.isnan(rr) else 0.5 * np.pi * (1.0 - np.sign(yy))
-                for rr, yy in zip(_ra_raw, _y)
-            ]
+            [rr if not np.isnan(rr) else 0.5 * np.pi * (1.0 - np.sign(yy)) for rr, yy in zip(_ra_raw, _y)]
         )
     else:
         if np.isnan(_ra_raw):
@@ -270,9 +269,7 @@ def native_lon_lat_from_ra_dec(ra, dec, obs_metadata):
     @param [out] latOut is the native latitude in degrees
     """
 
-    lon, lat = _native_lon_lat_from_ra_dec(
-        np.radians(ra), np.radians(dec), obs_metadata
-    )
+    lon, lat = _native_lon_lat_from_ra_dec(np.radians(ra), np.radians(dec), obs_metadata)
 
     return np.degrees(lon), np.degrees(lat)
 
@@ -349,8 +346,6 @@ def ra_dec_from_native_lon_lat(lon, lat, obs_metadata):
     than 45 degrees and zenith distances of less than 75 degrees.
     """
 
-    ra, dec = _ra_dec_from_native_lon_lat(
-        np.radians(lon), np.radians(lat), obs_metadata
-    )
+    ra, dec = _ra_dec_from_native_lon_lat(np.radians(lon), np.radians(lat), obs_metadata)
 
     return np.degrees(ra), np.degrees(dec)

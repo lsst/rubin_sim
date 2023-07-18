@@ -1,26 +1,24 @@
 import os
 import sqlite3
 import unittest
+
 from astropy.time import Time, TimeDelta
-from rubin_sim.site_models import CloudData
+
 from rubin_sim.data import get_data_dir
+from rubin_sim.site_models import CloudData
 
 
 class TestCloudModel(unittest.TestCase):
     def setUp(self):
         self.th = Time("2020-01-01", format="isot", scale="tai")
-        self.cloud_db = os.path.join(
-            get_data_dir(), "site_models", "clouds_ctio_1975_2022.db"
-        )
+        self.cloud_db = os.path.join(get_data_dir(), "site_models", "clouds_ctio_1975_2022.db")
         self.num_original_values = 69653
 
     def test_basic_information_after_creation(self):
         cloud_data = CloudData(self.th, cloud_db=self.cloud_db)
         self.assertEqual(cloud_data.start_time, self.th)
         cloud_data = CloudData(self.th, cloud_db=self.cloud_db, offset_year=1)
-        self.assertEqual(
-            cloud_data.start_time, Time("2021-01-01", format="isot", scale="tai")
-        )
+        self.assertEqual(cloud_data.start_time, Time("2021-01-01", format="isot", scale="tai"))
 
     def test_information_after_initialization(self):
         # Test setting cloud_db explicitly.

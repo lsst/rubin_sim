@@ -5,12 +5,14 @@ Created on Tue Sep 25 17:11:20 2018
 @author: rstreet
 """
 
+import numpy as np
+
 import rubin_sim.maf.db as db
+import rubin_sim.maf.metricBundles as metricBundles
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-import rubin_sim.maf.metricBundles as metricBundles
 from rubin_sim.maf.metrics import BaseMetric
-import numpy as np
+
 from .calculate_lsst_field_visibility_astropy import calculate_lsst_field_visibility
 
 __all__ = ["CalcExpectedVisitsMetric"]
@@ -74,9 +76,7 @@ class CalcExpectedVisitsMetric(BaseMetric):
 
         columns = [self.ra_col, self.dec_col]
 
-        super(CalcExpectedVisitsMetric, self).__init__(
-            col=columns, metric_name=metric_name
-        )
+        super(CalcExpectedVisitsMetric, self).__init__(col=columns, metric_name=metric_name)
 
     def run(self, data_slice, slice_point=None):
         n_visits = []
@@ -96,13 +96,9 @@ class CalcExpectedVisitsMetric(BaseMetric):
             (
                 total_time_visible,
                 hrs_visible_per_night,
-            ) = calculate_lsst_field_visibility(
-                ra, dec, self.start_date, self.end_date, verbose=False
-            )
+            ) = calculate_lsst_field_visibility(ra, dec, self.start_date, self.end_date, verbose=False)
 
-            n_visits.append(
-                (np.array(hrs_visible_per_night) / self.cadence).astype(int)
-            )
+            n_visits.append((np.array(hrs_visible_per_night) / self.cadence).astype(int))
             hrs_visibility.append(np.array(hrs_visible_per_night))
 
         return n_visits, hrs_visibility

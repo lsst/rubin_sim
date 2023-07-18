@@ -1,5 +1,7 @@
-import numpy as np
 import unittest
+
+import numpy as np
+
 import rubin_sim.utils as utils
 
 
@@ -57,9 +59,7 @@ class AngularSeparationTestCase(unittest.TestCase):
         dec2_arr = np.array([11.1, -45.0, -71.0])
 
         # test that everything runs
-        utils._angular_separation(
-            np.radians(ra1), np.radians(dec1), np.radians(ra2), np.radians(dec2)
-        )
+        utils._angular_separation(np.radians(ra1), np.radians(dec1), np.radians(ra2), np.radians(dec2))
         utils.angular_separation(ra1, dec1, ra2, dec2)
         ans = utils._angular_separation(
             np.radians(ra1_arr),
@@ -271,9 +271,7 @@ class AngularSeparationTestCase(unittest.TestCase):
         control = x1 * x2 + y1 * y2 + z1 * z2
         np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
-        test = utils.angular_separation(
-            np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
-        )
+        test = utils.angular_separation(np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2))
         test = np.cos(np.radians(test))
         np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
@@ -287,9 +285,7 @@ class AngularSeparationTestCase(unittest.TestCase):
         test = np.cos(test)
         np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
-        test = utils.angular_separation(
-            np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
-        )
+        test = utils.angular_separation(np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2))
         test = np.cos(np.radians(test))
         np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
@@ -303,9 +299,7 @@ class AngularSeparationTestCase(unittest.TestCase):
         test = np.cos(test)
         np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
-        test = utils.angular_separation(
-            np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2)
-        )
+        test = utils.angular_separation(np.degrees(ra1), np.degrees(dec1), np.degrees(ra2), np.degrees(dec2))
         test = np.cos(np.radians(test))
         np.testing.assert_array_almost_equal(test, control, decimal=precision)
 
@@ -568,28 +562,20 @@ class AngularSeparationTestCase(unittest.TestCase):
         test = utils.haversine(ra1, dec1, ra3, dec3)
         np.testing.assert_array_equal(test, control)
 
-        control = utils._angular_separation(
-            np.array([ra1]), np.array([dec1]), ra3, dec3
-        )
+        control = utils._angular_separation(np.array([ra1]), np.array([dec1]), ra3, dec3)
         test = utils.haversine(np.array([ra1]), np.array([dec1]), ra3, dec3)
         np.testing.assert_array_equal(test, control)
 
-        control = utils._angular_separation(
-            ra3, dec3, np.array([ra1]), np.array([dec1])
-        )
+        control = utils._angular_separation(ra3, dec3, np.array([ra1]), np.array([dec1]))
         test = utils.haversine(ra3, dec3, np.array([ra1]), np.array([dec1]))
         np.testing.assert_array_equal(test, control)
 
-        control = utils._angular_separation(
-            ra2, dec2, np.array([ra1]), np.array([dec1])
-        )
+        control = utils._angular_separation(ra2, dec2, np.array([ra1]), np.array([dec1]))
         test = utils.haversine(ra2, dec2, np.array([ra1]), np.array([dec1]))
         self.assertIsInstance(test, float)
         self.assertEqual(test, control)
 
-        control = utils._angular_separation(
-            np.array([ra1]), np.array([dec1]), ra2, dec2
-        )
+        control = utils._angular_separation(np.array([ra1]), np.array([dec1]), ra2, dec2)
         test = utils.haversine(np.array([ra1]), np.array([dec1]), ra2, dec2)
         self.assertIsInstance(test, float)
         self.assertEqual(test, control)

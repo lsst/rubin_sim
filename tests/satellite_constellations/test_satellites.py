@@ -1,12 +1,9 @@
 import unittest
+
 import numpy as np
+
+from rubin_sim.satellite_constellations import Constellation, oneweb_tles, starlink_tles_v1, starlink_tles_v2
 from rubin_sim.utils import survey_start_mjd
-from rubin_sim.satellite_constellations import (
-    starlink_tles_v1,
-    starlink_tles_v2,
-    oneweb_tles,
-    Constellation,
-)
 
 
 class TestSatellites(unittest.TestCase):
