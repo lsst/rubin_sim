@@ -23,6 +23,11 @@ mjd0 = survey_start_mjd()
 def sun_alt_limits():
     """For different constellations, expect zero illuminated satellites above 20 degree altitude
     if the sun is below the limits (degrees)
+
+    Returns
+    -------
+    result : `dict` [`str`, `float`]
+        Dict with satellite constellation name keys, altitude limits values (degrees).
     """
     # Estimated in sun_alts_limits.ipynb
     result = {"slv1": -36.0, "slv2": -36.0, "oneweb": -53.0}
@@ -36,8 +41,12 @@ def satellite_mean_motion(altitude, mu=const.GM_earth, r_earth=const.R_earth):
 
     Parameters
     ----------
-    altitude : float with astropy units
-        Altitude of the satellite.
+    altitude : `float`
+        Altitude of the satellite. Should be a float with astropy units attached
+
+    Returns
+    -------
+    mm : `float`
     """
     no = np.sqrt(4.0 * np.pi**2 * (altitude + r_earth) ** 3 / mu).to(u.day)
     return 1 / no
@@ -46,7 +55,31 @@ def satellite_mean_motion(altitude, mu=const.GM_earth, r_earth=const.R_earth):
 def tle_from_orbital_parameters(sat_name, sat_nr, epoch, inclination, raan, mean_anomaly, mean_motion):
     """
     Generate TLE strings from orbital parameters.
-    Note: epoch has a very strange format: first two digits are the year, next three
+
+    Parameters
+    ----------
+    sat_name : `str`
+        Satellite name
+    sat_nr : `float`
+        Satellite nr
+    epoch : `float`
+        Epoch
+    inclination : `float`
+        Inclination, probably with astropy units attached
+    raan : `float`
+        RA of the ascending node. Assumes astropy units.
+    mean_anomaly : `float`
+        Mean anomaly.
+    mean_motion : `float`
+       Mean motion.
+
+    Returns
+    -------
+    tle : `str`
+
+    Notes
+    -----
+    epoch has a very strange format: first two digits are the year, next three
     digits are the day from beginning of year, then fraction of a day is given, e.g.
     20180.25 would be 2020, day 180, 6 hours (UT?)
     """
@@ -93,6 +126,27 @@ def create_constellation(
 ):
     """Create a set of orbital elements for a satellite constellation then
     convert them to TLEs.
+
+    Parameters
+    ----------
+    altitudes : `np.ndarray`
+        Altitudes (degrees).
+    inclinations : `np.ndarray`
+        Inclinations (degrees).
+    nplanes : `np.ndarray`
+        Number of satellite planes.
+    sats_per_plane : `np.ndarray`
+        Number of satellites per orbital plane.
+    epoch : `float`
+        Epoch.
+    name : `str`
+        Satellite name.
+    seed : `float`
+        Random number seed.
+
+    Returns
+    -------
+    my_sat_tles : `list` of `str`
     """
 
     rng = np.random.default_rng(seed)
@@ -125,6 +179,10 @@ def starlink_tles_v1():
     """
     Create a list of satellite TLE's.
     For starlink v1 (as of July 2022). Should create 4,408 orbits
+
+    Returns
+    -------
+    my_sat_tles : `list` of `str`
     """
     altitudes = np.array([550, 540, 570, 560, 560]) * u.km
     inclinations = np.array([53, 53.2, 70, 97.6, 97.6]) * u.deg
@@ -140,6 +198,10 @@ def starlink_tles_v2():
     """
     Create a list of satellite TLE's
     For starlink v2 (as of July 2022). Should create 29,988 orbits
+
+    Returns
+    -------
+    my_sat_tles : `list` of `str`
     """
     altitudes = np.array([340, 345, 350, 360, 525, 530, 535, 604, 614]) * u.km
     inclinations = np.array([53, 46, 38, 96.9, 53, 43, 33, 148, 115.7]) * u.deg
@@ -155,6 +217,10 @@ def oneweb_tles():
     """
     Create a list of satellite TLE's
     for OneWeb plans (as of July 2022). Should create 6,372 orbits
+
+    Returns
+    -------
+    my_sat_tles : `list` of `str`
     """
     altitudes = np.array([1200, 1200, 1200]) * u.km
     inclinations = np.array([87.9, 40, 55]) * u.deg
@@ -171,11 +237,11 @@ class Constellation:
     Have a class to hold satellite constellation
     Parameters
     ----------
-    sat_tle_list : list of str
+    sat_tle_list : `list` of `str`
         A list of satellite TLEs to be used
-    alt_limit : float (15)
+    alt_limit : `float`
         Altitude limit below which satellites can be ignored (degrees)
-    fov : float (3.5)
+    fov : `float`
         The field of view diameter (degrees)
     """
 
@@ -230,7 +296,24 @@ class Constellation:
 
     def paths_array(self, mjds):
         """For an array of MJD values, compute the resulting RA,Dec and illumination status of
-        the full constellation at each MJD."""
+        the full constellation at each MJD.
+
+        Parameters
+        ----------
+        mjds : `np.ndarray`
+            Modified Julian Dates.
+
+        Returns
+        -------
+        ras : `np.ndarray`
+            RAs at each MJD
+        decs : `np.ndarray`
+            Decs at each MJD
+        alts : `np.ndarray`
+            Altitudes at each MJD
+        illums : `np.ndarray`
+            Array of bools for if satellite is illuminated
+        """
 
         jd = mjds + MJDOFFSET
         t = self.ts.ut1_jd(jd)
@@ -266,20 +349,20 @@ class Constellation:
         Parameters
         ----------
         pointing_ras : array
-            The RA for each pointing (degrees)
+            The RA for each pointing (degrees).
         pointing_decs : array
-            The dec for each pointing (degres)
-        mjds : array
-            The MJD for the (start) of each pointing (days)
-        visit_time : array
-            The entire time a visit happend (seconds). We'll assume
-        fov_radius : float (1.75)
+            The dec for each pointing (degres).
+        mjds : `np.ndarray`
+            The MJD for the (start) of each pointing (days).
+        visit_time : `np.ndarray`
+            The entire time a visit happend (seconds).
+        fov_radius : `float`
             The radius of the science field of view (degrees)
-        test_radius : float (10.)
+        test_radius : `float`
             The radius to use to see if a streak gets close (degrees). Need to set large
-            because satellites can be moving at ~1 deg/s
-        dt : float (2)
-            The timestep to use for high resolution checking if a satellite crossed
+            because satellites can be moving at ~1 deg/s.
+        dt : `float`
+            The timestep to use for high resolution checking if a satellite crossed (seconds).
 
         Returns
         -------
@@ -367,7 +450,26 @@ class Constellation:
 
 
 def _streak_length(sat_ras, sat_decs, pointing_ra, pointing_dec, radius):
-    """all radians"""
+    """Calc streak lengths
+
+    Parameters
+    ----------
+    sat_ras : `np.ndarray`
+        RA for each satellite (radians).
+    sat_decs : `np.ndarray`
+        Decs for the satelltes (radians).
+    pointing_ra : `float`
+        RA of the pointing (radians).
+    pointing_dec : `float`
+        Dec of the pointing (radians).
+    radius : `float`
+        Radius of the field of view (radians).
+
+    Returns
+    -------
+    length : `float`
+        The length of the streak in radians
+    """
     # Hopefully this broadcasts properly
     x, y = gnomonic_project_toxy(sat_ras, sat_decs, pointing_ra, pointing_dec)
     ls = LineString(zip(x, y))
