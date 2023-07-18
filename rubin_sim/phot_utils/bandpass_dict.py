@@ -41,9 +41,6 @@ class BandpassDict:
         ----------
         bandpass_list : `Unknown`
             is a list of Bandpass instantiations
-
-        Parameters
-        ----------
         bandpass_name_list : `Unknown`
             is a list of tags to be associated
             with those Bandpasses.  These will be used as keys for the BandpassDict.
@@ -112,43 +109,28 @@ class BandpassDict:
         bandpass_names : `Unknown`
             is a list of strings labeling the bandpasses
             (e.g. ['u', 'g', 'r', 'i', 'z', 'y'])
-
-        Parameters
-        ----------
         filedir : `Unknown`
             is a string indicating the name of the directory containing the
             bandpass files
-
-        Parameters
-        ----------
         bandpass_root : `Unknown`
             is the root of the names of the files associated with the
             bandpasses.  This method assumes that bandpasses are stored in
             filedir/bandpassRoot_bandpass_names[i].dat
-
-        Parameters
-        ----------
         component_list : `Unknown`
             lists the files associated with bandpasses representing
             hardware components shared by all filters
             (defaults to ['detector.dat', 'm1.dat', 'm2.dat', 'm3.dat', 'lens1.dat',
             'lens2.dat', 'lens3.dat'] for LSST).  These files are also expected to be stored in filedir
-
-        Parameters
-        ----------
         atmo_transmission : `Unknown`
             is the absolute path to the file representing the
             transmissivity of the atmosphere (defaults to baseline/atmos_std.dat in the LSST
             'throughputs' package).
 
-        Parameters
-        ----------
+        Returns
+        -------
         bandpass_dict : `Unknown`
             is a BandpassDict containing the total
             throughput (instrumentation + atmosphere)
-
-        Parameters
-        ----------
         hardware_bandpass_dict : `Unknown`
             is a BandpassDict containing
             the throughput due to instrumentation only
@@ -196,25 +178,18 @@ class BandpassDict:
         bandpass_names : `Unknown`
             is a list of names identifying each filter.
             Defaults to ['u', 'g', 'r', 'i', 'z', 'y']
-
-        Parameters
-        ----------
         bandpass_dir : `Unknown`
             is the name of the directory where the bandpass files are stored
-
-        Parameters
-        ----------
         bandpass_root : `Unknown`
             contains the first part of the bandpass file name, i.e., it is assumed
             that the bandpasses are stored in files of the type
-
-        bandpass_dir/bandpassRoot_bandpass_names[i].dat
+                ``bandpass_dir/bandpassRoot_bandpass_names[i].dat``
 
         if we want to load bandpasses for a telescope other than LSST, we would do so
         by altering bandpass_dir and bandpass_root
 
-        Parameters
-        ----------
+        Returns
+        -------
         bandpassDict : `Unknown`
             is a BandpassDict containing the loaded throughputs
         """
@@ -273,17 +248,14 @@ class BandpassDict:
             is an Sed object.  Its wavelength grid can be arbitrary.  If necessary,
             a copy will be created and resampled onto the wavelength grid of the Bandpasses before
             magnitudes are calculated.  The original Sed will be unchanged.
-
-        Parameters
-        ----------
         indices : `Unknown`
             is an optional list of indices indicating which bandpasses to actually
             calculate magnitudes for.  Other magnitudes will be listed as numpy.NaN (i.e. this method will
             return as many magnitudes as were loaded with the loadBandpassesFromFiles methods; it will
             just return numpy.NaN for magnitudes you did not actually ask for)
 
-        Parameters
-        ----------
+        Returns
+        -------
         magList : `Unknown`
             is a list of magnitudes in the bandpasses stored in this BandpassDict
         """
@@ -315,17 +287,14 @@ class BandpassDict:
             is an Sed object.  Its wavelength grid can be arbitrary.  If necessary,
             a copy will be created and resampled onto the wavelength grid of the Bandpasses before
             magnitudes are calculated.  The original Sed will be unchanged.
-
-        Parameters
-        ----------
         indices : `Unknown`
             is an optional list of indices indicating which bandpasses to actually
             calculate magnitudes for.  Other magnitudes will be listed as numpy.NaN (i.e. this method will
             return as many magnitudes as were loaded with the loadBandpassesFromFiles methods; it will
             just return numpy.NaN for magnitudes you did not actually ask for)
 
-        Parameters
-        ----------
+        Returns
+        -------
         magDict : `Unknown`
             is an OrderedDict of magnitudes in the bandpasses stored in this BandpassDict
         """
@@ -362,17 +331,14 @@ class BandpassDict:
         sed_list : `Unknown`
             is a SedList containing the Seds
             whose magnitudes are desired.
-
-        Parameters
-        ----------
         indices : `Unknown`
             is an optional list of indices indicating which bandpasses to actually
             calculate magnitudes for.  Other magnitudes will be listed as numpy.NaN (i.e. this method will
             return as many magnitudes as were loaded with the loadBandpassesFromFiles methods; it will
             just return numpy.NaN for magnitudes you did not actually ask for)
 
-        Parameters
-        ----------
+        Returns
+        -------
         output_list : `Unknown`
             is a 2-D numpy array containing the magnitudes
             of each Sed (the rows) in each bandpass contained in this BandpassDict
@@ -423,17 +389,14 @@ class BandpassDict:
         sed_list : `Unknown`
             is a SedList containing the Seds
             whose magnitudes are desired.
-
-        Parameters
-        ----------
         indices : `Unknown`
             is an optional list of indices indicating which bandpasses to actually
             calculate magnitudes for.  Other magnitudes will be listed as numpy.NaN (i.e. this method will
             return as many magnitudes as were loaded with the loadBandpassesFromFiles methods; it will
             just return numpy.NaN for magnitudes you did not actually ask for)
 
-        Parameters
-        ----------
+        Returns
+        -------
         output_array : `Unknown`
             is a dtyped numpy array of magnitudes (see above).
         """
@@ -491,17 +454,14 @@ class BandpassDict:
             is an Sed object.   Its wavelength grid can be arbitrary. If necessary,
             a copy will be created and resampled onto the wavelength grid of the Bandpasses before
             fluxes are calculated.  The original Sed will be unchanged.
-
-        Parameters
-        ----------
         indices : `Unknown`
             is an optional list of indices indicating which bandpasses to actually
             calculate fluxes for.  Other fluxes will be listed as numpy.NaN (i.e. this method will
             return as many fluxes as were loaded with the loadBandpassesFromFiles methods; it will
             just return numpy.NaN for fluxes you did not actually ask for)
 
-        Parameters
-        ----------
+        Returns
+        -------
         fluxList : `Unknown`
             is a list of fluxes in the bandpasses stored in this BandpassDict
 
@@ -538,17 +498,14 @@ class BandpassDict:
             is an Sed object.   Its wavelength grid can be arbitrary. If necessary,
             a copy will be created and resampled onto the wavelength grid of the Bandpasses before
             fluxes are calculated.  The original Sed will be unchanged.
-
-        Parameters
-        ----------
         indices : `Unknown`
             is an optional list of indices indicating which bandpasses to actually
             calculate fluxes for.  Other fluxes will be listed as numpy.NaN (i.e. this method will
             return as many fluxes as were loaded with the loadBandpassesFromFiles methods; it will
             just return numpy.NaN for fluxes you did not actually ask for)
 
-        Parameters
-        ----------
+        Returns
+        -------
         flux_list : `Unknown`
             is a list of fluxes in the bandpasses stored in this BandpassDict
 
@@ -589,21 +546,21 @@ class BandpassDict:
         sed_list : `Unknown`
             is a SedList containing the Seds
             whose fluxes are desired.
-
-        Parameters
-        ----------
         indices : `Unknown`
             is an optional list of indices indicating which bandpasses to actually
             calculate fluxes for.  Other fluxes will be listed as numpy.NaN (i.e. this method will
             return as many fluxes as were loaded with the loadBandpassesFromFiles methods; it will
             just return numpy.NaN for fluxes you did not actually ask for)
 
-        Parameters
-        ----------
+        Returns
+        -------
         output_list : `Unknown`
             is a 2-D numpy array containing the fluxes
             of each Sed (the rows) in each bandpass contained in this BandpassDict
             (the columns)
+
+        Notes
+        -----
 
         Note on units: Fluxes calculated this way will be the flux density integrated over the
         weighted response curve of the bandpass.  See equaiton 2.1 of the LSST Science Book
@@ -655,22 +612,21 @@ class BandpassDict:
         sed_list : `Unknown`
             is a SedList containing the Seds
             whose fluxes are desired.
-
-        Parameters
-        ----------
         indices : `Unknown`
             is an optional list of indices indicating which bandpasses to actually
             calculate fluxes for.  Other fluxes will be listed as numpy.NaN (i.e. this method will
             return as many fluxes as were loaded with the loadBandpassesFromFiles methods; it will
             just return numpy.NaN for fluxes you did not actually ask for)
 
-        Parameters
-        ----------
+        Returns
+        -------
         output_list : `Unknown`
             is a 2-D numpy array containing the fluxes
             of each Sed (the rows) in each bandpass contained in this BandpassDict
             (the columns)
 
+        Notes
+        -----
         Note on units: Fluxes calculated this way will be the flux density integrated over the
         weighted response curve of the bandpass.  See equaiton 2.1 of the LSST Science Book
 
