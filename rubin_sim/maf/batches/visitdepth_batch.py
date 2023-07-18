@@ -1,5 +1,7 @@
 """Sets of metrics to look at general sky coverage - nvisits/coadded depth/Teff.
 """
+__all__ = ("nvisitsM5Maps", "tEffMetrics", "nvisitsPerNight", "nvisitsPerSubset")
+
 import copy
 
 import numpy as np
@@ -12,8 +14,6 @@ import rubin_sim.maf.utils as mafUtils
 
 from .col_map_dict import col_map_dict, get_col_map
 from .common import combine_info_labels, filter_list, radec_cols, standard_summary
-
-__all__ = ["nvisitsM5Maps", "tEffMetrics", "nvisitsPerNight", "nvisitsPerSubset"]
 
 
 def nvisitsM5Maps(

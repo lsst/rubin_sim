@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler
 
 from rubin_sim.maf.metrics.base_metric import BaseMetric
 
-__all__ = ["StaticProbesFoMEmulatorMetric"]
+__all__ = ("StaticProbesFoMEmulatorMetric", )
 
 
 class StaticProbesFoMEmulatorMetric(BaseMetric):

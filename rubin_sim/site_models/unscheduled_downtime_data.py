@@ -1,10 +1,10 @@
+__all__ = ("UnscheduledDowntimeData", )
+
 import random
 import warnings
 
 import numpy as np
 from astropy.time import Time, TimeDelta
-
-__all__ = ["UnscheduledDowntimeData"]
 
 
 class UnscheduledDowntimeData:

@@ -5,7 +5,7 @@ import numpy as np
 from .base_stacker import BaseStacker
 from .coord_stackers import ra_dec2_alt_az
 
-__all__ = ["find_telescopes", "NFollowStacker"]
+__all__ = ("find_telescopes", "NFollowStacker")
 
 
 def find_telescopes(min_size=3.0):

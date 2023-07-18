@@ -6,7 +6,7 @@ from rubin_sim.phot_utils import DustValues
 
 from .base_metric import BaseMetric
 
-__all__ = ["NgalScaleMetric", "NlcPointsMetric"]
+__all__ = ("NgalScaleMetric", "NlcPointsMetric")
 
 
 class NgalScaleMetric(BaseMetric):

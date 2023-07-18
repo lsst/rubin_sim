@@ -1,8 +1,8 @@
+__all__ = ("Site", )
+
 import warnings
 
 import numpy as np
-
-__all__ = ["Site"]
 
 
 class LsstSiteParameters:

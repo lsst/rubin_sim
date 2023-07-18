@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+__all__ = ("add_run", )
 
 import argparse
 

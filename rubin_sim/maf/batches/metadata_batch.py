@@ -1,5 +1,13 @@
 """Some basic physical quantity metrics.
 """
+__all__ = (
+    "metadataBasics",
+    "metadataBasicsAngle",
+    "allMetadata",
+    "metadataMaps",
+    "firstYearMetadata",
+)
+
 import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.plots as plots
@@ -15,14 +23,6 @@ from .common import (
     standard_angle_metrics,
     standard_summary,
 )
-
-__all__ = [
-    "metadataBasics",
-    "metadataBasicsAngle",
-    "allMetadata",
-    "metadataMaps",
-    "firstYearMetadata",
-]
 
 
 def metadataBasics(

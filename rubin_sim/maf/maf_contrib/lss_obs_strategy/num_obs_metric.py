@@ -7,7 +7,7 @@
 
 from rubin_sim.maf.metrics import BaseMetric
 
-__all__ = ["NumObsMetric"]
+__all__ = ("NumObsMetric", )
 
 
 class NumObsMetric(BaseMetric):

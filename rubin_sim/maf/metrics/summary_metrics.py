@@ -8,7 +8,7 @@ from .base_metric import BaseMetric
 
 # A collection of metrics which are primarily intended to be used as summary statistics.
 
-__all__ = [
+__all__ = (
     "FootprintFraction",
     "FOArea",
     "FONv",
@@ -17,7 +17,7 @@ __all__ = [
     "ZeropointMetric",
     "TotalPowerMetric",
     "StaticProbesFoMEmulatorMetricSimple",
-]
+)
 
 
 class FootprintFraction(BaseMetric):

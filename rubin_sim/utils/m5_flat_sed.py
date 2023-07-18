@@ -1,8 +1,8 @@
+__all__ = ("m5_flat_sed", "m5_scale")
+
 import numpy as np
 
 from .sys_eng_vals import SysEngVals
-
-__all__ = ["m5_flat_sed", "m5_scale"]
 
 
 def m5_scale(

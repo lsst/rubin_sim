@@ -5,7 +5,7 @@ import numpy as np
 
 from rubin_sim.maf.metrics import BaseMetric
 
-__all__ = ["NightsWithNFiltersMetric"]
+__all__ = ("NightsWithNFiltersMetric", )
 
 
 class NightsWithNFiltersMetric(BaseMetric):

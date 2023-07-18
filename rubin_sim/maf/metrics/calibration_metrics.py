@@ -8,13 +8,13 @@ import rubin_sim.utils as utils
 
 from .base_metric import BaseMetric
 
-__all__ = [
+__all__ = (
     "ParallaxMetric",
     "ProperMotionMetric",
     "RadiusObsMetric",
     "ParallaxCoverageMetric",
     "ParallaxDcrDegenMetric",
-]
+)
 
 
 class ParallaxMetric(BaseMetric):

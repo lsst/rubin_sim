@@ -1,7 +1,7 @@
+__all__ = ("SpecMap", "default_spec_map")
+
 import os
 import re
-
-__all__ = ["SpecMap", "default_spec_map"]
 
 
 class SpecMap:

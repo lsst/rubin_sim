@@ -1,3 +1,5 @@
+__all__ = ("LsstCameraFootprint", )
+
 import os
 
 import numpy as np
@@ -5,8 +7,6 @@ import numpy as np
 from rubin_sim.data import get_data_dir
 
 from .projections import gnomonic_project_toxy
-
-__all__ = ["LsstCameraFootprint"]
 
 
 def rotate(x, y, rotation_angle_rad):

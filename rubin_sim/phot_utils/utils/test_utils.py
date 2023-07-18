@@ -3,12 +3,11 @@ This file defines some test catalog and DBObject classes for use with unit tests
 
 To date (30 October 2014) testPhotometry.py and testCosmology.py import from this module
 """
+__all__ = ("set_m5", "comoving_distance_integrand", "cosmological_omega")
 
 import numpy
 
 from rubin_sim.phot_utils import Sed, calc_sky_counts_per_pixel_for_m5
-
-__all__ = ["set_m5", "comoving_distance_integrand", "cosmological_omega"]
 
 
 def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwhm_eff=None):

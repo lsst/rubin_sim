@@ -1,15 +1,15 @@
-import numpy as np
-
-from .coordinate_transformations import calc_lmst_last
-
-__all__ = [
+__all__ = (
     "_approx_alt_az2_ra_dec",
     "_approx_ra_dec2_alt_az",
     "approx_alt_az2_ra_dec",
     "approx_ra_dec2_alt_az",
     "_approx_altaz2pa",
     "approx_altaz2pa",
-]
+)
+
+import numpy as np
+
+from .coordinate_transformations import calc_lmst_last
 
 
 def _approx_altaz2pa(alt_rad, az_rad, latitude_rad):

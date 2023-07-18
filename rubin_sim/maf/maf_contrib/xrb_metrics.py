@@ -9,7 +9,7 @@ from rubin_sim.utils import survey_start_mjd
 from ..metrics import BaseMetric
 from ..slicers import UserPointsSlicer
 
-__all__ = ["XrbLc", "XRBPopMetric", "generate_xrb_pop_slicer"]
+__all__ = ("XrbLc", "XRBPopMetric", "generate_xrb_pop_slicer")
 
 
 class XrbLc:

@@ -1,5 +1,21 @@
 from __future__ import division, print_function
 
+__all__ = (
+    "ss_population_defaults",
+    "quick_discovery_batch",
+    "discovery_batch",
+    "run_completeness_summary",
+    "plot_completeness",
+    "characterization_inner_batch",
+    "characterization_outer_batch",
+    "run_fraction_summary",
+    "plot_fractions",
+    "plot_single",
+    "plot_activity",
+    "read_and_combine",
+    "combine_subsets",
+)
+
 import os
 from copy import deepcopy
 
@@ -19,22 +35,6 @@ from .common import (
     summary_completeness_at_time,
     summary_completeness_over_h,
 )
-
-__all__ = [
-    "ss_population_defaults",
-    "quick_discovery_batch",
-    "discovery_batch",
-    "run_completeness_summary",
-    "plot_completeness",
-    "characterization_inner_batch",
-    "characterization_outer_batch",
-    "run_fraction_summary",
-    "plot_fractions",
-    "plot_single",
-    "plot_activity",
-    "read_and_combine",
-    "combine_subsets",
-]
 
 
 def ss_population_defaults(objtype):

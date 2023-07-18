@@ -20,7 +20,7 @@ from rubin_sim.utils import Site, _angular_separation, _hpid2_ra_dec, angular_se
 
 from .utils import IntRounded, set_default_nside
 
-__all__ = [
+__all__ = (
     "ra_dec_hp_map",
     "generate_all_sky",
     "get_dustmap",
@@ -47,7 +47,7 @@ __all__ = [
     "slice_wfd_indx",
     "slice_quad_galactic_cut",
     "make_rolling_footprints",
-]
+)
 
 
 def make_rolling_footprints(

@@ -5,14 +5,14 @@ import numpy as np
 from .base_stacker import BaseStacker
 from .mo_phase import phase__halley_marcus
 
-__all__ = [
+__all__ = (
     "BaseMoStacker",
     "MoMagStacker",
     "AppMagStacker",
     "CometAppMagStacker",
     "SNRStacker",
     "EclStacker",
-]
+)
 
 # Willmer 2018, ApJS 236, 47
 # VEGA V mag and AB mag of sun (LSST-equivalent bandpasses)

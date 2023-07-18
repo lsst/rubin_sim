@@ -8,7 +8,7 @@ import rubin_sim.maf.metrics as metrics
 
 from .plot_handler import BasePlotter
 
-__all__ = ["FOPlot", "SummaryHistogram"]
+__all__ = ("FOPlot", "SummaryHistogram")
 
 
 class FOPlot(BasePlotter):

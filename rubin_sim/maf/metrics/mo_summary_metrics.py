@@ -4,7 +4,7 @@ import numpy as np
 
 from .mo_metrics import BaseMoMetric
 
-__all__ = [
+__all__ = (
     "power_law_dndh",
     "neo_dndh_granvik",
     "neo_dndh_grav",
@@ -17,7 +17,7 @@ __all__ = [
     "MeanValueAtHMetric",
     "MoCompletenessMetric",
     "MoCompletenessAtTimeMetric",
-]
+)
 
 
 def power_law_dndh(hvalues, hindex=0.33, no=None, ho=None, **kwargs):

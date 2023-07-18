@@ -6,7 +6,7 @@ import numpy as np
 
 import rubin_sim.maf.utils as utils
 
-__all__ = ["apply_zp_norm", "PlotHandler", "BasePlotter"]
+__all__ = ("apply_zp_norm", "PlotHandler", "BasePlotter")
 
 
 def apply_zp_norm(metric_value, plot_dict):

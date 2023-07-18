@@ -1,16 +1,4 @@
-import numpy as np
-import palpy
-
-from .code_utilities import _validate_inputs
-from .coordinate_transformations import (
-    arcsec_from_radians,
-    cartesian_from_spherical,
-    haversine,
-    radians_from_arcsec,
-    spherical_from_cartesian,
-)
-
-__all__ = [
+__all__ = (
     "_solar_ra_dec",
     "solar_ra_dec",
     "_distance_to_sun",
@@ -33,7 +21,19 @@ __all__ = [
     "observed_from_icrs",
     "_icrs_from_observed",
     "icrs_from_observed",
-]
+)
+
+import numpy as np
+import palpy
+
+from .code_utilities import _validate_inputs
+from .coordinate_transformations import (
+    arcsec_from_radians,
+    cartesian_from_spherical,
+    haversine,
+    radians_from_arcsec,
+    spherical_from_cartesian,
+)
 
 
 def _solar_ra_dec(mjd, epoch=2000.0):

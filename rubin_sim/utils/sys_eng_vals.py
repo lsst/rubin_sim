@@ -1,6 +1,6 @@
 # Values from systems engineering that may need to be updated when new filter curves come out
 
-__all__ = ["SysEngVals"]
+__all__ = ("SysEngVals", )
 
 
 class SysEngVals:

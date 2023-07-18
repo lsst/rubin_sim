@@ -31,7 +31,7 @@ from rubin_sim.utils import _hpid2_ra_dec
 
 iers.conf.auto_download = False
 
-__all__ = ["example_scheduler"]
+__all__ = ("example_scheduler")
 
 
 def standard_bf(

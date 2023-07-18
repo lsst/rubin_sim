@@ -1,6 +1,8 @@
 """Metrics to investigate quantities related to SRD.
 Potentially could diverge from versions in scienceRadar.
 """
+__all__ = ("fOBatch", "astrometryBatch", "rapidRevisitBatch")
+
 import warnings
 
 import healpy as hp
@@ -14,8 +16,6 @@ import rubin_sim.maf.stackers as stackers
 
 from .col_map_dict import col_map_dict
 from .common import combine_info_labels, radec_cols, standard_summary
-
-__all__ = ["fOBatch", "astrometryBatch", "rapidRevisitBatch"]
 
 
 def fOBatch(

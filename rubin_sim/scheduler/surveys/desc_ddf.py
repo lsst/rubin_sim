@@ -8,7 +8,7 @@ import rubin_sim.scheduler.basis_functions as basis_functions
 from rubin_sim.scheduler.surveys import BaseSurvey
 from rubin_sim.scheduler.utils import empty_observation
 
-__all__ = ["DescDdf", "generate_desc_dd_surveys"]
+__all__ = ("DescDdf", "generate_desc_dd_surveys")
 
 
 class DescDdf(BaseSurvey):

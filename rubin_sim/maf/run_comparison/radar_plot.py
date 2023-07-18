@@ -9,10 +9,10 @@ from matplotlib.spines import Spine
 # https://matplotlib.org/examples/api/radar_chart.html
 
 
-__all__ = [
+__all__ = (
     "radar",
     "normalize_for_radar",
-]
+)
 
 
 def normalize_for_radar(

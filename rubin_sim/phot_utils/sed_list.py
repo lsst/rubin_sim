@@ -1,10 +1,10 @@
+__all__ = ("SedList", )
+
 import copy
 import os
 
 from .sed import Sed
 from .sed_utils import get_imsim_flux_norm
-
-__all__ = ["SedList"]
 
 
 class SedList:

@@ -1,3 +1,5 @@
+__all__ = ("science_radar_batch", )
+
 import astropy.units as u
 import healpy as hp
 import numpy as np
@@ -10,8 +12,6 @@ import rubin_sim.maf.plots as plots
 import rubin_sim.maf.slicers as slicers
 
 from .common import extended_summary, filter_list, lightcurve_summary, standard_summary
-
-__all__ = ["science_radar_batch"]
 
 
 def science_radar_batch(

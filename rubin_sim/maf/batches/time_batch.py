@@ -1,5 +1,7 @@
 """Sets of metrics to look at time between visits/pairs, etc.
 """
+__all__ = ("intraNight", "interNight", "timeGaps", "seasons")
+
 import numpy as np
 
 import rubin_sim.maf.metric_bundles as mb
@@ -9,8 +11,6 @@ import rubin_sim.maf.slicers as slicers
 
 from .col_map_dict import col_map_dict
 from .common import combine_info_labels, extended_summary, filter_list, radec_cols, standard_summary
-
-__all__ = ["intraNight", "interNight", "timeGaps", "seasons"]
 
 
 def intraNight(

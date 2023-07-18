@@ -20,7 +20,7 @@ else:
     print("Could not find appropriate healpy function for get_interp_weight or get_neighbours")
 
 
-__all__ = [
+__all__ = (
     "id2intid",
     "intid2id",
     "load_spec_files",
@@ -33,7 +33,7 @@ __all__ = [
     "TwilightInterp",
     "MoonInterp",
     "ZodiacalInterp",
-]
+)
 
 
 def id2intid(ids):

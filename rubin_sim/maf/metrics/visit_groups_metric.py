@@ -10,7 +10,7 @@ from .base_metric import BaseMetric
 # Uses multiple reduce functions
 
 
-__all__ = ["VisitGroupsMetric", "PairFractionMetric"]
+__all__ = ("VisitGroupsMetric", "PairFractionMetric")
 
 
 class PairFractionMetric(BaseMetric):

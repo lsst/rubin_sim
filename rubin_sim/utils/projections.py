@@ -1,6 +1,6 @@
-import numpy as np
+__all__ = ("gnomonic_project_toxy", "gnomonic_project_tosky")
 
-__all__ = ["gnomonic_project_toxy", "gnomonic_project_tosky"]
+import numpy as np
 
 
 def gnomonic_project_toxy(ra1, dec1, r_acen, deccen):

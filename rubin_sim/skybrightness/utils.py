@@ -1,6 +1,6 @@
 import numpy as np
 
-__all__ = ["wrap_ra", "robust_rms"]
+__all__ = ("wrap_ra", "robust_rms")
 
 
 def wrap_ra(ra):

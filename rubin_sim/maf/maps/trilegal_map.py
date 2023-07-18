@@ -8,7 +8,7 @@ from rubin_sim.utils import _build_tree, _equatorial_from_galactic, _hpid2_ra_de
 
 from . import BaseMap
 
-__all__ = ["TrilegalDensityMap"]
+__all__ = ("TrilegalDensityMap", )
 
 
 class TrilegalDensityMap(BaseMap):

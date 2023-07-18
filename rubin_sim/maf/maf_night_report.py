@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+__all__ = ("make_bundle_list", "maf_night_report")
 
 import argparse
 

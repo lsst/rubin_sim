@@ -6,7 +6,7 @@ import rubin_sim.maf.utils as mafUtils
 
 from .base_metric import BaseMetric
 
-__all__ = ["BDParallaxMetric", "VolumeSumMetric"]
+__all__ = ("BDParallaxMetric", "VolumeSumMetric")
 
 
 def bd_colors(spec_type):

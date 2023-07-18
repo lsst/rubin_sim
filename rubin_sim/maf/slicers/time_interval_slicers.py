@@ -19,12 +19,12 @@ from .base_slicer import BaseSlicer
 
 # exception classes
 
-__all__ = [
+__all__ = (
     "TimeIntervalSlicer",
     "BlockIntervalSlicer",
     "VisitIntervalSlicer",
     "SlicerNotSetup",
-]
+)
 
 
 class SlicerNotSetup(Exception):

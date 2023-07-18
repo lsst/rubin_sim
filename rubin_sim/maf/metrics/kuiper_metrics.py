@@ -2,7 +2,7 @@ import numpy as np
 
 from .base_metric import BaseMetric
 
-__all__ = ["KuiperMetric"]
+__all__ = ("KuiperMetric", )
 
 
 class KuiperMetric(BaseMetric):

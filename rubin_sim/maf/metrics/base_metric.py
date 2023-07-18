@@ -14,7 +14,7 @@ from six import with_metaclass
 
 from rubin_sim.maf.stackers.get_col_info import ColInfo
 
-__all__ = ["MetricRegistry", "BaseMetric", "ColRegistry"]
+__all__ = ("MetricRegistry", "BaseMetric", "ColRegistry")
 
 
 class MetricRegistry(type):

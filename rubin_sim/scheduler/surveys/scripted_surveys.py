@@ -9,7 +9,7 @@ from rubin_sim.utils import _approx_ra_dec2_alt_az, ra_dec2_hpid
 
 log = logging.getLogger(__name__)
 
-__all__ = ["ScriptedSurvey", "PairsSurveyScripted"]
+__all__ = ("ScriptedSurvey", "PairsSurveyScripted")
 
 
 class ScriptedSurvey(BaseSurvey):

@@ -1,8 +1,8 @@
+__all__ = ("PhotometricParameters", "DustValues")
+
 import numpy as np
 
 from rubin_sim.phot_utils import BandpassDict, Sed
-
-__all__ = ["PhotometricParameters", "DustValues"]
 
 
 class DustValues:

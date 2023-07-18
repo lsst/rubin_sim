@@ -6,7 +6,7 @@ from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler.utils import scheduled_observation
 from rubin_sim.utils import calc_season, ddf_locations
 
-__all__ = ["generate_ddf_scheduled_obs"]
+__all__ = ("generate_ddf_scheduled_obs")
 
 
 def ddf_slopes(ddf_name, raw_obs, night_season):

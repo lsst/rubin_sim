@@ -8,7 +8,7 @@ from rubin_sim.utils import Site, m5_flat_sed
 
 from .base_stacker import BaseStacker
 
-__all__ = [
+__all__ = (
     "NormAirmassStacker",
     "ParallaxFactorStacker",
     "HourAngleStacker",
@@ -17,7 +17,7 @@ __all__ = [
     "DcrStacker",
     "FiveSigmaStacker",
     "SaturationStacker",
-]
+)
 
 
 class SaturationStacker(BaseStacker):

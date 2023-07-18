@@ -1,9 +1,9 @@
+__all__ = ("get_data_dir", "data_versions", "get_baseline")
+
 import glob
 import os
 import subprocess
 import warnings
-
-__all__ = ["get_data_dir", "data_versions", "get_baseline"]
 
 
 def get_data_dir():

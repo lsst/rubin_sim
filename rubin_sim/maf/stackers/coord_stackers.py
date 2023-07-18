@@ -8,7 +8,7 @@ from rubin_sim.utils import _galactic_from_equatorial, calc_lmst_last
 from .base_stacker import BaseStacker
 from .dither_stackers import wrap_ra
 
-__all__ = ["ra_dec2_alt_az", "GalacticStacker", "EclipticStacker"]
+__all__ = ("ra_dec2_alt_az", "GalacticStacker", "EclipticStacker")
 
 
 def ra_dec2_alt_az(ra, dec, lat, lon, mjd, altonly=False):

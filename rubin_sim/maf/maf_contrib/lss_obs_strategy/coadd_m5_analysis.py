@@ -28,7 +28,7 @@ from rubin_sim.maf.maf_contrib.lss_obs_strategy.masking_algorithm_generalized im
 )
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.save_bundle_data_npz_format import save_bundle_data_npz_format
 
-__all__ = ["coadd_m5_analysis"]
+__all__ = ("coadd_m5_analysis")
 
 
 def coadd_m5_analysis(

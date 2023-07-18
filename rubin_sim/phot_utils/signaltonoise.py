@@ -1,10 +1,4 @@
-import numpy
-
-from . import lsst_defaults
-from .photometric_parameters import PhotometricParameters
-from .sed import Sed
-
-__all__ = [
+__all__ = (
     "fwhm_eff2_fwhm_geom",
     "fwhm_geom2_fwhm_eff",
     "calc_neff",
@@ -19,7 +13,13 @@ __all__ = [
     "mag_error_from_snr",
     "calc_mag_error_m5",
     "calc_mag_error_sed",
-]
+)
+
+import numpy
+
+from . import lsst_defaults
+from .photometric_parameters import PhotometricParameters
+from .sed import Sed
 
 
 def fwhm_eff2_fwhm_geom(fwhm_eff):

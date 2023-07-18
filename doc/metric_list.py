@@ -1,9 +1,9 @@
+__all__ = ("make_metric_list", )
+
 import inspect
 
 import rubin_sim.maf.maf_contrib as maf_contrib
 import rubin_sim.maf.metrics as metrics
-
-__all__ = ["make_metric_list"]
 
 
 def make_metric_list(outfile):

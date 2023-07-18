@@ -1,12 +1,12 @@
 """Run the hourglass metric.
 """
+__all__ = ("hourglassPlots", )
+
 import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 
 from .col_map_dict import col_map_dict
-
-__all__ = ["hourglassPlots"]
 
 
 def hourglassPlots(colmap=None, runName="opsim", nyears=10, extraSql=None, extraInfoLabel=None):

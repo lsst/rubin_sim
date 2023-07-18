@@ -20,36 +20,8 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-"""
-bandpass -
+__all__ = ("Bandpass", )
 
-Class data:
-wavelen (nm)
-sb  (Transmission, 0-1)
-phi (Normalized system response)
-phi will be None until specifically needed; any updates to wavelen/sb within class will reset phi to None.
-the name of the bandpass file
-
-
-Methods:
-* __init__ : pass wavelen/sb arrays and set values  OR set data to None's
-* setWavelenLimits / getWavelenLimits: set or get the wavelength limits of bandpass
-* setBandpass: set bandpass using wavelen/sb input values
-* getBandpass: return copies of wavelen/sb values
-* imsim_bandpass : set up a bandpass which is 0 everywhere but one wavelength
-(this can be useful for imsim magnitudes)
-* read_throughput : set up a bandpass by reading data from a single file
-* readThroughtputList : set up a bandpass by reading data from many files and multiplying
-the individual throughputs
-* resample_bandpass : use linear interpolation to resample wavelen/sb arrays onto a regular grid
-(grid is specified by min/max/step size)
-* sb_tophi : calculate phi from sb - needed for calculating magnitudes
-* multiply_throughputs : multiply self.wavelen/sb by given wavelen/sb and return
-new wavelen/sb arrays (wavelength sampled like self)
-* calc_zp_t : calculate instrumental zeropoint for this bandpass
-* calc_eff_wavelen: calculate the effective wavelength (using both Sb and Phi) for this bandpass
-* writeThroughput : utility to write bandpass information to file
-"""
 import gzip
 import os
 import warnings
@@ -59,8 +31,6 @@ import scipy.interpolate as interpolate
 
 from .physical_parameters import PhysicalParameters
 from .sed import Sed  # For ZP_t and M5 calculations. And for 'fast mags' calculation.
-
-__all__ = ["Bandpass"]
 
 
 class Bandpass:

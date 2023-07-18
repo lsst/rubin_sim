@@ -9,7 +9,7 @@ import numpy as np
 from rubin_sim.data import get_data_dir
 from rubin_sim.utils import _angular_separation, _hpid2_ra_dec, survey_start_mjd
 
-__all__ = ["SkyModelPre", "interp_angle"]
+__all__ = ("SkyModelPre", "interp_angle")
 
 
 def short_angle_dist(a0, a1):

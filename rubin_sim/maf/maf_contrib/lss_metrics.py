@@ -4,7 +4,7 @@ import scipy
 
 from rubin_sim.maf.metrics import BaseMetric, Coaddm5Metric
 
-__all__ = ["GalaxyCountsMetric"]
+__all__ = ("GalaxyCountsMetric", )
 
 
 class GalaxyCountsMetric(BaseMetric):

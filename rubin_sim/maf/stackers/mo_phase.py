@@ -5,7 +5,7 @@ Adapted from code written by Michael Kelley - mkelley @ github
 [the HalleyMarcus phase curve is entirely from Michael Kelley's code]
 """
 
-__all__ = ["phase__halley_marcus", "phase__log_linear", "phase_hg"]
+__all__ = ("phase__halley_marcus", "phase__log_linear", "phase_hg")
 
 import numpy as np
 from scipy.interpolate import splev, splrep

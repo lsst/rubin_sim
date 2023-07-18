@@ -11,7 +11,7 @@ from six import with_metaclass
 
 from rubin_sim.maf.utils import get_date_version
 
-__all__ = ["SlicerRegistry", "BaseSlicer"]
+__all__ = ("SlicerRegistry", "BaseSlicer")
 
 
 class SlicerRegistry(type):

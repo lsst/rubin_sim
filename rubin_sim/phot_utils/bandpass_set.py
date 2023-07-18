@@ -39,6 +39,8 @@
  or plotting the filters (i.e. plotFilters). 
 """
 
+__all__ = ("BandpassSet", )
+
 import copy
 import os
 

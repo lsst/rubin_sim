@@ -4,7 +4,7 @@ from .base_metric import BaseMetric
 
 # Metrics for dealing with things from the SlewActivities table
 
-__all__ = ["SlewContributionMetric", "AveSlewFracMetric"]
+__all__ = ("SlewContributionMetric", "AveSlewFracMetric")
 
 
 class SlewContributionMetric(BaseMetric):

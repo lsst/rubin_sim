@@ -1,6 +1,6 @@
-import numpy as np
+__all__ = ("calc_season", )
 
-__all__ = ["calc_season"]
+import numpy as np
 
 
 def calc_season(ra, time):

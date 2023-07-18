@@ -6,7 +6,7 @@ from rubin_sim.scheduler.basis_functions import BaseBasisFunction
 from rubin_sim.scheduler.utils import HpInLsstFov, IntRounded
 from rubin_sim.utils import Site, _angular_separation, _hpid2_ra_dec
 
-__all__ = [
+__all__ = (
     "SolarElongMaskBasisFunction",
     "ZenithMaskBasisFunction",
     "ZenithShadowMaskBasisFunction",
@@ -17,7 +17,7 @@ __all__ = [
     "MaskAzimuthBasisFunction",
     "SolarElongationMaskBasisFunction",
     "AreaCheckMaskBasisFunction",
-]
+)
 
 
 class SolarElongMaskBasisFunction(BaseBasisFunction):

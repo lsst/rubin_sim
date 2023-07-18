@@ -5,7 +5,7 @@ from rubin_sim.maf.metrics.base_metric import BaseMetric
 
 # constants
 
-__all__ = ["UseMetric"]
+__all__ = ("UseMetric", )
 
 # exception classes
 
@@ -13,7 +13,7 @@ __all__ = ["UseMetric"]
 
 # classes
 
-__all__ = ["UseMetric"]
+__all__ = ("UseMetric", )
 
 
 class UseMetric(BaseMetric):  # pylint: disable=too-few-public-methods

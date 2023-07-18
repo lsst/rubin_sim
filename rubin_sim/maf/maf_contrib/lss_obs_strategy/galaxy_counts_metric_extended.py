@@ -23,7 +23,7 @@ from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import (
 )
 from rubin_sim.maf.metrics import BaseMetric, Coaddm5Metric, ExgalM5
 
-__all__ = ["GalaxyCountsMetricExtended"]
+__all__ = ("GalaxyCountsMetricExtended", )
 
 
 class GalaxyCountsMetricExtended(BaseMetric):

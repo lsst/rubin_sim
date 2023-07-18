@@ -5,7 +5,7 @@ import numpy as np
 from .base_stacker import BaseStacker
 from .dither_stackers import wrap_ra
 
-__all__ = ["SdssRADecStacker"]
+__all__ = ("SdssRADecStacker", )
 
 
 class SdssRADecStacker(BaseStacker):

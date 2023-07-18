@@ -8,7 +8,7 @@ from rubin_sim.utils import Site
 
 from .base_metric import BaseMetric
 
-__all__ = ["HourglassMetric"]
+__all__ = ("HourglassMetric", )
 
 
 def nearest_val(A, val):

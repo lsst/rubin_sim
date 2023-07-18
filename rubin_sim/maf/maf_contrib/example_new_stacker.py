@@ -5,7 +5,7 @@ import numpy as np
 
 from rubin_sim.maf.stackers import BaseStacker, wrapRADec
 
-__all__ = ["YearlyDitherStacker"]
+__all__ = ("YearlyDitherStacker", )
 
 
 class YearlyDitherStacker(BaseStacker):
