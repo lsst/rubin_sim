@@ -34,12 +34,20 @@ Python API
 
 .. _rubin_sim.phot_utils api:
 
-:doc:`rubin_sim.photUtils api <../rs_phot_utils/index>`
+:doc:`rubin_sim.phot_utils api <../rs_phot_utils/index>`
 ======================================================
 .. automodapi:: rubin_sim.phot_utils
    :no-main-docstr:
    :no-inheritance-diagram:
 
+
+.. _rubin_sim.satellite_constellations api:
+
+:doc:`rubin_sim.satellite_constellations api <../rs_satellite_constellations/index>`
+======================================================
+.. automodapi:: rubin_sim.satellite_constellations
+   :no-main-docstr:
+   :no-inheritance-diagram:
 
 .. _rubin_sim.site_models api:
 
