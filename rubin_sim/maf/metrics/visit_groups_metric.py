@@ -1,3 +1,5 @@
+__all__ = ("VisitGroupsMetric", "PairFractionMetric")
+
 from builtins import zip
 
 import numpy as np
@@ -8,9 +10,6 @@ from .base_metric import BaseMetric
 # Takes multiple columns of data (although 'night' could be calculable from 'expmjd')
 # Returns variable length array of data
 # Uses multiple reduce functions
-
-
-__all__ = ("VisitGroupsMetric", "PairFractionMetric")
 
 
 class PairFractionMetric(BaseMetric):

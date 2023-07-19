@@ -5,6 +5,8 @@
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
 
+__all__ = ("masking_algorithm_generalized")
+
 import copy
 
 import healpy as hp
@@ -13,8 +15,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import rubin_sim.maf.plots as plots
-
-__all__ = ("masking_algorithm_generalized")
 
 
 def masking_algorithm_generalized(

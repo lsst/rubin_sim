@@ -1,3 +1,5 @@
+__all__ = ("CrowdingM5Metric", "CrowdingMagUncertMetric", "NstarsMetric")
+
 import healpy as hp
 import numpy as np
 from scipy.interpolate import interp1d
@@ -6,8 +8,6 @@ from rubin_sim.maf.metrics import BaseMetric
 
 # Modifying from Knut Olson's fork at:
 # https://github.com/knutago/sims_maf_contrib/blob/master/tutorials/CrowdingMetric.ipynb
-
-__all__ = ("CrowdingM5Metric", "CrowdingMagUncertMetric", "NstarsMetric")
 
 
 def _comp_crowd_error(mag_vector, lum_func, seeing, single_mag=None):

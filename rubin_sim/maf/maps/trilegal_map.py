@@ -1,3 +1,5 @@
+__all__ = ("TrilegalDensityMap", )
+
 import os
 
 import healpy as hp
@@ -7,8 +9,6 @@ from rubin_sim.data import get_data_dir
 from rubin_sim.utils import _build_tree, _equatorial_from_galactic, _hpid2_ra_dec, _xyz_from_ra_dec
 
 from . import BaseMap
-
-__all__ = ("TrilegalDensityMap", )
 
 
 class TrilegalDensityMap(BaseMap):

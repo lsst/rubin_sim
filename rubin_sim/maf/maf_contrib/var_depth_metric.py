@@ -1,13 +1,13 @@
 # Variability Depth Metric
 # Keaton Bell (keatonb@astro.as.utexas.edu)
 
+__all__ = ("VarDepth", )
+
 import numpy as np
 from scipy.interpolate import UnivariateSpline
 from scipy.stats import chi2
 
 from rubin_sim.maf.metrics import BaseMetric
-
-__all__ = ("VarDepth", )
 
 
 class VarDepth(BaseMetric):

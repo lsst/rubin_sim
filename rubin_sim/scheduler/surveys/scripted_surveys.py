@@ -1,3 +1,5 @@
+__all__ = ("ScriptedSurvey", "PairsSurveyScripted")
+
 import logging
 
 import numpy as np
@@ -8,8 +10,6 @@ from rubin_sim.scheduler.utils import empty_observation, set_default_nside
 from rubin_sim.utils import _approx_ra_dec2_alt_az, ra_dec2_hpid
 
 log = logging.getLogger(__name__)
-
-__all__ = ("ScriptedSurvey", "PairsSurveyScripted")
 
 
 class ScriptedSurvey(BaseSurvey):

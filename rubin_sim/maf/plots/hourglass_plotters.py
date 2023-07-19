@@ -1,9 +1,9 @@
+__all__ = ("HourglassPlot", )
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 from .plot_handler import BasePlotter
-
-__all__ = ("HourglassPlot", )
 
 
 class HourglassPlot(BasePlotter):

@@ -1,9 +1,9 @@
+__all__ = ("WFDlabelStacker", )
+
 import healpy as hp
 import numpy as np
 
 from .base_stacker import BaseStacker
-
-__all__ = ("WFDlabelStacker", )
 
 
 class WFDlabelStacker(BaseStacker):

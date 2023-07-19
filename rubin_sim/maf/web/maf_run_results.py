@@ -1,3 +1,5 @@
+__all__ = ("MafRunResults", )
+
 import os
 import re
 from builtins import object, zip
@@ -7,8 +9,6 @@ import numpy as np
 
 import rubin_sim.maf.db as db
 import rubin_sim.maf.metric_bundles as metricBundles
-
-__all__ = ("MafRunResults", )
 
 
 class MafRunResults:

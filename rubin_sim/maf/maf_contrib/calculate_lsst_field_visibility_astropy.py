@@ -4,6 +4,8 @@ Created on Tue Sep 18 13:35:41 2018
 
 @author: rstreet
 """
+__all__ = ("calculate_lsst_field_visibility", "plot_visibility")
+
 import copy
 from sys import argv
 
@@ -14,8 +16,6 @@ import matplotlib.pylab as plt
 import numpy as np
 from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_moon, get_sun
 from astropy.time import Time, TimeDelta
-
-__all__ = ("calculate_lsst_field_visibility", "plot_visibility")
 
 
 def calculate_lsst_field_visibility(

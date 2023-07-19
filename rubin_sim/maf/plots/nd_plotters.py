@@ -1,3 +1,5 @@
+__all__ = ("TwoDSubsetData", "OneDSubsetData")
+
 from builtins import range, zip
 
 import matplotlib.pyplot as plt
@@ -6,8 +8,6 @@ from matplotlib import colors
 
 from .perceptual_rainbow import make_pr_cmap
 from .plot_handler import BasePlotter
-
-__all__ = ("TwoDSubsetData", "OneDSubsetData")
 
 perceptual_rainbow = make_pr_cmap()
 

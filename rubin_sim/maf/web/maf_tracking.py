@@ -1,3 +1,5 @@
+__all__ = ("MafTracking", )
+
 import os
 from builtins import object
 from collections import OrderedDict
@@ -7,8 +9,6 @@ import numpy as np
 from rubin_sim.maf.utils import get_sim_data
 
 from .maf_run_results import MafRunResults
-
-__all__ = ("MafTracking", )
 
 
 class MafTracking:

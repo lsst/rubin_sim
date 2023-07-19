@@ -1,3 +1,5 @@
+__all__ = ("NightPointingMetric", )
+
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_moon, get_sun
@@ -6,8 +8,6 @@ from astropy.time import Time
 from rubin_sim.utils import Site
 
 from .base_metric import BaseMetric
-
-__all__ = ("NightPointingMetric", )
 
 
 class NightPointingMetric(BaseMetric):

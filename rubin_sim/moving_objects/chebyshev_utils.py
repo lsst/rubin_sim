@@ -3,9 +3,9 @@
 Implementation of Newhall, X. X. 1989, Celestial Mechanics, 45, p. 305-310
 """
 
-import numpy as np
-
 __all__ = ("chebeval", "chebfit", "make_cheb_matrix", "make_cheb_matrix_only_x")
+
+import numpy as np
 
 # Evaluation routine.
 

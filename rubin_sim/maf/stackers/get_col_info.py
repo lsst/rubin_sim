@@ -1,8 +1,8 @@
+__all__ = ("ColInfo", )
+
 from builtins import object, zip
 
 from .base_stacker import BaseStacker
-
-__all__ = ("ColInfo", )
 
 
 class ColInfo:

@@ -1,11 +1,11 @@
+__all__ = ("TwoDMap", "VisitPairsHist")
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import colors
 
 from .perceptual_rainbow import make_pr_cmap
 from .plot_handler import BasePlotter
-
-__all__ = ("TwoDMap", "VisitPairsHist")
 
 perceptual_rainbow = make_pr_cmap()
 

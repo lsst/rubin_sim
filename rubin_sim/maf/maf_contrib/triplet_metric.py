@@ -5,11 +5,11 @@
 # Motivation: The detection of nonperiodic transient events can be thought of as most simply being accomplished by a set of three observations, one before the event occurs, a second after the event has begun, and a third to confirm the event is real.
 # This metric identifies the number of triplets that will occur. DelMin and DelMax set the smallest and largest intervals that can occur between the first and second point and between the second and third point. This can be set to reflect the timescales for various events. RatioMax and RatioMin set constraints on how similar the two intervals must be. RatioMin can never be less than 1.
 
+__all__ = ("TripletMetric", "TripletBandMetric")
+
 import numpy as np
 
 from rubin_sim.maf.metrics import BaseMetric
-
-__all__ = ("TripletMetric", "TripletBandMetric")
 
 
 class TripletMetric(BaseMetric):

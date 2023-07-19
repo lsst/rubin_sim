@@ -1,11 +1,11 @@
+__all__ = ("ChebyValues", )
+
 import os
 
 import numpy as np
 import pandas as pd
 
 from .chebyshev_utils import chebeval
-
-__all__ = ("ChebyValues", )
 
 
 class ChebyValues:

@@ -1,3 +1,5 @@
+__all__ = ("BaseSurvey", "BaseMarkovSurvey")
+
 from copy import copy, deepcopy
 
 import healpy as hp
@@ -15,8 +17,6 @@ from rubin_sim.scheduler.utils import (
     set_default_nside,
 )
 from rubin_sim.site_models import _read_fields
-
-__all__ = ("BaseSurvey", "BaseMarkovSurvey")
 
 
 class BaseSurvey:

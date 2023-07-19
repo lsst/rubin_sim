@@ -1,3 +1,5 @@
+__all__ = ("PeriodicDetectMetric", )
+
 import numpy as np
 import scipy
 
@@ -5,8 +7,6 @@ import rubin_sim.utils as utils
 from rubin_sim.maf.utils import m52snr
 
 from .base_metric import BaseMetric
-
-__all__ = ("PeriodicDetectMetric", )
 
 
 class PeriodicDetectMetric(BaseMetric):

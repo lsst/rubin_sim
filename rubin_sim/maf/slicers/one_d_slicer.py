@@ -1,5 +1,7 @@
 # oneDSlicer - slices based on values in one data column in sim_data.
 
+__all__ = ("OneDSlicer", )
+
 import warnings
 from functools import wraps
 
@@ -10,8 +12,6 @@ from rubin_sim.maf.stackers import ColInfo
 from rubin_sim.maf.utils import optimal_bins
 
 from .base_slicer import BaseSlicer
-
-__all__ = ("OneDSlicer", )
 
 
 class OneDSlicer(BaseSlicer):

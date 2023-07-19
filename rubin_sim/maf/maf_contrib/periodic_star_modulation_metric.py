@@ -1,3 +1,5 @@
+__all__ = ("PeriodicStarModulationMetric", )
+
 import random
 import warnings
 
@@ -8,8 +10,6 @@ from rubin_sim.maf.metrics.base_metric import BaseMetric
 from rubin_sim.maf.utils import m52snr
 
 from .periodic_star_metric import PeriodicStar
-
-__all__ = ("PeriodicStarModulationMetric", )
 
 """ This metric is based on the PeriodicStar metric 
     It was modified in a way to reproduce attempts to identify period/ phase modulation (Blazhko effect)

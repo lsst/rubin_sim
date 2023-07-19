@@ -1,11 +1,11 @@
+__all__ = ("Almanac", )
+
 import os
 
 import numpy as np
 from scipy.interpolate import interp1d
 
 from rubin_sim.data import get_data_dir
-
-__all__ = ("Almanac", )
 
 
 class Almanac:

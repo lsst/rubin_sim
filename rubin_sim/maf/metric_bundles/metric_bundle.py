@@ -1,3 +1,5 @@
+__all__ = ("MetricBundle", "create_empty_metric_bundle")
+
 import os
 import warnings
 from builtins import object, zip
@@ -13,8 +15,6 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.utils as utils
 from rubin_sim.maf.stackers import ColInfo
-
-__all__ = ("MetricBundle", "create_empty_metric_bundle")
 
 
 def create_empty_metric_bundle():

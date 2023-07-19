@@ -1,10 +1,10 @@
+__all__ = ("ExgalM5WithCuts", "WeakLensingNvisits", "RIZDetectionCoaddExposureTime")
+
 import numpy as np
 
 from .base_metric import BaseMetric
 from .exgal_m5 import ExgalM5
 from .vector_metrics import VectorMetric
-
-__all__ = ("ExgalM5WithCuts", "WeakLensingNvisits", "RIZDetectionCoaddExposureTime")
 
 
 class ExgalM5WithCuts(BaseMetric):

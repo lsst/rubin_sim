@@ -3,6 +3,8 @@
 # to consider various survey strategies, mask shallow borders, create/save/show relevant plots, do
 # an alm analysis, and save data.
 
+__all__ = ("coadd_m5_analysis", )
+
 import copy
 import os
 
@@ -27,8 +29,6 @@ from rubin_sim.maf.maf_contrib.lss_obs_strategy.masking_algorithm_generalized im
     masking_algorithm_generalized,
 )
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.save_bundle_data_npz_format import save_bundle_data_npz_format
-
-__all__ = ("coadd_m5_analysis")
 
 
 def coadd_m5_analysis(

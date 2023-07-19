@@ -1,9 +1,9 @@
+__all__ = ("SatelliteAvoidBasisFunction", )
+
 import healpy as hp
 import numpy as np
 
 import rubin_sim.scheduler.basis_functions as bf
-
-__all__ = ("SatelliteAvoidBasisFunction", )
 
 
 class SatelliteAvoidBasisFunction(bf.BaseBasisFunction):

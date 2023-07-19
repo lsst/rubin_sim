@@ -1,8 +1,8 @@
+__all__ = ("FilterPairTGapsMetric", )
+
 import numpy as np
 
 from ..metrics.base_metric import BaseMetric
-
-__all__ = ("FilterPairTGapsMetric", )
 
 
 class FilterPairTGapsMetric(BaseMetric):

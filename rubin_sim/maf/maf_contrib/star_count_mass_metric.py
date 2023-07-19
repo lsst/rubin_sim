@@ -1,3 +1,5 @@
+__all__ = ("StarCountMassMetric", )
+
 from __future__ import absolute_import
 
 import numpy as np
@@ -14,8 +16,6 @@ from .star_counts import *
 # This metric identifies the number of stars in a given field in a particular mass range that will be fainter than the saturation limit of 16th magnitude and still bright enough to have noise less than 0.03 mag. M1 and M2 are the low and high limits of the mass range in solar masses. 'band' is the band for the observations to be made in.
 # Requires StarCounts.StarCounts
 
-
-__all__ = ("StarCountMassMetric", )
 
 
 class StarCountMassMetric(BaseMetric):

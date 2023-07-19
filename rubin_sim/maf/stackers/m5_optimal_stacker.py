@@ -1,13 +1,13 @@
 from __future__ import print_function
 
+__all__ = ("M5OptimalStacker", "generate_sky_slopes")
+
 import numpy as np
 
 from rubin_sim.utils import Site
 
 from .base_stacker import BaseStacker
 from .general_stackers import FiveSigmaStacker
-
-__all__ = ("M5OptimalStacker", "generate_sky_slopes")
 
 
 def generate_sky_slopes():

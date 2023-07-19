@@ -1,4 +1,6 @@
 # cumulative one dimensional movie slicer
+__all__ = ("MovieSlicer", )
+
 import os
 import subprocess
 import warnings
@@ -12,8 +14,6 @@ from rubin_sim.maf.stackers import ColInfo
 from rubin_sim.maf.utils import optimal_bins
 
 from .base_slicer import BaseSlicer
-
-__all__ = ("MovieSlicer", )
 
 
 class MovieSlicer(BaseSlicer):

@@ -1,8 +1,8 @@
+__all__ = ("MapsRegistry", "BaseMap")
+
 import inspect
 
 from six import with_metaclass
-
-__all__ = ("MapsRegistry", "BaseMap")
 
 
 class MapsRegistry(type):

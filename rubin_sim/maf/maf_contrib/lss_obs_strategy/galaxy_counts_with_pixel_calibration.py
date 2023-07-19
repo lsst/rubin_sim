@@ -11,6 +11,8 @@
 #
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
+__all__ = ("galaxy_counts_with_pixel_calibration", )
+
 import warnings
 
 import numpy as np
@@ -21,8 +23,6 @@ from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import (
     power_law_const_a,
     power_law_const_b,
 )
-
-__all__ = ("galaxy_counts_with_pixel_calibration")
 
 
 def galaxy_counts_with_pixel_calibration(

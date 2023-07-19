@@ -1,3 +1,5 @@
+__all__ = ("sim_runner", )
+
 import sqlite3
 import sys
 import time
@@ -8,8 +10,6 @@ import pandas as pd
 
 from rubin_sim.scheduler.schedulers import SimpleFilterSched
 from rubin_sim.scheduler.utils import SchemaConverter, run_info_table
-
-__all__ = ("sim_runner")
 
 
 def sim_runner(

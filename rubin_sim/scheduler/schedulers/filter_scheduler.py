@@ -1,6 +1,6 @@
-from rubin_sim.scheduler.utils import IntRounded
-
 __all__ = ("FilterSwapScheduler", "SimpleFilterSched", "FilterSchedUzy")
+
+from rubin_sim.scheduler.utils import IntRounded
 
 
 class FilterSwapScheduler:

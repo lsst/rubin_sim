@@ -1,3 +1,5 @@
+__all__ = ("SNSNRMetric", )
+
 import time
 from collections.abc import Iterable
 
@@ -8,8 +10,6 @@ from scipy import interpolate
 
 import rubin_sim.maf.metrics as metrics
 from rubin_sim.maf.utils.sn_utils import GenerateFakeObservations
-
-__all__ = ("SNSNRMetric", )
 
 
 class SNSNRMetric(metrics.BaseMetric):

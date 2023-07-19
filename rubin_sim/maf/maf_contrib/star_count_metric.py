@@ -1,3 +1,5 @@
+__all__ = ("StarCountMetric", )
+
 from __future__ import absolute_import
 
 import numpy as np
@@ -14,8 +16,6 @@ from .star_counts import *
 # This metric identifies the number of stars in a given field in a particular distance range. D1 and D2 are the close and far distances in parsecs.
 # Requires StarCounts.StarCounts
 
-
-__all__ = ("StarCountMetric", )
 
 
 class StarCountMetric(BaseMetric):

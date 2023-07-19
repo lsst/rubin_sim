@@ -1,8 +1,8 @@
+__all__ = ("CumulativeMetric", )
+
 import numpy as np
 
 from .base_metric import BaseMetric
-
-__all__ = ("CumulativeMetric", )
 
 
 class CumulativeMetric(BaseMetric):

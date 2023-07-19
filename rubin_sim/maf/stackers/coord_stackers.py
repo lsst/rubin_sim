@@ -1,3 +1,5 @@
+__all__ = ("ra_dec2_alt_az", "GalacticStacker", "EclipticStacker")
+
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord, get_sun
@@ -7,8 +9,6 @@ from rubin_sim.utils import _galactic_from_equatorial, calc_lmst_last
 
 from .base_stacker import BaseStacker
 from .dither_stackers import wrap_ra
-
-__all__ = ("ra_dec2_alt_az", "GalacticStacker", "EclipticStacker")
 
 
 def ra_dec2_alt_az(ra, dec, lat, lon, mjd, altonly=False):

@@ -1,3 +1,5 @@
+__all__ = ("altazHealpix", "altazLambert")
+
 import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.plots as plots
@@ -5,8 +7,6 @@ import rubin_sim.maf.slicers as slicers
 
 from .col_map_dict import col_map_dict
 from .common import filter_list
-
-__all__ = ("altazHealpix", "altazLambert")
 
 
 def basicSetup(metric_name, colmap=None, nside=64):

@@ -8,6 +8,8 @@ applications. Standards for reporting the optical aberrations of
 eyes. J Refract Surg 18, S652-660 (2002).
 """
 
+__all__ = ("ZernikeSky", "SkyModelZernike", "SkyBrightnessPreData")
+
 import logging
 import os
 import warnings
@@ -42,8 +44,6 @@ BANDS = ("u", "g", "r", "i", "z", "y")
 # exception classes
 
 # interface functions
-
-__all__ = ("ZernikeSky", "SkyModelZernike", "SkyBrightnessPreData")
 
 
 def fit_pre(npy_fname, npz_fname, *args, **kwargs):

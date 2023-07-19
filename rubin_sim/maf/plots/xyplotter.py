@@ -1,8 +1,8 @@
+__all__ = ("XyPlotter", )
+
 import matplotlib.pyplot as plt
 
 from .plot_handler import BasePlotter
-
-__all__ = ("XyPlotter", )
 
 
 class XyPlotter(BasePlotter):

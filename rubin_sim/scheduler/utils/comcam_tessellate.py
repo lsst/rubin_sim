@@ -1,6 +1,6 @@
-import numpy as np
+__all__ = ("comcam_tessellate", )
 
-__all__ = ("comcam_tessellate")
+import numpy as np
 
 
 def comcam_tessellate(side_length=0.7, overlap=0.11):

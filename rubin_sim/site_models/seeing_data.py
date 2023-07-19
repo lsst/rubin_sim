@@ -1,3 +1,5 @@
+__all__ = ("SeeingData", )
+
 import os
 import sqlite3
 
@@ -5,8 +7,6 @@ import numpy as np
 from astropy.time import Time
 
 from rubin_sim.data import get_data_dir
-
-__all__ = ("SeeingData", )
 
 
 class SeeingData:

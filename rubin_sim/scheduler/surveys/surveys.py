@@ -1,3 +1,5 @@
+__all__ = ("GreedySurvey", "BlobSurvey")
+
 import warnings
 from copy import copy
 
@@ -15,8 +17,6 @@ from rubin_sim.scheduler.utils import (
     tsp_convex,
 )
 from rubin_sim.utils import _angular_separation, _approx_ra_dec2_alt_az, _hpid2_ra_dec, hp_grow_argsort
-
-__all__ = ("GreedySurvey", "BlobSurvey")
 
 
 class GreedySurvey(BaseMarkovSurvey):
