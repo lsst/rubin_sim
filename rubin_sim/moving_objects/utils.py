@@ -5,7 +5,7 @@ from rubin_sim.maf.utils import get_sim_data
 
 from .orbits import Orbits
 
-__all__ = "read_observations"
+__all__ = ("read_observations",)
 
 
 def read_observations(simfile, colmap, constraint=None, dbcols=None):

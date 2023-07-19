@@ -2,9 +2,9 @@
 
 .. _rubin_sim.satellite_constellations:
 
-==============
+==================================
 rubin_sim satellite constellations
-==============
+==================================
 
 Tools for creating and propigating satellite mega constellations and how they could streak Rubin images.
 

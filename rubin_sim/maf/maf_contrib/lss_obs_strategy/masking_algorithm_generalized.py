@@ -14,7 +14,7 @@ import numpy as np
 
 import rubin_sim.maf.plots as plots
 
-__all__ = "masking_algorithm_generalized"
+__all__ = ("masking_algorithm_generalized",)
 
 
 def masking_algorithm_generalized(
@@ -38,8 +38,8 @@ def masking_algorithm_generalized(
     Assign new_value to all pixels in a skymap within pixel_radius of pixels with value <, >, or = find_value.
 
     Parameters
-    --------------------
-    my_bundles   : `dict` {`rubin_sim.maf.MetricBundles`}
+    ----------
+    my_bundles : `dict` {`rubin_sim.maf.MetricBundles`}
         a dictionary for metricBundles.
     plot_handler :   `rubin_sim.maf.plots.plotHandler.PlotHandler`
     data_label : `str`
