@@ -39,7 +39,7 @@ def galaxy_counts_with_pixel_calibration(
     Estimate galaxy counts for a given HEALpix pixel directly (without a slicer).
 
     Parameters
-    ---------------
+    ----------
     coaddm5 : `float`
         coadded 5sigma limiting magnitude for the pixel.
     upper_mag_limit : `float`

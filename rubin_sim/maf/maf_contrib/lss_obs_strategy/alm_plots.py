@@ -25,26 +25,34 @@ def alm_plots(
     show_plots=True,
 ):
     """
-
     Plot the skymaps/cartview plots corresponding to alms with specified l-ranges.
     Automatically creates the output directories and saves the plots.
 
     Parameters
-    -------------------
-      * path: str: path to the main directory where output directory is saved
-      * out_dir: str: name of the main output directory
-      * bundle: metricBundle object.
-      * nside: int: HEALpix resolution parameter. Default: 128
-      * lmax: int: upper limit on the multipole. Default: 500
-      * filterBand: str: any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
-      * ra_range: float array: range of right ascention (in degrees) to consider in cartview plot; only useful when
+    ----------
+    path : `str`
+        path to the main directory where output directory is saved
+    out_dir : `str`
+        name of the main output directory
+    bundle : metricBundle
+    nside : `int`
+        HEALpix resolution parameter. Default: 128
+    lmax : `int`
+        upper limit on the multipole. Default: 500
+    filterband : `str`
+        any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
+    ra_range : `np.ndarray`
+        range of right ascention (in degrees) to consider in cartview plot; only useful when
                               cartview= True. Default: [-50,50]
-      * dec_range: float array: range of declination (in degrees) to consider in cartview plot; only useful when
+    dec_range : `np.ndarray`
+        range of declination (in degrees) to consider in cartview plot; only useful when
                                cartview= True. Default: [-65,5]
-      * subsets_to_consider: array of int arrays: l-ranges to consider, e.g. use [[50, 100]] to consider 50<l<100.
+    subsets_to_consider : `np.ndarray`
+        l-ranges to consider, e.g. use [[50, 100]] to consider 50<l<100.
                                                 Currently built to handle five subsets (= number of colors built in).
                                                 Default: [[130,165], [240, 300]]
-      * show_plots: `bool`: set to True if want to show figures. Default: True
+    show_plots : `bool`
+        set to True if want to show figures. Default: True
 
     """
     # set up the output directory
