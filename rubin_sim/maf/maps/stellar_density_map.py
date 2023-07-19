@@ -8,7 +8,7 @@ from rubin_sim.maf.utils import radec2pix
 
 from . import BaseMap
 
-__all__ = ("StellarDensityMap", )
+__all__ = ("StellarDensityMap",)
 
 
 class StellarDensityMap(BaseMap):

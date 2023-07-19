@@ -3,7 +3,7 @@ from rubin_sim.phot_utils import DustValues
 from .base_metric import BaseMetric
 from .simple_metrics import Coaddm5Metric
 
-__all__ = ("ExgalM5")
+__all__ = "ExgalM5"
 
 
 class ExgalM5(BaseMetric):

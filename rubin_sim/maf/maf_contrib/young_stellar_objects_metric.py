@@ -10,7 +10,7 @@ from rubin_sim.maf.maps import DustMap, DustMap3D, StellarDensityMap
 from rubin_sim.maf.metrics import BaseMetric, CrowdingM5Metric
 from rubin_sim.phot_utils import DustValues
 
-__all__ = ("NYoungStarsMetric", )
+__all__ = ("NYoungStarsMetric",)
 
 
 class StarDensity:

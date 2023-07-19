@@ -13,7 +13,7 @@ from rubin_sim.maf.utils import optimal_bins
 
 from .base_slicer import BaseSlicer
 
-__all__ = ("MovieSlicer", )
+__all__ = ("MovieSlicer",)
 
 
 class MovieSlicer(BaseSlicer):

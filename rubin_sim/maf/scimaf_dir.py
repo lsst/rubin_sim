@@ -1,4 +1,4 @@
-__all__ = ("scimaf_dir", )
+__all__ = ("scimaf_dir",)
 
 import argparse
 import glob

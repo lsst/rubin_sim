@@ -12,7 +12,7 @@ from .base_slicer import BaseSlicer
 # nd Slicer slices data on N columns in sim_data
 
 
-__all__ = ("NDSlicer", )
+__all__ = ("NDSlicer",)
 
 
 class NDSlicer(BaseSlicer):

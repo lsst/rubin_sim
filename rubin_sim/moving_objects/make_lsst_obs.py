@@ -15,7 +15,7 @@ from rubin_sim.maf.batches import col_map_dict
 iers.conf.auto_download = False
 
 
-__all__ = ("setup_args")
+__all__ = "setup_args"
 
 
 def setup_args(parser=None):

@@ -20,7 +20,7 @@ from rubin_sim.utils import (
     m5_flat_sed,
 )
 
-__all__ = ("Conditions", )
+__all__ = ("Conditions",)
 
 
 class Conditions:

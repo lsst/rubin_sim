@@ -3,7 +3,7 @@ import numpy as np
 
 from .base_stacker import BaseStacker
 
-__all__ = ("WFDlabelStacker", )
+__all__ = ("WFDlabelStacker",)
 
 
 class WFDlabelStacker(BaseStacker):

@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
-__all__ = ("Orbits", )
+__all__ = ("Orbits",)
 
 
 class Orbits:

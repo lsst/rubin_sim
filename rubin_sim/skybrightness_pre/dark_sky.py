@@ -5,7 +5,7 @@ import numpy as np
 
 from rubin_sim.data import get_data_dir
 
-__all__ = ("dark_sky")
+__all__ = "dark_sky"
 
 
 def dark_sky(nside=32):

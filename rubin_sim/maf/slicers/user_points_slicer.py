@@ -5,7 +5,7 @@ from rubin_sim.utils import _galactic_from_equatorial
 
 from .base_spatial_slicer import BaseSpatialSlicer
 
-__all__ = ("UserPointsSlicer", )
+__all__ = ("UserPointsSlicer",)
 
 
 class UserPointsSlicer(BaseSpatialSlicer):

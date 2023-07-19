@@ -11,7 +11,7 @@ from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.utils.sn_n_sn_utils import LcfastNew, SnRate, load_sne_cached
 from rubin_sim.phot_utils import DustValues
 
-__all__ = ("SNNSNMetric", )
+__all__ = ("SNNSNMetric",)
 
 
 class SNNSNMetric(BaseMetric):

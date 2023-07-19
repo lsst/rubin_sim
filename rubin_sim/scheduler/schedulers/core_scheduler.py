@@ -16,7 +16,7 @@ from astropy.time import Time
 from rubin_sim.scheduler.utils import HpInComcamFov, HpInLsstFov, IntRounded, set_default_nside
 from rubin_sim.utils import _approx_altaz2pa, _approx_ra_dec2_alt_az, _hpid2_ra_dec
 
-__all__ = ("CoreScheduler", )
+__all__ = ("CoreScheduler",)
 
 
 class CoreScheduler:

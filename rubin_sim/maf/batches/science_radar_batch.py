@@ -1,4 +1,4 @@
-__all__ = ("science_radar_batch", )
+__all__ = ("science_radar_batch",)
 
 import astropy.units as u
 import healpy as hp

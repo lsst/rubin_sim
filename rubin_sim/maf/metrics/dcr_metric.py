@@ -5,7 +5,7 @@ import rubin_sim.utils as utils
 
 from .base_metric import BaseMetric
 
-__all__ = ("DcrPrecisionMetric", )
+__all__ = ("DcrPrecisionMetric",)
 
 
 class DcrPrecisionMetric(BaseMetric):

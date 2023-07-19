@@ -9,7 +9,7 @@ from rubin_sim.maf.utils import m52snr
 
 from .periodic_star_metric import PeriodicStar
 
-__all__ = ("PeriodicStarModulationMetric", )
+__all__ = ("PeriodicStarModulationMetric",)
 
 """ This metric is based on the PeriodicStar metric 
     It was modified in a way to reproduce attempts to identify period/ phase modulation (Blazhko effect)

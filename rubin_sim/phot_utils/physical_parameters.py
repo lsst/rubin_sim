@@ -1,4 +1,4 @@
-__all__ = ("PhysicalParameters", )
+__all__ = ("PhysicalParameters",)
 
 
 class PhysicalParameters:

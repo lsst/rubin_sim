@@ -2,7 +2,7 @@ import numpy as np
 
 import rubin_sim.maf.metrics as metrics
 
-__all__ = ("SNCadenceMetric", )
+__all__ = ("SNCadenceMetric",)
 
 
 class SNCadenceMetric(metrics.BaseMetric):

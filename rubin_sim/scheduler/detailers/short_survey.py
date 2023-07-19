@@ -7,7 +7,7 @@ from rubin_sim.scheduler.detailers import BaseDetailer
 from rubin_sim.scheduler.utils import HpInLsstFov
 from rubin_sim.utils import survey_start_mjd
 
-__all__ = ("ShortExptDetailer", )
+__all__ = ("ShortExptDetailer",)
 
 
 class ShortExptDetailer(BaseDetailer):

@@ -8,7 +8,7 @@ from rubin_sim.utils import _xyz_from_ra_dec, gnomonic_project_toxy
 
 from .healpix_slicer import HealpixSlicer
 
-__all__ = ("HealpixSDSSSlicer", )
+__all__ = ("HealpixSDSSSlicer",)
 
 
 class HealpixSDSSSlicer(HealpixSlicer):

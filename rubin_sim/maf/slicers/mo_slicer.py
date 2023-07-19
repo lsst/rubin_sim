@@ -6,7 +6,7 @@ from rubin_sim.moving_objects.orbits import Orbits
 
 from .base_slicer import BaseSlicer
 
-__all__ = ("MoObjSlicer", )
+__all__ = ("MoObjSlicer",)
 
 
 class MoObjSlicer(BaseSlicer):

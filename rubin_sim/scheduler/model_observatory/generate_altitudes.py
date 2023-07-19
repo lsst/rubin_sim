@@ -5,7 +5,7 @@ from scipy.optimize import Bounds, minimize
 
 from rubin_sim.utils import Site
 
-__all__ = ("generate_nights")
+__all__ = "generate_nights"
 
 
 def lin_interp(x, x0, x1, y0, y1):

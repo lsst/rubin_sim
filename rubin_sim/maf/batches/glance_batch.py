@@ -1,4 +1,4 @@
-__all__ = ("glanceBatch", )
+__all__ = ("glanceBatch",)
 
 from __future__ import print_function
 

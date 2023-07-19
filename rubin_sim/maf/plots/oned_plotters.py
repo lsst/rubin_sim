@@ -7,7 +7,7 @@ from rubin_sim.maf.utils import percentile_clipping
 
 from .plot_handler import BasePlotter
 
-__all__ = ("OneDBinnedData", )
+__all__ = ("OneDBinnedData",)
 
 
 class OneDBinnedData(BasePlotter):

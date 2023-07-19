@@ -1,6 +1,6 @@
 """Second generation hourglass plotting classes.
 """
-__all__ = ("riseset_times", )
+__all__ = ("riseset_times",)
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
 

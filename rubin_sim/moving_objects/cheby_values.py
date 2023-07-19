@@ -5,7 +5,7 @@ import pandas as pd
 
 from .chebyshev_utils import chebeval
 
-__all__ = ("ChebyValues", )
+__all__ = ("ChebyValues",)
 
 
 class ChebyValues:

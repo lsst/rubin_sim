@@ -2,7 +2,7 @@ import numpy as np
 
 from .base_metric import BaseMetric
 
-__all__ = ("CumulativeMetric", )
+__all__ = ("CumulativeMetric",)
 
 
 class CumulativeMetric(BaseMetric):

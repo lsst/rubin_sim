@@ -8,7 +8,7 @@ from rubin_sim.maf.utils import get_sim_data
 
 from .maf_run_results import MafRunResults
 
-__all__ = ("MafTracking", )
+__all__ = ("MafTracking",)
 
 
 class MafTracking:

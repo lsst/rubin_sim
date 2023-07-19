@@ -9,7 +9,7 @@ import healpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
 
-__all__ = ("alm_plots")
+__all__ = "alm_plots"
 
 
 def alm_plots(

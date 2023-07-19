@@ -14,7 +14,7 @@ import numpy as np
 
 import rubin_sim.maf.plots as plots
 
-__all__ = ("masking_algorithm_generalized")
+__all__ = "masking_algorithm_generalized"
 
 
 def masking_algorithm_generalized(

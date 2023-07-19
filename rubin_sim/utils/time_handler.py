@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-__all__ = ("TimeHandler", )
+__all__ = ("TimeHandler",)
 
 
 class TimeHandler:

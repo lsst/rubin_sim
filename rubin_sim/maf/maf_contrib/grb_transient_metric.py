@@ -8,7 +8,7 @@ import rubin_sim.maf.metrics as metrics
 # ebellm@caltech.edu
 
 
-__all__ = ("GRBTransientMetric", )
+__all__ = ("GRBTransientMetric",)
 
 
 class GRBTransientMetric(metrics.BaseMetric):

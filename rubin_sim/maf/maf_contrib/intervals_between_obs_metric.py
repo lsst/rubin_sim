@@ -17,7 +17,7 @@ from astropy.time import Time
 
 from rubin_sim.maf.metrics import BaseMetric
 
-__all__ = ("IntervalsBetweenObsMetric", )
+__all__ = ("IntervalsBetweenObsMetric",)
 
 
 class IntervalsBetweenObsMetric(BaseMetric):

@@ -7,7 +7,7 @@ import numpy as np
 
 from .base_slicer import BaseSlicer
 
-__all__ = ("UniSlicer", )
+__all__ = ("UniSlicer",)
 
 
 class UniSlicer(BaseSlicer):

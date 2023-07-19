@@ -1,4 +1,4 @@
-__all__ = ("LsstCameraFootprint", )
+__all__ = ("LsstCameraFootprint",)
 
 import os
 

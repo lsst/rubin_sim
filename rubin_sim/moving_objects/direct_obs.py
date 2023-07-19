@@ -7,7 +7,7 @@ from rubin_sim.utils import angular_separation
 
 from .base_obs import BaseObs
 
-__all__ = ("DirectObs", )
+__all__ = ("DirectObs",)
 
 
 class DirectObs(BaseObs):

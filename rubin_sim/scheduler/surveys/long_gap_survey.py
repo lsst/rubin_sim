@@ -10,7 +10,7 @@ from rubin_sim.utils import Site, _approx_ra_dec2_alt_az
 
 log = logging.getLogger(__name__)
 
-__all__ = ("LongGapSurvey", )
+__all__ = ("LongGapSurvey",)
 
 
 class LongGapSurvey(BaseSurvey):

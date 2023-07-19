@@ -2,7 +2,7 @@ import numpy as np
 
 from .base_metric import BaseMetric
 
-__all__ = ("YearCoverageMetric", )
+__all__ = ("YearCoverageMetric",)
 
 
 class YearCoverageMetric(BaseMetric):

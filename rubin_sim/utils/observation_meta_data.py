@@ -1,4 +1,4 @@
-__all__ = ("ObservationMetaData", )
+__all__ = ("ObservationMetaData",)
 
 import numbers
 
@@ -210,15 +210,12 @@ class ObservationMetaData:
         input_value : `Unknown`
             is a single value or list of m5/seeing/etc. corresponding to
             the bandpasses stored in self._bandpass
-
-        Parameters
-        ----------
         input_name : `Unknown`
             is the name of the Parameter stored in input_value
             (for constructing helpful error message)
 
-        Parameters
-        ----------
+        Returns
+        -------
         returns : `Unknown`
             a dict of input_value values keed to self._bandpass
         """
@@ -463,21 +460,12 @@ class ObservationMetaData:
         bandpass_name : `Unknown`
             is either a char or a list of chars denoting
             the name of the bandpass associated with this ObservationMetaData.
-
-        Parameters
-        ----------
         m5 : `Unknown`
             is the 5-sigma-limiting magnitude(s) associated
             with bandpass_name
-
-        Parameters
-        ----------
         seeing : `Unknown`
             is the seeing(s) in arcseconds associated
             with bandpass_name
-
-        Nothing is returned.  This method just sets member variables of
-        this ObservationMetaData.
         """
 
         self._bandpass = bandpass_name

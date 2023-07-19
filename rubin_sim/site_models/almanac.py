@@ -5,7 +5,7 @@ from scipy.interpolate import interp1d
 
 from rubin_sim.data import get_data_dir
 
-__all__ = ("Almanac", )
+__all__ = ("Almanac",)
 
 
 class Almanac:

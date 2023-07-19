@@ -15,7 +15,7 @@ from rubin_sim.maf.metrics import BaseMetric
 
 from .calculate_lsst_field_visibility_astropy import calculate_lsst_field_visibility
 
-__all__ = ("CalcExpectedVisitsMetric", )
+__all__ = ("CalcExpectedVisitsMetric",)
 
 
 class CalcExpectedVisitsMetric(BaseMetric):

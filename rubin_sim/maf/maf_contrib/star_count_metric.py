@@ -15,7 +15,7 @@ from .star_counts import *
 # Requires StarCounts.StarCounts
 
 
-__all__ = ("StarCountMetric", )
+__all__ = ("StarCountMetric",)
 
 
 class StarCountMetric(BaseMetric):

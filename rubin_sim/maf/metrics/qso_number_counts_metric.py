@@ -9,7 +9,7 @@ from rubin_sim.data import get_data_dir
 from .base_metric import BaseMetric
 from .exgal_m5 import ExgalM5
 
-__all__ = ("QSONumberCountsMetric", )
+__all__ = ("QSONumberCountsMetric",)
 
 
 class QSONumberCountsMetric(BaseMetric):

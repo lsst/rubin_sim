@@ -4,7 +4,7 @@ import matplotlib.pylab as plt
 
 from .plot_handler import PlotHandler
 
-__all__ = ("PlotBundle", )
+__all__ = ("PlotBundle",)
 
 
 class PlotBundle:
