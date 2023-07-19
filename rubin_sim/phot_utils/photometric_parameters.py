@@ -31,6 +31,7 @@ class DustValues:
         # Calculate dust extinction values
         self.ax1 = {}
         if bandpass_dict is None:
+            bandpass_dict = {}
             root_dir = os.path.join(get_data_dir(), "throughputs", "baseline")
             for f in ["u", "g", "r", "i", "z", "y"]:
                 bandpass_dict[f] = Bandpass()
