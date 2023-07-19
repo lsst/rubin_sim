@@ -1,13 +1,3 @@
-import warnings
-
-import healpy as hp
-import numpy as np
-from scipy import interpolate
-
-from .base_metric import BaseMetric
-
-# A collection of metrics which are primarily intended to be used as summary statistics.
-
 __all__ = (
     "FootprintFraction",
     "FOArea",
@@ -18,6 +8,16 @@ __all__ = (
     "TotalPowerMetric",
     "StaticProbesFoMEmulatorMetricSimple",
 )
+
+import warnings
+
+import healpy as hp
+import numpy as np
+from scipy import interpolate
+
+from .base_metric import BaseMetric
+
+# A collection of metrics which are primarily intended to be used as summary statistics.
 
 
 class FootprintFraction(BaseMetric):

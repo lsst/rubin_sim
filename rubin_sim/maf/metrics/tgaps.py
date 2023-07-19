@@ -1,7 +1,3 @@
-import numpy as np
-
-from .base_metric import BaseMetric
-
 __all__ = (
     "GapsMetric",
     "TgapsMetric",
@@ -11,6 +7,10 @@ __all__ = (
     "MaxGapMetric",
     "NightTimespanMetric",
 )
+
+import numpy as np
+
+from .base_metric import BaseMetric
 
 
 class GapsMetric(BaseMetric):

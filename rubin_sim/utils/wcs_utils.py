@@ -1,9 +1,3 @@
-import numbers
-
-import numpy as np
-
-from rubin_sim.utils import _icrs_from_observed, _observed_from_icrs
-
 __all__ = (
     "_native_lon_lat_from_pointing",
     "_lon_lat_from_native_lon_lat",
@@ -12,6 +6,12 @@ __all__ = (
     "native_lon_lat_from_ra_dec",
     "ra_dec_from_native_lon_lat",
 )
+
+import numbers
+
+import numpy as np
+
+from rubin_sim.utils import _icrs_from_observed, _observed_from_icrs
 
 
 def _native_lon_lat_from_pointing(lon, lat, lon_pointing, lat_pointing):

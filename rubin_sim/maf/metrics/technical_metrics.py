@@ -1,8 +1,3 @@
-
-import numpy as np
-
-from .base_metric import BaseMetric
-
 __all__ = (
     "NChangesMetric",
     "MinTimeBetweenStatesMetric",
@@ -12,6 +7,10 @@ __all__ = (
     "OpenShutterFractionMetric",
     "BruteOSFMetric",
 )
+
+import numpy as np
+
+from .base_metric import BaseMetric
 
 
 class NChangesMetric(BaseMetric):

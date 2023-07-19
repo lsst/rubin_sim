@@ -1,14 +1,6 @@
 """A group of metrics that work together to evaluate season characteristics (length, number, etc).
 In addition, these supports the time delay metric calculation for strong lensing.
 """
-
-import numpy as np
-
-from rubin_sim.phot_utils import DustValues
-from rubin_sim.utils import calc_season
-
-from .base_metric import BaseMetric
-
 __all__ = (
     "find_season_edges",
     "SeasonLengthMetric",
@@ -16,6 +8,13 @@ __all__ = (
     "MeanCampaignFrequencyMetric",
     "TdcMetric",
 )
+
+import numpy as np
+
+from rubin_sim.phot_utils import DustValues
+from rubin_sim.utils import calc_season
+
+from .base_metric import BaseMetric
 
 
 def find_season_edges(seasons):

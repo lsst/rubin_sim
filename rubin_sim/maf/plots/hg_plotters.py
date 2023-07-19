@@ -4,10 +4,21 @@
 # pylint: disable=super-init-not-called
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-few-public-methods
+__all__ = (
+    "GeneralHourglassPlot",
+    "CategoricalHourglassPlotMixin",
+    "RangeHourglassCategoricalPlot",
+    "MonthHourglassCategoricalPlot",
+    "MonthHourglassUsePlot",
+    "TimeUseHourglassPlotMixin",
+    "MonthHourglassPlot",
+    "YearHourglassCategoricalPlot",
+    "YearHourglassPlot",
+    "YearHourglassUsePlot",
+)
 
 import calendar
 
-# imports
 import copy
 import logging
 from collections import OrderedDict
@@ -24,27 +35,6 @@ from rubin_sim.utils.ddf_locations import ddf_locations
 from rubin_sim.utils.riseset import riseset_times
 
 from .plot_handler import BasePlotter
-
-# constants
-
-# exception classes
-
-# interface functions
-
-# classes
-
-__all__ = (
-    "GeneralHourglassPlot",
-    "CategoricalHourglassPlotMixin",
-    "RangeHourglassCategoricalPlot",
-    "MonthHourglassCategoricalPlot",
-    "MonthHourglassUsePlot",
-    "TimeUseHourglassPlotMixin",
-    "MonthHourglassPlot",
-    "YearHourglassCategoricalPlot",
-    "YearHourglassPlot",
-    "YearHourglassUsePlot",
-)
 
 
 class GeneralHourglassPlot(BasePlotter):

@@ -1,16 +1,3 @@
-import warnings
-
-import healpy as hp
-import matplotlib.pylab as plt
-import numpy as np
-from astropy import units as u
-from astropy.coordinates import SkyCoord
-
-from rubin_sim.scheduler import features, utils
-from rubin_sim.scheduler.utils import IntRounded
-from rubin_sim.skybrightness_pre import dark_sky
-from rubin_sim.utils import _hpid2_ra_dec
-
 __all__ = (
     "BaseBasisFunction",
     "ConstantBasisFunction",
@@ -51,6 +38,19 @@ __all__ = (
     "BalanceVisits",
     "RewardNObsSequence",
 )
+
+import warnings
+
+import healpy as hp
+import matplotlib.pylab as plt
+import numpy as np
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+
+from rubin_sim.scheduler import features, utils
+from rubin_sim.scheduler.utils import IntRounded
+from rubin_sim.skybrightness_pre import dark_sky
+from rubin_sim.utils import _hpid2_ra_dec
 
 
 class BaseBasisFunction:

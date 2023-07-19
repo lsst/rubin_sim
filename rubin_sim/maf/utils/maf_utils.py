@@ -1,3 +1,11 @@
+__all__ = (
+    "optimal_bins",
+    "percentile_clipping",
+    "radec2pix",
+    "collapse_night",
+    "load_inst_zeropoints",
+)
+
 import os
 import warnings
 
@@ -8,14 +16,6 @@ from scipy.stats import binned_statistic
 from rubin_sim.data import get_data_dir
 from rubin_sim.phot_utils import Bandpass, PhotometricParameters
 from rubin_sim.utils import SysEngVals, int_binned_stat
-
-__all__ = (
-    "optimal_bins",
-    "percentile_clipping",
-    "radec2pix",
-    "collapse_night",
-    "load_inst_zeropoints",
-)
 
 
 def load_inst_zeropoints():

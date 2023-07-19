@@ -1,3 +1,10 @@
+__all__ = (
+    "ParallaxMetric",
+    "ProperMotionMetric",
+    "RadiusObsMetric",
+    "ParallaxCoverageMetric",
+    "ParallaxDcrDegenMetric",
+)
 
 import numpy as np
 from scipy.optimize import curve_fit
@@ -6,14 +13,6 @@ import rubin_sim.maf.utils as mafUtils
 import rubin_sim.utils as utils
 
 from .base_metric import BaseMetric
-
-__all__ = (
-    "ParallaxMetric",
-    "ProperMotionMetric",
-    "RadiusObsMetric",
-    "ParallaxCoverageMetric",
-    "ParallaxDcrDegenMetric",
-)
 
 
 class ParallaxMetric(BaseMetric):

@@ -1,7 +1,3 @@
-import numpy as np
-
-from .base_metric import BaseMetric
-
 __all__ = (
     "TemplateExistsMetric",
     "UniformityMetric",
@@ -13,6 +9,10 @@ __all__ = (
     "InterNightGapsMetric",
     "VisitGapMetric",
 )
+
+import numpy as np
+
+from .base_metric import BaseMetric
 
 
 class FSMetric(BaseMetric):

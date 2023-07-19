@@ -4,16 +4,6 @@
 # Humna Awan: humna.awan@rutgers.edu
 #
 ###############################################################################################################################
-import datetime
-import os
-from collections import OrderedDict
-
-import healpy as hp
-import matplotlib.pyplot as plt
-import numpy as np
-
-from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import power_law_const_a
-
 __all__ = (
     "get_fsky",
     "get_theory_spectra",
@@ -24,6 +14,16 @@ __all__ = (
     "os_bias_overplots",
     "os_bias_overplots_diff_dbs",
 )
+
+import datetime
+import os
+from collections import OrderedDict
+
+import healpy as hp
+import matplotlib.pyplot as plt
+import numpy as np
+
+from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import power_law_const_a
 
 
 ###############################################################################################################################

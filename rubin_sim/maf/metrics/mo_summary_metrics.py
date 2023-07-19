@@ -1,9 +1,3 @@
-import warnings
-
-import numpy as np
-
-from .mo_metrics import BaseMoMetric
-
 __all__ = (
     "power_law_dndh",
     "neo_dndh_granvik",
@@ -18,6 +12,12 @@ __all__ = (
     "MoCompletenessMetric",
     "MoCompletenessAtTimeMetric",
 )
+
+import warnings
+
+import numpy as np
+
+from .mo_metrics import BaseMoMetric
 
 
 def power_law_dndh(hvalues, hindex=0.33, no=None, ho=None, **kwargs):

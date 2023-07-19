@@ -1,16 +1,3 @@
-import datetime
-import os
-import socket
-import sqlite3
-
-import healpy as hp
-import matplotlib.path as mplPath
-import numpy as np
-import pandas as pd
-
-import rubin_sim.version as rsVersion
-from rubin_sim.utils import _build_tree, _hpid2_ra_dec, _xyz_from_ra_dec, xyz_angular_radius
-
 __all__ = (
     "IntRounded",
     "int_binned_stat",
@@ -35,6 +22,19 @@ __all__ = (
     "season_calc",
     "create_season_offset",
 )
+
+import datetime
+import os
+import socket
+import sqlite3
+
+import healpy as hp
+import matplotlib.path as mplPath
+import numpy as np
+import pandas as pd
+
+import rubin_sim.version as rsVersion
+from rubin_sim.utils import _build_tree, _hpid2_ra_dec, _xyz_from_ra_dec, xyz_angular_radius
 
 
 def smallest_signed_angle(a1, a2):

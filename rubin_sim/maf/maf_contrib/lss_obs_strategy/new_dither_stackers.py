@@ -10,11 +10,6 @@
 # Humna Awan: humna.awan@rutgers.edu
 # Last updated: 06/11/16
 ###############################################################################################################
-import numpy as np
-
-from rubin_sim.maf.stackers import BaseStacker, SpiralDitherFieldPerVisitStacker, polygon_coords, wrap_ra_dec
-from rubin_sim.utils import calc_season
-
 __all__ = (
     "RepulsiveRandomDitherFieldPerVisitStacker",
     "RepulsiveRandomDitherFieldPerNightStacker",
@@ -27,6 +22,11 @@ __all__ = (
     "PentagonDiamondDitherPerSeasonStacker",
     "SpiralDitherPerSeasonStacker",
 )
+
+import numpy as np
+
+from rubin_sim.maf.stackers import BaseStacker, SpiralDitherFieldPerVisitStacker, polygon_coords, wrap_ra_dec
+from rubin_sim.utils import calc_season
 
 
 class RepulsiveRandomDitherFieldPerVisitStacker(BaseStacker):

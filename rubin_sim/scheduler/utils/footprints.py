@@ -7,19 +7,6 @@ sky brightness maps that would have limits for WFD, etc.).
 For generic use for defining footprints from scratch, there is also a utility that simply generates
 the healpix points across the sky, along with their corresponding RA/Dec/Galactic l,b/Ecliptic l,b values.
 """
-
-import os
-
-import healpy as hp
-import numpy as np
-from astropy import units as u
-from astropy.coordinates import SkyCoord
-
-from rubin_sim.data import get_data_dir
-from rubin_sim.utils import Site, _angular_separation, _hpid2_ra_dec, angular_separation
-
-from .utils import IntRounded, set_default_nside
-
 __all__ = (
     "ra_dec_hp_map",
     "generate_all_sky",
@@ -48,6 +35,18 @@ __all__ = (
     "slice_quad_galactic_cut",
     "make_rolling_footprints",
 )
+
+import os
+
+import healpy as hp
+import numpy as np
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+
+from rubin_sim.data import get_data_dir
+from rubin_sim.utils import Site, _angular_separation, _hpid2_ra_dec, angular_separation
+
+from .utils import IntRounded, set_default_nside
 
 
 def make_rolling_footprints(

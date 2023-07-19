@@ -1,3 +1,10 @@
+__all__ = (
+    "generate_known_lv_dwarf_slicer",
+    "make__fake_old_galaxy_lf",
+    "make_dwarf_lf_dicts",
+    "LVDwarfsMetric",
+)
+
 import os
 
 import astropy.units as u
@@ -10,13 +17,6 @@ from rubin_sim.data import get_data_dir
 from rubin_sim.maf.maf_contrib.lss_obs_strategy import GalaxyCountsMetricExtended
 from rubin_sim.maf.metrics import BaseMetric, ExgalM5, StarDensityMetric
 from rubin_sim.maf.slicers import UserPointsSlicer
-
-__all__ = (
-    "generate_known_lv_dwarf_slicer",
-    "make__fake_old_galaxy_lf",
-    "make_dwarf_lf_dicts",
-    "LVDwarfsMetric",
-)
 
 
 def generate_known_lv_dwarf_slicer():

@@ -1,8 +1,3 @@
-import numpy as np
-from scipy.optimize import minimize
-
-from rubin_sim.utils import _angular_separation
-
 __all__ = (
     "thetaphi2xyz",
     "even_points",
@@ -15,6 +10,11 @@ __all__ = (
     "elec_potential_xyz",
     "xyz2thetaphi",
 )
+
+import numpy as np
+from scipy.optimize import minimize
+
+from rubin_sim.utils import _angular_separation
 
 
 def thetaphi2xyz(theta, phi):
