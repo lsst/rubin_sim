@@ -49,6 +49,14 @@ Python API
    :no-main-docstr:
    :no-inheritance-diagram:
 
+.. _rubin_sim.selfcal api:
+
+:doc:`rubin_sim.selfcal api <../rs_selfcal/index>`
+======================================================
+.. automodapi:: rubin_sim.selfcal
+   :no-main-docstr:
+   :no-inheritance-diagram:
+
 .. _rubin_sim.site_models api:
 
 :doc:`rubin_sim.site_models api <../rs_site_models/index>`
