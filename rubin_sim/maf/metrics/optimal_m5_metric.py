@@ -1,4 +1,4 @@
-__all__ = ("OptimalM5Metric")
+__all__ = ("OptimalM5Metric", )
 
 import warnings
 
