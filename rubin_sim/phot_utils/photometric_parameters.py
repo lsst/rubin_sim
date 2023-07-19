@@ -2,7 +2,8 @@ __all__ = ("PhotometricParameters", "DustValues")
 
 import numpy as np
 
-from rubin_sim.phot_utils import BandpassDict, Sed
+from .bandpass_dict import BandpassDict
+from .sed import Sed
 
 
 class DustValues:
