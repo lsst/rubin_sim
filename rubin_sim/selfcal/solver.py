@@ -1,3 +1,5 @@
+__all__ = ("LsqrSolver",)
+
 import numpy as np
 from scipy.sparse import coo_matrix
 from scipy.sparse.linalg import lsqr
