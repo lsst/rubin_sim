@@ -89,7 +89,7 @@ class Bandpass:
             Raised if ``wavelen`` and ``sb`` have different length.
         """
         # Check data type.
-        if (isinstance(wavelen, np.ndarray) == False) or (isinstance(sb, np.ndarray) == False):
+        if (isinstance(wavelen, np.ndarray) is False) or (isinstance(sb, np.ndarray) is False):
             raise ValueError("Wavelen and sb arrays must be numpy arrays.")
         # Check data matches in length.
         if len(wavelen) != len(sb):
@@ -181,7 +181,7 @@ class Bandpass:
 
     def read_throughput_list(
         self,
-        component_list=[
+        component_list=(
             "detector.dat",
             "lens1.dat",
             "lens2.dat",
@@ -190,7 +190,7 @@ class Bandpass:
             "m2.dat",
             "m3.dat",
             "atmos_std.dat",
-        ],
+        ),
         root_dir=".",
         wavelen_min=300,
         wavelen_max=1150,
@@ -255,7 +255,7 @@ class Bandpass:
             update_self = True
         else:
             # Both of the arrays were passed in - check their validity.
-            if (isinstance(wavelen, np.ndarray) == False) or (isinstance(sb, np.ndarray) == False):
+            if (isinstance(wavelen, np.ndarray) is False) or (isinstance(sb, np.ndarray) is False):
                 raise ValueError("Must pass wavelen/sb as numpy arrays")
             if len(wavelen) != len(sb):
                 raise ValueError("Must pass equal length wavelen/sb arrays")
@@ -355,7 +355,7 @@ class Bandpass:
         # SED class uses flambda in ergs/cm^2/s/nm, so need effarea in cm^2.
         #
         # Check dlambda value for integral.
-        dlambda = self.wavelen[1] - self.wavelen[0]
+        self.wavelen[1] - self.wavelen[0]
         # Set up flat source of arbitrary brightness,
         #   but where the units of fnu are Jansky (for AB mag zeropoint = -8.9).
         flatsource = Sed()

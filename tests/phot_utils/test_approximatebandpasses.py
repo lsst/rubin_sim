@@ -14,7 +14,7 @@ import unittest
 import numpy as np
 
 from rubin_sim.data import get_data_dir
-from rubin_sim.phot_utils import BandpassDict
+from rubin_sim.phot_utils import Bandpass, PhotometricParameters
 
 
 class ApproximateBandPassTest(unittest.TestCase):
@@ -25,44 +25,44 @@ class ApproximateBandPassTest(unittest.TestCase):
     long_message = True
 
     def setUp(self):
-        """
-        setup before tests
-        """
+        """Setup before tests."""
         throughputs_dir = os.path.join(get_data_dir(), "throughputs")
         self.approx_band_pass_dir = os.path.join(throughputs_dir, "approximate_baseline")
+        self.approx_band_pass_dict = {}
+        for kk in ["u", "g", "r", "i", "z", "y"]:
+            self.approx_band_pass_dict[kk] = Bandpass()
+            self.approx_band_pass_dict[kk].read_throughput(
+                os.path.join(self.approx_band_pass_dir, f"total_{kk}.dat")
+            )
         self.ref_band_pass_dir = os.path.join(throughputs_dir, "baseline")
-        self.ref_band_pass_dict = BandpassDict.load_total_bandpasses_from_files()
-        self.approx_band_pass_dict = BandpassDict.load_total_bandpasses_from_files(
-            bandpass_dir=self.approx_band_pass_dir
-        )
+        self.ref_band_pass_dict = {}
+        for kk in ["u", "g", "r", "i", "z", "y"]:
+            self.ref_band_pass_dict[kk] = Bandpass()
+            self.ref_band_pass_dict[kk].read_throughput(
+                os.path.join(self.ref_band_pass_dir, f"total_{kk}.dat")
+            )
         self.error_msg = "The failure of this test indicates that the"
         " approximate bandpasses in the lsst throughputs directory do not"
-        "sync up with the baseline bandpasses is throughputs. This may require running"
-        " the script : throughputs.approximate_baseline/approximateBandpasses.py"
+        "sync up with the baseline bandpasses is throughputs. "
+        " This may require running the script :"
+        " throughputs.approximate_baseline/approximateBandpasses.py"
 
     def test_band_pass_integrals(self):
-        """
-        Test that the ratio of the quantity
+        """Test that the ratio of the quantity
         int dlambda T(lambda) = band flux for a SED proportional to $lambda$
         for the approximate bandpasses to the SYSENG band passes is 1.0 to an
         absolute tolerance hard coded to be 1.0e-4
 
         """
+        phot_params = PhotometricParameters()
+
         for bn in "ugrizy":
             ref_band_pass = self.ref_band_pass_dict[bn]
             approx_band_pass = self.approx_band_pass_dict[bn]
-            ref_step = np.diff(ref_band_pass.wavelen)
-            approx_step = np.diff(approx_band_pass.wavelen)
 
-            # Currently we have uniform sampling, but the end points have
-            # very slightly different steps. This accounts for 3 possible values
-            # If there are more, then the steps are non-unifor
-            msg = "The step sizes in {} seem to be unequal".format("Approximate Baseline")
-            self.assertEqual(len(np.unique(approx_step)), 3, msg=msg)
-            msg = "The step sizes in {} seem to be unequal".format("Baseline")
-            self.assertEqual(len(np.unique(ref_step)), 3, msg=msg)
-            ratio = approx_step[1] * approx_band_pass.sb.sum() / ref_step[1] / ref_band_pass.sb.sum()
-            self.assertAlmostEqual(ratio, 1.0, delta=1.0e-4, msg=self.error_msg)
+            zp_ref = ref_band_pass.calc_zp_t(phot_params)
+            zp_approx = approx_band_pass.calc_zp_t(phot_params)
+            self.assertAlmostEqual(zp_ref, zp_approx, delta=1.0e-4, msg=self.error_msg)
 
     def test_bandpasses_indiv(self):
         """

@@ -23,8 +23,9 @@ from .sed import Sed
 
 import numpy
 
-from .photometric_parameters import PhotometricParameters
+from .lsst_defaults import LSSTdefaults
 from .sed import Sed
+
 
 def fwhm_eff2_fwhm_geom(fwhm_eff):
     """Convert fwhm_eff to fwhm_geom.

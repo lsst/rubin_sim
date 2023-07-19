@@ -12,7 +12,7 @@ class ReadBandPassTest(unittest.TestCase):
 
     def test_read(self):
         """
-        Check that we can read things stored in the throughputs directory easily
+        Check that we can read things stored in the throughputs directory.
         """
         throughputs_dir = os.path.join(get_data_dir(), "throughputs")
 

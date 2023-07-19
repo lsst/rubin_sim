@@ -267,7 +267,7 @@ def _generate_sed_cache(cache_dir, cache_name):
                                 % (len(cache), total_files, time.time() - t_start)
                             )
                             sys.stdout.flush()
-                    except:
+                    except Exception:
                         pass
 
     print("\n")
@@ -289,7 +289,7 @@ def _generate_sed_cache(cache_dir, cache_name):
 def cache_lsst_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
     """
     Read all of the SEDs in sims_sed_library into a dict.  Pickle the dict
-    and store it in sims_phot_utils/cacheDir/lsst_sed_cache.p for future use.
+    and store it in phot_utils/cacheDir/lsst_sed_cache.p for future use.
 
     After the file has initially been created, the next time you run this script,
     it will just use pickle to load the dict.
@@ -325,7 +325,7 @@ def cache_lsst_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
         if cache_dir is None:
             cache_dir = os.path.join(get_data_dir(), "sims_sed_library", "lsst_sed_cache_dir")
 
-    except:
+    except Exception:
         print(
             "An exception was raised related to sims_sed_library. If you did not "
             "install sims_phot_utils with a full LSST simulations stack, you cannot "
@@ -444,7 +444,7 @@ class Sed:
         if self.fnu is not None:
             try:
                 numpy.testing.assert_array_equal(self.fnu, other.fnu)
-            except:
+            except AssertionError:
                 return False
 
         if self.flambda is None and other.flambda is not None:
@@ -454,7 +454,7 @@ class Sed:
         if self.flambda is not None:
             try:
                 numpy.testing.assert_array_equal(self.flambda, other.flambda)
-            except:
+            except AssertionError:
                 return False
 
         if self.wavelen is None and other.wavelen is not None:
@@ -464,7 +464,7 @@ class Sed:
         if self.wavelen is not None:
             try:
                 numpy.testing.assert_array_equal(self.wavelen, other.wavelen)
-            except:
+            except AssertionError:
                 return False
 
         return True
@@ -1236,7 +1236,7 @@ class Sed:
         return -2.5 * numpy.log10(flux) - self.zp
 
     def calc_ergs(self, bandpass):
-        """
+        r"""
         Integrate the SED over a bandpass directly.  If self.flambda
         is in ergs/s/cm^2/nm and bandpass.sb is the unitless probability
         that a photon of a given wavelength will pass through the system,
