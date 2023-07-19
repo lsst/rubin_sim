@@ -1,7 +1,6 @@
 __all__ = ("OptimalM5Metric")
 
 import warnings
-from builtins import str
 
 import numpy as np
 

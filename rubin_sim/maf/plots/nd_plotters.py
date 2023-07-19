@@ -1,6 +1,5 @@
 __all__ = ("TwoDSubsetData", "OneDSubsetData")
 
-from builtins import range, zip
 
 import matplotlib.pyplot as plt
 import numpy as np

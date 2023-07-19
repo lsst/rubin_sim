@@ -1,11 +1,8 @@
-from __future__ import absolute_import
-
 __all__ = ("CoreScheduler", )
 
 import logging
 import reprlib
 import time
-from builtins import object
 from collections import OrderedDict
 from copy import deepcopy
 from io import StringIO

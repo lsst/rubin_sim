@@ -1,6 +1,5 @@
 __all__ = ("MetricVsH", "MetricVsOrbit", "MetricVsOrbitPoints")
 
-from builtins import range
 
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt

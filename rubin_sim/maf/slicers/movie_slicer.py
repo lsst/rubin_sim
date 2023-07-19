@@ -4,7 +4,6 @@ __all__ = ("MovieSlicer", )
 import os
 import subprocess
 import warnings
-from builtins import str
 from functools import wraps
 from subprocess import CalledProcessError
 

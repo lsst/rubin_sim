@@ -2,7 +2,6 @@ __all__ = ("MetricBundle", "create_empty_metric_bundle")
 
 import os
 import warnings
-from builtins import object, zip
 from copy import deepcopy
 
 import numpy as np

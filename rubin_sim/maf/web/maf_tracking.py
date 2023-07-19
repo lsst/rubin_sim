@@ -1,7 +1,6 @@
 __all__ = ("MafTracking", )
 
 import os
-from builtins import object
 from collections import OrderedDict
 
 import numpy as np

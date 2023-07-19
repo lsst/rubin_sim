@@ -4,9 +4,6 @@
 # mike.lund@gmail.com
 # Last edited 8/15/2015
 # Description: Calculates the number of stars in a given direction and between a given set of distances. For use with Field Star Count metric
-
-from __future__ import absolute_import, print_function
-
 import math
 import sys
 

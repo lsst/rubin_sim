@@ -4,11 +4,7 @@
 # mike.lund@gmail.com
 # Last edited 8/15/2015
 # Description: Calculates spectral types for stars on the main sequence as a function of stellar mass. For use with Field Star Count metric
-
-from __future__ import print_function
-
 import sys
-from builtins import map
 
 import numpy as np
 from scipy.interpolate import interp1d

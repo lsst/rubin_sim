@@ -1,9 +1,6 @@
 __all__ = ("name_sanitize", "print_dict", "print_simple_dict")
 
-from __future__ import print_function
-
 import sys
-from builtins import map, range, str
 
 import numpy as np
 

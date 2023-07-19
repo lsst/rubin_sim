@@ -2,7 +2,6 @@ __all__ = ("NDSlicer", )
 
 import itertools
 import warnings
-from builtins import map, range, zip
 from functools import wraps
 
 import numpy as np

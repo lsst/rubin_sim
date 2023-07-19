@@ -1,7 +1,6 @@
 __all__ = ("NeoDistancePlotter", )
 
 import copy
-from builtins import zip
 
 import matplotlib.pyplot as plt
 import numpy as np

@@ -2,7 +2,6 @@ __all__ = ("MafRunResults", )
 
 import os
 import re
-from builtins import object, zip
 from collections import OrderedDict
 
 import numpy as np

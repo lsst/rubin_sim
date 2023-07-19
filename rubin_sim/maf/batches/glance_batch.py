@@ -1,7 +1,5 @@
 __all__ = ("glanceBatch", )
 
-from __future__ import print_function
-
 import warnings
 
 import rubin_sim.maf.metric_bundles as metric_bundles

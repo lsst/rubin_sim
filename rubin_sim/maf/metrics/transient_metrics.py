@@ -1,6 +1,5 @@
 __all__ = ("TransientMetric", )
 
-from builtins import zip
 
 import numpy as np
 

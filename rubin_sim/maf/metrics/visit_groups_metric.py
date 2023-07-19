@@ -1,6 +1,5 @@
 __all__ = ("VisitGroupsMetric", "PairFractionMetric")
 
-from builtins import zip
 
 import numpy as np
 

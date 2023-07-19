@@ -12,7 +12,6 @@ __all__ = ("TransientAsciiSEDMetric", )
 
 import os
 import warnings
-from builtins import zip
 from copy import deepcopy
 
 import numpy as np

@@ -1,5 +1,3 @@
-from __future__ import division, print_function
-
 __all__ = (
     "ss_population_defaults",
     "quick_discovery_batch",

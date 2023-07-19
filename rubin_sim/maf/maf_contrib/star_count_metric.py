@@ -1,7 +1,5 @@
 __all__ = ("StarCountMetric", )
 
-from __future__ import absolute_import
-
 import numpy as np
 
 from rubin_sim.maf.metrics import BaseMetric
@@ -15,7 +13,6 @@ from .star_counts import *
 # Motivation: The distances to stars in LSST will be signficant enough that the structure of the Galaxy will be readily apparent because of its influence on the number of stars in a given field. Any metric concerned with the number of potential objects to be detected will need to feature not only the effects of the cadence but also the number of objects per field.
 # This metric identifies the number of stars in a given field in a particular distance range. D1 and D2 are the close and far distances in parsecs.
 # Requires StarCounts.StarCounts
-
 
 
 class StarCountMetric(BaseMetric):

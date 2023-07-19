@@ -1,16 +1,3 @@
-from __future__ import absolute_import
-
-from builtins import object
-
-import healpy as hp
-import numpy as np
-from scipy.stats import binned_statistic
-
-from rubin_sim.scheduler import utils
-from rubin_sim.scheduler.utils import IntRounded
-from rubin_sim.skybrightness_pre import dark_sky
-from rubin_sim.utils import _hpid2_ra_dec, calc_season, m5_flat_sed, ra_dec2_hpid
-
 __all__ = (
     "BaseFeature",
     "BaseSurveyFeature",
@@ -33,6 +20,15 @@ __all__ = (
     "NoteInNight",
     "NoteLastObserved",
 )
+
+import healpy as hp
+import numpy as np
+from scipy.stats import binned_statistic
+
+from rubin_sim.scheduler import utils
+from rubin_sim.scheduler.utils import IntRounded
+from rubin_sim.skybrightness_pre import dark_sky
+from rubin_sim.utils import _hpid2_ra_dec, calc_season, m5_flat_sed, ra_dec2_hpid
 
 
 class BaseFeature:

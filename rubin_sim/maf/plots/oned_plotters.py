@@ -1,6 +1,5 @@
 __all__ = ("OneDBinnedData", )
 
-from builtins import zip
 
 import matplotlib.pyplot as plt
 import numpy as np

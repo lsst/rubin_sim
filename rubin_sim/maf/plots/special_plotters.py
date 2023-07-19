@@ -1,6 +1,5 @@
 __all__ = ("FOPlot", "SummaryHistogram")
 
-from builtins import zip
 
 import healpy as hp
 import matplotlib.pyplot as plt

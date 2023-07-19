@@ -1,6 +1,5 @@
 __all__ = ("PlotBundle", )
 
-from builtins import object
 
 import matplotlib.pylab as plt
 

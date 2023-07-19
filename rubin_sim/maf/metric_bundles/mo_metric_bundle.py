@@ -1,8 +1,12 @@
-from __future__ import print_function
+__all__ = (
+    "MoMetricBundle",
+    "MoMetricBundleGroup",
+    "create_empty_mo_metric_bundle",
+    "make_completeness_bundle",
+)
 
 import os
 import warnings
-from builtins import object
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,13 +18,6 @@ from rubin_sim.maf.slicers import MoObjSlicer
 from rubin_sim.maf.stackers import BaseMoStacker, MoMagStacker
 
 from .metric_bundle import MetricBundle
-
-__all__ = (
-    "MoMetricBundle",
-    "MoMetricBundleGroup",
-    "create_empty_mo_metric_bundle",
-    "make_completeness_bundle",
-)
 
 
 def create_empty_mo_metric_bundle():

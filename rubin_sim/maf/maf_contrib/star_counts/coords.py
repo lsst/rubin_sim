@@ -4,9 +4,6 @@
 # mike.lund@gmail.com
 # Last edited 8/15/2015
 # Description: Provides the coordinate conversions between equatorial and galactic coordinates, as well as to galactic cylindrical coordinates. Two different functions are present that do the conversion, and a third that uses ephem package, for redundancy purposes. For use with Field Star Count metric
-
-from __future__ import print_function
-
 import math
 import sys
 

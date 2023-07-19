@@ -10,8 +10,6 @@
 # overlap can determine how many often another survey footprint is observed by LSST during specific time intervals.
 __all__ = ("IntervalsBetweenObsMetric", )
 
-from __future__ import print_function
-
 import numpy as np
 from astropy.time import Time
 

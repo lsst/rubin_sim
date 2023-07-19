@@ -1,6 +1,5 @@
 __all__ = ("find_telescopes", "NFollowStacker")
 
-from builtins import zip
 
 import numpy as np
 

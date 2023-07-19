@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 __all__ = ("M5OptimalStacker", "generate_sky_slopes")
 
 import numpy as np
