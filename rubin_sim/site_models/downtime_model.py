@@ -1,4 +1,4 @@
-__all__ = ("DowntimeModel", )
+__all__ = ("DowntimeModel",)
 
 import warnings
 

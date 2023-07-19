@@ -1,4 +1,4 @@
-__all__ = ("sims_clean_up", )
+__all__ = ("sims_clean_up",)
 
 import gc
 import numbers

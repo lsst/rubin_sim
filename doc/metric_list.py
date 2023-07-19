@@ -1,4 +1,4 @@
-__all__ = ("make_metric_list", )
+__all__ = ("make_metric_list",)
 
 import inspect
 

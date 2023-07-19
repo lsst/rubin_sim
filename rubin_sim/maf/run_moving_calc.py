@@ -1,4 +1,4 @@
-__all__ = ("run_moving_calc", )
+__all__ = ("run_moving_calc",)
 
 import argparse
 import os

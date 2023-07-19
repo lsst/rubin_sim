@@ -1,4 +1,4 @@
-__all__ = ("Site", )
+__all__ = ("Site",)
 
 import warnings
 

@@ -1,4 +1,4 @@
-__all__ = ("SedList", )
+__all__ = ("SedList",)
 
 import copy
 import os

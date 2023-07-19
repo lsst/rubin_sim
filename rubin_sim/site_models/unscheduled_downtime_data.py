@@ -1,4 +1,4 @@
-__all__ = ("UnscheduledDowntimeData", )
+__all__ = ("UnscheduledDowntimeData",)
 
 import random
 import warnings

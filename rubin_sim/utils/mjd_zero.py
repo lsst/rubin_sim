@@ -1,4 +1,4 @@
-__all__ = ("survey_start_mjd", )
+__all__ = ("survey_start_mjd",)
 mjd0 = 60218.0  # 60218 = Oct 1, 2023
 
 

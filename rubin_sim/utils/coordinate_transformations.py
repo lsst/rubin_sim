@@ -48,21 +48,12 @@ def calc_lmst_last(mjd, long_rad):
     mjd : `Unknown`
         is the universal time (ut1) expressed as an MJD.
         This can be a numpy array or a single value.
-
-    Parameters
-    ----------
     long_rad : `Unknown`
         is the longitude in radians (positive east of the prime meridian)
         This can be numpy array or a single value.  If a numpy array, should have the same length as mjd.  In that
         case, each long_rad will be applied only to the corresponding mjd.
-
-    Parameters
-    ----------
     lmst : `Unknown`
         is the local mean sidereal time in hours
-
-    Parameters
-    ----------
     last : `Unknown`
         is the local apparent sideral time in hours
     """
@@ -124,19 +115,10 @@ def galactic_from_equatorial(ra, dec):
     ----------
     ra : `Unknown`
         is right ascension in degrees, either a number or a numpy array
-
-    Parameters
-    ----------
     dec : `Unknown`
         is declination in degrees, either a number or a numpy array
-
-    Parameters
-    ----------
     g_long : `Unknown`
         is galactic longitude in degrees
-
-    Parameters
-    ----------
     g_lat : `Unknown`
         is galactic latitude in degrees
     """
@@ -154,19 +136,10 @@ def _galactic_from_equatorial(ra, dec):
     ----------
     ra : `Unknown`
         is right ascension in radians, either a number or a numpy array
-
-    Parameters
-    ----------
     dec : `Unknown`
         is declination in radians, either a number or a numpy array
-
-    Parameters
-    ----------
     g_long : `Unknown`
         is galactic longitude in radians
-
-    Parameters
-    ----------
     g_lat : `Unknown`
         is galactic latitude in radians
     """
@@ -187,20 +160,11 @@ def equatorial_from_galactic(g_long, g_lat):
     g_long : `Unknown`
         is galactic longitude in degrees, either a number or a numpy array
         (0 <= g_long <= 360.)
-
-    Parameters
-    ----------
     g_lat : `Unknown`
         is galactic latitude in degrees, either a number or a numpy array
         (-90. <= g_lat <= 90.)
-
-    Parameters
-    ----------
     ra : `Unknown`
         is right ascension in degrees
-
-    Parameters
-    ----------
     dec : `Unknown`
         is declination in degrees
     """
@@ -217,20 +181,11 @@ def _equatorial_from_galactic(g_long, g_lat):
     g_long : `Unknown`
         is galactic longitude in radians, either a number or a numpy array
         (0 <= g_long <= 2*pi)
-
-    Parameters
-    ----------
     g_lat : `Unknown`
         is galactic latitude in radians, either a number or a numpy array
         (-pi/2 <= g_lat <= pi/2)
-
-    Parameters
-    ----------
     ra : `Unknown`
         is right ascension in radians (J2000)
-
-    Parameters
-    ----------
     dec : `Unknown`
         is declination in radians (J2000)
     """
@@ -251,14 +206,8 @@ def cartesian_from_spherical(longitude, latitude):
     ----------
     longitude : `Unknown`
         is a numpy array or a number in radians
-
-    Parameters
-    ----------
     latitude : `Unknown`
         is a numpy array or number in radians
-
-    Parameters
-    ----------
     a : `Unknown`
         numpy array of the (three-dimensional) cartesian coordinates on a unit sphere.
 
@@ -283,9 +232,6 @@ def spherical_from_cartesian(xyz):
     xyz : `Unknown`
         is a numpy array of points in 3-D space.
         Each row is a different point.
-
-    Parameters
-    ----------
     returns : `Unknown`
         longitude and latitude
 
@@ -530,9 +476,6 @@ def equation_of_equinoxes(d):
     d : `Unknown`
         is either a numpy array or a number that is Terrestrial Time
         expressed as an MJD
-
-    Parameters
-    ----------
     the : `Unknown`
         equation of equinoxes in radians.
     """
@@ -552,14 +495,8 @@ def calc_gmst_gast(mjd):
     ----------
     mjd : `Unknown`
         is the universal time (ut1) expressed as an MJD
-
-    Parameters
-    ----------
     gmst : `Unknown`
         Greenwich mean sidereal time in hours
-
-    Parameters
-    ----------
     gast : `Unknown`
         Greenwich apparent sidereal time in hours
     """
@@ -673,24 +610,12 @@ def haversine(long1, lat1, long2, lat2):
     ----------
     long1 : `Unknown`
         is the longitude of point 1 in radians
-
-    Parameters
-    ----------
     lat1 : `Unknown`
         is the latitude of point 1 in radians
-
-    Parameters
-    ----------
     long2 : `Unknown`
         is the longitude of point 2 in radians
-
-    Parameters
-    ----------
     lat2 : `Unknown`
         is the latitude of point 2 in radians
-
-    Parameters
-    ----------
     the : `Unknown`
         angular separation between points 1 and 2 in radians
     """

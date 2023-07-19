@@ -46,54 +46,27 @@ def pupil_coords_from_ra_dec(
     ----------
     ra_in : `Unknown`
         is in degrees (ICRS).  Can be either a numpy array or a number.
-
-    Parameters
-    ----------
     dec_in : `Unknown`
         is in degrees (ICRS).  Can be either a numpy array or a number.
-
-    Parameters
-    ----------
     pm_ra : `Unknown`
         is proper motion in RA multiplied by cos(Dec) (arcsec/yr)
         Can be a numpy array or a number or None (default=None).
-
-    Parameters
-    ----------
     pm_dec : `Unknown`
         is proper motion in dec (arcsec/yr)
         Can be a numpy array or a number or None (default=None).
-
-    Parameters
-    ----------
     parallax : `Unknown`
         is parallax in arcsec
         Can be a numpy array or a number or None (default=None).
-
-    Parameters
-    ----------
     v_rad : `Unknown`
         is radial velocity (km/s)
         Can be a numpy array or a number or None (default=None).
-
-    Parameters
-    ----------
     include_refraction : `Unknown`
         is a `bool` controlling the application of refraction.
-
-    Parameters
-    ----------
     obs_metadata : `Unknown`
         is an ObservationMetaData instantiation characterizing the
         telescope location and pointing.
-
-    Parameters
-    ----------
     epoch : `Unknown`
         is the epoch of mean ra and dec in julian years (default=2000.0)
-
-    Parameters
-    ----------
     returns : `Unknown`
         a numpy array whose first row is the x coordinate on the pupil in
         radians and whose second row is the y coordinate in radians
@@ -158,54 +131,27 @@ def _pupil_coords_from_ra_dec(
     ----------
     ra_in : `Unknown`
         is in radians (ICRS).  Can be either a numpy array or a number.
-
-    Parameters
-    ----------
     dec_in : `Unknown`
         is in radians (ICRS).  Can be either a numpy array or a number.
-
-    Parameters
-    ----------
     pm_ra : `Unknown`
         is proper motion in RA multiplied by cos(Dec) (radians/yr)
         Can be a numpy array or a number or None (default=None).
-
-    Parameters
-    ----------
     pm_dec : `Unknown`
         is proper motion in dec (radians/yr)
         Can be a numpy array or a number or None (default=None).
-
-    Parameters
-    ----------
     parallax : `Unknown`
         is parallax in radians
         Can be a numpy array or a number or None (default=None).
-
-    Parameters
-    ----------
     v_rad : `Unknown`
         is radial velocity (km/s)
         Can be a numpy array or a number or None (default=None).
-
-    Parameters
-    ----------
     include_refraction : `Unknown`
         is a `bool` controlling the application of refraction.
-
-    Parameters
-    ----------
     obs_metadata : `Unknown`
         is an ObservationMetaData instantiation characterizing the
         telescope location and pointing.
-
-    Parameters
-    ----------
     epoch : `Unknown`
         is the epoch of mean ra and dec in julian years (default=2000.0)
-
-    Parameters
-    ----------
     returns : `Unknown`
         a numpy array whose first row is the x coordinate on the pupil in
         radians and whose second row is the y coordinate in radians
@@ -334,34 +280,19 @@ def _observed_from_pupil_coords(x_pupil, y_pupil, obs_metadata=None, include_ref
     x_pupil : `Unknown`
         -- pupil coordinates in radians.
         Can be a numpy array or a number.
-
-    Parameters
-    ----------
     y_pupil : `Unknown`
         -- pupil coordinates in radians.
         Can be a numpy array or a number.
-
-    Parameters
-    ----------
     obs_metadata : `Unknown`
         -- an instantiation of ObservationMetaData characterizing
         the state of the telescope
-
-    Parameters
-    ----------
     epoch : `Unknown`
         -- julian epoch of the mean equinox used for the coordinate
         transformations (in years; defaults to 2000)
-
-    Parameters
-    ----------
     include_refraction : `Unknown`
         -- a `bool` which controls the effects of refraction
         (refraction is used when finding the observed coordinates of the boresite specified
         by obs_metadata)
-
-    Parameters
-    ----------
     a : `Unknown`
         2-D numpy array in which the first row is observed RA and the second
         row is observed Dec (both in radians).  Note: these are not ICRS coordinates.
@@ -427,34 +358,19 @@ def observed_from_pupil_coords(x_pupil, y_pupil, obs_metadata=None, include_refr
     x_pupil : `Unknown`
         -- pupil coordinates in radians.
         Can be a numpy array or a number.
-
-    Parameters
-    ----------
     y_pupil : `Unknown`
         -- pupil coordinates in radians.
         Can be a numpy array or a number.
-
-    Parameters
-    ----------
     obs_metadata : `Unknown`
         -- an instantiation of ObservationMetaData characterizing
         the state of the telescope
-
-    Parameters
-    ----------
     epoch : `Unknown`
         -- julian epoch of the mean equinox used for the coordinate
         transformations (in years; defaults to 2000)
-
-    Parameters
-    ----------
     include_refraction : `Unknown`
         -- a `bool` which controls the effects of refraction
         (refraction is used when finding the observed coordinates of the boresite specified
         by obs_metadata)
-
-    Parameters
-    ----------
     a : `Unknown`
         2-D numpy array in which the first row is observed RA and the second
         row is observed Dec (both in degrees).  Note: these are not ICRS coordinates.
@@ -483,34 +399,19 @@ def ra_dec_from_pupil_coords(x_pupil, y_pupil, obs_metadata=None, include_refrac
     x_pupil : `Unknown`
         -- pupil coordinates in radians.
         Can be a numpy array or a number.
-
-    Parameters
-    ----------
     y_pupil : `Unknown`
         -- pupil coordinates in radians.
         Can be a numpy array or a number.
-
-    Parameters
-    ----------
     obs_metadata : `Unknown`
         -- an instantiation of ObservationMetaData characterizing
         the state of the telescope
-
-    Parameters
-    ----------
     include_refraction : `Unknown`
         -- a `bool` which controls the effects of refraction
         (refraction is used when finding the observed coordinates of the boresite specified
         by obs_metadata)
-
-    Parameters
-    ----------
     epoch : `Unknown`
         -- julian epoch of the mean equinox used for the coordinate
         transformations (in years; defaults to 2000)
-
-    Parameters
-    ----------
     a : `Unknown`
         2-D numpy array in which the first row is RA and the second
         row is Dec (both in degrees; both in the International Celestial Reference System)
@@ -538,34 +439,19 @@ def _ra_dec_from_pupil_coords(x_pupil, y_pupil, obs_metadata=None, include_refra
     x_pupil : `Unknown`
         -- pupil coordinates in radians.
         Can be a numpy array or a number.
-
-    Parameters
-    ----------
     y_pupil : `Unknown`
         -- pupil coordinates in radians.
         Can be a numpy array or a number.
-
-    Parameters
-    ----------
     obs_metadata : `Unknown`
         -- an instantiation of ObservationMetaData characterizing
         the state of the telescope
-
-    Parameters
-    ----------
     include_refraction : `Unknown`
         -- a `bool` which controls the effects of refraction
         (refraction is used when finding the observed coordinates of the boresite specified
         by obs_metadata)
-
-    Parameters
-    ----------
     epoch : `Unknown`
         -- julian epoch of the mean equinox used for the coordinate
         transformations (in years; defaults to 2000)
-
-    Parameters
-    ----------
     a : `Unknown`
         2-D numpy array in which the first row is RA and the second
         row is Dec (both in radians; both in the International Celestial Reference System)

@@ -49,7 +49,7 @@ will now work.
 The methods in CosmologyObject have been tested on astropy v0.2.5 and v0.4.2
 """
 
-__all__ = ("CosmologyObject", )
+__all__ = ("CosmologyObject",)
 
 import astropy.cosmology as cosmology
 import astropy.units as units

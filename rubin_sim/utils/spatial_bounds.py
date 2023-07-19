@@ -61,14 +61,8 @@ class SpatialBounds(with_metaclass(SpatialBoundsMetaClass, object)):
         ----------
         ra : `Unknown`
             is the center RA in radians
-
-        Parameters
-        ----------
         dec : `Unknown`
             is the center Dec in radians
-
-        Parameters
-        ----------
         length : `Unknown`
             is either a single characteristic length (in radians)
             or a list of characteristic lengths defining the shape of the bound
@@ -85,15 +79,8 @@ class SpatialBounds(with_metaclass(SpatialBoundsMetaClass, object)):
         Parameters
         ----------
         RAname : `Unknown`
-            a string; the name of the RA column in the database
-
-        Parameters
-        ----------
         DECname : `Unknown`
             a string; the name of the Dec column in the database
-
-        Returns
-        -------
         Unknown: `Unknown`
             a string; an SQL query that only selects the desired region in RA, Dec
         """
@@ -137,14 +124,8 @@ class CircleBounds(SpatialBounds):
         ----------
         ra : `Unknown`
             is the center RA in radians
-
-        Parameters
-        ----------
         dec : `Unknown`
             is the center Dec in radians
-
-        Parameters
-        ----------
         length : `Unknown`
             is the radius of the field of view in radians
         """
@@ -249,14 +230,8 @@ class BoxBounds(SpatialBounds):
         ----------
         ra : `Unknown`
             is the center RA in radians
-
-        Parameters
-        ----------
         dec : `Unknown`
             is the center Dec in radians
-
-        Parameters
-        ----------
         length : `Unknown`
             is either a single characteristic length (in radians)
             or a list of characteristic lengths defining the shape of the bound.

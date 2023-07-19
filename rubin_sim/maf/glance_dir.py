@@ -1,4 +1,4 @@
-__all__ = ("glance_dir", )
+__all__ = ("glance_dir",)
 
 import matplotlib
 

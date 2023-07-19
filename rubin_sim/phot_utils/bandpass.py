@@ -20,7 +20,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-__all__ = ("Bandpass", )
+__all__ = ("Bandpass",)
 
 import gzip
 import os
@@ -288,9 +288,7 @@ class Bandpass:
         if (wavelen.min() > wavelen_max) or (wavelen.max() < wavelen_min):
             raise Exception("No overlap between known wavelength range and desired wavelength range.")
         # Set up gridded wavelength.
-        wavelen_grid = np.arange(
-            wavelen_min, wavelen_max + wavelen_step / 2.0, wavelen_step, dtype="float"
-        )
+        wavelen_grid = np.arange(wavelen_min, wavelen_max + wavelen_step / 2.0, wavelen_step, dtype="float")
         # Do the interpolation of wavelen/sb onto the grid. (note wavelen/sb type failures will die here).
         f = interpolate.interp1d(wavelen, sb, fill_value=0, bounds_error=False)
         sb_grid = f(wavelen_grid)
