@@ -1,8 +1,10 @@
 __all__ = ("PhotometricParameters", "DustValues")
 
+import os
 import numpy as np
 
-from .bandpass_dict import BandpassDict
+from rubin_sim.data import get_data_dir
+from .bandpass import Bandpass
 from .sed import Sed
 
 
@@ -29,7 +31,11 @@ class DustValues:
         # Calculate dust extinction values
         self.ax1 = {}
         if bandpass_dict is None:
-            bandpass_dict = BandpassDict.load_total_bandpasses_from_files(["u", "g", "r", "i", "z", "y"])
+            bandpass_dict = {}
+            root_dir = os.path.join(get_data_dir(), "throughputs", "baseline")
+            for f in ["u", "g", "r", "i", "z", "y"]:
+                bandpass_dict[f] = Bandpass()
+                bandpass_dict[f].read_throughput(os.path.join(root_dir, f"total_{f}.dat"))
 
         for filtername in bandpass_dict:
             wavelen_min = bandpass_dict[filtername].wavelen.min()
@@ -46,6 +52,13 @@ class DustValues:
             self.ax1[filtername] = testsed.calc_mag(bandpass_dict[filtername]) - flatmag
         # Add the R_x term, to start to transition toward this name.
         self.r_x = self.ax1.copy()
+
+
+def make_dict(value, bandpass_names=("u", "g", "r", "i", "z", "y", "any")):
+    newdict = {}
+    for f in bandpass_names:
+        newdict[f] = value
+    return newdict
 
 
 class DefaultPhotometricParameters:
@@ -73,12 +86,6 @@ class DefaultPhotometricParameters:
     # 'any' values should be kept consistent with r band
 
     bandpass_names = ["u", "g", "r", "i", "z", "y", "any"]
-
-    def make_dict(value, bandpass_names=("u", "g", "r", "i", "z", "y", "any")):
-        newdict = {}
-        for f in bandpass_names:
-            newdict[f] = value
-        return newdict
 
     # exposure time in seconds
     exptime_sec = 15.0

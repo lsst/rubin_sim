@@ -7,7 +7,6 @@ import warnings
 
 import numpy as np
 
-import rubin_sim
 from rubin_sim.data import get_data_dir
 from rubin_sim.phot_utils import Bandpass, PhotometricParameters, Sed
 
@@ -31,7 +30,8 @@ class TestSedWavelenLimits(unittest.TestCase):
         del self.wmax
 
     def test_sed_wavelen_range(self):
-        """Test setting sed with wavelength range different from standard values works properly."""
+        """Test setting sed with wavelength range different
+        from standard values works properly."""
         sedwavelen = self.bandpasswavelen * 1.0
         sedflambda = np.ones(len(sedwavelen))
         testsed = Sed(wavelen=sedwavelen, flambda=sedflambda, name="TestSed")
@@ -40,7 +40,8 @@ class TestSedWavelenLimits(unittest.TestCase):
         self.assertEqual(testsed.name, "TestSed")
 
     def test_sed_bandpass_match(self):
-        """Test errors when bandpass and sed do not completely overlap in wavelength range."""
+        """Test errors when bandpass and sed do not completely
+        overlap in wavelength range."""
         # Test case where they do match (no error message)
         sedwavelen = np.arange(self.wmin, self.wmax + 0.5, 1)
         sedflambda = np.ones(len(sedwavelen))
@@ -56,7 +57,8 @@ class TestSedWavelenLimits(unittest.TestCase):
             self.assertEqual(len(wa), 0)
         np.testing.assert_equal(w, testsed.wavelen)
         np.testing.assert_equal(f, testsed.flambda)
-        # Test that warning is given for non-overlap at either top or bottom end of wavelength range.
+        # Test that warning is given for non-overlap
+        # at either top or bottom end of wavelength range.
         sedwavelen = np.arange(self.wmin, self.wmax - 50, 1)
         sedflambda = np.ones(len(sedwavelen))
         testsed = Sed(wavelen=sedwavelen, flambda=sedflambda)

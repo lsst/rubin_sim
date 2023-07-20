@@ -44,7 +44,7 @@ class PhotometricParametersUnitTest(unittest.TestCase):
         Test that exceptions get raised when they ought to by the
         PhotometricParameters constructor
 
-        We will instantiate PhotometricParametrs with different incomplete
+        We will instantiate PhotometricParameters with different incomplete
         lists of parameters set.  We will verify that the returned
         error messages correctly point out which parameters were ignored.
         """
@@ -102,8 +102,8 @@ class PhotometricParametersUnitTest(unittest.TestCase):
 
     def test_no_bandpass(self):
         """
-        Test that if no bandpass is set, bandpass stays 'None' even after all other
-        parameters are assigned.
+        Test that if no bandpass is set, bandpass stays 'None' even after
+        all other parameters are assigned.
         """
         phot_params = PhotometricParameters()
         self.assertEqual(phot_params.bandpass, None)
@@ -130,70 +130,70 @@ class PhotometricParametersUnitTest(unittest.TestCase):
             test_case.exptime = -1.0
             success += 1
             msg += "was able to assign exptime; "
-        except:
+        except RuntimeError:
             self.assertEqual(test_case.exptime, control_case.exptime)
 
         try:
             test_case.nexp = -1.0
             success += 1
             msg += "was able to assign nexp; "
-        except:
+        except RuntimeError:
             self.assertEqual(test_case.nexp, control_case.nexp)
 
         try:
             test_case.effarea = -1.0
             success += 1
             msg += "was able to assign effarea; "
-        except:
+        except RuntimeError:
             self.assertEqual(test_case.effarea, control_case.effarea)
 
         try:
             test_case.gain = -1.0
             success += 1
             msg += "was able to assign gain; "
-        except:
+        except RuntimeError:
             self.assertEqual(test_case.gain, control_case.gain)
 
         try:
             test_case.readnoise = -1.0
             success += 1
             msg += "was able to assign readnoise; "
-        except:
+        except RuntimeError:
             self.assertEqual(test_case.readnoise, control_case.readnoise)
 
         try:
             test_case.darkcurrent = -1.0
             success += 1
             msg += "was able to assign darkcurrent; "
-        except:
+        except RuntimeError:
             self.assertEqual(test_case.darkcurrent, control_case.darkcurrent)
 
         try:
             test_case.othernoise = -1.0
             success += 1
             msg += "was able to assign othernoise; "
-        except:
+        except RuntimeError:
             self.assertEqual(test_case.othernoise, control_case.othernoise)
 
         try:
             test_case.platescale = -1.0
             success += 1
             msg += "was able to assign platescale; "
-        except:
+        except RuntimeError:
             self.assertEqual(test_case.platescale, control_case.platescale)
 
         try:
             test_case.sigma_sys = -1.0
             success += 1
             msg += "was able to assign sigma_sys; "
-        except:
+        except RuntimeError:
             self.assertEqual(test_case.sigma_sys, control_case.sigma_sys)
 
         try:
             test_case.bandpass = "z"
             success += 1
             msg += "was able to assign bandpass; "
-        except:
+        except RuntimeError:
             self.assertEqual(test_case.bandpass, control_case.bandpass)
 
         self.assertEqual(success, 0, msg=msg)
@@ -237,28 +237,28 @@ class PhysicalParametersUnitTest(unittest.TestCase):
             pp.lightspeed = 2.0
             success += 1
             msg += "was able to assign lightspeed; "
-        except:
+        except RuntimeError:
             self.assertEqual(pp.lightspeed, control.lightspeed)
 
         try:
             pp.planck = 2.0
             success += 1
             msg += "was able to assign planck; "
-        except:
+        except RuntimeError:
             self.assertEqual(pp.planck, control.planck)
 
         try:
             pp.nm2m = 2.0
             success += 1
             msg += "was able to assign nm2m; "
-        except:
+        except RuntimeError:
             self.assertEqual(pp.nm2m, control.nm2m)
 
         try:
             pp.ergsetc2jansky = 2.0
             msg += "was able to assign ergsetc2jansky; "
             success += 1
-        except:
+        except RuntimeError:
             self.assertEqual(pp.ergsetc2jansky, control.ergsetc2jansky)
 
         self.assertEqual(success, 0, msg=msg)

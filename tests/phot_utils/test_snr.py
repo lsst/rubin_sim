@@ -3,7 +3,6 @@ import unittest
 
 import numpy as np
 
-import rubin_sim
 import rubin_sim.phot_utils.signaltonoise as snr
 from rubin_sim.data import get_data_dir
 from rubin_sim.phot_utils import Bandpass, LSSTdefaults, PhotometricParameters, Sed
@@ -105,7 +104,8 @@ class TestSNRmethods(unittest.TestCase):
 
     def test_verbose_snr(self):
         """
-        Make sure that calc_snr_sed has everything it needs to run in verbose mode
+        Make sure that calc_snr_sed has everything
+        it needs to run in verbose mode
         """
         phot_params = PhotometricParameters()
 
@@ -238,7 +238,8 @@ class TestSNRmethods(unittest.TestCase):
 
     def test_no_systematic_uncertainty(self):
         """
-        Test that systematic uncertainty is handled correctly when set to None.
+        Test that systematic uncertainty is handled correctly
+        when set to None.
         """
         m5_list = [23.5, 24.3, 22.1, 20.0, 19.5, 21.7]
         phot_params = PhotometricParameters(sigma_sys=0.0)
@@ -317,7 +318,8 @@ class TestSNRmethods(unittest.TestCase):
             mag, m5, fwhm_geom=fwhm_geom, nvisit=1, systematic_floor=10
         )
         self.assertAlmostEqual(astrometric_err, 10, 3)
-        # Even if you increase the number of visits, the systemic floor doesn't change
+        # Even if you increase the number of visits,
+        # the systemic floor doesn't change
         astrometric_err = snr.calc_astrometric_error(mag, m5, fwhm_geom=fwhm_geom, nvisit=100)
         self.assertAlmostEqual(astrometric_err, 10, 3)
         # For a single visit, fainter source, larger error and nvisits matters

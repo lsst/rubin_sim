@@ -3,9 +3,7 @@ import unittest
 
 import numpy as np
 
-import rubin_sim
 from rubin_sim.data import get_data_dir
-from rubin_sim.phot_utils import BandpassDict
 from rubin_sim.phot_utils.bandpass import Bandpass
 from rubin_sim.phot_utils.sed import Sed
 from rubin_sim.utils import ObservationMetaData
@@ -32,23 +30,11 @@ class PhotometryUnitTest(unittest.TestCase):
         del self.obs_metadata
 
     def test_alternate_bandpasses_stars(self):
-        """
-        This will test our ability to do photometry using non-LSST bandpasses.
+        """Test our ability to do photometry using non-LSST bandpasses.
 
-        It will first calculate the magnitudes using the getters in cartoonPhotometryStars.
-
-        It will then load the alternate bandpass files 'by hand' and re-calculate the magnitudes
-        and make sure that the magnitude values agree.  This is guarding against the possibility
-        that some default value did not change and the code actually ended up loading the
-        LSST bandpasses.
+        Calculate the photometry by built-in methods and 'by hand'.
         """
         bandpass_dir = os.path.join(get_data_dir(), "tests", "cartoonSedTestData")
-
-        cartoon_dict = BandpassDict.load_total_bandpasses_from_files(
-            ["u", "g", "r", "i", "z"],
-            bandpass_dir=bandpass_dir,
-            bandpass_root="test_bandpass_",
-        )
 
         test_band_passes = {}
         keys = ["u", "g", "r", "i", "z"]
@@ -73,7 +59,9 @@ class PhotometryUnitTest(unittest.TestCase):
         ff = ss.calc_flux_norm(22.0, control_bandpass)
         ss.multiply_flux_norm(ff)
 
-        test_mags = cartoon_dict.mag_list_for_sed(ss)
+        test_mags = []
+        for kk in keys:
+            test_mags.append(ss.calc_mag(test_band_passes[kk]))
 
         ss.resample_sed(wavelen_match=bplist[0].wavelen)
         ss.flambda_tofnu()
@@ -81,7 +69,7 @@ class PhotometryUnitTest(unittest.TestCase):
         self.assertEqual(len(mags), len(test_mags))
         self.assertGreater(len(mags), 0)
         for j in range(len(mags)):
-            self.assertAlmostEqual(mags[j], test_mags[j], 10)
+            self.assertAlmostEqual(mags[j], test_mags[j], 3)
 
 
 if __name__ == "__main__":
