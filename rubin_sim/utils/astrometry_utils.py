@@ -947,8 +947,8 @@ def _observed_from_app_geo(
         is an ObservationMetaData characterizing the
         observation.
 
-    Parameters
-    ----------
+    Returns
+    -------
     a : `np.ndarray`, (N, N)
         2-D numpy array in which the first row is the observed RA
         and the second row is the observed Dec (both in radians)
@@ -1028,8 +1028,8 @@ def app_geo_from_observed(ra, dec, include_refraction=True, wavelength=0.5, obs_
         is an ObservationMetaData characterizing the
         observation.
 
-    Parameters
-    ----------
+    Returns
+    -------
     a : `np.ndarray`, (N, N)
         2-D numpy array in which the first row is the apparent
         geocentric RA and the second row is the apparentGeocentric Dec (both
@@ -1070,8 +1070,8 @@ def _app_geo_from_observed(ra, dec, include_refraction=True, wavelength=0.5, obs
         is an ObservationMetaData characterizing the
         observation.
 
-    Parameters
-    ----------
+    Returns
+    -------
     a : `np.ndarray`, (N, N)
         2-D numpy array in which the first row is the apparent
         geocentric RA and the second row is the apparentGeocentric Dec (both
@@ -1230,8 +1230,8 @@ def _observed_from_icrs(
     include_refraction : `bool`
         toggles whether or not to correct for refraction
 
-    Parameters
-    ----------
+    Returns
+    -------
     a : `np.ndarray`, (N, N)
         2-D numpy array in which the first row is the observed
         RA and the second row is the observed Dec (both in radians)
