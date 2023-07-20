@@ -498,8 +498,8 @@ def calc_snr_sed(
     verbose : `bool`
         Flag as to whether to print output about SNR.
 
-    Return
-    ------
+    Returns
+    -------
     snr : `float`
         Calculated SNR.
     """

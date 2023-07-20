@@ -30,7 +30,7 @@ import numpy as np
 import scipy.interpolate as interpolate
 
 from .physical_parameters import PhysicalParameters
-from .sed import Sed  # For ZP_t and M5 calculations. And for 'fast mags' calculation.
+from .sed import Sed
 
 
 class Bandpass:
