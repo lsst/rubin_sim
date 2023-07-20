@@ -1,7 +1,7 @@
 """Tools for use of project-generated opsim simulations and analysis.
 """
 
-__all__ = [
+__all__ = (
     "get_runs",
     "get_family_runs",
     "download_runs",
@@ -11,7 +11,7 @@ __all__ = [
     "describe_families",
     "create_metric_set_df",
     "write_metric_sets",
-]
+)
 
 
 import copy

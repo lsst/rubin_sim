@@ -1,5 +1,7 @@
 """Evaluate some bulk properties of the sky coverage
 """
+__all__ = ("meanRADec", "eastWestBias")
+
 import numpy as np
 
 import rubin_sim.maf.metric_bundles as mb
@@ -7,8 +9,6 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 
 from .col_map_dict import col_map_dict
-
-__all__ = ["meanRADec", "eastWestBias"]
 
 
 def meanRADec(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):

@@ -4,6 +4,8 @@
 # The primary things added here are the methods to slice the data (for any spatial slicer)
 #  as this uses a KD-tree built on spatial (RA/Dec type) indexes.
 
+__all__ = ("BaseSpatialSlicer", )
+
 import warnings
 from functools import wraps
 
@@ -13,8 +15,6 @@ import rubin_sim.utils as simsUtils
 from rubin_sim.maf.plots.spatial_plotters import BaseHistogram, BaseSkyMap
 
 from .base_slicer import BaseSlicer
-
-__all__ = ["BaseSpatialSlicer"]
 
 
 def rotate(x, y, rotation_angle_rad):

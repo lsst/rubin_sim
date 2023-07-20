@@ -1,13 +1,12 @@
 # UniSlicer class.
 # This slicer simply returns the indexes of all data points. No slicing done at all.
+__all__ = ("UniSlicer", )
 
 from functools import wraps
 
 import numpy as np
 
 from .base_slicer import BaseSlicer
-
-__all__ = ["UniSlicer"]
 
 
 class UniSlicer(BaseSlicer):

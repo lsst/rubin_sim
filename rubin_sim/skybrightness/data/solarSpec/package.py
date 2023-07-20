@@ -1,5 +1,4 @@
 import os
-from builtins import zip
 
 import lsst.sims.photUtils.Sed as Sed
 import numpy as np

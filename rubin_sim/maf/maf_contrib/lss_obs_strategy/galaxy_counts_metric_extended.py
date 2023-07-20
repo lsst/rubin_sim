@@ -13,6 +13,8 @@
 #
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
+__all__ = ("GalaxyCountsMetricExtended", )
+
 import numpy as np
 import scipy
 
@@ -22,8 +24,6 @@ from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import (
     power_law_const_b,
 )
 from rubin_sim.maf.metrics import BaseMetric, Coaddm5Metric, ExgalM5
-
-__all__ = ["GalaxyCountsMetricExtended"]
 
 
 class GalaxyCountsMetricExtended(BaseMetric):

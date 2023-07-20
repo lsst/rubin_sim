@@ -1,3 +1,5 @@
+__all__ = ("ModelObservatory", "NoClouds", "NominalSeeing")
+
 import healpy as hp
 import numpy as np
 from astropy.coordinates import EarthLocation
@@ -26,8 +28,6 @@ from rubin_sim.utils import (
     m5_flat_sed,
     survey_start_mjd,
 )
-
-__all__ = ["ModelObservatory", "NoClouds", "NominalSeeing"]
 
 
 class NoClouds:

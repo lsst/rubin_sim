@@ -1,3 +1,5 @@
+__all__ = ("DirectObs", )
+
 import datetime
 import logging
 
@@ -6,8 +8,6 @@ import numpy as np
 from rubin_sim.utils import angular_separation
 
 from .base_obs import BaseObs
-
-__all__ = ["DirectObs"]
 
 
 class DirectObs(BaseObs):

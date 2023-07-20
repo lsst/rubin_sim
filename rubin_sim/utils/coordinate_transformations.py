@@ -2,14 +2,7 @@
 This file contains coordinate transformation methods that are very thin wrappers
 of palpy methods, or that have no dependence on palpy at all
 """
-import numbers
-
-import numpy as np
-import palpy
-
-from rubin_sim.utils.code_utilities import _validate_inputs
-
-__all__ = [
+__all__ = (
     "_galactic_from_equatorial",
     "galactic_from_equatorial",
     "_equatorial_from_galactic",
@@ -36,7 +29,14 @@ __all__ = [
     "radians_from_arcsec",
     "arcsec_from_degrees",
     "degrees_from_arcsec",
-]
+)
+
+import numbers
+
+import numpy as np
+import palpy
+
+from rubin_sim.utils.code_utilities import _validate_inputs
 
 
 def calc_lmst_last(mjd, long_rad):

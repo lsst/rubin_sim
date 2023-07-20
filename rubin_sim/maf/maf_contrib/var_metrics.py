@@ -1,4 +1,4 @@
-from __future__ import print_function
+__all__ = ("PeriodDeviationMetric", )
 
 import numpy as np
 from scipy.signal import lombscargle
@@ -7,9 +7,6 @@ from rubin_sim.maf.metrics import BaseMetric
 
 # Example of a *very* simple variabiilty metric
 # krughoff@uw.edu, ebellm, ljones
-
-
-__all__ = ["PeriodDeviationMetric"]
 
 
 def find_period_ls(times, mags, minperiod=2.0, maxperiod=35.0, nbinmax=10**5, verbose=False):

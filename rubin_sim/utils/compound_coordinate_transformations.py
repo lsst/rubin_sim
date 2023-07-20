@@ -4,14 +4,7 @@ palpy and the contents of AstrometryUtils.py (basically, coordinate
 transformations that need to transform between observed geocentric RA, DEC
 and ICRS RA, Dec)
 """
-import numpy as np
-import palpy
-
-from .code_utilities import _validate_inputs
-from .coordinate_transformations import calc_lmst_last
-from .wcs_utils import _icrs_from_observed, _observed_from_icrs
-
-__all__ = [
+__all__ = (
     "_alt_az_pa_from_ra_dec",
     "alt_az_pa_from_ra_dec",
     "_ra_dec_from_alt_az",
@@ -20,7 +13,14 @@ __all__ = [
     "_get_rot_tel_pos",
     "get_rot_sky_pos",
     "_get_rot_sky_pos",
-]
+)
+
+import numpy as np
+import palpy
+
+from .code_utilities import _validate_inputs
+from .coordinate_transformations import calc_lmst_last
+from .wcs_utils import _icrs_from_observed, _observed_from_icrs
 
 
 def alt_az_pa_from_ra_dec(ra, dec, obs, include_refraction=True):

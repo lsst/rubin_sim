@@ -1,9 +1,9 @@
+__all__ = ("Orbits", )
+
 import warnings
 
 import numpy as np
 import pandas as pd
-
-__all__ = ["Orbits"]
 
 
 class Orbits:

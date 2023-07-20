@@ -1,3 +1,5 @@
+__all__ = ("PlanAheadSurvey", )
+
 from copy import copy
 
 import healpy as hp
@@ -9,8 +11,6 @@ from rubin_sim.scheduler import features
 from rubin_sim.scheduler.utils import empty_observation, set_default_nside
 
 from .surveys import BlobSurvey
-
-__all__ = ["PlanAheadSurvey"]
 
 
 class PlanAheadSurvey(BlobSurvey):

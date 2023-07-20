@@ -1,3 +1,5 @@
+__all__ = ("TrackingDb", "add_run_to_database")
+
 import os
 import warnings
 
@@ -9,8 +11,6 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from . import ResultsDb, VersionRow
 
 Base = declarative_base()
-
-__all__ = ["TrackingDb", "add_run_to_database"]
 
 
 class RunRow(Base):

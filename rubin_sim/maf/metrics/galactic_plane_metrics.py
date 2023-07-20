@@ -1,3 +1,10 @@
+__all__ = (
+    "galplane_nvisits_thresholds",
+    "galplane_priority_map_thresholds",
+    "GalPlaneFootprintMetric",
+    "GalPlaneTimePerFilterMetric",
+)
+
 from types import MethodType
 
 import numpy as np
@@ -5,13 +12,6 @@ import numpy as np
 from rubin_sim.maf.maps.galactic_plane_priority_maps import gp_priority_map_components_to_keys
 
 from .base_metric import BaseMetric
-
-__all__ = [
-    "galplane_nvisits_thresholds",
-    "galplane_priority_map_thresholds",
-    "GalPlaneFootprintMetric",
-    "GalPlaneTimePerFilterMetric",
-]
 
 # These are a suite of metrics aimed at evaluating high-level quantities regarding galactic plane
 # coverage. The metrics here evaluate the coverage (just number of visits and exposure time per filter)

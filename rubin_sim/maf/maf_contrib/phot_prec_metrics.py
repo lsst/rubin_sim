@@ -3,11 +3,11 @@ Photometric precision metrics
 Authors: Sergey Koposov, Thomas Collett
 """
 
+__all__ = ("SNMetric", "ThreshSEDSNMetric", "SEDSNMetric")
+
 import numpy as np
 
 from rubin_sim.maf.metrics import BaseMetric
-
-__all__ = ["SNMetric", "ThreshSEDSNMetric", "SEDSNMetric"]
 
 
 twopi = 2.0 * np.pi

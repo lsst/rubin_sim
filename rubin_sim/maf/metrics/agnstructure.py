@@ -1,3 +1,5 @@
+__all__ = ("SFUncertMetric", )
+
 import warnings
 
 import numpy as np
@@ -7,8 +9,6 @@ from rubin_sim.maf.utils import m52snr
 from rubin_sim.phot_utils import DustValues
 
 from .base_metric import BaseMetric
-
-__all__ = ["SFUncertMetric"]
 
 
 class SFUncertMetric(BaseMetric):

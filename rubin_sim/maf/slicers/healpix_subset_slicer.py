@@ -1,5 +1,7 @@
 """A HealpixSubsetSlicer - define the subset of healpixels to use to calculate metrics."""
 
+__all__ = ("HealpixSubsetSlicer", )
+
 import warnings
 from functools import wraps
 
@@ -10,8 +12,6 @@ import rubin_sim.utils as simsUtils
 from rubin_sim.maf.plots.spatial_plotters import HealpixHistogram, HealpixPowerSpectrum, HealpixSkyMap
 
 from .healpix_slicer import HealpixSlicer
-
-__all__ = ["HealpixSubsetSlicer"]
 
 
 class HealpixSubsetSlicer(HealpixSlicer):

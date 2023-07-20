@@ -1,3 +1,12 @@
+__all__ = (
+    "create_constellation",
+    "starlink_tles_v1",
+    "starlink_tles_v2",
+    "oneweb_tles",
+    "Constellation",
+    "sun_alt_limits",
+)
+
 import numpy as np
 from astropy import constants as const
 from astropy import units as u
@@ -5,15 +14,6 @@ from shapely.geometry import LineString, Point
 from skyfield.api import EarthSatellite, load, wgs84
 
 from rubin_sim.utils import Site, gnomonic_project_toxy, point_to_line_distance, survey_start_mjd
-
-__all__ = [
-    "create_constellation",
-    "starlink_tles_v1",
-    "starlink_tles_v2",
-    "oneweb_tles",
-    "Constellation",
-    "sun_alt_limits",
-]
 
 
 MJDOFFSET = 2400000.5

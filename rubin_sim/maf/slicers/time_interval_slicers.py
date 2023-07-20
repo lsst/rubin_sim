@@ -4,6 +4,12 @@ Primarily intended for hourglass plots.
 """
 
 # pylint: disable=too-many-arguments
+__all__ = (
+    "TimeIntervalSlicer",
+    "BlockIntervalSlicer",
+    "VisitIntervalSlicer",
+    "SlicerNotSetup",
+)
 
 from collections import defaultdict
 
@@ -14,17 +20,6 @@ import numpy as np
 import pandas as pd
 
 from .base_slicer import BaseSlicer
-
-# constants
-
-# exception classes
-
-__all__ = [
-    "TimeIntervalSlicer",
-    "BlockIntervalSlicer",
-    "VisitIntervalSlicer",
-    "SlicerNotSetup",
-]
 
 
 class SlicerNotSetup(Exception):

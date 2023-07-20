@@ -1,3 +1,6 @@
+
+__all__ = ("BandpassDict", )
+
 import copy
 import os
 from collections import OrderedDict
@@ -8,8 +11,6 @@ from rubin_sim.data import get_data_dir
 
 from .bandpass import Bandpass
 from .sed import Sed
-
-__all__ = ["BandpassDict"]
 
 
 class BandpassDict:

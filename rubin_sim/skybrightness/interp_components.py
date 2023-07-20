@@ -1,3 +1,18 @@
+__all__ = (
+    "id2intid",
+    "intid2id",
+    "load_spec_files",
+    "BaseSingleInterp",
+    "ScatteredStar",
+    "LowerAtm",
+    "UpperAtm",
+    "MergedSpec",
+    "Airglow",
+    "TwilightInterp",
+    "MoonInterp",
+    "ZodiacalInterp",
+)
+
 import glob
 import os
 import warnings
@@ -18,22 +33,6 @@ elif hasattr(hp, "get_neighbours"):
     get_neighbours = hp.get_neighbours
 else:
     print("Could not find appropriate healpy function for get_interp_weight or get_neighbours")
-
-
-__all__ = [
-    "id2intid",
-    "intid2id",
-    "load_spec_files",
-    "BaseSingleInterp",
-    "ScatteredStar",
-    "LowerAtm",
-    "UpperAtm",
-    "MergedSpec",
-    "Airglow",
-    "TwilightInterp",
-    "MoonInterp",
-    "ZodiacalInterp",
-]
 
 
 def id2intid(ids):

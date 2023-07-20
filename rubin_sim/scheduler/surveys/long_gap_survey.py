@@ -1,3 +1,5 @@
+__all__ = ("LongGapSurvey", )
+
 import logging
 from copy import copy, deepcopy
 
@@ -9,8 +11,6 @@ from rubin_sim.scheduler.utils import scheduled_observation
 from rubin_sim.utils import Site, _approx_ra_dec2_alt_az
 
 log = logging.getLogger(__name__)
-
-__all__ = ["LongGapSurvey"]
 
 
 class LongGapSurvey(BaseSurvey):

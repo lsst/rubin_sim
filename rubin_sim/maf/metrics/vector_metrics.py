@@ -1,16 +1,16 @@
-import numpy as np
-from scipy import stats
-
-from .base_metric import BaseMetric
-
-__all__ = [
+__all__ = (
     "HistogramMetric",
     "AccumulateMetric",
     "AccumulateCountMetric",
     "HistogramM5Metric",
     "AccumulateM5Metric",
     "AccumulateUniformityMetric",
-]
+)
+
+import numpy as np
+from scipy import stats
+
+from .base_metric import BaseMetric
 
 
 class VectorMetric(BaseMetric):

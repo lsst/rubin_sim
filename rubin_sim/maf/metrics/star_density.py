@@ -1,10 +1,10 @@
+__all__ = ("StarDensityMetric", )
+
 import warnings
 
 from scipy.interpolate import interp1d
 
 from .base_metric import BaseMetric
-
-__all__ = ["StarDensityMetric"]
 
 
 class StarDensityMetric(BaseMetric):

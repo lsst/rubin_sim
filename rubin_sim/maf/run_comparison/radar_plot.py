@@ -1,3 +1,8 @@
+__all__ = (
+    "radar",
+    "normalize_for_radar",
+)
+
 import matplotlib.pylab as plt
 import numpy as np
 from matplotlib.path import Path
@@ -7,12 +12,6 @@ from matplotlib.spines import Spine
 
 # Starting with example at
 # https://matplotlib.org/examples/api/radar_chart.html
-
-
-__all__ = [
-    "radar",
-    "normalize_for_radar",
-]
 
 
 def normalize_for_radar(

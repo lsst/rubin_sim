@@ -1,10 +1,9 @@
-from builtins import object
+__all__ = ("PlotBundle", )
+
 
 import matplotlib.pylab as plt
 
 from .plot_handler import PlotHandler
-
-__all__ = ["PlotBundle"]
 
 
 class PlotBundle:

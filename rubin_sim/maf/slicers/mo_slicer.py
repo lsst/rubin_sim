@@ -1,3 +1,5 @@
+__all__ = ("MoObjSlicer", )
+
 import numpy as np
 import pandas as pd
 
@@ -5,8 +7,6 @@ from rubin_sim.maf.plots.mo_plotters import MetricVsH, MetricVsOrbit
 from rubin_sim.moving_objects.orbits import Orbits
 
 from .base_slicer import BaseSlicer
-
-__all__ = ["MoObjSlicer"]
 
 
 class MoObjSlicer(BaseSlicer):

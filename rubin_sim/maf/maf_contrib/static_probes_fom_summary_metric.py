@@ -1,3 +1,5 @@
+__all__ = ("StaticProbesFoMEmulatorMetric", )
+
 import healpy as hp
 import numpy as np
 import pandas as pd
@@ -5,8 +7,6 @@ from scipy.optimize import minimize
 from sklearn.preprocessing import StandardScaler
 
 from rubin_sim.maf.metrics.base_metric import BaseMetric
-
-__all__ = ["StaticProbesFoMEmulatorMetric"]
 
 
 class StaticProbesFoMEmulatorMetric(BaseMetric):

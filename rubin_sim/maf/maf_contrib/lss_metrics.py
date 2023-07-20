@@ -1,10 +1,10 @@
+__all__ = ("GalaxyCountsMetric", )
+
 import healpy as hp
 import numpy as np
 import scipy
 
 from rubin_sim.maf.metrics import BaseMetric, Coaddm5Metric
-
-__all__ = ["GalaxyCountsMetric"]
 
 
 class GalaxyCountsMetric(BaseMetric):

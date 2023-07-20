@@ -1,3 +1,5 @@
+__all__ = ("just_return", "SkyModel")
+
 import warnings
 
 import numpy as np
@@ -27,8 +29,6 @@ from .interp_components import (
     ZodiacalInterp,
 )
 from .utils import wrap_ra
-
-__all__ = ["just_return", "SkyModel"]
 
 
 def just_return(inval):

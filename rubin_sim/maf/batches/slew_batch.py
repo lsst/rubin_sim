@@ -1,5 +1,7 @@
 """Sets of slew metrics.
 """
+__all__ = ("slewBasics", "slewAngles", "slewSpeeds", "slewActivities")
+
 import warnings
 
 import numpy as np
@@ -10,8 +12,6 @@ import rubin_sim.maf.slicers as slicers
 
 from .col_map_dict import col_map_dict
 from .common import combine_info_labels, standard_metrics
-
-__all__ = ["slewBasics", "slewAngles", "slewSpeeds", "slewActivities"]
 
 
 def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):

@@ -1,11 +1,11 @@
+__all__ = ("DcrPrecisionMetric", )
+
 import numpy as np
 
 import rubin_sim.maf.utils as mafUtils
 import rubin_sim.utils as utils
 
 from .base_metric import BaseMetric
-
-__all__ = ["DcrPrecisionMetric"]
 
 
 class DcrPrecisionMetric(BaseMetric):

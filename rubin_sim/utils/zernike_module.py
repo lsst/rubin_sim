@@ -1,8 +1,8 @@
+__all__ = ("_FactorialGenerator", "ZernikePolynomialGenerator")
+
 import numbers
 
 import numpy as np
-
-__all__ = ["_FactorialGenerator", "ZernikePolynomialGenerator"]
 
 
 class _FactorialGenerator:

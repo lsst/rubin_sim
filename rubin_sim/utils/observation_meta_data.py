@@ -1,3 +1,5 @@
+__all__ = ("ObservationMetaData", )
+
 import numbers
 
 import numpy as np
@@ -5,8 +7,6 @@ import numpy as np
 from .modified_julian_date import ModifiedJulianDate
 from .site import Site
 from .spatial_bounds import SpatialBounds
-
-__all__ = ["ObservationMetaData"]
 
 
 class ObservationMetaData:

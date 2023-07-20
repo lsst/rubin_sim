@@ -1,11 +1,8 @@
-from __future__ import print_function
+__all__ = ("name_sanitize", "print_dict", "print_simple_dict")
 
 import sys
-from builtins import map, range, str
 
 import numpy as np
-
-__all__ = ["name_sanitize", "print_dict", "print_simple_dict"]
 
 
 def name_sanitize(in_string):

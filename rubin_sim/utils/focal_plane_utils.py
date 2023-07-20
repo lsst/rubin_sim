@@ -1,10 +1,4 @@
-import numpy as np
-import palpy
-
-from rubin_sim.utils import _icrs_from_observed, _observed_from_icrs, radians_from_arcsec
-from rubin_sim.utils.code_utilities import _validate_inputs
-
-__all__ = [
+__all__ = (
     "_pupil_coords_from_observed",
     "_pupil_coords_from_ra_dec",
     "pupil_coords_from_ra_dec",
@@ -12,7 +6,13 @@ __all__ = [
     "ra_dec_from_pupil_coords",
     "_observed_from_pupil_coords",
     "observed_from_pupil_coords",
-]
+)
+
+import numpy as np
+import palpy
+
+from rubin_sim.utils import _icrs_from_observed, _observed_from_icrs, radians_from_arcsec
+from rubin_sim.utils.code_utilities import _validate_inputs
 
 
 def pupil_coords_from_ra_dec(

@@ -1,11 +1,11 @@
 # Example of a stacker added to the repo.
 # ljones@astro.washington.edu
 
+__all__ = ("YearlyDitherStacker", )
+
 import numpy as np
 
 from rubin_sim.maf.stackers import BaseStacker, wrapRADec
-
-__all__ = ["YearlyDitherStacker"]
 
 
 class YearlyDitherStacker(BaseStacker):

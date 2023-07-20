@@ -1,12 +1,11 @@
+__all__ = ("OptimalM5Metric", )
+
 import warnings
-from builtins import str
 
 import numpy as np
 
 from .base_metric import BaseMetric
 from .simple_metrics import Coaddm5Metric
-
-__all__ = ["OptimalM5Metric"]
 
 
 class OptimalM5Metric(BaseMetric):

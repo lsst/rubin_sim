@@ -1,4 +1,5 @@
-from builtins import zip
+__all__ = ("GRBTransientMetric", )
+
 
 import numpy as np
 
@@ -6,9 +7,6 @@ import rubin_sim.maf.metrics as metrics
 
 # Gamma-ray burst afterglow metric
 # ebellm@caltech.edu
-
-
-__all__ = ["GRBTransientMetric"]
 
 
 class GRBTransientMetric(metrics.BaseMetric):

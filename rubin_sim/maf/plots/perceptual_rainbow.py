@@ -1,6 +1,6 @@
-from matplotlib.colors import LinearSegmentedColormap
+__all__ = ("make_pr_cmap", )
 
-__all__ = ["make_pr_cmap"]
+from matplotlib.colors import LinearSegmentedColormap
 
 
 def make_pr_cmap():

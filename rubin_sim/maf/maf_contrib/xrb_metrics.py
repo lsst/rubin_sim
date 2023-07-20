@@ -1,3 +1,5 @@
+__all__ = ("XrbLc", "XRBPopMetric", "generate_xrb_pop_slicer")
+
 import numpy as np
 from scipy.stats import loguniform
 
@@ -8,8 +10,6 @@ from rubin_sim.utils import survey_start_mjd
 
 from ..metrics import BaseMetric
 from ..slicers import UserPointsSlicer
-
-__all__ = ["XrbLc", "XRBPopMetric", "generate_xrb_pop_slicer"]
 
 
 class XrbLc:

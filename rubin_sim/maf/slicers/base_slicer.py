@@ -1,5 +1,7 @@
 # Base class for all 'Slicer' objects.
 #
+__all__ = ("SlicerRegistry", "BaseSlicer")
+
 import inspect
 import json
 import warnings
@@ -10,8 +12,6 @@ import numpy.ma as ma
 from six import with_metaclass
 
 from rubin_sim.maf.utils import get_date_version
-
-__all__ = ["SlicerRegistry", "BaseSlicer"]
 
 
 class SlicerRegistry(type):

@@ -1,10 +1,10 @@
+__all__ = ("SnrWeightedMetric", )
+
 import numpy as np
 
 from rubin_sim.maf.utils import m52snr
 
 from .base_metric import BaseMetric
-
-__all__ = ["SnrWeightedMetric"]
 
 
 class SnrWeightedMetric(BaseMetric):

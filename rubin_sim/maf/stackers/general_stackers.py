@@ -1,3 +1,14 @@
+__all__ = (
+    "NormAirmassStacker",
+    "ParallaxFactorStacker",
+    "HourAngleStacker",
+    "ZenithDistStacker",
+    "ParallacticAngleStacker",
+    "DcrStacker",
+    "FiveSigmaStacker",
+    "SaturationStacker",
+)
+
 import warnings
 
 import numpy as np
@@ -7,17 +18,6 @@ from rubin_sim.maf.utils import load_inst_zeropoints
 from rubin_sim.utils import Site, m5_flat_sed
 
 from .base_stacker import BaseStacker
-
-__all__ = [
-    "NormAirmassStacker",
-    "ParallaxFactorStacker",
-    "HourAngleStacker",
-    "ZenithDistStacker",
-    "ParallacticAngleStacker",
-    "DcrStacker",
-    "FiveSigmaStacker",
-    "SaturationStacker",
-]
 
 
 class SaturationStacker(BaseStacker):

@@ -3,13 +3,13 @@
 #
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
+__all__ = ("alm_plots", )
+
 import os
 
 import healpy as hp
 import matplotlib.pyplot as plt
 import numpy as np
-
-__all__ = ["alm_plots"]
 
 
 def alm_plots(

@@ -1,8 +1,8 @@
+__all__ = ("CloudModel", )
+
 import warnings
 
 import numpy as np
-
-__all__ = ["CloudModel"]
 
 
 class CloudModel:

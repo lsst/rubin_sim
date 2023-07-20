@@ -1,3 +1,5 @@
+__all__ = ("DeepDrillingSurvey", "generate_dd_surveys", "dd_bfs")
+
 import copy
 import logging
 import random
@@ -9,8 +11,6 @@ from rubin_sim.scheduler import features
 from rubin_sim.scheduler.surveys import BaseSurvey
 from rubin_sim.scheduler.utils import empty_observation
 from rubin_sim.utils import ddf_locations
-
-__all__ = ["DeepDrillingSurvey", "generate_dd_surveys", "dd_bfs"]
 
 log = logging.getLogger(__name__)
 

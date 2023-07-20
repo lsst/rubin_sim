@@ -1,3 +1,5 @@
+__all__ = ("generate_catalog", )
+
 import sys
 import warnings
 
@@ -7,8 +9,6 @@ from scipy.spatial import cKDTree as kdtree
 
 from .offsets import OffsetSNR
 from .star_tools import assign_patches, stars_project
-
-__all__ = ["generate_catalog"]
 
 
 def wrap_ra(ra):

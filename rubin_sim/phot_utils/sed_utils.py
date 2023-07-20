@@ -1,8 +1,8 @@
+__all__ = ("get_imsim_flux_norm", )
+
 import numpy as np
 
 from rubin_sim.phot_utils import Bandpass
-
-__all__ = ["get_imsim_flux_norm"]
 
 
 def get_imsim_flux_norm(sed, magmatch):

@@ -1,10 +1,4 @@
-import numpy as np
-
-from .base_metric import BaseMetric
-
-# A collection of commonly used simple metrics, operating on a single column and returning a float.
-
-__all__ = [
+__all__ = (
     "PassMetric",
     "Coaddm5Metric",
     "MaxMetric",
@@ -38,7 +32,13 @@ __all__ = [
     "CountExplimMetric",
     "AngularSpreadMetric",
     "RealMeanMetric",
-]
+)
+
+import numpy as np
+
+from .base_metric import BaseMetric
+
+# A collection of commonly used simple metrics, operating on a single column and returning a float.
 
 twopi = 2.0 * np.pi
 

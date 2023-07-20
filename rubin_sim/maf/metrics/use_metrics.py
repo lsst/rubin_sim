@@ -1,19 +1,8 @@
-# imports
+__all__ = ("UseMetric", )
+
 import numpy as np
 
 from rubin_sim.maf.metrics.base_metric import BaseMetric
-
-# constants
-
-__all__ = ["UseMetric"]
-
-# exception classes
-
-# interface functions
-
-# classes
-
-__all__ = ["UseMetric"]
 
 
 class UseMetric(BaseMetric):  # pylint: disable=too-few-public-methods

@@ -1,8 +1,8 @@
+__all__ = ("LongGapAGNMetric", )
+
 import numpy as np
 
 from .base_metric import BaseMetric
-
-__all__ = ["LongGapAGNMetric"]
 
 
 class LongGapAGNMetric(BaseMetric):

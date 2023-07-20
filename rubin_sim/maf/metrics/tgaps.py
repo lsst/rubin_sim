@@ -1,8 +1,4 @@
-import numpy as np
-
-from .base_metric import BaseMetric
-
-__all__ = [
+__all__ = (
     "GapsMetric",
     "TgapsMetric",
     "TgapsPercentMetric",
@@ -10,7 +6,11 @@ __all__ = [
     "NVisitsPerNightMetric",
     "MaxGapMetric",
     "NightTimespanMetric",
-]
+)
+
+import numpy as np
+
+from .base_metric import BaseMetric
 
 
 class GapsMetric(BaseMetric):

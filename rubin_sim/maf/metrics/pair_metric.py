@@ -1,8 +1,8 @@
+__all__ = ("PairMetric", )
+
 import numpy as np
 
 from .base_metric import BaseMetric
-
-__all__ = ["PairMetric"]
 
 
 class PairMetric(BaseMetric):

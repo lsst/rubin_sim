@@ -1,3 +1,14 @@
+__all__ = (
+    "FootprintFraction",
+    "FOArea",
+    "FONv",
+    "IdentityMetric",
+    "NormalizeMetric",
+    "ZeropointMetric",
+    "TotalPowerMetric",
+    "StaticProbesFoMEmulatorMetricSimple",
+)
+
 import warnings
 
 import healpy as hp
@@ -7,17 +18,6 @@ from scipy import interpolate
 from .base_metric import BaseMetric
 
 # A collection of metrics which are primarily intended to be used as summary statistics.
-
-__all__ = [
-    "FootprintFraction",
-    "FOArea",
-    "FONv",
-    "IdentityMetric",
-    "NormalizeMetric",
-    "ZeropointMetric",
-    "TotalPowerMetric",
-    "StaticProbesFoMEmulatorMetricSimple",
-]
 
 
 class FootprintFraction(BaseMetric):

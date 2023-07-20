@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+__all__ = ("StarCountMassMetric", )
 
 import numpy as np
 
@@ -13,9 +13,6 @@ from .star_counts import *
 # Motivation: The distances to stars in LSST will be signficant enough that the structure of the Galaxy will be readily apparent because of its influence on the number of stars in a given field. Any metric concerned with the number of potential objects to be detected will need to feature not only the effects of the cadence but also the number of objects per field.
 # This metric identifies the number of stars in a given field in a particular mass range that will be fainter than the saturation limit of 16th magnitude and still bright enough to have noise less than 0.03 mag. M1 and M2 are the low and high limits of the mass range in solar masses. 'band' is the band for the observations to be made in.
 # Requires StarCounts.StarCounts
-
-
-__all__ = ["StarCountMassMetric"]
 
 
 class StarCountMassMetric(BaseMetric):

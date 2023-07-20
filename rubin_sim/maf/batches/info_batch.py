@@ -1,8 +1,8 @@
+__all__ = ("metadata_bundle_dicts", )
+
 import numpy as np
 
 import rubin_sim.maf.batches as batches
-
-__all__ = ["metadata_bundle_dicts"]
 
 
 def metadata_bundle_dicts(allsky_slicer, wfd_slicer, opsim="opsim", colmap=batches.col_map_dict("FBS")):

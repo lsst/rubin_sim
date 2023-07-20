@@ -1,4 +1,5 @@
-from builtins import zip
+__all__ = ("OneDBinnedData", )
+
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -6,8 +7,6 @@ import numpy as np
 from rubin_sim.maf.utils import percentile_clipping
 
 from .plot_handler import BasePlotter
-
-__all__ = ["OneDBinnedData"]
 
 
 class OneDBinnedData(BasePlotter):

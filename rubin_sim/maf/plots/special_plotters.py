@@ -1,4 +1,5 @@
-from builtins import zip
+__all__ = ("FOPlot", "SummaryHistogram")
+
 
 import healpy as hp
 import matplotlib.pyplot as plt
@@ -7,8 +8,6 @@ import numpy as np
 import rubin_sim.maf.metrics as metrics
 
 from .plot_handler import BasePlotter
-
-__all__ = ["FOPlot", "SummaryHistogram"]
 
 
 class FOPlot(BasePlotter):

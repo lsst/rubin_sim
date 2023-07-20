@@ -1,3 +1,5 @@
+__all__ = ("DitherDetailer", "CameraRotDetailer", "EuclidDitherDetailer")
+
 import numpy as np
 
 from rubin_sim.scheduler.detailers import BaseDetailer
@@ -8,8 +10,6 @@ from rubin_sim.utils import (
     dest_latlon,
     gnomonic_project_tosky,
 )
-
-__all__ = ["DitherDetailer", "CameraRotDetailer", "EuclidDitherDetailer"]
 
 
 class DitherDetailer(BaseDetailer):

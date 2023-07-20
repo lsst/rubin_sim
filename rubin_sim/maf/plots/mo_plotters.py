@@ -1,4 +1,5 @@
-from builtins import range
+__all__ = ("MetricVsH", "MetricVsOrbit", "MetricVsOrbitPoints")
+
 
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
@@ -11,8 +12,6 @@ from .plot_handler import BasePlotter
 mag_sun = -26.74  # apparent V band magnitude of the Sun (our H mags translate to V band)
 km_per_au = 1.496e8
 m_per_km = 1000
-
-__all__ = ["MetricVsH", "MetricVsOrbit", "MetricVsOrbitPoints"]
 
 
 class MetricVsH(BasePlotter):

@@ -1,3 +1,15 @@
+__all__ = (
+    "set_color_lims",
+    "set_color_map",
+    "HealpixSkyMap",
+    "HealpixPowerSpectrum",
+    "HealpixHistogram",
+    "BaseHistogram",
+    "BaseSkyMap",
+    "HealpixSDSSSkyMap",
+    "LambertSkyMap",
+)
+
 import copy
 import numbers
 import warnings
@@ -20,18 +32,6 @@ from .plot_handler import BasePlotter, apply_zp_norm
 
 perceptual_rainbow = make_pr_cmap()
 import numpy.ma as ma
-
-__all__ = [
-    "set_color_lims",
-    "set_color_map",
-    "HealpixSkyMap",
-    "HealpixPowerSpectrum",
-    "HealpixHistogram",
-    "BaseHistogram",
-    "BaseSkyMap",
-    "HealpixSDSSSkyMap",
-    "LambertSkyMap",
-]
 
 base_default_plot_dict = {
     "title": None,

@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+__all__ = ("scimaf_dir", )
+
 import argparse
 import glob
 import os

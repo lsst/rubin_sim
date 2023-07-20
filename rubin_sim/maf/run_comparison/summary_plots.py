@@ -1,12 +1,12 @@
 """Summary metric plotting functions.
 """
 
-__all__ = [
+__all__ = (
     "normalize_metric_summaries",
     "plot_run_metric",
     "plot_run_metric_mesh",
     "find_family_lines",
-]
+)
 
 # imports
 import warnings

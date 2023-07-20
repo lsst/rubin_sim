@@ -8,9 +8,10 @@
 # Contact for this code:
 # christian.setzer@fysik.su.se
 
+__all__ = ("TransientAsciiSEDMetric", )
+
 import os
 import warnings
-from builtins import zip
 from copy import deepcopy
 
 import numpy as np
@@ -23,8 +24,6 @@ from astropy.cosmology import Planck15 as cosmo
 
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.utils import m52snr
-
-__all__ = ["TransientAsciiSEDMetric"]
 
 
 class TransientAsciiSEDMetric(BaseMetric):

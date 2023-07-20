@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+__all__ = ("data_dict", "rs_download_data")
+
 import argparse
 import os
 import warnings

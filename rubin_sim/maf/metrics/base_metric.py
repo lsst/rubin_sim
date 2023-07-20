@@ -6,6 +6,8 @@
 #  is that these vectors may be expensive to compute; by keeping/writing the full
 #  vector we permit multiple 'reduce' functions to be executed on the same data.
 
+__all__ = ("MetricRegistry", "BaseMetric", "ColRegistry")
+
 import inspect
 import warnings
 
@@ -13,8 +15,6 @@ import numpy as np
 from six import with_metaclass
 
 from rubin_sim.maf.stackers.get_col_info import ColInfo
-
-__all__ = ["MetricRegistry", "BaseMetric", "ColRegistry"]
 
 
 class MetricRegistry(type):

@@ -1,3 +1,14 @@
+__all__ = (
+    "generate_microlensing_slicer",
+    "MicrolensingMetric",
+    "microlensing_amplification",
+    "microlensing_amplification_fsfb",
+    "info_peak_before_t0",
+    "fisher_matrix",
+    "coefficients_pspl",
+    "coefficients_fsfb",
+)
+
 import os
 from copy import deepcopy
 
@@ -8,17 +19,6 @@ import rubin_sim.maf.slicers as slicers
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import m52snr
 from rubin_sim.utils import equatorial_from_galactic, hpid2_ra_dec
-
-__all__ = [
-    "generate_microlensing_slicer",
-    "MicrolensingMetric",
-    "microlensing_amplification",
-    "microlensing_amplification_fsfb",
-    "info_peak_before_t0",
-    "fisher_matrix",
-    "coefficients_pspl",
-    "coefficients_fsfb",
-]
 
 
 # Via Natasha Abrams nsabrams@college.harvard.edu

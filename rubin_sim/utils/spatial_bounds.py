@@ -6,10 +6,10 @@ its field of view (i.e. is it a box in RA, Dec, is it a circle in RA, Dec....?)
 # Hopefully it will be extensible so that we can add different shapes in the
 # future
 
+__all__ = ("SpatialBounds", "CircleBounds", "BoxBounds")
+
 import numpy as np
 from six import with_metaclass
-
-__all__ = ["SpatialBounds", "CircleBounds", "BoxBounds"]
 
 
 class SpatialBoundsMetaClass(type):

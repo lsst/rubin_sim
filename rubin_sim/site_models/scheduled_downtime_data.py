@@ -1,3 +1,5 @@
+__all__ = ("ScheduledDowntimeData", )
+
 import os
 import sqlite3
 import warnings
@@ -6,8 +8,6 @@ import numpy as np
 from astropy.time import Time, TimeDelta
 
 from rubin_sim.data import get_data_dir
-
-__all__ = ["ScheduledDowntimeData"]
 
 
 class ScheduledDowntimeData:

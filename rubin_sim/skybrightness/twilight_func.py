@@ -1,6 +1,6 @@
-import numpy as np
+__all__ = ("twilight_func", "zenith_twilight", "simple_twi")
 
-__all__ = ["twilight_func", "zenith_twilight", "simple_twi"]
+import numpy as np
 
 
 def simple_twi(xdata, *args):

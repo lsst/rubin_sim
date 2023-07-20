@@ -1,4 +1,4 @@
-from __future__ import print_function
+__all__ = ("glanceBatch", )
 
 import warnings
 
@@ -14,8 +14,6 @@ from .col_map_dict import col_map_dict
 from .common import standard_summary
 from .hourglass_batch import hourglassPlots
 from .slew_batch import slewBasics
-
-__all__ = ["glanceBatch"]
 
 
 def glanceBatch(

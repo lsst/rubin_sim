@@ -1,3 +1,5 @@
+__all__ = ("NgalScaleMetric", "NlcPointsMetric")
+
 import healpy as hp
 import numpy as np
 
@@ -5,8 +7,6 @@ from rubin_sim.maf.maps import TrilegalDensityMap
 from rubin_sim.phot_utils import DustValues
 
 from .base_metric import BaseMetric
-
-__all__ = ["NgalScaleMetric", "NlcPointsMetric"]
 
 
 class NgalScaleMetric(BaseMetric):

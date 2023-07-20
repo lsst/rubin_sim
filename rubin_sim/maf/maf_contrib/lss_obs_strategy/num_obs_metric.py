@@ -4,10 +4,9 @@
 # Humna Awan: humna.awan@rutgers.edu
 # Last updated: 06/10/16
 #####################################################################################################
+__all__ = ("NumObsMetric", )
 
 from rubin_sim.maf.metrics import BaseMetric
-
-__all__ = ["NumObsMetric"]
 
 
 class NumObsMetric(BaseMetric):

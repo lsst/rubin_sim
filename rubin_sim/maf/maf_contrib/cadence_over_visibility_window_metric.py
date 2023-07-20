@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from sys import argv
 
 # from astropy.visualization import astropy_mpl_style

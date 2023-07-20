@@ -1,3 +1,5 @@
+__all__ = ("BaseObs", )
+
 import os
 import warnings
 
@@ -8,8 +10,6 @@ from rubin_sim.phot_utils import Bandpass, Sed
 from rubin_sim.utils import LsstCameraFootprint, angular_separation
 
 from .ooephemerides import PyOrbEphemerides
-
-__all__ = ["BaseObs"]
 
 
 class BaseObs:

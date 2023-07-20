@@ -1,3 +1,5 @@
+__all__ = ("SkyAreaGenerator", "SkyAreaGeneratorGalplane", "EuclidOverlapFootprint")
+
 import os
 import warnings
 
@@ -12,8 +14,6 @@ from shapely.geometry.polygon import Polygon
 import rubin_sim.utils as rs_utils
 from rubin_sim import data as rs_data
 from rubin_sim.utils import angular_separation
-
-__all__ = ["SkyAreaGenerator", "SkyAreaGeneratorGalplane", "EuclidOverlapFootprint"]
 
 
 class SkyAreaGenerator:

@@ -5,6 +5,8 @@ Created on Tue Sep 25 17:11:20 2018
 @author: rstreet
 """
 
+__all__ = ("CalcExpectedVisitsMetric", )
+
 import numpy as np
 
 import rubin_sim.maf.db as db
@@ -14,8 +16,6 @@ import rubin_sim.maf.slicers as slicers
 from rubin_sim.maf.metrics import BaseMetric
 
 from .calculate_lsst_field_visibility_astropy import calculate_lsst_field_visibility
-
-__all__ = ["CalcExpectedVisitsMetric"]
 
 
 class CalcExpectedVisitsMetric(BaseMetric):

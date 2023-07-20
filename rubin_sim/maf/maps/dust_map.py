@@ -1,10 +1,10 @@
+__all__ = ("DustMap", )
+
 import warnings
 
 from rubin_sim.maf.maps import BaseMap
 
 from .ebv_hp import eb_vhp
-
-__all__ = ["DustMap"]
 
 
 class DustMap(BaseMap):

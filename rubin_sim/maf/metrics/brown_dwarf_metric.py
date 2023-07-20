@@ -1,3 +1,5 @@
+__all__ = ("BDParallaxMetric", "VolumeSumMetric")
+
 import healpy as hp
 import numpy as np
 from scipy import interpolate
@@ -5,8 +7,6 @@ from scipy import interpolate
 import rubin_sim.maf.utils as mafUtils
 
 from .base_metric import BaseMetric
-
-__all__ = ["BDParallaxMetric", "VolumeSumMetric"]
 
 
 def bd_colors(spec_type):

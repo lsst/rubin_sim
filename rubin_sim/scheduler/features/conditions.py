@@ -1,3 +1,5 @@
+__all__ = ("Conditions", )
+
 from io import StringIO
 
 import healpy as hp
@@ -19,8 +21,6 @@ from rubin_sim.utils import (
     calc_lmst_last,
     m5_flat_sed,
 )
-
-__all__ = ["Conditions"]
 
 
 class Conditions:

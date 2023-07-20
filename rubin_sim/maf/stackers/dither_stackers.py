@@ -1,11 +1,4 @@
-import warnings
-from builtins import range, zip
-
-import numpy as np
-
-from .base_stacker import BaseStacker
-
-__all__ = [
+__all__ = (
     "setup_dither_stackers",
     "wrap_ra_dec",
     "wrap_ra",
@@ -22,7 +15,14 @@ __all__ = [
     "HexDitherFieldPerNightStacker",
     "HexDitherPerNightStacker",
     "RandomRotDitherPerFilterChangeStacker",
-]
+)
+
+import warnings
+
+import numpy as np
+
+from .base_stacker import BaseStacker
+
 
 # Stacker naming scheme:
 # [Pattern]Dither[Field]Per[Timescale].
