@@ -16,10 +16,18 @@ BACKUP_DATA_URL = "https://epyc.astro.washington.edu/~lynnej/opsim_downloads/rub
 
 
 def data_dict():
-    """The data directories needed and what tar file they map to.
+    """Creates a `dict` for all data buckets and the tar file they map to.
+    To create tar files and follow any sym links, run:
+        ``tar -chvzf maf_may_2021.tgz maf``
 
-    to create tar files and follow any sym links
-    tar -chvzf maf_may_2021.tgz maf
+    Returns
+    -------
+    result : `dict`
+        Data bucket filenames dictionary with keys:
+        ``"name"``
+            Data bucket name (`str`).
+        ``"version"``
+            Versioned file name (`str`).
     """
     file_dict = {
         "maf": "maf_2022_08_26.tgz",
@@ -150,12 +158,13 @@ def rs_download_data():
             # Download file
             url = url_base + filename
             print("Downloading file: %s" % url)
-            # stream and write in chunks (avoid large memory usage)
+            # Stream and write in chunks (avoid large memory usage)
             r = requests.get(url, stream=True)
             file_size = int(r.headers.get("Content-Length", 0))
             if file_size < 245:
                 warnings.warn(f"{url} file size unexpectedly small.")
-            block_size = 1024 * 1024  # download this size chunk at a time; reasonable guess
+            # Download this size chunk at a time; reasonable guess
+            block_size = 1024 * 1024
             progress_bar = tqdm(total=file_size, unit="iB", unit_scale=True, disable=args.tdqm_disable)
             print(f"Writing to {os.path.join(data_dir, filename)}")
             with open(os.path.join(data_dir, filename), "wb") as f:

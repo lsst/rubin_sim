@@ -11,7 +11,32 @@ from . import get_data_dir
 
 # Hack it up to find the filenames ending with .h5
 class MyHTMLParser(HTMLParser):
+    """HTML parser class that uses the HTMLParser to parse a starttag.
+
+    See Also
+    --------
+    html.parser.HTMLParser
+
+    Examples
+    --------
+    To instantiate a MyHTMLParser instance:
+
+    parser = MyHTMLParser()
+    parser.handle_starttag(tag, attrs)
+    """
+
     def handle_starttag(self, tag, attrs):
+        """
+        Handle the start tag of an element (e.g. <div id="main">).
+
+        Parameters
+        ----------
+        tag : `str`
+            The name of the tag converted to lower case.
+        attrs : `list`
+            A list of (name, value) pairs containing the attributes found inside the
+        tag’s <> brackets
+        """
         try:
             self.filenames
         except AttributeError:
@@ -24,7 +49,6 @@ class MyHTMLParser(HTMLParser):
 
 def rs_download_sky():
     """Download sky files."""
-
     parser = argparse.ArgumentParser(
         description="Download precomputed skybrightness files for rubin_sim package"
     )
