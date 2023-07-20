@@ -1,4 +1,4 @@
-__all__ = ("SNSLMetric", )
+__all__ = ("SNSLMetric",)
 
 import healpy as hp
 import numpy as np

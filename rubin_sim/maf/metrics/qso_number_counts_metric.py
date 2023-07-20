@@ -1,4 +1,4 @@
-__all__ = ("QSONumberCountsMetric", )
+__all__ = ("QSONumberCountsMetric",)
 
 import os
 

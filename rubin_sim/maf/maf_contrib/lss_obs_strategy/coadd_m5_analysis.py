@@ -3,7 +3,7 @@
 # to consider various survey strategies, mask shallow borders, create/save/show relevant plots, do
 # an alm analysis, and save data.
 
-__all__ = ("coadd_m5_analysis", )
+__all__ = ("coadd_m5_analysis",)
 
 import copy
 import os
@@ -70,73 +70,73 @@ def coadd_m5_analysis(
       - Returns the metricBundle object containing the calculated coadded depth, and the output directory name.
 
     Parameters
-    -------------------
-    path: str
+    ----------
+    path : str
         path to the main directory where output directory is to be saved.
-    dbfile: str
+    dbfile : str
         path to the OpSim output file, e.g. to a copy of enigma_1189
-    run_name: str
+    run_name : str
         run name tag to identify the output of specified OpSim output, e.g. 'enigma1189'
-    slair: `bool`
+    slair : `bool`
         set to True if analysis on a SLAIR output.
         Default: False
-    wf_dand_dd_fs: `bool`
+    wf_dand_dd_fs : `bool`
         set to True if want to consider both WFD survet and DDFs. Otherwise will only work
         with WFD. Default: False
-    no_dith_only: `bool`
+    no_dith_only : `bool`
         set to True if only want to consider the undithered survey. Default: False
-    best_dith_only: `bool`
+    best_dith_only : `bool`
         set to True if only want to consider RandomDitherFieldPerVisit.
         Default: False
-    some_dith_only: `bool`
+    some_dith_only : `bool`
         set to True if only want to consider undithered and a few dithered surveys.
         Default: False
-    specified_dith: str
+    specified_dith : str
         specific dither strategy to run.
         Default: None
-    nside: int
+    nside : int
         HEALpix resolution parameter. Default: 128
-    filter_band: str
+    filter_band : str
         any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'r'
-    include_dust_extinction: `bool`
+    include_dust_extinction : `bool`
         set to include dust extinction. Default: False
-    saveun_masked_coadd_data: `bool`
+    saveun_masked_coadd_data : `bool`
         set to True to save data before border masking. Default: False
-    pixel_radius_for_masking: int
+    pixel_radius_for_masking : int
         number of pixels to mask along the shallow border. Default: 5
-    cut_off_year: int
+    cut_off_year : int
         year cut to restrict analysis to only a subset of the survey.
         Must range from 1 to 9, or None for the full survey analysis (10 yrs).
         Default: None
-    plot_skymap: `bool`
+    plot_skymap : `bool`
         set to True if want to plot skymaps. Default: True
-    plot_cartview: `bool`
+    plot_cartview : `bool`
         set to True if want to plot cartview plots. Default: False
-    unmasked_color_min: float
+    unmasked_color_min : float
         lower limit on the colorscale for unmasked skymaps. Default: None
-    unmasked_color_max: float
+    unmasked_color_max : float
         upper limit on the colorscale for unmasked skymaps. Default: None
-    masked_color_min: float
+    masked_color_min : float
         lower limit on the colorscale for border-masked skymaps. Default: None
-    masked_color_max: float
+    masked_color_max : float
         upper limit on the colorscale for border-masked skymaps. Default: None
-    n_ticks: int
+    n_ticks : int
         (number of ticks - 1) on the skymap colorbar. Default: 5
-    plot_power_spectrum: `bool`
+    plot_power_spectrum : `bool`
         set to True if want to plot powerspectra. Default: True
-    show_plots: `bool`
+    show_plots : `bool`
         set to True if want to show figures. Default: True
-    save_figs: `bool`
+    save_figs : `bool`
         set to True if want to save figures. Default: True
-    alm_analysis: `bool`
+    alm_analysis : `bool`
         set to True to perform the alm analysis. Default: True
-    ra_range: float array
+    ra_range : float array
         range of right ascention (in degrees) to consider in alm  cartview plot;
         applicable when alm_analysis=True. Default: [-50,50]
-    dec_range: float array
+    dec_range : float array
         range of declination (in degrees) to consider in alm cartview plot;
         applicable when alm_analysis=True. Default: [-65,5]
-    save_masked_coadd_data: `bool`
+    save_masked_coadd_data : `bool`
         set to True to save the coadded depth data after the border
         masking. Default: True
     """

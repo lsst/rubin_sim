@@ -1,4 +1,4 @@
-__all__ = ("SFUncertMetric", )
+__all__ = ("SFUncertMetric",)
 
 import warnings
 

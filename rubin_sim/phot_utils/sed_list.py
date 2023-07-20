@@ -1,4 +1,4 @@
-__all__ = ("SedList", )
+__all__ = ("SedList",)
 
 import copy
 import os
@@ -42,59 +42,41 @@ class SedList:
         sed_name_list : `Unknown`
             is a list of SED file names.
 
-        Parameters
-        ----------
         mag_norm_list : `Unknown`
             is a list of magnitude normalizations
             (in the normalizing_bandpass) for each of the Seds.
 
-        Parameters
-        ----------
         normalizing_bandpass : `Unknown`
             is an instantiation of the Bandpass
             class defining the bandpass in which the magNorms from mag_norm_list
             are calculated.  This defaults to the Bandpass().imsim_bandpass(),
             which is essentially a delta function at 500 nm.
 
-        Parameters
-        ----------
         file_dir : `Unknown`
             is the base directory where the Sed files are stored
             (defaults to current working directory).
 
-        Parameters
-        ----------
         spec_map : `Unknown`
             is a spec_map (defined in sims_utils/../fileMaps.py)
             that maps the names in sed_name_list to paths of the files relative to
             file_dir (defaults to None; a defaultSpecMap targeted at
             sims_sed_library is defined in sims_utils)
 
-        Parameters
-        ----------
         wavelen_match : `Unknown`
             is an optional numpy array representing
             the wavelength grid to which all Seds will be re-mapped.
 
-        Parameters
-        ----------
         redshift_list : `Unknown`
             is an optional list of redshifts for the Sed
 
-        Parameters
-        ----------
         internal_av_list : `Unknown`
             is an optional list of A(V) due to internal
             dust (for spectra of galaxies).
 
-        Parameters
-        ----------
         galactic_av_list : `Unknown`
             is an optional list of A(V) due to
             Milky Way Dust.
 
-        Parameters
-        ----------
         cosmological_dimming : `Unknown`
             is a `bool` indicating whether cosmological
             dimming (the extray (1+z)^-1 factor in flux) should be applied to spectra
@@ -165,25 +147,17 @@ class SedList:
         sedList : `Unknown`
             is a list of file names containing Seds
 
-        Parameters
-        ----------
         magNorm : `Unknown`
             is the magnitude normalization
 
-        Parameters
-        ----------
         internal_av_list : `Unknown`
             is an optional list of A(V) due to internal
             dust
 
-        Parameters
-        ----------
         galactic_av_list : `Unknown`
             is an optional list of A(V) due to
             Milky Way dust
 
-        Parameters
-        ----------
         redshift_list : `Unknown`
             is an optional list of redshifts for the
             input Sed
@@ -293,50 +267,26 @@ class SedList:
         It returns the wavelength grid and corresponding dust coefficients so that
         they an be reused on Seds with identical wavelength grids.
 
-        Parameters
-        ----------
         sed_list : `Unknown`
             is a list of Sed objects
-
-        Parameters
-        ----------
         av_list : `Unknown`
-            is a list of Av extinction values internal to each object
-
-        Parameters
-        ----------
+            is a list of Av extinction values internal to each objec
         dust_wavelen : `Unknown`
             is the wavelength grid corresponding to the
             dust model coefficients.  If this differs from the wavelength grid
             of any of the Seds in sed_list, the dust model coefficients will be
             re-generated.
-
-        Parameters
-        ----------
         a_coeffs : `Unknown`
             are the 'a' dust model coefficients (see O'Donnell 1994
             ApJ 422 158)
-
-        Parameters
-        ----------
         b_coeffs : `Unknown`
             are the 'b' dust model coefficients from O'Donnell.
-
-        Parameters
-        ----------
         dust_wavelen : `Unknown`
             as generated/used by this method
-
-        Parameters
-        ----------
         a_coeffs : `Unknown`
             as generated/used by this method
-
-        Parameters
-        ----------
         b_coeffs : `Unknown`
             as generated/used by this method
-
         a_coeffs and b_coeffs are re-generated as needed
         """
 
@@ -371,9 +321,6 @@ class SedList:
         ----------
         sed_list : `Unknown`
             is a list of Sed objects
-
-        Parameters
-        ----------
         redshift_list : `Unknown`
             is a list of redshift values
 

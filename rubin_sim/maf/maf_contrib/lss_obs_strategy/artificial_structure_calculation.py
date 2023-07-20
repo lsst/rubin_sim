@@ -1,3 +1,5 @@
+__all__ = ("artificial_structure_calculation",)
+
 #####################################################################################################
 # Purpose: calculate artificial structure, i.e. fluctuations in galaxy counts, resulting from
 # imperfect observing strategy (OS). Includes the functionality to account for dust extinction,
@@ -28,7 +30,7 @@
 #
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
-__all__ = ("artificial_structure_calculation", )
+__all__ = ("artificial_structure_calculation",)
 
 import os
 
@@ -100,7 +102,6 @@ def artificial_structure_calculation(
     return_stuff=False,
 ):
     """
-
     Calculate artificial structure, i.e. fluctuations in galaxy counts dN/N, resulting due
     to imperfect observing strategy (OS).
     - Creates an output directory for subdirectories containing the specified things to save.
@@ -109,92 +110,92 @@ def artificial_structure_calculation(
     the results_db object, and (if include0pt_errors=True)  calibration errors for each survey strategy.
 
     Parameters
-    -------------
-    path: str
+    ----------
+    path : str
         path to the main directory where output directory is to be saved.
-    upper_mag_limit: float
+    upper_mag_limit : float
         upper limit on magnitude when calculating the galaxy counts.
-    dbfile: str
+    dbfile : str
         path to the OpSim output file, e.g. to a copy of enigma_1189
-    run_name: str
+    run_name : str
         run name tag to identify the output of specified OpSim output.
         Since new OpSim outputs have different columns, the run_name for enigma_1189 **must**
         be 'enigma1189'; can be anything for other outputs, e.g. 'minion1016'
-    no_dith_only: `bool`
+    no_dith_only : `bool`
         set to True if only want to consider the undithered survey. Default: False
-    best_dith_only: `bool`
+    best_dith_only : `bool`
         set to True if only want to consider RandomDitherFieldPerVisit.
         Default: False
-    specified_dith: str
+    specified_dith : str
         specific dither strategy to run; could be a string or a list of strings.
         Default: None
-    nside: int
+    nside : int
         HEALpix resolution parameter. Default: 128
-    filter_band: str
+    filter_band : str
         any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
-    cut_off_year: int
+    cut_off_year : int
         year cut to restrict analysis to only a subset of the survey.
         Must range from 1 to 9, or None for the full survey analysis (10 yrs).
         Default: None
-    redshift_bin: str
+    redshift_bin : str
         options include '0.<z<0.15', '0.15<z<0.37', '0.37<z<0.66, '0.66<z<1.0',
         '1.0<z<1.5', '1.5<z<2.0', '2.0<z<2.5', '2.5<z<3.0','3.0<z<3.5', '3.5<z<4.0',
         'all' for no redshift restriction (i.e. 0.<z<4.0)
         Default: 'all'
-    cfhtls_counts: `bool`
+    cfhtls_counts : `bool`
         set to True if want to calculate the total galaxy counts from CFHTLS
         powerlaw from LSST Science Book. Must be run with redshift_bin='all'
         Default: False
-    normalized_mock_catalog_counts: `bool`
+    normalized_mock_catalog_counts : `bool`
         set to False if  want the raw/un-normalized galaxy
         counts from mock catalogs. Default: True
-    include_dust_extinction: `bool`:
+    include_dust_extinction : `bool`:
         set to include dust extinction when calculating the coadded
         depth. Default: True
-    save_raw_num_gal_data: `bool`
+    save_raw_num_gal_data : `bool`
         set to True to save num_gal data right away, i.e. before
         0pt error calibration, bordering masking, or poisson noise.
         Default: True
-    pixel_radius_for_masking: int
+    pixel_radius_for_masking : int
         number of pixels to mask along the shallow border. Default: 5
-    save_num_gal_data_after_masking: `bool`
+    save_num_gal_data_after_masking : `bool`
         set to True to save num_gal data after border masking.
         Default: False
-    include0pt_errors: `bool`
+    include0pt_errors : `bool`
         set to True to include photometric calibration errors.
         Default: True
-    print0pt_information: `bool`
+    print0pt_information : `bool`
         set to True to print out some statistics (variance, the k-value, etc.)
         of the calibration errors of every dither strategy.
         Default: True
     plot0pt_plots : `bool`
         generate 0pt plots. Default True.
-    save_num_gal_data_after0pt: `bool`
+    save_num_gal_data_after0pt : `bool`
         set to True to save num_gal data after border masking and 0pt calibration. Default: False
-    add_poisson_noise: `bool`
+    add_poisson_noise : `bool`
         set to True to add poisson noise to the galaxy counts after border masking
         and the incorporation of calibration errors. Default: True
-    saveNumGalDataAfterPoisson:: `bool`
+    saveNumGalDataAfterPoisson : `bool`
         set to True to save num_gal data right away, after border masking,
         including the calibration errors, and the  poisson noise.
         Default: True
-    showDeltaNByNPlots: `bool`
+    showDeltaNByNPlots : `bool`
         set to True to show the plots related to the fluctuations in the galaxy
         counts. Will work only when plotDeltaNByN=True. Default: False
-    saveDeltaNByNPlots: `bool`
+    saveDeltaNByNPlots : `bool`
         set to True to save the plots related to the fluctuations in the galaxy
         counts. Will work only when plotDeltaNByN=True. Default: True
-    save_delta_n_by_n_data: `bool`
+    save_delta_n_by_n_data : `bool`
         set to True to save data for the the fluctuations in the galaxy counts.
         Default: True
-    save_cls_for_delta_n_by_n: `bool`
+    save_cls_for_delta_n_by_n : `bool`
         set to True to save the power spectrum data for the the fluctuations in
         the galaxy counts. Default: True
-    show_comp_plots: `bool`
+    show_comp_plots : `bool`
         set to True if want to display the comparison plots (only valid if have more
         han one dither strategy); otherwise, the plots will be saved and not displayed.
         Default: False
-    return_stuff: `bool`
+    return_stuff : `bool`
         set to True to get the metricBundle object, the out_dir, and results_db object.
         Default: False
     """

@@ -1,4 +1,4 @@
-__all__ = ("ColInfo", )
+__all__ = ("ColInfo",)
 
 
 from .base_stacker import BaseStacker

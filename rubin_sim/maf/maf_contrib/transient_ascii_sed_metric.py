@@ -8,7 +8,7 @@
 # Contact for this code:
 # christian.setzer@fysik.su.se
 
-__all__ = ("TransientAsciiSEDMetric", )
+__all__ = ("TransientAsciiSEDMetric",)
 
 import os
 import warnings

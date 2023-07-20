@@ -1,6 +1,6 @@
 """A HealpixSubsetSlicer - define the subset of healpixels to use to calculate metrics."""
 
-__all__ = ("HealpixSubsetSlicer", )
+__all__ = ("HealpixSubsetSlicer",)
 
 import warnings
 from functools import wraps

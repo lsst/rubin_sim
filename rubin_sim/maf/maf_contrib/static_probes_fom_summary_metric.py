@@ -1,4 +1,4 @@
-__all__ = ("StaticProbesFoMEmulatorMetric", )
+__all__ = ("StaticProbesFoMEmulatorMetric",)
 
 import healpy as hp
 import numpy as np

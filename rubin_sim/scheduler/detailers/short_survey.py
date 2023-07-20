@@ -1,4 +1,4 @@
-__all__ = ("ShortExptDetailer", )
+__all__ = ("ShortExptDetailer",)
 
 import healpy as hp
 import matplotlib.pylab as plt

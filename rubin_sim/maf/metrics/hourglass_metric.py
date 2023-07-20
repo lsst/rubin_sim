@@ -1,4 +1,4 @@
-__all__ = ("HourglassMetric", )
+__all__ = ("HourglassMetric",)
 
 import numpy as np
 from astroplan import Observer

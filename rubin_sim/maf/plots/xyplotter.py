@@ -1,4 +1,4 @@
-__all__ = ("XyPlotter", )
+__all__ = ("XyPlotter",)
 
 import matplotlib.pyplot as plt
 

@@ -4,22 +4,25 @@
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
 
-__all__ = ("save_bundle_data_npz_format", )
+__all__ = ("save_bundle_data_npz_format",)
 
 
 def save_bundle_data_npz_format(path, bundle, base_filename, filter_band):
     """
-
     Save data in the metricBundle. For each key, a new .npz file is created to
     save the content of the metricBundle object.
 
     Parameters
-    -------------------
-      * path: str: path to the directory where the files should be saved
-      * bundle: metricBundle object whose contents are to be saved.
-      * base_filename: str: basic filename wanted. Final filename would be
+    ----------
+    path : str
+        path to the directory where the files should be saved
+    bundle : metricBundle
+        object whose contents are to be saved.
+    base_filename : str
+        basic filename wanted. Final filename would be
                            <base_filename>_<filter_band>_<dither>.npz
-      * filter_band: str: filter of the data in the bundle, e.g. 'r'
+    filter_band : str
+        filter of the data in the bundle, e.g. 'r'
 
     """
     # run over keys in the bundle and save the data

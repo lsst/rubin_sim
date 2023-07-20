@@ -1,4 +1,4 @@
-__all__ = ("metadata_dir", )
+__all__ = ("metadata_dir",)
 
 import argparse
 import glob

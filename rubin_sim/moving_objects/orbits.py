@@ -1,4 +1,4 @@
-__all__ = ("Orbits", )
+__all__ = ("Orbits",)
 
 import warnings
 

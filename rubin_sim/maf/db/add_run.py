@@ -1,4 +1,4 @@
-__all__ = ("add_run", )
+__all__ = ("add_run",)
 
 import argparse
 

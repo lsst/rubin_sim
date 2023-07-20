@@ -1,7 +1,7 @@
 # Example of a stacker added to the repo.
 # ljones@astro.washington.edu
 
-__all__ = ("YearlyDitherStacker", )
+__all__ = ("YearlyDitherStacker",)
 
 import numpy as np
 

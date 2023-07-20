@@ -1,4 +1,4 @@
-__all__ = ("LongGapSurvey", )
+__all__ = ("LongGapSurvey",)
 
 import logging
 from copy import copy, deepcopy

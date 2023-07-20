@@ -1,4 +1,4 @@
-__all__ = ("calc_season", )
+__all__ = ("calc_season",)
 
 import numpy as np
 

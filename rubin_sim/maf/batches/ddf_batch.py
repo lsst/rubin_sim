@@ -1,4 +1,4 @@
-__all__ = ("ddfBatch", )
+__all__ = ("ddfBatch",)
 
 import healpy as hp
 import numpy as np

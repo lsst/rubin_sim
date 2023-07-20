@@ -1,4 +1,4 @@
-__all__ = ("get_date_version", )
+__all__ = ("get_date_version",)
 
 import time
 from importlib import metadata

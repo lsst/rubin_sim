@@ -1,4 +1,4 @@
-__all__ = ("WFDlabelStacker", )
+__all__ = ("WFDlabelStacker",)
 
 import healpy as hp
 import numpy as np

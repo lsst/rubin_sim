@@ -8,7 +8,7 @@
 # The difference between this metric and the VisitGapMetric metric is that VisitGapMetric calculates reduceFunc of gaps between observations of a data_slice throughout the whole
 # baseline, but IntervalsBetweenObsMetric calculates the gaps between observations during another survey observing window. This metric combined with surveys footprint
 # overlap can determine how many often another survey footprint is observed by LSST during specific time intervals.
-__all__ = ("IntervalsBetweenObsMetric", )
+__all__ = ("IntervalsBetweenObsMetric",)
 
 import numpy as np
 from astropy.time import Time

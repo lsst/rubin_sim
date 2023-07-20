@@ -1,4 +1,4 @@
-__all__ = ("DirectObs", )
+__all__ = ("DirectObs",)
 
 import datetime
 import logging

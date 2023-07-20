@@ -1,4 +1,4 @@
-__all__ = ("CloudModel", )
+__all__ = ("CloudModel",)
 
 import warnings
 

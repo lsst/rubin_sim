@@ -1,4 +1,4 @@
-__all__ = ("NightPointingMetric", )
+__all__ = ("NightPointingMetric",)
 
 import numpy as np
 from astropy import units as u

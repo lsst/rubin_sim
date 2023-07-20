@@ -1,4 +1,4 @@
-__all__ = ("GalaxyCountsMetric", )
+__all__ = ("GalaxyCountsMetric",)
 
 import healpy as hp
 import numpy as np

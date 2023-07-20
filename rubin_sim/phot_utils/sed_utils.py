@@ -1,4 +1,4 @@
-__all__ = ("get_imsim_flux_norm", )
+__all__ = ("get_imsim_flux_norm",)
 
 import numpy as np
 

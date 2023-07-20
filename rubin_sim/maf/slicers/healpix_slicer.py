@@ -4,7 +4,7 @@
 # See more documentation on healpy here http://healpy.readthedocs.org/en/latest/tutorial.html
 # Also requires numpy (for histogram and power spectrum plotting)
 
-__all__ = ("HealpixSlicer", )
+__all__ = ("HealpixSlicer",)
 
 import healpy as hp
 import numpy as np

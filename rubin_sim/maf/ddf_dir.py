@@ -1,4 +1,4 @@
-__all__ = ("ddf_dir", )
+__all__ = ("ddf_dir",)
 
 import matplotlib
 

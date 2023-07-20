@@ -1,4 +1,4 @@
-__all__ = ("ChipVendorMetric", )
+__all__ = ("ChipVendorMetric",)
 
 import numpy as np
 

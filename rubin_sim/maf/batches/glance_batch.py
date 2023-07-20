@@ -1,4 +1,4 @@
-__all__ = ("glanceBatch", )
+__all__ = ("glanceBatch",)
 
 import warnings
 

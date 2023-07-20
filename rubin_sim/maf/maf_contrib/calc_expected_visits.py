@@ -5,7 +5,7 @@ Created on Tue Sep 25 17:11:20 2018
 @author: rstreet
 """
 
-__all__ = ("CalcExpectedVisitsMetric", )
+__all__ = ("CalcExpectedVisitsMetric",)
 
 import numpy as np
 

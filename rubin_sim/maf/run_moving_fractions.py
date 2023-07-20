@@ -1,4 +1,4 @@
-__all__ = ("run_moving_fractions", )
+__all__ = ("run_moving_fractions",)
 
 import argparse
 import glob

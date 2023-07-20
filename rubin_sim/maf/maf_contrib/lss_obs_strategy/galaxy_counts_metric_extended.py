@@ -13,7 +13,7 @@
 #
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
-__all__ = ("GalaxyCountsMetricExtended", )
+__all__ = ("GalaxyCountsMetricExtended",)
 
 import numpy as np
 import scipy

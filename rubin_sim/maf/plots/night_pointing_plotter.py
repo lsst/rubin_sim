@@ -1,4 +1,4 @@
-__all__ = ("NightPointingPlotter", )
+__all__ = ("NightPointingPlotter",)
 
 import matplotlib.pyplot as plt
 import numpy as np

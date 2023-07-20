@@ -1,4 +1,4 @@
-__all__ = ("SdssRADecStacker", )
+__all__ = ("SdssRADecStacker",)
 
 
 import numpy as np

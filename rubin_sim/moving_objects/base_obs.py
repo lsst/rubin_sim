@@ -1,4 +1,4 @@
-__all__ = ("BaseObs", )
+__all__ = ("BaseObs",)
 
 import os
 import warnings

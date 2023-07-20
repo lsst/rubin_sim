@@ -1,4 +1,4 @@
-__all__ = ("int_binned_stat", )
+__all__ = ("int_binned_stat",)
 
 import numpy as np
 

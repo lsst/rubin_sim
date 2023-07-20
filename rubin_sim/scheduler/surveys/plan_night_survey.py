@@ -1,4 +1,4 @@
-__all__ = ("PlanAheadSurvey", )
+__all__ = ("PlanAheadSurvey",)
 
 from copy import copy
 

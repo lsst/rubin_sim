@@ -1,4 +1,4 @@
-__all__ = ("MafTracking", )
+__all__ = ("MafTracking",)
 
 import os
 from collections import OrderedDict

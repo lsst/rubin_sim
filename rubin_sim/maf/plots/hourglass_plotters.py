@@ -1,4 +1,4 @@
-__all__ = ("HourglassPlot", )
+__all__ = ("HourglassPlot",)
 
 import matplotlib.pyplot as plt
 import numpy as np

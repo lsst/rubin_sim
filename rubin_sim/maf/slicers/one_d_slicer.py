@@ -1,6 +1,6 @@
 # oneDSlicer - slices based on values in one data column in sim_data.
 
-__all__ = ("OneDSlicer", )
+__all__ = ("OneDSlicer",)
 
 import warnings
 from functools import wraps

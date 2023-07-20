@@ -1,4 +1,4 @@
-__all__ = ("PairMetric", )
+__all__ = ("PairMetric",)
 
 import numpy as np
 

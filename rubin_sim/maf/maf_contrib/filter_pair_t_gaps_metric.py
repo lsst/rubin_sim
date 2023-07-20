@@ -1,4 +1,4 @@
-__all__ = ("FilterPairTGapsMetric", )
+__all__ = ("FilterPairTGapsMetric",)
 
 import numpy as np
 

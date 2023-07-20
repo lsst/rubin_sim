@@ -1,4 +1,4 @@
-__all__ = ("UseMetric", )
+__all__ = ("UseMetric",)
 
 import numpy as np
 

@@ -1,4 +1,4 @@
-__all__ = ("HourglassSlicer", )
+__all__ = ("HourglassSlicer",)
 
 import warnings
 

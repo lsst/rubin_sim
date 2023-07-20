@@ -1,4 +1,4 @@
-__all__ = ("sim_runner", )
+__all__ = ("sim_runner",)
 
 import sqlite3
 import sys

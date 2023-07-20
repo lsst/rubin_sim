@@ -1,4 +1,4 @@
-__all__ = ("YearCoverageMetric", )
+__all__ = ("YearCoverageMetric",)
 
 import numpy as np
 

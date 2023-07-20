@@ -1,4 +1,4 @@
-__all__ = ("HealpixComCamSlicer", )
+__all__ = ("HealpixComCamSlicer",)
 
 import warnings
 from functools import wraps
@@ -10,7 +10,6 @@ import numpy as np
 import rubin_sim.utils as simsUtils
 
 from .healpix_slicer import HealpixSlicer
-
 
 # The names of the chips in the central raft, aka, ComCam
 center_raft_chips = [

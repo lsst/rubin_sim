@@ -1,4 +1,4 @@
-__all__ = ("NEODistStacker", )
+__all__ = ("NEODistStacker",)
 
 import numpy as np
 

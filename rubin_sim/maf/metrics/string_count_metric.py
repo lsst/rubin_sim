@@ -1,4 +1,4 @@
-__all__ = ("StringCountMetric", )
+__all__ = ("StringCountMetric",)
 
 from collections import Counter
 

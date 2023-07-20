@@ -1,4 +1,4 @@
-__all__ = ("Conditions", )
+__all__ = ("Conditions",)
 
 from io import StringIO
 

@@ -1,4 +1,4 @@
-__all__ = ("KuiperMetric", )
+__all__ = ("KuiperMetric",)
 
 import numpy as np
 

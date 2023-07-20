@@ -1,4 +1,4 @@
-__all__ = ("comcam_tessellate", )
+__all__ = ("comcam_tessellate",)
 
 import numpy as np
 

@@ -1,4 +1,4 @@
-__all__ = ("PeriodDeviationMetric", )
+__all__ = ("PeriodDeviationMetric",)
 
 import numpy as np
 from scipy.signal import lombscargle

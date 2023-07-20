@@ -1,4 +1,4 @@
-__all__ = ("SeeingData", )
+__all__ = ("SeeingData",)
 
 import os
 import sqlite3

@@ -1,4 +1,4 @@
-__all__ = ("SkySaturationMetric", )
+__all__ = ("SkySaturationMetric",)
 
 import numpy as np
 

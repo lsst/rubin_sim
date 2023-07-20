@@ -1,4 +1,4 @@
-__all__ = ("CoaddStacker", )
+__all__ = ("CoaddStacker",)
 
 import numpy as np
 import numpy.lib.recfunctions as rf

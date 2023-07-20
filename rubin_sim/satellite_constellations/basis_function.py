@@ -1,4 +1,4 @@
-__all__ = ("SatelliteAvoidBasisFunction", )
+__all__ = ("SatelliteAvoidBasisFunction",)
 
 import healpy as hp
 import numpy as np
@@ -11,9 +11,9 @@ class SatelliteAvoidBasisFunction(bf.BaseBasisFunction):
 
     Parameters
     ----------
-    forecast_time : `float` (90)
+    forecast_time : `float`
         The time ahead to forecast satellite streaks (minutes).
-    smooth_fwhm : `float` (3.5)
+    smooth_fwhm : `float`
         The smoothing full width half max to use (degrees)
     """
 

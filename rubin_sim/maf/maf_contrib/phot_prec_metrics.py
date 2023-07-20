@@ -9,7 +9,6 @@ import numpy as np
 
 from rubin_sim.maf.metrics import BaseMetric
 
-
 twopi = 2.0 * np.pi
 
 

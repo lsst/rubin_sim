@@ -5,7 +5,7 @@ import numpy as np
 from rubin_sim.scheduler.utils import smallest_signed_angle
 from rubin_sim.utils import Site, _approx_altaz2pa, _approx_ra_dec2_alt_az, approx_alt_az2_ra_dec
 
-__all__ = ("KinemModel", )
+__all__ = ("KinemModel",)
 two_pi = 2.0 * np.pi
 
 

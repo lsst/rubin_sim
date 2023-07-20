@@ -1,4 +1,4 @@
-__all__ = ("run_moving_join", )
+__all__ = ("run_moving_join",)
 
 import argparse
 import glob

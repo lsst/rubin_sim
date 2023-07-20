@@ -9,6 +9,8 @@ Table of contents
    rs_utils/*
    rs_data/*
    rs_phot_utils/*
+   rs_satellite_constellations/*
+   rs_selfcal/*
    rs_site_models/*
    rs_skybrightness/*
    rs_skybrightness_pre/*

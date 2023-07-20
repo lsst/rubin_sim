@@ -1,4 +1,4 @@
-__all__ = ("metadata_bundle_dicts", )
+__all__ = ("metadata_bundle_dicts",)
 
 import numpy as np
 

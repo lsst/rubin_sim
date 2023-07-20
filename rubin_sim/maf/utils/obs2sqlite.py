@@ -1,4 +1,4 @@
-__all__ = ("obs2sqlite", )
+__all__ = ("obs2sqlite",)
 
 import sqlite3
 import sys

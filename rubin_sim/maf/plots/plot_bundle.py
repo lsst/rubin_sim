@@ -1,4 +1,4 @@
-__all__ = ("PlotBundle", )
+__all__ = ("PlotBundle",)
 
 
 import matplotlib.pylab as plt

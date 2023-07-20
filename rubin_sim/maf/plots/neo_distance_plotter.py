@@ -1,4 +1,4 @@
-__all__ = ("NeoDistancePlotter", )
+__all__ = ("NeoDistancePlotter",)
 
 import copy
 

@@ -1,4 +1,4 @@
-__all__ = ("ddf_locations", )
+__all__ = ("ddf_locations",)
 
 # Tuples of RA,dec in degrees
 ELAISS1 = (9.45, -44.0)

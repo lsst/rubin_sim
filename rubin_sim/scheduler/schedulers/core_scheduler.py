@@ -1,4 +1,4 @@
-__all__ = ("CoreScheduler", )
+__all__ = ("CoreScheduler",)
 
 import logging
 import reprlib

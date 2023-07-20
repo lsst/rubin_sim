@@ -1,4 +1,4 @@
-__all__ = ("FftMetric", )
+__all__ = ("FftMetric",)
 
 from scipy import fftpack
 

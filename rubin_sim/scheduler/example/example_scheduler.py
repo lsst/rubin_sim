@@ -1,4 +1,4 @@
-__all__ = ("example_scheduler", )
+__all__ = ("example_scheduler",)
 
 import argparse
 import os

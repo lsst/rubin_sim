@@ -1,4 +1,4 @@
-__all__ = ("get_package_dir", )
+__all__ = ("get_package_dir",)
 
 import inspect
 import os

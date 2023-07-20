@@ -1,4 +1,4 @@
-__all__ = ("ScheduledDowntimeData", )
+__all__ = ("ScheduledDowntimeData",)
 
 import os
 import sqlite3

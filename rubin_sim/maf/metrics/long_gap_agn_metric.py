@@ -1,4 +1,4 @@
-__all__ = ("LongGapAGNMetric", )
+__all__ = ("LongGapAGNMetric",)
 
 import numpy as np
 

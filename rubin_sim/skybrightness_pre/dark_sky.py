@@ -1,4 +1,4 @@
-__all__ = ("dark_sky", )
+__all__ = ("dark_sky",)
 
 import os
 

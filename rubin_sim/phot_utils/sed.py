@@ -102,7 +102,6 @@ from rubin_sim.data import get_data_dir
 
 from .physical_parameters import PhysicalParameters
 
-
 _global_lsst_sed_cache = None
 
 # a cache for ASCII files read-in by the user

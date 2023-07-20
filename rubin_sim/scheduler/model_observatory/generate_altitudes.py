@@ -1,4 +1,4 @@
-__all__ = ("generate_nights", )
+__all__ = ("generate_nights",)
 
 import numpy as np
 from astropy.coordinates import AltAz, EarthLocation, get_moon, get_sun

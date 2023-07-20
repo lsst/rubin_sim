@@ -1,4 +1,4 @@
-__all__ = ("PeriodicStarModulationMetric", )
+__all__ = ("PeriodicStarModulationMetric",)
 
 import random
 import warnings
