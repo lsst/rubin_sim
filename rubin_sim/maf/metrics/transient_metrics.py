@@ -1,4 +1,4 @@
-__all__ = ("TransientMetric", )
+__all__ = ("TransientMetric",)
 
 
 import numpy as np

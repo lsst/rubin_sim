@@ -11,7 +11,7 @@
 #
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
-__all__ = ("galaxy_counts_with_pixel_calibration", )
+__all__ = ("galaxy_counts_with_pixel_calibration",)
 
 import warnings
 

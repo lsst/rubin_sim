@@ -4,7 +4,7 @@
 # The primary things added here are the methods to slice the data (for any spatial slicer)
 #  as this uses a KD-tree built on spatial (RA/Dec type) indexes.
 
-__all__ = ("BaseSpatialSlicer", )
+__all__ = ("BaseSpatialSlicer",)
 
 import warnings
 from functools import wraps

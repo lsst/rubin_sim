@@ -1,4 +1,4 @@
-__all__ = ("AgnTimeLagMetric", )
+__all__ = ("AgnTimeLagMetric",)
 
 import numpy as np
 

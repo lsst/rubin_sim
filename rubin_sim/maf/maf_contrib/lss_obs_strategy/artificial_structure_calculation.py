@@ -30,7 +30,7 @@ __all__ = ("artificial_structure_calculation",)
 #
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
-__all__ = ("artificial_structure_calculation", )
+__all__ = ("artificial_structure_calculation",)
 
 import os
 

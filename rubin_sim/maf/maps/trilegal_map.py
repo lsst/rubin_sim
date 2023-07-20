@@ -1,4 +1,4 @@
-__all__ = ("TrilegalDensityMap", )
+__all__ = ("TrilegalDensityMap",)
 
 import os
 

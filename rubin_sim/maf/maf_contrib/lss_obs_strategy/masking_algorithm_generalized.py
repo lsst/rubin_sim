@@ -5,7 +5,7 @@
 # Humna Awan: humna.awan@rutgers.edu
 #####################################################################################################
 
-__all__ = ("masking_algorithm_generalized", )
+__all__ = ("masking_algorithm_generalized",)
 
 import copy
 

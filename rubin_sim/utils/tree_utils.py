@@ -2,7 +2,7 @@
 This file contains coordinate transformation methods and utilities for converting an ra,dec coordinate set to
 cartesian coordinates and to grid id using a spatial tree.
 """
-__all__ = ("_build_tree", )
+__all__ = ("_build_tree",)
 
 import numpy as np
 from scipy.spatial import cKDTree as kdTree

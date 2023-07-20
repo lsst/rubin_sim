@@ -1,4 +1,4 @@
-__all__ = ("read_observations", )
+__all__ = ("read_observations",)
 
 import logging
 import os

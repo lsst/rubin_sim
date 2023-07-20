@@ -1,4 +1,4 @@
-__all__ = ("UserPointsSlicer", )
+__all__ = ("UserPointsSlicer",)
 
 import numpy as np
 

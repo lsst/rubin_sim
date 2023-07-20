@@ -1,4 +1,4 @@
-__all__ = ("SNSNRMetric", )
+__all__ = ("SNSNRMetric",)
 
 import time
 from collections.abc import Iterable

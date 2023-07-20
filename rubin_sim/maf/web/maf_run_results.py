@@ -1,4 +1,4 @@
-__all__ = ("MafRunResults", )
+__all__ = ("MafRunResults",)
 
 import os
 import re

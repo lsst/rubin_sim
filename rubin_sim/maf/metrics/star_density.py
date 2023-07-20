@@ -1,4 +1,4 @@
-__all__ = ("StarDensityMetric", )
+__all__ = ("StarDensityMetric",)
 
 import warnings
 

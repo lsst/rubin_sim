@@ -1,4 +1,4 @@
-__all__ = ("CumulativeMetric", )
+__all__ = ("CumulativeMetric",)
 
 import numpy as np
 

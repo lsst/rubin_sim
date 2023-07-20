@@ -1,4 +1,4 @@
-__all__ = ("ChebyFits", )
+__all__ = ("ChebyFits",)
 
 import os
 import warnings

@@ -1,4 +1,4 @@
-__all__ = ("eb_vhp", )
+__all__ = ("eb_vhp",)
 
 import os
 

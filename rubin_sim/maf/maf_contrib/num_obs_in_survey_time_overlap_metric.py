@@ -5,7 +5,7 @@
 # SurveyObsWin is the list of the survey observing window/inter-seasonal gap intervals. It should be in the format:
 # SurveyObsWin = [ [YYYY-MM-DD, YYYY-MM-DD] , [YYYY-MM-DD, YYYY-MM-DD] , ... , [YYYY-MM-DD, YYYY-MM-DD] ]
 
-__all__ = ("NumObsInSurveyTimeOverlapMetric", )
+__all__ = ("NumObsInSurveyTimeOverlapMetric",)
 
 import numpy as np
 from astropy.time import Time

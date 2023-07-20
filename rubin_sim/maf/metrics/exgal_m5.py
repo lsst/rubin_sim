@@ -1,4 +1,4 @@
-__all__ = ("ExgalM5", )
+__all__ = ("ExgalM5",)
 
 from rubin_sim.phot_utils import DustValues
 

@@ -1,4 +1,4 @@
-__all__ = ("Almanac", )
+__all__ = ("Almanac",)
 
 import os
 

@@ -1,11 +1,10 @@
-__all__ = ("ModelObservatory", )
+__all__ = ("ModelObservatory",)
 
 import numpy as np
 
 from rubin_sim.scheduler.model_observatory import ModelObservatory as OMO
 from rubin_sim.site_models import Almanac
 from rubin_sim.utils import _healbin, survey_start_mjd
-
 
 # Take the model observatory from the scheduler and subclass and expand to include satellite constellations
 

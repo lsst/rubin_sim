@@ -1,4 +1,4 @@
-__all__ = ("FieldSurvey", )
+__all__ = ("FieldSurvey",)
 
 import numpy as np
 

@@ -1,4 +1,4 @@
-__all__ = ("GalCoordsMap", )
+__all__ = ("GalCoordsMap",)
 
 from rubin_sim.maf.maps import BaseMap
 from rubin_sim.utils import _galactic_from_equatorial

@@ -1,4 +1,4 @@
-__all__ = ("GRBTransientMetric", )
+__all__ = ("GRBTransientMetric",)
 
 
 import numpy as np

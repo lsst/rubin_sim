@@ -1,4 +1,4 @@
-__all__ = ("StarCountMassMetric", )
+__all__ = ("StarCountMassMetric",)
 
 import numpy as np
 

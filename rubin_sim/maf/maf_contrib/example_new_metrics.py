@@ -1,7 +1,7 @@
 # Example of a new metric added to the repo.
 # ljones@astro.washington.edu
 
-__all__ = ("NightsWithNFiltersMetric", )
+__all__ = ("NightsWithNFiltersMetric",)
 
 import numpy as np
 

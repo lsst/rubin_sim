@@ -18,7 +18,6 @@ __all__ = (
 )
 
 import calendar
-
 import copy
 import logging
 from collections import OrderedDict

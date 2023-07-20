@@ -1,4 +1,4 @@
-__all__ = ("HealpixSDSSSlicer", )
+__all__ = ("HealpixSDSSSlicer",)
 
 from functools import wraps
 

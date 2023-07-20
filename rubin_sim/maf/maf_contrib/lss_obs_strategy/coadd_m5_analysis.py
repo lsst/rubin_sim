@@ -3,7 +3,7 @@
 # to consider various survey strategies, mask shallow borders, create/save/show relevant plots, do
 # an alm analysis, and save data.
 
-__all__ = ("coadd_m5_analysis", )
+__all__ = ("coadd_m5_analysis",)
 
 import copy
 import os

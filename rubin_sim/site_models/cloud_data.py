@@ -1,4 +1,4 @@
-__all__ = ("CloudData", )
+__all__ = ("CloudData",)
 
 import os
 import sqlite3

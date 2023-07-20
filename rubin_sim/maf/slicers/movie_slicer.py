@@ -1,5 +1,5 @@
 # cumulative one dimensional movie slicer
-__all__ = ("MovieSlicer", )
+__all__ = ("MovieSlicer",)
 
 import os
 import subprocess

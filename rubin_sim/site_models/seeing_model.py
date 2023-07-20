@@ -1,4 +1,4 @@
-__all__ = ("SeeingModel", )
+__all__ = ("SeeingModel",)
 
 import os
 import warnings

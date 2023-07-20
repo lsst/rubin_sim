@@ -1,4 +1,4 @@
-__all__ = ("TimeHandler", )
+__all__ = ("TimeHandler",)
 
 from datetime import datetime, timedelta
 

@@ -2,7 +2,7 @@
 Converted from notebook 211116_yso_3D_90b.ipynb.
 Formatted with black."""
 
-__all__ = ("NYoungStarsMetric", )
+__all__ = ("NYoungStarsMetric",)
 
 import healpy as hp
 import numpy as np

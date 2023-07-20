@@ -1,4 +1,4 @@
-__all__ = ("SurfaceBrightLimitMetric", )
+__all__ = ("SurfaceBrightLimitMetric",)
 
 import os
 import warnings

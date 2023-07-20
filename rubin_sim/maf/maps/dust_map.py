@@ -1,4 +1,4 @@
-__all__ = ("DustMap", )
+__all__ = ("DustMap",)
 
 import warnings
 

@@ -1,4 +1,4 @@
-__all__ = ("generate_catalog", )
+__all__ = ("generate_catalog",)
 
 import sys
 import warnings

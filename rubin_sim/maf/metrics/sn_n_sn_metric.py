@@ -1,4 +1,4 @@
-__all__ = ("SNNSNMetric", )
+__all__ = ("SNNSNMetric",)
 
 import os
 

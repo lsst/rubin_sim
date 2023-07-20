@@ -10,7 +10,7 @@
 # lost to other frequencies. Full phase coverage will result in a value of 1.
 # We refer to this as the Periodic Purity Function.
 
-__all__ = ("PeriodicMetric", )
+__all__ = ("PeriodicMetric",)
 
 import numpy as np
 

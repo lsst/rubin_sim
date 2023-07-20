@@ -1,7 +1,7 @@
 # Variability Depth Metric
 # Keaton Bell (keatonb@astro.as.utexas.edu)
 
-__all__ = ("VarDepth", )
+__all__ = ("VarDepth",)
 
 import numpy as np
 from scipy.interpolate import UnivariateSpline

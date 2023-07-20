@@ -1,4 +1,4 @@
-__all__ = ("generate_ddf_scheduled_obs", )
+__all__ = ("generate_ddf_scheduled_obs",)
 
 import os
 

@@ -1,4 +1,4 @@
-__all__ = ("DcrPrecisionMetric", )
+__all__ = ("DcrPrecisionMetric",)
 
 import numpy as np
 

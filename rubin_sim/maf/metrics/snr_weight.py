@@ -1,4 +1,4 @@
-__all__ = ("SnrWeightedMetric", )
+__all__ = ("SnrWeightedMetric",)
 
 import numpy as np
 

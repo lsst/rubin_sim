@@ -1,4 +1,4 @@
-__all__ = ("ChebyValues", )
+__all__ = ("ChebyValues",)
 
 import os
 

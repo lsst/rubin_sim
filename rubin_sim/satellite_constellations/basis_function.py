@@ -1,4 +1,4 @@
-__all__ = ("SatelliteAvoidBasisFunction", )
+__all__ = ("SatelliteAvoidBasisFunction",)
 
 import healpy as hp
 import numpy as np

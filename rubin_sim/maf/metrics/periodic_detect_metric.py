@@ -1,4 +1,4 @@
-__all__ = ("PeriodicDetectMetric", )
+__all__ = ("PeriodicDetectMetric",)
 
 import numpy as np
 import scipy

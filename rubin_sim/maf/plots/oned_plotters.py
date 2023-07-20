@@ -1,4 +1,4 @@
-__all__ = ("OneDBinnedData", )
+__all__ = ("OneDBinnedData",)
 
 
 import matplotlib.pyplot as plt

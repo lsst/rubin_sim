@@ -23,7 +23,6 @@ import numpy as np
 
 from .base_stacker import BaseStacker
 
-
 # Stacker naming scheme:
 # [Pattern]Dither[Field]Per[Timescale].
 #  Timescale indicates how often the dither offset is changed.

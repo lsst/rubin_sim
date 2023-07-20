@@ -1,4 +1,4 @@
-__all__ = ("StellarDensityMap", )
+__all__ = ("StellarDensityMap",)
 
 import os
 

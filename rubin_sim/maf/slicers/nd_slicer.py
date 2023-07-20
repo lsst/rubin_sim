@@ -1,4 +1,4 @@
-__all__ = ("NDSlicer", )
+__all__ = ("NDSlicer",)
 
 import itertools
 import warnings

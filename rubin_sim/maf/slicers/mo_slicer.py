@@ -1,4 +1,4 @@
-__all__ = ("MoObjSlicer", )
+__all__ = ("MoObjSlicer",)
 
 import numpy as np
 import pandas as pd

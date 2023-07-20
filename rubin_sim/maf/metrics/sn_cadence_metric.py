@@ -1,4 +1,4 @@
-__all__ = ("SNCadenceMetric", )
+__all__ = ("SNCadenceMetric",)
 
 import numpy as np
 

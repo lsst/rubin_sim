@@ -15,7 +15,6 @@ from skyfield.api import EarthSatellite, load, wgs84
 
 from rubin_sim.utils import Site, gnomonic_project_toxy, point_to_line_distance, survey_start_mjd
 
-
 MJDOFFSET = 2400000.5
 mjd0 = survey_start_mjd()
 
