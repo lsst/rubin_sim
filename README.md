@@ -30,7 +30,7 @@ To install `rubin_sim` from source using pip, with all required dependencies:
 ```
 git clone https://github.com/lsst/rubin_sim.git ; cd rubin_sim # clone and cd into repo
 conda create -n rubin-sim ; conda activate rubin-sim  # optional (but recommended) new conda env
-mamba install -c conda-forge --file=all_req.txt
+conda install -c conda-forge --file=all_req.txt  # substitute mamba for conda if you like
 pip install -e .
 rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
 ```
