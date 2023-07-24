@@ -1,6 +1,6 @@
 import astropy.units as u
 import numpy as np
-from astropy.coordinates import AltAz, EarthLocation, get_moon, get_sun
+from astropy.coordinates import AltAz, EarthLocation, get_body, get_sun
 from astropy.time import Time
 
 from rubin_sim.utils import Site, _angular_separation
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     aa = AltAz(location=location, obstime=t_sparse)
     sun_aa = sun.transform_to(aa)
 
-    moon = get_moon(t_sparse)
+    moon = get_body("moon", t_sparse)
     moon_aa = moon.transform_to(aa)
 
     sun_moon_info["sun_RA"] = sun.ra.rad

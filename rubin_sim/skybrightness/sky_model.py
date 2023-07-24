@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 from astropy import units as u
-from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_moon, get_sun
+from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_body, get_sun
 from astropy.time import Time
 
 from rubin_sim.phot_utils import Sed
@@ -499,7 +499,7 @@ class SkyModel:
             self.points["azRelSun"] = self.az_rel_sun
 
         if self.moon:
-            moon_coords = get_moon(time)
+            moon_coords = get_body("moon", time)
             self.moon_ra = moon_coords.ra.rad
             self.moon_dec = moon_coords.dec.rad
 
@@ -507,7 +507,7 @@ class SkyModel:
             self.moon_alt = moon_coords.alt.rad
             self.moon_az = moon_coords.az.rad
 
-            moon_coords = get_moon(time)
+            moon_coords = get_body("moon", time)
             sun_coords = get_sun(time)
             sep = sun_coords.separation(moon_coords)
 

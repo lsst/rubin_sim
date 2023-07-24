@@ -14,7 +14,7 @@ from sys import argv
 import astropy.units as u
 import matplotlib.pylab as plt
 import numpy as np
-from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_moon, get_sun
+from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_sun
 from astropy.time import Time, TimeDelta
 
 

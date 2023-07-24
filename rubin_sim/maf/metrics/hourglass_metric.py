@@ -3,7 +3,7 @@ __all__ = ("HourglassMetric",)
 import numpy as np
 from astroplan import Observer
 from astropy import units as u
-from astropy.coordinates import AltAz, EarthLocation, get_moon, get_sun
+from astropy.coordinates import AltAz, EarthLocation, get_body, get_sun
 from astropy.time import Time
 
 from rubin_sim.utils import Site
@@ -119,7 +119,7 @@ class HourglassMetric(BaseMetric):
         pernight["twi18_set"] = self.observer.twilight_evening_astronomical(mtime, which="previous").mjd
 
         aa = AltAz(location=self.location, obstime=mtime)
-        moon_coords = get_moon(mtime).transform_to(aa)
+        moon_coords = get_body("moon", mtime).transform_to(aa)
         sun_coords = get_sun(mtime).transform_to(aa)
         ang_dist = sun_coords.separation(moon_coords)
         pernight["moonPer"] = ang_dist.deg / 180 * 100
