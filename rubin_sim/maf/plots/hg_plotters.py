@@ -986,7 +986,7 @@ def _compute_moon_transit_mjds(mjds, site):
 
     for _ in np.arange(3):
         times = astropy.time.Time(mjds, format="mjd", location=site)
-        moon_coords = astropy.coordinates.get_moon(times)
+        moon_coords = astropy.coordinates.get_body("moon", times)
         # Calculate the local sidereal time at mjds
         lsts = astropy.time.Time(mjds, format="mjd", location=site).sidereal_time("apparent")
         # pylint: disable=invalid-name, no-member

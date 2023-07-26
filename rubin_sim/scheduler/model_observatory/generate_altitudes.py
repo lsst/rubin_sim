@@ -1,7 +1,7 @@
 __all__ = ("generate_nights",)
 
 import numpy as np
-from astropy.coordinates import AltAz, EarthLocation, get_moon, get_sun
+from astropy.coordinates import AltAz, EarthLocation, get_body, get_sun
 from astropy.time import Time
 from scipy.optimize import Bounds, minimize
 
@@ -44,7 +44,7 @@ def alt_sun_sum(in_mjds, location, offset):
 
 def alt_moon_sum(in_mjds, location, offset):
     times = Time(in_mjds, format="mjd")
-    moon = get_moon(times)
+    moon = get_body("moon", times)
     aa = AltAz(location=location, obstime=times)
     moon = moon.transform_to(aa)
     result = np.sum(np.abs(moon.alt.deg + offset))
@@ -79,7 +79,7 @@ def generate_nights(mjd_start, duration=3653.0, rough_step=2, verbose=False):
     aa = AltAz(location=location, obstime=t_sparse)
     sun_aa_sparse = sun.transform_to(aa)
 
-    moon = get_moon(t_sparse)
+    moon = get_body("moon", t_sparse)
     moon_aa_sparse = moon.transform_to(aa)
 
     # Indices right before sunset
