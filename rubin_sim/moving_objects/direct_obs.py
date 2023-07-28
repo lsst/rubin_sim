@@ -2,6 +2,7 @@ __all__ = ("DirectObs",)
 
 import datetime
 import logging
+import warnings
 
 import numpy as np
 
@@ -168,9 +169,9 @@ class DirectObs(BaseObs):
             if (obs_data[self.obs_time_col].min() < object_mjds.min()) | (
                 obs_data[self.obs_time_col].max() > object_mjds.max()
             ):
-                raise ValueError(
+                warnings.warn(
                     "Pre-computed position times do not cover MJD range of %i-%i."
-                    % (obs_data[self.obs_time_col].min().obs_data[self.obs_time_col].max())
+                    % (obs_data[self.obs_time_col].min(), obs_data[self.obs_time_col].max())
                 )
                 object_mjds = None
             # calculate angular motion for each object at each timestep
