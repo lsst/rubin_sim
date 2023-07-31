@@ -7,8 +7,7 @@ __all__ = ("set_m5", "comoving_distance_integrand", "cosmological_omega")
 
 import numpy
 
-from rubin_sim.phot_utils import Sed, calc_sky_counts_per_pixel_for_m5
-from rubin_sim.phot_utils import LSSTdefaults
+from rubin_sim.phot_utils import LSSTdefaults, Sed, calc_sky_counts_per_pixel_for_m5
 
 
 def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwhm_eff=None):

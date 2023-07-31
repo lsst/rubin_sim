@@ -18,12 +18,8 @@ __all__ = (
 import numpy
 
 from . import lsst_defaults
-from .photometric_parameters import PhotometricParameters
-from .sed import Sed
-
-import numpy
-
 from .lsst_defaults import LSSTdefaults
+from .photometric_parameters import PhotometricParameters
 from .sed import Sed
 
 

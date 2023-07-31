@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 import rubin_sim.maf.db as db
+from rubin_sim.data import get_data_dir
 
 
 def generate_ss_commands(
