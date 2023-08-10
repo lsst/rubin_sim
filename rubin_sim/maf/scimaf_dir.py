@@ -29,6 +29,8 @@ def scimaf_dir():
         help="Do not remove existing directory outputs",
     )
     parser.set_defaults(no_long_micro=False)
+    parser.add_argument("--limited", dest="limited", action="store_true")
+    parser.set_defaults(limited=False)
     args = parser.parse_args()
 
     if args.db is None:
@@ -57,10 +59,16 @@ def scimaf_dir():
                 shutil.rmtree(out_dir)
         results_db = db.ResultsDb(out_dir=out_dir)
         # Set up the metricBundles
-        bdict = batches.science_radar_batch(
-            runName=name,
-            mjd0=mjd0,
-        )
+        if args.limited:
+            bdict = batches.radar_limited(
+                runName=name,
+                mjd0=mjd0,
+            )
+        else:
+            bdict = batches.science_radar_batch(
+                runName=name,
+                mjd0=mjd0,
+            )
         # Run them, including generating plots
         group = mb.MetricBundleGroup(
             bdict, filename, out_dir=out_dir, results_db=results_db, save_early=False

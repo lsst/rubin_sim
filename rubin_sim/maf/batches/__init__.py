@@ -9,6 +9,7 @@ from .info_batch import *
 from .metadata_batch import *
 from .moving_objects_batch import *
 from .openshutter_batch import *
+from .radar_limited import *
 from .science_radar_batch import *
 from .skycoverage import *
 from .slew_batch import *
