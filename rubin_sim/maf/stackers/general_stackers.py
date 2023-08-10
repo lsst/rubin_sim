@@ -69,15 +69,15 @@ class SaturationStacker(BaseStacker):
         self.airmass_col = airmass_col
         self.saturation_e = saturation_e
         self.pixscale = pixscale
+        self.zeropoints = zeropoints
+        self.km = km
+
+    def _run(self, sim_data, cols_present=False):
         if zeropoints is None:
             zp_inst, k_atm = load_inst_zeropoints()
             self.zeropoints = zp_inst
+        if self.km is None:
             self.km = k_atm
-        else:
-            self.zeropoints = zeropoints
-            self.km = km
-
-    def _run(self, sim_data, cols_present=False):
         for filtername in np.unique(sim_data[self.filter_col]):
             in_filt = np.where(sim_data[self.filter_col] == filtername)[0]
             # Calculate the length of the on-sky time per EXPOSURE
