@@ -66,7 +66,7 @@ class M5OptimalStacker(BaseStacker):
         been if the observation had been taken on the meridian.
     """
 
-    cols_added = ["m5Optimal"]
+    cols_added = ["m5_optimal"]
 
     def __init__(
         self,
@@ -74,6 +74,7 @@ class M5OptimalStacker(BaseStacker):
         dec_col="fieldDec",
         sky_bright_col="skyBrightness",
         seeing_col="seeingFwhmEff",
+        m5_col="fiveSigmaDepth",
         filter_col="filter",
         moon_alt_col="moonAlt",
         sun_alt_col="sunAlt",
@@ -88,8 +89,7 @@ class M5OptimalStacker(BaseStacker):
         self.filter_col = filter_col
         self.moon_alt_col = moon_alt_col
         self.sun_alt_col = sun_alt_col
-        self.m5_stacker = FiveSigmaStacker()
-        self.m5_col = self.m5_stacker.cols_added[0]
+        self.m5_col = m5_col
         self.cols_req = [
             airmass_col,
             dec_col,
@@ -99,12 +99,9 @@ class M5OptimalStacker(BaseStacker):
             moon_alt_col,
             sun_alt_col,
         ]
-        self.cols_req.extend(self.m5_stacker.cols_req)
         self.cols_req = list(set(self.cols_req))
 
     def _run(self, sim_data, cols_present=False):
-        sim_data, m5col_present = self.m5_stacker._add_stacker_cols(sim_data)
-        sim_data = self.m5_stacker._run(sim_data, m5col_present)
         # k_atm values from rubin_sim.operations gen_output.py
         k_atm = {"u": 0.50, "g": 0.21, "r": 0.13, "i": 0.10, "z": 0.07, "y": 0.18}
         # Linear fits to sky brightness change, no moon, twilight, or zodiacal components
