@@ -73,7 +73,7 @@ class SaturationStacker(BaseStacker):
         self.km = km
 
     def _run(self, sim_data, cols_present=False):
-        if zeropoints is None:
+        if self.zeropoints is None:
             zp_inst, k_atm = load_inst_zeropoints()
             self.zeropoints = zp_inst
         if self.km is None:
@@ -143,7 +143,7 @@ class FiveSigmaStacker(BaseStacker):
 
     def _run(self, sim_data, cols_present=False):
         if cols_present:
-            # Column already present in data; assume it needs updating and recalculate.
+            # Column already present in data; assume it is fine.
             return sim_data
         filts = np.unique(sim_data[self.filter_col])
         for filtername in filts:

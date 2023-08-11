@@ -1,4 +1,5 @@
 import unittest
+import os
 import warnings
 
 import matplotlib
@@ -12,11 +13,34 @@ from rubin_sim.utils import (
     _galactic_from_equatorial,
     calc_lmst_last,
 )
+from rubin_sim.data import get_data_dir
+from rubin_sim.maf import get_sim_data
 
 matplotlib.use("Agg")
 
 
 class TestStackerClasses(unittest.TestCase):
+    def setUp(self):
+        # get some of the test data
+        test_db = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
+        query = "select * from observations limit 1000"
+        self.test_data = get_sim_data(test_db, None, [], full_sql_query=query)
+
+    def test_stackers_run(self):
+        """Just run all of the stackers with our example data."""
+        for stacker_class in stackers.BaseStacker.registry.values():
+            stacker = stacker_class()
+            try:
+                stacker.run(self.test_data)
+            except NotImplementedError:
+                pass
+            except TypeError:
+                # moving object stacker, needs different data
+                pass
+            except:
+                print(f"Failed at stacker {stacker.__class__.__name__}")
+                raise
+
     def test_add_cols(self):
         """Test that we can add columns as expected."""
         data = np.zeros(90, dtype=list(zip(["alt"], [float])))
