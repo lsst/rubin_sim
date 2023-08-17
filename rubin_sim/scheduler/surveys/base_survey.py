@@ -117,11 +117,16 @@ class BaseSurvey:
         observations_array_in.sort(order="mjd")
         observations_hpid_in.sort(order="mjd")
 
-        to_ignore = np.in1d(observations_array_in["note"], self.ignore_obs)
-        observations_array = observations_array_in[~to_ignore]
+        # Copy so we don't prune things for other survey objects
+        observations_array = observations_array_in.copy()
+        observations_hpid = observations_hpid_in.copy()
 
-        to_ignore = np.in1d(observations_hpid_in["note"], self.ignore_obs)
-        observations_hpid = observations_hpid_in[~to_ignore]
+        for ig in self.ignore_obs:
+            not_ignore = np.where(np.char.find(observations_array["note"], ig) == -1)[0]
+            observations_array = observations_array[not_ignore]
+
+            not_ignore = np.where(np.char.find(observations_hpid["note"], ig) == -1)[0]
+            observations_hpid = observations_hpid[not_ignore]
 
         for feature in self.extra_features:
             self.extra_features[feature].add_observations_array(observations_array, observations_hpid)

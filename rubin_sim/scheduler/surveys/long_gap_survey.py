@@ -128,7 +128,7 @@ class LongGapSurvey(BaseSurvey):
                 sched_array["flush_by_mjd"] = (
                     observations[need_to_observe]["mjd"] + self.flush_time + self.gap
                 )
-                sched_array["mjd"] = observations["mjd"] + self.gap
+                sched_array["mjd"] = observations[need_to_observe]["mjd"] + self.gap
             sched_array["dist_tol"] = self.dist_tol
             if self.avoid_zenith:
                 # when is the earliest we expect things could execute

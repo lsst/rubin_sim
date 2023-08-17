@@ -53,8 +53,9 @@ def ddf_slopes(ddf_name, raw_obs, night_season):
         for season in np.unique(round_season):
             in_season = np.where(round_season == season)
             cumulative = np.cumsum(raw_obs[in_season])
-            cumulative = cumulative / cumulative.max() * season_vals[season]
-            cumulative_desired[in_season] = cumulative + np.max(cumulative_desired)
+            if cumulative.max() > 0:
+                cumulative = cumulative / cumulative.max() * season_vals[season]
+                cumulative_desired[in_season] = cumulative + np.max(cumulative_desired)
 
     if ddf_name == "EDFS_a":
         season_vals = {
