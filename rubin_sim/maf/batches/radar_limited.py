@@ -1,6 +1,5 @@
 __all__ = ("radar_limited",)
 
-import astropy.units as u
 import healpy as hp
 import numpy as np
 
@@ -11,7 +10,7 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.slicers as slicers
 
-from .common import extended_summary, filter_list, lightcurve_summary, standard_summary
+from .common import filter_list, lightcurve_summary, standard_summary
 
 
 def radar_limited(
@@ -29,10 +28,20 @@ def radar_limited(
 
     Parameters
     ----------
-    long_microlensing : `bool` (True)
+    run_name : `str`, optional
+        The simulation run name that should appear as plot titles.
+    benchmarkArea : `float`, optional
+        The area to use for SRD metrics (sq degrees)
+    benchmarkNvisits : `int`, optional
+        The number of visits to use for SRD metrics.
+    minNvisits : `int`, optional
+        The minimum number of visits to use for SRD metrics.
+    long_microlensing : `bool`, optional
         Add the longer running microlensing metrics to the batch (subset of crossing times only)
-    srd_only : `bool` (False)
+    srd_only : `bool`, optional
         Only return the SRD metrics
+    mjd0 : float, optional
+        The modified Julian date start date of the survey.
     """
 
     bundleList = []
