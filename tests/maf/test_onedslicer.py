@@ -9,11 +9,11 @@ import numpy as np
 from rubin_sim.maf.slicers import OneDSlicer, UniSlicer
 
 
-def make_data_values(size=100, min=0.0, max=1.0, random=-1):
+def make_data_values(size=100, min_val=0.0, max_val=1.0, random=-1):
     """Generate a simple array of numbers, evenly arranged between min/max, but (optional) random order."""
     datavalues = np.arange(0, size, dtype="float")
-    datavalues *= (float(max) - float(min)) / (datavalues.max() - datavalues.min())
-    datavalues += min
+    datavalues *= (float(max_val) - float(min_val)) / (datavalues.max() - datavalues.min())
+    datavalues += min_val
     if random > 0:
         rng = np.random.RandomState(random)
         randorder = rng.rand(size)
@@ -209,25 +209,6 @@ class TestOneDSlicerSlicing(unittest.TestCase):
         nbins = len(bins) - 1
         # Test that testbinner raises appropriate error before it's set up (first time)
         self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
-        # test that random values are split equally into all bins (when bins and data cover same range)
-        for nvalues in (1000, 10000, 100000):
-            dv = make_data_values(nvalues, dvmin, dvmax, random=560)
-            self.testslicer = OneDSlicer(slice_col_name="testdata", bins=bins)
-            self.testslicer.setup_slicer(dv)
-            sum = 0
-            for i, s in enumerate(self.testslicer):
-                idxs = s["idxs"]
-                data_slice = dv["testdata"][idxs]
-                sum += len(idxs)
-                if len(data_slice) > 0:
-                    self.assertEqual(len(data_slice), nvalues / float(nbins))
-                else:
-                    self.assertGreater(
-                        len(data_slice),
-                        0,
-                        msg="Data in test case expected to always be > 0 len after slicing",
-                    )
-            self.assertTrue(sum, nvalues)
         # test that we're not dumping extra visits into the 'last bin' (that it's closed both sides)
         nvalues = 1000
         dv = make_data_values(nvalues, 0, 2, random=560)

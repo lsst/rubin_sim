@@ -1,5 +1,3 @@
-# oneDSlicer - slices based on values in one data column in sim_data.
-
 __all__ = ("OneDSlicer",)
 
 import warnings
@@ -102,14 +100,14 @@ class OneDSlicer(BaseSlicer):
                 "A safer choice is to use a separate OneDSlicer for each MetricBundle."
             )
             warnings.warn(warning_msg)
-        sliceCol = sim_data[self.slice_col_name]
+        slice_col = sim_data[self.slice_col_name]
         # Set bins from data or specified values, if they were previously defined.
         if self.bins is None:
             # Set bin min/max values (could have been set in __init__)
             if self.bin_min is None:
-                self.bin_min = np.nanmin(sliceCol)
+                self.bin_min = np.nanmin(slice_col)
             if self.bin_max is None:
-                self.bin_max = np.nanmax(sliceCol)
+                self.bin_max = np.nanmax(slice_col)
             # Give warning if bin_min = bin_max, and do something at least slightly reasonable.
             if self.bin_min == self.bin_max:
                 warnings.warn(
@@ -121,7 +119,7 @@ class OneDSlicer(BaseSlicer):
                 else:
                     self.bin_max = self.bin_max + 1
             if self.bin_size is None:
-                bins = optimal_bins(sliceCol, self.bin_min, self.bin_max)
+                bins = optimal_bins(slice_col, self.bin_min, self.bin_max)
                 nbins = np.round(bins)
                 self.bin_size = (self.bin_max - self.bin_min) / float(nbins)
             # Set bins
@@ -136,20 +134,22 @@ class OneDSlicer(BaseSlicer):
         self.slice_points["bins"] = self.bins
         # Add metadata from map if needed.
         self._run_maps(maps)
-        # Set up data slicing.
-        self.sim_idxs = np.argsort(sim_data[self.slice_col_name])
-        simFieldsSorted = np.sort(sim_data[self.slice_col_name])
-        # "left" values are location where simdata[i-1] < bins <= simdata[i]
-        self.left = np.searchsorted(simFieldsSorted, self.bins, "left")
-        # "right" values are locations where simdata[i-1] <= bins < simdata[i]
-        # This lets us have a closed final bin
-        self.right = np.searchsorted(simFieldsSorted, self.bins, "right")
+
+        indxs = np.argsort(sim_data[self.slice_col_name])
+        data_sorted = sim_data[self.slice_col_name][indxs]
+
+        # Setting up slices such that left_edge <= data < right_edge
+        # in each slice. 
+        left = np.searchsorted(data_sorted, self.bins[0:-1], "left")
+        right = np.searchsorted(data_sorted, self.bins[1:], "left")
+
+        self.sim_idxs = [indxs[le:ri] for le, ri in zip(left, right)]
 
         # Set up _slice_sim_data method for this class.
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
             """Slice sim_data on oneD sliceCol, to return relevant indexes for slice_point."""
-            idxs = self.sim_idxs[self.left[islice] : self.right[islice + 1]]
+            idxs = self.sim_idxs[islice]
             bin_left = self.bins[islice]
             bin_right = self.bins[islice + 1]
             return {
