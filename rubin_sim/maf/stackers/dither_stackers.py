@@ -309,10 +309,7 @@ class RandomDitherFieldPerVisitStacker(BaseDitherStacker):
         sim_data["randomDitherFieldPerVisitRa"] = ra + self.x_off / np.cos(dec)
         sim_data["randomDitherFieldPerVisitDec"] = dec + self.y_off
         # Wrap back into expected range.
-        (
-            sim_data["randomDitherFieldPerVisitRa"],
-            sim_data["randomDitherFieldPerVisitDec"],
-        ) = wrap_ra_dec(
+        (sim_data["randomDitherFieldPerVisitRa"], sim_data["randomDitherFieldPerVisitDec"],) = wrap_ra_dec(
             sim_data["randomDitherFieldPerVisitRa"],
             sim_data["randomDitherFieldPerVisitDec"],
         )
@@ -425,10 +422,7 @@ class RandomDitherFieldPerNightStacker(RandomDitherFieldPerVisitStacker):
             )
             sim_data["randomDitherFieldPerNightDec"][match] = dec[match] + self.y_off[vertex_idxs]
         # Wrap into expected range.
-        (
-            sim_data["randomDitherFieldPerNightRa"],
-            sim_data["randomDitherFieldPerNightDec"],
-        ) = wrap_ra_dec(
+        (sim_data["randomDitherFieldPerNightRa"], sim_data["randomDitherFieldPerNightDec"],) = wrap_ra_dec(
             sim_data["randomDitherFieldPerNightRa"],
             sim_data["randomDitherFieldPerNightDec"],
         )
@@ -614,7 +608,7 @@ class SpiralDitherFieldPerVisitStacker(BaseDitherStacker):
         thetapts = np.zeros(self.num_points, float)
         for i, ap in enumerate(arcpts):
             diff = np.abs(arc - ap)
-            match = np.where(diff == diff.min())[0]
+            match = np.where(diff == diff.min())[0][0]
             rpts[i] = r[match]
             thetapts[i] = theta[match]
         # Translate these r/theta points into x/y (ra/dec) offsets.
@@ -643,10 +637,7 @@ class SpiralDitherFieldPerVisitStacker(BaseDitherStacker):
             )
             sim_data["spiralDitherFieldPerVisitDec"][match] = dec[match] + self.y_off[vertex_idxs]
         # Wrap into expected range.
-        (
-            sim_data["spiralDitherFieldPerVisitRa"],
-            sim_data["spiralDitherFieldPerVisitDec"],
-        ) = wrap_ra_dec(
+        (sim_data["spiralDitherFieldPerVisitRa"], sim_data["spiralDitherFieldPerVisitDec"],) = wrap_ra_dec(
             sim_data["spiralDitherFieldPerVisitRa"],
             sim_data["spiralDitherFieldPerVisitDec"],
         )
@@ -747,10 +738,7 @@ class SpiralDitherFieldPerNightStacker(SpiralDitherFieldPerVisitStacker):
             )
             sim_data["spiralDitherFieldPerNightDec"][match] = dec[match] + self.y_off[vertex_idxs]
         # Wrap into expected range.
-        (
-            sim_data["spiralDitherFieldPerNightRa"],
-            sim_data["spiralDitherFieldPerNightDec"],
-        ) = wrap_ra_dec(
+        (sim_data["spiralDitherFieldPerNightRa"], sim_data["spiralDitherFieldPerNightDec"],) = wrap_ra_dec(
             sim_data["spiralDitherFieldPerNightRa"],
             sim_data["spiralDitherFieldPerNightDec"],
         )
