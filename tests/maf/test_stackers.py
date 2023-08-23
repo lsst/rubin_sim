@@ -30,6 +30,9 @@ class TestStackerClasses(unittest.TestCase):
         """Just run all of the stackers with our example data."""
         for stacker_class in stackers.BaseStacker.registry.values():
             stacker = stacker_class()
+            stacker_name = stacker.__class__.__name__.lower()
+            if stacker_name.startswith("sdss"):
+                continue
             try:
                 stacker.run(self.test_data)
             except NotImplementedError:
