@@ -206,7 +206,6 @@ class TestOneDSlicerSlicing(unittest.TestCase):
         dvmax = 1
         stepsize = 0.01
         bins = np.arange(dvmin, dvmax + stepsize / 2, stepsize)
-        nbins = len(bins) - 1
         # Test that testbinner raises appropriate error before it's set up (first time)
         self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
         # test that we're not dumping extra visits into the 'last bin' (that it's closed both sides)
@@ -218,6 +217,24 @@ class TestOneDSlicerSlicing(unittest.TestCase):
         self.testslicer.setup_slicer(dv)
         for i, s in enumerate(self.testslicer):
             self.assertEqual(len(s["idxs"]), nvalues / float(nbins) / 2.0)
+
+    def test_night_slicing(self):
+        """Test slicing with 'night' column"""
+        numval = 1000
+        vals = np.arange(0, numval, 1) / (numval / 50)
+        nights = np.floor(vals)
+        np.random.shuffle(nights)
+        # If you were doing by-hand comparison, this can be useful
+        # bins = np.arange(0, 50.5, 1)
+        # vals, bb = np.histogram(nights, bins=bins)
+        vals = make_data_values(len(nights), random=10)
+        vals = np.array(list(zip(nights, vals["testdata"])), dtype=[("night", "int"), ("testdata", "float")])
+        test_slicer = OneDSlicer(slice_col_name="night", bins=np.arange(0, 50.5, 1))
+        test_slicer.setup_slicer(vals)
+        for s in test_slicer:
+            self.assertTrue(vals[s["idxs"]]["night"].min() >= s["slice_point"]["bin_left"])
+            self.assertTrue(vals[s["idxs"]]["night"].max() < s["slice_point"]["bin_right"])
+            self.assertEqual(len(s["idxs"]), numval / 50)
 
 
 if __name__ == "__main__":

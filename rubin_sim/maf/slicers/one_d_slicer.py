@@ -139,7 +139,7 @@ class OneDSlicer(BaseSlicer):
         data_sorted = sim_data[self.slice_col_name][indxs]
 
         # Setting up slices such that left_edge <= data < right_edge
-        # in each slice. 
+        # in each slice.
         left = np.searchsorted(data_sorted, self.bins[0:-1], "left")
         right = np.searchsorted(data_sorted, self.bins[1:], "left")
 
