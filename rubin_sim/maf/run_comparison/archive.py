@@ -362,7 +362,11 @@ def get_metric_summaries(
     if isinstance(summary_source, pd.DataFrame):
         all_summaries = summary_source
     else:
-        all_summaries = pd.read_csv(summary_source, index_col=0, low_memory=False)
+        try:
+            all_summaries = pd.read_csv(summary_source, index_col=0, low_memory=False)
+        except UnicodeDecodeError:
+            # then this was probably the h5 file instead
+            all_summaries = pd.read_hdf(summary_source)
         all_summaries.index.name = "OpsimRun"
 
     if len(run_families) > 0:
