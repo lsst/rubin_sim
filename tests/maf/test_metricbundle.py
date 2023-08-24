@@ -36,7 +36,7 @@ class TestMetricBundle(unittest.TestCase):
         slicer = slicers.HealpixSlicer(nside=nside, camera_footprint_file=self.camera_footprint_file)
         metric = metrics.MeanMetric(col="airmass")
         sql = 'filter="r"'
-        stacker1 = stackers.RandomDitherFieldPerVisitStacker()
+        stacker1 = stackers.HourAngleStacker()
         stacker2 = stackers.GalacticStacker()
         map = maps.GalCoordsMap()
 
