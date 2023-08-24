@@ -67,7 +67,7 @@ from rubin_sim.maf.maf_contrib.lss_obs_strategy.galaxy_counts_with_pixel_calibra
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.masking_algorithm_generalized import (
     masking_algorithm_generalized,
 )
-from rubin_sim.maf.maf_contrib.lss_obs_strategy.num_obs_metric import NumObsMetric
+from rubin_sim.maf.metrics import CountMetric as NumObsMetric
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.save_bundle_data_npz_format import save_bundle_data_npz_format
 
 

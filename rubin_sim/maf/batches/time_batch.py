@@ -10,7 +10,7 @@ import rubin_sim.maf.plots as plots
 import rubin_sim.maf.slicers as slicers
 
 from .col_map_dict import col_map_dict
-from .common import combine_info_labels, extended_summary, filter_list, radec_cols, standard_summary
+from .common import filter_list, standard_summary
 
 
 def intraNight(
@@ -46,15 +46,16 @@ def intraNight(
     """
 
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
 
     info_label = extraInfoLabel
     if extraSql is not None and len(extraSql) > 0:
         if info_label is None:
             info_label = extraSql
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
-    info_label = combine_info_labels(info_label, ditherMeta)
+    raCol = colmap["ra"]
+    decCol = colmap["dec"]
+    degrees = colmap["raDecDeg"]
 
     bundleList = []
     standardStats = standard_summary()
@@ -337,15 +338,15 @@ def interNight(
     """
 
     if colmap is None:
-        colmap = col_map_dict("FBS")
+        colmap = col_map_dict()
 
     bundleList = []
 
-    # Set up basic all and per filter sql constraints.
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
-    info_label = combine_info_labels(extraInfoLabel, ditherMeta)
+    raCol = colmap["ra"]
+    decCol = colmap["dec"]
+    degrees = colmap["raDecDeg"]
     filterlist, colors, orders, sqls, info_label = filter_list(
-        all=True, extra_sql=extraSql, extra_info_label=info_label
+        all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
     )
 
     if slicer is None:
@@ -475,33 +476,33 @@ def timeGaps(
     extraSql=None,
     extraInfoLabel=None,
     slicer=None,
-    display_group="TimeGaps",
-    subgroup="Time",
+    display_group="Time Coverage",
+    subgroup=None,
 ):
     """Generate a set of statistics about the spacing between nights with observations.
 
     Parameters
     ----------
-    colmap : dict or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
+    colmap : `dict`, optional
+        A dictionary with a mapping of column names. Default will use FBS column names.
+    runName : `str`, optional
         The name of the simulated survey. Default is "opsim".
-    nside : int, optional
+    nside : `int`, optional
         Nside for the healpix slicer. Default 64.
-    extraSql : str or None, optional
+    extraSql : `str`, optional
         Additional sql constraint to apply to all metrics.
-    extraInfoLabel : str or None, optional
+    extraInfoLabel : `str`, optional
         Additional info_label to use for all outputs.
-    slicer : slicer object (None)
+    slicer : `rubin_sim.maf.slicer.BaseSlicer`, optional
         Optionally use something other than a HealpixSlicer
 
     Returns
     -------
-    metric_bundleDict
+    bundle_dict: `dict` of `rubin_sim.maf.MetricBundle`
     """
 
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
 
     bundleList = []
 
@@ -556,57 +557,46 @@ def timeGaps(
             )
         )
 
-        m2 = metrics.TgapsPercentMetric(
-            min_time=2 / 24.0,
-            max_time=14 / 24.0,
-            all_gaps=False,
-            metric_name="TgapsPercent_2-14hrs",
-        )
-        plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
-        plotDict = {"color_min": 0, "color": colors[f]}
-        summaryMetrics = extended_summary()
-        displayDict["caption"] = (
-            f"Percent of the total time gaps which fall into the interval"
-            f" between 2-14 hours, in {f} band(s)."
-        )
-        displayDict["order"] = orders[f]
-        bundleList.append(
-            mb.MetricBundle(
-                m2,
-                slicer,
-                constraint=sqls[f],
-                info_label=info_label[f],
-                run_name=runName,
-                summary_metrics=summaryMetrics,
-                plot_dict=plotDict,
-                plot_funcs=plotFuncs,
-                display_dict=displayDict,
+        gaps = [3.0, 7.0, 24.0]
+        for gap in gaps:
+            summary_stats = []
+            summary_stats.append(
+                metrics.AreaSummaryMetric(
+                    area=18000, reduce_func=np.median, decreasing=True, metric_name="Median (top 18k)"
+                )
             )
-        )
 
-        m3 = metrics.TgapsPercentMetric(
-            min_time=14.0 / 24.0,
-            max_time=(14.0 / 24 + 1.0),
-            all_gaps=False,
-            metric_name="TgapsPercent_1day",
-        )
-        displayDict["caption"] = (
-            f"Percent of the total time gaps which fall into the interval around 1 day," f" in {f} band(s)."
-        )
-        displayDict["order"] = orders[f]
-        bundleList.append(
-            mb.MetricBundle(
-                m3,
-                slicer,
-                constraint=sqls[f],
-                info_label=info_label[f],
-                run_name=runName,
-                summary_metrics=summaryMetrics,
-                plot_dict=plotDict,
-                plot_funcs=plotFuncs,
-                display_dict=displayDict,
+            summary_stats.append(
+                metrics.AreaSummaryMetric(
+                    area=18000, reduce_func=np.mean, decreasing=True, metric_name="Mean (top 18k)"
+                )
             )
-        )
+
+            summary_stats.append(metrics.MeanMetric())
+            summary_stats.append(metrics.MedianMetric())
+
+            m2 = metrics.GapsMetric(time_scale=gap, metric_name=f"Gaps at {gap: .1f} hr")
+            plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
+            plotDict = {"color_min": 0, "color": colors[f], "percentile_clip": 95}
+            displayDict["subgroup"] = "Gaps Sampling"
+            displayDict[
+                "caption"
+            ] = f"Number of times the timescale of ~{gap: .1f} hours is sampled in {f} band(s)."
+            displayDict["order"] = orders[f]
+            bundleList.append(
+                mb.MetricBundle(
+                    m2,
+                    slicer,
+                    constraint=sqls[f],
+                    info_label=info_label[f],
+                    run_name=runName,
+                    summary_metrics=summary_stats,
+                    plot_dict=plotDict,
+                    plot_funcs=plotFuncs,
+                    display_dict=displayDict,
+                )
+            )
+
     return mb.make_bundles_dict_from_list(bundleList)
 
 
@@ -641,15 +631,16 @@ def seasons(
     """
 
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
 
     bundleList = []
 
     # Set up basic all and per filter sql constraints.
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
-    info_label = combine_info_labels(extraInfoLabel, ditherMeta)
+    raCol = colmap["ra"]
+    decCol = colmap["dec"]
+    degrees = colmap["raDecDeg"]
     filterlist, colors, orders, sqls, info_label = filter_list(
-        all=True, extra_sql=extraSql, extra_info_label=info_label
+        all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
     )
 
     if slicer is None:

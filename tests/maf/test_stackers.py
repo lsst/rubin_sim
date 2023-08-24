@@ -33,12 +33,11 @@ class TestStackerClasses(unittest.TestCase):
             stacker_name = stacker.__class__.__name__.lower()
             if stacker_name.startswith("sdss"):
                 continue
+            if isinstance(stacker, stackers.BaseMoStacker):
+                continue
             try:
                 stacker.run(self.test_data)
             except NotImplementedError:
-                pass
-            except TypeError:
-                # moving object stacker, needs different data
                 pass
             except:
                 print(f"Failed at stacker {stacker.__class__.__name__}")
@@ -68,10 +67,6 @@ class TestStackerClasses(unittest.TestCase):
         s2 = stackers.ParallaxFactorStacker()
         assert s1 == s2
 
-        s1 = stackers.RandomDitherFieldPerVisitStacker()
-        s2 = stackers.RandomDitherFieldPerVisitStacker()
-        assert s1 == s2
-
         # Test if they have numpy array atributes
         s1.ack = np.arange(10)
         s2.ack = np.arange(10)
@@ -81,7 +76,7 @@ class TestStackerClasses(unittest.TestCase):
         s1.ack += 1
         assert s1 != s2
 
-        s2 = stackers.RandomDitherFieldPerVisitStacker(dec_col="blah")
+        s2 = stackers.NormAirmassStacker()
         assert s1 != s2
 
     def test_norm_airmass(self):
@@ -150,6 +145,7 @@ class TestStackerClasses(unittest.TestCase):
             self.assertAlmostEqual(dra_on_night.max(), 0)
             self.assertAlmostEqual(ddec_on_night.max(), 0)
 
+    @unittest.skip("Dither Stackers deprecated")
     def test_setup_dither_stackers(self):
         # Test that we get no stacker when using default columns.
         ra_col = "fieldRA"
@@ -167,6 +163,7 @@ class TestStackerClasses(unittest.TestCase):
         stackerlist = stackers.setup_dither_stackers(ra_col, dec_col, degrees, max_dither=0.5)
         self.assertEqual(stackerlist[0].max_dither, np.radians(0.5))
 
+    @unittest.skip("Dither Stackers deprecated")
     def test_base_dither_stacker(self):
         # Test that the base dither stacker matches the type of a stacker.
         s = stackers.HexDitherFieldPerNightStacker()
@@ -174,6 +171,7 @@ class TestStackerClasses(unittest.TestCase):
         s = stackers.ParallaxFactorStacker()
         self.assertFalse(isinstance(s, stackers.BaseDitherStacker))
 
+    @unittest.skip("Dither Stackers deprecated")
     def test_random_dither(self):
         """
         Test the random dither pattern.
@@ -195,6 +193,7 @@ class TestStackerClasses(unittest.TestCase):
         # Check dithers within expected range.
         self._t_dither_range(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither)
 
+    @unittest.skip("Dither Stackers deprecated")
     def test_random_dither_per_night(self):
         """
         Test the per-night random dither pattern.
@@ -227,6 +226,7 @@ class TestStackerClasses(unittest.TestCase):
         # Check that dithers on the same night are the same.
         self._t_dither_per_night(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], data["night"])
 
+    @unittest.skip("Dither Stackers deprecated")
     def test_spiral_dither_per_night(self):
         """
         Test the per-night spiral dither pattern.
@@ -259,6 +259,7 @@ class TestStackerClasses(unittest.TestCase):
         # Check that dithers on the same night are the same.
         self._t_dither_per_night(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], data["night"])
 
+    @unittest.skip("Dither Stackers deprecated")
     def test_hex_dither_per_night(self):
         """
         Test the per-night hex dither pattern.
@@ -289,6 +290,7 @@ class TestStackerClasses(unittest.TestCase):
         # Check that dithers on the same night are the same.
         self._t_dither_per_night(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], data["night"])
 
+    @unittest.skip("Dither Stackers deprecated")
     def test_random_rot_dither_per_filter_change_stacker(self):
         """
         Test the rotational dither stacker.

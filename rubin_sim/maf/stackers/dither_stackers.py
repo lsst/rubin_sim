@@ -7,15 +7,16 @@ __all__ = (
     "BaseDitherStacker",
     "RandomDitherFieldPerVisitStacker",
     "RandomDitherFieldPerNightStacker",
-    "RandomDitherPerNightStacker",
     "SpiralDitherFieldPerVisitStacker",
     "SpiralDitherFieldPerNightStacker",
-    "SpiralDitherPerNightStacker",
     "HexDitherFieldPerVisitStacker",
     "HexDitherFieldPerNightStacker",
+    "RandomDitherPerNightStacker",
+    "SpiralDitherPerNightStacker",
     "HexDitherPerNightStacker",
     "RandomRotDitherPerFilterChangeStacker",
 )
+
 
 import warnings
 

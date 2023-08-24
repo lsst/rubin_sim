@@ -11,17 +11,19 @@
 # Last updated: 06/11/16
 ###############################################################################################################
 __all__ = (
-    "RepulsiveRandomDitherFieldPerVisitStacker",
-    "RepulsiveRandomDitherFieldPerNightStacker",
     "RepulsiveRandomDitherPerNightStacker",
-    "FermatSpiralDitherFieldPerVisitStacker",
-    "FermatSpiralDitherFieldPerNightStacker",
     "FermatSpiralDitherPerNightStacker",
-    "PentagonDiamondDitherFieldPerSeasonStacker",
     "PentagonDitherPerSeasonStacker",
     "PentagonDiamondDitherPerSeasonStacker",
     "SpiralDitherPerSeasonStacker",
 )
+
+# deprecated
+#  "RepulsiveRandomDitherFieldPerVisitStacker",
+#  "FermatSpiralDitherFieldPerVisitStacker",
+# "RepulsiveRandomDitherFieldPerNightStacker",
+# "FermatSpiralDitherFieldPerNightStacker",
+#  "PentagonDiamondDitherFieldPerSeasonStacker",
 
 import numpy as np
 
@@ -220,7 +222,7 @@ class RepulsiveRandomDitherFieldPerVisitStacker(BaseStacker):
         self.x_off = x_off
         self.y_off = y_off
 
-    def _run(self, sim_data):
+    def _run(self, sim_data, cols_present=False):
         # Generate random numbers for dither, using defined seed value if desired.
         if self.random_seed is not None:
             np.random.seed(self.random_seed)
@@ -307,7 +309,7 @@ class RepulsiveRandomDitherFieldPerNightStacker(RepulsiveRandomDitherFieldPerVis
         # Values required for framework operation: this specifies the data columns required from the database.
         self.cols_req.append(self.night_col)
 
-    def _run(self, sim_data):
+    def _run(self, sim_data, cols_present=False):
         # Generate random numbers for dither, using defined seed value if desired.
         if self.random_seed is not None:
             np.random.seed(self.random_seed)
@@ -394,7 +396,7 @@ class RepulsiveRandomDitherPerNightStacker(RepulsiveRandomDitherFieldPerVisitSta
         # Values required for framework operation: this specifies the data columns required from the database.
         self.cols_req.append(self.night_col)
 
-    def _run(self, sim_data):
+    def _run(self, sim_data, cols_present=False):
         # Generate random numbers for dither, using defined seed value if desired.
         if self.random_seed is not None:
             np.random.seed(self.random_seed)
@@ -428,7 +430,7 @@ class FermatSpiralDitherFieldPerVisitStacker(BaseStacker):
     Offset along a Fermat's spiral with num_points, out to a maximum radius of max_dither.
     Sequential offset for each visit to a field.
 
-    Note: dithers are confined to the hexagon inscribed in the circle with with radius max_dither
+    Note: dithers are confined to the hexagon inscribed in the circle with radius max_dither
     Note: Fermat's spiral is defined by r= c*sqrt(n), theta= n*angle, n= integer
 
     Parameters
@@ -487,7 +489,7 @@ class FermatSpiralDitherFieldPerVisitStacker(BaseStacker):
         self.x_off = r * np.cos(theta)
         self.y_off = r * np.sin(theta)
 
-    def _run(self, sim_data):
+    def _run(self, sim_data, cols_present=False):
         # Generate the spiral offset vertices.
         self._generate_fermat_spiral_offsets()
         # Now apply to observations.
@@ -566,7 +568,7 @@ class FermatSpiralDitherFieldPerNightStacker(FermatSpiralDitherFieldPerVisitStac
         # Values required for framework operation: this specifies the data columns required from the database.
         self.cols_req.append(self.night_col)
 
-    def _run(self, sim_data):
+    def _run(self, sim_data, cols_present=False):
         # Generate the spiral offset vertices.
         self._generate_fermat_spiral_offsets()
         # Now apply to observations.
@@ -648,7 +650,7 @@ class FermatSpiralDitherPerNightStacker(FermatSpiralDitherFieldPerVisitStacker):
         # Values required for framework operation: this specifies the data columns required from the database.
         self.cols_req.append(self.night_col)
 
-    def _run(self, sim_data):
+    def _run(self, sim_data, cols_present=False):
         # Generate the spiral offset vertices.
         self._generate_fermat_spiral_offsets()
 
@@ -667,10 +669,7 @@ class FermatSpiralDitherPerNightStacker(FermatSpiralDitherFieldPerVisitStacker):
             vertex_id += 1
 
         # Wrap into expected range.
-        (
-            sim_data["fermatSpiralDitherPerNightRa"],
-            sim_data["fermatSpiralDitherPerNightDec"],
-        ) = wrap_ra_dec(
+        (sim_data["fermatSpiralDitherPerNightRa"], sim_data["fermatSpiralDitherPerNightDec"],) = wrap_ra_dec(
             sim_data["fermatSpiralDitherPerNightRa"],
             sim_data["fermatSpiralDitherPerNightDec"],
         )
@@ -740,7 +739,7 @@ class PentagonDitherFieldPerSeasonStacker(BaseStacker):
         self.x_off = np.concatenate((zip(*inner)[0], zip(*outer)[0]), axis=0)
         self.y_off = np.concatenate((zip(*inner)[1], zip(*outer)[1]), axis=0)
 
-    def _run(self, sim_data):
+    def _run(self, sim_data, cols_present=False):
         # find the seasons associated with each visit.
         seasons = calc_season(sim_data[self.ra_col], simdata[self.exp_mjd_col])
         # check how many entries in the >10 season
@@ -840,7 +839,7 @@ class PentagonDiamondDitherFieldPerSeasonStacker(BaseStacker):
         self.x_off = np.concatenate(([0], zip(*diamond_coord)[0], zip(*pent_coord)[0]), axis=0)
         self.y_off = np.concatenate(([0], zip(*diamond_coord)[1], zip(*pent_coord)[1]), axis=0)
 
-    def _run(self, sim_data):
+    def _run(self, sim_data, cols_present=False):
         # find the seasons associated with each visit.
         seasons = calc_season(sim_data[self.ra_col], sim_data[self.exp_mjd_col])
 
@@ -926,7 +925,7 @@ class PentagonDitherPerSeasonStacker(PentagonDitherFieldPerSeasonStacker):
         # Values required for framework operation: this specifies the names of the new columns.
         self.cols_added = ["pentagonDitherPerSeasonRa", "pentagonDitherPerSeasonDec"]
 
-    def _run(self, sim_data):
+    def _run(self, sim_data, cols_present=False):
         # find the seasons associated with each visit.
         seasons = calc_season(sim_data[self.ra_col], sim_data[self.exp_mjd_col])
         years = sim_data[self.nightCol] % 365.25
@@ -981,10 +980,7 @@ class PentagonDitherPerSeasonStacker(PentagonDitherFieldPerSeasonStacker):
             vertex_id += 1
 
         # Wrap into expected range.
-        (
-            sim_data["pentagonDitherPerSeasonRa"],
-            sim_data["pentagonDitherPerSeasonDec"],
-        ) = wrap_ra_dec(
+        (sim_data["pentagonDitherPerSeasonRa"], sim_data["pentagonDitherPerSeasonDec"],) = wrap_ra_dec(
             sim_data["pentagonDitherPerSeasonRa"],
             sim_data["pentagonDitherPerSeasonDec"],
         )
@@ -1037,7 +1033,7 @@ class PentagonDiamondDitherPerSeasonStacker(PentagonDiamondDitherFieldPerSeasonS
             "pentagonDiamondDitherPerSeasonDec",
         ]
 
-    def _run(self, sim_data):
+    def _run(self, sim_data, cols_present=False):
         # find the seasons associated with each visit.
         seasons = calc_season(sim_data[self.ra_col], sim_data[self.exp_mjd_col])
 
@@ -1129,7 +1125,7 @@ class SpiralDitherPerSeasonStacker(SpiralDitherFieldPerVisitStacker):
         self.cols_added = ["spiralDitherPerSeasonRa", "spiralDitherPerSeasonDec"]
         self.cols_req.append(self.exp_mjd_col)
 
-    def _run(self, sim_data):
+    def _run(self, sim_data, cols_present=False):
         # find the seasons associated with each visit.
         seasons = calc_season(sim_data[self.raCol], sim_data[self.exp_mjd_col])
 

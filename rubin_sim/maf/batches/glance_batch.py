@@ -58,7 +58,7 @@ def glanceBatch(
         raise ValueError("colmap must be a dictionary, not a string")
 
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
 
     bundle_list = []
 

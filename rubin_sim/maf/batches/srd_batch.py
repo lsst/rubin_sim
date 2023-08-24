@@ -15,7 +15,7 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
 
 from .col_map_dict import col_map_dict
-from .common import combine_info_labels, radec_cols, standard_summary
+from .common import standard_summary
 
 
 def fOBatch(
@@ -49,7 +49,7 @@ def fOBatch(
     metric_bundleDict
     """
     if colmap is None:
-        colmap = col_map_dict("fbs")
+        colmap = col_map_dict()
 
     bundleList = []
 
@@ -66,10 +66,9 @@ def fOBatch(
 
     subgroup = info_label
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
-    # Don't want dither info in subgroup (too long), but do want it in bundle name.
-    info_label = combine_info_labels(info_label, ditherMeta)
-
+    raCol = colmap["ra"]
+    decCol = colmap["dec"]
+    degrees = colmap["raDecDeg"]
     # Set up fO metric.
     if slicer is None:
         nside = 64
@@ -145,7 +144,6 @@ def fOBatch(
         slicer,
         sql,
         plot_dict=plotDict,
-        stacker_list=[ditherStacker],
         display_dict=displayDict,
         summary_metrics=summaryMetrics,
         plot_funcs=[plots.FOPlot()],
@@ -185,7 +183,7 @@ def astrometryBatch(
     metric_bundleDict
     """
     if colmap is None:
-        colmap = col_map_dict("fbs")
+        colmap = col_map_dict()
     bundleList = []
 
     sql = ""
@@ -442,7 +440,7 @@ def rapidRevisitBatch(
     metric_bundleDict
     """
     if colmap is None:
-        colmap = col_map_dict("fbs")
+        colmap = col_map_dict()
     bundleList = []
 
     sql = ""

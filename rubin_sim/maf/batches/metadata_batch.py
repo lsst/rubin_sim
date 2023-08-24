@@ -10,7 +10,6 @@ __all__ = (
 
 import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.plots as plots
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
 
@@ -19,7 +18,6 @@ from .common import (
     combine_info_labels,
     extended_metrics,
     filter_list,
-    radec_cols,
     standard_angle_metrics,
     standard_summary,
 )
@@ -69,7 +67,7 @@ def metadataBasics(
     metric_bundleDict
     """
     if colmap is None:
-        colmap = col_map_dict("fbs")
+        colmap = col_map_dict()
     bundleList = []
 
     if valueName is None:
@@ -87,8 +85,10 @@ def metadataBasics(
 
     displayDict = {"group": groupName, "subgroup": subgroup}
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
-    extraInfoLabel = combine_info_labels(extraInfoLabel, ditherMeta)
+    raCol = colmap["ra"]
+    decCol = colmap["dec"]
+    degrees = colmap["raDecDeg"]
+
     # Set up basic all and per filter sql constraints.
     filterlist, colors, orders, sqls, info_label = filter_list(
         all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
@@ -217,7 +217,7 @@ def metadataBasicsAngle(
     metric_bundleDict
     """
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
     bundleList = []
 
     if valueName is None:
@@ -235,8 +235,9 @@ def metadataBasicsAngle(
 
     displayDict = {"group": groupName, "subgroup": subgroup}
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
-    extraInfoLabel = combine_info_labels(extraInfoLabel, ditherMeta)
+    raCol = colmap["ra"]
+    decCol = colmap["dec"]
+    degrees = colmap["raDecDeg"]
     # Set up basic all and per filter sql constraints.
     filterlist, colors, orders, sqls, info_label = filter_list(
         all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
@@ -336,7 +337,7 @@ def allMetadata(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None
     """
 
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
 
     bdict = {}
 
@@ -413,7 +414,7 @@ def metadataMaps(
     metric_bundleDict
     """
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
     bundleList = []
 
     if valueName is None:
@@ -431,8 +432,9 @@ def metadataMaps(
 
     displayDict = {"group": groupName, "subgroup": subgroup}
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(None, colmap, None)
-    extraInfoLabel = combine_info_labels(extraInfoLabel, ditherMeta)
+    raCol = colmap["ra"]
+    decCol = colmap["dec"]
+    degrees = colmap["raDecDeg"]
     # Set up basic all and per filter sql constraints.
     filterlist, colors, orders, sqls, info_label = filter_list(
         all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
@@ -506,7 +508,7 @@ def firstYearMetadata(colmap=None, runName="opsim", extraSql=None, extraInfoLabe
     """
 
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
 
     bdict = {}
 

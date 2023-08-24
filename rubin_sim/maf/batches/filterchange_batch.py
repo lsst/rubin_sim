@@ -80,7 +80,7 @@ def filtersPerNight(colmap=None, runName="opsim", nights=1, extraSql=None, extra
     """
 
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
     bundleList = []
 
     # Set up sql and info_label, if passed any additional information.
@@ -144,7 +144,7 @@ def filtersWholeSurvey(colmap=None, runName="opsim", extraSql=None, extraInfoLab
     metric_bundleDict
     """
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
     bundleList = []
 
     # Set up sql and info_label, if passed any additional information.

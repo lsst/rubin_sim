@@ -136,7 +136,7 @@ def quick_discovery_batch(
     magtype="asteroid",
 ):
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
     bundleList = []
 
     basicPlotDict = {
@@ -277,7 +277,7 @@ def discovery_batch(
     magtype="asteroid",
 ):
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
     bundleList = []
 
     basicPlotDict = {
@@ -906,7 +906,7 @@ def characterization_inner_batch(
 ):
     """Characterization metrics for inner solar system objects."""
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
     bundleList = []
 
     # Set up a dictionary to pass to each metric for the column names.
@@ -1103,7 +1103,7 @@ def characterization_outer_batch(
 ):
     """Characterization metrics for outer solar system objects."""
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
     bundleList = []
 
     # Set up a dictionary to pass to each metric for the column names.
