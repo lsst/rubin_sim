@@ -11,10 +11,8 @@ import numpy.ma as ma
 import tqdm
 
 import rubin_sim.maf.db as db
-import rubin_sim.maf.maps as maps
 import rubin_sim.maf.utils as utils
 from rubin_sim.maf.plots import PlotHandler
-from rubin_sim.maf.stackers import BaseDitherStacker
 
 from .metric_bundle import MetricBundle, create_empty_metric_bundle
 
@@ -397,16 +395,6 @@ class MetricBundleGroup:
                 uniq_maps.append(m)
 
         # Run stackers.
-        # Run dither stackers first. (this is a bit of a hack -- we should probably figure out
-        # proper hierarchy and DAG so that stackers run in the order they need to. This will catch 90%).
-        dither_stackers = []
-        for s in uniq_stackers:
-            if isinstance(s, BaseDitherStacker):
-                dither_stackers.append(s)
-        for stacker in dither_stackers:
-            self.sim_data = stacker.run(self.sim_data, override=True)
-            uniq_stackers.remove(stacker)
-
         for stacker in uniq_stackers:
             # Note that stackers will clobber previously existing rows with the same name.
             self.sim_data = stacker.run(self.sim_data, override=True)

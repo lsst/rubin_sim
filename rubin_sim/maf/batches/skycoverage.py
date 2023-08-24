@@ -27,7 +27,7 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
         Additional info_label to add before any below (i.e. "WFD").  Default is None.
     """
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
     bundleList = []
 
     group = "RA Dec coverage"
@@ -90,7 +90,7 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=Non
         Additional info_label to add before any below (i.e. "WFD").  Default is None.
     """
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
     bundleList = []
 
     group = "East vs West"

@@ -220,7 +220,9 @@ class Bandpass:
         tempbandpass = Bandpass()
         for component in component_list:
             # Read data from file.
-            tempbandpass.read_throughput(os.path.join(root_dir, component))
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                tempbandpass.read_throughput(os.path.join(root_dir, component))
             tempbandpass.resample_bandpass(
                 wavelen_min=wavelen_min,
                 wavelen_max=wavelen_max,

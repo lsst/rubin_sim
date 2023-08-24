@@ -11,7 +11,7 @@ from .common import filter_list
 
 def basicSetup(metric_name, colmap=None, nside=64):
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
 
     slicer = slicers.HealpixSlicer(
         nside=nside,

@@ -12,10 +12,24 @@ class CoaddStacker(BaseStacker):
 
     Parameters
     ----------
-    list : str, optional
-        Name of the columns used.
-        Default : 'observationStartMJD', 'fieldRA', 'fieldDec','filter','fiveSigmaDepth','visitExposureTime','night','observationId', 'numExposures','visitTime'
-
+    mjd_col : `str`, optional
+        Name of the MJD column
+    ra_col : `str`, optional
+        Name of the RA column
+    dec_col : `str`, optional
+        Name of the Dec column
+    m5_col : `str`, optional
+        Name of the m5 column
+    filter_col : `str`, optional
+        Name of the filter column
+    night_col : `str`, optional
+        Name of the night column
+    num_exposures_col : `str`, optional
+        Name of the number of exposures per visit column
+    visit_time_col : `str`, optional
+        Name of the total visit time column
+    visit_exposure_time_col : `str`, optional
+        Name of the on-sky exposure time column
     """
 
     cols_added = ["coadd"]
@@ -26,7 +40,6 @@ class CoaddStacker(BaseStacker):
         ra_col="fieldRA",
         dec_col="fieldDec",
         m5_col="fiveSigmaDepth",
-        nightcol="night",
         filter_col="filter",
         night_col="night",
         num_exposures_col="numExposures",
@@ -57,14 +70,13 @@ class CoaddStacker(BaseStacker):
 
     def _run(self, sim_data, cols_present=False):
         """
-
         Parameters
-        ---------------
+        ------------
         sim_data : simulation data
         cols_present: to check whether the field has already been estimated
 
         Returns
-        -----------
+        --------
         numpy array of initial fields plus modified fields:
         - m5Col: "coadded" m5
         - numExposuresCol: sum of  numExposuresCol
@@ -124,7 +136,10 @@ class CoaddStacker(BaseStacker):
                 if colname == "coadd":
                     r.append(1)
                 else:
-                    r.append(np.median(tab[colname]))
+                    if tab[colname].dtype == "object":
+                        r.append(tab[colname][0])
+                    else:
+                        r.append(np.median(tab[colname]))
             if colname == self.m5_col:
                 r.append(self.m5_coadd(tab[self.m5_col]))
             if colname in [
@@ -154,10 +169,4 @@ class CoaddStacker(BaseStacker):
         -----------
         "coadded" m5 value
         """
-
-        fluxes = 10 ** (-0.4 * m5)
-        sigmas = fluxes / 5.0
-        sigma_tot = 1.0 / np.sqrt(np.sum(1.0 / sigmas**2))
-        flux_tot = 5.0 * sigma_tot
-
-        return -2.5 * np.log10(flux_tot)
+        return 1.25 * np.log10(np.sum(10.0 ** (0.8 * m5)))

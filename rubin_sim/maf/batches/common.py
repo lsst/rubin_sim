@@ -1,7 +1,6 @@
 __all__ = (
     "combine_info_labels",
     "filter_list",
-    "radec_cols",
     "standard_summary",
     "extended_summary",
     "standard_metrics",
@@ -17,7 +16,6 @@ __all__ = (
 import inspect
 
 import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.stackers as stackers
 
 
 def combine_info_labels(info1, info2):
@@ -84,39 +82,6 @@ def filter_list(all=True, extra_sql=None, extra_info_label=None):
             else:
                 sqls[s] = "(%s) and (%s)" % (extra_sql, sqls[s])
     return filterlist, colors, orders, sqls, info_labels
-
-
-def radec_cols(dither_stacker, colmap, ditherkwargs=None):
-    degrees = colmap["raDecDeg"]
-    if dither_stacker is None:
-        raCol = colmap["ra"]
-        decCol = colmap["dec"]
-        stacker = None
-        ditherInfoLabel = None
-    else:
-        if isinstance(dither_stacker, stackers.BaseDitherStacker):
-            stacker = dither_stacker
-        else:
-            s = stackers.BaseStacker().registry[dither_stacker]
-            args = [f for f in inspect.getfullargspec(s).args if f.endswith("Col")]
-            # Set up default dither kwargs.
-            kwargs = {}
-            for a in args:
-                colmapCol = a.replace("Col", "")
-                if colmapCol in colmap:
-                    kwargs[a] = colmap[colmapCol]
-            # Update with passed values, if any.
-            if ditherkwargs is not None:
-                kwargs.update(ditherkwargs)
-            stacker = s(degrees=degrees, **kwargs)
-        raCol = stacker.colsAdded[0]
-        decCol = stacker.colsAdded[1]
-        # Send back some info_label information.
-        ditherInfoLabel = stacker.__class__.__name__.replace("Stacker", "")
-        if ditherkwargs is not None:
-            for k, v in ditherkwargs.items():
-                ditherInfoLabel += " " + "%s:%s" % (k, v)
-    return raCol, decCol, degrees, stacker, ditherInfoLabel
 
 
 def standard_summary(withCount=True):

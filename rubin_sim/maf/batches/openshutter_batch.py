@@ -26,7 +26,7 @@ def openshutterFractions(colmap=None, runName="opsim", extraSql=None, extraInfoL
         Additional info_label to add before any below (i.e. "WFD").  Default is None.
     """
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
     bundleList = []
 
     group = "Open Shutter Fraction"

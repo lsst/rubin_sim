@@ -658,6 +658,7 @@ def science_radar_batch(
 
     # Do the weak lensing per year
     for year in np.arange(1, 10):
+        displayDict["order"] = year
         sqlconstraint = (
             'note not like "DD%"'
             + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year * 365.25)

@@ -5,7 +5,7 @@ import numpy as np
 import rubin_sim.maf.batches as batches
 
 
-def metadata_bundle_dicts(allsky_slicer, wfd_slicer, opsim="opsim", colmap=batches.col_map_dict("FBS")):
+def metadata_bundle_dicts(allsky_slicer, wfd_slicer, opsim="opsim", colmap=batches.col_map_dict()):
     # Set up the bundle dicts
     # Some of these metrics are reproduced in other scripts - srd and cadence
     bdict = {}

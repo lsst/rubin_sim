@@ -7,15 +7,16 @@ __all__ = (
     "BaseDitherStacker",
     "RandomDitherFieldPerVisitStacker",
     "RandomDitherFieldPerNightStacker",
-    "RandomDitherPerNightStacker",
     "SpiralDitherFieldPerVisitStacker",
     "SpiralDitherFieldPerNightStacker",
-    "SpiralDitherPerNightStacker",
     "HexDitherFieldPerVisitStacker",
     "HexDitherFieldPerNightStacker",
+    "RandomDitherPerNightStacker",
+    "SpiralDitherPerNightStacker",
     "HexDitherPerNightStacker",
     "RandomRotDitherPerFilterChangeStacker",
 )
+
 
 import warnings
 
@@ -614,7 +615,7 @@ class SpiralDitherFieldPerVisitStacker(BaseDitherStacker):
         thetapts = np.zeros(self.num_points, float)
         for i, ap in enumerate(arcpts):
             diff = np.abs(arc - ap)
-            match = np.where(diff == diff.min())[0]
+            match = np.where(diff == diff.min())[0][0]
             rpts[i] = r[match]
             thetapts[i] = theta[match]
         # Translate these r/theta points into x/y (ra/dec) offsets.

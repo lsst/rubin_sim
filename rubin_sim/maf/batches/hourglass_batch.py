@@ -26,7 +26,7 @@ def hourglassPlots(colmap=None, runName="opsim", nyears=10, extraSql=None, extra
         Add an extra piece of info_label before running metrics. Default None.
     """
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
     bundleList = []
 
     sql = ""

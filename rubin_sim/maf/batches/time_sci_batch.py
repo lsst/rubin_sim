@@ -2,15 +2,13 @@
 """
 __all__ = ("phaseGap",)
 
-import numpy as np
-
 import rubin_sim.maf.metric_bundles as mb
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.slicers as slicers
 
 from .col_map_dict import col_map_dict
-from .common import combine_info_labels, filter_list, radec_cols, standard_summary
+from .common import combine_info_labels, standard_summary
 
 
 def phaseGap(
@@ -19,8 +17,6 @@ def phaseGap(
     nside=64,
     extraSql=None,
     extraInfoLabel=None,
-    ditherStacker=None,
-    ditherkwargs=None,
 ):
     """Generate a set of statistics about the pair/triplet/etc. rate within a night.
 
@@ -36,10 +32,6 @@ def phaseGap(
         Additional sql constraint to apply to all metrics.
     extraInfoLabel : str or None, optional
         Additional info_label to apply to all results.
-    ditherStacker: str or rubin_sim.maf.stackers.BaseDitherStacker
-        Optional dither stacker to use to define ra/dec columns.
-    ditherkwargs: dict or None, optional
-        Optional dictionary of kwargs for the dither stacker.
 
     Returns
     -------
@@ -47,15 +39,16 @@ def phaseGap(
     """
 
     if colmap is None:
-        colmap = col_map_dict("opsimV4")
+        colmap = col_map_dict()
 
     info_label = extraInfoLabel
     if extraSql is not None and len(extraSql) > 0:
         if info_label is None:
             info_label = extraSql
 
-    raCol, decCol, degrees, ditherStacker, ditherMeta = radec_cols(ditherStacker, colmap, ditherkwargs)
-    info_label = combine_info_labels(info_label, ditherMeta)
+    raCol = colmap["ra"]
+    decCol = colmap["dec"]
+    degrees = colmap["raDecDeg"]
 
     bundleList = []
     standardStats = standard_summary()
