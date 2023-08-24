@@ -136,7 +136,10 @@ class CoaddStacker(BaseStacker):
                 if colname == "coadd":
                     r.append(1)
                 else:
-                    r.append(np.median(tab[colname]))
+                    if tab[colname].dtype == "object":
+                        r.append(tab[colname][0])
+                    else:
+                        r.append(np.median(tab[colname]))
             if colname == self.m5_col:
                 r.append(self.m5_coadd(tab[self.m5_col]))
             if colname in [
@@ -166,10 +169,4 @@ class CoaddStacker(BaseStacker):
         -----------
         "coadded" m5 value
         """
-
-        fluxes = 10 ** (-0.4 * m5)
-        sigmas = fluxes / 5.0
-        sigma_tot = 1.0 / np.sqrt(np.sum(1.0 / sigmas**2))
-        flux_tot = 5.0 * sigma_tot
-
-        return -2.5 * np.log10(flux_tot)
+        return 1.25 * np.log10(np.sum(10.0 ** (0.8 * m5)))
