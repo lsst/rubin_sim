@@ -669,7 +669,10 @@ class FermatSpiralDitherPerNightStacker(FermatSpiralDitherFieldPerVisitStacker):
             vertex_id += 1
 
         # Wrap into expected range.
-        (sim_data["fermatSpiralDitherPerNightRa"], sim_data["fermatSpiralDitherPerNightDec"],) = wrap_ra_dec(
+        (
+            sim_data["fermatSpiralDitherPerNightRa"],
+            sim_data["fermatSpiralDitherPerNightDec"],
+        ) = wrap_ra_dec(
             sim_data["fermatSpiralDitherPerNightRa"],
             sim_data["fermatSpiralDitherPerNightDec"],
         )
@@ -980,7 +983,10 @@ class PentagonDitherPerSeasonStacker(PentagonDitherFieldPerSeasonStacker):
             vertex_id += 1
 
         # Wrap into expected range.
-        (sim_data["pentagonDitherPerSeasonRa"], sim_data["pentagonDitherPerSeasonDec"],) = wrap_ra_dec(
+        (
+            sim_data["pentagonDitherPerSeasonRa"],
+            sim_data["pentagonDitherPerSeasonDec"],
+        ) = wrap_ra_dec(
             sim_data["pentagonDitherPerSeasonRa"],
             sim_data["pentagonDitherPerSeasonDec"],
         )
