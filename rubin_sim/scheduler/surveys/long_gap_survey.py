@@ -99,10 +99,14 @@ class LongGapSurvey(BaseSurvey):
         """
 
         # Only match if we have completed the second of a pair and are in most recent night.
+        # ugh, stupid np.where doesn't support using scalars anymore
         if np.size(observations) == 1:
-            need_to_observe = (observations["note"] == self.blob_survey.survey_note + ", b") & (
+            if (observations["note"] == self.blob_survey.survey_note + ", b") & (
                 observations["night"] == np.max(observations["night"])
-            )
+            ):
+                need_to_observe = np.array([0])
+            else:
+                need_to_observe = np.array([])
         else:
             need_to_observe = np.where(
                 (observations["note"] == self.blob_survey.survey_note + ", b")

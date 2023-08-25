@@ -1,5 +1,6 @@
 __all__ = ("Conditions",)
 
+import warnings
 from io import StringIO
 
 import healpy as hp
@@ -393,6 +394,8 @@ class Conditions:
     @mjd.setter
     def mjd(self, value):
         # If MJD is changed, everything else is no longer valid, so re-init
+        if self.mjd is not None:
+            warnings.warn("Changing MJD and resetting all attributes.")
         self._init_attributes()
         self._mjd = value
 

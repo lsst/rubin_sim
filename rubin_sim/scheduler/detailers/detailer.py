@@ -218,7 +218,10 @@ class CloseAltDetailer(BaseDetailer):
 
         # Find the closest in angular distance of the points that are in band
         ang_dist = _angular_separation(az[in_band], alt[in_band], conditions.tel_az, conditions.tel_alt)
-        good = np.min(np.where(ang_dist == ang_dist.min())[0])
+        if np.size(ang_dist) == 1:
+            good = 0
+        else:
+            good = np.min(np.where(ang_dist == ang_dist.min())[0])
         indx = in_band[good]
         result = observation_list[indx:] + observation_list[:indx]
         return result
