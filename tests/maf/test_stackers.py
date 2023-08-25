@@ -1,11 +1,13 @@
-import unittest
 import os
+import unittest
 import warnings
 
 import matplotlib
 import numpy as np
 
 import rubin_sim.maf.stackers as stackers
+from rubin_sim.data import get_data_dir
+from rubin_sim.maf import get_sim_data
 from rubin_sim.utils import (
     ObservationMetaData,
     Site,
@@ -13,8 +15,6 @@ from rubin_sim.utils import (
     _galactic_from_equatorial,
     calc_lmst_last,
 )
-from rubin_sim.data import get_data_dir
-from rubin_sim.maf import get_sim_data
 
 matplotlib.use("Agg")
 

@@ -354,6 +354,7 @@ class BlobSurvey(GreedySurvey):
                 self.smooth_reward()
         else:
             self.reward = -np.inf
+            return self.reward
 
         if self.area_required is not None:
             max_indices = np.where(self.reward == np.nanmax(self.reward))[0]

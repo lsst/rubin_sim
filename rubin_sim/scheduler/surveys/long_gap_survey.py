@@ -99,10 +99,15 @@ class LongGapSurvey(BaseSurvey):
         """
 
         # Only match if we have completed the second of a pair and are in most recent night.
-        need_to_observe = np.where(
-            (observations["note"] == self.blob_survey.survey_note + ", b")
-            & (observations["night"] == np.max(observations["night"]))
-        )[0]
+        if np.size(observations) == 1:
+            need_to_observe = (observations["note"] == self.blob_survey.survey_note + ", b") & (
+                observations["night"] == np.max(observations["night"])
+            )
+        else:
+            need_to_observe = np.where(
+                (observations["note"] == self.blob_survey.survey_note + ", b")
+                & (observations["night"] == np.max(observations["night"]))
+            )[0]
 
         # Set to the proper gap
         self.gap = self.gaps[np.max(observations["night"])]

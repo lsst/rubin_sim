@@ -360,7 +360,7 @@ class ModelObservatory:
     def mjd(self, value):
         self._mjd = value
         self.almanac_indx = self.almanac.mjd_indx(value)
-        self.night = self.almanac.sunsets["night"][self.almanac_indx]
+        self.night = np.max(self.almanac.sunsets["night"][self.almanac_indx])
 
     def observation_add_data(self, observation):
         """
