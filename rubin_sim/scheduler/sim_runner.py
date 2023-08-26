@@ -113,7 +113,7 @@ def sim_runner(
         mjd = observatory.mjd + 0
         if verbose:
             if (mjd - mjd_track) > step:
-                progress = float(mjd - mjd_start) / mjd_run * 100
+                progress = np.max((mjd - mjd_start) / mjd_run * 100)
                 text = "\rprogress = %.2f%%" % progress
                 sys.stdout.write(text)
                 sys.stdout.flush()

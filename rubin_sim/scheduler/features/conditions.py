@@ -1,5 +1,6 @@
 __all__ = ("Conditions",)
 
+import warnings
 from io import StringIO
 
 import healpy as hp
@@ -45,6 +46,7 @@ class Conditions:
         mjd_start=59853.5,
         season_offset=None,
         sun_ra_start=None,
+        mjd=None,
     ):
         """
         Parameters
@@ -61,6 +63,9 @@ class Conditions:
         season_offset : np.array
             A HEALpix array that specifies the day offset when computing the season for each HEALpix.
         sun_ra_start : float (None)
+            The RA of the sun at the start of the survey (radians)
+        mjd : float
+            The current MJD.
 
         Attributes (Set on init)
         -----------
@@ -212,6 +217,12 @@ class Conditions:
         # The RA, Dec grid we are using
         self.ra, self.dec = _hpid2_ra_dec(nside, hpids)
 
+        self._init_attributes()
+        self.mjd = mjd
+
+    def _init_attributes(self):
+        """Initialize all the attributes"""
+
         # Modified Julian Date (day)
         self._mjd = None
         # Altitude and azimuth. Dict with degrees and radians
@@ -289,6 +300,11 @@ class Conditions:
         self.season_max_season = None
         self.season_length = 365.25
         self.season_floor = True
+
+        # Potential attributes that get computed
+        self._solar_elongation = None
+        self._az_to_sun = None
+        self._az_to_antisun = None
 
     @property
     def lmst(self):
@@ -377,17 +393,11 @@ class Conditions:
 
     @mjd.setter
     def mjd(self, value):
+        # If MJD is changed, everything else is no longer valid, so re-init
+        if self.mjd is not None:
+            warnings.warn("Changing MJD and resetting all attributes.")
+        self._init_attributes()
         self._mjd = value
-        # Set things that need to be recalculated to None
-        self._az = None
-        self._alt = None
-        self._pa = None
-        self._HA = None
-        self._lmst = None
-        self._az_to_sun = None
-        self._az_to_antisun = None
-        self._season = None
-        self._solar_elongation = None
 
     @property
     def skybrightness(self):
