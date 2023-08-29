@@ -367,15 +367,18 @@ class TwilightInterp:
         # Filter names, from bluest to reddest.
         self.filter_names = ["B", "G", "R"]
 
-        for fname, filter_name in zip(fnames, self.filter_names):
-            bpdata = np.genfromtxt(
-                os.path.join(data_dir, "Canon/", fname),
-                delimiter=", ",
-                dtype=list(zip(["wave", "through"], [float] * 2)),
-            )
-            bp_temp = Bandpass()
-            bp_temp.set_bandpass(bpdata["wave"], bpdata["through"])
-            canon_filters[filter_name] = bp_temp
+        # Supress warning that Canon filters are low sampling
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for fname, filter_name in zip(fnames, self.filter_names):
+                bpdata = np.genfromtxt(
+                    os.path.join(data_dir, "Canon/", fname),
+                    delimiter=", ",
+                    dtype=list(zip(["wave", "through"], [float] * 2)),
+                )
+                bp_temp = Bandpass()
+                bp_temp.set_bandpass(bpdata["wave"], bpdata["through"])
+                canon_filters[filter_name] = bp_temp
 
         # Tack on the LSST filters
         through_path = os.path.join(get_data_dir(), "throughputs", "baseline")
