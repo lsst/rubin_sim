@@ -367,6 +367,9 @@ class TwilightInterp:
         # Filter names, from bluest to reddest.
         self.filter_names = ["B", "G", "R"]
 
+        # Supress warning that Canon filters are low sampling
+        warnings.filterwarnings("ignore", message="There is an area of")
+        warnings.filterwarnings("ignore", message="Wavelength sampling of")
         for fname, filter_name in zip(fnames, self.filter_names):
             bpdata = np.genfromtxt(
                 os.path.join(data_dir, "Canon/", fname),
@@ -375,6 +378,11 @@ class TwilightInterp:
             )
             bp_temp = Bandpass()
             bp_temp.set_bandpass(bpdata["wave"], bpdata["through"])
+            bp_temp.resample_bandpass(
+                wavelen_min=self.solar_spec.wavelen.min(),
+                wavelen_max=self.solar_spec.wavelen.max(),
+                wavelen_step=0.2,
+            )
             canon_filters[filter_name] = bp_temp
 
         # Tack on the LSST filters
