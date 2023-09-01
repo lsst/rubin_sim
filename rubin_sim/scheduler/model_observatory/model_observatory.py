@@ -1,5 +1,6 @@
 __all__ = ("ModelObservatory", "NoClouds", "NominalSeeing")
 
+
 import healpy as hp
 import numpy as np
 from astropy.coordinates import EarthLocation
@@ -215,11 +216,12 @@ class ModelObservatory:
         sun_moon_info = self.almanac.get_sun_moon_positions(self.mjd)
         season_offset = create_season_offset(self.nside, sun_moon_info["sun_RA"])
         self.sun_ra_start = sun_moon_info["sun_RA"] + 0
+        self.season_offset = season_offset
         # Conditions object to update and return on request
         self.conditions = Conditions(
             nside=self.nside,
-            mjd_start=mjd_start,
-            season_offset=season_offset,
+            mjd_start=self.mjd_start,
+            season_offset=self.season_offset,
             sun_ra_start=self.sun_ra_start,
         )
 
@@ -246,8 +248,13 @@ class ModelObservatory:
         -------
         rubin_sim.scheduler.features.conditions object
         """
-
-        self.conditions.mjd = self.mjd
+        self.conditions = Conditions(
+            nside=self.nside,
+            mjd_start=self.mjd_start,
+            season_offset=self.season_offset,
+            sun_ra_start=self.sun_ra_start,
+            mjd=self.mjd,
+        )
 
         self.conditions.night = int(self.night)
         # Current time as astropy time
