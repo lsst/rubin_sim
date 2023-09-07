@@ -61,6 +61,10 @@ class SunHighLimitBasisFunction(BaseBasisFunction):
     ----------
     sun_alt_limit : `float`
         The sun altitude limit (degrees). Sun must be higher than this at sunset to execute
+    time_to_12deg : `float`
+        How much time must be remaining before 12 degree twilight in the morning (minutes)
+    time_remaining : `float`
+        Minimum about of time that must be available before trying to execute (minutes)
     """
 
     def __init__(self, sun_alt_limit=-14.8, time_to_12deg=21.0, time_remaining=15.0):

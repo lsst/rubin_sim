@@ -37,7 +37,7 @@ __all__ = (
     "AvoidDirectWind",
     "BalanceVisits",
     "RewardNObsSequence",
-    "FilterDistBasisFunction"
+    "FilterDistBasisFunction",
 )
 
 import warnings
@@ -207,9 +207,7 @@ class FilterDistBasisFunction(BaseBasisFunction):
         # Count of all the observations
         self.survey_features["n_obs_count_all"] = features.NObsCount(filtername=None)
         # Count in filter
-        self.survey_features["n_obs_count_in_filt"] = features.NObsCount(
-            filtername=filtername
-        )
+        self.survey_features["n_obs_count_in_filt"] = features.NObsCount(filtername=filtername)
 
     def _calc_value(self, conditions, indx=None):
         result = self.survey_features["n_obs_count_all"].feature / (
