@@ -19,6 +19,7 @@ __all__ = (
     "EndOfEveningBasisFunction",
     "TimeToScheduledBasisFunction",
     "LimitObsPnightBasisFunction",
+    "SunHighLimitBasisFunction",
 )
 
 import matplotlib.pylab as plt
@@ -49,6 +50,36 @@ class FilterLoadedBasisFunction(BaseBasisFunction):
             result = filtername in conditions.mounted_filters
             if result is False:
                 return result
+        return result
+
+
+class SunHighLimitBasisFunction(BaseBasisFunction):
+    """Only execute if the sun is high. Have a sum alt limit for sunset, and a time
+    until 12 degree twilight for sun rise.
+
+    Parameters
+    ----------
+    sun_alt_limit : `float`
+        The sun altitude limit (degrees). Sun must be higher than this at sunset to execute
+    """
+
+    def __init__(self, sun_alt_limit=-14.8, time_to_12deg=21.0, time_remaining=15.0):
+        super(SunHighLimitBasisFunction, self).__init__()
+        self.sun_alt_limit = np.radians(sun_alt_limit)
+        self.time_to_12deg = time_to_12deg / 60.0 / 24.0
+        self.time_remaining = time_remaining / 60.0 / 24.0
+
+    def check_feasibility(self, conditions):
+        result = False
+
+        # If the sun is high, it's ok to execute
+        if conditions.sun_alt > self.sun_alt_limit:
+            result = True
+        time_left = conditions.sun_n12_rising - conditions.mjd
+        if time_left < self.time_to_12deg:
+            result = True
+        if time_left < self.time_remaining:
+            result = False
         return result
 
 

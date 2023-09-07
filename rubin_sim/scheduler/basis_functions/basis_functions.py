@@ -37,6 +37,7 @@ __all__ = (
     "AvoidDirectWind",
     "BalanceVisits",
     "RewardNObsSequence",
+    "FilterDistBasisFunction"
 )
 
 import warnings
@@ -191,6 +192,29 @@ class DelayStartBasisFunction(BaseBasisFunction):
         result = True
         if conditions.night < self.nights_delay:
             result = False
+        return result
+
+
+class FilterDistBasisFunction(BaseBasisFunction):
+    """Track filter distribution, increase reward as fraction of observations in
+    specified filter drops.
+    """
+
+    def __init__(self, filtername="r"):
+        super(FilterDistBasisFunction, self).__init__(filtername=filtername)
+
+        self.survey_features = {}
+        # Count of all the observations
+        self.survey_features["n_obs_count_all"] = features.NObsCount(filtername=None)
+        # Count in filter
+        self.survey_features["n_obs_count_in_filt"] = features.NObsCount(
+            filtername=filtername
+        )
+
+    def _calc_value(self, conditions, indx=None):
+        result = self.survey_features["n_obs_count_all"].feature / (
+            self.survey_features["n_obs_count_in_filt"].feature + 1
+        )
         return result
 
 
