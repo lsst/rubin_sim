@@ -127,7 +127,7 @@ class NObsCount(BaseSurveyFeature):
         if self.filtername is None:
             self.feature += np.size(observations_array)
         else:
-            in_filt = np.where(observations_array["filter"] == self.filter)[0]
+            in_filt = np.where(observations_array["filter"] == self.filtername)[0]
             self.feature += np.size(in_filt)
 
     def add_observation(self, observation, indx=None):

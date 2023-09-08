@@ -49,8 +49,9 @@ from astropy.coordinates import SkyCoord
 
 from rubin_sim.scheduler import features, utils
 from rubin_sim.scheduler.utils import IntRounded
+from rubin_sim.site_models import SeeingModel
 from rubin_sim.skybrightness_pre import dark_sky
-from rubin_sim.utils import _hpid2_ra_dec
+from rubin_sim.utils import _hpid2_ra_dec, m5_flat_sed
 
 
 class BaseBasisFunction:
@@ -836,15 +837,42 @@ class M5DiffBasisFunction(BaseBasisFunction):
     """Basis function based on the 5-sigma depth.
     Look up the best depth a healpixel achieves, and compute
     the limiting depth difference given current conditions
+
+    Parameters
+    ----------
+    fiducial_FWHMEff : `float`
+        The zenith seeing to assume for "good" conditions
     """
 
-    def __init__(self, filtername="r", nside=None):
+    def __init__(self, filtername="r", fiducial_FWHMEff=0.7, nside=None):
         super(M5DiffBasisFunction, self).__init__(nside=nside, filtername=filtername)
-        # Need to look up the deepest m5 values for all the healpixels
-
-        self.dark_map = dark_sky(nside)[filtername]
+        # The dark sky surface brightness values
+        self.dark_sky = dark_sky(nside)[filtername]
+        self.dark_map = None
+        self.fiducial_FWHMEff = fiducial_FWHMEff
+        self.filtername = filtername
 
     def _calc_value(self, conditions, indx=None):
+        if self.dark_map is None:
+            # compute the maximum altitude each HEALpix reaches
+            sindec = np.sin(conditions.dec)
+            sinlat = np.sin(conditions.site.latitude_rad)
+            sinalt = sindec * sinlat + np.cos(conditions.dec) * np.cos(conditions.site.latitude_rad)
+            sinalt = np.clip(sinalt, -1, 1)
+            alt_max = np.arcsin(sinalt)
+            airmass_min = 1.0 / np.cos(np.pi / 2.0 - alt_max)
+            sm = SeeingModel(filter_list=[self.filtername])
+            fwhm_eff = sm(self.fiducial_FWHMEff, airmass_min)["fwhmEff"][0]
+            self.dark_map = m5_flat_sed(
+                self.filtername,
+                musky=self.dark_sky,
+                fwhm_eff=fwhm_eff,
+                exp_time=30.0,
+                airmass=airmass_min,
+                nexp=1,
+                tau_cloud=0,
+            )
+
         # No way to get the sign on this right the first time.
         result = conditions.m5_depth[self.filtername] - self.dark_map
         return result
