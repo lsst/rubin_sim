@@ -40,7 +40,7 @@ def data_dict():
         "site_models": "site_models_2023_03_28.tgz",
         "skybrightness": "skybrightness_may_2021.tgz",
         "skybrightness_pre": "skybrightness_pre_2022_5_18.tgz",
-        "throughputs": "throughputs_aug_2021.tgz",
+        "throughputs": "throughputs_2023_09_07.tgz",
         "tests": "tests_2022_10_18.tgz",
     }
     return file_dict
