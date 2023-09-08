@@ -69,6 +69,11 @@ class SunHighLimitBasisFunction(BaseBasisFunction):
 
     def __init__(self, sun_alt_limit=-14.8, time_to_12deg=21.0, time_remaining=15.0):
         super(SunHighLimitBasisFunction, self).__init__()
+        if time_to_12deg < time_remaining:
+            raise ValueError(
+                "time_to_12deg value of %f is less than time_remaining value of %f."
+                % (time_to_12deg, time_remaining)
+            )
         self.sun_alt_limit = np.radians(sun_alt_limit)
         self.time_to_12deg = time_to_12deg / 60.0 / 24.0
         self.time_remaining = time_remaining / 60.0 / 24.0
