@@ -29,7 +29,7 @@ class SimpleFilterSched(FilterSwapScheduler):
         if IntRounded(conditions.moon_phase) > self.illum_limit_ir:
             result = ["g", "r", "i", "z", "y"]
         else:
-            result = ["u", "g", "r", "i", "y"]
+            result = ["u", "g", "r", "i", "z"]
         return result
 
 
