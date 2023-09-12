@@ -63,7 +63,7 @@ def rs_download_sky():
     parser.add_argument(
         "--url_base",
         type=str,
-        default="https://s3df.slac.stanford.edu/groups/rubin/static/sim-data/sims_skybrightness_pre/h5/",
+        default="https://s3df.slac.stanford.edu/groups/rubin/static/sim-data/sims_skybrightness_pre/h5_2023_09_12/",
         help="Root URL of download location",
     )
     args = parser.parse_args()

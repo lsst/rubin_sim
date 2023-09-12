@@ -2,7 +2,6 @@ import glob
 import os
 
 import h5py
-import healpy
 import numpy as np
 
 from rubin_sim.data import get_data_dir
@@ -32,4 +31,4 @@ if __name__ == "__main__":
     dark_maps = np.empty(np.size(maximum_maps["r"]), dtype=list(zip(filternames, [float] * 6)))
     for filtername in filternames:
         dark_maps[filtername] = maximum_maps[filtername]
-    np.savez("dark_maps.npz", dark_maps=dark_maps)
+    np.savez(os.path.join(data_dir, "skybrightness_pre", "dark_maps.npz"), dark_maps=dark_maps)
