@@ -280,6 +280,7 @@ class ModelObservatory:
             self.seeing_fwhm_eff[key].fill(np.nan)
         # Use the model to get the seeing at this time and airmasses.
         fwhm_500 = self.seeing_data(current_time)
+        self.conditions.fwhm_500 = fwhm_500
         seeing_dict = self.seeing_model(fwhm_500, airmass[good])
         fwhm_eff = seeing_dict["fwhmEff"]
         for i, key in enumerate(self.seeing_model.filter_list):
