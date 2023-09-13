@@ -37,19 +37,21 @@ class FOPlot(BasePlotter):
         """
         Parameters
         ----------
-        metric_value : numpy.ma.MaskedArray
-            The metric values calculated with the 'Count' metric and a healpix slicer.
-        slicer : rubin_sim.maf.slicers.HealpixSlicer
-        user_plot_dict: dict
-            Dictionary of plot parameters set by user (overrides default values).
-            Note that asky and n_visits values set here and in the slicer should be consistent,
-            for plot labels and summary statistic values to be consistent.
-        fignum : int
-            Matplotlib figure number to use (default = None, starts new figure).
+        metric_value : `numpy.ma.MaskedArray`
+            The metric values calculated with `rubin_sim.maf.Count` and
+            a healpix slicer.
+        slicer : `rubin_sim.maf.slicers.HealpixSlicer`
+        user_plot_dict: `dict`
+            Dictionary of plot parameters set by user to override defaults.
+            Note that asky and n_visits values set here and in the slicer
+            should be consistent, for plot labels and summary statistic
+            values to be consistent.
+        fignum : `int`
+            Matplotlib figure number to use. Default starts new figure.
 
         Returns
         -------
-        int
+        fignum : `int`
            Matplotlib figure number used to create the plot.
         """
         if not hasattr(slicer, "nside"):
@@ -71,20 +73,19 @@ class FOPlot(BasePlotter):
             linewidth=plot_dict["linewidth"],
             zorder=0,
         )
-        # This is breaking the rules and calculating the summary stats in two places.
-        # Could just calculate summary stats and pass in labels.
+        # This results in calculating the summary stats in two places ..
+        # not the ideal choice but easiest for most uses in this case.
         rarr = np.array(list(zip(metric_value.compressed())), dtype=[("fO", metric_value.dtype)])
-        f_o_area = metrics.FOArea(col="fO", asky=plot_dict["asky"], norm=False, nside=slicer.nside).run(rarr)
-        f_o_nv = metrics.FONv(col="fO", n_visit=plot_dict["n_visits"], norm=False, nside=slicer.nside).run(
-            rarr
-        )
+        f_o_area = metrics.FOArea(
+            col="fO", n_visit=plot_dict["n_visits"], norm=False, nside=slicer.nside
+        ).run(rarr)
+        f_o_nv = metrics.FONv(col="fO", asky=plot_dict["asky"], norm=False, nside=slicer.nside).run(rarr)
 
         plt.axvline(x=plot_dict["n_visits"], linewidth=plot_dict["reflinewidth"], color="b")
         plt.axhline(y=plot_dict["asky"] / 1000.0, linewidth=plot_dict["reflinewidth"], color="r")
-        # Add lines for nvis_median and f_o_area: note if these are -666 (badval),
-        # the default x_min/y_min values will just leave them off the edges of the plot.
+        # Add lines for nvis_median and f_o_area:
+        # note if these are -666 (badval), they will 'disappear'
         nvis_median = f_o_nv["value"][np.where(f_o_nv["name"] == "MedianNvis")]
-        # Note that Nvis is the number of visits (it's not an area) - so goes on number axis
         plt.axvline(
             x=nvis_median,
             linewidth=plot_dict["reflinewidth"],
@@ -120,11 +121,12 @@ class FOPlot(BasePlotter):
 
 class SummaryHistogram(BasePlotter):
     """
-    Special plotter to summarize metrics which return a set of values at each slice_point,
-    such as if a histogram was calculated at each slice_point
-    (e.g. with the rubin_sim.maf.metrics.TgapsMetric).
-    Effectively marginalizes the calculated values over the sky, and plots the a summarized
-    version (reduced to a single according to the plot_dict['metricReduce'] metric).
+    Special plotter to summarize metrics which return a set of values
+    at each slice_point, e.g. a histogram the metric result per slicepoint.
+    (example: the results of with the rubin_sim.maf.metrics.TgapsMetric).
+    Essentially, this collapses the metric value over the sky and
+    plots a summarized version (reduced to a single value per point
+    according to the plot_dict['metricReduce'] metric).
     """
 
     def __init__(self):
@@ -155,24 +157,25 @@ class SummaryHistogram(BasePlotter):
         """
         Parameters
         ----------
-        metric_value : numpy.ma.MaskedArray
+        metric_value : `numpy.ma.MaskedArray`
             Handles 'object' datatypes for the masked array.
-        slicer : rubin_sim.maf.slicers
+        slicer : `rubin_sim.maf.slicer`
             Any MAF slicer.
-        user_plot_dict: dict
-            Dictionary of plot parameters set by user (overrides default values).
-            'metricReduce' (an rubin_sim.maf.metric) indicates how to marginalize the metric values
-            calculated at each point to a single series of values over the sky.
-            'histStyle' (True/False) indicates whether to plot the results as a step histogram (True)
-            or as a series of values (False)
-            'bins' (np.ndarray) sets the x values for the resulting plot and should generally match
-            the bins used with the metric.
-        fignum : int
-            Matplotlib figure number to use (default = None, starts new figure).
+        user_plot_dict: `dict`
+            Dictionary of plot parameters set by user to override defaults.
+            'metricReduce' (a `rubin_sim.maf.metric`) indicates how to
+            marginalize the metric values calculated at each point to a
+            single series of values over the sky.
+            'histStyle' (True/False) indicates whether to plot the
+            results as a step histogram (True) or as a series of values (False)
+            'bins' (np.ndarray) sets the x values for the resulting plot
+            and should generally match the bins used with the metric.
+        fignum : `int`
+            Matplotlib figure number to use. Default starts a new figure.
 
         Returns
         -------
-        int
+        fignum: `int`
            Matplotlib figure number used to create the plot.
         """
         plot_dict = {}
@@ -186,7 +189,7 @@ class SummaryHistogram(BasePlotter):
             raise ValueError(f"Did not find any data to plot in {self.plot_type}.")
         # Get the data type
         dt = metric_value.compressed()[0].dtype
-        # Change an array of arrays (dtype=object) to a 2-d array of correct dtype
+        # Change an array of arrays to a 2-d array of correct dtype
         m_v = np.array(metric_value.compressed().tolist(), dtype=[("metric_value", dt)])
         # Make an array to hold the combined result
         final_hist = np.zeros(m_v.shape[1], dtype=float)
