@@ -67,9 +67,7 @@ class ParallaxMetric(BaseMetric):
             units = "ratio"
         else:
             units = "mas"
-        super(ParallaxMetric, self).__init__(
-            cols, metric_name=metric_name, units=units, badval=badval, **kwargs
-        )
+        super().__init__(cols, units=units, badval=badval, **kwargs)
         # set return type
         self.m5_col = m5_col
         self.seeing_col = seeing_col
