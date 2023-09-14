@@ -233,7 +233,7 @@ def astrometryBatch(
         "caption": None,
     }
     # Expected error on parallax at 10 AU.
-    plotmaxVals = (2.0, 15.0)
+    plotmaxVals = (5.0, 18.0)
     good_parallax_limit = 11.5
     summary = [
         metrics.AreaSummaryMetric(
@@ -341,6 +341,60 @@ def astrometryBatch(
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
+
+    # Evaluate y-band-only parallax uncertainty
+    # Approximate "10sigma sources" as y=21.33
+    ymag = 21.33
+    if info_label == "All visits":
+        yinfo = "y band visits"
+    else:
+        yinfo = f"{info_label} y band only"
+    if len(sql) == 0:
+        ysql = "filter == 'y'"
+    else:
+        ysql = f"{sql} and filter == 'y'"
+    plotDict = {"x_min": 0, "x_max": 15, "color_min": 0, "color_max": 15}
+    metric = metrics.ParallaxMetric(
+        metric_name="Parallax Uncert @ %.1f" % (ymag),
+        rmag=ymag,
+        seeing_col=colmap["seeingGeom"],
+        filter_col=colmap["filter"],
+        m5_col=colmap["fiveSigmaDepth"],
+        normalize=False,
+    )
+    bundle = mb.MetricBundle(
+        metric,
+        slicer,
+        ysql,
+        info_label=yinfo,
+        stacker_list=[parallaxStacker],
+        display_dict=displayDict,
+        plot_dict=plotDict,
+        summary_metrics=summary,
+        plot_funcs=subsetPlots,
+    )
+    bundleList.append(bundle)
+    displayDict["order"] += 1
+    metric = metrics.ParallaxMetric(
+        metric_name="Normalized Parallax Uncert @ %.1f" % (ymag),
+        rmag=ymag,
+        seeing_col=colmap["seeingGeom"],
+        filter_col=colmap["filter"],
+        m5_col=colmap["fiveSigmaDepth"],
+        normalize=True,
+    )
+    bundle = mb.MetricBundle(
+        metric,
+        slicer,
+        ysql,
+        info_label=yinfo,
+        stacker_list=[parallaxStacker],
+        display_dict=displayDict,
+        summary_metrics=summary,
+        plot_funcs=subsetPlots,
+    )
+    bundleList.append(bundle)
+    displayDict["order"] += 1
 
     # Proper Motion metrics.
     displayDict = {
