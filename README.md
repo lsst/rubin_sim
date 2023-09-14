@@ -152,3 +152,14 @@ To update the source contents of the data files:
 * Update `rubin_sim/data/rs_download_data.py` so the `data_dict` function uses your new filename
 * Push and merge the change to `bin/rs_download_data`
 * Add a new tag, with a message indicating how the data package was changed. 
+
+## Updating throughputs
+
+Process for updating pre-computed files if system throughputs change.
+
+1) update rubin_sim_data/throughputs files
+2) update rubin_sim/rubin_sim/utils/sys_eng_vals.py
+3) recompute sky brightness files with rubin_sim.skybrightness.recalc_mags
+4) remake skybrightness_pre files with rubin_sim/rubin_sim/skybrightness_pre/data/generate_hdf5.py
+5) remake dark sky map with rubin_sim/rubin_sim/skybrightness_pre/data/generate_dark_sky.py
+6) tar and update files at SDF (throughputs, skybrightness, skybrightness_pre)

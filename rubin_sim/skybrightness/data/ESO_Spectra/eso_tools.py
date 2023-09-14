@@ -492,11 +492,6 @@ def generate_zodi(outDir=None):
         )
 
 
-def recalc_mags():
-    # XXX--todo, make a function that loads up all the spectra and recalculates the magnitudes
-    pass
-
-
 if __name__ == "__main__":
     generate_airglow()
     generate_loweratm()

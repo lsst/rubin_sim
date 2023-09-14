@@ -1,7 +1,6 @@
 import os
 import sys
 
-import astropy.units as u
 import h5py
 import healpy as hp
 import numpy as np
@@ -138,7 +137,7 @@ def generate_sky(
         sys.stdout.write(text)
         sys.stdout.flush()
         sm.set_ra_dec_mjd(ra, dec, mjd, degrees=True)
-        if sm.sunAlt <= sunLimit_rad:
+        if sm.sun_alt <= sunLimit_rad:
             mags = sm.return_mags()
             for key in filter_names:
                 sky_brightness[key].append(mags[key])
@@ -225,7 +224,7 @@ if __name__ == "__main__":
     # generate_sky(mjd0=59579, mjd_max=59579+10., outpath='healpix', outfile='small_example.npz_small')
     # generate_sky(mjd0=59579, mjd_max=59579+10., outpath='opsimFields', fieldID=True)
 
-    nyears = 15.0  # 20  # 13
+    nyears = 25.0  # 20  # 13
     day_pad = 30
     # Full year
     # mjds = np.arange(59560, 59560+365.25*nyears+day_pad+366, 366)
