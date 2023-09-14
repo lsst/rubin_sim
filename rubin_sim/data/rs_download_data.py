@@ -135,7 +135,7 @@ def rs_download_data():
             url_base = BACKUP_DATA_URL
     except ConnectionError:
         url_base = BACKUP_DATA_URL
-    print(f"Could not connect to {args.url_base}; trying {url_base}")
+        print(f"Could not connect to {args.url_base}; trying {url_base}")
     try:
         r = requests.get(url_base)
         fail_message = f"Could not connect to {args.url_base} or {url_base}. Check sites are up?"
