@@ -499,7 +499,7 @@ def glanceBatch(
 
     # Add basic slew stats.
     try:
-        slewDict = slewBasics(colmap=colmap, runName=run_name)
+        slewDict = slewBasics(colmap=colmap, run_name=run_name)
         bd.update(slewDict)
     except KeyError as e:
         warnings.warn("Could not add slew stats: missing required key %s from colmap" % (e))

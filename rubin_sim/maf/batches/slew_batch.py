@@ -12,7 +12,7 @@ from .col_map_dict import col_map_dict
 from .common import standard_metrics
 
 
-def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
+def slewBasics(colmap=None, run_name="opsim", sql_constraint=None):
     """Generate a simple set of statistics about the slew times and distances.
     These slew statistics can be run on the summary or default tables.
 
@@ -39,8 +39,8 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
     slicer = slicers.UniSlicer()
 
     info_label = "All visits"
-    if sqlConstraint is not None and len(sqlConstraint) > 0:
-        info_label = "%s" % (sqlConstraint)
+    if sql_constraint is not None and len(sql_constraint) > 0:
+        info_label = "%s" % (sql_constraint)
     displayDict = {
         "group": "Slew",
         "subgroup": "Slew Basics",
@@ -51,7 +51,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
     metric = metrics.CountMetric(colmap["slewtime"], metric_name="Slew Count")
     displayDict["caption"] = "Total number of slews recorded in summary table."
     displayDict["order"] += 1
-    bundle = mb.MetricBundle(metric, slicer, sqlConstraint, info_label=info_label, display_dict=displayDict)
+    bundle = mb.MetricBundle(metric, slicer, sql_constraint, info_label=info_label, display_dict=displayDict)
     bundleList.append(bundle)
     for metric in standard_metrics(colmap["slewtime"]):
         displayDict["caption"] = "%s in seconds." % (metric.name)
@@ -59,7 +59,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
         bundle = mb.MetricBundle(
             metric,
             slicer,
-            sqlConstraint,
+            sql_constraint,
             info_label=info_label,
             display_dict=displayDict,
         )
@@ -75,7 +75,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
     bundle = mb.MetricBundle(
         metric,
         slicer,
-        sqlConstraint,
+        sql_constraint,
         info_label=info_label,
         plot_dict=plotDict,
         display_dict=displayDict,
@@ -91,7 +91,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
     bundle = mb.MetricBundle(
         metric,
         slicer,
-        sqlConstraint,
+        sql_constraint,
         info_label=info_label,
         plot_dict=plotDict,
         display_dict=displayDict,
@@ -111,7 +111,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
         bundle = mb.MetricBundle(
             metric,
             slicer,
-            sqlConstraint,
+            sql_constraint,
             info_label=info_label,
             plot_dict=plotDict,
             display_dict=displayDict,
@@ -134,7 +134,7 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
         bundle = mb.MetricBundle(
             metric,
             slicer,
-            sqlConstraint,
+            sql_constraint,
             info_label=info_label,
             plot_dict=plotDict,
             display_dict=displayDict,
@@ -143,5 +143,5 @@ def slewBasics(colmap=None, runName="opsim", sqlConstraint=None):
 
     # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
-        b.set_run_name(runName)
+        b.set_run_name(run_name)
     return mb.make_bundles_dict_from_list(bundleList)
