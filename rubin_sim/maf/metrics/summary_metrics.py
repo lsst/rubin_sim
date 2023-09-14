@@ -1,5 +1,5 @@
 __all__ = (
-    "FootprintFraction",
+    "FootprintFractionMetric",
     "FOArea",
     "FONv",
     "IdentityMetric",
@@ -132,11 +132,10 @@ class FOArea(BaseMetric):
         asky=18000.0,
         nside=128,
         norm=False,
-        metric_name="FOArea",
         **kwargs,
     ):
         """asky = square degrees"""
-        super().__init__(col=col, metric_name=metric_name, **kwargs)
+        super().__init__(col=col, **kwargs)
         self.nvisit = n_visit
         self.nside = nside
         self.asky = asky
