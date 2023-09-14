@@ -24,25 +24,23 @@ def nvisitsM5Maps(
     slicer=None,
     runLength=10.0,
 ):
-    """Generate maps of the number of visits and coadded depth (with and without dust extinction)
-    in all bands and per filter.
+    """Generate maps of the number of visits and coadded depth
+    (with and without dust extinction) in all bands and per filter.
 
     Parameters
     ----------
     colmap : `dict`, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
+        A dictionary with a mapping of column names.
     runName : `str`, optional
-        The name of the simulated survey. Default is "opsim".
+        The name of the simulated survey.
     extraSql : `str`, optional
-        Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
-        Default None, for no additional constraints.
+        Additional constraint to add to any sql constraints.
     extraInfoLabel : `str`, optional
-        Additional info_label to add before any below (i.e. "WFD").  Default is None.
+        Additional info_label to add before any below (i.e. "WFD").
     slicer :  `rubin_sim.maf.slicer` or None, optional
         Optionally, use something other than an nside=64 healpix slicer
     runLength : `float`, optional
         Length of the simulated survey, for scaling values for the plot limits.
-        Default 10.
 
     Returns
     -------
@@ -140,7 +138,6 @@ def nvisitsM5Maps(
         # Skip "all" for coadded depth.
         if f == "all":
             continue
-        mag_zp = benchmarkVals["coaddedDepth"][f]
         sql = sqls[f]
         displayDict["caption"] = f"Coadded depth per healpix in {info_label[f]}."
         displayDict["caption"] += " More positive numbers indicate fainter limiting magnitudes."
@@ -168,7 +165,6 @@ def nvisitsM5Maps(
         # Skip "all" for coadded depth.
         if f == "all":
             continue
-        mag_zp = benchmarkVals["coaddedDepth"][f]
         sql = sqls[f]
         displayDict["caption"] = (
             "Coadded depth per healpix for extragalactic purposes "
@@ -178,7 +174,7 @@ def nvisitsM5Maps(
         displayDict["caption"] += " More positive numbers indicate fainter limiting magnitudes."
         displayDict["order"] = orders[f]
         plotDict = {
-            "percentile_clip": 93,
+            "percentile_clip": 90,
             "color": colors[f],
         }
         bundle = mb.MetricBundle(
@@ -205,19 +201,19 @@ def tEffMetrics(
     extraInfoLabel=None,
     slicer=None,
 ):
-    """Generate a series of Teff metrics. Teff total, per night, and sky maps (all and per filter).
+    """Generate a series of Teff metrics.
+    Teff total, per night, and sky maps (all and per filter).
 
     Parameters
     ----------
     colmap : `dict`, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
+        A dictionary with a mapping of column names.
     runName : `str`, optional
-        The name of the simulated survey. Default is "opsim".
+        The name of the simulated survey.
     extraSql : `str`, optional
-        Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
-        Default None, for no additional constraints.
+        Additional constraint to add to any sql constraints.
     extraInfoLabel : `str`, optional
-        Additional info_label to add before any below (i.e. "WFD").  Default is None.
+        Additional info_label to add before any below (i.e. "WFD").
     slicer : `rubin_sim.maf.slicer` or None, optional
         Optionally, use something other than an nside=64 healpix slicer
 
@@ -330,18 +326,17 @@ def nvisitsPerNight(
     Parameters
     ----------
     colmap : `dict` or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
+        A dictionary with a mapping of column names.
     runName : `str`, optional
         The name of the simulated survey. Default is "opsim".
     binNights : `int`, optional
-        Number of nights to count in each bin. Default = 1, count number of visits in each night.
+        Number of nights to count in each bin.
     extraSql : `str` or None, optional
-        Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
-        Default None, for no additional constraints.
+        Additional constraint to add to any sql constraints.
     extraInfoLabel : `str` or None, optional
-        Additional info_label to add before any below (i.e. "WFD").  Default is None.
+        Additional info_label to add before any below (i.e. "WFD").
     subgroup : `str` or None, optional
-        Use this for the 'subgroup' in the display_dict, instead of info_label. Default is None.
+        Use this for the 'subgroup' in the display_dict, instead of info_label.
 
     Returns
     -------
@@ -394,27 +389,29 @@ def nvisitsPerSubset(
     footprintConstraint=None,
     extraInfoLabel=None,
 ):
-    """Look at the distribution of a given sql constraint or footprint constraint's visits,
-    total number and distribution over time (# per night), if possible.
+    """Look at the distribution of a given sql constraint or
+    footprint constraint's visits, total number and distribution over time
+    (# per night), if possible.
 
     Parameters
     ----------
     opsdb : `str` or database connection
         Name of the opsim sqlite database.
     colmap : `dict` or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
+        A dictionary with a mapping of column names.
     runName : `str`, optional
         The name of the simulated survey. Default is "opsim".
     binNights : `int`, optional
-        Number of nights to count in each bin. Default = 1, count number of visits in each night.
+        Number of nights to count in each bin.
     constraint : `str` or None, optional
         SQL constraint to add to all metrics.
-        This would be the way to select only a given "Note" out of a simulation.
+        This would be the way to select only a given "Note".
     footprintConstraint : `np.ndarray` or None, optional
-        Footprint to look for visits within (and then identify via WFDlabelStacker).
+        Footprint to look for visits within
+        (and then identify via WFDlabelStacker).
         The footprint = a full length heapix array, filled with 0/1 values.
     extraInfoLabel : `str` or None, optional
-        Additional info_label to add before any below (i.e. "WFD").  Default is None.
+        Additional info_label to add before any below (i.e. "WFD").
 
     Returns
     -------
@@ -456,7 +453,8 @@ def nvisitsPerSubset(
         )
         bundleList.append(bundle)
 
-    # Or count the total number of visits that contribute towards a given footprint
+    # Or count the total number of visits that contribute
+    # towards a given footprint
     if footprintConstraint is not None:
         # Set up a stacker to use this footprint to label visits
         if extraInfoLabel is None:
