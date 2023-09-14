@@ -124,9 +124,7 @@ class ParallaxMetric(BaseMetric):
         for filt in filters:
             good = np.where(data_slice[self.filter_col] == filt)
             snr[good] = mafUtils.m52snr(self.mags[str(filt)], data_slice[self.m5_col][good])
-        position_errors = np.sqrt(
-            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2 + self.atm_err**2
-        )
+        position_errors = mafUtils.astrom_precision(data_slice[self.seeing_col], snr, self.atm_err)
         sigma = self._final_sigma(position_errors, data_slice["ra_pi_amp"], data_slice["dec_pi_amp"])
         if self.normalize:
             # Leave the dec parallax as zero since one can't have ra and dec maximized at the same time.

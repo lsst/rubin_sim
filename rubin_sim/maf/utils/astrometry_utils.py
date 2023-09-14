@@ -42,36 +42,41 @@ def m52snr(m, m5):
 
     Parameters
     ----------
-    m : float or numpy.ndarray
+    m : `float` or `np.ndarray` (N,)
         The magnitude of the star
-    m5 : float or numpy.ndarray
+    m5 : `float` or `np.ndarray` (N,)
         The m5 limiting magnitude of the observation
 
     Returns
     -------
-    float or numpy.ndarray
+    snr : `float` or `np.ndarray` (N,)
         The SNR
     """
-    snr = 5.0 * 10.0 ** (-0.4 * (m - m5))
+    # gamma varies per band, but is fairly close to this value
+    rgamma = 0.039
+    xval = np.power(10, 0.4 * (m - m5))
+    snr = 1 / np.sqrt((0.04 - rgamma) * xval + rgamma * xval * xval)
     return snr
 
 
-def astrom_precision(fwhm, snr):
+def astrom_precision(fwhm, snr, systematic_floor=0.01):
     """
     Calculate the approximate precision of astrometric measurements,
     given a particular seeing and SNR value.
 
     Parameters
     ----------
-    fwhm : float or numpy.ndarray
+    fwhm : `float` or `np.ndarray` (N,)
         The seeing (FWHMgeom) of the observation.
-    snr : float or numpy.ndarray
+    snr : float` or `np.ndarray` (N,)
         The SNR of the object.
+    systematic_floor : `float`
+        Systematic noise floor for astrometric error.
 
     Returns
     -------
-    float or numpy.ndarray
+    astrp,+err " `float` or `numpy.ndarray` (N,)
         The astrometric precision.
     """
-    result = fwhm / (snr)
-    return result
+    astrom_err = np.sqrt((fwhm / snr) ** 2 + systematic_floor**2)
+    return astrom_err
