@@ -13,7 +13,6 @@ __all__ = (
     "microlensing_summary",
 )
 
-import inspect
 
 import rubin_sim.maf.metrics as metrics
 

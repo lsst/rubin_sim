@@ -183,14 +183,14 @@ def quick_discovery_batch(
     def _configure_child_bundles(parentBundle):
         dispDict = {
             "group": f"{objtype}",
-            "subgroup": f"Completeness Over Time",
+            "subgroup": "Completeness Over Time",
             "caption": "Time of discovery of objects",
             "order": 0,
         }
         parentBundle.child_bundles["Time"].set_display_dict(dispDict)
         dispDict = {
             "group": f"{objtype}",
-            "subgroup": f"N Chances",
+            "subgroup": "N Chances",
             "caption": "Number of chances for discovery of objects",
             "order": 0,
         }
@@ -326,14 +326,14 @@ def discovery_batch(
     def _configure_child_bundles(parentBundle):
         dispDict = {
             "group": f"{objtype}",
-            "subgroup": f"Completeness Over Time",
+            "subgroup": "Completeness Over Time",
             "caption": "Time of discovery of objects",
             "order": 0,
         }
         parentBundle.child_bundles["Time"].set_display_dict(dispDict)
         dispDict = {
             "group": f"{objtype}",
-            "subgroup": f"N Chances",
+            "subgroup": "N Chances",
             "caption": "Number of chances for discovery of objects",
             "order": 0,
         }
@@ -734,7 +734,7 @@ def run_completeness_summary(bdict, h_mark, times, out_dir, results_db):
     # Write the completeness bundles to disk, so we can re-read them later.
     # (also set the display dict properties, for the results_db output).
     for b, bundle in completeness.items():
-        bundle.display_dict["subgroup"] = f"Completeness"
+        bundle.display_dict["subgroup"] = "Completeness"
         bundle.write(out_dir=out_dir, results_db=results_db)
 
     # Calculate total number of objects - currently for NEOs and PHAs only
@@ -825,7 +825,7 @@ def plot_completeness(
     plt.grid(True, alpha=0.3)
     # Make a PlotHandler to deal with savings/results_db, etc.
     ph = plots.PlotHandler(fig_format=fig_format, results_db=results_db, out_dir=out_dir)
-    display_dict["subgroup"] = f"Completeness over time"
+    display_dict["subgroup"] = "Completeness over time"
     display_dict["caption"] = "Completeness over time, for H values indicated in legend."
     ph.save_fig(
         fig.number,
@@ -881,7 +881,7 @@ def plot_completeness(
         "legendloc": (1.01, 0.1),
         "color": None,
     }
-    display_dict["subgroup"] = f"Completeness all criteria"
+    display_dict["subgroup"] = "Completeness all criteria"
     display_dict["caption"] = "Plotting all of the cumulative completeness curves together."
     ph.plot(
         plot_func=plots.MetricVsH(),
@@ -949,7 +949,7 @@ def characterization_inner_batch(
 
     # Number of observations.
     md = info_label
-    display_dict["subgroup"] = f"N Obs"
+    display_dict["subgroup"] = "N Obs"
     plotDict = {
         "ylabel": "Number of observations (#)",
         "title": "%s: Number of observations %s" % (run_name, md),
@@ -971,7 +971,7 @@ def characterization_inner_batch(
 
     # Observational arc.
     md = info_label
-    display_dict["subgroup"] = f"Obs Arc"
+    display_dict["subgroup"] = "Obs Arc"
     plotDict = {
         "ylabel": "Observational Arc (days)",
         "title": "%s: Observational Arc Length %s" % (run_name, md),
@@ -992,7 +992,7 @@ def characterization_inner_batch(
     bundleList.append(bundle)
 
     # Activity detection.
-    display_dict["subgroup"] = f"Activity"
+    display_dict["subgroup"] = "Activity"
     for w in windows:
         md = info_label + " activity lasting %.0f days" % w
         plotDict = {
@@ -1037,7 +1037,7 @@ def characterization_inner_batch(
 
     # Lightcurve inversion.
     md = info_label
-    display_dict["subgroup"] = f"Color/Inversion"
+    display_dict["subgroup"] = "Color/Inversion"
     plotDict = {
         "y_min": 0,
         "y_max": 1,
@@ -1146,7 +1146,7 @@ def characterization_outer_batch(
 
     # Number of observations.
     md = info_label
-    display_dict["subgroup"] = f"N Obs"
+    display_dict["subgroup"] = "N Obs"
     plotDict = {
         "ylabel": "Number of observations (#)",
         "title": "%s: Number of observations %s" % (run_name, md),
@@ -1168,7 +1168,7 @@ def characterization_outer_batch(
 
     # Observational arc.
     md = info_label
-    display_dict["subgroup"] = f"Obs Arc"
+    display_dict["subgroup"] = "Obs Arc"
     plotDict = {
         "ylabel": "Observational Arc (days)",
         "title": "%s: Observational Arc Length %s" % (run_name, md),
@@ -1189,7 +1189,7 @@ def characterization_outer_batch(
     bundleList.append(bundle)
 
     # Activity detection.
-    display_dict["subgroup"] = f"Activity"
+    display_dict["subgroup"] = "Activity"
     for w in windows:
         md = info_label + " activity lasting %.0f days" % w
         plotDict = {
@@ -1234,7 +1234,7 @@ def characterization_outer_batch(
 
     # Color determination.
     md = info_label
-    display_dict["subgroup"] = f"Color/Inversion"
+    display_dict["subgroup"] = "Color/Inversion"
     plotDict = {
         "y_min": 0,
         "y_max": 1,
@@ -1375,7 +1375,7 @@ def plot_fractions(
     if figroot is None:
         figroot = run_name
     display_dict = deepcopy(first.display_dict)
-    display_dict["subgroup"] = f"Characterization Fraction"
+    display_dict["subgroup"] = "Characterization Fraction"
 
     ph = plots.PlotHandler(fig_format=fig_format, results_db=results_db, out_dir=out_dir)
     ph.set_metric_bundles(bdictFractions)
